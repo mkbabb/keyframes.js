@@ -178,18 +178,23 @@ const EXCLUDED = new Set([
     // converse-coverage clause (0b) from demanding a tier membership that would re-introduce
     // the abort — the gate rides CI as a report-all tripwire, not as an aggregator member.
     "proof:keyframes-vue-published",
-    // L.W9 S4 — proof:control-point-live is the BORN-RED-BY-DESIGN DL-K7 GlassControlPoint
-    // tripwire (the SAME disposition as proof:peer-satisfied / proof:keyframes-vue-published
-    // above). GlassControlPoint is ABSENT from the published @mkbabb/glass-ui (the keyframes
-    // curve-editor consume target the K close HANDED OFF as W34, a ≥5-tranche chronic). It IS
-    // CI-invoked (the demo-smoke report-all job, continue-on-error) but is DELIBERATELY ABSENT
-    // from the blocking proof:correctness/proof:hygiene && chains: it STAYS RED until glass-ui
-    // BB publishes the component AND kf re-pins. Placing it in a blocking && chain would abort
-    // the chain on the expected RED. The exclusion keeps the converse-coverage clause (0b) from
-    // demanding a tier membership that would re-introduce the abort — the gate rides CI as a
-    // report-all tripwire, NOT as an aggregator member. (proof:workaround-deletion, by contrast,
-    // exits 0 PENDING today, so it IS a blocking proof:hygiene member and needs no exclusion.)
-    "proof:control-point-live",
+    // (The DL-K7 control-point tripwire was RETIRED at Q.WA2 / S2. It asserted a
+    //  glass-ui component BC decided NEVER to ship, and its false "needs drag2D"
+    //  premise mis-blocked the DemoControlPoint chain on a drag2D LIGHT export that
+    //  already exists (index.ts:88). The gate script, its package.json entry, its
+    //  ci.yml step/id/aggregator/echo, AND this exclusion entry were deleted in ONE
+    //  motion — no orphan survives. The DemoControlPoint live-behavior assertion moves
+    //  to Q.WC1's NEW proof:demo-control-point; proof:drag2d-light-certified LOCKS the
+    //  retire. The retired gate's key is intentionally NOT named here — its literal
+    //  token must grep to ZERO in this file.)
+    // Q.WA3 S4 — proof:hygiene-chain is the MEMBERSHIP carrier for the report-all
+    // proof:hygiene delegator (`node scripts/run-all.mjs --tier=proof:hygiene-chain`).
+    // It is the parseable `&&` chain the SCHEDULE (run-all) + the roster-deriving
+    // meta-gates (this gate's converse clause + proof:gate-is-runtime) read; it is NOT
+    // a distinct CI gate (every member is independently CI-invoked, exactly like
+    // proof:hygiene/proof:correctness/proof:all). Excluded from the forward-coverage
+    // demand for the same reason those sub-aggregators are.
+    "proof:hygiene-chain",
 ]);
 
 const gates = Object.keys(pkg.scripts)
@@ -220,10 +225,24 @@ if (missing.length > 0) {
 // orphans, GC-2/BP-4/WZ §E) was structurally invisible: this gate enforced only
 // `proof:* ⟹ CI-invoked`, never `CI-hard-gated ⟹ in-an-aggregator`. ─────────
 {
+    // Resolve a tier's MEMBERSHIP. A tier value is normally the parseable `&&` chain
+    // (the M.W1 single source). Q.WA3 S4 makes `proof:hygiene` a REPORT-ALL DELEGATOR
+    // (`node scripts/run-all.mjs --tier=proof:hygiene-chain`) so a local
+    // `npm run proof:hygiene` collects ALL reds in one pass instead of fail-fast — but
+    // the MEMBERSHIP must stay parseable for this gate + proof:gate-is-runtime. So when
+    // a tier delegates to run-all, we resolve the membership from the companion
+    // `--tier=<key>` chain (the chain key holds the verbatim `&&` membership — the
+    // SCHEDULE moves to run-all, the MEMBERSHIP stays in package.json, exactly the M.W1
+    // contract). A non-delegating tier resolves to itself.
+    const resolveTier = (key) => {
+        const val = String(pkg.scripts[key] ?? "");
+        const m = val.match(/run-all\.mjs\s+--tier=(proof:[a-z0-9-]+)/);
+        return m ? String(pkg.scripts[m[1]] ?? "") : val;
+    };
     const chainMembers = (chain) =>
         new Set([...String(chain).matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]));
-    const correctness = chainMembers(pkg.scripts["proof:correctness"] ?? "");
-    const hygiene = chainMembers(pkg.scripts["proof:hygiene"] ?? "");
+    const correctness = chainMembers(resolveTier("proof:correctness"));
+    const hygiene = chainMembers(resolveTier("proof:hygiene"));
     const ciInvoked = [
         ...new Set([...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1])),
     ].sort();
@@ -651,6 +670,175 @@ if (noConcurrency.length > 0) {
                     "+ the @mkbabb/* floor·protocol·realm-convergent lock close the publish-boundary gap).",
             );
         }
+    }
+}
+
+// ── ci.yml job partition (shared by clauses 6 + 7): split ci.yml into the two
+// jobs by their top-level `<name>:` keys at 4-space indent (`gates:` / `demo-smoke:`).
+// The `gates` job is the FAST library job; `demo-smoke` is the SLOW browser job. ───
+const jobBounds = (() => {
+    const lines = ci.split("\n");
+    const heads = [];
+    lines.forEach((l, i) => {
+        const m = l.match(/^ {4}([a-z][a-z0-9-]*):\s*$/);
+        if (m) heads.push({ name: m[1], line: i });
+    });
+    const span = (name) => {
+        const idx = heads.findIndex((h) => h.name === name);
+        if (idx === -1) return "";
+        const start = heads[idx].line;
+        const end = idx + 1 < heads.length ? heads[idx + 1].line : lines.length;
+        return lines.slice(start, end).join("\n");
+    };
+    return { gatesJob: span("gates"), demoJob: span("demo-smoke") };
+})();
+
+// ── clause 6 (Q.WA3 S1): terminal-aggregate-excludes-bornred ──────────────────
+// The demo-smoke terminal `check-failures` aggregator must NOT add any born-RED-by-
+// design tripwire to its BLOCKING exit-1 set. Including a born-RED tripwire there
+// made demo-smoke STRUCTURALLY NEVER green → the deploy-of-record (gated on a green
+// demo-smoke) could never fire. The two tripwires (peer-satisfied,
+// keyframes-vue-published) are the EXCLUDED-set members that ride
+// CI as RECORDED report-all tripwires, never as blocking aggregator members. We
+// derive the born-RED set from the EXCLUDED tripwires that STILL EXIST as
+// package.json keys (so a retired one — e.g. a gate deleted at Q.WA2 — is simply
+// not demanded), and assert NONE appears in a blocking `failed="$failed …"` line.
+{
+    const BORNRED_TRIPWIRES = [
+        "proof:peer-satisfied",
+        "proof:keyframes-vue-published",
+    ].filter((g) => g in pkg.scripts); // only those still present
+    // Find the check-failures step body (everything from its `- name: …check-failures`
+    // anchor to the end of the demo job — the aggregator is the demo job's tail step).
+    const lines = jobBounds.demoJob.split("\n");
+    const cfIdx = lines.findIndex((l) => /check-failures/.test(l));
+    const aggregator = cfIdx === -1 ? "" : lines.slice(cfIdx).join("\n");
+    if (cfIdx === -1) {
+        failures.push(
+            "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke job has NO " +
+                "`check-failures` terminal aggregator step; the report-all exit gate is missing.",
+        );
+    } else {
+        // A gate is in the BLOCKING set iff a line adds it to `failed` (NOT `bornred`).
+        const blockingBornred = BORNRED_TRIPWIRES.filter((gate) => {
+            const id = gate.replace(/^proof:/, "proof-");
+            const re = new RegExp(
+                `steps\\.${id.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\.outcome[\\s\\S]*?failed="\\$failed ${id.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}"`,
+            );
+            return re.test(aggregator);
+        });
+        if (blockingBornred.length > 0) {
+            failures.push(
+                "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke terminal " +
+                    "aggregator ADDS born-RED-by-design tripwire(s) to its BLOCKING `failed` set: " +
+                    blockingBornred.join(", ") +
+                    ". A born-RED tripwire in the exit-1 set makes demo-smoke STRUCTURALLY " +
+                    "never green → the deploy-of-record stays dead. RECORD it (a `bornred` " +
+                    "annotation), do NOT block on it.",
+            );
+        } else {
+            passes.push(
+                "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke terminal " +
+                    `aggregator's BLOCKING set excludes all ${BORNRED_TRIPWIRES.length} ` +
+                    `present born-RED tripwire(s) [${BORNRED_TRIPWIRES.join(", ") || "none"}]; ` +
+                    "they are RECORDED (annotated), not blocking — demo-smoke can go green.",
+            );
+        }
+    }
+}
+
+// ── clause 7 (Q.WA3 S4): static-gate-placement ────────────────────────────────
+// Every gate whose script opens NO browser (a pure source grep / graph-walk) MUST
+// ride the FAST library `gates` job, not the slow 50m demo-smoke browser job — the
+// F-7 device-dependence harden. A browser-less gate riding demo-smoke pays the
+// browser wall-clock for nothing (and is exposed to the slow-Linux-runner render-race
+// class). We classify each gate by reading its script: a gate is BROWSER-bound iff its
+// script (transitively, via the demo-driver lib) opens a browser — detected by the
+// KF_REQUIRE_BROWSER env on its CI step OR a browser-harness import in its script.
+// RECORDED CARVE-OUT: the three pre-existing-RED source gates (proof:decomposition,
+// proof:demo-no-oversize, proof:brittleness) carry COMMITTED source-shape reds that
+// Q.WA3's zero-source charter cannot fix; moving them to the fail-fast gates job would
+// block CI on an out-of-scope defect, so they STAY on demo-smoke's continue-on-error
+// report-all surface until a source-fix wave greens them. The carve-out is NAMED here
+// (a reason, not a silent exemption) and tightens by deletion as those gates green.
+{
+    const STATIC_DEMO_CARVEOUT = new Set([
+        // Pre-existing-RED committed source gates — kept on demo-smoke's report-all
+        // surface (continue-on-error) until a source-fix wave greens them. NOT a
+        // device-dependence; an out-of-Q.WA3-scope source red. Delete each entry when
+        // its gate greens (then it migrates to the fast gates job).
+        "proof:decomposition",
+        "proof:demo-no-oversize",
+        "proof:brittleness",
+        // Build-dependent demo gates: they read the gh-pages BUILD artifact (dist/
+        // gh-pages CSS), so they MUST run after the demo build in demo-smoke — not a
+        // browser, but not a pure source gate either.
+        "proof:modern-web",
+        "proof:platform-adopt",
+    ]);
+    // The browser-harness import signatures (a gate that opens chromium, inline or via
+    // the demo-driver lifecycle lib). A KF_REQUIRE_BROWSER env on the CI step is the
+    // strongest signal; the script-side import is the belt.
+    const opensBrowser = (gateKey) => {
+        const body = String(pkg.scripts[gateKey] ?? "");
+        // Match ANY scripts/<name>.mjs (not only proof-*.mjs — the headline demo gates
+        // run scripts/demo-smoke.mjs / occlusion-gate.mjs / lighthouse-gate.mjs).
+        const m = body.match(/scripts\/([a-z0-9-]+\.mjs)/i);
+        if (!m) return false; // vitest-only gate (no node script) — not a static grep
+        let src = "";
+        try {
+            src = readFileSync(join(root, "scripts", m[1]), "utf8");
+        } catch {
+            return false;
+        }
+        // A gate that imports the browser lifecycle / launches chromium / requires a
+        // browser context is BROWSER-bound (it legitimately needs the demo job). The
+        // KF_REQUIRE_BROWSER seam (the demo-driver hard-gate flag) is the strongest
+        // script-side signal.
+        return /serveDist|withBrowser|withPage|newContext|chromium|playwright|KF_REQUIRE_BROWSER/i.test(
+            src,
+        );
+    };
+    // The set of static (browser-less) gates that are CI-invoked.
+    const ciGateKeys = [
+        ...new Set([...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1])),
+    ];
+    const misplaced = [];
+    for (const gate of ciGateKeys) {
+        if (!(gate in pkg.scripts)) continue;
+        if (EXCLUDED.has(gate)) continue; // aggregators / tripwires handled elsewhere
+        if (STATIC_DEMO_CARVEOUT.has(gate)) continue; // named carve-out
+        if (opensBrowser(gate)) continue; // legitimately browser-bound → demo job
+        // It is a static (browser-less) gate. It must ride the gates job, NOT demo-smoke.
+        const id = gate.replace(/^proof:/, "proof-");
+        const inDemo = new RegExp(`run: npm run ${gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
+            jobBounds.demoJob,
+        );
+        const inGates = new RegExp(`run: npm run ${gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
+            jobBounds.gatesJob,
+        );
+        // A born-RED demo tripwire (peer-satisfied et al) needs the registry glass-ui
+        // install (demo job context) — already EXCLUDED above; this is the static set.
+        if (inDemo && !inGates) {
+            misplaced.push(gate);
+        }
+    }
+    if (misplaced.length > 0) {
+        failures.push(
+            "static-gate-placement (Q.WA3 S4) — these browser-less static gate(s) ride the " +
+                "slow demo-smoke job instead of the fast library `gates` job (the F-7 harden): " +
+                misplaced.join(", ") +
+                ". A pure source grep / graph-walk must ride the fast job (it pays no browser " +
+                "wall-clock + dodges the slow-Linux render-race class) — migrate it, or add a " +
+                "NAMED carve-out with a reason if it is build-dependent / pre-existing-RED.",
+        );
+    } else {
+        passes.push(
+            "static-gate-placement (Q.WA3 S4) — every browser-less static gate rides the fast " +
+                `library \`gates\` job (the ${STATIC_DEMO_CARVEOUT.size} named carve-outs — the ` +
+                "pre-existing-RED source gates + the build-dependent demo gates — stay on " +
+                "demo-smoke's report-all surface by recorded reason). The F-7 device harden holds.",
+        );
     }
 }
 

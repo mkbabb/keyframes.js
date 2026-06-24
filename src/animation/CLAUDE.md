@@ -150,10 +150,18 @@ All LIGHT (zero static value.js edge), composed over the engines above:
 - **`flip(el, mutate, opts)` / `flipShared`** (`flip.ts`) — FLIP
   (First-Last-Invert-Play) over `ElementMorph` + `RAFPlayback`; batched
   read-mutate-read, no interleaved layout thrash.
-- **`drag` / `Draggable`** (`drag.ts`) — pointer-capture drag/fling input layer
-  over `SpringProgress`; release velocity re-seats the closed-form spring so
-  the fling is continuous with the gesture. Framework-free; SSR-safe until
-  `attach()`.
+- **`drag` / `Draggable` / `drag2D`** (`drag.ts`) — pointer-capture drag/fling
+  input layer over `SpringProgress`; release velocity re-seats the closed-form
+  spring so the fling is continuous with the gesture. Framework-free; SSR-safe
+  until `attach()`. **`drag2D`** (re-exported from `drag-2d.ts` through `drag.ts`
+  → the barrel — the single LIGHT re-export chain) is the single-call 2-D drag
+  sugar: two one-axis `Draggable`s composed behind a 2-D handle, returning a
+  `Drag2DHandle` whose `value` is `{x,y}`; per-axis `bounds`/`snap`/`rubberBand`
+  pass through and `dispose()` tears down both. KISS — the 1-D engine stays 1-D.
+  It is a COMMITTED LIGHT public primitive (the DemoControlPoint substrate),
+  certified by `proof:drag2d-light-certified` (Q.WA2) + named in
+  `proof:published-surface`'s LIGHT set; `proof:boundary` proves it value.js-free
+  and `proof:drag-gesture` S4 proves the live 2-D follow.
 - **`decay` / `decayRest`** (`decay.ts`) — closed-form frictional glide
   `x(t) = x0 + (v0/k)(1 − e^(−kt))`; `decayRest` is the projected resting point.
   Pure math — no rAF, no DOM.

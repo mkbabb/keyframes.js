@@ -163,40 +163,72 @@ let ratioWeighted = NaN;
                 const adopt =
                     ratioAdd >= FLOOR_FRACTION && ratioWeighted >= FLOOR_FRACTION;
                 verdict = adopt ? "ADOPT" : "KILL";
-                // Record the durable verdict, scoped to transformFramesGrouped.
-                writeFileSync(
-                    decisionPath,
-                    JSON.stringify(
-                        {
-                            $comment:
-                                "SoA-vs-boxed blend ADOPT-or-KILL verdict (P.W2). The ratio is " +
-                                "scoped to AnimationGroup.transformFramesGrouped's add/weighted " +
-                                "arms ONLY (the isolated blend substrate, SAME-REPORT, device-" +
-                                "independent) — NOT the transplanted SpringProgress.setTargets " +
-                                "3.86× (a different path). ADOPT (>=1.2× at K=8) authorizes the " +
-                                "SoA fold; KILL forbids it and ships the boxed arms as-is. The " +
-                                "default `replace` arm is dispatch-free and untouched.",
-                            target:
-                                "AnimationGroup.transformFramesGrouped (add/weighted arms ONLY)",
-                            k: K,
-                            floorFraction: FLOOR_FRACTION,
-                            add: { soaOverBoxed: +ratioAdd.toFixed(3) },
-                            weighted: { soaOverBoxed: +ratioWeighted.toFixed(3) },
-                            verdict,
-                            recordedAt: new Date().toISOString(),
-                        },
-                        null,
-                        2,
-                    ) + "\n",
-                    "utf8",
-                );
-                ok(
-                    "verdict-scope",
-                    `${verdict}: add ${ratioAdd.toFixed(3)}× / weighted ` +
-                        `${ratioWeighted.toFixed(3)}× vs ${FLOOR_FRACTION}× at K=${K} ` +
-                        `(transformFramesGrouped-scoped, same-report). ` +
-                        `Verdict → scripts/soa-composite-decision.json`,
-                );
+                // DETERMINISTIC-WRITE (Q.WA3 S4 / the Q.W0 obligation): a normal gate
+                // run must leave the tree CLEAN. The freshly-measured verdict is the
+                // durable decision; we WRITE it ONLY under an explicit `KF_RECORD=1`
+                // (the deliberate re-record), and otherwise COMPARE the measured
+                // verdict against the COMMITTED one. The wall-clock `hz`/`ratio` +
+                // the `recordedAt` timestamp vary per run (a forced dirty tree), so
+                // the STABLE assertion is the ADOPT/KILL verdict — not the noisy
+                // numbers. Scoped to transformFramesGrouped.
+                const record = {
+                    $comment:
+                        "SoA-vs-boxed blend ADOPT-or-KILL verdict (P.W2). The ratio is " +
+                        "scoped to AnimationGroup.transformFramesGrouped's add/weighted " +
+                        "arms ONLY (the isolated blend substrate, SAME-REPORT, device-" +
+                        "independent) — NOT the transplanted SpringProgress.setTargets " +
+                        "3.86× (a different path). ADOPT (>=1.2× at K=8) authorizes the " +
+                        "SoA fold; KILL forbids it and ships the boxed arms as-is. The " +
+                        "default `replace` arm is dispatch-free and untouched.",
+                    target:
+                        "AnimationGroup.transformFramesGrouped (add/weighted arms ONLY)",
+                    k: K,
+                    floorFraction: FLOOR_FRACTION,
+                    add: { soaOverBoxed: +ratioAdd.toFixed(3) },
+                    weighted: { soaOverBoxed: +ratioWeighted.toFixed(3) },
+                    verdict,
+                    recordedAt: new Date().toISOString(),
+                };
+                if (process.env.KF_RECORD === "1") {
+                    writeFileSync(
+                        decisionPath,
+                        JSON.stringify(record, null, 2) + "\n",
+                        "utf8",
+                    );
+                    ok(
+                        "verdict-scope",
+                        `${verdict}: add ${ratioAdd.toFixed(3)}× / weighted ` +
+                            `${ratioWeighted.toFixed(3)}× vs ${FLOOR_FRACTION}× at K=${K} ` +
+                            `(transformFramesGrouped-scoped, same-report). ` +
+                            `RECORDED → scripts/soa-composite-decision.json (KF_RECORD=1)`,
+                    );
+                } else if (existsSync(decisionPath)) {
+                    const committed = JSON.parse(readFileSync(decisionPath, "utf8"));
+                    if (committed.verdict !== verdict) {
+                        fail(
+                            "verdict-scope",
+                            `the MEASURED verdict (${verdict}: add ${ratioAdd.toFixed(3)}× / ` +
+                                `weighted ${ratioWeighted.toFixed(3)}×) DISAGREES with the ` +
+                                `committed verdict (${committed.verdict}) in ` +
+                                `scripts/soa-composite-decision.json. Re-record with ` +
+                                `KF_RECORD=1 if the regime genuinely changed.`,
+                        );
+                    } else {
+                        ok(
+                            "verdict-scope",
+                            `${verdict}: add ${ratioAdd.toFixed(3)}× / weighted ` +
+                                `${ratioWeighted.toFixed(3)}× vs ${FLOOR_FRACTION}× at K=${K} ` +
+                                `(transformFramesGrouped-scoped, same-report) — MATCHES the ` +
+                                `committed verdict (tree stays clean; KF_RECORD=1 to re-record)`,
+                        );
+                    }
+                } else {
+                    fail(
+                        "verdict-scope",
+                        `no committed scripts/soa-composite-decision.json to compare the ` +
+                            `measured ${verdict} verdict against — record it once with KF_RECORD=1.`,
+                    );
+                }
             }
         }
     } finally {

@@ -315,6 +315,103 @@ jobs:
             # demand a consume-edge deletion that the sibling publish has made safe.
             - name: proof:workaround-deletion (L.W9 — the Band-B consume-edge deletion ledger · PENDING today · RED only when a sibling root-fix publishes)
               run: npm run proof:workaround-deletion
+            # ════════════════════════════════════════════════════════════════════
+            # F-7 STATIC-GATE MIGRATION (Q.WA3 S4) — the device-dependence harden.
+            # These ELEVEN gates open NO browser and read NO gh-pages build artifact
+            # — pure source greps / graph-walks, each MEASURED sub-second (105–155ms
+            # local; the measure-first discipline). They previously rode the slow 50m
+            # demo-smoke browser job for no reason; here they ride the fast 10m library
+            # gates job (it stays well under its ceiling — ~1.6s total added). They
+            # REMAIN proof:hygiene members (the coverage roster is unchanged — only the
+            # CI STEP placement moved). proof:ci-coverage's static-gate-placement clause
+            # (S4) enforces this. (The 3 pre-existing-RED source gates —
+            # proof:decomposition / proof:demo-no-oversize / proof:brittleness — are NOT
+            # migrated: they carry committed source-shape reds OUTSIDE Q.WA3's zero-source
+            # charter, so they stay on demo-smoke's continue-on-error report-all surface
+            # until a source-fix wave greens them; static-gate-placement records that
+            # carve-out by reason, not silently.)
+            # ════════════════════════════════════════════════════════════════════
+            - name: proof:no-deprecated-guard (H.W1 S5 — the deprecated next() nav-guard is gone from router.ts)
+              run: npm run proof:no-deprecated-guard
+            - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
+              run: npm run proof:single-writer
+            - name: proof:composable-encapsulation (H.W12 S2/I9 — the motion-path gesture engine is in the composable · pure store getters)
+              run: npm run proof:composable-encapsulation
+            - name: proof:no-brittle-selector (H.W12 S4/I11 — zero class-string DOM walks · named SAMPLE_STEP · ONE documented square-viewBox scale helper)
+              run: npm run proof:no-brittle-selector
+            - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
+              run: npm run proof:no-dup-utility
+            - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
+              run: npm run proof:idioms
+            - name: proof:phi-leaf-zero (H.W4 — the φ-hero chronic SYSTEM-property gate CH-2/M1 · zero raw rungs AND the hero on the audacious top φ rung)
+              run: npm run proof:phi-leaf-zero
+            - name: proof:icon-idiom (H.W4 S4 — the 61-no-op icon-sizing lock · every icon-* resolves to a design-idioms.css def · SVG cascade)
+              run: npm run proof:icon-idiom
+            - name: proof:styling-idioms (H.W12 I12 — the OWNED-IDIOMS contract membership · resolve-or-red · FORK-I12 reduction guard)
+              run: npm run proof:styling-idioms
+            - name: proof:dogfood (inv ζ — the demo dogfoods the engine, incl. the F.W10 inertia swap)
+              run: npm run proof:dogfood
+            - name: proof:demo-elevate (inv ο — View Transitions · a11y · idioms · the F.W13-16 clauses)
+              run: npm run proof:demo-elevate
+            - name: proof:dogfood-hero (H.W6 inv ζ — the hero dots loop on a kf engine class from @src; steppedEase is the value.js curve, NOT the dogfood symbol)
+              run: npm run proof:dogfood-hero
+            - name: proof:pp-logo-svg (H.W9 F4 — the ppmycota menu leads with the .ppmycota-logo-sm SVG mark · zero emoji · asset resolves)
+              run: npm run proof:pp-logo-svg
+            - name: proof:crayon-preserved (L.W11 — the crayon keepers resolve to their 4.3.0 hue · REFINE not abrogate · the wave SPINE · source-only)
+              run: npm run proof:crayon-preserved
+            # Q.W0 — proof:record-truth: the record-hygiene gate (the primary impl
+            # record reconciled to the shipped 4.4.0 truth). A node-only static gate
+            # over the record substrate — no browser, no demo build — so it rides the
+            # fast library gates job.
+            - name: proof:record-truth (Q.W0 — the primary impl record == the shipped 4.4.0 truth · record-hygiene)
+              run: npm run proof:record-truth
+            # ════════════════════════════════════════════════════════════════════
+            # IMPL-DRIVE GATES (Constellation IMPL drive 4.4.0) — wired here at Q.WA3
+            # S1. FOUR are PURE-NODE static (no vitest, no browser) → the fast library
+            # gates job. (proof:soa-composite chains `npm run proof:blend`, a vitest,
+            # but its own script is a node bench-probe; proof:spring-heatmap's browser
+            # half honestly SKIPs when playwright is absent — its static analytic-
+            # formula clauses are the verdict here, no KF_REQUIRE_BROWSER.)
+            # ════════════════════════════════════════════════════════════════════
+            - name: proof:no-foreign-symbol-stamp (M — no foreign-symbol stamp leaks the cross-realm seam)
+              run: npm run proof:no-foreign-symbol-stamp
+            - name: proof:soa-composite (P.W2 — the SoA compositor fold · MEASURE-FIRST ADOPT/KILL · byte-identical to boxed · zero-alloc · chains proof:blend)
+              run: npm run proof:soa-composite
+            - name: proof:portable-perf (P.W1 — the same-report ratio gate · device-independent perf floor)
+              run: npm run proof:portable-perf
+            - name: proof:spring-heatmap (P.W6 — the analytic parameter-space heatmap · closed-form overshoot · zero live SpringProgress · browser half skips when playwright absent)
+              run: npm run proof:spring-heatmap
+            # The TWO vitest-bearing impl-drive gates → the library gates job (they run
+            # `npm run … && vitest run <test>` over src/test — jsdom/node, no browser,
+            # no demo build — so they ride beside the other vitest library gates, NOT
+            # the demo-smoke browser job).
+            - name: proof:emerging-css-resolve-now (the emerging-CSS resolve-now seam · node + vitest test/emerging-css-resolve-now.test.ts)
+              run: npm run proof:emerging-css-resolve-now
+            - name: proof:morphsvg-consume (fromMorphSVG consume-edge · node + vitest test/morph-svg.test.ts)
+              run: npm run proof:morphsvg-consume
+            # ════════════════════════════════════════════════════════════════════
+            # Q.WA1/WA2/WA4 APPARATUS GATES — the SLIM lint floor · drag2D LIGHT cert ·
+            # the wave-charter contrivance gate · the constellation pin-ledger witness.
+            # Pure-node static (dep-cruiser graph / barrel import / DAG parse / pin scan)
+            # — no vitest, no browser — so they ride the fast library gates job.
+            # ════════════════════════════════════════════════════════════════════
+            - name: proof:lint-clean (Q.WA1 — the SLIM dependency-cruiser source-graph floor · no-cycle + leaf/light boundary)
+              run: npm run proof:lint-clean
+            - name: proof:drag2d-light-certified (Q.WA2 — drag2D is a certified, gate-locked LIGHT primitive · the DemoControlPoint substrate)
+              run: npm run proof:drag2d-light-certified
+            - name: proof:wave-charter (Q.WA4 — the 7-question contrivance smell-test + the DAG manifest acyclicity + no-unpublished-consume)
+              run: npm run proof:wave-charter
+            - name: proof:pin-ledger-current (Q.WA4 — the constellation pin-ledger witness · local pins == the shipped set · npm-view leg observe-only)
+              run: npm run proof:pin-ledger-current
+            # ════════════════════════════════════════════════════════════════════
+            # Q.WA3 APPARATUS GATES (the CI floor) — the master-merge oracle + the
+            # deploy round-trip oracle. Pure-node static (git ancestry / shell-script
+            # parse) — no vitest, no browser — so they ride the fast library gates job.
+            # ════════════════════════════════════════════════════════════════════
+            - name: proof:published-on-master (Q.WA3 S2 — the v4.4.0 release commit is an ancestor of master · the FIRST DAG motion)
+              run: npm run proof:published-on-master
+            - name: proof:deploy-roundtrip (Q.WA3 S3 — pages-deploy.sh validates the round-trip · HTTP-200 + served-vs-built hash · live leg observe-only)
+              run: npm run proof:deploy-roundtrip
 
     demo-smoke:
         name: demo gate (inv γ paints + inv δ occlusion-free)
@@ -387,22 +484,6 @@ jobs:
               id: proof-keyframes-vue-published
               continue-on-error: true
               run: npm run proof:keyframes-vue-published
-            # L.W9 S4 — proof:control-point-live: the DL-K7 GlassControlPoint
-            # tripwire, BORN-RED-BY-DESIGN (the SAME disposition as the two
-            # tripwires above). GlassControlPoint — the SVG control-point handle the
-            # keyframes curve editor consumes — is ABSENT from the published
-            # @mkbabb/glass-ui (a ≥5-tranche HANDOFF, W34). The gate is GATE-FIRST:
-            # authored BEFORE any implementation, per the K close's BOOK. It rides
-            # THIS report-all demo-smoke job (continue-on-error, where the registry
-            # @mkbabb/glass-ui IS installed so the published surface is probeable) so
-            # the expected RED is RECORDED in one run; the terminal check-failures
-            # step reds the job. DELIBERATELY ABSENT from the blocking proof:hygiene
-            # chain (the expected RED would abort the && chain) — it is a NAMED
-            # EXCLUDED tripwire in proof:ci-coverage, not an aggregator member.
-            - name: "[born-RED tripwire] proof:control-point-live (L.W9 S4 — GlassControlPoint absent from published glass-ui; RED until glass-ui BB ships it + kf re-pins)"
-              id: proof-control-point-live
-              continue-on-error: true
-              run: npm run proof:control-point-live
             - name: install playwright + lighthouse (demo-gate only; --no-save keeps the lib posture)
               run: npm i --no-save @playwright/test lighthouse
             - name: install chromium
@@ -834,14 +915,8 @@ jobs:
               id: proof-decomposition
               continue-on-error: true
               run: npm run proof:decomposition
-            - name: proof:no-deprecated-guard (H.W1 S5 — the deprecated next() nav-guard is gone from router.ts)
-              id: proof-no-deprecated-guard
-              continue-on-error: true
-              run: npm run proof:no-deprecated-guard
-            - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
-              id: proof-single-writer
-              continue-on-error: true
-              run: npm run proof:single-writer
+            # F-7 (Q.WA3 S4): proof:no-deprecated-guard + proof:single-writer MIGRATED
+            # to the fast library gates job (device-independent source greps).
             # RETIRED (I.W7 S5): the static dragscrub proxy — a static-grep
             # source-shape gate (the drag DANCE has ONE home). SUPERSEDED by the
             # CORRECTNESS-tier proof:drag-gesture above, which drives a REAL
@@ -857,10 +932,8 @@ jobs:
             # (the lazy-init getStored* seed-on-read is the recorded carve-out), and
             # no writable computed writes in its GET half. Born-RED on the pre-W12
             # gesture engine inline in the Target. Structural + grep, no browser.
-            - name: proof:composable-encapsulation (H.W12 S2/I9 — the motion-path gesture engine is in the composable · the Target is projection-math-free · pure store getters)
-              id: proof-composable-encapsulation
-              continue-on-error: true
-              run: npm run proof:composable-encapsulation
+            # F-7 (Q.WA3 S4): proof:composable-encapsulation MIGRATED to the fast
+            # library gates job (device-independent source grep, no browser).
             # H.W12 S3/I10 — the demo stays decomposed + colocated (born-GREEN
             # regression guard). Every demo .vue/.ts (under demo/, dist/ excluded)
             # is ≤500L; each stage-scene dir colocates *Target.vue + use*Demo.ts +
@@ -879,14 +952,8 @@ jobs:
             # ONE clientToUserUnits helper (so a future non-square stage breaks
             # there, visibly, not in two drifting copies). Born-RED on the pre-W12
             # bare SAMPLE_STEP=5 magic + the implicit square coupling. Static grep.
-            - name: proof:no-brittle-selector (H.W12 S4/I11 — zero class-string DOM walks · named SAMPLE_STEP · ONE documented square-viewBox scale helper)
-              id: proof-no-brittle-selector
-              continue-on-error: true
-              run: npm run proof:no-brittle-selector
-            - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
-              id: proof-no-dup-utility
-              continue-on-error: true
-              run: npm run proof:no-dup-utility
+            # F-7 (Q.WA3 S4): proof:no-brittle-selector + proof:no-dup-utility MIGRATED
+            # to the fast library gates job (device-independent source greps).
             # RETIRED + DELETED (I.W7 S5): proof:specular-handoff — a born-RED IOU
             # parked against the UNPUBLISHED glass-ui 3.8.0 (vaporware the user never
             # sees; rc-gate-blindspot §2.5, the B7 vaporware lesson). SUPERSEDED by
@@ -901,10 +968,8 @@ jobs:
             # real assets/ppmycota-logo-*.svg on disk (resolve-or-red, mirrors
             # proof:idioms clause-1). Scoped to the ppmycota row (the @mbabb row's 🎉 is
             # legitimate). Grep + asset-resolve — slots in beside the demo static gates.
-            - name: proof:pp-logo-svg (H.W9 F4 — the ppmycota menu leads with the .ppmycota-logo-sm SVG mark · zero emoji · asset resolves)
-              id: proof-pp-logo-svg
-              continue-on-error: true
-              run: npm run proof:pp-logo-svg
+            # F-7 (Q.WA3 S4): proof:pp-logo-svg MIGRATED to the fast library gates job
+            # (device-independent grep + asset-resolve, no browser).
             # H.W9 F3+F6 RETIRE — proof:cartoon-specular-coexist + proof:specular-calm
             # are GONE: their subject (the W2 S2-COMPOSITE bezier card with the tracked,
             # cursor-following catch-light) was DELETED when the user-feedback fold
@@ -957,18 +1022,8 @@ jobs:
             # proof:specular-absent-at-rest above, which asserts the rendered
             # ::before alpha is FLAT at rest by the pixels (the INVERSION).
             # Script git-rm'd.
-            - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
-              id: proof-idioms
-              continue-on-error: true
-              run: npm run proof:idioms
-            - name: proof:phi-leaf-zero (H.W4 — the φ-hero chronic SYSTEM-property gate CH-2/M1 · zero raw rungs (residual L1+L2→0) AND the hero on the audacious top φ rung text-display-mega)
-              id: proof-phi-leaf-zero
-              continue-on-error: true
-              run: npm run proof:phi-leaf-zero
-            - name: proof:icon-idiom (H.W4 S4 — the 61-no-op icon-sizing lock · every icon-* resolves to a design-idioms.css def · xs<sm<md<lg differentiated · SVG cascade)
-              id: proof-icon-idiom
-              continue-on-error: true
-              run: npm run proof:icon-idiom
+            # F-7 (Q.WA3 S4): proof:idioms + proof:phi-leaf-zero + proof:icon-idiom
+            # MIGRATED to the fast library gates job (device-independent source greps).
             # H.W12 S5/I12 — the OWNED-IDIOMS contract-MEMBERSHIP extension. EXTENDS
             # proof:icon-idiom's resolve-or-red plumbing from the four W4 icon-* to the
             # FULL referenced-idiom set: every idiom-shaped class the demo references
@@ -982,14 +1037,8 @@ jobs:
             # Static (grep, no browser): a referenced standalone/shared idiom-shaped class
             # with no definition reds; a removed W4 icon-* def reds (clause b); a removed
             # multi-file shared recipe (status-badge/code-token) reds.
-            - name: proof:styling-idioms (H.W12 I12 — the OWNED-IDIOMS contract membership extends to the FULL referenced-idiom set · resolve-or-red · FORK-I12 reduction guard)
-              id: proof-styling-idioms
-              continue-on-error: true
-              run: npm run proof:styling-idioms
-            - name: proof:dogfood-hero (H.W6 inv ζ — the hero dots loop on a kf engine class from @src; steppedEase is the value.js curve, NOT the dogfood symbol)
-              id: proof-dogfood-hero
-              continue-on-error: true
-              run: npm run proof:dogfood-hero
+            # F-7 (Q.WA3 S4): proof:styling-idioms + proof:dogfood-hero MIGRATED to the
+            # fast library gates job (device-independent source greps, no browser).
             # H.W6 (WV-W6-HIGH-1) — the per-dot dogfooded blink lock. Mounts the
             # REAL <TypingDots/> in ISOLATION (a tiny on-the-fly Vite harness — the
             # home route cannot mount the dots pre-render, the D12 storm unmounts
@@ -1464,10 +1513,8 @@ jobs:
             # targets) must resolve to the SAME computed color as the 4.3.0 baseline. It
             # REDs the instant a refinement mutes/removes/recolors a keeper — the user's
             # binding verdict: REFINE, do NOT abrogate. NO KF_REQUIRE_BROWSER (source-only).
-            - name: proof:crayon-preserved (L.W11 — the crayon keepers resolve to their 4.3.0 hue · REFINE not abrogate · the wave SPINE)
-              id: proof-crayon-preserved
-              continue-on-error: true
-              run: npm run proof:crayon-preserved
+            # F-7 (Q.WA3 S4): proof:crayon-preserved MIGRATED to the fast library gates
+            # job (pure source-shape regression-lock, device-independent, no browser).
             # L.W11 — proof:design-refinement: the nine NEW per-scene instrument eggs
             # (S1-S9), each a hidden trigger → an observable off-the-normal-path effect
             # dogfooding a public engine primitive (CSSKeyframesAnimation / SpringProgress
@@ -1518,21 +1565,13 @@ jobs:
               id: proof-brittleness
               continue-on-error: true
               run: npm run proof:brittleness
-            # F.W2 — the THREE inv-tagged demo gates the workflow never ran:
-            # proof:dogfood (inv ζ — the shop-window runs its own engine),
-            # proof:demo-elevate (inv ο — the SOLE View-Transitions lock + the
-            # F.W13-16 a11y/idiom clauses), proof:modern-web (the CWV/modern-web
-            # checklist), and proof:platform-adopt (the feature-detected adopts).
-            # They scan the demo source (+ the built CSS above), so they ride the
-            # demo job after the gh-pages build.
-            - name: proof:dogfood (inv ζ — the demo dogfoods the engine, incl. the F.W10 inertia swap)
-              id: proof-dogfood
-              continue-on-error: true
-              run: npm run proof:dogfood
-            - name: proof:demo-elevate (inv ο — View Transitions · a11y · idioms · the F.W13-16 clauses)
-              id: proof-demo-elevate
-              continue-on-error: true
-              run: npm run proof:demo-elevate
+            # F.W2 — the inv-tagged demo gates. proof:modern-web (the CWV/modern-web
+            # checklist) + proof:platform-adopt (the feature-detected adopts) read the
+            # BUILT demo CSS (dist/gh-pages above), so they STAY on the demo job after
+            # the gh-pages build.
+            # F-7 (Q.WA3 S4): proof:dogfood (inv ζ) + proof:demo-elevate (inv ο) are
+            # device-independent source greps (no gh-pages artifact read) — MIGRATED to
+            # the fast library gates job. The build-dependent two stay here.
             - name: proof:modern-web (the modern-web-guidance checklist)
               id: proof-modern-web
               continue-on-error: true
@@ -1579,21 +1618,35 @@ jobs:
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_LOAF_COUNT: "48"
-            # L.W4 S1 — the REPORT-ALL terminal summary.
+            # L.W4 S1 — the REPORT-ALL terminal summary, Q.WA3 S1 — born-RED EXCLUSION.
             # Every proof:* step above rides `continue-on-error: true`, so a red in
             # step N never aborts steps N+1..N+k (the K whack-a-mole root: a flake hid
             # correctness misses in the dozens of steps after it). This step reads each
             # step's outcome and exits 1 if ANY is `failure` — the job goes RED, but
             # every gate ran and every red annotation is visible (the failures[]
-            # accumulator pattern, hoisted to the GHA job level). proof:peer-satisfied is
-            # INCLUDED: its born-RED F-2 state is a live defect the job SHOULD surface.
-            - name: "check-failures (L.W4 S1 — report-all: exit 1 if ANY demo-smoke proof:* step failed; all steps ran)"
+            # accumulator pattern, hoisted to the GHA job level).
+            #
+            # Q.WA3 S1: the TWO REMAINING born-RED-BY-DESIGN tripwires
+            # (proof:peer-satisfied, proof:keyframes-vue-published) are EXCLUDED from the
+            # blocking `failed` set. (A third tripwire was RETIRED at Q.WA2 — its step is
+            # gone, so only the two remain to exclude.) They are
+            # EXPECTED-RED observe-only gates, each gated on an UNPUBLISHED sibling fix
+            # (glass-ui BB peer-widen / the USER's keyframes-vue publish); including them
+            # in the exit-1 set made demo-smoke STRUCTURALLY NEVER green, so
+            # deploy-pages.yml (which gates on a green demo-smoke) could never fire — the
+            # deploy-of-record was dead. They still RUN as steps (their RED is RECORDED as
+            # a GHA annotation below — reported, not blocking), exactly the declarePosture
+            # observe-only discipline.
+            - name: "check-failures (L.W4 S1 / Q.WA3 S1 — report-all: exit 1 if ANY BLOCKING demo-smoke proof:* step failed; the born-RED tripwires are RECORDED, not blocking; all steps ran)"
               if: always()
               run: |
                   failed=""
-                  if [ "${{ steps.proof-peer-satisfied.outcome }}" = "failure" ]; then failed="$failed proof-peer-satisfied"; fi
-                  if [ "${{ steps.proof-keyframes-vue-published.outcome }}" = "failure" ]; then failed="$failed proof-keyframes-vue-published"; fi
-                  if [ "${{ steps.proof-control-point-live.outcome }}" = "failure" ]; then failed="$failed proof-control-point-live"; fi
+                  # Q.WA3 S1 — the born-RED-by-design tripwires: RECORDED (annotated), NOT
+                  # added to the blocking `failed` set (else demo-smoke can never be green
+                  # → the deploy-of-record stays dead).
+                  bornred=""
+                  if [ "${{ steps.proof-peer-satisfied.outcome }}" = "failure" ]; then bornred="$bornred proof-peer-satisfied"; fi
+                  if [ "${{ steps.proof-keyframes-vue-published.outcome }}" = "failure" ]; then bornred="$bornred proof-keyframes-vue-published"; fi
                   if [ "${{ steps.proof-demo-smoke.outcome }}" = "failure" ]; then failed="$failed proof-demo-smoke"; fi
                   if [ "${{ steps.proof-occlusion.outcome }}" = "failure" ]; then failed="$failed proof-occlusion"; fi
                   if [ "${{ steps.proof-demo-usability.outcome }}" = "failure" ]; then failed="$failed proof-demo-usability"; fi
@@ -1634,20 +1687,9 @@ jobs:
                   if [ "${{ steps.proof-lighthouse-a11y.outcome }}" = "failure" ]; then failed="$failed proof-lighthouse-a11y"; fi
                   if [ "${{ steps.proof-lighthouse-mobile.outcome }}" = "failure" ]; then failed="$failed proof-lighthouse-mobile"; fi
                   if [ "${{ steps.proof-decomposition.outcome }}" = "failure" ]; then failed="$failed proof-decomposition"; fi
-                  if [ "${{ steps.proof-no-deprecated-guard.outcome }}" = "failure" ]; then failed="$failed proof-no-deprecated-guard"; fi
-                  if [ "${{ steps.proof-single-writer.outcome }}" = "failure" ]; then failed="$failed proof-single-writer"; fi
-                  if [ "${{ steps.proof-composable-encapsulation.outcome }}" = "failure" ]; then failed="$failed proof-composable-encapsulation"; fi
                   if [ "${{ steps.proof-demo-no-oversize.outcome }}" = "failure" ]; then failed="$failed proof-demo-no-oversize"; fi
-                  if [ "${{ steps.proof-no-brittle-selector.outcome }}" = "failure" ]; then failed="$failed proof-no-brittle-selector"; fi
-                  if [ "${{ steps.proof-no-dup-utility.outcome }}" = "failure" ]; then failed="$failed proof-no-dup-utility"; fi
-                  if [ "${{ steps.proof-pp-logo-svg.outcome }}" = "failure" ]; then failed="$failed proof-pp-logo-svg"; fi
                   if [ "${{ steps.proof-cartoon-is-panel-depth.outcome }}" = "failure" ]; then failed="$failed proof-cartoon-is-panel-depth"; fi
                   if [ "${{ steps.proof-glass-and-cartoon.outcome }}" = "failure" ]; then failed="$failed proof-glass-and-cartoon"; fi
-                  if [ "${{ steps.proof-idioms.outcome }}" = "failure" ]; then failed="$failed proof-idioms"; fi
-                  if [ "${{ steps.proof-phi-leaf-zero.outcome }}" = "failure" ]; then failed="$failed proof-phi-leaf-zero"; fi
-                  if [ "${{ steps.proof-icon-idiom.outcome }}" = "failure" ]; then failed="$failed proof-icon-idiom"; fi
-                  if [ "${{ steps.proof-styling-idioms.outcome }}" = "failure" ]; then failed="$failed proof-styling-idioms"; fi
-                  if [ "${{ steps.proof-dogfood-hero.outcome }}" = "failure" ]; then failed="$failed proof-dogfood-hero"; fi
                   if [ "${{ steps.proof-typing-dots.outcome }}" = "failure" ]; then failed="$failed proof-typing-dots"; fi
                   if [ "${{ steps.proof-easing-canvas-bounded.outcome }}" = "failure" ]; then failed="$failed proof-easing-canvas-bounded"; fi
                   if [ "${{ steps.proof-scene-uses-standard-ribbon.outcome }}" = "failure" ]; then failed="$failed proof-scene-uses-standard-ribbon"; fi
@@ -1671,20 +1713,21 @@ jobs:
                   if [ "${{ steps.proof-motion-path-editable.outcome }}" = "failure" ]; then failed="$failed proof-motion-path-editable"; fi
                   if [ "${{ steps.proof-motion-path-copy.outcome }}" = "failure" ]; then failed="$failed proof-motion-path-copy"; fi
                   if [ "${{ steps.proof-easter-egg.outcome }}" = "failure" ]; then failed="$failed proof-easter-egg"; fi
-                  if [ "${{ steps.proof-crayon-preserved.outcome }}" = "failure" ]; then failed="$failed proof-crayon-preserved"; fi
                   if [ "${{ steps.proof-design-refinement.outcome }}" = "failure" ]; then failed="$failed proof-design-refinement"; fi
                   if [ "${{ steps.proof-hero-rung.outcome }}" = "failure" ]; then failed="$failed proof-hero-rung"; fi
                   if [ "${{ steps.proof-hero-balance.outcome }}" = "failure" ]; then failed="$failed proof-hero-balance"; fi
                   if [ "${{ steps.proof-hero-cls.outcome }}" = "failure" ]; then failed="$failed proof-hero-cls"; fi
                   if [ "${{ steps.proof-brittleness.outcome }}" = "failure" ]; then failed="$failed proof-brittleness"; fi
-                  if [ "${{ steps.proof-dogfood.outcome }}" = "failure" ]; then failed="$failed proof-dogfood"; fi
-                  if [ "${{ steps.proof-demo-elevate.outcome }}" = "failure" ]; then failed="$failed proof-demo-elevate"; fi
                   if [ "${{ steps.proof-modern-web.outcome }}" = "failure" ]; then failed="$failed proof-modern-web"; fi
                   if [ "${{ steps.proof-platform-adopt.outcome }}" = "failure" ]; then failed="$failed proof-platform-adopt"; fi
+                  # Q.WA3 S1 — RECORD the born-RED tripwires (annotated, NOT blocking).
+                  if [ -n "$bornred" ]; then
+                    echo "::notice::demo-smoke — born-RED-by-design tripwires RED (RECORDED, NOT blocking):$bornred"
+                    echo "(proof:peer-satisfied — the live F-2 peer-cycle until glass-ui BB widens its peer range + kf re-pins, L.W9.)"
+                    echo "(proof:keyframes-vue-published — RED until the USER publishes @mkbabb/keyframes-vue, L.W8 S2.)"
+                  fi
                   if [ -n "$failed" ]; then
-                    echo "demo-smoke REPORT-ALL — these proof:* steps FAILED (all steps ran; no fail-fast abort):$failed"
-                    echo "(proof:peer-satisfied is born-RED-by-design — the live F-2 peer-cycle until glass-ui BB widens its peer range + kf re-pins, L.W9.)"
-                    echo "(proof:control-point-live is born-RED-by-design — GlassControlPoint is absent from the published glass-ui until BB ships it + kf re-pins, L.W9 S4 / DL-K7.)"
+                    echo "demo-smoke REPORT-ALL — these BLOCKING proof:* steps FAILED (all steps ran; no fail-fast abort):$failed"
                     exit 1
                   fi
-                  echo "demo-smoke REPORT-ALL — every proof:* step passed."
+                  echo "demo-smoke REPORT-ALL — every BLOCKING proof:* step passed (the 3 born-RED tripwires are RECORDED, not blocking)."

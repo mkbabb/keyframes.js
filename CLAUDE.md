@@ -70,7 +70,7 @@ docs/                # Tranche records + audit lanes
 
 Two export surfaces meet at the barrel:
 
-- **LIGHT (static named exports, value.js-free):** `NumericAnimation`, `SmoothProgress`, `SpringProgress`, `springLinearStops`, `springTimingFunction`, `ElementMorph`, `Timeline`, `ScrollTimeline`, `ManualTimeline`, `createNativeTimeline`, `RAFPlayback`, `stagger`, `flip`/`flipShared`, `drag`/`Draggable`, `decay`/`decayRest`, `Sequence`, `resolveEasing`, `toEasing`, `AnimationOptionError`, `UnknownEasingError`. A consumer importing only these never pulls `@mkbabb/value.js` into its graph.
+- **LIGHT (static named exports, value.js-free):** `NumericAnimation`, `SmoothProgress`, `SpringProgress`, `springLinearStops`, `springTimingFunction`, `ElementMorph`, `Timeline`, `ScrollTimeline`, `ManualTimeline`, `createNativeTimeline`, `RAFPlayback`, `stagger`, `flip`/`flipShared`, `drag`/`Draggable`/`drag2D` (the single-call 2-D drag sugar — two one-axis `Draggable`s behind a 2-D handle; returns a `Drag2DHandle`), `decay`/`decayRest`, `Sequence`, `resolveEasing`, `toEasing`, `AnimationOptionError`, `UnknownEasingError`. A consumer importing only these never pulls `@mkbabb/value.js` into its graph.
 - **HEAVY (dynamic — reached ONLY via `await loadAnimationEngine()`):** `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`.
 
 ```ts

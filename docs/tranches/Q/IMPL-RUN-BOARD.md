@@ -13,13 +13,13 @@
 
 | # | Wave | Phase | State | Gate(s) | Notes |
 |---|---|---|---|---|---|
-| 0 | **Q.W0** | NOW | 🟡 IN PROGRESS | `proof:record-truth` | record-hygiene + decision-JSON commit + CHRONIC substrate (already authored) |
-| 1 | **Q.WA1** | NOW | ⬜ PENDING | `proof:lint-clean` | SLIM dep-cruiser lint tier (eslint KILLED) |
-| 2 | **Q.WA2** | NOW | ⬜ PENDING | `proof:drag2d-light-certified` | drag2D LIGHT certification (NO-OP confirm; retire proof:control-point-live) |
-| 3 | **Q.WA3** | NOW | ⬜ PENDING | `proof:ci-coverage`+`proof:deploy-roundtrip`+`proof:published-on-master` | **MASTER-MERGE the FIRST motion** + CI-green + deploy oracle + device-harden + decision-JSON deterministic-write |
+| 0 | **Q.W0** | NOW | ✅ DONE | `proof:record-truth` ✅ | record-hygiene + decision-JSON commit + CHRONIC substrate; gate GREEN (6 clauses) |
+| 1 | **Q.WA1** | NOW | 🟡 IN PROGRESS | `proof:lint-clean` | SLIM dep-cruiser lint tier (eslint KILLED) |
+| 2 | **Q.WA2** | NOW | 🟡 IN PROGRESS | `proof:drag2d-light-certified` | drag2D LIGHT certification (NO-OP confirm; retire proof:control-point-live) |
+| 3 | **Q.WA3** | NOW | 🟡 IN PROGRESS | `proof:ci-coverage`+`proof:deploy-roundtrip`+`proof:published-on-master` | **MASTER-MERGE ✅ DONE (master@42f661a, v4.4.0 ancestor)** + CI-green + deploy oracle + device-harden + decision-JSON deterministic-write |
 | 4 | **Q.WA4** | NOW | ⬜ PENDING | `proof:wave-charter` | wave-charter contrivance gate + DAG manifest parse + pin-ledger witness |
-| 5 | **Q.WG1** | DISPATCH | ⬜ PENDING | `proof:perf`+`proof:no-dead-combinator` | **parse-that 0.13.0** — dead-API delete, packrat re-entrancy, *Span decide → PUBLISH |
-| 6 | **Q.WG2** | DISPATCH | ⬜ PENDING | (value.js-side) | **value.js 1.1.1 + 1.2.0** — contrast-color, if-multibranch, color out-params, .fnName, /math, dashed-call → PUBLISH |
+| 5 | **Q.WG1** | DISPATCH | ✅ DONE | `proof:perf`+`proof:no-dead-combinator` | **parse-that 0.13.0 PUBLISHED** (registry-confirmed, tagged v0.13.0, pushed). 115 tests, 10/10 gates GREEN. *Span→DEPRECATE, subTable→RETRACT. commit 2c806fb |
+| 6 | **Q.WG2** | DISPATCH | 🟡 IN PROGRESS | (value.js-side) | **value.js 1.1.1 + 1.2.0** — re-pin pt^0.13.0; contrast-color(1.1.1); if-multibranch, color out-params, .fnName, /math, dashed-call, ColorChannelPlan, serialize-fidelity (1.2.0) → PUBLISH. agent launched |
 | 7 | **Q.WB1** | NOW | ⬜ PENDING | `proof:emerging-css-resolve-P2` | emerging-CSS Phase-2 element-aware arm |
 | 8 | **Q.WB3-numeric** | NOW | ⬜ PENDING | `proof:processframe-soa` | SoA processFrame Float64 numeric fold |
 | 9 | **Q.WB4** | NOW | ⬜ PENDING | `proof:waapi-adaptive-densify` | WAAPI curvature-adaptive densify |
@@ -61,6 +61,26 @@
   (gates rewriting on every run) fixed deterministically in Q.WA3 CI-harden.
 - (Q.WG3) glass-ui publish held USER-DOMAIN — see above.
 
+## In-flight (background tasks)
+
+- **Band-A-gates workflow** `wy7ly95cy` (kf tree) — authoring Q.WA1 lint-tier, Q.WA2 drag2D-cert,
+  Q.WA3 CI-green (ci.yml/pages-deploy + 2 gates + report-all hygiene + decision-JSON deterministic fix),
+  Q.WA4 wave-charter. Lanes return package.json entries → I wire centrally on completion.
+- **parse-that 0.13.0 cut** `ad4286c…` (parse-that repo, branch tranche-q) — PT-Q1…Q5 (dead-API delete,
+  packrat re-entrancy try/finally + key widen, *Span decide, dispatch-subTable, proof:perf). Leaves
+  READY-TO-PUBLISH; orchestrator reviews + publishes.
+
+## Stage-3 contention map (the file-disjoint lane partition — engine.ts is the bottleneck)
+
+`src/animation/engine.ts` is touched by **WB1, WB3-numeric, WC4, WD1, WE1, WF1** → these CANNOT run
+parallel on it. Demo registry files `demo/app/scenes.ts` (WC3/WC4/WC5) + `demo/easing/EasingSidebar.vue`
+(WC1/WC2/WC5) force demo coordination. **Safely parallel:** WB4 (waapi.ts+springLinearStops.ts), WD2
+(test/grammar-fuzz). **Stage-3 plan:** 1 engine-core-NOW owner lane (WB1+WB3-numeric+WD1-bind+WD1, sequential
+in engine.ts) ∥ WB4 ∥ WD2 ∥ a demo owner (WC1→WC2 pipeline; WC3; WC4 after engine settles; WC5) — demo/ tree
+disjoint from src/ tree so the demo workflow runs concurrent with the engine one.
+
 ## Resume pointer
 
-**NEXT:** Q.W0 (in progress) → Q.WA1 → Q.WA2 → Q.WA3 (master-merge) → Q.WA4 → cross-repo spine.
+**NEXT (on Band-A completion):** wire returned gate entries into package.json centrally → run every Band-A
+gate GREEN → commit Band A → launch Stage-3 (engine ∥ demo) workflows + continue the cross-repo spine
+(verify+publish parse-that 0.13.0 → value.js 1.1.1/1.2.0).

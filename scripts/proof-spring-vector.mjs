@@ -144,46 +144,64 @@ if (hasVectorArm && hasScalarArm) {
                 const ratio = vector.hz / scalar.hz;
                 const adopt = ratio >= WIN_FRACTION;
                 const verdict = adopt ? "ADOPT" : "KILL";
-                // Record the durable decision either way (the recorded verdict
-                // is the gate's persistent memory — the KILL is as authoritative
-                // as the ADOPT).
-                writeFileSync(
-                    decisionPath,
-                    JSON.stringify(
-                        {
-                            $comment:
-                                "SpringProgress vector-sugar ADOPT-or-KILL verdict (L.W7 §S2). " +
-                                "vectorHz/scalarHz at K=8 vs the >=1.2 (20%) ADOPT threshold. " +
-                                "ADOPT authorizes setTargets(Float64Array); KILL forbids it (the " +
-                                "sugar is not built — MEASURE-FIRST, no unproven code).",
-                            k: K,
-                            winFraction: WIN_FRACTION,
-                            vectorHz: vector.hz,
-                            scalarHz: scalar.hz,
-                            ratio,
-                            verdict,
-                            recordedAt: new Date().toISOString(),
-                        },
-                        null,
-                        2,
-                    ) + "\n",
-                    "utf8",
-                );
-                if (adopt) {
-                    ok(
-                        "verdict",
-                        `ADOPT: vector ${vector.hz.toFixed(1)} hz / scalar ` +
-                            `${scalar.hz.toFixed(1)} hz = ${ratio.toFixed(3)}× >= ` +
-                            `${WIN_FRACTION}× at K=${K} — setTargets(Float64Array) authorized. ` +
-                            `Verdict → scripts/spring-vector-decision.json`,
+                // DETERMINISTIC-WRITE (Q.WA3 S4 / the Q.W0 obligation): a normal
+                // gate run must leave the tree CLEAN. The recorded verdict is the
+                // gate's persistent memory (the KILL is as authoritative as the
+                // ADOPT), but the `vectorHz`/`scalarHz`/`ratio` + the `recordedAt`
+                // timestamp vary per run — a forced dirty tree. So we WRITE ONLY
+                // under an explicit `KF_RECORD=1` (the deliberate re-record), and
+                // otherwise COMPARE the measured ADOPT/KILL verdict against the
+                // COMMITTED one (the stable assertion, not the noisy hz numbers).
+                const record = {
+                    $comment:
+                        "SpringProgress vector-sugar ADOPT-or-KILL verdict (L.W7 §S2). " +
+                        "vectorHz/scalarHz at K=8 vs the >=1.2 (20%) ADOPT threshold. " +
+                        "ADOPT authorizes setTargets(Float64Array); KILL forbids it (the " +
+                        "sugar is not built — MEASURE-FIRST, no unproven code).",
+                    k: K,
+                    winFraction: WIN_FRACTION,
+                    vectorHz: vector.hz,
+                    scalarHz: scalar.hz,
+                    ratio,
+                    verdict,
+                    recordedAt: new Date().toISOString(),
+                };
+                const verb = adopt
+                    ? `ADOPT: vector ${vector.hz.toFixed(1)} hz / scalar ` +
+                      `${scalar.hz.toFixed(1)} hz = ${ratio.toFixed(3)}× >= ` +
+                      `${WIN_FRACTION}× at K=${K} — setTargets(Float64Array) authorized`
+                    : `KILL: vector ${vector.hz.toFixed(1)} hz / scalar ` +
+                      `${scalar.hz.toFixed(1)} hz = ${ratio.toFixed(3)}× < ` +
+                      `${WIN_FRACTION}× at K=${K} — vector sugar KILLED, NOT built (MEASURE-FIRST)`;
+                if (process.env.KF_RECORD === "1") {
+                    writeFileSync(
+                        decisionPath,
+                        JSON.stringify(record, null, 2) + "\n",
+                        "utf8",
                     );
+                    ok("verdict", `${verb}. RECORDED → scripts/spring-vector-decision.json (KF_RECORD=1)`);
+                } else if (existsSync(decisionPath)) {
+                    const committed = JSON.parse(readFileSync(decisionPath, "utf8"));
+                    if (committed.verdict !== verdict) {
+                        fail(
+                            "verdict",
+                            `the MEASURED verdict (${verdict}, ratio ${ratio.toFixed(3)}×) ` +
+                                `DISAGREES with the committed verdict (${committed.verdict}) in ` +
+                                `scripts/spring-vector-decision.json. Re-record with KF_RECORD=1 ` +
+                                `if the regime genuinely changed.`,
+                        );
+                    } else {
+                        ok(
+                            "verdict",
+                            `${verb} — MATCHES the committed verdict (tree stays clean; ` +
+                                `KF_RECORD=1 to re-record)`,
+                        );
+                    }
                 } else {
-                    ok(
+                    fail(
                         "verdict",
-                        `KILL: vector ${vector.hz.toFixed(1)} hz / scalar ` +
-                            `${scalar.hz.toFixed(1)} hz = ${ratio.toFixed(3)}× < ` +
-                            `${WIN_FRACTION}× at K=${K} — vector sugar KILLED, NOT built ` +
-                            `(MEASURE-FIRST). Verdict recorded → scripts/spring-vector-decision.json`,
+                        `no committed scripts/spring-vector-decision.json to compare the ` +
+                            `measured ${verdict} verdict against — record it once with KF_RECORD=1.`,
                     );
                 }
             }

@@ -683,6 +683,55 @@ function clauseG() {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// clause (i) — drag2D is a CERTIFIED supported LIGHT export (Q.WA2 · S3)
+//
+// drag2D + Drag2DHandle are exported (index.ts:88,93) + gate-tested
+// (proof:drag-gesture S4) but were NOT named in the *declared/published-surface*
+// contract as SUPPORTED LIGHT exports — a refactor routing drag-2d.ts through a
+// HEAVY module, or dropping the export, would leave only proof:boundary (which has
+// no notion that drag2D is a *committed* primitive the DemoControlPoint chain
+// depends on). This clause NAMES them as committed surface, so a *surface*
+// regression (drag2D dropped from the published LIGHT set) REDs here, while a
+// *boundary* regression (drag2D routed through value.js) REDs the existing
+// proof:boundary backstop. proof:boundary owns the bundle-level value.js-edge
+// proof — this clause does not re-implement it; it locks the published-surface
+// certification (the half genuinely missing pre-Q.WA2: `grep drag2D
+// scripts/proof-published-surface.mjs` → 0). The drag2D value export is asserted
+// against the parsed LIGHT barrel surface; Drag2DHandle (a TYPE — erased at build,
+// excluded from clause (b)'s runtime publicSet by construction) is asserted
+// against the shipped d.ts roll-up so the committed TYPE surface is locked too.
+// ═════════════════════════════════════════════════════════════════════════════
+
+function clauseDrag2DCertified(lightExports) {
+    console.log("\nclause (i) — drag2D is a CERTIFIED supported LIGHT export (Q.WA2 · S3)");
+
+    // (i.1) drag2D ∈ the parsed LIGHT runtime export set (a committed LIGHT value).
+    if (lightExports.includes("drag2D")) {
+        console.log(
+            "  ✓ `drag2D` is in the LIGHT barrel runtime export set — a COMMITTED LIGHT public primitive (the DemoControlPoint substrate), not an incidental re-export.",
+        );
+    } else {
+        failures.push(
+            "(i) `drag2D` is NOT in the LIGHT barrel runtime export set — the committed 2-D drag primitive " +
+                "the DemoControlPoint chain (DM-2) builds against was dropped from the published LIGHT surface (Q.WA2 S3).",
+        );
+    }
+
+    // (i.2) Drag2DHandle ∈ the shipped d.ts type surface (the committed TYPE half).
+    const dts = fs.readFileSync(DTS, "utf8");
+    if (/\bDrag2DHandle\b/.test(dts)) {
+        console.log(
+            "  ✓ `Drag2DHandle` is in the shipped d.ts roll-up — the committed handle TYPE drag2D returns is locked on the published type surface.",
+        );
+    } else {
+        failures.push(
+            "(i) `Drag2DHandle` is ABSENT from the shipped dist/keyframes.d.ts roll-up — the committed handle " +
+                "TYPE `drag2D` returns is not on the published type surface (Q.WA2 S3).",
+        );
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // clause (h) — proof:pkg3-clean: no `_2`-suffixed collision aliases in the d.ts
 // (L.W8 S4 · PKG-3 · audit W126)
 //
@@ -751,6 +800,7 @@ async function main() {
     clauseE();
     clauseF();
     clauseG();
+    clauseDrag2DCertified(lightExports);
     clausePkg3Clean();
 
     if (failures.length > 0) {

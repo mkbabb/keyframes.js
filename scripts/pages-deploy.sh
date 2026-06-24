@@ -105,3 +105,57 @@ npx wrangler pages deploy "$BUILD_DIR" \
     --commit-message "$sanitized_msg"
 
 log "Deployed: https://${PAGES_PROJECT}.pages.dev/ (custom domain per cf/dns-cf-sync.sh)"
+
+# ── 6. Post-deploy validation — the round-trip oracle ─────────────────────────
+# The 2026-06-23 deploy shipped WITHOUT any post-deploy check (the header at line
+# 20 promised "validation" that never existed). The round-trip the impl drive
+# verified BY HAND is mechanized here: (a) the production origin returns HTTP-200,
+# AND (b) the index-*.js hash the origin SERVES equals the index-*.js hash we just
+# BUILT in $BUILD_DIR — so a stale-cache / partial-upload / wrong-bundle deploy is
+# caught HERE, not by a human noticing the wrong screen. On mismatch/non-200 we
+# surface the rollback target captured in step 2 (the operator's one-command undo).
+PROD_ORIGIN="${PROD_ORIGIN:-https://keyframes.babb.dev}"
+log "Post-deploy validation: probing $PROD_ORIGIN ..."
+
+# The locally-built entry bundle hash (vite emits assets/index-<hash>.js). The
+# BASENAME is the content hash, so a byte-for-byte equal served bundle has the
+# same name — comparing the served basename to the built one IS the round-trip.
+built_index="$(ls "$BUILD_DIR"/assets/index-*.js 2>/dev/null | head -n1)"
+if [ -z "$built_index" ]; then
+    err "No built assets/index-*.js in $BUILD_DIR — cannot validate the round-trip."
+    err "  rollback target: ${ROLLBACK_ID:-<none captured>}"
+    exit 1
+fi
+built_hash="$(basename "$built_index")"
+log "Built entry bundle: $built_hash"
+
+# CF edge propagation lags a few seconds after the alias swap; poll for HTTP-200 +
+# the served bundle hash, up to ~60s. The served HTML references the SAME
+# assets/index-<hash>.js name when the bundle matches byte-for-byte.
+served_ok=""
+served_hash=""
+for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    code="$(curl -fsS -o /dev/null -w '%{http_code}' "$PROD_ORIGIN/" 2>/dev/null || echo 000)"
+    if [ "$code" = "200" ]; then
+        html="$(curl -fsS "$PROD_ORIGIN/" 2>/dev/null || true)"
+        served_hash="$(printf '%s' "$html" \
+            | grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' | head -n1 \
+            | sed 's#assets/##')"
+        if [ "$served_hash" = "$built_hash" ]; then
+            served_ok="1"
+            break
+        fi
+    fi
+    log "  attempt $attempt: HTTP $code, served=${served_hash:-<none>} (waiting for edge propagation)..."
+    sleep 6
+done
+
+if [ -n "$served_ok" ]; then
+    log "Round-trip VALIDATED: $PROD_ORIGIN serves the built bundle ($built_hash), HTTP 200."
+else
+    err "Post-deploy validation FAILED: $PROD_ORIGIN did not serve the built bundle."
+    err "  built:  $built_hash"
+    err "  served: ${served_hash:-<none / non-200>}"
+    err "  ROLLBACK with: npx wrangler pages deployment rollback ${ROLLBACK_ID:-<id>} --project-name $PAGES_PROJECT"
+    exit 1
+fi
