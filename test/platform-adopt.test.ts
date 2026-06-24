@@ -28,7 +28,7 @@ import {
     KeyframesScrollTimeline as JSScrollTimeline,
     Timeline,
     createNativeTimeline,
-} from "../src/animation/timeline";
+} from "../src/animation/orchestration/timeline";
 import {
     onReducedMotionChange,
     prefersReducedMotion,

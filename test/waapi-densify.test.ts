@@ -15,7 +15,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { densifyInteriorTimes, toWAAPIKeyframes } from "../src/animation/waapi";
-import { springTimingFunction } from "../src/animation/springTimingFunction";
+import { springTimingFunction } from "../src/animation/physics/spring";
 import { resolveEasing } from "../src/animation/easing";
 
 const DURATION = 1000;

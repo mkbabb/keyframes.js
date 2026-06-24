@@ -79,7 +79,7 @@ const requireAll = (clause, file, anchors) => {
 
 console.log("proof:drawsvg — G.W13 (CSS-native DrawSVG)");
 
-const DS = "src/animation/draw-svg.ts";
+const DS = "src/animation/svg/draw-svg.ts";
 const INDEX = "src/animation/index.ts";
 // L close (`fix(tranche-L close): the gate-suite roster reconciliation`)
 // extracted `loadAnimationEngine` + its dynamic `import("./…")` edges and the
@@ -185,7 +185,7 @@ requireAll("animates-offset", DS, [
     // load-engine module the barrel re-exports `loadAnimationEngine` from.
     const loadSrc = read(LOAD_ENGINE);
     const importsFromDraw =
-        /import\([\s\S]*?["']\.\/draw-svg["']\)/.test(loadSrc);
+        /import\([\s\S]*?["']\.\/svg\/draw-svg["']\)/.test(loadSrc);
     const assignsFactory =
         /fromDrawSVG:\s*drawMod\.fromDrawSVG/.test(loadSrc) &&
         /DrawSVG:\s*drawMod\.DrawSVG/.test(loadSrc);
@@ -194,7 +194,7 @@ requireAll("animates-offset", DS, [
     // statically. Reject a static value re-export of the runtime symbols on
     // EITHER the barrel or the load-engine module.
     const staticValueExportRe =
-        /export\s*\{\s*(?:[^}]*\b)?(?:fromDrawSVG|DrawSVG)\b[^}]*\}\s*from\s*["']\.\/draw-svg["']/;
+        /export\s*\{\s*(?:[^}]*\b)?(?:fromDrawSVG|DrawSVG)\b[^}]*\}\s*from\s*["']\.\/svg\/draw-svg["']/;
     const staticValueExport =
         staticValueExportRe.test(read(INDEX)) ||
         staticValueExportRe.test(loadSrc);

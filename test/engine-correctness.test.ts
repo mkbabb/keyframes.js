@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from "vitest";
 import { easeInOutCubic } from "@mkbabb/value.js";
 import { KeyframesAnimation, CSSKeyframesAnimation } from "../src/animation/engine";
 import { isWAAPIEligible } from "../src/animation/waapi";
-import { getTimingFunction } from "../src/animation/utils";
+import { getTimingFunction } from "../src/animation/compile/easing-registry";
 
 const colorValue = (result: Record<string, any>, key: string): string => {
     const arr = result[key];

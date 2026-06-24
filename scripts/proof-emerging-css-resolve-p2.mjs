@@ -36,8 +36,8 @@ console.log(
     "proof:emerging-css-resolve-p2 — Q.WB1 (if(style(--p)) + sibling-index/count element-aware)",
 );
 
-const RESOLVE = "src/animation/resolve-values.ts";
-const ENGINE = "src/animation/engine.ts";
+const RESOLVE = "src/animation/resolve/index.ts";
+const ENGINE = "src/animation/engine/animation.ts";
 
 const requireAll = (clause, file, anchors) => {
     if (!existsSync(join(root, file))) {
@@ -100,8 +100,8 @@ requireAll("sibling-resolved", RESOLVE, [
 //    resolveValues pass over the pre-flatten template snapshot + the re-parse ───
 requireAll("second-pass", ENGINE, [
     {
-        name: "engine imports hasPhase2Node + resolveValues from ./resolve-values (the second-pass seam)",
-        re: /hasPhase2Node[\s\S]*?from\s+["']\.\/resolve-values["']|resolveValues[\s\S]*?from\s+["']\.\/resolve-values["']/,
+        name: "engine imports hasPhase2Node + resolveValues from ../resolve (the second-pass seam; R.W1 zone path)",
+        re: /hasPhase2Node[\s\S]*?from\s+["']\.\.\/resolve["']|resolveValues[\s\S]*?from\s+["']\.\.\/resolve["']/,
     },
     {
         name: "setTargets runs the element-aware second pass (_resolveElementAwareValues)",

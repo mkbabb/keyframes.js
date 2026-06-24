@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DrawSVG, fromDrawSVG } from "../src/animation/draw-svg";
+import { DrawSVG, fromDrawSVG } from "../src/animation/svg/draw-svg";
 import { isWAAPIEligible } from "../src/animation/waapi";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 

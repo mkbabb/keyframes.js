@@ -39,8 +39,8 @@ import {
 } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
-import { Sequence } from "../src/animation/sequence";
-import { stagger } from "../src/animation/stagger";
+import { Sequence } from "../src/animation/orchestration/sequence";
+import { stagger } from "../src/animation/orchestration/stagger";
 import {
     compileToCSS,
     DEFAULT_DELTA_E_EPSILON,

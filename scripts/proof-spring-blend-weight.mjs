@@ -65,8 +65,8 @@ console.log(
         "  reseatToSpring + intensity-scaled reduced motion)",
 );
 
-const GROUP = "src/animation/group.ts";
-const SPRING = "src/animation/spring.ts";
+const GROUP = "src/animation/group/group.ts";
+const SPRING = "src/animation/physics/spring/progress.ts";
 // L.WZ ceiling split — the PHYS-B2 velocity-continuous interruption seam
 // (`VelocityProbe` / `probeVelocity` / `reseatToSpring`) was EXTRACTED out of
 // the `spring.ts` god-module into the colocated `./spring-reseat` module (the
@@ -74,7 +74,7 @@ const SPRING = "src/animation/spring.ts";
 // FOLLOWS the code to its new home). `spring.ts` re-exports the public symbols
 // so the barrel resolves them through `./spring` unchanged; the `phys-b2-reseat`
 // arm below greps the function BODIES at their new home.
-const SPRING_RESEAT = "src/animation/spring-reseat.ts";
+const SPRING_RESEAT = "src/animation/physics/spring/reseat.ts";
 const CONSTANTS = "src/animation/constants.ts";
 const PRM = "src/animation/internal/reduced-motion.ts";
 const TEST = "test/spring-blend-weight.test.ts";
@@ -230,6 +230,13 @@ requireAll("phys-e-amplitude", SPRING, [
         name: "amplitudeScale is resolved from the policy via reducedMotionScale",
         re: /this\.amplitudeScale\s*=\s*reducedMotionScale\(/,
     },
+]);
+
+// R.W1: the SpringProgressOptions shape (incl. respectReducedMotion) moved to the
+// spring family's `types.ts` (the progress↔duration↔reseat ring-break). The
+// phys-e amplitude-policy TYPE anchor now reads the types module.
+const SPRING_TYPES = "src/animation/physics/spring/types.ts";
+requireAll("phys-e-amplitude-type", SPRING_TYPES, [
     {
         name: "respectReducedMotion is typed as the ReducedMotionPolicy (not bare boolean)",
         re: /respectReducedMotion:\s*ReducedMotionPolicy/,

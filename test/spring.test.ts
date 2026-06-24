@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { SpringProgress } from "../src/animation/spring";
+import { SpringProgress } from "../src/animation/physics/spring";
 
 /** 60fps frame step in milliseconds — the canonical `tickDt` unit. */
 const FRAME_MS = 1000 / 60;

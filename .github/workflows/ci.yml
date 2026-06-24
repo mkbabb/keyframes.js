@@ -158,6 +158,8 @@ jobs:
               run: npm run proof:packrat-sound
             - name: proof:engine (D.W4 transposition source gate — tick-canon · seam · pause-honest · snap-symmetry · no-legacy)
               run: npm run proof:engine
+            - name: proof:no-flat-siblings (R.W1 — the 7-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
+              run: npm run proof:no-flat-siblings
             - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
               run: npm run proof:zero-alloc
             # F.W2 — the library-scoped engine/correctness gates the workflow

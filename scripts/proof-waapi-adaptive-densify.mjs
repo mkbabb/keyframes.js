@@ -75,7 +75,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BENCH = "bench/waapi-densify.bench.ts";
-const WAAPI_SRC = "src/animation/waapi.ts";
+const WAAPI_SRC = "src/animation/waapi/waapi.ts";
 const decisionPath = join(root, "scripts", "waapi-densify-decision.json");
 
 // The curves expected to SHRINK to ≤ fixed-8 (the linear/gentle case); a sharp
@@ -135,7 +135,7 @@ let measures = null;
 {
     const benchUrl = pathToFileURL(join(root, BENCH)).href;
     const waapiUrl = pathToFileURL(
-        join(root, "src", "animation", "waapi.ts"),
+        join(root, "src", "animation", "waapi", "waapi.ts"),
     ).href;
     const probe = `
 import { measureDensifyCorpus, buildCorpus, boundaryTimes } from ${JSON.stringify(benchUrl)};

@@ -369,8 +369,8 @@ const arms = [
         // a non-`linear(` string must never reach the throwing value.js parser).
         // The fold was `timingFunction.replace(/,\s*(-?[\d.]+%)/g, " $1")`.
         witness: {
-            subpath: "src/animation/utils.ts",
-            fileFilter: exact("src/animation/utils.ts"),
+            subpath: "src/animation/compile/parse-flatten.ts",
+            fileFilter: exact("src/animation/compile/parse-flatten.ts"),
             pattern: /timingFunction\.replace/,
         },
         sibling: { pkg: "@mkbabb/value.js", version: "0.14.0", name: "VJ-L2 linear() serialize fix" },
@@ -399,8 +399,8 @@ const arms = [
         // so the arm only goes RED (delete-overdue) once the published field is
         // actually consumable, never on a bare version bump.
         witness: {
-            subpath: "src/animation/utils.ts",
-            fileFilter: exact("src/animation/utils.ts"),
+            subpath: "src/animation/compile/parse-flatten.ts",
+            fileFilter: exact("src/animation/compile/parse-flatten.ts"),
             pattern: /FN_NAME|Symbol\(\s*["']kf\./,
         },
         sibling: { pkg: "@mkbabb/value.js", version: "1.2.0", name: "VJ-Q4 clone()-preserved ValueUnit.fnName field" },
@@ -412,8 +412,8 @@ const arms = [
             "direct @mkbabb/parse-that import (utils.ts:1) reaching through value.js's " +
             "parser abstraction → value.js VJ-L3 parseCSSSubValue",
         witness: {
-            subpath: "src/animation/utils.ts",
-            fileFilter: exact("src/animation/utils.ts"),
+            subpath: "src/animation/compile/parse-flatten.ts",
+            fileFilter: exact("src/animation/compile/parse-flatten.ts"),
             pattern: /from\s+["']@mkbabb\/parse-that["']/,
         },
         // value.js Tranche P shipped VJ-L3 (`parseCSSSubValue`) at 1.1.0 — kf

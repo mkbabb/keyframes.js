@@ -84,7 +84,7 @@ console.log(
     "proof:scroll-roundtrip — K.W9 (the scroll grammar round-trips + dispatches)",
 );
 
-const SCROLL = "src/animation/scroll-scene.ts";
+const SCROLL = "src/animation/scroll/scene.ts";
 // The K close decomposition split the scroll module at the natural concern seam:
 // scroll-scene.ts owns the TIME driver (and re-exports the grammar surface), and
 // the colocated scroll-grammar.ts owns the GRAMMAR — the value.js CONSUME edge
@@ -92,7 +92,7 @@ const SCROLL = "src/animation/scroll-scene.ts";
 // (b-parse) source-shape clause therefore checks the scroll module SET (the union
 // of both files); the value.js-grammar consume must live in EXACTLY ONE of them,
 // never as a kf-local re-derived parser in EITHER. (Relocation, not weakening.)
-const GRAMMAR = "src/animation/scroll-grammar.ts";
+const GRAMMAR = "src/animation/scroll/grammar.ts";
 const SCROLL_SET = [SCROLL, GRAMMAR];
 const INDEX = "src/animation/index.ts";
 const TEST = "test/scroll-scene.test.ts";
@@ -350,10 +350,10 @@ requireAll("c-dispatch", SCROLL, [
     // light barrel (which would pull value.js static).
     const loadEngine = read("src/animation/load-engine.ts");
     const wiring = idx + "\n" + loadEngine;
-    const ridesDynamic = /import\(\s*["']\.\/scroll-scene["']\s*\)/.test(wiring);
+    const ridesDynamic = /import\(\s*["']\.\/scroll\/index["']\s*\)/.test(wiring);
     // The static-value-export leak is checked on the LIGHT barrel ONLY.
     const staticValueExport =
-        /export\s*\{[^}]*\}\s*from\s*["']\.\/scroll-scene["']/.test(idx);
+        /export\s*\{[^}]*\}\s*from\s*["']\.\/scroll\/index["']/.test(idx);
     if (!ridesDynamic) {
         fail(
             clause,

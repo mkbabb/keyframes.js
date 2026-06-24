@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
-import { NumericAnimation } from "../src/animation/numeric";
+import { NumericAnimation } from "../src/animation/physics/numeric";
 
 /**
  * D.W4 D-1 — `proof:zero-alloc`: the `AnimationGroup` composite path allocates
@@ -145,7 +145,7 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
  * today (the buffers are `number[]`), GREEN-s after S2 makes them `Float64Array`.
  *
  * BORN-RED WITNESS (today's tree):
- *   grep -n "startVals\|stopVals" src/animation/numeric.ts
+ *   grep -n "startVals\|stopVals" src/animation/physics/numeric.ts
  *   → numeric.ts:139: startVals: keys.map((k) => start[k] as number),   // number[]
  *   → numeric.ts:140: stopVals: keys.map((k) => stop[k] as number),     // number[]
  *   `seg.from`/`seg.to` (the S2 field names) do not exist yet; the plain-array

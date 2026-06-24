@@ -29,7 +29,7 @@ import { CSSKeyframesAnimation } from "../src/animation/engine";
 import {
     createInterpVarValue,
     parseAndFlattenObject,
-} from "../src/animation/utils";
+} from "../src/animation/compile/parse-flatten";
 
 /** The midpoint of a single (sub-)property key, joined for the multi-leaf rows. */
 const midpoint = (css: string, key: string): string => {

@@ -43,7 +43,7 @@ console.log(
     "proof:emerging-css-resolve-fn — Q.WB2 (@function call-inlining: bind → coerce → substitute → evaluate)",
 );
 
-const RESOLVE = "src/animation/resolve-values.ts";
+const RESOLVE = "src/animation/resolve/index.ts";
 
 const requireAll = (clause, file, anchors) => {
     if (!existsSync(join(root, file))) {

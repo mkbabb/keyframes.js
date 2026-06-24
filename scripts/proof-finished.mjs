@@ -48,9 +48,9 @@ const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
 
 console.log("proof:finished — G.W13 (the .finished completion front-door)");
 
-const ENGINE = "src/animation/engine.ts";
-const GROUP = "src/animation/group.ts";
-const SEQUENCE = "src/animation/sequence.ts";
+const ENGINE = "src/animation/engine/animation.ts";
+const GROUP = "src/animation/group/group.ts";
+const SEQUENCE = "src/animation/orchestration/sequence/sequence.ts";
 const TEST = "test/finished.test.ts";
 
 const surfaces = [

@@ -77,7 +77,7 @@ console.log(
     "proof:composition-honored — K.W7 (the engine honors animation-composition)",
 );
 
-const ENGINE = "src/animation/engine.ts";
+const ENGINE = "src/animation/engine/animation.ts";
 // K.WZ — the K.W7 composition-honoring LEAF logic (the un-clamped add, the
 // repeat-aware accumulate, the captured underlying base, the non-numeric
 // `replace`-fallback + `COMPOSITION_FALLBACK` row) was extracted out of the
@@ -86,8 +86,8 @@ const ENGINE = "src/animation/engine.ts";
 // module holds the leaf bodies). The body anchors below follow the code to
 // their true location; the engine-side anchors (the `applyComposition` call,
 // the `resolved.composition` read, the `transformFrames` gate) stay on ENGINE.
-const COMPOSITION = "src/animation/engine-composition.ts";
-const WAAPI = "src/animation/waapi.ts";
+const COMPOSITION = "src/animation/engine/composition.ts";
+const WAAPI = "src/animation/waapi/waapi.ts";
 const TEST = "test/composition-honored.test.ts";
 
 // ── raf-read — engine reads resolved.composition + threads it into addFrame ──

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SmoothProgress } from "../src/animation/smooth";
+import { SmoothProgress } from "../src/animation/physics/smooth";
 
 describe("SmoothProgress", () => {
     it("starts settled at initial value", () => {

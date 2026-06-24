@@ -34,7 +34,7 @@ console.log(
     "proof:emerging-css-resolve-NOW — P.W13 (if(supports/media) + spring() lowering)",
 );
 
-const RESOLVE = "src/animation/resolve-values.ts";
+const RESOLVE = "src/animation/resolve/index.ts";
 const ADAPTER = "src/animation/adapter.ts";
 
 const requireAll = (clause, file, anchors) => {
@@ -95,7 +95,7 @@ requireAll("module-exists", RESOLVE, [
     const anchors = [
         {
             name: "adapter imports resolveValues from ./resolve-values",
-            re: /resolveValues[\s\S]*?from\s+["']\.\/resolve-values["']|from\s+["']\.\/resolve-values["']/,
+            re: /resolveValues[\s\S]*?from\s+["']\.\/resolve["']|from\s+["']\.\/resolve["']/,
         },
         {
             name: "adapter invokes resolveValues in declsToVarMap (the flatten seam)",

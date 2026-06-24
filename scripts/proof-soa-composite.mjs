@@ -69,7 +69,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SUITE = "bench/group-composite.bench.ts";
-const GROUP_SRC = "src/animation/group.ts";
+const GROUP_SRC = "src/animation/group/group.ts";
 const decisionPath = join(root, "scripts", "soa-composite-decision.json");
 
 // The ADOPT threshold the P.W2 charter names: the SoA fold must run >= 1.2× the
@@ -411,10 +411,10 @@ if (existsSync(decisionPath)) {
 // + bit-identical + zero-alloc, all measured live on the REAL group via a tsx probe.
 {
     const engineUrl = pathToFileURL(
-        join(root, "src", "animation", "engine.ts"),
+        join(root, "src", "animation", "engine", "animation.ts"),
     ).href;
     const groupUrl = pathToFileURL(
-        join(root, "src", "animation", "group.ts"),
+        join(root, "src", "animation", "group", "group.ts"),
     ).href;
     const valueUrl = pathToFileURL(
         join(root, "node_modules", "@mkbabb", "value.js", "dist", "value.js"),

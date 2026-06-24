@@ -71,7 +71,7 @@ const requireAll = (clause, file, anchors) => {
 
 console.log("proof:blend — G.W17 (the dead add/weighted blend-leaf correction)");
 
-const GROUP = "src/animation/group.ts";
+const GROUP = "src/animation/group/group.ts";
 const TEST = "test/blend.test.ts";
 
 // ── array-guard — both arms guard on Array.isArray(existing && incoming) ──────

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { springLinearStops } from "../src/animation/springLinearStops";
+import { springLinearStops } from "../src/animation/physics/spring";
 
 /**
  * Parse the bare numeric position values out of a `linear(...)` string.

@@ -85,9 +85,9 @@ console.log(
     "proof:compile-replay — K.W10 THE COMPILE (the round-trip's BACKWARD half · replay-equality)",
 );
 
-const COMPILE = "src/animation/compile.ts";
-const COMPILE_COLOR = "src/animation/compile-color.ts";
-const FORMAT = "src/animation/format.ts";
+const COMPILE = "src/animation/compile/backward.ts";
+const COMPILE_COLOR = "src/animation/compile/backward-color.ts";
+const FORMAT = "src/animation/compile/format.ts";
 const BARREL = "src/animation/index.ts";
 // The L-tranche engine-loader extraction home (the dynamic `import("./compile")`
 // + `compileToCSS: compileMod.compileToCSS` assign live here now, re-exported by
@@ -211,7 +211,7 @@ requireAll("four-refusals-named", COMPILE, [
     const ridesDynamic =
         barrelExposesLoader &&
         /compileToCSS:\s*compileMod\.compileToCSS/.test(wiringSrc) &&
-        /import\(["']\.\/compile["']\)/.test(wiringSrc);
+        /import\(["']\.\/compile(?:\/index)?["']\)/.test(wiringSrc);
     // …and must NOT be a static runtime value export on the LIGHT barrel.
     const leaksStatic =
         /export\s*\{[^}]*\bcompileToCSS\b[^}]*\}\s*from\s*["']\.\/compile["']/.test(

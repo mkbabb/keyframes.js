@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { easeOutCubic, linear } from "@mkbabb/value.js";
 import { resolveEasing } from "../src/animation/easing";
 import { AnimationOptionError } from "../src/animation/internal/errors";
-import { NumericAnimation } from "../src/animation/numeric";
+import { NumericAnimation } from "../src/animation/physics/numeric";
 
 describe("NumericAnimation", () => {
     it("interpolates between two keyframes", () => {

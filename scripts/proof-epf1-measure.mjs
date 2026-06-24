@@ -89,7 +89,7 @@ const ok = (msg) => console.log(`  ✓ ${msg}`);
 const MEASURE_SRC = `
 import { describe, it } from "vitest";
 import { resolveLiveKeyframes } from ${JSON.stringify(
-    join(root, "src", "animation", "ingest-cssom.ts"),
+    join(root, "src", "animation", "ingest", "cssom.ts"),
 )};
 
 const NS = [10, 50, 100];

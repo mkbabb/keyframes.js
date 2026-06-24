@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flip, flipShared } from "../src/animation/flip";
+import { flip, flipShared } from "../src/animation/orchestration/flip";
 
 /**
  * jsdom returns an all-zero rect from `getBoundingClientRect` and never lays

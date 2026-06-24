@@ -48,22 +48,33 @@
 // edge. Its job IS to reach the engine (dynamically). Rule 3 is additionally
 // scoped to STATIC edges only (dynamic-import exempt), so a legitimate dynamic
 // boundary edge can never false-RED.
+// R.W1: the LIGHT named-export modules moved into their zone directories. The
+// allowlist tracks the SAME barrel re-export set as proof:boundary — now by zone
+// path (`physics/`, `orchestration/`). `easing.ts` stays at the root.
 const LIGHT_BARREL_MODULES = [
-    "numeric",
-    "smooth",
-    "spring",
-    "springLinearStops",
-    "springTimingFunction",
-    "morph",
-    "timeline",
-    "playback",
-    "oscillator",
-    "stagger",
-    "flip",
-    "drag",
-    "drag-2d",
-    "decay",
-    "sequence",
+    "physics/numeric",
+    "physics/smooth",
+    "physics/spring/progress",
+    "physics/spring/duration",
+    "physics/spring/reseat",
+    "physics/spring/linear-stops",
+    "physics/spring/timing-function",
+    "physics/spring/types",
+    "physics/spring/index",
+    "physics/morph",
+    "physics/playback",
+    "physics/oscillator",
+    "physics/decay",
+    "orchestration/timeline/index",
+    "orchestration/timeline/native",
+    "orchestration/stagger",
+    "orchestration/flip",
+    "orchestration/drag/draggable",
+    "orchestration/drag/drag-2d",
+    "orchestration/drag/index",
+    "orchestration/sequence/sequence",
+    "orchestration/sequence/events",
+    "orchestration/sequence/index",
     "easing",
 ];
 
@@ -75,10 +86,21 @@ const LIGHT_FROM = `^src/animation/(?:${LIGHT_BARREL_MODULES.map((m) =>
 ).join("|")})\\.ts$`;
 
 // The two forbidden TARGETS the boundary guards: the heavy engine module and
-// the value.js package (any specifier — bare, named, subpath). `engine.ts` is
-// matched precisely; `morph-svg`/`scroll-scene`/etc. are NOT the engine.
-const ENGINE_PATH = "^src/animation/engine\\.ts$";
+// the value.js package (any specifier — bare, named, subpath). R.W1: the engine
+// moved into the `engine/` directory, so the path matches any module under it
+// (`engine/animation.ts`, `engine/index.ts`, …); `svg/morph-svg`/`scroll/scene`/
+// etc. are NOT the engine.
+const ENGINE_PATH = "^src/animation/engine/";
 const VALUEJS_PATH = "@mkbabb/value\\.js";
+
+// The W97 verified-clean `@mkbabb/value.js/math` subpath — value.js's OWN
+// grammar-free math leaf (`clamp`/`scale`/`lerp`/`lerpArray`). `proof:boundary`
+// bundles its graph and proves ZERO grammar/parse-that/engine module
+// (`math-subpath-clean`), so the LIGHT leaves re-export from it (the owner-directed
+// no-byte-duplicate externalize). The boundary rules below EXCLUDE this exact
+// verified-clean subpath via `pathNot` (mirroring proof:boundary's W97 allow-list)
+// — a NEW value.js subpath (not `/math`) is NOT excluded and still reds.
+const VALUEJS_MATH_SUBPATH = "@mkbabb/value\\.js/math";
 
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
@@ -131,6 +153,10 @@ module.exports = {
             from: { path: "^src/animation/internal/" },
             to: {
                 path: [ENGINE_PATH, VALUEJS_PATH],
+                // The W97 verified-clean `@mkbabb/value.js/math` subpath is the
+                // sanctioned leaf edge (proof:boundary proves its graph grammar-free);
+                // a longer/other value.js subpath still reds.
+                pathNot: VALUEJS_MATH_SUBPATH,
                 // Only RUNTIME edges breach the boundary. `import type` / the
                 // `typeof import()` type position are erased under
                 // verbatimModuleSyntax (zero runtime edge — exactly what
@@ -170,6 +196,10 @@ module.exports = {
             from: { path: LIGHT_FROM },
             to: {
                 path: [ENGINE_PATH, VALUEJS_PATH],
+                // The W97 verified-clean `@mkbabb/value.js/math` subpath is the
+                // sanctioned light edge (proof:boundary externalizes it as a clean
+                // math leaf); a longer/other value.js subpath still reds.
+                pathNot: VALUEJS_MATH_SUBPATH,
                 // The boundary is a RUNTIME-edge invariant (proof:boundary strips
                 // `import type` before its scan). Exempt the erased type edges
                 // (`type-only`/`type-import`, incl. `typeof import("./engine")`)

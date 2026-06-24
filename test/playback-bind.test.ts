@@ -13,7 +13,7 @@
  * reds HERE, without browser infra.
  */
 import { describe, expect, it } from "vitest";
-import { RAFPlayback, type Tickable } from "../src/animation/playback";
+import { RAFPlayback, type Tickable } from "../src/animation/physics/playback";
 
 describe("RAFPlayback — bind-proof by construction (the I.W1 contract)", () => {
     it("const s = pb.stop; s() — the unbound stop operates on ITS instance (no this-undefined throw)", () => {

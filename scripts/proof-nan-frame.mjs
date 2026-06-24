@@ -42,13 +42,13 @@ console.log(
 );
 
 const engineUrl = pathToFileURL(
-    join(root, "src", "animation", "engine.ts"),
+    join(root, "src", "animation", "engine", "animation.ts"),
 ).href;
 const fcUrl = pathToFileURL(
-    join(root, "src", "animation", "frame-compiler.ts"),
+    join(root, "src", "animation", "compile", "frame-compiler.ts"),
 ).href;
 const timelineUrl = pathToFileURL(
-    join(root, "src", "animation", "timeline.ts"),
+    join(root, "src", "animation", "orchestration", "timeline", "index.ts"),
 ).href;
 
 const probe = `

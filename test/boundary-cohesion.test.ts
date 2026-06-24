@@ -21,24 +21,32 @@ describe("F.W11 — the 4× clamp converged onto leaves.clamp", () => {
     // The light steppers/timeline/waapi must not re-open-code the [0,1] clamp;
     // the spring must not re-open-code the [-1,1] clamp. A future edit to the
     // clamp contract (NaN handling, say) must find ONE site, not five.
-    for (const f of ["smooth.ts", "timeline.ts", "waapi.ts"]) {
+    // R.W1 directory partition: the steppers/timeline/waapi/spring/group moved
+    // into their zone directories; the cohesion assertions read the new paths.
+    for (const f of [
+        "physics/smooth.ts",
+        "orchestration/timeline/index.ts",
+        "waapi/waapi.ts",
+    ]) {
         it(`${f} has no open-coded Math.max(0, Math.min(1, …))`, () => {
             expect(read(f)).not.toMatch(/Math\.max\(\s*0\s*,\s*Math\.min\(\s*1/);
         });
     }
-    it("spring.ts has no open-coded Math.min(1, Math.max(-1, …))", () => {
-        expect(read("spring.ts")).not.toMatch(
+    it("spring progress.ts has no open-coded Math.min(1, Math.max(-1, …))", () => {
+        expect(read("physics/spring/progress.ts")).not.toMatch(
             /Math\.min\(\s*1\s*,\s*Math\.max\(\s*-1/,
         );
     });
-    it("timeline.ts deleted the local clamp01", () => {
-        expect(read("timeline.ts")).not.toMatch(/const clamp01\s*=/);
+    it("timeline index.ts deleted the local clamp01", () => {
+        expect(read("orchestration/timeline/index.ts")).not.toMatch(
+            /const clamp01\s*=/,
+        );
     });
 });
 
 describe("F.W11 — group.ts's lerp retargeted to value.js (inverted-tier removed)", () => {
     it("group.ts does not import lerp from the light leaf", () => {
-        const g = read("group.ts");
+        const g = read("group/group.ts");
         expect(g).not.toMatch(/import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']\.\/internal\/leaves["']/);
         // …it takes the canonical copy from value.js (the heavy posture it already holds).
         expect(g).toMatch(/from\s*["']@mkbabb\/value\.js["']/);

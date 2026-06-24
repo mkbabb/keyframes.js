@@ -5,7 +5,7 @@
  * BORN-RED WITNESS (DOUBLE-rooted, both now resolved):
  *   (1) the FRONTIER sense — kf had ZERO scroll-parse surface and no
  *       `ScrollScene` (the §State-verified two-comments-only grep). This wave
- *       ships `src/animation/scroll-scene.ts`; before it, every assert below
+ *       ships `src/animation/scroll/scene.ts`; before it, every assert below
  *       reds by construction (the symbol does not exist).
  *   (2) value.js-GATED — the typed scroll-VALUE extractor + `CSSTimelineOptions`
  *       were ABSENT in value.js ≤ 0.12.0. value.js 0.13.0 PUBLISHES them
@@ -32,8 +32,8 @@ import {
     resolveRange,
     roundTripScrollCSS,
     serializeScrollOptions,
-} from "../src/animation/scroll-scene";
-import { KeyframesScrollTimeline } from "../src/animation/timeline";
+} from "../src/animation/scroll";
+import { KeyframesScrollTimeline } from "../src/animation/orchestration/timeline";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 const mkEl = (style: Record<string, string> = {}): HTMLElement => {

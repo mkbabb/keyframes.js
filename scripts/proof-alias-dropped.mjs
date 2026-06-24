@@ -64,7 +64,7 @@ import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist");
 const DTS = path.join(DIST, "keyframes.d.ts");
-const TIMELINE = path.join(REPO, "src/animation/timeline.ts");
+const TIMELINE = path.join(REPO, "src/animation/orchestration/timeline/index.ts");
 const LOAD_ENGINE = path.join(REPO, "src/animation/load-engine.ts");
 
 const failures = [];
@@ -259,7 +259,7 @@ console.log(
         );
         if (re.test(timelineSrc)) {
             failures.push(
-                `(3) src/animation/timeline.ts re-exports \`${canonical} as ${alias}\` ` +
+                `(3) src/animation/orchestration/timeline/index.ts re-exports \`${canonical} as ${alias}\` ` +
                     `— drop the alias; the canonical name is \`${canonical}\`.`,
             );
         }

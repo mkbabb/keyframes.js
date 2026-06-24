@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { animate } from "../src/animation/animate";
 import { AnimationGroup } from "../src/animation/group";
-import { Sequence } from "../src/animation/sequence";
+import { Sequence } from "../src/animation/orchestration/sequence";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 /**

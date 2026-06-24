@@ -80,7 +80,7 @@ const DIST = path.join(REPO, "dist/gh-pages");
 // The LIGHT compiled barrel + the drag source — the L.W5 S1/S2/S4 gesture
 // clauses run over these in-process (no browser, no demo build needed).
 const LIB = path.join(REPO, "dist/keyframes.js");
-const DRAG_SRC = path.join(REPO, "src/animation/drag.ts");
+const DRAG_SRC = path.join(REPO, "src/animation/orchestration/drag/draggable.ts");
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);
@@ -618,7 +618,7 @@ async function lightHalf() {
                     `\`drag2D\`: ${hasDrag2DSource}, \`Drag2DHandle\`: ${hasHandleSource}. ` +
                     `Every 2-D drag needs eight lines of two-Draggable boilerplate ` +
                     `(W-FRONT-DOOR+ born-RED — \`grep -nE "drag2D|Drag2DHandle" ` +
-                    `src/animation/drag.ts\` → zero hits).`,
+                    `src/animation/orchestration/drag/draggable.ts\` → zero hits).`,
             );
         } else {
             // Functional follow: a 2-D drag from (50, 80) to (100, 120) should

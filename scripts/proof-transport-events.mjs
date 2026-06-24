@@ -133,7 +133,7 @@ if (typeof Sequence === "function") {
                 `"${typeof seq.on}"). The Sequence transport fires no segment/` +
                 `label crossing callbacks; there is no subscribe channel. ` +
                 `(L.W5 S3 born-RED: \`grep -nE "on\\(event|_subscribers|` +
-                `SequenceEvent" src/animation/sequence.ts\` → zero hits.)`,
+                `SequenceEvent" src/animation/orchestration/sequence/sequence.ts\` → zero hits.)`,
         );
     } else {
         ok(`clause (a) — \`sequence.on\` is a function`);

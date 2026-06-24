@@ -1,9 +1,9 @@
 [
   {
     "type": "cycle",
-    "from": "src/animation/drag-2d.ts",
-    "to": "src/animation/drag.ts",
-    "unresolvedTo": "./drag",
+    "from": "src/animation/engine/animation.ts",
+    "to": "src/animation/engine/playback.ts",
+    "unresolvedTo": "./playback",
     "dependencyTypes": [
       "local",
       "import"
@@ -14,44 +14,52 @@
     },
     "cycle": [
       {
-        "name": "src/animation/drag.ts",
+        "name": "src/animation/engine/playback.ts",
         "dependencyTypes": [
           "local",
           "import"
         ]
       },
       {
-        "name": "src/animation/drag-2d.ts",
+        "name": "src/animation/engine/animation.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/engine/animation.ts",
+    "to": "src/animation/group/index.ts",
+    "unresolvedTo": "../group",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/group/index.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/group/group.ts",
         "dependencyTypes": [
           "local",
           "export"
         ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/easing.ts",
-    "to": "src/animation/engine.ts",
-    "unresolvedTo": "./engine",
-    "dependencyTypes": [
-      "local",
-      "type-import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "type-import"
-        ]
       },
       {
-        "name": "src/animation/easing.ts",
+        "name": "src/animation/engine/animation.ts",
         "dependencyTypes": [
           "local",
           "import"
@@ -61,9 +69,75 @@
   },
   {
     "type": "cycle",
-    "from": "src/animation/engine-options.ts",
-    "to": "src/animation/frame-compiler.ts",
-    "unresolvedTo": "./frame-compiler",
+    "from": "src/animation/engine/index.ts",
+    "to": "src/animation/group/index.ts",
+    "unresolvedTo": "../group",
+    "dependencyTypes": [
+      "local",
+      "export"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/group/index.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/group/group.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/engine/animation.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine/playback.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/waapi/index.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/waapi/densify.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/engine/index.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/group/group.ts",
+    "to": "src/animation/group/layer-springs.ts",
+    "unresolvedTo": "./layer-springs",
     "dependencyTypes": [
       "local",
       "import"
@@ -74,28 +148,90 @@
     },
     "cycle": [
       {
-        "name": "src/animation/frame-compiler.ts",
+        "name": "src/animation/group/layer-springs.ts",
         "dependencyTypes": [
           "local",
           "import"
         ]
       },
       {
-        "name": "src/animation/easing.ts",
+        "name": "src/animation/group/group.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/group/group.ts",
+    "to": "src/animation/group/soa.ts",
+    "unresolvedTo": "./soa",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/group/soa.ts",
         "dependencyTypes": [
           "local",
           "import"
         ]
       },
       {
-        "name": "src/animation/engine.ts",
+        "name": "src/animation/group/group.ts",
         "dependencyTypes": [
           "local",
-          "type-import"
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/group/layer-springs.ts",
+    "to": "src/animation/engine/animation.ts",
+    "unresolvedTo": "../engine/animation",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/engine/animation.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
         ]
       },
       {
-        "name": "src/animation/engine-options.ts",
+        "name": "src/animation/group/index.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/group/group.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/group/layer-springs.ts",
         "dependencyTypes": [
           "local",
           "import"
@@ -105,12 +241,42 @@
   },
   {
     "type": "cycle",
-    "from": "src/animation/engine-playback.ts",
-    "to": "src/animation/waapi.ts",
+    "from": "src/animation/physics/spring/progress.ts",
+    "to": "src/animation/physics/spring/reseat.ts",
+    "unresolvedTo": "./reseat",
+    "dependencyTypes": [
+      "local",
+      "export"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/physics/spring/reseat.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/physics/spring/progress.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/waapi/index.ts",
+    "to": "src/animation/waapi/waapi.ts",
     "unresolvedTo": "./waapi",
     "dependencyTypes": [
       "local",
-      "import"
+      "export"
     ],
     "rule": {
       "severity": "error",
@@ -118,398 +284,14 @@
     },
     "cycle": [
       {
-        "name": "src/animation/waapi.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine-playback.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/engine.ts",
-    "to": "src/animation/engine-playback.ts",
-    "unresolvedTo": "./engine-playback",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/engine-playback.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/engine.ts",
-    "to": "src/animation/frame-compiler.ts",
-    "unresolvedTo": "./frame-compiler",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/frame-compiler.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/easing.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "type-import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/engine.ts",
-    "to": "src/animation/group.ts",
-    "unresolvedTo": "./group",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/group.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/group-layer-springs.ts",
-    "to": "src/animation/engine.ts",
-    "unresolvedTo": "./engine",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/group.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/group-layer-springs.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/group.ts",
-    "to": "src/animation/group-layer-springs.ts",
-    "unresolvedTo": "./group-layer-springs",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/group-layer-springs.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/group.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/group.ts",
-    "to": "src/animation/group-soa.ts",
-    "unresolvedTo": "./group-soa",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/group-soa.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/group.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/spring-duration.ts",
-    "to": "src/animation/spring.ts",
-    "unresolvedTo": "./spring",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/spring.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/spring-duration.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/spring-reseat.ts",
-    "to": "src/animation/spring.ts",
-    "unresolvedTo": "./spring",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/spring.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/spring-reseat.ts",
+        "name": "src/animation/waapi/waapi.ts",
         "dependencyTypes": [
           "local",
           "export"
         ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/timeline.ts",
-    "to": "src/animation/easing.ts",
-    "unresolvedTo": "./easing",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/easing.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
       },
       {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "type-import"
-        ]
-      },
-      {
-        "name": "src/animation/timeline.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/waapi.ts",
-    "to": "src/animation/timeline.ts",
-    "unresolvedTo": "./timeline",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/timeline.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/easing.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine.ts",
-        "dependencyTypes": [
-          "local",
-          "type-import"
-        ]
-      },
-      {
-        "name": "src/animation/engine-playback.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/waapi.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/animation/waapi.ts",
-    "to": "src/animation/waapi-densify.ts",
-    "unresolvedTo": "./waapi-densify",
-    "dependencyTypes": [
-      "local",
-      "import"
-    ],
-    "rule": {
-      "severity": "error",
-      "name": "no-cycle"
-    },
-    "cycle": [
-      {
-        "name": "src/animation/waapi-densify.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/animation/engine.ts",
+        "name": "src/animation/engine/index.ts",
         "dependencyTypes": [
           "local",
           "type-only",
@@ -517,17 +299,111 @@
         ]
       },
       {
-        "name": "src/animation/engine-playback.ts",
+        "name": "src/animation/group/index.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/group/group.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/engine/animation.ts",
         "dependencyTypes": [
           "local",
           "import"
         ]
       },
       {
-        "name": "src/animation/waapi.ts",
+        "name": "src/animation/engine/playback.ts",
         "dependencyTypes": [
           "local",
           "import"
+        ]
+      },
+      {
+        "name": "src/animation/waapi/index.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/animation/waapi/waapi.ts",
+    "to": "src/animation/waapi/densify.ts",
+    "unresolvedTo": "./densify",
+    "dependencyTypes": [
+      "local",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-cycle"
+    },
+    "cycle": [
+      {
+        "name": "src/animation/waapi/densify.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine/index.ts",
+        "dependencyTypes": [
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/group/index.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/group/group.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "src/animation/engine/animation.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/engine/playback.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/waapi/index.ts",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/animation/waapi/waapi.ts",
+        "dependencyTypes": [
+          "local",
+          "export"
         ]
       }
     ]

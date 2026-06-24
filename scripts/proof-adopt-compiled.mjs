@@ -76,7 +76,7 @@ const requireAll = (clause, file, anchors) => {
 
 console.log("proof:adopt-compiled — G.W19 (the adoptCompiled engine seam)");
 
-const ENGINE = "src/animation/engine.ts";
+const ENGINE = "src/animation/engine/animation.ts";
 const DEMO =
     "demo/@/components/custom/animation-controls/keyframes/composables/useKeyframeOps.ts";
 const TEST = "test/adopt-compiled.test.ts";

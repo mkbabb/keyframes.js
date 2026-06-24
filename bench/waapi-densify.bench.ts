@@ -21,7 +21,7 @@
 import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { densifyInteriorTimes } from "../src/animation/waapi";
-import { springTimingFunction } from "../src/animation/springTimingFunction";
+import { springTimingFunction } from "../src/animation/physics/spring";
 import { resolveEasing } from "../src/animation/easing";
 import type { Easing } from "../src/animation/constants";
 import type { Animation } from "../src/animation/engine";

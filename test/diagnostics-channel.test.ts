@@ -22,7 +22,7 @@ import { describe, expect, it } from "vitest";
 import { resolveKeyframes } from "../src/animation/adapter";
 import type { Diagnostic, DiagnosticCode } from "../src/animation/adapter";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { resolveEasingOption } from "../src/animation/frame-compiler";
+import { resolveEasingOption } from "../src/animation/compile/frame-compiler";
 
 const codesOf = (diags: Diagnostic[]): DiagnosticCode[] =>
     diags.map((d) => d.code);

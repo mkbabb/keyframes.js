@@ -15,7 +15,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { KeyframesAnimation, CSSKeyframesAnimation } from "../src/animation/engine";
 import { isWAAPIEligible } from "../src/animation/waapi";
-import { springTimingFunction } from "../src/animation/springTimingFunction";
+import { springTimingFunction } from "../src/animation/physics/spring";
 import { resolveEasing } from "../src/animation/easing";
 
 class FakeWAAnimation {

@@ -118,8 +118,8 @@ console.log(
 // `ingest-cssom.ts`; the mid-flight TEMPORAL takeover (adoptRunning + the
 // continuity seed) lives in `ingest.ts`, which re-exports the walk surface. The
 // source-shape contract bites over the colocated PAIR (the SAME code, relocated).
-const INGEST = "src/animation/ingest.ts";
-const INGEST_CSSOM = "src/animation/ingest-cssom.ts";
+const INGEST = "src/animation/ingest/adopt.ts";
+const INGEST_CSSOM = "src/animation/ingest/cssom.ts";
 const INGEST_SURFACE = [INGEST, INGEST_CSSOM];
 const INDEX = "src/animation/index.ts";
 // L close (`fix(tranche-L close): the gate-suite roster reconciliation`)
@@ -129,7 +129,7 @@ const INDEX = "src/animation/index.ts";
 // import + the `fromStyleSheets/adoptRunning: ingestMod.…` assigns now live
 // there; the barrel keeps ONLY the erased type re-export.
 const LOAD_ENGINE = "src/animation/load-engine.ts";
-const ENGINE = "src/animation/engine.ts";
+const ENGINE = "src/animation/engine/animation.ts";
 const ADAPTER = "src/animation/adapter.ts";
 const TEST = "test/ingest.test.ts";
 
@@ -167,8 +167,8 @@ requireAll("reuses-resolve", INGEST_SURFACE, [
         re: /\.fromString\(/,
     },
     {
-        name: "imports CSSKeyframesAnimation from ./engine (the reused engine)",
-        re: /import\s*\{[\s\S]*?CSSKeyframesAnimation[\s\S]*?\}\s*from\s*["']\.\/engine["']/,
+        name: "imports CSSKeyframesAnimation from ../engine (the reused engine; R.W1 zone path)",
+        re: /import\s*\{[\s\S]*?CSSKeyframesAnimation[\s\S]*?\}\s*from\s*["']\.\.\/engine["']/,
     },
     {
         name: "reads rule.cssText (the CSSOM serialize the engine already eats)",
@@ -297,7 +297,7 @@ requireAll("adopt-runtime", INGEST_SURFACE, [
 requireAll("barrel-heavy", LOAD_ENGINE, [
     {
         name: "the ingest module is dynamically imported in loadAnimationEngine",
-        re: /import\(["']\.\/ingest["']\)/,
+        re: /import\(["']\.\/ingest(?:\/index)?["']\)/,
     },
     {
         name: "fromStyleSheets is merged onto the heavy engine surface",

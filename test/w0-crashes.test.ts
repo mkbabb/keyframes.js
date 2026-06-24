@@ -19,7 +19,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { CSSKeyframesToString, serializeEasing } from "../src/animation/format";
+import { CSSKeyframesToString, serializeEasing } from "../src/animation/compile/format";
 import { AnimationOptionError } from "../src/animation/internal/errors";
 import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js";
 

@@ -87,7 +87,7 @@ console.log(
     "proof:morphsvg-consume — O.W6 (SVG path-shape morph, the DM-3 chronic terminal)",
 );
 
-const MS = "src/animation/morph-svg.ts";
+const MS = "src/animation/svg/morph-svg.ts";
 const INDEX = "src/animation/index.ts";
 const LOAD_ENGINE = "src/animation/load-engine.ts";
 const TEST = "test/morph-svg.test.ts";
@@ -160,7 +160,7 @@ requireAll("primitive-exists", MS, [
     // The BARREL re-export must be TYPE-ONLY. A static value re-export of the
     // runtime symbols would pull PathGeometry (value.js) onto the LIGHT path.
     const staticValueExportRe =
-        /export\s*\{\s*(?:[^}]*\b)?(?:fromMorphSVG|MorphSVG)\b[^}]*\}\s*from\s*["']\.\/morph-svg["']/;
+        /export\s*\{\s*(?:[^}]*\b)?(?:fromMorphSVG|MorphSVG)\b[^}]*\}\s*from\s*["']\.\/svg\/morph-svg["']/;
     const leaked =
         staticValueExportRe.test(read(INDEX)) ||
         staticValueExportRe.test(read(LOAD_ENGINE));
@@ -181,13 +181,13 @@ requireAll("primitive-exists", MS, [
 {
     const loadSrc = read(LOAD_ENGINE);
     const importsMorph =
-        /import\([\s\S]*?["']\.\/morph-svg["']\)/.test(loadSrc);
+        /import\([\s\S]*?["']\.\/svg\/morph-svg["']\)/.test(loadSrc);
     const assignsFactory =
         /fromMorphSVG:\s*morphMod\.fromMorphSVG/.test(loadSrc) &&
         /MorphSVG:\s*morphMod\.MorphSVG/.test(loadSrc);
     // Only the option TYPE is allowed on the static barrel.
     const typeOnlyBarrel =
-        /export\s+type\s*\{[^}]*\bMorphSVGOptions\b[^}]*\}\s*from\s*["']\.\/morph-svg["']/.test(
+        /export\s+type\s*\{[^}]*\bMorphSVGOptions\b[^}]*\}\s*from\s*["']\.\/svg\/morph-svg["']/.test(
             read(INDEX),
         );
     if (!importsMorph || !assignsFactory || !typeOnlyBarrel) {
