@@ -119,7 +119,12 @@ anim.play();
 
 **Also fix** README.md lines 232, 541, 546: replace stale `Animation` backtick references with `KeyframesAnimation` (`audit/lib-boundary.md` §3.4).
 
-### 2.5 — Decide `animate()`: EXCISE as dead surface
+### 2.5 — `animate()`: EXCISE as dead surface — **OWNER-RATIFIED 2026-06-24**
+
+> **Owner ruling:** *"Remove animate() in favor of our more idiomatic solutions."* The fork is
+> CLOSED — EXCISE. The "more idiomatic solutions" are the `@mkbabb/keyframes.js/engine` subpath
+> (§2.1) + direct `new CSSKeyframesAnimation(...)` — the pattern the demo already uses at all 32
+> sites. The promote-and-dogfood alternative is DECLINED.
 
 **Evidence:** `audit/retro-api-in.md` F2 — zero adoption (0 `animate(` call sites in demo; 32 `new CSSKeyframesAnimation`). `audit/challenge-retro.md` §3 calibration: the correct charge is "dead-by-disuse (0/32)," not "effusive dynamicism" (a typed-union front door is genre-idiomatic). `R.md` §2: "`animate()` is charged as 'dead-by-disuse (0/32),' NOT 'effusive dynamicism'; the subpath is subpath-only, NEVER re-add `Animation`."
 
@@ -132,7 +137,7 @@ anim.play();
 
 **EXCISE from `src/animation/animate.ts`:** The file stays (it is a HEAVY chunk loaded by `loadAnimationEngine`), but `animate` is removed from `AnimationEngine` interface (`load-engine.ts` member `animate`) and from `docs/published-surface.md`. If there is any demo call site at IMPL time (currently 0), convert to direct `new CSSKeyframesAnimation(...)` before excision.
 
-**If the owner directs promote-and-dogfood instead:** add `animate` to the `./engine` subpath barrel, rewrite ≥1 demo scene to use it as the sole entry, update the README Quick Start to use `animate()` instead of the class directly. This is the fork the spec defers to the owner at IMPL start.
+**The promote-and-dogfood alternative was DECLINED by the owner (2026-06-24).** It is recorded here only for provenance: it would have added `animate` to the `./engine` subpath barrel + dogfooded it in ≥1 scene. The owner directed EXCISE in favor of the direct-construction idiom. No fork remains at IMPL start.
 
 ### 2.6 — Remove phantom exports from the curated agent index
 
@@ -178,7 +183,7 @@ For clause (3): re-add `"Animation"` to `agent-surface.mjs:76` — `proof:agent-
 
 - **The three gate co-edits are REQUIRED in the same commit as their corresponding excisions.** `R.md` §2: "the 3 gate co-edits … are first-class R.W1 steps, each with a re-RED test." The same principle applies here for R.W4's gate co-edit: `proof-boundary.mjs:237` `DYNAMIC_ACCESSORS` must drop `loadEngine`/`loadCompiler`/`loadIngest` in the same commit as their excision from `load-engine.ts` and `index.ts`. Absent this, the gate hard-reds on the missing exports.
 
-- **`animate()` fate is a fork, not a unilateral excision.** The spec recommends EXCISE but notes the promote-and-dogfood alternative. The IMPL agent must surface this choice to the owner at wave start and implement the directed path. The gate (`proof:in-is-importable`) is neutral between the two: it only asserts the subpath resolves and the Quick Start imports something real — it does not require `animate()` to be present or absent.
+- **`animate()` fate is DECIDED — EXCISE (owner-ratified 2026-06-24).** No fork remains; the IMPL agent excises `animate` from the public surface (the `AnimationEngine` interface member + `docs/published-surface.md`) and converts any demo call site (currently 0) to direct `new CSSKeyframesAnimation(...)`. The gate (`proof:in-is-importable`) is neutral on `animate()`; a separate assertion that `animate` is ABSENT from the published surface may be added to lock the removal.
 
 - **`proof:published-surface` clause (d) stays.** Excising the three dead accessors + stripping the `AnimationEngine` interface JSDoc does NOT remove the drift-detection gate. The hand-maintained interface is a genuine API Extractor constraint (`audit/lib-boundary.md` §3.2: "the API Extractor constraint is genuine"). The gate that diffs `Object.keys(engine)` against the interface is the correct response to that constraint.
 

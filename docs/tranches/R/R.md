@@ -30,7 +30,8 @@ The R ask opened with five pointed questions. The 32-lane audit answers each fro
    has **zero adoption** (0 demo sites vs 32 `new CSSKeyframesAnimation`). The fix is **R.W4**:
    a package subpath export (`@mkbabb/keyframes.js/engine`) gives the heavy class a static,
    synchronous, tree-shakeable home; collapse the four `load*` accessors to one; fix-or-excise the
-   Quick Start; decide `animate()`'s fate (promote-and-dogfood, or excise as dead-by-disuse).
+   Quick Start. **`animate()` is EXCISED (owner-ratified 2026-06-24)** — the idiomatic "in" is the
+   subpath + direct `new CSSKeyframesAnimation(...)`, the pattern the demo already uses at all 32 sites.
 
 3. **"`src/` is a mess — what are these files, why no sub-dir encapsulation?"** `src/animation/`
    is a **flat tree of 56 files** (only `internal/` is a sub-dir). **Q branded a "decomposition
@@ -124,13 +125,13 @@ over-excise (`audit/challenge-demo.md` E.2):
 |---|---|---|---|---|
 | **A apparatus** | **R.W0** | Audit-fold + the keystone gate-truth reset | DEV (now) | This doc + the 32-lane audit + the deferred-ledger fold + the prompt-recap; the keyframes-vue corrective (done); the root-file dispositions; **the keystone**: DELETE `LIBRARY_CEILING_OVERRIDE` → reds = backlog. |
 | **B lib structure** | **R.W1** | Directory-ize the flat tree (the 7-zone partition) | IMPL | Mechanical family moves (`physics/ orchestration/ engine/ group/ compile/ resolve/ ingest/ scroll/ presets/ svg/`) + barrel re-points + **the 3 gate co-edits with re-RED tests**. Zero public-API change. |
-| | **R.W2** | The two god-class carves (engine, group) — DI not param-bags | IMPL (major) | `PlaybackState` + `Composition` OWN their state (kill the `PlaybackHost` cast); group demotes test-scaffold surface + the layer-springs junk-drawer 3-way split; the spring `types.ts` ring-break. |
+| | **R.W2** | The two god-class carves (engine, group) — DI not param-bags | IMPL | `PlaybackState` + `Composition` OWN their state (kill the `PlaybackHost` cast); group demotes test-scaffold surface + the layer-springs junk-drawer 3-way split; the spring `types.ts` ring-break. **Internal — the public barrel is unchanged (no break).** |
 | **C lib hygiene** | **R.W3** | The legacy/workaround/fallback excision sweep | IMPL | Apply the §3 rubric across `src/` + demo: excise-or-fail-explicit per the legacy-sweep lanes; reconcile the `leaves.ts → value.js/math` edge vs the `leaf-no-engine-no-valuejs` lint rule. |
-| | **R.W4** | The honest API "in" + boundary slim | IMPL | `@mkbabb/keyframes.js/engine` subpath; collapse 4 `load*` → 1; delete the hand-mirrored `AnimationEngine` interface + drift-gate where the subpath replaces it; fix/gate the Quick Start; **decide `animate()`** (promote-and-dogfood OR excise); the agent-surface `Animation`/`ScrollTimeline` curation cleanup. |
+| | **R.W4** | The honest API "in" + boundary slim | IMPL | `@mkbabb/keyframes.js/engine` subpath; collapse 4 `load*` → 1; delete the hand-mirrored `AnimationEngine` interface + drift-gate where the subpath replaces it; fix/gate the Quick Start; **EXCISE `animate()`** (owner-ratified) in favor of the subpath + direct construction; the agent-surface `Animation`/`ScrollTimeline` curation cleanup. |
 | **D demo** | **R.W5** | Scene fusion + dead-code excision | IMPL | Fuse each scene to `demo/scenes/<name>/`; remove the `SceneSwitcherCarousel` + `useScrollSnapScene`; delete `Animated.vue`/`ResponsiveSelect.vue`; the cross-cutting extractions (`useContractAnimGroup`/`useSceneTransport`/`rafConstants`/`useTypedTrigger`). |
 | | **R.W6** | Demo brittleness · state · styling | IMPL | The vueuse residuals (`DemoControlPoint`, `SpringHeatmap` RO+MutationObserver→`useGlobalDark`); callbacks-as-props → emits/expose; the typed `SceneExposedApi`; the z-index comma-default excision; the cube-3d.css extraction; the 3 state drift-points. |
 | **E docs+close** | **R.W7** | Docs surface | IMPL | README slim (928→~720; stale paths + class name); CHANGELOG 5.0.0-format convention; reclassify `llms*.txt` as build-artifacts (gitignore + CI-generate); restore-list confirmed. |
-| | **R.W8** | Close (deferred-ledger · prompt-recap · release) | IMPL (LAST) | Re-point the chronic ledger **Q→R** + DM-7 KILL (fold #1); discharge the 10-item fold; the prompt-recap confirmed; FINAL.md; version owner named (a major absorbing the breaking directory/subpath surface, or a careful minor — decided at close). |
+| | **R.W8** | Close (deferred-ledger · prompt-recap · release) | IMPL (LAST) | Re-point the chronic ledger **Q→R** + DM-7 KILL (fold #1); discharge the 10-item fold; the prompt-recap confirmed; FINAL.md; **version `5.1.0`** (owner-ratified: stay in 5.x — additive subpath + internal restructure; the zero-adoption trims recorded as removals; no 6.0.0). |
 
 **DAG.** R.W0 (now) → **R.W1 → R.W2** (the carve depends on the directories; sequential — they collide
 on `engine.ts`/`group.ts`/the gates) · **R.W3 ∥ R.W4** (after the structure settles) · **R.W5 → R.W6**

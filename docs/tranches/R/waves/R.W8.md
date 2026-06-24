@@ -36,11 +36,11 @@ R.W8 is the terminal tranche close. It executes five concrete motions, in order:
    provenance (`audit/retro-deferred-ledger.md §Structural lesson`), and the
    publish leg (owner hand).
 
-5. **Version named** — a major absorbing the breaking directory/subpath surface
-   (the R.W1 7-zone partition + the R.W4 `/engine` subpath export make this a
-   BREAKING semver cut) OR a careful minor if the public barrel is unchanged. The
-   decision is made at close against the actual shipped diff; the publish leg is
-   the owner hand.
+5. **Version named — `5.1.0`** (owner-ratified 2026-06-24: "5.0 is fine" → stay in
+   the 5.x line). The `/engine` subpath is additive and the `.` barrel is unchanged
+   (the restructure is internal); the zero-adoption trims (`animate()`, the granular
+   `load*` accessors) are recorded as removals, not used to force a major. See §S5.
+   The publish leg is the owner hand. **No 6.0.0.**
 
 No library or demo source is refactored in this wave.
 
@@ -234,8 +234,8 @@ OR lists any surviving PARTIAL with a named terminal disposition.
 
 Path: `docs/tranches/R/FINAL.md`. Required sections:
 
-1. **Version** — `@mkbabb/keyframes.js` version cut at R close (major or careful
-   minor per the diff analysis; the publish leg is the owner hand).
+1. **Version** — `@mkbabb/keyframes.js` **5.1.0** (owner-ratified; the publish leg is
+   the owner hand).
 2. **P-inv-28 register at R close** — per-item terminal record for every DM/DQ
    that rode to R: DM-1 S2 (8th carry HARD STOP — EXITED via [A] BC or [B] KILL),
    DM-5 S1 (6th carry EXITED), DM-7 (KILLED R.W0 — recorded), DM-24 (unshelved
@@ -261,25 +261,27 @@ Path: `docs/tranches/R/FINAL.md`. Required sections:
 
 ---
 
-### S5 — Version named
+### S5 — Version named — **5.1.0 (owner-ratified 2026-06-24: "5.0 is fine")**
 
-At R.W8 IMPL entry, compare the R-shipped diff against the published 5.0.0 barrel.
-Decision criteria:
+**The owner ruled: stay in the 5.x line — R is `5.1.0`.** A semver purist would call
+the surface trims breaking; the owner waives a major for them because their real-world
+impact is nil:
 
-- **MAJOR (recommended if R.W4 shipped `@mkbabb/keyframes.js/engine` subpath):**
-  Adding a new `exports` entry in `package.json` is non-breaking per semver; the
-  BREAKING change is removing the `loadAnimationEngine()` / `loadCompiler()` /
-  `loadIngest()` / `loadScrollTimeline()` dynamic accessors (R.W4 collapses 4→1).
-  If R.W4 removes the `load*` names from the public barrel, that is a BREAKING API
-  change → **6.0.0** (major absorbing the breaking directory/subpath surface plus
-  the load-accessor collapse).
-- **MINOR (if R.W4 kept the 4 `load*` names as re-exports of the collapsed one):**
-  Pure structural refactor with no barrel changes → **5.1.0**. Unlikely given the
-  `@deprecated`-removal mandate (R.W3 may drop the aliases that survived R.W4's
-  scope).
+- **The headline is additive** — `@mkbabb/keyframes.js/engine` (R.W4) is a NEW `exports`
+  entry; the `.` barrel's public surface is UNCHANGED (the directory restructure is
+  internal, re-exported through the same barrel paths). That alone is a **minor**.
+- **The removals are zero/near-zero-adoption trims the owner accepts within 5.x:** the
+  `loadEngine`/`loadCompiler`/`loadIngest` collapse (4→1; **0 call sites**, the audit
+  verified) and the **`animate()` excision** (R.W4, **0/32 adoption** — owner-directed
+  "remove animate() in favor of our more idiomatic solutions"). They are recorded as
+  removals in the `## 5.1.0` CHANGELOG entry (the no-wave-codes format), not used to
+  force a 6.0.0.
 
-The version is DECIDED at R.W8 IMPL against the actual diff. This spec authorizes
-both paths; the owner names the version and fires the tag. Record in FINAL.md §1.
+So: **`5.1.0`** — the subpath "in" + the internal restructure as the minor; the dead-
+surface trims (`animate()`, the granular `load*` accessors) noted as removals. The
+`loadAnimationEngine()` + `warmEngine()` public accessors stay (they ARE the real surface).
+The owner fires the tag (`npm version 5.1.0 && git tag v5.1.0 && git push --tags`); record
+in FINAL.md §1. **No 6.0.0.**
 
 ---
 
@@ -373,9 +375,10 @@ the Q substrate's vocabulary.
   build governance machinery around it (rejected in R.W0 §4: "the keystone is the
   simplest possible gate fix").
 
-- **Version decision at close, not in spec.** The "6.0.0 vs 5.1.0" question
-  (`R.md §4`) is decided by inspecting the actual R-shipped diff. This spec
-  authorizes both; the version number is filled in at IMPL time.
+- **Version DECIDED — `5.1.0`** (owner-ratified 2026-06-24: "5.0 is fine"). The
+  earlier "6.0.0 vs 5.1.0" fork is closed: stay in the 5.x line; the subpath is
+  additive, the restructure internal, the zero-adoption trims recorded as removals.
+  See §S5.
 
 ---
 

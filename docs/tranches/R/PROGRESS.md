@@ -69,6 +69,15 @@ DRY, isomorphic, encapsulation, inv-16) hold throughout — and ARE the R charte
 | **DM-5 S8 FN_NAME cure** | K | 5 (K,L,M,O,P,Q→R) | **VERIFY-ONLY → R** | R.W3: confirm `proof:workaround-deletion` S8 GREENED on the 1.2.0 dist (VJ-Q4 `.fnName`, WeakMap retired); fold the consume if still PENDING. |
 | **DM-8…DM-15 (×8 VERIFY-ONLY chronics)** | various | 5–10 | **VERIFY-ONLY → R (UNVERIFIED — re-run required)** | Re-verify on the R dist (specular, font-census, mobile, perf-budget, no-throw, DFA, single-writer, lighthouse). Any RED revert is a NEW R wave. NOT "verified green" — rostered to verify. |
 
+## Owner rulings (2026-06-24)
+
+- **Version: `5.1.0`** — stay in the 5.x line ("5.0 is fine"). No 6.0.0. The `/engine` subpath is
+  additive, the directory restructure internal, the zero-adoption trims (`animate()`, the granular
+  `load*` accessors) recorded as removals — not a major. (R.W8 §S5.)
+- **`animate()`: EXCISE** — "remove animate() in favor of our more idiomatic solutions." The idiomatic
+  "in" is the `@mkbabb/keyframes.js/engine` subpath + direct `new CSSKeyframesAnimation(...)` (the
+  32-site demo pattern). The promote-and-dogfood fork is DECLINED. (R.W4 §2.5.)
+
 ## Notes
 
 - The chronic ledger above is the binding fold list (`audit/retro-deferred-ledger.md` §"Disposition
