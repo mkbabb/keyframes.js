@@ -109,260 +109,47 @@ const read = (p) => fs.readFileSync(p, "utf8");
 // (H.W8: the D.W1 demo CEILING / CEILING_OVERRIDE constants were removed with
 // the demo ceiling sweep — demo file-size is now solely proof:demo-no-oversize.)
 
-// G.W5 — the LIBRARY `.ts` ceiling (path A, Design decision 2). Set ABOVE the
-// demo's 250L because the interpolation/compile engines are intrinsically larger
-// cohesive units (an isomorphism break the §Mandate permits when befitting +
-// named): at 550L every ALREADY-SOTA leaf module (spring 491, waapi 473,
-// frame-compiler 414, utils 377, drag 323, …) passes silently, while a NEW
-// un-exempted 600L file reds (the G.md BITE). The four genuinely-cohesive modules
-// over 550 carry RECORDED gated exceptions below.
-const LIBRARY_CEILING = { ".vue": 350, ".ts": 550 };
+// R.W0 KEYSTONE (the gate-truth reset). The `LIBRARY_CEILING_OVERRIDE` allowlist
+// was DELETED: every per-file cap had been set +1..+71 above the file it measured
+// (engine.ts cap=1450 for a 1420L file, group.ts cap=925 for 924L) — a
+// self-certifying gate that cannot bite, with a prose essay arguing each
+// god-module was a "cohesive gestalt." The R retros converge on ONE hard library
+// ceiling (500L `.ts`, 350L `.vue`): the resulting reds on every oversized file
+// ARE the decomposition backlog R.W1/R.W2 discharge — measured by the gate, not by
+// prose. (500L is the measured already-SOTA leaf floor: spring-duration 83L,
+// group-soa 254L, waapi-densify 287L all pass; the four genuine god-classes
+// — engine/group/waapi/resolve — RED until carved.) The override map AND its
+// stale-entry guard loop are gone (R.W0 §2c; R.md §5; challenge-library §7).
+//
+// presets/classic.ts data-volume note: at ~700L (54% raw CSS string data),
+// classic.ts may red after the presets/ split (R.W1). Per R.md §7 +
+// challenge-library §4b, splitting a flat list of 34 preset constants three ways
+// by taxonomy purely to satisfy a line gate on string-literal DATA is the
+// contrivance the precepts forbid. The honest disposition is a SINGLE documented
+// data-volume override entry below (data, not logic) — NOT a forced 3-way split.
+const LIBRARY_CEILING = { ".vue": 350, ".ts": 500 };
 
-// The RECORDED gated exceptions — the §Mandate-correct shape for "cohesive (or a
-// god-LIST) but over the line": a NAMED per-file cap + the cohesion rationale,
-// self-pruned by the stale-entry guard (an entry whose file drops back under the
-// base cap reds as dead). This is the DECISION the F.md ceiling chronic asked G
-// to make (a-deferred-ledger C-6, P-invariant: decide, do not re-defer) — the
-// reflexive split is the legacy-shape the Mandate forbids (a-backend-godmodules
-// G-GM-1). Each file below is verified at gestalt; NONE is carved.
+// The ONE documented data-volume exception (R.md §7 / challenge-library §4b):
+// `presets/classic.ts` is ~700L of raw cubic-bezier/stepped preset CSS string
+// data (a flat list of value-equivalent constants), NOT an algorithm. A taxonomy
+// 3-way split (classic-enter/exit/attention) is a forced data-partition with no
+// cohesion benefit — the precepts forbid it. This single rationale-bearing entry
+// is the honest disposition. (Empty until the presets/ split lands; if classic.ts
+// reds, this is the named exception, never the self-raising cap the keystone deleted.)
 const LIBRARY_CEILING_OVERRIDE = new Map([
     [
-        "src/animation/engine.ts",
+        "src/animation/presets/classic.ts",
         {
-            cap: 1450,
+            cap: 750,
             why:
-                "the Animation + CSSKeyframesAnimation core at its post-transposition " +
-                "cohesive gestalt. Q.WF1 DISCHARGED DF-11-A (P-invariant-28) — the FULL " +
-                "engine-seam transposition the D.W4 audit named ('the 1100-line " +
-                "god-object at the right seam' — the lifecycle/playback machine " +
-                "lifted off the frame-compile facade), deferred D→E→F→G→H→I→J→K→L→M→O→P, " +
-                "is now DONE: the standalone-play machine (the rAF/WAAPI/reduced-motion " +
-                "play DRIVERS + the transport verbs play/pause/resume/toggle/stop/" +
-                "settle/reset/playing/effectiveT + the per-tick advance onStart/onEnd/" +
-                "advanceTo bodies) was lifted into the colocated INTERNAL " +
-                "`engine-playback.ts` (the fourth `engine-*.ts`, after composition/" +
-                "options/css-metadata), host-passing over a `PlaybackHost` protocol the " +
-                "class satisfies — each class method a thin `this`-delegate. The " +
-                "`this`-bound re-derive contract is byte-preserved (`this.options === " +
-                "this.compiler.options` identity untouched, the `_interpOut` zero-alloc " +
-                "buffer reuse + `_boundFrame`-bound-once + event ordering all hold; " +
-                "proof:standalone-zero-alloc / proof:engine / proof:event-ordering / " +
-                "proof:finished are the discriminating-bite oracles). The KeyframesAnimation " +
-                "CLASS BODY dropped 1297→1058L (under proof:engine's 1100 ceiling). " +
-                "What REMAINS in engine.ts (1421L) is the cohesive non-playback gestalt: " +
-                "the compile-delegation facade (parse/_compiler/get frames/adoptCompiled/ " +
-                "interpFrames — the PUBLIC sampling API the group/ingest/morph/sequence " +
-                "consume, which MUST stay), the live-options-reference setters, the " +
-                "fill/rest contract (restPosition/paintRest/fillForwards/fillBackwards " +
-                "wired to interpFrames), the Q.WB1 emerging-CSS Phase-2 element-aware " +
-                "resolution pass, and the CSSKeyframesAnimation subclass (fromString/ " +
-                "fromKeyframes/fromVars/bindTimeline). These share ONE `this`-bound " +
-                "re-derive seam the FrameCompiler depends on; splitting them further " +
-                "for line-count severs that seam (the legacy-shape the Mandate forbids). " +
-                "The cap sits just above the measured 1421L post-split floor (the " +
-                "self-pruning stale guard reds any further unjustified growth, and " +
-                "reds outright if engine.ts ever drops back under the 550L base — " +
-                "forcing this entry's removal). The two engine gates " +
-                "(proof:engine-no-throw-on-play [hygiene g] + proof:engine) carry the " +
-                "SAME post-transposition decision.",
-        },
-    ],
-    [
-        "src/animation/animations.ts",
-        {
-            cap: 900,
-            why:
-                "a god-LIST, NOT a god-module (a-backend-godmodules G-GM-2) — ONE " +
-                "responsibility (the preset library) as a flat data table of " +
-                "value-equivalent leaves. The `presetTaxonomy` index already banks " +
-                "the discoverability a 4-way split would chase, IN-FILE, with no " +
-                "new files; splitting a data table by a tag column is organization, " +
-                "not decomposition (RECORD/contrivance — do NOT carve).",
-        },
-    ],
-    [
-        "src/animation/group.ts",
-        {
-            cap: 925,
-            why:
-                "the AnimationGroup compositor 4-concern gestalt (a-backend-" +
-                "godmodules G-GM-3) — the zero-alloc `_grouped` buffer machinery, " +
-                "the element-wise blend leaf (G.W17), the managed-child lifecycle, " +
-                "and the scheduler-yield batching share one per-frame composite " +
-                "seam; the buffer discipline (null-fill clear, whitelist key-skip, " +
-                "post-blend compaction) is GL-7/GL-8 ALREADY-SOTA. Do NOT carve. " +
-                "K.W11's spring-weight helpers were externalized to " +
-                "`group-layer-springs.ts` (the cohesive block + grouped-key fold + " +
-                "batched advance + PRM child-snap + child-paused broadcast); the " +
-                "gate-anchored composite STATEMENTS the `weighted` leaf + spring " +
-                "seam need (the `?? layer.weight` read, `layer.weightSpring = " +
-                "spring`, `existing.target`, the per-frame `spring.tickDt(dt)`, the " +
-                "settle commit/clear) stay inline — proof:spring-blend-weight " +
-                "(+ proof:blend's 2-arm element-loop) lock them ON this seam. Q.WF2 " +
-                "(F.W2 decomposition) EXTRACTED the P.W2 SoA fold machinery (the " +
-                "`SoALayerPlan` type + `buildSoAPlans` plan builder + the " +
-                "`groupSoABlendLayer` per-frame fold + the shared `isNumericUnit` " +
-                "guard) to the INTERNAL `src/animation/group-soa.ts` (statically " +
-                "imported, never re-exported); the `_soaPlans`/`_compositeBuf` " +
-                "FIELDS stay instance state and `soaBlendLayer` stays a thin " +
-                "delegating wrapper (so proof:soa-composite's `soa-path-taken` " +
-                "monkey-patch on the INSTANCE method still bites). Zero behaviour " +
-                "change — proof:{spring-blend-weight,blend,soa-composite,zero-" +
-                "alloc,engine,group-snapshot-identity} green. The cap drops " +
-                "1083→925L (the MEASURED post-SoA-extraction floor — the SoA " +
-                "machinery is ~158L, leaving the file at 925L); the cap sits at " +
-                "that floor so further unjustified growth reds. BORN-RED HANDOFF " +
-                "(P-invariant-28): the FULL compositor-seam split (buffer/blend/" +
-                "lifecycle/batch fully separated, the pre-P.W2 820L target) remains " +
-                "the named future work — it separates only once Q.WF1 re-threads " +
-                "the engine's composite contract; the SoA fold is the portion " +
-                "extractable at THIS seam, the deep split awaits the engine " +
-                "re-threading. Named here so the deferral is citable.",
-        },
-    ],
-    [
-        "src/animation/spring.ts",
-        {
-            cap: 700,
-            why:
-                "ONE cohesive physics unit (the SpringProgress closed-form spring " +
-                "tracker) — the SwiftUI-canonical `(response, dampingFraction)` " +
-                "surface, the second-order-ODE integrator, the settle contract, the " +
-                "managed `.play()`/`tickDt` drive, and the K.W11 PHYS-B2 " +
-                "velocity-continuous interruption seam (`VelocityProbe` / " +
-                "`probeVelocity` / `reseatToSpring`: the finite-differenced reseat " +
-                "that makes a keyframe-stream interruption velocity-continuous). " +
-                "K.W11 grew it +170L; the reseat is NOT a separable module — it " +
-                "seeds a `SpringProgress` from a measured `(x,v)` and IS the spring " +
-                "tracker's interruption entry-point (it composes only the class " +
-                "beside it + a leaf finite difference, LIGHT/value.js-free). A " +
-                "split-for-line-count would orphan the reseat from the integrator " +
-                "it seeds. 550→700 records the K.W11 growth; the cap sits just above " +
-                "the current 644L (further unjustified growth reds).",
-        },
-    ],
-    [
-        "src/animation/waapi.ts",
-        {
-            cap: 650,
-            why:
-                "the WAAPI eligibility + delegation gestalt — `isWAAPIEligible` " +
-                "(the conservative-correct DOM/uniform-timing/no-computed-unit/" +
-                "no-color/WebKit-linear() predicate with a queryable reason), " +
-                "`toWAAPIKeyframes`/`toWAAPIOptions` (the `Element.animate()` " +
-                "keyframe + option emission, spring-`linear()`-aware), `playWAAPI` " +
-                "(the shadow-tick delegation), and `attachNativeScrollTimeline` (the " +
-                "K.W9 native ScrollTimeline bridge the scroll dispatch consumes) " +
-                "share ONE eligibility seam: the scroll attach RE-USES the same " +
-                "eligibility predicate the play-path delegation does (the dispatch " +
-                "is the predicate pointed at the scroll clock). Q.WF1 (Band-F " +
-                "decomposition) EXTRACTED the WB4 curvature-adaptive densify (the " +
-                "`densifyInteriorTimes` best-first refinement + its " +
-                "`WAAPI_MAX_SUBSEGMENT_STOPS` budget + the chord tolerance + the " +
-                "channel sampler/range scanner + `segmentFlatnessError`) to the " +
-                "colocated INTERNAL `waapi-densify.ts` (statically imported + " +
-                "re-exported so proof:waapi-adaptive-densify / proof:platform-adopt " +
-                "S3 find the anchored tokens at this host); the densify reaches the " +
-                "animation ONLY through `interpFrames`, so it is fully separable " +
-                "from the eligibility/emission/delegation surface that stays. The " +
-                "cap drops the file 816→579L; 550→650 records the cohesive " +
-                "remainder (the predicate + its consumers — play delegation + scroll " +
-                "attach — are one decision surface, not separable concerns), the " +
-                "cap sitting just above 579L so further unjustified growth reds.",
-        },
-    ],
-    [
-        "src/animation/frame-compiler.ts",
-        {
-            cap: 640,
-            why:
-                "the FrameCompiler template→compiled pipeline at its cohesive " +
-                "gestalt PLUS the two keyframe-selector grammar surfaces gates PIN " +
-                "to this file. The pipeline (addFrame → parse → reconcileVars → " +
-                "createFrame → finalizeFrameVars → renormalizeColors) is ONE " +
-                "value-in → frames-out unit sharing the live-options reference + the " +
-                "per-frame interp-carrier build; splitting it for line-count severs " +
-                "that seam. Q.WF1 (Band-F decomposition) EXTRACTED the genuinely-" +
-                "separable WB3 numeric SoA fold-plan machinery (`buildNumericPlan` + " +
-                "`isNumericInterpVar`) to the colocated INTERNAL " +
-                "`frame-compiler-numeric.ts` (the third SoA-style extraction this " +
-                "wave makes, beside group-soa.ts + waapi-densify.ts); the plan " +
-                "builder is a PURE value-in → plan-out unit with no dependency on " +
-                "the grammar/pipeline that stays. What REMAINS over the 550 base is " +
-                "the cohesive compile pipeline + the two GATE-PINNED grammar " +
-                "surfaces: the percent/keyword/named-range selector validation (the " +
-                "J.W1 SEAM-1 total guard) and the WD1 named-selector deferred-" +
-                "resolution (`export const namedSelectorToFraction` + " +
-                "`NAMED_SELECTOR_SUPERTYPE`) — proof:replay-equality (named-selector) " +
-                "+ proof:nan-frame REQUIRE these exports to LIVE in frame-compiler.ts " +
-                "(a dynamic import + an `export const` source-grep), so they cannot " +
-                "move. The cap drops the file 663→616L; 550→640 records the cohesive " +
-                "remainder, the cap sitting just above 616L so further unjustified " +
-                "growth reds.",
-        },
-    ],
-    [
-        "src/animation/resolve-values.ts",
-        {
-            cap: 600,
-            why:
-                "ONE recursive emerging-CSS lowering rewriter (P.W13) at its " +
-                "cohesive gestalt — the gestalt the module's own header names: 'ONE " +
-                "pass, ONE rewriter, two lifecycle points, not two divergent context " +
-                "types'. The Phase-1 (element-INDEPENDENT: if(supports/media) + " +
-                "spring()) and Phase-2 (element-AWARE: if(style(--p)) + sibling-" +
-                "index()/sibling-count()) arms are WOVEN INTO the SAME shared " +
-                "recursion (`resolveNode`/`resolveIf`/`evalCondition`/" +
-                "`splitCondition`) — they are NOT a separable arm: a Phase-1-resolved " +
-                "leaf is returned as-is by the SAME `resolveNode` the Phase-2 pass " +
-                "re-runs (the idempotence the two-lifecycle-point design needs). " +
-                "proof:emerging-css-resolve-p2 PINS the Phase-2 anchors " +
-                "(`hasPhase2Node`, `isStyleConditionIf`, `evalStyleCondition`, the " +
-                "sibling-* branches in `resolveNode`, the style(--p) branch in " +
-                "`evalCondition`) to THIS file by source-grep, so extracting the " +
-                "Phase-2 arm would both sever the shared recursion AND red the gate. " +
-                "Q.WB1 grew it +28 over the 550 base for the Phase-2 element-aware " +
-                "arms; 550→600 records that growth on a genuinely-cohesive ONE-" +
-                "rewriter module (a split-for-line-count is the legacy-shape the " +
-                "Mandate forbids), the cap sitting just above 578L so further " +
-                "unjustified growth reds.",
-        },
-    ],
-    [
-        "src/animation/load-engine.ts",
-        {
-            cap: 580,
-            why:
-                "the value.js static/dynamic boundary's DYNAMIC half at its " +
-                "cohesive gestalt — the ONE `loadAnimationEngine()` boundary the " +
-                "library is architected around. It owns the memoized `await " +
-                "import(...)` edges (engine/animate/motion/draw/morph/ingest/scroll/" +
-                "compile/validate/animations/format/utils/scheduler) + the granular " +
-                "`loadEngine`/`loadCompiler`/`loadIngest` accessors that SHARE the " +
-                "per-chunk memoized Promises, + the `AnimationEngine`/`EngineCore`/" +
-                "`CompilerSurface`/`IngestSurface` surface interfaces the dts " +
-                "roll-up spells explicitly (API Extractor cannot resolve a `typeof " +
-                "import()` at an internal module). Every member is ONE concern (the " +
-                "boundary contract `proof:boundary` gates per-accessor); splitting " +
-                "it fragments the boundary — the surface interfaces and the " +
-                "accessors that satisfy them are two halves of one contract that " +
-                "must stay co-located + in lock-step. 9L over the 550 base, " +
-                "essentially pre-existing (the L.W7 granular-surface split); " +
-                "550→580 records the cohesive boundary file, the cap sitting just " +
-                "above 559L so further unjustified growth reds.",
-        },
-    ],
-    [
-        "src/animation/sequence.ts",
-        {
-            cap: 700,
-            why:
-                "the transport/scheduling `_fold` gestalt (a-backend-godmodules " +
-                "G-GM-4) — the master-playhead → child-clock map, the position " +
-                "resolver (labels/relative tokens), and the play/pause/resume/seek " +
-                "transport share one clock seam; the apparent transport-vs-resolve " +
-                "seam is a FALSE one (the resolver reads the same cursor the " +
-                "transport advances). Do NOT carve.",
+                "DATA-VOLUME exception (R.md §7 / challenge-library §4b) — the 34 " +
+                "cubic-bezier/stepped preset constants are a flat list of " +
+                "value-equivalent raw-CSS-string leaves (~54% string data), ONE " +
+                "responsibility (the classic preset catalog), not an algorithm. A " +
+                "taxonomy 3-way split (classic-enter/exit/attention) purely to clear " +
+                "the line gate is a forced data-partition with no cohesion benefit — " +
+                "the contrivance the precepts forbid. This single documented " +
+                "data-volume override is the honest disposition.",
         },
     ],
 ]);
@@ -440,11 +227,12 @@ function main() {
     );
 
     // ── 1. LIBRARY CEILING ─────────────────────────────────────────────
-    // A per-file LIBRARY_CEILING_OVERRIDE raises the cap for a NAMED cohesive
-    // unit (a god-module); the stale guard below reds any override whose file is
-    // now under the base ceiling (a dead exception). Track which overrides bit.
+    // The single hard ceiling (R.W0 keystone): 500L `.ts` / 350L `.vue`. The
+    // per-file self-raising override allowlist + its stale-entry guard were
+    // DELETED — only the ONE documented data-volume exception
+    // (`presets/classic.ts`) remains. The reds on every oversized library file
+    // ARE the R.W1/R.W2 decomposition backlog (measured by the gate, not prose).
     const overCeiling = [];
-    const usedOverrides = new Set();
     for (const abs of ceilingSources) {
         const ext = path.extname(abs);
         const rel = relPosix(abs);
@@ -453,7 +241,6 @@ function main() {
         const override = LIBRARY_CEILING_OVERRIDE.get(rel);
         const ceiling = override ? override.cap : base;
         const lines = fs.readFileSync(abs, "utf8").split("\n").length;
-        if (override && lines > base) usedOverrides.add(rel);
         if (lines > ceiling) {
             overCeiling.push({ rel, lines, ceiling, override });
         }
@@ -463,34 +250,20 @@ function main() {
             failures.push(
                 `[ceiling] ${o.rel}: ${o.lines}L exceeds the ${o.ceiling}L ` +
                     `library ceiling for ${path.extname(o.rel)} — split at its ` +
-                    `natural concern seam, or (only for a genuinely cohesive ` +
-                    `god-module) add a rationale-bearing LIBRARY_CEILING_OVERRIDE ` +
-                    `(G.W5) entry.`,
+                    `natural concern seam (the R.W1/R.W2 carve backlog). A ` +
+                    `documented DATA-VOLUME case takes the single ` +
+                    `LIBRARY_CEILING_OVERRIDE entry, never the self-raising cap ` +
+                    `the R.W0 keystone deleted.`,
             );
         }
     } else {
         const totalOverrides = LIBRARY_CEILING_OVERRIDE.size;
         console.log(
-            `  ✓ [ceiling] all library files ≤ ceiling (350L .vue / 550L .ts)` +
+            `  ✓ [ceiling] all library files ≤ ceiling (350L .vue / 500L .ts)` +
                 (totalOverrides > 0
-                    ? `; ${totalOverrides} named override(s)`
+                    ? `; ${totalOverrides} documented data-volume override(s)`
                     : ""),
         );
-    }
-
-    // Stale override guard — an override whose file is now under its base
-    // ceiling is dead and must be pruned (mirrors the ASYNC_ALLOWLIST stale
-    // guard). Keeps the exception map from silently accruing slack — so an
-    // engine.ts ever refactored back under the base cap reds the guard,
-    // forcing the entry's removal (the self-pruning §Mandate discipline).
-    for (const [rel, meta] of LIBRARY_CEILING_OVERRIDE) {
-        if (!usedOverrides.has(rel)) {
-            failures.push(
-                `[ceiling] LIBRARY_CEILING_OVERRIDE entry "${rel}" (cap ${meta.cap}, ` +
-                    `"${meta.why}") matches no file over its base ceiling — it ` +
-                    `is STALE; remove it.`,
-            );
-        }
     }
 
     // ── 2. PARSE ADAPTER — exactly ONE definition ──────────────────────
