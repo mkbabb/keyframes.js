@@ -51,7 +51,7 @@ const barFraction = computed(() =>
     position: absolute;
     bottom: 1rem;
     left: 1rem;
-    z-index: var(--z-content, 2);
+    z-index: var(--z-content);
     display: flex;
     align-items: center;
     gap: 0.4rem;

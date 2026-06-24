@@ -381,7 +381,7 @@ const onKeydown = (e: KeyboardEvent) => {
     gap: 0.35rem;
     padding: 0.25rem 0;
     pointer-events: none;
-    z-index: var(--z-content, 3);
+    z-index: var(--z-content);
     animation: derby-fade-in 220ms var(--ease-standard, ease) 1;
 }
 .derby-lane {

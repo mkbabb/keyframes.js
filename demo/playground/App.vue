@@ -266,7 +266,7 @@ const onBindIgnition = async (id: string, animationName: string) => {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: var(--z-behind, 0);
+    z-index: var(--z-behind);
     background: radial-gradient(
         circle at var(--mouse-x, 50%) var(--mouse-y, 38%),
         color-mix(in oklab, var(--color-gold, hsl(43 74% 49%)) 9%, transparent),
@@ -298,7 +298,7 @@ const onBindIgnition = async (id: string, animationName: string) => {
     height: 30%;
     pointer-events: none;
     opacity: 0;
-    z-index: var(--z-content, 1);
+    z-index: var(--z-content);
 }
 .comet-tail.is-igniting {
     opacity: 1;

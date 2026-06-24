@@ -84,9 +84,9 @@ export function useCubeAnimations(
     const animationGroup = shallowRef(
         markRaw(
             new AnimationGroup(
-                rotationAnim.value as any,
-                matrixAnim.value as any,
-                hoverAnim.value as any,
+                rotationAnim.value,
+                matrixAnim.value,
+                hoverAnim.value,
             ),
         ),
     );

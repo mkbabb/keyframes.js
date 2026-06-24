@@ -23,11 +23,11 @@
             :is-pane-idle="isPaneIdle"
             :scroll-fade-class="scrollFadeClass"
             :extra-tabs="extraTabs"
-            :on-panel-transition-end="onPanelTransitionEnd"
-            :on-sheet-settled="onSheetSettled"
-            :on-pane-mouse-enter="onPaneMouseEnter"
-            :on-pane-mouse-leave="onPaneMouseLeave"
-            :set-pane-el="(el) => { controlsPaneEl = el; }"
+            @panel-transition-end="onPanelTransitionEnd"
+            @sheet-settled="onSheetSettled"
+            @pane-mouse-enter="onPaneMouseEnter"
+            @pane-mouse-leave="onPaneMouseLeave"
+            @set-pane-el="(el) => { controlsPaneEl = el; }"
             @slider-update="sliderUpdate"
             @keyframes-update="keyframesUpdate"
             @toggle-play="toggleAnimationGroup"
@@ -415,7 +415,7 @@ useControlsKeyboardShortcuts({
         height: auto;
         align-self: stretch;
         justify-self: stretch;
-        z-index: var(--z-content, 10);
+        z-index: var(--z-content);
         /* J.W7a S5 / XH-4 (D22) — the mobile inset reserves the REAL
            scene-switcher band, not just the band depth: the pill is anchored at
            --dock-top-anchor below the viewport top (ChromeDock consumes the SAME

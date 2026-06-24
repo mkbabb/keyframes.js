@@ -292,18 +292,19 @@ const fnForCurve = (name: string): TimingFunction => {
     return resolvedFunctions[name] ?? ((t: number) => t);
 };
 
+type BallEntry = { el: HTMLElement; fn: TimingFunction; curveName: string };
+let ballSnapshot: BallEntry[] = [];
+
 // ── I.W4 D4 — the dot painter: DIRECT non-reactive `style.transform` writes ──
 // Registered with the demo's loop seam; called imperatively each frame with the
 // live raw sweep value. This is the hot path moved OFF the Vue render graph (the
 // 243-node SVG re-render storm is gone — the dots move, nothing re-renders).
 const paintTrackDots = (phase: number) => {
-    const balls = trackBallEls.value;
-    if (!balls) return;
+    if (!ballSnapshot.length) return;
     const activeName = demo.currentEasingName.value;
-    for (const el of balls) {
-        const name = el.dataset.curve ?? "";
-        const isActive = name === activeName;
-        el.style.transform = `translateX(${trackBallXAt(fnForCurve(name), isActive, phase)}px)`;
+    for (const { el, fn, curveName } of ballSnapshot) {
+        const isActive = curveName === activeName;
+        el.style.transform = `translateX(${trackBallXAt(fn, isActive, phase)}px)`;
     }
 };
 
@@ -320,6 +321,11 @@ const wirePainter = async () => {
     if (viewMode.value === "singular") return;
     readBallSizes();
     measureTrackWidth();
+    ballSnapshot = (trackBallEls.value ?? []).map((el, i) => ({
+        el,
+        curveName: visibleCurves.value[i]?.name ?? "",
+        fn: fnForCurve(visibleCurves.value[i]?.name ?? ""),
+    }));
     unregisterPainter = demo.registerDotPainter(paintTrackDots);
 };
 

@@ -435,7 +435,7 @@ onScopeDispose(() => {
 
 /* The face numeral rides the content plane (z off the named --z-* scale). */
 .face-numeral {
-    z-index: var(--z-content, 1);
+    z-index: var(--z-content);
 }
 /* The drafting-stamp axis tag — Fira-Code annotation, muted axis register (FRAME). */
 .face-axis-tag {
@@ -449,7 +449,7 @@ onScopeDispose(() => {
     color: var(--muted-foreground);
     opacity: 0.62;
     font-feature-settings: "tnum";
-    z-index: var(--z-content, 1);
+    z-index: var(--z-content);
 }
 
 /* --spin-energy bloom + drop-shadow: the kept physics made VISIBLE — grows with
@@ -471,7 +471,7 @@ onScopeDispose(() => {
         content: "";
         position: absolute;
         inset: -40%;
-        z-index: var(--z-behind, -1);
+        z-index: var(--z-behind);
         border-radius: 50%;
         pointer-events: none;
         background: radial-gradient(
@@ -490,7 +490,7 @@ onScopeDispose(() => {
     position: absolute;
     left: 1rem;
     bottom: 1rem;
-    z-index: var(--z-content, 1);
+    z-index: var(--z-content);
     font-family: var(--font-mono);
     font-size: clamp(0.62rem, 1.3cqi, 0.78rem);
     letter-spacing: 0.02em;
@@ -533,7 +533,7 @@ onScopeDispose(() => {
     /* Below the content plane — the demo's named below-stack rung (W3.S2).
        Reconciles the former orphan raw below-plane value to the z-contract
        documented in style.css (--z-behind < --z-content). */
-    z-index: var(--z-behind, -10);
+    z-index: var(--z-behind);
     position: absolute;
     pointer-events: none;
 

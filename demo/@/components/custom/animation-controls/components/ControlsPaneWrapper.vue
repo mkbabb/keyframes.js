@@ -1,7 +1,7 @@
 <template>
     <div
         v-show="storedControls.selectedAnimation && !hideControls"
-        @transitionend="onPanelTransitionEnd"
+        @transitionend="emit('panelTransitionEnd', $event)"
         :class="[
             'controls-pane-wrapper col-start-1 row-start-1 min-w-0 relative z-controls',
             'controls-pane--mobile',
@@ -36,9 +36,9 @@
              reactive media query (the mobile sheet keeps its own card paint);
              editor/storyboard stages (contained plates) keep today's pane. -->
         <div
-            :ref="(el: any) => setPaneEl(el)"
-            @mouseenter="onPaneMouseEnter"
-            @mouseleave="onPaneMouseLeave"
+            :ref="(el: any) => emit('setPaneEl', el)"
+            @mouseenter="emit('paneMouseEnter')"
+            @mouseleave="emit('paneMouseLeave')"
             :class="[
                 'controls-pane group/controls min-w-0',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
@@ -153,16 +153,6 @@ const props = defineProps<{
     isPaneHovered: boolean;
     isPaneIdle: boolean;
     scrollFadeClass: string;
-    onPanelTransitionEnd: (e: TransitionEvent) => void;
-    // J.W2 S3 (M2) — the sheet spring's settled signal, forwarded UP to
-    // useControlsLayout (the readiness owner) the same way transitionend is.
-    onSheetSettled: (settled: boolean) => void;
-    onPaneMouseEnter: () => void;
-    onPaneMouseLeave: () => void;
-    // Forwards the inner scrollable pane element up to the parent's
-    // useScrollFade (the composable owner). The wrapper renders the element;
-    // the parent measures it.
-    setPaneEl: (el: HTMLElement | null) => void;
     // glass-ui 4.0.0 (BA.W-TABS) — the standalone-host extra-tab options,
     // forwarded down to each AnimationControls' `extraTabs` seam (the playground
     // injects its "Assets" tab here, AS DATA, not via a reka `<TabsTrigger>`).
@@ -179,11 +169,6 @@ const { stageMode, isDesktop } = usePaneRegister({
 // in the colocated useSheetState composable (the K.WZ proof:demo-no-oversize
 // seam; zero behavior change). `sheetOpen` is the writable model the grab handle
 // v-models; `sheetStyle` is the `--sheet-t` the mobile CSS detents read.
-const { sheetOpen, sheetStyle } = useSheetState({
-    storedControls: props.storedControls,
-    onSettled: props.onSheetSettled,
-});
-
 const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
     (e: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }): void;
@@ -195,7 +180,17 @@ const emit = defineEmits<{
     ): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
+    (e: "panelTransitionEnd", ev: TransitionEvent): void;
+    (e: "sheetSettled", settled: boolean): void;
+    (e: "paneMouseEnter"): void;
+    (e: "paneMouseLeave"): void;
+    (e: "setPaneEl", el: HTMLElement | null): void;
 }>();
+
+const { sheetOpen, sheetStyle } = useSheetState({
+    storedControls: props.storedControls,
+    onSettled: (settled: boolean) => emit("sheetSettled", settled),
+});
 </script>
 
 <style scoped>

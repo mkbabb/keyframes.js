@@ -36,7 +36,7 @@ defineProps<{
     --spin-bloom: 0;
     position: absolute;
     inset: 0;
-    z-index: var(--z-content, 2);
+    z-index: var(--z-content);
     border-radius: var(--radius-card);
     overflow: hidden;
     pointer-events: none;

@@ -168,7 +168,7 @@ const tetherPath = computed(() => {
     flex-direction: column;
     gap: 0.25rem;
     pointer-events: none;
-    z-index: var(--z-content, 1);
+    z-index: var(--z-content);
 }
 .square-telemetry-title {
     color: var(--foreground);
@@ -190,7 +190,7 @@ const tetherPath = computed(() => {
     align-items: flex-end;
     gap: 0.15rem;
     pointer-events: none;
-    z-index: var(--z-content, 1);
+    z-index: var(--z-content);
 }
 .square-legend-hint {
     opacity: 0.8;

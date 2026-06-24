@@ -10,7 +10,7 @@ import { allScenes, HOME_SCENE_ID } from "./scenes";
  * URL structure: /#/cube?anim=Matrix&state=eyJvcHRp...
  *
  * Each route maps to a scene ID. Actual rendering stays in App.vue via
- * KeepAlive + dynamic <component :is> — routes just control which scene is active.
+ * keyed <Suspense> + lazy scene imports — routes just control which scene is active.
  */
 const Stub = { render: () => null };
 

@@ -28,8 +28,8 @@ const IDLE_MS = 10_000;
 export function usePaneHover(lingerMs = 2000): {
     isPaneHovered: ComputedRef<boolean>;
     isPaneIdle: ComputedRef<boolean>;
-    onPaneMouseEnter: () => void;
-    onPaneMouseLeave: () => void;
+    paneMouseEnter: () => void;
+    paneMouseLeave: () => void;
 } {
     const isPaneDirectHover = ref(false);
     const isDockHovered = inject(CONTROLS_PANE_HOVER_KEY, ref(false));
@@ -52,14 +52,14 @@ export function usePaneHover(lingerMs = 2000): {
     const { idle } = useIdle(IDLE_MS);
     const isPaneIdle = computed(() => idle.value && !isPaneHovered.value);
 
-    function onPaneMouseEnter() {
+    function paneMouseEnter() {
         stopLinger();
         isPaneDirectHover.value = true;
     }
 
-    function onPaneMouseLeave() {
+    function paneMouseLeave() {
         startLinger();
     }
 
-    return { isPaneHovered, isPaneIdle, onPaneMouseEnter, onPaneMouseLeave };
+    return { isPaneHovered, isPaneIdle, paneMouseEnter, paneMouseLeave };
 }

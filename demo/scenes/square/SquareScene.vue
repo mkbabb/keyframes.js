@@ -156,7 +156,7 @@ watch(isPlaying, (playing, was) => {
 // (kfEngine(), L.W8 S1 dogfood inversion) — synchronous, since the warm resolves
 // before any scene mounts.
 const { AnimationGroup } = kfEngine();
-const animationGroup = markRaw(new AnimationGroup(anim as any));
+const animationGroup = markRaw(new AnimationGroup(anim));
 // Force per-animation transform path — the grouped path passes flat ValueUnit
 // values which don't match the nested object structure our transform expects.
 animationGroup.singleTarget = false;
@@ -375,7 +375,7 @@ defineExpose({
     justify-content: center;
     align-items: center;
     position: relative;
-    z-index: var(--z-content, 2);
+    z-index: var(--z-content);
     --size: 12rem;
     width: var(--size);
     height: var(--size);
@@ -452,7 +452,7 @@ defineExpose({
     inset: 0;
     border-radius: inherit;
     pointer-events: none;
-    z-index: var(--z-behind, -1);
+    z-index: var(--z-behind);
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-progress) 55%, transparent);
     opacity: 0;
     transition:

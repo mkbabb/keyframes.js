@@ -71,7 +71,7 @@ export function useControlsLayout(
     );
 
     // --- Controls pane hover with linger delay + global idle-fade (F9) ---
-    const { isPaneHovered, isPaneIdle, onPaneMouseEnter, onPaneMouseLeave } =
+    const { isPaneHovered, isPaneIdle, paneMouseEnter, paneMouseLeave } =
         usePaneHover();
 
     // --- Mobile vertical scroll fade ---
@@ -88,8 +88,8 @@ export function useControlsLayout(
         onSheetSettled,
         isPaneHovered,
         isPaneIdle,
-        onPaneMouseEnter,
-        onPaneMouseLeave,
+        onPaneMouseEnter: paneMouseEnter,
+        onPaneMouseLeave: paneMouseLeave,
         scrollFadeClass,
     };
 }

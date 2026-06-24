@@ -56,7 +56,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onScopeDispose, useTemplateRef, watch } from "vue";
+import { computed, onMounted, useTemplateRef, watch } from "vue";
+import { useResizeObserver } from "@vueuse/core";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 
 import type { SpringDemoContext } from "./springKeys";
 
@@ -257,29 +259,13 @@ function onKeydown(e: KeyboardEvent): void {
 
 // ── Lifecycle — paint once at mount; re-paint on resize (the closed-form is so
 // cheap the recompute is free) and on a theme change (the token tints shift). ──
-let ro: ResizeObserver | null = null;
-let themeObserver: MutationObserver | null = null;
+useResizeObserver(fieldEl, () => paint());
+
+const { isDark } = useGlobalDark();
+watch(isDark, () => paint());
 
 onMounted(() => {
     paint();
-    if (typeof ResizeObserver !== "undefined" && fieldEl.value) {
-        ro = new ResizeObserver(() => paint());
-        ro.observe(fieldEl.value);
-    }
-    // Re-tint when the demo flips dark mode (the `.dark` class toggles the
-    // resolved --color-progress / --background tokens).
-    if (typeof MutationObserver !== "undefined") {
-        themeObserver = new MutationObserver(() => paint());
-        themeObserver.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ["class"],
-        });
-    }
-});
-
-onScopeDispose(() => {
-    ro?.disconnect();
-    themeObserver?.disconnect();
 });
 
 // Expose the half-cell tolerance + ranges for any future consumer / gate witness.
@@ -327,7 +313,7 @@ watch(
         left var(--duration-fast, 160ms) var(--ease-standard, ease),
         top var(--duration-fast, 160ms) var(--ease-standard, ease);
     will-change: left, top;
-    z-index: var(--z-content, 3);
+    z-index: var(--z-content);
 }
 
 @media (prefers-reduced-motion: reduce) {

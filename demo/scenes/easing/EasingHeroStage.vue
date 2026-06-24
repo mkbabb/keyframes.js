@@ -328,7 +328,7 @@ useResizeObserver(heroTrackEl, () => measureHeroTrackWidth());
     right: 0;
     top: 0.5rem;
     bottom: 5rem;
-    z-index: var(--z-content, 2);
+    z-index: var(--z-content);
     pointer-events: none;
     --trace: var(--ppmycota-primary, var(--primary));
     --trace-glow: color-mix(
