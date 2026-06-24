@@ -29,10 +29,16 @@ and `git -C ../keyframes-r-demo log` for track progress; check the task board (#
 in-flight wave is whichever track task is `in_progress`. A retry-cron (`13 */2 * * *`) re-enters this
 drive if a session-limit wall is hit; DELETE it once shipped.
 
+**Track progress (commit on each branch):**
+- **R.W1 ✅ GREEN** (`r-track-lib` @ `b52ad3e`) — 7-zone partition; keystone deleted; 3 gate co-edits + `proof:no-flat-siblings`; build/test/boundary/engine/no-flat-siblings/ci-coverage/lint-clean all green; known-violations 15→9. Decomposition backlog (9 files >500L): engine/animation 1408, group/group 925, resolve/index 797, sequence 699, compile/frame-compiler 670, spring/progress 628, scroll/scene 528, compile/backward 536, waapi 573. → engine+group = R.W2; the other 7 = R.W2b (2 of them — resolve, frame-compiler — take R.md §5 narrow overrides; 5 carve).
+- **R.W5 ✅ GREEN** (`r-track-demo`, 11 commits @ `b8b7263`) — dead-code excised; 4 cross-cutting extractions; 8 scenes fused to `demo/scenes/<name>/`; `proof:scene-colocated` green; re-pointed 24 gate scripts that hardcoded old scene paths. Demo oversize backlog (R.W6-decomp): cube/CubeTarget 560, amiga/AmigaScene 539, square/SquareScene 505.
+
 | In-flight | Wave | Agent | Status |
 |---|---|---|---|
-| Track L | R.W1 directory partition | Opus (bg) | DISPATCHED 2026-06-24 |
-| Track D | R.W5 scene fusion | Opus (bg) | DISPATCHED 2026-06-24 |
+| Track L | R.W2 engine+group DI carve | Opus (bg) | DISPATCHED 2026-06-24 |
+| Track D | R.W6-core brittleness/state/styling | Sonnet (bg) | DISPATCHED 2026-06-24 |
+
+**Next after these:** Track L → R.W2b (decomp completion) → R.W3lib → R.W4 → R.W7; Track D → R.W6-decomp (3 oversize carves + DM-1/DM-5 chronic exits). Then integrate → R.W8 → publish 5.1.0 → deploy.
 
 ## The wave board
 
