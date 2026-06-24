@@ -276,7 +276,11 @@ requireAll("harness-exists", TEST, [
     if (existsSync(join(root, file))) {
         const src = read(file);
         const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
-        const importsFormat = /from "\.\.\/src\/animation\/format"/.test(src);
+        // R.W1 moved the serializer `format.ts` → `compile/format.ts`; the fuzz
+        // round-trip still rides the real `CSSKeyframesToString` at its new path.
+        const importsFormat = /from "\.\.\/src\/animation\/compile\/format"/.test(
+            src,
+        );
         if (importsEngine && importsFormat) {
             ok(
                 "no-source-edit",

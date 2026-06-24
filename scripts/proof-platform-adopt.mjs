@@ -66,6 +66,20 @@ const SRC = path.join(REPO, "src", "animation");
 const read = (rel) => fs.readFileSync(path.join(SRC, rel), "utf8");
 const relPosix = (p) => p.split(path.sep).join("/");
 
+// The WAAPI surface = every `.ts` under `src/animation/waapi/` (R.W2 carved the
+// flat `waapi.ts` god-module into eligibility/emission/options/delegation +
+// densify). Reading the whole zone keeps the S3 densify + S5 native-bridge
+// checks tracking the carve rather than one file's name.
+const readWaapiSurface = () => {
+    const dir = path.join(SRC, "waapi");
+    if (!fs.existsSync(dir)) return "";
+    return fs
+        .readdirSync(dir)
+        .filter((f) => f.endsWith(".ts"))
+        .map((f) => fs.readFileSync(path.join(dir, f), "utf8"))
+        .join("\n");
+};
+
 const failures = [];
 const pass = (msg) => console.log("  ✓ " + msg);
 const fail = (msg) => failures.push(msg);
@@ -75,44 +89,59 @@ function main() {
         "proof:platform-adopt — E.W9 (the platform adopted, feature-detected)",
     );
 
-    const engine = read("engine.ts");
+    // R.W1/R.W2 directory partition — the flat `engine.ts` god-module was split
+    // into the `engine/` zone: `fromString` + the `registerPropertyDescriptors`
+    // delegating call live in `engine/css-animation.ts`; the `_frame → playFrame`
+    // delegate + the public surface in `engine/animation.ts`. The S1/S2 source
+    // checks read the ENGINE base = both, so they track the carve, not the
+    // pre-R flat file. (A missing member → empty string → the clause still reds.)
+    const readOpt = (rel) => {
+        try {
+            return read(rel);
+        } catch {
+            return "";
+        }
+    };
+    const engine =
+        readOpt(path.join("engine", "animation.ts")) +
+        "\n" +
+        readOpt(path.join("engine", "css-animation.ts"));
     const reducedMotion = read(path.join("internal", "reduced-motion.ts"));
-    const waapi = read("waapi.ts");
-    const timeline = read("timeline.ts");
+    // The waapi god-module was carved into the `waapi/` zone (eligibility /
+    // emission / options / delegation + densify). The S3 densify + S5 native-
+    // bridge checks read the whole WAAPI surface (every `waapi/*.ts`) so they
+    // track the carve instead of the pre-R flat file.
+    const waapi = readWaapiSurface();
+    // R.W1 split the timeline into `orchestration/timeline/` — the JS sampler
+    // (`KeyframesScrollTimeline`) in `index.ts` and the native feature-detect
+    // factory (`createNativeTimeline` over `globalThis.ScrollTimeline`) in
+    // `native.ts`. The S5 check reads BOTH so it finds the factory + the
+    // surviving JS sampler regardless of which file each lands in.
+    const timeline =
+        read(path.join("orchestration", "timeline", "index.ts")) +
+        "\n" +
+        read(path.join("orchestration", "timeline", "native.ts"));
 
     // L decomposition (tranche-L `refactor: decompose engine.ts`) extracted the
     // CSS-rule metadata recovery — including the `CSS.registerProperty` pass —
-    // out of `engine.ts` into `engine-css-metadata.ts`, with `engine.ts` left
+    // out of `engine.ts` into `engine/css-metadata.ts`, with the engine left
     // importing + calling `registerPropertyDescriptors(...)` inside `fromString`.
-    // The S1 source-shape check reads the ENGINE SURFACE = engine.ts + the
+    // The S1 source-shape check reads the ENGINE SURFACE = the engine base + the
     // extracted sibling, so it tracks the decomposition instead of the file
     // layout. (Missing sibling → empty string → the clause still reds.)
-    let engineCssMetadata = "";
-    try {
-        engineCssMetadata = read("engine-css-metadata.ts");
-    } catch {
-        // Pre-decomposition layout (or a deleted module): the engine surface is
-        // engine.ts alone — the S1 clause then reds on the absent call, exactly
-        // as it would if the registration pass were reverted.
-    }
+    const engineCssMetadata = readOpt(path.join("engine", "css-metadata.ts"));
     const engineSurface = engine + "\n" + engineCssMetadata;
 
-    // Q.WF1 decomposition (`engine-playback.ts`) — the standalone-play lifecycle
+    // Q.WF1 decomposition (`engine/playback.ts`) — the standalone-play lifecycle
     // machine (the rAF/WAAPI/reduced-motion play DRIVERS, incl. the `playFrame`
     // per-tick live reduced-motion re-consult + the `snapToReducedMotion` snap)
-    // was lifted out of `engine.ts` into the colocated INTERNAL `engine-playback.ts`,
-    // with `engine.ts` left importing + delegating (`_frame` → `playback.playFrame`).
+    // was lifted out of `engine.ts` into the colocated INTERNAL `engine/playback.ts`,
+    // with the engine left importing + delegating (`_frame` → `playback.playFrame`).
     // The S2 live-re-consult source-shape check reads the ENGINE PLAYBACK SURFACE
-    // = engine.ts + engine-playback.ts, so it tracks the decomposition instead of
-    // the file layout (mirrors the S1 engine-css-metadata.ts precedent above).
-    // (Missing sibling → empty string → the clause still reds.)
-    let enginePlayback = "";
-    try {
-        enginePlayback = read("engine-playback.ts");
-    } catch {
-        // Pre-decomposition layout: the play loop is engine.ts alone — the S2
-        // clause then greps engine.ts for the live re-consult, exactly as before.
-    }
+    // = the engine base + engine/playback.ts, so it tracks the decomposition
+    // instead of the file layout (mirrors the S1 engine/css-metadata.ts precedent
+    // above). (Missing sibling → empty string → the clause still reds.)
+    const enginePlayback = readOpt(path.join("engine", "playback.ts"));
     const enginePlaybackSurface = engine + "\n" + enginePlayback;
 
     // ── 1. S1 — @property registry → CSS.registerProperty ─────────────────
