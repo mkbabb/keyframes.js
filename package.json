@@ -139,6 +139,7 @@
         "proof:single-writer": "node scripts/proof-single-writer.mjs",
         "proof:composable-encapsulation": "node scripts/proof-composable-encapsulation.mjs",
         "proof:demo-no-oversize": "node scripts/proof-demo-no-oversize.mjs",
+        "proof:scene-colocated": "node scripts/proof-scene-colocated.mjs",
         "proof:no-brittle-selector": "node scripts/proof-no-brittle-selector.mjs",
         "proof:no-dup-utility": "node scripts/proof-no-dup-utility.mjs",
         "proof:cartoon-is-panel-depth": "node scripts/proof-cartoon-is-panel-depth.mjs",

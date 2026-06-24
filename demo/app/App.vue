@@ -165,18 +165,6 @@
                     </template>
                 </Suspense>
             </div>
-            <!-- Q.WC3 S2 — the PHONE scene-switcher: a native scroll-snap carousel
-                 shown only on the phone-narrow breakpoint (the desktop keeps the
-                 dock Select). The phone VIEW of the same switcher — a snapped card
-                 → tap → the SAME `runSceneSwitch` commit. The WRAPPER owns the
-                 phone-narrow visibility (none/block) so it never overrides the
-                 carousel's own `display: flex`. -->
-            <div class="scene-carousel-host">
-                <SceneSwitcherCarousel
-                    :active-scene-id="currentSceneId"
-                    @pick="runSceneSwitch"
-                />
-            </div>
         </template>
     </EditorShell>
 </template>
@@ -186,9 +174,9 @@
 // non-scoped partial is the smallest shared scope for every brand-mark consumer
 // App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
-// Q.WC3 — the co-located scene-switcher motion (the global directional VT
-// keyframes + the phone-narrow carousel visibility; GLOBAL because the
-// `::view-transition-*` pseudo-tree paints at the document root, never scoped).
+// Q.WC3 — the co-located scene-switch motion (the global directional VT
+// keyframes; GLOBAL because the `::view-transition-*` pseudo-tree paints at the
+// document root, never scoped).
 import "./scene-transition.css";
 
 import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
@@ -206,7 +194,6 @@ import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@components/custom/dock/ChromeDock.vue";
-import SceneSwitcherCarousel from "@components/custom/SceneSwitcherCarousel.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
