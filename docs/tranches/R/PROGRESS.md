@@ -6,6 +6,34 @@ The surgical refactor: encapsulation (the 7-zone directory partition + the two g
 the no-legacy excision sweep, the honest API "in," and the demo scene-fusion. See `R.md` for the
 charter; `audit/` for the 32-lane evidence.
 
+## IMPL DRIVE (opened 2026-06-24) — live orchestration state
+
+**Owner authorized the full IMPL drive** ("Begin and continue the current tranche… complete the
+plan IN TOTALITY… maximal parallelism and workflow usage… authorized to publish/push/deploy").
+Team-lead orchestration via two parallel git worktrees (file-disjoint `src/` vs `demo/`):
+
+- **Track L (library)** → worktree `../keyframes-r-lib` on branch `r-track-lib`:
+  R.W1 → R.W2 → R.W3(lib §2A–2E + the new `proof:no-silent-fallback` gate) → R.W4 → R.W7. Sequential
+  (one worktree, coupled barrel/gates). Opus for the structural carves, Sonnet for mechanical sweeps.
+- **Track D (demo)** → worktree `../keyframes-r-demo` on branch `r-track-demo`:
+  R.W5 → R.W6 (+ the standalone R.W3 demo §2F/2I/2J/2K/2M items). Sequential.
+- **Integration** (main repo `tranche-r-dev`): merge both branches, reconcile the shared files
+  (`package.json` scripts, `proof:ci-coverage` roster, the `proof:no-silent-fallback` gate spanning
+  both, README), run the full proof suite, then **R.W8 close** → 5.1.0 → publish + Cloudflare deploy.
+
+**Baseline confirmed 2026-06-24** (main repo): build GREEN; the four charter-reds reproduce
+(`proof:decomposition`, `proof:chronic-closure`, `proof:agent-surface`, `proof:lint-clean` all exit 1).
+
+**Resume protocol** (for the retry-cron / a fresh session): check `git -C ../keyframes-r-lib log`
+and `git -C ../keyframes-r-demo log` for track progress; check the task board (#266–275); the
+in-flight wave is whichever track task is `in_progress`. A retry-cron (`13 */2 * * *`) re-enters this
+drive if a session-limit wall is hit; DELETE it once shipped.
+
+| In-flight | Wave | Agent | Status |
+|---|---|---|---|
+| Track L | R.W1 directory partition | Opus (bg) | DISPATCHED 2026-06-24 |
+| Track D | R.W5 scene fusion | Opus (bg) | DISPATCHED 2026-06-24 |
+
 ## The wave board
 
 | Band | Wave | Title | Status |
