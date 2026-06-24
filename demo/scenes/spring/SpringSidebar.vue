@@ -35,12 +35,18 @@
                 >
                     <GripVertical class="w-4 h-4" />
                 </button>
-                <SegmentedTabs
+                <!-- R.W6 / DM-5 CONTINGENCY KILL — the kf-internal KfPillTabs
+                     replaces glass-ui SegmentedTabs here: the installed 4.0.1
+                     SegmentedTabs pill emits the orientation attribute
+                     UNCONDITIONALLY on its `role=group`, which forced an
+                     undefined-binding suppress (the DM-5 band-aid P-invariant-28
+                     forbids re-carrying). KfPillTabs is a `role=tablist`/`tab`
+                     switcher — ARIA-correct by construction, no suppress. -->
+                <KfPillTabs
                     v-model="viewModel"
                     :options="VIEW_OPTIONS"
-                    variant="pill"
+                    aria-label="Spring view"
                     class="spring-view-tabs min-w-0 flex-1"
-                    :aria-orientation="undefined"
                 />
             </div>
 
@@ -149,9 +155,10 @@ import { computed, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
-import { SegmentedTabs } from "@mkbabb/glass-ui/tabs";
-import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { GripVertical, RefreshCw } from "@lucide/vue";
+
+import KfPillTabs from "@components/custom/KfPillTabs.vue";
+import type { KfPillTabOption } from "@components/custom/KfPillTabs.vue";
 
 import KeyframesEditor from "@components/custom/animation-controls/keyframes/KeyframesEditor.vue";
 import SpringHeatmap from "./SpringHeatmap.vue";
@@ -167,7 +174,7 @@ const demo = props.demo;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 // ── View switcher (the SegmentedTabs model bridges the demo's `view` ref) ──────
-const VIEW_OPTIONS: SegmentedTabOption[] = [
+const VIEW_OPTIONS: KfPillTabOption[] = [
     { label: "Live solver", value: "solver" },
     { label: "Discrete transition", value: "discrete" },
 ];
