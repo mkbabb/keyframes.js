@@ -159,7 +159,15 @@ const SRC = {
     "demo/@/styles/design-idioms.css": read(path.join(REPO, "demo/@/styles/design-idioms.css")),
     "demo/@/styles/style.css": read(path.join(REPO, "demo/@/styles/style.css")),
     "demo/scenes/cube/CubeTarget.vue": read(path.join(REPO, "demo/scenes/cube/CubeTarget.vue")),
-    "demo/scenes/amiga/AmigaScene.vue": read(path.join(REPO, "demo/scenes/amiga/AmigaScene.vue")),
+    // R.W6-decomp — the tesselateSphere() ball-color call moved out of
+    // AmigaScene.vue into the colocated useAmigaThree.ts (the Three.js room
+    // carve). The amiga ball-color witness reads the WHOLE amiga scene dir so the
+    // grep finds the call wherever it is colocated (AmigaScene.vue OR
+    // useAmigaThree.ts), keeping the witness at full strength across the carve.
+    "demo/scenes/amiga": [
+        read(path.join(REPO, "demo/scenes/amiga/AmigaScene.vue")),
+        read(path.join(REPO, "demo/scenes/amiga/useAmigaThree.ts")),
+    ].join("\n"),
 };
 
 /**
@@ -406,13 +414,13 @@ for (const [token, file] of HOIST_TARGETS) {
 // (the abrogation — e.g. the magenta-ball swap the user reversed). We test the
 // HUE: the raw literal must stay a red (R dominant, low G/B) until hoisted.
 {
-    const amigaSrc = SRC["demo/scenes/amiga/AmigaScene.vue"];
+    const amigaSrc = SRC["demo/scenes/amiga"];
     const tessM = amigaSrc.match(
         /tesselateSphere\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/,
     );
     if (!tessM) {
         note(
-            `[amiga] the tesselateSphere ball-color arg was not found in AmigaScene.vue ` +
+            `[amiga] the tesselateSphere ball-color arg was not found in the amiga scene dir ` +
                 `(the boot may have been restructured) — the --amiga-red token pin governs`,
         );
     } else {
