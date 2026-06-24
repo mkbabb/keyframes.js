@@ -89,7 +89,10 @@ const ENGINE = "src/animation/engine/animation.ts";
 const COMPOSITION = "src/animation/engine/composition.ts";
 const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
 const INTERPOLATE = "src/animation/engine/interpolate.ts";
-const WAAPI = "src/animation/waapi/waapi.ts";
+// R.W2 carved the flat `waapi/waapi.ts` into cohesive concerns; the WAAPI
+// `composite` keyword pass-through (`toWAAPIOptions` + `uniformComposite` +
+// the CompositeOperation map) lives in the options concern.
+const WAAPI = "src/animation/waapi/options.ts";
 const TEST = "test/composition-honored.test.ts";
 
 // ── raf-read — engine reads resolved.composition + threads it into addFrame ──
