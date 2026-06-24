@@ -18,16 +18,7 @@
             :anim-control-refs="animControlRefs"
             :active-keyframes-ref="activeKeyframesRef"
             :active-timeline-ref="activeTimelineRef"
-            :is-panel-transition-done="isPanelTransitionDone"
-            :is-pane-hovered="isPaneHovered"
-            :is-pane-idle="isPaneIdle"
-            :scroll-fade-class="scrollFadeClass"
             :extra-tabs="extraTabs"
-            @panel-transition-end="onPanelTransitionEnd"
-            @sheet-settled="onSheetSettled"
-            @pane-mouse-enter="onPaneMouseEnter"
-            @pane-mouse-leave="onPaneMouseLeave"
-            @set-pane-el="(el) => { controlsPaneEl = el; }"
             @slider-update="sliderUpdate"
             @keyframes-update="keyframesUpdate"
             @toggle-play="toggleAnimationGroup"
@@ -115,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, useTemplateRef, watch, watchEffect } from "vue";
+import { computed, onMounted, reactive, useTemplateRef, watch, watchEffect } from "vue";
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
@@ -130,7 +121,6 @@ import { useAnimationGroupActions } from "./composables/useAnimationGroupActions
 import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
-import { useControlsLayout } from "./composables/useControlsLayout";
 
 const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -225,20 +215,6 @@ onMounted(() => {
         toggleAnimationGroup();
     }
 });
-
-// --- Controls pane layout (open-state, hover, transition, scroll-fade) ---
-const controlsPaneEl = ref<HTMLElement | null>(null);
-
-const {
-    isPanelTransitionDone,
-    onPanelTransitionEnd,
-    onSheetSettled,
-    isPaneHovered,
-    isPaneIdle,
-    onPaneMouseEnter,
-    onPaneMouseLeave,
-    scrollFadeClass,
-} = useControlsLayout(storedControls, controlsPaneEl);
 
 const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("transportDockRef");
 

@@ -1,7 +1,7 @@
 <template>
     <div
         v-show="storedControls.selectedAnimation && !hideControls"
-        @transitionend="emit('panelTransitionEnd', $event)"
+        @transitionend="onPanelTransitionEnd"
         :class="[
             'controls-pane-wrapper col-start-1 row-start-1 min-w-0 relative z-controls',
             'controls-pane--mobile',
@@ -36,9 +36,9 @@
              reactive media query (the mobile sheet keeps its own card paint);
              editor/storyboard stages (contained plates) keep today's pane. -->
         <div
-            :ref="(el: any) => emit('setPaneEl', el)"
-            @mouseenter="emit('paneMouseEnter')"
-            @mouseleave="emit('paneMouseLeave')"
+            ref="paneElRef"
+            @mouseenter="paneMouseEnter"
+            @mouseleave="paneMouseLeave"
             :class="[
                 'controls-pane group/controls min-w-0',
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
@@ -129,11 +129,13 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
+import { useTemplateRef } from "vue";
 import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SheetGrabHandle from "./SheetGrabHandle.vue";
 import { useSheetState } from "../composables/useSheetState";
 import { usePaneRegister } from "../composables/usePaneRegister";
+import { useControlsLayout } from "../composables/useControlsLayout";
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -147,12 +149,6 @@ const props = defineProps<{
     animControlRefs: Record<string, any>;
     activeKeyframesRef: any;
     activeTimelineRef: any;
-    // Layout reactivity (from useControlsLayout) — passed in so the shell
-    // stays a thin layout host and the parent owns the composable lifecycle.
-    isPanelTransitionDone: boolean;
-    isPaneHovered: boolean;
-    isPaneIdle: boolean;
-    scrollFadeClass: string;
     // glass-ui 4.0.0 (BA.W-TABS) — the standalone-host extra-tab options,
     // forwarded down to each AnimationControls' `extraTabs` seam (the playground
     // injects its "Assets" tab here, AS DATA, not via a reka `<TabsTrigger>`).
@@ -165,10 +161,26 @@ const { stageMode, isDesktop } = usePaneRegister({
     stageMode: () => props.stageMode,
 });
 
-// The bottom-sheet open-intent + SpringProgress motion + settle-forwarding live
-// in the colocated useSheetState composable (the K.WZ proof:demo-no-oversize
-// seam; zero behavior change). `sheetOpen` is the writable model the grab handle
-// v-models; `sheetStyle` is the `--sheet-t` the mobile CSS detents read.
+// R.W6 B.1 — layout composable owns the pane-element ref; no parent prop-drilling.
+const paneElRef = useTemplateRef<HTMLElement>("paneElRef");
+const {
+    isPanelTransitionDone,
+    onPanelTransitionEnd,
+    onSheetSettled,
+    isPaneHovered,
+    isPaneIdle,
+    onPaneMouseEnter: paneMouseEnter,
+    onPaneMouseLeave: paneMouseLeave,
+    scrollFadeClass,
+} = useControlsLayout(props.storedControls, paneElRef);
+
+// The bottom-sheet open-intent + SpringProgress motion (useSheetState). `sheetOpen`
+// v-models the grab handle; `sheetStyle` is the `--sheet-t` the mobile CSS reads.
+const { sheetOpen, sheetStyle } = useSheetState({
+    storedControls: props.storedControls,
+    onSettled: onSheetSettled,
+});
+
 const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
     (e: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }): void;
@@ -180,17 +192,8 @@ const emit = defineEmits<{
     ): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
-    (e: "panelTransitionEnd", ev: TransitionEvent): void;
-    (e: "sheetSettled", settled: boolean): void;
-    (e: "paneMouseEnter"): void;
-    (e: "paneMouseLeave"): void;
-    (e: "setPaneEl", el: HTMLElement | null): void;
 }>();
 
-const { sheetOpen, sheetStyle } = useSheetState({
-    storedControls: props.storedControls,
-    onSettled: (settled: boolean) => emit("sheetSettled", settled),
-});
 </script>
 
 <style scoped>
