@@ -1,5 +1,5 @@
 import { convert2 } from "@mkbabb/value.js";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { ref } from "vue";
 import {
     createAnimationUUId,
@@ -11,7 +11,7 @@ import {
  * scaffold, the stable identifiers, and the pure format-width / animation-name
  * helpers. No parsing, no animation mutation — that is `useKeyframesParsing`.
  */
-export function useKeyframesState(animation: Animation<any>) {
+export function useKeyframesState(animation: KeyframesAnimation<any>) {
     const animationUUID = createAnimationUUId(animation, animation.superKey);
     const keyframesStyleId = `keyframes-style-${animationUUID}`;
 

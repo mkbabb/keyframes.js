@@ -66,7 +66,7 @@ import type {
     SequenceLabelSubscriber,
     SequenceSubscriber,
 } from "./sequence-events";
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import type { Vars } from "./constants";
 
 // The transport-events concern (the `SequenceEvent` union + subscriber shapes +
@@ -256,7 +256,7 @@ export class Sequence<V extends Vars = any> {
      * previous segment). Advances the insertion cursor to this segment's end.
      * Chainable.
      */
-    add(animation: Animation<V>, at?: SequencePosition): this {
+    add(animation: KeyframesAnimation<V>, at?: SequencePosition): this {
         const resolved = this.resolvePosition(at);
         this.entries.push({ animation, at: resolved });
         // Position-insertion: re-sort so seek/advance walk segments in clock

@@ -1,5 +1,5 @@
 import { debounce } from "@mkbabb/value.js";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { nextTick, watch } from "vue";
 import type { KeyframesState } from "./useKeyframesState";
@@ -13,9 +13,9 @@ import { useKeyframeOps } from "./useKeyframeOps";
  * callbacks into (one-way dependency, no cycle).
  */
 export function useKeyframesParsing(
-    animation: Animation<any>,
+    animation: KeyframesAnimation<any>,
     state: KeyframesState,
-    emit: (event: "keyframesUpdate", val: { animation: Animation<any> }) => void,
+    emit: (event: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }) => void,
 ) {
     const {
         cssKeyframesString,

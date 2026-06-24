@@ -49,7 +49,7 @@ import {
     type NativeScrollAttachment,
 } from "./waapi";
 import { createNativeTimeline, type NativeTimelineSpec } from "./timeline";
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import type { Vars } from "./constants";
 // The driver consumes the value.js scroll-grammar TYPES only (erased under
 // verbatimModuleSyntax — no runtime value.js edge; the static edge lives in
@@ -229,7 +229,7 @@ export interface ScrollSceneOptions {
  */
 export interface ScrollDispatchRequest<V extends Vars> {
     /** The animation to drive over the scroll clock. */
-    animation?: Animation<V> | undefined;
+    animation?: KeyframesAnimation<V> | undefined;
     /** The native timeline spec (`scroll`/`view`) for the eligible fast lane. */
     nativeSpec?: NativeTimelineSpec | undefined;
     /** True if scrub smoothing was requested (forces JS — native has no smoother). */

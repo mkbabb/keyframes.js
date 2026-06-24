@@ -21,7 +21,7 @@
 </template>
 <script setup lang="ts">
 import { reverseCSSTime } from "@mkbabb/value.js";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
 
 import { onMounted, ref, useTemplateRef } from "vue";
@@ -53,14 +53,14 @@ const { CSSKeyframesAnimation, presets, CSSKeyframesToString, compileToCSS } =
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
 const { animation } = defineProps<{
-    animation: Animation<any>;
+    animation: KeyframesAnimation<any>;
 }>();
 
 const emit = defineEmits<{
     (
         e: "keyframesUpdate",
         val: {
-            animation: Animation<any>;
+            animation: KeyframesAnimation<any>;
         },
     ): void;
 }>();

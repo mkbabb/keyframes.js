@@ -368,7 +368,7 @@ function clauseB(lightExports, engineKeys) {
             );
         }
     }
-    for (const core of ["Animation", "CSSKeyframesAnimation", "AnimationGroup", "animate", "presets"]) {
+    for (const core of ["KeyframesAnimation", "CSSKeyframesAnimation", "AnimationGroup", "animate", "presets"]) {
         if (!engineKeys.includes(core)) {
             failures.push(
                 `(b) AnimationEngine d.ts parse missing core key "${core}" — the interface-key derivation is broken (fail-loud, not false-green).`,

@@ -1,4 +1,4 @@
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 export const STORE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -21,8 +21,8 @@ export const checkAndResetExpiredStore = <T extends { _storeTimestamp?: number }
 };
 
 export const getAnimationSuperKey = (
-    superKey: Animation<any> | string | undefined,
-    animation: Animation<any> | string | undefined = undefined,
+    superKey: KeyframesAnimation<any> | string | undefined,
+    animation: KeyframesAnimation<any> | string | undefined = undefined,
 ): string => {
     if (superKey) {
         if (typeof superKey === "string") return superKey;

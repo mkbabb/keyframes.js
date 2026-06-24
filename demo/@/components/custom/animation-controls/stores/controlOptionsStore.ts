@@ -1,4 +1,4 @@
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
 import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
@@ -47,7 +47,7 @@ export const useAnimationGroupsControlOptionsStore = createGlobalState(() => {
 });
 
 export const getStoredAnimationGroupControlOptions = (
-    superKey: Animation<any> | string | undefined = undefined,
+    superKey: KeyframesAnimation<any> | string | undefined = undefined,
 ): StoredAnimationGroupControlOptions => {
     superKey = getAnimationSuperKey(superKey, superKey);
 

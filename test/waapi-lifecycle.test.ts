@@ -13,7 +13,7 @@
  * `finished` resolves on `finish()`, rejects (AbortError) on `cancel()`.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { Animation, CSSKeyframesAnimation } from "../src/animation/engine";
+import { KeyframesAnimation, CSSKeyframesAnimation } from "../src/animation/engine";
 import { isWAAPIEligible } from "../src/animation/waapi";
 import { springTimingFunction } from "../src/animation/springTimingFunction";
 import { resolveEasing } from "../src/animation/easing";
@@ -238,7 +238,7 @@ describe("fromString stays lenient on an unknown per-keyframe timing function", 
 describe("standalone rAF completion rests per the fill contract", () => {
     it("fillMode 'none' rests at the INITIAL frame (no final-frame clobber)", async () => {
         const painted: number[] = [];
-        const anim = new Animation({
+        const anim = new KeyframesAnimation({
             duration: 40,
             fillMode: "none",
             useWAAPI: false,
@@ -259,7 +259,7 @@ describe("standalone rAF completion rests per the fill contract", () => {
 
     it("fillMode 'forwards' rests at the FINAL frame", async () => {
         const painted: number[] = [];
-        const anim = new Animation({
+        const anim = new KeyframesAnimation({
             duration: 40,
             fillMode: "forwards",
             useWAAPI: false,

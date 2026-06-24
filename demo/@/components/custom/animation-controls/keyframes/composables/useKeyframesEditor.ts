@@ -1,4 +1,4 @@
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useKeyframesState } from "./useKeyframesState";
 import { useKeyframesParsing } from "./useKeyframesParsing";
 
@@ -13,10 +13,10 @@ import { useKeyframesParsing } from "./useKeyframesParsing";
  * `KeyframesEditor.vue` callsite keeps resolving.
  */
 export function useKeyframesEditor(
-    getAnimation: () => Animation<any>,
+    getAnimation: () => KeyframesAnimation<any>,
     emit: (
         event: "keyframesUpdate",
-        val: { animation: Animation<any> },
+        val: { animation: KeyframesAnimation<any> },
     ) => void,
 ) {
     const animation = getAnimation();

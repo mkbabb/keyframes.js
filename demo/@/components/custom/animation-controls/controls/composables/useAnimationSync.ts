@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from "vue";
 import { useRafFn, useDocumentVisibility } from "@vueuse/core";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 /**
  * Syncs reactive refs to a markRaw animation's state via rAF polling.
@@ -27,7 +27,7 @@ import type { Animation } from "@mkbabb/keyframes.js";
 const SETTLE_FRAMES = 30; // ~0.5s at 60fps: hold-stable window before idling.
 
 export function useAnimationSync(
-    getAnimation: () => Animation<any>,
+    getAnimation: () => KeyframesAnimation<any>,
     isPlaying: Ref<boolean>,
 ) {
     const currentT = ref(getAnimation().effectiveT);

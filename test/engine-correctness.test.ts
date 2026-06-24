@@ -7,7 +7,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import { easeInOutCubic } from "@mkbabb/value.js";
-import { Animation, CSSKeyframesAnimation } from "../src/animation/engine";
+import { KeyframesAnimation, CSSKeyframesAnimation } from "../src/animation/engine";
 import { isWAAPIEligible } from "../src/animation/waapi";
 import { getTimingFunction } from "../src/animation/utils";
 
@@ -60,7 +60,7 @@ describe("E.W7 proof:engine-correctness — Strand A", () => {
         // frame plucked out of the compiled `frames[]` by a template index.
         const tA = vi.fn();
         const tB = vi.fn();
-        const a = new Animation();
+        const a = new KeyframesAnimation();
         a.addFrame(0, { x: 0 }, tA as any); // template 0 — transform A
         a.addFrame(33, { x: 33, y: 0 }, tB as any); // template 1 — transform B, declares y
         a.addFrame(66, { x: 66 }); // template 2 — no transform

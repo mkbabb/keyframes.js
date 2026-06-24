@@ -23,7 +23,6 @@
 // ── HEAVY engine TYPE surface (erased; no runtime edge) ──────────────────
 import type {
     KeyframesAnimation,
-    Animation,
     CSSKeyframesAnimation,
     AnimationGroup,
 } from "./engine";
@@ -119,12 +118,10 @@ import type { Stylesheet } from "@mkbabb/value.js";
 export interface AnimationEngine {
     /**
      * The core engine constructor (PKG-3, L.W8 §S4) — renamed from `Animation`
-     * to clear the `globalThis.Animation` d.ts collision. `Animation` below is
-     * the @deprecated backward-compat alias (same runtime constructor).
+     * to clear the `globalThis.Animation` d.ts collision. The legacy `Animation`
+     * backward-compat alias was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
      */
     KeyframesAnimation: typeof KeyframesAnimation;
-    /** @deprecated Use {@link KeyframesAnimation}. Backward-compat alias (PKG-3). */
-    Animation: typeof Animation;
     CSSKeyframesAnimation: typeof CSSKeyframesAnimation;
     AnimationGroup: typeof AnimationGroup;
     getAnimationId: (animation: KeyframesAnimation | string) => string;
@@ -254,8 +251,6 @@ export interface AnimationEngine {
 export interface EngineCore {
     /** The core engine constructor (PKG-3, L.W8 §S4 — renamed from `Animation`). */
     KeyframesAnimation: typeof KeyframesAnimation;
-    /** @deprecated Use {@link KeyframesAnimation}. Backward-compat alias (PKG-3). */
-    Animation: typeof Animation;
     CSSKeyframesAnimation: typeof CSSKeyframesAnimation;
     AnimationGroup: typeof AnimationGroup;
     getAnimationId: (animation: KeyframesAnimation | string) => string;

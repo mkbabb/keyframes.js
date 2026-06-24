@@ -4,7 +4,7 @@ import {
     cubicBezierToString,
     timingFunctions,
 } from "@mkbabb/value.js";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import type {
     TimingFunction,
@@ -55,7 +55,7 @@ function getEasingItems(): { value: string }[] {
 // ── Composable ───────────────────────────────────────────────────────
 
 export function useTimingFunctionEditor(
-    getAnimation: () => Animation<any>,
+    getAnimation: () => KeyframesAnimation<any>,
     storedAnimationOptions: StoredAnimationOptions,
 ) {
     const timingFunctionsAnd = getTimingFunctionsAnd();

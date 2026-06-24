@@ -1,5 +1,5 @@
 import { formatCSS } from "@mkbabb/value.js";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { debounce } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
@@ -42,9 +42,9 @@ async function withErrorToastAsync(
  * dependency on the string-generation callbacks (`StringSync`) — no cycle.
  */
 export function useKeyframeOps(
-    animation: Animation<any>,
+    animation: KeyframesAnimation<any>,
     state: KeyframesState,
-    emit: (event: "keyframesUpdate", val: { animation: Animation<any> }) => void,
+    emit: (event: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }) => void,
     sync: StringSync,
 ) {
     const { addKeyframesString, kfControls, getFormatWidth } = state;

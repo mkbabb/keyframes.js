@@ -3,13 +3,13 @@ import {
     ACTIVE_CONTROL_CONDITIONALS_KEY,
     ACTIVE_SUPER_KEY,
 } from "../../injectionKeys";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useSceneMachine } from "../../stores";
 import type { StoredAnimationGroupControlOptions } from "../../stores";
 
 export interface UseSelectedControlSurfaceOptions {
     /** The host's animation (its superKey identifies the owning scene). */
-    animation: Animation<any>;
+    animation: KeyframesAnimation<any>;
     /** The shared per-group control store (read+written as the single authority). */
     storedControls: StoredAnimationGroupControlOptions;
     /** True when the host routes through the scene machine (DFA-gated). */

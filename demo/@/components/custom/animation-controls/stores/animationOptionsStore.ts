@@ -1,6 +1,6 @@
 import { jumpTerms } from "@mkbabb/value.js";
 import { kfEngine } from "@utils/kfEngine";
-import type { Animation, InputAnimationOptions } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
 import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
@@ -65,8 +65,8 @@ export const useAnimationGroupsOptionsStore = createGlobalState(() => {
 });
 
 export const getStoredAnimationOptions = (
-    animationId: Animation<any> | string | undefined = undefined,
-    superKey: Animation<any> | string | undefined = undefined,
+    animationId: KeyframesAnimation<any> | string | undefined = undefined,
+    superKey: KeyframesAnimation<any> | string | undefined = undefined,
 ): StoredAnimationOptions => {
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = kfEngine().getAnimationId(animationId!);
@@ -104,8 +104,8 @@ export const getStoredAnimationOptions = (
 };
 
 export const createAnimationUUId = (
-    animationId: Animation<any> | string | undefined = undefined,
-    superKey: Animation<any> | string | undefined = undefined,
+    animationId: KeyframesAnimation<any> | string | undefined = undefined,
+    superKey: KeyframesAnimation<any> | string | undefined = undefined,
 ) => {
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = kfEngine().getAnimationId(animationId!);

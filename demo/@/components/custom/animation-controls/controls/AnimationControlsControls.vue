@@ -201,7 +201,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { DockIconButton } from "@mkbabb/glass-ui/dock";
@@ -234,7 +234,7 @@ import {
 } from "../animationDescriptions";
 
 const props = defineProps<{
-    animation: Animation<any>;
+    animation: KeyframesAnimation<any>;
     isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
@@ -292,7 +292,7 @@ const emit = defineEmits<{
         e: "sliderUpdate",
         val: {
             t: number;
-            animation: Animation<any>;
+            animation: KeyframesAnimation<any>;
         },
     ): void;
     (e: "togglePlay"): void;

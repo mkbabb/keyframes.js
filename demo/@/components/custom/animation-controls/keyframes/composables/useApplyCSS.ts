@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import type { Ref } from "vue";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useHighlightCSS } from "./useHighlightCSS";
 
 /**
@@ -11,7 +11,7 @@ import { useHighlightCSS } from "./useHighlightCSS";
  * Uses `useHighlightCSS` internally for style element lifecycle management.
  */
 export function useApplyCSS(options: {
-    getAnimation: () => Animation<any>;
+    getAnimation: () => KeyframesAnimation<any>;
     styleId: string;
     getCSSString: () => string;
     getClassName: () => string;

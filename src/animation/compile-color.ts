@@ -33,7 +33,7 @@ import {
     type HueInterpolationMethod,
     type ValueUnit,
 } from "@mkbabb/value.js";
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import type { Vars } from "./constants";
 
 // ── ΔE / oklab domain constants ───────────────────────────────────────────────
@@ -124,7 +124,7 @@ const percentOf = (start: ValueUnit): number => {
  * `undefined` (a color is one carrier — the single `unit === "color"` leaf).
  */
 const colorValueAt = <V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     i: number,
     key: string,
 ): ValueUnit | undefined => {
@@ -159,7 +159,7 @@ interface KeyDensify {
  * change. Returns the key's `{ cssProp, stops, worstDelta }` trace.
  */
 function densifyKey<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     key: string,
     stopCount: number,
     space: "oklab" | "oklch",
@@ -246,7 +246,7 @@ function densifyKey<V extends Vars>(
  * worse than a refusal).
  */
 export function densifyColorBlock<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     name: string,
     n: number,
     epsilon: number,

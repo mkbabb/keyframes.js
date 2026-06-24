@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     ManualTimeline,
-    ScrollTimeline,
+    KeyframesScrollTimeline,
 } from "../src/animation/timeline";
 import { easeOutCubic } from "@mkbabb/value.js";
 import { resolveEasing } from "../src/animation/easing";
@@ -80,7 +80,7 @@ describe("ScrollTimeline", () => {
         viewportHeight: number,
         opts?: { threshold?: number; smoothing?: false },
     ) =>
-        new ScrollTimeline({
+        new KeyframesScrollTimeline({
             getScrollY: () => scrollY,
             getViewportHeight: () => viewportHeight,
             smoothing: false,
@@ -122,7 +122,7 @@ describe("ScrollTimeline", () => {
 
     it("smoothing converges over ticks", () => {
         let scrollY = 175;
-        const tl = new ScrollTimeline({
+        const tl = new KeyframesScrollTimeline({
             getScrollY: () => scrollY,
             getViewportHeight: () => 1000,
             smoothing: { damping: 0.5, snapThreshold: 0.01 },
@@ -138,7 +138,7 @@ describe("ScrollTimeline", () => {
     });
 
     it("boundary snap: raw>=1 -> immediate convergence", () => {
-        const tl = new ScrollTimeline({
+        const tl = new KeyframesScrollTimeline({
             getScrollY: () => 400,
             getViewportHeight: () => 1000,
             smoothing: { damping: 0.1 },
@@ -150,7 +150,7 @@ describe("ScrollTimeline", () => {
 
     it("boundary snap: raw<=0 -> immediate convergence", () => {
         let scrollY = 200;
-        const tl = new ScrollTimeline({
+        const tl = new KeyframesScrollTimeline({
             getScrollY: () => scrollY,
             getViewportHeight: () => 1000,
             smoothing: { damping: 0.1 },
@@ -167,7 +167,7 @@ describe("ScrollTimeline", () => {
     });
 
     it("tickDt() works", () => {
-        const tl = new ScrollTimeline({
+        const tl = new KeyframesScrollTimeline({
             getScrollY: () => 175,
             getViewportHeight: () => 1000,
             smoothing: { damping: 0.5 },
@@ -185,7 +185,7 @@ describe("Timeline easing + smoothing composition", () => {
         let scrollY = 175;
         const eased05 = easeOutCubic(0.5);
 
-        const tl = new ScrollTimeline({
+        const tl = new KeyframesScrollTimeline({
             getScrollY: () => scrollY,
             getViewportHeight: () => 1000,
             easing: easeOutCubic,
@@ -204,7 +204,7 @@ describe("Timeline easing + smoothing composition", () => {
     });
 
     it("progress reflects smoothed eased value", () => {
-        const tl = new ScrollTimeline({
+        const tl = new KeyframesScrollTimeline({
             getScrollY: () => 175,
             getViewportHeight: () => 1000,
             easing: easeOutCubic,

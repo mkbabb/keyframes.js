@@ -1,6 +1,6 @@
 import { ref } from "vue";
 
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 /**
  * The manual reverse-intent + play/pause toggle surface for a single controls
@@ -19,7 +19,7 @@ import type { Animation } from "@mkbabb/keyframes.js";
  * user-facing toggle the ribbon reads).
  */
 export function usePlaybackToggle(
-    getAnimation: () => Animation<any>,
+    getAnimation: () => KeyframesAnimation<any>,
     emitTogglePlay: () => void,
 ) {
     const userReversed = ref(false);

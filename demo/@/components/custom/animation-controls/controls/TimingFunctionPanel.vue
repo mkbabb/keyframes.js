@@ -105,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunction, TimingFunctionNames } from "@mkbabb/keyframes.js";
 import type { StoredAnimationOptions } from "../stores";
 
@@ -133,7 +133,7 @@ import { ArrowLeft } from "@lucide/vue";
 import EasingEditor from "@components/custom/EasingEditor.vue";
 
 const props = defineProps<{
-    animation: Animation<any>;
+    animation: KeyframesAnimation<any>;
     storedAnimationOptions: StoredAnimationOptions;
     timingFunctionsAnd: Record<string, any>;
     progress?: number;

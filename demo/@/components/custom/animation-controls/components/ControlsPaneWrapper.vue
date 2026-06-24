@@ -126,7 +126,7 @@
 <script setup lang="ts">
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import AnimationControls from "../controls/AnimationControls.vue";
@@ -185,8 +185,8 @@ const { sheetOpen, sheetStyle } = useSheetState({
 });
 
 const emit = defineEmits<{
-    (e: "sliderUpdate", val: { t: number; animation: Animation<any> }): void;
-    (e: "keyframesUpdate", val: { animation: Animation<any> }): void;
+    (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
+    (e: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }): void;
     (e: "togglePlay"): void;
     (
         e: "layerConfigUpdate",

@@ -25,7 +25,7 @@ import {
     toWAAPIKeyframes,
 } from "../src/animation/waapi";
 import {
-    ScrollTimeline as JSScrollTimeline,
+    KeyframesScrollTimeline as JSScrollTimeline,
     Timeline,
     createNativeTimeline,
 } from "../src/animation/timeline";

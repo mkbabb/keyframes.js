@@ -1,5 +1,5 @@
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import { resetAllStores } from "../stores";
@@ -10,14 +10,14 @@ export interface UseAnimationGroupActionsDeps {
     /** The shared per-group control store. */
     storedControls: StoredAnimationGroupControlOptions;
     /** Resolve the group object backing an Animation (from useAnimationGroupPlayback). */
-    findAnimationGroupObject: (animation: Animation<any>) => any;
+    findAnimationGroupObject: (animation: KeyframesAnimation<any>) => any;
     /** Re-sync isPlaying/isStarted from the group (from useAnimationGroupPlayback). */
     syncPlayState: () => void;
 }
 
 export interface UseAnimationGroupActionsReturn {
     updateLayerConfig: (name: string, config: Partial<AnimationLayerConfig>) => void;
-    keyframesUpdate: (e: { animation: Animation<any> }) => void;
+    keyframesUpdate: (e: { animation: KeyframesAnimation<any> }) => void;
     reset: () => void;
     clear: () => void;
 }
@@ -42,7 +42,7 @@ export function useAnimationGroupActions(
         getGroup().setLayerConfig(name, config);
     };
 
-    const keyframesUpdate = (e: { animation: Animation<any> }) => {
+    const keyframesUpdate = (e: { animation: KeyframesAnimation<any> }) => {
         const groupObject = findAnimationGroupObject(e.animation);
         if (groupObject != null) {
             groupObject.values = {};

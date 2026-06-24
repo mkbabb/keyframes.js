@@ -79,9 +79,12 @@ jobs:
                   # `AnimationOptionError`, proving none of them; a dropped symbol
                   # passed green. A symbol ships either directly
                   # (`export declare class|function|const NAME…`) or, when
-                  # API-Extractor must collision-rename it (`ScrollTimeline_2`), as
-                  # an `export { <rename> as NAME }` aliased re-export — either proves it.
-                  SYMS="NumericAnimation SmoothProgress SpringProgress springLinearStops springTimingFunction ElementMorph Timeline ScrollTimeline ManualTimeline RAFPlayback resolveEasing toEasing AnimationOptionError UnknownEasingError loadAnimationEngine"
+                  # API-Extractor must collision-rename it (`<Name>_2`), as an
+                  # `export { <rename> as NAME }` aliased re-export — either proves it.
+                  # NOTE (Q.WE1): the @deprecated `ScrollTimeline` alias was DROPPED
+                  # in 5.0.0; the canonical name is `KeyframesScrollTimeline` (the
+                  # collision-free PKG-3 class — rolls up as a direct declaration).
+                  SYMS="NumericAnimation SmoothProgress SpringProgress springLinearStops springTimingFunction ElementMorph Timeline KeyframesScrollTimeline ManualTimeline RAFPlayback resolveEasing toEasing AnimationOptionError UnknownEasingError loadAnimationEngine"
                   missing=""
                   for sym in $SYMS; do
                     if grep -qE "^export declare (abstract class|class|function|const|enum) ${sym}[<(:; ]" dist/keyframes.d.ts \
@@ -105,6 +108,18 @@ jobs:
             # (e) root CLAUDE.md structural-claim tripwire, (f) peer-dep honesty.
             - name: proof:published-surface (J.W5 — tarball == exports == docs · the publish-boundary oracle)
               run: npm run proof:published-surface
+            # Q.WE1 — the NO-LEGACY breaking-surface oracle: the three @deprecated
+            # PKG-3 aliases (Animation / ScrollTimeline / ScrollTimelineOptions)
+            # are GONE from the BUILT dist/keyframes.d.ts (the consumer's installed
+            # surface). Runs AFTER build:lib, same precondition as proof:published-
+            # surface. HARD posture — a correctness/precept invariant.
+            - name: proof:alias-dropped (Q.WE1 — the @deprecated aliases are GONE from the published d.ts · NO-LEGACY)
+              run: npm run proof:alias-dropped
+            # Q.WE1 — the breaking-set MIGRATION-doc oracle: docs/MIGRATION-5.0.0.md
+            # documents the full breaking alias-drop set + the globalThis.ScrollTimeline
+            # disambiguation note (semver honesty; consumed by Q.WZ's 5.0.0 cut).
+            - name: proof:changelog-5 (Q.WE1 — the breaking 5.0.0 alias-drop set is documented for the consumer)
+              run: npm run proof:changelog-5
             # K.W12 ED-1 — the agent index (/llms.txt + /llms-full.txt) can never
             # drift from the J.W5 published surface (the gate-ORACLE at the AGENT
             # boundary: linked exports == the manifest roster, cited gates real).

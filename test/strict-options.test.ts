@@ -5,13 +5,13 @@
  * ("a value.js-internal resolution failure throws") and B honors.
  */
 import { describe, expect, it } from "vitest";
-import { Animation } from "../src/animation/engine";
+import { KeyframesAnimation } from "../src/animation/engine";
 import { AnimationOptionError } from "../src/animation/internal/errors";
 import { defaultOptions } from "../src/animation/constants";
 
 describe("strict option validation (AnimationOptionError)", () => {
     it("setIterationCount throws on a malformed string", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() => anim.setIterationCount("abc")).toThrow(
             AnimationOptionError,
         );
@@ -19,12 +19,12 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setIterationCount throws on a negative number", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() => anim.setIterationCount(-3)).toThrow(AnimationOptionError);
     });
 
     it("setIterationCount accepts 'infinite' and genuine omission defaults", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         anim.setIterationCount("infinite");
         expect(anim.options.iterationCount).toBe(Infinity);
         anim.setIterationCount(undefined);
@@ -34,7 +34,7 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setDuration throws on non-positive and malformed input", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() => anim.setDuration(-5)).toThrow(AnimationOptionError);
         expect(() => anim.setDuration(0)).toThrow(AnimationOptionError);
         expect(() => anim.setDuration("garbage")).toThrow(
@@ -45,20 +45,20 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setDuration accepts a CSS time string", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         anim.setDuration("2s");
         expect(anim.options.duration).toBe(2000);
     });
 
     it("setTimingFunction throws on an unknown name (never silent-defaults)", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() => anim.setTimingFunction("bogus-easing")).toThrow(
             AnimationOptionError,
         );
     });
 
     it("setTimingFunction resolves registry names, beziers, steps, and typed Easings", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         anim.setTimingFunction("ease-out-cubic");
         expect(typeof anim.options.timingFunction.fn).toBe("function");
 
@@ -74,14 +74,14 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setDelay throws on malformed input, allows negative CSS delays", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() => anim.setDelay("garbage")).toThrow(AnimationOptionError);
         anim.setDelay(-100);
         expect(anim.options.delay).toBe(-100);
     });
 
     it("setDirection / setFillMode throw on unknown literals", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() =>
             anim.setDirection("sideways" as never),
         ).toThrow(AnimationOptionError);
@@ -91,7 +91,7 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setUseWAAPI / setRespectReducedMotion throw on non-booleans", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() => anim.setUseWAAPI("yes" as never)).toThrow(
             AnimationOptionError,
         );
@@ -101,7 +101,7 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setColorSpace throws on a malformed present value, defaults on omission", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         // Present-but-malformed: the seam, not a silent `?? default` accept.
         expect(() => anim.setColorSpace("bogus" as never)).toThrow(
             AnimationOptionError,
@@ -118,7 +118,7 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setHueMethod throws on a malformed present value, omission leaves it unset", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         expect(() => anim.setHueMethod("bogus" as never)).toThrow(
             AnimationOptionError,
         );
@@ -132,7 +132,7 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("setColorSpace error carries the option name and offending value", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         try {
             anim.setColorSpace("srgbbb" as never);
             expect.unreachable("should have thrown");
@@ -145,7 +145,7 @@ describe("strict option validation (AnimationOptionError)", () => {
     });
 
     it("the error carries the option name and offending value", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         try {
             anim.setIterationCount("abc");
             expect.unreachable("should have thrown");
@@ -160,7 +160,7 @@ describe("strict option validation (AnimationOptionError)", () => {
 
 describe("the rest-position contract (settle vs reset)", () => {
     it("settle() is pure teardown — flags clear, no paint requirement", () => {
-        const anim = new Animation({ duration: 100 });
+        const anim = new KeyframesAnimation({ duration: 100 });
         anim.started = true;
         anim.t = 50;
         anim.settle();
@@ -170,7 +170,7 @@ describe("the rest-position contract (settle vs reset)", () => {
     });
 
     it("restPosition derives from fillMode", () => {
-        const anim = new Animation();
+        const anim = new KeyframesAnimation();
         anim.setFillMode("forwards");
         expect(anim.restPosition).toBe("final");
         anim.setFillMode("both");

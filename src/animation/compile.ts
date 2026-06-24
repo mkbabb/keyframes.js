@@ -51,7 +51,7 @@
  */
 
 import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import { AnimationGroup } from "./group";
 import { getAnimationId } from "./engine";
 import { Sequence } from "./sequence";
@@ -150,7 +150,7 @@ export const DEFAULT_DENSIFY_STOPS = 16;
 
 /** A walked child — its animation + the layer/sequence metadata the compile reads. */
 interface CompileChild<V extends Vars> {
-    animation: Animation<V>;
+    animation: KeyframesAnimation<V>;
     name: string;
     /** The CSS `animation-composition` operator for this child's layering (CC-1 inverting W7). */
     composition: CompositeOperator;
@@ -176,7 +176,7 @@ interface CompileChild<V extends Vars> {
 export type CompileInput<V extends Vars = any> =
     | AnimationGroup<V>
     | Sequence<V>
-    | ReadonlyArray<Animation<V> | { animation: Animation<V> }>;
+    | ReadonlyArray<KeyframesAnimation<V> | { animation: KeyframesAnimation<V> }>;
 
 /**
  * Walk an `AnimationGroup` into compile children. The layer `blendMode` maps to
@@ -234,14 +234,14 @@ function walkSequence<V extends Vars>(seq: Sequence<V>): CompileChild<V>[] {
 
 /** Walk a bare child list (e.g. a `stagger`-delayed cohort). All `replace`. */
 function walkList<V extends Vars>(
-    list: ReadonlyArray<Animation<V> | { animation: Animation<V> }>,
+    list: ReadonlyArray<KeyframesAnimation<V> | { animation: KeyframesAnimation<V> }>,
 ): CompileChild<V>[] {
     return list.map((item, i) => {
         const anim = (
             "animation" in (item as { animation?: unknown })
-                ? (item as { animation: Animation<V> }).animation
-                : (item as Animation<V>)
-        ) as Animation<V>;
+                ? (item as { animation: KeyframesAnimation<V> }).animation
+                : (item as KeyframesAnimation<V>)
+        ) as KeyframesAnimation<V>;
         return {
             animation: anim,
             name: cssIdent(getAnimationId(anim) || `anim-${i}`),
@@ -273,7 +273,7 @@ function cssIdent(name: string): string {
  * re-resolves natively, where WAAPI freezes to px once).
  */
 function findComputedDrift<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): string | undefined {
     for (let i = 0; i < animation.templateFrames.length; i++) {
         const declared = animation.parsedVars[i] ?? {};
@@ -457,9 +457,9 @@ function compileChild<V extends Vars>(
  * plain time-clock animation (`scrollOptions` `undefined`). The field lives on
  * `CSSKeyframesAnimation` only — a plain `Animation` (no field) yields `""`.
  */
-function scrollLonghands<V extends Vars>(animation: Animation<V>): string {
+function scrollLonghands<V extends Vars>(animation: KeyframesAnimation<V>): string {
     const opts = (
-        animation as Animation<V> & { scrollOptions?: CSSTimelineOptions }
+        animation as KeyframesAnimation<V> & { scrollOptions?: CSSTimelineOptions }
     ).scrollOptions;
     if (opts == null) return "";
     const decls = serializeScrollOptions(opts);
@@ -491,7 +491,7 @@ export async function compileToCSS<V extends Vars>(
             ? walkGroup(input)
             : input instanceof Sequence
               ? walkSequence(input)
-              : walkList(input as ReadonlyArray<Animation<V>>);
+              : walkList(input as ReadonlyArray<KeyframesAnimation<V>>);
 
     // De-dup colliding names (two children with the same id) — append -2/-3.
     const nameCounts = new Map<string, number>();

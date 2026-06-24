@@ -49,19 +49,19 @@ export { springTimingFunction } from "./springTimingFunction";
 export type { SpringTimingFunctionOptions } from "./springTimingFunction";
 export { ElementMorph } from "./morph";
 export type { MorphRect, ElementMorphOptions } from "./morph";
-// `ScrollTimeline` is the @deprecated PKG-3 alias of `KeyframesScrollTimeline`
-// (L.W8 §S4 — renamed to clear the `globalThis.ScrollTimeline` d.ts collision).
+// The legacy `ScrollTimeline`/`ScrollTimelineOptions` @deprecated PKG-3 aliases
+// of `KeyframesScrollTimeline`/`KeyframesScrollTimelineOptions` (L.W8 §S4 —
+// renamed to clear the `globalThis.ScrollTimeline` d.ts collision) were DROPPED
+// in 5.0.0 (Q.WE1 — NO-LEGACY). See docs/MIGRATION-5.0.0.md.
 export {
     Timeline,
     KeyframesScrollTimeline,
-    ScrollTimeline,
     ManualTimeline,
     createNativeTimeline,
 } from "./timeline";
 export type {
     TimelineOptions,
     KeyframesScrollTimelineOptions,
-    ScrollTimelineOptions,
     NativeTimelineSpec,
 } from "./timeline";
 export { RAFPlayback } from "./playback";
@@ -211,11 +211,11 @@ export type { ValidateOptions, ValidateResult } from "./validate";
 // Heavy-class TYPES stay on the static barrel (erased) so consumers keep
 // `import type { KeyframesAnimation } from "@mkbabb/keyframes.js"` for
 // annotations. The runtime constructors are reached only via
-// `loadAnimationEngine()`. `Animation` is the @deprecated PKG-3 alias of
-// `KeyframesAnimation` (L.W8 §S4) — kept for backward-compat annotations.
+// `loadAnimationEngine()`. The legacy `Animation` @deprecated PKG-3 alias of
+// `KeyframesAnimation` (L.W8 §S4) was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
+// See docs/MIGRATION-5.0.0.md.
 export type {
     KeyframesAnimation,
-    Animation,
     CSSKeyframesAnimation,
     AnimationGroup,
 } from "./engine";

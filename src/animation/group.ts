@@ -1,12 +1,11 @@
 import { ValueUnit, lerp } from "@mkbabb/value.js";
 import { withReducedMotion } from "./internal/reduced-motion";
 import { RAFPlayback } from "./playback";
+// PKG-3 (L.W8 §S4): the engine class is `KeyframesAnimation` (formerly
+// `Animation`; the @deprecated alias was DROPPED in 5.0.0 — Q.WE1). The single
+// value import provides BOTH the runtime constructor (the `instanceof` guard)
+// AND the type used in the `KeyframesAnimation<V>` annotations below.
 import { KeyframesAnimation, getAnimationId } from "./engine";
-// PKG-3 (L.W8 §S4): the class was renamed `Animation` → `KeyframesAnimation`
-// (the runtime VALUE). The `Animation` name survives only as a deprecated TYPE
-// alias — kept here for the existing `Animation<V>` annotations below — while
-// the `instanceof` guard reads the canonical runtime constructor.
-import type { Animation } from "./engine";
 import { SpringProgress } from "./spring";
 import {
     advanceBatched,
@@ -80,7 +79,7 @@ interface SoALayerPlan {
 }
 
 export interface AnimationGroupEntry<V extends Vars> {
-    animation: Animation<V>;
+    animation: KeyframesAnimation<V>;
     values: Record<string, unknown>;
     layer: AnimationLayerConfig;
 }
@@ -91,8 +90,8 @@ export interface AnimationGroupObject<V extends Vars> {
 
 /** Input type for AnimationGroup constructor — bare Animation or Animation with layer config. */
 export type AnimationGroupInput<V extends Vars> =
-    | Animation<V>
-    | { animation: Animation<V>; layer?: Partial<AnimationLayerConfig> };
+    | KeyframesAnimation<V>
+    | { animation: KeyframesAnimation<V>; layer?: Partial<AnimationLayerConfig> };
 
 export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
@@ -193,13 +192,13 @@ export class AnimationGroup<V extends Vars> {
      */
     private _hasLayerSprings = false;
 
-    constructor(...inputs: (Animation<V> | AnimationGroupInput<V>)[]) {
+    constructor(...inputs: (KeyframesAnimation<V> | AnimationGroupInput<V>)[]) {
         this._boundFrame = this._frame.bind(this);
 
-        const animations: Animation<V>[] = [];
+        const animations: KeyframesAnimation<V>[] = [];
 
         for (const input of inputs) {
-            let animation: Animation<V>;
+            let animation: KeyframesAnimation<V>;
             let layerConfig: Partial<AnimationLayerConfig> | undefined;
 
             if (input instanceof KeyframesAnimation) {
@@ -686,7 +685,7 @@ export class AnimationGroup<V extends Vars> {
      * Updates `pausedTime` so the child resumes correctly from the scrub
      * position. Chainable; call `render()` afterwards to reflect it visually.
      */
-    setChildTime(nameOrAnim: string | Animation<V>, t: number) {
+    setChildTime(nameOrAnim: string | KeyframesAnimation<V>, t: number) {
         const entry = requireEntry(this.animations, nameOrAnim, "setChildTime");
         const anim = entry.animation;
         anim.t = t;
@@ -966,7 +965,7 @@ export class AnimationGroup<V extends Vars> {
      * on an unregistered key (silent no-ops were hiding consumer bugs).
      */
     setLayerConfig(
-        nameOrAnim: string | Animation<V>,
+        nameOrAnim: string | KeyframesAnimation<V>,
         config: Partial<AnimationLayerConfig>,
     ) {
         const entry = requireEntry(
@@ -980,13 +979,13 @@ export class AnimationGroup<V extends Vars> {
     }
 
     /** Convenience toggle for enabling/disabling a layer. Chainable. */
-    setLayerEnabled(nameOrAnim: string | Animation<V>, enabled: boolean) {
+    setLayerEnabled(nameOrAnim: string | KeyframesAnimation<V>, enabled: boolean) {
         return this.setLayerConfig(nameOrAnim, { enabled });
     }
 
     /** Read the layer config for an animation by name or reference. */
     getLayerConfig(
-        nameOrAnim: string | Animation<V>,
+        nameOrAnim: string | KeyframesAnimation<V>,
     ): AnimationLayerConfig | undefined {
         return this.animations[resolveEntryKey(nameOrAnim)]?.layer;
     }
@@ -1007,7 +1006,7 @@ export class AnimationGroup<V extends Vars> {
      * trajectory documentation in `./group-layer-springs`. Chainable.
      */
     transitionLayer(
-        nameOrAnim: string | Animation<V>,
+        nameOrAnim: string | KeyframesAnimation<V>,
         target: { weight: number; spring?: LayerTransitionSpring },
     ): this {
         const entry = requireEntry(
@@ -1045,8 +1044,8 @@ export class AnimationGroup<V extends Vars> {
      * crossfade that overshoots and settles. Chainable.
      */
     crossfade(
-        a: string | Animation<V>,
-        b: string | Animation<V>,
+        a: string | KeyframesAnimation<V>,
+        b: string | KeyframesAnimation<V>,
         options?: { spring?: LayerTransitionSpring },
     ): this {
         const spring = options?.spring;

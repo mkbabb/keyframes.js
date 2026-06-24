@@ -25,7 +25,7 @@
  * `@mkbabb/value.js` edge — `proof:boundary` stays green.
  */
 
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import type { Vars } from "./constants";
 
 /**
@@ -34,7 +34,7 @@ import type { Vars } from "./constants";
  * membership.
  */
 export interface SequenceEntry<V extends Vars> {
-    animation: Animation<V>;
+    animation: KeyframesAnimation<V>;
     /** Absolute offset (ms) of this segment's local t=0 on the master clock. */
     at: number;
 }
@@ -62,7 +62,7 @@ export type SequenceEvent = "segment:enter" | "segment:leave" | "label";
  * arrives with a smaller `masterClock` than the prior call).
  */
 export type SequenceSegmentSubscriber = (
-    animation: Animation<any>,
+    animation: KeyframesAnimation<any>,
     masterClock: number,
 ) => void;
 

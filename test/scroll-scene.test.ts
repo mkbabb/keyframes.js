@@ -33,7 +33,7 @@ import {
     roundTripScrollCSS,
     serializeScrollOptions,
 } from "../src/animation/scroll-scene";
-import { ScrollTimeline } from "../src/animation/timeline";
+import { KeyframesScrollTimeline } from "../src/animation/timeline";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 const mkEl = (style: Record<string, string> = {}): HTMLElement => {
@@ -306,7 +306,7 @@ describe("K.W9 clause (e) — the JS ScrollTimeline driver is the universal fall
     it("the shipped JS ScrollTimeline still drives progress (not replaced)", () => {
         // The ARCH-kill HOLDS: the dispatch ADDS a tier; it deletes no driver.
         let y = 0;
-        const tl = new ScrollTimeline({
+        const tl = new KeyframesScrollTimeline({
             smoothing: false,
             getScrollY: () => y,
             getViewportHeight: () => 100,

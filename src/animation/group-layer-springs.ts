@@ -41,7 +41,7 @@
 import { SpringProgress, type SpringProgressOptions } from "./spring";
 import { getAnimationId } from "./engine";
 import { yieldToMain } from "./internal/scheduler";
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import type { AnimationGroupEntry, AnimationGroupObject } from "./group";
 
 /**
@@ -62,7 +62,7 @@ export type LayerTransitionSpring = Partial<
  * `setLayerConfig`, `getLayerConfig`, and the K.W11 transition API).
  */
 export const resolveEntryKey = <V extends Record<string, unknown>>(
-    nameOrAnim: string | Animation<V>,
+    nameOrAnim: string | KeyframesAnimation<V>,
 ): string =>
     typeof nameOrAnim === "string" ? nameOrAnim : getAnimationId(nameOrAnim);
 
@@ -75,7 +75,7 @@ export const resolveEntryKey = <V extends Record<string, unknown>>(
  */
 export const requireEntry = <V extends Record<string, unknown>>(
     animations: AnimationGroupObject<V>,
-    nameOrAnim: string | Animation<V>,
+    nameOrAnim: string | KeyframesAnimation<V>,
     method: string,
 ): AnimationGroupEntry<V> => {
     const key = resolveEntryKey(nameOrAnim);

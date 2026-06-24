@@ -204,7 +204,7 @@
 // reference them (a cross-cluster follow-on migrates those).
 import "./tab-trigger.css";
 
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 
 import { TooltipProvider, Button } from "@mkbabb/glass-ui";
@@ -248,7 +248,7 @@ import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "../stores";
 
 const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = defineProps<{
-    animation: Animation<any>;
+    animation: KeyframesAnimation<any>;
     isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
     active?: boolean;
@@ -348,13 +348,13 @@ const emit = defineEmits<{
         e: "sliderUpdate",
         val: {
             t: number;
-            animation: Animation<any>;
+            animation: KeyframesAnimation<any>;
         },
     ): void;
     (
         e: "keyframesUpdate",
         val: {
-            animation: Animation<any>;
+            animation: KeyframesAnimation<any>;
         },
     ): void;
     (e: "togglePlay"): void;

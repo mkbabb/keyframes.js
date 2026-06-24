@@ -109,10 +109,9 @@ let nextId = 0;
  * ── PKG-3 RENAME (L.W8 §S4 · audit W126). Formerly `Animation`; renamed to
  * `KeyframesAnimation` because the old name collided with the ambient
  * `globalThis.Animation` (WAAPI), leaking a numeric-suffixed collision alias
- * into the d.ts roll-up (packaging-k.md:118-127). The old `Animation` name
- * survives as a backward-compat RE-EXPORT alias (value + type) below — see the
- * `@deprecated` `Animation` export for the full rationale. Gated by
- * `proof:pkg3-clean`. The runtime constructor is `KeyframesAnimation`.
+ * into the d.ts roll-up (packaging-k.md:118-127). The legacy `Animation`
+ * backward-compat RE-EXPORT alias was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
+ * Gated by `proof:pkg3-clean`. The runtime constructor is `KeyframesAnimation`.
  */
 export class KeyframesAnimation<V extends Vars = any> {
     id: number = nextId++;
@@ -1412,22 +1411,6 @@ export class KeyframesAnimation<V extends Vars = any> {
         return new AnimationGroup<V>(this, ...animations);
     }
 }
-
-/**
- * @deprecated Renamed to {@link KeyframesAnimation} in 5.0.0 (PKG-3, L.W8 §S4).
- * The old `Animation` name collided with the ambient `globalThis.Animation`
- * (WAAPI), so the rolled-up d.ts formerly leaked a numeric-suffixed collision
- * alias into every intermediate type in IDE hover text. The CANONICAL
- * declaration is now `KeyframesAnimation` (no ambient collision); this
- * `Animation` is a pure RE-EXPORT alias of it — value AND type — so existing
- * code keeps working: `import type { Animation } from "@mkbabb/keyframes.js"`,
- * `new Animation()`, and `instanceof Animation` all resolve to
- * `KeyframesAnimation`. Because the canonical name no longer collides, API
- * Extractor emits the clean re-export (`KeyframesAnimation` exported under the
- * `Animation` name, no numeric suffix) — `proof:pkg3-clean` stays GREEN.
- * Migrate to `KeyframesAnimation`; this alias is a transition aid.
- */
-export { KeyframesAnimation as Animation };
 
 export class CSSKeyframesAnimation<
     V extends Vars,

@@ -97,7 +97,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
 
 import { Card, CardContent, Slider } from "@mkbabb/glass-ui";
@@ -123,7 +123,7 @@ import { insertTabAtCursor } from "./utils/contenteditable";
 const { CSSKeyframesAnimation, presets } = kfEngine();
 
 const { animation, framed = true } = defineProps<{
-    animation: Animation<any>;
+    animation: KeyframesAnimation<any>;
     /** Whether the per-stop card list carries its OWN framing `Card`. Default
      *  `true` (the standalone authoring surface). Pass `false` when the editor is
      *  mounted inside another Card (e.g. SpringSidebar's parent Card) so the inner
@@ -138,7 +138,7 @@ const emit = defineEmits<{
     ): void;
     (
         e: "keyframesUpdate",
-        val: { animation: Animation<any> },
+        val: { animation: KeyframesAnimation<any> },
     ): void;
 }>();
 

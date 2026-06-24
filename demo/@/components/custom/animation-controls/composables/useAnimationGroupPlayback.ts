@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 
 /** The playback emit contract this composable drives — typed to the host
@@ -38,7 +38,7 @@ export function useAnimationGroupPlayback(
         emit("startStateChange", started);
     };
 
-    const findAnimationGroupObject = (animation: Animation<any>) => {
+    const findAnimationGroupObject = (animation: KeyframesAnimation<any>) => {
         return Object.values(getAnimationGroup().animations).find(
             (a) => a.animation.id == animation.id,
         );
@@ -97,7 +97,7 @@ export function useAnimationGroupPlayback(
         }
     };
 
-    const sliderUpdate = ({ t, animation }: { t: number; animation: Animation<any> }) => {
+    const sliderUpdate = ({ t, animation }: { t: number; animation: KeyframesAnimation<any> }) => {
         // Scrubbing a single animation in a group must NOT drag its
         // siblings along. The library's setChildTime mutates just
         // this animation; render() re-composes the frame using every

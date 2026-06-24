@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FrameCompiler } from "../src/animation/frame-compiler";
 import { defaultOptions } from "../src/animation/constants";
-import { Animation } from "../src/animation/engine";
+import { KeyframesAnimation } from "../src/animation/engine";
 
 /**
  * D.W4 D-4 — the `FrameCompiler` seam. The compilation half of the former
@@ -107,7 +107,7 @@ describe("J.W1 ENG-2 — createFrame totality (no [undefined]!.transform deref)"
     });
 
     it("the documented public `Animation` surface compiles + interpolates transform-free", () => {
-        const a = new Animation({ duration: 1000 });
+        const a = new KeyframesAnimation({ duration: 1000 });
         a.addFrame(0, { x: 0 });
         a.addFrame(100, { x: 100 });
 

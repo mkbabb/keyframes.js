@@ -133,7 +133,7 @@ bench/                       # Vitest benchmarks
 
 ## Animation
 
-The `Animation` object drives `CSSKeyframesAnimation` and `AnimationGroup`. It's composed of:
+The `KeyframesAnimation` object (formerly `Animation`, renamed in 5.0.0 — see `docs/MIGRATION-5.0.0.md`) drives `CSSKeyframesAnimation` and `AnimationGroup`. It's composed of:
 
 - **options** (`AnimationOptions`)
 - **transform function**: interpolates between keyframes
@@ -243,7 +243,7 @@ anim.setTargets(element);
 await anim.play();
 ```
 
-The engine surface (`AnimationEngine`): `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { Animation } from "@mkbabb/keyframes.js"` costs no runtime edge.
+The engine surface (`AnimationEngine`): `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { KeyframesAnimation } from "@mkbabb/keyframes.js"` costs no runtime edge.
 
 ### `animate`
 
@@ -304,7 +304,7 @@ Options: `from`/`to` (`"0%"`–`"100%"` strings or `0`–`1` numbers; default dr
 
 Path-shape morphing — interpolate one SVG path `d` into another. value.js's `PathGeometry` owns the geometry (arc-length sampling via `getTotalLength()`/`getPointAtLength()`); keyframes samples both paths at `samples` uniform points and lerps the matched point sets, so the engine's native numeric interpolation *is* the morph (a true blend — the midpoint is distinct from both endpoints, not a cross-fade).
 
-```ts
+```ts run
 const { fromMorphSVG, MorphSVG } = await loadAnimationEngine();
 
 // Morph a triangle into a square over 600ms:
@@ -319,7 +319,7 @@ Options: `samples` (point count per path; default `64`), plus every `AnimationOp
 
 ## `CSSKeyframesAnimation`
 
-An abstraction over `Animation` that parses CSS `@keyframes` into `TemplateAnimationFrame` objects, then adds them to a base `Animation`.
+An abstraction over `KeyframesAnimation` that parses CSS `@keyframes` into `TemplateAnimationFrame` objects, then adds them to a base `KeyframesAnimation`.
 
 Three ways to create keyframes:
 
@@ -630,7 +630,7 @@ Abstract progress driver. Pipeline: `sample() → clamp → easing → boundary 
 
 ```ts run
 const easing = await resolveEasing("easeOutCubic");
-const timeline = new ScrollTimeline({
+const timeline = new KeyframesScrollTimeline({
     threshold: 0.35,
     easing,
     boundaryEpsilon: 0.005,
@@ -651,7 +651,7 @@ manual.tick(); // => 0.25
 Options: `easing` (callable or `Easing`), `smoothing` (`SmoothProgressOptions` or `false`), `boundaryEpsilon` (snap eased values within this distance of 0/1 to the boundary — prevents scroll-endpoint oscillation, default 0.005).
 
 Subclasses:
-- **`ScrollTimeline`** — scroll position → progress. `threshold` sets viewport fraction for full progress (default 0.35). Injectable `getScrollY`/`getViewportHeight`.
+- **`KeyframesScrollTimeline`** — scroll position → progress. `threshold` sets viewport fraction for full progress (default 0.35). Injectable `getScrollY`/`getViewportHeight`.
 - **`ManualTimeline`** — externally set value → progress. Smoothing off by default.
 
 Where the platform ships native scroll-driven timelines, `createNativeTimeline({ kind: "scroll" | "view", … })` feature-detects and returns a native `AnimationTimeline` (or `null`) as an additive fast lane — the JS sampler stays the general fallback.
@@ -693,7 +693,7 @@ const stops = springLinearStops({ response: 0.5, dampingFraction: 0.45 });
 stops.startsWith("linear(0, "); // => true
 stops.endsWith(", 1)"); // => true
 
-// JS: a typed Easing — feed it to NumericAnimation / ElementMorph / Animation
+// JS: a typed Easing — feed it to NumericAnimation / ElementMorph / KeyframesAnimation
 const spring = springTimingFunction({ response: 0.5, dampingFraction: 0.45 });
 spring.fn(0); // => 0
 spring.fn(1); // => 1

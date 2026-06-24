@@ -13,7 +13,7 @@ import type {
     CSSAnimationOptions,
     PropertyDescriptor,
 } from "@mkbabb/value.js";
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import type {
     AnimationOptions,
     CompositeOperator,
@@ -84,7 +84,7 @@ const DEFAULT_KEYFRAME_FOOTER = `\n}`;
  * so the round-trip is byte-identical.
  */
 function declaredKeyframeBody<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     i: number,
     defaultEasing: string,
 ): string {
@@ -131,7 +131,7 @@ function declaredKeyframeBody<V extends Vars>(
  * interp-mutated) — both defects die with the unification.
  */
 export const CSSKeyframesToStrings = async <V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ) => {
     const defaultEasing = serializeEasing(animation.options.timingFunction);
 
@@ -221,7 +221,7 @@ export function animationOptionsToString(
  * threaded in, every other key still rides the verbatim declared projection.
  */
 export function declaredKeyframeBodyFor<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     i: number,
     defaultEasing: string,
 ): string {
@@ -238,7 +238,7 @@ export function declaredKeyframeBodyFor<V extends Vars>(
  * block re-parses to the SAME template it serialized from.
  */
 export function keyframesBlock<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     name: string,
     bodyByStop?: ReadonlyMap<number, string>,
 ): string {
@@ -296,7 +296,7 @@ export type PremultiplyResult =
  * records it as a `weighted-blend` refusal (the JS playback is the faithful path).
  */
 export function premultipliedKeyframesBlock<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     name: string,
     weight: number,
 ): PremultiplyResult {
@@ -415,10 +415,10 @@ export function animationComposition(
  * (no registry) yields `""` — the field lives on `CSSKeyframesAnimation` only.
  */
 function propertyRegistryToString<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): string {
     const registry = (
-        animation as Animation<V> & {
+        animation as KeyframesAnimation<V> & {
             propertyRegistry?: ReadonlyMap<string, PropertyDescriptor>;
         }
     ).propertyRegistry;
@@ -433,7 +433,7 @@ function propertyRegistryToString<V extends Vars>(
 }
 
 export async function CSSKeyframesToString<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     name: string = "animation",
     printWidth: number | undefined = undefined,
 ) {

@@ -80,7 +80,7 @@
 // shared across this ribbon and the scene play buttons.
 import "./playback-button.css";
 
-import type { Animation } from "@mkbabb/keyframes.js";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
 import { useDragCapture } from "./composables/useDragCapture";
@@ -89,7 +89,7 @@ import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 
 const { animation } = defineProps<{
-    animation: Animation<any>;
+    animation: KeyframesAnimation<any>;
     currentT: number;
     isAnimPlaying: boolean;
     isAnimStarted: boolean;
@@ -102,7 +102,7 @@ const emit = defineEmits<{
     // Wake-only: fires on EVERY scrub (pointer, keyboard, or visualizer) so a
     // settled sync loop re-arms even on a keyboard-arrow nudge.
     (e: "scrubbed"): void;
-    (e: "sliderUpdate", val: { t: number; animation: Animation<any> }): void;
+    (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
     (e: "togglePlay"): void;
     (e: "toggleReverse"): void;
 }>();

@@ -138,7 +138,7 @@ for (const core of ["NumericAnimation", "SpringProgress", "RAFPlayback", "Sequen
         );
     }
 }
-for (const core of ["Animation", "animate", "MotionPath", "DrawSVG"]) {
+for (const core of ["KeyframesAnimation", "animate", "MotionPath", "DrawSVG"]) {
     if (!engineKeys.includes(core)) {
         failures.push(
             `derivation: AnimationEngine d.ts parse missing core key "${core}" — fail-loud, not false-green.`,

@@ -2,7 +2,7 @@ import { COMPUTED_UNITS, unflattenObjectToString } from "@mkbabb/value.js";
 import { clamp } from "./internal/leaves";
 import { createNativeTimeline } from "./timeline";
 import type { NativeTimelineSpec } from "./timeline";
-import type { Animation } from "./engine";
+import type { KeyframesAnimation } from "./engine";
 import type { Vars } from "./constants";
 
 /**
@@ -132,7 +132,7 @@ const isWebKitEngine = (): boolean =>
  * to debug builds without a console.warn falling out of the engine.
  */
 export function isWAAPIEligible<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): WAAPIEligibility {
     if (!animation.targets || animation.targets.length === 0) {
         return { eligible: false, reason: "no DOM targets" };
@@ -298,7 +298,7 @@ const WAAPI_CHORD_TOLERANCE = 0.005;
 type ChannelSample = Map<string, number>;
 
 const sampleChannels = <V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     t: number,
 ): ChannelSample => {
     const out: ChannelSample = new Map();
@@ -332,7 +332,7 @@ type ChannelRanges = Map<string, number>;
 const RANGE_SCAN_PROBES = 64;
 
 const scanChannelRanges = <V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     startTime: number,
     stopTime: number,
 ): ChannelRanges => {
@@ -374,7 +374,7 @@ const scanChannelRanges = <V extends Vars>(
  * MAX over both probes and all channels — one bend anywhere forces the split.
  */
 const segmentFlatnessError = <V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     a: number,
     sampleA: ChannelSample,
     b: number,
@@ -436,7 +436,7 @@ interface DensifyCandidate {
  * curve evaluator). Returns the union of every emitted interior time.
  */
 export function densifyInteriorTimes<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     sortedTimes: readonly number[],
     duration: number,
 ): Set<number> {
@@ -527,7 +527,7 @@ export function densifyInteriorTimes<V extends Vars>(
  * spending NO interior stops on a near-linear segment.
  */
 export function toWAAPIKeyframes<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): Keyframe[] {
     const duration = animation.options.duration;
     const keyframes: Keyframe[] = [];
@@ -605,7 +605,7 @@ const COMPOSITE_MAP: Record<string, CompositeOperation> = {
  * reading the first composited frame's operator is enough.
  */
 const uniformComposite = <V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): CompositeOperation => {
     for (const frame of animation.frames) {
         const op = frame.composition;
@@ -617,7 +617,7 @@ const uniformComposite = <V extends Vars>(
 };
 
 export function toWAAPIOptions<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): KeyframeEffectOptions {
     const opts = animation.options;
     const direction = DIRECTION_MAP[opts.direction];
@@ -681,7 +681,7 @@ export function toWAAPIOptions<V extends Vars>(
  * fallback path; eligibility was decided once before this was called.
  */
 export async function playWAAPI<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): Promise<void> {
     const keyframes = toWAAPIKeyframes(animation);
     const options = toWAAPIOptions(animation);
@@ -780,7 +780,7 @@ export type NativeScrollAttachment =
  * exposed on `animation._waAnimations` so `stop()`/`reset()` cancel them.
  */
 export function attachNativeScrollTimeline<V extends Vars>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     spec: NativeTimelineSpec,
 ): NativeScrollAttachment {
     const elig = isWAAPIEligible(animation);
