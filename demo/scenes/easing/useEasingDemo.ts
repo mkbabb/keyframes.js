@@ -29,19 +29,18 @@ import { useEasingTraceSmear } from "./useEasingTraceSmear";
 
 // ── Static data ────────────────────────────────────────────────────
 
-let _timingFunctionsAnd: Record<string, any> | undefined;
-
-export function getTimingFunctionsAnd(): Record<string, any> {
-    if (!_timingFunctionsAnd) {
-        _timingFunctionsAnd = Object.fromEntries(
-            Object.entries({
-                "cubic-bezier": "cubic-bezier",
-                ...timingFunctions,
-            }).map(([k, v]) => [camelCaseToHyphen(k), v]),
-        );
-    }
-    return _timingFunctionsAnd;
-}
+// R.W6 C.2 — module-level const (synchronous pure derivation, no side-effects).
+// Replaces the former `let _timingFunctionsAnd` mutable singleton + guarded-init.
+// `Record<string, unknown>` captures the mixed bag: named TimingFunctions, the
+// "cubic-bezier" string sentinel, and parameterized factory functions (steppedEase
+// etc.) — the callers guard with `typeof fn === "function"` before using as a
+// TimingFunction.
+const timingFunctionsAnd: Record<string, unknown> = Object.fromEntries(
+    Object.entries({
+        "cubic-bezier": "cubic-bezier",
+        ...timingFunctions,
+    }).map(([k, v]) => [camelCaseToHyphen(k), v]),
+);
 
 // J.W2 S6 (LS-20) — the jump-term union the `steppedEase` signature expects,
 // derived FROM that signature (one authority; no `as any` laundering the type).
@@ -50,7 +49,6 @@ type JumpTerm = NonNullable<Parameters<typeof steppedEase>[1]>;
 // ── Composable ─────────────────────────────────────────────────────
 
 export function useEasingDemo() {
-    const timingFunctionsAnd = getTimingFunctionsAnd();
 
     // ── Reactive state ─────────────────────────────────────────────
 
@@ -103,7 +101,7 @@ export function useEasingDemo() {
         if (name === "step-end") return stepEnd();
 
         const fn = timingFunctionsAnd[name];
-        return typeof fn === "function" ? fn : (t: number) => t;
+        return typeof fn === "function" ? (fn as TimingFunction) : (t: number) => t;
     });
 
     const cssValue = computed(() => {
@@ -140,7 +138,7 @@ export function useEasingDemo() {
                 const fn = timingFunctionsAnd[item.name];
                 return {
                     name: item.name,
-                    fn: typeof fn === "function" ? fn : (t: number) => t,
+                    fn: typeof fn === "function" ? (fn as TimingFunction) : (t: number) => t,
                 };
             });
     });

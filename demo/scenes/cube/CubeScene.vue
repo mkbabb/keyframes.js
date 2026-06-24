@@ -54,7 +54,7 @@ import CubeTarget from "./CubeTarget.vue";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
 import { useCubeAnimations, SUPER_KEY } from "./useCubeAnimations";
-import { sharedCubeTransform } from "@app/cubeTransformStore";
+import { useCubeTransform } from "@app/cubeTransformStore";
 
 const superKey = SUPER_KEY;
 
@@ -74,7 +74,7 @@ const {
     matrixCellMeta,
     updateMatrixCell,
     resetMatrix,
-} = useTransformState(isPlaying, isStarted, cubeElRef, sharedCubeTransform.value);
+} = useTransformState(isPlaying, isStarted, cubeElRef, useCubeTransform().value);
 
 const { animationGroup, setTargets } = useCubeAnimations(
     matrix3dStart,
@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
 
     // Persist transform state so it carries over on next mount (home ↔ cube)
     const t = transformSliderValues.value;
-    sharedCubeTransform.value = {
+    useCubeTransform().value = {
         rotate: { ...t.rotate },
         translate: { ...t.translate },
         scale: { ...t.scale },

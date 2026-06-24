@@ -6,12 +6,8 @@ import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
 
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
-    animationState: {
-        t: number;
-        startTime: number;
-        pauseTime: number;
-        paused: boolean;
-    };
+    // R.W6 C.3 — `animationState` removed: dead state from the pre-machine era
+    // (the machine replaced it at H.W1); never accessed outside this definition.
     stepOptions: {
         steps: number;
         jumpTerm: (typeof jumpTerms)[number];

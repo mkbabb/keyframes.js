@@ -83,11 +83,12 @@ export function useSceneMachineRouter() {
             writerEcho = true;
             router.push({ name: scene, query }).catch((e) => {
                 writerEcho = false;
+                // Re-throw non-navigation errors (e.g. broken route guards);
+                // swallow only expected navigation outcomes: duplicate or aborted.
                 if (
                     !isNavigationFailure(
                         e,
                         NavigationFailureType.duplicated |
-                        NavigationFailureType.redirected |
                         NavigationFailureType.aborted,
                     )
                 ) {

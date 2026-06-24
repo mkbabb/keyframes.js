@@ -328,7 +328,10 @@ useControlsKeyboardShortcuts({
     --rail-track: var(--rail-width);
     grid-template-columns: [rail] var(--rail-track) [stage] minmax(0, 1fr);
     grid-template-rows: [top] auto [stage] 1fr [bottom] auto;
-    transition: grid-template-columns var(--duration-slow) var(--spring-snappy);
+    /* R.W6 C.5 — explicit var(--spring-smooth) (the calmer curve, the intent);
+       the local --spring-snappy shadow alias that mapped it is now EXCISED from
+       style.css, restoring glass-ui's own --spring-snappy. */
+    transition: grid-template-columns var(--duration-slow) var(--spring-smooth);
 }
 
 /* The open/close + railless track-collapse (the [rail] track between
