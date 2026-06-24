@@ -26,6 +26,7 @@ import MorphIcon from "@assets/icons/morph.svg?component";
 // it, so no string literal is declared in a file that doesn't own it.
 import { MORPH_SUPER_KEY } from "../scenes/morph/morphKeys";
 import { MOTION_PATH_SUPER_KEY } from "../scenes/motion-path/motionPathKeys";
+import { EASING_SUPER_KEY } from "../scenes/easing/easingKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -121,9 +122,9 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "easing",
         label: "Easing",
-        superKey: "Easing",
+        superKey: EASING_SUPER_KEY,
         icon: EasingIcon,
-        component: lazyScene("easing", () => import("./scenes/EasingScene.vue")),
+        component: lazyScene("easing", () => import("../scenes/easing/EasingScene.vue")),
     },
     {
         id: "spring",

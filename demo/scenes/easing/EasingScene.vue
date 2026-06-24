@@ -10,12 +10,12 @@ import { computed, h, provide, ref } from "vue";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import PlaybackRibbon from "@components/custom/animation-controls/controls/PlaybackRibbon.vue";
 
-import EasingTarget from "../../easing/EasingTarget.vue";
-import EasingSidebar from "../../easing/EasingSidebar.vue";
-import { useEasingDemo } from "../../easing/useEasingDemo";
-import { EASING_DEMO_KEY } from "../../easing/easingKeys";
+import EasingTarget from "./EasingTarget.vue";
+import EasingSidebar from "./EasingSidebar.vue";
+import { useEasingDemo } from "./useEasingDemo";
+import { EASING_DEMO_KEY, EASING_SUPER_KEY } from "./easingKeys";
 
-const SUPER_KEY = "Easing";
+const SUPER_KEY = EASING_SUPER_KEY;
 
 const demo = useEasingDemo();
 provide(EASING_DEMO_KEY, demo);
