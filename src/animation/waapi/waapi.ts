@@ -449,7 +449,7 @@ export async function playWAAPI<V extends Vars>(
     // Expose the handles on the instance so the engine's lifecycle methods
     // (`stop`/`reset`) can cancel the compositor animations — cancelling
     // rejects `wa.finished`, which the catch below treats as a halt.
-    animation._waAnimations = waAnimations;
+    animation._playback._waAnimations = waAnimations;
 
     // Shadow tick loop — drives lifecycle (onStart / iteration /
     // onEnd / events / pause / resume) so WAAPI playback has the
@@ -502,7 +502,7 @@ export async function playWAAPI<V extends Vars>(
         // the awaited `play()` resolves cleanly.
     } finally {
         animation.playback.stop();
-        animation._waAnimations = [];
+        animation._playback._waAnimations = [];
     }
 }
 
@@ -534,7 +534,7 @@ export type NativeScrollAttachment =
  * divergence is documented. We do NOT smuggle the JS smoother onto the native
  * lane (there is no seam to). The lifecycle is W7-W1-shaped: an infinite scroll
  * timeline never resolves `finished` (correctly long-lived) — the handles are
- * exposed on `animation._waAnimations` so `stop()`/`reset()` cancel them.
+ * exposed on `animation._playback._waAnimations` so `stop()`/`reset()` cancel them.
  */
 export function attachNativeScrollTimeline<V extends Vars>(
     animation: KeyframesAnimation<V>,
@@ -567,6 +567,6 @@ export function attachNativeScrollTimeline<V extends Vars>(
     const animations = animation.targets.map((target) =>
         target.animate(keyframes, options),
     );
-    animation._waAnimations = animations;
+    animation._playback._waAnimations = animations;
     return { attached: true, animations };
 }
