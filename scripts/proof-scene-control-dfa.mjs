@@ -123,8 +123,8 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 
     // The reka-fallback hacks DIE: EasingScene/SpringScene no longer carry the
     // onMounted(() => nextTick(() => selectedControl = ...)) re-assert.
-    const easing = read(path.join(DEMO, "app/scenes/EasingScene.vue"));
-    const spring = read(path.join(DEMO, "app/scenes/SpringScene.vue"));
+    const easing = read(path.join(DEMO, "scenes/easing/EasingScene.vue"));
+    const spring = read(path.join(DEMO, "scenes/spring/SpringScene.vue"));
     const hackGone = (s) =>
         !/onMounted\([^)]*\)\s*=>\s*\{[\s\S]*?nextTick\([\s\S]*?selectedControl/.test(s);
     if (hackGone(easing) && hackGone(spring)) {

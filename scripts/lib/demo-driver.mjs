@@ -153,6 +153,9 @@ const SCENE_GATE_META = {
  */
 function parseScenesManifest() {
     const src = fs.readFileSync(SCENES_TS, "utf8");
+    // R.W5 C.4 — the per-scene `superKey` literal moved into each keys module;
+    // resolve the imported identifiers back to their string values.
+    const superKeyMap = buildSuperKeyMap(src);
     // Blank /* … */ and // … so commented-out / doc-prose descriptors (e.g. the
     // merged starting-style note) never count as a real descriptor.
     const blanked = src
@@ -183,12 +186,12 @@ function parseScenesManifest() {
         } else if (ch === "}") {
             d--;
             if (d === 0 && objStart >= 0) {
-                scenes.push(parseDescriptor(arrBody.slice(objStart, k + 1)));
+                scenes.push(parseDescriptor(arrBody.slice(objStart, k + 1), superKeyMap));
                 objStart = -1;
             }
         }
     }
-    return { home: parseDescriptor(home), scenes };
+    return { home: parseDescriptor(home, superKeyMap), scenes };
 }
 
 /** Slice the text BETWEEN the open bracket at `openIdx` and its match. */
@@ -210,15 +213,68 @@ function readObjectAt(text, braceIdx) {
     return "{" + sliceBracketed(text, braceIdx, "{", "}") + "}";
 }
 
-/** Extract `id` + `superKey` (string literals) from one descriptor literal. */
-function parseDescriptor(objText) {
+/**
+ * Resolve the imported `superKey` constants (R.W5 C.4 — each scene's keys module
+ * OWNS its `*_SUPER_KEY = "…"` string; scenes.ts imports the identifier rather
+ * than re-declaring the literal). Build an identifier→value map by following each
+ * `import { X_SUPER_KEY[ as ALIAS] } from "<rel>"` in scenes.ts to its module and
+ * reading the `export const X_SUPER_KEY = "…"`. The descriptor then references
+ * `superKey: AMIGA_SUPER_KEY` (an identifier), which this map resolves to a string.
+ */
+function buildSuperKeyMap(scenesSrc) {
+    const map = new Map();
+    const importRe =
+        /import\s*\{([^}]*)\}\s*from\s*["'`]([^"'`]+)["'`]/g;
+    let m;
+    while ((m = importRe.exec(scenesSrc))) {
+        const names = m[1];
+        const rel = m[2];
+        // Only follow imports that bring in a *_SUPER_KEY (possibly aliased).
+        const specRe = /\b([A-Za-z_][\w]*)(?:\s+as\s+([A-Za-z_][\w]*))?\b/g;
+        let s;
+        const wanted = [];
+        while ((s = specRe.exec(names))) {
+            const orig = s[1];
+            const alias = s[2] ?? s[1];
+            if (/SUPER_KEY$/.test(orig)) wanted.push({ orig, alias });
+        }
+        if (wanted.length === 0) continue;
+        const modPath = path.resolve(path.dirname(SCENES_TS), rel + ".ts");
+        if (!fs.existsSync(modPath)) continue;
+        const modSrc = fs.readFileSync(modPath, "utf8");
+        for (const { orig, alias } of wanted) {
+            const valM = modSrc.match(
+                new RegExp(
+                    `export\\s+const\\s+${orig}\\s*=\\s*["'\`]([^"'\`]+)["'\`]`,
+                ),
+            );
+            if (valM) map.set(alias, valM[1]);
+        }
+    }
+    return map;
+}
+
+/** Extract `id` + `superKey` from one descriptor literal. `superKey` is either a
+ *  string literal (legacy) or an imported `*_SUPER_KEY` identifier resolved via
+ *  `superKeyMap` (R.W5 C.4). */
+function parseDescriptor(objText, superKeyMap) {
     const idM = objText.match(/\bid:\s*(?:HOME_SCENE_ID|["'`]([^"'`]+)["'`])/);
-    const skM = objText.match(/\bsuperKey:\s*["'`]([^"'`]+)["'`]/);
+    const skLitM = objText.match(/\bsuperKey:\s*["'`]([^"'`]+)["'`]/);
+    const skIdentM = objText.match(/\bsuperKey:\s*([A-Za-z_][\w]*)/);
     // `id: HOME_SCENE_ID` resolves to "home" (the only symbol-valued id).
     const id = idM ? (idM[1] ?? "home") : null;
     if (!id) throw new Error(`demo-driver: descriptor without an id in scenes.ts: ${objText.slice(0, 60)}`);
-    if (!skM) throw new Error(`demo-driver: descriptor "${id}" without a superKey in scenes.ts`);
-    return { id, superKey: skM[1] };
+    let superKey = skLitM ? skLitM[1] : null;
+    if (!superKey && skIdentM && superKeyMap) {
+        superKey = superKeyMap.get(skIdentM[1]) ?? null;
+    }
+    if (!superKey) {
+        throw new Error(
+            `demo-driver: descriptor "${id}" without a resolvable superKey in ` +
+                `scenes.ts (string literal or an imported *_SUPER_KEY constant).`,
+        );
+    }
+    return { id, superKey };
 }
 
 const manifest = parseScenesManifest();

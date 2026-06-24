@@ -71,9 +71,9 @@ const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "");
 console.log("proof:motion-path-editable — H.W12 (I3 · R-MP-B · the editable path, single-source)");
 
 // ── STATIC HALF ──────────────────────────────────────────────────────────────
-const geomSrc = read(path.join(DEMO, "motion-path/motionPathGeometry.ts"));
-const targetSrc = read(path.join(DEMO, "motion-path/MotionPathTarget.vue"));
-const gestureSrc = read(path.join(DEMO, "motion-path/useMotionPathGesture.ts"));
+const geomSrc = read(path.join(DEMO, "scenes/motion-path/motionPathGeometry.ts"));
+const targetSrc = read(path.join(DEMO, "scenes/motion-path/MotionPathTarget.vue"));
+const gestureSrc = read(path.join(DEMO, "scenes/motion-path/useMotionPathGesture.ts"));
 
 // 1. THE PATH IS A SINGLE-SOURCE CONTROL NET.
 {

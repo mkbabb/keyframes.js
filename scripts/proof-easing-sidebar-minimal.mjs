@@ -68,7 +68,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
-const SIDEBAR_SRC = path.join(REPO, "demo/easing/EasingSidebar.vue");
+const SIDEBAR_SRC = path.join(REPO, "demo/scenes/easing/EasingSidebar.vue");
 
 // The W11 in-sidebar canvas baseline the J6 grow must EXCEED. W11 did NOT override
 // the canvas's own default `block-size: clamp(160px, 38cqi, 280px)` in the sidebar,

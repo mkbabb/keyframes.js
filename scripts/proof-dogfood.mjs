@@ -16,7 +16,7 @@
  * light engine replaces, so they are an EXPLICIT, reviewable allowlist
  * (`ALLOWLIST` below), not a blanket "demo rAF is fine":
  *
- *   1. demo/app/scenes/AmigaScene.vue
+ *   1. demo/scenes/amiga/AmigaScene.vue
  *        the Three.js present loop (controls.update() + renderer.render()) — the
  *        WebGL renderer's draw cycle, legitimately NOT a keyframes.js concern
  *        (the sphere's MOTION is engine-driven via AnimationGroup).
@@ -71,7 +71,7 @@ const RAF = /\brequestAnimationFrame\b/g;
 // POSIX paths (compared against the same) so the manifest is human-reviewable
 // and a new exception is a deliberate diff to THIS array.
 const ALLOWLIST = new Set([
-    "demo/app/scenes/AmigaScene.vue",
+    "demo/scenes/amiga/AmigaScene.vue",
     "demo/@/components/custom/matrix-editor/useTransformState.ts",
     // E.W11 a11y: a ONE-SHOT rAF (not a loop) to re-arm the aria-live region —
     // clear `liveStatus` then set it on the next paint frame so a repeat copy
@@ -90,7 +90,7 @@ const SOURCE_EXT = new Set([".ts", ".js", ".mjs", ".vue", ".tsx", ".jsx"]);
 // `Sequence` + `stagger` from the engine. Stored repo-relative (POSIX).
 const ORBITAL_INERTIA =
     "demo/@/components/custom/orbital-drag/composables/useOrbitalInertia.ts";
-const SEQUENCE_DEMO = "demo/sequence/useSequenceDemo.ts";
+const SEQUENCE_DEMO = "demo/scenes/sequence/useSequenceDemo.ts";
 
 // The hand-rolled discrete decay the engine's analytic `decay()` replaces — a
 // `Math.pow(<base>, <expr involving / TARGET_DT>)` form. Its RETURN is the inv-ζ

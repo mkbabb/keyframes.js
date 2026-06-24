@@ -54,7 +54,7 @@ console.log("proof:morph-scene — Q.WC4 S3 (the MorphSVG demo scene KEYSTONE)")
 // ── scene-registered (source-shape corroborator) ──────────────────────────────
 {
     const scenes = read("demo/app/scenes.ts");
-    const sceneFile = "demo/app/scenes/MorphSVGScene.vue";
+    const sceneFile = "demo/scenes/morph/MorphSVGScene.vue";
     let sceneSrc = "";
     try {
         sceneSrc = read(sceneFile);
@@ -69,7 +69,7 @@ console.log("proof:morph-scene — Q.WC4 S3 (the MorphSVG demo scene KEYSTONE)")
     const composite = (() => {
         let useMorph = "";
         try {
-            useMorph = read("demo/morph/useMorphDemo.ts");
+            useMorph = read("demo/scenes/morph/useMorphDemo.ts");
         } catch {
             useMorph = "";
         }

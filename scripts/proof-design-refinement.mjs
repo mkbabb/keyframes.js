@@ -129,10 +129,10 @@ const W11_EGGS = [
     },
     {
         scene: "cube",
-        files: ["cube/CubeTarget.vue", "@/components/custom/orbital-drag/OrbitalDrag.vue"],
+        files: ["scenes/cube/CubeTarget.vue", "@/components/custom/orbital-drag/OrbitalDrag.vue"],
         domMarker: /spin-energy|--spin-energy|face--lit|relit/,
         dogfood: /CSSKeyframesAnimation|syncRotationToModel|loadAnimationEngine/,
-        triggerFile: "cube/CubeTarget.vue",
+        triggerFile: "scenes/cube/CubeTarget.vue",
         // The re-lit die rides the EXISTING orbit (no new rAF) — the trigger is the
         // orbit drive + the kept dblclick ROLL landing a --spin-energy thunk.
         trigger: /spin-energy|--spin-energy|onRoll/,
@@ -141,10 +141,10 @@ const W11_EGGS = [
     },
     {
         scene: "amiga",
-        files: ["app/scenes/AmigaScene.vue", "amiga/useAmigaAnimations.ts"],
+        files: ["scenes/amiga/AmigaScene.vue", "scenes/amiga/useAmigaAnimations.ts"],
         domMarker: /power-on|booting|amiga--boot|boot-sequence/,
         dogfood: /AnimationGroup|Group|loadAnimationEngine|play\(\)/,
-        triggerFile: "app/scenes/AmigaScene.vue",
+        triggerFile: "scenes/amiga/AmigaScene.vue",
         // Fires once on the IntersectionObserver re-entry — the trigger is the
         // observer wiring, not a click.
         trigger: /IntersectionObserver|power-on|booting|onEnter/,
@@ -153,20 +153,20 @@ const W11_EGGS = [
     },
     {
         scene: "square",
-        files: ["square/useSquareAnimations.ts"],
+        files: ["scenes/square/useSquareAnimations.ts"],
         domMarker: /paletteSweep|palette-sweep|tumbleSweep|sweepHue/,
         dogfood: /SpringProgress|tumble/,
-        triggerFile: "app/scenes/SquareScene.vue",
+        triggerFile: "scenes/square/SquareScene.vue",
         trigger: /@dblclick="tumble"/,
         note: "S4 — the kept tumble dblclick gains a NEW palette-sweep on the barrel-roll (the violet→green sweep over the kept SpringProgress chase)",
         browser: { scene: "square", host: ".demo-box", trigger: "dblclick", probe: "palette|sweep" },
     },
     {
         scene: "easing",
-        files: ["easing/useEasingDemo.ts", "easing/EasingHeroStage.vue", "easing/useEasingGallery.ts"],
+        files: ["scenes/easing/useEasingDemo.ts", "scenes/easing/EasingHeroStage.vue", "scenes/easing/useEasingGallery.ts"],
         domMarker: /trace-smear|drag-smear|self-draw|trace-glow|graticule-boot/,
         dogfood: /SmoothProgress|DrawSVG|fromDrawSVG/,
-        triggerFile: "easing/EasingHeroStage.vue",
+        triggerFile: "scenes/easing/EasingHeroStage.vue",
         // Drag-bend smear is the trigger (a handle drag); the self-draw fires on enter.
         trigger: /trace-smear|drag-smear|onHandleDrag|smear/,
         note: "S5 — drag-bend SMEARS the trace proportional to per-frame velocity, decaying via SmoothProgress; a once-on-enter graticule + self-drawing trace (DrawSVG dogfood); PRM-snapped",
@@ -174,22 +174,22 @@ const W11_EGGS = [
     },
     {
         scene: "spring",
-        files: ["spring/useSpringDerby.ts", "spring/SpringTarget.vue"],
+        files: ["scenes/spring/useSpringDerby.ts", "scenes/spring/SpringTarget.vue"],
         // S6 refines the derby into FOUR rainbow lanes (--spring-lane-*) + a
         // red-dashed settle pulse on liveSettled.
         domMarker: /spring-lane|derby-lane|settle-pulse|lane-\d/,
         dogfood: /SpringProgress/,
-        triggerFile: "spring/SpringTarget.vue",
+        triggerFile: "scenes/spring/SpringTarget.vue",
         trigger: /@dblclick="demo\.derby"/,
         note: "S6 — the four-lane DERBY: four SpringProgress solvers race four rainbow lanes (--spring-lane-*), ζ=0.45 ringing past the line; a quiet red-dashed settle pulse on liveSettled",
         browser: { scene: "spring", host: ".spring-rail", trigger: "dblclick", probe: "spring-lane|settle-pulse" },
     },
     {
         scene: "sequence",
-        files: ["sequence/useSequenceDemo.ts", "sequence/SequenceTarget.vue", "sequence/SequenceScrubber.vue"],
+        files: ["scenes/sequence/useSequenceDemo.ts", "scenes/sequence/SequenceTarget.vue", "scenes/sequence/SequenceScrubber.vue"],
         domMarker: /lane-detonate|cascade-chase|lane-ignite|detonat/,
         dogfood: /Sequence|progress|stagger/,
-        triggerFile: "sequence/SequenceScrubber.vue",
+        triggerFile: "scenes/sequence/SequenceScrubber.vue",
         // Scrubbing the master clock is the trigger.
         trigger: /lane-detonate|cascade|onScrub|detonat/,
         note: "S7 — scrubbing the master clock DETONATES the rainbow lanes in a diagonal cascade chasing the thumb (violet→green), cooling in reverse on drag-back; an orchestrated ~700ms power-on; PRM-guarded",
@@ -197,10 +197,10 @@ const W11_EGGS = [
     },
     {
         scene: "motion-path",
-        files: ["motion-path/MotionPathTarget.vue", "motion-path/useMotionPathGesture.ts"],
+        files: ["scenes/motion-path/MotionPathTarget.vue", "scenes/motion-path/useMotionPathGesture.ts"],
         domMarker: /handle-deform|author-curve|self-build|guide-draw/,
         dogfood: /DrawSVG|fromDrawSVG|fromMotionPath|MotionPath|getTotalLength/,
-        triggerFile: "motion-path/MotionPathTarget.vue",
+        triggerFile: "scenes/motion-path/MotionPathTarget.vue",
         // Deforming a control handle is the trigger.
         trigger: /handle-deform|author-curve|onHandleDrag|control-handle/,
         note: "S8 — author-the-curve, the-creature-obeys: deform a handle → the traveller banks into the new tangent (ants still flowing); the guide self-builds via DrawSVG on mount",

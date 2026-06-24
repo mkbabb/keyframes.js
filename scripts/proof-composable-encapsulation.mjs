@@ -55,8 +55,8 @@ const read = (p) => fs.readFileSync(p, "utf8");
 
 // The motion-path gesture-engine home (clause 1) + the Target that must stay
 // projection-math-free.
-const GESTURE_COMPOSABLE = "demo/motion-path/useMotionPathGesture.ts";
-const MOTION_PATH_TARGET = "demo/motion-path/MotionPathTarget.vue";
+const GESTURE_COMPOSABLE = "demo/scenes/motion-path/useMotionPathGesture.ts";
+const MOTION_PATH_TARGET = "demo/scenes/motion-path/MotionPathTarget.vue";
 
 // The store-module dir (clause 2a): the ONLY legitimate home for a store write.
 const STORE_DIR =

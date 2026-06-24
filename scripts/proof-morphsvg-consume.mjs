@@ -318,7 +318,7 @@ console.log(JSON.stringify({
 // but-undemoed primitive (the gate-blindspot) reds — the primitive can never
 // again be exported + tested but never showcased.
 {
-    const sceneFile = "demo/app/scenes/MorphSVGScene.vue";
+    const sceneFile = "demo/scenes/morph/MorphSVGScene.vue";
     let sceneSrc = "";
     try {
         sceneSrc = read(sceneFile);
@@ -328,7 +328,7 @@ console.log(JSON.stringify({
     const scenesSrc = read("demo/app/scenes.ts");
     let useMorphSrc = "";
     try {
-        useMorphSrc = read("demo/morph/useMorphDemo.ts");
+        useMorphSrc = read("demo/scenes/morph/useMorphDemo.ts");
     } catch {
         useMorphSrc = "";
     }

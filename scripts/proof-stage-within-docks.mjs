@@ -377,15 +377,15 @@ function staticHalf() {
 
     // No easing/spring scene template references `dock-inset` in a class attribute.
     const sceneFiles = [
-        "demo/easing/EasingTarget.vue",
-        "demo/easing/EasingSidebar.vue",
-        "demo/spring/SpringTarget.vue",
-        "demo/spring/StartingStyleTarget.vue",
-        "demo/spring/SpringSidebar.vue",
-        "demo/app/scenes/EasingScene.vue",
-        "demo/app/scenes/SpringScene.vue",
-        "demo/motion-path/MotionPathTarget.vue",
-        "demo/sequence/SequenceTarget.vue",
+        "demo/scenes/easing/EasingTarget.vue",
+        "demo/scenes/easing/EasingSidebar.vue",
+        "demo/scenes/spring/SpringTarget.vue",
+        "demo/scenes/spring/StartingStyleTarget.vue",
+        "demo/scenes/spring/SpringSidebar.vue",
+        "demo/scenes/easing/EasingScene.vue",
+        "demo/scenes/spring/SpringScene.vue",
+        "demo/scenes/motion-path/MotionPathTarget.vue",
+        "demo/scenes/sequence/SequenceTarget.vue",
     ];
     let usages = 0;
     for (const rel of sceneFiles) {

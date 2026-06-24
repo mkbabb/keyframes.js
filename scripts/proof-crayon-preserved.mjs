@@ -158,8 +158,8 @@ const fmt = (c) => (c ? `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a})` : "∅");
 const SRC = {
     "demo/@/styles/design-idioms.css": read(path.join(REPO, "demo/@/styles/design-idioms.css")),
     "demo/@/styles/style.css": read(path.join(REPO, "demo/@/styles/style.css")),
-    "demo/cube/CubeTarget.vue": read(path.join(REPO, "demo/cube/CubeTarget.vue")),
-    "demo/app/scenes/AmigaScene.vue": read(path.join(REPO, "demo/app/scenes/AmigaScene.vue")),
+    "demo/scenes/cube/CubeTarget.vue": read(path.join(REPO, "demo/scenes/cube/CubeTarget.vue")),
+    "demo/scenes/amiga/AmigaScene.vue": read(path.join(REPO, "demo/scenes/amiga/AmigaScene.vue")),
 };
 
 /**
@@ -299,7 +299,7 @@ const FACET_CLASS_BY_TOKEN = {
     "--face-5": "top",
     "--face-6": "bottom",
 };
-const cubeSrc = SRC["demo/cube/CubeTarget.vue"];
+const cubeSrc = SRC["demo/scenes/cube/CubeTarget.vue"];
 for (const [token, facetClass] of Object.entries(FACET_CLASS_BY_TOKEN)) {
     const want = baselineColors[token];
     // Find the cubeSides entry for this facet class and read its `color:` value.
@@ -406,7 +406,7 @@ for (const [token, file] of HOIST_TARGETS) {
 // (the abrogation — e.g. the magenta-ball swap the user reversed). We test the
 // HUE: the raw literal must stay a red (R dominant, low G/B) until hoisted.
 {
-    const amigaSrc = SRC["demo/app/scenes/AmigaScene.vue"];
+    const amigaSrc = SRC["demo/scenes/amiga/AmigaScene.vue"];
     const tessM = amigaSrc.match(
         /tesselateSphere\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/,
     );

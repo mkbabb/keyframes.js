@@ -53,9 +53,13 @@ const read = (p) => fs.readFileSync(p, "utf8");
 
 // The scene targets clause 1 sweeps (the de-brittle subjects) + the two
 // motion-path files clauses 2/3 assert against.
-const SCENE_TARGET_DIRS = ["demo/spring", "demo/sequence", "demo/motion-path"];
-const GESTURE_COMPOSABLE = "demo/motion-path/useMotionPathGesture.ts";
-const GEOMETRY = "demo/motion-path/motionPathGeometry.ts";
+const SCENE_TARGET_DIRS = [
+    "demo/scenes/spring",
+    "demo/scenes/sequence",
+    "demo/scenes/motion-path",
+];
+const GESTURE_COMPOSABLE = "demo/scenes/motion-path/useMotionPathGesture.ts";
+const GEOMETRY = "demo/scenes/motion-path/motionPathGeometry.ts";
 
 const failures = [];
 
