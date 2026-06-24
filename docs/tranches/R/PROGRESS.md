@@ -40,11 +40,18 @@ drive if a session-limit wall is hit; DELETE it once shipped.
 ### ✅ TRACK D (demo) COMPLETE — `r-track-demo` @ `a452349`
 R.W5 + R.W6-core + R.W6-decomp all green. Clean tree. Pre-existing non-R red noted: `proof:demo-elevate` (reds identically on the untouched main baseline — glass-ui handoff, dispositioned at R.W8/integration).
 
+- **R.W2 ✅ GREEN** (`r-track-lib` @ `81a5114`, 3 commits) — engine carve: `PlaybackState` DI, `PlaybackHost` cast + interface ELIMINATED (grep-0), engine/animation.ts 1407→**497** (class body 440), CSSKeyframesAnimation→css-animation.ts, +interpolate/option-setters/compile-bridge/element-resolve. Group carve: scaffold demoted (forcePause/forcePlay/onStart/onEnd/soaBlendLayer excised), group/group.ts 924→**495**, layer-springs 4-way split (entries/scheduler/springs/layer-api) + compositor carve, transformFramesGrouped private (demo+bench fixed). `proof:engine` clauses a/b/c/d green (ceiling 500); 11 gate co-edits (gate-follows-code). engine+group OFF the decomposition red list.
+
+**GATE REGRESSIONS found by independent triage (green-on-main, red-on-lib-wt) — folded into R.W2b:**
+`proof:platform-adopt` (ENOENT stale `src/animation/engine.ts`), `proof:roundtrip-fidelity` + `proof:grammar-fuzz` (`[no-source-edit]` — test imports of engine+serializer moved), `proof:compile-replay` (stale path). The R.W1/R.W2 agents mis-reported these as "pre-existing"; they are R-introduced and MUST be retargeted (gate-follows-code).
+
 | In-flight | Wave | Agent | Status |
 |---|---|---|---|
-| Track L | R.W2 engine+group DI carve | Opus (bg) | running — engine carve committed (`4b0cc17`), finalizing group carve (`group/group.ts` active) |
+| Track L | R.W2b decomp-completion + stale-gate sweep | Opus (bg) | DISPATCHED 2026-06-24 |
 
-**Next:** Track L → (R.W2 done) → R.W2b decomp-completion → R.W3lib → R.W4 → R.W7. Then integrate both branches → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
+**Decomp backlog for R.W2b (7 files):** carve waapi(573)/sequence(699)/spring·progress(628)/scroll·scene(528)/compile·backward(536) to ≤500; carve-then-narrow-override-residual for resolve/index(797, p2-pinned) + compile/frame-compiler(670, export-pinned). Goal: `proof:decomposition` GREEN.
+
+**Next:** after R.W2b → parallelize **R.W3lib ∥ R.W4** (2nd lib worktree off post-R.W2b HEAD — largely file-disjoint) → R.W7 (after R.W4's README). Then integrate both branches (`r-track-lib` + `r-track-demo`) → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
 
 ## The wave board
 
