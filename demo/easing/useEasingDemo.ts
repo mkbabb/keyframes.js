@@ -9,7 +9,6 @@ import {
 } from "@mkbabb/value.js";
 import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
-import { kfEngine } from "@utils/kfEngine";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
@@ -18,7 +17,10 @@ import {
     generateStepSVGPath,
 } from "@components/custom/animation-controls/controls/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
-import { useRafScene } from "../app/useRafScene";
+import { useRafScene } from "@app/useRafScene";
+import { useContractAnimGroup } from "@app/composables/useContractAnimGroup";
+import { useSceneTransport } from "@app/composables/useSceneTransport";
+import { PROGRESS_READOUT_HZ } from "@app/rafConstants";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
 import { useEasingGallery } from "./useEasingGallery";
@@ -48,10 +50,6 @@ type JumpTerm = NonNullable<Parameters<typeof steppedEase>[1]>;
 // ── Composable ─────────────────────────────────────────────────────
 
 export function useEasingDemo() {
-    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
-    // — synchronous, since the warm resolves before any scene mounts.
-    const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
-
     const timingFunctionsAnd = getTimingFunctionsAnd();
 
     // ── Reactive state ─────────────────────────────────────────────
@@ -69,13 +67,11 @@ export function useEasingDemo() {
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
     // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
-    // watch were the SHADOW playback authority (the D12 smell — a second source
-    // of truth nothing could suspend). DELETED: the play-intent is now a
-    // read-only projection of `machine.status === 'playing'`, and play/pause
-    // dispatch to the machine (the single authority). The bottom bar + ribbon
-    // read THIS computed and write via play/pause/togglePlay below.
+    // were the SHADOW playback authority (the D12 smell). `useSceneTransport`
+    // (R.W5 B.2) projects `isPlaying` read-only off `machine.status` and routes
+    // play/pause/togglePlay to dispatch — the machine is the single authority.
     const machine = useSceneMachine();
-    const isPlaying = computed(() => machine.status.value === "playing");
+    const { isPlaying, play, pause, togglePlay } = useSceneTransport(machine);
 
     // The raw [0,1] time parameter the preview sweeps. Each curve (the selected
     // one and every comparison track) eases THIS in the view layer, so it stays
@@ -178,7 +174,6 @@ export function useEasingDemo() {
     // `liveProgress()` is the always-current sweep value the painters + the scrub
     // path read (the reactive `progress` lags it by ≤ 1 readout tick, by design).
     let livePhaseValue = 0; // the raw eased sweep value [0,1], updated every frame
-    const PROGRESS_READOUT_HZ = 6; // reactive readout cadence (a few Hz, not 60)
     let lastReadoutAt = 0;
 
     /** A dot painter: position one moving dot for the given raw sweep value. The
@@ -262,21 +257,8 @@ export function useEasingDemo() {
         getPlaying: () => machine.status.value === "playing",
     });
 
-    // The transport methods dispatch to the machine (the authority); the
-    // adapter's resume/suspend re-arms/stops the loop, so play/pause never poke
-    // a private flag.
-    const play = () => {
-        if (isPlaying.value) return;
-        machine.dispatch({ type: "PLAY" });
-    };
-    const pause = () => {
-        if (!isPlaying.value) return;
-        machine.dispatch({ type: "PAUSE" });
-    };
-    const togglePlay = () => {
-        if (isPlaying.value) pause();
-        else play();
-    };
+    // play/pause/togglePlay come from useSceneTransport (above) — they dispatch
+    // to the machine (the authority); the adapter re-arms/stops the loop.
 
     const reset = () => {
         livePhaseValue = 0;
@@ -387,51 +369,20 @@ export function useEasingDemo() {
     };
 
     // ── Scene-contract group (the bottom-bar transport host) ──────────
-    // AnimationControlsGroup binds an `AnimationGroup` for its transport readout
-    // (play button, Keyframes-string serialization). This scene's MOTION is the
-    // light `NumericAnimation` sweep above; the group drives NO motion. It is NOT
-    // a playback authority anymore — the former hand-synced `paused` mirror (the
-    // D12 shadow-authority smell) is replaced by a ONE-WAY projection of the
-    // machine status below. Its serializer is safe (the cssValue twin, H.W0).
-    // [DOCUMENTED EXPECTATION, WV-W1 lane-4 escape hatch: the group is retained
-    // ONLY as the transport host; deleting it outright would strand the entire
-    // bottom-bar contract (ControlsPaneWrapper/TransportDock/readout). The
-    // playback authority is the machine + the raw-rAF ScenePlayback adapter.]
-    const contractAnim = markRaw(
-        new CSSKeyframesAnimation({
-            duration: duration.value,
-            iterationCount: "infinite",
-            direction: "alternate",
-            // Pass the CSS-string twin (not the bare `currentEasingFn` closure):
-            // a custom `TimingFunction` has no `animation-timing-function`
-            // representation, so the bottom-bar Keyframes-string readout
-            // (`serializeEasing`) THROWS on a bare closure (H.W0 H-A1). The
-            // string form resolves to a twinned `Easing {fn, css}` via the
-            // engine, so the readout round-trips and the curve is preserved.
-            timingFunction: cssValue.value,
-        }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
-    );
-    contractAnim.name = "Easing Preview";
-    contractAnim.superKey = "Easing";
-
-    // J.W2 S6 (LS-20) — the vestigial `as any` is DELETED: `contractAnim` is a
-    // plain `CSSKeyframesAnimation` (an `Animation` subtype), exactly what the
-    // `AnimationGroup` constructor accepts (the spring twin already passes it
-    // uncast).
-    const animationGroup = markRaw(new AnimationGroup(contractAnim));
-
-    // Pre-start the group so the bottom bar sees it as "playing" and
-    // toggleAnimationGroup correctly toggles pause instead of first-start.
-    animationGroup.started = true;
-    animationGroup.paused = false;
-
-    // ONE-WAY projection: the transport host's `paused` mirrors the machine
-    // status so the bottom-bar play button reflects the true playback state.
-    // This is a read-only projection (the machine is the authority) — NOT the
-    // former bidirectional hand-sync that made the group a shadow authority.
-    watch(isPlaying, (playing) => {
-        animationGroup.paused = !playing;
-    }, { immediate: true });
+    // The transport host + its one-way `paused` projection are shared via
+    // `useContractAnimGroup` (R.W5 B.1). The CSS-string twin (`cssValue`, not the
+    // bare closure) is passed so the bottom-bar Keyframes readout round-trips
+    // (H.W0 H-A1: a custom `TimingFunction` has no `animation-timing-function`
+    // string). The group drives NO scene motion — the light NumericAnimation
+    // sweep above is the authority.
+    const { contractAnim, animationGroup } = useContractAnimGroup({
+        duration: () => duration.value,
+        timingFunction: () => cssValue.value,
+        direction: "alternate",
+        name: "Easing Preview",
+        superKey: "Easing",
+        isPlaying,
+    });
 
     // G3 (H.W10.S2) — mirror the linear sweep onto the contract animation's clock
     // so the STANDARD PlaybackRibbon (the scrubber Slider + the AnimationVisualizer

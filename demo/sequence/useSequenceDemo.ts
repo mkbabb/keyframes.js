@@ -1,4 +1,4 @@
-import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
+import { computed, markRaw, onScopeDispose, ref } from "vue";
 
 import { kfEngine } from "@utils/kfEngine";
 import type { CSSKeyframesAnimation as CSSKeyframesAnimationT } from "@mkbabb/keyframes.js";
@@ -7,7 +7,9 @@ import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 
-import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
+import { useSceneVisibilityPause } from "@app/useSceneVisibilityPause";
+import { useContractAnimGroup } from "@app/composables/useContractAnimGroup";
+import { useSceneTransport } from "@app/composables/useSceneTransport";
 import { useSequenceInstrument } from "./useSequenceInstrument";
 import {
     useSceneMachine,
@@ -84,7 +86,7 @@ export function useSequenceDemo() {
     // — synchronous, since the warm resolves before any scene mounts. The TYPES
     // (`*T` aliases) flow from the barrel; only the runtime constructors come from
     // the resolved surface here.
-    const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
+    const { CSSKeyframesAnimation } = kfEngine();
 
     // ── The stagger distribution → the Sequence `at:` positions ──────────────
     // `stagger` is a pure construction-time per-index delay generator: from the
@@ -145,52 +147,31 @@ export function useSequenceDemo() {
         sequence.add(childAnims[i]!, delays.value[i]!);
     }
 
+    // ── Playback intent: DERIVED from the machine, NOT a private shadow ───────
+    // The former private `isPlaying = ref(false)` was the SHADOW playback
+    // authority (the D12 smell). `useSceneTransport` (R.W5 B.2) projects
+    // `isPlaying` read-only off `machine.status` and routes play/pause/togglePlay
+    // (+ the `resume = () => play()` alias) to dispatch — the single authority.
+    const machine = useSceneMachine();
+    const { isPlaying, play, pause, togglePlay } = useSceneTransport(machine);
+
     // ── A minimal contract AnimationGroup for the bottom-bar transport ───────
     // The scene's MOTION is the Sequence's own loop; the editor's bottom bar
     // still expects an AnimationGroup handle (the StartingStyleScene posture).
-    // This single preview animation dogfoods the same spring twin the rows ride;
-    // it drives no scene motion.
-    // [DOCUMENTED EXPECTATION, WV-W1 lane escape hatch: the group is retained
-    // ONLY as the transport host; deleting it strands the bottom-bar contract
-    // (ControlsPaneWrapper/TransportDock/readout). The PLAYBACK authority is
-    // the machine + the raw-rAF ScenePlayback adapter; the group's `paused` is a
-    // ONE-WAY projection of the machine status (below).]
-    const contractAnim = markRaw(
-        new CSSKeyframesAnimation({
-            duration: sequence.duration || ROW_DURATION,
-            iterationCount: "infinite",
-            timingFunction: springTimingFunction({
-                response: 0.5,
-                dampingFraction: 0.7,
-            }),
-        }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
-    );
-    contractAnim.name = "Sequence Preview";
-    contractAnim.superKey = "Sequence";
-    const animationGroup = markRaw(new AnimationGroup(contractAnim));
-    animationGroup.started = true;
-    animationGroup.paused = true;
-
-    // ── Playback intent: DERIVED from the machine, NOT a private shadow ───────
-    // The former private `isPlaying = ref(false)` was the SHADOW playback
-    // authority (the D12 smell — a second source of truth nothing could
-    // suspend). DELETED: the play-intent is now a read-only projection of
-    // `machine.status === 'playing'`. play/pause/reset dispatch to the machine;
-    // the transport UI reads THIS computed.
-    const machine = useSceneMachine();
-    const isPlaying = computed(() => machine.status.value === "playing");
-
-    // ONE-WAY projection: the transport host's `paused` mirrors the machine
-    // status so the bottom-bar play button reflects the true playback state.
-    // Read-only (the machine is the authority) — NOT a bidirectional hand-sync
-    // that would make the group a shadow authority.
-    watch(
+    // Shared via `useContractAnimGroup` (R.W5 B.1) — the preview dogfoods the
+    // same spring twin the rows ride and drives no scene motion. Born paused
+    // (the storyboard starts settled at the origin).
+    const { contractAnim, animationGroup } = useContractAnimGroup({
+        duration: sequence.duration || ROW_DURATION,
+        timingFunction: springTimingFunction({
+            response: 0.5,
+            dampingFraction: 0.7,
+        }),
+        name: "Sequence Preview",
+        superKey: "Sequence",
         isPlaying,
-        (playing) => {
-            animationGroup.paused = !playing;
-        },
-        { immediate: true },
-    );
+        startPaused: true,
+    });
 
     const isReversed = ref(false);
     const timeScale = ref(1);
@@ -267,22 +248,9 @@ export function useSequenceDemo() {
     };
 
     // ── Transport (intent → the machine; the adapter drives the loop) ─────────
-    const play = () => {
-        if (isPlaying.value) return;
-        machine.dispatch({ type: "PLAY" });
-    };
-
-    const pause = () => {
-        if (!isPlaying.value) return;
-        machine.dispatch({ type: "PAUSE" });
-    };
-
+    // play/pause/togglePlay come from useSceneTransport (above). `resume` is the
+    // Sequence's mid-play alias the transport returns.
     const resume = () => play();
-
-    const togglePlay = () => {
-        if (isPlaying.value) pause();
-        else play();
-    };
 
     // reverse / timeScale / scrub are SEQUENCE-internal transport (the F.W9
     // contract) — they reshape the engine loop but do not flip the play/pause

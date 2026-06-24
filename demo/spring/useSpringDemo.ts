@@ -1,11 +1,12 @@
 import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
-import { kfEngine } from "@utils/kfEngine";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 
-import { useRafScene } from "../app/useRafScene";
+import { useRafScene } from "@app/useRafScene";
+import { useContractAnimGroup } from "@app/composables/useContractAnimGroup";
+import { useSceneTransport } from "@app/composables/useSceneTransport";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
 import { SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
@@ -45,9 +46,6 @@ const SAMPLER_DURATION = 1400;
  * contract (WV-W1-HIGH-3).
  */
 export function useSpringDemo() {
-    // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
-    // — synchronous, since the warm resolves before any scene mounts.
-    const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
 
     // ── Sub-view selection (H.W5.S3 — the Discrete→Spring merge) ──────
     // The Spring scene now hosts TWO views of one spring curve:
@@ -165,11 +163,11 @@ export function useSpringDemo() {
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
     // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
-    // watch were the SHADOW playback authority (the D12 smell). DELETED: the
-    // play-intent is a read-only projection of `machine.status === 'playing'`,
-    // and play/pause dispatch to the machine (the single authority).
+    // were the SHADOW playback authority (the D12 smell). `useSceneTransport`
+    // (R.W5 B.2) projects `isPlaying` read-only off `machine.status` and routes
+    // play/pause/togglePlay to dispatch — the machine is the single authority.
     const machine = useSceneMachine();
-    const isPlaying = computed(() => machine.status.value === "playing");
+    const { isPlaying, play, pause, togglePlay } = useSceneTransport(machine);
 
     // ── Shared rAF loop ──────────────────────────────────────────────
     // The loop's start timestamp, rebased from `progress` on (re)arm so the
@@ -329,21 +327,8 @@ export function useSpringDemo() {
 
     watch([response, dampingFraction], rebuildLiveSpring);
 
-    // The transport methods dispatch to the machine (the authority); the
-    // adapter's resume/suspend re-arms/stops the loop, so play/pause never poke
-    // a private flag.
-    const play = () => {
-        if (isPlaying.value) return;
-        machine.dispatch({ type: "PLAY" });
-    };
-    const pause = () => {
-        if (!isPlaying.value) return;
-        machine.dispatch({ type: "PAUSE" });
-    };
-    const togglePlay = () => {
-        if (isPlaying.value) pause();
-        else play();
-    };
+    // play/pause/togglePlay come from useSceneTransport (above) — they dispatch
+    // to the machine (the authority); the adapter re-arms/stops the loop.
 
     const reset = () => {
         liveSpring.reset(0);
@@ -380,43 +365,21 @@ export function useSpringDemo() {
     // onScopeDispose; the raw RAFPlayback teardown by useRafScene's.)
 
     // ── Scene-contract group (the bottom-bar transport host) ──────────
-    // The bottom bar's transport (`AnimationControlsGroup`) requires an
-    // `AnimationGroup`; this scene's motion is the light SpringProgress /
-    // NumericAnimation trackers above, so the group is a minimal placeholder
-    // whose `paused` flag is a ONE-WAY projection of the machine status — it
-    // drives no motion and is NOT a playback authority anymore.
-    // [DOCUMENTED EXPECTATION, WV-W1 lane escape hatch: the group is retained
-    // ONLY as the transport host; deleting it outright would strand the bottom-
-    // bar contract. The playback authority is the machine + the raw-rAF adapter.]
-    const contractAnim = markRaw(
-        new CSSKeyframesAnimation({
-            duration: SAMPLER_DURATION,
-            iterationCount: "infinite",
-            direction: "alternate",
-            timingFunction: springTimingFunction({
-                response: 0.5,
-                dampingFraction: 0.45,
-            }),
-        }).fromVars([{ opacity: 0 }, { opacity: 1 }]),
-    );
-    contractAnim.name = "Spring Preview";
-    contractAnim.superKey = "Spring";
-
-    const animationGroup = markRaw(new AnimationGroup(contractAnim));
-    animationGroup.started = true;
-    animationGroup.paused = false;
-
-    // ONE-WAY projection: the transport host's `paused` mirrors the machine
-    // status so the bottom-bar play button reflects the true playback state.
-    // This is a read-only projection (the machine is the authority) — NOT the
-    // former bidirectional hand-sync that made the group a shadow authority.
-    watch(
+    // The transport host + its one-way `paused` projection are shared via
+    // `useContractAnimGroup` (R.W5 B.1). This scene's motion is the light
+    // SpringProgress / NumericAnimation trackers above; the group drives no
+    // motion. The preview dogfoods the same spring twin the rails ride.
+    const { contractAnim, animationGroup } = useContractAnimGroup({
+        duration: SAMPLER_DURATION,
+        timingFunction: springTimingFunction({
+            response: 0.5,
+            dampingFraction: 0.45,
+        }),
+        direction: "alternate",
+        name: "Spring Preview",
+        superKey: "Spring",
         isPlaying,
-        (playing) => {
-            animationGroup.paused = !playing;
-        },
-        { immediate: true },
-    );
+    });
 
     // G3 (H.W10.S2) — the contract animation's clock mirrors the sweep phase so
     // the STANDARD PlaybackRibbon (the AnimationVisualizer ball — it polls

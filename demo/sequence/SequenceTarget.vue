@@ -133,7 +133,7 @@
 
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from "vue";
-import { useEventListener } from "@vueuse/core";
+import { useTypedTrigger } from "@composables/useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
 // J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0).
 import { MetricBadge } from "@mkbabb/glass-ui/metric-badge";
@@ -247,21 +247,9 @@ const onRowKeydown = (index: number, e: KeyboardEvent) => {
 
 // ── EE-SEQ-1 "the reel" trigger (H.W12.S6 / I3 egg) ──────────────────────────
 // A HIDDEN typed trigger: type "reel" → the storyboard plays the cascading-wave
-// egg. Scene-scoped via vueuse; ignores typing in editable targets. The Reel
-// button beside the readout is the discoverable twin.
-const REEL_CODE = "reel";
-let reelBuffer = "";
-useEventListener(window, "keydown", (e: KeyboardEvent) => {
-    const t = e.target as HTMLElement | null;
-    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))
-        return;
-    if (e.key.length !== 1) return;
-    reelBuffer = (reelBuffer + e.key.toLowerCase()).slice(-REEL_CODE.length);
-    if (reelBuffer === REEL_CODE) {
-        reelBuffer = "";
-        demo.playReel();
-    }
-});
+// egg. Scene-scoped via `useTypedTrigger` (R.W5 B.4); ignores typing in editable
+// targets. The Reel button beside the readout is the discoverable twin.
+useTypedTrigger("reel", () => demo.playReel());
 </script>
 
 <style scoped>

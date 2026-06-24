@@ -2,6 +2,7 @@ import { ref, type Ref } from "vue";
 
 import type { SpringProgress } from "@mkbabb/keyframes.js";
 
+import { PROGRESS_READOUT_HZ } from "@app/rafConstants";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
 /** One live tracker plus its reactive read-out, for the comparison row. */
@@ -43,7 +44,6 @@ export type SpringPainter = () => void;
  *                track's spring into its reactive read-out refs.
  */
 export function useSpringHotPath(tracks: SpringTrack[]) {
-    const PROGRESS_READOUT_HZ = 6; // reactive readout cadence (a few Hz, not 60)
     let lastReadoutAt = 0;
 
     // ── Reactive READOUT mirrors — written at PROGRESS_READOUT_HZ only ──────

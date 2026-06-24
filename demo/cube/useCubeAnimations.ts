@@ -3,7 +3,7 @@ import { markRaw, shallowRef } from "vue";
 import type { Ref } from "vue";
 import { kfEngine } from "@utils/kfEngine";
 import { getStoredAnimationOptions } from "@components/custom/animation-controls/stores";
-import { useSceneVisibilityPause } from "../app/useSceneVisibilityPause";
+import { useSceneVisibilityPause } from "@app/useSceneVisibilityPause";
 
 export const SUPER_KEY = "Cube";
 

@@ -32,6 +32,7 @@
             "@components/*": ["./demo/@/components/*"],
             "@utils/*": ["./demo/@/utils/*"],
             "@composables/*": ["./demo/@/composables/*"],
+            "@app/*": ["./demo/app/*"],
             "@assets/*": ["./assets/*"]
         }
     },
