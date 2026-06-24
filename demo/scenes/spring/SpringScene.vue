@@ -21,13 +21,13 @@ import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import PlaybackRibbon from "@components/custom/animation-controls/controls/PlaybackRibbon.vue";
 
-import SpringTarget from "../../spring/SpringTarget.vue";
-import StartingStyleTarget from "../../spring/StartingStyleTarget.vue";
-import SpringSidebar from "../../spring/SpringSidebar.vue";
-import { useSpringDemo } from "../../spring/useSpringDemo";
-import { SPRING_DEMO_KEY } from "../../spring/springKeys";
+import SpringTarget from "./SpringTarget.vue";
+import StartingStyleTarget from "./StartingStyleTarget.vue";
+import SpringSidebar from "./SpringSidebar.vue";
+import { useSpringDemo } from "./useSpringDemo";
+import { SPRING_DEMO_KEY, SPRING_SUPER_KEY } from "./springKeys";
 
-const SUPER_KEY = "Spring";
+const SUPER_KEY = SPRING_SUPER_KEY;
 
 const demo = useSpringDemo();
 provide(SPRING_DEMO_KEY, demo);

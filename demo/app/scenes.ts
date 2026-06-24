@@ -29,6 +29,7 @@ import { MOTION_PATH_SUPER_KEY } from "../scenes/motion-path/motionPathKeys";
 import { EASING_SUPER_KEY } from "../scenes/easing/easingKeys";
 import { SEQUENCE_SUPER_KEY } from "../scenes/sequence/sequenceKeys";
 import { SQUARE_SUPER_KEY } from "../scenes/square/squareKeys";
+import { SPRING_SUPER_KEY } from "../scenes/spring/springKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -131,9 +132,9 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "spring",
         label: "Spring",
-        superKey: "Spring",
+        superKey: SPRING_SUPER_KEY,
         icon: SpringIcon,
-        component: lazyScene("spring", () => import("./scenes/SpringScene.vue")),
+        component: lazyScene("spring", () => import("../scenes/spring/SpringScene.vue")),
     },
     {
         // The Sequence + stagger storyboard (F.W10.S3): N children positioned
