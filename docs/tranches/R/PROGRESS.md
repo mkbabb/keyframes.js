@@ -35,12 +35,16 @@ drive if a session-limit wall is hit; DELETE it once shipped.
 
 - **R.W6-core ✅ GREEN** (`r-track-demo` @ `5f3f04e`, 4 commits) — vueuse residuals, callbacks-as-props→emits, typed SceneExposedApi, state-drift fixes, z-index comma-default excise, --spring-snappy un-shadow + the standalone R.W3 demo legacy items; `proof:brittleness` 9/9 green; check + gh-pages clean. (Surviving `shallowRef<any>`/`--spring-snappy` greps are comments only — verified.)
 
+- **R.W6-decomp ✅ GREEN** (`r-track-demo` @ `a452349`, 6 commits) — amiga 539→307 (`useAmigaThree.ts`), cube 560→495 (`CubeAxisLines.vue`), square 505→446 (`useSquareKeyboard.ts`); `proof:demo-no-oversize` green; **DM-1 + DM-5 chronic exits = CONTINGENCY KILL** (glass-ui 4.0.1 lacks BC `dockStrandKeepalive`/`ariaGuard`; kf-internal disjoint-event handler + `KfPillTabs.vue`); `proof:workaround-deletion` S1/S2/S7/S8/S9 green. **8th-carry HARD STOP satisfied.**
+
+### ✅ TRACK D (demo) COMPLETE — `r-track-demo` @ `a452349`
+R.W5 + R.W6-core + R.W6-decomp all green. Clean tree. Pre-existing non-R red noted: `proof:demo-elevate` (reds identically on the untouched main baseline — glass-ui handoff, dispositioned at R.W8/integration).
+
 | In-flight | Wave | Agent | Status |
 |---|---|---|---|
-| Track L | R.W2 engine+group DI carve | Opus (bg) | running — engine carve committed (`4b0cc17`), mid group carve |
-| Track D | R.W6-decomp (3 oversize carves + DM-1/DM-5 chronic exits) | Opus (bg) | DISPATCHED 2026-06-24 |
+| Track L | R.W2 engine+group DI carve | Opus (bg) | running — engine carve committed (`4b0cc17`), finalizing group carve (`group/group.ts` active) |
 
-**Next:** Track L → (R.W2 done) → R.W2b decomp-completion → R.W3lib → R.W4 → R.W7. Track D → (R.W6-decomp done) = ALL demo waves complete. Then integrate both branches → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
+**Next:** Track L → (R.W2 done) → R.W2b decomp-completion → R.W3lib → R.W4 → R.W7. Then integrate both branches → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
 
 ## The wave board
 
