@@ -111,28 +111,13 @@
                 </div>
             </OrbitalDrag>
 
-            <!-- P.W5.S3 EGG — the keyboard axis-lock reveal. OrbitalDrag already
-                 CONSTRAINS rotation to a single axis while X/Y/Z is held, but the
-                 constraint was invisible. Holding the key now lights the matching
-                 axis line: `--axis-active` lifts its opacity + a drop-shadow bloom
-                 in the axis's own color, so the otherwise-hidden single-axis lock
-                 becomes spatially legible. Reads the latch OrbitalDrag already
-                 owns — no new rAF, no new gesture machinery. -->
-            <div
-                class="axis-line x"
-                :class="{ 'axis-line--locked': axisLock.x }"
-                :style="{ '--axis-active': axisLock.x ? 1 : 0 }"
-            ></div>
-            <div
-                class="axis-line y"
-                :class="{ 'axis-line--locked': axisLock.y }"
-                :style="{ '--axis-active': axisLock.y ? 1 : 0 }"
-            ></div>
-            <div
-                class="axis-line z"
-                :class="{ 'axis-line--locked': axisLock.z }"
-                :style="{ '--axis-active': axisLock.z ? 1 : 0 }"
-            ></div>
+            <!-- P.W5.S3 EGG — the keyboard axis-lock reveal (the colocated
+                 CubeAxisLines sub-unit: markup + styles together). OrbitalDrag
+                 CONSTRAINS rotation to a single axis while X/Y/Z is held; the
+                 matching axis line lights up so the otherwise-hidden lock becomes
+                 spatially legible. Fed the latch OrbitalDrag publishes (no new
+                 rAF, no new gesture machinery). -->
+            <CubeAxisLines :lock="axisLock" />
         </div>
 
         <!-- L.W11.S2 — the live attitude readout: rx/ry/rz Euler degrees in a
@@ -156,6 +141,7 @@ import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
 import type { PressedKeys, TransformState } from "@components/custom/orbital-drag";
+import CubeAxisLines from "./CubeAxisLines.vue";
 import { useCubeRelit } from "./useCubeRelit";
 
 const props = defineProps<{
@@ -298,13 +284,8 @@ onScopeDispose(() => {
     inherits: true;
     initial-value: 0;
 }
-/* P.W5.S3 — register --axis-active (0…1) so the axis-lock reveal's opacity +
-   drop-shadow bloom INTERPOLATE cleanly when X/Y/Z is pressed/released. */
-@property --axis-active {
-    syntax: "<number>";
-    inherits: false;
-    initial-value: 0;
-}
+/* P.W5.S3 — the axis-lock reveal (@property --axis-active + the .axis-line
+   styles) lives in the colocated CubeAxisLines sub-unit, beside its markup. */
 
 .graph {
     perspective: 1200px;
@@ -508,52 +489,6 @@ onScopeDispose(() => {
         left: 0.5rem;
         bottom: 0.5rem;
         font-size: var(--type-micro);
-    }
-}
-
-.axis-line {
-    width: 1000vw;
-    height: 0px;
-    border: 1px dashed var(--color);
-    /* P.W5.S3 — at rest the axis lines sit at the 0.75 register; holding the
-       matching X/Y/Z key drives --axis-active → 1, lifting the locked line to
-       full opacity and blooming a drop-shadow in its own axis color, so the
-       single-axis constraint OrbitalDrag enforces becomes spatially legible. */
-    opacity: calc(0.75 + var(--axis-active, 0) * 0.25);
-    filter: drop-shadow(
-        0 0 calc(var(--axis-active, 0) * 6px)
-            color-mix(in srgb, var(--color) calc(var(--axis-active, 0) * 80%), transparent)
-    );
-    /* Smooth the reveal as the key latches/releases (the registered @property
-       lets both channels interpolate). PRM-respecting via the wrapper below. */
-    transition:
-        opacity 180ms var(--ease-standard, ease),
-        --axis-active 180ms var(--ease-standard, ease),
-        filter 180ms var(--ease-standard, ease);
-    /* Below the content plane — the demo's named below-stack rung (W3.S2).
-       Reconciles the former orphan raw below-plane value to the z-contract
-       documented in style.css (--z-behind < --z-content). */
-    z-index: var(--z-behind);
-    position: absolute;
-    pointer-events: none;
-
-    /* While locked, the dashed stroke goes solid — a second, motion-free tell
-       that the axis is the active rotation constraint. */
-    &.axis-line--locked {
-        border-style: solid;
-    }
-
-    &.x {
-        --color: var(--axis-x);
-        transform: rotateX(0deg);
-    }
-    &.y {
-        --color: var(--axis-y);
-        transform: rotateZ(90deg);
-    }
-    &.z {
-        --color: var(--axis-z);
-        transform: rotateY(90deg);
     }
 }
 </style>
