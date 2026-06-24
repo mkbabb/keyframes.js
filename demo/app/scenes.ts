@@ -21,6 +21,11 @@ import SequenceIcon from "@assets/icons/sequence.svg?component";
 import MotionPathIcon from "@assets/icons/motion-path.svg?component";
 import MorphIcon from "@assets/icons/morph.svg?component";
 
+// The per-scene `superKey` single-source (R.W5 C.4) — each scene's keys module
+// OWNS its superKey constant; the descriptor below AND the scene SFC both import
+// it, so no string literal is declared in a file that doesn't own it.
+import { MORPH_SUPER_KEY } from "../scenes/morph/morphKeys";
+
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
 type SceneLoader = () => Promise<unknown>;
@@ -163,11 +168,11 @@ export const scenes: SceneDescriptor[] = [
         // path, S2). Beside MotionPath (offset-distance) + DrawSVG (line-drawing).
         id: "morph",
         label: "Morph",
-        superKey: "Morph",
+        superKey: MORPH_SUPER_KEY,
         icon: MorphIcon,
         component: lazyScene(
             "morph",
-            () => import("./scenes/MorphSVGScene.vue"),
+            () => import("../scenes/morph/MorphSVGScene.vue"),
         ),
     },
     // The standalone @starting-style "Discrete" scene was MERGED into the Spring

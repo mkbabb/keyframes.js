@@ -9,11 +9,11 @@ import { computed, provide, ref } from "vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 
-import MorphTarget from "../../morph/MorphTarget.vue";
-import { useMorphDemo } from "../../morph/useMorphDemo";
-import { MORPH_DEMO_KEY } from "../../morph/morphKeys";
+import MorphTarget from "./MorphTarget.vue";
+import { useMorphDemo } from "./useMorphDemo";
+import { MORPH_DEMO_KEY, MORPH_SUPER_KEY } from "./morphKeys";
 
-const SUPER_KEY = "Morph";
+const SUPER_KEY = MORPH_SUPER_KEY;
 
 const demo = useMorphDemo();
 provide(MORPH_DEMO_KEY, demo);
