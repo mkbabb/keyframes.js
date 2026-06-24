@@ -33,12 +33,14 @@ drive if a session-limit wall is hit; DELETE it once shipped.
 - **R.W1 ✅ GREEN** (`r-track-lib` @ `b52ad3e`) — 7-zone partition; keystone deleted; 3 gate co-edits + `proof:no-flat-siblings`; build/test/boundary/engine/no-flat-siblings/ci-coverage/lint-clean all green; known-violations 15→9. Decomposition backlog (9 files >500L): engine/animation 1408, group/group 925, resolve/index 797, sequence 699, compile/frame-compiler 670, spring/progress 628, scroll/scene 528, compile/backward 536, waapi 573. → engine+group = R.W2; the other 7 = R.W2b (2 of them — resolve, frame-compiler — take R.md §5 narrow overrides; 5 carve).
 - **R.W5 ✅ GREEN** (`r-track-demo`, 11 commits @ `b8b7263`) — dead-code excised; 4 cross-cutting extractions; 8 scenes fused to `demo/scenes/<name>/`; `proof:scene-colocated` green; re-pointed 24 gate scripts that hardcoded old scene paths. Demo oversize backlog (R.W6-decomp): cube/CubeTarget 560, amiga/AmigaScene 539, square/SquareScene 505.
 
+- **R.W6-core ✅ GREEN** (`r-track-demo` @ `5f3f04e`, 4 commits) — vueuse residuals, callbacks-as-props→emits, typed SceneExposedApi, state-drift fixes, z-index comma-default excise, --spring-snappy un-shadow + the standalone R.W3 demo legacy items; `proof:brittleness` 9/9 green; check + gh-pages clean. (Surviving `shallowRef<any>`/`--spring-snappy` greps are comments only — verified.)
+
 | In-flight | Wave | Agent | Status |
 |---|---|---|---|
-| Track L | R.W2 engine+group DI carve | Opus (bg) | DISPATCHED 2026-06-24 |
-| Track D | R.W6-core brittleness/state/styling | Sonnet (bg) | DISPATCHED 2026-06-24 |
+| Track L | R.W2 engine+group DI carve | Opus (bg) | running — engine carve committed (`4b0cc17`), mid group carve |
+| Track D | R.W6-decomp (3 oversize carves + DM-1/DM-5 chronic exits) | Opus (bg) | DISPATCHED 2026-06-24 |
 
-**Next after these:** Track L → R.W2b (decomp completion) → R.W3lib → R.W4 → R.W7; Track D → R.W6-decomp (3 oversize carves + DM-1/DM-5 chronic exits). Then integrate → R.W8 → publish 5.1.0 → deploy.
+**Next:** Track L → (R.W2 done) → R.W2b decomp-completion → R.W3lib → R.W4 → R.W7. Track D → (R.W6-decomp done) = ALL demo waves complete. Then integrate both branches → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
 
 ## The wave board
 
