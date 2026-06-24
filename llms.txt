@@ -17,7 +17,7 @@ Install: `npm i @mkbabb/keyframes.js` · README: https://github.com/mkbabb/keyfr
 
 ## Primitives (each backed by a runnable proof gate)
 
-### CSSKeyframesAnimation  (HEAVY+LIGHT)
+### CSSKeyframesAnimation  (HEAVY+?+LIGHT)
 - intent: parse author CSS @keyframes → animate any element/object; the round-trippable source-of-truth axis [axis-1]
 - exports: `CSSKeyframesAnimation`, `Animation`, `loadAnimationEngine`
 - docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#csskeyframesanimation
@@ -77,7 +77,7 @@ Install: `npm i @mkbabb/keyframes.js` · README: https://github.com/mkbabb/keyfr
 - docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#stagger
 - proof: `proof:orchestration` (CI-verified — `npm run proof:orchestration`)
 
-### Timeline  (LIGHT)
+### Timeline  (LIGHT+?)
 - intent: progress driver (sample → clamp → easing → boundary-snap → smoothing); ScrollTimeline/ManualTimeline/createNativeTimeline variants — the caller owns the loop
 - exports: `Timeline`, `ScrollTimeline`, `ManualTimeline`, `createNativeTimeline`
 - docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#timeline
