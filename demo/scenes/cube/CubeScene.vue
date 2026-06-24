@@ -49,12 +49,12 @@ import {
 import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
 
 import { MatrixEditor } from "@components/custom/matrix-editor";
-import CubeTarget from "../../cube/CubeTarget.vue";
+import CubeTarget from "./CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
-import { useCubeAnimations, SUPER_KEY } from "../../cube/useCubeAnimations";
-import { sharedCubeTransform } from "../cubeTransformStore";
+import { useCubeAnimations, SUPER_KEY } from "./useCubeAnimations";
+import { sharedCubeTransform } from "@app/cubeTransformStore";
 
 const superKey = SUPER_KEY;
 

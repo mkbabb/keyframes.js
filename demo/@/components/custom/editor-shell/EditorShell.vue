@@ -127,7 +127,7 @@ const props = withDefaults(
         // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the
         // stage behind the sheet; `editor`/`storyboard` keep a content card.
         // Typed as the union inline (the shared `@` subtree owns its own
-        // contract; the app passes the value from scenes.ts's `stageModeFor`).
+        // contract; the app passes `currentScene.stageMode` from the descriptor).
         stageMode?: "subject" | "editor" | "storyboard";
         // J.W7a S5 / XH-1 (D20) — the active scene's DFA control-surface set is
         // non-empty. `false` collapses the [rail] track + hides the pane wrapper

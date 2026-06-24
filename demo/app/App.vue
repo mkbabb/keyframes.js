@@ -202,13 +202,13 @@ import {
     useSceneMachine,
 } from "@components/custom/animation-controls/stores";
 
-import { CUBE_ANIMATION_NAMES } from "../cube/useCubeAnimations";
-import CubeScene from "./scenes/CubeScene.vue";
+import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeAnimations";
+import CubeScene from "../scenes/cube/CubeScene.vue";
 import { useSceneMachineRouter } from "./useSceneMachineRouter";
 import { useSceneMachineApp } from "./useSceneMachineApp";
 import { useSceneSwap } from "./useSceneSwap";
 import { useSceneTransition } from "./useSceneTransition";
-import { scenes, sceneMap, warmScene, stageModeFor, HOME_SCENE_ID } from "./scenes";
+import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
 import { useMonacoCancellationGuard } from "./useMonacoCancellationGuard";
 
 // Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
@@ -239,9 +239,10 @@ const currentLabel = computed(() => currentScene.value.label ?? "Home");
 
 // The mobile STAGE mode-class (H.W7.S1c) — drives whether the mobile overlay
 // full-bleeds the stage (subject: cube/amiga/square) or keeps a content card
-// (editor: easing; storyboard: spring/sequence/path). Derived from the active
-// scene id (the mode IS scene data, single-sourced in scenes.ts).
-const stageMode = computed(() => stageModeFor(currentSceneId.value));
+// (editor: easing; storyboard: spring/sequence/path). Read off the active
+// scene descriptor (the mode IS scene data, single-sourced on the descriptor;
+// R.W5 C.5). `currentScene` always resolves (home fallback), so no `?? subject`.
+const stageMode = computed(() => currentScene.value.stageMode);
 
 // The control-surface DFA projection (H.W11.S4 / I2) — the active scene's valid
 // BUILT-IN editor triad ({controls,keyframes,timeline} subset). The dock renders
