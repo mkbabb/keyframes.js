@@ -61,12 +61,18 @@
   (gates rewriting on every run) fixed deterministically in Q.WA3 CI-harden.
 - (Q.WG3) glass-ui publish held USER-DOMAIN — see above.
 
+## 🎉 DRIVE COMPLETE (2026-06-24)
+
+**Tranche Q is IMPLEMENTED + SHIPPED in totality.** See `docs/tranches/Q/FINAL.md`. All 6 stages discharged;
+the P-inv-28 ledger TERMINATED (`proof:chronic-closure` non-vacuous GREEN). Published: parse-that **0.13.0** ·
+value.js **1.2.0** · **keyframes 5.0.0** (BREAKING, master `186acec`/tag `v5.0.0`) · keyframes-vue **0.1.0**
+(DM-7 belt EXITS). Deployed: keyframes.babb.dev serves `index-DVJqnozg.js` (HTTP 200; round-trip oracle
+validated live-byte equality). The ONLY pending items are USER-DOMAIN by design (the glass-ui BC publish —
+owner WIP — gating the kf S1/S2 deletes + the N-Stage unshelf). Every close-criterion gate GREEN.
+
 ## In-flight (background tasks)
 
-- **Stage-5 consumes workflow** `w05l1owp5` (kf tree) — the value.js 1.2.0 GATED consumes: Lane A (S8 .fnName
-  retire-WeakMap + WE2 leaves-externalize via /math + WB3-color ColorChannelPlan measure-first + WG-S1S2
-  gate-retarget) ∥ Lane B (WB2 @function inline). File-disjoint (utils/color/leaves/gate vs resolve-values).
-  Returns gate entries for central wiring.
+- (none — drive complete)
 
 **REGRESSION FOLDED (recorded):** the Q perf waves grew library files past proof:decomposition ceilings
 (waapi 552→815 [WB4], resolve-values 472→578 [WB1], frame-compiler 552→662, engine 1397→1660). The gate is
