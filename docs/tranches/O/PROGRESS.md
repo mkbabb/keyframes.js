@@ -4,7 +4,11 @@
 M.W9/S7 + M.W10 + M.W11 IMPLEMENTED on `master` @ `aef3ef3`; the remaining M waves are
 DEVELOPED-only and superseded by the O scope below. N-stage substrate lives on `n-stage-impl`,
 forked at `5106416`, behind master — do NOT rebase before BC cut.)
-**Type:** TRANCHE O — **DEVELOPMENT PHASE.** This board records the wave plan + the consolidated
+**Type:** TRANCHE O — **PARTIALLY IMPLEMENTED in 4.4.0** (authored as a DEVELOPMENT-PHASE board 2026-06-19;
+the owner authorized the impl drive 2026-06-23 — the 4.4.0 cut shipped the O subset fromMorphSVG + the S8
+WeakMap + the S9 parse-that-dep removal; the breaking O.W7 split / O.W5 DemoControlPoint / O.W9 alias-drop
+are Tranche Q terminals, `docs/tranches/Q/`).
+This board records the wave plan + the consolidated
 O open-deferrals ledger. §1 carries each wave's status (DEVELOPED with born-RED gate named; impl
 opens on explicit authorization); the §"Open deferrals" ledger is the NEXT chronic-closure parse
 substrate (M's `M/PROGRESS.md §"Open deferrals"` remains the AUTHORITATIVE parse target until the

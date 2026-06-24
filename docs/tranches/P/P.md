@@ -9,6 +9,12 @@
 > only keyframes.js; every cross-repo need is a *dispatch* — `KF-TO-VALUEJS-P.md` /
 > `KF-TO-PARSETHAT-B.md` — never a foreign-tree edit).
 
+> **PARTIALLY IMPLEMENTED (2026-06-23).** The owner authorized the impl drive; the kf **4.4.0** MINOR cut
+> shipped a *subset* of P's developed waves (the additive/internal arm — SoA, _styleOut, fromMorphSVG,
+> emerging-CSS NOW, the demo-fleet polish, the spring heatmap). The breaking + deferred remainder is the
+> **Tranche Q** terminal roster (`docs/tranches/Q/` — the no-deferral terminal tranche). This charter is
+> the source-of-record for *what was developed*; Q is the source-of-record for *what shipped + what remains*.
+
 > **The constitution is `P/CONSTELLATION-OPTIMIZATION-CAMPAIGN.md`** — the shared spine the three
 > sibling sessions cite. It locks the topology (ONE kf-hosted tranche + TWO dispatch packets), the
 > DAG (parse-that B → value.js P → keyframes P), and the version split. P.md is the kf-P tranche

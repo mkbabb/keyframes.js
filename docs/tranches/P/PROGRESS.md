@@ -2,15 +2,18 @@
 
 **Branch:** `tranche-p-dev` (P's development phase rides the O dev tip; O is RATIFIED —
 DEVELOPMENT phase docs locked 2026-06-20; O implementation NOT yet authorized).
-**Type:** TRANCHE P — **DEVELOPMENT PHASE.** This board records the wave plan + the consolidated
+**Type:** TRANCHE P — **PARTIALLY IMPLEMENTED in 4.4.0** (authored as a DEVELOPMENT-PHASE board 2026-06-20;
+the owner authorized the impl drive 2026-06-23 and the 4.4.0 MINOR cut shipped the additive/internal SUBSET
+of P's waves — the breaking + deferred remainder is the Tranche Q terminal roster, `docs/tranches/Q/`).
+This board records the wave plan + the consolidated
 P open-deferrals ledger. §1 carries each wave's status (DEVELOPED with born-RED gate named; impl
 opens on explicit authorization); the §"Open deferrals" ledger is the NEXT chronic-closure parse
 substrate (O's `O/PROGRESS.md §"Open deferrals"` is the current AUTHORITATIVE parse target until
 the orchestrator's atomic P.WZ re-point).
 **Dev-phase date:** 2026-06-20 — the 32-lane triumvirate optimization re-audit completed
 (`P/audit/AUDIT-DIGEST.md`); all P waves DEVELOPED; the 8-band DAG finalized; born-RED gates
-named for every wave. **Version in tree:** `4.3.0` (the K close cut, unchanged through O dev
-phase). P's version cut (`5.1.x` — perf is non-breaking; rides AFTER O's 5.0.0 major) + close
+named for every wave. **Version in tree:** `4.4.0` (the impl-drive cut shipped 2026-06-23; this board was
+authored at `4.3.0` — the K close cut — before the impl drive ran). P's version cut (`5.1.x` — perf is non-breaking; rides AFTER O's 5.0.0 major) + close
 round-trip are USER-DOMAIN (Mike Babb, confirm-first), proposed at P.WZ.
 
 This board is the spine of the P development phase: §0 (why P exists — the O substrate +
