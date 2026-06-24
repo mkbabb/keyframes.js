@@ -82,10 +82,11 @@ import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTempla
 import { Card } from "@mkbabb/glass-ui";
 import { kfEngine } from "@utils/kfEngine";
 import { useDragScrub } from "@composables/useDragScrub";
-import { useSquareAnimations } from "../../square/useSquareAnimations";
-import SquareInstrument from "../../square/SquareInstrument.vue";
+import { useSquareAnimations } from "./useSquareAnimations";
+import SquareInstrument from "./SquareInstrument.vue";
+import { SQUARE_SUPER_KEY } from "./squareKeys";
 
-const superKey = "Square";
+const superKey = SQUARE_SUPER_KEY;
 
 // S5b (K.W0 / U-K5 "none of the animations work properly /square") — THE PLAY VERB
 // MADE HONEST. The box is drag-autonomous (the spring loop owns its paint); the

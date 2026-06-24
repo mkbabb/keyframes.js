@@ -28,6 +28,7 @@ import { MORPH_SUPER_KEY } from "../scenes/morph/morphKeys";
 import { MOTION_PATH_SUPER_KEY } from "../scenes/motion-path/motionPathKeys";
 import { EASING_SUPER_KEY } from "../scenes/easing/easingKeys";
 import { SEQUENCE_SUPER_KEY } from "../scenes/sequence/sequenceKeys";
+import { SQUARE_SUPER_KEY } from "../scenes/square/squareKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -116,9 +117,9 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "square",
         label: "Square",
-        superKey: "Square",
+        superKey: SQUARE_SUPER_KEY,
         icon: SquareIcon,
-        component: lazyScene("square", () => import("./scenes/SquareScene.vue")),
+        component: lazyScene("square", () => import("../scenes/square/SquareScene.vue")),
     },
     {
         id: "easing",
