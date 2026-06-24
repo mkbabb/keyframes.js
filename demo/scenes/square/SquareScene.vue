@@ -83,6 +83,7 @@ import { Card } from "@mkbabb/glass-ui";
 import { kfEngine } from "@utils/kfEngine";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useSquareAnimations } from "./useSquareAnimations";
+import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
 import { SQUARE_SUPER_KEY } from "./squareKeys";
 
@@ -249,82 +250,22 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     },
 });
 
-// ── EASTER EGG — "the envelope tour" (P.W6, the REVEAL egg) ────────────────
-// Press `c` (corners) on the focused box → the spring tours all four extremes of
-// the [-1,1]² travel field and returns home, REVEALING the bounded coordinate
-// space the instrument field draws (the `x·y ∈ [-1, 1]` legend made physical).
-// Each leg re-seats the SAME springs the drag uses (no second authority, no new
-// rAF) so you see the spring chase each corner with the real banking velocity —
-// the egg teaches the reachable envelope AND the spring's feel at once. Distinct
-// from the double-click tumble (which reveals the colour twin); the two never
-// collide (one is keyboard, one is dblclick). The legs are paced by the spring's
-// own settle, not a fixed timer: each corner waits for the chase to arrive.
-const ENVELOPE_LEGS: ReadonlyArray<[number, number]> = [
-    [1, -1], // top-right
-    [1, 1], // bottom-right
-    [-1, 1], // bottom-left
-    [-1, -1], // top-left
-    [0, 0], // home
-];
-let touring = false;
-let tourTimer: ReturnType<typeof setTimeout> | null = null;
-const tourEnvelope = () => {
-    if (touring) return;
-    touring = true;
-    let i = 0;
-    const step = () => {
-        if (i >= ENVELOPE_LEGS.length) {
-            touring = false;
-            tourTimer = null;
-            return;
-        }
-        const [nx, ny] = ENVELOPE_LEGS[i]!;
-        i += 1;
-        reseat(nx, ny);
+// ── Keyboard layer + the "envelope tour" REVEAL egg (P.W6) ─────────────────
+// The arrow/Home nudge (slider posture parity with Spring/MotionPath) and the
+// keyboard `c` envelope-tour egg live in the colocated useSquareKeyboard
+// sub-unit. Both re-seat the SAME springs the drag uses (no second authority,
+// no new rAF) and report each new target through `onTarget`, which mirrors it
+// into the live spring readout + the per-axis aria-valuenow.
+const { onKeydown } = useSquareKeyboard({
+    springX,
+    springY,
+    reseat,
+    onTarget: (nx, ny) => {
         springReadout.x = nx.toFixed(2);
         springReadout.y = ny.toFixed(2);
         syncAxisNow();
-        // Pace each leg by the spring's own travel time (the snappy 0.32 response
-        // settles well under 520ms) — a hold long enough to SEE the corner before
-        // the next leg, but no hand-rolled rAF (the spring loop paints).
-        tourTimer = setTimeout(step, 520);
-    };
-    step();
-};
-onBeforeUnmount(() => {
-    if (tourTimer) clearTimeout(tourTimer);
+    },
 });
-
-// Keyboard nudge (slider posture parity with Spring/MotionPath).
-const onKeydown = (e: KeyboardEvent) => {
-    if (e.key === "c" || e.key === "C") {
-        e.preventDefault();
-        tourEnvelope();
-        return;
-    }
-    const step = 0.25;
-    let dx = 0;
-    let dy = 0;
-    if (e.key === "ArrowRight") dx = step;
-    else if (e.key === "ArrowLeft") dx = -step;
-    else if (e.key === "ArrowDown") dy = step;
-    else if (e.key === "ArrowUp") dy = -step;
-    else if (e.key === "Home" || e.key === "End") {
-        e.preventDefault();
-        reseat(0, 0);
-        springReadout.x = "0.00";
-        springReadout.y = "0.00";
-        syncAxisNow();
-        return;
-    } else return;
-    e.preventDefault();
-    const nx = Math.max(-1, Math.min(1, springX.target + dx));
-    const ny = Math.max(-1, Math.min(1, springY.target + dy));
-    reseat(nx, ny);
-    springReadout.x = nx.toFixed(2);
-    springReadout.y = ny.toFixed(2);
-    syncAxisNow();
-};
 
 defineExpose({
     animationGroup: computed(() => animationGroup),
