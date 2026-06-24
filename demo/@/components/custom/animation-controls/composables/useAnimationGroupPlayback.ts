@@ -1,11 +1,11 @@
 import { ref } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
+import type { StoredAnimationGroupControlOptions } from "../stores";
 
 /** The playback emit contract this composable drives — typed to the host
  *  component's `defineEmits` signature so the call site needs no `emit as any`
- *  (J.W2 S6 / LS-20; the DS-5 emit half. The `storedControls: any` half stays
- *  a recorded BOOK — it does not change the writer count and is not the cure). */
+ *  (J.W2 S6 / LS-20; the DS-5 emit half). */
 export interface AnimationGroupPlaybackEmit {
     (e: "playStateChange", playing: boolean): void;
     (e: "startStateChange", started: boolean): void;
@@ -13,7 +13,7 @@ export interface AnimationGroupPlaybackEmit {
 
 export function useAnimationGroupPlayback(
     getAnimationGroup: () => AnimationGroup<any>,
-    storedControls: any,
+    storedControls: StoredAnimationGroupControlOptions,
     emit: AnimationGroupPlaybackEmit,
 ) {
     const isPlaying = ref(getAnimationGroup().playing());

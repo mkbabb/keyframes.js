@@ -19,9 +19,10 @@ import {
     createGroupAdapter,
 } from "@components/custom/animation-controls/stores";
 import { sceneMap } from "./scenes";
+import type { SceneExposedApi } from "./sceneExposedApi";
 
 export function useSceneMachineApp(opts: {
-    sceneRef: ShallowRef<any>;
+    sceneRef: ShallowRef<SceneExposedApi | null>;
     currentSceneId: ComputedRef<string>;
     currentSuperKey: ComputedRef<string>;
     isHome: ComputedRef<boolean>;

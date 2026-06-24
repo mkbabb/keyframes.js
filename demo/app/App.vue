@@ -209,6 +209,7 @@ import { useSceneMachineApp } from "./useSceneMachineApp";
 import { useSceneSwap } from "./useSceneSwap";
 import { useSceneTransition } from "./useSceneTransition";
 import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
+import type { SceneExposedApi } from "./sceneExposedApi";
 import { useMonacoCancellationGuard } from "./useMonacoCancellationGuard";
 
 // Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
@@ -252,7 +253,7 @@ const stageMode = computed(() => currentScene.value.stageMode);
 // hacks the scenes carried are SUPERSEDED.
 const controlSurfaces = computed(() => machine.controlSurfaces.value);
 
-const sceneRef = shallowRef<any>(null);
+const sceneRef = shallowRef<SceneExposedApi | null>(null);
 
 // The scene-swap subject: the host the View Transition morphs and the focus
 // target routed to on `transition.finished` (the a11y MANDATORY).
