@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { springTimingFunction } from "../src/animation/springTimingFunction";
-import { ElementMorph } from "../src/animation/morph";
+import { springTimingFunction } from "../src/animation/physics/spring";
+import { ElementMorph } from "../src/animation/physics/morph";
 import type { Easing } from "../src/animation/constants";
 
 describe("springTimingFunction", () => {

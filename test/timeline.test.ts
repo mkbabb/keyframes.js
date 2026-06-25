@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     ManualTimeline,
     KeyframesScrollTimeline,
-} from "../src/animation/timeline";
+} from "../src/animation/orchestration/timeline";
 import { easeOutCubic } from "@mkbabb/value.js";
 import { resolveEasing } from "../src/animation/easing";
 import { AnimationOptionError } from "../src/animation/internal/errors";

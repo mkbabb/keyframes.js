@@ -73,8 +73,11 @@ const requireAll = (clause, file, anchors) => {
 
 console.log("proof:motion-path — F.W12 (CSS-native MotionPath)");
 
-const MP = "src/animation/motion-path.ts";
-const WAAPI = "src/animation/waapi.ts";
+const MP = "src/animation/svg/motion-path.ts";
+// R.W2 carved the flat `waapi/waapi.ts` into cohesive concerns; the property-
+// keyed `offset-distance` %-exemption (`isOffsetPercentProperty`) lives in the
+// eligibility concern alongside the one `isWAAPIEligible` gate it guards.
+const WAAPI = "src/animation/waapi/eligibility.ts";
 const TEST = "test/motion-path.test.ts";
 
 // ── primitive-exists — fromMotionPath + MotionPath are exported ───────────────

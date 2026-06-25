@@ -89,27 +89,41 @@ console.log(
     "proof:replay-equality — L.W1 the Replay-equality FLOOR (five Band-A breach round-trips)",
 );
 
-const FORMAT = "src/animation/format.ts";
-const FRAME_COMPILER = "src/animation/frame-compiler.ts";
-const ENGINE = "src/animation/engine.ts";
+const FORMAT = "src/animation/compile/format.ts";
+const FRAME_COMPILER = "src/animation/compile/frame-compiler.ts";
+// R.W2b carved the keyframe-SELECTOR grammar (the named-range regexes,
+// `NAMED_SELECTOR_SUPERTYPE`, the `namedSelectorToFraction` resolver) off
+// frame-compiler.ts into the colocated selector.ts; the named-selector clause
+// reads the compile-SELECTOR surface (both files) so its anchors stay asserted.
+const SELECTOR = "src/animation/compile/selector.ts";
+const ENGINE = "src/animation/engine/animation.ts";
+// R.W2 — `bindTimeline` (the named-selector attach-time resolution) lives in the
+// carved `engine/css-animation.ts` CSS subclass; the play-time guard
+// (`assertNoUnresolvedNamedSelector`) stays on the base class as a delegate.
+const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
 const CONSTANTS = "src/animation/constants.ts";
 const TEST = "test/replay-equality.test.ts";
 
 /** Assert every anchor is present in `file`; the clause reds on any missing. */
 const requireAll = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist.`);
+    // `file` may be a single path or an array of paths whose concatenation is the
+    // surface (R.W2b — a carve can split a clause's anchors across sibling files).
+    const files = Array.isArray(file) ? file : [file];
+    const label = files.join(" + ");
+    const missingFiles = files.filter((f) => !existsSync(join(root, f)));
+    if (missingFiles.length > 0) {
+        fail(clause, `${missingFiles.join(", ")} does not exist.`);
         return;
     }
-    const src = read(file);
+    const src = files.map((f) => read(f)).join("\n");
     const missing = anchors.filter(({ re }) => !re.test(src));
     if (missing.length > 0) {
         fail(
             clause,
-            `${file} is missing: ${missing.map((m) => m.name).join("; ")} — the ${clause} contract is no longer locked.`,
+            `${label} is missing: ${missing.map((m) => m.name).join("; ")} — the ${clause} contract is no longer locked.`,
         );
     } else {
-        ok(clause, `${file} locks ${anchors.length} ${clause} anchor(s)`);
+        ok(clause, `${label} locks ${anchors.length} ${clause} anchor(s)`);
     }
 };
 
@@ -179,7 +193,7 @@ requireAll("composition-per-stop", FORMAT, [
 // round-trip verbatim + no-NaN-at-play + play-throws-no-timeline RUNTIME
 // observables) is `proof:nan-frame` — the durable standing proof; this clause
 // locks the cure is the deferred-resolution shape, NOT a parse-throw relapse.
-requireAll("named-selector", FRAME_COMPILER, [
+requireAll("named-selector", [FRAME_COMPILER, SELECTOR], [
     {
         name: "the named selectors ingest OPAQUELY (NAMED_SELECTOR_SUPERTYPE), NOT a parse-time throw (the L.W1 S4 floor — fromString must not throw)",
         re: /NAMED_SELECTOR_SUPERTYPE/,
@@ -189,11 +203,13 @@ requireAll("named-selector", FRAME_COMPILER, [
         re: /export\s+const\s+namedSelectorToFraction\b/,
     },
 ]);
-requireAll("named-selector", ENGINE, [
+requireAll("named-selector", CSS_ANIMATION, [
     {
         name: "bindTimeline resolves named selectors to numeric % at attach (the deferred-resolution seam — Q.WD1-bind S2)",
         re: /bindTimeline\s*\(\s*timeline\s*:\s*Timeline\s*\)/,
     },
+]);
+requireAll("named-selector", ENGINE, [
     {
         name: "the play-time NAMED_SELECTOR_NO_TIMELINE guard (assertNoUnresolvedNamedSelector) — fires at play/at, NEVER at parse",
         re: /assertNoUnresolvedNamedSelector|NAMED_SELECTOR_NO_TIMELINE/,
@@ -219,7 +235,7 @@ requireAll("composite-floor", CONSTANTS, [
 {
     const src = existsSync(join(root, TEST)) ? read(TEST) : "";
     const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
-    const importsFormat = /from "\.\.\/src\/animation\/format"/.test(src);
+    const importsFormat = /from "\.\.\/src\/animation\/compile\/format"/.test(src);
     if (importsEngine && importsFormat) {
         ok(
             "no-source-edit",

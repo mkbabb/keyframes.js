@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decay } from "../src/animation/decay";
+import { decay } from "../src/animation/physics/decay";
 import {
     TARGET_DT,
     inertiaFactorToFriction,

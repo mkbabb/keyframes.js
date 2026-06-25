@@ -36,25 +36,45 @@ console.log(
     "proof:emerging-css-resolve-p2 — Q.WB1 (if(style(--p)) + sibling-index/count element-aware)",
 );
 
-const RESOLVE = "src/animation/resolve-values.ts";
-const ENGINE = "src/animation/engine.ts";
+// R.W2b carved the resolve recursion into the `resolve/` zone (env / resolve-if /
+// resolve-function + the index core); the RESOLVE SURFACE is the four colocated
+// files, so a clause's anchor is found wherever the carve landed it.
+const RESOLVE = [
+    "src/animation/resolve/index.ts",
+    "src/animation/resolve/env.ts",
+    "src/animation/resolve/resolve-if.ts",
+    "src/animation/resolve/resolve-function.ts",
+];
+const ENGINE = "src/animation/engine/animation.ts";
+// R.W2 — the Phase-2 element-aware SECOND-pass resolver (the `resolveValues`
+// rewriter + the env-populate) was carved out of the engine god-class into the
+// colocated `engine/element-resolve.ts` (lib-engine F-7); `setTargets` (on the
+// base class) calls it as a one-line delegate. The body anchors follow the code
+// to its new home, in the free-function form (`resolveElementAwareValues`/
+// `buildElementAwareEnv`, no leading underscore).
+const ELEMENT_RESOLVE = "src/animation/engine/element-resolve.ts";
 
 const requireAll = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist.`);
+    // `file` may be a single path or an array of paths whose concatenation is the
+    // surface (R.W2b — a carve can split a clause's anchors across sibling files).
+    const files = Array.isArray(file) ? file : [file];
+    const label = files.join(" + ");
+    const missingFiles = files.filter((f) => !existsSync(join(root, f)));
+    if (missingFiles.length > 0) {
+        fail(clause, `${missingFiles.join(", ")} does not exist.`);
         return;
     }
-    const src = read(file);
+    const src = files.map((f) => read(f)).join("\n");
     const missing = anchors.filter(({ re }) => !re.test(src));
     if (missing.length > 0) {
         fail(
             clause,
-            `${file} is missing: ${missing
+            `${label} is missing: ${missing
                 .map((m) => m.name)
                 .join("; ")} — the ${clause} cure is no longer wired.`,
         );
     } else {
-        ok(clause, `${file} locks ${anchors.length} ${clause} anchor(s)`);
+        ok(clause, `${label} locks ${anchors.length} ${clause} anchor(s)`);
     }
 };
 
@@ -96,20 +116,23 @@ requireAll("sibling-resolved", RESOLVE, [
     },
 ]);
 
-// ── second-pass (S3) — the engine's setTargets env-populate + the second
-//    resolveValues pass over the pre-flatten template snapshot + the re-parse ───
+// ── second-pass (S3) — the element-aware second-pass resolver + the engine's
+//    setTargets delegate. R.W2: the resolver body lives in `./element-resolve`;
+//    `setTargets` (on the base class) calls it (`resolveElementAwareValues`).
 requireAll("second-pass", ENGINE, [
     {
-        name: "engine imports hasPhase2Node + resolveValues from ./resolve-values (the second-pass seam)",
-        re: /hasPhase2Node[\s\S]*?from\s+["']\.\/resolve-values["']|resolveValues[\s\S]*?from\s+["']\.\/resolve-values["']/,
+        name: "setTargets runs the element-aware second pass (resolveElementAwareValues delegate)",
+        re: /resolveElementAwareValues\s*\(\s*this\s*\)/,
+    },
+]);
+requireAll("second-pass", ELEMENT_RESOLVE, [
+    {
+        name: "the resolver imports hasPhase2Node + resolveValues from ../resolve (the second-pass seam)",
+        re: /hasPhase2Node[\s\S]*?from\s+["']\.\.\/resolve["']|resolveValues[\s\S]*?from\s+["']\.\.\/resolve["']/,
     },
     {
-        name: "setTargets runs the element-aware second pass (_resolveElementAwareValues)",
-        re: /_resolveElementAwareValues\s*\(/,
-    },
-    {
-        name: "the env-populate reads the bound target's custom-prop + sibling position (_buildElementAwareEnv)",
-        re: /_buildElementAwareEnv\b/,
+        name: "the env-populate reads the bound target's custom-prop + sibling position (buildElementAwareEnv)",
+        re: /buildElementAwareEnv\b/,
     },
     {
         name: "the env binds siblingIndex (1-based) + siblingCount off parentElement.children",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MorphSVG, fromMorphSVG } from "../src/animation/morph-svg";
+import { MorphSVG, fromMorphSVG } from "../src/animation/svg/morph-svg";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationOptionError } from "../src/animation/internal/errors";
 

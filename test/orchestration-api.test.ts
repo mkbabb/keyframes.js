@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { createNativeTimeline } from "../src/animation/timeline";
+import { createNativeTimeline } from "../src/animation/orchestration/timeline";
 import { cssTwinFor, toEasing } from "../src/animation/easing";
 import type { Easing, TimingFunction } from "../src/animation/constants";
 

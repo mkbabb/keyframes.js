@@ -76,7 +76,15 @@ const requireAll = (clause, file, anchors) => {
 
 console.log("proof:adopt-compiled — G.W19 (the adoptCompiled engine seam)");
 
-const ENGINE = "src/animation/engine.ts";
+const ENGINE = "src/animation/engine/animation.ts";
+// R.W2 — the `adoptCompiled` BODY (the transplant statements) was carved out of
+// the `KeyframesAnimation` god-class into the colocated `./compile-bridge` free
+// function (the same "gate follows code to its new home" co-edit as the rest of
+// the R.W2 carve). The `adoptCompiled` PUBLIC verb stays on the class (the
+// delegate); the transplant/options-rebind/recompute-keys STATEMENTS are greped
+// at their new home, in their free-function form (`anim.`-prefixed; the backing
+// `_compiler` write goes through the sanctioned `_setCompiler` accessor).
+const COMPILE_BRIDGE = "src/animation/engine/compile-bridge.ts";
 const DEMO =
     "demo/@/components/custom/animation-controls/keyframes/composables/useKeyframeOps.ts";
 const TEST = "test/adopt-compiled.test.ts";
@@ -91,24 +99,24 @@ requireAll("verb-exists", ENGINE, [
     },
 ]);
 
-requireAll("transplant", ENGINE, [
+requireAll("transplant", COMPILE_BRIDGE, [
     {
-        name: "adopts the compiler whole (this._compiler = source.compiler)",
-        re: /this\._compiler\s*=\s*source\.compiler\b/,
+        name: "adopts the compiler whole (anim._setCompiler(source.compiler))",
+        re: /anim\._setCompiler\(\s*source\.compiler\s*\)/,
     },
 ]);
 
-requireAll("options-rebind", ENGINE, [
+requireAll("options-rebind", COMPILE_BRIDGE, [
     {
-        name: "re-binds options off the adopted compiler (this.options = this.compiler.options)",
-        re: /this\.options\s*=\s*this\.compiler\.options\b/,
+        name: "re-binds options off the adopted compiler (anim.options = anim.compiler.options)",
+        re: /anim\.options\s*=\s*anim\.compiler\.options\b/,
     },
 ]);
 
-requireAll("recompute-keys", ENGINE, [
+requireAll("recompute-keys", COMPILE_BRIDGE, [
     {
-        name: "recomputes the stable key-set (computeStableKeys())",
-        re: /adoptCompiled[\s\S]*?this\.computeStableKeys\(\)/,
+        name: "recomputes the stable key-set (computeStableKeys(anim))",
+        re: /adoptCompiled[\s\S]*?computeStableKeys\(anim\)/,
     },
 ]);
 

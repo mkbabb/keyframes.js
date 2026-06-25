@@ -232,8 +232,9 @@ const ratios = {};
 // ── interp-equal (S2 oracle, ACTIVE) — the SoA processFrame output is byte-equal
 //    to an INDEPENDENT boxed reference over a preset/fromString corpus ──────────
 {
+    // R.W2 — `CSSKeyframesAnimation` moved to `engine/css-animation.ts`.
     const engineUrl = pathToFileURL(
-        join(root, "src", "animation", "engine.ts"),
+        join(root, "src", "animation", "engine", "css-animation.ts"),
     ).href;
     const valueUrl = pathToFileURL(
         join(root, "node_modules", "@mkbabb", "value.js", "dist", "value.js"),
@@ -342,7 +343,7 @@ console.log(JSON.stringify({ maxErr, samples, planTaken }));
 // ── spring-vector-shipped (S5, a CONFIRM) — the Float64Array overload + decision ─
 {
     const springSrc = readFileSync(
-        join(root, "src", "animation", "spring.ts"),
+        join(root, "src", "animation", "physics", "spring", "progress.ts"),
         "utf8",
     );
     const hasOverload = /setTargets\(\s*targets\s*:\s*Float64Array\s*\)/.test(

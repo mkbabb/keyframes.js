@@ -65,8 +65,27 @@ console.log(
         "  reseatToSpring + intensity-scaled reduced motion)",
 );
 
-const GROUP = "src/animation/group.ts";
-const SPRING = "src/animation/spring.ts";
+const GROUP = "src/animation/group/group.ts";
+// R.W2 — the `group-layer-springs.ts` junk-drawer 3-way split: the spring
+// helpers (`seedLayerSpring` + `advanceLayerSprings`) moved to the colocated
+// `./springs` module (the SAME "gate follows code to its new home" co-edit the
+// PHYS-B2 reseat split below did for `spring-reseat`). The per-frame advance
+// BODY (`tickDt(dt)` + the settle commit/clear) is greped at its new home; the
+// CALL site (`if (this._hasLayerSprings) this.advanceLayerSprings(dt)`) + the
+// gate-anchored composite STATEMENTS (the `weighted` leaf read, `transitionLayer`
+// re-seat, `layer.weightSpring = spring`) stay in `group.ts`.
+const GROUP_SPRINGS = "src/animation/group/springs.ts";
+// R.W2 — the boxed weighted-blend LEAF (the `const w = layer.weightSpring?.value
+// ?? layer.weight` read + the `lerp(..., w)`) moved with `boxedBlendArm` into the
+// colocated `./compositor` (the 146L+70L carve); the `phys-c-read` clause greps
+// it at its new home.
+const GROUP_COMPOSITOR = "src/animation/group/compositor.ts";
+// R.W2 — the layer-management + spring-transition API (`transitionLayer`/
+// `crossfade` + the spring park/re-seat statements) moved off `group.ts` into the
+// colocated `./layer-api` (the cohesive "layer API" carve); the transition
+// STATEMENTS are greped at their new home.
+const GROUP_LAYER_API = "src/animation/group/layer-api.ts";
+const SPRING = "src/animation/physics/spring/progress.ts";
 // L.WZ ceiling split — the PHYS-B2 velocity-continuous interruption seam
 // (`VelocityProbe` / `probeVelocity` / `reseatToSpring`) was EXTRACTED out of
 // the `spring.ts` god-module into the colocated `./spring-reseat` module (the
@@ -74,7 +93,7 @@ const SPRING = "src/animation/spring.ts";
 // FOLLOWS the code to its new home). `spring.ts` re-exports the public symbols
 // so the barrel resolves them through `./spring` unchanged; the `phys-b2-reseat`
 // arm below greps the function BODIES at their new home.
-const SPRING_RESEAT = "src/animation/spring-reseat.ts";
+const SPRING_RESEAT = "src/animation/physics/spring/reseat.ts";
 const CONSTANTS = "src/animation/constants.ts";
 const PRM = "src/animation/internal/reduced-motion.ts";
 const TEST = "test/spring-blend-weight.test.ts";
@@ -83,7 +102,7 @@ const TEST = "test/spring-blend-weight.test.ts";
 // BITE: revert the lerp factor to the bare `layer.weight` → the spring no longer
 // drives the blend → the overshoot value test reds (a hard cut, no overshoot).
 {
-    const src = read(GROUP);
+    const src = read(GROUP_COMPOSITOR);
     const springRead =
         /const\s+w\s*=\s*layer\.weightSpring\?\.value\s*\?\?\s*layer\.weight/.test(
             src,
@@ -95,7 +114,7 @@ const TEST = "test/spring-blend-weight.test.ts";
     if (!springRead || !lerpUsesW) {
         fail(
             "phys-c-read",
-            `${GROUP}: the weighted leaf must read \`const w = layer.weightSpring?.value ?? layer.weight\` (found ${springRead}) AND lerp by \`w\` (found ${lerpUsesW}) — a bare \`layer.weight\` third-arg is the static-weight HARD CUT the spring-driven blend cures.`,
+            `${GROUP_COMPOSITOR}: the weighted leaf must read \`const w = layer.weightSpring?.value ?? layer.weight\` (found ${springRead}) AND lerp by \`w\` (found ${lerpUsesW}) — a bare \`layer.weight\` third-arg is the static-weight HARD CUT the spring-driven blend cures.`,
         );
     } else {
         ok(
@@ -105,17 +124,35 @@ const TEST = "test/spring-blend-weight.test.ts";
     }
 }
 
-// ── PHYS-C (b) — the transitionLayer/crossfade API + per-frame advance ────────
+// ── PHYS-C (b) — the transitionLayer/crossfade API + the per-frame advance ────
 // BITE: drop transitionLayer (no spring is ever parked) OR drop the per-frame
 // tickDt (the spring never advances) → the weight stays put → overshoot reds.
+// R.W2 — the transition API surface (`transitionLayer`/`crossfade` + the
+// `advanceLayerSprings` call site) stays on `group.ts` as the public delegate;
+// the spring park/re-seat STATEMENTS moved with the bodies to `./layer-api`, and
+// the per-frame advance BODY to `./springs` — each greped at its new home.
 requireAll("phys-c-api", GROUP, [
     {
-        name: "transitionLayer constructs/re-seats a SpringProgress on layer.weightSpring",
+        name: "transitionLayer is on the public group surface",
         re: /transitionLayer\(/,
     },
     {
-        name: "crossfade springs a→0 and b→1",
+        name: "crossfade is on the public group surface",
         re: /crossfade\(/,
+    },
+    {
+        name: "the group drives the per-frame advance (advanceLayerSprings call site)",
+        re: /advanceLayerSprings/,
+    },
+]);
+requireAll("phys-c-transition", GROUP_LAYER_API, [
+    {
+        name: "transitionLayer constructs/re-seats a SpringProgress on layer.weightSpring",
+        re: /export\s+function\s+transitionLayer/,
+    },
+    {
+        name: "crossfade springs a→0 and b→1",
+        re: /export\s+function\s+crossfade/,
     },
     {
         name: "the layer spring is parked on layer.weightSpring",
@@ -125,9 +162,11 @@ requireAll("phys-c-api", GROUP, [
         name: "a mid-flight re-target re-seats from live (value, velocity) via `set target`",
         re: /existing\.target\s*=\s*target\.weight/,
     },
+]);
+requireAll("phys-c-advance", GROUP_SPRINGS, [
     {
         name: "advanceLayerSprings advances each driving spring by dt (tickDt)",
-        re: /advanceLayerSprings/,
+        re: /export\s+const\s+advanceLayerSprings/,
     },
     {
         name: "the per-frame advance steps tickDt(dt)",
@@ -230,6 +269,13 @@ requireAll("phys-e-amplitude", SPRING, [
         name: "amplitudeScale is resolved from the policy via reducedMotionScale",
         re: /this\.amplitudeScale\s*=\s*reducedMotionScale\(/,
     },
+]);
+
+// R.W1: the SpringProgressOptions shape (incl. respectReducedMotion) moved to the
+// spring family's `types.ts` (the progress↔duration↔reseat ring-break). The
+// phys-e amplitude-policy TYPE anchor now reads the types module.
+const SPRING_TYPES = "src/animation/physics/spring/types.ts";
+requireAll("phys-e-amplitude-type", SPRING_TYPES, [
     {
         name: "respectReducedMotion is typed as the ReducedMotionPolicy (not bare boolean)",
         re: /respectReducedMotion:\s*ReducedMotionPolicy/,

@@ -64,6 +64,7 @@
 import {
     existsSync,
     mkdtempSync,
+    readdirSync,
     readFileSync,
     rmSync,
     writeFileSync,
@@ -75,7 +76,18 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BENCH = "bench/waapi-densify.bench.ts";
-const WAAPI_SRC = "src/animation/waapi.ts";
+// R.W2 carved the flat `waapi/waapi.ts` god-module into the cohesive concerns
+// (eligibility / emission / options / delegation + densify). The densify emit
+// (`densifyInteriorTimes` in emission.ts, `segmentFlatnessError` in densify.ts)
+// now spans the zone, so the source grep reads the WHOLE `waapi/` surface and
+// the live probe imports `toWAAPIKeyframes` from the `waapi/` barrel.
+const WAAPI_DIR = "src/animation/waapi";
+const WAAPI_BARREL = join(root, "src", "animation", "waapi", "index.ts");
+const readWaapiSurface = () =>
+    readdirSync(join(root, WAAPI_DIR))
+        .filter((f) => f.endsWith(".ts"))
+        .map((f) => readFileSync(join(root, WAAPI_DIR, f), "utf8"))
+        .join("\n");
 const decisionPath = join(root, "scripts", "waapi-densify-decision.json");
 
 // The curves expected to SHRINK to ≤ fixed-8 (the linear/gentle case); a sharp
@@ -101,13 +113,13 @@ if (!existsSync(join(root, BENCH))) {
     process.exit(1);
 }
 {
-    const src = readFileSync(join(root, WAAPI_SRC), "utf8");
+    const src = readWaapiSurface();
     // No-legacy: the fixed-8 const + the uniform loop must be DELETED (not kept
     // beside the adaptive emit as a dead parallel path).
     if (/WAAPI_SUBSEGMENT_STOPS\s*=\s*8/.test(src)) {
         fail(
             "count-shrinks",
-            `${WAAPI_SRC} still carries the retired fixed-8 const ` +
+            `${WAAPI_DIR} still carries the retired fixed-8 const ` +
                 `(WAAPI_SUBSEGMENT_STOPS = 8) — the no-legacy cut requires it DELETED, ` +
                 `replaced by the curvature-adaptive emit (densifyInteriorTimes).`,
         );
@@ -118,13 +130,13 @@ if (!existsSync(join(root, BENCH))) {
     ) {
         fail(
             "count-shrinks",
-            `${WAAPI_SRC} is missing the curvature-adaptive emit ` +
+            `${WAAPI_DIR} is missing the curvature-adaptive emit ` +
                 `(densifyInteriorTimes / segmentFlatnessError).`,
         );
     } else {
         ok(
             "count-shrinks",
-            `${WAAPI_SRC} carries the curvature-adaptive emit (the fixed-8 uniform loop is retired)`,
+            `${WAAPI_DIR} carries the curvature-adaptive emit (the fixed-8 uniform loop is retired)`,
         );
     }
 }
@@ -134,9 +146,7 @@ if (!existsSync(join(root, BENCH))) {
 let measures = null;
 {
     const benchUrl = pathToFileURL(join(root, BENCH)).href;
-    const waapiUrl = pathToFileURL(
-        join(root, "src", "animation", "waapi.ts"),
-    ).href;
+    const waapiUrl = pathToFileURL(WAAPI_BARREL).href;
     const probe = `
 import { measureDensifyCorpus, buildCorpus, boundaryTimes } from ${JSON.stringify(benchUrl)};
 import { toWAAPIKeyframes } from ${JSON.stringify(waapiUrl)};

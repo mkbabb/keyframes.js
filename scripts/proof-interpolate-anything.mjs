@@ -173,7 +173,7 @@ requireAll("s4-cqw-emit", TEST, [
     // no identity for the name. This is the published-consume-edge form, NOT a
     // hand-rolled kf identity LITERAL (a hard-coded `brightness → 1` map would
     // re-author value-domain knowledge kf must consume, not own).
-    const utils = read("src/animation/utils.ts");
+    const utils = read("src/animation/compile/parse-flatten.ts");
     const importsProducer =
         /import\s*\{[\s\S]*?functionIdentityValue[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js["']/.test(
             utils,
@@ -190,12 +190,12 @@ requireAll("s4-cqw-emit", TEST, [
     if (!importsProducer || !padConsumesIdentity) {
         fail(
             "identity-consume",
-            "src/animation/utils.ts no longer routes the arity pad through value.js's `functionIdentityValue` producer (`identity ?? new ValueUnit(0)`) — the MCI-5 consume edge regressed.",
+            "src/animation/compile/parse-flatten.ts no longer routes the arity pad through value.js's `functionIdentityValue` producer (`identity ?? new ValueUnit(0)`) — the MCI-5 consume edge regressed.",
         );
     } else if (hasIdentityLiteralMap) {
         fail(
             "identity-consume",
-            "src/animation/utils.ts gained a hand-rolled identity LITERAL map — the MCI-5 fix is a value.js consume (`functionIdentityValue`), not a kf-authored value table.",
+            "src/animation/compile/parse-flatten.ts gained a hand-rolled identity LITERAL map — the MCI-5 fix is a value.js consume (`functionIdentityValue`), not a kf-authored value table.",
         );
     } else {
         ok(

@@ -38,6 +38,12 @@
 import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+// R.W2 — the SoA fold + the boxed blend arm are colocated INTERNAL functions
+// (`./group/soa` + `./group/compositor`); the bench calls them DIRECTLY with
+// explicit args (no `group.soaBlendLayer`/`group.boxedBlendArm` private monkey-
+// patch — the `soaBlendLayer` wrapper was excised, `boxedBlendArm` carved out).
+import { groupSoABlendLayer } from "../src/animation/group/soa";
+import { boxedBlendArm } from "../src/animation/group/compositor";
 
 // A realistic multi-property transform keyframe — several numeric leaves
 // (translateX/Y, scaleX/Y/Z, rotateZ, opacity) + a multi-component `margin`
@@ -98,16 +104,20 @@ const primeGroup = (k: number, mode: BlendMode) => {
     };
     reseat();
 
-    // SoA body — run the real `soaBlendLayer` over each non-replace layer's plan.
+    // SoA body — run the real `groupSoABlendLayer` fold over each non-replace
+    // layer's plan, with the group's `_compositeBuf` scratch (the args the excised
+    // `soaBlendLayer` wrapper forwarded).
+    const compositeBuf = group._compositeBuf as Float64Array;
     const soaBody = () => {
-        for (let i = 0; i < plans.length; i++) group.soaBlendLayer(plans[i]);
+        for (let i = 0; i < plans.length; i++)
+            groupSoABlendLayer(compositeBuf, plans[i]);
     };
     // Boxed body — run the real `boxedBlendArm` (the per-element AoS loop) over
     // each non-replace layer.
     const boxedBody = () => {
         for (const entry of entries) {
             if (entry.layer.blendMode === "replace") continue;
-            group.boxedBlendArm(
+            boxedBlendArm(
                 entry.layer,
                 entry.values,
                 grouped,

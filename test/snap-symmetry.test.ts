@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SmoothProgress } from "../src/animation/smooth";
-import { SpringProgress } from "../src/animation/spring";
+import { SmoothProgress } from "../src/animation/physics/smooth";
+import { SpringProgress } from "../src/animation/physics/spring";
 
 /**
  * D.W4 D-6a — `proof:snap-symmetry`: the two steppers' reduced-motion snap is

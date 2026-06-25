@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
-import { Sequence } from "../src/animation/sequence";
+import { Sequence } from "../src/animation/orchestration/sequence";
 
 /**
  * G.W13 — the `.finished` completion front-door (proof:finished).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { stagger } from "../src/animation/stagger";
+import { stagger } from "../src/animation/orchestration/stagger";
 import type { TimingFunction } from "../src/animation/constants";
 import { AnimationOptionError } from "../src/animation/internal/errors";
 

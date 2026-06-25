@@ -47,10 +47,13 @@ let failed = false;
 try {
     const bundle = await rolldown({
         input: consumerEntry,
-        // value.js + parse-that stay NON-external: a reintroduced static edge
-        // bundles their modules, which this gate then catches. Host/unrelated
-        // packages are external (a consumer would have them).
-        external: ["vue", "prettier"],
+        // value.js + parse-that stay NON-external: a reintroduced static GRAMMAR
+        // edge bundles their modules, which this gate then catches. The ONE
+        // exception is the W97 verified-clean `@mkbabb/value.js/math` subpath
+        // (the LIGHT leaves re-export value.js's grammar-free math helpers from it;
+        // proof:boundary proves its graph grammar-free + externalizes it the same
+        // way) — externalized here so the verified-clean math edge is not bundled.
+        external: ["vue", "prettier", "@mkbabb/value.js/math"],
         treeshake: true,
     });
     const { output } = await bundle.generate({ format: "es" });
@@ -60,7 +63,11 @@ try {
     const dynamicChunks = output.filter((o) => o.type === "chunk" && !o.isEntry);
 
     // (1) The eager entry chunk must reference zero value.js / parse-that modules.
-    const code = entryChunk?.code ?? "";
+    // The W97 verified-clean `@mkbabb/value.js/math` external is blanked first
+    // (mirroring proof:boundary's W97 allow-list) so the legitimate grammar-free
+    // math edge does not false-fire the `@mkbabb/value.js` substring match; a
+    // grammar-pulling value.js edge (the real leak) still reds.
+    const code = (entryChunk?.code ?? "").split("@mkbabb/value.js/math").join("");
     const leaked = ["@mkbabb/value.js", "value.js", "parse-that", "ValueUnit", "parseCSSValue"]
         .filter((m) => code.includes(m));
     if (leaked.length > 0) {

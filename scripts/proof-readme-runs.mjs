@@ -138,7 +138,7 @@ for (const core of ["NumericAnimation", "SpringProgress", "RAFPlayback", "Sequen
         );
     }
 }
-for (const core of ["KeyframesAnimation", "animate", "MotionPath", "DrawSVG"]) {
+for (const core of ["KeyframesAnimation", "MotionPath", "DrawSVG"]) {
     if (!engineKeys.includes(core)) {
         failures.push(
             `derivation: AnimationEngine d.ts parse missing core key "${core}" — fail-loud, not false-green.`,
@@ -251,7 +251,6 @@ for (const sub of taught) {
 
 // (c.3) HEAVY front doors: ≥1 runnable snippet exercising each taught door.
 const FRONT_DOORS = [
-    ["animate"],
     ["MotionPath", "fromMotionPath"],
     ["DrawSVG", "fromDrawSVG"],
 ];

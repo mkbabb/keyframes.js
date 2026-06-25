@@ -9,7 +9,7 @@
  * property, the zero-velocity glide, and the fail-explicit friction guard.
  */
 import { describe, expect, it } from "vitest";
-import { decay, decayRest } from "../src/animation/decay";
+import { decay, decayRest } from "../src/animation/physics/decay";
 
 describe("decay() — the closed-form frictional glide", () => {
     it("t ≤ 0 yields the SEED state (x0, v0) exactly", () => {

@@ -13,7 +13,7 @@ import {
     parallaxScroll, slideInLeft, slideOutLeft,
     slideInRight, slideOutRight,
     hover, jumpUp, jumpDown,
-} from "../src/animation/animations";
+} from "../src/animation/presets";
 
 const presets = {
     fadeIn, fadeOut, pulse, shake, bounce, flipPreset,

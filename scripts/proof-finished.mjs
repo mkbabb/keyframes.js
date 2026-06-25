@@ -48,9 +48,9 @@ const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
 
 console.log("proof:finished — G.W13 (the .finished completion front-door)");
 
-const ENGINE = "src/animation/engine.ts";
-const GROUP = "src/animation/group.ts";
-const SEQUENCE = "src/animation/sequence.ts";
+const ENGINE = "src/animation/engine/animation.ts";
+const GROUP = "src/animation/group/group.ts";
+const SEQUENCE = "src/animation/orchestration/sequence/sequence.ts";
 const TEST = "test/finished.test.ts";
 
 const surfaces = [
@@ -62,7 +62,11 @@ const surfaces = [
 // The ONE faithful form: `get finished(): Promise<void> { return
 // this._playingPromise ?? Promise.resolve(); }`. The held-promise body is the
 // non-negotiable — a fresh-per-call promise reds the test's identity check.
-const getterRe = /get\s+finished\s*\(\s*\)\s*:\s*Promise<void>\s*\{[\s\S]{0,120}?this\._playingPromise\s*\?\?\s*Promise\.resolve\(\)/;
+// R.W2 — the engine's play-machine run-state (incl. the held `_playingPromise`)
+// moved into the composed `PlaybackState` struct, so the engine reads it as
+// `this._playback._playingPromise`; the group/sequence keep `this._playingPromise`
+// directly. Accept the optional `_playback.` prefix.
+const getterRe = /get\s+finished\s*\(\s*\)\s*:\s*Promise<void>\s*\{[\s\S]{0,120}?this\.(?:_playback\.)?_playingPromise\s*\?\?\s*Promise\.resolve\(\)/;
 
 // ── getter-present + held-promise — each surface returns the held promise ─────
 for (const [label, file] of surfaces) {

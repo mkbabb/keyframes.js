@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { easeOutCubic } from "@mkbabb/value.js";
 import { resolveEasing } from "../src/animation/easing";
 import { AnimationOptionError } from "../src/animation/internal/errors";
-import { ElementMorph } from "../src/animation/morph";
-import type { MorphRect } from "../src/animation/morph";
+import { ElementMorph } from "../src/animation/physics/morph";
+import type { MorphRect } from "../src/animation/physics/morph";
 
 describe("ElementMorph", () => {
     const from: MorphRect = { x: 0, y: 0, width: 100, height: 50 };

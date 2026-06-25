@@ -69,7 +69,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SUITE = "bench/group-composite.bench.ts";
-const GROUP_SRC = "src/animation/group.ts";
+const GROUP_SRC = "src/animation/group/group.ts";
 const decisionPath = join(root, "scripts", "soa-composite-decision.json");
 
 // The ADOPT threshold the P.W2 charter names: the SoA fold must run >= 1.2× the
@@ -410,11 +410,13 @@ if (existsSync(decisionPath)) {
 // ── Clause: soa-path-taken — a real blend builds the plan + folds it ──────────
 // + bit-identical + zero-alloc, all measured live on the REAL group via a tsx probe.
 {
+    // R.W2 — `CSSKeyframesAnimation` was carved out of `engine/animation.ts` into
+    // `engine/css-animation.ts`; the probe imports it from its new home.
     const engineUrl = pathToFileURL(
-        join(root, "src", "animation", "engine.ts"),
+        join(root, "src", "animation", "engine", "css-animation.ts"),
     ).href;
     const groupUrl = pathToFileURL(
-        join(root, "src", "animation", "group.ts"),
+        join(root, "src", "animation", "group", "group.ts"),
     ).href;
     const valueUrl = pathToFileURL(
         join(root, "node_modules", "@mkbabb", "value.js", "dist", "value.js"),
@@ -461,14 +463,26 @@ function boxedRef(entries, w) {
 }
 
 const group = buildGroup();
+
+// R.W2 — the \`soaBlendLayer\` private wrapper was EXCISED (the bench-monkey-patch
+// anti-pattern). The fold (\`groupSoABlendLayer\`) is now called DIRECTLY at the
+// blend site and writes the blended numerics into \`_compositeBuf\`. So instead of
+// counting wrapper invocations, observe the FOLD's effect: zero the buffer before
+// a frame and confirm the fold re-populated it with non-zero blended values — a
+// dead/stubbed SoA path leaves the zeroed buffer untouched.
 let soaCalls = 0;
-const origSoA = group.soaBlendLayer.bind(group);
-group.soaBlendLayer = function (p) { soaCalls++; return origSoA(p); };
 
 let maxErr = 0;
 for (const t of [120, 300, 500, 700, 900]) {
   for (const e of group.getEntries()) e.animation.t = t;
+  // After the first warm frame the plan + buffer exist; zero the buffer so a
+  // subsequent fold's write is observable.
+  if (group._compositeBuf instanceof Float64Array) group._compositeBuf.fill(0);
   const out = group.transformFramesGrouped(0);
+  // The fold ran iff the (previously zeroed) buffer now carries a non-zero
+  // blended value.
+  if (group._compositeBuf instanceof Float64Array &&
+      group._compositeBuf.some((v) => v !== 0)) soaCalls++;
   const groupOut = {};
   for (const k of Object.keys(out)) { const leaf = out[k]; if (Array.isArray(leaf)) groupOut[k] = leaf.map((u) => u instanceof ValueUnit ? u.value : NaN); }
   const ref = boxedRef(group.getEntries(), 0.5);
@@ -556,20 +570,32 @@ console.log(JSON.stringify({ soaCalls, planBuilt, maxErr, bufStable }));
 }
 
 // ── Clause: the source carries the SoA fold (not deleted, not stubbed) ────────
+// R.W2 — `transformFramesGrouped` (the fold + plan-build call site) was carved
+// out of `group.ts` into `./compositor`; the fold/plan-builder CALLS are greped
+// there, the `_compositeBuf`/`_soaPlans` instance STATE stays on `group.ts`.
 {
-    const src = readFileSync(join(root, GROUP_SRC), "utf8");
-    const hasFold = /soaBlendLayer/.test(src) && /_compositeBuf/.test(src);
-    const hasPlan = /buildSoAPlans/.test(src) && /_soaPlans/.test(src);
+    const compositorSrc = readFileSync(
+        join(root, "src/animation/group/compositor.ts"),
+        "utf8",
+    );
+    const groupSrc = readFileSync(join(root, GROUP_SRC), "utf8");
+    const hasFold =
+        /groupSoABlendLayer/.test(compositorSrc) &&
+        /_compositeBuf/.test(groupSrc);
+    const hasPlan =
+        /buildSoAPlans/.test(compositorSrc) && /_soaPlans/.test(groupSrc);
     if (!hasFold || !hasPlan) {
         fail(
             "soa-path-taken",
-            `${GROUP_SRC} is missing the SoA fold (soaBlendLayer/_compositeBuf=${hasFold}) ` +
-                `or the plan builder (buildSoAPlans/_soaPlans=${hasPlan}).`,
+            `the SoA fold is missing (groupSoABlendLayer in compositor.ts + ` +
+                `_compositeBuf state in group.ts=${hasFold}) or the plan builder ` +
+                `(buildSoAPlans in compositor.ts + _soaPlans state in group.ts=${hasPlan}).`,
         );
     } else {
         ok(
             "soa-path-taken",
-            `${GROUP_SRC} carries the SoA fold (soaBlendLayer + _compositeBuf) + the plan builder`,
+            `the SoA fold (groupSoABlendLayer in ./compositor) + the plan builder + the ` +
+                `_compositeBuf/_soaPlans state on group.ts are intact`,
         );
     }
 }

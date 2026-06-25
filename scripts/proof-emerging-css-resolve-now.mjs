@@ -34,25 +34,38 @@ console.log(
     "proof:emerging-css-resolve-NOW — P.W13 (if(supports/media) + spring() lowering)",
 );
 
-const RESOLVE = "src/animation/resolve-values.ts";
+// R.W2b carved the resolve recursion into the `resolve/` zone (env / resolve-if /
+// resolve-function + the index core); the RESOLVE SURFACE is the four colocated
+// files, so a clause's anchor is found wherever the carve landed it.
+const RESOLVE = [
+    "src/animation/resolve/index.ts",
+    "src/animation/resolve/env.ts",
+    "src/animation/resolve/resolve-if.ts",
+    "src/animation/resolve/resolve-function.ts",
+];
 const ADAPTER = "src/animation/adapter.ts";
 
 const requireAll = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist.`);
+    // `file` may be a single path or an array of paths whose concatenation is the
+    // surface (R.W2b — a carve can split a clause's anchors across sibling files).
+    const files = Array.isArray(file) ? file : [file];
+    const label = files.join(" + ");
+    const missingFiles = files.filter((f) => !existsSync(join(root, f)));
+    if (missingFiles.length > 0) {
+        fail(clause, `${missingFiles.join(", ")} does not exist.`);
         return;
     }
-    const src = read(file);
+    const src = files.map((f) => read(f)).join("\n");
     const missing = anchors.filter(({ re }) => !re.test(src));
     if (missing.length > 0) {
         fail(
             clause,
-            `${file} is missing: ${missing
+            `${label} is missing: ${missing
                 .map((m) => m.name)
                 .join("; ")} — the ${clause} cure is no longer wired.`,
         );
     } else {
-        ok(clause, `${file} locks ${anchors.length} ${clause} anchor(s)`);
+        ok(clause, `${label} locks ${anchors.length} ${clause} anchor(s)`);
     }
 };
 
@@ -95,7 +108,7 @@ requireAll("module-exists", RESOLVE, [
     const anchors = [
         {
             name: "adapter imports resolveValues from ./resolve-values",
-            re: /resolveValues[\s\S]*?from\s+["']\.\/resolve-values["']|from\s+["']\.\/resolve-values["']/,
+            re: /resolveValues[\s\S]*?from\s+["']\.\/resolve["']|from\s+["']\.\/resolve["']/,
         },
         {
             name: "adapter invokes resolveValues in declsToVarMap (the flatten seam)",

@@ -201,24 +201,33 @@ describe("AnimationGroup state", () => {
         expect(group.reset()).toBe(group);
     });
 
-    it("forcePause() sets paused on group and all children", () => {
+    // R.W2 — `forcePause`/`forcePlay` were test-scaffold leaks on the public API
+    // (lib-group §5). The honest lifecycle is `pause()`/`resume()`: the same
+    // paused-flag propagation to children, exercised through the real transport.
+    it("pause() sets paused on group and all children", () => {
         const a = createOpacityAnim("a");
         const b = createOpacityAnim("b");
         const group = new AnimationGroup(a, b);
 
-        group.forcePause();
+        // The honest lifecycle gates on a started group: drive one tick so the
+        // group + children are started, then pause through the real API.
+        group.advanceTo(0);
+        group.pause();
+
         expect(group.paused).toBe(true);
         expect(a.paused).toBe(true);
         expect(b.paused).toBe(true);
     });
 
-    it("forcePlay() clears paused on group and all children", () => {
+    it("resume() clears paused on group and all children", () => {
         const a = createOpacityAnim("a");
         const b = createOpacityAnim("b");
         const group = new AnimationGroup(a, b);
 
-        group.forcePause();
-        group.forcePlay();
+        group.advanceTo(0);
+        group.pause();
+        group.resume();
+
         expect(group.paused).toBe(false);
         expect(a.paused).toBe(false);
         expect(b.paused).toBe(false);
@@ -267,12 +276,15 @@ describe("AnimationGroup lifecycle", () => {
         expect(group.singleTarget).toBe(true);
     });
 
-    it("onStart sets started flag", () => {
+    // R.W2 — the hollow `onStart()`/`onEnd()` stubs were inlined + deleted
+    // (lib-group §6). The lazy-start that set `started` is now inline in
+    // `advanceTo`; assert it through the real driver path.
+    it("the first advanceTo sets the started flag", () => {
         const a = createOpacityAnim("a");
         const group = new AnimationGroup(a);
         expect(group.started).toBe(false);
 
-        group.onStart();
+        group.advanceTo(0);
         expect(group.started).toBe(true);
     });
 

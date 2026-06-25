@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SmoothProgress } from "../src/animation/smooth";
-import { NumericAnimation } from "../src/animation/numeric";
+import { SmoothProgress } from "../src/animation/physics/smooth";
+import { NumericAnimation } from "../src/animation/physics/numeric";
 
 /**
  * Reduced-motion option tests. Mocks `window.matchMedia` to simulate the

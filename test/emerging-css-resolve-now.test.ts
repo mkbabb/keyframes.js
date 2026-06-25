@@ -22,8 +22,8 @@ import { resolveKeyframes } from "../src/animation/adapter";
 import {
     resolveSpringTiming,
     springCssToOptions,
-} from "../src/animation/resolve-values";
-import { springTimingFunction } from "../src/animation/springTimingFunction";
+} from "../src/animation/resolve";
+import { springTimingFunction } from "../src/animation/physics/spring";
 
 /** The concrete color string a resolved keyframe value carries at a stop. */
 const stopValue = (

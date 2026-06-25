@@ -13,7 +13,7 @@ import {
     fadeOut,
     pulse,
     spinner,
-} from "../src/animation/animations";
+} from "../src/animation/presets";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 const springPresets = {

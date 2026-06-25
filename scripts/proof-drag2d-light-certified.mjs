@@ -298,7 +298,7 @@ if (!existsSync(LIB)) {
     //       chain drag-2d→drag→index introduces no static `@mkbabb/value.js` edge).
     const VALUE_JS_IMPORT = /(?:from|import)\s*\(?\s*["']@mkbabb\/value\.js["']/;
     const chainOffenders = [];
-    for (const rel of ["src/animation/drag-2d.ts", "src/animation/drag.ts"]) {
+    for (const rel of ["src/animation/orchestration/drag/drag-2d.ts", "src/animation/orchestration/drag/draggable.ts"]) {
         const p = path.join(REPO, rel);
         if (existsSync(p) && VALUE_JS_IMPORT.test(read(p))) chainOffenders.push(rel);
     }

@@ -24,7 +24,7 @@
  *    land — 1.998→0 turns/frame, `test/sync-step.measure.test.ts`).
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { RAFPlayback, type Tickable } from "../src/animation/playback";
+import { RAFPlayback, type Tickable } from "../src/animation/physics/playback";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 

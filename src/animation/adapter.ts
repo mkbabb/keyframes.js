@@ -19,7 +19,7 @@ import {
     resolveValues,
     type ResolveContext,
     type ResolveEnv,
-} from "./resolve-values";
+} from "./resolve";
 
 /**
  * The stable diagnostic `code`s the kf-side sink emits (K.W7 S4). A FLAT,
@@ -47,7 +47,18 @@ export type DiagnosticCode =
     // be found/reconstructed, or a scroll-driven `currentTime` carries a unit kf
     // cannot map. A consumer branches on the code to tell "WAAPI absent" from
     // "adopt refused" WITHOUT scraping the message (the stable-`code` contract).
-    | "ADOPT_REFUSE";
+    | "ADOPT_REFUSE"
+    // R.W3 §2A — `CSS.registerProperty` UA rejection (not the benign
+    // duplicate-name `InvalidModificationError`). A typed `@property` the UA
+    // refuses means the WAAPI path animates that custom discretely (silent
+    // regression vs the rAF path's JS interpolation). Surfaced so the author
+    // can branch on the code without scraping the message.
+    | "PROPERTY_REGISTER_REJECTED"
+    // R.W3 §2C — a `@function` arg parse failed its declared `<syntax>` and
+    // the param's default also failed to parse (value.js 1.2.0 bug — the
+    // default was mis-assigned to `type`). The entire `--fn()` call silently
+    // DROPs the declaration; this code surfaces that absorption.
+    | "CUSTOM_FN_ARG_DROP";
 
 /**
  * A structured parse/honoring diagnostic (K.W7 S4). Extends the value.js
@@ -280,7 +291,9 @@ export const resolveKeyframes = (
     // no-op seam that never mutates it), so sharing it across declarations is
     // benign; the per-call depth ceiling is the active guard.
     const functions = extractFunctions(ast);
-    const resolveCtx = makeResolveContext(functions, env);
+    // R.W3 §2C: thread the diagnostics array into the resolve context so the
+    // @function resolver can push CUSTOM_FN_ARG_DROP rows for silent DROP events.
+    const resolveCtx = makeResolveContext(functions, env, diagnostics);
 
     for (const rule of rules) {
         const vars = declsToVarMap(rule, resolveCtx);

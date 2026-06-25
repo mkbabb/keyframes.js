@@ -129,16 +129,17 @@ const isForcedMetadata = (p) =>
     p === "package.json" || /^README(\.[^/]*)?$/i.test(p) || /^LICEN[CS]E(\.[^/]*)?$/i.test(p);
 
 /**
- * The LIBRARY build's legitimate dist shape: the entry, the d.ts roll-up,
- * and the hash-named lazy chunks of the `loadAnimationEngine()` dynamic
- * boundary (`engine-*`, `animate-*`, `motion-path-*`, `draw-svg-*`,
- * `animations-*`, `springTimingFunction-*`, `timeline-*`, …) — legitimate
- * splits, NOT leakage (`build-packaging-release.md §1`). Anything else under
- * dist/ (`_redirects`, demo build trees, source maps, stray assets) is a
- * publish leak.
+ * The LIBRARY build's legitimate dist shape: the `.` entry + its d.ts roll-up,
+ * the `./engine` subpath entry (`dist/engine/index.{js,d.ts}` — R.W4 §2.1, the
+ * statically-importable HEAVY "in"; a STABLE-PATH named entry, not a hash chunk),
+ * and the hash-named lazy chunks of the `loadAnimationEngine()` dynamic boundary
+ * (`engine-*`, `animate-*`, `motion-path-*`, `draw-svg-*`, `animations-*`,
+ * `springTimingFunction-*`, `timeline-*`, …) — legitimate splits, NOT leakage
+ * (`build-packaging-release.md §1`). Anything else under dist/ (`_redirects`,
+ * demo build trees, source maps, stray assets) is a publish leak.
  */
 const isLibraryArtifact = (p) =>
-    /^dist\/(?:keyframes\.js|keyframes\.d\.ts|[A-Za-z0-9_.]+-[A-Za-z0-9_-]+\.js)$/.test(p);
+    /^dist\/(?:keyframes\.js|keyframes\.d\.ts|engine\/index\.(?:js|d\.ts)|[A-Za-z0-9_.]+-[A-Za-z0-9_-]+\.js)$/.test(p);
 
 /** Junk basenames npm itself always excludes — ignore on the fs side too. */
 const isPacklistJunk = (name) =>
@@ -368,7 +369,7 @@ function clauseB(lightExports, engineKeys) {
             );
         }
     }
-    for (const core of ["KeyframesAnimation", "CSSKeyframesAnimation", "AnimationGroup", "animate", "presets"]) {
+    for (const core of ["KeyframesAnimation", "CSSKeyframesAnimation", "AnimationGroup", "presets"]) {
         if (!engineKeys.includes(core)) {
             failures.push(
                 `(b) AnimationEngine d.ts parse missing core key "${core}" — the interface-key derivation is broken (fail-loud, not false-green).`,

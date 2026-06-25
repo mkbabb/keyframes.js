@@ -125,9 +125,11 @@ export function restoreGroupPlaybackState(
         Object.assign(groupObject.values, vars);
     }
 
-    // Render the restored frame.
+    // Render the restored frame. R.W2 — `render(now)` is the PUBLIC single-frame
+    // paint entry (passing the explicit restored clock); `transformFramesGrouped`
+    // is now private (the demo no longer reaches into group internals).
     group.paused = true;
-    group.transformFramesGrouped(now);
+    group.render(now);
 
     if (snap.playing) {
         // Resume from the restored paused state: unpauses children + restarts

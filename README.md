@@ -6,9 +6,11 @@ CSS keyframe animations for anything in JavaScript. Specify your keyframes in st
 
 ## Quick Start
 
-Create a `CSSKeyframesAnimation`, feed it CSS `@keyframes`, add targets, play:
+Create a `CSSKeyframesAnimation`, feed it CSS `@keyframes`, add targets, play. The engine class is a static, synchronous import from the `@mkbabb/keyframes.js/engine` subpath (it carries the CSS parser + `@mkbabb/value.js`; the light `.` barrel stays value.js-free):
 
-```ts
+```ts run
+import { CSSKeyframesAnimation } from "@mkbabb/keyframes.js/engine";
+
 const anim = new CSSKeyframesAnimation({
     duration: 2000,
     iterationCount: Infinity,
@@ -18,17 +20,10 @@ const anim = new CSSKeyframesAnimation({
 
 anim.fromString(`
     @keyframes mijn-keyframes {
-        from {
-            transform: translateX(-100%) translateY(-100%) rotate(0turn);
-            background-color: #C462D8;
-        }
-        100% {
-            transform: translateX(50%) translateY(75%) rotate(1turn);
-            background-color: #E85252;
-        }
+        from { transform: translateX(-100%); background-color: #C462D8; }
+        to   { transform: translateX(50%);  background-color: #E85252; }
     }
 `);
-
 anim.setTargets(document.getElementById("myElement"));
 anim.play();
 ```
@@ -36,46 +31,6 @@ anim.play();
 This animates the element's style properties as specified in the keyframes. The default behavior, but you can get far more inventive with it.
 
 The [demo apps](demo/) exercise this pattern end-to-end — [try them live](https://keyframes.babb.dev/).
-
-## Table of Contents
-
-- [Installation](#installation)
-- [Project Structure](#project-structure)
-- [Animation](#animation)
-  - [AnimationOptions](#animationoptions)
-  - [Transform Function](#the-transform-function)
-  - [Timing Function](#the-timing-function)
-  - [TemplateAnimationFrame](#templateanimationframe)
-  - [The dynamic engine — loadAnimationEngine()](#the-dynamic-engine--loadanimationengine)
-  - [animate](#animate)
-  - [MotionPath](#motionpath)
-  - [DrawSVG](#drawsvg)
-- [CSSKeyframesAnimation](#csskeyframesanimation)
-  - [Parsing CSS Keyframes](#parsing-css-keyframes)
-  - [Units](#units)
-- [AnimationGroup](#animationgroup)
-- [Presets](#presets)
-- [The round-trip — ingest, drive, compile](#the-round-trip--ingest-drive-compile)
-  - [Ingest — read the live web's CSS](#ingest--read-the-live-webs-css)
-  - [Scroll-as-CSS — the animation-timeline grammar](#scroll-as-css--the-animation-timeline-grammar)
-  - [Compile — the parser run backward](#compile--the-parser-run-backward)
-- [Web Animations API](#web-animations-api)
-- [Baseline, tree-shaking & reduced motion](#baseline-tree-shaking--reduced-motion)
-- [Beyond CSS](#beyond-css)
-  - [NumericAnimation](#numericanimation)
-  - [SmoothProgress](#smoothprogress)
-  - [ElementMorph](#elementmorph)
-  - [Timeline](#timeline)
-  - [SpringProgress](#springprogress)
-  - [springLinearStops & springTimingFunction](#springlinearstops--springtimingfunction)
-  - [RAFPlayback](#rafplayback)
-  - [stagger](#stagger)
-  - [flip / flipShared](#flip--flipshared)
-  - [drag / Draggable](#drag--draggable)
-  - [decay / decayRest](#decay--decayrest)
-  - [Sequence](#sequence)
-- [Ecosystem & agents](#ecosystem--agents)
-- [Build & Development](#build--development)
 
 ## Installation
 
@@ -88,52 +43,19 @@ Works both in and out of the browser. Anything that touches the DOM (`getCompute
 ## Project Structure
 
 ```
-src/
-├── animation/               # THE library — engine + every primitive (see src/animation/CLAUDE.md)
-│   ├── index.ts             # Package barrel: the LIGHT static surface + loadAnimationEngine()
-│   ├── engine.ts            # HEAVY: Animation, CSSKeyframesAnimation, AnimationGroup
-│   ├── group.ts             # AnimationGroup — multi-animation compositor
-│   ├── frame-compiler.ts    # Keyframe → frame compilation
-│   ├── animate.ts           # animate() — the single-call front door (HEAVY)
-│   ├── motion-path.ts       # MotionPath — offset-distance over an offset-path (HEAVY)
-│   ├── draw-svg.ts          # DrawSVG — stroke-dashoffset line drawing (HEAVY)
-│   ├── animations.ts        # 30+ presets (HEAVY — `presets` on loadAnimationEngine())
-│   ├── numeric.ts           # NumericAnimation — zero-alloc keyframe interpolation
-│   ├── smooth.ts            # SmoothProgress — exponential smoothing
-│   ├── spring.ts            # SpringProgress — analytic spring solver
-│   ├── springLinearStops.ts # spring → CSS linear() stop string
-│   ├── springTimingFunction.ts # spring → typed Easing (.fn + .css twin)
-│   ├── morph.ts             # ElementMorph — rect-to-rect transform interpolation
-│   ├── timeline.ts          # Timeline, ScrollTimeline, ManualTimeline (+ native bridge)
-│   ├── playback.ts          # RAFPlayback — THE managed rAF driver
-│   ├── stagger.ts           # stagger — per-index delay distributions
-│   ├── flip.ts              # flip / flipShared — FLIP over ElementMorph
-│   ├── drag.ts              # drag / Draggable — spring-backed pointer drag
-│   ├── decay.ts             # decay / decayRest — frictional glide closed form
-│   ├── sequence.ts          # Sequence — master-playhead orchestrator
-│   ├── easing.ts            # toEasing / resolveEasing — the easing boundary
-│   ├── adapter.ts / waapi.ts / format.ts / constants.ts / utils.ts / internal/
-└── env.d.ts
-
-demo/                        # Vue 3 demo apps (see demo/CLAUDE.md)
-├── @/                       # Shared editor shell, composables, UI, styles
-├── app/                     # Multi-scene demo SPA — the deployed demo
-├── cube/                    # 3D cube + AnimationGroup + matrix editor
-├── square/                  # Custom transform function
-├── amiga/                   # 3D animated sphere (Three.js)
-├── easing/                  # Easing editor
-├── motion-path/             # MotionPath scene
-├── sequence/                # Sequence orchestration scene
-├── spring/                  # Spring physics scene
-└── playground/              # Asset playground
-
-test/                        # Vitest suites (jsdom)
-bench/                       # Vitest benchmarks
+src/animation/   # THE library — engine + every primitive (see src/animation/CLAUDE.md)
+demo/            # Vue 3 demo apps (see demo/CLAUDE.md)
+test/            # Vitest suites (jsdom)
+bench/           # Vitest benchmarks
+scripts/         # CI gates (proof:* scripts) + code generators
+docs/            # Migration guide, published surface manifest, architecture notes
 ```
+
+For the authoritative per-file inventory, see [`src/animation/CLAUDE.md`](src/animation/CLAUDE.md).
 
 ## Animation
 
-The `KeyframesAnimation` object (formerly `Animation`, renamed in 5.0.0 — see `docs/MIGRATION-5.0.0.md`) drives `CSSKeyframesAnimation` and `AnimationGroup`. It's composed of:
+The `KeyframesAnimation` object drives `CSSKeyframesAnimation` and `AnimationGroup`. It's composed of:
 
 - **options** (`AnimationOptions`)
 - **transform function**: interpolates between keyframes
@@ -170,7 +92,7 @@ Every value is parsed as a CSS value unit (`1px`, `1em`, `1deg`, etc.). To inter
 type TimingFunction = (t: number) => number;
 ```
 
-Takes `t` in `[0, 1]`, returns `[0, 1]`. All CSS timing functions are implemented in [`easing.ts`](src/easing.ts).
+Takes `t` in `[0, 1]`, returns `[0, 1]`. All CSS timing functions are implemented in `easing.ts`.
 
 #### Step functions
 
@@ -185,13 +107,7 @@ Implemented as `steppedEase(t, steps, jumpTerm)`:
 
 `cubicBezier(t, x1, y1, x2, y2)` implements the cubic case. The general case uses de Casteljau's algorithm iteratively.
 
-Both are in [`math.ts`](src/math.ts). For Bezier visualizations, see [this Desmos graph](https://www.desmos.com/calculator/tvivnkflzv) or the `timing-functions` demo.
-
-`CSSCubicBezier` is the higher-order convenience: takes control points, returns a `t → value` function. CSS's named easings are built from it:
-
-```ts
-const easeInBounce = (t: number) => CSSCubicBezier(0.09, 0.91, 0.5, 1.5)(t);
-```
+For Bezier visualizations, see [this Desmos graph](https://www.desmos.com/calculator/tvivnkflzv).
 
 ### `TemplateAnimationFrame`
 
@@ -203,33 +119,11 @@ A template keyframe prior to resolution. Composed of:
 - `transform`: per-keyframe transform function (optional)
 - `timingFunction`: per-keyframe timing function (optional)
 
-Once a transform or timing function is specified, it propagates to all subsequent keyframes.
-
-#### Reification
-
-Template keyframes are reified into concrete keyframes by:
-
-1. **Parsing start times**: CSS time formats (`1s`, `100ms`), raw numbers, or percentages (`50%`). All normalized to a percentage of total duration.
-2. **Resolving functions**: null transforms and timing functions fall back to the `AnimationOptions` defaults.
-3. **Sorting** by start percentage.
-4. **Resolving variables** across keyframes—every keyframe ends up with the same variable set.
-5. **Computing durations** from sorted start/stop times.
-
-#### Variable resolution
-
-Keyframes needn't declare the same variables. The resolver walks backward from each keyframe, seeking the most recent definition of each variable. If none exists, the default value (typically `0`) is used.
-
-```ts
-const kf1 = { start: "0s",   vars: { x: 0, y: 0 } };
-const kf2 = { start: "500ms", vars: { x: 1 } };
-const kf3 = { start: "100%", vars: { x: 0, y: 1 } };
-```
-
-`kf2` gets `y: 0` from `kf1`. This lets you specify keyframes loosely.
+Once a transform or timing function is specified, it propagates to all subsequent keyframes. Keyframes needn't declare the same variables — the resolver walks backward from each keyframe to fill gaps.
 
 ### The dynamic engine — `loadAnimationEngine()`
 
-The package splits along a static/dynamic boundary (see [tree-shaking](#baseline-tree-shaking--reduced-motion)). The classes above — `Animation`, `CSSKeyframesAnimation`, `AnimationGroup` — are the **heavy** tier: they carry the CSS parser and `@mkbabb/value.js`, and their runtime constructors are reached **only** through `loadAnimationEngine()`, one awaited dynamic import:
+The package splits along a static/dynamic boundary (see [tree-shaking](#baseline-tree-shaking--reduced-motion)). The classes above — `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup` — are the **heavy** tier: they carry the CSS parser and `@mkbabb/value.js`, and their runtime constructors are reached **only** through `loadAnimationEngine()`, one awaited dynamic import:
 
 ```ts run
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
@@ -243,25 +137,7 @@ anim.setTargets(element);
 await anim.play();
 ```
 
-The engine surface (`AnimationEngine`): `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { KeyframesAnimation } from "@mkbabb/keyframes.js"` costs no runtime edge.
-
-### `animate`
-
-The single-call front door: construct + target + play in one call, dispatched on the **shape** of the input. The returned `CSSKeyframesAnimation` is the control handle — `.pause()` / `.play()` / `.stop()` / `await handle.finished`.
-
-```ts run
-const { animate } = await loadAnimationEngine();
-
-const fade = animate(box, { "0%": { opacity: 0 }, "100%": { opacity: 1 } }, { duration: 200 });
-await fade.finished;
-
-// Dispatch on the input's shape:
-animate(box, `from { opacity: 0 } to { opacity: 1 }`, { autoPlay: false }); // CSS string     → fromString
-animate(box, [{ opacity: 0 }, { opacity: 1 }], { autoPlay: false });        // vars array     → fromVars
-animate(box, { path: "path('M 0 0 H 100')" }, { autoPlay: false });         // MotionPath spec → fromMotionPath
-```
-
-Options: every [`AnimationOptions`](#animationoptions) key, plus `transform` (a custom renderer forwarded to the `from*` factory) and `autoPlay` (default `true`; `false` returns a constructed, targeted, not-yet-playing handle).
+The engine surface (`AnimationEngine`): `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { KeyframesAnimation } from "@mkbabb/keyframes.js"` costs no runtime edge.
 
 ### `MotionPath`
 
@@ -338,7 +214,7 @@ The default transform applies interpolated values to `element.style` for each ta
 
 ### Parsing CSS keyframes
 
-[`keyframes.ts`](src/parsing/keyframes.ts) covers most of the CSS spec:
+`keyframes.ts` covers most of the CSS spec:
 
 - `from`, `to`, and percentages
 - Time units (`s`, `ms`)
@@ -354,23 +230,7 @@ The parser uses [`@mkbabb/parse-that`](https://github.com/mkbabb/parse-that) and
 
 ### Units
 
-Thorough unit parsing and resolution, covering:
-
-- **length**, **angle**, **time**, **resolution**, **percentage**, **color**
-
-See [`units/`](src/units/) and [`parsing/units.ts`](src/parsing/units.ts).
-
-A `unit` value takes one of three forms:
-
-- `ValueUnit`: a value with a string unit and an array of supertypes
-- `FunctionValue`: a function name with an array of `ValueUnit`s
-- `ValueArray`: an array of `ValueUnit`s
-
-Each defines `toString()`, `valueOf()`, and `lerp(t, other, target?)`. Any `ValueUnit` variant can interpolate with any other—values are aligned to the shorter array, then interpolated element-wise.
-
-Units of the same supertype interpolate freely. Supertypes also encode whether a unit is relative or absolute (`px` is absolute; `em` is relative), used to resolve to a common base before interpolation.
-
-Interpolation dispatch: numeric values use `lerp`; colors use perceptual interpolation (`oklab` by default, configurable); computed units (`vh`, `vw`, `calc`, `var`) resolve against the live DOM at interpolation time.
+Unit parsing and resolution (length, angle, time, percentage, color, and container-query units) are handled by [`@mkbabb/value.js`](https://github.com/mkbabb/value.js). `ValueUnit`, `FunctionValue`, and `ValueArray` are the three token shapes; all define `toString()`, `valueOf()`, and `lerp()`.
 
 ## `AnimationGroup`
 
@@ -396,7 +256,7 @@ The group manages its own `requestAnimationFrame` loop and marks child animation
 
 ## Presets
 
-30+ ready-to-use animations in [`animations.ts`](src/animation/animations.ts). All return `CSSKeyframesAnimation` instances and accept optional `InputAnimationOptions`. Each builds a value.js-bearing `CSSKeyframesAnimation`, so the presets ride the heavy dynamic boundary (the `presets` namespace on `loadAnimationEngine()`) rather than the value.js-free static barrel:
+30+ ready-to-use animations in `src/animation/presets/`. All return `CSSKeyframesAnimation` instances and accept optional `InputAnimationOptions`. Each builds a value.js-bearing `CSSKeyframesAnimation`, so the presets ride the heavy dynamic boundary (the `presets` namespace on `loadAnimationEngine()`) rather than the value.js-free static barrel:
 
 ```ts
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
@@ -405,10 +265,6 @@ const { presets } = await loadAnimationEngine();
 const anim = presets.fadeIn({ duration: 500 });
 anim.setTargets(element);
 anim.play();
-
-// …or the single-call front door (auto-target + auto-play):
-const { animate } = await loadAnimationEngine();
-animate(element, presets.fadeIn());
 ```
 
 **Fade**: `fadeIn`, `fadeOut` · **Attention**: `pulse`, `heartbeat`, `glow`, `shake`, `bounce` · **Entrance/Exit**: `flip`, `rotateIn`, `slideIn`, `slideInLeft/Right`, `slideOutLeft/Right`, `blurIn/Out/InOut`, `jumpUp/Down`, `warpLeft/Right` · **Effects**: `hover`, `typewriter`, `typingCursor`, `rainbowText`, `progressBar`, `skeletonLoading`, `spinner`, `parallaxScroll`, `gradientBackground`, `rotateScale`, `accordionExpand`, `notificationBounce`, `textFocusBlur`
@@ -538,12 +394,12 @@ keyframes.js targets a modern-web Baseline and documents the tier of every platf
 | WAAPI `linear()` springs | Newly available | Feature-detected; the rAF spring path is the default fallback |
 | `Element.animate()` (WAAPI) | Widely available | Opt-out via `useWAAPI: false` |
 
-**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`Animation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry and fails the build if any light module reintroduces a static value.js edge.
+**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry and fails the build if any light module reintroduces a static value.js edge.
 
 **Reduced motion.** Both the light and heavy engines honor `prefers-reduced-motion: reduce`. Opt in per surface:
 
 - **Light interpolators** (`NumericAnimation`, `SmoothProgress`, `SpringProgress`, `ElementMorph`) — pass `respectReducedMotion: true`. `RAFPlayback` owns the shared snap-to-final gate, so the managed `.play()` path skips the rAF loop and lands on the final value in a single paint.
-- **Heavy engine** (`Animation` / `CSSKeyframesAnimation`) — pass `respectReducedMotion: true`; `play()` snaps to the final frame (a single paint, `animationstart` → `animationend`) instead of running the rAF/WAAPI loop.
+- **Heavy engine** (`KeyframesAnimation` / `CSSKeyframesAnimation`) — pass `respectReducedMotion: true`; `play()` snaps to the final frame (a single paint, `animationstart` → `animationend`) instead of running the rAF/WAAPI loop.
 - **`AnimationGroup`** — set `group.respectReducedMotion = true`; `play()` composites every child's final frame once rather than driving the draw loop.
 
 Off-DOM (SSR / Node) the check is a no-op and animations proceed normally.
@@ -751,44 +607,6 @@ eased(3, 4); // => 300
 
 Options: `each` (per-step ms, default 100), `from` (`"first"` | `"last"` | `"center"` | `"edges"` | an index; default `"first"`), `ease` (callable or `Easing`; string names throw). Feed the delays to `AnimationGroup` per-child `delay`, `setTimeout`, or `animation-delay` — the generator is just arithmetic.
 
-#### Recipe — structural stagger, the CSS way
-
-The genre's text-reveal tools (GSAP SplitText) split text into per-letter DOM nodes. **Don't split text into letters**: letter-splitting produces non-functional accessibility markup across screen-reader/browser pairs (a 2026-documented hazard — `aria-label` is not honored on generic wrapper spans). keyframes.js takes the structural position: *we don't split your DOM; we stagger and spring over structure you own* — a visual-only reveal that never changes reading or tab order.
-
-- Reveal at **word or line** granularity, over markup you author: `aria-label` on a true container, `aria-hidden` fragments inside (or a visually-hidden duplicate) — the mitigations that actually work.
-- Drive the reveal with the shipped `stagger` + `SpringProgress` — the library performs no DOM mutation.
-- Perceptual color across the reveal is free — the engine's default `oklab` interpolation already applies.
-
-```ts run
-// Markup you own:
-//   <h1 aria-label="Spring forward">
-//     <span aria-hidden="true">Spring</span> <span aria-hidden="true">forward</span>
-//   </h1>
-const words = Array.from(heading.querySelectorAll<HTMLElement>("[aria-hidden]"));
-const delay = stagger(words.length, { each: 60 });
-
-words.forEach((word, i) => {
-    setTimeout(() => {
-        const spring = new SpringProgress({ response: 0.4, dampingFraction: 0.6 });
-        spring.target = 1;
-        spring.play((v) => {
-            word.style.opacity = String(Math.min(1, v));
-            word.style.transform = `translateY(${(1 - v) * 0.5}em)`;
-        });
-    }, delay(i, words.length));
-});
-```
-
-Where `sibling-index()` is available, the same distribution emits as zero-runtime CSS — the progressive-enhancement path, not the default: `sibling-index()` is **not yet Baseline** (expected mid–late 2026), cannot appear inside `@keyframes`, and cannot carry the spring curve (pair it with a [`springLinearStops`](#springlinearstops--springtimingfunction) `linear()` timing function for that).
-
-```css
-/* CSS-only structural stagger — progressive enhancement */
-h1 > span {
-    animation: word-in 600ms both;
-    animation-delay: calc(sibling-index() * 60ms);
-}
-```
-
 ### `flip` / `flipShared`
 
 FLIP (First-Last-Invert-Play) layout animation over [`ElementMorph`](#elementmorph). `flip` animates a layout change on one element: measure (First) → `mutate()` (Last) → invert + play, with the two layout reads batched (no read/write thrash). `flipShared` animates element `a` onto element `b`'s rect — the shared-element / `layoutId` idiom.
@@ -878,7 +696,10 @@ Positions: a number (absolute ms), `"+=n"` / `"-=n"` (relative to the insertion 
 
 ## Ecosystem & agents
 
-- **[`llms.txt`](./llms.txt)** — the agent surface: a machine-readable index of every capability, **generated** from the CI-verified published surface (`docs/published-surface.md`) so it cannot drift from the shipped API. Point an LLM/agent at it for a grounded map of the primitives, the static/dynamic boundary, and the round-trip. `llms-full.txt` carries the expanded form.
+- **`llms.txt`** — the agent surface: a machine-readable index of every capability, generated
+  from the CI-verified published surface (`docs/published-surface.md`) by running
+  `node scripts/gen-agent-surface.mjs`. The artifact is not tracked in git (generated at CI time);
+  `llms-full.txt` carries the expanded form.
 
 ## Build & Development
 
@@ -909,8 +730,8 @@ It pulls `node:24-slim` (kf's CI Node), mounts the repo at `/workspace`, install
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md). The README shape follows the perimeter-level
-[canonical README shape](https://github.com/mkbabb/glass-ui/blob/master/docs/precepts/canonical-readme-shape.md).
+Open a PR against `master`. Run `npm run proof:all` before pushing — the gate roster is the
+acceptance bar.
 
 ## License
 

@@ -167,7 +167,9 @@ if (failures.length === 0) {
 if (failures.length === 0) {
     const FIXTURE = join(ANIM, "__lint_fixture__");
     const LEAF = join(ANIM, "internal", "leaves.ts");
-    const LIGHT = join(ANIM, "spring.ts");
+    // R.W1: the LIGHT barrel modules moved into zone directories; the plant 3
+    // fixture targets the spring progress module (physics/spring/progress.ts).
+    const LIGHT = join(ANIM, "physics", "spring", "progress.ts");
     const LEAF_BAK = `${LEAF}.proof-lint-bak`;
     const LIGHT_BAK = `${LIGHT}.proof-lint-bak`;
 
@@ -235,17 +237,18 @@ if (failures.length === 0) {
         },
     );
 
-    // Plant 3 — a LIGHT barrel module (spring.ts) statically imports ./engine.
-    // MUST red light-barrel-no-engine (the STATIC pre-flight of proof:boundary).
+    // Plant 3 — a LIGHT barrel module (physics/spring/progress.ts) statically
+    // imports ../../engine. MUST red light-barrel-no-engine (the STATIC pre-flight
+    // of proof:boundary). The zone-relative path is `../../engine` (R.W1).
     plant(
-        "a LIGHT barrel module importing ./engine (spring.ts)",
+        "a LIGHT barrel module importing ../../engine (physics/spring/progress.ts)",
         "light-barrel-no-engine",
         () => {
             cpSync(LIGHT, LIGHT_BAK);
             writeFileSync(
                 LIGHT,
                 readFileSync(LIGHT, "utf8") +
-                    '\nimport { getTimingFunction as _probe } from "./engine";\nexport const _lintProbe = _probe;\n',
+                    '\nimport { getTimingFunction as _probe } from "../../engine";\nexport const _lintProbe = _probe;\n',
             );
         },
         () => {

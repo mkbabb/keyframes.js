@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { RAFPlayback } from "../src/animation/playback";
-import type { Tickable } from "../src/animation/playback";
+import { RAFPlayback } from "../src/animation/physics/playback";
+import type { Tickable } from "../src/animation/physics/playback";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
-import { SmoothProgress } from "../src/animation/smooth";
-import { SpringProgress } from "../src/animation/spring";
-import { springTimingFunction } from "../src/animation/springTimingFunction";
+import { SmoothProgress } from "../src/animation/physics/smooth";
+import { SpringProgress } from "../src/animation/physics/spring";
+import { springTimingFunction } from "../src/animation/physics/spring";
 import { toWAAPIOptions } from "../src/animation/waapi";
 import { yieldToMain } from "../src/animation/internal/scheduler";
 

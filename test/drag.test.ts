@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { decay, decayRest } from "../src/animation/decay";
-import { Draggable, drag } from "../src/animation/drag";
-import { SpringProgress } from "../src/animation/spring";
+import { decay, decayRest } from "../src/animation/physics/decay";
+import { Draggable, drag } from "../src/animation/orchestration/drag";
+import { SpringProgress } from "../src/animation/physics/spring";
 
 /** 60fps frame step in milliseconds. */
 const FRAME_MS = 1000 / 60;

@@ -1,0 +1,241 @@
+/**
+ * `group/compositor.ts` — the single-target composite engine (R.W2 — lib-group:
+ * the `transformFramesGrouped` (146L) + `boxedBlendArm` (70L) carve the spec §4
+ * names). Free functions over the concrete `AnimationGroup` — the same DI
+ * pattern the engine's `./playback`/`./interpolate` carve uses — so the class
+ * keeps a thin `transformFramesGrouped` delegate while its body lands under the
+ * decomposition ceiling. The per-frame composite buffer + SoA plan state
+ * (`_grouped`/`_groupedKeys`/`_soaPlans`/`_compositeBuf`) stay instance state on
+ * the group; these functions read/write them directly.
+ *
+ * The gate-anchored blend STATEMENTS follow the code to this new home (R.W2 — the
+ * "gate follows code" co-edit): proof:blend's in-place-blend / array-guard /
+ * min-loops, proof:spring-blend-weight's `phys-c-read`, and proof:soa-composite's
+ * `soa-path-taken` source clause all grep THIS module for the leaf contract (the
+ * `Array.isArray` guard, the `Math.min` loop, the `isNumericUnit` per-element
+ * guard, the un-clamped `+=`, the spring-weighted `lerp`, the
+ * `groupSoABlendLayer` fold + `_compositeBuf`/`buildSoAPlans`/`_soaPlans`).
+ */
+import { lerp, type ValueUnit } from "@mkbabb/value.js";
+import { NOOP_TRANSFORM } from "../constants";
+import type { AnimationLayerConfig, Vars } from "../constants";
+import { computeGroupedKeys } from "./entries";
+import { buildSoAPlans, groupSoABlendLayer, isNumericUnit } from "./soa";
+import type { AnimationGroup } from "./group";
+
+/**
+ * Composite all animation values into a single grouped transform (per-frame for
+ * single-target groups). Applies layer blending (replace / add / weighted) in
+ * zIndex order, then calls the group transform with the merged values. Each
+ * child's values refresh in place (`interpFrames` clears and rewrites the
+ * long-lived buffer), so no stale keys leak and no fresh object is allocated per
+ * entry per frame.
+ */
+export function compositeFrame<V extends Vars>(
+    group: AnimationGroup<V>,
+    t: number,
+): Record<string, unknown> {
+    // Reuse the long-lived composite buffer, cleared in place (the zero-alloc
+    // idiom `interpFrames` uses for its `out` buffer) — no fresh object/frame.
+    const groupedValues = group._grouped;
+    if (group._groupedKeysDirty) {
+        // The compile-stable key UNION (whitelist-filtered) — recomputed only on
+        // a structural change, never per frame (fold in `./entries`).
+        group._groupedKeys = computeGroupedKeys(group.getEntries());
+        group._groupedKeysDirty = false;
+        // P.W2 — drop the SoA plan; it is rebuilt lazily on the next frame (once
+        // each child's `entry.values` is populated, so the carrier + incoming
+        // refs can be captured). A structural change invalidates the captured
+        // refs, so the rebuild is gated on the SAME dirty seam.
+        group._soaPlans = null;
+    }
+
+    // F.W4 S2 — stable-key null-fill clear (NO `delete`: the delete-loop trapped
+    // `_grouped` in V8 dictionary mode). Inactive keys read back `undefined`; the
+    // blend skips them and the post-blend compaction drops any uncontributed key.
+    const groupedKeys = group._groupedKeys;
+    for (let i = 0; i < groupedKeys.length; i++) {
+        groupedValues[groupedKeys[i]!] = undefined;
+    }
+
+    const entries = group.getEntries();
+
+    // P.W2 — the SoA fold (the validated 3.7×) takes over ONLY once the plan is
+    // built. The plan needs each child's `entry.values` populated (the carrier +
+    // incoming refs to capture), so the FIRST frame after a structural change
+    // runs the boxed path AND builds the plan; subsequent frames fold numeric
+    // pairs through `_compositeBuf`. A group with NO `add`/`weighted` layer builds
+    // an empty plan list (the `replace` default is dispatch-free), so the fast
+    // path is byte-unchanged.
+    const useSoA = group._soaPlans !== null;
+    let soaIdx = 0;
+
+    let done = true;
+    for (const groupObject of entries) {
+        const { animation, layer, values } = groupObject;
+
+        done = done && animation.done;
+
+        if (!layer.enabled) continue;
+
+        // Refresh in place — `interpFrames` resets `values` before writing, so a
+        // scrubbed child's fresh state is always reflected.
+        animation.interpFrames(
+            animation.t,
+            false,
+            values as Record<string, ValueUnit[]>,
+        );
+
+        // The whitelist is an INLINE key-skip — no `filteredValues` object; each
+        // blend arm walks `values` with `for..in` (allocation-free).
+        const whitelist = layer.properties;
+
+        if (layer.blendMode === "replace") {
+            // The DEFAULT arm — a bare reference-assign (z-order last-writer-wins).
+            // Already dispatch-free; UNTOUCHED by the SoA transposition.
+            for (const key in values) {
+                if (whitelist && !whitelist.has(key)) continue;
+                const incoming = values[key];
+                if (incoming === undefined) continue;
+                groupedValues[key] = incoming;
+            }
+            continue;
+        }
+
+        // `add` / `weighted` — the non-default boxed-AoS arms the SoA fold targets.
+        // When the plan is built, fold the pure-numeric pairs through
+        // `_compositeBuf` (`groupSoABlendLayer`, called DIRECTLY), then run the
+        // boxed path ONLY over the residual (non-numeric / mixed / first-touch)
+        // keys — empty for the dominant all-numeric shape, so the whole `for..in`
+        // collapses to the fold. On the plan-build frame `useSoA` is false: the
+        // boxed path runs whole (and records the carriers the next frame captures).
+        if (useSoA) {
+            const plan = group._soaPlans![soaIdx++]!;
+            groupSoABlendLayer(group._compositeBuf!, plan);
+            if (plan.boxedKeys.length > 0) {
+                boxedBlendArm(layer, values, groupedValues, whitelist, plan.boxedKeys);
+            }
+        } else {
+            boxedBlendArm(layer, values, groupedValues, whitelist);
+        }
+    }
+
+    // Build the SoA plan once `entry.values` is populated (this frame's boxed pass
+    // established the carriers) — captured for every subsequent frame.
+    // `buildSoAPlans` (INTERNAL, `./soa`) grows the shared scratch and returns it
+    // alongside the plans; re-park both as instance state.
+    if (!useSoA) {
+        const { plans, compositeBuf } = buildSoAPlans(entries, group._compositeBuf);
+        group._soaPlans = plans;
+        group._compositeBuf = compositeBuf;
+    }
+
+    group.done = done;
+
+    // Drop any key NO enabled child contributed this frame so the transform never
+    // serializes an `undefined`. In the common case this deletes nothing, so
+    // `_grouped` stays in fast-properties mode (delete-free, zero-alloc).
+    for (let i = 0; i < groupedKeys.length; i++) {
+        const key = groupedKeys[i]!;
+        if (groupedValues[key] === undefined) delete groupedValues[key];
+    }
+
+    // I.W0 S3 — lazy composite-transform resolution. A child constructed before
+    // `parse()` populates its `frames` keeps `transform`'s no-op default
+    // (compositing NOTHING); resolve it from the first now-parsed child the FIRST
+    // time we draw a real frame. A childless group keeps the no-op (harmless).
+    if (group.transform === NOOP_TRANSFORM) {
+        for (const entry of group.getEntries()) {
+            const frame = entry.animation.frames[0];
+            if (frame != null && frame.transform != null) {
+                group.transform = frame.transform;
+                break;
+            }
+        }
+    }
+
+    group.transform(groupedValues as V, t);
+
+    return groupedValues;
+}
+
+/**
+ * The boxed `add`/`weighted` blend arm — the per-element AoS path that the SoA
+ * fold (`groupSoABlendLayer`) supplants for the pure-numeric majority. Kept as
+ * THE blend implementation for two roles: (1) the plan-build frame (every key,
+ * `only === undefined`) — it establishes the carriers `buildSoAPlans` then
+ * captures; (2) the per-frame residual (the plan's `boxedKeys` — non-numeric /
+ * mixed / first-touch leaves the fold cannot cover, typically empty). Both arms
+ * guard on `Array.isArray(existing) && Array.isArray(incoming)` and loop
+ * `Math.min(existing.length, incoming.length)` elements with a per-element
+ * `isNumericUnit` guard — the byte-exact G.W17 leaf contract (proof:blend),
+ * un-clamped `add` (`+=`), spring-weighted `lerp`. A non-array carrier (or a
+ * skipped key) falls through to `groupedValues[key] = incoming`.
+ */
+export function boxedBlendArm(
+    layer: AnimationLayerConfig,
+    values: Record<string, unknown>,
+    groupedValues: Record<string, unknown>,
+    whitelist: Set<string> | undefined,
+    only?: readonly string[],
+): void {
+    const onlySet = only ? new Set(only) : undefined;
+    if (layer.blendMode === "add") {
+        // Accumulate each numeric leaf element in place (the leaf is a
+        // `ValueUnit[]` — scalar = length 1, multi-component = N). Numeric add is
+        // UN-CLAMPED (CSS `animation-composition: add` clamps at use, not
+        // composition) — `0.8 + 0.8 → 1.6`.
+        for (const key in values) {
+            if (onlySet && !onlySet.has(key)) continue;
+            if (whitelist && !whitelist.has(key)) continue;
+            const incoming = values[key];
+            if (incoming === undefined) continue;
+            const existing = groupedValues[key];
+            if (Array.isArray(existing) && Array.isArray(incoming)) {
+                const n = Math.min(existing.length, incoming.length);
+                for (let i = 0; i < n; i++) {
+                    if (isNumericUnit(existing[i]) && isNumericUnit(incoming[i])) {
+                        existing[i].value += incoming[i].value;
+                    } else {
+                        existing[i] = incoming[i];
+                    }
+                }
+            } else {
+                groupedValues[key] = incoming;
+            }
+        }
+        return;
+    }
+
+    // `weighted` — lerp each numeric leaf element toward the incoming value by
+    // `w`, in place. K.W11 PHYS-C — the spring-driven blend weight: when the layer
+    // carries a `weightSpring` (set by `transitionLayer`/`crossfade`), `w` is the
+    // stepper's CURRENT value, not the constant `layer.weight` — ONE nullish read
+    // hoisted out of the element loop (a per-LAYER scalar), so the crossfade can
+    // overshoot 1.0 and settle. On settle the spring clears and the read falls
+    // back to the constant (byte-unchanged when no spring).
+    const w = layer.weightSpring?.value ?? layer.weight;
+    for (const key in values) {
+        if (onlySet && !onlySet.has(key)) continue;
+        if (whitelist && !whitelist.has(key)) continue;
+        const incoming = values[key];
+        if (incoming === undefined) continue;
+        const existing = groupedValues[key];
+        if (Array.isArray(existing) && Array.isArray(incoming)) {
+            const n = Math.min(existing.length, incoming.length);
+            for (let i = 0; i < n; i++) {
+                if (isNumericUnit(existing[i]) && isNumericUnit(incoming[i])) {
+                    existing[i].value = lerp(
+                        existing[i].value,
+                        incoming[i].value,
+                        w,
+                    );
+                } else {
+                    existing[i] = incoming[i];
+                }
+            }
+        } else {
+            groupedValues[key] = incoming;
+        }
+    }
+}

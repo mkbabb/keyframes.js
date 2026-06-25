@@ -125,6 +125,12 @@ jobs:
             # boundary: linked exports == the manifest roster, cited gates real).
             - name: proof:agent-surface (K.W12 ED-1 — the agent index == the published surface)
               run: npm run proof:agent-surface
+            # R.W4 — the honest API "in": the @mkbabb/keyframes.js/engine subpath
+            # resolves the heavy surface statically (the Quick Start's `new
+            # CSSKeyframesAnimation`), the Quick Start fence is `ts run`-enforced, and
+            # the agent-surface phantom-export check is co-asserted. Library-scoped.
+            - name: proof:in-is-importable (R.W4 — the honest "in" · ./engine subpath + ts-run Quick Start)
+              run: npm run proof:in-is-importable
             # L.W6 — the agent-authoring VERB (validate/explain): the round-trip's
             # FORWARD half, the VALIDATION layer over the compile surface. A HEAVY-
             # surface oracle that runs in jsdom/node (no browser, no demo build), so
@@ -148,6 +154,12 @@ jobs:
             # taught-roster floor forbids the under-tagging false-green.
             - name: proof:readme-runs (J.W5 — the README snippets EXECUTE against dist)
               run: npm run proof:readme-runs
+            # R.W7 — README paths live: every ](src/…) link resolves, no stale
+            # `Animation` class-name reference, Quick Start fence is `ts run` + has
+            # an import line. Paired with proof:readme-runs (R.W4 ensures execution;
+            # R.W7 ensures the cited paths exist + the class name is canonical).
+            - name: proof:readme-paths-live (R.W7 — README src/ links live · no stale Animation · Quick Start ts run)
+              run: npm run proof:readme-paths-live
             - name: proof:boundary (value.js static/dynamic boundary gate, all light entries)
               run: npm run proof:boundary
             - name: "proof:consume-bundle (M.W9 atlas — a LIGHT-surface consumer drags zero value.js/engine)"
@@ -158,6 +170,8 @@ jobs:
               run: npm run proof:packrat-sound
             - name: proof:engine (D.W4 transposition source gate — tick-canon · seam · pause-honest · snap-symmetry · no-legacy)
               run: npm run proof:engine
+            - name: proof:no-flat-siblings (R.W1 — the 7-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
+              run: npm run proof:no-flat-siblings
             - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
               run: npm run proof:zero-alloc
             # F.W2 — the library-scoped engine/correctness gates the workflow
@@ -416,6 +430,8 @@ jobs:
             # ════════════════════════════════════════════════════════════════════
             - name: proof:lint-clean (Q.WA1 — the SLIM dependency-cruiser source-graph floor · no-cycle + leaf/light boundary)
               run: npm run proof:lint-clean
+            - name: proof:no-silent-fallback (R.W3 — legacy/workaround/fallback excision sweep · §2A–2E · 3-clause static gate)
+              run: npm run proof:no-silent-fallback
             - name: proof:drag2d-light-certified (Q.WA2 — drag2D is a certified, gate-locked LIGHT primitive · the DemoControlPoint substrate)
               run: npm run proof:drag2d-light-certified
             - name: proof:wave-charter (Q.WA4 — the 7-question contrivance smell-test + the DAG manifest acyclicity + no-unpublished-consume)

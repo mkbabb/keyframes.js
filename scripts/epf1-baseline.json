@@ -2,14 +2,14 @@
   "$comment": "EPF-1 read/write phase-separation baseline (L.W7 S5, observe-only). layoutThrashCount is the device-INDEPENDENT read↔write phase-boundary count during the ingest CSSOM walk under a ResizeObserver trigger. The cure (batch-reads-first/batch-writes-second in ingest-cssom.ts) must drop it >=50% — gated by re-running with EPF1_CURE=1. NOT shipped in L.W7.",
   "category": "forced-layout",
   "cure": "batch-reads-first/batch-writes-second",
-  "recordedAt": "2026-06-17T07:18:52.764Z",
+  "recordedAt": "2026-06-24T22:13:05.280Z",
   "rows": [
     {
       "n": 10,
       "layoutThrashCount": 19,
       "computedStyleReads": 10,
       "styleWrites": 10,
-      "measuredMs": 45.09608300000002,
+      "measuredMs": 95.38533299999995,
       "category": "forced-layout",
       "cure": "batch-reads-first/batch-writes-second",
       "observeOnly": true
@@ -19,7 +19,7 @@
       "layoutThrashCount": 99,
       "computedStyleReads": 50,
       "styleWrites": 50,
-      "measuredMs": 43.60549999999995,
+      "measuredMs": 104.89695899999992,
       "category": "forced-layout",
       "cure": "batch-reads-first/batch-writes-second",
       "observeOnly": true
@@ -29,7 +29,7 @@
       "layoutThrashCount": 199,
       "computedStyleReads": 100,
       "styleWrites": 100,
-      "measuredMs": 90.74095900000009,
+      "measuredMs": 213.01299999999992,
       "category": "forced-layout",
       "cure": "batch-reads-first/batch-writes-second",
       "observeOnly": true

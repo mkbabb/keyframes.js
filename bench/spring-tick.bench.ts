@@ -13,7 +13,7 @@
  * Imports `SpringProgress` from the VALUE module `spring`, never the barrel.
  */
 import { bench, describe } from "vitest";
-import { SpringProgress } from "../src/animation/spring";
+import { SpringProgress } from "../src/animation/physics/spring";
 
 const FRAMES = 600;
 const DT = 16.667; // a 60Hz step, the unit `tickDt` takes (milliseconds)

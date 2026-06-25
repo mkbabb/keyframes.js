@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Sequence } from "../src/animation/sequence";
+import { Sequence } from "../src/animation/orchestration/sequence";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 // A simple opacity animation 0→1 over `duration` ms. We read the painted
@@ -29,7 +29,7 @@ describe("Sequence — booked name + subsumption", () => {
         // The booked decision: the orchestrator is `Sequence`, NOT `Timeline`
         // (which is the shipped scroll/manual progress driver). Importing both
         // and asserting distinct identities locks the no-collision contract.
-        const { Timeline } = await import("../src/animation/timeline");
+        const { Timeline } = await import("../src/animation/orchestration/timeline");
         expect(Sequence).not.toBe(Timeline);
         expect(Sequence.name).toBe("Sequence");
     });

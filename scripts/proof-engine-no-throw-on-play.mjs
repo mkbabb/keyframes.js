@@ -67,7 +67,7 @@ import { navToScene, REQUIRE_BROWSER, withBrowser } from "./lib/demo-driver.mjs"
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
-const ENGINE_TS = path.join(REPO, "src/animation/engine.ts");
+const ENGINE_TS = path.join(REPO, "src/animation/engine/animation.ts");
 
 const failures = [];
 const ok = (l) => console.log(`  ✓ ${l}`);

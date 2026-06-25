@@ -15,10 +15,17 @@
  *   D-6a snap-symmetry       — BOTH steppers' `_snapSettled` stop the playback
  *   D-6b/c no-legacy         — no `| any` in leaves; no value.js lerp/formatCSS
  *                              path-compat re-exports
+ *   R.W2 no-host-cast        — zero `as unknown as PlaybackHost` anywhere under
+ *                              `src/animation/engine/` (the privacy-inversion
+ *                              workaround is excised; PlaybackState owns the
+ *                              run-state by composition, not by structural cast)
+ *   R.W2 no-host-export      — no `export interface/type PlaybackHost` under
+ *                              `src/animation/engine/` (the interface is gone —
+ *                              not renamed-and-re-exported)
  *
  * Mirrors `proof:boundary`/`proof:dogfood`: exits 1 on any residual.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -29,8 +36,13 @@ const failures = [];
 const fail = (clause, msg) => failures.push(`  ✗ [${clause}] ${msg}`);
 const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
 
-// ── D-2 tick-canon — no driver-layer `tick(` in engine.ts / group.ts ─────────
-for (const f of ["src/animation/engine.ts", "src/animation/group.ts"]) {
+// ── D-2 tick-canon — no driver-layer `tick(` in engine / group ───────────────
+// R.W1 co-edit: engine.ts → engine/animation.ts, group.ts → group/group.ts
+// (the directory partition; challenge-library §1b).
+for (const f of [
+    "src/animation/engine/animation.ts",
+    "src/animation/group/group.ts",
+]) {
     const src = read(f);
     const hits = [...src.matchAll(/\btick\s*\(/g)];
     if (hits.length > 0) {
@@ -42,29 +54,22 @@ for (const f of ["src/animation/engine.ts", "src/animation/group.ts"]) {
 
 // ── D-4 engine-seam — FrameCompiler extracted, run-state-free; core ≤ ceiling ─
 // Guards against the god-object REGROWING by re-absorbing the compile half
-// (re-inlining the FrameCompiler is ~+236 — the regression this bites). D-close
-// was 847; E added two genuine FEATURE methods to the base class — E.W7's
-// zero-alloc `processFrame` lift + `_interpOut` buffer, and E.W9's live-PRM
-// `_snapToReducedMotion` + per-tick re-consult (~+67 total). F added ~95 more
-// of cohesive, gated, MEASURED feature (NOT compile re-absorption): F.W4's
-// stable-key buffer mechanism (`clearBuffer` + `computeStableKeys` + the
-// single-frame alias branch in `interpFrames` — the headline ~3× perf fold) and
-// F.W8's style-rule `animation`-shorthand apply (`_ctorOptions` + the
-// CSS→engine option translation). G adds two cohesive ADDITIVE one-method
-// landings on the same `this`-bound seam — G.W13's `get finished()` over the
-// held play promise and G.W19's `adoptCompiled()` + the `compiler` field→get-only
-// accessor (~+25). This is the gated DECISION F.md NEW-3 / a-engine-post-e
-// F-ENG-5, re-affirmed by G.W5 (a-deferred-ledger C-6, P-invariant: decide, do
-// not re-defer; a-backend-godmodules G-GM-1, re-verified post-G growth): the
-// class is at its cohesive gestalt — a split would be the legacy-shaped
-// "extract-for-line-count" the §Mandate forbids — so the ceiling is EXTENDED
-// with rationale to 1100, NOT the class reflexively split. It still bites HARD on
-// a compile re-inline (the regression that actually matters: re-absorbing the
-// FrameCompiler is ~+236 → ~1311 ≫ 1100). The sibling file-level cap lives in
-// proof:decomposition (LIBRARY_CEILING_OVERRIDE engine.ts: 1400); both guards
-// carry the SAME G.W5 decision.
-const ANIMATION_CLASS_CEILING = 1100;
-const compiler = read("src/animation/frame-compiler.ts");
+// (re-inlining the FrameCompiler is ~+236 — the regression this bites).
+//
+// R.W2 (the two god-class carves): the prior ceiling of 1100 was the G.W5
+// "cohesive gestalt, extend-don't-split" decision — which the Tranche R audit
+// (lib-engine F-1) judged a self-certifying cap that could not bite. R.W2 carves
+// the class for real: `CSSKeyframesAnimation` moves to `css-animation.ts`, the
+// Phase-2 element-aware resolver moves to `element-resolve.ts`, the play-machine
+// run-state moves into the `PlaybackState` struct in `playback.ts`. With those
+// lifts the base `KeyframesAnimation` class body lands under 500, so the ceiling
+// is LOWERED to 500 (the post-carve target). It still bites HARD on a compile
+// re-inline (re-absorbing the FrameCompiler is ~+236) AND now on any regrowth
+// past the carved baseline. Sizing was an ESTIMATE (challenge-library §5) — this
+// gate VERIFIES it: if the class lands over 500 post-carve, keep carving; do NOT
+// raise the ceiling (R.md §5 keystone — the reds ARE the backlog).
+const ANIMATION_CLASS_CEILING = 500;
+const compiler = read("src/animation/compile/frame-compiler.ts");
 if (!/export class FrameCompiler/.test(compiler)) {
     fail("engine-seam", "src/animation/frame-compiler.ts does not export `FrameCompiler`");
 } else {
@@ -76,7 +81,7 @@ if (!/export class FrameCompiler/.test(compiler)) {
     }
 }
 {
-    const engine = read("src/animation/engine.ts").split("\n");
+    const engine = read("src/animation/engine/animation.ts").split("\n");
     // PKG-3 (L.W8 §S4): the core engine class was renamed `Animation` →
     // `KeyframesAnimation` to clear the `globalThis.Animation` d.ts collision;
     // the body-size ceiling check anchors on the renamed class. Measure the
@@ -106,9 +111,55 @@ if (!/export class FrameCompiler/.test(compiler)) {
     }
 }
 
+// ── R.W2 (c) no-host-cast + (d) no-host-export — the PlaybackHost privacy ─────
+// inversion is excised. (c): zero `as unknown as PlaybackHost` anywhere under
+// `src/animation/engine/` — a stub that removes the `_host` getter but keeps a
+// structurally-equivalent cast (even renamed) still reds, because the clause
+// scans for the INTERFACE NAME, not the cast syntax alone. (d): no file under
+// `engine/` re-exports the interface under ANY export form (the privacy-inversion
+// re-instated under a different name reds too). Both scan EVERY `.ts` under the
+// directory, so a leak in any carved sub-module bites.
+{
+    const engineDir = "src/animation/engine";
+    const files = readdirSync(join(root, engineDir)).filter((f) =>
+        f.endsWith(".ts"),
+    );
+    let castHit = null;
+    let exportHit = null;
+    for (const f of files) {
+        const src = read(`${engineDir}/${f}`);
+        if (/as\s+unknown\s+as\s+PlaybackHost/.test(src)) castHit ??= f;
+        if (/export\s+(interface|type)\s+PlaybackHost\b/.test(src)) {
+            exportHit ??= f;
+        }
+    }
+    if (castHit) {
+        fail(
+            "no-host-cast",
+            `${engineDir}/${castHit} still carries an \`as unknown as PlaybackHost\` cast — the privacy-inversion workaround survives (PlaybackState must own the run-state by composition)`,
+        );
+    } else {
+        ok(
+            "no-host-cast",
+            `no \`as unknown as PlaybackHost\` cast under ${engineDir}/ (the structural workaround is excised)`,
+        );
+    }
+    if (exportHit) {
+        fail(
+            "no-host-export",
+            `${engineDir}/${exportHit} still exports \`PlaybackHost\` — the over-exposed run-state interface must be gone, not renamed-and-re-exported`,
+        );
+    } else {
+        ok(
+            "no-host-export",
+            `no \`export interface/type PlaybackHost\` under ${engineDir}/ (the interface is excised)`,
+        );
+    }
+}
+
 // ── D-5 pause-honest — no toggle docstring; honest triad present ──────────────
 {
-    const group = read("src/animation/group.ts");
+    const group = read("src/animation/group/group.ts");
     if (/backward compatibility/i.test(group) || /Toggle pause state/.test(group)) {
         fail("pause-honest", "group.ts still carries the legacy toggle-`pause` docstring");
     } else {
@@ -123,7 +174,10 @@ if (!/export class FrameCompiler/.test(compiler)) {
 }
 
 // ── D-6a snap-symmetry — both steppers stop the playback on snap ─────────────
-for (const f of ["src/animation/smooth.ts", "src/animation/spring.ts"]) {
+for (const f of [
+    "src/animation/physics/smooth.ts",
+    "src/animation/physics/spring/progress.ts",
+]) {
     const src = read(f);
     // Match the METHOD DEFINITION body, not a call site.
     const m = src.match(/_snapSettled\s*\([^)]*\)\s*:\s*void\s*{([\s\S]*?)\n    }/);
@@ -143,13 +197,13 @@ for (const f of ["src/animation/smooth.ts", "src/animation/spring.ts"]) {
     } else {
         ok("no-legacy", "leaves.ts: no `| any` widening");
     }
-    const utils = read("src/animation/utils.ts");
+    const utils = read("src/animation/compile/parse-flatten.ts");
     if (/export\s*{[^}]*lerp(Color|Computed|Numeric)?Value/.test(utils) || /New code should import from/.test(utils)) {
         fail("no-legacy", "utils.ts still re-exports value.js lerp primitives (path-compat shim)");
     } else {
         ok("no-legacy", "utils.ts: no value.js lerp path-compat re-export");
     }
-    const format = read("src/animation/format.ts");
+    const format = read("src/animation/compile/format.ts");
     if (/export\s*{\s*formatCSS\s*}/.test(format)) {
         fail("no-legacy", "format.ts still re-exports `formatCSS` (convenience shim)");
     } else {
@@ -173,7 +227,7 @@ for (const f of ["src/animation/smooth.ts", "src/animation/spring.ts"]) {
     } else {
         ok("managed-pause-doc", "CLAUDE.md states the managed-child lifecycle contract in one place");
     }
-    const group = read("src/animation/group.ts");
+    const group = read("src/animation/group/group.ts");
     if (!/managed-child lifecycle contract/i.test(group)) {
         fail("managed-pause-doc", "group.ts is missing the cross-link comment to the CLAUDE.md managed-child lifecycle contract");
     } else {

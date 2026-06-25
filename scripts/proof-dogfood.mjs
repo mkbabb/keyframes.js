@@ -246,7 +246,7 @@ function main() {
             failures.push(
                 `${ORBITAL_INERTIA}: does NOT import the engine's decay() — the ` +
                     `orchestration tier is un-consumed (import { decay } from ` +
-                    `"@src/animation/decay").`,
+                    `"@src/animation/physics/decay").`,
             );
         } else {
             console.log(

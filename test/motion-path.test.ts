@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { MotionPath, fromMotionPath } from "../src/animation/motion-path";
+import { MotionPath, fromMotionPath } from "../src/animation/svg/motion-path";
 import { isWAAPIEligible } from "../src/animation/waapi";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 

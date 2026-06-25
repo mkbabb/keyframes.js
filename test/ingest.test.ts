@@ -31,7 +31,7 @@ import {
     resolveLiveKeyframes,
     adoptRunning,
 } from "../src/animation/ingest";
-import { CSSKeyframesToString } from "../src/animation/format";
+import { CSSKeyframesToString } from "../src/animation/compile/format";
 
 /** Install a `<style>` sheet into the document; return its live CSSStyleSheet. */
 const installSheet = (css: string): CSSStyleSheet => {

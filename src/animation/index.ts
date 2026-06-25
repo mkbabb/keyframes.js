@@ -27,28 +27,38 @@
  */
 
 // ── LIGHT engines (value.js-free, static) ────────────────────────────────
-export { NumericAnimation } from "./numeric";
-export type { NumericAnimationOptions, NumericFrameCallback } from "./numeric";
-export { SmoothProgress } from "./smooth";
-export type { SmoothProgressOptions } from "./smooth";
-export { SpringProgress, reseatToSpring, probeVelocity } from "./spring";
+export { NumericAnimation } from "./physics/numeric";
+export type {
+    NumericAnimationOptions,
+    NumericFrameCallback,
+} from "./physics/numeric";
+export { SmoothProgress } from "./physics/smooth";
+export type { SmoothProgressOptions } from "./physics/smooth";
+export {
+    SpringProgress,
+    reseatToSpring,
+    probeVelocity,
+} from "./physics/spring";
 export type {
     SpringProgressOptions,
     SpringSubscriber,
     SpringFrameCallback,
     VelocityProbe,
-} from "./spring";
+} from "./physics/spring";
 // K.W11 PHYS-E — the intensity-scaled reduced-motion mechanism (value.js-free
 // light leaf): the ONE gate's policy type + the amplitude-scale resolver a
 // consumer can read to scale its own non-spring motion under reduced motion.
 export { reducedMotionScale } from "./internal/reduced-motion";
 export type { ReducedMotionPolicy } from "./internal/reduced-motion";
-export { springLinearStops } from "./springLinearStops";
-export type { SpringLinearStopsOptions } from "./springLinearStops";
-export { springTimingFunction } from "./springTimingFunction";
-export type { SpringTimingFunctionOptions } from "./springTimingFunction";
-export { ElementMorph } from "./morph";
-export type { MorphRect, ElementMorphOptions } from "./morph";
+export { springLinearStops } from "./physics/spring";
+export type { SpringLinearStopsOptions } from "./physics/spring";
+export { springTimingFunction } from "./physics/spring";
+export type { SpringTimingFunctionOptions } from "./physics/spring";
+// SpringDurationOptions — the spring-from-duration option surface (R.W1: the
+// barrel gap fill, lib-spring §10).
+export type { SpringDurationOptions } from "./physics/spring";
+export { ElementMorph } from "./physics/morph";
+export type { MorphRect, ElementMorphOptions } from "./physics/morph";
 // The legacy `ScrollTimeline`/`ScrollTimelineOptions` @deprecated PKG-3 aliases
 // of `KeyframesScrollTimeline`/`KeyframesScrollTimelineOptions` (L.W8 §S4 —
 // renamed to clear the `globalThis.ScrollTimeline` d.ts collision) were DROPPED
@@ -58,21 +68,24 @@ export {
     KeyframesScrollTimeline,
     ManualTimeline,
     createNativeTimeline,
-} from "./timeline";
+} from "./orchestration/timeline";
 export type {
     TimelineOptions,
     KeyframesScrollTimelineOptions,
     NativeTimelineSpec,
-} from "./timeline";
-export { RAFPlayback } from "./playback";
-export type { RAFPlaybackOptions, Tickable } from "./playback";
+} from "./orchestration/timeline";
+export { RAFPlayback } from "./physics/playback";
+export type { RAFPlaybackOptions, Tickable } from "./physics/playback";
 // L.W9 S5 KF-OSCILLATOR (W128) — the LIGHT periodic phase clock (value.js-free:
 // a frequency-driven phase ramp + a pure waveform shaper, NO CSS parsing). The
 // caller drives the loop (mirrors SmoothProgress/SpringProgress — no rAF
 // ownership); glass-ui BB's W-EASING-PRIMITIVE wave + the demo KF-OSCILLATOR
 // scene consume the phase. proof:boundary enumerates it as a value.js-free entry.
-export { Oscillator, waveformValue } from "./oscillator";
-export type { OscillatorConfig, OscillatorWaveform } from "./oscillator";
+export { Oscillator, waveformValue } from "./physics/oscillator";
+export type {
+    OscillatorConfig,
+    OscillatorWaveform,
+} from "./physics/oscillator";
 
 // ── Orchestration tier (E.W10 — value.js-free light helpers over the engines) ─
 // stagger/flip/drag/decay/Sequence carry zero static value.js edge: stagger is
@@ -81,20 +94,24 @@ export type { OscillatorConfig, OscillatorWaveform } from "./oscillator";
 // Animation runtime is the consumer's; Sequence holds only its type). The
 // single-call `animate()` front door is HEAVY (it constructs CSSKeyframesAnimation)
 // and rides loadAnimationEngine below.
-export { stagger } from "./stagger";
-export type { StaggerOrigin, StaggerOptions, StaggerFn } from "./stagger";
-export { flip, flipShared } from "./flip";
-export type { FlipOptions } from "./flip";
-export { drag, Draggable, drag2D } from "./drag";
+export { stagger } from "./orchestration/stagger";
+export type {
+    StaggerOrigin,
+    StaggerOptions,
+    StaggerFn,
+} from "./orchestration/stagger";
+export { flip, flipShared } from "./orchestration/flip";
+export type { FlipOptions } from "./orchestration/flip";
+export { drag, Draggable, drag2D } from "./orchestration/drag";
 export type {
     DragOptions,
     DragAxis,
     DragSubscriber,
     Drag2DHandle,
-} from "./drag";
-export { decay, decayRest } from "./decay";
-export type { DecayOptions, DecaySample } from "./decay";
-export { Sequence } from "./sequence";
+} from "./orchestration/drag";
+export { decay, decayRest } from "./physics/decay";
+export type { DecayOptions, DecaySample } from "./physics/decay";
+export { Sequence } from "./orchestration/sequence";
 export type {
     SequencePosition,
     SequenceEntry,
@@ -103,7 +120,7 @@ export type {
     SequenceSegmentSubscriber,
     SequenceLabelSubscriber,
     SequenceSubscriber,
-} from "./sequence";
+} from "./orchestration/sequence";
 // Easing construction at the boundary: `toEasing` normalizes a callable /
 // typed Easing synchronously (value.js-free); `resolveEasing` resolves a
 // string name through the dynamic engine boundary, fail-explicit.
@@ -130,16 +147,21 @@ export type {
     InterpolatedVar,
 } from "./constants";
 export type { ResolvedKeyframes } from "./engine";
-export type { AnimationGroupEntry } from "./engine";
-// The single-call front door's type surface (erased; the runtime `animate` rides
-// loadAnimationEngine below, since it constructs the heavy CSSKeyframesAnimation).
-export type { AnimateInput, AnimateOptions, KeyframeMap } from "./animate";
+// R.W2c — `AnimationGroupEntry` is sourced from its own `group/` zone (no longer
+// re-exported through the engine barrel, which broke the engine↔group ring). The
+// type re-export is erased, so the LIGHT package barrel stays value.js-free.
+export type { AnimationGroupEntry } from "./group";
+// R.W4 §2.5 — `animate()` was EXCISED from the published surface (dead-by-disuse:
+// 0 demo call sites; the `@mkbabb/keyframes.js/engine` subpath + direct
+// `new CSSKeyframesAnimation(...)` are the idiomatic "in"). `animate.ts` stays a
+// HEAVY chunk reachable via deep import, but its option types are no longer a
+// published advertisement — owner-ratified 2026-06-24.
 // CSS-native MotionPath (F.W12) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/path types are erased here.
-export type { MotionPathOptions, OffsetPath } from "./motion-path";
+export type { MotionPathOptions, OffsetPath } from "./svg/motion-path";
 // CSS-native DrawSVG (G.W13) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/target types are erased here.
-export type { DrawSVGOptions, SVGDrawTarget } from "./draw-svg";
+export type { DrawSVGOptions, SVGDrawTarget } from "./svg/draw-svg";
 // MorphSVG (O.W6, the DM-3 7-tranche chronic terminal) — HEAVY (composes the
 // engine + value.js's PathGeometry, the ONE geometry edge it needs); the runtime
 // `fromMorphSVG`/`MorphSVG` ride loadAnimationEngine below. ONLY its option/point
@@ -147,7 +169,7 @@ export type { DrawSVGOptions, SVGDrawTarget } from "./draw-svg";
 // barrel; proof:boundary stays green). The barrel NEVER static-value-exports
 // fromMorphSVG/MorphSVG — that would pull PathGeometry (value.js) onto the light
 // path.
-export type { MorphSVGOptions, MorphPoint } from "./morph-svg";
+export type { MorphSVGOptions, MorphPoint } from "./svg/morph-svg";
 // K.W8 INGEST (FLAGGED ADDITIVE EDIT) — the round-trip pointed FORWARD at the
 // live web. `fromStyleSheets`/`fromLiveAnimations`/`resolveLiveKeyframes`/
 // `adoptRunning` walk the CSSOM + take over a running CSS animation; ingest.ts
@@ -183,8 +205,8 @@ export type {
     CSSTimelineOptions,
     RangeBoundary,
     RangePhase,
-} from "./scroll-scene";
-export type { ScrollScene } from "./scroll-scene";
+} from "./scroll";
+export type { ScrollScene } from "./scroll";
 // K.W10 COMPILE (FLAGGED ADDITIVE EDIT) — the round-trip's BACKWARD half: compile
 // an orchestration graph (AnimationGroup / Sequence / child list) → zero-runtime
 // CSS. HEAVY (compile.ts statically imports value.js's reverseAnimationShorthand
@@ -214,11 +236,11 @@ export type { ValidateOptions, ValidateResult } from "./validate";
 // `loadAnimationEngine()`. The legacy `Animation` @deprecated PKG-3 alias of
 // `KeyframesAnimation` (L.W8 §S4) was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
 // See docs/MIGRATION-5.0.0.md.
-export type {
-    KeyframesAnimation,
-    CSSKeyframesAnimation,
-    AnimationGroup,
-} from "./engine";
+export type { KeyframesAnimation, CSSKeyframesAnimation } from "./engine";
+// R.W2c — `AnimationGroup`'s TYPE is sourced from its own `group/` zone (the
+// engine barrel no longer re-exports it; that cross-zone re-export closed the
+// engine↔group ring). Erased — no static value.js edge on the LIGHT barrel.
+export type { AnimationGroup } from "./group";
 
 // ── HEAVY engine (value.js-bearing, dynamic) ─────────────────────────────
 // The engine-loading machinery — the memoized dynamic-import accessors + their
@@ -234,21 +256,11 @@ export type {
 // proves (a) no static engine/value.js edge on the accessor entry and (b) the
 // heavy engine emits as a NON-ENTRY dynamic chunk — both hold through the
 // re-export, since the `import("./engine")` stays a runtime edge in `./load-engine`.
-export {
-    loadAnimationEngine,
-    loadEngine,
-    loadCompiler,
-    loadIngest,
-    warmEngine,
-} from "./load-engine";
-// The narrowed engine-surface interface TYPES (erased; no runtime edge). The
+export { loadAnimationEngine, warmEngine } from "./load-engine";
+// The narrowed engine-surface interface TYPE (erased; no runtime edge). The
 // hand-maintained `AnimationEngine` interface is the published HEAVY surface
 // (`proof:published-surface` clause (d) diffs it against the runtime
-// `Object.keys(engine)`); `EngineCore`/`CompilerSurface`/`IngestSurface` are the
-// granular accessors' return shapes.
-export type {
-    AnimationEngine,
-    EngineCore,
-    CompilerSurface,
-    IngestSurface,
-} from "./load-engine";
+// `Object.keys(engine)`). The granular `loadEngine`/`loadCompiler`/`loadIngest`
+// accessors + their `EngineCore`/`CompilerSurface`/`IngestSurface` surface types
+// were EXCISED in R.W1 (§2f — zero real call sites).
+export type { AnimationEngine } from "./load-engine";

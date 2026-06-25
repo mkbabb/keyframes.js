@@ -20,9 +20,9 @@
 import { afterAll, beforeAll, bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
-import { RAFPlayback } from "../src/animation/playback";
-import { SmoothProgress } from "../src/animation/smooth";
-import { SpringProgress } from "../src/animation/spring";
+import { RAFPlayback } from "../src/animation/physics/playback";
+import { SmoothProgress } from "../src/animation/physics/smooth";
+import { SpringProgress } from "../src/animation/physics/spring";
 
 /**
  * The synchronous rAF stub. The shared shim reaches `window.requestAnimationFrame`

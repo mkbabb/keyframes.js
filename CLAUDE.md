@@ -17,37 +17,35 @@ npm run proof:all       # full proof:* gate roster (correctness + hygiene)
 
 ## Project Tree
 
+The library is partitioned into seven cohesive zone directories (R.W1), each with
+an `index.ts` barrel — the LIGHT (value.js-free) zones (`physics/`,
+`orchestration/`) and the HEAVY (value.js-bearing) zones (`engine/`, `group/`,
+`compile/`, `resolve/`, `ingest/`, `scroll/`) + `presets/` + `svg/`. The barrel
+(`index.ts`) and the dynamic loader (`load-engine.ts`) are the two boundary files.
+
 ```
 src/                            # animation/ + env.d.ts — nothing else
 ├── animation/                  # The entire library (see animation/CLAUDE.md)
 │   ├── index.ts                # Package barrel — LIGHT static exports + loadAnimationEngine() (the static/dynamic boundary)
-│   ├── engine.ts               # HEAVY: Animation + CSSKeyframesAnimation; re-exports AnimationGroup, getAnimationId, getTimingFunction, resolveKeyframes
-│   ├── frame-compiler.ts       # FrameCompiler — template→compiled frame pipeline (addFrame → parse → AnimationFrame[])
-│   ├── group.ts                # AnimationGroup — multi-animation compositor (replace/add/weighted blending)
+│   ├── load-engine.ts          # HEAVY dynamic loader — loadAnimationEngine() + warmEngine() (the dynamic half of the boundary)
 │   ├── adapter.ts              # resolveKeyframes — input → ResolvedKeyframes
 │   ├── animate.ts              # animate() — single-call front door: shape dispatch + auto-target + auto-play (HEAVY)
-│   ├── motion-path.ts          # MotionPath / fromMotionPath — offset-distance over an author offset-path (HEAVY)
-│   ├── draw-svg.ts             # DrawSVG / fromDrawSVG — stroke-dashoffset line drawing over getTotalLength() (HEAVY)
-│   ├── animations.ts           # Preset library (fadeIn, bounce, shake, …) — rides the engine surface as `presets`
-│   ├── numeric.ts              # NumericAnimation — zero-alloc keyframe interp over {key: number} objects
-│   ├── smooth.ts               # SmoothProgress — exponential-smoothing progress tracker
-│   ├── spring.ts               # SpringProgress — closed-form spring physics tracker
-│   ├── springLinearStops.ts    # spring → CSS linear() stops string
-│   ├── springTimingFunction.ts # spring → typed Easing ({ fn, css })
-│   ├── morph.ts                # ElementMorph — rect-to-rect position/scale interpolation
-│   ├── flip.ts                 # flip / flipShared — FLIP composition over ElementMorph
-│   ├── drag.ts                 # drag / Draggable — pointer drag/fling input layer over SpringProgress
-│   ├── decay.ts                # decay / decayRest — closed-form frictional glide
-│   ├── stagger.ts              # stagger — pure construction-time per-index delay generator
-│   ├── sequence.ts             # Sequence — master-playhead temporal orchestrator
-│   ├── timeline.ts             # Timeline (abstract), ScrollTimeline, ManualTimeline, createNativeTimeline
-│   ├── playback.ts             # RAFPlayback — THE managed rAF driver (play/drive/loop)
 │   ├── easing.ts               # resolveEasing(name) async factory + toEasing normalizer
-│   ├── waapi.ts                # WAAPI eligibility + delegation
-│   ├── format.ts               # Animation → CSS string serialization
+│   ├── validate.ts             # validate()/explain() — the agent-authoring projection over the compile surface (HEAVY)
 │   ├── constants.ts            # Types + defaults (Easing, AnimationOptions, Vars, …)
-│   ├── utils.ts                # Frame calc, value interpolation, getTimingFunction
-│   └── internal/               # value.js-free leaves: leaves, binarySearch, errors, reduced-motion, scheduler
+│   ├── physics/                # LIGHT: clock-driven value steppers + the rAF driver
+│   │   ├── numeric.ts / smooth.ts / oscillator.ts / decay.ts / morph.ts / playback.ts
+│   │   └── spring/             # SpringProgress family (progress, duration, reseat, linear-stops, timing-function, types — the ring-break)
+│   ├── orchestration/          # LIGHT: temporal/multi-target helpers (stagger, flip, drag/, timeline/, sequence/)
+│   ├── engine/                 # HEAVY core: KeyframesAnimation + CSSKeyframesAnimation (animation.ts) + composition/options/css-metadata/playback
+│   ├── group/                  # HEAVY compositor: AnimationGroup (group.ts) + soa.ts + layer-springs.ts
+│   ├── compile/                # HEAVY pipeline: frame-compiler, backward, backward-color, format, parse-flatten, easing-registry (getTimingFunction)
+│   ├── resolve/                # HEAVY emerging-CSS resolver (if()/@function/env)
+│   ├── ingest/                 # HEAVY CSSOM walk (cssom.ts) + temporal takeover (adopt.ts)
+│   ├── scroll/                 # HEAVY scroll grammar (grammar.ts) + the JS ScrollScene driver (scene.ts)
+│   ├── presets/                # HEAVY preset catalog (classic, spring, taxonomy) — rides the engine surface as `presets`
+│   ├── svg/                    # HEAVY SVG factories: MotionPath, DrawSVG, MorphSVG
+│   └── internal/               # value.js-free leaves: leaves, binarySearch, errors, reduced-motion, scheduler, scroll-phases (+ barrel)
 └── env.d.ts                    # *.vue module declaration (dev-only shim; not shipped)
 
 demo/                # Vue 3 demo (see demo/CLAUDE.md)

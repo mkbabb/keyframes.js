@@ -16,14 +16,15 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { Oscillator, waveformValue } from "../src/animation/oscillator";
-import type { OscillatorWaveform } from "../src/animation/oscillator";
+import { Oscillator, waveformValue } from "../src/animation/physics/oscillator";
+import type { OscillatorWaveform } from "../src/animation/physics/oscillator";
 
 const SRC = join(
     dirname(fileURLToPath(import.meta.url)),
     "..",
     "src",
     "animation",
+    "physics",
     "oscillator.ts",
 );
 

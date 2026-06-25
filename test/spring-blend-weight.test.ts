@@ -32,7 +32,7 @@ import {
     SpringProgress,
     reseatToSpring,
     probeVelocity,
-} from "../src/animation/spring";
+} from "../src/animation/physics/spring";
 
 /** Build a parsed `opacity` 0→1 animation pinned at its own clock `t`. */
 const opacityAt = (t: number): CSSKeyframesAnimation<any> => {

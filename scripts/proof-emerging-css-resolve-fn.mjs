@@ -43,43 +43,61 @@ console.log(
     "proof:emerging-css-resolve-fn — Q.WB2 (@function call-inlining: bind → coerce → substitute → evaluate)",
 );
 
-const RESOLVE = "src/animation/resolve-values.ts";
+// R.W2b carved the resolve recursion into the `resolve/` zone (env / resolve-if /
+// resolve-function + the index core); the RESOLVE SURFACE is the four colocated
+// files, so a clause's anchor is found wherever the carve landed it.
+const RESOLVE = [
+    "src/animation/resolve/index.ts",
+    "src/animation/resolve/env.ts",
+    "src/animation/resolve/resolve-if.ts",
+    "src/animation/resolve/resolve-function.ts",
+];
 
 const requireAll = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist.`);
+    // `file` may be a single path or an array of paths whose concatenation is the
+    // surface (R.W2b — a carve can split a clause's anchors across sibling files).
+    const files = Array.isArray(file) ? file : [file];
+    const label = files.join(" + ");
+    const missingFiles = files.filter((f) => !existsSync(join(root, f)));
+    if (missingFiles.length > 0) {
+        fail(clause, `${missingFiles.join(", ")} does not exist.`);
         return;
     }
-    const src = read(file);
+    const src = files.map((f) => read(f)).join("\n");
     const missing = anchors.filter(({ re }) => !re.test(src));
     if (missing.length > 0) {
         fail(
             clause,
-            `${file} is missing: ${missing
+            `${label} is missing: ${missing
                 .map((m) => m.name)
                 .join("; ")} — the ${clause} cure is no longer wired.`,
         );
     } else {
-        ok(clause, `${file} locks ${anchors.length} ${clause} anchor(s)`);
+        ok(clause, `${label} locks ${anchors.length} ${clause} anchor(s)`);
     }
 };
 
 const requireNone = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist.`);
+    // Array-tolerant (R.W2b) — the surface may span sibling files; an inert-seam
+    // residue in ANY of them reds the clause.
+    const files = Array.isArray(file) ? file : [file];
+    const label = files.join(" + ");
+    const missingFiles = files.filter((f) => !existsSync(join(root, f)));
+    if (missingFiles.length > 0) {
+        fail(clause, `${missingFiles.join(", ")} does not exist.`);
         return;
     }
-    const src = read(file);
+    const src = files.map((f) => read(f)).join("\n");
     const present = anchors.filter(({ re }) => re.test(src));
     if (present.length > 0) {
         fail(
             clause,
-            `${file} still carries the INERT seam: ${present
+            `${label} still carries the INERT seam: ${present
                 .map((m) => m.name)
                 .join("; ")} — the call-inlining arm is not activated.`,
         );
     } else {
-        ok(clause, `${file} carries no inert-seam residue (${clause})`);
+        ok(clause, `${label} carries no inert-seam residue (${clause})`);
     }
 };
 
@@ -88,7 +106,7 @@ const requireNone = (clause, file, anchors) => {
 requireAll("arm-activated", RESOLVE, [
     {
         name: "the dashed-function branch invokes resolveFunctionCall (the bind→substitute→evaluate body, NOT the `return node` no-op)",
-        re: /node\.name\.startsWith\("--"\)\s*&&\s*ctx\.functions\.has\(node\.name\)\)\s*\{\s*\n\s*return resolveFunctionCall\(node, ctx\);/,
+        re: /node\.name\.startsWith\("--"\)\s*&&\s*ctx\.functions\.has\(node\.name\)\)\s*\{\s*\n\s*return resolveFunctionCall\(node, ctx(?:, resolveNode)?\);/,
     },
     {
         name: "resolveFunctionCall — the @function lowering (bind → coerce → substitute → evaluate)",

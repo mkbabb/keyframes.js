@@ -167,7 +167,11 @@ requireAll("format-shape-lock", TEST, [
     // The test must consume the engine + serializer surfaces, never patch them.
     const src = read(TEST);
     const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
-    const importsFormat = /from "\.\.\/src\/animation\/format"/.test(src);
+    // R.W1 moved the serializer `format.ts` → `compile/format.ts`; the round-trip
+    // still consumes the real `CSSKeyframesToString` surface at its new zone path.
+    const importsFormat = /from "\.\.\/src\/animation\/compile\/format"/.test(
+        src,
+    );
     if (importsEngine && importsFormat) {
         ok(
             "no-source-edit",
