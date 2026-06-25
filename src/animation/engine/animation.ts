@@ -20,7 +20,10 @@ import type {
     TransformFunction,
     Vars,
 } from "../constants";
-import { AnimationGroup } from "../group";
+// R.W2c — `AnimationGroup` TYPE-ONLY (erased); `.group()` builds it via the
+// neutral `getGroupFactory()` seam, inverting the engine→group back-edge.
+import type { AnimationGroup } from "../group";
+import { getGroupFactory } from "../internal/group-factory";
 import { FrameCompiler } from "../compile/frame-compiler";
 import {
     type ParsedVarMap,
@@ -33,12 +36,9 @@ import * as setters from "./option-setters";
 import * as compileBridge from "./compile-bridge";
 import { resolveElementAwareValues } from "./element-resolve";
 
-export const getAnimationId = (
-    animation: KeyframesAnimation | string,
-): string => {
-    if (typeof animation === "string") return animation;
-    return animation.name ?? String(animation.id);
-};
+// `getAnimationId` moved to the value.js-free `internal/animation-id.ts` leaf
+// (R.W2c — kills the group→engine edge); re-exported, surface UNCHANGED.
+export { getAnimationId } from "../internal/animation-id";
 
 let nextId = 0;
 
@@ -487,8 +487,10 @@ export class KeyframesAnimation<V extends Vars = any> {
         return this;
     }
 
-    group(...animations: KeyframesAnimation<V>[]) {
-        return new AnimationGroup<V>(this, ...animations);
+    group(...animations: KeyframesAnimation<V>[]): AnimationGroup<V> {
+        // R.W2c — via the neutral DI seam (no static engine→group edge).
+        const group = getGroupFactory()(this, ...animations);
+        return group as unknown as AnimationGroup<V>;
     }
 }
 

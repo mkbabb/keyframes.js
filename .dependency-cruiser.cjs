@@ -129,7 +129,22 @@ module.exports = {
             from: { path: "^src/" },
             to: {
                 circular: true,
+                // The head edge must be a RUNTIME edge (an `import type` head
+                // carries no init hazard).
                 dependencyTypesNot: ["type-only"],
+                // …AND every edge AROUND the ring must be runtime too: a cycle
+                // that closes through even ONE `import type` edge is erased at
+                // build (the type edge vanishes), so it carries NO runtime
+                // module-init hazard — exactly the exemption this rule's comment
+                // promises. `viaOnly.dependencyTypesNot` matches a cycle only
+                // when ALL its via-edges are non-type-only, so the rule reports
+                // exactly the GENUINE runtime cycles (R.W2c — the prior config
+                // gated only the head edge, so a runtime head reaching back
+                // through a type-only edge false-RED'd as a "cycle" that does
+                // not exist at runtime).
+                viaOnly: {
+                    dependencyTypesNot: ["type-only"],
+                },
             },
         },
 

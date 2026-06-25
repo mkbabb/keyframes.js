@@ -147,7 +147,10 @@ export type {
     InterpolatedVar,
 } from "./constants";
 export type { ResolvedKeyframes } from "./engine";
-export type { AnimationGroupEntry } from "./engine";
+// R.W2c — `AnimationGroupEntry` is sourced from its own `group/` zone (no longer
+// re-exported through the engine barrel, which broke the engine↔group ring). The
+// type re-export is erased, so the LIGHT package barrel stays value.js-free.
+export type { AnimationGroupEntry } from "./group";
 // `./engine` now resolves to the engine/ directory's `index.ts` barrel (R.W1);
 // the type re-exports are erased, so the LIGHT barrel stays value.js-free.
 // The single-call front door's type surface (erased; the runtime `animate` rides
@@ -233,11 +236,11 @@ export type { ValidateOptions, ValidateResult } from "./validate";
 // `loadAnimationEngine()`. The legacy `Animation` @deprecated PKG-3 alias of
 // `KeyframesAnimation` (L.W8 §S4) was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
 // See docs/MIGRATION-5.0.0.md.
-export type {
-    KeyframesAnimation,
-    CSSKeyframesAnimation,
-    AnimationGroup,
-} from "./engine";
+export type { KeyframesAnimation, CSSKeyframesAnimation } from "./engine";
+// R.W2c — `AnimationGroup`'s TYPE is sourced from its own `group/` zone (the
+// engine barrel no longer re-exports it; that cross-zone re-export closed the
+// engine↔group ring). Erased — no static value.js edge on the LIGHT barrel.
+export type { AnimationGroup } from "./group";
 
 // ── HEAVY engine (value.js-bearing, dynamic) ─────────────────────────────
 // The engine-loading machinery — the memoized dynamic-import accessors + their

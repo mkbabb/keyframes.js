@@ -1,10 +1,11 @@
 import { withReducedMotion } from "../internal/reduced-motion";
 import { RAFPlayback } from "../physics/playback";
 // PKG-3 (L.W8 §S4): the engine class is `KeyframesAnimation` (formerly
-// `Animation`; the @deprecated alias was DROPPED in 5.0.0 — Q.WE1). The single
-// value import provides BOTH the runtime constructor (the `instanceof` guard)
-// AND the type used in the `KeyframesAnimation<V>` annotations below.
-import { KeyframesAnimation, getAnimationId } from "../engine/animation";
+// `Animation`; the @deprecated alias was DROPPED in 5.0.0 — Q.WE1). The value
+// import provides the runtime constructor (the `instanceof` guard) + the type.
+// `getAnimationId` is the value.js-free leaf (R.W2c — kills group→engine edge).
+import { KeyframesAnimation } from "../engine/animation";
+import { getAnimationId } from "../internal/animation-id";
 import {
     renderMultiTarget,
     requireEntry,

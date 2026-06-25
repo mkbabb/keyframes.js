@@ -6,9 +6,28 @@
  * helpers). The barrel is the zone's single surface (the engine barrel re-exports
  * `AnimationGroup` through it).
  */
+import { AnimationGroup } from "./group";
+import type { AnimationGroupInput } from "./group";
+import { registerGroupFactory } from "../internal/group-factory";
+import type { KeyframesAnimation } from "../engine/animation";
+
 export { AnimationGroup } from "./group";
 export type {
     AnimationGroupEntry,
     AnimationGroupObject,
     AnimationGroupInput,
 } from "./group";
+
+// R.W2c — register the AnimationGroup ctor into the neutral DI seam so
+// `KeyframesAnimation.group()` builds a group WITHOUT a static engine→group edge
+// (inverting the back-edge that closed the engine↔group `no-cycle` ring). Done
+// at the ZONE BARREL (the zone's composition point): loading the group zone —
+// which `loadAnimationEngine()` does alongside the engine — arms the seam, so
+// the factory is always registered before any `.group()` call can occur.
+registerGroupFactory(
+    (first, ...rest) =>
+        new AnimationGroup(
+            first as KeyframesAnimation,
+            ...(rest as AnimationGroupInput<any>[]),
+        ),
+);

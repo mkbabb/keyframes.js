@@ -21,12 +21,12 @@
  */
 
 // ── HEAVY engine TYPE surface (erased; no runtime edge) ──────────────────
-import type {
-    KeyframesAnimation,
-    CSSKeyframesAnimation,
-    AnimationGroup,
-} from "./engine";
+import type { KeyframesAnimation, CSSKeyframesAnimation } from "./engine";
 import type { ResolvedKeyframes } from "./engine";
+// R.W2c — `AnimationGroup` is its own `group/` zone (no longer re-exported
+// through the engine barrel); the dynamic surface composes it here so
+// `loadAnimationEngine()` returns the SAME symbol set.
+import type { AnimationGroup } from "./group";
 import type { animate as animateImpl } from "./animate";
 import type {
     MotionPath as MotionPathClass,
@@ -281,6 +281,11 @@ let _enginePromise: Promise<AnimationEngine> | null = null;
 export const loadAnimationEngine = (): Promise<AnimationEngine> =>
     (_enginePromise ??= Promise.all([
         importEngine(),
+        // R.W2c — the `group/` compositor zone (`AnimationGroup`). Formerly
+        // re-exported through the engine barrel; now its own zone import merged
+        // here so the dynamic surface is UNCHANGED while the engine↔group
+        // `no-cycle` ring stays broken (a zone barrel re-exports only itself).
+        import("./group/index"),
         // `animate` lives in its own module (it constructs CSSKeyframesAnimation)
         // and is merged onto the engine surface so consumers reach it the same
         // way: `const { animate } = await loadAnimationEngine()`.
@@ -326,6 +331,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
     ]).then(
         ([
             engine,
+            groupMod,
             animateMod,
             motionMod,
             drawMod,
@@ -341,6 +347,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         ]) =>
             Object.assign(
                 {
+                    AnimationGroup: groupMod.AnimationGroup,
                     animate: animateMod.animate,
                     MotionPath: motionMod.MotionPath,
                     fromMotionPath: motionMod.fromMotionPath,
