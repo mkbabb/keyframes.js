@@ -23,6 +23,11 @@
             "types": "./dist/keyframes.d.ts",
             "import": "./dist/keyframes.js",
             "default": "./dist/keyframes.js"
+        },
+        "./engine": {
+            "types": "./dist/engine/index.d.ts",
+            "import": "./dist/engine/index.js",
+            "default": "./dist/engine/index.js"
         }
     },
     "files": [
