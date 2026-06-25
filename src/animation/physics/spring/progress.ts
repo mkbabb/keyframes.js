@@ -27,9 +27,10 @@ import {
 // `setTargets`/`tickVector`/`values`/`velocities` surface to it — the scalar hot
 // path never touches a lane buffer.
 import { SpringVectorLanes, EMPTY_LANES } from "./vector";
-// The shared closed-form analytic kernel (R.W1 §spring `sample.ts`) — the
-// scalar `evaluateAt` consumes it; the vector lanes inline the same math hoisted.
-import { solveDampedHarmonic } from "./sample";
+// The shared closed-form analytic kernel (R.W2c §spring `solver.ts`, the
+// dependency-free leaf) — the scalar `evaluateAt` consumes it; the vector lanes
+// inline the same math hoisted.
+import { solveDampedHarmonic } from "./solver";
 
 /**
  * Live-target spring tracker. Sibling of `SmoothProgress` for animations
