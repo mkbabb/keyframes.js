@@ -210,8 +210,21 @@ const makeMorphRenderer = <V extends Vars>(
         >;
         for (let i = 0; i <= samples; i++) {
             const pt = scratch[i]!;
-            pt.x = v[xKey(i)]?.[0]?.value ?? 0;
-            pt.y = v[yKey(i)]?.[0]?.value ?? 0;
+            // R.W3 §2D (FAIL-EXPLICIT): the morph renderer seeds EVERY point
+            // key at construction time (xKey(i)/yKey(i) for every i in [0,samples]),
+            // so a missing key here is an engine-invariant violation, NOT an
+            // expected-absent case. Mask-to-0 would corrupt the path silently —
+            // throw instead (the honest-or-refuse law from the factory below).
+            const lx = v[xKey(i)]?.[0]?.value;
+            const ly = v[yKey(i)]?.[0]?.value;
+            if (lx === undefined || ly === undefined) {
+                throw new Error(
+                    `morph render: point ${i} lost its coordinate leaf ` +
+                        `(engine invariant violated — xKey/yKey seeded at construction)`,
+                );
+            }
+            pt.x = lx;
+            pt.y = ly;
         }
         const d = pointsToD(scratch);
         // The cross-browser author channel (var(--morph-d) + the JS reader) AND
@@ -340,6 +353,11 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
         // so the engine's numeric lerp banks the `from`→`to` tangent across `t`
         // (the `rotate: auto` value). Off by default (the ~130-key floor).
         if (orient) {
+            // KEEP: angle ?? 0 is a valid default for a flat segment (the
+            // tangent angle at a degenerate point). This is construction-time
+            // over PathGeometry samples — NOT the per-frame render. A 0-radian
+            // angle is the correct identity (no rotation) for a flat segment,
+            // NOT a silent mask of an invariant violation (R.W3 §2D).
             startFrame[angleKey(i)] = fromPts[i]!.angle ?? 0;
             endFrame[angleKey(i)] = toPts[i]!.angle ?? 0;
         }
@@ -423,6 +441,12 @@ export class MorphSVG<V extends Record<string, any> = any> {
         for (let i = 0; i <= this.samples; i++) {
             const x = out[xKey(i)]?.[0]?.value;
             const y = out[yKey(i)]?.[0]?.value;
+            // KEEP: x ?? 0 / y ?? 0 here is a manual pull via interpFrames
+            // (not the hot-path renderer). `interpFrames` may return partial
+            // results before the first play tick; 0 is the geometric identity
+            // (origin) — NOT a silent mask of an invariant violation. The
+            // per-frame renderer (makeMorphRenderer) uses the FAIL-EXPLICIT
+            // throw (R.W3 §2D) for the identical lookup on the hot path.
             pts[i] = { x: x ?? 0, y: y ?? 0 };
         }
         return pointsToD(pts);
