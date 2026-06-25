@@ -353,13 +353,11 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
         // so the engine's numeric lerp banks the `from`→`to` tangent across `t`
         // (the `rotate: auto` value). Off by default (the ~130-key floor).
         if (orient) {
-            // KEEP: angle ?? 0 is a valid default for a flat segment (the
-            // tangent angle at a degenerate point). This is construction-time
-            // over PathGeometry samples — NOT the per-frame render. A 0-radian
-            // angle is the correct identity (no rotation) for a flat segment,
-            // NOT a silent mask of an invariant violation (R.W3 §2D).
-            startFrame[angleKey(i)] = fromPts[i]!.angle ?? 0;
-            endFrame[angleKey(i)] = toPts[i]!.angle ?? 0;
+            // KEEP: angle ?? 0 — construction-time default for a flat segment;
+            // 0-radian is the correct identity (no rotation), NOT a per-frame
+            // coordinate mask (the hot-path render throws on missing keys — §2D).
+            startFrame[angleKey(i)] = fromPts[i]!.angle ?? 0; // KEEP: flat-segment identity
+            endFrame[angleKey(i)] = toPts[i]!.angle ?? 0; // KEEP: flat-segment identity
         }
     }
 
@@ -441,13 +439,10 @@ export class MorphSVG<V extends Record<string, any> = any> {
         for (let i = 0; i <= this.samples; i++) {
             const x = out[xKey(i)]?.[0]?.value;
             const y = out[yKey(i)]?.[0]?.value;
-            // KEEP: x ?? 0 / y ?? 0 here is a manual pull via interpFrames
-            // (not the hot-path renderer). `interpFrames` may return partial
-            // results before the first play tick; 0 is the geometric identity
-            // (origin) — NOT a silent mask of an invariant violation. The
-            // per-frame renderer (makeMorphRenderer) uses the FAIL-EXPLICIT
-            // throw (R.W3 §2D) for the identical lookup on the hot path.
-            pts[i] = { x: x ?? 0, y: y ?? 0 };
+            // KEEP: x ?? 0 / y ?? 0 — manual pull via interpFrames (not the
+            // hot-path renderer); 0 is the geometric identity (origin) before
+            // the first play tick, NOT a per-frame coordinate mask (§2D).
+            pts[i] = { x: x ?? 0, y: y ?? 0 }; // KEEP: pre-tick geometric identity
         }
         return pointsToD(pts);
     }

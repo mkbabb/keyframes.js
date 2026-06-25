@@ -418,6 +418,8 @@ jobs:
             # ════════════════════════════════════════════════════════════════════
             - name: proof:lint-clean (Q.WA1 — the SLIM dependency-cruiser source-graph floor · no-cycle + leaf/light boundary)
               run: npm run proof:lint-clean
+            - name: proof:no-silent-fallback (R.W3 — legacy/workaround/fallback excision sweep · §2A–2E · 3-clause static gate)
+              run: npm run proof:no-silent-fallback
             - name: proof:drag2d-light-certified (Q.WA2 — drag2D is a certified, gate-locked LIGHT primitive · the DemoControlPoint substrate)
               run: npm run proof:drag2d-light-certified
             - name: proof:wave-charter (Q.WA4 — the 7-question contrivance smell-test + the DAG manifest acyclicity + no-unpublished-consume)
