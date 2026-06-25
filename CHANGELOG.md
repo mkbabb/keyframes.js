@@ -3,6 +3,17 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 5.1.0
+
+### Minor Changes (additive)
+
+- **New `@mkbabb/keyframes.js/engine` subpath.** A static import home for the heavy engine surface — `import { CSSKeyframesAnimation, AnimationGroup, MotionPath, DrawSVG, MorphSVG, presets, compileToCSS, validate, … } from "@mkbabb/keyframes.js/engine"` resolves the FULL set (39 keys) that `await loadAnimationEngine()` returns, without the dynamic-import round-trip. The `.` barrel's public surface is UNCHANGED (the LIGHT static exports + the `loadAnimationEngine()` boundary are intact) — this is purely additive. The library's internal layout was reorganized into zoned directories; all barrel import paths are preserved.
+
+### Removals
+
+- **`animate()` removed.** The single-call `animate()` front door is no longer exported. Use the idiomatic surface instead: `import { CSSKeyframesAnimation } from "@mkbabb/keyframes.js/engine"` (or `await loadAnimationEngine()`) and construct directly — `new CSSKeyframesAnimation(opts).fromString(css)`.
+- **Granular load accessors collapsed.** The separate `loadEngine` / `loadCompiler` / `loadIngest` accessors are removed in favor of the single `loadAnimationEngine()` (with `warmEngine()` for prefetch). These are the supported dynamic-surface accessors.
+
 ## 5.0.0
 
 ### Major Changes (BREAKING)
