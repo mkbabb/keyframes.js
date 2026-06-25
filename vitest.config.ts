@@ -7,8 +7,12 @@ export default defineConfig({
             "@src": path.resolve(import.meta.dirname, "src"),
             "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
             "@components": path.resolve(import.meta.dirname, "demo/@/components"),
+            "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
+            // R.W5 fused scenes to demo/scenes/ and routed cross-scene imports
+            // through @app (demo/app/); vitest must mirror the demo build alias.
+            "@app": path.resolve(import.meta.dirname, "demo/app"),
             // The library gate is glass-ui-FREE (inv β); vitest runs only there.
             // Alias glass-ui's motion-core subpath to a shim so demo-encapsulation
             // tests (which transitively import it via useSceneSwap/useSceneTransition)

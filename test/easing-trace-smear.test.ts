@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { effectScope, nextTick } from "vue";
 
-import { useEasingTraceSmear } from "../demo/easing/useEasingTraceSmear";
+import { useEasingTraceSmear } from "../demo/scenes/easing/useEasingTraceSmear";
 
 // L.W11 S5 — the drag-bend trace-smear egg. The SHIPPED form was silently dead:
 // `kickFromPoints` set the smear target then `queueMicrotask(() => setTarget(0))`,

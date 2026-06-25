@@ -23,7 +23,7 @@ import { effectScope } from "vue";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 import { warmKfEngine } from "../demo/@/utils/kfEngine";
-import { useEasingDemo } from "../demo/easing/useEasingDemo";
+import { useEasingDemo } from "../demo/scenes/easing/useEasingDemo";
 import { useSceneMachine } from "../demo/@/components/custom/animation-controls/stores/useSceneMachine";
 
 // L.W8 S1 ED-3 — the demo composables read the HEAVY engine surface synchronously
