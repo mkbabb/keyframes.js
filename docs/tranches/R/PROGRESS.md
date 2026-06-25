@@ -55,13 +55,19 @@ R.W5 + R.W6-core + R.W6-decomp all green. Clean tree. Pre-existing non-R red not
 
 **LINT/CYCLE finding (R.md §8's "engine↔group↔waapi no-cycle ring"):** the partition's zone barrels created **26 live no-cycle violations** (`engine/index` re-exports `AnimationGroup` from `../group` while `group` imports `engine/animation`; shared `getAnimationId` runtime edge). leaves.ts/value.js-math charter edge ALREADY resolved (R.W1 `pathNot`). Sequenced a dedicated **R.W2c cycle-break** before R.W3 (R.W3's `proof:no-silent-fallback` clause 2 needs lint green).
 
-| In-flight | Wave | Agent | Status |
-|---|---|---|---|
-| Track L | R.W2c break engine/group/waapi cycle ring | Opus (bg) | DISPATCHED 2026-06-24 |
+- **R.W2c ✅ GREEN** (`r-track-lib` @ `d3c6976`, 3 commits) — cycle ring BROKEN: getGroupFactory DI seam inverts engine→group back-edge; `getAnimationId` + spring `solver.ts` → neutral `internal/` leaves; zone barrels stop cross-zone re-export (AnimationGroup composed in load-engine); no-cycle rule honored its documented type-only exemption (`dependencyTypesNot`). **known-violations 9→0 (empty []); `proof:lint-clean` GREEN**; depcruise --no-ignore-known clean; runtime smoke confirms zero public-API change. engine/animation 499L, group/group 496L.
 
-**Strategy:** zone barrels stop cross-zone re-export (move to package barrel/load-engine); relocate `getAnimationId` to a neutral `internal/` leaf; `import type` the type-only cross-zone edges; shrink known-violations toward 0. Goal: `proof:lint-clean` GREEN, boundary still green.
+### ✅ TRACK L structural phase COMPLETE (R.W1/R.W2/R.W2b/R.W2c) — `r-track-lib` @ `d3c6976`
+decomposition GREEN · lint-clean GREEN · boundary/engine/no-flat-siblings/ci-coverage GREEN · build/test GREEN. Remaining lib charter reds: `proof:agent-surface` (R.W4), `proof:chronic-closure` (R.W8 fold #1).
 
-**Next:** R.W2c → R.W3lib (legacy sweep §2A–2E + `proof:no-silent-fallback` gate) → R.W4 (subpath/boundary-slim/animate-excise/agent-surface) → R.W7 (docs). Then integrate both branches (`r-track-lib` + `r-track-demo`) → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
+| In-flight | Wave | Agent | Worktree | Status |
+|---|---|---|---|---|
+| Track L | R.W3lib legacy sweep §2A–2E + no-silent-fallback gate | Sonnet (bg) | `keyframes-r-lib` (r-track-lib) | DISPATCHED 2026-06-24 |
+| Track L | R.W4 subpath/boundary-slim/animate-excise/agent-surface | Opus (bg) | `keyframes-r-lib4` (r-track-lib4 @ d3c6976) | DISPATCHED 2026-06-24 |
+
+**Parallelized** R.W3lib ∥ R.W4 in two lib worktrees (largely file-disjoint; merge conflicts limited to package.json scripts + proof-ci-coverage roster — additive, resolved at merge).
+
+**Next:** merge r-track-lib4 (R.W4) → r-track-lib (R.W3lib) → R.W7 (docs README slim) → integrate `r-track-lib` + `r-track-demo` into `tranche-r-dev` → full proof suite (incl. cross-track `proof:no-silent-fallback` demo clauses going green) → R.W8 close → publish 5.1.0 → Cloudflare deploy.
 
 ## The wave board
 
