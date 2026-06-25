@@ -17,28 +17,39 @@ import {
     unflattenObject,
     ValueUnit,
 } from "@mkbabb/value.js";
-import { cssTwinFor } from "../easing";
 import { AnimationOptionError } from "../internal/errors";
 import type {
     AnimationFrame,
     AnimationOptions,
     CompositeOperator,
-    Easing,
     InputAnimationOptions,
-    InterpolatedVar,
-    NumericFoldPlan,
     TemplateAnimationFrame,
     TransformFunction,
     Vars,
 } from "../constants";
 import { NOOP_TRANSFORM } from "../constants";
-import { getTimingFunction } from "./easing-registry";
 import {
     createInterpVarValue,
     parseAndFlattenObject,
     type ParsedVarMap,
 } from "./parse-flatten";
-import { PHASE_FRACTIONS } from "../internal/scroll-phases";
+// The keyframe-SELECTOR grammar (the regexes, the named-range tag, the
+// named-phase → fraction resolver, the content-id scale) lives in the colocated
+// `./selector` module (R.W2b carve). `namedSelectorToFraction` +
+// `NAMED_SELECTOR_SUPERTYPE` re-export THROUGH this module so css-animation /
+// interpolate / `proof:nan-frame` resolve them at the unchanged path.
+import {
+    FRAME_ID_SCALE,
+    SELECTOR_KEYWORD_RE,
+    SELECTOR_PERCENT_RE,
+    SELECTOR_NAMED_RANGE_RE,
+    SELECTOR_REASON,
+    NAMED_SELECTOR_SUPERTYPE,
+} from "./selector";
+export {
+    namedSelectorToFraction,
+    NAMED_SELECTOR_SUPERTYPE,
+} from "./selector";
 
 /**
  * Map a segment's percent endpoints onto the wall-clock window. Inlined here
@@ -56,195 +67,14 @@ function calcFrameTime<V extends Vars>(
     };
 }
 
-/**
- * Q.WB3 S2 — whether an `InterpolatedVar` is a pure-NUMERIC leaf the SoA fold
- * covers: BOTH endpoints are numeric, the leaf is NOT computed (a
- * `var`/`calc`/`vh`/`cq*` re-resolves against the live box every frame — kept
- * boxed), NOT a color (a `Color` cannot live in a `Float64Array`), and has no
- * frozen `_colorPlan`. The SAME K3 partition discipline `group.ts`'s
- * `isNumericUnit` runs for the compositor. Module-private (R.W1: the cosmetic
- * Q.WF1 `frame-compiler-numeric.ts` extraction folded back; zero cross-file callers).
- */
-const isNumericInterpVar = (iv: InterpolatedVar<unknown>): boolean =>
-    typeof iv.start.value === "number" &&
-    typeof iv.stop.value === "number" &&
-    iv.computed !== true &&
-    iv.value.unit !== "color" &&
-    iv._colorPlan == null;
-
-/**
- * Q.WB3 S2 — build the numeric SoA fold plan for ONE frame's `allInterpVars`
- * (the F.W4 zero-alloc discipline: the `Float64Array`s are allocated ONCE here,
- * at parse, and reused per frame). Partitions the iv set into the NUMERIC subset
- * (packed into `from`/`to` endpoint buffers, folded via one `lerpArray`) and the
- * BOXED residual (color/computed/mixed — the per-element `lerpValue` path). The
- * numeric carriers' `value` `ValueUnit`s ARE the write-back slots, so the strided
- * write-back is bit-identical (`proof:processframe-soa` interp-equal).
- */
-const buildNumericPlan = <V extends Vars>(
-    allInterpVars: Array<InterpolatedVar<V>>,
-): NumericFoldPlan<V> => {
-    const numeric: Array<InterpolatedVar<V>> = [];
-    const boxed: Array<InterpolatedVar<V>> = [];
-    for (const iv of allInterpVars) {
-        if (isNumericInterpVar(iv as InterpolatedVar<unknown>))
-            numeric.push(iv);
-        else boxed.push(iv);
-    }
-    const n = numeric.length;
-    const from = new Float64Array(n);
-    const to = new Float64Array(n);
-    for (let s = 0; s < n; s++) {
-        from[s] = numeric[s]!.start.value as unknown as number;
-        to[s] = numeric[s]!.stop.value as unknown as number;
-    }
-    return { numeric, from, to, out: new Float64Array(n), boxed };
-};
-
-/**
- * Resolve heavy-surface easing input — a callable, a typed `Easing`, a
- * registry name, or a `cubic-bezier()` literal — to a typed `Easing`.
- * Fail-explicit: unresolvable input throws; there is no silent fallback
- * to a default curve.
- */
-export const resolveEasingOption = (
-    option: string,
-    input: NonNullable<InputAnimationOptions["timingFunction"]>,
-): Easing => {
-    if (typeof input === "function") return { fn: input };
-    if (typeof input === "object") {
-        if (typeof (input as Easing).fn === "function") {
-            return input as Easing;
-        }
-        throw new AnimationOptionError(
-            option,
-            input,
-            "an Easing must carry a callable `fn`",
-        );
-    }
-    const fn = getTimingFunction(input);
-    if (!fn) {
-        // J.W1 S8 — the stable structured code rides the typed throw so a
-        // programmatic consumer can branch on the reason (the K3-internal
-        // row; the full diagnostics channel stays a K.W0 seed).
-        throw new AnimationOptionError(
-            option,
-            input,
-            "unknown timing function — pass a callable TimingFunction, a " +
-                "typed Easing, a registry name, or a cubic-bezier() literal",
-            "UNKNOWN_TIMING_FN",
-        );
-    }
-    // Attach the faithful CSS twin when one exists (CSS keyword,
-    // cubic-bezier()/steps() literal) so a WAAPI delegation runs the true
-    // curve; value.js bespoke names (easeOutCubic, …) get none and stay on
-    // the rAF path.
-    const css = cssTwinFor(input);
-    return css ? { fn, css } : { fn };
-};
-
-/**
- * Multiplier for the content-derived compiled `frameId` (FC-2): a segment's
- * id is `startIx * FRAME_ID_SCALE + stopIx`, unique + deterministic for any
- * keyframe count below the scale. 1e6 keyframes is far past any real animation.
- */
-const FRAME_ID_SCALE = 1_000_000;
-
-/**
- * The NAMED keyframe-selector grammar (J.W1 S3 — the SEAM-1 guard made
- * TOTAL). A selector is CONFORMING iff it is (a) a percentage literal
- * `<number>%` whose value lies in [0,100], or (b) the CSS keyframe keyword
- * `from`/`to` (case-insensitive, per CSS) — and NOTHING else. The boundary
- * is named so the guard is total, not a "looks-invalid" sniff that re-opens
- * the gap on the next unseen token.
- */
-const SELECTOR_KEYWORD_RE = /^(?:from|to)$/i;
-const SELECTOR_PERCENT_RE = /^(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?%$/;
-
-/**
- * The SCROLL-RANGE named-selector grammar (L.W1 S4 — viol17/W118). value.js
- * parses `entry`/`exit`/`cover`/`contain` as a `KeyframeSelector {
- * kind: "named" }` (CSS scroll-driven animations `<keyframe-selector>` extended
- * form); the adapter surfaces them as their literal name, optionally followed
- * by a range fraction (`entry 0%`, `entry 50%`). The range-fraction form is the
- * common real-world shape; the bare form (`entry`) maps to `entry 0% 100%` per
- * the scroll-animations spec. These selectors are conforming — `addFrame`
- * ACCEPTS and PRESERVES them verbatim (round-tripping the authored token)
- * instead of throwing — but they are only RESOLVABLE to a numeric `%` under a
- * `ScrollTimeline`/`ManualTimeline` phase mapper. The bare-ingest floor stores
- * the raw token opaquely (see {@link NAMED_SELECTOR_SUPERTYPE}); the
- * resolve-to-`%` is deferred to attach time (the no-timeline-but-position-
- * demanded case refuses with `NAMED_SELECTOR_NO_TIMELINE`, never a silent
- * invented number).
- */
-const SELECTOR_NAMED_RANGE_RE =
-    /^(?:entry|exit|cover|contain)(?:\s+\d+(?:\.\d+)?%)?$/i;
-
-/**
- * The `ValueUnit.superType` marker tagging a stored scroll-range named selector
- * (L.W1 S4). The opaque storage is `new ValueUnit(rawSelector, undefined,
- * [NAMED_SELECTOR_SUPERTYPE])`: the `value` carries the raw selector STRING so
- * `toString()` round-trips the authored token VERBATIM (`entry` → `entry`,
- * `entry 0%` → `entry 0%`), and the `superType` tag is the channel the deferred
- * phase resolver keys on (the percent-literal/keyword path never carries it).
- */
-export const NAMED_SELECTOR_SUPERTYPE = "named-selector";
-
-/**
- * Q.WD1-bind S1 — the CAPTURING variant of {@link SELECTOR_NAMED_RANGE_RE} (which
- * is NON-capturing — it validates but cannot extract). Group 1 = the phase, group
- * 2 (optional) = the offset `%` numeral. The two stay in LOCK-STEP: the same token
- * set, the same shape, differing only in the capture groups.
- */
-const NAMED_SELECTOR_CAPTURE_RE =
-    /^(entry|exit|cover|contain)(?:\s+(\d+(?:\.\d+)?)%)?$/i;
-
-// Q.WD1-bind S1 — the FOUR keyframe-reachable phase spans now live in the
-// value.js-free `internal/scroll-phases.ts` (R.W1 — the BOOK duplication with
-// `scroll/scene.ts`'s `PHASE_FRACTIONS` is dissolved; both import the one source).
-// `normal`/`*-crossing` are not in the keyframe-selector grammar, so the
-// shared table holds only the four selector-valid phases.
-
-/**
- * Q.WD1-bind S1 (DM-22) — resolve a scroll-range named keyframe selector to its
- * `[0, 1]` position fraction. A keyframe selector is a SINGLE position (NOT a
- * range): a bare `entry` is "the START of the entry phase" (`PHASE_FRACTIONS
- * ["entry"].start = 0`); `entry 50%` is 50% THROUGH the entry band (`0 + 0.5 *
- * (0.25 - 0) = 0.125`) — matching `scroll-scene.ts` `boundaryFraction`'s
- * arithmetic. NEVER returns NaN: the `SELECTOR_NAMED_RANGE_RE` guard (`addFrame`)
- * has already validated the input, so any string reaching here is a conforming
- * named selector; a defensive non-match throws the typed error rather than
- * inventing a silent number.
- */
-export const namedSelectorToFraction = (rawSelector: string): number => {
-    const m = NAMED_SELECTOR_CAPTURE_RE.exec(rawSelector.trim());
-    if (m === null) {
-        throw new AnimationOptionError(
-            "start",
-            rawSelector,
-            `not a conforming scroll-range named selector (entry/exit/cover/contain, ` +
-                `optionally with a range fraction like 'entry 50%')`,
-            "NAMED_SELECTOR_NO_TIMELINE",
-        );
-    }
-    const phase = m[1]!.toLowerCase();
-    const span = PHASE_FRACTIONS[phase]!;
-    const offsetText = m[2];
-    if (offsetText === undefined) {
-        // Bare form — the single position is the START of the phase.
-        return span.start;
-    }
-    // `entry 50%` = 50% THROUGH the phase band (the offset shifts the origin into
-    // the phase span — the same arithmetic boundaryFraction uses).
-    const offset = Number.parseFloat(offsetText) / 100;
-    return span.start + offset * (span.end - span.start);
-};
-
-const SELECTOR_REASON =
-    "a keyframe selector must be a percentage 0%–100% " +
-    "(e.g. \"0%\", \"50%\"), the keyword 'from'/'to', or a scroll-range " +
-    "named selector (entry/exit/cover/contain, optionally with a range " +
-    "fraction like 'entry 0%')";
+// The numeric SoA fold plan (`buildNumericPlan` + its `isNumericInterpVar`
+// predicate) lives in the colocated `./numeric-plan` module (R.W2b carve);
+// `finalizeFrameVars` builds one per frame. The heavy-surface easing-input
+// resolver (`resolveEasingOption`) lives in `./easing-option` and is re-exported
+// THROUGH this module so `engine/options.ts` resolves it at the unchanged path.
+import { buildNumericPlan } from "./numeric-plan";
+import { resolveEasingOption } from "./easing-option";
+export { resolveEasingOption } from "./easing-option";
 
 export class FrameCompiler<V extends Vars = any> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
