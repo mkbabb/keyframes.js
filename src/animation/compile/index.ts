@@ -21,12 +21,13 @@ export { getTimingFunction } from "./easing-registry";
 // Backward pipeline
 export { compileToCSS, DEFAULT_DELTA_E_EPSILON, DEFAULT_DENSIFY_STOPS } from "./backward";
 export type {
-    CompileInput,
     CompileOptions,
     CompiledCSS,
     CompileRefusal,
     CompileRefusalReason,
 } from "./backward";
+// The input-shape type + the walkers live in the colocated `./backward-walk`.
+export type { CompileInput } from "./backward-walk";
 export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,

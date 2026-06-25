@@ -86,6 +86,11 @@ console.log(
 );
 
 const COMPILE = "src/animation/compile/backward.ts";
+// R.W2b carved the "orchestration graph → CompileChild[]" walkers (walkGroup /
+// walkSequence / walkList — incl. the static/spring `weighted` partition) off
+// `backward.ts` into the colocated `backward-walk.ts`. The COMPILE-BACKWARD
+// SURFACE is both files; clauses whose anchors may land in either read it.
+const COMPILE_WALK = "src/animation/compile/backward-walk.ts";
 const COMPILE_COLOR = "src/animation/compile/backward-color.ts";
 const FORMAT = "src/animation/compile/format.ts";
 const BARREL = "src/animation/index.ts";
@@ -97,19 +102,24 @@ const TEST = "test/compile-roundtrip.test.ts";
 
 /** Assert every anchor is present in `file`; the clause reds on any missing. */
 const requireAll = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist.`);
+    // `file` may be a single path or an array of paths whose concatenation is the
+    // surface (R.W2b — a carve can split a clause's anchors across sibling files).
+    const files = Array.isArray(file) ? file : [file];
+    const label = files.join(" + ");
+    const missingFiles = files.filter((f) => !existsSync(join(root, f)));
+    if (missingFiles.length > 0) {
+        fail(clause, `${missingFiles.join(", ")} does not exist.`);
         return;
     }
-    const src = read(file);
+    const src = files.map((f) => read(f)).join("\n");
     const missing = anchors.filter(({ re }) => !re.test(src));
     if (missing.length > 0) {
         fail(
             clause,
-            `${file} is missing: ${missing.map((m) => m.name).join("; ")} — the ${clause} contract is no longer locked.`,
+            `${label} is missing: ${missing.map((m) => m.name).join("; ")} — the ${clause} contract is no longer locked.`,
         );
     } else {
-        ok(clause, `${file} locks ${anchors.length} ${clause} anchor(s)`);
+        ok(clause, `${label} locks ${anchors.length} ${clause} anchor(s)`);
     }
 };
 
@@ -344,7 +354,7 @@ requireAll("scroll-compile-emit", COMPILE, [
 //  `weightSpring != null` ALREADY matches compile.ts:179 today — VACUOUS. We
 //  require ONLY the cure-only partition names (NONE present today: zero hits for
 //  springWeighted|staticWeighted|staticWeight).
-requireAll("static-weight-compile", COMPILE, [
+requireAll("static-weight-compile", [COMPILE, COMPILE_WALK], [
     {
         name: "static/spring weight partition (the cure-only variable names — NOT the pre-existing weightSpring != null)",
         re: /springWeighted|staticWeighted|staticWeight/,

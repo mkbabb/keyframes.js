@@ -53,8 +53,13 @@
 import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
 import type { KeyframesAnimation } from "../engine";
 import { AnimationGroup } from "../group";
-import { getAnimationId } from "../engine";
 import { Sequence } from "../orchestration/sequence";
+import {
+    walkGroup,
+    walkSequence,
+    walkList,
+} from "./backward-walk";
+import type { CompileChild, CompileInput } from "./backward-walk";
 import {
     animationComposition,
     animationShorthand,
@@ -64,7 +69,7 @@ import {
 import { densifyColorBlock, round } from "./backward-color";
 import { serializeScrollOptions } from "../scroll/grammar";
 import type { CSSTimelineOptions } from "../scroll/grammar";
-import type { CompositeOperator, Vars } from "../constants";
+import type { Vars } from "../constants";
 
 // ── The ineligibility report (CC-3) — the four named refusals ────────────────
 
@@ -147,121 +152,10 @@ export const DEFAULT_DELTA_E_EPSILON = 0.04;
 export const DEFAULT_DENSIFY_STOPS = 16;
 
 // ── The compile walker (CC-1) ────────────────────────────────────────────────
-
-/** A walked child — its animation + the layer/sequence metadata the compile reads. */
-interface CompileChild<V extends Vars> {
-    animation: KeyframesAnimation<V>;
-    name: string;
-    /** The CSS `animation-composition` operator for this child's layering (CC-1 inverting W7). */
-    composition: CompositeOperator;
-    /**
-     * A SPRING-driven `weighted` blend (a live `weightSpring` crossfade) forces a
-     * refusal (CC-3 §3a) — it has no static CSS twin. A STATIC `weighted` layer is
-     * NOT this: it pre-multiplies into an `accumulate` layer (see {@link staticWeight}).
-     */
-    weighted: boolean;
-    /**
-     * CC-5 (L.W2 S3) — a STATIC `weighted` layer's constant blend scalar. When
-     * defined, `compileChild` pre-multiplies the child's numeric keyframe leaves by
-     * this weight (CLONE-only — never mutates `parsedVars`) and emits the result as
-     * an `animation-composition: accumulate` layer (exact CSS, no spring, no
-     * runtime). `undefined` for a `replace`/`add` layer or a spring crossfade.
-     */
-    staticWeight?: number;
-    /** An absolute offset (ms) — a Sequence position / stagger delay, emitted as `animation-delay`. */
-    delay: number;
-}
-
-/** The input shapes `compileToCSS` accepts. */
-export type CompileInput<V extends Vars = any> =
-    | AnimationGroup<V>
-    | Sequence<V>
-    | ReadonlyArray<KeyframesAnimation<V> | { animation: KeyframesAnimation<V> }>;
-
-/**
- * Walk an `AnimationGroup` into compile children. The layer `blendMode` maps to
- * the CSS `animation-composition` operator: `replace` → `replace`, `add` → `add`
- * (INVERTING W7's honoring — the operator W7 taught the engine to READ is now
- * EMITTED).
- *
- * CC-5 (L.W2 S3) — the `weighted` blend PARTITIONS:
- *   • a SPRING-driven `weighted` (a live `weightSpring` crossfade) has no static
- *     CSS twin → a REFUSAL flag (`springWeighted` → `weighted: true`), the §3a
- *     refusal that PROVES axis-3's uniqueness.
- *   • a STATIC `weighted` (constant scalar, `weightSpring == null`) is the simple
- *     pre-compositing case: the keyframe values pre-multiply by the scalar at
- *     compile time and the layer emits as `animation-composition: accumulate` —
- *     exact CSS, no spring, no JS runtime. Carried on `staticWeight`.
- */
-function walkGroup<V extends Vars>(group: AnimationGroup<V>): CompileChild<V>[] {
-    const children: CompileChild<V>[] = [];
-    for (const key of Object.keys(group.animations)) {
-        const entry = group.animations[key]!;
-        const blend = entry.layer.blendMode;
-        const springWeighted =
-            blend === "weighted" && entry.layer.weightSpring != null;
-        const staticWeighted =
-            blend === "weighted" && entry.layer.weightSpring == null;
-        const composition: CompositeOperator =
-            blend === "add" ? "add" : staticWeighted ? "accumulate" : "replace";
-        children.push({
-            animation: entry.animation,
-            name: cssIdent(getAnimationId(entry.animation)),
-            composition,
-            weighted: springWeighted,
-            ...(staticWeighted ? { staticWeight: entry.layer.weight } : {}),
-            delay: 0,
-        });
-    }
-    return children;
-}
-
-/**
- * Walk a `Sequence` into compile children. Each entry's absolute `at` offset on
- * the master clock materializes as the child's `animation-delay` — the temporal
- * positioning emitted as a literal delay (a Sequence is `replace`-layered:
- * children paint their own targets along one clock, not a per-frame blend).
- */
-function walkSequence<V extends Vars>(seq: Sequence<V>): CompileChild<V>[] {
-    return seq.entries.map((entry) => ({
-        animation: entry.animation,
-        name: cssIdent(getAnimationId(entry.animation)),
-        composition: "replace" as const,
-        weighted: false,
-        delay: entry.at,
-    }));
-}
-
-/** Walk a bare child list (e.g. a `stagger`-delayed cohort). All `replace`. */
-function walkList<V extends Vars>(
-    list: ReadonlyArray<KeyframesAnimation<V> | { animation: KeyframesAnimation<V> }>,
-): CompileChild<V>[] {
-    return list.map((item, i) => {
-        const anim = (
-            "animation" in (item as { animation?: unknown })
-                ? (item as { animation: KeyframesAnimation<V> }).animation
-                : (item as KeyframesAnimation<V>)
-        ) as KeyframesAnimation<V>;
-        return {
-            animation: anim,
-            name: cssIdent(getAnimationId(anim) || `anim-${i}`),
-            composition: "replace" as const,
-            weighted: false,
-            delay: 0,
-        };
-    });
-}
-
-/**
- * Normalize a child name to a CSS-safe ident (the `@keyframes`/class name). A
- * bare numeric id (`getAnimationId` falls back to `String(id)`) gets an `a`
- * prefix so the `@keyframes` name is a valid CSS identifier; collisions are
- * de-duped by the walker via a `-2`/`-3` suffix.
- */
-function cssIdent(name: string): string {
-    const cleaned = name.replace(/[^a-zA-Z0-9_-]/g, "-");
-    return /^[a-zA-Z_]/.test(cleaned) ? cleaned : `a${cleaned}`;
-}
+// The "orchestration graph → CompileChild[]" walkers (walkGroup / walkSequence /
+// walkList / cssIdent) + the CompileChild / CompileInput types live in the
+// colocated `./backward-walk` module (R.W2b carve). This module owns the
+// per-child compile + the orchestrating `compileToCSS` over them.
 
 /**
  * Detect a computed-unit DRIFT residue (CC-3 §3e). Returns the first flat
