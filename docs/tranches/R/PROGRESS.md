@@ -60,14 +60,16 @@ R.W5 + R.W6-core + R.W6-decomp all green. Clean tree. Pre-existing non-R red not
 ### ✅ TRACK L structural phase COMPLETE (R.W1/R.W2/R.W2b/R.W2c) — `r-track-lib` @ `d3c6976`
 decomposition GREEN · lint-clean GREEN · boundary/engine/no-flat-siblings/ci-coverage GREEN · build/test GREEN. Remaining lib charter reds: `proof:agent-surface` (R.W4), `proof:chronic-closure` (R.W8 fold #1).
 
+- **R.W3lib ✅ GREEN** (`r-track-lib`, 5 commits @ `72fa3b0`) — §2A css-metadata FAIL-EXPLICIT, §2B getComputedStyle instanceof guard, §2C resolve CUSTOM_FN_ARG_DROP diagnostic, §2D morph invariant throw, §2E leaf-rule plant verified bites; `proof:no-silent-fallback` authored (lib clauses + lint green; demo addendum integration-deferred). All lib gates green.
+- **R.W4 ✅ core GREEN** (`r-track-lib4`, 3 commits @ `297f066`) — `./engine` subpath emits `dist/engine/index.js` (416B thin re-export, zero dup) + `.d.ts`; `animate()` EXCISED from published surface; AnimationEngine JSDoc slimmed; README Quick Start → subpath import + `ts run`; agent-surface scrubbed + regenerated. `proof:in-is-importable`/`agent-surface`/`boundary`/`published-surface`/`readme-runs` green. **GAP: subpath returned `AnimationGroup: undefined`** (engine/index zone-pure post-R.W2c) → R.W4b.
+
 | In-flight | Wave | Agent | Worktree | Status |
 |---|---|---|---|---|
-| Track L | R.W3lib legacy sweep §2A–2E + no-silent-fallback gate | Sonnet (bg) | `keyframes-r-lib` (r-track-lib) | DISPATCHED 2026-06-24 |
-| Track L | R.W4 subpath/boundary-slim/animate-excise/agent-surface | Opus (bg) | `keyframes-r-lib4` (r-track-lib4 @ d3c6976) | DISPATCHED 2026-06-24 |
+| Track L | R.W4b — subpath = FULL static heavy surface (composition barrel) | Opus (bg) | `keyframes-r-lib4` (r-track-lib4) | DISPATCHED 2026-06-24 |
 
-**Parallelized** R.W3lib ∥ R.W4 in two lib worktrees (largely file-disjoint; merge conflicts limited to package.json scripts + proof-ci-coverage roster — additive, resolved at merge).
+**R.W4b:** dedicated `engine/public.ts` composition barrel (engine + group + svg + presets + constants) as the subpath entry; engine/index stays zone-pure (sink ⇒ no cycle); subpath surface ≡ `loadAnimationEngine()` keys.
 
-**Next:** merge r-track-lib4 (R.W4) → r-track-lib (R.W3lib) → R.W7 (docs README slim) → integrate `r-track-lib` + `r-track-demo` into `tranche-r-dev` → full proof suite (incl. cross-track `proof:no-silent-fallback` demo clauses going green) → R.W8 close → publish 5.1.0 → Cloudflare deploy.
+**Next:** R.W4b → merge r-track-lib4 → r-track-lib (resolve package.json scripts + proof-ci-coverage roster, additive) → R.W7 (docs README slim, on merged tree w/ R.W4 Quick Start) → integrate `r-track-lib` + `r-track-demo` into `tranche-r-dev` → full proof suite → R.W8 close → publish 5.1.0 → Cloudflare deploy.
 
 ## The wave board
 
