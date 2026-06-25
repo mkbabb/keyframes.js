@@ -488,7 +488,9 @@ describe("warmEngine pre-resolve (L.W7 S1, W121)", () => {
             // `_enginePromise` — one microtask, no second import (the S1 contract).
             const engine = await loadAnimationEngine();
             // Touch the resolved surface so the await is not dead-code-eliminated.
-            if (typeof engine.animate !== "function") {
+            // (R.W4 excised `animate()`; `CSSKeyframesAnimation` is the canonical
+            // heavy-surface member — the idiomatic "in" the subpath now mirrors.)
+            if (typeof engine.CSSKeyframesAnimation !== "function") {
                 throw new Error(
                     "warmEngine pre-resolve did not settle the engine",
                 );
