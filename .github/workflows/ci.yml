@@ -154,6 +154,12 @@ jobs:
             # taught-roster floor forbids the under-tagging false-green.
             - name: proof:readme-runs (J.W5 — the README snippets EXECUTE against dist)
               run: npm run proof:readme-runs
+            # R.W7 — README paths live: every ](src/…) link resolves, no stale
+            # `Animation` class-name reference, Quick Start fence is `ts run` + has
+            # an import line. Paired with proof:readme-runs (R.W4 ensures execution;
+            # R.W7 ensures the cited paths exist + the class name is canonical).
+            - name: proof:readme-paths-live (R.W7 — README src/ links live · no stale Animation · Quick Start ts run)
+              run: npm run proof:readme-paths-live
             - name: proof:boundary (value.js static/dynamic boundary gate, all light entries)
               run: npm run proof:boundary
             - name: "proof:consume-bundle (M.W9 atlas — a LIGHT-surface consumer drags zero value.js/engine)"
