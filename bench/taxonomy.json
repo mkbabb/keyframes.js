@@ -187,6 +187,36 @@
         },
         {
             "suite": "bench/interp-buffer.bench.ts",
+            "name": "colorTail boxed · K=3 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "colorTail SoA · K=3 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "colorTail boxed · K=8 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "colorTail SoA · K=8 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "colorTail boxed · K=12 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
+            "name": "colorTail SoA · K=12 · 600-frame window",
+            "category": "observe-only"
+        },
+        {
+            "suite": "bench/interp-buffer.bench.ts",
             "name": "K=5 · 600-frame steady window (threaded buffer)",
             "category": "run-check"
         },
