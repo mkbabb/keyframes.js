@@ -45,13 +45,17 @@ R.W5 + R.W6-core + R.W6-decomp all green. Clean tree. Pre-existing non-R red not
 **GATE REGRESSIONS found by independent triage (green-on-main, red-on-lib-wt) — folded into R.W2b:**
 `proof:platform-adopt` (ENOENT stale `src/animation/engine.ts`), `proof:roundtrip-fidelity` + `proof:grammar-fuzz` (`[no-source-edit]` — test imports of engine+serializer moved), `proof:compile-replay` (stale path). The R.W1/R.W2 agents mis-reported these as "pre-existing"; they are R-introduced and MUST be retargeted (gate-follows-code).
 
+- **R.W2b ✅ GREEN** (`r-track-lib` @ `8e2fde1`, 9 commits) — ALL 7 over-ceiling files CARVED ≤500 (no new override; resolve 797→290 via `resolveNode` injection breaking the p2-pinned recursion; waapi 4-concern split; sequence/spring/scroll/compile carves). `proof:decomposition` GREEN (1 documented data-volume override = presets/classic.ts 728). The 3 triaged gate regressions (platform-adopt/roundtrip-fidelity/grammar-fuzz) + compile-replay FIXED green. known-violations 15→9.
+
+**LINT/CYCLE finding (R.md §8's "engine↔group↔waapi no-cycle ring"):** the partition's zone barrels created **26 live no-cycle violations** (`engine/index` re-exports `AnimationGroup` from `../group` while `group` imports `engine/animation`; shared `getAnimationId` runtime edge). leaves.ts/value.js-math charter edge ALREADY resolved (R.W1 `pathNot`). Sequenced a dedicated **R.W2c cycle-break** before R.W3 (R.W3's `proof:no-silent-fallback` clause 2 needs lint green).
+
 | In-flight | Wave | Agent | Status |
 |---|---|---|---|
-| Track L | R.W2b decomp-completion + stale-gate sweep | Opus (bg) | DISPATCHED 2026-06-24 |
+| Track L | R.W2c break engine/group/waapi cycle ring | Opus (bg) | DISPATCHED 2026-06-24 |
 
-**Decomp backlog for R.W2b (7 files):** carve waapi(573)/sequence(699)/spring·progress(628)/scroll·scene(528)/compile·backward(536) to ≤500; carve-then-narrow-override-residual for resolve/index(797, p2-pinned) + compile/frame-compiler(670, export-pinned). Goal: `proof:decomposition` GREEN.
+**Strategy:** zone barrels stop cross-zone re-export (move to package barrel/load-engine); relocate `getAnimationId` to a neutral `internal/` leaf; `import type` the type-only cross-zone edges; shrink known-violations toward 0. Goal: `proof:lint-clean` GREEN, boundary still green.
 
-**Next:** after R.W2b → parallelize **R.W3lib ∥ R.W4** (2nd lib worktree off post-R.W2b HEAD — largely file-disjoint) → R.W7 (after R.W4's README). Then integrate both branches (`r-track-lib` + `r-track-demo`) → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
+**Next:** R.W2c → R.W3lib (legacy sweep §2A–2E + `proof:no-silent-fallback` gate) → R.W4 (subpath/boundary-slim/animate-excise/agent-surface) → R.W7 (docs). Then integrate both branches (`r-track-lib` + `r-track-demo`) → full proof suite → R.W8 → publish 5.1.0 → Cloudflare deploy.
 
 ## The wave board
 
