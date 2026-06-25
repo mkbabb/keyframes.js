@@ -36,7 +36,15 @@ console.log(
     "proof:emerging-css-resolve-p2 — Q.WB1 (if(style(--p)) + sibling-index/count element-aware)",
 );
 
-const RESOLVE = "src/animation/resolve/index.ts";
+// R.W2b carved the resolve recursion into the `resolve/` zone (env / resolve-if /
+// resolve-function + the index core); the RESOLVE SURFACE is the four colocated
+// files, so a clause's anchor is found wherever the carve landed it.
+const RESOLVE = [
+    "src/animation/resolve/index.ts",
+    "src/animation/resolve/env.ts",
+    "src/animation/resolve/resolve-if.ts",
+    "src/animation/resolve/resolve-function.ts",
+];
 const ENGINE = "src/animation/engine/animation.ts";
 // R.W2 — the Phase-2 element-aware SECOND-pass resolver (the `resolveValues`
 // rewriter + the env-populate) was carved out of the engine god-class into the
@@ -47,21 +55,26 @@ const ENGINE = "src/animation/engine/animation.ts";
 const ELEMENT_RESOLVE = "src/animation/engine/element-resolve.ts";
 
 const requireAll = (clause, file, anchors) => {
-    if (!existsSync(join(root, file))) {
-        fail(clause, `${file} does not exist.`);
+    // `file` may be a single path or an array of paths whose concatenation is the
+    // surface (R.W2b — a carve can split a clause's anchors across sibling files).
+    const files = Array.isArray(file) ? file : [file];
+    const label = files.join(" + ");
+    const missingFiles = files.filter((f) => !existsSync(join(root, f)));
+    if (missingFiles.length > 0) {
+        fail(clause, `${missingFiles.join(", ")} does not exist.`);
         return;
     }
-    const src = read(file);
+    const src = files.map((f) => read(f)).join("\n");
     const missing = anchors.filter(({ re }) => !re.test(src));
     if (missing.length > 0) {
         fail(
             clause,
-            `${file} is missing: ${missing
+            `${label} is missing: ${missing
                 .map((m) => m.name)
                 .join("; ")} — the ${clause} cure is no longer wired.`,
         );
     } else {
-        ok(clause, `${file} locks ${anchors.length} ${clause} anchor(s)`);
+        ok(clause, `${label} locks ${anchors.length} ${clause} anchor(s)`);
     }
 };
 
