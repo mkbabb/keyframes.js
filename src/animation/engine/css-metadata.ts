@@ -25,6 +25,7 @@ import {
     type PropertyDescriptor,
     type Stylesheet,
 } from "@mkbabb/value.js";
+import type { Diagnostic } from "../adapter";
 import type { CompositeOperator, InputAnimationOptions } from "../constants";
 
 /** The parsed sibling-rule `animation` shape value.js surfaces (the EMIT source). */
@@ -110,10 +111,17 @@ export function recoverScrollOptions(
  * the typed custom SMOOTHLY (isomorphism-restoring). The JS path is the verbatim
  * fallback.
  *
+ * R.W3 §2A (FAIL-EXPLICIT): only the benign duplicate-name
+ * `InvalidModificationError` is swallowed. Any OTHER UA rejection (malformed
+ * syntax / invalid initial value) pushes a `PROPERTY_REGISTER_REJECTED`
+ * diagnostic — the WAAPI path would animate the typed custom DISCRETELY
+ * without this row, a silent regression vs the rAF path's JS interpolation.
+ *
  * Baseline 2024-07-09 (newly available — feature-detect mandatory).
  */
 export function registerPropertyDescriptors(
     registry: Map<string, PropertyDescriptor>,
+    diagnostics: Diagnostic[],
 ): void {
     if (
         typeof CSS === "undefined" ||
@@ -137,12 +145,25 @@ export function registerPropertyDescriptors(
         }
         try {
             CSS.registerProperty(definition);
-        } catch {
-            // InvalidModificationError on a duplicate name (process-wide
-            // registry) — benign, the property is already registered with
-            // these semantics. Any other throw (malformed syntax/initial
-            // value the UA rejects) likewise must not abort playback: the
-            // JS path remains correct, so swallow and move on.
+        } catch (err) {
+            if (
+                err instanceof DOMException &&
+                err.name === "InvalidModificationError"
+            ) {
+                // Benign: the property is already registered with these
+                // semantics (the global registry is process-wide and
+                // idempotent for a given name). The JS path remains correct.
+                continue;
+            }
+            // A genuine UA rejection (malformed syntax / invalid initial
+            // value) — surface it so the author knows the WAAPI path will
+            // animate this typed custom DISCRETELY (a rAF-vs-WAAPI
+            // regression). Do NOT silently swallow (R.W3 §2A).
+            diagnostics.push({
+                code: "PROPERTY_REGISTER_REJECTED",
+                property: name,
+                message: `CSS.registerProperty refused @property ${name}: ${String(err)}`,
+            });
         }
     }
 }

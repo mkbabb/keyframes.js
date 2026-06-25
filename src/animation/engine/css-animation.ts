@@ -263,8 +263,10 @@ export class CSSKeyframesAnimation<
         // D-LIB-1: register the parsed `@property` registry with the platform via
         // the CSS-metadata-recovery seam, so the native (WAAPI) path interpolates
         // a typed custom SMOOTHLY instead of discretely (the rAF JS path is the
-        // verbatim fallback). Feature-detected — see `engine-css-metadata.ts`.
-        registerPropertyDescriptors(this.propertyRegistry);
+        // verbatim fallback). Feature-detected — see `engine/css-metadata.ts`.
+        // R.W3 §2A: thread `this.diagnostics` so a UA rejection surface a
+        // `PROPERTY_REGISTER_REJECTED` row (the FAIL-EXPLICIT narrowing).
+        registerPropertyDescriptors(this.propertyRegistry, this.diagnostics);
 
         return this;
     }
