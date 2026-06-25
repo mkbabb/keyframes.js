@@ -132,15 +132,20 @@ function buildElementAwareEnv<V extends Vars>(
     // `style.getPropertyValue` (jsdom does not resolve inline/registered custom
     // props into `getComputedStyle` reliably). Returns `undefined` for an unset
     // prop — the presence/equality contract `evalStyleCondition` consumes.
+    //
+    // R.W3 §2B (FAIL-EXPLICIT): `getComputedStyle` only throws for a null /
+    // non-Element arg. Guard the argument with `instanceof Element` explicitly
+    // instead of doing feature-detection-by-exception (the try/catch masked a
+    // genuine detached-node / cross-origin throw as "prop unset"). A true throw
+    // on a confirmed Element arg is not possible and is never masked.
     const env: ResolveEnv = {
         customProps: (name: string) => {
             let v = "";
-            if (typeof getComputedStyle === "function") {
-                try {
-                    v = getComputedStyle(target).getPropertyValue(name).trim();
-                } catch {
-                    v = "";
-                }
+            if (
+                target instanceof Element &&
+                typeof getComputedStyle === "function"
+            ) {
+                v = getComputedStyle(target).getPropertyValue(name).trim();
             }
             if (v === "") v = target.style.getPropertyValue(name).trim();
             return v === "" ? undefined : v;
