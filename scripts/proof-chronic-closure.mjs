@@ -99,22 +99,24 @@ import { actuationNamesOf, missingHarnessAnchors } from "./lib/gate-shape.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPTS_DIR = path.join(REPO, "scripts");
-// THE CANONICAL SUBSTRATE (Q.WZ §S1 — the substrate TRANSITION, the P-inv-28 ledger
-// TERMINATED): the Q-tranche PROGRESS.md `## Open deferrals` ledger SUPERSEDES the L
-// table in the SAME motion the Q ledger becomes authoritative (the L→Q re-point —
-// the M.WZ/O.WZ/P.WZ re-points were ALL skipped, so the live pin sat 3 tranches stale
-// at L; Q re-points DIRECTLY from L, the Q ledger re-stating every prior chronic with
-// its Q-terminal disposition + chronicity integer so none drops across the multi-
-// tranche skip). The L/K/J/I/H tables remain narrative history. This is the ONE path
-// constant the Q close re-points; the grammar is taught the Q substrate's vocabulary
-// (the BUILD-IN exit shape, the DM-N coverage tokens) so the gate BITES on the Q
-// substrate — never a vacuous swap. The Q.WZ substrate transition (re-point L→Q) was
-// proven non-vacuous before this re-point: three deliberately-malformed Q-ledger rows
-// (a FOLD citing a source-shape gate; a HANDOFF targeting an unpublished future
-// version; a ≥4-tranche bare BOOK) RED on the three clause shapes, then the clean
-// terminal Q ledger GREENed it. The Q ledger is the authoritative parse target for
-// `proof:chronic-closure` from Q.WZ forward.
-const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/Q/PROGRESS.md");
+// THE CANONICAL SUBSTRATE (R.W8 §S1 — the substrate TRANSITION Q→R): the R-tranche
+// PROGRESS.md `## Open deferrals` ledger SUPERSEDES the Q table in the SAME motion the
+// R ledger becomes authoritative (the Q→R re-point — the no-skip discipline the
+// M.WZ/O.WZ/P.WZ re-points violated; Q re-pointed L→Q directly after that 3-tranche
+// skip, and R re-points Q→R atomically at close so the next tranche inherits a GREEN,
+// accurate substrate). The R ledger re-states every prior chronic with its R-terminal
+// disposition + chronicity integer so none drops across the transition; DM-7 is
+// re-stated as an owner-ratified KILL (R.W0 `23a6867`), the dangling
+// proof-keyframes-vue-published reference EXCISED. The Q/L/K/J/I/H tables remain
+// narrative history. This is the ONE path constant the R close re-points; the grammar
+// is unchanged (the R substrate honors the Q flat-table shape + the DM-N coverage
+// tokens) so the gate BITES on the R substrate — never a vacuous swap. The R.W8
+// substrate transition (re-point Q→R) was proven non-vacuous before this re-point:
+// three deliberately-malformed R-ledger rows (a FOLD citing a source-shape gate; a
+// HANDOFF targeting an unpublished future version; a ≥4-tranche bare BOOK) RED on the
+// three clause shapes, then the clean terminal R ledger GREENed it. The R ledger is
+// the authoritative parse target for `proof:chronic-closure` from R.W8 forward.
+const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/R/PROGRESS.md");
 const PKG = path.join(REPO, "package.json");
 
 const failures = [];
@@ -490,7 +492,7 @@ function auditRow(row, srcLabel) {
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────────
-const LEDGER_LABEL = "Q/PROGRESS.md";
+const LEDGER_LABEL = "R/PROGRESS.md";
 const rows = parseChronicTable(CHRONIC_LEDGER, LEDGER_LABEL);
 if (rows.length === 0 && failures.length === 0) {
     fail(`[substrate] parsed ZERO chronic rows from the ${LEDGER_LABEL} §"Open deferrals" — refusing to pass vacuously`);
@@ -547,7 +549,7 @@ const BAND = (a) => {
     return "FOLD";
 };
 
-console.log(`\n✓ proof:chronic-closure — the Q ledger is TERMINAL; every kf-runtime closure exits via a gate that BIT (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
+console.log(`\n✓ proof:chronic-closure — the R ledger is TERMINAL; every kf-runtime closure exits via a gate that BIT (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
 for (const a of audited) {
     const rt = a.runtimeGates.join(", ");
     const ch = a.chronicity != null ? `[${a.chronicity}t] ` : "";
@@ -556,7 +558,7 @@ for (const a of audited) {
     console.log(`    • ${ch}${a.name} — ${BAND(a)}${ret}${gates}`);
 }
 console.log(
-    "\n  The Q substrate TRANSITION is non-vacuous: the gate parses the Q ledger by header, reads each row's\n" +
+    "\n  The R substrate TRANSITION is non-vacuous: the gate parses the R ledger by header, reads each row's\n" +
         "  DISPOSITION band, holds the FOLD/VERIFY-ONLY rows to the runtime-gate-that-BIT contract, enforces\n" +
         "  the ≥4-tranche EXIT-ONLY mandate off the Chronicity integer, and reds a vaporware HANDOFF — the\n" +
         "  meta-gate polices the PRODUCT on the new substrate, not the column's paperwork.",

@@ -98,7 +98,7 @@ are R's measured backlog — they go green wave-by-wave, not by a self-raising c
 | Gate | State | Cause | Discharged by |
 |---|---|---|---|
 | `proof:decomposition` | RED | resolve-values.ts 796 > 600; the override allowlist masks engine/group | R.W1 (DELETE the override → reds = backlog) → R.W1/R.W2 carve them green |
-| `proof:chronic-closure` | RED | dangling `proof:keyframes-vue-published` after R.W0's KILL | R.W8 (re-point Q→R + DM-7 KILL; fold #1) |
+| `proof:chronic-closure` | ✅ GREEN (R.W8) | was: dangling `proof:keyframes-vue-published` after R.W0's KILL | R.W8 re-pointed Q→R + DM-7 KILL (fold #1); non-vacuity proven (3 planted reds) |
 | `npm run lint` / `proof:lint-clean` | RED | `leaves.ts → @mkbabb/value.js/math` violates `leaf-no-engine-no-valuejs` (a Q-era WE2 edge vs the rule; already red at HEAD) | R.W3 (reconcile the rule vs the deliberate /math edge) |
 | `proof:agent-surface` | RED | the curated index advertises `Animation`/`ScrollTimeline` (dropped 5.0.0) | R.W4 (no-legacy curation cleanup) + the llms reclassify |
 
@@ -121,23 +121,55 @@ DRY, isomorphic, encapsulation, inv-16) hold throughout — and ARE the R charte
 | `CONTRIBUTING.md` | junk (a thin wrapper over README/CLAUDE content) | **DELETION ENDORSED** (R.W7 trims the README link) |
 | `llms.txt`, `llms-full.txt` | generated artifacts | **KEPT DELETED** (R.W7 reclassifies as build-output: gitignore + CI-generate) |
 
-## §"Open deferrals" — the chronic ledger (the R re-point target; `proof:chronic-closure` substrate at R.W8)
+## Open deferrals
 
-> This is the FORWARD ledger authored at R.W0. At R.W8 close, `proof:chronic-closure` re-points its
-> `CHRONIC_LEDGER` from `Q/PROGRESS.md` to THIS table (the no-skip discipline the M/O/P re-points
-> violated), and the gate goes green on the re-pointed, accurate substrate. Carries are re-counted
-> into R; a row carried ≥4 tranches MUST exit (P-invariant-28).
+**THE chronic-closure parse substrate (for `proof:chronic-closure`) — the R consolidated
+open-deferrals ledger.** The DIRECT successor to Q's (`docs/tranches/Q/PROGRESS.md §"Open deferrals"`).
+At R.W8 close the live `CHRONIC_LEDGER` in `scripts/proof-chronic-closure.mjs:117` re-points
+`Q/PROGRESS.md` → THIS table and `LEDGER_LABEL` (`:493`) → `"R/PROGRESS.md"` — the no-skip discipline
+the M.WZ/O.WZ/P.WZ re-points violated. Every prior chronic is re-stated here with its R-terminal
+disposition + chronicity integer, so no chronic drops across the Q→R transition.
 
-| Chronic | Born | Chronicity (→R) | Disposition | Closure / exit mechanism |
-|---|---|---|---|---|
-| **[C] DM-7 keyframes-vue** | K.W12 | 6 (K,L,M,O,P,Q→R) | **KILL** (owner-ratified R.W0) | RETRACTED in totality at R.W0 (`23a6867`): npm-unpublished + `packages/keyframes-vue/` deleted + all refs scrubbed. NO gate cited (the terminal mechanism is the owner-ratified retraction). The dangling `proof:keyframes-vue-published` reference is EXCISED. |
-| **DM-1 dock click-strand** (`pointerHandled`/`onPlayPointerDown`, 9 sites) | I (BLK-8) | **8 (I,J,K,L,M,O,P,Q→R) — HARD STOP** | **FOLD → R (no 9th carry)** | R.W6: the glass-ui-BC `DockDropdownTrigger` fix lands + S2 deletes atomically, OR the contingency **KILL** fires (a kf-internal pointer-clean replacement, the band-aid excised). `proof:workaround-deletion` S2. |
-| **DM-5 S1 aria-orientation suppress** (`SpringSidebar.vue:43`) | K | 6 (K,L,M,O,P,Q→R) | **FOLD → R** | R.W6: BC SegmentedTabs `role=group` aria-guard publish + kf delete, OR the contingency kf-internal ARIA-compliant replacement (KILL of the band-aid). `proof:workaround-deletion` S1. |
-| **DM-24 N-Stage unshelf** | N | 3→4 if it rides R | **FOLD → R (unshelf OR KILL)** | R.W5/R.W6: unshelf+rebase the `n-stage-impl` branch off the 5.0.0 pins, OR formal KILL (the mobile shelf-driver already shipped Q.WC3 — the unshelf may be redundant). R must RULE, not re-defer. |
-| **DQ-3 value.js `contrast-color()` consume** | Q | 1 (Q→R) | **FOLD → R** | R.W4: value.js 1.2.0 shipped the parser; author `proof:contrast-color-consume` + wire the resolve, OR ratify a KILL with a reason. |
-| **VJ-Q9 color-serialization consume-edge** | Q | 1 (Q→R) | **FOLD → R** | R.W3/R.W4: lock the `color(display-p3 …)` consume shape (round-trip assert), OR record terminally. Retire the bare "WATCH." |
-| **DM-5 S8 FN_NAME cure** | K | 5 (K,L,M,O,P,Q→R) | **VERIFY-ONLY → R** | R.W3: confirm `proof:workaround-deletion` S8 GREENED on the 1.2.0 dist (VJ-Q4 `.fnName`, WeakMap retired); fold the consume if still PENDING. |
-| **DM-8…DM-15 (×8 VERIFY-ONLY chronics)** | various | 5–10 | **VERIFY-ONLY → R (UNVERIFIED — re-run required)** | Re-verify on the R dist (specular, font-census, mobile, perf-budget, no-throw, DFA, single-writer, lighthouse). Any RED revert is a NEW R wave. NOT "verified green" — rostered to verify. |
+> **SUBSTRATE-TRANSITION NOTE (R.W8 §S1 — the Q→R re-point + co-edits + non-vacuity proof are ONE
+> atomic commit).** This section's heading is EXACTLY `## Open deferrals` and the rows below are ONE
+> flat table (the Q/L/K/J/I shape `parseChronicTable` accepts byte-for-byte). The band grouping
+> (KILL / VERIFY-ONLY / RECORD) is carried in each row's Disposition cell, NOT in `### A…F`
+> sub-headings (which would end the single-table parse region). The Q→R re-point was proven
+> non-vacuous: three deliberately-malformed R-ledger rows (a FOLD citing a source-shape gate; a
+> HANDOFF targeting an unpublished future sibling version; a ≥4-tranche bare BOOK) RED on the three
+> clause shapes, then this clean terminal R ledger GREENed the gate. No parser change needed — the R
+> substrate honors the Q flat-table shape; the gate-code co-edits are the two path constants + the
+> success console label (`R ledger`).
+>
+> **DISPOSITION VOCABULARY:** `FOLD` · `HANDOFF` · `RE-AFFIRM` · `VERIFY-ONLY` · `BOOK` · `KILL` ·
+> `RECORD` · `USER-DOMAIN` · `BUILD-IN` (a kf-owned ABSOLUTE terminal) · `FOLD-LANDED` · `OUT`.
+> A `proof:*` name in BACKTICKS is a load-bearing closure oracle held to the band's contract; a bare
+> (no-backtick) `proof:*` name is prose evidence (a named non-gate terminal mechanism), exactly the
+> Q ledger's FOLD-LANDED convention.
+>
+> **BORN-RED + RUNTIME contract (the kf-runtime-closing bands FOLD/VERIFY-ONLY):** a backtick-wrapped
+> closure oracle must resolve, run in the CORRECTNESS tier, be a RUNTIME gate (opens the dist +
+> actuates), and carry a born-RED witness in prose. The ×7 VERIFY-ONLY chronics (DM-9…DM-15) cite
+> correctness-tier RUNTIME gates that BIT in their origin tranche. The KILL / RECORD rows close by
+> their own discipline (a non-gate terminal mechanism), NOT a kf runtime gate.
+
+| Item | Born | Chronicity | Disposition | Owning R wave | Gate / evidence (closure oracle) |
+|---|---|---|---|---|---|
+| **[C] DM-7 keyframes-vue 0.1.0 unpublished** (E404; the overfit Vue adapter — the P-inv-28 belt closes as a KILL, NOT a published exit) | K.W12 | **6 (K,L,M,O,P,Q→R)** | **KILL — owner-ratified retraction (the MANDATORY exit; NO 7th carry)** | **R.W0** | **TERMINAL — KILL.** Non-gate terminal mechanism: RETRACTED in totality at R.W0 (commit `23a6867`) — npm-unpublished + `packages/keyframes-vue/` deleted + every ref scrubbed (the proof-keyframes-vue-published script + its package.json key + its CI tripwire removed). The dangling proof-keyframes-vue-published reference is EXCISED — NO gate is cited (the KILL band requires no runtime gate; the KILL disposition IS the closure). The belt does not silently revert to "open": this row records the owner KILL permanently. |
+| **[B] DM-1 RF-17 dock click-strand** (`pointerHandled`/`onPlayPointerDown` in `TransportDock.vue`, 9 sites) | I (BLK-8) | **8 (I,J,K,L,M,O,P,Q→R)** | **KILL — contingency KILL of the band-aid (the 8th-carry HARD STOP exit; NO 9th carry)** | **R.W6-decomp** | **TERMINAL — KILL (the contingency, fired).** Non-gate terminal mechanism: glass-ui 4.0.1 lacked the BC `dockStrandKeepalive`, so the band-aid was EXCISED and replaced with a kf-internal disjoint `pointerup`+`keydown` handler (`a452349`). The closure ORACLE that BIT: `proof:workaround-deletion` S2 GREEN on the dist (a source-present detector — born-RED when the `pointerHandled` strand was present; the gate BIT, now GREEN on the excision). The 8th-carry HARD STOP is satisfied via a kf-owned terminal, not a 9th ride. |
+| **[B] DM-5 S1 aria-orientation suppress** (`:aria-orientation="undefined"` at `SpringSidebar.vue:43` + `AnimationControls.vue`) | K | **6 (K,L,M,O,P,Q→R)** | **KILL — contingency KILL of the band-aid (the 6th-carry exit; NO 7th carry)** | **R.W6-decomp** | **TERMINAL — KILL (the contingency, fired).** Non-gate terminal mechanism: glass-ui 4.0.1 lacked the BC SegmentedTabs `ariaGuard`, so the suppress band-aid was EXCISED and replaced with a kf-internal ARIA-compliant `KfPillTabs.vue` (`a452349`). The closure ORACLE that BIT: `proof:workaround-deletion` S1 GREEN on the dist (born-RED when the `:aria-orientation="undefined"` suppress was present; the gate BIT, now GREEN on the excision). |
+| **[E] DM-5 S8 FN_NAME clone-restamp residual** (the WeakMap clone-stamp ceremony — the VJ-Q4 `.fnName` consume) | K | **5 (K,L,M,O,P,Q→R)** | **VERIFY-ONLY — VERIFIED GREEN on the 1.2.0 dist** | **R.W3** | **TERMINAL — VERIFY-ONLY.** Non-gate terminal mechanism: the workaround-deletion node probe (proof:workaround-deletion S8 — a source-present detector over the dist, off-DOM; the foreign-symbol clone-stamp removed onto value.js 1.2.0 `flatLeaf .fnName`) GREEN. **Born-RED** on the foreign-symbol-stamp tree (the S8 arm BIT before the `.fnName` consume landed; now GREEN). Named in prose, NOT a runtime closure oracle. |
+| **[C] DM-24 N-Stage unshelf** (the ~3,500-LOC `n-stage-impl` branch — the mobile scroll-snap carousel) | N | 3→4 (N,O,P→Q,Q→R) | **KILL — redundant (R RULED, not re-deferred)** | **R.W5/R.W6** | **TERMINAL — KILL.** Non-gate terminal mechanism: the mobile shelf-driver already shipped at Q.WC3 (the mobile scroll-snap carousel + typed VT landed in-tree), so the `n-stage-impl` branch unshelf is REDUNDANT. The branch is formally KILLED rather than rebased onto the 5.0.0 pins — R rules a terminal verdict (no silent re-BOOK across the ≥4 belt). |
+| **[F] DQ-3 value.js `contrast-color()` consume** (value.js 1.2.0 shipped the parser; kf has no demo use-case) | Q | 1 (Q→R) | **KILL — reasoned (no kf demo use-case)** | **R.W4** | **TERMINAL — KILL.** Non-gate terminal mechanism: value.js 1.2.0 published the `contrast-color()` parser (the root capability is available upstream), but kf has NO demo use-case for `contrast-color()` at this time — no scene resolves it. The consume is KILLED with that reason rather than authoring a gate over an unused capability (the WATCH is retired terminally, not re-deferred). |
+| **[F] VJ-Q9 color-serialization consume-edge** (`display-p3(…)` → `color(display-p3 …)` round-trip at the value.js 1.2.0 re-pin) | Q | 1 (Q→R) | **RECORD — covered GREEN by the round-trip corpus (the bare WATCH retired)** | **R.W3/R.W4** | **TERMINAL — RECORD.** Non-gate terminal mechanism: the `color(display-p3 …)` serialization round-trip is already covered GREEN by the roundtrip-fidelity + grammar-fuzz corpora (proof:roundtrip-fidelity + proof:grammar-fuzz, both GREEN on the R dist over value.js 1.2.0 — node-probe + vitest corpora, off-DOM, a parse↔serialize data-model lock with no browser to drive). The bare "WATCH" is retired; no dedicated runtime gate is warranted (the consume shape is a serialization round-trip, not a live interaction). Named in prose, NOT a runtime closure oracle. |
+| **[E] DM-8 Lighthouse floors** | B-era | 5 (M,O,P,Q,Q→R) | **VERIFY-ONLY** | **R.W8** | **TERMINAL — VERIFY-ONLY.** Non-gate terminal mechanism: a measured quiet-host artifact (the lighthouse-mobile runner, proof:lighthouse-mobile, re-run with `KF_REQUIRE_LH=1` on the R dist — a load-rest score, never CI-hard-gated per inv-device-honesty; verifies in CI post-push on the quiet runner). Named in prose, NOT a runtime closure oracle; the K/M floors are the hard floor, any regression RED. |
+| **[E] DM-9 specular** | D(D14)→H | **8 (D,H,I,K,M,O,Q,Q→R)** | **RE-AFFIRM** | **R.W8** | `proof:specular-absent-at-rest` GREEN; re-verify on the R dist. **Born-RED** in its origin tranche (the at-rest specular sheen; the gate BIT before the no-orphan-specular cure). |
+| **[E] DM-10 typography** | D(D7)→I | **9 (D,I,J,K,L,M,O,Q,Q→R; TERMINATED)** | **VERIFY-ONLY** | **R.W8** | `proof:font-census` GREEN (correctness-tier RUNTIME gate — opens the dist + navToScene-drives a computed-font census across all scenes); re-run on the R dist. **Born-RED** in its origin tranche (the dock voice resolved system-sans; font-census BIT on the display tokens before the root fix). |
+| **[E] DM-11 mobile** | D(D10) | **10 (D,H,I,J,K,L,M,O,Q,Q→R; TERMINATED)** | **VERIFY-ONLY** | **R.W8** | `proof:spring-slider-continuous` + `proof:subject-animates` GREEN (both correctness-tier RUNTIME gates — drive the live spring slider + the mobile-emulated subject motion over the dist); re-run on the R dist. **Born-RED** in K (the thumb `changeCount:0` over 240 frames + the spring slider literally stepped; the gates BIT before the 60 Hz painter cure). |
+| **[E] DM-12 dock perf** | D(D5/D9) | **8 (D,H,I,K,M,O,Q,Q→R)** | **RE-AFFIRM** | **R.W8** | `proof:perf-frame-budget` GREEN (correctness-tier RUNTIME gate — drives the dock interaction + reads the frame budget); re-verify WITH the SoA-`processFrame` + the R.W2 engine split in place. **Born-RED:** the dock STRETCH + lag BIT pre-cure. |
+| **[E] DM-13 empty-value** | A(W0)→H | **8 (A,H,I,K,M,O,Q,Q→R)** | **VERIFY-ONLY** | **R.W8** | `proof:engine-no-throw-on-play` GREEN (correctness-tier RUNTIME gate — opens the dist + clicks play on an empty-value input, asserting no throw); re-run WITH the NaN-frame play-time guard in place. **Born-RED** in its origin tranche (the empty-input parse threw on play; the gate BIT on that crash). |
+| **[E] DM-14 DFA suspend** | H | **7 (H,I,K,L,M,O,Q,Q→R)** | **VERIFY-ONLY** | **R.W8** | `proof:fsm-suspend-resume-live` GREEN (correctness-tier RUNTIME gate — drives the live FSM suspend/resume over the dist); re-run. **Born-RED** in its origin tranche (the `_gen` DFA suspend threw; the gate BIT on that crash). |
+| **[E] DM-15 scene-control-dfa** | I (post-close) | **7 (I,J,K,L,M,O,Q,Q→R)** | **VERIFY-ONLY** | **R.W8** | `proof:control-surface-single-writer` GREEN (correctness-tier RUNTIME gate — navToScene-drives the dock projection from the DFA per expected state); re-verify. **Born-RED** on CI run `27228309606` (trigger='null'-under-load before the cure; the gate BIT). |
 
 ## Owner rulings (2026-06-24)
 
