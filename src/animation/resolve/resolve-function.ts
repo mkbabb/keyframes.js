@@ -18,6 +18,22 @@ import {
 } from "@mkbabb/value.js";
 import { DROP, type ResolveContext, type Resolved } from "./env";
 
+/**
+ * R.W3 §2C — version assertion for the value.js 1.2.0 `@function` grammar bug.
+ *
+ * value.js ≤1.2.0 `extractFunctions` mislays `<syntax>` onto `name` and the
+ * default onto `type` (`@function --f(--x <length>: 0px)` arrives as
+ * `{ name: "--x <length>", type: "0px" }`). `normalizeParam` below compensates
+ * with string-surgery. When value.js fixes `extractFunctions`, `normalizeParam`
+ * must be DELETED and this assertion bumped — the build then fails loud at the
+ * mis-recovered shape, rather than silently producing garbage.
+ *
+ * Dispatch: https://github.com/mkbabb/value.js (the B.1 exemplar in
+ * docs/tranches/R/audit/lib-legacy-sweep.md). Follow the S7 lifecycle:
+ * upstream fix → kf consume → DELETE normalizeParam + bump VJS_PARAM_BUG_MAX.
+ */
+const VJS_PARAM_BUG_MAX = "1.2.0";
+
 /** The injected core node resolver (the recursion seam — `resolve/index.ts`). */
 export type ResolveNode = (
     node: ValueUnit | FunctionValue,
@@ -86,10 +102,16 @@ const normalizeParam = (param: CustomFunctionParameter): NormalizedParam => {
  * arg with NO default is a guaranteed-invalid call — never a NaN substitution).
  * When the param declares NO `<syntax>` (an untyped param), the arg passes
  * through as-is (presence-validate-only — there is nothing to coerce against).
+ *
+ * R.W3 §2C (FAIL-EXPLICIT): when the default re-parse throws (value.js 1.2.0 bug —
+ * the default was mis-assigned to `type`), push a `CUSTOM_FN_ARG_DROP` diagnostic
+ * instead of silently absorbing the drop. The `diagnostics` channel is optional;
+ * its presence is checked before pushing.
  */
 const coerceArg = (
     arg: ValueUnit | FunctionValue,
     param: NormalizedParam,
+    diagnostics: ResolveContext["diagnostics"],
 ): Resolved<ValueUnit | FunctionValue> => {
     if (param.syntax === undefined) return arg;
     const coerced = coerceToSyntax(String(arg), param.syntax);
@@ -99,7 +121,16 @@ const coerceArg = (
     if (param.defaultValue === undefined) return DROP;
     try {
         return parseCSSValue(param.defaultValue);
-    } catch {
+    } catch (err) {
+        // R.W3 §2C: surface the absorption — the default failed to parse
+        // (value.js 1.2.0 bug — see VJS_PARAM_BUG_MAX and normalizeParam).
+        diagnostics?.push({
+            code: "CUSTOM_FN_ARG_DROP",
+            property: param.ident,
+            message:
+                `--fn() arg coercion: default for ${param.ident} failed to parse ` +
+                `(value.js ≤${VJS_PARAM_BUG_MAX} bug — ${String(err)})`,
+        });
         return DROP;
     }
 };
@@ -189,11 +220,21 @@ export const resolveFunctionCall = (
             if (param.defaultValue === undefined) return DROP;
             try {
                 bound = parseCSSValue(param.defaultValue);
-            } catch {
+            } catch (err) {
+                // R.W3 §2C: surface the absorption — missing-positional default
+                // failed to parse (value.js 1.2.0 bug — see VJS_PARAM_BUG_MAX).
+                ctx.diagnostics?.push({
+                    code: "CUSTOM_FN_ARG_DROP",
+                    property: param.ident,
+                    message:
+                        `--fn() missing-positional default for ${param.ident} ` +
+                        `failed to parse (value.js ≤${VJS_PARAM_BUG_MAX} bug — ` +
+                        `${String(err)})`,
+                });
                 return DROP;
             }
         } else {
-            bound = coerceArg(arg, param);
+            bound = coerceArg(arg, param, ctx.diagnostics);
         }
         if (bound === DROP) return DROP;
         binding.set(param.ident, bound);

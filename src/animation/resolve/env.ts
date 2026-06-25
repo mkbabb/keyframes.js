@@ -49,6 +49,20 @@ export interface ResolveContext {
     seen: Set<string>;
     /** Recursion-depth ceiling guard (a pathological nesting bomb). */
     depth: number;
+    /**
+     * R.W3 §2C — optional structured diagnostics channel. When present,
+     * the `@function` resolver pushes `CUSTOM_FN_ARG_DROP` rows for silent
+     * DROP events (a value.js 1.2.0 bug — the arg default fails to re-parse)
+     * so the absorption is citable rather than silent. Optional so callers
+     * that don't need the channel (the Phase-2 element-aware pass,
+     * `element-resolve.ts`) don't have to thread it.
+     *
+     * A structurally minimal push interface — the adapter's full `Diagnostic`
+     * type (which imports this file) would create a circular dep; this shape
+     * is assignment-compatible with `Diagnostic[]` (the adapter's channel is
+     * the actual array, narrowed to its push-required fields here).
+     */
+    diagnostics?: Array<{ code: string; property?: string; message: string }>;
 }
 
 /**
@@ -92,12 +106,21 @@ export const defaultResolveEnv = (): Required<
 export const makeResolveContext = (
     functions: Map<string, CustomFunctionDescriptor>,
     env?: ResolveEnv,
-): ResolveContext => ({
-    functions,
-    env: { ...defaultResolveEnv(), ...env },
-    seen: new Set<string>(),
-    depth: 0,
-});
+    diagnostics?: ResolveContext["diagnostics"],
+): ResolveContext => {
+    const ctx: ResolveContext = {
+        functions,
+        env: { ...defaultResolveEnv(), ...env },
+        seen: new Set<string>(),
+        depth: 0,
+    };
+    // R.W3 §2C: thread the diagnostics channel when provided (optional — callers
+    // that don't need it, like the Phase-2 element-aware pass, omit it).
+    // Under exactOptionalPropertyTypes we must NOT assign undefined to the
+    // optional field — only set it when the caller supplied the channel.
+    if (diagnostics !== undefined) ctx.diagnostics = diagnostics;
+    return ctx;
+};
 
 /**
  * A sentinel the rewriter returns when a node RESOLVES-TO-NOTHING: a

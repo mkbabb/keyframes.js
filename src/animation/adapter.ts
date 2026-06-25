@@ -291,7 +291,9 @@ export const resolveKeyframes = (
     // no-op seam that never mutates it), so sharing it across declarations is
     // benign; the per-call depth ceiling is the active guard.
     const functions = extractFunctions(ast);
-    const resolveCtx = makeResolveContext(functions, env);
+    // R.W3 §2C: thread the diagnostics array into the resolve context so the
+    // @function resolver can push CUSTOM_FN_ARG_DROP rows for silent DROP events.
+    const resolveCtx = makeResolveContext(functions, env, diagnostics);
 
     for (const rule of rules) {
         const vars = declsToVarMap(rule, resolveCtx);
