@@ -63,13 +63,18 @@ decomposition GREEN · lint-clean GREEN · boundary/engine/no-flat-siblings/ci-c
 - **R.W3lib ✅ GREEN** (`r-track-lib`, 5 commits @ `72fa3b0`) — §2A css-metadata FAIL-EXPLICIT, §2B getComputedStyle instanceof guard, §2C resolve CUSTOM_FN_ARG_DROP diagnostic, §2D morph invariant throw, §2E leaf-rule plant verified bites; `proof:no-silent-fallback` authored (lib clauses + lint green; demo addendum integration-deferred). All lib gates green.
 - **R.W4 ✅ core GREEN** (`r-track-lib4`, 3 commits @ `297f066`) — `./engine` subpath emits `dist/engine/index.js` (416B thin re-export, zero dup) + `.d.ts`; `animate()` EXCISED from published surface; AnimationEngine JSDoc slimmed; README Quick Start → subpath import + `ts run`; agent-surface scrubbed + regenerated. `proof:in-is-importable`/`agent-surface`/`boundary`/`published-surface`/`readme-runs` green. **GAP: subpath returned `AnimationGroup: undefined`** (engine/index zone-pure post-R.W2c) → R.W4b.
 
+- **R.W4b ✅ GREEN** (`r-track-lib4` @ `c88fb63`) — subpath = FULL static heavy surface via `engine/public.ts` composition barrel; **39 keys ≡ `loadAnimationEngine()`** (AnimationGroup/MotionPath/DrawSVG/MorphSVG/presets/compileToCSS/validate all resolve); `dist/engine/index.js` 1.8KB (no dup); baseline still `[]`; ambient `ScrollAxis`→local alias for API-Extractor followability. All gates green.
+
+### ✅ LIB MERGE COMPLETE — `r-track-lib` @ `437d7e0`
+Merged r-track-lib4 (R.W4+R.W4b) → r-track-lib (R.W3lib). One conflict (package.json `proof:hygiene-chain`) resolved keeping BOTH new gates. Integration artifact fixed: `proof:in-is-importable` wired into `ci.yml` gates job (R.W4 had missed it) + `llms` regenerated. **ALL lib gates green** (boundary/engine/decomposition/lint-clean/no-flat-siblings/in-is-importable/no-silent-fallback/agent-surface/published-surface/ci-coverage). Subpath 39 keys intact. Remaining lib charter red: `proof:chronic-closure` (R.W8 fold #1).
+
+**Integration prep (verified):** demo deep-imports library internals **0×** (uses only the `@mkbabb/keyframes.js` barrel — R.W1 restructure is transparent to the demo); demo never touches `scenePlaybackAdapters.ts` (lib R.W2's edit, no conflict). The lib↔demo merge is low-risk; conflicts limited to additive gate-wiring (package.json hygiene-chain, ci-coverage roster, ci.yml).
+
 | In-flight | Wave | Agent | Worktree | Status |
 |---|---|---|---|---|
-| Track L | R.W4b — subpath = FULL static heavy surface (composition barrel) | Opus (bg) | `keyframes-r-lib4` (r-track-lib4) | DISPATCHED 2026-06-24 |
+| Track L | R.W7 — README slim · CHANGELOG · llms reclassify · proof:readme-paths-live | Sonnet (bg) | `keyframes-r-lib` (r-track-lib @ 437d7e0) | DISPATCHED 2026-06-24 |
 
-**R.W4b:** dedicated `engine/public.ts` composition barrel (engine + group + svg + presets + constants) as the subpath entry; engine/index stays zone-pure (sink ⇒ no cycle); subpath surface ≡ `loadAnimationEngine()` keys.
-
-**Next:** R.W4b → merge r-track-lib4 → r-track-lib (resolve package.json scripts + proof-ci-coverage roster, additive) → R.W7 (docs README slim, on merged tree w/ R.W4 Quick Start) → integrate `r-track-lib` + `r-track-demo` into `tranche-r-dev` → full proof suite → R.W8 close → publish 5.1.0 → Cloudflare deploy.
+**Next:** R.W7 → integrate `r-track-lib` + `r-track-demo` into `tranche-r-dev` (resolve additive gate-wiring) → full proof suite (cross-track `proof:no-silent-fallback` demo clauses + `proof:scene-colocated` + `proof:brittleness` go green on the merged tree) → R.W8 close (chronic re-point Q→R, ledger, FINAL.md, 5.1.0) → publish + Cloudflare deploy.
 
 ## The wave board
 
