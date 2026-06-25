@@ -8,6 +8,8 @@
  * this is the WHERE for the LIGHT/HEAVY re-export seam consistency. The leaves are
  * value.js-free by the `leaf-no-engine-no-valuejs` lint rule.
  */
+export * from "./animation-id";
+export * from "./group-factory";
 export * from "./binarySearch";
 export * from "./errors";
 export * from "./leaves";

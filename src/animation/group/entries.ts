@@ -15,7 +15,7 @@
  * `./springs`; the scheduler-yield batching (`advanceSlice`/`advanceBatched`) in
  * `./scheduler`.
  */
-import { getAnimationId } from "../engine/animation";
+import { getAnimationId } from "../internal/animation-id";
 import type { KeyframesAnimation } from "../engine/animation";
 import type { AnimationGroupEntry, AnimationGroupObject } from "./group";
 
