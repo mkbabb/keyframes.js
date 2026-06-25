@@ -1,5 +1,5 @@
 import type { Easing, TimingFunction } from "../../constants";
-import { SpringProgress } from "./progress";
+import { sampleNormalizedSpring } from "./sample";
 import {
     springLinearStops,
     type SpringLinearStopsOptions,
@@ -69,28 +69,24 @@ export function springTimingFunction(
     const settleThreshold = opts.settleThreshold ?? 1e-3;
     const maxDuration = opts.maxDuration ?? opts.response * 4;
 
-    // Reuse the existing analytic solver — the same one
-    // `springLinearStops` drives. No second integrator.
-    const spring = new SpringProgress({
+    // Reuse the shared normalized-spring sampler — the same construct/step setup
+    // `springLinearStops` drives (R.W1 §spring). No second integrator. This
+    // serializer spaces its `sampleCount` interior points over `sampleCount`
+    // sub-intervals; `samples[i]` is the position at normalized t = i / sampleCount.
+    const positions = sampleNormalizedSpring({
         response: opts.response,
         dampingFraction: opts.dampingFraction,
-        initial: 0,
+        sampleCount,
         settleThreshold,
-        velocitySettleThreshold: settleThreshold,
+        dt: maxDuration / sampleCount,
     });
-    spring.target = 1;
-
-    // samples[i] is the spring position at normalized t = i / sampleCount.
     const samples = new Float64Array(sampleCount + 1);
     samples[0] = 0;
-    const dt = maxDuration / sampleCount;
     for (let i = 1; i <= sampleCount; i++) {
-        spring._stepSeconds(dt);
-        samples[i] = spring.settled ? 1 : spring.value;
+        samples[i] = positions[i - 1]!;
     }
     // Pin the final sample to the settled target so f(1) === 1 exactly.
     samples[sampleCount] = 1;
-    spring.dispose();
 
     const fn: TimingFunction = (t: number): number => {
         if (t <= 0) return 0;

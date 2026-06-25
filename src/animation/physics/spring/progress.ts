@@ -6,55 +6,30 @@ import { RAFPlayback } from "../playback";
 // The spring family's shared option/subscriber types + the canonical
 // DEFAULT_SPRING_RESPONSE live in `./types` (the ring-break, R.W1) — read from
 // there rather than re-declared here, so duration.ts/reseat.ts no longer import
-// back through the class module. Re-exported below so consumers resolve them
-// through the spring barrel exactly as before.
-import {
-    DEFAULT_SPRING_RESPONSE,
-    type SpringProgressOptions,
-} from "./types";
-export type {
+// back through the class module. The barrel re-exports these from `./types`
+// directly; this module only consumes them.
+import { defaultSpringOptions } from "./types";
+import type {
     SpringProgressOptions,
     SpringSubscriber,
     SpringFrameCallback,
 } from "./types";
-export { DEFAULT_SPRING_RESPONSE } from "./types";
-import type { SpringSubscriber, SpringFrameCallback } from "./types";
 // The spring-from-duration surface (`{ visualDuration | duration, bounce }`) and
 // its `(response, dampingFraction)` translation live in the colocated
-// `./duration` module; the type is re-exported below so consumers resolve
-// `SpringDurationOptions` through the spring barrel exactly as before.
+// `./duration` module (the barrel re-exports the surface from there).
 import {
     durationToSpringOptions,
     type SpringDurationOptions,
 } from "./duration";
-
-export type { SpringDurationOptions };
-// The K.W11 PHYS-B2 velocity-continuous interruption seam lives in the colocated
-// `./reseat` module; the public symbols are re-exported here so the barrel — and
-// every consumer — resolves them through the spring barrel exactly as before.
-export {
-    probeVelocity,
-    reseatToSpring,
-    type VelocityProbe,
-} from "./reseat";
-
-/**
- * The shared empty lane buffer `SpringProgress.values` / `.velocities` return
- * before the first {@link SpringProgress.setTargets} arms the vector lanes — one
- * frozen zero-length `Float64Array`, so a scalar-only spring's getters never
- * allocate. (L.W7 §S2.)
- */
-const EMPTY_LANES = new Float64Array(0);
-
-const defaultSpringOptions: SpringProgressOptions = {
-    response: DEFAULT_SPRING_RESPONSE,
-    dampingFraction: 0.86,
-    initial: 0,
-    initialVelocity: 0,
-    settleThreshold: 1e-3,
-    velocitySettleThreshold: 1e-3,
-    respectReducedMotion: false,
-};
+// The SoA multi-channel lane subsystem (L.W7 §S2 vector sugar) lives in the
+// colocated `./vector` module (R.W2b carve); `SpringProgress` holds at most one
+// `SpringVectorLanes` (lazily armed on the first `setTargets`) and delegates its
+// `setTargets`/`tickVector`/`values`/`velocities` surface to it — the scalar hot
+// path never touches a lane buffer.
+import { SpringVectorLanes, EMPTY_LANES } from "./vector";
+// The shared closed-form analytic kernel (R.W1 §spring `sample.ts`) — the
+// scalar `evaluateAt` consumes it; the vector lanes inline the same math hoisted.
+import { solveDampedHarmonic } from "./sample";
 
 /**
  * Live-target spring tracker. Sibling of `SmoothProgress` for animations
@@ -113,23 +88,16 @@ export class SpringProgress {
     private disposed: boolean = false;
 
     // ── Vector lanes (L.W7 §S2, W122 — ADOPT @ 2.97–3.78× over K scalars) ────
-    // A `setTargets(Float64Array)` overload that steps K channels under THIS
-    // spring's (omega, zeta, omegaD) into one shared `Float64Array` per tick —
-    // instead of K independent scalar `SpringProgress` instances. Lazily armed
-    // on the first `setTargets` call (a scalar-only spring never allocates these,
-    // so the scalar hot path is byte-unchanged). Each lane carries its own
-    // `(origin, originVelocity, target, current, velocity)`; the analytic solver
-    // is the SAME closed form `evaluateAt` uses (shared `omega`/`zeta`/`omegaD`),
-    // so the lanes ring identically to a scalar spring of the same config. The
-    // throughput win is pure dispatch/alloc amortization: one `tickVector` call
-    // loops K channels into the shared buffer, no per-channel method dispatch and
-    // no per-instance object. value.js-free (LIGHT) — plain typed-array math.
-    private vecOrigin: Float64Array | null = null;
-    private vecOriginVel: Float64Array | null = null;
-    private vecTarget: Float64Array | null = null;
-    private vecCurrent: Float64Array | null = null;
-    private vecVelocity: Float64Array | null = null;
-    private vecElapsed = 0;
+    // The `setTargets(Float64Array)` multi-channel overload steps K channels
+    // under THIS spring's (omega, zeta, omegaD) into one shared `Float64Array`
+    // per tick — instead of K independent scalar `SpringProgress` instances. The
+    // SoA lane buffers + the per-channel analytic solver live in the colocated
+    // `SpringVectorLanes` (R.W2b carve); this field is `null` until the first
+    // `setTargets` arms it, so a scalar-only spring never allocates and the
+    // scalar hot path is byte-unchanged. The lanes ring identically to a scalar
+    // spring of the same config — the per-channel step is the SAME closed form
+    // `evaluateAt` uses.
+    private vectorLanes: SpringVectorLanes | null = null;
 
     // Managed playback for `.play()` / `.stop()` — loop ownership delegates
     // to the shared RAFPlayback driver (this class is a pure stepper: it
@@ -206,8 +174,7 @@ export class SpringProgress {
      */
     set target(value: number) {
         if (value === this.targetValue && !this.options.initialVelocity) {
-            // No-op if target didn't change and velocity is zero — keeps
-            // the existing closed-form state intact.
+            // No-op if target unchanged and velocity zero — keep solver state.
             return;
         }
         this.reseatTarget(value);
@@ -327,45 +294,18 @@ export class SpringProgress {
             this.originValue + s * (this.targetValue - this.originValue);
         const x0 = this.originValue - scaledTarget;
         const v0 = this.originVelocity;
-        const w = this.omega;
-        const z = this.zeta;
 
-        let xRel: number;
-        let vRel: number;
-
-        if (z < 1) {
-            // Underdamped.
-            const wd = this.omegaD;
-            const decay = Math.exp(-z * w * t);
-            const A = x0;
-            const B = (v0 + z * w * x0) / wd;
-            const cos = Math.cos(wd * t);
-            const sin = Math.sin(wd * t);
-            xRel = decay * (A * cos + B * sin);
-            // Derivative.
-            vRel =
-                decay *
-                ((B * wd - A * z * w) * cos - (A * wd + B * z * w) * sin);
-        } else if (z === 1) {
-            // Critically damped.
-            const decay = Math.exp(-w * t);
-            const A = x0;
-            const B = v0 + w * x0;
-            xRel = decay * (A + B * t);
-            vRel = decay * (B - w * (A + B * t));
-        } else {
-            // Overdamped. Two real roots of r² + 2ζω r + ω² = 0.
-            const disc = w * Math.sqrt(z * z - 1);
-            const r1 = -z * w + disc;
-            const r2 = -z * w - disc;
-            // Solve A + B = x0, A r1 + B r2 = v0.
-            const A = (v0 - r2 * x0) / (r1 - r2);
-            const B = x0 - A;
-            const e1 = Math.exp(r1 * t);
-            const e2 = Math.exp(r2 * t);
-            xRel = A * e1 + B * e2;
-            vRel = A * r1 * e1 + B * r2 * e2;
-        }
+        // The closed-form analytic step (the underdamped / critical / overdamped
+        // case split) lives in the shared `./sample` kernel — the SAME math the
+        // vector SoA lane loop inlines, so the two forms ring identically.
+        const { x: xRel, v: vRel } = solveDampedHarmonic(
+            x0,
+            v0,
+            this.omega,
+            this.zeta,
+            this.omegaD,
+            t,
+        );
 
         // The spring settles to the SCALED target (the reduced-amplitude rest),
         // not the full target — that is the WCAG amplitude reduction: the travel
@@ -444,26 +384,11 @@ export class SpringProgress {
      * independent surfaces on one solver.
      */
     setTargets(targets: Float64Array): void {
-        const k = targets.length;
-        if (this.vecTarget === null) {
-            this.vecOrigin = new Float64Array(k);
-            this.vecOriginVel = new Float64Array(k);
-            this.vecTarget = new Float64Array(k);
-            this.vecCurrent = new Float64Array(k);
-            this.vecVelocity = new Float64Array(k);
-        } else if (this.vecTarget.length !== k) {
-            throw new RangeError(
-                `setTargets length ${k} does not match the armed lane count ` +
-                    `${this.vecTarget.length}; the lane buffers are stable ` +
-                    `references — construct a new SpringProgress for a new arity.`,
-            );
-        }
-        // Re-seat each lane's origin from its current (x, v) — continuous per
-        // channel (the vector analogue of the scalar `set target` re-seat).
-        this.vecOrigin!.set(this.vecCurrent!);
-        this.vecOriginVel!.set(this.vecVelocity!);
-        this.vecTarget!.set(targets);
-        this.vecElapsed = 0;
+        // Lazily arm the SoA lane subsystem on the first call (a scalar-only
+        // spring never allocates the lane buffers, so the scalar hot path stays
+        // byte-unchanged). Re-seat each lane's origin from its current (x, v) —
+        // continuous per channel (the vector analogue of the scalar re-seat).
+        (this.vectorLanes ??= new SpringVectorLanes()).setTargets(targets);
     }
 
     /**
@@ -473,7 +398,7 @@ export class SpringProgress {
      * empty `Float64Array` before the first `setTargets` arms the lanes.
      */
     get values(): Float64Array {
-        return this.vecCurrent ?? EMPTY_LANES;
+        return this.vectorLanes?.values ?? EMPTY_LANES;
     }
 
     /**
@@ -482,76 +407,23 @@ export class SpringProgress {
      * empty before the first {@link setTargets}.
      */
     get velocities(): Float64Array {
-        return this.vecVelocity ?? EMPTY_LANES;
+        return this.vectorLanes?.velocities ?? EMPTY_LANES;
     }
 
     /**
      * Advance EVERY lane by `dt` MILLISECONDS — one call, K channels, one buffer
-     * write. The analytic per-channel step is the same closed form `evaluateAt`
-     * uses (the shared `omega`/`zeta`/`omegaD`), with the transcendentals
-     * (`exp`/`cos`/`sin`) hoisted once per tick and reused across lanes — the
-     * amortization the W122 probe measured. No-op (returns the same buffer)
-     * before the first {@link setTargets}, when disposed, or for `dt <= 0`.
+     * write, delegated to the SoA {@link SpringVectorLanes} under this spring's
+     * `(omega, zeta, omegaD)`. The analytic per-channel step is the same closed
+     * form `evaluateAt` uses, with the transcendentals (`exp`/`cos`/`sin`)
+     * hoisted once per tick — the amortization the W122 probe measured. No-op
+     * (returns the same buffer) before the first {@link setTargets}, when
+     * disposed, or for `dt <= 0`.
      */
     tickVector(dt: number): Float64Array {
-        if (this.disposed || this.vecTarget === null || dt <= 0) {
+        if (this.disposed || this.vectorLanes === null || dt <= 0) {
             return this.values;
         }
-        this.vecElapsed += dt / 1000;
-        const t = this.vecElapsed;
-        const w = this.omega;
-        const z = this.zeta;
-        const wd = this.omegaD;
-        const origin = this.vecOrigin!;
-        const originVel = this.vecOriginVel!;
-        const target = this.vecTarget!;
-        const current = this.vecCurrent!;
-        const velocity = this.vecVelocity!;
-
-        // Hoist the per-tick transcendentals — shared across all lanes.
-        const decayU = z < 1 ? Math.exp(-z * w * t) : 0;
-        const cos = z < 1 ? Math.cos(wd * t) : 0;
-        const sin = z < 1 ? Math.sin(wd * t) : 0;
-        const decayC = z === 1 ? Math.exp(-w * t) : 0;
-        let r1 = 0;
-        let r2 = 0;
-        let e1 = 0;
-        let e2 = 0;
-        if (z > 1) {
-            const disc = w * Math.sqrt(z * z - 1);
-            r1 = -z * w + disc;
-            r2 = -z * w - disc;
-            e1 = Math.exp(r1 * t);
-            e2 = Math.exp(r2 * t);
-        }
-
-        for (let i = 0; i < current.length; i++) {
-            const x0 = origin[i]! - target[i]!;
-            const v0 = originVel[i]!;
-            let xRel: number;
-            let vRel: number;
-            if (z < 1) {
-                const A = x0;
-                const B = (v0 + z * w * x0) / wd;
-                xRel = decayU * (A * cos + B * sin);
-                vRel =
-                    decayU *
-                    ((B * wd - A * z * w) * cos - (A * wd + B * z * w) * sin);
-            } else if (z === 1) {
-                const A = x0;
-                const B = v0 + w * x0;
-                xRel = decayC * (A + B * t);
-                vRel = decayC * (B - w * (A + B * t));
-            } else {
-                const A = (v0 - r2 * x0) / (r1 - r2);
-                const B = x0 - A;
-                xRel = A * e1 + B * e2;
-                vRel = A * r1 * e1 + B * r2 * e2;
-            }
-            current[i] = target[i]! + xRel;
-            velocity[i] = vRel;
-        }
-        return current;
+        return this.vectorLanes.tick(dt, this.omega, this.zeta, this.omegaD);
     }
 
     // ── Subscribe / dispose ──────────────────────────────────────────

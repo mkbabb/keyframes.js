@@ -74,7 +74,22 @@ export type SpringFrameCallback = (value: number, velocity: number) => void;
 /**
  * The default `response` (angular period, seconds) — the iOS-canonical 0.5.
  * The one place the value lives, so `duration.ts` seeds the same fallback when
- * neither `visualDuration` nor `duration` is supplied, and `progress.ts`'s
- * `defaultSpringOptions.response` reads it too.
+ * neither `visualDuration` nor `duration` is supplied, and `defaultSpringOptions`
+ * below reads it too.
  */
 export const DEFAULT_SPRING_RESPONSE = 0.5;
+
+/**
+ * The fully-resolved `SpringProgress` default config — the iOS "smooth" preset.
+ * Lives beside the type + the canonical response default it seeds, so the one
+ * defaults home is `types.ts`. `SpringProgress` spreads partial options over it.
+ */
+export const defaultSpringOptions: SpringProgressOptions = {
+    response: DEFAULT_SPRING_RESPONSE,
+    dampingFraction: 0.86,
+    initial: 0,
+    initialVelocity: 0,
+    settleThreshold: 1e-3,
+    velocitySettleThreshold: 1e-3,
+    respectReducedMotion: false,
+};

@@ -1,4 +1,4 @@
-import { SpringProgress } from "./progress";
+import { sampleNormalizedSpring } from "./sample";
 
 /**
  * Options for sampling a spring response curve into CSS `linear()` stops.
@@ -48,26 +48,24 @@ export function springLinearStops(opts: SpringLinearStopsOptions): string {
     const settleThreshold = opts.settleThreshold ?? 1e-3;
     const maxDuration = opts.maxDuration ?? opts.response * 4;
 
-    const spring = new SpringProgress({
+    // The shared normalized-spring sampler (R.W1 §spring): construct → target=1
+    // → step the solver. `springLinearStops` spaces its points over
+    // `sampleCount + 1` sub-intervals (the implicit 0 + 1 frame the interior).
+    const positions = sampleNormalizedSpring({
         response: opts.response,
         dampingFraction: opts.dampingFraction,
-        initial: 0,
+        sampleCount,
         settleThreshold,
-        velocitySettleThreshold: settleThreshold,
+        dt: maxDuration / (sampleCount + 1),
     });
-    spring.target = 1;
 
     const stops: string[] = ["0"];
-    const dt = maxDuration / (sampleCount + 1);
-
     for (let i = 1; i <= sampleCount; i++) {
-        spring._stepSeconds(dt);
         const pct = (i / (sampleCount + 1)) * 100;
-        const v = spring.settled ? 1 : spring.value;
+        const v = positions[i - 1]!;
         stops.push(`${v.toFixed(5)} ${pct.toFixed(3)}%`);
     }
 
     stops.push("1");
-    spring.dispose();
     return `linear(${stops.join(", ")})`;
 }
