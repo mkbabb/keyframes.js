@@ -1,23 +1,34 @@
 # demo/
 
-Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds it to `dist/gh-pages/` (deployed at keyframes.babb.dev). The per-scene directories (`amiga/`, `cube/`, `easing/`, `motion-path/`, `sequence/`, `spring/`, `square/`) hold scene-specific composables and target components consumed by `app/scenes/*Scene.vue` — they are NOT standalone apps. `playground/` is the one other standalone app (`npm run dev:playground`). Design language: `DESIGN.md` (extends glass-ui's).
+Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds it to `dist/gh-pages/` (deployed at keyframes.babb.dev). `app/` is the shell + scene machine + router; each scene lives in a SELF-CONTAINED `scenes/<name>/` directory that co-locates its `<Name>Scene.vue` entry with its scene-specific composables and target components (the R.W5 fusion — the old `app/scenes/` entries and the top-level per-scene dirs were merged into `scenes/<name>/`). `playground/` is the one other standalone app (`npm run dev:playground`). Design language: `DESIGN.md` (extends glass-ui's).
 
 ## Structure
 
 ```
 demo/
-├── app/                       # THE multi-scene SPA
+├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/)
 │   ├── index.html / main.ts / App.vue   # shell: KeepAlive + dynamic <component :is> + dock chrome
 │   ├── router.ts              # hash-mode vue-router; routes select the active scene id (GH-Pages-safe)
-│   ├── scenes.ts              # scene registry: lazy scene loaders, inline-SVG icon family, warmScene()
-│   ├── scenes/                # AmigaScene, CubeScene, EasingScene, MotionPathScene, SequenceScene, SpringScene, SquareScene
+│   ├── scenes.ts              # scene registry: lazy scene loaders (→ ../scenes/<name>/<Name>Scene.vue), inline-SVG icon family, warmScene()
+│   ├── sceneExposedApi.ts     # the typed SceneExposedApi contract every <Name>Scene.vue exposes
 │   ├── useSceneMachineApp.ts  # scene-machine ↔ app-shell reconcile (SCENE_READY, play/pause routing)
 │   ├── useSceneMachineRouter.ts # scene-machine ↔ router reconcile
 │   ├── useRafScene.ts         # THE raw-rAF scene recipe: RAFPlayback + ScenePlayback adapter + visibility pause
-│   ├── useSceneSwap.ts / useSceneTransition.ts / useSceneVisibilityPause.ts
+│   ├── useSceneSwap.ts / useSceneTransition.ts / useSceneVisibilityPause.ts / scene-transition.css
+│   ├── composables/           # useContractAnimGroup, useSceneTransport (cross-scene shell recipes)
+│   ├── rafConstants.ts / useMonacoCancellationGuard.ts
 │   ├── cubeTransformStore.ts  # shared cube matrix state (gl-matrix)
 │   ├── loaf-observer.ts       # long-animation-frame diagnostics
 │   └── public/robots.txt
+├── scenes/                    # THE fused scenes (R.W5): each dir co-locates <Name>Scene.vue + its composables + targets
+│   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaAnimations, amigaKeys, checkerboard.jpg
+│   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeAnimations/useCubeRelit, cube.png
+│   ├── easing/       # EasingScene.vue + EasingSidebar/EasingTarget/EasingHeroStage, useEasingDemo/Gallery/Ghost/TraceSmear, easingGroups/easingKeys
+│   ├── morph/        # MorphSVGScene.vue + MorphTarget, useMorphDemo, morphShapes/morphKeys (the fromMorphSVG showcase)
+│   ├── motion-path/  # MotionPathScene.vue + MotionPathTarget, useMotionPathDemo/Gesture, motionPathGeometry/motionPathKeys
+│   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument, sequenceKeys
+│   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag, springKeys/springPresets
+│   └── square/       # SquareScene.vue + SquareInstrument, useSquareAnimations/useSquareKeyboard, squareKeys (custom transform fn)
 ├── @/                         # Shared library
 │   ├── components/custom/
 │   │   ├── animation-controls/  # the control suite (see below)
@@ -35,13 +46,6 @@ demo/
 │   │   └── useDragScrub.ts              # the ONE shared pointer-drag scrub seam (stage rails, square box)
 │   ├── styles/                  # style.css (Tailwind v4 + theme vars), brand.css, design-idioms.css
 │   └── utils/                   # utils.ts (cn()), clipboard.ts, iosTextEntry.ts, toastGuard.ts (vue-sonner private-DOM contract)
-├── amiga/        # Three.js sphere: useAmigaAnimations, useSphereSpin, utils, checkerboard.jpg
-├── cube/         # 3D CSS cube: CubeTarget.vue, useCubeAnimations, cube.png
-├── easing/       # easing gallery: EasingSidebar/EasingTarget, easingGroups/easingKeys, useEasingDemo/useEasingGallery
-├── motion-path/  # MotionPathTarget, motionPathGeometry/motionPathKeys, useMotionPathDemo/useMotionPathGesture
-├── sequence/     # SequenceTarget, sequenceKeys, useSequenceDemo
-├── spring/       # SpringSidebar/SpringTarget/StartingStyleTarget, springKeys/springPresets, useSpringDemo, useSpringLinearStops
-├── square/       # useSquareAnimations (custom transform fn)
 ├── playground/   # standalone app: index.html + App.vue + usePlaygroundAnimations (asset drag-and-drop)
 ├── CLAUDE.md
 └── DESIGN.md     # demo design language (extends glass-ui DESIGN.md)
@@ -60,22 +64,26 @@ The primary UI for interacting with animations. Top level: **AnimationControlsGr
 
 ## Scenes
 
-| Scene (`app/scenes/`) | Content dir | Key feature |
+Each scene is a self-contained `scenes/<name>/` directory: `<Name>Scene.vue` (the entry, lazy-loaded
+via `app/scenes.ts`, exposing the typed `SceneExposedApi`) co-located with its composables + targets.
+
+| Scene | Directory | Key feature |
 |---|---|---|
-| CubeScene | `cube/` | 3 synchronized animations, 3D CSS cube, matrix editor, orbital drag |
-| AmigaScene | `amiga/` | Three.js sphere, multi-axis rotation + checkerboard spin |
-| SquareScene | `square/` | Custom transform fn, nested object interpolation |
-| EasingScene | `easing/` | Easing gallery + unified easing editor |
-| SpringScene | `spring/` | Spring presets, `linear()` stops, `@starting-style` target |
-| SequenceScene | `sequence/` | `Sequence` master-playhead transport, draggable rows |
-| MotionPathScene | `motion-path/` | `offset-path` editing + gesture |
+| CubeScene | `scenes/cube/` | 3 synchronized animations, 3D CSS cube, matrix editor, orbital drag |
+| AmigaScene | `scenes/amiga/` | Three.js sphere, multi-axis rotation + checkerboard spin |
+| SquareScene | `scenes/square/` | Custom transform fn, nested object interpolation |
+| EasingScene | `scenes/easing/` | Easing gallery + unified easing editor |
+| SpringScene | `scenes/spring/` | Spring presets, `linear()` stops, `@starting-style` target, heatmap |
+| SequenceScene | `scenes/sequence/` | `Sequence` master-playhead transport, draggable rows |
+| MotionPathScene | `scenes/motion-path/` | `offset-path` editing + gesture |
+| MorphSVGScene | `scenes/morph/` | `fromMorphSVG` path morph showcase (on-DOM render contract + orient-along-path) |
 
 Plus the standalone `playground/`: asset drag-and-drop viewport with preset animation binding.
 
 ## Key Dependencies
 
 - `vue` ^3.5 + `vue-router` (hash mode) + `@vueuse/core`
-- `@mkbabb/glass-ui` `~3.9.0` (in `optionalDependencies`) — the demo chrome: dock, header ribbon, keyboard shortcuts (`registerShortcut` from `@mkbabb/glass-ui/keyboard`), dark-mode toggle, buttons/dialogs/tooltips
+- `@mkbabb/glass-ui` `~4.0.0` (in `optionalDependencies`) — the demo chrome: dock, header ribbon, keyboard shortcuts (`registerShortcut` from `@mkbabb/glass-ui/keyboard`), dark-mode toggle, buttons/dialogs/tooltips
 - `reka-ui` — headless primitives (menubar basis)
 - `three` — amiga sphere only (the cube is CSS 3D transforms)
 - `gl-matrix` — quaternion/matrix math (orbital-drag, matrix-editor, cubeTransformStore)
