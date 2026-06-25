@@ -25,3 +25,4 @@ skills-lock.json
 # workflow-orchestration artifacts (not source)
 .wf-fix.js
 **/.wf-fix.js
+node_modules
