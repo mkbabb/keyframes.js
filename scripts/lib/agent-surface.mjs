@@ -73,17 +73,9 @@ export const CURATED = [
         name: "CSSKeyframesAnimation",
         intent:
             "parse author CSS @keyframes → animate any element/object; the round-trippable source-of-truth axis [axis-1]",
-        exports: ["CSSKeyframesAnimation", "Animation", "loadAnimationEngine"],
+        exports: ["CSSKeyframesAnimation", "loadAnimationEngine"],
         anchor: "csskeyframesanimation",
         proof: "proof:roundtrip-fidelity",
-    },
-    {
-        name: "animate",
-        intent:
-            "the single-call front door: construct + target + play, dispatched on input shape (CSS string / vars / motion-path spec)",
-        exports: ["animate"],
-        anchor: "animate",
-        proof: "proof:engine-correctness",
     },
     {
         name: "AnimationGroup",
@@ -155,7 +147,6 @@ export const CURATED = [
             "progress driver (sample → clamp → easing → boundary-snap → smoothing); ScrollTimeline/ManualTimeline/createNativeTimeline variants — the caller owns the loop",
         exports: [
             "Timeline",
-            "ScrollTimeline",
             "ManualTimeline",
             "createNativeTimeline",
         ],

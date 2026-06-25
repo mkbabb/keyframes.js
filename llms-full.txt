@@ -45,9 +45,7 @@ const { css, eligible, refusals } = compileToCSS(anim);
 ## The curated primitive index
 
 - **CSSKeyframesAnimation** — parse author CSS @keyframes → animate any element/object; the round-trippable source-of-truth axis [axis-1]
-  - exports: `CSSKeyframesAnimation`, `Animation`, `loadAnimationEngine` · proof: `proof:roundtrip-fidelity` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#csskeyframesanimation
-- **animate** — the single-call front door: construct + target + play, dispatched on input shape (CSS string / vars / motion-path spec)
-  - exports: `animate` · proof: `proof:engine-correctness` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#animate
+  - exports: `CSSKeyframesAnimation`, `loadAnimationEngine` · proof: `proof:roundtrip-fidelity` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#csskeyframesanimation
 - **AnimationGroup** — composite many animations with replace/add/weighted layer blending (spatial composition)
   - exports: `AnimationGroup`, `defaultLayerConfig` · proof: `proof:blend` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#animationgroup
 - **Sequence** — master-playhead temporal orchestration beside AnimationGroup's spatial blend
@@ -65,7 +63,7 @@ const { css, eligible, refusals } = compileToCSS(anim);
 - **stagger** — pure construction-time per-index delay distribution (materializes into the compiled CSS)
   - exports: `stagger` · proof: `proof:orchestration` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#stagger
 - **Timeline** — progress driver (sample → clamp → easing → boundary-snap → smoothing); ScrollTimeline/ManualTimeline/createNativeTimeline variants — the caller owns the loop
-  - exports: `Timeline`, `ScrollTimeline`, `ManualTimeline`, `createNativeTimeline` · proof: `proof:sync-step` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#timeline
+  - exports: `Timeline`, `ManualTimeline`, `createNativeTimeline` · proof: `proof:sync-step` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#timeline
 - **NumericAnimation** — zero-alloc keyframe interpolation over { key: number } objects — animate any plain object, no DOM
   - exports: `NumericAnimation` · proof: `proof:zero-alloc` · docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#numericanimation
 - **loadAnimationEngine** — the one gateway to the HEAVY tier: an awaited dynamic import that carries the CSS parser + value.js; light-only consumers never pay it [axis-3]
@@ -133,9 +131,6 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 - `Sequence`
 - `loadAnimationEngine`
 - `warmEngine`
-- `loadEngine`
-- `loadCompiler`
-- `loadIngest`
 - `resolveEasing`
 - `toEasing`
 - `AnimationOptionError`
@@ -148,7 +143,6 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 - `KeyframesAnimation`
 - `CSSKeyframesAnimation`
 - `AnimationGroup`
-- `animate`
 - `MotionPath`
 - `fromMotionPath`
 - `DrawSVG`
@@ -186,12 +180,12 @@ proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)
 - `transformTargetsStyle`
 - `yieldToMain`
 
-Total published value exports: 74 (34 LIGHT + 40 HEAVY).
+Total published value exports: 70 (31 LIGHT + 39 HEAVY).
 
 ## The proof corpus (the public capability ledger)
 
 Every claim above is signed by a CI-executed gate. The proof corpus
 is itself a public artifact: run `npm run proof:all` to execute the
-full roster (~185 `proof:*` gates). Each gate is a self-describing capability
+full roster (~187 `proof:*` gates). Each gate is a self-describing capability
 claim — not "the library claims X" but "the library PROVES X, here
 is the gate, here is the runnable snippet CI executes".
