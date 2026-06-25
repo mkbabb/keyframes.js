@@ -25,9 +25,15 @@ Team-lead orchestration via two parallel git worktrees (file-disjoint `src/` vs 
 (`proof:decomposition`, `proof:chronic-closure`, `proof:agent-surface`, `proof:lint-clean` all exit 1).
 
 **Resume protocol** (for the retry-cron / a fresh session): check `git -C ../keyframes-r-lib log`
-and `git -C ../keyframes-r-demo log` for track progress; check the task board (#266–275); the
+and `git -C ../keyframes-r-demo log` for track progress; check the task board (#266–278); the
 in-flight wave is whichever track task is `in_progress`. A retry-cron (`13 */2 * * *`) re-enters this
 drive if a session-limit wall is hit; DELETE it once shipped.
+
+> **LIVENESS SIGNAL (lesson, 2026-06-24):** an agent's `tasks/<id>.output` transcript size is
+> UNRELIABLE — R.W2c's stayed at 146 bytes while the agent committed + wrote files actively. The
+> TRUE liveness signals are (a) new commits on the track branch and (b) recent worktree write-mtimes
+> (`find <wt>/src -printf '%TT %p' | sort -r | head`). A clean tree + no new commits + no writes for
+> >15 min ⇒ stalled. Recent writes (seconds/low-minutes ago) ⇒ ALIVE — do NOT edit its files.
 
 **Track progress (commit on each branch):**
 - **R.W1 ✅ GREEN** (`r-track-lib` @ `b52ad3e`) — 7-zone partition; keystone deleted; 3 gate co-edits + `proof:no-flat-siblings`; build/test/boundary/engine/no-flat-siblings/ci-coverage/lint-clean all green; known-violations 15→9. Decomposition backlog (9 files >500L): engine/animation 1408, group/group 925, resolve/index 797, sequence 699, compile/frame-compiler 670, spring/progress 628, scroll/scene 528, compile/backward 536, waapi 573. → engine+group = R.W2; the other 7 = R.W2b (2 of them — resolve, frame-compiler — take R.md §5 narrow overrides; 5 carve).
