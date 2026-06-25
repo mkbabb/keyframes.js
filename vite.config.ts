@@ -42,7 +42,12 @@ function engineDtsRollupPlugin(): Plugin {
         enforce: "post",
         async closeBundle() {
             const root = import.meta.dirname;
-            const entry = path.resolve(root, "src/animation/engine/index.ts");
+            // R.W4b — the `./engine` subpath dts roll-up is the FULL static
+            // mirror, so the SOURCE entry is the composition barrel
+            // `engine/public.ts` (not the zone-pure `engine/index.ts`). The
+            // INSTALL path stays `dist/engine/index.d.ts` (the exports map is
+            // UNCHANGED) — only the tsc-emit + API-Extractor INPUT moves.
+            const entry = path.resolve(root, "src/animation/engine/public.ts");
             const distEngine = path.resolve(root, "dist/engine/index.d.ts");
             if (!fs.existsSync(entry)) return;
 
@@ -73,7 +78,11 @@ function engineDtsRollupPlugin(): Plugin {
             });
             program.emit(undefined, undefined, undefined, true);
 
-            const emittedEntry = path.join(tmp, "engine/index.d.ts");
+            // tsc emits the declaration graph mirroring the source path under
+            // `rootDir: src/animation`, so the composition barrel
+            // `engine/public.ts` lands at `engine/public.d.ts` (R.W4b — this is
+            // the API-Extractor main entry point, NOT `engine/index.d.ts`).
+            const emittedEntry = path.join(tmp, "engine/public.d.ts");
             if (!fs.existsSync(emittedEntry)) {
                 this.warn(
                     "kf-engine-dts-rollup: engine declarations did not emit; leaving dts as-is",
@@ -87,7 +96,34 @@ function engineDtsRollupPlugin(): Plugin {
                 projectFolder: root,
                 mainEntryPointFilePath: emittedEntry,
                 bundledPackages: [],
-                compiler: { overrideTsconfig: { compilerOptions: {} } },
+                compiler: {
+                    // R.W4b — the FULL static surface transitively references
+                    // ambient DOM lib globals from the modern CSS Scroll-driven-
+                    // Animations spec (`ScrollAxis`, used by `orchestration/
+                    // timeline/native.ts`'s `NativeTimelineSpec`). An EMPTY
+                    // `compilerOptions` makes API Extractor's internal compiler
+                    // fall to the TS default `lib` (no modern DOM), so it cannot
+                    // FOLLOW the ambient `ScrollAxis` symbol and throws the
+                    // "Unable to follow symbol" internal defect. Pin the SAME
+                    // `target`/`lib` the library tsconfig type-checks against so
+                    // every ambient global the surface references RESOLVES.
+                    overrideTsconfig: {
+                        compilerOptions: {
+                            target: "ES2022",
+                            lib: ["ES2022", "ES2023", "DOM"],
+                            // The emitted roll-up entry re-exports zone barrels by
+                            // DIRECTORY specifier (`export * as presets from
+                            // "../presets"` → `../presets/index.d.ts`). API
+                            // Extractor's internal compiler must resolve those the
+                            // way the project does, or it throws
+                            // `getResolvedModule() could not resolve "../presets"`.
+                            // Mirror the library tsconfig's module resolution.
+                            module: "ESNext",
+                            moduleResolution: "bundler",
+                            skipLibCheck: true,
+                        },
+                    },
+                },
                 apiReport: { enabled: false },
                 docModel: { enabled: false },
                 tsdocMetadata: { enabled: false },
@@ -432,9 +468,19 @@ export default defineConfig((mode) => {
                             import.meta.dirname,
                             "src/animation/index.ts",
                         ),
+                        // R.W4b — the `./engine` subpath SOURCE is the
+                        // composition barrel `engine/public.ts` (the FULL static
+                        // mirror of the heavy `loadAnimationEngine()` surface),
+                        // NOT the zone-pure `engine/index.ts` (which carries the
+                        // engine CORE only). The OUTPUT name stays `engine/index`
+                        // so the emit path (`dist/engine/index.js`) the exports
+                        // map points at is UNCHANGED — only the source moves. The
+                        // shared engine chunk is still deduped across the two
+                        // entries + the `loadAnimationEngine()` lazy split, so the
+                        // subpath stays a thin re-export, never a duplicate.
                         "engine/index": path.resolve(
                             import.meta.dirname,
-                            "src/animation/engine/index.ts",
+                            "src/animation/engine/public.ts",
                         ),
                     },
                     name: "Keyframes",

@@ -7,6 +7,17 @@
  */
 
 /**
+ * The scroll/view timeline axis — the `block|inline|x|y` keyword set. A LOCAL
+ * structural alias of the DOM lib's ambient `ScrollAxis` global (R.W4b): it is
+ * byte-identical to `lib.dom.d.ts`'s `type ScrollAxis = "block" | "inline" | "x"
+ * | "y"`, but as a NAMED module export it is FOLLOWABLE by the `./engine` subpath
+ * dts roll-up (API Extractor cannot follow a bare ambient-global reference reached
+ * transitively through `ScrollScene` — it throws "Unable to follow symbol for
+ * ScrollAxis"). value.js-free (a string-literal union — these are DOM keywords).
+ */
+export type ScrollTimelineAxis = "block" | "inline" | "x" | "y";
+
+/**
  * Spec for the ADDITIVE native scroll-driven bridge (D-LIB-2 / F-5).
  *
  * A `kind: "scroll"` request maps to the platform `ScrollTimeline` (scroll
@@ -15,8 +26,8 @@
  * platform default (`block`). value.js-free — these are DOM globals.
  */
 export type NativeTimelineSpec =
-    | { kind: "scroll"; source?: Element | null; axis?: ScrollAxis }
-    | { kind: "view"; subject: Element; axis?: ScrollAxis; inset?: string };
+    | { kind: "scroll"; source?: Element | null; axis?: ScrollTimelineAxis }
+    | { kind: "view"; subject: Element; axis?: ScrollTimelineAxis; inset?: string };
 
 /**
  * Feature-detect (`"ScrollTimeline" in window` / `"ViewTimeline" in window`)
