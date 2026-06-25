@@ -112,7 +112,7 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
     // A3 anchor — tesselateSphere iterates the TILE grid (tiles=16), NOT the
     // 1024² pixel grid. The browser clause measures the call count; this anchor
     // catches a source revert that a vacuous (playwright-absent) run would miss.
-    const utilsSrc = read(path.join(DEMO, "amiga/utils.ts"));
+    const utilsSrc = read(path.join(DEMO, "scenes/amiga/utils.ts"));
     const tilesTileLoop =
         /const\s+tiles\s*=\s*16\b/.test(utilsSrc) &&
         /for\s*\([^)]*\bty\b[^)]*tiles[^)]*\)/.test(utilsSrc) &&
@@ -132,7 +132,7 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
 
     // A2 anchor — the dpr cap. setPixelRatio(Math.min(window.devicePixelRatio, 2))
     // and NOT the `* 2` over-render.
-    const amigaSrc = read(path.join(DEMO, "app/scenes/AmigaScene.vue"));
+    const amigaSrc = read(path.join(DEMO, "scenes/amiga/AmigaScene.vue"));
     const cap = /setPixelRatio\(\s*Math\.min\(\s*window\.devicePixelRatio\s*,\s*2\s*\)\s*\)/.test(
         amigaSrc,
     );
@@ -191,7 +191,7 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
     // .cube's hint is TRANSIENT (gated on .playing / :hover), not resident.
     // Strip CSS/JS comments first so prose mentioning `will-change: transform`
     // (the design-decision comments) is not read as a declaration.
-    const cubeSrc = read(path.join(DEMO, "cube/CubeTarget.vue"))
+    const cubeSrc = read(path.join(DEMO, "scenes/cube/CubeTarget.vue"))
         .replace(/\/\*[\s\S]*?\*\//g, "")
         .replace(/\/\/[^\n]*/g, "");
     // A resident hint is `will-change: transform` in a `.cube-side {…}` rule body
@@ -217,7 +217,7 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
     // (the form proof:demo-on-published-surface now MANDATES for every demo
     // engine consumer; the same idiom useOrbitalInertia.ts rides). Either is the
     // engine `decay()` seam; the anchor still asserts the call shape + the tick.
-    const spinSrc = read(path.join(DEMO, "amiga/useSphereSpin.ts"));
+    const spinSrc = read(path.join(DEMO, "scenes/amiga/useSphereSpin.ts"));
     const decaySeam =
         /import\s*\{[^}]*\bdecay\b[^}]*\}\s*from\s*["'](?:@src\/animation\/decay|@mkbabb\/keyframes\.js)["']/.test(spinSrc) &&
         /decay\(\s*\{[^}]*velocity[^}]*friction[^}]*\}\s*\)/.test(spinSrc);

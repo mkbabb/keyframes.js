@@ -38,7 +38,7 @@ import { navToScene, resolveChromium, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
-const UTILS = path.join(REPO, "demo/amiga/utils.ts");
+const UTILS = path.join(REPO, "demo/scenes/amiga/utils.ts");
 
 // Q.WC5 — the amiga scene is the constellation's only WebGL (Three.js) target, so
 // the keystone observable (a real flick → the engine's decay() glide on the SPHERE

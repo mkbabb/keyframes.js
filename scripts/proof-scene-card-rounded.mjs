@@ -231,9 +231,9 @@ function staticHalf() {
     // GREEN by its rounded computed radius, so we do NOT scan SpringScene's pill
     // out here; instead we assert the stage SUBJECT roots are bg-less.
     const stageRoots = [
-        "demo/easing/EasingTarget.vue",
-        "demo/spring/SpringTarget.vue",
-        "demo/spring/StartingStyleTarget.vue",
+        "demo/scenes/easing/EasingTarget.vue",
+        "demo/scenes/spring/SpringTarget.vue",
+        "demo/scenes/spring/StartingStyleTarget.vue",
     ];
     let stageCartoon = 0;
     for (const rel of stageRoots) {

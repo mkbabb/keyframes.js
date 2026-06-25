@@ -69,9 +69,9 @@ console.log("proof:easter-egg — H.W12 (I3 · ONE hidden on-aesthetic egg per s
 const STATIC_EGGS = [
     {
         scene: "sequence",
-        file: "sequence/useSequenceDemo.ts",
+        file: "scenes/sequence/useSequenceDemo.ts",
         tokens: [/\bplayReel\b/, /isReeling/, /REEL_STAGGER|child\.play\(\)/],
-        triggerFile: "sequence/SequenceTarget.vue",
+        triggerFile: "scenes/sequence/SequenceTarget.vue",
         triggerTokens: [/REEL_CODE|"reel"/, /demo\.playReel\(\)/],
         note: 'EE-SEQ-1 "the reel" — a typed-"reel" trigger replays the children as a cascading overshoot wave (isReeling → .reel-active), reusing the engine children (inv ζ)',
     },
@@ -79,33 +79,33 @@ const STATIC_EGGS = [
         scene: "motion-path",
         // The lap-accumulator + winking flag live in the gesture composable; the
         // glyph swap (😎 = U+1F60E) lives in the Target template.
-        file: "motion-path/useMotionPathGesture.ts",
+        file: "scenes/motion-path/useMotionPathGesture.ts",
         tokens: [/winking/, /lapAccum|accumulateLap/, /onScrub|useDragScrub/],
-        triggerFile: "motion-path/MotionPathTarget.vue",
+        triggerFile: "scenes/motion-path/MotionPathTarget.vue",
         triggerTokens: [/mp-traveller--winking/, /1F60E/],
         note: 'EE-MP-2 "the wink" — a full-lap traveller drag accumulates a whole loop and swaps the glyph to 😎 (U+1F60E, .mp-traveller--winking)',
     },
     {
         scene: "cube",
-        file: "cube/CubeTarget.vue",
+        file: "scenes/cube/CubeTarget.vue",
         tokens: [/onRoll/, /cube--rolling/, /CSSKeyframesAnimation|ease-out-back/],
-        triggerFile: "cube/CubeTarget.vue",
+        triggerFile: "scenes/cube/CubeTarget.vue",
         triggerTokens: [/@dblclick="onRoll"/],
         note: '"the Roll" — dblclick rolls the cube to a die face on an engine CSSKeyframesAnimation (.cube--rolling)',
     },
     {
         scene: "amiga",
-        file: "app/scenes/AmigaScene.vue",
+        file: "scenes/amiga/AmigaScene.vue",
         tokens: [/onBoing/, /boinging|amiga-canvas--boing/, /Group|play\(\)/],
-        triggerFile: "app/scenes/AmigaScene.vue",
+        triggerFile: "scenes/amiga/AmigaScene.vue",
         triggerTokens: [/@dblclick="onBoing"/],
         note: '"the Boing" — dblclick wakes the dormant Boing-Ball AnimationGroup for one arc (.amiga-canvas--boing)',
     },
     {
         scene: "square",
-        file: "square/useSquareAnimations.ts",
+        file: "scenes/square/useSquareAnimations.ts",
         tokens: [/tumble/, /SpringProgress|transformFunc|rotate/],
-        triggerFile: "app/scenes/SquareScene.vue",
+        triggerFile: "scenes/square/SquareScene.vue",
         triggerTokens: [/@dblclick="tumble"/],
         note: '"the Tumble" — dblclick barrel-rolls the box via a SpringProgress folded into the paint loop',
     },
@@ -114,9 +114,9 @@ const STATIC_EGGS = [
         // K.W4 colocation split — the derby effect moved into useSpringDerby.ts (the
         // egg's own sub-unit beside useSpringDemo.ts); read both so the effect tokens
         // resolve across the seam.
-        file: ["spring/useSpringDemo.ts", "spring/useSpringDerby.ts"],
+        file: ["scenes/spring/useSpringDemo.ts", "scenes/spring/useSpringDerby.ts"],
         tokens: [/\bderby\b/, /derbyRunning/, /spring\.target|liveSpring\.target/],
-        triggerFile: "spring/SpringTarget.vue",
+        triggerFile: "scenes/spring/SpringTarget.vue",
         triggerTokens: [/@dblclick="demo\.derby"/],
         note: '"the Derby" — dblclick the rail launches the canonical trackers in a staggered SpringProgress wave',
     },
@@ -125,9 +125,9 @@ const STATIC_EGGS = [
         // The Gallery effect spans the colocated pair: useEasingDemo wires it
         // (`gallery`/`selectEasing`), useEasingGallery owns the tour state
         // (`galleryRunning`) — the I.WZ concern-seam split.
-        file: ["easing/useEasingDemo.ts", "easing/useEasingGallery.ts"],
+        file: ["scenes/easing/useEasingDemo.ts", "scenes/easing/useEasingGallery.ts"],
         tokens: [/\bgallery\b/, /galleryRunning/, /selectEasing/],
-        triggerFile: "easing/EasingSidebar.vue",
+        triggerFile: "scenes/easing/EasingSidebar.vue",
         triggerTokens: [/@dblclick="demo\.gallery"/, /canvas-egg-host/],
         note: '"the Gallery" — dblclick the curve tours the expressive easing catalogue (the .bezier-path d cycles)',
     },

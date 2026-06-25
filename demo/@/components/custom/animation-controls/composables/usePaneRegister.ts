@@ -24,7 +24,7 @@ export interface UsePaneRegisterReturn {
  *
  * J.W7a S1 (D5) — the glass-wash adoption is DESKTOP-only (the mobile sheet keeps
  * its own popover-card paint). `isDesktop` draws the SAME 1024px line every layout
- * composable in this subtree draws (useControlsLayout / ResponsiveSelect). The
+ * composable in this subtree draws (useControlsLayout). The
  * stage mode tunes the register only: the sheet is ALWAYS a content card; `subject`
  * full-bleeds the stage behind it, `editor`/`storyboard` keep a contained card.
  */

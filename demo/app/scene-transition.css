@@ -1,9 +1,8 @@
-/* Q.WC3 — the scene-switcher motion: the typed-directional View-Transition
-   keyframes + the phone-narrow carousel visibility. Co-located OUT of App.vue
-   (the `::view-transition-*` pseudo-tree is painted at the DOCUMENT root — the
-   `::view-transition` top layer — so these rules must be GLOBAL, never scoped; a
-   scoped `[data-v-…]` attribute would never match the pseudo-elements). App.vue
-   imports this once. */
+/* Q.WC3 — the scene-switch motion: the typed-directional View-Transition
+   keyframes. Co-located OUT of App.vue (the `::view-transition-*` pseudo-tree is
+   painted at the DOCUMENT root — the `::view-transition` top layer — so these
+   rules must be GLOBAL, never scoped; a scoped `[data-v-…]` attribute would never
+   match the pseudo-elements). App.vue imports this once. */
 
 /* ── S3 — the typed-directional scene-switch slide ──
    Direction rides `view-transition-type` over the PRESERVED single
@@ -55,27 +54,5 @@ html:active-view-transition-type(backward)::view-transition-new(scene-subject) {
 @media (prefers-reduced-motion: reduce) {
     ::view-transition-group(scene-subject) {
         animation: none !important;
-    }
-}
-
-/* ── S2 — the phone scene-switcher carousel visibility ──
-   Shown ONLY on the phone-narrow breakpoint (the 720px cut — the only
-   `max-width` in the scene-stage subtree, the shelf-driver cure); the desktop
-   keeps the dock Select (no duplicate switcher). Pins to the bottom of the stage,
-   above the mobile chrome. The WRAPPER owns the none/block toggle so it never
-   overrides the carousel's own `display: flex`. */
-.scene-carousel-host {
-    display: none;
-}
-@media (max-width: 720px) {
-    .scene-carousel-host {
-        display: block;
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: var(--z-content, 2);
-        background: linear-gradient(to top, var(--background) 40%, transparent);
-        pointer-events: auto;
     }
 }

@@ -158,8 +158,16 @@ const fmt = (c) => (c ? `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a})` : "∅");
 const SRC = {
     "demo/@/styles/design-idioms.css": read(path.join(REPO, "demo/@/styles/design-idioms.css")),
     "demo/@/styles/style.css": read(path.join(REPO, "demo/@/styles/style.css")),
-    "demo/cube/CubeTarget.vue": read(path.join(REPO, "demo/cube/CubeTarget.vue")),
-    "demo/app/scenes/AmigaScene.vue": read(path.join(REPO, "demo/app/scenes/AmigaScene.vue")),
+    "demo/scenes/cube/CubeTarget.vue": read(path.join(REPO, "demo/scenes/cube/CubeTarget.vue")),
+    // R.W6-decomp — the tesselateSphere() ball-color call moved out of
+    // AmigaScene.vue into the colocated useAmigaThree.ts (the Three.js room
+    // carve). The amiga ball-color witness reads the WHOLE amiga scene dir so the
+    // grep finds the call wherever it is colocated (AmigaScene.vue OR
+    // useAmigaThree.ts), keeping the witness at full strength across the carve.
+    "demo/scenes/amiga": [
+        read(path.join(REPO, "demo/scenes/amiga/AmigaScene.vue")),
+        read(path.join(REPO, "demo/scenes/amiga/useAmigaThree.ts")),
+    ].join("\n"),
 };
 
 /**
@@ -299,7 +307,7 @@ const FACET_CLASS_BY_TOKEN = {
     "--face-5": "top",
     "--face-6": "bottom",
 };
-const cubeSrc = SRC["demo/cube/CubeTarget.vue"];
+const cubeSrc = SRC["demo/scenes/cube/CubeTarget.vue"];
 for (const [token, facetClass] of Object.entries(FACET_CLASS_BY_TOKEN)) {
     const want = baselineColors[token];
     // Find the cubeSides entry for this facet class and read its `color:` value.
@@ -406,13 +414,13 @@ for (const [token, file] of HOIST_TARGETS) {
 // (the abrogation — e.g. the magenta-ball swap the user reversed). We test the
 // HUE: the raw literal must stay a red (R dominant, low G/B) until hoisted.
 {
-    const amigaSrc = SRC["demo/app/scenes/AmigaScene.vue"];
+    const amigaSrc = SRC["demo/scenes/amiga"];
     const tessM = amigaSrc.match(
         /tesselateSphere\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/,
     );
     if (!tessM) {
         note(
-            `[amiga] the tesselateSphere ball-color arg was not found in AmigaScene.vue ` +
+            `[amiga] the tesselateSphere ball-color arg was not found in the amiga scene dir ` +
                 `(the boot may have been restructured) — the --amiga-red token pin governs`,
         );
     } else {

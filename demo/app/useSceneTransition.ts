@@ -66,7 +66,7 @@ export function useSceneTransition(
         // transition's duration, so the gate observes the resolved types here, not
         // a mid-transition snapshot race). The SAME committed-state instrumentation
         // pattern the perf gate uses.
-        if (typeof window !== "undefined") {
+        if (import.meta.env.DEV && typeof window !== "undefined") {
             (window as unknown as { __lastVtTypes?: string[] }).__lastVtTypes =
                 types;
         }

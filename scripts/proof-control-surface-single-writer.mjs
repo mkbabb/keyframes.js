@@ -40,7 +40,7 @@
  *    the rogue watch is gone). RED today (the projection honors the conditional
  *    surface unconditionally, so the stale pick sticks); green on S2.
  *  • the HYGIENE corroborator (LABELED, source-shape — corroborates, never
- *    substitutes): zero `*.selectedControl =` writes in demo/app/scenes/,
+ *    substitutes): zero `*.selectedControl =` writes in demo/scenes/,
  *    RibbonBar.vue, and demo/@/components/custom/dock/.
  *
  * Mirrors the serveDist + playwright-core (KF_PLAYWRIGHT_DIR) plumbing of
@@ -83,7 +83,7 @@ console.log(
             else if (/\.(vue|ts)$/.test(entry.name)) targets.push(p);
         }
     };
-    collect(path.join(DEMO, "app/scenes"));
+    collect(path.join(DEMO, "scenes"));
     collect(path.join(DEMO, "@/components/custom/dock"));
     targets.push(
         path.join(DEMO, "@/components/custom/animation-controls/components/RibbonBar.vue"),

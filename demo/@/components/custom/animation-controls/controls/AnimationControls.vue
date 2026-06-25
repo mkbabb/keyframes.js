@@ -63,13 +63,20 @@
                      display-font register on the option labels is W2's single
                      `--font-display` authority (consumed via `tab-trigger.css`,
                      not re-authored here — the W2 boundary). -->
-                <SegmentedTabs
-                    variant="pill"
+                <!-- R.W6 / DM-5 CONTINGENCY KILL — the kf-internal KfPillTabs
+                     replaces glass-ui SegmentedTabs: the installed 4.0.1 pill emits
+                     the orientation attribute UNCONDITIONALLY on its `role=group`,
+                     forcing an undefined-binding suppress (the DM-5 band-aid
+                     P-invariant-28 forbids re-carrying). KfPillTabs is a
+                     `role=tablist`/`tab` strip — ARIA-correct by construction. The
+                     `:options="stripOptions"` (←builtInTabs) DFA-driven contract is
+                     unchanged (proof:scene-control-dfa D1). -->
+                <KfPillTabs
                     :options="stripOptions"
                     :model-value="selectedControlSurface"
+                    aria-label="Control surface"
                     @update:model-value="selectControl"
                     :class="['w-fit max-w-full min-w-0', overflowClass]"
-                    :aria-orientation="undefined"
                 />
             </div>
 
@@ -217,8 +224,8 @@ import { TooltipProvider, Button } from "@mkbabb/glass-ui";
 // formerly injected reka `<TabsTrigger>` via the `tabs-trigger` slot now ride the
 // strip AS DATA through the machine's `extraControlTabs` projection (the same
 // metadata the dock reads), so no cross-realm reka tab-context is needed.
-import { SegmentedTabs } from "@mkbabb/glass-ui/tabs";
-import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
+import KfPillTabs from "@components/custom/KfPillTabs.vue";
+import type { KfPillTabOption } from "@components/custom/KfPillTabs.vue";
 
 import {
     computed,
@@ -260,7 +267,7 @@ const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = 
     // reka `<TabsTrigger>`. The corresponding panel rides the `tabs-content` slot
     // gated on `selectedControlSurface` (the host owns its panel, exactly as the
     // built-in surfaces do). Empty by default — machine-driven hosts ignore it.
-    extraTabs?: SegmentedTabOption[];
+    extraTabs?: KfPillTabOption[];
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
@@ -304,12 +311,12 @@ const builtInTabs = computed(() =>
 // correct per tick, no reka `<TabsTrigger>` injection, no cross-realm tab context.
 // A STANDALONE host (the playground EditorShell, not scene-machine-routed) gets no
 // extra tabs (its activeScene rests on `home`), mirroring `builtInTabs`/`hasSurface`.
-const stripOptions = computed<SegmentedTabOption[]>(() => {
+const stripOptions = computed<KfPillTabOption[]>(() => {
     // A scene-machine-driven host derives its extra tabs from the machine's
     // `extraControlTabs` projection; a STANDALONE host (the playground) injects
     // them via the `extraTabs` prop (the same DATA shape, sourced from the host
     // instead of the machine) — see the `extraTabs` prop note.
-    const extra: SegmentedTabOption[] = tabsExternallyManaged
+    const extra: KfPillTabOption[] = tabsExternallyManaged
         ? machine
               .extraControlTabs(activeConditionals?.value)
               .map((t) => ({ value: t.value, label: t.label }))

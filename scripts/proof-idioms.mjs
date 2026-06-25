@@ -446,9 +446,9 @@ function main() {
 
         // The scene consumers route through the pair (class applied in template).
         const consumers = [
-            "demo/spring/SpringTarget.vue",
-            "demo/easing/EasingTarget.vue",
-            "demo/spring/SpringSidebar.vue",
+            "demo/scenes/spring/SpringTarget.vue",
+            "demo/scenes/easing/EasingTarget.vue",
+            "demo/scenes/spring/SpringSidebar.vue",
         ];
         const allConsume = consumers.every((p) => {
             const src = fs.existsSync(path.join(REPO, p)) ? read(path.join(REPO, p)) : "";

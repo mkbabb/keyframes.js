@@ -104,11 +104,11 @@ function staticHalf() {
     // `cartoon-surface` in live markup (not a comment) re-introduces the square
     // defect — the radius lives on the <Card> root, not the utility.
     const stageRoots = [
-        "demo/easing/EasingTarget.vue",
-        "demo/spring/SpringTarget.vue",
-        "demo/spring/StartingStyleTarget.vue",
-        "demo/sequence/SequenceTarget.vue",
-        "demo/motion-path/MotionPathTarget.vue",
+        "demo/scenes/easing/EasingTarget.vue",
+        "demo/scenes/spring/SpringTarget.vue",
+        "demo/scenes/spring/StartingStyleTarget.vue",
+        "demo/scenes/sequence/SequenceTarget.vue",
+        "demo/scenes/motion-path/MotionPathTarget.vue",
     ];
     let offenders = 0;
     for (const rel of stageRoots) {

@@ -68,8 +68,8 @@ const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "");
 console.log("proof:sequence-rows-draggable — H.W12 (I3 · R-SEQ-D · the draggable storyboard rows)");
 
 // ── STATIC HALF ──────────────────────────────────────────────────────────────
-const targetSrc = read(path.join(DEMO, "sequence/SequenceTarget.vue"));
-const demoSrc = read(path.join(DEMO, "sequence/useSequenceDemo.ts"));
+const targetSrc = read(path.join(DEMO, "scenes/sequence/SequenceTarget.vue"));
+const demoSrc = read(path.join(DEMO, "scenes/sequence/useSequenceDemo.ts"));
 
 // 1. THE ROW HANDLE IS A DRAGGABLE SLIDER.
 {

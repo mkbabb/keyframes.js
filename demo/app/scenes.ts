@@ -21,14 +21,56 @@ import SequenceIcon from "@assets/icons/sequence.svg?component";
 import MotionPathIcon from "@assets/icons/motion-path.svg?component";
 import MorphIcon from "@assets/icons/morph.svg?component";
 
+// The per-scene `superKey` single-source (R.W5 C.4) — each scene's keys module
+// OWNS its superKey constant; the descriptor below AND the scene SFC both import
+// it, so no string literal is declared in a file that doesn't own it.
+import { MORPH_SUPER_KEY } from "../scenes/morph/morphKeys";
+import { MOTION_PATH_SUPER_KEY } from "../scenes/motion-path/motionPathKeys";
+import { EASING_SUPER_KEY } from "../scenes/easing/easingKeys";
+import { SEQUENCE_SUPER_KEY } from "../scenes/sequence/sequenceKeys";
+import { SQUARE_SUPER_KEY } from "../scenes/square/squareKeys";
+import { SPRING_SUPER_KEY } from "../scenes/spring/springKeys";
+import { AMIGA_SUPER_KEY } from "../scenes/amiga/amigaKeys";
+// Cube's superKey single-source is its existing `SUPER_KEY` export (the cube
+// keeps its established home in useCubeAnimations; no separate keys module).
+import { SUPER_KEY as CUBE_SUPER_KEY } from "../scenes/cube/useCubeAnimations";
+
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
 type SceneLoader = () => Promise<unknown>;
+
+/**
+ * The mobile STAGE mode-class (H.W7.S1c) — the three registers the mobile
+ * overlay composes the controls sheet against, keyed by the scene's CONTENT
+ * shape (the mode IS scene data, so it lives WITH the scene, on the descriptor):
+ *
+ *   • `subject`    — the subject IS the background (cube/amiga/square): a 3D
+ *                    object/canvas that fills the viewport behind the sheet. The
+ *                    full-bleed fixed stage is RIGHT here, so the
+ *                    `proof:mobile-single-page (a)` 0.45 visible-fraction floor
+ *                    applies ONLY to this class.
+ *   • `editor`     — the curve/controls ARE the content (easing): the editable
+ *                    bezier + the engine ball are the protagonist, not a
+ *                    background. The stage keeps its glass-card register (W11
+ *                    I5) — full-bleed would be WRONG (the curve is the content).
+ *   • `storyboard` — the draggable rows / editable path ARE the content
+ *                    (sequence/motion-path/spring/morph): an authored timeline
+ *                    the user manipulates. Also a contained card, not a background.
+ *
+ * Only `subject` expands toward a full-bleed background on mobile; `editor` and
+ * `storyboard` keep their content card. UNKNOWN/home falls back to `subject`
+ * (the conservative full-bleed default for the cube backdrop landing).
+ */
+export type StageMode = "subject" | "editor" | "storyboard";
 
 export interface SceneDescriptor {
     id: string;
     label: string;
     superKey: string;
+    /** The mobile stage register (R.W5 C.5 — inlined per descriptor; was the
+     *  parallel string-keyed `STAGE_MODES` record that silently fell through to
+     *  `subject` on a missing id). */
+    stageMode: StageMode;
     component?: Component;
     /**
      * The scene's nav glyph — an EXPRESSIVE, COLORFUL inline-`<svg>` SFC imported
@@ -87,6 +129,7 @@ export const homeScene: SceneDescriptor = {
     id: HOME_SCENE_ID,
     label: "Home",
     superKey: "__home__",
+    stageMode: "subject",
     showStartScreen: true,
 };
 
@@ -94,37 +137,42 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "cube",
         label: "Cube",
-        superKey: "Cube",
+        superKey: CUBE_SUPER_KEY,
+        stageMode: "subject",
         icon: CubeIcon,
-        component: lazyScene("cube", () => import("./scenes/CubeScene.vue")),
+        component: lazyScene("cube", () => import("../scenes/cube/CubeScene.vue")),
     },
     {
         id: "amiga",
         label: "Amiga",
-        superKey: "Amiga",
+        superKey: AMIGA_SUPER_KEY,
+        stageMode: "subject",
         icon: AmigaIcon,
-        component: lazyScene("amiga", () => import("./scenes/AmigaScene.vue")),
+        component: lazyScene("amiga", () => import("../scenes/amiga/AmigaScene.vue")),
     },
     {
         id: "square",
         label: "Square",
-        superKey: "Square",
+        superKey: SQUARE_SUPER_KEY,
+        stageMode: "subject",
         icon: SquareIcon,
-        component: lazyScene("square", () => import("./scenes/SquareScene.vue")),
+        component: lazyScene("square", () => import("../scenes/square/SquareScene.vue")),
     },
     {
         id: "easing",
         label: "Easing",
-        superKey: "Easing",
+        superKey: EASING_SUPER_KEY,
+        stageMode: "editor",
         icon: EasingIcon,
-        component: lazyScene("easing", () => import("./scenes/EasingScene.vue")),
+        component: lazyScene("easing", () => import("../scenes/easing/EasingScene.vue")),
     },
     {
         id: "spring",
         label: "Spring",
-        superKey: "Spring",
+        superKey: SPRING_SUPER_KEY,
+        stageMode: "storyboard",
         icon: SpringIcon,
-        component: lazyScene("spring", () => import("./scenes/SpringScene.vue")),
+        component: lazyScene("spring", () => import("../scenes/spring/SpringScene.vue")),
     },
     {
         // The Sequence + stagger storyboard (F.W10.S3): N children positioned
@@ -133,11 +181,12 @@ export const scenes: SceneDescriptor[] = [
         // engine's TEMPORAL orchestrator the way the cube proves the compositor.
         id: "sequence",
         label: "Sequence",
-        superKey: "Sequence",
+        superKey: SEQUENCE_SUPER_KEY,
+        stageMode: "storyboard",
         icon: SequenceIcon,
         component: lazyScene(
             "sequence",
-            () => import("./scenes/SequenceScene.vue"),
+            () => import("../scenes/sequence/SequenceScene.vue"),
         ),
     },
     {
@@ -147,11 +196,12 @@ export const scenes: SceneDescriptor[] = [
         // path, the engine sweeps the scalar.
         id: "motion-path",
         label: "Path",
-        superKey: "MotionPath",
+        superKey: MOTION_PATH_SUPER_KEY,
+        stageMode: "storyboard",
         icon: MotionPathIcon,
         component: lazyScene(
             "motion-path",
-            () => import("./scenes/MotionPathScene.vue"),
+            () => import("../scenes/motion-path/MotionPathScene.vue"),
         ),
     },
     {
@@ -163,11 +213,12 @@ export const scenes: SceneDescriptor[] = [
         // path, S2). Beside MotionPath (offset-distance) + DrawSVG (line-drawing).
         id: "morph",
         label: "Morph",
-        superKey: "Morph",
+        superKey: MORPH_SUPER_KEY,
+        stageMode: "storyboard",
         icon: MorphIcon,
         component: lazyScene(
             "morph",
-            () => import("./scenes/MorphSVGScene.vue"),
+            () => import("../scenes/morph/MorphSVGScene.vue"),
         ),
     },
     // The standalone @starting-style "Discrete" scene was MERGED into the Spring
@@ -196,50 +247,11 @@ export function sceneIndex(id: string): number {
     return sceneOrder.get(id) ?? -1;
 }
 
-/**
- * The mobile STAGE mode-class (H.W7.S1c) — the three registers the mobile
- * overlay composes the controls sheet against, keyed by the scene's CONTENT
- * shape (the mode IS scene data, so it lives WITH the scene):
- *
- *   • `subject`    — the subject IS the background (cube/amiga/square): a 3D
- *                    object/canvas that fills the viewport behind the sheet. The
- *                    full-bleed fixed stage is RIGHT here, so the
- *                    `proof:mobile-single-page (a)` 0.45 visible-fraction floor
- *                    applies ONLY to this class.
- *   • `editor`     — the curve/controls ARE the content (easing): the editable
- *                    bezier + the engine ball are the protagonist, not a
- *                    background. The stage keeps its glass-card register (W11
- *                    I5) — full-bleed would be WRONG (the curve is the content).
- *   • `storyboard` — the draggable rows / editable path ARE the content
- *                    (sequence/motion-path/spring): an authored timeline the user
- *                    manipulates. Also a contained card, not a background.
- *
- * Only `subject` expands toward a full-bleed background on mobile; `editor` and
- * `storyboard` keep their content card. UNKNOWN/home falls back to `subject`
- * (the conservative full-bleed default for the cube backdrop landing).
- */
-export type StageMode = "subject" | "editor" | "storyboard";
-
-const STAGE_MODES: Record<string, StageMode> = {
-    home: "subject",
-    cube: "subject",
-    amiga: "subject",
-    square: "subject",
-    easing: "editor",
-    spring: "storyboard",
-    sequence: "storyboard",
-    "motion-path": "storyboard",
-    // The morph stage is a contained subject card (a live <path> on a designed
-    // field), authored like motion-path/sequence — the storyboard register
-    // (a contained card, NOT a full-bleed background).
-    morph: "storyboard",
-};
-
-/** The TOTAL mode selector — every scene id resolves to a defined mode-class
- *  (UNKNOWN → `subject`, the full-bleed cube-backdrop default). */
-export function stageModeFor(sceneId: string): StageMode {
-    return STAGE_MODES[sceneId] ?? "subject";
-}
+// R.W5 C.5 — the `STAGE_MODES: Record<string, StageMode>` parallel record + its
+// `stageModeFor` selector are DELETED. The mode is now a required `stageMode`
+// field on each `SceneDescriptor` (inlined above) — single-sourced WITH the
+// scene, so a new scene CANNOT silently fall through to `subject` (the type
+// forces a mode on every descriptor). App.vue reads `currentScene.value.stageMode`.
 
 // All scenes load on demand via defineAsyncComponent for code-splitting.
 // App.vue mounts each under <Suspense> so the async chunk resolves before

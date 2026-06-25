@@ -330,7 +330,7 @@ function walkCount(dir) {
 {
     const id = "proof:loop-yield";
     const composableRel = "demo/app/useSceneVisibilityPause.ts";
-    const amigaRel = "demo/app/scenes/AmigaScene.vue";
+    const amigaRel = "demo/scenes/amiga/AmigaScene.vue";
     const composable = read(composableRel);
     const amiga = read(amigaRel);
     if (composable == null) {
@@ -507,7 +507,7 @@ function walkCount(dir) {
             code: "CSS4",
             axis: "color-mix / oklab",
             disposition: "ALIGNED",
-            anchor: { file: "demo/easing/EasingTarget.vue", needle: "color-mix" },
+            anchor: { file: "demo/scenes/easing/EasingTarget.vue", needle: "color-mix" },
             note:
                 "the engine also interpolates color in oklab by default (reference impl, modern-web D-11).",
         },

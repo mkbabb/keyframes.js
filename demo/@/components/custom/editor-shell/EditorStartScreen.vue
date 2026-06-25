@@ -242,7 +242,7 @@ const { typedSource, serializedOut, caretBlink, prefersReduced, recompile } =
     position: fixed;
     left: clamp(1rem, 4vw, 3.5rem);
     bottom: clamp(5rem, 12vh, 8rem);
-    z-index: var(--z-content, 10);
+    z-index: var(--z-content);
     width: min(24rem, 34vw);
     max-width: 92vw;
     padding: 0.65rem 0.8rem 0.7rem;

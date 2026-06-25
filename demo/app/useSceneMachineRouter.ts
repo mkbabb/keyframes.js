@@ -21,6 +21,7 @@
 
 import { watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { isNavigationFailure, NavigationFailureType } from "vue-router";
 import { useSceneMachine, HOME_SCENE_ID } from "@components/custom/animation-controls/stores";
 import { sceneMap, allScenes } from "./scenes";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
@@ -80,8 +81,19 @@ export function useSceneMachineRouter() {
             if (current === scene) return; // ECHO GUARD — route already matches
             const { state: _drop, ...query } = route.query;
             writerEcho = true;
-            router.push({ name: scene, query }).catch(() => {
+            router.push({ name: scene, query }).catch((e) => {
                 writerEcho = false;
+                // Re-throw non-navigation errors (e.g. broken route guards);
+                // swallow only expected navigation outcomes: duplicate or aborted.
+                if (
+                    !isNavigationFailure(
+                        e,
+                        NavigationFailureType.duplicated |
+                        NavigationFailureType.aborted,
+                    )
+                ) {
+                    throw e;
+                }
             });
         },
     );

@@ -114,7 +114,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     }
     // .dock-inset is defined-or-absent (no dead reference): if referenced, it must be defined.
     const refsDockInset = /\bdock-inset\b/.test(
-        read("demo/easing/EasingTarget.vue") + read("demo/spring/SpringTarget.vue"),
+        read("demo/scenes/easing/EasingTarget.vue") + read("demo/scenes/spring/SpringTarget.vue"),
     );
     const definesDockInset = /\.dock-inset\s*\{/.test(idioms + style);
     if (!refsDockInset || definesDockInset) {
@@ -156,7 +156,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     const visFiles = [
         "demo/app/useSceneVisibilityPause.ts",
         "demo/@/components/custom/animation-controls/controls/composables/useAnimationSync.ts",
-        "demo/app/scenes/AmigaScene.vue",
+        "demo/scenes/amiga/AmigaScene.vue",
     ];
     const visSrc = ctrls + visFiles.map(read).join("\n");
     if (/useDocumentVisibility|visibilitychange|document\.hidden|visibilityState|setAnimationLoop\(null\)/.test(visSrc)) {
@@ -165,9 +165,9 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         fail("cwv", "no document-visibility gate on the scene loop (the battery lever B-3)");
     }
     // The @starting-style artifact scene exists + renders the emitted linear() behind a copy button + PRM guard.
-    const scene = read("demo/spring/StartingStyleTarget.vue") + read("demo/app/scenes/StartingStyleScene.vue");
+    const scene = read("demo/scenes/spring/StartingStyleTarget.vue") + read("demo/app/scenes/StartingStyleScene.vue");
     if (
-        exists("demo/spring/StartingStyleTarget.vue") &&
+        exists("demo/scenes/spring/StartingStyleTarget.vue") &&
         /@starting-style/.test(scene) &&
         /springLinearStops|linear\(/.test(scene) &&
         /CopyButton/.test(scene) &&

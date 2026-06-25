@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import { restoreStateFromParam } from "@components/custom/animation-controls/stores/hashSharing";
+import { allScenes, HOME_SCENE_ID } from "./scenes";
 
 /**
  * Hash-based router for the keyframes.js demo.
@@ -9,27 +10,24 @@ import { restoreStateFromParam } from "@components/custom/animation-controls/sto
  * URL structure: /#/cube?anim=Matrix&state=eyJvcHRp...
  *
  * Each route maps to a scene ID. Actual rendering stays in App.vue via
- * KeepAlive + dynamic <component :is> — routes just control which scene is active.
+ * keyed <Suspense> + lazy scene imports — routes just control which scene is active.
  */
 const Stub = { render: () => null };
 
+// R.W5 C.5 — the route list is GENERATED from the scene registry (`allScenes`),
+// not hand-mirrored. Each scene id → its path (`home` → `/`, else `/<id>`); the
+// `Stub` is declared ONCE and shared. A new scene in scenes.ts gets its route for
+// free — no second list to drift. A removed scene id (e.g. the folded
+// /starting-style) is gone here automatically; a stale deep-link falls to the
+// catch-all redirect home.
 const routes: RouteRecordRaw[] = [
-    { path: "/", name: "home", component: Stub },
-    { path: "/cube", name: "cube", component: Stub },
-    { path: "/amiga", name: "amiga", component: Stub },
-    { path: "/square", name: "square", component: Stub },
-    { path: "/easing", name: "easing", component: Stub },
-    { path: "/spring", name: "spring", component: Stub },
-    { path: "/sequence", name: "sequence", component: Stub },
-    { path: "/motion-path", name: "motion-path", component: Stub },
-    // The MorphSVG scene (Q.WC4) — the THIRD HEAVY geometry front door demoed.
-    { path: "/morph", name: "morph", component: Stub },
-    // The standalone /starting-style route was REMOVED in one motion with its
-    // scene + descriptor (H.W5.S3): the Discrete (@starting-style) mode is now a
-    // sub-view of the Spring scene (Spring → "Discrete transition"), not its own
-    // route. No legacy alias — a /starting-style deep-link falls to the catch-all
-    // redirect home (the scene id no longer exists). Survivor route set:
-    // home/cube/amiga/square/easing/spring/sequence/motion-path.
+    ...allScenes.map(
+        (s): RouteRecordRaw => ({
+            path: s.id === HOME_SCENE_ID ? "/" : `/${s.id}`,
+            name: s.id,
+            component: Stub,
+        }),
+    ),
     { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
 

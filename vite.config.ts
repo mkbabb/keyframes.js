@@ -312,6 +312,7 @@ const defaultOptions = {
             "@components": path.resolve(import.meta.dirname, "demo/@/components"),
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
             "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
+            "@app": path.resolve(import.meta.dirname, "demo/app"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
         },
     },

@@ -69,7 +69,7 @@
                                 @update:model-value="
                                     (key: any) => {
                                         storedAnimationOptions.stepOptions.steps = key;
-                                        emit('updateTimingFunction', 'steps' as any);
+                                        emit('updateTimingFunction', 'steps');
                                     }
                                 "
                             />
@@ -82,7 +82,7 @@
                                 @update:model-value="
                                     (key: any) => {
                                         storedAnimationOptions.stepOptions.jumpTerm = key;
-                                        emit('updateTimingFunction', 'steps' as any);
+                                        emit('updateTimingFunction', 'steps');
                                     }
                                 "
                             >

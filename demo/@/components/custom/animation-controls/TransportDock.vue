@@ -11,14 +11,11 @@
             J.W7c U2 — the SHRUNKEN transport. The dock collapses to a summary
             pill (the selected animation name + the rainbow play mirror, the
             #collapsed slot below) and expands on hover/focus, driven by
-            GlassDock's own collapse. Both play controls actuate on POINTERDOWN
-            (onPlayPointerDown) — see the script comment: the collapse crossfade
-            could strand the trailing `click` on a leaving layer, so the toggle
-            rides the pointerdown that always reaches the live button (keyboard
-            still actuates via the bare click). K.W1 RE-OBSERVED: glass-ui 3.13.0's
-            `useDockClickIntegrity` did NOT subsume this twin — without it
-            proof:live-session S5 motion-path PLAY reds — so the twin is RETAINED
-            and RF-17 stays a glass-ui handoff. Collapsing also shrinks the
+            GlassDock's own collapse. R.W6 C.6 (DM-1 KILL) — both play controls
+            actuate from DISJOINT, modality-pure event sources (pointerup for
+            pointer, keydown for keyboard) — NEVER from the strand-prone synthesized
+            `click` — so the collapse crossfade has no trailing event to strand on a
+            leaving layer (see the script handler). Collapsing also shrinks the
             menubar host, so the ResizeObserver (below) republishes a smaller
             --menubar-measured-h and the mobile sheet anchor self-corrects to the
             collapsed pill (audit X1).
@@ -148,8 +145,8 @@
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
-                        @pointerdown="onPlayPointerDown($event)"
-                        @click="onPlayClick()"
+                        @pointerup="onPlayPointerUp($event)"
+                        @keydown="onPlayKeydown($event)"
                     >
                         <Pause v-if="isPlaying" class="icon-lg" />
                         <Play v-else class="icon-lg pl-0.5" />
@@ -193,8 +190,8 @@
                         'w-8 h-8 shrink-0',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
-                    @pointerdown.stop="onPlayPointerDown($event)"
-                    @click.stop="onCollapsedPlayClick()"
+                    @pointerup.stop="onPlayPointerUp($event)"
+                    @keydown.stop="onPlayKeydown($event)"
                 >
                     <Pause v-if="isPlaying" class="icon-md" />
                     <Play v-else class="icon-md pl-px" />
@@ -308,74 +305,54 @@ onBeforeUnmount(() => {
     menubarPeak = 0;
 });
 
-// ── J.W7c U2 (fix-round 1) — the play toggle actuates on POINTERDOWN, not click.
+// ── R.W6 C.6 — DM-1 CONTINGENCY KILL (the crossfade-strand band-aid EXCISED).
 //
-// K.W1 RF-17 RE-OBSERVED + RETAINED. K.W1 net-DELETED this pointerdown twin on
-// the premise that glass-ui 3.13.0's `useDockClickIntegrity` (the in-dock
-// press-time identity guard) subsumed it. It does NOT: with the twin removed and
-// only `@click="actuatePlay"`, proof:live-session's S5 motion-path PLAY reds
-// (the dock-switch WALK enters motion-path with the bottom TransportDock mid-
-// collapse-crossfade, the trailing `@click` is stranded, play stays off, the
-// one-shot traveller produces <3 states — reproduced via scripts driving the
-// walk-entry: aria stays "Play", 1 distinct state). The K.W1 spec's rule:
-// a deletion that reds proof:dock-popover-opens OR proof:live-session is
-// REVERTED, the twin KEPT, the residual BOOKED. So the twin is RESTORED and
-// RF-17 stays a glass-ui collapse-crossfade-strand HANDOFF (useDockClickIntegrity
-// guards the click identity but does not keep the click-target layer alive
-// through the crossfade — the durable cure is still dock-side).
+// The play toggle formerly carried a press-handled boolean + a pointerdown/click
+// dual-path interim (the 8th-carry chronic DM-1) that hedged glass-ui's
+// collapse-crossfade STRANDING the trailing synthesized `click`: a `@click`-only
+// toggle could be DROPPED when the dock crossfaded the active `.dock-layer`
+// mid-gesture (the layer went `pointer-events:none` before the browser
+// synthesized the click). The durable cure is a glass-ui dock-layer keepalive
+// (GU-Q2) — but the consumed dist does NOT carry it (proof:workaround-deletion S2
+// glassCaps.dockStrandKeepalive = false), and P-invariant-28 forbids a 9th carry.
+// So the band-aid is EXCISED for a kf-internal handler that is crossfade-
+// INDEPENDENT BY CONSTRUCTION.
 //
-// The persistent-walk oracle surfaced a real defect U2's collapse (`:always-
-// expanded=false`) introduced: a POINTER play actuation could be swallowed.
-// When the dock is in its hover/expanded phase but a collapse is imminent, the
-// crossfade swaps which `.dock-layer` is active mid-gesture; the layer the
-// pointerDOWN landed on goes `.is-leaving` (→ `pointer-events:none`) before the
-// browser would synthesize the trailing `click`, so a `@click`-only toggle was
-// DROPPED (proven: the button's `@pointerdown` fired but its `@click` never
-// did, play stayed off, and motion-path's one-shot traveller — parked at 100% —
-// produced <3 states, the S5 RED). The collapse is GlassDock-internal; no
-// consumer-side `keepOpen()`/`expand()` call reliably wins the race from
-// outside the dock (verified — the held counter does not gate this transition),
-// so the durable dock-side cure is a glass-ui handoff (booked RF-17).
-//
-// The robust DEMO-side cure: drive the toggle from `pointerdown`, which ALWAYS
-// fires on the live button (the crossfade can only strand the LATER `click`).
-// `onPlayPointerDown` toggles for pointer input and marks the gesture handled;
-// `onPlayClick` then toggles ONLY for clicks with no preceding pointerdown —
-// i.e. KEYBOARD activation (Enter/Space synthesize a bare `click`), preserving
-// full keyboard operability (proof:live-session S4) with no double-toggle. One
-// pair governs both the expanded button and the collapsed-summary mirror so the
-// two controls can never drift.
-let pointerHandled = false;
+// The cure: actuate from DISJOINT, modality-pure event sources, NEVER from the
+// strand-prone `click`:
+//   · POINTER  → `pointerup` on the live button. pointerup fires on the button
+//     the pointer is OVER, regardless of any pending collapse — the crossfade can
+//     only strand the LATER synthesized `click`, which we no longer listen for.
+//   · KEYBOARD → `keydown` Enter/Space directly (the native button click path is
+//     not used, so there is nothing for the crossfade to strand).
+// The two sources are mutually exclusive per activation (a pointer press fires
+// pointerup, never keydown; a key press fires keydown, never pointerup), so NO
+// press-handled de-dupe guard is needed — there is no double-toggle to hedge.
+// One pair governs both the expanded button and the collapsed-summary mirror so
+// the two controls can never drift.
 
 function actuatePlay() {
-    // Re-pin the dock open (best-effort, matches the collapsed-button cure) then
-    // emit the toggle. The emit is the load-bearing line — it cannot be raced
-    // because pointerdown fires while the button is still live.
+    // Best-effort re-pin the dock open (the toggle stays legible after actuation),
+    // then emit. The emit is the load-bearing line — pointerup/keydown both fire
+    // on the live button, so it cannot be raced by the collapse crossfade.
     dockRef.value?.expand();
     emit("togglePlay");
 }
 
-function onPlayPointerDown(e: PointerEvent) {
+function onPlayPointerUp(e: PointerEvent) {
     // Only primary-button / touch / pen actuations toggle (ignore right/middle).
     if (e.button !== 0 && e.pointerType === "mouse") return;
-    pointerHandled = true;
-    actuatePlay();
-    // Clear the guard after the synthesized click would have arrived, so the
-    // NEXT (keyboard) activation is not mistaken for a handled pointer gesture.
-    queueMicrotask(() => {
-        pointerHandled = false;
-    });
-}
-
-function onPlayClick() {
-    // A click WITHOUT a preceding pointerdown is keyboard activation — actuate.
-    // A click that followed a pointerdown was already handled there — skip it.
-    if (pointerHandled) return;
     actuatePlay();
 }
 
-function onCollapsedPlayClick() {
-    onPlayClick();
+function onPlayKeydown(e: KeyboardEvent) {
+    // The keyboard activation path — Enter or Space. preventDefault on Space stops
+    // the page-scroll default; the native click is intentionally unused (so the
+    // crossfade has no trailing event to strand).
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        actuatePlay();
+    }
 }
 
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{

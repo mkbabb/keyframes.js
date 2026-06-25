@@ -165,18 +165,6 @@
                     </template>
                 </Suspense>
             </div>
-            <!-- Q.WC3 S2 — the PHONE scene-switcher: a native scroll-snap carousel
-                 shown only on the phone-narrow breakpoint (the desktop keeps the
-                 dock Select). The phone VIEW of the same switcher — a snapped card
-                 → tap → the SAME `runSceneSwitch` commit. The WRAPPER owns the
-                 phone-narrow visibility (none/block) so it never overrides the
-                 carousel's own `display: flex`. -->
-            <div class="scene-carousel-host">
-                <SceneSwitcherCarousel
-                    :active-scene-id="currentSceneId"
-                    @pick="runSceneSwitch"
-                />
-            </div>
         </template>
     </EditorShell>
 </template>
@@ -186,9 +174,9 @@
 // non-scoped partial is the smallest shared scope for every brand-mark consumer
 // App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
-// Q.WC3 — the co-located scene-switcher motion (the global directional VT
-// keyframes + the phone-narrow carousel visibility; GLOBAL because the
-// `::view-transition-*` pseudo-tree paints at the document root, never scoped).
+// Q.WC3 — the co-located scene-switch motion (the global directional VT
+// keyframes; GLOBAL because the `::view-transition-*` pseudo-tree paints at the
+// document root, never scoped).
 import "./scene-transition.css";
 
 import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
@@ -206,7 +194,6 @@ import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@components/custom/dock/ChromeDock.vue";
-import SceneSwitcherCarousel from "@components/custom/SceneSwitcherCarousel.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
@@ -215,13 +202,14 @@ import {
     useSceneMachine,
 } from "@components/custom/animation-controls/stores";
 
-import { CUBE_ANIMATION_NAMES } from "../cube/useCubeAnimations";
-import CubeScene from "./scenes/CubeScene.vue";
+import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeAnimations";
+import CubeScene from "../scenes/cube/CubeScene.vue";
 import { useSceneMachineRouter } from "./useSceneMachineRouter";
 import { useSceneMachineApp } from "./useSceneMachineApp";
 import { useSceneSwap } from "./useSceneSwap";
 import { useSceneTransition } from "./useSceneTransition";
-import { scenes, sceneMap, warmScene, stageModeFor, HOME_SCENE_ID } from "./scenes";
+import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
+import type { SceneExposedApi } from "./sceneExposedApi";
 import { useMonacoCancellationGuard } from "./useMonacoCancellationGuard";
 
 // Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
@@ -252,9 +240,10 @@ const currentLabel = computed(() => currentScene.value.label ?? "Home");
 
 // The mobile STAGE mode-class (H.W7.S1c) — drives whether the mobile overlay
 // full-bleeds the stage (subject: cube/amiga/square) or keeps a content card
-// (editor: easing; storyboard: spring/sequence/path). Derived from the active
-// scene id (the mode IS scene data, single-sourced in scenes.ts).
-const stageMode = computed(() => stageModeFor(currentSceneId.value));
+// (editor: easing; storyboard: spring/sequence/path). Read off the active
+// scene descriptor (the mode IS scene data, single-sourced on the descriptor;
+// R.W5 C.5). `currentScene` always resolves (home fallback), so no `?? subject`.
+const stageMode = computed(() => currentScene.value.stageMode);
 
 // The control-surface DFA projection (H.W11.S4 / I2) — the active scene's valid
 // BUILT-IN editor triad ({controls,keyframes,timeline} subset). The dock renders
@@ -264,7 +253,7 @@ const stageMode = computed(() => stageModeFor(currentSceneId.value));
 // hacks the scenes carried are SUPERSEDED.
 const controlSurfaces = computed(() => machine.controlSurfaces.value);
 
-const sceneRef = shallowRef<any>(null);
+const sceneRef = shallowRef<SceneExposedApi | null>(null);
 
 // The scene-swap subject: the host the View Transition morphs and the focus
 // target routed to on `transition.finished` (the a11y MANDATORY).

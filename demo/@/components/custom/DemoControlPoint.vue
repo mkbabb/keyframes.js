@@ -42,7 +42,8 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { onBeforeUnmount, onMounted, onScopeDispose, useTemplateRef, watch } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { drag2D, type Drag2DHandle } from "@mkbabb/keyframes.js";
 import {
     acquireSelectSuppression,
@@ -132,16 +133,21 @@ const onHandlePointerDown = (e: PointerEvent) => {
         if (!handle || syncing) return;
         emit("update:modelValue", { x: handle.value.x, y: handle.value.y });
     };
+    let stopMove: (() => void) | null = null;
+    let stopUp: (() => void) | null = null;
+    let stopCancel: (() => void) | null = null;
     const release = () => {
         releaseSelectSuppression();
         emit("dragend");
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", release);
-        window.removeEventListener("pointercancel", release);
+        stopMove?.();
+        stopUp?.();
+        stopCancel?.();
+        stopMove = stopUp = stopCancel = null;
     };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", release);
-    window.addEventListener("pointercancel", release);
+    stopMove = useEventListener(window, "pointermove", onMove);
+    stopUp = useEventListener(window, "pointerup", release);
+    stopCancel = useEventListener(window, "pointercancel", release);
+    onScopeDispose(release);
 };
 
 // The per-axis client-px → curve-[0,1] map, read against the parent SVG's
@@ -244,7 +250,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 onMounted(() => {
     buildHandle();
-    handleEl.value?.addEventListener("pointerdown", onHandlePointerDown);
+    useEventListener(handleEl, "pointerdown", onHandlePointerDown);
 });
 
 // External model changes (a sibling handle move, a numeric-readout edit, a
@@ -272,7 +278,6 @@ watch(
 );
 
 onBeforeUnmount(() => {
-    handleEl.value?.removeEventListener("pointerdown", onHandlePointerDown);
     handle?.dispose();
     handle = undefined;
 });

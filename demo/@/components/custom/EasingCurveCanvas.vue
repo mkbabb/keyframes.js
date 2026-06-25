@@ -315,7 +315,7 @@ const viewBox = computed(() => {
         ),
         transparent 60%
     );
-    z-index: var(--z-behind, 0);
+    z-index: var(--z-behind);
 }
 
 /* L.W11 S5 — the instrument masthead label. */
@@ -325,7 +325,7 @@ const viewBox = computed(() => {
     position: absolute;
     top: 0.4rem;
     left: 0.6rem;
-    z-index: var(--z-content, 2);
+    z-index: var(--z-content);
     font-family: var(--font-mono);
     font-size: var(--type-admin-label);
     text-transform: uppercase;

@@ -58,7 +58,7 @@ const PASS = "\x1b[32m✓\x1b[0m";
 const FAIL = "\x1b[31m✗\x1b[0m";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const HEATMAP = path.join(REPO, "demo/spring/SpringHeatmap.vue");
+const HEATMAP = path.join(REPO, "demo/scenes/spring/SpringHeatmap.vue");
 
 const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "");
 
@@ -71,7 +71,7 @@ function staticHalf() {
     if (!src) {
         record(
             false,
-            "static: demo/spring/SpringHeatmap.vue is ABSENT (born-RED until P.W6 S3 lands the heatmap egg)",
+            "static: demo/scenes/spring/SpringHeatmap.vue is ABSENT (born-RED until P.W6 S3 lands the heatmap egg)",
         );
         return;
     }

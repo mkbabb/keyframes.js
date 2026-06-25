@@ -34,7 +34,7 @@
  *      land.
  *
  *   4. NO HAND-ROLLED LISTENER/OBSERVER — zero manual `.addEventListener(` /
- *      `new ResizeObserver` in demo reactive code (`.vue` / `.ts`, comment-
+ *      `new ResizeObserver` / `new MutationObserver` in demo reactive code (`.vue` / `.ts`, comment-
  *      blanked, `dist/` excluded) OUTSIDE the documented `LISTENER_ALLOWLIST`
  *      (the genuinely-imperative engine-loop sites). This is the second half of
  *      the inv-ζ dogfood discipline `proof:dogfood` began for rAF: a hand-rolled
@@ -372,9 +372,9 @@ function main() {
 
     // ── 4. NO HAND-ROLLED LISTENER/OBSERVER ────────────────────────────
     {
-        // A manual `.addEventListener(` or `new ResizeObserver` — the listener/
+        // A manual `.addEventListener(` or `new ResizeObserver` / `new MutationObserver` — the listener/
         // observer hand-roll the inv-ζ dogfood discipline removes for rAF.
-        const LISTENER = /\.addEventListener\s*\(|new\s+ResizeObserver\b/;
+        const LISTENER = /\.addEventListener\s*\(|new\s+ResizeObserver\b|new\s+MutationObserver\b/;
         // Hit-bearing allowlist paths, so the stale guard can prune dead entries.
         const allowlistedHitPaths = new Set();
         const offenders = [];
@@ -544,6 +544,96 @@ function main() {
         } else {
             console.log(
                 `  ✓ [rafplayback] every raw RAFPlayback owner stops on dispose`,
+            );
+        }
+    }
+
+    // ── 5. NO CALLBACKS-AS-PROPS ────────────────────────────────────────────
+    {
+        // A function-typed prop that is a callback pattern (onXxx or setXxx)
+        // typed as `(…) => void`. These create prop-drilling chains for events
+        // that Vue's emit already handles; the inv-ζ discipline replaces them with
+        // defineEmits (D.W3 §S5). Scan all defineProps blocks.
+        const CB_PROP =
+            /(onPanelTransitionEnd|onSheetSettled|onPaneMouseEnter|onPaneMouseLeave|setPaneEl)\s*:\s*\([^)]*\)\s*=>\s*void/;
+        const CB_ALLOWLIST = new Set([
+            // (none — all callback props must use defineEmits)
+        ]);
+        const cbOffenders = [];
+        for (const abs of reactiveFiles) {
+            const rel = relPosix(abs);
+            if (CB_ALLOWLIST.has(rel)) continue;
+            const src = blankComments(read(abs));
+            const lines = src.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (CB_PROP.test(lines[i])) {
+                    cbOffenders.push({ rel, line: i + 1, text: lines[i].trim() });
+                }
+            }
+        }
+        if (cbOffenders.length > 0) {
+            failures.push(
+                `[cb-props] ${cbOffenders.length} callback-as-prop pattern(s) ` +
+                    `in defineProps — use defineEmits instead (D.W3 §S5). Sites:\n      ` +
+                    cbOffenders
+                        .slice(0, 12)
+                        .map((o) => `${o.rel}:${o.line}  ${o.text}`)
+                        .join("\n      ") +
+                    (cbOffenders.length > 12
+                        ? `\n      … and ${cbOffenders.length - 12} more`
+                        : ""),
+            );
+        } else {
+            console.log(
+                `  ✓ [cb-props] zero callback-as-prop patterns in defineProps ` +
+                    `(all events use defineEmits)`,
+            );
+        }
+    }
+
+    // ── 6. NO var(--z-content, / var(--z-behind, COMMA-DEFAULTS ────────
+    {
+        // A `var(--z-content, <fallback>)` or `var(--z-behind, <fallback>)` comma-
+        // default in demo source bypasses the single-sourced --z-* scale: the fallback
+        // can drift from the token value silently (e.g. `var(--z-content, 3)` uses 3
+        // if the token is absent — a stale hardcode). The guaranteed form is bare
+        // `var(--z-content)` / `var(--z-behind)` (no comma), so the token is required
+        // to resolve and a missing token surfaces as `invalid` rather than silently
+        // falling back to a stale literal (D.W3 §S6).
+        const Z_GUARANTEED_COMMA = /var\(\s*--(z-content|z-behind)\s*,/;
+        const allDemoSrcZ = collect(DEMO, new Set([".vue", ".ts", ".css"]));
+        const zCommaOffenders = [];
+        for (const abs of allDemoSrcZ) {
+            const src = blankComments(read(abs));
+            const lines = src.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (Z_GUARANTEED_COMMA.test(lines[i])) {
+                    zCommaOffenders.push({
+                        rel: relPosix(abs),
+                        line: i + 1,
+                        text: lines[i].trim(),
+                    });
+                }
+            }
+        }
+        if (zCommaOffenders.length > 0) {
+            failures.push(
+                `[z-comma] ${zCommaOffenders.length} var(--z-content,/var(--z-behind, ` +
+                    `comma-default(s) in demo source — use bare var(--z-content) / ` +
+                    `var(--z-behind) (no fallback) so a missing token surfaces rather ` +
+                    `than silently falling back to a stale literal (D.W3 §S6). Sites:\n      ` +
+                    zCommaOffenders
+                        .slice(0, 12)
+                        .map((o) => `${o.rel}:${o.line}  ${o.text}`)
+                        .join("\n      ") +
+                    (zCommaOffenders.length > 12
+                        ? `\n      … and ${zCommaOffenders.length - 12} more`
+                        : ""),
+            );
+        } else {
+            console.log(
+                `  ✓ [z-comma] zero var(--z-content,/var(--z-behind, comma-defaults ` +
+                    `in demo source (bare var(--z-*) guaranteed)`,
             );
         }
     }

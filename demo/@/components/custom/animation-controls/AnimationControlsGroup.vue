@@ -18,16 +18,7 @@
             :anim-control-refs="animControlRefs"
             :active-keyframes-ref="activeKeyframesRef"
             :active-timeline-ref="activeTimelineRef"
-            :is-panel-transition-done="isPanelTransitionDone"
-            :is-pane-hovered="isPaneHovered"
-            :is-pane-idle="isPaneIdle"
-            :scroll-fade-class="scrollFadeClass"
             :extra-tabs="extraTabs"
-            :on-panel-transition-end="onPanelTransitionEnd"
-            :on-sheet-settled="onSheetSettled"
-            :on-pane-mouse-enter="onPaneMouseEnter"
-            :on-pane-mouse-leave="onPaneMouseLeave"
-            :set-pane-el="(el) => { controlsPaneEl = el; }"
             @slider-update="sliderUpdate"
             @keyframes-update="keyframesUpdate"
             @toggle-play="toggleAnimationGroup"
@@ -115,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, useTemplateRef, watch, watchEffect } from "vue";
+import { computed, onMounted, reactive, useTemplateRef, watch, watchEffect } from "vue";
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
@@ -130,7 +121,6 @@ import { useAnimationGroupActions } from "./composables/useAnimationGroupActions
 import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
-import { useControlsLayout } from "./composables/useControlsLayout";
 
 const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -226,20 +216,6 @@ onMounted(() => {
     }
 });
 
-// --- Controls pane layout (open-state, hover, transition, scroll-fade) ---
-const controlsPaneEl = ref<HTMLElement | null>(null);
-
-const {
-    isPanelTransitionDone,
-    onPanelTransitionEnd,
-    onSheetSettled,
-    isPaneHovered,
-    isPaneIdle,
-    onPaneMouseEnter,
-    onPaneMouseLeave,
-    scrollFadeClass,
-} = useControlsLayout(storedControls, controlsPaneEl);
-
 const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("transportDockRef");
 
 // The group-mutation action helpers (layer-config / keyframes-edit invalidate /
@@ -328,7 +304,10 @@ useControlsKeyboardShortcuts({
     --rail-track: var(--rail-width);
     grid-template-columns: [rail] var(--rail-track) [stage] minmax(0, 1fr);
     grid-template-rows: [top] auto [stage] 1fr [bottom] auto;
-    transition: grid-template-columns var(--duration-slow) var(--spring-snappy);
+    /* R.W6 C.5 — explicit var(--spring-smooth) (the calmer curve, the intent);
+       the local --spring-snappy shadow alias that mapped it is now EXCISED from
+       style.css, restoring glass-ui's own --spring-snappy. */
+    transition: grid-template-columns var(--duration-slow) var(--spring-smooth);
 }
 
 /* The open/close + railless track-collapse (the [rail] track between
@@ -415,7 +394,7 @@ useControlsKeyboardShortcuts({
         height: auto;
         align-self: stretch;
         justify-self: stretch;
-        z-index: var(--z-content, 10);
+        z-index: var(--z-content);
         /* J.W7a S5 / XH-4 (D22) — the mobile inset reserves the REAL
            scene-switcher band, not just the band depth: the pill is anchored at
            --dock-top-anchor below the viewport top (ChromeDock consumes the SAME

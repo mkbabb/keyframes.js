@@ -63,8 +63,8 @@ const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "");
 console.log("proof:motion-path-copy — H.W12 (I3 · R-MP-C · the copy-offset-path artifact)");
 
 // ── STATIC HALF ──────────────────────────────────────────────────────────────
-const demoSrc = read(path.join(DEMO, "motion-path/useMotionPathDemo.ts"));
-const targetSrc = read(path.join(DEMO, "motion-path/MotionPathTarget.vue"));
+const demoSrc = read(path.join(DEMO, "scenes/motion-path/useMotionPathDemo.ts"));
+const targetSrc = read(path.join(DEMO, "scenes/motion-path/MotionPathTarget.vue"));
 
 // 1. THE ARTIFACT EMITS offset-path: path(…).
 {
