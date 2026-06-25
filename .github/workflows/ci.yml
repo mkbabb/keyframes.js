@@ -125,6 +125,12 @@ jobs:
             # boundary: linked exports == the manifest roster, cited gates real).
             - name: proof:agent-surface (K.W12 ED-1 — the agent index == the published surface)
               run: npm run proof:agent-surface
+            # R.W4 — the honest API "in": the @mkbabb/keyframes.js/engine subpath
+            # resolves the heavy surface statically (the Quick Start's `new
+            # CSSKeyframesAnimation`), the Quick Start fence is `ts run`-enforced, and
+            # the agent-surface phantom-export check is co-asserted. Library-scoped.
+            - name: proof:in-is-importable (R.W4 — the honest "in" · ./engine subpath + ts-run Quick Start)
+              run: npm run proof:in-is-importable
             # L.W6 — the agent-authoring VERB (validate/explain): the round-trip's
             # FORWARD half, the VALIDATION layer over the compile surface. A HEAVY-
             # surface oracle that runs in jsdom/node (no browser, no demo build), so

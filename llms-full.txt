@@ -186,6 +186,6 @@ Total published value exports: 70 (31 LIGHT + 39 HEAVY).
 
 Every claim above is signed by a CI-executed gate. The proof corpus
 is itself a public artifact: run `npm run proof:all` to execute the
-full roster (~187 `proof:*` gates). Each gate is a self-describing capability
+full roster (~188 `proof:*` gates). Each gate is a self-describing capability
 claim — not "the library claims X" but "the library PROVES X, here
 is the gate, here is the runnable snippet CI executes".
