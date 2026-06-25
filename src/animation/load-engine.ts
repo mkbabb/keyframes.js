@@ -2,9 +2,10 @@
  * The value.js static/dynamic boundary's DYNAMIC half — the memoized
  * engine-loading machinery split out of the barrel (`index.ts`).
  *
- * This module owns the `await import("./engine")` (and `./animate`,
- * `./motion-path`, `./draw-svg`, `./ingest`, `./scroll-scene`, `./compile`,
- * `./validate`, `./animations`, `./format`, `./utils`, `./internal/scheduler`)
+ * This module owns the `await import("./engine")` (and `./group`,
+ * `./svg/motion-path`, `./svg/draw-svg`, `./svg/morph-svg`, `./ingest`,
+ * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/format`,
+ * `./compile/parse-flatten`, `./internal/scheduler`)
  * DYNAMIC edges — never a STATIC `@mkbabb/value.js` import. Every value.js-
  * bearing import here is `import type` (erased under `verbatimModuleSyntax`),
  * so this module carries ZERO static value.js edge: a consumer reaching the
