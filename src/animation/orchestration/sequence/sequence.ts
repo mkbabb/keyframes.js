@@ -58,6 +58,23 @@
 
 import { clamp } from "../../internal/leaves";
 import { RAFPlayback } from "../../physics/playback";
+// The pure master-clock transport math (the repeat/yoyo fold, the rest phase,
+// the no-jump origin seed, the forward-monotone predicate, the SSR RM probe)
+// lives in the colocated `./transport` module (R.W2b carve); the lifecycle
+// methods here drive them.
+import {
+    prefersReducedMotion,
+    resolveSequencePosition,
+    driveSequenceFrame,
+    settleSequence,
+    reanchorSequence,
+    applySequenceAt,
+    fireSequenceCrossings,
+} from "./transport";
+import type { SequencePosition, SequencePlayContext } from "./transport";
+// `SequencePosition` (the master-clock position token) + its resolver live in
+// `./transport`; re-export the type so the sequence barrel surface is unchanged.
+export type { SequencePosition } from "./transport";
 import { SequenceEventBus } from "./events";
 import type {
     SequenceEntry,
@@ -82,17 +99,6 @@ export type {
     SequenceSubscriber,
 } from "./events";
 
-/**
- * A position on the master clock for a sequence entry.
- *
- * - `number` — an absolute offset in milliseconds from the sequence origin.
- * - `` `+=${n}` `` / `` `-=${n}` `` — relative to the running insertion cursor
- *   (the end of the previously-inserted segment): `"+=200"` starts 200ms after
- *   the cursor, `"-=200"` overlaps the previous segment by 200ms.
- * - any other string — a label registered via {@link Sequence.label}.
- */
-export type SequencePosition = number | `+=${number}` | `-=${number}` | string;
-
 export interface SequenceOptions {
     /**
      * When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
@@ -108,20 +114,22 @@ export interface SequenceOptions {
  * and drives them via `Animation.advanceTo`. See the module docstring for the
  * booked name + subsumption decision.
  */
-export class Sequence<V extends Vars = any> {
+export class Sequence<V extends Vars = any>
+    implements SequencePlayContext<V>
+{
     /** Resolved segments, in insertion order. */
     readonly entries: SequenceEntry<V>[] = [];
 
     /** Named positions on the master clock, registered via {@link label}. */
-    private readonly labels = new Map<string, number>();
+    readonly labels = new Map<string, number>();
 
     /**
      * The transport-events bus — the per-event subscriber registry + the
      * crossing detector (segment-lifecycle + label straddle). `on(...)` forwards
-     * to `_events.subscribe`, and `_fireCrossings` to `_events.fire`. See
-     * `./sequence-events` for the channel + detector body.
+     * to `events.subscribe`; the transport's `fireSequenceCrossings` to
+     * `events.fire`. See `./events` for the channel + detector body.
      */
-    private readonly _events = new SequenceEventBus<V>();
+    readonly events = new SequenceEventBus<V>();
 
     /**
      * The running insertion cursor (ms) — the end of the last-inserted
@@ -131,7 +139,7 @@ export class Sequence<V extends Vars = any> {
     private cursor = 0;
 
     /** Master clock (ms) of the current playhead. */
-    private _time = 0;
+    _time = 0;
 
     private readonly respectReducedMotion: boolean;
 
@@ -139,8 +147,8 @@ export class Sequence<V extends Vars = any> {
     readonly playback = new RAFPlayback();
 
     private _boundFrame: (t: number) => Promise<boolean>;
-    private _resolvePlay: (() => void) | null = null;
-    private _playOrigin: number | undefined = undefined;
+    _resolvePlay: (() => void) | null = null;
+    _playOrigin: number | undefined = undefined;
     private _playingPromise: Promise<void> | null = null;
 
     /**
@@ -151,7 +159,7 @@ export class Sequence<V extends Vars = any> {
      * backward (`reverse`). It scales the master clock in {@link _frame}:
      * `masterClock = (clock − _playOrigin) * _rate`.
      */
-    private _rate = 1;
+    _rate = 1;
 
     /**
      * How many master-clock cycles `play()` runs before settling. `1` is the
@@ -159,16 +167,16 @@ export class Sequence<V extends Vars = any> {
      * `n` runs `n` cycles. The master clock folds modulo `duration`
      * (see {@link _fold}).
      */
-    private _repeatCount = 1;
+    _repeatCount = 1;
 
     /**
      * When true, odd cycles reflect the folded phase (`duration − phase`) —
      * the GSAP `yoyo` ping-pong. Default off (every cycle runs forward).
      */
-    private _yoyoOn = false;
+    _yoyoOn = false;
 
     /** Whether `pause()` has halted the loop with the playhead retained. */
-    private _paused = false;
+    _paused = false;
 
     /**
      * The loop's last rAF timestamp — the re-anchor reference. The
@@ -177,7 +185,7 @@ export class Sequence<V extends Vars = any> {
      * the SAME clock the loop reads, with no forward jump. `Sequence` records
      * it here per frame (the driver does not expose it) for that one re-anchor.
      */
-    private _lastClock: number | undefined = undefined;
+    _lastClock: number | undefined = undefined;
 
     constructor(options?: SequenceOptions) {
         this.respectReducedMotion = options?.respectReducedMotion ?? false;
@@ -220,7 +228,10 @@ export class Sequence<V extends Vars = any> {
 
     /** Register a named position on the master clock. Chainable. */
     label(name: string, at?: SequencePosition): this {
-        this.labels.set(name, this.resolvePosition(at));
+        this.labels.set(
+            name,
+            resolveSequencePosition(at, this.cursor, this.labels),
+        );
         return this;
     }
 
@@ -247,7 +258,7 @@ export class Sequence<V extends Vars = any> {
     ): () => void;
     on(event: "label", cb: SequenceLabelSubscriber): () => void;
     on(event: SequenceEvent, cb: SequenceSubscriber): () => void {
-        return this._events.subscribe(event, cb);
+        return this.events.subscribe(event, cb);
     }
 
     /**
@@ -257,41 +268,13 @@ export class Sequence<V extends Vars = any> {
      * Chainable.
      */
     add(animation: KeyframesAnimation<V>, at?: SequencePosition): this {
-        const resolved = this.resolvePosition(at);
+        const resolved = resolveSequencePosition(at, this.cursor, this.labels);
         this.entries.push({ animation, at: resolved });
         // Position-insertion: re-sort so seek/advance walk segments in clock
         // order regardless of insertion order (a later `at:0` is legal).
         this.entries.sort((a, b) => a.at - b.at);
         this.cursor = resolved + animation.options.duration;
         return this;
-    }
-
-    /**
-     * Resolve a {@link SequencePosition} to an absolute ms offset.
-     *
-     * - omitted → the running cursor (auto-append after the previous segment).
-     * - `number` → itself.
-     * - `"+=n"` / `"-=n"` → cursor ± n.
-     * - any other string → the registered label (throws if unknown — labels
-     *   are an explicit contract, a typo is a bug, not a silent 0).
-     */
-    private resolvePosition(at?: SequencePosition): number {
-        if (at === undefined) return this.cursor;
-        if (typeof at === "number") return at;
-
-        const relMatch = /^([+-])=(\d*\.?\d+)$/.exec(at);
-        if (relMatch) {
-            const sign = relMatch[1] === "+" ? 1 : -1;
-            return this.cursor + sign * Number.parseFloat(relMatch[2]!);
-        }
-
-        const labelled = this.labels.get(at);
-        if (labelled === undefined) {
-            throw new Error(
-                `Sequence: unknown position "${at}". Register it with .label("${at}", at) first, or pass a number / "+=n" / "-=n".`,
-            );
-        }
-        return labelled;
     }
 
     /**
@@ -304,72 +287,17 @@ export class Sequence<V extends Vars = any> {
      */
     seek(masterClock: number): this {
         this._time = masterClock;
-        this._fireCrossings(masterClock);
-        this._applyAt(masterClock);
+        // The scrub map + crossing detector are the ONE pair `_frame` (the rAF
+        // play loop) also drives — so play is pixel-identical to seek (the
+        // C⁰-continuity the F.W9 parity gate locks). Both live in `./transport`.
+        fireSequenceCrossings(
+            this.events,
+            this.entries,
+            this.labels,
+            masterClock,
+        );
+        applySequenceAt(this.entries, masterClock);
         return this;
-    }
-
-    /**
-     * THE master-playhead → child-clock map, applied as a pure synchronous
-     * scrub. For every segment the local clock is `clamp(masterClock − at, 0,
-     * duration)`, painted via `interpFrames(local, true)`. This is the ONE map
-     * both `seek` (the public scrub) and `_frame` (the rAF play loop) drive —
-     * so play is pixel-identical to seek BY CONSTRUCTION, forward AND reverse
-     * (the C⁰-continuity the F.W9 parity gate locks). It carries no `onEnd`/
-     * `startTime` machinery, so re-entering a finished segment under a negative
-     * `rate` paints the same final-frame value `seek` would — there is no
-     * forward-monotone re-anchor window to break (F.W9 §S3 MEASURE-FIRST).
-     */
-    private _applyAt(masterClock: number): void {
-        for (const { animation, at } of this.entries) {
-            const local = clamp(
-                masterClock - at,
-                0,
-                animation.options.duration,
-            );
-            animation.interpFrames(local, true);
-        }
-    }
-
-    /**
-     * Detect and fire segment-lifecycle + label crossings between the previous
-     * painted phase and `phase` — the ONE detector both `seek` (scrub) and
-     * `_frame` (the rAF play loop) drive, so play fires the identical crossings a
-     * scrub would. The detector + the per-event subscriber state live on the
-     * `_events` bus (`./sequence-events`); this thin wrapper threads the segments
-     * and labels the bus reads. The bus updates its own `_prevPhase` on EVERY
-     * call (even the early-exit) so a subscriber registered mid-transport
-     * straddles from the true prior playhead.
-     */
-    private _fireCrossings(phase: number): void {
-        this._events.fire(this.entries, this.labels, phase);
-    }
-
-    /**
-     * Fold a raw, repeat-extended master clock down to an effective phase in
-     * `[0, duration]` per the `repeat`/`yoyo` transport. With `repeat(1)` +
-     * `yoyo(false)` (the defaults) this is the identity on `[0, duration]`
-     * (the existing single-play). For `repeat`, the phase is `raw mod
-     * duration`; for `yoyo`, odd cycles reflect (`duration − phase`) so the
-     * playhead ping-pongs. The terminal clock of the LAST cycle resolves to
-     * the rest phase (`duration` forward, `0` reflected) rather than wrapping
-     * to `0` — so a settled `repeat`/`yoyo` run lands on its true end frame.
-     */
-    private _fold(raw: number): number {
-        const duration = this.duration;
-        if (duration <= 0) return 0;
-
-        const clamped = clamp(raw, 0, duration * this._repeatCount);
-        let cycle = Math.floor(clamped / duration);
-        let phase = clamped - cycle * duration;
-        // The exact cycle boundary (and the terminal clock) belongs to the END
-        // of the cycle it closes, not the start of the next — so a finished
-        // forward cycle rests at `duration`, a finished reflected cycle at `0`.
-        if (phase === 0 && cycle > 0) {
-            cycle -= 1;
-            phase = duration;
-        }
-        return this._yoyoOn && cycle % 2 === 1 ? duration - phase : phase;
     }
 
     /**
@@ -447,138 +375,21 @@ export class Sequence<V extends Vars = any> {
         return result;
     }
 
-    private async _frame(clock: number): Promise<boolean> {
-        // Seed the origin so the FIRST frame's master clock equals the RETAINED
-        // `_time` (0 on a fresh play — the existing start-at-0; the paused
-        // playhead on resume — no forward jump). Solving `(clock − origin) *
-        // rate = _time` for the origin: `origin = clock − _time / rate`. A zero
-        // rate freezes the playhead, so the origin collapses to the bare clock.
-        if (this._playOrigin === undefined) {
-            this._playOrigin =
-                this._rate === 0 ? clock : clock - this._time / this._rate;
-        }
-        this._lastClock = clock;
-
-        // Scalar-field arithmetic: the rate scales the wall-clock delta into a
-        // master clock (negative walks it backward — `reverse`). The raw,
-        // unfolded master clock is what `repeat`/`yoyo` extend over.
-        const rawMaster = (clock - this._playOrigin) * this._rate;
-        const total = this.duration * this._repeatCount;
-
-        // Directional / cycle settle bound. Forward (`rate ≥ 0`) settles once
-        // the raw master clock passes the repeat-extended span; reverse
-        // (`rate < 0`) settles once it walks back to 0. `Infinity` repeat never
-        // satisfies the forward bound — the loop runs until `stop()`.
-        const finished =
-            this._rate >= 0 ? rawMaster >= total : rawMaster <= 0;
-
-        // The painted master clock is the raw clock folded by repeat/yoyo into
-        // an effective phase, then snapped to the terminal rest phase on the
-        // final frame so a settled run lands EXACTLY on its end frame.
-        const phase = finished
-            ? this._rate >= 0
-                ? this._restPhase()
-                : 0
-            : this._fold(rawMaster);
-        this._time = phase;
-
-        // Event coherence for the FORWARD-MONOTONE single-play (the byte-stable
-        // default: rate 1, repeat 1, yoyo off). Each child seeded with
-        // `startTime = at`, so `advanceTo(phase)` fires `animationstart` once
-        // on entry and `animationend` once on crossing — through the published
-        // driver, exactly as the pre-transport `_frame` did. Skipped under any
-        // non-default transport (reverse / repeat / yoyo), where the children's
-        // own forward `onEnd`-clears-`startTime` window is the very thing the
-        // scrub-paint side-steps — events there ride the children's fill
-        // semantics, consistent with `seek`.
-        if (this._isForwardMonotone()) {
-            for (const { animation, at } of this.entries) {
-                if (phase >= at && phase - at < animation.options.duration) {
-                    await animation.advanceTo(phase);
-                }
-            }
-        }
-
-        // Segment/label crossing callbacks — the SAME detector `seek` drives,
-        // so play fires the identical crossings a scrub would (forward, reverse,
-        // and yoyo; the callback's `masterClock` carries the direction). Fires
-        // BEFORE the paint so a subscriber observing `segment:enter` sees the
-        // entering segment's pre-paint state, matching `seek`'s order.
-        this._fireCrossings(phase);
-
-        // ONE map — identical to `seek`. No `advanceTo`/`onEnd` window, so a
-        // reverse / yoyo sweep that re-enters a finished segment paints the
-        // same value `seek` would (the C⁰-continuity the parity gate locks).
-        this._applyAt(phase);
-
-        if (finished) {
-            this._settle();
-            const resolve = this._resolvePlay;
-            this._resolvePlay = null;
-            resolve?.();
-            return false;
-        }
-        return true;
+    // THE rAF play-loop step + the settle + the re-anchor BODIES live in
+    // `./transport` (R.W2b carve) — pure drivers over this play-machine context
+    // (`Sequence implements SequencePlayContext`). These remain methods (the
+    // seek↔play parity test drives `seq._frame(...)` directly) but delegate the
+    // body, so the loop math is colocated with the fold/restphase it uses.
+    async _frame(clock: number): Promise<boolean> {
+        return driveSequenceFrame(this, clock);
     }
 
-    /**
-     * True for the byte-stable default transport — forward real-time, single
-     * cycle, no yoyo. The event-dispatch path runs ONLY here, so an existing
-     * caller's `play()` fires the same `animationstart`/`animationend` it
-     * always did; any transport modifier opts into the scrub-paint authority.
-     */
-    private _isForwardMonotone(): boolean {
-        return this._rate === 1 && this._repeatCount === 1 && !this._yoyoOn;
-    }
-
-    /**
-     * The terminal rest phase of a `repeat`/`yoyo` run — where the playhead
-     * lands when the final cycle closes. A forward run rests at `duration`;
-     * an odd-cycle yoyo run that closes reflected rests at `0`. Mirrors the
-     * boundary `_fold` resolves at the terminal clock.
-     */
-    private _restPhase(): number {
-        const duration = this.duration;
-        const lastCycleReflected =
-            this._yoyoOn && (this._repeatCount - 1) % 2 === 1;
-        return lastCycleReflected ? 0 : duration;
-    }
-
-    /**
-     * Re-anchor `_playOrigin` against the loop's last rAF timestamp so the
-     * master clock is CONTINUOUS across a transport edit — the
-     * `RAFPlayback`/`AnimationGroup` managed-pause re-anchor (no forward jump).
-     * The invariant restored: `(clock − _playOrigin) * rate === _time` at the
-     * edit instant. Solving for the origin: `_playOrigin = clock − _time /
-     * rate`. With `rate = 0` the playhead is frozen, so the origin collapses
-     * to the bare timestamp (the next non-zero rate re-anchors again).
-     */
     private _reanchor(): void {
-        if (!this._playingPromise) return;
-        const last = this._lastClock;
-        if (last === undefined) {
-            // No frame has run yet — the first frame seeds the origin so the
-            // master clock starts from `_time`; defer by clearing the origin.
-            this._playOrigin = undefined;
-            return;
-        }
-        this._playOrigin =
-            this._rate === 0 ? last : last - this._time / this._rate;
+        reanchorSequence(this, this._playingPromise != null);
     }
 
-    /** Release every child back to standalone ownership and clear play flags. */
     private _settle(): void {
-        for (const { animation } of this.entries) {
-            animation.managed = false;
-            animation.started = false;
-            animation.startTime = undefined;
-        }
-        this._playOrigin = undefined;
-        this._lastClock = undefined;
-        this._paused = false;
-        // The configured `rate`/`repeat`/`yoyo` PERSIST across plays (the GSAP
-        // transport idiom — a `timeScale`/`reverse` set on a timeline holds);
-        // only the per-play anchor state resets here.
+        settleSequence(this);
     }
 
     /** Halt the play loop where it stands and resolve any pending `play()`. */
@@ -686,13 +497,3 @@ export class Sequence<V extends Vars = any> {
         return this;
     }
 }
-
-/**
- * SSR-safe `prefers-reduced-motion: reduce` probe. Mirrors the engine's
- * off-DOM posture (no `matchMedia` → false). Inlined (not imported from
- * `internal/reduced-motion`) to keep the dependency surface to the two light
- * modules the docstring names; the predicate is one line.
- */
-const prefersReducedMotion = (): boolean =>
-    typeof matchMedia === "function" &&
-    matchMedia("(prefers-reduced-motion: reduce)").matches;

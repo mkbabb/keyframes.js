@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sequence } from "../src/animation/orchestration/sequence";
+// R.W2b carved the pure repeat/yoyo phase fold off the `Sequence` class into the
+// colocated `./transport` module; the fold-math tests drive `foldPhase` directly
+// with the sequence's own config (the same inputs the former `_fold` method read).
+import { foldPhase } from "../src/animation/orchestration/sequence/transport";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 /**
@@ -296,7 +300,8 @@ describe("Sequence transport — repeat / yoyo phase (S4)", () => {
         const b = opacityAnim(1000);
         const seq = new Sequence().add(a).add(b); // duration 2000
         seq.repeat(2);
-        const fold = (raw: number): number => (seq as any)._fold(raw);
+        const fold = (raw: number): number =>
+            foldPhase(raw, seq.duration, (seq as any)._repeatCount, (seq as any)._yoyoOn);
         // 1.5 * duration = 3000 → cycle 1, phase 1000 (= 0.5 * duration).
         expect(fold(1.5 * seq.duration)).toBeCloseTo(0.5 * seq.duration, 9);
     });
@@ -304,7 +309,8 @@ describe("Sequence transport — repeat / yoyo phase (S4)", () => {
     it("yoyo(true): the odd cycle REFLECTS the phase (duration − phase)", () => {
         const seq = new Sequence().add(opacityAnim(1000)).add(opacityAnim(1000));
         seq.repeat(2).yoyo(true);
-        const fold = (raw: number): number => (seq as any)._fold(raw);
+        const fold = (raw: number): number =>
+            foldPhase(raw, seq.duration, (seq as any)._repeatCount, (seq as any)._yoyoOn);
         // Cycle 0 (forward): 0.25*dur → 0.25*dur.
         expect(fold(0.25 * seq.duration)).toBeCloseTo(0.25 * seq.duration, 9);
         // Cycle 1 (reflected): 1.5*dur → phase 0.5*dur reflected → 0.5*dur.
@@ -315,7 +321,8 @@ describe("Sequence transport — repeat / yoyo phase (S4)", () => {
     it("BITE: dropping the yoyo reflection makes the odd-cycle phase wrong", () => {
         const seq = new Sequence().add(opacityAnim(1000)).add(opacityAnim(1000));
         seq.repeat(2).yoyo(true);
-        const fold = (raw: number): number => (seq as any)._fold(raw);
+        const fold = (raw: number): number =>
+            foldPhase(raw, seq.duration, (seq as any)._repeatCount, (seq as any)._yoyoOn);
         const reflected = fold(1.25 * seq.duration); // 0.75 * duration
         const naiveForward = 0.25 * seq.duration; // what NO reflection gives
         expect(reflected).toBeCloseTo(0.75 * seq.duration, 9);
@@ -325,7 +332,8 @@ describe("Sequence transport — repeat / yoyo phase (S4)", () => {
     it("repeat(Infinity) never settles the forward bound (the loop case)", () => {
         const seq = new Sequence().add(opacityAnim(1000));
         seq.repeat(Infinity);
-        const fold = (raw: number): number => (seq as any)._fold(raw);
+        const fold = (raw: number): number =>
+            foldPhase(raw, seq.duration, (seq as any)._repeatCount, (seq as any)._yoyoOn);
         // A huge master clock still folds into [0, duration] — never collapses
         // to a terminal settle.
         const phase = fold(987 * seq.duration + 250);
