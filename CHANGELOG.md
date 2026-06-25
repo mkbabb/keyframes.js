@@ -1,5 +1,8 @@
 # Changelog
 
+<!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
+     no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
+
 ## 5.0.0
 
 ### Major Changes (BREAKING)

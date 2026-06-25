@@ -41,6 +41,11 @@
  * matches the published surface), not an error count.
  *
  * RUN: npm run proof:agent-surface
+ *
+ * R.W7 — generate-before-assert: the gate regenerates /llms.txt + /llms-full.txt
+ * from the live manifest + proof roster before any assertion, so the gate is
+ * self-contained on a fresh checkout. The files are build artifacts (not tracked
+ * in git); the "artifact MUST be pre-committed" assumption is retired.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -62,6 +67,18 @@ const ok = (msg) => console.log(`  ✓ ${msg}`);
 console.log(
     "proof:agent-surface — the gate-ORACLE at the AGENT boundary (the index can never lie)",
 );
+
+// ── generate the artifacts (R.W7 generate-before-assert) ──────────────────────
+// The files are build artifacts (not tracked in git). Generate them fresh from
+// the live manifest + proof roster before any assertion so the gate works on a
+// clean checkout without a prior `node scripts/gen-agent-surface.mjs` call.
+{
+    const freshLlms = buildLlmsTxt();
+    const freshFull = buildLlmsFullTxt();
+    fs.writeFileSync(LLMS, freshLlms);
+    fs.writeFileSync(LLMS_FULL, freshFull);
+    ok("(pre) generated /llms.txt + /llms-full.txt from live manifest + roster");
+}
 
 // ── (a.1) the artifacts exist ──────────────────────────────────────────────────
 const haveLlms = fs.existsSync(LLMS);
