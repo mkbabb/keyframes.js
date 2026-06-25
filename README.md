@@ -6,9 +6,11 @@ CSS keyframe animations for anything in JavaScript. Specify your keyframes in st
 
 ## Quick Start
 
-Create a `CSSKeyframesAnimation`, feed it CSS `@keyframes`, add targets, play:
+Create a `CSSKeyframesAnimation`, feed it CSS `@keyframes`, add targets, play. The engine class is a static, synchronous import from the `@mkbabb/keyframes.js/engine` subpath (it carries the CSS parser + `@mkbabb/value.js`; the light `.` barrel stays value.js-free):
 
-```ts
+```ts run
+import { CSSKeyframesAnimation } from "@mkbabb/keyframes.js/engine";
+
 const anim = new CSSKeyframesAnimation({
     duration: 2000,
     iterationCount: Infinity,
@@ -18,17 +20,10 @@ const anim = new CSSKeyframesAnimation({
 
 anim.fromString(`
     @keyframes mijn-keyframes {
-        from {
-            transform: translateX(-100%) translateY(-100%) rotate(0turn);
-            background-color: #C462D8;
-        }
-        100% {
-            transform: translateX(50%) translateY(75%) rotate(1turn);
-            background-color: #E85252;
-        }
+        from { transform: translateX(-100%); background-color: #C462D8; }
+        to   { transform: translateX(50%);  background-color: #E85252; }
     }
 `);
-
 anim.setTargets(document.getElementById("myElement"));
 anim.play();
 ```
@@ -94,7 +89,7 @@ src/
 │   ├── engine.ts            # HEAVY: Animation, CSSKeyframesAnimation, AnimationGroup
 │   ├── group.ts             # AnimationGroup — multi-animation compositor
 │   ├── frame-compiler.ts    # Keyframe → frame compilation
-│   ├── animate.ts           # animate() — the single-call front door (HEAVY)
+│   ├── animate.ts           # animate() — shape-dispatch helper (HEAVY; deep-import only)
 │   ├── motion-path.ts       # MotionPath — offset-distance over an offset-path (HEAVY)
 │   ├── draw-svg.ts          # DrawSVG — stroke-dashoffset line drawing (HEAVY)
 │   ├── animations.ts        # 30+ presets (HEAVY — `presets` on loadAnimationEngine())
@@ -229,7 +224,7 @@ const kf3 = { start: "100%", vars: { x: 0, y: 1 } };
 
 ### The dynamic engine — `loadAnimationEngine()`
 
-The package splits along a static/dynamic boundary (see [tree-shaking](#baseline-tree-shaking--reduced-motion)). The classes above — `Animation`, `CSSKeyframesAnimation`, `AnimationGroup` — are the **heavy** tier: they carry the CSS parser and `@mkbabb/value.js`, and their runtime constructors are reached **only** through `loadAnimationEngine()`, one awaited dynamic import:
+The package splits along a static/dynamic boundary (see [tree-shaking](#baseline-tree-shaking--reduced-motion)). The classes above — `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup` — are the **heavy** tier: they carry the CSS parser and `@mkbabb/value.js`, and their runtime constructors are reached **only** through `loadAnimationEngine()`, one awaited dynamic import:
 
 ```ts run
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
@@ -243,25 +238,7 @@ anim.setTargets(element);
 await anim.play();
 ```
 
-The engine surface (`AnimationEngine`): `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { KeyframesAnimation } from "@mkbabb/keyframes.js"` costs no runtime edge.
-
-### `animate`
-
-The single-call front door: construct + target + play in one call, dispatched on the **shape** of the input. The returned `CSSKeyframesAnimation` is the control handle — `.pause()` / `.play()` / `.stop()` / `await handle.finished`.
-
-```ts run
-const { animate } = await loadAnimationEngine();
-
-const fade = animate(box, { "0%": { opacity: 0 }, "100%": { opacity: 1 } }, { duration: 200 });
-await fade.finished;
-
-// Dispatch on the input's shape:
-animate(box, `from { opacity: 0 } to { opacity: 1 }`, { autoPlay: false }); // CSS string     → fromString
-animate(box, [{ opacity: 0 }, { opacity: 1 }], { autoPlay: false });        // vars array     → fromVars
-animate(box, { path: "path('M 0 0 H 100')" }, { autoPlay: false });         // MotionPath spec → fromMotionPath
-```
-
-Options: every [`AnimationOptions`](#animationoptions) key, plus `transform` (a custom renderer forwarded to the `from*` factory) and `autoPlay` (default `true`; `false` returns a constructed, targeted, not-yet-playing handle).
+The engine surface (`AnimationEngine`): `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, and the option constants `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`. The **type** surface stays on the static barrel — `import type { KeyframesAnimation } from "@mkbabb/keyframes.js"` costs no runtime edge.
 
 ### `MotionPath`
 
@@ -405,10 +382,6 @@ const { presets } = await loadAnimationEngine();
 const anim = presets.fadeIn({ duration: 500 });
 anim.setTargets(element);
 anim.play();
-
-// …or the single-call front door (auto-target + auto-play):
-const { animate } = await loadAnimationEngine();
-animate(element, presets.fadeIn());
 ```
 
 **Fade**: `fadeIn`, `fadeOut` · **Attention**: `pulse`, `heartbeat`, `glow`, `shake`, `bounce` · **Entrance/Exit**: `flip`, `rotateIn`, `slideIn`, `slideInLeft/Right`, `slideOutLeft/Right`, `blurIn/Out/InOut`, `jumpUp/Down`, `warpLeft/Right` · **Effects**: `hover`, `typewriter`, `typingCursor`, `rainbowText`, `progressBar`, `skeletonLoading`, `spinner`, `parallaxScroll`, `gradientBackground`, `rotateScale`, `accordionExpand`, `notificationBounce`, `textFocusBlur`
@@ -538,12 +511,12 @@ keyframes.js targets a modern-web Baseline and documents the tier of every platf
 | WAAPI `linear()` springs | Newly available | Feature-detected; the rAF spring path is the default fallback |
 | `Element.animate()` (WAAPI) | Widely available | Opt-out via `useWAAPI: false` |
 
-**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`Animation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry and fails the build if any light module reintroduces a static value.js edge.
+**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry and fails the build if any light module reintroduces a static value.js edge.
 
 **Reduced motion.** Both the light and heavy engines honor `prefers-reduced-motion: reduce`. Opt in per surface:
 
 - **Light interpolators** (`NumericAnimation`, `SmoothProgress`, `SpringProgress`, `ElementMorph`) — pass `respectReducedMotion: true`. `RAFPlayback` owns the shared snap-to-final gate, so the managed `.play()` path skips the rAF loop and lands on the final value in a single paint.
-- **Heavy engine** (`Animation` / `CSSKeyframesAnimation`) — pass `respectReducedMotion: true`; `play()` snaps to the final frame (a single paint, `animationstart` → `animationend`) instead of running the rAF/WAAPI loop.
+- **Heavy engine** (`KeyframesAnimation` / `CSSKeyframesAnimation`) — pass `respectReducedMotion: true`; `play()` snaps to the final frame (a single paint, `animationstart` → `animationend`) instead of running the rAF/WAAPI loop.
 - **`AnimationGroup`** — set `group.respectReducedMotion = true`; `play()` composites every child's final frame once rather than driving the draw loop.
 
 Off-DOM (SSR / Node) the check is a no-op and animations proceed normally.

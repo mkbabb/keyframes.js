@@ -151,11 +151,11 @@ export type { ResolvedKeyframes } from "./engine";
 // re-exported through the engine barrel, which broke the engine↔group ring). The
 // type re-export is erased, so the LIGHT package barrel stays value.js-free.
 export type { AnimationGroupEntry } from "./group";
-// `./engine` now resolves to the engine/ directory's `index.ts` barrel (R.W1);
-// the type re-exports are erased, so the LIGHT barrel stays value.js-free.
-// The single-call front door's type surface (erased; the runtime `animate` rides
-// loadAnimationEngine below, since it constructs the heavy CSSKeyframesAnimation).
-export type { AnimateInput, AnimateOptions, KeyframeMap } from "./animate";
+// R.W4 §2.5 — `animate()` was EXCISED from the published surface (dead-by-disuse:
+// 0 demo call sites; the `@mkbabb/keyframes.js/engine` subpath + direct
+// `new CSSKeyframesAnimation(...)` are the idiomatic "in"). `animate.ts` stays a
+// HEAVY chunk reachable via deep import, but its option types are no longer a
+// published advertisement — owner-ratified 2026-06-24.
 // CSS-native MotionPath (F.W12) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/path types are erased here.
 export type { MotionPathOptions, OffsetPath } from "./svg/motion-path";

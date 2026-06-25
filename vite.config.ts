@@ -1,12 +1,166 @@
 import { defineConfig, type Plugin } from "vite";
 import path from "path";
+import fs from "fs";
+import os from "os";
 
 import Vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
 
 import dts from "vite-plugin-dts";
+import ts from "typescript";
+import {
+    Extractor,
+    ExtractorConfig,
+    type IConfigFile,
+} from "@microsoft/api-extractor";
 
 import tailwindcss from "@tailwindcss/postcss";
+
+/**
+ * R.W4 §2.1 — emit a self-contained `dist/engine/index.d.ts` rollup for the
+ * `./engine` package subpath.
+ *
+ * vite-plugin-dts's `bundleTypes` rolls up only the FIRST lib entry
+ * (`keyframes.d.ts`); for a SECOND named entry it races — its API-Extractor run
+ * loses its per-module inputs (the first rollup unlinks the shared intermediate
+ * tree) and leaves a raw stub whose relative re-exports (`./animation`,
+ * `../adapter`, …) do NOT resolve against `dist/`. So a TS consumer of
+ * `@mkbabb/keyframes.js/engine` would get broken types.
+ *
+ * This plugin owns the engine `.d.ts` end-to-end, in `closeBundle` (AFTER the
+ * dts plugin has finished): it tsc-emits the engine entry's declaration graph to
+ * a temp dir, then runs API Extractor over `engine/index.d.ts` as the main entry
+ * point — externalizing value.js exactly as the JS build does — and writes the
+ * self-contained roll-up to `dist/engine/index.d.ts`. The engine CODE is still
+ * the ONE shared chunk (the JS multi-entry dedupes it); only its TYPE roll-up is
+ * produced here, independently of the racy multi-entry dts path.
+ */
+function engineDtsRollupPlugin(): Plugin {
+    return {
+        name: "kf-engine-dts-rollup",
+        apply: "build",
+        enforce: "post",
+        async closeBundle() {
+            const root = import.meta.dirname;
+            // R.W4b — the `./engine` subpath dts roll-up is the FULL static
+            // mirror, so the SOURCE entry is the composition barrel
+            // `engine/public.ts` (not the zone-pure `engine/index.ts`). The
+            // INSTALL path stays `dist/engine/index.d.ts` (the exports map is
+            // UNCHANGED) — only the tsc-emit + API-Extractor INPUT moves.
+            const entry = path.resolve(root, "src/animation/engine/public.ts");
+            const distEngine = path.resolve(root, "dist/engine/index.d.ts");
+            if (!fs.existsSync(entry)) return;
+
+            // 1. tsc-emit declarations for the engine subgraph to a temp dir.
+            const tmp = fs.mkdtempSync(
+                path.join(os.tmpdir(), "kf-engine-dts-"),
+            );
+            const configPath = ts.findConfigFile(
+                root,
+                ts.sys.fileExists,
+                "tsconfig.lib.json",
+            );
+            const parsed = configPath
+                ? ts.parseJsonConfigFileContent(
+                      ts.readConfigFile(configPath, ts.sys.readFile).config,
+                      ts.sys,
+                      path.dirname(configPath),
+                  )
+                : { options: {} as ts.CompilerOptions };
+            const program = ts.createProgram([entry], {
+                ...parsed.options,
+                declaration: true,
+                emitDeclarationOnly: true,
+                noEmit: false,
+                outDir: tmp,
+                rootDir: path.resolve(root, "src/animation"),
+                skipLibCheck: true,
+            });
+            program.emit(undefined, undefined, undefined, true);
+
+            // tsc emits the declaration graph mirroring the source path under
+            // `rootDir: src/animation`, so the composition barrel
+            // `engine/public.ts` lands at `engine/public.d.ts` (R.W4b — this is
+            // the API-Extractor main entry point, NOT `engine/index.d.ts`).
+            const emittedEntry = path.join(tmp, "engine/public.d.ts");
+            if (!fs.existsSync(emittedEntry)) {
+                this.warn(
+                    "kf-engine-dts-rollup: engine declarations did not emit; leaving dts as-is",
+                );
+                return;
+            }
+
+            // 2. API Extractor → a self-contained roll-up (value.js external).
+            const extractorRollup = path.join(tmp, "engine-rollup.d.ts");
+            const config: IConfigFile = {
+                projectFolder: root,
+                mainEntryPointFilePath: emittedEntry,
+                bundledPackages: [],
+                compiler: {
+                    // R.W4b — the FULL static surface transitively references
+                    // ambient DOM lib globals from the modern CSS Scroll-driven-
+                    // Animations spec (`ScrollAxis`, used by `orchestration/
+                    // timeline/native.ts`'s `NativeTimelineSpec`). An EMPTY
+                    // `compilerOptions` makes API Extractor's internal compiler
+                    // fall to the TS default `lib` (no modern DOM), so it cannot
+                    // FOLLOW the ambient `ScrollAxis` symbol and throws the
+                    // "Unable to follow symbol" internal defect. Pin the SAME
+                    // `target`/`lib` the library tsconfig type-checks against so
+                    // every ambient global the surface references RESOLVES.
+                    overrideTsconfig: {
+                        compilerOptions: {
+                            target: "ES2022",
+                            lib: ["ES2022", "ES2023", "DOM"],
+                            // The emitted roll-up entry re-exports zone barrels by
+                            // DIRECTORY specifier (`export * as presets from
+                            // "../presets"` → `../presets/index.d.ts`). API
+                            // Extractor's internal compiler must resolve those the
+                            // way the project does, or it throws
+                            // `getResolvedModule() could not resolve "../presets"`.
+                            // Mirror the library tsconfig's module resolution.
+                            module: "ESNext",
+                            moduleResolution: "bundler",
+                            skipLibCheck: true,
+                        },
+                    },
+                },
+                apiReport: { enabled: false },
+                docModel: { enabled: false },
+                tsdocMetadata: { enabled: false },
+                dtsRollup: {
+                    enabled: true,
+                    untrimmedFilePath: extractorRollup,
+                },
+                messages: {
+                    compilerMessageReporting: { default: { logLevel: "none" } },
+                    extractorMessageReporting: { default: { logLevel: "none" } },
+                    tsdocMessageReporting: { default: { logLevel: "none" } },
+                },
+            };
+            const prepared = ExtractorConfig.prepare({
+                configObject: config as IConfigFile,
+                configObjectFullPath: undefined,
+                packageJsonFullPath: path.resolve(root, "package.json"),
+            });
+            const result = Extractor.invoke(prepared, {
+                localBuild: true,
+                showVerboseMessages: false,
+            });
+            if (!result.succeeded || !fs.existsSync(extractorRollup)) {
+                this.warn(
+                    "kf-engine-dts-rollup: API Extractor did not produce a roll-up",
+                );
+                return;
+            }
+
+            // 3. Install the roll-up at the stable subpath the exports map points
+            //    at. value.js stays a bare external import (matches the .js graph).
+            fs.mkdirSync(path.dirname(distEngine), { recursive: true });
+            fs.copyFileSync(extractorRollup, distEngine);
+            fs.rmSync(tmp, { recursive: true, force: true });
+        },
+    };
+}
 
 /**
  * Vite plugin: makes CSS <link> tags for lazy vendor chunks non-render-blocking.
@@ -297,9 +451,40 @@ export default defineConfig((mode) => {
             build: {
                 minify: true,
                 lib: {
-                    entry: path.resolve(import.meta.dirname, "src/animation/index.ts"),
+                    // R.W4 §2.1 — TWO named entries meet the same engine graph:
+                    //   • `keyframes`     → the LIGHT static barrel (`.`), value.js-free.
+                    //   • `engine/index`  → the `./engine` subpath: the HEAVY engine
+                    //     barrel as a STABLE-PATH, statically-importable entry
+                    //     (`@mkbabb/keyframes.js/engine`) — the honest "in" for
+                    //     `new CSSKeyframesAnimation(...)`.
+                    // Rolldown shares the engine module graph across the two entries
+                    // (and the `loadAnimationEngine()` lazy `import("./engine/index")`),
+                    // so the engine code is NOT duplicated — it lands in one shared
+                    // chunk both the lazy split and the `engine/index` entry reference.
+                    // The named entry's filename is keyed off the entry name, so it
+                    // emits at `dist/engine/index.js` exactly where the subpath points.
+                    entry: {
+                        keyframes: path.resolve(
+                            import.meta.dirname,
+                            "src/animation/index.ts",
+                        ),
+                        // R.W4b — the `./engine` subpath SOURCE is the
+                        // composition barrel `engine/public.ts` (the FULL static
+                        // mirror of the heavy `loadAnimationEngine()` surface),
+                        // NOT the zone-pure `engine/index.ts` (which carries the
+                        // engine CORE only). The OUTPUT name stays `engine/index`
+                        // so the emit path (`dist/engine/index.js`) the exports
+                        // map points at is UNCHANGED — only the source moves. The
+                        // shared engine chunk is still deduped across the two
+                        // entries + the `loadAnimationEngine()` lazy split, so the
+                        // subpath stays a thin re-export, never a duplicate.
+                        "engine/index": path.resolve(
+                            import.meta.dirname,
+                            "src/animation/engine/public.ts",
+                        ),
+                    },
                     name: "Keyframes",
-                    fileName: "keyframes",
+                    fileName: (_format, entryName) => `${entryName}.js`,
                     formats: ["es"],
                 },
                 rolldownOptions: {
@@ -360,6 +545,9 @@ export default defineConfig((mode) => {
                         ),
                     },
                 }),
+                // R.W4 §2.1 — own the `./engine` subpath's .d.ts roll-up
+                // independently of the dts plugin's racy multi-entry bundle.
+                engineDtsRollupPlugin(),
             ],
         };
     } else if (mode.mode === "gh-pages") {

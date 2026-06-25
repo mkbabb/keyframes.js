@@ -2,9 +2,10 @@
  * The value.js static/dynamic boundary's DYNAMIC half — the memoized
  * engine-loading machinery split out of the barrel (`index.ts`).
  *
- * This module owns the `await import("./engine")` (and `./animate`,
- * `./motion-path`, `./draw-svg`, `./ingest`, `./scroll-scene`, `./compile`,
- * `./validate`, `./animations`, `./format`, `./utils`, `./internal/scheduler`)
+ * This module owns the `await import("./engine")` (and `./group`,
+ * `./svg/motion-path`, `./svg/draw-svg`, `./svg/morph-svg`, `./ingest`,
+ * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/format`,
+ * `./compile/parse-flatten`, `./internal/scheduler`)
  * DYNAMIC edges — never a STATIC `@mkbabb/value.js` import. Every value.js-
  * bearing import here is `import type` (erased under `verbatimModuleSyntax`),
  * so this module carries ZERO static value.js edge: a consumer reaching the
@@ -27,7 +28,6 @@ import type { ResolvedKeyframes } from "./engine";
 // through the engine barrel); the dynamic surface composes it here so
 // `loadAnimationEngine()` returns the SAME symbol set.
 import type { AnimationGroup } from "./group";
-import type { animate as animateImpl } from "./animate";
 import type {
     MotionPath as MotionPathClass,
     fromMotionPath as fromMotionPathImpl,
@@ -116,15 +116,15 @@ import type { Stylesheet } from "@mkbabb/value.js";
  * with `./engine`'s runtime exports.
  */
 export interface AnimationEngine {
-    /**
-     * The core engine constructor (PKG-3, L.W8 §S4) — renamed from `Animation`
-     * to clear the `globalThis.Animation` d.ts collision. The legacy `Animation`
-     * backward-compat alias was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
-     */
+    /** The core engine base class (CSS-keyframe parsing + playback). */
     KeyframesAnimation: typeof KeyframesAnimation;
+    /** The CSS-parsing `CSSKeyframesAnimation` subclass — the primary "in". */
     CSSKeyframesAnimation: typeof CSSKeyframesAnimation;
+    /** Multi-animation compositor (replace/add/weighted layer blending). */
     AnimationGroup: typeof AnimationGroup;
+    /** Stable string id for an animation (or string passthrough). */
     getAnimationId: (animation: KeyframesAnimation | string) => string;
+    /** Easing name/literal → a typed `TimingFunction` (value.js registry). */
     getTimingFunction: (
         timingFunction:
             | TimingFunction
@@ -132,110 +132,73 @@ export interface AnimationEngine {
             | string
             | undefined,
     ) => TimingFunction | undefined;
+    /** CSS `@keyframes` text/stylesheet → resolved keyframes. */
     resolveKeyframes: (input: string | Stylesheet) => ResolvedKeyframes;
-    /** The single-call front door — dispatch + auto-target + auto-play. */
-    animate: typeof animateImpl;
-    /** CSS-native MotionPath (F.W12) — offset-distance over an author offset-path. */
+    /** CSS-native MotionPath — offset-distance over an author offset-path. */
     MotionPath: typeof MotionPathClass;
+    /** Construct a MotionPath sweep over a target. */
     fromMotionPath: typeof fromMotionPathImpl;
-    /** CSS-native DrawSVG (G.W13) — stroke-dashoffset sweep over the path length. */
+    /** CSS-native DrawSVG — stroke-dashoffset sweep over the path length. */
     DrawSVG: typeof DrawSVGClass;
+    /** Construct a DrawSVG line-draw over an SVG geometry target. */
     fromDrawSVG: typeof fromDrawSVGImpl;
-    /**
-     * MorphSVG (O.W6, the DM-3 7-tranche chronic terminal) — SVG path-shape
-     * morphing over value.js's `PathGeometry`. Samples two `d` strings at
-     * `samples` uniform arc-length steps, pairs the points, and interpolates the
-     * `(x, y)` pairs across `t`; `MorphSVG.sampleD(t)` reads the morphed `d`.
-     */
+    /** SVG path-shape morphing over value.js's `PathGeometry`. */
     MorphSVG: typeof MorphSVGClass;
+    /** Construct a MorphSVG between two `d` strings. */
     fromMorphSVG: typeof fromMorphSVGImpl;
-    /**
-     * The preset library (`fadeIn`, `bounce`, `shake`, …) — heavy (each returns
-     * a `CSSKeyframesAnimation`), so it rides the dynamic boundary as a namespace
-     * instead of the light static barrel: `const { presets } = await
-     * loadAnimationEngine(); presets.fadeIn({ duration: 500 })` (F.W11).
-     */
+    /** The preset library (`fadeIn`, `bounce`, `shake`, …) as a namespace. */
     presets: typeof AnimationPresets;
+    /** The valid `direction` values, as a const tuple. */
     DIRECTIONS: readonly AnimationOptions["direction"][];
+    /** The valid `fillMode` values, as a const tuple. */
     FILL_MODES: readonly AnimationOptions["fillMode"][];
+    /** The `AnimationOptions` defaults. */
     defaultOptions: AnimationOptions;
+    /** The per-layer blend-config defaults. */
     defaultLayerConfig: AnimationLayerConfig;
-    /**
-     * K.W8 INGEST (FLAGGED ADDITIVE) — the round-trip pointed FORWARD at the
-     * live web. `fromStyleSheets`/`fromLiveAnimations`/`resolveLiveKeyframes`
-     * walk the CSSOM into kf `CSSKeyframesAnimation` objects (per-sheet CORS
-     * `try/catch` → a `CORS_SKIP` diagnostic, never a silent drop); `adoptRunning`
-     * takes over a RUNNING CSS animation mid-flight via `getAnimations()`
-     * currentTime handoff (the continuity seed, NOT seed-at-zero). HEAVY (the
-     * ingest needs the value.js parser) — reached only here, never the LIGHT
-     * barrel. Named `adoptRunning` to disambiguate from `engine.adoptCompiled`.
-     */
+    /** Walk the document's stylesheets → reconstructed kf animations + CORS diagnostics. */
     fromStyleSheets: typeof fromStyleSheetsImpl;
+    /** Narrow to the names currently RUNNING via `getAnimations()`. */
     fromLiveAnimations: typeof fromLiveAnimationsImpl;
+    /** The lowest-level live-CSSOM walk (live analogue of `resolveKeyframes`). */
     resolveLiveKeyframes: typeof resolveLiveKeyframesImpl;
+    /** Mid-flight takeover of a running CSS animation (currentTime handoff). */
     adoptRunning: typeof adoptRunningImpl;
-    /**
-     * K.W9 SCROLL-AS-CSS (FLAGGED ADDITIVE) — the scroll-grammar round-trip
-     * (`parseScrollCSS` / `serializeScrollOptions` / `roundTripScrollCSS`,
-     * consuming value.js 0.13.0's typed `CSSTimelineOptions` extractor +
-     * inverse serializer), the `ScrollScene` JS driver (`createScrollScene`),
-     * the conservative-correct backend dispatch (`dispatchScrollBackend`), and
-     * the `position:sticky` pin synthesis (`pinCSS`). HEAVY (static value.js
-     * edge) — reached only here, never the LIGHT barrel.
-     */
+    /** Scroll-driven animation as CSS — the JS driver over a parsed scroll grammar. */
     ScrollScene: typeof ScrollSceneClass;
+    /** Construct a `ScrollScene` driver. */
     createScrollScene: typeof createScrollSceneImpl;
+    /** Parse a scroll-as-CSS rule → typed scroll options. */
     parseScrollCSS: typeof parseScrollCSSImpl;
+    /** Parse an `animation-timeline` value. */
     parseScrollTimeline: typeof parseScrollTimelineImpl;
+    /** Parse an `animation-range` value. */
     parseScrollRange: typeof parseScrollRangeImpl;
+    /** Serialize scroll options back to valid CSS. */
     serializeScrollOptions: typeof serializeScrollOptionsImpl;
+    /** Round-trip scroll CSS (parse → serialize). */
     roundTripScrollCSS: typeof roundTripScrollCSSImpl;
+    /** Conservative-correct scroll backend dispatch. */
     dispatchScrollBackend: typeof dispatchScrollBackendImpl;
+    /** Resolve a scroll `animation-range` to concrete boundaries. */
     resolveRange: typeof resolveRangeImpl;
+    /** `position:sticky` pin synthesis. */
     pinCSS: typeof pinCSSImpl;
-    /**
-     * K.W10 COMPILE (FLAGGED ADDITIVE) — the round-trip's BACKWARD half:
-     * `compileToCSS(group | sequence | childList)` → a ZERO-RUNTIME CSS artifact
-     * (`@keyframes` + `animation-*` longhands + `animation-composition` layering
-     * + `linear()` springs + materialized stagger delays + perceptual `oklab()`
-     * densify) PLUS the CC-3 ineligibility report (the four named refusals —
-     * `weighted` blend / custom renderers / perceptual oklab beyond densify /
-     * computed-unit drift). The compiler is the parser run BACKWARD over the SAME
-     * data model (`format.ts` is `keyframes.ts` run backward); a human pastes the
-     * result and ships with ZERO kf bytes on the page. HEAVY (value.js-bearing) —
-     * reached only here, never the LIGHT barrel.
-     */
+    /** The round-trip's BACKWARD half: orchestration graph → zero-runtime CSS. */
     compileToCSS: typeof compileToCSSImpl;
-    /**
-     * L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE) — the round-trip's FORWARD
-     * half: the VALIDATION layer over the compile surface, the first question an
-     * LLM agent asks before it suggests kf ("will this `@keyframes` block ship
-     * faithfully?"). `validate(css, opts?)` is a READ-ONLY projection over three
-     * already-typed channels (the adapter `diagnostics`, the compile
-     * `{ eligible, refusals }`, the WAAPI `eligibility`) onto ONE agent-shaped
-     * `ValidateResult` envelope an LLM branches on WITHOUT scraping a message;
-     * `explain(css, opts?)` formats the SAME verdict deterministic human/LLM-
-     * readable. NO new engine code — a pure JOIN over the channels L.W1/L.W2 made
-     * honest. HEAVY (validate.ts imports the engine + compile + waapi) — reached
-     * only here, never the LIGHT barrel.
-     */
+    /** Read-only validation envelope over the compile/adapter/WAAPI channels. */
     validate: typeof validateImpl;
+    /** Format the `validate` verdict as deterministic human/LLM-readable text. */
     explain: typeof explainImpl;
-    /**
-     * L.W8 S1 ED-3 DOGFOOD INVERSION (FLAGGED ADDITIVE) — the heavy
-     * serialization/painting/scheduler helpers over a parsed `Animation`.
-     * `CSSKeyframesToString`/`CSSKeyframesToStrings` re-serialize the parsed
-     * keyframes back to CSS (the FORWARD half of `fromString`, value.js-bearing);
-     * `formatCSSKeyframeString` trims one keyframe body for display;
-     * `transformTargetsStyle` paints a `Vars` snapshot onto DOM targets (the
-     * same painter the run loop drives); `yieldToMain` is the engine's ONE
-     * INP-relief yield ladder. HEAVY (they ride the engine chunk) — reached only
-     * here, never the LIGHT barrel.
-     */
+    /** Re-serialize parsed keyframes back to a CSS string. */
     CSSKeyframesToString: typeof CSSKeyframesToStringImpl;
+    /** Re-serialize parsed keyframes back to per-rule CSS strings. */
     CSSKeyframesToStrings: typeof CSSKeyframesToStringsImpl;
+    /** Trim one keyframe body for display. */
     formatCSSKeyframeString: typeof formatCSSKeyframeStringImpl;
+    /** Paint a `Vars` snapshot onto DOM targets (the run-loop painter). */
     transformTargetsStyle: typeof transformTargetsStyleImpl;
+    /** The engine's INP-relief yield ladder. */
     yieldToMain: typeof yieldToMainImpl;
 }
 
@@ -259,7 +222,7 @@ const importEngine = (): Promise<typeof import("./engine/index")> =>
  * `CSSKeyframesAnimation`, `AnimationGroup`, `getTimingFunction`,
  * `resolveKeyframes`, and the animation-options constants (`DIRECTIONS`,
  * `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`) — PLUS every heavy
- * front door (`animate`, `MotionPath`/`DrawSVG`, the ingest + scroll + compile
+ * front door (`MotionPath`/`DrawSVG`/`MorphSVG`, the ingest + scroll + compile
  * round-trip, the `presets` namespace). The FULL surface; backward-compatible.
  *
  * This is the dynamic boundary: the `import("./engine")` pulls value.js into
@@ -273,9 +236,7 @@ const importEngine = (): Promise<typeof import("./engine/index")> =>
  *
  * Memoized via a module-scope `_enginePromise` shared with `warmEngine()`
  * (L.W7 S1): a `loadAnimationEngine()` call after `warmEngine()` has started
- * returns the SAME in-flight Promise — no double import. The per-chunk imports
- * are themselves memoized, so the granular `loadEngine`/`loadCompiler`/
- * `loadIngest` accessors share the same in-flight chunk Promises.
+ * returns the SAME in-flight Promise — no double import.
  */
 let _enginePromise: Promise<AnimationEngine> | null = null;
 export const loadAnimationEngine = (): Promise<AnimationEngine> =>
@@ -286,10 +247,6 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         // here so the dynamic surface is UNCHANGED while the engine↔group
         // `no-cycle` ring stays broken (a zone barrel re-exports only itself).
         import("./group/index"),
-        // `animate` lives in its own module (it constructs CSSKeyframesAnimation)
-        // and is merged onto the engine surface so consumers reach it the same
-        // way: `const { animate } = await loadAnimationEngine()`.
-        import("./animate"),
         import("./svg/motion-path"),
         import("./svg/draw-svg"),
         // O.W6 MORPHSVG (the DM-3 7-tranche chronic terminal) — the morph-svg
@@ -332,7 +289,6 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         ([
             engine,
             groupMod,
-            animateMod,
             motionMod,
             drawMod,
             morphMod,
@@ -348,7 +304,6 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
             Object.assign(
                 {
                     AnimationGroup: groupMod.AnimationGroup,
-                    animate: animateMod.animate,
                     MotionPath: motionMod.MotionPath,
                     fromMotionPath: motionMod.fromMotionPath,
                     DrawSVG: drawMod.DrawSVG,
@@ -384,34 +339,12 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
     ));
 
 /**
- * Fire-and-forget idle-warmer for the heavy engine (L.W7 S1, W121).
- *
- * Pre-flights `loadAnimationEngine()`'s dynamic import so the first
- * `.animate()` / `new CSSKeyframesAnimation()` call on a cold page resolves
- * against an already-in-flight (or already-resolved) Promise instead of paying
- * network + parse + compile latency inline. Call it during idle —
- * `requestIdleCallback`, `visibilitychange`, or `mouseenter` on the app shell:
- *
- * ```ts
- * requestIdleCallback(() => warmEngine());
- * ```
- *
- * Idempotent and value.js-free by construction: it shares the SAME
- * module-scope `_enginePromise` with `loadAnimationEngine()`, so a
- * `loadAnimationEngine()` after `warmEngine()` returns the same in-flight
- * Promise — no double import. It fires a DYNAMIC import only; it names no
- * static value.js specifier, so `proof:boundary` stays green.
- *
- * L.W7 S4 (MEASURE-FIRST — the `scheduler.postTask` adoption is DEFERRED, not
- * shipped). `scheduler.postTask("background", …)` would be the idiomatic home
- * for an idle warm, but the `proof:scheduler-posttask` probe only SKIPS in
- * jsdom (the API is absent there) — it has NOT positively MEASURED that the
- * `"background"` call does not degrade INP on a real engine. Per the wave's own
- * measure-first law (and inv ε — no claim without an observed oracle), warmEngine
- * stays on the PROVEN bare `void loadAnimationEngine()` path. The probe + gate are
- * ARMED: when a real-browser run (Playwright with `scheduler.postTask`) measures
- * the background dispatch safe, warmEngine adopts `postTask("background")` then —
- * a gated future change, not an unmeasured ship today.
+ * Fire-and-forget idle-warmer for the heavy engine. Pre-flights
+ * `loadAnimationEngine()`'s dynamic import during idle (`requestIdleCallback` /
+ * `visibilitychange` / `mouseenter`) so the first `new CSSKeyframesAnimation()`
+ * on a cold page resolves against an already-in-flight Promise. Idempotent and
+ * value.js-free — it shares the one memoized `_enginePromise` (no double import)
+ * and names only a dynamic import (`proof:boundary` stays green).
  */
 export const warmEngine = (): void => {
     void loadAnimationEngine();

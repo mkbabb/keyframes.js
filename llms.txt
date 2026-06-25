@@ -17,17 +17,11 @@ Install: `npm i @mkbabb/keyframes.js` · README: https://github.com/mkbabb/keyfr
 
 ## Primitives (each backed by a runnable proof gate)
 
-### CSSKeyframesAnimation  (HEAVY+?+LIGHT)
+### CSSKeyframesAnimation  (HEAVY+LIGHT)
 - intent: parse author CSS @keyframes → animate any element/object; the round-trippable source-of-truth axis [axis-1]
-- exports: `CSSKeyframesAnimation`, `Animation`, `loadAnimationEngine`
+- exports: `CSSKeyframesAnimation`, `loadAnimationEngine`
 - docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#csskeyframesanimation
 - proof: `proof:roundtrip-fidelity` (CI-verified — `npm run proof:roundtrip-fidelity`)
-
-### animate  (HEAVY)
-- intent: the single-call front door: construct + target + play, dispatched on input shape (CSS string / vars / motion-path spec)
-- exports: `animate`
-- docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#animate
-- proof: `proof:engine-correctness` (CI-verified — `npm run proof:engine-correctness`)
 
 ### AnimationGroup  (HEAVY)
 - intent: composite many animations with replace/add/weighted layer blending (spatial composition)
@@ -77,9 +71,9 @@ Install: `npm i @mkbabb/keyframes.js` · README: https://github.com/mkbabb/keyfr
 - docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#stagger
 - proof: `proof:orchestration` (CI-verified — `npm run proof:orchestration`)
 
-### Timeline  (LIGHT+?)
+### Timeline  (LIGHT)
 - intent: progress driver (sample → clamp → easing → boundary-snap → smoothing); ScrollTimeline/ManualTimeline/createNativeTimeline variants — the caller owns the loop
-- exports: `Timeline`, `ScrollTimeline`, `ManualTimeline`, `createNativeTimeline`
+- exports: `Timeline`, `ManualTimeline`, `createNativeTimeline`
 - docs: https://github.com/mkbabb/keyframes.js/blob/master/README.md#timeline
 - proof: `proof:sync-step` (CI-verified — `npm run proof:sync-step`)
 
