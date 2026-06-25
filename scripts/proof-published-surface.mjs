@@ -490,10 +490,21 @@ function clauseE() {
             );
         }
     }
-    for (const real of ["@", "app", "amiga", "cube", "easing", "motion-path", "playground", "sequence", "spring", "square"]) {
+    // R.W5 fused the per-scene dirs into demo/scenes/<name>/ — the top-level demo
+    // dirs CLAUDE.md now names are @ / app / scenes / playground (the scene dirs
+    // amiga|cube|easing|… live UNDER demo/scenes/ and are gated by proof:scene-colocated).
+    for (const real of ["@", "app", "scenes", "playground"]) {
         if (!fs.existsSync(path.join(REPO, "demo", real))) {
             failures.push(
                 `(e) demo dir \`demo/${real}/\` named by root CLAUDE.md does not exist.`,
+            );
+        }
+    }
+    // R.W5: the now-phantom top-level scene dirs must NOT reappear at demo/<name>/.
+    for (const fused of ["amiga", "cube", "easing", "motion-path", "sequence", "spring", "square", "morph"]) {
+        if (fs.existsSync(path.join(REPO, "demo", fused))) {
+            failures.push(
+                `(e) demo dir \`demo/${fused}/\` reappeared at top level — R.W5 fused it into demo/scenes/${fused}/.`,
             );
         }
     }
