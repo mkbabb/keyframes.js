@@ -50,9 +50,8 @@ src/                            # animation/ + env.d.ts — nothing else
 
 demo/                # Vue 3 demo (see demo/CLAUDE.md)
 ├── @/               # Shared library: animation-controls suite, asset-manager, dock, editor-shell, matrix-editor, orbital-drag, composables, styles, utils
-├── app/             # THE multi-scene SPA (npm run dev / gh-pages): router + scene machine + scenes/*Scene.vue
-├── amiga/ cube/ easing/ motion-path/ sequence/ spring/ square/
-│                    # Per-scene content (composables + target components) consumed by app/scenes/ — NOT standalone apps
+├── app/             # THE multi-scene SPA (npm run dev / gh-pages): router + scene machine + App shell
+├── scenes/          # Fused per-scene dirs (R.W5) — scenes/<name>/ for amiga · cube · easing · morph · motion-path · sequence · spring · square: each holds <Name>Scene.vue + Target + composables + keys, colocated
 └── playground/      # Standalone asset-playground app (npm run dev:playground)
 
 test/                # Vitest (jsdom). Count: `ls test/*.test.ts | wc -l` files, `npx vitest list | wc -l` tests

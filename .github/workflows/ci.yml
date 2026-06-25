@@ -368,6 +368,8 @@ jobs:
               run: npm run proof:composable-encapsulation
             - name: proof:no-brittle-selector (H.W12 S4/I11 — zero class-string DOM walks · named SAMPLE_STEP · ONE documented square-viewBox scale helper)
               run: npm run proof:no-brittle-selector
+            - name: proof:scene-colocated (R.W5 — each scene fused to demo/scenes/<name>/ · zero ../../ climbs · dead SceneSwitcher/Animated/ResponsiveSelect gone)
+              run: npm run proof:scene-colocated
             - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
               run: npm run proof:no-dup-utility
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
