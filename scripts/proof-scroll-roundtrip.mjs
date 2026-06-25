@@ -93,7 +93,11 @@ const SCROLL = "src/animation/scroll/scene.ts";
 // of both files); the value.js-grammar consume must live in EXACTLY ONE of them,
 // never as a kf-local re-derived parser in EITHER. (Relocation, not weakening.)
 const GRAMMAR = "src/animation/scroll/grammar.ts";
-const SCROLL_SET = [SCROLL, GRAMMAR];
+// R.W2b carved the `animation-range` → [0,1] mapping (resolveRange + the phase
+// fractions) off scene.ts into the colocated range.ts; the scroll module SET is
+// the three colocated files (driver + grammar + range mapping).
+const RANGE = "src/animation/scroll/range.ts";
+const SCROLL_SET = [SCROLL, GRAMMAR, RANGE];
 const INDEX = "src/animation/index.ts";
 const TEST = "test/scroll-scene.test.ts";
 
