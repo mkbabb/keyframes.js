@@ -1,0 +1,239 @@
+[
+ {
+  "band": "S.Z Close (S.Z1–S.Z3) — major-edits-required",
+  "convergence_pct": 33,
+  "headline": "Both S.Z gates re-commit the r2 failure catalogue on the close band itself (recap gate checks row-shape not cited-oracle-truth; template gate scope is prose over non-parseable T1–T12), and the close is unrunnable-as-written because T10's full-roster-green collides with T12's E6 external HANDOFF gate inside proof:all.",
+  "blocking": [
+   "Rewrite proof:prompt-recap-s so every ADDRESSED row's cited oracle must resolve to a real gate AND match a green exit in the S.Z3 from-clean roster run; bind the three re-verifications to concrete oracles (keyframes-vue=npm-404+grep-zero, lint-tier=depcruise-[]+enforcer-exists, decomp-spirit=S.B5 empty-override+≤460L exit).",
+   "Replace the undefined 'nine in the kickoff' with r1 §5's twelve enumerated kickoff asks + the 7-clause standing mandate, cited, as the precept set the gate maps.",
+   "Re-specify proof:tranche-template to directly check only the FINAL-parseable mandates {T2,T3,T4,T5,T10} and to assert presence+green of the named sibling gate for artifact mandates {T1,T6,T7,T8,T9}; add a per-mandate non-vacuity plant table (r2 S5).",
+   "Define a 'closeable roster' reconciling T10 and T12: full roster minus owner-ratified external HANDOFF gates, rendered in the FINAL table as an explicit third state (HANDOFF-external-row N), never omitted.",
+   "Add a post-close fallout guard distinct from the FINAL parser: any commit between FINAL SHA and version tag touching src/bench/scripts REDs (the mechanical form of T10 the FINAL parser cannot see).",
+   "Name a re-verify oracle for the keyframes-vue KILL (npm view 404 + repo-grep zero, r1:375).",
+   "Give §5.4 mid-S ask-capture a concrete mechanism (a fully-dispositioned OWNER-ASKS.md the gate checks) or demote it honestly from gate to orchestrator discipline; name the ask-ledger artifact path.",
+   "Re-point the recap ledger's apparatus/device rows from r1's p12-refuted device-dependence-plane framing to S.A0/A2 fix-by-cause dispositions, and re-measure r1's own ADDRESSED-map rather than chain-trusting it.",
+   "Surface the two version-ruling questions to the owner (S.B6 =any→=Vars d.ts-narrowing possibly-breaking; 126-private roll-up strip) instead of glossing under 'additive-minor by default'."
+  ],
+  "prune": [
+   "Record-future: 'docs/precepts/audits ownership' — S.Z3's 'fold or freeze' is a non-decision; move to owner record-future, not a close deliverable.",
+   "Record-future: give docs/tranches/TEMPLATE.md an amendment/version discipline so it does not become the next stale-doc-authority (R.W7 inversion applied to itself).",
+   "Prune the phrase 'the nine in the kickoff' (unsourced) — replaced by the cited enumeration.",
+   "KEEP (do not prune): the §5.5 spirit-column doctrine and T10's full-roster clause — the two load-bearing wins."
+  ],
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sz-close.md"
+ },
+ {
+  "band": "S.D",
+  "convergence_pct": 35,
+  "headline": "S.D's spine is validated by both probes (partition mechanical per p04, fold viable with 0 errors per p06), but proof:app-is-shell is a defective gate that cannot reach GREEN as worded, S.D1's \"evict five scene-tier files\" contradicts the a23 Layout C the probe validated (they are cross-scene → app/runtime/), and the band's largest wave D2 is unprototyped.",
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sd-demo.md",
+  "blocking": [
+   "Re-author proof:app-is-shell to a directional predicate (no app/ file imported by exactly one non-app area; cross-scene files may live in app/runtime/) so it is born-RED yet reachable-to-GREEN, plus p04's stale-depth clause.",
+   "Reclassify D1's five files as cross-scene → sub-zone into app/runtime/ (a23 Layout C, validated by p04); evict ONLY cubeTransformStore.ts out to scenes/cube/; delete 'evict the five scene-tier files to their real homes'.",
+   "Replace D3's 'two gate clauses' with p06's six-item touch set, naming SCENE_GATE_META.compose in demo-driver.mjs FIRST as the fail-loud all-82-gate blocker.",
+   "Add DAG edge S.G1 → compose runtime-fleet green so proof:compose-scene CLOSES after G, not at D3 (compose auto-enrolls in occlusion/font/stage-visible fleet).",
+   "Add to D1 the scenes.ts ../scenes/→../../scenes/ depth-bump (16 lines, only non-alias edit, reds tsc if missed) and the same-commit atomicity constraint (gate/lib path-swaps + moves together; demo-driver.mjs feeds 5 gates).",
+   "Define 'consuming area' for proof:shared-has-n-consumers (per-scene vs collective) — it decides every D2 colocation ruling.",
+   "De-numeric the App.vue ≤360L shell gate: make shell-ness structural, treat line count as an observed tripwire not the GREEN criterion (C-5/T2).",
+   "Settle the use<Name>Demo taxonomy (D4) BEFORE D3 registers compose, or defer the filename to D4; add compose to proof:scene-colocated SCENE_DIRS with the chosen peer name.",
+   "Prototype D2 (stores hoist + 10k-line monolith sub-zone + ControlsPaneWrapper/AnimationControlsGroup carves) OR author its born-RED gate against an explicit a24-census-derived touch-set.",
+   "Carry p04's measured D1 cost (~38 files/~60 lines, not a23's 4/6) and relax or re-justify the A4→D1 DAG edge (the partition reds no FROZEN appearance gate, only 7 known source-path gates — p04 F4)."
+  ],
+  "prune": [
+   "Q4's SUCCESS/FAILURE dichotomy conflates 'reds outside FROZEN set' with 'unknown coupling' — record that the partition's out-of-FROZEN reds (7 source-path gates) are known and mechanical, not a re-inventory trigger.",
+   "Record the cross-band coherence hazard: proof:scene-colocated is mutated by three waves (A4 delete ASSERTION 3, D2 ref-count clause, D3 SCENE_DIRS+=compose) — name canonical edit order A4→D2→D3.",
+   "Image/SVG asset-kind decision (D3) is orthogonal to the fold per p06 §4.4 — keep as independent D3 sub-item, not a mount blocker."
+  ]
+ },
+ {
+  "band": "S.C — Legacy purge with teeth",
+  "convergence_pct": 38,
+  "headline": "S.C's spine (animate DELETE, no-silent-fallback widening, dead-dep census) is sound and evidence-grounded, but two of four born-RED gates are falsifiability-broken as written and two rulings rest on stale premises live probes overturn — six mechanical SPEC-v2 edits needed.",
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sc-legacy.md",
+  "blocking": [
+   "proof:no-dead-dependency must restrict matching to real import/require specifiers (not comment/prose substrings) AND scan config+scripts+plugin sites, OR run as an explicit allowlist of the 8 named shadcn packages — as written it false-REDs live tooling devDeps (vite/tailwind/prettier/etc.) and false-GREENs zod/@unovis which appear only in comment strings.",
+   "proof:no-orphan-module must state its walker resolves dynamic import() string specifiers in load-engine.ts (and engine/public) as graph edges and pin the entry-root set, else it REDs the entire HEAVY lazy surface (motion-path/draw-svg/presets/etc.) while failing to isolate animate.ts.",
+   "Scope S.C1's 'zero animate( references' grep to the excised front-door symbol and allowlist Element.animate WAAPI prose + historical CHANGELOG rows; scope S.C2's 'zero as any in demo composables' to the fixed site plus a KEEP: allowlist (6 as-any exist across >=4 composables; the wave fixes only one).",
+   "Specify the generalized changelog gate's snapshot/diff mechanism (e.g. git-tag checkout of the previous published surface, RED on any removed row lacking a matching MIGRATION-<new>.md entry) — docs/published-surface.md is a single current file with no per-release history to diff.",
+   "Name the menubar migration target — glass-ui 4.0.1 has dropdown-menu/context-menu but NO menubar surface; pick dropdown-menu (present, no external gate) with the UX remap acknowledged OR the a24-F6 relocate-in-place fallback, and forbid gating menubar removal on a possibly-missing surface (else S.C3 becomes a second externally-gated wave, violating T12).",
+   "Change the stale-comment gate to ban specific dead component identifiers (SceneSwitcherCarousel, SegmentedTabs, Animated.vue, ResponsiveSelect, AnimationMenuBar) not the phrase 'scene-switcher' (which S.E legitimately revives), and extend the narration corpus to include proof-script sites (e.g. scripts/proof-visual-lock.mjs:172 'unovis graph (live)')."
+  ],
+  "prune": [
+   "Split the menubar->glass-ui migration out of C3 into its own priced sub-item with its own gate — it is a UX decision + 16-file delete + one-consumer rewrite, not narration cleanup.",
+   "State explicitly in C3 which narration-sweep items are gated (no-dead-dependency, dead-identifier grep) vs. discretionary best-effort (docs/frontend-design path remaps, design-idioms.css tombstones, soa.ts/group-barrel headers) — one grep clause does not cover the corpus.",
+   "Record-future note: C1's no-orphan gate root-set is perturbed by S.B4 (deletes internal/index.ts) and S.B6 (rewrites loader) — require its green re-run on the post-B tree per T7."
+  ]
+ },
+ {
+  "band": "AMBER — G1 validated + runtime-honest; G2/G3/G4 gates rubric-shaped; G1↔D2 collision",
+  "convergence_pct": 40,
+  "headline": "S.G1's stage-visibility contract is a probe-validated, runtime-honest systemic cure (12%→72% stage visible), but SPEC-v1 hasn't absorbed p10's four adjustments, G1's edits collide with D2's carve of the same 497L animation-controls host, and G2/G3/G4 ride rubric-shaped gates that would not have caught the R residue.",
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sg-design.md",
+  "blocking": [
+   "Reword S.G1 to the three-writer peek cure (host mount-reset in useSheetState + desktop-gate useControlsLayout.ts:64 auto-open + delete born-open pokes SpringScene.vue:47/EasingScene.vue:36) and state the store default isControlsPanelOpen:true stays (p10 F4).",
+   "Add S.G1 one-open-axis mandate as a gate guard clause: a per-layout fork of the open intent reds proof:live-session-mobile's touch battery, observed 3 clauses (p10 F3).",
+   "Change S.G1 'every scene declares a band' to 'every stage MODE declares the derived token pair --stage-strip/--stage-reserve' (subject 52dvh, editor/storyboard 26dvh), per-scene declaration as the unused escape hatch (p10 adj3).",
+   "Add S.G1 gate's expanded-detent clause (sheet.top >= resolved --stage-reserve after handle tap) plus a gate-arming audit sub-task grepping the roster for .controls-pane--open born-open arming waits (p10 F5).",
+   "Repair the DAG: sequence S.G1 with S.D2 (or fold G1's ControlsPaneWrapper/useSheetState/useControlsLayout edits into D2's carve) since both mutate the same 497L animation-controls files.",
+   "Replace S.G2's rubric gate with per-item born-RED oracles, naming at minimum motion-path traveller rect subset of stage rect at 375px and square Play visibly obeys duration/easing or the lying panel is collapsed.",
+   "Add to S.G2 the easing telemetry-anchor-into---stage-reserve item (p10 F7) and a per-scene sheet-pane scroll-reach sanity check (p10 risk c).",
+   "Replace S.G3's 'README'd gesture set' gate with a machine-readable per-scene gesture manifest whose every entry has an on-stage tell + browser-actuated touch path, pinning touch mechanisms to reliable primitives (not native dblclick synthesis).",
+   "Restate S.G4's gate to checkable clauses (egg fires on actuated trigger, PRM-snapped, dogfoods a named primitive), drop the 'or-documented' laundering escape, and sequence G4 after G3."
+  ],
+  "prune": [
+   "Prune G4's 'or-documented' reachability path (ceremony escape that defeats the anti-hidden-affordance purpose)",
+   "Record-future (not a wave): p10 risk-b 26dvh per-mode tuning once all 9 scenes gated — a one-line token change",
+   "Record in wave doc (not a gate): mobile mount-reset discards a returning user's expanded preference per scene entry"
+  ]
+ },
+ {
+  "band": "S.E — Scene-stage resurrection (DM-24 REVIVED)",
+  "convergence_pct": 48,
+  "headline": "Spine is probe-PROVEN (p05 confirms-spec: salvage re-paths mechanically, boundary green, FAILURE branch doesn't fire) and E4's commit gate is the tranche's model — but the band ships a device-dependent ≥55fps CI gate that can't close under S's own C-10/T4 discipline, three open design questions, a DAG defect (E1 enumerates compose but doesn't wait for D3 that creates it), and an unscoped interim dock-arrow surface the acceptance gate depends on.",
+  "blocking": [
+   "B1: add DAG edge D3→E1 (or enumerate 8 scenes + append compose row when D3 lands) — E1 currently enumerates compose but deps only D1/D2 while D3 creates compose.",
+   "B2: rewrite E1 scope to '7 adapters re-pathed + 2 authored-new (previews/morph.ts per p05 F5 + the compose adapter)'; add bare-tsc/no-vue-tsc caveat clause.",
+   "B3: strengthen E1 gate from 'resolves a non-null target' to 'each scene row mounts and renders a non-error idle preview' (closes p05 F4's residual inject-adapter runtime risk).",
+   "B4: split the E2/E3 perf criterion — device-independent geometry/commit is the CI born-RED gate; delete raw '≥55fps' as a T4 closure, making fps a declared local chrome-devtools-mcp acceptance or a C-10 budgeted ratio.",
+   "B5: name E3's oracle/harness concretely and reconcile it with the 'no scratch *.mjs probes' charter line ('live computed-style/rect assertions' is prose, not a falsifiable gate).",
+   "B6: specify where the mobile stage consumes KfPillTabs (proving no second nav authority) or remove it from E5; move 'KfPillTabs.test.ts green' out of E5's gate into its owner B7.",
+   "B7: pin the Oscillator (C-13) decision to ONE wave (E5 or S.G), deleting 'here or in S.G' and aligning fold row 56.",
+   "B8: scope the interim in-dock spin controls (DockIconButtons in the single ChromeDock, r7 A-10) in E4 — the E4/E5 arrow-commit gate has nothing to actuate otherwise, and E6 'retires' a surface no wave builds.",
+   "B9: add CI-budget accounting for the 3+ new browser-actuating gates (E2 fps, E4 commits, E5 mobile) against r8's ~50-launch/50-min demo-smoke ceiling S.A0 is greening."
+  ],
+  "prune": [
+   "Prune fps-as-CI-gate ceremony (folds into B4) — reads as rigor but cannot close under T4; keep as local acceptance.",
+   "Record-future: E6's visual-lock rebaseline against BG specular floor is its own multi-gate effort, not an atomic flip with the pin bump."
+  ],
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/se-scene-stage.md"
+ },
+ {
+  "band": "amber",
+  "convergence_pct": 50,
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sh-parse-that.md",
+  "headline": "S.H's perf/legacy headline is rock-solid and p11-confirmed (14-18% throughput, ~34% heap, heap-based gate is the correct choice), but the chain() fix silently resurrects a dead chainError-on-error path its regression test never exercises, and the band is a second cross-repo consume-edge the charter's only-E6-external claim denies.",
+  "blocking": [
+   "H2: resolve chain() semantics - the r6 shape !state.isError || chainError resurrects the currently-dead chainError-on-error path (parser.ts:128-133 short-circuits before chainError is read), so either add a chainError=true-on-error regression test plus a scan proving no caller relies on the old error short-circuit, or adopt the truly-additive success-only continue and retire the now-moot chainError param.",
+   "H1: add the probe-mandated type ripple - widen packratEnter() to PackratEpoch|null (or a shared sentinel), null-guard packratExit, and decide resetPackrat()'s unarmed early-return (p11 refinement 3).",
+   "H1: state that the retained-heap gate must run in a memoize-free process, since the arming flag is a process-global latch that never disarms and a stray memoize() construction false-REDs the flat-heap probe.",
+   "H4: add the two r6-mandated recorded decisions missing from the ledger - do-NOT-zone-partition parse-that (r6 #6) and zero-copy deliberately delegated to value.js's scanner layer (r6 #8) - and re-ground the WDM-keep rationale on the bbnf-lang LR-consumer question rather than the process-latching made-free-by-arming claim.",
+   "Charter/DAG: correct the E6-is-the-ONLY-externally-gated-wave claim (sec 1, DAG note, T12) - H3 (value.js sign-off) and H4 (parse-that 1.0.0 publish + kf re-pin) are a second cross-repo publish-then-re-pin consume-edge; reframe H3/H4 gates as born-SPECIFIED, not achievable during development-only S.",
+   "DAG: fix the intra-band ordering to H1,H2,H3 parallel; H1+H2 to H4 - H4's 1.0.0 cut + re-pin bundles the arming and span deletion, so H1..H4 parallel mis-orders the impl drive.",
+   "H4: reconcile fold-table row #46 (color2Into value.js WATCH, dispositioned verify-at-S.H4-re-pin), whose text H4 omits, and make explicit that H1's patch + H2's breaking cut land in one 1.0.0 publish so kf re-pins exactly once."
+  ],
+  "prune": [
+   "H3 (Pratt): downgrade from a gated wave to a recorded-future design appendix - its design-doc + external-sign-off gate violates T1's runtime-tier absolutism and r6 rates it LOW; keep the seed, drop the wave/gate ceremony.",
+   "Do NOT add a throughput-% gate to H1 (probe-confirmed flake trap; the retained-heap gate is the right and stable one) - record so a future pass doesn't strengthen it."
+  ]
+ },
+ {
+  "band": "S.F",
+  "convergence_pct": 52,
+  "headline": "F1 (VT emitter) is strongly validated by p09 and mechanically absorbable, but F5 is a seven-item kitchen-sink with an unbudgeted Typed-OM fork, F3 smuggles a transition/@starting-style output grammar into a keyframes-only compiler with no prototype/home ruling, and F1's gate as-written is the exact device-dependence trap the tranche exists to cure.",
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sf-sota-animation.md",
+  "blocking": [
+   "F1: replace 'compile a kf group' with the name-keyed VTRoleSpec (Record<name,{old,new,group,class}>) as the primary shape, bare-group as sugar (p09:201-224).",
+   "F1: state the THREE emission surfaces and mark ::view-transition-group(name) timing-only (never animation-name) mandatory-by-default, or F1 ships the observed 250ms/ease incoherence (p09:82-90).",
+   "F1: enumerate the four VT refusals vt-scroll-grammar/vt-element-scoped-computed/vt-snapshot-inapplicable/vt-name-collision (p09:113-132).",
+   "F1: name compile/view-transition.ts + orchestration/view-transition/ + compileToViewTransition(./engine mirror) + viewTransition(LIGHT barrel) + the VT-b selector-factory carve at backward.ts:339, and decompose into VT-a..VT-d.",
+   "F1 gate: rewrite to proof:vt-roundtrip using structural getAnimations() assertions + one settled-rect-tolerance clause, no per-frame pixel/ms threshold (device-independence, p09:242-244).",
+   "F5: split into F5a (zero-alloc: boxedKeys-Set + mixed-leaf clause + colorTail/replace-arm ratios), F5b (bench coverage: resolve.bench + cold-import), F5c (Typed-OM + WAAPI densify) — one born-RED gate per unit.",
+   "F5 Typed-OM: pre-book the verdict as default KILL-with-recorded-bench-measurement; ADOPT fires only above a pre-stated write-throughput threshold and only as a separate authored wave (no prototype exists; grep shows zero Typed-OM surface in src).",
+   "F5 WAAPI densify: state whether it extends proof:waapi-adaptive-densify or ships a new born-RED clause (no un-gated feature).",
+   "F3: rule the @starting-style/transition emitter home (compileToCSS branch vs new compile/entry.ts sibling), and either demote F3 to DEVELOP-only pending a Q9-style hand-compile prototype or name the sibling + its refusal home (':493 refusal-recorded-elsewhere is a dangling pointer).",
+   "F2: state the line-split posture (measure-or-refuse under resize/container instability) and make the a11y gate a browser-actuated accessible-name-equality assertion (T8), not source-shape; and F6: re-home the byte-count claim onto proof:consume-bundle not readme-runs."
+  ],
+  "prune": [
+   "F5 Typed-OM collapses to one bench + one doc line if the pre-booked default is KILL — do not let it inflate the SOTA-perf headline.",
+   "F6 byte-count gate: move off proof:readme-runs (executes snippets, cannot verify a prose kB number) onto proof:consume-bundle.",
+   "Anchor-positioned motion / Lottie-Theatre importer / Rive already correctly recorded-future (SPEC-v1:476-478, r5 finding 6) — keep parked, no over-reach."
+  ]
+ },
+ {
+  "band": "x2-antipattern (cross-cutting r2-catalogue enforcement over the whole spec)",
+  "convergence_pct": 55,
+  "headline": "T1–T12 are the record's strongest anti-pattern armor, but S embeds three live instances of the modes it condemns: a p12-falsified device-dependence model under the A0 keystone (masking-green lever), an unfalsifiable single-writer gate (S.B2), and a document-shaped close meta-gate (S.Z2) that never re-gates its own keystone — plus E6 external-forever laundering.",
+  "blocking": [
+   "Rewrite §2.1-pt2 + §4 rows 5/10/13 to p12's taxonomy (genuine-fix-by-cause/shared-harness/gate-staleness; device-races=0) and add an S.A2 stale-gate bucket.",
+   "Add a hard S.A0/S.A2 clause: the demo-correctness↔observe split may NOT green a red whose signature reproduces off-runner — discharge by cause or ratified-KILL, never reclassification.",
+   "Reframe S.B2's born-RED clause to 'no FSM field DECLARED on the class body (accessor delegates only)' and sequence B2 before B5 for the ~13L headroom cost (p02).",
+   "S.Z2 must RE-EXECUTE (not re-parse) each CLOSED wave's closure oracle and RED on exit-code mismatch; S.Z3 must add a born-RED precondition that master CI shows a green push run on the FINAL SHA (re-arm A0 at close).",
+   "Redefine 'terminal' in S.A1/§4 as deterministic-re-shape OR ratified-KILL only; 'observe-in-CI' is NOT a terminal (rows 6–9,14).",
+   "Declare glass-ui rows 51/52/53 an explicit non-terminal RESIDUAL CARRY if 5.0.0 does not publish in S; add a kf-internal contingency fallback for dock double-click.",
+   "S.A4: FROZEN-discharge must be machine-distinguishable migration (successor-gate mapping row in ci-coverage) OR ledgered KILL with re-run witness; ban free-prose 'deletion-with-cause'; add p08's symmetric mis-tier clause.",
+   "Extend T3's deferral-verb meta-gate from override prose to the S ledger's disposition column.",
+   "S.B6: proof:engine-subpath-mirror must diff the AnimationEngine TYPE key list, not two runtime Object.keys() sets (p07).",
+   "S.G1: add the gate-arming audit clause (grep .controls-pane--open arming waits; p10)."
+  ],
+  "prune": [
+   "Record-future S.G4 (ten easter eggs) — observe-tier altitude atop a red substrate; strongest de-risk of S's breadth signature.",
+   "Re-shape (not prune) the 'observe-in-CI = terminal' dispositions (rows 6–9,14) — they are relabeled perpetual carries.",
+   "Confirm S.H3 Pratt design-doc gate is not counted as a closable born-RED."
+  ],
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/x2-antipattern.md"
+ },
+ {
+  "band": "S.A — Truth & Gates",
+  "convergence_pct": 58,
+  "headline": "p08 confirms the re-taxonomy lands, but p12 refutes the band's \"device-dependence plane\" model and the keystone gate is outcome-shaped (masking-satisfiable) — S.A0 cannot honestly green first, and S.A1/S.A4 gates are half-unfalsifiable.",
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sa-truth-gates.md",
+  "blocking": [
+   "Rewrite §2.1-pt2 + fold rows 10/13: strike 'device-dependence plane'; DM-11b = the SAME importmap harness bug as DM-13 (one shared fix), DM-14 = a genuine spring pause/resume source defect not a 'timing calibrate' (p12:112-153).",
+   "Scope the value.js-subpath importmap harness fix (shared across proof-engine-no-throw-on-play.mjs + proof-subject-animates.mjs) into S.A0 — it is the prerequisite for S.A0's own CI-green gate yet appears only in fold-row 12 (p12:86-94,167).",
+   "Make S.A0's born-RED gate cause-shaped: each of the 14 blocking reds discharged by a named cause verified against a locally-reproduced signature, with threshold-loosen/timeout-widen/continue-on-error masking forbidden (p12:176-179).",
+   "Resolve the keystone-ordering DAG contradiction: enumerate which genuine demo/source born-REDs (cold-entry, drag-gesture, easing-sidebar-minimal, scene-perf-budget-A2, icon-paint-live, DM-14) S.A0 owns vs. stay authorized-RED under S.D/S.E/S.G, and re-scope S.A0's gate to 'green modulo the enumerated born-RED backlog' (p12:170-174).",
+   "Add a fourth S.A2 disposition bucket — gate-staleness → re-point the gate's parser/selector — for demo-usability's literal-name regex vs the generated name:s.id routes; note the demo-smoke split will NOT green correctness/gate-bug reds (p12:125,157).",
+   "Give S.A1 a substance clause: proof:chronic-closure must RED any *-TERMINATED row citing no deterministic re-shaped gate/ratified KILL (existing vocab already accepts VERIFY-ONLY at proof-chronic-closure.mjs:64-86), and mandate each disposition be re-derived from a reproduced signature not inherited (p12:159).",
+   "Drop S.A1's 're-run on the REAL runner' and Q12's 'Linux-shaped environment (container/act)' — local macOS reproduction IS the device-dependence discriminator (p12:23,48).",
+   "Expand S.A4 with the full lockstep co-edit set: keep proof:demo-correctness a DIRECT && chain, proof-ci-coverage.mjs EXCLUDED add + clause-0b three-tier union (:238-239 airtightness linchpin), gate-is-runtime roster retarget + membership-count floor, run-all.mjs:42 (the third consumer), gate-taxonomy.md stale-row deletes (p08:57-104,268-291).",
+   "Add the symmetric mis-tier clause to S.A4's reformed proof:gate-is-runtime (a library-correctness member must NOT carry browser-harness anchors) so Q8's 'planted mis-tiered gate REDs' is falsifiable in both directions (p08:105-115,284-288).",
+   "Validate or drop S.A4's 'post-actuation DOM-read heuristic' upgrade — no probe tested it; p08 kept the existing browser-harness-import anchor (p08:79-95)."
+  ],
+  "prune": [
+   "Prune the 'device-dependence plane' narrative in §2.1/§4 and the 'calibrate' verbs in rows 10/11/13",
+   "Prune the Linux-container/act apparatus from S.A1/Q12",
+   "Record-future: the ~54→single-digit FROZEN-fold count is validated by Q4/p04 not p08 — S.A4 cites the dependency, does not re-assert the ~120 headline"
+  ]
+ },
+ {
+  "band": "developing — sound shape, B2 ceiling contradiction + B2/B6 gate-honesty defects block impl",
+  "convergence_pct": 64,
+  "headline": "S.B is the best-grounded band (3/4 probes confirm-spec) but B2 ships a live 500L-ceiling contradiction and two r2-catalogue dishonest gates (B2 FSM, B6 mirror); all fixable mechanically, no ruling reopened.",
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/sb-library.md",
+  "blocking": [
+   "B2 FSM gate: reword 'fields reached only via PlaybackState' to 'no FSM field DECLARED on class body — accessors only'; reframe goal as single-STORAGE not single-writer (p02 F3).",
+   "Strike B2's 'animation.ts shrinks' — the non-breaking delegate fold GROWS the class body 442→455L (p02 F3/F4, verified 499L file).",
+   "Pull the engine/animation.ts(499) + engine/playback.ts(498) ceiling carves forward from B5 into B2 and state it in the DAG — the fold pushes both past 500 yet B2 demands proof:decomposition-green-with-headroom (verified live).",
+   "Enumerate B2's 9-script/10-site gate co-edit (proof-engine recursive + 8 hardcoded css-path gates) and gate B2 on proof:all not the Q1 subset (p01 F-d, verified 9 scripts).",
+   "RULE element-resolve.ts's home in B2 (a17 F5 header → resolve/) instead of leaving 'decide' open.",
+   "Redefine proof:engine-subpath-mirror to diff runtime keys ⊆ AnimationEngine d.ts TYPE keys — the runtime-vs-runtime form is vacuous once the loader sources from the same import (p07 final).",
+   "Decouple B6's mandatory drift GATE from the optional loadAnimationEngine→import('./engine/public') collapse; record the 23→5-chunk / single-97kB / foreclosed-partial-split cost for the owner per Q7 (p07).",
+   "Sharpen B1's gate to a FILE-level assertion (reject any non-import-type line in constants/types.ts), state acceptance as 'every LIGHT importer targets constants/types; heavy keeps the barrel', and correct '~55 consumers' to the 10 mandatory light repoints (p03 F1/F2).",
+   "Book the literal single-writer hard fold as a FUTURE BREAKING wave (107 test sites + demo contract-anim writes + a public seek(ms) verb + MIGRATION), explicitly out of S scope — collides with S.Z3 additive-minor (p02 §3.3)."
+  ],
+  "prune": [
+   "B4 stretch (26 type-only rings + viaOnly exemption) → record-future; do not gate B4 on it.",
+   "B6 loader→import('./engine/public') collapse → owner-recordable option, not mandatory; the type-diff drift gate is the load-bearing item.",
+   "B1 '~55 consumers repointed' → correct to the 10 mandatory LIGHT repoints (ceremony overcount)."
+  ]
+ },
+ {
+  "band": "cross-cutting-completeness",
+  "convergence_pct": 82,
+  "headline": "Spec is substantively complete — all 5 criticals + the r8 §6 ledger fully folded — but §4's own \"no un-dispositioned rows / every open item\" claim is falsified: DQ-4/5/6/7 are dropped entirely and the HIGH-severity KfPillTabs keyboard defect (a12) is absent from the fold table (present only in waves S.B7/S.E5).",
+  "blocking": [
+   "Add §4 fold row for KfPillTabs keyboard-broken + TransportDock auto-repeat (a12 F1/F2, HIGH) → S.B7 + S.E5, so the table's 'every open item' claim holds.",
+   "Add a §4 disposition for DQ-4/5/6/7 (false-RED S1/S2, ci-coverage, emerging-CSS-P2, wave-charter) — 'assumed FOLD-LANDED in Q; S.Z1 recap re-verifies' — closing r8-F2 totally not just DQ-1/DQ-2.",
+   "Add a §4-header sentence defining 'open item' as open-at-R-close, excluding the five already-ratified R KILL/RECORD terminals (r8 §1a), so the totality claim is auditable.",
+   "S.C3: add a shadcn-census gate clause (repo-wide grep for cn()/class-variance-authority/@radix returns empty post-purge) so NO-legacy is proven, not menubar-scoped (T9).",
+   "S.A4 gate line must absorb p08's three confirmed adjustments: name the 5-artifact atomic co-edit set (esp. proof-ci-coverage.mjs:238-239 third-tier union), add the symmetric mis-tier clause, pin proof:demo-correctness as a direct && chain.",
+   "Resolve 'SOTA both repos' by owner ruling (kf+parse-that vs full constellation); if the latter, a value.js SOTA lane is a missing band."
+  ],
+  "prune": [
+   "Do not re-add the already-terminal R KILLs (DM-7/DM-1/DM-5S1/DQ-3/VJ-Q9) as fold rows — a scope-note is the correct fix, not re-litigation.",
+   "Do not expand §5 prompt-recap — the charter-precept→band mapping + mid-S-append rules already close both leak paths.",
+   "Do not add a value.js SOTA band speculatively before the owner reading is settled."
+  ],
+  "report_path": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/critique/x1-completeness.md"
+ }
+]
