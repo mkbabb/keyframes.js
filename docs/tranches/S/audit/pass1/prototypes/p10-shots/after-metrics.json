@@ -1,0 +1,72 @@
+[
+  {
+    "scene": "spring",
+    "phase": "after",
+    "state": "rest",
+    "shot": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/prototypes/p10-shots/after-spring-375.png",
+    "viewportH": 667,
+    "sheet": {
+      "top": 480,
+      "bottom": 544,
+      "height": 64
+    },
+    "sheetT": "0",
+    "visibleFraction": 0.72,
+    "subjectSel": "[class*=glass-card], [class*=Target], [class*=rail]",
+    "subject": {
+      "top": 1113,
+      "bottom": 1115,
+      "height": 2
+    },
+    "subjectFullyVisible": false
+  },
+  {
+    "scene": "spring",
+    "phase": "after",
+    "state": "expanded-by-gesture",
+    "shot": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/prototypes/p10-shots/after-spring-375-expanded.png",
+    "viewportH": 667,
+    "sheet": {
+      "top": 246,
+      "bottom": 544,
+      "height": 298
+    },
+    "sheetT": "1",
+    "visibleFraction": 0.369
+  },
+  {
+    "scene": "easing",
+    "phase": "after",
+    "state": "rest",
+    "shot": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/prototypes/p10-shots/after-easing-375.png",
+    "viewportH": 667,
+    "sheet": {
+      "top": 480,
+      "bottom": 544,
+      "height": 64
+    },
+    "sheetT": "0",
+    "visibleFraction": 0.72,
+    "subjectSel": ".progress-ball, .hero-ball",
+    "subject": {
+      "top": 455,
+      "bottom": 511,
+      "height": 56
+    },
+    "subjectFullyVisible": false
+  },
+  {
+    "scene": "easing",
+    "phase": "after",
+    "state": "expanded-by-gesture",
+    "shot": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/prototypes/p10-shots/after-easing-375-expanded.png",
+    "viewportH": 667,
+    "sheet": {
+      "top": 246,
+      "bottom": 544,
+      "height": 298
+    },
+    "sheetT": "1",
+    "visibleFraction": 0.369
+  }
+]

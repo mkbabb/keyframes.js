@@ -1,0 +1,42 @@
+[
+  {
+    "scene": "spring",
+    "phase": "before",
+    "shot": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/prototypes/p10-shots/before-spring-375.png",
+    "viewportH": 667,
+    "sheet": {
+      "top": 81,
+      "bottom": 544,
+      "height": 463
+    },
+    "sheetT": "1",
+    "visibleFraction": 0.121,
+    "subjectSel": "[class*=glass-card], [class*=Target], [class*=rail]",
+    "subject": {
+      "top": 714,
+      "bottom": 716,
+      "height": 2
+    },
+    "subjectFullyVisible": false
+  },
+  {
+    "scene": "easing",
+    "phase": "before",
+    "shot": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/audit/pass1/prototypes/p10-shots/before-easing-375.png",
+    "viewportH": 667,
+    "sheet": {
+      "top": 81,
+      "bottom": 544,
+      "height": 463
+    },
+    "sheetT": "1",
+    "visibleFraction": 0.121,
+    "subjectSel": ".progress-ball, .hero-ball",
+    "subject": {
+      "top": 455,
+      "bottom": 511,
+      "height": 56
+    },
+    "subjectFullyVisible": false
+  }
+]
