@@ -287,7 +287,7 @@ async function realSceneHalf() {
             // product's `@pointerup`-bound transport consumes it (R.W6 excised the
             // strand-prone `@click`; a synthetic `element.click()` no longer
             // actuates it — see `pressPlayToggle`).
-            await pressPlayToggle(page);
+            await pressPlayToggle(page, { intent: "play" });
             // PER-EXPECTED predicate wait (NOT a fixed settleMs): the engine WROTE
             // the subject iff the playhead the group composite paints advances.
             const wrote = await page

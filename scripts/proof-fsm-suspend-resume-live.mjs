@@ -523,7 +523,7 @@ async function browserHalves() {
         // Actuate via a REAL pointerup (the product's transport is `@pointerup`-
         // bound since R.W6 excised the strand-prone `@click`; a synthetic
         // `element.click()` no longer actuates it — see `pressPlayToggle`).
-        await pressPlayToggle(page);
+        await pressPlayToggle(page, { intent: "pause" });
         await page.waitForTimeout(700);
         const springPausedAfterClick = !(await activeIntentPlaying(page));
 

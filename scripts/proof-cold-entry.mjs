@@ -134,7 +134,9 @@ const sliderValue = (page) =>
  *  actuates it — see `pressPlayToggle`). Returns the actuated control label, or
  *  null. */
 async function clickRainbowPlay(page) {
-    return pressPlayToggle(page);
+    // intent:"play" — the cold legs START a stopped scene (the old Play-only
+    // selector semantics); an auto-playing scene must not be toggled into pause.
+    return pressPlayToggle(page, { intent: "play" });
 }
 
 /** Wait — per an EXPECTED predicate, NOT a fixed settleMs (the J.W0 settle-

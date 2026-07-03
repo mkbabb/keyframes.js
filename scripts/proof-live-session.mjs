@@ -80,6 +80,7 @@ import {
     SCENE_MACHINE_KEY,
     SCENES,
     navToScene,
+    pressPlayToggle,
     subjectRect,
     withBrowser,
     withPage,
@@ -313,22 +314,20 @@ async function dockSwitch(page) {
     return committed ? `dock-Select clicked "${target.label}" (of ${target.optCount} options, trusted)` : `dock-Select keyboard-committed (optCount ${target.optCount})`;
 }
 
-/** CLICK the rainbow group-play pill (the user's first gesture; B1 trigger). */
+/** Actuate the rainbow group-play pill (the user's first gesture; B1 trigger).
+ *  S.A0: the positional `locator.click({ force: true })` was fragile against the
+ *  R.W6 `@pointerup`-bound transport × the dock's collapse→expand morph (the
+ *  button's painted hit-area lags its rect mid-morph, so the forced positional
+ *  click could land on the dock host and be swallowed — the gate's own B1
+ *  comment documents that reality). `pressPlayToggle` dispatches a primary-
+ *  button `pointerup` DIRECTLY on the visible transport button — the exact
+ *  event `TransportDock.onPlayPointerUp` consumes — immune to hit-area lag.
+ *  The engine-start verdicts (slider advance etc.) are unchanged. */
 async function clickRainbowPlay(page) {
-    const candidates = [
-        'button[aria-label*="Play animation"]',
-        'button[aria-label*="play" i]',
-        ".btn-playback-play",
-        '[data-testid="group-play"]',
-    ];
-    for (const sel of candidates) {
-        const el = page.locator(sel).first();
-        if ((await el.count()) > 0) {
-            await el.click({ force: true, timeout: 2500 }).catch(() => {});
-            return true;
-        }
-    }
-    return false;
+    // intent:"play" — the legs that call this must START a stopped scene and
+    // NO-OP on an already-playing one (the old Play-only selector semantics).
+    const actuated = await pressPlayToggle(page, { intent: "play" });
+    return actuated != null;
 }
 
 /** Fire a SYNTHETIC visibilitychange→hidden (the B2 born-RED-of-record; NO dock
@@ -555,7 +554,12 @@ async function runBattery() {
             });
             let dMutated = false;
             if (easing.present && easing.handleCount >= 2) {
-                // Drag handle 0 via trusted pointer events (the real handle drag).
+                // Drag handle 0. S.A0: dispatch the pointer sequence ON THE
+                // HANDLE, not the SVG — the bespoke SVG-level `@pointerdown`
+                // hit-test was RETIRED for the LIGHT `drag2D` Draggable, which
+                // binds its `pointerdown` on the handle element itself (the
+                // canonical proof:easing-editor-live drive documents + drives
+                // that seam; this in-battery face had gone stale against it).
                 await page.evaluate(async () => {
                     const svg = document.querySelector(".easing-curve-canvas");
                     const handle = document.querySelector('.easing-curve-canvas .control-point.handle[data-index="0"]') || document.querySelector(".easing-curve-canvas .control-point.handle");
@@ -565,7 +569,7 @@ async function runBattery() {
                     const sx = hb.x + hb.width / 2;
                     const sy = hb.y + hb.height / 2;
                     const fire = (type, x, y) =>
-                        svg.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse", buttons: type === "pointerup" ? 0 : 1, clientX: x, clientY: y }));
+                        handle.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse", button: type === "pointerdown" ? 0 : -1, buttons: type === "pointerup" ? 0 : 1, clientX: x, clientY: y }));
                     fire("pointerdown", sx, sy);
                     const tx = r.x + r.width * 0.7;
                     const ty = r.y + r.height * 0.15;
@@ -1076,8 +1080,18 @@ async function runBattery() {
                         sceneFails.push(`${key}: PLAY red — traveller produced only ${n} distinct states (<3)`);
                     }
                     const d0 = await page.evaluate(() => document.querySelector(".mp-guide-path")?.getAttribute("d") ?? null);
+                    // S.A0: pick the OFF-PATH CONTROL handle (the canonical
+                    // proof:motion-path-editable drive does exactly this) — the
+                    // first `.mp-handle` in DOM is an ON-PATH anchor the riding
+                    // traveller can occlude at hit-test time, swallowing the
+                    // trusted pointerdown; and drag a VISIBLE delta well clear
+                    // of the handle's own hit radius (the canonical 80/-60, not
+                    // the old 24/-20 nudge).
                     const handle = await page.evaluate(() => {
-                        const el = document.querySelector(".mp-handle");
+                        const handles = [...document.querySelectorAll(".mp-handle")];
+                        const el =
+                            handles.find((h) => h.classList.contains("mp-handle--control")) ??
+                            handles[0];
                         const r = el?.getBoundingClientRect();
                         return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
                     });
@@ -1087,9 +1101,9 @@ async function runBattery() {
                     }
                     await page.mouse.move(handle.x, handle.y);
                     await page.mouse.down();
-                    for (let i = 1; i <= 8; i++) {
-                        await page.mouse.move(handle.x + (24 * i) / 8, handle.y - (20 * i) / 8);
-                        await page.waitForTimeout(25);
+                    for (let i = 1; i <= 12; i++) {
+                        await page.mouse.move(handle.x + (80 * i) / 12, handle.y - (60 * i) / 12);
+                        await page.waitForTimeout(16);
                     }
                     await page.mouse.up();
                     await page.waitForTimeout(300);

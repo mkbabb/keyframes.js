@@ -859,12 +859,16 @@ export async function navToScene(
  * The transport is a single toggle (`isPlaying ? "Pause" : "Play"`), so pressing
  * "whichever is visible" starts a stopped scene and pauses a playing one; the
  * expanded button is preferred, the collapsed-dock mirror + the rainbow pill are
- * fallbacks. Returns the actuated control's aria-label/selector, or null when no
- * transport button is present (the same shape the gates' own finders returned).
+ * fallbacks. `intent: "play"` restricts the press to a visible PLAY control (a
+ * gate that must START must no-op — not toggle into pause — on an auto-playing
+ * scene); `intent: "pause"` mirrors it; `"toggle"` (default) presses whichever
+ * face is visible. Returns the actuated control's aria-label/selector, or null
+ * when no matching transport button is present (the same shape the gates' own
+ * finders returned).
  */
-export async function pressPlayToggle(page) {
-    return page.evaluate(() => {
-        const SELECTORS = [
+export async function pressPlayToggle(page, { intent = "toggle" } = {}) {
+    return page.evaluate((intent) => {
+        const ALL = [
             'button[aria-label="Play animation"]',
             'button[aria-label="Pause animation"]',
             'button[aria-label="Play animation (collapsed dock)"]',
@@ -874,6 +878,12 @@ export async function pressPlayToggle(page) {
             ".rainbow-vivid",
             ".rainbow-pastel",
         ];
+        const SELECTORS =
+            intent === "play"
+                ? ALL.filter((s) => !/Pause|rainbow-vivid/.test(s))
+                : intent === "pause"
+                  ? ALL.filter((s) => !/Play animation|rainbow-pastel/.test(s))
+                  : ALL;
         const isVisible = (el) => {
             const r = el.getBoundingClientRect();
             return r.width > 0 && r.height > 0;
@@ -893,7 +903,7 @@ export async function pressPlayToggle(page) {
             }
         }
         return null;
-    });
+    }, intent);
 }
 
 /**
