@@ -484,9 +484,15 @@ const ROOT_HTML =
     '<script type="importmap">' +
     JSON.stringify({
         imports: {
-            // The kf dist's ONE bare specifier; value.js's transitive bare edge.
+            // The kf dist's bare specifiers; value.js's transitive bare edge.
+            // S.A0(4): the value.js O subpath split means the lazy engine chunk
+            // ALSO imports `@mkbabb/value.js/math` (→ dist/subpaths/math.js) —
+            // map the subpath namespaces (keeping the bare maps); the server's
+            // extensionless-`.js` fallback serves `subpaths/math` → `math.js`.
             "@mkbabb/value.js": "/vjs/" + vjsEntry.slice(vjsDistDir.length + 1),
+            "@mkbabb/value.js/": "/vjs/subpaths/",
             "@mkbabb/parse-that": "/pt/" + ptEntry.slice(ptDistDir.length + 1),
+            "@mkbabb/parse-that/": "/pt/",
         },
     }) +
     "</scr" +
@@ -507,7 +513,13 @@ const startServer = () =>
                 : u.startsWith("/pt/")
                   ? [ptDistDir, u.slice("/pt/".length)]
                   : [distDir, u.replace(/^\//, "")];
-            const p = join(base, rel);
+            let p = join(base, rel);
+            // S.A0(4) — extensionless-`.js` fallback: importmap prefix
+            // substitution yields `/vjs/subpaths/math` (no extension) for the
+            // `@mkbabb/value.js/math` subpath specifier; serve `subpaths/math.js`.
+            if (p.startsWith(base) && !existsSync(p) && existsSync(p + ".js")) {
+                p += ".js";
+            }
             if (!p.startsWith(base) || !existsSync(p) || statSync(p).isDirectory()) {
                 res.writeHead(404).end();
                 return;
