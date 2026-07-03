@@ -137,36 +137,45 @@
                  "≈ ease-out-back, 96% match"). Distinct from the canvas "Gallery"
                  dblclick (a different surface) — it teaches the named catalogue the
                  custom curve lives among. The badge auto-clears after a beat. -->
-            <dl
+            <!-- S.A0 a11y (axe `definition-list`): only properly-ordered dt/dd
+                 groups (or divs wrapping them) may be direct <dl> children — the
+                 identity-egg badge and the character line are NOT term/value
+                 pairs, so they live on the group wrapper AROUND the <dl>. The
+                 wrapper keeps the dblclick affordance + label (role="group"
+                 permits aria-label; a bare div does not). -->
+            <div
                 class="curve-physics"
+                role="group"
                 aria-label="Curve physics — double-click to identify the nearest named easing"
                 @dblclick="identifyCurve"
             >
                 <div v-if="nearestName" class="curve-physics-egg readout-accent text-mono-caption normal-case tabular-nums">
                     ≈ {{ nearestName }}
                 </div>
-                <div class="curve-physics-row">
-                    <dt class="text-mono-small text-muted-foreground">peak velocity</dt>
-                    <dd class="readout-accent text-mono-small tabular-nums">{{ physics.peakVel }}×</dd>
-                </div>
-                <div class="curve-physics-row">
-                    <dt class="text-mono-small text-muted-foreground">overshoot</dt>
-                    <dd
-                        class="text-mono-small tabular-nums"
-                        :class="physics.overshoot !== '0%' ? 'readout-accent' : 'text-muted-foreground'"
-                    >{{ physics.overshoot }}</dd>
-                </div>
-                <div class="curve-physics-row">
-                    <dt class="text-mono-small text-muted-foreground">anticipation</dt>
-                    <dd
-                        class="text-mono-small tabular-nums"
-                        :class="physics.anticipation !== '0%' ? 'readout-accent' : 'text-muted-foreground'"
-                    >{{ physics.anticipation }}</dd>
-                </div>
+                <dl class="curve-physics-list">
+                    <div class="curve-physics-row">
+                        <dt class="text-mono-small text-muted-foreground">peak velocity</dt>
+                        <dd class="readout-accent text-mono-small tabular-nums">{{ physics.peakVel }}×</dd>
+                    </div>
+                    <div class="curve-physics-row">
+                        <dt class="text-mono-small text-muted-foreground">overshoot</dt>
+                        <dd
+                            class="text-mono-small tabular-nums"
+                            :class="physics.overshoot !== '0%' ? 'readout-accent' : 'text-muted-foreground'"
+                        >{{ physics.overshoot }}</dd>
+                    </div>
+                    <div class="curve-physics-row">
+                        <dt class="text-mono-small text-muted-foreground">anticipation</dt>
+                        <dd
+                            class="text-mono-small tabular-nums"
+                            :class="physics.anticipation !== '0%' ? 'readout-accent' : 'text-muted-foreground'"
+                        >{{ physics.anticipation }}</dd>
+                    </div>
+                </dl>
                 <p class="curve-physics-character text-mono-caption normal-case italic text-muted-foreground">
                     {{ physics.character }}
                 </p>
-            </dl>
+            </div>
         </CardContent>
     </Card>
 </template>
@@ -464,6 +473,15 @@ onBeforeUnmount(() => {
     margin: 0;
     padding-top: 0.55rem;
     border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+/* The dt/dd rows' own <dl> (split out of .curve-physics for the a11y content
+   model — see the template note): same column rhythm as the wrapper so the
+   visual layout is unchanged. */
+.curve-physics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0;
 }
 .curve-physics-row {
     display: flex;
