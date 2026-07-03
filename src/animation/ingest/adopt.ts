@@ -280,7 +280,8 @@ export const adoptRunning = async <V extends Vars = any>(
     // (3)+(5) seed the kf engine at the captured playhead and hand it control.
     // `seekAndPlay` starts the loop with `startTime` shifted so `effectiveT`
     // begins at `currentTime` — the continuity seed, NOT seed-at-zero. We do not
-    // await the play promise (the handle IS the control surface, like `animate`).
+    // await the play promise (the handle IS the control surface, the same
+    // control-handle contract every `from*` factory returns).
     seedAtTime(animation, currentTime);
 
     return { animation, currentTime, diagnostics };

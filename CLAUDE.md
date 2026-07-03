@@ -29,7 +29,6 @@ src/                            # animation/ + env.d.ts — nothing else
 │   ├── index.ts                # Package barrel — LIGHT static exports + loadAnimationEngine() (the static/dynamic boundary)
 │   ├── load-engine.ts          # HEAVY dynamic loader — loadAnimationEngine() + warmEngine() (the dynamic half of the boundary)
 │   ├── adapter.ts              # resolveKeyframes — input → ResolvedKeyframes
-│   ├── animate.ts              # animate() — single-call front door: shape dispatch + auto-target + auto-play (HEAVY)
 │   ├── easing.ts               # resolveEasing(name) async factory + toEasing normalizer
 │   ├── validate.ts             # validate()/explain() — the agent-authoring projection over the compile surface (HEAVY)
 │   ├── constants.ts            # Types + defaults (Easing, AnimationOptions, Vars, …)
@@ -55,7 +54,7 @@ demo/                # Vue 3 demo (see demo/CLAUDE.md)
 └── playground/      # Standalone asset-playground app (npm run dev:playground)
 
 test/                # Vitest (jsdom). Count: `ls test/*.test.ts | wc -l` files, `npx vitest list | wc -l` tests
-                     # (97 files / 957 tests at the Q 5.0.0 close — derive, don't trust a frozen number)
+                     # (95 files / 936 tests after the S.C1 animate-cluster excision — derive, don't trust a frozen number)
 bench/               # Vitest bench. Count: `ls bench/*.bench.ts | wc -l` (9 at the O+P impl-drive)
 scripts/             # proof-*.mjs runtime gates (wired to npm run proof:*) + shared lib/ + deploy/capture helpers
 docs/                # Tranche records + audit lanes
@@ -68,14 +67,14 @@ docs/                # Tranche records + audit lanes
 Two export surfaces meet at the barrel:
 
 - **LIGHT (static named exports, value.js-free):** `NumericAnimation`, `SmoothProgress`, `SpringProgress`, `springLinearStops`, `springTimingFunction`, `ElementMorph`, `Timeline`, `ScrollTimeline`, `ManualTimeline`, `createNativeTimeline`, `RAFPlayback`, `stagger`, `flip`/`flipShared`, `drag`/`Draggable`/`drag2D` (the single-call 2-D drag sugar — two one-axis `Draggable`s behind a 2-D handle; returns a `Drag2DHandle`), `decay`/`decayRest`, `Sequence`, `resolveEasing`, `toEasing`, `AnimationOptionError`, `UnknownEasingError`. A consumer importing only these never pulls `@mkbabb/value.js` into its graph.
-- **HEAVY (dynamic — reached ONLY via `await loadAnimationEngine()`):** `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`.
+- **HEAVY (dynamic — reached ONLY via `await loadAnimationEngine()`):** `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`.
 
 ```ts
 const { CSSKeyframesAnimation } = await loadAnimationEngine();
 const anim = new CSSKeyframesAnimation(opts).fromString(css);
 ```
 
-The heavy classes are NOT static named exports — only their TYPES are (`import type` is erased under `verbatimModuleSyntax`). The hash-named dist chunks (`engine-*`, `animate-*`, `motion-path-*`, `draw-svg-*`, …) are the `loadAnimationEngine()` lazy splits, not leakage. The boundary is gated in CI by `proof:boundary`; the published surface by `proof:published-surface`.
+The heavy classes are NOT static named exports — only their TYPES are (`import type` is erased under `verbatimModuleSyntax`). The hash-named dist chunks (`engine-*`, `motion-path-*`, `draw-svg-*`, …) are the `loadAnimationEngine()` lazy splits, not leakage. The boundary is gated in CI by `proof:boundary`; the published surface by `proof:published-surface`.
 
 ## Dependencies
 

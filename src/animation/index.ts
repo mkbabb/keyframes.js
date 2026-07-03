@@ -91,9 +91,7 @@ export type {
 // stagger/flip/drag/decay/Sequence carry zero static value.js edge: stagger is
 // a pure delay generator, flip composes ElementMorph, drag/decay ride
 // SpringProgress, Sequence drives Animation.advanceTo over a master clock (the
-// Animation runtime is the consumer's; Sequence holds only its type). The
-// single-call `animate()` front door is HEAVY (it constructs CSSKeyframesAnimation)
-// and rides loadAnimationEngine below.
+// Animation runtime is the consumer's; Sequence holds only its type).
 export { stagger } from "./orchestration/stagger";
 export type {
     StaggerOrigin,
@@ -151,11 +149,6 @@ export type { ResolvedKeyframes } from "./engine";
 // re-exported through the engine barrel, which broke the engine↔group ring). The
 // type re-export is erased, so the LIGHT package barrel stays value.js-free.
 export type { AnimationGroupEntry } from "./group";
-// R.W4 §2.5 — `animate()` was EXCISED from the published surface (dead-by-disuse:
-// 0 demo call sites; the `@mkbabb/keyframes.js/engine` subpath + direct
-// `new CSSKeyframesAnimation(...)` are the idiomatic "in"). `animate.ts` stays a
-// HEAVY chunk reachable via deep import, but its option types are no longer a
-// published advertisement — owner-ratified 2026-06-24.
 // CSS-native MotionPath (F.W12) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/path types are erased here.
 export type { MotionPathOptions, OffsetPath } from "./svg/motion-path";

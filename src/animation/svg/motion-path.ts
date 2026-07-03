@@ -26,7 +26,7 @@
  *
  * ── BOUNDARY: HEAVY (no NEW static value.js edge).
  *   `motion-path.ts` constructs `CSSKeyframesAnimation`, so it statically
- *   imports `./engine` — exactly like `animate.ts`. It carries NO
+ *   imports `./engine` — exactly like `draw-svg.ts`. It carries NO
  *   `@mkbabb/value.js` import of its own (any light leaf it needs comes from
  *   `./internal/leaves`), so it adds no new value.js edge beyond the engine it
  *   already composes; the barrel places it behind `loadAnimationEngine()` (the
@@ -84,7 +84,7 @@ const asDistance = (v: string | number): string =>
  * Build a CSS-native path-motion animation: set the author `offset-path` (and
  * optional `offset-rotate`) on the target(s), and sweep `offset-distance` from
  * → to. Returns the constructed {@link CSSKeyframesAnimation} as the control
- * handle (the `animate()` contract — `.play()` / `.pause()` / `.stop()` / the
+ * handle (the control-handle contract — `.play()` / `.pause()` / `.stop()` / the
  * awaitable play promise), consistent with the `from*` factory family.
  *
  * The returned animation passes the EXISTING WAAPI eligibility gate
@@ -148,7 +148,7 @@ export function fromMotionPath<V extends Record<string, any> = any>(
     if (autoPlay) {
         // Fire the play loop; the handle carries the play promise via its own
         // re-entrant `play()`. We do NOT await — the handle IS the control
-        // surface (the `animate()` contract).
+        // surface (the control-handle contract).
         void animation.play();
     }
 

@@ -241,7 +241,7 @@ const makeMorphRenderer = <V extends Vars>(
  * arc-length steps each, pair the point sets, and interpolate the `(x, y)`
  * pairs from the `from`-polyline (`0%`) to the `to`-polyline (`100%`). Returns
  * the constructed {@link CSSKeyframesAnimation} as the control handle (the
- * `animate()` contract — `.play()` / `.pause()` / `.stop()` / `.finished`),
+ * control-handle contract — `.play()` / `.pause()` / `.stop()` / `.finished`),
  * consistent with the `from*` factory family.
  *
  * value.js's `PathGeometry` owns the geometry (the `d`-parse + arc-length
@@ -397,7 +397,7 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
     if (autoPlay) {
         // Fire the play loop; the handle carries the play promise via its own
         // re-entrant `play()`. We do NOT await — the handle IS the control
-        // surface (the `animate()` contract).
+        // surface (the control-handle contract).
         void animation.play();
     }
 
