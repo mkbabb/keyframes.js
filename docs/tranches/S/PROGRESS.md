@@ -213,7 +213,7 @@ re-litigated as rows (§8-15).
 | **58. `declaredKeyframeBodyFor` "dead export"** | Q | 1→2 (Q,R→S) | **REVERSED at Pass-2 — construct, not delete** | S.B3 | a18 F3's "likely-dead" call OVERTURNED by P2-2 F1/F5: the export is the EN-b/EN-c **load-bearing substrate** (the `bodyByStop` mixed-track fix threads it; the entry emitter projects first/last stop bodies from it). Constructed, NOT deleted. |
 | **59. MotionPath.finished asymmetry** | O | 2→3 (O,P/Q,R,R→S) | **FOLD** | S.B4 | svg/handle.ts abstract base closes the asymmetry by construction (a20 F6). |
 | **60. transport.ts hand-rolled prefersReducedMotion copy** | R.W2b | new→1 (R→S) | **FOLD — DRY** | S.B4 | DRY'd through internal/reduced-motion (a16 F3). |
-| **61. VJS_PARAM_BUG_MAX (value.js ≤1.2.0 extractFunctions bug)** | Q | 1→2 (Q,R→S) | **FOLD — lifecycle** | S.C4 | Checked against the value.js changelog; deleted per its own lifecycle if extractFunctions is fixed upstream; else KEPT with citation (a31, a21 F4). |
+| **61. VJS_PARAM_BUG_MAX (value.js ≤1.2.0 extractFunctions bug)** | Q | 1→2 (Q,R→S) | **FOLD — lifecycle** | S.C4 | Checked against the value.js changelog; deleted per its own lifecycle if extractFunctions is fixed upstream; else KEPT with citation (a31, a21 F4). Inbound letter VALUEJS-R-COORDINATION-2026-07-03 (b7fea38): the upstream fix is REAL at value.js 2.0.0 (KF-1 + rename; their R.W1 publishing now) — the delete branch is live but UNSCOPED in S; disposition awaits owner ruling 5 (re-scope S.C4/S2 vs explicit successor-book; the silent else-KEEP is forbidden by the letter). Verify npm view before acting. |
 | **62. dependency-cruiser 17→18 · fast-check 3→4 · @types/node floor** | old | old (→S) | **FOLD — deliberate tested bumps** | S.C4 | Re-verify the `[]` depcruise baseline post-bump. Oracle: `proof:pin-ledger-current` green post-bumps; lint baseline still `[]`. |
 | **63. Stale comments/narration corpus** (dead identifiers ×5, soa.ts/group-barrel/renamed-file headers, dep-cruiser/lint baselines, taxonomy BORN-RED prose, `<SegmentedTabs>` narration, proof-script sites, 2 orphaned pre-2024 assets) | Q–R | mixed (→S) | **FOLD — the gated/discretionary split, stated** | S.C3a | GATED: the dead-identifier grep bans the specific identifiers (`SceneSwitcherCarousel`, `SegmentedTabs`, `Animated.vue`, `ResponsiveSelect`, `AnimationMenuBar`) — NOT the phrase "scene-switcher" (sc-§3.2 — the identifier-only form stays the falsifiability-correct shape; historical docs and the S.E shelf record legitimately carry the phrase); corpus includes the proof-script narration sites (proof-visual-lock.mjs:172). DISCRETIONARY best-effort (stated, ungated): the remaining narration items. |
 | **64. docs/frontend-design/demo/*.md pre-fusion paths** | pre-R | 1→2 (R,R→S) | **FOLD — remap (discretionary tier, stated)** | S.C3a | Path remaps land BEFORE S.G reads them (a30). |
@@ -251,6 +251,22 @@ Pre-booked at SPEC §6.3 — the ONLY open items before impl authorization (no p
    closure re-execution, master-green-on-FINAL-SHA, machine-distinguishable FROZEN discharge,
    the S.G4/S.H3 de-scopes). The owner may still order the split — an explicit pre-impl decision
    point.
+5. **The value.js-2.0.0 consume slot (inbound letter `VALUEJS-R-COORDINATION-2026-07-03.md` §2a —
+   ruling REQUIRED before the impl drive closes S.C4; the letter forbids the silent else-KEEP):**
+   value.js 2.0.0 (their R.W1, publishing now) lands the KF-1 param-grammar fix + the
+   `type→syntax`/`defaultValue→default` rename, making kf's recovery apparatus
+   (`normalizeParam`+`NormalizedParam`, `VJS_PARAM_BUG_MAX`, the `coerceArg` ≤1.2.0 bug arm —
+   `src/animation/resolve/resolve-function.ts:22-90`) dead code by construction. EITHER re-scope
+   S.C4/S2 into a named value.js-2.0.0 consume-edge (the letter §1 deletion map + the re-pin; needs
+   a one-line amendment to the §1 external-edge budget) OR book the full payload explicitly to the
+   kf successor tranche. **Orchestrator recommendation: re-scope (NO-legacy precept — the else-KEEP
+   only existed because 2.0.0 was uncut when S was authored).** PENDING.
+6. **The re-pin sequencing (letter §2b — "choose, don't discover"):** kf is parse-that-free, so
+   parse-that 1.0.0 (S.H4's cut) reaches kf only via value.js's `^1.0.0` follow-on publish (2.0.x).
+   EITHER one value.js re-pin sequenced AFTER that follow-on (both payloads, one adopt+verify) OR
+   two re-pin events (`^2.0.0` now for KF-1; the 1.0.0-carrying 2.0.x later). **Orchestrator
+   recommendation: single re-pin after 2.0.x (minimal edge count; the consume wave sequences after
+   S.H4 → value.js 2.0.x).** PENDING.
 
 ## Session log (the S development phase — docs only; no source, test, config, or git-state edits)
 
@@ -292,3 +308,15 @@ Pre-booked at SPEC §6.3 — the ONLY open items before impl authorization (no p
   C-7/C-10/C-12/C-17 re-corrected; T12 → exactly ONE external consume-edge (S.H4). The prototype +
   gate drivers are preserved on branch **`scene-stage-proto-s` @ 63ccab0**; the design/build/critique
   corpus stays frozen under `audit/pass3/`. Re-opening requires a NEW owner ruling. Docs-only.
+- 2026-07-03 — **Inbound letter RECEIVED + BOOKED: `VALUEJS-R-COORDINATION-2026-07-03.md`**
+  (b7fea38, from the value.js Tranche R orchestrator; letter+book mechanism — letters travel with
+  the registry event, books bind to named triggers, never gates; the tri-tranche RUN-BOARD is
+  ruled stale, not rejoined). Payload booked: value.js **2.0.0** (their R.W1, publishing now) lands
+  the KF-1 param-grammar fix + the `type→syntax`/`defaultValue→default` rename → kf's recovery
+  apparatus becomes dead code (deletion map noted at S.C4/S2); their commitments adopted on the
+  record (S.H4 trigger correction, the `^1.0.0` follow-on with widened verify, color2Into held
+  green → fold row 46 closes without its exit — noted at S.H4); glass-ui edge stays disjoint.
+  **Owner rulings 5 (2.0.0 consume slot: re-scope S.C4/S2 vs successor-book) and 6 (single-vs-double
+  re-pin sequencing) OPENED** — see "Owner rulings (pending)"; asked 2026-07-03, owner AFK, both
+  remain PENDING with orchestrator recommendations recorded (re-scope; single re-pin after 2.0.x).
+  No wave gate changed; do not act before `@mkbabb/value.js@2.0.0` is on the registry.

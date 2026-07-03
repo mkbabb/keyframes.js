@@ -402,6 +402,15 @@ dependency posture and re-verifies the baselines.
 - **S2 — `VJS_PARAM_BUG_MAX` lifecycle (fold row 61; a31, a21 F4).** Checked against the value.js
   changelog and **deleted per its own lifecycle if `extractFunctions` is fixed upstream** (value.js
   ≤1.2.0 bug); **else KEEP with a citation**.
+  **INBOUND-LETTER NOTE (2026-07-03, `../VALUEJS-R-COORDINATION-2026-07-03.md`, b7fea38):** the
+  upstream fix is REAL — value.js 2.0.0 (their R.W1) lands the KF-1 grammar fix + the
+  `type→syntax`/`defaultValue→default` rename, and its §1 deletion map covers the FULL recovery
+  apparatus (`normalizeParam`+`NormalizedParam` at `resolve/resolve-function.ts:22-90`, this guard,
+  the `coerceArg` ≤1.2.0 arm) + the `^2.0.0` re-pin. This S2 clause is NOT silently satisfied by
+  else-KEEP: the letter requests owner ruling 5 (PROGRESS.md "Owner rulings" #5 — re-scope this S2
+  into the named 2.0.0 consume-edge, or book the payload explicitly to the successor tranche).
+  Sequencing rides owner ruling 6 (single re-pin after value.js's parse-that-1.0.0-carrying 2.0.x
+  follow-on vs double). Do not act before `@mkbabb/value.js@2.0.0` is on the registry (`npm view`).
 - **S3 — glass-ui pin posture per C-12 (amended at the S.E shelf).** **HOLD** the ~4.0.x pin
   through S development; the 5.0.0 consume is an **owner-domain HANDOFF** (no S wave since the
   2026-07-03 shelf — this band owns only the hold). Interim 4.2.0 catch-up is REJECTED; **never

@@ -32,7 +32,15 @@ CI (SPEC §3 S.H title; the registry-consumption discipline). Two systemic facts
 
 S.H4 closes the R-dropped ledger rows (DQ-1/DQ-2 — r8 F2), verifies fold row 46 (color2Into) at the
 re-pin, records the deliberate non-goals + the two r6 decisions v1 dropped, cuts 1.0.0 (H1+H2
-payload), and re-pins kf. **S.H3 (the Pratt binding-power combinator) is de-scoped to §8** — its
+payload), and re-pins kf.
+**INBOUND-LETTER NOTE (2026-07-03, `../VALUEJS-R-COORDINATION-2026-07-03.md`, b7fea38 — no kf
+action, booked for the record):** value.js R has ADOPTED the S.H2→S.H4 trigger correction (their
+parse-that re-pin book fires on S.H4's 1.0.0 cut, not S.H2); their `^1.0.0` follow-on publish
+(2.0.x) runs with the widened verify (span-absence, the 4 live `.chain()` sites, a mirror of C-16's
+chainError 0-caller scan, full suite) and is the ONLY carrier by which parse-that 1.0.0 reaches kf
+(kf is parse-that-free); `color2Into` + their suite are committed green through the re-pin, so this
+wave's fold-row-46 gate closes without firing its named exit. The kf-side re-pin sequencing
+(single-after-2.0.x vs double) is owner ruling 6 (PROGRESS.md "Owner rulings" #6). **S.H3 (the Pratt binding-power combinator) is de-scoped to §8** — its
 "design doc + external value.js sign-off" gate violated T1's runtime-tier absolutism and would have
 created a THIRD external edge (SPEC §3 S.H3, §8-2).
 
