@@ -169,7 +169,7 @@ const MASK_SUBJECTS = [
     "canvas", // amiga Three.js + any 2D canvas
     ".amiga-canvas",
     ".cube", // the CSS-3D cube (rAF idle bob)
-    ".graph", // the home/cube unovis graph (live)
+    ".graph", // the cube scene's 3D transform-preserve grid wrapper (live; CubeTarget.vue)
     // The AnimationVisualizer scrub widget — the inner container box that holds
     // ALL the moving balls (the ball + its two faded twins). `.container-inline-
     // size` is the visualizer's own track box (AnimationVisualizer.vue:13), unique

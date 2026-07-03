@@ -183,6 +183,8 @@ jobs:
               run: npm run proof:no-flat-siblings
             - name: proof:no-orphan-module (S.C1 — dynamic-import-aware reachability walker + the scoped front-door `animate` grep; the zero-importer zombie class made structural)
               run: npm run proof:no-orphan-module
+            - name: proof:no-dead-dependency (S.C3a — the 8 zero-importer shadcn devDeps + SPRING_SMOOTH denylist, the dead-identifier grep; the shadcn census clause is NON-GATING, discharged at S.C3b)
+              run: npm run proof:no-dead-dependency
             - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
               run: npm run proof:zero-alloc
             # F.W2 — the library-scoped engine/correctness gates the workflow

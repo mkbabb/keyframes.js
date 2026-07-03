@@ -37,9 +37,9 @@ demo/
 │   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState (URL-hash share/restore)
 │   │   ├── matrix-editor/       # MatrixEditor.vue + transformMath.ts + useTransformState.ts (gl-matrix)
 │   │   ├── orbital-drag/        # quaternion 3D drag: OrbitalDrag.vue, quaternionEuler.ts, useOrbitalPointer/Pinch/Inertia, inertiaDecay
-│   │   └── singles: Animated, AnimatedText, CSSPasteDialog, CopyButton, EasingCurveCanvas,
+│   │   └── singles: AnimatedText, CSSPasteDialog, CopyButton, DemoControlPoint, EasingCurveCanvas,
 │   │              EasingEditor, EasingSelect, EditableLabel, KeyboardShortcutsModal,
-│   │              ResponsiveSelect, TypingDots
+│   │              KfPillTabs, TypingDots
 │   ├── components/ui/menubar/   # the ONE remaining shadcn-vue component dir (16 files); the rest migrated to @mkbabb/glass-ui
 │   ├── composables/
 │   │   ├── gestureSelectSuppression.ts  # the ONE global drag-in-flight select-suppression token (body.is-dragging)
@@ -53,7 +53,7 @@ demo/
 
 ## Animation Controls (`@/components/custom/animation-controls/`)
 
-The primary UI for interacting with animations. Top level: **AnimationControlsGroup.vue** (orchestrates `AnimationGroup`: scrub-pause-resume, playback delegation), **AnimationMenuBar.vue**, `animationDescriptions.ts`, `injectionKeys.ts`, `index.ts`.
+The primary UI for interacting with animations. Top level: **AnimationControlsGroup.vue** (orchestrates `AnimationGroup`: scrub-pause-resume, playback delegation), **TransportDock.vue**, `animationDescriptions.ts`, `injectionKeys.ts`, `index.ts`.
 
 - **`components/`** — `ControlsPaneWrapper.vue`, `RibbonBar.vue`
 - **`composables/`** — `useAnimationGroupPlayback` (scrub-pause-resume state machine), `useAnimationProgress` (rAF progress polling), `useControlsLayout`, `usePaneHover`, `useRafLoop`, `useScrollFade`, `useSheetGesture`, `useSheetSpring`
