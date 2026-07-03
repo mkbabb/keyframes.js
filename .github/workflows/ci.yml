@@ -1692,8 +1692,25 @@ jobs:
             # the local/dedicated `npm run bench` authority (real hardware). The
             # threshold itself is NOT relaxed — only the stress size is sized to the
             # runner (cf. tranche-B 5fa76b4: CI perf SMOKE robust, real gate local).
+            # S.A0(3) — the LoAF exit-code DECOUPLE (fold row 4, the C-era
+            # exit-flake chronic, terminally closed). A benchmark's process exit
+            # code is NOT an assertion's: the gate is an assertion running INSIDE a
+            # vitest `bench()` body, so a tinybench/vitest exit-code quirk could
+            # green a red metric (mask) or red a green one (flake). The step verdict
+            # is now the GATE's own GREEN metric line ("loaf-gate — PASS: no >Nms
+            # …"), asserted explicitly — the vitest process exit is decoupled. A
+            # genuine failure prints no PASS line (or prints "loaf-gate — FAIL"), so
+            # the grep still BITES (verified: the KF_LOAF_INJECT_BLOCK=1 bite reds).
+            # This is a decouple, NOT a mask: the metric is the source of truth, and
+            # a missing GREEN metric FAILS the step.
             - name: LoAF >50ms-trace gate (observer's 2nd consumer)
-              run: npm run bench -- --run bench/playwright.bench.ts
+              run: |
+                  npm run bench -- --run bench/playwright.bench.ts 2>&1 | tee loaf-gate.log || true
+                  if ! grep -qE 'loaf-gate.*PASS: no >[0-9]+ms' loaf-gate.log; then
+                      echo "::error::LoAF gate — the GREEN metric ('loaf-gate — PASS: no >Nms …') is absent; the >50ms-trace assertion did not pass."
+                      exit 1
+                  fi
+                  echo "LoAF gate — GREEN metric asserted (>50ms-trace clean); vitest process exit decoupled."
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_LOAF_COUNT: "48"
