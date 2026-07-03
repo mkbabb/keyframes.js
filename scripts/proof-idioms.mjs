@@ -596,9 +596,18 @@ function main() {
 
         // 8c — TOKENIZED: the coupled literals reference the token, not the raw value.
         const tokenizedFails = [];
+        // S.A0-fallout co-edit: a component's style tier may be carved into a
+        // colocated sourced stylesheet (`<style scoped src="./X.css">` — the D2
+        // ControlsPaneWrapper precedent, applied to AnimationControlsGroup at the
+        // 500L tripwire). The component SURFACE for token-coupling assertions is
+        // the SFC + that sibling stylesheet, concatenated.
         const fileSrc = (p) => {
             const abs = path.join(REPO, p);
-            return fs.existsSync(abs) ? read(abs) : "";
+            const sfc = fs.existsSync(abs) ? read(abs) : "";
+            const cssSibling = abs.replace(/\.vue$/, ".css");
+            const css =
+                p.endsWith(".vue") && fs.existsSync(cssSibling) ? read(cssSibling) : "";
+            return css ? `${sfc}\n${css}` : sfc;
         };
         const GROUP = "demo/@/components/custom/animation-controls/AnimationControlsGroup.vue";
         const PANE = "demo/@/components/custom/animation-controls/components/ControlsPaneWrapper.vue";

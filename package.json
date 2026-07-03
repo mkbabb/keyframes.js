@@ -276,6 +276,7 @@
         "clsx": "^2.1.1",
         "dependency-cruiser": "^17.4.3",
         "fast-check": "^3.23.2",
+        "gl-matrix": "^3.4.4",
         "highlight.js": "^11.11.1",
         "html2canvas": "^1.4.1",
         "jsdom": "^29.1.1",
