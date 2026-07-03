@@ -56,6 +56,7 @@
         "proof:color-fidelity": "node scripts/proof-color-fidelity.mjs && vitest run test/color-fidelity.test.ts",
         "proof:readme-runs": "node scripts/proof-readme-runs.mjs",
         "proof:readme-paths-live": "node scripts/proof-readme-paths-live.mjs",
+        "proof:claude-paths-live": "node scripts/proof-claude-paths-live.mjs",
         "proof:deps-current": "node scripts/proof-deps-current.mjs",
         "proof:repin-witness": "node scripts/proof-repin-witness.mjs",
         "proof:dogfood": "node scripts/proof-dogfood.mjs",
