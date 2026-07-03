@@ -253,6 +253,12 @@ const onNextShape = (): void => {
     stroke-dasharray: 4 5;
     stroke-linejoin: round;
 }
+.morph-ghost--from {
+    /* The origin ghost — the shape the morph departs FROM. A longer, sparser
+       dash reads as the "before" extreme against the denser `--to` target. */
+    stroke-dasharray: 6 4;
+    opacity: 0.55;
+}
 .morph-ghost--to {
     stroke-dasharray: 2 6;
     opacity: 0.7;
