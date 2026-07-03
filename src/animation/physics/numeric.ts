@@ -3,7 +3,7 @@ import { binarySearchRange } from "../internal/binarySearch";
 import { AnimationOptionError } from "../internal/errors";
 import { clamp, lerpArray, scale } from "../internal/leaves";
 import { RAFPlayback } from "./playback";
-import type { Easing, TimingFunction } from "../constants";
+import type { Easing, TimingFunction } from "../constants/types";
 
 interface NumericSegment<T extends Record<string, number>> {
     startPos: number;

@@ -22,7 +22,7 @@
  * );
  * ```
  */
-import type { Easing, TimingFunction } from "../constants";
+import type { Easing, TimingFunction } from "../constants/types";
 import { toEasing } from "../easing";
 import { AnimationOptionError } from "../internal/errors";
 import { clamp } from "../internal/leaves";

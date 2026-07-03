@@ -104,7 +104,7 @@ import type {
     AnimationLayerConfig,
     TimingFunction,
     TimingFunctionNames,
-} from "./constants";
+} from "./constants/types";
 import type { Stylesheet } from "@mkbabb/value.js";
 
 /**

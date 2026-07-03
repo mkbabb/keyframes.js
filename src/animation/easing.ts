@@ -16,7 +16,7 @@
  * seam moves from "every `.at()` checks pending" to "resolve the name once,
  * explicitly, before construction."
  */
-import type { Easing, TimingFunction } from "./constants";
+import type { Easing, TimingFunction } from "./constants/types";
 import { UnknownEasingError } from "./internal/errors";
 
 /**

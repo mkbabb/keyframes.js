@@ -3,7 +3,7 @@ import { clamp } from "../../internal/leaves";
 import { AnimationOptionError } from "../../internal/errors";
 import { SmoothProgress } from "../../physics/smooth";
 import type { SmoothProgressOptions } from "../../physics/smooth";
-import type { Easing, TimingFunction } from "../../constants";
+import type { Easing, TimingFunction } from "../../constants/types";
 // The native platform-timeline feature-detect lives in `./native` (split by the
 // HEAVY waapi/ consumer seam; lib-light F-9). Re-exported so the package barrel
 // resolves `createNativeTimeline` / `NativeTimelineSpec` through this barrel

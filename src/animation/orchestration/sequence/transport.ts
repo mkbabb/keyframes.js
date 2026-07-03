@@ -14,7 +14,7 @@
  */
 import { clamp } from "../../internal/leaves";
 import type { SequenceEventBus, SequenceEntry } from "./events";
-import type { Vars } from "../../constants";
+import type { Vars } from "../../constants/types";
 
 /**
  * THE master-playhead → child-clock map, applied as a pure synchronous scrub.

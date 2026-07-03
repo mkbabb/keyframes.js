@@ -145,7 +145,7 @@ export type {
     WeightStepper,
     Vars,
     InterpolatedVar,
-} from "./constants";
+} from "./constants/types";
 export type { ResolvedKeyframes } from "./engine";
 // R.W2c — `AnimationGroupEntry` is sourced from its own `group/` zone (no longer
 // re-exported through the engine barrel, which broke the engine↔group ring). The

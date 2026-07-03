@@ -1,48 +1,33 @@
-import {
-    COLOR_SPACE_RANGES,
-    easeInOutCubic,
+// S.B1 — the constants seam, structural (SPEC-v3 §3 S.B1; fold row 34).
+//
+// This is the LIGHT-PURE half of the former monolithic `constants.ts`: TYPES
+// ONLY, and — the binding invariant — every module edge below is `import type`
+// (or `export type`), so a LIGHT importer that targets `constants/types` never
+// drags `@mkbabb/value.js` into its graph. The runtime values (the two
+// value.js-bearing consts + the value.js-free arrays/defaults) live in the
+// sibling `constants/defaults.ts`; the back-compat barrel (`constants/index.ts`)
+// re-exports both. The `keyof typeof timingFunctions` query survives on a
+// type-only binding of value.js's `timingFunctions`; `(typeof DIRECTIONS)[…]`
+// and `(typeof FILL_MODES)[…]` survive on a type-only binding of the sibling
+// `defaults` arrays (a type-only cycle — erased at build, no runtime edge).
+//
+// The FILE-level purity is gated by `proof:boundary`'s S.B1 clause: any
+// non-`import type` module edge in THIS file reddens the gate (strictly stronger
+// than the whole-surface boundary scan).
+import type {
+    ColorSpace,
+    HueInterpolationMethod,
+    InterpolatedVar,
+    ValueUnit,
     timingFunctions,
-    type ColorSpace,
-    type HueInterpolationMethod,
-    type InterpolatedVar,
-    type ValueArray,
-    type ValueUnit,
 } from "@mkbabb/value.js";
+import type { DIRECTIONS, FILL_MODES } from "./defaults";
+
 export type {
     ColorSpace,
     HueInterpolationMethod,
     InterpolatedVar,
 } from "@mkbabb/value.js";
-
-export const DIRECTIONS = [
-    "normal",
-    "reverse",
-    "alternate",
-    "alternate-reverse",
-] as const;
-
-export const FILL_MODES = ["none", "forwards", "backwards", "both"] as const;
-
-/**
- * The valid `colorSpace` values — the runtime key-set of value.js's
- * `COLOR_SPACE_RANGES`, the SAME source the `ColorSpace` type derives from
- * (`keyof typeof COLOR_SPACE_RANGES`). Drawing it from the registry keeps the
- * fail-explicit setter's accept-list from drifting from the type.
- */
-export const COLOR_SPACES = Object.keys(COLOR_SPACE_RANGES) as ColorSpace[];
-
-/**
- * The valid `hueMethod` values — the closed CSS Color 4 union
- * `HueInterpolationMethod`. value.js exposes this only as a type (no runtime
- * array), so the spec's four members are pinned here, typed against the union
- * so a drift fails to compile.
- */
-export const HUE_METHODS = [
-    "shorter",
-    "longer",
-    "increasing",
-    "decreasing",
-] as const satisfies readonly HueInterpolationMethod[];
 
 export type TimingFunctionNames = keyof typeof timingFunctions;
 
@@ -51,18 +36,6 @@ export type Vars<T = any> = {
 };
 
 export type TransformFunction<V extends Vars> = (v: V, t: number) => void;
-
-/**
- * THE total no-op transform default (I.W0 S3, hoisted shared in J.W1 S2).
- * A single shared reference so a consumer can ask "is this still the
- * default?" by identity (`transform === NOOP_TRANSFORM`) instead of a lying
- * `transform == null` on a field whose type claims it is always set. Two
- * seams carry it: `AnimationGroup.transform` (a childless group composites a
- * harmless empty frame) and `FrameCompiler.createFrame` (a transform-free
- * template — a legitimate numeric/CSS-var animation — compiles to a no-op,
- * never the `templateFrames[undefined]!.transform` TypeError).
- */
-export const NOOP_TRANSFORM: TransformFunction<any> = () => {};
 
 export type TimingFunction = (t: number) => number;
 
@@ -280,18 +253,6 @@ export type InputAnimationOptions = Partial<{
     composite?: CompositeOperator;
 }>;
 
-export const defaultOptions: AnimationOptions = {
-    duration: 1000,
-    delay: 0,
-    iterationCount: 1,
-    direction: "normal",
-    fillMode: "forwards",
-    timingFunction: { fn: easeInOutCubic },
-    useWAAPI: true,
-    respectReducedMotion: false,
-    colorSpace: "oklab",
-};
-
 export type BlendMode = "replace" | "add" | "weighted";
 
 /**
@@ -342,10 +303,3 @@ export interface AnimationLayerConfig {
     /** Optional property whitelist — only these properties will be output from this layer */
     properties?: Set<string>;
 }
-
-export const defaultLayerConfig: AnimationLayerConfig = {
-    zIndex: 0,
-    weight: 1,
-    blendMode: "replace",
-    enabled: true,
-};
