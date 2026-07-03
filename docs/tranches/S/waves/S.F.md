@@ -67,9 +67,9 @@ carries the EN-a/EN-b context an F3 implementer needs, and points to S.B.md/S.B3
 
 - **C-10 — colorTail benches → budgeted device-independent ratios in S.F5a; NO raw absolute fps
   anywhere in the plan.** Observe-only was correct at Q's measure-first moment but insufficient for
-  S's SOTA-perf claims. **This ruling also governs S.E: no raw absolute fps threshold may be a CI
-  closure anywhere in the plan** (S.E2/E3's ≥55fps is demoted to a declared local
-  chrome-devtools-mcp acceptance or converted to a budgeted ratio). **S.F5a owns the colorTail
+  S's SOTA-perf claims. **No raw absolute fps threshold may be a CI closure anywhere in the
+  plan** — the rule stands plan-wide (its former S.E application is moot since the 2026-07-03
+  shelf; no S.E waves exist). **S.F5a owns the colorTail
   budgeted-ratio conversion.**
 - **C-13 — speculative LIGHT exports forced to a decision inside S, no carry.** The
   `reseatToSpring`-vs-`decayRest` **bench lands in S.F5a** (the bench half); the **Oscillator
@@ -98,7 +98,7 @@ carries the EN-a/EN-b context an F3 implementer needs, and points to S.B.md/S.B3
 ### Precepts this band operationalizes (SPEC §7)
 
 - **T4 (DEVELOPED ≠ SHIPPED).** Every wave ships a born-RED gate (or, for the plan's publish-coupled
-  external edges — S.E6's consume gate + the S.H4 gates — born-SPECIFIED; neither lives in this band)
+  external edge — the S.H4 gates — born-SPECIFIED; it does not live in this band)
   that is GREEN only re-run on the merged tree; S.Z2 re-executes at close. Development-only.
 - **T6 (no cosmetic excision).** Where a wave inverts or retires a refusal (the `perceptual-oklab`
   inversion in EN-c), the change deletes the stale refusal path and its narration, not just its
@@ -113,8 +113,8 @@ carries the EN-a/EN-b context an F3 implementer needs, and points to S.B.md/S.B3
   **browser-actuated**, not source-shape; live verification via chrome-devtools-mcp per stage.
 - **T10 (clean close).** Every S.F gate appears in the FINAL closeable roster (C-21).
 - **T12 (external gates are named, not assumed).** **S.F introduces ZERO external consume-edges.**
-  The plan's only two external edges are S.E6 (glass-ui 5.0.0) and S.H4 (parse-that 1.0.0) — neither
-  is in this band. Every S.F gate is **internally closable** on the kf tree.
+  The plan's only external edge is S.H4 (parse-that 1.0.0 — the former glass-ui edge left at the
+  2026-07-03 S.E shelf), and it is not in this band. Every S.F gate is **internally closable** on the kf tree.
 - **§2.1-5 — no numeric line count is a born-RED gate's GREEN criterion.** File-size figures in this
   band (`compile/entry.ts` ~250–300L, etc.) are **observed tripwires**, never gate oracles.
 
@@ -750,8 +750,8 @@ p08's symmetric mis-tier clause → §3 S.F band preamble** (this doc §0 tier n
 ## Appendix C — DEV→IMPL boundary (binding for every S.F wave)
 
 Every wave above is **DEVELOPMENT ONLY** (SPEC §1 "What S is NOT"). Each ships a falsifiable
-**born-RED gate** (plan-wide, the only born-SPECIFIED exceptions are the publish-coupled external
-edges — S.E6's consume gate + the S.H4 gates — neither of which lives in this band); nothing runs
+**born-RED gate** (plan-wide, the only born-SPECIFIED exception is the publish-coupled external
+edge — the S.H4 gates — which does not live in this band); nothing runs
 until the owner authorizes an impl drive (inv-16). A wave is **CLOSED
 only when its born-RED gate is GREEN re-run on the merged tree** (T4, r2 F4), exit code recorded in
 PROGRESS.md; **S.Z2 re-executes that oracle at close** (a re-run, not a re-read). Parallel drives
@@ -770,9 +770,9 @@ browser-harness chain**, with their library-value severity recorded in their tax
 them in `proof:library-correctness` would correctly RED under S.A4's symmetric mis-tier clause (the
 clause working as designed — SPEC §3 S.F preamble; this doc §0).
 
-**S.F introduces ZERO external consume-edges (T12).** The plan's only two external edges are S.E6
-(glass-ui 5.0.0) and S.H4 (parse-that 1.0.0) — neither is in this band. Every S.F gate is internally
-closable on the kf tree.
+**S.F introduces ZERO external consume-edges (T12).** The plan's only external edge is S.H4
+(parse-that 1.0.0 — the former glass-ui edge left at the 2026-07-03 S.E shelf) and it is not in this
+band. Every S.F gate is internally closable on the kf tree.
 
 ---
 

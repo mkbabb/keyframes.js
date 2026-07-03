@@ -36,8 +36,9 @@ mentions) and hardens the orphan-module walker so the class of defect cannot rec
   without an importer census shipped as evidence (a24 F8). **Totality claims (NO-legacy) are proven
   by census-shaped gates — the S.C3a shadcn census clause — not by naming one island** (SPEC §7 T9).
   This governs S.C3a and S.C3b.
-- **T12 (external gates are named, not assumed).** Exactly **two** external consume-edges exist in
-  the whole plan (S.E6 glass-ui 5.0.0; S.H4 parse-that 1.0.0). **No other wave may acquire an
+- **T12 (external gates are named, not assumed).** Exactly **ONE** external consume-edge exists in
+  the whole plan (S.H4 parse-that 1.0.0 — the former glass-ui edge left the plan at the 2026-07-03
+  S.E shelf; the 5.0.0 consume is an owner-domain HANDOFF). **No other wave may acquire an
   external dependency without an owner ruling; S.C3b is explicitly constructed to be internally
   closable** (SPEC §7 T12; §1 "What S is NOT"; line 86). This governs S.C3b — gating menubar removal
   on a missing external surface is **FORBIDDEN**.
@@ -64,9 +65,10 @@ mentions) and hardens the orphan-module walker so the class of defect cannot rec
   4.0.x; the menubar→dropdown UX remap acknowledged), with the **a24-F6 relocate-in-place fallback**
   if the remap proves unacceptable at impl — **both paths internally closable**; gating menubar
   removal on a missing external surface is **forbidden**. **S.C3b owns this.**
-- **C-12 (glass-ui pin, the S.C4 slice).** Hold **~4.0.x** through S development; the consume-edge
-  fires only on the joint 5.0.0 publish (S.E6). Interim 4.2.0 catch-up **REJECTED**. **Never caret.**
-  **S.C4 carries the pin posture** (hold; the consume-edge is S.E6, not this band).
+- **C-12 (glass-ui pin, the S.C4 slice — amended at the 2026-07-03 S.E shelf).** Hold **~4.0.x**
+  through S development. Interim 4.2.0 catch-up **REJECTED**. **Never caret.** **S.C4 carries the
+  pin posture** (hold; the 5.0.0 consume is no longer any S wave — it is an owner-domain HANDOFF,
+  fold rows 51/52/55).
 
 **Mode declarations (C-14, one per wave).** **S.C1 REWRITE · S.C2 REWRITE · S.C3a REWRITE · S.C3b
 REWRITE · S.C4 REFINE.** Every wave in this band is REWRITE except the deliberate-bump posture wave
@@ -246,7 +248,8 @@ Purge the dead dependency surface and the stale narration corpus with **census-s
 gates** — the **T9** "totality proven by a census, not by naming one island" discipline. Delete the
 8 zero-importer shadcn devDeps and the `SPRING_SMOOTH` dead constant; harden `proof:no-dead-dependency`
 against false-RED; sweep the stale narration by banning **specific dead identifiers** (NOT the phrase
-"scene-switcher", which S.E legitimately revives); and state the **discretionary best-effort** items
+"scene-switcher" — the identifier-only form stays the falsifiability-correct shape; historical docs
+and the S.E shelf record legitimately carry the phrase); and state the **discretionary best-effort** items
 explicitly so they are neither gated nor silently dropped.
 
 ### Scope items
@@ -266,8 +269,9 @@ explicitly so they are neither gated nor silently dropped.
     vite/tailwind/prettier/etc. dependencies **false-RED** as "unused".
 - **S4 — The stale-narration sweep (sc-§3.2; fold row 63; SC-6).** The gate clause bans **specific
   dead component identifiers** — **`SceneSwitcherCarousel`, `SegmentedTabs`, `Animated.vue`,
-  `ResponsiveSelect`, `AnimationMenuBar`** — **NOT the phrase "scene-switcher"**, which **S.E
-  legitimately revives** (banning the phrase would collide with the reborn stage band). The corpus
+  `ResponsiveSelect`, `AnimationMenuBar`** — **NOT the phrase "scene-switcher"** (the identifier-only
+  form is the falsifiability-correct shape; historical docs and the S.E shelf record — band SHELVED
+  by owner ruling 2026-07-03 — legitimately carry the phrase). The corpus
   **adds the proof-script narration sites** (`proof-visual-lock.mjs:172`'s "unovis graph (live)"
   narration).
 - **S5 — The shadcn census clause (x1-#4; T9).** A **repo-wide grep for `cn(` /
@@ -299,8 +303,9 @@ the gate GREENs; the census grep returns empty (S5).
 `proof:no-dead-dependency` REDs on `zod` / `@unovis` **comment mentions** (`proof-visual-lock.mjs:172`)
 and REDs on config/scripts/plugin dependencies — so the gate MUST match only real import/require
 specifiers AND scan config + `scripts/` + plugin sites (the bounded 8-package allowlist form is the
-primary, false-RED-immune shape). Banning the **phrase** "scene-switcher" would false-RED on S.E's
-legitimate revival — so the sweep bans **specific dead identifiers**, never the phrase. Re-adding any
+primary, false-RED-immune shape). Banning the **phrase** "scene-switcher" would false-RED on the
+historical docs + the S.E shelf record (band SHELVED by owner ruling 2026-07-03) — so the sweep bans
+**specific dead identifiers**, never the phrase. Re-adding any
 of the 8 packages, `SPRING_SMOOTH`, or a `cn(` / `@radix-*` footprint REDs.
 
 ### Cost + DAG
@@ -341,8 +346,8 @@ internally closable** (SPEC §7 T12).
 - **S3 — Delete the island (fold row 28; T6).** Delete **`ui/menubar/` (16 files)** + **`utils.ts`'s
   `cn`** (verified **menubar-private**).
 - **S4 — The forbidden shape, stated (T12).** **Gating menubar removal on a missing external surface
-  is FORBIDDEN** — no second external gate (the only two external consume-edges in the plan are S.E6
-  and S.H4; SPEC §7 T12).
+  is FORBIDDEN** — no second external gate (the plan's only external consume-edge is S.H4; the
+  former glass-ui edge left at the 2026-07-03 S.E shelf; SPEC §7 T12).
 
 ### The HARD GATE
 
@@ -397,9 +402,10 @@ dependency posture and re-verifies the baselines.
 - **S2 — `VJS_PARAM_BUG_MAX` lifecycle (fold row 61; a31, a21 F4).** Checked against the value.js
   changelog and **deleted per its own lifecycle if `extractFunctions` is fixed upstream** (value.js
   ≤1.2.0 bug); **else KEEP with a citation**.
-- **S3 — glass-ui pin posture per C-12.** **HOLD** the ~4.0.x pin through S development; the
-  **consume-edge fires in S.E6** on the joint 5.0.0 publish — **not this band**. Interim 4.2.0
-  catch-up is REJECTED; **never caret**.
+- **S3 — glass-ui pin posture per C-12 (amended at the S.E shelf).** **HOLD** the ~4.0.x pin
+  through S development; the 5.0.0 consume is an **owner-domain HANDOFF** (no S wave since the
+  2026-07-03 shelf — this band owns only the hold). Interim 4.2.0 catch-up is REJECTED; **never
+  caret**.
 
 ### The HARD GATE
 
@@ -423,7 +429,7 @@ A0** (the PIN-LEDGER re-author S.A0 lands is the surface this wave bumps against
 ### Verification
 
 `proof:pin-ledger-current` green post-bumps; dependency-cruiser known-violations baseline still `[]`;
-glass-ui held at ~4.0.x (consume-edge deferred to S.E6). Development-only; re-run at S.Z2.
+glass-ui held at ~4.0.x (the 5.0.0 consume is an owner-domain HANDOFF since the S.E shelf). Development-only; re-run at S.Z2.
 
 ---
 
@@ -446,7 +452,7 @@ from the table (SPEC §4 header).
 | 57 | SPRING_SMOOTH dead constant + void hack | P | 2 | **WAVE S.C3a** |
 | 61 | VJS_PARAM_BUG_MAX (value.js ≤1.2.0 bug) | Q | 1 | **WAVE S.C4** (delete per lifecycle if fixed upstream; else KEEP with citation) |
 | 62 | dependency-cruiser 17→18, fast-check 3→4, @types/node | old | old | **WAVE S.C4** |
-| 63 | Stale comments/narration corpus (dead identifiers ×5, soa.ts, barrels, baselines, taxonomy prose, headers, proof-script sites) | Q–R | mixed | **WAVE S.C3a** (gated: dead-identifier grep — NOT the phrase "scene-switcher"; discretionary items stated) |
+| 63 | Stale comments/narration corpus (dead identifiers ×5, soa.ts, barrels, baselines, taxonomy prose, headers, proof-script sites) | Q–R | mixed | **WAVE S.C3a** (gated: dead-identifier grep — NOT the phrase "scene-switcher", which the S.E shelf record legitimately carries; discretionary items stated) |
 | 64 | docs/frontend-design/demo/*.md pre-fusion paths | pre-R | 1 | **WAVE S.C3a** (remap before S.G reads them; discretionary tier, stated) |
 
 ---

@@ -60,18 +60,18 @@ S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → k
   publish-then-re-pin lands, and only then does the close band run — S.H4's gates are
   **born-SPECIFIED**, firing at the impl drive's publish step (SPEC §1, §7 T12). Its cross-repo rows
   are dispositioned in S.Z1 via the kf-side CONSUME gate (see S.Z1 scope).
-- **The two external consume-edges (SPEC §1, §7 T12):** (1) **S.E6** — third-party glass-ui 5.0.0;
-  may close S as a structured HANDOFF, in which case fold rows 51/52/53 are recorded as an **explicit
-  non-terminal RESIDUAL CARRY** (never presented as terminals) and rendered in the S.Z3 FINAL as
-  `HANDOFF — external — row N` (C-21). (2) **S.H4** — the owner-controlled parse-that publish. No
-  other wave may acquire an external dependency; these are the **only** two edges the closeable
-  roster subtracts.
+- **The ONE external consume-edge (SPEC §1, §7 T12 — re-revised at the 2026-07-03 S.E shelf):**
+  **S.H4** — the owner-controlled parse-that publish. The former third-party glass-ui edge left the
+  plan with the S.E shelf: fold rows 51/52/53 are unconditional **owner-domain HANDOFFs** (never
+  presented as terminals), rows 51/52 rendered in the S.Z3 FINAL as `HANDOFF — external — row N`
+  (C-21). No other wave may acquire an external dependency; the HANDOFF-rendered glass-ui gates +
+  the S.H4 edge are the only entries the closeable roster subtracts.
 
 **T11 (the risk signature) — this band's structural compensators (SPEC §7 T11).** S is deliberately
 broad; S.Z carries three of the structural (not cited) compensators that de-risk it: **closure
 re-execution** (S.Z2 re-runs every CLOSED wave's oracle), the **master-green-on-FINAL-SHA
-precondition** (S.Z3), and the **contingency-KILL belt with the rows-51/52/53 residual-carry
-honesty** (C-20/C-21). These pair with S.A's cause-shaped keystone and machine-distinguishable
+precondition** (S.Z3), and the **contingency-KILL belt with the rows-51/52/53 HANDOFF honesty**
+(C-20/C-21; owner-domain since the 2026-07-03 S.E shelf). These pair with S.A's cause-shaped keystone and machine-distinguishable
 FROZEN discharge.
 
 **Rulings this band executes (SPEC §2.2).**
@@ -246,7 +246,7 @@ mode.
 - **T4 (DEVELOPED ≠ SHIPPED).** A wave is CLOSED only when its born-RED gate is GREEN **re-run on the
   merged tree**, exit code recorded in PROGRESS.md (r2 F4) — and **S.Z2 re-executes** that oracle at
   close (a re-run, not a re-read). S is development-only: every wave doc states this and its gate
-  ships born-RED or, for the publish-coupled external edges (S.E6's consume gate + the S.H4 gates),
+  ships born-RED or, for the publish-coupled external edge (the S.H4 gates),
   born-SPECIFIED.
 - **T5 (no transcript trust).** Parallel drives re-run every touched gate from a **clean independent
   checkout**; "pre-existing" claims are verified by triage, never accepted (r2 F5, a15). Worktree
@@ -263,7 +263,7 @@ mode.
 - **T8 (interaction-axis tests for hand-rolled primitives).** Any replacement for a vendor primitive
   ships with a keyboard/focus/repeat test, not only a source-shape gate (a12; fold row 71) — the
   documented gate-blindspot cure; live verification via chrome-devtools-mcp for every stage of
-  S.E/S.G.
+  S.G.
 - **T9 (census before fiat).** No "keep verbatim / do not touch" verdict on a shared directory
   without an importer census shipped as evidence (a24 F8). Totality claims (NO-legacy) are proven by
   census-shaped gates (the S.C3a shadcn census clause), not by naming one island.
@@ -278,12 +278,12 @@ mode.
   danger pattern (r2 Part V). S is deliberately broad and compensates **structurally**, not by
   citation (the compensators enumerated in §0 above; SPEC §7 T11). The adversarial critique fleet's
   corrections OVERRIDE raw findings while crediting real wins (r2 S6).
-- **T12 (external gates are named, not assumed).** **Exactly two** external consume-edges exist
-  (corrected from v1's false "exactly one"): **S.E6** (third-party glass-ui 5.0.0 — specified now,
-  fires later; may close S as a structured HANDOFF, in which case fold rows 51/52/53 are an explicit
-  non-terminal RESIDUAL CARRY, never presented as terminals) and **S.H4** (the owner-controlled
-  parse-that 1.0.0 publish-then-re-pin; gates born-SPECIFIED, firing at the impl drive's publish
-  step). No other wave may acquire an external dependency without an owner ruling; S.C3b is explicitly
+- **T12 (external gates are named, not assumed).** **Exactly ONE** external consume-edge exists —
+  **S.H4** (the owner-controlled parse-that 1.0.0 publish-then-re-pin; gates born-SPECIFIED, firing
+  at the impl drive's publish step). The former third-party glass-ui edge left the plan at the
+  2026-07-03 S.E shelf; fold rows 51/52/53 are owner-domain HANDOFFs, rows 51/52 rendered
+  `HANDOFF — external — row N` in the S.Z3 FINAL (C-21), never presented as terminals. No other wave
+  may acquire an external dependency without an owner ruling; S.C3b is explicitly
   constructed to be internally closable.
 
 ### Scope items — the partitioned gate scope (SPEC §3 S.Z2; SZ-3)
@@ -371,9 +371,10 @@ stale MEMORY specular note, records DM-24 REVIVED, and routes the ownerless docs
   roster **MINUS owner-ratified external HANDOFF gates** named by ledger row, each rendered in the
   FINAL table as `HANDOFF — external — row N` — **an explicit third state, never omitted; the table
   lists every gate** — with the **exact SHA** (SPEC §3 S.Z3, §2.2 C-21, §7 T10). The subtracted
-  external gates are exactly the two edges (S.E6 → fold rows 51/52/53; S.H4) — no wave may add a
-  third (T12). If glass-ui 5.0.0 has **not** published, fold rows 51/52/53 are rendered as an explicit
-  **non-terminal RESIDUAL CARRY** (never as terminals) and shown as `HANDOFF — external — row 51/52/53`
+  external gates are exactly the glass-ui HANDOFF rows (fold rows 51/52 — owner-domain since the
+  2026-07-03 S.E shelf) plus the S.H4 edge — no wave may add another (T12). Rows 51/52/53 are
+  owner-domain HANDOFFs (never rendered as terminals); rows 51/52 are shown as
+  `HANDOFF — external — row 51/52`
   (SPEC §1, §7 T12, C-12/C-20).
 - **S2 — The born-RED master-green precondition (x2-#4).** `gh run list --workflow ci.yml --branch
   master` shows a **green push run on the FINAL SHA** — the A0 keystone re-gated at close. **The
@@ -404,9 +405,10 @@ stale MEMORY specular note, records DM-24 REVIVED, and routes the ownerless docs
   fold row 22, §2.2 C-11).
 - **S6 — MEMORY updates (observe-tier; user-domain).** Stale specular note **retired** (fold row 54 —
   the M-era "specular=off" expectation; BG resolves affirmatively; observe-tier); dock-doubleclick
-  **sharpened** (+ the E6 contingency — the DM-1 R.W6-precedent kf-internal press handler authored at
-  E5-time so the ≥4-belt terminal does not depend on an external publish, fold row 53); **DM-24
-  REVIVED recorded** (the N-Stage scene-switcher, owner-reopened → band S.E, fold row 17). These are
+  **re-sharpened as the glass-ui-root HANDOFF** (the kf-internal contingency press handler was
+  shelved with the stage band — fold row 53); **the DM-24 owner-ruled SHELF recorded** (the N-Stage
+  scene-switcher: built + converged 100/100 at pass 3, live-reviewed, SHELVED by owner ruling
+  2026-07-03; shelf `scene-stage-proto-s`; fold row 17). These are
   MEMORY writes, **non-gated** (SPEC §3 S.Z3, §4 fold rows 54/53/17).
 - **S7 — Route ownerless docs to §8 (fold row 65).** `docs/precepts/audits/` ownership → **§8
   Recorded-future** (owner): "fold or freeze" is a **non-decision** — a non-decision does not ship as
@@ -476,9 +478,9 @@ close.
 | 54 | Stale MEMORY specular=off expectation | **S.Z3 S6** (retire — BG resolves affirmatively; observe-tier) |
 | 65 | `docs/precepts/audits/` ownerless | **S.Z3 S7 → §8 Recorded-future (owner)** — "fold or freeze" is a non-decision; not a close deliverable |
 | 72 | DQ-4 (false-RED S1/S2) · DQ-5 (ci-coverage) · DQ-6 (emerging-CSS-P2) · DQ-7 (wave-charter) — dropped from the R ledger (r8-F2) | **S.Z1 S9** — assumed FOLD-LANDED in Q; the recap re-verifies each actually landed (closing r8-F2 totally) |
-| 51 | glass-ui `proof:glassui-aria-ask` PENDING-BC | **HANDOFF (owner)** — re-entry: BC/5.0.0 publish → S.E6; if 5.0.0 does not publish in S, **explicit non-terminal RESIDUAL CARRY** rendered `HANDOFF — external — row 51` in the S.Z3 FINAL (C-21) |
-| 52 | glass-ui `proof:peer-satisfied` born-RED peer-cycle | **HANDOFF (owner)** — re-entry: glass-ui peer-widen → S.E6; same RESIDUAL-CARRY clause; rendered `HANDOFF — external — row 52` (C-21) |
-| 53 | Dock double-click chronic | **HANDOFF sharpened + kf-internal CONTINGENCY FALLBACK** (kf-internal press handler authored at E5-time; the ≥4-belt terminal does NOT depend on an external publish); MEMORY dock-doubleclick note **sharpened at S.Z3 S6** |
+| 51 | glass-ui `proof:glassui-aria-ask` PENDING-BC | **HANDOFF (owner — USER-DOMAIN, glass-ui-owned)** — re-entry is the BC/5.0.0 publish under a FUTURE owner ruling (the former S-side consume-edge wave left at the 2026-07-03 S.E shelf); rendered `HANDOFF — external — row 51` in the S.Z3 FINAL (C-21), never a terminal |
+| 52 | glass-ui `proof:peer-satisfied` born-RED peer-cycle | **HANDOFF (owner — USER-DOMAIN, glass-ui-owned)** — re-entry is the glass-ui peer-widen under a FUTURE owner ruling (same shelf re-home); rendered `HANDOFF — external — row 52` (C-21), never a terminal |
+| 53 | Dock double-click chronic | **HANDOFF (owner — glass-ui-root; re-homed at the 2026-07-03 S.E shelf)** — the kf-internal contingency press handler rode the shelved stage integration wave and is SHELVED with it (its shape survives on `scene-stage-proto-s` + `waves/S.E.md`); MEMORY dock-doubleclick note **re-sharpened at S.Z3 S6** |
 
 ## Appendix — §9 disposition rows this band absorbs (SPEC §9 sz-close, 9 edits)
 

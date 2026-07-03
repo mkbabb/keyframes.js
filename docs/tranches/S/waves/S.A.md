@@ -56,11 +56,13 @@ green-modulo-an-enumerated-born-RED-backlog.
 
 **Rulings this band executes (SPEC §2.2).**
 
-- **C-6 — the scene-switcher gate contradiction.** Both stale halves die in S.A: ASSERTION 3's
-  carousel-absence clause is deleted (keep location/no-climb); `proof:scene-switcher-mobile` is
-  retired and reborn as the stage band's born-RED acceptance gate (`proof:scene-stage-commits`,
-  targeting `frontIndex`/`spinning` + commit-on-settle) at S.E4/E5. **S.A4 owns the retire + the
-  ASSERTION-3 delete.**
+- **C-6 — the scene-switcher gate contradiction (re-corrected at the 2026-07-03 S.E shelf).**
+  `proof:scene-switcher-mobile` is retired at S.A4 as a **ledgered KILL with a re-run witness**
+  (masked by continue-on-error; requires a component that does not exist). The originally ruled
+  rebirth as the stage band's `proof:scene-stage-commits` is SHELVED with band S.E (see
+  `waves/S.E.md`) — no successor gate exists in S. `proof:scene-colocated` **ASSERTION 3 stays
+  WHOLE** (the carousel-absence clause is truthful again under the no-stage status quo).
+  **S.A4 owns the retire.**
 - **C-8 — doc-regen timing, gate-first, regen-last.** S.A5 lands born-RED `proof:claude-paths-live`
   + hot-fixes the actively dangerous lines; the full `src/animation/CLAUDE.md` rewrite lands at
   **S.B8** against the final tree.
@@ -86,7 +88,7 @@ S.A2 REWRITE; S.A3 REFINE; S.A4 REWRITE; S.A5 REFINE (gate) + hot-fix.
 S.A0 ──► S.A1, S.A2, S.A4, S.A5, S.C1, S.C2, S.C3a, S.C3b, S.C4, S.B1, S.D1
 S.A2 ──► S.A3        (auto-deploy fires when demo-correctness is green — post-backlog)
 S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3
-S.A4 ──► BLOCKS the FROZEN reds of S.D3/S.E/S.G being declarable
+S.A4 ──► BLOCKS the FROZEN reds of S.D3/S.G being declarable
 ```
 
 `proof:scene-colocated` has a **canonical cross-band edit order: A4 → D2 → D3** (SPEC §3 DAG, fold
@@ -125,7 +127,7 @@ wave closes.
 - **S2 — PIN-LEDGER re-author (fold row 3; SPEC §2.1-2, a31 CRITICAL).** Re-author
   `docs/tranches/Q/PIN-LEDGER.json` to **5.1.0/1.2.0/0.13.0** (installed) — it is frozen at
   4.4.0/1.1.0/0.12.0. Greens `proof:pin-ledger-current`.
-  **PROVEN (pass3: ci-fix-proto.md §d): pre-fix exit 1 (5× DRIFT — value.js installed/lockfile/declared 1.1.0≠1.2.0; parse-that installed/lockfile 0.12.0≠0.13.0) / post-fix exit 0** (all pins == shipped set; 1 target row). **Diff-shape:** `shipped.self.version` `4.4.0`→**5.1.0**; `@mkbabb/value.js` declared `^1.1.0`→`^1.2.0`, installed `1.1.0`→`1.2.0` (edge `direct`); `@mkbabb/parse-that` installed `0.12.0`→`0.13.0` (edge `transitive` — value.js 1.2.0 declares `@mkbabb/parse-that ^0.13.0`, S9 dep-removal holds); `@mkbabb/glass-ui` `~4.0.0`/installed `4.0.1` **unchanged** (already green); `tranche`/`owningWave`/`recordedAt` → S / S.A0 / 2026-07-03; `target[]` collapsed to the **one un-fired** consume-edge (glass-ui 5.0.0 / S.E6) — the value.js `^1.2.0` + parse-that `^0.13.0` targets FIRED (Q.WG4) and fold into `shipped`. The ledger **keeps its `docs/tranches/Q/` path** (only its contents advance; the gate reads the fixed path). Pure-filesystem, device-independent — land as-is.
+  **PROVEN (pass3: ci-fix-proto.md §d): pre-fix exit 1 (5× DRIFT — value.js installed/lockfile/declared 1.1.0≠1.2.0; parse-that installed/lockfile 0.12.0≠0.13.0) / post-fix exit 0** (all pins == shipped set; 1 target row). **Diff-shape:** `shipped.self.version` `4.4.0`→**5.1.0**; `@mkbabb/value.js` declared `^1.1.0`→`^1.2.0`, installed `1.1.0`→`1.2.0` (edge `direct`); `@mkbabb/parse-that` installed `0.12.0`→`0.13.0` (edge `transitive` — value.js 1.2.0 declares `@mkbabb/parse-that ^0.13.0`, S9 dep-removal holds); `@mkbabb/glass-ui` `~4.0.0`/installed `4.0.1` **unchanged** (already green); `tranche`/`owningWave`/`recordedAt` → S / S.A0 / 2026-07-03; `target[]` collapsed to the **one un-fired** consume-edge (glass-ui 5.0.0 — since the 2026-07-03 S.E shelf an owner-domain HANDOFF, no owning S wave) — the value.js `^1.2.0` + parse-that `^0.13.0` targets FIRED (Q.WG4) and fold into `shipped`. The ledger **keeps its `docs/tranches/Q/` path** (only its contents advance; the gate reads the fixed path). Pure-filesystem, device-independent — land as-is.
 - **S3 — The LoAF exit-code decouple (fold row 4; SPEC §3 S.A0 item 3).** Assert the **green metric**
   — a `window.__kfLoaf`-style node wrapper — instead of letting the vitest process exit gate the
   step (the step exits 1 with a GREEN metric today). **ci.yml ~5 lines.** The metric-asserting
@@ -312,8 +314,8 @@ reclassification** (SPEC §3 S.A2; §2.1-2; x2-#2).
 - **S2 — The browser-harness net-deletion (a28 S-CI-2).** ONE shared chromium + one served dist
   across the ~50-launch surface (amortized, not per-gate). This structurally cures the
   device-dependence **apparatus** concern (~50 launches under a 50-minute ceiling — real, but NOT
-  why the gates are red; SPEC §2.1-2). S.E's chrome-devtools-mcp acceptances ride this same shared
-  chromium + served dist at zero additional CI launches (SPEC §3 S.E amortization note).
+  why the gates are red; SPEC §2.1-2). (The shelved stage band's amortization note — its
+  acceptances riding this same shared chromium — is moot since the 2026-07-03 S.E shelf.)
 - **S3 — De-magic `KF_LOAF_COUNT`** (the magic env count).
 - **S4 — Widen `proof:settle-is-predicate`** to ban numeric `waitForTimeout` across ALL driver code
   (not just the sampled sites).
@@ -419,7 +421,7 @@ ships born-RED (no auto deploy fires today); re-run at S.Z2.
 
 ## S.A4 — Gate-roster diet + the 51-gate FROZEN migration, with the lockstep co-edit
 
-**Mode: REWRITE.** **Deps: A0. BLOCKS the FROZEN reds of S.D3/S.E/S.G being declarable.**
+**Mode: REWRITE.** **Deps: A0. BLOCKS the FROZEN reds of S.D3/S.G being declarable.**
 
 ### Charter
 
@@ -458,10 +460,11 @@ dependency, not re-asserted** — SPEC §8-20; fold row 70; SA-8/SA-9/SA-10; x1-
   - **(b) KILL** — an **owner-ratified S-ledger row with a re-run witness** that the property is
     obsolete.
   - **Free-prose "deletion-with-cause" is BANNED.**
-- **S4 — Scene-switcher gate contradiction (C-6; fold rows 18/19).** Delete `proof:scene-colocated`
-  **ASSERTION 3** (the carousel-absence clause — keep location/no-climb); **retire
-  `proof:scene-switcher-mobile`** (it reborns at S.E4/E5 as `proof:scene-stage-commits` + the mobile
-  commit gate). `proof:scene-colocated`'s canonical cross-band edit order is **A4 → D2 → D3**.
+- **S4 — Scene-switcher zombie-gate retirement (C-6 re-corrected at the S.E shelf; fold rows
+  18/19).** **Retire `proof:scene-switcher-mobile`** as a ledgered KILL with a re-run witness (no
+  rebirth — the stage gate is SHELVED with band S.E, `waves/S.E.md`); `proof:scene-colocated`
+  **ASSERTION 3 stays WHOLE** (carousel-absence truthful under the no-stage status quo).
+  `proof:scene-colocated`'s canonical cross-band edit order is **A4 → D2 → D3**.
 - **S5 — Safe triple merges (p08 F6/F7).** Collapse the **morph-gate** and **emerging-css** triples
   (safe merges).
 - **S6 — Constellation-PENDING consolidation + tripwire retarget.** Consolidate the
@@ -498,9 +501,9 @@ orphaned**.
 **190 → ~138 immediate → ~120 once the FROZEN fold discharges** (p08; fold row 70). The ~120 half is
 **contingent on the FROZEN discharge** and **validated by Q4/p04 + the D/G migration, cited as a
 dependency, not re-asserted** (SPEC §8-20). **Deps: A0.** **BLOCKS** the FROZEN reds of
-**S.D3/S.E/S.G** being declarable (the altitude bands' born-RED appearance gates are only *declarable*
+**S.D3/S.G** being declarable (the altitude bands' born-RED appearance gates are only *declarable*
 against the reformed tier taxonomy + FROZEN authorization A4 creates — SPEC §1). A4's FROZEN-set
-declaration **precedes any demo wave that reds a layout/appearance gate** (D3, E, G — NOT D1, which
+declaration **precedes any demo wave that reds a layout/appearance gate** (D3, G — NOT D1, which
 reds only source-path gates, p04 F4). `proof:scene-colocated` edit order: **A4 → D2 → D3**.
 
 ### Verification
@@ -584,8 +587,8 @@ from the table (SPEC §4 header).
 | 14 | DM-15 control-surface-single-writer | I | 7 | **WAVE S.A1** → C-20 terminal-ization from a reproduced signature |
 | 15 | DM-5 S8 FN_NAME source-probe | K | 5 | **WAVE S.A1** (re-derive; terminal as regression-guard) |
 | 16 | DM-20 auto-deploy-of-record dead | L.WZ | 4 | **WAVE S.A3** |
-| 18 | proof:scene-switcher-mobile zombie gate | R.W5 | new | **WAVE S.A4** (retire) + **S.E4/E5** (reborn as proof:scene-stage-commits + the mobile commit gate) |
-| 19 | proof:scene-colocated ASSERTION 3 vs charter | R.W5 | new | **WAVE S.A4** (delete clause; edit order A4→D2→D3) |
+| 18 | proof:scene-switcher-mobile zombie gate | R.W5 | new | **WAVE S.A4** (retire — ledgered KILL with re-run witness; the stage rebirth SHELVED with band S.E, owner ruling 2026-07-03; ASSERTION 3 stays whole) |
+| 19 | proof:scene-colocated ASSERTION 3 vs charter | R.W5 | new | **WAVE S.A4** (conflict DISSOLVED at the S.E shelf — ASSERTION 3 stays whole; the zombie half retired; edit order A4→D2→D3) |
 | 20 | ~51 demo-layout ossifying gates | H–R | accreting | **WAVE S.A4** (FROZEN set; machine-distinguishable discharge: ci-coverage successor-mapping row or ledgered KILL with re-run witness — free-prose "deletion-with-cause" banned) |
 | 41 | src/animation/CLAUDE.md pre-R (9 lanes); root doc drift | Q | 2 | **WAVES S.A5 (gate) + S.B8 (regen)** |
 | 70 | Gate roster 190→~120 consolidation | H–R | accreting | **WAVE S.A4** (~138 immediate; ~120 contingent on the FROZEN discharge — cited to Q4/p04 + the D/G migration) |

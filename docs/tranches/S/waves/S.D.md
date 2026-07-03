@@ -30,8 +30,8 @@ rubric.
 
 ```
 S.A0 ─────────────────────────► S.D1                       (D1 runs parallel to A4 — sd-#10)
-S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.E1c, S.G2(compose items)
-S.D2 ──► S.E1 (8-scene core)   ;   S.D3 ──► S.E1c (compose row)
+S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.G2(compose items)
+(band S.E SHELVED by owner ruling 2026-07-03 — its former S.D2/S.D3 out-edges are removed)
 ```
 
 - **S.D1** deps A0 only; runs **parallel to S.A4** — D1 reds NO frozen appearance gate (p04 F4: the
@@ -177,7 +177,7 @@ first-class peer and sub-zones the monolith — the real cost is **gate-repoint-
   cluster→`easing-editor/`; `orbital-drag`+`matrix-editor`→`scenes/cube/`; `dock/`→app-adjacent;
   `useTypedTrigger`→`scenes/sequence/`.
 - **S4 — KfPillTabs promotion to the standard panel primitive** within the controls carve lands here
-  (fold row 71; se-B6 — it is a panel primitive, not scene-nav, so NOT S.E5). **Its TEST is B7's**
+  (fold row 71; se-B6 — it is a panel primitive, not scene-nav). **Its TEST is B7's**
   (`KfPillTabs.test.ts` + the a12 F1/F2 keyboard fixes live in S.B7, not here).
 - **S5 — `cubeKeys.ts` for 8/8 parity** (a10).
 - **S6 — The cross-module `_resetAssetManagerStore` reach** (`state/index.ts`) gets the a24-F2
@@ -254,7 +254,7 @@ born-RED; re-run at S.Z2.
 G1 lands FIRST on the current tree; D2's carve follows and **re-runs `proof:stage-visible` green on
 the post-carve tree** (`proof:stage-visible` does not exist pre-G1, so its stays-green clause is
 unexercisable earlier — the vacuity in the probe tree is itself the confirmation the edge must not
-be relaxed). **D2 ──► S.D3, S.E1** (8-scene core).
+be relaxed). **D2 ──► S.D3.**
 
 ---
 
@@ -329,7 +329,7 @@ compose-fleet-green precedes this gate's close; runtime-tier — T1); the repo-g
 ### DAG
 
 **Deps: D2, A4** (A4 because D3 reds appearance gates — font/occlusion/a11y/stage-visible). **D3
-──► S.E1c** (the compose row + adapter, gated on D3), **S.G2 (compose items)**. `proof:compose-scene`
+──► S.G2 (compose items)**. `proof:compose-scene`
 close is gated on **S.G1/G2** (compose-fleet-green).
 
 ---

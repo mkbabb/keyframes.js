@@ -10,7 +10,7 @@ tree*, exit code recorded in PROGRESS.md (T4; SPEC §7), and S.Z2 re-executes th
 inv-16 holds (write only keyframes.js).
 
 **Charter.** S.G is the demo's design-refinement fleet — the altitude layer over the structural
-demo work of S.D/S.E. Two systemic pathologies dominate it, both found in all ten design lanes and
+demo work of S.D (band S.E was SHELVED by owner ruling 2026-07-03 — see `waves/S.E.md`). Two systemic pathologies dominate it, both found in all ten design lanes and
 both now probe-answered:
 
 1. **Mobile-sheet occlusion is systemic (10/10 pages) and the cure is probe-PROVEN (SPEC §2.1-7,
@@ -39,7 +39,7 @@ live via chrome-devtools-mcp (T8), not by source-shape gate alone.
 **Band DAG (from SPEC §3 "The DAG"):**
 
 ```
-S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.E1c, S.G2(compose items)
+S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.G2(compose items)
 S.G1 ──► S.G2 ──► S.G3        (S.G4 → §8)
 ```
 
@@ -83,7 +83,7 @@ wave; the bench to S.F5a), **C-14** (per-wave mode declaration), **C-24** (G1 be
 and actuates), **T4** (DEVELOPED ≠ SHIPPED — gates ship born-RED; a wave CLOSES only when its gate
 is GREEN re-run on the merged tree), **T7** (gate follows code — including gates that ARM on the
 deleted behavior; the p10 arming-audit class is G1's S4), **T8** (interaction-axis tests for
-hand-rolled primitives; live verification via chrome-devtools-mcp for every stage of S.E/S.G).
+hand-rolled primitives; live verification via chrome-devtools-mcp for every stage of S.G).
 
 **Probes:** **p10 → S.G1/G2** (three writers; one axis; mode tokens; expanded detent; arming audit;
 telemetry-anchor + pane-scroll to G2 — SPEC §7 probe-adjustment index).

@@ -710,9 +710,9 @@ TransportDock auto-repeat (fold row 71 — the B7 half; the D2 half is the panel
 - **S6 — `KfPillTabs.test.ts` + the interaction-axis fixes (fold row 71; a12 F1/F2 HIGH; T8):**
   **arrow-moves-focus**, **keyup actuation**, **press-origin guard** — the roving-tabindex
   keyboard-broken defect (keyboard traversal collapses after one hop; a 3rd tab unreachable) + the
-  **TransportDock auto-repeat**. **The KfPillTabs test is B7's gate — it is NOT re-attributed to
-  S.E5** (se-B6: KfPillTabs is a **panel primitive**, not scene-nav; its D2 promotion to the standard
-  panel primitive is a separate concern).
+  **TransportDock auto-repeat**. **The KfPillTabs test is B7's gate** (se-B6: KfPillTabs is a **panel primitive**, not scene-nav —
+  the old NOT-the-stage-band attribution is moot since the 2026-07-03 S.E shelf; its D2 promotion to
+  the standard panel primitive is a separate concern).
 
 ### The HARD GATE
 
@@ -822,7 +822,7 @@ table (SPEC §4 header).
 | 58 | declaredKeyframeBodyFor "dead export" | Q | 1 | **WAVE S.B3 — REVERSED at Pass-2** (a18 F3 overturned by P2-2 F1/F5: the export is the EN-b/EN-c load-bearing substrate; constructed, not deleted) |
 | 59 | MotionPath.finished asymmetry | O | 2 | **WAVE S.B4** (svg/handle.ts abstract base — closed by construction) |
 | 60 | transport.ts hand-rolled prefersReducedMotion | R.W2b | new | **WAVE S.B4** (DRY through internal/reduced-motion) |
-| 71 | **KfPillTabs roving-tabindex keyboard-broken + TransportDock auto-repeat (a12 F1/F2, HIGH)** — keyboard traversal collapses after one hop; a 3rd tab unreachable | R (DM-1/DM-5 replacements) | new | **WAVES S.B7 (KfPillTabs.test.ts + arrow-moves-focus / keyup-actuation / press-origin fixes) + S.D2 (promotion to the standard panel primitive)** — the **S.B7 half is this band's**; NOT S.E5 (se-B6: it is a panel primitive, not scene-nav) |
+| 71 | **KfPillTabs roving-tabindex keyboard-broken + TransportDock auto-repeat (a12 F1/F2, HIGH)** — keyboard traversal collapses after one hop; a 3rd tab unreachable | R (DM-1/DM-5 replacements) | new | **WAVES S.B7 (KfPillTabs.test.ts + arrow-moves-focus / keyup-actuation / press-origin fixes) + S.D2 (promotion to the standard panel primitive)** — the **S.B7 half is this band's** (se-B6: a panel primitive, not scene-nav; the old NOT-the-stage-band attribution is moot since the S.E shelf) |
 | 73 | **serializeEasing emits browser-invalid easing names — the shipped `@keyframes` artifact is browser-dead for most registry easings** (computed `animation-name: none`; kf-parser round-trip structurally cannot see it) — P2-2 F6 | pre-Q (found P2-2) | new | **WAVE S.B3/EN-a** (CSS-twin table + `linear()` fallback; born-RED **browser-parse** gate clause — C-25) |
 | 74 | **compileChild whole-block densify swap drops every non-color property on mixed tracks** (`backward.ts:289-293`; eligible-with-zero-refusals color-only artifact) — P2-2 F5 | O–Q (found P2-2) | new | **WAVE S.B3/EN-b** (thread `bodyByStop` per format.ts's own design; born-RED mixed `opacity+color` artifact-content gate — C-25) |
 

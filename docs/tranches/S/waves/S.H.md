@@ -61,8 +61,9 @@ S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → k
 - **S.H4 ──► (1.0.0 publish → kf re-pin) ──► before S.Z** — the re-pin must land before the close
   band so S.Z1's cross-repo rows disposition through the kf-side CONSUME gate over the re-pinned
   build (SPEC §3 S.Z1, DAG line 1284).
-- **External-edge status (T12):** S.H4 is **T12's second, owner-controlled external consume-edge**
-  (the first is S.E6, third-party glass-ui 5.0.0). Its gates are **born-SPECIFIED** and fire at the
+- **External-edge status (T12):** S.H4 is **T12's ONLY external consume-edge** (owner-controlled;
+  the former third-party glass-ui edge left the plan at the 2026-07-03 S.E shelf — the 5.0.0 consume
+  is an owner-domain HANDOFF). Its gates are **born-SPECIFIED** and fire at the
   impl drive's publish step. **No other S wave may acquire an external dependency without an owner
   ruling** (SPEC §7 T12; §1 line 82).
 
@@ -324,7 +325,8 @@ error short-circuits, 0-hit caller scan holds); (6) refresh `parse-that/CLAUDE.m
 The Pratt binding-power combinator design **survives as a design appendix/seed** over the Parser core
 (with the value.js `math.ts` consume-edge sketch — SPEC §8-2). r6 rates it **LOW**; its proposed
 gate ("design doc + external value.js sign-off") **violates T1's runtime-tier absolutism** and would
-have been a **third external edge** (T12 permits exactly two: S.E6 + S.H4). It is **not implemented
+have been an ADDITIONAL external edge (T12 now permits exactly one: S.H4 — the former glass-ui edge
+left at the 2026-07-03 S.E shelf). It is **not implemented
 without value.js ratification** and is **explicitly not a grammar-DSL move** (no bbnf-lang — SPEC §1,
 §8-2). It authors nothing in S; it is recorded in §8-2 so the design is not silently lost.
 

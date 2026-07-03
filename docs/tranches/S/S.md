@@ -7,7 +7,7 @@
 > evidence; **an implementer must not need to read it**. Branch: `tranche-s-dev`.
 > **Docs only — no source, test, config, or git state is touched in development.**
 > Every wave ships a falsifiable born-RED gate (or, for the publish-coupled external
-> edges — S.E8's consume gate + the S.H4 gates — born-SPECIFIED); nothing runs until
+> edge — the S.H4 gates — born-SPECIFIED); nothing runs until
 > the owner explicitly authorizes the impl
 > drive (the inv-16 boundary, held honestly: a wave is CLOSED only when its gate is
 > GREEN re-run on the merged tree, and S.Z2 re-executes that oracle at close).
@@ -54,11 +54,17 @@ consumes the folded wave text, not the loop:
    FROZEN** (`audit/pass3/stage-final-design.md` / `stage-final-tech.md`). The **H1
    stale-arm class is cured** (browse verbs LOCKED during `committing`) and
    **adversarially proven** (the A–G driver; clause G = a real
-   pointer-drag-during-committing that the ring locks out). The frozen v3 build IS
+   pointer-drag-during-committing that the ring locks out). The frozen v3 build WAS
    the binding S.E wave spec — first-principles, superseding the p05 salvage-only
    framing (p05 remains the mechanical rebase substrate, not the design). Kept
    prototype worktree: `.claude/worktrees/wf_2fbb9dbc-c40-1` (drivers under
    `demo/stage-proto/gates/`; run instructions in `stage-proto-v3.md`).
+   **OUTCOME (appended 2026-07-03):** pass-3 converged 100/100 → owner live review of
+   the working prototype → **band S.E SHELVED by owner ruling** ("Looks awful. Scrap
+   the scene selector for now, shelf it, and then remove those plans from the current
+   wave set."). The prototype + gate drivers are preserved on branch
+   `scene-stage-proto-s` @ `63ccab0`; `waves/S.E.md` is now the shelf record. The
+   convergence record above stands as history — nothing here is re-litigated.
 10. **ci-fix-proto** (`audit/pass3/ci-fix-proto.md`) — the p12 CI cause-fixes
     implemented as wave-ready diff shapes: **4 cures PROVEN GREEN** — `styling-idioms`
     (one CSS rule), `pin-ledger-current` (JSON refresh to 5.1.0/1.2.0/0.13.0),
@@ -89,11 +95,13 @@ Tranche S is the **honesty-then-altitude tranche**: it makes the repo's own
 instruments tell the truth again (master CI has been red on every push since Tranche
 K; the deploy-of-record is dead; the authoritative library map documents a tree that
 no longer exists), and then — on top of a truthful substrate — performs the deep
-structural work R only top-partitioned, resurrects the one first-class owner ask that
-has died three times (the theatrical scene-switcher), and lifts the library to the
+structural work R only top-partitioned, and lifts the library to the
 mid-2026 platform frontier (View Transitions, SplitText, `@starting-style`,
 `animation-trigger`) in the one way no peer can match: every uplift compiles back to
-zero-runtime, current-spec CSS through the round-trip engine (r5).
+zero-runtime, current-spec CSS through the round-trip engine (r5). (The originally
+chartered scene-stage resurrection — the thrice-dead theatrical scene-switcher — was
+built, converged 100/100 at pass 3, live-reviewed, and **SHELVED by owner ruling
+2026-07-03**; see `waves/S.E.md`.)
 
 S folds **every** open deferral and chronic into a terminal home — a wave, a ratified
 KILL, or an explicit owner HANDOFF (the fold ledger in `PROGRESS.md` has no
@@ -142,17 +150,19 @@ recorded in §2 below.
 - **No glass-ui writes.** All glass-ui change flows through the glass-ui repo as
   owner-domain handoffs. kf consumes **published artifacts only** — and glass-ui
   5.0.0 does not exist yet (BG ≈110 waves + BH ≈30 waves are dev-complete, unbuilt —
-  r7 B-1). The consume-edge wave (S.E8) is specified now and FIRES only when the
-  joint 5.0.0 publishes; tilde-pin discipline preserved (never caret).
-- **Exactly TWO external consume-edges, named (T12, revised).** (1) **S.E8** —
-  third-party (glass-ui 5.0.0); may close S as a structured HANDOFF, in which case
-  fold rows 51/52/53 are recorded as an **explicit non-terminal RESIDUAL CARRY**,
-  never presented as terminals. (2) **S.H4** — the owner-controlled parse-that 1.0.0
-  publish-then-re-pin; its gates are **born-SPECIFIED** and fire at the impl drive's
-  publish step. SPEC-v1's "the glass-ui edge is the only externally-gated wave" was false and is
-  corrected throughout (sh-parse-that D4). No other wave may acquire an external
-  dependency without an owner ruling; S.C3b (menubar) is explicitly forbidden from
-  external gating.
+  r7 B-1). The former glass-ui consume-edge wave left the plan with the **S.E shelf
+  (owner ruling 2026-07-03)**: the 5.0.0 consume is now an owner-domain HANDOFF with
+  no S wave (fold rows 11/51/52/53/55); the pin posture (hold ~4.0.x, tilde never
+  caret) rides S.C4 per C-12.
+- **Exactly ONE external consume-edge, named (T12, re-revised at the S.E shelf).**
+  **S.H4** — the owner-controlled parse-that 1.0.0 publish-then-re-pin; its gates are
+  **born-SPECIFIED** and fire at the impl drive's publish step. (History: SPEC-v1
+  falsely said "the glass-ui edge is the only externally-gated wave"; the pass-2
+  correction named TWO edges — the glass-ui edge + S.H4; the 2026-07-03 S.E shelf removed the
+  glass-ui edge, leaving S.H4 alone. Fold rows 51/52/53 are owner-domain HANDOFFs,
+  never presented as terminals — rows 51/52 render `HANDOFF — external — row N` in
+  the S.Z3 FINAL per C-21.) No other wave may acquire an external dependency without
+  an owner ruling; S.C3b (menubar) is explicitly forbidden from external gating.
 - **No quick solutions.** Where a lane offered a patch and a transposition, the plan
   takes the transposition (service-locator → ownership inversion, a06;
   sheet-occlusion → the probe-proven stage-visibility contract, p10 — not ten
@@ -268,7 +278,7 @@ The fifteen load-bearing, post-probe convergences the plan is built on:
    **5-artifact lockstep co-edit** (S.A4). p04 proves the FROZEN appearance set is
    **structurally immune to source moves** — the demo *file partition* reds only ~7
    source-path gates + one shared driver, all mechanical; the FROZEN set reds only
-   on *visual/DOM* changes (S.E/S.G).
+   on *visual/DOM* changes (S.D3/S.G — S.E left this pair at the 2026-07-03 shelf).
 
 7. **The mobile-sheet occlusion is systemic, and the cure is probe-PROVEN (p10).**
    All ten design lanes found the bottom sheet occluding the scene's thesis. p10
@@ -442,21 +452,25 @@ fleet).
 `waapi/` to ZONE_DIRS, derive the flat-sibling FAMILY set from the directory
 listing. The `leaf/` rename is REJECTED.
 
-**C-6. The scene-switcher gate contradiction.** Both stale halves die in S.A:
-ASSERTION 3's carousel-absence clause is deleted (keep location/no-climb);
-`proof:scene-switcher-mobile` is retired and reborn as the stage band's born-RED
-acceptance gate (`proof:scene-stage-commits`), targeting `frontIndex`/`spinning` +
-commit-on-settle.
+**C-6. The scene-switcher gate contradiction.** **(Re-corrected at the 2026-07-03
+S.E shelf.)** The zombie `proof:scene-switcher-mobile` is retired at S.A4 as a
+ledgered KILL with a re-run witness (it is masked by continue-on-error and requires
+a component that does not exist). The originally ruled rebirth as the stage band's
+born-RED acceptance gate (`proof:scene-stage-commits`) is SHELVED with band S.E —
+no successor gate exists in S. `proof:scene-colocated` ASSERTION 3 stays WHOLE
+(the carousel-absence clause is truthful again under the no-stage status quo; the
+original ruling deleted it only to make room for the stage).
 
-**C-7. Scene-switcher substrate — DM-24 REVIVED; salvage probe-EXECUTED (p05).**
-The `n-stage-impl` shelf rebases mechanically (5 files / 23 lines); guardrails
-absolute: one nav authority, chrome outside the `scene-subject` VT,
-commit-on-settle wired. The bespoke dock-arrow swap is NOT resurrected.
-**(Superseded at pass-3 — `waves/S.E.md`/§0-9:** the converged design has **no interim
-dock spin controls** at all; the ring's spin arrows are **stage-internal**, the single
-nav authority is the dock **pill** opening the stage (the S.E7 rewire + scene-Select
-retirement), and BG's dock morph at **S.E8** is an OPTIONAL pill-open refinement, NOT a
-retirement target — nothing is retired onto it.)
+**C-7. Scene-switcher substrate — RE-CORRECTED at the 2026-07-03 S.E shelf.** The
+pass-3 correction of this ruling referenced the stage design (no interim dock
+controls; the dock pill opening the stage; the dock morph an optional refinement).
+With band S.E **SHELVED by owner ruling**, the ruling re-corrects to the pre-stage
+status quo: **the dock Select remains the SOLE scene-switching authority for S** —
+no dock-pill rewire, no scene-Select retirement, and no glass-ui consume-edge wave exists. (History: DM-24
+was REVIVED here and the salvage was probe-EXECUTED — p05, 5 files / 23 lines — then
+the first-principles stage was built and converged at pass 3 before the owner's live
+review ruled it scrapped-for-now; the record and shelf pointers live in
+`waves/S.E.md` and fold row 17.)
 
 **C-8. Doc-regen timing — gate-first, regen-last.** S.A5 lands born-RED
 `proof:claude-paths-live` + hot-fixes the actively dangerous lines; the full
@@ -468,20 +482,22 @@ verb.
 
 **C-10. colorTail benches — budgeted device-independent ratios in S.F5a.**
 Observe-only was correct at Q's measure-first moment; insufficient for S's
-SOTA-perf claims. This ruling also governs S.E: **no raw absolute fps threshold may
-be a CI closure anywhere in the plan** (S.E6's ≥55fps is demoted to a declared
-local chrome-devtools-mcp acceptance or converted to a budgeted ratio).
+SOTA-perf claims. **No raw absolute fps threshold may be a CI closure anywhere in
+the plan** — the rule stands plan-wide; its S.E application (the stage fps
+acceptance) is moot since the 2026-07-03 shelf (no S.E waves exist).
 
 **C-11. `proof:engine-seam-split` — formally KILLED.** Superseded by proof:engine's
 body-span clause + the S.B2 recursive-scan fix + the no-re-export-bridge clause.
 Recorded in the S ledger.
 
-**C-12. glass-ui pin — hold ~4.0.x through S development; consume-edge fires only
-on the joint 5.0.0 publish.** Interim 4.2.0 catch-up REJECTED. Never caret. The
-stale MEMORY "specular=off" expectation is retired at S close. **Amended by C-20:**
-if 5.0.0 does not publish before S close, rows 51/52/53 are an explicit
-non-terminal RESIDUAL CARRY, and dock double-click carries a kf-internal
-contingency fallback.
+**C-12. glass-ui pin — hold ~4.0.x through S development.** Interim 4.2.0 catch-up
+REJECTED. Never caret. The stale MEMORY "specular=off" expectation is retired at S
+close. **Amended at the 2026-07-03 S.E shelf:** the 5.0.0 consume-edge is no longer
+an S wave (the former glass-ui consume-edge wave left the plan) — the pin-hold posture rides **S.C4**;
+the 5.0.0 consume is an owner-domain HANDOFF (rows 11/51/52/53/55), rows 51/52
+rendered `HANDOFF — external — row N` in the S.Z3 FINAL per C-21. The dock
+double-click chronic reverts to its glass-ui-root HANDOFF (row 53 — the kf-internal
+contingency fallback rode the shelved integration wave and is shelved with it).
 
 **C-13. Speculative LIGHT exports — forced to a decision inside S, no carry.**
 Pinned (se-B7): the Oscillator decision lands in **S.G2** (ONE wave: build the
@@ -516,10 +532,11 @@ named regression test never exercises. **RULING:** fix only the falsy-seed bug �
 scan.
 
 **C-17. The demo composable naming convention is `use<Name>Demo` — ruled NOW,
-before D3.** The stage registry's INJECT-adapter contract already consumes
-`use<Scene>Demo` (p05 F4); p06 recommends `useComposeDemo.ts`. S.D3 registers
-compose as `useComposeDemo.ts` from birth; S.D4 executes the fleet-wide renames for
-the `use<Name>Animations` stragglers. (sd-#8.)
+before D3.** p06 recommends `useComposeDemo.ts`; the convention stands on its own
+merits (the original stage-registry INJECT-adapter rationale — p05 F4 — is
+historical since the S.E shelf, but the ruling holds). S.D3 registers compose as
+`useComposeDemo.ts` from birth; S.D4 executes the fleet-wide renames for the
+`use<Name>Animations` stragglers. (sd-#8.)
 
 **C-18. The generalized changelog gate's diff mechanism (sc-§4).**
 `docs/published-surface.md` is a single current file with no per-release history.
@@ -625,7 +642,7 @@ criterion (§3-5 above).
 | **S.B — Library sub-zoning + boundary** | S.B1 · S.B2 · S.B3 · S.B4 · S.B5 · S.B6 · S.B7 · S.B8 | lib | constants seam; engine/css/ + PlaybackState single-STORAGE + ceiling carves; compile/backward/ + EN-a/EN-b; barrel purity + ownership inversion; the last override deleted; type surface + `./engine` drift gate; test/bench perimeter; the library map regenerated. |
 | **S.C — Legacy purge (teeth)** | S.C1 · S.C2 · S.C3a · S.C3b · S.C4 | lib+demo+gates | animate.ts cluster DELETED + hardened orphan walker; no-silent-fallback enforced; dead deps + stale narration gated; menubar → dropdown-menu; dependency posture. |
 | **S.D — Demo gestalt** | S.D1 · S.D2 · S.D3 · S.D4 | demo | app/ partition; the @/ state hoist + monolith carve; playground → scenes/compose/; demo taxonomy + docs truth. |
-| **S.E — Scene-stage resurrection** | S.E1 (+E1c) · S.E2 · S.E3 · S.E4 · S.E5 · S.E6 · S.E7 · S.E8 | demo/design | DM-24 REVIVED (first-principles DK-64 stage, pass-3 100/100): salvage lift + registry, overlay/lighting/geometry, choreography, the A–G commit funnel, mobile @375, LOD + real WebGL, integration (the gates go real), glass-ui consume-edge (externally gated). |
+| **S.E — Scene-stage resurrection — SHELVED (owner ruling 2026-07-03)** | — (no waves; the record stays) | — | **SHELVED by owner ruling 2026-07-03** ("Looks awful. Scrap the scene selector for now, shelf it, and then remove those plans from the current wave set."). Built + converged 100/100 at pass 3, live-reviewed, ruled scrapped-for-now. Shelf: branch `scene-stage-proto-s` @ 63ccab0 + `audit/pass3/`; record: `waves/S.E.md`. Nothing may depend on this band; re-opening requires a new owner ruling. |
 | **S.F — SOTA uplift: animation library** | S.F1 (VT-a..d) · S.F2 · S.F3 (EN-c, EN-d) · S.F4 · S.F5a · S.F5b · S.F5c · S.F6 | lib | View Transitions; SplitText; entry/exit compilation; animation-trigger; zero-alloc + budgeted floors; bench coverage; Typed-OM verdict + WAAPI densify; honest narrative. |
 | **S.G — Demo design refinement fleet** | S.G1 · S.G2 · S.G3 (S.G4 → §8) | design | The stage-visibility contract (probe-proven); per-scene W1 batch with per-item oracles; the affordance layer + touch parity, manifest-gated. |
 | **S.H — parse-that dispatch** | S.H1 · S.H2 · S.H4 (S.H3 → §8) | dispatch | Packrat-epoch arming; the 1.0.0 legacy cut + chain() fix; ledger closure + the single publish-then-re-pin (born-SPECIFIED). |
@@ -659,8 +676,9 @@ direct `&&` chains; proof-ci-coverage EXCLUDED + the clause-0b three-tier union;
 proof-gate-is-runtime retarget + membership-count floor; run-all.mjs:42;
 gate-taxonomy.md stale rows), the symmetric mis-tier clause, the
 machine-distinguishable FROZEN discharge (migration-to-named-successor or ledgered
-KILL — free prose banned), C-6's gate-contradiction kill, and the roster arithmetic
-190 → ~138 → ~120; it BLOCKS the FROZEN reds of S.D3/S.E/S.G being declarable. S.A5
+KILL — free prose banned), C-6's zombie-gate retirement (re-corrected at the shelf:
+ASSERTION 3 stays whole; no stage rebirth), and the roster arithmetic
+190 → ~138 → ~120; it BLOCKS the FROZEN reds of S.D3/S.G being declarable. S.A5
 lands born-RED `proof:claude-paths-live` + hot-fixes the actively wrong doc lines
 (full regen at S.B8 per C-8).
 
@@ -688,8 +706,8 @@ surface work (`= any → = Vars`; `@internal` + trimmed roll-up — both version
 inputs, §2) and the redefined **TYPE-diff `proof:engine-subpath-mirror`** drift
 gate (p07); the loader collapse stays an owner option (§2). S.B7 brings test/ +
 bench/ under typecheck, regroups test/<zone>/, adds the 5 missing scene composable
-tests, and owns **KfPillTabs.test.ts + the interaction-axis fixes** (fold row 71;
-NOT S.E5). S.B8 regenerates the library map once, against the final tree.
+tests, and owns **KfPillTabs.test.ts + the interaction-axis fixes** (fold row 71; a panel
+primitive per se-B6). S.B8 regenerates the library map once, against the final tree.
 
 **S.C — Legacy purge, with teeth (track: lib+demo+gates).** S.C1 DELETEs the
 animate.ts zombie cluster (C-3) and authors the hardened born-RED
@@ -734,62 +752,13 @@ gate-repoint-dominated**; lands AFTER G1 and re-runs `proof:stage-visible` green
 D3 but **closing after S.G**. S.D4 executes the fleet-wide `use<Name>Demo` renames,
 regenerates demo/CLAUDE.md, and rules terminally: keep `@/`.
 
-**S.E — Scene-stage resurrection (multi-wave; DM-24 REVIVED; track: demo/design).**
-**Superseding the salvage-only framing (pass-3, §0-9):** the stage is now a
-**first-principles DK-64 stage** — a theatrical barrel-select whose grammar is
-"light = life": a **drop-lighting** stack (the tungsten beam + warm pool +
-per-scene footlights), **live LOD previews** (one shared `RAFPlayback` clock, the
-1-full + 2-flank hysteresis tier), and a **full-3-D ring** (real z-order,
-Teleport-sibling overlay outside the `scene-subject` VT). It was **designed,
-prototyped LIVE, and converged to 100/100 across a 3-round Fable design loop**
-(`audit/pass3/stage-*`; frozen v3 = the binding wave spec); the **H1 stale-arm class
-is cured** (browse verbs LOCKED during `committing`) and **adversarially proven** (the
-A–G driver, clause G a real pointer-drag-during-committing). The p05 salvage remains
-only the mechanical rebase substrate. **One named integration-wave item (pass-3
-tech-1, no longer a floating open issue):** wiring the standalone `demo/stage-proto/gates/`
-drivers as repo `proof:*` roster entries against served **dist** — and the
-`DockSelectTrigger`/dock-pill rewire (a Select trigger that opens the stage; if
-glass-ui needs a change it is an owner-domain HANDOFF, never a demo patch) — is the
-wave's born-RED **integration-wave** debt, carried into S.E7's integration step, NOT
-discharged in the prototype. Charter guardrails, absolute (r7 A-9/A-10): one nav
-authority; chrome outside the
-`scene-subject` VT (Teleport-to-body sibling); commit-on-settle wired; every
-load-bearing motion dogfoods a LIGHT-barrel primitive on RAFPlayback; every atomic
-stage verified LIVE against the running demo, never source-shape; PRM snaps every
-beat; the shelf's scratch `*.mjs` probes are NOT resurrected — real gates replace
-them. **CI-budget accounting (se-B9):** the band adds exactly TWO CI browser gates
-(`proof:scene-stage-commits` at E4; the mobile commit gate at E5), both riding
-S.A2's shared chromium + served dist (amortized); `proof:stage-geometry` (E2) rides
-the same harness; the fps checks are LOCAL chrome-devtools-mcp acceptances costing
-zero CI launches — S.E does not re-red the plane S.A0 greens. **The pass-3 rewrite
-re-decomposes the band into E1–E8 (`waves/S.E.md` is authoritative).** S.E1 lifts the
-cured v3 `scene-stage/` tree from the prototype worktree; the registry enumerates
-from `scenes.ts` (all 8 miniatures ship — E1c the compose row is D3-gated); gate:
-born-RED `proof:scene-registry-mounts` (each row mounts a live-ticking miniature).
-S.E2 lands the lighting/occlusion stack + the live-pinned
-rotateX(-15deg)/perspective geometry (NOT re-derived); gate: born-RED
-`proof:stage-geometry` (body-level sibling, no `view-transition-name`, matrix within
-tolerance, + the during-commit `overlayInDomAtUpdate===false` clause). S.E3 lifts the
-choreography whole (the open/fan-in phase machine, `useStageGestures`, the payoff,
-the affordance layer); its closure is a LOCAL motion-evidence acceptance (no new CI
-launch). S.E4 lands the D1/D2-cured commit funnel + the `stage` VT type; gate:
-born-RED **proof:scene-stage-commits** — the A–G adversarial roster (clauses B/G
-falsify the stale-arm class). S.E5 is the phone path — the SAME stage, no max-width
-fork, no second authority (KfPillTabs removed per se-B6); gate: the mobile commit
-gate green at 375px (open→flick→tap→commit on touch). S.E6 hardens the LOD tier and
-mounts the REAL Three renderer behind the proven create/dispose/contextlost seams;
-gate: the GL-lifecycle clauses (≤1 context ever, `__stageGLLog`) + the LOCAL fps
-acceptance (C-10). S.E7 is the INTEGRATION wave — App.vue mount, the dock-pill
-rewire + scene-Select retirement, real `useSceneTransition` + warm-then-gate, and
-**the gate roster wired for real** against the served dist of the real app (the
-born-RED integration debt both critics ruled the wave must own). S.E8 is the
-**externally gated** glass-ui consume-edge: fires only on the joint 5.0.0 publish
-(pin ~4.0.x→~5.0.0, tilde never caret; the visual re-baseline its own multi-gate
-effort; the BG dock morph is an OPTIONAL pill-open refinement — the new design has
-no interim dock controls, nothing is retired onto it; dock double-click re-tested
-with the kf-internal contingency authored at E7-S10); if 5.0.0 has not published at
-S close, E8 closes as a structured HANDOFF and fold rows 51/52/53 are an explicit
-non-terminal RESIDUAL CARRY.
+**S.E — Scene-stage resurrection — SHELVED by owner ruling 2026-07-03.** The band
+was built, prototyped LIVE, and converged 100/100 at pass 3, then live-reviewed and
+ruled scrapped-for-now ("Looks awful. Scrap the scene selector for now, shelf it,
+and then remove those plans from the current wave set."); no S.E waves exist,
+nothing may depend on this band, and the full shelf record — what was built, the
+shelf pointers (branch `scene-stage-proto-s` @ 63ccab0; `audit/pass3/`), and the
+re-corrected rulings (C-6/C-7/C-12) — lives in `waves/S.E.md`.
 
 **S.F — SOTA uplift: animation library (track: lib).** Selection rule (r5): only
 primitives whose kf version is structurally better because the round-trip engine
@@ -890,27 +859,28 @@ SHA (the A0 keystone re-gated at close — the Q/R mode structurally forbidden),
 **post-close fallout guard** (any src/bench/scripts commit between the FINAL SHA
 and the tag REDs — the 6f2493d anti-pattern, mechanized), and the version decision
 as an OWNER RULING with its two inputs surfaced (§2). MEMORY updates: stale
-specular note retired, dock-doubleclick sharpened (+ the E6 contingency), DM-24
-REVIVED recorded.
+specular note retired, dock-doubleclick re-sharpened as the glass-ui-root HANDOFF
+(the kf-internal contingency shelved with the stage — row 53), the DM-24
+owner-ruled SHELF recorded (built + converged pass-3, live-reviewed, ruled
+scrapped-for-now; shelf `scene-stage-proto-s`).
 
 ### The DAG (SPEC §3, verbatim)
 
 ```
 S.A0 ──► S.A1, S.A2, S.A4, S.A5, S.C1, S.C2, S.C3a, S.C3b, S.C4, S.B1, S.D1
 S.A2 ──► S.A3  (auto-deploy fires when demo-correctness is green — post-backlog)
-S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.E1c, S.G2(compose items)
+S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.G2(compose items)
 S.B1 ──► S.B2 ──► S.B4, S.B6 ;  S.B1 ──► S.B3 ──► S.B4 ──► S.B5 ──► S.B7 ──► S.B8
         (B2 owns the animation.ts/playback.ts ceiling carves — B2 precedes B5 by construction)
 S.B2/B3 ──► S.F1 ;  S.B3 (carrying EN-a + EN-b) ──► S.F3/EN-c ──► EN-d ;  S.B4 ──► S.F4 ;  S.B2/B4 ──► S.F5a/b/c ;  S.B1 ──► S.F2
-S.D1/S.D2 ──► S.E1 (8-scene core) ;  S.D3 ──► S.E1c (compose row) ;  S.E1 ──► S.E2 ──► S.E3 ──► S.E4 ──► S.E5 ──► S.E6 ──► S.E7
-S.E7 + [glass-ui 5.0.0 published] ──► S.E8   (else: structured HANDOFF + rows 51/52/53 RESIDUAL CARRY)
+(band S.E SHELVED by owner ruling 2026-07-03 — its edges are removed; see waves/S.E.md)
 S.G1 ──► S.G2 ──► S.G3        (S.G4 → §8)
 S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → kf re-pin) ──► before S.Z
 ALL ──► S.Z1 ──► S.Z2 ──► S.Z3   (Z3 pre-gated on master-green at the FINAL SHA)
 ```
 
-Tracks: lib = S.B, S.F; demo = S.D, S.E, S.G; gates = S.A; dispatch = S.H; design =
-S.G (+E3/E5); close = S.Z.
+Tracks: lib = S.B, S.F; demo = S.D, S.G; gates = S.A; dispatch = S.H; design =
+S.G; close = S.Z. (Band S.E SHELVED — no track membership.)
 
 **Cross-band constraints (named, binding):**
 
@@ -923,16 +893,17 @@ S.G (+E3/E5); close = S.Z.
 - **proof:compose-scene closes after S.G** (sd-#4): authored at D3, closing on the
   DAG edge S.G1/G2 → compose-fleet-green → close — else the wave
   born-GREENs-then-reds mid-band, a T4 violation.
-- **S.E8 is glass-ui-gated**: fires only on the joint 5.0.0 publish; else a
-  structured HANDOFF with rows 51/52/53 as explicit non-terminal RESIDUAL CARRY.
+- The glass-ui consume-edge is NO LONGER an S wave (band S.E SHELVED): fold rows
+  11/51/52/53/55 are owner-domain HANDOFFs, rows 51/52 rendered
+  `HANDOFF — external — row N` in the S.Z3 FINAL (C-21).
 - a19's engine↔group constraint: KeyframesAnimation stays at `engine/animation.ts`
   through B2 (group's cycle-break import survives).
 - A4's FROZEN-set declaration precedes any demo wave that reds a
-  *layout/appearance* gate (D3, E, G — NOT D1, which reds only source-path gates,
+  *layout/appearance* gate (D3, G — NOT D1, which reds only source-path gates,
   p04 F4).
 - `proof:scene-colocated` canonical edit order: **A4 → D2 → D3** (T7).
-- The two external edges are E6 (third-party) and H4 (owner-controlled,
-  born-SPECIFIED) — **no others** (T12).
+- The ONE external edge is H4 (owner-controlled, born-SPECIFIED) — **no others**
+  (T12; the former glass-ui edge left the plan at the 2026-07-03 S.E shelf).
 
 ## 6. The prompt-recap plan (SPEC §5)
 
@@ -948,8 +919,9 @@ against S's own charter alone. The full mechanics and the rewritten gate live in
    reformed gates); the gate-routed-around triad (override rewrite, manual deploy,
    re-tiering → S.A0/A2/A3 make the routes unnecessary); the 3-hour apparatus
    complaint (→ S.A2's harness net-deletion + S.A4's tier legend); the
-   scene-switcher as the oldest unfulfilled first-class ask (→ band S.E, built to
-   not repeat N's failure loop).
+   scene-switcher as the oldest unfulfilled first-class ask (→ band S.E — built,
+   converged 100/100, live-reviewed, and SHELVED by owner ruling 2026-07-03; the
+   recap row carries ADDRESSED-with-ruling, see `waves/S.E.md`).
 2. **Re-verify, never chain-trust — symmetrically.** The recap re-measures the two
    R reversals (keyframes-vue KILL; the lint-tier retraction) and the
    decomposition-spirit gap against the concrete oracles bound in S.Z1 — AND
@@ -991,7 +963,7 @@ These bind every S wave.
   GREEN *re-run on the merged tree*, exit code recorded in PROGRESS.md (r2 F4) —
   and S.Z2 **re-executes** that oracle at close (a re-run, not a re-read). S is
   development-only: every wave doc states this and its gate ships born-RED or, for
-  the publish-coupled external edges (S.E8's consume gate + the S.H4 gates),
+  the publish-coupled external edge (the S.H4 gates),
   born-SPECIFIED.
 - **T5 (no transcript trust).** Parallel drives re-run every touched gate from a
   clean independent checkout; "pre-existing" claims are verified by triage, never
@@ -1010,7 +982,7 @@ These bind every S wave.
 - **T8 (interaction-axis tests for hand-rolled primitives).** Any replacement for a
   vendor primitive ships with a keyboard/focus/repeat test, not only a source-shape
   gate (a12; fold row 71) — the documented gate-blindspot cure; live verification
-  via chrome-devtools-mcp for every stage of S.E/S.G.
+  via chrome-devtools-mcp for every stage of S.G.
 - **T9 (census before fiat).** No "keep verbatim / do not touch" verdict on a
   shared directory without an importer census shipped as evidence (a24 F8).
   Totality claims (NO-legacy) are proven by census-shaped gates (the S.C3a shadcn
@@ -1029,19 +1001,20 @@ These bind every S wave.
   masking forbidden (S.A0), the observe-split no-reclassification clause (S.A2),
   the machine-distinguishable FROZEN discharge (S.A4), closure re-execution + the
   master-green-on-FINAL-SHA precondition (S.Z2/Z3), the contingency-KILL belt with
-  the rows-51/52/53 residual-carry honesty (C-20), the §1 breadth justification +
+  the rows-51/52/53 HANDOFF honesty (C-20; owner-domain since the S.E shelf), the §1 breadth justification +
   the §2 owner decision point, and the de-scoping of S.G4/S.H3 (§8). The
   adversarial critique fleet's corrections OVERRIDE raw findings while crediting
   real wins (r2 S6) — the provenance loop (§0) is the proof it operated.
-- **T12 (external gates are named, not assumed).** **Exactly two** external
-  consume-edges exist (corrected from v1's false "exactly one"): **S.E8**
-  (third-party glass-ui 5.0.0 — specified now, fires later; may close S as a
-  structured HANDOFF, in which case fold rows 51/52/53 are an explicit
-  non-terminal RESIDUAL CARRY, never presented as terminals) and **S.H4** (the
-  owner-controlled parse-that 1.0.0 publish-then-re-pin; gates born-SPECIFIED,
-  firing at the impl drive's publish step). No other wave may acquire an external
-  dependency without an owner ruling; S.C3b is explicitly constructed to be
-  internally closable.
+- **T12 (external gates are named, not assumed).** **Exactly ONE** external
+  consume-edge exists — **S.H4** (the owner-controlled parse-that 1.0.0
+  publish-then-re-pin; gates born-SPECIFIED, firing at the impl drive's publish
+  step). (History: v1 falsely said "exactly one" *meaning the glass-ui edge*; the
+  pass-2 correction named TWO — the glass-ui edge + S.H4; the 2026-07-03 S.E shelf removed the
+  glass-ui edge, so ONE remains, and it is the owner-controlled one. Fold rows
+  51/52/53 are owner-domain HANDOFFs — rows 51/52 rendered
+  `HANDOFF — external — row N` in the S.Z3 FINAL per C-21, never presented as
+  terminals.) No other wave may acquire an external dependency without an owner
+  ruling; S.C3b is explicitly constructed to be internally closable.
 
 ## 8. Recorded-future (the prune ledger — nothing silently vanishes; SPEC §8)
 
@@ -1073,9 +1046,11 @@ Every critic-pruned item, with its source and the shape it carries forward:
    a version/amendment mechanism so it does not become the next stale-doc-authority
    (the R.W7 inversion applied to itself); a future T13 mandate must be able to
    land without ossification.
-8. **E6's visual-lock re-baseline** (se prune): booked inside E6 as a HANDOFF line
-   item but flagged as its own multi-gate effort (r7 B-2/B-3) — it will not flip
-   atomically with the pin.
+8. **The glass-ui visual-lock re-baseline** (se prune): was booked inside the
+   former glass-ui consume-edge wave as a HANDOFF line item, flagged as
+   its own multi-gate effort (r7 B-2/B-3). With band S.E SHELVED it rides the
+   owner-domain glass-ui HANDOFF (fold rows 51/52/55) — it will not flip atomically
+   with any future pin bump.
 9. **The 26dvh per-mode tuning** (sg prune / p10 risk b): a one-line token change
    once all 9 scenes are gated — not scope.
 10. **The mobile mount-reset preference note** (sg prune / p10): the reset discards
@@ -1115,13 +1090,14 @@ Every critic-pruned item, with its source and the shape it carries forward:
   DAG, the recap plan, T1..T12, recorded-future.
 - **`PROGRESS.md`** — the board (per-wave status + gate exit codes, the T4 record)
   and the chronic/deferral **fold ledger** (rows 1–74 — every open-at-R-close item
-  with its terminal disposition per C-20; rows 51–53 the only RESIDUAL-CARRY
-  candidates).
+  with its terminal disposition per C-20; rows 51–53 are owner-domain HANDOFFs
+  since the S.E shelf).
 - **`waves/S.<band>.md`** (one file per band — S.A.md … S.Z.md) — the executable wave specs (charter, scope items S1..Sn,
   the hard born-RED gate with witness plan, co-edit sets, deps, verification).
   Wave IDs are the SPEC-v3 names verbatim: S.A0–A5, S.B1–B8, S.C1/C2/C3a/C3b/C4,
-  S.D1–D4, S.E1(+E1c)–E8, S.F1(VT-a..d)/F2/F3(EN-c,EN-d)/F4/F5a/F5b/F5c/F6,
-  S.G1–G3, S.H1/H2/H4, S.Z1–Z3 (EN-a/EN-b live inside `waves/S.B.md`'s S.B3 section per C-25).
+  S.D1–D4, S.F1(VT-a..d)/F2/F3(EN-c,EN-d)/F4/F5a/F5b/F5c/F6,
+  S.G1–G3, S.H1/H2/H4, S.Z1–Z3 (EN-a/EN-b live inside `waves/S.B.md`'s S.B3 section
+  per C-25; band S.E is SHELVED — `waves/S.E.md` is its shelf record, no wave IDs).
 - **`audit/pass1/SPEC-v3.md`** — the converged specification (audit evidence; §4
   fold table, §9 absorption ledger). `audit/pass1/` — DIGEST.json (50 lanes),
   SPEC-v1/v2, prototypes/p01–p12, critique/ (11 reports + CRITIQUE.json), audit32/,
