@@ -1,7 +1,8 @@
 # Tranche S — PROGRESS
 
-**Branch:** `tranche-s-dev` · **Phase:** DEV — AUTHORED (development-only; **IMPL NOT authorized**)
-· **Opened:** 2026-07-02
+**Branch:** `tranche-s-impl` (from `tranche-s-dev` @ c6eef78) · **Phase:** **IMPL DRIVE — OPEN**
+(owner-authorized 2026-07-03: "Begin and continue the current tranche … complete the plan IN
+TOTALITY") · **Opened:** 2026-07-02 (dev) · **Drive opened:** 2026-07-03
 
 The honesty-then-altitude tranche: make the repo's own instruments tell the truth again (master CI
 red on every push since K; the deploy-of-record dead; the authoritative library map documenting a
@@ -245,10 +246,16 @@ Branch `tranche-s-dev` is the doc home (docs-only; no source/test/config/git edi
 mechanism = **letter + book** (letters travel with the registry event; books bind to named triggers,
 never gates; no RUN-BOARD). glass-ui stays a book, never a gate.
 
-## Owner rulings (pending)
+## Owner rulings (dispositioned at drive entry)
 
-Pre-booked at SPEC §6.3 — the open items before impl authorization (rulings 1-4 remain open; rulings
-5-6 RATIFIED + executed 2026-07-03; no probe work remains):
+Pre-booked at SPEC §6.3. Rulings 5-6 RATIFIED + executed 2026-07-03. **Rulings 1-4: resolved to
+their stated defaults at drive entry (2026-07-03)** — the owner authorized the drive "IN TOTALITY"
+with an explicit no-relinquish directive, which (a) resolves ruling 4 directly (executing S whole =
+the split is NOT ordered) and (b) leaves rulings 1-3 on their plan-stated defaults, adopted and
+recorded here (OWNER-ASKS.md row 2026-07-03): **1** = additive-minor (formally re-surfaced at S.Z3
+with its two inputs, per the wave spec); **2** = the B6 loader collapse does NOT ship (it ships only
+on explicit owner approval, which was not given; the TYPE-diff drift gate ships regardless);
+**3** = the kf (S.F) + parse-that (S.H) reading — no speculative value.js SOTA band (x1 prune):
 
 1. **The version ruling's two inputs (sz-B8 — surfaced, not glossed; lands at S.Z3):**
    (i) S.B6's `= any → = Vars` d.ts narrowing is source-breaking for consumers who passed arbitrary
@@ -357,3 +364,19 @@ Pre-booked at SPEC §6.3 — the open items before impl authorization (rulings 1
   glass-ui stays a book, never a gate. PROGRESS.md: rulings 5-6 → RATIFIED, the S.C4 board row + fold
   row 61 updated, the "State of play" resume anchor added. Rulings 1-4 remain **PENDING**. **IMPL NOT
   authorized.** No source/test/config/git edits — docs-only.
+
+## Session log (the S impl drive)
+
+- 2026-07-03 — **THE IMPL DRIVE IS AUTHORIZED + OPENED.** Owner directive (verbatim ask recorded in
+  `OWNER-ASKS.md`): "Begin and continue the current tranche … adhere exactly to the plan, in
+  particular regarding agent orchestration and deep parallelization … do not relinquish control back
+  to me until you have completed the plan IN TOTALITY. NO quick solutions, NO workarounds: idiomatic,
+  gestalt approaches … maximal parallelism and workflow usage … authorized to publish, push, and
+  pull … deploy anything and everything … core model for orchestration/design/synthesis, Opus or
+  Sonnet for workflow fanout." Drive branch: **`tranche-s-impl`** (from `tranche-s-dev` @ c6eef78);
+  a draft PR to master carries Linux CI runs through the drive (ci.yml fires on `pull_request` +
+  master push only). Rulings 1-4 resolved to their stated defaults at drive entry (see "Owner
+  rulings"). Registry at drive-open: value.js **1.2.0** (2.0.0 not yet cut — the spine watch is
+  live), parse-that **0.13.0**, kf **5.1.0**, glass-ui 4.2.0 (pin held ~4.0.x per C-12). Wave order
+  per the DAG: S.A0 keystone first (kf tree) ∥ S.H1+S.H2 (parse-that tree); every wave's gate re-run
+  by the orchestrator on the merged tree before its board row flips CLOSED (T4/T5).
