@@ -338,6 +338,25 @@ callable**; the **throw is preserved for twinless closures**. **~3 files.**
 > **structurally cannot catch this** — the artifact round-trips through KF but **not through the
 > BROWSER** — so the clause is **browser-harness by necessity**.
 
+**PROVEN (pass3: en-fix-proto.md §1): born-RED discharged.** A browser-parse oracle (adapted from
+P2-2's `live.mjs`; playwright-core via glass-ui's install, Chrome 148 headless) REDs on the pre-fix
+tree — the emitted artifact was `.a0 { animation: 250ms ease-out-cubic 1 normal forwards a0; }` (which
+computes `animation-name: none` in a real browser) — and GREENs post-fix (the browser-valid 33-stop
+`linear()` twin: `linear(0 0%, 0.09085 3.125%, … 0.875 50%, … 1 100%)` tracing easeOutCubic's
+decelerating shape). **Patch pointer:** `src/animation/compile/format.ts` — a `NATIVE_CSS_EASING`
+regex (`/^(linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end)$/`) fast-path emits the
+registry name verbatim ONLY when its hyphenation is a native CSS keyword; **every other registry
+easing emits a `linear()` densify of the callable** (`linearDensifyEasing(fn, n = 32)`), and the
+twinless-closure THROW is preserved. **Mechanism REFINED (pass3 §5.1): the `linear()` densify is the
+SOLE twin mechanism — NOT a closed-form `cubic-bezier()` table** as the scope-item prose above allows.
+Most Penner curves (cubic/quart/quint/expo/circ) are not a single `cubic-bezier()`, and
+elastic/bounce are multi-oscillation with no bezier at all — a partial bezier table would be a
+faithfulness trap; `linear(n=32)` is faithful for ALL of them and re-parses to a `.css`-carrying
+**fixpoint** (`css-animation.ts:241` `cssTwinFor` matches the `linear(` prefix, so serialize → parse
+→ serialize is stable). Keep the `NATIVE_CSS_EASING` keyword fast-path (byte-minimal for the common
+`linear`/`ease*`/`step*` case). **~2 files** (`format.ts` + the gate; no separate test file beyond the
+oracle).
+
 ### Scope item — EN-b (S: the mixed-track densify body-drop fix; P2-2 F5; fold row 74)
 
 `compileChild` **swaps the WHOLE block for the densified one** (`backward.ts:289-293`) while
@@ -350,11 +369,48 @@ stops **WITH** the declared non-color declarations — per **`format.ts:212-222`
 > **Born-RED gate clause (EN-b — mixed-artifact, verbatim):** *a mixed `opacity+color` compile
 > artifact contains BOTH properties.*
 
+**PROVEN (pass3: en-fix-proto.md §2): born-RED discharged.** The oracle REDs on the pre-fix tree —
+a mixed `opacity+transform+background-color` track compiled to a `@keyframes a1` whose block matched
+`/background-color/` but **NOT** `/opacity/` (24 color-only stops; `opacity`/`transform` absent) — and
+GREENs post-fix (the endpoints carry ALL declared props: `0% { background-color: …; opacity: 0;
+transform: translateY(20px); }` … `100% { …; opacity: 1; transform: translateY(0px); }`, the
+intermediate color-only stops unchanged). **Patch pointers (3 files):**
+`src/animation/compile/backward-color.ts` — `densifyColorBlock` **changes its return contract**
+`{ block: string }` → `{ byPct: Map<number, string[]>; keys: string[] }` (returns the raw
+per-percentage color declarations + the changing color keys, not a finished color-only block);
+`src/animation/compile/backward.ts` — `compileChild` (`:289-293`) **merges instead of whole-block
+swap** (`densifiedKeyframesBlock(animation, name, densify)` where it read `densify.block`);
+`src/animation/compile/format.ts` — a new **percentage-keyed** `densifiedKeyframesBlock` +
+`declaredDeclsExcluding` helper. **Refinement REVISED from the scope-item wording (pass3 §5.2): the
+merge is PERCENTAGE-keyed, NOT `keyframesBlock`'s index-keyed `bodyByStop`.** The densify's
+intermediate stops have no template index (16–24 `oklab()` stops between each declared pair), so
+`bodyByStop` (keyed by stop INDEX, iterating `templateFrames`) structurally cannot hold them — the
+spec's "thread through `keyframesBlock`'s `bodyByStop`" is realized as the sibling percentage-keyed
+merge, the correct realization of the same intent (color stops merged WITH the declared non-color
+decls; a property interpolates only across the stops that DECLARE it, so the intermediate color-only
+stops leave `opacity`/`transform` to interpolate linearly between declared endpoints exactly as
+before). The `keys` return also lets EN-b **preserve STATIC (unchanging) colors** (not in `keys` →
+ride the verbatim declared projection), which the whole-block swap did not distinguish.
+`densifyColorBlock` is a **single caller** (`compileChild`; verified by grep). **Cleanup item (pass3
+§5.2, optional wave tidy):** the merge now owns block assembly, so **drop the now-unused `name` param
+from `densifyColorBlock`** — the prototype keeps it + a `void name;` to minimize the diff; the real
+wave should excise the dead parameter.
+
 ### T7 fixture co-edit (binding, same commit)
 
 EN-a and EN-b **change existing emit** — the `proof:compile-replay` / `proof:compile-deterministic`
 fixtures are **co-edited in the same commit** (SPEC §3 S.B3; C-25; SPEC §7 T7). The fixtures encode
 the current (buggy) emit; they must be regenerated from the corrected emit atomically with the fix.
+
+**T7 confirmed BENIGN for the existing fixtures (pass3: en-fix-proto.md §4) — an eyeball note, not a
+weakening.** In the prototype, EN-a broadened the emit (default `easeInOutCubic` and every Penner name
+now serialize to `linear()` in the `.class` block instead of a broken `ease-*-cubic` token), yet
+**every** compile/roundtrip/replay gate stayed green **WITHOUT** fixture co-edits — the existing
+fixtures parse the artifact (they do not byte-compare the broken easing token) and the `linear()`
+fixpoint keeps the round-trip stable. So the T7 co-edit is a **precaution that did not bite here**; it
+remains binding in principle, but the real wave's obligation is narrowed to **eyeballing any fixture
+that asserts a specific `.class` easing string** (regenerate only those), not a blanket fixture
+regen.
 
 ### The HARD GATE
 
@@ -363,8 +419,26 @@ the current (buggy) emit; they must be regenerated from the corrected emit atomi
 2. **No re-export-only bridge module anywhere in `src/animation`** (the ceremony is dead; C-2, C-11's
    no-re-export-bridge clause).
 3. **No cross-zone deep-import** (S5's repoints).
-4. **The EN-a browser-parse clause** (emitted `easeOutCubic` → computed `animation-name !== none`).
-5. **The EN-b mixed-artifact clause** (mixed `opacity+color` artifact contains BOTH properties).
+4. **The EN-a browser-parse clause** (emitted `easeOutCubic` → computed `animation-name !== none`) —
+   **a BROWSER-HARNESS gate, enrolled in the browser-harness (`demo-correctness`) chain, NOT a
+   `hygiene-chain`/jsdom slot** (tier-wiring PROVEN below).
+5. **The EN-b mixed-artifact clause** (mixed `opacity+color` artifact contains BOTH properties) — its
+   **jsdom-viable string half** (artifact contains `opacity`/`transform`) folds into
+   `proof:compile-replay`/`test/compile-roundtrip.test.ts` for fast local bite; its **browser half**
+   (props actually animate) rides the same browser-harness gate as clause 4.
+
+**Gate tier-wiring (PROVEN — pass3: en-fix-proto.md §5.3; matches SPEC-v3.md:945-949).** The EN-a
+browser-parse clause is a **BROWSER-HARNESS gate, not a jsdom `proof:library-correctness` /
+`proof:hygiene-chain` gate** — this is load-bearing. jsdom's `getComputedStyle` does **NOT** drop an
+invalid `animation` shorthand, so the bug is **INVISIBLE in jsdom** (precisely why P2-2 F6 evaded
+every existing jsdom round-trip gate); a jsdom slot would be a **FALSE green** AND would **correctly
+RED under S.A4's symmetric mis-tier clause**. Concretely: wire a new **`proof:compile-browser-parse`**
+(this oracle's EN-a clause, playwright) into the **`proof:correctness` chain beside
+`proof:entry-roundtrip`** (the browser-actuating library-value roster — `proof:vt-roundtrip`,
+`proof:entry-roundtrip`, and this EN-a clause enroll there, with their library-value severity recorded
+in their taxonomy rows). Keep EN-b's string half in `hygiene-chain` for fast bite; its browser half
+rides `proof:correctness`. **This reconciles the S.B3 gate criterion:** clauses 4 (and EN-b's browser
+half) are browser-harness members, not jsdom members.
 
 **Born-RED witness plan.** Today: `compile/`'s root holds the backward files (clause 1 REDs after the
 move is specified but before it lands); a re-export bridge exists in `frame-compiler` (clause 2 REDs);
@@ -376,6 +450,18 @@ move + bridge deletion greens clauses 1–3. **Falsifiability:** re-adding a re-
 leaving a backward file in `compile/` root REDs; an emitted registry-name easing that the browser drops
 REDs EN-a; a mixed track that drops its non-color property REDs EN-b. **The kf-parser round-trip cannot
 substitute for the browser-parse clause** — that is the whole point of EN-a's browser-harness gate.
+**PROVEN (pass3: en-fix-proto.md §3–4): both clauses discharged red-pre → green-post.** The oracle
+(`test/en-fix-oracle.test.ts`, the wave's gate skeleton) is **1 failed (PRE) → 1 passed / 2 tests
+(POST)**; pre-fix RED signatures verbatim — EN-a `expected '@keyframes a0 {…}' not to match
+/animation:[^;{]*\bease-out-cubic\b/`, EN-b `opacity dropped by the densify swap: expected
+'@keyframes a1 {…background…' to match /opacity/`. **Regression (POST-fix, worktree):** `npm run
+check:lib` 0 errors; **all six compile proof gates** green (`proof:compile-replay` 17,
+`proof:compile-deterministic` 1, `proof:replay-equality` 5, `proof:roundtrip-easing` 7 (1 skip),
+`proof:roundtrip-fidelity` 29, `proof:grammar-fuzz` 5) + `test/format.test.ts`; **71 targeted vitest
+tests green**; the full library `vitest run` is **90 files pass · 914 pass / 2 expected-fail / 1
+skip** (the 8 demo-scene resolve failures are pre-existing `@mkbabb/keyframes.js` self-import misses,
+identical on unmodified HEAD — out of the compile zone). Three source files touched
+(`compile/{format,backward,backward-color}.ts`) + the one new oracle test.
 
 ### Cost + DAG
 
@@ -390,7 +476,12 @@ unshippable on today's `serializeEasing`).
 The five born-RED clauses (compile-root-forward-only; no-re-export-bridge; no-deep-import; EN-a
 browser-parse; EN-b mixed-artifact) + the co-edited replay/deterministic fixtures green.
 Development-only; born-RED (EN-a/EN-b live-proven RED against the unmodified dist by P2-2); re-run at
-S.Z2.
+S.Z2. **The EN-a + EN-b halves are PROVEN wave-ready (pass3: en-fix-proto.md): both clauses discharged
+red-pre → green-post in an isolated worktree via the browser-parse oracle, with `check:lib` + the six
+compile gates + 71 vitest green (§§1–4).** The C-25 DAG edge is confirmed by the prototype: **EN-c is
+unshippable on today's `serializeEasing`** — the entry emitter's easing channel would emit
+browser-dead `ease-*-cubic` tokens, so EN-a is the hard prerequisite and EN-b the substrate EN-c's
+endpoint projection reads (`S.B3 (carrying EN-a + EN-b) ──► S.F3/EN-c ──► EN-d`, unchanged).
 
 ---
 

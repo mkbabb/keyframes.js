@@ -1,606 +1,793 @@
-# S.E — Scene-stage resurrection (DM-24 REVIVED · the theatrical scene-switcher, built to not repeat N's failure loop)
+# S.E — The Scene Stage (DK-64 barrel select · the pass-3 converged design, prototype-proven)
 
-**Band:** S.E — Scene-stage resurrection. **Track:** demo/design (SPEC §3, §2.1-9; +design at E3/E5).
-**Phase:** DEVELOPMENT ONLY. This document + the SPEC-v3 evidence + PROGRESS.md's board ARE the S.E
-deliverable. **No demo/library source is rewritten here.** The six waves (S.E1–S.E6) open only on
-explicit owner authorization of the impl drive; a wave is CLOSED only when its born-RED gate is GREEN
-*re-run on the merged tree*, exit code recorded in PROGRESS.md (T4; SPEC §7), and S.Z2 re-executes
-that oracle at close. inv-16 holds (write only keyframes.js).
+> **This is a TRANCHE-DEVELOPMENT phase, NOT implementation.** This document is the wave-spec
+> for band **S.E** of Tranche S, **rewritten in full** from the pass-3 first-principles design
+> loop that converged **100/100 under both critics across 3 rounds** (pass3: stage-final-design.md,
+> stage-final-tech.md). The binding design of record is the pair
+> `docs/tranches/S/audit/pass3/stage-design-v1.md` + `stage-design-v2.md` — **v2 is the delta
+> that rules** wherever the two conflict; v1 stands verbatim where v2 is silent (v2 header).
+> The **frozen v3 prototype build** in the worktree
+> `/Users/mkbabb/Programming/keyframes.js/.claude/worktrees/wf_2fbb9dbc-c40-1` is "the binding
+> spec for the S.E wave" by the design critic's closing ruling (pass3: stage-final-design.md §5)
+> and is this band's **salvage source**; its `demo/stage-proto/gates/` drivers are the **gate
+> skeletons**. This document supersedes the prior SPEC-v3-derived S.E.md; the SPEC-v3 §S.E
+> guardrails it carried remain absorbed below (§0.2). Nothing runs until the owner authorizes an
+> impl drive (inv-16). A wave is CLOSED only when its born-RED gate is GREEN **re-run on the
+> merged tree** (T4), exit code recorded in PROGRESS.md, and S.Z2 re-executes that oracle at
+> close. **Branch:** `tranche-s-dev` · **Track:** demo/design + gates (+ one external
+> consume-edge at S.E8).
 
-**Charter.** S.E resurrects the one first-class owner ask that has died three times — the theatrical
-scene-switcher (DM-24; fold row 17). R KILLED it; the owner reopened it (SPEC §2.1-9, fold row 17).
-The salvage is **probe-EXECUTED (p05)**: the shelved `n-stage-impl` branch (+4188 LOC) solved the
-two named failures of the dead attempts **structurally** — one `SpringProgress` over ring angle and
-one shared-`RAFPlayback` LOD clock — and got the DOM position right (Teleport-to-body sibling,
-**OUTSIDE** the `scene-subject` VT). p05 lifted the 18-file shelf, re-pathed it onto R's fused tree
-(**5 files / 23 import lines — pure path substitution**), and drove `tsc` 16×TS2307 → 0 and
-`proof:boundary` → PASS. **Zero API-signature drift; Q5's FAILURE branch (fusion severed standalone
-Targets) does NOT fire** — the shelf already carries the PROP/INJECT adapter layer and its
-dependencies survived fusion (SPEC §2.1-9). S.E rebases the shelf mechanically, wires
-**commit-on-settle** (the cardinal defect of both dead attempts), replaces every scratch `*.mjs`
-probe with a named real gate, and does every atomic stage LIVE against the running demo — built
-explicitly to not repeat N's failure loop (SPEC §5, "the oldest unfulfilled first-class ask → band
-S.E").
+---
 
-**Charter guardrails (absolute, from r7 A-9/A-10 — SPEC §3 S.E preamble):**
-- **One nav authority.** No second switcher surface; the interim spin controls dogfood the single
-  ChromeDock (C-7), never the shelf's bespoke `StageArrows`/`TransportDock`/`stageDockKey`.
-- **Chrome outside the `scene-subject` VT** — the overlay is a **Teleport-to-body sibling**, never
-  inside the view-transition subject (the position p05 proved correct).
-- **Commit-on-settle wired** — spin-settle/scrollend COMMITS a scene (the cure for both dead
-  attempts' cardinal defect).
-- **Every load-bearing motion dogfoods a LIGHT-barrel primitive on `RAFPlayback`** (`SpringProgress`
-  over ring angle; the shared LOD clock).
-- **Every atomic stage verified LIVE against the running demo, never source-shape** — live
-  verification via chrome-devtools-mcp for every stage of S.E (T8; SPEC §7 T8).
-- **PRM snaps every beat** (reduced-motion honored at each transition).
-- **The shelf's scratch `*.mjs` probes are NOT resurrected** — the named real gates below
-  (`proof:stage-geometry`, `proof:scene-stage-commits`, the mobile commit gate) replace them.
+## 0. Band charter — the theatrical scene-switcher, converged and provable
 
-**CI-budget accounting (se-B9; SPEC §3 S.E preamble, §9 SE-9).** The band adds **exactly TWO CI
-browser gates** — `proof:scene-stage-commits` (E4) and the mobile commit gate (E5) — both riding the
-**ONE shared chromium + one served dist from S.A2's net-deletion** (amortized, **not +2 launches**).
-`proof:stage-geometry` (E3) rides that **same shared harness**. The fps checks are **LOCAL
-chrome-devtools-mcp acceptances costing zero CI launches**. **S.E does not re-red the plane S.A0
-greens** — this is the load-bearing budget guarantee, honored per-wave below.
+### 0.1 What changed since the old band doc
 
-**Mode declarations (C-14 — every wave states REWRITE or REFINE):**
-- **S.E1 — REFINE (salvage) + additive** (lift the shelf verbatim; re-path; author 2 new adapters).
-- **S.E2 — REFINE (salvage)** (lift orbit + LOD near-verbatim).
-- **S.E3 — REWRITE** (the stage overlay + its named structural oracle).
-- **S.E4 — REWRITE** (commit-on-settle + single authority + interim dock controls).
-- **S.E5 — REWRITE** (the phone path; same stage, no fork).
-- **S.E6 — REFINE** (the glass-ui consume-edge; pin bump + visual re-baseline).
+The old S.E band was authored against SPEC-v3 §S.E with the `n-stage-impl` shelf as its salvage
+source and p05 as its feasibility probe. Pass 3 went further: a first-principles design
+(pass3: stage-design-v1.md), a **working prototype built and cured through three adversarial
+critique rounds** (pass3: stage-proto-v{1,2,3}.md · stage-critique-{design,tech}.md ·
+stage-recritique-{design,tech}.md), and a **dual 100/100 convergence** (pass3:
+stage-final-design.md "FROZEN — this build is the binding S.E wave spec"; stage-final-tech.md
+"100/100 … the pair is wave-spec-ready"). Consequences for this band:
 
-**Band DAG (from SPEC §3 "The DAG"):**
+- **The salvage source moved.** It is no longer the raw `n-stage-impl` shelf — it is the
+  **v3 prototype worktree** (`wf_2fbb9dbc-c40-1`), which itself lifted the shelf's proven engine
+  (p05's mechanical move), then **cured the two structural HIGHs the shelf never saw** (H1
+  stale-arm, H2 VT double-capture) and the six design blockers (S1–S6). What the impl drive
+  lifts is the *cured* code, not the shelf.
+- **The commit story hardened.** "Commit-on-settle" (the old cardinal-defect cure) is upgraded
+  to the **D1-locked commit funnel** — browse verbs LOCKED during `committing`, the arm latches
+  the spring's **destination slot**, a 280ms dwell + 2000ms re-armable failsafe — proven by the
+  **A–G adversarial gate roster** (§1.1), which is now the verbatim `proof:scene-stage-commits`
+  spec.
+- **The authority ruling strengthened.** The old band's "ChromeDock opens the stage; interim
+  `DockIconButton` spin controls" is superseded: **the dock scene pill keeps its pixel identity
+  but its actuation becomes `stage.open(currentSceneId)`; the Select's scene listbox is
+  RETIRED** (pass3: stage-design-v1.md §3). One trigger → one browse surface → one commit edge —
+  the strong form of single-authority. The L/R arrows are **stage-internal chrome**, so the
+  shelf's second-authority dock surface (`StageArrows`/`TransportDock`/`stageDockKey`) is deleted
+  rather than re-homed, and there are **no interim dock spin controls for S.E8 to retire**.
+- **glass-ui 5.0.0's dock morph is demoted from dependency to OPTIONAL refinement** of the
+  pill's open *animation* (pass3: stage-design-v1.md §3). The stage ships against the held
+  ~4.0.x pin. S.E8 keeps the external consume-edge obligations (pin bump, re-baseline, fold rows
+  51/52/53/55) but nothing in the stage waits on it.
+- **The previews are miniatures, by mandate.** The real-target path was withdrawn as mis-costed
+  (the scenes are `createGlobalState` module-singletons — mounting a real target in a card
+  aliases the live scene's store); purpose-built per-scene miniatures are the LOD tier-2
+  contract, `square` stays real, `amiga` is poster+GL-at-front-settled (pass3:
+  stage-design-v2.md D3; stage-critique-tech.md §3 H3).
+
+### 0.2 Charter guardrails (absolute — the old band's roster, reconciled)
+
+1. **ONE nav authority — the strong form.** The scene machine + `runSceneSwitch` is the only
+   commit edge; **the dock scene pill (pixel-identical) opens the stage; the scene Select
+   listbox is retired**; no `max-width` visibility fork; no second switcher surface anywhere
+   (pass3: stage-design-v1.md §2.1/§3). Programmatic nav (router hash, SharePopover restore,
+   gates' `navToScene`-by-hash) is untouched — the authority is the machine.
+2. **Commit-on-settle, LOCKED and observable.** The D1 funnel (§1.1): never a `void`-discarded
+   read (the Q.WC3 cardinal defect), never a stale arm (the H1 successor defect). Cancel and
+   commit are structurally distinct.
+3. **Stage chrome OUTSIDE the `scene-subject` VT.** Teleport-to-body sibling of the keyed bare
+   `<Suspense>`; **no `view-transition-name` anywhere in the stage tree**; and — the D2
+   strengthening — the overlay is **absent from the live DOM by the end of the VT update
+   callback** (pass3: stage-design-v2.md D2; stage-proto-v2.md §2).
+4. **Dogfood inv ζ.** Every load-bearing motion is a kf LIGHT-barrel primitive on `RAFPlayback`
+   (`SpringProgress`, `stagger`, `decayRest`, `NumericAnimation`); zero raw rAF;
+   `proof:boundary` stays GREEN (p05 F1/F3; re-proven in every prototype round).
+5. **PRM snaps every beat** — proven in pixels (open 61ms, commit 75ms, dwell 0; pass3:
+   stage-proto-v2.md §5).
+6. **No scratch `*.mjs` probes.** Satisfied structurally: the named gate skeletons are the
+   preserved runnable drivers in `demo/stage-proto/gates/` (adversarial · geometry · gl-proof ·
+   fps · prm · vt-proof · warm-suspense · shots-v3), promoted to repo `proof:*` entries at S.E7.
+7. **Live verification every atomic stage** (T8; chrome-devtools-mcp), never source-shape.
+8. **Compose-row-D3 gate kept.** The registry enumerates from `demo/app/scenes.ts` (never a
+   frozen list — p05 F5); the ninth (compose) row + its miniature are gated on **S.D3** landing
+   `scenes/compose/`.
+9. **The geometry numbers are PINNED, not re-derived** (§1.0) — re-deriving reopens the `+deg`
+   inversion bug (r7 A-4/A-5/A-6; pass3: stage-design-v1.md §6 header).
+
+### 0.3 CI-budget accounting (unchanged in shape from the old band; SPEC §9 SE-9, C-10)
+
+The band adds **exactly TWO CI browser gates** — `proof:scene-stage-commits` (with the A–G
+adversarial roster, S.E4→wired S.E7) and the **mobile commit gate @375** (S.E5→wired S.E7) —
+both riding the **ONE shared chromium + one served dist from S.A2's net-deletion** (amortized,
+not +2 launches). `proof:stage-geometry` (S.E2, + the during-commit clause) rides that **same
+shared harness**. The fps/scripting budget is a **LOCAL GPU acceptance recorded in the wave doc
+— NEVER a raw CI fps threshold** (C-10); the measured numbers are in §1.10. S.E does not re-red
+the plane S.A0 greens.
+
+### 0.4 Mode declarations (C-14 — one per wave)
+
+- **S.E1 — REFINE (lift-from-prototype)** — the scene-stage tree + registry + miniatures land
+  in the repo; author-fresh: the E1c compose row (D3-gated).
+- **S.E2 — REFINE (lift) + token authoring** — the v3 lighting/occlusion stack; the
+  `--stage-key-apex`/`--stage-key` tokens move from `proto.css` into `design-idioms.css`.
+- **S.E3 — REFINE (lift) + polish-fresh** — choreography/gestures/payoff/affordances; the three
+  final-round polish carries (hint re-seat, P4 marquee, hover/flick captures) are author-fresh.
+- **S.E4 — REFINE (lift)** — the D1/D2-cured commit funnel + the `stage` VT type.
+- **S.E5 — REFINE (lift)** — mobile v2 parameter deltas.
+- **S.E6 — REFINE (lift) + REAL-GL author-fresh** — LOD/GL machinery lifts; the real Three
+  renderer behind the proven lifecycle is authored fresh (the proto's GL body was a stand-in).
+- **S.E7 — REWRITE (integration; author-fresh)** — App.vue mount, dock-pill rewire + Select
+  retirement, real `useSceneTransition`, warm-then-gate, origin pause, gate roster wiring,
+  the miniature maintenance artifact. **This is the band's honest remaining work.**
+- **S.E8 — REFINE (external consume-edge)** — glass-ui joint-5.0.0; GATED on the publish.
+
+### 0.5 Band DAG
 
 ```
-S.D2 ──► S.E1 (8-scene core)   ;   S.D3 ──► S.E1c (compose row + adapter)
-S.E1 ──► S.E2 ──► S.E3 ──► S.E4 ──► S.E5
-S.E4 + [glass-ui 5.0.0 published] ──► S.E6   (else: structured HANDOFF + rows 51/52/53 RESIDUAL CARRY)
+S.D2 ──► S.E1 (8-scene core)   ;   S.D3 ──► S.E1c (compose row + miniature)
+S.E1 ──► S.E2 ──► S.E3 ──► S.E4 ──► S.E5 ──► S.E6 ──► S.E7
+S.E7 + [glass-ui 5.0.0 published] ──► S.E8   (else: structured HANDOFF + rows 51/52/53 RESIDUAL CARRY)
 ```
 
-- **S.E1** deps **D1, D2** (the 8-scene core rides the carved tree); **E1c** (compose row + adapter)
-  deps **D3** (SPEC §3 DAG line "S.D3 ──► S.E1c, S.G2(compose items)"). E1 core no longer enumerates
-  a scene that does not exist (se-B1).
-- **S.E2 → E3 → E4 → E5** is a strict linear chain (each stage builds on the prior atomic surface).
-- **S.E6** deps **E4 + EXTERNAL (glass-ui 5.0.0 published)** — one of the plan's **exactly two**
-  external consume-edges (T12; the other is S.H4). If 5.0.0 does not publish before S close, E6
-  closes as a **structured HANDOFF** and fold rows 51/52/53 become an **explicit non-terminal
-  RESIDUAL CARRY** (C-20/C-21; never presented as terminals).
+S.E1–S.E6 re-derive the design's six atomic build waves (pass3: stage-design-v1.md §18), each
+now **mostly a lift** because the prototype already proved its substance; S.E7 is the
+integration wave both critics named as the born-RED debt; S.E8 is the old band's external
+consume-edge, kept, with the dock-morph edge **demoted to optional**. Each wave's gate must
+pass before the next opens (the design's own atomic-build prescription, N/STAGE-SPEC working
+method).
 
-**Fold rows this band terminalizes (SPEC §4):** row **17** (DM-24 N-Stage scene-switcher, R KILL
-disputed → **REVIVED as BAND S.E**; salvage probe-executed, p05), row **18** (`proof:scene-switcher-mobile`
-zombie gate → **reborn** as `proof:scene-stage-commits` at E4 + the mobile commit gate at E5; the
-*retire* half is S.A4's), rows **51/52/53** (the glass-ui HANDOFFs → **re-entry at E6** on the joint
-5.0.0 publish; RESIDUAL-CARRY clause + the dock double-click kf-internal contingency), row **55**
-(glass-ui pin frozen ~4.0.0 → deliberate ~5.0.0 at publish → **E6**; hold till then per C-12).
-**Explicitly NOT this band:** fold row **71** (KfPillTabs keyboard-broken + TransportDock
-auto-repeat) — it is a **panel primitive, not scene-nav**, so its test lives in **S.B7** and its
-promotion in **S.D2**, NOT S.E5 (se-B6; SPEC §9 X1-1).
+**Fold rows this band terminalizes (SPEC §4):** row **17** (DM-24 scene-switcher → BUILT, this
+band), row **18** (`proof:scene-switcher-mobile` zombie → reborn as `proof:scene-stage-commits`
+at S.E4 + the mobile commit gate at S.E5; the *retire* half is S.A4's), rows **51/52/53** (the
+glass-ui HANDOFFs → re-entry at S.E8 on the joint publish; RESIDUAL-CARRY clause), row **55**
+(glass-ui pin ~4.0.x → deliberate ~5.0.0 at publish → S.E8). **Explicitly NOT this band:** fold
+row **71** (KfPillTabs/TransportDock) — panel primitive, not scene-nav; test → S.B7, promotion
+→ S.D2 (unchanged from the old band; SPEC §9 X1-1).
 
-**Rulings this band executes (SPEC §2.2):** **C-6** (the scene-switcher gate contradiction — the
-zombie `proof:scene-switcher-mobile` reborn as `proof:scene-stage-commits`; the ASSERTION-3
-carousel-absence deletion is S.A4's), **C-7** (scene-switcher substrate — DM-24 REVIVED, salvage
-probe-executed; interim spin controls are `DockIconButton`s in the single ChromeDock, NOT the
-bespoke second authority), **C-10** (no raw absolute fps threshold is a CI closure anywhere — the
-≥55fps criterion is a declared LOCAL chrome-devtools-mcp acceptance or a budgeted
-device-independent ratio), **C-12** (glass-ui pin held ~4.0.x through S; consume-edge fires ONLY on
-the joint 5.0.0 publish; never caret), **C-20** (terminal is structural — the RESIDUAL-CARRY honesty
-for rows 51/52/53), **C-21** (the closeable roster — E6's HANDOFF gates render as
-`HANDOFF — external — row N`). **Tenets referenced:** **T1** (runtime-tier closure — E1/E3/E4/E5),
-**T4** (DEVELOPED ≠ SHIPPED; no born-GREEN-then-red), **T8** (interaction-axis tests for hand-rolled
-primitives; live chrome-devtools-mcp verification every stage), **T12** (external gates named, not
-assumed — E6 is one of exactly two). **Probes:** **p05** (the salvage — executed; 5 files/23 lines,
-tsc 16×TS2307→0, proof:boundary PASS, zero API drift), **p10** (the arming-audit class; the
-stage-visible substrate S.G1 lands).
+**Rulings executed:** C-6 (zombie gate reborn — now with the A–G roster), C-7 (scene-switcher
+substrate — the pill-opens-stage strong form supersedes the interim-DockIconButton reading),
+C-10 (fps LOCAL, never CI), C-12 (pin held ~4.0.x; consume-edge only on the joint publish;
+never caret), C-14, C-20/C-21 (S.E8 HANDOFF honesty). **Tenets:** T1 (runtime-tier closure),
+T4 (DEVELOPED ≠ SHIPPED), T8 (interaction-axis + live verification), T12 (S.E8 is one of the
+plan's exactly two external consume-edges). **Probes:** p05 (the shelf salvage — subsumed into
+the prototype), p10 (arming-audit class).
 
 ---
 
-## S.E1 — Registry re-path + the two authored-new adapters (p05 confirms)
+## 1. THE PROVEN-CONTRACT INVENTORY (binding; the impl drive lifts these, it does not re-solve them)
 
-**Mode: REFINE (salvage) + additive.** p05 confirms — the 18-file shelf re-paths mechanically
-(**5 files / 23 import lines, sed-scriptable**); the salvage engine drove `tsc` 16×TS2307 → 0 and
-`proof:boundary` → PASS with zero API-signature drift (SPEC §3 S.E1, §2.1-9).
+Everything below is **proven live in the v3 prototype** — code + runnable driver + recorded
+witness. An impl drive that re-derives any of it is off-charter; a drive that regresses any of
+it REDs the corresponding gate.
+
+### 1.0 Pinned geometry (do NOT re-derive — pass3: stage-design-v1.md §6; §P.3)
+
+- Viewport: `perspective: 1100px; perspective-origin: 50% 42%` desktop · `900px` / `50% 52%`
+  ≤640px (D8.3). Ring: `rotateX(-15deg)`, `transform-style: preserve-3d`.
+- Card i (N from `scenes.ts`, step = 360/N): `rotateY(a) translateZ(R) rotateY(−a) scale(s)` —
+  counter-rotated billboards, real Z depth.
+- `R = clamp(240, 0.38·min(vw,1200), 440)` desktop · `clamp(150, 0.52·vw, 220)` mobile. Card
+  width `clamp(220px, 24vw, 320px)` desktop · **80vw** mobile (D8.2), `aspect-ratio: 3/2`.
+- Falloff (pure fn of `d = |a|/180`): scale `1−0.38d²`, opacity `1−0.5d²` (floor 0.5),
+  brightness `1−0.22d²`, blur ramp past `d>0.55` cap 1px, `z-index = round((1−d)·1000)`.
+- Zoom spring `response .6 / damping .85`; orbit `response .55 / damping .9`; light
+  `response .3 / damping .9`; all `respectReducedMotion: true`. Floor reflections stay CUT.
+- **Measured witnesses (stable across all three rounds):** back-card top 281 < front 468;
+  width recede 508→430→290→192 monotone; min card opacity 0.50; `matrix3d` = rotateX(-15°);
+  perspective 1100px (pass3: stage-proto-v2.md TL;DR; stage-recritique-tech.md §5).
+
+### 1.1 The commit funnel — the H1 stale-arm cure + the A–G roster (pass3: stage-design-v2.md D1; stage-proto-v2.md §1; stage-proto-v3.md §5)
+
+**The cure (structural, not patch):**
+
+- **D1 LOCK:** browse verbs (`step`/`centerIndex`/drag/wheel/type-ahead) are **silent no-ops
+  during `committing`** (dev-logged). `setTargetIndex` is the sole orbit mutator and every path
+  to it is gated (independently re-derived + five novel interleavings tried and defeated —
+  pass3: stage-recritique-tech.md §1.1). `armed === orbit.target === rested front` is an
+  invariant.
+- **D1.1 destination-slot arm:** a coasting Enter/Space arms `sceneAt(orbit.targetIndex)` — the
+  decay-projected **destination**, never a passing slot. Pointerdown halts a coast; a ≤slop
+  front-tap commits the halted front. No arm-in-transit path exists.
+- **D1.2 event×state matrix** is binding (fan-in `requestCommit` = **BUFFER** via
+  `pendingCommit`, drained on `carousel`; `committing × Esc` = **cancel, documented**;
+  `fanTimer` cleared on cancel).
+- **D1.3 belt:** failsafe **2000ms, reset on each (re-)arm** — a true belt, never the commit
+  path; **280ms minimum dwell** before `fire()` (the payoff breath; makes
+  `data-stage-phase="committing"` honestly paint — H6 cured; dwell = 0 under PRM).
+- **D1.4 observables:** `window.__stageLastCommit = {id,t}` + `window.__stageArmedLog`
+  (append-only `{id,t,cause: "tap"|"key"|"buffered"|"failsafe"}`) — the gate's interleaving
+  witness. Cancel writes neither.
+- **A latent salvage bug the cure surfaced is FIXED and must not regress:** `useCarouselOrbit`'s
+  no-move re-seat parked without emitting a settled frame (`spinning` stuck true); same
+  park-without-emit class fixed for the PRM open beat (pass3: stage-proto-v2.md §1, §5).
+
+**THE `proof:scene-stage-commits` SPEC — the A–G adversarial clause roster, verbatim
+(pass3: stage-design-v2.md D11 + stage-proto-v3.md §5 clause G). Happy paths kept (arrow-commit
+AND drag-flick-commit land `machine.activeScene` + `__stageLastCommit.id` + hash + focus on
+`.scene-host`), PLUS:**
+
+- **A — gesture-during-committing (the H1 killer):** settle on A → tap front (arm A) → within
+  100ms dispatch a `step`/drag toward B → assert the ring **rested on A**,
+  `__stageLastCommit.id === A`, and `machine.activeScene === A === rested front`.
+- **B — Enter-during-flick (the H1b killer; the faithful pre-cure falsifier):** start a
+  multi-slot decay flick → Enter mid-coast → assert `__stageArmedLog.at(-1).id` equals the
+  orbit's **target slot at press-time** AND the rested front AND the committed id. The arm may
+  never be a passing slot.
+- **C — observable honesty (H6):** primary witnesses are `__stageLastCommit` +
+  `__stageArmedLog`; `data-stage-phase="committing"` MAY additionally be asserted (the dwell
+  makes it paint) but NEVER as the sole witness, and never under PRM.
+- **D — cancel distinctness:** arm → Esc before dwell elapses → NO `__stageLastCommit` write,
+  no machine mutation, no hash move, no VT; stage closes on the cancel spring.
+- **E — buffered fan-in commit:** Enter during fan-in → the buffered commit fires after
+  `carousel` and lands normally.
+- **F — single-write:** one commit → exactly ONE machine transition and ONE VT (instrumented
+  `startViewTransition` + machine-transition counters) — the D2.4 router re-entrancy clause.
+- **G — pointer-drag-during-committing:** arm A → a REAL disk drag/flick (past the 8px slop,
+  `is-dragging` latched mid-drag) during committing → the ring rested on A and committed
+  `A === rested front`. (The vivid H1 scenario the keyboard-only A/B omitted; added round 3.)
+
+All seven reproduced GREEN live, including on the tech critic's **independent re-run** (pass3:
+stage-recritique-tech.md §5; stage-proto-v3.md §5). **Prose correction to carry when wiring:**
+clause A guards the lock-given-dwell; **clause B is the faithful H1b falsifier** against
+pre-cure code (pass3: stage-recritique-tech.md §1.1 residual nit).
+
+### 1.2 The VT-frame exit (pass3: stage-design-v2.md D2; stage-proto-v2.md §2)
+
+- The overlay tears down **INSIDE the `startViewTransition` update callback**: ONE synchronous
+  batch — `switchScene(armedId)` + `stage.phase = "closed"` + dock/controls inert release —
+  then the callback awaits scene-readiness before returning. Witness:
+  `__stageVT.overlayInDomAtUpdate === false`; VT-name set in the stage tree `[]`.
+- **The commit path never enters `zooming-in`** — that phase is cancel-close ONLY.
+- **VT types MERGE:** `["stage", forward|backward]` — never replace the direction (D2.3).
+- `::view-transition-old(scene-subject)` under `stage`: **300ms ease-out opacity fade**, not
+  `animation: none` (VT-3).
+- **Mid-VT screenshot ruling (documented, accepted):** CDP capture pauses the compositor and
+  aborts the VT — `overlayInDomAtUpdate` is the canonical witness ("state-witness >
+  aborted-pixel"; pass3: stage-proto-v2.md §2, ratified stage-final-tech.md).
+
+### 1.3 The warm-gate Suspense ordering (pass3: stage-design-v2.md D2.2; stage-proto-v3.md §4)
+
+- `fire()` **pre-warms before the VT** (`await warmScene(armedId)` — the 280ms dwell absorbs
+  it); inside the update callback, after the mutation batch, the callback **awaits the scene
+  host's Suspense `onResolve`** (a per-commit gate promise), **bounded** — on timeout, resolve
+  anyway (degraded crossfade, never hung).
+- **Proven against a real ~300ms slow chunk:** warmed commit → update callback returns in
+  **2.8ms**, no fallback ever mounts; cold commit → callback **blocks 308ms** on onResolve and
+  still enters clean; the no-VT path captures the spinner frame the warm+VT path provably keeps
+  out (pass3: stage-proto-v3.md §4, verbatim transcript).
+- Bound: the design pins **350ms** (D2.2); the proto harness used a 2s ceiling to prove the
+  block is on onResolve, not the bound. S.E7 pins the shipped bound at D2.2's 350ms with the
+  stated timeout-resolve degrade.
+
+### 1.4 The LOD contract — light = life (pass3: stage-design-v2.md D3/D9; stage-proto-v2.md §4; stage-proto-v3.md §2–3)
+
+- **Miniatures are the tier-2 preview surface — MANDATE**, engine-clock driven (shared LOD
+  `tick`, zero owned rAF, zero global-store reads). **`square` stays REAL** (genuinely
+  instance-local). The honest claim: *"living dioramas that evoke each scene"* — only `square`
+  (and front-settled `amiga`) are literal (D3.5).
+- **amiga WebGL lifecycle:** poster at flank/rear (the ONLY poster in the system); the Three
+  renderer + context created **only at front AND settled** (never mid-transit); on leaving
+  front → poster immediately, `renderer.dispose()` on a **2s debounce** (re-front cancels it);
+  `webglcontextlost` (once) → poster-permanent for the session; **≤1 GL context ever** —
+  machinery proven via `__stageGLLog` (`creates:1 disposes:1 maxContexts:1`; pass3:
+  stage-proto-v2.md §4).
+- **Hysteresis band (D9.1):** mount lit at `|a| ≤ 1.5·step`, unmount at `> 2.5·step` — a
+  multi-slot flick sweeps the band with zero mount/unmount churn.
+- **Concurrency (D9.2):** `maxConcurrentFull = 1` desktop AND mobile; flanks idle at 18fps;
+  amiga-at-front `cost = 2` policy kept.
+- **`content-visibility` is DROPPED (D9.4):** the CV/IO pause path is deleted — including the
+  dead `useContentVisibility` export (~60L, deleted round 3 with the header reconciled; pass3:
+  stage-proto-v3.md §3). **`v-if` (the lit band) is the pause authority**; tab-hidden parking
+  is `RAFPlayback`'s own rAF-clock park.
+- **Visual/mount decouple (v3 B3):** `lit` = MOUNT authority (hysteresis, anti-churn);
+  `showPreview = lit && a < OCC_END` = PAINT authority. A hysteresis-residual card is
+  mounted-but-poster-faced; `willChange` rides `showPreview`. No bright miniature UI ever
+  paints in the payoff penumbra (pass3: stage-proto-v3.md §2).
+
+### 1.5 The lighting token registry + occlusion (pass3: stage-design-v2.md D4; stage-proto-v3.md §1)
+
+- **Tokens (land in `design-idioms.css`):** the two-stop tungsten ramp beside the gold family —
+  `--stage-key-apex: hsl(38 85% 72%)` / `--stage-key: hsl(46 60% 86%)` (`.dark`:
+  `hsl(38 85% 68%)` / `hsl(45 65% 84%)`); registered `@property --stage-light`
+  (`[0.78, 1.12]` — 1.12 is the D5 flare) + `--stage-pool-x` (stage-scoped registrations stay
+  in `SceneStage.vue`). NOT the shelf's accidental progress-green.
+- **Per-theme blend split:** dark beam = two-stop mix (apex 44% / mid 22%) under
+  `mix-blend-mode: screen`; light = half mix under **`plus-lighter`**, beam above the dusk
+  scrim. Pool re-keyed to the apex stop. Beam feather + blur ramp toward the base (P1).
+- **Front card catches the light (D4.4):** the key-wash gradient on the front card's content
+  layer (never the shell — glass-resting intact).
+- **Penumbra ramp (D4.5):** flank preview content `saturate(lerp(1,.65,k))
+  brightness(lerp(1,.72,k))`, `k` ramping continuously over `|a| ∈ [step/2, 1.5·step]`.
+- **The paper (D4.6):** the stage-owned `.stage-grid` ghost built from the SAME
+  `--graph-pitch`/`--graph-major` tokens, warm-graphite 6% dark / 8% light, pool-brightened —
+  **proven over the real `.grid-background`** (condition 2 discharged for the proto substrate;
+  S.E7 re-shoots over the real app page as a formality). Dusk floor **never pure black** (the
+  96% mix cap).
+- **Occlusion face-fade (v3 B1/B2):** per-card `occlusion ∈ [0,1]` off the ring angle —
+  `OCC_START = 1.30·step` desktop / `0.55·step` mobile; `OCC_END = 1.90·step` / `1.00·step` —
+  drives the opacity of the **whole card face** (preview wrapper + poster + nameplate +
+  breadcrumb). Machine witness: every occluded card's face at **0.00/0.00** in all six states
+  (pass3: stage-proto-v3.md §1). "What the light says wins over what the DOM keeps."
+- **Unlit-tier legibility (D6):** the unlit face IS the poster-card face (glyph + serif name +
+  mono breadcrumb + tone-tinted shell); labels ≥4.5:1 both themes, min 12px; glyph
+  `opacity .5 saturate(.4)`, **no brightness crush**; flank shells carry the 12–16px
+  anti-double-exposure backdrop-blur; arrows in the × close button's glass register (≥3:1).
+- **§P protected list is binding:** dark-carousel composition · footlight system (per-scene
+  crayon halo; D5 bloom only during committing) · real 3-D (§1.0 numbers) · light-is-life
+  legibility · marquee typography + mobile marquee-below-ring · poster/unlit face · the commit
+  spine. Regression = round failure (pass3: stage-design-v2.md §P; re-audited pixel-stable in
+  both re-critiques).
+
+### 1.6 The commit payoff choreography (pass3: stage-design-v2.md D5; stage-proto-v2.md §7)
+
+On `committing` (~300ms, all on existing springs): beam flare (`--stage-light → 1.12`) +
+footlight bloom (tint alpha ×1.5, scale 1.15) + the press (`translateZ(+40px)` on the armed
+card via the orbit derive) + immediate marquee swap. The 280ms dwell guarantees the beat paints
+before `fire()`; the flared frame IS the VT's old snapshot. Cancel exhales the same springs, no
+VT. **The gold wedge is KILLED:** the glyph ghost renders only in the unlit `v-else` branch —
+a lit card never renders its silhouette layer. Under PRM the payoff renders at rest values in
+the single snap.
+
+### 1.7 The affordance layer (pass3: stage-design-v2.md D7; stage-proto-v2.md §3 ledger)
+
+`cursor: grab`/`grabbing` on the disk, `pointer` + hover press-scale on the front card only;
+the one-time diegetic hint line (`drag to spin · tap to enter`, Fira Code mono-caption, at the
+pool line under the front card) shown until the first user-committed spin, dismissed via
+`kf-stage-hint-dismissed` (vueuse `useStorage`). Lifecycle proven in pixels (hint present on
+first open, gone after spin). **Carry:** the proto seated the hint INSIDE the front card —
+S.E3 re-seats it to the pool line (pass3: stage-recritique-design.md §1-S5).
+
+### 1.8 Mobile v2 (pass3: stage-design-v2.md D8; stage-proto-v2.md §3)
+
+Same component, same authority, same funnel — **no fork**. Deltas only: cull beyond ±2 slots
+(hysteresis-disciplined), front card **80vw**, `perspective-origin 50% 52%`, front-only live,
+narrowed beam, safe-area close, marquee below the ring at display scale. The two flanks peek as
+lit slivers; **the sliver-label fade is a ratified tradeoff** (the occlusion cure fades the
+edge labels with the face; the marquee names the front card — owner may restore clipped sliver
+labels at S.E7 if wanted; pass3: stage-final-design.md §2).
+
+### 1.9 PRM (pass3: stage-proto-v2.md §5)
+
+Every spring `respectReducedMotion: true` → orbit/zoom/light SNAP; fan-in collapses; the
+`stage` VT keyframe sits in the existing PRM `animation: none` bracket; dwell = 0. Proven under
+emulated PRM: open→carousel 61ms, arm→commit 75ms, the LOOK survives in the shot pair. The
+degrade matrix (no-VT → `useSceneSwap` spring dissolve; no `view-transition-type` → untyped
+crossfade; JS-gesture failure → arrows/keys on the same funnel) stands (stage-design-v1.md §14,
+as amended by D9.4).
+
+### 1.10 The fps budget — MEASURED (LOCAL acceptance per C-10; never a CI threshold)
+
+Recorded numbers (driver `gates/fps.mjs`, ANGLE-Metal GPU, 7-slot spin storm, dark @1440):
+
+| Run | avgFps | minFps | median frame | max frame | frames >50ms | LoAF scripting | long tasks |
+|---|---|---|---|---|---|---|---|
+| round 2 (proto) | ~120 | 56–60 | 8.3ms | 16.7–17.8ms | 0 | ≈0ms | 0 |
+| round 2 (critic's independent re-run) | 120 | 96.2 | 8.3ms | 10.4ms | 0 | 0ms | 0 |
+| round 3 (post-occlusion re-run) | 120 | **97.1** | 8.3ms | 10.3ms | 0 | 0ms | 0 |
+
+Budget (≥55fps · <8ms scripting/frame · no LOD-churn long task) **MET with headroom** (pass3:
+stage-proto-v3.md §6; stage-recritique-tech.md §1.5). The D9.3 cuts are landed and load-bearing:
+`.stage-dim` is a plain gradient scrim (no full-viewport backdrop-filter); card backdrop-filter
+only on the lit ≤3; `will-change` only on lit cards. Caveats recorded: SwiftShader software
+raster floors at ~24fps (compositing, not JS — LoAF 0ms throughout), which is why C-10 keeps
+this LOCAL-GPU; consider a p95-frame metric over single-worst-frame when re-recording at S.E7.
+
+---
+
+## 2. The justified-deviation register (pre-authorized; an impl drive honors these, it does not "fix" them)
+
+| # | Deviation | Status + authority |
+|---|---|---|
+| 1 | **Mobile cull uses `v-show`, not `v-if`** — culled cards are unlit (no preview host mounted); `v-show` removes the clutter without flick-time mount churn | ACCEPTED (pass3: stage-recritique-tech.md §3.2 — "equivalent observable"; aligned with D9.1 anti-churn) |
+| 2 | **Transient >3-lit after a multi-slot spin** — a swept card stays lit through `[1.5,2.5]·step` | D9.1 working as specified; render cost capped by `maxConcurrentFull=1`; the v3 visual/mount decouple removes the *look* consequence (pass3: stage-recritique-tech.md §3.4; stage-proto-v3.md §2) |
+| 3 | **The rAF direct-write ring (D9.3.4) is NOT built** — the ring binds through reactive `computed cards` | Pre-authorized-by-measurement: LoAF scripting 0ms, 0 long tasks — the reactive round-trip is not the bottleneck. Remains pre-authorized to build ONLY if the S.E7 integration trace regresses the budget (pass3: stage-proto-v2.md §10.3; stage-recritique-tech.md §3.3) |
+| 4 | **Mobile sliver-label fade** (edge labels go with the occluded face) | Ratified tradeoff; restorable at owner's option (pass3: stage-final-design.md §2) |
+| 5 | **No mid-VT screenshot** — CDP capture aborts the VT | `overlayInDomAtUpdate` is the canonical witness; ratified (pass3: stage-proto-v2.md §2; stage-final-tech.md) |
+| 6 | **`__stageDebug`** dev-only introspection seam (`import.meta.env.DEV`) for deterministic gate coasts | ACCEPTED; never ships (pass3: stage-recritique-tech.md §3.6) |
+
+Side-file hygiene to discharge when wiring (S.E7): `gates/adversarial-final.txt` predates
+clause G and `gates/fps-trace-gpu.txt` is the round-2 run — refresh or drop both (pass3:
+stage-final-tech.md non-blocking hygiene).
+
+---
+
+## S.E1 — Salvage lift + registry (the prototype tree lands in the repo)
+
+**Mode: REFINE (lift-from-prototype).** **Deps: D1, D2** (the 8-scene core rides the carved
+tree); **E1c deps D3** (compose row). *(Design §18 W1; p05 subsumed; D3.)*
 
 ### Charter
 
-The `n-stage-impl` shelf (+4188 LOC) is a **treasure** (SPEC §2.1-9): it solved the two named
-failures of the dead scene-switcher attempts structurally (one `SpringProgress` over ring angle; one
-shared-`RAFPlayback` LOD clock) and put the DOM position right (Teleport-to-body sibling, OUTSIDE the
-`scene-subject` VT). p05 lifted it, re-pathed it onto R's fused tree, and proved the fusion FAILURE
-branch (Q5: fusion severed standalone Targets) does **not** fire — the shelf already carries the
-PROP/INJECT adapter layer and its dependencies survived fusion. **Two honest caveats survive the
-probe** (SPEC §2.1-9): the registry **froze at 7 scenes** (`morph` absent — the shelf predates
-morph), and the project's `check` is **bare `tsc`** (no `vue-tsc`), so `.vue` render paths are
-exercised only by the browser-actuating gate. S.E1 lifts the shelf verbatim, re-paths it, and
-authors the two adapters the shelf never had.
+Lift the **cured v3 `scene-stage/` tree** from the prototype worktree into the repo:
+`demo/@/components/custom/scene-stage/` (5 `.vue` + composables + `sceneStageRegistry.ts` +
+miniatures) plus the `demo/stage-proto/` harness **as the interim gate substrate** (retired or
+re-pointed at S.E7). The registry **enumerates from `demo/app/scenes.ts`** (home excluded) —
+never a frozen list. The old E1's "author `previews/morph.ts`" is already discharged: the
+prototype ships all 8 miniatures (morph included). **Lift vs fresh:** everything lifts; the
+only author-fresh item is **E1c** — the compose registry row + compose miniature, gated on
+S.D3 landing `scenes/compose/`.
 
 ### Scope items
 
-- **S1 — Lift the 18-file shelf `scene-stage/` verbatim.** No API reshape; the salvage engine is
-  the shipped surface.
-- **S2 — Re-path per p05: 5 files / 23 import lines (sed-scriptable).** Pure path substitution onto
-  the fused tree (the mechanical `tsc` 16×TS2307 → 0 that p05 executed).
-- **S3 — 7 shelf adapters RE-PATHED + 2 authored NEW (scope stated honestly, se-B2).** The two new:
-  - **`previews/morph.ts`** — the morph preview adapter the shelf never had (the registry froze
-    pre-morph, p05 F5).
-  - **the `morph` registry row** — one new registry entry for the eighth shipped scene.
-  - **the compose adapter** — authored at **E1c**, gated on D3 (below).
-- **S4 — E1 CORE enumerates the 8 shipped scenes; deps D1, D2** (se-B1 — E1 no longer enumerates a
-  scene that does not exist). **E1c — the compose row + adapter — is a sub-item gated on D3** (the
-  playground fold lands the ninth scene; the compose adapter cannot be authored before `scenes/compose/`
-  exists).
+- **S1 — Lift the scene-stage tree verbatim from `wf_2fbb9dbc-c40-1`** (the v3 state: D1/D2
+  funnel, occlusion, decouple, CV-deleted LOD). Re-path onto the repo tree (p05-class
+  mechanical move). Co-edit set: the whole `scene-stage/` dir + `demo/stage-proto/` move
+  together; **never git-add the worktree `node_modules` symlink** (the R-drive lesson).
+- **S2 — Registry re-derivation intact** (order/membership/tone/tier/glyph from `scenes.ts`).
+- **S3 — E1c (D3-gated):** the compose row + a compose miniature honoring the D3 contract
+  (engine-clock, no global-store reads) + the D3.4 pairing entry (S.E7 owns the artifact).
 
-### The bare-tsc caveat (p05 — recorded, load-bearing)
+### The HARD GATE — `proof:scene-registry-mounts` (born-RED, runtime)
 
-`check` is **bare `tsc` (no `vue-tsc`)** — it verifies the salvage engine fully but resolves `.vue`
-script blocks **only at import resolution**, not at the render path. The render path is exercised by
-the **browser gate** (S1 below). This is why E1's gate is a *runtime* gate, not a `tsc`/grep gate:
-`tsc` green does not prove the inject-adapter runtime provisioning works (p05 could clear that only at
-the type layer).
+**What it asserts:** each registry row **mounts and renders a non-error idle miniature** (live,
+`data-tick` advancing off the shared clock — the proto's live-render assertion, not mere
+presence), against the running harness; `check` 0-error; `proof:boundary` stays GREEN
+(LIGHT-barrel holds — proven every round). **Born-RED witness:** the repo tree
+(`tranche-s-dev`) contains **no `scene-stage/` directory at all** — the gate hard-REDs today;
+greens only when all 8 rows render. E1c extends it over the compose row post-D3.
+**Falsifiability:** a row whose miniature mounts but never ticks fails the advancing-tick
+clause; breaking a LIGHT import REDs `proof:boundary`.
 
-### The HARD GATE — `proof:scene-registry-mounts` (born-RED, runtime — strengthened per se-B3)
+### Cost + DAG
 
-**Gate name:** `proof:scene-registry-mounts` (NEW; the SE-3-strengthened successor to a
-resolve-only registry check).
-
-**What it asserts (runtime, not grep, not resolve-only — SPEC §3 S.E1, §9 SE-3).** **Each scene row
-mounts and renders a non-error idle preview** — driven against the running demo (the shared harness
-+ served dist). This covers the **inject-adapter runtime provisioning** that p05 could only clear at
-the type layer: a scene whose adapter type-checks but fails to provide its INJECT contract at runtime
-REDs here.
-
-**Born-RED witness plan.** Authored at E1, the gate is **born-RED** on the pre-lift tree: the
-`scene-stage/` registry does not yet exist under the fused paths, so no scene row mounts → hard RED.
-After the lift + re-path lands, the 8-scene core mounts; the gate greens only when **every** row
-renders a non-error idle preview. The `morph` row is born-RED until S3's authored-new
-`previews/morph.ts` + registry row land (the registry froze at 7 — the 8th row is genuinely absent
-today). **E1c** extends the same gate over the compose row after D3.
-
-**Falsifiability.** The gate reads the running SPA (runtime-tier — T1); a resolve-only stub or a
-`tsc`-green-but-render-broken adapter cannot satisfy the "renders a non-error idle preview" clause
-(the exact blindspot the bare-`tsc` caveat names). Plant: break one adapter's INJECT provisioning
-(remove a provided key) → that row fails to render → REDs, while `tsc` stays green.
-
-### Cost (carried from p05)
-
-**5 files / 23 import lines** re-pathed (sed-scriptable; p05-measured) + **2 authored-new adapters**
-(`previews/morph.ts` + the compose adapter) + **1 new registry row** (`morph`). Mechanical; LOW risk
-(p05 executed the mechanical core: `tsc` 16×TS2307 → 0, `proof:boundary` PASS, zero API drift). The
-only NEW authoring is the morph + compose adapters.
-
-### DAG
-
-**Deps: D1, D2** (the 8-scene core rides the carved tree — `S.D2 ──► S.E1`). **E1c deps D3**
-(`S.D3 ──► S.E1c` — the compose row + adapter). **E1 ──► S.E2.**
+Mechanical lift + re-path; LOW risk (three rounds of proof behind it). E1c is the only
+authoring. **Deps: D1/D2; E1c deps D3. E1 ──► S.E2.**
 
 ### Verification
 
-Impl sequence: (1) author `proof:scene-registry-mounts` FIRST (born-RED — the registry does not yet
-exist under the fused paths); (2) lift `scene-stage/` verbatim + re-path (5 files / 23 lines,
-sed-script) — run `check` (expect `tsc` 16×TS2307 → 0, per p05) + `proof:boundary` (expect PASS,
-LIGHT-barrel imports hold); (3) author `previews/morph.ts` + the `morph` registry row; (4) run
-`proof:scene-registry-mounts` against the running demo — all 8 rows must render a non-error idle
-preview (GREEN); (5) after D3, author the compose adapter + E1c registry row and extend the gate over
-compose (E1c GREEN).
+(1) author the gate FIRST (born-RED — no scene-stage in-tree); (2) lift + re-path; run `check`
++ `proof:boundary`; (3) run the gate — 8 rows GREEN with advancing ticks; (4) post-D3, land
+E1c and extend the gate over compose.
 
 ---
 
-## S.E2 — Orbit + LOD lift
+## S.E2 — Overlay + lighting + geometry at rest
 
-**Mode: REFINE (salvage).** `useCarouselOrbit` + `useLivePreviewLOD` lifted near-verbatim (SPEC §3
-S.E2, r7 A-2/A-3).
+**Mode: REFINE (lift) + token authoring.** **Deps: E1.** *(Design §18 W2; D4; v3 B1/B2/B3;
+§1.0/§1.5.)*
 
 ### Charter
 
-The two motion cores that make the stage feel alive lift near-verbatim from the shelf: **ONE
-`SpringProgress` over the ring angle** and **ONE shared `RAFPlayback` LOD clock** (amiga's WebGL
-preview counts double against the LOD budget). Both dogfood LIGHT-barrel primitives on `RAFPlayback`
-(the charter guardrail); p05 proved the LIGHT-barrel imports hold for the lift.
+Land the v3 lighting/occlusion stack (§1.5) and the pinned geometry (§1.0). Author-fresh: the
+`--stage-key-apex`/`--stage-key` tokens move into `demo/@/styles/design-idioms.css` (the proto
+carried them in `proto.css`); everything else lifts. The geometry numbers are live-pinned —
+re-deriving them is forbidden (the `+deg` inversion bug).
 
-### Scope items
+### The HARD GATE — `proof:stage-geometry` (born-RED; skeleton: `gates/geometry.mjs`)
 
-- **S1 — Lift `useCarouselOrbit` near-verbatim** — ONE `SpringProgress` over ring angle (the
-  structural cure for the dead attempts' hand-rolled angle math).
-- **S2 — Lift `useLivePreviewLOD` near-verbatim** — ONE shared `RAFPlayback` LOD clock; **amiga's
-  WebGL preview counts double** against the LOD budget.
-- **S3 — The fps criterion is SPLIT** (per C-10/se-B4 — see the gate below).
+**What it asserts (playwright-core, shared harness, 375 AND desktop):** overlay is a body-level
+sibling with **NO `view-transition-name`** anywhere in the stage tree; ring computed transform
+matches `rotateX(-15deg)`/perspective within tolerance; back-card top < front-card top; width
+recede monotone; no card opacity < 0.4; **plus the during-commit clause** —
+`__stageVT.overlayInDomAtUpdate === false` (the D2 exit encoded as a gate; the at-rest gate
+alone could not see H2). **Born-RED witness:** no overlay exists in the repo tree → the first
+clause hard-REDs. **Falsifiability:** overlay inside the VT subject REDs the sibling clause;
+re-derived geometry REDs the matrix clause; a stage that survives into the VT update callback
+REDs the during-commit clause. **Acceptance (non-CI):** the lighting screenshot set — dark AND
+light, desktop AND 375, **over the real `.grid-background`** (D4.6 condition 2) — plus the §P
+pixel-stability spot-check.
 
-### The HARD GATE — `proof:boundary` (green — device-independent structural half) + the split fps criterion
+### Cost + DAG
 
-**Gate name:** `proof:boundary` (EXISTING; the E2 lift must keep it green) **+ a device-independent
-structural clause** (mount-count + LOD-state assertions).
-
-**What it asserts.**
-- **The CI half (device-independent).** `proof:boundary` stays GREEN (the LIGHT-barrel imports hold
-  — p05-proven for the lift: `SpringProgress`/`RAFPlayback` are LIGHT surface). Plus a
-  **mount-count + LOD-state structural assertion** — how many previews are mounted, which LOD tier
-  each holds — **NOT** a frame rate.
-- **The fps half (NOT a CI closure — C-10/se-B4).** "**≥55fps with all previews mounted**" is a
-  **declared LOCAL chrome-devtools-mcp acceptance** recorded in this wave doc — **not a T4 closure**.
-  If the impl drive wants it in CI, it **converts to a budgeted device-independent ratio** per the
-  taxonomy recipe (C-10: no raw absolute fps threshold may be a CI closure anywhere in the plan). The
-  ≥55fps number is an acceptance *target* for the local live check, never a gate that reds on a slow
-  runner.
-
-**Born-RED witness plan.** `proof:boundary` is GREEN today and must STAY green — the born-RED
-substance is the **structural mount-count/LOD-state clause**, which reds on the pre-lift tree (the
-orbit/LOD cores are not yet wired, so no LOD state is observable). After the lift, the structural
-assertion reads the mounted preview set and its LOD tiers → GREEN. Plant: break a LIGHT-barrel import
-(pull `SpringProgress` through a HEAVY path) → `proof:boundary` REDs.
-
-**Falsifiability.** The boundary half is falsifiable by construction (any HEAVY leak reds it); the
-structural clause is falsifiable against the running preview set (a mis-wired LOD clock yields the
-wrong tier-state). The fps half is explicitly **NOT** a gate — it is a recorded local acceptance, so
-it cannot mask a real regression by being loosened (C-10's whole point).
-
-### Cost
-
-Near-verbatim lift of two composables; LOW risk (p05-proven LIGHT-barrel hold). The only new authoring
-is the device-independent structural mount/LOD clause and the recorded local fps acceptance.
-
-### DAG
-
-**Deps: E1.** **E2 ──► S.E3** (E3's fps half is E2's local acceptance).
+Lift + the token move (co-edit set: `design-idioms.css` tokens ↔ `SceneStage.vue` `@property`
+registrations ↔ the beam/pool recipes). LOW-MEDIUM. **Deps: E1. E2 ──► S.E3.**
 
 ### Verification
 
-(1) Lift `useCarouselOrbit` + `useLivePreviewLOD`; (2) run `proof:boundary` (must stay GREEN —
-LIGHT-barrel imports hold); (3) run the structural mount-count/LOD-state clause (GREEN post-lift);
-(4) run the LOCAL chrome-devtools-mcp fps acceptance with all previews mounted (target ≥55fps,
-amiga's WebGL double-counted) and RECORD the reading in this wave doc — it is not a CI gate.
+(1) author/lift `scripts`-side geometry driver from the skeleton (born-RED); (2) land the
+overlay + tokens; (3) gate GREEN at both viewports incl. during-commit clause; (4) screenshot
+acceptance recorded.
 
 ---
 
-## S.E3 — Stage overlay, with a named oracle
+## S.E3 — Choreography: open · fan-in · gestures · payoff · affordances
 
-**Mode: REWRITE.** The Teleport-sibling overlay + its named structural oracle (SPEC §3 S.E3, r7
-A-4/A-5/A-6, §9 SE-5).
+**Mode: REFINE (lift) + polish-fresh.** **Deps: E2.** *(Design §18 W3; D5/D7/D10; §1.6/§1.7.)*
 
 ### Charter
 
-The stage overlay is the theatrical surface: a **Teleport-sibling overlay OUTSIDE the VT subject**, a
-**registered-`@property` downlight over never-black grid paper**, the **empirically verified
-`rotateX(-15deg)`/perspective geometry**, and a **zoom-out choreography on a `SpringProgress`**. The
-geometry numbers are **live-pinned, NOT re-derived** — re-deriving them reopens the `+deg` inversion
-bug (r7 A-4/A-5/A-6). This wave REWRITEs the overlay and replaces the shelf's scratch probe scripts
-with a **named real gate** (the charter's no-scratch-`*.mjs`-probes line is satisfied by a real gate,
-not by deletion alone).
+Lift the choreography whole: the zoom-out/fan-in phase machine, `useStageGestures` (drag +
+slop + capture, `decayRest` flick projection, wheel accumulation, tap semantics, arrow
+auto-repeat, keyboard + type-ahead), the D5 payoff, the D7 affordance layer, the P2 host
+front-load. **Author-fresh (the final-round carries, pass3: stage-final-design.md §5):**
+(a) hint re-seated to the pool line; (b) **P4 marquee drop applied or owner-waived in
+writing** (the proto ledger claimed it, the pixels contradicted it — pass3:
+stage-recritique-design.md §2); (c) the hover/cursor-bearing capture + the **flick-decay GIF**
+(the D10 drag-feel ruling: slot-follow + decay is ACCEPTED pending this capture; if it reads
+notchy, the pre-authorized fix is the small orbit `setAngle` continuous-follow addition — not
+required).
 
-### Scope items
+### The HARD GATE — motion-evidence acceptance (LOCAL; no new CI gate)
 
-- **S1 — Teleport-sibling overlay OUTSIDE the `scene-subject` VT** (a body-level sibling with **no
-  `view-transition-name`** — the p05-proven correct position).
-- **S2 — Registered-`@property` downlight over never-black grid paper** (the stage's lighting; the
-  grid never goes black).
-- **S3 — The empirically verified `rotateX(-15deg)`/perspective geometry — LIVE-PINNED, not
-  re-derived** (re-deriving reopens the `+deg` inversion bug — explicitly forbidden).
-- **S4 — Zoom-out choreography on a `SpringProgress`** (LIGHT-barrel primitive; the charter dogfood
-  guardrail).
+This wave adds **no CI launch**. Its closure is the recorded acceptance set: fan-in strip +
+payoff burst + the flick-decay GIF + a hover/cursor frame (P5 method), plus the hint lifecycle
+pair (present on first open / gone after the first spin). **Born-RED substance:** on the
+pre-wave tree the stage cannot open (no pill wire in the harness) — the E4 commits gate (next
+wave) is the CI teeth for this chain; E3's acceptance set is a T8 live-verification obligation
+recorded in PROGRESS.md. **Falsifiability:** the hint-dismiss localStorage flag is asserted by
+re-open (present→spun→absent); the payoff frame must be visibly distinct from browsing (the S3
+cure — flare + press + bloom, no gold wedge).
 
-### The HARD GATE — `proof:stage-geometry` (born-RED, structural — the named oracle, se-B5)
+### Cost + DAG
 
-**Gate name:** `proof:stage-geometry` (NEW; `scripts/proof-stage-geometry.mjs`). **This gate REPLACES
-the shelf's scratch `probe.mjs` / `verify-candidate-c.mjs` scripts** — the charter's
-no-scratch-probes line is now satisfied by a real, named gate (SPEC §3 S.E3, §9 SE-5).
+Lift + three polish items + captures. LOW-MEDIUM. **Deps: E2. E3 ──► S.E4.**
 
-**What it asserts (playwright-core over the served dist; demo-correctness tier; the SHARED harness — SPEC §3 S.E3).**
-- **The overlay element is a body-level sibling with NO `view-transition-name`** (the Teleport-out
-  position — structural DOM assertion).
-- **`getComputedStyle` transform matrix matches the pinned `rotateX(-15deg)`/perspective values
-  within tolerance** (the live-pinned geometry — the `+deg` inversion bug reds here if re-derivation
-  slips it).
-- **Disk / preview rects at fixed 375 / desktop viewports** (the stage measurables hold at both the
-  phone and desktop widths).
+### Verification
 
-**Born-RED witness plan.** Authored at E3, the gate is born-RED on the pre-overlay tree: no body-level
-overlay sibling exists (the Teleport target is absent) → the first clause hard-REDs. After the overlay
-lands with the pinned geometry, all three clauses green. Plant: put the overlay INSIDE the
-`scene-subject` VT (give it a `view-transition-name`) → the sibling clause REDs; or re-derive the
-geometry and let the `+deg` inversion slip in → the transform-matrix clause REDs (this is the exact
-regression S3 forbids by pinning).
+(1) lift choreography; (2) apply hint re-seat + P4 (or record the owner waiver); (3) ship the
+captures; (4) live-verify each beat via chrome-devtools-mcp (T8).
 
-**Falsifiability.** The gate reads the running SPA via playwright-core (runtime/structural — T1); it
-is not satisfiable by a source-shape stub (the transform matrix is read from `getComputedStyle` on the
-live element). Falsifiable both ways: it reds on a wrong-position or wrong-geometry overlay, and greens
-only on the live-pinned correct one.
+---
+
+## S.E4 — The commit funnel + the `stage` VT type
+
+**Mode: REFINE (lift).** **Deps: E3.** *(Design D1/D2; §1.1/§1.2/§1.3; C-6; fold row 18.)*
+
+### Charter
+
+Land the D1/D2-cured `useSceneStage` funnel (§1.1) + the `stage` VT type keyframes in
+`demo/app/scene-transition.css` (type MERGE, old-frame 300ms fade — §1.2) + the observables.
+This is the band's headline correctness surface; every clause of it is already proven in the
+prototype and independently re-verified (pass3: stage-recritique-tech.md §1.1, §5).
+
+### The HARD GATE — `proof:scene-stage-commits` (born-RED; skeleton: `gates/adversarial.mjs`)
+
+**The spec is §1.1's A–G roster verbatim** — happy paths + the seven adversarial clauses,
+browser-actuating on the shared chromium. **Born-RED witness:** no stage exists in the repo
+tree → every clause hard-REDs; after the lift, all clauses green (the prototype transcript is
+the expected shape). **Falsifiability (both ways, proven):** clauses B and G FAIL against the
+pre-D1 code (the stale-arm semantics) — the falsification is not hypothetical, it is the
+recorded round-1→round-2 delta; clause D fails on any code path that writes the observable on
+cancel; clause F fails on router double-write. Carry the clause-A prose correction (§1.1).
+**Co-edit set:** `useSceneStage.ts` ↔ `useCarouselOrbit.ts` (`targetIndex` exposure + the
+no-move-reseat fix) ↔ `useStageGestures.ts` (`grab` halt-coast) ↔ `scene-transition.css`
+(`stage` type) — these four move together or the invariant breaks.
 
 ### CI budget
 
-`proof:stage-geometry` rides the **same shared chromium + served dist** as the E4/E5 gates (SPEC §3
-S.E preamble) — it does **not** add a launch. **The fps half is E2's LOCAL acceptance**, not a clause
-here (C-10; SPEC §3 S.E3 — "the fps half is E2's local acceptance").
+ONE of the band's two CI browser gates; rides the shared chromium + served dist (amortized).
+(Runnable at E4 against the harness; **wired as a repo `proof:*` roster entry at S.E7** — the
+explicitly-owned born-RED integration debt, pass3: stage-final-tech.md.)
 
-### Cost
+### Cost + DAG
 
-One new playwright-core gate script + the overlay REWRITE (Teleport-sibling, downlight, pinned
-geometry, spring zoom-out). MEDIUM (geometry must be pinned exactly — the `+deg` inversion bug is a
-live footgun the pinning guards against).
-
-### DAG
-
-**Deps: E2.** **E3 ──► S.E4.**
+Lift; LOW risk (three-round-proven). **Deps: E3. E4 ──► S.E5.**
 
 ### Verification
 
-(1) Author `scripts/proof-stage-geometry.mjs` FIRST (born-RED — no body-level overlay sibling exists
-yet); (2) REWRITE the overlay: Teleport-to-body sibling with no `view-transition-name`,
-registered-`@property` downlight, the LIVE-PINNED `rotateX(-15deg)`/perspective numbers (do NOT
-re-derive), spring zoom-out; (3) run `proof:stage-geometry` on the served dist (all three clauses
-GREEN); (4) confirm it rides the shared harness (no new launch).
+(1) driver first (born-RED); (2) lift the funnel + VT type; (3) A–G GREEN on the harness;
+(4) live-verify commit + cancel via chrome-devtools-mcp (T8).
 
 ---
 
-## S.E4 — Commit-on-settle + single authority + the interim dock controls
+## S.E5 — Mobile v2 @375
 
-**Mode: REWRITE.** The cardinal-defect cure — a swipe/arrow COMMITS a scene (SPEC §3 S.E4, C-6, C-7,
-§9 SE-8).
+**Mode: REFINE (lift).** **Deps: E4.** *(D8; §1.8; fold row 18's second half.)*
 
 ### Charter
 
-Both dead scene-switcher attempts failed the same way: they never COMMITTED. S.E4 wires
-**commit-on-settle** through the existing typed-VT seam, establishes **one nav authority**, and scopes
-the **interim spin controls as ordinary `DockIconButton`s inside the single ChromeDock** — dogfooding
-the existing dock (r7 A-10), **NOT** resurrecting the shelf's bespoke
-`StageArrows`/`TransportDock`/`stageDockKey` second-authority surface (which stays unlifted). This is
-the surface the E4/E5 gates actuate and the surface **S.E6 later retires** for BG's dock morph (C-7).
+Land the D8 parameter deltas (§1.8) — same component, same authority, same funnel, **no
+`max-width` fork**. KfPillTabs remains explicitly out of scope (panel primitive → S.B7/S.D2;
+fold row 71).
 
-### Scope items
+### The HARD GATE — the mobile commit gate @375 (born-RED, browser-actuating)
 
-- **S1 — ChromeDock opens the stage** (the single nav authority; no second switcher surface).
-- **S2 — The interim spin controls: ordinary `DockIconButton`s inside the single ChromeDock**
-  (se-B8; C-7). **NOT** the shelf's bespoke `StageArrows`/`TransportDock`/`stageDockKey` — that
-  second-authority surface **stays unlifted**. The interim controls are the surface S.E6 later
-  retires for BG's in-place dock morph.
-- **S3 — Commit-on-settle wired: spin-settle / scrollend → `runSceneSwitch` through the existing
-  typed-VT seam.** `frontIndex` / `spinning` are exposed as the **gate observable** (the commit
-  state the gate reads).
-
-### The HARD GATE — `proof:scene-stage-commits` (born-RED, browser-actuating — C-6's successor)
-
-**Gate name:** `proof:scene-stage-commits` (NEW; **C-6's successor** — the reborn
-`proof:scene-switcher-mobile` zombie, retired at S.A4 and reborn HERE targeting `frontIndex`/`spinning`
-+ commit-on-settle; SPEC §2.2 C-6, fold row 18). **Browser-actuating; demo-correctness tier.**
-
-**What it asserts.** **A swipe / arrow COMMITS a scene** — the cure for both dead attempts' cardinal
-defect. The gate drives a swipe or arrow actuation against the running stage and asserts the commit
-lands (the scene actually switches and settles), reading `frontIndex`/`spinning` as the observable.
-
-**Born-RED witness plan.** Authored at E4, the gate is born-RED on the pre-commit tree: the stage
-spins but never commits (the exact defect of both prior attempts) — a swipe/arrow leaves `frontIndex`
-unchanged after settle → RED. After S3 wires spin-settle/scrollend → `runSceneSwitch`, a swipe/arrow
-advances `frontIndex` and settles → GREEN. Plant: sever the `runSceneSwitch` call on settle → the
-commit never lands → REDs (reproducing the cardinal defect on demand).
-
-**Falsifiability.** The gate is browser-actuating (runtime — T1/T8): it drives a real gesture and
-reads the committed state, so a source-shape stub that "wires" a handler but never advances
-`frontIndex` fails. Falsifiable both ways — it reds on a spin-without-commit and greens only on a real
-commit.
+**What it asserts:** at 375px, **open → drag-flick (decay projection) → tap front →
+committed** on touch events, with the §1.1 observables; `lit: 1` (front-only live); no corner
+clutter (the cull holds); marquee below the ring. **Born-RED witness:** REDs on the pre-wave
+tree (no mobile parameters); the prototype's mobile transcripts are the expected GREEN shape
+(pass3: stage-proto-v1.md W5; stage-proto-v2.md §3-S6). **Falsifiability:** a max-width fork or
+second authority breaks the single-stage clause; a non-committing touch path reds the commit
+clause. The sliver-label fade is the ratified tradeoff (§2.4), not a defect.
 
 ### CI budget
 
-`proof:scene-stage-commits` is **ONE of the band's two CI browser gates** (SPEC §3 S.E preamble); it
-rides the **ONE shared chromium + served dist from S.A2's net-deletion** (amortized, not +1 launch).
+The band's SECOND CI browser gate; shared harness, amortized; wired at S.E7.
 
-### Cost
+### Cost + DAG
 
-The commit-on-settle wiring (spin-settle/scrollend → `runSceneSwitch` through the existing typed-VT
-seam) + the interim `DockIconButton` spin controls + one new browser-actuating gate. MEDIUM.
-
-### DAG
-
-**Deps: E3.** **E4 ──► S.E5** and **E4 ──► S.E6** (E6 also needs the external glass-ui 5.0.0 publish).
+Lift; LOW. **Deps: E4. E5 ──► S.E6.**
 
 ### Verification
 
-(1) Author `proof:scene-stage-commits` FIRST (born-RED — the stage spins but never commits); (2)
-REWRITE: ChromeDock opens the stage; add the interim `DockIconButton` spin controls (NOT the bespoke
-second authority); wire spin-settle/scrollend → `runSceneSwitch` through the typed-VT seam; expose
-`frontIndex`/`spinning`; (3) run `proof:scene-stage-commits` against the running stage (a swipe/arrow
-must COMMIT — GREEN); (4) live-verify via chrome-devtools-mcp (T8 — every stage verified live).
+(1) driver first (born-RED @375); (2) lift D8 params; (3) gate GREEN; (4) live-verify at 375
+via chrome-devtools-mcp.
 
 ---
 
-## S.E5 — Phone path
+## S.E6 — LOD hardening + the REAL WebGL lifecycle + the fps acceptance
 
-**Mode: REWRITE.** The mobile switcher is the SAME stage — no fork, no second authority (SPEC §3
-S.E5, se-B6, §9 SE-6).
+**Mode: REFINE (lift) + REAL-GL author-fresh.** **Deps: E5.** *(D3.3/D9; §1.4/§1.10.)*
 
 ### Charter
 
-The phone path is the **SAME stage** — **no max-width fork, no second authority**. The dead attempts
-each grew a separate mobile switcher; S.E5 refuses that. **KfPillTabs is REMOVED from this wave's
-scope** (se-B6): it is the **control-strip panel primitive inside `animation-controls` (a12), NOT a
-scene-nav surface** — its test lives in **S.B7**, its promotion in **S.D2** (fold row 71). E5
-introduces **no second nav authority and consumes no panel primitive for navigation**.
+Lift the LOD machinery whole (hysteresis band, `maxConcurrentFull=1`, CV-deleted pause
+authority, visual/mount decouple, `__stageGLLog`). **Author-fresh:** the **real Three renderer
+behind the proven lifecycle** — the proto proved the machinery over a fake-GL body (pass3:
+stage-proto-v2.md §4); the impl mounts the real renderer at front-settled with the same
+create/dispose/contextlost seams — plus the amiga **poster asset** (checkerboard-derived, the
+only poster in the system).
 
-### Scope items
+### The HARD GATE — the GL-lifecycle clauses (skeleton: `gates/gl-proof.mjs`) + the fps LOCAL acceptance (skeleton: `gates/fps.mjs`)
 
-- **S1 — The mobile switcher IS the same stage** — one stage, one nav authority, actuated on touch
-  (open → spin → commit). No max-width fork.
-- **S2 — KfPillTabs is NOT in scope** (se-B6): panel primitive, not scene-nav. Its **test → S.B7**;
-  its **promotion → S.D2** (fold row 71; NOT S.E5). E5 consumes no panel primitive for navigation.
-- **S3 — The dock double-click kf-internal contingency fallback is AUTHORED at E5-time** (the DM-1
-  R.W6 precedent — a kf-internal press handler), so the ≥4-tranche chronic's terminal does **not**
-  depend on an external publish (fold row 53; wired/retired at E6 per the publish outcome — see
-  S.E6). *(This is authored here; whether it is wired is decided at E6.)*
+**GL clauses (runtime):** no create mid-transit · create only at front-settled · dispose on the
+2s debounce · re-front within 2s cancels the dispose (no second create) · `webglcontextlost` →
+poster-permanent · **≤1 GL context ever** (`__stageGLLog` witness). **Born-RED:** REDs against
+a naive mount-on-lit implementation (the exact shape round 1 had — creation on every band
+crossing). **The fps half is a LOCAL GPU acceptance (C-10 — never CI):** ≥55fps carousel-open
+· <8ms scripting/frame · no LOD-churn long task, re-recorded on this wave's tree and compared
+against §1.10's baselines (round-3: min 97.1 / LoAF 0ms). **Falsifiability:** a second live
+context or a mid-transit create reds the log clauses; regressing a D9.3 cut shows up in the
+re-recorded trace, where deviation-register row 3 (the rAF direct-write ring) is the
+pre-authorized remedy.
 
-### The HARD GATE — the reborn mobile commit gate (born-RED, browser-actuating at 375px)
+### Cost + DAG
 
-**Gate name:** the reborn mobile commit gate (NEW; the second half of C-6's zombie-retirement —
-fold row 18; the mobile counterpart to `proof:scene-stage-commits`). **Browser-actuating;
-demo-correctness tier; driven at 375px.**
-
-**What it asserts.** At **375px**, **open → spin → commit on touch — full stop** (SPEC §3 S.E5). The
-gate drives the touch sequence against the mobile stage and asserts the commit lands (the SAME stage,
-no fork).
-
-**Born-RED witness plan.** Authored at E5, the gate is born-RED on the pre-mobile-wire tree: at 375px
-the touch sequence does not commit (or a second-authority fork intercepts it) → RED. After S1 lands
-the same-stage touch path, open→spin→commit lands at 375px → GREEN. Plant: introduce a max-width fork
-or a second nav authority → the single-authority guarantee breaks and the touch commit reds (or the
-`live-session-mobile` touch battery reds on the split, per the p10 one-writable-axis lesson).
-
-**Falsifiability.** Browser-actuating at a fixed 375px viewport (runtime — T1/T8); a source stub
-cannot satisfy the "commit on touch" clause. Falsifiable both ways — it reds on a non-committing or
-forked mobile path and greens only on the single-stage touch commit.
-
-### CI budget
-
-The mobile commit gate is **the band's SECOND CI browser gate** (SPEC §3 S.E preamble); it rides the
-**ONE shared chromium + served dist** (amortized, not +1 launch).
-
-### Cost
-
-The same-stage mobile touch wiring + one new browser-actuating gate at 375px + the authored (not
-necessarily wired) dock double-click contingency handler. MEDIUM. **No KfPillTabs work here** (that
-cost is B7's + D2's).
-
-### DAG
-
-**Deps: E4.** **E5 ──► S.E6** is not a hard edge (E6 deps E4 + external); but the dock double-click
-contingency authored here is the fallback E6 either retires or leaves unwired.
+Lift + real-Three authoring; MEDIUM (the GL body is the one genuinely new runtime surface).
+**Deps: E5. E6 ──► S.E7.**
 
 ### Verification
 
-(1) Author the reborn mobile commit gate FIRST (born-RED at 375px — the touch sequence does not
-commit); (2) REWRITE: the mobile switcher IS the same stage (no fork, no second authority); (3) author
-the kf-internal dock double-click press-handler contingency (DM-1 R.W6 precedent — authored, wiring
-deferred to E6); (4) run the mobile commit gate at 375px (open→spin→commit on touch — GREEN); (5)
-live-verify on a 375px viewport via chrome-devtools-mcp (T8); (6) confirm KfPillTabs is untouched here
-(its test is B7's, its promotion D2's).
+(1) GL driver against the lifted machinery (GREEN with the fake body); (2) author the real
+renderer behind the same seams; (3) GL clauses GREEN with real Three; (4) record the fps trace
+in this wave doc.
 
 ---
 
-## S.E6 — glass-ui consume-edge (GATED: fires ONLY on the joint 5.0.0 publish)
+## S.E7 — INTEGRATION (the honest remaining work — App.vue, the pill, the gates go real)
 
-**Mode: REFINE.** The third-party external consume-edge — one of the plan's exactly two (SPEC §3
-S.E6, C-12, C-20, C-21, T12; fold rows 51/52/53/55).
+**Mode: REWRITE (author-fresh).** **Deps: E6.** *(pass3: stage-design-v1.md §4 App.vue/ChromeDock
+deltas + §3; stage-design-v2.md D2.2/D2.4/D10 + §12; stage-recritique-tech.md §4; both finals'
+carry lists. This is the debt every prototype round explicitly re-stated and both critics
+ruled the wave must own.)*
 
 ### Charter
 
-S.E6 is the **glass-ui consume-edge**: pin `~4.0.x` → `~5.0.0`, verify the consumed subpaths against
-BH's regenerated entry-set, re-baseline the visual-lock gates against BG's specular floor + unified
-8px blur, and swap the stage's interim dock controls onto BG's in-place dock morph (retiring E4's
-`DockIconButton`s). **This wave FIRES only when the joint glass-ui 5.0.0 publishes** — BG (≈110 waves)
-+ BH (≈30 waves) are dev-complete but **unbuilt** (r7 B-1; SPEC §1). The tilde-pin discipline is
-absolute: **`~5.0.0`, never caret** (C-12). If 5.0.0 has not published at S close, this wave closes
-as a **structured HANDOFF** and fold rows 51/52/53 are recorded as an **explicit non-terminal
-RESIDUAL CARRY** (C-20/C-21; owner-acknowledged; never presented as terminals).
+Everything the standalone harness could not host. The prototype proved the engine, the
+lighting, and the commit spine; **this wave puts them in the real app and makes the gates real
+CI teeth.** Scope, exhaustively:
 
-### Scope items
+- **S1 — App.vue mount (~40L):** `<SceneStage>` as the LAST template sibling (Teleport body);
+  phase → `.scene-host` zoom-out bindings + dock fade/`inert`; hand `runSceneSwitch` in. The
+  keyed `<Suspense>` stays BARE (the B.W3 blocker); the stage only styles the sibling host.
+- **S2 — Dock-pill rewire + Select retirement (the authority ruling made real):** the scene
+  pill keeps pixel identity, actuation → `stage.open(currentSceneId)`; the Select's scene
+  listbox is RETIRED; pill re-click while open = cancel-close (D10). **glass-ui affordance
+  scoping happens BEFORE this wave's build starts** (D10): "a Select trigger that opens the
+  stage instead of its popover" may need a glass-ui change — per MEMORY
+  (`glass_ui_root_changes`) that lands in glass-ui, never a demo patch; if needed it becomes a
+  named handoff item and **the interim wire is a plain button styled as the pill** (identity +
+  single authority, not primitive choice, is what §3 rules).
+- **S3 — Gate re-points (the v1 design's named open issue):** the hover-warm `@warm-scene`
+  prefetch re-targets to warm ALL scene chunks on stage-open; **any repo gate or driver that
+  actuates the scene Select listbox is re-pointed** to the machine/hash path (`navToScene`-by-
+  hash keeps working untouched — the authority is the machine; pass3: stage-design-v1.md §3
+  "Consequences, handled").
+- **S4 — Real `useSceneTransition`:** the optional `{ stage: true }` arg
+  (backward-compatible); **types MERGE** `["stage", forward|backward]`; the D2.4 single-write
+  clause — router reconcile observes `machine.activeScene` already equal and no-ops (clause F
+  guards it).
+- **S5 — Warm-then-gate, real:** `warmScene` over the real lazy chunks + the Suspense
+  `onResolve` await inside the update callback, bounded 350ms with timeout-resolve degrade
+  (§1.3 — the proven pattern from `gates/warm-suspense.mjs`).
+- **S6 — Origin-scene pause behind the dim** (`useSceneVisibilityPause` or the machine's
+  pause) — no rAF competing behind the scrim.
+- **S7 — WIRE THE GATE ROSTER FOR REAL:** `proof:scene-stage-commits` (A–G), the mobile commit
+  gate @375, and `proof:stage-geometry` (+during-commit clause) become
+  `scripts/proof-stage-*.mjs` + `package.json` roster entries on **S.A2's shared chromium
+  against served dist** — the born-RED integration debt named verbatim by both finals. Refresh
+  or drop the stale side-transcripts (§2 hygiene note). Keep the fps acceptance LOCAL (C-10).
+- **S8 — The miniature screenshot-diff-vs-hero maintenance artifact (D3.4):** each miniature
+  captured in-card, paired against its scene's design-fleet hero shot, judged "evokes the
+  scene" (taste acceptance, not pixel threshold), recorded in this wave doc; plus the binding
+  maintenance rule — **a change to `demo/scenes/<name>/` visual identity updates
+  `scene-stage/previews/<name>` in the same change, or states why not**.
+- **S9 — Re-shoot the lighting acceptance over the real app page** (D4.6 condition 2's
+  formality) + the §P pixel-stability audit on the integrated tree.
+- **S10 — The dock double-click kf-internal contingency is AUTHORED here** (the DM-1 R.W6
+  press-handler precedent) so fold row 53's terminal never depends on the external publish;
+  wired-or-retired at S.E8 per the publish outcome.
+- **S11 — Retire/re-point the `demo/stage-proto/` harness** (it was the interim gate
+  substrate; the gates now run against the real served dist).
 
-- **S1 — Pin `~4.0.x` → `~5.0.0`** (tilde, **never caret** — C-12).
-- **S2 — Verify the ~17 consumed subpaths against BH's regenerated entry-set** (the subpath-survival
-  clause — a consumed subpath that BH renamed/dropped must be caught).
-- **S3 — Re-baseline the visual-lock gates against BG's specular floor + unified 8px blur.**
-  **FLAGGED (se prune):** the visual re-baseline is **its own multi-gate effort, NOT an atomic flip
-  with the pin bump** — booked as **the wave's largest line item**.
-- **S4 — Swap the stage's dock controls onto BG's in-place dock morph**, retiring E4's interim
-  `DockIconButton`s (the surface C-7 named for later retirement).
-- **S5 — Re-test the dock double-click** against the built 5.0.0 (fold row 53).
+### The HARD GATE — the wired roster GREEN on the merged tree
 
-### The dock double-click contingency (independent of the publish — fold row 53)
+**What it asserts:** all three named gates exist as repo `proof:*` entries and run GREEN
+against the served dist of the REAL app — commits A–G (+happy paths, +hash, +focus), mobile
+@375, geometry (+during-commit). **Born-RED witness:** the roster entries do not exist in
+`package.json` today, and against the real app the pill does not open a stage — hard RED until
+S1–S7 land. **Falsifiability:** clause F reds a router double-write (the re-entrancy risk the
+harness hid); the warm-gate clause reds a VT that captures a fallback (drive a cold commit with
+a throttled chunk); a Select listbox left alive is a second browse surface — the
+single-authority clause (no scene listbox in the dock's DOM) reds it.
 
-**Independent of the publish**, S carries a **kf-internal fallback** — the **DM-1 R.W6 precedent, a
-kf-internal press handler** — **authored at E5-time** (S.E5 S3) so the **≥4-tranche chronic's
-terminal does NOT depend on an external publish** (C-20: a terminal must not be gated on an external
-event). **If 5.0.0's dock morph lands first, the fallback is never wired**; if 5.0.0 does not land,
-the kf-internal handler is wired and the chronic terminalizes internally. Either way the double-click
-verdict is recorded (fold row 53).
+### Cost + DAG
+
+The band's largest wave: App surgery + pill rewire + transition/warm/pause wiring + roster
+wiring + two acceptance artifacts. HIGH-MEDIUM. **Deps: E6. E7 ──► S.E8 (with the external
+publish).**
+
+### Verification
+
+(1) scope the glass-ui pill affordance FIRST (handoff or interim button decided before build);
+(2) wire S1–S6; (3) promote the gates (S7) and run the full roster on the served dist; (4) ship
+S8/S9 artifacts; (5) live-verify the whole arc (open → browse → commit → entered; cancel; PRM;
+375) via chrome-devtools-mcp on the running demo (T8); (6) re-run every touched gate on the
+merged tree (T4).
+
+---
+
+## S.E8 — glass-ui consume-edge (GATED: fires ONLY on the joint 5.0.0 publish)
+
+**Mode: REFINE.** **Deps: E7 + EXTERNAL (glass-ui 5.0.0 published).** *(C-12, C-20, C-21, T12;
+fold rows 51/52/53/55. One of the plan's exactly two external consume-edges — the other is
+S.H4.)*
+
+### Charter
+
+The old band's E6, carried with ONE structural change: **the BG dock morph is an OPTIONAL
+refinement of the pill's open animation, NOT a dependency, and nothing gets retired onto it**
+(the new design has no interim dock spin controls — arrows are stage-internal; pass3:
+stage-design-v1.md §3). The wave: pin `~4.0.x` → `~5.0.0` (tilde, **never caret** — C-12);
+verify the consumed subpaths against BH's regenerated entry-set; re-baseline the visual-lock
+gates against BG's specular floor + unified 8px blur (**the wave's largest line item — a
+multi-gate effort, not an atomic flip**); optionally adopt the dock morph for the pill-open
+beat; re-test the dock double-click against the built 5.0.0 (fold row 53) — else wire the
+kf-internal contingency authored at E7-S10.
 
 ### The HARD GATE — `proof:peer-satisfied` flips green (+ subpath-survival + double-click verdict)
 
-**Gate name:** `proof:peer-satisfied` (EXISTING; the born-RED peer-cycle gate — fold row 52; flips
-green on the 5.0.0 pin) **+ the subpath-survival clause + the recorded double-click verdict.**
+Born-SPECIFIED, not born-RED (the external-edge honesty — T12): the gate is coupled to a
+publish that does not exist yet. Post-publish: `proof:peer-satisfied` flips GREEN on the pin;
+every consumed subpath resolves against BH's entry-set (a dropped subpath REDs); the
+double-click verdict is recorded. **Non-terminal honesty (C-20/C-21):** if 5.0.0 has not
+published at S close, S.E8 closes as a **structured HANDOFF** and fold rows 51/52/53 render as
+`HANDOFF — external — row N` (never counted green, never presented as terminals); the
+kf-internal double-click handler is wired so the chronic terminalizes internally. The stage
+itself is COMPLETE without this wave — that is the point of the dock-morph demotion.
 
-**What it asserts.**
-- **`proof:peer-satisfied` flips GREEN** post-pin (the glass-ui peer-cycle resolves against the joint
-  5.0.0 — fold row 52).
-- **The subpath-survival clause** — every one of the ~17 consumed subpaths still resolves against
-  BH's regenerated entry-set (a dropped/renamed subpath REDs).
-- **The double-click verdict is recorded** — the dock double-click is re-tested against the built
-  5.0.0 (or the kf-internal fallback is wired), and the verdict is captured (fold row 53).
+### Cost + DAG
 
-**Born-SPECIFIED, not born-RED (the external-edge honesty — T12).** This wave's gate is **coupled to
-an external publish** that does not exist yet (glass-ui 5.0.0 is unbuilt — r7 B-1). Its gate is
-therefore **SPECIFIED now and FIRES at the impl drive's consume step** — it is one of the plan's
-**exactly two** external consume-edges (the other is S.H4; T12). **The visual re-baseline (S3) is NOT
-a single flip** — it is a multi-gate effort, the wave's largest line item, and each re-baselined gate
-is its own verdict.
-
-**Non-terminal honesty (C-20/C-21; SPEC §9 X2-6).** **If glass-ui 5.0.0 has not published at S
-close**, S.E6 closes as a **structured HANDOFF** and fold rows **51/52/53** are recorded as an
-**explicit non-terminal RESIDUAL CARRY** (owner-acknowledged) — **never presented as terminals**. In
-the FINAL gate-state table these render as the explicit third state **`HANDOFF — external — row N`**
-(C-21: never omitted, never counted green). The stale MEMORY "specular=off" expectation is retired at
-S close (C-12; fold row 54 is S.Z3's, observe-tier).
-
-**Falsifiability.** Post-publish, `proof:peer-satisfied` reds until the pin resolves and greens on the
-correct `~5.0.0` pin; the subpath-survival clause reds on any dropped subpath. Pre-publish, the wave
-is honestly a HANDOFF — the RESIDUAL-CARRY state is a *named, non-terminal* disposition, not a
-green-masked terminal (the exact honesty C-20 mandates).
-
-### Cost
-
-Pin bump (S1, trivial) + subpath verification (S2, LOW) + **the visual re-baseline (S3 — the wave's
-LARGEST line item, a multi-gate effort, NOT an atomic flip)** + the dock-morph swap (S4) + the
-double-click re-test (S5). Cost is **externally gated** — the wave does not run until 5.0.0 publishes;
-if it does not, the cost is a structured HANDOFF authoring only.
-
-### DAG
-
-**Deps: E4 + EXTERNAL (glass-ui 5.0.0 published).** `S.E4 + [glass-ui 5.0.0 published] ──► S.E6`
-(else: **structured HANDOFF + rows 51/52/53 RESIDUAL CARRY**). This is **one of exactly two** external
-consume-edges in the plan (T12; the other is S.H4, owner-controlled and born-SPECIFIED).
+Externally gated; pin bump trivial, subpath verify LOW, visual re-baseline the largest item,
+dock-morph adoption optional. **Deps: E7 + external.**
 
 ### Verification
 
-**If 5.0.0 has published by the impl drive's consume step:** (1) pin `~4.0.x` → `~5.0.0` (tilde, never
-caret); (2) run `proof:peer-satisfied` (must flip GREEN) + the subpath-survival clause over the ~17
-consumed subpaths against BH's entry-set; (3) re-baseline the visual-lock gates against BG's specular
-floor + 8px blur — **a multi-gate effort, each gate its own verdict** (the largest line item); (4)
-swap the interim `DockIconButton`s onto BG's dock morph; (5) re-test the dock double-click against the
-built 5.0.0 and record the verdict; (6) retire the stale specular=off MEMORY expectation.
-**If 5.0.0 has NOT published:** close E6 as a **structured HANDOFF**; record fold rows 51/52/53 as an
-explicit **non-terminal RESIDUAL CARRY** (rendered `HANDOFF — external — row N` in the FINAL table);
-WIRE the kf-internal dock double-click contingency authored at E5 (so the chronic terminalizes
-internally, independent of the publish).
+**If published:** pin → `proof:peer-satisfied` GREEN → subpath clause → visual re-baseline
+(each gate its own verdict) → optional dock-morph adoption → double-click verdict recorded.
+**If not:** structured HANDOFF + RESIDUAL CARRY rows + wire the E7-S10 contingency.
 
 ---
 
-## Cross-wave provenance (SPEC §9 absorption — se-scene-stage + Pass-2 addendum)
+## Appendix A — Fold rows this band owns (SPEC §4 dispositions, restated)
 
-Every §9 blocking edit and Pass-2 addendum this band absorbs, for traceability:
+| # | Item | S-disposition |
+|---|------|---------------|
+| 17 | DM-24 N-Stage scene-switcher (died 3×; owner reopened) | **BAND S.E** — pass-3 converged design + frozen v3 prototype; S.E1–S.E7 land it |
+| 18 | `proof:scene-switcher-mobile` zombie gate | **reborn**: `proof:scene-stage-commits` (A–G) at S.E4 + the mobile commit gate at S.E5, both wired at S.E7; the *retire* half is S.A4's |
+| 51/52/53 | glass-ui HANDOFF rows | **re-entry at S.E8** on the joint 5.0.0 publish; RESIDUAL-CARRY clause; row 53's kf-internal contingency authored at S.E7-S10 |
+| 55 | glass-ui pin frozen ~4.0.x | deliberate ~5.0.0 at publish → **S.E8**; hold till then (C-12) |
+| 71 | KfPillTabs keyboard + TransportDock auto-repeat | **NOT this band** — panel primitive; test → S.B7, promotion → S.D2 (SPEC §9 X1-1) |
 
-| §9 edit | Substance | Home in this doc |
-|---|---|---|
-| SE-1 | Add DAG edge D3→E1 (or enumerate 8 + append compose when D3 lands) | S.E1 S4 (8-scene core deps D1/D2; E1c deps D3) + band DAG |
-| SE-2 | Rewrite E1 scope to "7 re-pathed + 2 authored-new (`previews/morph.ts` + compose)"; bare-tsc caveat clause | S.E1 S3 + the bare-tsc caveat section |
-| SE-3 | Strengthen E1's gate to "each scene row mounts and renders a non-error idle preview" | S.E1 gate (`proof:scene-registry-mounts`) |
-| SE-4 | Split the E2/E3 perf criterion; delete raw ≥55fps as a T4 closure (local acceptance or C-10 budgeted ratio) | S.E2 gate (split fps) + S.E3 CI-budget note; C-10 |
-| SE-5 | Name E3's oracle concretely; reconcile with the no-scratch-`*.mjs` charter line | S.E3 gate (`proof:stage-geometry` — playwright-core, structural, replaces the shelf probes) |
-| SE-6 | Specify where the mobile stage consumes KfPillTabs or remove it from E5; move its test to B7 | S.E5 S2 (REMOVED from E5; test → S.B7, promotion → S.D2); fold row 71 |
-| SE-7 | Pin the Oscillator decision to ONE wave; align fold row 56 | **Absorbed via C-13 → S.G2 (decision) + S.F5a (bench); NOT an S.E wave** (noted here for the se-scene-stage table's completeness; fold row 56) |
-| SE-8 | Scope the interim in-dock spin controls (`DockIconButton`s in the single ChromeDock) in E4 | S.E4 S2; C-7 |
-| SE-9 | CI-budget accounting for the new browser-actuating gates vs the ~50-launch ceiling | Band preamble (two CI gates on the shared harness; `proof:stage-geometry` rides same; fps = zero-launch local acceptances) |
-| X2-6 | Rows 51/52/53 = explicit non-terminal RESIDUAL CARRY if 5.0.0 doesn't publish; kf-internal contingency for dock double-click | S.E6 non-terminal honesty + the dock double-click contingency (authored at E5); C-12 (amended), C-20/C-21 |
-| X1-1 | The KfPillTabs keyboard-broken + TransportDock auto-repeat fold row (a12 F1/F2, HIGH) — wave pointer corrected S.E5→S.D2 | S.E5 S2 (explicitly NOT this band — test → B7, promotion → D2); fold row 71 |
+## Appendix B — The pass-3 convergence ledger (what makes this band's contracts binding)
 
-**Rulings referenced:** **C-6** (scene-switcher gate contradiction — the zombie reborn as
-`proof:scene-stage-commits`; ASSERTION-3 deletion is S.A4's), **C-7** (scene-switcher substrate —
-DM-24 revived, salvage p05; interim `DockIconButton` spin controls, not the bespoke second authority),
-**C-10** (no raw absolute fps as a CI closure — local acceptance or budgeted ratio), **C-12**
-(glass-ui pin held ~4.0.x; consume-edge fires only on the joint 5.0.0 publish; never caret),
-**C-13/SE-7** (Oscillator decision pinned to S.G2 + the S.F5a bench — not an S.E wave), **C-14**
-(per-wave mode declaration), **C-20** (terminal is structural — the RESIDUAL-CARRY honesty for rows
-51/52/53), **C-21** (the closeable roster — E6's HANDOFF gates render `HANDOFF — external — row N`).
-**Tenets referenced:** **T1** (runtime-tier closure — E1/E3/E4/E5 gates read the running SPA), **T4**
-(DEVELOPED ≠ SHIPPED; no born-GREEN-then-red — every wave closes only on GREEN re-run on the merged
-tree), **T8** (interaction-axis tests + live chrome-devtools-mcp verification every stage), **T12**
-(external gates named, not assumed — E6 is one of exactly two). **Probes:** **p05** (the salvage —
-executed: 18-file shelf, 5 files/23 import lines re-pathed, `tsc` 16×TS2307 → 0, `proof:boundary`
-PASS, zero API drift, Q5 FAILURE branch does not fire; two honest caveats — registry froze at 7
-scenes, bare `tsc`), **p10** (the arming-audit class + the one-writable-axis mobile lesson — the
-stage-visible substrate S.G1 lands).
+| Round | Design critic | Tech critic | Outcome |
+|---|---|---|---|
+| 1 (pass3: stage-critique-{design,tech}.md) | ~70% — S1–S6 blocking (lighting hierarchy, paper, payoff, unlit legibility, discoverability, mobile) | H1/H1b stale-arm + H2 VT double-capture HIGH; miniatures RULING; adversarial-gate mandate | stage-design-v2.md D1–D11 + §P (the binding delta) |
+| 2 (pass3: stage-recritique-{design,tech}.md) | ~88% — B1/B2/B3 residue (occlusion bleed, visual/mount) | 90/100 — H1/H2 cured structurally, **independently re-run**; tech-1/2/3 residue (gate wiring + clause G, real warmScene/onResolve, dead CV export) | stage-proto-v3.md (the residue pass) |
+| 3 (pass3: stage-final-{design,tech}.md) | **100 — FROZEN**: "this build is the binding S.E wave spec" | **100/100** — "wave-spec-ready; the wave carries the served-dist `proof:*` wiring as born-RED integration debt" | THIS BAND |
+
+Every §1 inventory row traces to a driver transcript in `demo/stage-proto/gates/` and a shot
+set in `proto-shots{,-v2,-v3}/`. The tech critic's independent re-runs (round 2: all gates
+reproduced GREEN from a fresh server; fps min 96.2 on his machine) are the T5-class evidence
+that the transcripts are not stale.
+
+## Appendix C — DEV→IMPL boundary (binding for every S.E wave)
+
+Every wave above is **DEVELOPMENT ONLY**. Each ships (or names) a falsifiable born-RED gate;
+nothing runs until the owner authorizes an impl drive (inv-16). A wave is **CLOSED only when
+its born-RED gate is GREEN re-run on the merged tree** (T4), exit code recorded in PROGRESS.md;
+**S.Z2 re-executes that oracle at close** (a re-run, not a re-read). Parallel drives re-run
+every touched gate from a clean independent checkout — "pre-existing" claims verified by
+triage, never accepted (T5); **the prototype worktree's node_modules symlink is never
+git-added** (the R-drive merge lesson). The **prototype worktree `wf_2fbb9dbc-c40-1` must be
+preserved intact until S.E1's lift lands and S.E7 retires the harness** — it is the band's
+salvage source and gate-skeleton home. The strict wave order E1→…→E7 is the design's own
+atomic-build prescription: no wave starts until the prior wave's gate/acceptance passes. The
+§1 proven-contract inventory is **binding**: an impl drive lifts it; deviations beyond the §2
+register require a new owner ruling. The fps criterion is LOCAL forever (C-10); the two CI
+browser gates + geometry ride the ONE shared chromium + served dist (S.A2) — the band adds no
+launches beyond that budget.

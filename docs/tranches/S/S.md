@@ -7,12 +7,12 @@
 > evidence; **an implementer must not need to read it**. Branch: `tranche-s-dev`.
 > **Docs only — no source, test, config, or git state is touched in development.**
 > Every wave ships a falsifiable born-RED gate (or, for the publish-coupled external
-> edges — S.E6's consume gate + the S.H4 gates — born-SPECIFIED); nothing runs until
+> edges — S.E8's consume gate + the S.H4 gates — born-SPECIFIED); nothing runs until
 > the owner explicitly authorizes the impl
 > drive (the inv-16 boundary, held honestly: a wave is CLOSED only when its gate is
 > GREEN re-run on the merged tree, and S.Z2 re-executes that oracle at close).
 
-## 0. Provenance — the two-pass convergence loop
+## 0. Provenance — the two-pass convergence loop + the pass-3 probe-and-design loops
 
 S was developed through a convergence loop that finished at **100%: 11/11 critics,
 empty blocking lists** (SPEC §preamble, §6.4 — zero disputed edits, zero dropped
@@ -36,6 +36,50 @@ adjustments at either pass):
 7. **SPEC-v3** — Pass-2 synthesis, all probe adjustments absorbed (SPEC §9 addendum).
 8. **Re-critique: 11×100%** (`audit/pass2/recritique/`) — every critic returned an
    empty blocking list. The only remaining open items are the §2 owner rulings below.
+
+**Pass-3 — three targeted probe-and-design loops** (`audit/pass3/`), executed AFTER
+the SPEC converged, to de-risk the plan's three highest-uncertainty surfaces with
+live prototypes rather than paper. Each is a standalone audit record; an implementer
+consumes the folded wave text, not the loop:
+
+9. **The SceneStage design loop (band S.E) — converged 100/100 over a 3-round Fable
+   design loop.** A **first-principles DK-64 stage** was designed
+   (`audit/pass3/stage-design-v1.md`) and prototyped LIVE
+   (`audit/pass3/stage-proto-v1.md`) in a kept worktree, then run through paired
+   design + technical critics (`audit/pass3/stage-critique-design.md` /
+   `stage-critique-tech.md` — **70 / ~60**) → **v2**
+   (`audit/pass3/stage-design-v2.md` / `stage-proto-v2.md`) → re-critique
+   (`audit/pass3/stage-recritique-design.md` / `stage-recritique-tech.md` —
+   **88 / 90**) → **v3** (`audit/pass3/stage-proto-v3.md`) → **final 100 / 100,
+   FROZEN** (`audit/pass3/stage-final-design.md` / `stage-final-tech.md`). The **H1
+   stale-arm class is cured** (browse verbs LOCKED during `committing`) and
+   **adversarially proven** (the A–G driver; clause G = a real
+   pointer-drag-during-committing that the ring locks out). The frozen v3 build IS
+   the binding S.E wave spec — first-principles, superseding the p05 salvage-only
+   framing (p05 remains the mechanical rebase substrate, not the design). Kept
+   prototype worktree: `.claude/worktrees/wf_2fbb9dbc-c40-1` (drivers under
+   `demo/stage-proto/gates/`; run instructions in `stage-proto-v3.md`).
+10. **ci-fix-proto** (`audit/pass3/ci-fix-proto.md`) — the p12 CI cause-fixes
+    implemented as wave-ready diff shapes: **4 cures PROVEN GREEN** — `styling-idioms`
+    (one CSS rule), `pin-ledger-current` (JSON refresh to 5.1.0/1.2.0/0.13.0),
+    `demo-usability` X-6 (static parser re-point), and the DM-13
+    `engine-no-throw-on-play` shared value.js-subpath importmap harness fix (which
+    also discharges DM-11b's importmap ROOT — 3 synthetic arms RED→GREEN) — plus **2
+    genuine behavioral residuals precisely LOCATED** (DM-14 spring pause/resume,
+    seam pinned to `useAnimationGroupPlayback.toggleAnimationGroup` × the
+    `useContractAnimGroup` synthetic `started=true`; and the DM-11b `[real-cube]`
+    cold-path), both correctly OUT of static-diff scope → the S.A0(6)/cold-entry
+    wave. p12's fix-by-cause / zero-device-dependence model holds; the S.A0(4)
+    importmap prescription is refined (serve BOTH deps' full dist subtrees + an
+    extensionless-`.js` subpath fallback).
+11. **en-fix-proto** (`audit/pass3/en-fix-proto.md`) — the two P2-2 compile bugs
+    PROVEN as wave-ready diffs: **EN-a** (`serializeEasing` registry-name → the
+    universal `linear()`-densify CSS twin, a re-parse fixpoint) and **EN-b**
+    (`compileChild` mixed-track densify body-drop → the percentage-keyed
+    `densifiedKeyframesBlock` merge). A browser-parse oracle (`test/en-fix-oracle.test.ts`,
+    Chromium) REDs pre-fix on BOTH signatures and GREENs post-fix; `check:lib` + all
+    six compile gates + 71 targeted tests pass. Confirms C-25's S.B3 home and the
+    browser-harness tier for the EN-a clause (jsdom cannot see the bug).
 
 Every critic prune survives in §8 Recorded-future — nothing silently vanishes.
 
@@ -98,14 +142,14 @@ recorded in §2 below.
 - **No glass-ui writes.** All glass-ui change flows through the glass-ui repo as
   owner-domain handoffs. kf consumes **published artifacts only** — and glass-ui
   5.0.0 does not exist yet (BG ≈110 waves + BH ≈30 waves are dev-complete, unbuilt —
-  r7 B-1). The consume-edge wave (S.E6) is specified now and FIRES only when the
+  r7 B-1). The consume-edge wave (S.E8) is specified now and FIRES only when the
   joint 5.0.0 publishes; tilde-pin discipline preserved (never caret).
-- **Exactly TWO external consume-edges, named (T12, revised).** (1) **S.E6** —
+- **Exactly TWO external consume-edges, named (T12, revised).** (1) **S.E8** —
   third-party (glass-ui 5.0.0); may close S as a structured HANDOFF, in which case
   fold rows 51/52/53 are recorded as an **explicit non-terminal RESIDUAL CARRY**,
   never presented as terminals. (2) **S.H4** — the owner-controlled parse-that 1.0.0
   publish-then-re-pin; its gates are **born-SPECIFIED** and fire at the impl drive's
-  publish step. SPEC-v1's "E6 is the only externally-gated wave" was false and is
+  publish step. SPEC-v1's "the glass-ui edge is the only externally-gated wave" was false and is
   corrected throughout (sh-parse-that D4). No other wave may acquire an external
   dependency without an owner ruling; S.C3b (menubar) is explicitly forbidden from
   external gating.
@@ -407,9 +451,12 @@ commit-on-settle.
 **C-7. Scene-switcher substrate — DM-24 REVIVED; salvage probe-EXECUTED (p05).**
 The `n-stage-impl` shelf rebases mechanically (5 files / 23 lines); guardrails
 absolute: one nav authority, chrome outside the `scene-subject` VT,
-commit-on-settle wired. The bespoke dock-arrow swap is NOT resurrected — the
-**interim spin controls are ordinary `DockIconButton`s inside the single
-ChromeDock** (scoped in S.E4; the surface S.E6 later retires for BG's dock morph).
+commit-on-settle wired. The bespoke dock-arrow swap is NOT resurrected.
+**(Superseded at pass-3 — `waves/S.E.md`/§0-9:** the converged design has **no interim
+dock spin controls** at all; the ring's spin arrows are **stage-internal**, the single
+nav authority is the dock **pill** opening the stage (the S.E7 rewire + scene-Select
+retirement), and BG's dock morph at **S.E8** is an OPTIONAL pill-open refinement, NOT a
+retirement target — nothing is retired onto it.)
 
 **C-8. Doc-regen timing — gate-first, regen-last.** S.A5 lands born-RED
 `proof:claude-paths-live` + hot-fixes the actively dangerous lines; the full
@@ -422,7 +469,7 @@ verb.
 **C-10. colorTail benches — budgeted device-independent ratios in S.F5a.**
 Observe-only was correct at Q's measure-first moment; insufficient for S's
 SOTA-perf claims. This ruling also governs S.E: **no raw absolute fps threshold may
-be a CI closure anywhere in the plan** (S.E2/E3's ≥55fps is demoted to a declared
+be a CI closure anywhere in the plan** (S.E6's ≥55fps is demoted to a declared
 local chrome-devtools-mcp acceptance or converted to a budgeted ratio).
 
 **C-11. `proof:engine-seam-split` — formally KILLED.** Superseded by proof:engine's
@@ -578,7 +625,7 @@ criterion (§3-5 above).
 | **S.B — Library sub-zoning + boundary** | S.B1 · S.B2 · S.B3 · S.B4 · S.B5 · S.B6 · S.B7 · S.B8 | lib | constants seam; engine/css/ + PlaybackState single-STORAGE + ceiling carves; compile/backward/ + EN-a/EN-b; barrel purity + ownership inversion; the last override deleted; type surface + `./engine` drift gate; test/bench perimeter; the library map regenerated. |
 | **S.C — Legacy purge (teeth)** | S.C1 · S.C2 · S.C3a · S.C3b · S.C4 | lib+demo+gates | animate.ts cluster DELETED + hardened orphan walker; no-silent-fallback enforced; dead deps + stale narration gated; menubar → dropdown-menu; dependency posture. |
 | **S.D — Demo gestalt** | S.D1 · S.D2 · S.D3 · S.D4 | demo | app/ partition; the @/ state hoist + monolith carve; playground → scenes/compose/; demo taxonomy + docs truth. |
-| **S.E — Scene-stage resurrection** | S.E1 (+E1c) · S.E2 · S.E3 · S.E4 · S.E5 · S.E6 | demo/design | DM-24 REVIVED: the n-stage salvage, orbit/LOD, stage overlay, commit-on-settle, phone path, glass-ui consume-edge (externally gated). |
+| **S.E — Scene-stage resurrection** | S.E1 (+E1c) · S.E2 · S.E3 · S.E4 · S.E5 · S.E6 · S.E7 · S.E8 | demo/design | DM-24 REVIVED (first-principles DK-64 stage, pass-3 100/100): salvage lift + registry, overlay/lighting/geometry, choreography, the A–G commit funnel, mobile @375, LOD + real WebGL, integration (the gates go real), glass-ui consume-edge (externally gated). |
 | **S.F — SOTA uplift: animation library** | S.F1 (VT-a..d) · S.F2 · S.F3 (EN-c, EN-d) · S.F4 · S.F5a · S.F5b · S.F5c · S.F6 | lib | View Transitions; SplitText; entry/exit compilation; animation-trigger; zero-alloc + budgeted floors; bench coverage; Typed-OM verdict + WAAPI densify; honest narrative. |
 | **S.G — Demo design refinement fleet** | S.G1 · S.G2 · S.G3 (S.G4 → §8) | design | The stage-visibility contract (probe-proven); per-scene W1 batch with per-item oracles; the affordance layer + touch parity, manifest-gated. |
 | **S.H — parse-that dispatch** | S.H1 · S.H2 · S.H4 (S.H3 → §8) | dispatch | Packrat-epoch arming; the 1.0.0 legacy cut + chain() fix; ledger closure + the single publish-then-re-pin (born-SPECIFIED). |
@@ -688,35 +735,61 @@ D3 but **closing after S.G**. S.D4 executes the fleet-wide `use<Name>Demo` renam
 regenerates demo/CLAUDE.md, and rules terminally: keep `@/`.
 
 **S.E — Scene-stage resurrection (multi-wave; DM-24 REVIVED; track: demo/design).**
-Charter guardrails, absolute (r7 A-9/A-10): one nav authority; chrome outside the
+**Superseding the salvage-only framing (pass-3, §0-9):** the stage is now a
+**first-principles DK-64 stage** — a theatrical barrel-select whose grammar is
+"light = life": a **drop-lighting** stack (the tungsten beam + warm pool +
+per-scene footlights), **live LOD previews** (one shared `RAFPlayback` clock, the
+1-full + 2-flank hysteresis tier), and a **full-3-D ring** (real z-order,
+Teleport-sibling overlay outside the `scene-subject` VT). It was **designed,
+prototyped LIVE, and converged to 100/100 across a 3-round Fable design loop**
+(`audit/pass3/stage-*`; frozen v3 = the binding wave spec); the **H1 stale-arm class
+is cured** (browse verbs LOCKED during `committing`) and **adversarially proven** (the
+A–G driver, clause G a real pointer-drag-during-committing). The p05 salvage remains
+only the mechanical rebase substrate. **One named integration-wave item (pass-3
+tech-1, no longer a floating open issue):** wiring the standalone `demo/stage-proto/gates/`
+drivers as repo `proof:*` roster entries against served **dist** — and the
+`DockSelectTrigger`/dock-pill rewire (a Select trigger that opens the stage; if
+glass-ui needs a change it is an owner-domain HANDOFF, never a demo patch) — is the
+wave's born-RED **integration-wave** debt, carried into S.E7's integration step, NOT
+discharged in the prototype. Charter guardrails, absolute (r7 A-9/A-10): one nav
+authority; chrome outside the
 `scene-subject` VT (Teleport-to-body sibling); commit-on-settle wired; every
 load-bearing motion dogfoods a LIGHT-barrel primitive on RAFPlayback; every atomic
 stage verified LIVE against the running demo, never source-shape; PRM snaps every
 beat; the shelf's scratch `*.mjs` probes are NOT resurrected — real gates replace
 them. **CI-budget accounting (se-B9):** the band adds exactly TWO CI browser gates
 (`proof:scene-stage-commits` at E4; the mobile commit gate at E5), both riding
-S.A2's shared chromium + served dist (amortized); `proof:stage-geometry` (E3) rides
+S.A2's shared chromium + served dist (amortized); `proof:stage-geometry` (E2) rides
 the same harness; the fps checks are LOCAL chrome-devtools-mcp acceptances costing
-zero CI launches — S.E does not re-red the plane S.A0 greens. S.E1 lifts the
-18-file shelf and re-paths it (p05: 5 files / 23 lines): **7 shelf adapters
-re-pathed + 2 authored NEW** (`previews/morph.ts` + registry row; the compose
-adapter as sub-item **E1c, gated on D3**); gate: each scene row mounts and renders
-a non-error idle preview (runtime, not grep). S.E2 lifts orbit + LOD (ONE
-SpringProgress over ring angle; ONE shared RAFPlayback LOD clock); the fps
-criterion is split per C-10. S.E3 lands the Teleport-sibling stage overlay with the
-live-pinned rotateX(-15deg)/perspective geometry (NOT re-derived) and the named
-oracle `scripts/proof-stage-geometry.mjs`. S.E4 wires commit-on-settle + single
-authority + the interim DockIconButton spin controls (C-7); gate: born-RED
-**proof:scene-stage-commits** (C-6's successor — a swipe/arrow COMMITS a scene).
-S.E5 is the phone path — the SAME stage, no max-width fork, no second authority
-(KfPillTabs removed from scope per se-B6); gate: the reborn mobile gate green at
-375px (open→spin→commit on touch). S.E6 is the **externally gated** glass-ui
-consume-edge: fires only on the joint 5.0.0 publish (pin ~4.0.x→~5.0.0, tilde
-never caret; the visual re-baseline flagged as its own multi-gate effort; E4's
-interim controls retired for BG's dock morph; dock double-click re-tested with the
-kf-internal contingency fallback authored at E5-time); if 5.0.0 has not published
-at S close, E6 closes as a structured HANDOFF and fold rows 51/52/53 are an
-explicit non-terminal RESIDUAL CARRY.
+zero CI launches — S.E does not re-red the plane S.A0 greens. **The pass-3 rewrite
+re-decomposes the band into E1–E8 (`waves/S.E.md` is authoritative).** S.E1 lifts the
+cured v3 `scene-stage/` tree from the prototype worktree; the registry enumerates
+from `scenes.ts` (all 8 miniatures ship — E1c the compose row is D3-gated); gate:
+born-RED `proof:scene-registry-mounts` (each row mounts a live-ticking miniature).
+S.E2 lands the lighting/occlusion stack + the live-pinned
+rotateX(-15deg)/perspective geometry (NOT re-derived); gate: born-RED
+`proof:stage-geometry` (body-level sibling, no `view-transition-name`, matrix within
+tolerance, + the during-commit `overlayInDomAtUpdate===false` clause). S.E3 lifts the
+choreography whole (the open/fan-in phase machine, `useStageGestures`, the payoff,
+the affordance layer); its closure is a LOCAL motion-evidence acceptance (no new CI
+launch). S.E4 lands the D1/D2-cured commit funnel + the `stage` VT type; gate:
+born-RED **proof:scene-stage-commits** — the A–G adversarial roster (clauses B/G
+falsify the stale-arm class). S.E5 is the phone path — the SAME stage, no max-width
+fork, no second authority (KfPillTabs removed per se-B6); gate: the mobile commit
+gate green at 375px (open→flick→tap→commit on touch). S.E6 hardens the LOD tier and
+mounts the REAL Three renderer behind the proven create/dispose/contextlost seams;
+gate: the GL-lifecycle clauses (≤1 context ever, `__stageGLLog`) + the LOCAL fps
+acceptance (C-10). S.E7 is the INTEGRATION wave — App.vue mount, the dock-pill
+rewire + scene-Select retirement, real `useSceneTransition` + warm-then-gate, and
+**the gate roster wired for real** against the served dist of the real app (the
+born-RED integration debt both critics ruled the wave must own). S.E8 is the
+**externally gated** glass-ui consume-edge: fires only on the joint 5.0.0 publish
+(pin ~4.0.x→~5.0.0, tilde never caret; the visual re-baseline its own multi-gate
+effort; the BG dock morph is an OPTIONAL pill-open refinement — the new design has
+no interim dock controls, nothing is retired onto it; dock double-click re-tested
+with the kf-internal contingency authored at E7-S10); if 5.0.0 has not published at
+S close, E8 closes as a structured HANDOFF and fold rows 51/52/53 are an explicit
+non-terminal RESIDUAL CARRY.
 
 **S.F — SOTA uplift: animation library (track: lib).** Selection rule (r5): only
 primitives whose kf version is structurally better because the round-trip engine
@@ -829,8 +902,8 @@ S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.E1c, S.G2(c
 S.B1 ──► S.B2 ──► S.B4, S.B6 ;  S.B1 ──► S.B3 ──► S.B4 ──► S.B5 ──► S.B7 ──► S.B8
         (B2 owns the animation.ts/playback.ts ceiling carves — B2 precedes B5 by construction)
 S.B2/B3 ──► S.F1 ;  S.B3 (carrying EN-a + EN-b) ──► S.F3/EN-c ──► EN-d ;  S.B4 ──► S.F4 ;  S.B2/B4 ──► S.F5a/b/c ;  S.B1 ──► S.F2
-S.D2 ──► S.E1 (8-scene core) ;  S.D3 ──► S.E1c (compose row) ;  S.E1 ──► S.E2 ──► S.E3 ──► S.E4 ──► S.E5
-S.E4 + [glass-ui 5.0.0 published] ──► S.E6   (else: structured HANDOFF + rows 51/52/53 RESIDUAL CARRY)
+S.D1/S.D2 ──► S.E1 (8-scene core) ;  S.D3 ──► S.E1c (compose row) ;  S.E1 ──► S.E2 ──► S.E3 ──► S.E4 ──► S.E5 ──► S.E6 ──► S.E7
+S.E7 + [glass-ui 5.0.0 published] ──► S.E8   (else: structured HANDOFF + rows 51/52/53 RESIDUAL CARRY)
 S.G1 ──► S.G2 ──► S.G3        (S.G4 → §8)
 S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → kf re-pin) ──► before S.Z
 ALL ──► S.Z1 ──► S.Z2 ──► S.Z3   (Z3 pre-gated on master-green at the FINAL SHA)
@@ -850,7 +923,7 @@ S.G (+E3/E5); close = S.Z.
 - **proof:compose-scene closes after S.G** (sd-#4): authored at D3, closing on the
   DAG edge S.G1/G2 → compose-fleet-green → close — else the wave
   born-GREENs-then-reds mid-band, a T4 violation.
-- **S.E6 is glass-ui-gated**: fires only on the joint 5.0.0 publish; else a
+- **S.E8 is glass-ui-gated**: fires only on the joint 5.0.0 publish; else a
   structured HANDOFF with rows 51/52/53 as explicit non-terminal RESIDUAL CARRY.
 - a19's engine↔group constraint: KeyframesAnimation stays at `engine/animation.ts`
   through B2 (group's cycle-break import survives).
@@ -918,7 +991,7 @@ These bind every S wave.
   GREEN *re-run on the merged tree*, exit code recorded in PROGRESS.md (r2 F4) —
   and S.Z2 **re-executes** that oracle at close (a re-run, not a re-read). S is
   development-only: every wave doc states this and its gate ships born-RED or, for
-  the publish-coupled external edges (S.E6's consume gate + the S.H4 gates),
+  the publish-coupled external edges (S.E8's consume gate + the S.H4 gates),
   born-SPECIFIED.
 - **T5 (no transcript trust).** Parallel drives re-run every touched gate from a
   clean independent checkout; "pre-existing" claims are verified by triage, never
@@ -961,7 +1034,7 @@ These bind every S wave.
   adversarial critique fleet's corrections OVERRIDE raw findings while crediting
   real wins (r2 S6) — the provenance loop (§0) is the proof it operated.
 - **T12 (external gates are named, not assumed).** **Exactly two** external
-  consume-edges exist (corrected from v1's false "exactly one"): **S.E6**
+  consume-edges exist (corrected from v1's false "exactly one"): **S.E8**
   (third-party glass-ui 5.0.0 — specified now, fires later; may close S as a
   structured HANDOFF, in which case fold rows 51/52/53 are an explicit
   non-terminal RESIDUAL CARRY, never presented as terminals) and **S.H4** (the
@@ -1047,7 +1120,7 @@ Every critic-pruned item, with its source and the shape it carries forward:
 - **`waves/S.<band>.md`** (one file per band — S.A.md … S.Z.md) — the executable wave specs (charter, scope items S1..Sn,
   the hard born-RED gate with witness plan, co-edit sets, deps, verification).
   Wave IDs are the SPEC-v3 names verbatim: S.A0–A5, S.B1–B8, S.C1/C2/C3a/C3b/C4,
-  S.D1–D4, S.E1(+E1c)–E6, S.F1(VT-a..d)/F2/F3(EN-c,EN-d)/F4/F5a/F5b/F5c/F6,
+  S.D1–D4, S.E1(+E1c)–E8, S.F1(VT-a..d)/F2/F3(EN-c,EN-d)/F4/F5a/F5b/F5c/F6,
   S.G1–G3, S.H1/H2/H4, S.Z1–Z3 (EN-a/EN-b live inside `waves/S.B.md`'s S.B3 section per C-25).
 - **`audit/pass1/SPEC-v3.md`** — the converged specification (audit evidence; §4
   fold table, §9 absorption ledger). `audit/pass1/` — DIGEST.json (50 lanes),
