@@ -35,12 +35,22 @@
             HTTP roots it serves the three dist trees from, so the page loads
             the BUILT `dist/keyframes.js` engine, not a re-bundle.
         -->
+        <!--
+            S.A0(4) — the value.js O subpath split means the lazy engine chunk
+            imports BOTH bare `@mkbabb/value.js` AND `@mkbabb/value.js/math`
+            (→ dist/subpaths/math.js); both deps are multi-chunk. Map the subpath
+            namespace (keeping the bare map) so the whole-subtree server resolves
+            `@mkbabb/value.js/math` → `/value/subpaths/math` (the extensionless-`.js`
+            fallback in the server serves `subpaths/math.js`).
+        -->
         <script type="importmap">
             {
                 "imports": {
                     "@mkbabb/keyframes.js": "/kf/keyframes.js",
                     "@mkbabb/value.js": "/value/value.js",
+                    "@mkbabb/value.js/": "/value/subpaths/",
                     "@mkbabb/parse-that": "/parse-that/parse.js",
+                    "@mkbabb/parse-that/": "/parse-that/",
                     "@kf/loaf-observer": "/observer/loaf-observer.js"
                 }
             }

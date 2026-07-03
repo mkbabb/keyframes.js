@@ -156,7 +156,17 @@ async function serve(noObserver: boolean) {
         ];
         for (const [prefix, dir] of route) {
             if (p.startsWith(prefix)) {
-                const file = path.join(dir, p.slice(prefix.length));
+                let file = path.join(dir, p.slice(prefix.length));
+                // S.A0(4) — extensionless-`.js` fallback: importmap prefix
+                // substitution yields `/value/subpaths/math` (no extension) for the
+                // `@mkbabb/value.js/math` subpath specifier; serve `subpaths/math.js`.
+                if (
+                    file.startsWith(dir) &&
+                    !fs.existsSync(file) &&
+                    fs.existsSync(file + ".js")
+                ) {
+                    file += ".js";
+                }
                 if (file.startsWith(dir) && fs.existsSync(file) && fs.statSync(file).isFile()) {
                     send(
                         res,

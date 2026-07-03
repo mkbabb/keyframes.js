@@ -46,7 +46,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { REQUIRE_BROWSER, navToScene, withBrowser, withPage } from "./lib/demo-driver.mjs";
+import { REQUIRE_BROWSER, navToScene, pressPlayToggle, withBrowser, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const LIB_DIST = path.join(REPO, "dist");
@@ -64,23 +64,52 @@ console.log("proof:subject-animates — J.W6 P0 (the subject-write seam oracle)"
 // The BUILT library externalizes the value.js/parse-that bare specifiers, so the
 // probe page carries an import map onto the INSTALLED deps — the exact
 // resolution a consumer's bundler performs.
-const VENDOR = {
-    "/__kf-vendor__/value.js": path.join(
+//
+// S.A0(4) — the shared value.js-subpath importmap harness fix (identical shape to
+// proof-engine-no-throw-on-play.mjs). Both deps are multi-chunk (value.js's
+// `dist/value.js` imports `./units-*.js`/`./math-*.js` and the lazy engine chunk
+// imports `@mkbabb/value.js/math` → `dist/subpaths/math.js`; parse-that's
+// `dist/parse.js` imports `./core.js`/`./packrat-entry-*.js`), so serve each dep's
+// WHOLE dist subtree behind a prefix + teach the importmap the subpath namespace
+// (keeping the bare map), with an extensionless-`.js` fallback.
+const VENDOR_ROOTS = {
+    "/__kf-vendor__/value.js/": path.join(
         REPO,
-        "node_modules/@mkbabb/value.js/dist/value.js",
+        "node_modules/@mkbabb/value.js/dist",
     ),
-    "/__kf-vendor__/parse-that.js": path.join(
+    "/__kf-vendor__/parse-that/": path.join(
         REPO,
-        "node_modules/@mkbabb/parse-that/dist/parse.js",
+        "node_modules/@mkbabb/parse-that/dist",
     ),
 };
+/** Serve a file out of a whole-dist-subtree vendor root (prefix-walked). Returns
+ *  true iff the request matched a vendor prefix (and was answered/404'd). */
+function serveVendor(urlPath, res) {
+    for (const [prefix, root] of Object.entries(VENDOR_ROOTS)) {
+        if (!urlPath.startsWith(prefix)) continue;
+        let fp = path.join(root, urlPath.slice(prefix.length));
+        if (!fp.startsWith(root)) {
+            res.writeHead(403).end();
+            return true;
+        }
+        if (!fs.existsSync(fp) && fs.existsSync(fp + ".js")) fp += ".js";
+        if (!fs.existsSync(fp) || fs.statSync(fp).isDirectory()) {
+            res.writeHead(404).end();
+            return true;
+        }
+        res.writeHead(200, { "content-type": "text/javascript" });
+        fs.createReadStream(fp).pipe(res);
+        return true;
+    }
+    return false;
+}
 // The probe page mirrors the product gesture: a SUBJECT element + a PLAY button
 // per arm whose click constructs the BUILT-library animation against that
 // subject and plays it. The gate drives play by CLICKING the button (a genuine
 // user gesture — the actuation the gate-ORACLE precept requires, not a
 // goto+rest load-rest read), then samples the subject's computed style.
 const PROBE_HTML = `<!doctype html><html><head><meta charset="utf-8">
-<script type="importmap">{"imports":{"@mkbabb/value.js":"/__kf-vendor__/value.js","@mkbabb/parse-that":"/__kf-vendor__/parse-that.js"}}</script>
+<script type="importmap">{"imports":{"@mkbabb/value.js":"/__kf-vendor__/value.js/value.js","@mkbabb/value.js/":"/__kf-vendor__/value.js/subpaths/","@mkbabb/parse-that":"/__kf-vendor__/parse-that/parse.js","@mkbabb/parse-that/":"/__kf-vendor__/parse-that/"}}</script>
 </head><body>
 <div id="raf-subject" style="position:absolute;left:0px;top:0px"></div>
 <button id="raf-play">play rAF</button>
@@ -124,9 +153,7 @@ function serveProbe() {
             res.writeHead(200, { "content-type": "text/html" }).end(PROBE_HTML);
             return;
         }
-        if (VENDOR[u]) {
-            res.writeHead(200, { "content-type": "text/javascript" });
-            fs.createReadStream(VENDOR[u]).pipe(res);
+        if (serveVendor(u, res)) {
             return;
         }
         if (u.startsWith("/__kf-lib__/")) {
@@ -256,8 +283,11 @@ async function realSceneHalf() {
                 });
             const sliderBefore = await readSlider();
             // Drive the real subject via the dock play (the genuine gesture that
-            // reaches the cube group's play()).
-            await page.evaluate(() => document.querySelector('button[aria-label="Play animation"]')?.click());
+            // reaches the cube group's play()) — a REAL pointerup, the way the
+            // product's `@pointerup`-bound transport consumes it (R.W6 excised the
+            // strand-prone `@click`; a synthetic `element.click()` no longer
+            // actuates it — see `pressPlayToggle`).
+            await pressPlayToggle(page);
             // PER-EXPECTED predicate wait (NOT a fixed settleMs): the engine WROTE
             // the subject iff the playhead the group composite paints advances.
             const wrote = await page
