@@ -6,8 +6,11 @@
  * siblings (`engine-playback.ts`, `group-soa.ts`, `waapi-densify.ts`,
  * `frame-compiler-numeric.ts`, …) instead of real directory sub-modules — and
  * those siblings created 15 circular-import violations (the known-violations
- * baseline). R.W1 promotes every family cluster into the 7-zone directory
- * partition. This gate locks the partition so a future tranche cannot re-spawn a
+ * baseline). R.W1 promotes every family cluster into the zone directory
+ * partition (11 zones as of S.A5 — `waapi.ts` was itself promoted to a
+ * `waapi/` directory post-R.W1; fold row 41 caught its ZONE_DIRS omission
+ * below, the exact same "invisible zone" defect class as root CLAUDE.md's).
+ * This gate locks the partition so a future tranche cannot re-spawn a
  * flat hyphenated sibling under the old shape.
  *
  * CLAUSES (each BITES):
@@ -19,8 +22,8 @@
  *      Each family is now a DIRECTORY (`physics/spring/`, `engine/`, …).
  *
  *   2. ZONE BARRELS PRESENT — every introduced zone directory (physics,
- *      orchestration, engine, group, compile, resolve, ingest, scroll, presets,
- *      svg) carries an `index.ts` barrel (the single public surface).
+ *      orchestration, engine, group, compile, resolve, ingest, scroll, waapi,
+ *      presets, svg) carries an `index.ts` barrel (the single public surface).
  *
  *   3. KNOWN-VIOLATIONS DISSOLVED — the count of entries in
  *      `.dependency-cruiser-known-violations.json` is STRICTLY LESS than the
@@ -67,6 +70,7 @@ const ZONE_DIRS = [
     "resolve",
     "ingest",
     "scroll",
+    "waapi",
     "presets",
     "svg",
 ];
@@ -160,7 +164,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-    "\nproof:no-flat-siblings — PASS: the 7-zone directory partition holds — no " +
+    `\nproof:no-flat-siblings — PASS: the ${ZONE_DIRS.length}-zone directory partition holds — no ` +
         "flat-hyphenated sibling survives, every zone carries a barrel, and the " +
         "sibling cycles dissolved (known-violations < 15).",
 );
