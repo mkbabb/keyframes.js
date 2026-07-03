@@ -15,6 +15,14 @@ const read = (p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), "ut
 const exists = (p) => existsSync(join(root, p));
 /** Blank /* *​/ block comments so a grep matches real declarations, not prose. */
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " ");
+/** Blank block AND `//` line comments (JS/TS sources) — the clause-6b hand-roll
+ *  grep must match real CALLS, never docstring prose (S.A0: the gate's own
+ *  contract said "a backtick prose mention does NOT match", but the raw-source
+ *  grep matched `document.startViewTransition({ update, types })` inside
+ *  useSceneTransition.ts's block docstring — a gate false-positive on prose).
+ *  The `(^|[^:])` guard keeps `https://…` URLs intact. */
+const stripCommentsJs = (s) =>
+    stripComments(s).replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1);
 
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
 /** Walk a repo-relative dir collecting absolute paths matching one of `exts`. */
@@ -99,12 +107,23 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 {
     const style = stripComments(read("demo/@/styles/style.css"));
     const idioms = stripComments(read("demo/@/styles/design-idioms.css"));
-    // --spring-snappy resolves to a canonical token — no demo-local linear() shadow on it.
+    // --spring-snappy carries NO demo-local linear() shadow. The clause's intent
+    // (no demo-local shadow on the canonical token) is satisfied in TWO shapes:
+    // (a) a demo-local def that resolves to a canonical spring var (the original
+    // W11 reconcile), or (b) NO demo-local def at all — the R.W6 C.5 EXCISION
+    // (style.css documented: the local `--spring-snappy: var(--spring-smooth)`
+    // alias silently CLOBBERED glass-ui's own overshoot-carrying --spring-snappy,
+    // so the alias was deleted, restoring the canonical token un-shadowed — the
+    // strongest satisfaction). The gate previously demanded shape (a) only and
+    // red on the excision (S.A0: gate-staleness vs the refactor it should
+    // tolerate). A def carrying linear() still REDs (the bite is intact).
     const snappyDef = style.match(/--spring-snappy\s*:\s*([^;]+);/);
-    if (snappyDef && /var\(--spring-/.test(snappyDef[1]) && !/linear\(/.test(snappyDef[1])) {
+    if (!snappyDef) {
+        ok("idiom-r3", "--spring-snappy carries NO demo-local definition (the R.W6 C.5 excision — glass-ui's canonical overshoot token reigns un-shadowed)");
+    } else if (/var\(--spring-/.test(snappyDef[1]) && !/linear\(/.test(snappyDef[1])) {
         ok("idiom-r3", "--spring-snappy resolves to a canonical spring var (no demo ζ=0.65 linear() shadow)");
     } else {
-        fail("idiom-r3", "--spring-snappy still carries a demo-local linear() shadow (must reconcile to the canonical token)");
+        fail("idiom-r3", "--spring-snappy still carries a demo-local linear() shadow (must reconcile to the canonical token or excise the alias)");
     }
     // progress-dot is demo-local (in design-idioms.css), not a component scoped block.
     if (/\.progress-dot\s*\{/.test(idioms)) {
@@ -208,7 +227,9 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // `document.startViewTransition` in the helper docstring does NOT match — the
     // pattern requires an OPEN-PAREN + OBJECT-LITERAL call). Bite: add a direct
     // document.startViewTransition({ update, types }) in the demo → this reds.
-    const handRoll = collectDemo().some((src) => /document\.startViewTransition\s*\(\s*\{/.test(src));
+    const handRoll = collectDemo().some((src) =>
+        /document\.startViewTransition\s*\(\s*\{/.test(stripCommentsJs(src)),
+    );
     const consumesHelper = /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(read("demo/app/useSceneTransition.ts"));
     if (!handRoll && consumesHelper) {
         ok("platform-adopt", "the demo consumes glass-ui's startViewTransition — no hand-rolled document.startViewTransition({ types }) (inv-16 boundary holds)");
