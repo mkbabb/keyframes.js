@@ -9,10 +9,13 @@
  * 5.0.0 cut sit downstream of it. This gate is the merge's own oracle: it asserts
  * the v4.4.0 RELEASE COMMIT is an ancestor of `master`.
  *
- * It RESOLVES the `v4.4.0` tag to its commit AT RUN TIME (`git rev-list -n1 v4.4.0`)
- * — never a frozen hash — so it does not rot as later commits land on either branch,
- * and `git merge-base --is-ancestor <commit> master` is the GENUINE ancestry fact,
- * not a grep of a merge-commit subject (which a `--no-ff` message could fake).
+ * It DERIVES the tag name from package.json (`v${version}` — S.A0: the frozen
+ * `v4.4.0` constant rotted when 5.1.0 cut) and RESOLVES it to a commit AT RUN
+ * TIME (`git rev-list -n1 v<version>`) — never a frozen hash or version — so it
+ * does not rot as releases land, and `git merge-base --is-ancestor <commit>
+ * master` (falling back to `origin/master` under CI's detached-HEAD checkout) is
+ * the GENUINE ancestry fact, not a grep of a merge-commit subject (which a
+ * `--no-ff` message could fake).
  *
  * BORN-RED on the pre-merge tree (`merge-base --is-ancestor` exits 1 when the v4.4.0
  * commit is NOT in master — the deploy-of-record is stale at aef3ef3). GREEN the
@@ -22,15 +25,24 @@
  * RUN: node scripts/proof-published-on-master.mjs
  */
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-// The published version whose release commit MUST be an ancestor of master. The
-// tag NAME is the single source — the gate resolves it to a commit at run time, so
-// it survives any later commit on the branch (the spec's "not a hardcoded hash").
-const TAG = "v4.4.0";
+// The published version whose release commit MUST be an ancestor of master.
+// S.A0: DERIVED from package.json at run time — never a hardcoded constant. The
+// gate shipped with a frozen `TAG = "v4.4.0"` while the published version moved
+// to 5.1.0: the assertion rotted the moment the next release cut (the exact
+// frozen-witness failure mode this gate's own docstring forbids for the HASH).
+// package.json's `version` is the local, network-free source of truth for "the
+// version this tree declares shipped"; release.yml tags every publish `v<semver>`
+// (tag-triggered), so `v${version}` names the release commit by construction.
+const pkgVersion = JSON.parse(
+    readFileSync(join(root, "package.json"), "utf8"),
+).version;
+const TAG = `v${pkgVersion}`;
 
 const git = (...args) =>
     spawnSync("git", args, { cwd: root, encoding: "utf8" });
@@ -58,36 +70,49 @@ if (revList.status !== 0 || !/^[0-9a-f]{40}$/.test(tagCommit)) {
 ok("tag-resolves", `${TAG} → ${tagCommit.slice(0, 10)} (resolved at run time, not frozen)`);
 
 // ── Clause: master exists ─────────────────────────────────────────────────────
-const masterRef = git("rev-parse", "--verify", "master");
-if (masterRef.status !== 0) {
+// S.A0: resolve the LOCAL `master` ref first, falling back to the remote-tracking
+// `origin/master` — CI's actions/checkout leaves a DETACHED HEAD (no local branch
+// ref), so the bare `master` rev-parse can never resolve there even with full
+// history; the remote-tracking ref carries the same deploy-of-record ancestry.
+const MASTER_CANDIDATES = ["master", "origin/master"];
+let masterName = null;
+let masterSha = null;
+for (const candidate of MASTER_CANDIDATES) {
+    const r = git("rev-parse", "--verify", `${candidate}^{commit}`);
+    if (r.status === 0) {
+        masterName = candidate;
+        masterSha = (r.stdout ?? "").trim();
+        break;
+    }
+}
+if (!masterName) {
     fail(
         "master-exists",
-        `the \`master\` ref does NOT resolve (git rev-parse master exited ` +
-            `${masterRef.status}). The deploy-of-record branch must exist.`,
+        `neither \`master\` nor \`origin/master\` resolves (git rev-parse). The ` +
+            `deploy-of-record branch must be reachable — on CI the checkout needs ` +
+            `history+tags (fetch-depth: 0).`,
     );
     report();
 }
-ok("master-exists", `master → ${(masterRef.stdout ?? "").trim().slice(0, 10)}`);
+ok("master-exists", `${masterName} → ${masterSha.slice(0, 10)}`);
 
 // ── Clause (KEYSTONE): the v4.4.0 commit is an ANCESTOR of master ─────────────
 // This is the merge's own oracle — exit 0 iff the release commit is reachable from
 // master (the merge of the tranche-p-dev tip brings it in transitively). BORN-RED
 // pre-merge (master stale at aef3ef3 / 42f661a M-era era), GREEN on the cure.
-const isAncestor = git("merge-base", "--is-ancestor", tagCommit, "master");
+const isAncestor = git("merge-base", "--is-ancestor", tagCommit, masterName);
 if (isAncestor.status !== 0) {
-    const aheadBehind = git("rev-list", "--left-right", "--count", "master...tranche-p-dev");
     fail(
         "ancestor-of-master",
         `the ${TAG} release commit (${tagCommit.slice(0, 10)}) is NOT an ancestor of ` +
-            `master (git merge-base --is-ancestor exited ${isAncestor.status}). The ` +
+            `${masterName} (git merge-base --is-ancestor exited ${isAncestor.status}). The ` +
             `deploy-of-record (CF Pages, branch master) is STALE — the published version ` +
-            `is not merged. Merge the tranche-p-dev tip to master (the FIRST Q DAG motion). ` +
-            `[master...tranche-p-dev left/right = ${(aheadBehind.stdout ?? "?").trim()}]`,
+            `is not merged. Merge the release branch tip to master (the first DAG motion).`,
     );
 } else {
     ok(
         "ancestor-of-master",
-        `${TAG} (${tagCommit.slice(0, 10)}) IS an ancestor of master — the published ` +
+        `${TAG} (${tagCommit.slice(0, 10)}) IS an ancestor of ${masterName} — the published ` +
             `version is merged; the deploy-of-record serves the real impl-drive tree`,
     );
 }
