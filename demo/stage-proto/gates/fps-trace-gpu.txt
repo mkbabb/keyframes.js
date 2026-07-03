@@ -1,0 +1,27 @@
+A) NORMAL (full compositing stack, Apple M5 Max GPU via ANGLE-Metal, headless):
+{
+ "frames": 251,
+ "avgFps": 119.5,
+ "minFps": 56.2,
+ "medianFrameMs": 8.3,
+ "maxFrameMs": 17.8,
+ "framesOver50ms": 0,
+ "maxLoafScriptMs": 0,
+ "loafFrames": 0
+}
+
+B) COMPOSITING-NEUTRALISED (backdrop-filter/blur/mix-blend off — the JS + layout cost alone):
+{
+ "frames": 251,
+ "avgFps": 120,
+ "minFps": 99,
+ "medianFrameMs": 8.3,
+ "maxFrameMs": 10.1,
+ "framesOver50ms": 0,
+ "maxLoafScriptMs": 0,
+ "loafFrames": 0
+}
+
+Interpretation: LoAF max scripting/frame = 0 ms (budget <8ms).
+fps normal 119.5 → lite 120 (delta = 0.5 fps from compositing alone).
+errors: []

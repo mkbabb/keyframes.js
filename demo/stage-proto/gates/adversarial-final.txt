@@ -1,0 +1,16 @@
+[PASS] A gesture-during-committing: {"A":"cube","phaseAfterTap":"committing","frontAfterTap":"cube","frontDuringDwell_restedFront":"cube","committed":"cube","scene":"cube","hash":"#cube","armedLogLast":{"id":"cube","t":2842,"cause":"tap"},"note":"browse (ArrowRight→step) during committing was a silent no-op; ring never left A"}
+[PASS] B enter-during-flick: {"targetSlot":4,"destScene":"spring","passingFrontAtPress":"amiga","spinningAtPress":true,"armedLogLast":{"id":"spring","t":3843.900000035763,"cause":"key"},"committed":"spring","scene":"spring","note":"arm latched the decay DESTINATION slot, never the passing front"}
+[PASS] C observable-honesty: {"armedLog":[{"id":"cube","t":2600.800000011921,"cause":"tap"},{"id":"cube","t":2881.300000011921,"cause":"tap"}],"causes":["tap","tap"],"note":"arm+fire logged with cause taxonomy; gate reads logs, not the committing attr"}
+[PASS] D cancel-distinctness: {"midPhase":"committing","switchCount":0,"vtCount":0,"hash":"#cube","phase":"closed","scene":"cube","note":"Esc during committing aborted the armed commit: no runSceneSwitch, no observable, no VT"}
+[PASS] E buffered-fan-in: {"phaseAtEnter":"fanning-in","committed":"cube","scene":"cube","armedLog":[{"id":"cube","t":2553.599999964237,"cause":"buffered"},{"id":"cube","t":2834.699999988079,"cause":"buffered"}],"note":"Enter during fan-in BUFFERED then drained on carousel → committed normally"}
+[PASS] F single-write: {"vtCount":1,"switchCount":1,"committed":"easing","scene":"easing","note":"one commit → exactly one VT + one machine write"}
+
+===== ADVERSARIAL SUMMARY =====
+PASS  A gesture-during-committing
+PASS  B enter-during-flick
+PASS  C observable-honesty
+PASS  D cancel-distinctness
+PASS  E buffered-fan-in
+PASS  F single-write
+
+ALL CLAUSES GREEN

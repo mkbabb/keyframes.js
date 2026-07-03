@@ -1,0 +1,50 @@
+/* The demo's full design cascade (tailwind + glass-ui + design-idioms + fonts). */
+@import "@styles/style.css";
+
+/* ── D4.1: the two-stop tungsten ramp (replaces round-1's single --stage-key).
+   The filament is amber; the spill is cream. Derived beside the gold ramp. ── */
+:root {
+    --stage-key-apex: hsl(38 85% 72%); /* filament — the beam apex + the pool */
+    --stage-key: hsl(46 60% 86%); /* cream spill — the beam mid + washes */
+}
+.dark {
+    --stage-key-apex: hsl(38 85% 68%);
+    --stage-key: hsl(45 65% 84%);
+}
+
+/* the paper never leaves — a dusk grid substrate for the proto host */
+html,
+body,
+#app {
+    height: 100%;
+    margin: 0;
+    background: var(--background, #0b0b12);
+}
+
+/* ── The REAL .grid-background (D4.6 condition 2 — the acceptance shots MUST be
+   over the real graph paper, not a stand-in). Lifted VERBATIM from
+   EditorShell.vue's scoped rule (which cannot reach the proto root); reads the
+   SAME demo-owned --graph-* tokens from design-idioms.css. ── */
+.grid-background {
+    --graph-line-fine: color-mix(
+        in srgb,
+        var(--foreground) var(--graph-opacity, 5%),
+        transparent
+    );
+    --graph-line-major: color-mix(
+        in srgb,
+        var(--foreground) var(--graph-major-opacity, 12%),
+        transparent
+    );
+    background-image:
+        linear-gradient(to right, var(--graph-line-major) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-major) 1px, transparent 1px),
+        linear-gradient(to right, var(--graph-line-fine) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-fine) 1px, transparent 1px);
+    background-size:
+        var(--graph-major, 5rem) var(--graph-major, 5rem),
+        var(--graph-major, 5rem) var(--graph-major, 5rem),
+        var(--graph-pitch, 1rem) var(--graph-pitch, 1rem),
+        var(--graph-pitch, 1rem) var(--graph-pitch, 1rem);
+    background-repeat: repeat;
+}
