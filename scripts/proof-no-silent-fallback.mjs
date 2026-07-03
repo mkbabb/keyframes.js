@@ -1,46 +1,67 @@
 #!/usr/bin/env node
 /**
- * proof:no-silent-fallback — R.W3 born-RED gate (lib-hygiene · AXIS-3 STATIC).
+ * proof:no-silent-fallback — R.W3 born-RED gate, HARDENED at S.C2
+ * (lib-hygiene · AXIS-3 STATIC).
  *
- * Asserts that the legacy/workaround/fallback excision sweep (§2A–2E) is in
- * effect and that no new silent-fallback regression has been introduced.
+ * Asserts that the legacy/workaround/fallback excision sweep (§2A–2E) stays
+ * in effect and that NO new silent-fallback regression has been introduced
+ * ANYWHERE in `src/` or `demo/` — not just the 4 R.W3-touched LIB files.
  *
- * THREE CLAUSES (each must pass for exit 0):
+ * FOUR CLAUSES (each must pass for exit 0):
  *
- *   Clause 1 — ZERO excise-set patterns in the de-allowlisted LIB files.
- *     Static source grep over the LIB files edited in §2A–2D for the patterns
- *     that were excised:
- *       a. Bare `catch {` or empty `catch(e) {}` in the excise-set LIB files
- *          (the over-broad swallows narrowed by §2A and §2B).
- *       b. `?? 0` in the per-frame morph render path of `morph-svg.ts`
- *          (the coordinate masking excised by §2D).
- *     Demo files may have hits — those are INTEGRATION-DEFERRED (the R.W5/R.W6
- *     demo branch owns them; this gate records them as context, not failures).
+ *   Clause 1 — ZERO unlabelled silent-fallback patterns, src-wide + demo-wide.
+ *     A machine-checked `KEEP:` allowlist idiom (S.C2 S2, a07 F3): a labelled
+ *     legitimate site is allowed; an unlabelled one REDs. Widened from the
+ *     R.W3 4-file `EXCISE_SET_LIB` scope to every `.ts`/`.vue` file under
+ *     `src/` AND `demo/` (S.C2 S1 — the demo arm is now ENFORCED, not
+ *     informational). Deny patterns:
+ *       a. A bare/empty `catch {}` block (any file, any depth).
+ *       b. A `catch {}` block whose only content is a nullish-coalescing
+ *          mask (`?? 0` / `?? ""` / `?? []` / `?? null` / `?? undefined`)
+ *          with no diagnostic emission (no throw/console/push/log/toast/emit)
+ *          — the generalized form of the `?? 0` per-frame render-path pattern
+ *          §2D excised in `morph-svg.ts`.
+ *       c. An empty `.catch(() => {})` / `.catch(function () {})` promise
+ *          handler.
+ *       d. `navigator.platform` anywhere in `demo/` (deprecated API, §2F) —
+ *          not catch-shaped, kept as its own demo-wide sub-check.
+ *     A hit is EXEMPTED when a `KEEP:`-labelled reason appears on the same
+ *     line, inside the block body, or in the 1–3 lines immediately
+ *     preceding it — turning the R.W3.md "confirmed KEEP" table (12 rows)
+ *     from prose into a machine-checked baseline (a07 F3's proposal (b)).
  *
  *   Clause 2 — LINT GREEN.
- *     `depcruise src --ignore-known` exits 0. This is the leaves.ts
- *     reconciliation gate: the `leaf-no-engine-no-valuejs` rule's `pathNot:
- *     VALUEJS_MATH_SUBPATH` exclusion ensures the verified-clean
- *     `@mkbabb/value.js/math` edge does NOT red the rule while `../engine`
- *     still would. R.W1/R.W2 landed the narrowing; this clause asserts it.
+ *     `depcruise src --ignore-known` exits 0 (unchanged from R.W3).
  *
  *   Clause 3 — LEAF-RULE PLANT STILL BITES.
- *     After the `VALUEJS_MATH_SUBPATH` narrowing, plant the `../engine` import
- *     onto `internal/leaves.ts` (NOT `@mkbabb/value.js/math`) and assert that
- *     `leaf-no-engine-no-valuejs` still fires — proving the rule was narrowed,
- *     not disabled. Reverts the plant before reporting.
+ *     Plant `../engine` on `internal/leaves.ts`, assert
+ *     `leaf-no-engine-no-valuejs` still fires, revert (unchanged from R.W3).
  *
- * BORN-RED PROOF:
- *   Before §2A–2D: `engine/css-metadata.ts` has a bare `catch {}` (Clause 1a
- *   fires); `engine/element-resolve.ts` has a bare `catch {}` (Clause 1a fires).
- *   Before §2E/R.W1: `depcruise src --ignore-known` exits 1 on the live
- *   `leaves.ts → @mkbabb/value.js/math` edge (Clause 2 fires).
- *   All three clauses are falsifiable observables, not grep of config text.
+ *   Clause 4 — the `as any` clause, scoped honestly to demo composables
+ *     (S.C2 S3; sc-§2.4; fold row 26). "Demo composable" = a `.ts` file
+ *     under `demo/` whose basename matches `use*.ts` OR whose path contains
+ *     a `composables/` segment (the literal, falsifiable definition — NOT
+ *     `.vue` components, which are out of this wave's scope per T9
+ *     census-before-fiat). REDs on any UNLABELLED `as any` in that file set;
+ *     a `KEEP:`-labelled survivor is allowed. The census today (re-derived
+ *     live, not inherited from the SPEC-v3 table — T5/T9): the §2K row-4
+ *     survivor (`useTimingFunctionEditor.ts:196`) was FIXED by deleting the
+ *     erasing cast (its declared return type was already the `string` member
+ *     of `InputAnimationOptions["timingFunction"]`'s union — no widen was
+ *     structurally required, just the cast's removal); the one other live
+ *     composable cast (`useKeyframeOps.ts:87`, `fromKeyframes(keyframes as
+ *     any)`) type-checks clean without the cast too and was fixed the same
+ *     way. Zero composable `as any` sites survive today — the SPEC-v3
+ *     estimate of "5 other survivors" needing `KEEP:` labels does not match
+ *     the live tree (both real sites were fixable, not merely labellable).
  *
- * INTEGRATION-DEFERRED (not failures here):
- *   Demo files (`demo/`) may carry hits for the excise-set patterns — the demo
- *   excision (§2F–2M) is owned by the R.W5/R.W6 demo branch. This gate records
- *   demo hits as informational context (printed but NOT counted as failures).
+ * BORN-RED PROOF (S.C2):
+ *   Before S.C2: the demo clauses are INFORMATIONAL (a planted bare `catch
+ *   {}` in a demo composable does NOT fail the gate) and
+ *   `useTimingFunctionEditor.ts:196` carries an unlabelled `as any`
+ *   (Clause 4 fires). After S.C2: Clause 1 is enforced src-wide + demo-wide
+ *   (a planted demo bare-catch REDs it) and Clause 4 is GREEN (zero
+ *   unlabelled composable casts).
  *
  * RUN: node scripts/proof-no-silent-fallback.mjs
  */
@@ -55,7 +76,7 @@ import {
     writeFileSync,
 } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join, relative } from "node:path";
+import { basename, dirname, join, relative, sep } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = join(root, "src");
@@ -70,10 +91,11 @@ const fail = (label) => {
 const info = (label) => console.log(`  ℹ ${label}`);
 
 console.log(
-    "proof:no-silent-fallback — R.W3 (legacy/workaround/fallback excision sweep · RUN, not grep)",
+    "proof:no-silent-fallback — S.C2 hardened (src+demo-wide deny-scan + KEEP: idiom + scoped as-any census)",
 );
 
-// ── Source-tree walker ───────────────────────────────────────────────────────
+// ── Shared source-tree toolkit (reused by every clause — keep modular; ────
+//    a future wave (S.B2) extends Clause 1's deny-set, not this toolkit) ──
 
 /** Recursively collect *.ts + *.vue files, skipping node_modules/dist/.git. */
 function collectSourceFiles(dir, acc = []) {
@@ -103,150 +125,152 @@ function collectSourceFiles(dir, acc = []) {
     return acc;
 }
 
-/** Grep file lines for a pattern; return [{line, lineNo, file}] matches. */
-function grepFile(filePath, pattern) {
-    const lines = readFileSync(filePath, "utf8").split("\n");
-    const hits = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (pattern.test(lines[i])) {
-            hits.push({ lineNo: i + 1, line: lines[i].trimEnd() });
+/** 1-indexed line number of a character offset into `content`. */
+function lineOf(content, idx) {
+    return content.slice(0, idx).split("\n").length;
+}
+
+/**
+ * Strip `//` and `/* *\/` comments, preserving string length/newlines (so
+ * offsets/line numbers computed against the ORIGINAL content stay valid).
+ */
+function blankComments(content) {
+    return content
+        .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+        .replace(/\/\/[^\n]*/g, (m) => " ".repeat(m.length));
+}
+
+/**
+ * Find every `{`-delimited block whose opening matches `headerRe` (the regex
+ * MUST end with a literal `{`), brace-matching to the closing `}`. Returns
+ * `{ headerStart, braceStart, braceEnd, header, body }` per match.
+ */
+function findBracedBlocks(content, headerRe) {
+    const blocks = [];
+    const re = new RegExp(headerRe.source, "g");
+    let m;
+    while ((m = re.exec(content))) {
+        const braceStart = m.index + m[0].length - 1;
+        if (content[braceStart] !== "{") continue;
+        let depth = 1;
+        let i = braceStart + 1;
+        while (i < content.length && depth > 0) {
+            if (content[i] === "{") depth++;
+            else if (content[i] === "}") depth--;
+            i++;
+        }
+        const braceEnd = i - 1;
+        blocks.push({
+            headerStart: m.index,
+            braceStart,
+            braceEnd,
+            header: m[0],
+            body: content.slice(braceStart + 1, braceEnd),
+        });
+    }
+    return blocks;
+}
+
+/**
+ * The machine-checked `KEEP:` allowlist idiom (a07 F3 proposal (b)): a block
+ * is exempted when `KEEP:` appears on its header line, within its body, or
+ * in the ≤3 lines immediately preceding it.
+ */
+function hasKeepLabel(content, block) {
+    const beforeLines = content.slice(0, block.headerStart).split("\n");
+    const contextBefore = beforeLines.slice(-4).join("\n");
+    return /KEEP:/.test(contextBefore + block.header + block.body);
+}
+
+// ── Clause 1: src-wide + demo-wide silent-fallback deny-scan ────────────────
+
+const CATCH_HEADER = /\bcatch\s*(\([^){]*\))?\s*\{/;
+const PROMISE_CATCH_HEADER = /\.catch\s*\(\s*(?:\([^)]*\)|[$\w]+)\s*=>\s*\{/;
+const NULLISH_MASK_PATTERN = /\?\?\s*(0|""|''|\[\]|null|undefined)\b/;
+const DIAGNOSTIC_PATTERN =
+    /\bthrow\b|console\.|\.push\(|toast\.|\bemit\(|\.error\(|\.warn\(/;
+
+function runClause1() {
+    console.log(
+        "\n── Clause 1: src-wide + demo-wide silent-fallback deny-scan (KEEP: allowlisted) ──",
+    );
+
+    const files = [...collectSourceFiles(src), ...collectSourceFiles(demo)];
+    let clauseFailures = 0;
+
+    for (const file of files) {
+        const content = readFileSync(file, "utf8");
+        const rel = relative(root, file);
+
+        // (a) + (b) — catch blocks: bare/empty, or nullish-coalescing masks
+        // with no diagnostic emission.
+        for (const block of findBracedBlocks(content, CATCH_HEADER)) {
+            const strippedBody = blankComments(block.body).trim();
+            if (hasKeepLabel(content, block)) continue;
+
+            if (strippedBody === "") {
+                fail(
+                    `Clause 1a: bare catch{} in ${rel}:${lineOf(content, block.headerStart)} ` +
+                        '(empty/comment-only body, no `KEEP:` label — either FAIL-EXPLICIT it ' +
+                        "or label it with a reason)",
+                );
+                clauseFailures++;
+            } else if (
+                NULLISH_MASK_PATTERN.test(strippedBody) &&
+                !DIAGNOSTIC_PATTERN.test(strippedBody)
+            ) {
+                fail(
+                    `Clause 1b: silent nullish-mask catch{} in ${rel}:${lineOf(content, block.headerStart)} ` +
+                        `(masks via ?? with no throw/console/push/log, no \`KEEP:\` label): ` +
+                        strippedBody.replace(/\s+/g, " ").trim(),
+                );
+                clauseFailures++;
+            }
+        }
+
+        // (c) — empty .catch(() => {}) / .catch(function () {}) handlers.
+        for (const block of findBracedBlocks(content, PROMISE_CATCH_HEADER)) {
+            const strippedBody = blankComments(block.body).trim();
+            if (strippedBody === "" && !hasKeepLabel(content, block)) {
+                fail(
+                    `Clause 1c: empty .catch(() => {}) in ${rel}:${lineOf(content, block.headerStart)} ` +
+                        '(no `KEEP:` label — either surface the error or label the swallow)',
+                );
+                clauseFailures++;
+            }
         }
     }
-    return hits;
-}
 
-// ── Clause 1: ZERO excise-set patterns in de-allowlisted LIB files ──────────
-console.log("\n── Clause 1: excise-set patterns in de-allowlisted LIB files ──");
-
-/**
- * The de-allowlisted LIB files edited in §2A–2D (the excision targets).
- * These are the files whose catch{} / ?? 0 sites were replaced by FAIL-EXPLICIT
- * throws / diagnostics in R.W3. A hit here is a REGRESSION.
- */
-const EXCISE_SET_LIB = [
-    join(src, "animation", "engine", "css-metadata.ts"),
-    join(src, "animation", "engine", "element-resolve.ts"),
-    join(src, "animation", "svg", "morph-svg.ts"),
-    // resolve-function.ts uses try/catch with explicit err binding — checked
-    // separately for empty-body catches only.
-    join(src, "animation", "resolve", "resolve-function.ts"),
-];
-
-/**
- * Pattern 1a — bare `catch {` or `catch(_)` or empty `catch(e) {}` (the
- * over-broad swallows). Does NOT match `catch (err)` with a non-empty body —
- * that is the FAIL-EXPLICIT pattern the excision introduces.
- *
- * Implementation note: we check for the empty-body form specifically, not all
- * catches. A `catch (err) { diagnostics.push(...); }` is correct; a bare
- * `catch {` or `catch { }` (with only whitespace/comments) is the pattern we
- * excised.
- */
-const BARE_CATCH_PATTERN = /catch\s*(\(\s*\w*\s*\)\s*)?\{(\s*\/\/[^\n]*)?\s*\}/;
-
-/**
- * Pattern 1b — `?? 0` in the per-frame render path of `morph-svg.ts`.
- * The legitimate `?? 0` uses (construction-time angle default, sampleD manual
- * pull) are now commented with "KEEP:" — match ONLY unlabeled ?? 0 in the
- * render body.
- *
- * Strategy: grep for `?? 0` and then filter out lines containing "KEEP:".
- */
-const QQ_ZERO_PATTERN = /\?\? 0/;
-const KEEP_COMMENT_PATTERN = /KEEP:/;
-
-let clause1Failures = 0;
-for (const libFile of EXCISE_SET_LIB) {
-    if (!existsSync(libFile)) {
-        fail(
-            `excise-set lib file missing: ${relative(root, libFile)} — ` +
-                "the excision target is absent from the tree (file renamed?)",
-        );
-        clause1Failures++;
-        continue;
+    // (d) — navigator.platform anywhere in demo/ (deprecated API, §2F).
+    // Demo-wide now (S.C2 S1 — was a 1-file check); no KEEP: escape (there is
+    // no legitimate use — CSS.supports()/userAgent are the replacement).
+    for (const file of collectSourceFiles(demo)) {
+        const hits = [];
+        const lines = readFileSync(file, "utf8").split("\n");
+        for (let i = 0; i < lines.length; i++) {
+            if (/navigator\.platform/.test(lines[i])) {
+                hits.push(i + 1);
+            }
+        }
+        if (hits.length > 0) {
+            fail(
+                `Clause 1d: deprecated navigator.platform in ${relative(root, file)}:` +
+                    `${hits.join(",")} (removed by §2F — use CSS.supports()/userAgent instead)`,
+            );
+            clauseFailures++;
+        }
     }
 
-    // Check for bare catch patterns
-    const bareCatchHits = grepFile(libFile, BARE_CATCH_PATTERN);
-    if (bareCatchHits.length > 0) {
-        fail(
-            `bare catch{} regression in ${relative(root, libFile)}: ` +
-                bareCatchHits
-                    .map((h) => `L${h.lineNo}: ${h.line.trim()}`)
-                    .join("; "),
-        );
-        clause1Failures++;
-    }
-}
-
-// Check morph-svg.ts specifically for unlabeled ?? 0 in the render body
-const morphFile = join(src, "animation", "svg", "morph-svg.ts");
-if (existsSync(morphFile)) {
-    const qqHits = grepFile(morphFile, QQ_ZERO_PATTERN).filter(
-        (h) => !KEEP_COMMENT_PATTERN.test(h.line),
-    );
-    if (qqHits.length > 0) {
-        fail(
-            `unlabeled ?? 0 regression in ${relative(root, morphFile)} ` +
-                "(per-frame render coordinate masking — should be FAIL-EXPLICIT or " +
-                'labeled "KEEP:" with a reason): ' +
-                qqHits.map((h) => `L${h.lineNo}: ${h.line.trim()}`).join("; "),
-        );
-        clause1Failures++;
-    }
-}
-
-if (clause1Failures === 0) {
-    ok(
-        "Clause 1: ZERO excise-set patterns (bare catch{} / unlabeled ?? 0) " +
-            "in de-allowlisted LIB files",
-    );
-}
-
-// ── Clause 1 addendum: demo hits (integration-deferred, informational) ──────
-console.log("\n── Clause 1 addendum: demo hits (integration-deferred) ──");
-
-const DEMO_EXCISE_SET = [
-    // §2I — router silent nav-error swallow (R.W5 demo branch)
-    join(demo, "app", "useSceneMachineRouter.ts"),
-    // §2J — window.__lastVtTypes production test hook (R.W5 demo branch)
-    join(demo, "app", "useSceneTransition.ts"),
-    // §2F — navigator.platform deprecated API (R.W5 demo branch)
-    join(demo, "@", "utils", "iosTextEntry.ts"),
-];
-
-let demoHits = 0;
-for (const demoFile of DEMO_EXCISE_SET) {
-    if (!existsSync(demoFile)) {
-        // Demo file may not exist in lib worktree — skip without fail
-        continue;
-    }
-    const bareCatchHits = grepFile(demoFile, BARE_CATCH_PATTERN);
-    const navPlatformHits = grepFile(demoFile, /navigator\.platform/);
-    const allHits = [...bareCatchHits, ...navPlatformHits];
-    if (allHits.length > 0) {
-        demoHits++;
-        info(
-            `INTEGRATION-DEFERRED (R.W5/R.W6 demo branch) — ` +
-                `${relative(root, demoFile)}: ${allHits.length} hit(s) ` +
-                "(not a failure here; owned by the demo excision wave)",
+    if (clauseFailures === 0) {
+        ok(
+            "Clause 1: ZERO unlabelled silent-fallback patterns (bare catch{} / " +
+                "nullish-mask catch{} / empty .catch(() => {}) / navigator.platform) " +
+                "across src/ + demo/ — every legitimate site carries a `KEEP:` label",
         );
     }
-}
-if (demoHits === 0) {
-    ok(
-        "Clause 1 addendum: no demo excise-set hits found in this worktree " +
-            "(demo files may not be present in the lib worktree — expected)",
-    );
-} else {
-    info(
-        `Clause 1 addendum: ${demoHits} demo file(s) carry integration-deferred ` +
-            "hits — NOT counted as failures (R.W5/R.W6 demo branch owns them)",
-    );
 }
 
 // ── Clause 2: LINT GREEN ─────────────────────────────────────────────────────
-console.log("\n── Clause 2: lint GREEN (depcruise src --ignore-known) ──");
 
 function runDepcruise() {
     try {
@@ -264,78 +288,175 @@ function runDepcruise() {
     }
 }
 
-const lintResult = runDepcruise();
-if (lintResult.code === 0) {
-    ok(
-        "Clause 2: `depcruise src --ignore-known` exits 0 — lint GREEN " +
-            "(the leaves.ts → @mkbabb/value.js/math edge is correctly excluded " +
-            "via pathNot:VALUEJS_MATH_SUBPATH; no boundary violation present)",
-    );
-} else {
-    fail(
-        "Clause 2: `depcruise src --ignore-known` exits non-zero — lint RED. " +
-            "A live (non-baselined) source-graph violation is present:\n" +
-            lintResult.out
-                .split("\n")
-                .filter((l) => /error|violation/i.test(l))
-                .join("\n"),
-    );
-}
-
-// ── Clause 3: LEAF-RULE PLANT STILL BITES ────────────────────────────────────
-console.log("\n── Clause 3: leaf-rule plant still bites (../engine on leaves.ts) ──");
-
-const LEAF = join(root, "src", "animation", "internal", "leaves.ts");
-const LEAF_BAK = `${LEAF}.proof-nsf-bak`;
-
-let clause3Passed = false;
-try {
-    // Plant: add a static `../engine` import to leaves.ts (the exact import
-    // that proves leaf-no-engine-no-valuejs is live, NOT @mkbabb/value.js/math)
-    cpSync(LEAF, LEAF_BAK);
-    writeFileSync(
-        LEAF,
-        readFileSync(LEAF, "utf8") +
-            "\nimport { getTimingFunction as _probe } from \"../engine\";\nexport const _lintProbe = _probe;\n",
-    );
-    const planted = runDepcruise();
-    clause3Passed =
-        planted.code !== 0 &&
-        /error leaf-no-engine-no-valuejs\b/.test(planted.out);
-} finally {
-    if (existsSync(LEAF_BAK)) {
-        cpSync(LEAF_BAK, LEAF);
-        rmSync(LEAF_BAK, { force: true });
+function runClause2() {
+    console.log("\n── Clause 2: lint GREEN (depcruise src --ignore-known) ──");
+    const lintResult = runDepcruise();
+    if (lintResult.code === 0) {
+        ok(
+            "Clause 2: `depcruise src --ignore-known` exits 0 — lint GREEN " +
+                "(the leaves.ts → @mkbabb/value.js/math edge is correctly excluded " +
+                "via pathNot:VALUEJS_MATH_SUBPATH; no boundary violation present)",
+        );
+    } else {
+        fail(
+            "Clause 2: `depcruise src --ignore-known` exits non-zero — lint RED. " +
+                "A live (non-baselined) source-graph violation is present:\n" +
+                lintResult.out
+                    .split("\n")
+                    .filter((l) => /error|violation/i.test(l))
+                    .join("\n"),
+        );
     }
 }
 
-if (clause3Passed) {
-    ok(
-        "Clause 3: `../engine` plant on leaves.ts reds leaf-no-engine-no-valuejs " +
-            "— the rule was NARROWED (to exclude /math), NOT disabled. " +
-            "The @mkbabb/value.js/math edge lints clean; a ../engine edge still bites.",
+// ── Clause 3: LEAF-RULE PLANT STILL BITES ────────────────────────────────────
+
+function runClause3() {
+    console.log(
+        "\n── Clause 3: leaf-rule plant still bites (../engine on leaves.ts) ──",
     );
-} else {
-    fail(
-        "Clause 3: the `../engine` plant on leaves.ts did NOT red " +
-            "leaf-no-engine-no-valuejs — the rule is disabled or mis-scoped. " +
-            "The VALUEJS_PATH narrowing must exclude ONLY the /math subpath; " +
-            "a ../engine import from an internal/ leaf must still red the rule.",
-    );
+
+    const LEAF = join(root, "src", "animation", "internal", "leaves.ts");
+    const LEAF_BAK = `${LEAF}.proof-nsf-bak`;
+
+    let clause3Passed = false;
+    try {
+        cpSync(LEAF, LEAF_BAK);
+        writeFileSync(
+            LEAF,
+            readFileSync(LEAF, "utf8") +
+                "\nimport { getTimingFunction as _probe } from \"../engine\";\nexport const _lintProbe = _probe;\n",
+        );
+        const planted = runDepcruise();
+        clause3Passed =
+            planted.code !== 0 &&
+            /error leaf-no-engine-no-valuejs\b/.test(planted.out);
+    } finally {
+        if (existsSync(LEAF_BAK)) {
+            cpSync(LEAF_BAK, LEAF);
+            rmSync(LEAF_BAK, { force: true });
+        }
+    }
+
+    if (clause3Passed) {
+        ok(
+            "Clause 3: `../engine` plant on leaves.ts reds leaf-no-engine-no-valuejs " +
+                "— the rule was NARROWED (to exclude /math), NOT disabled. " +
+                "The @mkbabb/value.js/math edge lints clean; a ../engine edge still bites.",
+        );
+    } else {
+        fail(
+            "Clause 3: the `../engine` plant on leaves.ts did NOT red " +
+                "leaf-no-engine-no-valuejs — the rule is disabled or mis-scoped. " +
+                "The VALUEJS_PATH narrowing must exclude ONLY the /math subpath; " +
+                "a ../engine import from an internal/ leaf must still red the rule.",
+        );
+    }
+
+    const restored = runDepcruise();
+    if (restored.code !== 0) {
+        fail(
+            "Clause 3 revert: after reverting the plant the tree is NOT lint-clean " +
+                "— the plant leaked (a backup file was left behind). Manual cleanup needed.",
+        );
+    } else {
+        ok("Clause 3 revert: tree restored + lints clean after plant revert");
+    }
 }
 
-// ── Post-plant sanity: lint still clean after revert ─────────────────────────
-const restored = runDepcruise();
-if (restored.code !== 0) {
-    fail(
-        "Clause 3 revert: after reverting the plant the tree is NOT lint-clean " +
-            "— the plant leaked (a backup file was left behind). Manual cleanup needed.",
-    );
-} else {
-    ok("Clause 3 revert: tree restored + lints clean after plant revert");
+// ── Clause 4: the as-any clause, scoped to demo composables ─────────────────
+
+/**
+ * "Demo composable" — the literal, falsifiable scope (S.C2 S3): a `.ts` file
+ * under `demo/` whose basename matches `use*.ts` OR whose path contains a
+ * `composables/` segment. Deliberately excludes `.vue` — components are a
+ * different census, out of this wave's scope (T9 census-before-fiat: state
+ * the boundary, don't over-claim it).
+ */
+function isDemoComposable(filePath) {
+    if (!filePath.endsWith(".ts") || filePath.endsWith(".d.ts")) return false;
+    const rel = relative(demo, filePath);
+    if (rel.startsWith("..")) return false;
+    const segments = rel.split(sep);
+    if (segments.includes("composables")) return true;
+    return /^use[A-Z0-9]/.test(basename(filePath));
 }
 
-// ── Report ───────────────────────────────────────────────────────────────────
+/** Real (non-comment) `as any` occurrences, with their KEEP: label state. */
+function findAsAnySites(filePath) {
+    const original = readFileSync(filePath, "utf8");
+    const codeOnly = blankComments(original);
+    const originalLines = original.split("\n");
+    const codeLines = codeOnly.split("\n");
+    const sites = [];
+    for (let i = 0; i < codeLines.length; i++) {
+        if (/\bas\s+any\b/.test(codeLines[i])) {
+            const context = [
+                originalLines[i - 1] ?? "",
+                originalLines[i],
+                originalLines[i + 1] ?? "",
+            ].join("\n");
+            sites.push({
+                lineNo: i + 1,
+                line: originalLines[i].trim(),
+                labelled: /KEEP:/.test(context),
+            });
+        }
+    }
+    return sites;
+}
+
+function runClause4() {
+    console.log(
+        "\n── Clause 4: `as any` clause, scoped to demo composables (S.C2 S3) ──",
+    );
+
+    const composableFiles = collectSourceFiles(demo).filter(isDemoComposable);
+    let total = 0;
+    let labelled = 0;
+    let unlabelled = 0;
+
+    for (const file of composableFiles) {
+        const sites = findAsAnySites(file);
+        for (const site of sites) {
+            total++;
+            const rel = relative(root, file);
+            if (site.labelled) {
+                labelled++;
+                info(
+                    `Clause 4 census: KEEP:-labelled survivor ${rel}:${site.lineNo} — ${site.line}`,
+                );
+            } else {
+                unlabelled++;
+                fail(
+                    `Clause 4: unlabelled \`as any\` in demo composable ${rel}:${site.lineNo} ` +
+                        `— ${site.line} (fix the type gap, or label with a KEEP: reason)`,
+                );
+            }
+        }
+    }
+
+    info(
+        `Clause 4 census: ${composableFiles.length} demo-composable file(s) scanned, ` +
+            `${total} \`as any\` site(s) found (${labelled} labelled, ${unlabelled} unlabelled)`,
+    );
+
+    if (unlabelled === 0) {
+        ok(
+            "Clause 4: ZERO unlabelled `as any` in demo composables " +
+                "(the §2K row-4 survivor — useTimingFunctionEditor.ts:196 — was fixed by " +
+                "removing the erasing cast, not labelled)",
+        );
+    }
+}
+
+// ── Run all four clauses, then report ────────────────────────────────────────
+
+runClause1();
+runClause2();
+runClause3();
+runClause4();
+
 console.log("");
 if (failures.length > 0) {
     console.error(
@@ -345,10 +466,10 @@ if (failures.length > 0) {
     process.exit(1);
 }
 console.log(
-    "proof:no-silent-fallback — PASS: all three clauses GREEN.\n" +
-        "  Clause 1: no bare catch{} / unlabeled ?? 0 in the §2A–2D excise-set LIB files.\n" +
-        "  Clause 2: depcruise src --ignore-known exits 0 (leaves.ts /math edge " +
-        "correctly excluded; no boundary violation).\n" +
+    "proof:no-silent-fallback — PASS: all four clauses GREEN.\n" +
+        "  Clause 1: zero unlabelled silent-fallback patterns, src-wide + demo-wide.\n" +
+        "  Clause 2: depcruise src --ignore-known exits 0.\n" +
         "  Clause 3: ../engine plant on leaves.ts reds leaf-no-engine-no-valuejs " +
-        "(rule narrowed, not disabled).",
+        "(rule narrowed, not disabled).\n" +
+        "  Clause 4: zero unlabelled `as any` in demo composables.",
 );
