@@ -81,6 +81,15 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+// S.A2 — the demo-gate partition is single-sourced in scripts/demo-roster.mjs
+// (the roster driver reads the SAME module), so ci-coverage counts the roster's
+// gates as CI-invoked even though they are run INSIDE the report-all roster step
+// rather than as individual `npm run proof:*` ci.yml lines.
+import {
+    ALL_DEMO_GATES,
+    CORRECTNESS_ROSTER,
+    BORNRED_TRIPWIRES,
+} from "./demo-roster.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const wf = (name) =>
@@ -195,21 +204,29 @@ const gates = Object.keys(pkg.scripts)
     .filter((s) => s.startsWith("proof:") && !EXCLUDED.has(s))
     .sort();
 
-const missing = gates.filter((g) => !ci.includes(`npm run ${g}`));
+// S.A2 — a gate is CI-invoked if it appears as an `npm run proof:*` line in
+// ci.yml OR it is a member of the demo roster (scripts/demo-roster.mjs), which
+// the demo-correctness job runs as ONE report-all step (the net-deletion). The
+// roster is thus a first-class CI-invocation surface, not a coverage hole.
+const rosterCovered = new Set(ALL_DEMO_GATES);
+const missing = gates.filter(
+    (g) => !ci.includes(`npm run ${g}`) && !rosterCovered.has(g),
+);
 
 if (missing.length > 0) {
     failures.push(
         "coverage — these proof:* gates are declared in package.json but NEVER " +
-            "invoked in ci.yml: " +
+            "invoked in ci.yml (nor in the demo roster): " +
             missing.join(", ") +
             ". An authored-but-unrun gate is a coverage lie — wire it into the " +
-            "`gates` job (library-scoped) or the `demo-smoke` job (needs the demo " +
-            "build), per F.W2.",
+            "`gates` job (library-scoped), the `demo-device-observe` job, or the " +
+            "demo-correctness roster (scripts/demo-roster.mjs), per F.W2.",
     );
 } else {
     passes.push(
         `coverage — all ${gates.length} proof:* gates are invoked in CI ` +
-            `(${EXCLUDED.size} recorded exclusions); the inv-tagged gates run.`,
+            `(${EXCLUDED.size} recorded exclusions; ${rosterCovered.size} via the ` +
+            `demo-correctness roster + demo-device-observe); the inv-tagged gates run.`,
     );
 }
 
@@ -667,9 +684,12 @@ if (noConcurrency.length > 0) {
     }
 }
 
-// ── ci.yml job partition (shared by clauses 6 + 7): split ci.yml into the two
-// jobs by their top-level `<name>:` keys at 4-space indent (`gates:` / `demo-smoke:`).
-// The `gates` job is the FAST library job; `demo-smoke` is the SLOW browser job. ───
+// ── ci.yml job partition (shared by clauses 6 + 7): split ci.yml into its jobs
+// by their top-level `<name>:` keys at 4-space indent. The `gates` job is the
+// FAST library job; S.A2 split the former SLOW `demo-smoke` browser job into
+// `demo-correctness` (BLOCKING · the report-all roster) + `demo-device-observe`
+// (OBSERVE-ONLY · job-level continue-on-error). `demoJob` is the union demo
+// surface the placement/tripwire clauses reason over. ─────────────────────────
 const jobBounds = (() => {
     const lines = ci.split("\n");
     const heads = [];
@@ -684,59 +704,54 @@ const jobBounds = (() => {
         const end = idx + 1 < heads.length ? heads[idx + 1].line : lines.length;
         return lines.slice(start, end).join("\n");
     };
-    return { gatesJob: span("gates"), demoJob: span("demo-smoke") };
+    const demoCorrectnessJob = span("demo-correctness");
+    const demoObserveJob = span("demo-device-observe");
+    return {
+        gatesJob: span("gates"),
+        demoCorrectnessJob,
+        demoObserveJob,
+        demoJob: demoCorrectnessJob + "\n" + demoObserveJob,
+    };
 })();
 
-// ── clause 6 (Q.WA3 S1): terminal-aggregate-excludes-bornred ──────────────────
-// The demo-smoke terminal `check-failures` aggregator must NOT add any born-RED-by-
-// design tripwire to its BLOCKING exit-1 set. Including a born-RED tripwire there
-// made demo-smoke STRUCTURALLY NEVER green → the deploy-of-record (gated on a green
-// demo-smoke) could never fire. The remaining tripwire (peer-satisfied)
-// is the EXCLUDED-set member that rides
-// CI as a RECORDED report-all tripwire, never as a blocking aggregator member. We
-// derive the born-RED set from the EXCLUDED tripwires that STILL EXIST as
-// package.json keys (so a retired one — e.g. the gates deleted at Q.WA2 / R.W0 — is
-// simply not demanded), and assert NONE appears in a blocking `failed="$failed …"` line.
+// ── clause 6 (Q.WA3 S1, RE-GROUNDED at S.A2): bornred-tripwire-not-blocking ────
+// A born-RED-by-design tripwire (peer-satisfied) must NEVER gate deploy. Under
+// S.A2 the blocking surface is the demo-correctness ROSTER (CORRECTNESS_ROSTER)
+// run by the report-all driver — a born-RED tripwire in that set would make
+// demo-correctness STRUCTURALLY never green → the deploy-of-record (gated on a
+// green demo-correctness) could never fire. The tripwire instead rides
+// demo-device-observe as a step-level continue-on-error step, RECORDED not
+// blocking. This clause asserts BOTH: (a) no present born-RED tripwire is in the
+// blocking correctness roster, and (b) each present tripwire that IS wired in the
+// demo surface rides the OBSERVE job (with continue-on-error), never a blocking
+// step. ────────────────────────────────────────────────────────────────────────
 {
-    const BORNRED_TRIPWIRES = [
-        "proof:peer-satisfied",
-    ].filter((g) => g in pkg.scripts); // only those still present
-    // Find the check-failures step body (everything from its `- name: …check-failures`
-    // anchor to the end of the demo job — the aggregator is the demo job's tail step).
-    const lines = jobBounds.demoJob.split("\n");
-    const cfIdx = lines.findIndex((l) => /check-failures/.test(l));
-    const aggregator = cfIdx === -1 ? "" : lines.slice(cfIdx).join("\n");
-    if (cfIdx === -1) {
+    const presentTripwires = BORNRED_TRIPWIRES.filter((g) => g in pkg.scripts);
+    const inBlockingRoster = presentTripwires.filter((g) =>
+        CORRECTNESS_ROSTER.includes(g),
+    );
+    // A tripwire wired into demo-correctness as a raw blocking step (should be none).
+    const inCorrectnessJob = presentTripwires.filter((g) =>
+        new RegExp(`run: npm run ${g.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
+            jobBounds.demoCorrectnessJob,
+        ),
+    );
+    if (inBlockingRoster.length > 0 || inCorrectnessJob.length > 0) {
         failures.push(
-            "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke job has NO " +
-                "`check-failures` terminal aggregator step; the report-all exit gate is missing.",
+            "bornred-tripwire-not-blocking (Q.WA3 S1 / S.A2) — born-RED-by-design tripwire(s) " +
+                "sit on the BLOCKING demo-correctness surface: " +
+                [...new Set([...inBlockingRoster, ...inCorrectnessJob])].join(", ") +
+                ". A born-RED tripwire in the blocking roster/job makes demo-correctness " +
+                "STRUCTURALLY never green → the deploy-of-record stays dead. Move it to " +
+                "demo-device-observe (step continue-on-error, RECORDED), out of CORRECTNESS_ROSTER.",
         );
     } else {
-        // A gate is in the BLOCKING set iff a line adds it to `failed` (NOT `bornred`).
-        const blockingBornred = BORNRED_TRIPWIRES.filter((gate) => {
-            const id = gate.replace(/^proof:/, "proof-");
-            const re = new RegExp(
-                `steps\\.${id.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\.outcome[\\s\\S]*?failed="\\$failed ${id.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}"`,
-            );
-            return re.test(aggregator);
-        });
-        if (blockingBornred.length > 0) {
-            failures.push(
-                "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke terminal " +
-                    "aggregator ADDS born-RED-by-design tripwire(s) to its BLOCKING `failed` set: " +
-                    blockingBornred.join(", ") +
-                    ". A born-RED tripwire in the exit-1 set makes demo-smoke STRUCTURALLY " +
-                    "never green → the deploy-of-record stays dead. RECORD it (a `bornred` " +
-                    "annotation), do NOT block on it.",
-            );
-        } else {
-            passes.push(
-                "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke terminal " +
-                    `aggregator's BLOCKING set excludes all ${BORNRED_TRIPWIRES.length} ` +
-                    `present born-RED tripwire(s) [${BORNRED_TRIPWIRES.join(", ") || "none"}]; ` +
-                    "they are RECORDED (annotated), not blocking — demo-smoke can go green.",
-            );
-        }
+        passes.push(
+            "bornred-tripwire-not-blocking (Q.WA3 S1 / S.A2) — all " +
+                `${presentTripwires.length} present born-RED tripwire(s) [${presentTripwires.join(", ") || "none"}] ` +
+                "are OUT of the blocking demo-correctness roster; they ride demo-device-observe " +
+                "as RECORDED (continue-on-error) steps — demo-correctness can go green.",
+        );
     }
 }
 
@@ -792,9 +807,14 @@ const jobBounds = (() => {
             src,
         );
     };
-    // The set of static (browser-less) gates that are CI-invoked.
+    // The set of gates that ride the demo tier: textually in either demo job OR a
+    // member of the demo roster (S.A2 — the correctness roster is run as ONE step,
+    // so its members are not textual `npm run` lines but still ride the slow tier).
     const ciGateKeys = [
-        ...new Set([...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1])),
+        ...new Set([
+            ...[...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1]),
+            ...ALL_DEMO_GATES,
+        ]),
     ];
     const misplaced = [];
     for (const gate of ciGateKeys) {
@@ -802,14 +822,12 @@ const jobBounds = (() => {
         if (EXCLUDED.has(gate)) continue; // aggregators / tripwires handled elsewhere
         if (STATIC_DEMO_CARVEOUT.has(gate)) continue; // named carve-out
         if (opensBrowser(gate)) continue; // legitimately browser-bound → demo job
-        // It is a static (browser-less) gate. It must ride the gates job, NOT demo-smoke.
-        const id = gate.replace(/^proof:/, "proof-");
-        const inDemo = new RegExp(`run: npm run ${gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
-            jobBounds.demoJob,
-        );
-        const inGates = new RegExp(`run: npm run ${gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
-            jobBounds.gatesJob,
-        );
+        // It is a static (browser-less) gate. It must ride the gates job, NOT the demo tier.
+        const esc = gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&");
+        const inDemo =
+            ALL_DEMO_GATES.includes(gate) ||
+            new RegExp(`run: npm run ${esc}\\b`).test(jobBounds.demoJob);
+        const inGates = new RegExp(`run: npm run ${esc}\\b`).test(jobBounds.gatesJob);
         // A born-RED demo tripwire (peer-satisfied et al) needs the registry glass-ui
         // install (demo job context) — already EXCLUDED above; this is the static set.
         if (inDemo && !inGates) {
@@ -819,7 +837,8 @@ const jobBounds = (() => {
     if (misplaced.length > 0) {
         failures.push(
             "static-gate-placement (Q.WA3 S4) — these browser-less static gate(s) ride the " +
-                "slow demo-smoke job instead of the fast library `gates` job (the F-7 harden): " +
+                "slow demo tier (demo-correctness roster / demo-device-observe) instead of the " +
+                "fast library `gates` job (the F-7 harden): " +
                 misplaced.join(", ") +
                 ". A pure source grep / graph-walk must ride the fast job (it pays no browser " +
                 "wall-clock + dodges the slow-Linux render-race class) — migrate it, or add a " +
@@ -832,6 +851,41 @@ const jobBounds = (() => {
                 "pre-existing-RED source gates + the build-dependent demo gates — stay on " +
                 "demo-smoke's report-all surface by recorded reason). The F-7 device harden holds.",
         );
+    }
+}
+
+// ── clause 8 (S.A2, the hard clause): demo-correctness carries ZERO step-level
+// `continue-on-error` masking (SPEC §3 S.A2 · x2-#2 falsifiability). The blocking
+// correctness tier's report-all is INSIDE the roster driver (one step), so no step
+// needs continue-on-error; a residual one would mask a red and let a broken demo
+// deploy. The OBSERVE job legitimately carries continue-on-error (it is the
+// observe tier); this clause is scoped to demo-correctness alone. ──────────────
+{
+    if (!jobBounds.demoCorrectnessJob) {
+        failures.push(
+            "no-mask (S.A2) — the `demo-correctness` job is ABSENT from ci.yml; the S.A2 " +
+                "demo-gate split did not land (or the job was renamed). Re-ground the gate.",
+        );
+    } else {
+        const coeLines = jobBounds.demoCorrectnessJob
+            .split("\n")
+            .map((l, i) => ({ l, i }))
+            .filter(({ l }) => /^\s*continue-on-error\s*:/.test(l));
+        if (coeLines.length > 0) {
+            failures.push(
+                "no-mask (S.A2) — the BLOCKING `demo-correctness` job carries " +
+                    `${coeLines.length} \`continue-on-error\` line(s) — that is masking. The tier's ` +
+                    "report-all lives INSIDE the roster driver (one step); no step needs " +
+                    "continue-on-error. Remove it (a residual mask lets a broken demo deploy). " +
+                    "The observe tier (demo-device-observe) is the only place continue-on-error belongs.",
+            );
+        } else {
+            passes.push(
+                "no-mask (S.A2) — the BLOCKING `demo-correctness` job carries ZERO " +
+                    "`continue-on-error` (the report-all is inside the roster driver); no masking " +
+                    "can let a broken demo deploy.",
+            );
+        }
     }
 }
 
