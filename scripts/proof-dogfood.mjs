@@ -12,21 +12,22 @@
  *   - useEasingDemo ping-pong         → NumericAnimation({ direction: "alternate" })
  *   - useRafLoop lifecycle            → RAFPlayback.loop (Vue-lifecycle skin)
  *
- * Two raw-rAF sites legitimately remain — they are NOT animation loops a
+ * The raw-rAF sites that legitimately remain are NOT animation loops a
  * light engine replaces, so they are an EXPLICIT, reviewable allowlist
  * (`ALLOWLIST` below), not a blanket "demo rAF is fine":
  *
- *   1. demo/scenes/amiga/AmigaScene.vue
- *        the Three.js present loop (controls.update() + renderer.render()) — the
- *        WebGL renderer's draw cycle, legitimately NOT a keyframes.js concern
- *        (the sphere's MOTION is engine-driven via AnimationGroup).
- *   2. demo/@/components/custom/matrix-editor/useTransformState.ts (~:205)
+ *   1. demo/@/components/custom/matrix-editor/useTransformState.ts (~:205)
  *        a one-shot post-paint scheduler (write-coalescing debounce) — the
  *        engine has no "run once next frame" surface and shouldn't grow one.
+ *   2. demo/@/components/custom/CopyButton.vue — see the inline note below.
  *
- * (A third site, timeline/composables/useTimeline.ts, was allowlisted while it
- * held a one-shot await-one-paint before a snapshot; D.W1's decomposition
- * transposed that primitive away, so the entry was pruned as stale.)
+ * (Two earlier sites were pruned as stale when their exceptions died:
+ * timeline/composables/useTimeline.ts held a one-shot await-one-paint that
+ * D.W1's decomposition transposed away; demo/scenes/amiga/AmigaScene.vue held
+ * the Three.js present loop until the scene-fusion refactor moved presentation
+ * onto the engine's MANAGED RAFPlayback driver (useAmigaThree.ts) — zero raw
+ * rAF remains under demo/scenes/amiga/, so the exception was removed at S.A0
+ * per this gate's own stale-allowlist clause.)
  *
  * The gate greps demo SOURCE (EXCLUDING `dist/` — the git-ignored build output
  * that pollutes a naive grep, plan-findings PART 3 finding 13) for
@@ -71,7 +72,6 @@ const RAF = /\brequestAnimationFrame\b/g;
 // POSIX paths (compared against the same) so the manifest is human-reviewable
 // and a new exception is a deliberate diff to THIS array.
 const ALLOWLIST = new Set([
-    "demo/scenes/amiga/AmigaScene.vue",
     "demo/@/components/custom/matrix-editor/useTransformState.ts",
     // E.W11 a11y: a ONE-SHOT rAF (not a loop) to re-arm the aria-live region —
     // clear `liveStatus` then set it on the next paint frame so a repeat copy
