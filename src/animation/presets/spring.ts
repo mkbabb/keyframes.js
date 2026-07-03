@@ -5,20 +5,21 @@
  * reach for the in-house analytic spring via `springTimingFunction` — the same
  * solver `springLinearStops` drives, paired with its CSS `linear()` twin so a
  * WAAPI delegation runs the true overshoot on the compositor. `(response,
- * dampingFraction)` is the SwiftUI-canonical surface; the four `SPRING_*`
- * constants mirror the glass-ui `--spring-*` token presets (smooth / snappy /
- * bouncy / gentle) — the single source of truth for the spring vocabulary.
+ * dampingFraction)` is the SwiftUI-canonical surface; the three `SPRING_*`
+ * constants mirror the glass-ui `--spring-*` token presets this module's
+ * factories reach for (snappy / bouncy / gentle) — the single source of truth
+ * for the spring vocabulary. (S.C3a deleted the unused fourth, `SPRING_SMOOTH`
+ * — zero factories referenced it; the `--spring-smooth` glass-ui token itself
+ * is unaffected, this was a dead LOCAL mirror, not the token.)
  */
 import { CSSKeyframesAnimation } from "../engine";
 import { springTimingFunction } from "../physics/spring";
 import type { InputAnimationOptions } from "../constants";
 
-/** The four canonical iOS spring presets, as typed `Easing` curves. */
-const SPRING_SMOOTH = { response: 0.5, dampingFraction: 0.86 } as const;
+/** The three canonical iOS spring presets this module's factories use, as typed `Easing` curves. */
 const SPRING_SNAPPY = { response: 0.35, dampingFraction: 0.78 } as const;
 const SPRING_BOUNCY = { response: 0.5, dampingFraction: 0.5 } as const;
 const SPRING_GENTLE = { response: 0.7, dampingFraction: 0.95 } as const;
-void SPRING_SMOOTH;
 
 const springScaleInKeyframes = /*css*/ `
   0% {
