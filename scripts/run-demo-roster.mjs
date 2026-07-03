@@ -55,6 +55,11 @@ const flag = (name, def) => {
 };
 const tier = flag("tier", "correctness");
 const workers = Math.max(1, Number(flag("workers", 1)) || 1);
+// A per-gate wall-clock CEILING so ONE hung gate cannot consume the whole 50m job
+// budget (the report-all must still verdict every OTHER gate). Playwright's own
+// timeouts should fire first; this is the defensive backstop. Not a settle race —
+// it is a subprocess kill, not a page.waitForTimeout.
+const gateTimeoutMs = Math.max(30, Number(flag("gate-timeout", 300)) || 300) * 1000;
 const only = flag("only", "")
     .split(",")
     .map((s) => s.trim())
@@ -115,7 +120,7 @@ const childEnv = {
     KF_SHARED_DIST_DIR: snapshot,
 };
 
-/** Run ONE gate as a subprocess; resolve its { gate, code, ms }. */
+/** Run ONE gate as a subprocess; resolve its { gate, code, ms, timedOut }. */
 function runGate(gate) {
     return new Promise((resolve) => {
         const t0 = Date.now();
@@ -125,11 +130,20 @@ function runGate(gate) {
             env: childEnv,
             stdio: "inherit",
         });
-        child.on("close", (code) => {
+        let timedOut = false;
+        const timer = setTimeout(() => {
+            timedOut = true;
+            console.error(`  ✗ ${gate} — exceeded the per-gate ceiling (${gateTimeoutMs / 1000}s) — killed.`);
+            child.kill("SIGTERM");
+            setTimeout(() => child.kill("SIGKILL"), 5000).unref();
+        }, gateTimeoutMs);
+        const done = (code) => {
+            clearTimeout(timer);
             healGhPages(); // heal a mid-roster dist wipe before the next gate
-            resolve({ gate, code: code ?? 1, ms: Date.now() - t0 });
-        });
-        child.on("error", () => resolve({ gate, code: 1, ms: Date.now() - t0 }));
+            resolve({ gate, code: timedOut ? 1 : code ?? 1, ms: Date.now() - t0, timedOut });
+        };
+        child.on("close", (code) => done(code));
+        child.on("error", () => done(1));
     });
 }
 
