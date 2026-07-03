@@ -500,6 +500,32 @@ export async function withBrowser(fn, { launch = {}, label } = {}) {
             label,
         );
     }
+    // ── S.A2 S2 — the NET-DELETION seam (ONE shared chromium). When the roster
+    // driver (scripts/run-demo-roster.mjs) provides KF_SHARED_BROWSER_WS, CONNECT
+    // to its already-launched chromium instead of launching a fresh one — the
+    // ~50-launch surface amortises onto one instance. `browser.close()` on a
+    // connected browser closes only THIS connection (+ its contexts); the roster's
+    // launchServer persists for the next gate. A connect failure is a transient
+    // that falls through to the local-launch path below (the gate is never worse
+    // off than pre-net-deletion).
+    const sharedWs = process.env.KF_SHARED_BROWSER_WS;
+    if (sharedWs) {
+        let browser = null;
+        try {
+            browser = await chromium.connect(sharedWs);
+        } catch {
+            browser = null; // fall through to the local-launch path
+        }
+        if (browser) {
+            const unregister = registerTeardown(() => browser.close());
+            try {
+                return { skipped: false, value: await fn(browser) };
+            } finally {
+                unregister();
+                await browser.close().catch(() => {});
+            }
+        }
+    }
     // J.W4 fix-round-1 (the launch-flake closed-guard — the W3 single-source seam).
     // A bounded retry around the chromium LAUNCH only: on a shared/contended host
     // the GPU/network-service process can crash during launch, surfacing as
@@ -575,7 +601,7 @@ export async function withBrowser(fn, { launch = {}, label } = {}) {
  */
 export async function withPage(opts, fn) {
     const {
-        distDir = path.resolve(
+        distDir: distDirOpt = path.resolve(
             path.dirname(fileURLToPath(import.meta.url)),
             "../../dist/gh-pages",
         ),
@@ -584,26 +610,54 @@ export async function withPage(opts, fn) {
         serve = {},
         label,
     } = opts ?? {};
-    if (!fs.existsSync(path.join(distDir, "index.html"))) {
+    // ── S.A2 S2 — the NET-DELETION seam (ONE served dist, wipe-immune). When the
+    // roster driver provides KF_SHARED_DIST_DIR it is a STABLE SNAPSHOT of the
+    // built demo — served ONCE by the roster and immune to a mid-roster
+    // `build:lib` that empties the real dist/ (the observed cascade: a gate that
+    // runs build:lib emptied dist/gh-pages, redding every concurrent gate with a
+    // false HarnessRequiredError). The snapshot dir OVERRIDES any explicit
+    // per-gate distDir so no gate re-binds to the wipeable tree. KF_SHARED_DIST_URL
+    // is the roster's already-running server; a gate reuses it UNLESS it needs its
+    // own serve options (e.g. `serve.onMiss`, the honest-404 recorder), in which
+    // case it serves its own tiny server off the same snapshot dir.
+    const sharedDir = process.env.KF_SHARED_DIST_DIR;
+    const sharedUrl = process.env.KF_SHARED_DIST_URL;
+    const distDir = sharedDir ?? distDirOpt;
+    // The existence check is skipped when the roster's shared server holds the
+    // snapshot (the gate need not see dist on disk at all — the cascade cure);
+    // otherwise the (possibly-snapshot) dir must carry the built index.html.
+    if (!sharedUrl && !fs.existsSync(path.join(distDir, "index.html"))) {
         return harnessUnavailable(
             "dist/gh-pages not built (run `npm run gh-pages` first)",
             label,
         );
     }
+    // Reuse the shared server iff one is offered AND this gate needs no bespoke
+    // serve options (onMiss et al) — those gates serve their own off the snapshot.
+    const reuseSharedServer =
+        !!sharedUrl && Object.keys(serve).length === 0;
     return withBrowser(
         async (browser) => {
-            const server = await serveDist(distDir, serve);
-            const unregisterServer = registerTeardown(() => server.close());
+            let server = null;
+            let unregisterServer = null;
+            let url;
+            if (reuseSharedServer) {
+                url = sharedUrl;
+            } else {
+                server = await serveDist(distDir, serve);
+                unregisterServer = registerTeardown(() => server.close());
+                url = server.url;
+            }
             const context = await browser.newContext(contextOpts);
             const unregisterCtx = registerTeardown(() => context.close());
             try {
                 const page = await context.newPage();
-                return await fn(page, { url: server.url, server, browser, context });
+                return await fn(page, { url, server, browser, context });
             } finally {
                 unregisterCtx();
-                unregisterServer();
+                if (unregisterServer) unregisterServer();
                 await context.close();
-                await server.close();
+                if (server) await server.close();
             }
         },
         { launch, label },
