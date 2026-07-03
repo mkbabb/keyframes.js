@@ -126,7 +126,23 @@ export function transition(state: MachineState, event: SceneEvent): MachineState
         }
 
         case "PLAY": {
-            if (status === "idle" || status === "loading") return state;
+            if (status === "idle") return state;
+            // S.A0 — queue-then-start-on-arm (the amiga cold-race, reproduced on
+            // the Linux runner + locally under 20× CPU throttle): on a slow
+            // device the dock play gesture can land while the scene chunk is
+            // still LOADING. Dropping the event here (the pre-S.A0 behavior)
+            // silently discarded a real user gesture while the transport's
+            // optimistic aria flipped to "Pause" — the machine never entered
+            // `playing` and the engine never started. Instead, RECORD the intent
+            // onto the scene's snapshot (status stays `loading`); the arriving
+            // SCENE_READY reads `snap.playing` and starts playback — the first
+            // gesture a human makes WORKS, however slow the device.
+            if (status === "loading") {
+                return {
+                    status,
+                    context: writeSnapshot(context, { playing: true, started: true }),
+                };
+            }
             return {
                 status: "playing",
                 context: writeSnapshot(context, { playing: true, started: true }),
@@ -134,7 +150,17 @@ export function transition(state: MachineState, event: SceneEvent): MachineState
         }
 
         case "PAUSE": {
-            if (status === "idle" || status === "loading") return state;
+            if (status === "idle") return state;
+            // Symmetric un-queue: a second press during loading (the transport
+            // now honestly reads "Pause" for a queued play) withdraws the queued
+            // intent — SCENE_READY then rests `paused`, exactly what the user
+            // asked for. Status stays `loading`.
+            if (status === "loading") {
+                return {
+                    status,
+                    context: writeSnapshot(context, { playing: false }),
+                };
+            }
             return {
                 status: "paused",
                 context: writeSnapshot(context, { playing: false }),

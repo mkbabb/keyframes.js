@@ -61,7 +61,26 @@ export function createGroupAdapter(
         },
 
         restore(snap: PlaybackSnapshot): void {
-            restoreGroupPlaybackState(getGroup(), snap);
+            const group = getGroup();
+            // S.A0 — the QUEUED fresh-play intent (the amiga cold-race): a PLAY
+            // that lands while the scene chunk is still LOADING is recorded by
+            // the reducer as {playing:true, started:true, animations:{}} — a
+            // snapshot with NO per-animation clocks (a live group's snapshot()
+            // always carries its children's entries; only the pre-arm queue is
+            // empty). There is nothing to re-seat: this is a START, not a
+            // restore — `group.play()` is the total, jump-free path (the same
+            // semantics resume() has for a never-started group). A fresh-empty
+            // snapshot with playing:false (a withdrawn queue / a never-played
+            // scene) rests as-is — the cold default keeps the engine off until
+            // a gesture.
+            if (Object.keys(snap.animations).length === 0) {
+                if (snap.playing) {
+                    if (!group.started) void group.play();
+                    else if (group.paused) group.resume();
+                }
+                return;
+            }
+            restoreGroupPlaybackState(group, snap);
         },
 
         suspend(): void {

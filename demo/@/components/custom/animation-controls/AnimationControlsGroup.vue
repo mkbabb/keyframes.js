@@ -122,10 +122,22 @@ import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardS
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 
-const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs } = defineProps<{
+const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs, machinePlaying } = defineProps<{
     animationGroup: AnimationGroup<any>;
     superKey?: string;
     autoPlay?: boolean;
+    // S.A0 — the machine → transport intent edge (the amiga/hero cold-race).
+    // The transport's local `isPlaying` is written by its OWN gestures
+    // (syncPlayState) and a group-identity watch that samples `group.started` —
+    // but a MACHINE-initiated start (the S.A0 queued play consumed at
+    // SCENE_READY, the hero auto-play) starts the engine via the adapter, and
+    // `group.started` flips only on the FIRST rAF tick, so a transport mounting
+    // around that start can read a stale `false` forever (aria stuck on "Play"
+    // while the engine runs — reproduced under 20× CPU throttle). A
+    // machine-driven host (the App) threads the machine's `playing` status down
+    // this prop; the transport syncs its local ref to that truth. A standalone
+    // host (the playground) omits it — `undefined` never syncs.
+    machinePlaying?: boolean;
     hideControls?: boolean;
     // The mobile STAGE mode-class (H.W7.S1c) — drives the per-mode overlay
     // register: `subject` full-bleeds the fixed stage (cube/amiga/square),
@@ -208,6 +220,21 @@ watch(() => animationGroup, () => {
         syncPlayState();
     }
 }, { flush: 'post' });
+
+// S.A0 — the machine → transport intent edge (see the `machinePlaying` prop
+// note): sync the transport's local ref to the machine's `playing` truth on a
+// machine-initiated start/stop. `immediate: true` covers a transport that
+// mounts AFTER the machine already started the engine (the failing order under
+// throttle). The equality guard terminates the echo (syncPlayState emits →
+// App dispatches the state the machine is already in → the prop is unchanged).
+watch(
+    () => machinePlaying,
+    (v) => {
+        if (v === undefined || v === isPlaying.value) return;
+        syncPlayState(v);
+    },
+    { immediate: true, flush: "post" },
+);
 
 // Auto-play on mount if requested (e.g. when navigating from home to a scene).
 onMounted(() => {

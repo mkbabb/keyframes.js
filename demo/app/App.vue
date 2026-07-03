@@ -106,6 +106,7 @@
         :super-key="currentSuperKey"
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
+        :machine-playing="machinePlaying"
         :stage-mode="stageMode"
         :has-control-surfaces="controlSurfaces.length > 0"
         @play-state-change="onPlayStateChange"
@@ -234,6 +235,12 @@ useSceneMachineRouter();
 
 const currentSceneId = computed(() => machine.activeScene.value);
 const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
+// S.A0 — the machine → transport intent edge: the machine's `playing` status,
+// threaded down EditorShell → AnimationControlsGroup so a MACHINE-initiated
+// start (the queued cold play consumed at SCENE_READY, the hero auto-play)
+// reaches the transport's aria even when `group.started` has not yet flipped
+// (it flips on the first rAF tick — the throttled cold-race read it stale).
+const machinePlaying = computed(() => machine.status.value === "playing");
 const currentScene = computed(() => sceneMap.get(currentSceneId.value) ?? sceneMap.get(HOME_SCENE_ID)!);
 const currentSuperKey = computed(() => currentScene.value.superKey);
 const currentLabel = computed(() => currentScene.value.label ?? "Home");

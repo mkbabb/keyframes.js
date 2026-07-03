@@ -73,13 +73,46 @@ describe("H.W1 reducer — the two orthogonal axes", () => {
         expect(back.context.perScene["cube"]!.started).toBe(true);
     });
 
-    it("PLAY/PAUSE are inert in idle/loading (nothing to play yet)", () => {
+    it("PLAY/PAUSE are inert in idle (nothing to play yet)", () => {
         expect(transition(idleHome(), { type: "PLAY" }).status).toBe("idle");
+        expect(transition(idleHome(), { type: "PAUSE" }).status).toBe("idle");
+    });
+
+    // S.A0 — queue-then-start-on-arm (re-derived from the reproduced amiga
+    // cold-race, C-20): the old law dropped a PLAY that landed while the scene
+    // chunk was still LOADING — on a slow device the dock gesture was silently
+    // discarded while the transport's optimistic aria flipped, so the machine
+    // never entered `playing` and the engine never started (the Linux runner
+    // red; reproduced locally under 20× CPU throttle). The honest law: PLAY
+    // during loading RECORDS the intent onto the snapshot (status stays
+    // `loading`); the arriving SCENE_READY reads `snap.playing` and enters
+    // `playing`. PAUSE during loading withdraws the queued intent.
+    it("PLAY during loading QUEUES the intent; SCENE_READY starts it (the arm consumes the queue)", () => {
         const loading: MachineState = {
             status: "loading",
-            context: { activeScene: "cube", perScene: {} },
+            context: { activeScene: "amiga", perScene: {} },
         };
-        expect(transition(loading, { type: "PAUSE" })).toBe(loading);
+        const queued = transition(loading, { type: "PLAY" });
+        expect(queued.status).toBe("loading"); // the status axis does NOT jump ahead of the arm
+        expect(queued.context.perScene["amiga"]!.playing).toBe(true);
+        expect(queued.context.perScene["amiga"]!.started).toBe(true);
+
+        const armed = transition(queued, { type: "SCENE_READY" });
+        expect(armed.status).toBe("playing"); // the first gesture a human makes WORKS
+    });
+
+    it("PAUSE during loading WITHDRAWS a queued intent; SCENE_READY rests paused", () => {
+        const loading: MachineState = {
+            status: "loading",
+            context: { activeScene: "amiga", perScene: {} },
+        };
+        const queued = transition(loading, { type: "PLAY" });
+        const withdrawn = transition(queued, { type: "PAUSE" });
+        expect(withdrawn.status).toBe("loading");
+        expect(withdrawn.context.perScene["amiga"]!.playing).toBe(false);
+
+        const armed = transition(withdrawn, { type: "SCENE_READY" });
+        expect(armed.status).toBe("paused"); // exactly what the user asked for
     });
 
     it("NAVIGATE to the SAME scene is a no-op (the echo-guard reducer twin)", () => {

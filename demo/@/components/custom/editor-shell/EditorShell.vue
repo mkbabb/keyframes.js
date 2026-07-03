@@ -64,6 +64,7 @@
             :animation-group="animationGroup"
             :super-key="superKey"
             :auto-play="autoPlay"
+            :machine-playing="machinePlaying"
             :hide-controls="showStartScreen"
             :stage-mode="stageMode"
             :has-control-surfaces="hasControlSurfaces"
@@ -124,6 +125,11 @@ const props = withDefaults(
         showStartScreen?: boolean;
         gridBackground?: boolean;
         autoPlay?: boolean;
+        // S.A0 — the machine → transport intent edge, threaded through to
+        // AnimationControlsGroup (see its prop note). A machine-driven host
+        // (the App) passes the machine's `playing` status; a standalone host
+        // (the playground) omits it (undefined — the transport never syncs).
+        machinePlaying?: boolean;
         // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the
         // stage behind the sheet; `editor`/`storyboard` keep a content card.
         // Typed as the union inline (the shared `@` subtree owns its own
