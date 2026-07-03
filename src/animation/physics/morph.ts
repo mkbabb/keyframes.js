@@ -1,5 +1,5 @@
 import { NumericAnimation } from "./numeric";
-import type { Easing, TimingFunction } from "../constants";
+import type { Easing, TimingFunction } from "../constants/types";
 
 export interface MorphRect {
     x: number;

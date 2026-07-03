@@ -84,7 +84,7 @@ import type {
     SequenceSubscriber,
 } from "./events";
 import type { KeyframesAnimation } from "../../engine";
-import type { Vars } from "../../constants";
+import type { Vars } from "../../constants/types";
 
 // The transport-events concern (the `SequenceEvent` union + subscriber shapes +
 // the `SequenceEntry` segment record + the crossing detector) lives in the

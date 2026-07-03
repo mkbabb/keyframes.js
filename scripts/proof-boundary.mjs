@@ -56,6 +56,22 @@
  *      production dependency. This scans the FULL `src/animation/**` tree (the
  *      heavy surface too — `utils.ts` is heavy) for any direct
  *      `@mkbabb/parse-that` import/export specifier; one reddens the gate.
+ *   5.  CONSTANTS/TYPES LIGHT-PURITY (S.B1, SPEC-v3 §3 S.B1; SB-8) — the
+ *      FILE-level clause over `constants/types.ts`, strictly STRONGER than the
+ *      whole-surface boundary scan. The split constants seam's type half must be
+ *      LIGHT-pure: EVERY module edge in it is `import type`/`export type` (erased
+ *      at build), so a light importer that targets `constants/types` can never
+ *      drag value.js into its graph. Any non-type import/re-export line (a value
+ *      `import { defaults }`, a bare side-effect `import "…"`, a runtime
+ *      `export { x } from "…"`) reddens the gate; the file's ABSENCE reddens too
+ *      (born-RED by absence — before the split there is no type module to assert).
+ *   6.  NO LIGHT-ZONE BARE-BARREL IMPORT (S.B1, S2/S3) — every SOURCE module a
+ *      light entry actually reaches (assertion 1's real light surface — NOT a
+ *      hand list) must target `constants/types`, never the BARE `constants`
+ *      barrel (which re-exports the value.js-bearing `constants/defaults`). The
+ *      heavy surface keeps the barrel; the light surface takes types only. Even a
+ *      TYPE-only bare-barrel edge reddens — the requirement is structural (aim at
+ *      the type module), so a future value import through the barrel cannot creep.
  *
  * value.js + parse-that are deliberately NOT externalized, so a
  * reintroduced STATIC edge bundles their source into the entry chunk and
@@ -197,6 +213,63 @@ function collectAnimationSources(dir, acc = []) {
         }
     }
     return acc;
+}
+
+/**
+ * S.B1 assertion 5 (SPEC-v3 §3 S.B1; SB-8) — the FILE-level LIGHT-purity clause
+ * over `constants/types.ts`. The type half of the split constants seam must be
+ * LIGHT-pure: EVERY module edge is `import type`/`export type` (erased at build).
+ * A single non-type import/re-export line re-poisons the purity. The file's
+ * ABSENCE is itself a failure (born-RED by absence: before the split there is no
+ * `constants/types.ts` to assert against).
+ *
+ * Returns { missing, offenders } — offenders are the verbatim offending edges
+ * (a non-type `import … from`/`export … from`, or a bare side-effect `import`).
+ * A local `export type X = …` declaration (no `from`) is NOT a module edge and
+ * never offends; the type-only `import type … from "./defaults"` cycle edge is
+ * permitted (it is `import type`, erased — no runtime value.js reach).
+ */
+function constantsTypesImpurities() {
+    const file = path.join(ANIM, "constants", "types.ts");
+    if (!fs.existsSync(file)) return { missing: true, offenders: [] };
+    const src = fs.readFileSync(file, "utf8");
+    const offenders = [];
+    // Every module edge carrying a `from "…"` (import OR re-export). `[^;]`
+    // crosses newlines (the formatter reflows long specifier lists) but stops at
+    // the statement terminator, so it never spans two statements.
+    for (const m of src.matchAll(
+        /(?:^|\n)(\s*(?:import|export)\b[^;]*?\bfrom\s*["'][^"']+["'])/g,
+    )) {
+        const stmt = m[1].trim();
+        if (!/^(?:import|export)\s+type\b/.test(stmt)) {
+            offenders.push(stmt.replace(/\s+/g, " "));
+        }
+    }
+    // A bare side-effect `import "…"` (no `from`) is always a runtime edge.
+    for (const m of src.matchAll(/(?:^|\n)(\s*import\s+["'][^"']+["'])/g)) {
+        offenders.push(m[1].trim());
+    }
+    return { missing: false, offenders };
+}
+
+/**
+ * S.B1 assertion 6 (SPEC-v3 §3 S.B1 S2/S3) — does a LIGHT source module import
+ * the BARE `constants` barrel instead of the LIGHT-pure `constants/types`? The
+ * barrel re-exports `constants/defaults` (value.js-bearing), so the light
+ * surface must target `constants/types` (S2); the heavy surface keeps the barrel
+ * (S3). Matches an import/export edge whose specifier ENDS at `…/constants` (the
+ * bare barrel) — NOT `…/constants/types` or `…/constants/defaults`. `import type`
+ * is deliberately NOT stripped: the requirement is STRUCTURAL (aim at the type
+ * module, not the barrel), so even a type-only bare-barrel edge reddens, keeping
+ * a future value import through the barrel from creeping in unproven.
+ */
+function holdsBareConstantsBarrelEdge(src) {
+    const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(?:^|\n)\s*\/\/[^\n]*/g, "");
+    return /(?:^|\n)\s*(?:import|export)\b[^;'"]*?\bfrom\s*["'](?:\.\.?\/)+constants["']/.test(
+        stripped,
+    );
 }
 
 /** Parse the barrel's runtime value exports — the light surface the gate proves. */
@@ -422,6 +495,40 @@ async function main() {
         );
     }
 
+    // ── 5. S.B1: constants/types.ts LIGHT-purity (file-level clause) ────
+    // Strictly STRONGER than the whole-surface boundary scan: the split
+    // constants seam's type half must carry ONLY `import type`/`export type`
+    // module edges, so a light importer targeting it can never reach value.js.
+    // The file's ABSENCE reds (born-RED by absence — no type module to assert).
+    {
+        const { missing, offenders } = constantsTypesImpurities();
+        if (missing) {
+            failures.push(
+                `S.B1: src/animation/constants/types.ts does not exist — the ` +
+                    `LIGHT-pure type half of the split constants seam is absent, ` +
+                    `so the file-level purity clause has nothing to assert (born-RED ` +
+                    `by absence).`,
+            );
+            console.log(
+                `  S.B1 constants/types purity: MISSING (constants/types.ts absent)`,
+            );
+        } else {
+            console.log(
+                `  S.B1 constants/types purity: ${offenders.length} non-\`import type\` ` +
+                    `edge(s)`,
+            );
+            if (offenders.length > 0) {
+                failures.push(
+                    `S.B1: constants/types.ts holds a non-\`import type\` module ` +
+                        `edge — the LIGHT-pure type module must carry ONLY ` +
+                        `\`import type\`/\`export type\` edges (a single value ` +
+                        `import re-poisons the light purity):\n    ` +
+                        offenders.join("\n    "),
+                );
+            }
+        }
+    }
+
     console.log("proof:boundary — light-surface static module graphs");
     console.log(
         `  light entries (parsed from the barrel): ${lightExports.length}`,
@@ -546,6 +653,34 @@ async function main() {
                 `light-surface source holds a static "@mkbabb/value.js" ` +
                     `specifier (dead-but-armed):\n    ` +
                     offenders.join("\n    "),
+            );
+        }
+    }
+
+    // ── 6. S.B1: no light-zone bare-`constants`-barrel import ──────────
+    {
+        // Every SOURCE module a light entry actually reaches (assertion 1's real
+        // light surface — the SAME set assertion 4 greps, NOT a hand list) must
+        // target `constants/types`, never the BARE `constants` barrel (which
+        // re-exports the value.js-bearing `constants/defaults`). The heavy
+        // surface keeps the barrel (S3); the light surface takes types only (S2).
+        // Even a TYPE-only bare-barrel edge reds — the requirement is structural.
+        const barrelOffenders = [];
+        for (const id of lightSourceModules) {
+            if (holdsBareConstantsBarrelEdge(fs.readFileSync(id, "utf8"))) {
+                barrelOffenders.push(rel(id));
+            }
+        }
+        console.log(
+            `  S.B1 bare-barrel scan: ${lightSourceModules.size} light source` +
+                ` module(s), ${barrelOffenders.length} bare-\`constants\` edge(s)`,
+        );
+        if (barrelOffenders.length > 0) {
+            failures.push(
+                `S.B1: a LIGHT-zone module imports the BARE \`constants\` barrel ` +
+                    `(value.js-bearing via \`constants/defaults\`) — it must target ` +
+                    `the LIGHT-pure \`constants/types\` instead:\n    ` +
+                    barrelOffenders.join("\n    "),
             );
         }
     }
