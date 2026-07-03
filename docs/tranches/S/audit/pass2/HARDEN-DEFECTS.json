@@ -1,0 +1,79 @@
+[
+ {
+  "lane": "h3-waves-fidelity-EZ",
+  "file": "/Users/mkbabb/Programming/keyframes.js/docs/tranches/S/waves/S.E.md",
+  "severity": "minor",
+  "defect": "S.E.md (line 526) labels S.E6's gate \"Born-SPECIFIED, not born-RED (the external-edge honesty — T12)\", but S.Z.md T4 (line 249) restricts born-SPECIFIED to \"the two publish-coupled S.H4 gates\" (echoed by S.F.md §0 T4 / Appendix C line 753), and SPEC-v3 attributes born-SPECIFIED only to S.H4 (§1 lines 82-83; preamble line 454), describing E6's gate merely as one that \"flips green on the pin.\" This is a genuine cross-doc contradiction on whether E6's gate is born-RED or born-SPECIFIED. It is label-only (no gate clause is lost; E6's RESIDUAL-CARRY/HANDOFF close treatment is identical across all docs), so it does not affect close mechanics — hence minor. S.E.md's reading is the more honest one (an external gate coupled to an unpublished glass-ui 5.0.0 cannot be born-RED in the dev phase), so the reconciliation should broaden the exclusive S.H4 phrasing rather than force E6 back to born-RED.",
+  "fix": "In S.Z.md line 249, change \"its gate ships born-RED or, for the two publish-coupled S.H4 gates, born-SPECIFIED.\" to \"its gate ships born-RED or, for the publish-coupled external edges (S.E6's consume gate + the S.H4 gates), born-SPECIFIED.\" Apply the same broadening to S.F.md's parallel T4 wording (§0 bullet and Appendix C) so all three docs agree that both external consume-edges (E6, H4) carry born-SPECIFIED gates, matching S.E.md line 526."
+ },
+ {
+  "lane": "h1-plan-board",
+  "file": "docs/tranches/S/S.md",
+  "severity": "blocking",
+  "defect": "Dangling cross-references: S.md references per-wave wave-doc files that do not exist. The waves/ directory is organized one file PER BAND (S.A.md, S.B.md, S.C.md, S.D.md, S.E.md, S.F.md, S.G.md, S.H.md, S.Z.md), each internally containing its waves as `## S.<id>` sections (verified: waves/S.B.md contains `## S.B1`, `## S.B2`, EN-a/EN-b homed in S.B3, etc.). But S.md points at per-wave filenames on lines 74 (`waves/S.A0.md`), 523 (`waves/S.F3.md`), 867 (`waves/S.Z1.md`), 1048 (`waves/S.B3.md`), and describes the layout as per-wave `waves/S.<id>.md` on lines 565 and 1044 — all of which resolve to nothing on disk. SPEC-v3 has zero `waves/` references, so these are S.md's own house-format additions and are checkable against reality; every concrete per-wave filename is dangling.",
+  "fix": "Repoint each per-wave reference to its band file (per-band layout is the shipped reality; do NOT create per-wave files). Apply these exact edits in S.md: (L74) replace `waves/S.A0.md` with `waves/S.A.md` (the S.A0 section); (L523) replace `waves/S.F3.md` with `waves/S.F.md`; (L565) replace \"live in `waves/S.<id>.md`.\" with \"live in the per-band `waves/S.<band>.md` files (one file per band; each wave is a `## S.<id>` section within it).\"; (L867) replace `waves/S.Z1.md` with `waves/S.Z.md` (the S.Z1 section); (L1044) replace \"- **`waves/S.<id>.md`** — the executable wave specs\" with \"- **`waves/S.<band>.md`** (one file per band — S.A.md … S.Z.md) — the executable wave specs\"; (L1048) replace \"(EN-a/EN-b live inside `waves/S.B3.md` per C-25).\" with \"(EN-a/EN-b live inside `waves/S.B.md`'s S.B3 section per C-25).\""
+ },
+ {
+  "lane": "h1-plan-board",
+  "file": "docs/tranches/S/S.md",
+  "severity": "minor",
+  "defect": "S.md header (L4) and PROGRESS.md header (L4) both describe `waves/S.*.md` as \"(the per-wave specs)\". The glob matches the band files so this is not dangling, but the wording mis-states granularity — each file is a per-band spec carrying multiple waves.",
+  "fix": "In S.md L4 and PROGRESS.md L4, change \"(the per-wave specs)\" to \"(the per-band wave specs — one file per band)\"."
+ },
+ {
+  "lane": "h2-waves-fidelity-AD",
+  "file": "docs/tranches/S/waves/S.B.md",
+  "severity": "minor",
+  "defect": "Appendix D cross-references use a \"D-<§8 number>\" convention that collides with Appendix D's own 1/2/3 list numbering, so read positionally they mis-resolve. Line 755 (SB-9, the single-writer hard fold, whose Appendix D entry is item #1 tagged §8-3) says \"Appendix D-3\" — positionally that lands on item #3, the loader collapse (wrong target). Lines 559 and 753 say \"Appendix D-5\" for the loader collapse, but Appendix D has only three numbered items (no #5); the item is #3 (tagged §8-5). Self-consistent only if the reader decodes D-N as the §8-N tag rather than the list position.",
+  "fix": "Repoint to list positions: line 755 (SB-9 row) change \"Appendix D-3\" → \"Appendix D-1\"; line 559 change \"Appendix D-5\" → \"Appendix D-3\"; line 753 (SB-7 row) change \"Appendix D-5\" → \"Appendix D-3\". (Leaves the §8-3/§8-4/§8-5 tags in the item titles intact as the SPEC anchors.)"
+ },
+ {
+  "lane": "h2-waves-fidelity-AD",
+  "file": "docs/tranches/S/waves/S.D.md",
+  "severity": "minor",
+  "defect": "S.D.md's header (lines 1-8) omits the standardized DEV-phase blockquote that S.A/S.B/S.C all carry and asserts a WEAKER self-containment contract: line 4 states \"This document + the SPEC-v3 evidence + PROGRESS.md's board ARE the S.D deliverable,\" whereas the three sibling docs each promise \"transcribed with zero load-bearing loss ... an implementer must NOT need to read SPEC-v3.\" This is an inconsistency in the doc set's stated self-sufficiency contract (S.D explicitly folds \"the SPEC-v3 evidence\" into its deliverable).",
+  "fix": "Replace the S.D.md lines 1-9 header with the sibling blockquote form used verbatim in S.A/S.B/S.C.md (\"> **This is a TRANCHE-DEVELOPMENT phase, NOT implementation.** This document is the wave-spec for band **S.D** of Tranche S, transcribed with zero load-bearing loss from the converged **SPEC-v3** ... an implementer must NOT need to read SPEC-v3. ... **Branch:** `tranche-s-dev` · **Track:** demo.\"), keeping the existing Charter/Mode/DAG content below it."
+ },
+ {
+  "lane": "h2-waves-fidelity-AD",
+  "file": "docs/tranches/S/waves/S.D.md",
+  "severity": "minor",
+  "defect": "S.D.md has no \"Appendix C — DEV→IMPL boundary\" section, which S.A/S.B/S.C each carry. The T5 clause it contains (parallel drives re-run every touched gate from a clean independent checkout; \"pre-existing\" claims verified by triage, never accepted; node_modules symlinks never git-added) is therefore not restated for the S.D band; only T4/inv-16/S.Z2 survive (compressed into the header, lines 5-8).",
+  "fix": "Append an \"## Appendix C — DEV→IMPL boundary (binding for every S.D wave)\" section mirroring S.C.md lines 478-491, retargeted to S.D: restate T4/inv-16/S.Z2 re-execution, PROGRESS.md exit-code recording, and the T5 clean-checkout/triage/no-symlink-git-add discipline (T5, a15)."
+ },
+ {
+  "lane": "h2-waves-fidelity-AD",
+  "file": "docs/tranches/S/waves/S.D.md",
+  "severity": "minor",
+  "defect": "Structural parity gap vs siblings and vs S.D1: S.D2, S.D3, and S.D4 lack a discrete \"### Verification\" section (S.D1 has one at line 138; every S.A/S.B/S.C wave has one). S.D2's verification content is embedded as \"Verification run (mandatory triple)\" inside the gate block (line 240); S.D3/S.D4 have none. S.D2 also folds its falsifiability plant into the witness plan rather than a discrete \"### Falsifiability\" heading (present in D1/D3/D4).",
+  "fix": "Add explicit \"### Verification\" subsections to S.D2 (promote the mandatory `check` AND `gh-pages` AND vitest-after-`build:lib` triple), S.D3 (proof:compose-scene GREEN re-run on merged tree after S.G close; runtime-tier), and S.D4 (proof:claude-paths-live extended over demo/CLAUDE.md green), each closing with \"Development-only; born-RED; re-run at S.Z2\" per the sibling pattern; and give S.D2 a discrete \"### Falsifiability\" heading over its existing plant sentence."
+ },
+ {
+  "lane": "h4-mechanical",
+  "file": "docs/tranches/S/PROGRESS.md",
+  "severity": "blocking",
+  "defect": "Open-deferrals ledger row 49 (line 206) contains a literal escaped pipe `packratEnter(): PackratEpoch \\| null`. parseChronicTable splits cells on `.split(\"|\")`, which does NOT honor markdown `\\|` escaping, so the row parses as 7 cells instead of 6. The header-resolved closure column is fixed index 5, so the parser reads only the truncated fragment `` `PACKRAT_ARMED` latch; `packratEnter(): PackratEpoch \\` `` and DROPS the real closure content (the `Oracle:` born-RED clause + §8-13 ref, which land in cells[6]). This directly violates the doc's own line-122 claim that the rows are 'ONE flat table (the R/Q/L/K/J/I shape parseChronicTable accepts byte-for-byte)'. Confirmed by running the parser against S: row 49 spuriously reds ('names NO load-bearing proof:* gate and no non-gate mechanism') because its closure text is severed.",
+  "fix": "On line 206 replace `packratEnter(): PackratEpoch \\| null` with `packratEnter(): PackratEpoch or null` (remove the literal pipe entirely — no `\\|` escape works with a naive split). Exact edit: change `PackratEpoch \\| null` to `PackratEpoch or null`."
+ },
+ {
+  "lane": "h4-mechanical",
+  "file": "docs/tranches/S/PROGRESS.md",
+  "severity": "minor",
+  "defect": "The same literal escaped pipe `packratEnter(): PackratEpoch \\| null` appears in the wave-board table on line 75 (S.H1 row). The wave board is not the proof:chronic-closure parse target so it does not break that gate, but it is the identical malformed-cell hazard and should be fixed for consistency (any future board-parsing gate would hit the 8-cell split observed).",
+  "fix": "On line 75 replace `PackratEpoch \\| null` with `PackratEpoch or null` (same fix as row 49)."
+ },
+ {
+  "lane": "h4-mechanical",
+  "file": "docs/tranches/S/PROGRESS.md",
+  "severity": "minor",
+  "defect": "Census gap: `proof:dts-rollups-agree` (ledger row 38, line 195; wave-board line 44; S.B wave doc) is cited only as 'frozen NOW, before zoning churns options' with no explicit NEW/born-RED/author marker. It does not exist in package.json scripts, and every other net-new S gate carries an explicit tag (`proof:no-any-default` = 'Development-only; born-RED'; `proof:engine-subpath-mirror` = 'born-RED plant'; `proof:scene-registry-mounts`/`proof:gesture-manifest` = '(NEW)'; etc.). Under the census rule this reads as an un-authored dangling name.",
+  "fix": "In the S.B6 scope prose and/or ledger row 38, mark it explicitly, e.g. change ``proof:dts-rollups-agree` frozen NOW` to ``proof:dts-rollups-agree` (NEW; authored + frozen at S.B6) frozen NOW` so the gate-name census sees an explicit authored-by-wave tag, matching its sibling gates."
+ },
+ {
+  "lane": "h4-mechanical",
+  "file": "docs/tranches/S/PROGRESS.md",
+  "severity": "minor",
+  "defect": "Coverage-token risk: the S ledger splits the DM-11 chronic into two Item-column rows 'DM-11a spring-slider-continuous' (row 9) and 'DM-11b subject-animates' (row 10). The proof:chronic-closure EXPECTED coverage clause greps the Item column with /\\bDM-11\\b/, which matches NEITHER 'DM-11a' nor 'DM-11b' (no word boundary after '11'). When S.A1 re-points the gate to S/PROGRESS.md, unless the EXPECTED regex is co-edited the DM-11 coverage check reds as a false 'chronic silently dropped'. The bare 'DM-11' token only appears in a closure cell (row 9), not an Item cell.",
+  "fix": "Ensure the DM-11 token survives coverage: either (doc-side) reword row 9's Item to 'DM-11 (a) spring-slider-continuous' so 'DM-11 ' carries a word boundary matching /\\bDM-11\\b/, or record in the S.A1 wave that the gate's EXPECTED DM-11 entry must be co-edited to /\\bDM-11[ab]?\\b/ as part of the R→S re-point + re-shape."
+ }
+]
