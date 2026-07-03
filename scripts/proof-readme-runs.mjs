@@ -24,7 +24,7 @@
  *      (the S1b set: the light barrel's runtime exports + the AnimationEngine
  *      keys from the d.ts roll-up) MUST contain ≥1 runnable-tagged fence; the
  *      total runnable count must meet that roster floor; and each HEAVY front
- *      door taught (`animate`, `MotionPath`/`fromMotionPath`,
+ *      door taught (`MotionPath`/`fromMotionPath`,
  *      `DrawSVG`/`fromDrawSVG`) must be exercised by ≥1 runnable snippet.
  *      The degenerate case — IMPL tags ZERO snippets runnable — REDs: the
  *      floor is the roster size, the set is empty.

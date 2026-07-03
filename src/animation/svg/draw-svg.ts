@@ -99,7 +99,7 @@ const asFraction = (v: string | number): number => {
  * ONCE, set `stroke-dasharray` to that length (one solid full-length dash), and
  * sweep `stroke-dashoffset` from → to (default `0% → 100%` ⇒ offset `L → 0`,
  * the line draws in). Returns the constructed {@link CSSKeyframesAnimation} as
- * the control handle (the `animate()` contract — `.play()` / `.pause()` /
+ * the control handle (the control-handle contract — `.play()` / `.pause()` /
  * `.stop()` / `.finished`), consistent with the `from*` factory family.
  *
  * The returned animation passes the EXISTING WAAPI eligibility gate
@@ -169,7 +169,7 @@ export function fromDrawSVG<V extends Record<string, any> = any>(
     if (autoPlay) {
         // Fire the play loop; the handle carries the play promise via its own
         // re-entrant `play()`. We do NOT await — the handle IS the control
-        // surface (the `animate()` contract).
+        // surface (the control-handle contract).
         void animation.play();
     }
 

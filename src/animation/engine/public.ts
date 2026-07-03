@@ -9,8 +9,7 @@
  * (`engine/index.ts`), so `import { AnimationGroup } from
  * "@mkbabb/keyframes.js/engine"` resolved to `undefined` — the subpath carried
  * the engine core only. This barrel closes that gap: it re-exports the full
- * cross-zone surface so the subpath's runtime keys ⊇ `loadAnimationEngine()`'s
- * (minus `animate`, which R.W4 excised from the published surface).
+ * cross-zone surface so the subpath's runtime keys ⊇ `loadAnimationEngine()`'s.
  *
  * WHY A SEPARATE BARREL (not `engine/index.ts`):
  *   `engine/index.ts` is ZONE-PURE — a zone barrel re-exports ONLY its own zone

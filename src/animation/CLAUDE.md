@@ -19,10 +19,10 @@ Core animation engine. Library entry point is `index.ts` → `dist/keyframes.js`
 - **HEAVY (dynamic)** — the CSS-keyframe parsing engine in `engine.ts` plus the
   front doors that construct it: `Animation`, `CSSKeyframesAnimation`,
   `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`,
-  `animate`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, the
+  `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, the
   `presets` namespace, and the option constants. These genuinely need value.js
   and are reached ONLY through `loadAnimationEngine()` — an `await
-  import("./engine")` (merged with `./animate`, `./motion-path`, `./draw-svg`,
+  import("./engine")` (merged with `./motion-path`, `./draw-svg`,
   `./animations` via `Promise.all`). The barrel holds no static edge to those
   modules, so a light-only consumer never pulls value.js (or the parser) in.
 
@@ -44,7 +44,6 @@ animation/
 ├── group.ts         # AnimationGroup — multi-animation compositor (layer blending, scheduler.yield, PRM snap)
 ├── waapi.ts         # WAAPI eligibility + delegation (emits a spring linear() when the easing carries one)
 ├── adapter.ts       # resolveKeyframes — input → ResolvedKeyframes
-├── animate.ts       # animate() — single-call front door: shape dispatch + auto-target + auto-play (HEAVY: constructs CSSKeyframesAnimation)
 ├── motion-path.ts   # MotionPath / fromMotionPath — offset-distance sweep over an author offset-path; browser owns the geometry (HEAVY)
 ├── draw-svg.ts      # DrawSVG / fromDrawSVG — stroke-dashoffset line drawing over ONE getTotalLength() read (HEAVY)
 ├── numeric.ts       # NumericAnimation — keyframe interp over {key: number} objects
@@ -171,12 +170,8 @@ All LIGHT (zero static value.js edge), composed over the engines above:
   never replaces it; the name `Timeline` was already taken by the progress
   drivers (booked decision in the module header).
 
-### The heavy front doors (`animate.ts`, `motion-path.ts`, `draw-svg.ts`)
+### The heavy front doors (`motion-path.ts`, `draw-svg.ts`)
 HEAVY (each statically imports `./engine`, so they ride `loadAnimationEngine()`):
-- **`animate(target, input, opts?)`** (`animate.ts`) — single-call dispatch on
-  the SHAPE of `input` (CSS string / keyframe map / vars array / MotionPath
-  spec) → the right `from*` factory + auto-target + auto-play; returns the
-  constructed animation as the control handle.
 - **`MotionPath` / `fromMotionPath`** (`motion-path.ts`) — sweeps
   `offset-distance` over an author `offset-path`; the browser owns the
   geometry, keyframes interpolates the scalar. WAAPI-eligible (the `%` is

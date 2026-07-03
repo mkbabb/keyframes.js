@@ -123,11 +123,12 @@ jobs:
             # surface. HARD posture — a correctness/precept invariant.
             - name: proof:alias-dropped (Q.WE1 — the @deprecated aliases are GONE from the published d.ts · NO-LEGACY)
               run: npm run proof:alias-dropped
-            # Q.WE1 — the breaking-set MIGRATION-doc oracle: docs/MIGRATION-5.0.0.md
-            # documents the full breaking alias-drop set + the globalThis.ScrollTimeline
-            # disambiguation note (semver honesty; consumed by Q.WZ's 5.0.0 cut).
-            - name: proof:changelog-5 (Q.WE1 — the breaking 5.0.0 alias-drop set is documented for the consumer)
-              run: npm run proof:changelog-5
+            # S.C1 — the GENERALIZED breaking-set MIGRATION-doc oracle (C-18): git-
+            # reconstructs the previous published tag's docs/published-surface.md, diffs it
+            # against HEAD, and REDs on any removed public-surface row lacking a matching
+            # docs/MIGRATION-<version>.md entry (version-agnostic semver honesty).
+            - name: proof:changelog (S.C1 · C-18 — every removed published-surface row is documented in docs/MIGRATION-<version>.md)
+              run: npm run proof:changelog
             # K.W12 ED-1 — the agent index (/llms.txt + /llms-full.txt) can never
             # drift from the J.W5 published surface (the gate-ORACLE at the AGENT
             # boundary: linked exports == the manifest roster, cited gates real).
@@ -180,6 +181,8 @@ jobs:
               run: npm run proof:engine
             - name: proof:no-flat-siblings (R.W1 — the 7-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
               run: npm run proof:no-flat-siblings
+            - name: proof:no-orphan-module (S.C1 — dynamic-import-aware reachability walker + the scoped front-door `animate` grep; the zero-importer zombie class made structural)
+              run: npm run proof:no-orphan-module
             - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
               run: npm run proof:zero-alloc
             # F.W2 — the library-scoped engine/correctness gates the workflow
@@ -199,8 +202,6 @@ jobs:
               run: npm run proof:replay-equality
             - name: proof:orchestration (F.W3 — stagger/FLIP/decay/Sequence behaviour locks)
               run: npm run proof:orchestration
-            - name: proof:animate-orchestration (L.W8 S3 — animate() dispatches the orchestration tier; AnimationGroup/Sequence → .play(), W127)
-              run: npm run proof:animate-orchestration
             - name: proof:transport-events (L.W5 S3 — Sequence segment/label crossing callback channel)
               run: npm run proof:transport-events
             - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)
