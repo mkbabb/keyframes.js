@@ -311,7 +311,7 @@ export function cancelWAAPI<V extends Vars>(anim: KeyframesAnimation<V>): void {
         try {
             wa.cancel();
         } catch {
-            /* a finished/detached WAAPI animation throws on cancel — ignore */
+            /* KEEP: a finished/detached WAAPI animation throws on cancel — ignore */
         }
     }
     anim._playback._waAnimations = [];

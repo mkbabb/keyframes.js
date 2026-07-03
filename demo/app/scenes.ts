@@ -119,6 +119,8 @@ function lazyScene(id: string, loader: SceneLoader): Component {
  */
 export function warmScene(id: string): void {
     const loader = sceneLoaders.get(id);
+    // KEEP: cosmetic prefetch — a rejected warm is swallowed; the real mount
+    // surfaces the error via <Suspense> (see the docblock above).
     if (loader) void loader().catch(() => {});
 }
 

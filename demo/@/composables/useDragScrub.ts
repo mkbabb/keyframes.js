@@ -119,7 +119,7 @@ export function useDragScrub<T = number>(
         try {
             el.value?.setPointerCapture(e.pointerId);
         } catch {
-            /* capture unavailable — window listeners still drive the drag */
+            /* KEEP: capture unavailable — window listeners still drive the drag */
         }
         onStart?.(e);
         onScrub(project(e));

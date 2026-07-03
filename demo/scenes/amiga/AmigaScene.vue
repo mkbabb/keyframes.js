@@ -190,7 +190,7 @@ onMounted(() => {
 
     // Mark amiga visited THIS session so the NEXT return fires the power-on BOOT
     // (the cold first visit is excluded — proof:cold-entry). Set AFTER mount.
-    try { sessionStorage.setItem(AMIGA_VISITED_KEY, "1"); } catch { /* private mode */ }
+    try { sessionStorage.setItem(AMIGA_VISITED_KEY, "1"); } catch { /* KEEP: private mode */ }
 });
 
 // B-3: pause the WebGL present loop while the tab is backgrounded (a hidden tab

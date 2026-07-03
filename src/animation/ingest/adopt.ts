@@ -274,7 +274,7 @@ export const adoptRunning = async <V extends Vars = any>(
     try {
         live.cancel();
     } catch {
-        /* a finished/detached animation throws on cancel — already yielded */
+        /* KEEP: a finished/detached animation throws on cancel — already yielded */
     }
 
     // (3)+(5) seed the kf engine at the captured playhead and hand it control.
