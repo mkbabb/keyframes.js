@@ -17,10 +17,10 @@ npm run proof:all       # full proof:* gate roster (correctness + hygiene)
 
 ## Project Tree
 
-The library is partitioned into seven cohesive zone directories (R.W1), each with
+The library is partitioned into eleven cohesive zone directories (R.W1), each with
 an `index.ts` barrel — the LIGHT (value.js-free) zones (`physics/`,
 `orchestration/`) and the HEAVY (value.js-bearing) zones (`engine/`, `group/`,
-`compile/`, `resolve/`, `ingest/`, `scroll/`) + `presets/` + `svg/`. The barrel
+`compile/`, `resolve/`, `ingest/`, `scroll/`, `waapi/`) + `presets/` + `svg/`. The barrel
 (`index.ts`) and the dynamic loader (`load-engine.ts`) are the two boundary files.
 
 ```
@@ -31,7 +31,7 @@ src/                            # animation/ + env.d.ts — nothing else
 │   ├── adapter.ts              # resolveKeyframes — input → ResolvedKeyframes
 │   ├── easing.ts               # resolveEasing(name) async factory + toEasing normalizer
 │   ├── validate.ts             # validate()/explain() — the agent-authoring projection over the compile surface (HEAVY)
-│   ├── constants.ts            # Types + defaults (Easing, AnimationOptions, Vars, …)
+│   ├── constants/              # Types + defaults (Easing, AnimationOptions, Vars, …) — LIGHT-pure types.ts + defaults.ts + back-compat barrel (S.B1)
 │   ├── physics/                # LIGHT: clock-driven value steppers + the rAF driver
 │   │   ├── numeric.ts / smooth.ts / oscillator.ts / decay.ts / morph.ts / playback.ts
 │   │   └── spring/             # SpringProgress family (progress, duration, reseat, linear-stops, timing-function, types — the ring-break)
@@ -42,6 +42,7 @@ src/                            # animation/ + env.d.ts — nothing else
 │   ├── resolve/                # HEAVY emerging-CSS resolver (if()/@function/env)
 │   ├── ingest/                 # HEAVY CSSOM walk (cssom.ts) + temporal takeover (adopt.ts)
 │   ├── scroll/                 # HEAVY scroll grammar (grammar.ts) + the JS ScrollScene driver (scene.ts)
+│   ├── waapi/                  # HEAVY WAAPI eligibility (eligibility.ts) + delegation/emission/densify/options
 │   ├── presets/                # HEAVY preset catalog (classic, spring, taxonomy) — rides the engine surface as `presets`
 │   ├── svg/                    # HEAVY SVG factories: MotionPath, DrawSVG, MorphSVG
 │   └── internal/               # value.js-free leaves: leaves, binarySearch, errors, reduced-motion, scheduler, scroll-phases (+ barrel)
@@ -66,8 +67,8 @@ docs/                # Tranche records + audit lanes
 
 Two export surfaces meet at the barrel:
 
-- **LIGHT (static named exports, value.js-free):** `NumericAnimation`, `SmoothProgress`, `SpringProgress`, `springLinearStops`, `springTimingFunction`, `ElementMorph`, `Timeline`, `ScrollTimeline`, `ManualTimeline`, `createNativeTimeline`, `RAFPlayback`, `stagger`, `flip`/`flipShared`, `drag`/`Draggable`/`drag2D` (the single-call 2-D drag sugar — two one-axis `Draggable`s behind a 2-D handle; returns a `Drag2DHandle`), `decay`/`decayRest`, `Sequence`, `resolveEasing`, `toEasing`, `AnimationOptionError`, `UnknownEasingError`. A consumer importing only these never pulls `@mkbabb/value.js` into its graph.
-- **HEAVY (dynamic — reached ONLY via `await loadAnimationEngine()`):** `Animation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`.
+- **LIGHT (static named exports, value.js-free):** `NumericAnimation`, `SmoothProgress`, `SpringProgress`, `springLinearStops`, `springTimingFunction`, `ElementMorph`, `Timeline`, `KeyframesScrollTimeline`, `ManualTimeline`, `createNativeTimeline`, `RAFPlayback`, `stagger`, `flip`/`flipShared`, `drag`/`Draggable`/`drag2D` (the single-call 2-D drag sugar — two one-axis `Draggable`s behind a 2-D handle; returns a `Drag2DHandle`), `decay`/`decayRest`, `Sequence`, `resolveEasing`, `toEasing`, `AnimationOptionError`, `UnknownEasingError`. A consumer importing only these never pulls `@mkbabb/value.js` into its graph.
+- **HEAVY (dynamic — reached ONLY via `await loadAnimationEngine()`):** `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`.
 
 ```ts
 const { CSSKeyframesAnimation } = await loadAnimationEngine();
@@ -81,9 +82,14 @@ The heavy classes are NOT static named exports — only their TYPES are (`import
 | Package | Role |
 |---------|------|
 | `@mkbabb/value.js` | ValueUnit, Color, the CSS `@keyframes` grammar/parser, easing registry, math, normalization — statically imported by the HEAVY surface only |
-| `@mkbabb/parse-that` | Parser combinators; consumed directly only in `src/animation/utils.ts` (the `any` combinator over value.js's parsers — a cross-realm nominal-type seam) |
 
 The `@keyframes` grammar itself lives in value.js; keyframes.js owns the animation engine over it.
+(The former parse-that package dependency row is struck, not merely stale: kf
+used to hand-compose a cross-realm `any(CSSFunction.FunctionArgs,
+CSSValues.Value)` combinator directly against it in the old `utils.ts`;
+value.js's own `parseCSSSubValue` now internalizes that exact composition, so
+`compile/parse-flatten.ts` reaches it through value.js instead — see that
+file's `tryParseLeaves` comment.)
 
 ## Conventions
 
@@ -96,13 +102,13 @@ The `@keyframes` grammar itself lives in value.js; keyframes.js owns the animati
 
 ## Architecture Notes
 
-- **Frame pipeline** (`frame-compiler.ts`): `addFrame()` → `parse()` (reconcile vars, compute times) → `AnimationFrame[]` with `interpVars`
+- **Frame pipeline** (`compile/frame-compiler.ts`): `addFrame()` → `parse()` (reconcile vars, compute times) → `AnimationFrame[]` with `interpVars`
 - **Playback modes**: rAF (default — every loop rides `RAFPlayback`), WAAPI (opt-in compositor-thread), managed (AnimationGroup owns the loop), reduced-motion snap
 - **Interpolation dispatch**: numeric → `lerp`; color → perceptual (`oklab` default); computed units (`vh`, `calc`, `var`, `cq*`) → DOM resolution
 - **Layer blending** (AnimationGroup): `replace` (z-order), `add` (accumulate), `weighted` (lerp by weight)
-- **WAAPI eligibility** (`waapi.ts`): DOM targets, default DOM-style renderer, uniform timing, no multi-segment CSS-twin easing, no computed units, no color interpolation — else rAF fallback with a queryable `waapiIneligibleReason`
+- **WAAPI eligibility** (`waapi/eligibility.ts`): DOM targets, default DOM-style renderer, uniform timing, no multi-segment CSS-twin easing, no computed units, no color interpolation — else rAF fallback with a queryable `waapiIneligibleReason`
 - **General primitives**: `NumericAnimation` (zero-alloc keyframe interp), `SmoothProgress`/`SpringProgress` (progress trackers), `ElementMorph` (rect-to-rect transform), `Timeline` (progress driver)
 - **Orchestration tier** (all LIGHT): `stagger` (delay distribution), `flip` (layout FLIP over ElementMorph), `drag`/`decay` (gesture physics over SpringProgress), `Sequence` (temporal orchestration beside `AnimationGroup`'s spatial blending)
 - **Timeline pipeline**: `sample() → clamp → easing → boundary snap → smoothing → progress`. No rAF ownership — caller drives the loop.
-- **ScrollTimeline**: injectable `getScrollY`/`getViewportHeight` callbacks for testing without DOM
+- **KeyframesScrollTimeline**: injectable `getScrollY`/`getViewportHeight` callbacks for testing without DOM
 - **ManualTimeline**: smoothing off by default; set raw value, get immediate result
