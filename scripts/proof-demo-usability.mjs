@@ -73,6 +73,19 @@ console.log("proof:demo-usability — G.W11 (the live-Playwright SHIP set)");
     // NOT the catch-all redirect). The catch-all has a `redirect:`, no `name:`.
     const routeNames = new Set();
     for (const m of routerSrc.matchAll(/\bname:\s*"([^"]+)"/g)) routeNames.add(m[1]);
+    // R.W5 C.5 GENERATES the routes: `allScenes.map((s) => ({ path, name: s.id, … }))`
+    // — the route name is the COMPUTED expression `s.id`, not a string literal, so the
+    // literal scan above returns empty on the shipped router. Recognise the generated
+    // form and route EVERY scene id by construction: `allScenes = [homeScene, ...scenes]`
+    // (scenes.ts) is the exact descriptor set `sceneIds` is parsed from, so the
+    // `name: s.id` map routes every id. The literal scan still runs first (hand-declared
+    // `name:"<literal>"` routes are still honoured); the catch-all still carries
+    // `redirect:` with no `name:`. Re-points the gate off its own R.W5 obsolescence
+    // (the S.A2 "stale-gate" bucket) — a green demo must not red on the gate's staleness.
+    const routesAreGenerated =
+        /\ballScenes\s*\.\s*map\b/.test(routerSrc) &&
+        /\bname:\s*[A-Za-z_$][\w$]*\.id\b/.test(routerSrc);
+    if (routesAreGenerated) for (const id of sceneIds) routeNames.add(id);
 
     const unreachable = [...sceneIds].filter((id) => !routeNames.has(id));
     if (unreachable.length > 0) {
