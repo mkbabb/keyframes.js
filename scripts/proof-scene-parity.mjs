@@ -445,10 +445,28 @@ async function browserHalf() {
                     `rested on square`,
             );
         } else {
+            // S.A0: the per-axis spring readout MOVED off the box onto its two
+            // sr-only `role="slider"` children (the P.W5/W6 + R.W5 a11y split —
+            // the box is `role="group"`; each axis slider carries `aria-valuetext`
+            // "x 0.00" / "y 0.00"). Reading `box.getAttribute("aria-valuetext")`
+            // returned "" on both sides of the drag — the gate red on its own
+            // staleness while the drag genuinely re-seated + converged. Read the
+            // axis sliders and join them into the same "x …, y …" shape the rest
+            // predicate below expects.
+            const readValuetext = () =>
+                page.evaluate(() => {
+                    const box = document.querySelector(".demo-box");
+                    const axes = [...box.querySelectorAll('[role="slider"][aria-valuetext]')];
+                    if (axes.length > 0) {
+                        return axes.map((a) => a.getAttribute("aria-valuetext")).join(", ");
+                    }
+                    // The pre-split shape (a valuetext directly on the box) is
+                    // still honoured.
+                    return box.getAttribute("aria-valuetext") || "";
+                });
             const before = await page.evaluate(() => {
                 const box = document.querySelector(".demo-box");
                 return {
-                    valuetext: box.getAttribute("aria-valuetext") || "",
                     transform: getComputedStyle(box).transform,
                     rect: (() => {
                         const r = box.getBoundingClientRect();
@@ -456,6 +474,7 @@ async function browserHalf() {
                     })(),
                 };
             });
+            before.valuetext = await readValuetext();
             // pointerdown on the box, then drag a healthy offset so the per-axis
             // spring targets re-seat (the offset / TRAVEL=110px → a clamped
             // [-1,1] target ≠ 0). HOLD the drag at the offset so the springs keep
@@ -480,8 +499,12 @@ async function browserHalf() {
             for (let k = 0; k < HOLD_SAMPLES; k++) {
                 const snap = await page.evaluate(() => {
                     const box = document.querySelector(".demo-box");
+                    const axes = [...box.querySelectorAll('[role="slider"][aria-valuetext]')];
                     return {
-                        valuetext: box.getAttribute("aria-valuetext") || "",
+                        valuetext:
+                            axes.length > 0
+                                ? axes.map((a) => a.getAttribute("aria-valuetext")).join(", ")
+                                : box.getAttribute("aria-valuetext") || "",
                         // The inline write is the spring loop's truth; fall back to
                         // computed if (somehow) inline is empty.
                         transform: box.style.transform || getComputedStyle(box).transform,
