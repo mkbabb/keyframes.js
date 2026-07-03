@@ -193,7 +193,7 @@ export function useTimingFunctionEditor(
         // without throwing. ONE persist seam — every caller (the dropdown, the
         // in-panel selector, the bezier-drag) gets the literal.
         storedAnimationOptions.animationOptions.timingFunction =
-            timingFunctionLiteralFor(key) as any;
+            timingFunctionLiteralFor(key);
     };
 
     /** Called from the edit icon — opens the curve editor */

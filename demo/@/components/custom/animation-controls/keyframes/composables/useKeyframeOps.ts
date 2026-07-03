@@ -84,7 +84,7 @@ export function useKeyframeOps(
                     const compiled = new CSSKeyframesAnimation(
                         options as Record<string, unknown>,
                         ...animation.targets,
-                    ).fromKeyframes(keyframes as any);
+                    ).fromKeyframes(keyframes);
 
                     animation.adoptCompiled(compiled);
 
