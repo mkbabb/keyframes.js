@@ -32,6 +32,31 @@
  *                           `name: s.id` route form — fixed in S.A0 S5; the
  *                           generic bucket is owned here).
  *
+ * ── PER-GATE BUCKET ADJUDICATIONS (SPEC §3 S.A2 S5, the named reds) ────────────
+ *   proof:perf-frame-budget → bucket 2. Easing clause moved to a same-run
+ *       cube-reference RELATIVE budget (was a single absolute ceiling that flaked
+ *       2..24 run-to-run — DM-12); the dock clause is a NON-BLOCKING glass-ui
+ *       HANDOFF (dock width-morph → glass-ui). Whole gate is device-dependent →
+ *       rides OBSERVE.
+ *   proof:lighthouse-a11y / proof:lighthouse-mobile → bucket 3. The lighthouse
+ *       binary is installed --no-save in the observe job (install-or-observe); the
+ *       scores are environment-sensitive → OBSERVE, never blocking.
+ *   proof:demo-usability → bucket 4. The route-name parser drifted from the R.W5
+ *       generated `name: s.id` form; re-pointed in S.A0 S5 (a green demo must not
+ *       red on the gate's own obsolescence). It is now GREEN in the correctness
+ *       roster.
+ *   proof:visual-lock → CROSS-ENV pixel-render, ADJUDICATED to observe-only-in-CI
+ *       (it already declarePosture("observe-only") — pixel-render). Its self-
+ *       captured baseline drifts on cross-OS font metrics (it REDs identically at
+ *       base — ~47/40 regions — on any runner, a LINUX-vs-macOS font-hinting
+ *       delta, NOT a product regression). Disposition: it RECORDS the drift and
+ *       exits 0 IN CI (observe-only), hard-gating on-device only; it rides the
+ *       correctness roster (amortised on the shared harness) but never blocks in
+ *       CI. Its baselines are NOT overwritten — regenerating them to "green" the
+ *       drift would be the forbidden masking (SPEC §3 S.A2 hard clause). Its
+ *       correctness authority was already STRIPPED (I.W7 S5); it is a hygiene
+ *       drift check only.
+ *
  * ── THE HARD CLAUSE (SPEC §3 S.A2, x2-#2) ─────────────────────────────────────
  * The correctness↔observe split may NOT green a red whose signature reproduces
  * off-runner. OBSERVE carries ONLY genuinely device-dependent measurements
