@@ -846,6 +846,57 @@ export async function navToScene(
 }
 
 /**
+ * pressPlayToggle — actuate the dock play/pause transport the way a REAL pointer
+ * gesture does. R.W6 C.6 (the DM-1 contingency KILL) moved the play toggle off the
+ * strand-prone `@click` onto `@pointerup`/`@keydown` (the collapse-crossfade-
+ * INDEPENDENT path — `TransportDock.onPlayPointerUp`), so a synthetic in-page
+ * `element.click()` no longer actuates it (a bare `click` fires neither `pointerup`
+ * nor `keydown`; a real mouse/touch/pen press fires `pointerup`, a keyboard press
+ * fires `keydown`). This dispatches a primary-button `pointerup` on the VISIBLE
+ * transport button — the exact event `onPlayPointerUp` consumes — so a gate reads
+ * the real product's actuation contract, not the pre-R.W6 click path it outgrew.
+ *
+ * The transport is a single toggle (`isPlaying ? "Pause" : "Play"`), so pressing
+ * "whichever is visible" starts a stopped scene and pauses a playing one; the
+ * expanded button is preferred, the collapsed-dock mirror + the rainbow pill are
+ * fallbacks. Returns the actuated control's aria-label/selector, or null when no
+ * transport button is present (the same shape the gates' own finders returned).
+ */
+export async function pressPlayToggle(page) {
+    return page.evaluate(() => {
+        const SELECTORS = [
+            'button[aria-label="Play animation"]',
+            'button[aria-label="Pause animation"]',
+            'button[aria-label="Play animation (collapsed dock)"]',
+            'button[aria-label="Pause animation (collapsed dock)"]',
+            'button[aria-label*="Play animation" i]',
+            'button[aria-label*="Pause animation" i]',
+            ".rainbow-vivid",
+            ".rainbow-pastel",
+        ];
+        const isVisible = (el) => {
+            const r = el.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+        };
+        for (const sel of SELECTORS) {
+            const el = document.querySelector(sel);
+            if (el && isVisible(el)) {
+                el.dispatchEvent(
+                    new PointerEvent("pointerup", {
+                        bubbles: true,
+                        cancelable: true,
+                        button: 0,
+                        pointerType: "mouse",
+                    }),
+                );
+                return el.getAttribute("aria-label") ?? sel;
+            }
+        }
+        return null;
+    });
+}
+
+/**
  * subjectRect — the largest visible, in-viewport rect matching `selector`, in
  * the same shape the gates consume ({ x, y, width, height } + right/bottom).
  * Returns null when no subject renders (blank ≠ occlusion-free).

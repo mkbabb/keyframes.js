@@ -54,7 +54,7 @@
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { navToScene, withPage } from "./lib/demo-driver.mjs";
+import { navToScene, pressPlayToggle, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -128,24 +128,13 @@ const sliderValue = (page) =>
         return v == null ? null : parseFloat(v);
     }, PLAY_SLIDER);
 
-/** Find + click the rainbow play (the dock play pill — the user's first gesture).
- *  Returns the selector clicked, or null. */
+/** Actuate the rainbow play (the dock play pill — the user's first gesture) via a
+ *  REAL pointerup, the way the product's `@pointerup`-bound transport consumes it
+ *  (R.W6 excised the strand-prone `@click`; a synthetic `element.click()` no longer
+ *  actuates it — see `pressPlayToggle`). Returns the actuated control label, or
+ *  null. */
 async function clickRainbowPlay(page) {
-    return page.evaluate(() => {
-        for (const sel of [
-            'button[aria-label="Play animation"]',
-            'button[aria-label="Play animation (collapsed dock)"]',
-            'button[aria-label*="Play animation" i]',
-            ".rainbow-pastel",
-        ]) {
-            const el = document.querySelector(sel);
-            if (el) {
-                el.click();
-                return sel;
-            }
-        }
-        return null;
-    });
+    return pressPlayToggle(page);
 }
 
 /** Wait — per an EXPECTED predicate, NOT a fixed settleMs (the J.W0 settle-

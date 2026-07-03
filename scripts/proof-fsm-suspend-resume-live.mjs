@@ -54,6 +54,7 @@ import {
     REQUIRE_BROWSER,
     SCENE_MACHINE_KEY,
     navToScene,
+    pressPlayToggle,
     withBrowser,
     withPage,
 } from "./lib/demo-driver.mjs";
@@ -519,18 +520,10 @@ async function browserHalves() {
 
         // Leg 2: PAUSE spring, switch to easing, switch BACK to spring — spring
         // must come back PAUSED (resume-iff-was-playing: it was paused on leave).
-        await page.evaluate(() => {
-            for (const b of document.querySelectorAll("button[aria-label]")) {
-                const t = (b.getAttribute("aria-label") || "").trim().toLowerCase();
-                if (t === "pause animation") {
-                    const r = b.getBoundingClientRect();
-                    if (r.width > 0 && r.height > 0) {
-                        b.click();
-                        return;
-                    }
-                }
-            }
-        });
+        // Actuate via a REAL pointerup (the product's transport is `@pointerup`-
+        // bound since R.W6 excised the strand-prone `@click`; a synthetic
+        // `element.click()` no longer actuates it — see `pressPlayToggle`).
+        await pressPlayToggle(page);
         await page.waitForTimeout(700);
         const springPausedAfterClick = !(await activeIntentPlaying(page));
 
