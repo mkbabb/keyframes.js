@@ -380,3 +380,49 @@ on explicit owner approval, which was not given; the TYPE-diff drift gate ships 
   live), parse-that **0.13.0**, kf **5.1.0**, glass-ui 4.2.0 (pin held ~4.0.x per C-12). Wave order
   per the DAG: S.A0 keystone first (kf tree) ∥ S.H1+S.H2 (parse-that tree); every wave's gate re-run
   by the orchestrator on the merged tree before its board row flips CLOSED (T4/T5).
+- 2026-07-03 — **S.H1 + S.H2 CLOSED (T4/T5 recorded).** Implemented on parse-that
+  `tranche-s-kf-dispatch` (934b2fa, 043c4d1). Orchestrator re-ran independently: `proof:all` exit 0
+  (11 gates, incl. the two new), tsc 0, vitest 124/124; BOTH born-RED signatures reproduced on the
+  base tree (2c806fb) in a throwaway worktree — `proof:packrat-armed` RED "15000 packrat Maps /
+  5000 non-memoized parses (3.0/parse; expected 0)"; `proof:no-span-surface` RED "span.ts exists +
+  dist declares all 15 *Span". chain() = C-16 Option A verbatim, `chainError` retired, 0-hit caller
+  scan recorded. NO throughput-% gate (§8-13 held).
+- 2026-07-03 — **S.H4 CUT + PUBLISHED — the SPINE's first registry event.** H4 commit 7eab78c on
+  parse-that master (merged, tagged v1.0.0, pushed): DQ-1/DQ-2 verified landed in 0.13.0 (rows
+  47/48); non-goals + r6 #6/#8 + the PROVISIONAL WDM/LR keep recorded (CHANGELOG 1.0.0 +
+  future-research.md §17; §7 reconciled). Orchestrator re-verified the tagged tree (tsc 0, build,
+  124/124, proof:all 0, pack artifact zero-span) and published: **`@mkbabb/parse-that@1.0.0` is
+  `latest` on the registry** (2026-07-03). The kf-side born-SPECIFIED gates (pin-ledger, consume,
+  value.js-suite) fire at S.C4/S2 after value.js's 2.0.x follow-on. fold row 46 (color2Into) is
+  verified at that re-pin, per the letter's commitment.
+- 2026-07-03 — **value.js 2.0.0 PUBLISHED (their R.W1) + the KF-VALUEJS-2.0.0 letter delivered**
+  (their commit 9a0f6cb, directly onto `tranche-s-impl` — letters travel with the registry event;
+  registry watch confirmed 1.2.0 → 2.0.0, deps still parse-that `^0.13.0` as forecast — **NOT the
+  adopt event**). Letter §6's two ruling requests are the already-RATIFIED rulings 5+6 (c6eef78);
+  §1-§5 match the S.C4/S2 wave text verbatim (deletion map, KF-1 vector, `.chain()` line-shift
+  note is value.js-side only). BOOKED — no gate change, no new owner asks. The registry monitor
+  stays armed for the `^1.0.0`-carrying 2.0.x follow-on (the S.C4/S2 adopt event).
+- 2026-07-03 — **S.A0 KEYSTONE executed + orchestrator-verified (T4/T5 recorded); status
+  green-modulo-backlog pending the Linux CI adjudication.** 13 per-cause commits (dde51fb…80c1445).
+  The seven enumerated fixes landed; the sweep additionally discharged SIX further gate-staleness
+  instances (dogfood allowlist; demo-elevate ×2; scene-parity valuetext; live-session ×3 stale
+  drives) + ONE genuine product a11y defect (easing `<dl>` content model → axe definition-list) +
+  the consequent EasingCurvePhysics colocated split (500L ceiling held honestly, no park). **Two
+  C-20 divergences recorded (the plan's own predicted causes REFUTED by reproduced signatures):**
+  DM-14 and `cold-entry` were GATE ACTUATION-STALENESS (synthetic `el.click()` vs R.W6's
+  pointerup-only transport) — the product pause/resume + cold-start paths PROVEN working under real
+  pointer actuation (`pressPlayToggle` driver, the TransportDock contract); NO product change to
+  `useContractAnimGroup`/`toggleAnimationGroup`. The importmap cause had FIVE instances (DM-13,
+  DM-11b, LoAF bench, kf-differential, computed-real-dom) — one shape fixed ×5. The LoAF
+  "exit-1-with-green-metric" premise did not reproduce; the decouple landed as durable plumbing
+  (bite verified both ways). Orchestrator re-ran ALL 13 discharged gates → exit 0 each; check 0;
+  build+gh-pages 0; vitest 97 files / 957 (954 pass, 2 expected-fail, 1 skip); backlog rows
+  sampled RED (drag-gesture 1, easing-sidebar-minimal 1). **Full-roster serial adjudication:
+  failing set = the 4 enumerated backlog rows + 3 pre-existing chronics with named owners**
+  (`perf-frame-budget` DM-12 → S.A2 bucket-2; `lighthouse-mobile` DM-8 → S.A1 row 6; `visual-lock`
+  cross-env font-metric baseline drift, red identically at base 7cd9dd8 → S.A2 bucket
+  adjudication; `scene-switcher-mobile` = the C-6 zombie, not a CI failing step → S.A4 retirement).
+  **Evidence for S.A2 banked:** run-all self-interferes (gates running `build:lib` empty
+  `dist/gh-pages` mid-roster → cascading false HarnessRequiredError reds) — the shared-dist
+  net-deletion is now observationally mandated. Linux CI verdict in flight on run 28684794006;
+  the keystone's "full green" clause is re-asserted at S.Z3 per the gate text.
