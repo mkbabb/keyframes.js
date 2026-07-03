@@ -179,7 +179,7 @@ jobs:
               run: npm run proof:packrat-sound
             - name: proof:engine (D.W4 transposition source gate — tick-canon · seam · pause-honest · snap-symmetry · no-legacy)
               run: npm run proof:engine
-            - name: proof:no-flat-siblings (R.W1 — the 7-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
+            - name: proof:no-flat-siblings (R.W1 — the 11-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
               run: npm run proof:no-flat-siblings
             - name: proof:no-orphan-module (S.C1 — dynamic-import-aware reachability walker + the scoped front-door `animate` grep; the zero-importer zombie class made structural)
               run: npm run proof:no-orphan-module

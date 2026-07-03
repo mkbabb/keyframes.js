@@ -177,6 +177,21 @@ const EXCLUDED = new Set([
     // tier membership that would re-introduce the abort — the gate rides CI as a
     // report-all tripwire, by L.W4 S8's born-RED contract, not as an aggregator member.
     "proof:peer-satisfied",
+    // S.A5 — proof:claude-paths-live is a BORN-RED-BY-DESIGN doc-authority gate
+    // (fold row 41, C-8 "gate-first, regen-last"). Its src/animation/CLAUDE.md
+    // clause STAYS RED — that file documents the pre-R.W1 flat file layout
+    // wholesale (21 dead tree-fence paths) — until S.B8's full regen against
+    // the final post-B tree; wiring it into a blocking proof:hygiene chain now
+    // would abort the chain on that EXPECTED red every run, exactly the
+    // proof:peer-satisfied situation. Per the S.A5 spec's own Verification
+    // section it is DEVELOPMENT-ONLY at this wave ("re-run at S.Z2"), so unlike
+    // peer-satisfied it does NOT yet ride ci.yml even as a continue-on-error
+    // tripwire — S.B8 (once fully green) wires it into proof:hygiene-chain as
+    // an ordinary blocking member and this exclusion is deleted in that same
+    // commit. Its root + demo/CLAUDE.md clauses are ALREADY green (S.A5 S2
+    // hot-fix) — the redness this exclusion accommodates is exclusively the
+    // named, authorized backlog file.
+    "proof:claude-paths-live",
     // (R.W0 — the sibling-adapter publish tripwire was RETIRED with its package: the
     //  overfit Vue adapter was removed entirely + npm-revoked. Its gate script,
     //  package.json key, ci.yml step, release.yml publish job, AND this exclusion entry
