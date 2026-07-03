@@ -50,7 +50,7 @@ or a numeric line count as its GREEN criterion (SPEC §2.1-5).
 | C | S.C2 | no-silent-fallback with teeth, scope-honest: demo clauses enforced; Clause 1 widened src-wide with the machine-checked `KEEP:` allowlist idiom; the 6 demo-composable `as any` sites censused; useTimingFunctionEditor.ts:196 fixed (widen the return type) (SPEC §3 S.C2) | DEV-AUTHORED | The gate REDs on a planted demo bare-catch; zero UNLABELLED `as any` in demo composables (labelled survivors pass) | S.A0 | PENDING-IMPL |
 | C | S.C3a | Dead deps + stale narration (gated/discretionary split stated): SPRING_SMOOTH + void hack deleted; the 8 zero-importer shadcn devDeps removed; dead-identifier grep (specific identifiers, NOT the phrase "scene-switcher"); proof-script narration corpus; discretionary best-effort items stated ungated (SPEC §3 S.C3a) | DEV-AUTHORED | Born-RED `proof:no-dead-dependency` (allowlist form keyed off the 8 named packages; a generalized form must match only real import/require specifiers + scan config/scripts/plugin sites); the dead-identifier clause; the shadcn census clause (`cn(`/`class-variance-authority`/`@radix-*` grep empty post-purge — x1-#4) | S.A0 | PENDING-IMPL |
 | C | S.C3b | The menubar migration (its own priced sub-item): KeyframesEditor menubar → glass-ui **dropdown-menu** (present in 4.0.x — NO external gate; C-19) with the a24-F6 relocate-in-place fallback; ui/menubar/ (16 files) + utils.ts(`cn`) deleted; external gating FORBIDDEN (T12) (SPEC §3 S.C3b) | DEV-AUTHORED | The C3a shadcn census clause REDs while ui/menubar exists, green after; KeyframesEditor menu interactions covered by an interaction-axis test (T8) | S.A0 (independent of D3) | PENDING-IMPL |
-| C | S.C4 | Dependency posture: dependency-cruiser 17→18 (re-verify `[]` baseline), fast-check 3→4, @types/node to the engines floor; VJS_PARAM_BUG_MAX lifecycle check; glass-ui pin held ~4.0.x per C-12 (SPEC §3 S.C4) | DEV-AUTHORED | `proof:pin-ledger-current` green post-bumps; lint baseline still `[]` | S.A0 | PENDING-IMPL |
+| C | S.C4 | Dependency posture: dependency-cruiser 17→18 (re-verify `[]` baseline), fast-check 3→4, @types/node to the engines floor; the value.js-2.0.0 consume-edge (S2 = the ruled 2.0.0 consume-edge; late slice, after the S.H4→2.0.x spine — owner ruling 5, RATIFIED 2026-07-03); glass-ui pin held ~4.0.x per C-12 (SPEC §3 S.C4) | DEV-AUTHORED | `proof:pin-ledger-current` green post-bumps; lint baseline still `[]`; the S2 clauses (grep-zero normalizeParam/NormalizedParam/VJS_PARAM_BUG_MAX in src/; check:lib on the direct field reads; the KF-1 vector through `proof:emerging-css-resolve`; PIN-LEDGER co-edited to value.js 2.0.x) | S.A0 (S1/S3); the external spine S.H4→value.js 2.0.x (S2) | PENDING-IMPL |
 | D | S.D1 | app/ partition (p04 — mechanical, ~38 files/~60 lines): `scene/`·`transition/`·`runtime/`; the five cross-scene recipes STAY in app/runtime/ (sd-#2); ONLY cubeTransformStore.ts evicted → scenes/cube/; the scenes.ts `../scenes/`→`../../scenes/` depth bump (16 lines); same-commit atomicity with the 7 proof scripts + demo-driver.mjs:83; @mbabb dropdown → dock/MbabbMenu.vue; useSceneMachineApp/Router rename (SPEC §3 S.D1) | DEV-AUTHORED | Born-RED `proof:app-is-shell` — (i) no app/ file imported by exactly one non-app area (born-RED today via cubeTransformStore.ts); (ii) no moved file's relative import escapes into a stale depth; (iii) shell-ness structural — App.vue's line count is an observed tripwire, NOT a GREEN criterion | S.A0 (runs PARALLEL to A4 — D1 reds no FROZEN appearance gate, p04 F4) | PENDING-IMPL |
 | D | S.D2 | @/ partition: the state hoist (stores → demo/@/state/ as first-class peer, ~46 sites/~ZERO gate reds) + the transport peer move (1 real external import edge / HIGH gate: ~7–10 shell-path scope-set gates repointed in the SAME commit) + single-consumer colocations + the ControlsPaneWrapper scoped-CSS/template split (import-neutral, NOT logic decomposition) + KfPillTabs promotion + cubeKeys.ts 8/8 parity + the reset composer; walker-root arming-audit (`proof:decomposition` roots at animation-controls/, `:79`); `@state` bare + wildcard tsconfig pair (P2-1 — probe-VALIDATED, ~3–4 days, LOW risk) (SPEC §3 S.D2) | DEV-AUTHORED | Born-RED `proof:shared-has-n-consumers` — any @/ module with <2 consuming areas REDs (C-23 per-scene counting); reference-count clause added to scene-colocated (edit order A4→D2→D3); verification run = `check` AND `gh-pages` AND vitest after build:lib (tsc does NOT type-check .vue); `proof:stage-visible` re-run green on the post-carve tree (C-24) | S.D1, S.G1 (edge CONFIRMED load-bearing, not relaxable) | PENDING-IMPL |
 | D | S.D3 | Playground → scenes/compose/ (C-4, p06): the ninth scene registered (SceneExposedApi via `tabsContent`; `useComposeDemo.ts` per C-17; superKey kept); asset-manager + EditableLabel relocated; demo/playground/ deleted (app, vite mode, outDir landmine, 9.6MB debris, dev:playground); the SIX-item touch set (SCENE_GATE_META.compose FIRST — else all 82 demo-driving gates throw; DFA triple; SCENE_DIRS+=compose; published-surface minus "playground"; S9 egg re-point; "8 scenes" prose sweep); Image/SVG asset-kind decision; foundry fixes as the scene's W1 (SPEC §3 S.D3) | DEV-AUTHORED | Born-RED `proof:compose-scene` — the scene mounts in the SPA, the standalone entry is GONE (repo grep + vite modes), the ignition moment drives a real DrawSVG; authored at D3 but **CLOSES after S.G** (compose auto-enrolls in the occlusion/a11y/font/stage-visible runtime fleet — sd-#4) | S.D2, S.A4 | PENDING-IMPL |
@@ -213,7 +213,7 @@ re-litigated as rows (§8-15).
 | **58. `declaredKeyframeBodyFor` "dead export"** | Q | 1→2 (Q,R→S) | **REVERSED at Pass-2 — construct, not delete** | S.B3 | a18 F3's "likely-dead" call OVERTURNED by P2-2 F1/F5: the export is the EN-b/EN-c **load-bearing substrate** (the `bodyByStop` mixed-track fix threads it; the entry emitter projects first/last stop bodies from it). Constructed, NOT deleted. |
 | **59. MotionPath.finished asymmetry** | O | 2→3 (O,P/Q,R,R→S) | **FOLD** | S.B4 | svg/handle.ts abstract base closes the asymmetry by construction (a20 F6). |
 | **60. transport.ts hand-rolled prefersReducedMotion copy** | R.W2b | new→1 (R→S) | **FOLD — DRY** | S.B4 | DRY'd through internal/reduced-motion (a16 F3). |
-| **61. VJS_PARAM_BUG_MAX (value.js ≤1.2.0 extractFunctions bug)** | Q | 1→2 (Q,R→S) | **FOLD — lifecycle** | S.C4 | Checked against the value.js changelog; deleted per its own lifecycle if extractFunctions is fixed upstream; else KEPT with citation (a31, a21 F4). Inbound letter VALUEJS-R-COORDINATION-2026-07-03 (b7fea38): the upstream fix is REAL at value.js 2.0.0 (KF-1 + rename; their R.W1 publishing now) — the delete branch is live but UNSCOPED in S; disposition awaits owner ruling 5 (re-scope S.C4/S2 vs explicit successor-book; the silent else-KEEP is forbidden by the letter). Verify npm view before acting. |
+| **61. VJS_PARAM_BUG_MAX (value.js ≤1.2.0 extractFunctions bug)** | Q | 1→2 (Q,R→S) | **FOLD — RULED consume-edge (owner ruling 5)** | S.C4/S2 | RULED 2026-07-03 (owner ruling 5; inbound letter VALUEJS-R-COORDINATION-2026-07-03 b7fea38): S.C4/S2 is re-scoped into the NAMED value.js-2.0.0 consume-edge — the letter §1 deletion map executed verbatim (DELETE normalizeParam + NormalizedParam at resolve/resolve-function.ts:22-90 threading CustomFunctionParameter directly; retire the coerceArg ≤1.2.0 CUSTOM_FN_ARG_DROP arm keeping the generic type-mismatch DROP; DELETE VJS_PARAM_BUG_MAX) + re-pin @mkbabb/value.js ^2.0.x — NOT the letter-forbidden silent else-KEEP. Gate: the extended S.C4 HARD GATE (grep-zero normalizeParam/NormalizedParam/VJS_PARAM_BUG_MAX in src/; check:lib green on the direct field reads; the KF-1 vector "--x <length>: 0px" resolving to name --x syntax <length> default 0px green through proof:emerging-css-resolve; the S.A0 PIN-LEDGER co-edited to value.js 2.0.x). LATE slice — sequenced after the external spine (S.H4 parse-that 1.0.0 cut → value.js 2.0.x follow-on; owner ruling 6). Verify npm view @mkbabb/value.js shows 2.0.x before acting. |
 | **62. dependency-cruiser 17→18 · fast-check 3→4 · @types/node floor** | old | old (→S) | **FOLD — deliberate tested bumps** | S.C4 | Re-verify the `[]` depcruise baseline post-bump. Oracle: `proof:pin-ledger-current` green post-bumps; lint baseline still `[]`. |
 | **63. Stale comments/narration corpus** (dead identifiers ×5, soa.ts/group-barrel/renamed-file headers, dep-cruiser/lint baselines, taxonomy BORN-RED prose, `<SegmentedTabs>` narration, proof-script sites, 2 orphaned pre-2024 assets) | Q–R | mixed (→S) | **FOLD — the gated/discretionary split, stated** | S.C3a | GATED: the dead-identifier grep bans the specific identifiers (`SceneSwitcherCarousel`, `SegmentedTabs`, `Animated.vue`, `ResponsiveSelect`, `AnimationMenuBar`) — NOT the phrase "scene-switcher" (sc-§3.2 — the identifier-only form stays the falsifiability-correct shape; historical docs and the S.E shelf record legitimately carry the phrase); corpus includes the proof-script narration sites (proof-visual-lock.mjs:172). DISCRETIONARY best-effort (stated, ungated): the remaining narration items. |
 | **64. docs/frontend-design/demo/*.md pre-fusion paths** | pre-R | 1→2 (R,R→S) | **FOLD — remap (discretionary tier, stated)** | S.C3a | Path remaps land BEFORE S.G reads them (a30). |
@@ -228,9 +228,27 @@ re-litigated as rows (§8-15).
 | **73. EN-a: serializeEasing emits browser-invalid easing names** (`format.ts:43-58` returns registry names like `ease-out-cubic` — not CSS `<easing-function>`s; the browser drops the whole declaration, computed `animation-name: none` — **the shipped `@keyframes` artifact is browser-dead for most registry easings TODAY**; the kf-parser round-trip structurally cannot see it) — P2-2 F6 | pre-Q (found at S dev, P2-2) | new→1 (latent since pre-Q) | **FOLD — library-correctness fix, homed in the compile wave (C-25: same-file cohesion; honesty-first sequencing; T7 fixtures in B3's blast radius)** | **S.B3 / EN-a** | The CSS-twin fix: registry name → its CSS twin (closed-form `cubic-bezier()`s for the Penner set; the universal fallback = a `linear()` densify of the callable; throw preserved for twinless closures; ~3 files). Born-RED **browser-parse** gate clause: a browser-actuated parse of an emitted `easeOutCubic` artifact asserts computed `animation-name !== none` — browser-harness by necessity (the artifact round-trips through KF but not through the BROWSER). T7: `proof:compile-replay`/`proof:compile-deterministic` fixtures co-edited in the same commit. **Cure PROVEN pass3** (`audit/pass3/en-fix-proto.md`): the fix = the universal `linear()`-densify twin (a re-parse fixpoint), NOT a partial bezier table; the browser-parse oracle REDs pre-fix / GREENs post-fix; the EN-a clause is a browser-harness gate (jsdom cannot see the dropped shorthand). T7 fixture co-edit BENIGN for the existing fixtures. |
 | **74. EN-b: compileChild whole-block densify swap drops every non-color property on mixed tracks** (`backward.ts:289-293` swaps the WHOLE block for the densified one while `densifyColorBlock` builds from color declarations only — a mixed `opacity + transform + color` track compiles eligible-with-zero-refusals to a color-ONLY `@keyframes` TODAY) — P2-2 F5 | O–Q (found at S dev, P2-2) | new→1 (latent since O–Q) | **FOLD — library-correctness fix, homed in the compile wave (C-25)** | **S.B3 / EN-b** | Thread the densify through `keyframesBlock`'s `bodyByStop` (merge color stops WITH the declared non-color declarations) per `format.ts:212-222`'s own design (~3–4 files; `declaredKeyframeBodyFor` is the substrate — row 58 REVERSED). Born-RED gate clause: a mixed `opacity+color` compile artifact contains BOTH properties. Same T7 fixture co-edit; **BLOCKS S.F3/EN-c** (the C-25 DAG edge — EN-c is unshippable on today's serializeEasing). **Cure PROVEN pass3** (`audit/pass3/en-fix-proto.md`): the fix = the percentage-keyed `densifiedKeyframesBlock` merge (color stops merged WITH the declared non-color projection; static colors preserved), a single-caller return-contract change; the mixed `opacity+transform+color` artifact carries all three props post-fix. |
 
+## State of play (2026-07-03 — the resume anchor)
+
+A compacted instance can resume from here. Tranche S is **fully DEVELOPED** (dev passes 1-3 closed;
+convergence 100% at pass 2; the pass-3 de-risk loops folded). **Band S.E is SHELVED by owner ruling**
+(the SceneStage prototype converged 100/100, was live-reviewed, ruled scrapped-for-now; shelf branch
+`scene-stage-proto-s` @ 63ccab0 + `audit/pass3/`). **Owner rulings 1-4 PENDING; rulings 5-6 RATIFIED +
+executed 2026-07-03** (5: re-scope S.C4/S2 into the named value.js-2.0.0 consume-edge; 6: single kf
+re-pin after value.js's 2.0.x `^1.0.0`-carrying follow-on). **IMPL is NOT authorized — the impl drive
+is the next owner action.** The plan's one external motion is the **single external SPINE**: S.H4's
+parse-that 1.0.0 cut → value.js's 2.0.x follow-on → the single kf re-pin+consume at S.C4/S2 (the
+adopt-event watch = `npm view @mkbabb/value.js` — **act at 2.0.x, not 2.0.0**, which still rides
+parse-that 0.13.0). The pass-3 PROVEN cause-fixes wait in **S.A0** (the shared importmap harness fix;
+styling-idioms; pin-ledger; DM-13/DM-14) and the EN-a/EN-b library-correctness fixes in **S.B3**.
+Branch `tranche-s-dev` is the doc home (docs-only; no source/test/config/git edits). Coordination
+mechanism = **letter + book** (letters travel with the registry event; books bind to named triggers,
+never gates; no RUN-BOARD). glass-ui stays a book, never a gate.
+
 ## Owner rulings (pending)
 
-Pre-booked at SPEC §6.3 — the ONLY open items before impl authorization (no probe work remains):
+Pre-booked at SPEC §6.3 — the open items before impl authorization (rulings 1-4 remain open; rulings
+5-6 RATIFIED + executed 2026-07-03; no probe work remains):
 
 1. **The version ruling's two inputs (sz-B8 — surfaced, not glossed; lands at S.Z3):**
    (i) S.B6's `= any → = Vars` d.ts narrowing is source-breaking for consumers who passed arbitrary
@@ -251,22 +269,23 @@ Pre-booked at SPEC §6.3 — the ONLY open items before impl authorization (no p
    closure re-execution, master-green-on-FINAL-SHA, machine-distinguishable FROZEN discharge,
    the S.G4/S.H3 de-scopes). The owner may still order the split — an explicit pre-impl decision
    point.
-5. **The value.js-2.0.0 consume slot (inbound letter `VALUEJS-R-COORDINATION-2026-07-03.md` §2a —
-   ruling REQUIRED before the impl drive closes S.C4; the letter forbids the silent else-KEEP):**
-   value.js 2.0.0 (their R.W1, publishing now) lands the KF-1 param-grammar fix + the
-   `type→syntax`/`defaultValue→default` rename, making kf's recovery apparatus
-   (`normalizeParam`+`NormalizedParam`, `VJS_PARAM_BUG_MAX`, the `coerceArg` ≤1.2.0 bug arm —
-   `src/animation/resolve/resolve-function.ts:22-90`) dead code by construction. EITHER re-scope
-   S.C4/S2 into a named value.js-2.0.0 consume-edge (the letter §1 deletion map + the re-pin; needs
-   a one-line amendment to the §1 external-edge budget) OR book the full payload explicitly to the
-   kf successor tranche. **Orchestrator recommendation: re-scope (NO-legacy precept — the else-KEEP
-   only existed because 2.0.0 was uncut when S was authored).** PENDING.
-6. **The re-pin sequencing (letter §2b — "choose, don't discover"):** kf is parse-that-free, so
-   parse-that 1.0.0 (S.H4's cut) reaches kf only via value.js's `^1.0.0` follow-on publish (2.0.x).
-   EITHER one value.js re-pin sequenced AFTER that follow-on (both payloads, one adopt+verify) OR
-   two re-pin events (`^2.0.0` now for KF-1; the 1.0.0-carrying 2.0.x later). **Orchestrator
-   recommendation: single re-pin after 2.0.x (minimal edge count; the consume wave sequences after
-   S.H4 → value.js 2.0.x).** PENDING.
+5. **The value.js-2.0.0 consume slot — RATIFIED 2026-07-03 (owner ruling 5).** DECISION: **re-scope**
+   S.C4/S2 into the named value.js-2.0.0 consume-edge (the inbound-letter §1 deletion map + the
+   `^2.0.x` re-pin), NOT the letter-forbidden silent else-KEEP. Executed across the S doc set:
+   `waves/S.C.md` S.C4/S2 rewritten as "the value.js 2.0.0 consume-edge (RULED)", the S.C4 HARD GATE
+   extended with the S2 clauses (grep-zero `normalizeParam`/`NormalizedParam`/`VJS_PARAM_BUG_MAX`;
+   `check:lib` on the direct field reads; the KF-1 runtime vector through `proof:emerging-css-resolve`;
+   the S.A0 PIN-LEDGER co-edit to value.js 2.0.x); fold row 61 → FOLD — RULED consume-edge; the DAG
+   edge stated (the LATE slice, after the external spine). (Context — as authored, S.C4/S2 was a
+   conditional `VJS_PARAM_BUG_MAX` check whose 'else KEEP' branch fired silently; the else-KEEP only
+   existed because value.js 2.0.0 was uncut when S was authored.)
+6. **The re-pin sequencing — RATIFIED 2026-07-03 (owner ruling 6).** DECISION: **single re-pin after
+   the 2.0.x follow-on** — kf is parse-that-free, so parse-that 1.0.0 (S.H4's cut) reaches kf only via
+   value.js's `^1.0.0`-carrying 2.0.x follow-on; ONE kf re-pin at S.C4/S2 carries BOTH payloads
+   (KF-1/2.0.0 + parse-that 1.0.0), not two re-pin events. Executed: the S.H4 INBOUND-LETTER NOTE +
+   S.H charter/S7/verification updated (the kf-side adopt+consume is S.C4/S2, cross-ref); S.md's "kf
+   re-pins exactly once" is now TRUE BY RULING (the letter's undercount critique resolved); the
+   external-edge phrasing amended to ONE external SPINE everywhere (S.md/S.C/S.F/S.H/S.Z).
 
 ## Session log (the S development phase — docs only; no source, test, config, or git-state edits)
 
@@ -320,3 +339,21 @@ Pre-booked at SPEC §6.3 — the ONLY open items before impl authorization (no p
   re-pin sequencing) OPENED** — see "Owner rulings (pending)"; asked 2026-07-03, owner AFK, both
   remain PENDING with orchestrator recommendations recorded (re-scope; single re-pin after 2.0.x).
   No wave gate changed; do not act before `@mkbabb/value.js@2.0.0` is on the registry.
+- 2026-07-03 — **Owner rulings 5 + 6 RATIFIED + EXECUTED (docs-only).** The owner ratified rulings 5
+  (re-scope) and 6 (single re-pin after the 2.0.x follow-on) exactly as recommended. Executed across
+  the S doc set: **(5)** `waves/S.C.md` S.C4/S2 rewritten as the NAMED value.js-2.0.0 consume-edge —
+  the letter §1 deletion map verbatim (DELETE `normalizeParam` + `NormalizedParam` at
+  `resolve/resolve-function.ts:22-90` threading `CustomFunctionParameter` directly; retire the
+  `coerceArg` ≤1.2.0 `CUSTOM_FN_ARG_DROP` arm keeping the generic type-mismatch DROP; DELETE
+  `VJS_PARAM_BUG_MAX`) + the `^2.0.x` re-pin; the S.C4 HARD GATE extended (grep-zero, `check:lib`, the
+  KF-1 runtime vector through `proof:emerging-css-resolve`, the S.A0 PIN-LEDGER co-edit); the DAG edge
+  stated (S2 = the LATE slice, after the S.H4→value.js-2.0.x spine); fold row 61 → **FOLD — RULED
+  consume-edge**. **(6)** the S.H4 INBOUND-LETTER NOTE + S.H charter/S7/verification updated — ONE kf
+  re-pin at S.C4/S2 after the follow-on, both payloads; S.md's "kf re-pins exactly once" now **TRUE BY
+  RULING** (the undercount critique resolved). **(3, executed alongside)** the external-edge phrasing
+  amended to **ONE external SPINE** everywhere it appears (S.md "What S is NOT" + T12 + DAG;
+  `waves/S.C`, `S.F`, `S.H`, `S.Z`): S.H4's parse-that 1.0.0 cut → value.js's 2.0.x follow-on → the
+  single kf re-pin+consume at S.C4/S2 — two registry events on ONE owner-controlled causal chain;
+  glass-ui stays a book, never a gate. PROGRESS.md: rulings 5-6 → RATIFIED, the S.C4 board row + fold
+  row 61 updated, the "State of play" resume anchor added. Rulings 1-4 remain **PENDING**. **IMPL NOT
+  authorized.** No source/test/config/git edits — docs-only.

@@ -60,12 +60,15 @@ S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → k
   publish-then-re-pin lands, and only then does the close band run — S.H4's gates are
   **born-SPECIFIED**, firing at the impl drive's publish step (SPEC §1, §7 T12). Its cross-repo rows
   are dispositioned in S.Z1 via the kf-side CONSUME gate (see S.Z1 scope).
-- **The ONE external consume-edge (SPEC §1, §7 T12 — re-revised at the 2026-07-03 S.E shelf):**
-  **S.H4** — the owner-controlled parse-that publish. The former third-party glass-ui edge left the
-  plan with the S.E shelf: fold rows 51/52/53 are unconditional **owner-domain HANDOFFs** (never
-  presented as terminals), rows 51/52 rendered in the S.Z3 FINAL as `HANDOFF — external — row N`
-  (C-21). No other wave may acquire an external dependency; the HANDOFF-rendered glass-ui gates +
-  the S.H4 edge are the only entries the closeable roster subtracts.
+- **The ONE external SPINE (SPEC §1, §7 T12 — owner rulings 3+5+6, 2026-07-03; re-revised at the
+  2026-07-03 S.E shelf):** **S.H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`-carrying
+  follow-on → the single kf re-pin+consume at S.C4/S2** — two registry events on ONE owner-controlled
+  causal chain, no other external edge. The former third-party glass-ui edge left the plan with the
+  S.E shelf (glass-ui stays a book, never a gate): fold rows 51/52/53 are unconditional
+  **owner-domain HANDOFFs** (never presented as terminals), rows 51/52 rendered in the S.Z3 FINAL as
+  `HANDOFF — external — row N` (C-21). No other wave may acquire an external dependency; the
+  HANDOFF-rendered glass-ui gates + the S.H4/S.C4-S2 spine are the only entries the closeable roster
+  subtracts.
 
 **T11 (the risk signature) — this band's structural compensators (SPEC §7 T11).** S is deliberately
 broad; S.Z carries three of the structural (not cited) compensators that de-risk it: **closure
@@ -278,12 +281,14 @@ mode.
   danger pattern (r2 Part V). S is deliberately broad and compensates **structurally**, not by
   citation (the compensators enumerated in §0 above; SPEC §7 T11). The adversarial critique fleet's
   corrections OVERRIDE raw findings while crediting real wins (r2 S6).
-- **T12 (external gates are named, not assumed).** **Exactly ONE** external consume-edge exists —
-  **S.H4** (the owner-controlled parse-that 1.0.0 publish-then-re-pin; gates born-SPECIFIED, firing
-  at the impl drive's publish step). The former third-party glass-ui edge left the plan at the
-  2026-07-03 S.E shelf; fold rows 51/52/53 are owner-domain HANDOFFs, rows 51/52 rendered
-  `HANDOFF — external — row N` in the S.Z3 FINAL (C-21), never presented as terminals. No other wave
-  may acquire an external dependency without an owner ruling; S.C3b is explicitly
+- **T12 (external gates are named, not assumed).** The whole plan has **ONE external SPINE** (owner
+  rulings 3+5+6) — **S.H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`-carrying follow-on → the
+  single kf re-pin+consume at S.C4/S2** (born-SPECIFIED at S.H4, firing at the impl drive's publish
+  step; the deletion-map consume at S.C4/S2). Two registry events on ONE owner-controlled causal
+  chain; no other external edge. The former third-party glass-ui edge left the plan at the 2026-07-03
+  S.E shelf (glass-ui stays a book, never a gate); fold rows 51/52/53 are owner-domain HANDOFFs, rows
+  51/52 rendered `HANDOFF — external — row N` in the S.Z3 FINAL (C-21), never presented as terminals.
+  No other wave may acquire an external dependency without an owner ruling; S.C3b is explicitly
   constructed to be internally closable.
 
 ### Scope items — the partitioned gate scope (SPEC §3 S.Z2; SZ-3)

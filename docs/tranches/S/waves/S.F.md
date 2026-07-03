@@ -113,8 +113,10 @@ carries the EN-a/EN-b context an F3 implementer needs, and points to S.B.md/S.B3
   **browser-actuated**, not source-shape; live verification via chrome-devtools-mcp per stage.
 - **T10 (clean close).** Every S.F gate appears in the FINAL closeable roster (C-21).
 - **T12 (external gates are named, not assumed).** **S.F introduces ZERO external consume-edges.**
-  The plan's only external edge is S.H4 (parse-that 1.0.0 — the former glass-ui edge left at the
-  2026-07-03 S.E shelf), and it is not in this band. Every S.F gate is **internally closable** on the kf tree.
+  The plan's only external motion is the single external SPINE (S.H4's parse-that 1.0.0 cut →
+  value.js's 2.0.x `^1.0.0`-carrying follow-on → the kf re-pin+consume at S.C4/S2 — owner rulings
+  3+5+6; the former glass-ui edge left at the 2026-07-03 S.E shelf), and no leg of it is in this band.
+  Every S.F gate is **internally closable** on the kf tree.
 - **§2.1-5 — no numeric line count is a born-RED gate's GREEN criterion.** File-size figures in this
   band (`compile/entry.ts` ~250–300L, etc.) are **observed tripwires**, never gate oracles.
 
@@ -770,9 +772,10 @@ browser-harness chain**, with their library-value severity recorded in their tax
 them in `proof:library-correctness` would correctly RED under S.A4's symmetric mis-tier clause (the
 clause working as designed — SPEC §3 S.F preamble; this doc §0).
 
-**S.F introduces ZERO external consume-edges (T12).** The plan's only external edge is S.H4
-(parse-that 1.0.0 — the former glass-ui edge left at the 2026-07-03 S.E shelf) and it is not in this
-band. Every S.F gate is internally closable on the kf tree.
+**S.F introduces ZERO external consume-edges (T12).** The plan's only external motion is the single
+external SPINE (S.H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`-carrying follow-on → the kf
+re-pin+consume at S.C4/S2 — owner rulings 3+5+6; the former glass-ui edge left at the 2026-07-03 S.E
+shelf) and no leg of it is in this band. Every S.F gate is internally closable on the kf tree.
 
 ---
 

@@ -36,12 +36,15 @@ mentions) and hardens the orphan-module walker so the class of defect cannot rec
   without an importer census shipped as evidence (a24 F8). **Totality claims (NO-legacy) are proven
   by census-shaped gates — the S.C3a shadcn census clause — not by naming one island** (SPEC §7 T9).
   This governs S.C3a and S.C3b.
-- **T12 (external gates are named, not assumed).** Exactly **ONE** external consume-edge exists in
-  the whole plan (S.H4 parse-that 1.0.0 — the former glass-ui edge left the plan at the 2026-07-03
-  S.E shelf; the 5.0.0 consume is an owner-domain HANDOFF). **No other wave may acquire an
-  external dependency without an owner ruling; S.C3b is explicitly constructed to be internally
-  closable** (SPEC §7 T12; §1 "What S is NOT"; line 86). This governs S.C3b — gating menubar removal
-  on a missing external surface is **FORBIDDEN**.
+- **T12 (external gates are named, not assumed).** The whole plan has **ONE external SPINE** (owner
+  rulings 3+5+6, 2026-07-03), not a loose set of edges: **S.H4's parse-that 1.0.0 cut → value.js's
+  2.0.x `^1.0.0`-carrying follow-on (their booked §3 commitment) → the single kf re-pin+consume at
+  S.C4/S2** (the ruled value.js-2.0.0 consume-edge). Two registry events on ONE owner-controlled
+  causal chain; **no other external edge exists** (the former glass-ui edge left the plan at the
+  2026-07-03 S.E shelf — glass-ui stays a book, never a gate; the 5.0.0 consume is an owner-domain
+  HANDOFF). **No other wave may acquire an external dependency without an owner ruling; S.C3b is
+  explicitly constructed to be internally closable** (SPEC §7 T12; §1 "What S is NOT"; line 86). This
+  governs S.C3b — gating menubar removal on a missing external surface is **FORBIDDEN**.
 - **§2.1-5 — no numeric line count as a GREEN criterion.** No born-RED gate in this band (or the
   plan) may carry a numeric line-count as its GREEN criterion (line counts are observed tripwires,
   not gate oracles).
@@ -79,11 +82,15 @@ S.C4, which REFINEs the dependency floor.
 ```
 S.A0 ──► S.C1, S.C2, S.C3a, S.C3b, S.C4        (all depend on the green-modulo-backlog CI surface)
 S.C3b: Deps A0 — independent of D3
+S.H4 (parse-that 1.0.0 cut → value.js 2.0.x `^1.0.0` follow-on) ──► S.C4/S2   (the LATE slice; the external spine — owner rulings 5+6)
 ```
 
 **Every S.C wave depends only on S.A0** (the CI-red surface must be honest before the legacy purge
-lands on top of it) — none of S.C1/S.C2/S.C3a/S.C3b/S.C4 blocks another within the band. **One
-construction coupling, not a DAG edge:** S.C3b's HARD GATE **is** the S.C3a shadcn census clause
+lands on top of it) — none of S.C1/S.C2/S.C3a/S.C3b/S.C4 blocks another within the band — **EXCEPT
+S.C4/S2** (the ruled value.js-2.0.0 consume-edge, owner ruling 5): the LATE slice of S.C4 also
+depends on the external spine (S.H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`-carrying
+follow-on), while S.C4/S1 (the tested bumps) and S.C4/S3 (the glass-ui hold) are unaffected and may
+land earlier. **One construction coupling, not a DAG edge:** S.C3b's HARD GATE **is** the S.C3a shadcn census clause
 (C3a authors the census; C3b's green is that census going empty after `ui/menubar` is deleted) — so
 C3b is authored against C3a's clause but does not re-author it. **T7 root-set note for S.C1:** the
 `proof:no-orphan-module` walker's entry-root set is perturbed by **S.B4** (deletes
@@ -346,8 +353,9 @@ internally closable** (SPEC §7 T12).
 - **S3 — Delete the island (fold row 28; T6).** Delete **`ui/menubar/` (16 files)** + **`utils.ts`'s
   `cn`** (verified **menubar-private**).
 - **S4 — The forbidden shape, stated (T12).** **Gating menubar removal on a missing external surface
-  is FORBIDDEN** — no second external gate (the plan's only external consume-edge is S.H4; the
-  former glass-ui edge left at the 2026-07-03 S.E shelf; SPEC §7 T12).
+  is FORBIDDEN** — no external edge beyond the plan's single external SPINE (S.H4's parse-that 1.0.0
+  cut → value.js's 2.0.x `^1.0.0`-carrying follow-on → the kf re-pin+consume at S.C4/S2; the former
+  glass-ui edge left at the 2026-07-03 S.E shelf; SPEC §7 T12).
 
 ### The HARD GATE
 
@@ -389,9 +397,12 @@ Development-only; born-RED (the island is present today); re-run at S.Z2.
 
 ### Charter
 
-Refine the dependency floor with **deliberate, tested bumps** and settle the value.js-bug guard's
-lifecycle. This is the one REFINE wave in the band: it does not excise a surface, it advances the
-dependency posture and re-verifies the baselines.
+Refine the dependency floor with **deliberate, tested bumps** (S1), consume the **ruled
+value.js-2.0.0 edge** (S2 — owner ruling 5, 2026-07-03; the value.js-bug guard's lifecycle is now the
+named deletion map, no longer an open else-KEEP), and hold the glass-ui pin (S3). This is nominally
+the one REFINE wave in the band; S2's deletion map is a surgical excision (the recovery apparatus
+goes dead by construction at value.js 2.0.0) sequenced as the **LATE slice**, after the external
+spine.
 
 ### Scope items
 
@@ -399,18 +410,34 @@ dependency posture and re-verifies the baselines.
   - **dependency-cruiser 17→18** (re-verify the `[]` known-violations baseline stays empty);
   - **fast-check 3→4**;
   - **`@types/node` aligned to the engines floor** (Node >=22).
-- **S2 — `VJS_PARAM_BUG_MAX` lifecycle (fold row 61; a31, a21 F4).** Checked against the value.js
-  changelog and **deleted per its own lifecycle if `extractFunctions` is fixed upstream** (value.js
-  ≤1.2.0 bug); **else KEEP with a citation**.
-  **INBOUND-LETTER NOTE (2026-07-03, `../VALUEJS-R-COORDINATION-2026-07-03.md`, b7fea38):** the
-  upstream fix is REAL — value.js 2.0.0 (their R.W1) lands the KF-1 grammar fix + the
-  `type→syntax`/`defaultValue→default` rename, and its §1 deletion map covers the FULL recovery
-  apparatus (`normalizeParam`+`NormalizedParam` at `resolve/resolve-function.ts:22-90`, this guard,
-  the `coerceArg` ≤1.2.0 arm) + the `^2.0.0` re-pin. This S2 clause is NOT silently satisfied by
-  else-KEEP: the letter requests owner ruling 5 (PROGRESS.md "Owner rulings" #5 — re-scope this S2
-  into the named 2.0.0 consume-edge, or book the payload explicitly to the successor tranche).
-  Sequencing rides owner ruling 6 (single re-pin after value.js's parse-that-1.0.0-carrying 2.0.x
-  follow-on vs double). Do not act before `@mkbabb/value.js@2.0.0` is on the registry (`npm view`).
+- **S2 — the value.js 2.0.0 consume-edge (RULED — owner ruling 5, 2026-07-03; fold row 61; a31, a21
+  F4).** value.js 2.0.0 (their R.W1) lands the KF-1 param-grammar fix + the
+  `type→syntax`/`defaultValue→default` rename, making kf's recovery apparatus dead code by
+  construction. This S2 is the NAMED value.js-2.0.0 consume-edge — the ruled disposition of the former
+  `VJS_PARAM_BUG_MAX` lifecycle clause (owner ruling 5 re-scoped it here rather than accept the
+  letter-forbidden silent else-KEEP; the else-KEEP only existed because 2.0.0 was uncut when S was
+  authored). *(Provenance, folded from the prior INBOUND-LETTER NOTE —
+  `../VALUEJS-R-COORDINATION-2026-07-03.md`, b7fea38: the upstream fix is REAL; the letter's §1
+  deletion map covers the FULL recovery apparatus; the letter forbade the silent else-KEEP and
+  requested this ruling.)*
+
+  **At the SINGLE re-pin event (owner ruling 6 — ONE kf re-pin, after value.js's `^1.0.0`-carrying
+  2.0.x follow-on):**
+  1. **Verify `@mkbabb/value.js` 2.0.x on the registry** (`npm view` — the
+     parse-that-`^1.0.0`-carrying follow-on, their §3 commitment; **NOT 2.0.0**, which still rides
+     parse-that 0.13.0). Do not act before 2.0.x is published.
+  2. **Re-pin `@mkbabb/value.js` → `^2.0.x`** and execute the letter §1 deletion map **verbatim**:
+     - **(1) DELETE `normalizeParam` + `NormalizedParam` entirely** (`resolve/resolve-function.ts:22-90`
+       — the name-glue split, the `nameTail`→`syntax` guard, the `defaultValue ?? fromType` guard all
+       go DEAD) and **thread `CustomFunctionParameter` directly** — read `.name` / `.syntax` /
+       `.default` at `coerceArg` / `resolveFunctionCall`.
+     - **(2) Simplify `coerceArg`** — retire the `CUSTOM_FN_ARG_DROP` "≤1.2.0 mis-assigned default"
+       arm (the value.js-bug recovery arm); **keep the generic type-mismatch DROP**.
+     - **(3) DELETE `VJS_PARAM_BUG_MAX`** (`= "1.2.0"`) — the mis-recovery guard has no bug to guard.
+
+  **Sequencing (owner ruling 6):** ONE kf re-pin carrying both payloads, after the follow-on — see the
+  DAG note above, the Cost+DAG section, and the S.H4 cross-ref (`waves/S.H.md`). This is the LATE
+  slice of S.C4; S1 (the tested bumps) and S3 (the glass-ui hold) are unaffected and may land earlier.
 - **S3 — glass-ui pin posture per C-12 (amended at the S.E shelf).** **HOLD** the ~4.0.x pin
   through S development; the 5.0.0 consume is an **owner-domain HANDOFF** (no S wave since the
   2026-07-03 shelf — this band owns only the hold). Interim 4.2.0 catch-up is REJECTED; **never
@@ -421,24 +448,54 @@ dependency posture and re-verifies the baselines.
 **Gate criterion (SPEC §3 S.C4):** **`proof:pin-ledger-current` green post-bumps**; the **lint
 baseline still `[]`** (dependency-cruiser known-violations remains empty).
 
+**The S2 consume-edge clauses (owner ruling 5 — EXTEND the S.C4 gate; NONE weakens the two above).**
+- **grep-zero** for `normalizeParam` | `NormalizedParam` | `VJS_PARAM_BUG_MAX` anywhere in `src/`
+  post-adopt (the deletion map is total — a surviving symbol REDs);
+- **`check:lib` green** on the direct `CustomFunctionParameter` field reads (`.name` / `.syntax` /
+  `.default` at `coerceArg` / `resolveFunctionCall`) — the rename is a total BC break, so a stale
+  `.type` / `.defaultValue` read fails at tsc;
+- **the KF-1 gate vector as a RUNTIME clause** — the input `--x <length>: 0px` resolving through kf's
+  emerging-CSS pipeline yields `{name:"--x", syntax:"<length>", default:"0px"}`; wired explicitly into
+  the resolve-tier gate **`proof:emerging-css-resolve`** (the S.A4-merged survivor of the
+  `emerging-css-resolve-{now,p2,fn}` triple — the `-fn` member covers the `@function` param path), so
+  the KF-1 fix closes against actuation, not a source diff;
+- **the S.A0 PIN-LEDGER witness co-edit** — the pin ledger (`docs/tranches/Q/PIN-LEDGER.json`) targets
+  value.js **1.2.0** today (S.A0 re-authors it to the installed set); this consume-edge **co-edits that
+  same ledger to value.js `2.0.x`** at the re-pin (the exact ledger `proof:pin-ledger-current` reads),
+  named as the co-edit.
+
 **Born-RED witness plan.** `proof:pin-ledger-current` is RED today at the S.A0 layer (PIN-LEDGER
 frozen at 4.4.0/1.1.0/0.12.0 vs installed 5.1.0/1.2.0/0.13.0 — S.A0 re-authors the ledger). S.C4's
 gate is GREEN only when the **post-bump** ledger (dependency-cruiser 18, fast-check 4, aligned
-`@types/node`, the resolved `VJS_PARAM_BUG_MAX` lifecycle, the held glass-ui ~4.0.x pin) matches the
-installed set AND the dependency-cruiser baseline is still `[]`. **Falsifiability:** a bump that
+`@types/node`, the S2 deletion map + the value.js `2.0.x` pin, the held glass-ui ~4.0.x pin) matches
+the installed set AND the dependency-cruiser baseline is still `[]`. **Falsifiability:** a bump that
 leaves the ledger stale REDs `proof:pin-ledger-current`; a dependency-cruiser 18 upgrade that
 introduces a new cycle breaks the `[]` baseline and REDs; a caret glass-ui pin (or an interim 4.2.0
-catch-up) violates C-12.
+catch-up) violates C-12. **S2 falsifiers:** a surviving `normalizeParam` / `NormalizedParam` /
+`VJS_PARAM_BUG_MAX` symbol anywhere in `src/` REDs the grep-zero clause; a stale `.type` /
+`.defaultValue` read against the renamed `CustomFunctionParameter` REDs `check:lib`; a KF-1 input that
+resolves to the old first-colon-split shape (not `{name:"--x", syntax:"<length>", default:"0px"}`)
+REDs `proof:emerging-css-resolve`; a PIN-LEDGER left at value.js 1.2.0 after the re-pin REDs
+`proof:pin-ledger-current`.
 
 ### Cost + DAG
 
-Three tested bumps + the `VJS_PARAM_BUG_MAX` changelog check + the glass-ui pin-posture hold. **Deps:
-A0** (the PIN-LEDGER re-author S.A0 lands is the surface this wave bumps against).
+Three tested bumps (S1) + the ruled value.js-2.0.0 consume-edge deletion map (S2 — DELETE
+`normalizeParam` / `NormalizedParam`, simplify `coerceArg`, DELETE `VJS_PARAM_BUG_MAX`, re-pin
+`^2.0.x`) + the glass-ui pin-posture hold (S3). **Deps: A0** for S1/S3 (the PIN-LEDGER re-author S.A0
+lands is the surface this wave bumps against). **Deps for S2 (the LATE slice): the external spine** —
+**S.H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`-carrying follow-on publish** (owner ruling
+6; verify `npm view @mkbabb/value.js` shows 2.0.x before acting). S1/S3 are unaffected and may land
+earlier. The DAG edge is stated in the band DAG above and in S.md's DAG.
 
 ### Verification
 
 `proof:pin-ledger-current` green post-bumps; dependency-cruiser known-violations baseline still `[]`;
-glass-ui held at ~4.0.x (the 5.0.0 consume is an owner-domain HANDOFF since the S.E shelf). Development-only; re-run at S.Z2.
+the S2 consume-edge clauses all green after the single re-pin (grep-zero
+`normalizeParam` / `NormalizedParam` / `VJS_PARAM_BUG_MAX` in `src/`; `check:lib` green on the direct
+field reads; the KF-1 runtime vector green through `proof:emerging-css-resolve`; the S.A0 PIN-LEDGER
+co-edited to value.js `2.0.x`); glass-ui held at ~4.0.x (the 5.0.0 consume is an owner-domain HANDOFF
+since the S.E shelf). Development-only; re-run at S.Z2.
 
 ---
 
@@ -459,7 +516,7 @@ from the table (SPEC §4 header).
 | 27 | 8 zero-importer shadcn devDeps | pre-A | ancient | **WAVE S.C3a** (allowlist-form no-dead-dependency gate) |
 | 28 | ui/menubar island + utils.ts(cn) | pre-A | ancient | **WAVE S.C3b** (C-19: glass-ui dropdown-menu, present in 4.0.x, OR relocate-in-place — internally closable; NO external gate) |
 | 57 | SPRING_SMOOTH dead constant + void hack | P | 2 | **WAVE S.C3a** |
-| 61 | VJS_PARAM_BUG_MAX (value.js ≤1.2.0 bug) | Q | 1 | **WAVE S.C4** (delete per lifecycle if fixed upstream; else KEEP with citation) |
+| 61 | VJS_PARAM_BUG_MAX (value.js ≤1.2.0 bug) | Q | 1 | **WAVE S.C4/S2** (RULED — owner ruling 5, 2026-07-03: the named value.js-2.0.0 consume-edge; the letter §1 deletion map + `^2.0.x` re-pin, LATE slice after the external spine — NOT the letter-forbidden else-KEEP) |
 | 62 | dependency-cruiser 17→18, fast-check 3→4, @types/node | old | old | **WAVE S.C4** |
 | 63 | Stale comments/narration corpus (dead identifiers ×5, soa.ts, barrels, baselines, taxonomy prose, headers, proof-script sites) | Q–R | mixed | **WAVE S.C3a** (gated: dead-identifier grep — NOT the phrase "scene-switcher", which the S.E shelf record legitimately carries; discretionary items stated) |
 | 64 | docs/frontend-design/demo/*.md pre-fusion paths | pre-R | 1 | **WAVE S.C3a** (remap before S.G reads them; discretionary tier, stated) |

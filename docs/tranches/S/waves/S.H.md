@@ -11,10 +11,13 @@ two publish-coupled S.H4 gates, which ship born-SPECIFIED** (they fire at the im
 step — T4; SPEC §3 preamble line 454). inv-16 holds (kf writes only; the parse-that edits are a
 DISPATCH to the sibling repo, owner-controlled).
 
-**Charter.** S.H is the parse-that dispatch — the second (and only owner-controlled) external
-consume-edge of Tranche S (SPEC §1, §7 T12). It carries three grounded, IN-REALM combinator-tier
-motions and one ledger-closure/cut wave, all landing in **one 1.0.0 publish** after which kf
-**re-pins exactly once** (SPEC §3 S.H preamble). The dispatch is combinator-tier ONLY — **no
+**Charter.** S.H is the parse-that dispatch — the **first leg of Tranche S's single external SPINE**
+(the only owner-controlled external motion; SPEC §1, §7 T12; owner rulings 3+5+6, 2026-07-03). It
+carries three grounded, IN-REALM combinator-tier motions and one ledger-closure/cut wave, all landing
+in **one 1.0.0 publish**; that 1.0.0 reaches kf ONLY via value.js's `^1.0.0`-carrying 2.0.x follow-on
+(kf is parse-that-free), and kf **re-pins exactly once** at S.C4/S2 — TRUE BY RULING 6 (one re-pin
+carrying both the parse-that-1.0.0 payload and the KF-1/2.0.0 payload; the letter's undercount
+critique thereby resolved). The dispatch is combinator-tier ONLY — **no
 bbnf-lang** (grammar-DSL work is a separate session's job; owner directive, r6 — SPEC §1). The
 publish is a normal registry publish then a re-pin; **NO `file:` sibling links** in the manifest or
 CI (SPEC §3 S.H title; the registry-consumption discipline). Two systemic facts anchor the band:
@@ -33,14 +36,17 @@ CI (SPEC §3 S.H title; the registry-consumption discipline). Two systemic facts
 S.H4 closes the R-dropped ledger rows (DQ-1/DQ-2 — r8 F2), verifies fold row 46 (color2Into) at the
 re-pin, records the deliberate non-goals + the two r6 decisions v1 dropped, cuts 1.0.0 (H1+H2
 payload), and re-pins kf.
-**INBOUND-LETTER NOTE (2026-07-03, `../VALUEJS-R-COORDINATION-2026-07-03.md`, b7fea38 — no kf
-action, booked for the record):** value.js R has ADOPTED the S.H2→S.H4 trigger correction (their
+**INBOUND-LETTER NOTE (2026-07-03, `../VALUEJS-R-COORDINATION-2026-07-03.md`, b7fea38 — booked for the
+record; the sequencing is now RULED):** value.js R has ADOPTED the S.H2→S.H4 trigger correction (their
 parse-that re-pin book fires on S.H4's 1.0.0 cut, not S.H2); their `^1.0.0` follow-on publish
 (2.0.x) runs with the widened verify (span-absence, the 4 live `.chain()` sites, a mirror of C-16's
 chainError 0-caller scan, full suite) and is the ONLY carrier by which parse-that 1.0.0 reaches kf
 (kf is parse-that-free); `color2Into` + their suite are committed green through the re-pin, so this
-wave's fold-row-46 gate closes without firing its named exit. The kf-side re-pin sequencing
-(single-after-2.0.x vs double) is owner ruling 6 (PROGRESS.md "Owner rulings" #6). **S.H3 (the Pratt binding-power combinator) is de-scoped to §8** — its
+wave's fold-row-46 gate closes without firing its named exit. **The kf-side re-pin sequencing is RULED
+(owner ruling 6, 2026-07-03): ONE kf re-pin, sequenced AFTER value.js's `^1.0.0`-carrying 2.0.x
+follow-on — one adopt+verify carrying BOTH payloads (KF-1/2.0.0 + parse-that 1.0.0), not two re-pin
+events.** The kf-side adopt+consume of that re-pin — the deletion map + `^2.0.x` — is **S.C4/S2** (the
+ruled value.js-2.0.0 consume-edge, owner ruling 5; cross-ref `waves/S.C.md` S.C4/S2). **S.H3 (the Pratt binding-power combinator) is de-scoped to §8** — its
 "design doc + external value.js sign-off" gate violated T1's runtime-tier absolutism and would have
 created a THIRD external edge (SPEC §3 S.H3, §8-2).
 
@@ -65,15 +71,19 @@ S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → k
 - **S.H1 ∥ S.H2** — parallel; they touch disjoint parse-that surface (`packrat.ts` vs
   `span.ts`/`chain`), no intra-band collision.
 - **S.H1 + S.H2 ──► S.H4** — H4 is the cut: **H1's perf patch AND H2's breaking cut land in ONE
-  1.0.0 publish** (no interim release; kf re-pins exactly once — SPEC §3 S.H preamble line 1159).
+  1.0.0 publish** (no interim release; kf re-pins exactly once, at S.C4/S2 after value.js's 2.0.x
+  follow-on — owner ruling 6; SPEC §3 S.H preamble line 1159).
 - **S.H4 ──► (1.0.0 publish → kf re-pin) ──► before S.Z** — the re-pin must land before the close
   band so S.Z1's cross-repo rows disposition through the kf-side CONSUME gate over the re-pinned
   build (SPEC §3 S.Z1, DAG line 1284).
-- **External-edge status (T12):** S.H4 is **T12's ONLY external consume-edge** (owner-controlled;
-  the former third-party glass-ui edge left the plan at the 2026-07-03 S.E shelf — the 5.0.0 consume
-  is an owner-domain HANDOFF). Its gates are **born-SPECIFIED** and fire at the
-  impl drive's publish step. **No other S wave may acquire an external dependency without an owner
-  ruling** (SPEC §7 T12; §1 line 82).
+- **External-edge status (T12 — the SPINE, owner rulings 3+5+6):** the whole plan has **ONE external
+  SPINE**, not a set of edges: **S.H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`-carrying
+  follow-on → the single kf re-pin+consume at S.C4/S2**. Two registry events on ONE owner-controlled
+  causal chain; **no other external edge exists** (the former third-party glass-ui edge left the plan
+  at the 2026-07-03 S.E shelf — glass-ui stays a book, never a gate; the 5.0.0 consume is an
+  owner-domain HANDOFF). S.H4's gates are **born-SPECIFIED** and fire at the impl drive's publish
+  step. **No other S wave may acquire an external dependency without an owner ruling** (SPEC §7 T12;
+  §1 line 82).
 
 **Fold rows this band terminalizes (SPEC §4):**
 - Row **46** — `color2Into` cross-repo WATCH (born P, 2 tranches) → **DISPATCH (value.js), verified
@@ -96,8 +106,8 @@ continue-on-error path nothing uses); **C-14** (per-wave mode declaration).
 **Tenets referenced (SPEC §7):** **T1** (no gate-shaped closures — the reason S.H3's design-doc gate
 was de-scoped; every closable oracle is runtime-tier), **T4** (DEVELOPED ≠ SHIPPED — H1/H2 gates
 ship born-RED; the two H4 publish-coupled gates ship born-SPECIFIED and fire at the impl drive's
-publish step), **T12** (external gates are named, not assumed — S.H4 is the second of exactly two
-external edges; born-SPECIFIED, owner-controlled).
+publish step), **T12** (external gates are named, not assumed — S.H4 is the first leg of the plan's
+single external SPINE; born-SPECIFIED, owner-controlled).
 
 **Probes:** **p11 → S.H1/H2** (heap gate KEPT; the type ripple; gate isolation; honest changelog % —
 SPEC §7 probe-adjustment index line 1797).
@@ -333,8 +343,9 @@ error short-circuits, 0-hit caller scan holds); (6) refresh `parse-that/CLAUDE.m
 The Pratt binding-power combinator design **survives as a design appendix/seed** over the Parser core
 (with the value.js `math.ts` consume-edge sketch — SPEC §8-2). r6 rates it **LOW**; its proposed
 gate ("design doc + external value.js sign-off") **violates T1's runtime-tier absolutism** and would
-have been an ADDITIONAL external edge (T12 now permits exactly one: S.H4 — the former glass-ui edge
-left at the 2026-07-03 S.E shelf). It is **not implemented
+have been an ADDITIONAL external edge (T12 permits only the single external SPINE — S.H4's cut →
+value.js's 2.0.x follow-on → the kf re-pin+consume at S.C4/S2; the former glass-ui edge left at the
+2026-07-03 S.E shelf). It is **not implemented
 without value.js ratification** and is **explicitly not a grammar-DSL move** (no bbnf-lang — SPEC §1,
 §8-2). It authors nothing in S; it is recorded in §8-2 so the design is not silently lost.
 
@@ -351,10 +362,11 @@ without value.js ratification** and is **explicitly not a grammar-DSL move** (no
 
 S.H4 is the cut and the ledger closure. It verifies the R-dropped ledger rows actually landed,
 verifies fold row 46 at the re-pin, records the deliberate non-goals and the two r6-mandated
-decisions v1 dropped, then **cuts 1.0.0 (the H1+H2 payload) and re-pins kf exactly once**. It is
-**T12's second, owner-controlled external consume-edge**; its gates fire at the impl drive's publish
-step (born-SPECIFIED — T4), because a publish-coupled gate cannot be run in the development phase.
-(SPEC §3 S.H4, §1, §7 T12.)
+decisions v1 dropped, then **cuts 1.0.0 (the H1+H2 payload)**; kf re-pins exactly once — at S.C4/S2,
+after value.js's `^1.0.0`-carrying 2.0.x follow-on (owner ruling 6), since kf is parse-that-free. It
+is the **first leg of T12's single, owner-controlled external SPINE** (→ value.js's 2.0.x follow-on →
+the kf re-pin+consume at S.C4/S2); its gates fire at the impl drive's publish step (born-SPECIFIED —
+T4), because a publish-coupled gate cannot be run in the development phase. (SPEC §3 S.H4, §1, §7 T12.)
 
 ### Scope items
 
@@ -381,9 +393,12 @@ step (born-SPECIFIED — T4), because a publish-coupled gate cannot be run in th
   **PROVISIONAL** — **NOT** the process-latching "made free" claim: arming **never disarms**, so
   "free" holds **only for memoize-free processes** (the honest framing, distinct from a blanket
   "made free"). (SPEC §3 S.H4, §1 "No bbnf-lang".)
-- **S7 — Cut 1.0.0 (H1+H2 payload); kf re-pins on publish.** **ONE 1.0.0 publish; kf re-pins exactly
-  once** (SPEC §3 S.H preamble, S.H4). **NO `file:` sibling links** — kf re-pins to the published
-  1.0.0 in the manifest (tilde/exact per PIN-LEDGER discipline, never caret; never a `file:` link).
+- **S7 — Cut 1.0.0 (H1+H2 payload); value.js carries it to kf.** **ONE 1.0.0 publish** (SPEC §3 S.H
+  preamble, S.H4). **NO `file:` sibling links** anywhere. kf is **parse-that-free**, so parse-that
+  1.0.0 reaches kf ONLY via value.js's `^1.0.0`-carrying 2.0.x follow-on (owner ruling 6) — **kf
+  re-pins exactly once, at S.C4/S2**, adopting value.js `^2.0.x` (which transitively carries parse-that
+  1.0.0; caret per the letter §1; never a `file:` link). value.js re-pins parse-that `^1.0.0` in its
+  own manifest at the 2.0.x follow-on.
 
 ### The HARD GATES — born-SPECIFIED (fire at the impl drive's publish step)
 
@@ -430,9 +445,10 @@ gate definitions. The publish/re-pin motion itself is the impl drive's single pu
 ### DAG
 
 **Deps: S.H1 + S.H2** (both are the 1.0.0 payload — H4 cuts them in one publish). **S.H4 ──► (1.0.0
-publish → kf re-pin) ──► before S.Z** (the re-pin must precede the close band so S.Z1's cross-repo
-rows disposition through the kf-side CONSUME gate over the re-pinned build). **S.H4 is T12's second
-external edge** (born-SPECIFIED, owner-controlled). (SPEC §3 DAG line 1284, §7 T12.)
+cut → value.js 2.0.x `^1.0.0` follow-on) ──► S.C4/S2 (the single kf re-pin+consume — owner rulings
+5+6) ──► before S.Z** (the re-pin must precede the close band so S.Z1's cross-repo rows disposition
+through the kf-side CONSUME gate over the re-pinned build). **S.H4 is the first leg of T12's single
+external SPINE** (born-SPECIFIED, owner-controlled). (SPEC §3 DAG line 1284, §7 T12.)
 
 ### Verification
 
@@ -441,9 +457,12 @@ Impl sequence (at the authorized impl drive): (1) verify DQ-1 packrat re-entranc
 incremental, Squirrel LR, SpanParser resurrection — S4) + the two r6 decisions (no zone-partition;
 zero-copy delegated to value.js's scanner — S5) + the PROVISIONAL WDM/LR framing with the
 honest "free only in memoize-free processes" caveat (S6); (3) cut **1.0.0** (the H1+H2 payload) —
-**ONE publish** (S7); (4) re-pin kf **exactly once** to the published 1.0.0 (manifest + CI; **NO
-`file:` link**, never caret); (5) at the publish step the three **born-SPECIFIED** gates fire —
-`proof:pin-ledger-current` reflects 1.0.0 (a), the kf-side consume gate green (b), the value.js suite
-green against the re-pinned build (c); (6) **verify fold row 46 (color2Into) AT THE RE-PIN** via the
-value.js suite green (S3) — if unverifiable, fire the named exit (never silently re-WATCH). The
-re-pin lands **before S.Z** so S.Z1's cross-repo rows disposition through the kf-side CONSUME gate.
+**ONE publish** (S7); (4) value.js publishes its `^1.0.0`-carrying **2.0.x** follow-on (their §3
+commitment); kf then **re-pins exactly once, at S.C4/S2** — value.js `^2.0.x` in the manifest (which
+transitively carries parse-that 1.0.0; **NO `file:` link**; caret per the letter §1), owner ruling 6;
+(5) at the publish/re-pin step the three **born-SPECIFIED** gates fire — `proof:pin-ledger-current`
+reflects the new pin (a), the kf-side consume gate green (b — the S.C4/S2 deletion map + the
+resolve-tier KF-1 vector), the value.js suite green against the re-pinned build (c); (6) **verify fold
+row 46 (color2Into) AT THE RE-PIN** via the value.js suite green (S3) — if unverifiable, fire the
+named exit (never silently re-WATCH). The re-pin lands **before S.Z** so S.Z1's cross-repo rows
+disposition through the kf-side CONSUME gate.

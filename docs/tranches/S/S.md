@@ -154,15 +154,21 @@ recorded in §2 below.
   (owner ruling 2026-07-03)**: the 5.0.0 consume is now an owner-domain HANDOFF with
   no S wave (fold rows 11/51/52/53/55); the pin posture (hold ~4.0.x, tilde never
   caret) rides S.C4 per C-12.
-- **Exactly ONE external consume-edge, named (T12, re-revised at the S.E shelf).**
-  **S.H4** — the owner-controlled parse-that 1.0.0 publish-then-re-pin; its gates are
-  **born-SPECIFIED** and fire at the impl drive's publish step. (History: SPEC-v1
-  falsely said "the glass-ui edge is the only externally-gated wave"; the pass-2
-  correction named TWO edges — the glass-ui edge + S.H4; the 2026-07-03 S.E shelf removed the
-  glass-ui edge, leaving S.H4 alone. Fold rows 51/52/53 are owner-domain HANDOFFs,
-  never presented as terminals — rows 51/52 render `HANDOFF — external — row N` in
-  the S.Z3 FINAL per C-21.) No other wave may acquire an external dependency without
-  an owner ruling; S.C3b (menubar) is explicitly forbidden from external gating.
+- **ONE external SPINE, named (T12 — owner rulings 3+5+6, 2026-07-03; re-revised at
+  the S.E shelf).** The whole plan has a single external SPINE, not a loose set of
+  edges: **S.H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`-carrying follow-on
+  (their booked §3 commitment) → the single kf re-pin+consume at S.C4/S2** (the ruled
+  value.js-2.0.0 consume-edge). Two registry events on ONE owner-controlled causal
+  chain; **no other external edge exists**. S.H4's gates are **born-SPECIFIED** and
+  fire at the impl drive's publish step. (History: SPEC-v1 falsely said "the glass-ui
+  edge is the only externally-gated wave"; the pass-2 correction named TWO edges — the
+  glass-ui edge + S.H4; the 2026-07-03 S.E shelf removed the glass-ui edge; the
+  2026-07-03 inbound-letter rulings 5+6 then folded S.H4 and the value.js-2.0.0 consume
+  into ONE causal spine. glass-ui stays a book, never a gate — fold rows 51/52/53 are
+  owner-domain HANDOFFs, never presented as terminals; rows 51/52 render
+  `HANDOFF — external — row N` in the S.Z3 FINAL per C-21.) No other wave may acquire
+  an external dependency without an owner ruling; S.C3b (menubar) is explicitly
+  forbidden from external gating.
 - **No quick solutions.** Where a lane offered a patch and a transposition, the plan
   takes the transposition (service-locator → ownership inversion, a06;
   sheet-occlusion → the probe-proven stage-visibility contract, p10 — not ten
@@ -823,10 +829,16 @@ signature; the D3 S9 egg re-point still ships as a gate re-point).
 
 **S.H — parse-that dispatch (own repo; ONE 1.0.0 publish then re-pinned; NO `file:`
 links; track: dispatch).** Intra-band DAG (sh-#6): **H1, H2 parallel; H1 + H2 → H4
-→ (1.0.0 publish → kf re-pin) → before S.Z.** H3 is de-scoped to §8. H1's patch +
-H2's breaking cut land in **one 1.0.0 publish** (kf re-pins exactly once). H4's
-gates are **born-SPECIFIED** (T4) and this band is T12's second, owner-controlled
-external consume-edge. S.H1 arms the packrat epoch behind a PACKRAT_ARMED latch
+→ (1.0.0 cut → value.js 2.0.x `^1.0.0` follow-on) → S.C4/S2 (the single kf
+re-pin+consume — rulings 5+6) → before S.Z.** H3 is de-scoped to §8. H1's patch +
+H2's breaking cut land in **one 1.0.0 publish**; that 1.0.0 reaches kf only via
+value.js's `^1.0.0`-carrying 2.0.x follow-on, so **kf re-pins exactly once** — TRUE
+BY RULING (owner ruling 6, 2026-07-03): one re-pin event at S.C4/S2 carrying both
+payloads (the parse-that-1.0.0 payload + the KF-1/2.0.0 payload), sequenced after
+the follow-on; the letter's undercount critique thereby resolved. H4's gates are
+**born-SPECIFIED** (T4) and H4 is the **first leg of T12's single, owner-controlled
+external SPINE** (→ value.js's 2.0.x follow-on → the kf re-pin+consume at S.C4/S2).
+S.H1 arms the packrat epoch behind a PACKRAT_ARMED latch
 (p11: 14–18% short-value throughput, ~34% retained heap; the probe-mandated type
 ripple; the retained-heap born-RED clause MUST run in a memoize-free process; NO
 throughput-% gate). S.H2 is the 1.0.0 legacy cut: delete span.ts + all 15 `*Span`
@@ -875,7 +887,7 @@ S.B1 ──► S.B2 ──► S.B4, S.B6 ;  S.B1 ──► S.B3 ──► S.B4 �
 S.B2/B3 ──► S.F1 ;  S.B3 (carrying EN-a + EN-b) ──► S.F3/EN-c ──► EN-d ;  S.B4 ──► S.F4 ;  S.B2/B4 ──► S.F5a/b/c ;  S.B1 ──► S.F2
 (band S.E SHELVED by owner ruling 2026-07-03 — its edges are removed; see waves/S.E.md)
 S.G1 ──► S.G2 ──► S.G3        (S.G4 → §8)
-S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → kf re-pin) ──► before S.Z
+S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 cut → value.js 2.0.x `^1.0.0` follow-on) ──► S.C4/S2 (the single kf re-pin+consume — rulings 5+6) ──► before S.Z
 ALL ──► S.Z1 ──► S.Z2 ──► S.Z3   (Z3 pre-gated on master-green at the FINAL SHA)
 ```
 
@@ -902,8 +914,10 @@ S.G; close = S.Z. (Band S.E SHELVED — no track membership.)
   *layout/appearance* gate (D3, G — NOT D1, which reds only source-path gates,
   p04 F4).
 - `proof:scene-colocated` canonical edit order: **A4 → D2 → D3** (T7).
-- The ONE external edge is H4 (owner-controlled, born-SPECIFIED) — **no others**
-  (T12; the former glass-ui edge left the plan at the 2026-07-03 S.E shelf).
+- The ONE external SPINE is H4's parse-that 1.0.0 cut → value.js's 2.0.x `^1.0.0`
+  follow-on → the single kf re-pin+consume at **S.C4/S2** (owner-controlled;
+  born-SPECIFIED at H4; rulings 3+5+6) — **no other external edge** (T12; the former
+  glass-ui edge left the plan at the 2026-07-03 S.E shelf; glass-ui stays a book).
 
 ## 6. The prompt-recap plan (SPEC §5)
 
@@ -1030,8 +1044,9 @@ Every critic-pruned item, with its source and the shape it carries forward:
 2. **S.H3 — the Pratt binding-power combinator** (sh prune). Kept as a design
    appendix/seed over the Parser core with the value.js math.ts consume-edge
    sketch; no wave, no gate (its design-doc + external-sign-off "gate" violated T1
-   and would have been a third external edge); not implemented without value.js
-   ratification; explicitly not a grammar-DSL move.
+   and would have been an additional external edge beyond the plan's single external
+   spine); not implemented without value.js ratification; explicitly not a
+   grammar-DSL move.
 3. **The literal single-writer hard fold** (p02 §3.3 / sb-#9). A FUTURE BREAKING
    wave: 107 test sites + the demo contract-anim writes + a public `seek(ms)` verb
    + a MIGRATION doc; do only behind the `seek()` surface; collides with
