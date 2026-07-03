@@ -101,7 +101,10 @@ const ENGINE = "src/animation/engine/animation.ts";
 // carved `engine/css-animation.ts` CSS subclass; the play-time guard
 // (`assertNoUnresolvedNamedSelector`) stays on the base class as a delegate.
 const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
-const CONSTANTS = "src/animation/constants.ts";
+// S.B1 — the constants monolith carved into constants/{types,defaults}.ts; the
+// composite-floor anchor (`AnimationOptions.composite?: CompositeOperator`) is a
+// TYPE declaration and lives on the LIGHT-pure types module.
+const CONSTANTS = "src/animation/constants/types.ts";
 const TEST = "test/replay-equality.test.ts";
 
 /** Assert every anchor is present in `file`; the clause reds on any missing. */
