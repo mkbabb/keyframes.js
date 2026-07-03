@@ -45,18 +45,44 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { transformWithOxc } from "vite";
 import { bench, describe } from "vitest";
+import { IN_CI } from "../scripts/lib/ci-env.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
 
 const LOAF_THRESHOLD_MS = 50;
-// 200 children = 6.25× AnimationGroup.YIELD_BATCH (32), so the group ticks in
-// ~7 batches with a `scheduler.yield()` between each — the batched path S4
-// verifies. Large enough that an un-yielded tick would block >50ms; with the
-// engine's yield batching the clean composite blocks ~10-15ms (well under
-// budget) while paint-heavy frames (high total duration, ~0 blocking) are
-// correctly ignored. Override with KF_LOAF_COUNT.
-const COMPOSITE_COUNT = Number(process.env.KF_LOAF_COUNT ?? 200);
+
+// S.A2 S3 — the DE-MAGIC of `KF_LOAF_COUNT`. The 50ms threshold itself is NEVER
+// relaxed (the runner-calibrated posture: ci-env.mjs §THE THREE POSTURES); only
+// the yield-stress SIZE is sized to the runner, and that size is a NAMED profile
+// here, no longer a bare magic `48` injected by ci.yml prose.
+//
+//   LOAF_COMPOSITE_FULL (200) — the real-hardware yield stress. 200 children =
+//     6.25× AnimationGroup.YIELD_BATCH (32), so the group ticks in ~7 batches
+//     with a `scheduler.yield()` between each — the batched path this bench
+//     verifies. Large enough that an un-yielded tick would block >50ms; with the
+//     engine's yield batching the clean composite blocks ~10-15ms locally.
+//   LOAF_COMPOSITE_CI_SMOKE (48) — the runner-calibrated size. The shared GitHub
+//     VM runs ~6× slower than real hardware, so the full 200-cell loop
+//     legitimately blocks ~130ms there (local: ~20ms) with NO regression — a
+//     single absolute threshold cannot separate that host cost from the
+//     bite-test's 120ms inject. 48 still crosses the YIELD_BATCH=32 boundary
+//     (exercises the yield path; loop worst-frame ~30ms, comfortably under the
+//     UNCHANGED strict 50ms), and the 120ms inject still reddens. cf. tranche-B
+//     5fa76b4 (CI perf SMOKE robust, real gate local).
+export const LOAF_COMPOSITE_FULL = 200;
+export const LOAF_COMPOSITE_CI_SMOKE = 48;
+
+// The size is derived from the ONE IN_CI authority (scripts/lib/ci-env.mjs) — CI
+// self-selects the runner-calibrated smoke, local uses the full stress — with an
+// explicit numeric `KF_LOAF_COUNT` override kept for experimentation. ci.yml no
+// longer carries the magic literal; the profile is named + single-sourced here.
+const COMPOSITE_COUNT =
+    process.env.KF_LOAF_COUNT != null
+        ? Number(process.env.KF_LOAF_COUNT)
+        : IN_CI
+          ? LOAF_COMPOSITE_CI_SMOKE
+          : LOAF_COMPOSITE_FULL;
 
 /** Resolve Chromium the way the occlusion gate does. */
 function resolveChromium() {
