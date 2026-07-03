@@ -71,11 +71,11 @@ export async function playWAAPI<V extends Vars>(
                 }
                 wa.cancel();
             } catch {
-                /* already detached/cancelled — nothing to commit or cancel */
+                /* KEEP: already detached/cancelled — nothing to commit or cancel */
             }
         }
     } catch {
-        // `Animation.stop()`/`reset()` cancelled the compositor animations,
+        // KEEP: `Animation.stop()`/`reset()` cancelled the compositor animations,
         // rejecting `finished` with an AbortError — a deliberate halt, not
         // an error (`_cancelWAAPI` already cleared the handles). Swallow it so
         // the awaited `play()` resolves cleanly.

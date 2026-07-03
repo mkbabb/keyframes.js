@@ -70,7 +70,7 @@ export function useSheetGesture(isOpen: Ref<boolean>) {
         try {
             (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
         } catch {
-            /* already released */
+            /* KEEP: already released */
         }
     }
 

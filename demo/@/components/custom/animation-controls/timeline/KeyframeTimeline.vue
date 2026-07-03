@@ -209,7 +209,7 @@ const onDiamondHover = async (kf: TimelineKeyframe) => {
             previewCache[kf.id] = canvas.toDataURL("image/png");
         }
     } catch {
-        // Capture failed (no animation, 3D not supported, etc.) — ghost preview shown as fallback
+        // KEEP: capture failed (no animation, 3D not supported, etc.) — ghost preview shown as fallback
     } finally {
         previewLoading[kf.id] = false;
     }

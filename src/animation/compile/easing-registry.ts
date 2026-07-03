@@ -83,7 +83,8 @@ export const getTimingFunction = (
             const { count, jumpTerm } = parseSteps(timingFunction);
             return steppedEase(count, jumpTerm);
         } catch {
-            // fall through to the registry / undefined
+            // KEEP: fall through to the registry / undefined — a malformed
+            // steps(...) degrades to the lookup, never a silent wrong curve.
         }
     }
     if (timingFunction === "step-start") return steppedEase(1, "jump-start");
@@ -110,7 +111,8 @@ export const getTimingFunction = (
         try {
             return cssLinear(parseLinearStops(timingFunction));
         } catch {
-            // fall through to the registry / undefined
+            // KEEP: fall through to the registry / undefined — a bad linear()
+            // degrades to the lookup, never a silent wrong curve.
         }
     }
 

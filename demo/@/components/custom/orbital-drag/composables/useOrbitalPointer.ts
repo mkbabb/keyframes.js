@@ -188,7 +188,7 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
     const releaseCapture = (event: PointerEvent) => {
         try {
             containerRef.value?.releasePointerCapture(event.pointerId);
-        } catch { /* iOS may throw if already released */ }
+        } catch { /* KEEP: iOS may throw if already released */ }
     };
 
     const onPointerUp = (event: PointerEvent) => {

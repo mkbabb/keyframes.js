@@ -114,7 +114,7 @@ export function useHeroSourceEgg(
                     .trim()
                     .slice(0, 64);
         } catch {
-            /* the serialize is a flourish; a failure leaves the block alone */
+            /* KEEP: the serialize is a flourish; a failure leaves the block alone */
         }
     };
 
