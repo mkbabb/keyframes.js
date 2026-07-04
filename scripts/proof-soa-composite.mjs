@@ -411,9 +411,9 @@ if (existsSync(decisionPath)) {
 // + bit-identical + zero-alloc, all measured live on the REAL group via a tsx probe.
 {
     // R.W2 — `CSSKeyframesAnimation` was carved out of `engine/animation.ts` into
-    // `engine/css-animation.ts`; the probe imports it from its new home.
+    // `engine/css/css-animation.ts`; the probe imports it from its new home.
     const engineUrl = pathToFileURL(
-        join(root, "src", "animation", "engine", "css-animation.ts"),
+        join(root, "src", "animation", "engine", "css", "css-animation.ts"),
     ).href;
     const groupUrl = pathToFileURL(
         join(root, "src", "animation", "group", "group.ts"),

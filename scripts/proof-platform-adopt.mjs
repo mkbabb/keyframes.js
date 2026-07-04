@@ -91,7 +91,7 @@ function main() {
 
     // R.W1/R.W2 directory partition — the flat `engine.ts` god-module was split
     // into the `engine/` zone: `fromString` + the `registerPropertyDescriptors`
-    // delegating call live in `engine/css-animation.ts`; the `_frame → playFrame`
+    // delegating call live in `engine/css/css-animation.ts`; the `_frame → playFrame`
     // delegate + the public surface in `engine/animation.ts`. The S1/S2 source
     // checks read the ENGINE base = both, so they track the carve, not the
     // pre-R flat file. (A missing member → empty string → the clause still reds.)
@@ -105,7 +105,7 @@ function main() {
     const engine =
         readOpt(path.join("engine", "animation.ts")) +
         "\n" +
-        readOpt(path.join("engine", "css-animation.ts"));
+        readOpt(path.join("engine", "css", "css-animation.ts"));
     const reducedMotion = read(path.join("internal", "reduced-motion.ts"));
     // The waapi god-module was carved into the `waapi/` zone (eligibility /
     // emission / options / delegation + densify). The S3 densify + S5 native-
@@ -124,12 +124,12 @@ function main() {
 
     // L decomposition (tranche-L `refactor: decompose engine.ts`) extracted the
     // CSS-rule metadata recovery — including the `CSS.registerProperty` pass —
-    // out of `engine.ts` into `engine/css-metadata.ts`, with the engine left
+    // out of `engine.ts` into `engine/css/metadata.ts`, with the engine left
     // importing + calling `registerPropertyDescriptors(...)` inside `fromString`.
     // The S1 source-shape check reads the ENGINE SURFACE = the engine base + the
     // extracted sibling, so it tracks the decomposition instead of the file
     // layout. (Missing sibling → empty string → the clause still reds.)
-    const engineCssMetadata = readOpt(path.join("engine", "css-metadata.ts"));
+    const engineCssMetadata = readOpt(path.join("engine", "css", "metadata.ts"));
     const engineSurface = engine + "\n" + engineCssMetadata;
 
     // Q.WF1 decomposition (`engine/playback.ts`) — the standalone-play lifecycle
@@ -139,7 +139,7 @@ function main() {
     // with the engine left importing + delegating (`_frame` → `playback.playFrame`).
     // The S2 live-re-consult source-shape check reads the ENGINE PLAYBACK SURFACE
     // = the engine base + engine/playback.ts, so it tracks the decomposition
-    // instead of the file layout (mirrors the S1 engine/css-metadata.ts precedent
+    // instead of the file layout (mirrors the S1 engine/css/metadata.ts precedent
     // above). (Missing sibling → empty string → the clause still reds.)
     const enginePlayback = readOpt(path.join("engine", "playback.ts"));
     const enginePlaybackSurface = engine + "\n" + enginePlayback;

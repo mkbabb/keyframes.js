@@ -1,9 +1,10 @@
 /**
  * `engine/animation.ts` — the base `KeyframesAnimation` class over a composed
  * `FrameCompiler`. The CSS-parsing `CSSKeyframesAnimation` subclass lives in
- * `./css-animation`; the play machine / interp hot-path / option-apply / compile
- * bridge / element-aware resolver are carved into `./playback` / `./interpolate`
- * / `./option-setters` / `./compile-bridge` / `./element-resolve` (R.W2).
+ * the `./css` sub-zone; the play machine / interp hot-path / option-apply /
+ * compile bridge are carved into `./playback` / `./interpolate` /
+ * `./option-setters` / `./compile-bridge`, the element-aware resolver into
+ * `../resolve/element-resolve` (R.W2 + S.B2).
  * Statically imports the heavy `@mkbabb/value.js` surface — reachable ONLY
  * through the `./index` dynamic boundary (`await loadAnimationEngine()`).
  */
@@ -494,6 +495,6 @@ export class KeyframesAnimation<V extends Vars = any> {
     }
 }
 
-// R.W2 carve homes: `CSSKeyframesAnimation` → `./css-animation` (F-4); the
-// Phase-2 element-aware resolver → `./element-resolve` (F-7); the heavy-surface
-// bundling re-exports → `./index` (the engine barrel; gestalt §5).
+// R.W2/S.B2 carve homes: `CSSKeyframesAnimation` → `./css` sub-zone (F-4); the
+// Phase-2 element-aware resolver → `../resolve/element-resolve` (F-7); the
+// heavy-surface bundling re-exports → `./index` (the engine barrel; gestalt §5).

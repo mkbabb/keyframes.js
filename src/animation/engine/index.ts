@@ -3,7 +3,7 @@
  *
  * The bundling seam: re-exports the engine classes (the base `KeyframesAnimation`
  * from `./animation`, the CSS-parsing `CSSKeyframesAnimation` subclass carved out
- * to `./css-animation` at R.W2) PLUS the value.js-bearing companions
+ * to the `./css` sub-zone at S.B2) PLUS the value.js-bearing companions
  * (`getTimingFunction`, `resolveKeyframes`, the option constants) so
  * `loadAnimationEngine()` hands consumers the whole engine in one
  * `import("./engine/index")`. Every name here transitively reaches value.js,
@@ -17,7 +17,7 @@
  * surface `loadAnimationEngine()` returns is UNCHANGED — it merges both zones.
  */
 export { KeyframesAnimation, getAnimationId } from "./animation";
-export { CSSKeyframesAnimation } from "./css-animation";
+export { CSSKeyframesAnimation } from "./css";
 export { getTimingFunction } from "../compile/easing-registry";
 export { resolveKeyframes } from "../adapter";
 export type { ResolvedKeyframes } from "../adapter";

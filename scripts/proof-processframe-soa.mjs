@@ -232,9 +232,9 @@ const ratios = {};
 // ── interp-equal (S2 oracle, ACTIVE) — the SoA processFrame output is byte-equal
 //    to an INDEPENDENT boxed reference over a preset/fromString corpus ──────────
 {
-    // R.W2 — `CSSKeyframesAnimation` moved to `engine/css-animation.ts`.
+    // R.W2 — `CSSKeyframesAnimation` moved to `engine/css/css-animation.ts`.
     const engineUrl = pathToFileURL(
-        join(root, "src", "animation", "engine", "css-animation.ts"),
+        join(root, "src", "animation", "engine", "css", "css-animation.ts"),
     ).href;
     const valueUrl = pathToFileURL(
         join(root, "node_modules", "@mkbabb", "value.js", "dist", "value.js"),

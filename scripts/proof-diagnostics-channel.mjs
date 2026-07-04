@@ -78,8 +78,8 @@ const ENGINE = "src/animation/engine/animation.ts";
 // `this.diagnostics` (passed by reference). The push anchor follows the code.
 const COMPOSITION = "src/animation/engine/composition.ts";
 // R.W2 — `fromString` (the `resolved.diagnostics` surfacer) lives in the carved
-// `engine/css-animation.ts` CSS subclass.
-const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
+// `engine/css/css-animation.ts` CSS subclass.
+const CSS_ANIMATION = "src/animation/engine/css/css-animation.ts";
 const TEST = "test/diagnostics-channel.test.ts";
 
 // ── field-exists — ResolvedKeyframes carries diagnostics: Diagnostic[] ────────
