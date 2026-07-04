@@ -113,12 +113,16 @@ function main() {
     // track the carve instead of the pre-R flat file.
     const waapi = readWaapiSurface();
     // R.W1 split the timeline into `orchestration/timeline/` — the JS sampler
-    // (`KeyframesScrollTimeline`) in `index.ts` and the native feature-detect
-    // factory (`createNativeTimeline` over `globalThis.ScrollTimeline`) in
-    // `native.ts`. The S5 check reads BOTH so it finds the factory + the
-    // surviving JS sampler regardless of which file each lands in.
+    // (`KeyframesScrollTimeline`) and the native feature-detect factory
+    // (`createNativeTimeline` over `globalThis.ScrollTimeline`). S.B4 carved the
+    // class family (`Timeline`/`KeyframesScrollTimeline`/`ManualTimeline`) OUT of
+    // the barrel into `./timeline`, leaving `index.ts` a thin re-export. The S5
+    // check reads the whole SURFACE (barrel + class file + native) so it finds
+    // the factory + the surviving JS sampler regardless of which file each lands in.
     const timeline =
         read(path.join("orchestration", "timeline", "index.ts")) +
+        "\n" +
+        read(path.join("orchestration", "timeline", "timeline.ts")) +
         "\n" +
         read(path.join("orchestration", "timeline", "native.ts"));
 

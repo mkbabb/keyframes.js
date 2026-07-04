@@ -64,7 +64,13 @@ import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist");
 const DTS = path.join(DIST, "keyframes.d.ts");
-const TIMELINE = path.join(REPO, "src/animation/orchestration/timeline/index.ts");
+// S.B4 carved the `Timeline`/`KeyframesScrollTimeline` family OUT of the barrel
+// into `./timeline` (r3 F4). The no-alias clause scans BOTH the barrel AND the
+// class file — an `X as ScrollTimeline` alias could be re-exported from either.
+const TIMELINE = [
+    path.join(REPO, "src/animation/orchestration/timeline/index.ts"),
+    path.join(REPO, "src/animation/orchestration/timeline/timeline.ts"),
+];
 const LOAD_ENGINE = path.join(REPO, "src/animation/load-engine.ts");
 
 const failures = [];
@@ -249,7 +255,9 @@ console.log(
     // (3a) SOURCE — timeline.ts carries no `KeyframesScrollTimeline as
     //   ScrollTimeline` / `KeyframesScrollTimelineOptions as
     //   ScrollTimelineOptions` re-export.
-    const timelineSrc = blankComments(fs.readFileSync(TIMELINE, "utf8"));
+    const timelineSrc = blankComments(
+        TIMELINE.map((f) => fs.readFileSync(f, "utf8")).join("\n"),
+    );
     for (const [canonical, alias] of [
         ["KeyframesScrollTimeline", "ScrollTimeline"],
         ["KeyframesScrollTimelineOptions", "ScrollTimelineOptions"],
