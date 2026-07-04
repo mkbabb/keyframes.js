@@ -4,8 +4,12 @@ import type { Ref } from "vue";
 import { kfEngine } from "@utils/kfEngine";
 import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
+import { CUBE_SUPER_KEY } from "./cubeKeys";
 
-export const SUPER_KEY = "Cube";
+// S.D2 S5 (a10) — the superKey now single-sources from `cubeKeys.ts` (8/8 scene
+// parity); this re-export keeps the existing `SUPER_KEY` consumers (CubeScene +
+// this module's 8 internal uses) unchanged.
+export const SUPER_KEY = CUBE_SUPER_KEY;
 
 export const CUBE_ANIMATION_NAMES = {
     Matrix: "Matrix",

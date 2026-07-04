@@ -31,9 +31,9 @@ import { SEQUENCE_SUPER_KEY } from "../../scenes/sequence/sequenceKeys";
 import { SQUARE_SUPER_KEY } from "../../scenes/square/squareKeys";
 import { SPRING_SUPER_KEY } from "../../scenes/spring/springKeys";
 import { AMIGA_SUPER_KEY } from "../../scenes/amiga/amigaKeys";
-// Cube's superKey single-source is its existing `SUPER_KEY` export (the cube
-// keeps its established home in useCubeAnimations; no separate keys module).
-import { SUPER_KEY as CUBE_SUPER_KEY } from "../../scenes/cube/useCubeAnimations";
+// Cube's superKey single-sources from cubeKeys.ts (S.D2 S5 — 8/8 scene-key
+// parity; a10), mirroring the seven `<name>Keys.ts` imports above.
+import { CUBE_SUPER_KEY } from "../../scenes/cube/cubeKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
