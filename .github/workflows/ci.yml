@@ -298,16 +298,17 @@ jobs:
             # (sequence/motion-path were never gate-visited) are enrolled in every runtime gate.
             - name: proof:manifest-sourced (H.W8 S1/I-1 — SCENES keys ≡ scenes.ts ids · auto-enrolls every scene)
               run: npm run proof:manifest-sourced
-            # I.W7 S6 — proof:gate-is-runtime: THE META-GATE that makes the gate-ORACLE
-            # precept MECHANICALLY PRIOR (RED-1). For EVERY proof:correctness member —
-            # the roster is DERIVED from the tier's membership (J.W3 S4/T4), never a
-            # hardcoded list — it asserts the script opens a browser (serveDist +
-            # KF_PLAYWRIGHT_DIR + newContext, inline or via the lib lifecycle) AND
-            # actuates (click/dispatch/mouse/key/drag/navToScene-SWITCH) AND is wired
-            # into the correctness tier of proof:all. A source-shape / load-rest /
-            # proxy §Hard gate FAILS. HYGIENE-tier itself (it reads gate SCRIPTS) — it
-            # polices the GATES' SHAPE; static, no browser/build.
-            - name: "[HYGIENE-meta] proof:gate-is-runtime (I.W7 S6 — every wave's §Hard gate is an actuating runtime gate wired to the correctness tier · the precept, machine-enforced)"
+            # I.W7 S6 (RE-TARGETED S.A4) — proof:gate-is-runtime: THE META-GATE that makes
+            # the gate-ORACLE precept MECHANICALLY PRIOR (RED-1). For EVERY proof:demo-
+            # correctness member (the S.A4-renamed browser-actuator tier) — the roster is
+            # DERIVED from the tier's membership (J.W3 S4/T4), never a hardcoded list — it
+            # asserts the script opens a browser (serveDist + KF_PLAYWRIGHT_DIR + newContext,
+            # inline or via the lib lifecycle) AND actuates (click/dispatch/mouse/key/drag/
+            # navToScene-SWITCH) AND is wired into the demo-correctness tier of proof:all;
+            # the SYMMETRIC clause asserts every proof:library-correctness member carries NO
+            # browser harness (mis-tier reds BOTH ways). A source-shape / load-rest / proxy
+            # §Hard gate FAILS. HYGIENE-tier itself (it reads gate SCRIPTS) — static, no build.
+            - name: "[HYGIENE-meta] proof:gate-is-runtime (I.W7 S6 · S.A4 — every demo-correctness gate is an actuating runtime gate + every library-correctness gate is harness-free · mis-tier reds both ways)"
               run: npm run proof:gate-is-runtime
             # I.W7 S4 — proof:chronic-closure REWIRED: parse the canonical chronic table
             # (docs/tranches/I/PROGRESS.md §"Open deferrals", which SUPERSEDES H's) and
