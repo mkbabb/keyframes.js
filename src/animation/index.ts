@@ -100,6 +100,19 @@ export type {
 } from "./orchestration/stagger";
 export { flip, flipShared } from "./orchestration/flip";
 export type { FlipOptions } from "./orchestration/flip";
+// S.F2 SplitText — a11y-first text-splitter (LIGHT: composes `stagger` + the
+// platform Intl.Segmenter; zero static value.js edge — proof:boundary enrolls it
+// off this barrel). Returns a fragment cohort + a ready stagger; the container
+// keeps the whole pre-split string as its accessible name (aria-label + aria-
+// hidden fragments). `by:"line"` is measure-or-refuse (SplitTextRefusalError).
+export { splitText, SplitTextRefusalError } from "./orchestration/split-text";
+export type {
+    SplitBy,
+    SplitTextOptions,
+    SplitTextResult,
+    SplitTextRefusalReason,
+    TextSegment,
+} from "./orchestration/split-text";
 export { drag, Draggable, drag2D } from "./orchestration/drag";
 export type {
     DragOptions,

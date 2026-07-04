@@ -77,6 +77,17 @@ export const CORRECTNESS_ROSTER = [
     // proof:library-correctness roster. Its jsdom-viable STRING half lives in
     // proof:compile-replay (fast local bite); THIS is the browser half.
     "proof:compile-browser-parse",
+    // S.F2 SplitText — the browser-actuating a11y-tree library-value gate (T8).
+    // A browser-HARNESS member: the COMPUTED accessible name is a browser
+    // artifact (jsdom does not run the ARIA name-computation algorithm, so a
+    // jsdom slot could only check the raw aria-label ATTRIBUTE — source-shape —
+    // never that a plain <div> role=generic would DROP the label; a jsdom slot
+    // would be a FALSE green + correctly RED under S.A4's symmetric mis-tier
+    // clause). It rides HERE beside the other browser actuators, NOT the jsdom
+    // proof:library-correctness roster. Its jsdom-viable half (the a11y ATTRIBUTE
+    // wiring + the by:"line" measure-or-refuse posture) lives in
+    // test/split-text.test.ts (the default vitest run); THIS is the a11y-tree half.
+    "proof:split-a11y",
     "proof:demo-smoke",
     "proof:occlusion",
     "proof:demo-usability",

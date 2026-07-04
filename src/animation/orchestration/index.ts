@@ -41,3 +41,11 @@ export type {
     SequenceLabelSubscriber,
     SequenceSubscriber,
 } from "./sequence";
+export { splitText, SplitTextRefusalError } from "./split-text";
+export type {
+    SplitBy,
+    SplitTextOptions,
+    SplitTextResult,
+    SplitTextRefusalReason,
+    TextSegment,
+} from "./split-text";
