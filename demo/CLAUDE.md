@@ -1,6 +1,6 @@
 # demo/
 
-Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds it to `dist/gh-pages/` (deployed at keyframes.babb.dev). `app/` is the shell + scene machine + router; each scene lives in a SELF-CONTAINED `scenes/<name>/` directory that co-locates its `<Name>Scene.vue` entry with its scene-specific composables and target components (the R.W5 fusion — the old `app/scenes/` entries and the top-level per-scene dirs were merged into `scenes/<name>/`). `playground/` is the one other standalone app (`npm run dev:playground`). Design language: `DESIGN.md` (extends glass-ui's).
+Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds it to `dist/gh-pages/` (deployed at keyframes.babb.dev). `app/` is the shell + scene machine + router; each scene lives in a SELF-CONTAINED `scenes/<name>/` directory that co-locates its `<Name>Scene.vue` entry with its scene-specific composables and target components (the R.W5 fusion — the old `app/scenes/` entries and the top-level per-scene dirs were merged into `scenes/<name>/`). The former standalone `playground/` app was FOLDED into the ninth scene `scenes/compose/` (S.D3, C-4). Design language: `DESIGN.md` (extends glass-ui's).
 
 ## Structure
 
@@ -26,7 +26,8 @@ demo/
 │   ├── motion-path/  # MotionPathScene.vue + MotionPathTarget, useMotionPathDemo/Gesture, motionPathGeometry/motionPathKeys
 │   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument/useTypedTrigger (S.D2 colocation, a24 F4), sequenceKeys
 │   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag, springKeys/springPresets
-│   └── square/       # SquareScene.vue + SquareInstrument, useSquareAnimations/useSquareKeyboard, squareKeys (custom transform fn)
+│   ├── square/       # SquareScene.vue + SquareInstrument, useSquareAnimations/useSquareKeyboard, squareKeys (custom transform fn)
+│   └── compose/      # ComposeScene.vue (the S.D3 playground fold) + useComposeDemo, composeKeys, asset-manager/ (AssetViewport/Layer/LayerPanel/PropertiesPanel + useAssetManager + assetTypes + EditableLabel) — the casting-floor foundry + bind-ignition
 ├── @/                         # Shared library
 │   ├── state/                  # the demo's global state layer (S.D2 hoist): sceneMachine/useSceneMachine/scenePlaybackAdapters + option stores + controlSurfaceDFA + hashSharing + index (resetAllStores) — @state alias
 │   ├── components/custom/
@@ -34,7 +35,6 @@ demo/
 │   │   ├── keyframes-editor/    # the Monaco CSS keyframes editor (was animation-controls/keyframes/)
 │   │   ├── keyframe-timeline/   # the draggable keyframe timeline (was animation-controls/timeline/) + CSSPasteDialog (S.D2 colocation)
 │   │   ├── easing-editor/       # EasingEditor + EasingSelect + EasingCurveCanvas + DemoControlPoint cluster (S.D2, a24 F5)
-│   │   ├── asset-manager/       # AssetViewport/AssetLayer/AssetLayerPanel/AssetPropertiesPanel + useAssetManager + assetTypes + EditableLabel (playground-private → S.D3 fold)
 │   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal (S.D2 colocation)
 │   │   └── singles: CopyButton, KfPillTabs   # the two genuinely-shared flat leaves (S.D2 shed the rest)
 │   │                            # (components/ui/ is GONE — the last shadcn island, ui/menubar/, was migrated off + deleted at S.C3b, C-19)
@@ -43,7 +43,6 @@ demo/
 │   │   └── useDragScrub.ts              # the ONE shared pointer-drag scrub seam (stage rails, square box)
 │   ├── styles/                  # style.css (Tailwind v4 + theme vars), brand.css, design-idioms.css
 │   └── utils/                   # clipboard.ts, iosTextEntry.ts, kfEngine.ts, toastGuard.ts (vue-sonner private-DOM contract) — the shadcn cn() helper (utils.ts) went with ui/menubar (S.C3b)
-├── playground/   # standalone app: index.html + App.vue + usePlaygroundAnimations (asset drag-and-drop)
 ├── CLAUDE.md
 └── DESIGN.md     # demo design language (extends glass-ui DESIGN.md)
 ```
@@ -81,8 +80,7 @@ via `app/scene/scenes.ts`, exposing the typed `SceneExposedApi`) co-located with
 | SequenceScene | `scenes/sequence/` | `Sequence` master-playhead transport, draggable rows |
 | MotionPathScene | `scenes/motion-path/` | `offset-path` editing + gesture |
 | MorphSVGScene | `scenes/morph/` | `fromMorphSVG` path morph showcase (on-DOM render contract + orient-along-path) |
-
-Plus the standalone `playground/`: asset drag-and-drop viewport with preset animation binding.
+| ComposeScene | `scenes/compose/` | The casting-floor foundry (S.D3 playground fold): drag/compose assets, bind each to a preset `AnimationGroup`, bind-ignition draws the preset's easing curve via `fromDrawSVG` |
 
 ## Key Dependencies
 
