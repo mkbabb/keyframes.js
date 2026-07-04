@@ -59,8 +59,8 @@ console.log("proof:demo-usability — G.W11 (the live-Playwright SHIP set)");
 
 // ── 1. ROUTE-REACHABILITY (static, always runs) ──────────────────────────────
 {
-    const scenesSrc = read(path.join(DEMO, "app/scenes.ts"));
-    const routerSrc = read(path.join(DEMO, "app/router.ts"));
+    const scenesSrc = read(path.join(DEMO, "app/scene/scenes.ts"));
+    const routerSrc = read(path.join(DEMO, "app/scene/router.ts"));
 
     // The scene ids: every `id: "<name>"` in the `scenes` descriptor list +
     // HOME_SCENE_ID. Pull from the explicit `id:` keys (the descriptors).

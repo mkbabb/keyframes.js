@@ -17,10 +17,10 @@ import {
     generateStepSVGPath,
 } from "@components/custom/animation-controls/controls/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
-import { useRafScene } from "@app/useRafScene";
-import { useContractAnimGroup } from "@app/composables/useContractAnimGroup";
-import { useSceneTransport } from "@app/composables/useSceneTransport";
-import { PROGRESS_READOUT_HZ } from "@app/rafConstants";
+import { useRafScene } from "@app/runtime/useRafScene";
+import { useContractAnimGroup } from "@app/runtime/useContractAnimGroup";
+import { useSceneTransport } from "@app/runtime/useSceneTransport";
+import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
 import { useSceneMachine } from "@components/custom/animation-controls/stores";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
 import { useEasingGallery } from "./useEasingGallery";

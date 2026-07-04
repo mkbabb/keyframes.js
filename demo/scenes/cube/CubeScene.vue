@@ -54,7 +54,7 @@ import CubeTarget from "./CubeTarget.vue";
 import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
 import { useCubeAnimations, SUPER_KEY } from "./useCubeAnimations";
-import { useCubeTransform } from "@app/cubeTransformStore";
+import { useCubeTransform } from "./cubeTransformStore";
 
 const superKey = SUPER_KEY;
 

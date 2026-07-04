@@ -113,8 +113,8 @@ const blankHtmlComments = (s) =>
 console.log("proof:scene-parity — H.W5 (the pertinence merge + the per-mode interactivity floor)");
 
 // ── STATIC HALF ──────────────────────────────────────────────────────────────
-const scenesSrc = blankComments(read(path.join(DEMO, "app/scenes.ts")));
-const routerSrc = blankComments(read(path.join(DEMO, "app/router.ts")));
+const scenesSrc = blankComments(read(path.join(DEMO, "app/scene/scenes.ts")));
+const routerSrc = blankComments(read(path.join(DEMO, "app/scene/router.ts")));
 
 // 1. NO starting-style ROUTE.
 {

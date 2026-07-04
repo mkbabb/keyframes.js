@@ -6,19 +6,16 @@ Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves
 
 ```
 demo/
-├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/)
-│   ├── index.html / main.ts / App.vue   # shell: KeepAlive + dynamic <component :is> + dock chrome
-│   ├── router.ts              # hash-mode vue-router; routes select the active scene id (GH-Pages-safe)
-│   ├── scenes.ts              # scene registry: lazy scene loaders (→ ../scenes/<name>/<Name>Scene.vue), inline-SVG icon family, warmScene()
-│   ├── sceneExposedApi.ts     # the typed SceneExposedApi contract every <Name>Scene.vue exposes
-│   ├── useSceneMachineApp.ts  # scene-machine ↔ app-shell reconcile (SCENE_READY, play/pause routing)
-│   ├── useSceneMachineRouter.ts # scene-machine ↔ router reconcile
-│   ├── useRafScene.ts         # THE raw-rAF scene recipe: RAFPlayback + ScenePlayback adapter + visibility pause
-│   ├── useSceneSwap.ts / useSceneTransition.ts / useSceneVisibilityPause.ts / scene-transition.css
-│   ├── composables/           # useContractAnimGroup, useSceneTransport (cross-scene shell recipes)
-│   ├── rafConstants.ts / useMonacoCancellationGuard.ts
-│   ├── cubeTransformStore.ts  # shared cube matrix state (gl-matrix)
-│   ├── loaf-observer.ts       # long-animation-frame diagnostics
+├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/); S.D1 partition: scene/ · transition/ · runtime/
+│   ├── index.html / main.ts / App.vue   # shell: dynamic <component :is> + dock chrome (@mbabb menu extracted → @/components/custom/dock/MbabbMenu.vue)
+│   ├── scene/                 # machine↔shell↔route bridge
+│   │   ├── scenes.ts          # scene registry: lazy scene loaders (→ ../../scenes/<name>/<Name>Scene.vue), inline-SVG icon family, warmScene()
+│   │   ├── sceneExposedApi.ts # the typed SceneExposedApi contract every <Name>Scene.vue exposes
+│   │   ├── useSceneMachineShellBinding.ts    # scene-machine ↔ app-shell reconcile (SCENE_READY, play/pause routing)
+│   │   ├── useSceneMachineRouterBinding.ts   # scene-machine ↔ router reconcile
+│   │   └── router.ts          # hash-mode vue-router; routes select the active scene id (GH-Pages-safe)
+│   ├── transition/            # useSceneSwap.ts · useSceneTransition.ts · scene-transition.css (directional VT + SpringProgress cross-dissolve)
+│   ├── runtime/               # cross-scene recipes: useRafScene.ts · useSceneVisibilityPause.ts · rafConstants.ts · useContractAnimGroup.ts · useSceneTransport.ts · loaf-observer.ts · useMonacoCancellationGuard.ts
 │   └── public/robots.txt
 ├── scenes/                    # THE fused scenes (R.W5): each dir co-locates <Name>Scene.vue + its composables + targets
 │   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaAnimations, amigaKeys, checkerboard.jpg
@@ -65,7 +62,7 @@ The primary UI for interacting with animations. Top level: **AnimationControlsGr
 ## Scenes
 
 Each scene is a self-contained `scenes/<name>/` directory: `<Name>Scene.vue` (the entry, lazy-loaded
-via `app/scenes.ts`, exposing the typed `SceneExposedApi`) co-located with its composables + targets.
+via `app/scene/scenes.ts`, exposing the typed `SceneExposedApi`) co-located with its composables + targets.
 
 | Scene | Directory | Key feature |
 |---|---|---|
@@ -99,7 +96,7 @@ Plus the standalone `playground/`: asset drag-and-drop viewport with preset anim
 - Tailwind v4; light/dark theme via the `.dark` class (`@custom-variant dark` in `@/styles/style.css`); glass-ui tokens + demo overrides per `DESIGN.md`
 - Path aliases: `@src/`, `@components/`, `@composables/`, `@styles/`, `@utils/`, `@assets/`
 - Keyboard shortcuts via glass-ui's `registerShortcut` (skipped in editable targets)
-- Heavy panes lazy-load: `defineAsyncComponent` for the Monaco-bearing `KeyframesStringControls`/`KeyframeTimeline`; scenes lazy-load through `app/scenes.ts`
+- Heavy panes lazy-load: `defineAsyncComponent` for the Monaco-bearing `KeyframesStringControls`/`KeyframeTimeline`; scenes lazy-load through `app/scene/scenes.ts`
 - Stores: vueuse `createGlobalState` + `useStorage` (localStorage, 7-day TTL); never Pinia
 - Animation objects are `markRaw` — Vue reactivity is bridged by gated rAF polling (`useAnimationSync`)
 - Pointer Events + `setPointerCapture` for drag containment; EVERY drag seam routes select-suppression through `gestureSelectSuppression` (`useDragScrub` + `useDragCapture`)

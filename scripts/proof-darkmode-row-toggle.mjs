@@ -60,23 +60,25 @@ console.log("proof:darkmode-row-toggle — H.W9 F5 (the whole dark-mode row flip
 // ── 1. SOURCE-SHAPE (static, always runs) ────────────────────────────────────
 {
     // Strip HTML comments first — the F5 rationale comment names `passive` + the
-    // row @click; the structural clause must read real markup, not the prose.
-    const app = read(path.join(DEMO, "app/App.vue")).replace(/<!--[\s\S]*?-->/g, "");
+    // row @click; the structural clause must read real markup, not the prose. The
+    // dark-mode row lives in @/components/custom/dock/MbabbMenu.vue since S.D1
+    // (the @mbabb menu extracted out of App.vue — a23 F2).
+    const menu = read(path.join(DEMO, "@/components/custom/dock/MbabbMenu.vue")).replace(/<!--[\s\S]*?-->/g, "");
 
     // Isolate the dark-mode <DropdownMenuItem> block. It is the item that mounts
     // <DarkModeToggle (the stable anchor — the only DarkModeToggle in the menu).
-    const dmtAnchor = app.indexOf("<DarkModeToggle");
+    const dmtAnchor = menu.indexOf("<DarkModeToggle");
     let block = "";
     if (dmtAnchor !== -1) {
-        const itemOpen = app.lastIndexOf("<DropdownMenuItem", dmtAnchor);
-        const itemClose = app.indexOf("</DropdownMenuItem>", dmtAnchor);
+        const itemOpen = menu.lastIndexOf("<DropdownMenuItem", dmtAnchor);
+        const itemClose = menu.indexOf("</DropdownMenuItem>", dmtAnchor);
         if (itemOpen !== -1 && itemClose !== -1) {
-            block = app.slice(itemOpen, itemClose + "</DropdownMenuItem>".length);
+            block = menu.slice(itemOpen, itemClose + "</DropdownMenuItem>".length);
         }
     }
 
     if (!block) {
-        fail("could not isolate the dark-mode <DropdownMenuItem> block in App.vue (no <DarkModeToggle> found)");
+        fail("could not isolate the dark-mode <DropdownMenuItem> block in MbabbMenu.vue (no <DarkModeToggle> found)");
     } else {
         // (a) the row carries a row-level @click that calls toggleDark. The open
         //     tag is everything up to the first '>' of <DropdownMenuItem ...>.

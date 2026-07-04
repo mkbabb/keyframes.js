@@ -119,7 +119,7 @@ const DETENT_CEILING = 0.7;
 // Sub-pixel / dvh-vs-innerHeight rounding tolerance.
 const TOL = 2;
 
-// The route → superKey map (demo/app/scenes.ts) the control-options store is
+// The route → superKey map (demo/app/scene/scenes.ts) the control-options store is
 // keyed by. The harness seeds the OPEN state under this key so the sheet's
 // `v-show` (gated on selectedAnimation) materialises.
 const SUPER_KEY_BY_SCENE = {

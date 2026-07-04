@@ -325,7 +325,7 @@ console.log(JSON.stringify({
     } catch {
         sceneSrc = "";
     }
-    const scenesSrc = read("demo/app/scenes.ts");
+    const scenesSrc = read("demo/app/scene/scenes.ts");
     let useMorphSrc = "";
     try {
         useMorphSrc = read("demo/scenes/morph/useMorphDemo.ts");

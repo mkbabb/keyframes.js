@@ -41,7 +41,7 @@ function routeToScene(name: unknown): string {
  * own persisted activeScene, consulted ONLY for bare #/) > ?anim= (applied on
  * SCENE_READY, not here).
  */
-export function useSceneMachineRouter() {
+export function useSceneMachineRouterBinding() {
     const router = useRouter();
     const route = useRoute();
     const machine = useSceneMachine();

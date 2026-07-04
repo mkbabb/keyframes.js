@@ -13,7 +13,7 @@ import { describe, it, expect } from "vitest";
 import { computed, createApp, defineComponent, h } from "vue";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
-import { useSceneSwap } from "../demo/app/useSceneSwap";
+import { useSceneSwap } from "../demo/app/transition/useSceneSwap";
 import {
     createGroupAdapter,
     restoreGroupPlaybackState,

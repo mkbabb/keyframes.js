@@ -9,7 +9,7 @@
  */
 import { createApp } from "vue";
 import App from "./App.vue";
-import { router } from "./router";
+import { router } from "./scene/router";
 // The CSS cascade enters the graph through the entry so the bundle emits a
 // deterministic, named `index-*.css` asset — the asset criticalCSSPlugin
 // (instant first paint) and deferLazyCSSPlugin match by name.
@@ -42,7 +42,7 @@ void warmKfEngine().finally(() => {
 // to the production build; the dynamic import keeps it off the dev
 // critical path too.
 if (import.meta.env.DEV) {
-    void import("./loaf-observer").then(({ observeLongAnimationFrames }) => {
+    void import("./runtime/loaf-observer").then(({ observeLongAnimationFrames }) => {
         observeLongAnimationFrames();
     });
 }

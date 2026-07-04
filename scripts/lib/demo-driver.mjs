@@ -12,7 +12,7 @@
  *
  * Exports (the lane contract — keep stable; both gates depend on it):
  *   SCENES         — Array<{ key, route, subjectSelector, dockFloatAllowed }>
- *                    RE-SOURCED from `demo/app/scenes.ts` at H.W8 S1 (was a
+ *                    RE-SOURCED from `demo/app/scene/scenes.ts` at H.W8 S1 (was a
  *                    hand-maintained 6-entry array that drifted to the demo's 8
  *                    scenes). `key` === the scenes.ts id; `route` === the hash
  *                    route. `dockFloatAllowed: true` ONLY for the full-bleed
@@ -51,7 +51,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// H.W8 S1 (I-1) — RE-SOURCE THE SCENES MANIFEST FROM `demo/app/scenes.ts`.
+// H.W8 S1 (I-1) — RE-SOURCE THE SCENES MANIFEST FROM `demo/app/scene/scenes.ts`.
 //
 // Before H.W8 this manifest was a HAND-MAINTAINED 6-entry array. It DRIFTED: the
 // demo ships 8 scenes (the cube/amiga/square/easing/spring originals + the
@@ -60,7 +60,7 @@ import { fileURLToPath } from "node:url";
 // NEVER occlusion-checked, lighthouse-scored, or captured by any runtime gate.
 //
 // The fix (the load-bearing prerequisite): the manifest's SCENE SET is now
-// DERIVED from `scenes.ts` — the single source the router (`demo/app/router.ts`)
+// DERIVED from `scenes.ts` — the single source the router (`demo/app/scene/router.ts`)
 // already trusts. The id UNION is `[homeScene.id, ...scenes.map(s => s.id)]`
 // (home is SEPARATE from the `scenes[]` array). `route` and `superKey` are read
 // FROM each descriptor (route = `id` for non-home, `""` for home — verified 1:1
@@ -80,7 +80,7 @@ import { fileURLToPath } from "node:url";
 
 const SCENES_TS = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "../../demo/app/scenes.ts",
+    "../../demo/app/scene/scenes.ts",
 );
 
 // The per-id GATE metadata — the only hand-maintained scene data that remains.
@@ -316,7 +316,7 @@ const sceneIds = sceneRecords.map((r) => r.id);
  * Shape UNCHANGED from the pre-H.W8 hand-maintained array
  * (`{ key, route, subjectSelector, dockFloatAllowed }`); `key` === the scenes.ts
  * id, `route` === the hash route (`""` for home, `id` for the rest — 1:1 with
- * `demo/app/router.ts`). DERIVED from `scenes.ts` so a new scene auto-enrolls.
+ * `demo/app/scene/router.ts`). DERIVED from `scenes.ts` so a new scene auto-enrolls.
  */
 export const SCENES = sceneRecords.map((r) => ({
     key: r.id,
@@ -327,7 +327,7 @@ export const SCENES = sceneRecords.map((r) => ({
 }));
 
 // The route → superKey map the demo's control-options store is keyed by
-// (demo/app/scenes.ts). openControlsPanel seeds the store under this key so
+// (demo/app/scene/scenes.ts). openControlsPanel seeds the store under this key so
 // App.vue reads the OPEN state on the next mount. DERIVED from scenes.ts (the
 // superKey lives ON each descriptor) so it can never drift from the manifest.
 const SUPER_KEY_BY_ROUTE = Object.fromEntries(

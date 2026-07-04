@@ -329,7 +329,7 @@ function walkCount(dir) {
 // vueuse useDocumentVisibility gate via useSceneVisibilityPause; verified here).
 {
     const id = "proof:loop-yield";
-    const composableRel = "demo/app/useSceneVisibilityPause.ts";
+    const composableRel = "demo/app/runtime/useSceneVisibilityPause.ts";
     const amigaRel = "demo/scenes/amiga/AmigaScene.vue";
     const composable = read(composableRel);
     const amiga = read(amigaRel);
@@ -359,7 +359,7 @@ function walkCount(dir) {
 // Scene routes warm their dynamic-import chunk on pointer-enter of the dock nav.
 {
     const id = "proof:hover-warmup";
-    const scenesRel = "demo/app/scenes.ts";
+    const scenesRel = "demo/app/scene/scenes.ts";
     const dockRel = "demo/@/components/custom/dock/ChromeDock.vue";
     const appRel = "demo/app/App.vue";
     const scenesSrc = read(scenesRel);
@@ -452,7 +452,7 @@ function walkCount(dir) {
             code: "C5",
             axis: "next-nav — SPA route-chunk warmup (NOT Speculation Rules)",
             disposition: "ALIGNED",
-            anchor: { file: "demo/app/scenes.ts", needle: "warmScene" },
+            anchor: { file: "demo/app/scene/scenes.ts", needle: "warmScene" },
         },
         {
             code: "C6",

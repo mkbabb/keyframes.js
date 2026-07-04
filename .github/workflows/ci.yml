@@ -291,7 +291,7 @@ jobs:
             # no unproven code). A vitest-bench probe over src/ — library job.
             - name: proof:spring-vector (L.W7 S2 — the SpringProgress vector-sugar ADOPT-or-KILL probe · MEASURE-FIRST, no unproven code)
               run: npm run proof:spring-vector
-            # H.W8 S1 (I-1) — the SCENES manifest is RE-SOURCED from demo/app/scenes.ts:
+            # H.W8 S1 (I-1) — the SCENES manifest is RE-SOURCED from demo/app/scene/scenes.ts:
             # the runtime SCENES keys ≡ scenes.ts ids (bidirectional set-equality, NOT a
             # hard count — auto-tracks every scene add/remove). A new scene with no manifest
             # entry, or a stale manifest key, reds — so the 3 previously-unmanifested scenes

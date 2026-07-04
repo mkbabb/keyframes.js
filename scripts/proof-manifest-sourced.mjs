@@ -9,7 +9,7 @@
  * gate). "The gate that lists them never looks at them; the gates that look never
  * list them."
  *
- * H.W8 S1 re-sourced `SCENES` FROM `demo/app/scenes.ts` (the single source the
+ * H.W8 S1 re-sourced `SCENES` FROM `demo/app/scene/scenes.ts` (the single source the
  * router already trusts). This gate is the STANDING INVARIANT that keeps it
  * honest: it asserts SET-EQUALITY between the runtime `SCENES` keys and the
  * `scenes.ts` id UNION `[homeScene.id, ...scenes.map(s => s.id)]` — bidirectional,
@@ -46,7 +46,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const SCENES_TS = path.join(REPO, "demo/app/scenes.ts");
+const SCENES_TS = path.join(REPO, "demo/app/scene/scenes.ts");
 const DEMO_DRIVER = path.join(REPO, "scripts/lib/demo-driver.mjs");
 
 const failures = [];
@@ -178,7 +178,7 @@ if (SCENES && manifestKeys.length === 0) {
     const driver = fs.readFileSync(DEMO_DRIVER, "utf8");
     if (!/scenes\.ts/.test(driver) || !/parseScenesManifest|SCENE_GATE_META/.test(driver)) {
         fail(
-            "[derived] demo-driver.mjs no longer parses demo/app/scenes.ts — the " +
+            "[derived] demo-driver.mjs no longer parses demo/app/scene/scenes.ts — the " +
                 "manifest must be DERIVED from the single source, not hand-maintained.",
         );
     }

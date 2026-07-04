@@ -51,12 +51,12 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 1. VT clause ─────────────────────────────────────────────────────────────
 {
-    const vt = read("demo/app/useSceneTransition.ts");
-    const swap = read("demo/app/useSceneSwap.ts");
+    const vt = read("demo/app/transition/useSceneTransition.ts");
+    const swap = read("demo/app/transition/useSceneSwap.ts");
     if (/startViewTransition/.test(vt) && /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(vt)) {
         ok("vt", "switchScene routes through glass-ui startViewTransition (feature-detected helper)");
     } else {
-        fail("vt", "demo/app/useSceneTransition.ts does not route through glass-ui startViewTransition");
+        fail("vt", "demo/app/transition/useSceneTransition.ts does not route through glass-ui startViewTransition");
     }
     // The no-VT SpringProgress fallback is preserved + feature-gated (stands down only where VT runs).
     if (/SpringProgress/.test(swap) && /supportsViewTransition|startViewTransition|view-?transition/i.test(swap)) {
@@ -173,7 +173,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // code for the vueuse visibility gate (raw addEventListener is barred by
     // proof:brittleness, so a hit here is the vueuse form).
     const visFiles = [
-        "demo/app/useSceneVisibilityPause.ts",
+        "demo/app/runtime/useSceneVisibilityPause.ts",
         "demo/@/components/custom/animation-controls/controls/composables/useAnimationSync.ts",
         "demo/scenes/amiga/AmigaScene.vue",
     ];
@@ -230,13 +230,13 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     const handRoll = collectDemo().some((src) =>
         /document\.startViewTransition\s*\(\s*\{/.test(stripCommentsJs(src)),
     );
-    const consumesHelper = /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(read("demo/app/useSceneTransition.ts"));
+    const consumesHelper = /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(read("demo/app/transition/useSceneTransition.ts"));
     if (!handRoll && consumesHelper) {
         ok("platform-adopt", "the demo consumes glass-ui's startViewTransition — no hand-rolled document.startViewTransition({ types }) (inv-16 boundary holds)");
     } else if (handRoll) {
         fail("platform-adopt", "the demo hand-rolls document.startViewTransition({ ... }) — bypasses glass-ui's feature-detect + instant fallback (inv-16 forbids; route OUT as glass-ui-HANDOFF H-1)");
     } else {
-        fail("platform-adopt", "demo/app/useSceneTransition.ts no longer imports startViewTransition from glass-ui (the VT substrate boundary moved)");
+        fail("platform-adopt", "demo/app/transition/useSceneTransition.ts no longer imports startViewTransition from glass-ui (the VT substrate boundary moved)");
     }
 
     // 6c — the engine ships ZERO VT surface (the boundary: VT/scroll-CSS is
