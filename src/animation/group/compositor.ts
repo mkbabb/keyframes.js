@@ -112,7 +112,7 @@ export function compositeFrame<V extends Vars>(
         if (useSoA) {
             const plan = group._soaPlans![soaIdx++]!;
             groupSoABlendLayer(group._compositeBuf!, plan);
-            if (plan.boxedKeys.length > 0) {
+            if (plan.boxedKeys.size > 0) {
                 boxedBlendArm(layer, values, groupedValues, whitelist, plan.boxedKeys);
             }
         } else {
@@ -171,22 +171,27 @@ export function compositeFrame<V extends Vars>(
  * `isNumericUnit` guard — the byte-exact G.W17 leaf contract (proof:blend),
  * un-clamped `add` (`+=`), spring-weighted `lerp`. A non-array carrier (or a
  * skipped key) falls through to `groupedValues[key] = incoming`.
+ *
+ * S.F5a S1 — `only` is the plan's PRECOMPUTED `boxedKeys` Set (built once at
+ * `buildSoAPlans`), taken DIRECTLY as the membership test — NO per-frame
+ * `new Set(only)` (the retired allocation on the mixed-leaf hot path,
+ * `proof:zero-alloc` mixed-leaf clause). `undefined` on the plan-build frame
+ * (every key runs).
  */
 export function boxedBlendArm(
     layer: AnimationLayerConfig,
     values: Record<string, unknown>,
     groupedValues: Record<string, unknown>,
     whitelist: Set<string> | undefined,
-    only?: readonly string[],
+    only?: ReadonlySet<string>,
 ): void {
-    const onlySet = only ? new Set(only) : undefined;
     if (layer.blendMode === "add") {
         // Accumulate each numeric leaf element in place (the leaf is a
         // `ValueUnit[]` — scalar = length 1, multi-component = N). Numeric add is
         // UN-CLAMPED (CSS `animation-composition: add` clamps at use, not
         // composition) — `0.8 + 0.8 → 1.6`.
         for (const key in values) {
-            if (onlySet && !onlySet.has(key)) continue;
+            if (only && !only.has(key)) continue;
             if (whitelist && !whitelist.has(key)) continue;
             const incoming = values[key];
             if (incoming === undefined) continue;
@@ -216,7 +221,7 @@ export function boxedBlendArm(
     // back to the constant (byte-unchanged when no spring).
     const w = layer.weightSpring?.value ?? layer.weight;
     for (const key in values) {
-        if (onlySet && !onlySet.has(key)) continue;
+        if (only && !only.has(key)) continue;
         if (whitelist && !whitelist.has(key)) continue;
         const incoming = values[key];
         if (incoming === undefined) continue;

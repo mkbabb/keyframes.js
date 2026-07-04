@@ -130,6 +130,102 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
 });
 
 /**
+ * S.F5a S1/S2 — `proof:zero-alloc` EXTENDED to the MIXED-LEAF residual shape (the
+ * boxedKeys Set hoist, a32 F3 / a04 F6).
+ *
+ * The HEAVY composite buffer-identity arm above covers the ALL-NUMERIC transform
+ * shape (every leaf a numeric `ValueUnit[]` → the whole `for..in` collapses to the
+ * SoA fold, `boxedKeys` empty). The UN-gated shape is the MIXED-LEAF residual: an
+ * `add`/`weighted` layer that touches a key the SoA fold CANNOT cover — a
+ * first-touch key with no lower array carrier, or a leaf with a non-numeric
+ * element. `buildSoAPlans` records those in the plan's `boxedKeys`, and the
+ * compositor runs the boxed residual over them EVERY frame the SoA path is live.
+ *
+ * Before the S.F5a S1 hoist, `boxedKeys` was a `string[]` and `boxedBlendArm`
+ * rebuilt a fresh `new Set(only)` on EVERY frame (`compositor.ts` — a per-frame
+ * allocation on the mixed-leaf hot path). S1 precomputes `boxedKeys` as a `Set`
+ * ON THE PLAN at `buildSoAPlans` (structural-change time), so the per-frame
+ * `new Set` is gone at its source — the fold walks the precomputed Set directly.
+ *
+ * This arm gates the plan's `boxedKeys` TYPE — the device-independent predicate
+ * that eliminates the per-frame `new Set` (the SAME instrument the LIGHT-tier
+ * `seg.from instanceof Float64Array` arm below uses: assert the STORAGE TYPE that
+ * hoists the allocation, not the wall-clock).
+ *
+ * BORN-RED WITNESS (today's tree): `SoALayerPlan.boxedKeys` is a `string[]`, so
+ * `plan.boxedKeys instanceof Set` is FALSE → this expectation FAILS on the
+ * pre-S1 tree, the born-RED posture this clause requires. GREEN after S1 makes
+ * `boxedKeys` a precomputed `Set` on the plan.
+ *
+ * BITE: reverting `boxedKeys` to a `string[]` (restoring the per-frame
+ * `new Set(only)` in `boxedBlendArm`) reds this arm.
+ */
+function mixedLeafGroup(): AnimationGroup<any> {
+    // A base `replace` layer parks `opacity`; an `add` layer folds `opacity`
+    // (numeric → SoA) AND first-touches `transform` (no lower array carrier → the
+    // boxed residual, recorded in the plan's `boxedKeys`). This is the mixed-leaf
+    // shape: the SoA fold covers opacity, the boxed residual covers transform, so
+    // `plan.boxedKeys` is non-empty — exactly the shape the retired per-frame
+    // `new Set(only)` fired on.
+    const base = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+        from { opacity: 0; }
+        to { opacity: 1; }
+    `);
+    base.name = "mixed-base";
+    base.t = 500;
+    const add = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+        from { opacity: 0; transform: translateX(0px); }
+        to { opacity: 1; transform: translateX(100px); }
+    `);
+    add.name = "mixed-add";
+    add.t = 500;
+    return new AnimationGroup<any>(
+        { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
+        { animation: add, layer: { blendMode: "add", zIndex: 1 } },
+    );
+}
+
+/** Non-empty over a `Set` (`.size`) OR the retired `string[]` (`.length`). */
+function residualCount(boxedKeys: unknown): number {
+    if (boxedKeys instanceof Set) return boxedKeys.size;
+    if (Array.isArray(boxedKeys)) return boxedKeys.length;
+    return 0;
+}
+
+describe("proof:zero-alloc — mixed-leaf SoA residual (S.F5a boxedKeys Set hoist)", () => {
+    it("buildSoAPlans precomputes boxedKeys as a Set on the plan (no per-frame new Set)", () => {
+        const group = mixedLeafGroup();
+        // Frame 1 runs the boxed path whole + builds the plan; frame 2 folds the
+        // SoA pairs and walks the boxed residual (the retired per-frame `new Set`
+        // site).
+        compositeFramesAt(group, 100);
+        compositeFramesAt(group, 200);
+        const plans = group._soaPlans;
+        expect(plans).not.toBeNull();
+        // The `add` layer's plan carries a non-empty boxed residual (the
+        // first-touch `transform` leaf the SoA fold cannot cover).
+        const residual = plans!
+            .map((p) => (p as unknown as { boxedKeys: unknown }).boxedKeys)
+            .find((bk) => residualCount(bk) > 0);
+        expect(residual).toBeDefined();
+        // BORN-RED (pre-S1): `boxedKeys` is a `string[]` → NOT a `Set`. GREEN
+        // after S1 precomputes it as a `Set` on the plan.
+        expect(residual).toBeInstanceOf(Set);
+    });
+
+    it("the mixed-leaf composite reuses one buffer across frames (zero-alloc)", () => {
+        const group = mixedLeafGroup();
+        const r1 = compositeFramesAt(group, 100);
+        const r2 = compositeFramesAt(group, 200);
+        const r3 = compositeFramesAt(group, 300);
+        // Same buffer every frame → no per-frame composite allocation on the
+        // mixed-leaf residual path.
+        expect(r1).toBe(r2);
+        expect(r2).toBe(r3);
+    });
+});
+
+/**
  * L.W7 S2 — `proof:zero-alloc` EXTENDED to the LIGHT tier (`NumericAnimation`).
  *
  * Lane 33 (audit ⚠34): the existing `proof:zero-alloc` arm above covers ONLY the
