@@ -51,9 +51,9 @@
  */
 
 import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
-import type { KeyframesAnimation } from "../engine";
-import { AnimationGroup } from "../group";
-import { Sequence } from "../orchestration/sequence";
+import type { KeyframesAnimation } from "../../engine";
+import { AnimationGroup } from "../../group";
+import { Sequence } from "../../orchestration/sequence";
 import {
     walkGroup,
     walkSequence,
@@ -63,13 +63,17 @@ import type { CompileChild, CompileInput } from "./backward-walk";
 import {
     animationComposition,
     animationShorthand,
+    densifiedKeyframesBlock,
     keyframesBlock,
     premultipliedKeyframesBlock,
 } from "./format";
 import { densifyColorBlock, round } from "./backward-color";
-import { serializeScrollOptions } from "../scroll/grammar";
-import type { CSSTimelineOptions } from "../scroll/grammar";
-import type { Vars } from "../constants";
+// a19 F2 (S.B3 S5) — reach the scroll round-trip through the `../../scroll`
+// zone BARREL, not the deep `scroll/grammar` module — closing the cross-zone
+// deep-import (the barrel is the zone's single surface).
+import { serializeScrollOptions } from "../../scroll";
+import type { CSSTimelineOptions } from "../../scroll";
+import type { Vars } from "../../constants";
 
 // ── The ineligibility report (CC-3) — the four named refusals ────────────────
 
@@ -165,6 +169,17 @@ export const DEFAULT_DENSIFY_STOPS = 16;
  * verbatim string and round-trip. NOT a blanket computed-unit reject — the
  * compiler is STRICTLY BETTER than WAAPI here (it emits the unit string and CSS
  * re-resolves natively, where WAAPI freezes to px once).
+ *
+ * S.B3 S6 (a18 F7 REVERSED — CONSTRUCT, not excise). a18 F7 flagged this as a
+ * "likely-dead" refusal; the ruling is CONSTRUCT — it is the `computed-unit-drift`
+ * member of the CC-3 four-refusals TRUST SURFACE (anchored by
+ * `proof:compile-replay`'s `four-refusals-named` clause + the
+ * `CompileRefusalReason` union), and it genuinely catches the empty-declared-array
+ * SILENT-DROP residue (an emit-nothing property is replay-INequality). It is the
+ * narrow, honest guard — deliberately NOT widened to a blanket computed-unit
+ * reject (that would forfeit the compiler's strictly-better-than-WAAPI verbatim
+ * emit of `vh`/`cqw`/`calc()`/`var()`). Retained by construction, parallel to the
+ * `declaredKeyframeBodyFor` reversal (S7).
  */
 function findComputedDrift<V extends Vars>(
     animation: KeyframesAnimation<V>,
@@ -236,9 +251,11 @@ function compileChild<V extends Vars>(
     }
 
     // CC-2 — densify a color track into perceptual oklab() stops, gated on ΔE-ε.
+    // EN-b (S.B3) — `densifyColorBlock` now returns the RAW per-percentage color
+    // stops (`{ byPct, keys }`), NOT a finished color-only block (the dead `name`
+    // param is gone); `compileChild` merges them WITH the declared non-color decls.
     const densify = densifyColorBlock(
         animation,
-        name,
         opts.densifyStops ?? DEFAULT_DENSIFY_STOPS,
         opts.deltaEEpsilon ?? DEFAULT_DELTA_E_EPSILON,
     );
@@ -284,12 +301,14 @@ function compileChild<V extends Vars>(
     }
 
     // CC-1 — the @keyframes block: the static-weight pre-multiply (CC-5), else the
-    // densified color block (CC-2), else the verbatim declared-template projection
-    // + the animation shorthand (reverseAnimationShorthand).
+    // EN-b PERCENTAGE-keyed MERGE of the densified color stops WITH the declared
+    // non-color projection (CC-2 densify threaded through `densifiedKeyframesBlock`
+    // — a mixed track keeps opacity/transform), else the verbatim declared-template
+    // projection + the animation shorthand (reverseAnimationShorthand).
     const block =
         staticBlock ??
-        (densify && "block" in densify
-            ? densify.block
+        (densify && "byPct" in densify
+            ? densifiedKeyframesBlock(animation, name, densify)
             : keyframesBlock(animation, name));
 
     // The per-child `animation` shorthand; `serializeEasing` THROWS for a custom

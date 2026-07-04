@@ -138,6 +138,6 @@ export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
-} from "./compile/format";
+} from "./compile/backward/format";
 export { transformTargetsStyle } from "./compile/parse-flatten";
 export { yieldToMain } from "./internal/scheduler";

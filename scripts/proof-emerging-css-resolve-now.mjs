@@ -43,7 +43,7 @@ const RESOLVE = [
     "src/animation/resolve/resolve-if.ts",
     "src/animation/resolve/resolve-function.ts",
 ];
-const ADAPTER = "src/animation/adapter.ts";
+const ADAPTER = "src/animation/compile/adapter.ts";
 
 const requireAll = (clause, file, anchors) => {
     // `file` may be a single path or an array of paths whose concatenation is the
@@ -107,8 +107,10 @@ requireAll("module-exists", RESOLVE, [
     const src = read(ADAPTER);
     const anchors = [
         {
-            name: "adapter imports resolveValues from ./resolve-values",
-            re: /resolveValues[\s\S]*?from\s+["']\.\/resolve["']|from\s+["']\.\/resolve["']/,
+            // S.B3 C-9 — adapter re-homed to compile/adapter.ts, so it reaches
+            // the resolve zone barrel one level up (`../resolve`, was `./resolve`).
+            name: "adapter imports resolveValues from the ../resolve barrel",
+            re: /resolveValues[\s\S]*?from\s+["']\.\.\/resolve["']|from\s+["']\.\.\/resolve["']/,
         },
         {
             name: "adapter invokes resolveValues in declsToVarMap (the flatten seam)",

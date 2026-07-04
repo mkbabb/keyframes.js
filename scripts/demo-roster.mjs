@@ -69,6 +69,14 @@
 // run by the roster driver against the shared harness. Order preserves the
 // former demo-smoke step order (the headline inv-γ/inv-δ pair first). ──────────
 export const CORRECTNESS_ROSTER = [
+    // S.B3 EN-a/EN-b — the browser-parse library-value gate. A browser-HARNESS
+    // member (jsdom's getComputedStyle does NOT drop an invalid `animation`
+    // shorthand, so the EN-a bug is INVISIBLE in jsdom — a jsdom slot would be a
+    // FALSE green + would correctly RED under S.A4's symmetric mis-tier clause);
+    // it rides HERE beside the other browser actuators, NOT the jsdom
+    // proof:library-correctness roster. Its jsdom-viable STRING half lives in
+    // proof:compile-replay (fast local bite); THIS is the browser half.
+    "proof:compile-browser-parse",
     "proof:demo-smoke",
     "proof:occlusion",
     "proof:demo-usability",

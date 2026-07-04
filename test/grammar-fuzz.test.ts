@@ -42,7 +42,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { CSSKeyframesToString } from "../src/animation/compile/format";
+import { CSSKeyframesToString } from "../src/animation/compile/backward/format";
 
 // ── CI run budget (Q.WD2 §S1) ──────────────────────────────────────────────────
 // A FIXED seed for reproducibility; a CI-capped run count (the pre-release

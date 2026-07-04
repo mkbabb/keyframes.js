@@ -14,7 +14,7 @@ import {
     type CSSTimelineOptions,
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
-import { resolveKeyframes } from "../../adapter";
+import { resolveKeyframes } from "../../compile/adapter";
 import type {
     CompositeOperator,
     Easing,
@@ -31,9 +31,10 @@ import { cssTwinFor } from "../../easing";
 import {
     namedSelectorToFraction,
     NAMED_SELECTOR_SUPERTYPE,
-} from "../../compile/frame-compiler";
+} from "../../compile/selector";
 import type { Timeline } from "../../orchestration/timeline";
 import { getTimingFunction } from "../../compile/easing-registry";
+import { transformTargetsStyle } from "../../compile/parse-flatten";
 import { KeyframesAnimation } from "../animation";
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {

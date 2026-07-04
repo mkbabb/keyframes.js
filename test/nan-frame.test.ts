@@ -18,7 +18,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { namedSelectorToFraction } from "../src/animation/compile/frame-compiler";
+import { namedSelectorToFraction } from "../src/animation/compile/selector";
 import { ManualTimeline } from "../src/animation/orchestration/timeline";
 
 const NAMED_CSS = "@keyframes x { entry { opacity: 0 } exit { opacity: 1 } }";

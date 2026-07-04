@@ -35,19 +35,16 @@ import {
 } from "./parse-flatten";
 // The keyframe-SELECTOR grammar (the regexes, the named-range tag, the
 // named-phase → fraction resolver, the content-id scale) lives in the colocated
-// `./selector` module (R.W2b carve). `namedSelectorToFraction` +
-// `NAMED_SELECTOR_SUPERTYPE` re-export THROUGH this module so css-animation /
-// interpolate / `proof:nan-frame` resolve them at the unchanged path.
+// `./selector` module (R.W2b carve). S.B3 C-2 — the re-export CEREMONY is DEAD:
+// consumers (`engine/interpolate.ts`, `test/nan-frame.ts`) import
+// `namedSelectorToFraction` / `NAMED_SELECTOR_SUPERTYPE` from `./selector`
+// DIRECTLY; this module imports only what IT uses.
 import {
     FRAME_ID_SCALE,
     SELECTOR_KEYWORD_RE,
     SELECTOR_PERCENT_RE,
     SELECTOR_NAMED_RANGE_RE,
     SELECTOR_REASON,
-    NAMED_SELECTOR_SUPERTYPE,
-} from "./selector";
-export {
-    namedSelectorToFraction,
     NAMED_SELECTOR_SUPERTYPE,
 } from "./selector";
 
@@ -70,11 +67,11 @@ function calcFrameTime<V extends Vars>(
 // The numeric SoA fold plan (`buildNumericPlan` + its `isNumericInterpVar`
 // predicate) lives in the colocated `./numeric-plan` module (R.W2b carve);
 // `finalizeFrameVars` builds one per frame. The heavy-surface easing-input
-// resolver (`resolveEasingOption`) lives in `./easing-option` and is re-exported
-// THROUGH this module so `engine/options.ts` resolves it at the unchanged path.
+// resolver (`resolveEasingOption`) lives in `./easing-option`. S.B3 C-2 — the
+// re-export CEREMONY is DEAD: `engine/options.ts` imports `resolveEasingOption`
+// from `./easing-option` DIRECTLY; this module imports only what IT uses.
 import { buildNumericPlan } from "./numeric-plan";
 import { resolveEasingOption } from "./easing-option";
-export { resolveEasingOption } from "./easing-option";
 
 export class FrameCompiler<V extends Vars = any> {
     templateFrames: TemplateAnimationFrame<V>[] = [];

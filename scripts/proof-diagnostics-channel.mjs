@@ -69,7 +69,7 @@ console.log(
     "proof:diagnostics-channel — K.W7 S4 (the consumed structured diagnostics)",
 );
 
-const ADAPTER = "src/animation/adapter.ts";
+const ADAPTER = "src/animation/compile/adapter.ts";
 const ENGINE = "src/animation/engine/animation.ts";
 // K.WZ — the COMPOSITION_FALLBACK engine row is PUSHED from the extracted
 // `engine-composition.ts` (the K.W7 leaf logic lifted off the engine god-object

@@ -12,11 +12,14 @@
  * HEAVY (reaches the `./engine`/`./group`/`./orchestration` runtime) — rides the
  * same `loadAnimationEngine()` dynamic edge as `backward.ts`.
  */
-import type { KeyframesAnimation } from "../engine";
-import { AnimationGroup } from "../group";
-import { getAnimationId } from "../engine";
-import { Sequence } from "../orchestration/sequence";
-import type { CompositeOperator, Vars } from "../constants";
+import type { KeyframesAnimation } from "../../engine";
+import { AnimationGroup } from "../../group";
+// a06 F7 (S.B3 S5) — `getAnimationId` is homed at `internal/animation-id` (the
+// value.js-free leaf `engine`/`group`/`compile` all read); reach it at the LEAF,
+// not re-routed through the `../engine` barrel — closing the cross-zone deep-import.
+import { getAnimationId } from "../../internal/animation-id";
+import { Sequence } from "../../orchestration/sequence";
+import type { CompositeOperator, Vars } from "../../constants";
 
 /** A walked child — its animation + the layer/sequence metadata the compile reads. */
 export interface CompileChild<V extends Vars> {

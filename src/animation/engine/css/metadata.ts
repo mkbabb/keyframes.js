@@ -25,7 +25,7 @@ import {
     type PropertyDescriptor,
     type Stylesheet,
 } from "@mkbabb/value.js";
-import type { Diagnostic } from "../../adapter";
+import type { Diagnostic } from "../../compile/adapter";
 import type { CompositeOperator, InputAnimationOptions } from "../../constants";
 
 /** The parsed sibling-rule `animation` shape value.js surfaces (the EMIT source). */

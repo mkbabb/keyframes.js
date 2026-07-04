@@ -34,7 +34,7 @@
  */
 
 import { CSSKeyframesAnimation } from "../engine";
-import type { Diagnostic } from "../adapter";
+import type { Diagnostic } from "../compile/adapter";
 import type { InputAnimationOptions, Vars } from "../constants";
 
 /**

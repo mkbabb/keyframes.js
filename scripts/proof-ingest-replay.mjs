@@ -130,7 +130,7 @@ const INDEX = "src/animation/index.ts";
 // there; the barrel keeps ONLY the erased type re-export.
 const LOAD_ENGINE = "src/animation/load-engine.ts";
 const ENGINE = "src/animation/engine/animation.ts";
-const ADAPTER = "src/animation/adapter.ts";
+const ADAPTER = "src/animation/compile/adapter.ts";
 const TEST = "test/ingest.test.ts";
 
 // Read the concatenated ingest surface (the split PAIR) for the inline

@@ -18,7 +18,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { parseCSSValue, FunctionValue } from "@mkbabb/value.js";
-import { resolveKeyframes } from "../src/animation/adapter";
+import { resolveKeyframes } from "../src/animation/compile/adapter";
 import {
     resolveSpringTiming,
     springCssToOptions,

@@ -16,7 +16,7 @@
  * segment-end read) — the same heavy surface `engine.ts` already imports.
  */
 import { ValueUnit } from "@mkbabb/value.js";
-import type { Diagnostic } from "../adapter";
+import type { Diagnostic } from "../compile/adapter";
 import type { AnimationFrame, CompositeOperator, Vars } from "../constants";
 
 /**

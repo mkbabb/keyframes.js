@@ -85,14 +85,14 @@ console.log(
     "proof:compile-replay — K.W10 THE COMPILE (the round-trip's BACKWARD half · replay-equality)",
 );
 
-const COMPILE = "src/animation/compile/backward.ts";
+const COMPILE = "src/animation/compile/backward/backward.ts";
 // R.W2b carved the "orchestration graph → CompileChild[]" walkers (walkGroup /
 // walkSequence / walkList — incl. the static/spring `weighted` partition) off
 // `backward.ts` into the colocated `backward-walk.ts`. The COMPILE-BACKWARD
 // SURFACE is both files; clauses whose anchors may land in either read it.
-const COMPILE_WALK = "src/animation/compile/backward-walk.ts";
-const COMPILE_COLOR = "src/animation/compile/backward-color.ts";
-const FORMAT = "src/animation/compile/format.ts";
+const COMPILE_WALK = "src/animation/compile/backward/backward-walk.ts";
+const COMPILE_COLOR = "src/animation/compile/backward/backward-color.ts";
+const FORMAT = "src/animation/compile/backward/format.ts";
 const BARREL = "src/animation/index.ts";
 // The L-tranche engine-loader extraction home (the dynamic `import("./compile")`
 // + `compileToCSS: compileMod.compileToCSS` assign live here now, re-exported by

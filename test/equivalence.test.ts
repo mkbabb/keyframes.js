@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { CSSKeyframesToString } from "../src/animation/compile/format";
+import { CSSKeyframesToString } from "../src/animation/compile/backward/format";
 
 // Polyfill AnimationEvent for jsdom
 if (typeof globalThis.AnimationEvent === "undefined") {
