@@ -197,6 +197,7 @@
         "proof:motion-path-copy": "node scripts/proof-motion-path-copy.mjs",
         "proof:motion-path-scale": "node scripts/proof-motion-path-scale.mjs",
         "proof:square-honest": "node scripts/proof-square-honest.mjs",
+        "proof:gesture-manifest": "node scripts/proof-gesture-manifest.mjs",
         "proof:easter-egg": "node scripts/proof-easter-egg.mjs",
         "proof:crayon-preserved": "node scripts/proof-crayon-preserved.mjs",
         "proof:design-refinement": "node scripts/proof-design-refinement.mjs",

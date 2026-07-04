@@ -202,6 +202,10 @@ export const CORRECTNESS_ROSTER = [
     // S.G2 S2 (fold row 69) — the square honest-controls oracle (the lying editor
     // panel COLLAPSED; box + mono caption ARE the live controls). Browser actuator.
     "proof:square-honest",
+    // S.G3 S6 (fold row 67) — the per-scene gesture census oracle: every sealed
+    // affordance carries an on-stage tell + a browser-actuated reliable-primitive
+    // touch path (pointer double-tap / button tap / drag — never native dblclick).
+    "proof:gesture-manifest",
     "proof:easter-egg",
     "proof:design-refinement",
     "proof:hero-rung",
