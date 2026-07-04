@@ -51,43 +51,49 @@
             >
             </Slider>
 
-            <Menubar class="w-full mt-4 flex justify-evenly gap-2 overflow-x-scroll">
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <WandSparkles></WandSparkles>
-                    </MenubarTrigger>
-                </MenubarMenu>
+            <!-- The keyframe-action toolbar (S.C3b · C-19). This was a shadcn reka
+                 `Menubar`, but it never held a single `MenubarContent` — it is a
+                 4-affordance authoring TOOLBAR (add · copy · apply, plus a
+                 decorative wand), not a set of menus. The a24-F6 relocate-in-place
+                 migration keeps every action visible and working (a `dropdown-menu`
+                 remap would bury them behind a trigger and unmount the persistent
+                 brush ref in a portal) while shedding the last shadcn island;
+                 `useToolbarKeyboard` restores the roving-tabindex keyboard reka
+                 gave it (Arrow/Home/End over the real button descendants). -->
+            <div
+                ref="toolbarEl"
+                role="toolbar"
+                aria-label="Keyframe actions"
+                aria-orientation="horizontal"
+                class="mt-4 flex h-10 w-full items-center justify-evenly gap-2 overflow-x-scroll rounded-xl border bg-background p-1"
+                @keydown="onToolbarKeydown"
+            >
+                <!-- Decorative lead flourish — was a focusable no-op trigger; now
+                     a pure indicator (aria-hidden), excluded from the roving set. -->
+                <WandSparkles aria-hidden="true" class="shrink-0 opacity-70" />
 
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <KeyframesAddDialog
-                            v-model:open="kfControls.dialogOpen"
-                            v-model:text="addKeyframesString"
-                            :format="updateAddKeyframesString"
-                            @submit="addKeyframesStringToAnimation"
-                        />
-                    </MenubarTrigger>
-                </MenubarMenu>
+                <KeyframesAddDialog
+                    v-model:open="kfControls.dialogOpen"
+                    v-model:text="addKeyframesString"
+                    :format="updateAddKeyframesString"
+                    @submit="addKeyframesStringToAnimation"
+                />
 
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <CopyButton
-                            class="w-6 h-6 scale-on-hover"
-                            :text="cssKeyframesString"
-                        />
-                    </MenubarTrigger>
-                </MenubarMenu>
+                <CopyButton
+                    class="w-6 h-6 scale-on-hover"
+                    :text="cssKeyframesString"
+                />
 
-                <MenubarMenu>
-                    <MenubarTrigger>
-                        <Paintbrush
-                            ref="brush"
-                            @click="applyCSSStyles"
-                            class="cursor-pointer bg-transparent hover:bg-transparent scale-on-hover"
-                        />
-                    </MenubarTrigger>
-                </MenubarMenu>
-            </Menubar>
+                <button
+                    type="button"
+                    aria-label="Apply CSS keyframes to the target"
+                    :aria-pressed="cssApplied"
+                    class="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 outline-none scale-on-hover focus-visible:ring-2 focus-visible:ring-accent"
+                    @click="applyCSSStyles"
+                >
+                    <Paintbrush ref="brush" class="pointer-events-none" />
+                </button>
+            </div>
 
             <div
                 ref="progressBarKeyframesEl"
@@ -112,7 +118,7 @@ import KeyframeCardList from "./components/KeyframeCardList.vue";
 import KeyframesAddDialog from "./components/KeyframesAddDialog.vue";
 
 import { Paintbrush, WandSparkles } from "@lucide/vue";
-import { Menubar, MenubarMenu, MenubarTrigger } from "@components/ui/menubar";
+import { useToolbarKeyboard } from "./composables/useToolbarKeyboard";
 
 import { parseCSSValueUnit } from "@mkbabb/value.js";
 import { insertTabAtCursor } from "./utils/contenteditable";
@@ -240,6 +246,13 @@ const applyCSSStyles = () => {
 
 const brush = useTemplateRef<HTMLElement>("brush");
 
+// The action toolbar's roving-tabindex keyboard (S.C3b · C-19 — the reka Menubar
+// replacement). `refresh` re-seats the single tab stop once the item buttons
+// (dialog trigger, copy, apply) have mounted.
+const toolbarEl = useTemplateRef<HTMLElement>("toolbarEl");
+const { onKeydown: onToolbarKeydown, refresh: refreshToolbar } =
+    useToolbarKeyboard(() => toolbarEl.value);
+
 const brushAnimation = new CSSKeyframesAnimation({
     duration: 700,
     timingFunction: "linear",
@@ -268,6 +281,8 @@ watch(cssKeyframesString, () => {
 onMounted(() => {
     brushAnimation.setTargets(brush.value!);
     updateAllStrings();
+    // Seat the toolbar's single tab stop now that the item buttons have mounted.
+    refreshToolbar();
 });
 
 onUnmounted(() => {
