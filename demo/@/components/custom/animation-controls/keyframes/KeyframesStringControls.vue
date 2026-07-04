@@ -37,7 +37,7 @@ import {
     createAnimationUUId,
     getStoredAnimationGroupControlOptions,
     getStoredAnimationOptions,
-} from "../stores";
+} from "@state";
 import { toast } from "vue-sonner";
 import { copyText } from "@utils/clipboard";
 

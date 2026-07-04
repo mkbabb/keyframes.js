@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { computed, provide } from "vue";
 
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 import MotionPathTarget from "./MotionPathTarget.vue";
 import { useMotionPathDemo } from "./useMotionPathDemo";

@@ -98,7 +98,7 @@ import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuIte
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 const props = defineProps<{
     // The active superKey — the ppMode store is keyed by it (per-scene brand flag).

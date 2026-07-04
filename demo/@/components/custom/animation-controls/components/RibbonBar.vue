@@ -130,7 +130,7 @@ import {
     Upload,
 } from "@lucide/vue";
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
-import type { StoredAnimationGroupControlOptions } from "../stores";
+import type { StoredAnimationGroupControlOptions } from "@state";
 
 const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 text-body rounded-full btn-interactive";
 

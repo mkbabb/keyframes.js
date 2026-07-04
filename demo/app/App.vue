@@ -109,7 +109,7 @@ import {
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
 } from "@components/custom/animation-controls/injectionKeys";
-import type { ControlSurface } from "@components/custom/animation-controls/stores";
+import type { ControlSurface } from "@state";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 import ChromeDock from "@components/custom/dock/ChromeDock.vue";
@@ -120,7 +120,7 @@ import { kfEngine } from "@utils/kfEngine";
 import {
     getStoredAnimationGroupControlOptions,
     useSceneMachine,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 
 import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeAnimations";
 import CubeScene from "../scenes/cube/CubeScene.vue";

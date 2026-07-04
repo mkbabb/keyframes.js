@@ -4,7 +4,7 @@ import { ref } from "vue";
 import {
     createAnimationUUId,
     getStoredAnimationGroupControlOptions,
-} from "../../stores";
+} from "@state";
 
 /**
  * The editor's UI-state half: the reactive string refs, the stored-control

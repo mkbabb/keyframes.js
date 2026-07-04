@@ -48,7 +48,7 @@ if (typeof window !== "undefined") {
 }
 
 import { useAssetManager } from "@components/custom/asset-manager/useAssetManager";
-import { resetAllStores } from "@components/custom/animation-controls/stores/index";
+import { resetAllStores } from "@state/index";
 
 describe("proof:asset-store-singleton — the asset store is a createGlobalState singleton", () => {
     beforeEach(() => {

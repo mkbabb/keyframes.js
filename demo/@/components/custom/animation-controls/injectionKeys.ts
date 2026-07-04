@@ -1,5 +1,5 @@
 import type { ComputedRef, InjectionKey, Ref } from "vue";
-import type { ControlSurface } from "./stores/controlSurfaceDFA";
+import type { ControlSurface } from "@state/controlSurfaceDFA";
 
 export const CONTROLS_PANE_HOVER_KEY: InjectionKey<Ref<boolean>> = Symbol("controlsPaneHover");
 export const TABS_EXTERNALLY_MANAGED_KEY: InjectionKey<boolean> = Symbol("tabsExternallyManaged");

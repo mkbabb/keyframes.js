@@ -2,7 +2,7 @@ import { computed, ref } from "vue";
 import type { Ref } from "vue";
 import { useRefHistory, debounceFilter } from "@vueuse/core";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
-import { defaultAnimationOptions } from "../../stores";
+import { defaultAnimationOptions } from "@state";
 import { DEFAULT_CAPTURE_PROPERTIES } from "../timelineTypes";
 import type { TimelineState } from "../timelineTypes";
 import { useTimelineBuild } from "./useTimelineBuild";

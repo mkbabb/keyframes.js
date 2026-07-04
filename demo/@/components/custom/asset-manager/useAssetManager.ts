@@ -1,6 +1,7 @@
 import { computed } from "vue";
 import type { ComputedRef } from "vue";
 import { createGlobalState, useStorage } from "@vueuse/core";
+import { registerStoreReset } from "@state";
 import {
     createAssetId,
     defaultAssetManagerState,
@@ -195,3 +196,9 @@ export const _resetAssetManagerStore = () => {
     const { state } = useAssetManager();
     state.value = structuredClone(defaultAssetManagerState);
 };
+
+// S.D2 / a24 F2 — register the asset store reset with the state layer's
+// app-level `resetAllStores` composer, INVERTING the old edge (the state barrel
+// used to import this module). Now the feature leaf depends on the state peer;
+// importing this module wires its reset into the global reset.
+registerStoreReset(_resetAssetManagerStore);

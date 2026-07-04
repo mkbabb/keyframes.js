@@ -5,7 +5,7 @@ import {
     decodeStateFromHash,
     getAllState,
     restoreStateFromParam,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 import { toast } from "vue-sonner";
 import { copyText } from "@utils/clipboard";
 

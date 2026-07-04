@@ -6,6 +6,8 @@ export default defineConfig({
         alias: {
             "@src": path.resolve(import.meta.dirname, "src"),
             "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
+            // S.D2 — the hoisted demo state peer (a24 F2); mirror the vite alias.
+            "@state": path.resolve(import.meta.dirname, "demo/@/state"),
             "@components": path.resolve(import.meta.dirname, "demo/@/components"),
             "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),

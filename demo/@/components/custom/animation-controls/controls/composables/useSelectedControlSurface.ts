@@ -4,8 +4,8 @@ import {
     ACTIVE_SUPER_KEY,
 } from "../../injectionKeys";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import { useSceneMachine } from "../../stores";
-import type { StoredAnimationGroupControlOptions } from "../../stores";
+import { useSceneMachine } from "@state";
+import type { StoredAnimationGroupControlOptions } from "@state";
 
 export interface UseSelectedControlSurfaceOptions {
     /** The host's animation (its superKey identifies the owning scene). */

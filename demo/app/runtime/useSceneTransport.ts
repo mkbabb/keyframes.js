@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from "vue";
-import type { useSceneMachine } from "@components/custom/animation-controls/stores";
+import type { useSceneMachine } from "@state";
 
 /**
  * The scene transport intent — `isPlaying` + `play`/`pause`/`togglePlay` —

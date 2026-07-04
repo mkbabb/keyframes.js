@@ -127,7 +127,7 @@
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import type { StoredAnimationGroupControlOptions } from "../stores";
+import type { StoredAnimationGroupControlOptions } from "@state";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { useTemplateRef } from "vue";
 import AnimationControls from "../controls/AnimationControls.vue";

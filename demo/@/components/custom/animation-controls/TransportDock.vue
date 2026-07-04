@@ -233,7 +233,7 @@ import { RotateCcw } from "@lucide/vue";
 import { kfEngine } from "@utils/kfEngine";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
 
-import type { StoredAnimationGroupControlOptions } from "./stores";
+import type { StoredAnimationGroupControlOptions } from "@state";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 

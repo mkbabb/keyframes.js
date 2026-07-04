@@ -22,9 +22,9 @@
 import { watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { isNavigationFailure, NavigationFailureType } from "vue-router";
-import { useSceneMachine, HOME_SCENE_ID } from "@components/custom/animation-controls/stores";
+import { useSceneMachine, HOME_SCENE_ID } from "@state";
 import { sceneMap, allScenes } from "./scenes";
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 /** Map a vue-router route name to a known SceneId, falling back to home. */
 function routeToScene(name: unknown): string {

@@ -1,6 +1,6 @@
 import { useMediaQuery } from "@vueuse/core";
 import { computed, watch, type ComputedRef, type WritableComputedRef } from "vue";
-import type { StoredAnimationGroupControlOptions } from "../stores";
+import type { StoredAnimationGroupControlOptions } from "@state";
 import { useSheetSpring } from "./useSheetSpring";
 
 export interface UseSheetStateOptions {

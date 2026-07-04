@@ -220,7 +220,7 @@ import EasingSelect from "@components/custom/EasingSelect.vue";
 import { Teleport, computed, onMounted, ref, toRef } from "vue";
 import {
     getStoredAnimationOptions,
-} from "../stores";
+} from "@state";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import type {
     AnimationLayerConfig,

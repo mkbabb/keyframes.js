@@ -7,7 +7,7 @@ import { NumericAnimation } from "@mkbabb/keyframes.js";
 import { useRafScene } from "@app/runtime/useRafScene";
 import { useContractAnimGroup } from "@app/runtime/useContractAnimGroup";
 import { useSceneTransport } from "@app/runtime/useSceneTransport";
-import { useSceneMachine } from "@components/custom/animation-controls/stores";
+import { useSceneMachine } from "@state";
 import { SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
 import { useSpringKeyframesEditor } from "./useSpringKeyframesEditor";

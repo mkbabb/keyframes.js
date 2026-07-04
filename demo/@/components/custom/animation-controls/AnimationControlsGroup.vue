@@ -115,7 +115,7 @@ import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
 import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
 import TransportDock from "./TransportDock.vue";
 
-import { getStoredAnimationGroupControlOptions } from "./stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
 import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";

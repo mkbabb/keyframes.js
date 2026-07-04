@@ -108,7 +108,7 @@ import { Slider, Card, CardContent } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import type { FunctionValue } from "@mkbabb/value.js";
 import type { MatrixCellMeta } from "./useTransformState";
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 const props = defineProps<{
     matrix3dEnd: FunctionValue;

@@ -26,7 +26,7 @@ import { useSpringDemo } from "../demo/scenes/spring/useSpringDemo";
 beforeAll(async () => {
     await warmKfEngine();
 });
-import { useSceneMachine } from "../demo/@/components/custom/animation-controls/stores/useSceneMachine";
+import { useSceneMachine } from "../demo/@/state/useSceneMachine";
 
 /**
  * Drive the (H.W1) scene machine into `playing` for `scene` so the easing

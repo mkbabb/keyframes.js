@@ -144,7 +144,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
     const dfa = read(
         path.join(
             DEMO,
-            "@/components/custom/animation-controls/stores/controlSurfaceDFA.ts",
+            "@/state/controlSurfaceDFA.ts",
         ),
     );
     const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence", "motion-path", "morph"];

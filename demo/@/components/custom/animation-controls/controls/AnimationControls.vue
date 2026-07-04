@@ -247,12 +247,12 @@ import {
     useSceneMachine,
     BUILT_IN_SURFACES,
     type ControlSurface,
-} from "../stores";
+} from "@state";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("../keyframes/KeyframesStringControls.vue"));
 const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/KeyframeTimeline.vue"));
 import AnimationControlsControls from "./AnimationControlsControls.vue";
-import { getStoredAnimationGroupControlOptions } from "../stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = defineProps<{
     animation: KeyframesAnimation<any>;

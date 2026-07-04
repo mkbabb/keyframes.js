@@ -1,6 +1,6 @@
 import { useMediaQuery } from "@vueuse/core";
 import { ref, watch, type Ref } from "vue";
-import type { StoredAnimationGroupControlOptions } from "../stores";
+import type { StoredAnimationGroupControlOptions } from "@state";
 import { usePaneHover } from "./usePaneHover";
 import { useScrollFade } from "./useScrollFade";
 

@@ -107,7 +107,7 @@
 <script setup lang="ts">
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunction, TimingFunctionNames } from "@mkbabb/keyframes.js";
-import type { StoredAnimationOptions } from "../stores";
+import type { StoredAnimationOptions } from "@state";
 
 import {
     CSSCubicBezier,

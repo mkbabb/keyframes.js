@@ -2,7 +2,7 @@ import { FunctionValue, ValueUnit } from "@mkbabb/value.js";
 import { markRaw, shallowRef } from "vue";
 import type { Ref } from "vue";
 import { kfEngine } from "@utils/kfEngine";
-import { getStoredAnimationOptions } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
 
 export const SUPER_KEY = "Cube";

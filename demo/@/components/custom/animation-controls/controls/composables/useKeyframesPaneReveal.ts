@@ -1,5 +1,5 @@
 import { computed, nextTick, watch, type ComputedRef, type Ref } from "vue";
-import type { StoredAnimationGroupControlOptions } from "../../stores";
+import type { StoredAnimationGroupControlOptions } from "@state";
 
 export interface UseKeyframesPaneRevealOptions {
     /** The shared per-group control store (read for the active surface). */

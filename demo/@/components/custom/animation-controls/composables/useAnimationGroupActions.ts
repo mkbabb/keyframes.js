@@ -1,8 +1,8 @@
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
-import type { StoredAnimationGroupControlOptions } from "../stores";
-import { resetAllStores } from "../stores";
+import type { StoredAnimationGroupControlOptions } from "@state";
+import { resetAllStores } from "@state";
 
 export interface UseAnimationGroupActionsDeps {
     /** The active animation group (getter — the prop swaps on scene switch). */

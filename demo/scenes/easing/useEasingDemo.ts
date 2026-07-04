@@ -21,7 +21,7 @@ import { useRafScene } from "@app/runtime/useRafScene";
 import { useContractAnimGroup } from "@app/runtime/useContractAnimGroup";
 import { useSceneTransport } from "@app/runtime/useSceneTransport";
 import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
-import { useSceneMachine } from "@components/custom/animation-controls/stores";
+import { useSceneMachine } from "@state";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
 import { useEasingGallery } from "./useEasingGallery";
 import { useEasingGhost } from "./useEasingGhost";
