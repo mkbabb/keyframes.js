@@ -81,11 +81,10 @@ const ALLOWLIST = new Map([
         "components/custom/EditableLabel.vue",
         "asset-manager-private; travels WITH asset-manager in S.D3 (a24 F5).",
     ],
-    [
-        "utils/utils.ts",
-        "menubar-private `cn()` (a24 F6, 11 consumers, all @/components/ui/menubar). " +
-            "The shadcn-menubar retirement is out of S.D2 scope.",
-    ],
+    // NOTE (S.C3b): `utils/utils.ts` (the menubar-private `cn()` helper) was
+    // deleted with the `ui/menubar` shadcn island (C-19) — the module no longer
+    // exists, so it is neither enumerated nor allowlisted. The former exemption
+    // ("shadcn-menubar retirement is out of S.D2 scope") is discharged.
 ]);
 
 // Top-level @/ areas that are foundational and NOT partition-checked.

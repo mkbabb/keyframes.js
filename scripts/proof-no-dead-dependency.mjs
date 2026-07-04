@@ -59,33 +59,36 @@
  * (the historical tranche record) is never scanned — T9's "historical docs
  * legitimately carry the phrase" applies to the identifiers too.
  *
- * ── CLAUSE 3 — the shadcn census, NON-GATING (S5; T9; x1-#4) ───────────────
+ * ── CLAUSE 3 — the shadcn census, GATING post-S.C3b (S5; T9; x1-#4) ─────────
  * A repo-wide (`src/` + `demo/`) grep for `cn(` / `class-variance-authority` /
- * `@radix-*` that must return EMPTY post-purge — NO-legacy proven by census,
- * not by naming one island. TODAY it is NOT empty: `demo/@/components/ui/
- * menubar/` (16 files) + `demo/@/utils/utils.ts`'s `cn()` export are the last
- * shadcn island (S.C3b's target, C-19). Per the wave-spec's OWN construction
- * (SPEC §3 S.C3a/S5 + S.C3b: "S.C3b's HARD GATE IS the S.C3a shadcn census
- * clause... C3a authors the census; C3b's green is that census going empty
- * after ui/menubar is deleted") this clause is EXPECTED born-RED through the
- * end of S.C3a and is discharged by a DIFFERENT wave (S.C3b), NOT this one —
- * so, mirroring `proof-deps-current.mjs`'s established fail-EXPLICIT/
- * NON-GATING idiom (its realm-convergence clause 3), this clause's finding is
- * SURFACED LOUDLY but does NOT contribute to this script's exit code. It is a
- * real, runnable, named oracle (`node scripts/proof-no-dead-dependency.mjs`
- * prints its census hits every run) — S.C3b re-runs the SAME clause after
- * deleting `ui/menubar/` and its green IS this clause going empty; S.C3b does
- * not re-author it (the construction coupling, not a DAG edge).
+ * `@radix-*` that must return EMPTY — NO-legacy proven by census, not by naming
+ * one island. S.C3a AUTHORED this clause born-RED-and-NON-GATING: while the
+ * `demo/@/components/ui/menubar/` (16 files) + `demo/@/utils/utils.ts`'s `cn()`
+ * shadcn island still existed, a GATING census would have wrongly RED'd S.C3a's
+ * own green, so S.C3a surfaced the finding loudly WITHOUT contributing to the
+ * exit code, deferring the discharge to S.C3b ("C3a authors the census; C3b's
+ * green is that census going empty after ui/menubar is deleted").
  *
- * BORN-RED PROOF (S.C3a). Before this wave: all 8 packages are in
- * `package.json`, `SPRING_SMOOTH` + its `void` hack are live, `demo/CLAUDE.md`
- * claims `AnimationMenuBar.vue`/`ResponsiveSelect` exist (they don't), and
+ * S.C3b (C-19) HAS NOW DISCHARGED IT: the ui/menubar island + the `cn()` helper
+ * were migrated off (the a24-F6 relocate-in-place toolbar) and DELETED, so the
+ * census is empty — and this clause is FLIPPED TO GATING (its finding now joins
+ * `failures` and gates the exit code). This is the TIER flip the discharge
+ * requires (S.C3b consumes the SAME detection C3a authored — same patterns,
+ * roots and comment-strip; it does not re-author the detection), and it is what
+ * makes S.C3a's OWN stated falsifiability true: "re-adding … a `cn(` /
+ * `@radix-*` footprint REDs" is only true if this clause gates. A `cn(`,
+ * `class-variance-authority`, or `@radix-*` REGROWTH in src/+demo/ now REDs.
+ *
+ * BORN-RED PROOF. Before S.C3a: all 8 packages in `package.json`,
+ * `SPRING_SMOOTH` + its `void` hack live, `demo/CLAUDE.md` claims
+ * `AnimationMenuBar.vue`/`ResponsiveSelect` exist (they don't),
  * `proof-visual-lock.mjs:172` narrates a dead "unovis" attribution → clauses 1
- * + 2 RED. After S1/S2/S4: clauses 1 + 2 GREEN (this script exits 0). Clause 3
- * stays RED (S.C3b's job) — printed, not gating.
+ * + 2 RED; the census carries 12 hits (RED, non-gating). S.C3a discharges
+ * clauses 1 + 2 (exits 0, census still RED non-gating). S.C3b deletes the island
+ * AND flips clause 3 to gating: with the island present + gating → RED (exit 1);
+ * island deleted → the census is empty → GREEN (exit 0). Recorded both exits.
  *
- * CI posture: HARD (clauses 1+2 gate this script's exit code); clause 3 is
- * fail-EXPLICIT/non-gating by the spec's own tier-split construction.
+ * CI posture: HARD — clauses 1 + 2 + 3 all gate this script's exit code.
  *
  * RUN: node scripts/proof-no-dead-dependency.mjs
  */
@@ -95,8 +98,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const failures = []; // clauses 1 + 2 — gate the exit code
-const censusNotes = []; // clause 3 — surfaced, never gates (S.C3b discharges)
+const failures = []; // clauses 1 + 2 + 3 (post-S.C3b) — gate the exit code
 
 // ── shared source helpers ─────────────────────────────────────────────────────
 
@@ -300,7 +302,7 @@ if (identifierHits.length > 0) {
 
 console.log(
     "\nclause 3 — shadcn census: cn( / class-variance-authority / @radix-* across src/+demo/ " +
-        "(NON-GATING — S.C3b's acceptance gate, per the spec's own construction)",
+        "(GATING — S.C3b discharged the ui/menubar island; the census now GUARDS against regrowth)",
 );
 
 const CENSUS_PATTERNS = [
@@ -321,11 +323,13 @@ for (const file of censusFiles) {
     }
 }
 if (censusHits.length > 0) {
-    censusNotes.push(
-        "clause 3 (shadcn census, NON-GATING) — the repo-wide grep is NOT yet empty " +
-            `(${censusHits.length} hit(s) across ${new Set(censusHits.map((h) => h.split(" — ")[0])).size} file(s)) — ` +
-            "EXPECTED while demo/@/components/ui/menubar/ (the last shadcn island, C-19) survives. " +
-            "S.C3b deletes it; this clause's green IS that census going empty. Sample: " +
+    failures.push(
+        "clause 3 (shadcn census) — the repo-wide cn( / class-variance-authority / @radix-* " +
+            `grep is NOT empty (${censusHits.length} hit(s) across ` +
+            `${new Set(censusHits.map((h) => h.split(" — ")[0])).size} file(s)). The last shadcn ` +
+            "island (demo/@/components/ui/menubar/ + the menubar-private cn() helper) was retired at " +
+            "S.C3b (C-19); any surviving cn()/class-variance-authority/@radix-* footprint is shadcn " +
+            "REGROWTH — remove it. Sample: " +
             censusHits.slice(0, 5).join("; ") +
             (censusHits.length > 5 ? `; …(+${censusHits.length - 5} more)` : ""),
     );
@@ -334,11 +338,6 @@ if (censusHits.length > 0) {
 }
 
 // ── report ────────────────────────────────────────────────────────────────────
-if (censusNotes.length > 0) {
-    console.log("\nproof:no-dead-dependency — NON-GATING notice(s) (S.C3b discharges):");
-    for (const n of censusNotes) console.log("  ⚠ " + n);
-}
-
 if (failures.length > 0) {
     console.error(`\nproof:no-dead-dependency — FAIL (${failures.length} finding(s)):`);
     for (const f of failures) console.error("  ✗ " + f);
@@ -346,9 +345,7 @@ if (failures.length > 0) {
 }
 console.log(
     "\nproof:no-dead-dependency — PASS: zero dead shadcn packages, zero SPRING_SMOOTH regrowth, " +
-        "zero dead-identifier hits in live narration surfaces" +
-        (censusNotes.length > 0
-            ? " (the shadcn census clause is RED, non-gating — recorded above, discharged at S.C3b)."
-            : ", and the shadcn census is empty too."),
+        "zero dead-identifier hits in live narration surfaces, and the shadcn census is empty " +
+        "(the last ui/menubar island was retired at S.C3b — the census now guards against regrowth).",
 );
 process.exit(0);

@@ -37,12 +37,12 @@ demo/
 │   │   ├── asset-manager/       # AssetViewport/AssetLayer/AssetLayerPanel/AssetPropertiesPanel + useAssetManager + assetTypes + EditableLabel (playground-private → S.D3 fold)
 │   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal (S.D2 colocation)
 │   │   └── singles: CopyButton, KfPillTabs   # the two genuinely-shared flat leaves (S.D2 shed the rest)
-│   ├── components/ui/menubar/   # the ONE remaining shadcn-vue component dir (16 files); the rest migrated to @mkbabb/glass-ui
+│   │                            # (components/ui/ is GONE — the last shadcn island, ui/menubar/, was migrated off + deleted at S.C3b, C-19)
 │   ├── composables/
 │   │   ├── gestureSelectSuppression.ts  # the ONE global drag-in-flight select-suppression token (body.is-dragging)
 │   │   └── useDragScrub.ts              # the ONE shared pointer-drag scrub seam (stage rails, square box)
 │   ├── styles/                  # style.css (Tailwind v4 + theme vars), brand.css, design-idioms.css
-│   └── utils/                   # utils.ts (cn()), clipboard.ts, iosTextEntry.ts, toastGuard.ts (vue-sonner private-DOM contract)
+│   └── utils/                   # clipboard.ts, iosTextEntry.ts, kfEngine.ts, toastGuard.ts (vue-sonner private-DOM contract) — the shadcn cn() helper (utils.ts) went with ui/menubar (S.C3b)
 ├── playground/   # standalone app: index.html + App.vue + usePlaygroundAnimations (asset drag-and-drop)
 ├── CLAUDE.md
 └── DESIGN.md     # demo design language (extends glass-ui DESIGN.md)
@@ -88,7 +88,7 @@ Plus the standalone `playground/`: asset drag-and-drop viewport with preset anim
 
 - `vue` ^3.5 + `vue-router` (hash mode) + `@vueuse/core`
 - `@mkbabb/glass-ui` `~4.0.0` (in `optionalDependencies`) — the demo chrome: dock, header ribbon, keyboard shortcuts (`registerShortcut` from `@mkbabb/glass-ui/keyboard`), dark-mode toggle, buttons/dialogs/tooltips
-- `reka-ui` — headless primitives (menubar basis)
+- `reka-ui` — glass-ui's headless-primitive peer basis (Dialog/DropdownMenu/Select/…); the last DIRECT demo consumer (the shadcn `ui/menubar`) was retired at S.C3b, so reka-ui now rides in only as glass-ui's peer
 - `three` — amiga sphere only (the cube is CSS 3D transforms)
 - `gl-matrix` — quaternion/matrix math (orbital-drag, matrix-editor, cubeTransformStore)
 - `monaco-editor` + `monaco-themes` — CSS keyframes editor (wrapped by CSSCodeEditor)
