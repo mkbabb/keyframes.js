@@ -30,7 +30,7 @@
  *            unreachable in the product (`KeyframesEditor.vue` has no mount;
  *            see the clause-body RE-SCOPE RECORD + `docs/tranches/J/impl/J.W1.md`);
  *            the per-card ITERATION is pinned born-RED at the jsdom tier
- *            (`test/serialize-from-template.test.ts`).
+ *            (`test/compile/serialize-from-template.test.ts`).
  *   [J.W1 b] every non-conforming keyframe selector ("abc" / "5px" / "150%")
  *            driven through the public `fromKeyframes` construction path of
  *            the BUILT `dist/keyframes.js`, LIVE in the page, throws the
@@ -430,7 +430,7 @@ async function browserHalf() {
         //    template authority as the per-card path — asserting the VERBATIM
         //    `rotateX(var(--rotationX))` token (a check the I.W0 clause (d)
         //    "@keyframes-shaped" read never made). The per-card ITERATION's
-        //    bite lives at the jsdom tier (`test/serialize-from-template.test.ts`,
+        //    bite lives at the jsdom tier (`test/compile/serialize-from-template.test.ts`,
         //    witnessed born-RED under the format.ts stash-probe). The orphaned
         //    card editor's mount-or-delete adjudication is a RECORDED handoff
         //    (demo-behavior — J.W2/J.WZ), not a quiet drop. See

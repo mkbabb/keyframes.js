@@ -13,7 +13,7 @@
  * clause). This gate ACTUATES a real Chromium (playwright-core via glass-ui's
  * install, KF_PLAYWRIGHT_DIR) and asserts VIA THE BROWSER.
  *
- * The gate DRIVES the proven born-RED oracle `test/en-fix-oracle.test.ts` (the
+ * The gate DRIVES the proven born-RED oracle `test/engine/en-fix-oracle.test.ts` (the
  * vitest browser oracle) — it runs against the CURRENT TS source (vitest's TS
  * pipeline), NOT a stale built `dist/`, so it tests the shipped serialize path as
  * written. Two clauses: EN-a (an emitted `easeOutCubic` artifact computes
@@ -29,7 +29,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const ORACLE = "test/en-fix-oracle.test.ts";
+const ORACLE = "test/engine/en-fix-oracle.test.ts";
 
 console.log(
     "proof:compile-browser-parse — S.B3 EN-a/EN-b browser-parse oracle " +

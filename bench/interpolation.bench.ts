@@ -1,6 +1,7 @@
 import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { compositeFramesAt } from "../test/support/group-probe";
 
 describe("interpFrames", () => {
     const twoFrameAnim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
@@ -112,7 +113,7 @@ describe("transformFramesGrouped", () => {
             for (const obj of Object.values(group.animations)) {
                 obj.animation.t = t;
             }
-            group.transformFramesGrouped(t);
+            compositeFramesAt(group, t);
         }
     });
 });

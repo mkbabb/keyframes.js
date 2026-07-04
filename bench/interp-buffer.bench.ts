@@ -196,8 +196,8 @@ const packSoA = (anim: ReturnType<typeof makeTransformAnim>) => {
         const from = new Float64Array(K);
         const to = new Float64Array(K);
         frame.allInterpVars.forEach((iv, k) => {
-            from[k] = iv.start.value as number;
-            to[k] = iv.stop.value as number;
+            from[k] = iv.start.value as unknown as number;
+            to[k] = iv.stop.value as unknown as number;
         });
         return {
             start: frame.time.start,

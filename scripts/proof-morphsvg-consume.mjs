@@ -47,12 +47,12 @@
  *       runs the live `PathGeometry`-backed compositor; a name-only proxy
  *       passes `primitive-exists` but a stub STILL reds here.
  *
- *   test-locks          — `test/morph-svg.test.ts` carries the locking
+ *   test-locks          — `test/svg/morph-svg.test.ts` carries the locking
  *       assertions (the samples-count keyframe set, the degenerate-path
  *       AnimationOptionError refusal, the mid-`t`-distinct interpolation over the
  *       FULL set, the shared-vertex hazard). BITE: delete a lock → reds.
  *
- * The behaviour proof rides the chained `vitest run test/morph-svg.test.ts` (the
+ * The behaviour proof rides the chained `vitest run test/svg/morph-svg.test.ts` (the
  * lead wires the combined `"proof:morphsvg-consume"` script — see the tail).
  *
  * NOTE on the live-morph substrate. The O.W6 spec names the BUILT `dist/`
@@ -90,7 +90,7 @@ console.log(
 const MS = "src/animation/svg/morph-svg.ts";
 const INDEX = "src/animation/index.ts";
 const LOAD_ENGINE = "src/animation/load-engine.ts";
-const TEST = "test/morph-svg.test.ts";
+const TEST = "test/svg/morph-svg.test.ts";
 
 const requireAll = (clause, file, anchors) => {
     const src = read(file);
@@ -397,5 +397,5 @@ console.log(
         "loadAnimationEngine() (only MorphSVGOptions on the static barrel), and a\n" +
         "live triangle→square morph interpolates with a mid-t sample DISTINCT from\n" +
         "both endpoints (the DM-3 7-tranche P-inv-28 chronic EXITS — a build-in,\n" +
-        "no sibling gate). The behaviour proof rides `vitest run test/morph-svg.test.ts`.",
+        "no sibling gate). The behaviour proof rides `vitest run test/svg/morph-svg.test.ts`.",
 );

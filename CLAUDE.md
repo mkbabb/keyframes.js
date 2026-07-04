@@ -53,8 +53,8 @@ demo/                # Vue 3 demo (see demo/CLAUDE.md)
 ├── scenes/          # Fused per-scene dirs (R.W5) — scenes/<name>/ for amiga · cube · easing · morph · motion-path · sequence · spring · square: each holds <Name>Scene.vue + Target + composables + keys, colocated
 └── playground/      # Standalone asset-playground app (npm run dev:playground)
 
-test/                # Vitest (jsdom). Count: `ls test/*.test.ts | wc -l` files, `npx vitest list | wc -l` tests
-                     # (99 files / 961 tests after S.C3b's toolbar T8 add — derive, don't trust a frozen number) — derive, don't trust a frozen number)
+test/                # Vitest (jsdom), regrouped into test/<zone>/ mirroring src/animation/<zone>/ (S.B7). Count: `find test -name '*.test.ts' | wc -l` files, `npx vitest list | wc -l` tests
+                     # (106 files / 1006 tests after S.B7's 5 scene tests + the KfPillTabs/TransportDock T8 suite — derive, don't trust a frozen number)
 bench/               # Vitest bench. Count: `ls bench/*.bench.ts | wc -l` (9 at the O+P impl-drive)
 scripts/             # proof-*.mjs runtime gates (wired to npm run proof:*) + shared lib/ + deploy/capture helpers
 docs/                # Tranche records + audit lanes

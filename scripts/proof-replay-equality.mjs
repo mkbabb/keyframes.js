@@ -19,7 +19,7 @@
  *
  * Structure (the `proof:compile-replay` pattern): a SOURCE-GREP half (the five
  * cure-only wiring anchors that do NOT exist on today's tree) CHAINED in
- * package.json with the BEHAVIOUR half (`vitest run test/replay-equality.test.ts`
+ * package.json with the BEHAVIOUR half (`vitest run test/engine/replay-equality.test.ts`
  * — the five breach round-trips). It does NOT re-implement the round-trip
  * (that lives in the .test.ts); it asserts the cure is wired, and BITES on a
  * deleted lock. The anchors are POST-CURE-ONLY: each names a symbol/literal
@@ -71,7 +71,7 @@
  *       clause of this gate; see `KF-TO-VALUEJS-O-ASKS.md`.)
  *
  * Mirrors `proof:compile-replay` / `proof:roundtrip-fidelity`: exits 1 on any
- * residual. The behaviour proof rides `vitest run test/replay-equality.test.ts`
+ * residual. The behaviour proof rides `vitest run test/engine/replay-equality.test.ts`
  * (chained in package.json).
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -105,7 +105,7 @@ const CSS_ANIMATION = "src/animation/engine/css/css-animation.ts";
 // composite-floor anchor (`AnimationOptions.composite?: CompositeOperator`) is a
 // TYPE declaration and lives on the LIGHT-pure types module.
 const CONSTANTS = "src/animation/constants/types.ts";
-const TEST = "test/replay-equality.test.ts";
+const TEST = "test/engine/replay-equality.test.ts";
 
 /** Assert every anchor is present in `file`; the clause reds on any missing. */
 const requireAll = (clause, file, anchors) => {
@@ -141,7 +141,7 @@ const requireAll = (clause, file, anchors) => {
 // ignores — breaking replay-equality. The honest position (inv-L-totality + inv ε):
 //   • there is NO source cure to lock — the SPEC-FAITHFUL behaviour (no keyframe
 //     `!important` ever emitted) is the regression-lock, asserted BEHAVIOURALLY in
-//     test/replay-equality.test.ts S1 (`not.toContain("!important")`), not by a
+//     test/engine/replay-equality.test.ts S1 (`not.toContain("!important")`), not by a
 //     source-grep anchor here;
 //   • the no-silent-drop LAW (surface the spec-mandated drop as a DIAGNOSTIC) is a
 //     value.js-Tranche-O dispatch dep — value.js must SURFACE the dropped invalid
@@ -237,8 +237,8 @@ requireAll("composite-floor", CONSTANTS, [
 // `compile-roundtrip` / `roundtrip-easing` use).
 {
     const src = existsSync(join(root, TEST)) ? read(TEST) : "";
-    const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
-    const importsFormat = /from "\.\.\/src\/animation\/compile\/backward\/format"/.test(src);
+    const importsEngine = /from "(?:\.\.\/)+src\/animation\/engine"/.test(src);
+    const importsFormat = /from "(?:\.\.\/)+src\/animation\/compile\/backward\/format"/.test(src);
     if (importsEngine && importsFormat) {
         ok(
             "no-source-edit",

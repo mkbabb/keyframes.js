@@ -11,7 +11,7 @@
  * asserts the probe result is SKIP (no API in the env) or GREEN (no error), and
  * that `yieldToMain()`'s `scheduler.yield` fast-path is UNAFFECTED.
  *
- * The script runs `test/scheduler-posttask-probe.test.ts` and asserts:
+ * The script runs `test/internal/scheduler-posttask-probe.test.ts` and asserts:
  *   - exit 0 (the probe passes — the SKIP-when-absent arm + the device-
  *     independent "yieldToMain uses scheduler.yield, never postTask" assertion);
  *   - the probe file exists and is named in the suite (a renamed/dropped probe
@@ -39,7 +39,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-const PROBE = "test/scheduler-posttask-probe.test.ts";
+const PROBE = "test/internal/scheduler-posttask-probe.test.ts";
 
 const failures = [];
 const fail = (clause, msg) => failures.push(`  ✗ [${clause}] ${msg}`);

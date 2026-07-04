@@ -15,7 +15,7 @@
  * surface ships AND the reconstructed object replays equal to its source.
  *
  * CLAUSES (each BITES — the source-shape locks; the VALUE proof rides the
- * `vitest run test/ingest.test.ts` step wired beside this in package.json):
+ * `vitest run test/ingest/ingest.test.ts` step wired beside this in package.json):
  *
  *   module-exists  — `src/animation/ingest.ts` exists and exports the K1/K2
  *       surface (`fromStyleSheets`, `fromLiveAnimations`, `resolveLiveKeyframes`,
@@ -51,7 +51,7 @@
  *       re-exported statically (erased). BITE: add a static runtime export to the
  *       barrel → proof:boundary would red; this clause guards the wiring shape.
  *
- *   test-locks     — `test/ingest.test.ts` carries the per-clause born-RED
+ *   test-locks     — `test/ingest/ingest.test.ts` carries the per-clause born-RED
  *       replay-equality asserts. BITE: delete a lock → reds.
  *
  * Mirrors proof:diagnostics-channel / proof:roundtrip-fidelity: exits 1 on any
@@ -131,7 +131,7 @@ const INDEX = "src/animation/index.ts";
 const LOAD_ENGINE = "src/animation/load-engine.ts";
 const ENGINE = "src/animation/engine/animation.ts";
 const ADAPTER = "src/animation/compile/adapter.ts";
-const TEST = "test/ingest.test.ts";
+const TEST = "test/ingest/ingest.test.ts";
 
 // Read the concatenated ingest surface (the split PAIR) for the inline
 // NO-WORKAROUND scans below (they must read the SAME code the requireAll
@@ -575,7 +575,7 @@ if (failures.length > 0) {
             "  seeds adoptRunning at the captured currentTime (never seed-at-zero), and\n" +
             "  rides loadAnimationEngine (HEAVY, never the LIGHT barrel). Restore the\n" +
             "  clause each anchor names. The replay-equality VALUE proof rides\n" +
-            "  `vitest run test/ingest.test.ts`.",
+            "  `vitest run test/ingest/ingest.test.ts`.",
     );
     process.exit(1);
 }
@@ -586,5 +586,5 @@ console.log(
         "every cross-origin skip as a CORS_SKIP diagnostic, seeds the takeover at\n" +
         "the captured currentTime (the continuity seed), and rides\n" +
         "loadAnimationEngine (HEAVY). The replay-equality VALUE proof rides\n" +
-        "`vitest run test/ingest.test.ts`.",
+        "`vitest run test/ingest/ingest.test.ts`.",
 );

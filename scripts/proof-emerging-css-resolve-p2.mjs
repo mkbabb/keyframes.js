@@ -10,7 +10,7 @@
  *
  * This is the SOURCE-GREP half (the cure-is-wired anchors) — CHAINED in
  * package.json with the BEHAVIOUR half (`vitest run
- * test/emerging-css-resolve-p2.test.ts`, the live observable-truth resolution
+ * test/resolve/emerging-css-resolve-p2.test.ts`, the live observable-truth resolution
  * against a REAL attached jsdom DOM target: if(style(--p)) → the resolved branch,
  * sibling-index() → the integer position). The behaviour half is the gate-
  * blindspot-proof witness (a real DOM resolution, NOT a source grep).
@@ -161,7 +161,7 @@ if (failures.length > 0) {
     for (const f of failures) console.error(f);
     console.error(
         "\nThe Phase-2 element-aware emerging-CSS lowering pass is not wired. The " +
-            "behaviour half (vitest run test/emerging-css-resolve-p2.test.ts) carries " +
+            "behaviour half (vitest run test/resolve/emerging-css-resolve-p2.test.ts) carries " +
             "the live resolution observables against a REAL attached DOM target; this " +
             "source half confirms the style/sibling-* arms + the widened guard + the " +
             "setTargets env-populate + the second pass are in place.",

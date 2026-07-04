@@ -145,8 +145,11 @@
                             'w-10 h-10 shrink-0',
                             isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                         ]"
+                        @pointerdown="onPlayPointerDown($event)"
                         @pointerup="onPlayPointerUp($event)"
+                        @pointercancel="onPlayPointerCancel($event)"
                         @keydown="onPlayKeydown($event)"
+                        @keyup="onPlayKeyup($event)"
                     >
                         <Pause v-if="isPlaying" class="icon-lg" />
                         <Play v-else class="icon-lg pl-0.5" />
@@ -190,8 +193,11 @@
                         'w-8 h-8 shrink-0',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
+                    @pointerdown.stop="onPlayPointerDown($event)"
                     @pointerup.stop="onPlayPointerUp($event)"
+                    @pointercancel.stop="onPlayPointerCancel($event)"
                     @keydown.stop="onPlayKeydown($event)"
+                    @keyup.stop="onPlayKeyup($event)"
                 >
                     <Pause v-if="isPlaying" class="icon-md" />
                     <Play v-else class="icon-md pl-px" />
@@ -232,6 +238,7 @@ import { RotateCcw } from "@lucide/vue";
 
 import { kfEngine } from "@utils/kfEngine";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
+import { usePlayActuation } from "./composables/usePlayActuation";
 
 import type { StoredAnimationGroupControlOptions } from "@state";
 
@@ -325,35 +332,31 @@ onBeforeUnmount(() => {
 //     only strand the LATER synthesized `click`, which we no longer listen for.
 //   · KEYBOARD → `keydown` Enter/Space directly (the native button click path is
 //     not used, so there is nothing for the crossfade to strand).
-// The two sources are mutually exclusive per activation (a pointer press fires
-// pointerup, never keydown; a key press fires keydown, never pointerup), so NO
-// press-handled de-dupe guard is needed — there is no double-toggle to hedge.
-// One pair governs both the expanded button and the collapsed-summary mirror so
-// the two controls can never drift.
+// One handler set governs both the expanded button and the collapsed-summary
+// mirror so the two controls can never drift.
+//
+// S.B7 S6 (a12 F2/F3) — the actuation contract lives in `usePlayActuation` so it
+// is unit-testable, and it mirrors NATIVE button semantics: pointerup gated on a
+// pointerdown-on-this-control press-origin flag (+isPrimary), Space on keyup /
+// Enter on keydown, both auto-repeat-guarded. The prior handler actuated on ANY
+// pointerup over the button and on RAW keydown — a drag-release toggle and a
+// held-key rapid-toggle respectively.
 
 function actuatePlay() {
     // Best-effort re-pin the dock open (the toggle stays legible after actuation),
-    // then emit. The emit is the load-bearing line — pointerup/keydown both fire
-    // on the live button, so it cannot be raced by the collapse crossfade.
+    // then emit. The emit is the load-bearing line — pointerup/keyup both fire on
+    // the live button, so it cannot be raced by the collapse crossfade.
     dockRef.value?.expand();
     emit("togglePlay");
 }
 
-function onPlayPointerUp(e: PointerEvent) {
-    // Only primary-button / touch / pen actuations toggle (ignore right/middle).
-    if (e.button !== 0 && e.pointerType === "mouse") return;
-    actuatePlay();
-}
-
-function onPlayKeydown(e: KeyboardEvent) {
-    // The keyboard activation path — Enter or Space. preventDefault on Space stops
-    // the page-scroll default; the native click is intentionally unused (so the
-    // crossfade has no trailing event to strand).
-    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-        e.preventDefault();
-        actuatePlay();
-    }
-}
+const {
+    onPlayPointerDown,
+    onPlayPointerUp,
+    onPlayPointerCancel,
+    onPlayKeydown,
+    onPlayKeyup,
+} = usePlayActuation(actuatePlay);
 
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;

@@ -430,7 +430,7 @@ import { ValueUnit, lerp } from ${JSON.stringify(valueUrl)};
 // (margin → length-2 ValueUnit[]) — the SoA fold covers all; the multi-component
 // leaf exercises the contiguous multi-slot stride. (The var()/computed boxed-
 // residual path needs a DOM target and is covered by the jsdom corpus —
-// test/blend.test.ts + test/iw0-cube-composite.test.ts, the chained proof:blend.)
+// test/group/blend.test.ts + test/engine/iw0-cube-composite.test.ts, the chained proof:blend.)
 const css = \`0% { transform: translate(0px,0px) scale(1) rotate(0deg); opacity: 1; margin: 0px 0px }
              100% { transform: translate(120px,60px) scale(1.4) rotate(45deg); opacity: 0.4; margin: 10px 20px }\`;
 const mk = (c) => new CSSKeyframesAnimation({ duration: 1000 }).fromString(c);

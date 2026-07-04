@@ -10,7 +10,7 @@
  *
  * A SOURCE-GREP gate in the style of `proof:motion-path`: each clause reds on the
  * exact regression it forbids. The resolution/identity/premature-mid-play proof
- * lives in the chained `vitest run test/finished.test.ts` (the lead wires the
+ * lives in the chained `vitest run test/engine/finished.test.ts` (the lead wires the
  * combined `"proof:finished"` script — see the note at the tail).
  *
  * CLAUSES (each BITES):
@@ -28,7 +28,7 @@
  *       `.finished` beside `_playingPromise`. BITE: add a parallel
  *       `_finishedPromise` lifecycle → reds.
  *
- *   test-locks         — `test/finished.test.ts` carries the locking assertions
+ *   test-locks         — `test/engine/finished.test.ts` carries the locking assertions
  *       (mid-play identity, never-played resolves immediately, the
  *       does-NOT-resolve-prematurely race, all-surfaces presence). BITE: delete a
  *       lock → reds.
@@ -51,7 +51,7 @@ console.log("proof:finished — G.W13 (the .finished completion front-door)");
 const ENGINE = "src/animation/engine/animation.ts";
 const GROUP = "src/animation/group/group.ts";
 const SEQUENCE = "src/animation/orchestration/sequence/sequence.ts";
-const TEST = "test/finished.test.ts";
+const TEST = "test/engine/finished.test.ts";
 
 const surfaces = [
     ["Animation (engine.ts)", ENGINE],
@@ -160,5 +160,5 @@ console.log(
     "proof:finished — PASS: get finished returns the held _playingPromise\n" +
         "(?? Promise.resolve()) on Animation / AnimationGroup / Sequence (and\n" +
         "CSSKeyframesAnimation by inheritance) — one held promise, no second\n" +
-        "completion lifecycle. The resolution proof rides `vitest run test/finished.test.ts`.",
+        "completion lifecycle. The resolution proof rides `vitest run test/engine/finished.test.ts`.",
 );

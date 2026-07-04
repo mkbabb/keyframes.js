@@ -29,7 +29,7 @@
  * A SOURCE-GREP gate in the style of `proof:blend` / `proof:motion-path`: each
  * clause reds on the exact regression it forbids — verified, not asserted. The
  * VALUE proof (the overshoot peak, the velocity-continuity ε, the `s × peak`
- * amplitude) rides the chained `vitest run test/spring-blend-weight.test.ts`.
+ * amplitude) rides the chained `vitest run test/group/spring-blend-weight.test.ts`.
  *
  * Mirrors `proof:blend`: exits 1 on any residual.
  */
@@ -99,7 +99,7 @@ const SPRING_RESEAT = "src/animation/physics/spring/reseat.ts";
 // declarations and live on the LIGHT-pure types module.
 const CONSTANTS = "src/animation/constants/types.ts";
 const PRM = "src/animation/internal/reduced-motion.ts";
-const TEST = "test/spring-blend-weight.test.ts";
+const TEST = "test/group/spring-blend-weight.test.ts";
 
 // ── PHYS-C (a) — the weighted leaf reads the stepper value, not the constant ──
 // BITE: revert the lerp factor to the bare `layer.weight` → the spring no longer
@@ -326,5 +326,5 @@ console.log(
         "guarded per-frame advance); reseatToSpring is velocity-continuous (the\n" +
         "finite-diff seed); the PRM gate takes an intensity and the analytic spring\n" +
         "scales its displacement-from-rest by it. The value proof rides\n" +
-        "`vitest run test/spring-blend-weight.test.ts`.",
+        "`vitest run test/group/spring-blend-weight.test.ts`.",
 );

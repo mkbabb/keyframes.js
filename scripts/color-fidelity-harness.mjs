@@ -4,7 +4,7 @@
  *
  * Renders the public artifact `docs/color-fidelity.md` from the GATED engine
  * measurement `docs/color-fidelity-data.json` (emitted by
- * `test/color-fidelity.test.ts` under the real `CSSKeyframesAnimation` engine in
+ * `test/engine/color-fidelity.test.ts` under the real `CSSKeyframesAnimation` engine in
  * jsdom). ONE measurement: the test GATES it (every midpoint ΔE under the JND);
  * this harness PUBLISHES it (the human-readable conformance table). So the
  * published ΔE numbers ARE the gated ones — un-spinnable, spec-measured.
@@ -41,7 +41,7 @@ export function renderArtifact() {
     if (!fs.existsSync(DATA)) {
         throw new Error(
             `color-fidelity data missing (${path.relative(REPO, DATA)}). ` +
-                `Run \`npx vitest run test/color-fidelity.test.ts\` to emit it.`,
+                `Run \`npx vitest run test/engine/color-fidelity.test.ts\` to emit it.`,
         );
     }
     const data = JSON.parse(fs.readFileSync(DATA, "utf8"));
@@ -144,7 +144,7 @@ export function renderArtifact() {
         "The corpus is `test/fixtures/color-fidelity-corpus.ts`; the gated",
     );
     L.push(
-        "measurement is `test/color-fidelity.test.ts`; the producer is value.js's",
+        "measurement is `test/engine/color-fidelity.test.ts`; the producer is value.js's",
     );
     L.push(
         "`deltaEOK` (the SAME kernel K.W10's CC-2 densify pixel-proof consumes —",

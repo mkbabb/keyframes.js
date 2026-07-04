@@ -49,7 +49,7 @@
  *       BITE: a runtime (non-type) scroll-scene export on the light barrel →
  *       proof:boundary would red; this clause locks the additive shape early.
  *
- *   (test-locks) — test/scroll-scene.test.ts carries the value clauses
+ *   (test-locks) — test/scroll/scroll-scene.test.ts carries the value clauses
  *       (a)-(e). BITE: delete a lock → reds.
  *
  * Mirrors proof:composition-honored / proof:motion-path: exits 1 on any residual.
@@ -99,7 +99,7 @@ const GRAMMAR = "src/animation/scroll/grammar.ts";
 const RANGE = "src/animation/scroll/range.ts";
 const SCROLL_SET = [SCROLL, GRAMMAR, RANGE];
 const INDEX = "src/animation/index.ts";
-const TEST = "test/scroll-scene.test.ts";
+const TEST = "test/scroll/scroll-scene.test.ts";
 
 // ── (b-parse) — the scroll module SET CONSUMES value.js's typed scroll-grammar ─
 // Check the UNION of scroll-scene.ts + scroll-grammar.ts (wherever the K-split
@@ -428,5 +428,5 @@ console.log(
         "oracle), and DISPATCHES native-vs-JS conservative-correct with a queryable\n" +
         "reason; the JS ScrollScene driver composes the shipped scrub/snap primitives\n" +
         "and the pin is position:sticky synthesis (SO-4 transform-pinning KILLED). The\n" +
-        "value proof rides `vitest run test/scroll-scene.test.ts`.",
+        "value proof rides `vitest run test/scroll/scroll-scene.test.ts`.",
 );

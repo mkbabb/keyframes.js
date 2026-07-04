@@ -94,14 +94,14 @@ NOT seed-at-zero). Every step it cannot complete faithfully (a cross-origin
 sheet, a malformed rule) becomes a citable `CORS_SKIP`/`PARSE_ERROR` diagnostic
 on `ResolvedKeyframes.diagnostics` — never a silent drop. Each row is
 manifest-only + gate-covered (`proof:ingest-replay` — the forward-direction
-replay-equality oracle; the value proof `test/ingest.test.ts`).
+replay-equality oracle; the value proof `test/ingest/ingest.test.ts`).
 
 | Export                 | Tier  | Taught                                                                                                                                                                                                                                                                                                         |
 | ---------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fromStyleSheets`      | HEAVY | manifest-only: K.W8 K1 — walk the document's (or a given list's) stylesheets → a `Map<name, CSSKeyframesAnimation>` of reconstructed animations + the CORS-skip diagnostics; `proof:ingest-replay` + `test/ingest.test.ts` clause (a)/(b)/(d)                                                                  |
-| `fromLiveAnimations`   | HEAVY | manifest-only: K.W8 K1 — narrow to the names currently RUNNING via `getAnimations()`, reconstructed from their source `@keyframes` rule (NOT the lossy computed `getKeyframes()`); `proof:ingest-replay` + `test/ingest.test.ts`                                                                               |
-| `resolveLiveKeyframes` | HEAVY | manifest-only: K.W8 K1 — the lowest-level CSSOM walk (the live-CSSOM analogue of `resolveKeyframes`); per-sheet `try/catch` → a `CORS_SKIP` diagnostic, never a silent drop; `proof:ingest-replay` + `test/ingest.test.ts` clause (d)                                                                          |
-| `adoptRunning`         | HEAVY | manifest-only: K.W8 K2 — the mid-flight takeover of a running CSS animation (`getAnimations()` currentTime handoff + commit-on-adopt + the continuity seed); named `adoptRunning` to disambiguate from `engine.adoptCompiled` (HARDENING-5 HAZARD-1); `proof:ingest-replay` + `test/ingest.test.ts` clause (c) |
+| `fromStyleSheets`      | HEAVY | manifest-only: K.W8 K1 — walk the document's (or a given list's) stylesheets → a `Map<name, CSSKeyframesAnimation>` of reconstructed animations + the CORS-skip diagnostics; `proof:ingest-replay` + `test/ingest/ingest.test.ts` clause (a)/(b)/(d)                                                                  |
+| `fromLiveAnimations`   | HEAVY | manifest-only: K.W8 K1 — narrow to the names currently RUNNING via `getAnimations()`, reconstructed from their source `@keyframes` rule (NOT the lossy computed `getKeyframes()`); `proof:ingest-replay` + `test/ingest/ingest.test.ts`                                                                               |
+| `resolveLiveKeyframes` | HEAVY | manifest-only: K.W8 K1 — the lowest-level CSSOM walk (the live-CSSOM analogue of `resolveKeyframes`); per-sheet `try/catch` → a `CORS_SKIP` diagnostic, never a silent drop; `proof:ingest-replay` + `test/ingest/ingest.test.ts` clause (d)                                                                          |
+| `adoptRunning`         | HEAVY | manifest-only: K.W8 K2 — the mid-flight takeover of a running CSS animation (`getAnimations()` currentTime handoff + commit-on-adopt + the continuity seed); named `adoptRunning` to disambiguate from `engine.adoptCompiled` (HARDENING-5 HAZARD-1); `proof:ingest-replay` + `test/ingest/ingest.test.ts` clause (c) |
 
 ### K.W9 SCROLL-AS-CSS — the scroll-grammar round-trip + `ScrollScene` driver
 
@@ -115,13 +115,13 @@ the only library that round-trips a scroll-driven stylesheet. value.js owns the
 scroll VALUES; the `ScrollScene` driver owns TIME. Each row is manifest-only +
 gate-covered (`proof:scroll-roundtrip` — the replay-equality oracle + the
 dispatch matrix + the `position:sticky` pin assert; the value proof
-`test/scroll-scene.test.ts`); the SO-4 transform-pinning primitive is KILLED
+`test/scroll/scroll-scene.test.ts`); the SO-4 transform-pinning primitive is KILLED
 (cross-thread jitter — the pin is `position:sticky` synthesis only).
 
 | Export                   | Tier  | Taught                                                                                                                                                                             |
 | ------------------------ | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ScrollScene`            | HEAVY | manifest-only: the JS scroll driver (scrub/snap/enter-leave over a parsed `animation-range`); `proof:scroll-roundtrip` + `test/scroll-scene.test.ts` clause (a)/(e)                |
-| `createScrollScene`      | HEAVY | manifest-only: construct a `ScrollScene` from parsed `CSSTimelineOptions` or a spec; `proof:scroll-roundtrip` + `test/scroll-scene.test.ts` clause (a)                             |
+| `ScrollScene`            | HEAVY | manifest-only: the JS scroll driver (scrub/snap/enter-leave over a parsed `animation-range`); `proof:scroll-roundtrip` + `test/scroll/scroll-scene.test.ts` clause (a)/(e)                |
+| `createScrollScene`      | HEAVY | manifest-only: construct a `ScrollScene` from parsed `CSSTimelineOptions` or a spec; `proof:scroll-roundtrip` + `test/scroll/scroll-scene.test.ts` clause (a)                             |
 | `parseScrollCSS`         | HEAVY | manifest-only: SO-1 PARSE — a scroll-driven stylesheet → typed `CSSTimelineOptions` (consumes value.js `extractTimelineOptions`); `proof:scroll-roundtrip` clause (b)              |
 | `parseScrollTimeline`    | HEAVY | manifest-only: parse one `animation-timeline` value (value.js `parseAnimationTimeline` pass-through); `proof:scroll-roundtrip` clause (b)                                          |
 | `parseScrollRange`       | HEAVY | manifest-only: parse one `animation-range` shorthand (value.js `parseAnimationRange` pass-through); `proof:scroll-roundtrip` clause (b)                                            |
@@ -152,11 +152,11 @@ densify / computed-unit drift), the `waapiIneligibleReason` idiom generalized to
 the CSS domain — never silently approximated. The "Export CSS" editor button
 (CC-4) makes the demo a CSS-animation IDE. The row is manifest-only + gate-covered
 (`proof:compile-replay` — the backward-direction replay-equality oracle; the value
-proof `test/compile-roundtrip.test.ts`).
+proof `test/compile/compile-roundtrip.test.ts`).
 
 | Export         | Tier  | Taught                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | -------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `compileToCSS` | HEAVY | manifest-only: K.W10 CC-1/CC-2/CC-3 — compile an `AnimationGroup`/`Sequence`/child list → a zero-runtime CSS artifact (`@keyframes` + `animation-*` longhands + `animation-composition` layering + `linear()` springs + materialized stagger delays + perceptual `oklab()` densify) + the four CC-3 refusals (the `{ css, eligible, refusals }` trust surface); the parser run BACKWARD over the SAME data model; `proof:compile-replay` + `test/compile-roundtrip.test.ts` clause (a)/(b)/(c)/(d) |
+| `compileToCSS` | HEAVY | manifest-only: K.W10 CC-1/CC-2/CC-3 — compile an `AnimationGroup`/`Sequence`/child list → a zero-runtime CSS artifact (`@keyframes` + `animation-*` longhands + `animation-composition` layering + `linear()` springs + materialized stagger delays + perceptual `oklab()` densify) + the four CC-3 refusals (the `{ css, eligible, refusals }` trust surface); the parser run BACKWARD over the SAME data model; `proof:compile-replay` + `test/compile/compile-roundtrip.test.ts` clause (a)/(b)/(c)/(d) |
 
 ### L.W6 AGENT-AUTHORING — the round-trip's FORWARD half (the validation layer)
 
@@ -172,15 +172,15 @@ agent-shaped `ValidateResult` envelope an LLM branches on WITHOUT scraping a
 message string. NO new engine code, NO new drop-diagnostic: it READS the channels
 L.W1/L.W2 already made honest. `explain(css, opts?)` formats the SAME verdict as a
 DETERMINISTIC human/LLM-readable string (field order fixed, byte-stable for a
-doctest). The verb is gate-covered (`proof:agent-validate` + `test/agent-validate.test.ts`
+doctest). The verb is gate-covered (`proof:agent-validate` + `test/compile/agent-validate.test.ts`
 clause (c) the spec-faithful @property/!important verdict / (d) the multi-color
 perceptual-oklab refusal), and the `/llms.txt` "Agent authoring loop" section
 teaches the validate→fix→compile LOOP (generated, never hand-edited).
 
 | Export     | Tier  | Taught                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `validate` | HEAVY | manifest-only: L.W6 S1 — the READ-ONLY projection over the adapter `diagnostics` / compile `{ eligible, refusals }` / WAAPI `eligibility` channels onto ONE flat `ValidateResult` envelope (`{ parseable, eligible, refusals, diagnostics, waapi }`) an LLM agent branches on without scraping a message; a pure JOIN, no new engine code; `proof:agent-validate` + `test/agent-validate.test.ts` clause (c)/(d)                                                                                       |
-| `explain`  | HEAVY | manifest-only: L.W6 S2 — the human/LLM-readable companion; formats `validate`'s typed result as a DETERMINISTIC string (field order fixed, byte-stable for a doctest) — the demo's ineligibility panel as a first-class library API, the surface the `/llms.txt` "Agent authoring loop" section links; `proof:agent-validate` + `test/agent-validate.test.ts` clause (d)                                                                                                                             |
+| `validate` | HEAVY | manifest-only: L.W6 S1 — the READ-ONLY projection over the adapter `diagnostics` / compile `{ eligible, refusals }` / WAAPI `eligibility` channels onto ONE flat `ValidateResult` envelope (`{ parseable, eligible, refusals, diagnostics, waapi }`) an LLM agent branches on without scraping a message; a pure JOIN, no new engine code; `proof:agent-validate` + `test/compile/agent-validate.test.ts` clause (c)/(d)                                                                                       |
+| `explain`  | HEAVY | manifest-only: L.W6 S2 — the human/LLM-readable companion; formats `validate`'s typed result as a DETERMINISTIC string (field order fixed, byte-stable for a doctest) — the demo's ineligibility panel as a first-class library API, the surface the `/llms.txt` "Agent authoring loop" section links; `proof:agent-validate` + `test/compile/agent-validate.test.ts` clause (d)                                                                                                                             |
 | `CSSKeyframesToString`     | HEAVY | manifest-only: L.W8 S1 ED-3 — re-serialize a parsed `Animation` back to ONE CSS `@keyframes` block (the FORWARD half of `fromString`, value.js `formatCSS`-bearing); the demo's "Export CSS" + keyframe-string panels consume it through `loadAnimationEngine()` after the dogfood inversion. `proof:demo-on-published-surface` (KFVUE_INVERSION_LANDED) |
 | `CSSKeyframesToStrings`    | HEAVY | manifest-only: L.W8 S1 ED-3 — per-DECLARED-template-stop serialization (index-aligned with `templateFrames`), the card-list authority; same value.js `formatCSS` pipeline as `CSSKeyframesToString`. Reached only via `loadAnimationEngine()`. `proof:demo-on-published-surface` |
 | `formatCSSKeyframeString`  | HEAVY | manifest-only: L.W8 S1 ED-3 — trim ONE keyframe body (strip the selector + leading indent) for display; the pure-string companion of the serializers, surfaced on the heavy chunk beside them. `proof:demo-on-published-surface` |
@@ -202,11 +202,11 @@ export below must carry a disposition row whose cited test file EXISTS.
 
 | Export        | Disposition                    | Coverage (cited)                                                                                   |
 | ------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `flip`        | PATH B — no live-session scene | `test/flip.test.ts` (unit, vitest/jsdom)                                                           |
-| `flipShared`  | PATH B — no live-session scene | `test/flip.test.ts` (unit, vitest/jsdom)                                                           |
-| `drag`        | PATH B — no live-session scene | `test/drag.test.ts` (unit, vitest/jsdom)                                                           |
-| `Draggable`   | PATH B — no live-session scene | `test/drag.test.ts` (unit, vitest/jsdom)                                                           |
-| `DrawSVG`     | PATH B — no live-session scene | `test/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |
-| `fromDrawSVG` | PATH B — no live-session scene | `test/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |
-| `MorphSVG`     | PATH B — no live-session scene | `test/morph-svg.test.ts` (unit) + `proof:morphsvg-consume` (JSDOM hygiene gate, `scripts/proof-morphsvg-consume.mjs`) |
-| `fromMorphSVG` | PATH B — no live-session scene | `test/morph-svg.test.ts` (unit) + `proof:morphsvg-consume` (JSDOM hygiene gate, `scripts/proof-morphsvg-consume.mjs`) |
+| `flip`        | PATH B — no live-session scene | `test/orchestration/flip.test.ts` (unit, vitest/jsdom)                                                           |
+| `flipShared`  | PATH B — no live-session scene | `test/orchestration/flip.test.ts` (unit, vitest/jsdom)                                                           |
+| `drag`        | PATH B — no live-session scene | `test/physics/drag.test.ts` (unit, vitest/jsdom)                                                           |
+| `Draggable`   | PATH B — no live-session scene | `test/physics/drag.test.ts` (unit, vitest/jsdom)                                                           |
+| `DrawSVG`     | PATH B — no live-session scene | `test/svg/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |
+| `fromDrawSVG` | PATH B — no live-session scene | `test/svg/draw-svg.test.ts` (unit) + `proof:drawsvg` (JSDOM hygiene gate, `scripts/proof-drawsvg.mjs`) |
+| `MorphSVG`     | PATH B — no live-session scene | `test/svg/morph-svg.test.ts` (unit) + `proof:morphsvg-consume` (JSDOM hygiene gate, `scripts/proof-morphsvg-consume.mjs`) |
+| `fromMorphSVG` | PATH B — no live-session scene | `test/svg/morph-svg.test.ts` (unit) + `proof:morphsvg-consume` (JSDOM hygiene gate, `scripts/proof-morphsvg-consume.mjs`) |

@@ -12,7 +12,7 @@
  * A SOURCE-GREP gate in the style of `proof:motion-path`: each clause reds on the
  * exact regression it forbids. The value proof (reference identity, the re-bind +
  * the dynamic 6e29236 witness, the recomputed key-set) lives in the chained
- * `vitest run test/adopt-compiled.test.ts` (the lead wires the combined
+ * `vitest run test/ingest/adopt-compiled.test.ts` (the lead wires the combined
  * `"proof:adopt-compiled"` script — see the note at the tail).
  *
  * CLAUSES (each BITES):
@@ -42,7 +42,7 @@
  *       compiled)` — NOT the three-field reach-in (`animation.compiler = …`).
  *       BITE: restore any of the three internal-field writes → reds.
  *
- *   test-locks        — `test/adopt-compiled.test.ts` carries the three value
+ *   test-locks        — `test/ingest/adopt-compiled.test.ts` carries the three value
  *       clauses (a: compiler identity, b: options re-bind + dynamic witness, c:
  *       recomputed key-set). BITE: delete a lock → reds.
  *
@@ -87,7 +87,7 @@ const ENGINE = "src/animation/engine/animation.ts";
 const COMPILE_BRIDGE = "src/animation/engine/compile-bridge.ts";
 const DEMO =
     "demo/@/components/custom/keyframes-editor/composables/useKeyframeOps.ts";
-const TEST = "test/adopt-compiled.test.ts";
+const TEST = "test/ingest/adopt-compiled.test.ts";
 
 // ── verb-exists + transplant + options-rebind + recompute-keys ────────────────
 requireAll("verb-exists", ENGINE, [
@@ -201,5 +201,5 @@ console.log(
         "(this.options === this.compiler.options, by construction), and recomputes\n" +
         "the stable key-set; `compiler` is get-only (the reach-in is a compile\n" +
         "error); the demo calls the verb. The value proof rides\n" +
-        "`vitest run test/adopt-compiled.test.ts`.",
+        "`vitest run test/ingest/adopt-compiled.test.ts`.",
 );

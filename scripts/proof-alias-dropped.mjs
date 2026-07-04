@@ -44,7 +44,7 @@
  *     The clause is disambiguation-aware: it matches only imports OF the kf class
  *     (`from "@mkbabb/keyframes.js"` / `from "…/animation/timeline"`), NEVER
  *     `globalThis.ScrollTimeline` or the ambient Houdini reference — so
- *     `test/platform-adopt.test.ts`'s + `test/orchestration-api.test.ts`'s
+ *     `test/ingest/platform-adopt.test.ts`'s + `test/orchestration/orchestration-api.test.ts`'s
  *     `globalThis.ScrollTimeline` install/delete and README's native-global
  *     mention stay GREEN.
  *

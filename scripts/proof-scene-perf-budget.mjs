@@ -46,7 +46,7 @@
  *   5. proof:amiga-engine-drives-mesh (A5 — REBUILD). After a pointer-drag-RELEASE
  *      the mesh keeps changing for ≥N frames under the engine `decay()` glide (NOT
  *      autoplay, WV-W5-MED-3). The RIGOROUS proof is the deterministic isolation
- *      test (test/amiga-sphere-spin.test.ts — real Three.js mesh/camera/canvas,
+ *      test (test/demo/amiga-sphere-spin.test.ts — real Three.js mesh/camera/canvas,
  *      mocked clock, asserts ≥10 post-release frames slowing MONOTONICALLY then
  *      resting). The proof:* script delegates the liveness clause to that vitest
  *      (run by the npm script chain) + a static SOURCE anchor that useSphereSpin
@@ -489,7 +489,7 @@ async function browserHalf() {
         }
 
         // ── 5. proof:amiga-engine-drives-mesh (live confirmation) ───────────
-        // The RIGOROUS proof is test/amiga-sphere-spin.test.ts (run by the npm
+        // The RIGOROUS proof is test/demo/amiga-sphere-spin.test.ts (run by the npm
         // chain). Here a LIVE confirmation: settle on amiga, flick the canvas,
         // and assert the WebGL canvas keeps changing across post-release frames
         // (the decay glide drives the mesh). Confounded by orbit damping in the
@@ -577,7 +577,7 @@ async function browserHalf() {
             // canvas was readable AND wholly static.
             console.log(
                 `  ○ amiga engine-drives-mesh (live): only ${moved.changed} changed frame(s) sampled ` +
-                    `(headless WebGL readback confound; the deterministic anchor is test/amiga-sphere-spin.test.ts)`,
+                    `(headless WebGL readback confound; the deterministic anchor is test/demo/amiga-sphere-spin.test.ts)`,
             );
         }
 

@@ -86,7 +86,7 @@ export const CORRECTNESS_ROSTER = [
     // clause). It rides HERE beside the other browser actuators, NOT the jsdom
     // proof:library-correctness roster. Its jsdom-viable half (the a11y ATTRIBUTE
     // wiring + the by:"line" measure-or-refuse posture) lives in
-    // test/split-text.test.ts (the default vitest run); THIS is the a11y-tree half.
+    // test/orchestration/split-text.test.ts (the default vitest run); THIS is the a11y-tree half.
     "proof:split-a11y",
     "proof:demo-smoke",
     "proof:occlusion",

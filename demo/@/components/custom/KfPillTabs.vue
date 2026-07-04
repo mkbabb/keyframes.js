@@ -22,8 +22,9 @@
             type="button"
             role="tab"
             :aria-selected="opt.value === modelValue"
-            :tabindex="opt.value === modelValue ? 0 : -1"
+            :tabindex="opt.value === rovingValue ? 0 : -1"
             :disabled="opt.disabled"
+            :data-value="opt.value"
             class="kf-pill-tab"
             :data-state="opt.value === modelValue ? 'active' : 'inactive'"
             @click="select(opt.value)"
@@ -35,12 +36,12 @@
 </template>
 
 <script setup lang="ts">
-/** The canonical option shape — label + value (mirrors glass-ui SegmentedTabOption). */
-export interface KfPillTabOption {
-    label: string;
-    value: string;
-    disabled?: boolean;
-}
+// The roving-tabindex keyboard core + the canonical option shape live in the
+// colocated composable (S.B7 S6) so both are unit-tested via a representative
+// tablist host — the useToolbarKeyboard precedent. KfPillTabOption is re-exported
+// so `import type { KfPillTabOption } from ".../KfPillTabs.vue"` keeps resolving.
+import { useKfPillTabs } from "./useKfPillTabs";
+import type { KfPillTabOption } from "./useKfPillTabs";
 
 const {
     options,
@@ -61,22 +62,13 @@ const select = (value: string) => {
     if (value !== modelValue) emit("update:modelValue", value);
 };
 
-// Roving-tabindex arrow navigation (the tablist keyboard contract): Left/Right
-// (or Up/Down for a vertical strip) move selection to the adjacent enabled tab.
-const onKeydown = (e: KeyboardEvent, value: string) => {
-    const nextKeys = orientation === "vertical" ? ["ArrowDown"] : ["ArrowRight"];
-    const prevKeys = orientation === "vertical" ? ["ArrowUp"] : ["ArrowLeft"];
-    let dir = 0;
-    if (nextKeys.includes(e.key)) dir = 1;
-    else if (prevKeys.includes(e.key)) dir = -1;
-    else return;
-    e.preventDefault();
-    const enabled = options.filter((o) => !o.disabled);
-    const i = enabled.findIndex((o) => o.value === value);
-    if (i < 0 || enabled.length === 0) return;
-    const next = enabled[(i + dir + enabled.length) % enabled.length]!;
-    emit("update:modelValue", next.value);
-};
+// Roving-tabindex arrow/Home/End navigation with FOCUS movement (a12 F1 fix).
+const { rovingValue, onKeydown } = useKfPillTabs({
+    options: () => options,
+    orientation: () => orientation,
+    modelValue: () => modelValue,
+    select: (value) => emit("update:modelValue", value),
+});
 </script>
 
 <style scoped>

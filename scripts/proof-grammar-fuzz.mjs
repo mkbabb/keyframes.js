@@ -23,10 +23,10 @@
  *     serialization-fidelity fix lands (consumed via the Q.WG4 `^1.2.0` re-pin).
  *
  * This is a SOURCE-GREP + manifest-coverage gate in the `proof:roundtrip-fidelity`
- * style: it does NOT re-implement the fuzz (it lives in test/grammar-fuzz.test.ts);
+ * style: it does NOT re-implement the fuzz (it lives in test/compile/grammar-fuzz.test.ts);
  * it asserts the harness is present + authoritative + scoped-GREEN, the named-
  * selector fixture (S2) is present + manifest-covered, and chains the behaviour
- * proof (`vitest run test/grammar-fuzz.test.ts`). Exits 1 on any residual.
+ * proof (`vitest run test/compile/grammar-fuzz.test.ts`). Exits 1 on any residual.
  *
  * CLAUSES (each BITES):
  *
@@ -34,7 +34,7 @@
  *       node_modules. BITE (born-RED today): `fast-check` absent → the test
  *       cannot import it → the chained vitest reds.
  *
- *   harness-exists       — `test/grammar-fuzz.test.ts` exists and uses the three
+ *   harness-exists       — `test/compile/grammar-fuzz.test.ts` exists and uses the three
  *       Arbitrary families (colorArb, mathArb, keyframeStopArb) over the real
  *       round-trip surfaces (`CSSKeyframesAnimation.fromString` +
  *       `CSSKeyframesToString`). BITE: delete the harness / a family → reds.
@@ -54,7 +54,7 @@
  *       surfaces; it carries NO `src/` mutation. BITE: a required `src/` edit is
  *       a finding, surfaced not patched.
  *
- * The behaviour proof rides the chained `vitest run test/grammar-fuzz.test.ts`.
+ * The behaviour proof rides the chained `vitest run test/compile/grammar-fuzz.test.ts`.
  */
 import { createRequire } from "node:module";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -73,7 +73,7 @@ console.log(
 );
 
 const CORPUS = "test/fixtures/keyframes";
-const TEST = "test/grammar-fuzz.test.ts";
+const TEST = "test/compile/grammar-fuzz.test.ts";
 
 // ── fast-check-present — the new devDependency, declared AND resolvable ────────
 {
@@ -275,10 +275,10 @@ requireAll("harness-exists", TEST, [
     const file = TEST;
     if (existsSync(join(root, file))) {
         const src = read(file);
-        const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
+        const importsEngine = /from "(?:\.\.\/)+src\/animation\/engine"/.test(src);
         // R.W1 moved the serializer `format.ts` → `compile/format.ts`; the fuzz
         // round-trip still rides the real `CSSKeyframesToString` at its new path.
-        const importsFormat = /from "\.\.\/src\/animation\/compile\/backward\/format"/.test(
+        const importsFormat = /from "(?:\.\.\/)+src\/animation\/compile\/backward\/format"/.test(
             src,
         );
         if (importsEngine && importsFormat) {

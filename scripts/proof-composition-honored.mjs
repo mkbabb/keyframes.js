@@ -11,7 +11,7 @@
  * — so a `composite:add` keyframe runs as silent `replace` on BOTH paths. Each
  * clause below reds on exactly that dropped-operator shape: a SOURCE-GREP gate
  * in the `proof:blend`/`proof:engine` style (each clause verified, not
- * asserted), chained to the VALUE proof in `test/composition-honored.test.ts`
+ * asserted), chained to the VALUE proof in `test/engine/composition-honored.test.ts`
  * (the SUM math, the accumulate, the rAF↔WAAPI parity, the honest fallback).
  *
  * CLAUSES (each BITES):
@@ -41,7 +41,7 @@
  *       BITE: ungate it → the WAAPI keyframes carry the SUM AND the compositor
  *       adds the base → double-counted → the parity raw-effect clause reds.
  *
- *   test-locks     — `test/composition-honored.test.ts` carries the four §gate
+ *   test-locks     — `test/engine/composition-honored.test.ts` carries the four §gate
  *       value clauses (the 0.8 SUM, the 1.6 un-clamped, the 0.8 accumulate, the
  *       COMPOSITION_FALLBACK). BITE: delete a lock → reds.
  *
@@ -93,7 +93,7 @@ const INTERPOLATE = "src/animation/engine/interpolate.ts";
 // `composite` keyword pass-through (`toWAAPIOptions` + `uniformComposite` +
 // the CompositeOperation map) lives in the options concern.
 const WAAPI = "src/animation/waapi/waapi-options.ts"; // S.B4 rename (r3 F7)
-const TEST = "test/composition-honored.test.ts";
+const TEST = "test/engine/composition-honored.test.ts";
 
 // ── raf-read — engine reads resolved.composition + threads it into addFrame ──
 // R.W2 — `fromString` lives in `engine/css/css-animation.ts` (the CSS subclass carve).
@@ -255,5 +255,5 @@ console.log(
         "counter), `replace`-falls-back + diagnoses a non-numeric leaf, and emits\n" +
         "the Baseline `composite` keyword on WAAPI — the operator honored\n" +
         "IDENTICALLY across backends. The value proof rides\n" +
-        "`vitest run test/composition-honored.test.ts`.",
+        "`vitest run test/engine/composition-honored.test.ts`.",
 );

@@ -16,7 +16,7 @@
  * (playwright-core via glass-ui's install, KF_PLAYWRIGHT_DIR) and asserts VIA THE
  * BROWSER A11Y TREE (`page.accessibility.snapshot`).
  *
- * The gate DRIVES the born-RED oracle `test/split-a11y-oracle.test.ts`, which
+ * The gate DRIVES the born-RED oracle `test/orchestration/split-a11y-oracle.test.ts`, which
  * ISOLATES a value.js-free `{ splitText, stagger }` bundle off the LIGHT source
  * (the SAME rolldown mechanism `proof:boundary` uses to prove the entry is
  * value.js-free), serves it over a same-origin static server, and runs the REAL
@@ -31,7 +31,7 @@
  * env is not a false red; set KF_PLAYWRIGHT_DIR to actuate.
  *
  * The jsdom-viable half (the a11y ATTRIBUTE wiring + the by:"line"
- * measure-or-refuse posture) lives in `test/split-text.test.ts` (the fast local
+ * measure-or-refuse posture) lives in `test/orchestration/split-text.test.ts` (the fast local
  * bite, run by the default `vitest run`); THIS is the browser a11y-tree half.
  *
  * RUN: npm run proof:split-a11y
@@ -41,7 +41,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const ORACLE = "test/split-a11y-oracle.test.ts";
+const ORACLE = "test/orchestration/split-a11y-oracle.test.ts";
 
 console.log(
     "proof:split-a11y — S.F2 SplitText a11y-tree browser oracle " +

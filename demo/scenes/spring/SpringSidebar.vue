@@ -158,7 +158,7 @@ import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { GripVertical, RefreshCw } from "@lucide/vue";
 
 import KfPillTabs from "@components/custom/KfPillTabs.vue";
-import type { KfPillTabOption } from "@components/custom/KfPillTabs.vue";
+import type { KfPillTabOption } from "@components/custom/useKfPillTabs";
 
 import KeyframesEditor from "@components/custom/keyframes-editor/KeyframesEditor.vue";
 import SpringHeatmap from "./SpringHeatmap.vue";
