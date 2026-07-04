@@ -30,5 +30,5 @@ export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
-    serializeEasing,
 } from "./format";
+export { serializeEasing } from "./easing-serialize";

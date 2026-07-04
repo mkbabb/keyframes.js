@@ -63,10 +63,10 @@ import type { CompileChild, CompileInput } from "./backward-walk";
 import {
     animationComposition,
     animationShorthand,
-    densifiedKeyframesBlock,
     keyframesBlock,
     premultipliedKeyframesBlock,
 } from "./format";
+import { densifiedKeyframesBlock } from "./densify";
 import { densifyColorBlock, round } from "./backward-color";
 // a19 F2 (S.B3 S5) — reach the scroll round-trip through the `../../scroll`
 // zone BARREL, not the deep `scroll/grammar` module — closing the cross-zone

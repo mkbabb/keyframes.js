@@ -19,7 +19,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { CSSKeyframesToString, serializeEasing } from "../src/animation/compile/backward/format";
+import { CSSKeyframesToString } from "../src/animation/compile/backward/format";
+import { serializeEasing } from "../src/animation/compile/backward/easing-serialize";
 import { AnimationOptionError } from "../src/animation/internal/errors";
 import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js";
 
