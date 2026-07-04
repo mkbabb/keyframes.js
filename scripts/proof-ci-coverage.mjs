@@ -239,6 +239,21 @@ const EXCLUDED = new Set([
     // proof:hygiene/proof:correctness/proof:all). Excluded from the forward-coverage
     // demand for the same reason those sub-aggregators are.
     "proof:hygiene-chain",
+    // S.B6 — the three type-surface / ./engine-drift gates are DEVELOPMENT-ONLY
+    // through S (the wave's own Verification: "Development-only; born-RED; re-run
+    // at S.Z2"). They are AUTHORED + red→green-witnessed at S.B6 and are GREEN at
+    // authorship (unlike proof:peer-satisfied / proof:claude-paths-live /
+    // proof:chronic-closure, which stay RED), but they follow the SAME
+    // development-only-until-close wiring convention: they do NOT yet ride ci.yml,
+    // so a mid-drive tree churn in a parallel worktree cannot flap them in a
+    // blocking chain before the tree is final. S.Z2 wires all three into
+    // proof:hygiene-chain as ordinary blocking members (they measure the BUILT
+    // dist, same precondition as proof:published-surface / proof:alias-dropped)
+    // and DELETES these three exclusions in that same commit. Each is
+    // individually runnable NOW (`npm run proof:engine-subpath-mirror` etc.).
+    "proof:engine-subpath-mirror",
+    "proof:no-any-default",
+    "proof:dts-rollups-agree",
 ]);
 
 const gates = Object.keys(pkg.scripts)
