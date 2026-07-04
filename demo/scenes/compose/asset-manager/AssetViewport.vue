@@ -4,20 +4,24 @@
         class="absolute inset-0 z-dock pointer-events-none overflow-hidden"
         @pointerdown.self="deselectAll"
     >
-        <!-- Empty state — shown when the viewport has no assets -->
+        <!-- Empty state — the casting-floor invitation (S.D3 S5 empty-state
+             recast). The cartoon-surface Card shell stays (proof:cartoon-is-panel-
+             depth + proof:glass-and-cartoon read the first panel Card here), but
+             the content is the display-voice CTA the L.W11 treatment specified:
+             one Instrument-Serif line + one mono sub-line + the button. It is
+             anchored in the UPPER THIRD (items-start + pt) where the foundry
+             key-light pools (--mouse-y: 38%), so the mobile controls sheet
+             (bottom) can never occlude the CTA. -->
         <div
             v-if="sortedAssets.length === 0"
-            class="absolute inset-0 flex items-center justify-center pointer-events-none"
+            class="absolute inset-0 flex items-start justify-center pt-[18vh] pointer-events-none"
         >
             <Card surface="cartoon" tier="quiet" class="pointer-events-auto max-w-sm mx-6">
                 <CardContent class="flex flex-col items-center gap-3 px-8 py-7 text-center">
-                    <Shapes class="size-8 text-muted-foreground" />
-                    <p class="text-heading text-foreground">
-                        Compose a scene
-                    </p>
+                    <p class="text-title text-foreground">Pour something in.</p>
                     <p class="text-mono-caption normal-case text-muted-foreground">
-                        Add a shape, text, or image — then bind it to an animation
-                        from the Assets panel.
+                        Drop a shape, text, image, or SVG onto the floor &#x2014;
+                        then bind it to motion from the Assets panel.
                     </p>
                     <Button
                         size="sm"
@@ -75,7 +79,7 @@
                     v-for="handle in RESIZE_HANDLES"
                     :key="handle.type"
                     :class="[
-                        'absolute w-2.5 h-2.5 bg-background border-2 border-primary rounded-sm z-bar',
+                        'absolute w-2.5 h-2.5 bg-background border-2 border-[var(--color-progress)] rounded-sm z-bar',
                         handle.cursor,
                     ]"
                     :style="handle.style"
@@ -87,10 +91,10 @@
                     class="absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-bar"
                 >
                     <div
-                        class="w-3.5 h-3.5 rounded-full bg-background border-2 border-primary cursor-grab"
+                        class="w-3.5 h-3.5 rounded-full bg-background border-2 border-[var(--color-progress)] cursor-grab"
                         @pointerdown.stop="onHandlePointerDown($event, asset.id, 'rotate')"
                     ></div>
-                    <div class="w-px h-4 bg-primary/50"></div>
+                    <div class="w-px h-4 bg-[color-mix(in_srgb,var(--color-progress)_50%,transparent)]"></div>
                 </div>
             </template>
         </div>
@@ -100,7 +104,7 @@
 <script setup lang="ts">
 import { readonly, shallowReactive, useTemplateRef } from "vue";
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
-import { Plus, Shapes } from "@lucide/vue";
+import { Plus } from "@lucide/vue";
 import { useDragCapture } from "@components/custom/animation-transport/controls/composables/useDragCapture";
 import type { Asset, AssetKind, AssetTransform, HandleType } from "./assetTypes";
 
@@ -147,7 +151,9 @@ const assetStyle = (asset: Asset) => {
             ? (asset.backgroundColor ?? "transparent")
             : "transparent",
         borderRadius: asset.borderRadius != null ? `${asset.borderRadius}px` : undefined,
-        outline: isSelected(asset.id) ? "2px solid var(--primary)" : undefined,
+        outline: isSelected(asset.id)
+            ? "2px solid var(--color-progress)"
+            : undefined,
         outlineOffset: "2px",
     };
 };

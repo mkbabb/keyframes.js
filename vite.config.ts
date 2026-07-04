@@ -689,26 +689,6 @@ export default defineConfig((mode) => {
                     : []),
             ],
         };
-    } else if (mode.mode === "playground") {
-        // Playground demo: asset manager + multi-element animations
-        return {
-            ...defaultOptions,
-            root: "./demo/playground/",
-            resolve: {
-                ...defaultOptions.resolve,
-                conditions: devConditions,
-            },
-            optimizeDeps: {
-                include: [
-                    "vue",
-                    "reka-ui",
-                    "@vueuse/core",
-                    "@lucide/vue",
-                    "vue-sonner",
-                ],
-            },
-            plugins: [...defaultPlugins],
-        };
     } else {
         // Dev mode: serve the demo app with HMR.
         //
