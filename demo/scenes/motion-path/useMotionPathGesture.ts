@@ -1,11 +1,11 @@
-import { onMounted, ref, watch, type Ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
 
 import { kfEngine } from "@utils/kfEngine";
 import { ManualTimeline } from "@mkbabb/keyframes.js";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import { useDragScrub } from "@composables/useDragScrub";
-import { clientToUserUnits } from "./motionPathGeometry";
+import { clientToUserUnits, scalePathD, VIEW } from "./motionPathGeometry";
 import type { MotionPathDemo } from "./useMotionPathDemo";
 
 /**
@@ -84,6 +84,56 @@ export function useMotionPathGesture(
         if (pathEl) totalLen = pathEl.getTotalLength();
     };
 
+    // ── S.G2 S1 — the traveller-scale fix (fold row 68) ──────────────────────
+    // The SVG guide auto-scales its `0 0 VIEW VIEW` viewBox to fill the stage; the
+    // traveller's CSS `offset-path` resolves in STAGE PIXELS, so an unscaled author
+    // `d` (0..VIEW user units) detaches the creature on any stage narrower than
+    // VIEW px (~400) — it escapes the plate at the mobile 375px width. The cure:
+    // scale ONLY the traveller's live offset-path to the rendered stage (the copy
+    // artifact + the guide stay author-unit — the single source is preserved),
+    // re-run on a ResizeObserver so it tracks the guide across every resize.
+    const stageScale = (): number => {
+        const stage = stageEl.value;
+        if (!stage) return 1;
+        const r = stage.getBoundingClientRect();
+        // The stage is square (aspect-ratio:1) — the shorter side / VIEW governs
+        // both axes (the same invariant clientToUserUnits rides). Fall back to
+        // author units (scale 1) while the stage is un-laid-out.
+        const side = Math.min(r.width, r.height);
+        return side > 0 ? side / VIEW : 1;
+    };
+    // The traveller BALL is a marker riding the path, so it must scale WITH the
+    // stage (like the auto-scaling SVG guide) — a fixed-px ball spills off a small
+    // stage even when the path is scaled, because the figure only insets ~15% from
+    // the plate edge and a large ball's radius exceeds that inset on a narrow
+    // mobile stage (~112px). BASE_BALL_PX (2.75rem @ 16px root, the design intent)
+    // × scale keeps the ball ~11% of the stage span at every size — its rect stays
+    // inside the path inset (S.G2 S1 containment). A 14px legibility floor holds it
+    // grabbable; the glyph font-size tracks --ball-size in CSS.
+    const BASE_BALL_PX = 44;
+    const BALL_FLOOR_PX = 14;
+    const writeTravellerPath = (): void => {
+        const el = travellerEl.value;
+        if (!el) return;
+        const scale = stageScale();
+        el.style.offsetPath = `path('${scalePathD(demo.pathD.value, scale)}')`;
+        el.style.setProperty(
+            "--ball-size",
+            `${Math.max(BALL_FLOOR_PX, BASE_BALL_PX * scale)}px`,
+        );
+    };
+
+    // Track the stage size so the traveller re-scales on every resize (rotate,
+    // sheet open, breakpoint). Disconnected on unmount.
+    let stageResizeObserver: ResizeObserver | undefined;
+    const observeStageResize = (): void => {
+        const stage = stageEl.value;
+        if (!stage || typeof ResizeObserver === "undefined") return;
+        stageResizeObserver = new ResizeObserver(() => writeTravellerPath());
+        stageResizeObserver.observe(stage);
+    };
+    onBeforeUnmount(() => stageResizeObserver?.disconnect());
+
     // ── The tangent at a [0,1] distance — two nearby getPointAtLength samples ─
     const computeTangent = (ratio: number): number => {
         const pathEl = guidePathEl.value;
@@ -112,6 +162,12 @@ export function useMotionPathGesture(
         });
         anim.name = "Path traversal";
         demo.registerAnimation(anim);
+        // S.G2 S1 — fromMotionPath set the AUTHOR-unit offset-path; override it
+        // with the stage-scaled path so the traveller rides the auto-scaled SVG
+        // guide (not a 0..VIEW px path that escapes a sub-VIEW stage), then observe
+        // the stage so it re-scales on every resize.
+        writeTravellerPath();
+        observeStageResize();
         remeasure();
         tangentDeg.value = computeTangent(distance.value);
 
@@ -211,9 +267,11 @@ export function useMotionPathGesture(
     // read the ONE source — they cannot drift.
     watch(
         () => demo.pathD.value,
-        (d) => {
-            const el = travellerEl.value;
-            if (el) el.style.offsetPath = `path('${d}')`;
+        () => {
+            // S.G2 S1 — re-write the traveller's live offset-path (stage-scaled)
+            // from the SAME single-source `d` the guide re-reads, so the two stay
+            // in lockstep on the rendered stage (never author-unit px).
+            writeTravellerPath();
             remeasure();
             // Re-seat the playhead on the new geometry so the traveller snaps to
             // the re-shaped path at the same distance (no jump in offset-distance).

@@ -137,3 +137,30 @@ export function clientToUserUnits(
         y: ((clientY - rect.top) / side) * VIEW,
     };
 }
+
+/**
+ * THE TRAVELLER-SCALE FIX (S.G2 S1 / fold row 68). The SVG guide `<path>` rides a
+ * `0 0 VIEW VIEW` viewBox scaled to fill the stage (`width/height: 100%`), so the
+ * guide auto-scales to the RENDERED stage size. The traveller is a plain absolute
+ * `<div>` whose CSS `offset-path: path('…')` is resolved in STAGE PIXELS, not
+ * viewBox units — so an UNSCALED author `d` (authored in 0..VIEW user units)
+ * detaches the traveller from the guide on any stage narrower than `VIEW` px
+ * (~400px): the creature escapes the plate at the mobile 375px width (the defect).
+ *
+ * The cure keeps ONE author `d` (the copy artifact + the guide stay author-unit —
+ * `copyablePath` re-reads the unscaled source) and scales ONLY the traveller's
+ * live `offset-path` to the stage: `scale = stageSidePx / VIEW`. `buildPathD`
+ * emits absolute `M`/`C`/`Z` with numeric coordinates ONLY, so a uniform multiply
+ * of every numeric token scales the whole figure exactly (command letters +
+ * separators pass through; `Z` carries no number). Re-run on a ResizeObserver so
+ * the traveller tracks the guide across every stage resize (the rendered-rect
+ * oracle: traveller ⊂ stage at 375px).
+ */
+export function scalePathD(d: string, scale: number): string {
+    if (!Number.isFinite(scale) || scale <= 0 || scale === 1) return d;
+    return d.replace(/-?\d*\.?\d+(?:e[+-]?\d+)?/gi, (token) => {
+        const scaled = parseFloat(token) * scale;
+        // Match buildPathD's 2-dp rounding so the emitted path stays clean.
+        return String(Math.round(scaled * 100) / 100);
+    });
+}

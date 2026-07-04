@@ -235,37 +235,63 @@ async function browserHalf() {
             const after = await page.evaluate(() => {
                 const guide = document.querySelector(".mp-guide-path");
                 const traveller = document.querySelector(".mp-traveller");
+                const stage = document.querySelector(".mp-stage");
+                const sr = stage ? stage.getBoundingClientRect() : null;
                 return {
                     guideD: guide.getAttribute("d"),
                     offsetPath: getComputedStyle(traveller).offsetPath,
+                    // The stage is square (aspect-ratio:1) — its shorter side is
+                    // the px span the author `0..VIEW` viewBox scales into.
+                    stageSide: sr ? Math.min(sr.width, sr.height) : 0,
                 };
             });
 
             const guideChanged = after.guideD !== before.guideD;
             const offsetChanged = after.offsetPath !== before.offsetPath;
-            // The no-drift invariant: the traveller's offset-path inner path data
-            // EQUALS the guide's new d (both re-read the ONE single source).
-            const afterGuideData = extractPathData(after.guideD);
-            const afterOffsetData = extractPathData(after.offsetPath);
+            // ── S.G2 S1 — the no-drift invariant, now SCALED (fold row 68) ──────
+            // The guide `<path>` rides the AUTHOR `d` in a `0..VIEW` viewBox that
+            // auto-scales to the stage; the traveller's CSS `offset-path` resolves
+            // in STAGE PIXELS, so it re-reads the SAME single-source `d` SCALED to
+            // the rendered stage (`scalePathD`, scale = stageSide/VIEW) — otherwise
+            // the unscaled author path escapes a sub-VIEW stage (the S1 defect the
+            // sibling proof:motion-path-scale oracle bites at 375px). So the lockstep
+            // invariant is GEOMETRIC-with-scale: every traveller coordinate equals
+            // the guide's corresponding coordinate × scale (NOT byte-identical). A
+            // frozen path leaves both unchanged; a dropped lockstep leaves the
+            // traveller on the stale geometry (the per-coordinate ratio breaks); a
+            // dropped SCALE (the born-RED shape at the sibling oracle) breaks it too.
+            const VIEW = 400;
+            const scale = after.stageSide > 0 ? after.stageSide / VIEW : 1;
+            const nums = (s) =>
+                (extractPathData(s).match(/-?\d*\.?\d+/g) ?? []).map(Number);
+            const guideNums = nums(after.guideD);
+            const offsetNums = nums(after.offsetPath);
+            // Tolerance 0.75 user-px: scalePathD + buildPathD both round to 2dp, so
+            // g×scale vs the re-serialized offset coordinate differ by ≤ rounding;
+            // an UN-scaled traveller (the bug) is off by (1−scale)×coord — ≥ several
+            // px on a non-unit scale — so the clause cleanly separates scaled from drift.
             const sameSource =
-                afterGuideData.length > 0 && afterGuideData === afterOffsetData;
+                guideNums.length > 0 &&
+                guideNums.length === offsetNums.length &&
+                guideNums.every((g, i) => Math.abs(g * scale - offsetNums[i]) <= 0.75);
 
             if (guideChanged && offsetChanged && sameSource) {
                 ok(
                     `motion-path-editable — dragging a control handle re-shaped the guide ` +
-                        `d AND the traveller's offset-path, BOTH to the SAME new d (no drift). ` +
-                        `guide d "…${afterGuideData.slice(-40)}" === offset-path inner ` +
-                        `"…${afterOffsetData.slice(-40)}" — the single-source PATH_D invariant`,
+                        `d AND the traveller's offset-path in lockstep, the traveller SCALED to ` +
+                        `the stage (scale ${scale.toFixed(3)} = ${Math.round(after.stageSide)}px/${VIEW}); ` +
+                        `every offset coord == guide coord × scale (no drift) — the single-source ` +
+                        `PATH_D invariant holds across the S.G2 S1 stage-scaling`,
                 );
             } else {
                 fail(
-                    `motion-path-editable — the handle drag did NOT re-shape both in ` +
-                        `lockstep (guide d changed:${guideChanged}, offset-path ` +
-                        `changed:${offsetChanged}, same-source:${sameSource}). ` +
-                        `Guide data "…${afterGuideData.slice(-50)}" vs offset-path data ` +
-                        `"…${afterOffsetData.slice(-50)}". A frozen path leaves both ` +
-                        `unchanged; a missing lockstep re-write leaves the traveller on the ` +
-                        `stale geometry (they drift) — the single-source invariant fails`,
+                    `motion-path-editable — the handle drag did NOT re-shape both in lockstep ` +
+                        `(guide d changed:${guideChanged}, offset-path changed:${offsetChanged}, ` +
+                        `same-scaled-source:${sameSource}; scale ${scale.toFixed(3)}, ` +
+                        `${guideNums.length} guide vs ${offsetNums.length} offset coords). A frozen ` +
+                        `path leaves both unchanged; a dropped lockstep re-write leaves the traveller ` +
+                        `on the stale geometry; a dropped stage-scale breaks the per-coordinate ratio ` +
+                        `— the single-source invariant fails`,
                 );
             }
         }

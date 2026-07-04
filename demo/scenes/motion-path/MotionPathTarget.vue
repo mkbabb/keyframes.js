@@ -437,10 +437,12 @@ const onHandleKeydown = (id: string, e: KeyboardEvent) => {
 }
 
 .mp-traveller-glyph {
-    /* H.W4.S4 (L2 leaf-tail sweep) — the raw 1.25rem was eyeballing the √φ
-       rung; route it to the named `--type-subheading` (1.272rem) so the
-       traveller glyph sits on the φ ladder, not a stray literal. */
-    font-size: var(--type-subheading);
+    /* S.G2 S1 — the glyph tracks the (stage-scaled) --ball-size so it never
+       overflows a shrunk traveller on a small mobile stage. ~0.5×--ball-size keeps
+       the emoji seated in the ball at every size (at the 44px default ball this is
+       ~22px, the former ~--type-subheading rung; on a 14px mobile ball it scales
+       down in lockstep). The scene JS writes --ball-size = BASE×stageScale. */
+    font-size: calc(var(--ball-size, 2.75rem) * 0.5);
     line-height: 1;
     pointer-events: none;
 }
