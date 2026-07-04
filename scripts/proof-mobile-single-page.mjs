@@ -522,7 +522,17 @@ function staticHalf() {
         fail(`static — AnimationControlsGroup.vue not found at ${groupPath}`);
         return;
     }
-    const src = stripComments(fs.readFileSync(groupPath, "utf8"));
+    // S.A0-fallout co-edit: the component's style tier lives in a colocated
+    // sourced stylesheet (`<style scoped src="./AnimationControlsGroup.css">` —
+    // the 500L-tripwire carve, D2-precedent). The static surface is the SFC +
+    // that sibling stylesheet, concatenated.
+    const groupCssPath = groupPath.replace(/\.vue$/, ".css");
+    const src = stripComments(
+        fs.readFileSync(groupPath, "utf8") +
+            (fs.existsSync(groupCssPath)
+                ? "\n" + fs.readFileSync(groupCssPath, "utf8")
+                : ""),
+    );
 
     // (1) The `grid-rows-[auto_1fr_auto]` mobile stack is GONE (no legacy beside
     //     the replacement). The mobile stack was the literal Tailwind arbitrary

@@ -544,6 +544,13 @@ jobs:
               run: npm run demo:correctness
               env:
                   KF_REQUIRE_BROWSER: "1"
+                  # The modern-web-guidance corpus is a local-dev aid (npx
+                  # modern-web-guidance install) — absent on a clean runner. The
+                  # gate SANCTIONS this CI escape (its own message names the env):
+                  # every other proof:modern-web clause still runs + bites; only
+                  # the corpus-presence clause is skipped. This restores the
+                  # pre-S.A2 lane posture the roster rewrite dropped.
+                  KF_MWG_OPTIONAL: "1"
 
     demo-device-observe:
         name: demo device-observe (LoAF / dock-perf / lighthouse · OBSERVE-ONLY · never gates deploy)

@@ -174,6 +174,16 @@ export const OBSERVE_GATES = [
 // re-pins — an external HANDOFF, not an S wave). ──────────────────────────────
 export const BORNRED_TRIPWIRES = ["proof:peer-satisfied"];
 
+// ── OBSERVE-IN-CI (the header's visual-lock adjudication, made executable).
+// These gates RIDE the correctness roster (amortised on the shared harness) but
+// their reds RECORD in CI instead of blocking — the declared observe-only
+// posture (cross-OS pixel/font-metric drift is not a product regression; the
+// baselines are NOT overwritten — regenerating them to "green" the drift is the
+// forbidden masking). Off-CI (on-device) they hard-gate as usual. The x2-#2
+// hard clause holds: the carve-out is EXACTLY the declared-posture set, never a
+// correctness red. ────────────────────────────────────────────────────────────
+export const OBSERVE_IN_CI = ["proof:visual-lock"];
+
 /** The union of every demo gate this module partitions (correctness ∪ observe ∪
  *  tripwires) — the set proof:ci-coverage counts as CI-invoked via the roster. */
 export const ALL_DEMO_GATES = [

@@ -42,8 +42,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { IN_CI } from "./lib/ci-env.mjs";
 import { resolveChromium, serveDist } from "./lib/demo-driver.mjs";
-import { CORRECTNESS_ROSTER, BACKLOG } from "./demo-roster.mjs";
+import { BACKLOG, CORRECTNESS_ROSTER, OBSERVE_IN_CI } from "./demo-roster.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const GHPAGES = path.join(REPO, "dist", "gh-pages");
@@ -169,13 +170,24 @@ try {
 }
 
 // ── 4. REPORT-ALL + the "failing set ⊆ backlog" verdict ───────────────────────
-const failed = results.filter((r) => r.code !== 0).map((r) => r.gate);
+const allFailed = results.filter((r) => r.code !== 0).map((r) => r.gate);
 const passed = results.filter((r) => r.code === 0).map((r) => r.gate);
+// The OBSERVE-IN-CI carve-out (demo-roster.mjs — the visual-lock adjudication):
+// declared-posture observe gates ride the roster for harness amortisation; IN CI
+// their reds RECORD (annotated below) and never block; off-CI they hard-gate.
+const observedRed = IN_CI ? allFailed.filter((g) => OBSERVE_IN_CI.includes(g)) : [];
+const failed = allFailed.filter((g) => !observedRed.includes(g));
 const backlogRed = failed.filter((g) => g in BACKLOG);
 const unexpectedRed = failed.filter((g) => !(g in BACKLOG));
 
 console.log(`\n════ run-demo-roster (tier=${tier}) — REPORT-ALL ════`);
 console.log(`  passed: ${passed.length}/${results.length}`);
+if (observedRed.length) {
+    console.log(
+        `  OBSERVE-IN-CI reds (RECORDED, not blocking — declared posture; hard-gates on-device): ` +
+            observedRed.join(", "),
+    );
+}
 if (backlogRed.length) {
     console.log(
         `  BACKLOG reds (EXPECTED — S.A0 enumerated, discharged at the named wave): ` +
@@ -190,9 +202,12 @@ if (unexpectedRed.length) {
 }
 
 if (failed.length === 0) {
+    const observedNote = observedRed.length
+        ? ` (${observedRed.length} declared-posture observe red(s) RECORDED above, not blocking)`
+        : "";
     console.log(
-        `\nrun-demo-roster — PASS: all ${results.length} ${tier} gate(s) green on one shared chromium + one ` +
-            `served dist snapshot (net-deletion holds).`,
+        `\nrun-demo-roster — PASS: all ${results.length - observedRed.length} blocking ${tier} gate(s) green` +
+            `${observedNote} on one shared chromium + one served dist snapshot (net-deletion holds).`,
     );
     process.exit(0);
 }
