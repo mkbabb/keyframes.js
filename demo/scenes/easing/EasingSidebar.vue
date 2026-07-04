@@ -91,35 +91,14 @@
                 @update:model-value="(v) => { demo.duration.value = v; }"
             />
 
-            <!-- Q.WC2 S3 — the WRITABLE numeric readout (precision authoring). The
-                 read-only `(x1,y1,x2,y2)` readout is now an editable
-                 `cubic-bezier(…)` / `steps(…)` field that round-trips through
-                 `parseCSSValue` back into the bezier model: type
-                 `cubic-bezier(.17,.67,.83,.67)` and the curve + handles move; drag
-                 a handle and the field updates. The numeric surface and the drag
-                 surface are two views of ONE model. Malformed input holds the
-                 last-valid value (the `:user-invalid` idiom — never clobbers the
-                 live curve). Shown only when there is a parametric literal. -->
-            <div v-if="readoutLiteral" class="curve-author-field">
-                <label class="text-mono-small text-muted-foreground" :for="authorInputId"
-                    >value</label
-                >
-                <input
-                    :id="authorInputId"
-                    ref="authorInputEl"
-                    class="curve-author-input text-mono-small tabular-nums"
-                    type="text"
-                    :class="{ 'curve-author-input--invalid': authorInvalid }"
-                    :value="authorDraft"
-                    spellcheck="false"
-                    autocomplete="off"
-                    aria-label="Edit the easing value (cubic-bezier or steps literal)"
-                    @input="onAuthorInput"
-                    @change="commitAuthor"
-                    @keydown.enter.prevent="commitAuthor"
-                    @blur="resetAuthorDraft"
-                />
-            </div>
+            <!-- S.G2 S6 (proof:easing-sidebar-minimal B1) — the sidebar is MINIMAL,
+                 controls-like: NO CSS-value text input. The former Q.WC2 writable
+                 `<input>` value field (a `cubic-bezier(…)`/`steps(…)` text authoring
+                 row) was the redundant chrome the minimal-sidebar gate forbids — the
+                 value is already surfaced by the EasingEditor's read-only, copyable
+                 readout (`:readout-value`), and the curve is authored by dragging the
+                 canvas handles or picking from the sole `<EasingSelect>` dropdown. The
+                 text-input authoring path is STRIPPED (fold row 5 backlog discharge). -->
 
             <!-- P.W7 — the curve PHYSICS telemetry + the "name that curve" egg,
                  colocated in EasingCurvePhysics.vue (S.A0: split at its natural
@@ -131,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, ref } from "vue";
 import { cubicBezierToString } from "@mkbabb/value.js";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import {
@@ -171,50 +150,6 @@ const readoutLiteral = computed<string | undefined>(() => {
 const onStepsChangeValue = (value: string) => {
     const v = parseInt(value, 10);
     if (v > 0) demo.stepOptions.value.steps = v;
-};
-
-// ── Q.WC2 S3 — the WRITABLE numeric readout (precision authoring) ──
-// A local draft mirrors `readoutLiteral`; the user edits it freely. On commit
-// (Enter / blur / change) it round-trips through `demo.parseCSSValue`: a valid
-// literal moves the curve + handles; a malformed one is REJECTED (the field
-// flags invalid and snaps back to the last-valid literal — never clobbers the
-// live curve). The draft re-syncs to the live literal whenever the model changes
-// from elsewhere (a drag, a keyboard nudge, a preset pick).
-const authorInputId = "easing-author-value";
-const authorInputEl = useTemplateRef<HTMLInputElement>("authorInputEl");
-const authorDraft = ref(readoutLiteral.value ?? "");
-const authorInvalid = ref(false);
-
-// Keep the draft in lock-step with the live literal UNLESS the field is being
-// edited (focused) — a drag/nudge/preset updates the field, but a mid-type edit
-// is not yanked out from under the user.
-watch(readoutLiteral, (lit) => {
-    if (document.activeElement !== authorInputEl.value) {
-        authorDraft.value = lit ?? "";
-        authorInvalid.value = false;
-    }
-});
-
-const onAuthorInput = (e: Event) => {
-    authorDraft.value = (e.target as HTMLInputElement).value;
-    authorInvalid.value = false;
-};
-
-const resetAuthorDraft = () => {
-    authorDraft.value = readoutLiteral.value ?? "";
-    authorInvalid.value = false;
-};
-
-const commitAuthor = () => {
-    const ok = demo.parseCSSValue(authorDraft.value);
-    if (ok) {
-        authorInvalid.value = false;
-        // Re-sync to the canonical serialized form (no float drift in display).
-        authorDraft.value = readoutLiteral.value ?? authorDraft.value;
-    } else {
-        // Malformed → hold the last-valid value (the :user-invalid idiom).
-        authorInvalid.value = true;
-    }
 };
 
 // P.W7 — the curve-physics telemetry + the "name that curve" egg live in the
@@ -283,40 +218,6 @@ const commitAuthor = () => {
 .panel-content :deep(.duration-field [data-slot="slider"]),
 .panel-content :deep(.duration-field .slider-track) {
     width: 100%;
-}
-
-/* Q.WC2 S3 — the writable numeric authoring field. A compact label-left row
-   beneath the editor; the input round-trips the `cubic-bezier(…)`/`steps(…)`
-   literal through parseCSSValue. The `--invalid` state flags a malformed entry
-   (the :user-invalid idiom) WITHOUT clobbering the live curve. */
-.curve-author-field {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.4rem;
-}
-.curve-author-field > label {
-    flex: 0 0 auto;
-}
-.curve-author-input {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 0.2rem 0.45rem;
-    border-radius: var(--radius-sm, 0.375rem);
-    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-    background: color-mix(in srgb, var(--foreground) 3%, transparent);
-    color: var(--foreground);
-    outline: none;
-    transition:
-        border-color var(--duration-fast) var(--ease-standard),
-        background var(--duration-fast) var(--ease-standard);
-}
-.curve-author-input:focus-visible {
-    border-color: var(--ball-tone, var(--color-progress));
-}
-.curve-author-input--invalid {
-    border-color: var(--destructive, #e5484d);
-    background: color-mix(in srgb, var(--destructive, #e5484d) 8%, transparent);
 }
 
 /* The curve-physics telemetry styles live in the colocated

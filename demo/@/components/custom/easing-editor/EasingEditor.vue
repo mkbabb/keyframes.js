@@ -46,7 +46,7 @@
             v-if="readoutValue"
             class="easing-readout flex items-center justify-center gap-2 m-0 p-0 text-mono-caption normal-case italic min-w-0"
         >
-            <span class="easing-readout-value truncate" :title="readoutValue">{{ readoutValue }}</span>
+            <span class="easing-readout-value" :title="readoutValue">{{ readoutValue }}</span>
             <TooltipProvider :delay-duration="200">
                 <Tooltip>
                     <TooltipTrigger as-child>
@@ -99,10 +99,14 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
-/* The readout overrides the glass-ui caption clamp from honest scoped
-   specificity (mirrors EasingSelect's trigger-label). The value never wraps —
-   it truncates with a title tooltip + a copy affordance. */
+/* S.G2 S6 — the readout literal is UN-TRUNCATED: the complete, re-parseable
+   `cubic-bezier(…)`/`steps(…)` literal reads out in full (it wraps within the
+   card if long) beside the copy affordance, replacing the former single-line
+   truncation + the deleted writable value-input row. The value is short (a
+   cubic-bezier / steps literal), so it fits the minimal sidebar without stealing
+   the bezier's space. */
 .easing-readout-value {
     max-width: 100%;
+    overflow-wrap: anywhere;
 }
 </style>

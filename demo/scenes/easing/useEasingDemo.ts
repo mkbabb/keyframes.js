@@ -318,53 +318,13 @@ export function useEasingDemo() {
         }
     };
 
-    const parseCSSValue = (input: string): boolean => {
-        const trimmed = input.trim().toLowerCase();
-
-        // cubic-bezier(x1, y1, x2, y2)
-        const bezierMatch = trimmed.match(
-            /cubic-bezier\(\s*([\d.e+-]+)\s*,\s*([\d.e+-]+)\s*,\s*([\d.e+-]+)\s*,\s*([\d.e+-]+)\s*\)/,
-        );
-        if (bezierMatch) {
-            const pts: [number, number, number, number] = [
-                parseFloat(bezierMatch[1]!),
-                parseFloat(bezierMatch[2]!),
-                parseFloat(bezierMatch[3]!),
-                parseFloat(bezierMatch[4]!),
-            ];
-            if (pts.every((n) => !isNaN(n))) {
-                // Q.WC2 S2 — a typed cubic-bezier from a named curve captures the ghost.
-                captureGhost(currentEasingName.value, svgPath.value);
-                bezierControlPoints.value = pts;
-                currentEasingName.value = "cubic-bezier";
-                return true;
-            }
-        }
-
-        // steps(N, jump-term?)
-        const stepsMatch = trimmed.match(
-            /steps\(\s*(\d+)\s*(?:,\s*(jump-start|jump-end|jump-none|jump-both|start|end)\s*)?\)/,
-        );
-        if (stepsMatch) {
-            stepOptions.value = {
-                steps: parseInt(stepsMatch[1]!, 10),
-                // The regex alternation IS the jump-term validation — the match
-                // group can only hold a member of the union (a typed narrowing,
-                // not an `any` erasure; J.W2 S6 / LS-20).
-                jumpTerm: (stepsMatch[2] as JumpTerm | undefined) ?? "jump-end",
-            };
-            currentEasingName.value = "steps";
-            return true;
-        }
-
-        // Named function
-        if (trimmed in timingFunctionsAnd) {
-            selectEasing(trimmed);
-            return true;
-        }
-
-        return false;
-    };
+    // S.G2 S6 — the former `parseCSSValue` typed-literal round-trip (Q.WC2 S2,
+    // consumed ONLY by the deleted writable value-input row in EasingSidebar) is
+    // REMOVED with its sole consumer: the minimal-sidebar gate forbids a CSS-value
+    // text input, so the typed-string paste path retires. Precision authoring rides
+    // the handle drag + the Shift+Arrow fine keyboard nudge; named curves ride the
+    // sole `<EasingSelect>` dropdown. (`captureGhost` keeps its other caller above —
+    // the named→custom bezier-drag ghost capture, line ~313.)
 
     // ── Scene-contract group (the bottom-bar transport host) ──────────
     // The transport host + its one-way `paused` projection are shared via
@@ -437,7 +397,6 @@ export function useEasingDemo() {
         // Methods
         selectEasing,
         updateBezierPoints,
-        parseCSSValue,
         gallery,
         play,
         pause,

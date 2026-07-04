@@ -35,9 +35,14 @@
  *       curve and assert NO ghost. BITE: a permanently-present ghost (clutter) OR
  *       a never-present ghost both red.
  *   (3) precision-author (the S3 authoring contract): focus a handle,
- *       `Shift+ArrowRight`, assert `x` nudges by ~0.001 (FINE, not 0.01); type a
- *       `cubic-bezier(…)` into the writable readout, assert the handles + `d`
- *       move to match. BITE: a read-only readout or a coarse-only nudge reds.
+ *       `Shift+ArrowRight`, assert `x` nudges by ~0.001 (FINE, not 0.01). BITE: a
+ *       coarse-only nudge reds. S.G2 S6 (T7): the former typed-cubic-bezier
+ *       `.curve-author-input` text field was REDUNDANT CHROME the minimal-sidebar
+ *       gate forbids (proof:easing-sidebar-minimal B1: ZERO CSS-value text input),
+ *       so it is STRIPPED — precision authoring is the fine keyboard nudge + the
+ *       handle drag; the clause asserts NO writable value-input row survives (a
+ *       surviving input would re-red B1). The passive un-truncated copyable readout
+ *       stays (never re-grown into a text-input row).
  *
  * Re-runnable: `node scripts/proof-easing-curve-editor.mjs`. Serves the BUILT
  * dist/gh-pages/.
@@ -286,7 +291,7 @@ async function runClauses(page, base, consoleErrors) {
             }
 
             // ── clause (3) precision-author ──
-            console.log("\nclause (3) precision-author (Shift+Arrow = fine 0.001 nudge; a typed cubic-bezier moves the handles + d)");
+            console.log("\nclause (3) precision-author (Shift+Arrow = fine 0.001 nudge; NO CSS-value text input — S.G2 S6 minimal-sidebar reconcile)");
             // Re-establish an editable curve and focus a SIDEBAR handle (the
             // numeric readout lives in the sidebar; the fine nudge is on the
             // focused handle, hero or sidebar — both share the model).
@@ -324,46 +329,35 @@ async function runClauses(page, base, consoleErrors) {
                 );
             }
 
-            // Type a cubic-bezier into the writable readout and assert the curve moves.
-            const typedTarget = "cubic-bezier(0.17, 0.67, 0.83, 0.67)";
-            const beforeType = await page.evaluate(
-                () => {
-                    const p = document.querySelector(
-                        ".easing-curve-canvas .bezier-path:not(.bezier-path--ghost)",
-                    );
-                    return p ? p.getAttribute("d") : null;
-                },
-            );
-            const typed = await page.evaluate(async (val) => {
+            // S.G2 S6 (fold row 5 backlog — proof:easing-sidebar-minimal, T7) — the
+            // former WRITABLE `.curve-author-input` text field (a typed-cubic-bezier
+            // authoring row, Q.WC2) was REDUNDANT CHROME the minimal-sidebar gate
+            // forbids (B1: ZERO CSS-value text `<input>` in the sidebar), so it is
+            // STRIPPED. Precision authoring is now the FINE KEYBOARD NUDGE asserted
+            // above (Shift+ArrowRight = 0.001 handle placement) + the direct handle
+            // drag — a coarse-only nudge still reds. The typed-string paste mechanism
+            // is retired with the input; the numeric readout is a passive, complete,
+            // un-truncated, copyable literal (the parity gap J's strip cost, kept as a
+            // READOUT, never re-grown into a text-input row). BITE: a coarse-only
+            // handle nudge reds the fine-nudge assertion (the surviving precision path);
+            // the two gates cannot BOTH pass with a value <input> present, so the
+            // typed-input assertion is deliberately absent (it would re-red B1).
+            const readonlyReadout = await page.evaluate(() => {
                 const input = document.querySelector(".curve-author-input");
-                if (!input) return false;
-                input.focus();
-                // Set the value + dispatch input + change (the commit path).
-                const setter = Object.getOwnPropertyDescriptor(
-                    window.HTMLInputElement.prototype,
-                    "value",
-                ).set;
-                setter.call(input, val);
-                input.dispatchEvent(new Event("input", { bubbles: true }));
-                input.dispatchEvent(new Event("change", { bubbles: true }));
-                await new Promise((r) => setTimeout(r, 250));
-                return true;
-            }, typedTarget);
-            await page.waitForTimeout(200);
-            const afterType = await page.evaluate(
-                () => {
-                    const p = document.querySelector(
-                        ".easing-curve-canvas .bezier-path:not(.bezier-path--ghost)",
-                    );
-                    return p ? p.getAttribute("d") : null;
-                },
-            );
-            if (typed && beforeType && afterType && beforeType !== afterType) {
-                ok(`(3) a typed \`${typedTarget}\` in the writable readout moved the handles + the bezier \`d\` to match (round-trip through parseCSSValue).`);
+                const readout = document.querySelector(".easing-readout-value");
+                return { hasInput: !!input, hasReadout: !!readout };
+            });
+            if (!readonlyReadout.hasInput) {
+                ok(
+                    `(3) the sidebar carries NO writable CSS-value text input (S.G2 S6 — the redundant ` +
+                        `.curve-author-input is stripped; the un-truncated copyable readout${readonlyReadout.hasReadout ? " renders" : " is omitted for a bare named curve"}); ` +
+                        `precision authoring is the FINE keyboard nudge (asserted above) + the handle drag — B1-consistent.`,
+                );
             } else {
                 fail(
-                    `(3) the writable readout did not round-trip a typed cubic-bezier ` +
-                        `(typed=${typed}, dMutated=${beforeType !== afterType}) — a read-only readout reds.`,
+                    `(3) a writable .curve-author-input text field survives in the sidebar — it re-reds ` +
+                        `proof:easing-sidebar-minimal B1 (ZERO CSS-value text input). S.G2 S6 strips it; ` +
+                        `precision authoring rides the fine keyboard nudge + the handle drag, not a typed-input row.`,
                 );
             }
 
