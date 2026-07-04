@@ -322,8 +322,12 @@ jobs:
             # browser. BORN-RED BY DESIGN during the S drive: the S ledger is the forward
             # disposition board, so the runtime-gate contract discharges as each owning wave
             # lands its gate; this meta-gate GREENs only re-run on the merged tree at S.Z2.
-            - name: "[HYGIENE-meta] proof:chronic-closure (I.W7 S4 + S.A1 — the S ledger: runtime-gate-that-BIT + the substance clause · born-RED by design, discharged at S.Z2)"
-              run: npm run proof:chronic-closure
+            # NOT a CI step until then (the claude-paths-live pattern — S.A5): a
+            # deliberately-red forward-board meta-gate in the blocking job would red CI
+            # outside the S.A0 backlog. It stays a proof:hygiene-chain member (local truth
+            # + the S.Z3 from-clean closeable-roster run) and is EXCLUDED-with-rationale in
+            # proof:ci-coverage; S.Z2 re-wires this step in the same commit that re-runs it
+            # green (its RE-EXECUTION clause).
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
               run: npm run proof:ci-coverage
             # M.W1 — proof:report-all: the parallel report-all runner meta-gate.

@@ -206,6 +206,18 @@ const EXCLUDED = new Set([
     // hot-fix) — the redness this exclusion accommodates is exclusively the
     // named, authorized backlog file.
     "proof:claude-paths-live",
+    // S.A1 — proof:chronic-closure is BORN-RED-BY-DESIGN through the S impl
+    // drive: it now parses the S ledger (the R→S substrate re-point), whose
+    // FOLD rows are the FORWARD disposition board — they cite born-RED gates
+    // their owning waves author later, so the runtime-gate-that-BIT contract
+    // structurally cannot be green until the waves land. Same pattern as
+    // claude-paths-live directly above: it stays a proof:hygiene-chain member
+    // (local truth + the S.Z3 from-clean closeable-roster run) but is NOT a
+    // blocking ci.yml step until S.Z2's RE-EXECUTION clause re-runs it green
+    // on the merged tree and re-wires the step + deletes this exclusion in
+    // that same commit. Its parse-shape + substance clauses were non-vacuity
+    // proven at S.A1 (planted malformed/violating rows RED; plants removed).
+    "proof:chronic-closure",
     // (R.W0 — the sibling-adapter publish tripwire was RETIRED with its package: the
     //  overfit Vue adapter was removed entirely + npm-revoked. Its gate script,
     //  package.json key, ci.yml step, release.yml publish job, AND this exclusion entry
