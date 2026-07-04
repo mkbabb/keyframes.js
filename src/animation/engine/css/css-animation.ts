@@ -1,11 +1,12 @@
 /**
- * `engine/css-animation.ts` — `CSSKeyframesAnimation`, the CSS-parsing
+ * `engine/css/css-animation.ts` — `CSSKeyframesAnimation`, the CSS-parsing
  * entry-point subclass, lifted out of the engine god-module (R.W2 — lib-engine
- * F-4). Its fields (`propertyRegistry`, `scrollOptions`, `_boundTimeline`) and
- * methods (`fromString`, `fromVars`, `fromKeyframes`, `bindTimeline`,
- * `resolveTransform`, `transform`) are wholly CSS-specific — the base
- * `KeyframesAnimation` (in `./animation`) is value.js-/scroll-agnostic. The
- * `engine/index.ts` barrel re-exports both classes.
+ * F-4) and sub-zoned into `engine/css/` beside its `metadata` recovery sibling
+ * (S.B2 — C-1). Its fields (`propertyRegistry`, `scrollOptions`, `_boundTimeline`)
+ * and methods (`fromString`, `fromVars`, `fromKeyframes`, `bindTimeline`,
+ * `resolveTransform`) are wholly CSS-specific — the base `KeyframesAnimation`
+ * (in `../animation`) is value.js-/scroll-agnostic. The `engine/css/index.ts`
+ * barrel re-exports the class; the `engine/index.ts` barrel re-exports it onward.
  */
 import {
     isObject,
@@ -13,28 +14,27 @@ import {
     type CSSTimelineOptions,
     type PropertyDescriptor,
 } from "@mkbabb/value.js";
-import { resolveKeyframes } from "../adapter";
+import { resolveKeyframes } from "../../adapter";
 import type {
     CompositeOperator,
     Easing,
     InputAnimationOptions,
     TransformFunction,
     Vars,
-} from "../constants";
+} from "../../constants";
 import {
     recoverAnimationOptionsBase,
     recoverScrollOptions,
     registerPropertyDescriptors,
-} from "./css-metadata";
-import { cssTwinFor } from "../easing";
+} from "./metadata";
+import { cssTwinFor } from "../../easing";
 import {
     namedSelectorToFraction,
     NAMED_SELECTOR_SUPERTYPE,
-} from "../compile/frame-compiler";
-import type { Timeline } from "../orchestration/timeline";
-import { getTimingFunction } from "../compile/easing-registry";
-import { transformTargetsStyle } from "../compile/parse-flatten";
-import { KeyframesAnimation } from "./animation";
+} from "../../compile/frame-compiler";
+import type { Timeline } from "../../orchestration/timeline";
+import { getTimingFunction } from "../../compile/easing-registry";
+import { KeyframesAnimation } from "../animation";
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
     if (typeof value !== "object" || value == null) {
@@ -263,15 +263,11 @@ export class CSSKeyframesAnimation<
         // D-LIB-1: register the parsed `@property` registry with the platform via
         // the CSS-metadata-recovery seam, so the native (WAAPI) path interpolates
         // a typed custom SMOOTHLY instead of discretely (the rAF JS path is the
-        // verbatim fallback). Feature-detected — see `engine/css-metadata.ts`.
+        // verbatim fallback). Feature-detected — see `engine/css/metadata.ts`.
         // R.W3 §2A: thread `this.diagnostics` so a UA rejection surface a
         // `PROPERTY_REGISTER_REJECTED` row (the FAIL-EXPLICIT narrowing).
         registerPropertyDescriptors(this.propertyRegistry, this.diagnostics);
 
         return this;
-    }
-
-    transform(vars: V) {
-        transformTargetsStyle(vars, this.targets);
     }
 }

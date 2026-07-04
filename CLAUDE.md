@@ -36,7 +36,7 @@ src/                            # animation/ + env.d.ts — nothing else
 │   │   ├── numeric.ts / smooth.ts / oscillator.ts / decay.ts / morph.ts / playback.ts
 │   │   └── spring/             # SpringProgress family (progress, duration, reseat, linear-stops, timing-function, types — the ring-break)
 │   ├── orchestration/          # LIGHT: temporal/multi-target helpers (stagger, flip, drag/, timeline/, sequence/)
-│   ├── engine/                 # HEAVY core: KeyframesAnimation + CSSKeyframesAnimation (animation.ts) + composition/options/css-metadata/playback
+│   ├── engine/                 # HEAVY core: KeyframesAnimation (animation.ts) + the css/ sub-zone (CSSKeyframesAnimation + metadata) + composition/options/playback
 │   ├── group/                  # HEAVY compositor: AnimationGroup (group.ts) + soa.ts + layer-springs.ts
 │   ├── compile/                # HEAVY pipeline: frame-compiler, backward, backward-color, format, parse-flatten, easing-registry (getTimingFunction)
 │   ├── resolve/                # HEAVY emerging-CSS resolver (if()/@function/env)

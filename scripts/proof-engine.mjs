@@ -59,11 +59,15 @@ for (const f of [
 // R.W2 (the two god-class carves): the prior ceiling of 1100 was the G.W5
 // "cohesive gestalt, extend-don't-split" decision — which the Tranche R audit
 // (lib-engine F-1) judged a self-certifying cap that could not bite. R.W2 carves
-// the class for real: `CSSKeyframesAnimation` moves to `css-animation.ts`, the
-// Phase-2 element-aware resolver moves to `element-resolve.ts`, the play-machine
-// run-state moves into the `PlaybackState` struct in `playback.ts`. With those
-// lifts the base `KeyframesAnimation` class body lands under 500, so the ceiling
-// is LOWERED to 500 (the post-carve target). It still bites HARD on a compile
+// the class for real: `CSSKeyframesAnimation` moves to the `engine/css/`
+// sub-zone (S.B2 — C-1), the Phase-2 element-aware resolver moves to
+// `resolve/element-resolve.ts` (S.B2), the play-machine run-state moves into the
+// `PlaybackState` struct in `playback.ts` — and at S.B2 the FSM transition fields
+// (started/done/paused/reversed/iteration/t/startTime/pausedTime) fold OFF the
+// class body into that struct as accessor delegates (the C-15 single-STORAGE
+// fold — see the FSM clause below). With those lifts the base
+// `KeyframesAnimation` class body lands under 500, so the ceiling is LOWERED to
+// 500 (the post-carve target). It still bites HARD on a compile
 // re-inline (re-absorbing the FrameCompiler is ~+236) AND now on any regrowth
 // past the carved baseline. Sizing was an ESTIMATE (challenge-library §5) — this
 // gate VERIFIES it: if the class lands over 500 post-carve, keep carving; do NOT
@@ -111,23 +115,103 @@ if (!/export class FrameCompiler/.test(compiler)) {
     }
 }
 
+// ── S.B2 fsm-single-storage (C-15) — no FSM transition field is DECLARED on ──
+// the `KeyframesAnimation` class body: accessor delegates ONLY. The eight
+// run-state fields (started/done/paused/reversed/iteration/t/startTime/pausedTime)
+// fold into `PlaybackState` (playback.ts) as the SOLE backing store; the class
+// exposes them as `get`/`set` accessor delegates over `this._playback.*`. This is
+// the HONEST realization of the R.W2 "DI not param-bags" title (the FSM was a
+// public, externally-written surface, so single-STORAGE — not a literal
+// single-writer — is the non-breaking fold; the hard fold is a future BREAKING
+// wave, C-15/§8-3). `managed` is CORRECTLY EXCLUDED — it is loop-OWNERSHIP, not
+// run-state (it never resets in `settle`).
+//
+// BITE: a raw field declaration (`started: boolean = false;` / `t = 0`) at class-
+// member indentation reds; a `get started()`/`set started(v)` accessor passes
+// (the accessor's header begins `get `/`set `, never the bare field name). Plant
+// any one FSM field back onto the class body → RED. Falsifiable + non-vacuous:
+// this is the F1/SB-1 clause the a03 lane proposed, extending the born-RED-capable
+// ceiling gate above rather than a fresh grep a stub could fake.
+{
+    const engine = read("src/animation/engine/animation.ts").split("\n");
+    const start = engine.findIndex((l) => /^export class KeyframesAnimation</.test(l));
+    let end = -1;
+    if (start !== -1) {
+        for (let i = start + 1; i < engine.length; i++) {
+            if (/^}/.test(engine[i])) { end = i; break; }
+        }
+    }
+    // The 8 FSM transition fields (`managed` deliberately excluded — ownership).
+    const FSM_FIELDS = [
+        "started", "done", "paused", "reversed",
+        "iteration", "t", "startTime", "pausedTime",
+    ];
+    if (start === -1 || end === -1) {
+        fail("fsm-single-storage", "could not locate the KeyframesAnimation class body for the FSM-field scan");
+    } else {
+        const declared = [];
+        for (let i = start + 1; i < end; i++) {
+            const line = engine[i];
+            for (const f of FSM_FIELDS) {
+                // A class-member FIELD declaration: 4-space member indent, optional
+                // modifiers, the exact field name (word-bounded so `t` never matches
+                // `templateFrames`/`toggle` and `paused` never matches `pausedTime`),
+                // then a `:type` / `=init` / `?:` — NOT a `get `/`set ` accessor.
+                const re = new RegExp(
+                    `^    (?:readonly |protected |public |private |declare )*${f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b[?!]?\\s*[:=]`,
+                );
+                if (re.test(line)) declared.push({ f, line: i + 1, text: line.trim() });
+            }
+        }
+        if (declared.length > 0) {
+            fail(
+                "fsm-single-storage",
+                `KeyframesAnimation DECLARES ${declared.length} FSM transition field(s) on the class body ` +
+                    `(single-STORAGE violated — fold them into PlaybackState + accessor delegates over ` +
+                    `this._playback.*; C-15):\n      ` +
+                    declared.map((d) => `animation.ts:${d.line}  ${d.text}`).join("\n      "),
+            );
+        } else {
+            ok(
+                "fsm-single-storage",
+                `no FSM transition field DECLARED on the KeyframesAnimation class body — the 8 run-state ` +
+                    `fields (started/done/paused/reversed/iteration/t/startTime/pausedTime) live in PlaybackState; ` +
+                    `the class exposes accessor delegates only (C-15 single-STORAGE)`,
+            );
+        }
+    }
+}
+
 // ── R.W2 (c) no-host-cast + (d) no-host-export — the PlaybackHost privacy ─────
 // inversion is excised. (c): zero `as unknown as PlaybackHost` anywhere under
 // `src/animation/engine/` — a stub that removes the `_host` getter but keeps a
 // structurally-equivalent cast (even renamed) still reds, because the clause
 // scans for the INTERFACE NAME, not the cast syntax alone. (d): no file under
 // `engine/` re-exports the interface under ANY export form (the privacy-inversion
-// re-instated under a different name reds too). Both scan EVERY `.ts` under the
-// directory, so a leak in any carved sub-module bites.
+// re-instated under a different name reds too).
+//
+// S.B2 RECURSIVE-SCAN FIX (C-11): the walk is RECURSIVE — it descends into the
+// `engine/css/` sub-zone (and any future engine sub-zone), so a leak in a carved
+// SUB-DIRECTORY module bites too. The pre-S.B2 flat `readdirSync(engineDir)`
+// scanned only the top-level `engine/*.ts` and would have missed a re-instated
+// cast/export inside `engine/css/`. This recursive walk (plus the FSM clause
+// below + the no-re-export-bridge posture) is what SUPERSEDES the KILLED
+// `proof:engine-seam-split` (C-11).
 {
     const engineDir = "src/animation/engine";
-    const files = readdirSync(join(root, engineDir)).filter((f) =>
-        f.endsWith(".ts"),
-    );
+    const walkTs = (dir, acc = []) => {
+        for (const e of readdirSync(join(root, dir), { withFileTypes: true })) {
+            const rel = `${dir}/${e.name}`;
+            if (e.isDirectory()) walkTs(rel, acc);
+            else if (e.name.endsWith(".ts")) acc.push(rel);
+        }
+        return acc;
+    };
+    const files = walkTs(engineDir);
     let castHit = null;
     let exportHit = null;
     for (const f of files) {
-        const src = read(`${engineDir}/${f}`);
+        const src = read(f);
         if (/as\s+unknown\s+as\s+PlaybackHost/.test(src)) castHit ??= f;
         if (/export\s+(interface|type)\s+PlaybackHost\b/.test(src)) {
             exportHit ??= f;
@@ -136,18 +220,18 @@ if (!/export class FrameCompiler/.test(compiler)) {
     if (castHit) {
         fail(
             "no-host-cast",
-            `${engineDir}/${castHit} still carries an \`as unknown as PlaybackHost\` cast — the privacy-inversion workaround survives (PlaybackState must own the run-state by composition)`,
+            `${castHit} still carries an \`as unknown as PlaybackHost\` cast — the privacy-inversion workaround survives (PlaybackState must own the run-state by composition)`,
         );
     } else {
         ok(
             "no-host-cast",
-            `no \`as unknown as PlaybackHost\` cast under ${engineDir}/ (the structural workaround is excised)`,
+            `no \`as unknown as PlaybackHost\` cast under ${engineDir}/ (recursive; the structural workaround is excised)`,
         );
     }
     if (exportHit) {
         fail(
             "no-host-export",
-            `${engineDir}/${exportHit} still exports \`PlaybackHost\` — the over-exposed run-state interface must be gone, not renamed-and-re-exported`,
+            `${exportHit} still exports \`PlaybackHost\` — the over-exposed run-state interface must be gone, not renamed-and-re-exported`,
         );
     } else {
         ok(

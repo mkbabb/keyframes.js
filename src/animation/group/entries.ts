@@ -16,7 +16,7 @@
  * `./scheduler`.
  */
 import { getAnimationId } from "../internal/animation-id";
-import type { KeyframesAnimation } from "../engine/animation";
+import type { KeyframesAnimation } from "../engine";
 import type { AnimationGroupEntry, AnimationGroupObject } from "./group";
 
 /**

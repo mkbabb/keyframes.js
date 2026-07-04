@@ -75,7 +75,7 @@ export function applyDirection<V extends Vars>(
     // Immediately update reversed flag so mid-iteration direction changes take
     // effect. R.W2 F-3 (DRY): the three-way direction → reversal test is the
     // single `shouldReverse` predicate, shared with the play-start `onStart`.
-    anim.reversed = shouldReverse(anim.options.direction, anim.iteration);
+    anim._playback.reversed = shouldReverse(anim.options.direction, anim._playback.iteration);
 }
 
 export function applyFillMode<V extends Vars>(

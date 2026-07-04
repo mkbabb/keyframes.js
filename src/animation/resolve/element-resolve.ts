@@ -1,7 +1,13 @@
 /**
- * `engine/element-resolve.ts` — the emerging-CSS Phase-2 element-AWARE
+ * `resolve/element-resolve.ts` — the emerging-CSS Phase-2 element-AWARE
  * resolution pass (Q.WB1), lifted off the `KeyframesAnimation` god-object
- * (R.W2 — lib-engine F-7). The FIRST pass (Phase 1, at `resolveKeyframes`
+ * (R.W2 — lib-engine F-7) and RE-HOMED into the `resolve/` zone at S.B2 (a17 F5,
+ * RULED): it coheres with the `resolve/` resolution engine (its full dependency
+ * set — `resolveValues`/`makeResolveContext`/`hasPhase2Node`), NOT with the
+ * engine's playback/interpolation concerns. It reaches the animation only through
+ * the PUBLIC compiler/targets/parse surface (a TYPE-only edge to `../engine`), so
+ * the engine→resolve direction is one-way (no runtime cycle). The FIRST pass
+ * (Phase 1, at `resolveKeyframes`
  * flatten time) had no element and deliberately left the element-aware nodes
  * UNRESOLVED: `if(style(--p))` (a `style(...)`-condition `if()` `resolveIf`
  * returned intact), and the `sibling-index()`/`sibling-count()` `FunctionValue`s.
@@ -24,7 +30,7 @@ import {
     type ResolveEnv,
 } from "../resolve";
 import type { Vars } from "../constants";
-import type { KeyframesAnimation } from "./animation";
+import type { KeyframesAnimation } from "../engine/animation";
 
 /**
  * Q.WB1 — the emerging-CSS Phase-2 SECOND resolution pass (the gestalt P.W13
@@ -111,6 +117,33 @@ export function resolveElementAwareValues<V extends Vars>(
     // on the Phase-2 path.
     animation.parse();
     return true;
+}
+
+/**
+ * Bind the just-assigned `animation.targets` onto the compiled animation — the
+ * body of `KeyframesAnimation.setTargets` (S.B2 — carved here so the class keeps
+ * a thin delegate and the element-binding logic lives with the resolve zone it
+ * belongs to). Runs the emerging-CSS Phase-2 element-AWARE resolution pass
+ * ({@link resolveElementAwareValues}); if that did NOT re-parse (the common
+ * all-concrete animation), takes the FAST path — propagate the bound target onto
+ * the ALREADY-compiled interp carriers so value.js's computed-unit DOM resolution
+ * reads the live box. Idempotent + SSR-safe (the Phase-2 pass no-ops without a
+ * target). The caller assigns `animation.targets` FIRST, then calls this.
+ */
+export function bindTargets<V extends Vars>(
+    animation: KeyframesAnimation<V>,
+): void {
+    const rebuilt = resolveElementAwareValues(animation);
+    if (rebuilt) return;
+    for (const frame of animation.frames) {
+        for (const values of Object.values(frame.interpVars)) {
+            for (const { start, stop, value } of values) {
+                start.setTargets(animation.targets);
+                stop.setTargets(animation.targets);
+                value.setTargets(animation.targets);
+            }
+        }
+    }
 }
 
 /**

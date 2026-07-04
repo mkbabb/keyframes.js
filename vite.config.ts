@@ -43,11 +43,12 @@ function engineDtsRollupPlugin(): Plugin {
         async closeBundle() {
             const root = import.meta.dirname;
             // R.W4b — the `./engine` subpath dts roll-up is the FULL static
-            // mirror, so the SOURCE entry is the composition barrel
-            // `engine/public.ts` (not the zone-pure `engine/index.ts`). The
+            // mirror, so the SOURCE entry is the composition barrel `public.ts`
+            // (S.B2 hoisted it out of `engine/` to the `src/animation` root
+            // beside `load-engine.ts`; NOT the zone-pure `engine/index.ts`). The
             // INSTALL path stays `dist/engine/index.d.ts` (the exports map is
             // UNCHANGED) — only the tsc-emit + API-Extractor INPUT moves.
-            const entry = path.resolve(root, "src/animation/engine/public.ts");
+            const entry = path.resolve(root, "src/animation/public.ts");
             const distEngine = path.resolve(root, "dist/engine/index.d.ts");
             if (!fs.existsSync(entry)) return;
 
@@ -79,10 +80,10 @@ function engineDtsRollupPlugin(): Plugin {
             program.emit(undefined, undefined, undefined, true);
 
             // tsc emits the declaration graph mirroring the source path under
-            // `rootDir: src/animation`, so the composition barrel
-            // `engine/public.ts` lands at `engine/public.d.ts` (R.W4b — this is
-            // the API-Extractor main entry point, NOT `engine/index.d.ts`).
-            const emittedEntry = path.join(tmp, "engine/public.d.ts");
+            // `rootDir: src/animation`, so the composition barrel `public.ts`
+            // (S.B2 root-hoisted) lands at `public.d.ts` (R.W4b — this is the
+            // API-Extractor main entry point, NOT `engine/index.d.ts`).
+            const emittedEntry = path.join(tmp, "public.d.ts");
             if (!fs.existsSync(emittedEntry)) {
                 this.warn(
                     "kf-engine-dts-rollup: engine declarations did not emit; leaving dts as-is",
@@ -470,18 +471,20 @@ export default defineConfig((mode) => {
                             "src/animation/index.ts",
                         ),
                         // R.W4b — the `./engine` subpath SOURCE is the
-                        // composition barrel `engine/public.ts` (the FULL static
-                        // mirror of the heavy `loadAnimationEngine()` surface),
-                        // NOT the zone-pure `engine/index.ts` (which carries the
-                        // engine CORE only). The OUTPUT name stays `engine/index`
-                        // so the emit path (`dist/engine/index.js`) the exports
-                        // map points at is UNCHANGED — only the source moves. The
-                        // shared engine chunk is still deduped across the two
-                        // entries + the `loadAnimationEngine()` lazy split, so the
-                        // subpath stays a thin re-export, never a duplicate.
+                        // composition barrel `public.ts` (the FULL static mirror
+                        // of the heavy `loadAnimationEngine()` surface; S.B2
+                        // hoisted it to the `src/animation` root beside
+                        // `load-engine.ts`), NOT the zone-pure `engine/index.ts`
+                        // (which carries the engine CORE only). The OUTPUT name
+                        // stays `engine/index` so the emit path
+                        // (`dist/engine/index.js`) the exports map points at is
+                        // UNCHANGED — only the source moves. The shared engine
+                        // chunk is still deduped across the two entries + the
+                        // `loadAnimationEngine()` lazy split, so the subpath stays
+                        // a thin re-export, never a duplicate.
                         "engine/index": path.resolve(
                             import.meta.dirname,
-                            "src/animation/engine/public.ts",
+                            "src/animation/public.ts",
                         ),
                     },
                     name: "Keyframes",

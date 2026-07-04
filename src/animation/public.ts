@@ -1,32 +1,33 @@
 /**
- * engine/public.ts — the `@mkbabb/keyframes.js/engine` subpath's COMPOSITION
- * barrel: the COMPLETE static mirror of the heavy engine surface (R.W4b).
+ * `public.ts` — the `@mkbabb/keyframes.js/engine` subpath's COMPOSITION barrel:
+ * the COMPLETE static mirror of the heavy engine surface (R.W4b). S.B2 (a17 F7)
+ * HOISTED it out of `engine/` to sit BESIDE `load-engine.ts` at the
+ * `src/animation` root — the two are the dynamic/static halves of the SAME `./engine`
+ * heavy surface, and hoisting it makes `engine/` zone-pure BY CONSTRUCTION (no
+ * cross-zone composition barrel lives inside the engine zone any more).
  *
  * The owner's question — "what's our IN to the library?" — is answered here. The
  * `./engine` subpath must expose the WHOLE heavy surface a consumer reaches
  * through `await loadAnimationEngine()` (the `AnimationEngine` keys), not just
- * the engine CORE. R.W4 §2.1 pointed the build entry at the zone barrel
- * (`engine/index.ts`), so `import { AnimationGroup } from
- * "@mkbabb/keyframes.js/engine"` resolved to `undefined` — the subpath carried
- * the engine core only. This barrel closes that gap: it re-exports the full
- * cross-zone surface so the subpath's runtime keys ⊇ `loadAnimationEngine()`'s.
+ * the engine CORE. This barrel re-exports the full cross-zone surface so the
+ * subpath's runtime keys ⊇ `loadAnimationEngine()`'s.
  *
- * WHY A SEPARATE BARREL (not `engine/index.ts`):
+ * WHY A ROOT BARREL (not `engine/index.ts`):
  *   `engine/index.ts` is ZONE-PURE — a zone barrel re-exports ONLY its own zone
  *   (R.W2c). Re-adding cross-zone re-exports there (`group`, `svg`, …) would
  *   re-close the engine↔group `no-cycle` ring R.W2c broke. This barrel instead
  *   is a build-entry SINK: NOTHING in `src/animation/**` imports it (the only
  *   reference is `vite.config.ts`'s `engine/index` named entry + the dts
- *   plugin), so its cross-zone edges (`public → ../svg → ../engine`,
- *   `public → ../group`) are strictly ONE-DIRECTIONAL and CANNOT be part of a
- *   cycle. That is precisely why the composition lives here, not in the zone
- *   barrel.
+ *   plugin), so its cross-zone edges (`public → ./svg → ./engine`,
+ *   `public → ./group`) are strictly ONE-DIRECTIONAL and CANNOT be part of a
+ *   cycle. That — plus S.B2's zone-purity hoist — is why the composition lives
+ *   here at the root, not in the zone barrel.
  *
  * THE SURFACE — it MATCHES `load-engine.ts`'s `AnimationEngine` interface key
  * for key (the authoritative roster), so a TS/runtime consumer of the static
  * subpath gets the SAME symbols as a `loadAnimationEngine()` consumer:
  *
- *   • engine core (re-exported wholesale from the zone barrel `./index`):
+ *   • engine core (re-exported wholesale from the zone barrel `./engine`):
  *     `KeyframesAnimation`, `CSSKeyframesAnimation`, `getAnimationId`,
  *     `getTimingFunction`, `resolveKeyframes`, `DIRECTIONS`, `FILL_MODES`,
  *     `defaultOptions`, `defaultLayerConfig` (+ the `ResolvedKeyframes` type).
@@ -45,18 +46,18 @@
  */
 
 // ── engine CORE (the zone barrel — wholesale) ────────────────────────────────
-// `./index` is value.js-bearing and zone-pure: KeyframesAnimation,
+// `./engine` is value.js-bearing and zone-pure: KeyframesAnimation,
 // CSSKeyframesAnimation, getAnimationId, getTimingFunction, resolveKeyframes,
 // DIRECTIONS, FILL_MODES, defaultOptions, defaultLayerConfig + ResolvedKeyframes.
-export * from "./index";
+export * from "./engine";
 
 // ── AnimationGroup (the `group/` zone) ───────────────────────────────────────
-export { AnimationGroup } from "../group";
+export { AnimationGroup } from "./group";
 export type {
     AnimationGroupEntry,
     AnimationGroupObject,
     AnimationGroupInput,
-} from "../group";
+} from "./group";
 
 // ── the SVG factories (the `svg/` zone) ──────────────────────────────────────
 export {
@@ -66,7 +67,7 @@ export {
     fromDrawSVG,
     MorphSVG,
     fromMorphSVG,
-} from "../svg";
+} from "./svg";
 export type {
     MotionPathOptions,
     OffsetPath,
@@ -74,12 +75,12 @@ export type {
     SVGDrawTarget,
     MorphSVGOptions,
     MorphPoint,
-} from "../svg";
+} from "./svg";
 
 // ── the preset catalog (the `presets/` zone) ─────────────────────────────────
 // Mirrors `loadAnimationEngine()`'s `presets` namespace shape (the whole
 // `presets/index` module as one namespace export).
-export * as presets from "../presets";
+export * as presets from "./presets";
 
 // ── ingest — the CSSOM walk + temporal takeover (the `ingest/` zone) ──────────
 export {
@@ -87,14 +88,14 @@ export {
     fromLiveAnimations,
     resolveLiveKeyframes,
     adoptRunning,
-} from "../ingest";
+} from "./ingest";
 export type {
     IngestedAnimation,
     IngestResult,
     IngestOptions,
     AdoptRunningOptions,
     AdoptResult,
-} from "../ingest";
+} from "./ingest";
 
 // ── scroll — the grammar round-trip + ScrollScene driver (the `scroll/` zone) ─
 export {
@@ -108,7 +109,7 @@ export {
     dispatchScrollBackend,
     resolveRange,
     pinCSS,
-} from "../scroll";
+} from "./scroll";
 export type {
     ScrollSceneOptions,
     ScrollDispatchRequest,
@@ -123,20 +124,20 @@ export type {
     CSSTimelineOptions,
     RangeBoundary,
     RangePhase,
-} from "../scroll";
+} from "./scroll";
 
 // ── compile — the round-trip's BACKWARD half ─────────────────────────────────
-export { compileToCSS } from "../compile";
+export { compileToCSS } from "./compile";
 
 // ── validate — the round-trip's FORWARD half (the validation layer) ──────────
-export { validate, explain } from "../validate";
-export type { ValidateOptions, ValidateResult } from "../validate";
+export { validate, explain } from "./validate";
+export type { ValidateOptions, ValidateResult } from "./validate";
 
 // ── L.W8 ED-3 dogfood surface — serialization / DOM-paint / yield helpers ─────
 export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
-} from "../compile/format";
-export { transformTargetsStyle } from "../compile/parse-flatten";
-export { yieldToMain } from "../internal/scheduler";
+} from "./compile/format";
+export { transformTargetsStyle } from "./compile/parse-flatten";
+export { yieldToMain } from "./internal/scheduler";

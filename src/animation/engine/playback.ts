@@ -1,7 +1,10 @@
 /**
- * `engine/playback.ts` — the STANDALONE-play lifecycle machine + the
- * `PlaybackState` struct that OWNS its run-state, lifted off the
- * `KeyframesAnimation` god-object (Q.WF1 / R.W2 — the engine carve).
+ * `engine/playback.ts` — the STANDALONE-play lifecycle machine (the play/advance/
+ * transport FREE FUNCTIONS), lifted off the `KeyframesAnimation` god-object
+ * (Q.WF1 / R.W2 — the engine carve). The run-state STORE they mutate — the
+ * `PlaybackState` struct — lives beside it in `./playback-state` (S.B2 carved the
+ * struct off on the STATE↔BEHAVIOR cohesion seam; the free functions reach it
+ * through `anim._playback`).
  *
  * A colocated INTERNAL engine module: statically imported by `engine/animation.ts`,
  * never re-exported beyond the engine barrel, riding the SAME heavy chunk behind
@@ -42,36 +45,6 @@ import { withReducedMotion } from "../internal/reduced-motion";
 import { isWAAPIEligible, playWAAPI } from "../waapi";
 
 /**
- * The standalone-play machine's OWN run-state (R.W2 — replaces the
- * `PlaybackHost` privacy-inversion interface). `KeyframesAnimation` composes
- * ONE of these as a `readonly _playback` field, so the play-machine state has a
- * single owner instead of being scattered as privates the class re-published
- * through a cast:
- *
- *   - `resolvePromise`   — the standalone-loop deferred resolver (`playRAF`
- *                          arms it, `resolvePlay` fires it).
- *   - `_playingPromise`  — the held in-flight play promise (`get finished`
- *                          exposes it; `play` arms it; the `finally` clears it).
- *   - `_waAnimations`    — the live WAAPI compositor animations during a WAAPI
- *                          delegation (one per target); cancelled on teardown.
- *   - `_boundFrame`      — the frame callback bound ONCE at construction, never
- *                          re-bound per loop (the per-loop-closure-free idiom).
- *   - `_interpOut`       — the ONE hoisted interp buffer the play loop reuses
- *                          every frame (zero-alloc steady state).
- */
-export class PlaybackState {
-    resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
-    _playingPromise: Promise<void> | null = null;
-    _waAnimations: globalThis.Animation[] = [];
-    readonly _boundFrame: (t: number) => boolean | Promise<boolean>;
-    readonly _interpOut: Record<string, unknown> = {};
-
-    constructor(frameCb: (t: number) => boolean | Promise<boolean>) {
-        this._boundFrame = frameCb;
-    }
-}
-
-/**
  * Fire a lifecycle `AnimationEvent` on each bound target (R.W2 — F-6). SSR-safe
  * capability contract: `AnimationEvent`/`dispatchEvent` are DOM capabilities —
  * when absent (Node, non-element targets) the lifecycle proceeds without events
@@ -88,7 +61,7 @@ export function dispatchAnimationEvent<V extends Vars>(
         target.dispatchEvent(
             new AnimationEvent(type, {
                 animationName: anim.name ?? "",
-                elapsedTime: anim.t / 1000,
+                elapsedTime: anim._playback.t / 1000,
             }),
         );
     }
@@ -108,14 +81,30 @@ export function shouldReverse(direction: string, iteration: number): boolean {
     );
 }
 
+/**
+ * Flip the direction, adjusting `startTime` so `effectiveT` stays continuous
+ * across the flip (R.W2 delegation — body carved off the class at S.B2). Before:
+ * `effectiveT = reversed ? duration - t : t`; after the flip we need the SAME
+ * `effectiveT`, so shift the raw clock so `t → duration - t`. The class keeps a
+ * thin `reverse()` delegate; `onStart` also calls this at play-start.
+ */
+export function reverse<V extends Vars>(anim: KeyframesAnimation<V>): void {
+    if (anim._playback.startTime !== undefined) {
+        const rawT = anim._playback.t;
+        const shift = anim.options.duration - 2 * rawT;
+        anim._playback.startTime -= shift;
+    }
+    anim._playback.reversed = !anim._playback.reversed;
+}
+
 /** SYNC unless `delay > 0` — then a thenable resolving after the sleep. */
 export function onStart<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): Promise<void> | undefined {
-    anim.reversed = false;
+    anim._playback.reversed = false;
 
-    if (shouldReverse(anim.options.direction, anim.iteration)) {
-        anim.reverse();
+    if (shouldReverse(anim.options.direction, anim._playback.iteration)) {
+        reverse(anim);
     }
 
     if (anim.options.fillMode === "backwards" || anim.options.fillMode === "both") {
@@ -123,14 +112,14 @@ export function onStart<V extends Vars>(
     }
 
     if (anim.options.delay > 0) {
-        anim.paused = true;
+        anim._playback.paused = true;
         return sleep(anim.options.delay).then(() => {
-            anim.paused = false;
-            anim.started = true;
+            anim._playback.paused = false;
+            anim._playback.started = true;
         });
     }
 
-    anim.started = true;
+    anim._playback.started = true;
     return undefined;
 }
 
@@ -139,14 +128,14 @@ export function onEnd<V extends Vars>(anim: KeyframesAnimation<V>): void {
     // place "where does the playhead rest?" is decided.
     anim.paintRest();
 
-    anim.startTime = undefined;
+    anim._playback.startTime = undefined;
 
-    if (anim.iteration >= anim.options.iterationCount - 1) {
-        anim.done = true;
-        anim.iteration = 0;
+    if (anim._playback.iteration >= anim.options.iterationCount - 1) {
+        anim._playback.done = true;
+        anim._playback.iteration = 0;
         anim.dispatchAnimationEvent("animationend");
     } else {
-        anim.iteration += 1;
+        anim._playback.iteration += 1;
         anim.dispatchAnimationEvent("animationiteration");
     }
 }
@@ -168,10 +157,10 @@ export function advanceTo<V extends Vars>(
     anim: KeyframesAnimation<V>,
     t: number,
 ): number | Promise<number> {
-    if (anim.startTime === undefined) {
+    if (anim._playback.startTime === undefined) {
         const pending = onStart(anim);
         const begin = (): number => {
-            anim.startTime = t + anim.options.delay;
+            anim._playback.startTime = t + anim.options.delay;
             anim.dispatchAnimationEvent("animationstart");
             return advanceBody(anim, t);
         };
@@ -185,22 +174,22 @@ function advanceBody<V extends Vars>(
     anim: KeyframesAnimation<V>,
     t: number,
 ): number {
-    if (anim.paused && anim.pausedTime === 0) {
-        anim.pausedTime = t;
-        return anim.t;
-    } else if (anim.pausedTime > 0 && !anim.paused) {
-        const dt = t - anim.pausedTime;
-        anim.startTime! += dt;
-        anim.pausedTime = 0;
+    if (anim._playback.paused && anim._playback.pausedTime === 0) {
+        anim._playback.pausedTime = t;
+        return anim._playback.t;
+    } else if (anim._playback.pausedTime > 0 && !anim._playback.paused) {
+        const dt = t - anim._playback.pausedTime;
+        anim._playback.startTime! += dt;
+        anim._playback.pausedTime = 0;
     }
 
-    anim.t = t - anim.startTime!;
+    anim._playback.t = t - anim._playback.startTime!;
 
-    if (anim.t >= anim.options.duration) {
+    if (anim._playback.t >= anim.options.duration) {
         onEnd(anim);
-        anim.t = anim.options.duration;
+        anim._playback.t = anim.options.duration;
     }
-    return anim.t;
+    return anim._playback.t;
 }
 
 /**
@@ -239,11 +228,11 @@ export function renderFrame<V extends Vars>(
     anim: KeyframesAnimation<V>,
     t: number,
 ): boolean {
-    if (anim.paused) {
+    if (anim._playback.paused) {
         return false;
     }
 
-    if (!anim.done) {
+    if (!anim._playback.done) {
         // Reuse the one hoisted buffer — steady-state playback allocates
         // no per-frame result object (proof:standalone-zero-alloc).
         anim.interpFrames(
@@ -327,11 +316,11 @@ export function cancelWAAPI<V extends Vars>(anim: KeyframesAnimation<V>): void {
 export async function playReducedMotion<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): Promise<void> {
-    anim.started = true;
+    anim._playback.started = true;
     anim.dispatchAnimationEvent("animationstart");
     anim.fillForwards();
-    anim.iteration = 0;
-    anim.done = true;
+    anim._playback.iteration = 0;
+    anim._playback.done = true;
     anim.dispatchAnimationEvent("animationend");
     settle(anim);
 }
@@ -351,8 +340,8 @@ export function snapToReducedMotion<V extends Vars>(
 ): void {
     cancelWAAPI(anim);
     anim.fillForwards();
-    anim.iteration = 0;
-    anim.done = true;
+    anim._playback.iteration = 0;
+    anim._playback.done = true;
     anim.dispatchAnimationEvent("animationend");
     settle(anim);
     resolvePlay(anim);
@@ -416,14 +405,14 @@ export async function play<V extends Vars>(
  * `pause` pauses. Use {@link resume} for the explicit resume.
  */
 export function pause<V extends Vars>(anim: KeyframesAnimation<V>): void {
-    if (anim.started) {
-        anim.paused = true;
+    if (anim._playback.started) {
+        anim._playback.paused = true;
     }
 }
 
 export function resume<V extends Vars>(anim: KeyframesAnimation<V>): void {
-    if (anim.started && anim.paused) {
-        anim.paused = false;
+    if (anim._playback.started && anim._playback.paused) {
+        anim._playback.paused = false;
         if (anim._playback._waAnimations.length > 0) {
             // WAAPI: the shadow loop is still installed (it keeps
             // rescheduling while paused, pausing the compositor each
@@ -440,7 +429,7 @@ export function resume<V extends Vars>(anim: KeyframesAnimation<V>): void {
 
 /** The explicit flip: pauses if playing, resumes if paused. */
 export function toggle<V extends Vars>(anim: KeyframesAnimation<V>): void {
-    if (anim.paused) resume(anim);
+    if (anim._playback.paused) resume(anim);
     else pause(anim);
 }
 
@@ -457,12 +446,12 @@ export function stop<V extends Vars>(anim: KeyframesAnimation<V>): void {
 }
 
 export function playing<V extends Vars>(anim: KeyframesAnimation<V>): boolean {
-    return !(!anim.started || anim.paused);
+    return !(!anim._playback.started || anim._playback.paused);
 }
 
 /** Returns the effective time accounting for direction reversal. */
 export function effectiveT<V extends Vars>(anim: KeyframesAnimation<V>): number {
-    return anim.reversed ? anim.options.duration - anim.t : anim.t;
+    return anim._playback.reversed ? anim.options.duration - anim._playback.t : anim._playback.t;
 }
 
 /**
@@ -473,14 +462,14 @@ export function effectiveT<V extends Vars>(anim: KeyframesAnimation<V>): number 
  * orthogonal to where the pixels rest.
  */
 export function settle<V extends Vars>(anim: KeyframesAnimation<V>): void {
-    anim.done = false;
-    anim.started = false;
-    anim.paused = false;
-    anim.reversed = false;
-    anim.iteration = 0;
-    anim.startTime = undefined;
-    anim.pausedTime = 0;
-    anim.t = 0;
+    anim._playback.done = false;
+    anim._playback.started = false;
+    anim._playback.paused = false;
+    anim._playback.reversed = false;
+    anim._playback.iteration = 0;
+    anim._playback.startTime = undefined;
+    anim._playback.pausedTime = 0;
+    anim._playback.t = 0;
 }
 
 /**
@@ -491,7 +480,7 @@ export function settle<V extends Vars>(anim: KeyframesAnimation<V>): void {
  */
 export function reset<V extends Vars>(anim: KeyframesAnimation<V>): void {
     cancelWAAPI(anim);
-    if (anim.started && anim.frames.length > 0) {
+    if (anim._playback.started && anim.frames.length > 0) {
         anim.fillBackwards();
     }
     settle(anim);

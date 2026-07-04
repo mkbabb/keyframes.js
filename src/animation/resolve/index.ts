@@ -12,7 +12,7 @@
  * Phase split by element-dependence:
  *   - Phase 1 (this file's `resolveValues`): `if(supports/media)` + `spring()` +
  *     the `@function` call-inlining — resolve with ZERO target context.
- *   - Phase 2 (the element-aware second pass, `engine/element-resolve.ts`):
+ *   - Phase 2 (the element-aware second pass, `./element-resolve`):
  *     `if(style(--p))`, `sibling-index()`, `sibling-count()` — read the resolved
  *     target, run post-`setTargets` (gated by {@link hasPhase2Node}).
  *

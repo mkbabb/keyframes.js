@@ -82,12 +82,12 @@ const ENGINE = "src/animation/engine/animation.ts";
 // repeat-aware accumulate, the captured underlying base, the non-numeric
 // `replace`-fallback + `COMPOSITION_FALLBACK` row) lives in this colocated
 // INTERNAL module. R.W2 — the engine god-class was carved: the `fromString`
-// `resolved.composition` READ moved to `engine/css-animation.ts`, and the
+// `resolved.composition` READ moved to `engine/css/css-animation.ts`, and the
 // `processFrame` → `applyComposition` CALL + the `iteration` thread moved to
 // `engine/interpolate.ts` (the hot-path carve). The anchors below follow the
 // code to its new home ("gate follows code").
 const COMPOSITION = "src/animation/engine/composition.ts";
-const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
+const CSS_ANIMATION = "src/animation/engine/css/css-animation.ts";
 const INTERPOLATE = "src/animation/engine/interpolate.ts";
 // R.W2 carved the flat `waapi/waapi.ts` into cohesive concerns; the WAAPI
 // `composite` keyword pass-through (`toWAAPIOptions` + `uniformComposite` +
@@ -96,7 +96,7 @@ const WAAPI = "src/animation/waapi/options.ts";
 const TEST = "test/composition-honored.test.ts";
 
 // ── raf-read — engine reads resolved.composition + threads it into addFrame ──
-// R.W2 — `fromString` lives in `engine/css-animation.ts` (the CSS subclass carve).
+// R.W2 — `fromString` lives in `engine/css/css-animation.ts` (the CSS subclass carve).
 requireAll("raf-read", CSS_ANIMATION, [
     {
         name: "fromString reads resolved.composition.get(percent)",
@@ -144,11 +144,14 @@ requireAll("accumulate", COMPOSITION, [
 ]);
 // The engine THREADS its own `iteration` into the composition runtime (the
 // counter the accumulate stack reads) — R.W2: the `applyComposition` seam moved
-// to `engine/interpolate.ts`, where it threads `iteration: anim.iteration`.
+// to `engine/interpolate.ts`. S.B2 (C-15) folded the run-state FSM into
+// PlaybackState single-STORAGE, so the hot path threads
+// `iteration: anim._playback.iteration` (the backing store) — the CompositionRuntime
+// interface still insulates `composition.ts`, which reads `runtime.iteration`.
 requireAll("accumulate", INTERPOLATE, [
     {
         name: "the interp hot-path threads its iteration counter into the composition runtime",
-        re: /iteration:\s*anim\.iteration/,
+        re: /iteration:\s*anim\._playback\.iteration/,
     },
 ]);
 

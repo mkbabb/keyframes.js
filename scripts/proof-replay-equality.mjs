@@ -98,9 +98,9 @@ const FRAME_COMPILER = "src/animation/compile/frame-compiler.ts";
 const SELECTOR = "src/animation/compile/selector.ts";
 const ENGINE = "src/animation/engine/animation.ts";
 // R.W2 — `bindTimeline` (the named-selector attach-time resolution) lives in the
-// carved `engine/css-animation.ts` CSS subclass; the play-time guard
+// carved `engine/css/css-animation.ts` CSS subclass; the play-time guard
 // (`assertNoUnresolvedNamedSelector`) stays on the base class as a delegate.
-const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
+const CSS_ANIMATION = "src/animation/engine/css/css-animation.ts";
 // S.B1 — the constants monolith carved into constants/{types,defaults}.ts; the
 // composite-floor anchor (`AnimationOptions.composite?: CompositeOperator`) is a
 // TYPE declaration and lives on the LIGHT-pure types module.
