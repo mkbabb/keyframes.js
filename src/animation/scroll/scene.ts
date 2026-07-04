@@ -427,5 +427,10 @@ export function createScrollScene(
     // a `ScrollSceneOptions` carries `scrub`/`snap`/… — both share `range`, so
     // the merged spec drives the scene. (A plain `CSSTimelineOptions` constructs
     // an un-scrubbed, un-snapped scene that maps the range 1:1.)
+    //
+    // The CONTINUOUS scrub/snap lane lives here; the DISCRETE `animation-trigger`
+    // layer (`.trigger` — the idle→active→done lifecycle with backward/repeat) is
+    // realized in the colocated `./trigger` module (S.F4 — the same concern-seam
+    // decomposition as `./range` / `./grammar`). Reach it via `createTriggerScene`.
     return new ScrollScene(spec as ScrollSceneOptions);
 }
