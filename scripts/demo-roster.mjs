@@ -210,6 +210,15 @@ export const CORRECTNESS_ROSTER = [
     "proof:brittleness",
     "proof:modern-web",
     "proof:platform-adopt",
+    // S.B8 — the doc-authority gate (root + src/animation + demo CLAUDE.md
+    // path/symbol liveness). NOT a browser gate, but build-dependent like the two
+    // above: clause (c) reads the built dist/keyframes.d.ts (present via `npm ci`'s
+    // prepare=build:lib) and clause (b) reads dist/gh-pages — both of which the
+    // demo-correctness job builds, so it rides this roster rather than the
+    // glass-ui-free fast gates job. Green as of S.B8's full map regen (the 22-path
+    // flat-tree backlog is discharged); a NAMED STATIC_DEMO_CARVEOUT entry in
+    // proof-ci-coverage.mjs keeps clause 7 (static-gate-placement) satisfied.
+    "proof:claude-paths-live",
 ];
 
 // ── The S.A0 enumerated born-RED BACKLOG (SPEC §3 S.A0). These four rows are a
