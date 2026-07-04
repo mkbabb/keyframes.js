@@ -85,10 +85,16 @@ function engineDtsRollupPlugin(): Plugin {
             // API-Extractor main entry point, NOT `engine/index.d.ts`).
             const emittedEntry = path.join(tmp, "public.d.ts");
             if (!fs.existsSync(emittedEntry)) {
-                this.warn(
-                    "kf-engine-dts-rollup: engine declarations did not emit; leaving dts as-is",
+                // S.B6 S6 (a08 F2) — HARD-fail the build. A silent warn+return
+                // left a STALE `dist/engine/index.d.ts` in place (the plugin only
+                // overwrites on success), shipping rotted subpath types with a
+                // green build — the same silent-drift class as the 12-byte-stub
+                // failure the barrel already guards.
+                this.error(
+                    "kf-engine-dts-rollup: engine declarations did not emit " +
+                        `(expected ${emittedEntry}). The ./engine subpath d.ts ` +
+                        "roll-up cannot regenerate; refusing to ship a stale artifact.",
                 );
-                return;
             }
 
             // 2. API Extractor → a self-contained roll-up (value.js external).
@@ -130,7 +136,14 @@ function engineDtsRollupPlugin(): Plugin {
                 tsdocMetadata: { enabled: false },
                 dtsRollup: {
                     enabled: true,
-                    untrimmedFilePath: extractorRollup,
+                    // S.B6 S2/S3 — emit the PUBLIC-trimmed roll-up (`@internal`
+                    // members stripped), MATCHING vite-plugin-dts's barrel pass
+                    // (which already trims `@internal` — 6 "Excluded from this
+                    // release type" markers). Before this, the engine plugin
+                    // emitted the UNTRIMMED roll-up, so S.B5's `@internal` tags on
+                    // `Sequence` diverged the two surfaces — the exact a29 F5
+                    // silent-drift `proof:dts-rollups-agree` (S.B6 S3) now gates.
+                    publicTrimmedFilePath: extractorRollup,
                 },
                 messages: {
                     compilerMessageReporting: { default: { logLevel: "none" } },
@@ -148,10 +161,16 @@ function engineDtsRollupPlugin(): Plugin {
                 showVerboseMessages: false,
             });
             if (!result.succeeded || !fs.existsSync(extractorRollup)) {
-                this.warn(
-                    "kf-engine-dts-rollup: API Extractor did not produce a roll-up",
+                // S.B6 S6 (a08 F2) — HARD-fail the build (was warn+return). A
+                // roll-up that silently fails to regenerate leaves the previous
+                // `dist/engine/index.d.ts` in place, so an incremental build ships
+                // types that no longer match the JS with no red.
+                this.error(
+                    "kf-engine-dts-rollup: API Extractor did not produce a " +
+                        `roll-up (succeeded=${result.succeeded}, exists=${fs.existsSync(
+                            extractorRollup,
+                        )}). Refusing to ship a stale ./engine subpath d.ts.`,
                 );
-                return;
             }
 
             // 3. Install the roll-up at the stable subpath the exports map points
