@@ -14,6 +14,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { compositeFramesAt } from "./support/group-probe";
 
 const v = (arr: unknown): number => (arr as { value: number }[])[0]!.value;
 
@@ -110,7 +111,7 @@ describe("F.W4 — the alias never fires for the group (S3 aliasing-correctness)
         for (const obj of Object.values(group.animations)) {
             obj.animation.t = 500;
         }
-        const composed = group.transformFramesGrouped(500) as Record<
+        const composed = compositeFramesAt(group, 500) as Record<
             string,
             unknown
         >;

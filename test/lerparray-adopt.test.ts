@@ -93,10 +93,10 @@ describe("J.W6 S2 — SoA lerpArray ADOPT guard (consume-edge lock)", () => {
             fn: frame.timingFunction.fn,
             ivs: frame.allInterpVars,
             from: new Float64Array(
-                frame.allInterpVars.map((iv) => iv.start.value as number),
+                frame.allInterpVars.map((iv) => iv.start.value as unknown as number),
             ),
             to: new Float64Array(
-                frame.allInterpVars.map((iv) => iv.stop.value as number),
+                frame.allInterpVars.map((iv) => iv.stop.value as unknown as number),
             ),
         }));
         const out = new Float64Array(8);
@@ -117,7 +117,7 @@ describe("J.W6 S2 — SoA lerpArray ADOPT guard (consume-edge lock)", () => {
                 // wrote out[k]. Equal within float-rounding of the two lerp
                 // formulations.
                 expect(out[k]).toBeCloseTo(
-                    seg.ivs[k]!.value.value as number,
+                    seg.ivs[k]!.value.value as unknown as number,
                     9,
                 );
             }

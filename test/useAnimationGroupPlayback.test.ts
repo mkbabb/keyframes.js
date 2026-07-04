@@ -1,7 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import type { StoredAnimationGroupControlOptions } from "@state";
 import { useAnimationGroupPlayback } from "../demo/@/components/custom/animation-transport/composables/useAnimationGroupPlayback";
+import { spyOnComposite } from "./support/group-probe";
+
+/** A complete `StoredAnimationGroupControlOptions` with test-relevant overrides —
+ *  the composable only reads/writes `.selectedAnimation`, but the type is total. */
+const storedOptions = (
+    over: Partial<StoredAnimationGroupControlOptions> = {},
+): StoredAnimationGroupControlOptions => ({
+    selectedControl: "controls",
+    selectedAnimation: "",
+    selectedKeyframesControl: "string",
+    isTimelineExpanded: false,
+    isControlsPanelOpen: true,
+    ...over,
+});
 
 const extractNumeric = (value: unknown): number => {
     if (Array.isArray(value)) {
@@ -45,10 +60,10 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
         yAnim.targets = [sharedTarget];
 
         const group = new AnimationGroup(xAnim as any, yAnim as any);
-        const transformFramesGrouped = vi.spyOn(group, "transformFramesGrouped");
+        const transformFramesGrouped = spyOnComposite(group);
         group.transform = vi.fn();
         const emit = vi.fn();
-        const storedControls = { selectedAnimation: "X", isControlsPanelOpen: true };
+        const storedControls = storedOptions({ selectedAnimation: "X", isControlsPanelOpen: true });
 
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,
@@ -79,9 +94,9 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
         const group = new AnimationGroup(xAnim as any, yAnim as any);
         group.singleTarget = false;
 
-        const transformFramesGrouped = vi.spyOn(group, "transformFramesGrouped");
+        const transformFramesGrouped = spyOnComposite(group);
         const emit = vi.fn();
-        const storedControls = { selectedAnimation: "X", isControlsPanelOpen: true };
+        const storedControls = storedOptions({ selectedAnimation: "X", isControlsPanelOpen: true });
 
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,
@@ -116,7 +131,7 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
         group.singleTarget = false;
 
         const emit = vi.fn();
-        const storedControls = { selectedAnimation: "Y", isControlsPanelOpen: true };
+        const storedControls = storedOptions({ selectedAnimation: "Y", isControlsPanelOpen: true });
 
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,

@@ -20,7 +20,7 @@ import { resolveEasing } from "../src/animation/easing";
 
 const DURATION = 1000;
 
-const boundaryTimes = (anim: CSSKeyframesAnimation): number[] => {
+const boundaryTimes = (anim: CSSKeyframesAnimation<any>): number[] => {
     const pts = new Set<number>();
     for (const frame of anim.frames) {
         pts.add(frame.time.start);
@@ -48,7 +48,7 @@ const fixedInteriorTimes = (
 
 /** The worst chord-to-curve error of an emitted offset set, fine-grid sampled. */
 const chordError = (
-    anim: CSSKeyframesAnimation,
+    anim: CSSKeyframesAnimation<any>,
     offsets: number[],
     duration: number,
 ): number => {

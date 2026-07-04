@@ -37,7 +37,7 @@
     ],
     "scripts": {
         "prepare": "npm run build:lib",
-        "check": "tsc --noEmit",
+        "check": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
         "check:lib": "tsc --noEmit -p tsconfig.lib.json",
         "dev": "vite",
         "dev:playground": "vite --mode playground",

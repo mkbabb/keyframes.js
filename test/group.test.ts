@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CSSKeyframesAnimation, KeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { compositeFramesAt } from "./support/group-probe";
 import type { AnimationLayerConfig } from "../src/animation/constants";
 
 function createOpacityAnim(name: string, duration = 1000): CSSKeyframesAnimation<any> {
@@ -40,8 +41,8 @@ describe("AnimationGroup constructor", () => {
 
         expect(group.animations["alpha"]).toBeDefined();
         expect(group.animations["beta"]).toBeDefined();
-        expect(group.animations["alpha"].animation).toBe(a);
-        expect(group.animations["beta"].animation).toBe(b);
+        expect(group.animations["alpha"]!.animation).toBe(a);
+        expect(group.animations["beta"]!.animation).toBe(b);
     });
 
     it("detects singleTarget when all animations share the same target", () => {
@@ -97,7 +98,7 @@ describe("AnimationGroup.transformFramesGrouped", () => {
         const mockTransform = vi.fn();
         group.transform = mockTransform;
 
-        const result = group.transformFramesGrouped(500);
+        const result = compositeFramesAt(group, 500);
 
         expect(mockTransform).toHaveBeenCalledOnce();
         expect(result).toBeDefined();
@@ -119,7 +120,7 @@ describe("AnimationGroup.transformFramesGrouped", () => {
         group.transform = mockTransform;
 
         // Both have opacity — b should win (last in iteration order)
-        const result = group.transformFramesGrouped(500);
+        const result = compositeFramesAt(group, 500);
         expect(result).toBeDefined();
     });
 
@@ -134,7 +135,7 @@ describe("AnimationGroup.transformFramesGrouped", () => {
         a.paused = true; // prevent interpFrames call
         b.paused = true;
 
-        group.transformFramesGrouped(0);
+        compositeFramesAt(group, 0);
         expect(group.done).toBe(true);
     });
 
@@ -149,7 +150,7 @@ describe("AnimationGroup.transformFramesGrouped", () => {
         b.done = false;
         b.paused = true;
 
-        group.transformFramesGrouped(0);
+        compositeFramesAt(group, 0);
         expect(group.done).toBe(false);
     });
 });
@@ -402,7 +403,7 @@ describe("AnimationGroup layering", () => {
         a.paused = true; // prevent interpFrames
         b.paused = true;
 
-        group.transformFramesGrouped(0);
+        compositeFramesAt(group, 0);
         expect(group.transform).toHaveBeenCalled();
     });
 

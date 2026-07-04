@@ -62,7 +62,7 @@ const manifest = JSON.parse(
 const kfBlock = (css: string): string => css.slice(css.indexOf("@keyframes"));
 
 /** The serialized, sorted, flattened midpoint of `interpFrames(0.5)` (= at(0.5)). */
-const midpointSig = (a: CSSKeyframesAnimation): string => {
+const midpointSig = (a: CSSKeyframesAnimation<any>): string => {
     const r = a.at(0.5);
     return Object.keys(r)
         .sort()

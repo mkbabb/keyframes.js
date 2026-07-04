@@ -37,7 +37,7 @@ if (typeof globalThis.AnimationEvent === "undefined") {
             elapsedTime: number;
             constructor(
                 type: string,
-                init?: { animationName?: string; elapsedTime?: number },
+                init?: AnimationEventInit,
             ) {
                 super(type, init);
                 this.animationName = init?.animationName ?? "";

@@ -33,7 +33,7 @@ describe("D-3 measure: changed-keys write benefit on the interpolation hot path"
         for (let t = 1; t < 1000; t += 1000 / 60) {
             const vars = anim.at(t / 1000, false);
             const styled = unflattenObjectToString(
-                vars as unknown as Record<string, unknown>,
+                vars as unknown as Record<string, any[]>,
             ) as Record<string, string>;
             if (prev) {
                 for (const k in styled) {

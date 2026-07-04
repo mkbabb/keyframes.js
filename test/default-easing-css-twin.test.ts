@@ -36,7 +36,6 @@ import { isWAAPIEligible } from "../src/animation/waapi";
 // css-twin check. Stub a no-op `animate` so the gate reaches the twin logic —
 // the same minimal stub `waapi-lifecycle.test.ts` installs.
 beforeEach(() => {
-    // @ts-expect-error — augment the jsdom prototype with a WAAPI stub
     HTMLElement.prototype.animate = () => ({}) as unknown as globalThis.Animation;
 });
 afterEach(() => {

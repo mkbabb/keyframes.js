@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { compositeFramesAt } from "./support/group-probe";
 import { NumericAnimation } from "../src/animation/physics/numeric";
 
 /**
@@ -13,7 +14,7 @@ import { NumericAnimation } from "../src/animation/physics/numeric";
  * retired implementation allocated a fresh `{}` (and a fresh `filteredValues`
  * object per whitelisted layer) each frame, returning a NEW reference. The
  * identity check therefore reds the moment a per-frame literal returns — proven
- * by the `LeakyGroup` bite below. (A `--expose-gc` heap-delta runs as a bonus
+ * by the fresh-spread bite below. (A `--expose-gc` heap-delta runs as a bonus
  * when the runtime exposes `gc`.)
  */
 
@@ -52,9 +53,9 @@ function mixedGroup(): AnimationGroup<any> {
 describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame", () => {
     it("reuses one composite buffer across frames (same reference)", () => {
         const group = mixedGroup();
-        const r1 = group.transformFramesGrouped(100);
-        const r2 = group.transformFramesGrouped(200);
-        const r3 = group.transformFramesGrouped(300);
+        const r1 = compositeFramesAt(group, 100);
+        const r2 = compositeFramesAt(group, 200);
+        const r3 = compositeFramesAt(group, 300);
         // Same buffer every frame → no per-frame composite allocation.
         expect(r1).toBe(r2);
         expect(r2).toBe(r3);
@@ -62,8 +63,8 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
 
     it("clears the buffer in place — no stale keys leak across frames", () => {
         const group = mixedGroup();
-        const first = { ...group.transformFramesGrouped(100) };
-        const second = group.transformFramesGrouped(200);
+        const first = { ...compositeFramesAt(group, 100) };
+        const second = compositeFramesAt(group, 200);
         // The reused buffer holds only the current frame's keys (cleared on
         // entry), so its key-set is exactly the live composite, not an
         // accumulation.
@@ -81,7 +82,7 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
             animation: wl,
             layer: { zIndex: 0, properties: new Set(["opacity"]) },
         });
-        const out = group.transformFramesGrouped(500);
+        const out = compositeFramesAt(group, 500);
         const keys = Object.keys(out);
         // The whitelist keeps ONLY `opacity`; the (non-whitelisted) transform
         // contribution is skipped by the inline `continue`, never materialized
@@ -92,16 +93,18 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
 
     it("bite-proof: a per-frame allocation reds the identity check", () => {
         // The regression — a fresh object returned per frame — is exactly what
-        // the identity assertion above catches.
-        class LeakyGroup extends AnimationGroup<any> {
-            override transformFramesGrouped(_t: number) {
-                return {} as Record<string, unknown>;
-            }
-        }
-        const leaky = new LeakyGroup(opacityAnim("x"), opacityAnim("y"));
-        expect(leaky.transformFramesGrouped(1)).not.toBe(
-            leaky.transformFramesGrouped(2),
-        );
+        // the identity assertion above catches. The retired impl returned a NEW
+        // object each frame; model that leak by spreading the live composite
+        // buffer into fresh objects. Two spreads are distinct references, so the
+        // `.toBe` identity assertion the suite relies on REDs on a per-frame
+        // literal — the instrument bites. (The old `LeakyGroup extends
+        // AnimationGroup` override is gone: `transformFramesGrouped` is `private`
+        // and cannot be overridden — S.B7 routes composite reads through the
+        // `compositeFramesAt` seam, so this bite spreads the seam's output.)
+        const group = mixedGroup();
+        const leakA = { ...compositeFramesAt(group, 1) };
+        const leakB = { ...compositeFramesAt(group, 2) };
+        expect(leakA).not.toBe(leakB);
     });
 
     it("heap-delta over a steady-state window ≈ 0 (when gc is exposed)", () => {
@@ -114,10 +117,10 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
         }
         const group = mixedGroup();
         // Warm up (first frame may lazily resolve the transform).
-        for (let i = 0; i < 20; i++) group.transformFramesGrouped(i);
+        for (let i = 0; i < 20; i++) compositeFramesAt(group, i);
         gc();
         const before = process.memoryUsage().heapUsed;
-        for (let i = 0; i < 2000; i++) group.transformFramesGrouped(i);
+        for (let i = 0; i < 2000; i++) compositeFramesAt(group, i);
         gc();
         const after = process.memoryUsage().heapUsed;
         // 2000 frames, zero per-frame composite allocation → growth within the

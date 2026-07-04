@@ -147,7 +147,7 @@ describe("decodeStateFromHash error handling", () => {
 
 describe("getAllState", () => {
     it("does not include _storeTimestamp in output", () => {
-        const state = getAllState() as any;
+        const state = getAllState(undefined) as any;
 
         // Verify _storeTimestamp is stripped from both stores
         expect(state.options._storeTimestamp).toBeUndefined();
@@ -155,15 +155,15 @@ describe("getAllState", () => {
     });
 
     it("idempotency: calling getAllState twice returns structurally equal state", () => {
-        const state1 = getAllState();
-        const state2 = getAllState();
+        const state1 = getAllState(undefined);
+        const state2 = getAllState(undefined);
 
         expect(state1).toEqual(state2);
     });
 
     it("idempotency: encoding getAllState twice produces same hash", () => {
-        const hash1 = encodeStateToHash(getAllState());
-        const hash2 = encodeStateToHash(getAllState());
+        const hash1 = encodeStateToHash(getAllState(undefined));
+        const hash2 = encodeStateToHash(getAllState(undefined));
 
         expect(hash1).toBe(hash2);
     });

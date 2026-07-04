@@ -351,7 +351,6 @@ describe("S5 — additive native scroll-timeline bridge", () => {
 
     const installAnimate = () => {
         const calls: { keyframes: unknown; options: unknown }[] = [];
-        // @ts-expect-error — faithful Element.animate stub
         HTMLElement.prototype.animate = function (keyframes, options) {
             calls.push({ keyframes, options });
             return { finished: Promise.resolve(), cancel() {} } as unknown as globalThis.Animation;

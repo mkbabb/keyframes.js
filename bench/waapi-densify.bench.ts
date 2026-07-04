@@ -58,7 +58,7 @@ export const fixedInteriorTimes = (
 
 /** The sorted boundary times of an animation's frames (start + stop of each). */
 export const boundaryTimes = <V extends Record<string, number | string>>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): number[] => {
     const pts = new Set<number>();
     for (const frame of animation.frames) {
@@ -80,7 +80,7 @@ export const boundaryTimes = <V extends Record<string, number | string>>(
 const GRID = 257; // an odd fine grid → probes land BETWEEN the fixed stops
 
 export const chordToCurveError = <V extends Record<string, number | string>>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     emittedOffsets: number[],
     duration: number,
 ): number => {
@@ -181,7 +181,7 @@ export const chordToCurveError = <V extends Record<string, number | string>>(
  */
 export type CorpusEntry = {
     name: string;
-    build: () => Promise<Animation<Record<string, number | string>>>;
+    build: () => Promise<KeyframesAnimation<Record<string, number | string>>>;
 };
 
 export const buildCorpus = (): CorpusEntry[] => [
@@ -198,7 +198,7 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
     {
@@ -215,7 +215,7 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translateX(0px); } to { transform: translateX(200px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
     {
@@ -234,7 +234,7 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translate(0px, 0px); } to { transform: translate(120px, 240px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
     {
@@ -248,7 +248,7 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
 ];
@@ -326,7 +326,7 @@ if (underVitest)
     describe("WAAPI densify emit (Q.WB4 — build-time, observe-only throughput)", () => {
         let corpus: {
             name: string;
-            animation: Animation<Record<string, number | string>>;
+            animation: KeyframesAnimation<Record<string, number | string>>;
             sorted: number[];
         }[] = [];
 

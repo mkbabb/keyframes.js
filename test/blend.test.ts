@@ -20,6 +20,7 @@ import { describe, expect, it } from "vitest";
 import { ValueUnit } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { compositeFramesAt } from "./support/group-probe";
 
 /** Build a parsed `opacity` animation sampled at `t` (its own clock). */
 const opacityAt = (css: string, t: number): CSSKeyframesAnimation<any> => {
@@ -48,7 +49,7 @@ describe("proof:blend (a) — add accumulates", () => {
             { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
             { animation: top, layer: { blendMode: "add", zIndex: 1 } },
         );
-        const out = group.transformFramesGrouped(0);
+        const out = compositeFramesAt(group, 0);
         expect(scalar(out, "opacity")).toBeCloseTo(1.0, 10);
     });
 });
@@ -67,7 +68,7 @@ describe("proof:blend (b) — weighted lerps", () => {
                 layer: { blendMode: "weighted", zIndex: 1, weight: 0.5 },
             },
         );
-        const out = group.transformFramesGrouped(0);
+        const out = compositeFramesAt(group, 0);
         expect(scalar(out, "opacity")).toBeCloseTo(0.25, 10);
     });
 });
@@ -84,7 +85,7 @@ describe("proof:blend (c) — the GL-6 clamp contract (add does NOT clamp)", () 
             { animation: a, layer: { blendMode: "replace", zIndex: 0 } },
             { animation: b, layer: { blendMode: "add", zIndex: 1 } },
         );
-        const out = group.transformFramesGrouped(0);
+        const out = compositeFramesAt(group, 0);
         expect(scalar(out, "opacity")).toBeCloseTo(1.6, 10);
     });
 });
@@ -108,7 +109,7 @@ describe("proof:blend (d) — the multi-component leaf (GL-2)", () => {
             { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
             { animation: top, layer: { blendMode: "add", zIndex: 1 } },
         );
-        const out: any = group.transformFramesGrouped(0);
+        const out: any = compositeFramesAt(group, 0);
         const leaf = out["margin"];
         expect(Array.isArray(leaf)).toBe(true);
         expect(leaf.length).toBe(2);
@@ -135,7 +136,7 @@ describe("proof:blend (d) — the multi-component leaf (GL-2)", () => {
             { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
             { animation: top, layer: { blendMode: "add", zIndex: 1 } },
         );
-        const out: any = group.transformFramesGrouped(0);
+        const out: any = compositeFramesAt(group, 0);
         const leaf = out["margin"];
         expect(Array.isArray(leaf)).toBe(true);
         expect(leaf.length).toBe(2);

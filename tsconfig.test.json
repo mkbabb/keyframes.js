@@ -1,0 +1,14 @@
+{
+    // S.B7 — the TEST + BENCH perimeter under `tsc --noEmit`. Before S.B7 `test/`
+    // and `bench/` sat OUTSIDE every typecheck (tsconfig.json is `src/` + `demo/`
+    // only), so private-method reaches (`vi.spyOn(private)` / `(g as any)`), stale
+    // 5.0.0 `Animation<…>` types, and defaulted-arg drift were all invisible to
+    // `check`. This config joins the `check` roster (package.json `check`) so a
+    // private-access planted in a test REDs. It inherits tsconfig.json's paths
+    // (incl. the `@mkbabb/keyframes.js` self-path + the `@state`/`@components`
+    // demo aliases) and pulls src/ + demo/ in transitively through the tests'
+    // imports — so the seam files (`test/support/`, `test/stubs/`) and the demo
+    // composables the scene tests exercise are all covered.
+    "extends": "./tsconfig.json",
+    "include": ["test/", "bench/"]
+}

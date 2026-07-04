@@ -53,7 +53,6 @@ let created: FakeWAAnimation[] = [];
 
 beforeEach(() => {
     created = [];
-    // @ts-expect-error — augment the jsdom prototype with a WAAPI stub
     HTMLElement.prototype.animate = function () {
         const a = new FakeWAAnimation();
         created.push(a);

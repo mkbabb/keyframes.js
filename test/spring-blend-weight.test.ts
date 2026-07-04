@@ -28,6 +28,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ValueUnit } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { compositeFramesAt } from "./support/group-probe";
 import {
     SpringProgress,
     reseatToSpring,
@@ -114,7 +115,7 @@ describe("proof:spring-blend-weight (a) — PHYS-C: the blend weight follows the
         // frames integrate the spring.
         for (let i = 1; i <= 120; i++) {
             group.advanceTo(i * 16);
-            const out = group.transformFramesGrouped(i * 16);
+            const out = compositeFramesAt(group, i * 16);
             const w = scalar(out, "opacity");
             peak = Math.max(peak, w);
             last = w;
@@ -150,7 +151,7 @@ describe("proof:spring-blend-weight (a) — PHYS-C: the blend weight follows the
         let peak = -Infinity;
         for (let i = 1; i <= 30; i++) {
             group.advanceTo(i * 16);
-            const out = group.transformFramesGrouped(i * 16);
+            const out = compositeFramesAt(group, i * 16);
             peak = Math.max(peak, scalar(out, "opacity"));
         }
         // A constant weight=1 never exceeds the 1.0 target — no overshoot.
@@ -184,11 +185,11 @@ describe("proof:spring-blend-weight (a) — PHYS-C: the blend weight follows the
         });
         // Advance mid-flight (the spring is still ringing, _hasLayerSprings true).
         group.advanceTo(16);
-        const r1 = group.transformFramesGrouped(16);
+        const r1 = compositeFramesAt(group, 16);
         group.advanceTo(32);
-        const r2 = group.transformFramesGrouped(32);
+        const r2 = compositeFramesAt(group, 32);
         group.advanceTo(48);
-        const r3 = group.transformFramesGrouped(48);
+        const r3 = compositeFramesAt(group, 48);
         // Same buffer every frame → no per-frame composite allocation while the
         // spring drives the weight.
         expect(r1).toBe(r2);

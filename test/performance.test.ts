@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
+import { compositeFramesAt } from "./support/group-probe";
 
 // These are SMOKE tests — they catch a gross (5-10x) hot-path regression,
 // not a benchmark. The real perf gate is `npm run bench` (vitest bench).
@@ -96,7 +97,7 @@ describe("transformFramesGrouped performance", () => {
             a.t = t;
             b.t = t;
             c.t = t;
-            group.transformFramesGrouped(t);
+            compositeFramesAt(group, t);
         }
         const elapsed = performance.now() - start;
 
@@ -136,7 +137,7 @@ describe("Animation stress tests", () => {
                 for (const obj of Object.values(group.animations)) {
                     obj.animation.t = t;
                 }
-                group.transformFramesGrouped(t);
+                compositeFramesAt(group, t);
             }
         }
         const elapsed = performance.now() - start;

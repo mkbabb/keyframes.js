@@ -180,7 +180,7 @@ describe("L.W9 S7 — un-normalized linear() round-trip (PENDING until value.js 
                 dampingFraction: 0.45,
             });
             expect(spring.css).toMatch(/^linear\(/);
-            const flatComma = spring.css.replace(/\s+(-?[\d.]+%)/g, ", $1");
+            const flatComma = spring.css!.replace(/\s+(-?[\d.]+%)/g, ", $1");
             expect(flatComma).toContain(", "); // it IS the flat-comma form
 
             // VJ-L2: value.js's parser accepts the serializer's own output — no
