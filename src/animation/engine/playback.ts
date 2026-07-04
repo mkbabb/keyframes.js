@@ -1,7 +1,10 @@
 /**
- * `engine/playback.ts` — the STANDALONE-play lifecycle machine + the
- * `PlaybackState` struct that OWNS its run-state, lifted off the
- * `KeyframesAnimation` god-object (Q.WF1 / R.W2 — the engine carve).
+ * `engine/playback.ts` — the STANDALONE-play lifecycle machine (the play/advance/
+ * transport FREE FUNCTIONS), lifted off the `KeyframesAnimation` god-object
+ * (Q.WF1 / R.W2 — the engine carve). The run-state STORE they mutate — the
+ * `PlaybackState` struct — lives beside it in `./playback-state` (S.B2 carved the
+ * struct off on the STATE↔BEHAVIOR cohesion seam; the free functions reach it
+ * through `anim._playback`).
  *
  * A colocated INTERNAL engine module: statically imported by `engine/animation.ts`,
  * never re-exported beyond the engine barrel, riding the SAME heavy chunk behind
@@ -42,60 +45,6 @@ import { withReducedMotion } from "../internal/reduced-motion";
 import { isWAAPIEligible, playWAAPI } from "../waapi";
 
 /**
- * The standalone-play machine's OWN run-state (R.W2 — replaces the
- * `PlaybackHost` privacy-inversion interface). `KeyframesAnimation` composes
- * ONE of these as a `readonly _playback` field, so the play-machine state has a
- * single owner instead of being scattered as privates the class re-published
- * through a cast:
- *
- *   - `resolvePromise`   — the standalone-loop deferred resolver (`playRAF`
- *                          arms it, `resolvePlay` fires it).
- *   - `_playingPromise`  — the held in-flight play promise (`get finished`
- *                          exposes it; `play` arms it; the `finally` clears it).
- *   - `_waAnimations`    — the live WAAPI compositor animations during a WAAPI
- *                          delegation (one per target); cancelled on teardown.
- *   - `_boundFrame`      — the frame callback bound ONCE at construction, never
- *                          re-bound per loop (the per-loop-closure-free idiom).
- *   - `_interpOut`       — the ONE hoisted interp buffer the play loop reuses
- *                          every frame (zero-alloc steady state).
- *
- * ── S.B2 (C-15) — PlaybackState is the SOLE STORAGE for the run-state FSM.
- * The eight transition fields (`started`/`done`/`paused`/`reversed`/`iteration`/
- * `t`/`startTime`/`pausedTime`) fold OFF the `KeyframesAnimation` class body and
- * live HERE as the single backing store; the class exposes them as accessor
- * delegates over `this._playback.*` (so the FSM stays a public, externally-written
- * surface — group/, sequence/, ingest/, waapi/, the tests, and the demo's
- * `contractAnim.t =` writes all keep working through the accessors). The
- * engine-INTERNAL hot path reads/writes `anim._playback.*` DIRECTLY (one extra
- * monomorphic load — a shape cost, not an allocation; proof:standalone-zero-alloc
- * / proof:interp-fastprops stay green). `managed` is deliberately NOT here — it is
- * loop-OWNERSHIP, not run-state, and never resets in `settle`. The literal
- * single-WRITER hard fold (a public `seek(ms)` verb + MIGRATION) is a future
- * BREAKING wave (§8-3), out of S scope.
- */
-export class PlaybackState {
-    resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
-    _playingPromise: Promise<void> | null = null;
-    _waAnimations: globalThis.Animation[] = [];
-    readonly _boundFrame: (t: number) => boolean | Promise<boolean>;
-    readonly _interpOut: Record<string, unknown> = {};
-
-    // ── the run-state FSM (C-15 single-STORAGE; accessor-delegated on the class) ──
-    startTime: number | undefined = undefined;
-    pausedTime: number = 0;
-    t: number = 0;
-    iteration: number = 0;
-    started: boolean = false;
-    done: boolean = false;
-    reversed: boolean = false;
-    paused: boolean = false;
-
-    constructor(frameCb: (t: number) => boolean | Promise<boolean>) {
-        this._boundFrame = frameCb;
-    }
-}
-
-/**
  * Fire a lifecycle `AnimationEvent` on each bound target (R.W2 — F-6). SSR-safe
  * capability contract: `AnimationEvent`/`dispatchEvent` are DOM capabilities —
  * when absent (Node, non-element targets) the lifecycle proceeds without events
@@ -132,6 +81,22 @@ export function shouldReverse(direction: string, iteration: number): boolean {
     );
 }
 
+/**
+ * Flip the direction, adjusting `startTime` so `effectiveT` stays continuous
+ * across the flip (R.W2 delegation — body carved off the class at S.B2). Before:
+ * `effectiveT = reversed ? duration - t : t`; after the flip we need the SAME
+ * `effectiveT`, so shift the raw clock so `t → duration - t`. The class keeps a
+ * thin `reverse()` delegate; `onStart` also calls this at play-start.
+ */
+export function reverse<V extends Vars>(anim: KeyframesAnimation<V>): void {
+    if (anim._playback.startTime !== undefined) {
+        const rawT = anim._playback.t;
+        const shift = anim.options.duration - 2 * rawT;
+        anim._playback.startTime -= shift;
+    }
+    anim._playback.reversed = !anim._playback.reversed;
+}
+
 /** SYNC unless `delay > 0` — then a thenable resolving after the sleep. */
 export function onStart<V extends Vars>(
     anim: KeyframesAnimation<V>,
@@ -139,7 +104,7 @@ export function onStart<V extends Vars>(
     anim._playback.reversed = false;
 
     if (shouldReverse(anim.options.direction, anim._playback.iteration)) {
-        anim.reverse();
+        reverse(anim);
     }
 
     if (anim.options.fillMode === "backwards" || anim.options.fillMode === "both") {

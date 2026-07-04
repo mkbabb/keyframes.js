@@ -31,11 +31,11 @@ import {
     transformTargetsStyle,
 } from "../compile/parse-flatten";
 import * as playback from "./playback";
-import { PlaybackState } from "./playback";
+import { PlaybackState } from "./playback-state";
 import * as interpolate from "./interpolate";
 import * as setters from "./option-setters";
 import * as compileBridge from "./compile-bridge";
-import { resolveElementAwareValues } from "./element-resolve";
+import { bindTargets } from "../resolve/element-resolve";
 
 // `getAnimationId` moved to the value.js-free `internal/animation-id.ts` leaf
 // (R.W2c — kills the group→engine edge); re-exported, surface UNCHANGED.
@@ -84,17 +84,10 @@ export class KeyframesAnimation<V extends Vars = any> {
      * own them via `this._playback` directly (no cast, no re-publication). */
     readonly _playback: PlaybackState;
 
-    /**
-     * The run-state FSM (S.B2 — C-15). Single-STORAGE in the composed
-     * `_playback` struct; the class exposes the eight transition fields
-     * (`started`/`done`/`paused`/`reversed`/`iteration`/`t`/`startTime`/
-     * `pausedTime`) as PUBLIC accessor delegates so every external writer
-     * (`group/`, `sequence/`, `ingest/`, `waapi/`, the tests, the demo's
-     * `contractAnim.t =` writes) keeps its `anim.<field> =` write UNCHANGED while
-     * the backing store is unified. The engine-INTERNAL hot path reads/writes
-     * `anim._playback.*` directly (one extra monomorphic load — a shape cost, not
-     * an allocation). `managed` stays a real field (ownership, not run-state).
-     */
+    // The run-state FSM (S.B2 — C-15): single-STORAGE in `_playback`, exposed as
+    // PUBLIC accessor delegates so every external writer keeps its `anim.<field> =`
+    // write while the backing store is unified (the engine-internal hot path reads
+    // `anim._playback.*` directly). `managed` stays a real field (ownership).
     get startTime(): number | undefined { return this._playback.startTime; }
     set startTime(v: number | undefined) { this._playback.startTime = v; }
     get pausedTime(): number { return this._playback.pausedTime; }
@@ -341,15 +334,9 @@ export class KeyframesAnimation<V extends Vars = any> {
     }
 
     reverse() {
-        // Adjust startTime so effectiveT remains continuous across the flip.
-        // Before: effectiveT = reversed ? duration - t : t
-        // After flip we need the same effectiveT, so shift raw t to (duration - t).
-        if (this.startTime !== undefined) {
-            const rawT = this.t;
-            const shift = this.options.duration - 2 * rawT;
-            this.startTime -= shift;
-        }
-        this.reversed = !this.reversed;
+        // The startTime clock-shift that keeps `effectiveT` continuous across the
+        // flip is a playback concern — body in `./playback` (R.W2 delegation).
+        playback.reverse(this);
         return this;
     }
 
@@ -480,28 +467,10 @@ export class KeyframesAnimation<V extends Vars = any> {
 
     setTargets(...targets: HTMLElement[]) {
         this.targets = targets;
-
-        // Q.WB1 — the emerging-CSS Phase-2 element-AWARE resolution pass (R.W2:
-        // body in `./element-resolve`). Re-runs the resolver over the pre-flatten
-        // template snapshot against the now-bound element, then re-`parse()`s;
-        // returns true iff it re-parsed. The common all-concrete animation skips
-        // it (returns false) and takes the fast target-propagate path below.
-        const rebuilt = resolveElementAwareValues(this);
-        if (!rebuilt) {
-            // The fast path (no Phase-2 node): propagate the bound target onto the
-            // ALREADY-compiled interp carriers so value.js's computed-unit DOM
-            // resolution reads the live box.
-            this.frames.forEach((frame) => {
-                Object.values(frame.interpVars).forEach((values) => {
-                    values.forEach(({ start, stop, value }) => {
-                        start.setTargets(this.targets);
-                        stop.setTargets(this.targets);
-                        value.setTargets(this.targets);
-                    });
-                });
-            });
-        }
-
+        // S.B2 — the element-binding body lives in `../resolve/element-resolve`
+        // (the emerging-CSS Phase-2 element-aware pass + the fast target-propagate
+        // fallback): it coheres with the resolve zone, not the run-state class.
+        bindTargets(this);
         return this;
     }
 
