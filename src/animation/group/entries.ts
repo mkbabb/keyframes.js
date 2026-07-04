@@ -17,7 +17,7 @@
  */
 import { getAnimationId } from "../internal/animation-id";
 import type { KeyframesAnimation } from "../engine";
-import type { AnimationGroupEntry, AnimationGroupObject } from "./group";
+import type { AnimationGroupEntry, AnimationGroupObject } from "./types";
 
 /**
  * Resolve a name-or-Animation to its registration key — the string IS the key;

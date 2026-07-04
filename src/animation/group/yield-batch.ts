@@ -10,7 +10,7 @@
  * passes in.
  */
 import { yieldToMain } from "../internal/scheduler";
-import type { AnimationGroupEntry } from "./group";
+import type { AnimationGroupEntry } from "./types";
 
 /**
  * Advance one slice of children to absolute clock `t` — the J.W6 S1 sync fast

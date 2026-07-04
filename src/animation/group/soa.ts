@@ -45,7 +45,7 @@
  */
 import { ValueUnit, lerp } from "@mkbabb/value.js";
 import type { AnimationLayerConfig } from "../constants";
-import type { AnimationGroupEntry } from "./group";
+import type { AnimationGroupEntry } from "./types";
 
 /**
  * Typed blend-carrier guard — the group is heavy-side (it statically composes

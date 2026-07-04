@@ -21,10 +21,12 @@ import type {
     TransformFunction,
     Vars,
 } from "../constants";
-// R.W2c — `AnimationGroup` TYPE-ONLY (erased); `.group()` builds it via the
-// neutral `getGroupFactory()` seam, inverting the engine→group back-edge.
-import type { AnimationGroup } from "../group";
-import { getGroupFactory } from "../internal/group-factory";
+// S.B4 (a06 F1/F2) — the engine carries ZERO edge to `group/`. The former
+// `.group()` convenience (which reached the group ctor via the
+// `internal/group-factory` service locator) is EXCISED; group construction is
+// now `AnimationGroup.of(first, ...rest)` (genuine ownership — the compositor
+// owns its own construction), so the engine↔group ring is one-directional
+// (group → engine) BY CONSTRUCTION, with no back-edge to invert.
 import { FrameCompiler } from "../compile/frame-compiler";
 import {
     type ParsedVarMap,
@@ -474,11 +476,6 @@ export class KeyframesAnimation<V extends Vars = any> {
         return this;
     }
 
-    group(...animations: KeyframesAnimation<V>[]): AnimationGroup<V> {
-        // R.W2c — via the neutral DI seam (no static engine→group edge).
-        const group = getGroupFactory()(this, ...animations);
-        return group as unknown as AnimationGroup<V>;
-    }
 }
 
 // R.W2/S.B2 carve homes: `CSSKeyframesAnimation` → `./css` sub-zone (F-4); the
