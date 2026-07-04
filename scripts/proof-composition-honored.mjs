@@ -144,11 +144,14 @@ requireAll("accumulate", COMPOSITION, [
 ]);
 // The engine THREADS its own `iteration` into the composition runtime (the
 // counter the accumulate stack reads) — R.W2: the `applyComposition` seam moved
-// to `engine/interpolate.ts`, where it threads `iteration: anim.iteration`.
+// to `engine/interpolate.ts`. S.B2 (C-15) folded the run-state FSM into
+// PlaybackState single-STORAGE, so the hot path threads
+// `iteration: anim._playback.iteration` (the backing store) — the CompositionRuntime
+// interface still insulates `composition.ts`, which reads `runtime.iteration`.
 requireAll("accumulate", INTERPOLATE, [
     {
         name: "the interp hot-path threads its iteration counter into the composition runtime",
-        re: /iteration:\s*anim\.iteration/,
+        re: /iteration:\s*anim\._playback\.iteration/,
     },
 ]);
 
