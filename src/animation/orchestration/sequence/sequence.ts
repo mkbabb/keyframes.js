@@ -57,8 +57,7 @@
  */
 
 import { clamp } from "../../internal/leaves";
-// S.B4 (a16 F3) — the reduced-motion probe is the ONE engine-wide detector
-// (`internal/reduced-motion`), not a transport-local copy; the DRY.
+// S.B4 (a16 F3) — the ONE engine-wide reduced-motion detector, not a copy (DRY).
 import { prefersReducedMotion } from "../../internal/reduced-motion";
 import { RAFPlayback } from "../../physics/playback";
 // The pure master-clock transport math (the repeat/yoyo fold, the rest phase,

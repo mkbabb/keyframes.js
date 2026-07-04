@@ -34,16 +34,12 @@ import { defaultLayerConfig, NOOP_TRANSFORM } from "../constants";
 // `transitionLayer`/`crossfade` signatures read unchanged.
 export type { LayerTransitionSpring };
 
-// S.B4 (a04) — the entry/object/input shapes live in the `./types` leaf (one
-// declared home for the type surface the class + its `./entries`/`./soa`/
-// `./yield-batch`/`./springs` helpers all consume). Re-exported so the barrel +
-// existing consumers resolve them unchanged.
+// S.B4 (a04) — the entry/object/input shapes live in the `./types` leaf.
 import type {
     AnimationGroupEntry,
     AnimationGroupObject,
     AnimationGroupInput,
 } from "./types";
-export type { AnimationGroupEntry, AnimationGroupObject, AnimationGroupInput };
 
 export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
@@ -66,18 +62,9 @@ export class AnimationGroup<V extends Vars> {
      * groups batch with a `scheduler.yield()` between slices (INP relief). */
     static readonly YIELD_BATCH = 32;
 
-    /**
-     * Construct a group from a first animation + rest (S.B4 / a06 F1/F2 — the
-     * ownership inversion). This is the genuine-ownership replacement for the
-     * former `KeyframesAnimation.group(...)` convenience, which reached the group
-     * ctor through the `internal/group-factory` service locator to dodge the
-     * engine→group edge. The compositor OWNS its own construction, so the
-     * `group → engine` dependency stays one-directional by construction. Each
-     * input is a bare `KeyframesAnimation` or one wrapped with a layer config,
-     * exactly as the constructor accepts.
-     *
-     *   AnimationGroup.of(a, b, { animation: c, layer: { blend: "add" } })
-     */
+    /** Construct a group from a first animation + rest (S.B4 / a06 F1/F2 — the
+     * genuine-ownership replacement for the excised `KeyframesAnimation.group()`
+     * service locator; each input is a bare animation or `{ animation, layer }`). */
     static of<V extends Vars>(
         first: KeyframesAnimation<V> | AnimationGroupInput<V>,
         ...rest: (KeyframesAnimation<V> | AnimationGroupInput<V>)[]
