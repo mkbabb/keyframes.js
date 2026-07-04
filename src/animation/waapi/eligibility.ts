@@ -216,6 +216,15 @@ export function isWAAPIEligible<V extends Vars>(
         };
     }
 
+    // DATED RE-CHECK (S.F6, 2026-07-04): this hold is a measured-on-device
+    // engine behavior, not a syntax gap — CE-1.0's `webkitConvertPointFromNodeToPage`
+    // feature-detect will keep firing on every future Safari release until
+    // WebKit itself ships HW-accel for a `linear()`-eased animation. RE-VERIFY ON
+    // EACH SAFARI RELEASE: the first release that hardware-accelerates a custom
+    // `linear()` timing function makes this carve-out removable — unlocking
+    // compositor-thread springs on WebKit (kf's "springs on the compositor"
+    // headline is a Chrome/Firefox story only until then). No re-check has found
+    // that release yet.
     for (const frame of animation.frames) {
         for (const [property, interpVarArr] of Object.entries(
             frame.interpVars,
