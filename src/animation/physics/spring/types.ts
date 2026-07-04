@@ -7,6 +7,7 @@
  * progress↔duration↔reseat circular import ring.
  */
 import type { ReducedMotionPolicy } from "../../internal/reduced-motion";
+import type { RAFPlayback, Tickable } from "../playback";
 
 /**
  * iOS-style spring physics options. The pair `(response, dampingFraction)`
@@ -70,6 +71,34 @@ export type SpringSubscriber = (value: number, velocity: number) => void;
 
 /** Per-frame callback for `.play()` mode. */
 export type SpringFrameCallback = (value: number, velocity: number) => void;
+
+/**
+ * The managed-playback surface a `SpringProgress` exposes to the colocated
+ * `./managed-play` loop helpers (S.B5 — the progress.ts ceiling carve). Declared
+ * HERE (the spring family's ring-break home) so `managed-play.ts` drives the
+ * spring's rAF loop through a structural contract WITHOUT importing the
+ * `SpringProgress` class module — keeping the progress→managed-play edge
+ * one-directional (no import cycle under `tsPreCompilationDeps`). The stepper is
+ * a `Tickable` (the `RAFPlayback.drive` loop steps `tickDt` until `settled`); the
+ * helpers additionally read its current `(value, velocity)` for the per-frame
+ * callback and route the reduced-motion snap through `snap()`.
+ */
+export interface SpringPlayback extends Tickable {
+    /** THE managed rAF driver the loop rides. */
+    readonly _playback: RAFPlayback;
+    /** The bound per-frame callback (`play` sets it; `stop` clears it). */
+    _onFrame: SpringFrameCallback | undefined;
+    /** True once `dispose()` has torn the spring down (a disposed spring never plays). */
+    readonly disposed: boolean;
+    /** Current position — passed to the per-frame callback. */
+    readonly value: number;
+    /** Current velocity — passed to the per-frame callback. */
+    readonly velocity: number;
+    /** The reduced-motion policy routing `play` to snap vs. run. */
+    readonly respectReducedMotion: ReducedMotionPolicy;
+    /** The reduced-motion snap (jump to target at zero velocity, settle, emit). */
+    snap(): void;
+}
 
 /**
  * The default `response` (angular period, seconds) — the iOS-canonical 0.5.

@@ -13,7 +13,14 @@ import type {
     SpringProgressOptions,
     SpringSubscriber,
     SpringFrameCallback,
+    SpringPlayback,
 } from "./types";
+// S.B5 — the MANAGED-PLAYBACK loop (`.play()`/`.stop()` rAF ownership) is a set
+// of FREE FUNCTIONS in the colocated `./managed-play` module, driving this
+// stepper through the `SpringPlayback` structural contract (declared in `./types`
+// so this edge stays one-directional — no import cycle). `.play`/`.stop` below
+// are thin delegates; `set target`'s auto-resume reaches `springStartLoop`.
+import { springPlay, springStartLoop, springStop } from "./managed-play";
 // The spring-from-duration surface (`{ visualDuration | duration, bounce }`) and
 // its `(response, dampingFraction)` translation live in the colocated
 // `./duration` module (the barrel re-exports the surface from there).
@@ -49,8 +56,14 @@ import { solveDampedHarmonic } from "./solver";
  *
  * API mirrors SwiftUI's `.spring(response:dampingFraction:)`.
  */
-export class SpringProgress {
+export class SpringProgress implements SpringPlayback {
     private options: SpringProgressOptions;
+
+    /** The reduced-motion policy — read by `./managed-play`'s `springPlay` to
+     * route the snap vs. run branch (the {@link SpringPlayback} contract). */
+    get respectReducedMotion() {
+        return this.options.respectReducedMotion;
+    }
 
     private targetValue: number;
     private currentValue: number;
@@ -85,7 +98,9 @@ export class SpringProgress {
     private omegaD: number; // damped frequency: ω₀ √(1 - ζ²)  (underdamped only)
 
     private subscribers: Set<SpringSubscriber> = new Set();
-    private disposed: boolean = false;
+    /** @internal (S.B5) — read by `./managed-play`'s `springPlay` (a disposed
+     * spring never plays); the {@link SpringPlayback} contract. */
+    disposed: boolean = false;
 
     // ── Vector lanes (L.W7 §S2, W122 — ADOPT @ 2.97–3.78× over K scalars) ────
     // The `setTargets(Float64Array)` multi-channel overload steps K channels
@@ -99,12 +114,15 @@ export class SpringProgress {
     // `evaluateAt` uses.
     private vectorLanes: SpringVectorLanes | null = null;
 
-    // Managed playback for `.play()` / `.stop()` — loop ownership delegates
-    // to the shared RAFPlayback driver (this class is a pure stepper: it
-    // implements `Tickable` via `tickDt`/`settled`). Symmetric with
-    // `SmoothProgress.play(onFrame)`.
-    private _playback = new RAFPlayback();
-    private _onFrame: SpringFrameCallback | undefined = undefined;
+    // Managed playback for `.play()` / `.stop()` — loop ownership delegates to
+    // the shared RAFPlayback driver (this class is a pure stepper: it implements
+    // `Tickable` via `tickDt`/`settled`). The loop-arming BODIES live in the
+    // colocated `./managed-play` (S.B5); these two fields are the run-state those
+    // free functions read/write through the {@link SpringPlayback} contract.
+    // INTERNAL (@internal, S.B5). Symmetric with `SmoothProgress.play(onFrame)`.
+    readonly _playback = new RAFPlayback();
+    /** @internal (S.B5) — the bound per-frame callback (`play` sets, `stop` clears). */
+    _onFrame: SpringFrameCallback | undefined = undefined;
 
     constructor(options?: Partial<SpringProgressOptions>) {
         this.options = { ...defaultSpringOptions, ...options };
@@ -203,7 +221,7 @@ export class SpringProgress {
                 );
 
                 // Auto-resume the managed loop if `.play()` attached a callback.
-                if (this._onFrame) this._startLoop();
+                if (this._onFrame) springStartLoop(this);
             },
         );
     }
@@ -454,46 +472,21 @@ export class SpringProgress {
         this.subscribers.clear();
     }
 
-    // ── Managed playback ─────────────────────────────────────────────
+    // ── Managed playback (bodies in `./managed-play`, S.B5) ──────────────────
 
     /**
-     * Start a managed rAF loop that calls `tick(dt)` each frame until
-     * `settled`, invoking `onFrame(value, velocity)` per tick. Idempotent
-     * — repeat calls re-bind the callback without spawning a second loop.
-     * Once settled the loop auto-stops; setting `target` while a callback
-     * is bound auto-resumes the loop without needing another `.play()`.
+     * Start a managed rAF loop that calls `tickDt(dt)` each frame until
+     * `settled`, invoking `onFrame(value, velocity)` per tick. Idempotent;
+     * PRM-aware (snaps under an active reduced-motion query). Body in
+     * `./managed-play` (S.B5).
      */
     play(onFrame?: SpringFrameCallback): void {
-        if (this.disposed) return;
-        this._onFrame = onFrame;
-        withReducedMotion(
-            this.options.respectReducedMotion,
-            // Snap to target at zero velocity — one emit, no loop.
-            () => this._snapSettled(),
-            () => {
-                if (this.isSettled) {
-                    onFrame?.(this.currentValue, this.currentVelocity);
-                    return;
-                }
-                this._startLoop();
-            },
-        );
+        springPlay(this, onFrame);
     }
 
-    /** Cancel the managed rAF loop and detach the per-frame callback. */
+    /** Cancel the managed rAF loop and detach the per-frame callback. Body in
+     * `./managed-play` (S.B5). */
     stop(): void {
-        this._onFrame = undefined;
-        this._playback.stop();
-    }
-
-    /**
-     * Arm the shared driver: it steps `tickDt(dt)` once per frame until
-     * `settled` flips true, emitting `onFrame` per step. Idempotent —
-     * the driver no-ops while already running.
-     */
-    private _startLoop(): void {
-        this._playback.drive(this, () =>
-            this._onFrame?.(this.currentValue, this.currentVelocity),
-        );
+        springStop(this);
     }
 }
