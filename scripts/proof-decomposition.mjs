@@ -18,11 +18,14 @@
  *
  * CLAUSES (each BITES):
  *
- *   1. LIBRARY CEILING — every `src/animation/**` module is ≤ its ceiling
- *      (350L `.vue`, 550L `.ts`), modulo a rationale-bearing per-file
- *      `LIBRARY_CEILING_OVERRIDE` (G.W5, with a stale-entry guard). A NEW
- *      un-exempted 600L library file reds it; the four genuinely-cohesive
- *      god-modules (engine/animations/group/sequence) carry recorded exceptions.
+ *   1. LIBRARY CEILING — every `src/animation/**` module is ≤ the HARD base
+ *      ceiling (350L `.vue`, 500L `.ts`). S.B5 RETIRED the per-file cap-raising
+ *      `LIBRARY_CEILING_OVERRIDE` mechanism (the R.W0 keystone, completed): the
+ *      last data-volume holdout (`presets/classic.ts`) was split into
+ *      factories + `classic-data.ts`, emptying the Map. The Map survives ONLY as
+ *      an empty-by-construction tripwire — any entry re-added is a self-raising
+ *      cap (a hard RED, T2). A NEW oversized library file reds it; the cure is a
+ *      cohesion carve, never a raised ceiling (the reds ARE the backlog).
  *
  *      H.W8 RECONCILIATION (drift-red a): the DEMO file-size half of this clause
  *      is RETIRED here — it duplicated, and CONTRADICTED, the H.W12-authored
@@ -128,38 +131,26 @@ const read = (p) => fs.readFileSync(p, "utf8");
 // — engine/group/waapi/resolve — RED until carved.) The override map AND its
 // stale-entry guard loop are gone (R.W0 §2c; R.md §5; challenge-library §7).
 //
-// presets/classic.ts data-volume note: at ~700L (54% raw CSS string data),
-// classic.ts may red after the presets/ split (R.W1). Per R.md §7 +
-// challenge-library §4b, splitting a flat list of 34 preset constants three ways
-// by taxonomy purely to satisfy a line gate on string-literal DATA is the
-// contrivance the precepts forbid. The honest disposition is a SINGLE documented
-// data-volume override entry below (data, not logic) — NOT a forced 3-way split.
+// presets/classic.ts data-volume note (S.B5 — RESOLVED): the last holdout was
+// ~728L of raw preset CSS strings (54% string data). Rather than a taxonomy
+// 3-way split of the strings (a forced data-partition with no cohesion benefit —
+// the contrivance R.md §7 / challenge-library §4b forbid), S.B5 split the DATA
+// off the FACTORIES: `classic.ts` now holds the 34 factory functions and
+// `classic-data.ts` the 34 keyframe strings — BOTH clear the base ceiling with
+// NO override. That is the honest disposition, and it makes the override map
+// EMPTY (the terminal removal below).
 const LIBRARY_CEILING = { ".vue": 350, ".ts": 500 };
 
-// The ONE documented data-volume exception (R.md §7 / challenge-library §4b):
-// `presets/classic.ts` is ~700L of raw cubic-bezier/stepped preset CSS string
-// data (a flat list of value-equivalent constants), NOT an algorithm. A taxonomy
-// 3-way split (classic-enter/exit/attention) is a forced data-partition with no
-// cohesion benefit — the precepts forbid it. This single rationale-bearing entry
-// is the honest disposition. (Empty until the presets/ split lands; if classic.ts
-// reds, this is the named exception, never the self-raising cap the keystone deleted.)
-const LIBRARY_CEILING_OVERRIDE = new Map([
-    [
-        "src/animation/presets/classic.ts",
-        {
-            cap: 750,
-            why:
-                "DATA-VOLUME exception (R.md §7 / challenge-library §4b) — the 34 " +
-                "cubic-bezier/stepped preset constants are a flat list of " +
-                "value-equivalent raw-CSS-string leaves (~54% string data), ONE " +
-                "responsibility (the classic preset catalog), not an algorithm. A " +
-                "taxonomy 3-way split (classic-enter/exit/attention) purely to clear " +
-                "the line gate is a forced data-partition with no cohesion benefit — " +
-                "the contrivance the precepts forbid. This single documented " +
-                "data-volume override is the honest disposition.",
-        },
-    ],
-]);
+// S.B5 — the R.W0 keystone COMPLETED (a20 F5; fold rows 32/33). The per-file
+// cap-raising `LIBRARY_CEILING_OVERRIDE` mechanism is RETIRED: no documented
+// data-volume exception remains (the last one, `presets/classic.ts`, was split —
+// see the note above). The Map is kept ONLY as an empty-by-construction tripwire:
+// the ceiling loop below NO LONGER reads a per-file cap from it (every library
+// file is measured against the hard base ceiling), and the guard clause REDs on
+// ANY entry — re-adding a self-raising cap (the exact anti-pattern R.W0 deleted)
+// is a hard RED (T2), not a silent mask. There is no mechanism to raise a file's
+// ceiling; the reds ARE the carve backlog.
+const LIBRARY_CEILING_OVERRIDE = new Map();
 
 // Directories that never hold reviewable SOURCE.
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
@@ -243,17 +234,32 @@ function main() {
     // DELETED — only the ONE documented data-volume exception
     // (`presets/classic.ts`) remains. The reds on every oversized library file
     // ARE the R.W1/R.W2 decomposition backlog (measured by the gate, not prose).
+    // S.B5 — the empty-by-construction override guard (the R.W0 keystone's
+    // terminal falsifiability). The cap-raising mechanism is retired: the loop
+    // below measures EVERY library file against the hard base ceiling. Any entry
+    // re-added to `LIBRARY_CEILING_OVERRIDE` is a self-raising cap (the anti-
+    // pattern the keystone deleted) and REDs here — a cap raised vs the prior
+    // tranche is a hard RED (T2), never a silent mask.
+    if (LIBRARY_CEILING_OVERRIDE.size > 0) {
+        failures.push(
+            `[ceiling] LIBRARY_CEILING_OVERRIDE carries ` +
+                `${LIBRARY_CEILING_OVERRIDE.size} entry(ies) — the per-file ` +
+                `cap-raising override is RETIRED (the R.W0 keystone, completed at ` +
+                `S.B5). Every library file is measured against the hard base ceiling ` +
+                `(350L .vue / 500L .ts); carve at the cohesion seam, do NOT raise the ` +
+                `cap. Entries: ${[...LIBRARY_CEILING_OVERRIDE.keys()].join(", ")}.`,
+        );
+    }
+
     const overCeiling = [];
     for (const abs of ceilingSources) {
         const ext = path.extname(abs);
         const rel = relPosix(abs);
         const base = LIBRARY_CEILING[ext];
         if (base == null) continue;
-        const override = LIBRARY_CEILING_OVERRIDE.get(rel);
-        const ceiling = override ? override.cap : base;
         const lines = fs.readFileSync(abs, "utf8").split("\n").length;
-        if (lines > ceiling) {
-            overCeiling.push({ rel, lines, ceiling, override });
+        if (lines > base) {
+            overCeiling.push({ rel, lines, ceiling: base });
         }
     }
     if (overCeiling.length > 0) {
@@ -261,19 +267,15 @@ function main() {
             failures.push(
                 `[ceiling] ${o.rel}: ${o.lines}L exceeds the ${o.ceiling}L ` +
                     `library ceiling for ${path.extname(o.rel)} — split at its ` +
-                    `natural concern seam (the R.W1/R.W2 carve backlog). A ` +
-                    `documented DATA-VOLUME case takes the single ` +
-                    `LIBRARY_CEILING_OVERRIDE entry, never the self-raising cap ` +
-                    `the R.W0 keystone deleted.`,
+                    `natural concern seam (the R.W1/R.W2/S.B5 carve backlog). The ` +
+                    `per-file cap-raising override was RETIRED at S.B5 (the R.W0 ` +
+                    `keystone): there is no exception to raise, only the carve.`,
             );
         }
     } else {
-        const totalOverrides = LIBRARY_CEILING_OVERRIDE.size;
         console.log(
-            `  ✓ [ceiling] all library files ≤ ceiling (350L .vue / 500L .ts)` +
-                (totalOverrides > 0
-                    ? `; ${totalOverrides} documented data-volume override(s)`
-                    : ""),
+            `  ✓ [ceiling] all library files ≤ ceiling (350L .vue / 500L .ts); ` +
+                `no LIBRARY_CEILING_OVERRIDE (the R.W0 keystone completed at S.B5)`,
         );
     }
 
