@@ -51,8 +51,20 @@
         "chordError": 1.8947806286936006e-16
       },
       "fidelityImproved": true
+    },
+    {
+      "name": "multi-segment-spring",
+      "fixed": {
+        "interiorCount": 16,
+        "chordError": 0.05786188822507879
+      },
+      "adaptive": {
+        "interiorCount": 26,
+        "chordError": 0.007739312932056675
+      },
+      "fidelityImproved": true
     }
   ],
   "verdict": "ADOPT",
-  "recordedAt": "2026-06-24T01:40:50.354Z"
+  "recordedAt": "2026-07-04T20:23:22.630Z"
 }

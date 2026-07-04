@@ -127,13 +127,16 @@ console.log(
 // drives the eligible-class fixtures under a CSS-twin easing. `per-kf-easing`
 // authors its OWN CSS-twin easing (`ease-in`) and is left as-authored — it
 // exercises the per-stop-easing WAAPI projection.
-// WAAPI eligibility (waapi.ts:109) is STRICT: it requires a SINGLE-SEGMENT
-// animation (a multi-segment CSS-twin easing is rejected — "WAAPI restarts the
-// curve per segment") under a UNIFORM CSS-twin easing (the default
-// `easeInOutCubic` has NO CSS twin). So the eligible corpus is the TWO-STOP
-// fixtures driven under a CSS-twin easing. `opacity-3stop` (3 stops / 2 segments)
-// is inherently ineligible — it is excluded here (it would red "CSS-twinned
-// easing across multiple segments"). The four eligible two-stop fixtures:
+// WAAPI eligibility (waapi/eligibility.ts) requires a UNIFORM CSS-twin easing
+// (the default `easeInOutCubic` has NO CSS twin). SINGLE-segment fixtures emit
+// their `.css` twin as the effect easing; MULTI-segment CSS-twin fixtures are
+// ALSO eligible now (S.F5c S2 — the densify → single-`linear()` collapse bakes
+// the composite curve into keyframes fed a bare `linear`), so `opacity-3stop`
+// (3 stops / 2 segments) is no longer "inherently ineligible". It is still
+// EXCLUDED from this eligible corpus for a different reason — a multi-segment
+// differential arm is a future addition, not this gate's scope (the four
+// two-stop fixtures below already exercise the eligible projection). The four
+// eligible two-stop fixtures:
 const ELIGIBLE = [
     {
         file: "multi-prop.css",
@@ -158,8 +161,11 @@ const ELIGIBLE = [
 ];
 
 // Not yet / never eligible (recorded so the eligible list is auditable):
-//   opacity-3stop.css — 3 stops / 2 segments; a multi-segment CSS-twin easing is
-//     rejected (WAAPI restarts the curve per segment). Inherently ineligible.
+//   opacity-3stop.css — 3 stops / 2 segments. Eligible since S.F5c S2 (the
+//     multi-segment densify → single-`linear()` collapse), but NOT yet driven
+//     here — a multi-segment differential arm is a future addition (the emit is
+//     the densified baked stops + bare `linear`, a different projection than the
+//     two-stop fixtures). Excluded pending that arm, not because it is refused.
 //   filter-multi.css — two-stop but the `filter` shorthand reads back from
 //     getComputedStyle as an opaque string (blur()/brightness()), not the kf
 //     flattened scalar keys; a future arm could decompose it.
