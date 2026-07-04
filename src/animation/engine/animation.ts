@@ -30,7 +30,7 @@ import {
     type ParsedVarMap,
     transformTargetsStyle,
 } from "../compile/parse-flatten";
-import * as playback from "./playback";
+import * as playback from "./play-lifecycle";
 import { PlaybackState } from "./playback-state";
 import * as interpolate from "./interpolate";
 import * as setters from "./option-setters";

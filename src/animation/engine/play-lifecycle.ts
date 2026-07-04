@@ -1,10 +1,12 @@
 /**
- * `engine/playback.ts` — the STANDALONE-play lifecycle machine (the play/advance/
- * transport FREE FUNCTIONS), lifted off the `KeyframesAnimation` god-object
- * (Q.WF1 / R.W2 — the engine carve). The run-state STORE they mutate — the
- * `PlaybackState` struct — lives beside it in `./playback-state` (S.B2 carved the
- * struct off on the STATE↔BEHAVIOR cohesion seam; the free functions reach it
- * through `anim._playback`).
+ * `engine/play-lifecycle.ts` — the STANDALONE-play lifecycle machine (the play/
+ * advance/transport FREE FUNCTIONS), lifted off the `KeyframesAnimation`
+ * god-object (Q.WF1 / R.W2 — the engine carve; renamed from `engine/playback.ts`
+ * at S.B4 to clear the `playback.ts` cross-zone basename collision with
+ * `physics/playback.ts`'s canonical `RAFPlayback` — r3 F7). The run-state STORE
+ * they mutate — the `PlaybackState` struct — lives beside it in `./playback-state`
+ * (S.B2 carved the struct off on the STATE↔BEHAVIOR cohesion seam; the free
+ * functions reach it through `anim._playback`).
  *
  * A colocated INTERNAL engine module: statically imported by `engine/animation.ts`,
  * never re-exported beyond the engine barrel, riding the SAME heavy chunk behind

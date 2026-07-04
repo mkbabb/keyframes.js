@@ -24,7 +24,7 @@ import {
     normalizeIterationCount,
     normalizeTimingFunction,
 } from "./options";
-import { shouldReverse } from "./playback";
+import { shouldReverse } from "./play-lifecycle";
 import type { InputAnimationOptions, Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 

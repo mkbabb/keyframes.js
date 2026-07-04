@@ -132,16 +132,17 @@ function main() {
     const engineCssMetadata = readOpt(path.join("engine", "css", "metadata.ts"));
     const engineSurface = engine + "\n" + engineCssMetadata;
 
-    // Q.WF1 decomposition (`engine/playback.ts`) — the standalone-play lifecycle
+    // Q.WF1 decomposition (`engine/play-lifecycle.ts`, renamed from
+    // `engine/playback.ts` at S.B4 / r3 F7) — the standalone-play lifecycle
     // machine (the rAF/WAAPI/reduced-motion play DRIVERS, incl. the `playFrame`
     // per-tick live reduced-motion re-consult + the `snapToReducedMotion` snap)
-    // was lifted out of `engine.ts` into the colocated INTERNAL `engine/playback.ts`,
-    // with the engine left importing + delegating (`_frame` → `playback.playFrame`).
+    // was lifted out of `engine.ts` into this colocated INTERNAL module, with the
+    // engine left importing + delegating (`_frame` → `playback.playFrame`).
     // The S2 live-re-consult source-shape check reads the ENGINE PLAYBACK SURFACE
-    // = the engine base + engine/playback.ts, so it tracks the decomposition
+    // = the engine base + engine/play-lifecycle.ts, so it tracks the decomposition
     // instead of the file layout (mirrors the S1 engine/css/metadata.ts precedent
     // above). (Missing sibling → empty string → the clause still reds.)
-    const enginePlayback = readOpt(path.join("engine", "playback.ts"));
+    const enginePlayback = readOpt(path.join("engine", "play-lifecycle.ts"));
     const enginePlaybackSurface = engine + "\n" + enginePlayback;
 
     // ── 1. S1 — @property registry → CSS.registerProperty ─────────────────

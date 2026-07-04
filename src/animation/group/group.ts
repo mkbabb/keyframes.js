@@ -12,7 +12,7 @@ import {
     setChildrenPaused,
     snapChildrenToFinal,
 } from "./entries";
-import { advanceBatched, advanceSlice } from "./scheduler";
+import { advanceBatched, advanceSlice } from "./yield-batch";
 import { advanceLayerSprings } from "./springs";
 import type { LayerTransitionSpring } from "./springs";
 import { compositeFrame } from "./compositor";
