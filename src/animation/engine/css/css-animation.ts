@@ -34,7 +34,6 @@ import {
 } from "../../compile/frame-compiler";
 import type { Timeline } from "../../orchestration/timeline";
 import { getTimingFunction } from "../../compile/easing-registry";
-import { transformTargetsStyle } from "../../compile/parse-flatten";
 import { KeyframesAnimation } from "../animation";
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
@@ -270,9 +269,5 @@ export class CSSKeyframesAnimation<
         registerPropertyDescriptors(this.propertyRegistry, this.diagnostics);
 
         return this;
-    }
-
-    transform(vars: V) {
-        transformTargetsStyle(vars, this.targets);
     }
 }

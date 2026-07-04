@@ -24,8 +24,9 @@
  * ENTRY ROOTS (root-set-agnostic / derived — T7). The four PINNED package entries
  * are the boundary files: the `.` barrel `index.ts`, its dynamic half
  * `load-engine.ts`, the `./engine` subpath's zone barrel `engine/index.ts`, and
- * its composition barrel `engine/public.ts` (the build-entry SINK nothing imports;
- * vite.config's `engine/index` source). PLUS every zone `index.ts` barrel — the
+ * its composition barrel `public.ts` (S.B2 hoisted it out of `engine/` to the
+ * `src/animation` root beside `load-engine.ts`; the build-entry SINK nothing
+ * imports; vite.config's `engine/index` source). PLUS every zone `index.ts` barrel — the
  * R.W1 convention gave each cohesive zone an `index.ts` API surface; a zone barrel
  * is an entry surface BY CONSTRUCTION (the LIGHT `.` barrel imports zone leaves
  * directly, so `physics/index.ts` / `orchestration/index.ts` / `internal/index.ts`
@@ -69,7 +70,7 @@ const PINNED_ROOTS = [
     "index.ts",
     "load-engine.ts",
     "engine/index.ts",
-    "engine/public.ts",
+    "public.ts",
 ];
 
 const failures = [];

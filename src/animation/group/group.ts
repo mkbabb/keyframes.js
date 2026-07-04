@@ -4,7 +4,7 @@ import { RAFPlayback } from "../physics/playback";
 // `Animation`; the @deprecated alias was DROPPED in 5.0.0 — Q.WE1). The value
 // import provides the runtime constructor (the `instanceof` guard) + the type.
 // `getAnimationId` is the value.js-free leaf (R.W2c — kills group→engine edge).
-import { KeyframesAnimation } from "../engine/animation";
+import { KeyframesAnimation } from "../engine";
 import { getAnimationId } from "../internal/animation-id";
 import {
     renderMultiTarget,

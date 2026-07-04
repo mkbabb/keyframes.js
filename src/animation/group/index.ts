@@ -9,7 +9,7 @@
 import { AnimationGroup } from "./group";
 import type { AnimationGroupInput } from "./group";
 import { registerGroupFactory } from "../internal/group-factory";
-import type { KeyframesAnimation } from "../engine/animation";
+import type { KeyframesAnimation } from "../engine";
 
 export { AnimationGroup } from "./group";
 export type {

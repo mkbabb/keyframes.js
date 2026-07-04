@@ -17,7 +17,7 @@ import { requireEntry, resolveEntryKey } from "./entries";
 import { seedLayerSpring } from "./springs";
 import type { LayerTransitionSpring } from "./springs";
 import type { AnimationLayerConfig, Vars } from "../constants";
-import type { KeyframesAnimation } from "../engine/animation";
+import type { KeyframesAnimation } from "../engine";
 import type { AnimationGroup } from "./group";
 
 /**
