@@ -196,6 +196,12 @@ export const CORRECTNESS_ROSTER = [
     "proof:sequence-rows-draggable",
     "proof:motion-path-editable",
     "proof:motion-path-copy",
+    // S.G2 S1 (fold row 68) — the traveller-scaling correctness oracle (rendered
+    // rect ⊂ stage at 375px across the sweep). Browser actuator; rides the roster.
+    "proof:motion-path-scale",
+    // S.G2 S2 (fold row 69) — the square honest-controls oracle (the lying editor
+    // panel COLLAPSED; box + mono caption ARE the live controls). Browser actuator.
+    "proof:square-honest",
     "proof:easter-egg",
     "proof:design-refinement",
     "proof:hero-rung",
@@ -214,9 +220,14 @@ export const CORRECTNESS_ROSTER = [
 // distinguishable from the authorized backlog in the report-all log. ──────────
 export const BACKLOG = {
     "proof:drag-gesture": "S.G3", // userSelect:auto mid-gesture
-    "proof:easing-sidebar-minimal": "S.G2",
-    "proof:scene-perf-budget": "S.G2", // amiga setPixelRatio(min(dpr,2)) cap (A2)
-    "proof:icon-paint-live": "S.G2", // ::view-transition-* residue (glass-ui-home check)
+    // S.G2 DISCHARGED three of the four S.A0 backlog rows (the honest flip — with
+    // each row removed, the roster driver treats any future red as UNEXPECTED):
+    //   • proof:easing-sidebar-minimal — the writable value <input> STRIPPED (B1)
+    //     (EasingSidebar.vue); the dropdown is the sole selector, the readout stays.
+    //   • proof:scene-perf-budget — the amiga setPixelRatio(min(dpr,2)) cap is live
+    //     (useAmigaThree.ts); the A2 source anchor followed the R.W6-decomp carve.
+    //   • proof:icon-paint-live — the demo-side `::view-transition-*` residue
+    //     (scene-transition.css) DELETED (S11); glass-ui owns the VT look.
 };
 
 // ── demo-device-observe (OBSERVE-ONLY) — the device-dependent proof:* gates.
