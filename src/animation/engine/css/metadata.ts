@@ -16,7 +16,17 @@
  *
  * value.js is reached only for the metadata types (`PropertyDescriptor`,
  * `CSSTimelineOptions`, `Stylesheet`) and `extractTimelineOptions` — the same
- * heavy surface `engine.ts` already imports.
+ * heavy surface `engine.ts` already imports. NOTE (a29 F3 / S.B6 S8): value.js's
+ * `PropertyDescriptor` collides with the DOM lib global, so API-Extractor
+ * collision-renames it to `PropertyDescriptor_2` in the published roll-up
+ * (`propertyRegistry: Map<string, PropertyDescriptor_2>`). A kf-LOCAL import
+ * alias does NOT change that — API-Extractor renames by the SOURCE symbol name,
+ * not the importer's alias — and the two leak sites (`propertyRegistry`,
+ * `ResolvedKeyframes.properties`) are consumer-observable (a `platform-adopt`
+ * test asserts on `propertyRegistry`; `properties` is a public
+ * `ResolvedKeyframes` field), so they cannot be `@internal`-trimmed away. The
+ * durable fix is the value.js DISPATCH (rename its export, e.g.
+ * `CSSPropertyDescriptor`) — recorded in `docs/tranches/S/KF-VALUEJS-2.0.0.md`.
  */
 import {
     extractAnimationOptions,
