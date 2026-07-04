@@ -55,7 +55,7 @@
  *   S8 motion-path — author-the-curve-the-creature-obeys: deform a handle → the
  *                    traveller banks into the new tangent (ants still flowing); the
  *                    guide self-builds via DrawSVG on mount.
- *   S9 playground  — bind-IGNITION: binding lights the asset (key-light bloom +
+ *   S9 compose     — bind-IGNITION: binding lights the asset (key-light bloom +
  *                    first-cycle comet-tail tracing the preset's actual
  *                    bezier/spring curve, drawn back onto the page); the warm
  *                    key-light FOLLOWS the pointer over the empty stage.
@@ -207,19 +207,29 @@ const W11_EGGS = [
         browser: { scene: "motion-path", host: ".mp-guide-path, .mp-traveller", trigger: "drag-handle", probe: "deform" },
     },
     {
-        scene: "playground",
+        // S.D3 (C-4) — the S9 egg is RE-POINTED from the standalone playground to
+        // the folded compose SCENE. It is now LIVE-DRIVABLE in the SPA (the
+        // UPGRADE): the foundry + bind-ignition live in ComposeScene.vue (the
+        // former playground App.vue body), and the asset-manager folded into
+        // scenes/compose/asset-manager/.
+        scene: "compose",
         files: [
-            "@/components/custom/asset-manager/AssetPropertiesPanel.vue",
-            "@/components/custom/asset-manager/AssetViewport.vue",
-            "playground/App.vue",
+            "scenes/compose/ComposeScene.vue",
+            "scenes/compose/asset-manager/AssetPropertiesPanel.vue",
+            "scenes/compose/asset-manager/AssetViewport.vue",
         ],
-        domMarker: /bind-ignition|key-light|comet-tail|ignition/,
+        domMarker: /bind-ignition|key-light|comet-tail|ignition|foundry/,
         dogfood: /AnimationGroup|DrawSVG|fromDrawSVG|loadAnimationEngine|comet/,
-        triggerFile: "@/components/custom/asset-manager/AssetPropertiesPanel.vue",
+        triggerFile: "scenes/compose/asset-manager/AssetPropertiesPanel.vue",
         // Binding a preset (the Select → setTargets) is the trigger.
         trigger: /bind-ignition|ignition|key-light/,
         note: "S9 — bind-IGNITION: binding lights the asset (key-light bloom + a first-cycle comet-tail tracing the preset's actual bezier/spring curve, drawn back onto the page); the warm key-light FOLLOWS the pointer over the empty stage",
-        browser: { scene: null, host: ".bind-ignition, .key-light, .comet-tail", trigger: "bind" },
+        browser: {
+            scene: "compose",
+            host: "[data-foundry]",
+            trigger: "bind",
+            probe: "foundry|key-light|comet",
+        },
     },
 ];
 
@@ -271,6 +281,9 @@ const EXPECTED_TRIGGER = {
     easing: "Easing",
     sequence: null,
     "motion-path": null,
+    // S.D3 (C-4) — the compose scene's control tab is the DFA `assets` surface,
+    // labelled "Assets" (SCENE_SURFACE_TABS.assets) — navToScene settles on it.
+    compose: "Assets",
 };
 
 async function waitVisible(page, selector, timeout = 6000) {
@@ -305,40 +318,12 @@ async function browserHalf() {
 
             for (const egg of W11_EGGS) {
                 const b = egg.browser;
-                // The playground egg (b.scene === null) lives in the STANDALONE
-                // playground app, not the SPA scene machine — the SPA route has no
-                // playground host, so it cannot be exercised in THIS SPA dist. Per
-                // the gate's own governance model, the playground egg is governed by
-                // the STATIC half + the dedicated playground harness. Here the
-                // browser arm WITNESSES that the egg's host markers (`.foundry` +
-                // the key-light + the comet-tail) + the DrawSVG dogfood have LANDED
-                // in the playground source — the standalone-app live drive is the
-                // playground harness's job, not the SPA dist's. Born-RED until the
-                // egg lands (the markers absent); GREEN once the foundry + ignition
-                // are wired in App.vue (the static landing the SPA cannot host).
-                if (b.scene === null) {
-                    const pgSrc = read(path.join(DEMO, "playground/App.vue"));
-                    const hasFoundry =
-                        /data-foundry|foundry-keylight|comet-tail|bind-ignition/.test(
-                            pgSrc,
-                        );
-                    const hasDraw = /fromDrawSVG|DrawSVG/.test(pgSrc);
-                    if (hasFoundry && hasDraw) {
-                        ok(
-                            `[${egg.scene}] W11 egg fires — the foundry host + key-light + ` +
-                                `comet-tail (DrawSVG-drawn) have LANDED in the standalone ` +
-                                `playground App.vue (the SPA dist has no playground route; the ` +
-                                `standalone playground harness drives the live bind)`,
-                        );
-                    } else {
-                        fail(
-                            `[${egg.scene}] W11 egg fires — the playground bind-ignition is not ` +
-                                `wired in App.vue (needs the foundry host ${b.host} + the DrawSVG ` +
-                                `comet-tail); born-RED until L.W11 lands the foundry`,
-                        );
-                    }
-                    continue;
-                }
+                // S.D3 (C-4) — every egg is now a REAL SPA scene (the former
+                // playground egg was RE-POINTED to the folded compose scene, which
+                // the machine routes like any other), so the standalone-source
+                // `b.scene === null` witness is RETIRED: the compose bind-ignition
+                // is live-driven through the SPA route below, the UPGRADE the fold
+                // makes possible.
                 await navToScene(page, b.scene, EXPECTED_TRIGGER[b.scene], {
                     timeout: 8000,
                 }).catch(() => {});
@@ -468,6 +453,6 @@ console.log(
         "(a hidden trigger → an observable off-the-normal-path effect, each dogfooding a public " +
         "engine primitive, none hand-rolling a rAF): home source-card · cube re-lit die · amiga " +
         "power-on · square palette-sweep · easing trace-smear · spring four-lane derby · sequence " +
-        "lane-detonate · motion-path author-curve · playground bind-ignition.",
+        "lane-detonate · motion-path author-curve · compose bind-ignition.",
 );
 process.exit(0);

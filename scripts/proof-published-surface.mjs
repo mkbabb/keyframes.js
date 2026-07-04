@@ -491,9 +491,11 @@ function clauseE() {
         }
     }
     // R.W5 fused the per-scene dirs into demo/scenes/<name>/ — the top-level demo
-    // dirs CLAUDE.md now names are @ / app / scenes / playground (the scene dirs
-    // amiga|cube|easing|… live UNDER demo/scenes/ and are gated by proof:scene-colocated).
-    for (const real of ["@", "app", "scenes", "playground"]) {
+    // dirs CLAUDE.md now names are @ / app / scenes (the scene dirs
+    // amiga|cube|easing|…|compose live UNDER demo/scenes/ and are gated by
+    // proof:scene-colocated). S.D3 (C-4) DELETED demo/playground/ — the standalone
+    // app folded into scenes/compose/ — so `playground` is no longer a demo dir.
+    for (const real of ["@", "app", "scenes"]) {
         if (!fs.existsSync(path.join(REPO, "demo", real))) {
             failures.push(
                 `(e) demo dir \`demo/${real}/\` named by root CLAUDE.md does not exist.`,

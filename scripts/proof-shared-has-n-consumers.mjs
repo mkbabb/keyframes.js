@@ -72,15 +72,29 @@ const BARE_ALIASES = [["@state", path.join(SHARED, "state")]];
 // out-of-D2-scope decision) owns — allowlisted with a stale-guard: if an entry
 // ever gains ≥2 areas (would pass anyway), the entry is stale and REDs.
 const ALLOWLIST = new Map([
+    // S.D3 (C-4) — the `components/custom/asset-manager` + `EditableLabel.vue`
+    // allowlist entries are RETIRED in the SAME commit that relocated them: the
+    // playground fold moved both INTO `scenes/compose/asset-manager/` (a scene, not
+    // @/), so they are no longer enumerated @/ modules. Leaving the entries would
+    // strand the stale-guard against a module that no longer exists.
+    // S.D3 (C-4) — editor-shell was consumed by BOTH `app` and `playground` (2
+    // areas) until S.D3 DELETED the standalone playground (its 2nd consumer),
+    // dropping it to ONE external area (`app`). The gate's remedy — colocate it
+    // into the sole consumer — is BLOCKED by a sibling gate: proof:app-is-shell
+    // permits ONLY the concern sub-zones (scene/ · transition/ · runtime/ ·
+    // chrome/ · public/) under app/, and editor-shell (the multi-file shell
+    // component) is none of those. So the two gates are in genuine tension:
+    // editor-shell is app-private by consumer-count yet cannot live IN app/ by the
+    // shell-partition contract. It remains a shared-lib module by that constraint
+    // (an out-of-D3-scope app-partition decision owns any future move). The
+    // stale-guard keeps it honest: if it EVER regains a 2nd consumer, this entry reds.
     [
-        "components/custom/asset-manager",
-        "PLAYGROUND-private; S.D3 relocates it with the playground fold (a24 F3 " +
-            "→ scenes/compose/). Its final home is a scene, not @/.",
+        "components/custom/editor-shell",
+        "app-private after the S.D3 playground-fold, but proof:app-is-shell forbids " +
+            "non-concern-subzone dirs under app/, so it cannot be colocated there; the " +
+            "relocation is an out-of-scope app-partition decision. Stale-guard reds on a 2nd consumer.",
     ],
-    [
-        "components/custom/EditableLabel.vue",
-        "asset-manager-private; travels WITH asset-manager in S.D3 (a24 F5).",
-    ],
+    //
     // NOTE (S.C3b): `utils/utils.ts` (the menubar-private `cn()` helper) was
     // deleted with the `ui/menubar` shadcn island (C-19) — the module no longer
     // exists, so it is neither enumerated nor allowlisted. The former exemption

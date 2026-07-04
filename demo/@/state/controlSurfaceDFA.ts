@@ -35,7 +35,10 @@ export type ControlSurface =
     | "timeline"
     | "easing"
     | "spring"
-    | "matrix-controls";
+    | "matrix-controls"
+    // S.D3 (C-4) — the compose scene's sole surface: the asset layers + properties
+    // panel (the folded playground's "Assets" tab).
+    | "assets";
 
 /** The BUILT-IN editor triad — the surfaces `AnimationControls`/`ChromeDock`
  *  carry as first-class tab descriptors. A scene shows a triad member ONLY when
@@ -86,6 +89,11 @@ export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
     // affordance live ON the stage); no control panel — an empty DFA set, beside
     // sequence/motion-path (isControlsPanelOpen=false).
     morph: [],
+    // S.D3 (C-4) — the compose scene has ONE scene-specific surface: `assets` (the
+    // asset layers/properties panel). A single non-built-in surface, so it mounts
+    // FLAT through AnimationControls' single-surface path (like easing/spring), and
+    // the dock projects its "Assets" tab via `extraControlTabsFor`.
+    compose: ["assets"],
 };
 
 /**
@@ -169,6 +177,8 @@ const SCENE_SURFACE_TABS: Partial<Record<ControlSurface, ControlSurfaceTab>> = {
         label: "Matrix Controls",
         icon: "Grid3X3",
     },
+    // S.D3 (C-4) — the compose scene's Assets tab (the folded playground panel).
+    assets: { value: "assets", label: "Assets", icon: "Layers" },
 };
 
 /**

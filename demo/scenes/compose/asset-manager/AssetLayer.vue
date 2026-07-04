@@ -5,7 +5,7 @@
                 :class="[
                     'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors select-none',
                     isSelected
-                        ? 'bg-accent/50 border-l-2 border-primary'
+                        ? 'bg-accent/50 border-l-2 border-[var(--color-progress)]'
                         : 'hover:bg-muted/50 border-l-2 border-transparent',
                 ]"
                 @click.exact="emit('select', asset.id, false)"
@@ -121,7 +121,7 @@ import {
     ContextMenuSeparator,
     ContextMenuTrigger,
 } from "@mkbabb/glass-ui";
-import EditableLabel from "@components/custom/EditableLabel.vue";
+import EditableLabel from "./EditableLabel.vue";
 
 const props = defineProps<{
     asset: Asset;

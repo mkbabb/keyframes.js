@@ -4,7 +4,7 @@
  *
  * THE PRECEPT (the gate-ORACLE extension): a computed-font CENSUS over the BUILT
  * dist — `getComputedStyle(el).fontFamily` for every visible text leaf, through the
- * same surface the human reads, across all 8 scenes + docks + panes, desktop AND
+ * same surface the human reads, across all 9 scenes + docks + panes, desktop AND
  * mobile — asserting the design's font PROPERTY by construction, not a proxy.
  *
  * The pre-existing `proof:demo-fonts` is a NEGATIVE-only oracle (no "Plus Jakarta")
@@ -33,7 +33,7 @@
  *       alias (--font-serif) — a --font-display-only dock edit would split them
  *       silently. Greens on S1 (the single display token).
  *   (c) CORRECTNESS — the THREE-voice totality. Every visible text leaf across all
- *       8 scenes + docks + panes (desktop 1440×900 + mobile 390×844) resolves
+ *       9 scenes + docks + panes (desktop 1440×900 + mobile 390×844) resolves
  *       exactly ONE of {display, mono, body}; ZERO leaves on "Plus Jakarta",
  *       glass-ui's Fraunces default, or any orphan family; AND the dock band ∈
  *       display. BORN-RED: the dock band carries SANS today (a body voice where the
@@ -83,7 +83,7 @@ const fail = (l) => {
 
 console.log(
     "proof:font-census — K.W2 §Hard gate: the computed-font CENSUS over the BUILT dist " +
-        "(every visible text leaf, all 8 scenes + docks + panes, desktop+mobile) — the dock band ∈ display, " +
+        "(every visible text leaf, all 9 scenes + docks + panes, desktop+mobile) — the dock band ∈ display, " +
         "ONE display authority, the three-voice totality. Born-RED on today's split-voice dock.",
 );
 
@@ -275,7 +275,7 @@ async function runCensus() {
     const d = desktop.value;
 
     console.log(
-        `  histogram (desktop, 8 scenes): DISPLAY ${d.histogram.display} / MONO ${d.histogram.mono} / ` +
+        `  histogram (desktop, 9 scenes): DISPLAY ${d.histogram.display} / MONO ${d.histogram.mono} / ` +
             `BODY ${d.histogram.body} / forbidden ${d.histogram.forbidden} / orphan ${d.histogram.orphan} ` +
             `| DOCK DISPLAY ${d.dockHistogram.display} / SANS ${d.dockHistogram.sans}`,
     );
@@ -432,7 +432,7 @@ async function runCensus() {
     if (!mobile.skipped) {
         const m = mobile.value;
         console.log(
-            `  histogram (mobile, 8 scenes): DISPLAY ${m.histogram.display} / MONO ${m.histogram.mono} / ` +
+            `  histogram (mobile, 9 scenes): DISPLAY ${m.histogram.display} / MONO ${m.histogram.mono} / ` +
                 `BODY ${m.histogram.body} / forbidden ${m.histogram.forbidden} / orphan ${m.histogram.orphan} ` +
                 `| DOCK DISPLAY ${m.dockHistogram.display} / SANS ${m.dockHistogram.sans}`,
         );
@@ -486,6 +486,6 @@ console.log(
     "\nproof:font-census — PASS: the typographic root is TRUE — the dock band resolves the Instrument-Serif " +
         "DISPLAY voice (desktop+mobile), the display voice is single-sourced (--font-display; the .btn-playback / " +
         ".tab-trigger consumer sites resolve the SAME authority the dock does), every visible text leaf across all " +
-        "8 scenes + docks + panes ∈ {display, mono, body} with ZERO Plus-Jakarta/Fraunces/orphan stray, and the " +
+        "9 scenes + docks + panes ∈ {display, mono, body} with ZERO Plus-Jakarta/Fraunces/orphan stray, and the " +
         ".font-display trap is closed. The U-K6/U-K8/U-K10 typography chronic exits via the born-RED census (P-inv-28).",
 );

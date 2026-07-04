@@ -108,22 +108,54 @@
 
                     <label class="font-mono text-admin-label text-muted-foreground">color</label>
                     <Input
-                        :model-value="asset.color ?? '#1e293b'"
+                        :model-value="asset.color ?? 'var(--foreground)'"
                         class="text-mono-caption normal-case h-6"
                         @change="(e: Event) => emit('update', asset.id, { color: (e.target as HTMLInputElement).value })"
                     />
+                </template>
+
+                <!-- S.D3 S4 (DEAD-KINDS) — Image is now REAL: an `imageSrc` URL/
+                     data-URI field feeds the `<img :src>` render branch (whose
+                     `:alt="asset.name"` a11y binding is asserted by
+                     proof:demo-elevate). Until a source is entered the asset is a
+                     transparent placeholder box (selectable + bindable), never a
+                     permanently-gray dead rect. -->
+                <template v-if="asset.kind === 'image'">
+                    <label class="font-mono text-admin-label text-muted-foreground">image url</label>
+                    <Input
+                        :model-value="asset.imageSrc ?? ''"
+                        placeholder="https://… or data:image/…"
+                        class="text-mono-caption normal-case h-6"
+                        @change="(e: Event) => emit('update', asset.id, { imageSrc: (e.target as HTMLInputElement).value })"
+                    />
+                </template>
+
+                <!-- S.D3 S4 (DEAD-KINDS) — SVG is now REAL: an `svgContent`
+                     textarea feeds the sanitized `v-html` render branch (the
+                     sanitizer strips <script> in AssetViewport). Until markup is
+                     entered the asset is an empty placeholder, never an invisible
+                     phantom. -->
+                <template v-if="asset.kind === 'svg'">
+                    <label class="font-mono text-admin-label text-muted-foreground">svg markup</label>
+                    <textarea
+                        :value="asset.svgContent ?? ''"
+                        rows="4"
+                        placeholder="&lt;svg viewBox='0 0 100 100'&gt;&lt;circle …/&gt;&lt;/svg&gt;"
+                        class="text-mono-caption normal-case min-h-16 w-full resize-y rounded-md border border-border bg-input/40 px-2 py-1 font-mono"
+                        @change="(e: Event) => emit('update', asset.id, { svgContent: (e.target as HTMLTextAreaElement).value })"
+                    ></textarea>
                 </template>
 
                 <!-- Animation binding — L.W11 S9 the BIND IGNITION trigger.
                      Binding a preset is the page's whole point; the Select now
                      fires `onBindAnimation`, which both updates the asset AND emits
                      a `bind-ignition` event when the binding goes unset→set. The
-                     playground wrapper (App.vue, gated `[data-foundry]`) catches it
-                     and IGNITES the asset: a warm key-light bloom + a first-cycle
-                     comet-tail tracing the preset's actual easing curve, drawn back
-                     onto the page (engine-dogfooded; PRM-collapsed to a state flip).
-                     This is generic-safe (the event is inert if nobody listens —
-                     the app scenes simply do not wire the ignition). -->
+                     compose scene host (ComposeScene.vue, gated `[data-foundry]`)
+                     catches it and IGNITES the asset: a warm key-light bloom + a
+                     first-cycle comet-tail tracing the preset's actual easing curve,
+                     drawn back onto the page (engine-dogfooded; PRM-collapsed to a
+                     state flip). This is generic-safe (the event is inert if nobody
+                     listens — the other scenes simply do not wire the ignition). -->
                 <template v-if="animationNames && animationNames.length > 0">
                     <label class="font-mono text-admin-label text-muted-foreground">animation</label>
                     <Select
@@ -169,7 +201,7 @@ const emit = defineEmits<{
     (e: "update", id: string, updates: Partial<Asset>): void;
     (e: "updateTransform", id: string, transform: Partial<AssetTransform>): void;
     // L.W11 S9 — the BIND IGNITION signal: fired when an asset's animation goes
-    // unset→set, so the playground foundry can light the asset. Inert if unlistened.
+    // unset→set, so the compose scene foundry can light the asset. Inert if unlistened.
     (e: "bind-ignition", id: string, animationName: string): void;
 }>();
 

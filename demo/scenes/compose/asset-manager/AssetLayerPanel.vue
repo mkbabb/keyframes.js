@@ -45,13 +45,10 @@
                     @duplicate="duplicateAsset"
                     @drag-start="onDragStart"
                 />
-
-                <div
-                    v-if="sortedAssets.length === 0"
-                    class="text-center py-6 px-4 text-muted-foreground"
-                >
-                    <p class="text-mono-caption normal-case">Add shapes, text, or images to compose your scene</p>
-                </div>
+                <!-- S.D3 S5 (EMPTY-STAGE) — the duplicate empty-layer placeholder
+                     copy was DELETED: the casting-floor empty-state in
+                     AssetViewport ("Pour something in.") is the single CTA, so
+                     this panel does not repeat a second, weaker one. -->
             </div>
 
             <!-- Selected asset properties -->
@@ -121,7 +118,8 @@ defineProps<{
 }>();
 
 // L.W11 S9 — forward the bind-ignition signal from the properties panel up to the
-// playground host (App.vue), which lights the asset (key-light bloom + comet-tail).
+// compose scene host (ComposeScene.vue), which lights the asset (key-light bloom +
+// comet-tail).
 const emit = defineEmits<{
     (e: "bind-ignition", id: string, animationName: string): void;
 }>();

@@ -76,12 +76,13 @@ import { SCENE_MACHINE_PERSIST_KEY } from "./useSceneMachine";
 
 // S.D2 / a24 F2 — the app-level reset composer (dependency inversion). The state
 // barrel used to reach SIDEWAYS into a UI/feature component
-// (`_resetAssetManagerStore` from `@components/custom/asset-manager`) — a state
-// layer owning a control-surface component's internals (altitude inversion). It
-// now owns only a HOOK REGISTRY: feature stores that live outside the state peer
-// (the playground asset store) register their own reset here, and the app
-// assembles the full reset by importing those features. The edge now points the
-// correct way (asset-manager → @state), and the state peer imports no component.
+// (`_resetAssetManagerStore` from the asset-manager) — a state layer owning a
+// control-surface component's internals (altitude inversion). It now owns only a
+// HOOK REGISTRY: feature stores that live outside the state peer (the compose
+// scene's asset store, `scenes/compose/asset-manager/` since the S.D3 fold)
+// register their own reset here, and the app assembles the full reset by
+// importing those features. The edge now points the correct way (asset-manager →
+// @state), and the state peer imports no component.
 const externalResetHooks = new Set<() => void>();
 
 /** Register an external store's reset with the app-level `resetAllStores`

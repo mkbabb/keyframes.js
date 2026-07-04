@@ -8,7 +8,6 @@ CSS keyframe animations for anything in JavaScript. Parse `@keyframes`, animate 
 npm run build           # library (ESM) → dist/keyframes.js + dist/keyframes.d.ts
 npm run gh-pages        # demo (demo/app multi-scene SPA) → dist/gh-pages/
 npm run dev             # vite dev server — demo/app SPA (HMR)
-npm run dev:playground  # vite dev server — playground demo
 npm run check           # tsc --noEmit (repo); check:lib for the library tsconfig
 npm test                # vitest (jsdom)
 npm run bench           # vitest bench
@@ -48,10 +47,9 @@ src/                            # animation/ + env.d.ts — nothing else
 └── env.d.ts                    # *.vue module declaration (dev-only shim; not shipped)
 
 demo/                # Vue 3 demo (see demo/CLAUDE.md)
-├── @/               # Shared library: animation-controls suite, asset-manager, dock, editor-shell, matrix-editor, orbital-drag, composables, styles, utils
-├── app/             # THE multi-scene SPA (npm run dev / gh-pages): router + scene machine + App shell
-├── scenes/          # Fused per-scene dirs (R.W5) — scenes/<name>/ for amiga · cube · easing · morph · motion-path · sequence · spring · square: each holds <Name>Scene.vue + Target + composables + keys, colocated
-└── playground/      # Standalone asset-playground app (npm run dev:playground)
+├── @/               # Shared library (S.D2): state, animation-transport suite, keyframes-editor, keyframe-timeline, easing-editor, editor-shell, composables, styles, utils
+├── app/             # THE multi-scene SPA (npm run dev / gh-pages): router + scene machine + App shell + chrome/ dock
+└── scenes/          # Fused per-scene dirs (R.W5) — scenes/<name>/ for amiga · cube · easing · morph · motion-path · sequence · spring · square · compose (the S.D3 playground fold): each holds <Name>Scene.vue + Target + composables + keys, colocated
 
 test/                # Vitest (jsdom), regrouped into test/<zone>/ mirroring src/animation/<zone>/ (S.B7). Count: `find test -name '*.test.ts' | wc -l` files, `npx vitest list | wc -l` tests
                      # (106 files / 1006 tests after S.B7's 5 scene tests + the KfPillTabs/TransportDock T8 suite — derive, don't trust a frozen number)

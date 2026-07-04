@@ -47,7 +47,10 @@ if (typeof window !== "undefined") {
     });
 }
 
-import { useAssetManager } from "@components/custom/asset-manager/useAssetManager";
+// S.D3 (C-4) — asset-manager folded OUT of @/ INTO the compose scene
+// (scenes/compose/asset-manager/) with the playground fold; no `@scenes` alias
+// exists, so this test reaches the singleton by its scene-private path.
+import { useAssetManager } from "../demo/scenes/compose/asset-manager/useAssetManager";
 import { resetAllStores } from "@state/index";
 
 describe("proof:asset-store-singleton — the asset store is a createGlobalState singleton", () => {

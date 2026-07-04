@@ -327,13 +327,14 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         fail("a11y-w15", "the contenteditable CSS pane has no .focus-ring — its keyboard-focus state is invisible (F.W15.S1)");
     }
 
-    // 8b — the playground asset <img> carries a meaningful :alt bound to the asset
-    // name. Bite: remove the :alt → this reds (reds today — verified State 2).
-    const viewport = read("demo/@/components/custom/asset-manager/AssetViewport.vue");
+    // 8b — the compose-scene asset <img> carries a meaningful :alt bound to the
+    // asset name. Bite: remove the :alt → this reds. S.D3 (C-4) folded the
+    // asset-manager INTO scenes/compose/asset-manager/ with the playground.
+    const viewport = read("demo/scenes/compose/asset-manager/AssetViewport.vue");
     if (/:alt=["']asset\.name["']/.test(viewport)) {
-        ok("a11y-w15", "the playground asset <img> has a meaningful :alt bound to asset.name (E-UX-8 completed)");
+        ok("a11y-w15", "the compose-scene asset <img> has a meaningful :alt bound to asset.name (E-UX-8 completed)");
     } else {
-        fail("a11y-w15", "the playground asset <img> has no :alt=\"asset.name\" — user content unnamed to AT (F.W15.S2)");
+        fail("a11y-w15", "the compose-scene asset <img> has no :alt=\"asset.name\" — user content unnamed to AT (F.W15.S2)");
     }
 
     // 8c — a VISIBLE control (not the `?` shortcut) opens the shortcuts modal by

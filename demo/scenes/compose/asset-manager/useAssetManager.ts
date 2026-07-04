@@ -22,17 +22,26 @@ const DEFAULT_NAMES: Record<AssetKind, string> = {
     svg: "SVG",
 };
 
+// S.D3 S5 (FONT-SOURCE) — the asset defaults resolve the SANCTIONED demo ramp,
+// not raw Tailwind hexes: the indigo `#6366f1` was exactly the `--primary` blue
+// the system retired, the rose `#f43f5e` a near-miss of the rainbow ramp, and
+// `#1e293b` text was unreadable on the dark floor. They now read the crayon
+// tokens the layer chips already consume (`--rainbow-blue`/`--rainbow-red`) +
+// `--foreground` (theme-adaptive, so dark mode survives). The `Fraunces` face
+// (deleted from the system) is corrected to the display face the render path
+// actually resolves (`Instrument Serif` = `var(--font-display)`) — the fix at
+// the SOURCE, not just the panel's display fallback.
 const DEFAULT_STYLES: Record<AssetKind, Partial<Asset>> = {
-    rectangle: { backgroundColor: "#6366f1", borderRadius: 8 },
-    circle: { backgroundColor: "#f43f5e", borderRadius: 9999 },
+    rectangle: { backgroundColor: "var(--rainbow-blue)", borderRadius: 8 },
+    circle: { backgroundColor: "var(--rainbow-red)", borderRadius: 9999 },
     text: {
         text: "Hello",
         fontSize: 32,
-        fontFamily: "Fraunces",
-        color: "#1e293b",
+        fontFamily: "Instrument Serif",
+        color: "var(--foreground)",
         backgroundColor: "transparent",
     },
-    image: { backgroundColor: "#e2e8f0" },
+    image: { backgroundColor: "transparent" },
     svg: { backgroundColor: "transparent" },
 };
 

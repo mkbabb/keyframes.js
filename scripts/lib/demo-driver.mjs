@@ -54,10 +54,11 @@ import { fileURLToPath } from "node:url";
 // H.W8 S1 (I-1) — RE-SOURCE THE SCENES MANIFEST FROM `demo/app/scene/scenes.ts`.
 //
 // Before H.W8 this manifest was a HAND-MAINTAINED 6-entry array. It DRIFTED: the
-// demo ships 8 scenes (the cube/amiga/square/easing/spring originals + the
-// sequence/motion-path primitives; `starting-style` was merged INTO spring at
-// H.W5), but the array still knew only 6 — so `sequence`/`motion-path` were
-// NEVER occlusion-checked, lighthouse-scored, or captured by any runtime gate.
+// demo ships 9 scenes (the cube/amiga/square/easing/spring originals + the
+// sequence/motion-path/morph primitives + the S.D3 compose fold; `starting-style`
+// was merged INTO spring at H.W5), but the array still knew only 6 — so
+// `sequence`/`motion-path` were NEVER occlusion-checked, lighthouse-scored, or
+// captured by any runtime gate.
 //
 // The fix (the load-bearing prerequisite): the manifest's SCENE SET is now
 // DERIVED from `scenes.ts` — the single source the router (`demo/app/scene/router.ts`)
@@ -137,6 +138,15 @@ const SCENE_GATE_META = {
     // designed violet stage; the broad selector also catches the Target card.
     morph: {
         subjectSelector: "[data-morph-subject], .morph-stage, [class*=Target], [class*=glass-card]",
+        dockFloatAllowed: false,
+    },
+    // S.D3 (C-4) — THE FOUNDRY (the folded playground). The subject is the
+    // casting-floor foundry (`[data-foundry]`, the full-stage AssetViewport host);
+    // the broad selector also catches the empty-state cartoon Card + any composed
+    // asset. A contained storyboard-register floor, so an over-content dock FAILS
+    // inv δ (dockFloatAllowed:false), like every non-full-bleed scene.
+    compose: {
+        subjectSelector: "[data-foundry], [class*=glass-card], [class*=Card]",
         dockFloatAllowed: false,
     },
 };
