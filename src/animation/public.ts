@@ -109,6 +109,10 @@ export {
     dispatchScrollBackend,
     resolveRange,
     pinCSS,
+    // S.F4 — the discrete `animation-trigger` layer (idle→active→done).
+    TriggerScene,
+    createTriggerScene,
+    supportsNativeTrigger,
 } from "./scroll";
 export type {
     ScrollSceneOptions,
@@ -124,6 +128,8 @@ export type {
     CSSTimelineOptions,
     RangeBoundary,
     RangePhase,
+    TriggerState,
+    TriggerDirection,
 } from "./scroll";
 
 // ── compile — the round-trip's BACKWARD half ─────────────────────────────────

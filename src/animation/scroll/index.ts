@@ -21,6 +21,15 @@ export type {
 // bridge `scene.ts` carried alongside its own `./range` import is deleted there).
 export { resolveRange } from "./range";
 export type { ResolvedRange } from "./range";
+// S.F4 — the DISCRETE `animation-trigger` layer (idle→active→done + backward/
+// repeat), realized over the SAME `./range` mapping the scrub lane uses. The
+// barrel reaches it DIRECTLY (mirroring `./range` / `./grammar`), no relay.
+export {
+    TriggerScene,
+    createTriggerScene,
+    supportsNativeTrigger,
+} from "./trigger";
+export type { TriggerState, TriggerDirection } from "./trigger";
 export {
     parseScrollTimeline,
     parseScrollRange,

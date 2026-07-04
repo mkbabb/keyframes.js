@@ -68,6 +68,10 @@ import type {
     dispatchScrollBackend as dispatchScrollBackendImpl,
     resolveRange as resolveRangeImpl,
     pinCSS as pinCSSImpl,
+    // S.F4 — the discrete `animation-trigger` lifecycle driver.
+    TriggerScene as TriggerSceneClass,
+    createTriggerScene as createTriggerSceneImpl,
+    supportsNativeTrigger as supportsNativeTriggerImpl,
 } from "./scroll";
 // K.W10 COMPILE (FLAGGED ADDITIVE EDIT) — the HEAVY compiler runtime surface,
 // merged onto the engine below (compile statically imports value.js's
@@ -193,6 +197,12 @@ export interface AnimationEngine {
     resolveRange: typeof resolveRangeImpl;
     /** `position:sticky` pin synthesis. */
     pinCSS: typeof pinCSSImpl;
+    /** The discrete `animation-trigger` lifecycle driver (idle→active→done). */
+    TriggerScene: typeof TriggerSceneClass;
+    /** Construct a `TriggerScene` from a parsed trigger / scroll options. */
+    createTriggerScene: typeof createTriggerSceneImpl;
+    /** Feature-detect native `animation-trigger` (Chrome 145+; never UA-sniffed). */
+    supportsNativeTrigger: typeof supportsNativeTriggerImpl;
     /** The round-trip's BACKWARD half: orchestration graph → zero-runtime CSS. */
     compileToCSS: typeof compileToCSSImpl;
     /** S.F1 — compile a name-keyed VT role spec → zero-runtime `::view-transition-*` CSS. */
@@ -349,6 +359,9 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
                     dispatchScrollBackend: scrollMod.dispatchScrollBackend,
                     resolveRange: scrollMod.resolveRange,
                     pinCSS: scrollMod.pinCSS,
+                    TriggerScene: scrollMod.TriggerScene,
+                    createTriggerScene: scrollMod.createTriggerScene,
+                    supportsNativeTrigger: scrollMod.supportsNativeTrigger,
                     compileToCSS: compileMod.compileToCSS,
                     compileToViewTransition: vtMod.compileToViewTransition,
                     compileToEntry: entryMod.compileToEntry,
