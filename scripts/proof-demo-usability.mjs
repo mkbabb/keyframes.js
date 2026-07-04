@@ -133,7 +133,23 @@ async function browserHalf() {
         if (!heroReady) {
             fail("hero inter-word gap — the hero <h1> .lift-down word spans did not render");
         } else {
-            const probe = await page.evaluate(() => {
+            // S.A0-fallout measurement-truth fix (reproduced: 10/60 snapshots on a
+            // fast machine): the hero's decorative liftDown is INFINITE and
+            // STAGGERED (adjacent words vertically offset ≤10px in recurring
+            // windows), so a ±2px same-line filter can match ZERO pairs in a
+            // single snapshot → the degenerate `minGap: 0` branch false-REDs the
+            // clause ("measured 0px") with no real X-5 collapse. Two-part cure,
+            // neither of which weakens the real oracle: (a) same-line iff the
+            // vertical centers are within HALF the smaller box height — a true
+            // line break differs by a full line box (~1em+), the lift by ≤10px,
+            // so the discriminator still excludes across-the-break pairs while
+            // tolerating the decorative transform (translateY never changes the
+            // HORIZONTAL gap the clause measures); (b) if a snapshot still
+            // witnesses zero pairs, RESAMPLE across the stagger phase (bounded)
+            // instead of judging the degenerate frame.
+            let probe = null;
+            for (let attempt = 0; attempt < 8; attempt++) {
+                probe = await page.evaluate(() => {
                 // The title word boxes live inside AnimatedText's aria-hidden
                 // visual layer (a `<span aria-hidden="true">`, NOT a `<div>` — the
                 // F.W16 word-granular substrate renders sr-only mirror + aria-hidden
@@ -156,10 +172,13 @@ async function browserHalf() {
                 for (let i = 0; i + 1 < spans.length; i++) {
                     const a = spans[i].getBoundingClientRect();
                     const b = spans[i + 1].getBoundingClientRect();
-                    // Same visual line iff the vertical centers coincide (±2px).
+                    // Same visual line iff the vertical centers are within half
+                    // the smaller box height — tolerant of the ≤10px decorative
+                    // lift, still excludes a true line break (a full line box).
+                    const sameLineTol = Math.min(a.height, b.height) / 2;
                     const sameLine =
                         Math.abs((a.top + a.bottom) / 2 - (b.top + b.bottom) / 2) <=
-                        2;
+                        Math.max(2, sameLineTol);
                     if (!sameLine) continue;
                     sameLinePairs++;
                     // The gap is the next box's left edge minus this box's right
@@ -187,7 +206,12 @@ async function browserHalf() {
                     mirrorHasSpaces: /\s/.test(mirrorText),
                     balanceHost,
                 };
-            });
+                });
+                // A witnessed pair (in either verdict direction) is a REAL frame —
+                // judge it. Only the degenerate zero-pair snapshot re-samples.
+                if (probe.sameLinePairs > 0) break;
+                await page.waitForTimeout(150);
+            }
 
             if (probe.minGap > 0) {
                 ok(
