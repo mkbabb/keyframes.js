@@ -39,6 +39,13 @@ console.log(
 // files, so a clause's anchor is found wherever the carve landed it.
 const RESOLVE = [
     "src/animation/resolve/index.ts",
+    // S.B4 — the barrel was thinned; the core recursion + the spring-css
+    // timing-function helpers carved into siblings (a02 F3/F4). The RESOLVE
+    // surface is the concatenation, so a clause anchors wherever the carve
+    // landed it (resolveValues/hasResolvableValue/hasPhase2Node → core.ts;
+    // springCssToOptions + the spring algebra → spring-css.ts).
+    "src/animation/resolve/core.ts",
+    "src/animation/resolve/spring-css.ts",
     "src/animation/resolve/env.ts",
     "src/animation/resolve/resolve-if.ts",
     "src/animation/resolve/resolve-function.ts",

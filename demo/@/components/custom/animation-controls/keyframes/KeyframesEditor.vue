@@ -120,7 +120,7 @@ import { insertTabAtCursor } from "./utils/contenteditable";
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
 // synchronous, since the warm resolves before the app mounts. `presets` is the
 // barrel's preset namespace (the old `* as animations` deep import).
-const { CSSKeyframesAnimation, presets } = kfEngine();
+const { CSSKeyframesAnimation, AnimationGroup, presets } = kfEngine();
 
 const { animation, framed = true } = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -204,11 +204,12 @@ const removeKeyframe = async (_e: Event, frameIx: number) => {
     const el2 =
         frameIx < cards.length - 1 ? cards[frameIx + 1] : cards[frameIx - 1];
 
-    await presets
-        .warpLeft()
-        .setTargets(el1)
-        .group(presets.jumpUp().setTargets(el2))
-        .play();
+    // S.B4 — `AnimationGroup.of(...)` replaces the excised
+    // `KeyframesAnimation.group(...)` convenience (genuine ownership; a06 F1/F2).
+    await AnimationGroup.of(
+        presets.warpLeft().setTargets(el1),
+        presets.jumpUp().setTargets(el2),
+    ).play();
 
     removeKeyframeData(frameIx);
 };

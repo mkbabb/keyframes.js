@@ -1,13 +1,16 @@
 /**
- * `group/scheduler.ts` — the INP-yield batched-advance the `AnimationGroup`
+ * `group/yield-batch.ts` — the INP-yield batched-advance the `AnimationGroup`
  * draw loop drives (R.W2 — the `group-layer-springs.ts` junk-drawer split; this
- * is the scheduler-yield concern, NOT spring-related). `advanceSlice` is the
+ * is the scheduler-yield concern, NOT spring-related; renamed from
+ * `group/scheduler.ts` at S.B4 to clear the `scheduler.ts` cross-zone basename
+ * collision with `internal/scheduler.ts`'s canonical `yieldToMain` — r3 F7).
+ * `advanceSlice` is the
  * J.W6 S1 sync fast path; `advanceBatched` slices a large group with a
  * `yieldToMain()` between slices. Pure functions of the entries the group
  * passes in.
  */
 import { yieldToMain } from "../internal/scheduler";
-import type { AnimationGroupEntry } from "./group";
+import type { AnimationGroupEntry } from "./types";
 
 /**
  * Advance one slice of children to absolute clock `t` — the J.W6 S1 sync fast

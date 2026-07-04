@@ -10,6 +10,34 @@ export { stagger } from "./stagger";
 export type { StaggerOrigin, StaggerOptions, StaggerFn } from "./stagger";
 export { flip, flipShared } from "./flip";
 export type { FlipOptions } from "./flip";
-export * from "./drag";
-export * from "./timeline";
-export * from "./sequence";
+// S.B4 (a02 F4) — explicit-named barrel policy: `export *` is reserved for the
+// leaf tier, so the sub-zone surfaces are re-exported by name (a new sub-zone
+// export joins the package surface only through a reviewed barrel edit).
+export { drag, Draggable, drag2D } from "./drag";
+export type {
+    DragOptions,
+    DragAxis,
+    DragSubscriber,
+    Drag2DHandle,
+} from "./drag";
+export {
+    Timeline,
+    KeyframesScrollTimeline,
+    ManualTimeline,
+    createNativeTimeline,
+} from "./timeline";
+export type {
+    TimelineOptions,
+    KeyframesScrollTimelineOptions,
+    NativeTimelineSpec,
+} from "./timeline";
+export { Sequence } from "./sequence";
+export type {
+    SequencePosition,
+    SequenceOptions,
+    SequenceEntry,
+    SequenceEvent,
+    SequenceSegmentSubscriber,
+    SequenceLabelSubscriber,
+    SequenceSubscriber,
+} from "./sequence";

@@ -113,12 +113,16 @@ function main() {
     // track the carve instead of the pre-R flat file.
     const waapi = readWaapiSurface();
     // R.W1 split the timeline into `orchestration/timeline/` — the JS sampler
-    // (`KeyframesScrollTimeline`) in `index.ts` and the native feature-detect
-    // factory (`createNativeTimeline` over `globalThis.ScrollTimeline`) in
-    // `native.ts`. The S5 check reads BOTH so it finds the factory + the
-    // surviving JS sampler regardless of which file each lands in.
+    // (`KeyframesScrollTimeline`) and the native feature-detect factory
+    // (`createNativeTimeline` over `globalThis.ScrollTimeline`). S.B4 carved the
+    // class family (`Timeline`/`KeyframesScrollTimeline`/`ManualTimeline`) OUT of
+    // the barrel into `./timeline`, leaving `index.ts` a thin re-export. The S5
+    // check reads the whole SURFACE (barrel + class file + native) so it finds
+    // the factory + the surviving JS sampler regardless of which file each lands in.
     const timeline =
         read(path.join("orchestration", "timeline", "index.ts")) +
+        "\n" +
+        read(path.join("orchestration", "timeline", "timeline.ts")) +
         "\n" +
         read(path.join("orchestration", "timeline", "native.ts"));
 
@@ -132,16 +136,17 @@ function main() {
     const engineCssMetadata = readOpt(path.join("engine", "css", "metadata.ts"));
     const engineSurface = engine + "\n" + engineCssMetadata;
 
-    // Q.WF1 decomposition (`engine/playback.ts`) — the standalone-play lifecycle
+    // Q.WF1 decomposition (`engine/play-lifecycle.ts`, renamed from
+    // `engine/playback.ts` at S.B4 / r3 F7) — the standalone-play lifecycle
     // machine (the rAF/WAAPI/reduced-motion play DRIVERS, incl. the `playFrame`
     // per-tick live reduced-motion re-consult + the `snapToReducedMotion` snap)
-    // was lifted out of `engine.ts` into the colocated INTERNAL `engine/playback.ts`,
-    // with the engine left importing + delegating (`_frame` → `playback.playFrame`).
+    // was lifted out of `engine.ts` into this colocated INTERNAL module, with the
+    // engine left importing + delegating (`_frame` → `playback.playFrame`).
     // The S2 live-re-consult source-shape check reads the ENGINE PLAYBACK SURFACE
-    // = the engine base + engine/playback.ts, so it tracks the decomposition
+    // = the engine base + engine/play-lifecycle.ts, so it tracks the decomposition
     // instead of the file layout (mirrors the S1 engine/css/metadata.ts precedent
     // above). (Missing sibling → empty string → the clause still reds.)
-    const enginePlayback = readOpt(path.join("engine", "playback.ts"));
+    const enginePlayback = readOpt(path.join("engine", "play-lifecycle.ts"));
     const enginePlaybackSurface = engine + "\n" + enginePlayback;
 
     // ── 1. S1 — @property registry → CSS.registerProperty ─────────────────

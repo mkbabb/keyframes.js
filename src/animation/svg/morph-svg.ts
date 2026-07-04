@@ -44,6 +44,7 @@
 
 import { PathGeometry } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../engine";
+import { SVGAnimationHandle } from "./handle";
 import type {
     InputAnimationOptions,
     TransformFunction,
@@ -412,15 +413,18 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
  * that ALSO exposes {@link sampleD} — the morphed `d` string at a normalized
  * `t`, reassembled from the interpolated point coordinates.
  */
-export class MorphSVG<V extends Record<string, any> = any> {
-    /** The underlying coordinate-interpolating animation — the control handle. */
-    readonly animation: CSSKeyframesAnimation<V>;
+export class MorphSVG<
+    V extends Record<string, any> = any,
+> extends SVGAnimationHandle<V> {
+    // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
+    // delegation live on `SVGAnimationHandle`; MorphSVG adds only its `sampleD`
+    // sampling surface (+ the `samples` count) on top of the shared handle.
 
     /** The uniform-sample count (point pairs = samples + 1). */
     readonly samples: number;
 
     constructor(from: string, to: string, options: MorphSVGOptions = {}) {
-        this.animation = fromMorphSVG<V>(from, to, options);
+        super(fromMorphSVG<V>(from, to, options));
         this.samples = options.samples ?? DEFAULT_SAMPLES;
     }
 
@@ -445,27 +449,5 @@ export class MorphSVG<V extends Record<string, any> = any> {
             pts[i] = { x: x ?? 0, y: y ?? 0 }; // KEEP: pre-tick geometric identity
         }
         return pointsToD(pts);
-    }
-
-    /** Start (or re-enter) the morph play loop. */
-    play(): Promise<void> {
-        return this.animation.play();
-    }
-
-    /** Pause the play loop, retaining the playhead. */
-    pause(): this {
-        this.animation.pause();
-        return this;
-    }
-
-    /** Halt and rewind the play loop. */
-    stop(): this {
-        this.animation.stop();
-        return this;
-    }
-
-    /** Resolve once the morph completes — the {@link Animation.finished} front-door. */
-    get finished(): Promise<void> {
-        return this.animation.finished;
     }
 }

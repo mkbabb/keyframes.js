@@ -6,11 +6,13 @@
  * front-door, the segment/label crossing fires) — all stateful + gate-pinned to
  * `sequence.ts`. The TRANSPORT MATH that the lifecycle drives is pure: the
  * `repeat`/`yoyo` phase fold, the terminal rest phase, the no-forward-jump origin
- * seed, the forward-monotone predicate, and the SSR reduced-motion probe. They
- * take their inputs explicitly and return scalars, so they live here, away from
- * the class's private state, and the lifecycle methods read as thin drivers.
+ * seed, and the forward-monotone predicate. They take their inputs explicitly and
+ * return scalars, so they live here, away from the class's private state, and the
+ * lifecycle methods read as thin drivers. (The reduced-motion probe is NOT here:
+ * `Sequence` reads the ONE engine-wide `internal/reduced-motion` detector — S.B4
+ * a16 F3 DRY.)
  *
- * LIGHT (value.js-free) — plain arithmetic + a `matchMedia` probe.
+ * LIGHT (value.js-free) — plain arithmetic.
  */
 import { clamp } from "../../internal/leaves";
 import type { SequenceEventBus, SequenceEntry } from "./events";
@@ -164,16 +166,10 @@ export function seedOrigin(clock: number, time: number, rate: number): number {
     return rate === 0 ? clock : clock - time / rate;
 }
 
-/**
- * SSR-safe `prefers-reduced-motion: reduce` probe. Mirrors the engine's off-DOM
- * posture (no `matchMedia` → false).
- */
-export function prefersReducedMotion(): boolean {
-    return (
-        typeof matchMedia === "function" &&
-        matchMedia("(prefers-reduced-motion: reduce)").matches
-    );
-}
+// S.B4 (a16 F3) — the hand-rolled `prefersReducedMotion()` copy that lived here
+// is DELETED; `Sequence` reads the ONE engine-wide `internal/reduced-motion`
+// detector directly (the DRY — the live cached MediaQueryList, not a fresh
+// per-call `matchMedia` probe).
 
 /**
  * The play-machine view the rAF-loop driver reads + writes. `Sequence` IS this

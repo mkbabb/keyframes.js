@@ -29,8 +29,10 @@
  * imports; vite.config's `engine/index` source). PLUS every zone `index.ts` barrel — the
  * R.W1 convention gave each cohesive zone an `index.ts` API surface; a zone barrel
  * is an entry surface BY CONSTRUCTION (the LIGHT `.` barrel imports zone leaves
- * directly, so `physics/index.ts` / `orchestration/index.ts` / `internal/index.ts`
- * have no in-repo importer yet are not dead — they are the zones' declared APIs).
+ * directly, so `physics/index.ts` / `orchestration/index.ts` have no in-repo
+ * importer yet are not dead — they are the zones' declared APIs). (`internal/`
+ * carries NO barrel — it is the leaf tier; its `index.ts` was deleted at S.B4,
+ * and its leaves stay reachable via the DIRECT `./internal/*` edges below.)
  * Deriving the barrels dynamically (rather than pinning a frozen 4) is what lets
  * this gate SURVIVE the T7 root-set perturbations without a re-author: S.B4 may
  * delete `internal/index.ts` (a deleted root simply drops out; its leaves stay

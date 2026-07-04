@@ -1,7 +1,7 @@
 /**
  * `engine/playback-state.ts` — the `PlaybackState` run-state STORE, carved off
- * `engine/playback.ts` at S.B2 on the STATE↔BEHAVIOR cohesion seam (the play
- * machine's free functions live in `./playback`; the state they mutate lives
+ * `engine/play-lifecycle.ts` at S.B2 on the STATE↔BEHAVIOR cohesion seam (the
+ * play machine's free functions live in `./play-lifecycle`; the state they mutate lives
  * HERE). A value.js-free leaf struct: it owns the standalone-play machine's OWN
  * run-state so the state has a SINGLE owner instead of being scattered as
  * privates the class re-published through a cast (R.W2 dissolved the

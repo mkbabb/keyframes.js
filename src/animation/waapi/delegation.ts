@@ -4,7 +4,7 @@ import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 import { isWAAPIEligible } from "./eligibility";
 import { toWAAPIKeyframes } from "./emission";
-import { toWAAPIOptions } from "./options";
+import { toWAAPIOptions } from "./waapi-options";
 
 /**
  * Drive an animation via WAAPI for compositor-thread visuals while

@@ -19,4 +19,23 @@ export { decay, decayRest } from "./decay";
 export type { DecayOptions, DecaySample } from "./decay";
 export { ElementMorph } from "./morph";
 export type { MorphRect, ElementMorphOptions } from "./morph";
-export * from "./spring";
+// S.B4 (a02 F4) — explicit-named barrel policy: the spring sub-zone surface is
+// re-exported by name (`export *` is reserved for the leaf tier).
+export {
+    SpringProgress,
+    probeVelocity,
+    reseatToSpring,
+    DEFAULT_SPRING_RESPONSE,
+    durationToSpringOptions,
+    springLinearStops,
+    springTimingFunction,
+} from "./spring";
+export type {
+    VelocityProbe,
+    SpringProgressOptions,
+    SpringSubscriber,
+    SpringFrameCallback,
+    SpringDurationOptions,
+    SpringLinearStopsOptions,
+    SpringTimingFunctionOptions,
+} from "./spring";

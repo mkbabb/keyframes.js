@@ -12,7 +12,7 @@ import {
     setChildrenPaused,
     snapChildrenToFinal,
 } from "./entries";
-import { advanceBatched, advanceSlice } from "./scheduler";
+import { advanceBatched, advanceSlice } from "./yield-batch";
 import { advanceLayerSprings } from "./springs";
 import type { LayerTransitionSpring } from "./springs";
 import { compositeFrame } from "./compositor";
@@ -26,7 +26,7 @@ import type {
 import { defaultLayerConfig, NOOP_TRANSFORM } from "../constants";
 
 // R.W2 — the `group-layer-springs.ts` junk-drawer 3-way split (entry-set helpers
-// → `./entries`, scheduler-yield batching → `./scheduler`, K.W11 PHYS-C
+// → `./entries`, scheduler-yield batching → `./yield-batch`, K.W11 PHYS-C
 // spring-weight helpers → `./springs`) + the `transformFramesGrouped`/
 // `boxedBlendArm` composite carve → `./compositor` (the SoA fold itself lives in
 // `./soa`). `_soaPlans`/`_compositeBuf` stay instance state here. The
@@ -34,20 +34,12 @@ import { defaultLayerConfig, NOOP_TRANSFORM } from "../constants";
 // `transitionLayer`/`crossfade` signatures read unchanged.
 export type { LayerTransitionSpring };
 
-export interface AnimationGroupEntry<V extends Vars> {
-    animation: KeyframesAnimation<V>;
-    values: Record<string, unknown>;
-    layer: AnimationLayerConfig;
-}
-
-export interface AnimationGroupObject<V extends Vars> {
-    [key: string]: AnimationGroupEntry<V>;
-}
-
-/** Input — a bare Animation or one with a layer config. */
-export type AnimationGroupInput<V extends Vars> =
-    | KeyframesAnimation<V>
-    | { animation: KeyframesAnimation<V>; layer?: Partial<AnimationLayerConfig> };
+// S.B4 (a04) — the entry/object/input shapes live in the `./types` leaf.
+import type {
+    AnimationGroupEntry,
+    AnimationGroupObject,
+    AnimationGroupInput,
+} from "./types";
 
 export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
@@ -69,6 +61,16 @@ export class AnimationGroup<V extends Vars> {
     /** Children-per-slice before `advanceTo()` yields to the main thread; larger
      * groups batch with a `scheduler.yield()` between slices (INP relief). */
     static readonly YIELD_BATCH = 32;
+
+    /** Construct a group from a first animation + rest (S.B4 / a06 F1/F2 — the
+     * genuine-ownership replacement for the excised `KeyframesAnimation.group()`
+     * service locator; each input is a bare animation or `{ animation, layer }`). */
+    static of<V extends Vars>(
+        first: KeyframesAnimation<V> | AnimationGroupInput<V>,
+        ...rest: (KeyframesAnimation<V> | AnimationGroupInput<V>)[]
+    ): AnimationGroup<V> {
+        return new AnimationGroup<V>(first, ...rest);
+    }
 
     singleTarget = true;
 

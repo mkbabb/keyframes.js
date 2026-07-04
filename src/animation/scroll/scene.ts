@@ -55,12 +55,11 @@ import {
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 // The range → [0,1] progress mapping (resolveRange / ResolvedRange + the phase
-// fractions) lives in the colocated `./range` module (R.W2b carve). Re-exported
-// by the scroll barrel so the consumer surface is unchanged.
+// fractions) lives in the colocated `./range` module (R.W2b carve). The scroll
+// barrel reaches `./range` DIRECTLY (S.B4 / a19 F3 — the half-retired two-hop
+// `range → scene → barrel` relay is deleted; `scene.ts` only IMPORTS what it uses).
 import { resolveRange } from "./range";
 import type { ResolvedRange } from "./range";
-export { resolveRange } from "./range";
-export type { ResolvedRange } from "./range";
 // The driver consumes the value.js scroll-grammar TYPES only (erased under
 // verbatimModuleSyntax — no runtime value.js edge; the static edge lives in
 // `./grammar`, the SO-1 round-trip half re-exported by the scroll barrel).
