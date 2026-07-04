@@ -138,6 +138,16 @@ export type {
     VTCompileRefusal,
     CompiledViewTransitionCSS,
 } from "./compile/view-transition";
+// S.F3 EN-c — the entry/exit emitter (PAIRED with the AnimationEngine
+// `compileToEntry` field — the proof:engine-subpath-mirror TYPE-diff).
+export { compileToEntry } from "./compile/entry";
+export type {
+    EntryRoleSpec,
+    EntryCompileOptions,
+    EntryRefusalReason,
+    EntryRefusal,
+    CompiledEntryCSS,
+} from "./compile/entry";
 
 // ── validate — the round-trip's FORWARD half (the validation layer) ──────────
 export { validate, explain } from "./validate";

@@ -79,6 +79,10 @@ import type { compileToCSS as compileToCSSImpl } from "./compile";
 // engine below; rides the dynamic boundary, never the LIGHT static barrel (its
 // LIGHT twin is `orchestration/view-transition`'s dispatch).
 import type { compileToViewTransition as compileToViewTransitionImpl } from "./compile/view-transition";
+// S.F3 EN-c (FLAGGED ADDITIVE) — the entry/exit emitter (compileToCSS's
+// declared-endpoint sibling). Merged onto the engine below; rides the dynamic
+// boundary, never the LIGHT static barrel.
+import type { compileToEntry as compileToEntryImpl } from "./compile/entry";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the HEAVY validate/explain
 // runtime surface, merged onto the engine below (validate.ts statically imports
 // the engine + compile + waapi, all value.js-bearing, so it rides the dynamic
@@ -193,6 +197,8 @@ export interface AnimationEngine {
     compileToCSS: typeof compileToCSSImpl;
     /** S.F1 — compile a name-keyed VT role spec → zero-runtime `::view-transition-*` CSS. */
     compileToViewTransition: typeof compileToViewTransitionImpl;
+    /** S.F3 — compile a selector-keyed entry/exit spec → zero-runtime `@starting-style` CSS. */
+    compileToEntry: typeof compileToEntryImpl;
     /** Read-only validation envelope over the compile/adapter/WAAPI channels. */
     validate: typeof validateImpl;
     /** Format the `validate` verdict as deterministic human/LLM-readable text. */
@@ -281,6 +287,10 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         // substrate; merged here so consumers reach the `::view-transition-*`
         // emitter the same way as the rest of the heavy surface.
         import("./compile/view-transition"),
+        // S.F3 EN-c (FLAGGED ADDITIVE) — the entry/exit emitter. Statically imports
+        // value.js + the backward substrate; merged here so consumers reach the
+        // `@starting-style`/`allow-discrete` emitter the same way.
+        import("./compile/entry"),
         // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE) — validate.ts statically
         // imports the engine + compile + waapi (all value.js-bearing); merged here
         // so consumers reach the forward-half VALIDATION layer the same way as the
@@ -309,6 +319,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
             scrollMod,
             compileMod,
             vtMod,
+            entryMod,
             validateMod,
             presets,
             formatMod,
@@ -340,6 +351,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
                     pinCSS: scrollMod.pinCSS,
                     compileToCSS: compileMod.compileToCSS,
                     compileToViewTransition: vtMod.compileToViewTransition,
+                    compileToEntry: entryMod.compileToEntry,
                     validate: validateMod.validate,
                     explain: validateMod.explain,
                     presets,

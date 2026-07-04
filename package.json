@@ -81,6 +81,7 @@
         "proof:compile-browser-parse": "node scripts/proof-compile-browser-parse.mjs",
         "proof:split-a11y": "node scripts/proof-split-a11y.mjs",
         "proof:vt-roundtrip": "node scripts/proof-vt-roundtrip.mjs",
+        "proof:entry-roundtrip": "node scripts/proof-entry-roundtrip.mjs",
         "proof:replay-equality": "node scripts/proof-replay-equality.mjs && vitest run test/engine/replay-equality.test.ts",
         "proof:bench-runs": "node scripts/proof-bench-runs.mjs",
         "proof:bench-taxonomy": "node scripts/proof-bench-taxonomy.mjs",

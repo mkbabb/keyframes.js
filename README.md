@@ -728,6 +728,24 @@ vt.css.includes("animation-name"); // => false   // the group override is timing
 
 Options: `types` (wraps rules in `:active-view-transition-type(...)`), `crossDocument` (prepend `@view-transition { navigation: auto }`), `reducedMotion` (append the PRM `animation: none` block, default `true`), plus every `CompileOptions` key. The consumer assigns `view-transition-name: <name>` to its elements from the returned `names`.
 
+### `compileToEntry`
+
+Modern entry/exit compilation: compile a selector-keyed `{ enter?, exit? }` spec to zero-runtime **`@starting-style` + `transition-behavior: allow-discrete`** CSS — the two-endpoint entrance/exit grammar the platform shipped (Chromium 117+/Safari 26). HEAVY (reached via `loadAnimationEngine()`). It is a **declared-endpoint projection** (each animation is a 2-stop transition endpoint pair), emitting the three-rule grammar: a base/closed rule (exit's last frame + `display: none` + the exit transition list), an open rule (enter's last frame + `display` + the entry list), and `@starting-style { <open> { enter's first frame } }`. Asymmetric entry/exit duration+easing ride the two lists; `display`/`overlay <dur> allow-discrete` ride BOTH (`overlay` is inert-but-harmless off the top layer); spring `linear()`s ride verbatim; **color endpoints canonicalize to `oklab()`** so the transition interpolates in kf's default perceptual space natively — NO densify, ZERO intermediate stops (the `@keyframes` `perceptual-oklab` refusal INVERTED to a feature). Non-two-endpoint shapes REFUSE (3 inherited + 6 entry-specific: `entry-multi-keyframe` / `entry-iteration` / `entry-composition` / `entry-scroll-grammar` / `entry-color-space` / `entry-easing-twin`).
+
+```ts run
+const { CSSKeyframesAnimation, compileToEntry } = await loadAnimationEngine();
+
+const enter = new CSSKeyframesAnimation({ duration: 350 });
+enter.fromString(`@keyframes en { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }`);
+
+const dialog = await compileToEntry({ ".dialog": { enter } }, { openSelector: "[open]" });
+dialog.eligible; // => true
+dialog.css.includes("@starting-style"); // => true
+dialog.css.includes("display 350ms allow-discrete"); // => true
+```
+
+Options: `openSelector` (`".open"` | `"[data-open]"` | `":popover-open"` | `"[open]"`, concatenated onto the base selector), `display` (the open display, default `"block"`), `overlay` (emit `overlay allow-discrete`, default `true`), `printWidth`. The `exit` defaults to `enter` reversed. **Born-open elements RUN the entry at first render** (an `@starting-style` platform semantic — an SSR'd open dialog animates in on load; opt out by not matching the open selector at initial render). Where `transition-behavior` is unsupported the artifact **degrades honestly** — snap-entry, correct end state, no broken half-transition.
+
 ## Ecosystem & agents
 
 - **`llms.txt`** — the agent surface: a machine-readable index of every capability, generated

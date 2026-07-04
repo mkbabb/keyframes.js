@@ -47,13 +47,18 @@
             </Button>
         </div>
 
-        <!-- The copy-pasteable artifact: the emitted linear() string. -->
+        <!-- S.F3 EN-d DOGFOOD — the copy-pasteable artifact is the REAL
+             `compileToEntry` output for THIS card's entry/exit (its opacity/
+             transform endpoints eased by the same spring), not a hand-typed
+             timing-function line. A designer pastes it verbatim to reproduce the
+             discrete transition: base(closed) + `.is-open` + `@starting-style`,
+             with `display`/`overlay` `allow-discrete` and the spring `linear()`. -->
         <div class="w-full max-w-3xl shrink-0">
             <div class="flex items-center justify-between mb-1.5">
-                <span class="text-small text-foreground">transition-timing-function</span>
-                <CopyButton class="shrink-0 w-4 h-4" :text="copyableCss" />
+                <span class="text-small text-foreground">compileToEntry() artifact</span>
+                <CopyButton class="shrink-0 w-4 h-4" :text="compiledEntryCss || copyableCss" />
             </div>
-            <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full overflow-x-auto whitespace-nowrap">{{ springCss }}</code>
+            <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full max-h-32 overflow-auto whitespace-pre">{{ compiledEntryCss || springCss }}</code>
         </div>
 
         <!-- K.W4 S5 — the redundant 4-preset ROW is RETIRED (the same four
@@ -79,6 +84,7 @@ import { Button, Card } from "@mkbabb/glass-ui";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
+import { useCompiledEntry } from "./useCompiledEntry";
 import CopyButton from "@components/custom/CopyButton.vue";
 
 import { SPRING_DEMO_KEY } from "./springKeys";
@@ -116,6 +122,14 @@ const springCss = useSpringLinearStops(
 // The clipboard payload: the full declaration, ready to paste.
 const copyableCss = computed(
     () => `transition-timing-function: ${springCss.value};`,
+);
+
+// S.F3 EN-d — the REAL `compileToEntry` artifact for this card's entry/exit,
+// compiled off the SAME shared spring params (dogfood: the demo runs the
+// published emitter and shows its verbatim output, not a hand-typed twin).
+const { css: compiledEntryCss } = useCompiledEntry(
+    () => demo.response.value,
+    () => demo.dampingFraction.value,
 );
 </script>
 

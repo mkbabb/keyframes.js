@@ -253,6 +253,18 @@ export type {
     VTCompileRefusal,
     CompiledViewTransitionCSS,
 } from "./compile/view-transition";
+// S.F3 EN-c (FLAGGED ADDITIVE EDIT) — the entry/exit emitter's TYPE surface.
+// HEAVY (entry.ts statically imports value.js + the backward substrate), so the
+// runtime `compileToEntry` rides loadAnimationEngine below; ONLY its spec /
+// option / refusal / result TYPES are re-exported here (erased — no static
+// value.js edge on the LIGHT barrel; proof:boundary stays green).
+export type {
+    EntryRoleSpec,
+    EntryCompileOptions,
+    EntryRefusalReason,
+    EntryRefusal,
+    CompiledEntryCSS,
+} from "./compile/entry";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the round-trip's FORWARD
 // half: the VALIDATION layer over the compile surface. `validate`/`explain` are
 // a READ-ONLY projection over three already-typed channels (the adapter

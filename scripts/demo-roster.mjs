@@ -85,6 +85,13 @@ export const CORRECTNESS_ROSTER = [
     // symmetric mis-tier clause). It rides HERE beside the other browser actuators.
     // STRUCTURAL + one settled-rect clause; no per-frame pixel/ms threshold (C-10).
     "proof:vt-roundtrip",
+    // S.F3 EN-c — the browser-actuating entry/exit round-trip library-value gate
+    // (C-22; P2-2). A browser-HARNESS member: `@starting-style`/`allow-discrete`/
+    // `overlay`/the CSSTransition tree are platform artifacts jsdom does NOT run
+    // (a jsdom slot would be a FALSE green + correctly RED under S.A4's symmetric
+    // mis-tier clause). It rides HERE beside the other browser actuators.
+    // SCRUB-BASED structural (S1–S7); zero frame/ms races (C-10).
+    "proof:entry-roundtrip",
     // S.F2 SplitText — the browser-actuating a11y-tree library-value gate (T8).
     // A browser-HARNESS member: the COMPUTED accessible name is a browser
     // artifact (jsdom does not run the ARIA name-computation algorithm, so a

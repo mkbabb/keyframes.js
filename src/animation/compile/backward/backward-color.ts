@@ -81,6 +81,18 @@ const colorToOklabCSS = (c: Color): string => {
     return `oklab(${round(L)} ${round(a)} ${round(b)})`;
 };
 
+/**
+ * EN-c (S.F3) — a declared color `ValueUnit` → its `oklab(L a b)` CSS literal.
+ * The entry emitter canonicalizes color ENDPOINTS to `oklab()` so the CSS
+ * transition interpolates in kf's default perceptual space NATIVELY — CSS Color 4
+ * interpolates non-legacy colors in Oklab by default, so an entry ships kf's
+ * perceptual default with NO densify + ZERO intermediate stops. This is the
+ * `perceptual-oklab` refusal INVERTED to a FEATURE on the transition surface (a
+ * two-endpoint transition, unlike a `@keyframes` sRGB fill, needs no ΔE proof).
+ */
+export const colorUnitToOklabCSS = (vu: ValueUnit): string =>
+    colorToOklabCSS(toColor(vu));
+
 /** ΔE-OK between two Colors (the perceptual distance the densify proof reads). */
 const colorDeltaE = (c1: Color, c2: Color): number => {
     const [L1, a1, b1] = rawOklab(c1);

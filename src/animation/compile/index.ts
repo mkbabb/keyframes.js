@@ -56,3 +56,13 @@ export type {
     VTCompileRefusal,
     CompiledViewTransitionCSS,
 } from "./view-transition";
+// S.F3 EN-c — the entry/exit emitter (compileToCSS's DECLARED-ENDPOINT sibling; a
+// selector-keyed spec → zero-runtime `@starting-style` + `allow-discrete` CSS).
+export { compileToEntry } from "./entry";
+export type {
+    EntryRoleSpec,
+    EntryCompileOptions,
+    EntryRefusalReason,
+    EntryRefusal,
+    CompiledEntryCSS,
+} from "./entry";

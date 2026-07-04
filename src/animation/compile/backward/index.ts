@@ -41,3 +41,7 @@ export { serializeEasing } from "./easing-serialize";
 // VT-b / EN-c (S.F1/S.F3) — the CSS-ident normalizer, exposed so the sibling
 // View-Transitions + entry/exit emitters derive stable pseudo/rule names.
 export { cssIdent } from "./backward-walk";
+// EN-c (S.F3) — the color-endpoint canonicalizer + color-leaf narrower, exposed
+// so the entry/exit emitter ships `oklab()` endpoints (the perceptual-oklab
+// INVERSION — native oklab interpolation, no densify).
+export { colorUnitToOklabCSS, isColorUnit } from "./backward-color";
