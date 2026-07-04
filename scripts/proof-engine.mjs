@@ -115,6 +115,73 @@ if (!/export class FrameCompiler/.test(compiler)) {
     }
 }
 
+// ── S.B2 fsm-single-storage (C-15) — no FSM transition field is DECLARED on ──
+// the `KeyframesAnimation` class body: accessor delegates ONLY. The eight
+// run-state fields (started/done/paused/reversed/iteration/t/startTime/pausedTime)
+// fold into `PlaybackState` (playback.ts) as the SOLE backing store; the class
+// exposes them as `get`/`set` accessor delegates over `this._playback.*`. This is
+// the HONEST realization of the R.W2 "DI not param-bags" title (the FSM was a
+// public, externally-written surface, so single-STORAGE — not a literal
+// single-writer — is the non-breaking fold; the hard fold is a future BREAKING
+// wave, C-15/§8-3). `managed` is CORRECTLY EXCLUDED — it is loop-OWNERSHIP, not
+// run-state (it never resets in `settle`).
+//
+// BITE: a raw field declaration (`started: boolean = false;` / `t = 0`) at class-
+// member indentation reds; a `get started()`/`set started(v)` accessor passes
+// (the accessor's header begins `get `/`set `, never the bare field name). Plant
+// any one FSM field back onto the class body → RED. Falsifiable + non-vacuous:
+// this is the F1/SB-1 clause the a03 lane proposed, extending the born-RED-capable
+// ceiling gate above rather than a fresh grep a stub could fake.
+{
+    const engine = read("src/animation/engine/animation.ts").split("\n");
+    const start = engine.findIndex((l) => /^export class KeyframesAnimation</.test(l));
+    let end = -1;
+    if (start !== -1) {
+        for (let i = start + 1; i < engine.length; i++) {
+            if (/^}/.test(engine[i])) { end = i; break; }
+        }
+    }
+    // The 8 FSM transition fields (`managed` deliberately excluded — ownership).
+    const FSM_FIELDS = [
+        "started", "done", "paused", "reversed",
+        "iteration", "t", "startTime", "pausedTime",
+    ];
+    if (start === -1 || end === -1) {
+        fail("fsm-single-storage", "could not locate the KeyframesAnimation class body for the FSM-field scan");
+    } else {
+        const declared = [];
+        for (let i = start + 1; i < end; i++) {
+            const line = engine[i];
+            for (const f of FSM_FIELDS) {
+                // A class-member FIELD declaration: 4-space member indent, optional
+                // modifiers, the exact field name (word-bounded so `t` never matches
+                // `templateFrames`/`toggle` and `paused` never matches `pausedTime`),
+                // then a `:type` / `=init` / `?:` — NOT a `get `/`set ` accessor.
+                const re = new RegExp(
+                    `^    (?:readonly |protected |public |private |declare )*${f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b[?!]?\\s*[:=]`,
+                );
+                if (re.test(line)) declared.push({ f, line: i + 1, text: line.trim() });
+            }
+        }
+        if (declared.length > 0) {
+            fail(
+                "fsm-single-storage",
+                `KeyframesAnimation DECLARES ${declared.length} FSM transition field(s) on the class body ` +
+                    `(single-STORAGE violated — fold them into PlaybackState + accessor delegates over ` +
+                    `this._playback.*; C-15):\n      ` +
+                    declared.map((d) => `animation.ts:${d.line}  ${d.text}`).join("\n      "),
+            );
+        } else {
+            ok(
+                "fsm-single-storage",
+                `no FSM transition field DECLARED on the KeyframesAnimation class body — the 8 run-state ` +
+                    `fields (started/done/paused/reversed/iteration/t/startTime/pausedTime) live in PlaybackState; ` +
+                    `the class exposes accessor delegates only (C-15 single-STORAGE)`,
+            );
+        }
+    }
+}
+
 // ── R.W2 (c) no-host-cast + (d) no-host-export — the PlaybackHost privacy ─────
 // inversion is excised. (c): zero `as unknown as PlaybackHost` anywhere under
 // `src/animation/engine/` — a stub that removes the `_host` getter but keeps a

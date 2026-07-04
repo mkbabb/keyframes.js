@@ -84,11 +84,33 @@ export class KeyframesAnimation<V extends Vars = any> {
      * own them via `this._playback` directly (no cast, no re-publication). */
     readonly _playback: PlaybackState;
 
-    startTime: number | undefined = undefined;
-    pausedTime: number = 0;
-    t: number = 0;
-
-    iteration: number = 0;
+    /**
+     * The run-state FSM (S.B2 — C-15). Single-STORAGE in the composed
+     * `_playback` struct; the class exposes the eight transition fields
+     * (`started`/`done`/`paused`/`reversed`/`iteration`/`t`/`startTime`/
+     * `pausedTime`) as PUBLIC accessor delegates so every external writer
+     * (`group/`, `sequence/`, `ingest/`, `waapi/`, the tests, the demo's
+     * `contractAnim.t =` writes) keeps its `anim.<field> =` write UNCHANGED while
+     * the backing store is unified. The engine-INTERNAL hot path reads/writes
+     * `anim._playback.*` directly (one extra monomorphic load — a shape cost, not
+     * an allocation). `managed` stays a real field (ownership, not run-state).
+     */
+    get startTime(): number | undefined { return this._playback.startTime; }
+    set startTime(v: number | undefined) { this._playback.startTime = v; }
+    get pausedTime(): number { return this._playback.pausedTime; }
+    set pausedTime(v: number) { this._playback.pausedTime = v; }
+    get t(): number { return this._playback.t; }
+    set t(v: number) { this._playback.t = v; }
+    get iteration(): number { return this._playback.iteration; }
+    set iteration(v: number) { this._playback.iteration = v; }
+    get started(): boolean { return this._playback.started; }
+    set started(v: boolean) { this._playback.started = v; }
+    get done(): boolean { return this._playback.done; }
+    set done(v: boolean) { this._playback.done = v; }
+    get reversed(): boolean { return this._playback.reversed; }
+    set reversed(v: boolean) { this._playback.reversed = v; }
+    get paused(): boolean { return this._playback.paused; }
+    set paused(v: boolean) { this._playback.paused = v; }
 
     /** Structured parse/honoring diagnostics (K.W7 S4) — a FLAT additive array
      * of stable-coded {@link Diagnostic} rows surfaced from `resolveKeyframes` +
@@ -109,11 +131,6 @@ export class KeyframesAnimation<V extends Vars = any> {
     /** True once a non-`replace` operator was seen — the hot path skips ALL
      * composition work when false. INTERNAL — read by `./interpolate` (R.W2). */
     _hasComposition: boolean = false;
-
-    started: boolean = false;
-    done: boolean = false;
-    reversed: boolean = false;
-    paused: boolean = false;
 
     /** True when an `AnimationGroup` drives this animation's `advanceTo()`/
      * `interpFrames()` from its own rAF loop. Standalone `.play()` throws when

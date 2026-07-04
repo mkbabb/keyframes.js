@@ -93,11 +93,11 @@ export function at<V extends Vars>(
     // Q.WD1 S3 — the oracle path shares the named-selector guard (an unresolved
     // named-selector animation would otherwise produce NaN here too).
     assertNoUnresolvedNamedSelector(anim);
-    const saved = anim.reversed;
-    anim.reversed = false;
+    const saved = anim._playback.reversed;
+    anim._playback.reversed = false;
     const t = clamp(progress, 0, 1) * anim.options.duration;
     const result = interpFrames(anim, t, apply);
-    anim.reversed = saved;
+    anim._playback.reversed = saved;
     return result;
 }
 
@@ -123,7 +123,7 @@ export function interpFrames<V extends Vars>(
     transformFrames: boolean = false,
     out?: Record<string, ValueUnit[]>,
 ): Record<string, ValueUnit[]> {
-    t = anim.reversed ? anim.options.duration - t : t;
+    t = anim._playback.reversed ? anim.options.duration - t : t;
 
     const frames = anim.frames;
     const len = frames.length;
@@ -298,7 +298,7 @@ function applyComposition<V extends Vars>(
     frame: AnimationFrame<V>,
 ): void {
     applyCompositionImpl(frame, {
-        iteration: anim.iteration,
+        iteration: anim._playback.iteration,
         target: anim.targets[0],
         compositionBase: anim._compositionBase,
         compositionFallbackSeen: anim._compositionFallbackSeen,
