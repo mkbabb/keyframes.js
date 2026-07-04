@@ -21,7 +21,7 @@ import { clamp, lerpArray, lerpValue, scale, type ValueUnit } from "@mkbabb/valu
 import { binarySearchRange } from "../internal/binarySearch";
 import { AnimationOptionError } from "../internal/errors";
 import { applyComposition as applyCompositionImpl } from "./composition";
-import { NAMED_SELECTOR_SUPERTYPE } from "../compile/frame-compiler";
+import { NAMED_SELECTOR_SUPERTYPE } from "../compile/selector";
 import type { AnimationFrame, Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 

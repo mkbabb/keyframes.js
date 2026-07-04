@@ -19,10 +19,10 @@
  *                             lifted onto the structured field here)
  */
 import { describe, expect, it } from "vitest";
-import { resolveKeyframes } from "../src/animation/adapter";
-import type { Diagnostic, DiagnosticCode } from "../src/animation/adapter";
+import { resolveKeyframes } from "../src/animation/compile/adapter";
+import type { Diagnostic, DiagnosticCode } from "../src/animation/compile/adapter";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { resolveEasingOption } from "../src/animation/compile/frame-compiler";
+import { resolveEasingOption } from "../src/animation/compile/easing-option";
 
 const codesOf = (diags: Diagnostic[]): DiagnosticCode[] =>
     diags.map((d) => d.code);

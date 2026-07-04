@@ -169,7 +169,7 @@ requireAll("format-shape-lock", TEST, [
     const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
     // R.W1 moved the serializer `format.ts` → `compile/format.ts`; the round-trip
     // still consumes the real `CSSKeyframesToString` surface at its new zone path.
-    const importsFormat = /from "\.\.\/src\/animation\/compile\/format"/.test(
+    const importsFormat = /from "\.\.\/src\/animation\/compile\/backward\/format"/.test(
         src,
     );
     if (importsEngine && importsFormat) {

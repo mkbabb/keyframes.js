@@ -33,8 +33,8 @@ import {
     type HueInterpolationMethod,
     type ValueUnit,
 } from "@mkbabb/value.js";
-import type { KeyframesAnimation } from "../engine";
-import type { Vars } from "../constants";
+import type { KeyframesAnimation } from "../../engine";
+import type { Vars } from "../../constants";
 
 // ── ΔE / oklab domain constants ───────────────────────────────────────────────
 

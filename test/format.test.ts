@@ -3,7 +3,7 @@ import { CSSKeyframesAnimation, resolveKeyframes } from "../src/animation/engine
 import {
     animationOptionsToString,
     CSSKeyframesToString,
-} from "../src/animation/compile/format";
+} from "../src/animation/compile/backward/format";
 import { defaultOptions } from "../src/animation/constants";
 
 const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;

@@ -9,7 +9,7 @@
  */
 import type { ValueUnit } from "@mkbabb/value.js";
 import { RAFPlayback } from "../physics/playback";
-import type { Diagnostic } from "../adapter";
+import type { Diagnostic } from "../compile/adapter";
 import { defaultOptions } from "../constants";
 import type {
     AnimationFrame,

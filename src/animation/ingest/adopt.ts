@@ -40,7 +40,7 @@
  */
 
 import { CSSKeyframesAnimation } from "../engine";
-import type { Diagnostic } from "../adapter";
+import type { Diagnostic } from "../compile/adapter";
 import type { Vars } from "../constants";
 import {
     resolveLiveKeyframes,

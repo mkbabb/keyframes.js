@@ -89,7 +89,7 @@ console.log(
     "proof:replay-equality — L.W1 the Replay-equality FLOOR (five Band-A breach round-trips)",
 );
 
-const FORMAT = "src/animation/compile/format.ts";
+const FORMAT = "src/animation/compile/backward/format.ts";
 const FRAME_COMPILER = "src/animation/compile/frame-compiler.ts";
 // R.W2b carved the keyframe-SELECTOR grammar (the named-range regexes,
 // `NAMED_SELECTOR_SUPERTYPE`, the `namedSelectorToFraction` resolver) off
@@ -238,7 +238,7 @@ requireAll("composite-floor", CONSTANTS, [
 {
     const src = existsSync(join(root, TEST)) ? read(TEST) : "";
     const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
-    const importsFormat = /from "\.\.\/src\/animation\/compile\/format"/.test(src);
+    const importsFormat = /from "\.\.\/src\/animation\/compile\/backward\/format"/.test(src);
     if (importsEngine && importsFormat) {
         ok(
             "no-source-edit",

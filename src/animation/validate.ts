@@ -48,7 +48,7 @@ import { extractKeyframes, parseCSSStylesheet } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "./engine";
 import { compileToCSS } from "./compile";
 import { isWAAPIEligible } from "./waapi";
-import type { Diagnostic } from "./adapter";
+import type { Diagnostic } from "./compile/adapter";
 import type { CompileOptions, CompileRefusal } from "./compile";
 import type { WAAPIEligibility } from "./waapi";
 

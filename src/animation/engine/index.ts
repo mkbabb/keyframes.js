@@ -19,8 +19,8 @@
 export { KeyframesAnimation, getAnimationId } from "./animation";
 export { CSSKeyframesAnimation } from "./css-animation";
 export { getTimingFunction } from "../compile/easing-registry";
-export { resolveKeyframes } from "../adapter";
-export type { ResolvedKeyframes } from "../adapter";
+export { resolveKeyframes } from "../compile/adapter";
+export type { ResolvedKeyframes } from "../compile/adapter";
 export {
     DIRECTIONS,
     FILL_MODES,

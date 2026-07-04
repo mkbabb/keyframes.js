@@ -43,7 +43,7 @@ const RESOLVE = [
     "src/animation/resolve/resolve-if.ts",
     "src/animation/resolve/resolve-function.ts",
 ];
-const ADAPTER = "src/animation/adapter.ts";
+const ADAPTER = "src/animation/compile/adapter.ts";
 
 const requireAll = (clause, file, anchors) => {
     // `file` may be a single path or an array of paths whose concatenation is the

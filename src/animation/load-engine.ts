@@ -4,7 +4,7 @@
  *
  * This module owns the `await import("./engine")` (and `./group`,
  * `./svg/motion-path`, `./svg/draw-svg`, `./svg/morph-svg`, `./ingest`,
- * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/format`,
+ * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/backward/format`,
  * `./compile/parse-flatten`, `./internal/scheduler`)
  * DYNAMIC edges — never a STATIC `@mkbabb/value.js` import. Every value.js-
  * bearing import here is `import type` (erased under `verbatimModuleSyntax`),
@@ -95,7 +95,7 @@ import type {
     CSSKeyframesToString as CSSKeyframesToStringImpl,
     CSSKeyframesToStrings as CSSKeyframesToStringsImpl,
     formatCSSKeyframeString as formatCSSKeyframeStringImpl,
-} from "./compile/format";
+} from "./compile/backward/format";
 import type { transformTargetsStyle as transformTargetsStyleImpl } from "./compile/parse-flatten";
 import type { yieldToMain as yieldToMainImpl } from "./internal/scheduler";
 import type * as AnimationPresets from "./presets/index";
@@ -277,12 +277,13 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         import("./validate"),
         import("./presets/index"),
         // L.W8 S1 ED-3 DOGFOOD INVERSION (FLAGGED ADDITIVE) — the format/
-        // parse-flatten/scheduler helpers. `compile/format`/`compile/parse-flatten`
-        // are value.js-bearing and already sit on the engine chunk's static graph;
-        // `internal/scheduler` is value.js-free. Merged here so a consumer reaching
-        // the serialization / DOM-paint / yield helpers does so the same way as the
-        // rest of the heavy surface — no new static value.js edge on the LIGHT barrel.
-        import("./compile/format"),
+        // parse-flatten/scheduler helpers. `compile/backward/format` (S.B3 C-2) /
+        // `compile/parse-flatten` are value.js-bearing and already sit on the engine
+        // chunk's static graph; `internal/scheduler` is value.js-free. Merged here so
+        // a consumer reaching the serialization / DOM-paint / yield helpers does so
+        // the same way as the rest of the heavy surface — no new static value.js edge
+        // on the LIGHT barrel.
+        import("./compile/backward/format"),
         import("./compile/parse-flatten"),
         import("./internal/scheduler"),
     ]).then(

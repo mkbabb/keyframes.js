@@ -12,7 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { resolveKeyframes } from "../src/animation/adapter";
+import { resolveKeyframes } from "../src/animation/compile/adapter";
 
 const sheet = `
     .foo { animation: 2s ease-in-out infinite alternate; }

@@ -13,15 +13,15 @@ import type {
     CSSAnimationOptions,
     PropertyDescriptor,
 } from "@mkbabb/value.js";
-import type { KeyframesAnimation } from "../engine";
+import type { KeyframesAnimation } from "../../engine";
 import type {
     AnimationOptions,
     CompositeOperator,
     Easing,
     Vars,
-} from "../constants";
-import { AnimationOptionError } from "../internal/errors";
-import type { ParsedVarMap } from "./parse-flatten";
+} from "../../constants";
+import { AnimationOptionError } from "../../internal/errors";
+import type { ParsedVarMap } from "../parse-flatten";
 
 /**
  * Serialize an `Easing` to its CSS `animation-timing-function` token (F.W7).
@@ -219,6 +219,14 @@ export function animationOptionsToString(
  * `bodyOverride` arg lets CC-2's oklab densify substitute a DENSER stop set for
  * a color leg WITHOUT re-deriving the projection — the densified `{ … }` body is
  * threaded in, every other key still rides the verbatim declared projection.
+ *
+ * S.B3 S7 (a18 F3 REVERSED — the load-bearing substrate, NOT dead). a18 F3
+ * called this a "likely-dead" export; P2-2 (F1/F5) overturns it — it is the
+ * declared-projection AUTHORITY the EN-b mixed-track merge is a sibling of
+ * ({@link declaredDeclsExcluding} projects the non-densified declarations from
+ * the SAME `parsedVars[i]` source) AND the substrate S.F3/EN-c projects the entry
+ * endpoints from. Retained by construction (T6: only genuinely dead surface is
+ * excised).
  */
 export function declaredKeyframeBodyFor<V extends Vars>(
     animation: KeyframesAnimation<V>,

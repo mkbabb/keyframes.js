@@ -13,7 +13,7 @@
 import { describe, expect, it } from "vitest";
 import { parseLinearStops } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
-import { CSSKeyframesToString, serializeEasing } from "../src/animation/compile/format";
+import { CSSKeyframesToString, serializeEasing } from "../src/animation/compile/backward/format";
 import { springTimingFunction } from "../src/animation/physics/spring";
 
 const keyframesBlock = (css: string): string =>

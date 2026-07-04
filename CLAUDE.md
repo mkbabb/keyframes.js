@@ -28,7 +28,6 @@ src/                            # animation/ + env.d.ts — nothing else
 ├── animation/                  # The entire library (see animation/CLAUDE.md)
 │   ├── index.ts                # Package barrel — LIGHT static exports + loadAnimationEngine() (the static/dynamic boundary)
 │   ├── load-engine.ts          # HEAVY dynamic loader — loadAnimationEngine() + warmEngine() (the dynamic half of the boundary)
-│   ├── adapter.ts              # resolveKeyframes — input → ResolvedKeyframes
 │   ├── easing.ts               # resolveEasing(name) async factory + toEasing normalizer
 │   ├── validate.ts             # validate()/explain() — the agent-authoring projection over the compile surface (HEAVY)
 │   ├── constants/              # Types + defaults (Easing, AnimationOptions, Vars, …) — LIGHT-pure types.ts + defaults.ts + back-compat barrel (S.B1)
@@ -38,7 +37,7 @@ src/                            # animation/ + env.d.ts — nothing else
 │   ├── orchestration/          # LIGHT: temporal/multi-target helpers (stagger, flip, drag/, timeline/, sequence/)
 │   ├── engine/                 # HEAVY core: KeyframesAnimation + CSSKeyframesAnimation (animation.ts) + composition/options/css-metadata/playback
 │   ├── group/                  # HEAVY compositor: AnimationGroup (group.ts) + soa.ts + layer-springs.ts
-│   ├── compile/                # HEAVY pipeline: frame-compiler, backward, backward-color, format, parse-flatten, easing-registry (getTimingFunction)
+│   ├── compile/                # HEAVY pipeline — FORWARD (root): frame-compiler, parse-flatten, easing-registry (getTimingFunction), easing-option, selector, numeric-plan + adapter.ts (resolveKeyframes, C-9); BACKWARD (backward/ sub-zone, S.B3): backward, backward-walk, backward-color, format
 │   ├── resolve/                # HEAVY emerging-CSS resolver (if()/@function/env)
 │   ├── ingest/                 # HEAVY CSSOM walk (cssom.ts) + temporal takeover (adopt.ts)
 │   ├── scroll/                 # HEAVY scroll grammar (grammar.ts) + the JS ScrollScene driver (scene.ts)

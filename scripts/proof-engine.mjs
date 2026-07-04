@@ -203,7 +203,7 @@ for (const f of [
     } else {
         ok("no-legacy", "utils.ts: no value.js lerp path-compat re-export");
     }
-    const format = read("src/animation/compile/format.ts");
+    const format = read("src/animation/compile/backward/format.ts");
     if (/export\s*{\s*formatCSS\s*}/.test(format)) {
         fail("no-legacy", "format.ts still re-exports `formatCSS` (convenience shim)");
     } else {
