@@ -46,7 +46,7 @@ export interface CompileChild<V extends Vars> {
 }
 
 /** The input shapes `compileToCSS` accepts. */
-export type CompileInput<V extends Vars = any> =
+export type CompileInput<V extends Vars = Vars> =
     | AnimationGroup<V>
     | Sequence<V>
     | ReadonlyArray<KeyframesAnimation<V> | { animation: KeyframesAnimation<V> }>;

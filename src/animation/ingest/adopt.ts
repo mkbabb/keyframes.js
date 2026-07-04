@@ -86,7 +86,7 @@ export interface AdoptRunningOptions extends IngestOptions {
  * carries any honest refusal (no running animation by that name → a row, never
  * a silent no-op).
  */
-export interface AdoptResult<V extends Vars = any> {
+export interface AdoptResult<V extends Vars = Vars> {
     /** The kf animation now driving the element (null on a refused adopt). */
     animation: CSSKeyframesAnimation<V> | null;
     /** The captured native `currentTime` (ms) the kf playhead seeded from. */
@@ -137,7 +137,7 @@ const isCSSUnitValue = (
  * // the kf object now drives `el` from the exact playhead — no visible seam.
  * animation?.pause();   // ...now scrub / spring-ify / re-color it.
  */
-export const adoptRunning = async <V extends Vars = any>(
+export const adoptRunning = async <V extends Vars = Vars>(
     el: Element,
     options: AdoptRunningOptions,
 ): Promise<AdoptResult<V>> => {

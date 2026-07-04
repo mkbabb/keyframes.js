@@ -36,7 +36,7 @@
 
 import { CSSKeyframesAnimation } from "../engine";
 import { SVGAnimationHandle } from "./handle";
-import type { InputAnimationOptions } from "../constants";
+import type { InputAnimationOptions, Vars } from "../constants";
 
 /**
  * The author's path geometry — the `offset-path` value set on the target. Any
@@ -103,7 +103,7 @@ const asDistance = (v: string | number): string =>
  *   duration: 2000,
  * });
  */
-export function fromMotionPath<V extends Record<string, any> = any>(
+export function fromMotionPath<V extends Vars = Vars>(
     target: HTMLElement | HTMLElement[],
     options: MotionPathOptions,
 ): CSSKeyframesAnimation<V> {
@@ -163,7 +163,7 @@ export function fromMotionPath<V extends Record<string, any> = any>(
  * handle. The factory is the canonical entry; this is a thin ergonomic wrapper.
  */
 export class MotionPath<
-    V extends Record<string, any> = any,
+    V extends Vars = Vars,
 > extends SVGAnimationHandle<V> {
     // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
     // delegation live on `SVGAnimationHandle`; `extends` gives `MotionPath` the

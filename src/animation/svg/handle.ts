@@ -19,8 +19,9 @@
  * the subclasses ride `loadAnimationEngine()` through their `fromX` factories).
  */
 import type { CSSKeyframesAnimation } from "../engine";
+import type { Vars } from "../constants";
 
-export abstract class SVGAnimationHandle<V extends Record<string, any> = any> {
+export abstract class SVGAnimationHandle<V extends Vars = Vars> {
     /**
      * The underlying animation — the control handle. Set by the subclass through
      * `super(fromX(...))` (the `fromX` factory is the canonical construction).

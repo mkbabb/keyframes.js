@@ -45,7 +45,7 @@ import type { InputAnimationOptions, Vars } from "../constants";
  * rows for THIS rule (a malformed body → `PARSE_ERROR`, etc.); the walk-level
  * rows (`CORS_SKIP`) ride {@link IngestResult.diagnostics}.
  */
-export interface IngestedAnimation<V extends Vars = any> {
+export interface IngestedAnimation<V extends Vars = Vars> {
     /** The `@keyframes` identifier (CSSOM `CSSKeyframesRule.name`). */
     name: string;
     /** The reconstructed kf animation — replay-equal to the source CSS. */
@@ -61,7 +61,7 @@ export interface IngestedAnimation<V extends Vars = any> {
  * `animations` for the recovered objects and `diagnostics` for the citable
  * reasons the walk could not complete a step faithfully — NEVER a silent drop.
  */
-export interface IngestResult<V extends Vars = any> {
+export interface IngestResult<V extends Vars = Vars> {
     /** Every `@keyframes` rule reconstructed, keyed by its CSS name. */
     animations: Map<string, IngestedAnimation<V>>;
     /**
@@ -305,7 +305,7 @@ const reconstructFromRule = <V extends Vars>(
  * normalises a STRING of CSS, `resolveLiveKeyframes` normalises the LIVE CSSOM —
  * the parser pointed forward at the web the page already ships.
  */
-export const resolveLiveKeyframes = <V extends Vars = any>(
+export const resolveLiveKeyframes = <V extends Vars = Vars>(
     source?: Document | ShadowRoot | CSSStyleSheet[] | CSSStyleSheet,
     options: IngestOptions = {},
 ): IngestResult<V> => {
@@ -397,7 +397,7 @@ export const resolveLiveKeyframes = <V extends Vars = any>(
  * pulse?.setTargets(el).play();           // re-drive the page's OWN animation
  * for (const d of diagnostics) console.warn(d.code, d.message); // honest skips
  */
-export const fromStyleSheets = <V extends Vars = any>(
+export const fromStyleSheets = <V extends Vars = Vars>(
     source?: Document | ShadowRoot | CSSStyleSheet[] | CSSStyleSheet,
     options: IngestOptions = {},
 ): IngestResult<V> => resolveLiveKeyframes<V>(source, options);
@@ -415,7 +415,7 @@ export const fromStyleSheets = <V extends Vars = any>(
  * rule, running or not): `fromLiveAnimations` narrows to the names currently
  * RUNNING on the page — the animations a user actually sees in motion.
  */
-export const fromLiveAnimations = <V extends Vars = any>(
+export const fromLiveAnimations = <V extends Vars = Vars>(
     target?: Document | Element,
     options: IngestOptions = {},
 ): IngestResult<V> => {

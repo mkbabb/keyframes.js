@@ -37,6 +37,22 @@ import {
 import { FRAME_ID_SCALE, parseKeyframeSelector } from "./selector";
 
 /**
+ * A frame mid-compile (a29 F7). `createFrame` returns this: every field EXCEPT
+ * the two derived ones (`vars`/`flatVars`) is present, and those two are
+ * honestly OMITTED — not forged with `undefined as unknown as V`, which under
+ * `exactOptionalPropertyTypes` is a per-field lie (a `V` slot holding
+ * `undefined`). `finalizeFrameVars` derives `vars`/`flatVars` from `interpVars`
+ * at the tail of `parse()` and narrows the segment to a complete
+ * `AnimationFrame<V>` (the fill-site narrow the audit named). The steady-state
+ * `frames` array is `AnimationFrame<V>[]` — fully finalized — before any
+ * consumer reads it (`parse()` is synchronous).
+ */
+type FrameUnderConstruction<V extends Vars = Vars> = Omit<
+    AnimationFrame<V>,
+    "vars" | "flatVars"
+>;
+
+/**
  * Map a segment's percent endpoints onto the wall-clock window. Inlined here
  * (R.W1) from the dissolved `utils.ts` — this is its sole consumer.
  */
@@ -61,7 +77,7 @@ function calcFrameTime<V extends Vars>(
 import { buildNumericPlan } from "./numeric-plan";
 import { resolveEasingOption } from "./easing-option";
 
-export class FrameCompiler<V extends Vars = any> {
+export class FrameCompiler<V extends Vars = Vars> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
     parsedVars: ParsedVarMap[] = [];
     frames: AnimationFrame<V>[] = [];
@@ -221,19 +237,22 @@ export class FrameCompiler<V extends Vars = any> {
         // declared composite of the value the segment is interpolating INTO).
         const composition = endFrame.composition;
 
-        return {
+        // The segment is a `FrameUnderConstruction<V>` — `vars`/`flatVars` are
+        // OMITTED (not forged as `undefined as unknown as V`); `finalizeFrameVars`
+        // derives them from `interpVars` at the tail of `parse()` and the buffer
+        // narrows to `AnimationFrame<V>` there (a29 F7 — the fill-site narrow).
+        const frame: FrameUnderConstruction<V> = {
             id,
             ixs,
             start: startFrame.start,
             time,
-            vars: undefined as unknown as V,
-            flatVars: undefined as unknown as V,
             interpVars: {},
             allInterpVars: [],
             transform,
             timingFunction,
             ...(composition != null ? { composition } : {}),
-        } as AnimationFrame<V>;
+        };
+        return frame as AnimationFrame<V>;
     }
 
     /**

@@ -37,7 +37,7 @@
 
 import { CSSKeyframesAnimation } from "../engine";
 import { SVGAnimationHandle } from "./handle";
-import type { InputAnimationOptions } from "../constants";
+import type { InputAnimationOptions, Vars } from "../constants";
 
 /**
  * The minimal geometry contract DrawSVG needs: any SVG element that exposes
@@ -119,7 +119,7 @@ const asFraction = (v: string | number): number => {
  * // Draw a path stroke in over 2s:
  * fromDrawSVG(pathEl, { duration: 2000 });
  */
-export function fromDrawSVG<V extends Record<string, any> = any>(
+export function fromDrawSVG<V extends Vars = Vars>(
     target: SVGDrawTarget,
     options: DrawSVGOptions = {},
 ): CSSKeyframesAnimation<V> {
@@ -184,7 +184,7 @@ export function fromDrawSVG<V extends Record<string, any> = any>(
  * factory is the canonical entry; this is a thin ergonomic wrapper.
  */
 export class DrawSVG<
-    V extends Record<string, any> = any,
+    V extends Vars = Vars,
 > extends SVGAnimationHandle<V> {
     // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
     // delegation live on `SVGAnimationHandle` (the hand-duplicated one-liners are gone).

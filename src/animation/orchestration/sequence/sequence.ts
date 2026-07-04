@@ -114,7 +114,7 @@ export interface SequenceOptions {
  * and drives them via `Animation.advanceTo`. See the module docstring for the
  * booked name + subsumption decision.
  */
-export class Sequence<V extends Vars = any>
+export class Sequence<V extends Vars = Vars>
     implements SequencePlayContext<V>
 {
     /** Resolved segments, in insertion order. */

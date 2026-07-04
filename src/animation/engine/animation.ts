@@ -53,7 +53,7 @@ let nextId = 0;
  * leaking a suffixed collision alias into the d.ts. The legacy `Animation`
  * re-export alias was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
  */
-export class KeyframesAnimation<V extends Vars = any> {
+export class KeyframesAnimation<V extends Vars = Vars> {
     id: number = nextId++;
     name: string | undefined;
     superKey: string | undefined;

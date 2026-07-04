@@ -272,7 +272,7 @@ const makeMorphRenderer = <V extends Vars>(
  * // morphing shape paints directly (no author-side reader needed on Chromium/
  * // Safari; `<path style="d: var(--morph-d)">` is the Firefox-lags fallback).
  */
-export function fromMorphSVG<V extends Record<string, any> = any>(
+export function fromMorphSVG<V extends Vars = Vars>(
     from: string,
     to: string,
     options: MorphSVGOptions = {},
@@ -414,7 +414,7 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
  * `t`, reassembled from the interpolated point coordinates.
  */
 export class MorphSVG<
-    V extends Record<string, any> = any,
+    V extends Vars = Vars,
 > extends SVGAnimationHandle<V> {
     // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
     // delegation live on `SVGAnimationHandle`; MorphSVG adds only its `sampleD`
