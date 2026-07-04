@@ -17,7 +17,7 @@ export const CUBE_ANIMATION_NAMES = {
     Hover: "Hover",
 } as const;
 
-export function useCubeAnimations(
+export function useCubeDemo(
     matrix3dStart: Ref<FunctionValue>,
     matrix3dEnd: Ref<FunctionValue>,
 ) {

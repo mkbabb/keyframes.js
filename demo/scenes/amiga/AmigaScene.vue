@@ -50,7 +50,7 @@ import * as THREE from "three";
 import AmigaCrtOverlay from "./AmigaCrtOverlay.vue";
 import AmigaTelemetry from "./AmigaTelemetry.vue";
 import { useAmigaThree } from "./useAmigaThree";
-import { useAmigaAnimations, SPHERE_HOME } from "./useAmigaAnimations";
+import { useAmigaDemo, SPHERE_HOME } from "./useAmigaDemo";
 import { useAmigaBoot } from "./useAmigaBoot";
 import { useSphereSpin } from "./useSphereSpin";
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
@@ -67,7 +67,7 @@ const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
 // the room drives, injected per-frame via the `onFrame` hook below.
 const three = useAmigaThree(canvasEl, () => onFrame());
 
-const { animationGroup } = useAmigaAnimations(
+const { animationGroup } = useAmigaDemo(
     () => three.getSphere(),
     () => three.getBounceScale(),
 );
@@ -99,7 +99,7 @@ const sphereSpin = useSphereSpin({
 // ── EASTER EGG — "the Boing" (H.W12.S6) ──────────────────────────────────────
 // Double-click the stage → the 1984 Amiga Boing Ball wakes up. The boing
 // animationGroup (the X/Y/Z bounce + spin + hue cycle) is BUILT by
-// useAmigaAnimations but otherwise DORMANT — the scene's live subject is the
+// useAmigaDemo but otherwise DORMANT — the scene's live subject is the
 // spin-on-drag sphere. The egg DOGFOODS that already-built engine group (inv ζ),
 // then stops it and re-seats the sphere home so the scene returns to rest.
 const boinging = ref(false);

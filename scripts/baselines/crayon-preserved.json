@@ -63,7 +63,7 @@
         },
         "--face-1": {
             "value": "rgba(255, 0, 0, 0.8)",
-            "source": "demo/cube/CubeTarget.vue",
+            "source": "demo/scenes/cube/CubeTarget.vue",
             "register": "signal",
             "hoistTarget": true,
             "fromLiteral": "rgba(255, 0, 0, 0.8)",
@@ -71,7 +71,7 @@
         },
         "--face-2": {
             "value": "rgba(0, 255, 0, 0.8)",
-            "source": "demo/cube/CubeTarget.vue",
+            "source": "demo/scenes/cube/CubeTarget.vue",
             "register": "signal",
             "hoistTarget": true,
             "fromLiteral": "rgba(0, 255, 0, 0.8)",
@@ -79,7 +79,7 @@
         },
         "--face-3": {
             "value": "rgba(0, 0, 255, 0.8)",
-            "source": "demo/cube/CubeTarget.vue",
+            "source": "demo/scenes/cube/CubeTarget.vue",
             "register": "signal",
             "hoistTarget": true,
             "fromLiteral": "rgba(0, 0, 255, 0.8)",
@@ -87,7 +87,7 @@
         },
         "--face-4": {
             "value": "rgba(255, 255, 0, 0.8)",
-            "source": "demo/cube/CubeTarget.vue",
+            "source": "demo/scenes/cube/CubeTarget.vue",
             "register": "signal",
             "hoistTarget": true,
             "fromLiteral": "rgba(255, 255, 0, 0.8)",
@@ -95,7 +95,7 @@
         },
         "--face-5": {
             "value": "rgba(255, 0, 255, 0.8)",
-            "source": "demo/cube/CubeTarget.vue",
+            "source": "demo/scenes/cube/CubeTarget.vue",
             "register": "signal",
             "hoistTarget": true,
             "fromLiteral": "rgba(255, 0, 255, 0.8)",
@@ -103,7 +103,7 @@
         },
         "--face-6": {
             "value": "rgba(0, 255, 255, 0.8)",
-            "source": "demo/cube/CubeTarget.vue",
+            "source": "demo/scenes/cube/CubeTarget.vue",
             "register": "signal",
             "hoistTarget": true,
             "fromLiteral": "rgba(0, 255, 255, 0.8)",

@@ -263,7 +263,7 @@
        Retires the raw `background-color: aquamarine` literal (SquareScene.vue —
        the ONE raw named-colour in the scene corpus, off the rainbow/gold token
        ladder, un-tunable, no dark variant). The value is the EGG_HUES terminal
-       stop (#52E898, useSquareAnimations.ts) — the contract keyframe's 100%
+       stop (#52E898, useSquareDemo.ts) — the contract keyframe's 100%
        backgroundColor, i.e. the hue the tumble egg already settles INTO — so
        the box's rest colour and the egg's landing colour are ONE identity hue
        by construction (cross-color-pops §5.3; pane-square SQ-5/SQ-11). */

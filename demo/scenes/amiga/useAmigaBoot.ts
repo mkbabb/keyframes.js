@@ -2,8 +2,8 @@ import { ref } from "vue";
 import { usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
 
-import type { useAmigaAnimations } from "./useAmigaAnimations";
-import { SPHERE_HOME } from "./useAmigaAnimations";
+import type { useAmigaDemo } from "./useAmigaDemo";
+import { SPHERE_HOME } from "./useAmigaDemo";
 
 /**
  * L.W11.S3 — "the power-on BOOT" (the amiga scene's instrument egg), extracted
@@ -18,7 +18,7 @@ import { SPHERE_HOME } from "./useAmigaAnimations";
  * texture stays — texture, not motion).
  */
 export function useAmigaBoot(
-    animationGroup: ReturnType<typeof useAmigaAnimations>["animationGroup"],
+    animationGroup: ReturnType<typeof useAmigaDemo>["animationGroup"],
     getSphere: () => THREE.Mesh<
         THREE.SphereGeometry,
         THREE.MeshLambertMaterial

@@ -129,7 +129,7 @@ import {
     useSceneMachine,
 } from "@state";
 
-import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeAnimations";
+import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeDemo";
 import CubeScene from "../scenes/cube/CubeScene.vue";
 import { useSceneMachineRouterBinding } from "./scene/useSceneMachineRouterBinding";
 import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding";

@@ -31,7 +31,7 @@ export type BounceScale = { x: number; y: number; z: number };
 
 export const SUPER_KEY = "Amiga";
 
-export function useAmigaAnimations(
+export function useAmigaDemo(
     getSphere: () => THREE.Mesh<THREE.SphereGeometry, THREE.MeshLambertMaterial>,
     getBounceScale?: () => BounceScale,
 ) {

@@ -175,7 +175,7 @@ const W0_ASYNC_SITES = [
 // tree this gate sweeps — the tree must be raw-async-FREE. Kept as an explicit
 // set so a future justified exception is a deliberate diff to THIS array.
 const ASYNC_ALLOWLIST = new Set([
-    // (none under animation-controls/** today — AmigaScene is in demo/app/scenes/)
+    // (none under the three carved peers today — AmigaScene is in demo/scenes/amiga/)
 ]);
 
 /** Walk a dir, collecting every source file (skipping dist/ + deps). */

@@ -19,15 +19,15 @@ demo/
 │   ├── runtime/               # cross-scene recipes: useRafScene.ts · useSceneVisibilityPause.ts · rafConstants.ts · useContractAnimGroup.ts · useSceneTransport.ts · loaf-observer.ts · useMonacoCancellationGuard.ts
 │   └── public/robots.txt
 ├── scenes/                    # THE fused scenes (R.W5): each dir co-locates <Name>Scene.vue + its composables + targets
-│   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaAnimations, amigaKeys, checkerboard.jpg
-│   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeAnimations/useCubeRelit, cubeTransformStore, matrix-editor/ + orbital-drag/ (S.D2 colocation, a24 F3), cube.png
-│   ├── easing/       # EasingScene.vue + EasingSidebar/EasingTarget/EasingHeroStage, useEasingDemo/Gallery/Ghost/TraceSmear, easingGroups/easingKeys
+│   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaDemo, utils (tesselateSphere), amigaKeys, checkerboard.jpg
+│   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeDemo/useCubeRelit, cubeTransformStore, matrix-editor/ + orbital-drag/ (S.D2 colocation, a24 F3), cube.png
+│   ├── easing/       # EasingScene.vue + EasingSidebar/EasingTarget/EasingHeroStage/EasingCurvePhysics, useEasingDemo/Gallery/Ghost/TraceSmear, easingGroups/easingKeys
 │   ├── morph/        # MorphSVGScene.vue + MorphTarget, useMorphDemo, morphShapes/morphKeys (the fromMorphSVG showcase)
 │   ├── motion-path/  # MotionPathScene.vue + MotionPathTarget, useMotionPathDemo/Gesture, motionPathGeometry/motionPathKeys
 │   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument/useTypedTrigger (S.D2 colocation, a24 F4), sequenceKeys
-│   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag, springKeys/springPresets
-│   ├── square/       # SquareScene.vue + SquareInstrument, useSquareAnimations/useSquareKeyboard, squareKeys (custom transform fn)
-│   └── compose/      # ComposeScene.vue (the S.D3 playground fold) + useComposeDemo, composeKeys, asset-manager/ (AssetViewport/Layer/LayerPanel/PropertiesPanel + useAssetManager + assetTypes + EditableLabel) — the casting-floor foundry + bind-ignition
+│   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag/useCompiledEntry (S.F3 EN-d entry/exit dogfood), springKeys/springPresets
+│   ├── square/       # SquareScene.vue + SquareInstrument, useSquareDemo/useSquareKeyboard, squareKeys (custom transform fn)
+│   └── compose/      # ComposeScene.vue + ComposeTarget.vue (the S.D3 playground fold) + useComposeDemo, composeKeys, asset-manager/ (AssetViewport/Layer/LayerPanel/PropertiesPanel + useAssetManager + assetTypes + EditableLabel) — the casting-floor foundry + bind-ignition
 ├── @/                         # Shared library
 │   ├── state/                  # the demo's global state layer (S.D2 hoist): sceneMachine/useSceneMachine/scenePlaybackAdapters + option stores + controlSurfaceDFA + hashSharing + index (resetAllStores) — @state alias
 │   ├── components/custom/
@@ -35,8 +35,8 @@ demo/
 │   │   ├── keyframes-editor/    # the Monaco CSS keyframes editor (was animation-controls/keyframes/)
 │   │   ├── keyframe-timeline/   # the draggable keyframe timeline (was animation-controls/timeline/) + CSSPasteDialog (S.D2 colocation)
 │   │   ├── easing-editor/       # EasingEditor + EasingSelect + EasingCurveCanvas + DemoControlPoint cluster (S.D2, a24 F5)
-│   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal (S.D2 colocation)
-│   │   └── singles: CopyButton, KfPillTabs   # the two genuinely-shared flat leaves (S.D2 shed the rest)
+│   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal (S.D2 colocation) + useHeroSourceEgg (L.W11.S1 the live @keyframes source card)
+│   │   └── singles: CopyButton, KfPillTabs + useKfPillTabs (roving-tabindex core)   # the genuinely-shared flat leaves (S.D2 shed the rest)
 │   │                            # (components/ui/ is GONE — the last shadcn island, ui/menubar/, was migrated off + deleted at S.C3b, C-19)
 │   ├── composables/
 │   │   ├── gestureSelectSuppression.ts  # the ONE global drag-in-flight select-suppression token (body.is-dragging)
@@ -47,6 +47,16 @@ demo/
 └── DESIGN.md     # demo design language (extends glass-ui DESIGN.md)
 ```
 
+**The `demo/@` → `shared` rename, ruled terminally (S.D4 S4).** `demo/@/` is an
+actual on-disk directory literally named `@` (not a bundler alias — neither
+`vite.config.ts` nor `tsconfig.json` declares a bare `@` path), imported
+everywhere as `@/…`. S.D4 considered renaming it to a self-explaining `shared/`
+and RULED to keep `@/`: every consumer already spells the short form, the
+directory's role (the one cross-scene shared library, vs. `app/` the shell and
+`scenes/<name>/` the per-scene homes) is unambiguous from its siblings, and a
+rename would touch every import in the tree for a documentation-only gain. Alias
+churn buys nothing — this decision is terminal, not deferred.
+
 ## Animation Controls (`@/components/custom/animation-transport/`)
 
 The primary UI for interacting with animations. S.D2 carved the former
@@ -54,16 +64,17 @@ The primary UI for interacting with animations. S.D2 carved the former
 `animation-transport/` (the shells + `controls/` + `composables/`, below),
 `keyframes-editor/` (was `keyframes/`), `keyframe-timeline/` (was `timeline/`) —
 and hoisted the state layer to `@/state/` (`@state`). Top level of
-`animation-transport/`: **AnimationControlsGroup.vue** (orchestrates
-`AnimationGroup`: scrub-pause-resume, playback delegation), **TransportDock.vue**,
-`animationDescriptions.ts`, `injectionKeys.ts`, `index.ts`.
+`animation-transport/`: **AnimationControlsGroup.vue** + its scoped-CSS split
+`AnimationControlsGroup.css` (orchestrates `AnimationGroup`: scrub-pause-resume,
+playback delegation), **TransportDock.vue**, `animationDescriptions.ts`,
+`injectionKeys.ts`, `index.ts`.
 
-- **`components/`** — `ControlsPaneWrapper.vue`, `RibbonBar.vue`
-- **`composables/`** — `useAnimationGroupPlayback` (scrub-pause-resume state machine), `useAnimationProgress` (rAF progress polling), `useControlsLayout`, `usePaneHover`, `useRafLoop`, `useScrollFade`, `useSheetGesture`, `useSheetSpring`
-- **`controls/`** — `AnimationControls.vue` (tab panel; lazy-loads the Monaco-bearing panes), `AnimationControlsControls.vue` (duration/delay/iterations/direction/fill/easing), `AnimationVisualizer.vue` (progress ball; `calc(100cqw - 100%)` + `bumpLayoutEpoch` on container resize), `LayerConfigPanel.vue`, `PlaybackRibbon.vue`, `TimingFunctionPanel.vue`; `controls/composables/`: `useAnimationSync` (markRaw animation → Vue reactivity via gated `useRafFn` polling), `useDragCapture` (control-surface drags: bezier handles, timeline diamonds, sequence rows), `usePlaybackToggle`, `useTimingFunctionEditor`; `timingCurveUtils.ts`; `playback-button.css`, `tab-trigger.css`
-- **peer `keyframes-editor/`** (was `keyframes/`) — `CSSCodeEditor.vue` (Monaco wrapper), `KeyframeCard.vue`, `KeyframesEditor.vue`, `KeyframesStringControls.vue`; `components/`: `KeyframeCardList`, `KeyframesAddDialog`; `composables/`: `useApplyCSS`, `useHighlightCSS`, `useKeyframeOps`, `useKeyframesEditor`, `useKeyframesParsing`, `useKeyframesState`; `monaco-themes/` (Dracula, GitHub); `utils/`: `contenteditable.ts`, `parseAnimationCSS.ts`
+- **`components/`** — `ControlsPaneWrapper.vue` + its scoped-CSS split `ControlsPaneWrapper.css` (P2-1 F6 — a template/CSS split, import-neutral), `RibbonBar.vue`, `DemoGlobalChrome.vue` (the document-level singletons extracted from the layout root), `SheetGrabHandle.vue` (the dedicated mobile-sheet grab gesture surface, H.W7.S1a)
+- **`composables/`** — `useAnimationGroupPlayback` (scrub-pause-resume state machine), `useAnimationGroupActions`, `useAnimationProgress` (rAF progress polling), `useControlsKeyboardShortcuts`, `useControlsLayout`, `usePaneHover`, `usePaneRegister`, `usePlayActuation` (the TransportDock play-toggle actuation core, S.B7 fold row 71), `useRafLoop`, `useScrollFade`, `useSheetGesture`, `useSheetSpring`, `useSheetState`
+- **`controls/`** — `AnimationControls.vue` (tab panel; lazy-loads the Monaco-bearing panes), `AnimationControlsControls.vue` (duration/delay/iterations/direction/fill/easing), `AnimationVisualizer.vue` (progress ball; `calc(100cqw - 100%)` + `bumpLayoutEpoch` on container resize), `LayerConfigPanel.vue`, `PlaybackRibbon.vue`, `TimingFunctionPanel.vue`; `controls/composables/`: `useAnimationSync` (markRaw animation → Vue reactivity via gated `useRafFn` polling), `useDragCapture` (control-surface drags: bezier handles, timeline diamonds, sequence rows), `useKeyframesPaneReveal`, `usePlaybackToggle`, `useSelectedControlSurface`, `useTabStripScroll`, `useTimingFunctionEditor`; `timingCurveUtils.ts`; `playback-button.css`, `tab-trigger.css`
+- **peer `keyframes-editor/`** (was `keyframes/`) — `CSSCodeEditor.vue` (Monaco wrapper), `KeyframeCard.vue`, `KeyframesEditor.vue`, `KeyframesStringControls.vue`; `components/`: `KeyframeCardList`, `KeyframesAddDialog`; `composables/`: `useApplyCSS`, `useHighlightCSS`, `useKeyframeOps`, `useKeyframesEditor`, `useKeyframesParsing`, `useKeyframesState`, `useToolbarKeyboard` (WAI-ARIA roving-tabindex core); `monaco-themes/` (Dracula, GitHub); `utils/`: `contenteditable.ts`, `parseAnimationCSS.ts`
 - **peer `@/state/`** (S.D2 hoist, was `stores/`) — `animationOptionsStore.ts` + `controlOptionsStore.ts` (vueuse `createGlobalState` + `useStorage`, 7-day TTL via `storeUtils.ts`), `controlSurfaceDFA.ts` (the control-surface single-authority DFA), `sceneMachine.ts` + `scenePlaybackAdapters.ts` + `useSceneMachine.ts` (the scene state machine + per-scene playback adapters; machine context persists to localStorage), `hashSharing.ts` (URL-param state encode/decode/restore), `index.ts` (barrel + `resetAllStores` + `registerStoreReset`)
-- **peer `keyframe-timeline/`** (was `timeline/`) — `KeyframeTimeline.vue` (draggable diamonds, playhead, import/export), `TimelineCaret.vue`; `components/`: `TimelineHoverPreview` (html2canvas), `TimelineTrack`; `composables/`: `useTimeline`, `useTimelineBuild`, `useTimelineOps`, `useZoomPan`; `timelineTypes.ts`; `utils/`: `flattenVars`, `snapshotCapture` (getComputedStyle → keyframes), `timelineEngine` (build/export/import CSS)
+- **peer `keyframe-timeline/`** (was `timeline/`) — `KeyframeTimeline.vue` (draggable diamonds, playhead, import/export), `TimelineCaret.vue`, `CSSPasteDialog.vue` (S.D2 colocation); `components/`: `TimelineHoverPreview` (html2canvas), `TimelineTrack`; `composables/`: `useTimeline`, `useTimelineBuild`, `useTimelineOps`, `useZoomPan`; `timelineTypes.ts`; `utils/`: `flattenVars`, `snapshotCapture` (getComputedStyle → keyframes), `timelineEngine` (build/export/import CSS)
 
 ## Scenes
 

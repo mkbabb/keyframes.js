@@ -141,7 +141,7 @@ const W11_EGGS = [
     },
     {
         scene: "amiga",
-        files: ["scenes/amiga/AmigaScene.vue", "scenes/amiga/useAmigaAnimations.ts"],
+        files: ["scenes/amiga/AmigaScene.vue", "scenes/amiga/useAmigaDemo.ts"],
         domMarker: /power-on|booting|amiga--boot|boot-sequence/,
         dogfood: /AnimationGroup|Group|loadAnimationEngine|play\(\)/,
         triggerFile: "scenes/amiga/AmigaScene.vue",
@@ -153,7 +153,7 @@ const W11_EGGS = [
     },
     {
         scene: "square",
-        files: ["scenes/square/useSquareAnimations.ts"],
+        files: ["scenes/square/useSquareDemo.ts"],
         domMarker: /paletteSweep|palette-sweep|tumbleSweep|sweepHue/,
         dogfood: /SpringProgress|tumble/,
         triggerFile: "scenes/square/SquareScene.vue",

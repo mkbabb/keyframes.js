@@ -5,7 +5,7 @@
 // while the PRESERVED per-scene `useSceneVisibilityPause` OWNS the loop with its
 // "only resume what IT paused" (autoPaused) honesty contract. The two are
 // complementary, NOT a double-act: the machine parks `status`; this composable
-// pauses/resumes the actual rAF/WebGL loop. cube (`useCubeAnimations.ts:112`) and
+// pauses/resumes the actual rAF/WebGL loop. cube (`useCubeDemo.ts:119`) and
 // amiga (`AmigaScene.vue:122`) both wire it over their AnimationGroup / present
 // loop.
 //

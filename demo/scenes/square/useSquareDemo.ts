@@ -4,7 +4,7 @@ import { SpringProgress } from "@mkbabb/keyframes.js";
 import { onScopeDispose, type Ref } from "vue";
 
 /**
- * useSquareAnimations — the dogfood of the custom-transform-function over
+ * useSquareDemo — the dogfood of the custom-transform-function over
  * NESTED-OBJECT values primitive (the distinct library feature this scene
  * exists to prove: a `transformFunc` composes `transform` from deeply-nested
  * vars like `a.b.c.d` that map to no CSS property). H.W5.S5 makes it LIVE: the
@@ -29,7 +29,7 @@ import { onScopeDispose, type Ref } from "vue";
  * host — like the Spring/Easing scenes' contract anim — and owns NO box paint
  * (the spring loop is the sole paint authority, so there is no double-writer).
  */
-export function useSquareAnimations(
+export function useSquareDemo(
     // Accept the `useTemplateRef` shape (a readonly shallow ref that yields
     // `null` before mount) as well as a plain ref — the box only exists after
     // mount, so the transformFunc null-guards every read.
