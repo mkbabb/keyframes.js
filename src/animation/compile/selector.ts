@@ -11,6 +11,7 @@
  * {@link namedSelectorToFraction}. value.js-bearing (the `AnimationOptionError`
  * + the phase table) — rides the heavy compile chunk alongside `frame-compiler`.
  */
+import { ValueUnit, parseCSSValueUnit } from "@mkbabb/value.js";
 import { AnimationOptionError } from "../internal/errors";
 import { PHASE_FRACTIONS } from "../internal/scroll-phases";
 
@@ -106,3 +107,64 @@ export const SELECTOR_REASON =
     "(e.g. \"0%\", \"50%\"), the keyword 'from'/'to', or a scroll-range " +
     "named selector (entry/exit/cover/contain, optionally with a range " +
     "fraction like 'entry 0%')";
+
+/**
+ * Validate + parse a raw keyframe-SELECTOR token (the LEFT side of a keyframe
+ * rule) into its `ValueUnit` — the J.W1 SEAM-1 fail-explicit guard, made TOTAL
+ * (J.W1 S3) and L.W1-S4-extended for the scroll-range named selectors. Carved
+ * off `frame-compiler.ts`'s `addFrame` at S.B5 to live BESIDE the grammar it
+ * validates against; `addFrame` calls it after coercing the raw start (number/
+ * string/`ValueUnit`) into a string.
+ *
+ * The guard validates against the NAMED conforming grammar (percentage 0%–100%
+ * ∪ from/to ∪ the scroll-range named selectors — {@link SELECTOR_PERCENT_RE} /
+ * {@link SELECTOR_KEYWORD_RE} / {@link SELECTOR_NAMED_RANGE_RE}) BEFORE
+ * `parseCSSValueUnit`, so EVERY non-conforming selector is a clear, typed
+ * `AnimationOptionError` — never value.js's cryptic `Parse error at offset 0`.
+ * The blank case carries the stable structured code "EMPTY_PARSE" (J.W1 S8) so a
+ * programmatic consumer branches on the reason, not the message string.
+ *
+ * The scroll-range named selectors (`entry`/`exit`/`cover`/`contain`, optionally
+ * `entry 0%`) are CONFORMING (value.js parses them `kind:"named"`): rather than
+ * throw (the pre-L guard's bug) or silently accept-and-ignore, they are stored
+ * OPAQUELY as `ValueUnit(rawSelector, undefined, [NAMED_SELECTOR_SUPERTYPE])` —
+ * `value` holds the selector STRING so it round-trips VERBATIM through
+ * `format.ts` (`String(start)`), and the `superType` tag is the channel the
+ * deferred phase resolver ({@link namedSelectorToFraction}) keys on. No
+ * `parseCSSValueUnit` on that path (it THROWS on `entry`); the named selector
+ * resolves to a numeric `%` only under a ScrollTimeline/ManualTimeline phase
+ * mapper, deferred to attach time (the no-timeline-but-position-demanded case
+ * refuses with the structured `NAMED_SELECTOR_NO_TIMELINE`, never an invented
+ * number).
+ */
+export function parseKeyframeSelector(start: string): ValueUnit {
+    const selector = start.trim();
+    if (selector === "") {
+        throw new AnimationOptionError(
+            "start",
+            start,
+            `${SELECTOR_REASON} — got an empty/blank string`,
+            "EMPTY_PARSE",
+        );
+    }
+
+    if (SELECTOR_NAMED_RANGE_RE.test(selector)) {
+        return new ValueUnit(selector, undefined, [NAMED_SELECTOR_SUPERTYPE]);
+    }
+
+    if (
+        !SELECTOR_KEYWORD_RE.test(selector) &&
+        !(SELECTOR_PERCENT_RE.test(selector) && parseFloat(selector) <= 100)
+    ) {
+        throw new AnimationOptionError(
+            "start",
+            start,
+            `${SELECTOR_REASON} — got ${JSON.stringify(start)}`,
+        );
+    }
+
+    // Guarded-total: the conforming set ("<n>%", "from", "to") is exactly what
+    // value.js parses to a percentage ValueUnit — `from` → 0%, `to` → 100% — so
+    // no post-parse conversion/clamp remains.
+    return parseCSSValueUnit(selector);
+}

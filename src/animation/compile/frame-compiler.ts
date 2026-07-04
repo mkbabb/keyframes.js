@@ -11,13 +11,7 @@
  * accessors to it; the compile inputs it needs (`options`, and `targets` for
  * `parse`) are passed in, never reached back through the owning class.
  */
-import {
-    parseCSSValueUnit,
-    seekPreviousValue,
-    unflattenObject,
-    ValueUnit,
-} from "@mkbabb/value.js";
-import { AnimationOptionError } from "../internal/errors";
+import { seekPreviousValue, unflattenObject, ValueUnit } from "@mkbabb/value.js";
 import type {
     AnimationFrame,
     AnimationOptions,
@@ -34,19 +28,13 @@ import {
     type ParsedVarMap,
 } from "./parse-flatten";
 // The keyframe-SELECTOR grammar (the regexes, the named-range tag, the
-// named-phase → fraction resolver, the content-id scale) lives in the colocated
-// `./selector` module (R.W2b carve). S.B3 C-2 — the re-export CEREMONY is DEAD:
-// consumers (`engine/interpolate.ts`, `test/nan-frame.ts`) import
-// `namedSelectorToFraction` / `NAMED_SELECTOR_SUPERTYPE` from `./selector`
-// DIRECTLY; this module imports only what IT uses.
-import {
-    FRAME_ID_SCALE,
-    SELECTOR_KEYWORD_RE,
-    SELECTOR_PERCENT_RE,
-    SELECTOR_NAMED_RANGE_RE,
-    SELECTOR_REASON,
-    NAMED_SELECTOR_SUPERTYPE,
-} from "./selector";
+// named-phase → fraction resolver, the content-id scale) AND the selector
+// validate+parse function (`parseKeyframeSelector`, carved off `addFrame` at
+// S.B5) live in the colocated `./selector` module (R.W2b + S.B5). S.B3 C-2 — the
+// re-export CEREMONY is DEAD: consumers (`engine/interpolate.ts`,
+// `test/nan-frame.ts`) import `namedSelectorToFraction` / `NAMED_SELECTOR_SUPERTYPE`
+// from `./selector` DIRECTLY; this module imports only what IT uses.
+import { FRAME_ID_SCALE, parseKeyframeSelector } from "./selector";
 
 /**
  * Map a segment's percent endpoints onto the wall-clock window. Inlined here
@@ -126,71 +114,16 @@ export class FrameCompiler<V extends Vars = any> {
             start = String(start);
         }
 
-        // Fail-explicit belt (H.W0 H-A2, made TOTAL in J.W1 S3 — SEAM-1).
-        // The pre-J guard caught ONLY the blank selector; non-empty garbage
-        // ("abc") still reached value.js and threw the cryptic, un-typed
-        // `Parse error at offset 0: "…"`, while a length/time ("5px",
-        // "500ms") or an out-of-range percent ("150%") was SILENTLY accepted
-        // as a selector. The guard validates against the NAMED conforming
-        // grammar (percentage 0%–100% ∪ from/to ∪ the scroll-range named
-        // selectors — see SELECTOR_PERCENT_RE / SELECTOR_KEYWORD_RE /
-        // SELECTOR_NAMED_RANGE_RE) BEFORE `parseCSSValueUnit`, so EVERY
-        // non-conforming selector is a clear, typed `AnimationOptionError`.
-        // The blank case carries the stable structured code "EMPTY_PARSE"
-        // (J.W1 S8) so a programmatic consumer branches on the reason, never
-        // on the message string.
-        const selector = start.trim();
-        if (selector === "") {
-            throw new AnimationOptionError(
-                "start",
-                start,
-                `${SELECTOR_REASON} — got an empty/blank string`,
-                "EMPTY_PARSE",
-            );
-        }
-
-        // L.W1 S4 (viol17/W118) — the scroll-range named selectors
-        // (`entry`/`exit`/`cover`/`contain`, optionally `entry 0%`) are
-        // CONFORMING, not garbage: value.js parses them (`kind:"named"`) and
-        // the adapter surfaces them literally. The pre-L guard THREW on them —
-        // what value.js produced, the frame-compiler could not ingest. The cure
-        // is NOT "silently accept and ignore" but "accept AND preserve": store
-        // the raw token opaquely as `ValueUnit(rawSelector, undefined,
-        // [NAMED_SELECTOR_SUPERTYPE])` — `value` holds the selector STRING so it
-        // round-trips VERBATIM through `format.ts` (`String(start)`), and the
-        // `superType` tag is the channel the deferred phase resolver keys on. No
-        // `parseCSSValueUnit` (it THROWS on `entry`); no pre-attach throw (the
-        // named selector resolves to a numeric `%` only under a ScrollTimeline/
-        // ManualTimeline phase mapper, deferred to attach time — the genuinely-
-        // resolution-required-but-timeline-absent case refuses with the
-        // structured `NAMED_SELECTOR_NO_TIMELINE`, never an invented number).
-        let parsedStart: ValueUnit;
-        if (SELECTOR_NAMED_RANGE_RE.test(selector)) {
-            parsedStart = new ValueUnit(selector, undefined, [
-                NAMED_SELECTOR_SUPERTYPE,
-            ]);
-        } else {
-            if (
-                !SELECTOR_KEYWORD_RE.test(selector) &&
-                !(
-                    SELECTOR_PERCENT_RE.test(selector) &&
-                    parseFloat(selector) <= 100
-                )
-            ) {
-                throw new AnimationOptionError(
-                    "start",
-                    start,
-                    `${SELECTOR_REASON} — got ${JSON.stringify(start)}`,
-                );
-            }
-
-            // Guarded-total: the conforming set ("<n>%", "from", "to") is
-            // exactly what value.js parses to a percentage ValueUnit — `from` →
-            // 0%, `to` → 100% — so no post-parse conversion/clamp remains (the
-            // former `convertFrameStart` time-selector branch died with the
-            // total guard: a time is not a keyframe selector).
-            parsedStart = parseCSSValueUnit(selector);
-        }
+        // Fail-explicit belt (H.W0 H-A2, made TOTAL in J.W1 S3 — SEAM-1;
+        // L.W1-S4-extended for the scroll-range named selectors). The validate+
+        // parse guard lives BESIDE the grammar it checks against, in
+        // `./selector` (the S.B5 carve): every non-conforming selector is a
+        // clear, typed `AnimationOptionError` (blank → the "EMPTY_PARSE"
+        // structured code), and a conforming scroll-range named selector
+        // (`entry`/`exit`/…) ingests OPAQUELY — round-trips VERBATIM, resolves
+        // to a numeric `%` only under a ScrollTimeline/ManualTimeline at attach
+        // time (never a parse-time throw or an invented number).
+        const parsedStart: ValueUnit = parseKeyframeSelector(start);
 
         let templateFrame = {
             id: this.frameId,
