@@ -955,14 +955,24 @@ export async function pressPlayToggle(page, { intent = "toggle" } = {}) {
         for (const sel of SELECTORS) {
             const el = document.querySelector(sel);
             if (el && isVisible(el)) {
-                el.dispatchEvent(
-                    new PointerEvent("pointerup", {
-                        bubbles: true,
-                        cancelable: true,
-                        button: 0,
-                        pointerType: "mouse",
-                    }),
-                );
+                // S.B7 (usePlayActuation F3 press-origin guard): a bare synthetic
+                // `pointerup` is EXACTLY the ghost-actuation shape the transport
+                // now rejects — the press must ORIGINATE on the control. The
+                // driver dispatches the honest full press (down THEN up on the
+                // same element, SAME pointerId) with the real gesture's
+                // properties: `isPrimary` (synthetic PointerEvents default it
+                // FALSE, which the guard rightly ignores as a secondary touch)
+                // and a stable pointerId for the down/up pairing.
+                const opts = {
+                    bubbles: true,
+                    cancelable: true,
+                    button: 0,
+                    pointerType: "mouse",
+                    isPrimary: true,
+                    pointerId: 1,
+                };
+                el.dispatchEvent(new PointerEvent("pointerdown", opts));
+                el.dispatchEvent(new PointerEvent("pointerup", opts));
                 return el.getAttribute("aria-label") ?? sel;
             }
         }
