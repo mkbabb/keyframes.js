@@ -61,10 +61,21 @@ export function useControlsLayout(
     };
 
     // Auto-show controls pane when switching tabs while pane is hidden.
+    // ── S.G1 S1b (p10 F4 — writer b) — DESKTOP-GATED ──
+    // On mobile this watch fired on the scene machine's entry-time `selectedControl`
+    // PROJECTION (not a genuine user tab pick), silently re-expanding the sheet the
+    // instant the host mount-reset set it to peek (the third re-opener head). The
+    // desktop rail still auto-shows on a real tab switch; the mobile sheet stays at
+    // peek until the user taps the grab handle. `isMobileLayout` is the SAME 1023px
+    // boundary the sheet CSS + the mount-reset use.
     watch(
         () => storedControls.selectedControl,
         (newVal, oldVal) => {
-            if (newVal !== oldVal && !storedControls.isControlsPanelOpen) {
+            if (
+                !isMobileLayout.value &&
+                newVal !== oldVal &&
+                !storedControls.isControlsPanelOpen
+            ) {
                 storedControls.isControlsPanelOpen = true;
             }
         },

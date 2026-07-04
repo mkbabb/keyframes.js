@@ -194,13 +194,41 @@ async function settleAndOpen(page, scene) {
         },
         [CTRL_KEY, superKey],
     );
-    // The store is read on mount; a reload re-hydrates the seeded OPEN state and
-    // the spring writes --sheet-t→1 (the open detent). Re-pin the hash + viewport
-    // after reload (a reload restarts at the index route).
+    // The store is read on mount; a reload re-hydrates the seeded state. Re-pin the
+    // hash + viewport after reload (a reload restarts at the index route).
     await page.reload({ waitUntil: "load" });
     await navToScene(page, scene, TRIGGER_BY_SCENE[scene], { timeout: 8000 });
     await page.setViewportSize({ width: VW, height: VH });
     await page.waitForTimeout(900); // the spring settles (<350ms) + reflow
+
+    // ── S.G1 S4 (p10 F5 arming re-arm; T7 — gate follows code) ──
+    // The mobile sheet is now BORN AT PEEK (the S.G1 three-writer peek cure): the
+    // host mount-reset overrides the seeded `isControlsPanelOpen:true` on the mobile
+    // layout. This gate measures the EXPANDED-detent overlay geometry (clause a's
+    // unoccluded floor + the editor/storyboard non-vacuity "sheet must occupy the
+    // viewport"), so it DRIVES the sheet to its expanded detent via a real
+    // grab-handle tap — exactly what this function's contract already names. The
+    // born-open state the store seed relied on is what the contract deletes; the tap
+    // restores the measured state without depending on the deleted auto-open.
+    const alreadyOpen = await page.evaluate(
+        () => !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
+    );
+    if (!alreadyOpen) {
+        // The grab pill toggles on POINTER events; this context has no hasTouch, so
+        // a real-mouse click (which fires pointerdown/pointerup — the same actuation
+        // this gate's no-shift leg uses) is the open gesture, NOT page.tap.
+        await page.click(".sheet-grab-handle", { timeout: 5000 }).catch(() => {});
+        await page
+            .waitForFunction(
+                () =>
+                    !!document.querySelector(
+                        ".controls-pane-wrapper.controls-pane--open",
+                    ),
+                { timeout: 5000 },
+            )
+            .catch(() => {});
+        await page.waitForTimeout(600); // the open spring settles to the detent
+    }
 }
 
 /** Wait until the fixed stage + the named subject host + the sheet resolve (not

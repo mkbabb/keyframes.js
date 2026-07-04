@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@vueuse/core";
 import { computed, watch, type ComputedRef, type WritableComputedRef } from "vue";
 import type { StoredAnimationGroupControlOptions } from "../stores";
 import { useSheetSpring } from "./useSheetSpring";
@@ -36,6 +37,24 @@ export function useSheetState(options: UseSheetStateOptions): UseSheetStateRetur
             storedControls.isControlsPanelOpen = v;
         },
     });
+
+    // ── S.G1 S1a (p10 F4 — writer a) — the MOBILE MOUNT-RESET (peek by default) ──
+    // On the mobile layout the sheet is born at PEEK per scene entry: the wrapper
+    // remounts per scene via the `AnimationControlsGroup :key="superKey"` boundary,
+    // so this setup-time reset fires once per entry and overrides the store's
+    // persisted/default `isControlsPanelOpen: true`. This is the head of the
+    // three-writer peek cure (the two born-open scene pokes are DELETED; the
+    // useControlsLayout auto-open watch is desktop-gated); it covers writer (a) —
+    // the store default — AND the deleted pokes. Desktop is UNTOUCHED: the shell
+    // force-opens the rail there (useSceneMachineShellBinding, already ≥1024px-
+    // gated + DFA-non-empty gated). It writes the ONE open axis (the store fact —
+    // NOT a per-layout fork, which reds proof:live-session-mobile's touch battery;
+    // p10 F3). RECORDED (not gated): this discards a returning user's expanded
+    // preference per scene entry — accepted as the "peek by default" reading.
+    const isMobileLayout = useMediaQuery("(max-width: 1023px)");
+    if (isMobileLayout.value) {
+        storedControls.isControlsPanelOpen = false;
+    }
 
     const { sheetT, settled } = useSheetSpring(sheetOpen);
 
