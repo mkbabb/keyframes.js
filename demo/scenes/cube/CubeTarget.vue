@@ -1,9 +1,21 @@
 <template>
     <div
-        class="grid h-full w-full max-w-full items-center justify-center justify-items-center overflow-visible"
+        class="relative grid h-full w-full max-w-full items-center justify-center justify-items-center overflow-visible"
         style="touch-action: none; overscroll-behavior: contain"
         @wheel.prevent
     >
+        <!-- S.G3 S1 — the drafting-stamp gesture legend surfaces the cube's
+             otherwise-invisible gesture grammar (fold row 67); the `cube:roll` row
+             is the census TELL for the double-tap egg. Fades after the first roll. -->
+        <GestureLegend
+            scene="cube"
+            :items="[
+                { id: 'orbit', glyph: '↻', label: 'drag: orbit' },
+                { id: 'axislock', glyph: '⇥', label: 'hold X / Y / Z: lock axis' },
+                { id: 'roll', glyph: '⁚⁚', label: 'double-tap: roll the die' },
+            ]"
+            :used="rollUsed"
+        />
         <div
             ref="graphEl"
             class="graph preserve-3d grid items-center justify-center justify-items-center"
@@ -25,7 +37,6 @@
                         class="cube cube--relit preserve-3d animation relative flex items-center justify-center justify-items-center"
                         :class="{ 'cube--rolling': rolling }"
                         :style="{ '--spin-energy': spinEnergy }"
-                        @dblclick="onRoll"
                     >
                         <span
                             class="contents"
@@ -139,6 +150,8 @@ import { onScopeDispose, reactive, ref, useTemplateRef } from "vue";
 import { Loader2 } from "@lucide/vue";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+import { useDoubleTap } from "@composables/useDoubleTap";
+import GestureLegend from "@components/custom/GestureLegend.vue";
 import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
 import type { PressedKeys, TransformState } from "./orbital-drag";
 import CubeAxisLines from "./CubeAxisLines.vue";
@@ -214,6 +227,8 @@ const rainbowTimings = cubeSides.map(() => ({
 // transitionend-free, engine-owned tumble; the rolling flag suppresses re-rolls
 // mid-spin and stands the pointer down for the ~1s arc.
 const rolling = ref(false);
+// S.G3 S1 — fades the legend stamp once the die has been rolled at least once.
+const rollUsed = ref(false);
 let rollAnim: CSSKeyframesAnimation | undefined;
 
 // The six face-up orientations of the `.cube` (degrees). Spinning the cube to
@@ -265,6 +280,17 @@ const onRoll = async () => {
     // die resting on its rolled face (the next drag/animation re-bases as usual).
     setTimeout(() => { rolling.value = false; }, 1200);
 };
+
+// S.G3 S2 — the Roll is a POINTER-based double-tap now (touch parity; the former
+// `@dblclick` was mouse-only). Drag-disjoint: an orbit drag never triggers it, so
+// the die-roll egg and the orbital drag coexist on the same cube.
+useDoubleTap({
+    el: cubeEl,
+    onDoubleTap: () => {
+        rollUsed.value = true;
+        void onRoll();
+    },
+});
 
 onScopeDispose(() => {
     rollAnim?.stop();

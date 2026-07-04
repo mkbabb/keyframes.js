@@ -22,11 +22,19 @@
          wrapper keeps the dblclick affordance + label (role="group"
          permits aria-label; a bare div does not). -->
     <div
+        ref="physicsEl"
         class="curve-physics"
         role="group"
-        aria-label="Curve physics — double-click to identify the nearest named easing"
-        @dblclick="identifyCurve"
+        aria-label="Curve physics — double-tap to identify the nearest named easing"
     >
+        <!-- S.G3 S1 — the census TELL for the identify egg (a quiet inline stamp;
+             the double-tap is the touch-reliable path). -->
+        <span
+            class="curve-physics-tell text-mono-caption normal-case text-muted-foreground"
+            data-gesture-tell="easing:identify"
+        >
+            <span aria-hidden="true">⁚⁚</span> double-tap: name this curve
+        </span>
         <div v-if="nearestName" class="curve-physics-egg readout-accent text-mono-caption normal-case tabular-nums">
             ≈ {{ nearestName }}
         </div>
@@ -62,11 +70,14 @@
 // the a11y content-model fix landed; this block is a self-contained read-only
 // instrument over `demo.currentEasingFn` + the P.W7 identity egg, so it is the
 // colocated sub-unit the ceiling gate prescribes).
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, ref, useTemplateRef } from "vue";
+import { useDoubleTap } from "@composables/useDoubleTap";
 import type { EasingDemoContext } from "./easingKeys";
 
 const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;
+
+const physicsEl = useTemplateRef<HTMLElement>("physicsEl");
 
 // P.W7 — the curve-PHYSICS readout. Samples the live `currentEasingFn` to reveal
 // the curve's CHARACTER (what it DOES), not its parameters (where its handles
@@ -157,6 +168,13 @@ const identifyCurve = () => {
         }, 3200);
     }
 };
+
+// S.G3 S2 — identify is a POINTER-based double-tap now (touch parity; the former
+// `@dblclick` was mouse-only).
+useDoubleTap({
+    el: physicsEl,
+    onDoubleTap: () => identifyCurve(),
+});
 
 onBeforeUnmount(() => {
     if (nearestTimer) clearTimeout(nearestTimer);

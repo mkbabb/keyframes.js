@@ -11,6 +11,16 @@
         :shadow="false"
         class="square-stage grid h-full w-full place-items-center select-none"
     >
+        <!-- S.G3 S1 — the drafting-stamp gesture legend; `square:tumble` is the
+             census TELL for the double-tap tumble egg. Fades after the first tumble. -->
+        <GestureLegend
+            scene="square"
+            :items="[
+                { id: 'drag', glyph: '↔', label: 'drag: move on two axes' },
+                { id: 'tumble', glyph: '⁚⁚', label: 'double-tap: tumble' },
+            ]"
+            :used="tumbleUsed"
+        />
         <!-- L.W11 S4 — the draughtsman's instrument layer (the coordinate field,
              the rubber-band tether, the telemetry strip, the legend) lives in the
              colocated SquareInstrument sub-unit (markup + styles together). It is
@@ -50,7 +60,6 @@
             tabindex="0"
             @pointerdown="onPointerDown"
             @keydown="onKeydown"
-            @dblclick="tumble"
         >
             <span
                 class="sr-only-slider"
@@ -82,6 +91,8 @@ import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTempla
 import { Card } from "@mkbabb/glass-ui";
 import { kfEngine } from "@utils/kfEngine";
 import { useDragScrub } from "@composables/useDragScrub";
+import { useDoubleTap } from "@composables/useDoubleTap";
+import GestureLegend from "@components/custom/GestureLegend.vue";
 import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
@@ -116,6 +127,8 @@ const deflX = ref(0);
 const deflY = ref(0);
 // Progressive disclosure: the tumble hint appears only after the first drag-settle.
 const tumbleHintShown = ref(false);
+// S.G3 S1 — fades the legend stamp once the box has tumbled at least once.
+const tumbleUsed = ref(false);
 let hasDragged = false;
 
 const { anim, springX, springY, reseat, settle, travel, paintRest, tumble, dispose } =
@@ -247,6 +260,16 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
         springReadout.x = springX.target.toFixed(2);
         springReadout.y = springY.target.toFixed(2);
         syncAxisNow();
+    },
+});
+
+// S.G3 S2 — the Tumble is a POINTER-based double-tap now (touch parity; the former
+// `@dblclick` was mouse-only). Drag-disjoint: moving the box never triggers it.
+useDoubleTap({
+    el: box,
+    onDoubleTap: () => {
+        tumbleUsed.value = true;
+        tumble();
     },
 });
 

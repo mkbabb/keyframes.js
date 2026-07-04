@@ -16,8 +16,20 @@
                 'amiga-canvas--boing': boinging,
                 'amiga-canvas--power-on': booting,
             }"
-            @dblclick="onBoing"
         ></canvas>
+
+        <!-- S.G3 S1 — the drafting-stamp gesture legend surfaces the amiga's
+             signature Boing egg (A5: "the single best moment this page owns is
+             hidden behind an undiscoverable gesture"); `amiga:boing` is the census
+             TELL for the double-tap. Fades after the first boing. -->
+        <GestureLegend
+            scene="amiga"
+            :items="[
+                { id: 'spin', glyph: '↻', label: 'drag: spin the ball' },
+                { id: 'boing', glyph: '⁚⁚', label: 'double-tap: Boing!' },
+            ]"
+            :used="boingUsed"
+        />
 
         <!-- L.W11.S3 — the CRT phosphor atmosphere stack (a colocated sub-unit;
              pointer-events:none so the spin/orbit gesture is untouched). The
@@ -47,6 +59,8 @@ import {
 import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
 
+import { useDoubleTap } from "@composables/useDoubleTap";
+import GestureLegend from "@components/custom/GestureLegend.vue";
 import AmigaCrtOverlay from "./AmigaCrtOverlay.vue";
 import AmigaTelemetry from "./AmigaTelemetry.vue";
 import { useAmigaThree } from "./useAmigaThree";
@@ -96,6 +110,16 @@ const sphereSpin = useSphereSpin({
     },
 });
 
+// S.G3 S2 — the Boing is a POINTER-based double-tap now (touch parity; the former
+// `@dblclick` was mouse-only and mobile browsers do not synthesize it reliably, so
+// on touch "the single best moment this page owns" was unreachable). The flick
+// gesture (useSphereSpin.onFlick) stays as the discovered-by-feel path; this is the
+// deterministic, discoverable one that pairs with the legend tell.
+useDoubleTap({
+    el: canvasEl,
+    onDoubleTap: () => onBoing(),
+});
+
 // ── EASTER EGG — "the Boing" (H.W12.S6) ──────────────────────────────────────
 // Double-click the stage → the 1984 Amiga Boing Ball wakes up. The boing
 // animationGroup (the X/Y/Z bounce + spin + hue cycle) is BUILT by
@@ -103,6 +127,8 @@ const sphereSpin = useSphereSpin({
 // spin-on-drag sphere. The egg DOGFOODS that already-built engine group (inv ζ),
 // then stops it and re-seats the sphere home so the scene returns to rest.
 const boinging = ref(false);
+// S.G3 S1 — fades the legend stamp once the ball has boinged at least once.
+const boingUsed = ref(false);
 let boingTimer: ReturnType<typeof setTimeout> | undefined;
 
 // Q.WC5 S1 — the reactive angular-velocity readout the telemetry overlay binds.
@@ -142,6 +168,7 @@ const onBoing = () => {
     const sphereMesh = three.getSphere();
     if (boinging.value || !sphereMesh) return;
     boinging.value = true;
+    boingUsed.value = true;
     // Cancel any in-flight spin glide so the boing owns the mesh cleanly.
     void animationGroup.play();
     // One boing arc (≈ the 2.1s bounce period × ~3) then settle back home — the

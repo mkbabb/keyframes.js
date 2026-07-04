@@ -28,14 +28,13 @@
                  the readout J stripped from this rail (the parity gap) as the
                  complete, re-parseable literal (`readoutLiteral`).
 
-                 EASTER EGG "the Gallery" (H.W12.S6): double-click the canvas to
-                 tour the expressive easing catalogue (back/bounce/elastic). The
-                 dblclick rides a thin wrapper (the EasingCurveCanvas root is a
-                 GlassPanel that does not forward native listeners reliably), and
-                 is distinct from the bezier handle drag (pointerdown) so it never
-                 fights the editor. `display: contents` keeps the wrapper out of
-                 the subgrid flow — the editor stays the full-width hero child. -->
-            <div class="canvas-egg-host" @dblclick="demo.gallery">
+                 S.G3 S2 — "the Gallery" tour is now driven by a VISIBLE
+                 gallery-door BUTTON (below), never the former canvas `@dblclick`
+                 (mouse-only; mobile browsers do not synthesize a reliable
+                 double-click, so on touch the tour was unreachable — SG-8). The
+                 wrapper stays (`display: contents`) so the editor remains the
+                 full-width hero grid child. -->
+            <div class="canvas-egg-host">
                 <EasingEditor
                     :easing-fn="demo.currentEasingFn.value"
                     :svg-path="demo.svgPath.value"
@@ -50,6 +49,24 @@
                     @update:name="demo.selectEasing"
                 />
             </div>
+
+            <!-- S.G3 S1/S2 — the VISIBLE gallery-door button: the discoverable,
+                 touch-reliable path to the easing-catalogue tour (replacing the
+                 sealed canvas double-click). It IS the census tell
+                 (`data-gesture-tell="easing:gallery"`) and the manifest gate's
+                 touch target; its active state reads `demo.galleryActive`. -->
+            <button
+                type="button"
+                class="gallery-door focus-ring tap-floor"
+                data-gesture-tell="easing:gallery"
+                :class="{ 'gallery-door--touring': demo.galleryActive.value }"
+                :aria-pressed="demo.galleryActive.value"
+                aria-label="Gallery — tour the expressive easing catalogue"
+                @click="demo.gallery"
+            >
+                <span class="gallery-door__glyph" aria-hidden="true">⇢</span>
+                {{ demo.galleryActive.value ? "touring…" : "Gallery" }}
+            </button>
 
             <!-- Step options (shown only for steps) — label-left rows -->
             <template v-if="demo.isSteps.value">
@@ -222,4 +239,41 @@ const onStepsChangeValue = (value: string) => {
 
 /* The curve-physics telemetry styles live in the colocated
    EasingCurvePhysics.vue (S.A0: the 500L-ceiling concern-seam split). */
+
+/* S.G3 S2 — the gallery-door button. A quiet cartoon-register control (matches
+   the sidebar's language), full-width under the canvas, with a 44px tap floor
+   (`.tap-floor`) and the demo focus ring (`.focus-ring`). Its `--touring` state
+   wears the scene accent while the tour plays. */
+.gallery-door {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    border-radius: var(--radius-md, 0.5rem);
+    background: color-mix(in srgb, var(--background) 70%, transparent);
+    color: var(--foreground);
+    font-family: var(--font-mono);
+    font-size: var(--type-small, 0.8125rem);
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition:
+        background-color var(--duration-fast, 160ms) var(--ease-standard, ease),
+        border-color var(--duration-fast, 160ms) var(--ease-standard, ease);
+}
+.gallery-door:hover {
+    background: color-mix(in srgb, var(--color-progress) 8%, var(--background));
+    border-color: color-mix(in srgb, var(--color-progress) 40%, var(--border));
+}
+.gallery-door__glyph {
+    color: var(--color-progress);
+    font-weight: 700;
+}
+.gallery-door--touring {
+    background: color-mix(in srgb, var(--color-progress) 14%, var(--background));
+    border-color: color-mix(in srgb, var(--color-progress) 55%, transparent);
+    color: color-mix(in srgb, var(--color-progress) 55%, var(--foreground));
+}
 </style>

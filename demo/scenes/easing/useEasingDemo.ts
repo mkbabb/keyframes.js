@@ -297,7 +297,7 @@ export function useEasingDemo() {
     };
 
     // EASTER EGG — "the Gallery" (H.W12.S6): the self-playing curve tour (colocated in useEasingGallery).
-    const { gallery, disposeGallery } = useEasingGallery(
+    const { gallery, galleryActive, disposeGallery } = useEasingGallery(
         selectEasing,
         currentEasingName,
         timingFunctionsAnd,
@@ -398,6 +398,7 @@ export function useEasingDemo() {
         selectEasing,
         updateBezierPoints,
         gallery,
+        galleryActive,
         play,
         pause,
         togglePlay,

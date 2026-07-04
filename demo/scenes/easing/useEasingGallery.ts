@@ -1,4 +1,4 @@
-import type { Ref } from "vue";
+import { ref, type Ref } from "vue";
 
 // ── EASTER EGG — "the Gallery" (H.W12.S6) ────────────────────────────────────
 // Double-click the curve canvas → a self-playing tour of the easing library.
@@ -34,9 +34,17 @@ export function useEasingGallery(
     let galleryRunning = false;
     const galleryTimers: ReturnType<typeof setTimeout>[] = [];
 
+    // S.G3 S2 — a reactive flag the stage reads to mark "the gallery tour is
+    // playing" (mirrors the spring derby's `derbyActive`). It gives the
+    // gallery-door button an active-state tell AND the manifest gate an observable
+    // effect it can assert after tapping the button (the tour restores the curve at
+    // the end, so a bare currentEasingName sample would race — this does not).
+    const galleryActive = ref(false);
+
     const gallery = () => {
         if (galleryRunning) return;
         galleryRunning = true;
+        galleryActive.value = true;
         galleryTimers.length = 0;
         const restore = currentEasingName.value;
 
@@ -50,11 +58,12 @@ export function useEasingGallery(
             setTimeout(() => {
                 selectEasing(restore);
                 galleryRunning = false;
+                galleryActive.value = false;
             }, GALLERY_TOUR.length * STEP_MS),
         );
     };
 
     const disposeGallery = () => galleryTimers.forEach(clearTimeout);
 
-    return { gallery, disposeGallery };
+    return { gallery, galleryActive, disposeGallery };
 }

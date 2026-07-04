@@ -9,8 +9,15 @@
          `max-w-3xl` rides the content column as an optical reading measure. -->
     <Card
         :shadow="false"
-        class="spring-target flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
+        class="spring-target relative flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
     >
+        <!-- S.G3 S1 — the drafting-stamp gesture legend (the census TELL for the
+             derby egg; fades after the first derby fires). -->
+        <GestureLegend
+            scene="spring"
+            :items="[{ id: 'derby', glyph: '⁚⁚', label: 'double-tap the rail: derby' }]"
+            :used="derbyUsed"
+        />
         <!-- Header readout.
              J.W7a S2 (D7 / TYP-2, SP-2) — the scene name lifts to the
              Instrument-Serif `text-display` rung (the display voice carried
@@ -60,7 +67,7 @@
                  graduated field, not blank glass. -->
             <div
                 ref="railEl"
-                class="spring-rail stage-field-x relative w-full h-12 cursor-pointer select-none"
+                class="spring-rail stage-field-x focus-ring relative w-full h-12 cursor-pointer select-none"
                 :class="{ 'spring-rail--derby': demo.derbyActive.value }"
                 role="slider"
                 aria-label="Drag to re-seat the spring target"
@@ -70,7 +77,6 @@
                 tabindex="0"
                 @pointerdown="onPointerDown"
                 @keydown="onKeydown"
-                @dblclick="demo.derby"
             >
                 <div class="progress-rail"></div>
                 <!-- L.W11 S6 — the y=1 TARGET LINE every trace is measured
@@ -158,13 +164,20 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
+import { inject, onMounted, onScopeDispose, ref, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
+import { useDoubleTap } from "@composables/useDoubleTap";
+import GestureLegend from "@components/custom/GestureLegend.vue";
 import { SPRING_DEMO_KEY } from "./springKeys";
 import SpringTrace from "./SpringTrace.vue";
 
 const demo = inject(SPRING_DEMO_KEY)!;
+
+// S.G3 S2 — the derby is POINTER-based double-tap now (touch parity; never native
+// `dblclick`, which mobile browsers do not synthesize reliably). The legend stamp
+// fades once it fires.
+const derbyUsed = ref(false);
 
 const railEl = useTemplateRef<HTMLElement>("railEl");
 const liveBallEl = useTemplateRef<HTMLElement>("liveBallEl");
@@ -229,6 +242,17 @@ const { onPointerDown } = useDragScrub({
         return (e.clientX - rect.left) / rect.width;
     },
     onScrub: (ratio) => demo.reseat(ratio),
+});
+
+// S.G3 S2 — the reliable-primitive double-tap on the rail launches the derby (the
+// touch parity for the former `@dblclick`; drag-disjoint — a scrub never triggers
+// it). The SAME path serves mouse, pen, and touch.
+useDoubleTap({
+    el: railEl,
+    onDoubleTap: () => {
+        demo.derby();
+        derbyUsed.value = true;
+    },
 });
 
 const onKeydown = (e: KeyboardEvent) => {

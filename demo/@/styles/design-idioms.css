@@ -342,6 +342,19 @@
     outline: none;
 }
 
+/* ── .tap-floor — the 44px minimum touch-target idiom (S.G3 S4) ──
+   The WCAG 2.5.5 / Apple-HIG comfortable touch minimum. The demo's primary
+   instruments (the gallery-door button, the sequence sliders, the spring rail's
+   grab affordances) must present a ≥44px hit box so a thumb reliably lands them
+   on touch. A single owned idiom (never a per-site ad-hoc `min-height`) so the
+   gesture-manifest touch battery has one gate-able floor. It sets the box floor
+   only — layout (flex/grid/inline) is the callsite's; centring is the callsite's
+   too (most primary controls already center their content). */
+.tap-floor {
+    min-height: 44px;
+    min-width: 44px;
+}
+
 /* ── .text-gold utility ──
    Consumes --color-gold. Replaces the off-idiom `text-[var(--color-gold)]`
    arbitrary value on the Format <Sparkles> icon (S3) with a named utility, so

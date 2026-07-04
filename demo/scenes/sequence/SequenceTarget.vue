@@ -55,6 +55,15 @@
                  (C-SEQ-3, --row-start) so the stagger reads as a DIAGONAL CASCADE
                  even at t=0 — the distribution SEEN, not piled left. -->
             <div class="seq-storyboard px-4 py-4 shrink-0">
+                <!-- S.G3 S1 — the census TELL for the headline drag-to-retime
+                     gesture (the charter's "no tell" miss): a quiet drafting stamp
+                     naming the otherwise-silent row-handle drag. -->
+                <p
+                    class="seq-gesture-tell text-mono-caption normal-case text-muted-foreground"
+                    data-gesture-tell="sequence:retime"
+                >
+                    <span aria-hidden="true">↔</span> drag a row handle to re-time its start
+                </p>
                 <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing
                      detonates the lanes in a diagonal cascade chasing the thumb
                      (`--scrub-dir` flips on drag-back); `.is-powering-on` runs the
@@ -275,6 +284,19 @@ useTypedTrigger("reel", () => demo.playReel());
     --scrub-dir: 1; /* L.W11 S7 — cascade direction (+1 fwd); the scrubber flips it. */
 }
 
+/* S.G3 S1 — the drag-to-retime tell: a quiet drafting stamp above the rows. */
+.seq-gesture-tell {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.01em;
+    opacity: 0.85;
+}
+.seq-gesture-tell span[aria-hidden] {
+    color: color-mix(in srgb, var(--color-progress) 60%, var(--muted-foreground));
+}
+
 /* L.W11 S7 — IGNITION-CASCADE heat: scrubbing lifts the shared --seq-glow. */
 .seq-stage.is-scrubbing {
     --seq-glow: 1;
@@ -363,10 +385,16 @@ useTypedTrigger("reel", () => demo.playReel());
 .seq-handle {
     position: absolute;
     top: 50%;
-    width: 24px;
-    height: 24px;
-    margin-top: -12px;
-    margin-left: -12px;
+    /* S.G3 S4 — a 44px-wide touch floor on the DRAG axis (the meaningful one for a
+       horizontal slider): a thumb lands the handle reliably along its travel. The
+       height fills the 2rem track (a 44px-TALL box would overflow into the stacked
+       neighbour rows and make touch targets ambiguous — the drag axis is the honest
+       floor here). The visible grip (`::after`, centre-anchored) is unchanged. */
+    width: 44px;
+    height: 100%;
+    margin-top: 0;
+    transform: translateY(-50%);
+    margin-left: -22px;
     cursor: grab;
     touch-action: none;
     z-index: var(--z-seq-handle);
@@ -394,8 +422,13 @@ useTypedTrigger("reel", () => demo.playReel());
     background: var(--ball-tone, var(--color-progress));
     transform: translate(-50%, -50%) scaleY(1.12);
 }
+/* S.G3 S3 — the canonical keyboard focus ring on the row slider (painted in the
+   handle's own scoped rule so the `class="seq-handle"` source contract the
+   proof:sequence-rows-draggable static clause reads stays exact). */
 .seq-handle:focus-visible {
     outline: none;
+    box-shadow: var(--focus-ring-shadow);
+    border-radius: var(--radius-sm, 0.375rem);
 }
 .seq-handle:active {
     cursor: grabbing;
