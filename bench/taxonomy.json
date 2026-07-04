@@ -496,6 +496,16 @@
             "name": "weighted SoA · K=12",
             "category": "observe-only",
             "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=12. observe-only."
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "reseatToSpring · 600 interruptions",
+            "category": "run-check"
+        },
+        {
+            "suite": "bench/spring-tick.bench.ts",
+            "name": "decayRest · 600 releases",
+            "category": "run-check"
         }
     ],
     "pendingBudgeted": [],
