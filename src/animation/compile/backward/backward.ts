@@ -127,6 +127,24 @@ export interface CompileOptions {
     printWidth?: number;
 }
 
+/**
+ * VT-b (S.F1) — the per-child compile options, extending {@link CompileOptions}
+ * with the rule-SELECTOR factory the View-Transitions emitter threads through
+ * `compileChild`. `compileToCSS` never sets `selectorFor`, so its default
+ * (`.${name}` — the class selector p09 identified as the ONE hardcoded seam at
+ * the rule emit) reproduces today's artifact BYTE-FOR-BYTE (behavior-neutral;
+ * `proof:compile-replay`/`proof:compile-deterministic` stay green untouched). The
+ * VT emitter (`compile/view-transition.ts`) passes a factory that re-targets the
+ * SAME block+rule onto `::view-transition-old(name)` / `…new(name)` (optionally
+ * wrapped in `:active-view-transition-type(T)`) — the p09 "byte-reusable
+ * per-child pipeline" made real. NOT on the public `CompileOptions` surface: it
+ * is an internal per-child seam, so `compileToCSS`'s options are unchanged.
+ */
+export interface CompileChildOptions extends CompileOptions {
+    /** The rule-selector factory. Default `(name) => `.${name}`` (the class selector). */
+    selectorFor?: (name: string) => string;
+}
+
 /** The compile result — the artifact + the CC-3 ineligibility report. */
 export interface CompiledCSS {
     /**
@@ -198,9 +216,9 @@ function findComputedDrift<V extends Vars>(
  * a color leg admits it) + the `animation` shorthand, OR record a CC-3 refusal.
  * Returns the child's CSS chunk or `null` when refused.
  */
-function compileChild<V extends Vars>(
+export function compileChild<V extends Vars>(
     child: CompileChild<V>,
-    opts: CompileOptions,
+    opts: CompileChildOptions,
     refusals: CompileRefusal[],
 ): string | null {
     const { animation, name } = child;
@@ -355,7 +373,12 @@ function compileChild<V extends Vars>(
     // separate longhands — parallel to `animation-composition`.
     const scrollDecl = scrollLonghands(animation);
 
-    const rule = `.${name} {\n  animation: ${shorthand};${compositionLine}${delayDecl}${scrollDecl}\n}`;
+    // VT-b (S.F1) — the ONE hardcoded rule selector (`.${name}`), parameterized.
+    // `compileToCSS` leaves `selectorFor` undefined → the `.class` default (byte-
+    // identical to today's artifact); the VT emitter passes a factory that
+    // re-targets the SAME block+rule onto the `::view-transition-*` pseudos.
+    const selector = opts.selectorFor ? opts.selectorFor(name) : `.${name}`;
+    const rule = `${selector} {\n  animation: ${shorthand};${compositionLine}${delayDecl}${scrollDecl}\n}`;
 
     return `${block}\n\n${rule}`;
 }

@@ -49,3 +49,9 @@ export type {
     SplitTextRefusalReason,
     TextSegment,
 } from "./split-text";
+export { viewTransition } from "./view-transition";
+export type {
+    ViewTransitionOptions,
+    ViewTransitionHandle,
+    ViewTransitionMutate,
+} from "./view-transition";

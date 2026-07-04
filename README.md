@@ -694,6 +694,40 @@ Positions: a number (absolute ms), `"+=n"` / `"-=n"` (relative to the insertion 
 | `SequenceEffect` / proposed `EffectTiming` `align: sequence` | `Sequence` auto-append |
 | `EffectTiming` `align: start` | `Sequence` `at: 0` |
 
+### `viewTransition`
+
+The LIGHT View-Transitions dispatch: mutate the DOM behind a native View Transition where the platform ships one, and fall back to a `flipShared` shared-element morph (or a bare immediate mutation) everywhere else — behind ONE normalized handle whose `backend` is queryable and whose promises never reject. Feature-detects `startViewTransition` (and its typed-`update` object overload); PRM routes through the ONE `withReducedMotion` gate (mutate directly, settle).
+
+```ts run
+// Off-platform (no `document.startViewTransition`, no shared pairs) it degrades
+// to a bare immediate mutation — backend queryable SYNCHRONOUSLY at dispatch:
+const vt = viewTransition(() => box.classList.add("open"), { types: ["forward"] });
+vt.backend; // => "immediate"
+await vt.finished; // never rejects — a skipped/aborted transition settles cleanly
+```
+
+Options: `types` (typed same-doc VT), `shared` (`[from, to]` `flipShared` fallback pairs — `backend: "flip"`), `duration`/`timingFunction` (the fallback play), `fallback` (`"flip"` | `"none"` | a custom async runner), `respectReducedMotion` (default `true` — PRM snaps to `"immediate"`). The `backend` is `"view-transition"` (native), `"flip"` (the `flipShared` fallback), or `"immediate"` (bare mutate). Its zero-runtime CSS twin is [`compileToViewTransition`](#compiletoviewtransition).
+
+### `compileToViewTransition`
+
+The round-trip engine pointed at native View Transitions: compile a **name-keyed role spec** to a PURE, ZERO-RUNTIME CSS artifact over the `::view-transition-*` pseudo tree (HEAVY — reached via `loadAnimationEngine()`). Each name's `old`/`new` get a full kf `@keyframes` block + `animation` shorthand (springs → `linear()`); `::view-transition-group(name)` gets a **timing-only** override (duration + timing-function, never `animation-name` — the UA's rect-morph keyframes ARE the free zero-runtime FLIP), so the group stays temporally coherent with the tracks. Non-round-trippable shapes REFUSE with a named reason (the CC-3 four ∪ `vt-scroll-grammar` / `vt-element-scoped-computed` / `vt-snapshot-inapplicable` / `vt-name-collision`).
+
+```ts run
+const { CSSKeyframesAnimation, compileToViewTransition } = await loadAnimationEngine();
+
+const out = new CSSKeyframesAnimation({ duration: 300 });
+out.fromString(`@keyframes o { from { opacity: 1 } to { opacity: 0; transform: scale(0.9) } }`);
+const enter = new CSSKeyframesAnimation({ duration: 300 });
+enter.fromString(`@keyframes n { from { opacity: 0; transform: scale(1.05) } to { opacity: 1 } }`);
+
+const vt = await compileToViewTransition({ hero: { old: out, new: enter } }, { types: ["forward"] });
+vt.names; // => ["hero"]
+vt.css.includes("::view-transition-group(hero)"); // => true
+vt.css.includes("animation-name"); // => false   // the group override is timing-only
+```
+
+Options: `types` (wraps rules in `:active-view-transition-type(...)`), `crossDocument` (prepend `@view-transition { navigation: auto }`), `reducedMotion` (append the PRM `animation: none` block, default `true`), plus every `CompileOptions` key. The consumer assigns `view-transition-name: <name>` to its elements from the returned `names`.
+
 ## Ecosystem & agents
 
 - **`llms.txt`** — the agent surface: a machine-readable index of every capability, generated

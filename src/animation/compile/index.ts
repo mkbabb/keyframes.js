@@ -46,3 +46,13 @@ export {
     formatCSSKeyframeString,
     serializeEasing,
 } from "./backward";
+// S.F1 VT-c — the View-Transitions emitter (compileToCSS's sibling; a
+// name-keyed role spec → zero-runtime `::view-transition-*` CSS).
+export { compileToViewTransition } from "./view-transition";
+export type {
+    VTRoleSpec,
+    ViewTransitionCompileOptions,
+    VTCompileRefusalReason,
+    VTCompileRefusal,
+    CompiledViewTransitionCSS,
+} from "./view-transition";

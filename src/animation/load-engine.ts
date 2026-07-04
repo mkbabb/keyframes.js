@@ -74,6 +74,11 @@ import type {
 // reverseAnimationShorthand/sampleColorRamp + the engine, so it rides the
 // dynamic boundary, never the LIGHT static barrel).
 import type { compileToCSS as compileToCSSImpl } from "./compile";
+// S.F1 VT-c (FLAGGED ADDITIVE) — the View-Transitions emitter (compileToCSS's
+// sibling over the same value.js-bearing backward substrate). Merged onto the
+// engine below; rides the dynamic boundary, never the LIGHT static barrel (its
+// LIGHT twin is `orchestration/view-transition`'s dispatch).
+import type { compileToViewTransition as compileToViewTransitionImpl } from "./compile/view-transition";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the HEAVY validate/explain
 // runtime surface, merged onto the engine below (validate.ts statically imports
 // the engine + compile + waapi, all value.js-bearing, so it rides the dynamic
@@ -186,6 +191,8 @@ export interface AnimationEngine {
     pinCSS: typeof pinCSSImpl;
     /** The round-trip's BACKWARD half: orchestration graph → zero-runtime CSS. */
     compileToCSS: typeof compileToCSSImpl;
+    /** S.F1 — compile a name-keyed VT role spec → zero-runtime `::view-transition-*` CSS. */
+    compileToViewTransition: typeof compileToViewTransitionImpl;
     /** Read-only validation envelope over the compile/adapter/WAAPI channels. */
     validate: typeof validateImpl;
     /** Format the `validate` verdict as deterministic human/LLM-readable text. */
@@ -269,6 +276,11 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         // merged here so consumers reach the round-trip's BACKWARD half the same
         // way as the rest of the heavy surface.
         import("./compile/index"),
+        // S.F1 VT-c (FLAGGED ADDITIVE) — the View-Transitions emitter. Statically
+        // imports value.js (formatCSS/reverseCSSTime) + the backward compile
+        // substrate; merged here so consumers reach the `::view-transition-*`
+        // emitter the same way as the rest of the heavy surface.
+        import("./compile/view-transition"),
         // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE) — validate.ts statically
         // imports the engine + compile + waapi (all value.js-bearing); merged here
         // so consumers reach the forward-half VALIDATION layer the same way as the
@@ -296,6 +308,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
             ingestMod,
             scrollMod,
             compileMod,
+            vtMod,
             validateMod,
             presets,
             formatMod,
@@ -326,6 +339,7 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
                     resolveRange: scrollMod.resolveRange,
                     pinCSS: scrollMod.pinCSS,
                     compileToCSS: compileMod.compileToCSS,
+                    compileToViewTransition: vtMod.compileToViewTransition,
                     validate: validateMod.validate,
                     explain: validateMod.explain,
                     presets,

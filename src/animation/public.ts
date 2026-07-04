@@ -128,6 +128,16 @@ export type {
 
 // ── compile — the round-trip's BACKWARD half ─────────────────────────────────
 export { compileToCSS } from "./compile";
+// S.F1 VT-c — the View-Transitions emitter (PAIRED with the AnimationEngine
+// `compileToViewTransition` field — the proof:engine-subpath-mirror TYPE-diff).
+export { compileToViewTransition } from "./compile/view-transition";
+export type {
+    VTRoleSpec,
+    ViewTransitionCompileOptions,
+    VTCompileRefusalReason,
+    VTCompileRefusal,
+    CompiledViewTransitionCSS,
+} from "./compile/view-transition";
 
 // ── validate — the round-trip's FORWARD half (the validation layer) ──────────
 export { validate, explain } from "./validate";

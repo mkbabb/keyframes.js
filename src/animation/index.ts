@@ -113,6 +113,20 @@ export type {
     SplitTextRefusalReason,
     TextSegment,
 } from "./orchestration/split-text";
+// S.F1 View Transitions — the LIGHT dispatch (VT-a; p09). `viewTransition(mutate,
+// opts)` mutates the DOM behind a native View Transition where the platform ships
+// one, falling back to a `flipShared` shared-element morph (or a bare immediate
+// mutation) everywhere else — behind ONE normalized `ViewTransitionHandle` whose
+// `backend` is queryable. LIGHT (composes `flipShared` + the ONE `withReducedMotion`
+// gate; feature-detects `startViewTransition`; zero static value.js edge —
+// `proof:boundary` enrolls it off this barrel). The HEAVY companion
+// `compileToViewTransition` (the zero-runtime CSS emitter) rides loadAnimationEngine.
+export { viewTransition } from "./orchestration/view-transition";
+export type {
+    ViewTransitionOptions,
+    ViewTransitionHandle,
+    ViewTransitionMutate,
+} from "./orchestration/view-transition";
 export { drag, Draggable, drag2D } from "./orchestration/drag";
 export type {
     DragOptions,
@@ -227,6 +241,18 @@ export type {
     CompileRefusal,
     CompileRefusalReason,
 } from "./compile";
+// S.F1 VT-c (FLAGGED ADDITIVE EDIT) — the View-Transitions emitter's TYPE surface.
+// HEAVY (view-transition.ts statically imports value.js + the backward substrate),
+// so the runtime `compileToViewTransition` rides loadAnimationEngine below; ONLY
+// its role-spec / option / refusal / result TYPES are re-exported here (erased —
+// no static value.js edge on the LIGHT barrel; proof:boundary stays green).
+export type {
+    VTRoleSpec,
+    ViewTransitionCompileOptions,
+    VTCompileRefusalReason,
+    VTCompileRefusal,
+    CompiledViewTransitionCSS,
+} from "./compile/view-transition";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the round-trip's FORWARD
 // half: the VALIDATION layer over the compile surface. `validate`/`explain` are
 // a READ-ONLY projection over three already-typed channels (the adapter

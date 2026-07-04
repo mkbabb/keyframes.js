@@ -25,10 +25,19 @@ export type {
     CompileRefusal,
     CompileRefusalReason,
 } from "./backward";
-export type { CompileInput } from "./backward-walk";
+// VT-b (S.F1) — the per-child compile + its selector-factory options, exposed so
+// the sibling View-Transitions emitter (`compile/view-transition.ts`) re-targets
+// the SAME block+rule pipeline onto the `::view-transition-*` pseudos.
+export { compileChild } from "./backward";
+export type { CompileChildOptions } from "./backward";
+export type { CompileInput, CompileChild } from "./backward-walk";
 export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
+    declaredKeyframeBodyFor,
 } from "./format";
 export { serializeEasing } from "./easing-serialize";
+// VT-b / EN-c (S.F1/S.F3) — the CSS-ident normalizer, exposed so the sibling
+// View-Transitions + entry/exit emitters derive stable pseudo/rule names.
+export { cssIdent } from "./backward-walk";

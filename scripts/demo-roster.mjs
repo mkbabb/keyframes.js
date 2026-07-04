@@ -77,6 +77,14 @@ export const CORRECTNESS_ROSTER = [
     // proof:library-correctness roster. Its jsdom-viable STRING half lives in
     // proof:compile-replay (fast local bite); THIS is the browser half.
     "proof:compile-browser-parse",
+    // S.F1 View Transitions — the browser-actuating VT round-trip library-value
+    // gate (SF-5, p09). A browser-HARNESS member: the ::view-transition-* pseudo
+    // tree + getAnimations() over it are browser artifacts (jsdom has NO View
+    // Transitions, so "the group pseudo carries the emitted duration" is INVISIBLE
+    // there — a jsdom slot would be a FALSE green + correctly RED under S.A4's
+    // symmetric mis-tier clause). It rides HERE beside the other browser actuators.
+    // STRUCTURAL + one settled-rect clause; no per-frame pixel/ms threshold (C-10).
+    "proof:vt-roundtrip",
     // S.F2 SplitText — the browser-actuating a11y-tree library-value gate (T8).
     // A browser-HARNESS member: the COMPUTED accessible name is a browser
     // artifact (jsdom does not run the ARIA name-computation algorithm, so a

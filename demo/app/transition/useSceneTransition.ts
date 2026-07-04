@@ -1,18 +1,22 @@
 import type { Ref } from "vue";
-import { startViewTransition } from "@mkbabb/glass-ui/motion-core";
+import { viewTransition } from "@mkbabb/keyframes.js";
 
 import { sceneIndex } from "../scene/scenes";
 
 /**
  * Routes the scene-id mutation through the platform's native View Transitions.
  *
- * The scene-swap is the demo's most-seen motion. `startViewTransition` (glass-ui's
- * shipped helper) wraps ONLY the synchronous key mutation — never the async
- * `<Suspense>` loader — so the compositor cross-fades the old scene paint into the
- * new one, with the shared-element morph riding the `view-transition-name` on the
- * scene host (`App.vue`, ≤ 1 element per state so names never collide) and the PRM
- * degrade free in glass-ui's `view-transition.css` (already loaded via the demo's
- * `@import "@mkbabb/glass-ui/styles"`).
+ * S.F1 VT-d DOGFOOD — the scene-swap (the demo's most-seen motion) now rides kf's
+ * OWN LIGHT `viewTransition` dispatch (`@mkbabb/keyframes.js`), not glass-ui's
+ * helper: the library eats its own View-Transitions cooking. `viewTransition`
+ * wraps ONLY the synchronous key mutation — never the async `<Suspense>` loader —
+ * so the compositor cross-fades the old scene paint into the new one, with the
+ * shared-element morph riding the `view-transition-name` on the scene host
+ * (`App.vue`, ≤ 1 element per state so names never collide) and the PRM degrade
+ * routed through kf's ONE `withReducedMotion` gate (a `reduce` query snaps the
+ * mutate directly — `backend: "immediate"`). The glass-ui `view-transition.css`
+ * (loaded via `@import "@mkbabb/glass-ui/styles"`) still supplies the type-keyed
+ * slide CSS; kf owns the DISPATCH.
  *
  * Q.WC3 S3 (NI-1) — the scene-switch carries DIRECTION. `sign(sceneIndex(target) −
  * sceneIndex(current))` (over the `sceneIndex` ordered-index seam, S1) derives a
@@ -24,17 +28,16 @@ import { sceneIndex } from "../scene/scenes";
  * degrade. The single VT name (`scene-subject`) is PRESERVED — direction rides
  * `view-transition-type`, not a second name.
  *
- * NOTE the call shape: glass-ui's wrapper takes the mutate callback as the FIRST
- * positional arg and `{ types }` as the SECOND options arg — NOT the native
- * `document.startViewTransition({ update, types })` object overload (passing
- * `{ update, types }` to the glass-ui wrapper would treat the whole object as the
- * mutate callback and silently drop `types`).
+ * NOTE the call shape: kf's `viewTransition` takes the mutate callback as the
+ * FIRST positional arg and `{ types }` as the SECOND options arg — it feature-
+ * detects the native typed-`update` object overload internally and DROPS `types`
+ * (the untyped cross-fade) on a callback-only engine, never a throw.
  *
- * Feature-detect is built into the helper: where `document.startViewTransition` is
- * absent it calls `mutate()` synchronously and settles `finished` immediately, so
- * the no-VT path falls through to the engine-dogfooding `SpringProgress`
- * cross-dissolve (`useSceneSwap`) UNCHANGED — the dogfood fallback is preserved,
- * not removed.
+ * Feature-detect is built into the dispatch: where `document.startViewTransition`
+ * is absent it calls `mutate()` synchronously and settles `finished` immediately
+ * (`backend: "immediate"`), so the no-VT path falls through to the engine-
+ * dogfooding `SpringProgress` cross-dissolve (`useSceneSwap`) UNCHANGED — the
+ * dogfood fallback is preserved, not removed.
  *
  * a11y MANDATORY: View Transitions morph layout but do not manage focus. On
  * `finished` we route focus to the new scene's host container (`tabindex="-1"`),
@@ -75,9 +78,9 @@ export function useSceneTransition(
             types[0] ?? "",
         );
 
-        const { finished } = startViewTransition(
+        const { finished } = viewTransition(
             () => mutate(id),
-            types.length ? { types } : undefined,
+            types.length ? { types } : {},
         );
         finished.finally(() => {
             sceneHost.value?.focus();
