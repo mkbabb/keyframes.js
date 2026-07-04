@@ -60,11 +60,17 @@
         "  from the one bench pass) — device-INDEPENDENT, NO raw absolute fps/ms (C-10",
         "  governs the plan). observe-only posture in CI (declarePosture), HARD on-device.",
         "S.F5a S4 additions (C-13, fold row 56 — the reseatToSpring/decayRest bench half):",
-        "  reseatToSpring vs decayRest (observe-only) — the velocity-continuous spring",
-        "                              re-seat measured against the O(1) targetless glide",
-        "                              projection. Decision RECORDED in",
+        "  reseatToSpring vs decayRest (run-check) — the velocity-continuous spring",
+        "                              re-seat (600 interruptions) measured against the O(1)",
+        "                              targetless glide projection (600 releases). No budget:",
+        "                              neither is on a per-frame hot path; the cost is made",
+        "                              VISIBLE, not floored. MEASURED: decayRest ~22x faster",
+        "                              per event (an O(1) projection vs a full spring",
+        "                              construct+seed) — the gap IS the evidence they compute",
+        "                              different things. Decision RECORDED in",
         "                              scripts/reseat-vs-decay-decision.json (RETAIN-both:",
-        "                              distinct motion models, not throughput substitutes)."
+        "                              distinct motion models, not throughput substitutes;",
+        "                              the release seam already consumes each where it fits)."
     ],
     "version": 1,
     "suites": [
