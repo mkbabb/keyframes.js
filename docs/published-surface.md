@@ -130,6 +130,9 @@ dispatch matrix + the `position:sticky` pin assert; the value proof
 | `dispatchScrollBackend`  | HEAVY | manifest-only: the conservative-correct native-vs-JS dispatch with a queryable reason (the `waapiIneligibleReason` idiom on the scroll clock); `proof:scroll-roundtrip` clause (c) |
 | `resolveRange`           | HEAVY | manifest-only: resolve a parsed `animation-range` to `[start,end]` scroll-extent fractions (the driver's TIME-side fill); `proof:scroll-roundtrip` clause (b)                      |
 | `pinCSS`                 | HEAVY | manifest-only: SO-3 the `position:sticky` pin synthesis (SO-4 transform-pinning KILLED); `proof:scroll-roundtrip` clause (d)                                                       |
+| `TriggerScene`           | HEAVY | manifest-only: S.F4 the discrete `animation-trigger` driver — the idle→active→done lifecycle (+ backward/repeat) over a parsed `<trigger-type>`; `proof:trigger-roundtrip` + `test/scroll/scroll-scene.test.ts` (S.F4) |
+| `createTriggerScene`     | HEAVY | manifest-only: S.F4 construct a `TriggerScene` from a parsed `AnimationTriggerValue` or `CSSTimelineOptions` (grammar → behavior); `proof:trigger-roundtrip`                       |
+| `supportsNativeTrigger`  | HEAVY | manifest-only: S.F4 feature-detect native `animation-trigger` (Chrome 145+) via `CSS.supports` — the native/fallback split, never UA-sniffed; `proof:trigger-roundtrip`           |
 
 ### K.W10 COMPILE — the round-trip's BACKWARD half (the XL anchor)
 

@@ -88,6 +88,19 @@ export const CORRECTNESS_ROSTER = [
     // wiring + the by:"line" measure-or-refuse posture) lives in
     // test/orchestration/split-text.test.ts (the default vitest run); THIS is the a11y-tree half.
     "proof:split-a11y",
+    // S.F4 animation-trigger — the browser-actuating library-value gate (T8). A
+    // browser-HARNESS member: the native/fallback split turns on
+    // CSS.supports("animation-trigger", …), which jsdom does NOT know — a jsdom
+    // slot could only assert the kf state machine (the fast half in
+    // test/scroll/scroll-scene.test.ts already does), never that the driver's
+    // dispatch verdict MATCHES a real browser's platform support (a jsdom slot
+    // would be a FALSE green + correctly RED under S.A4's symmetric mis-tier
+    // clause). It rides HERE beside the other browser actuators, NOT the jsdom
+    // proof:library-correctness roster. Its jsdom-viable half (the pure
+    // idle→active→done state machine) lives in test/scroll/scroll-scene.test.ts
+    // (the default vitest run + proof:scroll-roundtrip); THIS is the browser-
+    // actuated grammar→behavior + feature-detect half.
+    "proof:trigger-roundtrip",
     "proof:demo-smoke",
     "proof:occlusion",
     "proof:demo-usability",

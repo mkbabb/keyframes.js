@@ -23,7 +23,9 @@
 import { describe, expect, it } from "vitest";
 import {
     ScrollScene,
+    TriggerScene,
     createScrollScene,
+    createTriggerScene,
     dispatchScrollBackend,
     parseScrollCSS,
     parseScrollRange,
@@ -32,6 +34,7 @@ import {
     resolveRange,
     roundTripScrollCSS,
     serializeScrollOptions,
+    supportsNativeTrigger,
 } from "../../src/animation/scroll";
 import { KeyframesScrollTimeline } from "../../src/animation/orchestration/timeline";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
@@ -321,5 +324,141 @@ describe("K.W9 clause (e) — the JS ScrollTimeline driver is the universal fall
             range: { start: { offset: "0%" }, end: { offset: "100%" } },
         });
         expect(scene.scrollProgress(0.42)).toBeCloseTo(0.42, 5);
+    });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// S.F4 — the DISCRETE `animation-trigger` lifecycle (idle→active→done +
+// backward/repeat). The fast jsdom-viable HALF: the pure state machine (no
+// DOM). The BROWSER-actuated grammar→behavior round-trip (the T8 hard gate,
+// native/fallback feature-detect) lives in test/scroll/trigger-oracle.test.ts,
+// wired into the demo-correctness roster via proof:trigger-roundtrip.
+//
+// SCRUB-BASED structural assertions ONLY — the state SEQUENCE a scroll position
+// crosses, never a frame/ms threshold (C-10).
+// ════════════════════════════════════════════════════════════════════════
+describe("S.F4 — the animation-trigger idle→active→done lifecycle (JS driver)", () => {
+    // An interior trigger range [0.2, 0.8] so before/inside/after are all
+    // observable (a range touching 0 or 1 would hide `idle`/`done`).
+    const interior = {
+        start: { offset: "20%" },
+        end: { offset: "80%" },
+    } as const;
+
+    it("defaults the <trigger-type> to `once` (the CSS initial value)", () => {
+        expect(new TriggerScene({}).type).toBe("once");
+        expect(new TriggerScene().type).toBe("once");
+    });
+
+    it("`once`: idle → active → done, and the `done` LATCHES (never re-fires)", () => {
+        const scene = new TriggerScene({ type: "once", range: interior });
+        expect(scene.state).toBe("idle");
+        expect(scene.triggerProgress(0.1)).toBe("idle"); // before the range
+        expect(scene.triggerProgress(0.5)).toBe("active"); // entered → fired
+        expect(scene.direction).toBe("forward");
+        expect(scene.triggerProgress(0.9)).toBe("done"); // exited forward → done
+        expect(scene.playhead).toBeCloseTo(1, 5);
+        expect(scene.cycles).toBe(1);
+        // The one-shot LATCH: scrolling back into the range does NOT re-fire.
+        expect(scene.triggerProgress(0.1)).toBe("done");
+        expect(scene.triggerProgress(0.5)).toBe("done");
+        expect(scene.cycles).toBe(1);
+    });
+
+    it("`repeat`: RE-FIRES — resets to idle on exit, cycles increment, never latches", () => {
+        const scene = new TriggerScene({ type: "repeat", range: interior });
+        expect(scene.triggerProgress(0.1)).toBe("idle");
+        expect(scene.triggerProgress(0.5)).toBe("active");
+        expect(scene.cycles).toBe(1);
+        expect(scene.triggerProgress(0.9)).toBe("idle"); // RESET (not `done`)
+        expect(scene.playhead).toBeCloseTo(0, 5); // reset to the start
+        expect(scene.triggerProgress(0.5)).toBe("active"); // re-enter → re-fires
+        expect(scene.cycles).toBe(2);
+        expect(scene.direction).toBe("forward"); // repeat never reverses
+    });
+
+    it("`alternate`: exits `done` and FLIPS direction each entry (the backward semantics)", () => {
+        const scene = new TriggerScene({ type: "alternate", range: interior });
+        expect(scene.triggerProgress(0.1)).toBe("idle");
+        expect(scene.triggerProgress(0.5)).toBe("active");
+        expect(scene.direction).toBe("forward"); // cycle 1 → forward
+        expect(scene.cycles).toBe(1);
+        expect(scene.triggerProgress(0.9)).toBe("done");
+        expect(scene.triggerProgress(0.5)).toBe("active");
+        expect(scene.direction).toBe("backward"); // cycle 2 → FLIPPED
+        expect(scene.cycles).toBe(2);
+        expect(scene.triggerProgress(0.9)).toBe("done");
+        expect(scene.triggerProgress(0.5)).toBe("active");
+        expect(scene.direction).toBe("forward"); // cycle 3 → flipped back
+    });
+
+    it("`state`: play state FOLLOWS presence; the playhead is HELD across the exit", () => {
+        const scene = new TriggerScene({ type: "state", range: interior });
+        expect(scene.triggerProgress(0.1)).toBe("idle"); // before first entry
+        expect(scene.triggerProgress(0.5)).toBe("active"); // inside → active
+        const held = scene.playhead; // (0.5-0.2)/0.6 = 0.5
+        expect(held).toBeCloseTo(0.5, 5);
+        expect(scene.triggerProgress(0.9)).toBe("done"); // outside → paused/done
+        // HELD, not reset — the contrast with `repeat` (which resets to 0).
+        expect(scene.playhead).toBeCloseTo(held, 5);
+        expect(scene.triggerProgress(0.6)).toBe("active"); // re-enter → resumes
+    });
+
+    it("the playhead runs BACKWARD on `alternate`'s reversed cycle", () => {
+        const scene = new TriggerScene({ type: "alternate", range: interior });
+        scene.triggerProgress(0.5); // cycle 1 forward: playhead = local = 0.5
+        expect(scene.playhead).toBeCloseTo(0.5, 5);
+        scene.triggerProgress(0.9); // exit → done
+        scene.triggerProgress(0.35); // cycle 2 backward: local=(0.35-0.2)/0.6=0.25
+        expect(scene.direction).toBe("backward");
+        expect(scene.playhead).toBeCloseTo(1 - 0.25, 5); // reversed → 0.75
+    });
+
+    it("reset() rewinds a latched `once` scene back to idle", () => {
+        const scene = new TriggerScene({ type: "once", range: interior });
+        scene.triggerProgress(0.5);
+        scene.triggerProgress(0.9);
+        expect(scene.state).toBe("done");
+        scene.reset();
+        expect(scene.state).toBe("idle");
+        expect(scene.cycles).toBe(0);
+        expect(scene.triggerProgress(0.5)).toBe("active"); // re-armed → re-fires
+    });
+
+    it("supportsNativeTrigger() is FEATURE-detected false under jsdom (never a UA sniff)", () => {
+        // jsdom's CSS.supports does not know `animation-trigger` → the kf driver
+        // is the realized fallback. usesNative mirrors the same probe.
+        expect(supportsNativeTrigger()).toBe(false);
+        expect(new TriggerScene({ type: "once" }).usesNative).toBe(false);
+    });
+
+    it("GRAMMAR → BEHAVIOR: createTriggerScene drives a parsed animation-trigger stylesheet", () => {
+        // The round-trip's driving half: value.js parses the discrete-trigger
+        // grammar; the kf driver realizes it as the idle→active→done lifecycle.
+        const opts = parseScrollCSS(`.card {
+          animation: reveal linear both;
+          animation-timeline: view();
+          animation-trigger: repeat view() contain 0% contain 100%;
+        }`);
+        expect(opts.trigger?.type).toBe("repeat");
+        const scene = createTriggerScene(opts);
+        // Drive relative to the resolved trigger extent (contain → [0.375,0.625]).
+        const { start, end } = scene.range;
+        const before = Math.max(0, start - 0.1);
+        const mid = (start + end) / 2;
+        const after = Math.min(1, end + 0.1);
+        expect(scene.triggerProgress(before)).toBe("idle");
+        expect(scene.triggerProgress(mid)).toBe("active");
+        // `repeat` RE-FIRES (resets to idle on exit) — the parsed TYPE drives the
+        // behavior; a `once` parse would have latched `done` here instead.
+        expect(scene.triggerProgress(after)).toBe("idle");
+        expect(scene.triggerProgress(mid)).toBe("active");
+        expect(scene.cycles).toBe(2);
+    });
+
+    it("createTriggerScene also accepts a bare AnimationTriggerValue", () => {
+        const scene = createTriggerScene({ type: "once", range: interior });
+        expect(scene.type).toBe("once");
+        expect(scene.triggerProgress(0.5)).toBe("active");
     });
 });
