@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * proof:claude-paths-live — S.A5 doc-authority gate (born-RED by construction).
+ * proof:claude-paths-live — S.A5 doc-authority gate (born-RED by construction),
+ * extended at S.D4 with the demo/CLAUDE.md doc-drift clause (e).
  *
  * The `proof:readme-paths-live` sibling, aimed at the THREE CLAUDE.md files
  * (root, `src/animation/`, `demo/`) instead of README.md. Fold row 41 (S.md §3
@@ -8,7 +9,7 @@
  * `waapi/` invisible, a wrong HEAVY export list; `src/animation/CLAUDE.md`
  * documents the pre-R.W1 flat tree wholesale (nine independently-hit lanes).
  *
- * FOUR falsifiable clauses, each independently BITES:
+ * FIVE falsifiable clauses, each independently BITES:
  *
  *   (a) TREE-FENCE PATHS — every node of every ASCII directory-tree diagram
  *       (a fenced ``` block containing `├`/`└`) resolves on disk, anchored per
@@ -41,6 +42,21 @@
  *       SAME sentence. A self-consistency check, not an external "true count"
  *       oracle — it does not adjudicate which directories editorially count
  *       as "zones", only that the prose does not contradict itself.
+ *
+ *   (e) DOC-DRIFT (demo/CLAUDE.md only, S.D4 S2) — the `@` section matches the
+ *       real `demo/@/` tree, checked BOTH ways over the doc's two `@`-scoped
+ *       spans (the `├── @/…` tree-fence subtree + the "## Animation Controls"
+ *       section): every `name.ext`-shaped mention (backtick, bold, OR bare
+ *       prose — not just backtick/tree-fence like (a)/(b)) must exist
+ *       somewhere under `demo/@/` (PHANTOM direction — the exact a24 F7 shape:
+ *       three deleted files, `Animated.vue`/`ResponsiveSelect.vue`/
+ *       `AnimationMenuBar.vue`, survived as a bare comma-list with no
+ *       backticks, invisible to (a)/(b)); every real immediate child directory
+ *       of `demo/@/` or `demo/@/components/custom/` must be named somewhere
+ *       in those spans (UNCOVERED-PEER direction — an entire new/renamed peer
+ *       landing with zero doc update). A mention inside an explicit
+ *       removal/negation aside ("gone"/"deleted"/"went with"/…) is exempted —
+ *       the doc recording history is not a phantom claim.
  *
  * C-8 (gate-first, regen-last): `src/animation/CLAUDE.md` documents the
  * pre-R.W1 flat file layout wholesale (nine lanes — a02/a13/a16/a17/a20/a21/
@@ -401,6 +417,111 @@ function checkZoneCount(content) {
     return { ok: stated === actual, stated, actual, tokens };
 }
 
+// ── clause (e): the demo/CLAUDE.md `@` doc-drift clause (S.D4 S2) ─────────
+//
+// a24 F7 found `demo/CLAUDE.md` (post-fusion) still enumerating THREE deleted
+// files (`Animated.vue`, `ResponsiveSelect.vue`, `AnimationMenuBar.vue`) as a
+// BARE comma-separated prose list — no backticks, no tree-fence node — so
+// clauses (a)/(b) above (which only walk fenced tree diagrams and
+// backtick-quoted tokens) structurally could NOT have caught it. Clause (e)
+// widens the net to every `name.ext` filename-SHAPED mention (backtick, bold,
+// or bare prose alike) within the two `@` spans of demo/CLAUDE.md — the
+// `├── @/…` tree-fence subtree and the "## Animation Controls" section — and
+// checks it BOTH ways against the real `demo/@/` tree:
+//
+//   (e1) PHANTOM  — a mentioned filename that does not exist anywhere under
+//        `demo/@/` REDs (the a24 F7 class, generalized past backtick-only).
+//   (e2) UNCOVERED PEER — a real immediate child directory of `demo/@/` or of
+//        `demo/@/components/custom/` that is never named anywhere in the two
+//        spans REDs (an entire new/renamed peer landing with zero doc update —
+//        the coarse "the @ section matches the real tree" guarantee; this is
+//        deliberately peer-grained, not leaf-file-exhaustive, so it does not
+//        hard-block on every future internal composable add).
+//
+// A mention inside an explicit removal/negation aside (e.g. "utils.ts) went
+// with ui/menubar (S.C3b)") is NOT a phantom claim — it is the doc correctly
+// recording history — so a small negation-window guard excludes it.
+
+const DOC_DRIFT_EXT_RE = /\b[A-Za-z][\w-]*\.(vue|ts|css|json)\b/g;
+const NEGATION_RE =
+    /\b(gone|deleted|removed|retired|excised|migrated|went with|no longer|does not exist)\b/i;
+
+/** The two `@`-scoped spans of demo/CLAUDE.md: the tree-fence `@/` subtree and
+ *  the "## Animation Controls" prose section. Returns `null` per span if the
+ *  anchor text was not found (structure changed — re-derive this clause). */
+function extractAtScopedSpans(demoContent) {
+    const tree = demoContent.match(/├── @\/[\s\S]*?(?=\n(?:├── |└── ))/);
+    const prose = demoContent.match(/## Animation Controls[\s\S]*?(?=\n## |$)/);
+    return { tree: tree ? tree[0] : null, prose: prose ? prose[0] : null };
+}
+
+/** Every `name.ext` filename-shaped mention in a span, minus negated (removal)
+ *  asides — deduped, insertion order irrelevant. */
+function extractMentionedFilenames(span) {
+    const names = new Set();
+    if (!span) return names;
+    let m;
+    DOC_DRIFT_EXT_RE.lastIndex = 0;
+    while ((m = DOC_DRIFT_EXT_RE.exec(span)) !== null) {
+        const after = span.slice(m.index, m.index + 90);
+        if (NEGATION_RE.test(after)) continue;
+        names.add(m[0]);
+    }
+    return names;
+}
+
+function checkDocDrift(demoContent) {
+    const AT_ROOT = path.join(REPO, "demo/@");
+    if (!fs.existsSync(AT_ROOT)) {
+        return { ok: false, reason: "demo/@/ not found on disk" };
+    }
+    const { tree, prose } = extractAtScopedSpans(demoContent);
+    if (!tree || !prose) {
+        return {
+            ok: false,
+            reason:
+                "the `@` doc-drift anchors (the `├── @/` tree-fence subtree " +
+                'and/or the "## Animation Controls" section) were not found in ' +
+                "demo/CLAUDE.md — structure changed; re-derive this clause",
+        };
+    }
+
+    // Every real basename under demo/@/ (recursive, dist/node_modules-free by
+    // construction since @/ never contains either).
+    const realBasenames = new Set();
+    (function walk(dir) {
+        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+            if (e.isDirectory()) walk(path.join(dir, e.name));
+            else realBasenames.add(e.name);
+        }
+    })(AT_ROOT);
+
+    const mentioned = new Set([
+        ...extractMentionedFilenames(tree),
+        ...extractMentionedFilenames(prose),
+    ]);
+
+    const phantoms = [...mentioned].filter((n) => !realBasenames.has(n)).sort();
+
+    // (e2) — every immediate child of demo/@/ and of
+    // demo/@/components/custom/ must be NAMED (as a directory-name substring)
+    // somewhere in the two spans.
+    const spanText = tree + "\n" + prose;
+    const peerDirs = [
+        ...fs.readdirSync(AT_ROOT, { withFileTypes: true }),
+        ...(fs.existsSync(path.join(AT_ROOT, "components/custom"))
+            ? fs.readdirSync(path.join(AT_ROOT, "components/custom"), {
+                  withFileTypes: true,
+              })
+            : []),
+    ]
+        .filter((e) => e.isDirectory())
+        .map((e) => e.name);
+    const uncoveredPeers = peerDirs.filter((name) => !spanText.includes(name)).sort();
+
+    return { ok: phantoms.length === 0 && uncoveredPeers.length === 0, phantoms, uncoveredPeers };
+}
+
 // ── per-file gate runner ────────────────────────────────────────────────────
 
 function runFileGate(key, content) {
@@ -476,6 +597,28 @@ function runGate(fileContents, dts) {
                   `cohesive zone directories but the same sentence enumerates ${zone.actual} ` +
                   `(\`${zone.tokens.join("/`, `")}/\`) — the prose contradicts itself`,
         );
+    }
+
+    const drift = checkDocDrift(fileContents.demo);
+    if (!drift.ok) {
+        if (drift.reason) {
+            failures.push(`(e) demo/CLAUDE.md doc-drift: ${drift.reason}`);
+        } else {
+            if (drift.phantoms.length > 0) {
+                failures.push(
+                    `(e) ${drift.phantoms.length} phantom filename(s) named in demo/CLAUDE.md's ` +
+                        `\`@\` section do not exist anywhere under demo/@/:\n      ` +
+                        drift.phantoms.map((n) => `phantom: \`${n}\``).join("\n      "),
+                );
+            }
+            if (drift.uncoveredPeers.length > 0) {
+                failures.push(
+                    `(e) ${drift.uncoveredPeers.length} real demo/@/ peer directory(ies) are not ` +
+                        `named anywhere in demo/CLAUDE.md's \`@\` section (doc-drift):\n      ` +
+                        drift.uncoveredPeers.map((n) => `uncovered: \`${n}/\``).join("\n      "),
+                );
+            }
+        }
     }
 
     return failures;
@@ -557,6 +700,21 @@ if (PLANT_TEST) {
         "(d)",
     );
 
+    // (e) demo/CLAUDE.md doc-drift — a phantom filename re-added as bare prose
+    // (the a24 F7 shape: no backticks, no tree-fence node — only clause (e)'s
+    // widened net catches it).
+    check(
+        "(e) phantom filename in the @ section",
+        {
+            ...original,
+            demo: original.demo.replace(
+                "## Animation Controls",
+                "## Animation Controls\n\n(plant) PlantEPhantomFile.vue is mentioned here.\n",
+            ),
+        },
+        "(e)",
+    );
+
     console.log("");
     if (!allPassed) {
         console.error(
@@ -586,7 +744,8 @@ if (failures.length > 0) {
         "\nC-8 note: src/animation/CLAUDE.md's pre-R.W1 flat-tree staleness is a NAMED,\n" +
             "authorized backlog discharged at S.B8's full regen (fold row 41). root\n" +
             "CLAUDE.md + demo/CLAUDE.md findings above are NOT authorized — they are the\n" +
-            "actively-wrong lines S.A5 S2 hot-fixes.",
+            "actively-wrong lines S.A5 S2 hot-fixes (clauses a-d) + the S.D4 S2 doc-drift\n" +
+            "regen (clause e).",
     );
     process.exit(1);
 }
