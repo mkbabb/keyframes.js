@@ -10,6 +10,14 @@ export { stagger } from "./stagger";
 export type { StaggerOrigin, StaggerOptions, StaggerFn } from "./stagger";
 export { flip, flipShared } from "./flip";
 export type { FlipOptions } from "./flip";
+export { splitText, SplitTextRefusalError } from "./split-text";
+export type {
+    SplitBy,
+    SplitTextOptions,
+    SplitTextResult,
+    SplitTextRefusalReason,
+    TextSegment,
+} from "./split-text";
 export * from "./drag";
 export * from "./timeline";
 export * from "./sequence";
