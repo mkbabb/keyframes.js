@@ -79,7 +79,7 @@
 //   whose `^0.10.0→^0.11.0` re-pin is HISTORY; stale-by-construction. Script +
 //   package.json key + this exclusion entry deleted in ONE motion.)
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 // S.A2 — the demo-gate partition is single-sourced in scripts/demo-roster.mjs
@@ -91,6 +91,12 @@ import {
     CORRECTNESS_ROSTER,
     BORNRED_TRIPWIRES,
 } from "./demo-roster.mjs";
+// S.A4 S3/S4/S7 — the gate-band manifests (the FROZEN appearance set + its
+// machine-distinguishable discharge ledger + the regression-guard band). Clauses
+// 9 + 10 below read these; they are single-sourced here so a FROZEN key cannot be
+// deleted without a discharge row, and a regression-guard cannot drift out of the
+// hygiene tier, unnoticed.
+import { FROZEN_SET, DISCHARGE, REGRESSION_GUARDS } from "./gate-bands.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const wf = (name) =>
@@ -918,6 +924,144 @@ const jobBounds = (() => {
                     "can let a broken demo deploy.",
             );
         }
+    }
+}
+
+// ── clause 9 (S.A4 S3/S4): the FROZEN-set discharge, machine-distinguishable ────
+// The ~51 FROZEN demo-appearance gates (scripts/gate-bands.mjs FROZEN_SET) are
+// RED-authorized by S and frozen IN PLACE at S.A4. Each is discharged LATER (S.G1/
+// S.D3) by EITHER a MIGRATION to a named live successor system gate OR an
+// owner-ratified KILL with a re-run witness — enforced HERE: a FROZEN key deleted
+// from package.json WITHOUT a DISCHARGE record REDs (free-prose "deletion-with-
+// cause" is BANNED, x2-#7); a KILL record without a re-run witness REDs; a migration
+// whose successor is not a live gate REDs. The C-6 `proof:scene-switcher-mobile`
+// zombie retire (fold row 18) is the FIRST discharge — a KILL whose witness is
+// machine-continuous (this clause re-verifies the script is gone, the key is gone,
+// and the CORRECTNESS_ROSTER membership is gone, every run). ─────────────────────
+{
+    const isLive = (g) => g in pkg.scripts;
+    const clauseFails0 = failures.length;
+    // (1) FROZEN completeness — every FROZEN gate is live OR discharged.
+    for (const g of FROZEN_SET) {
+        if (isLive(g)) continue;
+        if (!DISCHARGE[g]) {
+            failures.push(
+                `frozen-discharge (S.A4 S3) — FROZEN gate ${g} was DELETED from ` +
+                    "package.json with NO discharge record in scripts/gate-bands.mjs. " +
+                    "Free-prose deletion-with-cause is BANNED — add a machine record: " +
+                    `{ kind:"migration", successor:"proof:<live-system-gate>" } OR ` +
+                    `{ kind:"kill", ledger, witness:{ cmd, cite } }.`,
+            );
+        }
+    }
+    // (2) every DISCHARGE record is machine-valid AND the retired gate is gone.
+    for (const [g, d] of Object.entries(DISCHARGE)) {
+        if (isLive(g)) {
+            failures.push(
+                `frozen-discharge (S.A4 S3) — a discharge record exists for ${g} but it ` +
+                    "is STILL a live package.json script. A discharge for a present gate " +
+                    "is a lie — remove the gate, or remove the record.",
+            );
+            continue;
+        }
+        if (d.kind === "migration") {
+            if (!d.successor || !isLive(d.successor)) {
+                failures.push(
+                    `frozen-discharge (S.A4 S3) — ${g} MIGRATION cites successor ` +
+                        `${d.successor || "(none)"} which is NOT a live proof:* gate. The ` +
+                        "successor system gate that re-asserts the live property must exist.",
+                );
+            }
+        } else if (d.kind === "kill") {
+            if (!d.ledger) {
+                failures.push(
+                    `frozen-discharge (S.A4 S4) — ${g} KILL names NO S-ledger row. An ` +
+                        "owner-ratified KILL must cite its ledger row (not free prose).",
+                );
+            }
+            const w = d.witness;
+            if (!w || !w.cmd || !w.cite) {
+                failures.push(
+                    `frozen-discharge (S.A4 S4) — ${g} KILL lacks a re-run witness ` +
+                        "(witness.cmd + witness.cite). A KILL without a re-run witness is " +
+                        "BANNED — the witness is what distinguishes a ratified retire from a " +
+                        "silent deletion.",
+                );
+            } else {
+                const sm = w.cmd.match(/scripts\/([a-z0-9.-]+\.mjs)/i);
+                if (sm && existsSync(join(root, "scripts", sm[1]))) {
+                    failures.push(
+                        `frozen-discharge (S.A4 S4) — ${g} KILL witness cites ${sm[1]} but ` +
+                            "that script STILL exists on disk. The re-run witness is FALSIFIED " +
+                            "— the retire did not delete the script.",
+                    );
+                }
+            }
+            if (CORRECTNESS_ROSTER.includes(g)) {
+                failures.push(
+                    `frozen-discharge (S.A4 S4) — KILLED gate ${g} is STILL a member of ` +
+                        "CORRECTNESS_ROSTER (scripts/demo-roster.mjs). A ledgered KILL must " +
+                        "remove EVERY roster/manifest membership.",
+                );
+            }
+        } else {
+            failures.push(
+                `frozen-discharge (S.A4 S3) — ${g} has an UNKNOWN discharge kind ` +
+                    `"${d.kind}". Only { kind:"migration" } or { kind:"kill" } are ` +
+                    "machine-distinguishable; anything else is the banned free prose.",
+            );
+        }
+    }
+    if (failures.length === clauseFails0) {
+        const dischargedKills = Object.entries(DISCHARGE).filter(
+            ([, d]) => d.kind === "kill",
+        ).length;
+        const dischargedMig = Object.entries(DISCHARGE).filter(
+            ([, d]) => d.kind === "migration",
+        ).length;
+        passes.push(
+            `frozen-discharge (S.A4 S3/S4) — all ${FROZEN_SET.length} FROZEN gates are ` +
+                `live-or-discharged (${dischargedMig} migration + ${dischargedKills} KILL ` +
+                "discharge(s), each machine-witnessed); free-prose deletion is impossible.",
+        );
+    }
+}
+
+// ── clause 10 (S.A4 S7): the regression-guard band ──────────────────────────────
+// The absence/excision guards (scripts/gate-bands.mjs REGRESSION_GUARDS) are banded
+// under one explicit header; this clause gives the band teeth — every member must be
+// a LIVE gate wired into the hygiene tier (proof:hygiene-chain). A regression-guard
+// that vanishes or drifts out of hygiene REDs. ──────────────────────────────────
+{
+    const hygieneChain = String(pkg.scripts["proof:hygiene-chain"] ?? "");
+    const notLive = REGRESSION_GUARDS.filter((g) => !(g in pkg.scripts));
+    const notInHygiene = REGRESSION_GUARDS.filter(
+        (g) =>
+            g in pkg.scripts &&
+            !new RegExp(`\\brun ${g.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(
+                hygieneChain,
+            ),
+    );
+    if (notLive.length > 0) {
+        failures.push(
+            "regression-guard-band (S.A4 S7) — banded regression-guard(s) that no longer " +
+                "resolve to a package.json script: " +
+                notLive.join(", ") +
+                ". A vanished absence-guard lets the excised anti-pattern silently return.",
+        );
+    } else if (notInHygiene.length > 0) {
+        failures.push(
+            "regression-guard-band (S.A4 S7) — banded regression-guard(s) NOT wired into the " +
+                "hygiene tier (proof:hygiene-chain): " +
+                notInHygiene.join(", ") +
+                ". An absence-guard is a hygiene member by taxonomy — re-band it.",
+        );
+    } else {
+        passes.push(
+            `regression-guard-band (S.A4 S7) — all ${REGRESSION_GUARDS.length} banded ` +
+                "regression-guards are live hygiene-chain members (the excision-guard band is " +
+                "an explicit, machine-checked set).",
+        );
     }
 }
 
