@@ -423,18 +423,19 @@ jobs:
               run: npm run proof:portable-perf
             - name: proof:spring-heatmap (P.W6 — the analytic parameter-space heatmap · closed-form overshoot · zero live SpringProgress · browser half skips when playwright absent)
               run: npm run proof:spring-heatmap
-            # The TWO vitest-bearing impl-drive gates → the library gates job (they run
+            # The vitest-bearing impl-drive library gates → the library gates job (they run
             # `npm run … && vitest run <test>` over src/test — jsdom/node, no browser,
             # no demo build — so they ride beside the other vitest library gates, NOT
-            # the demo-smoke browser job).
-            - name: proof:emerging-css-resolve-now (the emerging-CSS resolve-now seam · node + vitest test/emerging-css-resolve-now.test.ts)
-              run: npm run proof:emerging-css-resolve-now
-            - name: proof:morphsvg-consume (fromMorphSVG consume-edge · node + vitest test/morph-svg.test.ts)
-              run: npm run proof:morphsvg-consume
-            - name: proof:morph-renders-d (Q.WC4 — the on-DOM render contract · a morph apply-frame writes --morph-d + d:path() reassembling the mid-t shape)
-              run: npm run proof:morph-renders-d
-            - name: proof:morph-orients (Q.WC4 — orient-along-path · per-point --morph-{i}-angle banks to the path tangent via sampleAtLength)
-              run: npm run proof:morph-orients
+            # the demo-smoke browser job). S.A4 S5 folded two TRIPLES here:
+            #   proof:emerging-css-resolve  = resolve-now + -p2 + -fn (F7, ONE vitest
+            #     boot over the 3 test files instead of 3× reboot);
+            #   proof:morph                 = morphsvg-consume + morph-renders-d +
+            #     morph-orients (F6, ONE boot of test/morph-svg.test.ts, not 3×).
+            # The 6 former keys/steps collapse to these 2 (library-correctness tier).
+            - name: proof:emerging-css-resolve (S.A4 S5 — the emerging-CSS resolve triple · now+p2+fn · node ×3 + vitest over the 3 tests once)
+              run: npm run proof:emerging-css-resolve
+            - name: proof:morph (S.A4 S5 — the morph-gate triple · consume + renders-d + orients · node ×3 + test/morph-svg.test.ts once)
+              run: npm run proof:morph
             # ════════════════════════════════════════════════════════════════════
             # Q.WA1/WA2/WA4 APPARATUS GATES — the SLIM lint floor · drag2D LIGHT cert ·
             # the wave-charter contrivance gate · the constellation pin-ledger witness.
@@ -456,8 +457,6 @@ jobs:
             # NaN-frame cure · WAAPI adaptive densify · grammar-fuzz · differential.
             # node + jsdom-vitest (no browser, no demo build) → the fast library gates job.
             # ════════════════════════════════════════════════════════════════════
-            - name: proof:emerging-css-resolve-p2 (Q.WB1 — element-aware if(style)/sibling-* post-setTargets resolve)
-              run: npm run proof:emerging-css-resolve-p2
             - name: proof:processframe-soa (Q.WB3 — single-animation processFrame Float64 SoA fold · measure-first ADOPT · bit-identical)
               run: npm run proof:processframe-soa
             - name: proof:nan-frame (Q.WD1 — named-selector deferred-resolution + play-time guard · S4 round-trip held · no-NaN-at-play)
@@ -472,8 +471,6 @@ jobs:
             # Q STAGE-5 GATED CONSUMES (value.js 1.2.0) — @function inline · leaves
             # externalize · color-SoA measure · glass-ui aria content-probe. node + jsdom.
             # ════════════════════════════════════════════════════════════════════
-            - name: proof:emerging-css-resolve-fn (Q.WB2 — @function call-inlining over value.js 1.2.0 dashed-call + coerceToSyntax)
-              run: npm run proof:emerging-css-resolve-fn
             - name: proof:no-cross-realm-cast (Q.WE2 — leaves externalized onto value.js/math · the 4 compile-color casts annotated · no kf math duplicate)
               run: npm run proof:no-cross-realm-cast
             - name: proof:color-soa (Q.WB3-color — MEASURE-FIRST · the channel-plan fold ships in-leaf via the ^1.2.0 re-pin · DECLINE the dead parallel arm · bit-identical)

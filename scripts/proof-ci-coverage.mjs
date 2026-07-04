@@ -10,9 +10,10 @@
 //   proof:platform-adopt previously had ZERO matches in ci.yml — authored but
 //   never run, the exact gate-coverage hole the retro named. Drop any proof:*
 //   from ci.yml → it reds.
-// CLAUSE 0b (J.W3 S3b) — coverage, CONVERSE: every `npm run proof:*` step that
-//   gates ci.yml MUST be reachable from `proof:all` (= the proof:correctness ∪
-//   proof:hygiene chains), modulo the named EXCLUDED set. Before J.W3 three
+// CLAUSE 0b (J.W3 S3b · THREE-TIER at S.A4) — coverage, CONVERSE: every `npm run
+//   proof:*` step that gates ci.yml MUST be reachable from `proof:all` (= the
+//   proof:library-correctness ∪ proof:demo-correctness ∪ proof:hygiene chains),
+//   modulo the named EXCLUDED set. Before J.W3 three
 //   CI-hard gates (dock-zorder, scene-control-dfa, scene-transition-perf) ran
 //   in CI but lived in NO aggregator — a dev's `proof:all` was a strictly
 //   WEAKER verdict than CI (GC-2/BP-4). With both directions asserted,
@@ -154,11 +155,18 @@ const EXCLUDED = new Set([
     // browser gates that are ALREADY individually CI-wired in the demo-smoke job, so
     // it is not a distinct CI gate (running it in CI would duplicate them).
     "proof:browser",
-    // I.W7 S5 — the two-tier SUB-AGGREGATORS. proof:correctness + proof:hygiene are
-    // the partition proof:all chains (proof:all = proof:correctness && proof:hygiene);
-    // each is a chain of already-individually-CI-wired gates, not a distinct gate
-    // (running them in CI would duplicate every member), exactly like proof:all.
-    "proof:correctness",
+    // I.W7 S5, RE-TAXONOMISED at S.A4 — the THREE-tier SUB-AGGREGATORS. S.A4 replaced
+    // the harness-defined two-tier model (`proof:correctness` = "opens-a-browser")
+    // with a SEVERITY-axis taxonomy (a27 F1): proof:library-correctness (node/jsdom
+    // value-proofs, split off from hygiene-chain) + proof:demo-correctness (browser
+    // actuators — the RENAMED proof:correctness; proof:gate-is-runtime polices THIS
+    // tier) + proof:hygiene (structure/boundary/absence). proof:all = the three
+    // chains via run-all --all. Each is a chain of already-individually-CI-wired
+    // gates, not a distinct CI gate (running one in CI would duplicate every member),
+    // exactly like proof:all. The clause-0b converse now unions all THREE tiers — omit
+    // proof:library-correctness there and every LC gate reds `ciOnly` (the linchpin).
+    "proof:library-correctness",
+    "proof:demo-correctness",
     "proof:hygiene",
     // L.W4 S3 — proof:all:demo is the DEMO-roster meta-aggregator the Makefile
     // `ci-linux` target runs inside the node:24-slim container (proof:demo-smoke +
@@ -245,11 +253,15 @@ if (missing.length > 0) {
     );
 }
 
-// ── clause 0b (J.W3 S3b): the CONVERSE — every CI-gated proof:* step is
-// reachable from proof:all (proof:correctness ∪ proof:hygiene), modulo the
-// named EXCLUDED set. Before this clause, the local/CI asymmetry (3 CI-only
-// orphans, GC-2/BP-4/WZ §E) was structurally invisible: this gate enforced only
-// `proof:* ⟹ CI-invoked`, never `CI-hard-gated ⟹ in-an-aggregator`. ─────────
+// ── clause 0b (J.W3 S3b · THREE-TIER at S.A4): the CONVERSE — every CI-gated
+// proof:* step is reachable from proof:all (proof:library-correctness ∪
+// proof:demo-correctness ∪ proof:hygiene), modulo the named EXCLUDED set. Before
+// this clause, the local/CI asymmetry (3 CI-only orphans, GC-2/BP-4/WZ §E) was
+// structurally invisible: this gate enforced only `proof:* ⟹ CI-invoked`, never
+// `CI-hard-gated ⟹ in-an-aggregator`. S.A4 split library-correctness OUT of
+// hygiene-chain — the union MUST now name all THREE tiers or every one of the 39
+// LC gates (still CI-invoked in the `gates` job) reds `ciOnly`. This union is the
+// airtightness linchpin the S.A4 lockstep names. ────────────────────────────────
 {
     // Resolve a tier's MEMBERSHIP. A tier value is normally the parseable `&&` chain
     // (the M.W1 single source). Q.WA3 S4 makes `proof:hygiene` a REPORT-ALL DELEGATOR
@@ -267,7 +279,10 @@ if (missing.length > 0) {
     };
     const chainMembers = (chain) =>
         new Set([...String(chain).matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]));
-    const correctness = chainMembers(resolveTier("proof:correctness"));
+    // S.A4 — the THREE-tier union (was correctness ∪ hygiene). Omitting
+    // libraryCorrectness here reds ALL 39 LC gates as `ciOnly`: the linchpin.
+    const libraryCorrectness = chainMembers(resolveTier("proof:library-correctness"));
+    const demoCorrectness = chainMembers(resolveTier("proof:demo-correctness"));
     const hygiene = chainMembers(resolveTier("proof:hygiene"));
     const ciInvoked = [
         ...new Set([...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1])),
@@ -277,7 +292,8 @@ if (missing.length > 0) {
     const ciOnly = ciInvoked.filter(
         (g) =>
             (g in pkg.scripts) &&
-            !correctness.has(g) &&
+            !libraryCorrectness.has(g) &&
+            !demoCorrectness.has(g) &&
             !hygiene.has(g) &&
             !EXCLUDED.has(g),
     );
@@ -293,19 +309,20 @@ if (missing.length > 0) {
     if (ciOnly.length > 0) {
         failures.push(
             "converse-coverage (J.W3 S3b) — these gates are CI-invoked but reachable from " +
-                "NEITHER proof:correctness NOR proof:hygiene (so `npm run proof:all` is a " +
-                "WEAKER verdict than CI): " +
+                "NONE of proof:library-correctness / proof:demo-correctness / proof:hygiene " +
+                "(so `npm run proof:all` is a WEAKER verdict than CI): " +
                 ciOnly.join(", ") +
-                ". Fold each into a tier (hygiene unless it is a wave's §Hard actuating " +
-                "oracle) — proof:all == the CI roster must hold BOTH ways.",
+                ". Fold each into a tier (library-correctness for a node/jsdom value-proof, " +
+                "demo-correctness for a browser actuator, else hygiene) — proof:all == the CI " +
+                "roster must hold BOTH ways.",
         );
     }
     if (undefinedKeys.length === 0 && ciOnly.length === 0) {
         passes.push(
             `converse-coverage (J.W3 S3b) — all ${ciInvoked.length} CI-invoked proof:* gates ` +
-                `are reachable from proof:all (correctness ${correctness.size} ∪ hygiene ` +
-                `${hygiene.size}, modulo the ${EXCLUDED.size} recorded exclusions): ` +
-                `proof:all == the CI roster, both directions.`,
+                `are reachable from proof:all (library-correctness ${libraryCorrectness.size} ∪ ` +
+                `demo-correctness ${demoCorrectness.size} ∪ hygiene ${hygiene.size}, modulo the ` +
+                `${EXCLUDED.size} recorded exclusions): proof:all == the CI roster, both directions.`,
         );
     }
 }
