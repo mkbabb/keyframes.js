@@ -102,7 +102,9 @@ const PLAY_SLIDER = '[role="slider"]';
 const EXPECT = {
     cube: { trigger: "Controls" },
     amiga: { trigger: "Controls" },
-    square: { trigger: "Controls" },
+    // S.G2 (fold row 69): the square panel is COLLAPSED (DFA square=[]) — no
+    // Controls trigger exists; nav settles on the collapsed surface (null).
+    square: { trigger: null },
 };
 
 // ── shared in-page reads (the engine-write channel) ───────────────────────────
@@ -353,7 +355,19 @@ async function runBattery() {
                 const sliderBefore = await sliderValue(page);
                 const ariaBefore = await ariaState(page);
                 await clickRainbowPlay(page);
-                const started = await waitEngineStarted(page, 4000);
+                // S.G2 (fold row 69) re-ground — square's HONEST collapse rerouted
+                // dock-Play to the ONE-SHOT spring tumble (SpringProgress driving
+                // .demo-box; self-clears on settle, ~1s; the contract group's
+                // playhead is NOT square's channel any more). For square the
+                // engine-write channel IS the box's transform sweep, gated on
+                // aria=Pause — sample it IMMEDIATELY after the press (the tumble
+                // window is short on a fast machine); the slider stays the channel
+                // for the persistent-playhead scenes (cube/amiga).
+                const oneShot = id === "square";
+                const corrEarly = oneShot
+                    ? await sampleEngineSubject(page, ENGINE_WRITE_SUBJECT[id])
+                    : null;
+                const started = oneShot ? false : await waitEngineStarted(page, 4000);
                 const ariaAfter = await ariaState(page);
                 const sliderAfter = await sliderValue(page);
 
@@ -362,9 +376,16 @@ async function runBattery() {
                 // attributable playhead); the aria flip is optimistic UI, reported
                 // in the pair but not the verdict.
                 const sliderAdvanced = started && (sliderAfter ?? 0) > 0 && (sliderBefore ?? 0) === 0;
-                const corr = await sampleEngineSubject(page, ENGINE_WRITE_SUBJECT[id]);
+                const corr = oneShot
+                    ? corrEarly
+                    : await sampleEngineSubject(page, ENGINE_WRITE_SUBJECT[id]);
 
-                const enginePair = sliderAdvanced && ariaAfter === "Pause";
+                // One-shot verdict: the engine drove the subject through ≥3 distinct
+                // transforms WHILE aria showed Pause (both facts inside the gated
+                // sampler — if it collected, aria WAS Pause during the tumble).
+                const enginePair = oneShot
+                    ? corr.distinct >= 3
+                    : sliderAdvanced && ariaAfter === "Pause";
                 if (enginePair) {
                     const corrNote =
                         ENGINE_WRITE_SUBJECT[id] == null
@@ -376,8 +397,12 @@ async function runBattery() {
                             : ` (corroborator LABELED: ${ENGINE_WRITE_SUBJECT[id]} ${corr.distinct} distinct ` +
                               `gated on aria=Pause — the aria+slider pair is the load-bearer)`;
                     ok(
-                        `clause (b) ${id} direct-hash: the engine STARTS — aria flipped → "Pause animation", ` +
-                            `slider advanced ${sliderBefore} → ${sliderAfter}.${corrNote}`,
+                        oneShot
+                            ? `clause (b) ${id} direct-hash: the engine STARTS — the one-shot tumble drove ` +
+                              `${ENGINE_WRITE_SUBJECT[id]} through ${corr.distinct} distinct transforms gated ` +
+                              `on aria=Pause (the spring one-shot channel; slider ${sliderBefore} → ${sliderAfter} informational).`
+                            : `clause (b) ${id} direct-hash: the engine STARTS — aria flipped → "Pause animation", ` +
+                              `slider advanced ${sliderBefore} → ${sliderAfter}.${corrNote}`,
                     );
                 } else {
                     fail(
