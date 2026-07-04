@@ -31,7 +31,7 @@
  * WHY NOT "every <Select> in demo/ must be guarded": that over-broad rule is
  * WRONG. Most demo selects iterate STATIC catalogs that never collapse to one:
  * the easing catalog (EasingSelect — dozens of EASING_GROUPS items), the scene
- * switcher (ChromeDock — home + 8 scenes, never 1), the CSS jump-term picker
+ * switcher (ChromeDock — home + 9 scenes, never 1), the CSS jump-term picker
  * (TimingFunctionPanel — 4 fixed terms), the view-mode picker (EasingTarget —
  * "singular" + every family). Forcing a count-guard onto a never-single select
  * would be dead code the U4 rule does not call for. The U4 rule targets exactly
