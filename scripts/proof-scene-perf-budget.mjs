@@ -20,10 +20,13 @@
  *   2. proof:amiga-pixel-cap (A2 — MEASURE-FIRST). The amiga renderer's effective
  *      device-pixel-ratio ≤ 2 (`renderer.getPixelRatio() ≤ 2`, measured off the
  *      live <canvas> backing-store ratio = canvas.width ÷ CSS width). BITE:
- *      `setPixelRatio(window.devicePixelRatio * 2)` is live (AmigaScene.vue:47) →
- *      a 4× CSS-pixel buffer on a dpr=2 surface → ratio 4 > 2 reds. GREEN on the
- *      `setPixelRatio(Math.min(window.devicePixelRatio, 2))` cap. The browser is
- *      driven at dpr=2 (deviceScaleFactor) so the cap is exercised, not vacuous.
+ *      `setPixelRatio(window.devicePixelRatio * 2)` (a 4× CSS-pixel buffer on a
+ *      dpr=2 surface → ratio 4 > 2) reds. GREEN on the
+ *      `setPixelRatio(Math.min(window.devicePixelRatio, 2))` cap, which lives in
+ *      the colocated `useAmigaThree.ts` renderer room (R.W6-decomp carved the
+ *      Three.js room out of AmigaScene.vue; S.G2 S5 re-pointed the source anchor
+ *      there — T7 gate-follows-code). The browser is driven at dpr=2
+ *      (deviceScaleFactor) so the cap is exercised, not vacuous.
  *
  *   3. proof:scene-host-contained (G1 demo-side — SHIP). The moving `.scene-host`
  *      resolves `contain: paint` so a transform behind a backdrop does not
@@ -131,17 +134,23 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
     }
 
     // A2 anchor — the dpr cap. setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    // and NOT the `* 2` over-render.
+    // and NOT the `* 2` over-render. S.G2 S5 / R.W6-decomp (T7 gate-follows-code):
+    // the Three.js renderer + its setPixelRatio call CARVED out of AmigaScene.vue
+    // into the colocated `useAmigaThree.ts` renderer room; the anchor follows the
+    // code to its new home (the runtime clause below re-measures the LIVE
+    // backing-store ratio regardless of the source file, so the cap fact is
+    // double-bitten — a revert reds here AND at runtime).
     const amigaSrc = read(path.join(DEMO, "scenes/amiga/AmigaScene.vue"));
+    const amigaRendererSrc = read(path.join(DEMO, "scenes/amiga/useAmigaThree.ts"));
     const cap = /setPixelRatio\(\s*Math\.min\(\s*window\.devicePixelRatio\s*,\s*2\s*\)\s*\)/.test(
-        amigaSrc,
+        amigaRendererSrc,
     );
-    const overRender = /setPixelRatio\(\s*window\.devicePixelRatio\s*\*\s*2\s*\)/.test(amigaSrc);
+    const overRender = /setPixelRatio\(\s*window\.devicePixelRatio\s*\*\s*2\s*\)/.test(amigaRendererSrc);
     if (cap && !overRender) {
-        ok("A2 source: AmigaScene caps setPixelRatio(min(dpr, 2)) (no `dpr * 2` over-render)");
+        ok("A2 source: useAmigaThree caps setPixelRatio(min(dpr, 2)) (no `dpr * 2` over-render)");
     } else {
         fail(
-            `A2 source — AmigaScene must cap setPixelRatio(Math.min(window.devicePixelRatio, 2)) ` +
+            `A2 source — useAmigaThree.ts must cap setPixelRatio(Math.min(window.devicePixelRatio, 2)) ` +
                 `(cap:${cap}, overRender:${overRender}); the `+"`dpr * 2`"+` form draws a 4× buffer at dpr=2`,
         );
     }
