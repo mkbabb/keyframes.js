@@ -219,9 +219,17 @@ export const CORRECTNESS_ROSTER = [
 // "failing set ⊆ backlog" verdict) so an UNEXPECTED red (an S.A2 regression) is
 // distinguishable from the authorized backlog in the report-all log. ──────────
 export const BACKLOG = {
-    "proof:drag-gesture": "S.G3", // userSelect:auto mid-gesture
-    // S.G2 DISCHARGED three of the four S.A0 backlog rows (the honest flip — with
-    // each row removed, the roster driver treats any future red as UNEXPECTED):
+    // S.G3 DISCHARGED the LAST backlog row — the roster's failing set is now EMPTY,
+    // so demo-correctness goes FULL GREEN for the first time. Any future red is
+    // therefore UNEXPECTED (an S.A2 regression), never an authorized carry.
+    //   • proof:drag-gesture — the source seam already holds userSelect through the
+    //     gesture across all 6 drag surfaces (clause a green); the flake was a
+    //     clause-(b) SETTLE-PREDICATE race — a naive "poll until two reads coincide"
+    //     false-settled on the live spring's post-`reseat` startup pause (dt=0 first
+    //     frame). Cured honestly in the gate (C-10): persist waits a SUSTAINED-stable
+    //     dwell + asserts the dragged translate held; the Home recenter waits for the
+    //     REAL identity end-state, not "stopped changing." No source masking.
+    // S.G2 discharged the other three S.A0 backlog rows earlier:
     //   • proof:easing-sidebar-minimal — the writable value <input> STRIPPED (B1)
     //     (EasingSidebar.vue); the dropdown is the sole selector, the readout stays.
     //   • proof:scene-perf-budget — the amiga setPixelRatio(min(dpr,2)) cap is live
