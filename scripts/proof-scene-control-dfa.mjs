@@ -69,7 +69,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 {
     const acPath = path.join(
         DEMO,
-        "@/components/custom/animation-controls/controls/AnimationControls.vue",
+        "@/components/custom/animation-transport/controls/AnimationControls.vue",
     );
     const ac = read(acPath);
     // The triggers come from the DFA (the built-in triad + the scene-conditional

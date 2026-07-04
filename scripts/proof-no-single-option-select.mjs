@@ -113,7 +113,7 @@ console.log(
 {
     const file = path.join(
         DEMO,
-        "@/components/custom/animation-controls/TransportDock.vue",
+        "@/components/custom/animation-transport/TransportDock.vue",
     );
     if (!fs.existsSync(file)) {
         fail(

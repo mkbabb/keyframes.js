@@ -249,8 +249,8 @@ import {
     type ControlSurface,
 } from "@state";
 
-const KeyframesStringControls = defineAsyncComponent(() => import("../keyframes/KeyframesStringControls.vue"));
-const KeyframeTimeline = defineAsyncComponent(() => import("../timeline/KeyframeTimeline.vue"));
+const KeyframesStringControls = defineAsyncComponent(() => import("../../keyframes-editor/KeyframesStringControls.vue"));
+const KeyframeTimeline = defineAsyncComponent(() => import("../../keyframe-timeline/KeyframeTimeline.vue"));
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 

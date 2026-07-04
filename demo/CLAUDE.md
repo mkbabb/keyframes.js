@@ -27,8 +27,11 @@ demo/
 │   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag, springKeys/springPresets
 │   └── square/       # SquareScene.vue + SquareInstrument, useSquareAnimations/useSquareKeyboard, squareKeys (custom transform fn)
 ├── @/                         # Shared library
+│   ├── state/                  # the demo's global state layer (S.D2 hoist): sceneMachine/useSceneMachine/scenePlaybackAdapters + option stores + controlSurfaceDFA + hashSharing + index (resetAllStores) — @state alias
 │   ├── components/custom/
-│   │   ├── animation-controls/  # the control suite (see below)
+│   │   ├── animation-transport/ # the control-suite shells + controls/ + composables/ (see below)
+│   │   ├── keyframes-editor/    # the Monaco CSS keyframes editor (was animation-controls/keyframes/)
+│   │   ├── keyframe-timeline/   # the draggable keyframe timeline (was animation-controls/timeline/)
 │   │   ├── asset-manager/       # AssetViewport/AssetLayer/AssetLayerPanel/AssetPropertiesPanel + useAssetManager + assetTypes
 │   │   ├── dock/ChromeDock.vue  # glass-ui dock: scene switcher + pane toggles
 │   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState (URL-hash share/restore)
@@ -48,16 +51,23 @@ demo/
 └── DESIGN.md     # demo design language (extends glass-ui DESIGN.md)
 ```
 
-## Animation Controls (`@/components/custom/animation-controls/`)
+## Animation Controls (`@/components/custom/animation-transport/`)
 
-The primary UI for interacting with animations. Top level: **AnimationControlsGroup.vue** (orchestrates `AnimationGroup`: scrub-pause-resume, playback delegation), **TransportDock.vue**, `animationDescriptions.ts`, `injectionKeys.ts`, `index.ts`.
+The primary UI for interacting with animations. S.D2 carved the former
+`animation-controls/` monolith into three sibling `@/` peers —
+`animation-transport/` (the shells + `controls/` + `composables/`, below),
+`keyframes-editor/` (was `keyframes/`), `keyframe-timeline/` (was `timeline/`) —
+and hoisted the state layer to `@/state/` (`@state`). Top level of
+`animation-transport/`: **AnimationControlsGroup.vue** (orchestrates
+`AnimationGroup`: scrub-pause-resume, playback delegation), **TransportDock.vue**,
+`animationDescriptions.ts`, `injectionKeys.ts`, `index.ts`.
 
 - **`components/`** — `ControlsPaneWrapper.vue`, `RibbonBar.vue`
 - **`composables/`** — `useAnimationGroupPlayback` (scrub-pause-resume state machine), `useAnimationProgress` (rAF progress polling), `useControlsLayout`, `usePaneHover`, `useRafLoop`, `useScrollFade`, `useSheetGesture`, `useSheetSpring`
 - **`controls/`** — `AnimationControls.vue` (tab panel; lazy-loads the Monaco-bearing panes), `AnimationControlsControls.vue` (duration/delay/iterations/direction/fill/easing), `AnimationVisualizer.vue` (progress ball; `calc(100cqw - 100%)` + `bumpLayoutEpoch` on container resize), `LayerConfigPanel.vue`, `PlaybackRibbon.vue`, `TimingFunctionPanel.vue`; `controls/composables/`: `useAnimationSync` (markRaw animation → Vue reactivity via gated `useRafFn` polling), `useDragCapture` (control-surface drags: bezier handles, timeline diamonds, sequence rows), `usePlaybackToggle`, `useTimingFunctionEditor`; `timingCurveUtils.ts`; `playback-button.css`, `tab-trigger.css`
-- **`keyframes/`** — `CSSCodeEditor.vue` (Monaco wrapper), `KeyframeCard.vue`, `KeyframesEditor.vue`, `KeyframesStringControls.vue`; `components/`: `KeyframeCardList`, `KeyframesAddDialog`; `composables/`: `useApplyCSS`, `useHighlightCSS`, `useKeyframeOps`, `useKeyframesEditor`, `useKeyframesParsing`, `useKeyframesState`; `monaco-themes/` (Dracula, GitHub); `utils/`: `contenteditable.ts`, `parseAnimationCSS.ts`
-- **`stores/`** — `animationOptionsStore.ts` + `controlOptionsStore.ts` (vueuse `createGlobalState` + `useStorage`, 7-day TTL via `storeUtils.ts`), `controlSurfaceDFA.ts` (the control-surface single-authority DFA), `sceneMachine.ts` + `scenePlaybackAdapters.ts` + `useSceneMachine.ts` (the scene state machine + per-scene playback adapters; machine context persists to localStorage), `hashSharing.ts` (URL-param state encode/decode/restore), `index.ts` (barrel + `resetAllStores`)
-- **`timeline/`** — `KeyframeTimeline.vue` (draggable diamonds, playhead, import/export), `TimelineCaret.vue`; `components/`: `TimelineHoverPreview` (html2canvas), `TimelineTrack`; `composables/`: `useTimeline`, `useTimelineBuild`, `useTimelineOps`, `useZoomPan`; `timelineTypes.ts`; `utils/`: `flattenVars`, `snapshotCapture` (getComputedStyle → keyframes), `timelineEngine` (build/export/import CSS)
+- **peer `keyframes-editor/`** (was `keyframes/`) — `CSSCodeEditor.vue` (Monaco wrapper), `KeyframeCard.vue`, `KeyframesEditor.vue`, `KeyframesStringControls.vue`; `components/`: `KeyframeCardList`, `KeyframesAddDialog`; `composables/`: `useApplyCSS`, `useHighlightCSS`, `useKeyframeOps`, `useKeyframesEditor`, `useKeyframesParsing`, `useKeyframesState`; `monaco-themes/` (Dracula, GitHub); `utils/`: `contenteditable.ts`, `parseAnimationCSS.ts`
+- **peer `@/state/`** (S.D2 hoist, was `stores/`) — `animationOptionsStore.ts` + `controlOptionsStore.ts` (vueuse `createGlobalState` + `useStorage`, 7-day TTL via `storeUtils.ts`), `controlSurfaceDFA.ts` (the control-surface single-authority DFA), `sceneMachine.ts` + `scenePlaybackAdapters.ts` + `useSceneMachine.ts` (the scene state machine + per-scene playback adapters; machine context persists to localStorage), `hashSharing.ts` (URL-param state encode/decode/restore), `index.ts` (barrel + `resetAllStores` + `registerStoreReset`)
+- **peer `keyframe-timeline/`** (was `timeline/`) — `KeyframeTimeline.vue` (draggable diamonds, playhead, import/export), `TimelineCaret.vue`; `components/`: `TimelineHoverPreview` (html2canvas), `TimelineTrack`; `composables/`: `useTimeline`, `useTimelineBuild`, `useTimelineOps`, `useZoomPan`; `timelineTypes.ts`; `utils/`: `flattenVars`, `snapshotCapture` (getComputedStyle → keyframes), `timelineEngine` (build/export/import CSS)
 
 ## Scenes
 

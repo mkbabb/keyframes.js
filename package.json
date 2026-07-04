@@ -151,6 +151,7 @@
         "proof:composable-encapsulation": "node scripts/proof-composable-encapsulation.mjs",
         "proof:demo-no-oversize": "node scripts/proof-demo-no-oversize.mjs",
         "proof:scene-colocated": "node scripts/proof-scene-colocated.mjs",
+        "proof:shared-has-n-consumers": "node scripts/proof-shared-has-n-consumers.mjs",
         "proof:app-is-shell": "node scripts/proof-app-is-shell.mjs",
         "proof:no-brittle-selector": "node scripts/proof-no-brittle-selector.mjs",
         "proof:no-dup-utility": "node scripts/proof-no-dup-utility.mjs",

@@ -18,7 +18,7 @@ import { computed, h, provide, ref } from "vue";
 import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
-import PlaybackRibbon from "@components/custom/animation-controls/controls/PlaybackRibbon.vue";
+import PlaybackRibbon from "@components/custom/animation-transport/controls/PlaybackRibbon.vue";
 
 import SpringTarget from "./SpringTarget.vue";
 import StartingStyleTarget from "./StartingStyleTarget.vue";

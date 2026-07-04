@@ -69,7 +69,11 @@ console.log("proof:cartoon-is-panel-depth — H.W2 S1 (the cartoon-depth restora
 
 // ── 1. SOURCE-SHAPE (static, always runs) ─────────────────────────────────────
 {
-    const AC = path.join(DEMO, "@/components/custom/animation-controls");
+    const AC = path.join(DEMO, "@/components/custom/animation-transport");
+    // S.D2 — keyframes/ and timeline/ are now sibling peers (keyframes-editor/,
+    // keyframe-timeline/), not sub-dirs of the transport shell.
+    const KE = path.join(DEMO, "@/components/custom/keyframes-editor");
+    const KT = path.join(DEMO, "@/components/custom/keyframe-timeline");
     const AM = path.join(DEMO, "@/components/custom/asset-manager");
     // The 5 contract-named panel Card sites (H.W2 §Hard-gate / WV-W2-HIGH-1: the
     // never-enumerated 5th AssetViewport Card is in the set or the gate reds
@@ -77,8 +81,8 @@ console.log("proof:cartoon-is-panel-depth — H.W2 S1 (the cartoon-depth restora
     const PANELS = [
         ["AnimationControlsControls.vue", path.join(AC, "controls/AnimationControlsControls.vue")],
         ["RibbonBar.vue", path.join(AC, "components/RibbonBar.vue")],
-        ["KeyframesEditor.vue", path.join(AC, "keyframes/KeyframesEditor.vue")],
-        ["KeyframeTimeline.vue", path.join(AC, "timeline/KeyframeTimeline.vue")],
+        ["KeyframesEditor.vue", path.join(KE, "KeyframesEditor.vue")],
+        ["KeyframeTimeline.vue", path.join(KT, "KeyframeTimeline.vue")],
         ["AssetViewport.vue", path.join(AM, "AssetViewport.vue")],
     ];
 

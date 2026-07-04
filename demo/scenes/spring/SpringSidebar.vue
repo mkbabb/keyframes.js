@@ -160,7 +160,7 @@ import { GripVertical, RefreshCw } from "@lucide/vue";
 import KfPillTabs from "@components/custom/KfPillTabs.vue";
 import type { KfPillTabOption } from "@components/custom/KfPillTabs.vue";
 
-import KeyframesEditor from "@components/custom/animation-controls/keyframes/KeyframesEditor.vue";
+import KeyframesEditor from "@components/custom/keyframes-editor/KeyframesEditor.vue";
 import SpringHeatmap from "./SpringHeatmap.vue";
 
 import { useSpringPaneDrag } from "./useSpringPaneDrag";

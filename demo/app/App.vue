@@ -108,7 +108,7 @@ import {
     ACTIVE_SUPER_KEY,
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
-} from "@components/custom/animation-controls/injectionKeys";
+} from "@components/custom/animation-transport/injectionKeys";
 import type { ControlSurface } from "@state";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";

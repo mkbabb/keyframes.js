@@ -133,7 +133,7 @@ function walkCount(dir) {
 {
     const id = "proof:monaco-deferred";
     const editorRel =
-        "demo/@/components/custom/animation-controls/keyframes/CSSCodeEditor.vue";
+        "demo/@/components/custom/keyframes-editor/CSSCodeEditor.vue";
     const src = read(editorRel);
     if (src == null) {
         fail(id, `${editorRel} not found.`);
@@ -272,7 +272,7 @@ function walkCount(dir) {
 {
     const id = "proof:demo-yield";
     const opsRel =
-        "demo/@/components/custom/animation-controls/keyframes/composables/useKeyframeOps.ts";
+        "demo/@/components/custom/keyframes-editor/composables/useKeyframeOps.ts";
     const src = read(opsRel);
     if (src == null) {
         fail(id, `${opsRel} not found.`);
@@ -419,7 +419,7 @@ function walkCount(dir) {
             axis: "INP / scheduler.yield (demo edit path)",
             disposition: "ALIGNED",
             anchor: {
-                file: "demo/@/components/custom/animation-controls/keyframes/composables/useKeyframeOps.ts",
+                file: "demo/@/components/custom/keyframes-editor/composables/useKeyframeOps.ts",
                 needle: "yieldToMain",
             },
         },

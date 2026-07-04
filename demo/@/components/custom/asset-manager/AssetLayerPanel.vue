@@ -91,7 +91,7 @@
 <script setup lang="ts">
 import { computed, readonly } from "vue";
 import type { Asset, AssetKind, AssetTransform } from "./assetTypes";
-import { useDragCapture } from "@components/custom/animation-controls/controls/composables/useDragCapture";
+import { useDragCapture } from "@components/custom/animation-transport/controls/composables/useDragCapture";
 import { useAssetManager } from "./useAssetManager";
 import AssetLayer from "./AssetLayer.vue";
 import AssetPropertiesPanel from "./AssetPropertiesPanel.vue";

@@ -205,7 +205,7 @@ import { useMotionPathGesture } from "./useMotionPathGesture";
 // The shared playback-button skin (the same partial the standard ribbon +
 // EasingScene/SpringScene import) — the Reset-path button rides .btn-interactive
 // from here for cross-scene posture parity.
-import "@components/custom/animation-controls/controls/playback-button.css";
+import "@components/custom/animation-transport/controls/playback-button.css";
 
 const demo = inject(MOTION_PATH_DEMO_KEY)!;
 
