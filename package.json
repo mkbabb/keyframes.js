@@ -170,6 +170,7 @@
         "proof:card-rounded-primitive": "node scripts/proof-card-rounded-primitive.mjs",
         "proof:stage-within-docks": "node scripts/proof-stage-within-docks.mjs",
         "proof:mobile-single-page": "node scripts/proof-mobile-single-page.mjs",
+        "proof:stage-visible": "node scripts/proof-stage-visible.mjs",
         "proof:dock-zorder": "node scripts/proof-dock-zorder.mjs",
         "proof:bezier-no-scroll": "node scripts/proof-bezier-no-scroll.mjs",
         "proof:bezier-single-card": "node scripts/proof-bezier-single-card.mjs",

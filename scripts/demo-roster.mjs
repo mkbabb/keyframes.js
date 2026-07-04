@@ -129,6 +129,10 @@ export const CORRECTNESS_ROSTER = [
     "proof:card-rounded-primitive",
     "proof:stage-within-docks",
     "proof:mobile-single-page",
+    // S.G1 — the layout-invariant mobile stage-visibility system gate (the named
+    // successor for the frozen occlusion keys; p10 F6). Runs the full 375×667
+    // scene sweep on the shared harness.
+    "proof:stage-visible",
     "proof:dock-zorder",
     "proof:drawer-spring",
     "proof:sheet-reopen-scroll",
