@@ -89,7 +89,11 @@ export const CORRECTNESS_ROSTER = [
     "proof:live-session-mobile",
     "proof:demo-control-point",
     "proof:easing-curve-editor",
-    "proof:scene-switcher-mobile",
+    // proof:scene-switcher-mobile RETIRED at S.A4 (C-6, fold row 18) — a ledgered
+    // KILL with a re-run witness (scripts/gate-bands.mjs DISCHARGE). It asserted a
+    // mobile scroll-snap carousel + a SceneSwitcherCarousel component that does not
+    // exist on disk (proof:scene-colocated ASSERTION 3), masked here by the former
+    // demo-smoke continue-on-error. The stage rebirth is SHELVED with band S.E.
     "proof:amiga-decay-visible",
     "proof:appearance-suffusion",
     "proof:spring-slider-continuous",

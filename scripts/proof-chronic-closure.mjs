@@ -136,14 +136,18 @@ console.log(
 const pkg = JSON.parse(fs.readFileSync(PKG, "utf8"));
 const SCRIPTS = pkg.scripts ?? {};
 const PROOF_ALL = SCRIPTS["proof:all"] ?? "";
-const PROOF_CORRECTNESS = SCRIPTS["proof:correctness"] ?? "";
+// S.A4 — the actuating "correctness tier" a chronic must close via was RENAMED
+// proof:correctness → proof:demo-correctness (the browser-actuator tier; the
+// severity re-taxonomy). A chronic closes via a RUNTIME gate that BIT, which lives
+// in the demo-correctness tier; retarget here in lockstep with the rename (T7).
+const PROOF_CORRECTNESS = SCRIPTS["proof:demo-correctness"] ?? "";
 
 const resolves = (gate) => Object.prototype.hasOwnProperty.call(SCRIPTS, gate);
 const inChain = (chain, gate) =>
     new RegExp(`\\brun ${gate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(chain);
 const inProofAll = (gate) => inChain(PROOF_ALL, gate);
-// A gate satisfies the CORRECTNESS tier iff it runs in proof:correctness (or, if
-// no sub-aggregator exists, directly in proof:all).
+// A gate satisfies the CORRECTNESS tier iff it runs in proof:demo-correctness (the
+// S.A4-renamed actuating tier; or, if no sub-aggregator exists, directly in proof:all).
 const inCorrectnessTier = (gate) =>
     PROOF_CORRECTNESS ? inChain(PROOF_CORRECTNESS, gate) : inProofAll(gate);
 
@@ -305,7 +309,16 @@ function isExitShaped(d) {
     return false;
 }
 
-const NOT_A_GATE = new Set(["proof:all", "proof:correctness", "proof:hygiene"]);
+// S.A4 — the aggregator tier names (never cited as a closure GATE). Both the
+// pre-S.A4 name (proof:correctness, kept so a legacy prose mention is not mis-read
+// as a gate) and the three-tier successors are listed.
+const NOT_A_GATE = new Set([
+    "proof:all",
+    "proof:correctness",
+    "proof:demo-correctness",
+    "proof:library-correctness",
+    "proof:hygiene",
+]);
 
 /** All distinct `proof:*` names mentioned in a cell, in order of appearance. */
 function gateNames(text) {
@@ -443,7 +456,7 @@ function auditRow(row, srcLabel) {
                 continue;
             }
             if (!inCorrectnessTier(g)) {
-                fail(`[${name}] closure gate \`${g}\` resolves but is NOT in the CORRECTNESS tier of proof:all (proof:correctness) — a chronic must close via a CORRECTNESS gate that runs, not a hygiene/orphan one. Wire it into proof:correctness.`);
+                fail(`[${name}] closure gate \`${g}\` resolves but is NOT in the DEMO-CORRECTNESS tier of proof:all (proof:demo-correctness — the S.A4-renamed actuating tier) — a chronic must close via a CORRECTNESS gate that runs, not a hygiene/orphan one. Wire it into proof:demo-correctness.`);
             }
             // (3) THE S4 CORE — the cited gate must be a RUNTIME gate that actuates.
             const rt = isRuntimeGate(g);

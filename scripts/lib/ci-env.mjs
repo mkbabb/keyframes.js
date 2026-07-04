@@ -22,8 +22,9 @@
  *
  * ── THE THIRD TAXONOMY STATE, NAMED (WZ-postclose §C / wave-I.W7 §10) ────────
  * **on-device** — a CORRECTNESS-tier gate whose CI run is OBSERVATIONAL (the
- * observe-only posture on a correctness-class oracle). "proof:correctness GREEN
- * in CI" must NEVER be over-read as the felt timing/exact-pixel budget holding
+ * observe-only posture on a correctness-class oracle). "proof:demo-correctness
+ * GREEN in CI" (the S.A4-renamed actuating tier) must NEVER be over-read as the
+ * felt timing/exact-pixel budget holding
  * in CI; the felt budget hard-gates ON-DEVICE only. `proof:perf-frame-budget`
  * is the canonical instance. The policy (WZ-postclose c2, decided): device-
  * dependent gates are observe-only in CI — NOT CI-excluded.
