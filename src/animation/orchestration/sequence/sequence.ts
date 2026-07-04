@@ -57,20 +57,20 @@
  */
 
 import { clamp } from "../../internal/leaves";
-// S.B4 (a16 F3) — the ONE engine-wide reduced-motion detector, not a copy (DRY).
-import { prefersReducedMotion } from "../../internal/reduced-motion";
 import { RAFPlayback } from "../../physics/playback";
 // The pure master-clock transport math (the repeat/yoyo fold, the rest phase,
 // the no-jump origin seed, the forward-monotone predicate) lives in the
-// colocated `./transport` module (R.W2b carve); the lifecycle methods here drive them.
+// colocated `./transport` module (R.W2b carve); `seek` + `_frame` drive them.
 import {
     resolveSequencePosition,
     driveSequenceFrame,
-    settleSequence,
-    reanchorSequence,
     applySequenceAt,
     fireSequenceCrossings,
 } from "./transport";
+// S.B5 — the TRANSPORT verbs (play/stop/pause/resume) + the rate/repeat
+// modifiers (timeScale/reverse/repeat/yoyo) are FREE FUNCTIONS in the colocated
+// `./lifecycle` module; the methods below are thin `this`-delegates over them.
+import * as lifecycle from "./lifecycle";
 import type { SequencePosition, SequencePlayContext } from "./transport";
 // `SequencePosition` (the master-clock position token) + its resolver live in
 // `./transport`; re-export the type so the sequence barrel surface is unchanged.
@@ -141,15 +141,20 @@ export class Sequence<V extends Vars = any>
     /** Master clock (ms) of the current playhead. */
     _time = 0;
 
-    private readonly respectReducedMotion: boolean;
+    /** @internal (S.B5) — read by `./lifecycle`'s `play` reduced-motion arm. */
+    readonly respectReducedMotion: boolean;
 
     /** THE rAF owner for the sequence's play loop. */
     readonly playback = new RAFPlayback();
 
-    private _boundFrame: (t: number) => Promise<boolean>;
+    /** @internal (S.B5) — the pre-bound frame callback `./lifecycle`'s
+     * `play`/`resume` hand to `playback.loop`. */
+    _boundFrame: (t: number) => Promise<boolean>;
     _resolvePlay: (() => void) | null = null;
     _playOrigin: number | undefined = undefined;
-    private _playingPromise: Promise<void> | null = null;
+    /** @internal (S.B5) — the ONE held play promise the `finished` front-door
+     * exposes; read/written by the transport free functions in `./lifecycle`. */
+    _playingPromise: Promise<void> | null = null;
 
     /**
      * The scalar playback rate — the single field that drives `timeScale`
@@ -313,17 +318,6 @@ export class Sequence<V extends Vars = any>
     }
 
     /**
-     * Drive the sequence over real time via `RAFPlayback`. Each child is driven
-     * through the published `Animation.advanceTo(absoluteClock)` map: its
-     * `startTime` is seeded to its resolved `at`, so `advanceTo(masterClock)`
-     * yields the child's local clock as `masterClock − at` exactly. Resolves
-     * when the master playhead passes the sequence `duration`.
-     *
-     * Re-entrant: a `play()` while one is in flight returns the same promise.
-     * Under `respectReducedMotion` + an active query, snaps to the rest frame
-     * in one paint (a terminal `seek(duration)`), no draw loop.
-     */
-    /**
      * The completion front-door (G.W13) — `await sequence.finished` resolves
      * once the in-flight transport settles. Exposes the ONE held
      * `_playingPromise` `play()` constructs (the re-entrant guard returns it;
@@ -335,165 +329,74 @@ export class Sequence<V extends Vars = any>
         return this._playingPromise ?? Promise.resolve();
     }
 
+    /** Drive the sequence over real time via `RAFPlayback` — re-entrant, and
+     * PRM-aware. Body in `./lifecycle` (S.B5). */
     play(): Promise<void> {
-        if (this._playingPromise) return this._playingPromise;
-
-        if (this.respectReducedMotion && prefersReducedMotion()) {
-            this.seek(this.duration);
-            return Promise.resolve();
-        }
-
-        // Seed each child's absolute-clock anchor: advanceTo(clock) computes
-        // local = clock − startTime, and we want local = masterClock − at, so
-        // startTime := at. Pre-seeding `startTime` (and `started`) makes
-        // `advanceTo` skip its lazy `onStart` (no per-child `delay` sleep, no
-        // duplicate `animationstart`) while still honoring `onEnd` (rest-frame
-        // paint + `animationend`) when the segment passes its duration.
-        // (Sequence children carry no own `delay`; the `at` IS the offset.)
-        for (const { animation, at } of this.entries) {
-            animation.startTime = at;
-            animation.started = true;
-            animation.managed = true;
-        }
-
-        // A fresh play starts the master clock at 0 (the origin seed reads
-        // `_time`). `resume()` keeps `_time` so the playhead continues.
-        this._time = 0;
-        this._paused = false;
-        this._playOrigin = undefined;
-        this._lastClock = undefined;
-
-        const result = new Promise<void>((resolve) => {
-            this._resolvePlay = resolve;
-            this.playback.loop(this._boundFrame);
-        });
-
-        this._playingPromise = result;
-        result.finally(() => {
-            this._playingPromise = null;
-        });
-        return result;
+        return lifecycle.play(this);
     }
 
-    // THE rAF play-loop step + the settle + the re-anchor BODIES live in
-    // `./transport` (R.W2b carve) — pure drivers over this play-machine context
-    // (`Sequence implements SequencePlayContext`). These remain methods (the
-    // seek↔play parity test drives `seq._frame(...)` directly) but delegate the
-    // body, so the loop math is colocated with the fold/restphase it uses.
+    // THE rAF play-loop step BODY lives in `./transport` (R.W2b carve) — a pure
+    // driver over this play-machine context (`Sequence implements
+    // SequencePlayContext`). `_frame` stays a method (the seek↔play parity test
+    // drives `seq._frame(...)` directly) but delegates the body, so the loop math
+    // is colocated with the fold/restphase it uses. The settle + re-anchor the
+    // transport verbs drive also live in `./transport`; the verbs themselves —
+    // and their former `_settle`/`_reanchor` helpers — moved to `./lifecycle`
+    // (S.B5), which calls the transport drivers directly.
     async _frame(clock: number): Promise<boolean> {
         return driveSequenceFrame(this, clock);
     }
 
-    private _reanchor(): void {
-        reanchorSequence(this, this._playingPromise != null);
-    }
-
-    private _settle(): void {
-        settleSequence(this);
-    }
-
-    /** Halt the play loop where it stands and resolve any pending `play()`. */
+    /** Halt the play loop where it stands and resolve any pending `play()`.
+     * Body in `./lifecycle` (S.B5). */
     stop(): this {
-        this.playback.stop();
-        this._settle();
-        const resolve = this._resolvePlay;
-        this._resolvePlay = null;
-        resolve?.();
+        lifecycle.stop(this);
         return this;
     }
 
-    /**
-     * Halt the play loop where it stands WITHOUT releasing the playhead — the
-     * managed-pause contract. The rAF loop stops; `_time` and the play promise
-     * are RETAINED (children stay `managed`, unlike `stop()`/`_settle`), so a
-     * later {@link resume} continues from exactly here. No-op when not playing
-     * or already paused. Chainable.
-     */
+    /** Halt the play loop WITHOUT releasing the playhead — the managed-pause
+     * contract (`_time` + the play promise are retained for `resume`). No-op when
+     * not playing or already paused. Body in `./lifecycle` (S.B5). */
     pause(): this {
-        if (!this._playingPromise || this._paused) return this;
-        this._paused = true;
-        this.playback.stop();
-        // The next resume re-seeds the origin from the retained `_time`; clear
-        // it so a stale pre-pause origin cannot leak a forward jump.
-        this._playOrigin = undefined;
+        lifecycle.pause(this);
         return this;
     }
 
-    /**
-     * Resume a paused sequence — restart the rAF loop with the origin
-     * re-anchored so the FIRST resumed frame's master clock equals the
-     * retained `_time` (the no-forward-jump re-anchor, the same `RAFPlayback`/
-     * `AnimationGroup` managed-pause contract — `src/animation/CLAUDE.md`
-     * §Managed-child lifecycle). No-op when not paused. Chainable.
-     */
+    /** Resume a paused sequence — restart the rAF loop with the origin
+     * re-anchored so the first resumed frame's master clock equals the retained
+     * `_time` (no forward jump). No-op when not paused. Body in `./lifecycle`. */
     resume(): this {
-        if (!this._playingPromise || !this._paused) return this;
-        this._paused = false;
-        // Clearing the origin makes the next frame seed it from `_time` (the
-        // `_frame` origin-seed: `origin = clock − _time / rate`), so the master
-        // clock continues from the paused playhead with no forward jump.
-        this._playOrigin = undefined;
-        this._lastClock = undefined;
-        this.playback.loop(this._boundFrame);
+        lifecycle.resume(this);
         return this;
     }
 
-    /**
-     * Set the scalar playback rate — slow-mo (`< 1`), real-time (`1`),
-     * fast-forward (`> 1`), or backward (`< 0`, the {@link reverse} form). The
-     * master clock is re-anchored so the playhead is CONTINUOUS at the
-     * rate-change instant (no jump) — the same re-anchor as {@link resume}.
-     * Takes effect immediately whether or not the sequence is playing.
-     * Chainable.
-     */
+    /** Set the scalar playback rate — slow-mo (`< 1`), real-time (`1`),
+     * fast-forward (`> 1`), or backward (`< 0`, the {@link reverse} form); the
+     * master clock is re-anchored so the playhead is C⁰-continuous at the flip.
+     * Body in `./lifecycle` (S.B5). */
     timeScale(n: number): this {
-        if (!Number.isFinite(n)) {
-            throw new Error(
-                `Sequence.timeScale(n): n must be a finite number, got ${n}.`,
-            );
-        }
-        // Re-anchor at the OLD rate's playhead, THEN adopt the new rate, so the
-        // origin solves `(clock − origin) * newRate = _time` from the current
-        // `_time` — continuous across the flip.
-        this._rate = n;
-        this._reanchor();
+        lifecycle.timeScale(this, n);
         return this;
     }
 
-    /**
-     * Flip the playback direction — the playhead walks backward from where it
-     * stands (a negative rate) or forward again, preserving `|rate|`. C⁰-
-     * continuous: the re-anchor keeps the playhead exactly where it is at the
-     * flip instant (locked by the F.W9 seek↔play parity gate). Chainable.
-     */
+    /** Flip the playback direction — the playhead walks backward (negative rate)
+     * or forward again, preserving `|rate|`, C⁰-continuous. Body in `./lifecycle`. */
     reverse(): this {
-        this._rate = -this._rate;
-        this._reanchor();
+        lifecycle.reverse(this);
         return this;
     }
 
-    /**
-     * Set how many cycles `play()` runs before settling — `1` is single-play,
-     * `n` runs `n` cycles, `Infinity` loops forever (until `stop()`). The
-     * master clock folds modulo `duration` per cycle. Chainable.
-     */
+    /** Set how many cycles `play()` runs before settling — `1` single-play, `n`
+     * cycles, `Infinity` loops forever. Body in `./lifecycle` (S.B5). */
     repeat(count: number): this {
-        if (count !== Infinity && (!Number.isInteger(count) || count < 1)) {
-            throw new Error(
-                `Sequence.repeat(count): count must be a positive integer or Infinity, got ${count}.`,
-            );
-        }
-        this._repeatCount = count;
+        lifecycle.repeat(this, count);
         return this;
     }
 
-    /**
-     * Toggle yoyo (ping-pong) — when on, odd cycles run reflected
-     * (`duration − phase`) so the playhead bounces back and forth across the
-     * `repeat` cycles. Chainable.
-     */
+    /** Toggle yoyo (ping-pong) — odd cycles run reflected across the `repeat`
+     * cycles. Body in `./lifecycle` (S.B5). */
     yoyo(on = true): this {
-        this._yoyoOn = on;
+        lifecycle.yoyo(this, on);
         return this;
     }
 }
