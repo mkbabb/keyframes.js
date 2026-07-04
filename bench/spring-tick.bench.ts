@@ -13,7 +13,8 @@
  * Imports `SpringProgress` from the VALUE module `spring`, never the barrel.
  */
 import { bench, describe } from "vitest";
-import { SpringProgress } from "../src/animation/physics/spring";
+import { decayRest } from "../src/animation/physics/decay";
+import { reseatToSpring, SpringProgress } from "../src/animation/physics/spring";
 
 const FRAMES = 600;
 const DT = 16.667; // a 60Hz step, the unit `tickDt` takes (milliseconds)
@@ -200,5 +201,85 @@ describe("SpringProgress vector-sugar ADOPT-or-KILL probe (L.W7 §S2, W122)", ()
         for (let f = 0; f < FRAMES; f++) {
             probe.tickDt(DT);
         }
+    });
+});
+
+/**
+ * S.F5a S4 (C-13, fold row 56) — the `reseatToSpring`-vs-`decayRest` bench.
+ *
+ * The drag/decay RELEASE seam (`orchestration/drag/draggable.ts:handleUp`) meets
+ * two velocity-carrying motion models at a fling release, and C-13 forces the
+ * choice to a MEASURED decision INSIDE S (a speculative LIGHT export, no carry):
+ *
+ *   - `reseatToSpring` (`physics/spring/reseat.ts`) — the velocity-CONTINUOUS
+ *     spring re-seat. From a two-sample `VelocityProbe` it finite-differences the
+ *     stream velocity, then CONSTRUCTS a fresh `SpringProgress` seeded at
+ *     `(current position, measured velocity)` targeting the new value: a LIVE
+ *     trajectory that settles TO A TARGET (an object per event).
+ *   - `decayRest` (`physics/decay.ts`) — the O(1) targetless frictional-glide
+ *     PROJECTION `x0 + v0/k`: a single divide-and-add read of where a release
+ *     would coast to under friction, with NO target and NO settling object.
+ *
+ * These are NOT throughput substitutes — one builds a settling spring toward a
+ * target, the other projects a free-coast endpoint. The bench makes the
+ * per-event cost of each VISIBLE so the release-seam decision is grounded in
+ * numbers, not intuition; the measured gap (the alloc-bearing re-seat vs the
+ * O(1) projection) is itself the evidence they are distinct models. 600
+ * interruptions / 600 releases mirror the 600-frame gesture windows above.
+ *
+ * DECISION (measured → recorded): RETAIN-both. See
+ * `scripts/reseat-vs-decay-decision.json` (the numbers + verdict) and the seam
+ * doc-comment in `orchestration/drag/draggable.ts:handleUp`. Both stay
+ * `run-check` in `bench/taxonomy.json` — a cost-visibility measurement, no
+ * budget asserted (neither is on a per-frame hot path).
+ */
+const RELEASES = 600;
+
+describe("reseatToSpring vs decayRest — release-seam motion models (S.F5a S4, C-13)", () => {
+    // A deterministic pseudo-stream of release states so neither arm folds to a
+    // constant — each event carries a distinct `(position, velocity, target)`
+    // seed. Precomputed once (outside the timed body) into one flat buffer.
+    const seeds = new Float64Array(RELEASES * 3);
+    for (let i = 0; i < RELEASES; i++) {
+        seeds[i * 3] = (i % 240) - 120; // position sweep
+        seeds[i * 3 + 1] = ((i * 37) % 900) - 450; // release velocity (units/s)
+        seeds[i * 3 + 2] = ((i * 53) % 480) - 240; // new target sweep
+    }
+
+    // reseatToSpring: each interruption finite-differences a two-sample probe
+    // and CONSTRUCTS a fresh velocity-continuous `SpringProgress` toward a new
+    // target — the live settle model. Reading `spring.value` sinks the result so
+    // the alloc + seed cannot be dead-code-eliminated.
+    bench(`reseatToSpring · ${RELEASES} interruptions`, () => {
+        let sink = 0;
+        for (let i = 0; i < RELEASES; i++) {
+            const x = seeds[i * 3]!;
+            const v = seeds[i * 3 + 1]!;
+            const target = seeds[i * 3 + 2]!;
+            // A one-frame (16.667ms) two-sample window whose forward difference
+            // reconstructs velocity `v` — the honest interruption probe shape:
+            // `(curr.value − prev.value) / (dt/1000) === v`.
+            const prev = { value: x - (v * DT) / 1000, time: 0 };
+            const curr = { value: x, time: DT };
+            const spring = reseatToSpring({ prev, curr }, target, {
+                response: 100,
+                dampingFraction: 0.86,
+            });
+            sink += spring.value;
+        }
+        if (!Number.isFinite(sink)) throw new Error("unreachable");
+    });
+
+    // decayRest: each release projects the O(1) targetless coast endpoint —
+    // one divide + one add, no object, no settle loop. Same seed stream, same
+    // sink guard, so the delta against the arm above is pure model cost.
+    bench(`decayRest · ${RELEASES} releases`, () => {
+        let sink = 0;
+        for (let i = 0; i < RELEASES; i++) {
+            const initial = seeds[i * 3]!;
+            const velocity = seeds[i * 3 + 1]!;
+            sink += decayRest({ initial, velocity, friction: 5 });
+        }
+        if (!Number.isFinite(sink)) throw new Error("unreachable");
     });
 });

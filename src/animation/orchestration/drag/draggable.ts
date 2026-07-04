@@ -354,6 +354,18 @@ export class Draggable {
         // re-seats the closed-form solution from `(value, releaseVelocity)`
         // (spring.ts) so the fling is C¹-continuous with the gesture — the
         // trajectory leaves the release point at exactly the flick speed.
+        //
+        // S.F5a S4 / C-13 (fold row 56) — the release seam re-seats the
+        // PERSISTENT `this.spring` IN PLACE here, NOT via the `reseatToSpring`
+        // constructor. That is a MEASURED decision (RETAIN-both, recorded in
+        // scripts/reseat-vs-decay-decision.json, benched in
+        // bench/spring-tick.bench.ts): `reseatToSpring` ALLOCATES a fresh
+        // SpringProgress per call (~22× the O(1) `decayRest` projection above
+        // and heavier than this in-place reset), and would sever the spring
+        // identity the rAF draw loop reads. `reseatToSpring`'s home is the
+        // keyframe-stream interruption seam (no pre-existing spring); `decayRest`
+        // is the O(1) coast PROJECTION (the snap branch above). Distinct motion
+        // models — neither substitutes for the other, so both are retained.
         this.spring.reset(value, releaseVelocity);
 
         // S1 corrective — if the release seats the spring outside bounds (an
