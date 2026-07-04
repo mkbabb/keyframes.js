@@ -4,14 +4,14 @@
  * Locks `useSquareKeyboard` — the arrow/Home nudge + the "envelope tour" egg that
  * re-seats the SAME per-axis springs the drag uses (one authority, no second
  * rAF). The keydown → reseat/onTarget contract is asserted against real
- * `SpringProgress` springs. Smoke-constructs `useSquareAnimations` (the spring
+ * `SpringProgress` springs. Smoke-constructs `useSquareDemo` (the spring
  * loop owner; warmed-engine wiring) and references the scene's transport key.
  */
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { effectScope, ref } from "vue";
 import { SpringProgress } from "../../src/animation/physics/spring";
 import { useSquareKeyboard } from "../../demo/scenes/square/useSquareKeyboard";
-import { useSquareAnimations } from "../../demo/scenes/square/useSquareAnimations";
+import { useSquareDemo } from "../../demo/scenes/square/useSquareDemo";
 import { SQUARE_SUPER_KEY } from "../../demo/scenes/square/squareKeys";
 import { warmKfEngine } from "../../demo/@/utils/kfEngine";
 
@@ -82,14 +82,14 @@ describe("useSquareKeyboard — the arrow/Home nudge", () => {
     });
 });
 
-describe("useSquareAnimations construction", () => {
+describe("useSquareDemo construction", () => {
     beforeAll(async () => {
         await warmKfEngine();
     });
 
     it("owns two per-axis springs; transport superKey stable", () => {
         const scope = effectScope();
-        const anim = scope.run(() => useSquareAnimations(ref(null)))!;
+        const anim = scope.run(() => useSquareDemo(ref(null)))!;
         expect(anim.springX).toBeInstanceOf(SpringProgress);
         expect(anim.springY).toBeInstanceOf(SpringProgress);
         expect(SQUARE_SUPER_KEY).toBe("Square");

@@ -5,8 +5,9 @@
  * pinned in the room; the die turns under it, faces toward the key light
  * brighten). The `faceLit`/`euler` computeds are pure functions of the live
  * rotation, so they assert deterministically without a rAF. References the
- * scene's animation-name registry (`useCubeAnimations`) + transport key
- * (`cubeKeys`) so a rename reds here.
+ * scene's animation-name registry (`useCubeDemo`, renamed from
+ * `useCubeAnimations` at S.D4, C-17) + transport key (`cubeKeys`) so a rename
+ * reds here.
  */
 import { describe, expect, it } from "vitest";
 import { mat4 } from "gl-matrix";
@@ -16,7 +17,7 @@ import { FACE_NORMALS, useCubeRelit } from "../../demo/scenes/cube/useCubeRelit"
 import {
     CUBE_ANIMATION_NAMES,
     SUPER_KEY,
-} from "../../demo/scenes/cube/useCubeAnimations";
+} from "../../demo/scenes/cube/useCubeDemo";
 import { CUBE_SUPER_KEY } from "../../demo/scenes/cube/cubeKeys";
 
 const restTransform = (rotate = { x: 0, y: 0, z: 0 }): TransformState => ({

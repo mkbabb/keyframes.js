@@ -82,7 +82,7 @@ import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTempla
 import { Card } from "@mkbabb/glass-ui";
 import { kfEngine } from "@utils/kfEngine";
 import { useDragScrub } from "@composables/useDragScrub";
-import { useSquareAnimations } from "./useSquareAnimations";
+import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
 import { SQUARE_SUPER_KEY } from "./squareKeys";
@@ -119,7 +119,7 @@ const tumbleHintShown = ref(false);
 let hasDragged = false;
 
 const { anim, springX, springY, reseat, settle, travel, paintRest, tumble, dispose } =
-    useSquareAnimations(
+    useSquareDemo(
         box,
         () => {
             // The barrel-roll has come to rest — return the Play button to its idle

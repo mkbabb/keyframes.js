@@ -4,7 +4,7 @@ import { AnimationGroup } from "@src/animation/group";
 import { ValueUnit } from "@mkbabb/value.js";
 
 // I.W0 diagnostic — does the cube AnimationGroup composite actually WRITE a
-// transform to its target across t? Mirrors demo/cube/useCubeAnimations.ts
+// transform to its target across t? Mirrors demo/scenes/cube/useCubeDemo.ts
 // (Rotations rotateY 0→1turn + rotateZ 0→360deg, with an unset var(--rotationX)
 // on rotateX). If the group composites a real transform, the target's
 // style.transform must take ≥3 distinct values across the timeline.

@@ -103,7 +103,7 @@ const STATIC_EGGS = [
     },
     {
         scene: "square",
-        file: "scenes/square/useSquareAnimations.ts",
+        file: "scenes/square/useSquareDemo.ts",
         tokens: [/tumble/, /SpringProgress|transformFunc|rotate/],
         triggerFile: "scenes/square/SquareScene.vue",
         triggerTokens: [/@dblclick="tumble"/],

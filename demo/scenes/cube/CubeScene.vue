@@ -53,7 +53,7 @@ import CubeTarget from "./CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";
 import { useTransformState } from "./matrix-editor/useTransformState";
-import { useCubeAnimations, SUPER_KEY } from "./useCubeAnimations";
+import { useCubeDemo, SUPER_KEY } from "./useCubeDemo";
 import { useCubeTransform } from "./cubeTransformStore";
 
 const superKey = SUPER_KEY;
@@ -76,7 +76,7 @@ const {
     resetMatrix,
 } = useTransformState(isPlaying, isStarted, cubeElRef, useCubeTransform().value);
 
-const { animationGroup, setTargets } = useCubeAnimations(
+const { animationGroup, setTargets } = useCubeDemo(
     matrix3dStart,
     matrix3dEnd,
 );

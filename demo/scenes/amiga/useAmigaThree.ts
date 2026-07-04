@@ -5,8 +5,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { tesselateSphere } from "./utils";
-import { BOUNCE, BOX_SIZE, SPHERE_HOME } from "./useAmigaAnimations";
-import type { BounceScale } from "./useAmigaAnimations";
+import { BOUNCE, BOX_SIZE, SPHERE_HOME } from "./useAmigaDemo";
+import type { BounceScale } from "./useAmigaDemo";
 
 /**
  * R.W6-decomp — the amiga scene's Three.js room (renderer · scene · camera ·
@@ -21,9 +21,9 @@ import type { BounceScale } from "./useAmigaAnimations";
  * work via the `onFrame` hook the present loop calls each frame.
  *
  * SPHERE_HOME / BOUNCE / BOX_SIZE are the ONE centred-home + authored-amplitude
- * authority (useAmigaAnimations); the bounce-fit scale is derived here from the
+ * authority (useAmigaDemo); the bounce-fit scale is derived here from the
  * canonical camera (subject = pivot = framing — the framing owner owns the fit)
- * and read by useAmigaAnimations through the `getBounceScale` seam.
+ * and read by useAmigaDemo through the `getBounceScale` seam.
  */
 
 // J.W7a S1 (D3 · fix-round 1) — BOUNCE-AWARE framing. The D3 protagonist reframe
@@ -48,7 +48,7 @@ export interface AmigaThreeHandle {
     setup(): void;
     /** The boing-ball mesh (the interactive subject). Undefined before mount. */
     getSphere(): ReturnType<typeof tesselateSphere>;
-    /** The per-axis frustum-fit bounce scale (read by useAmigaAnimations). */
+    /** The per-axis frustum-fit bounce scale (read by useAmigaDemo). */
     getBounceScale(): BounceScale;
     /** The live camera (the sphere-spin gesture raycasts against it). */
     getCamera(): THREE.PerspectiveCamera | undefined;
