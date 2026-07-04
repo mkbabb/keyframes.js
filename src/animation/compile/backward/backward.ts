@@ -63,6 +63,7 @@ import type { CompileChild, CompileInput } from "./backward-walk";
 import {
     animationComposition,
     animationShorthand,
+    densifiedKeyframesBlock,
     keyframesBlock,
     premultipliedKeyframesBlock,
 } from "./format";
@@ -250,9 +251,11 @@ function compileChild<V extends Vars>(
     }
 
     // CC-2 — densify a color track into perceptual oklab() stops, gated on ΔE-ε.
+    // EN-b (S.B3) — `densifyColorBlock` now returns the RAW per-percentage color
+    // stops (`{ byPct, keys }`), NOT a finished color-only block (the dead `name`
+    // param is gone); `compileChild` merges them WITH the declared non-color decls.
     const densify = densifyColorBlock(
         animation,
-        name,
         opts.densifyStops ?? DEFAULT_DENSIFY_STOPS,
         opts.deltaEEpsilon ?? DEFAULT_DELTA_E_EPSILON,
     );
@@ -298,12 +301,14 @@ function compileChild<V extends Vars>(
     }
 
     // CC-1 — the @keyframes block: the static-weight pre-multiply (CC-5), else the
-    // densified color block (CC-2), else the verbatim declared-template projection
-    // + the animation shorthand (reverseAnimationShorthand).
+    // EN-b PERCENTAGE-keyed MERGE of the densified color stops WITH the declared
+    // non-color projection (CC-2 densify threaded through `densifiedKeyframesBlock`
+    // — a mixed track keeps opacity/transform), else the verbatim declared-template
+    // projection + the animation shorthand (reverseAnimationShorthand).
     const block =
         staticBlock ??
-        (densify && "block" in densify
-            ? densify.block
+        (densify && "byPct" in densify
+            ? densifiedKeyframesBlock(animation, name, densify)
             : keyframesBlock(animation, name));
 
     // The per-child `animation` shorthand; `serializeEasing` THROWS for a custom

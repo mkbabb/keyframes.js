@@ -142,9 +142,18 @@ const colorValueAt = <V extends Vars>(
 
 // ── CC-2 the densify (the ship-vs-refuse decision) ────────────────────────────
 
-/** The densify result: a ready `@keyframes` block, a refusal, or no-densify. */
+/**
+ * The densify result (EN-b, S.B3 — return contract CHANGED). NO LONGER a finished
+ * color-ONLY `@keyframes` block (`{ block }`) — instead the RAW per-percentage
+ * color declarations (`byPct`) + the CHANGING color `keys`. The whole-block swap
+ * dropped every non-color property (`opacity`/`transform`) on a mixed track (P2-2
+ * F5); `compileChild` now threads these into a percentage-keyed MERGE
+ * (`densifiedKeyframesBlock`) WITH the declared non-color projection. `keys` also
+ * lets EN-b preserve STATIC (unchanging) colors (not in `keys` → ride the verbatim
+ * declared projection), which the whole-block swap could not distinguish.
+ */
 export type DensifyResult =
-    | { block: string }
+    | { byPct: Map<number, string[]>; keys: string[] }
     | { refused: true; delta: number }
     | null;
 
@@ -198,12 +207,19 @@ function densifyKey<V extends Vars>(
             stops.push({ pct: round(pct), css: colorToOklabCSS(ramp[s]!) });
         }
         // ── THE ΔE PROOF (the ship-vs-refuse decision) ──────────────────────
+        // S.B3 S4 (a18 F4) — the 1024-sample REFERENCE ramp is LOOP-INVARIANT over
+        // the midpoint scan (it depends only on the from/to color pair + space),
+        // so hoist it ONCE per declared stop-pair instead of re-sampling per `s`
+        // (~15× fewer samples at the default 16-stop densify). REPLAY-EQUALITY-
+        // VERIFIED: the sampled values are byte-identical, only the sample COUNT
+        // drops — the emitted stops + worstDelta are unchanged.
+        const kfRefRamp = sampleColorRamp(fromColor, toColor_, 1024, {
+            space,
+            ...hueOpt,
+        });
         for (let s = 0; s + 1 < ramp.length; s++) {
             const tMid = (s + 0.5) / (ramp.length - 1);
-            const kfMid = sampleColorRamp(fromColor, toColor_, 1024, {
-                space,
-                ...hueOpt,
-            })[Math.round(tMid * 1023)]!;
+            const kfMid = kfRefRamp[Math.round(tMid * 1023)]!;
             const browserMid = channelMidpoint(ramp[s]!, ramp[s + 1]!);
             worstDelta = Math.max(worstDelta, colorDeltaE(browserMid, kfMid));
         }
@@ -237,11 +253,18 @@ function densifyKey<V extends Vars>(
  * track ships ONLY if EVERY key holds under ΔE-ε, else it refuses. No new refusal
  * reason: the existing `perceptual-oklab` decision covers the worst-case key.
  *
- * Returns `{ block }` (the densified `@keyframes` string) when EVERY changing
- * color key ships under ΔE-ε, `{ refused: true, delta }` when ANY key drifts past
- * the threshold (the worst-case key), or `null` when no color densify applies
- * (the caller falls back to the verbatim declared block — exact when there is no
- * color interpolation).
+ * EN-b (S.B3, P2-2 F5) — return contract CHANGED. Returns the RAW per-percentage
+ * color declarations (`{ byPct, keys }`) when EVERY changing color key ships under
+ * ΔE-ε — NOT a finished color-ONLY `@keyframes` block. `compileChild` threads
+ * `byPct` into a percentage-keyed MERGE ({@link format.densifiedKeyframesBlock})
+ * WITH the declared NON-color projection, so a mixed `opacity+transform+color`
+ * track no longer compiles to a color-only artifact (the whole-block swap dropped
+ * every non-color property, ⚠ replay-inequality on the SHIPPED surface). `{
+ * refused: true, delta }` when ANY key drifts past the threshold (the worst-case
+ * key); `null` when no color densify applies (the caller emits the verbatim
+ * declared block — exact when there is no color interpolation). The dead `name`
+ * param is EXCISED (§5.2 cleanup — the merge, not this producer, owns block
+ * assembly now).
  *
  * The ΔE proof: the platform interpolates BETWEEN the emitted `oklab()` stops by
  * a per-channel lerp (NOT kf's perceptual curve). The densify is faithful iff
@@ -254,7 +277,6 @@ function densifyKey<V extends Vars>(
  */
 export function densifyColorBlock<V extends Vars>(
     animation: KeyframesAnimation<V>,
-    name: string,
     n: number,
     epsilon: number,
 ): DensifyResult {
@@ -292,9 +314,10 @@ export function densifyColorBlock<V extends Vars>(
     // intervals), so the merge is a clean per-percentage declaration accumulation.
     let worstDelta = 0;
     // pct → ordered list of `cssProp: css` declarations (insertion-ordered by
-    // key, then by percentage within each key's pass).
+    // key, then by percentage within each key's pass). Returned RAW (EN-b): the
+    // caller's `densifiedKeyframesBlock` merges these WITH the declared non-color
+    // decls per percentage and owns the final stop ordering.
     const byPct = new Map<number, string[]>();
-    const pctOrder: number[] = [];
     for (const key of colorKeys) {
         const traced = densifyKey(animation, key, stopCount, space, hueOpt);
         worstDelta = Math.max(worstDelta, traced.worstDelta);
@@ -303,7 +326,6 @@ export function densifyColorBlock<V extends Vars>(
             if (!decls) {
                 decls = [];
                 byPct.set(pct, decls);
-                pctOrder.push(pct);
             }
             decls.push(`${traced.cssProp}: ${css};`);
         }
@@ -313,13 +335,7 @@ export function densifyColorBlock<V extends Vars>(
         return { refused: true, delta: worstDelta };
     }
 
-    // Emit the merged block in ascending percentage order (a stable, canonical
-    // stop ordering the re-parse reads identically).
-    pctOrder.sort((p, q) => p - q);
-    let body = "";
-    for (const pct of pctOrder) {
-        const decls = byPct.get(pct)!;
-        body += `${pct}% {\n  ${decls.join("\n  ")}\n}\n`;
-    }
-    return { block: `@keyframes ${name} {\n${body}}` };
+    // EN-b — return the raw per-percentage color declarations + the CHANGING
+    // color keys (the caller merges them WITH the declared non-color projection).
+    return { byPct, keys: colorKeys };
 }

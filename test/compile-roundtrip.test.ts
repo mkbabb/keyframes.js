@@ -546,3 +546,88 @@ describe("L.W2 S3 — a STATIC-weight layer pre-multiplies into accumulate (CC-5
         expect(wob.parsedVars[1]).toBeDefined();
     });
 });
+
+// ── S.B3 EN-a / EN-b — the P2-2 shipped-artifact correctness fixes ─────────────
+// The jsdom-viable STRING halves (fast local bite). The BROWSER halves — EN-a's
+// `animation-name !== none` (jsdom's getComputedStyle does NOT drop an invalid
+// `animation` shorthand, so the bug is INVISIBLE in jsdom — precisely why P2-2 F6
+// evaded every existing jsdom round-trip gate) and EN-b's prop-animates — ride the
+// browser-harness gate (`proof:compile-browser-parse` + `test/en-fix-oracle`).
+
+describe("S.B3 EN-a — serializeEasing CSS-twin (P2-2 F6, string half)", () => {
+    it("a registry easing (easeOutCubic) emits a linear() twin, NOT a browser-dead `ease-out-cubic` token", async () => {
+        const a = mkAnim(
+            "a0",
+            `@keyframes a0 { 0% { opacity: 0 } 100% { opacity: 1 } }`,
+            { duration: 250, timingFunction: "easeOutCubic" },
+        );
+        const out = await compileToCSS(new AnimationGroup({ animation: a }));
+        expect(out.eligible).toBe(true);
+        // The `.class` rule must NOT carry the browser-INVALID registry token —
+        // the exact PRE-fix RED signature (P2-2, live-proven browser-dead).
+        expect(out.css).not.toMatch(/animation:[^;{]*\bease-out-cubic\b/);
+        // …it carries the browser-VALID `linear()` twin instead.
+        expect(out.css).toMatch(/linear\(/);
+    });
+
+    it("a NATIVE keyword easing (ease-out) still rides verbatim (byte-minimal fast-path)", async () => {
+        const a = mkAnim(
+            "a2",
+            `@keyframes a2 { 0% { opacity: 0 } 100% { opacity: 1 } }`,
+            { duration: 250, timingFunction: "ease-out" },
+        );
+        const out = await compileToCSS(new AnimationGroup({ animation: a }));
+        expect(out.eligible).toBe(true);
+        expect(out.css).toMatch(/animation:[^;{]*\bease-out\b/);
+    });
+});
+
+describe("S.B3 EN-b — mixed-track densify body-drop (P2-2 F5, string half)", () => {
+    it("a mixed opacity+transform+background-color track keeps ALL declared props (not color-only)", async () => {
+        const b = mkAnim(
+            "a1",
+            `@keyframes a1 {
+                0% { background-color: crimson; opacity: 0; transform: translateY(20px) }
+                100% { background-color: gold; opacity: 1; transform: translateY(0px) }
+            }`,
+            { duration: 400 },
+        );
+        // densifyStops: 24 so the modest red→gold arc SHIPS under ΔE-ε (isolating
+        // the prop-drop from a densify refusal).
+        const out = await compileToCSS(new AnimationGroup({ animation: b }), {
+            densifyStops: 24,
+        });
+        expect(out.eligible).toBe(true);
+        const block = keyframesOf(out.css, "a1");
+        // The PRE-fix artifact matched /background-color/ but NOT /opacity/ (the
+        // whole-block swap dropped every non-color prop). Post-fix: ALL three.
+        expect(block).toMatch(/background-color/);
+        expect(block).toMatch(/opacity/);
+        expect(block).toMatch(/transform/);
+        // The endpoints carry the non-color props; the intermediate densified
+        // stops stay color-only (a property interpolates only across the stops
+        // that DECLARE it) — so the block still carries the dense oklab() ramp.
+        const oklabStops = block.match(/oklab\(/g) ?? [];
+        expect(oklabStops.length).toBeGreaterThanOrEqual(12);
+    });
+
+    it("preserves a STATIC (unchanging) color alongside a changing one", async () => {
+        const b = mkAnim(
+            "a3",
+            `@keyframes a3 {
+                0% { color: black; background-color: crimson; opacity: 0 }
+                100% { color: black; background-color: gold; opacity: 1 }
+            }`,
+            { duration: 400 },
+        );
+        const out = await compileToCSS(new AnimationGroup({ animation: b }), {
+            densifyStops: 24,
+        });
+        expect(out.eligible).toBe(true);
+        const block = keyframesOf(out.css, "a3");
+        // The changing background-color densifies; the STATIC `color` (not in the
+        // densify keys) rides the verbatim declared projection — never dropped.
+        expect(block).toMatch(/color:\s*black|color:\s*rgb\(0/i);
+        expect(block).toMatch(/opacity/);
+    });
+});

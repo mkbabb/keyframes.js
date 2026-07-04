@@ -18,27 +18,68 @@ import type {
     AnimationOptions,
     CompositeOperator,
     Easing,
+    TimingFunction,
     Vars,
 } from "../../constants";
 import { AnimationOptionError } from "../../internal/errors";
 import type { ParsedVarMap } from "../parse-flatten";
 
 /**
- * Serialize an `Easing` to its CSS `animation-timing-function` token (F.W7).
- * A CSS-twinned easing emits its faithful CSS string VERBATIM (a spring's
- * `linear()`, a `cubic-bezier()` literal) — it is already CSS and must NOT be
- * hyphenated (`camelCaseToHyphen` would mangle any uppercase). Otherwise the
- * callable is reverse-looked-up in the registry and the camelCase key is
- * hyphenated (`easeOutCubic` → `ease-out-cubic`). Factored so both the
- * top-level options serializer and the per-keyframe emitter share ONE faithful
- * easing→CSS path (the round-trip symmetry the serializer lacked).
+ * EN-a (S.B3, P2-2 F6) — the SIX native-CSS `<easing-function>` keywords. A
+ * registry name serializes VERBATIM only when its hyphenation IS one of these; a
+ * `hyphenated` registry name outside this set (`ease-out-cubic`, `ease-in-quart`,
+ * …) is NOT a CSS keyword and the browser drops the whole `animation` shorthand
+ * (`animation-name: none`), so the emitted `@keyframes` artifact was browser-DEAD.
+ */
+const NATIVE_CSS_EASING =
+    /^(linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end)$/;
+
+/** Round to 5 decimals — the `linear()` stop-value / percentage quantization. */
+const round5 = (n: number): number => Math.round(n * 1e5) / 1e5;
+
+/**
+ * EN-a (S.B3, P2-2 F6) — the UNIVERSAL CSS twin: densify a `TimingFunction`
+ * callable into a browser-valid `linear()` easing over `n + 1` evenly-spaced
+ * samples. This is the SOLE twin mechanism (NOT a partial closed-form
+ * `cubic-bezier()` table): most Penner curves (cubic/quart/quint/expo/circ) are
+ * not a single bezier, and elastic/bounce are multi-oscillation with no bezier at
+ * all — a partial table would be a faithfulness trap. `linear(n=32)` is faithful
+ * for ALL of them, overshoot curves emit stop values outside `[0,1]` (which
+ * `linear()` permits), percentages are monotone so the stop list is always
+ * grammar-valid, and the emitted `linear(` re-parses to a `.css`-carrying FIXPOINT
+ * (`css-animation.ts` `cssTwinFor` matches the `linear(` prefix) — serialize →
+ * parse → serialize is stable.
+ */
+function linearDensifyEasing(fn: TimingFunction, n = 32): string {
+    const stops: string[] = [];
+    for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        stops.push(`${round5(fn(t))} ${round5(t * 100)}%`);
+    }
+    return `linear(${stops.join(", ")})`;
+}
+
+/**
+ * Serialize an `Easing` to its CSS `animation-timing-function` token (F.W7,
+ * EN-a-hardened). A CSS-twinned easing emits its faithful CSS string VERBATIM (a
+ * spring's `linear()`, a `cubic-bezier()` literal) — it is already CSS. Otherwise
+ * the callable is reverse-looked-up in the registry:
+ *   • a registry name whose hyphenation IS a native CSS keyword
+ *     (`NATIVE_CSS_EASING`: `linear`/`ease`/`ease-in`/`ease-out`/`ease-in-out`/
+ *     `step-start`/`step-end`) rides VERBATIM (byte-minimal + already browser-valid);
+ *   • EVERY OTHER registry easing (`easeOutCubic` → `ease-out-cubic`, …) emits its
+ *     `linear()` DENSIFY twin — because the hyphenated registry name is NOT a CSS
+ *     `<easing-function>`, so the browser drops the whole `animation` shorthand
+ *     (`animation-name: none`) and the shipped `@keyframes` is browser-DEAD (P2-2
+ *     F6, live-proven against the unmodified dist). The kf parser re-reads the
+ *     registry name happily — which is why every round-trip gate stayed green: the
+ *     artifact round-trips through KF but NOT through the BROWSER.
  *
- * A custom closure has no faithful CSS `animation-timing-function` twin (G.W4):
- * when the easing carries no `.css` and is NOT a value.js registry entry, the
- * curve is genuinely unrepresentable in CSS. The Mandate's rule for a real
- * structural limit is fail-EXPLICIT — THROW naming the option + the faithful
- * remedies, rather than silently emitting a WRONG `"linear"` that discards the
- * curve (the silent contract-mask the prior `?? "linear"` was).
+ * A custom closure has no faithful CSS twin (G.W4): when the easing carries no
+ * `.css` and is NOT a value.js registry entry, the curve is genuinely
+ * unrepresentable — fail-EXPLICIT (THROW naming the option + the faithful
+ * remedies), never a silent WRONG emit. The THROW is PRESERVED for twinless
+ * closures.
  */
 export function serializeEasing(easing: Easing): string {
     if (easing.css !== undefined) return easing.css;
@@ -54,7 +95,12 @@ export function serializeEasing(easing: Easing): string {
                 "registry name / cubic-bezier() / linear() literal",
         );
     }
-    return camelCaseToHyphen(registryName);
+    const hyphenated = camelCaseToHyphen(registryName);
+    // A registry name whose hyphenation IS a native CSS keyword rides verbatim
+    // (byte-minimal, already faithful + browser-valid). Every other registry
+    // easing hyphenates to a NON-CSS token — emit its `linear()` twin (EN-a).
+    if (NATIVE_CSS_EASING.test(hyphenated)) return hyphenated;
+    return linearDensifyEasing(easing.fn);
 }
 
 const DEFAULT_WIDTH = 80;
@@ -270,6 +316,122 @@ export function keyframesBlock<V extends Vars>(
         stops += `${percents.join(", ")} ${body}\n`;
     }
 
+    return `@keyframes ${name} {\n${stops}}`;
+}
+
+/**
+ * EN-b (S.B3) — a template stop's selector `ValueUnit` → its numeric percent
+ * (`50%` → 50). The SAME parse `backward-color.ts`'s `percentOf` uses for the
+ * densify endpoints, so the merge keys align byte-for-byte with the densified
+ * color stops. `from`/`to`/percentage selectors all carry `<n>%` after parse.
+ */
+const percentOfStart = (start: ValueUnit): number => {
+    const m = /([\d.]+)\s*%/.exec(String(start));
+    return m ? parseFloat(m[1]!) : 0;
+};
+
+/**
+ * EN-b (S.B3) — the DECLARED non-color projection for stop `i`, EXCLUDING the
+ * `exclude` keys (the densify's CHANGING color keys). Mirrors
+ * {@link declaredKeyframeBody}'s declaration + per-stop easing/composition emit,
+ * but drops every excluded key so a mixed track's `opacity`/`transform`/STATIC-
+ * color declarations ride the merge at their DECLARED percentages while the
+ * changing colors ride the densified `oklab()` stops. A property interpolates
+ * only across the stops that DECLARE it, so leaving the intermediate color-only
+ * stops without `opacity`/`transform` interpolates them linearly between the
+ * declared endpoints exactly as the whole-block swap SHOULD have (P2-2 F5).
+ */
+function declaredDeclsExcluding<V extends Vars>(
+    animation: KeyframesAnimation<V>,
+    i: number,
+    defaultEasing: string,
+    exclude: ReadonlySet<string>,
+): string[] {
+    const declared: ParsedVarMap = animation.parsedVars[i] ?? {};
+    const kept = Object.fromEntries(
+        Object.entries(declared).filter(([key]) => !exclude.has(key)),
+    );
+    const decls = Object.entries(unflattenObjectToString(kept)).map(
+        ([propName, v]) => `${camelCaseToHyphen(propName)}: ${v};`,
+    );
+
+    const templateFrame = animation.templateFrames[i]!;
+    const frameEasing = templateFrame.timingFunction
+        ? serializeEasing(templateFrame.timingFunction)
+        : defaultEasing;
+    if (frameEasing !== defaultEasing) {
+        decls.push(`animation-timing-function: ${frameEasing};`);
+    }
+    const composition = templateFrame.composition;
+    if (composition != null && composition !== "replace") {
+        decls.push(`animation-composition: ${composition};`);
+    }
+    return decls;
+}
+
+/**
+ * EN-b (S.B3, P2-2 F5) — the PERCENTAGE-keyed densify MERGE. `densifyColorBlock`
+ * (`backward-color.ts`) returns the raw per-percentage CHANGING-color declarations
+ * (`byPct`) + the changing color `keys`; this merges them WITH the declared
+ * NON-color projection ({@link declaredDeclsExcluding}) into ONE `@keyframes`
+ * block — so a mixed `opacity+transform+background-color` track no longer compiles
+ * to a color-ONLY artifact (the whole-block swap `compileChild` did dropped every
+ * non-color property silently, ⚠ replay-inequality on the SHIPPED surface).
+ *
+ * REFINEMENT of the spec's "thread through `keyframesBlock`'s `bodyByStop`":
+ * `bodyByStop` is keyed by stop INDEX (iterating `templateFrames`) and structurally
+ * cannot hold the densify's INTERMEDIATE percentage stops (16–24 `oklab()` stops
+ * between each declared pair). So the merge is PERCENTAGE-keyed — the correct
+ * realization of the SAME intent (color stops merged WITH the declared non-color
+ * decls). The changing colors ride the densified stops (excluded from the declared
+ * projection); every other declared key (`opacity`/`transform`/STATIC colors +
+ * per-stop easing/composition) rides its verbatim declared projection at the
+ * declared template percentages.
+ */
+export function densifiedKeyframesBlock<V extends Vars>(
+    animation: KeyframesAnimation<V>,
+    name: string,
+    densify: {
+        byPct: ReadonlyMap<number, readonly string[]>;
+        keys: readonly string[];
+    },
+): string {
+    const defaultEasing = serializeEasing(animation.options.timingFunction);
+    const exclude = new Set(densify.keys);
+
+    const byPct = new Map<number, string[]>();
+    const order: number[] = [];
+    const ensure = (pct: number): string[] => {
+        let decls = byPct.get(pct);
+        if (!decls) {
+            decls = [];
+            byPct.set(pct, decls);
+            order.push(pct);
+        }
+        return decls;
+    };
+
+    // 1. the densified CHANGING-color stops (endpoints + intermediate oklab stops).
+    for (const [pct, decls] of densify.byPct) ensure(pct).push(...decls);
+
+    // 2. the declared NON-color projection at each template stop's percentage.
+    animation.templateFrames.forEach((templateFrame, i) => {
+        const lines = declaredDeclsExcluding(
+            animation,
+            i,
+            defaultEasing,
+            exclude,
+        );
+        if (lines.length > 0) {
+            ensure(percentOfStart(templateFrame.start)).push(...lines);
+        }
+    });
+
+    order.sort((a, b) => a - b);
+    let stops = "";
+    for (const pct of order) {
+        stops += `${pct}% {\n  ${byPct.get(pct)!.join("\n  ")}\n}\n`;
+    }
     return `@keyframes ${name} {\n${stops}}`;
 }
 
