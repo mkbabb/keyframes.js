@@ -99,24 +99,50 @@ import { actuationNamesOf, missingHarnessAnchors } from "./lib/gate-shape.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPTS_DIR = path.join(REPO, "scripts");
-// THE CANONICAL SUBSTRATE (R.W8 §S1 — the substrate TRANSITION Q→R): the R-tranche
-// PROGRESS.md `## Open deferrals` ledger SUPERSEDES the Q table in the SAME motion the
-// R ledger becomes authoritative (the Q→R re-point — the no-skip discipline the
-// M.WZ/O.WZ/P.WZ re-points violated; Q re-pointed L→Q directly after that 3-tranche
-// skip, and R re-points Q→R atomically at close so the next tranche inherits a GREEN,
-// accurate substrate). The R ledger re-states every prior chronic with its R-terminal
-// disposition + chronicity integer so none drops across the transition; DM-7 is
-// re-stated as an owner-ratified KILL (R.W0 `23a6867`), the dangling
-// proof-keyframes-vue-published reference EXCISED. The Q/L/K/J/I/H tables remain
-// narrative history. This is the ONE path constant the R close re-points; the grammar
-// is unchanged (the R substrate honors the Q flat-table shape + the DM-N coverage
-// tokens) so the gate BITES on the R substrate — never a vacuous swap. The R.W8
-// substrate transition (re-point Q→R) was proven non-vacuous before this re-point:
-// three deliberately-malformed R-ledger rows (a FOLD citing a source-shape gate; a
-// HANDOFF targeting an unpublished future version; a ≥4-tranche bare BOOK) RED on the
-// three clause shapes, then the clean terminal R ledger GREENed it. The R ledger is
-// the authoritative parse target for `proof:chronic-closure` from R.W8 forward.
-const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/R/PROGRESS.md");
+// THE CANONICAL SUBSTRATE (S.A1 — the substrate TRANSITION R→S): the S-tranche
+// PROGRESS.md `## Open deferrals` ledger SUPERSEDES the R table in the SAME motion the
+// S ledger becomes authoritative (the R→S re-point — the no-skip discipline the
+// M.WZ/O.WZ/P.WZ re-points violated). Every open-at-R-close item is re-stated here with
+// its S disposition + a chronicity integer incremented for the R→S carry, so none drops
+// across the transition; the five already-ratified R KILL/RECORD terminals (DM-7, DM-1,
+// DM-5 S1, DQ-3, VJ-Q9) are excluded by definition. The R/Q/L/K/J/I/H tables remain
+// narrative history.
+//
+// ── THE SHAPE SHIFT (why the grammar EVOLVES with the substrate, not a vacuous swap) ──
+// The R ledger was a RETROSPECTIVE board of CLOSED chronics — every kf-runtime-closing
+// row cited the RUNTIME gate that ALREADY BIT. The S ledger is the FORWARD disposition
+// board: most FOLD rows cite a born-RED gate their owning wave AUTHORS later, or a
+// source-shape structural gate that is the legitimate closure oracle for a structural
+// chronic. So the runtime-gate-that-BIT contract (rules 1–4) is a WHOLE-TRANCHE closure
+// contract that discharges as each owning wave lands its gate; this meta-gate ships
+// BORN-RED on the forward plan and GREENs only when re-run on the merged tree at S.Z2
+// (T4). That is by DESIGN — the enumerated born-RED backlog, S.A0's keystone model.
+//
+// ── S.A1 THE SUBSTANCE RE-SHAPE (C-20 / SA-6 / T3-extended x2-#8 — the gate teeth) ──
+// C-20 redefines "terminal" STRUCTURALLY: a terminal disposition is ONLY (a) a
+// DETERMINISTIC re-shaped gate — device dependence folded OUT so the gate REDs honestly
+// on ANY runner — or (b) an owner-ratified KILL. "VERIFY-ONLY", "RE-AFFIRM", "WATCH",
+// observe-in-CI, and every re-verify verb are the DM-11 ten-tranche mechanism relabelled;
+// a renamed verb alone REDs. Two teeth are added below (see substanceAudit):
+//   • Clause A (SA-6): a `*-TERMINATED` terminal-claim row that cites NEITHER a
+//     deterministic re-shaped gate NOR a ratified-KILL row REDs.
+//   • Clause B (T3 extended to the disposition column — x2-#8): a disposition carrying a
+//     deferral verb (observe/watch/re-affirm/verify) with NO paired re-shape/KILL REDs.
+// THE DEVICE-DEPENDENCE DISCRIMINATOR IS macOS REPRODUCTION (SA-7, SPEC §8-19): the
+// "re-run on the REAL runner" language and the Linux-container / act reproduction
+// apparatus are DROPPED — a red that reproduces on fast macOS is a fix-by-cause surface,
+// not a device plane; a "deterministic re-shape" folds device dependence OUT so the gate
+// REDs honestly on any runner (macOS included).
+//
+// THE PARSE SHAPE IS SACRED: the section heading is EXACTLY `## Open deferrals`; the rows
+// are ONE flat table; every data row carries EXACTLY the header's cell count (6 for the
+// S/R/Q shape) — a wrong cell count (a dropped column or a literal `|` leaked into a
+// cell — spell it "or") REDs via the [S.A1-parse-shape] tripwire below. The R→S transition
+// was proven non-vacuous before this re-point: a malformed-cell-count row AND a
+// `*-TERMINATED` row citing nothing each RED, then the clean S ledger left the substance
+// + parse-shape clauses silent (the runtime backlog is the born-RED remainder). The S
+// ledger is the authoritative parse target for `proof:chronic-closure` from S.A1 forward.
+const CHRONIC_LEDGER = path.join(REPO, "docs/tranches/S/PROGRESS.md");
 const PKG = path.join(REPO, "package.json");
 
 const failures = [];
@@ -128,8 +154,10 @@ const fail = (msg) => {
 };
 
 console.log(
-    "proof:chronic-closure — I.W7 S4 (REWIRED): every chronic exits via a RUNTIME gate that BIT — " +
-        "opens a browser AND actuates AND was witnessed born-RED — not a source-shape / load-rest / proxy gate",
+    "proof:chronic-closure — I.W7 S4 + S.A1 (S substrate): every kf-runtime closure exits via a RUNTIME gate that BIT, " +
+        "AND the S.A1 substance clause holds — a *-TERMINATED terminal-claim cites a deterministic re-shaped gate or a " +
+        "ratified KILL, and no disposition launders a deferral verb (C-20/SA-6/T3-x2-#8; macOS reproduction is the " +
+        "device-dependence discriminator, the Linux-container apparatus DROPPED)",
 );
 
 // ── The authored gate set + the tiered chains ─────────────────────────────────
@@ -220,6 +248,7 @@ function parseChronicTable(file, label) {
     const rows = [];
     let started = false;
     let cols = null;
+    let headerWidth = 0; // S.A1 — the sacred cell count fixed by the header row.
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
         const t = line.trim();
@@ -232,10 +261,11 @@ function parseChronicTable(file, label) {
             continue;
         }
         const cells = t.split("|").slice(1, -1).map((c) => c.trim());
-        if (cells.length < 3) continue;
-        // The header row — resolve the semantic columns by header text.
+        // The header row — resolve the semantic columns by header text AND fix the
+        // sacred width (every data row below must carry EXACTLY this many cells).
         if (cols == null && (/^chronic$/i.test(cells[0]) || /\bitem\b/i.test(cells[0]))) {
             cols = resolveColumns(cells);
+            headerWidth = cells.length;
             started = true;
             continue;
         }
@@ -244,7 +274,23 @@ function parseChronicTable(file, label) {
             started = true;
             continue;
         }
+        // Before the header is resolved, skip stray/narrow pre-table pipe lines.
+        if (cols == null) {
+            if (cells.length < 3) continue;
+        }
         started = true;
+        // THE PARSE SHAPE IS SACRED (S.A1) — once the header fixes the width, every
+        // data row must carry EXACTLY that many cells. A wrong cell count is a dropped
+        // column OR a literal `|` leaked into a cell (which splits it) — the malformed
+        // row REDs here (the non-vacuity tripwire; the ledger spells "or", never "|").
+        if (cols != null && headerWidth > 0 && cells.length !== headerWidth) {
+            fail(
+                `[S.A1-parse-shape] ${label} §"Open deferrals" has a MALFORMED row: expected ${headerWidth} cells, got ${cells.length} — ` +
+                    `the ledger is ONE flat table of exactly ${headerWidth}-cell rows (no literal "|" inside a cell; spell it "or"). ` +
+                    `Row starts: "${(cells[0] ?? "").slice(0, 70)}…"`,
+            );
+            continue;
+        }
         // Default columns if no header was matched (defensive — I-shape fallback).
         const c = cols ?? { chronic: 0, disposition: -1, closure: cells.length - 1, chronicity: -1 };
         rows.push({
@@ -384,6 +430,70 @@ function closesViaKfRuntimeGate(disp) {
     return DISP.fold(disp) || DISP.verifyOnly(disp);
 }
 
+// ── S.A1 THE SUBSTANCE CLAUSE (C-20 / SA-6 / T3-extended x2-#8 — the gate teeth) ──
+// The R substrate accepted the VERIFY-ONLY / RE-AFFIRM terminal vocabulary as a valid
+// closure merely for carrying the token (DISP.verifyOnly / DISP.reaffirm treat it as
+// exit-shaped). That is the vacuity SA-6 closes: under C-20 a disposition is terminal
+// ONLY if it is a DETERMINISTIC re-shaped gate (device dependence folded OUT — it REDs
+// honestly on ANY runner, macOS included) OR an owner-ratified KILL. A renamed verb
+// alone REDs. These two teeth run over the S ledger IN ADDITION to the runtime-gate
+// contract; on the clean forward-plan S ledger they fire on NOTHING (the FOLD-into-a-
+// wave dispositions are legal deferrals, not terminal claims), so the born-RED remainder
+// is the runtime backlog — a plant is what proves they BITE.
+
+// A terminal CLAIM token — the `*-TERMINATED` vocabulary (VERIFY-ONLY-TERMINATED,
+// RE-AFFIRM-TERMINATED, a bare TERMINATED). Deliberately NOT `terminal` /
+// `terminal-ization`: a FOLD row that PLANS terminalization in a named wave is a legal
+// forward deferral, not a claim of being terminal NOW.
+const TERMINAL_CLAIM = /\bTERMINATED\b/i;
+
+// A deferral verb (T3 extended to the disposition column — x2-#8): observe / watch /
+// re-affirm / verify and their inflections (verified/verifies/re-verifies/observing/…).
+const DEFERRAL_VERB = /\bobserv\w*|\bwatch\w*|\bre-?affirm\w*|\bverif\w*/i;
+
+// The RE-SHAPE marker: the prose that makes a cited gate a DETERMINISTIC re-shaped
+// terminal — device dependence folded OUT so the gate REDs honestly on any runner. A
+// bare gate name is NOT enough (the old vacuity); the re-shape must be asserted.
+const RESHAPE_MARKER =
+    /re-?shaped?|deterministic|relative[\s-]budgets?|structural[\s-]assertions?|folded out|reds? honestly|honest(?:ly)? on any runner|device[\s-]dependence folded/i;
+
+/** Is the row a BACKED terminal — does it cite a deterministic re-shaped gate (a
+ *  backtick `proof:*` name PAIRED with a re-shape marker) OR a ratified KILL? This is
+ *  the C-20 pairing: the ONLY two shapes that satisfy the substance clause. */
+function backedTerminal(disp, closure) {
+    const txt = `${disp} ${closure}`;
+    const reshapedGate = gateNames(txt).length > 0 && RESHAPE_MARKER.test(txt);
+    return reshapedGate || DISP.kill(disp);
+}
+
+/** The S.A1 substance audit for ONE row — pushes into `failures`. */
+function substanceAudit(row) {
+    const disp = row.disposition || "";
+    const closure = row.closure || "";
+    const name = row.chronic.replace(/\*\*/g, "").replace(/★/g, "").trim();
+    // Clause A (SA-6) — a `*-TERMINATED` terminal-claim row must cite a deterministic
+    // re-shaped gate or a ratified-KILL row; a renamed verb alone REDs.
+    if (TERMINAL_CLAIM.test(disp) || TERMINAL_CLAIM.test(closure)) {
+        if (!backedTerminal(disp, closure)) {
+            fail(
+                `[S.A1-substance-A] [${name}] a *-TERMINATED terminal-claim cites NEITHER a deterministic re-shaped gate ` +
+                    `NOR a ratified-KILL row — C-20 forbids observe-in-CI / a renamed verb as a terminal. Cite a re-shaped gate ` +
+                    `(relative budget / structural assertion, device dependence folded OUT so it REDs honestly on any runner) or a ratified KILL.`,
+            );
+        }
+    }
+    // Clause B (T3 extended to the disposition column — x2-#8) — a disposition carrying
+    // a deferral verb (observe/watch/re-affirm/verify) must be PAIRED with a
+    // deterministic re-shape or a KILL; else it is deferral laundering.
+    if (DEFERRAL_VERB.test(disp) && !backedTerminal(disp, closure)) {
+        fail(
+            `[S.A1-substance-B] [${name}] the DISPOSITION "${disp}" carries a deferral verb (observe/watch/re-affirm/verify) ` +
+                `with NO paired deterministic-re-shape or KILL — T3 (no deferral laundering) extended to the S ledger's disposition ` +
+                `column (x2-#8; C-20). Reword to the concrete band (FOLD/KILL/DISPATCH/HANDOFF) or pair it with a re-shaped gate / KILL.`,
+        );
+    }
+}
+
 // ── Audit one row ─────────────────────────────────────────────────────────────
 function auditRow(row, srcLabel) {
     const cell = row.closure;
@@ -505,20 +615,19 @@ function auditRow(row, srcLabel) {
 }
 
 // ── Run ───────────────────────────────────────────────────────────────────────
-const LEDGER_LABEL = "R/PROGRESS.md";
+const LEDGER_LABEL = "S/PROGRESS.md";
 const rows = parseChronicTable(CHRONIC_LEDGER, LEDGER_LABEL);
 if (rows.length === 0 && failures.length === 0) {
     fail(`[substrate] parsed ZERO chronic rows from the ${LEDGER_LABEL} §"Open deferrals" — refusing to pass vacuously`);
 }
 
 // The crash/defect chronics MUST still be present (re-examined, not dropped) on the
-// Q substrate — a chronic silently dropped across the substrate transition is the
-// exact re-classification escape the meta-gate exists to forbid. The Q ledger
-// (Q.WZ §S1) renamed every L-substrate `CH-N` chronic to its DM-N identity; the
-// coverage clause greps the Q DM-N tokens (same no-silent-drop intent, Q vocabulary):
-//   CH-1 → DM-9 (specular)  · CH-2 → DM-10 (typography) · CH-3 → DM-11 (mobile)
-//   CH-4 → DM-12 (dock)     · CH-5 → DM-13 (empty-value) · CH-6 → DM-14 (DFA-suspend)
-//   + scene-control-dfa (DM-15, the net-new I-close chronic, carried unrenamed).
+// S substrate — a chronic silently dropped across the R→S transition is the exact
+// re-classification escape the meta-gate exists to forbid. The DM-N identities carry
+// unchanged from the Q/R substrate; the coverage clause greps the DM-N tokens (same
+// no-silent-drop intent), each of which the S ledger re-states with its S disposition:
+//   DM-9 (specular) · DM-10 (typography) · DM-11 (mobile/spring-slider) · DM-12 (dock)
+//   DM-13 (empty-value) · DM-14 (DFA-suspend) · DM-15 (scene-control-dfa).
 const EXPECTED = [
     { tag: "DM-9 specular (was CH-1)", re: /\bDM-9\b/ },
     { tag: "DM-10 typography (was CH-2)", re: /\bDM-10\b/ },
@@ -536,14 +645,28 @@ for (const e of EXPECTED) {
 
 const audited = rows.map((r) => auditRow(r, LEDGER_LABEL));
 
+// ── S.A1 substance clause pass (C-20 / SA-6 / T3-extended x2-#8) — the gate teeth
+//    that RED a *-TERMINATED terminal-claim citing no re-shaped gate/KILL and a
+//    disposition laundering a deferral verb. On the clean forward-plan S ledger this
+//    fires on NOTHING; a plant is what proves it BITES (non-vacuity). ──────────────
+for (const r of rows) substanceAudit(r);
+
 // ── Report ────────────────────────────────────────────────────────────────────
 if (failures.length) {
-    console.error("\n✗ proof:chronic-closure — the chronic ledger is not closed to RUNTIME discipline:\n");
+    console.error("\n✗ proof:chronic-closure — the S chronic ledger is not closed to RUNTIME + SUBSTANCE discipline:\n");
     console.error(
-        "  The binding rule (Q.WZ substrate): a kf-runtime-closing row (FOLD/VERIFY-ONLY) exits ONLY via\n" +
-            "  a RUNTIME gate (opens a browser AND actuates) that was witnessed born-RED in the correctness\n" +
-            "  tier — OR names its terminal non-gate mechanism. A ≥4-tranche row must EXIT (P-invariant-28).\n" +
-            "  A source-shape / load-rest / proxy gate, a vaporware HANDOFF, or a wrong-axis gate REDS.",
+        "  The binding rules (S substrate): (1) a kf-runtime-closing row (FOLD/VERIFY-ONLY) exits ONLY via a\n" +
+            "  RUNTIME gate (opens a browser AND actuates) witnessed born-RED in the correctness tier — OR names\n" +
+            "  its terminal non-gate mechanism; a ≥4-tranche row must EXIT (P-invariant-28). (2) THE SUBSTANCE\n" +
+            "  CLAUSE (C-20/SA-6/T3-x2-#8): a *-TERMINATED terminal-claim must cite a DETERMINISTIC re-shaped gate\n" +
+            "  or a ratified KILL, and a disposition may not launder a deferral verb (observe/watch/re-affirm/\n" +
+            "  verify) unpaired. (3) THE PARSE SHAPE IS SACRED: exactly 6 cells per row, no literal `|` in a cell.\n" +
+            "  Device-dependence discriminator = macOS reproduction (SA-7); the Linux-container apparatus is DROPPED.\n" +
+            "  A source-shape / load-rest / proxy gate, a vaporware HANDOFF, or a wrong-axis gate REDS.\n\n" +
+            "  NOTE (S.A1 born-RED by design): the S ledger is the FORWARD disposition board — most FOLD rows cite a\n" +
+            "  born-RED gate their owning wave AUTHORS later; the runtime-gate contract discharges as each wave lands\n" +
+            "  its gate, so this meta-gate GREENs only re-run on the merged tree at S.Z2 (T4). The [S.A1-substance-*]\n" +
+            "  and [S.A1-parse-shape] findings above (if any) are the ONLY findings S.A1 owns closing NOW.",
     );
     process.exit(1);
 }
@@ -562,7 +685,7 @@ const BAND = (a) => {
     return "FOLD";
 };
 
-console.log(`\n✓ proof:chronic-closure — the R ledger is TERMINAL; every kf-runtime closure exits via a gate that BIT (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
+console.log(`\n✓ proof:chronic-closure — the S ledger is closed to RUNTIME + SUBSTANCE discipline (${LEDGER_LABEL} §"Open deferrals", ${audited.length} rows):`);
 for (const a of audited) {
     const rt = a.runtimeGates.join(", ");
     const ch = a.chronicity != null ? `[${a.chronicity}t] ` : "";
@@ -571,8 +694,10 @@ for (const a of audited) {
     console.log(`    • ${ch}${a.name} — ${BAND(a)}${ret}${gates}`);
 }
 console.log(
-    "\n  The R substrate TRANSITION is non-vacuous: the gate parses the R ledger by header, reads each row's\n" +
-        "  DISPOSITION band, holds the FOLD/VERIFY-ONLY rows to the runtime-gate-that-BIT contract, enforces\n" +
-        "  the ≥4-tranche EXIT-ONLY mandate off the Chronicity integer, and reds a vaporware HANDOFF — the\n" +
-        "  meta-gate polices the PRODUCT on the new substrate, not the column's paperwork.",
+    "\n  The R→S substrate TRANSITION is non-vacuous: the gate parses the S ledger by header, reads each row's\n" +
+        "  DISPOSITION band, holds the FOLD/VERIFY-ONLY rows to the runtime-gate-that-BIT contract, enforces the\n" +
+        "  ≥4-tranche EXIT-ONLY mandate off the Chronicity integer, reds a vaporware HANDOFF, AND applies the S.A1\n" +
+        "  substance clause (a *-TERMINATED terminal-claim must cite a deterministic re-shaped gate or a ratified\n" +
+        "  KILL; a disposition may not launder a deferral verb — C-20/SA-6/T3-x2-#8) over a sacred 6-cell parse\n" +
+        "  shape — the meta-gate polices the PRODUCT on the new substrate, not the column's paperwork.",
 );

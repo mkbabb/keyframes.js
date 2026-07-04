@@ -310,14 +310,19 @@ jobs:
             # §Hard gate FAILS. HYGIENE-tier itself (it reads gate SCRIPTS) — static, no build.
             - name: "[HYGIENE-meta] proof:gate-is-runtime (I.W7 S6 · S.A4 — every demo-correctness gate is an actuating runtime gate + every library-correctness gate is harness-free · mis-tier reds both ways)"
               run: npm run proof:gate-is-runtime
-            # I.W7 S4 — proof:chronic-closure REWIRED: parse the canonical chronic table
-            # (docs/tranches/I/PROGRESS.md §"Open deferrals", which SUPERSEDES H's) and
-            # assert each row exits via a RUNTIME gate that BIT — its script opens a
-            # browser AND actuates AND was witnessed born-RED — wired to the correctness
-            # tier. A source-shape / load-rest / proxy gate, a vaporware-targeted HANDOFF,
-            # or a wrong-axis gate REDS. RETIRED gate names required ABSENT (the dual). It
-            # polices the chronic ROWS' cited gates; static, HYGIENE-tier, no browser.
-            - name: "[HYGIENE-meta] proof:chronic-closure (I.W7 S4 — every chronic exits via a RUNTIME gate that BIT · vaporware HANDOFF + wrong-axis gate red · the keystone fixed)"
+            # I.W7 S4 + S.A1 — proof:chronic-closure: parse the canonical chronic table
+            # (docs/tranches/S/PROGRESS.md §"Open deferrals", which SUPERSEDES R's, the
+            # R→S re-point) and assert each kf-runtime-closing row exits via a RUNTIME gate
+            # that BIT AND the S.A1 SUBSTANCE clause holds — a *-TERMINATED terminal-claim
+            # must cite a deterministic re-shaped gate (device dependence folded OUT so it
+            # REDs honestly on any runner; macOS reproduction is the discriminator, the
+            # Linux-container apparatus DROPPED — SA-7) or a ratified KILL, and no
+            # disposition may launder a deferral verb (observe/watch/re-affirm/verify) over
+            # a sacred 6-cell parse shape (C-20/SA-6/T3-x2-#8). Static, HYGIENE-tier, no
+            # browser. BORN-RED BY DESIGN during the S drive: the S ledger is the forward
+            # disposition board, so the runtime-gate contract discharges as each owning wave
+            # lands its gate; this meta-gate GREENs only re-run on the merged tree at S.Z2.
+            - name: "[HYGIENE-meta] proof:chronic-closure (I.W7 S4 + S.A1 — the S ledger: runtime-gate-that-BIT + the substance clause · born-RED by design, discharged at S.Z2)"
               run: npm run proof:chronic-closure
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
               run: npm run proof:ci-coverage
