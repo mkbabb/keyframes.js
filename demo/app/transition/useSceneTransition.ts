@@ -15,18 +15,22 @@ import { sceneIndex } from "../scene/scenes";
  * (`App.vue`, ≤ 1 element per state so names never collide) and the PRM degrade
  * routed through kf's ONE `withReducedMotion` gate (a `reduce` query snaps the
  * mutate directly — `backend: "immediate"`). The glass-ui `view-transition.css`
- * (loaded via `@import "@mkbabb/glass-ui/styles"`) still supplies the type-keyed
- * slide CSS; kf owns the DISPATCH.
+ * (loaded via `@import "@mkbabb/glass-ui/styles"`) owns the LOOK of the swap (the
+ * untyped cross-fade + the `scene-subject` shared-element morph); kf owns the
+ * DISPATCH. The demo carries NO `::view-transition-*` CSS of its own (S.G2 S11 /
+ * proof:icon-paint-live — those animation glyphs are glass-ui-owned).
  *
- * Q.WC3 S3 (NI-1) — the scene-switch carries DIRECTION. `sign(sceneIndex(target) −
+ * Q.WC3 S3 (NI-1) — the scene-switch DERIVES DIRECTION. `sign(sceneIndex(target) −
  * sceneIndex(current))` (over the `sceneIndex` ordered-index seam, S1) derives a
- * `view-transition-type` of `forward` / `backward`, passed as glass-ui's two-arg
- * `startViewTransition(mutate, { types })`. The type-keyed CSS (in `App.vue`,
- * beside the `scene-subject` rule) slides the old/new scene the right way; where
- * `view-transition-type` is unsupported (Firefox/Safari as of 2026) glass-ui's
- * wrapper feature-detect drops the arg and the untyped cross-fade is the free
- * degrade. The single VT name (`scene-subject`) is PRESERVED — direction rides
- * `view-transition-type`, not a second name.
+ * `view-transition-type` of `forward` / `backward`, passed to kf's `viewTransition`
+ * as `{ types }`. The type is set on the live transition (`:active-view-transition-
+ * type()` becomes queryable for its duration), so a generic glass-ui type-keyed
+ * slide recipe — the owner-domain HANDOFF (S.G2 S11: the typed slide belongs in
+ * glass-ui's `view-transition.css`, not demo-side) — would consume it with no demo
+ * CSS. Until then the untyped cross-fade is the look on every engine. Where
+ * `view-transition-type` is unsupported (Firefox/Safari as of 2026) kf's dispatch
+ * drops the arg; the single VT name (`scene-subject`) is PRESERVED — direction
+ * rides `view-transition-type`, never a second name.
  *
  * NOTE the call shape: kf's `viewTransition` takes the mutate callback as the
  * FIRST positional arg and `{ types }` as the SECOND options arg — it feature-

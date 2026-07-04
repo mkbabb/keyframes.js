@@ -97,10 +97,17 @@
 // non-scoped partial is the smallest shared scope for every brand-mark consumer
 // App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
-// Q.WC3 — the co-located scene-switch motion (the global directional VT
-// keyframes; GLOBAL because the `::view-transition-*` pseudo-tree paints at the
-// document root, never scoped).
-import "./transition/scene-transition.css";
+// S.G2 S11 — the demo carries NO `::view-transition-*` CSS of its own (fold row
+// 5 backlog, proof:icon-paint-live clause (e-grep)). The animation glyphs that
+// paint the scene swap are glass-ui-owned (its `view-transition.css`, loaded via
+// `@import "@mkbabb/glass-ui/styles"`): the untyped cross-fade + the `scene-subject`
+// shared-element morph are the default UA/glass-ui look. The former Q.WC3 demo-side
+// `scene-transition.css` (the typed `forward`/`backward` `::view-transition-old/new`
+// slide keyframes) was demo-side VT residue the gate forbids — DELETED here. The
+// direction is still DERIVED and passed as `view-transition-type` (useSceneTransition
+// S.F1 dogfood over kf's `viewTransition`), so when glass-ui ships a generic
+// type-keyed slide recipe (the owner-domain HANDOFF), the directional look returns
+// for free with no demo CSS.
 
 import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
 import {
