@@ -14,7 +14,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { KeyframesAnimation, CSSKeyframesAnimation } from "../../src/animation/engine";
-import { isWAAPIEligible } from "../../src/animation/waapi";
+import { isWAAPIEligible, toWAAPIOptions } from "../../src/animation/waapi";
 import { springTimingFunction } from "../../src/animation/physics/spring";
 import { resolveEasing } from "../../src/animation/easing";
 
@@ -93,7 +93,7 @@ describe("WAAPI eligibility requires a faithful CSS twin", () => {
         expect(isWAAPIEligible(anim).eligible).toBe(true);
     });
 
-    it("a single-segment spring (its css linear()) IS eligible; multi-segment is not", async () => {
+    it("a single-segment spring emits its css linear(); a multi-segment spring densifies to a single bare linear() (S.F5c S2)", async () => {
         const el = document.createElement("div");
         const spring = springTimingFunction({
             response: 0.4,
@@ -105,7 +105,10 @@ describe("WAAPI eligibility requires a faithful CSS twin", () => {
         });
         two.setTargets(el);
         two.fromString(`from { opacity: 0; } to { opacity: 1; }`);
+        // SINGLE segment: eligible, and the effect easing IS the spring's css
+        // twin (the compositor runs the true curve between the two endpoints).
         expect(isWAAPIEligible(two).eligible).toBe(true);
+        expect(String(toWAAPIOptions(two).easing)).toMatch(/^linear\(/);
 
         const three = new CSSKeyframesAnimation({
             duration: 300,
@@ -115,8 +118,13 @@ describe("WAAPI eligibility requires a faithful CSS twin", () => {
         three.fromString(
             `0% { opacity: 0; } 50% { opacity: 0.3; } 100% { opacity: 1; }`,
         );
-        // 3 stops → CSS-twinned easing would restart per segment → ineligible.
-        expect(isWAAPIEligible(three).eligible).toBe(false);
+        // MULTI segment (S.F5c S2): NO LONGER refused. The densify bakes the
+        // composite per-segment curve into keyframes fed a SINGLE bare `linear`
+        // effect easing (the "densify → single linear()" collapse) — eligible,
+        // and the emitted effect easing is bare "linear" (NOT the per-segment
+        // spring css, which would double-ease the already-baked stops).
+        expect(isWAAPIEligible(three).eligible).toBe(true);
+        expect(toWAAPIOptions(three).easing).toBe("linear");
     });
 
     it("CE-1.0 — a spring linear() twin is INELIGIBLE on WebKit (HW-accel refused); cubic-bezier still delegates", async () => {

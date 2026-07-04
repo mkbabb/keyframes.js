@@ -168,17 +168,19 @@ export function isWAAPIEligible<V extends Vars>(
                 };
             }
         }
-        // WAAPI applies its single easing PER SEGMENT (between consecutive
-        // keyframe stops). A CSS-twinned easing (a spring's `linear()`)
-        // across 2+ segments would restart the curve at every stop —
-        // silently wrong on the compositor — so it stays on the rAF path,
-        // which runs the true curve across the whole span.
-        if (firstTF.css !== undefined) {
-            return {
-                eligible: false,
-                reason: "CSS-twinned easing across multiple segments (WAAPI restarts the curve per segment)",
-            };
-        }
+        // A multi-segment CSS-twin easing (a spring's `linear()` across 2+
+        // keyframe segments) is NO LONGER refused (S.F5c S2). Emitting the
+        // per-segment `.css` twin as the effect easing WOULD restart the curve
+        // at every stop — silently wrong — so instead the emit DENSIFIES the
+        // composite per-segment curve into keyframes fed a SINGLE bare-`linear`
+        // effect easing (`toWAAPIKeyframes` bakes `interpFrames`' true
+        // multi-segment curve at the offsets where it bends; `toWAAPIOptions`
+        // emits `linear` for the multi-segment case). The compositor's
+        // piecewise-linear fill over the baked stops then tracks the true rAF
+        // curve with NO per-segment restart — the "densify → single `linear()`"
+        // collapse. The fidelity is guarded by `proof:waapi-adaptive-densify`
+        // (the multi-segment-spring corpus curve + the multi-segment-eligible
+        // clause). WebKit still holds a `linear()` twin on rAF below (CE-1.0).
     }
 
     // WAAPI may delegate ONLY when the (uniform) easing has a FAITHFUL CSS

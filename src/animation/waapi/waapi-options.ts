@@ -69,19 +69,28 @@ export function toWAAPIOptions<V extends Vars>(
         );
     }
 
-    // WAAPI exposes ONE easing per animation. When the uniform timing
-    // function carries a CSS twin — `Easing.css`, e.g. a spring's `linear()`
-    // stops from `springTimingFunction` — emit it so the compositor runs the
-    // true curve between the sampled keyframe endpoints. Otherwise fall back
-    // to bare `linear` (the keyframe stops carry whatever intent JS
-    // interpolation baked in). Eligibility already guaranteed a uniform
-    // timing function, rejects a CSS-twinned easing across multiple
-    // segments (per-segment curve restart), and holds `linear()` twins on
-    // rAF for WebKit (CE-1.0 — HW-accel refused), so reading frame 0's is
-    // enough.
+    // WAAPI exposes ONE effect easing per animation (applied to the whole
+    // iteration progress). Two cases:
+    //   - SINGLE segment (from/to): emit the uniform timing function's CSS twin
+    //     (`Easing.css`, e.g. a spring's `linear()` stops) so the compositor runs
+    //     the true curve between the two keyframe endpoints; bare `linear` when
+    //     there is no twin (the endpoints carry whatever JS interpolation baked).
+    //   - MULTI segment (S.F5c S2): emit bare `linear`. The multi-segment
+    //     keyframes are DENSELY sampled from the true per-segment curve
+    //     (`toWAAPIKeyframes` bakes `interpFrames`), so the effect easing must be
+    //     the IDENTITY — re-applying the `.css` twin on top of the already-baked
+    //     stops would DOUBLE-EASE (the effect easing transforms iteration
+    //     progress BEFORE keyframe interpolation). This is the "densify → single
+    //     `linear()`" collapse that replaced the old multi-segment refusal.
+    // Eligibility already guaranteed a uniform timing function and holds
+    // `linear()` twins on rAF for WebKit (CE-1.0 — HW-accel refused), so reading
+    // frame 0's is enough; `frames.length` is the segment count (from/to → 1).
     const uniformTiming =
         animation.frames[0]?.timingFunction ?? animation.options.timingFunction;
-    const easing = uniformTiming.css ?? "linear";
+    const easing =
+        animation.frames.length > 1
+            ? "linear"
+            : (uniformTiming.css ?? "linear");
 
     // K.W7 S2 — the Baseline `composite` keyword pass-through. The compositor
     // honors `add`/`accumulate` by compositing the keyframe effect onto the

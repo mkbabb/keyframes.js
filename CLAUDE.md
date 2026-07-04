@@ -103,7 +103,7 @@ file's `tryParseLeaves` comment.)
 - **Playback modes**: rAF (default — every loop rides `RAFPlayback`), WAAPI (opt-in compositor-thread), managed (AnimationGroup owns the loop), reduced-motion snap
 - **Interpolation dispatch**: numeric → `lerp`; color → perceptual (`oklab` default); computed units (`vh`, `calc`, `var`, `cq*`) → DOM resolution
 - **Layer blending** (AnimationGroup): `replace` (z-order), `add` (accumulate), `weighted` (lerp by weight)
-- **WAAPI eligibility** (`waapi/eligibility.ts`): DOM targets, default DOM-style renderer, uniform timing, no multi-segment CSS-twin easing, no computed units, no color interpolation — else rAF fallback with a queryable `waapiIneligibleReason`
+- **WAAPI eligibility** (`waapi/eligibility.ts`): DOM targets, default DOM-style renderer, uniform timing, no computed units, no color interpolation — else rAF fallback with a queryable `waapiIneligibleReason`. A **multi-segment CSS-twin easing** IS eligible (S.F5c): the densify bakes the composite per-segment curve into keyframes fed a single bare `linear` (the "densify → single `linear()`" collapse), so the compositor tracks the true curve with no per-segment restart
 - **General primitives**: `NumericAnimation` (zero-alloc keyframe interp), `SmoothProgress`/`SpringProgress` (progress trackers), `ElementMorph` (rect-to-rect transform), `Timeline` (progress driver)
 - **Orchestration tier** (all LIGHT): `stagger` (delay distribution), `flip` (layout FLIP over ElementMorph), `drag`/`decay` (gesture physics over SpringProgress), `Sequence` (temporal orchestration beside `AnimationGroup`'s spatial blending)
 - **Timeline pipeline**: `sample() → clamp → easing → boundary snap → smoothing → progress`. No rAF ownership — caller drives the loop.

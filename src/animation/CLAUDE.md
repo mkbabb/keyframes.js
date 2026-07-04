@@ -204,16 +204,23 @@ Requires DOM targets, the default DOM-style renderer (a reference comparison
 via `animation.usesDefaultRenderer()` — bind-proof, unlike the former Symbol
 tag that `Function.prototype.bind` silently dropped, which had made every
 `fromString` animation read as "custom transform" and the WAAPI path dead in
-practice), a uniform timing function across frames, no CSS-twinned easing
-across multiple segments (WAAPI restarts the curve per segment), no computed
-units (`vh`/`calc`/`var`/`cqw`), and no color interpolation. On WebKit a
+practice), a uniform timing function across frames, no computed
+units (`vh`/`calc`/`var`/`cqw`), and no color interpolation. A multi-segment
+CSS-twin easing IS eligible (S.F5c S2): rather than restarting the per-segment
+curve on the compositor (the old refusal), the emit DENSIFIES the composite
+per-segment curve into keyframes fed a SINGLE bare `linear` effect easing (the
+"densify → single `linear()`" collapse) so the piecewise-linear fill tracks the
+true rAF curve with no restart. On WebKit a
 `linear()`-twinned easing is additionally HELD on rAF (CE-1.0, J.W6 S9 —
 WebKit refuses HW-accel for custom `linear()` easings, so a delegated spring
 would run main-thread WAAPI, heavier than the rAF path it bypassed; engine
 feature-detect via `webkitConvertPointFromNodeToPage`, not a UA sniff). Falls
 back to rAF with a queryable `waapiIneligibleReason`. `toWAAPIOptions` emits
-`Easing.css` when the uniform easing carries one (a spring's `linear()` from
-`springTimingFunction`), otherwise bare `linear`.
+`Easing.css` for a SINGLE-segment uniform easing that carries a twin (a spring's
+`linear()` from `springTimingFunction` — the compositor runs the true curve
+between the two endpoints), and bare `linear` for a multi-segment animation
+(the densified keyframes already carry the baked composite curve) or when the
+easing has no twin.
 
 ## Computed-unit container contract (the one contract, stated once)
 

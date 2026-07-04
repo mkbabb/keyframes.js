@@ -148,8 +148,8 @@ let measures = null;
     const benchUrl = pathToFileURL(join(root, BENCH)).href;
     const waapiUrl = pathToFileURL(WAAPI_BARREL).href;
     const probe = `
-import { measureDensifyCorpus, buildCorpus, boundaryTimes } from ${JSON.stringify(benchUrl)};
-import { toWAAPIKeyframes } from ${JSON.stringify(waapiUrl)};
+import { measureDensifyCorpus, buildCorpus, boundaryTimes, buildMultiSegmentSpring } from ${JSON.stringify(benchUrl)};
+import { toWAAPIKeyframes, isWAAPIEligible, toWAAPIOptions } from ${JSON.stringify(waapiUrl)};
 
 const measures = await measureDensifyCorpus();
 
@@ -165,7 +165,25 @@ for (const entry of buildCorpus()) {
     boundaryOk.push({ name: entry.name, missing });
 }
 
-console.log(JSON.stringify({ measures, boundaryOk }));
+// S.F5c S2 — the multi-segment CSS-twin densify: REFUSED today (a spring's
+// linear() twin across 2+ segments would restart the curve per segment on WAAPI)
+// → ELIGIBLE after (the densify bakes the composite per-segment curve into
+// keyframes fed a SINGLE bare-linear effect easing — the "densify → single
+// linear()" collapse). A fake { animate } target lets isWAAPIEligible run in the
+// node probe (no DOM); the emitted options.easing must be bare "linear" (the
+// spring linear() effect easing would DOUBLE-EASE the already-baked stops).
+const ms = buildMultiSegmentSpring();
+ms.setTargets({ animate: () => ({}) });
+const msElig = isWAAPIEligible(ms);
+const msFrames = ms.frames.length;
+const msEasing = String(toWAAPIOptions(ms).easing);
+
+console.log(JSON.stringify({ measures, boundaryOk, multiSegment: {
+    frames: msFrames,
+    eligible: msElig.eligible,
+    reason: msElig.eligible ? null : msElig.reason,
+    easing: msEasing,
+} }));
 `;
     const tmp = mkdtempSync(join(tmpdir(), "kf-waapi-densify-"));
     const probeFile = join(tmp, "probe.mts");
@@ -284,6 +302,50 @@ console.log(JSON.stringify({ measures, boundaryOk }));
                 ok(
                     "boundaries-preserved",
                     `every frame boundary appears in the emitted offsets on all ${parsed.boundaryOk.length} corpus curves`,
+                );
+            }
+
+            // ── Clause: multi-segment-eligible (S.F5c S2, fold row 44) ────────
+            // BORN-RED: today a multi-segment CSS-twin easing is REFUSED
+            // ("CSS-twinned easing across multiple segments") → `eligible` is
+            // false and `toWAAPIOptions` emits the spring linear() as the effect
+            // easing (which would DOUBLE-EASE the already-baked densified stops).
+            // After S2: the densify → single-`linear()` collapse makes it
+            // ELIGIBLE and emits bare `linear` (identity) so the compositor's
+            // piecewise-linear fill over the baked stops tracks the true curve
+            // with NO per-segment restart. The multi-segment-spring corpus curve
+            // already carries the fidelity/count/boundary guard above; THIS
+            // clause asserts the eligibility inversion + the single-linear() emit.
+            const msSeg = parsed.multiSegment;
+            if (!msSeg || typeof msSeg.eligible !== "boolean") {
+                fail(
+                    "multi-segment-eligible",
+                    `the multi-segment probe returned no eligibility verdict`,
+                );
+            } else if (msSeg.frames < 2) {
+                fail(
+                    "multi-segment-eligible",
+                    `the multi-segment fixture is not multi-segment (frames=${msSeg.frames}); the clause cannot witness the inversion`,
+                );
+            } else if (!msSeg.eligible) {
+                fail(
+                    "multi-segment-eligible",
+                    `a multi-segment (${msSeg.frames}-segment) uniform CSS-twin (spring linear()) animation is REFUSED ` +
+                        `("${msSeg.reason}") — S.F5c S2 requires it ELIGIBLE via the densify → ` +
+                        `single-linear() collapse (the composite curve is baked into keyframes).`,
+                );
+            } else if (msSeg.easing !== "linear") {
+                fail(
+                    "multi-segment-eligible",
+                    `the multi-segment emit uses effect easing "${String(msSeg.easing).slice(0, 40)}" — it MUST be bare ` +
+                        `"linear": the densify bakes the composite curve into the stops, so a spring linear() ` +
+                        `effect easing would DOUBLE-EASE (the single-linear() collapse is the correct emit).`,
+                );
+            } else {
+                ok(
+                    "multi-segment-eligible",
+                    `a multi-segment (${msSeg.frames}-segment) uniform CSS-twin spring is ELIGIBLE and emits bare ` +
+                        `"linear" (the densify → single-linear() collapse; no per-segment restart, no double-ease)`,
                 );
             }
         }
