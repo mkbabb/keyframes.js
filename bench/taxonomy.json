@@ -70,7 +70,35 @@
         "                              different things. Decision RECORDED in",
         "                              scripts/reseat-vs-decay-decision.json (RETAIN-both:",
         "                              distinct motion models, not throughput substitutes;",
-        "                              the release seam already consumes each where it fits)."
+        "                              the release seam already consumes each where it fits).",
+        "",
+        "S.F5b additions (fold row 45, a26 — close the bench-coverage gap, sf-#6):",
+        "  resolve.bench.ts (run-check ×7)  — the FIRST bench coverage of the",
+        "                              resolve/ zone (the emerging-CSS lowering pass:",
+        "                              if()/@function/spring(), ~887L, zero coverage",
+        "                              before this wave). The pass is COMPILE-time",
+        "                              (once per resolveKeyframes, not a per-frame hot",
+        "                              path) — the arms make its cost visible + bite a",
+        "                              TypeError/empty-result regression, NO wall-clock",
+        "                              budget (C-10).",
+        "  cold-import.bench.ts (observe-only ×2) — the static-vs-dynamic boundary,",
+        "                              the RUNTIME manifestation of proof:consume-bundle:",
+        "                              the STATIC LIGHT surface (SpringProgress, C1-eager-",
+        "                              graph, value.js-free) vs the DYNAMIC HEAVY surface",
+        "                              (loadAnimationEngine + CSSKeyframesAnimation.fromString,",
+        "                              C2-engine-dynamic-only, value.js behind the import()).",
+        "                              observe-only same-report RATIO (device-dependent;",
+        "                              no floor).",
+        "",
+        "S.F5c Typed-OM verdict (fold row 43, sf-#7 — TERMINAL, not a taxonomy case):",
+        "  Typed-OM (StylePropertyMap.set) write-path is default KILL-with-recorded-",
+        "  bench: the real-browser per-set-cost measurement (bench/typed-om-validate.mjs,",
+        "  playwright via KF_PLAYWRIGHT_DIR) is recorded TERMINALLY in",
+        "  scripts/typed-om-decision.json — multi-property TOM/string < the pre-stated",
+        "  1.2x ADOPT threshold → KILL the permanent dual-path. ADOPT fires ONLY above",
+        "  the threshold, and then as a SEPARATE authored wave (never folded here — the",
+        "  render-path rewrite is unbounded). Not a kf vitest bench (real-browser only),",
+        "  so it carries no taxonomy suite row — the durable decision JSON IS its record."
     ],
     "version": 1,
     "suites": [
@@ -81,7 +109,9 @@
         "bench/spring-tick.bench.ts",
         "bench/sync-step.bench.ts",
         "bench/group-composite.bench.ts",
-        "bench/waapi-densify.bench.ts"
+        "bench/waapi-densify.bench.ts",
+        "bench/resolve.bench.ts",
+        "bench/cold-import.bench.ts"
     ],
     "cases": [
         {
@@ -512,6 +542,60 @@
             "suite": "bench/spring-tick.bench.ts",
             "name": "decayRest · 600 releases",
             "category": "run-check"
+        },
+        {
+            "suite": "bench/resolve.bench.ts",
+            "name": "resolveKeyframes · if()/media 4-stop pipeline",
+            "category": "run-check",
+            "$note": "S.F5b S1 (fold row 45) — the FIRST bench coverage of the resolve/ zone (~887L, zero coverage before this wave). The if()/media() Phase-1 lowering end-to-end (parse + resolveValues + resolve-if branch selection). run-check: the pass is COMPILE-time (once per resolveKeyframes, not a per-frame hot path) — its cost is made visible + a TypeError/empty-result regression bites, NO wall-clock budget (C-10)."
+        },
+        {
+            "suite": "bench/resolve.bench.ts",
+            "name": "resolveKeyframes · @function nested inline",
+            "category": "run-check",
+            "$note": "S.F5b S1 — the resolve-function.ts call-inlining arm (a nested --double(--triple(10px)) recurse + positional bind). run-check (compile-time; no budget)."
+        },
+        {
+            "suite": "bench/resolve.bench.ts",
+            "name": "resolveKeyframes · spring() timing resolution",
+            "category": "run-check",
+            "$note": "S.F5b S1 — the spring-css.ts arm: a spring() animation-timing-function → kf-Easing physics (springCssToOptions ODE algebra) through the adapter. run-check (compile-time; no budget)."
+        },
+        {
+            "suite": "bench/resolve.bench.ts",
+            "name": "resolveKeyframes · all-concrete 6-stop (zero-cost sniff)",
+            "category": "run-check",
+            "$note": "S.F5b S1 — the OVERWHELMING common case: an all-concrete keyframe stream carrying NO lowerable node, so the adapter pays only the hasResolvableValue structural sniff (the pass returns the nodes untouched). Measures the zone's overhead on a plain animation. run-check (compile-time; no budget)."
+        },
+        {
+            "suite": "bench/resolve.bench.ts",
+            "name": "resolveValues · if() ValueArray (core recursion)",
+            "category": "run-check",
+            "$note": "S.F5b S1 — the core.ts recursion driven DIRECTLY over a parsed if() ValueArray (the pre-flatten carrier the adapter rewrites), with a fresh makeResolveContext. run-check (compile-time; no budget)."
+        },
+        {
+            "suite": "bench/resolve.bench.ts",
+            "name": "hasResolvableValue · nested concrete scan (common-case skip)",
+            "category": "run-check",
+            "$note": "S.F5b S1 — the core.ts cheap structural predicate the adapter pays on EVERY declaration to decide whether the rewrite cost applies. A nested concrete value returns false (skip). run-check (compile-time; no budget)."
+        },
+        {
+            "suite": "bench/resolve.bench.ts",
+            "name": "springCssToOptions · (m,k,c,v0) → (response, damping)",
+            "category": "run-check",
+            "$note": "S.F5b S1 — the spring-css.ts physics leaf: the 2nd-order-ODE mapping (m,k,c,v0) → (response, dampingFraction) kf OWNS. run-check (compile-time; no budget)."
+        },
+        {
+            "suite": "bench/cold-import.bench.ts",
+            "name": "static LIGHT surface · SpringProgress construct+settle (value.js-free)",
+            "category": "observe-only",
+            "$note": "S.F5b S2 (a26) — the STATIC side of the value.js static/dynamic boundary, tied to proof:consume-bundle (C1-eager-graph): a light-only consumer constructs + settles a SpringProgress with ZERO value.js in its graph. observe-only — the construct cost is device-dependent (no floor, C-10); the same-report RATIO to the HEAVY arm is the observable (the price of the boundary the bundle gate enforces)."
+        },
+        {
+            "suite": "bench/cold-import.bench.ts",
+            "name": "dynamic HEAVY surface · CSSKeyframesAnimation.fromString (engine + value.js, reached via loadAnimationEngine)",
+            "category": "observe-only",
+            "$note": "S.F5b S2 (a26) — the DYNAMIC side of the boundary, tied to proof:consume-bundle (C2-engine-dynamic-only): the engine + value.js are reached ONLY through loadAnimationEngine(), and a CSSKeyframesAnimation.fromString pays the value.js CSS parse. observe-only — device-dependent construct cost, same-report RATIO context only (no absolute floor, C-10)."
         }
     ],
     "pendingBudgeted": [],
