@@ -1,0 +1,87 @@
+/**
+ * S.B7 · S4 — Cube scene composable coverage (a25 F1 · fold row 40).
+ *
+ * Locks `useCubeRelit` — the orientation-coupled re-lighting model (the light is
+ * pinned in the room; the die turns under it, faces toward the key light
+ * brighten). The `faceLit`/`euler` computeds are pure functions of the live
+ * rotation, so they assert deterministically without a rAF. References the
+ * scene's animation-name registry (`useCubeAnimations`) + transport key
+ * (`cubeKeys`) so a rename reds here.
+ */
+import { describe, expect, it } from "vitest";
+import { mat4 } from "gl-matrix";
+import { ref } from "vue";
+import type { TransformState } from "../demo/scenes/cube/orbital-drag";
+import { FACE_NORMALS, useCubeRelit } from "../demo/scenes/cube/useCubeRelit";
+import {
+    CUBE_ANIMATION_NAMES,
+    SUPER_KEY,
+} from "../demo/scenes/cube/useCubeAnimations";
+import { CUBE_SUPER_KEY } from "../demo/scenes/cube/cubeKeys";
+
+const restTransform = (rotate = { x: 0, y: 0, z: 0 }): TransformState => ({
+    rotate,
+    translate: { x: 0, y: 0, z: 0 },
+    scale: { x: 1, y: 1, z: 1 },
+    matrix: mat4.create(),
+});
+
+describe("useCubeRelit — the orientation-coupled relight", () => {
+    it("FACE_NORMALS is six axis-aligned unit outward normals", () => {
+        expect(FACE_NORMALS).toHaveLength(6);
+        for (const n of FACE_NORMALS) {
+            expect(Math.hypot(n[0], n[1], n[2])).toBeCloseTo(1, 10);
+        }
+        // Front (+Z) and back (−Z) are opposite.
+        expect(FACE_NORMALS[0]).toEqual([0, 0, 1]);
+        expect(FACE_NORMALS[2]).toEqual([0, 0, -1]);
+    });
+
+    it("at rest the light-facing front is brighter than the shadowed back", () => {
+        const { faceLit } = useCubeRelit(ref(restTransform()));
+        const front = Number(faceLit.value[0]);
+        const back = Number(faceLit.value[2]);
+        // Key light has a +Z component → +Z face lit, −Z face sunk.
+        expect(front).toBeGreaterThan(back);
+        // Every litness is a clamped [0,1] string.
+        for (const s of faceLit.value) {
+            const v = Number(s);
+            expect(v).toBeGreaterThanOrEqual(0);
+            expect(v).toBeLessThanOrEqual(1);
+        }
+    });
+
+    it("euler is the rounded live attitude, reactive to rotation", () => {
+        const t = ref(restTransform({ x: 10.4, y: 20.6, z: -3.5 }));
+        const { euler, faceLit } = useCubeRelit(t);
+        expect(euler.value).toEqual({ x: 10, y: 21, z: -3 });
+        const before = faceLit.value[0];
+        // Turn the die a quarter — the computed relights.
+        t.value = restTransform({ x: 90, y: 0, z: 0 });
+        expect(euler.value).toEqual({ x: 90, y: 0, z: 0 });
+        expect(faceLit.value[0]).not.toBe(before);
+    });
+
+    it("spinEnergy starts settled; flashRoll/disposeFlash are safe no-throws", () => {
+        const { spinEnergy, flashRoll, disposeFlash } = useCubeRelit(
+            ref(restTransform()),
+        );
+        expect(spinEnergy.value).toBe(0);
+        expect(() => {
+            flashRoll();
+            disposeFlash();
+        }).not.toThrow();
+    });
+});
+
+describe("cube scene registry keys", () => {
+    it("the animation-name set + transport superKey are stable", () => {
+        expect(CUBE_ANIMATION_NAMES).toEqual({
+            Matrix: "Matrix",
+            Rotations: "Rotations",
+            Hover: "Hover",
+        });
+        expect(SUPER_KEY).toBe(CUBE_SUPER_KEY);
+        expect(CUBE_SUPER_KEY).toBe("Cube");
+    });
+});
