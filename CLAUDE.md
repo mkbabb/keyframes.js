@@ -19,14 +19,19 @@ npm run proof:all       # full proof:* gate roster (correctness + hygiene)
 The library is partitioned into eleven cohesive zone directories (R.W1), each with
 an `index.ts` barrel — the LIGHT (value.js-free) zones (`physics/`,
 `orchestration/`) and the HEAVY (value.js-bearing) zones (`engine/`, `group/`,
-`compile/`, `resolve/`, `ingest/`, `scroll/`, `waapi/`) + `presets/` + `svg/`. The barrel
-(`index.ts`) and the dynamic loader (`load-engine.ts`) are the two boundary files.
+`compile/`, `resolve/`, `ingest/`, `scroll/`, `waapi/`) + `presets/` + `svg/`.
+`internal/` is the value.js-free leaf tier, NOT a zone (C-5: no barrel, excluded from
+`ZONE_DIRS` by design). The two package "in"s are the barrel `index.ts` (the LIGHT
+`.` surface + the dynamic `loadAnimationEngine()`) with its dynamic half
+`load-engine.ts`, and `public.ts` (the static heavy mirror behind the `./engine`
+subpath). See `src/animation/CLAUDE.md` for the authoritative per-file inventory.
 
 ```
 src/                            # animation/ + env.d.ts — nothing else
 ├── animation/                  # The entire library (see animation/CLAUDE.md)
 │   ├── index.ts                # Package barrel — LIGHT static exports + loadAnimationEngine() (the static/dynamic boundary)
 │   ├── load-engine.ts          # HEAVY dynamic loader — loadAnimationEngine() + warmEngine() (the dynamic half of the boundary)
+│   ├── public.ts               # HEAVY static mirror — the ./engine subpath's composition barrel (mirrors the AnimationEngine keys)
 │   ├── easing.ts               # resolveEasing(name) async factory + toEasing normalizer
 │   ├── validate.ts             # validate()/explain() — the agent-authoring projection over the compile surface (HEAVY)
 │   ├── constants/              # Types + defaults (Easing, AnimationOptions, Vars, …) — LIGHT-pure types.ts + defaults.ts + back-compat barrel (S.B1)
@@ -34,16 +39,16 @@ src/                            # animation/ + env.d.ts — nothing else
 │   │   ├── numeric.ts / smooth.ts / oscillator.ts / decay.ts / morph.ts / playback.ts
 │   │   └── spring/             # SpringProgress family (progress, duration, reseat, linear-stops, timing-function, types — the ring-break)
 │   ├── orchestration/          # LIGHT: temporal/multi-target helpers (stagger, flip, drag/, timeline/, sequence/)
-│   ├── engine/                 # HEAVY core: KeyframesAnimation (animation.ts) + the css/ sub-zone (CSSKeyframesAnimation + metadata) + composition/options/playback
-│   ├── group/                  # HEAVY compositor: AnimationGroup (group.ts) + soa.ts + layer-springs.ts
+│   ├── engine/                 # HEAVY core: KeyframesAnimation (animation.ts) + the css/ sub-zone (CSSKeyframesAnimation + metadata) + playback-state/play-lifecycle/interpolate/option-setters/options/compile-bridge/composition
+│   ├── group/                  # HEAVY compositor: AnimationGroup (group.ts) + lifecycle.ts + soa.ts/compositor.ts/springs.ts (the zero-alloc SoA blend fold)
 │   ├── compile/                # HEAVY pipeline — FORWARD (root): frame-compiler, parse-flatten, easing-registry (getTimingFunction), easing-option, selector, numeric-plan + adapter.ts (resolveKeyframes, C-9); BACKWARD (backward/ sub-zone, S.B3): backward, backward-walk, backward-color, format
 │   ├── resolve/                # HEAVY emerging-CSS resolver (if()/@function/env)
 │   ├── ingest/                 # HEAVY CSSOM walk (cssom.ts) + temporal takeover (adopt.ts)
 │   ├── scroll/                 # HEAVY scroll grammar (grammar.ts) + the JS ScrollScene driver (scene.ts)
-│   ├── waapi/                  # HEAVY WAAPI eligibility (eligibility.ts) + delegation/emission/densify/options
-│   ├── presets/                # HEAVY preset catalog (classic, spring, taxonomy) — rides the engine surface as `presets`
-│   ├── svg/                    # HEAVY SVG factories: MotionPath, DrawSVG, MorphSVG
-│   └── internal/               # value.js-free leaves: leaves, binarySearch, errors, reduced-motion, scheduler, scroll-phases (+ barrel)
+│   ├── waapi/                  # HEAVY WAAPI eligibility (eligibility.ts) + delegation/emission/densify/waapi-options
+│   ├── presets/                # HEAVY preset catalog (classic, classic-data, spring, taxonomy) — rides the engine surface as `presets`
+│   ├── svg/                    # HEAVY SVG factories: MotionPath, DrawSVG, MorphSVG (over the shared handle.ts base)
+│   └── internal/               # value.js-free LEAF tier (NOT a zone, no barrel — C-5): leaves, binarySearch, animation-id, errors, reduced-motion, scheduler, scroll-phases
 └── env.d.ts                    # *.vue module declaration (dev-only shim; not shipped)
 
 demo/                # Vue 3 demo (see demo/CLAUDE.md)
@@ -62,10 +67,12 @@ docs/                # Tranche records + audit lanes
 
 `src/animation/index.ts` builds to `dist/keyframes.js` (ESM-only — no CJS artifact is emitted) + `dist/keyframes.d.ts` (API Extractor roll-up).
 
+**The two package "in"s (stated once — the honest API "in", R's DEVELOPED lesson).** `package.json` `exports` declares exactly two entry points. The `.` entry — the package name @mkbabb/keyframes.js, `src/animation/index.ts` → `dist/keyframes.js` — is the LIGHT static surface plus the dynamic `loadAnimationEngine()` accessor (a light-only consumer never pulls value.js in). The `./engine` subpath entry — @mkbabb/keyframes.js/engine, `src/animation/public.ts` → `dist/engine/index.js` — is the WHOLE heavy engine as a STATIC, synchronous import, for a consumer who wants `new CSSKeyframesAnimation(...)` without the dynamic dance (it carries value.js by construction). The README Quick Start uses the subpath — the resolved honest "in"; the single-call declarative front door it once competed with was EXCISED at S.C1 (no front door survives).
+
 Two export surfaces meet at the barrel:
 
 - **LIGHT (static named exports, value.js-free):** `NumericAnimation`, `SmoothProgress`, `SpringProgress`, `springLinearStops`, `springTimingFunction`, `ElementMorph`, `Timeline`, `KeyframesScrollTimeline`, `ManualTimeline`, `createNativeTimeline`, `RAFPlayback`, `stagger`, `flip`/`flipShared`, `drag`/`Draggable`/`drag2D` (the single-call 2-D drag sugar — two one-axis `Draggable`s behind a 2-D handle; returns a `Drag2DHandle`), `decay`/`decayRest`, `Sequence`, `resolveEasing`, `toEasing`, `AnimationOptionError`, `UnknownEasingError`. A consumer importing only these never pulls `@mkbabb/value.js` into its graph.
-- **HEAVY (dynamic — reached ONLY via `await loadAnimationEngine()`):** `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `presets`, `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`.
+- **HEAVY (dynamic — reached ONLY via `await loadAnimationEngine()`):** `KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`, `getAnimationId`, `getTimingFunction`, `resolveKeyframes`, `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`, `MorphSVG`/`fromMorphSVG`, `presets`, `DIRECTIONS`, `FILL_MODES`, `defaultOptions`, `defaultLayerConfig`, `fromStyleSheets`, `fromLiveAnimations`, `resolveLiveKeyframes`, `adoptRunning`, `ScrollScene`, `createScrollScene`, `parseScrollCSS`, `parseScrollTimeline`, `parseScrollRange`, `serializeScrollOptions`, `roundTripScrollCSS`, `dispatchScrollBackend`, `resolveRange`, `pinCSS`, `TriggerScene`, `createTriggerScene`, `supportsNativeTrigger`, `compileToCSS`, `compileToViewTransition`, `compileToEntry`, `validate`, `explain`, `CSSKeyframesToString`, `CSSKeyframesToStrings`, `formatCSSKeyframeString`, `transformTargetsStyle`, `yieldToMain`. This is the full AnimationEngine key set (the engine core, the SVG factories, the option constants, the ingest/scroll/compile round-trip, the validation verbs, the dogfood serialization/paint/yield helpers) mirrored key-for-key by the ./engine subpath — derived from the d.ts, not hand-curated, so it cannot drift (gated by proof:claude-paths-live clause (c): the HEAVY list ⊆ AnimationEngine keys).
 
 ```ts
 const { CSSKeyframesAnimation } = await loadAnimationEngine();

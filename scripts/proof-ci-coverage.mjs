@@ -191,21 +191,17 @@ const EXCLUDED = new Set([
     // tier membership that would re-introduce the abort — the gate rides CI as a
     // report-all tripwire, by L.W4 S8's born-RED contract, not as an aggregator member.
     "proof:peer-satisfied",
-    // S.A5 — proof:claude-paths-live is a BORN-RED-BY-DESIGN doc-authority gate
-    // (fold row 41, C-8 "gate-first, regen-last"). Its src/animation/CLAUDE.md
-    // clause STAYS RED — that file documents the pre-R.W1 flat file layout
-    // wholesale (21 dead tree-fence paths) — until S.B8's full regen against
-    // the final post-B tree; wiring it into a blocking proof:hygiene chain now
-    // would abort the chain on that EXPECTED red every run, exactly the
-    // proof:peer-satisfied situation. Per the S.A5 spec's own Verification
-    // section it is DEVELOPMENT-ONLY at this wave ("re-run at S.Z2"), so unlike
-    // peer-satisfied it does NOT yet ride ci.yml even as a continue-on-error
-    // tripwire — S.B8 (once fully green) wires it into proof:hygiene-chain as
-    // an ordinary blocking member and this exclusion is deleted in that same
-    // commit. Its root + demo/CLAUDE.md clauses are ALREADY green (S.A5 S2
-    // hot-fix) — the redness this exclusion accommodates is exclusively the
-    // named, authorized backlog file.
-    "proof:claude-paths-live",
+    // (S.B8 DISCHARGE — proof:claude-paths-live's exclusion was DELETED here.
+    //  Its src/animation/CLAUDE.md flat-tree backlog (the 22 dead tree-fence
+    //  paths, fold row 41, C-8 "gate-first, regen-last") is GONE: S.B8
+    //  regenerated the map against the final post-B tree, so the gate is FULLY
+    //  green and is now an ORDINARY BLOCKING proof:hygiene-chain member — the
+    //  move the S.A5 exclusion text itself named. It rides the demo-correctness
+    //  ROSTER (like proof:modern-web/proof:platform-adopt) because clause (c)
+    //  reads the built dist/keyframes.d.ts (present via `npm ci`'s `prepare` =
+    //  build:lib) and clause (b) reads dist/gh-pages, both of which the demo job
+    //  builds; it is NAMED in STATIC_DEMO_CARVEOUT below as a build-dependent
+    //  static gate. The forward-coverage clause now DEMANDS its CI invocation.)
     // S.A1 — proof:chronic-closure is BORN-RED-BY-DESIGN through the S impl
     // drive: it now parses the S ledger (the R→S substrate re-point), whose
     // FOLD rows are the FORWARD disposition board — they cite born-RED gates
@@ -848,6 +844,13 @@ const jobBounds = (() => {
         // browser, but not a pure source gate either.
         "proof:modern-web",
         "proof:platform-adopt",
+        // S.B8 — the doc-authority gate is ALSO build-dependent (not a browser gate):
+        // its export-list clause (c) reads the built dist/keyframes.d.ts and the demo
+        // doc-drift clause (b) reads dist/gh-pages, so it rides the demo-correctness
+        // roster (which has BOTH — dist/keyframes.d.ts via `npm ci`'s prepare=build:lib
+        // and dist/gh-pages via `npm run gh-pages`), not the glass-ui-free fast gates
+        // job. Same build-dependent carve-out rationale as the two above.
+        "proof:claude-paths-live",
     ]);
     // The browser-harness import signatures (a gate that opens chromium, inline or via
     // the demo-driver lifecycle lib). A KF_REQUIRE_BROWSER env on the CI step is the
