@@ -10,7 +10,7 @@
  * A SOURCE-GREP gate in the style of `proof:engine` / `proof:orchestration`:
  * each clause reds on the exact regression it forbids — verified, not asserted.
  * The behaviour proof (eligibility / delegation / keyframe shape) lives in the
- * chained `vitest run test/motion-path.test.ts` (the lead wires the combined
+ * chained `vitest run test/svg/motion-path.test.ts` (the lead wires the combined
  * `"proof:motion-path"` script — see the note at the tail).
  *
  * CLAUSES (each BITES):
@@ -37,7 +37,7 @@
  *       light leaves only). BITE: add `import … "@mkbabb/value.js"` → reds (and
  *       the lead's proof:boundary would too, once the lead wires the export).
  *
- *   test-locks         — `test/motion-path.test.ts` carries the locking
+ *   test-locks         — `test/svg/motion-path.test.ts` carries the locking
  *       assertions (offset-path set, offset-distance shape, eligibility true,
  *       compositor delegation, the property-keyed BITE). BITE: delete a lock →
  *       reds.
@@ -78,7 +78,7 @@ const MP = "src/animation/svg/motion-path.ts";
 // keyed `offset-distance` %-exemption (`isOffsetPercentProperty`) lives in the
 // eligibility concern alongside the one `isWAAPIEligible` gate it guards.
 const WAAPI = "src/animation/waapi/eligibility.ts";
-const TEST = "test/motion-path.test.ts";
+const TEST = "test/svg/motion-path.test.ts";
 
 // ── primitive-exists — fromMotionPath + MotionPath are exported ───────────────
 requireAll("primitive-exists", MP, [
@@ -208,5 +208,5 @@ console.log(
         "an author offset-path; it reuses the one WAAPI eligibility gate (no\n" +
         "path-specific predicate; the offset-distance % exemption is property-keyed\n" +
         "in waapi.ts), delegates compositor-thread, and carries zero static\n" +
-        "value.js edge. The behaviour proof rides `vitest run test/motion-path.test.ts`.",
+        "value.js edge. The behaviour proof rides `vitest run test/svg/motion-path.test.ts`.",
 );

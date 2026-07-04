@@ -18,7 +18,7 @@
  * symbols `reverseAnimationShorthand`/`sampleColorRamp`/`deltaEOK`, is HEAVY —
  * reached only via `loadAnimationEngine`, NOT the LIGHT barrel — and the four
  * refusals are NAMED in the source) CHAINED with the BEHAVIOUR half
- * (`vitest run test/compile-roundtrip.test.ts` — the replay-equality + densify
+ * (`vitest run test/compile/compile-roundtrip.test.ts` — the replay-equality + densify
  * ΔE-ε + the four refusals). It does NOT re-implement the replay (that lives in
  * the .test.ts), it asserts the compiler is wired + faithful + honest, and BITES
  * on a deleted lock.
@@ -98,7 +98,7 @@ const BARREL = "src/animation/index.ts";
 // + `compileToCSS: compileMod.compileToCSS` assign live here now, re-exported by
 // the barrel). The heavy-boundary clause reads the wiring from both.
 const LOAD_ENGINE = "src/animation/load-engine.ts";
-const TEST = "test/compile-roundtrip.test.ts";
+const TEST = "test/compile/compile-roundtrip.test.ts";
 
 /** Assert every anchor is present in `file`; the clause reds on any missing. */
 const requireAll = (clause, file, anchors) => {
@@ -272,8 +272,8 @@ requireAll("densify-delta-proof", TEST, [
 // ── no-source-edit — the replay rides the unchanged surfaces ───────────────────
 {
     const src = existsSync(join(root, TEST)) ? read(TEST) : "";
-    const importsCompile = /from "\.\.\/src\/animation\/compile"/.test(src);
-    const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
+    const importsCompile = /from "(?:\.\.\/)+src\/animation\/compile"/.test(src);
+    const importsEngine = /from "(?:\.\.\/)+src\/animation\/engine"/.test(src);
     if (importsCompile && importsEngine) {
         ok(
             "no-source-edit",

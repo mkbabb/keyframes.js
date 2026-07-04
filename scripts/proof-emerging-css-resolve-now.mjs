@@ -10,7 +10,7 @@
  *
  * This is the SOURCE-GREP half (the cure-is-wired anchors) — CHAINED in
  * package.json with the BEHAVIOUR half (`vitest run
- * test/emerging-css-resolve-now.test.ts`, the live observable-truth resolution:
+ * test/resolve/emerging-css-resolve-now.test.ts`, the live observable-truth resolution:
  * if() → the concrete branch value, spring() → a curve sample-equal to
  * springTimingFunction). All jsdom-clean — NO browser, NO HW-accel sub-claim
  * (the WebKit native-parity assertion is DROPPED per the full-loop RE-SCOPE).
@@ -154,7 +154,7 @@ if (failures.length > 0) {
     for (const f of failures) console.error(f);
     console.error(
         "\nThe Phase-1 emerging-CSS lowering pass is not wired. The behaviour " +
-            "half (vitest run test/emerging-css-resolve-now.test.ts) carries the " +
+            "half (vitest run test/resolve/emerging-css-resolve-now.test.ts) carries the " +
             "live resolution observables; this source half confirms the pass + " +
             "the seam are in place.",
     );

@@ -11,7 +11,7 @@
 // vitest-poolOptions sketch — poolOptions reaches V8 but esbuild still rejects the
 // `%` first). The pixel-identical round-trip (clause 3) + the alias-correctness
 // (clause 4) carry no `%`, so they are the ordinary `vitest run`
-// half: test/interp-fastprops.test.ts.
+// half: test/engine/interp-fastprops.test.ts.
 //
 // CLAUSES:
 //  1. fast-properties (the DIRECT mechanism probe) — the real engine's reused

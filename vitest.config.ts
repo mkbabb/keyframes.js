@@ -39,7 +39,10 @@ export default defineConfig({
         },
     },
     test: {
-        include: ["test/*.ts"],
+        // S.B7 — tests regrouped into test/<zone>/ mirroring src/animation/<zone>/
+        // (a25). The glob is RECURSIVE so the zone dirs are discovered; the old
+        // flat `test/*.ts` would silently run zero suites after the move.
+        include: ["test/**/*.test.ts", "test/**/*.measure.test.ts"],
         environment: "jsdom",
     },
     benchmark: {

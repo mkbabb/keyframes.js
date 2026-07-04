@@ -7,7 +7,7 @@
  * exercised ~6 value types and tested color for INEQUALITY only. This gate is
  * the falsifiable instrument that the corpus exists and stays authoritative —
  * the source-grep half (each clause reds if a locking test is deleted) chained
- * with the behaviour half (`vitest run test/interpolate-anything.test.ts`).
+ * with the behaviour half (`vitest run test/engine/interpolate-anything.test.ts`).
  *
  * It is the correctness twin the booked SoA fold (`proof:interp-soa`, the G-2
  * MEASURE-FIRST) ships WITHOUT: a perf bench proves speed, not a correct pixel;
@@ -77,7 +77,7 @@ const requireAll = (clause, file, anchors) => {
 
 console.log("proof:interpolate-anything — G.W15 (the value-type + color-fidelity corpus)");
 
-const TEST = "test/interpolate-anything.test.ts";
+const TEST = "test/engine/interpolate-anything.test.ts";
 
 // ── s1-value-matrix — the multi-channel value-type matrix locks exact midpoints
 requireAll("s1-value-matrix", TEST, [

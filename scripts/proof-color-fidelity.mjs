@@ -11,7 +11,7 @@
  *
  * This is the SOURCE-GREP + artifact half (the style of proof:roundtrip-fidelity
  * / proof:compile-replay): the BEHAVIOUR proof rides the chained `vitest run
- * test/color-fidelity.test.ts` (the engine midpoint × ΔE × the JND assert). This
+ * test/engine/color-fidelity.test.ts` (the engine midpoint × ΔE × the JND assert). This
  * half asserts the corpus is authoritative + the PUBLISHED artifact is real and
  * matches the gated measurement.
  *
@@ -55,7 +55,7 @@ const read = (p) => fs.readFileSync(path.join(REPO, p), "utf8");
 const exists = (p) => fs.existsSync(path.join(REPO, p));
 
 const CORPUS = "test/fixtures/color-fidelity-corpus.ts";
-const TEST = "test/color-fidelity.test.ts";
+const TEST = "test/engine/color-fidelity.test.ts";
 const DATA = "docs/color-fidelity-data.json";
 const ARTIFACT = "docs/color-fidelity.md";
 
@@ -146,7 +146,7 @@ if (!exists(ARTIFACT)) {
         /deltaEOK/.test(src) &&
         /mixColors/.test(src) &&
         /from "@mkbabb\/value\.js"/.test(src);
-    const ridesEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
+    const ridesEngine = /from "(?:\.\.\/)+src\/animation\/engine"/.test(src);
     if (!consumesProducer) {
         fail(
             "consumes-deltaEOK",

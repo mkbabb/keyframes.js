@@ -12,7 +12,7 @@
  *
  * This is the SOURCE-GREP half (the cure-is-wired anchors) — CHAINED in
  * package.json with the BEHAVIOUR half (`vitest run
- * test/emerging-css-resolve-fn.test.ts`, the live observable-truth inlining: the
+ * test/resolve/emerging-css-resolve-fn.test.ts`, the live observable-truth inlining: the
  * `--ident(args)` call is REPLACED by its substituted `result` expression on the
  * compiled frame). The behaviour half is the gate-blindspot-proof witness (a real
  * engine compile, NOT a source grep).
@@ -204,7 +204,7 @@ if (failures.length > 0) {
     for (const f of failures) console.error(f);
     console.error(
         "\nThe @function CALL-inlining arm is not wired. The behaviour half " +
-            "(vitest run test/emerging-css-resolve-fn.test.ts) carries the live " +
+            "(vitest run test/resolve/emerging-css-resolve-fn.test.ts) carries the live " +
             "inlining observables against the real engine compile (--double(50px) → " +
             "calc(50px * 2), the nested recursion, the self-reference DROP, the typed " +
             "coerce-fallback); this source half confirms the resolveFunctionCall arm + " +

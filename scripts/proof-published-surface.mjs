@@ -530,14 +530,23 @@ function clauseE() {
         checked++;
     }
 
-    // (e.4) Frozen integers match `ls … | wc -l` (TB-4): the parenthetical
-    // "(<N> files / <M> tests at the J.W5 rewrite" + "(<K> at the J.W5 rewrite".
-    const testFiles = fs.readdirSync(path.join(REPO, "test")).filter((f) => f.endsWith(".test.ts")).length;
-    const benchFiles = fs.readdirSync(path.join(REPO, "bench")).filter((f) => f.endsWith(".bench.ts")).length;
+    // (e.4) Frozen integers match the derived count (TB-4): the parenthetical
+    // "(<N> files / <M> tests …" + "(<K> at the J.W5 rewrite". S.B7 regrouped
+    // test/ into test/<zone>/ subdirs, so the count is RECURSIVE now (the old flat
+    // `ls test/*.test.ts` reads 0 post-move) — still a doc-truth tripwire, just
+    // derived by walking the tree.
+    const countRec = (dir, suffix) =>
+        fs.readdirSync(dir, { withFileTypes: true }).reduce((n, e) => {
+            const p = path.join(dir, e.name);
+            if (e.isDirectory()) return n + countRec(p, suffix);
+            return n + (e.name.endsWith(suffix) ? 1 : 0);
+        }, 0);
+    const testFiles = countRec(path.join(REPO, "test"), ".test.ts");
+    const benchFiles = countRec(path.join(REPO, "bench"), ".bench.ts");
     const testClaim = doc.match(/\((\d+)\s+files\s*\/\s*\d+\s+tests/);
     if (testClaim && Number(testClaim[1]) !== testFiles) {
         failures.push(
-            `(e) root CLAUDE.md freezes the test-file count at ${testClaim[1]} but \`ls test/*.test.ts | wc -l\` → ${testFiles} — the count re-rotted; re-derive it.`,
+            `(e) root CLAUDE.md freezes the test-file count at ${testClaim[1]} but \`find test -name '*.test.ts' | wc -l\` → ${testFiles} — the count re-rotted; re-derive it.`,
         );
     }
     const benchClaim = doc.match(/\((\d+)\s+at the J\.W5 rewrite\)/);
@@ -670,7 +679,7 @@ function clauseG() {
                         "the BOOK must disclose the uncovered status, not imply coverage.",
                 );
             }
-            const cited = [...row.coverage.matchAll(/`(test\/[\w.-]+\.test\.ts)`/g)].map((m) => m[1]);
+            const cited = [...row.coverage.matchAll(/`(test\/[\w./-]+\.test\.ts)`/g)].map((m) => m[1]);
             if (cited.length === 0) {
                 failures.push(`(g) EP-3 PATH B row \`${name}\` cites NO \`test/*.test.ts\` unit coverage — an undisclosed-coverage BOOK.`);
                 continue;

@@ -23,7 +23,7 @@
  * This is a re-runnable SOURCE instrument that BITES on every regression. Each
  * clause reds on the exact negative it forbids — verified, not asserted. It
  * mirrors `proof:idioms` / `proof:boundary`: exits 1 on any residual, then
- * defers the behaviour-equivalence proof to `test/platform-adopt.test.ts` (run
+ * defers the behaviour-equivalence proof to `test/ingest/platform-adopt.test.ts` (run
  * separately by the `proof:platform-adopt` npm script).
  *
  * CLAUSES (each BITES):
@@ -387,7 +387,7 @@ function main() {
         "\nproof:platform-adopt — PASS: the engine adopts the platform where\n" +
             "Baseline-safe, feature-detected, with the JS path as the proven\n" +
             "fallback; the ScrollTimeline JS sampler is NOT replaced. inv ξ holds.\n" +
-            "(behaviour-equivalence: test/platform-adopt.test.ts)",
+            "(behaviour-equivalence: test/ingest/platform-adopt.test.ts)",
     );
 }
 
