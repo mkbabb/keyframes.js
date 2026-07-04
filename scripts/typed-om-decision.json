@@ -1,16 +1,25 @@
 {
-  "$comment": "Typed-OM (StylePropertyMap.set) vs string setProperty write cost, real Chromium. The permanent dual-path is only justified if TOM clearly wins on the multi-property shape AND does not regress single-property.",
-  "browser": "chromium (playwright-core 1.60.0)",
+  "$comment": "S.F5c S1 (SF-7, fold row 43) — the Typed-OM (StylePropertyMap.set) write-path adopt/kill verdict, MEASURED in a real Chromium (playwright-core via KF_PLAYWRIGHT_DIR). DEFAULT KILL-with-recorded-bench: the permanent dual-path (no Firefox) is justified ONLY if Typed-OM beats the PRE-STATED write-throughput threshold below. ADOPT fires ONLY above the threshold, and THEN as a SEPARATE authored wave (never folded here — the render-path rewrite is unbounded). grep confirms ZERO Typed-OM surface in src/ and no prototype exists; this spike is the measurement, not an adoption. Bench: bench/typed-om-validate.mjs; re-measure with `KF_PLAYWRIGHT_DIR=/path/to/glass-ui node bench/typed-om-validate.mjs`.",
+  "metric": "Typed-OM attributeStyleMap.set vs string style.setProperty write throughput (hz), real Chromium",
+  "threshold": {
+    "multiPropertyTomOverString": 1.2,
+    "singlePropertyTomOverString": 1,
+    "meaning": "ADOPT the permanent Typed-OM dual-path ONLY if multi-property TOM/string >= 1.2x AND single-property TOM/string >= 1.0x (parity); otherwise KILL — the string path is fine."
+  },
+  "browser": "chromium (playwright-core, KF_PLAYWRIGHT_DIR)",
   "supportsTOM": true,
   "multiProperty": {
-    "hzString": 1557632,
-    "hzTypedOM": 1061571,
+    "hzString": 706215,
+    "hzTypedOM": 483442,
     "tomOverString": 0.68
   },
   "singleProperty": {
-    "hzString": 5025126,
-    "hzTypedOM": 7092199,
-    "tomOverString": 1.41
+    "hzString": 2197802,
+    "hzTypedOM": 2980626,
+    "tomOverString": 1.36
   },
-  "verdict": "KILL the dual-path (TOM does NOT clear the bar — the string path is fine; ship the _styleOut out-buffer alloc-cure alone)"
+  "verdict": "KILL",
+  "verdictReason": "Typed-OM does NOT clear the pre-stated bar (multi 0.68x < 1.2x). KILL the permanent dual-path — the string path is fine; there is no Typed-OM surface in src/ and none is added.",
+  "adoptIsSeparateWave": true,
+  "recordedAt": "2026-07-04T20:28:04.361Z"
 }
