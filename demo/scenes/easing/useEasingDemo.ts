@@ -15,13 +15,13 @@ import type { TimingFunction } from "@mkbabb/keyframes.js";
 import {
     generateCurveSVGPath,
     generateStepSVGPath,
-} from "@components/custom/animation-controls/controls/timingCurveUtils";
-import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
+} from "@components/custom/animation-transport/controls/timingCurveUtils";
+import { NAMED_EASING_BEZIER } from "@components/custom/animation-transport/animationDescriptions";
 import { useRafScene } from "@app/runtime/useRafScene";
 import { useContractAnimGroup } from "@app/runtime/useContractAnimGroup";
 import { useSceneTransport } from "@app/runtime/useSceneTransport";
 import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
-import { useSceneMachine } from "@components/custom/animation-controls/stores";
+import { useSceneMachine } from "@state";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
 import { useEasingGallery } from "./useEasingGallery";
 import { useEasingGhost } from "./useEasingGhost";

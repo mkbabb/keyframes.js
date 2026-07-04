@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { createGlobalState } from "@vueuse/core";
 import { mat4 } from "gl-matrix";
-import type { TransformState } from "@components/custom/orbital-drag";
+import type { TransformState } from "./orbital-drag";
 
 /**
  * Shared cube transform state — persists across home ↔ cube scene transitions.

@@ -128,7 +128,7 @@ import { VIEW } from "./morphShapes";
 
 // The shared playback-button skin (the same partial MotionPath/Easing import) —
 // the Next-shape button rides .btn-interactive for cross-scene posture parity.
-import "@components/custom/animation-controls/controls/playback-button.css";
+import "@components/custom/animation-transport/controls/playback-button.css";
 
 const demo = inject(MORPH_DEMO_KEY)!;
 

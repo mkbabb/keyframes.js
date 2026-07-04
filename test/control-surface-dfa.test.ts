@@ -18,7 +18,7 @@ import {
     controlSurfacesFor,
     isSurfaceValidForScene,
     builtInSurfacesFor,
-} from "../demo/@/components/custom/animation-controls/stores/controlSurfaceDFA";
+} from "../demo/@/state/controlSurfaceDFA";
 
 const DECLARED_SCENES = [
     "home",

@@ -74,10 +74,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CONTROLS = path.join(
-    REPO,
-    "demo/@/components/custom/animation-controls",
-);
+// S.D2 (T7 walker-root arming-audit, P2-1 F5): `animation-controls/` was carved
+// into three sibling `@/` peers — `animation-transport/` (the shells + controls/
+// + composables/), `keyframes-editor/` (the Monaco editor), `keyframe-timeline/`
+// (the draggable timeline). The structural sweep now roots at ALL THREE so the
+// peer-moved files are NOT silently dropped from the walk (the false-green
+// blindspot a peer move risks). The former `keyframes/` and `timeline/` subtrees
+// are now the KEYFRAMES_EDITOR / KEYFRAME_TIMELINE peers (clauses 2/3 below).
+const TRANSPORT = path.join(REPO, "demo/@/components/custom/animation-transport");
+const KEYFRAMES_EDITOR = path.join(REPO, "demo/@/components/custom/keyframes-editor");
+const KEYFRAME_TIMELINE = path.join(REPO, "demo/@/components/custom/keyframe-timeline");
+const CONTROLS_ROOTS = [TRANSPORT, KEYFRAMES_EDITOR, KEYFRAME_TIMELINE];
 
 // H.W8 RECONCILIATION (drift-red a) — the DEMO ceiling sweep is RETIRED. The
 // D.W1/E.W1 demo line-count ceiling (350L `.vue` across `animation-controls/**`
@@ -166,9 +173,9 @@ const ASYNC = /\b(?:setTimeout|setInterval|requestAnimationFrame)\b/g;
 // The four W0-flagged sites that MUST be transposed onto vueuse (repo-relative
 // POSIX). The gate names them so the manifest is visible in its own output.
 const W0_ASYNC_SITES = [
-    "demo/@/components/custom/animation-controls/timeline/composables/useTimeline.ts",
-    "demo/@/components/custom/animation-controls/keyframes/KeyframesStringControls.vue",
-    "demo/@/components/custom/animation-controls/composables/usePaneHover.ts",
+    "demo/@/components/custom/keyframe-timeline/composables/useTimeline.ts",
+    "demo/@/components/custom/keyframes-editor/KeyframesStringControls.vue",
+    "demo/@/components/custom/animation-transport/composables/usePaneHover.ts",
 ];
 
 // The engine-loop allowlist: raw-rAF sites that are NOT animation/timer blobs a
@@ -197,17 +204,21 @@ function collectSources(dir, out = []) {
 const failures = [];
 
 function main() {
-    if (!fs.existsSync(CONTROLS)) {
-        console.error(
-            "proof:decomposition — ERROR: animation-controls/ tree not found at " +
-                relPosix(CONTROLS),
-        );
-        process.exit(3);
+    for (const root of CONTROLS_ROOTS) {
+        if (!fs.existsSync(root)) {
+            console.error(
+                "proof:decomposition — ERROR: control-suite peer not found at " +
+                    relPosix(root) +
+                    " (the S.D2 animation-transport/keyframes-editor/keyframe-timeline carve)",
+            );
+            process.exit(3);
+        }
     }
 
-    // Clauses 2–4 are controls-specific (the parse adapter, the timeline utils,
-    // the async blobs) — they sweep the controls tree only.
-    const sources = collectSources(CONTROLS);
+    // Clauses 2–4 are control-suite-specific (the parse adapter, the timeline
+    // utils, the async blobs) — they sweep the three carved peers only.
+    const sources = [];
+    for (const root of CONTROLS_ROOTS) collectSources(root, sources);
     sources.sort();
 
     // Clause 1 (ceilings) sweeps the LIBRARY surface ONLY (`src/animation/**`,
@@ -223,7 +234,7 @@ function main() {
     console.log(
         `  source files scanned: ${ceilingSources.length} library file(s) for ` +
             `the ceiling (src/animation/**); the demo structural clauses sweep ` +
-            `animation-controls/** + demo/** (demo file-size → proof:demo-no-oversize)`,
+            `the animation-transport/keyframes-editor/keyframe-timeline peers + demo/** (demo file-size → proof:demo-no-oversize)`,
     );
 
     // ── 1. LIBRARY CEILING ─────────────────────────────────────────────
@@ -268,9 +279,9 @@ function main() {
 
     // ── 2. PARSE ADAPTER — exactly ONE definition ──────────────────────
     {
-        const utilsDir = path.join(CONTROLS, "keyframes/utils");
+        const utilsDir = path.join(KEYFRAMES_EDITOR, "utils");
         // The ONE canonical definition: an `export … parseAnimationCSS` body in
-        // keyframes/utils/. Count the export DECLARATIONS (not call-site imports).
+        // keyframes-editor/utils/. Count the export DECLARATIONS (not call-site imports).
         const EXPORT_DEF =
             /\bexport\s+(?:const|function|async\s+function)\s+parseAnimationCSS\b/g;
         let canonicalDefs = 0;
@@ -288,10 +299,10 @@ function main() {
             /\b(?:const|let|var|function)\s+(?:parseAnimationCSS|parseCSSAnimationKeyframes)\s*[=(]/g;
         const inlineCopies = [];
         for (const relFile of [
-            "keyframes/KeyframesStringControls.vue",
-            "keyframes/composables/useKeyframesEditor.ts",
+            "KeyframesStringControls.vue",
+            "composables/useKeyframesEditor.ts",
         ]) {
-            const abs = path.join(CONTROLS, relFile);
+            const abs = path.join(KEYFRAMES_EDITOR, relFile);
             if (!fs.existsSync(abs)) continue;
             const src = fs.readFileSync(abs, "utf8");
             const m = src.match(INLINE_DEF);
@@ -307,9 +318,9 @@ function main() {
         for (const abs of sources) {
             const rel = relPosix(abs);
             if (
-                rel.endsWith("keyframes/KeyframesStringControls.vue") ||
-                rel.endsWith("keyframes/composables/useKeyframesEditor.ts") ||
-                toPosix(abs).includes("keyframes/utils/")
+                rel.endsWith("keyframes-editor/KeyframesStringControls.vue") ||
+                rel.endsWith("keyframes-editor/composables/useKeyframesEditor.ts") ||
+                toPosix(abs).includes("keyframes-editor/utils/")
             ) {
                 continue; // already accounted for above / the canonical home
             }
@@ -346,10 +357,10 @@ function main() {
     // ── 3. PURE UTILS RE-HOMED ─────────────────────────────────────────
     {
         const composablesDirs = [];
-        const utilsTimeline = path.join(CONTROLS, "timeline/utils");
-        // Every `timeline/composables/*.ts` must import vue (be a real
+        const utilsTimeline = path.join(KEYFRAME_TIMELINE, "utils");
+        // Every `keyframe-timeline/composables/*.ts` must import vue (be a real
         // composable). A pure module there is a mis-file.
-        const composablesTimeline = path.join(CONTROLS, "timeline/composables");
+        const composablesTimeline = path.join(KEYFRAME_TIMELINE, "composables");
         const VUE_IMPORT = /\bfrom\s+["']vue["']/;
         const REACTIVITY = /\b(?:ref|reactive|computed|watch|watchEffect|onMounted|onUnmounted|onScopeDispose)\s*\(/;
 
@@ -472,7 +483,7 @@ function main() {
         if (residual.length === 0 && ASYNC_ALLOWLIST.size === 0) {
             console.log(
                 `  ✓ [async-blob] zero raw setTimeout/setInterval/` +
-                    `requestAnimationFrame under animation-controls/**`,
+                    `requestAnimationFrame under the carved control-suite peers`,
             );
         }
     }
@@ -713,13 +724,15 @@ function main() {
         //   BITE: today — the barrel exists, TopDock.vue imports from ".", no
         //         ChromeDock; green after S1.
         {
-            const dockBarrel = "demo/@/components/custom/dock/index.ts";
+            // S.D2 — the dock is APP-private (a24 F3): evicted from
+            // app/chrome/ → demo/app/chrome/ (an app concern sub-zone).
+            const dockBarrel = "demo/app/chrome/index.ts";
             const dockBarrelAbs = path.join(REPO, dockBarrel);
-            const chromeDockRel = "demo/@/components/custom/dock/ChromeDock.vue";
+            const chromeDockRel = "demo/app/chrome/ChromeDock.vue";
             const chromeDockAbs = path.join(REPO, chromeDockRel);
             const topDockAbs = path.join(
                 REPO,
-                "demo/@/components/custom/dock/TopDock.vue",
+                "demo/app/chrome/TopDock.vue",
             );
 
             const dockFails = [];
@@ -745,7 +758,7 @@ function main() {
             }
             if (fs.existsSync(topDockAbs)) {
                 dockFails.push(
-                    `demo/@/components/custom/dock/TopDock.vue still exists — the ` +
+                    `demo/app/chrome/TopDock.vue still exists — the ` +
                         `rename to ChromeDock.vue leaves no TopDock.vue beside it.`,
                 );
             }

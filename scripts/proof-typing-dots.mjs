@@ -69,8 +69,8 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
 const HARNESS = path.join(REPO, "scripts/lib/typing-dots-harness");
 const HARNESS_DIST = path.join(REPO, "dist/_proof-typing-dots");
-const TYPING_DOTS = path.join(DEMO, "@/components/custom/TypingDots.vue");
-const ANIMATED_TEXT = path.join(DEMO, "@/components/custom/AnimatedText.vue");
+const TYPING_DOTS = path.join(DEMO, "@/components/custom/editor-shell/TypingDots.vue");
+const ANIMATED_TEXT = path.join(DEMO, "@/components/custom/editor-shell/AnimatedText.vue");
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);

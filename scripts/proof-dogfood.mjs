@@ -16,7 +16,7 @@
  * light engine replaces, so they are an EXPLICIT, reviewable allowlist
  * (`ALLOWLIST` below), not a blanket "demo rAF is fine":
  *
- *   1. demo/@/components/custom/matrix-editor/useTransformState.ts (~:205)
+ *   1. demo/scenes/cube/matrix-editor/useTransformState.ts (~:205)
  *        a one-shot post-paint scheduler (write-coalescing debounce) — the
  *        engine has no "run once next frame" surface and shouldn't grow one.
  *   2. demo/@/components/custom/CopyButton.vue — see the inline note below.
@@ -72,7 +72,7 @@ const RAF = /\brequestAnimationFrame\b/g;
 // POSIX paths (compared against the same) so the manifest is human-reviewable
 // and a new exception is a deliberate diff to THIS array.
 const ALLOWLIST = new Set([
-    "demo/@/components/custom/matrix-editor/useTransformState.ts",
+    "demo/scenes/cube/matrix-editor/useTransformState.ts",
     // E.W11 a11y: a ONE-SHOT rAF (not a loop) to re-arm the aria-live region —
     // clear `liveStatus` then set it on the next paint frame so a repeat copy
     // re-announces the unchanged text to screen readers. Not an animation a
@@ -89,7 +89,7 @@ const SOURCE_EXT = new Set([".ts", ".js", ".mjs", ".vue", ".tsx", ".jsx"]);
 // hand-rolled `Math.pow(... / TARGET_DT)` decay; the Sequence scene MUST import
 // `Sequence` + `stagger` from the engine. Stored repo-relative (POSIX).
 const ORBITAL_INERTIA =
-    "demo/@/components/custom/orbital-drag/composables/useOrbitalInertia.ts";
+    "demo/scenes/cube/orbital-drag/composables/useOrbitalInertia.ts";
 const SEQUENCE_DEMO = "demo/scenes/sequence/useSequenceDemo.ts";
 
 // The hand-rolled discrete decay the engine's analytic `decay()` replaces — a

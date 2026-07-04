@@ -140,7 +140,7 @@ import {
     LabeledSlider,
 } from "@mkbabb/glass-ui/labeled-field";
 
-import EasingEditor from "@components/custom/EasingEditor.vue";
+import EasingEditor from "@components/custom/easing-editor/EasingEditor.vue";
 import EasingCurvePhysics from "./EasingCurvePhysics.vue";
 import type { EasingDemoContext } from "./easingKeys";
 

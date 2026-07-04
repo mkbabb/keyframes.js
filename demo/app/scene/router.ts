@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
-import { restoreStateFromParam } from "@components/custom/animation-controls/stores/hashSharing";
+import { restoreStateFromParam } from "@state/hashSharing";
 import { allScenes, HOME_SCENE_ID } from "./scenes";
 
 /**

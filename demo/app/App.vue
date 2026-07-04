@@ -108,19 +108,19 @@ import {
     ACTIVE_SUPER_KEY,
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
-} from "@components/custom/animation-controls/injectionKeys";
-import type { ControlSurface } from "@components/custom/animation-controls/stores";
+} from "@components/custom/animation-transport/injectionKeys";
+import type { ControlSurface } from "@state";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
-import ChromeDock from "@components/custom/dock/ChromeDock.vue";
-import MbabbMenu from "@components/custom/dock/MbabbMenu.vue";
+import ChromeDock from "./chrome/ChromeDock.vue";
+import MbabbMenu from "./chrome/MbabbMenu.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
 import {
     getStoredAnimationGroupControlOptions,
     useSceneMachine,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 
 import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeAnimations";
 import CubeScene from "../scenes/cube/CubeScene.vue";
@@ -302,7 +302,7 @@ const { runSceneSwitch } = useSceneTransition(
 );
 
 // The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
-// lives in @/components/custom/dock/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
+// lives in @app/chrome/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
 // combined open state via `v-model:open` so ChromeDock's `:items-popup-open` holds
 // the dock's expanded layer mounted while the menu (or its hover→press window) is
 // live — the layer-collapse half of the D9 fix.

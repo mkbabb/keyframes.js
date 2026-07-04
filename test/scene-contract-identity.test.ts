@@ -24,7 +24,7 @@ import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
 import { warmKfEngine } from "../demo/@/utils/kfEngine";
 import { useEasingDemo } from "../demo/scenes/easing/useEasingDemo";
-import { useSceneMachine } from "../demo/@/components/custom/animation-controls/stores/useSceneMachine";
+import { useSceneMachine } from "../demo/@/state/useSceneMachine";
 
 // L.W8 S1 ED-3 — the demo composables read the HEAVY engine surface synchronously
 // via the warmed `kfEngine()`; the unit harness has no app boot, so warm it once.
@@ -35,8 +35,8 @@ import {
     createGroupAdapter,
     createRafAdapter,
     type RafSceneHandle,
-} from "../demo/@/components/custom/animation-controls/stores/scenePlaybackAdapters";
-import type { ScenePlayback } from "../demo/@/components/custom/animation-controls/stores/sceneMachine";
+} from "../demo/@/state/scenePlaybackAdapters";
+import type { ScenePlayback } from "../demo/@/state/sceneMachine";
 
 // ── A controllable rAF queue (mirrors scene-raf-leak's harness) ──────────────
 // A raw-rAF scene's loop is real; we drive it deterministically so isPlaying()

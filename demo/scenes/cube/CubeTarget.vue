@@ -139,8 +139,8 @@ import { onScopeDispose, reactive, ref, useTemplateRef } from "vue";
 import { Loader2 } from "@lucide/vue";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import OrbitalDrag from "@components/custom/orbital-drag/OrbitalDrag.vue";
-import type { PressedKeys, TransformState } from "@components/custom/orbital-drag";
+import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
+import type { PressedKeys, TransformState } from "./orbital-drag";
 import CubeAxisLines from "./CubeAxisLines.vue";
 import { useCubeRelit } from "./useCubeRelit";
 

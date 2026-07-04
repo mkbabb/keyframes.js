@@ -4,7 +4,7 @@ import { RAFPlayback } from "@mkbabb/keyframes.js";
 import {
     createRafAdapter,
     type ScenePlayback,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 
 import { useSceneVisibilityPause } from "./useSceneVisibilityPause";
 

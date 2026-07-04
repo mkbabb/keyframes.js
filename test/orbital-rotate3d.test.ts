@@ -155,7 +155,7 @@ describe("proof:orbital-rotate3d — the rotation OUTPUT renders as native rotat
     it("clause (c) SOURCE BINDS — OrbitalDrag.vue renders rotate3d off getAxisAngle, no rotateX/Y/Z", () => {
         const file = path.resolve(
             import.meta.dirname,
-            "../demo/@/components/custom/orbital-drag/OrbitalDrag.vue",
+            "../demo/scenes/cube/orbital-drag/OrbitalDrag.vue",
         );
         const src = fs.readFileSync(file, "utf8");
         // Isolate the containerStyle render expression — the transform template.

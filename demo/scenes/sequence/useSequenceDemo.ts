@@ -15,7 +15,7 @@ import {
     useSceneMachine,
     createRafAdapter,
     type ScenePlayback,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 
 /**
  * useSequenceDemo — the dogfood of the engine's TEMPORAL orchestrator

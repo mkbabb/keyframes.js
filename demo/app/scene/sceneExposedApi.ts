@@ -12,7 +12,7 @@
 
 import type { VNode } from "vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import type { ScenePlayback } from "@components/custom/animation-controls/stores";
+import type { ScenePlayback } from "@state";
 
 export interface SceneExposedApi {
     /** The active AnimationGroup for the scene (or undefined if not set up yet). */

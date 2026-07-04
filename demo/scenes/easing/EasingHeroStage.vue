@@ -127,8 +127,8 @@ import { computed, inject, onMounted, onScopeDispose, ref, useTemplateRef } from
 import { useResizeObserver } from "@vueuse/core";
 
 import { kfEngine } from "@utils/kfEngine";
-import DemoControlPoint from "@components/custom/DemoControlPoint.vue";
-import type { ControlPointValue } from "@components/custom/DemoControlPoint.vue";
+import DemoControlPoint from "@components/custom/easing-editor/DemoControlPoint.vue";
+import type { ControlPointValue } from "@components/custom/easing-editor/DemoControlPoint.vue";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
 const demo = inject(EASING_DEMO_KEY)!;

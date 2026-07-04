@@ -82,7 +82,7 @@ import { nextTick, ref, toRaw, useTemplateRef, watch } from "vue";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { EditorShell } from "@components/custom/editor-shell";
 import { AssetLayerPanel, AssetViewport, useAssetManager } from "@components/custom/asset-manager";
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 import { kfEngine } from "@utils/kfEngine";
 import { usePlaygroundAnimations } from "./usePlaygroundAnimations";
 

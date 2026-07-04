@@ -1,6 +1,6 @@
 import { computed, ref, watch, type Ref } from "vue";
 
-import type { TransformState } from "@components/custom/orbital-drag";
+import type { TransformState } from "./orbital-drag";
 
 /**
  * L.W11.S2 — the orientation-coupled RE-LIT die (the cube scene's instrument

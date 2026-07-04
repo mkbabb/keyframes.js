@@ -9,7 +9,7 @@ import type {
 import {
     createGroupAdapter,
     useSceneMachine,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 
 import {
     buildPathD,

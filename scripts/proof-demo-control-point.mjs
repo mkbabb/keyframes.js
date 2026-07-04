@@ -22,7 +22,7 @@
  * P6 posture: hard — device-independent interaction oracle.
  *
  * Five clauses (Q.WC1 §S3):
- *   (1) component-built  — `demo/@/components/custom/DemoControlPoint.vue` exists
+ *   (1) component-built  — `demo/@/components/custom/easing-editor/DemoControlPoint.vue` exists
  *       (source-shape corroborator). BITE: rename/drop the file → red.
  *   (2) light-substrate  — DemoControlPoint imports `drag2D` from the kf barrel
  *       (NOT a deep path, NOT a bespoke pointer handler); EasingCurveCanvas
@@ -58,8 +58,8 @@ import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
-const COMPONENT = path.join(REPO, "demo/@/components/custom/DemoControlPoint.vue");
-const CANVAS = path.join(REPO, "demo/@/components/custom/EasingCurveCanvas.vue");
+const COMPONENT = path.join(REPO, "demo/@/components/custom/easing-editor/DemoControlPoint.vue");
+const CANVAS = path.join(REPO, "demo/@/components/custom/easing-editor/EasingCurveCanvas.vue");
 const BESPOKE = path.join(
     REPO,
     "demo/@/components/custom/composables/useEasingCurveDrag.ts",
@@ -85,10 +85,10 @@ const CTRL_KEY = "animation-groups-control-options-store";
         "\nclause (1) component-built + clause (2) light-substrate (the build-in + the consolidation)",
     );
     if (fs.existsSync(COMPONENT)) {
-        ok("(1) demo/@/components/custom/DemoControlPoint.vue EXISTS (the NINTH-carry build-in landed).");
+        ok("(1) demo/@/components/custom/easing-editor/DemoControlPoint.vue EXISTS (the NINTH-carry build-in landed).");
     } else {
         fail(
-            "(1) demo/@/components/custom/DemoControlPoint.vue is ABSENT — the DM-2 component is unbuilt (the NINTH carry).",
+            "(1) demo/@/components/custom/easing-editor/DemoControlPoint.vue is ABSENT — the DM-2 component is unbuilt (the NINTH carry).",
         );
     }
 

@@ -59,8 +59,8 @@ console.log("proof:pp-logo-svg — H.W9 F4 (the ppmycota menu leads with the SVG
 // stable anchor; preserved by F4). We slice from the <DropdownMenuItem that owns
 // the togglePpMode @click to its closing </DropdownMenuItem>. The @mbabb menu (and
 // its ppmycota row) moved out of App.vue into
-// @/components/custom/dock/MbabbMenu.vue at S.D1 (a23 F2).
-const menuRaw = read(path.join(DEMO, "@/components/custom/dock/MbabbMenu.vue"));
+// app/chrome/MbabbMenu.vue at S.D1 (a23 F2).
+const menuRaw = read(path.join(DEMO, "app/chrome/MbabbMenu.vue"));
 const menu = menuRaw.replace(/<!--[\s\S]*?-->/g, "");
 
 // Find the item open-tag that contains the togglePpMode handler. Anchor on the

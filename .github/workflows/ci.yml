@@ -395,6 +395,8 @@ jobs:
               run: npm run proof:scene-colocated
             - name: proof:app-is-shell (S.D1 — demo/app/ partitioned into scene/·transition/·runtime/ · no single-consumer mis-home · no stale-depth relative import · structural shell-ness)
               run: npm run proof:app-is-shell
+            - name: proof:shared-has-n-consumers (S.D2 — every demo/@ module is genuinely shared · C-23 per-scene areas · flat-single ≥2 vs dir ≥1-peer · the monolith carve holds)
+              run: npm run proof:shared-has-n-consumers
             - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
               run: npm run proof:no-dup-utility
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)

@@ -60,7 +60,7 @@ const MOTION_PATH_TARGET = "demo/scenes/motion-path/MotionPathTarget.vue";
 
 // The store-module dir (clause 2a): the ONLY legitimate home for a store write.
 const STORE_DIR =
-    "demo/@/components/custom/animation-controls/stores";
+    "demo/@/state";
 
 // The recorded write-on-read carve-out (clause 2a): the lazy-localStorage
 // singletons seed a missing key with `structuredClone(default…)` on the first
@@ -73,13 +73,13 @@ const STORE_DIR =
 // lazy load). It is informational provenance, not a location exemption.
 const SEED_ON_READ = new Map([
     [
-        "demo/@/components/custom/animation-controls/stores/controlOptionsStore.ts",
+        "demo/@/state/controlOptionsStore.ts",
         "getStoredAnimationGroupControlOptions seeds a missing superKey with " +
             "structuredClone(default) on first read — the lazy-localStorage " +
             "singleton idiom (idempotent), not a reactive read-side-effect.",
     ],
     [
-        "demo/@/components/custom/animation-controls/stores/animationOptionsStore.ts",
+        "demo/@/state/animationOptionsStore.ts",
         "getStoredAnimationOptions seeds a missing animationId with " +
             "structuredClone(default) on first read — same lazy-singleton idiom.",
     ],

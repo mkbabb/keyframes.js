@@ -101,7 +101,7 @@
 import { readonly, shallowReactive, useTemplateRef } from "vue";
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
 import { Plus, Shapes } from "@lucide/vue";
-import { useDragCapture } from "@components/custom/animation-controls/controls/composables/useDragCapture";
+import { useDragCapture } from "@components/custom/animation-transport/controls/composables/useDragCapture";
 import type { Asset, AssetKind, AssetTransform, HandleType } from "./assetTypes";
 
 const props = defineProps<{

@@ -113,7 +113,7 @@ console.log(
 {
     const file = path.join(
         DEMO,
-        "@/components/custom/animation-controls/TransportDock.vue",
+        "@/components/custom/animation-transport/TransportDock.vue",
     );
     if (!fs.existsSync(file)) {
         fail(
@@ -155,7 +155,7 @@ console.log(
 
 // ── (B) The CONTROL-TAB select (ChromeDock.vue) ──────────────────────────────
 {
-    const file = path.join(DEMO, "@/components/custom/dock/ChromeDock.vue");
+    const file = path.join(DEMO, "app/chrome/ChromeDock.vue");
     if (!fs.existsSync(file)) {
         fail(
             `(B) ChromeDock.vue not found at ${path.relative(REPO, file)} — ` +

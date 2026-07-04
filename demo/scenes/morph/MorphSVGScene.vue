@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { computed, provide, ref } from "vue";
 
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 import MorphTarget from "./MorphTarget.vue";
 import { useMorphDemo } from "./useMorphDemo";

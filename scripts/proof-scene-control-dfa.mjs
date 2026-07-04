@@ -69,7 +69,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 {
     const acPath = path.join(
         DEMO,
-        "@/components/custom/animation-controls/controls/AnimationControls.vue",
+        "@/components/custom/animation-transport/controls/AnimationControls.vue",
     );
     const ac = read(acPath);
     // The triggers come from the DFA (the built-in triad + the scene-conditional
@@ -106,7 +106,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
         );
     }
 
-    const dock = read(path.join(DEMO, "@/components/custom/dock/ChromeDock.vue"));
+    const dock = read(path.join(DEMO, "app/chrome/ChromeDock.vue"));
     const dockFilters =
         /controlSurfaces\?:\s*string\[\]/.test(dock) &&
         /BUILT_IN_CONTROL_TABS\.filter\(\(t\)\s*=>\s*valid\.includes\(t\.value\)\)/.test(
@@ -144,7 +144,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
     const dfa = read(
         path.join(
             DEMO,
-            "@/components/custom/animation-controls/stores/controlSurfaceDFA.ts",
+            "@/state/controlSurfaceDFA.ts",
         ),
     );
     const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence", "motion-path", "morph"];

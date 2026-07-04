@@ -91,7 +91,7 @@ console.log("proof:demo-shell-grid — H.W3 (the rail·stage·rail architecture 
     // The S1–S4 rewrite files PLUS TimingFunctionPanel.vue (in scope via S3b).
     // AssetPropertiesPanel.vue is EXCLUDED by NOT being in this set (a separate
     // tree — WV-W3-HIGH-1: its grid-cols-[auto_1fr] is legitimate out-of-scope).
-    const AC = path.join(DEMO, "@/components/custom/animation-controls");
+    const AC = path.join(DEMO, "@/components/custom/animation-transport");
     const scopeFiles = [
         path.join(AC, "AnimationControlsGroup.vue"),
         path.join(AC, "controls/AnimationControlsControls.vue"),

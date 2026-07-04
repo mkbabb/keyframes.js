@@ -103,8 +103,8 @@ import { initIOSPlatformClass } from "@utils/iosTextEntry";
 import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
-import KeyboardShortcutsModal from "@components/custom/KeyboardShortcutsModal.vue";
-import AnimationControlsGroup from "@components/custom/animation-controls/AnimationControlsGroup.vue";
+import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
+import AnimationControlsGroup from "@components/custom/animation-transport/AnimationControlsGroup.vue";
 
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";

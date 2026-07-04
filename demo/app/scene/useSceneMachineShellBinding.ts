@@ -12,12 +12,12 @@ import { markRaw, watch, type ComputedRef, type Ref, type ShallowRef } from "vue
 import { useDocumentVisibility } from "@vueuse/core";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
-import type { ScenePlayback } from "@components/custom/animation-controls/stores";
+import type { ScenePlayback } from "@state";
 import {
     getStoredAnimationGroupControlOptions,
     useSceneMachine,
     createGroupAdapter,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 import { sceneMap } from "./scenes";
 import type { SceneExposedApi } from "./sceneExposedApi";
 

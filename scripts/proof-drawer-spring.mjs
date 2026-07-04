@@ -135,7 +135,7 @@ function stripCssComments(src) {
 function staticHalf() {
     const sheetPath = path.join(
         REPO,
-        "demo/@/components/custom/animation-controls/components/ControlsPaneWrapper.vue",
+        "demo/@/components/custom/animation-transport/components/ControlsPaneWrapper.vue",
     );
     if (!fs.existsSync(sheetPath)) {
         fail(`static — the sheet file ControlsPaneWrapper.vue not found at ${sheetPath}`);
@@ -143,9 +143,18 @@ function staticHalf() {
     }
     // Scope to the <style> block (the only place a CSS `transition` rule lives);
     // strip comments first so the deletion-narrating doc-comments are not matched.
+    // S.D2 co-edit: ControlsPaneWrapper's scoped style tier was carved into a
+    // colocated sourced stylesheet (`<style scoped src="./ControlsPaneWrapper.css">`
+    // — the P2-1 F6 split). Read the SFC + its .css sibling (the pair) so this
+    // clause inspects the REAL CSS, never a vacuously-empty inline block.
     const raw = fs.readFileSync(sheetPath, "utf8");
     const styleMatch = raw.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-    const css = stripCssComments(styleMatch ? styleMatch[1] : raw);
+    const cssSibling = sheetPath.replace(/\.vue$/, ".css");
+    const srcCss = fs.existsSync(cssSibling)
+        ? fs.readFileSync(cssSibling, "utf8")
+        : "";
+    const inlineCss = styleMatch ? styleMatch[1] : raw;
+    const css = stripCssComments(`${inlineCss}\n${srcCss}`);
 
     // Find every `transition[-property]:` declaration and inspect its property list
     // for the sheet's MOTION axis. The opacity-axis transitions (idle-fade,
@@ -190,7 +199,7 @@ function staticHalf() {
     // whose `--sheet-t` it binds — read the composable alongside so the wire resolves.
     const sheetStatePath = path.join(
         REPO,
-        "demo/@/components/custom/animation-controls/composables/useSheetState.ts",
+        "demo/@/components/custom/animation-transport/composables/useSheetState.ts",
     );
     const sheetState = fs.existsSync(sheetStatePath)
         ? fs.readFileSync(sheetStatePath, "utf8")
