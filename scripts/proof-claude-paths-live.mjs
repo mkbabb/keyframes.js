@@ -651,14 +651,18 @@ if (PLANT_TEST) {
         }
     };
 
-    // (a) dead tree-fence node
+    // (a) dead tree-fence node. Inject a dead sibling before the LAST child of
+    // the root tree (`└── env.d.ts`) — a real node whose actual glyph is `└──`
+    // (S.B8: the pre-regen `├── env.d.ts` target never matched, so this plant
+    // silently rode the src/animation/ backlog redness instead of injecting; now
+    // that the backlog is cleared the plant must land a genuine dead path).
     check(
         "(a) dead tree path",
         {
             ...original,
             root: original.root.replace(
-                "├── env.d.ts",
-                "├── nonexistent-plant-a.ts\n├── env.d.ts",
+                "└── env.d.ts",
+                "├── nonexistent-plant-a.ts\n└── env.d.ts",
             ),
         },
         "(a)",
