@@ -43,8 +43,8 @@ describe("H.W11 control-surface DFA — the per-scene table", () => {
         expect(controlSurfacesFor("spring")).toEqual(["spring"]);
     });
 
-    it("maps the editor scenes (cube/amiga/square) to the full built-in triad", () => {
-        for (const s of ["cube", "amiga", "square"]) {
+    it("maps the editor scenes (cube/amiga) to the full built-in triad", () => {
+        for (const s of ["cube", "amiga"]) {
             expect(controlSurfacesFor(s)).toEqual([
                 "controls",
                 "keyframes",
@@ -53,7 +53,12 @@ describe("H.W11 control-surface DFA — the per-scene table", () => {
         }
     });
 
-    it("maps the self-contained scenes (sequence/motion-path) to NO panel", () => {
+    it("maps the self-contained scenes (square/sequence/motion-path) to NO panel", () => {
+        // S.G2 S2 (fold row 69) — square COLLAPSED to the empty set: its built-in
+        // triad edited a CSSKeyframesAnimation that painted nothing (the lying
+        // panel), so it joins the drag/spring/Play-tumble-autonomous scenes whose
+        // live controls live ON the stage, not in a rail.
+        expect(controlSurfacesFor("square")).toEqual([]);
         expect(controlSurfacesFor("sequence")).toEqual([]);
         expect(controlSurfacesFor("motion-path")).toEqual([]);
     });

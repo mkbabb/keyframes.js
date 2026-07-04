@@ -33,7 +33,16 @@
     </div>
 
     <div class="square-legend" aria-hidden="true">
-        <span class="text-mono-caption text-muted-foreground">x · y ∈ [-1, 1]</span>
+        <!-- S.G2 S2 (fold row 69) — the "live controls" caption. The lying
+             keyframes/timeline/duration editor panel (it edited a
+             CSSKeyframesAnimation that painted nothing) is COLLAPSED away; the box
+             itself IS the instrument (drag it, the springs chase; Play tumbles it).
+             This mono caption names that live interaction — the honest replacement
+             for the removed panel. -->
+        <span class="square-live-caption text-mono-caption text-muted-foreground"
+            >spring-chased &middot; drag the box or press Play to tumble</span
+        >
+        <span class="text-mono-caption text-muted-foreground">x &middot; y &isin; [-1, 1]</span>
         <span
             v-if="tumbleHintShown"
             class="text-mono-caption text-muted-foreground square-legend-hint"

@@ -56,16 +56,27 @@ export const BUILT_IN_SURFACES: readonly ControlSurface[] = [
  * undefined behavior navigating any (scene → scene) pair — every cell resolves).
  *
  *   • home          → []                                (no editor — the landing)
- *   • cube/amiga/    → [controls, keyframes, timeline]  (the full editor triad;
- *     square                                             cube ADDS matrix-controls
+ *   • cube/amiga     → [controls, keyframes, timeline]  (the full editor triad;
+ *                                                        cube ADDS matrix-controls
  *                                                        CONDITIONALLY — see below)
  *   • easing         → [easing]                         (ONLY easing — NOT the
  *                                                        meaningless keyframes/
  *                                                        timeline triad)
  *   • spring         → [spring]                         (ONLY spring)
- *   • sequence       → []                               (self-contained transport
- *     / motion-path                                      ON the stage; no panel —
- *                                                        isControlsPanelOpen=false)
+ *   • square         → []                               (S.G2 S2 / fold row 69 —
+ *     / sequence                                         the box is spring-chased,
+ *     / motion-path                                      drag/keyboard/Play-tumble
+ *                                                        autonomous; the built-in
+ *                                                        triad edited a dead
+ *                                                        CSSKeyframesAnimation that
+ *                                                        PAINTED NOTHING — the lying
+ *                                                        panel is COLLAPSED, the box
+ *                                                        + dock Play + the mono
+ *                                                        caption ARE the live
+ *                                                        controls. Self-contained
+ *                                                        transport ON the stage; no
+ *                                                        panel — isControlsPanelOpen
+ *                                                        =false.)
  *
  * CUBE'S matrix-controls is a CONDITIONAL surface (valid only while the Matrix
  * animation is selected). It is therefore NOT a static table member; it composes
@@ -80,7 +91,12 @@ export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
     home: [],
     cube: ["controls", "keyframes", "timeline"],
     amiga: ["controls", "keyframes", "timeline"],
-    square: ["controls", "keyframes", "timeline"],
+    // S.G2 S2 (fold row 69) — the square is drag/spring/Play-tumble autonomous;
+    // the built-in triad edited a CSSKeyframesAnimation that painted NOTHING (a
+    // lying panel). COLLAPSED to [] — self-contained like sequence/motion-path/
+    // morph; the box + the global dock Play (isPlaying→tumble, transport-owned,
+    // independent of the control surface) + the mono caption ARE the live controls.
+    square: [],
     easing: ["easing"],
     spring: ["spring"],
     sequence: [],
