@@ -130,7 +130,7 @@ import { Input } from "@mkbabb/glass-ui/forms";
 
 import { computed } from "vue";
 import { ArrowLeft } from "@lucide/vue";
-import EasingEditor from "@components/custom/EasingEditor.vue";
+import EasingEditor from "@components/custom/easing-editor/EasingEditor.vue";
 
 const props = defineProps<{
     animation: KeyframesAnimation<any>;

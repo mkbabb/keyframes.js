@@ -112,8 +112,8 @@ import {
 import type { ControlSurface } from "@state";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
-import ChromeDock from "@components/custom/dock/ChromeDock.vue";
-import MbabbMenu from "@components/custom/dock/MbabbMenu.vue";
+import ChromeDock from "./chrome/ChromeDock.vue";
+import MbabbMenu from "./chrome/MbabbMenu.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
@@ -302,7 +302,7 @@ const { runSceneSwitch } = useSceneTransition(
 );
 
 // The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
-// lives in @/components/custom/dock/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
+// lives in @app/chrome/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
 // combined open state via `v-model:open` so ChromeDock's `:items-popup-open` holds
 // the dock's expanded layer mounted while the menu (or its hover→press window) is
 // live — the layer-collapse half of the D9 fix.

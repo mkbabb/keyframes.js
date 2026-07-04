@@ -3,7 +3,7 @@ import { decay } from "../src/animation/physics/decay";
 import {
     TARGET_DT,
     inertiaFactorToFriction,
-} from "@components/custom/orbital-drag/composables/inertiaDecay";
+} from "../demo/scenes/cube/orbital-drag/composables/inertiaDecay";
 
 /**
  * F.W10.S1 — the inertia-parity gate (MEASURE-FIRST felt-equivalence).

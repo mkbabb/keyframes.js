@@ -48,11 +48,11 @@ import {
 // reka Tabs import is deleted entirely (no legacy beside the replacement).
 import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
 
-import { MatrixEditor } from "@components/custom/matrix-editor";
+import { MatrixEditor } from "./matrix-editor";
 import CubeTarget from "./CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";
-import { useTransformState } from "@components/custom/matrix-editor/useTransformState";
+import { useTransformState } from "./matrix-editor/useTransformState";
 import { useCubeAnimations, SUPER_KEY } from "./useCubeAnimations";
 import { useCubeTransform } from "./cubeTransformStore";
 

@@ -3,7 +3,7 @@ import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { mat4 } from "gl-matrix";
 import { kfEngine } from "@utils/kfEngine";
-import type { TransformState } from "@components/custom/orbital-drag";
+import type { TransformState } from "../orbital-drag";
 import {
     MATRIX_AXES,
     transformSliderOptions,

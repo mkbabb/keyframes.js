@@ -724,13 +724,15 @@ function main() {
         //   BITE: today — the barrel exists, TopDock.vue imports from ".", no
         //         ChromeDock; green after S1.
         {
-            const dockBarrel = "demo/@/components/custom/dock/index.ts";
+            // S.D2 — the dock is APP-private (a24 F3): evicted from
+            // app/chrome/ → demo/app/chrome/ (an app concern sub-zone).
+            const dockBarrel = "demo/app/chrome/index.ts";
             const dockBarrelAbs = path.join(REPO, dockBarrel);
-            const chromeDockRel = "demo/@/components/custom/dock/ChromeDock.vue";
+            const chromeDockRel = "demo/app/chrome/ChromeDock.vue";
             const chromeDockAbs = path.join(REPO, chromeDockRel);
             const topDockAbs = path.join(
                 REPO,
-                "demo/@/components/custom/dock/TopDock.vue",
+                "demo/app/chrome/TopDock.vue",
             );
 
             const dockFails = [];
@@ -756,7 +758,7 @@ function main() {
             }
             if (fs.existsSync(topDockAbs)) {
                 dockFails.push(
-                    `demo/@/components/custom/dock/TopDock.vue still exists — the ` +
+                    `demo/app/chrome/TopDock.vue still exists — the ` +
                         `rename to ChromeDock.vue leaves no TopDock.vue beside it.`,
                 );
             }

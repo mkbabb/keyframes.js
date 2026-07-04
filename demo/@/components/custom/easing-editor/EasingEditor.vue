@@ -70,8 +70,8 @@ import {
 } from "@mkbabb/glass-ui";
 
 import CopyButton from "@components/custom/CopyButton.vue";
-import EasingCurveCanvas from "@components/custom/EasingCurveCanvas.vue";
-import EasingSelect from "@components/custom/EasingSelect.vue";
+import EasingCurveCanvas from "@components/custom/easing-editor/EasingCurveCanvas.vue";
+import EasingSelect from "@components/custom/easing-editor/EasingSelect.vue";
 
 // The normalized contract BOTH hosts adapt their state onto. `readoutValue` is
 // the COMPLETE re-parseable literal the host produces (the rail's `demo.cssValue`

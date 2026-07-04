@@ -120,8 +120,8 @@
 import { useTemplateRef } from "vue";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { List } from "@lucide/vue";
-import AnimatedText from "@components/custom/AnimatedText.vue";
-import TypingDots from "@components/custom/TypingDots.vue";
+import AnimatedText from "./AnimatedText.vue";
+import TypingDots from "./TypingDots.vue";
 import { useHeroSourceEgg } from "./useHeroSourceEgg";
 
 // K.W4 S8 (U-K20) — the FourierField + its REQUIRED `defaultBlobColorResolver`

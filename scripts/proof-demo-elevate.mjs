@@ -145,7 +145,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 4. first-paint clause ────────────────────────────────────────────────────
 {
-    const at = read("demo/@/components/custom/AnimatedText.vue");
+    const at = read("demo/@/components/custom/editor-shell/AnimatedText.vue");
     if (/prefers-reduced-motion/.test(at) && !/\b200%\s*\{/.test(at)) {
         ok("first-paint", "AnimatedText carries a PRM guard + no 200% keyframe stop");
     } else {
@@ -212,7 +212,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // (or a `text-wrap: pretty` on the AnimatedText hero layer) reds the scope.
     const heroLeak =
         /\.text-display-4[^}]*text-wrap:\s*pretty/.test(startScreen) ||
-        /text-wrap:\s*pretty/.test(stripComments(read("demo/@/components/custom/AnimatedText.vue")));
+        /text-wrap:\s*pretty/.test(stripComments(read("demo/@/components/custom/editor-shell/AnimatedText.vue")));
     if (hasPretty && !heroLeak) {
         ok("platform-adopt", "text-wrap: pretty rides the start-screen prose (not the LCP hero) — the F.W13.S1 SHIP");
     } else if (!hasPretty) {
@@ -359,7 +359,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // Strip both block (/* */) and line (//) comments so a prose mention of the
     // deleted anti-pattern ("the former `width < 768` break") does NOT satisfy a
     // presence check — only live declarations/markup count.
-    const at = stripComments(read("demo/@/components/custom/AnimatedText.vue")).replace(
+    const at = stripComments(read("demo/@/components/custom/editor-shell/AnimatedText.vue")).replace(
         /^\s*\/\/.*$/gm,
         " ",
     );

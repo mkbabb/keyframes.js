@@ -612,7 +612,7 @@ function main() {
         const GROUP = "demo/@/components/custom/animation-transport/AnimationControlsGroup.vue";
         const PANE = "demo/@/components/custom/animation-transport/components/ControlsPaneWrapper.vue";
         const TABS = "demo/@/components/custom/animation-transport/controls/AnimationControls.vue";
-        const MATRIX = "demo/@/components/custom/matrix-editor/MatrixEditor.vue";
+        const MATRIX = "demo/scenes/cube/matrix-editor/MatrixEditor.vue";
 
         // Comment-blank each file so a doc-comment NAMING the retired literal/token
         // (e.g. "the former --tabs-mask-fade shadow is collapsed") does not

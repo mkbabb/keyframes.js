@@ -119,7 +119,7 @@ const W11_EGGS = [
         scene: "home",
         // The S1 live-source quadrant card — a NEW GLASS card that types its own
         // @keyframes block (Fira Code, red caret) and round-trips it via format.ts.
-        files: ["@/components/custom/editor-shell/EditorStartScreen.vue", "@/components/custom/AnimatedText.vue"],
+        files: ["@/components/custom/editor-shell/EditorStartScreen.vue", "@/components/custom/editor-shell/AnimatedText.vue"],
         domMarker: /kf-source-egg|source-typing-card|hero-keyframes-card/,
         dogfood: /loadAnimationEngine|CSSKeyframesAnimation|format|serialize/,
         triggerFile: "@/components/custom/editor-shell/EditorStartScreen.vue",
@@ -129,7 +129,7 @@ const W11_EGGS = [
     },
     {
         scene: "cube",
-        files: ["scenes/cube/CubeTarget.vue", "@/components/custom/orbital-drag/OrbitalDrag.vue"],
+        files: ["scenes/cube/CubeTarget.vue", "scenes/cube/orbital-drag/OrbitalDrag.vue"],
         domMarker: /spin-energy|--spin-energy|face--lit|relit/,
         dogfood: /CSSKeyframesAnimation|syncRotationToModel|loadAnimationEngine/,
         triggerFile: "scenes/cube/CubeTarget.vue",

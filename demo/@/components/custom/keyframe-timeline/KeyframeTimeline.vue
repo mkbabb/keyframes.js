@@ -149,7 +149,7 @@ import {
     Redo2,
     X,
 } from "@lucide/vue";
-import CSSPasteDialog from "@components/custom/CSSPasteDialog.vue";
+import CSSPasteDialog from "./CSSPasteDialog.vue";
 import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";

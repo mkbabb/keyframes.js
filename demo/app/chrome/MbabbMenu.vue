@@ -88,7 +88,7 @@
 //
 // This is DOCK CHROME: a glass-ui brand dropdown whose D9 pointerdown-synthesis
 // workaround is a glass-ui dock-affordance seam, so it lives beside ChromeDock in
-// @/components/custom/dock/ (NOT the app shell). App.vue mounts it in ChromeDock's
+// @app/chrome/ (NOT the app shell). App.vue mounts it in ChromeDock's
 // #items slot and binds `v-model:open` back to ChromeDock's `:items-popup-open`,
 // so the dock holds itself open while the menu is open (part 2 of the D9 fix).
 // ─────────────────────────────────────────────────────────────────────────────

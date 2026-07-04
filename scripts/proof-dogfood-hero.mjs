@@ -37,7 +37,7 @@ import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TYPING_DOTS = path.join(
     REPO,
-    "demo/@/components/custom/TypingDots.vue",
+    "demo/@/components/custom/editor-shell/TypingDots.vue",
 );
 const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
 

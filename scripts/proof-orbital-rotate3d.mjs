@@ -57,7 +57,7 @@ const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
 
 console.log("proof:orbital-rotate3d — G.W18 (the rotation OUTPUT renders as native rotate3d)");
 
-const SFC = "demo/@/components/custom/orbital-drag/OrbitalDrag.vue";
+const SFC = "demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
 const TEST = "test/orbital-rotate3d.test.ts";
 
 const sfc = read(SFC);
@@ -107,7 +107,7 @@ if (/rotate3d\(\$\{/.test(sfc)) {
 // The pure quaternion↔Euler math is colocated in quaternionEuler.ts (kept under
 // the SFC's line ceiling); the SFC imports + calls it for the v-model triple.
 {
-    const eulerMod = read("demo/@/components/custom/orbital-drag/quaternionEuler.ts");
+    const eulerMod = read("demo/scenes/cube/orbital-drag/quaternionEuler.ts");
     const extractorDefined =
         /export\s+const\s+quaternionToEulerDegrees\s*=/.test(eulerMod);
     const stillCalled = /quaternionToEulerDegrees\s*\(\s*currentQuaternion\s*\)/.test(sfc);

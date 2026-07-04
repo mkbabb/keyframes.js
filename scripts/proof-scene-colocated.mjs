@@ -230,6 +230,84 @@ function main() {
         }
     }
 
+    // ── ASSERTION 4 — S.D2 scene-private colocation reference-count ─────────
+    // The canonical A4 → D2 → D3 edit order (SPEC §3 DAG); this is edit #2. S.D2
+    // evicted the single-area-private modules OUT of demo/@ INTO their sole-
+    // consuming scene (a24 F3/F4): orbital-drag/ + matrix-editor/ → scenes/cube/,
+    // useTypedTrigger → scenes/sequence/. This reference-count clause LOCKS that
+    // privacy: each colocated module must have ZERO importer OUTSIDE its host
+    // scene — an external reference means it was never scene-private (it belongs
+    // back in @/), so it REDs. Falsifiable: import orbital-drag from another scene
+    // → the external ref reds this clause.
+    {
+        const COLOCATED = [
+            ["scenes/cube/orbital-drag", "scenes/cube"],
+            ["scenes/cube/matrix-editor", "scenes/cube"],
+            ["scenes/sequence/useTypedTrigger.ts", "scenes/sequence"],
+        ];
+        const SPEC_RE =
+            /\bfrom\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|^\s*import\s*["']([^"']+)["']/gm;
+        const allDemo = collectSources(DEMO).sort();
+        const issues = [];
+        for (const [modRel, host] of COLOCATED) {
+            const modAbs = path.join(DEMO, modRel);
+            const modExists =
+                fs.existsSync(modAbs) ||
+                fs.existsSync(modAbs + ".ts") ||
+                fs.existsSync(modAbs + ".vue");
+            if (!modExists) {
+                issues.push(
+                    `${modRel} — the S.D2 colocation target does not exist (regressed)`,
+                );
+                continue;
+            }
+            const hostPrefix = toPosix(path.join(DEMO, host)) + "/";
+            const modPrefix = toPosix(modAbs);
+            const external = [];
+            for (const abs of allDemo) {
+                if (toPosix(abs).startsWith(hostPrefix)) continue; // inside host scene — allowed
+                const dir = path.dirname(abs);
+                const src = fs.readFileSync(abs, "utf8");
+                let m;
+                SPEC_RE.lastIndex = 0;
+                while ((m = SPEC_RE.exec(src)) !== null) {
+                    const spec = m[1] ?? m[2] ?? m[3];
+                    if (!spec || !(spec.startsWith("./") || spec.startsWith("../")))
+                        continue;
+                    const resolved = toPosix(path.resolve(dir, spec));
+                    if (
+                        resolved === modPrefix ||
+                        resolved.startsWith(modPrefix + "/") ||
+                        resolved === modPrefix.replace(/\.ts$/, "")
+                    ) {
+                        external.push(relPosix(abs));
+                        break;
+                    }
+                }
+            }
+            if (external.length > 0) {
+                issues.push(
+                    `${modRel} is imported from OUTSIDE ${host}/ (${external.length} site(s): ` +
+                        external.join(", ") +
+                        `) — it is not scene-private; it belongs in @/, not colocated`,
+                );
+            }
+        }
+        if (issues.length > 0) {
+            failures.push(
+                `[d2-ref-count] ${issues.length} S.D2 scene-private colocation(s) ` +
+                    `referenced externally:\n      ` +
+                    issues.join("\n      "),
+            );
+        } else {
+            console.log(
+                `  ✓ [d2-ref-count] the S.D2 scene-private colocations ` +
+                    `(orbital-drag/matrix-editor→cube, useTypedTrigger→sequence) ` +
+                    `have zero external importer`,
+            );
+        }
+    }
+
     if (failures.length > 0) {
         console.error(
             "\nproof:scene-colocated — FAIL (the R.W5 scene fusion / dead-code excision regressed):",

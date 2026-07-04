@@ -106,7 +106,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
         );
     }
 
-    const dock = read(path.join(DEMO, "@/components/custom/dock/ChromeDock.vue"));
+    const dock = read(path.join(DEMO, "app/chrome/ChromeDock.vue"));
     const dockFilters =
         /controlSurfaces\?:\s*string\[\]/.test(dock) &&
         /BUILT_IN_CONTROL_TABS\.filter\(\(t\)\s*=>\s*valid\.includes\(t\.value\)\)/.test(

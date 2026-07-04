@@ -6,8 +6,9 @@ Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves
 
 ```
 demo/
-├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/); S.D1 partition: scene/ · transition/ · runtime/
-│   ├── index.html / main.ts / App.vue   # shell: dynamic <component :is> + dock chrome (@mbabb menu extracted → @/components/custom/dock/MbabbMenu.vue)
+├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/); S.D1 partition: scene/ · transition/ · runtime/ · chrome/
+│   ├── index.html / main.ts / App.vue   # shell: dynamic <component :is> + dock chrome
+│   ├── chrome/                # app-private glass-ui dock (S.D2, a24 F3): ChromeDock.vue (scene switcher + pane toggles) + MbabbMenu.vue (@mbabb dropdown)
 │   ├── scene/                 # machine↔shell↔route bridge
 │   │   ├── scenes.ts          # scene registry: lazy scene loaders (→ ../../scenes/<name>/<Name>Scene.vue), inline-SVG icon family, warmScene()
 │   │   ├── sceneExposedApi.ts # the typed SceneExposedApi contract every <Name>Scene.vue exposes
@@ -19,11 +20,11 @@ demo/
 │   └── public/robots.txt
 ├── scenes/                    # THE fused scenes (R.W5): each dir co-locates <Name>Scene.vue + its composables + targets
 │   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaAnimations, amigaKeys, checkerboard.jpg
-│   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeAnimations/useCubeRelit, cube.png
+│   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeAnimations/useCubeRelit, cubeTransformStore, matrix-editor/ + orbital-drag/ (S.D2 colocation, a24 F3), cube.png
 │   ├── easing/       # EasingScene.vue + EasingSidebar/EasingTarget/EasingHeroStage, useEasingDemo/Gallery/Ghost/TraceSmear, easingGroups/easingKeys
 │   ├── morph/        # MorphSVGScene.vue + MorphTarget, useMorphDemo, morphShapes/morphKeys (the fromMorphSVG showcase)
 │   ├── motion-path/  # MotionPathScene.vue + MotionPathTarget, useMotionPathDemo/Gesture, motionPathGeometry/motionPathKeys
-│   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument, sequenceKeys
+│   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument/useTypedTrigger (S.D2 colocation, a24 F4), sequenceKeys
 │   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag, springKeys/springPresets
 │   └── square/       # SquareScene.vue + SquareInstrument, useSquareAnimations/useSquareKeyboard, squareKeys (custom transform fn)
 ├── @/                         # Shared library
@@ -31,15 +32,11 @@ demo/
 │   ├── components/custom/
 │   │   ├── animation-transport/ # the control-suite shells + controls/ + composables/ (see below)
 │   │   ├── keyframes-editor/    # the Monaco CSS keyframes editor (was animation-controls/keyframes/)
-│   │   ├── keyframe-timeline/   # the draggable keyframe timeline (was animation-controls/timeline/)
-│   │   ├── asset-manager/       # AssetViewport/AssetLayer/AssetLayerPanel/AssetPropertiesPanel + useAssetManager + assetTypes
-│   │   ├── dock/ChromeDock.vue  # glass-ui dock: scene switcher + pane toggles
-│   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState (URL-hash share/restore)
-│   │   ├── matrix-editor/       # MatrixEditor.vue + transformMath.ts + useTransformState.ts (gl-matrix)
-│   │   ├── orbital-drag/        # quaternion 3D drag: OrbitalDrag.vue, quaternionEuler.ts, useOrbitalPointer/Pinch/Inertia, inertiaDecay
-│   │   └── singles: AnimatedText, CSSPasteDialog, CopyButton, DemoControlPoint, EasingCurveCanvas,
-│   │              EasingEditor, EasingSelect, EditableLabel, KeyboardShortcutsModal,
-│   │              KfPillTabs, TypingDots
+│   │   ├── keyframe-timeline/   # the draggable keyframe timeline (was animation-controls/timeline/) + CSSPasteDialog (S.D2 colocation)
+│   │   ├── easing-editor/       # EasingEditor + EasingSelect + EasingCurveCanvas + DemoControlPoint cluster (S.D2, a24 F5)
+│   │   ├── asset-manager/       # AssetViewport/AssetLayer/AssetLayerPanel/AssetPropertiesPanel + useAssetManager + assetTypes + EditableLabel (playground-private → S.D3 fold)
+│   │   ├── editor-shell/        # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal (S.D2 colocation)
+│   │   └── singles: CopyButton, KfPillTabs   # the two genuinely-shared flat leaves (S.D2 shed the rest)
 │   ├── components/ui/menubar/   # the ONE remaining shadcn-vue component dir (16 files); the rest migrated to @mkbabb/glass-ui
 │   ├── composables/
 │   │   ├── gestureSelectSuppression.ts  # the ONE global drag-in-flight select-suppression token (body.is-dragging)

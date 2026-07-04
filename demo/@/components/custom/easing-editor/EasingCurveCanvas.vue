@@ -147,8 +147,8 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue";
 import { GlassPanel } from "@mkbabb/glass-ui/glass-panel";
-import DemoControlPoint from "@components/custom/DemoControlPoint.vue";
-import type { ControlPointValue } from "@components/custom/DemoControlPoint.vue";
+import DemoControlPoint from "@components/custom/easing-editor/DemoControlPoint.vue";
+import type { ControlPointValue } from "@components/custom/easing-editor/DemoControlPoint.vue";
 
 const props = defineProps<{
     easingFn: (t: number) => number;

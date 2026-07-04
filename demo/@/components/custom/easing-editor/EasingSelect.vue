@@ -100,7 +100,7 @@ import { getCurvePath } from "@components/custom/animation-transport/controls/ti
 import {
     EASING_GROUPS,
     type CurveGroupItem,
-} from "../../../scenes/easing/easingGroups";
+} from "../../../../scenes/easing/easingGroups";
 import { isDetailTimingFunction } from "@components/custom/animation-transport/animationDescriptions";
 import { computed } from "vue";
 

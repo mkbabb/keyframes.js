@@ -133,7 +133,7 @@
 
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from "vue";
-import { useTypedTrigger } from "@composables/useTypedTrigger";
+import { useTypedTrigger } from "./useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
 // J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0).
 import { MetricBadge } from "@mkbabb/glass-ui/metric-badge";

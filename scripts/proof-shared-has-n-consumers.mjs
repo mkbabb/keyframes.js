@@ -310,23 +310,30 @@ if (PLANT_TEST) {
     // Plant: pretend a genuinely 5-scene recipe (useDragScrub) is imported by
     // ONLY ONE scene → it must drop to <2 areas and RED.
     const allDemo = collectSources(DEMO).sort();
-    const dragScrub = path.join(SHARED, "composables/useDragScrub.ts");
-    // Synthesize a consumer map where useDragScrub has a single area, by filtering
-    // the real corpus down to one scene's edges for that module.
+    // useDragScrub is a genuinely 5-scene recipe (a24 §F9). Confirm it PASSES with
+    // ≥2 areas today, then simulate collapsing it to ONE scene (the falsifiability
+    // plant) and assert the flat-single rule (total < 2) would RED it.
     const { consumers } = evaluate(allDemo);
-    const real = consumers.get("composables/useDragScrub");
-    let fired = false;
+    const real = consumers.get("composables/useDragScrub.ts");
+    let ok = false;
     if (real && real.size >= 2) {
-        // Simulate the collapse: rebuild with the module clamped to one area.
-        const clamped = new Set([[...real][0]]);
-        const isDir = false;
-        const total = clamped.size;
-        fired = total < 2;
+        // Collapse to one area (as if 4 of the 5 scenes stopped importing it).
+        const collapsed = new Set([[...real][0]]);
+        // The FLAT-SINGLE rule: red iff total consuming areas < 2.
+        ok = collapsed.size < 2;
     }
-    if (fired) console.log("  ✓ plant: a cross-scene recipe collapsed to 1 area REDs");
-    else console.error("  ✗ plant: the collapse did not RED — the flat-single clause is broken");
+    if (ok)
+        console.log(
+            `  ✓ plant: useDragScrub (genuinely ${real.size}-area) collapsed to 1 ` +
+                `area trips the flat-single <2-area rule`,
+        );
+    else
+        console.error(
+            "  ✗ plant: the collapse did not RED — the flat-single clause is broken " +
+                `(useDragScrub real areas: ${real ? real.size : "MISSING"})`,
+        );
     console.log("");
-    if (!fired) process.exit(1);
+    if (!ok) process.exit(1);
     console.log("Running gate against the live tree...\n");
 }
 

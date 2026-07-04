@@ -360,7 +360,7 @@ function walkCount(dir) {
 {
     const id = "proof:hover-warmup";
     const scenesRel = "demo/app/scene/scenes.ts";
-    const dockRel = "demo/@/components/custom/dock/ChromeDock.vue";
+    const dockRel = "demo/app/chrome/ChromeDock.vue";
     const appRel = "demo/app/App.vue";
     const scenesSrc = read(scenesRel);
     const dockSrc = read(dockRel);
