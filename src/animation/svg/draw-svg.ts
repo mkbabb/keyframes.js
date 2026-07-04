@@ -36,6 +36,7 @@
  */
 
 import { CSSKeyframesAnimation } from "../engine";
+import { SVGAnimationHandle } from "./handle";
 import type { InputAnimationOptions } from "../constants";
 
 /**
@@ -182,33 +183,12 @@ export function fromDrawSVG<V extends Record<string, any> = any>(
  * is the factory: `new DrawSVG(target).animation` is the control handle. The
  * factory is the canonical entry; this is a thin ergonomic wrapper.
  */
-export class DrawSVG<V extends Record<string, any> = any> {
-    /** The underlying stroke-dashoffset animation — the control handle. */
-    readonly animation: CSSKeyframesAnimation<V>;
-
+export class DrawSVG<
+    V extends Record<string, any> = any,
+> extends SVGAnimationHandle<V> {
+    // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
+    // delegation live on `SVGAnimationHandle` (the hand-duplicated one-liners are gone).
     constructor(target: SVGDrawTarget, options: DrawSVGOptions = {}) {
-        this.animation = fromDrawSVG<V>(target, options);
-    }
-
-    /** Start (or re-enter) the line-drawing play loop. */
-    play(): Promise<void> {
-        return this.animation.play();
-    }
-
-    /** Pause the play loop, retaining the playhead. */
-    pause(): this {
-        this.animation.pause();
-        return this;
-    }
-
-    /** Halt and rewind the play loop. */
-    stop(): this {
-        this.animation.stop();
-        return this;
-    }
-
-    /** Resolve once the draw completes — the {@link Animation.finished} front-door. */
-    get finished(): Promise<void> {
-        return this.animation.finished;
+        super(fromDrawSVG<V>(target, options));
     }
 }

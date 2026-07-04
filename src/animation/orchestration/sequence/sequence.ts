@@ -57,13 +57,14 @@
  */
 
 import { clamp } from "../../internal/leaves";
+// S.B4 (a16 F3) — the reduced-motion probe is the ONE engine-wide detector
+// (`internal/reduced-motion`), not a transport-local copy; the DRY.
+import { prefersReducedMotion } from "../../internal/reduced-motion";
 import { RAFPlayback } from "../../physics/playback";
 // The pure master-clock transport math (the repeat/yoyo fold, the rest phase,
-// the no-jump origin seed, the forward-monotone predicate, the SSR RM probe)
-// lives in the colocated `./transport` module (R.W2b carve); the lifecycle
-// methods here drive them.
+// the no-jump origin seed, the forward-monotone predicate) lives in the
+// colocated `./transport` module (R.W2b carve); the lifecycle methods here drive them.
 import {
-    prefersReducedMotion,
     resolveSequencePosition,
     driveSequenceFrame,
     settleSequence,

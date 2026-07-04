@@ -35,6 +35,7 @@
  */
 
 import { CSSKeyframesAnimation } from "../engine";
+import { SVGAnimationHandle } from "./handle";
 import type { InputAnimationOptions } from "../constants";
 
 /**
@@ -161,31 +162,16 @@ export function fromMotionPath<V extends Record<string, any> = any>(
  * the factory: `new MotionPath(target, { path }).animation` is the control
  * handle. The factory is the canonical entry; this is a thin ergonomic wrapper.
  */
-export class MotionPath<V extends Record<string, any> = any> {
-    /** The underlying offset-distance animation — the control handle. */
-    readonly animation: CSSKeyframesAnimation<V>;
-
+export class MotionPath<
+    V extends Record<string, any> = any,
+> extends SVGAnimationHandle<V> {
+    // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
+    // delegation live on `SVGAnimationHandle`; `extends` gives `MotionPath` the
+    // `.finished` getter it was silently MISSING (closed by construction).
     constructor(
         target: HTMLElement | HTMLElement[],
         options: MotionPathOptions,
     ) {
-        this.animation = fromMotionPath<V>(target, options);
-    }
-
-    /** Start (or re-enter) the path-motion play loop. */
-    play(): Promise<void> {
-        return this.animation.play();
-    }
-
-    /** Pause the play loop, retaining the playhead. */
-    pause(): this {
-        this.animation.pause();
-        return this;
-    }
-
-    /** Halt and rewind the play loop. */
-    stop(): this {
-        this.animation.stop();
-        return this;
+        super(fromMotionPath<V>(target, options));
     }
 }
