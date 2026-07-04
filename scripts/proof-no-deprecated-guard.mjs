@@ -31,7 +31,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const ROUTER = path.join(REPO, "demo/app/router.ts");
+const ROUTER = path.join(REPO, "demo/app/scene/router.ts");
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);

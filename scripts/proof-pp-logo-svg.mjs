@@ -57,26 +57,28 @@ console.log("proof:pp-logo-svg — H.W9 F4 (the ppmycota menu leads with the SVG
 // emoji) cannot satisfy or trip the clauses. The ppmycota row is the
 // <DropdownMenuItem> carrying `togglePpMode` (the brand-toggle affordance — the
 // stable anchor; preserved by F4). We slice from the <DropdownMenuItem that owns
-// the togglePpMode @click to its closing </DropdownMenuItem>.
-const appRaw = read(path.join(DEMO, "app/App.vue"));
-const app = appRaw.replace(/<!--[\s\S]*?-->/g, "");
+// the togglePpMode @click to its closing </DropdownMenuItem>. The @mbabb menu (and
+// its ppmycota row) moved out of App.vue into
+// @/components/custom/dock/MbabbMenu.vue at S.D1 (a23 F2).
+const menuRaw = read(path.join(DEMO, "@/components/custom/dock/MbabbMenu.vue"));
+const menu = menuRaw.replace(/<!--[\s\S]*?-->/g, "");
 
 // Find the item open-tag that contains the togglePpMode handler. Anchor on the
 // @click="togglePpMode" attribute, then walk left to its enclosing
 // <DropdownMenuItem and right to the matching </DropdownMenuItem>.
-const ppAnchor = app.indexOf("togglePpMode");
+const ppAnchor = menu.indexOf("togglePpMode");
 let ppBlock = "";
 if (ppAnchor !== -1) {
-    const itemOpen = app.lastIndexOf("<DropdownMenuItem", ppAnchor);
-    const itemClose = app.indexOf("</DropdownMenuItem>", ppAnchor);
+    const itemOpen = menu.lastIndexOf("<DropdownMenuItem", ppAnchor);
+    const itemClose = menu.indexOf("</DropdownMenuItem>", ppAnchor);
     if (itemOpen !== -1 && itemClose !== -1) {
-        ppBlock = app.slice(itemOpen, itemClose + "</DropdownMenuItem>".length);
+        ppBlock = menu.slice(itemOpen, itemClose + "</DropdownMenuItem>".length);
     }
 }
 
 if (!ppBlock) {
     fail(
-        "could not isolate the ppmycota <DropdownMenuItem> block in App.vue " +
+        "could not isolate the ppmycota <DropdownMenuItem> block in MbabbMenu.vue " +
             "(no @click=\"togglePpMode\" item found) — the brand-toggle row is the " +
             "F4 subject and must be present (togglePpMode is PRESERVED by F4)",
     );

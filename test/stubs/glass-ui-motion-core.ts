@@ -3,7 +3,7 @@
  *
  * The library gate (ci.yml `gates` job) is glass-ui-FREE by design (inv β) — the
  * optional `file:../glass-ui` link dangled, so a demo composable that imports
- * glass-ui (`demo/app/useSceneSwap.ts` / `useSceneTransition.ts` →
+ * glass-ui (`demo/app/transition/useSceneSwap.ts` / `useSceneTransition.ts` →
  * `supportsViewTransitions` / `startViewTransition`) cannot RESOLVE there, which
  * reds the demo-encapsulation tests transitively pulled into the test pool.
  * vitest runs ONLY in that gate (demo-smoke builds the demo but runs no vitest),

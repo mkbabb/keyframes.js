@@ -53,7 +53,7 @@ import { useAmigaThree } from "./useAmigaThree";
 import { useAmigaAnimations, SPHERE_HOME } from "./useAmigaAnimations";
 import { useAmigaBoot } from "./useAmigaBoot";
 import { useSphereSpin } from "./useSphereSpin";
-import { useSceneVisibilityPause } from "@app/useSceneVisibilityPause";
+import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
 import { AMIGA_SUPER_KEY } from "./amigaKeys";
 
 const superKey = AMIGA_SUPER_KEY;

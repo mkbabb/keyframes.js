@@ -89,7 +89,7 @@ console.log(
 
 // ── The 8-scene matrix (id → control-tab trigger for navToScene's per-EXPECTED-
 //    state settle; null when the scene has no control panel). The home landing is
-//    route "". Sourced 1:1 from demo/app/scenes.ts + the live-gate navToScene set. ──
+//    route "". Sourced 1:1 from demo/app/scene/scenes.ts + the live-gate navToScene set. ──
 const SCENES = [
     { id: "home", route: "", trigger: null },
     { id: "cube", route: "cube", trigger: "Controls" },

@@ -60,7 +60,7 @@ import { navToScene, withPage } from "./lib/demo-driver.mjs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
 const DEMO = path.join(REPO, "demo");
-const SCENES_TS = path.join(REPO, "demo/app/scenes.ts");
+const SCENES_TS = path.join(REPO, "demo/app/scene/scenes.ts");
 const VITE_CONFIG = path.join(REPO, "vite.config.ts");
 
 const failures = [];

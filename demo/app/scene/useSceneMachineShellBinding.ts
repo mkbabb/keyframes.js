@@ -4,8 +4,8 @@
 // One cohesive concern: binding the active scene's ScenePlayback adapter to the
 // machine, emitting the targets-attached SCENE_READY, and routing the bottom
 // bar's play/pause + the dock's scene switch through the machine (the single
-// authority). Lives beside App.vue (its only consumer) so the shell stays a thin
-// template + a wiring list (proof:app-shell-thinness).
+// authority). Lives in the app/scene/ concern sub-zone (S.D1) so the shell stays
+// a thin template + a wiring list (proof:app-is-shell).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { markRaw, watch, type ComputedRef, type Ref, type ShallowRef } from "vue";
@@ -21,7 +21,7 @@ import {
 import { sceneMap } from "./scenes";
 import type { SceneExposedApi } from "./sceneExposedApi";
 
-export function useSceneMachineApp(opts: {
+export function useSceneMachineShellBinding(opts: {
     sceneRef: ShallowRef<SceneExposedApi | null>;
     currentSceneId: ComputedRef<string>;
     currentSuperKey: ComputedRef<string>;

@@ -24,16 +24,16 @@ import MorphIcon from "@assets/icons/morph.svg?component";
 // The per-scene `superKey` single-source (R.W5 C.4) — each scene's keys module
 // OWNS its superKey constant; the descriptor below AND the scene SFC both import
 // it, so no string literal is declared in a file that doesn't own it.
-import { MORPH_SUPER_KEY } from "../scenes/morph/morphKeys";
-import { MOTION_PATH_SUPER_KEY } from "../scenes/motion-path/motionPathKeys";
-import { EASING_SUPER_KEY } from "../scenes/easing/easingKeys";
-import { SEQUENCE_SUPER_KEY } from "../scenes/sequence/sequenceKeys";
-import { SQUARE_SUPER_KEY } from "../scenes/square/squareKeys";
-import { SPRING_SUPER_KEY } from "../scenes/spring/springKeys";
-import { AMIGA_SUPER_KEY } from "../scenes/amiga/amigaKeys";
+import { MORPH_SUPER_KEY } from "../../scenes/morph/morphKeys";
+import { MOTION_PATH_SUPER_KEY } from "../../scenes/motion-path/motionPathKeys";
+import { EASING_SUPER_KEY } from "../../scenes/easing/easingKeys";
+import { SEQUENCE_SUPER_KEY } from "../../scenes/sequence/sequenceKeys";
+import { SQUARE_SUPER_KEY } from "../../scenes/square/squareKeys";
+import { SPRING_SUPER_KEY } from "../../scenes/spring/springKeys";
+import { AMIGA_SUPER_KEY } from "../../scenes/amiga/amigaKeys";
 // Cube's superKey single-source is its existing `SUPER_KEY` export (the cube
 // keeps its established home in useCubeAnimations; no separate keys module).
-import { SUPER_KEY as CUBE_SUPER_KEY } from "../scenes/cube/useCubeAnimations";
+import { SUPER_KEY as CUBE_SUPER_KEY } from "../../scenes/cube/useCubeAnimations";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -142,7 +142,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: CUBE_SUPER_KEY,
         stageMode: "subject",
         icon: CubeIcon,
-        component: lazyScene("cube", () => import("../scenes/cube/CubeScene.vue")),
+        component: lazyScene("cube", () => import("../../scenes/cube/CubeScene.vue")),
     },
     {
         id: "amiga",
@@ -150,7 +150,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: AMIGA_SUPER_KEY,
         stageMode: "subject",
         icon: AmigaIcon,
-        component: lazyScene("amiga", () => import("../scenes/amiga/AmigaScene.vue")),
+        component: lazyScene("amiga", () => import("../../scenes/amiga/AmigaScene.vue")),
     },
     {
         id: "square",
@@ -158,7 +158,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: SQUARE_SUPER_KEY,
         stageMode: "subject",
         icon: SquareIcon,
-        component: lazyScene("square", () => import("../scenes/square/SquareScene.vue")),
+        component: lazyScene("square", () => import("../../scenes/square/SquareScene.vue")),
     },
     {
         id: "easing",
@@ -166,7 +166,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: EASING_SUPER_KEY,
         stageMode: "editor",
         icon: EasingIcon,
-        component: lazyScene("easing", () => import("../scenes/easing/EasingScene.vue")),
+        component: lazyScene("easing", () => import("../../scenes/easing/EasingScene.vue")),
     },
     {
         id: "spring",
@@ -174,7 +174,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: SPRING_SUPER_KEY,
         stageMode: "storyboard",
         icon: SpringIcon,
-        component: lazyScene("spring", () => import("../scenes/spring/SpringScene.vue")),
+        component: lazyScene("spring", () => import("../../scenes/spring/SpringScene.vue")),
     },
     {
         // The Sequence + stagger storyboard (F.W10.S3): N children positioned
@@ -188,7 +188,7 @@ export const scenes: SceneDescriptor[] = [
         icon: SequenceIcon,
         component: lazyScene(
             "sequence",
-            () => import("../scenes/sequence/SequenceScene.vue"),
+            () => import("../../scenes/sequence/SequenceScene.vue"),
         ),
     },
     {
@@ -203,7 +203,7 @@ export const scenes: SceneDescriptor[] = [
         icon: MotionPathIcon,
         component: lazyScene(
             "motion-path",
-            () => import("../scenes/motion-path/MotionPathScene.vue"),
+            () => import("../../scenes/motion-path/MotionPathScene.vue"),
         ),
     },
     {
@@ -220,7 +220,7 @@ export const scenes: SceneDescriptor[] = [
         icon: MorphIcon,
         component: lazyScene(
             "morph",
-            () => import("../scenes/morph/MorphSVGScene.vue"),
+            () => import("../../scenes/morph/MorphSVGScene.vue"),
         ),
     },
     // The standalone @starting-style "Discrete" scene was MERGED into the Spring

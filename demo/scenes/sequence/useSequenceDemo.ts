@@ -7,9 +7,9 @@ import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 
-import { useSceneVisibilityPause } from "@app/useSceneVisibilityPause";
-import { useContractAnimGroup } from "@app/composables/useContractAnimGroup";
-import { useSceneTransport } from "@app/composables/useSceneTransport";
+import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
+import { useContractAnimGroup } from "@app/runtime/useContractAnimGroup";
+import { useSceneTransport } from "@app/runtime/useSceneTransport";
 import { useSequenceInstrument } from "./useSequenceInstrument";
 import {
     useSceneMachine,

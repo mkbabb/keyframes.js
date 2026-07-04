@@ -1,7 +1,7 @@
 import type { Ref } from "vue";
 import { startViewTransition } from "@mkbabb/glass-ui/motion-core";
 
-import { sceneIndex } from "./scenes";
+import { sceneIndex } from "../scene/scenes";
 
 /**
  * Routes the scene-id mutation through the platform's native View Transitions.

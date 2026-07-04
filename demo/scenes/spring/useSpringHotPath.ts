@@ -2,7 +2,7 @@ import { ref, type Ref } from "vue";
 
 import type { SpringProgress } from "@mkbabb/keyframes.js";
 
-import { PROGRESS_READOUT_HZ } from "@app/rafConstants";
+import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
 /** One live tracker plus its reactive read-out, for the comparison row. */

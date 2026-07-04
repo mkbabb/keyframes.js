@@ -21,7 +21,7 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
-import { useSceneVisibilityPause } from "../demo/app/useSceneVisibilityPause";
+import { useSceneVisibilityPause } from "../demo/app/runtime/useSceneVisibilityPause";
 
 /** Drive `useDocumentVisibility`: set `document.visibilityState` + fire the
  *  `visibilitychange` event the composable listens on (vueuse reads
