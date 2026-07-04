@@ -46,7 +46,25 @@
         "                              crossRepo[] tracking the dispatch. Born pendingBudgeted",
         "                              (no kf bench file yet — awaiting value.js-P re-pin).",
         "                              NOTE: no codegen-parse scenario class — P.W4 is a",
-        "                              RETIRED TOMBSTONE (owner directive 2026-06-22)."
+        "                              RETIRED TOMBSTONE (owner directive 2026-06-22).",
+        "",
+        "S.F5a S3 additions (fold row 42, C-10 — SOTA claims FLOORED, not observed):",
+        "  colorTail SoA K=3/8/12 (budgeted) — the channel-plan color fold win. Each SoA",
+        "                              arm must run >= 4.0x its boxed twin (measured ~11.5x;",
+        "                              the boxed twins stay observe-only as same-report",
+        "                              denominators). Was observe-only (unfloored).",
+        "  replace K=3/8/12 (budgeted) — the dispatch-free compositor replace arm must run",
+        "                              >= 1.5x the boxed per-element add blend (measured",
+        "                              ~2.4-3.6x). The 'nothing to fold here' claim, floored.",
+        "  ALL S.F5a floors are SAME-REPORT baselineCase x floorFraction ratios (computed",
+        "  from the one bench pass) — device-INDEPENDENT, NO raw absolute fps/ms (C-10",
+        "  governs the plan). observe-only posture in CI (declarePosture), HARD on-device.",
+        "S.F5a S4 additions (C-13, fold row 56 — the reseatToSpring/decayRest bench half):",
+        "  reseatToSpring vs decayRest (observe-only) — the velocity-continuous spring",
+        "                              re-seat measured against the O(1) targetless glide",
+        "                              projection. Decision RECORDED in",
+        "                              scripts/reseat-vs-decay-decision.json (RETAIN-both:",
+        "                              distinct motion models, not throughput substitutes)."
     ],
     "version": 1,
     "suites": [
@@ -193,7 +211,10 @@
         {
             "suite": "bench/interp-buffer.bench.ts",
             "name": "colorTail SoA · K=3 · 600-frame window",
-            "category": "observe-only"
+            "category": "budgeted",
+            "floorFraction": 4.0,
+            "baselineCase": "colorTail boxed · K=3 · 600-frame window",
+            "$note": "S.F5a S3 (fold row 42, C-10) — the channel-plan color fold SOTA floor. The _colorPlan-folded lerpColorValue must run >= 4.0x the per-element boxed mixColors reconstruct at K=3 (measured ~11.5x; the floor is baselineCase.hz x floorFraction, computed from the SAME report so it tracks the runner — device-independent, NO absolute hz). Was observe-only (SOTA claim unfloored); now a budgeted device-independent ratio. The boxed twin stays observe-only as the same-report denominator (the K=8 SoA-lerpArray precedent shape)."
         },
         {
             "suite": "bench/interp-buffer.bench.ts",
@@ -203,7 +224,10 @@
         {
             "suite": "bench/interp-buffer.bench.ts",
             "name": "colorTail SoA · K=8 · 600-frame window",
-            "category": "observe-only"
+            "category": "budgeted",
+            "floorFraction": 4.0,
+            "baselineCase": "colorTail boxed · K=8 · 600-frame window",
+            "$note": "S.F5a S3 (fold row 42, C-10) — the channel-plan color fold SOTA floor at K=8. The _colorPlan-folded lerpColorValue must run >= 4.0x the per-element boxed mixColors reconstruct (measured ~11.3x; same-report ratio, device-independent, NO absolute hz). Was observe-only; now a budgeted device-independent ratio."
         },
         {
             "suite": "bench/interp-buffer.bench.ts",
@@ -213,7 +237,10 @@
         {
             "suite": "bench/interp-buffer.bench.ts",
             "name": "colorTail SoA · K=12 · 600-frame window",
-            "category": "observe-only"
+            "category": "budgeted",
+            "floorFraction": 4.0,
+            "baselineCase": "colorTail boxed · K=12 · 600-frame window",
+            "$note": "S.F5a S3 (fold row 42, C-10) — the channel-plan color fold SOTA floor at K=12. The _colorPlan-folded lerpColorValue must run >= 4.0x the per-element boxed mixColors reconstruct (measured ~11.5x; same-report ratio, device-independent, NO absolute hz). Was observe-only; now a budgeted device-independent ratio."
         },
         {
             "suite": "bench/interp-buffer.bench.ts",
@@ -377,20 +404,26 @@
         {
             "suite": "bench/group-composite.bench.ts",
             "name": "replace · K=3",
-            "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. The DEFAULT replace arm is dispatch-free — a bare reference-assign. Benched to CONFIRM the SoA fold has nothing to win here. observe-only (the replace arm is untouched by the SoA fold; proof:soa-composite reads the add/weighted SoA-vs-boxed ratio, not replace)."
+            "category": "budgeted",
+            "floorFraction": 1.5,
+            "baselineCase": "add boxed · K=3",
+            "$note": "P.W1 S2 / compositor-SoA. The DEFAULT replace arm is dispatch-free — a bare reference-assign. S.F5a S3 (C-10): the 'nothing to fold here' claim is now a budgeted device-independent ratio — replace must run >= 1.5x the boxed per-element add blend at K=3 (measured ~2.4x; same-report ratio, NO absolute hz). Was observe-only; the dispatch-free-cheaper claim is floored."
         },
         {
             "suite": "bench/group-composite.bench.ts",
             "name": "replace · K=8",
-            "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. Replace arm baseline at K=8 — dispatch-free reference-assign."
+            "category": "budgeted",
+            "floorFraction": 1.5,
+            "baselineCase": "add boxed · K=8",
+            "$note": "P.W1 S2 / compositor-SoA. Replace arm at K=8 — dispatch-free reference-assign. S.F5a S3 (C-10): replace must run >= 1.5x the boxed per-element add blend (measured ~3.3x; same-report ratio, device-independent, NO absolute hz). Was observe-only; now a budgeted device-independent ratio."
         },
         {
             "suite": "bench/group-composite.bench.ts",
             "name": "replace · K=12",
-            "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. Replace arm baseline at K=12 — dispatch-free reference-assign."
+            "category": "budgeted",
+            "floorFraction": 1.5,
+            "baselineCase": "add boxed · K=12",
+            "$note": "P.W1 S2 / compositor-SoA. Replace arm at K=12 — dispatch-free reference-assign. S.F5a S3 (C-10): replace must run >= 1.5x the boxed per-element add blend (measured ~3.6x; same-report ratio, device-independent, NO absolute hz). Was observe-only; now a budgeted device-independent ratio."
         },
         {
             "suite": "bench/group-composite.bench.ts",
