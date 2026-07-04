@@ -255,28 +255,33 @@ const emit = defineEmits<{
    `transition: …height/grid-template-rows` survives on this sheet). */
 .controls-pane-wrapper {
     --sheet-detent-peek: calc(var(--dock-icon-height) + 1.25rem);
-    /* The 0.45 visible-stage-fraction FLOOR (subject class, WV-W7-HIGH-3) caps
-       the expanded sheet. The unoccluded visible stage =
-         sheet.top − stage.top = (100dvh − reserve − height) − stageTop,
-       where reserve = --dock-menubar-reserve (the sheet's bottom anchor) and
-       stageTop = the stage's top inset (--dock-band-reserve when slack is tiny).
-       J.W7a S1 (D6 / A-01) — the subject-class expanded detent TIGHTENS from
-       0.52 to 0.48 (the 4% reduction the pane-amiga lane names): the amiga
-       sphere projects at the stage centre, and at the 0.52 detent the sheet
-       boundary cut it to a top hemisphere on mobile-open. Requiring visible
-       ≥ 0.52·100dvh (over the 0.45 floor) gives:
-         height ≤ 0.48·100dvh − reserve − stageTop,
-       so the centred sphere clears the sheet for all phone heights (paired
-       with the camera-space lift in AmigaScene). This is the DEFAULT expanded
-       detent — the subject scenes (cube/amiga/square) keep the stage as the
-       protagonist BACKGROUND, so the sheet stays clear of the floor. It is
-       ALSO ≤70dvh (NEVER full-height — WV-W7-HIGH-5) by construction. */
+    /* ── S.G1 S3 (p10 adj3) — every stage MODE DECLARES its reserved band ──
+       The reserved-stage band is a DERIVED TOKEN PAIR, not a magic fraction:
+         --stage-strip   — the reserved stage height measured FROM THE TOP.
+         --stage-reserve — the strip PLUS the top-dock band (--dock-band-reserve),
+                           i.e. the y below which the sheet may rise.
+       The expanded detent DERIVES from the declaration, so the expanded sheet's
+       TOP lands exactly at --stage-reserve and can NEVER occlude the declared band:
+         sheet.top = 100dvh − --dock-menubar-reserve − height
+                   = --stage-reserve   (at the expanded detent).
+       proof:stage-visible asserts sheet.top ≥ resolved(--stage-reserve).
+
+       SUBJECT default = 52dvh. This is BEHAVIOR-IDENTICAL to the former
+       `0.48·100dvh − --dock-menubar-reserve − --dock-band-reserve` calc
+       (100dvh − menubar − (band + 52dvh) = 48dvh − menubar − band), so the amiga
+       sphere still clears the sheet (J.W7a S1 / D6 / A-01). The subject scenes
+       (cube/amiga/square) keep the stage as the protagonist BACKGROUND. ≤70dvh
+       (NEVER full-height — WV-W7-HIGH-5) holds by construction.
+
+       Per-scene override — a SceneDescriptor field bound to an inline
+       `--stage-strip` on the wrapper — is the DECLARED escape hatch for a scene
+       that needs a bespoke band; it is UNUSED so far (both worst scenes passed on
+       the mode defaults; p10 §4.3). The editor/storyboard override is below. */
+    --stage-strip: 52dvh;
+    --stage-reserve: calc(var(--dock-band-reserve) + var(--stage-strip));
     --sheet-detent-expanded: max(
         var(--sheet-detent-peek),
-        calc(
-            0.48 * 100dvh - var(--dock-menubar-reserve) -
-                var(--dock-band-reserve)
-        )
+        calc(100dvh - var(--dock-menubar-reserve) - var(--stage-reserve))
     );
 }
 
@@ -331,25 +336,20 @@ const emit = defineEmits<{
     /* The grab handle's own CSS lives with its gesture surface —
        SheetGrabHandle.vue (the colocated sub-component, S1a/BLK-6). */
 
-    /* ── Mode-class register (S1c) ──
-       The sheet is ALWAYS a content card; what differs is the STAGE behind it
-       and the expanded CEILING. The 0.45 visible-fraction FLOOR applies ONLY to
-       the `subject` class (cube/amiga/square — the stage IS the background, so
-       the default detent above keeps it ≥0.45 visible). For `editor` (easing —
-       the curve/ball ARE the content) and `storyboard` (sequence/path/spring —
-       the rows/path ARE the content) the stage is a CONTAINED card whose own
-       on-stage content is the protagonist, NOT a background to preserve — so the
-       sheet may rise to the full 70dvh ceiling (still NEVER full-height —
-       WV-W7-HIGH-5) without violating any floor (none applies to these modes). */
+    /* ── Mode-class register (S1c / S.G1 S3) ──
+       The sheet is ALWAYS a content card; what differs is the STAGE behind it and
+       the reserved band. For `editor` (easing — the curve/ball ARE the content)
+       and `storyboard` (sequence/path/spring — the rows/path ARE the content) the
+       stage is a CONTAINED card whose own on-stage content is the protagonist, so
+       it declares a SMALLER live strip — 26dvh (replacing the former 70dvh ceiling)
+       — leaving a live band above the expanded sheet the scene anchors its primary
+       telemetry into (the S.G2 telemetry-anchor item projects into this token). The
+       `--sheet-detent-expanded` re-derives from --stage-strip via the token pair
+       above; ≤70dvh (WV-W7-HIGH-5) still holds by construction (the reserves floor
+       > 4dvh, so 100dvh − menubar − band − 26dvh < 70dvh). */
     .controls-pane-wrapper.controls-pane--stage-editor,
     .controls-pane-wrapper.controls-pane--stage-storyboard {
-        --sheet-detent-expanded: min(
-            70dvh,
-            calc(
-                100dvh - var(--dock-band-reserve) - var(--dock-menubar-reserve) -
-                    0.5rem
-            )
-        );
+        --stage-strip: 26dvh;
     }
 }
 

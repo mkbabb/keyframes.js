@@ -18,7 +18,6 @@ import { computed, h, provide, ref } from "vue";
 import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
 import PlaybackRibbon from "@components/custom/animation-controls/controls/PlaybackRibbon.vue";
 
 import SpringTarget from "./SpringTarget.vue";
@@ -43,8 +42,12 @@ provide(SPRING_DEMO_KEY, demo);
 // machine-projected single authority (bound to the `<Tabs> :model-value` in
 // AnimationControls) so the panel is born-selected on switch-in (the B4 cure
 // generalizes to every single-surface scene).
-const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
-storedControls.isControlsPanelOpen = true;
+//
+// S.G1 S1c (p10 F4 — writer c) — the former `storedControls.isControlsPanelOpen =
+// true` born-open POKE is DELETED too (the last dead write of the three-writer
+// chain). On mobile the sheet is born at peek by the host mount-reset
+// (useSheetState); on desktop the shell force-opens the rail
+// (useSceneMachineShellBinding, ≥1024px-gated). The scene pokes nothing.
 
 // `demo.isPlaying` is a read-only projection of the machine status (the shadow
 // `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes through

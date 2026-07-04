@@ -137,11 +137,39 @@ async function settleOpen(page) {
         },
         [CTRL_KEY],
     );
-    // Re-pin so the reconcile re-reads the seeded store + opens the sheet.
+    // Re-pin so the reconcile re-reads the seeded store + selectedAnimation.
     await page.evaluate((s) => {
         location.hash = "#/" + s;
     }, SCENE);
     await page.waitForTimeout(1800); // route rested + the sheet spring settled
+
+    // ── S.G1 S4 (p10 F5 arming re-arm; T7 — gate follows code) ──
+    // The mobile sheet is now BORN AT PEEK (the S.G1 three-writer peek cure): the
+    // host mount-reset overrides the seeded `isControlsPanelOpen:true` on the mobile
+    // layout, so the store seed above renders the sheet at peek, not open. This
+    // gate's z-order/hit-test measure needs the OPEN sheet, so ARM it via a real
+    // grab-handle tap (the born-open behavior the store seed relied on is exactly
+    // what the contract deletes). The tap makes the open-state measure run on the
+    // intended contract, not on the deleted auto-open.
+    const alreadyOpen = await page.evaluate(
+        () => !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
+    );
+    if (!alreadyOpen) {
+        // The grab pill toggles on POINTER events; this context has no hasTouch, so
+        // a real-mouse click (which fires pointerdown/pointerup) is the open gesture
+        // (NOT page.tap, which needs hasTouch).
+        await page.click(".sheet-grab-handle", { timeout: 5000 }).catch(() => {});
+        await page
+            .waitForFunction(
+                () =>
+                    !!document.querySelector(
+                        ".controls-pane-wrapper.controls-pane--open",
+                    ),
+                { timeout: 5000 },
+            )
+            .catch(() => {});
+        await page.waitForTimeout(600); // the open spring settles
+    }
 }
 
 /** Wait until the fixed stage + ≥2 real (glass-dock-bearing) z-dock bands + the

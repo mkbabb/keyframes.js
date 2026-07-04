@@ -182,15 +182,37 @@ async function browserHalf() {
             )
             .catch(() => {});
 
-        // The sheet + its grab handle must materialise (the scene auto-opens).
+        // ── S.G1 S4 (p10 F5 arming re-arm; T7 — gate follows code) ──
+        // The mobile sheet is now BORN AT PEEK (the S.G1 three-writer peek cure); it
+        // no longer auto-opens on scene entry. This re-open leg needs the sheet OPEN
+        // first, so ARM it via a real grab-handle tap — the SAME gesture the close /
+        // re-open legs below already drive — NOT a wait for a born-open sheet (that
+        // born-open behavior is exactly what the contract deletes). Without this
+        // re-arm the wait would time out and the leg would mis-report as a
+        // regression; the tap makes the red read as the intended contract change.
         await page
             .waitForFunction(
                 () =>
-                    !!document.querySelector(".controls-pane-wrapper.controls-pane--open") &&
+                    !!document.querySelector(".controls-pane-wrapper") &&
                     !!document.querySelector(".sheet-grab-handle"),
                 { timeout: 10000 },
             )
             .catch(() => {});
+        const bornOpen = await page.evaluate(
+            () => !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
+        );
+        if (!bornOpen) {
+            await page.tap(".sheet-grab-handle").catch(() => {});
+            await page
+                .waitForFunction(
+                    () =>
+                        !!document.querySelector(
+                            ".controls-pane-wrapper.controls-pane--open",
+                        ),
+                    { timeout: 5000 },
+                )
+                .catch(() => {});
+        }
         await waitForSheetRest(page);
 
         const haveSheet = await page.evaluate(
