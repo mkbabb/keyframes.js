@@ -1,4 +1,4 @@
-import { computed, ref, watch, type Ref } from "vue";
+import { computed, type Ref } from "vue";
 
 import type { TransformState } from "./orbital-drag";
 
@@ -10,10 +10,10 @@ import type { TransformState } from "./orbital-drag";
  * brighten and catch a thin specular, faces away sink into a --background veil.
  *
  * It rides the LIVE transform model OrbitalDrag publishes per rotation
- * (syncRotationToModel) — a pure reactive `computed`/`watch` off
+ * (syncRotationToModel) — a pure reactive `computed` off
  * `transform.value.rotate`, NOT a second rAF (inv ζ). The crayon hue is never
- * touched: the published `--lit`/`--spin-energy` channels modulate LUMINANCE
- * only (proof:crayon-preserved unaffected).
+ * touched: the published `--lit` channel modulates LUMINANCE only
+ * (proof:crayon-preserved unaffected).
  */
 
 // The pinned key light (up-and-right-and-toward-viewer), normalized once.
@@ -68,52 +68,19 @@ function litFor(n: readonly number[], r: { x: number; y: number; z: number }) {
 export function useCubeRelit(transform: Ref<TransformState>) {
     // Per-face --lit (string for the inline style binding), recomputed reactively
     // off the live rotation — no second rAF.
+    //
+    // T.A5 — QUANTIZE to skip no-op repaints. Each per-face `--lit` write triggers
+    // a `color-mix` + two-gradient repaint (.face-relit). The former `toFixed(3)`
+    // produced a distinct 0…1 string on nearly every rotation tick, so a fine orbit
+    // drag fired a per-face style INVALIDATION on essentially every pointermove.
+    // Rounding to `toFixed(2)` collapses the high-frequency fine ticks of a real
+    // drag onto the same rounded string, so Vue's `style.setProperty('--lit', …)`
+    // re-set is a NO-OP the browser skips (setting a custom property to its current
+    // value does not invalidate) — an order-of-magnitude fewer real repaints during
+    // an orbit. The 1% luminance step is imperceptible, so the capture is unchanged.
     const faceLit = computed(() =>
-        FACE_NORMALS.map((n) => litFor(n, transform.value.rotate).toFixed(3)),
+        FACE_NORMALS.map((n) => litFor(n, transform.value.rotate).toFixed(2)),
     );
 
-    // The live attitude readout (rounded degrees; the chip wears .readout-accent).
-    const euler = computed(() => ({
-        x: Math.round(transform.value.rotate.x),
-        y: Math.round(transform.value.rotate.y),
-        z: Math.round(transform.value.rotate.z),
-    }));
-
-    // --spin-energy (0…1) — the velocity-coupled atmosphere. Derived REACTIVELY
-    // from the per-tick rotation-delta magnitude (no rAF: the model already ticks
-    // on every rotation). It lifts a faint bloom + drop-shadow while the die
-    // turns; the dblclick ROLL flashes it to 1 on landing (the "thunk").
-    const spinEnergy = ref(0);
-    let lastRot = { x: 0, y: 0, z: 0 };
-    watch(
-        () => transform.value.rotate,
-        (r) => {
-            const d =
-                Math.abs(r.x - lastRot.x) +
-                Math.abs(r.y - lastRot.y) +
-                Math.abs(r.z - lastRot.z);
-            lastRot = { x: r.x, y: r.y, z: r.z };
-            const next = Math.min(1, d / 12);
-            if (next > spinEnergy.value) spinEnergy.value = next;
-            else spinEnergy.value = spinEnergy.value * 0.82;
-        },
-        { deep: true },
-    );
-
-    let flashTimer: ReturnType<typeof setTimeout> | undefined;
-    /** The roll-landing THUNK: flash --spin-energy to 1, then let it bleed off. */
-    const flashRoll = () => {
-        if (flashTimer != null) clearTimeout(flashTimer);
-        flashTimer = setTimeout(() => {
-            spinEnergy.value = 1;
-            flashTimer = setTimeout(() => {
-                spinEnergy.value = 0;
-            }, 260);
-        }, 900);
-    };
-    const disposeFlash = () => {
-        if (flashTimer != null) clearTimeout(flashTimer);
-    };
-
-    return { faceLit, euler, spinEnergy, flashRoll, disposeFlash };
+    return { faceLit };
 }

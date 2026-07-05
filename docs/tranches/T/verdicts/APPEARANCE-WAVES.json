@@ -7,6 +7,7 @@
     { "id": "T.D9", "band": "T.D", "title": "hero φ-seat + two-focal capture", "od": "OD-4", "oracle": "proof:hero-two-focal", "note": "OD-4 APPROVED — the two-focal capture oracle unlocks against P-HERO" },
     { "id": "T.D11", "band": "T.D", "title": "hero deck-voice ramp", "od": "OD-4", "oracle": "proof:hero-deck-voice", "note": "OD-4 APPROVED" },
     { "id": "T.D13", "band": "T.D", "title": "cursor-light disposition (Aurora-on-hero, more subtle)", "od": "OD-2", "oracle": "proof:cursor-light-subtle", "note": "OD-2 AURORA MORE-SUBTLE — the P-HERO aurora setting is the CEILING, not the target" },
-    { "id": "T.B-panel", "band": "T.B", "title": "two-floating-panel composition capture", "od": "OD-5", "oracle": "proof:panel-composition", "note": "OD-5 APPROVED-DIRECTION + two named reworks (R1 controls composition, R2 top-left curve preview)" }
+    { "id": "T.B-panel", "band": "T.B", "title": "two-floating-panel composition capture", "od": "OD-5", "oracle": "proof:panel-composition", "note": "OD-5 APPROVED-DIRECTION + two named reworks (R1 controls composition, R2 top-left curve preview)" },
+    { "id": "T.A-cube-taste", "band": "T.A", "title": "cube restage taste slice (axis-line rest opacity 0.45 + ease-out-back settle)", "od": null, "oracle": null, "note": "the ONE T.A cube taste packet (T.A2 axis opacity + T.A3 settle choice); NO taste-keyed born-RED oracle (rides T.M capture sign-off — the objective clauses are proof:cube-silhouette/-settle/-relight-writes). Verdict PENDING-OWNER in docs/tranches/T/verdicts/T.A-cube-taste.md — genuinely owner-open (no VERDICT line names the number/easing choice)" }
   ]
 }

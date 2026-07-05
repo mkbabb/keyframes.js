@@ -414,20 +414,27 @@ export const T_BORNRED_BACKLOG = {
     },
     "proof:visual-lock": {
         dischargedBy:
-            "T.A (T.A3 kills the easeInBounce mount intro → deterministic cube pose; " +
-            "re-capture after the cube restage) + T.M3 (owner-golden supersedes this " +
-            "self-baseline tripwire as the appearance authority — the terminal " +
+            "T.A3 LANDED (the easeInBounce mount intro is replaced by the deterministic " +
+            "ease-out-back settle + a PRM snap — the cube-pose-flap CAUSE is removed, proven " +
+            "green by proof:cube-settle: ≤1 overshoot sign-change + PRM snaps to attitude; " +
+            "the cube stage is also stripped per rulings #5/#8) + T.M3 (owner-golden supersedes " +
+            "this self-baseline tripwire as the appearance authority — the terminal " +
             "retire-vs-demote call is T.M3's; un-ledgered from RETIREMENT_LEDGER " +
-            "until then per the either-retired-or-greened model clause)",
+            "until then per the either-retired-or-greened model clause). ROW STILL OPEN: the " +
+            "baseline is NOT re-captured here — --update-baseline re-bakes ALL regions " +
+            "(home hero at this env's font hinting), the forbidden cross-OS masking the " +
+            "header names; the terminal re-baseline rides T.M3's owner-golden.",
         reason:
-            "the cube open/stage regions FLAP run-to-run above the 0.9% tolerance even " +
-            "against a same-session baseline: the mount settle intro leaves the die at a " +
-            "nondeterministic pose at capture time (verified: re-baselined at T batch ①, " +
-            "re-verify minutes later diffs 2.2%/2.15% with the diff showing the die " +
-            "silhouette offset). The T-entry baseline was ALSO environment-stale (base-tree " +
-            "re-run reds pixel-identically: home hero 9.17%/24.67% — chromium/font drift " +
-            "since the S-era capture). Correctness corroborators verified green first: " +
-            "occlusion, mobile-single-page, live-session, scene-control-dfa.",
+            "the cube open/stage regions FLAPPED run-to-run above the 0.9% tolerance because " +
+            "the easeInBounce settle left the die at a nondeterministic pose at capture time — " +
+            "that CAUSE is now removed (T.A3: deterministic ease-out-back + PRM snap). What " +
+            "REMAINS red is the cross-OS baseline drift (home hero 9.17%/24.67% — chromium/font " +
+            "hinting since the S-era capture) + the cube regions' stale baseline (it still shows " +
+            "the pre-strip readout/legend/bloomed cube — an INTENDED appearance change, not a " +
+            "regression). The terminal re-baseline is T.M3's owner-golden; visual-lock is " +
+            "observe-only-in-CI (never blocks) and its correctness authority was stripped " +
+            "(I.W7 S5). Correctness corroborators verified green: cube-silhouette, cube-settle, " +
+            "live-session, subject-full (cube leg), occlusion, scene-control-dfa.",
     },
     "proof:no-collision-rename": {
         dischargedBy:

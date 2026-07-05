@@ -3,11 +3,15 @@
  *
  * Locks `useCubeRelit` — the orientation-coupled re-lighting model (the light is
  * pinned in the room; the die turns under it, faces toward the key light
- * brighten). The `faceLit`/`euler` computeds are pure functions of the live
- * rotation, so they assert deterministically without a rAF. References the
- * scene's animation-name registry (`useCubeDemo`, renamed from
- * `useCubeAnimations` at S.D4, C-17) + transport key (`cubeKeys`) so a rename
- * reds here.
+ * brighten). The `faceLit` computed is a pure function of the live rotation, so
+ * it asserts deterministically without a rAF. References the scene's
+ * animation-name registry (`useCubeDemo`, renamed from `useCubeAnimations` at
+ * S.D4, C-17) + transport key (`cubeKeys`) so a rename reds here.
+ *
+ * T.A1/T.A2 — the `--spin-energy` bloom (spinEnergy/flashRoll/disposeFlash) and
+ * the on-stage `euler` attitude readout were DELETED (verdict #1 / rulings
+ * #5/#8); their coverage is retired here in the same motion (never assert a tell
+ * the source no longer emits).
  */
 import { describe, expect, it } from "vitest";
 import { mat4 } from "gl-matrix";
@@ -52,26 +56,21 @@ describe("useCubeRelit — the orientation-coupled relight", () => {
         }
     });
 
-    it("euler is the rounded live attitude, reactive to rotation", () => {
+    it("faceLit re-lights reactively as the die turns", () => {
         const t = ref(restTransform({ x: 10.4, y: 20.6, z: -3.5 }));
-        const { euler, faceLit } = useCubeRelit(t);
-        expect(euler.value).toEqual({ x: 10, y: 21, z: -3 });
+        const { faceLit } = useCubeRelit(t);
         const before = faceLit.value[0];
         // Turn the die a quarter — the computed relights.
         t.value = restTransform({ x: 90, y: 0, z: 0 });
-        expect(euler.value).toEqual({ x: 90, y: 0, z: 0 });
         expect(faceLit.value[0]).not.toBe(before);
     });
 
-    it("spinEnergy starts settled; flashRoll/disposeFlash are safe no-throws", () => {
-        const { spinEnergy, flashRoll, disposeFlash } = useCubeRelit(
-            ref(restTransform()),
-        );
-        expect(spinEnergy.value).toBe(0);
-        expect(() => {
-            flashRoll();
-            disposeFlash();
-        }).not.toThrow();
+    it("faceLit is quantized to 2 decimals (T.A5 — write-count reduction)", () => {
+        const { faceLit } = useCubeRelit(ref(restTransform()));
+        for (const s of faceLit.value) {
+            // toFixed(2) — at most two fractional digits (never three).
+            expect(s).toMatch(/^\d(\.\d{1,2})?$/);
+        }
     });
 });
 

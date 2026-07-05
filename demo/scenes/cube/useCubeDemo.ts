@@ -95,9 +95,15 @@ export function useCubeDemo(
         ),
     );
 
+    // T.A3 — ONE settle-motion language. The former `easeInBounce` intro jittered
+    // BACKWARDS at the start (a bounce-IN) and ran the engine 700ms on mount with
+    // several overshoot sign-changes; the scene's one settle easing is
+    // `ease-out-back` (~650ms) — the same landing the roll egg wears — so the die
+    // eases into its opening attitude with a single, gentle overshoot. PRM snaps
+    // to attitude (the engine's reduced-motion gate).
     const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
-        duration: 700,
-        timingFunction: "easeInBounce",
+        duration: 650,
+        timingFunction: "ease-out-back",
     }).fromVars([
         { transform: { rotate3d: "0, 0, 0, 0deg" } },
         { transform: { rotate3d: "-1, 1, 0, 30deg" } },
@@ -108,7 +114,17 @@ export function useCubeDemo(
         matrixAnim.value.setTargets(cubeEl);
         hoverAnim.value.setTargets(cubeEl);
         changeGraphPerspectiveAnim.setTargets(graphEl);
-        changeGraphPerspectiveAnim.play();
+        // T.A3 — PRM snaps to the opening attitude: under reduced-motion the graph
+        // jumps straight to rotate3d(-1,1,0,30deg) with NO eased intro sweep (the
+        // house reduced-motion contract). Otherwise the ease-out-back settle plays.
+        const prefersReduced =
+            typeof window !== "undefined" &&
+            window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReduced) {
+            graphEl.style.transform = "rotate3d(-1, 1, 0, 30deg)";
+        } else {
+            changeGraphPerspectiveAnim.play();
+        }
     };
 
     // B-3: pause the cube's engine draw loop while the tab is hidden. The group

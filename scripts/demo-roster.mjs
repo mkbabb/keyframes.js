@@ -124,6 +124,14 @@ export const CORRECTNESS_ROSTER = [
     "proof:layout-cluster",
     "proof:engine-no-throw-on-play",
     "proof:subject-animates",
+    // T.A1/T.A4/T.A3/T.A5 — the cube restage oracles (born-RED on the pre-cure
+    // tree; green on the cured render). Silhouette+geometry: the six faces render
+    // in 3D (no --spin-energy filter flatten) + .cube is side×side. Settle: the
+    // graph intro is the one ease-out-back settle (≤1 overshoot). Relight-writes:
+    // the quantized+memoized --lit write count stays under the absolute cap.
+    "proof:cube-silhouette",
+    "proof:cube-settle",
+    "proof:cube-relight-writes",
     "proof:fsm-suspend-resume-live",
     "proof:easing-editor-live",
     "proof:amiga-subject-is-pivot",

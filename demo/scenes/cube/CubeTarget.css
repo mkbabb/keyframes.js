@@ -2,16 +2,11 @@
    sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
    component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
    sourced-stylesheet precedent, S.D2/S.A0). */
-/* L.W11.S2 — register --lit (re-lit luminance) + --spin-energy (bloom) so they INTERPOLATE. */
+/* L.W11.S2 — register --lit (re-lit luminance) so it INTERPOLATES between ticks. */
 @property --lit {
     syntax: "<number>";
     inherits: true;
     initial-value: 0.5;
-}
-@property --spin-energy {
-    syntax: "<number>";
-    inherits: true;
-    initial-value: 0;
 }
 /* P.W5.S3 — the axis-lock reveal (@property --axis-active + the .axis-line
    styles) lives in the colocated CubeAxisLines sub-unit, beside its markup. */
@@ -47,12 +42,18 @@
     }
 }
 
+/* T.A4 — HONEST geometry. The die is a side×side box (was 0 × 450px: the faces
+   are absolutely positioned so the flex item collapsed to zero width, and the
+   former `height: calc(var(--side-size) * 2)` was double the die — it rendered
+   by accident of outer centering). Size it to the true die footprint; the faces
+   center inside it via `inset: 0; margin: auto` (below). */
 .cube {
     --side-size: min(25vh, 25vw, 15rem);
     --side-offset: calc(var(--side-size) / 2);
     --rotationX: 360deg;
 
-    height: calc(var(--side-size) * 2);
+    width: var(--side-size);
+    height: var(--side-size);
     contain: style;
 }
 
@@ -76,6 +77,10 @@
 .cube-side {
     width: var(--side-size);
     height: var(--side-size);
+    /* T.A4 — the faces are absolutely positioned; center them in the now
+       honestly-sized side×side `.cube` box. */
+    inset: 0;
+    margin: auto;
     backface-visibility: hidden;
     /* L.W11.S2 — smooth the per-face re-light between rotation ticks (the
        registered @property --lit interpolates at the rotation cadence). */
@@ -147,76 +152,11 @@
 .face-numeral {
     z-index: var(--z-content);
 }
-/* The drafting-stamp axis tag — Fira-Code annotation, muted axis register (FRAME). */
-.face-axis-tag {
-    right: 0.55rem;
-    bottom: 0.4rem;
-    font-family: var(--font-mono);
-    font-size: clamp(0.6rem, 1.4cqi, 0.8rem);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    color: var(--muted-foreground);
-    opacity: 0.62;
-    font-feature-settings: "tnum";
-    z-index: var(--z-content);
-}
 
-/* --spin-energy bloom + drop-shadow: the kept physics made VISIBLE — grows with
-   live angular motion + the roll flash, bleeds off via the transition. PRM-gated. */
-.cube--relit {
-    transition:
-        filter 240ms var(--ease-standard),
-        --spin-energy 220ms var(--ease-standard);
-}
-@media (prefers-reduced-motion: no-preference) {
-    .cube--relit {
-        filter: drop-shadow(
-            0 calc(2px + var(--spin-energy, 0) * 10px)
-                calc(6px + var(--spin-energy, 0) * 22px)
-                color-mix(in srgb, var(--color-progress) calc(18% + var(--spin-energy, 0) * 34%), transparent)
-        );
-    }
-    .cube--relit::after {
-        content: "";
-        position: absolute;
-        inset: -40%;
-        z-index: var(--z-behind);
-        border-radius: 50%;
-        pointer-events: none;
-        background: radial-gradient(
-            circle at 50% 50%,
-            color-mix(in srgb, var(--color-progress) calc(var(--spin-energy, 0) * 22%), transparent) 0%,
-            transparent 62%
-        );
-        opacity: var(--spin-energy, 0);
-        transition: opacity 240ms var(--ease-standard);
-    }
-}
-
-/* the live attitude readout chip — bottom-left; .readout-accent + tnum. L.W11 —
-   value DEEPENED toward --foreground for WCAG AA (--accent-red TOKEN untouched). */
-.cube-attitude {
-    position: absolute;
-    left: 1rem;
-    bottom: 1rem;
-    z-index: var(--z-content);
-    font-family: var(--font-mono);
-    font-size: clamp(0.62rem, 1.3cqi, 0.78rem);
-    letter-spacing: 0.02em;
-    line-height: 1.2;
-    font-feature-settings: "tnum";
-    white-space: nowrap;
-    color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, var(--foreground));
-}
-.cube-attitude__axis {
-    color: var(--muted-foreground);
-    margin-inline: 0.15em 0.1em;
-}
-@media (max-width: 1023px) {
-    .cube-attitude {
-        left: 0.5rem;
-        bottom: 0.5rem;
-        font-size: var(--type-micro);
-    }
-}
+/* T.A1 — the former bloom channel (a `filter: drop-shadow(...)` on the die + an
+   `::after` halo, driven by the deleted velocity-coupled luminance var) is GONE.
+   `filter` is a CSS grouping property → it forced `.cube`'s USED `transform-style`
+   to `flat`, collapsing the six 3D faces onto one plane (only face 1 survived —
+   verdict #1). The re-light (`--lit`) + lacquer sheen carry the depth; no
+   compensating ancestor shadow is re-introduced (any ancestor in the 3D chain
+   re-flattens). */

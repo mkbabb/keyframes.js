@@ -1,0 +1,19 @@
+{
+  "_doc": "T.M4 owner-sanctioned on-stage inventory for the cube scene, post the T.A restage (T.A1 --spin-energy bloom delete; T.A2 stage strip per owner rulings #5/#8; T.A3 settle; T.A4 geometry; T.A5 relight quantization). The `sanctioned` set is the EXACT on-stage element inventory the restaged scene renders; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The rx/ry/rz attitude readout (#5), the face axis tags, the dead .rainbow-wrapper corpse, and the on-stage GestureLegend (#8) are EXPLICITLY forbidden — the owner ruled the on-stage annotation layer OUT.",
+  "scene": "cube",
+  "sanctioned": [
+    "cube-die (.cube — the six-faced 3D die; the scene protagonist + home backdrop subject)",
+    "cube-face (.cube-side ×6 — the kept crayon facets, hue-exact, re-lit via --lit luminance + lacquer sheen)",
+    "face-numeral (the 1–6 die pips)",
+    "cube-axis-lines (CubeAxisLines — the X/Y/Z axis-lock reveal, quiet 0.45 rest register; the LOCKED axis speaks)",
+    "matrix-panel (the floating triad panel facility — arrives via T.B, not on the bare stage)"
+  ],
+  "forbidden": [
+    "cube-attitude (#5 — the rx 0° ry 0° rz 0° Euler readout, ruled OUT)",
+    "face-axis-tag (the +Z/−X mono drafting stamps, ruled OUT)",
+    "gesture-legend (#8 — the on-stage cube gesture legend, ruled OUT)",
+    "rainbow-wrapper (the dead corpse — a class with zero CSS rules anywhere)",
+    "spin-energy-bloom (#1 — the filter drop-shadow that flattened the die)"
+  ],
+  "status": "FILLED — owner-derived from rulings #5/#8 (OWNER-DECISIONS.md) + the T.A restage; the RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER)"
+}

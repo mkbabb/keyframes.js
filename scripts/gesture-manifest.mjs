@@ -43,16 +43,14 @@ export const GESTURE_MANIFEST = [
         touch: { kind: "double-tap", target: ".spring-rail" },
         effect: { kind: "class-appears", selector: ".spring-rail", token: "spring-rail--derby" },
     },
-    // cube — the die roll (the cube's sealed gesture grammar; charter-named). Tell:
-    // the legend stamp. Effect: the cube enters its `--rolling` state.
-    {
-        scene: "cube",
-        id: "roll",
-        label: "double-tap the die → roll to a random face",
-        tell: '[data-gesture-tell="cube:roll"]',
-        touch: { kind: "double-tap", target: ".cube" },
-        effect: { kind: "class-appears", selector: ".cube", token: "cube--rolling" },
-    },
+    // cube — the die-roll census ROW is RE-CUT (T.A2): the owner ruled the cube's
+    // on-stage GestureLegend stamp OUT (#8), so its `[data-gesture-tell="cube:roll"]`
+    // TELL no longer renders. Per lane-18 (never leave a gate pointing at a deleted
+    // tell) the row is removed in the SAME motion the legend is deleted — the
+    // gesture-manifest KEY survives (spring/amiga/square/easing/sequence rows kept);
+    // only the cube row (whose tell the owner removed) is cut. The double-tap Roll
+    // egg itself is KEPT in CubeTarget.vue; it is simply no longer census-tracked
+    // now that its surfacing legend is gone.
     // amiga — the Boing egg (A5: "the single best moment this page owns", hidden).
     // Tell: the legend stamp. Effect: the canvas enters its `--boing` state.
     {

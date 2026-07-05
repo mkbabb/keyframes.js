@@ -125,14 +125,18 @@ const W11_EGGS = [
     {
         scene: "cube",
         files: ["scenes/cube/CubeTarget.vue", "scenes/cube/orbital-drag/OrbitalDrag.vue"],
-        domMarker: /spin-energy|--spin-energy|face--lit|relit/,
+        // T.A1 RE-CUT — the `--spin-energy` bloom channel was DELETED (it forced
+        // the die's transform-style flat, collapsing all six faces onto one, #1).
+        // The re-lit die's KEPT tell is the per-face `--lit` luminance (face-relit /
+        // face-lacquer), so the marker points there now, never at the deleted bloom.
+        domMarker: /face-relit|face-lacquer|faceLit|--lit\b/,
         dogfood: /CSSKeyframesAnimation|syncRotationToModel|loadAnimationEngine/,
         triggerFile: "scenes/cube/CubeTarget.vue",
         // The re-lit die rides the EXISTING orbit (no new rAF) — the trigger is the
-        // orbit drive + the kept dblclick ROLL landing a --spin-energy thunk.
-        trigger: /spin-energy|--spin-energy|onRoll/,
-        note: "S2 — the orientation-coupled RE-LIT die: faces toward the pinned light brighten + catch specular as the cube orbits (rides syncRotationToModel, NO second rAF); the dblclick ROLL lands a --spin-energy bloom thunk",
-        browser: { scene: "cube", host: ".cube", trigger: "dblclick", probe: "spin-energy" },
+        // orbit-driven --lit relight (useCubeRelit) + the kept dblclick ROLL.
+        trigger: /faceLit|useCubeRelit|onRoll/,
+        note: "S2 — the orientation-coupled RE-LIT die: faces toward the pinned light brighten + catch a --lit specular as the cube orbits (rides useCubeRelit off the live transform, NO second rAF); the dblclick ROLL is the kept engine-dogfooded tumble",
+        browser: { scene: "cube", host: ".cube", trigger: "dblclick", probe: "relit" },
     },
     {
         scene: "amiga",

@@ -22,7 +22,8 @@
       "assertion": "all six faces render (rendered-region, not ≥3-transform)",
       "verdictItem": "#1 (one die face)",
       "cure": "T.A --spin-energy bloom delete",
-      "verified": false
+      "verified": true,
+      "verifiedBy": "T.A1/T.A4 — proof:cube-silhouette browser render check (KF_REQUIRE_BROWSER=1): 6/6 .cube-side faces render with w AND h > 0.25·side (56.3px), .cube box = 225×225px (side×side). The bloom filter-flatten is deleted; the die is 3D."
     },
     {
       "subject": "amiga-ball",
