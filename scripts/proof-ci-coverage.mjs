@@ -257,6 +257,11 @@ const EXCLUDED = new Set([
     "proof:subject-legible",
     "proof:subject-full",
     "proof:roster-ceiling",
+    // T batch ① — the cube pose-flap visual-lock re-baseline landed born-RED
+    // (env-drift proven at base; registered in T_BORNRED_BACKLOG). Lockstep with
+    // clause 11: a declared-backlog gate rides CI as a recorded tripwire, never a
+    // blocking &&-chain member (T.S1 fold — the batch-① EXCLUDED miss).
+    "proof:visual-lock",
 ]);
 
 const gates = Object.keys(pkg.scripts)

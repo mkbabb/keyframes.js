@@ -525,12 +525,16 @@ jobs:
             - name: proof:kf-differential (Q.WD2 — kf-vs-browser WAAPI midpoint differential · observe-only in CI, hard under KF_REQUIRE_BROWSER)
               run: npm run proof:kf-differential
             # ════════════════════════════════════════════════════════════════════
-            # Q STAGE-5 GATED CONSUMES (value.js 1.2.0) — @function inline · leaves
+            # Q STAGE-5 GATED CONSUMES (value.js) — @function inline · leaves
             # externalize · color-SoA measure · glass-ui aria content-probe. node + jsdom.
+            # The value.js floor is single-sourced in package.json's declared range
+            # (T.S1 / lane 27 F7 — NO caret/tilde version literal in workflow prose;
+            # the S.C4/S2 re-pin proved a hardcoded value.js floor here drifts silently
+            # and reds proof:ci-coverage's version-literal clause).
             # ════════════════════════════════════════════════════════════════════
             - name: proof:no-cross-realm-cast (Q.WE2 — leaves externalized onto value.js/math · the 4 compile-color casts annotated · no kf math duplicate)
               run: npm run proof:no-cross-realm-cast
-            - name: proof:color-soa (Q.WB3-color — MEASURE-FIRST · the channel-plan fold ships in-leaf via the ^1.2.0 re-pin · DECLINE the dead parallel arm · bit-identical)
+            - name: proof:color-soa (Q.WB3-color — MEASURE-FIRST · the channel-plan fold ships in-leaf via the package.json-declared value.js re-pin · DECLINE the dead parallel arm · bit-identical)
               run: npm run proof:color-soa
             - name: proof:glassui-aria-ask (Q.WG-S1S2 — the glass-ui aria/dock content-probe · observe-only PENDING-until-BC-publish)
               run: npm run proof:glassui-aria-ask
