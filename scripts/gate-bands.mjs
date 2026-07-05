@@ -401,4 +401,19 @@ export const T_BORNRED_BACKLOG = {
             `(${ROSTER_CEILING}); today 203. It CONVERGES as M7's ~15 feature-coupled ` +
             "retirements + the FROZEN discharge land — a declared backlog, not a mask.",
     },
+    "proof:visual-lock": {
+        dischargedBy:
+            "T.A (T.A3 kills the easeInBounce mount intro → deterministic cube pose; " +
+            "re-capture after the cube restage) + T.M3 (owner-golden supersedes this " +
+            "self-baseline tripwire as the appearance authority)",
+        reason:
+            "the cube open/stage regions FLAP run-to-run above the 0.9% tolerance even " +
+            "against a same-session baseline: the mount settle intro leaves the die at a " +
+            "nondeterministic pose at capture time (verified: re-baselined at T batch ①, " +
+            "re-verify minutes later diffs 2.2%/2.15% with the diff showing the die " +
+            "silhouette offset). The T-entry baseline was ALSO environment-stale (base-tree " +
+            "re-run reds pixel-identically: home hero 9.17%/24.67% — chromium/font drift " +
+            "since the S-era capture). Correctness corroborators verified green first: " +
+            "occlusion, mobile-single-page, live-session, scene-control-dfa.",
+    },
 };

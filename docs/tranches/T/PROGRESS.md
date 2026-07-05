@@ -94,6 +94,38 @@
   unauthored until its token; the easing batch will build+serve the surface for the
   mid-drive owner review alongside OD-5's R1/R2 riders.
 
+- **2026-07-05 — BATCH ① MERGED + VERIFIED (T4/T5).** Fleet `wf_c448d25e-99e`, 3/3 Opus
+  lanes, 1.02M tokens. **T.M** (`1307e09`): M1/M2/M6/M7-ledger/M9/M10 landed GREEN +
+  plant-tested; M4/M5/M8-count landed born-RED into the NEW `T_BORNRED_BACKLOG`
+  mechanism (gate-bands.mjs) + ci-coverage clause 11; the F9 fold executed (3 orphaned
+  S.B6 gates → hygiene-chain + ci gates job); M3 deferred to post-render. **T.E**
+  (`9eef50b`): compose+morph+motion-path deleted in totality (routes 9→6), OD-1 PRUNE
+  executed, 7 gate keys retired through every aggregator, `.z-dock:has()` utility-keyed
+  layout class killed → `[data-dock-tether]`, persisted-state boot migration, ~28 gates
+  re-armed, CLAUDE.md counts re-derived (109 files / 1028 tests). **T.H** (`e0ce640`):
+  `demo/glass-ui-gaps.ts` 9-entry registry + `proof:glass-ui-gap-tripwire` (single
+  glassCaps source, lane-25-rec-2 clause), the 12-ask letter SHIPPED + PIN-LEDGER ask
+  rows + 2 new caps (dockDismissHold/dockDropdownPointerdown), LabeledSelect consumed,
+  H5/H6 terminal-on-publish tripwires; H3 Drawer rides T.B. **Merge composition:**
+  package.json/TransportDock conflicts resolved as unions; merged-tree re-runs — tsc
+  clean, 1026/1043 tests, build+gh-pages green, 15 gates green incl. all six mechanism
+  gates, occlusion/mobile-single-page/live-session/scene-control-dfa green.
+  **Adjudications:** (a) `computed-real-dom` red = worktree-glob contamination → batch
+  + stale S worktrees removed, green; (b) `scene-transition-perf` red = machine-load
+  noise — interleaved A/B vs base: merged 87.9/94.0 vs base 97.8/95.0 p95, PASS (the
+  T.G CDP re-home motivation, recorded); (c) `visual-lock` was red AT BASE
+  pixel-identically (environment drift since the S-era capture) → re-baselined per its
+  own protocol AFTER correctness corroborators verified green, stale pruned-scene +
+  square-open baselines deleted, and the residual nondeterministic cube open-stage POSE
+  FLAP (the easeInBounce mount intro) declared into `T_BORNRED_BACKLOG` (discharge:
+  T.A3 deterministic settle + T.M3 supersession); the roster runner now composes
+  `T_BORNRED_BACKLOG` into its expected set; (d) T.E3↔T.M5 lockstep executed at merge:
+  the SUBJECTS.json morph clause retired; (e) phi-leaf GestureLegend literal → φ-token
+  idiom. **Posture: failing ⊆ backlog exactly** (backlog: stage-inventory,
+  subject-legible, subject-full, roster-ceiling-count, visual-lock, drag-gesture→T.S2,
+  ci-coverage version-literal→T.S1). glass-ui is mid-BG (dirty tree) — the letter
+  dispatch rests on kf's shipped copy per the write-boundary; the BG session consumes.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately

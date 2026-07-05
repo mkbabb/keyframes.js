@@ -45,6 +45,7 @@ import { fileURLToPath } from "node:url";
 import { IN_CI } from "./lib/ci-env.mjs";
 import { resolveChromium, serveDist } from "./lib/demo-driver.mjs";
 import { BACKLOG, CORRECTNESS_ROSTER, OBSERVE_IN_CI } from "./demo-roster.mjs";
+import { T_BORNRED_BACKLOG } from "./gate-bands.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const GHPAGES = path.join(REPO, "dist", "gh-pages");
@@ -177,8 +178,17 @@ const passed = results.filter((r) => r.code === 0).map((r) => r.gate);
 // their reds RECORD (annotated below) and never block; off-CI they hard-gate.
 const observedRed = IN_CI ? allFailed.filter((g) => OBSERVE_IN_CI.includes(g)) : [];
 const failed = allFailed.filter((g) => !observedRed.includes(g));
-const backlogRed = failed.filter((g) => g in BACKLOG);
-const unexpectedRed = failed.filter((g) => !(g in BACKLOG));
+// The T-drive born-RED backlog (gate-bands.mjs T_BORNRED_BACKLOG — T.M's declared
+// posture) composes with the S.A0 BACKLOG: a red in EITHER set is EXPECTED
+// (failing ⊆ backlog exactly), discharged at its named wave — never a mask.
+const EXPECTED_BACKLOG = {
+    ...BACKLOG,
+    ...Object.fromEntries(
+        Object.entries(T_BORNRED_BACKLOG).map(([k, v]) => [k, v.dischargedBy]),
+    ),
+};
+const backlogRed = failed.filter((g) => g in EXPECTED_BACKLOG);
+const unexpectedRed = failed.filter((g) => !(g in EXPECTED_BACKLOG));
 
 console.log(`\n════ run-demo-roster (tier=${tier}) — REPORT-ALL ════`);
 console.log(`  passed: ${passed.length}/${results.length}`);
@@ -190,8 +200,8 @@ if (observedRed.length) {
 }
 if (backlogRed.length) {
     console.log(
-        `  BACKLOG reds (EXPECTED — S.A0 enumerated, discharged at the named wave): ` +
-            backlogRed.map((g) => `${g}→${BACKLOG[g]}`).join(", "),
+        `  BACKLOG reds (EXPECTED — S.A0/T-bornRED enumerated, discharged at the named wave): ` +
+            backlogRed.map((g) => `${g}→${EXPECTED_BACKLOG[g]}`).join(", "),
     );
 }
 if (unexpectedRed.length) {
