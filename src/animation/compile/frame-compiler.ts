@@ -338,19 +338,25 @@ export class FrameCompiler<V extends Vars = Vars> {
     parse(targets: HTMLElement[]) {
         this.frames = [];
 
-        // P.W9 (DM-22 named-selector NaN-frame) — DEFERRED to a follow-up wave.
+        // DM-22 named-selector resolution — BUILT (Q.WD1-bind S2), not deferred.
         // A scroll-range named selector (`entry`/`exit`/`cover`/`contain`) is
         // stored opaquely as `ValueUnit(rawSelector, undefined,
         // [NAMED_SELECTOR_SUPERTYPE])` (`.value` = raw STRING) so it INGESTS and
         // round-trips VERBATIM (the L.W1 S4 floor — `fromString` must not throw).
         // The correct cure is NOT a throw at parse() (that poisons the opaque-
-        // ingest floor): it is a deferred-resolution step that maps the named
-        // phase to a numeric `%` under a ScrollTimeline/ManualTimeline at attach
-        // time, refusing with the structured `NAMED_SELECTOR_NO_TIMELINE` only at
-        // the genuinely-demanded PLAY-without-timeline point — not at ingest. That
-        // is a frame/play-pipeline change carried to its own wave; here we keep the
-        // shipped (tranche-L) behavior: named frames round-trip; the NaN is latent
-        // at sample-time only (no timeline = user error, surfaced at play).
+        // ingest floor): the deferred-resolution step LIVES at attach time in
+        // `CSSKeyframesAnimation.bindTimeline`, which maps each named phase to a
+        // numeric `%` `ValueUnit` (via `namedSelectorToFraction`), CLEARS the
+        // `NAMED_SELECTOR_SUPERTYPE` tag, and re-compiles — so a frame SAMPLED after
+        // `bindTimeline` yields finite times, never NaN (locked by
+        // `test/engine/nan-frame.test.ts` "after bindTimeline … finite"). The
+        // play-time guard (`assertNoUnresolvedNamedSelector`) is belt-and-braces:
+        // it refuses a raw `interpFrames`/`play()` on an UNBOUND named animation
+        // with the typed `NAMED_SELECTOR_NO_TIMELINE` (no timeline = user error,
+        // surfaced fail-explicit at play) rather than producing a NaN frame — the
+        // accepted terminal contract for the sample-before-bind path. `parse()`
+        // itself stays opaque-tolerant: it neither throws nor resolves (bind owns
+        // resolution); named starts simply carry their raw string until bound.
         this.templateFrames.sort((a, b) => a.start.value - b.start.value);
 
         this.parsedVars = this.templateFrames.map((frame) => {

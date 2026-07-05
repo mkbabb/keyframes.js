@@ -63,6 +63,26 @@ describe("Q.WD1 — named-selector NaN-frame proper cure (DM-22)", () => {
         expect(() => anim.at(1)).not.toThrow();
     });
 
+    // ── T.S4 (DM-22 build branch, ratified) — a named-selector frame SAMPLED
+    //    after bindTimeline yields a FINITE value, not NaN (the direct gate) ──
+    it("T.S4: a named-selector frame sampled after bindTimeline yields a finite value (not NaN)", () => {
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            NAMED_CSS,
+        );
+        anim.bindTimeline(new ManualTimeline());
+        // Sample the interpolated opacity across the resolved band [entry=0%,
+        // exit=75%] → duration ms [0, 750]. Every in-band sample is a FINITE
+        // number (the phase→% resolution eliminated the sample-time NaN the
+        // DEFERRED comment used to advertise as an unbuilt cure); crucially, no
+        // sample is EVER NaN (the failure mode the deferral left latent).
+        for (const t of [0.05, 0.25, 0.5, 0.7]) {
+            const v = anim.at(t).opacity?.[0]?.value;
+            expect(typeof v).toBe("number");
+            expect(Number.isNaN(v as number)).toBe(false);
+            expect(Number.isFinite(v as number)).toBe(true);
+        }
+    });
+
     it("bindTimeline clears the NAMED_SELECTOR_SUPERTYPE tag (resolved frames are plain % selectors)", () => {
         const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
             NAMED_CSS,
