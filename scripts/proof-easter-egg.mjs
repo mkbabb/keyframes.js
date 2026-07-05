@@ -86,14 +86,12 @@ const STATIC_EGGS = [
         triggerTokens: [/useDoubleTap\(/, /onRoll/],
         note: '"the Roll" — dblclick rolls the cube to a die face on an engine CSSKeyframesAnimation (.cube--rolling)',
     },
-    {
-        scene: "amiga",
-        file: "scenes/amiga/AmigaScene.vue",
-        tokens: [/onBoing/, /boinging|amiga-canvas--boing/, /Group|play\(\)/],
-        triggerFile: "scenes/amiga/AmigaScene.vue",
-        triggerTokens: [/useDoubleTap\(/, /onBoing/],
-        note: '"the Boing" — dblclick wakes the dormant Boing-Ball AnimationGroup for one arc (.amiga-canvas--boing)',
-    },
+    //  RETIRED at T.A8/T.A10: the amiga "Boing" double-tap egg was DELETED — the
+    //  Boing IS the scene now (the transport plays the continuous group), so there
+    //  is no dormant egg to wake. The boing timer, the double-tap handler, the
+    //  power-on boot, and the `.amiga-canvas--boing` state token are all gone
+    //  (T.A8). Noted for the easter-egg retirement ledger (same lockstep genus as
+    //  the motion-path EE-MP-2 retirement above).
     {
         scene: "square",
         file: "scenes/square/useSquareDemo.ts",
@@ -286,37 +284,10 @@ async function browserHalf() {
             }
         }
 
-        // ── amiga "the Boing" — dblclick → .amiga-canvas--boing ───────────────
-        {
-            await settleOnScene(page, "amiga", VW, VH);
-            const ready = await waitVisible(page, ".amiga-canvas");
-            if (!ready) {
-                fail("[amiga] egg fires — the .amiga-canvas did not mount");
-            } else {
-                await fireDblclick(page, ".amiga-canvas");
-                // Wait for the class to appear rather than a fixed timeout — the
-                // handler is synchronous but Vue's reactive flush can lag on a
-                // loaded Linux CI runner, so poll until the class is set or 5s elapse.
-                const amigaLoc = page.locator(".amiga-canvas.amiga-canvas--boing");
-                await amigaLoc.waitFor({ state: "attached", timeout: 5000 }).catch(() => {});
-                const boinging = await page.evaluate(() =>
-                    document
-                        .querySelector(".amiga-canvas")
-                        .classList.contains("amiga-canvas--boing"),
-                );
-                if (boinging) {
-                    ok(
-                        `[amiga] "the Boing" fires — dblclick set .amiga-canvas--boing ` +
-                            `(the dormant Boing-Ball group plays one arc)`,
-                    );
-                } else {
-                    fail(
-                        `[amiga] "the Boing" fires — dblclick did NOT set ` +
-                            `.amiga-canvas--boing; the egg is inert`,
-                    );
-                }
-            }
-        }
+        // ── amiga "the Boing" browser clause — RETIRED at T.A8/T.A10 ──────────
+        // The Boing double-tap egg was deleted (the Boing IS the scene now — the
+        // transport plays the continuous group); there is no `.amiga-canvas--boing`
+        // token to actuate. The amiga static clause is retired above in lockstep.
 
         // ── square "the Tumble" — dblclick → the box transform leaves rest ────
         {
@@ -591,6 +562,7 @@ if (failures.length > 0) {
 console.log(
     "\nproof:easter-egg — PASS: every scene has its hidden on-aesthetic egg, each " +
         "fired by a hidden trigger to an observable off-the-normal-path effect, each " +
-        "dogfooding the engine (inv ζ): sequence reel · motion-path wink · cube roll · " +
-        "amiga boing · square tumble · spring derby · easing gallery.",
+        "dogfooding the engine (inv ζ): sequence reel · cube roll · square tumble · " +
+        "spring derby · easing gallery. (amiga's boing was RETIRED at T.A8 — the Boing " +
+        "IS the scene now, not a hidden egg; motion-path was PRUNED at T.E3.)",
 );

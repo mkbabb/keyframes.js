@@ -3,69 +3,35 @@
         ref="sceneRoot"
         class="scene-root relative h-full w-full"
     >
-        <!-- J.W7a S1 (D2 / XH-3 + A-07) — the amiga slab joins the rounded-glass
-             register: `rounded-card` (the SAME radius token every stage plate
-             resolves — clause (f) reads it computed) + the 1px inset
-             stage-boundary hairline (the scoped rule below), so the Three.js
-             room reads as a framed glass stage, not a hard-edged gray slab
-             bleeding into the page (cross-hierarchy #3). -->
+        <!-- The amiga stage: ONE full-bleed WebGL canvas. The grid-room (floor +
+             back-wall paper-grid), the boing ball, and its contact-shadow are all
+             drawn IN the canvas (T.A10) — there is nothing on the DOM stage
+             between the canvas and the page (the CRT overlay, the gesture legend,
+             the parked telemetry readout, and the boot power-on flash are GONE;
+             proof:stage-inventory / T.A10 census). The canvas composites over the
+             themed paper-grid backdrop (renderer alpha:true). -->
         <canvas
             ref="canvas"
             class="amiga-canvas h-full w-full rounded-card"
-            :class="{
-                'amiga-canvas--boing': boinging,
-                'amiga-canvas--power-on': booting,
-            }"
         ></canvas>
-
-        <!-- S.G3 S1 — the drafting-stamp gesture legend surfaces the amiga's
-             signature Boing egg (A5: "the single best moment this page owns is
-             hidden behind an undiscoverable gesture"); `amiga:boing` is the census
-             TELL for the double-tap. Fades after the first boing. -->
-        <GestureLegend
-            scene="amiga"
-            :items="[
-                { id: 'spin', glyph: '↻', label: 'drag: spin the ball' },
-                { id: 'boing', glyph: '⁚⁚', label: 'double-tap: Boing!' },
-            ]"
-            :used="boingUsed"
-        />
-
-        <!-- L.W11.S3 — the CRT phosphor atmosphere stack (a colocated sub-unit;
-             pointer-events:none so the spin/orbit gesture is untouched). The
-             `booting` power-on flash + the --spin-bloom flare drive it. -->
-        <AmigaCrtOverlay
-            :booting="booting"
-            :spin-bloom="spinBloom"
-        />
-
-        <!-- Q.WC5 S1 — the decay() telemetry: the engine's analytic glide made
-             VISIBLE. Reads the angular velocity the composable already tracks
-             (sampled at a few Hz into `angularVelocity`, no second integrator) —
-             climbs on a drag, decays to zero over the glide (the witnessed
-             decay() coast). Coexists with the CRT egg. -->
-        <AmigaTelemetry :angular-velocity="angularVelocity" />
     </div>
 </template>
 
 <script setup lang="ts">
-import {
-    computed,
-    onBeforeUnmount,
-    onMounted,
-    ref,
-    useTemplateRef,
-} from "vue";
+import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
+import { SpringProgress } from "@mkbabb/keyframes.js";
 
-import { useDoubleTap } from "@composables/useDoubleTap";
-import GestureLegend from "@components/custom/GestureLegend.vue";
-import AmigaCrtOverlay from "./AmigaCrtOverlay.vue";
-import AmigaTelemetry from "./AmigaTelemetry.vue";
 import { useAmigaThree } from "./useAmigaThree";
-import { useAmigaDemo, SPHERE_HOME } from "./useAmigaDemo";
-import { useAmigaBoot } from "./useAmigaBoot";
+import {
+    useAmigaDemo,
+    SPHERE_HOME,
+    FLOOR_Y,
+    APEX_Y,
+    SPHERE_RADIUS,
+    type AmigaPose,
+} from "./useAmigaDemo";
 import { useSphereSpin } from "./useSphereSpin";
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
 import { AMIGA_SUPER_KEY } from "./amigaKeys";
@@ -76,198 +42,189 @@ const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
 const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
 
 // R.W6-decomp — the Three.js room (renderer · scene · camera · OrbitControls ·
-// the boing-ball mesh · the managed present loop · the bounce-fit framing) lives
-// in the colocated useAmigaThree sub-unit. This scene owns the EGG orchestration
-// the room drives, injected per-frame via the `onFrame` hook below.
+// the boing-ball mesh · the grid-room · the managed render-on-demand present
+// loop) lives in the colocated useAmigaThree sub-unit. This scene owns the
+// COMPOSE — the SINGLE mesh writer (T.A7) — injected per frame via `onFrame`.
 const three = useAmigaThree(canvasEl, () => onFrame());
 
-const { animationGroup } = useAmigaDemo(
-    () => three.getSphere(),
-    () => three.getBounceScale(),
-);
+// T.A7 — the group rides the compositor and writes a plain-vars POSE (not the
+// mesh). The scene composes that pose with the additive gesture offset onto the
+// mesh; the group is the only pose author, the gesture the only offset author.
+const { animationGroup, pose } = useAmigaDemo();
 
-// A5 (REBUILD): the SPHERE is the interactive subject. A pointer-drag on the
-// mesh spins it; on release the engine `decay()` glide coasts the spin to rest
-// — the engine driving a non-DOM Three.js target, independent of camera orbit.
-// The raycast hit-test routes a sphere-grab to the spin gesture (orbit stands
-// down for its duration) and a background-grab to OrbitControls (disjoint
-// landlords, never racing).
-// P.W5.S3 — reduced-motion gate for the flick-to-boing egg.
 const prm = usePreferredReducedMotion();
 
+// A5 — the sphere is the interactive subject: a pointer-drag on the mesh spins
+// it (an ADDITIVE offset), on release the engine `decay()` glide coasts the spin
+// to rest. A background-grab falls through to OrbitControls (disjoint landlords).
 const sphereSpin = useSphereSpin({
     getMesh: () => three.getSphere(),
     getCamera: () => three.getCamera(),
     setOrbitEnabled: (enabled) => three.setOrbitEnabled(enabled),
-    // P.W5.S3 EGG — flick-to-boing: a hard flick of the sphere (release speed ≥
-    // FLICK_BOING_RAD_S, measured inside useSphereSpin) earns the boing arc
-    // without a double-click. PRM-gated; `onBoing`'s own `boinging` guard keeps
-    // it from re-firing mid-arc. The dblclick path is KEPT — the flick is purely
-    // additive, the discovery earned by gesture.
-    onFlick: () => {
-        if (prm.value === "reduce") return;
-        onBoing();
-    },
 });
 
-// S.G3 S2 — the Boing is a POINTER-based double-tap now (touch parity; the former
-// `@dblclick` was mouse-only and mobile browsers do not synthesize it reliably, so
-// on touch "the single best moment this page owns" was unreachable). The flick
-// gesture (useSphereSpin.onFlick) stays as the discovered-by-feel path; this is the
-// deterministic, discoverable one that pairs with the legend tell.
-useDoubleTap({
-    el: canvasEl,
-    onDoubleTap: () => onBoing(),
-});
+// ── The compose (T.A7 / T.A9): the ONE mesh writer ───────────────────────────
+// The classic Boing spins LINEARLY about a ~16°-tilted vertical axis; the gesture
+// adds a pitch/yaw offset on top. The rendered pose follows the group while it
+// plays, and settles HOME through a short SpringProgress re-seat on stop (T.A8 —
+// never a `position.set` teleport). The offset PERSISTS across the re-seat (the
+// user's accumulated spin is preserved).
+const TILT_ANGLE = 0.28; // ~16° — the authentic Boing-Ball tilt
+const tiltAxis = new THREE.Vector3(
+    Math.sin(TILT_ANGLE),
+    Math.cos(TILT_ANGLE),
+    0,
+).normalize();
+const qSpin = new THREE.Quaternion();
+const qGesture = new THREE.Quaternion();
+const eGesture = new THREE.Euler(0, 0, 0, "XYZ");
+const CONTACT_FLOOR = FLOOR_Y - SPHERE_RADIUS;
 
-// ── EASTER EGG — "the Boing" (H.W12.S6) ──────────────────────────────────────
-// Double-click the stage → the 1984 Amiga Boing Ball wakes up. The boing
-// animationGroup (the X/Y/Z bounce + spin + hue cycle) is BUILT by
-// useAmigaDemo but otherwise DORMANT — the scene's live subject is the
-// spin-on-drag sphere. The egg DOGFOODS that already-built engine group (inv ζ),
-// then stops it and re-seats the sphere home so the scene returns to rest.
-const boinging = ref(false);
-// S.G3 S1 — fades the legend stamp once the ball has boinged at least once.
-const boingUsed = ref(false);
-let boingTimer: ReturnType<typeof setTimeout> | undefined;
+// The rendered pose (what actually reaches the mesh), distinct from the group's
+// composite `pose` so the re-seat can drive it home without the group stomping it.
+const rendered: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, pz: SPHERE_HOME, spin: 0 };
+let wasPlaying = false;
+let reseat: SpringProgress | undefined;
+const reseatFrom: AmigaPose = { px: 0, py: 0, pz: 0, spin: 0 };
+let lastFrameAt = 0;
 
-// Q.WC5 S1 — the reactive angular-velocity readout the telemetry overlay binds.
-// The composable OWNS the velocity; this ref is a few-Hz SNAPSHOT written from
-// the present loop — a pure consumer, NEVER a second integrator. The hot path
-// stays off the Vue render graph; the readout updates at TELEMETRY_HZ.
-const angularVelocity = ref(0);
-const TELEMETRY_HZ = 12;
-let lastTelemetryAt = 0;
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-// R.W6-decomp — the scene's per-frame injection the present loop calls each
-// frame (after controls.update(), before the render): advance the decay() spin
-// glide, snapshot the angular velocity into the telemetry readout at a few Hz,
-// and push the phosphor bloom toward 1 while a hard flick is still gliding.
-function onFrame() {
-    // Advance the engine `decay()` release glide — drives the sphere mesh
-    // rotation for ≥N frames after a flick (the A5 engine-drives-mesh story).
+function onFrame(): boolean {
+    // Advance the release glide (mutates the additive gesture offset).
     sphereSpin.tickGlide();
-    // Q.WC5 S1 — snapshot the already-tracked angular velocity into the reactive
-    // readout at a few Hz (NOT 60 Hz — the cold path). The telemetry SEES the
-    // decay() coast.
+
     const now = performance.now();
-    if (now - lastTelemetryAt >= 1000 / TELEMETRY_HZ) {
-        lastTelemetryAt = now;
-        angularVelocity.value = sphereSpin.angularVelocity();
-    }
-    // L.W11.S3 — spin → phosphor bloom: a hard flick still gliding pushes
-    // --spin-bloom toward 1 (the CRT flares); it bleeds off when the glide
-    // settles. Sampled INSIDE the managed present loop (no second rAF).
-    const gliding = sphereSpin.isGliding();
-    const target = gliding ? 1 : 0;
-    spinBloom.value += (target - spinBloom.value) * 0.08;
-    if (spinBloom.value < 0.002 && !gliding) spinBloom.value = 0;
-}
+    const dt = lastFrameAt === 0 ? 16 : now - lastFrameAt;
+    lastFrameAt = now;
 
-const onBoing = () => {
-    const sphereMesh = three.getSphere();
-    if (boinging.value || !sphereMesh) return;
-    boinging.value = true;
-    boingUsed.value = true;
-    // Cancel any in-flight spin glide so the boing owns the mesh cleanly.
-    void animationGroup.play();
-    // One boing arc (≈ the 2.1s bounce period × ~3) then settle back home — the
-    // group is infinite, so we stop it on a timer and restore the rest pose.
-    boingTimer = setTimeout(() => {
-        animationGroup.stop();
-        const m = three.getSphere();
-        if (m) {
-            m.position.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
-            m.rotation.set(0, 0, 0);
-            m.material.color = new THREE.Color("white");
+    const playing = animationGroup.started && animationGroup.playing();
+
+    // Stop transition (T.A8): the group just stopped/paused → settle HOME through
+    // a SpringProgress re-seat (PRM snaps). The offset is left untouched.
+    if (wasPlaying && !playing) {
+        if (prm.value === "reduce") {
+            rendered.px = SPHERE_HOME;
+            rendered.py = SPHERE_HOME;
+            rendered.spin = 0;
+            reseat = undefined;
+        } else {
+            reseatFrom.px = rendered.px;
+            reseatFrom.py = rendered.py;
+            reseatFrom.spin = rendered.spin;
+            reseat = new SpringProgress({
+                initial: 0,
+                response: 0.4,
+                dampingFraction: 1,
+            });
+            reseat.target = 1;
         }
-        boinging.value = false;
-    }, 4200);
-};
+    }
+    wasPlaying = playing;
 
-// L.W11.S3 EASTER EGG — "the power-on BOOT" (a colocated sub-unit, useAmigaBoot).
-// On IntersectionObserver re-entry the page boots like a 1984 Amiga: a phosphor
-// flash (the .amiga-canvas--power-on marker + the AmigaCrtOverlay flash) snaps the
-// CRT on, then the SAME Boing `animationGroup` plays one wall-slam arc (inv ζ — no
-// new rAF). PRM-snapped inside the composable. `booting`/`spinBloom` drive the CRT.
-const { booting, spinBloom, runBoot, disposeBoot } = useAmigaBoot(
-    animationGroup,
-    () => three.getSphere(),
-    () => boinging.value,
-    (v) => (boinging.value = v),
-);
-// The power-on BOOT is a RE-ENTRY delight, never a cold-arrival auto-play: the
-// proof:cold-entry contract holds the engine OFF until the human's dock-play. A
-// per-session visited flag (sessionStorage survives the KeepAlive remount)
-// excludes the first cold visit; the boot replays on every genuine return.
-const AMIGA_VISITED_KEY = "kf-amiga-visited";
-const amigaVisitedThisSession = (() => {
-    try { return sessionStorage.getItem(AMIGA_VISITED_KEY) === "1"; }
-    catch { return false; }
-})();
-let bootedOnce = false;
+    if (playing) {
+        // Follow the group's composite pose (T.A7 — plain numbers, T.A6).
+        rendered.px = pose.px;
+        rendered.py = pose.py;
+        rendered.pz = pose.pz;
+        rendered.spin = pose.spin;
+        reseat = undefined;
+    } else if (reseat) {
+        reseat.tickDt(dt);
+        const p = reseat.value;
+        rendered.px = lerp(reseatFrom.px, SPHERE_HOME, p);
+        rendered.py = lerp(reseatFrom.py, SPHERE_HOME, p);
+        rendered.spin = lerp(reseatFrom.spin, 0, p);
+        if (reseat.settled) {
+            rendered.px = SPHERE_HOME;
+            rendered.py = SPHERE_HOME;
+            rendered.spin = 0;
+            reseat = undefined;
+        }
+    }
+
+    // Compose: spin about the tilted axis, then the additive gesture pitch/yaw.
+    const mesh = three.getSphere();
+    if (mesh) {
+        qSpin.setFromAxisAngle(tiltAxis, rendered.spin);
+        eGesture.set(sphereSpin.offset.x, sphereSpin.offset.y, 0);
+        qGesture.setFromEuler(eGesture);
+        mesh.quaternion.copy(qGesture).multiply(qSpin);
+        mesh.position.set(rendered.px, rendered.py, rendered.pz);
+    }
+
+    // The fake contact-shadow tracks the ball's x, scaling/fading with height.
+    const shadow = three.getContactShadow();
+    if (shadow) {
+        const h = (rendered.py - FLOOR_Y) / (APEX_Y - FLOOR_Y); // 0 floor → 1 apex
+        const t = Math.min(1, Math.max(0, h));
+        shadow.position.x = rendered.px;
+        shadow.position.y = CONTACT_FLOOR + 0.01;
+        shadow.scale.setScalar(lerp(1, 1.9, t));
+        (shadow.material as THREE.MeshBasicMaterial).opacity = lerp(0.5, 0.12, t);
+    }
+
+    // T.A12 — the scene is LIVE (force a render) while the group plays, a glide
+    // is coasting, or the re-seat is settling. At rest the present loop skips the
+    // render and the WebGL context idles.
+    return playing || sphereSpin.isGliding() || reseat != null;
+}
 
 onMounted(() => {
     // Build the Three.js room now the canvas ref is live.
     three.setup();
-
     // Wire the sphere-spin gesture onto the canvas (capture-phase hit-test runs
     // before OrbitControls' own pointerdown).
     sphereSpin.attach(canvasEl.value!);
 
-    // Mark amiga visited THIS session so the NEXT return fires the power-on BOOT
-    // (the cold first visit is excluded — proof:cold-entry). Set AFTER mount.
-    try { sessionStorage.setItem(AMIGA_VISITED_KEY, "1"); } catch { /* KEEP: private mode */ }
+    // T.A11 — the decay() dogfood witness is a NON-DOM probe on the gesture layer
+    // (the parked telemetry readout is gone). The re-armed proof:amiga-decay-
+    // visible reads the coasting angular velocity here instead of a DOM readout.
+    (window as unknown as Record<string, unknown>).__kfAmigaProbe = {
+        omega: () => sphereSpin.angularVelocity(),
+        // The rendered world pose + gesture offset (dev sampling hook, non-DOM) —
+        // the physics oracles (T.A7/T.A8/T.A9) read world-unit position / spin
+        // here rather than screen pixels.
+        pose: () => ({
+            px: rendered.px,
+            py: rendered.py,
+            pz: rendered.pz,
+            spin: rendered.spin,
+            ox: sphereSpin.offset.x,
+            oy: sphereSpin.offset.y,
+            playing: animationGroup.started && animationGroup.playing(),
+        }),
+    };
 });
 
-// B-3: pause the WebGL present loop while the tab is backgrounded (a hidden tab
-// otherwise drives a full render per frame — pure battery waste). OrbitControls
-// damping continues from rest on resume; nothing to re-base, so the sphere picks
-// up exactly where it stood.
+// B-3: pause the WebGL present loop while the tab is backgrounded.
 useSceneVisibilityPause(
     () => three.running,
     () => three.stop(),
     () => three.start(),
 );
 
-// I.W3 S2 (just-in-time occlusion-pause, the RIGHT primitive over a live WebGL
-// canvas): an IntersectionObserver owns "is this surface visible?". When the
-// scene root scrolls off-screen / is occluded by a mobile sheet, stand the WebGL
-// present loop down; re-arm just before it scrolls back. A `rootMargin` pre-roll
-// re-starts the loop a viewport ahead of re-entry so the first painted frame is
-// fresh. This composes with the tab-visibility pause (same stop/start handles).
+// I.W3 S2 — the just-in-time occlusion pause over the live WebGL canvas: an
+// IntersectionObserver stands the present loop down when the scene scrolls
+// off-screen and re-arms a viewport ahead of re-entry. (The former power-on BOOT
+// re-entry egg is GONE — T.A8/T.A10; this observer now owns ONLY the pause.)
 useIntersectionObserver(
     sceneRootEl,
     ([entry]) => {
         if (entry?.isIntersecting) {
+            three.markRenderDirty();
             three.start();
-            // L.W11.S3 — the power-on BOOT fires on genuine RE-entry only (NEVER
-            // on the cold first arrival). The per-session visited flag gates the
-            // FIRST cold mount out; the `booting`/`bootedOnce` pair keeps it a
-            // once-per-entry delight. (PRM-snapped inside runBoot.)
-            if (
-                amigaVisitedThisSession &&
-                !bootedOnce &&
-                (entry.intersectionRatio ?? 0) > 0
-            ) {
-                bootedOnce = true;
-                runBoot();
-            }
         } else {
             three.stop();
-            // Re-arm so the NEXT scroll-back boots again ("the gift that keeps
-            // giving" — the boot replays on each genuine re-entry after the first).
-            bootedOnce = false;
         }
     },
     { rootMargin: "200px" },
 );
 
 onBeforeUnmount(() => {
-    if (boingTimer != null) clearTimeout(boingTimer);
-    disposeBoot();
     animationGroup.stop();
     sphereSpin.detach();
+    delete (window as unknown as Record<string, unknown>).__kfAmigaProbe;
     // (the Three.js room + IntersectionObserver auto-release on scope dispose)
 });
 
@@ -278,57 +235,31 @@ defineExpose({
 </script>
 
 <style scoped>
-/* I.W3 S2 — the scene root carries NO `content-visibility: auto`. That CSS
-   primitive is wrong over a continuously-rAF-painted WebGL canvas: the present
-   loop keeps painting a subtree the compositor is told to skip, paying a
-   per-frame ReadPixels GPU stall + a "rendering in a subtree hidden by
-   content-visibility" warn. The occlusion-pause INTENT (stand the present loop
-   down when off-screen / backgrounded) is served entirely off the event/observer
-   path — an `IntersectionObserver` drives start/stop of the WebGL loop, composed
-   with the tab-visibility pause. One owner of "is this surface visible?", never a
-   CSS token racing the GPU. */
+/* I.W3 S2 — the scene root carries NO `content-visibility: auto` (wrong over a
+   live WebGL present loop — a per-frame ReadPixels stall). The occlusion-pause
+   intent rides the IntersectionObserver above, composed with the tab-visibility
+   pause. */
 
 /* The drag/spin surface. `touch-action: none` lets the sphere-spin pointer
-   gesture own touch input on the canvas (no scroll/zoom hijack) — the disjoint
-   gesture model: a sphere-hit drag spins the mesh, a miss orbits the camera.
-
-   AFFORDANCE (H.W12 frontend-design pass): the sphere is the interactive
-   subject (drag to spin, release to glide) but the static checkered ball gave
-   NO grab signal. `cursor: grab` advertises the manipulable surface — a
-   befitting, isomorphic affordance cue (no layout/visual change, just the
-   pointer hint the square scene's box already carries). */
+   gesture own touch input (no scroll/zoom hijack); a sphere-hit drag spins the
+   mesh, a miss orbits the camera. `cursor: grab` advertises the manipulable
+   subject. */
 .amiga-canvas {
     touch-action: none;
     cursor: grab;
-    /* S1d (H.W7) — the THEMED backdrop the transparent clear composites over.
-       Replaces the renderer's former opaque-white clear so the full-bleed mobile
-       stage no longer obliterates the grid-bg + dark mode. A soft vertical wash
-       evoking the Amiga sky/ground gradient (the HemisphereLight's CSS twin),
-       light/dark-aware via the theme tokens. */
+    /* The themed paper-grid backdrop the transparent clear composites over (a
+       soft vertical wash evoking the Amiga sky/ground gradient, light/dark-aware
+       via the theme tokens). */
     background: linear-gradient(
         to bottom,
         var(--muted, hsl(0 0% 96%)),
         var(--background, hsl(0 0% 100%))
     );
-    /* J.W7a S1 (D2 / A-07) — the 1px inset stage-boundary hairline on the
-       border token: the canvas formerly merged seamlessly into the page
-       grid-background ("the stage boundary is ambiguous"); the hairline follows
-       the rounded-card radius and defines the glass stage's edge without a DOM
-       layer or blocking the transparent composite. */
+    /* J.W7a — the 1px inset stage-boundary hairline defining the glass stage's
+       edge without a DOM layer or blocking the transparent composite. */
     box-shadow: inset 0 0 0 1px var(--border);
 }
 .amiga-canvas:active {
     cursor: grabbing;
-}
-/* While the Boing egg arc plays, the grab cursor stands down (nothing to grab
-   mid-boing — the engine owns the mesh). */
-.amiga-canvas--boing {
-    cursor: default;
-}
-/* L.W11.S3 — the once-on-enter power-on marker class on the canvas (the CRT
-   flash + boot bounces ride `booting`; the CRT atmosphere stack lives in the
-   colocated AmigaCrtOverlay child). Isomorphic cursor stand-down during boot. */
-.amiga-canvas--power-on {
-    cursor: default;
 }
 </style>

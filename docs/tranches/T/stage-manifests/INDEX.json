@@ -3,8 +3,13 @@
   "scenes": [
     { "scene": "home", "manifest": "home.json", "note": "blessed P-HERO reference (OD-4 APPROVED) — skeleton derivable" },
     { "scene": "square", "manifest": "EMPTY-RED", "note": "T.B rebuild (OD-5 riders R1/R2) — #11 caption block un-manifested until pruned + owner-signed" },
+<<<<<<< HEAD
     { "scene": "cube", "manifest": "cube.json", "note": "T.A restage COMPLETE — #5 rx/ry/rz readout + #8 gesture legend removed; owner-sanctioned inventory filled (rulings #5/#8)" },
     { "scene": "amiga", "manifest": "EMPTY-RED", "note": "T.A rebuild — #8 gesture legend + #10 caption un-manifested" },
+=======
+    { "scene": "cube", "manifest": "EMPTY-RED", "note": "T.A rebuild — #5 rx/ry/rz readout un-manifested until removed" },
+    { "scene": "amiga", "manifest": "amiga.json", "note": "T.A7–A12 rebuild (impl drive): #8 gesture legend + CRT overlay + boot flash + parked telemetry REMOVED; WebGL-only stage. Grid-room composition + transient-ω-badge option PENDING-OWNER (T.M2)" },
+>>>>>>> worktree-wf_da0354ca-c67-2
     { "scene": "easing", "manifest": "EMPTY-RED", "note": "T.E rebuild (OD-7 PENDING-OWNER) — #13 telemetry + #15 gallery door un-manifested" },
     { "scene": "spring", "manifest": "EMPTY-RED", "note": "T.B rebuild — #17 dock dup" },
     { "scene": "sequence", "manifest": "EMPTY-RED", "note": "T.B facility" }

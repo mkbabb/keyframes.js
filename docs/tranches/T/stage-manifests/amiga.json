@@ -1,0 +1,19 @@
+{
+  "_doc": "T.M4 owner-sanctioned on-stage inventory for the amiga scene, post-strip (T.A8/T.A10/T.A11). The RULED removals (#8 gesture legend, the CRT overlay, the boot power-on flash, the parked telemetry readout) are executed — the on-stage DOM is now ONE full-bleed WebGL canvas: the grid-room (floor + back-wall paper-grid), the boing ball, and its contact-shadow are all drawn IN the canvas, so there is NOTHING on the DOM stage between the canvas and the page. Any rendered on-stage DOM element NOT in `sanctioned` REDs proof:stage-inventory. The grid-room COMPOSITION (grid density/tint, contact-shadow treatment) + the transient-ω-badge OPTION ride T.M owner sign-off (a taste-packet, PENDING-OWNER); the REMOVALS + the in-canvas draw are RULED.",
+  "scene": "amiga",
+  "sanctioned": [
+    "amiga-canvas (the WebGL stage: grid-room floor + back-wall paper-grid, the boing ball, the contact-shadow blob — all drawn in-canvas)"
+  ],
+  "forbidden": [
+    "gesture-legend (#8 — owner-ruled removal; the drag-to-spin subject affordance is the cursor:grab hint, not an on-stage legend)",
+    "crt-overlay (the scanline/grille/vignette atmosphere slab — deleted T.A10)",
+    "boot-power-on-flash (the once-on-enter CRT flash — deleted T.A8/T.A10)",
+    "amiga-telemetry (the parked 'ω 0.00 rad/s forever at rest' readout — deleted T.A11; the decay() dogfood is witnessed by a non-DOM probe)",
+    "boing-timer / double-tap egg (the guillotined main animation — the Boing IS the scene now, T.A8)"
+  ],
+  "pendingOwner": [
+    "transient-ω-badge (T.A11 born-OWNER: whether a glass-ui MetricBadge witnesses the decay coast on-stage is a T.M2 design disposition; default = removal, T.M4 governs, no un-manifested chrome)",
+    "grid-room composition (T.A10: grid density/tint, floor↔back-wall balance, contact-shadow softness — a T.M capture sign-off surface)"
+  ],
+  "status": "SKELETON — the RULED removals are executed + the WebGL-only stage is the on-stage set; the grid-room COMPOSITION + the transient badge OPTION await owner sign-off (T.M2). RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER)."
+}

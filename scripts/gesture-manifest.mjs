@@ -51,16 +51,14 @@ export const GESTURE_MANIFEST = [
     // only the cube row (whose tell the owner removed) is cut. The double-tap Roll
     // egg itself is KEPT in CubeTarget.vue; it is simply no longer census-tracked
     // now that its surfacing legend is gone.
-    // amiga — the Boing egg (A5: "the single best moment this page owns", hidden).
-    // Tell: the legend stamp. Effect: the canvas enters its `--boing` state.
-    {
-        scene: "amiga",
-        id: "boing",
-        label: "double-tap the stage → the 1984 Amiga Boing Ball",
-        tell: '[data-gesture-tell="amiga:boing"]',
-        touch: { kind: "double-tap", target: ".amiga-canvas" },
-        effect: { kind: "class-appears", selector: ".amiga-canvas", token: "amiga-canvas--boing" },
-    },
+    // amiga — RE-CUT at T.A8/T.A10 (LOCKSTEP): the Boing double-tap EGG is GONE.
+    // The Boing IS the scene now (the transport plays the continuous group), the
+    // gesture legend was an owner-ruled removal (#8), and the canvas `--boing`
+    // state token was retired with the egg — so there is no amiga gesture row to
+    // census. The scene's remaining gesture (drag-the-sphere-to-spin) is the
+    // subject interaction proved by proof:amiga-subject-is-pivot, not a hidden egg
+    // with an on-stage tell. (proof:gesture-manifest's KEY survives — only this
+    // scene's row is re-cut.)
     // square — the tumble palette-sweep egg. Tell: the legend stamp. Effect: the box
     // carries `data-palette-sweep` while the barrel-roll's colour sweep is live.
     {

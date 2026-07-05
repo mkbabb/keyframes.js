@@ -29,8 +29,9 @@
       "subject": "amiga-ball",
       "assertion": "the ball renders visible (not NaN-collapsed)",
       "verdictItem": "#9 (broken mess)",
-      "cure": "T.A NaN/rotation cure",
-      "verified": false
+      "cure": "T.A NaN/rotation cure (T.A6 plain-vars projection + T.A7 group-compositor ride — no array-boxed leaf reaches the mesh; the transform receives plain numbers)",
+      "verified": true,
+      "renderCheck": "T.A7–A12 impl drive: the red-checker ball paints visible on #/amiga (3833 red-checker pixels, KF_REQUIRE_BROWSER SwiftShader render) and is centroid-detectable by proof:amiga-subject-is-pivot clause (b); the boing arc renders at authored scale (py peaks ±3.998 world units)"
     }
   ]
 }
