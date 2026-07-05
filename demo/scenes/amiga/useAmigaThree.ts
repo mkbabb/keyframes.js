@@ -5,55 +5,43 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import { tesselateSphere } from "./utils";
-import { BOUNCE, BOX_SIZE, SPHERE_HOME } from "./useAmigaDemo";
-import type { BounceScale } from "./useAmigaDemo";
+import { BOX_SIZE, FLOOR_Y, SPHERE_HOME, SPHERE_RADIUS } from "./useAmigaDemo";
 
 /**
  * R.W6-decomp — the amiga scene's Three.js room (renderer · scene · camera ·
- * OrbitControls · the boing-ball mesh · the managed present loop · the bounce-
- * aware framing math), extracted from AmigaScene.vue as a colocated sub-unit
- * (the demo ≤500L-per-file decomposition; proof:demo-no-oversize; R.W5 §4 F1).
+ * OrbitControls · the boing-ball mesh · the managed present loop), extracted from
+ * AmigaScene.vue as a colocated sub-unit.
  *
- * The scene keeps the EGG ORCHESTRATION (the dblclick boing, the power-on boot,
- * the telemetry sampling, the occlusion/visibility pause) — this composable owns
- * only the WebGL plumbing the eggs drive. One driver, the engine's MANAGED
- * `RAFPlayback` (inv ζ — no hand-rolled rAF): the scene injects its per-frame
- * work via the `onFrame` hook the present loop calls each frame.
+ * T.A9 — the camera frames the ROOM, not the rest pose: the entire J.W7a
+ * frustum-fit apparatus (refreshBounceFraming / BounceScale / getBounceScale /
+ * BOUNCE_FIT_MARGIN) is DELETED. The authored arc is rendered at authored scale.
  *
- * SPHERE_HOME / BOUNCE / BOX_SIZE are the ONE centred-home + authored-amplitude
- * authority (useAmigaDemo); the bounce-fit scale is derived here from the
- * canonical camera (subject = pivot = framing — the framing owner owns the fit)
- * and read by useAmigaDemo through the `getBounceScale` seam.
+ * T.A10 — the gray Lambert box DIES; the floor + back-wall are drawn as a
+ * paper-grid over the theme backdrop (renderer stays `alpha:true`), and a soft
+ * radial contact-shadow blob tracks the ball's x, scaling/fading with height.
+ * (The grid-room COMPOSITION rides T.M owner sign-off — a taste-packet,
+ * PENDING-OWNER; the removals + the alpha composite are RULED.)
+ *
+ * T.A12 — render-on-demand: the present loop renders only when OrbitControls
+ * changed, the group is playing, a glide is live, or a re-seat is live (the scene
+ * reports its liveness via the `onFrame` return). At true rest the WebGL context
+ * is idle (renderer.info.render.frame stable).
  */
-
-// J.W7a S1 (D3 · fix-round 1) — BOUNCE-AWARE framing. The D3 protagonist reframe
-// (FOV 50°, z = 0.7×BOX_SIZE) frames the REST pose; the bounce animations
-// translate the sphere ±BOUNCE about home, and at the tightened frustum the
-// PLAYING subject left the frame entirely. The bounce amplitude is scaled INTO
-// the live frustum — per-axis fit factors derived from the canonical camera (fov
-// / aspect / distance-to-home) so home ± scale·BOUNCE + r stays inside the frame
-// even at the simultaneous-worst corner (x extreme + y extreme + z nearest).
-const SPHERE_RADIUS = 1;
-// K4-B CURE — amplitude reduced from the edge-kiss 0.95 to a tasteful 0.35: a
-// ≈37% canvas-half excursion per axis (a visible but contained hover arc, not a
-// frame-filling sweep), and the simultaneous-worst corner still keeps the sphere
-// clearly inside the frame on portrait mobile. The authored BOUNCE (=5) is
-// unchanged so the seam is surgical.
-const BOUNCE_FIT_MARGIN = 0.35;
-
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const CONTACT_FLOOR = FLOOR_Y - SPHERE_RADIUS; // the shadow sits on the floor plane
 
 export interface AmigaThreeHandle {
     /** Build the Three.js room. Call once at mount, after the canvas ref is live. */
     setup(): void;
     /** The boing-ball mesh (the interactive subject). Undefined before mount. */
     getSphere(): ReturnType<typeof tesselateSphere>;
-    /** The per-axis frustum-fit bounce scale (read by useAmigaDemo). */
-    getBounceScale(): BounceScale;
+    /** The contact-shadow blob mesh (positioned per-frame by the scene). */
+    getContactShadow(): THREE.Mesh | undefined;
     /** The live camera (the sphere-spin gesture raycasts against it). */
     getCamera(): THREE.PerspectiveCamera | undefined;
     /** Enable/disable OrbitControls (the sphere-grab stands orbit down). */
     setOrbitEnabled(enabled: boolean): void;
+    /** T.A12 — force a render next frame (mount, resize, external state change). */
+    markRenderDirty(): void;
     /** True while the managed present loop is running. */
     readonly running: boolean;
     /** Start the WebGL present loop (idempotent). */
@@ -64,150 +52,167 @@ export interface AmigaThreeHandle {
     dispose(): void;
 }
 
+/** A soft radial black→transparent blob for the fake contact shadow (T.A10). */
+function makeShadowTexture(): THREE.CanvasTexture {
+    const size = 128;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext("2d")!;
+    const g = ctx.createRadialGradient(
+        size / 2,
+        size / 2,
+        0,
+        size / 2,
+        size / 2,
+        size / 2,
+    );
+    g.addColorStop(0, "rgba(0,0,0,0.55)");
+    g.addColorStop(0.5, "rgba(0,0,0,0.28)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+    return new THREE.CanvasTexture(canvas);
+}
+
 /**
  * @param canvasEl  the `<canvas>` template ref.
- * @param onFrame   per-frame injection (spin-glide tick · telemetry · bloom) —
- *                  called by the present loop AFTER controls.update(), BEFORE the
- *                  render. The scene owns this work; the loop owns the cadence.
+ * @param onFrame   per-frame injection (compose pose+gesture onto the mesh ·
+ *                  advance the glide/re-seat). Called AFTER controls.update(),
+ *                  BEFORE the (gated) render. MUST return whether the scene is
+ *                  LIVE this frame (group playing / glide / re-seat) so the
+ *                  present loop can skip the render at rest (T.A12).
  */
 export function useAmigaThree(
     canvasEl: Ref<HTMLCanvasElement | null>,
-    onFrame: () => void,
+    onFrame: () => boolean,
 ): AmigaThreeHandle {
     let sphereMesh: ReturnType<typeof tesselateSphere>;
+    let contactShadow: THREE.Mesh | undefined;
     let renderer: THREE.WebGLRenderer | undefined;
     let controls: OrbitControls | undefined;
     let scene: THREE.Scene | undefined;
     let camera: THREE.PerspectiveCamera | undefined;
-    // The WebGL present loop rides the engine's MANAGED RAFPlayback driver (the
-    // `loop()` self-rescheduling shape) — the scene owns NO hand-rolled rAF.
+    // The WebGL present loop rides the engine's MANAGED RAFPlayback driver — the
+    // scene owns NO hand-rolled rAF.
     const present = markRaw(new RAFPlayback());
 
-    const bounceScale: BounceScale = { x: 1, y: 1, z: 1 };
-
-    const refreshBounceFraming = () => {
-        if (!camera) return;
-        // The canonical pose: the camera sits on the y–z plane looking at the
-        // centred home (= OrbitControls.target) → screen-horizontal == world-x,
-        // while world-y and world-z SHARE screen-vertical and view-depth with
-        // mirrored weights, so the vertical and depth projection sums collapse to
-        // the same S below.
-        const dx = camera.position.x - SPHERE_HOME;
-        const dy = camera.position.y - SPHERE_HOME;
-        const dz = camera.position.z - SPHERE_HOME;
-        const d0 = Math.hypot(dx, dy, dz);
-        const S = d0 > 0 ? (Math.abs(dy) + Math.abs(dz)) / d0 : 0;
-        if (!(d0 > 0) || !(S > 0)) return;
-        const mT =
-            BOUNCE_FIT_MARGIN *
-            Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-        // The y/z pair (screen-vertical + view-depth, coupled) is solved first;
-        // the x (screen-horizontal) fit then evaluates at the NEAREST plane the
-        // y/z bounce can bring the sphere to — the perspective worst case.
-        const sv = clamp01((mT * d0 - SPHERE_RADIUS) / (BOUNCE * S * (1 + mT)));
-        const dMin = d0 - sv * BOUNCE * S;
-        bounceScale.x = clamp01(
-            (mT * camera.aspect * dMin - SPHERE_RADIUS) / BOUNCE,
-        );
-        bounceScale.y = sv;
-        bounceScale.z = sv;
-    };
+    // T.A12 — the render-on-demand dirty flag. Set on mount/resize/interaction;
+    // cleared after each render. The present loop also renders while
+    // OrbitControls is still settling (controls.update() returns true) or the
+    // scene reports itself live.
+    let renderDirty = true;
 
     const setup = () => {
         const canvas = canvasEl.value!;
 
         scene = new THREE.Scene();
-        // J.W7a S1 (D3 / A-02) — the PROTAGONIST reframe: FOV 75°→50° + the camera
-        // pulled in to 0.7×BOX_SIZE so the r=1 sphere fills ~20% of the vertical
-        // FOV while the room walls stay in frame as the contextual surround.
-        // Subject = pivot = framing. This frustum frames the REST pose only — the
-        // PLAYING bounce envelope is scaled into it via refreshBounceFraming().
+
+        // T.A9 — the camera frames the ROOM (the whole BOX_SIZE cube), not the
+        // rest pose, so the authored wall-to-wall / floor↔apex arc renders at
+        // authored scale. Subject = pivot = framing (the look-at is the centred
+        // home). A slight lift keeps the floor + shadow readable.
         camera = new THREE.PerspectiveCamera(
             50,
             canvas.clientWidth / canvas.clientHeight,
             0.1,
             1000,
         );
+        camera.position.set(0, 1.5, BOX_SIZE * 1.15);
 
-        camera.position.z = BOX_SIZE * 0.7;
-        // J.W7a S1 (D6 / A-01) — the camera-space lift: the eye rises to
-        // BOX_SIZE/2 so the mobile-open sheet leaves the sphere clear above the
-        // sheet boundary.
-        camera.position.y = BOX_SIZE / 2;
-        // Derive the frustum-fit bounce scale from the canonical framing just set
-        // (re-derived on every canvas resize below).
-        refreshBounceFraming();
-        // S1d (H.W7) — `alpha: true` so the canvas composites over the demo's
-        // themed backdrop instead of an opaque white fill (the full-bleed mobile
-        // stage would otherwise obliterate the grid-bg + dark mode).
         renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: true,
             canvas,
         });
-        // A2 (MEASURE-FIRST): cap the device-pixel-ratio at 2 — the former
-        // `devicePixelRatio * 2` rendered a 4× CSS-pixel buffer (16× fragments vs
-        // CSS pixels on a dpr=2 retina). MSAA already carries the edge quality, so
-        // the extra super-sampling was pure fill-rate waste.
+        // A2 — cap DPR at 2 (MSAA carries edge quality; extra super-sampling is
+        // pure fill-rate waste on retina).
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        // S1d (H.W7) — clear to TRANSPARENT (alpha 0) so the canvas composites
-        // over the themed CSS backdrop instead of obliterating it with white.
+        // T.A10 — clear to TRANSPARENT so the canvas composites over the themed
+        // CSS paper-grid backdrop instead of a foreign gray slab.
         renderer.setClearColor(0xffffff, 0);
 
-        // Hemisphere light for natural sky/ground gradient fill
-        const hemi = new THREE.HemisphereLight("white", "#b0b0b0", 1.8);
+        // Lighting: a soft sky/ground fill + a top-front key for the specular lobe.
+        const hemi = new THREE.HemisphereLight("white", "#c8c8c8", 1.6);
         scene.add(hemi);
+        const key = new THREE.SpotLight("white", 0.7, 0, Math.PI / 2, 0.9);
+        key.position.set(0, BOX_SIZE, BOX_SIZE / 2);
+        scene.add(key);
 
-        // Main spot light — top-front, soft edges for directional shadow
-        const spot = new THREE.SpotLight("white", 0.6, 0, Math.PI / 2, 0.9);
-        spot.position.set(0, BOX_SIZE - 1, BOX_SIZE / 2);
-        scene.add(spot);
+        // T.A10 — the grid-room: a paper-grid FLOOR + BACK-WALL over the theme
+        // backdrop (the gray Lambert box is gone). Quiet neutral lines; the CSS
+        // grid-bg shows through the transparent composite behind them.
+        const gridColor = new THREE.Color("#b9b9c6");
+        const floorGrid = new THREE.GridHelper(BOX_SIZE, 12, gridColor, gridColor);
+        (floorGrid.material as THREE.Material).opacity = 0.35;
+        (floorGrid.material as THREE.Material).transparent = true;
+        floorGrid.position.y = CONTACT_FLOOR;
+        scene.add(floorGrid);
 
-        const boxGeometry = new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE);
-        const boxMaterial = new THREE.MeshLambertMaterial({
-            color: "rgb(220, 220, 220)",
-            side: THREE.BackSide,
-        });
-        const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
-        boxMesh.position.set(0, 0, 0);
-        scene.add(boxMesh);
+        const backGrid = new THREE.GridHelper(BOX_SIZE, 12, gridColor, gridColor);
+        (backGrid.material as THREE.Material).opacity = 0.18;
+        (backGrid.material as THREE.Material).transparent = true;
+        backGrid.rotation.x = Math.PI / 2;
+        backGrid.position.z = -BOX_SIZE / 2;
+        scene.add(backGrid);
 
-        // L.W11.S3 — the Boing-Ball crayon red is KEPT but RE-SOURCED to
-        // var(--amiga-red) (→ var(--rainbow-red), the demo's canonical crayon red,
-        // hue single-sourced in design-idioms.css). tesselateSphere resolves the
-        // CSS var against the live DOM before painting the offscreen 2D checker.
+        // T.A10 — the fake contact-shadow blob on the floor plane, tracked to the
+        // ball's x + scaled/faded by height each frame (by the scene's compose).
+        contactShadow = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.6, 2.6),
+            new THREE.MeshBasicMaterial({
+                map: makeShadowTexture(),
+                transparent: true,
+                depthWrite: false,
+            }),
+        );
+        contactShadow.rotation.x = -Math.PI / 2;
+        contactShadow.position.set(0, CONTACT_FLOOR + 0.01, 0);
+        scene.add(contactShadow);
+
+        // The Boing-Ball: the crayon-red checker sphere, re-sourced to
+        // var(--amiga-red) (→ var(--rainbow-red), single-sourced in
+        // design-idioms.css). Seated at the centred home so a centre-drag HITS it.
         sphereMesh = tesselateSphere("#ffffff", "var(--amiga-red)", SPHERE_RADIUS);
-        // I.W3 S1 — seat the subject at the CENTRED home (the room origin) so a
-        // centre-drag HITS the mesh and fires the spin gesture.
         sphereMesh.position.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
         scene.add(sphereMesh);
 
-        // Set renderer size to match canvas layout dimensions
         renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.screenSpacePanning = false;
-        // I.W3 S1 — the orbit pivot IS the subject: target the sphere's centred
-        // home so an empty-space drag orbits ABOUT the subject.
-        controls.target.copy(sphereMesh.position);
+        // I.W3 S1 — the orbit pivot IS the subject: target the centred home so an
+        // empty-space drag orbits ABOUT the subject.
+        controls.target.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
         controls.update();
+        // T.A12 — any user orbit dirties the render.
+        controls.addEventListener("change", () => {
+            renderDirty = true;
+        });
 
+        renderDirty = true;
         start();
     };
 
     function start() {
         if (present.running) return;
-        // The managed driver's `loop(cb)` self-reschedules each frame while `cb`
-        // returns true; it is stopped explicitly via `present.stop()`.
         present.loop(() => {
-            controls?.update();
-            // The scene's per-frame injection (spin-glide tick · telemetry
-            // snapshot · phosphor bloom) — owned by the scene, paced by the loop.
-            onFrame();
-            if (renderer && scene && camera) renderer.render(scene, camera);
-            return true; // keep presenting until an explicit stop()
+            // OrbitControls.update() applies damping and returns true while the
+            // camera is still settling — a render trigger on its own (T.A12).
+            const controlsChanged = controls ? controls.update() : false;
+            // The scene composes pose+gesture onto the mesh and reports liveness.
+            const sceneLive = onFrame();
+            if (
+                renderer &&
+                scene &&
+                camera &&
+                (renderDirty || controlsChanged || sceneLive)
+            ) {
+                renderer.render(scene, camera);
+                renderDirty = false;
+            }
+            return true; // keep presenting; the render itself is gated
         });
     }
 
@@ -218,7 +223,6 @@ export function useAmigaThree(
     function dispose() {
         stop();
         controls?.dispose();
-        // Dispose all Three.js geometries and materials to free GPU memory.
         scene?.traverse((obj) => {
             if (obj instanceof THREE.Mesh) {
                 obj.geometry?.dispose();
@@ -232,9 +236,8 @@ export function useAmigaThree(
         renderer?.dispose();
     }
 
-    // Canvas resize → camera-aspect. A plain reactive DOM observer (vueuse owns
-    // its lifecycle via tryOnScopeDispose); the guard covers the pre-mount window
-    // before `camera`/`renderer` exist.
+    // Canvas resize → camera-aspect. A plain reactive DOM observer; the guard
+    // covers the pre-mount window before `camera`/`renderer` exist.
     useResizeObserver(canvasEl, () => {
         if (!camera || !renderer) return;
         const w = canvasEl.value!.clientWidth;
@@ -243,8 +246,7 @@ export function useAmigaThree(
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h, false);
-        // The frustum-fit bounce scale is aspect-dependent; re-derive it.
-        refreshBounceFraming();
+        renderDirty = true;
     });
 
     onBeforeUnmount(dispose);
@@ -252,10 +254,13 @@ export function useAmigaThree(
     return {
         setup,
         getSphere: () => sphereMesh,
-        getBounceScale: () => bounceScale,
+        getContactShadow: () => contactShadow,
         getCamera: () => camera,
         setOrbitEnabled: (enabled: boolean) => {
             if (controls) controls.enabled = enabled;
+        },
+        markRenderDirty: () => {
+            renderDirty = true;
         },
         get running() {
             return present.running;

@@ -2,8 +2,14 @@
 // the MESH spins it, and on RELEASE the engine `decay()` glide coasts the spin
 // to rest (the cube dogfood idiom, inv-ζ). This locks the A5 contract
 // (`proof:amiga-engine-drives-mesh`, WV-W5-MED-3): after a pointer-drag-RELEASE
-// the mesh `rotation` keeps changing for ≥N frames under the closed-form glide
+// the accumulated spin keeps changing for ≥N frames under the closed-form glide
 // — NOT under autoplay, and INDEPENDENT of the camera orbit.
+//
+// T.A7 (ARMING-AUDIT re-arm): the gesture is now an ADDITIVE LAYER. It no longer
+// writes `mesh.rotation` (a second writer racing the group compositor); it
+// accumulates into a stable `spin.offset` object the SCENE composes onto the mesh
+// (the ONE mesh writer). So the contract is now asserted on `spin.offset.y`, and
+// the glide drives THAT offset — the pre-gesture pose is preserved by construction.
 //
 // The drive path is the engine's SHIPPED analytic `decay()` (same surface the
 // orbital inertia consumes). The test exercises `useSphereSpin` directly with a
@@ -90,12 +96,16 @@ describe("useSphereSpin — the amiga A5 engine-drives-mesh contract", () => {
         expect(orbitEnabled).toBe(true);
     });
 
-    it("dragging the sphere mutates its rotation live", () => {
-        const y0 = mesh.rotation.y;
+    it("dragging the sphere accumulates the additive spin offset live (T.A7 — not the mesh)", () => {
+        const y0 = spin.offset.y;
         fire(canvas, "pointerdown", 100, 100);
         fire(canvas, "pointermove", 140, 100); // +40px horizontal → yaw
-        expect(mesh.rotation.y).not.toBe(y0);
-        expect(mesh.rotation.y).toBeGreaterThan(y0); // dx>0 → +yaw at sensitivity>0
+        // T.A7: the gesture writes the ADDITIVE offset, never the mesh directly.
+        expect(spin.offset.y).not.toBe(y0);
+        expect(spin.offset.y).toBeGreaterThan(y0); // dx>0 → +yaw at sensitivity>0
+        // The gesture is NOT a second mesh writer — the mesh is untouched by the
+        // gesture layer (the scene composes offset onto it, the ONE writer).
+        expect(mesh.rotation.y).toBe(0);
     });
 
     it("RELEASE seeds a decay() glide that drives the mesh for ≥N frames, slowing monotonically", () => {
@@ -114,19 +124,19 @@ describe("useSphereSpin — the amiga A5 engine-drives-mesh contract", () => {
 
         expect(spin.isGliding()).toBe(true); // a glide was armed at release
 
-        // Advance the render-loop glide tick frame-by-frame; the mesh rotation
-        // must keep changing for many frames AND the per-frame delta must shrink
-        // (the engine decay bleeds velocity off — not a constant spin).
+        // Advance the render-loop glide tick frame-by-frame; the ADDITIVE offset
+        // (T.A7) must keep changing for many frames AND the per-frame delta must
+        // shrink (the engine decay bleeds velocity off — not a constant spin).
         const deltas: number[] = [];
-        let prevY = mesh.rotation.y;
+        let prevY = spin.offset.y;
         let liveFrames = 0;
         for (let f = 0; f < 40; f++) {
             now += 16; // ~60fps
             const live = spin.tickGlide();
-            const dy = Math.abs(mesh.rotation.y - prevY);
+            const dy = Math.abs(spin.offset.y - prevY);
             if (dy > 0) liveFrames++;
             deltas.push(dy);
-            prevY = mesh.rotation.y;
+            prevY = spin.offset.y;
             if (!live) break;
         }
 
