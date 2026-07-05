@@ -335,12 +335,11 @@ export const RETIREMENT_LEDGER = {
         executedBy: "T.E",
         successor: null,
     },
-    "proof:visual-lock": {
-        coupledFeature: "the self-captured baseline + full-subject mask (blind to every cited render defect)",
-        verdictItem: "#1/#4/#9/#21 — the masked subjects are the rejected renders",
-        executedBy: "T.M3/T.A/T.D",
-        successor: "proof:owner-golden (T.M3 — owner-blessed reference render)",
-    },
+    // (proof:visual-lock is NOT ledgered here: its interim flap-red rides
+    //  T_BORNRED_BACKLOG below, and its terminal retire-vs-demote call is
+    //  T.M3's — the owner-golden wave re-adds the ledger row (or executes the
+    //  demotion) when it lands. A key is either being RETIRED or being GREENED,
+    //  never both at once — the model clause of proof:retirement-ledger.)
     "proof:icon-paint-live": {
         coupledFeature: "the bbox-only icon existence proxy (blur-blind)",
         verdictItem: "#4 — blurred dock icon; existence ≠ legibility",
@@ -401,11 +400,25 @@ export const T_BORNRED_BACKLOG = {
             `(${ROSTER_CEILING}); today 203. It CONVERGES as M7's ~15 feature-coupled ` +
             "retirements + the FROZEN discharge land — a declared backlog, not a mask.",
     },
+    "proof:chronic-closure": {
+        dischargedBy:
+            "T.S1 remainder (the residual-row C-20 triage): row 69 closes at " +
+            "T.A13+T.B3 (the square honest-Play + panel restoration names its " +
+            "load-bearing gate), row 71 at T.H5/T.F16 (the KfPillTabs terminal " +
+            "disposition), row 72 ratified as a ledger row. The T.S1 tier-fix " +
+            "already collapsed the reds 52 → 3 (26 were tier-check artifacts).",
+        reason:
+            "the S chronic ledger's last 3 FOLD rows name no load-bearing gate — " +
+            "their closures land at the named T waves; a pre-existing red at T " +
+            "entry (exit 1 verified in the T.S wave doc), now converging.",
+    },
     "proof:visual-lock": {
         dischargedBy:
             "T.A (T.A3 kills the easeInBounce mount intro → deterministic cube pose; " +
             "re-capture after the cube restage) + T.M3 (owner-golden supersedes this " +
-            "self-baseline tripwire as the appearance authority)",
+            "self-baseline tripwire as the appearance authority — the terminal " +
+            "retire-vs-demote call is T.M3's; un-ledgered from RETIREMENT_LEDGER " +
+            "until then per the either-retired-or-greened model clause)",
         reason:
             "the cube open/stage regions FLAP run-to-run above the 0.9% tolerance even " +
             "against a same-session baseline: the mount settle intro leaves the die at a " +

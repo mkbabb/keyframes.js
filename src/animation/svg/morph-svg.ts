@@ -204,11 +204,13 @@ interface ElementWithAttribute {
 /**
  * Build the per-frame RENDER contract (S1) — the custom `transform` a
  * target-bearing {@link fromMorphSVG} supplies to `fromKeyframes`. Each frame
- * the engine invokes this with the interpolated `vars` (the `--morph-{i}-x/y`
- * keys, each `vars[key][0].value` the lerped number — the SAME shape
- * {@link MorphSVG.sampleD} reads); it reassembles the points into a `d` string
- * and writes it onto `target.style` as BOTH the `d:` CSS property and the
- * `--morph-d` custom property.
+ * the engine invokes this with the interpolated `vars` — under the T.A6
+ * plain-vars contract each `--morph-{i}-x/y` key is a bare lerped `number`
+ * (the "animate any object" seam hands authored-shaped plain values, never
+ * array-boxed `ValueUnit`s; contrast {@link MorphSVG.sampleD}, which pulls the
+ * FLAT `ValueUnit[]` map via `interpFrames` directly); it reassembles the
+ * points into a `d` string and writes it onto `target.style` as BOTH the `d:`
+ * CSS property and the `--morph-d` custom property.
  *
  * ZERO-ALLOC on the steady frame: the scratch point-array is hoisted into THIS
  * closure once (`scratch`, length `samples + 1`), and each frame mutates its
@@ -224,10 +226,7 @@ const makeMorphRenderer = <V extends Vars>(
     for (let i = 0; i <= samples; i++) scratch[i] = { x: 0, y: 0 };
 
     return (vars: V) => {
-        const v = vars as unknown as Record<
-            string,
-            ReadonlyArray<{ value?: number }> | undefined
-        >;
+        const v = vars as unknown as Record<string, number | undefined>;
         for (let i = 0; i <= samples; i++) {
             const pt = scratch[i]!;
             // R.W3 §2D (FAIL-EXPLICIT): the morph renderer seeds EVERY point
@@ -235,9 +234,11 @@ const makeMorphRenderer = <V extends Vars>(
             // so a missing key here is an engine-invariant violation, NOT an
             // expected-absent case. Mask-to-0 would corrupt the path silently —
             // throw instead (the honest-or-refuse law from the factory below).
-            const lx = v[xKey(i)]?.[0]?.value;
-            const ly = v[yKey(i)]?.[0]?.value;
-            if (lx === undefined || ly === undefined) {
+            // T.A6: the seam hands plain authored-shaped values — a coordinate
+            // leaf arrives as a bare number, never an array-boxed ValueUnit.
+            const lx = v[xKey(i)];
+            const ly = v[yKey(i)];
+            if (typeof lx !== "number" || typeof ly !== "number") {
                 throw new Error(
                     `morph render: point ${i} lost its coordinate leaf ` +
                         `(engine invariant violated — xKey/yKey seeded at construction)`,
