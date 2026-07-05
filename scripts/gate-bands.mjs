@@ -477,4 +477,39 @@ export const T_BORNRED_BACKLOG = {
     // (gate green + row removed in the SAME commit as the cure = the pin). NOTE: greens
     // only once the tree is `npm ci`'d to 3.1.0 — the shared-symlink worktree was NOT
     // mutated (sibling-lane isolation); see risksForMerge / the pin commit.
+    "proof:dock-rest-crisp": {
+        dischargedBy:
+            "glass-ui GU-1 publish + re-pin (T.C6) — the reveal blur gated on " +
+            "[data-morphing], content-only (never the plate); a resting dock is CRISP.",
+        reason:
+            "T.C5 (GU-1 acceptance). MEASURED born-RED: the resting collapsed .glass-dock " +
+            "computes filter: blur(3px) (glass-ui BB.W-LIQUID-REVEAL bloom in " +
+            "dist/styles/dock/morph.css, NOT gated on [data-morphing]) — VERDICT #4's " +
+            "unreadable blur-blob. Per MEMORY the fix is glass-ui-root (never patched in " +
+            "demo); kf cannot self-cure it. OWNER authority + blocking-not-OBSERVE (T.M6). " +
+            "See demo/glass-ui-gaps.ts dockRestBlur (GU-1).",
+    },
+    "proof:dock-morph-continuity": {
+        dischargedBy:
+            "glass-ui GU-2 publish + re-pin (T.C6) — measure REAL laid-out endpoint " +
+            "geometry (or defer the morph one frame); no max-content release jump-cut.",
+        reason:
+            "T.C5 (GU-2 acceptance). MEASURED born-RED: the dock width SNAPS 58→14px, holds " +
+            "a 14px sliver, then jump-cuts 14→225px with no animation (lane 08 D2 frame " +
+            "table) — glass-ui pins un-laid-out endpoints (dist/dock.js). rAF-sampled: the " +
+            "per-frame Δ far exceeds 25% of range + a >5px change after [data-morphing] " +
+            "clears. glass-ui-root fix; OWNER authority + blocking-not-OBSERVE (T.M6). See " +
+            "demo/glass-ui-gaps.ts dockMorphMeasure (GU-2).",
+    },
+    "proof:transport-play-first-render": {
+        dischargedBy:
+            "T.C1 (the play-first rail-core dock rebuild — renders primary first from the " +
+            "T.B10 actions model; one source of order truth with proof:dock-grammar).",
+        reason:
+            "T.B10 RENDER clause. The MODEL half (proof:transport-action-order) is GREEN — " +
+            "useSceneTransport exposes { primary:{kind:'play'}, secondary:[reset,clear] }. " +
+            "But TransportDock.vue still renders the primary Play button MARKUP-LAST (after " +
+            "Reset + Clear) — VERDICT #6 wants play FIRST. Measured born-RED on template " +
+            "order today; flips GREEN when T.C1 draws play first from actions.primary.",
+    },
 };
