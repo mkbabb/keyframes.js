@@ -62,7 +62,7 @@ export const BUILT_IN_SURFACES: readonly ControlSurface[] = [
  *   • spring         → [spring]                         (ONLY spring)
  *   • square         → []                               (S.G2 S2 / fold row 69 —
  *     / sequence                                         the box is spring-chased,
- *     / motion-path                                      drag/keyboard/Play-tumble
+ *                                                        drag/keyboard/Play-tumble
  *                                                        autonomous; the built-in
  *                                                        triad edited a dead
  *                                                        CSSKeyframesAnimation that
@@ -90,18 +90,13 @@ export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
     amiga: ["controls", "keyframes", "timeline"],
     // S.G2 S2 (fold row 69) — the square is drag/spring/Play-tumble autonomous;
     // the built-in triad edited a CSSKeyframesAnimation that painted NOTHING (a
-    // lying panel). COLLAPSED to [] — self-contained like sequence/motion-path/
-    // morph; the box + the global dock Play (isPlaying→tumble, transport-owned,
+    // lying panel). COLLAPSED to [] — self-contained like sequence;
+    // the box + the global dock Play (isPlaying→tumble, transport-owned,
     // independent of the control surface) + the mono caption ARE the live controls.
     square: [],
     easing: ["easing"],
     spring: ["spring"],
     sequence: [],
-    "motion-path": [],
-    // The morph stage is self-contained (the live <path> + the Next-shape
-    // affordance live ON the stage); no control panel — an empty DFA set, beside
-    // sequence/motion-path (isControlsPanelOpen=false).
-    morph: [],
 };
 
 /**
@@ -248,7 +243,7 @@ export function extraControlTabsFor(
  * cube) — the fallback is a function OF the DFA, computed at the single
  * writer, NOT a scene-side imperative (the deleted `CubeScene` rogue watch).
  *
- * `undefined` only when the scene has NO valid surfaces (home/sequence/path) —
+ * `undefined` only when the scene has NO valid surfaces (home/sequence) —
  * those scenes mount no control pane, so there is no selected surface to
  * project.
  */

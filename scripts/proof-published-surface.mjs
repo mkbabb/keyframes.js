@@ -503,7 +503,8 @@ function clauseE() {
         }
     }
     // R.W5: the now-phantom top-level scene dirs must NOT reappear at demo/<name>/.
-    for (const fused of ["amiga", "cube", "easing", "motion-path", "sequence", "spring", "square", "morph"]) {
+    // (motion-path/morph/compose were PRUNED at T.E1/T.E3, OD-1 = PRUNE.)
+    for (const fused of ["amiga", "cube", "easing", "sequence", "spring", "square"]) {
         if (fs.existsSync(path.join(REPO, "demo", fused))) {
             failures.push(
                 `(e) demo dir \`demo/${fused}/\` reappeared at top level — R.W5 fused it into demo/scenes/${fused}/.`,

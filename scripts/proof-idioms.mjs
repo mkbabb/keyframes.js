@@ -495,7 +495,7 @@ function main() {
     }
 
     // ── 8. POST-F SCENE RE-FORK SWEPT — the G.W10 idiom finishing sweep ───────
-    // The post-F W10/W12 scenes (sequence/, motion-path/, spring/) were authored
+    // The post-F W10/W12 scenes (sequence/, spring/) were authored
     // AFTER the D.W2 idiom-ownership sweep + the F §1 rail/ball consolidation, so
     // they re-forked idioms those passes already retired:
     //   • .settled-badge/.tracking-badge byte-dup across two scenes (a SILENT fork

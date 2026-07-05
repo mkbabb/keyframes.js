@@ -48,7 +48,7 @@
  *      AND performance.getEntriesByType('navigation').length === 1 (no reload
  *      wiped the trap) AND location.pathname === '/' (no /scene#/scene path-mix).
  *      BITE: the storm fires on RE-RENDER, not idle — an idle gate passes
- *      vacuously; the DRIVEN loop walks easing→motion-path→spring… autonomously
+ *      vacuously; the DRIVEN loop walks easing→sequence→spring… autonomously
  *      on the pre-FSM tree.
  *
  *   C4 SCENE-ISOLATION — after NAVIGATE(easing) the rendered control labels are
@@ -152,7 +152,6 @@ const SUPER_KEY = {
     easing: "Easing",
     spring: "Spring",
     sequence: "Sequence",
-    "motion-path": "MotionPath",
     "starting-style": "StartingStyle",
 };
 

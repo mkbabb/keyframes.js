@@ -52,13 +52,8 @@
  *   S7 sequence    — scrubbing the master clock DETONATES the rainbow lanes in a
  *                    diagonal cascade chasing the thumb (violet→green); an
  *                    orchestrated ~700ms power-on; PRM-guarded.
- *   S8 motion-path — author-the-curve-the-creature-obeys: deform a handle → the
- *                    traveller banks into the new tangent (ants still flowing); the
- *                    guide self-builds via DrawSVG on mount.
- *   S9 compose     — bind-IGNITION: binding lights the asset (key-light bloom +
- *                    first-cycle comet-tail tracing the preset's actual
- *                    bezier/spring curve, drawn back onto the page); the warm
- *                    key-light FOLLOWS the pointer over the empty stage.
+ *   (S8 motion-path + S9 compose refinement eggs were RETIRED at T.E3/T.E1 —
+ *    those scenes were PRUNED, OD-1 = PRUNE.)
  *
  * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
  * resolveChromium + context/teardown; navToScene drives the IN-PAGE scene switch).
@@ -195,17 +190,8 @@ const W11_EGGS = [
         note: "S7 — scrubbing the master clock DETONATES the rainbow lanes in a diagonal cascade chasing the thumb (violet→green), cooling in reverse on drag-back; an orchestrated ~700ms power-on; PRM-guarded",
         browser: { scene: "sequence", host: ".seq-playhead, .seq-storyboard", trigger: "scrub", probe: "detonat|cascade" },
     },
-    {
-        scene: "motion-path",
-        files: ["scenes/motion-path/MotionPathTarget.vue", "scenes/motion-path/useMotionPathGesture.ts"],
-        domMarker: /handle-deform|author-curve|self-build|guide-draw/,
-        dogfood: /DrawSVG|fromDrawSVG|fromMotionPath|MotionPath|getTotalLength/,
-        triggerFile: "scenes/motion-path/MotionPathTarget.vue",
-        // Deforming a control handle is the trigger.
-        trigger: /handle-deform|author-curve|onHandleDrag|control-handle/,
-        note: "S8 — author-the-curve, the-creature-obeys: deform a handle → the traveller banks into the new tangent (ants still flowing); the guide self-builds via DrawSVG on mount",
-        browser: { scene: "motion-path", host: ".mp-guide-path, .mp-traveller", trigger: "drag-handle", probe: "deform" },
-    },
+    // (S8 motion-path "author-the-curve" + S9 compose "bind-ignition" refinement
+    //  eggs were RETIRED at T.E3/T.E1 — those scenes were PRUNED, OD-1 = PRUNE.)
 ];
 
 // ── STATIC HALF — each NEW egg's DOM marker + engine dogfood + NO hand-rolled rAF ─
@@ -255,10 +241,7 @@ const EXPECTED_TRIGGER = {
     spring: "Spring",
     easing: "Easing",
     sequence: null,
-    "motion-path": null,
-    // S.D3 (C-4) — the compose scene's control tab is the DFA `assets` surface,
-    // labelled "Assets" (SCENE_SURFACE_TABS.assets) — navToScene settles on it.
-    compose: "Assets",
+    // (motion-path + compose were PRUNED at T.E3/T.E1, OD-1 = PRUNE.)
 };
 
 async function waitVisible(page, selector, timeout = 6000) {
@@ -428,6 +411,6 @@ console.log(
         "(a hidden trigger → an observable off-the-normal-path effect, each dogfooding a public " +
         "engine primitive, none hand-rolling a rAF): home source-card · cube re-lit die · amiga " +
         "power-on · square palette-sweep · easing trace-smear · spring four-lane derby · sequence " +
-        "lane-detonate · motion-path author-curve · compose bind-ignition.",
+        "lane-detonate.",
 );
 process.exit(0);

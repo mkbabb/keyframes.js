@@ -28,7 +28,7 @@
  * after the narrowed exclusion = 2.
  *
  * ── SCOPE + EXCLUSIONS (the narrowed exclusion set the residual count rests on) ──
- *   • ROOTS: demo/{@,app,easing,spring,sequence,motion-path} — `.vue` + `.css`.
+ *   • ROOTS: demo/{@,app,easing,spring,sequence} — `.vue` + `.css`.
  *   • EXCLUDE `dist/` — the git-ignored BUILD output that inlines glass-ui's
  *     compiled `.text-*` rungs + every font-size literal (the ~150 noise). A
  *     source-shape gate must never read the build it is asserting the source omits.
@@ -64,8 +64,8 @@ const read = (p) => fs.readFileSync(p, "utf8");
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
 
 // The demo SOURCE roots the M1 system property is asserted over (the contract's
-// `demo/{@,app,easing,spring,sequence,motion-path}` set).
-const ROOTS = ["@", "app", "easing", "spring", "sequence", "motion-path"];
+// `demo/{@,app,easing,spring,sequence}` set).
+const ROOTS = ["@", "app", "easing", "spring", "sequence"];
 
 // The vendored shadcn-vue tree — not demo-authored surface. EXCLUDING it is the
 // load-bearing exclusion the residual=2 (NOT 37) rests on (WV-W4-HIGH-1).

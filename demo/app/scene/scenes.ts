@@ -5,7 +5,7 @@ import { defineAsyncComponent, type Component } from "vue";
 // 1:1 from 084feb9: cube/amiga/square are the colorful 32×32 rasters embedded
 // pixel-faithfully as `<svg><image href="data:image/png;base64,…"/></svg>`,
 // easing is the original violet `hsl(248,88%,71%)` vector restored verbatim. The
-// 3 NEW colorful glyphs (spring/sequence/motion-path — the primitives that
+// NEW colorful glyphs (spring/sequence — the primitives that
 // LACKED an icon) paint from the demo's `--rainbow-*`/`--color-progress` tokens
 // (currentColor fallback). ALL resolve through the unchanged W5 `?component`
 // seam (vite.config.ts svgLoader, `convertColors:false`) to an inline-`<svg>`
@@ -18,14 +18,10 @@ import SquareIcon from "@assets/icons/square.svg?component";
 import EasingIcon from "@assets/icons/easing.svg?component";
 import SpringIcon from "@assets/icons/spring.svg?component";
 import SequenceIcon from "@assets/icons/sequence.svg?component";
-import MotionPathIcon from "@assets/icons/motion-path.svg?component";
-import MorphIcon from "@assets/icons/morph.svg?component";
 
 // The per-scene `superKey` single-source (R.W5 C.4) — each scene's keys module
 // OWNS its superKey constant; the descriptor below AND the scene SFC both import
 // it, so no string literal is declared in a file that doesn't own it.
-import { MORPH_SUPER_KEY } from "../../scenes/morph/morphKeys";
-import { MOTION_PATH_SUPER_KEY } from "../../scenes/motion-path/motionPathKeys";
 import { EASING_SUPER_KEY } from "../../scenes/easing/easingKeys";
 import { SEQUENCE_SUPER_KEY } from "../../scenes/sequence/sequenceKeys";
 import { SQUARE_SUPER_KEY } from "../../scenes/square/squareKeys";
@@ -53,9 +49,9 @@ type SceneLoader = () => Promise<unknown>;
  *                    bezier + the engine ball are the protagonist, not a
  *                    background. The stage keeps its glass-card register (W11
  *                    I5) — full-bleed would be WRONG (the curve is the content).
- *   • `storyboard` — the draggable rows / editable path ARE the content
- *                    (sequence/motion-path/spring/morph): an authored timeline
- *                    the user manipulates. Also a contained card, not a background.
+ *   • `storyboard` — the draggable rows ARE the content (sequence/spring): an
+ *                    authored timeline the user manipulates. Also a contained
+ *                    card, not a background.
  *
  * Only `subject` expands toward a full-bleed background on mobile; `editor` and
  * `storyboard` keep their content card. UNKNOWN/home falls back to `subject`
@@ -191,45 +187,13 @@ export const scenes: SceneDescriptor[] = [
             () => import("../../scenes/sequence/SequenceScene.vue"),
         ),
     },
-    {
-        // The CSS-native MotionPath shop-window (F.W12.S3): a traveller swept
-        // along an author offset-path via fromMotionPath (offset-distance
-        // 0%→100%). WAAPI-eligible, zero geometry math — the browser owns the
-        // path, the engine sweeps the scalar.
-        id: "motion-path",
-        label: "Path",
-        superKey: MOTION_PATH_SUPER_KEY,
-        stageMode: "storyboard",
-        icon: MotionPathIcon,
-        component: lazyScene(
-            "motion-path",
-            () => import("../../scenes/motion-path/MotionPathScene.vue"),
-        ),
-    },
-    {
-        // The MorphSVG shop-window (Q.WC4.S3): the THIRD HEAVY geometry front
-        // door demoed — `fromMorphSVG` morphs one SVG `<path>` `d` INTO another
-        // over value.js's PathGeometry, and the Q.WC4 S1 render contract paints
-        // the morphing shape DIRECTLY on a live `<path>` (the `d:` property +
-        // var(--morph-d) fallback). A glyph banks to the tangent (orient-along-
-        // path, S2). Beside MotionPath (offset-distance) + DrawSVG (line-drawing).
-        id: "morph",
-        label: "Morph",
-        superKey: MORPH_SUPER_KEY,
-        stageMode: "storyboard",
-        icon: MorphIcon,
-        component: lazyScene(
-            "morph",
-            () => import("../../scenes/morph/MorphSVGScene.vue"),
-        ),
-    },
     // The standalone @starting-style "Discrete" scene was MERGED into the Spring
     // scene as a sub-view in one motion (H.W5.S3): Discrete is Spring's twin (the
     // same spring solver + linear() artifact on a different primitive). The fold
     // removed this descriptor, its /starting-style route, and StartingStyleScene
     // .vue together — no legacy alias. The discrete-transition view now lives at
     // Spring → "Discrete transition" (SpringScene.vue + spring/StartingStyleTarget
-    // .vue). Survivor new-mode set = { spring, sequence, motion-path }.
+    // .vue). Survivor new-mode set = { spring, sequence }.
 ];
 
 export const allScenes = [homeScene, ...scenes];

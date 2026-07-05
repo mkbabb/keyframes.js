@@ -89,7 +89,7 @@ const allControlTabs = computed(() => {
 
 // The control-panel affordances (the collapse toggle + the tab selector) appear
 // ONLY when the scene has at least one control surface to show (the DFA set is
-// non-empty). For home/sequence/motion-path the DFA set is [] — so NO control
+// non-empty). For home/sequence the DFA set is [] — so NO control
 // affordance renders, which is the DFA-driven supersession of those scenes'
 // former `isControlsPanelOpen = false` poke-sets (one authority for "this scene
 // has no panel", not a per-scene imperative write). J.W0.S3: the former

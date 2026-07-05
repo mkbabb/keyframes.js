@@ -28,7 +28,7 @@
  *      equals the DFA entry: easing → ONLY the easing surface (NO keyframes/
  *      timeline tab node anywhere on the page); spring → ONLY spring; cube/amiga →
  *      the full built-in triad (controls+keyframes+timeline visible in the OPENED
- *      dock select); square/sequence/motion-path/morph → NO control panel
+ *      dock select); square/sequence → NO control panel
  *      affordance at all (the empty DFA set → no controls-tab trigger). BITE: the
  *      pre-DFA easing route showed the meaningless keyframes/timeline triggers.
  *      S.G2 S2 (fold row 69): square JOINED the empty-set scenes — its built-in
@@ -150,7 +150,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
             "@/state/controlSurfaceDFA.ts",
         ),
     );
-    const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence", "motion-path", "morph"];
+    const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence"];
     const tableBlock = (dfa.match(/CONTROL_SURFACES[^=]*=\s*\{([\s\S]*?)\};/) || [])[1] ?? "";
     const allMapped = declaredScenes.every((s) => {
         const re = new RegExp(`["']?${s.replace("-", "\\-")}["']?\\s*:`);
@@ -188,8 +188,6 @@ const EXPECT = {
     easing: { hasPanel: true, trigger: "Easing", noBuiltInTriad: true },
     spring: { hasPanel: true, trigger: "Spring", noBuiltInTriad: true },
     sequence: { hasPanel: false },
-    "motion-path": { hasPanel: false },
-    morph: { hasPanel: false },
 };
 
 /** Read the dock's control-tab state: the collapsed trigger label (or null if
@@ -274,8 +272,8 @@ async function browserHalf() {
             ["easing", "cube"],
             ["easing", "sequence"],
             ["sequence", "easing"],
-            ["spring", "motion-path"],
-            ["motion-path", "spring"],
+            ["spring", "sequence"],
+            ["sequence", "spring"],
             ["cube", "spring"],
         ];
         let matrixClean = 0;

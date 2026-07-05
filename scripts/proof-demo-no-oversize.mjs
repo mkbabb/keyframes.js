@@ -137,13 +137,12 @@ function main() {
             );
         }
 
-        // The four stage scenes each colocate Target + composable + inject key.
+        // The stage scenes each colocate Target + composable + inject key.
         // R.W5: the scenes fused from `demo/<name>/` into `demo/scenes/<name>/`
         // (proof:scene-colocated is the fusion authority); these path literals
-        // track the new colocated home.
+        // track the new colocated home. (motion-path was PRUNED at T.E3, OD-1.)
         const STAGE_SCENES = [
             "demo/scenes/sequence",
-            "demo/scenes/motion-path",
             "demo/scenes/spring",
             "demo/scenes/easing",
         ];

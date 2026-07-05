@@ -32,8 +32,7 @@
  *   font — the body font is NOT Plus Jakarta (the I.W6-font reclaim).
  *   S5 — (J.W4) EVERY routed scene ENTERS clean per the expected-destination
  *        predicate, PLAYS+INTERACTS per its class (spring rail-scrub, sequence
- *        transport, motion-path traveller + handle-drag re-shape — never
- *        glyph-paint-only), and the covering dock-combobox switch WALK lands
+ *        transport — never glyph-paint-only), and the covering dock-combobox switch WALK lands
  *        every adjacency once (wrap-to-home).
  *   S2 — (J.W4) under emulated prefers-reduced-motion the engine's LIVE
  *        respectReducedMotion path SNAPS: the TypingDots rest (vs a blinking
@@ -187,7 +186,7 @@ const CTRL_KEY = "animation-groups-control-options-store";
 // The sweep ROSTER is the lib's `SCENES` export (re-sourced from scenes.ts —
 // demo-driver's stale-key guard), NEVER a hardcoded literal (the `:711`
 // brittleness that let `home` fall out of the sweep entirely and left
-// spring/sequence/motion-path icon-paint-only — INVE-2). The only hand data is
+// spring/sequence icon-paint-only — INVE-2). The only hand data is
 // the per-scene EXPECTED control-tab trigger (J.W0's per-expected-destination
 // predicate), the dock-combobox option LABEL (the real switch path), and the
 // scene's PLAY+INTERACT class. A scenes.ts add/remove reaches the sweep
@@ -208,11 +207,6 @@ const SWEEP_META = {
     easing: { trigger: "Easing", label: "Easing", kind: "group-play" },
     spring: { trigger: "Spring", label: "Spring", kind: "spring-rail" },
     sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
-    "motion-path": { trigger: null, label: "Path", kind: "motion-path" },
-    // The MorphSVG stage (Q.WC4) — a panel-less group-play scene (the morph is a
-    // CSSKeyframesAnimation): PLAY morphs the live <path> `d` + the "Next shape"
-    // affordance advances the shape ring (the EP-interact).
-    morph: { trigger: null, label: "Morph", kind: "morph" },
 };
 {
     const libKeys = SCENES.map((s) => s.key);
@@ -851,8 +845,7 @@ async function runBattery() {
         // each scene (1) ENTERS clean per J.W0's expected-destination-state
         // predicate (machine + trigger TEXT, subject non-blank — the INVE-3
         // entry oracle), (2) PLAYS+INTERACTS per its class (NOT glyph-paint-
-        // only: spring rail-scrub, sequence transport, motion-path traveller +
-        // a real handle-drag re-shape), and (3) SWITCHES to the NEXT scene via
+        // only: spring rail-scrub, sequence transport), and (3) SWITCHES to the NEXT scene via
         // the REAL dock combobox (the covering N×1 walk — every adjacency in
         // the scenes.ts order exercised once, wrap-to-home closing the cycle).
         // ════════════════════════════════════════════════════════════════════
@@ -867,7 +860,7 @@ async function runBattery() {
             const visited = [];
 
             /** The S5 broad liveness sampler — subject computed transforms +
-             *  inline movers + offset-distance (the motion-path axis). */
+             *  inline movers. */
             const sampleS5 = (ms = 2200) =>
                 page.evaluate(async (dur) => {
                     const sleep = (m) => new Promise((r) => setTimeout(r, m));
@@ -1077,89 +1070,9 @@ async function runBattery() {
                     });
                     if (n >= 3) return;
                     sceneFails.push(`${key}: PLAY red — the sequence transport produced only ${n} row-state changes (<3)`);
-                } else if (meta.kind === "motion-path") {
-                    // motion-path — PLAY (the traveller rides the path) + a real
-                    // handle drag RE-SHAPES the editable path (the EP-interact).
-                    await clickRainbowPlay(page);
-                    const n = await sampleS5();
-                    if (n < 3) {
-                        sceneFails.push(`${key}: PLAY red — traveller produced only ${n} distinct states (<3)`);
-                    }
-                    const d0 = await page.evaluate(() => document.querySelector(".mp-guide-path")?.getAttribute("d") ?? null);
-                    // S.A0: pick the OFF-PATH CONTROL handle (the canonical
-                    // proof:motion-path-editable drive does exactly this) — the
-                    // first `.mp-handle` in DOM is an ON-PATH anchor the riding
-                    // traveller can occlude at hit-test time, swallowing the
-                    // trusted pointerdown; and drag a VISIBLE delta well clear
-                    // of the handle's own hit radius (the canonical 80/-60, not
-                    // the old 24/-20 nudge).
-                    const handle = await page.evaluate(() => {
-                        const handles = [...document.querySelectorAll(".mp-handle")];
-                        const el =
-                            handles.find((h) => h.classList.contains("mp-handle--control")) ??
-                            handles[0];
-                        const r = el?.getBoundingClientRect();
-                        return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
-                    });
-                    if (!d0 || !handle) {
-                        sceneFails.push(`${key}: INTERACT red — guide path (${!!d0}) / handle (${!!handle}) absent`);
-                        return;
-                    }
-                    await page.mouse.move(handle.x, handle.y);
-                    await page.mouse.down();
-                    for (let i = 1; i <= 12; i++) {
-                        await page.mouse.move(handle.x + (80 * i) / 12, handle.y - (60 * i) / 12);
-                        await page.waitForTimeout(16);
-                    }
-                    await page.mouse.up();
-                    await page.waitForTimeout(300);
-                    const d1 = await page.evaluate(() => document.querySelector(".mp-guide-path")?.getAttribute("d") ?? null);
-                    if (d1 && d1 !== d0) return;
-                    sceneFails.push(`${key}: INTERACT red — the handle drag did NOT re-shape the editable path (d unchanged)`);
-                } else if (meta.kind === "morph") {
-                    // morph — the scene AUTO-PLAYS on entry (a looping showcase,
-                    // like easing), so the live <path> `d` is already morphing via
-                    // the render contract (the engine writes `d:`/--morph-d each
-                    // frame); do NOT click play (that would TOGGLE-PAUSE it).
-                    // INTERACT: the "Next shape" affordance advances the ring.
-                    //
-                    // Sample distinct rendered `d` states over the morph window —
-                    // a real morphing shape produces many (not a static path).
-                    const distinct = await page.evaluate(async () => {
-                        const sleep = (m) => new Promise((r) => setTimeout(r, m));
-                        const seen = new Set();
-                        const read = () => {
-                            const p = document.querySelector("[data-morph-subject]");
-                            if (!p) return null;
-                            const cs = getComputedStyle(p);
-                            // The engine writes both `d:` and --morph-d; read either.
-                            return (cs.getPropertyValue("d") || "").trim() ||
-                                (cs.getPropertyValue("--morph-d") || "").trim() || null;
-                        };
-                        const t0 = performance.now();
-                        while (performance.now() - t0 < 2000) {
-                            const d = read();
-                            if (d) seen.add(d);
-                            await sleep(40);
-                        }
-                        return seen.size;
-                    });
-                    if (distinct < 3) {
-                        sceneFails.push(`${key}: PLAY red — the morph rendered only ${distinct} distinct \`d\` states (<3); the subject is not morphing live`);
-                    }
-                    // INTERACT: advance the shape ring — the from/to ghosts change.
-                    const ghostsBefore = await page.evaluate(
-                        () => [...document.querySelectorAll(".morph-ghost")].map((p) => p.getAttribute("d")).join("|"),
-                    );
-                    await page.click('[aria-label="Next shape pair"]', { timeout: 4000 }).catch(() => {});
-                    await page.waitForTimeout(400);
-                    const ghostsAfter = await page.evaluate(
-                        () => [...document.querySelectorAll(".morph-ghost")].map((p) => p.getAttribute("d")).join("|"),
-                    );
-                    if (!ghostsBefore || !ghostsAfter || ghostsBefore === ghostsAfter) {
-                        sceneFails.push(`${key}: INTERACT red — "Next shape" did NOT advance the shape ring (ghosts before==after: ${ghostsBefore === ghostsAfter})`);
-                    }
                 }
+                // (the "motion-path" + "morph" kinds were RETIRED at T.E3 — those
+                //  scenes were PRUNED, OD-1 = PRUNE.)
             };
 
             // ── the walk: deterministic hash ENTRY to home, then the covering

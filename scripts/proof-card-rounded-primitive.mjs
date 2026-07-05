@@ -90,8 +90,8 @@ const fail = (label) => {
 console.log("proof:card-rounded-primitive — H.W11 I4 (no kf-owned card renders square; the glass-ui radius-primitive is a born-RED-paired HANDOFF)");
 
 // The destination control-tab labels navToScene settles on (per-EXPECTED-state;
-// null = the scene mounts no control panel — sequence/motion-path).
-const TRIGGER = { easing: "Easing", spring: "Spring", sequence: null, "motion-path": null };
+// null = the scene mounts no control panel — sequence).
+const TRIGGER = { easing: "Easing", spring: "Spring", sequence: null };
 
 function stripComments(src) {
     // strip /* … */ + <!-- … --> so a doc-comment quoting the dropped class is not a usage
@@ -100,15 +100,15 @@ function stripComments(src) {
 
 // ── 1. DEMO STATIC: no bare-class cartoon-surface on a stage *Target.vue ROOT ──
 function staticHalf() {
-    // the four converged stage SUBJECT roots (I5/S1). A bare-class
-    // `cartoon-surface` in live markup (not a comment) re-introduces the square
-    // defect — the radius lives on the <Card> root, not the utility.
+    // the converged stage SUBJECT roots (I5/S1). A bare-class `cartoon-surface`
+    // in live markup (not a comment) re-introduces the square defect — the radius
+    // lives on the <Card> root, not the utility. (The motion-path root was PRUNED
+    // at T.E3, OD-1 = PRUNE.)
     const stageRoots = [
         "demo/scenes/easing/EasingTarget.vue",
         "demo/scenes/spring/SpringTarget.vue",
         "demo/scenes/spring/StartingStyleTarget.vue",
         "demo/scenes/sequence/SequenceTarget.vue",
-        "demo/scenes/motion-path/MotionPathTarget.vue",
     ];
     let offenders = 0;
     for (const rel of stageRoots) {
@@ -129,8 +129,8 @@ function staticHalf() {
     }
     if (offenders === 0) {
         ok(
-            "static — the five stage *Target.vue roots (easing/spring/starting-style/sequence/" +
-                "motion-path) carry ZERO bare-class `cartoon-surface`; every stage card consumes the " +
+            "static — the four stage *Target.vue roots (easing/spring/starting-style/sequence) " +
+                "carry ZERO bare-class `cartoon-surface`; every stage card consumes the " +
                 "rounded `<Card>` primitive (I4 closed by I5's swap — no kf-owned square card)",
         );
     }
@@ -174,7 +174,6 @@ const SCENES = [
     { scene: "easing", label: "easing" },
     { scene: "spring", label: "spring" },
     { scene: "sequence", label: "sequence" },
-    { scene: "motion-path", label: "motion-path" },
 ];
 
 async function computedHalf() {

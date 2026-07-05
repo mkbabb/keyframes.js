@@ -218,8 +218,6 @@ jobs:
               run: npm run proof:roundtrip-easing
             - name: proof:adapter-capture (F.W8 — composition capture + shorthand-applied + AST-decide)
               run: npm run proof:adapter-capture
-            - name: proof:motion-path (F.W12 — CSS-native MotionPath eligibility + compositor)
-              run: npm run proof:motion-path
             - name: proof:blend (G.W17 — the dead add/weighted blend leaf, element-wise)
               run: npm run proof:blend
             - name: proof:composition-honored (K.W7 — the engine HONORS the animation-composition operator add/accumulate/composite)

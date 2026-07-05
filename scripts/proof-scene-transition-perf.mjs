@@ -101,18 +101,17 @@ console.log(
         const easingOnly = /easing:\s*\[\s*["']easing["']\s*\]/.test(src);
         const springOnly = /spring:\s*\[\s*["']spring["']\s*\]/.test(src);
         const seqEmpty = /sequence:\s*\[\s*\]/.test(src);
-        const pathEmpty = /["']motion-path["']:\s*\[\s*\]/.test(src);
         const total = /export function controlSurfacesFor/.test(src);
-        if (hasTable && easingOnly && springOnly && seqEmpty && pathEmpty && total) {
+        if (hasTable && easingOnly && springOnly && seqEmpty && total) {
             ok(
                 "DFA source: CONTROL_SURFACES table present (easing→[easing], spring→[spring], " +
-                    "sequence/motion-path→[]) + a TOTAL controlSurfacesFor selector",
+                    "sequence→[]) + a TOTAL controlSurfacesFor selector",
             );
         } else {
             fail(
                 `DFA source — controlSurfaceDFA.ts must define the CONTROL_SURFACES table ` +
                     `(table:${hasTable}, easingOnly:${easingOnly}, springOnly:${springOnly}, ` +
-                    `seqEmpty:${seqEmpty}, pathEmpty:${pathEmpty}, total:${total})`,
+                    `seqEmpty:${seqEmpty}, total:${total})`,
             );
         }
     } else {
@@ -160,7 +159,6 @@ const SUPER_KEY = {
     easing: "Easing",
     spring: "Spring",
     sequence: "Sequence",
-    "motion-path": "MotionPath",
 };
 
 // The destination control-tab labels navToScene settles on (the per-EXPECTED

@@ -47,11 +47,9 @@ const SOURCE_EXT = new Set([".ts", ".vue"]);
 // The colocated scenes (the verified roster, ascending-complexity order). Each is
 // ONE colocated directory `demo/scenes/<name>/` carrying `<Name>Scene.vue` + a
 // `use<Name>Demo` peer (C-17, the fleet-wide naming convention — S.D4 landed the
-// last three `use<Name>Animations` stragglers: square/amiga/cube). The compose
-// scene was PRUNED at T.E1 (OD-1 = PRUNE).
+// last three `use<Name>Animations` stragglers: square/amiga/cube). The
+// compose/morph/motion-path scenes were PRUNED at T.E1/T.E3 (OD-1 = PRUNE).
 const SCENE_DIRS = [
-    { name: "morph", scene: "MorphSVGScene.vue", demo: "useMorphDemo.ts" },
-    { name: "motion-path", scene: "MotionPathScene.vue", demo: "useMotionPathDemo.ts" },
     { name: "easing", scene: "EasingScene.vue", demo: "useEasingDemo.ts" },
     { name: "sequence", scene: "SequenceScene.vue", demo: "useSequenceDemo.ts" },
     { name: "square", scene: "SquareScene.vue", demo: "useSquareDemo.ts" },

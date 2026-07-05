@@ -163,34 +163,8 @@ async function runSuffusion() {
                 );
             }
 
-            // motion-path traveller → cyan
-            await page.goto(`${base}/#/motion-path`, { waitUntil: "load" });
-            await navToScene(page, "motion-path", null, { timeout: 12000 });
-            await page.waitForTimeout(700);
-            const mpTone = await page.evaluate(() => {
-                const cs = getComputedStyle(document.documentElement);
-                const t = document.querySelector(".mp-traveller, .progress-ball.mp-traveller, .progress-ball");
-                return {
-                    cyan: cs.getPropertyValue("--rainbow-cyan").trim(),
-                    tone: t ? getComputedStyle(t).getPropertyValue("--ball-tone").trim() : null,
-                    bg: t ? getComputedStyle(t).backgroundColor : null,
-                };
-            });
-            if (
-                mpTone.tone &&
-                mpTone.tone.toLowerCase() === mpTone.cyan.toLowerCase() &&
-                /26,\s*230,\s*230/.test(mpTone.bg ?? "")
-            ) {
-                ok(
-                    `(a) motion-path traveller --ball-tone == --rainbow-cyan (${mpTone.tone}); ` +
-                        `bg ${mpTone.bg} (the cyan its icon promises)`,
-                );
-            } else {
-                fail(
-                    `(a) motion-path traveller --ball-tone is NOT --rainbow-cyan ` +
-                        `(tone=${mpTone.tone}, expected ${mpTone.cyan}; bg=${mpTone.bg})`,
-                );
-            }
+            // (the motion-path traveller --ball-tone == --rainbow-cyan check was
+            //  RETIRED at T.E3 — the motion-path scene was PRUNED, OD-1 = PRUNE.)
 
             // spring ball → --color-progress (the RED-DASHED motion-color bind —
             // K.W4 S3/clause(d): the green palette is GONE on the motion surfaces,
@@ -255,7 +229,6 @@ async function runSuffusion() {
                 { scene: "easing", expected: "Easing", title: "ease" },
                 { scene: "spring", expected: "Spring", title: "SpringProgress" },
                 { scene: "sequence", expected: null, title: "Sequence" },
-                { scene: "motion-path", expected: null, title: "MotionPath" },
             ];
             for (const m of NAMED_MOMENTS) {
                 await page.goto(`${base}/#/${m.scene}`, { waitUntil: "load" });
@@ -372,7 +345,7 @@ async function runSuffusion() {
             }
 
             // ── (e) the ghost rail ABSENT on the empty-DFA scenes ──────────────
-            for (const scene of ["sequence", "motion-path"]) {
+            for (const scene of ["sequence"]) {
                 await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
                 await navToScene(page, scene, null, { timeout: 12000 });
                 await page.waitForTimeout(700);

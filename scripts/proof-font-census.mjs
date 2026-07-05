@@ -98,7 +98,6 @@ const SCENES = [
     { id: "easing", route: "easing", trigger: "Easing" },
     { id: "spring", route: "spring", trigger: "Spring" },
     { id: "sequence", route: "sequence", trigger: null },
-    { id: "motion-path", route: "motion-path", trigger: null },
 ];
 
 // ── The three voice fingerprints (the design's font PROPERTY) ────────────────────

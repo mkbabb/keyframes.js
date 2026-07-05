@@ -384,7 +384,6 @@ function staticHalf() {
         "demo/scenes/spring/SpringSidebar.vue",
         "demo/scenes/easing/EasingScene.vue",
         "demo/scenes/spring/SpringScene.vue",
-        "demo/scenes/motion-path/MotionPathTarget.vue",
         "demo/scenes/sequence/SequenceTarget.vue",
     ];
     let usages = 0;
@@ -399,7 +398,7 @@ function staticHalf() {
         }
     }
     if (usages === 0) {
-        ok("static — no easing/spring/motion-path/sequence scene template references `dock-inset` in live markup");
+        ok("static — no easing/spring/sequence scene template references `dock-inset` in live markup");
     }
 }
 
