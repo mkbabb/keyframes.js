@@ -12,7 +12,7 @@
  * collapse to length-1 on real scenes:
  *
  *   (A) the ANIMATION select (TransportDock.vue) — single-animation scenes
- *       (spring/sequence/motion-path: one contractAnim each) collapse
+ *       (spring/sequence: one contractAnim each) collapse
  *       `animationNames` to length 1; the guard is `v-if="animationNames.length
  *       > 1"`, the else-branch is the lone animation's NAME as a static label.
  *

@@ -48,7 +48,7 @@
                  REDESIGN (not removal). Before: a draggable timeline floating on a
                  vast translucent void (the page grid bled through as a dead
                  checkerboard; the travellers piled at the rail origin). Fix =
-                 PROPORTION + CONTAINMENT (the motion-path stage grammar): a rounded,
+                 PROPORTION + CONTAINMENT (the stage-card grammar): a rounded,
                  master-tinted .seq-stage that OWNS its time grid; a .seq-axis ruler
                  naming the master-clock axis; .seq-rows on a CSS subgrid (uniform
                  label col); and each traveller RESTING at its at: start gate

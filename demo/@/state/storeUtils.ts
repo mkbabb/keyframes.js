@@ -5,7 +5,6 @@ export const STORE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export const STORE_KEYS = [
     "animation-groups-options-store",
     "animation-groups-control-options-store",
-    "asset-manager-state",
 ] as const;
 
 export const checkAndResetExpiredStore = <T extends { _storeTimestamp?: number }>(

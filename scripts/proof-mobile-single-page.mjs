@@ -129,7 +129,6 @@ const SUPER_KEY_BY_SCENE = {
     easing: "Easing",
     spring: "Spring",
     sequence: "Sequence",
-    "motion-path": "MotionPath",
 };
 
 // The scenes by mode-class (scenes.ts `STAGE_MODES`). `subject` carries the
@@ -143,7 +142,6 @@ const SCENES = [
     { scene: "easing", mode: "editor", trigger: "Easing" },
     { scene: "spring", mode: "storyboard", trigger: "Spring" },
     { scene: "sequence", mode: "storyboard", trigger: null },
-    { scene: "motion-path", mode: "storyboard", trigger: null },
 ];
 const TRIGGER_BY_SCENE = Object.fromEntries(SCENES.map((s) => [s.scene, s.trigger]));
 

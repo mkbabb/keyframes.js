@@ -129,12 +129,9 @@ export const CORRECTNESS_ROSTER = [
     "proof:amiga-subject-is-pivot",
     "proof:drag-gesture",
     "proof:icon-paint-live",
-    "proof:morph-scene",
-    // S.D3 (C-4) — the playground-fold KEYSTONE (mount + fromDrawSVG ignition).
-    // Its mount + ignition clauses pass on the merged D3 tree; its formal board
-    // CLOSE waits for S.G (compose auto-enrolls in the occlusion/a11y/font/
-    // stage-visible fleet — sd-#4), so it is NOT a BACKLOG row (it passes today).
-    "proof:compose-scene",
+    // (proof:morph-scene RETIRED at T.E3 — the morph SCENE was PRUNED, OD-1 = PRUNE;
+    //  the LIBRARY morph gates proof:morph-renders-d / -orients / morphsvg-consume
+    //  SURVIVE.)
     "proof:specular-absent-at-rest",
     "proof:demo-fonts",
     "proof:live-session",
@@ -194,11 +191,9 @@ export const CORRECTNESS_ROSTER = [
     "proof:scene-perf-budget",
     "proof:scene-parity",
     "proof:sequence-rows-draggable",
-    "proof:motion-path-editable",
-    "proof:motion-path-copy",
-    // S.G2 S1 (fold row 68) — the traveller-scaling correctness oracle (rendered
-    // rect ⊂ stage at 375px across the sweep). Browser actuator; rides the roster.
-    "proof:motion-path-scale",
+    // (proof:motion-path-editable / -copy / -scale RETIRED at T.E3 — the motion-path
+    //  SCENE was PRUNED, OD-1 = PRUNE. The two FROZEN keys (-editable, -copy) carry
+    //  machine-witnessed KILL discharges in scripts/gate-bands.mjs.)
     // S.G2 S2 (fold row 69) — the square honest-controls oracle (the lying editor
     // panel COLLAPSED; box + mono caption ARE the live controls). Browser actuator.
     "proof:square-honest",

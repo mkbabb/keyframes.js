@@ -51,15 +51,13 @@ const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 const read = (p) => fs.readFileSync(p, "utf8");
 
-// The scene targets clause 1 sweeps (the de-brittle subjects) + the two
-// motion-path files clauses 2/3 assert against.
+// The scene targets clause 1 sweeps (the de-brittle subjects). (The motion-path
+// clauses 2/3 — SAMPLE_STEP + the clientToUserUnits viewBox helper — were RETIRED
+// at T.E3: the motion-path scene was PRUNED, OD-1 = PRUNE.)
 const SCENE_TARGET_DIRS = [
     "demo/scenes/spring",
     "demo/scenes/sequence",
-    "demo/scenes/motion-path",
 ];
-const GESTURE_COMPOSABLE = "demo/scenes/motion-path/useMotionPathGesture.ts";
-const GEOMETRY = "demo/scenes/motion-path/motionPathGeometry.ts";
 
 const failures = [];
 
@@ -160,95 +158,10 @@ function main() {
         }
     }
 
-    // ── CLAUSE 2 — SAMPLE_STEP is a named constant ─────────────────────────
-    {
-        const abs = path.join(REPO, GESTURE_COMPOSABLE);
-        if (!fs.existsSync(abs)) {
-            failures.push(
-                `[named-step] ${GESTURE_COMPOSABLE} does not exist.`,
-            );
-        } else {
-            const src = blankComments(read(abs));
-            const declared =
-                /\b(?:const|let)\s+SAMPLE_STEP\s*=\s*\d/.test(src);
-            const usesName = /\bSAMPLE_STEP\b/.test(src);
-            if (!declared || !usesName) {
-                failures.push(
-                    `[named-step] ${GESTURE_COMPOSABLE} does not declare + use a ` +
-                        `NAMED \`SAMPLE_STEP\` constant for the nearest-point search ` +
-                        `resolution — a bare magic step literal is brittle ` +
-                        `(H.W12.S4/I11).`,
-                );
-            } else {
-                console.log(
-                    `  ✓ [named-step] SAMPLE_STEP is a named, documented constant ` +
-                        `in ${GESTURE_COMPOSABLE} (no bare magic step)`,
-                );
-            }
-        }
-    }
-
-    // ── CLAUSE 3 — the square-viewBox scale is centralized + documented ────
-    {
-        const geomAbs = path.join(REPO, GEOMETRY);
-        const gestureAbs = path.join(REPO, GESTURE_COMPOSABLE);
-        if (!fs.existsSync(geomAbs)) {
-            failures.push(`[viewbox-invariant] ${GEOMETRY} does not exist.`);
-        } else {
-            const geomSrc = read(geomAbs); // KEEP comments — the invariant IS prose
-            const geomCode = blankComments(geomSrc);
-            // The ONE scale helper exists + is exported.
-            const helperExported =
-                /export\s+function\s+clientToUserUnits\b/.test(geomCode);
-            // The invariant is DOCUMENTED (the prose names the square coupling).
-            const invariantDocumented =
-                /aspect-ratio:\s*1/.test(geomSrc) &&
-                /(?:square|VIEW)/.test(geomSrc);
-            if (!helperExported) {
-                failures.push(
-                    `[viewbox-invariant] ${GEOMETRY} does not export the single ` +
-                        `\`clientToUserUnits\` scale helper — the client→user-unit ` +
-                        `mapping must be CENTRALIZED in ONE place (H.W12.S4/I11).`,
-                );
-            }
-            if (!invariantDocumented) {
-                failures.push(
-                    `[viewbox-invariant] ${GEOMETRY} does not DOCUMENT the ` +
-                        `square-viewBox coupling (the \`aspect-ratio: 1\` / square ` +
-                        `\`0 0 VIEW VIEW\` invariant) at the scale helper — an ` +
-                        `undocumented coupling silently mis-projects on a future ` +
-                        `non-square stage (H.W12.S4/I11).`,
-                );
-            }
-            // The gesture composable routes its scale THROUGH the helper (no
-            // second hand-rolled copy of the px→user-unit math).
-            if (fs.existsSync(gestureAbs)) {
-                const gestureCode = blankComments(read(gestureAbs));
-                const routesThroughHelper =
-                    /\bclientToUserUnits\b/.test(gestureCode);
-                if (!routesThroughHelper) {
-                    failures.push(
-                        `[viewbox-invariant] ${GESTURE_COMPOSABLE} does not route ` +
-                            `its client→user-unit scale through ` +
-                            `\`clientToUserUnits\` — a second hand-rolled scale copy ` +
-                            `re-introduces the drift the central helper prevents ` +
-                            `(H.W12.S4/I11).`,
-                    );
-                }
-            }
-            if (
-                helperExported &&
-                invariantDocumented &&
-                !failures.some((f) => f.startsWith("[viewbox-invariant]"))
-            ) {
-                console.log(
-                    `  ✓ [viewbox-invariant] the square-viewBox scale is ONE ` +
-                        `documented \`clientToUserUnits\` helper (${GEOMETRY}); the ` +
-                        `gesture composable routes through it (no drifting copy)`,
-                );
-            }
-        }
-    }
+    // (CLAUSE 2 [SAMPLE_STEP named constant] + CLAUSE 3 [the clientToUserUnits
+    //  square-viewBox scale helper] were RETIRED at T.E3 — both asserted against
+    //  the motion-path gesture composable / geometry, which were PRUNED with the
+    //  scene, OD-1 = PRUNE.)
 
     if (failures.length > 0) {
         console.error(
@@ -256,18 +169,15 @@ function main() {
         );
         for (const f of failures) console.error("  ✗ " + f);
         console.error(
-            "\n  The scene targets reach by owned refs, not class-string DOM walks;\n" +
-                "  the motion-path projection names its SAMPLE_STEP and centralizes the\n" +
-                "  square-viewBox scale in ONE documented helper. I11 closes the\n" +
-                "  magic-number + implicit-coupling brittleness.",
+            "\n  The scene targets reach by owned refs, not class-string DOM walks.\n" +
+                "  I11 closes the class-string-walk brittleness.",
         );
         process.exit(1);
     }
 
     console.log(
         "\nproof:no-brittle-selector — PASS: zero class-string DOM walks in the\n" +
-            "scene targets; SAMPLE_STEP is named; the square-viewBox scale is ONE\n" +
-            "documented helper. H.W12 S4/I11 holds.",
+            "scene targets. H.W12 S4/I11 holds.",
     );
 }
 

@@ -310,48 +310,11 @@ console.log(JSON.stringify({
     }
 }
 
-// ── demo-scene (Q.WC4 S3 corroborator) — the library gate LINKS to the demo ───
-// A SOURCE-SHAPE corroborator (the LIVE rendered-morph observable lives in the
-// separate `proof:morph-scene` runtime gate over dist/gh-pages): assert the
-// MorphSVG primitive is DEMOED — `MorphSVGScene.vue` exists, the `morph` scene
-// is registered, and the demo consumes `fromMorphSVG`. BITE: a library-built-
-// but-undemoed primitive (the gate-blindspot) reds — the primitive can never
-// again be exported + tested but never showcased.
-{
-    const sceneFile = "demo/scenes/morph/MorphSVGScene.vue";
-    let sceneSrc = "";
-    try {
-        sceneSrc = read(sceneFile);
-    } catch {
-        sceneSrc = "";
-    }
-    const scenesSrc = read("demo/app/scene/scenes.ts");
-    let useMorphSrc = "";
-    try {
-        useMorphSrc = read("demo/scenes/morph/useMorphDemo.ts");
-    } catch {
-        useMorphSrc = "";
-    }
-    const sceneExists = sceneSrc.length > 0;
-    const registered =
-        /\bid:\s*["']morph["']/.test(scenesSrc) &&
-        /MorphSVGScene\.vue/.test(scenesSrc);
-    const consumes =
-        /\bfromMorphSVG\b/.test(useMorphSrc) || /\bfromMorphSVG\b/.test(sceneSrc);
-    if (sceneExists && registered && consumes) {
-        ok(
-            "demo-scene",
-            "MorphSVGScene.vue exists, is registered as the `morph` scene, and consumes fromMorphSVG (the library gate links to the demo; the live observable is proof:morph-scene)",
-        );
-    } else {
-        fail(
-            "demo-scene",
-            `the MorphSVG primitive is library-built-but-undemoed ` +
-                `(MorphSVGScene.vue exists:${sceneExists}, registered:${registered}, consumes-fromMorphSVG:${consumes}) — ` +
-                `the 3rd HEAVY geometry front door must be SHOWCASED (the gate-blindspot). The LIVE rendered-morph observable is proof:morph-scene.`,
-        );
-    }
-}
+// (The demo-scene corroborator — which asserted MorphSVGScene.vue exists + is
+//  registered + consumes fromMorphSVG — was RETIRED at T.E3: the morph SCENE was
+//  PRUNED (OD-1 = PRUNE). The LIBRARY MorphSVG assertions below + the test-locks
+//  SURVIVE; the published fromMorphSVG factory + test/svg/morph-svg.test.ts are
+//  unaffected.)
 
 // ── test-locks — the locking assertions are present and biting ────────────────
 requireAll("test-locks", TEST, [

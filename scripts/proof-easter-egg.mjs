@@ -75,16 +75,9 @@ const STATIC_EGGS = [
         triggerTokens: [/REEL_CODE|"reel"/, /demo\.playReel\(\)/],
         note: 'EE-SEQ-1 "the reel" — a typed-"reel" trigger replays the children as a cascading overshoot wave (isReeling → .reel-active), reusing the engine children (inv ζ)',
     },
-    {
-        scene: "motion-path",
-        // The lap-accumulator + winking flag live in the gesture composable; the
-        // glyph swap (😎 = U+1F60E) lives in the Target template.
-        file: "scenes/motion-path/useMotionPathGesture.ts",
-        tokens: [/winking/, /lapAccum|accumulateLap/, /onScrub|useDragScrub/],
-        triggerFile: "scenes/motion-path/MotionPathTarget.vue",
-        triggerTokens: [/mp-traveller--winking/, /1F60E/],
-        note: 'EE-MP-2 "the wink" — a full-lap traveller drag accumulates a whole loop and swaps the glyph to 😎 (U+1F60E, .mp-traveller--winking)',
-    },
+    // (EE-MP-2 "the wink" — the motion-path full-lap 😎 glyph-swap egg — was
+    //  RETIRED at T.E3: the motion-path scene was PRUNED, OD-1 = PRUNE. Noted for
+    //  the easter-egg retirement ledger.)
     {
         scene: "cube",
         file: "scenes/cube/CubeTarget.vue",
@@ -161,7 +154,7 @@ for (const egg of STATIC_EGGS) {
 // The destination control-tab labels navToScene settles on (the per-EXPECTED
 // predicate — the proof:scene-control-dfa DFA table): cube/amiga/square keep the
 // built-in "Controls" surface, spring/easing project their scene tabs,
-// sequence/motion-path render NO control panel (null).
+// sequence renders NO control panel (null).
 const EXPECTED_TRIGGER = {
     cube: "Controls",
     amiga: "Controls",
@@ -169,7 +162,6 @@ const EXPECTED_TRIGGER = {
     spring: "Spring",
     easing: "Easing",
     sequence: null,
-    "motion-path": null,
 };
 
 async function settleOnScene(page, sceneId, vw, vh, settleMs = 1400) {
@@ -578,81 +570,8 @@ async function browserHalf() {
             }
         }
 
-        // ── motion-path EE-MP-2 "the wink" — a full-lap drag → glyph swap ─────
-        {
-            await settleOnScene(page, "motion-path", VW, VH);
-            const ready = await waitVisible(page, ".mp-traveller");
-            const guideReady = await waitVisible(page, ".mp-guide-path");
-            if (!ready || !guideReady) {
-                fail(
-                    `[motion-path] egg fires — the traveller/guide did not mount ` +
-                        `(.mp-traveller:${ready}, .mp-guide-path:${guideReady})`,
-                );
-            } else {
-                // Drag the traveller a FULL LAP: sample the closed guide path at
-                // many length ratios → client points, and drag the traveller around
-                // the loop (the wink fires once a whole loop's worth accumulates).
-                const lap = await page.evaluate(() => {
-                    const guide = document.querySelector(".mp-guide-path");
-                    const stage = document.querySelector(".mp-stage");
-                    const traveller = document.querySelector(".mp-traveller");
-                    if (!guide || !stage || !traveller) return null;
-                    const total = guide.getTotalLength();
-                    const sr = stage.getBoundingClientRect();
-                    const svg = guide.ownerSVGElement;
-                    const vb = svg.viewBox.baseVal;
-                    const side = Math.min(sr.width, sr.height);
-                    // 28 waypoints around the closed loop (a touch over a full lap).
-                    const N = 28;
-                    const pts = [];
-                    for (let i = 0; i <= N; i++) {
-                        const pt = guide.getPointAtLength((total * i) / N);
-                        pts.push({
-                            x: sr.left + ((pt.x - vb.x) / vb.width) * side,
-                            y: sr.top + ((pt.y - vb.y) / vb.height) * side,
-                        });
-                    }
-                    const tr = traveller.getBoundingClientRect();
-                    return {
-                        start: { x: tr.left + tr.width / 2, y: tr.top + tr.height / 2 },
-                        pts,
-                    };
-                });
-                if (!lap) {
-                    fail("[motion-path] egg fires — could not sample the lap waypoints");
-                } else {
-                    await page.mouse.move(lap.start.x, lap.start.y);
-                    await page.mouse.down();
-                    for (const p of lap.pts) {
-                        await page.mouse.move(p.x, p.y);
-                        await page.waitForTimeout(12);
-                    }
-                    await page.mouse.up();
-                    // Wait for the class to appear rather than a fixed timeout — the
-                    // lap-accumulator flushes reactively on pointer-up; on a loaded
-                    // Linux CI runner the 150ms fixed wait can expire before the Vue
-                    // flush writes the class, so poll until attached or 5s elapse.
-                    const winkLoc = page.locator(".mp-traveller.mp-traveller--winking");
-                    await winkLoc.waitFor({ state: "attached", timeout: 5000 }).catch(() => {});
-                    const winking = await page.evaluate(() =>
-                        document
-                            .querySelector(".mp-traveller")
-                            .classList.contains("mp-traveller--winking"),
-                    );
-                    if (winking) {
-                        ok(
-                            `[motion-path] EE-MP-2 "the wink" fires — a full-lap traveller ` +
-                                `drag set .mp-traveller--winking (the 🙂‍↔️ glyph swaps to 😎)`,
-                        );
-                    } else {
-                        fail(
-                            `[motion-path] EE-MP-2 "the wink" fires — the full-lap drag did ` +
-                                `NOT set .mp-traveller--winking; the lap-accumulator egg is inert`,
-                        );
-                    }
-                }
-            }
-        }
+        // (the motion-path EE-MP-2 "the wink" browser clause was RETIRED at T.E3 —
+        //  the motion-path scene was PRUNED, OD-1 = PRUNE.)
         },
     );
     if (result.skipped) {

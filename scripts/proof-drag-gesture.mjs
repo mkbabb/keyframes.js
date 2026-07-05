@@ -31,7 +31,7 @@
  *    away from the document text-select machinery (the synthetic-drag artifact
  *    that read 0 chars), the STRUCTURAL assertion is the born-RED-of-record — the
  *    gate NEVER passes on a synthetic 0-char read. Run against EVERY drag surface
- *    (square, spring, sequence, motion-path) — the seam owns it, the gate covers it.
+ *    (square, spring, sequence) — the seam owns it, the gate covers it.
  *  • clause (b) — drag the square box to a measured non-centre offset, release,
  *    wait for the spring to settle → its `transform` ≠ identity (persisted, NOT
  *    recentred). Then assert `Home`/`End` STILL recentres (no capability lost).
@@ -95,8 +95,8 @@ console.log("proof:drag-gesture — I.W4 D1+D2 (B6 drag select-suppression + per
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The destination control-tab label navToScene settles on per scene (null = no
-// control panel projects — sequence/motion-path).
-const TRIGGER = { square: "Controls", spring: "Spring", sequence: null, "motion-path": null };
+// control panel projects — sequence).
+const TRIGGER = { square: "Controls", spring: "Spring", sequence: null };
 
 /** Open a scene in a FRESH context at its canonical FIRST-LOAD mount. */
 async function openSceneFresh(browser, base, scene, viewportWidth) {
@@ -143,7 +143,6 @@ const DRAG_SURFACES = [
     { scene: "square", handle: ".demo-box" },
     { scene: "spring", handle: ".spring-rail" },
     { scene: "sequence", handle: ".seq-scrub" },
-    { scene: "motion-path", handle: ".mp-traveller" },
     {
         scene: "easing",
         name: "easing/bezier-handle",

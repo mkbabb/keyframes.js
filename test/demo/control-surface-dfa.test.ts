@@ -28,7 +28,6 @@ const DECLARED_SCENES = [
     "easing",
     "spring",
     "sequence",
-    "motion-path",
 ] as const;
 
 describe("H.W11 control-surface DFA — the per-scene table", () => {
@@ -53,14 +52,14 @@ describe("H.W11 control-surface DFA — the per-scene table", () => {
         }
     });
 
-    it("maps the self-contained scenes (square/sequence/motion-path) to NO panel", () => {
+    it("maps the self-contained scenes (square/sequence) to NO panel", () => {
         // S.G2 S2 (fold row 69) — square COLLAPSED to the empty set: its built-in
         // triad edited a CSSKeyframesAnimation that painted nothing (the lying
         // panel), so it joins the drag/spring/Play-tumble-autonomous scenes whose
-        // live controls live ON the stage, not in a rail.
+        // live controls live ON the stage, not in a rail. (motion-path/morph were
+        // PRUNED at T.E3, OD-1 = PRUNE.)
         expect(controlSurfacesFor("square")).toEqual([]);
         expect(controlSurfacesFor("sequence")).toEqual([]);
-        expect(controlSurfacesFor("motion-path")).toEqual([]);
     });
 
     it("maps home to NO control surface", () => {

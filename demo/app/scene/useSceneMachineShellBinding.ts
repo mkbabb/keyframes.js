@@ -77,7 +77,7 @@ export function useSceneMachineShellBinding(opts: {
         }
         // J.W7a S5 / XH-1 (D20) — the desktop force-open applies ONLY to scenes
         // whose DFA control-surface set is non-empty. An empty-DFA scene
-        // (sequence/motion-path) has NOTHING to put in the rail; force-opening
+        // (sequence) has NOTHING to put in the rail; force-opening
         // it was the structural source of the hollow 400px ghost rail (the
         // [rail] track held open showing a vacant card, cross-hierarchy #1).
         if (window.innerWidth >= 1024 && machine.controlSurfaces.value.length > 0) {

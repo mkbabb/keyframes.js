@@ -46,6 +46,12 @@ export function useSceneMachineRouterBinding() {
     const route = useRoute();
     const machine = useSceneMachine();
 
+    // ── boot migration: a stored dead-route activeScene lands on home (T.E1/T.E3) ──
+    // A returning user whose persisted activeScene names a PRUNED scene
+    // (compose/morph/motion-path, OD-1) is coerced to home BEFORE the first-load
+    // seed dispatches it — no boot onto a route that no longer exists.
+    machine.migrateActiveScene(allScenes.map((s) => s.id));
+
     // ── boot GC: prune orphan superKeys from prior sessions (ST-7) ──
     machine.gcOrphans(allScenes.map((s) => s.id));
 

@@ -28,8 +28,7 @@
          the §Hard-gate clause-d oracle), drawn in the curve's own
          --ppmycota-primary at the lane-named 6–8% presence. The ball's
          x already equals fn(progress)·maxX — the curve behind it makes the
-         relationship visible. The motion-path stage (C7) is the reference
-         pattern this now matches.
+         relationship visible.
          J.W7a S4 (D17 / C2) — the floor carries the `.stage-field-y`
          coordinate frame (value gridlines at 0.25/0.5/0.75 + the t-axis
          baseline, the curve canvas's own --border hairline treatment) so

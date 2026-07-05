@@ -16,7 +16,7 @@
  * THE ORACLE (runtime, T1/T8 — SPEC §3 S.G2, sg-#6 named oracle). Play visibly
  * obeys duration/easing OR the lying panel is COLLAPSED to the live controls with
  * the mono caption. The chosen cure is the collapse: the box is spring/drag/Play-
- * tumble autonomous (self-contained like sequence/motion-path/morph), so the
+ * tumble autonomous (self-contained like sequence), so the
  * built-in triad is removed and the live controls are the box itself + the global
  * dock Play (isPlaying → tumble) + a mono caption naming that interaction. The
  * gate asserts, at the square scene:

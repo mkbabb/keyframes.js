@@ -71,8 +71,9 @@ export const FROZEN_SET = [
     "proof:design-refinement",
     // scene-editor / interaction appearance locks
     "proof:sequence-rows-draggable",
-    "proof:motion-path-editable",
-    "proof:motion-path-copy",
+    // (proof:motion-path-editable / proof:motion-path-copy were FROZEN here until
+    //  T.E3 KILLED them — the motion-path scene was PRUNED (OD-1 = PRUNE); their
+    //  machine-witnessed KILL discharges live in DISCHARGE below.)
     "proof:easter-egg",
     "proof:demo-no-oversize",
     "proof:demo-usability",
@@ -101,12 +102,54 @@ export const FROZEN_SET = [
  * A retired FROZEN key with NO record here REDs (free-prose deletion banned); a
  * KILL record with no witness REDs; a migration whose successor is not live REDs.
  *
- * At S.A4: the ONLY discharge is the C-6 `proof:scene-switcher-mobile` KILL
- * (fold row 18 — the zombie gate asserting a component that does not exist). Every
- * FROZEN gate is still live (frozen in place); their migration/KILL discharges are
- * owned by S.G1/S.D3.
+ * Discharges: the C-6 `proof:scene-switcher-mobile` KILL (fold row 18 — the zombie
+ * gate asserting a component that does not exist) + the T.E3 KILLs of
+ * `proof:motion-path-editable` / `proof:motion-path-copy` (OD-1 = PRUNE — the
+ * motion-path scene those interaction locks asserted was pruned outright).
  */
 export const DISCHARGE = {
+    // T.E3 (OD-1 = PRUNE) — the motion-path SCENE was pruned outright, so its two
+    // FROZEN interaction-appearance locks (which asserted the editable control-net
+    // + the copyable offset-path artifact ON that scene) are obsolete. Owner-ruled
+    // KILL: OD-1 RULED PRUNE (FINAL) 2026-07-05. The re-run witness re-verifies
+    // every run that the script is gone from disk, the key is absent, and the
+    // CORRECTNESS_ROSTER membership is gone.
+    "proof:motion-path-editable": {
+        kind: "kill",
+        ledger:
+            "T ledger — OD-1 RULED PRUNE (FINAL, 2026-07-05): morph + motion-path " +
+            "pruned outright (T.E3). The editable-control-net lock asserted a scene " +
+            "that no longer exists; the LIBRARY MotionPath factory + test/svg/" +
+            "motion-path.test.ts survive.",
+        witness: {
+            cmd: "node scripts/proof-motion-path-editable.mjs",
+            cite:
+                "demo/scenes/motion-path/ DELETED from disk at T.E3 (scenes.ts " +
+                "descriptor + SCENE_GATE_META entry removed; proof:manifest-sourced " +
+                "green with no motion-path id). The re-run witness is " +
+                "machine-continuous: this clause re-verifies every run that the " +
+                "script file is absent, the package key is absent, and the " +
+                "CORRECTNESS_ROSTER membership is gone.",
+        },
+    },
+    "proof:motion-path-copy": {
+        kind: "kill",
+        ledger:
+            "T ledger — OD-1 RULED PRUNE (FINAL, 2026-07-05): morph + motion-path " +
+            "pruned outright (T.E3). The copyable-offset-path artifact lock asserted " +
+            "a scene that no longer exists; the LIBRARY MotionPath factory + " +
+            "test/svg/motion-path.test.ts survive.",
+        witness: {
+            cmd: "node scripts/proof-motion-path-copy.mjs",
+            cite:
+                "demo/scenes/motion-path/ DELETED from disk at T.E3 (scenes.ts " +
+                "descriptor + SCENE_GATE_META entry removed; proof:manifest-sourced " +
+                "green with no motion-path id). The re-run witness is " +
+                "machine-continuous: this clause re-verifies every run that the " +
+                "script file is absent, the package key is absent, and the " +
+                "CORRECTNESS_ROSTER membership is gone.",
+        },
+    },
     "proof:scene-switcher-mobile": {
         kind: "kill",
         ledger:

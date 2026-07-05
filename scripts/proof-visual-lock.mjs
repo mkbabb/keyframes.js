@@ -208,8 +208,6 @@ const MASK_SUBJECTS = [
     // the J.W7a clause probes / J.W4 certification — the pixel lock cedes only
     // the in-flight subject rect, never the facts.)
     ".demo-box",
-    ".mp-traveller", // the motion-path traveller
-    ".mp-guide-path", // the path the traveller sweeps (the live offset-path)
     ".seq-playhead", // the sequence swept playhead line
     ".spring-rail", // the spring scene live rail subject
     // Live NUMERIC readouts that tick with the engine t (e.g. easing's
@@ -232,8 +230,8 @@ const MASK_SUBJECTS = [
     // spring/desktop/open/controls — the editor's text block) now lands in a
     // locked region; masking the `.cm-editor` view box (the card border + the
     // SegmentedTabs fork header around it STAY locked) covers it stably. The
-    // editor's emitted CSS is RUNTIME-asserted elsewhere (proof:motion-path-copy
-    // / the spring useSpringLinearStops surface), never by the pixel lock.
+    // editor's emitted CSS is RUNTIME-asserted elsewhere (the spring
+    // useSpringLinearStops surface), never by the pixel lock.
     ".cm-editor",
 ];
 
@@ -596,7 +594,7 @@ function diffOne(scene, vp, state, region, buffer) {
     // when `regionGeometry` found NO visible, in-viewport host this run — i.e. the
     // region is legitimately ABSENT on this scene/state (the ribbon is `display:none`
     // when `selectedControl ≠ controls` on easing/spring; it is zero-height before
-    // the deferred teleport fills it on sequence/motion-path; it renders below the
+    // the deferred teleport fills it on sequence; it renders below the
     // mobile fold on cube/amiga/square). The baseline writer SKIPS exactly these
     // null-buffer regions (no PNG is written), so the four quadrants must be read
     // SYMMETRICALLY with that writer — else a region the writer can never baseline

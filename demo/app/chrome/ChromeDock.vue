@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/custom/animation-transport/injectionKeys";
-import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3, Layers } from "@lucide/vue";
+import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 import {
     GlassDock,
@@ -42,8 +42,6 @@ const TAB_ICONS: Record<string, any> = {
     Clock,
     Grid3X3,
     Activity,
-    // S.D3 (C-4) — the compose scene's Assets tab glyph.
-    Layers,
 };
 
 const props = defineProps<{
@@ -91,7 +89,7 @@ const allControlTabs = computed(() => {
 
 // The control-panel affordances (the collapse toggle + the tab selector) appear
 // ONLY when the scene has at least one control surface to show (the DFA set is
-// non-empty). For home/sequence/motion-path the DFA set is [] — so NO control
+// non-empty). For home/sequence the DFA set is [] — so NO control
 // affordance renders, which is the DFA-driven supersession of those scenes'
 // former `isControlsPanelOpen = false` poke-sets (one authority for "this scene
 // has no panel", not a per-scene imperative write). J.W0.S3: the former
@@ -187,6 +185,7 @@ watch(isAnyOpen, (open) => {
 
 <template>
     <div
+        data-dock-tether="top"
         class="fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >

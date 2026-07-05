@@ -19,10 +19,10 @@
  *   2. NO starting-style DESCRIPTOR — `scenes.ts` declares no `id:"starting-style"`
  *      descriptor (comment-blanked). BITE: re-add the descriptor → reds.
  *
- *   3. SURVIVING NEW-MODE SET = {spring, sequence, motion-path} (membership, NOT
- *      "exactly 3"). The three NEW-mode descriptors are present AND no MERGED-AWAY
- *      new mode (starting-style / discrete) survives as a descriptor. BITE: drop
- *      motion-path, or resurrect a discrete descriptor → reds.
+ *   3. SURVIVING NEW-MODE SET = {spring, sequence} (membership, NOT "exactly N").
+ *      The NEW-mode descriptors are present AND no MERGED-AWAY / PRUNED new mode
+ *      (starting-style / discrete / motion-path / morph) survives as a descriptor.
+ *      BITE: drop a survivor, or resurrect a pruned descriptor → reds.
  *
  *   4. springLinearStops() — EXACTLY ONE CALL-SITE (the "spring-local fold").
  *      `grep ≤1 springLinearStops(` actual CALL across the spring surface
@@ -37,11 +37,8 @@
  * reconcile fixed point the in-app combobox funnels through (switchScene →
  * runSceneSwitch → NAVIGATE), waiting for the machine to rest on the target):
  *
- *   5. proof:motionpath-drag — settle on motion-path; pointer-drag the traveller
- *      toward the path's 50%-length point → the computed `offset-distance` on the
- *      traveller (AND its slider `aria-valuenow`) lands ≈50%. BITE: revert the S4a
- *      drag (the inert traveller had NO pointer handler) → offset-distance never
- *      moves → reds.
+ *   (5. proof:motionpath-drag was RETIRED at T.E3 — the motion-path scene was
+ *      PRUNED, OD-1 = PRUNE.)
  *
  *   6. proof:square-drag — settle on square; a `pointerdown`+move on `.demo-box`
  *      mutates a target ref (the slider `aria-valuetext` = the per-axis spring
@@ -151,31 +148,33 @@ const routerSrc = blankComments(read(path.join(DEMO, "app/scene/router.ts")));
     }
 }
 
-// 3. SURVIVING NEW-MODE SET = {spring, sequence, motion-path} (membership).
+// 3. SURVIVING NEW-MODE SET = {spring, sequence} (membership). The motion-path
+//    (+ morph) new-mode scenes were PRUNED at T.E3 (OD-1 = PRUNE).
 {
     // The descriptor ids declared in scenes.ts (the `id: "<name>"` keys).
     const declaredIds = new Set();
     for (const m of scenesSrc.matchAll(/\bid:\s*["']([^"']+)["']/g)) declaredIds.add(m[1]);
 
-    const NEW_MODE_SURVIVORS = ["spring", "sequence", "motion-path"];
-    // The new modes that were MERGED AWAY / KILLED and must NOT survive as a
-    // descriptor (WV-W5-LOW-2: a resurrected discrete mode reds).
-    const NEW_MODE_FORBIDDEN = ["starting-style", "discrete"];
+    const NEW_MODE_SURVIVORS = ["spring", "sequence"];
+    // The new modes that were MERGED AWAY / KILLED / PRUNED and must NOT survive as
+    // a descriptor (WV-W5-LOW-2: a resurrected discrete mode reds; T.E3 pruned
+    // motion-path + morph).
+    const NEW_MODE_FORBIDDEN = ["starting-style", "discrete", "motion-path", "morph"];
 
     const missing = NEW_MODE_SURVIVORS.filter((id) => !declaredIds.has(id));
     const resurrected = NEW_MODE_FORBIDDEN.filter((id) => declaredIds.has(id));
 
     if (missing.length === 0 && resurrected.length === 0) {
         ok(
-            `surviving new-mode set = {spring, sequence, motion-path} — all three ` +
-                `present, no merged-away mode (starting-style/discrete) resurrected ` +
-                `(structural membership, NOT a magic integer)`,
+            `surviving new-mode set = {spring, sequence} — both ` +
+                `present, no merged-away/pruned mode (starting-style/discrete/motion-path/morph) ` +
+                `resurrected (structural membership, NOT a magic integer)`,
         );
     } else {
         if (missing.length > 0) {
             fail(
                 `surviving new-mode set — MISSING descriptor(s): ${missing.join(", ")} ` +
-                    `(the survivor set must be {spring, sequence, motion-path})`,
+                    `(the survivor set must be {spring, sequence})`,
             );
         }
         if (resurrected.length > 0) {
@@ -296,7 +295,7 @@ async function waitVisible(page, selector, timeout = 8000) {
  *  sidebar mounts only when the easing tab is ACTIVE. reka activates it via
  *  EasingScene.vue's onMounted+nextTick re-assert, which fires on a FRESH mount —
  *  an IN-PAGE hash switch (settleOnScene) does NOT trigger it (the tab-init race),
- *  and after the earlier clauses cycled the shared page through motion-path/square
+ *  and after the earlier clauses cycled the shared page through square
  *  the reka Tabs state is sticky so even a same-page reload lands on `controls`.
  *  So clause 7 runs on its OWN page (the ball gate's idiom — that gate's page only
  *  ever visits easing): goto(#/easing), wait for the FSM to rest, re-assert the
@@ -336,8 +335,8 @@ async function browserHalf() {
         {
             distDir: DIST,
             label:
-                "the per-mode interactivity locks (motionpath-drag · " +
-                "square-drag · easing-curve-onstage)",
+                "the per-mode interactivity locks (square-drag · " +
+                "easing-curve-onstage)",
             context: { viewport: { width: VW, height: VH } },
         },
         async (page, { url, browser }) => {
@@ -346,94 +345,8 @@ async function browserHalf() {
         // Let the app + machine boot on a real scene before the first switch.
         await page.waitForTimeout(800);
 
-        // ── 5. proof:motionpath-drag ─────────────────────────────────────────
-        // (motion-path renders NO control panel — EXPECT trigger null)
-        await settleOnScene(page, "motion-path", null, VW, VH);
-        const mpReady = await waitVisible(page, ".mp-traveller");
-        const guideReady = await waitVisible(page, ".mp-guide-path");
-        if (!mpReady || !guideReady) {
-            fail(
-                `motionpath-drag — the motion-path stage did not mount ` +
-                    `(.mp-traveller:${mpReady}, .mp-guide-path:${guideReady}); the FSM may ` +
-                    `not have rested on motion-path`,
-            );
-        } else {
-            // The 50%-length point on the guide path, in CLIENT coords. The
-            // traveller's CSS offset-path shares this `d`, so the path's midpoint
-            // IS where offset-distance:50% positions the traveller — we drag the
-            // traveller TO that client point and the projector snaps to ~50%.
-            const target = await page.evaluate(() => {
-                const path = document.querySelector(".mp-guide-path");
-                const stage = document.querySelector(".mp-stage");
-                const traveller = document.querySelector(".mp-traveller");
-                if (!path || !stage || !traveller) return null;
-                const total = path.getTotalLength();
-                const half = path.getPointAtLength(total * 0.5); // SVG user units
-                const sr = stage.getBoundingClientRect();
-                const svg = path.ownerSVGElement;
-                const vb = svg.viewBox.baseVal; // 0 0 VIEW VIEW
-                // user → client: the guide SVG fills the stage box.
-                const cx = sr.left + ((half.x - vb.x) / vb.width) * sr.width;
-                const cy = sr.top + ((half.y - vb.y) / vb.height) * sr.height;
-                const tr = traveller.getBoundingClientRect();
-                return {
-                    fromX: tr.left + tr.width / 2,
-                    fromY: tr.top + tr.height / 2,
-                    toX: cx,
-                    toY: cy,
-                };
-            });
-            if (!target) {
-                fail("motionpath-drag — could not project the path's 50% point to client coords");
-            } else {
-                // A real pointer drag: down on the traveller, move toward the
-                // path midpoint over several steps, up.
-                await page.mouse.move(target.fromX, target.fromY);
-                await page.mouse.down();
-                const STEPS = 12;
-                for (let i = 1; i <= STEPS; i++) {
-                    const t = i / STEPS;
-                    await page.mouse.move(
-                        target.fromX + (target.toX - target.fromX) * t,
-                        target.fromY + (target.toY - target.fromY) * t,
-                    );
-                    await page.waitForTimeout(16);
-                }
-                await page.mouse.up();
-                await page.waitForTimeout(200);
-
-                const probe = await page.evaluate(() => {
-                    const t = document.querySelector(".mp-traveller");
-                    const ariaNow = Number(t?.getAttribute("aria-valuenow"));
-                    const od = getComputedStyle(t).offsetDistance; // "50%" / "200px" / ""
-                    // Parse offset-distance as a percent if expressed as %.
-                    let odPct = null;
-                    if (od && od.trim().endsWith("%")) odPct = parseFloat(od);
-                    return { ariaNow, od, odPct };
-                });
-
-                // The drag projects the pointer onto the nearest path length; at
-                // the path midpoint that is ~50%. Accept a generous ±12% band (the
-                // self-crossing loop's nearest-point search + the sampling step).
-                const ariaOk = Number.isFinite(probe.ariaNow) && Math.abs(probe.ariaNow - 50) <= 12;
-                const odOk = probe.odPct === null || Math.abs(probe.odPct - 50) <= 12;
-                if (ariaOk && odOk) {
-                    ok(
-                        `motionpath-drag — dragging the traveller to the path's 50% point ` +
-                            `landed offset-distance ≈ 50% (aria-valuenow ${probe.ariaNow}%, ` +
-                            `computed offset-distance "${probe.od}") — the S4a drag scrubs ` +
-                            `offset-distance directly`,
-                    );
-                } else {
-                    fail(
-                        `motionpath-drag — the traveller drag did NOT land ≈50% ` +
-                            `(aria-valuenow ${probe.ariaNow}%, computed offset-distance ` +
-                            `"${probe.od}"); the inert traveller (no S4a pointer handler) ` +
-                            `never moves offset-distance`,
-                    );
-                }
-            }
-        }
+        // (clause 5 proof:motionpath-drag was RETIRED at T.E3 — the motion-path
+        //  scene was PRUNED, OD-1 = PRUNE.)
 
         // ── 6. proof:square-drag ─────────────────────────────────────────────
         // (square's dock control trigger reads "Controls" — the built-in triad)
@@ -585,7 +498,7 @@ async function browserHalf() {
         // onMounted+nextTick. So clause 7 settles on easing via a real page load
         // (the ball gate / proof:easing-canvas-bounded idiom), which fires that
         // re-assert, mounts the easing TabsContent + its sidebar curve, and re-opens
-        // the pane. Clause 7 runs LAST (after motion-path + square), so the reload
+        // the pane. Clause 7 runs LAST (after square), so the reload
         // does not disturb the earlier clauses' in-page state. Default curve "ease"
         // ∈ NAMED_EASING_BEZIER → demo.isBezierEditable → the editable handles render.
         // Runs on its OWN fresh page (`page` is shadowed for the clause), closed at
@@ -754,8 +667,8 @@ if (failures.length > 0) {
 }
 console.log(
     "\nproof:scene-parity — PASS: starting-style is merged away (no route/descriptor), " +
-        "the survivor new-mode set is {spring, sequence, motion-path}, springLinearStops() " +
+        "the survivor new-mode set is {spring, sequence}, springLinearStops() " +
         "is computed in exactly ONE composable, and every surviving mode exposes a pointer-" +
-        "interactive affordance (motionpath-drag · square-drag · easing-curve-editable in " +
+        "interactive affordance (square-drag · easing-curve-editable in " +
         "the sidebar — W10.G4 moved the curve editor stage→sidebar, the stage is the ball).",
 );

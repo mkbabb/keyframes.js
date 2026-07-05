@@ -249,8 +249,6 @@ jobs:
               run: npm run proof:roundtrip-easing
             - name: proof:adapter-capture (F.W8 — composition capture + shorthand-applied + AST-decide)
               run: npm run proof:adapter-capture
-            - name: proof:motion-path (F.W12 — CSS-native MotionPath eligibility + compositor)
-              run: npm run proof:motion-path
             - name: proof:blend (G.W17 — the dead add/weighted blend leaf, element-wise)
               run: npm run proof:blend
             - name: proof:composition-honored (K.W7 — the engine HONORS the animation-composition operator add/accumulate/composite)
@@ -275,8 +273,6 @@ jobs:
               run: npm run proof:ingest-replay
             - name: proof:orbital-rotate3d (G.W18 — the orbital rotate3d output collapse)
               run: npm run proof:orbital-rotate3d
-            - name: proof:asset-store-singleton (G.W8 — useAssetManager createGlobalState identity)
-              run: npm run proof:asset-store-singleton
             - name: proof:scene-raf-leak (G.W9 — the scene rAF-leak lifecycle correction)
               run: npm run proof:scene-raf-leak
             - name: proof:scene-contract-identity (H.W1 — the raw-rAF ScenePlayback round-trip + easing↔cube cross-pairs)
