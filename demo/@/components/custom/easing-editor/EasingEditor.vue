@@ -106,7 +106,14 @@ const emit = defineEmits<{
    cubic-bezier / steps literal), so it fits the minimal sidebar without stealing
    the bezier's space. */
 .easing-readout-value {
+    /* The COMPLETE re-parseable literal, un-truncated (S.G2) — but on ONE line:
+       a wrapped literal grows the detail stack past the min(50vh,480px) cap
+       (proof:bezier-no-scroll). Horizontal scroll INSIDE the readout's own box
+       keeps the full text present + selectable at any width (the CopyButton
+       carries the whole literal regardless). */
     max-width: 100%;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
 }
 </style>

@@ -90,7 +90,7 @@ const STATIC_EGGS = [
         file: "scenes/cube/CubeTarget.vue",
         tokens: [/onRoll/, /cube--rolling/, /CSSKeyframesAnimation|ease-out-back/],
         triggerFile: "scenes/cube/CubeTarget.vue",
-        triggerTokens: [/@dblclick="onRoll"/],
+        triggerTokens: [/useDoubleTap\(/, /onRoll/],
         note: '"the Roll" — dblclick rolls the cube to a die face on an engine CSSKeyframesAnimation (.cube--rolling)',
     },
     {
@@ -98,7 +98,7 @@ const STATIC_EGGS = [
         file: "scenes/amiga/AmigaScene.vue",
         tokens: [/onBoing/, /boinging|amiga-canvas--boing/, /Group|play\(\)/],
         triggerFile: "scenes/amiga/AmigaScene.vue",
-        triggerTokens: [/@dblclick="onBoing"/],
+        triggerTokens: [/useDoubleTap\(/, /onBoing/],
         note: '"the Boing" — dblclick wakes the dormant Boing-Ball AnimationGroup for one arc (.amiga-canvas--boing)',
     },
     {
@@ -106,7 +106,7 @@ const STATIC_EGGS = [
         file: "scenes/square/useSquareDemo.ts",
         tokens: [/tumble/, /SpringProgress|transformFunc|rotate/],
         triggerFile: "scenes/square/SquareScene.vue",
-        triggerTokens: [/@dblclick="tumble"/],
+        triggerTokens: [/useDoubleTap\(/, /tumble/],
         note: '"the Tumble" — dblclick barrel-rolls the box via a SpringProgress folded into the paint loop',
     },
     {
@@ -117,7 +117,7 @@ const STATIC_EGGS = [
         file: ["scenes/spring/useSpringDemo.ts", "scenes/spring/useSpringDerby.ts"],
         tokens: [/\bderby\b/, /derbyRunning/, /spring\.target|liveSpring\.target/],
         triggerFile: "scenes/spring/SpringTarget.vue",
-        triggerTokens: [/@dblclick="demo\.derby"/],
+        triggerTokens: [/useDoubleTap\(/, /derby/],
         note: '"the Derby" — dblclick the rail launches the canonical trackers in a staggered SpringProgress wave',
     },
     {
@@ -128,7 +128,7 @@ const STATIC_EGGS = [
         file: ["scenes/easing/useEasingDemo.ts", "scenes/easing/useEasingGallery.ts"],
         tokens: [/\bgallery\b/, /galleryRunning/, /selectEasing/],
         triggerFile: "scenes/easing/EasingSidebar.vue",
-        triggerTokens: [/@dblclick="demo\.gallery"/, /canvas-egg-host/],
+        triggerTokens: [/data-gesture-tell="easing:gallery"/, /@click="demo\.gallery"/],
         note: '"the Gallery" — dblclick the curve tours the expressive easing catalogue (the .bezier-path d cycles)',
     },
 ];
@@ -194,20 +194,41 @@ async function waitVisible(page, selector, timeout = 8000) {
         .catch(() => false);
 }
 
-/** Fire the egg's `@dblclick` on an element. We DISPATCH a bubbling `dblclick`
- *  MouseEvent rather than a synthetic mouse sequence: the egg handlers are plain
- *  Vue `@dblclick` listeners (NOT a permission-gated API needing a trusted
- *  gesture), and a synthetic mouse-down sequence on the cube would trip
- *  OrbitalDrag's pointerdown→setPointerCapture path and wedge the page. A
- *  dispatched dblclick exercises the SAME handler the user's double-click invokes,
- *  conflict-free across all scenes. Returns false if the element is absent. */
+/** Fire the egg's DOUBLE-TAP on an element (S.G3 re-arm — the arming-audit
+ *  class). The eggs ride the pointer-based `useDoubleTap` recognizer (touch
+ *  parity; native `@dblclick` is RETIRED), which counts two genuine
+ *  pointerdown→pointerup pairs on the element within its 300ms window and
+ *  move-tolerance. The honest actuation is therefore the recognizer's REAL
+ *  gesture: two full stationary press pairs (same point, same pointerId per
+ *  pair, `isPrimary` — synthetic PointerEvents default it false and the
+ *  recognizer rightly ignores secondary touches), ~80ms apart. A stationary
+ *  pair is drag-disjoint by design (OrbitalDrag's capture path releases clean
+ *  on a no-move up — the recognizer/drag coexistence users exercise daily).
+ *  Returns false if the element is absent. */
 async function fireDblclick(page, selector) {
-    return page.evaluate((sel) => {
+    return page.evaluate(async (sel) => {
         const el = document.querySelector(sel);
         if (!el) return false;
-        el.dispatchEvent(
-            new MouseEvent("dblclick", { bubbles: true, cancelable: true }),
-        );
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const press = () => {
+            const opts = {
+                bubbles: true,
+                cancelable: true,
+                button: 0,
+                pointerType: "touch",
+                isPrimary: true,
+                pointerId: 1,
+                clientX: cx,
+                clientY: cy,
+            };
+            el.dispatchEvent(new PointerEvent("pointerdown", opts));
+            el.dispatchEvent(new PointerEvent("pointerup", opts));
+        };
+        press();
+        await new Promise((res) => setTimeout(res, 80));
+        press();
         return true;
     }, selector);
 }
@@ -473,7 +494,10 @@ async function browserHalf() {
                                 .querySelector(".canvas-egg-host .bezier-path")
                                 ?.getAttribute("d") ?? "",
                     );
-                    await fireDblclick(ep, ".canvas-egg-host");
+                    // S.G3: the gallery's discoverable trigger is the VISIBLE
+                    // gallery-door BUTTON (@click; the census tell) — the sealed
+                    // canvas double-click is retired. Click the real control.
+                    await ep.click('[data-gesture-tell="easing:gallery"]');
                     // The gallery tours a catalogue ~520ms apart; the .bezier-path d
                     // re-derives per step — sample over the tour window for a change.
                     let changed = false;
