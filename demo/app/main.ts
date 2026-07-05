@@ -32,9 +32,26 @@ import { warmKfEngine } from "@utils/kfEngine";
 const app = createApp(App);
 app.use(router);
 
-void warmKfEngine().finally(() => {
-    app.mount("#app");
-});
+// T.D3 — decode the body face BEFORE mount. Plus Jakarta Sans is a base64
+// @font-face (zero network — the glass-ui fonts import), but @font-face decode
+// is lazy-on-first-use: GlassDock measures its expanded layer width at MOUNT,
+// and a measure taken against the narrower system fallback under-sizes the
+// pill ~10%, clipping the right-edge transport controls once the real face
+// lands (the 390w play-tap hit-test regression). Awaiting the decode (a few
+// ms, local) makes mount-time measures font-true. Race-guarded: never blocks
+// mount beyond 1.5s, and the visual first paint is JS-independent anyway
+// (criticalCSSPlugin). The durable seam is glass-ui's own re-measure on
+// document.fonts.ready (the GU-2 width-morph ledger row's adjacent ask).
+const fontsDecoded = Promise.race([
+    document.fonts?.load?.('1rem "Plus Jakarta Sans"') ?? Promise.resolve(),
+    new Promise((resolve) => setTimeout(resolve, 1500)),
+]).catch(() => undefined);
+
+void Promise.all([warmKfEngine().catch(() => undefined), fontsDecoded]).finally(
+    () => {
+        app.mount("#app");
+    },
+);
 
 // Dev-only Long Animation Frames observer — the attribution source for the
 // perf measurement + the demo bench (B.W4 §4). The `import.meta.env.DEV`

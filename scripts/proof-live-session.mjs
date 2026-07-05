@@ -29,7 +29,8 @@
  *   B7 — at rest the glass ::before carry NO bloom.
  *   B9 — every scene glyph PAINTS (the sweep roster is the AUTO-TRACKING lib
  *        SCENES export — every routed scene incl. home; J.W4 S5).
- *   font — the body font is NOT Plus Jakarta (the I.W6-font reclaim).
+ *   font — the body font IS Plus Jakarta Sans (T.D3/OD-6 polarity FLIP: the
+ *          I.W6 system reclaim is DELETED; glass-ui's own register flows).
  *   S5 — (J.W4) EVERY routed scene ENTERS clean per the expected-destination
  *        predicate, PLAYS+INTERACTS per its class (spring rail-scrub, sequence
  *        transport — never glyph-paint-only), and the covering dock-combobox switch WALK lands
@@ -821,7 +822,7 @@ async function runBattery() {
                 });
                 if (glyph.paints) scenesGlyphPainted += 1;
                 else glyphFailures.push(`${scene}: dock glyph does not paint (${glyph.reason})`);
-                // font — sample the body font on cube once (the I.W6-font reclaim).
+                // font — sample the body font on cube once (T.D3: Jakarta POSITIVE).
                 if (scene === "cube") {
                     fontProbe = await page.evaluate(async () => {
                         await document.fonts.ready;
@@ -833,8 +834,10 @@ async function runBattery() {
             }
             dom.B7 = { totalGlass, maxRest, bloomers, pass: bloomers.length === 0 };
             dom.B9 = { scenesGlyphPainted, total: SWEEP_SCENES.length, glyphFailures, pass: glyphFailures.length === 0 && scenesGlyphPainted === SWEEP_SCENES.length };
-            const jakarta = fontProbe ? /Jakarta/i.test(fontProbe.body) : true;
-            dom.font = { body: fontProbe?.body?.slice(0, 48) ?? "(unread)", jakarta, pass: !!fontProbe && !jakarta };
+            // T.D3 (OD-6) polarity FLIP — Jakarta is the POSITIVE body assertion
+            // (the I.W6 anti-Jakarta clause greened the tree the owner rejected).
+            const jakarta = fontProbe ? /^\s*["']?Plus Jakarta Sans/i.test(fontProbe.body) : false;
+            dom.font = { body: fontProbe?.body?.slice(0, 48) ?? "(unread)", jakarta, pass: !!fontProbe && jakarta };
         }
 
         // ════════════════════════════════════════════════════════════════════
@@ -1517,7 +1520,7 @@ function reportBattery(budget, dom) {
     verdict("B6", "B6 /square drag selects NO text + the transform PERSISTS", "proof:drag-gesture (+ proof:perf-frame-budget)");
     verdict("B7", "B7 the glass ::before carry NO bloom at rest", "proof:specular-absent-at-rest");
     verdict("B9", "B9 every scene glyph PAINTS", "proof:icon-paint-live");
-    verdict("font", "font reclaim — the body font is NOT Plus Jakarta", "proof:demo-fonts");
+    verdict("font", "font register — the body font IS Plus Jakarta Sans (T.D3/OD-6)", "proof:demo-fonts");
     verdict("S5", "S5 EVERY routed scene enters clean + plays/interacts + the covering dock-switch walk lands", "J.W4 S5 (the AXES breadth leg)");
     verdict("S2", "S2 the engine's respectReducedMotion path SNAPS live under PRM (dots rest · sheet one-emit)", "J.W4 S2 (the reduced-motion leg)");
     verdict("S4", "S4 keyboard operability — Tab reaches play · focus-visible ring · Enter + global Space actuate", "J.W4 S4 (the keyboard/focus leg)");

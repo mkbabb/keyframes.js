@@ -706,4 +706,22 @@
         font-family: var(--font-text);
         font-weight: 500;
     }
+
+    /* T.D3 — the mobile dock-band width fit. glass-ui's dock pill caps at
+       (viewport − inset) and its `.dock-layers` band is FIXED at that cap
+       (measured 291.3px @390w, both trees); the label rung (--type-subheading
+       ≈ 20.4px) fit under the CONDENSED Instrument Serif force but the
+       re-adopted Jakarta at the same rung runs ~10% wider — the full transport
+       layer measured 321.9px and the right-edge Play control clipped past the
+       pill (the 390×844 play-tap hit-test regression). Below lg the dock
+       labels step ONE published rung down (--type-body) so the band fits the
+       capped pill again. Desktop keeps glass-ui's own rung untouched. The
+       durable home is T.C's dock grammar recut + the GU-2 width-morph ask
+       (glass-ui re-measuring its layers); this is the demo-scoped width-fit
+       until then. */
+    @media (max-width: 1023px) {
+        .dock-label {
+            font-size: var(--type-body);
+        }
+    }
 }
