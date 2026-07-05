@@ -33,3 +33,10 @@
 - **2026-07-05** — the Fable synthesis: `T.md` charter authored (3 root causes, 10 bands,
   DAG, owner-decision register OD-1..6, non-goal ring-fence, orchestration spec).
   Wave-doc fan-out launched (batches of 3, Opus/Sonnet, file-disjoint).
+- **2026-07-05** — **THE GRAND COLOCATION EDICT** received mid-authoring (OWNER-ASKS.md
+  row 1, verbatim): recursive colocation for ALL directories, shared dirs only for true
+  module/global-level members, long dirs always → encapsulated modules, the LIBRARY given
+  the same treatment befittingly, the demo AGGRESSIVELY purged. T.F ELEVATED (charter §1
+  row rewritten, §4 ring-fence reconciled: zone BOUNDARIES protected, zone INTERNALS in
+  scope); edict-fold agent amending waves/T.F.md (+3 waves: the recursive-colocation
+  enforcement gate, the library half, the aggressive purge) + the PROMPT-RECAP row.
