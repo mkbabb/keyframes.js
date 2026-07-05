@@ -33,14 +33,13 @@
     </div>
 
     <div class="square-legend" aria-hidden="true">
-        <!-- S.G2 S2 (fold row 69) — the "live controls" caption. The lying
-             keyframes/timeline/duration editor panel (it edited a
-             CSSKeyframesAnimation that painted nothing) is COLLAPSED away; the box
-             itself IS the instrument (drag it, the springs chase; Play tumbles it).
-             This mono caption names that live interaction — the honest replacement
-             for the removed panel. -->
+        <!-- T.A13 + T.B3 (fold row 69) — the stage caption naming the live
+             interaction. The G2 collapse is CURED: Play now drives the box's
+             honest four-corner tour (the editor panel RETURNED, editing a LIVE
+             anim), while a drag hands the box to the springs (a jump-free
+             takeover). This mono caption names those verbs. -->
         <span class="square-live-caption text-mono-caption text-muted-foreground"
-            >spring-chased &middot; drag the box or press Play to tumble</span
+            >spring-chased &middot; drag the box, or press Play to tour it</span
         >
         <span class="text-mono-caption text-muted-foreground">x &middot; y &isin; [-1, 1]</span>
         <span

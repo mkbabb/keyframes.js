@@ -102,9 +102,10 @@ const PLAY_SLIDER = '[role="slider"]';
 const EXPECT = {
     cube: { trigger: "Controls" },
     amiga: { trigger: "Controls" },
-    // S.G2 (fold row 69): the square panel is COLLAPSED (DFA square=[]) — no
-    // Controls trigger exists; nav settles on the collapsed surface (null).
-    square: { trigger: null },
+    // T.A13 + T.B3 (fold row 69): square RE-TABLED into the built-in triad — the
+    // G2 collapse is CURED (the "Transform" anim is LIVE), so the "Controls"
+    // trigger projects like the other group-adapter scenes.
+    square: { trigger: "Controls" },
 };
 
 // ── shared in-page reads (the engine-write channel) ───────────────────────────
@@ -355,15 +356,13 @@ async function runBattery() {
                 const sliderBefore = await sliderValue(page);
                 const ariaBefore = await ariaState(page);
                 await clickRainbowPlay(page);
-                // S.G2 (fold row 69) re-ground — square's HONEST collapse rerouted
-                // dock-Play to the ONE-SHOT spring tumble (SpringProgress driving
-                // .demo-box; self-clears on settle, ~1s; the contract group's
-                // playhead is NOT square's channel any more). For square the
-                // engine-write channel IS the box's transform sweep, gated on
-                // aria=Pause — sample it IMMEDIATELY after the press (the tumble
-                // window is short on a fast machine); the slider stays the channel
-                // for the persistent-playhead scenes (cube/amiga).
-                const oneShot = id === "square";
+                // T.A13 + T.B3 (fold row 69) re-ground — square's HONEST Play now
+                // drives the group's CONTINUOUS four-corner tour (the "Transform"
+                // anim, iterationCount infinite), so square is a PERSISTENT-playhead
+                // group scene like cube/amiga (the former one-shot tumble is retired
+                // to a double-tap egg). Its playhead slider advances and its box
+                // transform sweeps continuously — no special one-shot window.
+                const oneShot = false;
                 const corrEarly = oneShot
                     ? await sampleEngineSubject(page, ENGINE_WRITE_SUBJECT[id])
                     : null;

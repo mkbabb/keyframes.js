@@ -197,13 +197,12 @@ const SWEEP_META = {
     home: { trigger: null, label: "Home", kind: "home" },
     cube: { trigger: "Controls", label: "Cube", kind: "group-play" },
     amiga: { trigger: "Controls", label: "Amiga", kind: "present-loop" },
-    // S.G2 S2 (fold row 69) — square COLLAPSED to the empty control-surface set:
-    // its built-in triad edited a CSSKeyframesAnimation that painted nothing (the
-    // lying panel), so it renders NO controls-tab trigger now. Still `group-play`
-    // (the dock transport Play → isPlaying → tumble is transport-owned, independent
-    // of the control surface), just with no panel — trigger null (proof:square-honest
-    // owns the collapse+caption oracle).
-    square: { trigger: null, label: "Square", kind: "group-play" },
+    // T.A13 + T.B3 (fold row 69) — square RE-TABLED into the built-in triad: the
+    // G2 collapse is CURED (the "Transform" anim is LIVE via the num() normalizer
+    // + four-corner keyframes + the {idle,drag,playback} FSM), so the controls-tab
+    // trigger PROJECTS. `group-play` — Play drives the honest four-corner tour
+    // (proof:square-honest v2 owns the Play-paints oracle).
+    square: { trigger: "Controls", label: "Square", kind: "group-play" },
     easing: { trigger: "Easing", label: "Easing", kind: "group-play" },
     spring: { trigger: "Spring", label: "Spring", kind: "spring-rail" },
     sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },

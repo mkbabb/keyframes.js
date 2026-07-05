@@ -55,6 +55,7 @@
             ref="box"
             class="demo-box palette-sweep-host text-display focus-ring"
             :class="{ 'demo-box--dragging': dragging }"
+            :data-square-mode="mode"
             role="group"
             aria-label="Drag the box across two axes — a spring chases each axis"
             tabindex="0"
@@ -100,18 +101,27 @@ import { SQUARE_SUPER_KEY } from "./squareKeys";
 
 const superKey = SQUARE_SUPER_KEY;
 
-// S5b (K.W0 / U-K5 "none of the animations work properly /square") — THE PLAY VERB
-// MADE HONEST. The box is drag-autonomous (the spring loop owns its paint); the
-// contract `AnimationGroup` below is a keyframes-readout transport host whose
-// grouped interpolation passes FLAT ValueUnits that don't match the nested-object
-// structure the box transformFunc reads (`singleTarget = false`), so `group.play()`
-// painted NOTHING — a dead Play. The cure (the named decision, option (b)): Play
-// TUMBLES the box. `isPlaying` is a WRITABLE ref the App toggles (the cube/amiga
-// contract); a rising edge fires the existing spring-driven `tumble()` — a real,
-// visible 360° barrel-roll with a colour sweep, painted by the ONE spring-loop
-// authority — and the play state self-clears when the tumble settles (`onSettle`).
-// No new shadow playback authority, no timer: the loop's own settle is the signal.
+// T.A13 (SQ-T1) — THE PLAY VERB MADE HONEST (the G2 inversion cured, not collapsed).
+// S.G2 amputated the panel because Play painted nothing: the box transformFunc was
+// written for the spring loop's RAW NUMBERS, but the engine handed nested vars whose
+// leaves stringified to `"0pxpx"` → CSSOM silently discarded the write. The three-part
+// cure lands in the composable: (1) the unit-honest `num()` normalizer at the shared
+// transformFunc boundary resolves BOTH writers (the spring loop's numbers AND the
+// T.A6 plain-vars authored strings); (2) REAL four-corner keyframes (a ±90px diamond
+// tour, full 360° rotation, nested `d` swell, rainbow sweep) so Play VISIBLY obeys
+// duration/easing/direction; (3) the {idle, drag, playback} single-authority FSM here.
+// Play now drives the group's honest tour (the panel triad edits a LIVE animation,
+// T.B3); the former `isPlaying → tumble()` kill is RETIRED — the tumble stays a
+// discovered double-tap gesture egg, NOT the Play verb. `isPlaying` is the WRITABLE
+// ref the App toggles (the cube/amiga group-scene contract).
 const isPlaying = ref(false);
+
+// T.A13 — the single-authority FSM state. `idle` = at rest (springs settled, group
+// stopped/paused); `playback` = the group plays the four-corner tour; `drag` = a
+// pointer owns the box (the group is paused, the springs chase the pointer). The
+// pose-capture takeover (`seatFromPose`) makes the playback→drag edge jump-free.
+type SquareMode = "idle" | "drag" | "playback";
+const mode = ref<SquareMode>("idle");
 
 const box = useTemplateRef<HTMLElement>("box");
 
@@ -131,13 +141,13 @@ const tumbleHintShown = ref(false);
 const tumbleUsed = ref(false);
 let hasDragged = false;
 
-const { anim, springX, springY, reseat, settle, travel, paintRest, tumble, dispose } =
+const { anim, springX, springY, reseat, settle, seatFromPose, travel, paintRest, tumble, dispose } =
     useSquareDemo(
         box,
         () => {
-            // The barrel-roll has come to rest — return the Play button to its idle
-            // posture (the honest one-shot verb).
-            isPlaying.value = false;
+            // The spring loop has come fully to rest (a drag/tumble settled). If
+            // the group is not touring, the box is idle.
+            if (!animationGroup.started || animationGroup.paused) mode.value = "idle";
         },
         // The per-frame derived-read hook: mirror the live spring snapshot into the
         // tether + badge bindings. The tether is visible while the springs are
@@ -159,11 +169,14 @@ anim.superKey = superKey;
 // (The tether SVG geometry lives in the colocated SquareInstrument sub-unit,
 // fed `deflX`/`deflY` as props — the derived-read instrument layer.)
 
-// Fire the honest tumble on the Play CTA's rising edge (the App writes `isPlaying`
-// for this scene — the non-`scenePlayback` writable-ref contract). A falling edge
-// (settle / pause) needs no action: the tumble is a self-completing one-shot.
-watch(isPlaying, (playing, was) => {
-    if (playing && !was) tumble();
+// T.A13 — the FSM tracks the App-written play state. Play (rising edge) enters
+// `playback`: the group (below) plays the honest four-corner tour — NO tumble.
+// Pause (falling edge) settles the FSM to `idle` unless a drag is mid-gesture
+// (the drag owns the box until release). The tumble is a discovered double-tap
+// egg only (see `useDoubleTap` below), never the Play verb.
+watch(isPlaying, (playing) => {
+    if (playing) mode.value = "playback";
+    else if (mode.value === "playback") mode.value = "idle";
 });
 
 // HEAVY (AnimationGroup); constructed through the warmed engine surface
@@ -171,8 +184,11 @@ watch(isPlaying, (playing, was) => {
 // before any scene mounts.
 const { AnimationGroup } = kfEngine();
 const animationGroup = markRaw(new AnimationGroup(anim));
-// Force per-animation transform path — the grouped path passes flat ValueUnit
-// values which don't match the nested object structure our transform expects.
+// T.A13 — the per-animation transform path: each child applies its OWN nested
+// custom `transformFunc` (fed the T.A6 plain-vars authored-shape projection, now
+// unit-honest via `num()`), rather than the grouped SoA composite. The square is
+// a single-animation scene, so per-animation IS the natural path; the group is a
+// real playback authority now (Play drives the four-corner tour), not a decoy.
 animationGroup.singleTarget = false;
 
 // A live spring read-out for the slider's aria-valuetext (no per-frame Vue work
@@ -225,6 +241,17 @@ const captureFrame = () => {
     // (the hint appears once the first drag settles) and mark the tether active.
     hasDragged = true;
     tetherActive.value = true;
+    // T.A13 — the {playback → drag} FSM edge. A pointerdown mid-tour PAUSES the
+    // group and SEATS the springs from the box's CURRENT painted pose (via
+    // DOMMatrix), so the spring chase begins exactly where the tour left the box
+    // — a seamless, jump-free takeover (the library's own adopt idea at demo
+    // scale). Sync the App-written play state so the transport reflects the pause.
+    if (animationGroup.started && !animationGroup.paused) {
+        animationGroup.pause();
+        seatFromPose();
+        isPlaying.value = false;
+    }
+    mode.value = "drag";
     const el = box.value;
     if (!el) return;
     const br = el.getBoundingClientRect();
@@ -257,6 +284,10 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     // paint loop so the final chase paints even if it had momentarily settled.
     onEnd: () => {
         settle();
+        // T.A13 — the {drag → idle} FSM edge: the pointer released, the spring
+        // chases to rest at the dragged target (persist). The group stays paused
+        // (Play resumes the tour from here).
+        mode.value = "idle";
         springReadout.x = springX.target.toFixed(2);
         springReadout.y = springY.target.toFixed(2);
         syncAxisNow();
@@ -293,10 +324,10 @@ const { onKeydown } = useSquareKeyboard({
 defineExpose({
     animationGroup: computed(() => animationGroup),
     superKey,
-    // S5b — the writable play state the App toggles for a group-adapter scene
+    // T.A13 — the writable play state the App toggles for a group-adapter scene
     // (the cube/amiga contract: `onPlayStateChange` writes `isPlaying` when the
-    // scene does NOT own its own `scenePlayback`). Here the rising edge tumbles
-    // the box (the honest Play verb), and `onSettle` clears it back to idle.
+    // scene does NOT own its own `scenePlayback`). Here Play drives the group's
+    // honest four-corner tour (the FSM enters `playback`); a drag takes over.
     isPlaying,
 });
 </script>

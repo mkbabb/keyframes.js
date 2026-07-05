@@ -42,8 +42,12 @@ describe("H.W11 control-surface DFA — the per-scene table", () => {
         expect(controlSurfacesFor("spring")).toEqual(["spring"]);
     });
 
-    it("maps the editor scenes (cube/amiga) to the full built-in triad", () => {
-        for (const s of ["cube", "amiga"]) {
+    it("maps the editor scenes (cube/amiga/square) to the full built-in triad", () => {
+        // T.A13 + T.B3 (fold row 69) — square RE-TABLED into the triad: the G2
+        // collapse is CURED (the "Transform" anim is LIVE via the num() normalizer
+        // + four-corner keyframes + the {idle,drag,playback} FSM), so the triad
+        // edits an HONEST animation — the VERDICT #12/#25 panel RETURN.
+        for (const s of ["cube", "amiga", "square"]) {
             expect(controlSurfacesFor(s)).toEqual([
                 "controls",
                 "keyframes",
@@ -52,13 +56,10 @@ describe("H.W11 control-surface DFA — the per-scene table", () => {
         }
     });
 
-    it("maps the self-contained scenes (square/sequence) to NO panel", () => {
-        // S.G2 S2 (fold row 69) — square COLLAPSED to the empty set: its built-in
-        // triad edited a CSSKeyframesAnimation that painted nothing (the lying
-        // panel), so it joins the drag/spring/Play-tumble-autonomous scenes whose
+    it("maps the self-contained scene (sequence) to NO panel", () => {
+        // sequence stays self-contained — the drag/spring-autonomous scene whose
         // live controls live ON the stage, not in a rail. (motion-path/morph were
         // PRUNED at T.E3, OD-1 = PRUNE.)
-        expect(controlSurfacesFor("square")).toEqual([]);
         expect(controlSurfacesFor("sequence")).toEqual([]);
     });
 

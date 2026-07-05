@@ -215,12 +215,12 @@ export const REGRESSION_GUARDS = [
  * Do NOT delete keys HERE — the ledger only WITNESSES deletions the bands execute.
  */
 export const RETIREMENT_LEDGER = {
-    "proof:square-honest": {
-        coupledFeature: "the square scene's honest-collapse (panel ABSENT)",
-        verdictItem: "#12/#25 — restore the triad; the panel must RETURN",
-        executedBy: "T.A/T.B",
-        successor: "proof:scene-control-dfa (row rewritten — square re-tabled into the triad)",
-    },
+    // T.A13 + T.B3 (LANDED, batch ③) — `proof:square-honest` was NOT retired; it
+    // was REWRITTEN in place to v2 (the born-RED inversion: panel PRESENT + Play
+    // paints, replacing the S.G2 "panel ABSENT" collapse assertion) and RE-TIERED
+    // into proof:demo-correctness. A live correctness gate, not a retirement — so
+    // it leaves the ledger. The #12/#25 panel RETURN is now proven by that v2 gate
+    // (+ proof:scene-control-dfa's square-in-triad EXPECT), not by a retirement.
     "proof:gesture-manifest": {
         coupledFeature: "the on-stage gesture LEGEND mandate (tell-or-RED)",
         verdictItem: "#8/#15 — remove all legend elements",

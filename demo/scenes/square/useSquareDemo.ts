@@ -23,21 +23,26 @@ import { onScopeDispose, type Ref } from "vue";
  * it; the spring scene's `useSceneVisibilityPause` discipline is unneeded here
  * because the loop is already idle whenever the springs are at rest.
  *
- * THE TRANSPORT CONTRACT: the `CSSKeyframesAnimation` carries the same nested-
- * object keyframes so the bottom-bar Keyframes-string readout serializes the
- * nested structure (the primitive's authored shape). It is a minimal transport
- * host — like the Spring/Easing scenes' contract anim — and owns NO box paint
- * (the spring loop is the sole paint authority, so there is no double-writer).
+ * THE HONEST PLAY (T.A13): the `CSSKeyframesAnimation` carries REAL four-corner
+ * keyframes (a ±90px diamond tour, full 360° rotation, nested `d` swell, rainbow
+ * sweep) over the SAME nested-object `transformFunc`. Play drives the group → the
+ * box tours the diamond, VISIBLY obeying duration/easing/direction (the panel triad
+ * edits a LIVE animation, T.B3). The two writers (the spring drag loop and the
+ * engine tour) are never simultaneous — the {idle,drag,playback} FSM in the host
+ * pauses the group on a drag and seats the springs from the painted pose
+ * (`seatFromPose`), so there is one paint authority at a time. The unit-honest
+ * `num()` normalizer resolves BOTH writers (raw numbers AND plain-vars strings),
+ * curing the S.G2 "0pxpx" CSSOM-discard that made Play paint nothing.
  */
 export function useSquareDemo(
     // Accept the `useTemplateRef` shape (a readonly shallow ref that yields
     // `null` before mount) as well as a plain ref — the box only exists after
     // mount, so the transformFunc null-guards every read.
     box: Readonly<Ref<HTMLElement | null | undefined>>,
-    // S5b (K.W0) — invoked the frame the live loop self-terminates (every spring
-    // settled). The host uses it to clear the one-shot "Play = tumble" play state
-    // when the barrel-roll comes to rest (an honest verb that returns to idle —
-    // NO timer band-aid, NO shadow flag; the loop's own settle IS the signal).
+    // T.A13 — invoked the frame the live spring loop self-terminates (every spring
+    // settled). The host uses it to settle the {idle,drag,playback} FSM to `idle`
+    // when a drag/tumble comes fully to rest (the loop's own settle IS the signal —
+    // NO timer band-aid, NO shadow flag).
     onSettle?: () => void,
     // L.W11 S4 — a per-frame DERIVED-READ hook for the scene's instrument layer
     // (the rubber-band tether + the settled/tracking telemetry). Invoked with the
@@ -54,23 +59,53 @@ export function useSquareDemo(
     // How far (px) a full [-1, 1] spring deflection translates the box.
     const TRAVEL = 110;
 
+    // T.A13 — THE UNIT-HONEST `num()` NORMALIZER (the "0pxpx" CSSOM-discard cure).
+    // The box has TWO writers into the SAME nested-object `transformFunc`: the
+    // live spring loop hands RAW NUMBERS (`x: springX.value * TRAVEL`), while the
+    // engine's four-corner keyframes flow through the T.A6 plain-vars projection
+    // that delivers a leaf's AUTHORED SHAPE — a bare `number` for a unitless leaf
+    // but a STRING for a unit/percent leaf (`x: "42px"`, `d: "108%"`). The old
+    // code interpolated the raw leaf into a template literal — `` `${"42px"}px` ``
+    // → `"42pxpx"` → invalid CSS → CSSOM SILENTLY DISCARDS the write → the box
+    // never moved on Play (S.G2's amputation cause). `num()` resolves BOTH writers
+    // to a plain number honestly: a number passes through, a unit string is
+    // parsed (`"42px"` → 42), and a percent leaf is fractionalized when asked
+    // (`"108%"` → 1.08). A defensive `.value` branch tolerates a stray ValueUnit.
+    const num = (v: unknown, pct = false): number => {
+        if (typeof v === "number") return v;
+        if (typeof v === "string") {
+            const n = Number.parseFloat(v);
+            if (Number.isNaN(n)) return pct ? 1 : 0;
+            return pct && v.trimEnd().endsWith("%") ? n / 100 : n;
+        }
+        if (v != null && typeof v === "object" && "value" in v) {
+            const inner = (v as { value: unknown }).value;
+            return typeof inner === "number" ? inner : pct ? 1 : 0;
+        }
+        return pct ? 1 : 0;
+    };
+
     /**
      * The CUSTOM TRANSFORM FUNCTION — the primitive. It composes `transform`
      * from a NESTED-OBJECT `vars` (`transform.a.b.c.d` is a real nested read that
      * maps to no CSS property) plus the live translate. Identical shape to the
      * engine's `transformFunc` contract; the spring loop feeds it live vars.
+     * Every positional leaf routes through `num()` so the raw-number (drag) and
+     * the plain-vars authored-string (Play keyframes) writers BOTH resolve.
      */
     const transformFunc = (vars: Record<string, any>) => {
         const el = box.value;
         if (!el) return;
         const { transform, backgroundColor, tilt, squash } = vars;
-        const tx = transform?.x ?? 0;
-        const ty = transform?.y ?? 0;
-        const scale = transform?.a?.b?.c?.d ?? 1;
-        // `rotate` is OPTIONAL — the live spring loop omits it (defaults to 0, a
-        // no-op), the "tumble" egg sweeps it for a barrel-roll. Composing it into
-        // the same custom transform keeps ONE paint authority (no second writer).
-        const rotate = transform?.rotate ?? 0;
+        const tx = num(transform?.x);
+        const ty = num(transform?.y);
+        // The nested `a.b.c.d` scale is percent-authored in the keyframes
+        // (`d:"108%"` → 1.08) and raw in the spring loop (`1 + defl*0.12`).
+        const scale = transform?.a?.b?.c?.d != null ? num(transform.a.b.c.d, true) : 1;
+        // `rotate` is the four-corner tour's full-turn sweep (0→360° across the
+        // diamond) in Play, and the "tumble" egg's barrel-roll under a gesture.
+        // Composing it into the same custom transform keeps ONE paint authority.
+        const rotate = num(transform?.rotate);
         // P.W6 S1(d) — velocity-tilt + directional squash. The box banks into the
         // pull (a skewX/skewY from the per-axis spring VELOCITY) and squashes along
         // the drag axis (a non-uniform scale from velocity magnitude). These ride
@@ -265,8 +300,8 @@ export function useSquareDemo(
             y: springY.value,
             settled: springX.settled && springY.settled,
         });
-        // S5b — the moment the loop comes fully to rest, signal the host so the
-        // one-shot "Play = tumble" play state clears (the button returns to Play).
+        // T.A13 — the moment the spring loop comes fully to rest, signal the host
+        // so the FSM settles to `idle` (a drag/tumble finished chasing).
         if (!live) onSettle?.();
         return live;
     };
@@ -318,6 +353,35 @@ export function useSquareDemo(
         startLoop();
     };
 
+    /**
+     * T.A13 — POSE-CAPTURE TAKEOVER (the {playback → drag} FSM edge). When a
+     * pointerdown lands mid-Play, the group is paused and the springs must SEAT
+     * from the box's CURRENT painted pose so the spring chase begins EXACTLY
+     * where the four-corner tour left the box — no frame jump. Read the live
+     * painted translate off the computed transform (`DOMMatrix.m41/m42`), map it
+     * back into normalized [-1,1] spring space, and `reset` both axes to that
+     * value at rest (velocity 0). The drag's `reseat` then re-targets from here;
+     * the box tracks the pointer continuously. This dogfoods the library's own
+     * adopt/temporal-takeover idea at demo scale.
+     */
+    const seatFromPose = (): void => {
+        const el = box.value;
+        if (!el) return;
+        const cs = getComputedStyle(el);
+        let tx = 0;
+        let ty = 0;
+        try {
+            const m = new DOMMatrixReadOnly(cs.transform);
+            tx = m.m41;
+            ty = m.m42;
+        } catch {
+            // A malformed/"none" transform → seat at home (no jump from rest).
+        }
+        springX.reset(Math.max(-1, Math.min(1, tx / TRAVEL)), 0);
+        springY.reset(Math.max(-1, Math.min(1, ty / TRAVEL)), 0);
+        springSpin.reset(0, 0);
+    };
+
     /** How far (px) a full [-1,1] deflection travels — for the drag math. */
     const travel = TRAVEL;
 
@@ -328,21 +392,42 @@ export function useSquareDemo(
     // through the warmed engine surface (kfEngine(), L.W8 S1 dogfood inversion);
     // the warm resolves before any scene mounts, so this stays synchronous. The
     // live spring drag path (above) is LIGHT and runs independent of this.
+    // T.A13 — THE REAL FOUR-CORNER KEYFRAMES (the diamond tour). The former
+    // `x:"0px"→"0px"` keyframes were MOTIONLESS — Play painted nothing even once
+    // the "0pxpx" discard was cured, because the box never left center. This is a
+    // genuine diamond circuit: center → top-right → bottom → top-left → center,
+    // a FULL 360° rotation, the nested `d` scale swelling on the corners, and a
+    // rainbow backgroundColor sweep across the sanctioned `--rainbow-*` family.
+    // ±90px sits INSIDE the ±110px (TRAVEL) spring envelope so drag and playback
+    // share ONE coordinate world (the pose-capture takeover is seamless). Now
+    // duration/easing/direction/fill/iterations VISIBLY govern the paint — the
+    // panel triad edits a live animation, not a dead one (the T.B3 honest panel).
     const { CSSKeyframesAnimation } = kfEngine();
     const anim = new CSSKeyframesAnimation({
         duration: 2000,
         iterationCount: Infinity,
-        direction: "alternate",
         fillMode: "forwards",
     }).fromKeyframes(
         {
             "0%": {
-                transform: { x: "0px", y: "0px", a: { b: { c: { d: "100%" } } } },
+                transform: { x: "0px", y: "0px", rotate: 0, a: { b: { c: { d: "100%" } } } },
                 backgroundColor: "#C462D8",
             },
-            "100%": {
-                transform: { x: "0px", y: "0px", a: { b: { c: { d: "112%" } } } },
+            "25%": {
+                transform: { x: "90px", y: "-90px", rotate: 90, a: { b: { c: { d: "108%" } } } },
+                backgroundColor: "#5AC8FA",
+            },
+            "50%": {
+                transform: { x: "0px", y: "90px", rotate: 180, a: { b: { c: { d: "100%" } } } },
+                backgroundColor: "#3DD0C4",
+            },
+            "75%": {
+                transform: { x: "-90px", y: "-90px", rotate: 270, a: { b: { c: { d: "108%" } } } },
                 backgroundColor: "#52E898",
+            },
+            "100%": {
+                transform: { x: "0px", y: "0px", rotate: 360, a: { b: { c: { d: "100%" } } } },
+                backgroundColor: "#C462D8",
             },
         },
         transformFunc,
@@ -380,5 +465,5 @@ export function useSquareDemo(
     // beside this, which is idempotent (playback.stop() twice is a no-op).
     onScopeDispose(dispose);
 
-    return { anim, springX, springY, reseat, settle, travel, startLoop, paintRest, tumble, dispose };
+    return { anim, springX, springY, reseat, settle, seatFromPose, travel, startLoop, paintRest, tumble, dispose };
 }

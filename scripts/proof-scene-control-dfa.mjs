@@ -26,14 +26,14 @@
  *
  *   D3 LIVE PER-SCENE — for each scene the EFFECTIVE rendered control-tab set
  *      equals the DFA entry: easing → ONLY the easing surface (NO keyframes/
- *      timeline tab node anywhere on the page); spring → ONLY spring; cube/amiga →
- *      the full built-in triad (controls+keyframes+timeline visible in the OPENED
- *      dock select); square/sequence → NO control panel
- *      affordance at all (the empty DFA set → no controls-tab trigger). BITE: the
- *      pre-DFA easing route showed the meaningless keyframes/timeline triggers.
- *      S.G2 S2 (fold row 69): square JOINED the empty-set scenes — its built-in
- *      triad edited a dead CSSKeyframesAnimation (the lying panel), so the panel is
- *      COLLAPSED (proof:square-honest owns the box + Play + mono-caption oracle).
+ *      timeline tab node anywhere on the page); spring → ONLY spring; cube/amiga/
+ *      square → the full built-in triad (controls+keyframes+timeline visible in the
+ *      OPENED dock select); sequence → NO control panel affordance at all (the empty
+ *      DFA set → no controls-tab trigger). BITE: the pre-DFA easing route showed the
+ *      meaningless keyframes/timeline triggers.
+ *      T.A13 + T.B3 (fold row 69): square RE-TABLED into the triad — the G2 collapse
+ *      is CURED (the "Transform" anim is LIVE, Play obeys duration/easing), so the
+ *      panel RETURNS honestly (proof:square-honest v2 owns the Play-paints oracle).
  *
  *   D4 LIVE NAVIGATION-MATRIX — drive every (scene → scene) ordered pair across a
  *      representative matrix; after each the rendered control-surface set is the
@@ -180,11 +180,12 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 const EXPECT = {
     cube: { hasPanel: true, trigger: "Controls" },
     amiga: { hasPanel: true, trigger: "Controls" },
-    // S.G2 S2 (fold row 69) — square COLLAPSED to the empty DFA set (the built-in
-    // triad edited a CSSKeyframesAnimation that painted nothing — the lying panel).
-    // No control-tab trigger renders; proof:square-honest owns the box + Play +
-    // mono-caption live-controls oracle.
-    square: { hasPanel: false },
+    // T.A13 + T.B3 (fold row 69) — square RE-TABLED into the built-in triad. The
+    // G2 collapse is CURED: the "Transform" anim is LIVE (num()-normalized four-
+    // corner keyframes + the {idle,drag,playback} FSM), so the triad edits an
+    // HONEST animation — the controls-tab trigger PROJECTS on square now (the
+    // VERDICT #12/#25 panel RETURN). proof:square-honest v2 owns the paint oracle.
+    square: { hasPanel: true, trigger: "Controls" },
     easing: { hasPanel: true, trigger: "Easing", noBuiltInTriad: true },
     spring: { hasPanel: true, trigger: "Spring", noBuiltInTriad: true },
     sequence: { hasPanel: false },

@@ -60,20 +60,14 @@ export const BUILT_IN_SURFACES: readonly ControlSurface[] = [
  *                                                        meaningless keyframes/
  *                                                        timeline triad)
  *   • spring         → [spring]                         (ONLY spring)
- *   • square         → []                               (S.G2 S2 / fold row 69 —
- *     / sequence                                         the box is spring-chased,
- *                                                        drag/keyboard/Play-tumble
- *                                                        autonomous; the built-in
- *                                                        triad edited a dead
- *                                                        CSSKeyframesAnimation that
- *                                                        PAINTED NOTHING — the lying
- *                                                        panel is COLLAPSED, the box
- *                                                        + dock Play + the mono
- *                                                        caption ARE the live
- *                                                        controls. Self-contained
- *                                                        transport ON the stage; no
- *                                                        panel — isControlsPanelOpen
- *                                                        =false.)
+ *   • square         → [controls, keyframes, timeline]  (T.A13+T.B3 / fold row 69 —
+ *                                                        the G2 collapse CURED: the
+ *                                                        "Transform" animation is now
+ *                                                        LIVE (num()-normalized four-
+ *                                                        corner keyframes), so the
+ *                                                        triad edits an HONEST anim —
+ *                                                        Play obeys duration/easing.)
+ *   • sequence       → []                               (self-contained; no panel)
  *
  * CUBE'S matrix-controls is a CONDITIONAL surface (valid only while the Matrix
  * animation is selected). It is therefore NOT a static table member; it composes
@@ -88,12 +82,13 @@ export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
     home: [],
     cube: ["controls", "keyframes", "timeline"],
     amiga: ["controls", "keyframes", "timeline"],
-    // S.G2 S2 (fold row 69) — the square is drag/spring/Play-tumble autonomous;
-    // the built-in triad edited a CSSKeyframesAnimation that painted NOTHING (a
-    // lying panel). COLLAPSED to [] — self-contained like sequence;
-    // the box + the global dock Play (isPlaying→tumble, transport-owned,
-    // independent of the control surface) + the mono caption ARE the live controls.
-    square: [],
+    // T.A13 + T.B3 (fold row 69, the G2 inversion CURED) — square RE-TABLED into
+    // the full built-in triad. S.G2 collapsed square to [] because Play painted
+    // nothing (the "0pxpx" CSSOM discard). With the unit-honest `num()` normalizer
+    // + the real four-corner keyframes + the {idle,drag,playback} FSM (T.A13), the
+    // "Transform" animation is LIVE — Play visibly obeys duration/easing/direction,
+    // so the triad edits an honest animation (the VERDICT #12/#25 panel RETURN).
+    square: ["controls", "keyframes", "timeline"],
     easing: ["easing"],
     spring: ["spring"],
     sequence: [],
