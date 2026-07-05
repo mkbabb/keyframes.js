@@ -127,14 +127,29 @@ const { onPointerDown: onScrubPointerDown } = useDragCapture({
 });
 
 /** Capture-phase handler on the wrapper: gate touch interactions on mobile,
- *  then route the admitted gesture through the shared drag seam. */
+ *  then route the admitted gesture through the shared drag seam.
+ *
+ *  T.S2 (lane 27 F3) — the touch gate is a MOBILE scroll-vs-scrub disambiguator
+ *  (`useTouchGate`): its first-tap-activates contract returns `false` on the
+ *  first press whenever `"ontouchstart" in window` — which is TRUE in Chromium
+ *  (desktop + Playwright) even for a MOUSE. Routing a mouse/pen press through it
+ *  therefore SWALLOWED the shared drag seam's arming (`acquireSelectSuppression`
+ *  → `body.is-dragging` never set), so a real desktop scrub highlighted the
+ *  chrome it swept (proof:drag-gesture clause (a) RED on this one surface). A
+ *  mouse/pen has no page-scroll ambiguity, so it bypasses the gate and arms the
+ *  seam directly; only a genuine `touch` pointer consults the tap-to-activate
+ *  gate (which glass-ui's Slider does NOT provide — it sets touch-action:none,
+ *  hijacking scroll — so the wrapper stays, correctly scoped to touch). */
 const gatedSliderDown = (e: PointerEvent) => {
-    const wrapper = (e.currentTarget as HTMLElement);
-    if (!gate.handleTouchStart(wrapper, e.clientY)) {
-        // Gate not active — prevent the slider from receiving the event
-        e.stopPropagation();
-        e.preventDefault();
-        return;
+    if (e.pointerType === "touch") {
+        const wrapper = e.currentTarget as HTMLElement;
+        if (!gate.handleTouchStart(wrapper, e.clientY)) {
+            // First touch on a resting control — defer to page scroll; prevent
+            // the slider from receiving the event until a deliberate re-tap.
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+        }
     }
     onScrubPointerDown(e);
 };
