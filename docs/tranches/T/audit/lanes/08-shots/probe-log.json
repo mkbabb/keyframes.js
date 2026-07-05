@@ -1,0 +1,259 @@
+[
+  [
+    "home-rest docks",
+    [
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear collapsed fit-content dock-inline",
+        "rect": {
+          "x": 693,
+          "y": 43,
+          "w": 54,
+          "h": 54
+        },
+        "filter": "blur(3px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "0",
+        "revealBlur": "3px",
+        "dataMorphing": false
+      },
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+        "rect": {
+          "x": 621,
+          "y": 773,
+          "w": 199,
+          "h": 54
+        },
+        "filter": "blur(0px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "1",
+        "revealBlur": "3px",
+        "dataMorphing": false
+      }
+    ]
+  ],
+  [
+    "top dock mid-morph",
+    [
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+        "rect": {
+          "x": 713,
+          "y": 43,
+          "w": 14,
+          "h": 54
+        },
+        "filter": "blur(3px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "0",
+        "revealBlur": "3px",
+        "dataMorphing": true
+      },
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+        "rect": {
+          "x": 621,
+          "y": 773,
+          "w": 199,
+          "h": 54
+        },
+        "filter": "blur(0px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "1",
+        "revealBlur": "3px",
+        "dataMorphing": false
+      }
+    ]
+  ],
+  [
+    "top dock expanded",
+    [
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+        "rect": {
+          "x": 608,
+          "y": 43,
+          "w": 225,
+          "h": 54
+        },
+        "filter": "blur(0px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "1",
+        "revealBlur": "3px",
+        "dataMorphing": false
+      },
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+        "rect": {
+          "x": 621,
+          "y": 773,
+          "w": 199,
+          "h": 54
+        },
+        "filter": "blur(0px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "1",
+        "revealBlur": "3px",
+        "dataMorphing": false
+      }
+    ]
+  ],
+  [
+    "home transport dock",
+    {
+      "dockClasses": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+      "separators": [
+        {
+          "visible": true,
+          "rect": {
+            "x": 648,
+            "w": 1,
+            "h": 28
+          }
+        }
+      ],
+      "buttonOrder": [
+        "Reset animation",
+        "Clear all & reload",
+        "Play animation",
+        "Play animation (collapsed dock)"
+      ],
+      "firstLabelText": "\"\""
+    }
+  ],
+  [
+    "transport expanded (home)",
+    [
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+        "rect": {
+          "x": 608,
+          "y": 43,
+          "w": 225,
+          "h": 54
+        },
+        "filter": "blur(0px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "1",
+        "revealBlur": "3px",
+        "dataMorphing": false
+      },
+      {
+        "classes": "glass-dock horizontal shape-pill layout-linear expanded fit-content dock-inline",
+        "rect": {
+          "x": 621,
+          "y": 773,
+          "w": 199,
+          "h": 54
+        },
+        "filter": "blur(0px)",
+        "backdropFilter": "blur(9px)",
+        "expandT": "1",
+        "revealBlur": "3px",
+        "dataMorphing": false
+      }
+    ]
+  ],
+  [
+    "home transport expanded DOM",
+    [
+      {
+        "tag": "DIV",
+        "cls": "relative flex items-center gap-1.5",
+        "text": "",
+        "w": 0
+      },
+      {
+        "tag": "DIV",
+        "cls": "dock-separator",
+        "text": "",
+        "w": 1
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "dock-icon-button glass-specular-track",
+        "text": "",
+        "w": 40
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "dock-icon-button glass-specular-track",
+        "text": "",
+        "w": 44
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "btn-pill tap-squish focus-ring whitespace-nowrap text-[lengt",
+        "text": "",
+        "w": 40
+      }
+    ]
+  ],
+  [
+    "tooltip 'Clear all & reload' instances",
+    [
+      {
+        "tag": "SPAN",
+        "cls": "",
+        "parentCls": "z-tooltip overflow-hidden rounded-tooltip border glass-floating px-3 py-1.5 text",
+        "font": "\"Instrument Serif\", \"Instrument Serif Fallback\", Georgia, se",
+        "fontSize": "16px",
+        "rect": {
+          "x": 678,
+          "y": 735,
+          "w": 1,
+          "h": 1
+        },
+        "visible": true,
+        "pos": "absolute"
+      }
+    ]
+  ],
+  [
+    "spring top-dock expanded children",
+    [
+      {
+        "tag": "BUTTON",
+        "cls": "dock-icon-button glass-specular-track",
+        "text": "",
+        "w": 40
+      },
+      {
+        "tag": "DIV",
+        "cls": "dock-separator",
+        "text": "",
+        "w": 1
+      },
+      {
+        "tag": "DIV",
+        "cls": "dock-label dock-static-label flex items-center gap",
+        "text": "Spring",
+        "w": 90
+      },
+      {
+        "tag": "DIV",
+        "cls": "dock-separator",
+        "text": "",
+        "w": 1
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "dock-select-trigger dock-label [&>span]:line-clamp",
+        "text": "Spring",
+        "w": 108
+      },
+      {
+        "tag": "DIV",
+        "cls": "dock-separator",
+        "text": "",
+        "w": 1
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "dock-dropdown-trigger text-mono-caption normal-cas",
+        "text": "@mbabb",
+        "w": 85
+      }
+    ]
+  ]
+]
