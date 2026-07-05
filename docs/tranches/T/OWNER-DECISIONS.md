@@ -1,6 +1,6 @@
-# Tranche T — the OWNER DECISION register (OD-1 … OD-6)
+# Tranche T — the OWNER DECISION register (OD-1 … OD-7)
 
-> **Status: DEVELOPMENT. Six rulings PENDING-OWNER. Every ruling slot is EMPTY.**
+> **Status: DEVELOPMENT. Seven rulings PENDING-OWNER. Every ruling slot is EMPTY.**
 > This is charter §3 materialized as a live register: one row per pending disposition, each with
 > the decision, the options + their lane evidence, the prototype/artifact that serves the call,
 > and an EMPTY ruling slot the owner fills.
@@ -28,6 +28,7 @@
 | **OD-4** | The hero DIRECTION: "ink on graph paper" φ-band seat + per-CHAR two-tier uplift | per-char uplift is RULED (#3); honest ink (weight 400, de-glow) is RULED | the whole home COMPOSITION (seat, deck voice, two-focal balance) | **T.D9 / T.D10 / T.D11** + the live hero prototype | ⬜ **PENDING-OWNER** |
 | **OD-5** | Panel chrome: **two floating GlassPanels**, no surrounding pane | the surrounding pane is OUT (#7 "remove the surrounding pane") | the two-floating-panel REPLACEMENT composition | **T.B** (panel facility) + the live panel prototype | ⬜ **PENDING-OWNER** |
 | **OD-6** | Theme: Jakarta body + honest-weight serif + ONE violet accent ramp | the red-kill (`--accent-red` → destructive-only, ~168 refs) is RULED; Jakarta body is RULED | the violet ramp CHOICE (the oklch hue/chroma arms) | **T.D7** + the live theme prototype | ⬜ **PENDING-OWNER** |
+| **OD-7** | Easing specimen-drawer gallery: the drawer layout / tile treatment / one-shared-clock comparative sweep | the DIRECTION is ruled — #14 "just have the easing balls previewed here" (the balls ARE the scene) | the gallery DESIGN (drawer geometry, tile treatment, the shared-clock sweep) | **T.E6** + the live easing prototype | ⬜ **PENDING-OWNER** |
 
 ---
 
@@ -182,6 +183,34 @@ token (the red-kill mechanical lever is RULED and lands now; the ramp values rid
 
 ---
 
+## OD-7 — easing specimen-drawer gallery design
+
+**The fork.** VERDICT #14 rules the DIRECTION — "just have the easing balls previewed here" (the
+easing balls ARE the scene; the hand-rolled canvas/telemetry/gallery-door furniture is removed).
+But the specimen-drawer gallery **design** — the drawer layout, the tile treatment, the
+one-shared-clock comparative sweep across the named-curve tiles — is a **taste disposition**, not a
+ruled composition. Per T.M2 (the S.E lesson: critic consensus ≠ owner verdict), T.E6's born-RED
+oracle `proof:easing-gallery` may **not** be authored until an owner token covers a live prototype.
+This row exists so the easing-design fork is **visible** in the register the owner reviews — the
+exact S.E-shelf failure class (a taste disposition without an owner-in-the-loop vehicle) that T.M2
+exists to prevent; without an OD row the drawer-layout/tile-treatment/shared-clock fork would be
+invisible here.
+
+- **RULED (born-RED now):** the easing scene IS the previewed balls (#14); the removed furniture
+  (curve telemetry #13, gallery door #15, the 1,082L hand-rolled editor → glass-ui `EasingPicker`
+  via T.E8) rides T.E7/T.E11's ruled-removal lockstep.
+- **Needs the token:** the gallery composition itself signed off live — the drawer geometry, the
+  tile treatment, the shared-clock comparative sweep.
+
+**Served by** T.E6 (the specimen-drawer gallery IS the easing scene) + the live easing prototype.
+
+**Gated wave (BORN-OWNER):** T.E6's `proof:easing-gallery` born-RED oracle is not authored until
+OD-7 carries a token.
+
+**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+
+---
+
 ## Cross-band index (which band's waves each ruling unblocks)
 
 | OD | Owning band | Gated waves (BORN-OWNER until the token) |
@@ -192,6 +221,15 @@ token (the red-kill mechanical lever is RULED and lands now; the ramp values rid
 | OD-4 | **T.D** | T.D9 (two-focal), T.D11 (deck voice) |
 | OD-5 | **T.B** | the panel-composition capture oracle |
 | OD-6 | **T.D** | T.D7 (accent-census) |
+| OD-7 | **T.E** | T.E6 (`proof:easing-gallery`) |
 
-All six are recorded in the T.M `PROMPT-RECAP.md` owner-token census; T.Z's close requires every
+All seven are recorded in the T.M `PROMPT-RECAP.md` owner-token census; T.Z's close requires every
 slot filled (or explicitly deferred with a reason) before the design waves are authored.
+
+> **General-T.M2 riders (no dedicated OD row — enumerated so the general-contract set is not
+> implicit; H2-gates F2).** Three appearance waves ride T.M2's *general* design-wave contract
+> (pre-authoring owner sign-off via a live prototype) rather than a named OD row: **T.G6** (the
+> demo-scoped perceived-perf floor), **T.C** dock aesthetics, and **T.E6's non-design correctness
+> clauses**. T.E6's *gallery DESIGN* is now the named **OD-7** above (promoted out of the general
+> set); the perf-floor and dock-aesthetic taste calls remain general-contract riders and are listed
+> here so `proof:owner-review-gate` (T.M2) can bind them.

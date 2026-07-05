@@ -324,19 +324,22 @@ among the ≥9 enforcing the rejected state.)
 
 ## T.B6 — glass-ui-first panel kit; the register cure (KfPillTabs dies; de-red; type ramp)
 
-**id** T.B6 · **size** M · **BORN-RED** (KfPillTabs deletion, glass-ui consumption) **+ BORN-OWNER** (register/accent — **OD-6**)
+**id** T.B6 · **size** M · **BORN-RED** (glass-ui consumption; NO KfPillTabs deletion — that is T.H5, gated-on-publish) **+ BORN-OWNER** (register/accent — **OD-6**)
 **lanes** 10 rec 6 + rec 7 · 04 rec 4 (SQ-T4, square is the proving scene)
 
 **Scope.** VERDICT #18 ("wtf are most of these items? KfPillTabs.vue?? Why aren't these just
 glass-ui components?") and #24 (fonts/sizes via glass-ui).
 
 *The kit (born-RED, mechanical):*
-- **Delete `KfPillTabs.vue` + `useKfPillTabs.ts`** (verified two call sites:
-  `SpringSidebar.vue`, `AnimationControls.vue:74`). The fork exists only because glass-ui
-  4.0.1's `SegmentedTabs` emits `aria-orientation` unconditionally on its `role=group` pill
-  variant — a **named glass-ui gap**, filed to BG/BH (edge → **T.H**), not forked around. Any
-  surviving strip is `SegmentedTabs` (`./tabs`); machine hosts use the dock Select, so the
-  strip may not need to exist at all.
+- **The `KfPillTabs` fork is NOT deleted here** (single-owner discipline — H3-conflicts C1). The
+  fork exists only because glass-ui 4.0.1's `SegmentedTabs` emits `aria-orientation`
+  unconditionally on its `role=group` pill variant — a **named glass-ui gap** (BG-1/BG-3), so
+  deleting it before the re-pin re-breaks WAI-ARIA. **Ownership:** the fork's demo-side rename off
+  the `Kf`-vanity prefix + the shared `useRovingTabindex` convergence lands **now** in **T.F16**;
+  its terminal DELETION is **T.H5** (gated-on-publish, BG-1+BG-3). T.B6 is a **pure consumer**: any
+  surviving strip resolves through `SegmentedTabs` (`./tabs`) / the dock `Select` / the shared
+  `useRovingTabindex` primitive (T.F16), never a hand-forked roving core; machine hosts use the dock
+  Select, so the strip may not need to exist at all.
 - Adopt the glass-ui census (4.0.1, real subpath exports verified — lane 04 F4, lane 10 §3.3):
   `LabeledInput`/`LabeledSelect`/`LabeledSlider`/`LabeledSwitch` (`./labeled-field`),
   `NumberField` (`./number-field`), `EasingPicker` (`./easing`), `GlassPanel` (`./glass-panel`),
@@ -356,23 +359,30 @@ glass-ui components?") and #24 (fonts/sizes via glass-ui).
   `--primary`. Fix the light-theme black-blob sliders via `LabeledSlider` (subsumed by T.B7's
   Physics facet).
 
-**Gate.** `proof:panel-glass-kit` (born-RED — new): `grep -r "KfPillTabs" demo/` = 0 (fork
-gone); zero double-plate wrappers (no `Card` whose sole child is another `Card`); the panel's
-tab switcher resolves to `SegmentedTabs`/the dock Select, never the fork. `proof:panel-register`
+**Gate.** `proof:panel-glass-kit` (born-RED — new): the panel's tab switcher resolves through
+`SegmentedTabs` / the dock `Select` / the shared `useRovingTabindex` primitive (T.F16), never a
+hand-forked roving core; zero double-plate wrappers (no `Card` whose sole child is another `Card`).
+**No `grep "KfPillTabs" = 0` deletion clause here** (it would be accidentally satisfied by T.F16's
+rename `KfPillTabs`→`PillTabStrip` while the fork still lives — a green that certifies the wrong
+state; the terminal deletion is T.H5's gated-on-publish tripwire). `proof:panel-register`
 (**BORN-OWNER, OD-6**): a computed-style audit over the open panel — zero elements resolve
 `--accent-red` in any consumed property; zero `font-family` resolutions to the display serif
 inside the facility; label nodes resolve the text stack, value nodes the mono stack. The
 register oracle is **not authored until OD-6 carries an owner token** (T.M / lane 26 rec 1).
 
-**Edges.** **T.H** owns the glass-ui SegmentedTabs `aria-orientation` handoff (the fork's cause;
-consolidated into T.H's gap ledger + version tripwire — lane 21 rec 1/2) and the consume-edge
-re-pin. **T.D** owns the sitewide `--accent-red`/`--color-progress` token authority (the ONE
-violet accent ramp + red→destructive-only); T.B6 *consumes* it panel-locally. **T.F** — the kit
-lands inside the `instrument/` facility re-taxonomy.
+**Edges.** **T.H5** owns the `KfPillTabs` fork's **terminal DELETION** (gated-on-publish, BG-1+BG-3)
++ the glass-ui SegmentedTabs `aria-orientation` handoff (the fork's cause; consolidated into T.H's
+gap ledger + version tripwire — lane 21 rec 1/2) and the consume-edge re-pin. **T.F16** owns the
+fork's demo-side **rename** off the `Kf`-vanity prefix + the `useRovingTabindex` convergence (now).
+T.B6 is a pure **consumer** of the resulting switcher — cross-referenced both ways (T.H5 edges → T.B;
+T.F16 §Charter-conflict note 5). **T.D** owns the sitewide `--accent-red`/`--color-progress` token
+authority (the ONE violet accent ramp + red→destructive-only); T.B6 *consumes* it panel-locally.
+**T.F** — the kit lands inside the `instrument/` facility re-taxonomy.
 
-**Lockstep.** KfPillTabs deletion co-moves its test + the a11y probe (`proof:brittleness`). The
-de-red co-moves `proof:appearance-suffusion`, `proof:demo-fonts`, `proof:font-census` — re-anchor
-them to the new register, don't let them green on the old red.
+**Lockstep.** T.B6 does NOT delete `KfPillTabs` (that is T.H5's gated-on-publish motion, which
+re-arms `proof:glassui-aria-ask` + the a11y probe). The de-red co-moves
+`proof:appearance-suffusion`, `proof:demo-fonts`, `proof:font-census` — re-anchor them to the new
+register, don't let them green on the old red.
 
 ---
 
@@ -625,9 +635,9 @@ Every "## T recommendations" item in the assigned lanes maps to a wave, a cross-
 | 3 replace the placeholder `AnimationGroup` with a `TransportSource` interface | **T.B1** (same cure; the channel `progress()`/`setProgress()` + `playback` IS the TransportSource contract) |
 | 1 glass-ui-gap ledger + version tripwire *(out of assigned scope)* | cross-ref **T.H** |
 | 2 retire `KfPillTabs` onto SegmentedTabs *(out of assigned scope)* | cross-ref **T.B6** (kf side) + **T.H** |
-| 4 DRY the hot/cold readout throttle *(out of assigned scope)* | cross-ref **T.F**/**T.G** |
-| 5 sweep `demo` `any` under a ceiling gate *(out of assigned scope)* | cross-ref **T.F** |
-| 6 `proof:no-dead-export` + excise dead symbols *(out of assigned scope)* | cross-ref **T.F** |
+| 4 DRY the hot/cold readout throttle *(out of assigned scope)* | cross-ref **T.F23(c)** (OWNED there — `useThrottledReadout`; also folds w/ **T.G3**) |
+| 5 sweep `demo` `any` under a ceiling gate *(out of assigned scope)* | cross-ref **T.F23(b)** (OWNED there — the `any`-ceiling ratchet) |
+| 6 `proof:no-dead-export` + excise dead symbols *(out of assigned scope)* | cross-ref **T.F23(a)** (OWNED there — `proof:no-dead-export`) |
 | 7 de-defer/build the DM-22 named-selector resolution *(out of assigned scope; src, non-goal ring)* | cross-ref **T.S** |
 
 ### Charter conflicts / reconciliations spotted
@@ -646,3 +656,8 @@ Every "## T recommendations" item in the assigned lanes maps to a wave, a cross-
   panel/spring is RULED (born-RED, T.B6/T.B7), but the *replacement* accent ramp is **OD-6**
   owner-gated (T.D authority). No conflict; the ownership line is drawn (kf consumes T.D's
   token).
+
+## Addendum (2026-07-05, post-harden synthesizer ruling) — lane 25 fold
+
+- **Lane 25 rec 5** (flatten `ControlsPaneWrapper` to one glass-ui Card) → **OWNED by T.B4**
+  (substantively identical to "REMOVE THE SURROUNDING PANE"; lane 25 joins T.B4's citations).

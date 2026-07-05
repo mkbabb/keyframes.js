@@ -38,7 +38,7 @@
 | T.E3 | OD-1 alternative — prune morph + motion-path outright | M | **OWNER** | **OD-1 PRUNE** | 07 rec 2 (alt); 26 rec 7 |
 | T.E4 | Kill the utility-keyed-layout rule class (`.z-dock:has(> .pointer-events-auto)`) | S | RED | — | 07 rec 5 |
 | T.E5 | Readout-truth — a live metric samples the engine or does not exist | S | RED | — | 07 rec 6 |
-| T.E6 | The specimen-drawer gallery IS the easing scene | L | **OWNER** | (no OD row — rides T.M2; #14 direction ruled) | 05 rec 1 |
+| T.E6 | The specimen-drawer gallery IS the easing scene | L | **OWNER** | (**OD-7**; #14 direction ruled) | 05 rec 1 |
 | T.E7 | Execute the easing removals (curve-physics #13 + gallery door #15) | S | RED | — | 05 rec 2 |
 | T.E8 | ONE editor — glass-ui `EasingPicker` replaces the 1,082L hand-rolled cluster | M | RED | — | 05 rec 3 |
 | T.E9 | De-red the motion tokens + one violet hue authority (easing-scoped) | S | RED | (hue value → T.D/OD-6) | 05 rec 4 |
@@ -351,9 +351,10 @@ retire-target keys referenced by the roster aggregators `demo-roster.mjs` + `gat
   (lane 05 F6): `EasingPicker`'s catalogue is bezier + steps only, so the demo's **bounce
   family** (not expressible as one cubic-bezier) stays kf-owned — the division of labor is
   clean: the **gallery** (every named curve, T.E6) is the scene's; the **editor** (bezier/steps
-  authoring) is `EasingPicker`'s. Three glass-ui asks routed to **T.H**: (1) named-catalogue
-  coverage beyond bezier presets, (2) an externally-driven-`progress` example in `EasingPicker`
-  docs, (3) `ToggleChip cell` with a live-animating preview slot. The hand-rolled editor is
+  authoring) is `EasingPicker`'s. Three glass-ui asks routed to **T.H** (now homed in
+  `KF-TO-GLASSUI-BG.md` as **BG-8/BG-9/BG-10**): (1) **BG-8** named-catalogue coverage beyond bezier
+  presets, (2) **BG-9** an externally-driven-`progress` example in `EasingPicker` docs, (3) **BG-10**
+  `ToggleChip cell` with a live-animating preview slot. The hand-rolled editor is
   this surface's **"Kf-vanity"** (#18 genus) — its deletion satisfies the charter T.E row's
   Kf-vanity removal for the easing scene (§Charter conflicts note 3).
 - **Lockstep.** The `:deep(.easing-curve-canvas)` clamps duplicated across `EasingSidebar.vue:215,
@@ -376,12 +377,19 @@ retire-target keys referenced by the roster aggregators `demo-roster.mjs` + `gat
   Also fix the **light-mode slider**: the duration range-fill rides light `--primary` = near-black
   `hsl(24 10% 10%)` (the ~90px black blob in `dev-easing-closed.png`; dark mode paints it violet
   correctly) — an asymmetric token, a glass-ui-vs-demo bridge defect to fix at the token.
-- **Gate (BORN-RED, easing-scoped).** Browser probe — a rendered-pixel sweep of the easing route
-  (light + dark) finds **zero pixels within ΔE<10** of `hsl(0 72% 63%)`/`hsl(5 55% 50%)`; the
-  duration slider's track spans ≥90% of the panel inner width with a fill whose hue ∈
-  [240°,320°]. **Reds today:** the ribbon fill + `.progress-ball` render red; the light-mode
-  slider is a near-black blob. The **red-KILL is owner-ruled** (#16, born-RED); the **specific
-  violet hue-family value** rides **T.D/OD-6** (the ONE oklch violet accent ramp — sign-off).
+- **Gate — SPLIT (BORN-RED red-kill + BORN-OWNER hue window).**
+  - **BORN-RED (the red-kill, owner-ruled #16, lands now):** a rendered-pixel sweep of the easing
+    route (light + dark) finds **zero pixels within ΔE<10** of `hsl(0 72% 63%)`/`hsl(5 55% 50%)`;
+    the duration slider's track spans ≥90% of the panel inner width (the light-mode near-black blob
+    fixed). **Reds today:** the ribbon fill + `.progress-ball` render red; the light-mode slider is
+    a near-black blob.
+  - **BORN-OWNER (the positive hue window, OD-6):** the duration-slider/violet fill resolves a hue
+    ∈ **the OD-6 accent window T.D7 defines** — this gate CONSUMES T.D7's single blessed window, it
+    does **not** restate a second literal (T.D7's oracle asserts hue ∈ the OD-6 window; a hard-coded
+    [240°,320°] here would disagree with T.D7's [280°,330°] — one owner ramp choice would pass one
+    gate and RED the other). The hue clause is **not authored until OD-6 carries an owner token**
+    (T.M2); until then only the red-KILL clause above is live. **One source of the violet window
+    (T.D7/OD-6); the easing gate consumes it.**
 - **Size.** S (easing scope) / M with the sitewide half.
 - **Lanes.** 05 rec 4 (T-E4).
 - **Edges.** The **sitewide** repoint of `--color-progress` off `--accent-red` (returning
@@ -500,7 +508,7 @@ retire-target keys referenced by the roster aggregators `demo-roster.mjs` + `gat
 | T.E2 (full panel per act), T.E6 (sidebar) | **T.B** | The SceneFacility triad (controls/keyframes/timeline) mounts over honest engine animations — T.B owns the facility, T.E consumes it |
 | T.E2, T.E6 (render budget) | **T.G** | Direct-write painter budget + true-rest methodology (CDP-counter substrate); T.E5's paused-poll cure is a T.G true-rest slice |
 | T.E4 (dock-tether attribute) | **T.C / T.D** | `[data-dock-tether]` opt-in for the dock grammar recut + the anchor-positioning idiom (T.D owns the anchor labyrinth cure) |
-| T.E8 | **T.H** | glass-ui `EasingPicker` consumption discipline + 3 BG/BH gap-letter asks (bounce catalogue, external-progress docs, `ToggleChip` live-preview slot) |
+| T.E8 | **T.H** | glass-ui `EasingPicker` consumption discipline + 3 BG/BH gap-letter asks **BG-8/BG-9/BG-10** (bounce catalogue, external-progress docs, `ToggleChip` live-preview slot — now in `KF-TO-GLASSUI-BG.md` §0) |
 | T.E9 (sitewide `--color-progress` repoint), OD-6 hue ramp | **T.D** | The latent-red kill (`--accent-red` → destructive-only, ~168 refs) + the ONE oklch violet accent authority (OD-6) |
 | T.E10 (sitewide font kit), the style-tuple gate | **T.D** | Plus Jakarta Sans as `--font-sans`, mono-to-data demotion, the family+size+weight+style font gate |
 | T.E6, T.E9, T.E10 (appearance), T.E2 stage tokens | **T.M2/T.M3** | Owner-token capture sign-off for every appearance disposition (the gallery design, the violet ramp, the fonts, the blueprint stage) — no born-RED appearance oracle authored without the token |
@@ -587,15 +595,15 @@ charter (listed for completeness with the owning band; my assignment scopes me t
    drive does not double-author the manifest re-cut (T.A and T.E each assuming the other holds
    it) NOR retire the key while a scene's tell still renders.
 
-2. **The easing specimen-drawer gallery is BORN-OWNER but has NO charter §3 OD row.** Charter §3
-   registers OD-1..OD-6; the easing gallery (T.E6) is owner-ruled in DIRECTION (#14 "just the
-   easing balls") but its DESIGN (the drawer layout, tile treatment, one-shared-clock sweep) is a
-   taste disposition requiring an owner token before its born-RED oracle is authored (T.M2). It
-   currently rides **T.M2's general design-wave contract** (pre-authoring sign-off via a live
-   prototype), NOT a dedicated OD row. **Recommendation:** add an OD-7 (easing gallery design) to
-   `OWNER-DECISIONS.md`, OR explicitly document that T.E6 rides T.M2's general contract. Flagged
-   so the impl drive does not author `proof:easing-gallery` without capturing the easing-design
-   owner token (the exact S.E-shelf failure this tranche exists to prevent).
+2. **The easing specimen-drawer gallery is BORN-OWNER — now homed on OD-7 (RESOLVED).** The easing
+   gallery (T.E6) is owner-ruled in DIRECTION (#14 "just the easing balls") but its DESIGN (the
+   drawer layout, tile treatment, one-shared-clock sweep) is a taste disposition requiring an owner
+   token before its born-RED oracle is authored (T.M2). **RESOLVED:** a dedicated **OD-7 (easing
+   specimen-drawer gallery design)** row is added to `OWNER-DECISIONS.md` (register table + section
+   + cross-band index) and to `T.md` §3, PENDING-OWNER, served by T.E6 + the live easing prototype —
+   so the drawer-layout/tile-treatment/shared-clock fork is VISIBLE in the register the owner
+   reviews, and `proof:easing-gallery`'s born-RED oracle is not authored until OD-7 carries a token
+   (the exact S.E-shelf failure this tranche exists to prevent).
 
 3. **"Kf-vanity" (charter T.E row) vs lane 18 rec 4's KfPillTabs (T.M-dispositioned to T.B/T.C/
    T.H).** The charter T.E row lists "Kf-vanity" among the ruled removals, but T.M dispositioned
@@ -627,3 +635,10 @@ charter (listed for completeness with the owning band; my assignment scopes me t
    `--font-sans` Jakarta swap + the style-tuple font gate. Flagged so the token/font changes land
    ONCE (T.D) and the easing gate asserts the on-surface result (T.E) — never two independent
    repoints, never an easing gate asserting a token T.D hasn't moved.
+
+## Addendum (2026-07-05, post-harden synthesizer ruling) — lane 25 fold
+
+- **Lane 25 rec 3** (scene-disposition governance: a scene enters the SceneId roster only after
+  an owner keep/prune ruling) → **OWNED by T.E1**: its gate gains the governance clause — the
+  SceneId roster must equal the owner-ratified kept set (OD-1/OD-7 feed it), so a future scene
+  cannot enter by merely mounting. Mechanism authority: T.M2 (owner-disposition tokens).

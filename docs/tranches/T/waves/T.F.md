@@ -33,7 +33,9 @@
 > **Lanes owned:** 13-demo-structure (ALL), 14-at-structure (ALL), 15-app-prune (recs 1–4;
 > rec 5 = OD-3, cross-ref), 16-scenes-composition (ALL), 22-state-stores (ALL),
 > 18-brittle-selectors (recs 1, 2, 4, 5, 6 — rec 3 is T.E11's lockstep exemplar),
-> 19-fragile-css (rec 1 — the breakpoint; recs 2–7 are T.D's).
+> 19-fragile-css (rec 1 — the breakpoint; recs 2–7 are T.D's),
+> 21-legacy-sweep (recs 4, 5, 6 — the throttle-DRY / `any`-ceiling / dead-export DEMO cures,
+> OWNED by **T.F23** per the 2026-07-05 GRAND COLOCATION EDICT; recs 1–3, 7 cross-ref T.H/T.B/T.S).
 >
 > **The meta-fact this band is the subject of (the through-line of lanes 13/14/22/18).**
 > Every S.D structural gate is GREEN on a tree the owner rejected on sight (VERDICT #26).
@@ -720,7 +722,12 @@ constant anywhere.
   reductio: `rafConstants.ts` is 87% comment for ONE exported line. Rewrite every `app/` comment
   citing a wave/tranche code to state the CURRENT behavior + its WHY in plain prose, zero internal
   identifiers (provenance lives in `git blame` + `docs/tranches/`); trim `rafConstants.ts`'s
-  13-line preamble to ≤3 (lane 15 rec 2, the exemplar instance).
+  13-line preamble to ≤3 (lane 15 rec 2, the exemplar instance). **Also fold lane 21 finding #9's
+  legacy-NAMING residue** (the one "legacy-NAMED but live" symbol under the "NO legacy code"
+  clause): rename `cube/orbital-drag/composables/inertiaDecay.ts`'s `TARGET_DT` →
+  `REFERENCE_FRAME_DT` and drop the "legacy per-frame friction" prose so it reads as a parity
+  anchor; the sibling `motionPathGeometry.ts:76 LEGACY_PATH_D` retires with motion-path if
+  **OD-1 = PRUNE** (T.E3), else is de-"legacy"d in the FUSE move (T.E2).
 - **gate (BORN-RED).** `proof:no-tranche-provenance` — a curated regex bank
   (`\b[SHJKQRBD]\.[A-Za-z0-9]+`, `BLK-\d+`, `WV-W\d+-[A-Z]+-\d+`, `\bC-\d+`, `\ba\d{1,2}\b`
   word-boundary) matched against COMMENT text only (not code/CSS) in `demo/app/**` → 0 hits;
@@ -1075,6 +1082,17 @@ charter (one line, no duplication).
 | 6 · add `proof:no-dead-export` + excise the confirmed-dead symbols | **→ T.F23(a)** (OWNED — `kfEngineReady` + 6 dead types + ~30 reflexive interfaces) |
 | 7 · de-defer or build the DM-22 named-selector resolution | ↳ cross-ref **T.S4** (the src-side deferral carry) |
 
+> **Litany residue dispositioned here (VERDICT #28 / ORIGINAL-PROMPT clauses lane 21 audited
+> beyond its numbered recs — zero silent drops):**
+> - **legacy-NAMED symbols (lane 21 finding #9)** — `inertiaDecay.ts` `TARGET_DT` →
+>   `REFERENCE_FRAME_DT` + de-"legacy" prose → **T.F19** (the provenance/legacy-naming sweep);
+>   `LEGACY_PATH_D` retires with motion-path under OD-1 (T.E2/T.E3).
+> - **NO nested imports (ORIGINAL-PROMPT:67)** — **audited-clean modulo the sanctioned boundary**:
+>   NO blanket `proof:no-nested-import` gate is authored, because it would falsely RED the
+>   sanctioned dynamic `loadAnimationEngine()` LIGHT/HEAVY split + the `defineAsyncComponent`
+>   lazy barrels (T.F5). Recorded explicitly (mirroring lane 21's test-in-`src` clearance) so the
+>   clause is not silently dropped.
+
 ---
 
 ## §4 Charter conflicts / coordination notes spotted
@@ -1168,3 +1186,14 @@ charter (one line, no duplication).
    not collide in prose or in the tree (`components/instrument/` = files; `SceneFacility` =
    runtime; `InstrumentChassis` = glass-ui shell, consumed via T.H). Flagged so the impl drive
    does not conflate the file-module cohesion (T.F) with the runtime-descriptor build (T.B).
+
+## Addendum (2026-07-05, post-harden synthesizer ruling) — lane 25 fold
+
+- **Lane 25 rec 4** (demo-footprint budget; dissolve `app/chrome/`) → **OWNED by T.F3**
+  (the dissolve) **+ T.F23** (the budget: the aggressive-purge gate gains a footprint clause —
+  every `app/` file resolves a named shell-role in the manifest, ceiling declared at the
+  post-prune survivor count).
+- **Lane 25 rec 6** (no owner-facing surface in the ungated discretionary tier; gate the styles
+  consolidation) → **OWNED by T.D's styles de-archaeology/token-authority waves** (lane 17's
+  home) **+ T.F21's shared-tier-purity clause** (the ungated-tier cure is exactly the purity
+  rule applied to `styles/`).

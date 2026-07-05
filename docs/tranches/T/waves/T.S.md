@@ -398,9 +398,9 @@ charter (listed for completeness with its owning band).
 | *(1 · consolidate the 3 glass-ui-4.0.1 band-aids into one gap ledger + version tripwire)* | ↳ **T.H** (the `glass-ui-gaps` ledger + tripwire; lane 21/20) |
 | *(2 · retire `KfPillTabs` onto glass-ui `Tabs`/`SegmentedTabs`)* | ↳ **T.E / T.C / T.H** (glass-ui consumption; VERDICT #18) |
 | *(3 · replace the placeholder `AnimationGroup` with a `TransportSource` interface)* | ↳ **T.B** (SceneFacility replaces `useContractAnimGroup`; VERDICT #25) |
-| *(4 · DRY the hot/cold readout throttle into one composable)* | ↳ **T.F** (state/composable consolidation) |
-| *(5 · sweep `demo` `any` to a bounded ceiling under a gate)* | ↳ **T.F** (demo restructure + hygiene ceiling) |
-| *(6 · add `proof:no-dead-export` + excise the confirmed-dead symbols)* | ↳ **T.F** (structure) / **T.M8** (hygiene-chain wiring) |
+| *(4 · DRY the hot/cold readout throttle into one composable)* | ↳ **T.F23(c)** (state/composable consolidation — OWNED there) |
+| *(5 · sweep `demo` `any` to a bounded ceiling under a gate)* | ↳ **T.F23(b)** (demo restructure + hygiene ceiling — OWNED there) |
+| *(6 · add `proof:no-dead-export` + excise the confirmed-dead symbols)* | ↳ **T.F23(a)** (OWNED) / **T.M8** (hygiene-chain wiring) |
 
 ---
 

@@ -372,13 +372,17 @@ BG/BH re-pin**, not as a silent carry:
   26's demo-structure recut); T.C6 does not touch it.
 
 Once the re-pinned dock holds popovers open through its own dismiss path (`glassCaps.dockDismissHold
-=== true`) and actuates single-click through the crossfade (`glassCaps.dockClickIntegrity === true`),
+=== true`) and actuates single-click through the crossfade (`glassCaps.dockStrandKeepalive === true`),
 **delete** ChromeDock's re-expand watch + popup mutex, and **collapse `usePlayActuation` to a plain
 click handler**.
 
-**Gate.** `proof:workaround-deletion` **new rows** (the gate EXISTS — verified live in
-`proof:hygiene-chain`, `package.json:249`) keyed on the glassCaps probe: `dockDismissHold` and
-`dockClickIntegrity`. Each row: **cap === true ⇒ the scaffolding files/branches are GONE**
+**Gate.** `proof:workaround-deletion` (the gate EXISTS — verified live in `proof:hygiene-chain`,
+`package.json:249`) keyed on the glassCaps probe: GU-3 is a **new row** on `dockDismissHold`
+(genuinely new cap); **GU-4's excision row IS `proof:workaround-deletion` S2, keyed on the EXISTING
+`glassCaps.dockStrandKeepalive`** (`proof-workaround-deletion.mjs:255`, already coded — do NOT mint
+a second `dockClickIntegrity` synonym cap for the one defect; a single defect gets a single probe,
+else the two gates disagree — `KF-TO-GLASSUI-BG.md` §1, matching T.H1/T.H6). Each row: **cap ===
+true ⇒ the scaffolding files/branches are GONE**
 (grep-clauses: zero re-expand `watch` / popup-mutex in `ChromeDock.vue`; zero `usePlayActuation`
 reference). **This is a GATED-ON-REPIN tripwire, NOT born-RED on today's tree:** the caps are
 **false** today (glass-ui 4.0.1 pinned `~4.0.0`, `package.json:274`, GU-3/GU-4 unpublished), so
@@ -395,7 +399,7 @@ from `actions.primary` (a plain click handler on the primary CTA).
 S5 (the dock-strand actuation leg) and `proof:dock-popover-opens` / `proof:single-toggle` against
 the **native** (un-scaffolded) path — never leave a gate certifying the workaround's behavior
 after the workaround is gone (charter §5 lockstep). Grep `scripts/` for `usePlayActuation` /
-`dockDismissHold` / `dockClickIntegrity` before the excision commit lands (gates anchor literal
+`dockDismissHold` / `dockStrandKeepalive` before the excision commit lands (gates anchor literal
 paths).
 
 ---

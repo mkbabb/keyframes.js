@@ -36,7 +36,7 @@
 | T.A8 | The Boing IS the scene | M | — | RED | 03 rec 3 |
 | T.A9 | Honest arc — delete the fit solver, retune physics | M | — | RED | 03 rec 4 |
 | T.A10 | Amiga stage strip-down + grid-room | S | — | RED | 03 rec 5 |
-| T.A11 | Transient telemetry via glass-ui MetricBadge | S | — | RED | 03 rec 6 |
+| T.A11 | Transient telemetry via glass-ui MetricBadge | S | — | RED + OWNER (badge existence/placement → T.M2) | 03 rec 6 |
 | T.A12 | Render-on-demand present loop | S | — | RED | 03 rec 7 |
 | T.A13 | Square honest Play — unit-normalizer + four-corner keyframes + FSM | M | — | RED | 04 rec 1 (core) |
 | T.A14 | **MorphSVG attribute-first render contract** | S | **LIBRARY** | RED | 07 rec 3 |
@@ -283,16 +283,30 @@
   `AnimatedDigit`, unit "rad/s", size `sm`), top-right of the stage (survives the mobile
   sheet), mounted **only while `|ω| > 0.05 rad/s`** and fading at rest. It appears when you
   spin, witnesses the decay() coast, and leaves. `AmigaTelemetry.vue` dies.
-- **Gate (BORN-RED).** Probe — badge **absent at rest**, present within 200ms of a drag,
-  absent ≤1s after glide rest; the mobile-390 shot shows the badge unoccluded by the sheet.
-  **Reds today:** the readout is present at rest (fails "absent at rest") and occluded on
-  390 (`rest-390.png`).
+- **Gate — SPLIT (BORN-RED correctness + BORN-OWNER existence/placement).**
+  - **BORN-RED (correctness, lands now):** IF a badge exists, it is **honest** — **absent at rest**,
+    present within 200ms of a drag, absent ≤1s after glide rest; the mobile-390 shot shows it
+    unoccluded by the sheet. **Reds today:** the parked `AmigaTelemetry` readout is present at rest
+    (fails "absent at rest") and occluded on 390 (`rest-390.png`).
+  - **BORN-OWNER (existence + placement — a NEW on-stage element, the S.G lesson):** whether a
+    transient ω badge is wanted **at all**, and top-right, is a design/appearance disposition — its
+    born-RED "there IS a top-right badge" oracle is **gated on a T.M2 owner token** (a captured-render
+    review), NOT authored now. **If no owner token is captured, T.M4's default governs: removal, no
+    replacement** — `AmigaTelemetry.vue` dies and nothing takes its place (T.E11/T.M7 default-removal
+    doctrine; T.E11 "no bespoke affordance-hint/readout system is rebuilt unless the owner signs one
+    via T.M2"). This wave RE-INTRODUCES a bespoke on-stage element; it must not crystallize its
+    existence via a born-RED gate ahead of the owner call (the exact gate-blindspot the S.G lesson
+    catches). **No VERDICT line touches the ω readout** — the redesign is lane-driven (lane 03 F6),
+    so the existence question is genuinely owner-open.
 - **Size.** S. **Lanes.** 03 rec 6 (T-AM6).
 - **Edges.** `MetricBadge`/`AnimatedDigit` are glass-ui 4.0.1 components — **T.H** owns the
-  glass-ui consumption discipline; this wave is the amiga-scene consumer (edge). The
-  parked-readout removal is the same #13-genus as T.E's ruled removals.
-- **Lockstep.** Retire any gate asserting `AmigaTelemetry`'s presence/text; the transient
-  badge's mount-window becomes the new assertion.
+  glass-ui consumption discipline; this wave is the amiga-scene consumer (edge). **→ T.M** — the
+  badge's *existence + placement* is routed to **T.M2** owner sign-off (mirroring T.A2/T.A3/T.A10's
+  appearance slices) + **T.M4** stage-inventory (its default is removal, no un-manifested chrome).
+  The parked-readout removal is the same #13-genus as T.E's ruled removals.
+- **Lockstep.** Retire any gate asserting `AmigaTelemetry`'s presence/text; the honest-mount-window
+  is the correctness assertion, but the *existence* assertion is NOT authored until OD/T.M2 blesses
+  the badge (else T.M4 removal governs and no existence gate is authored at all).
 
 ### T.A12 — Render-on-demand present loop
 - **Scope.** `useAmigaThree.ts:200-212` — `present.loop(() => {…render…; return true;})`
@@ -443,6 +457,7 @@
 | T.A6 | **T.S** | The value.js-2.0.1 array-box shape is the S.C4/S2 consume-edge; T.S owns the value.js letter (kf projects plain vars on its own side — no value.js ask) |
 | T.A10 (grid tokens), the cube/amiga aesthetic targets | **T.D** | Color/type tokens for the restaged stages; T.D owns the look language |
 | T.A11 | **T.H** | glass-ui `MetricBadge`/`AnimatedDigit` consumption discipline |
+| T.A11 (badge existence + placement) | **T.M** | The transient ω badge is a NEW on-stage element — its EXISTENCE + top-right placement is gated on a **T.M2** owner token (captured-render review), NOT born-RED; default is **T.M4** removal (no un-manifested chrome). The S.G lesson: no bespoke readout rebuilt without owner sign-off |
 | T.A14 (demo consumption) | **T.E** | The morph act of the fused `scenes/svg/` scene consumes the attribute-first library contract |
 | T.A2, T.A3, T.A10 (appearance slices), cube/amiga targets | **T.M** | Owner-token capture sign-off for any appearance disposition (axis opacity, settle-easing choice, grid-room composition) — no born-RED appearance oracle authored without the token |
 

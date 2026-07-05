@@ -117,10 +117,13 @@ dangling CI reference reds `proof:ci-coverage`). Every band-aid file's ledger-im
 
 **Scope.** Re-issue the DEV-authored `KF-TO-GLASSUI-BG.md` as the shipped dispatch and land its
 machine-readable half:
-- The letter carries **nine asks** (GU-1..4 dock render/interaction, BG-1/BG-3 tabs, BG-4 dock
-  dropdown, BG-5 static-backdrop, BG-6 `--font-display-weight`, BG-7 public cursor-writer) + the
-  retired BG-2 duplicate note. Each ask: (a) measured kf-side evidence citing the lane, (b) the
-  kf-side born-RED acceptance gate that flips on the re-pin, (c) the workaround it retires.
+- The letter carries **twelve asks** (GU-1..4 dock render/interaction, BG-1/BG-3 tabs, BG-4 dock
+  dropdown, BG-5 static-backdrop, BG-6 `--font-display-weight`, BG-7 public cursor-writer, **BG-8/
+  BG-9/BG-10 the easing-picker consumption asks** — named-catalogue/bounce coverage, external-driven
+  `progress` docs, `ToggleChip cell` live-preview slot, routed from T.E8/lane 05 F6) + the retired
+  BG-2 duplicate note. Each ask: (a) measured kf-side evidence citing the lane, (b) the kf-side
+  born-RED acceptance gate (or a delineated non-blocking GAP note, for BG-7..BG-10) that flips on the
+  re-pin, (c) the workaround it retires (none for the delineated-GAP asks).
 - Extend `docs/tranches/Q/PIN-LEDGER.json`'s `target.pins` with a row per ask (the consume
   frontier), so `proof:pin-ledger-current` (c.3) witnesses the caret-pin consume as a gated edge.
 - Wire the two new `glassCaps` caps into `proof:workaround-deletion`: `dockDismissHold` (GU-3
@@ -259,10 +262,14 @@ a11y probe). **NOT born-RED today:** BG-1+BG-3 unpublished; deleting KfPillTabs 
 the caps are satisfied but the files survive.
 
 **Edges.**
-- **→ T.B** the spring/easing sidebars DISSOLVE into channels+facets (VERDICT #12/#18 rebuild to
-  the cube/amiga/square controls-model) — both KfPillTabs call sites are being rebuilt anyway; the
-  pill component dies with that redesign. T.B owns the sidebar dissolution; T.H5 owns the
-  *component* deletion + the SegmentedTabs adoption (the charter's gated-on-publish excision).
+- **→ T.B (esp. T.B6)** the spring/easing sidebars DISSOLVE into channels+facets (VERDICT #12/#18
+  rebuild to the cube/amiga/square controls-model) — both KfPillTabs call sites are being rebuilt
+  anyway; the pill component dies with that redesign. T.B owns the sidebar dissolution and is a
+  **pure consumer** of the switcher (T.B6 carries NO deletion clause); **T.H5 is the SINGLE owner of
+  the fork's DELETION** + the SegmentedTabs adoption (the charter's gated-on-publish excision).
+- **→ T.F16** owns the demo-side **rename** off the `Kf`-vanity prefix + the `useRovingTabindex`
+  convergence (lands now); T.H5's deletion supersedes the renamed fork on the re-pin. One deletion
+  owner (T.H5), one rename owner (T.F16), T.B6 a consumer — cross-referenced all three ways.
 - **→ T.D** the `KfPillTabs.vue:93` display-face force dies with the component (T.D2/T.D5 note);
   the byte-identical `controls/tab-trigger.css:54-62` pill-recipe twin is retired in lockstep.
 - **← T.H2** BG-1/BG-3 are asks in the letter.
@@ -342,7 +349,7 @@ before the excision commit.
 | 1 | Consume `Drawer mode="live-behind"` for the mobile sheet | **→ T.H3** |
 | 2 | Swap `<div class="dock-separator">` → `DockSeparator` (5 sites) | **→ T.H4** (SUBSUMED by **T.C1**'s grammar recut — one motion; T.H4 carries only the cross-ref + the grep clause rides `proof:dock-grammar`) |
 | 3 | Delete `GestureLegend.vue` + `proof:gesture-manifest` | **→ T.E** (charter routes the gesture-legend removal + its gate rewire to the prune band; VERDICT #8; coordinate lane 07). glass-ui has no primitive — deletion, not swap. |
-| 4 | Author `KF-TO-GLASSUI-BG.md` (BG-1..BG-4 + gates) | **→ T.H2** (expanded to nine asks GU-1..4 + BG-1/3/4/5/6/7) |
+| 4 | Author `KF-TO-GLASSUI-BG.md` (BG-1..BG-4 + gates) | **→ T.H2** (expanded to twelve asks GU-1..4 + BG-1/3/4/5/6/7 + BG-8/9/10 the easing-picker consumption asks routed from T.E8/lane 05 F6) |
 | 5 | GATED: kill `KfPillTabs` + `useKfPillTabs`; both consumers → SegmentedTabs | **→ T.H5** (gated on BG-1 + BG-3) |
 | 6 | GATED: delete `usePlayActuation` + the `MbabbMenu` synthesis; re-pin | **→ T.H6** (gated on GU-4 + BG-4; usePlayActuation co-owned with T.C6) |
 
@@ -353,9 +360,9 @@ before the excision commit.
 | 1 | Consolidate the 3 band-aids into ONE gap ledger + version tripwire | **→ T.H1** |
 | 2 | Retire `KfPillTabs` onto glass-ui `SegmentedTabs` | **→ T.H5** |
 | 3 | Replace the placeholder `AnimationGroup` with a `TransportSource` interface (`useContractAnimGroup`) | **→ T.B** (VERDICT #25 — the transport facility hard-typed to `AnimationGroup`; the light-scene decoy replacement is T.B's `SceneFacility` charter, lane 23/10). Cross-ref only. |
-| 4 | DRY the hot/cold readout throttle into one composable | **→ T.F** (structure — the `useThrottledReadout` seam across 4 scenes; also folds with **T.G3**'s `PROGRESS_READOUT_HZ` per-frame reactive-write cure). Cross-ref. |
-| 5 | Sweep `demo` `any` to a bounded ceiling under a gate | **→ T.F** (the demo strictness sweep + the ratchet gate; lane 13/14 structure). Cross-ref. |
-| 6 | Add `proof:no-dead-export`; excise `kfEngineReady` + 6 dead types | **→ T.F** (the export-granularity hygiene gate; feeds off T.H3's deleted sheet composables). Cross-ref. |
+| 4 | DRY the hot/cold readout throttle into one composable | **→ T.F23(c)** (OWNED — the `useThrottledReadout` seam across 4 scenes; also folds with **T.G3**'s `PROGRESS_READOUT_HZ` per-frame reactive-write cure). Cross-ref. |
+| 5 | Sweep `demo` `any` to a bounded ceiling under a gate | **→ T.F23(b)** (OWNED — the demo strictness sweep + the `any`-ceiling ratchet gate). Cross-ref. |
+| 6 | Add `proof:no-dead-export`; excise `kfEngineReady` + 6 dead types | **→ T.F23(a)** (OWNED — the export-granularity hygiene gate; feeds off T.H3's deleted sheet composables). Cross-ref. |
 | 7 | De-defer or build the DM-22 named-selector resolution (`frame-compiler.ts:341`) | **→ T.S** (the S-residue / DM-22 de-defer; the ONE live `src` "DEFERRED to a follow-up wave" marker). Cross-ref. |
 
 ### Lane 08 — dock system (recs 5,6 assigned — the GU asks; 1–4,7 → T.C)
@@ -423,3 +430,11 @@ before the excision commit.
    dimension); `proof:workaround-deletion` is the per-arm three-state ledger. They **compose off a
    single `glassCaps` probe** (T.H1 reuses it), never a second copy — else the two gates can
    disagree.
+
+## Addendum (2026-07-05, post-harden synthesizer ruling) — lane 25 fold
+
+- **Lane 25 rec 2** (glass-ui-consumption gate on primitive replacement) → **OWNED by T.H1**:
+  the gap-ledger + version tripwire IS the "a deleted primitive's replacement imports glass-ui
+  OR carries a ledgered `GLASSUI-GAP:` row" rule — T.H1's gate gains that clause explicitly
+  (a replacement site with neither an `@mkbabb/glass-ui` import nor a ledger row REDs).
+  Co-cited: T.F23's glass-ui-usage census (the sweep side).

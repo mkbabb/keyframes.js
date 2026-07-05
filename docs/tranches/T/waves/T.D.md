@@ -441,8 +441,9 @@ play-first + de-divided as its bottom-band focal — flagged as a T.D9→T.C edg
 - **scope.** The recurrence itself is the real defect (H.W9's `.cartoon-specular` →
   ComposeTarget's `.foundry-keylight`, same shape, "present on one surface only," two independent
   authors). Nothing stops a THIRD hand-rolled `--mouse-x`/`--mouse-y` tracker on a future scene. A
-  grep/AST gate (sibling to `proof:no-orphan-specular`, which already exists for glass-ui's own
-  specular class) that fails CI if `demo/` defines a new `@property` pair matching `--*-x`/`--*-y`
+  grep/AST gate (sibling to `proof:specular-absent-at-rest`, glass-ui's existing specular-guard
+  gate — renamed from the retired `proof:no-orphan-specular`) that fails CI if `demo/` defines a
+  new `@property` pair matching `--*-x`/`--*-y`
   driven by a **bare (non-glass-ui-sourced)** `pointermove`/`mousemove` handler — forcing any future
   cursor-reactive effect through glass-ui's public surface (`aurora`/`goo-blob`/`constellation`) or an
   explicit reviewed exception.
@@ -664,6 +665,30 @@ play-first + de-divided as its bottom-band focal — flagged as a T.D9→T.C edg
   a fourth scene adopting "the same blueprint-ground idiom" (a stated, reuse-inviting pattern name)
   finds the existing recipe, not a fourth retype.
 
+## T.D22 — `proof:tailwind-idiomatic` — the non-idiomatic-Tailwind audit (ORIGINAL-PROMPT styling item 1)
+
+- **scope.** `ORIGINAL-PROMPT.md:83` enumerates, as an explicit numbered styling-focus item, "(1)
+  non-idiomatic Tailwind usage" (echoed in the VERDICT #28 litany "non-idiomatic-tailwind … audits") —
+  a dropped operative that no other T.D wave audits (T.D15 = de-archaeology/tokens, T.D16 = cascade
+  layers + `*`-reset, T.D17 = off-token literals, T.F18 = the breakpoint `theme()` swap; **none audits
+  non-idiomatic Tailwind**). Audit the demo for the idiomatic-Tailwind anti-patterns the token/idiom
+  system should have absorbed: arbitrary bracket-value utilities (`class="…-[Npx]"` where a scale/token
+  exists), `!`-important utilities, non-idiomatic `@apply`, and off-scale color/size utilities outside
+  an allowlist — complementing T.F18 (breakpoint) and T.D15 (idioms). **If the audit finds the demo
+  already idiomatic**, record the audited-clean disposition EXPLICITLY (as lane 21 did for
+  test-files-in-`src`) so the ORIGINAL-PROMPT clause is not silently dropped.
+- **gate.** **BORN-RED (or audited-clean record).** `proof:tailwind-idiomatic` — a census that REDs on
+  demo arbitrary-value utilities (`class="…-[Npx]"`), `!`-important utilities, and off-token color/size
+  utilities outside an explicit allowlist; else an explicit audited-clean disposition committed here.
+- **size.** S.
+- **lanes.** ORIGINAL-PROMPT:83 styling-focus item 1 (VERDICT #28 litany; no numbered lane rec — a
+  prompt-enumerated operative, folded into the LOOK band per charter §1 T.D).
+- **edges.** Complements **T.F18** (breakpoint utilities) + **T.D15** (idioms.css recipes) + **T.D16**
+  (cascade layers). Any new key coordinates with **T.M8** (prefer a clause on an existing demo-hygiene
+  composite over a fresh key — §4 note 1 / T.F §4 note 1 shape).
+- **lockstep.** The census + its allowlist land together; if audited-clean, the disposition record is
+  committed (never a silently-dropped clause).
+
 ---
 
 ## Cross-band coordination summary
@@ -691,6 +716,7 @@ play-first + de-divided as its bottom-band focal — flagged as a T.D9→T.C edg
 | T.D19 dvh completion | RED | cube `--side-size` + template vh literals → dvh | T.D15 (tokens.css); T.E (compose/easing) |
 | T.D20 glow tokenization | RED | EasingCurveCanvas magic-number registry → tokens | T.E (easing redesign values); T.D5 (0.055px) |
 | T.D21 crosshair idiom | RED | one DPR-safe `.blueprint-crosshair`, ≥3 consumers | T.E (morph/motion-path fate); T.D15 (idioms.css) |
+| T.D22 tailwind-idiomatic | RED (or audited-clean) | non-idiomatic-Tailwind census (arbitrary values, `!`-important, off-scale) | ORIGINAL-PROMPT:83 item 1; T.F18 (breakpoint); T.D15/T.D16 (idioms/layers); T.M8 (key count) |
 
 ---
 
@@ -771,6 +797,12 @@ Legend: **→ T.D#** = owned by a wave above · **↳ cross-ref** = owned by ano
 | 5 · consolidate the `calc(50%±0.5px)` crosshair idiom | **→ T.D21** |
 | 6 · publish one JS geometry value; break the chain diamond | **→ T.D18** (additive to lane 17 rec 7's anchor promotion) |
 | 7 · do NOT blanket-strip `-webkit-`/`@supports` | **PROCESS CONSTRAINT** — folded as a guardrail into T.D16/T.D18/T.D19/T.D20 (each prefix/gate's Baseline date is checked before removal; only `-webkit-user-select`, inert since ~2022, is a safe delete). No standalone wave; no code change. Optional: a Baseline-date-citation requirement on any future prefix/`@supports` removal. |
+
+### ORIGINAL-PROMPT styling-focus items (prompt-enumerated operatives, not numbered lane recs)
+
+| item | Disposition |
+|---|---|
+| (1) non-idiomatic Tailwind usage (`ORIGINAL-PROMPT.md:83`; VERDICT #28 litany) | **→ T.D22** (`proof:tailwind-idiomatic` census, or an explicit audited-clean record — no other T.D/T.F wave audits it; complements T.F18/T.D15/T.D16) |
 
 ---
 

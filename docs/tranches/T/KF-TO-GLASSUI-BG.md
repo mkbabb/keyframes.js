@@ -22,7 +22,7 @@
 
 ---
 
-## §0 The ask roster (nine asks + one retired duplicate)
+## §0 The ask roster (twelve asks + one retired duplicate)
 
 | id | side | ask (one line) | kf acceptance gate (born-RED, flips on re-pin) | kf workaround retired | owning T-wave (lands the gate) |
 |---|---|---|---|---|---|
@@ -36,11 +36,17 @@
 | **BG-5** | glass-ui | A **static-backdrop blur mode** (`blur-source="static"` / frozen-backdrop) so the dock/pane glass does not re-rasterize the live animating stage every frame | `proof:blur-not-resampled` (per-scene `no-backdrop-filter` toggle delta < 15%; today morph +250%, motion-path +180%) | the **ineffective** `contain:paint` on `.scene-host` (`App.vue:337`, falsified by measurement) | **T.G1** |
 | **BG-6** | glass-ui | Parameterize the display-rung weight as `font-weight: var(--font-display-weight, 600)` — a single-weight display face becomes ONE token away | `proof:demo-fonts` v3 weight clause (zero visible `Instrument Serif` leaves at computed weight ≠ 400) with the demo `@layer` override RETIRED | the demo-side `@layer` weight override on the `text-display-*` utilities | **T.D2** |
 | **BG-7** | glass-ui | Make the **coalesced cursor-reactive writer public** (`createSpecularWriter` — internal to `Card`/`DockIconButton` today) for the "wash over ordinary DOM" register | delineated GAP (the WebGL-cursor register is served by public `aurora` in **T.D13**; a hand-copy is the forbidden 2nd occurrence) | — (a NAMED gap, NOT a workaround; do not hand-copy the internal composable) | **T.D13** (gap named) |
+| **BG-8** | glass-ui | `EasingPicker` **named-catalogue coverage beyond bezier/steps** — the demo's **bounce family** is not expressible as one cubic-bezier, so it stays kf-owned (the gallery is the scene's, the bezier/steps editor is `EasingPicker`'s); an extensible named-curve catalogue closes the gap (lane 05 F6) | delineated GAP (`EasingPicker` consumed as the sole editor; the bounce family kf-owned until covered) — no born-RED flip, a forward consumption note | — (a NAMED gap; the bounce catalogue stays kf-side, not a workaround) | **T.E8** (consumer) / **T.H2** (letter) |
+| **BG-9** | glass-ui docs | An **externally-driven-`progress` example** in `EasingPicker` docs — the demo drives the picker's `progress` ref from the scene sweep; a documented pattern makes the consume idiomatic (lane 05 F6) | delineated GAP (docs ask, non-blocking; the demo already drives `progress` — the example de-risks the consume) | — (docs ask, no workaround) | **T.E8** (consumer) / **T.H2** (letter) |
+| **BG-10** | glass-ui | `ToggleChip variant="cell"` with a **live-animating preview slot** — preset chips that render a live curve/ball preview inside the cell (lane 05 F6; T.B6 consumes `ToggleChip variant="cell"` for presets) | delineated GAP (additive slot on an existing component; the demo consumes `ToggleChip cell` today without the preview slot) | — (additive component ask, no workaround) | **T.E8** (consumer) / **T.H2** (letter) |
 | ~~BG-2~~ | — | **RETIRED — duplicate.** Lane 20 §4's "BG-2 (re-issue GU-Q2, dock collapse-crossfade keepalive)" is the SAME defect as **GU-4** / Q's GU-Q2 (`glassCaps.dockStrandKeepalive`, already an arm in `proof:workaround-deletion` S2). Do **NOT** re-number a second ask here. | — | — | — |
 
-**Breaking-ness.** GU-1..4, BG-1, BG-4, BG-5, BG-6, BG-7 are **non-breaking** (guards that OMIT
-a prohibited attribute, additive props, opt-in modes, a token default). **BG-3** is **additive**
-(a new opt-in axis on an existing component). A single BG/BH cut can ship them.
+**Breaking-ness.** GU-1..4, BG-1, BG-4, BG-5, BG-6, BG-7, BG-9 are **non-breaking** (guards that
+OMIT a prohibited attribute, additive props, opt-in modes, a token default, a docs example).
+**BG-3, BG-8, BG-10** are **additive** (a new opt-in axis / an extensible catalogue / an additive
+preview slot on an existing component). A single BG/BH cut can ship them. **BG-8/BG-9/BG-10 are the
+easing-picker consumption asks** (lane 05 F6, routed from T.E8) — forward-looking, non-blocking; the
+demo consumes `EasingPicker` today with the bounce family kf-owned.
 
 ---
 
@@ -61,6 +67,9 @@ prior tranche numbered overlapping asks independently; the reconciliation:
 | BG-5 static-backdrop | — | — | — | (installed-version + no-static-mode probe) | escalated from perf lane 11 |
 | BG-6 `--font-display-weight` | — | — | — | (token-present dist grep) | escalated from lane 09 |
 | BG-7 public specular writer | (lane 12 F6) | (§3.5 low) | — | (export-present dist grep) | escalated from lane 12 |
+| BG-8 EasingPicker named-catalogue | — | — | — | (no cap — a component-catalogue ask) | from lane 05 F6 (routed via T.E8) |
+| BG-9 external-`progress` docs | — | — | — | (no cap — a docs ask) | from lane 05 F6 (routed via T.E8) |
+| BG-10 `ToggleChip cell` preview slot | — | — | — | (no cap — an additive-slot ask) | from lane 05 F6 (routed via T.E8) |
 
 **Cap-name discipline (do NOT fragment the probe).** GU-4's defect already has a coded cap —
 `glassCaps.dockStrandKeepalive` in `scripts/proof-workaround-deletion.mjs:255`. Lane 08/T.C6

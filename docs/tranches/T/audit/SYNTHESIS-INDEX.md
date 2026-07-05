@@ -16,42 +16,17 @@ claim non-cross-ref ownership of the identical concrete action.
 | | |
 |---|---|
 | **Total lane recommendations** | **206** (across 32 lanes; verified by independent grep-count of numbered/`###` items under each lane's "## T recommendations" heading) |
-| **Covered** (≥1 real owning wave-id) | **200** |
-| **MISSING** | **6** — all in Lane 25 (recs 2–7) |
-| **DOUBLE-OWNED** | **2** conflicts, spanning 4 lane-rec citations |
+| **Covered** (≥1 real owning wave-id) | **206** (200 at trace time; the 6 Lane-25 gaps closed by the 2026-07-05 post-harden synthesizer ruling — dated addenda in T.B/T.E/T.F/T.H/T.M) |
+| **MISSING** | **0** (was 6, all Lane 25 recs 2–7 — see the resolution table below) |
+| **DOUBLE-OWNED** | **2** flagged; both now **RESOLVED** by the harden pass — #1 (`usePlayActuation`) was already self-flagged clean co-ownership (T.H6 ledger/tripwire + T.C6 dock-render), the only defect its cap-name (fixed: `dockClickIntegrity`→`dockStrandKeepalive`, H3 C2); #2 (`KfPillTabs`) resolved to single-deletion-owner T.H5 (H3 C1) |
 
-### MISSING (6)
+### MISSING — RESOLVED (was 6, all Lane 25)
 
-Lane 25 (`25-plan-vs-landed-CD.md`) is the **only lane number (1–32) absent
-from `T.md` §1's per-band "Lanes" column** — every other band's charter-cited
-lane list, unioned, covers 1–32 except 25 (T.md §4's non-goals section
-mentions "lanes 24/25/26 F8" only in passing, never assigning lane 25 to a
-band). Consequently only rec 1 got swept up (opportunistically, by `T.F`,
-which cites it as "cross-cited... not assigned to T.F" rather than a real
-charter assignment). Recs 2–7 have no disposition-table row anywhere naming a
-wave-id:
-
-1. **Lane 25 rec 2** — glass-ui-consumption gate on primitive replacement. No
-   wave names it; `T.F`'s §3 mentions it only inside an unnumbered, un-cited
-   blob ("glass-ui-consumption gate... → T.H") that names a band, not a wave-id.
-2. **Lane 25 rec 3** — scene-disposition gate before fold-investment (prune
-   compose). The *prune itself* lands via `T.E1`, but the *governance gate*
-   this rec asks for (SceneId roster gains an entry only after an owner
-   keep/prune ruling) is never dispositioned anywhere.
-3. **Lane 25 rec 4** — demo-footprint budget; dissolve `app/chrome/`. No wave
-   names it (the chrome rename itself is `T.F3`/`T.C`, but the *footprint
-   budget/manifest* concept this rec asks for is untraced).
-4. **Lane 25 rec 5** — flatten `ControlsPaneWrapper` to one glass-ui Card. No
-   wave names it (substantively duplicates `T.B4`'s "REMOVE THE SURROUNDING
-   PANE," but lane 25 is absent from `T.B`'s charter-cited lanes and `T.B4`'s
-   own disposition table never cites lane 25).
-5. **Lane 25 rec 6** — styles-consolidation gate (no owner-facing surface in
-   the ungated discretionary tier). No wave names it.
-6. **Lane 25 rec 7** — ring-fence Band C's legacy purge as stable. Unlike its
-   siblings (lane 24 rec 7 → Band B ring-fence, lane 26 rec 8 → Band H/F
-   ring-fence — both explicitly disposed in `T.M`'s table to "charter §4
-   non-goals"), lane 25 rec 7 has no wave-doc row at all; only `T.md` §4's bare
-   parenthetical "(lanes 24/25/26 F8)" gestures at it.
+At trace time Lane 25 (`25-plan-vs-landed-CD.md`) was the only lane (1–32) absent from
+`T.md` §1's per-band "Lanes" column, leaving recs 2–7 unowned. **Closed 2026-07-05 by the
+post-harden synthesizer ruling**: owners assigned per the Lane 25 table below; each owning
+wave doc (T.B/T.E/T.F/T.H/T.M) carries a dated addendum; `T.md` §1's lane columns amended
+to include 25 on the owning bands.
 
 ### DOUBLE-OWNED (2 conflicts, 4 citations)
 
@@ -65,18 +40,27 @@ wave-id:
    *"`usePlayActuation` excision is co-owned (T.H6 ↔ T.C6)... This is ONE
    excision triggered by ONE gap-ledger tripwire — the impl drive must land it
    once. Flagged so nobody double-authors or half-lands it."* Not a silent
-   drop — a live, acknowledged-but-unresolved dual claim.
+   drop — an acknowledged, clean co-ownership split (H3-conflicts CONFIRMED-2
+   confirmed the partition is sound: T.H6 = ledger/tripwire + `MbabbMenu` half,
+   T.C6 = dock-render half). **The one real defect was the CAP NAME:** T.C6
+   keyed GU-4 on the forbidden synonym `dockClickIntegrity`; **FIXED** (H3 C2) to
+   the existing `glassCaps.dockStrandKeepalive` (`proof:workaround-deletion` S2),
+   matching T.H1/T.H6 and the letter §1 crosswalk.
 2. **`KfPillTabs.vue` + `useKfPillTabs.ts` deletion** — Lane 10 rec 6 and Lane
-   21 rec 2 both name this action, with **contradictory timing semantics**,
-   and this tension is **not** self-flagged anywhere. `T.B6` ("glass-ui-first
-   panel kit") lists "Delete `KfPillTabs.vue` + `useKfPillTabs.ts`" under
-   *"The kit (**born-RED, mechanical**)"* with its own gate `grep -r
-   "KfPillTabs" demo/` `= 0`. `T.H5` ("Excise `KfPillTabs`") labels the
-   identical deletion **"GATED-ON-PUBLISH tripwire (NOT born-RED today...)"**,
-   blocked on glass-ui BG-1+BG-3 landing upstream — by `T.H5`'s own account,
-   deleting the files before the re-pin "re-breaks aria." The two waves
-   disagree on whether this is an immediately-actionable born-RED item (`T.B6`)
-   or a currently-un-landable gated tripwire (`T.H5`) for the same two files.
+   21 rec 2 both named this action, with **contradictory timing semantics**.
+   `T.B6` ("glass-ui-first panel kit") listed "Delete `KfPillTabs.vue` +
+   `useKfPillTabs.ts`" under *"The kit (**born-RED, mechanical**)"* with its own
+   gate `grep -r "KfPillTabs" demo/` `= 0`; `T.H5` ("Excise `KfPillTabs`")
+   labelled the identical deletion **"GATED-ON-PUBLISH tripwire (NOT born-RED
+   today...)"**, blocked on glass-ui BG-1+BG-3. **RESOLVED (harden pass H3
+   CONFIRMED-1):** the DELETION has ONE owner — **`T.H5`** (gated-on-publish, per
+   charter §1 T.H); the demo-side **rename** off the `Kf`-vanity prefix +
+   `useRovingTabindex` convergence is **`T.F16`** (now); **`T.B6` is a pure
+   consumer** — its born-RED `grep "KfPillTabs" = 0` clause is DELETED (it was
+   accidentally satisfiable by T.F16's rename, a false green), re-anchored to
+   "the switcher resolves through `SegmentedTabs`/dock `Select`/`useRovingTabindex`,
+   never a hand-forked roving core." Cross-referenced all three ways (T.B6 ↔ T.H5
+   ↔ T.F16). No longer a live conflict.
 
 ## Full traceability table
 
@@ -143,7 +127,7 @@ wave-id:
 | T-SPR-1 (dock single-option elision) | **SPLIT:** MODEL → **T.B5**; RENDER → **T.C1** |
 | T-SPR-2 (restore panel triad) | **→ T.B7** |
 | T-SPR-3 (discrete transition → 2nd channel) | **→ T.B7** |
-| T-SPR-4 (KfPillTabs → SegmentedTabs, aria handoff) | **↳ cross-ref T.B6** (kf side) **+ T.H** — see ⚠ DOUBLE-OWNED (KfPillTabs) |
+| T-SPR-4 (KfPillTabs → SegmentedTabs, aria handoff) | **↳ cross-ref T.F16** (rename) **+ T.H5** (deletion) — DOUBLE-OWNED RESOLVED (H3 C1; T.B6 pure consumer) |
 | T-SPR-5 (un-red the motion accent) | **↳ cross-ref T.D** (sitewide token authority) |
 | T-SPR-6 (ONE parameter-field instrument) | **→ T.B7** |
 | T-SPR-7 (strip stage to instrument) | **→ T.B7** (readout/register half) **+ ↳ T.E** (furniture prune) **+ ↳ T.D** (registers) |
@@ -191,7 +175,7 @@ wave-id:
 | 3 · SPRING/EASING RESHAPED AS CHANNELS | **→ T.B7** |
 | 4 · REMOVE THE SURROUNDING PANE | **→ T.B4** |
 | 5 · SINGLE-OPTION ELISION | **→ T.B5** |
-| 6 · GLASS-UI-FIRST PANEL KIT (KfPillTabs dies) | **→ T.B6** (kf side); handoff → T.H — ⚠ **DOUBLE-OWNED**, see summary (T.B6 vs T.H5) |
+| 6 · GLASS-UI-FIRST PANEL KIT (KfPillTabs dies) | **→ T.B6** (glass-ui-first kit — pure CONSUMER, no deletion clause); the fork's rename → **T.F16**, its terminal DELETION → **T.H5** — DOUBLE-OWNED RESOLVED (H3 C1) |
 | 7 · PANEL REGISTER CURE | **→ T.B6** (panel-local); token authority **↳ T.D** |
 
 ### Lane 11 — performance (6 recs) — ALL → T.G
@@ -270,7 +254,7 @@ wave-id:
 | 2 · split & de-tombstone `design-idioms.css` | **→ T.D15** |
 | 3 · one tiered token authority | **→ T.D15** |
 | 4 · declare cascade-layer order; kill `*` reset | **→ T.D16** |
-| 5 · consume glass-ui primitives; delete pills/rail | **SPLIT:** CSS-recipe census/progress-rail/status-badge → **T.D15**; KfPillTabs deletion+SegmentedTabs → **↳ T.H** (gated-on-publish) / **↳ T.B** (sidebars dissolve) — feeds ⚠ DOUBLE-OWNED (KfPillTabs) |
+| 5 · consume glass-ui primitives; delete pills/rail | **SPLIT:** CSS-recipe census/progress-rail/status-badge → **T.D15**; KfPillTabs deletion → **↳ T.H5** (gated-on-publish) / rename → **↳ T.F16** / **↳ T.B** (sidebars dissolve, consumer) — DOUBLE-OWNED RESOLVED (H3 C1) |
 | 6 · purge off-token color literals | **→ T.D17** |
 | 7 · collapse dock-anchor calc labyrinth | **→ T.D18** (+ chain-depth cap from lane19 rec6) |
 | 8 · lift scene-telemetry idioms to one recipe | **DEFERRED → T.D15** (most telemetry removed by T.A/T.E first; residual folds after) |
@@ -308,7 +292,7 @@ wave-id:
 | 2 · swap `dock-separator` div → `DockSeparator` | **→ T.H4** (SUBSUMED by T.C1's grammar recut — explicitly "do NOT double-author") |
 | 3 · delete `GestureLegend.vue` + gate | **↳ cross-ref T.E** (charter routes it to the prune band) |
 | 4 · author `KF-TO-GLASSUI-BG.md` | **→ T.H2** (expanded to GU-1..4 + BG-1/3/4/5/6/7) |
-| 5 · GATED: kill `KfPillTabs`+`useKfPillTabs` | **→ T.H5** (gated on BG-1+BG-3) — ⚠ **DOUBLE-OWNED**, see summary (T.H5 vs T.B6) |
+| 5 · GATED: kill `KfPillTabs`+`useKfPillTabs` | **→ T.H5** (gated on BG-1+BG-3 — the SINGLE deletion owner; T.F16 renames, T.B6 consumes) — DOUBLE-OWNED RESOLVED (H3 C1) |
 | 6 · GATED: delete `usePlayActuation`+MbabbMenu synthesis | **→ T.H6** (gated on GU-4+BG-4) — ⚠ **DOUBLE-OWNED**, self-flagged co-owned w/ T.C6 |
 
 ### Lane 21 — legacy-sweep (7 recs) — split T.B / T.H / T.S
@@ -316,11 +300,11 @@ wave-id:
 | Rec | Disposition |
 |---|---|
 | 1 · consolidate 3 band-aids into ONE gap ledger + tripwire | **→ T.H1** |
-| 2 · retire `KfPillTabs` onto glass-ui SegmentedTabs | **→ T.H5** — ⚠ **DOUBLE-OWNED**, see summary (also cross-ref'd to T.B6 "kf side" by T.B's own table) |
+| 2 · retire `KfPillTabs` onto glass-ui SegmentedTabs | **→ T.H5** (SINGLE deletion owner; T.F16 renames, T.B6 consumes) — DOUBLE-OWNED RESOLVED (H3 C1) |
 | 3 · `TransportSource` interface replaces `useContractAnimGroup` | **↳ cross-ref T.B** (VERDICT #25, SceneFacility) |
-| 4 · DRY the hot/cold readout throttle | **↳ cross-ref T.F** (also folds w/ T.G3) |
-| 5 · sweep `demo` `any` to a bounded ceiling | **↳ cross-ref T.F** |
-| 6 · `proof:no-dead-export` + excise dead symbols | **↳ cross-ref T.F** (+ T.M8 hygiene-chain wiring) |
+| 4 · DRY the hot/cold readout throttle | **→ T.F23(c)** (OWNED — the `useThrottledReadout` extraction, per the 2026-07-05 GRAND COLOCATION EDICT; also folds w/ T.G3) |
+| 5 · sweep `demo` `any` to a bounded ceiling | **→ T.F23(b)** (OWNED — the `any`-ceiling ratchet) |
+| 6 · `proof:no-dead-export` + excise dead symbols | **→ T.F23(a)** (OWNED — `proof:no-dead-export`; + T.M8 hygiene-chain wiring) |
 | 7 · de-defer/build the DM-22 named-selector resolution | **→ T.S4** |
 
 ### Lane 22 — state-stores (6 recs) — ALL → T.F
@@ -357,17 +341,17 @@ wave-id:
 | 6 · treat S board untrusted; gate the T board | **→ T.M9** |
 | 7 · ring-fence Band B's library carve as stable | **↳ cross-ref charter §4 non-goals** |
 
-### Lane 25 — plan-vs-landed-CD (7 recs) — **MOSTLY MISSING** (never charter-assigned; see Summary)
+### Lane 25 — plan-vs-landed-CD (7 recs) — **RESOLVED 2026-07-05** (post-harden synthesizer ruling; dated addenda in the owning wave docs)
 
 | Rec | Disposition |
 |---|---|
 | 1 · uniform module-skeleton + composition-depth gate | **→ T.F7** (cross-cited) |
-| 2 · glass-ui-consumption gate on primitive replacement | **⚠ MISSING** (only an unnumbered, un-cited blob in T.F naming a band, not a wave-id) |
-| 3 · scene disposition gate before fold-investment; prune compose | **⚠ MISSING** (the prune executes via T.E1; the *governance gate* itself is untraced) |
-| 4 · demo-footprint budget; dissolve `app/chrome/` | **⚠ MISSING** |
-| 5 · flatten `ControlsPaneWrapper` to a single glass-ui Card | **⚠ MISSING** (substantively duplicates T.B4, never cross-referenced) |
-| 6 · gate the styles consolidation | **⚠ MISSING** |
-| 7 · ring-fence Band C's legacy purge as stable | **⚠ MISSING** (siblings lane24-rec7/lane26-rec8 got explicit T.M rows citing charter §4; this one did not) |
+| 2 · glass-ui-consumption gate on primitive replacement | **→ T.H1** (the gap-ledger/tripwire gains the replacement-imports-glass-ui-OR-ledgered-gap clause) + T.F23 census co-cite |
+| 3 · scene disposition gate before fold-investment; prune compose | **→ T.E1** (gate clause: SceneId roster == the owner-ratified kept set; OD-1/OD-7 feed it) · mechanism T.M2 |
+| 4 · demo-footprint budget; dissolve `app/chrome/` | **→ T.F3** (dissolve) + **T.F23** (footprint clause: every `app/` file resolves a named shell-role) |
+| 5 · flatten `ControlsPaneWrapper` to a single glass-ui Card | **→ T.B4** (identical scope; lane 25 joins its citations) |
+| 6 · gate the styles consolidation | **→ T.D styles waves** (lane 17's home) + **T.F21** shared-tier-purity clause |
+| 7 · ring-fence Band C's legacy purge as stable | **→ charter §4 non-goals**, explicit T.M addendum row (same shape as lane24-rec7/lane26-rec8) |
 
 ### Lane 26 — plan-vs-landed-FGH (8 recs) — split T.E / T.G / T.M
 

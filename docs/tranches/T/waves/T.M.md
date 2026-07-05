@@ -463,3 +463,10 @@ owned lane are listed for completeness with their owning band).
    corpus deliverable) materializes the ROW CONTENT** (standing mandate, S-kickoff
    elements, NEW §1c asks, S-residue carries). Flagged so the born-at-entry file is
    created once, against T.M's schema, not duplicated.
+
+## Addendum (2026-07-05, post-harden synthesizer ruling) — lane 25 fold
+
+- **Lane 25 rec 7** (ring-fence Band C's legacy purge as stable) → **charter §4 non-goals**,
+  explicitly (the same disposition shape as lane 24 rec 7 → Band B and lane 26 rec 8 → Band
+  H/F): no re-litigation of S.C1/C2/C3a/C4; only the menubar successor is re-touched via
+  T.H's consumption gate.
