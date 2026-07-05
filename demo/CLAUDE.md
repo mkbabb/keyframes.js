@@ -1,6 +1,6 @@
 # demo/
 
-Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds it to `dist/gh-pages/` (deployed at keyframes.babb.dev). `app/` is the shell + scene machine + router; each scene lives in a SELF-CONTAINED `scenes/<name>/` directory that co-locates its `<Name>Scene.vue` entry with its scene-specific composables and target components (the R.W5 fusion — the old `app/scenes/` entries and the top-level per-scene dirs were merged into `scenes/<name>/`). The former standalone `playground/` app was FOLDED into the ninth scene `scenes/compose/` (S.D3, C-4). Design language: `DESIGN.md` (extends glass-ui's).
+Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds it to `dist/gh-pages/` (deployed at keyframes.babb.dev). `app/` is the shell + scene machine + router; each scene lives in a SELF-CONTAINED `scenes/<name>/` directory that co-locates its `<Name>Scene.vue` entry with its scene-specific composables and target components (the R.W5 fusion — the old `app/scenes/` entries and the top-level per-scene dirs were merged into `scenes/<name>/`). Six scenes ship: amiga · cube · easing · sequence · spring · square (compose · morph · motion-path were PRUNED at T.E1/T.E3, OD-1 = PRUNE). Design language: `DESIGN.md` (extends glass-ui's).
 
 ## Structure
 
@@ -22,12 +22,11 @@ demo/
 │   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaDemo, utils (tesselateSphere), amigaKeys, checkerboard.jpg
 │   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeDemo/useCubeRelit, cubeTransformStore, matrix-editor/ + orbital-drag/ (S.D2 colocation, a24 F3), cube.png
 │   ├── easing/       # EasingScene.vue + EasingSidebar/EasingTarget/EasingHeroStage/EasingCurvePhysics, useEasingDemo/Gallery/Ghost/TraceSmear, easingGroups/easingKeys
-│   ├── morph/        # MorphSVGScene.vue + MorphTarget, useMorphDemo, morphShapes/morphKeys (the fromMorphSVG showcase)
-│   ├── motion-path/  # MotionPathScene.vue + MotionPathTarget, useMotionPathDemo/Gesture, motionPathGeometry/motionPathKeys
 │   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument/useTypedTrigger (S.D2 colocation, a24 F4), sequenceKeys
 │   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag/useCompiledEntry (S.F3 EN-d entry/exit dogfood), springKeys/springPresets
-│   ├── square/       # SquareScene.vue + SquareInstrument, useSquareDemo/useSquareKeyboard, squareKeys (custom transform fn)
-│   └── compose/      # ComposeScene.vue + ComposeTarget.vue (the S.D3 playground fold) + useComposeDemo, composeKeys, asset-manager/ (AssetViewport/Layer/LayerPanel/PropertiesPanel + useAssetManager + assetTypes + EditableLabel) — the casting-floor foundry + bind-ignition
+│   └── square/       # SquareScene.vue + SquareInstrument, useSquareDemo/useSquareKeyboard, squareKeys (custom transform fn)
+│   # (morph/ · motion-path/ · compose/ were PRUNED at T.E1/T.E3, OD-1 = PRUNE; the
+│   #  LIBRARY MotionPath/MorphSVG/DrawSVG factories in src/animation/svg/ survive.)
 ├── @/                         # Shared library
 │   ├── state/                  # the demo's global state layer (S.D2 hoist): sceneMachine/useSceneMachine/scenePlaybackAdapters + option stores + controlSurfaceDFA + hashSharing + index (resetAllStores) — @state alias
 │   ├── components/custom/
@@ -89,9 +88,6 @@ via `app/scene/scenes.ts`, exposing the typed `SceneExposedApi`) co-located with
 | EasingScene | `scenes/easing/` | Easing gallery + unified easing editor |
 | SpringScene | `scenes/spring/` | Spring presets, `linear()` stops, `@starting-style` target, heatmap |
 | SequenceScene | `scenes/sequence/` | `Sequence` master-playhead transport, draggable rows |
-| MotionPathScene | `scenes/motion-path/` | `offset-path` editing + gesture |
-| MorphSVGScene | `scenes/morph/` | `fromMorphSVG` path morph showcase (on-DOM render contract + orient-along-path) |
-| ComposeScene | `scenes/compose/` | The casting-floor foundry (S.D3 playground fold): drag/compose assets, bind each to a preset `AnimationGroup`, bind-ignition draws the preset's easing curve via `fromDrawSVG` |
 
 ## Key Dependencies
 
