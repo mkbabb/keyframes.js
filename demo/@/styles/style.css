@@ -48,20 +48,26 @@
        There is exactly ONE display token: --font-display = Instrument Serif. The
        former redundant --font-serif (an identical second display declaration that
        let a future edit split the dock band silently — styling-typography-k §3) is
-       DELETED; its two consumer sites (playback-button.css, tab-trigger.css) now
-       read --font-display directly.
+       DELETED; no demo consumer reads it.
 
-       THE TRUE BUILD (the prior comment here LIED on three counts — it claimed
-       text-title/-heading/-subheading/dock-label resolve --font-display and named
-       Fraunces; both false — so it MASKED U-K6/U-K8 since J): of glass-ui's φ-ladder
-       (typography.css) ONLY the `text-display-*` rungs bind var(--font-display); the
-       `text-title`/`-heading`/`-subheading`/`dock-label` utilities bind
-       var(--font-text) (the body register). glass-ui's OWN display default is Plus
-       Jakarta Sans (NOT Fraunces). The dock band carries the display voice via the
-       demo's ONE @layer demo-typography rule below (S2), NOT by glass-ui's
-       dock-label default. Instrument Serif is the demo's deliberate identity face:
-       one token, zero new payload. Single-weight ~400, so --font-display-weight: 400
-       (glass-ui default) is correct.
+       THE TRUE BUILD: of glass-ui's φ-ladder (typography.css) ONLY the
+       `text-display-*` rungs bind var(--font-display); the `text-title`/
+       `-heading`/`-subheading`/`dock-label` utilities bind var(--font-text) (the
+       body register). Instrument Serif is the demo's deliberate identity face —
+       one token, zero new payload — and it ships a SINGLE weight (400, no wght
+       axis). glass-ui's `text-display-*` rungs hardcode `font-weight: 600`
+       (tuned for Plus Jakarta, which HAS a 600) and there is NO
+       --font-display-weight token in glass-ui 4.x to swap it (the prior comment
+       here vouched for that phantom token — FALSE, T.D2 lockstep): the honest
+       400 lands via the @layer demo-typography rung override at the foot of
+       this sheet + `font-synthesis: none` at :root, and the durable token seam
+       is the BG-6 glass-ui ask (demo/glass-ui-gaps.ts).
+
+       T.D3 (OD-6 / T-TY2) — the demo's Tailwind `font-sans` override is
+       DELETED: the body register is glass-ui's own Plus Jakarta Sans (variable,
+       already bundled via the @mkbabb/glass-ui/styles/fonts import above —
+       zero new payload). Three voices, hard-bounded: Instrument Serif (display)
+       · Plus Jakarta Sans (body/chrome) · Fira Code (code/data only).
 
        "Instrument Serif Fallback" sits between the web font and raw Georgia:
        it is the metric-matched fallback face defined below (E.W11.S5) so the
@@ -69,13 +75,6 @@
        from first paint and does not reflow on Instrument-Serif arrival. */
     --font-display: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif;
     --font-mono: "Fira Code", monospace;
-    /* The Tailwind `font-sans` utility token — the demo's clean native UI sans,
-       NOT glass-ui's brand "Plus Jakarta Sans". The body/text register itself is
-       reclaimed at :root via --font-stack-text below (the underlying token glass-
-       ui's `--font-text`/`--font-sans` bridges derive from — overriding the
-       bridge alone loses to glass-ui's `@theme inline`). I.W6-font. */
-    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-        Helvetica, Arial, sans-serif;
 
     --color-accent-red: var(--accent-red);
     --color-accent-red-foreground: var(--accent-red-foreground);
@@ -122,31 +121,28 @@
 :root {
     color-scheme: light;
 
-    /* ── Font register (I.W6-font) — reclaim the body register from glass-ui ──
-       glass-ui's brand body font is "Plus Jakarta Sans": tokens.css:51 declares
-       `--font-stack-text: "Plus Jakarta Sans"…` at :root, and theme.css bridges
-       `--font-text`/`--font-sans`/`--font-display` to the `--font-stack-*` tokens
-       via `@theme inline` (so a plain `@theme` override of the BRIDGE loses).
-       glass-ui's documented consumer lever (tokens.css:6) is a RUNTIME `:root`
-       override of the underlying `--font-stack-*` token. keyframes.js does NOT
-       use Plus Jakarta — its identity is Instrument Serif (display, reclaimed via
-       --font-display in @theme) + Fira Code (mono) over a clean native UI sans
-       for the body/dock/controls. Override the underlying stack token here so the
-       brand font never lands on our surfaces (and never half-loads a webfont the
-       demo build does not serve).
+    /* ── T.D2 (OD-6 / T-TY1, RULED #24) — the faux-bold kill, at the root ──
+       Instrument Serif ships ONE weight (400). Every glass-ui display rung bakes
+       font-weight: 600 (tuned for Jakarta, which HAS a 600) — so every display
+       leaf rendered browser-SYNTHESIZED bold: the mushy smeared hero the owner
+       rejected ("Most of the fonts on the site are not right at all"). With
+       synthesis off, a weight the face does not ship falls back to the TRUE
+       face (the honest ink), never a smear. Inherited — one declaration covers
+       every leaf. The computed-weight honesty (400 at the rung) is the @layer
+       demo-typography override at the foot of this sheet (BG-6 consumer-side
+       until glass-ui ships --font-display-weight). */
+    font-synthesis: none;
 
-       K.W2 S4 — close the `.font-display` trap: --font-stack-display is REPOINTED
-       to var(--font-display) (it formerly bridged to --font-stack-text = native
-       sans, so glass-ui's `.font-display { font-family: var(--font-stack-display) }`
-       utility resolved native sans — the OPPOSITE of its name, a latent inversion).
-       Now the bare `.font-display` utility, the φ `text-display-*` ladder, and the
-       dock band all resolve the SAME single display face. */
-    --font-stack-text: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-        Roboto, Helvetica, Arial, sans-serif;
-    --font-stack-sans: var(--font-stack-text);
+    /* ── T.D3 (OD-6 / T-TY2, RULED) — the body register RE-ADOPTED ──
+       The I.W6 `--font-stack-text` reclaim (the ui-sans-serif system-stack pin)
+       is DELETED: glass-ui's Plus Jakarta Sans flows natively to every body /
+       controls / dropdown / dock surface. The demo pays for the face (base64 in
+       the fonts import) — now it renders it. ONLY the K.W2 S4 display repoint
+       survives: --font-stack-display bridges to the ONE display authority so
+       the bare `.font-display` utility and the φ `text-display-*` ladder agree
+       (it formerly bridged to --font-stack-text, so `.font-display` resolved
+       the BODY face — the opposite of its name). */
     --font-stack-display: var(--font-display);
-    --font-text: var(--font-stack-text);
-    --font-sans: var(--font-stack-text);
 
     /* ── Layout ── */
     --dock-icon-height: 2.75rem;
@@ -667,26 +663,47 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   THE DOCK BAND JOINS THE DISPLAY VOICE AT THE ROOT (K.W2 S2 — U-K6/U-K8)
+   T.D2 (OD-6 / T-TY1) — HONEST DISPLAY WEIGHT AT THE RUNG (the BG-6 override)
    ────────────────────────────────────────────────────────────────────────
-   glass-ui's `dock-label` utility binds `font-family: var(--font-text)` (the
-   body register — typography.css :324-330 on 3.13.0, RE-VERIFIED post-re-pin),
-   so the bottom dock labels render native SANS while the design intends the
-   Instrument-Serif DISPLAY voice (the split-voice dock the 4-tranche typography
-   chronic kept re-felt: DL-K10, U-K6/U-K8). The cure is ONE demo-side rule at
-   the family bind — NOT a per-site font class on each dock <span> (the named
-   forbidding). `@layer demo-typography` is declared LAST in this stylesheet, so
-   it is ordered AFTER glass-ui's `utilities` layer (where the `@utility
-   dock-label` compiles) and wins the cascade. This flips EVERY `.dock-label`
-   site (ChromeDock controls-tab + scene-select triggers/groups; TransportDock
-   transport labels) to the single --font-display authority with ZERO call-site
-   churn; the controls-pane mono + body prose are untouched (the rule matches
-   only `.dock-label`). `.dock-scene-title` already binds --font-display
-   (ChromeDock scoped style) — the whole dock band now agrees. inv-16: the demo
-   OVERRIDES the consumed contract at the @layer it owns, never patches
-   node_modules. */
+   The K.W2 S2 `.dock-label` display force is DELETED (the owner's live verdict
+   overrides the K-era dock-display-voice call — VERDICT #24 + the T.C "kill
+   the serif chrome flip" charter row): the dock band reverts to glass-ui's own
+   Jakarta dock-label register. What remains demo-owned is the ONE display
+   correction: glass-ui's `text-display-*` rungs hardcode `font-weight: 600` +
+   negative `--type-tracking-display` — both tuned for Plus Jakarta Sans. Under
+   the single-weight Instrument Serif the 600 synthesizes (killed at :root via
+   font-synthesis) and the negative tracking crushes an already-condensed
+   serif. The rungs resolve the face's TRUE weight (400) and neutral tracking.
+   `@layer demo-typography` is declared LAST so it orders after glass-ui's
+   `utilities` layer and wins the cascade. inv-16: the demo overrides the
+   consumed contract at the @layer it owns, never patches node_modules. (The
+   glass-ui BG-6 ask — parameterize the rung weight as
+   `var(--font-display-weight, 600)` — is the durable home; this is the
+   consumer-side override until the fixVersion publishes, ledgered in
+   demo/glass-ui-gaps.ts with the version tripwire.) */
 @layer demo-typography {
-    .dock-label {
-        font-family: var(--font-display);
+    .text-display-audacious,
+    .text-display-hero,
+    .text-display-mega,
+    .text-display-5,
+    .text-display-4,
+    .text-display-3,
+    .text-display-2,
+    .text-display {
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    /* T.D2/T.D3 — the labeled-field consume-edge: glass-ui's
+       `.labeled-field-label` binds `font-family: var(--font-display)` at the
+       body rung (utilities/base.css:69-71) — under glass-ui's OWN Jakarta
+       display default that is a Jakarta label, but under the demo's Instrument
+       swap it became an ~18.6px SERIF control label (below the T.D2 serif
+       floor; the exact swapped-display-face edge BG-6 names). Field labels are
+       CONTROLS → the body register at medium, matching the blessed P-THEME
+       control-label voice. */
+    .labeled-field-label {
+        font-family: var(--font-text);
+        font-weight: 500;
     }
 }

@@ -98,9 +98,11 @@ const { rovingValue, onKeydown } = useKfPillTabs({
     cursor: pointer;
     padding: 0.25rem 0.75rem;
     border-radius: var(--radius-lg);
-    font-family: var(--font-display);
-    font-size: var(--type-prose, 1rem);
-    letter-spacing: 0.02em;
+    /* T.D3 (OD-6 / T-TY2, the P-THEME graft) — the display-face force dies:
+       pills are CONTROLS, so they ride the inherited Jakarta body register at
+       the small control rung, medium weight. */
+    font-size: var(--type-small, 0.875rem);
+    font-weight: 500;
     color: var(--muted-foreground);
     /* Narrow transition (no `all`) — only the activation channels change. */
     transition:

@@ -19,12 +19,11 @@
     gap: 0.5rem;
     border-radius: var(--radius-pill);
     font-size: var(--type-body, 1rem);
-    /* K.W2 S1/S3 — the display voice, single-sourced from the ONE --font-display
-       authority (was var(--font-serif), the redundant second display token now
-       DELETED). The transport band carries ONE voice: Play/Pause MATCH Reverse and
-       the tabs, all sourced from --font-display (S3 register decision: display). */
-    font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    /* T.D3 (OD-6 / T-TY2) — the K.W2 display bind dies: transport buttons are
+       CONTROLS, so they ride the inherited Jakarta body register at medium
+       weight (a display-optical serif at 16px read spindly-then-smudged; the
+       P-THEME blessed reference re-voiced the whole transport band). */
+    font-weight: 500;
 }
 .btn-playback-accent {
     background: color-mix(in srgb, var(--color-progress) 20%, transparent);
