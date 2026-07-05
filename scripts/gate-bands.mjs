@@ -402,15 +402,22 @@ export const T_BORNRED_BACKLOG = {
     },
     "proof:chronic-closure": {
         dischargedBy:
-            "T.S1 remainder (the residual-row C-20 triage): row 69 closes at " +
-            "T.A13+T.B3 (the square honest-Play + panel restoration names its " +
-            "load-bearing gate), row 71 at T.H5/T.F16 (the KfPillTabs terminal " +
-            "disposition), row 72 ratified as a ledger row. The T.S1 tier-fix " +
-            "already collapsed the reds 52 → 3 (26 were tier-check artifacts).",
+            "T.S1 remainder (the residual-row C-20 triage): row 71 re-pointed GREEN " +
+            "onto the T.H5 glass-ui-gap-tripwire + T.F16 excision, row 72 ratified " +
+            "GREEN as a historical RECORD; row 69 rides pending `proof:square-honest` " +
+            "v2 — the T.A13+T.B3 born-RED inversion authored + tiered in batch ③ (the " +
+            "gate exists but is not yet in a correctness tier). FULL greening is a " +
+            "WHOLE-TRANCHE discharge, NOT T.S1-solo: ~30 further S-ledger FOLD rows " +
+            "(rows 1/4/5/6-15/23/25/… — the 'missing-witness wording' class) name their " +
+            "closure gate in prose but not in backticks, each owned by its landing wave.",
         reason:
-            "the S chronic ledger's last 3 FOLD rows name no load-bearing gate — " +
-            "their closures land at the named T waves; a pre-existing red at T " +
-            "entry (exit 1 verified in the T.S wave doc), now converging.",
+            "HONEST COUNT (T.S1 remainder, measured on the merged tree): the gate has " +
+            "33 row-fails, NOT the 3 the batch-② handoff claimed (its '52 → 3 / last-3 " +
+            "rows' text was inaccurate — the F2 tier-fix touched only the SCRIPT + rows " +
+            "16/22, clearing the source-tier-citing artifacts but leaving ~30 un-backticked " +
+            "FOLD rows). Greening those re-authors the S-ledger closure column wave-by-wave " +
+            "(each row's owning wave backticks + tiers its gate) — beyond T.S1's 3-row triage, " +
+            "so this stays a whole-tranche born-RED backlog. Exit 1 verified on the merged tree.",
     },
     "proof:visual-lock": {
         dischargedBy:
