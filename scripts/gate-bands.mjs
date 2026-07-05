@@ -402,15 +402,22 @@ export const T_BORNRED_BACKLOG = {
     },
     "proof:chronic-closure": {
         dischargedBy:
-            "T.S1 remainder (the residual-row C-20 triage): row 69 closes at " +
-            "T.A13+T.B3 (the square honest-Play + panel restoration names its " +
-            "load-bearing gate), row 71 at T.H5/T.F16 (the KfPillTabs terminal " +
-            "disposition), row 72 ratified as a ledger row. The T.S1 tier-fix " +
-            "already collapsed the reds 52 → 3 (26 were tier-check artifacts).",
+            "T.S1 remainder (the residual-row C-20 triage): row 71 re-pointed GREEN " +
+            "onto the T.H5 glass-ui-gap-tripwire + T.F16 excision, row 72 ratified " +
+            "GREEN as a historical RECORD; row 69 rides pending `proof:square-honest` " +
+            "v2 — the T.A13+T.B3 born-RED inversion authored + tiered in batch ③ (the " +
+            "gate exists but is not yet in a correctness tier). FULL greening is a " +
+            "WHOLE-TRANCHE discharge, NOT T.S1-solo: ~30 further S-ledger FOLD rows " +
+            "(rows 1/4/5/6-15/23/25/… — the 'missing-witness wording' class) name their " +
+            "closure gate in prose but not in backticks, each owned by its landing wave.",
         reason:
-            "the S chronic ledger's last 3 FOLD rows name no load-bearing gate — " +
-            "their closures land at the named T waves; a pre-existing red at T " +
-            "entry (exit 1 verified in the T.S wave doc), now converging.",
+            "HONEST COUNT (T.S1 remainder, measured on the merged tree): the gate has " +
+            "33 row-fails, NOT the 3 the batch-② handoff claimed (its '52 → 3 / last-3 " +
+            "rows' text was inaccurate — the F2 tier-fix touched only the SCRIPT + rows " +
+            "16/22, clearing the source-tier-citing artifacts but leaving ~30 un-backticked " +
+            "FOLD rows). Greening those re-authors the S-ledger closure column wave-by-wave " +
+            "(each row's owning wave backticks + tiers its gate) — beyond T.S1's 3-row triage, " +
+            "so this stays a whole-tranche born-RED backlog. Exit 1 verified on the merged tree.",
     },
     "proof:visual-lock": {
         dischargedBy:
@@ -444,20 +451,17 @@ export const T_BORNRED_BACKLOG = {
             "KF-7 (T.S3 / lane 27 F5): value.js exports a type `PropertyDescriptor` that " +
             "collides with the ambient DOM global, so API-Extractor mangles it into kf's " +
             "PUBLISHED dist/keyframes.d.ts as `PropertyDescriptor_2` (verified live at :11/:814/" +
-            ":2732). value.js 2.0.1 AND 3.0.0 still export it un-renamed; the gate greens the " +
+            ":2732). value.js 2.0.1, 3.0.0 AND 3.1.0 all still export it un-renamed (re-verified at " +
+            "the T.S3 3.1.0 re-pin — the tripwire STAYS born-RED after the pin); the gate greens the " +
             "instant value.js renames it and kf re-points (the adopt-event watch gates the re-point). " +
             "See docs/tranches/T/KF-TO-VALUEJS-T.md.",
     },
-    "proof:no-nested-self-dependency": {
-        dischargedBy:
-            "value.js drops the self-dependency from its own package.json (3.0.0 already " +
-            "does) [EXTERNAL] + kf re-points to that version (npm then dedupes to ONE copy)",
-        reason:
-            "the value.js self-dependency phantom (T.S3 / lane 27 F6): value.js@2.0.1's own " +
-            "deps carry `@mkbabb/value.js`, so npm cannot dedupe it against itself and every " +
-            "npm ci nests a stale value.js 1.2.0 + parse-that 0.13.0 inside kf's node_modules " +
-            "(verified live in package-lock.json). value.js 3.0.0 DROPS the self-dep — the gate " +
-            "greens once kf re-points to a value.js whose lockfile no longer nests a self/duplicate " +
-            "@mkbabb install. See docs/tranches/T/KF-TO-VALUEJS-T.md.",
-    },
+    // proof:no-nested-self-dependency — DISCHARGED at T.S3 (2026-07-05): the value.js
+    // ^3.1.0 re-pin drops the self-dependency phantom (3.0.0+ carry only parse-that in
+    // their deps), so npm ci no longer nests a stale @mkbabb install and the tripwire
+    // greens permanently. VERIFIED GREEN in the isolated 3.1.0 clone (proof:no-nested-
+    // self-dependency exit 0). Removed from the born-RED register per drive clause 7
+    // (gate green + row removed in the SAME commit as the cure = the pin). NOTE: greens
+    // only once the tree is `npm ci`'d to 3.1.0 — the shared-symlink worktree was NOT
+    // mutated (sibling-lane isolation); see risksForMerge / the pin commit.
 };

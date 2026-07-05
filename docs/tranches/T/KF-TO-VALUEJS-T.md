@@ -78,14 +78,18 @@ Recorded as an **itemized exit**, not a prose assertion — the fold-row-46 veri
 
 ---
 
-## §4 — The value.js 3.0.0 PIN decision (kf-side; recorded, GATED-not-executed this batch)
+## §4 — The value.js 3.x PIN decision (kf-side; EXECUTED at T.S3, 2026-07-05)
 
-`3.0.0` is the registry `latest` (`npm view @mkbabb/value.js dist-tags` → `{ latest: '3.0.0' }`). A `^3.0.0` **TARGET** row is added to `docs/tranches/Q/PIN-LEDGER.json`. The actual re-pin is **NOT executed in the T.S3 worktree** for two honest reasons:
+`3.1.0` is now the registry `latest` (`npm view @mkbabb/value.js dist-tags` → `{ latest: '3.1.0' }` — the line moved past the `3.0.0` this letter first analyzed). The re-pin was **EXECUTED at T.S3** via a **dedicated isolated motion** (NOT the impl-drive worktree, whose `node_modules` is a symlink to the shared checkout — an in-worktree `npm install` would corrupt sibling lanes). In a **fresh `git clone` + `npm ci`**, `npm install @mkbabb/value.js@^3.0.0` resolved `3.1.0` (declared `^3.1.0`, the `^<installed>` convention). The FULL verification greened:
 
-1. **Isolation hazard.** The impl-drive worktree's `node_modules` is a symlink to the shared checkout's `node_modules`; running `npm install @mkbabb/value.js@3.0.0` here would mutate the SHARED install + `package-lock.json`, corrupting the sibling lanes. A `3.0.0` MAJOR bump warrants a dedicated, isolated re-pin motion (fresh clone / `npm ci`), not an in-worktree install.
-2. **The re-pin does NOT discharge KF-7.** `3.0.0` still exports `PropertyDescriptor` un-renamed (§1), so `proof:no-collision-rename` stays RED after any `3.0.0` re-pin — the collision tripwire greens only when value.js publishes the CSSPropertyDescriptor rename. (The re-pin WOULD green `proof:no-nested-self-dependency` — §2 — since 3.0.0 drops the self-dep.)
+- `npm run check` CLEAN · `npm run build` OK · `npm run gh-pages` OK · `npx vitest run` PASS
+- `proof:library-correctness` **exit 0** · `proof:boundary` **0** · `proof:zero-alloc` **0** · `proof:replay-equality` **0** · `proof:color-fidelity` **0** · `proof:emerging-css-resolve` **0** (the KF-1 param-grammar vector holds)
+- `proof:no-nested-self-dependency` **flips GREEN** — 3.1.0 drops the self-dep (§2); discharged, removed from `T_BORNRED_BACKLOG`
+- `proof:no-collision-rename` **STAYS RED** — 3.1.0 STILL exports `PropertyDescriptor` un-renamed (§1); KF-7 unfulfilled, the tripwire remains a born-RED backlog gate
 
-**Execution contract (for the dedicated re-pin motion — T.Z or a follow-on):** re-pin to `^3.0.0` ONLY IF (a) the adopt-event watch confirms `dist-tags.latest ≥ 3.0.0` (it does) AND (b) the full library gate set stays green after — `npm run proof:library-correctness` + `proof:boundary` + `npm run build` + `npx vitest run`. The courtesy letter says the kf-consumed surface is unchanged (resolveEasing convergence book, §5) — VERIFY it, don't trust it; if anything reds, revert the pin and record the PIN-LEDGER row `GATED` with the failing evidence.
+The 3.x MAJOR breaking changes (logerp arg order / color-soa removal) **do NOT touch kf's surface** (grep-zero in `src/`). The PIN-LEDGER value.js row is FOLDED into `shipped` (`^3.1.0` / `3.1.0`); the target row is `FIRED`.
+
+**Merge note (the isolation-hazard tail):** the pin's `package.json` + `package-lock.json` are committed, but the impl-drive worktree's shared `node_modules` was **intentionally NOT mutated** (to protect the two sibling lanes). The pin-dependent gates (`proof:pin-ledger-current`, `proof:no-nested-self-dependency`) green only once the tree is `npm ci`'d to 3.1.0 — the orchestrator MUST `npm ci` after merging this branch (flagged in the drive's risksForMerge).
 
 ---
 
@@ -102,8 +106,8 @@ The courtesy letter (`§1`) records that value.js `3.0.0` now hosts the canonica
 
 | # | Ask | Owner | Status | kf tripwire |
 |---|---|---|---|---|
-| KF-7 (re-filed) | rename exported `PropertyDescriptor` → `CSSPropertyDescriptor` (no legacy alias) | **value.js** | OPEN — still un-renamed at 3.0.0 | `proof:no-collision-rename` (born-RED) |
-| self-dep phantom | drop `@mkbabb/value.js` from value.js's own deps | value.js | **DONE in 3.0.0** | `proof:no-nested-self-dependency` (born-RED; greens at kf re-pin) |
+| KF-7 (re-filed) | rename exported `PropertyDescriptor` → `CSSPropertyDescriptor` (no legacy alias) | **value.js** | OPEN — still un-renamed at 3.1.0 (re-verified T.S3) | `proof:no-collision-rename` (born-RED, STAYS red post-pin) |
+| self-dep phantom | drop `@mkbabb/value.js` from value.js's own deps | value.js | **DONE (3.0.0+); GREENED at the kf re-pin** | `proof:no-nested-self-dependency` — flipped GREEN, DISCHARGED (removed from backlog) |
 | color2Into trail | — (kf-side verification tightening) | kf | **DONE** (§3 itemized exit) | `proof:consume-bundle` exit 0 |
-| 3.0.0 pin | re-pin `^3.0.0` in a dedicated motion | kf | GATED (§4) — TARGET row in PIN-LEDGER | full library gate set |
+| 3.x pin | re-pin `^3.0.0` (→ 3.1.0) in a dedicated motion | kf | **EXECUTED (T.S3, 2026-07-05)** — full gate set GREEN in an isolated clone; PIN-LEDGER row FOLDED to shipped | full library gate set (all green) |
 | resolveEasing | converge HEAVY registry onto value.js | kf | BOOKED — trigger = T easing batch | — |

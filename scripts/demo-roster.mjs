@@ -253,12 +253,24 @@ export const BACKLOG = {
     //   • proof:icon-paint-live — the demo-side `::view-transition-*` residue
     //     (scene-transition.css) DELETED (S11); glass-ui owns the VT look.
     // RE-OPENED 2026-07-04 at the owner live-review: the S.G3 discharge was
-    // INCOMPLETE — one drag surface still leaves userSelect:auto mid-gesture
-    // (clause a, reproduced serially on a quiet tree). The product fix rides
-    // Tranche T (the owner-verdict fold; VERDICT.md); the row returns to the
-    // named-owner backlog so the roster's verdict stays honest — a NAMED carry,
-    // never a mask.
-    "proof:drag-gesture": "T (the owner-verdict fold)",
+    // INCOMPLETE — one drag surface (easing/ribbon-slider) still leaves
+    // body.is-dragging unset mid-gesture. T.S2 (lane 27 F3) root-caused it to TWO
+    // defects and fixed the seam one:
+    //   (1) SEAM (FIXED) — PlaybackRibbon.vue's gatedSliderDown routed a MOUSE press
+    //       through glass-ui useTouchGate, whose `"ontouchstart" in window` desktop
+    //       check is TRUE in Chromium, so handleTouchStart returned false on the
+    //       first press and swallowed acquireSelectSuppression. Cure: mouse/pen
+    //       bypass the touch gate; only genuine touch consults it (validated live —
+    //       with the occluder neutralized, body.is-dragging arms on down / clears on up).
+    //   (2) OCCLUSION (RESIDUAL, easing-only) — the fixed TransportDock
+    //       (.menubar-safe-pb, z-40, y 767-831) overlaps the controls-pane ribbon
+    //       (y 795-835) on the easing scene, so the pointerdown never reaches the
+    //       slider; square/spring/sequence/bezier all pass clean. This occlusion
+    //       RIDES the easing/dock redesign (T.C dock recut · T.E/T.B controls-model;
+    //       T.S2 edges: ride the redesign, not harden a doomed widget), so the
+    //       browser leg still reds on this ONE surface — the row STAYS, a NAMED
+    //       carry, never a mask.
+    "proof:drag-gesture": "T.C/T.E/T.B (dock-occlusion residual; the T.S2 seam fix landed)",
 };
 
 // ── demo-device-observe (OBSERVE-ONLY) — the device-dependent proof:* gates.
