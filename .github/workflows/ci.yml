@@ -367,6 +367,20 @@ jobs:
             # demand a consume-edge deletion that the sibling publish has made safe.
             - name: proof:workaround-deletion (L.W9 — the Band-B consume-edge deletion ledger · PENDING today · RED only when a sibling root-fix publishes)
               run: npm run proof:workaround-deletion
+            # T.H1 — proof:glass-ui-gap-tripwire: the generalized glass-ui gap ledger
+            # (demo/glass-ui-gaps.ts) version tripwire. Reads the installed glass-ui
+            # version + the SINGLE glassCaps probe (scripts/lib/glass-caps.mjs, reused
+            # by proof:workaround-deletion); RED when a gap's cure is satisfied in the
+            # consumed dist while its workaround survives (vacuously green on 4.0.1),
+            # + the lane-25-rec-2 citation clause (every band-aid site cites its ledger
+            # entry). STATIC dist-content grep, no browser — the fast gates job.
+            - name: proof:glass-ui-gap-tripwire (T.H1 — the glass-ui gap ledger version tripwire · vacuously green on 4.0.1 · flips RED on the BG/BH publish while the workaround survives)
+              run: npm run proof:glass-ui-gap-tripwire
+            # T.H4 — proof:no-hand-rolled-labeled-select: zero hand-rolled
+            # label-adjacent-<Select> pairs in the control/config option rows (each
+            # resolves to glass-ui LabeledSelect). STATIC source grep — the fast gates job.
+            - name: proof:no-hand-rolled-labeled-select (T.H4 — LabeledSelect pure-consumption · zero hand-rolled label+Select pairs in the option/config rows)
+              run: npm run proof:no-hand-rolled-labeled-select
             # ════════════════════════════════════════════════════════════════════
             # F-7 STATIC-GATE MIGRATION (Q.WA3 S4) — the device-dependence harden.
             # These ELEVEN gates open NO browser and read NO gh-pages build artifact

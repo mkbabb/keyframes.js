@@ -16,6 +16,12 @@ import {
     SelectValue,
 } from "@mkbabb/glass-ui";
 import { StatusDot } from "@mkbabb/glass-ui/status-dot";
+// GLASSUI-GAP: dockDismissHold — the isAnyOpen popup mutex + the re-expand watch
+// (below) are a band-aid for glass-ui's dock self-collapsing under its own open
+// popover (its dismiss-pointerdown ignoring keepOpen() holds — GU-3). They are
+// deleted on the re-pin; proof:glass-ui-gap-tripwire flips RED the instant
+// glassCaps.dockDismissHold is satisfied while the watch survives. See
+// demo/glass-ui-gaps.ts.
 
 // H.W5.S1/S2: the dock no longer holds a parallel string-keyed `sceneIcons`
 // Record of imported image URLs (the D8 drift root cause). Each scene carries
