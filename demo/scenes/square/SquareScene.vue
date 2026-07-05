@@ -98,6 +98,7 @@ import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
 import { SQUARE_SUPER_KEY } from "./squareKeys";
+import { facilityFromGroup } from "@app/scene/sceneFacility";
 
 const superKey = SQUARE_SUPER_KEY;
 
@@ -322,6 +323,10 @@ const { onKeydown } = useSquareKeyboard({
 });
 
 defineExpose({
+    // T.B1 STAGE 1 — the additive SceneFacility: square's REAL nested-keyframes
+    // channel paints (the honest four-corner tour); the legacy `animationGroup`
+    // stays for the panel group. The facility's playback is the group adapter.
+    facility: computed(() => facilityFromGroup(() => animationGroup)),
     animationGroup: computed(() => animationGroup),
     superKey,
     // T.A13 — the writable play state the App toggles for a group-adapter scene

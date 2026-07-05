@@ -274,6 +274,13 @@ const EXCLUDED = new Set([
     // Recorded tripwires, never blocking &&-chain members (clause 11).
     "proof:no-collision-rename",
     "proof:no-nested-self-dependency",
+    // T.B1 STAGE 1 (batch-④′ α) — the SceneFacility keystone gate. Clause (a)
+    // (descriptor + group scenes + sequence migrated) is GREEN; clause (b) (ZERO
+    // useContractAnimGroup references under demo/) is BORN-RED until batch ⑤ (the
+    // easing/spring channel-rendering joint motion) deletes the last call sites +
+    // the definition. Registered in T_BORNRED_BACKLOG; a recorded tripwire, never
+    // a blocking &&-chain member (clause 11 re-verifies the registration).
+    "proof:scene-facility",
 ]);
 
 const gates = Object.keys(pkg.scripts)

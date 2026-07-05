@@ -58,34 +58,55 @@ export function useSceneMachineShellBinding(opts: {
         releaseAdapter?.();
         releaseAdapter = null;
 
-        const group = sceneRef.value?.animationGroup;
-        if (!group || isHome.value) {
+        // T.B1 STAGE 1 — PREFER the SceneFacility when the scene exposes it. A
+        // facility carries its OWN `playback` adapter (built from the channels),
+        // so the shell registers that instead of wrapping the group. A migrated
+        // group scene (cube/amiga/square) still exposes `animationGroup` (the
+        // panel group); a facility-only scene (sequence) has none — its
+        // `currentAnimationGroup` is an empty placeholder (DFA [] → no panel).
+        const facility = sceneRef.value?.facility;
+        const group = facility?.group ?? sceneRef.value?.animationGroup;
+        if (isHome.value || (!group && !facility)) {
             currentAnimationGroup.value = markRaw(
                 new (kfEngine().AnimationGroup)(),
             );
             return;
         }
 
-        currentAnimationGroup.value = markRaw(group);
+        currentAnimationGroup.value = markRaw(
+            group ?? new (kfEngine().AnimationGroup)(),
+        );
 
-        // Pick the first animation when none is selected yet (the controls panel
-        // needs a selection to render anything).
-        const controls = getStoredAnimationGroupControlOptions(currentSuperKey.value);
-        if (!controls.selectedAnimation) {
-            const names = Object.keys(group.animations);
-            if (names.length > 0) controls.selectedAnimation = names[0]!;
-        }
-        // J.W7a S5 / XH-1 (D20) — the desktop force-open applies ONLY to scenes
-        // whose DFA control-surface set is non-empty. An empty-DFA scene
-        // (sequence) has NOTHING to put in the rail; force-opening
-        // it was the structural source of the hollow 400px ghost rail (the
-        // [rail] track held open showing a vacant card, cross-hierarchy #1).
-        if (window.innerWidth >= 1024 && machine.controlSurfaces.value.length > 0) {
-            controls.isControlsPanelOpen = true;
+        // The selection default + desktop force-open apply ONLY when there is a
+        // real group with members (a facility-only scene has an empty group and
+        // an empty DFA — nothing to put in the rail; force-opening it was the
+        // structural source of the hollow 400px ghost rail, J.W7a S5 / XH-1).
+        if (group) {
+            // Pick the first animation when none is selected yet (the controls
+            // panel needs a selection to render anything).
+            const controls = getStoredAnimationGroupControlOptions(
+                currentSuperKey.value,
+            );
+            if (!controls.selectedAnimation) {
+                const names = Object.keys(group.animations);
+                if (names.length > 0) controls.selectedAnimation = names[0]!;
+            }
+            if (
+                window.innerWidth >= 1024 &&
+                machine.controlSurfaces.value.length > 0
+            ) {
+                controls.isControlsPanelOpen = true;
+            }
         }
 
+        // The playback authority: the facility's adapter first, then a scene's own
+        // raw-rAF adapter (easing/spring — the STAGE-2 legacy path), then wrap the
+        // group. A facility-only scene always resolves via `facility.playback`.
         const exposed = sceneRef.value?.scenePlayback as ScenePlayback | undefined;
-        const adapter = exposed ?? createGroupAdapter(() => currentAnimationGroup.value);
+        const adapter =
+            facility?.playback ??
+            exposed ??
+            createGroupAdapter(() => currentAnimationGroup.value);
         releaseAdapter = machine.register(currentSceneId.value, adapter);
     }
 
@@ -113,9 +134,14 @@ export function useSceneMachineShellBinding(opts: {
      * safe AND re-drives against a fresh group when the scene remounts.
      */
     function markSceneReady() {
-        // The live group the scene currently exposes (the genuine bind target).
-        // `undefined` for home (no group) and transiently mid-remount.
-        const liveGroup = (sceneRef.value?.animationGroup ?? null) as object | null;
+        // The live bind-target identity the scene currently exposes. A group
+        // scene exposes `animationGroup` (stable); a facility-only scene
+        // (sequence) exposes a stable `scenePlayback` adapter instead — either is
+        // a stable per-entry identity for the once-per-(entry × target) guard.
+        // `null` for home (no target) and transiently mid-remount.
+        const liveGroup = (sceneRef.value?.animationGroup ??
+            sceneRef.value?.scenePlayback ??
+            null) as object | null;
 
         // Already driven THIS entry against THIS exact group? No-op. A fresh
         // group object for the same scene-id (a remount across the superKey-keyed
@@ -165,9 +191,14 @@ export function useSceneMachineShellBinding(opts: {
         autoPlayNext.value = false;
     }
 
-    // Re-bind + mark ready when the scene's exposed group becomes available (a
-    // fresh scene mounts and `sceneRef` binds — the sceneRef-bound path).
-    watch(() => sceneRef.value?.animationGroup, markSceneReady);
+    // Re-bind + mark ready when the scene's exposed bind-target becomes available
+    // (a fresh scene mounts and `sceneRef` binds — the sceneRef-bound path). A
+    // facility-only scene (sequence) has no `animationGroup`, so watch its stable
+    // `scenePlayback` too or its readiness would never re-drive.
+    watch(
+        () => sceneRef.value?.animationGroup ?? sceneRef.value?.scenePlayback,
+        markSceneReady,
+    );
 
     // Re-arm the guard on every machine scene change; drive readiness DIRECTLY
     // for the home ↔ cube transition (shared Suspense key 'cube' → no @resolve).

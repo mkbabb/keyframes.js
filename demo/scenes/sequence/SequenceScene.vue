@@ -31,14 +31,15 @@ const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
 storedControls.isControlsPanelOpen = false;
 
 defineExpose({
-    animationGroup: computed(() => demo.animationGroup),
+    // T.B1 STAGE 1 — the SceneFacility replaces the deleted contract group. Its
+    // ONE "Sequence" channel is the transport label; `facility.playback` is the
+    // raw-rAF adapter the shell registers with the machine. `scenePlayback` is
+    // also exposed as the STABLE bind-target identity the shell's once-per-entry
+    // ready-guard keys on (a facility-only scene has no `animationGroup`).
+    facility: computed(() => demo.facility),
     superKey: SUPER_KEY,
     isPlaying: demo.isPlaying,
     isStarted: ref(true),
-    // The raw-rAF ScenePlayback adapter — the App registers it with the machine
-    // on SCENE_READY so the Sequence's progress/isPlaying round-trip through the
-    // CONTRACT (these temporal scenes have NO AnimationGroup position; the dummy
-    // transport host drives no motion). proof:scene-contract-identity.
     scenePlayback: demo.scenePlayback,
 });
 </script>

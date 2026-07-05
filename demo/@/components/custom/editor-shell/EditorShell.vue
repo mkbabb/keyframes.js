@@ -62,6 +62,7 @@
         <AnimationControlsGroup
             :key="superKey"
             :animation-group="animationGroup"
+            :channel-names="channelNames"
             :super-key="superKey"
             :auto-play="autoPlay"
             :machine-playing="machinePlaying"
@@ -121,6 +122,11 @@ initIOSPlatformClass();
 const props = withDefaults(
     defineProps<{
         animationGroup: AnimationGroup<any>;
+        // T.B1 STAGE 1 — the active scene's `SceneFacility.channels` names,
+        // forwarded to the transport as the select labels. `undefined` for a
+        // non-migrated scene / a standalone host → the transport falls back to
+        // the group's animation keys.
+        channelNames?: string[];
         superKey?: string;
         showStartScreen?: boolean;
         gridBackground?: boolean;

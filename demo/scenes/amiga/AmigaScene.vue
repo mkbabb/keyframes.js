@@ -34,6 +34,7 @@ import {
 } from "./useAmigaDemo";
 import { useSphereSpin } from "./useSphereSpin";
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
+import { facilityFromGroup } from "@app/scene/sceneFacility";
 import { AMIGA_SUPER_KEY } from "./amigaKeys";
 
 const superKey = AMIGA_SUPER_KEY;
@@ -229,6 +230,10 @@ onBeforeUnmount(() => {
 });
 
 defineExpose({
+    // T.B1 STAGE 1 — the additive SceneFacility: amiga's REAL group members are
+    // the painting channels; the legacy `animationGroup` stays for the panel
+    // group. The facility's playback is the standard group adapter.
+    facility: computed(() => facilityFromGroup(() => animationGroup)),
     animationGroup: computed(() => animationGroup),
     superKey,
 });
