@@ -391,6 +391,22 @@ export const T_BORNRED_BACKLOG = {
     //  with the T.A1 bloom-delete browser render check, the amiga leg with the
     //  T.A6/T.A7 plain-vars + compositor cure (3833 visible ball pixels), and the
     //  morph clause retired with the OD-1 prune at batch ①. The gate exits 0.)
+    "proof:blur-not-resampled": {
+        dischargedBy:
+            "T.H (glass-ui `blur-source=\"static\"` frozen-backdrop publish, BG-5) + the kf " +
+            "re-pin adopting it — the kf-side de-layer clauses (A: contain:paint deleted, no " +
+            "backdrop-filter ancestor; C: the BG-5 ledger row) GREEN NOW; only clause B (the " +
+            "runtime toggle-delta) stays RED until the frozen-backdrop capability ships.",
+        reason:
+            "T.G1 (the perf keystone). The glass chrome's LIVE backdrop-filter re-samples the " +
+            "moving stage as its backdrop every frame (VERDICT #19 root cause #1): neutralizing " +
+            "it raises the heaviest-coupled surviving scene (easing) from 26→65fps here / the " +
+            "wave's 33→39.5fps @1440×dpr2, far over the 15% ceiling. No pure-CSS kf-side cure " +
+            "exists (isolation/z-index/radius-cap/geometry all measured neutral); the frozen-" +
+            "backdrop capability is glass-ui-owned and absent today — a born-RED handoff (T.H). " +
+            "The runtime clause is subsumed by T.G6's proof:perf blur-delta once lane 11's " +
+            "toggle-probe is promoted. See demo/glass-ui-gaps.ts staticBackdrop (BG-5).",
+    },
     "proof:roster-ceiling": {
         dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
         reason:
