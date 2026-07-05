@@ -44,7 +44,7 @@
              consistent with J's minimal chrome. -->
         <div
             v-if="readoutValue"
-            class="easing-readout flex items-center justify-center gap-2 m-0 p-0 text-mono-caption normal-case italic min-w-0"
+            class="easing-readout flex items-center justify-center gap-2 m-0 p-0 text-mono-caption normal-case italic min-w-0" data-register="code"
         >
             <span class="easing-readout-value" :title="readoutValue">{{ readoutValue }}</span>
             <TooltipProvider :delay-duration="200">
@@ -52,7 +52,7 @@
                     <TooltipTrigger as-child>
                         <CopyButton class="scale-on-hover icon-md shrink-0" :text="readoutValue" />
                     </TooltipTrigger>
-                    <TooltipContent class="text-mono-caption normal-case">
+                    <TooltipContent class="text-caption">
                         Copy to clipboard
                     </TooltipContent>
                 </Tooltip>

@@ -105,6 +105,7 @@ export const APPEARANCE_TOUCHING = [
     "proof:easter-egg",
     "proof:compose-scene",
     "proof:appearance-suffusion",
+    "proof:accent-census",
     "proof:specular-absent-at-rest",
     "proof:demo-fonts",
     "proof:font-census",
@@ -138,6 +139,11 @@ export const GATE_AUTHORITY = {
     "proof:stage-inventory": "OWNER",
     "proof:subject-legible": "OWNER",
     "proof:subject-full": "OWNER",
+    // T.D7 — the violet-accent oracle: its green window IS the OD-6-blessed ramp
+    // (APPROVED 2026-07-05 "Good.", the P-THEME reference worktree) — unreachable
+    // without the committed owner token, so OWNER by construction. BLOCKING
+    // (correctness roster), per the T.M6.2 blocking-not-OBSERVE tooth.
+    "proof:accent-census": "OWNER",
     // (proof:owner-golden lands with T.A/T.D renders — its OWNER row is added then)
 
     // ── INSTRUMENT authority (correctness facts; may NOT stand as the appearance bar) ──

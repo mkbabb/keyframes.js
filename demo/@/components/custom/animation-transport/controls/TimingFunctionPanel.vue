@@ -61,7 +61,7 @@
                          this panel's own label|control two-track grid. -->
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-col gap-1">
-                            <label class="text-mono-caption normal-case text-muted-foreground">count</label>
+                            <label class="text-small font-medium text-muted-foreground">count</label>
                             <Input
                                 type="number"
                                 class="font-mono"
@@ -84,8 +84,9 @@
                             :is-open="jumpTermOpen"
                             :items="jumpTerms"
                             label="jump term"
-                            label-class="text-mono-caption normal-case text-muted-foreground"
+                            label-class="text-small font-medium text-muted-foreground"
                             tooltip="steps() jump term"
+                            data-register="code"
                             class="font-mono"
                             @update:model-value="
                                 (key: string) => {

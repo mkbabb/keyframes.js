@@ -48,20 +48,26 @@
        There is exactly ONE display token: --font-display = Instrument Serif. The
        former redundant --font-serif (an identical second display declaration that
        let a future edit split the dock band silently — styling-typography-k §3) is
-       DELETED; its two consumer sites (playback-button.css, tab-trigger.css) now
-       read --font-display directly.
+       DELETED; no demo consumer reads it.
 
-       THE TRUE BUILD (the prior comment here LIED on three counts — it claimed
-       text-title/-heading/-subheading/dock-label resolve --font-display and named
-       Fraunces; both false — so it MASKED U-K6/U-K8 since J): of glass-ui's φ-ladder
-       (typography.css) ONLY the `text-display-*` rungs bind var(--font-display); the
-       `text-title`/`-heading`/`-subheading`/`dock-label` utilities bind
-       var(--font-text) (the body register). glass-ui's OWN display default is Plus
-       Jakarta Sans (NOT Fraunces). The dock band carries the display voice via the
-       demo's ONE @layer demo-typography rule below (S2), NOT by glass-ui's
-       dock-label default. Instrument Serif is the demo's deliberate identity face:
-       one token, zero new payload. Single-weight ~400, so --font-display-weight: 400
-       (glass-ui default) is correct.
+       THE TRUE BUILD: of glass-ui's φ-ladder (typography.css) ONLY the
+       `text-display-*` rungs bind var(--font-display); the `text-title`/
+       `-heading`/`-subheading`/`dock-label` utilities bind var(--font-text) (the
+       body register). Instrument Serif is the demo's deliberate identity face —
+       one token, zero new payload — and it ships a SINGLE weight (400, no wght
+       axis). glass-ui's `text-display-*` rungs hardcode `font-weight: 600`
+       (tuned for Plus Jakarta, which HAS a 600) and there is NO
+       --font-display-weight token in glass-ui 4.x to swap it (the prior comment
+       here vouched for that phantom token — FALSE, T.D2 lockstep): the honest
+       400 lands via the @layer demo-typography rung override at the foot of
+       this sheet + `font-synthesis: none` at :root, and the durable token seam
+       is the BG-6 glass-ui ask (demo/glass-ui-gaps.ts).
+
+       T.D3 (OD-6 / T-TY2) — the demo's Tailwind `font-sans` override is
+       DELETED: the body register is glass-ui's own Plus Jakarta Sans (variable,
+       already bundled via the @mkbabb/glass-ui/styles/fonts import above —
+       zero new payload). Three voices, hard-bounded: Instrument Serif (display)
+       · Plus Jakarta Sans (body/chrome) · Fira Code (code/data only).
 
        "Instrument Serif Fallback" sits between the web font and raw Georgia:
        it is the metric-matched fallback face defined below (E.W11.S5) so the
@@ -69,16 +75,17 @@
        from first paint and does not reflow on Instrument-Serif arrival. */
     --font-display: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif;
     --font-mono: "Fira Code", monospace;
-    /* The Tailwind `font-sans` utility token — the demo's clean native UI sans,
-       NOT glass-ui's brand "Plus Jakarta Sans". The body/text register itself is
-       reclaimed at :root via --font-stack-text below (the underlying token glass-
-       ui's `--font-text`/`--font-sans` bridges derive from — overriding the
-       bridge alone loses to glass-ui's `@theme inline`). I.W6-font. */
-    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-        Helvetica, Arial, sans-serif;
 
     --color-accent-red: var(--accent-red);
     --color-accent-red-foreground: var(--accent-red-foreground);
+    /* T.D7 (OD-6 APPROVED / T-TH1) — the violet authority's Tailwind bridge, so
+       chrome call-sites write bg-accent-kf / border-accent-kf instead of the
+       red family (the AnimationVisualizer ball + dashed twin ride these).
+       --accent-red's bridge above SURVIVES for destructive surfaces only. */
+    --color-accent-kf: var(--accent-kf);
+    --color-accent-kf-strong: var(--accent-kf-strong);
+    --color-accent-kf-subtle: var(--accent-kf-subtle);
+    --color-accent-kf-foreground: var(--accent-kf-foreground);
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -114,31 +121,28 @@
 :root {
     color-scheme: light;
 
-    /* ── Font register (I.W6-font) — reclaim the body register from glass-ui ──
-       glass-ui's brand body font is "Plus Jakarta Sans": tokens.css:51 declares
-       `--font-stack-text: "Plus Jakarta Sans"…` at :root, and theme.css bridges
-       `--font-text`/`--font-sans`/`--font-display` to the `--font-stack-*` tokens
-       via `@theme inline` (so a plain `@theme` override of the BRIDGE loses).
-       glass-ui's documented consumer lever (tokens.css:6) is a RUNTIME `:root`
-       override of the underlying `--font-stack-*` token. keyframes.js does NOT
-       use Plus Jakarta — its identity is Instrument Serif (display, reclaimed via
-       --font-display in @theme) + Fira Code (mono) over a clean native UI sans
-       for the body/dock/controls. Override the underlying stack token here so the
-       brand font never lands on our surfaces (and never half-loads a webfont the
-       demo build does not serve).
+    /* ── T.D2 (OD-6 / T-TY1, RULED #24) — the faux-bold kill, at the root ──
+       Instrument Serif ships ONE weight (400). Every glass-ui display rung bakes
+       font-weight: 600 (tuned for Jakarta, which HAS a 600) — so every display
+       leaf rendered browser-SYNTHESIZED bold: the mushy smeared hero the owner
+       rejected ("Most of the fonts on the site are not right at all"). With
+       synthesis off, a weight the face does not ship falls back to the TRUE
+       face (the honest ink), never a smear. Inherited — one declaration covers
+       every leaf. The computed-weight honesty (400 at the rung) is the @layer
+       demo-typography override at the foot of this sheet (BG-6 consumer-side
+       until glass-ui ships --font-display-weight). */
+    font-synthesis: none;
 
-       K.W2 S4 — close the `.font-display` trap: --font-stack-display is REPOINTED
-       to var(--font-display) (it formerly bridged to --font-stack-text = native
-       sans, so glass-ui's `.font-display { font-family: var(--font-stack-display) }`
-       utility resolved native sans — the OPPOSITE of its name, a latent inversion).
-       Now the bare `.font-display` utility, the φ `text-display-*` ladder, and the
-       dock band all resolve the SAME single display face. */
-    --font-stack-text: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-        Roboto, Helvetica, Arial, sans-serif;
-    --font-stack-sans: var(--font-stack-text);
+    /* ── T.D3 (OD-6 / T-TY2, RULED) — the body register RE-ADOPTED ──
+       The I.W6 `--font-stack-text` reclaim (the ui-sans-serif system-stack pin)
+       is DELETED: glass-ui's Plus Jakarta Sans flows natively to every body /
+       controls / dropdown / dock surface. The demo pays for the face (base64 in
+       the fonts import) — now it renders it. ONLY the K.W2 S4 display repoint
+       survives: --font-stack-display bridges to the ONE display authority so
+       the bare `.font-display` utility and the φ `text-display-*` ladder agree
+       (it formerly bridged to --font-stack-text, so `.font-display` resolved
+       the BODY face — the opposite of its name). */
     --font-stack-display: var(--font-display);
-    --font-text: var(--font-stack-text);
-    --font-sans: var(--font-stack-text);
 
     /* ── Layout ── */
     --dock-icon-height: 2.75rem;
@@ -342,9 +346,45 @@
     --axis-z: hsl(240 76% 58%);
     --axis-w: var(--foreground);
 
-    /* ── Accent red tokens ── */
+    /* ── Accent red tokens — DESTRUCTIVE-ONLY (T.D7 / OD-6 RULED / T-TH1) ──
+       DESIGN.md's original contract restored: --accent-red marks destructive /
+       error surfaces (Clear-all, delete, error toasts) and NOTHING else. The
+       K.W4 S3 promotion of this token into the sitewide motion authority is
+       REVERSED below (--color-progress now rides the violet accent). The hue is
+       UNCHANGED (proof:crayon-preserved keeps it pinned) — only its REACH
+       shrinks to the destructive register. */
     --accent-red: hsl(0 72% 63%);
     --accent-red-foreground: hsl(0 0% 100%);
+
+    /* ── THE VIOLET ACCENT AUTHORITY (T.D7 — OD-6's ramp, the P-THEME graft) ──
+       ONE oklch family, BOTH themes — the latent-red kill's constructive half
+       (owner token: OD-6 APPROVED, "Good.", 2026-07-05, on the live P-THEME
+       review; blessed reference branch worktree-wf_1e744f4d-2bb-3). The brand
+       already owned two violets that never met: the ppmycota periwinkle
+       (hsl 248°) and glass-ui's dark orchid (oklch hue 318). They unify HERE
+       into one ramp: iris-periwinkle in light, orchid in dark — same family,
+       only lightness/chroma arm-swap, so the accent keeps ONE identity across
+       the theme toggle (the identity-flip dies: light's near-black --primary
+       is gone). light-dark() resolves against color-scheme, which the .dark
+       class flips — the arms are theme-live.
+         · base       — interactive accent, progress fills, selection
+         · strong     — hover/active deepen (light) / lift (dark)
+         · subtle     — washes + tinted surfaces
+         · foreground — text/glyph ON the accent */
+    --accent-kf: light-dark(oklch(0.56 0.17 295), oklch(0.74 0.13 305));
+    --accent-kf-strong: light-dark(oklch(0.49 0.19 295), oklch(0.8 0.14 305));
+    --accent-kf-subtle: light-dark(oklch(0.94 0.04 296), oklch(0.34 0.06 302));
+    --accent-kf-foreground: light-dark(
+        oklch(0.985 0.005 296),
+        oklch(0.24 0.03 302)
+    );
+
+    /* The interactive-accent repoint: glass-ui's --primary was near-BLACK in
+       light and orchid in dark (the accent changed identity per theme). It now
+       rides the one violet authority in both arms; glass-ui's own
+       --primary-foreground arms (white on light-violet, dark ink on orchid)
+       remain contrast-valid against the new values. */
+    --primary: var(--accent-kf);
 
     /* ── The six cube facet crayons (L.W11.S2 — the HUE-EXACT hygiene lift) ──
        M. Cubert's six saturated facets are the canonical crayon SIGNAL surface
@@ -365,28 +405,27 @@
     --face-5: rgba(255, 0, 255, 0.8); /* top   — '5' (magenta) */
     --face-6: rgba(0, 255, 255, 0.8); /* bottom — '6' (cyan) */
 
-    /* ── Progress / slider color tokens (K.W4 S3 / U-K17 — the motion-color
-         authority collapsed to ONE: the RED-DASHED) ──
-       The demo carried TWO motion-color identities: the red-dashed (the cube
-       AnimationVisualizer's solid-red ball chasing a dashed-red destination twin,
-       AnimationVisualizer.vue:21,35) and a SEPARATE disliked GREEN
-       (--color-progress = hsl(142 71% 45%)) driving the spring slider thumbs +
-       preset rings + every .progress-ball/.progress-rail/.progress-dot + the scrub
-       track. The user wants ONE — the red-dashed (design-synthesis-k §3/§5). This
-       is the spatial-color analog of the W2 display-token collapse: a TOKEN-level
-       repoint, NOT a per-component hand-roll. --color-progress now resolves the
-       --accent-red family (the SAME hue every motion surface already drew on the
-       cube), and --color-slider-track its lower-saturation rail twin. Every
-       downstream consumer (the conic --dot-p ring, the rail/ball pair, the
-       readout-accent, the status-badge tone, the timeline scrub track) inherits
-       the red by construction — the green is GONE on the motion surfaces. The
-       rainbow play CTA gradient is a SEPARATE palette (--rainbow-*) and is
-       PRESERVED VERBATIM (design-synthesis-k §6; the one sanctioned multi-color
-       pop). The settled/FINAL register pairs this red with the dashed outline
-       (mirroring AnimationVisualizer.vue:35's border-2 border-dashed
-       border-accent-red/40 bg-accent-red/15) at each preset-cell call-site. */
-    --color-progress: var(--accent-red);
-    --color-slider-track: hsl(0 60% 78%);
+    /* ── Progress / slider color tokens (T.D7 / OD-6 — the motion-color
+         authority repointed to the VIOLET) ──
+       K.W4 S3 proved the one-token lever: every motion surface (the conic
+       --dot-p ring, the rail/ball pair, the readout-accent, the status-badge
+       tone, the timeline scrub track, the spring preset dashes) reads
+       --color-progress. That lever now points at the accent the brand actually
+       owns — the downstream references inherit the violet by construction, and
+       red exits the chrome entirely (VERDICT #16's "latent red theme" dies at
+       its root; --accent-red returns to destructive-only above). The slider
+       rail sheds its red twin for a NEUTRAL border-derived tone: rails are
+       substrate, not signal. The rainbow play CTA gradient is a SEPARATE
+       palette (--rainbow-*), PRESERVED VERBATIM — crayons stay bounded to
+       subjects. The settled/FINAL register keeps the dashed-outline idiom
+       (border-dashed border-accent-kf/40 bg-accent-kf/15) at each preset-cell
+       call-site — the IDIOM survives the hue swap. */
+    --color-progress: var(--accent-kf);
+    --color-slider-track: color-mix(
+        in srgb,
+        var(--foreground) 35%,
+        var(--border)
+    );
 
     /* ── Branding ── (uncaged from utils.css, D.W2.S2)
        The --ppmycota-primary brand colour stays a GLOBAL token (it is a token,
@@ -394,20 +433,24 @@
        (brand.css) AND the var(--ppmycota-primary, …) fallback readers
        (EasingSelect / EasingCurveCanvas) all resolve it regardless of which
        component is mounted. --filter-brand-color approximates it via a CSS
-       filter for the SVG logo marks. */
-    --ppmycota-primary: hsl(248 88% 71%);
+       filter for the SVG logo marks.
+       T.D7 (OD-6) — the periwinkle literal folds into the ONE violet
+       authority: brand mark and interactive accent are the same family now
+       (ppmycota itself is KEPT per OD-3). */
+    --ppmycota-primary: var(--accent-kf);
     --filter-brand-color: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%) contrast(103%);
 }
 
 .dark {
     color-scheme: dark;
+    /* Destructive-only dark arm (T.D7): red survives HERE for error /
+       destructive surfaces alone. The motion/progress/slider tokens no longer
+       re-declare — their light-dark() arms flip with color-scheme, and the
+       --primary repoint is re-asserted so the demo's authority wins over any
+       glass-ui .dark-arm declaration regardless of cascade order. */
     --accent-red: hsl(5 55% 50%);
     --accent-red-foreground: hsl(0 0% 95%);
-    /* K.W4 S3 — the dark-mode motion-color authority follows the same red
-       collapse: --color-progress aliases the dark --accent-red, the slider-track
-       its lower-saturation dark twin (was the disliked green hsl(142 50% 55%)). */
-    --color-progress: var(--accent-red);
-    --color-slider-track: hsl(5 35% 42%);
+    --primary: var(--accent-kf);
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -620,26 +663,65 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   THE DOCK BAND JOINS THE DISPLAY VOICE AT THE ROOT (K.W2 S2 — U-K6/U-K8)
+   T.D2 (OD-6 / T-TY1) — HONEST DISPLAY WEIGHT AT THE RUNG (the BG-6 override)
    ────────────────────────────────────────────────────────────────────────
-   glass-ui's `dock-label` utility binds `font-family: var(--font-text)` (the
-   body register — typography.css :324-330 on 3.13.0, RE-VERIFIED post-re-pin),
-   so the bottom dock labels render native SANS while the design intends the
-   Instrument-Serif DISPLAY voice (the split-voice dock the 4-tranche typography
-   chronic kept re-felt: DL-K10, U-K6/U-K8). The cure is ONE demo-side rule at
-   the family bind — NOT a per-site font class on each dock <span> (the named
-   forbidding). `@layer demo-typography` is declared LAST in this stylesheet, so
-   it is ordered AFTER glass-ui's `utilities` layer (where the `@utility
-   dock-label` compiles) and wins the cascade. This flips EVERY `.dock-label`
-   site (ChromeDock controls-tab + scene-select triggers/groups; TransportDock
-   transport labels) to the single --font-display authority with ZERO call-site
-   churn; the controls-pane mono + body prose are untouched (the rule matches
-   only `.dock-label`). `.dock-scene-title` already binds --font-display
-   (ChromeDock scoped style) — the whole dock band now agrees. inv-16: the demo
-   OVERRIDES the consumed contract at the @layer it owns, never patches
-   node_modules. */
+   The K.W2 S2 `.dock-label` display force is DELETED (the owner's live verdict
+   overrides the K-era dock-display-voice call — VERDICT #24 + the T.C "kill
+   the serif chrome flip" charter row): the dock band reverts to glass-ui's own
+   Jakarta dock-label register. What remains demo-owned is the ONE display
+   correction: glass-ui's `text-display-*` rungs hardcode `font-weight: 600` +
+   negative `--type-tracking-display` — both tuned for Plus Jakarta Sans. Under
+   the single-weight Instrument Serif the 600 synthesizes (killed at :root via
+   font-synthesis) and the negative tracking crushes an already-condensed
+   serif. The rungs resolve the face's TRUE weight (400) and neutral tracking.
+   `@layer demo-typography` is declared LAST so it orders after glass-ui's
+   `utilities` layer and wins the cascade. inv-16: the demo overrides the
+   consumed contract at the @layer it owns, never patches node_modules. (The
+   glass-ui BG-6 ask — parameterize the rung weight as
+   `var(--font-display-weight, 600)` — is the durable home; this is the
+   consumer-side override until the fixVersion publishes, ledgered in
+   demo/glass-ui-gaps.ts with the version tripwire.) */
 @layer demo-typography {
-    .dock-label {
-        font-family: var(--font-display);
+    .text-display-audacious,
+    .text-display-hero,
+    .text-display-mega,
+    .text-display-5,
+    .text-display-4,
+    .text-display-3,
+    .text-display-2,
+    .text-display {
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    /* T.D2/T.D3 — the labeled-field consume-edge: glass-ui's
+       `.labeled-field-label` binds `font-family: var(--font-display)` at the
+       body rung (utilities/base.css:69-71) — under glass-ui's OWN Jakarta
+       display default that is a Jakarta label, but under the demo's Instrument
+       swap it became an ~18.6px SERIF control label (below the T.D2 serif
+       floor; the exact swapped-display-face edge BG-6 names). Field labels are
+       CONTROLS → the body register at medium, matching the blessed P-THEME
+       control-label voice. */
+    .labeled-field-label {
+        font-family: var(--font-text);
+        font-weight: 500;
+    }
+
+    /* T.D3 — the mobile dock-band width fit. glass-ui's dock pill caps at
+       (viewport − inset) and its `.dock-layers` band is FIXED at that cap
+       (measured 291.3px @390w, both trees); the label rung (--type-subheading
+       ≈ 20.4px) fit under the CONDENSED Instrument Serif force but the
+       re-adopted Jakarta at the same rung runs ~10% wider — the full transport
+       layer measured 321.9px and the right-edge Play control clipped past the
+       pill (the 390×844 play-tap hit-test regression). Below lg the dock
+       labels step ONE published rung down (--type-body) so the band fits the
+       capped pill again. Desktop keeps glass-ui's own rung untouched. The
+       durable home is T.C's dock grammar recut + the GU-2 width-morph ask
+       (glass-ui re-measuring its layers); this is the demo-scoped width-fit
+       until then. */
+    @media (max-width: 1023px) {
+        .dock-label {
+            font-size: var(--type-body);
+        }
     }
 }

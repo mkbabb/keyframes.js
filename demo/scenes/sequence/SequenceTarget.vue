@@ -59,7 +59,7 @@
                      gesture (the charter's "no tell" miss): a quiet drafting stamp
                      naming the otherwise-silent row-handle drag. -->
                 <p
-                    class="seq-gesture-tell text-mono-caption normal-case text-muted-foreground"
+                    class="seq-gesture-tell text-caption text-muted-foreground"
                     data-gesture-tell="sequence:retime"
                 >
                     <span aria-hidden="true">↔</span> drag a row handle to re-time its start

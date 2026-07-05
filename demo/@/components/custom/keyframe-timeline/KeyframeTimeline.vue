@@ -83,7 +83,7 @@
 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="text-mono-caption font-semibold"
+                        <span class="text-mono-caption font-semibold tabular-nums"
                             >{{ Math.round(selectedKeyframe.percent) }}%</span
                         >
                         <Input

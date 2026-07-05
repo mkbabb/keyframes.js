@@ -57,7 +57,7 @@
                 <LabeledSlider
                     :model-value="demo.response.value"
                     label="response"
-                    label-class="text-mono-small text-muted-foreground"
+                    label-class="text-small font-medium text-muted-foreground"
                     tooltip="Spring response time (s) — higher = slower"
                     :min="0.1"
                     :max="1.2"
@@ -67,7 +67,7 @@
                 <LabeledSlider
                     :model-value="demo.dampingFraction.value"
                     label="damping (ζ)"
-                    label-class="text-mono-small text-muted-foreground"
+                    label-class="text-small font-medium text-muted-foreground"
                     tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
                     :min="0.2"
                     :max="1.5"
@@ -105,7 +105,7 @@
                 >
                     <span class="preset-name-row flex w-full flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
                         <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                        <span class="text-mono-caption text-muted-foreground">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
+                        <span class="text-mono-caption text-muted-foreground tabular-nums">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
                     </span>
                     <span class="preset-track relative block w-full h-2">
                         <span class="progress-rail"></span>
@@ -126,10 +126,12 @@
                  explicitly re-seeds it from the current solver params. -->
             <div class="keyframes-section grid gap-2">
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-mono-small text-muted-foreground">@keyframes (editable)</span>
+                    <!-- T.D4 — section label + button ride the body register
+                         (mono is data, not the UI voice). -->
+                    <span class="text-small font-medium text-muted-foreground">@keyframes (editable)</span>
                     <button
                         type="button"
-                        class="reseed-btn btn-interactive shrink-0 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-mono-caption text-muted-foreground hover:text-foreground"
+                        class="reseed-btn btn-interactive shrink-0 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-caption font-medium text-muted-foreground hover:text-foreground"
                         title="Re-sample the keyframe stops from the current spring params"
                         @click="demo.seedKeyframes()"
                     >
@@ -263,15 +265,15 @@ onScopeDispose(() => detachDrag?.());
     will-change: left;
 }
 
-/* ── S3 — the RED-DASHED active/settled ring (the token treatment) ──
-   The active cell wears the canonical motion-color (--color-progress, repointed
-   to the --accent-red family by Lane B) as a DASHED outline — mirroring
-   AnimationVisualizer's settled twin (`border-dashed border-accent-red/40
-   bg-accent-red/15`), the user's explicit preference (U-K17). NOT a per-cell
-   `border-red` class: the token is the authority; this is the dashed TREATMENT
-   over it. The hover is the red-accent family (F3 — uninteresting/wrong-color
-   hover cured), a faint tinted wash that reads as the motion language, not the
-   neutral grey accent. */
+/* ── S3 → T.D7 — the DASHED active/settled ring (the token treatment) ──
+   The active cell wears the canonical motion-color (--color-progress — the
+   OD-6 violet authority since T.D7; red is destructive-only) as a DASHED
+   outline — mirroring AnimationVisualizer's settled twin (`border-dashed
+   border-accent-kf/40 bg-accent-kf/15`), the dashed IDIOM the owner kept
+   (U-K17) riding the new hue. NOT a per-cell color class: the token is the
+   authority; this is the dashed TREATMENT over it. The hover is the same
+   accent family, a faint tinted wash that reads as the motion language, not
+   the neutral grey accent. */
 .preset-cell {
     outline: 1px dashed transparent;
     outline-offset: -1px;

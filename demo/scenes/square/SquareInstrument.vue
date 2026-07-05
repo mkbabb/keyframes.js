@@ -21,9 +21,9 @@
     <div class="square-telemetry" aria-hidden="true">
         <span class="text-display square-telemetry-title leading-none">Transform</span>
         <div class="square-telemetry-axes">
-            <span class="text-mono-small text-muted-foreground">x</span>
+            <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
             <span class="readout-accent text-mono-small tabular-nums">{{ readoutX }}</span>
-            <span class="text-mono-small text-muted-foreground">y</span>
+            <span class="text-mono-small text-muted-foreground tabular-nums">y</span>
             <span class="readout-accent text-mono-small tabular-nums">{{ readoutY }}</span>
         </div>
         <span
@@ -38,20 +38,20 @@
              honest four-corner tour (the editor panel RETURNED, editing a LIVE
              anim), while a drag hands the box to the springs (a jump-free
              takeover). This mono caption names those verbs. -->
-        <span class="square-live-caption text-mono-caption text-muted-foreground"
+        <span class="square-live-caption text-caption text-muted-foreground"
             >spring-chased &middot; drag the box, or press Play to tour it</span
         >
-        <span class="text-mono-caption text-muted-foreground">x &middot; y &isin; [-1, 1]</span>
+        <span class="text-mono-caption text-muted-foreground tabular-nums">x &middot; y &isin; [-1, 1]</span>
         <span
             v-if="tumbleHintShown"
-            class="text-mono-caption text-muted-foreground square-legend-hint"
+            class="text-caption text-muted-foreground square-legend-hint"
         >double-click to tumble</span>
         <!-- P.W6 — the envelope-tour egg's discoverability whisper (revealed on
              the same first-settle disclosure as the tumble hint). Focus the box,
              press C → the spring tours the [-1,1]² travel envelope. -->
         <span
             v-if="tumbleHintShown"
-            class="text-mono-caption text-muted-foreground square-legend-hint"
+            class="text-caption text-muted-foreground square-legend-hint"
         >press C to trace the field</span>
     </div>
 </template>

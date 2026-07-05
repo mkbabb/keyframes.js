@@ -284,11 +284,38 @@ const sampleLiveness = (page, ms = 2500) =>
     }, ms);
 
 // ── Appearance-band helpers (the WCAG computed-contrast oracle, A2) ──────────
-/** First three channels (0–255) of an rgb()/rgba()/color(srgb …) string. */
+/** First three channels (0–255) of an rgb()/rgba()/color(srgb …)/oklch(…)
+ *  string. T.D7 re-arm: the accent tokens are authored in oklch and Chromium
+ *  serializes them AS oklch — the old generic `[\d.]+` fallback read
+ *  "oklch(0.74 0.13 305)" as r=0.74 g=0.13 b=305 (garbage contrast). */
 function channels(c) {
     if (!c) return null;
     const srgb = c.match(/color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
     if (srgb) return [+srgb[1] * 255, +srgb[2] * 255, +srgb[3] * 255];
+    const ok = c.match(/oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+([\d.]+)/i);
+    if (ok) {
+        let L = parseFloat(ok[1]);
+        if (ok[1].endsWith("%")) L /= 100;
+        const C = +ok[2];
+        const H = +ok[3];
+        const hr = (H * Math.PI) / 180;
+        const a = C * Math.cos(hr);
+        const b = C * Math.sin(hr);
+        const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+        const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+        const s_ = L - 0.0894841775 * a - 1.291485548 * b;
+        const l3 = l_ ** 3, m3 = m_ ** 3, s3 = s_ ** 3;
+        const lin = [
+            4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3,
+            -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3,
+            -0.0041960863 * l3 - 0.7034186147 * m3 + 1.707614701 * s3,
+        ];
+        const gam = (x) => {
+            const v = Math.min(1, Math.max(0, x));
+            return v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+        };
+        return lin.map((x) => gam(x) * 255);
+    }
     const m = c.match(/[\d.]+/g);
     return m ? m.slice(0, 3).map(Number) : null;
 }

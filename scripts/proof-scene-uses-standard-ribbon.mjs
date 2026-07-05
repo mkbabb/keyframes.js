@@ -33,7 +33,8 @@
  *      `.timeline-green` Slider, (b) the `grid-cols-2` transport row of exactly two
  *      cells — the Play `.btn-playback` button + the Reverse button (the standard
  *      ribbon skins ONLY Play `.btn-playback`; Reverse rides `.btn-interactive`),
- *      (c) the `AnimationVisualizer` ball (`.bg-accent-red.rounded-full`). BITE:
+ *      (c) the `AnimationVisualizer` ball (`.bg-accent-kf.rounded-full` — the
+ *      OD-6 violet authority since T.D7; was bg-accent-red pre-red-kill). BITE:
  *      the bespoke fork has NO scrubber, NO visualizer, and a Play/Pause + Reset
  *      pair (no `grid-cols-2` Play/Reverse transport) → reds.
  *
@@ -161,8 +162,10 @@ async function probeRibbon(page) {
 
         const scrubber = document.querySelector(".timeline-green");
         const playbackBtns = Array.from(document.querySelectorAll(".btn-playback"));
+        // T.D7 (OD-6) — the visualizer ball rides the violet authority
+        // (bg-accent-kf); the red form is dead (destructive-only).
         const visualizer = document.querySelector(
-            ".bg-accent-red.rounded-full, [class*='bg-accent-red'][class*='rounded-full']",
+            ".bg-accent-kf.rounded-full, [class*='bg-accent-kf'][class*='rounded-full']",
         );
 
         // The two PRIMARY transport cells = the grid-cols-2 row that holds the

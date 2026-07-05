@@ -94,10 +94,14 @@
     line-height: 1.15;
     text-align: right;
 }
-/* L.W11 S7 — ENGRAVED CHANNEL NUMBER: the display voice (Instrument Serif); `@…ms` stays mono. */
+/* T.D2/T.D3 (RULED #24) — the L.W11 "engraved" serif channel number dies with
+   the honest-weight rule: Instrument Serif ships no 600 (the 600 here was pure
+   browser synthesis — the exact faux-bold smear T.D2 kills) and the serif
+   retreats to ≥ display-5 rungs; a ~20px chrome label is the BODY register's
+   job. The channel index reads Jakarta semibold (a REAL weight); `@…ms` stays
+   mono. */
 .seq-row-name {
-    font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold, 600);
     font-size: var(--type-subheading);
     line-height: 1;
 }

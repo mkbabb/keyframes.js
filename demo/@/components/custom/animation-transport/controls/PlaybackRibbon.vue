@@ -174,15 +174,15 @@ const scrubTo = (effectiveT: number) => {
 </script>
 
 <style scoped>
-/* ── The timeline scrub slider — the RED-DASHED motion-color authority (K.W4
-   S3/F4) ──
+/* ── The timeline scrub slider — the ONE motion-color authority (K.W4 S3/F4,
+   re-voiced at T.D7/OD-6) ──
    The class name is retained (`.timeline-green` lands on the wrapper that sets
-   the reka <Slider> CSS vars) but the GREEN is GONE: --color-slider-track /
-   --color-progress now resolve the --accent-red family at the token root
-   (style.css K.W4 S3), so the track + thumb paint the SAME red the cube
-   AnimationVisualizer's ball/dashed-twin already drew — ONE motion-color
-   identity (design-synthesis-k §3). No per-component red class; the token
-   repoint carries it.
+   the reka <Slider> CSS vars) but the hue is token-sourced: --color-progress
+   now resolves the OD-6 violet authority and --color-slider-track a NEUTRAL
+   border-derived groove at the token root (style.css T.D7), so the track +
+   thumb paint the SAME violet the AnimationVisualizer's ball/dashed-twin
+   draws — ONE motion-color identity, red returned to destructive-only
+   (VERDICT #16). No per-component color class; the token repoint carries it.
 
    F4 — the track THICKER (the user's live verdict: "the timeline SCRUBBER track
    is too thin"). glass-ui 4.0.0's Slider sets --slider-track-height ON the

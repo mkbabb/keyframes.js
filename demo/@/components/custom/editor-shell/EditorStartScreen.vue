@@ -86,15 +86,19 @@
 
              L.W11.S1 — the EASTER EGG fills that vacancy with the RIGHT one
              thing: a quadrant-sized GLASS card that TYPES its own @keyframes
-             block in Fira Code (a blinking --accent-red caret), then the engine
+             block in Fira Code (a blinking --color-progress caret), then the engine
              parses it (CSSKeyframesAnimation), lifts the hero word to each
              translateY, and format.ts serializes it BACK to a CSS string on a
              ~6s round-trip loop — the moat (parse → animate → get the CSS back)
              made visible BESIDE the hero, never displacing it. Hover restarts
              the compile; PRM rests the completed block statically. -->
+        <!-- T.D4 — the egg IS a code artifact (a live @keyframes block + its
+             serialized echo): the whole card is data-register-marked for the
+             census mono contract. -->
         <div
             class="kf-source-egg source-typing-card pointer-events-auto"
             :class="{ 'kf-source-egg--prm': prefersReduced }"
+            data-register="code"
             @pointerenter="recompile"
             aria-hidden="true"
         >
@@ -233,7 +237,8 @@ const { typedSource, serializedOut, caretBlink, prefersReduced, recompile } =
 /* ── L.W11.S1 — the live @keyframes source card (the egg) ─────────────────────
    A quadrant-sized glass card pinned to the lower-left vacancy. It overlaps the
    graph major-grid (layered transparency, not a tidy cell) and sits beside the
-   hero. The Fira-Code block types itself; the caret is the crayon --accent-red.
+   hero. The Fira-Code block types itself; the caret rides --color-progress (the
+   OD-6 violet motion authority, T.D7 — the latent-red caret is dead).
    The host <h1>/overlay is pointer-events:none — the card re-enables pointer
    events for the hover-recompile. Hidden below lg (the mobile column has no room
    beside the receded cube — the TYP-1 collision the J-tranche solved; the
@@ -297,8 +302,8 @@ const { typedSource, serializedOut, caretBlink, prefersReduced, recompile } =
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
-    background: var(--accent-red, var(--color-progress));
-    box-shadow: 0 0 6px -1px var(--accent-red, var(--color-progress));
+    background: var(--color-progress);
+    box-shadow: 0 0 6px -1px var(--color-progress);
 }
 .kf-source-egg__label {
     line-height: 1;
@@ -318,14 +323,14 @@ const { typedSource, serializedOut, caretBlink, prefersReduced, recompile } =
     font-family: inherit;
 }
 
-/* the typed caret — the crayon --accent-red, the page's motion-authority red */
+/* the typed caret — the motion authority (--color-progress, the OD-6 violet) */
 .kf-source-egg__caret {
     display: inline-block;
     width: 0.5ch;
     height: 1.05em;
     margin-left: 0.04em;
     transform: translateY(0.16em);
-    background: var(--accent-red, var(--color-progress));
+    background: var(--color-progress);
     border-radius: 1px;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -366,7 +371,7 @@ const { typedSource, serializedOut, caretBlink, prefersReduced, recompile } =
     transform: translateY(0);
 }
 .kf-source-egg__out-arrow {
-    color: var(--accent-red, var(--color-progress));
+    color: var(--color-progress);
     opacity: 0.85;
 }
 

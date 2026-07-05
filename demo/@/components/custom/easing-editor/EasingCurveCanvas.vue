@@ -7,8 +7,8 @@
         <!-- J.W2 S1 (W4-3): ONLY pointer-down lives here — the move/up/cancel
              lifecycle (and `setPointerCapture` + the global select-suppression
              token) is owned by the shared `useDragCapture` seam. -->
-        <!-- L.W11 S5 — the instrument masthead (the canvas reads as a device). -->
-        <span class="easing-instrument-label" aria-hidden="true"
+        <!-- L.W11 S5 — the masthead; T.D4 — math notation = data-register. -->
+        <span class="easing-instrument-label" data-register="code" aria-hidden="true"
             >EASE · f(t)</span
         >
         <svg

@@ -1,27 +1,31 @@
 #!/usr/bin/env node
 /**
- * proof:demo-fonts — Tranche I.W6-font. The demo's font IDENTITY is its own, NOT
- * glass-ui's brand default. glass-ui ~3.9.0 force-applies "Plus Jakarta Sans" to
- * the body/text register of every consumer (typography.css `body { font-family:
- * var(--font-text) }`, --font-text -> --font-stack-text -> Plus Jakarta). The kf
- * user flagged it: "the fonts dont seem correct on the dock; we dont use plus
- * jakarta". keyframes.js's register is Instrument Serif (display) + Fira Code
- * (mono) over a clean native UI sans — reclaimed by overriding --font-stack-text
- * at :root (the documented glass-ui consumer lever; the @theme-inline bridge can't
- * be overridden directly).
+ * proof:demo-fonts — T.D3 (OD-6 / T-TY2): the Jakarta body register, POSITIVE.
+ *
+ * THE POLARITY FLIP (T.D3 lockstep — flipped in the SAME motion that deleted
+ * the I.W6 system-stack reclaim). The I.W6-era gate asserted the exact INVERSE
+ * of the owner-blessed register: "NO Plus Jakarta anywhere" over a ui-sans-serif
+ * system reclaim — and was GREEN while the owner wrote "Most of the fonts on
+ * the site are not right at all" (VERDICT #24; the gate-blindspot lesson's
+ * third recurrence). Per OD-6 (APPROVED 2026-07-05 "Good.", the P-THEME blessed
+ * reference), glass-ui's own bundled Plus Jakarta Sans IS the body register —
+ * already paid for (base64 via @mkbabb/glass-ui/styles/fonts), zero new payload.
  *
  * RUNTIME gate (the rendered computed font is the oracle, not source shape):
- *   (a) the body + dock + control chrome resolve a font-family with NO "Plus
- *       Jakarta" — the glass-ui brand font never lands on a kf surface;
- *   (b) the display register still resolves Instrument Serif (the demo's deliberate
- *       --font-display override survives);
- *   (c) no font is stuck in an `error`/half-loaded state on the demo's own faces.
- * Born-RED on a tree that inherits glass-ui's Plus Jakarta default; GREEN once the
- * demo reclaims --font-stack-text. Serves dist/gh-pages/. Harness: the
- * scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist + resolveChromium +
- * context/teardown, J.W3 S1; under KF_REQUIRE_BROWSER a playwright-absent skip
- * becomes a hard fail AT THE LIB SEAM). ACTUATES (J.W3 S5, the oracle-precept
- * SWITCH leg): the resolved face must SURVIVE a navToScene scene switch.
+ *   (a) POSITIVE — the body + dock + control chrome resolve "Plus Jakarta Sans"
+ *       (head of the computed stack); a ui-sans-serif/system-ui-headed surface
+ *       is the violation now (the retired reclaim surviving somewhere);
+ *   (b) the display register still resolves Instrument Serif (the demo's
+ *       deliberate --font-display identity survives);
+ *   (c) no PRIMARY demo face (Instrument Serif / Fira Code / Plus Jakarta) is
+ *       stuck in an error state;
+ *   (d) ACTUATION — the resolved body face SURVIVES a cube→spring scene switch
+ *       byte-identical (J.W3 S5's oracle-precept SWITCH leg, kept).
+ *
+ * SUBORDINATED to proof:font-census (T.D1's tuple gate) — this gate carries the
+ * fast positive body-identity check; the census carries the tuple totality.
+ * Serves dist/gh-pages/. Harness: scripts/lib/demo-driver.mjs (withPage; under
+ * KF_REQUIRE_BROWSER a playwright-absent skip is a hard fail at the lib seam).
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,7 +37,15 @@ const failures = [];
 const ok = (l) => console.log(`  ✓ ${l}`);
 const fail = (l) => { failures.push(l); console.error(`  ✗ ${l}`); };
 
-console.log("proof:demo-fonts — I.W6-font: the demo's own font identity, NOT glass-ui's Plus Jakarta brand default");
+console.log(
+    "proof:demo-fonts — T.D3: Plus Jakarta Sans is the POSITIVE body assertion (the I.W6 " +
+        "system-reclaim polarity is FLIPPED per OD-6); Instrument Serif display survives; the resolved " +
+        "face survives a scene switch.",
+);
+
+const JAKARTA_HEAD_RE = /^\s*["']?Plus Jakarta Sans/i;
+const SYSTEM_HEAD_RE =
+    /^\s*["']?(?:ui-sans-serif|system-ui|-apple-system|BlinkMacSystemFont|Segoe UI|Roboto|Helvetica|Arial)\b/i;
 
 async function browserHalf() {
     const result = await withPage(
@@ -57,49 +69,48 @@ async function browserHalf() {
             return { body, chrome, display, errored };
         });
 
-        // (a) NO Plus Jakarta on the body or any UI chrome surface.
-        const jakartaHits = [{ s: "body", ff: probe.body }, ...probe.chrome].filter((x) => /Jakarta/i.test(x.ff));
-        if (jakartaHits.length === 0) {
-            ok(`(a) NO "Plus Jakarta" on the body or ${probe.chrome.length} UI chrome surface(s) — the glass-ui brand font is reclaimed (body resolves: ${probe.body.slice(0, 42)})`);
+        // (a) POSITIVE: Jakarta heads the body + every UI chrome surface; a
+        //     system-sans HEAD is the retired-reclaim violation.
+        const all = [{ s: "body", ff: probe.body }, ...probe.chrome];
+        const nonJakarta = all.filter((x) => !JAKARTA_HEAD_RE.test(x.ff));
+        const systemHeaded = all.filter((x) => SYSTEM_HEAD_RE.test(x.ff));
+        if (nonJakarta.length === 0) {
+            ok(`(a) the body + ${probe.chrome.length} UI chrome surface(s) ALL head with "Plus Jakarta Sans" — glass-ui's own register flows natively (body resolves: ${probe.body.slice(0, 42)})`);
         } else {
-            fail(`(a) "Plus Jakarta Sans" still on ${jakartaHits.length} surface(s): ${jakartaHits.map((x) => x.s).join(", ")} — the glass-ui brand default leaked onto kf chrome (override --font-stack-text at :root)`);
+            fail(
+                `(a) ${nonJakarta.length} surface(s) do NOT resolve the Jakarta body register: ` +
+                    nonJakarta.map((x) => `${x.s} → ${x.ff.slice(0, 40)}`).join("; ") +
+                    (systemHeaded.length > 0
+                        ? ` — ${systemHeaded.length} head with the RETIRED ui-sans-serif system reclaim (the I.W6 pin survives somewhere)`
+                        : ""),
+            );
         }
-        // (b) the display register is still Instrument Serif (the demo's --font-display survives).
+        // (b) the display register is still Instrument Serif.
         if (/Instrument/i.test(probe.display)) {
-            ok(`(b) the display register still resolves Instrument Serif (${probe.display.slice(0, 38)}) — the demo's --font-display override survives`);
+            ok(`(b) the display register still resolves Instrument Serif (${probe.display.slice(0, 38)}) — the demo's --font-display identity survives`);
         } else {
             fail(`(b) the display register is NOT Instrument Serif (got: ${probe.display.slice(0, 42)}) — the demo's display identity regressed`);
         }
         // (c) no PRIMARY demo face stuck in error. The metric-override "… Fallback"
-        // faces (the CLS-reduction fallbacks whose `src: local(<system font>)` aliases
-        // a host font for matched metrics) are EXCLUDED: on a font-less Linux CI runner
-        // their `local()` system-font source does not resolve → the face reports
-        // `error`, but that is a HOST artifact (the CI VM lacks the system font), NOT a
-        // demo-font defect — the PRIMARY webfonts (Instrument Serif / Fira Code) load
-        // fine (clauses a/b green). On a real device the fallback faces resolve. So we
-        // gate the PRIMARY faces only; a primary face in error is a real broken load.
+        // faces are EXCLUDED (their local() system-font source is a host artifact on
+        // font-less CI runners, not a demo defect).
         const ours = probe.errored.filter(
-            (f) => /Instrument|Fira/i.test(f) && !/Fallback/i.test(f),
+            (f) => /Instrument|Fira|Jakarta/i.test(f) && !/Fallback/i.test(f),
         );
-        if (ours.length === 0) ok(`(c) no PRIMARY demo-owned font face in error state (Instrument Serif / Fira Code webfonts load clean; the metric-override "… Fallback" faces are excluded — their local() system-font source is a host concern, not a demo defect)`);
+        if (ours.length === 0) ok(`(c) no PRIMARY demo-owned font face in error state (Instrument Serif / Fira Code / Plus Jakarta load clean; the metric-override "… Fallback" faces are excluded)`);
         else fail(`(c) PRIMARY demo font face(s) in error: ${ours.join(", ")}`);
 
-        // (d) ACTUATION leg (J.W3 S5 — the oracle-precept SWITCH; GC-4/W7-3): the
-        // resolved face must SURVIVE a real scene switch. Drive #/cube → #/spring
-        // through the lib's navToScene (the per-EXPECTED-state J.W0 primitive: the
-        // destination's "Spring" control surface projects), re-read the computed
-        // body font, and assert it is the SAME resolved family — and still not
-        // Plus Jakarta — after the route change. A switch that re-lands glass-ui's
-        // brand default (a scene-scoped override losing the :root reclaim) reds.
+        // (d) ACTUATION leg (J.W3 S5, kept): the resolved body face must SURVIVE a
+        // real cube→spring scene switch byte-identical — and still be Jakarta.
         await navToScene(page, "spring", "Spring");
         const afterSwitch = await page.evaluate(async () => {
             await document.fonts.ready;
             return getComputedStyle(document.body).fontFamily;
         });
-        if (afterSwitch === probe.body && !/Jakarta/i.test(afterSwitch)) {
-            ok(`(d) the resolved body face SURVIVES the cube→spring scene SWITCH byte-identical (${afterSwitch.slice(0, 42)}) — the font reclaim holds across a route change (the actuation leg)`);
+        if (afterSwitch === probe.body && JAKARTA_HEAD_RE.test(afterSwitch)) {
+            ok(`(d) the resolved body face SURVIVES the cube→spring scene SWITCH byte-identical (${afterSwitch.slice(0, 42)}) — the register holds across a route change (the actuation leg)`);
         } else {
-            fail(`(d) the body font CHANGED across the cube→spring switch: '${probe.body.slice(0, 42)}' → '${afterSwitch.slice(0, 42)}' — the reclaim does not survive a scene switch (a scene-scoped surface re-lands the brand default)`);
+            fail(`(d) the body font CHANGED across the cube→spring switch: '${probe.body.slice(0, 42)}' → '${afterSwitch.slice(0, 42)}' — a scene-scoped surface re-lands a different register`);
         }
         },
     );
@@ -110,4 +121,9 @@ async function browserHalf() {
 
 await browserHalf();
 if (failures.length) { console.error(`\nproof:demo-fonts — FAIL (${failures.length})`); process.exit(1); }
-console.log("\nproof:demo-fonts — PASS: the body + dock + control chrome resolve the demo's own native sans (NO Plus Jakarta); the display register is Instrument Serif; no demo face is half-loaded; AND the resolved face survives a cube→spring scene SWITCH byte-identical (the S5 actuation leg). The glass-ui brand-font default never lands on a kf surface.");
+console.log(
+    "\nproof:demo-fonts — PASS: the body + dock + control chrome resolve glass-ui's own Plus Jakarta " +
+        "Sans (the POSITIVE assertion — the retired ui-sans-serif reclaim is the violation now); the " +
+        "display register is Instrument Serif; no demo face is half-loaded; AND the resolved face " +
+        "survives a cube→spring scene SWITCH byte-identical.",
+);

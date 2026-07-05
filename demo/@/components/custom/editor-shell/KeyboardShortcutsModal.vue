@@ -2,8 +2,8 @@
     <Dialog v-model:open="open">
         <DialogContent class="max-w-md">
             <DialogHeader>
-                <DialogTitle class="font-mono text-body">Keyboard Shortcuts</DialogTitle>
-                <DialogDescription class="text-mono-caption normal-case text-muted-foreground">
+                <DialogTitle class="text-body font-medium">Keyboard Shortcuts</DialogTitle>
+                <DialogDescription class="text-small text-muted-foreground">
                     Press <kbd class="kbd">?</kbd> to toggle this panel
                 </DialogDescription>
             </DialogHeader>
@@ -18,7 +18,7 @@
                             :key="shortcut.raw"
                             class="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-muted/50 transition-colors"
                         >
-                            <span class="text-mono-caption normal-case text-foreground">
+                            <span class="text-small text-foreground">
                                 {{ shortcut.options.label }}
                             </span>
                             <div class="flex gap-0.5">

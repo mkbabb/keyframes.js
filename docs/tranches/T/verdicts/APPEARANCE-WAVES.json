@@ -3,7 +3,7 @@
   "waves": [
     { "id": "T.E2", "band": "T.E", "title": "SVG FUSE (scenes/svg/)", "od": "OD-1", "oracle": null, "note": "DEAD per OD-1 PRUNE FINAL — oracle never authored (mutually exclusive with T.E3)" },
     { "id": "T.E6", "band": "T.E", "title": "easing specimen-drawer gallery IS the easing scene", "od": "OD-7", "oracle": "proof:easing-gallery", "note": "OD-7 is the ONE PENDING-OWNER row — proof:easing-gallery may NOT be authored until OD-7 carries a token (T.M2 enforcement surface)" },
-    { "id": "T.D7", "band": "T.D", "title": "the one oklch violet accent authority (accent-census)", "od": "OD-6", "oracle": "proof:accent-census", "note": "OD-6 APPROVED — the ramp oracle may be authored against P-THEME" },
+    { "id": "T.D7", "band": "T.D", "title": "the one oklch violet accent authority (accent-census)", "od": "OD-6", "oracle": "proof:accent-census", "note": "OD-6 APPROVED ('Good.', 2026-07-05) — the oracle IS authored + GREEN on the applied tree (OWNER authority, blocking, correctness roster); verdict FILLED at verdicts/T.D7.md with the applied-theme capture packet (shots-TD-theme/) + named deviations (hero ink/deck/egg → the hero batch)" },
     { "id": "T.D9", "band": "T.D", "title": "hero φ-seat + two-focal capture", "od": "OD-4", "oracle": "proof:hero-two-focal", "note": "OD-4 APPROVED — the two-focal capture oracle unlocks against P-HERO" },
     { "id": "T.D11", "band": "T.D", "title": "hero deck-voice ramp", "od": "OD-4", "oracle": "proof:hero-deck-voice", "note": "OD-4 APPROVED" },
     { "id": "T.D13", "band": "T.D", "title": "cursor-light disposition (Aurora-on-hero, more subtle)", "od": "OD-2", "oracle": "proof:cursor-light-subtle", "note": "OD-2 AURORA MORE-SUBTLE — the P-HERO aurora setting is the CEILING, not the target" },

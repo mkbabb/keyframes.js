@@ -8,7 +8,7 @@
          pass. Fades after first use (`used`) — a discovered delight, not a
          permanent chrome band (proportion, per the spec). -->
     <aside
-        class="gesture-legend text-mono-caption"
+        class="gesture-legend text-caption"
         :class="{ 'gesture-legend--used': used }"
         :aria-label="`${scene} gesture hints`"
     >

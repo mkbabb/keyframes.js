@@ -106,7 +106,10 @@
                     :key="curve.name"
                     class="track-row"
                 >
+                    <!-- T.D4 — the curve NAME is a CSS identifier (genuine data):
+                         mono survives, data-register-marked for the census. -->
                     <span
+                        data-register="code"
                         :class="[
                             'track-label text-mono-caption shrink-0 w-36 text-right pr-3 truncate',
                             curve.name === demo.currentEasingName.value

@@ -18,7 +18,7 @@
                                 <LabeledInput
                                     :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
                                     label="duration"
-                                    label-class="text-mono-small text-muted-foreground"
+                                    label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Animation length (e.g. 5s, 200ms)"
                                     @update:model-value="(v) => { trySetOption(() => animation.setDuration(v)); storedAnimationOptions.animationOptions.duration = v; }"
                                 />
@@ -26,7 +26,7 @@
                                 <LabeledInput
                                     :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
                                     label="delay"
-                                    label-class="text-mono-small text-muted-foreground"
+                                    label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Delay before start (e.g. 0s, 500ms)"
                                     @update:model-value="(v) => { trySetOption(() => animation.setDelay(v)); storedAnimationOptions.animationOptions.delay = v; }"
                                 />
@@ -38,7 +38,7 @@
                                             : String(storedAnimationOptions.animationOptions.iterationCount ?? 'infinite')
                                     "
                                     label="iterations"
-                                    label-class="text-mono-small text-muted-foreground"
+                                    label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Repeat count (number or 'infinite')"
                                     @update:model-value="
                                         (v: string) => {
@@ -54,7 +54,7 @@
                                     :items="directions"
                                     :descriptions="DIRECTION_DESCRIPTIONS"
                                     label="direction"
-                                    label-class="text-mono-small text-muted-foreground"
+                                    label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Playback direction"
                                     @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
                                     @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
@@ -66,7 +66,7 @@
                                     :items="fillModes"
                                     :descriptions="FILL_MODE_DESCRIPTIONS"
                                     label="fill mode"
-                                    label-class="text-mono-small text-muted-foreground"
+                                    label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Style applied when not playing"
                                     @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
                                     @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
@@ -83,7 +83,7 @@
                             <div class="flex flex-col gap-1">
                                 <div class="flex items-center gap-1.5">
                                     <IconTooltip text="Timing function curve">
-                                        <label :class="['text-mono-small text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
+                                        <label :class="['text-small font-medium text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
                                     </IconTooltip>
                                     <IconTooltip text="Edit easing curve">
                                         <!-- `easing-edit-btn` is the NAMED BEHAVIORAL SEAM (the
@@ -122,7 +122,7 @@
                                 @keydown.space.prevent="advancedOpen = true"
                                 class="flex items-center justify-between gap-x-3 w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
                             >
-                                <span class="text-mono-small">advanced</span>
+                                <span class="text-small font-medium">advanced</span>
                                 <div class="flex items-center justify-end px-3">
                                     <ChevronRight class="icon-md opacity-50" />
                                 </div>
@@ -156,7 +156,7 @@
                                 >
                                     <ArrowLeft class="icon-md" />
                                 </DockIconButton>
-                                <span class="text-mono-small text-muted-foreground">advanced</span>
+                                <span class="text-small font-medium text-muted-foreground">advanced</span>
                             </div>
 
                             <!-- Layer Settings (only when the animation has a layer).

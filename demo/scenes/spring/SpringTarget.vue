@@ -43,7 +43,7 @@
                     SpringProgress
                 </span>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-mono-small text-muted-foreground">x</span>
+                    <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
                     <span class="spring-readout-primary tabular-nums">{{ demo.liveValue.value.toFixed(3) }}</span>
                 </div>
             </div>
@@ -290,7 +290,9 @@ const onKeydown = (e: KeyboardEvent) => {
    SAME small MetricBadge size (the equal-weight inversion U-K18 named). */
 .spring-readout-primary {
     font-size: clamp(2.25rem, 6cqi, 3.25rem);
-    font-weight: 650;
+    /* T.D2 (RULED #24) — the `650` magic weight dies: weights step the ladder
+       (100-multiples only); the readout numeral reads the semibold token. */
+    font-weight: var(--font-weight-semibold, 600);
     line-height: 1;
     letter-spacing: -0.01em;
     color: var(--ball-tone, var(--color-progress));
