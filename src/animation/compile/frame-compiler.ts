@@ -408,6 +408,10 @@ export class FrameCompiler<V extends Vars = Vars> {
         }, {});
         frame.flatVars = flatVars as unknown as V;
         frame.vars = unflattenObject(frame.flatVars);
+        // T.A6 — invalidate the PLAIN authored-shape projection (rebuilt lazily
+        // on the next apply). Its writers cache the interp-carrier `ValueUnit`
+        // refs, which `renormalizeColors` replaces, so a re-finalize MUST drop it.
+        frame._plainProj = undefined;
         // Pre-flatten for zero-alloc iteration in interpFrames()
         frame.allInterpVars = Object.values(frame.interpVars).flat();
         // Q.WB3 S2 — build the numeric SoA fold plan over the now-stable iv set

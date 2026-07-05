@@ -21,6 +21,7 @@ import { NOOP_TRANSFORM } from "../constants";
 import type { AnimationLayerConfig, Vars } from "../constants";
 import { computeGroupedKeys } from "./entries";
 import { buildSoAPlans, groupSoABlendLayer, isNumericUnit } from "./soa";
+import { buildPlainProjection, refreshPlainProjection } from "../compile/plain-vars";
 import type { AnimationGroup } from "./group";
 
 /**
@@ -48,6 +49,10 @@ export function compositeFrame<V extends Vars>(
         // refs can be captured). A structural change invalidates the captured
         // refs, so the rebuild is gated on the SAME dirty seam.
         group._soaPlans = null;
+        // T.A6 — the PLAIN projection caches the `_grouped` leaf refs a structural
+        // change likewise invalidates; drop it on the SAME seam (rebuilt lazily
+        // once `_grouped` is populated below).
+        group._plainProj = null;
     }
 
     // F.W4 S2 — stable-key null-fill clear (NO `delete`: the delete-loop trapped
@@ -149,12 +154,35 @@ export function compositeFrame<V extends Vars>(
             const frame = entry.animation.frames[0];
             if (frame != null && frame.transform != null) {
                 group.transform = frame.transform;
+                // T.A6 — inherit the resolved child's flatten discipline here too
+                // (the constructor-time inherit is skipped for a child built
+                // before its first `parse()`).
+                group.unflatten = entry.animation.unflatten;
                 break;
             }
         }
     }
 
-    group.transform(groupedValues as V, t);
+    // T.A6 — a CUSTOM-transform group consumes the nested PLAIN authored-shape
+    // projection of the composite (numbers where authored numbers, strings where
+    // a unit/color demands), built lazily from `_grouped` and refreshed in place
+    // each frame — so the amiga group rides the SoA blend onto ONE plain-vars
+    // adapter (T.A7) with no array-boxed leaves reaching the mesh. The DOM-style
+    // default renderer keeps the FLAT `_grouped` map, byte-unchanged.
+    if (group.unflatten) {
+        let proj = group._plainProj;
+        if (proj === null) {
+            proj = buildPlainProjection(
+                groupedValues as Record<string, ValueUnit[] | undefined>,
+            );
+            group._plainProj = proj;
+        } else {
+            refreshPlainProjection(proj);
+        }
+        group.transform(proj.root as V, t);
+    } else {
+        group.transform(groupedValues as V, t);
+    }
 
     return groupedValues;
 }

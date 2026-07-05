@@ -21,6 +21,10 @@ import { clamp, lerpArray, lerpValue, scale, type ValueUnit } from "@mkbabb/valu
 import { binarySearchRange } from "../internal/binarySearch";
 import { AnimationOptionError } from "../internal/errors";
 import { applyComposition as applyCompositionImpl } from "./composition";
+import {
+    buildPlainProjection,
+    refreshPlainProjection,
+} from "../compile/plain-vars";
 import { NAMED_SELECTOR_SUPERTYPE } from "../compile/selector";
 import type { AnimationFrame, Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
@@ -282,7 +286,28 @@ function processFrame<V extends Vars>(
     }
 
     if (transformFrames) {
-        frame.transform(anim.unflatten ? frame.vars : frame.flatVars, t);
+        if (anim.unflatten) {
+            // T.A6 — a custom transform ("animate any object") consumes the
+            // nested PLAIN authored-shape projection (numbers where authored
+            // numbers, strings where a unit/color demands) — NOT `frame.vars`,
+            // whose leaves are array-boxed `ValueUnit`s under value.js ≥ 2.0.1.
+            // Built lazily on first apply, refreshed in place by the SAME interp
+            // stride that filled `value.value` above (hot numeric path
+            // zero-alloc). The DOM-style default renderer keeps the flat path.
+            let proj = frame._plainProj;
+            if (proj === undefined) {
+                proj = buildPlainProjection(
+                    frame.flatVars as unknown as Record<string, ValueUnit[]>,
+                );
+                frame._plainProj = proj;
+                frame.plainVars = proj.root as V;
+            } else {
+                refreshPlainProjection(proj);
+            }
+            frame.transform(frame.plainVars as V, t);
+        } else {
+            frame.transform(frame.flatVars, t);
+        }
     }
 }
 

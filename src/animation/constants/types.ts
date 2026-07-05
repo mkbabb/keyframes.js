@@ -22,6 +22,9 @@ import type {
     timingFunctions,
 } from "@mkbabb/value.js";
 import type { DIRECTIONS, FILL_MODES } from "./defaults";
+// T.A6 — the PLAIN authored-shape projection type (type-only edge; erased under
+// verbatimModuleSyntax, so `constants/types` stays LIGHT-PURE per proof:boundary).
+import type { PlainProjection } from "../compile/plain-vars";
 
 export type {
     ColorSpace,
@@ -140,6 +143,20 @@ export interface AnimationFrame<V extends Vars> {
      * falls back to the all-boxed walk. Bit-identical to the boxed path.
      */
     _numericPlan?: NumericFoldPlan<V>;
+
+    /**
+     * T.A6 — the nested PLAIN authored-shape projection a custom `transform`
+     * consumes (numbers where the author wrote numbers, strings where a unit or
+     * color demands one). Built lazily on the first apply — `undefined` for a
+     * DOM-style default-renderer frame (which consumes `flatVars` directly) and
+     * before the first `interpFrames(..., true)`. Invalidated at
+     * `finalizeFrameVars` so a color-space renormalize rebuilds it against the
+     * fresh interp carriers.
+     */
+    plainVars?: V;
+
+    /** T.A6 — the per-leaf refresh-writer plan backing {@link plainVars}. */
+    _plainProj?: PlainProjection | undefined;
 
     transform: TransformFunction<V>;
 

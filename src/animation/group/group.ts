@@ -16,6 +16,7 @@ import * as layerApi from "./layer-api";
 // `./lifecycle` module; the methods below are thin `this`-delegates over them.
 import * as lifecycle from "./lifecycle";
 import type { SoALayerPlan } from "./soa";
+import type { PlainProjection } from "../compile/plain-vars";
 import type {
     AnimationLayerConfig,
     TransformFunction,
@@ -72,6 +73,15 @@ export class AnimationGroup<V extends Vars> {
 
     singleTarget = true;
 
+    /**
+     * T.A6 — true when the group's composite `transform` is a CUSTOM (non-DOM)
+     * consumer that expects the nested PLAIN authored-shape projection (the
+     * "animate any object" seam), inherited from the first child's own
+     * `unflatten` flag alongside its transform. False (the default) keeps the
+     * DOM-style default renderer's FLAT `_grouped` map, byte-unchanged.
+     */
+    unflatten = false;
+
     lastTickTime: number = 0;
 
     /** THE rAF owner for the group's draw loop. */
@@ -105,6 +115,13 @@ export class AnimationGroup<V extends Vars> {
      * `buildSoAPlans` in `./soa`, rebuilt ONLY on a structural change). INTERNAL
      * (R.W2) — read/written by `./compositor`. */
     _soaPlans: SoALayerPlan[] | null = null;
+    /**
+     * T.A6 — the group's PLAIN authored-shape projection (built from the
+     * composite `_grouped` leaf map when `unflatten` is set), rebuilt lazily on a
+     * structural change (the SAME `_groupedKeysDirty` seam that drops the SoA
+     * plan). Null until the first composited frame populates `_grouped`. INTERNAL
+     * — read/written by `./compositor`. */
+    _plainProj: PlainProjection | null = null;
     /** The long-lived SoA fold scratch — the contiguous numeric accumulate buffer,
      * sized to the WIDEST single-layer pair count once per structural change
      * (reused, zero per-frame alloc). INTERNAL (R.W2) — read by `./compositor`. */
@@ -139,6 +156,10 @@ export class AnimationGroup<V extends Vars> {
                 animation.frames[0] != null
             ) {
                 this.transform = animation.frames[0].transform;
+                // T.A6 — inherit the child's flatten discipline alongside its
+                // transform: a custom-transform child (`unflatten = true`) makes
+                // the group project the nested PLAIN authored-shape composite.
+                this.unflatten = animation.unflatten;
             }
 
             const name = getAnimationId(animation);
