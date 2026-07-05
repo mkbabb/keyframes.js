@@ -52,6 +52,7 @@ import { MatrixEditor } from "./matrix-editor";
 import CubeTarget from "./CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";
+import { facilityFromGroup } from "@app/scene/sceneFacility";
 import { useTransformState } from "./matrix-editor/useTransformState";
 import { useCubeDemo, SUPER_KEY } from "./useCubeDemo";
 import { useCubeTransform } from "./cubeTransformStore";
@@ -225,6 +226,10 @@ onBeforeUnmount(() => {
 });
 
 defineExpose({
+    // T.B1 STAGE 1 — the additive SceneFacility: cube's REAL group members are the
+    // painting channels; the legacy `animationGroup` stays for the shell binding's
+    // panel group. The facility's playback is the standard group adapter.
+    facility: computed(() => facilityFromGroup(() => animationGroup.value)),
     animationGroup: computed(() => animationGroup.value),
     superKey,
     isPlaying,

@@ -63,7 +63,16 @@ export function useAnimationGroupPlayback(
         // no-op `transform` default, I.W0 S3 — but the gesture should navigate,
         // not no-op-play.)
         if (Object.keys(animationGroup.animations).length === 0) {
-            syncPlayState(true);
+            // T.B1 STAGE 1 — group-optional toggle. A facility-only scene
+            // (sequence) has an EMPTY `currentAnimationGroup` — its motion rides
+            // the machine-registered `facility.playback`, and `isPlaying` is kept
+            // in sync with that authority via the `machinePlaying` edge. So the
+            // toggle emits the FLIP of the synced state (pause when playing, play
+            // when paused) rather than an unconditional `true`. For the childless
+            // HOME backdrop `isPlaying` is false, so this still emits `true` and
+            // the rainbow-play click reaches the home navigate-intercept
+            // (onPlayStateChange) — the I.W0 S3 behavior is preserved.
+            syncPlayState(!isPlaying.value);
             return;
         }
         if (!animationGroup.started) {

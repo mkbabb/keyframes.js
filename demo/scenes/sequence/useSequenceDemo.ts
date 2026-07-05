@@ -8,8 +8,8 @@ import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
-import { useContractAnimGroup } from "@app/runtime/useContractAnimGroup";
 import { useSceneTransport } from "@app/runtime/useSceneTransport";
+import type { SceneFacility } from "@app/scene/sceneFacility";
 import { useSequenceInstrument } from "./useSequenceInstrument";
 import {
     useSceneMachine,
@@ -155,23 +155,14 @@ export function useSequenceDemo() {
     const machine = useSceneMachine();
     const { isPlaying, play, pause, togglePlay } = useSceneTransport(machine);
 
-    // ── A minimal contract AnimationGroup for the bottom-bar transport ───────
-    // The scene's MOTION is the Sequence's own loop; the editor's bottom bar
-    // still expects an AnimationGroup handle (the StartingStyleScene posture).
-    // Shared via `useContractAnimGroup` (R.W5 B.1) — the preview dogfoods the
-    // same spring twin the rows ride and drives no scene motion. Born paused
-    // (the storyboard starts settled at the origin).
-    const { contractAnim, animationGroup } = useContractAnimGroup({
-        duration: sequence.duration || ROW_DURATION,
-        timingFunction: springTimingFunction({
-            response: 0.5,
-            dampingFraction: 0.7,
-        }),
-        name: "Sequence Preview",
-        superKey: "Sequence",
-        isPlaying,
-        startPaused: true,
-    });
+    // T.B1 STAGE 1 — the decoy opacity-only contract-group host is DELETED.
+    // The Sequence IS the transport (its own `RAFPlayback` loop drives the balls);
+    // the scene exposes a `SceneFacility` whose ONE channel is the master sequence
+    // and whose `playback` is the raw-rAF adapter registered with the machine.
+    // There is no AnimationGroup position — the bottom transport shows the single
+    // "Sequence" channel label and drives play/pause through the machine (the
+    // sequence's DFA row is [] so NO panel renders). `facility` is assembled below
+    // once `scenePlayback` exists.
 
     const isReversed = ref(false);
     const timeScale = ref(1);
@@ -411,6 +402,28 @@ export function useSequenceDemo() {
         startLoop,
     });
 
+    // ── The SceneFacility (T.B1 STAGE 1) ─────────────────────────────────────
+    // ONE master channel ("Sequence") — the honest transport-select label; the
+    // childAnims are storyboard ROWS surfaced on the target, not dock-selectable
+    // transport channels, so the bottom dock shows a single label (no 5-way
+    // select). `playback` IS the raw-rAF adapter (registered with the machine);
+    // there is no `group` (progress-scalar scene). `facets` is empty — the DFA row
+    // is [] so no panel renders.
+    const facility: SceneFacility = {
+        channels: [
+            {
+                name: "Sequence",
+                progress: () => progress.value,
+                setProgress: (t: number) => {
+                    sequence.progress = Math.max(0, Math.min(1, t));
+                    syncFromSequence();
+                },
+            },
+        ],
+        facets: [],
+        playback: scenePlayback,
+    };
+
     // Paint the initial (t=0) frame so the balls rest at their rail origin and
     // the readout shows 0 before the first restore (the SequenceTarget seeks 0 on
     // mount too — this is the composable-side belt-and-braces).
@@ -445,7 +458,7 @@ export function useSequenceDemo() {
         isScrubbing, scrubDir, setScrubbing, setScrubDir, isPoweringOn, powerOn,
         sequence,
         childAnims,
-        animationGroup,
+        facility,
         isPlaying,
         isReversed,
         timeScale,

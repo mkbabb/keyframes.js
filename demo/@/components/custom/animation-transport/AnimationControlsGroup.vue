@@ -95,7 +95,7 @@
             :is-playing="isPlaying"
             :is-started="isStarted"
             :animation-progress="animationProgress"
-            :animation-names="Object.keys(animationGroup.animations)"
+            :animation-names="transportNames"
             @toggle-play="toggleAnimationGroup"
             @reset="(all: boolean) => all ? clear() : reset()"
             @select-animation="onSelectAnimation"
@@ -129,8 +129,13 @@ import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardS
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 
-const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs, machinePlaying } = defineProps<{
+const { superKey, animationGroup, channelNames, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs, machinePlaying } = defineProps<{
     animationGroup: AnimationGroup<any>;
+    // T.B1 STAGE 1 — the active scene's `SceneFacility.channels` names. When
+    // present, they ARE the transport-select labels (the honest channel set);
+    // `undefined` falls back to the group's animation keys (a non-migrated scene /
+    // a standalone host).
+    channelNames?: string[];
     superKey?: string;
     autoPlay?: boolean;
     // S.A0 — the machine → transport intent edge (the amiga/hero cold-race).
@@ -168,6 +173,13 @@ const { superKey, animationGroup, autoPlay, hideControls, stageMode, hasControlS
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
+
+// T.B1 STAGE 1 — the transport-select labels: the facility's channel names when
+// the scene exposes them (the honest set), else the group's animation keys (the
+// legacy path, for a non-migrated scene / a standalone host).
+const transportNames = computed(
+    () => channelNames ?? Object.keys(animationGroup.animations),
+);
 
 // Collect refs to each AnimationControls for ribbon actions
 const animControlRefs = reactive<Record<string, any>>({});

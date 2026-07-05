@@ -25,6 +25,7 @@
 
     <EditorShell
         :animation-group="currentAnimationGroup"
+        :channel-names="currentChannelNames"
         :super-key="currentSuperKey"
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
@@ -199,6 +200,14 @@ const currentAnimationGroup = shallowRef<AnimationGroup<any>>(
     markRaw(new (kfEngine().AnimationGroup)()),
 );
 const autoPlayNext = ref(false);
+
+// T.B1 STAGE 1 — the transport-select labels come from the active scene's
+// `SceneFacility.channels` when it exposes one (the honest channel names);
+// `undefined` for a scene that has not migrated (easing/spring — STAGE 2) or
+// home, in which case the transport falls back to the group's animation keys.
+const currentChannelNames = computed<string[] | undefined>(() =>
+    sceneRef.value?.facility?.channels.map((c) => c.name),
+);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
