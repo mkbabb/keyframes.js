@@ -183,6 +183,25 @@ interface ElementWithStyle {
 }
 
 /**
+ * The minimal ATTRIBUTE-write surface the build-time at-rest seed needs —
+ * `setAttribute` (the SVG `d` presentation attribute). Both `HTMLElement` and
+ * `SVGElement` satisfy it structurally; typed here so the at-rest seed composes
+ * off-DOM (jsdom/browser/node) over any `{ setAttribute }` target without a
+ * `document` cast — the same DOM-free posture as {@link ElementWithStyle}.
+ *
+ * T.A14 (ATTRIBUTE-FIRST) — the `from` shape rides the SVG `d` ATTRIBUTE, seeded
+ * ONCE at build time, so the subject paints at rest with NO live engine write.
+ * The per-frame CSS `d:` channel (via {@link makeMorphRenderer}) legitimately
+ * OVERRIDES the attribute only while a frame is in flight; the moment no frame
+ * is written (autoPlay:false, pre-play, post-settle) the attribute paints. The
+ * at-rest state must never depend on a live engine write (the shot-17 failure
+ * class: a missed/failed write → the protagonist renders as nothing).
+ */
+interface ElementWithAttribute {
+    setAttribute(qualifiedName: string, value: string): void;
+}
+
+/**
  * Build the per-frame RENDER contract (S1) — the custom `transform` a
  * target-bearing {@link fromMorphSVG} supplies to `fromKeyframes`. Each frame
  * the engine invokes this with the interpolated `vars` (the `--morph-{i}-x/y`
@@ -389,6 +408,20 @@ export function fromMorphSVG<V extends Vars = Vars>(
                   samples,
               )
             : undefined;
+
+    // T.A14 (ATTRIBUTE-FIRST) — seed the `from` shape onto the target's SVG `d`
+    // ATTRIBUTE at BUILD time, BEFORE any play/frame write. So at rest (no frame
+    // in flight — pre-play under autoPlay:false, or post-settle) the subject
+    // paints from the attribute alone; the per-frame CSS `d:` channel only
+    // overrides it while animating. The at-rest state never depends on a live
+    // engine write (the shot-17 invisible-at-rest failure class is impossible by
+    // construction). We write the RAW `from` `d` here (the attribute's native
+    // form), not the reassembled polyline, so a NON-morphing at-rest subject
+    // shows its authored geometry faithfully.
+    const attrTarget = target as unknown as Partial<ElementWithAttribute>;
+    if (target != null && typeof attrTarget.setAttribute === "function") {
+        attrTarget.setAttribute("d", from);
+    }
 
     const animation = new CSSKeyframesAnimation<V>(animOptions).fromKeyframes(
         keyframes,

@@ -223,6 +223,72 @@ function makeStyleTarget() {
     };
 }
 
+/** A style + ATTRIBUTE target — captures BOTH `setProperty` writes (the per-frame
+ *  render channel) AND `setAttribute`/`getAttribute` (the T.A14 at-rest attribute
+ *  seed). Structural, DOM-free — the same isomorphic posture as the renderer. */
+function makeAttrTarget() {
+    const writes: Record<string, string> = {};
+    const attrs: Record<string, string> = {};
+    return {
+        writes,
+        attrs,
+        setAttribute(name: string, value: string) {
+            attrs[name] = value;
+        },
+        getAttribute(name: string): string | null {
+            return name in attrs ? attrs[name]! : null;
+        },
+        style: {
+            setProperty(k: string, v: string) {
+                writes[k] = v;
+            },
+        },
+    };
+}
+
+describe("MorphSVG — T.A14: attribute-first render contract (at-rest paints with NO live write)", () => {
+    it("seeds the `from` path onto the target's `d` ATTRIBUTE at build time, BEFORE any frame write", () => {
+        const target = makeAttrTarget();
+        // Build with autoPlay:false and DO NOT seed a frame (no interpFrames call).
+        fromMorphSVG(TRIANGLE, SQUARE, {
+            samples: 16,
+            autoPlay: false,
+            target: target as unknown as SVGElement,
+        });
+
+        // The `d` ATTRIBUTE carries the from-shape at rest — a non-empty, parseable
+        // path — even though NO per-frame CSS `d:` / --morph-d write has happened.
+        const d = target.getAttribute("d");
+        expect(d).not.toBeNull();
+        expect(d).toBe(TRIANGLE);
+        expect(d).toMatch(/^M [\d.-]+ [\d.-]+/);
+
+        // The at-rest paint does NOT depend on a live engine write: the per-frame
+        // CSS channel is UNTOUCHED at rest (the shot-17 invisible-at-rest class is
+        // impossible — no missed write can blank the subject).
+        expect(target.writes["--morph-d"]).toBeUndefined();
+        expect(target.writes["d"]).toBeUndefined();
+    });
+
+    it("BITE: without the attribute seed the target would render nothing at rest — the seed is not re-derived from a frame write", () => {
+        const target = makeAttrTarget();
+        fromMorphSVG(TRIANGLE, SQUARE, {
+            samples: 8,
+            autoPlay: false,
+            target: target as unknown as SVGElement,
+        });
+        // The attribute is set purely at construction — a frame write is neither
+        // required nor consulted for the at-rest shape.
+        expect(target.attrs["d"]).toBe(TRIANGLE);
+    });
+
+    it("a target-LESS morph writes no attribute (the handle IS the surface)", () => {
+        // No target → no attribute seed; sampleD remains the manual reader.
+        const anim = fromMorphSVG(TRIANGLE, SQUARE, { autoPlay: false });
+        expect(anim.frames.length).toBeGreaterThan(0);
+    });
+});
+
 describe("MorphSVG — Q.WC4 S1: the on-DOM render contract (--morph-d / d: per frame)", () => {
     it("a target-bearing morph WRITES --morph-d (and d:) reassembling to a `d` distinct from both endpoints", () => {
         const target = makeStyleTarget();
