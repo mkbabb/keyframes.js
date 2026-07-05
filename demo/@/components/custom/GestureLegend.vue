@@ -101,7 +101,7 @@ defineProps<{
 
 .gesture-legend__glyph {
     flex: none;
-    font-size: 0.85em;
+    font-size: var(--type-micro, 0.85em);
     opacity: 0.8;
     color: color-mix(in srgb, var(--color-progress) 60%, var(--muted-foreground));
 }
