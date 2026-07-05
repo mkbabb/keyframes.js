@@ -1,0 +1,12 @@
+{
+  "_doc": "T.M5 (proof:subject-legible + proof:subject-full) — the quality oracles replacing existence proxies. `legible` subjects assert no-blur-over-glyph + an edge-energy floor (retiring proof:icon-paint-live (a)'s bbox-only clause — a blur-filtered icon still has a non-zero box, #4). `full` subjects assert a RENDERED-REGION (all six cube faces, a visible filled morph shape over the grid) not an attribute read (subject-animates certifies '≥3 distinct transforms' — a single die-face that tilts passes, #1; morph-scene reads the d-attr mutation on a possibly-invisible path, #21). Each subject's `verified` is false until the browser render check passes on the CURED render — BORN-RED against today's defects (the blurred dock icon, the one-face cube, the bare-grid morph). The band that cures the defect flips `verified` WITH the browser oracle.",
+  "legible": [
+    { "subject": "dock-icon", "assertion": "no blur filter over the glyph + edge-energy ≥ floor", "verdictItem": "#4 (resting blur(3px))", "cure": "T.C dock de-blur (glass-ui born-RED handoff)", "verified": false },
+    { "subject": "dock-glyphs", "assertion": "crisp icon set across both docks", "verdictItem": "#4 (blurry/janky)", "cure": "T.C dock recut", "verified": false }
+  ],
+  "full": [
+    { "subject": "cube", "assertion": "all six faces render (rendered-region, not ≥3-transform)", "verdictItem": "#1 (one die face)", "cure": "T.A --spin-energy bloom delete", "verified": false },
+    { "subject": "amiga-ball", "assertion": "the ball renders visible (not NaN-collapsed)", "verdictItem": "#9 (broken mess)", "cure": "T.A NaN/rotation cure", "verified": false },
+    { "subject": "morph", "assertion": "a visible filled shape over the grid in-viewport (PRUNED per OD-1 → clause retired in lockstep)", "verdictItem": "#21 (bare grid)", "cure": "T.E prune (OD-1 PRUNE FINAL) → this clause retires with morph-scene", "verified": false }
+  ]
+}

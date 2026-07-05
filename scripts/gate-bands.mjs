@@ -150,3 +150,212 @@ export const REGRESSION_GUARDS = [
     "proof:no-brittle-selector",
     "proof:no-single-option-select",
 ];
+
+/**
+ * ── THE FEATURE-COUPLED RETIREMENT LEDGER (T.M7 · lane 29 rec 6) ───────────────
+ * The Class-A inverted / feature-dead S gates that each ENFORCE an owner-rejected
+ * state today and are retired AS their features are removed or redesigned. T.M
+ * owns this LEDGER + the no-orphan-key completion clause; the BANDS execute each
+ * deletion (T.A/T.B/T.C/T.D/T.E). Status is DERIVED FROM THE TREE, never
+ * hand-maintained: a retire-target key still present in package.json = PENDING, a
+ * key absent = RETIRED. This makes the ledger MERGE-CONFLICT-FREE against the
+ * parallel T.E deletions (a lane deleting compose/morph/motion-path keys need not
+ * touch this file — the derive-from-tree read reflects the deletion automatically).
+ *
+ * `proof:retirement-ledger` (T.M7) reads this and REDs on the NO-ORPHAN-KEY clause:
+ * a package.json proof:* key that is GONE but is NOT a ledger retire-target (and is
+ * not a T.M8 FROZEN discharge, and is not otherwise accounted) is an untracked
+ * deletion → RED. A ledger entry whose key is still present is simply PENDING
+ * (reported, not red). Each entry names its coupled feature, the verdict item, and
+ * (when applicable) the successor gate that re-asserts any surviving live property.
+ *
+ * Do NOT delete keys HERE — the ledger only WITNESSES deletions the bands execute.
+ */
+export const RETIREMENT_LEDGER = {
+    "proof:square-honest": {
+        coupledFeature: "the square scene's honest-collapse (panel ABSENT)",
+        verdictItem: "#12/#25 — restore the triad; the panel must RETURN",
+        executedBy: "T.A/T.B",
+        successor: "proof:scene-control-dfa (row rewritten — square re-tabled into the triad)",
+    },
+    "proof:gesture-manifest": {
+        coupledFeature: "the on-stage gesture LEGEND mandate (tell-or-RED)",
+        verdictItem: "#8/#15 — remove all legend elements",
+        executedBy: "T.E/T.B",
+        successor: "proof:stage-inventory (T.M4 — the negative-space inversion)",
+    },
+    "proof:easter-egg": {
+        coupledFeature: "the Gallery + seven kf-source eggs",
+        verdictItem: "#2/#13/#15 — remove decorative library-orthogonal chrome",
+        executedBy: "T.E/T.D",
+        successor: null,
+    },
+    "proof:design-refinement": {
+        coupledFeature: "the nine instrument-eggs (S1 typing card, S5 easing smear, …)",
+        verdictItem: "#2/#13/#15",
+        executedBy: "T.E/T.D",
+        successor: null,
+    },
+    "proof:easing-sidebar-minimal": {
+        coupledFeature: "the hand-rolled easing sidebar surface-lock",
+        verdictItem: "#16 — re-design the easing scene with glass-ui",
+        executedBy: "T.E",
+        successor: "proof:easing-gallery (T.E6 — born-OWNER, OD-7)",
+    },
+    "proof:easing-sidebar-normalized": {
+        coupledFeature: "the hand-rolled easing sidebar surface-lock",
+        verdictItem: "#16",
+        executedBy: "T.E",
+        successor: "proof:easing-gallery (T.E6)",
+    },
+    "proof:easing-stage-is-ball": {
+        coupledFeature: "the easing-stage-is-ball surface-lock (the ball-preview INTENT survives)",
+        verdictItem: "#14/#16",
+        executedBy: "T.E",
+        successor: "proof:easing-gallery (T.E6 — the ball-preview intent re-homed)",
+    },
+    "proof:easing-canvas-bounded": {
+        coupledFeature: "the easing-canvas geometry lock",
+        verdictItem: "#16",
+        executedBy: "T.E",
+        successor: "proof:easing-gallery (T.E6)",
+    },
+    "proof:scene-uses-standard-ribbon": {
+        coupledFeature: "the easing-scene ribbon lock",
+        verdictItem: "#16",
+        executedBy: "T.E",
+        successor: null,
+    },
+    "proof:hero-rung": {
+        coupledFeature: "the rejected hero WORD-split rung geometry",
+        verdictItem: "#3 — per-CHAR uplift, hero lower/centred, overlap-OK",
+        executedBy: "T.D",
+        successor: "proof:hero-two-focal + proof:hero-deck-voice (T.D9/D11 — born-OWNER, OD-4)",
+    },
+    "proof:hero-balance": {
+        coupledFeature: "the rejected hero∩cube==0 balance lock",
+        verdictItem: "#3",
+        executedBy: "T.D",
+        successor: "proof:hero-two-focal (T.D9)",
+    },
+    "proof:hero-cls": {
+        coupledFeature: "the rejected hero CLS lock (word-split geometry)",
+        verdictItem: "#3",
+        executedBy: "T.D",
+        successor: "proof:hero-two-focal (T.D9)",
+    },
+    "proof:typing-dots": {
+        coupledFeature: "the home typing-card indicator",
+        verdictItem: "#2 — remove the typing card",
+        executedBy: "T.D",
+        successor: null,
+    },
+    "proof:dogfood-hero": {
+        coupledFeature: "the rejected hero dogfood lock",
+        verdictItem: "#3 — re-spec with the new hero",
+        executedBy: "T.D",
+        successor: "proof:hero-two-focal (T.D9)",
+    },
+    "proof:crayon-preserved": {
+        coupledFeature: "the crayon idiom (likely dies with the latent-red theme)",
+        verdictItem: "#16 — don't like this latent red theme",
+        executedBy: "T.D",
+        successor: null,
+    },
+    "proof:compose-scene": {
+        coupledFeature: "the compose scene (DELETED in totality per OD-1 / :has() collapse)",
+        verdictItem: "#23 — remove compose",
+        executedBy: "T.E",
+        successor: null,
+    },
+    "proof:morph-scene": {
+        coupledFeature: "the morph scene (PRUNED per OD-1 PRUNE FINAL)",
+        verdictItem: "#21 — does not work at all",
+        executedBy: "T.E",
+        successor: "proof:subject-full (T.M5 — visible-render, if kept; PRUNED per OD-1)",
+    },
+    "proof:motion-path-editable": {
+        coupledFeature: "the motion-path scene (PRUNED per OD-1)",
+        verdictItem: "#20 — barely works",
+        executedBy: "T.E",
+        successor: null,
+    },
+    "proof:motion-path-copy": {
+        coupledFeature: "the motion-path scene (PRUNED per OD-1)",
+        verdictItem: "#20",
+        executedBy: "T.E",
+        successor: null,
+    },
+    "proof:motion-path-scale": {
+        coupledFeature: "the motion-path scene (PRUNED per OD-1)",
+        verdictItem: "#20",
+        executedBy: "T.E",
+        successor: null,
+    },
+    "proof:visual-lock": {
+        coupledFeature: "the self-captured baseline + full-subject mask (blind to every cited render defect)",
+        verdictItem: "#1/#4/#9/#21 — the masked subjects are the rejected renders",
+        executedBy: "T.M3/T.A/T.D",
+        successor: "proof:owner-golden (T.M3 — owner-blessed reference render)",
+    },
+    "proof:icon-paint-live": {
+        coupledFeature: "the bbox-only icon existence proxy (blur-blind)",
+        verdictItem: "#4 — blurred dock icon; existence ≠ legibility",
+        executedBy: "T.C",
+        successor: "proof:subject-legible (T.M5 — no-blur + edge-energy floor)",
+    },
+};
+
+/**
+ * ── THE ROSTER CEILING (T.M8 · lane 24 rec 2 / lane 27 F10) ────────────────────
+ * S.A4's headline was "190 → ~138 immediate → ~120 once the FROZEN fold
+ * discharges." The tree INVERTED to 203 (each altitude band authored MORE
+ * structural born-RED oracles). T.M8 declares the ceiling and drives the count back
+ * toward it as M7's retirements + the FROZEN discharge land. The COUNT clause of
+ * proof:roster-ceiling stays RED (declared T born-RED backlog) until the bands
+ * retire keys — it converges, it does not mask.
+ */
+export const ROSTER_CEILING = 120;
+
+/**
+ * ── THE T BORN-RED BACKLOG (the S.A0 doctrine, T-side) ─────────────────────────
+ * The T.M gates that land BORN-RED by design — they red on today's real defects /
+ * on a not-yet-converged count — and are registered HERE so CI posture stays
+ * "failing ⊆ declared backlog, exactly" (nothing reds silently). Each is kept OUT
+ * of every blocking aggregator (&&-chain / roster) and rides CI as a RECORDED
+ * tripwire — the proof:peer-satisfied / proof:chronic-closure precedent. Each row
+ * names the wave(s) that DISCHARGE it (green it). proof:ci-coverage (clause 11)
+ * asserts every entry here is a live package.json script AND is in its EXCLUDED set
+ * AND carries a non-empty reason + dischargedBy — so a born-RED gate cannot escape
+ * the declared-backlog register.
+ */
+export const T_BORNRED_BACKLOG = {
+    "proof:stage-inventory": {
+        dischargedBy: "T.A/T.B/T.C/T.D/T.E (furniture prune + owner-sanctioned per-scene manifests)",
+        reason:
+            "the on-stage negative-space gate: reds until the retire-target chrome " +
+            "(#5 cube readout / #6 dock ghost-tooltip+divider / #7 controls pane / #11 " +
+            "square caption / #22 cursor light) is pruned AND each scene carries a " +
+            "committed owner-sanctioned manifest. Per-scene manifest slots are EMPTY-RED " +
+            "by design (bands fill them).",
+    },
+    "proof:subject-legible": {
+        dischargedBy: "T.C (dock icon de-blur — a glass-ui born-RED handoff)",
+        reason:
+            "no-blur-over-glyph + edge-energy floor: reds on the resting blur(3px) dock " +
+            "icon (#4). Existence ≠ legibility — supersedes proof:icon-paint-live (a)'s bbox clause.",
+    },
+    "proof:subject-full": {
+        dischargedBy: "T.A (cube --spin-energy bloom delete + amiga NaN/rotation cure)",
+        reason:
+            "rendered-region fullness: reds on the one-face cube (#1) and the bare-grid " +
+            "morph (#21). Supersedes the ≥3-distinct-transform / d-attr-mutation existence proxies.",
+    },
+    "proof:roster-ceiling": {
+        dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
+        reason:
+            "the count clause reds while the proof:* roster exceeds the declared ceiling " +
+            `(${ROSTER_CEILING}); today 203. It CONVERGES as M7's ~15 feature-coupled ` +
+            "retirements + the FROZEN discharge land — a declared backlog, not a mask.",
+    },
+};

@@ -235,21 +235,28 @@ const EXCLUDED = new Set([
     // proof:hygiene/proof:correctness/proof:all). Excluded from the forward-coverage
     // demand for the same reason those sub-aggregators are.
     "proof:hygiene-chain",
-    // S.B6 — the three type-surface / ./engine-drift gates are DEVELOPMENT-ONLY
-    // through S (the wave's own Verification: "Development-only; born-RED; re-run
-    // at S.Z2"). They are AUTHORED + red→green-witnessed at S.B6 and are GREEN at
-    // authorship (unlike proof:peer-satisfied / proof:claude-paths-live /
-    // proof:chronic-closure, which stay RED), but they follow the SAME
-    // development-only-until-close wiring convention: they do NOT yet ride ci.yml,
-    // so a mid-drive tree churn in a parallel worktree cannot flap them in a
-    // blocking chain before the tree is final. S.Z2 wires all three into
-    // proof:hygiene-chain as ordinary blocking members (they measure the BUILT
-    // dist, same precondition as proof:published-surface / proof:alias-dropped)
-    // and DELETES these three exclusions in that same commit. Each is
-    // individually runnable NOW (`npm run proof:engine-subpath-mirror` etc.).
-    "proof:engine-subpath-mirror",
-    "proof:no-any-default",
-    "proof:dts-rollups-agree",
+    // (S.B6 → T.M8/F9 DISCHARGE — the three type-surface / ./engine-drift gates
+    //  (engine-subpath-mirror / no-any-default / dts-rollups-agree) are NO LONGER
+    //  EXCLUDED. Lane 27 F9 named them "runnable + passing, never CI-wired"; T.M8
+    //  folded them out of dev-only orphan status: they now ride the ci.yml `gates`
+    //  job (individual steps, after build:lib — same BUILT-dist precondition as
+    //  proof:published-surface / proof:alias-dropped) AND proof:hygiene-chain (local
+    //  truth). The forward-coverage clause now DEMANDS their CI invocation; the three
+    //  exclusion entries were deleted in this same commit — no orphan survives.)
+    //
+    // T.M4/T.M5/T.M8 — the T born-RED BACKLOG gates (scripts/gate-bands.mjs
+    // T_BORNRED_BACKLOG). They red on today's real defects (the blurred dock icon,
+    // the one-face cube, the un-manifested chrome) OR on a not-yet-converged roster
+    // count. Per the S.A0 doctrine ("failing ⊆ declared backlog, exactly") they are
+    // kept OUT of every blocking aggregator (&&-chain / roster) and ride CI as
+    // RECORDED tripwires — the proof:peer-satisfied / proof:chronic-closure precedent.
+    // Clause 11 below RE-VERIFIES each is registered in T_BORNRED_BACKLOG with a
+    // non-empty reason + dischargedBy, so a born-RED gate cannot escape the declared
+    // backlog register. Each is individually runnable NOW (`npm run proof:stage-inventory`).
+    "proof:stage-inventory",
+    "proof:subject-legible",
+    "proof:subject-full",
+    "proof:roster-ceiling",
 ]);
 
 const gates = Object.keys(pkg.scripts)
@@ -1091,6 +1098,51 @@ const jobBounds = (() => {
             `regression-guard-band (S.A4 S7) — all ${REGRESSION_GUARDS.length} banded ` +
                 "regression-guards are live hygiene-chain members (the excision-guard band is " +
                 "an explicit, machine-checked set).",
+        );
+    }
+}
+
+// ── clause 11 (T.M8 / the S.A0 doctrine, T-side): the T born-RED backlog register
+// Every gate that lands BORN-RED by design (reds on today's real defects / a
+// not-yet-converged count) must be REGISTERED so "failing ⊆ declared backlog,
+// exactly" holds — nothing reds silently. This clause asserts every key in
+// scripts/gate-bands.mjs T_BORNRED_BACKLOG: (a) is a live package.json script, (b)
+// is in this gate's EXCLUDED set (kept out of every blocking aggregator), and (c)
+// carries a non-empty reason + dischargedBy. A born-RED gate that is NOT registered,
+// or a registry row without a discharge owner, REDs — the register is machine-bound,
+// not prose. ────────────────────────────────────────────────────────────────────
+{
+    const { T_BORNRED_BACKLOG } = await import("./gate-bands.mjs");
+    const clauseFails0 = failures.length;
+    for (const [g, rec] of Object.entries(T_BORNRED_BACKLOG)) {
+        if (!(g in pkg.scripts)) {
+            failures.push(
+                `t-bornred-backlog (T.M8) — ${g} is registered in T_BORNRED_BACKLOG but is NOT a ` +
+                    "live package.json script. A backlog register must name a real gate.",
+            );
+        }
+        if (!EXCLUDED.has(g)) {
+            failures.push(
+                `t-bornred-backlog (T.M8) — born-RED gate ${g} is registered but NOT in this gate's ` +
+                    "EXCLUDED set — it would be demanded as CI-invoked (forward-coverage) and, being " +
+                    "born-RED, would red a blocking surface. A declared-backlog gate rides CI as a " +
+                    "recorded tripwire, never a blocking &&-chain member.",
+            );
+        }
+        if (!rec || !rec.reason || !rec.dischargedBy) {
+            failures.push(
+                `t-bornred-backlog (T.M8) — ${g}'s registry row lacks a non-empty reason + dischargedBy. ` +
+                    "The discharge owner + the born-RED reason ARE the backlog declaration (no silent red).",
+            );
+        }
+    }
+    if (failures.length === clauseFails0) {
+        passes.push(
+            `t-bornred-backlog (T.M8) — all ${Object.keys(T_BORNRED_BACKLOG).length} T born-RED gate(s) ` +
+                "[" +
+                Object.keys(T_BORNRED_BACKLOG).join(", ") +
+                "] are live, EXCLUDED from blocking aggregators, and carry a reason + discharge owner " +
+                "(the declared backlog is machine-bound — failing ⊆ backlog, exactly).",
         );
     }
 }

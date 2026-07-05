@@ -123,6 +123,37 @@ jobs:
             # surface. HARD posture — a correctness/precept invariant.
             - name: proof:alias-dropped (Q.WE1 — the @deprecated aliases are GONE from the published d.ts · NO-LEGACY)
               run: npm run proof:alias-dropped
+            # T.M8 (lane 27 F9) — the three S.B6 type-surface / ./engine-drift gates
+            # folded out of their dev-only orphan status into a real tier. They read
+            # the BUILT dist/keyframes.d.ts (same precondition as proof:published-
+            # surface / proof:alias-dropped above — after build:lib), so they ride the
+            # gates job here + proof:hygiene-chain (local truth). Was: EXCLUDED as
+            # "development-only" (never CI-wired) since S.B6.
+            - name: proof:engine-subpath-mirror (T.M8/F9 — ./engine subpath mirrors the AnimationEngine keys)
+              run: npm run proof:engine-subpath-mirror
+            - name: proof:no-any-default (T.M8/F9 — no `any` in the default type surface)
+              run: npm run proof:no-any-default
+            - name: proof:dts-rollups-agree (T.M8/F9 — the d.ts roll-ups agree)
+              run: npm run proof:dts-rollups-agree
+            # T.M — the born-OWNER gate class mechanism (batch ①). Pure static reads
+            # (docs/tree/package.json), no browser, no dist — so they ride the fast
+            # gates job + proof:hygiene-chain. Each is green-today (M1/M2 vacuous or
+            # clean; M6/M7 registry-derived; M9 board-live; M10 recap teeth). The
+            # BORN-RED backlog gates (proof:stage-inventory / -subject-legible /
+            # -subject-full / -roster-ceiling) are DECLARED in scripts/gate-bands.mjs
+            # T_BORNRED_BACKLOG + EXCLUDED in proof:ci-coverage (recorded, not blocking).
+            - name: proof:owner-verdict-recorded (T.M1 — K's TASTE-VERDICT revived, blocking per-wave)
+              run: npm run proof:owner-verdict-recorded
+            - name: proof:owner-review-gate (T.M2 — pre-authoring sign-off + convergence≠sufficient)
+              run: npm run proof:owner-review-gate
+            - name: proof:gate-authority (T.M6 — the INSTRUMENT/OWNER authority axis + blocking-not-OBSERVE)
+              run: npm run proof:gate-authority
+            - name: proof:retirement-ledger (T.M7 — feature-coupled retirement, derive-from-tree)
+              run: npm run proof:retirement-ledger
+            - name: proof:board-live (T.M9 — board↔tree + session-log freshness)
+              run: npm run proof:board-live
+            - name: proof:prompt-recap-t (T.M10 — the born-OWNER recap gate teeth)
+              run: npm run proof:prompt-recap-t
             # S.C1 — the GENERALIZED breaking-set MIGRATION-doc oracle (C-18): git-
             # reconstructs the previous published tag's docs/published-surface.md, diffs it
             # against HEAD, and REDs on any removed public-surface row lacking a matching

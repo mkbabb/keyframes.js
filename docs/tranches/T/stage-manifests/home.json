@@ -1,0 +1,17 @@
+{
+  "_doc": "T.M4 owner-sanctioned on-stage inventory for the home scene, derived from the blessed P-HERO prototype (OD-4 APPROVED, OWNER-DECISIONS.md). The `sanctioned` set is the EXACT on-stage element inventory the owner blessed; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The typing card (#2) and the kf-source egg card are EXPLICITLY excluded (owner: 'remove this crap' / 'remove decorative library-orthogonal chrome').",
+  "scene": "home",
+  "sanctioned": [
+    "hero-mark (per-char uplift, φ-band seat, honest 400 ink)",
+    "hero-deck (serif-italic deck ramp)",
+    "play-CTA (play-first)",
+    "scene-cube-preview (hero overlaps cube — allowed)",
+    "aurora-cursor-light (OD-2 more-subtle; ceiling = P-HERO opacity)"
+  ],
+  "forbidden": [
+    "typing-card (#2 — remove this crap)",
+    "kf-source-egg-card (#2 — decorative library-orthogonal chrome)",
+    "gallery-door-button (#15)"
+  ],
+  "status": "SKELETON — owner-derived from P-HERO; the RENDERED-set reconciliation is the discharge (T.D, browser render check, KF_REQUIRE_BROWSER)"
+}
