@@ -185,6 +185,31 @@
   OrbitControls change-listener allowlisted (THREE.EventDispatcher, not DOM).
   Roster: 83 gates, failing set = exactly the declared backlog.
 
+- **2026-07-05 — BATCH ③ MERGED + VERIFIED (T4/T5).** Fleet `wf_7b5aaf03-e2b`, 3/3.
+  **THE SQUARE JOINT MOTION LANDED (T.A13+T.B3 — VERDICT #12/#25 CLOSED):** the
+  unit-honest num() normalizer (both writers — spring raw numbers + T.A6 plain
+  strings; the "0pxpx" kill-class impossible), REAL diamond-tour keyframes (±90px/
+  360°/nested-d swell), the {idle,drag,playback} FSM with jump-free DOMMatrix
+  pose-capture takeover, tumble demoted to gesture-egg; the DFA square row
+  []→triad; ALL FOUR collapse-locked gates INVERTED in one lockstep motion
+  (square-honest v2 measured +95.9px displacement, browser-verified; cold-entry
+  re-armed to the persistent-playhead path); chronic row 69 GREEN. **T.B4 landed**
+  (pane deleted → naked rail; SQ-T3 mount-iff-content; composition PENDING-OWNER
+  per OD-5 R1 — proof:panel-composition registered but NOT authored, correct T.M2
+  discipline). **T.G1 landed born-RED-backlog with the drive's most consequential
+  empirical finding:** NO pure-CSS kf-side blur decoupling exists (isolation/
+  z-index/radius/geometry all measured neutral) — the live backdrop-filter
+  re-samples the moving stage structurally (easing 26→66fps when neutralized);
+  **glass-ui BG-5 (blur-source="static") is the ONLY cure and is now the
+  highest-leverage constellation ask**; proof:blur-not-resampled rides the backlog
+  until the BG-5 publish + re-pin. **Honest deferrals (protect-the-green-build):**
+  T.B1/T.B2 (the SceneFacility keystone rip — ~20 files) + T.A15 (autoplay + the
+  fleet driver re-derivation) + T.H3 (Drawer swap) → batch ④ as DEDICATED lanes.
+  **Merge composition:** SquareScene template/CSS split (the ACG idiom, 340+159);
+  mobile-single-page's sequence expectation re-derived (SQ-T3: surfaces-empty →
+  NO sheet — the zero-content grab handle was the defect; T.B2 flips it back).
+  Roster 84 gates → failing ⊆ backlog exactly.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
