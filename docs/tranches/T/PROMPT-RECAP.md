@@ -139,15 +139,15 @@ owner-observed close) except where noted.
 | S.Z1 (prompt recap) | PENDING-IMPL | never ran; `proof:prompt-recap-s` + target absent (lane 28 F1) | **THIS LEDGER (T.S7)** + `proof:prompt-recap-t` (T.M10) |
 | S.Z2 (template + RE-EXECUTION) | PENDING-IMPL | never ran (lane 27 F1) | **T.S1** (from-clean re-run) + T.M9 (board-live) |
 | S.Z3 (FINAL + version) | PENDING-IMPL | never ran (lane 27 F1) | **T.Z** (T-equivalent close) |
-| chronic ledger re-verify (52/74 unverified) | FOLD authored, re-verify unrun | 52 reds; 26 are tier-bug artifacts (lane 27 F2) | **T.S1** |
-| `ci.yml` stale `1.2.0` literal | — | `proof:ci-coverage` exits 1 today (lane 27 F7) | **T.S1** |
-| `drag-gesture` (the ONE named carry) | FOLD "discharges" | **FALSE** — reopened, currently RED, one surface (lane 27 F3) | **T.S2** |
-| S session-log ends ~40% early | — | 20 commits un-narrated incl. S.C4/S2, ⑩ (lane 27 F4) | **T.S5** (content) + T.M9 (discipline) |
-| KF-7 `PropertyDescriptor_2` | DISPATCH, unwatched | still unrenamed in value.js 2.0.1 (lane 27 F5) | **T.S3** |
-| value.js 2.0.1 self-dependency phantom | not flagged | nested 1.2.0/0.13.0 install (lane 27 F6, NEW) | **T.S3** |
-| color2Into verification trail | verified-in-prose | no itemized oracle output captured (lane 27 row 46) | **T.S3** |
-| S.A3 auto-deploy | FOLD "revived" | **NEVER FIRED** (lane 27 F8) | **T.S6** (revive) + T.S1 (honest re-disposition) |
-| DM-22 named-selector deferral | DEFERRED since P | the one live "DEFERRED to a follow-up wave" in src (lane 21 rec 7) | **T.S4** |
+| chronic ledger re-verify (52/74 unverified) | FOLD authored, re-verify unrun | **T.S1 LANDED (partial + remainder)** — the F2 tier-fix + rows 16/22 landed (`b19929b`); the remainder re-pointed rows 69/71/72 (71/72 GREEN, 69 rides `proof:square-honest` v2 → batch ③). ~33 un-backticked FOLD rows remain (the 'missing-witness wording' class, each owned by its landing wave) so `proof:chronic-closure` stays a T_BORNRED_BACKLOG gate — the batch-② '52→3' claim was inaccurate (the honest count is 33) | **T.S1** (backlog) |
+| `ci.yml` stale `1.2.0` literal | — | **LANDED** — the Q-era literal single-sourced out (`b19929b`); `proof:ci-coverage` exits **0** on the merged tree (was exit 1, lane 27 F7) | **T.S1** ✓ |
+| `drag-gesture` (the ONE named carry) | FOLD "discharges" | **FALSE** — reopened, currently RED, one surface (lane 27 F3); T.S2 root-cause + close IN FLIGHT this batch | **T.S2** |
+| S session-log ends ~40% early | — | **BACKFILLED** (T.S5) — the log carried to the S terminus `dee5aa6` (S.G3/F6/B8/C4·S2/⑩/T-pivot narrated); `proof:board-live` freshness GREEN | **T.S5** ✓ + T.M9 |
+| KF-7 `PropertyDescriptor_2` | DISPATCH, unwatched | **LETTER LANDED** (`fa86147`, `KF-TO-VALUEJS-T.md §1`) + `proof:no-collision-rename` born-RED; STILL unrenamed at value.js **3.0.0** (re-verified T.S3 sweep) — greens only when value.js ships `CSSPropertyDescriptor` | **T.S3** (born-RED tripwire) |
+| value.js 2.0.1 self-dependency phantom | not flagged | **LETTER LANDED** (`KF-TO-VALUEJS-T.md §2`) + `proof:no-nested-self-dependency` born-RED; **FIXED in value.js 3.0.0** (self-dep dropped) — greens on the kf re-pin (T.S3 pin eval) | **T.S3** |
+| color2Into verification trail | verified-in-prose | **LANDED** — the itemized `proof:consume-bundle` exit 0 captured in `KF-TO-VALUEJS-T.md §3` (no longer a bare prose assertion) | **T.S3** ✓ |
+| S.A3 auto-deploy | FOLD "revived" | **MECHANISM LANDED** (`b13dd65`, T.S6) — `deploy-pages.yml` `workflow_run` auto-path GATED on green `demo-correctness`; the auto-path deploy-run `success` oracle fires at **T.Z** (owner-gated). Row 16 honestly re-dispositioned at T.S1 | **T.S6** + T.S1 ✓ |
+| DM-22 named-selector deferral | DEFERRED since P | **LANDED** (`47fd174`, T.S4) — the stale comment retired; the deferred-resolution step EXISTS at `bindTimeline` (phase→%), the play-time guard the accepted terminal contract; `grep 'DEFERRED to a follow-up wave' src/` → 0 | **T.S4** ✓ |
 | 3 orphaned S.B6 type-surface gates | EXCLUDED "dev-only" | runnable + passing, never CI-wired (lane 27 F9) | **T.M8** |
 | roster count 203 (diet inverted) | FOLD "190→~120" | 203 today (lane 27 F10 / lane 24) | **T.M8** |
 | **OWNER-ASKS row 4** (the verdict) | `IN EXECUTION` / blocks S close | circular deadlock — row 4 *is* the tranche that supersedes the S recap gate (lane 28 F6) | **THIS LEDGER (T.S7): `→ Tranche T (this ledger)` — TERMINAL by transfer** |
