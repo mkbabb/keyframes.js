@@ -13,11 +13,11 @@
         "pins": [
             {
                 "name": "@mkbabb/value.js",
-                "declared": "^2.0.1",
+                "declared": "^3.1.0",
                 "declaredIn": "dependencies",
-                "installed": "2.0.1",
+                "installed": "3.1.0",
                 "edge": "direct",
-                "note": "the caret pin — the value.js-2.0.x consume-edge FIRED at S.C4/S2 (owner rulings 5+6, 2026-07-04): the SINGLE re-pin carrying BOTH payloads (KF-1 param-grammar fix + rename via 2.0.0; parse-that 1.0.0 via the 2.0.1 follow-on kf executed per the value.js R book). The normalizeParam/VJS_PARAM_BUG_MAX recovery apparatus is DELETED (the S7 lifecycle completed)."
+                "note": "the caret pin — the value.js-3.x consume-edge FIRED at T.S3 (2026-07-05): re-pinned ^2.0.1 -> ^3.1.0 (npm install @^3.0.0 resolved dist-tags.latest=3.1.0; ^<installed> convention, as the prior ^2.0.1). VERIFIED in a DEDICATED isolated clone (fresh npm ci, NOT the shared-symlink worktree): check + build + gh-pages + vitest + proof:library-correctness + proof:boundary + proof:zero-alloc + proof:replay-equality + proof:color-fidelity + proof:emerging-css-resolve (the KF-1 vector) all GREEN. 3.1.0 DROPS the value.js self-dependency phantom -> proof:no-nested-self-dependency flips GREEN (discharged; removed from T_BORNRED_BACKLOG). KF-7 is STILL unfulfilled at 3.1.0 (PropertyDescriptor un-renamed) so proof:no-collision-rename STAYS a born-RED backlog tripwire. The 3.x breaking changes (logerp arg order / color-soa removal) DO NOT touch kf's surface (grep-zero in src/). The prior 2.0.x normalizeParam/VJS_PARAM_BUG_MAX apparatus stays DELETED."
             },
             {
                 "name": "@mkbabb/parse-that",
@@ -68,10 +68,10 @@
                 "target": "^3.0.0",
                 "firesOn": "value.js 3.0.0 is registry `latest` (dist-tags.latest=3.0.0 confirmed 2026-07-05). A MAJOR bump — the actual re-pin is a DEDICATED, isolated motion (fresh clone / npm ci), NOT executed in the T.S3 worktree (whose node_modules symlinks the shared install; an in-worktree `npm install` would corrupt sibling lanes).",
                 "consumes": "the value.js self-dependency-phantom fix (3.0.0 drops `@mkbabb/value.js` from its own deps — greens proof:no-nested-self-dependency). Does NOT discharge KF-7 (3.0.0 STILL exports PropertyDescriptor un-renamed — proof:no-collision-rename stays RED until value.js publishes the CSSPropertyDescriptor rename).",
-                "rePinWave": "T.Z or a dedicated re-pin motion",
+                "rePinWave": "T.S3 (executed 2026-07-05)",
                 "dispatchDoc": "docs/tranches/T/KF-TO-VALUEJS-T.md",
-                "executionContract": "re-pin ONLY IF (a) adopt-event watch confirms dist-tags.latest ≥ 3.0.0 (it does) AND (b) the full library gate set stays green after: proof:library-correctness + proof:boundary + build + vitest. The courtesy letter says the kf-consumed surface is unchanged (resolveEasing convergence book) — VERIFY it; if anything reds, revert the pin and record this row GATED with the failing evidence.",
-                "status": "TARGET (gated, not executed T.S3)"
+                "executionContract": "re-pin ONLY IF (a) adopt-event watch confirms dist-tags.latest ≥ 3.0.0 AND (b) the full library gate set stays green after: proof:library-correctness + proof:boundary + build + vitest. VERIFIED + EXECUTED at T.S3: dist-tags.latest=3.1.0; the FULL set greened in an isolated clone (the shared-symlink worktree can't npm install without corrupting sibling lanes — the dedicated-isolated-motion contract honored). FOLDED into shipped (@mkbabb/value.js declared ^3.1.0 / installed 3.1.0).",
+                "status": "FIRED (T.S3, 2026-07-05 — folded into shipped)"
             }
         ]
     }

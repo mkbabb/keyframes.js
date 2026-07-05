@@ -444,20 +444,17 @@ export const T_BORNRED_BACKLOG = {
             "KF-7 (T.S3 / lane 27 F5): value.js exports a type `PropertyDescriptor` that " +
             "collides with the ambient DOM global, so API-Extractor mangles it into kf's " +
             "PUBLISHED dist/keyframes.d.ts as `PropertyDescriptor_2` (verified live at :11/:814/" +
-            ":2732). value.js 2.0.1 AND 3.0.0 still export it un-renamed; the gate greens the " +
+            ":2732). value.js 2.0.1, 3.0.0 AND 3.1.0 all still export it un-renamed (re-verified at " +
+            "the T.S3 3.1.0 re-pin — the tripwire STAYS born-RED after the pin); the gate greens the " +
             "instant value.js renames it and kf re-points (the adopt-event watch gates the re-point). " +
             "See docs/tranches/T/KF-TO-VALUEJS-T.md.",
     },
-    "proof:no-nested-self-dependency": {
-        dischargedBy:
-            "value.js drops the self-dependency from its own package.json (3.0.0 already " +
-            "does) [EXTERNAL] + kf re-points to that version (npm then dedupes to ONE copy)",
-        reason:
-            "the value.js self-dependency phantom (T.S3 / lane 27 F6): value.js@2.0.1's own " +
-            "deps carry `@mkbabb/value.js`, so npm cannot dedupe it against itself and every " +
-            "npm ci nests a stale value.js 1.2.0 + parse-that 0.13.0 inside kf's node_modules " +
-            "(verified live in package-lock.json). value.js 3.0.0 DROPS the self-dep — the gate " +
-            "greens once kf re-points to a value.js whose lockfile no longer nests a self/duplicate " +
-            "@mkbabb install. See docs/tranches/T/KF-TO-VALUEJS-T.md.",
-    },
+    // proof:no-nested-self-dependency — DISCHARGED at T.S3 (2026-07-05): the value.js
+    // ^3.1.0 re-pin drops the self-dependency phantom (3.0.0+ carry only parse-that in
+    // their deps), so npm ci no longer nests a stale @mkbabb install and the tripwire
+    // greens permanently. VERIFIED GREEN in the isolated 3.1.0 clone (proof:no-nested-
+    // self-dependency exit 0). Removed from the born-RED register per drive clause 7
+    // (gate green + row removed in the SAME commit as the cure = the pin). NOTE: greens
+    // only once the tree is `npm ci`'d to 3.1.0 — the shared-symlink worktree was NOT
+    // mutated (sibling-lane isolation); see risksForMerge / the pin commit.
 };
