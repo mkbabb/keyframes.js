@@ -38,13 +38,13 @@
         ]
     },
     "target": {
-        "$comment": "The remaining un-fired TARGET pin — the ONE consume edge whose publish has NOT fired on today's tree (the DAG's no-unpublished-consume invariant forbids consuming it early). Recorded here so the caret-pin consume frontier is an explicit, observable edge a future audit can check (B6-crossrepo-versions). NOT asserted by the HARD clause; reported OBSERVE-ONLY against the registry. The value.js ^1.2.0 + parse-that ^0.13.0 targets FIRED (Q.WG4) and folded into `shipped`. T.H2 SUPERSEDES the Q dispatch (KF-TO-GLASSUI-Q.md) with the consolidated T letter (docs/tranches/T/KF-TO-GLASSUI-BG.md) and expands the single glass-ui consume edge into a per-ask `asks` frontier (a row per KF-TO-GLASSUI-BG.md §0 ask) — all 12 asks fire on the ONE glass-ui BG/BH re-pin.",
+        "$comment": "The remaining un-fired TARGET pin — the ONE consume edge whose publish has NOT fired on today's tree (the DAG's no-unpublished-consume invariant forbids consuming it early). Recorded here so the caret-pin consume frontier is an explicit, observable edge a future audit can check (B6-crossrepo-versions). NOT asserted by the HARD clause; reported OBSERVE-ONLY against the registry. The value.js ^1.2.0 + parse-that ^0.13.0 targets FIRED (Q.WG4) and folded into `shipped`. T.H2 SUPERSEDES the Q dispatch (KF-TO-GLASSUI-Q.md) with the consolidated T letter (docs/tranches/T/KF-TO-GLASSUI-BG.md) and expands the single glass-ui consume edge into a per-ask `asks` frontier (a row per KF-TO-GLASSUI-BG.md §0 ask) — all 13 asks (incl. the T.H3 BG-11 drawer-detent-inset finding) fire on the ONE glass-ui BG/BH re-pin.",
         "pins": [
             {
                 "name": "@mkbabb/glass-ui",
                 "target": "^4.0.0 || ^5.0.0",
                 "firesOn": "glass-ui BG/BH publish — the peer-range widen to admit the aria/dock/specular consume; an owner-domain HANDOFF since the 2026-07-03 S.E shelf (no owning S wave)",
-                "consumes": "the twelve KF-TO-GLASSUI-BG.md asks (dock render/interaction GU-1..4, tabs aria+role BG-1/3, dropdown pointerdown BG-4, static-backdrop BG-5, --font-display-weight BG-6, public specular writer BG-7, easing-picker BG-8/9/10)",
+                "consumes": "the thirteen KF-TO-GLASSUI-BG.md asks (dock render/interaction GU-1..4, tabs aria+role BG-1/3, dropdown pointerdown BG-4, static-backdrop BG-5, --font-display-weight BG-6, public specular writer BG-7, easing-picker BG-8/9/10, drawer detent bottom-inset BG-11)",
                 "rePinWave": "owner-domain HANDOFF (glass-ui BG/BH dev-complete, unbuilt)",
                 "dispatchDoc": "docs/tranches/T/KF-TO-GLASSUI-BG.md",
                 "asks": [
@@ -60,7 +60,8 @@
                     { "id": "BG-7", "side": "glass-ui", "acceptanceGate": "GAP: served by public @mkbabb/glass-ui/aurora (T.D13/OD-2)", "retires": "— (a NAMED gap, not a workaround)", "gap": "specularWriterPublic" },
                     { "id": "BG-8", "side": "glass-ui", "acceptanceGate": "GAP: EasingPicker consumed as the sole editor; the bounce family kf-owned", "retires": "— (a NAMED gap)", "gap": "—" },
                     { "id": "BG-9", "side": "glass-ui docs", "acceptanceGate": "GAP: docs ask, non-blocking (the demo already drives progress)", "retires": "— (docs ask)", "gap": "—" },
-                    { "id": "BG-10", "side": "glass-ui", "acceptanceGate": "GAP: additive ToggleChip cell preview slot", "retires": "— (additive component ask)", "gap": "—" }
+                    { "id": "BG-10", "side": "glass-ui", "acceptanceGate": "GAP: additive ToggleChip cell preview slot", "retires": "— (additive component ask)", "gap": "—" },
+                    { "id": "BG-11", "side": "glass-ui", "acceptanceGate": "proof:glass-ui-gap-tripwire", "retires": "the bespoke ControlsPaneWrapper sheet + useSheetGesture/Spring/State + SheetGrabHandle (~350L) on the T.H3 swap", "gap": "drawerDetentInset" }
                 ]
             },
             {

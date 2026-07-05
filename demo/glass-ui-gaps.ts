@@ -30,6 +30,7 @@ export type GlassCapKey =
     | "dockStrandKeepalive"
     | "dockDismissHold"
     | "dockDropdownPointerdown"
+    | "drawerDetentInset"
     | null;
 
 export interface GlassUiGap {
@@ -99,6 +100,39 @@ export const GLASS_UI_GAPS = {
         fixVersion: "@mkbabb/glass-ui BG/BH (dismiss-pointerdown respects keepOpen)",
         workaroundSites: ["demo/app/chrome/ChromeDock.vue"],
         acceptanceGate: "proof:workaround-deletion",
+    },
+    drawerDetentInset: {
+        // BG-11 (T.H3): the batch-④ Drawer finding. glass-ui 4.0.1 ALREADY ships
+        // `<Drawer mode="live-behind">` — the peek/half/full sheet the demo
+        // hand-rolls — BUT a DETENTED Drawer is forced by drawer.css
+        // `.glass-drawer[data-glass-drawer-snap-points="true"] { height:100%;
+        // max-height:100% }` (+ base `bottom:0`) to fill the viewport at its full
+        // detent, overlapping the bottom menubar band at ANY snap. NO blessed prop
+        // gives a bottom-inset / max-detent lever. Adopting as-is REGRESSES the
+        // owner-verified occlusion cure (52dvh stage-reserve, ≤70dvh never-full-
+        // height, never-occlude-menubar). So the T.H3 swap is HELD behind BG-11:
+        // the tripwire arms on the drawerDetentInset cap (a bottom-reserve token +
+        // a max-detent cap) — cap satisfied ∧ the bespoke sheet still present ⇒ RED
+        // (execute the swap). Until then the bespoke sheet is the occlusion-correct
+        // choice. The geometry DECISION (hold-the-cure vs adopt-full-height) is
+        // owner-open — docs/tranches/T/verdicts/T.H3.md (PENDING-OWNER).
+        ask: "BG-11",
+        defect:
+            "a DETENTED live-behind Drawer is forced to height:100%/bottom:0 (drawer.css " +
+            "[data-glass-drawer-snap-points=true]) — its full detent covers the viewport + the " +
+            "bottom menubar band; no bottom-inset / max-detent lever exists",
+        glassCap: "drawerDetentInset",
+        fixVersion:
+            "@mkbabb/glass-ui BG/BH (--drawer-inset-block-end bottom-reserve token + max-detent-height cap)",
+        // The bespoke peek/half/full sheet the T.H3 swap would delete — held until
+        // BG-11 so the Drawer adoption does not regress the occlusion cure. Both
+        // sites import @mkbabb/glass-ui (CLAUSE B of the tripwire is satisfied by
+        // the import; they are NOT edited by T.H3 — lane-owned).
+        workaroundSites: [
+            "demo/@/components/custom/animation-transport/components/ControlsPaneWrapper.vue",
+            "demo/@/components/custom/animation-transport/composables/useSheetGesture.ts",
+        ],
+        acceptanceGate: "proof:glass-ui-gap-tripwire",
     },
 
     // ── Recorded no-band-aid gaps (the version dimension; NOT tripwire arms) ──

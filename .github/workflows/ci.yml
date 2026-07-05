@@ -408,6 +408,14 @@ jobs:
             # resolves to glass-ui LabeledSelect). STATIC source grep — the fast gates job.
             - name: proof:no-hand-rolled-labeled-select (T.H4 — LabeledSelect pure-consumption · zero hand-rolled label+Select pairs in the option/config rows)
               run: npm run proof:no-hand-rolled-labeled-select
+            # T.B10 — proof:transport-action-order (MODEL clause): useSceneTransport
+            # exposes an ordered { primary:{kind:"play"}, secondary:[reset,clear] }
+            # model — primary.kind==="play" first (play-first as DATA, VERDICT #6).
+            # STATIC source-parse snapshot, no browser — the fast gates job. (The
+            # RENDER clause rides the born-RED proof:transport-play-first-render,
+            # dischargedBy T.C1 — not CI-blocking.)
+            - name: proof:transport-action-order (T.B10 — the ordered transport-action model · primary.kind==="play" first)
+              run: npm run proof:transport-action-order
             # ════════════════════════════════════════════════════════════════════
             # F-7 STATIC-GATE MIGRATION (Q.WA3 S4) — the device-dependence harden.
             # These ELEVEN gates open NO browser and read NO gh-pages build artifact

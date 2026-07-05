@@ -90,6 +90,11 @@ export const APPEARANCE_TOUCHING = [
     // demo FEELS, VERDICT #19). INSTRUMENT (a measured toggle-delta fact), NOT the
     // OWNER perceived-perf bar (those are T.G6/T.G7/T.G9).
     "proof:blur-not-resampled",
+    // T.C5 — the two dock RENDER acceptance gates (GU-1/GU-2). A "blurry janky
+    // dock" is a taste-authority surface (VERDICT #4) — OWNER + blocking-not-OBSERVE
+    // (T.M6): a resting blur-blob / a jump-cut morph may not ride non-blocking.
+    "proof:dock-rest-crisp",
+    "proof:dock-morph-continuity",
     // scene-subject render gates (the ones the verdict cited)
     "proof:subject-animates",
     "proof:orbital-rotate3d",
@@ -144,6 +149,11 @@ export const GATE_AUTHORITY = {
     // without the committed owner token, so OWNER by construction. BLOCKING
     // (correctness roster), per the T.M6.2 blocking-not-OBSERVE tooth.
     "proof:accent-census": "OWNER",
+    // T.C5 (GU-1/GU-2) — the dock render acceptance gates. OWNER + blocking-not-
+    // OBSERVE: a "blurry janky dock" (VERDICT #4) may not stand green as a mere
+    // machine fact nor ride an OBSERVE bucket. Born-RED until the glass-ui re-pin.
+    "proof:dock-rest-crisp": "OWNER",
+    "proof:dock-morph-continuity": "OWNER",
     // (proof:owner-golden lands with T.A/T.D renders — its OWNER row is added then)
 
     // ── INSTRUMENT authority (correctness facts; may NOT stand as the appearance bar) ──

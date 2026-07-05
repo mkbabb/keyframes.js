@@ -281,6 +281,19 @@ const EXCLUDED = new Set([
     // the definition. Registered in T_BORNRED_BACKLOG; a recorded tripwire, never
     // a blocking &&-chain member (clause 11 re-verifies the registration).
     "proof:scene-facility",
+    // T.C5 — the two dock RENDER acceptance gates (GU-1/GU-2). MEASURED born-RED:
+    // the resting dock computes blur(3px) (dock-rest-crisp) and the width morph
+    // snaps/jump-cuts (dock-morph-continuity). Per MEMORY the fix is glass-ui-root;
+    // kf cannot self-cure. Recorded tripwires, never blocking &&-chain members
+    // (clause 11 re-verifies the T_BORNRED_BACKLOG registration); dischargedBy the
+    // glass-ui GU-1/GU-2 publish + re-pin (T.C6).
+    "proof:dock-rest-crisp",
+    "proof:dock-morph-continuity",
+    // T.B10 — the transport play-first RENDER clause. Born-RED: the MODEL clause
+    // (proof:transport-action-order) is GREEN + blocking, but TransportDock renders
+    // play markup-last today. Recorded tripwire; dischargedBy T.C1's rail-core
+    // rebuild (renders play first from actions.primary).
+    "proof:transport-play-first-render",
 ]);
 
 const gates = Object.keys(pkg.scripts)
