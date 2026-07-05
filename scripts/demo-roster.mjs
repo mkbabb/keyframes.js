@@ -249,6 +249,13 @@ export const BACKLOG = {
     //     (useAmigaThree.ts); the A2 source anchor followed the R.W6-decomp carve.
     //   • proof:icon-paint-live — the demo-side `::view-transition-*` residue
     //     (scene-transition.css) DELETED (S11); glass-ui owns the VT look.
+    // RE-OPENED 2026-07-04 at the owner live-review: the S.G3 discharge was
+    // INCOMPLETE — one drag surface still leaves userSelect:auto mid-gesture
+    // (clause a, reproduced serially on a quiet tree). The product fix rides
+    // Tranche T (the owner-verdict fold; VERDICT.md); the row returns to the
+    // named-owner backlog so the roster's verdict stays honest — a NAMED carry,
+    // never a mask.
+    "proof:drag-gesture": "T (the owner-verdict fold)",
 };
 
 // ── demo-device-observe (OBSERVE-ONLY) — the device-dependent proof:* gates.

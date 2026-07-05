@@ -200,7 +200,14 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
     // .cube's hint is TRANSIENT (gated on .playing / :hover), not resident.
     // Strip CSS/JS comments first so prose mentioning `will-change: transform`
     // (the design-decision comments) is not read as a declaration.
-    const cubeSrc = read(path.join(DEMO, "scenes/cube/CubeTarget.vue"))
+    // The ⑩ sweep carved CubeTarget's style tier into a colocated SOURCED
+    // stylesheet (the D2 precedent) — the component's static surface is the
+    // SFC + the sibling .css, concatenated (the established carve-class read).
+    const cubeVuePath = path.join(DEMO, "scenes/cube/CubeTarget.vue");
+    const cubeCssPath = path.join(DEMO, "scenes/cube/CubeTarget.css");
+    const cubeSrc = (
+        read(cubeVuePath) + (fs.existsSync(cubeCssPath) ? "\n" + read(cubeCssPath) : "")
+    )
         .replace(/\/\*[\s\S]*?\*\//g, "")
         .replace(/\/\/[^\n]*/g, "");
     // A resident hint is `will-change: transform` in a `.cube-side {…}` rule body
