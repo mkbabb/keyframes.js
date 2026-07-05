@@ -3,7 +3,11 @@
         :model-value="modelValue"
         @update:model-value="(v) => emit('update:modelValue', String(v))"
     >
-        <SelectTrigger class="font-mono">
+        <!-- T.D4 (P-THEME graft) — the blanket trigger mono is dropped: only the
+             curve NAME (a CSS identifier — genuine data, data-register-marked
+             for the census contract) keeps the mono voice below; everything
+             else inherits the Jakarta body register. -->
+        <SelectTrigger>
             <span
                 class="easing-trigger-label items-center gap-1.5 min-w-0 cursor-pointer"
             >
@@ -18,6 +22,7 @@
                     />
                 </svg>
                 <span
+                    data-register="code"
                     :class="[
                         'font-mono truncate',
                         isDetailCurve ? 'gold-shimmer' : '',
@@ -64,6 +69,7 @@
                                  keeps the mono identifier voice without re-pinning
                                  the size. -->
                             <span
+                                data-register="code"
                                 :class="[
                                     'font-mono normal-case',
                                     item.isDetail ? 'gold-shimmer' : '',
@@ -72,10 +78,13 @@
                             <!-- The secondary description rides the family's
                                  SECONDARY governed rung (`text-dropdown-secondary` →
                                  the ui-scale-aware caption), subordinate to the
-                                 primary name yet still on the dropdown type ladder. -->
+                                 primary name yet still on the dropdown type ladder.
+                                 T.D4 — it is PROSE ("constant velocity"), not data,
+                                 so the mono force is dropped: Jakarta, muted,
+                                 subordinate. -->
                             <span
                                 v-if="item.description"
-                                class="ml-auto pl-2 text-dropdown-secondary font-mono normal-case text-muted-foreground leading-tight whitespace-nowrap"
+                                class="ml-auto pl-2 text-dropdown-secondary normal-case text-muted-foreground leading-tight whitespace-nowrap"
                             >{{ item.description }}</span>
                         </span>
                     </SelectItem>

@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col items-center gap-1.5">
-        <span class="text-mono-caption font-semibold">{{ Math.round(keyframe.percent) }}%</span>
+        <span class="text-mono-caption font-semibold tabular-nums">{{ Math.round(keyframe.percent) }}%</span>
         <!-- html2canvas capture (non-3D targets) -->
         <img
             v-if="previewSrc"
@@ -14,10 +14,10 @@
             class="w-16 h-16 rounded border border-border/30 bg-muted/30"
             :style="ghostStyle"
         ></div>
-        <div v-if="loading" class="text-muted-foreground text-admin-label font-mono">
+        <div v-if="loading" class="text-muted-foreground text-admin-label">
             Capturing...
         </div>
-        <div class="font-mono text-admin-label text-muted-foreground max-h-24 overflow-y-auto w-full">
+        <div class="font-mono text-admin-label text-muted-foreground max-h-24 overflow-y-auto w-full" data-register="code">
             <div v-for="[prop, val] in Object.entries(keyframe.vars)" :key="prop" class="truncate">
                 <span class="text-foreground/70">{{ prop }}</span>: {{ val }}
             </div>

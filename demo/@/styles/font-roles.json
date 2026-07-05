@@ -36,8 +36,29 @@
             "selector": "h1.hero-display",
             "expect": { "voice": "display", "weight": 400 },
             "note": "the home hero: Instrument Serif at its one TRUE weight (T.D2 honest ink; the seat/composition is OD-4's, batch ⑤)"
+        },
+        {
+            "role": "control-label",
+            "selector": ".labeled-field-label",
+            "expect": { "voice": "body", "weight": 500 },
+            "note": "field labels are CONTROLS: Jakarta medium (T.D4 demoted them off the mono voice; the glass-ui labeled-field display bind is re-voiced in @layer demo-typography)"
         }
     ],
-    "monoAllowedSelectors": [],
-    "monoCeiling": null
+    "monoAllowedSelectors": [
+        "code",
+        "code *",
+        "kbd",
+        "pre",
+        "pre *",
+        "[class*='tabular-nums']",
+        "[data-register='code']",
+        "[data-register='code'] *",
+        ".code-token",
+        "[data-slot='select-trigger']",
+        "[data-slot='select-trigger'] *",
+        ".metric-badge",
+        ".metric-badge *"
+    ],
+    "_monoContract": "T.D4 (RULED) — Fira Code is the DATA register only: literals + tabular digits. A mono leaf must be (a) real code/kbd/pre content, (b) a tabular numeric readout (`tabular-nums`), (c) an explicit identifier chip marked `data-register=\"code\"` (curve names, CSS keywords, the @mbabb handle, preset names — reviewed exceptions, self-documented at the call-site), or (d) a glass-ui-OWNED data voice consumed as-shipped (the SelectTrigger `fira-code` value default — CSS-keyword values; the MetricBadge telemetry label idiom). A new demo-authored mono UI label reds the census.",
+    "monoCeiling": 70
 }

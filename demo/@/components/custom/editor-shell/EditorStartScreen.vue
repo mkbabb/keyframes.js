@@ -92,9 +92,13 @@
              ~6s round-trip loop — the moat (parse → animate → get the CSS back)
              made visible BESIDE the hero, never displacing it. Hover restarts
              the compile; PRM rests the completed block statically. -->
+        <!-- T.D4 — the egg IS a code artifact (a live @keyframes block + its
+             serialized echo): the whole card is data-register-marked for the
+             census mono contract. -->
         <div
             class="kf-source-egg source-typing-card pointer-events-auto"
             :class="{ 'kf-source-egg--prm': prefersReduced }"
+            data-register="code"
             @pointerenter="recompile"
             aria-hidden="true"
         >

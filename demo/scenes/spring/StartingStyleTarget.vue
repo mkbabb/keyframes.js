@@ -69,8 +69,8 @@
              (the same shared params drive it), so the discrete view stays
              legible about WHICH spring it eases without re-mounting the picker. -->
         <div class="active-preset-line flex w-full max-w-3xl items-center justify-center gap-2 shrink-0">
-            <span class="text-mono-caption text-muted-foreground">eased by</span>
-            <span class="active-preset-chip text-mono-small capitalize">{{ activePresetName }}</span>
+            <span class="text-caption text-muted-foreground">eased by</span>
+            <span class="active-preset-chip text-mono-small capitalize" data-register="code">{{ activePresetName }}</span>
             <span class="text-mono-caption text-muted-foreground tabular-nums">
                 ({{ demo.response.value.toFixed(2) }} / {{ demo.dampingFraction.value.toFixed(2) }})
             </span>

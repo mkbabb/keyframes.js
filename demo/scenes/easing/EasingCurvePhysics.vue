@@ -30,7 +30,7 @@
         <!-- S.G3 S1 — the census TELL for the identify egg (a quiet inline stamp;
              the double-tap is the touch-reliable path). -->
         <span
-            class="curve-physics-tell text-mono-caption normal-case text-muted-foreground"
+            class="curve-physics-tell text-caption text-muted-foreground"
             data-gesture-tell="easing:identify"
         >
             <span aria-hidden="true">⁚⁚</span> double-tap: name this curve
@@ -40,25 +40,25 @@
         </div>
         <dl class="curve-physics-list">
             <div class="curve-physics-row">
-                <dt class="text-mono-small text-muted-foreground">peak velocity</dt>
+                <dt class="text-caption font-medium text-muted-foreground">peak velocity</dt>
                 <dd class="readout-accent text-mono-small tabular-nums">{{ physics.peakVel }}×</dd>
             </div>
             <div class="curve-physics-row">
-                <dt class="text-mono-small text-muted-foreground">overshoot</dt>
+                <dt class="text-caption font-medium text-muted-foreground">overshoot</dt>
                 <dd
                     class="text-mono-small tabular-nums"
                     :class="physics.overshoot !== '0%' ? 'readout-accent' : 'text-muted-foreground'"
                 >{{ physics.overshoot }}</dd>
             </div>
             <div class="curve-physics-row">
-                <dt class="text-mono-small text-muted-foreground">anticipation</dt>
+                <dt class="text-caption font-medium text-muted-foreground">anticipation</dt>
                 <dd
                     class="text-mono-small tabular-nums"
                     :class="physics.anticipation !== '0%' ? 'readout-accent' : 'text-muted-foreground'"
                 >{{ physics.anticipation }}</dd>
             </div>
         </dl>
-        <p class="curve-physics-character text-mono-caption normal-case italic text-muted-foreground">
+        <p class="curve-physics-character text-caption italic text-muted-foreground">
             {{ physics.character }}
         </p>
     </div>

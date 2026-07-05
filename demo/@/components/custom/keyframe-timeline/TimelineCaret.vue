@@ -6,7 +6,7 @@
         <div
             v-if="!isEditing"
             :class="[
-                'font-mono text-admin-label cursor-pointer select-none transition-colors whitespace-nowrap',
+                'font-mono text-admin-label cursor-pointer select-none transition-colors whitespace-nowrap tabular-nums',
                 isSelected ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-foreground',
             ]"
             @click.stop="startEdit"

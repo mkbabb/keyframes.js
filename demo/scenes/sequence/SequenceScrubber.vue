@@ -8,7 +8,7 @@
         <div class="flex items-center justify-between mb-2">
             <!-- L.W11 S7 — the instrument-panel micro-cap eyebrow (Fira Code,
                  letter-spaced) names the master clock; the lit timecode reads it. -->
-            <span class="seq-eyebrow text-mono-caption text-muted-foreground">master playhead</span>
+            <span class="seq-eyebrow text-caption font-medium text-muted-foreground">master playhead</span>
             <!-- L.W11 S7 — the LIT phosphor timecode: the master clock made the
                  brightest number on the page (tnum, always-three-digits, phosphor
                  text-shadow keyed to the master red). It is `0.000` so it clicks

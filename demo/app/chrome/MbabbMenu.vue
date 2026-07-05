@@ -23,7 +23,7 @@
          useOptionalDockContext can't reach the GlassDock provider). See the handlers
          below for the full rationale. -->
     <DropdownMenu @update:open="onMbabbMenuOpen">
-        <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small" @pointerenter="onMbabbTriggerEnter" @pointerleave="onMbabbTriggerLeave" @pointerdown="onMbabbTriggerPointerdown" @click.capture="onMbabbTriggerClickCapture">@mbabb</DockDropdownTrigger>
+        <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small" data-register="code" @pointerenter="onMbabbTriggerEnter" @pointerleave="onMbabbTriggerLeave" @pointerdown="onMbabbTriggerPointerdown" @click.capture="onMbabbTriggerClickCapture">@mbabb</DockDropdownTrigger>
         <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[var(--dock-panel-width)] text-body p-1.5">
             <!-- Share -->
             <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
@@ -73,7 +73,7 @@
                     ></AvatarImage>
                 </Avatar>
                 <div class="flex-1 min-w-0">
-                    <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="text-mono-caption normal-case font-semibold text-foreground hover:underline">@mbabb</a>
+                    <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="text-mono-caption normal-case font-semibold text-foreground hover:underline" data-register="code">@mbabb</a>
                     <p class="text-admin-label text-muted-foreground leading-tight">CSS keyframe animation engine</p>
                     <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
                 </div>

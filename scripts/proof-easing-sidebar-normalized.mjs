@@ -10,7 +10,7 @@
  * (`EasingSidebar.vue:2-97`); `SpringSidebar` was the parallel ×3-inner-Card fork.
  * The rung was the TIGHTEST in the system: `text-admin-label` labels,
  * `text-mono-caption` values, `size="sm"` sliders (a 4px track / 12px thumb),
- * `p-2`/`p-3` padding, `gap-1` — vs the standard `text-mono-small` labels, default
+ * `p-2`/`p-3` padding, `gap-1` — vs the standard label register (T.D4 re-voiced it `text-small font-medium`), default
  * (md, 6px-track) controls, `px-4 py-3`, `gap-2` (`AnimationControlsControls.vue`).
  *
  * THE FIX (G5 + G6, H.W10 S4). Both sidebars are flattened onto ONE
@@ -19,7 +19,7 @@
  * square corner) carrying `Labeled*` label-left rows. The ×2 easing + ×3 spring
  * inner sub-Cards are DELETED (folded into the one parent Card), the ad-hoc grid
  * row containers replaced by `Labeled*` rows, the `text-admin-label` labels lifted
- * to `text-mono-small`, the `size="sm"` sliders lifted to the default `LabeledSlider`
+ * to the standard label rung (`text-small font-medium` per T.D4), the `size="sm"` sliders lifted to the default `LabeledSlider`
  * rung (G5 closes by G6 — same components → same sizes, NO per-control size
  * override).
  *

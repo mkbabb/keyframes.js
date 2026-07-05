@@ -666,6 +666,12 @@
     --badge-text-mix: 50%;
     background: color-mix(in srgb, var(--badge-tone) var(--badge-tint), transparent);
     color: color-mix(in srgb, var(--badge-tone) var(--badge-text-mix), var(--foreground));
+    /* T.D4 — a status WORD ("settled"/"tracking"/"ready") is a UI label, not
+       data: the badge rides the Jakarta body register at medium. Call-sites
+       compose `text-admin-label` for the SIZE rung only — this un-layered rule
+       out-cascades that utility's mono family bind. */
+    font-family: var(--font-text);
+    font-weight: 500;
 }
 .settled-badge {
     --badge-tone: var(--color-progress);

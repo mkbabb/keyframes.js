@@ -43,7 +43,7 @@
                     SpringProgress
                 </span>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-mono-small text-muted-foreground">x</span>
+                    <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
                     <span class="spring-readout-primary tabular-nums">{{ demo.liveValue.value.toFixed(3) }}</span>
                 </div>
             </div>

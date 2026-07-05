@@ -74,7 +74,7 @@
                     :model-value="demo.stepOptions.value.steps"
                     type="number"
                     label="steps"
-                    label-class="text-mono-small text-muted-foreground"
+                    label-class="text-small font-medium text-muted-foreground"
                     tooltip="Number of discrete steps (1–60)"
                     @update:model-value="onStepsChangeValue"
                 />
@@ -83,7 +83,7 @@
                     :is-open="jumpOpen"
                     :items="JUMP_TERMS"
                     label="jump"
-                    label-class="text-mono-small text-muted-foreground"
+                    label-class="text-small font-medium text-muted-foreground"
                     tooltip="Step jump term"
                     @update:model-value="(v) => { demo.stepOptions.value.jumpTerm = v; }"
                     @update:open="(v) => { jumpOpen = v; }"
@@ -100,7 +100,7 @@
                 class="duration-field"
                 :model-value="demo.duration.value"
                 label="duration"
-                label-class="text-mono-small text-muted-foreground"
+                label-class="text-small font-medium text-muted-foreground"
                 tooltip="Sweep duration (ms)"
                 :min="300"
                 :max="5000"
@@ -255,9 +255,10 @@ const onStepsChangeValue = (value: string) => {
     border-radius: var(--radius-md, 0.5rem);
     background: color-mix(in srgb, var(--background) 70%, transparent);
     color: var(--foreground);
-    font-family: var(--font-mono);
+    /* T.D4 — a BUTTON label rides the body register (mono is data, not the UI
+       voice); the mono bind is dropped, Jakarta inherits. */
     font-size: var(--type-small, 0.8125rem);
-    letter-spacing: 0.01em;
+    font-weight: 500;
     cursor: pointer;
     transition:
         background-color var(--duration-fast, 160ms) var(--ease-standard, ease),

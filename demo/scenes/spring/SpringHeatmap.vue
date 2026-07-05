@@ -13,8 +13,7 @@
          object lifecycle, no new library API (inv ζ). -->
     <div class="spring-heatmap-section grid gap-2">
         <div class="flex items-center justify-between gap-2">
-            <span class="text-mono-small text-muted-foreground">
-                parameter space — overshoot
+            <span class="text-small font-medium text-muted-foreground">parameter space — overshoot
             </span>
             <span class="text-mono-caption text-muted-foreground tabular-nums">
                 {{ demo.response.value.toFixed(2) }} /
@@ -48,7 +47,7 @@
         </div>
 
         <!-- The legend — names the three regimes the landscape reveals. -->
-        <div class="flex items-center justify-between gap-2 text-mono-caption text-muted-foreground">
+        <div class="flex items-center justify-between gap-2 text-caption text-muted-foreground">
             <span>← underdamped (rings)</span>
             <span>critical / overdamped →</span>
         </div>
