@@ -141,7 +141,14 @@ const SCENES = [
     { scene: "square", mode: "subject", trigger: "Controls" },
     { scene: "easing", mode: "editor", trigger: "Easing" },
     { scene: "spring", mode: "storyboard", trigger: "Spring" },
-    { scene: "sequence", mode: "storyboard", trigger: null },
+    // sequence — SURFACES EMPTY (its DFA set is []; SQ-T3/T.B4: the pane/sheet
+    // mounts iff surfacesFor(scene).length > 0, so NO sheet is the CORRECT
+    // mobile state — the old always-mounted sheet was a grab handle onto zero
+    // content, the exact occlusion-recurrence T.B4 cures). When T.B2's
+    // derivation lands and sequence derives the triad from its real painting
+    // channels, flip `surfaces` back and this row re-joins the sheet clauses
+    // (the batch-④ arming-audit).
+    { scene: "sequence", mode: "storyboard", trigger: null, surfaces: false },
 ];
 const TRIGGER_BY_SCENE = Object.fromEntries(SCENES.map((s) => [s.scene, s.trigger]));
 
@@ -340,11 +347,39 @@ async function browserHalf() {
         // Per-scene FRESH pages in their OWN contexts (fresh storage — the
         // scene-machine restore must not bleed a prior scene's persisted state
         // into the next scene's load), from the lifecycle's browser handle.
-        for (const { scene, mode } of SCENES) {
+        for (const { scene, mode, surfaces } of SCENES) {
             const page = await browser.newPage({
                 viewport: { width: VW, height: VH },
             });
             await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
+
+            // A surfaces:false scene mounts NO sheet by construction (SQ-T3):
+            // assert the stage mounts AND the wrapper is ABSENT, then move on —
+            // the sheet-geometry clauses are vacuous for it, and forcing the
+            // sheet open would resurrect the zero-content grab handle.
+            if (surfaces === false) {
+                await navToScene(page, scene, TRIGGER_BY_SCENE[scene], { timeout: 8000 });
+                const state = await page.evaluate(() => ({
+                    hasCell: !!document.querySelector(".stage-cell"),
+                    hasHost: !!document.querySelector(".scene-host"),
+                    hasSheet: !!document.querySelector(".controls-pane-wrapper"),
+                }));
+                if (state.hasCell && state.hasHost && !state.hasSheet) {
+                    ok(
+                        `${scene} (${mode}) ${VW}×${VH} — stage mounted, NO sheet ` +
+                            `(surfaces empty; the SQ-T3 mount-iff-content invariant holds)`,
+                    );
+                } else {
+                    fail(
+                        `${scene} (${mode}) ${VW}×${VH} — expected stage WITHOUT a sheet ` +
+                            `(surfaces empty), got cell:${state.hasCell} host:${state.hasHost} ` +
+                            `sheet:${state.hasSheet}`,
+                    );
+                }
+                await page.close();
+                continue;
+            }
+
             await settleAndOpen(page, scene);
             const mounted = await waitMounted(page);
             const tag = `${scene} (${mode}) ${VW}×${VH}`;
