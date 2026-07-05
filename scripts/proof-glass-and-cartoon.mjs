@@ -131,19 +131,19 @@ console.log("proof:glass-and-cartoon — H.W9 F8 (the calm glass+cartoon registe
         }
     }
 
-    if (total < 8) {
+    if (total < 6) {
         // The §S1 inventory was ~14 sites pre-H.W11; H.W11 I6 de-nested the two
-        // inner TimingFunctionPanel cartoon Cards (the bezier + steps card-in-card),
-        // so the kf-owned cartoon-panel inventory is now 9 (RibbonBar ·
-        // AnimationControlsControls · KeyframesEditor · KeyframeTimeline ·
-        // AssetLayerPanel · AssetViewport · MatrixEditor · EasingSidebar ·
-        // SpringSidebar). The non-vacuity floor is 8 (a 1-site margin under the
-        // landed 9) — a count far below it means the sweep missed the panels (a
-        // vacuous green guard); a single accidental removal still passes, losing 2+
-        // reds.
+        // inner TimingFunctionPanel cartoon Cards (the bezier + steps card-in-card).
+        // T.E1 (OD-1 PRUNE) removed the compose scene's two cartoon Cards
+        // (AssetLayerPanel · AssetViewport), so the kf-owned cartoon-panel inventory
+        // is now 7 (RibbonBar · AnimationControlsControls · KeyframesEditor ·
+        // KeyframeTimeline · MatrixEditor · EasingSidebar · SpringSidebar). The
+        // non-vacuity floor is 6 (a 1-site margin under the landed 7) — a count far
+        // below it means the sweep missed the panels (a vacuous green guard); a
+        // single accidental removal still passes, losing 2+ reds.
         fail(
             `source-shape non-vacuity — only ${total} <Card surface="cartoon"> panel site(s) found ` +
-                `(the post-H.W11-I6 inventory is 9; the sweep may be mis-rooted). A vacuous pass is forbidden.`,
+                `(the post-T.E1-prune inventory is 7; the sweep may be mis-rooted). A vacuous pass is forbidden.`,
         );
     } else if (withoutQuiet === 0) {
         ok(

@@ -232,6 +232,27 @@ export const useSceneMachine = createGlobalState(() => {
         }
     }
 
+    // ── boot migration: a stored dead-route activeScene lands on home (T.E1/T.E3)
+    // ─────────────────────────────────────────────────────────────────────────
+    // A returning user whose persisted `activeScene` names a scene that no longer
+    // exists in the registry (a PRUNED scene — compose/morph/motion-path per OD-1)
+    // must NOT boot onto a dead route: the router writer would `router.push` a
+    // name with no route and the machine would rest on a phantom scene. Coerce the
+    // hydrated activeScene to HOME_SCENE_ID when it is not a live registry id
+    // BEFORE the first-load seed dispatches it. Called at boot from the router
+    // binding (which owns the valid-id set via `allScenes`), beside `gcOrphans`.
+    function migrateActiveScene(validSceneIds: Iterable<SceneId>): void {
+        const valid = new Set(validSceneIds);
+        const active = machine.value.context.activeScene;
+        if (valid.has(active)) return;
+        const context = { ...machine.value.context, activeScene: HOME_SCENE_ID };
+        machine.value = { status: machine.value.status, context };
+        persisted.value = {
+            activeScene: HOME_SCENE_ID,
+            perScene: context.perScene,
+        };
+    }
+
     // ── boot GC: drop orphan superKeys (ST-7) ────────────────────────────────
     // Prunes snapshot entries for scenes that no longer exist in the registry.
     function gcOrphans(validSceneIds: Iterable<SceneId>): void {
@@ -327,5 +348,6 @@ export const useSceneMachine = createGlobalState(() => {
         register,
         adapterFor,
         gcOrphans,
+        migrateActiveScene,
     };
 });

@@ -206,31 +206,6 @@ const W11_EGGS = [
         note: "S8 — author-the-curve, the-creature-obeys: deform a handle → the traveller banks into the new tangent (ants still flowing); the guide self-builds via DrawSVG on mount",
         browser: { scene: "motion-path", host: ".mp-guide-path, .mp-traveller", trigger: "drag-handle", probe: "deform" },
     },
-    {
-        // S.D3 (C-4) — the S9 egg is RE-POINTED from the standalone playground to
-        // the folded compose SCENE. It is now LIVE-DRIVABLE in the SPA (the
-        // UPGRADE): the foundry + bind-ignition live in ComposeScene.vue (the
-        // former playground App.vue body), and the asset-manager folded into
-        // scenes/compose/asset-manager/.
-        scene: "compose",
-        files: [
-            "scenes/compose/ComposeScene.vue",
-            "scenes/compose/asset-manager/AssetPropertiesPanel.vue",
-            "scenes/compose/asset-manager/AssetViewport.vue",
-        ],
-        domMarker: /bind-ignition|key-light|comet-tail|ignition|foundry/,
-        dogfood: /AnimationGroup|DrawSVG|fromDrawSVG|loadAnimationEngine|comet/,
-        triggerFile: "scenes/compose/asset-manager/AssetPropertiesPanel.vue",
-        // Binding a preset (the Select → setTargets) is the trigger.
-        trigger: /bind-ignition|ignition|key-light/,
-        note: "S9 — bind-IGNITION: binding lights the asset (key-light bloom + a first-cycle comet-tail tracing the preset's actual bezier/spring curve, drawn back onto the page); the warm key-light FOLLOWS the pointer over the empty stage",
-        browser: {
-            scene: "compose",
-            host: "[data-foundry]",
-            trigger: "bind",
-            probe: "foundry|key-light|comet",
-        },
-    },
 ];
 
 // ── STATIC HALF — each NEW egg's DOM marker + engine dogfood + NO hand-rolled rAF ─

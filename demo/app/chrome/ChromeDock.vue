@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/custom/animation-transport/injectionKeys";
-import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3, Layers } from "@lucide/vue";
+import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 import {
     GlassDock,
@@ -42,8 +42,6 @@ const TAB_ICONS: Record<string, any> = {
     Clock,
     Grid3X3,
     Activity,
-    // S.D3 (C-4) — the compose scene's Assets tab glyph.
-    Layers,
 };
 
 const props = defineProps<{

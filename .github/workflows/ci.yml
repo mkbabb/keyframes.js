@@ -244,8 +244,6 @@ jobs:
               run: npm run proof:ingest-replay
             - name: proof:orbital-rotate3d (G.W18 — the orbital rotate3d output collapse)
               run: npm run proof:orbital-rotate3d
-            - name: proof:asset-store-singleton (G.W8 — useAssetManager createGlobalState identity)
-              run: npm run proof:asset-store-singleton
             - name: proof:scene-raf-leak (G.W9 — the scene rAF-leak lifecycle correction)
               run: npm run proof:scene-raf-leak
             - name: proof:scene-contract-identity (H.W1 — the raw-rAF ScenePlayback round-trip + easing↔cube cross-pairs)

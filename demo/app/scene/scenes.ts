@@ -20,9 +20,6 @@ import SpringIcon from "@assets/icons/spring.svg?component";
 import SequenceIcon from "@assets/icons/sequence.svg?component";
 import MotionPathIcon from "@assets/icons/motion-path.svg?component";
 import MorphIcon from "@assets/icons/morph.svg?component";
-// S.D3 (C-4) — the ninth scene: the FOLD of the standalone playground into the
-// SPA as `scenes/compose/`. Two overlapping crayon assets on the casting floor.
-import ComposeIcon from "@assets/icons/compose.svg?component";
 
 // The per-scene `superKey` single-source (R.W5 C.4) — each scene's keys module
 // OWNS its superKey constant; the descriptor below AND the scene SFC both import
@@ -37,9 +34,6 @@ import { AMIGA_SUPER_KEY } from "../../scenes/amiga/amigaKeys";
 // Cube's superKey single-sources from cubeKeys.ts (S.D2 S5 — 8/8 scene-key
 // parity; a10), mirroring the seven `<name>Keys.ts` imports above.
 import { CUBE_SUPER_KEY } from "../../scenes/cube/cubeKeys";
-// Compose keeps the `"playground"` superKey (S.D3 C-4 — the stored-options
-// migration; a rename would orphan a returning user's playground state).
-import { COMPOSE_SUPER_KEY } from "../../scenes/compose/composeKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -227,26 +221,6 @@ export const scenes: SceneDescriptor[] = [
         component: lazyScene(
             "morph",
             () => import("../../scenes/morph/MorphSVGScene.vue"),
-        ),
-    },
-    {
-        // S.D3 (C-4) — THE FOUNDRY: the folded standalone playground, now the
-        // ninth SPA scene. An asset-authoring floor — drop shapes/text/image/SVG,
-        // bind each to a preset AnimationGroup, and binding IGNITES the asset (a
-        // warm key-light bloom + a comet-tail the engine's fromDrawSVG draws from
-        // the preset's own easing curve). `storyboard` register: the composed
-        // floor is an authored surface the user manipulates (a contained stage,
-        // not a full-bleed background subject). `superKey` KEPT as "playground"
-        // (COMPOSE_SUPER_KEY) so a returning user's stored asset/control options
-        // migrate rather than orphan.
-        id: "compose",
-        label: "Compose",
-        superKey: COMPOSE_SUPER_KEY,
-        stageMode: "storyboard",
-        icon: ComposeIcon,
-        component: lazyScene(
-            "compose",
-            () => import("../../scenes/compose/ComposeScene.vue"),
         ),
     },
     // The standalone @starting-style "Discrete" scene was MERGED into the Spring

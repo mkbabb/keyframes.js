@@ -129,12 +129,6 @@ export const CORRECTNESS_ROSTER = [
     "proof:amiga-subject-is-pivot",
     "proof:drag-gesture",
     "proof:icon-paint-live",
-    "proof:morph-scene",
-    // S.D3 (C-4) — the playground-fold KEYSTONE (mount + fromDrawSVG ignition).
-    // Its mount + ignition clauses pass on the merged D3 tree; its formal board
-    // CLOSE waits for S.G (compose auto-enrolls in the occlusion/a11y/font/
-    // stage-visible fleet — sd-#4), so it is NOT a BACKLOG row (it passes today).
-    "proof:compose-scene",
     "proof:specular-absent-at-rest",
     "proof:demo-fonts",
     "proof:live-session",

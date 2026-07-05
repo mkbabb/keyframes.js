@@ -44,13 +44,11 @@ const SCENES = path.join(DEMO, "scenes");
 const SKIP_DIR = new Set(["dist", "node_modules", ".git", "coverage"]);
 const SOURCE_EXT = new Set([".ts", ".vue"]);
 
-// The nine colocated scenes (the verified roster, ascending-complexity order).
-// Each is ONE colocated directory `demo/scenes/<name>/` carrying `<Name>Scene.vue`
-// + a `use<Name>Demo` peer (C-17, the fleet-wide naming convention — S.D4 landed
-// the last three `use<Name>Animations` stragglers: square/amiga/cube). `compose`
-// is the S.D3 (C-4) fold of the standalone playground into the ninth scene —
-// edited here in the canonical A4 → D2 → D3 order (this SCENE_DIRS add is D3's
-// edit #3).
+// The colocated scenes (the verified roster, ascending-complexity order). Each is
+// ONE colocated directory `demo/scenes/<name>/` carrying `<Name>Scene.vue` + a
+// `use<Name>Demo` peer (C-17, the fleet-wide naming convention — S.D4 landed the
+// last three `use<Name>Animations` stragglers: square/amiga/cube). The compose
+// scene was PRUNED at T.E1 (OD-1 = PRUNE).
 const SCENE_DIRS = [
     { name: "morph", scene: "MorphSVGScene.vue", demo: "useMorphDemo.ts" },
     { name: "motion-path", scene: "MotionPathScene.vue", demo: "useMotionPathDemo.ts" },
@@ -60,7 +58,6 @@ const SCENE_DIRS = [
     { name: "spring", scene: "SpringScene.vue", demo: "useSpringDemo.ts" },
     { name: "amiga", scene: "AmigaScene.vue", demo: "useAmigaDemo.ts" },
     { name: "cube", scene: "CubeScene.vue", demo: "useCubeDemo.ts" },
-    { name: "compose", scene: "ComposeScene.vue", demo: "useComposeDemo.ts" },
 ];
 
 const toPosix = (p) => p.split(path.sep).join("/");

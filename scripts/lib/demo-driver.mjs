@@ -140,15 +140,6 @@ const SCENE_GATE_META = {
         subjectSelector: "[data-morph-subject], .morph-stage, [class*=Target], [class*=glass-card]",
         dockFloatAllowed: false,
     },
-    // S.D3 (C-4) — THE FOUNDRY (the folded playground). The subject is the
-    // casting-floor foundry (`[data-foundry]`, the full-stage AssetViewport host);
-    // the broad selector also catches the empty-state cartoon Card + any composed
-    // asset. A contained storyboard-register floor, so an over-content dock FAILS
-    // inv δ (dockFloatAllowed:false), like every non-full-bleed scene.
-    compose: {
-        subjectSelector: "[data-foundry], [class*=glass-card], [class*=Card]",
-        dockFloatAllowed: false,
-    },
 };
 
 /**

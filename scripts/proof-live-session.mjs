@@ -213,11 +213,6 @@ const SWEEP_META = {
     // CSSKeyframesAnimation): PLAY morphs the live <path> `d` + the "Next shape"
     // affordance advances the shape ring (the EP-interact).
     morph: { trigger: null, label: "Morph", kind: "morph" },
-    // S.D3 (C-4) — THE FOUNDRY (the folded playground). An AUTHORING floor whose
-    // control tab is the DFA `assets` surface ("Assets"); a cold scene has no
-    // assets to play, so the drive is COMPOSING — the empty-state "Add a shape"
-    // CTA lands an asset on the floor (the authoring interaction).
-    compose: { trigger: "Assets", label: "Compose", kind: "compose" },
 };
 {
     const libKeys = SCENES.map((s) => s.key);
@@ -1164,36 +1159,6 @@ async function runBattery() {
                     if (!ghostsBefore || !ghostsAfter || ghostsBefore === ghostsAfter) {
                         sceneFails.push(`${key}: INTERACT red — "Next shape" did NOT advance the shape ring (ghosts before==after: ${ghostsBefore === ghostsAfter})`);
                     }
-                } else if (meta.kind === "compose") {
-                    // compose — the FOUNDRY is an AUTHORING floor; a cold scene has
-                    // no assets to play, so the real drive is COMPOSING: click the
-                    // empty-state "Add a shape" CTA (on the stage, always reachable)
-                    // and assert an asset LANDS on the floor (the authoring
-                    // interaction the page exists for). The asset store is the
-                    // durable oracle (before < after), immune to render timing.
-                    const countAssets = () =>
-                        page.evaluate(() => {
-                            try {
-                                const st = JSON.parse(
-                                    localStorage.getItem("asset-manager-state") || "{}",
-                                );
-                                return (st.assets || []).length;
-                            } catch {
-                                return 0;
-                            }
-                        });
-                    const before = await countAssets();
-                    await page
-                        .locator('button:visible:has-text("Add a shape")')
-                        .first()
-                        .click({ force: true, timeout: 3000 })
-                        .catch(() => {});
-                    await page.waitForTimeout(500);
-                    const after = await countAssets();
-                    if (after > before) return;
-                    sceneFails.push(
-                        `${key}: INTERACT red — "Add a shape" did NOT compose an asset onto the floor (assets ${before}→${after})`,
-                    );
                 }
             };
 
