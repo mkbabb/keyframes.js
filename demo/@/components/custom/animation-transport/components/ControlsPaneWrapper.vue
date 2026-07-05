@@ -25,16 +25,16 @@
             v-model:open="sheetOpen"
         />
 
-        <!-- J.W7a S1 (D5 / C16 + C2) — on a desktop SUBJECT stage (cube/amiga/
-             square: the subject floats full-bleed behind the chrome) the pane
-             adopts the PUBLISHED `glass-wash` surface (the lightest tier of the
-             glass ladder, translucent backdrop-blur) so the stage bleeds
-             through and the subject wins hierarchy — "the fix is making the
-             chrome visually lighter (glass-wash), not smaller" (pane-cube
-             §design-hierarchy). The inner option cards keep their cartoon+quiet
-             register; only the pane CONTAINER washes. Desktop-only by the
-             reactive media query (the mobile sheet keeps its own card paint);
-             editor/storyboard stages (contained plates) keep today's pane. -->
+        <!-- T.B4 (OD-5, VERDICT #7 — "remove the surrounding pane, it's
+             superfluous"). The former desktop `glass-wash rounded-card`
+             subject-stage wrap is DELETED: the pane CONTAINER is a NAKED column
+             now — no glass wash, no rounded slab, no border on the column
+             itself. The two floating GlassPanel instruments (the facet body +
+             the playback ribbon, below) are the only plates; the stage bleeds
+             through the gap between them. The K.W4-F2 ↔ T-#7 reconciliation
+             (lane 10 §1.5): K's cure targeted two HEAVY cartoon cards competing;
+             T ships LIGHT floating glass cards + zero wrappers — neither failed
+             pole (heavy twin cards / bordered enclosure) returns. -->
         <div
             ref="paneElRef"
             @mouseenter="paneMouseEnter"
@@ -44,7 +44,6 @@
                 isPanelTransitionDone && storedControls.isControlsPanelOpen
                     ? 'overflow-y-auto'
                     : 'overflow-hidden',
-                stageMode === 'subject' && isDesktop ? 'glass-wash rounded-card' : '',
                 scrollFadeClass,
             ]"
         >
@@ -155,9 +154,10 @@ const props = defineProps<{
     extraTabs?: SegmentedTabOption[];
 }>();
 
-// The resolved stage mode + desktop break (the pane register concern) live in
-// usePaneRegister (the K.WZ proof:demo-no-oversize seam; zero behavior change).
-const { stageMode, isDesktop } = usePaneRegister({
+// The resolved stage mode (the pane register concern) lives in usePaneRegister
+// (the K.WZ proof:demo-no-oversize seam). T.B4 (OD-5): `isDesktop` left with the
+// deleted glass-wash subject-stage wrap — the naked rail needs no desktop break.
+const { stageMode } = usePaneRegister({
     stageMode: () => props.stageMode,
 });
 

@@ -84,6 +84,7 @@ export const APPEARANCE_TOUCHING = [
     "proof:cartoon-shadow-unclipped",
     "proof:dock-zorder",
     "proof:drawer-spring",
+    "proof:panel-naked-rail",
     "proof:stage-visible",
     // scene-subject render gates (the ones the verdict cited)
     "proof:subject-animates",
@@ -177,6 +178,11 @@ export const GATE_AUTHORITY = {
     "proof:cartoon-shadow-unclipped": "INSTRUMENT",
     "proof:dock-zorder": "INSTRUMENT",
     "proof:drawer-spring": "INSTRUMENT",
+    // T.B4 (OD-5 #7): the RULED naked-rail/DFA-elision facts (border/count/
+    // placement) — INSTRUMENT by the doctrine's own examples. The two-panel
+    // COMPOSITION is the separate born-OWNER surface (proof:panel-composition,
+    // PENDING-OWNER; not authored here).
+    "proof:panel-naked-rail": "INSTRUMENT",
     "proof:stage-visible": "INSTRUMENT",
     "proof:subject-animates": "INSTRUMENT",
     "proof:orbital-rotate3d": "INSTRUMENT",

@@ -9,7 +9,14 @@
         ]"
         v-bind="$attrs"
     >
+        <!-- SQ-T3 (T.B4 / lane 04 rec 3) — no chrome without content: the pane
+             wrapper mounts IFF the scene's control-surface DFA set is non-empty
+             (`hasControlSurfaces` = surfacesFor(scene).length > 0). home + any
+             empty-set scene render ZERO `.controls-pane-wrapper` nodes — the
+             mobile-sheet occlusion recurrence (an empty sheet with a grab handle
+             over a void) cannot mount. proof:panel-naked-rail asserts this. -->
         <ControlsPaneWrapper
+            v-if="hasControlSurfaces"
             :animation-group="animationGroup"
             :stored-controls="storedControls"
             :hide-controls="hideControls"

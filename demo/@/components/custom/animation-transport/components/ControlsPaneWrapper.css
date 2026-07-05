@@ -3,43 +3,20 @@
  * from the SFC via <style scoped src="./ControlsPaneWrapper.css">. The G1
  * --stage-strip/--stage-reserve mobile stage-visibility token block lives here
  * verbatim (proof:stage-visible reads the BUILT tokens; gates read the SFC+css pair). */
-/* ── K.W4 F2 — ONE SUBTLE BORDER wrapping the two control elements ──
-   The user's live verdict: "the glass card panel should be ONE SUBTLE BORDER
-   wrapping the two control elements (the controls card + the playback card), NOT
-   two heavy separate glass cards." Pre-cure the controls pane read as two
-   floating heavy cartoon cards — the AnimationControls panel and the RibbonBar
-   (playback) card, each with its own offset-stamp depth + border, separated by a
-   gap. The cure GROUPS them: ONE subtle border + radius + a faint surface tint
-   around `.controls-content`, so the two inner cards read as SECTIONS of one
-   cohesive panel rather than two competing cards.
-
-   GATE-HONEST: the inner cartoon Cards KEEP their gated register — the
-   `surface="cartoon" tier="quiet"` translucency (proof:glass-and-cartoon) AND
-   the `--shadow-cartoon-md` offset-stamp depth that grows on hover
-   (proof:cartoon-is-panel-depth) are UNTOUCHED (no :deep override strips them).
-   This wrapper border is PURELY additive — it groups the cards visually without
-   altering the per-card surface the gates probe. The cohesion is a unifying
-   container, not a flattening of the cards.
-
-   The border reads off the design-system --border token at a low-saturation
-   wash; the radius matches the card family (--radius-card); a faint
-   --card-tinted plate behind the group gives it the "one panel" read. Desktop
-   only via the @media block below (the mobile sheet IS already one bordered
-   card — the sheet register, see the mobile block). */
+/* ── T.B4 (OD-5, VERDICT #7) — the surrounding pane is GONE ──
+   The K.W4-F2 grouping border + surface-tint plate around `.controls-content`
+   is DELETED together with the glass-wash wrap (ControlsPaneWrapper.vue): the
+   rail is a NAKED column — no border, no background, no radius on the container
+   — and the two floating GlassPanel instruments (the facet body + the playback
+   ribbon) are the only plates. The K-era complaint (two HEAVY cartoon cards
+   competing) is answered by the panels' LIGHT glass register, not by a
+   re-grouping wrapper; neither failed pole returns. The 0.75rem gap below is the
+   whole grouping grammar — the plates float, the stage shows through between
+   them. proof:panel-naked-rail asserts no border/background survives between the
+   rail cell and the two cards. */
 .controls-content {
     position: relative;
-}
-@media (min-width: 1024px) {
-    .controls-content {
-        border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-        border-radius: var(--radius-card, 1rem);
-        background: color-mix(in srgb, var(--card) 22%, transparent);
-        /* The group padding owns the breathing room between the wrapping border
-           and the inner cards (the cards' own padding stays inside). The existing
-           shadow-clearance padding (below) is preserved — this adds the inset so
-           the wrapping border does not crowd the inner cartoon cards' stamp. */
-        padding-top: 0.5rem;
-    }
+    gap: 0.75rem;
 }
 
 /* ── MOBILE BOTTOM SHEET (H.W7.S1/S2) — the SpringProgress drawer ──

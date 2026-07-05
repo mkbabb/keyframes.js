@@ -192,6 +192,9 @@ export const CORRECTNESS_ROSTER = [
     "proof:stage-visible",
     "proof:dock-zorder",
     "proof:drawer-spring",
+    // T.B4 (OD-5 #7) — the naked-rail + SQ-T3 DFA-elision browser gate (static
+    // half always runs; the DFA-empty + naked-rail probes need the built dist).
+    "proof:panel-naked-rail",
     "proof:sheet-reopen-scroll",
     "proof:bezier-no-scroll",
     "proof:bezier-single-card",
