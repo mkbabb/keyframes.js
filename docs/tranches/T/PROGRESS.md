@@ -210,6 +210,27 @@
   NO sheet — the zero-content grab handle was the defect; T.B2 flips it back).
   Roster 84 gates → failing ⊆ backlog exactly.
 
+- **2026-07-05 — BATCH ④: RECON, NOT CODE (honest no-op; the deliverables are maps).**
+  Fleet `wf_a3ff09d5-d1b`: the keystone lane found T.B1's decoy-deletion INTERLOCKED
+  with T.B7's easing/spring channel-RENDERING (ControlsPaneWrapper v-for over
+  group.animations :61; PlaybackRibbon bound to contractAnim as its time-source) +
+  the whole ACG transport (useAnimationGroupPlayback is group-based) — a 30–40-file
+  motion, not one lane; it produced the VERIFIED COUPLING MAP + a 4-stage split and
+  changed nothing (clause-10 protect-the-green). The Drawer lane found a glass-ui
+  STRUCTURAL capability gap: a detented Drawer is forced height:100%/bottom:0
+  (drawer.css [data-glass-drawer-snap-points=true]) — its full detent covers the
+  viewport + overlaps the menubar band at ANY snap, no blessed inset/max-detent
+  lever exists; adopting as-is would REGRESS the owner-verified occlusion cure
+  (52dvh stage-reserve / ≤70dvh / never-occlude-menubar). The theme lane died on the
+  session limit before starting. **BATCH ④′ RE-DEPLOYED (owner order, post-reset,
+  `wf_b977ef4e-a08`):** T.B1-α facility stage-1 (descriptor + group scenes +
+  sequence + the ACG seam per the coupling map; the easing/spring decoy-zero clause
+  born-RED → the T.B1-β/T.B7 joint motion, batch ⑤) ∥ T.D theme core (Fable,
+  P-THEME graft — relaunched verbatim) ∥ T.H3→GATED-ON-PUBLISH (new ask **BG-11**:
+  --drawer-inset-block-end + max-detent cap; ledger row + tripwire; the geometry
+  decision recorded PENDING-OWNER, hold-the-cure recommended) + T.C5 (GU-1/GU-2
+  born-RED acceptance gates) + T.B10 (the ordered transport-action model).
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
