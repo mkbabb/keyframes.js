@@ -231,14 +231,15 @@
   decision recorded PENDING-OWNER, hold-the-cure recommended) + T.C5 (GU-1/GU-2
   born-RED acceptance gates) + T.B10 (the ordered transport-action model).
 
-- **2026-07-05 — BATCH ④′ MERGED + VERIFIED (T4/T5) @ `3125936`+.** Fleet
+- **2026-07-05 — BATCH ④′ MERGED + VERIFIED (T4/T5) @ `5ef73cf`.** Fleet
   `wf_b977ef4e-a08`, 3/3. **T.B1-α LANDED**: the additive SceneFacility descriptor;
   cube/amiga/square expose facility from REAL group members; SEQUENCE OFF THE DECOY
   (its useContractAnimGroup call site deleted; transport rides facility.playback,
   live-session S5 verified); the shell binding prefers facility; transport labels
-  derive from channels; proof:scene-facility split honestly — clause (a) 8/8 GREEN,
-  clause (b) decoy-zero born-RED (dischargedBy the batch-⑤ T.B1-β/T.B7 joint
-  motion). **T.D CORE LANDED (Fable, OD-6 packet FILLED with "Good.")**: T.D7 the
+  derive from channels. proof:scene-facility EXITS 1 BY DESIGN (a registered
+  born-RED backlog row): its decoy-zero clause reds on the two remaining
+  easing/spring call sites, dischargedBy the batch-⑤ T.B1-β/T.B7 joint motion —
+  the descriptor/group-scene/sequence clauses pass within that red run. **T.D CORE LANDED (Fable, OD-6 packet FILLED with "Good.")**: T.D7 the
   red-kill + ONE violet oklch authority (--accent-kf light-dark ramp grafted from
   P-THEME; new BLOCKING OWNER oracle proof:accent-census — ~2,230 rendered
   paints/theme, zero red outside destructive); T.D2 honest weight
