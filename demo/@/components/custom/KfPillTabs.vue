@@ -122,7 +122,7 @@ const { rovingValue, onKeydown } = useKfPillTabs({
     background: color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 .kf-pill-tab:focus-visible {
-    outline: 2px solid var(--color-progress, var(--accent-red, currentColor));
+    outline: 2px solid var(--color-progress, currentColor);
     outline-offset: 1px;
 }
 </style>

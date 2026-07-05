@@ -153,6 +153,11 @@ export const CORRECTNESS_ROSTER = [
     // demo-smoke continue-on-error. The stage rebirth is SHELVED with band S.E.
     "proof:amiga-decay-visible",
     "proof:appearance-suffusion",
+    // T.D7 (OD-6 APPROVED) — the violet-accent OWNER oracle: tokens in the
+    // blessed oklch window both themes + the rendered red-census (zero
+    // red-family accents outside destructive/crayon-subject surfaces). OWNER
+    // authority ⇒ BLOCKING (T.M6.2) — it rides the correctness roster.
+    "proof:accent-census",
     "proof:spring-slider-continuous",
     "proof:visual-lock",
     "proof:taste-packet",

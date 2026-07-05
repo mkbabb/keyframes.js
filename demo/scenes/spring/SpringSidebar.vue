@@ -263,15 +263,15 @@ onScopeDispose(() => detachDrag?.());
     will-change: left;
 }
 
-/* ── S3 — the RED-DASHED active/settled ring (the token treatment) ──
-   The active cell wears the canonical motion-color (--color-progress, repointed
-   to the --accent-red family by Lane B) as a DASHED outline — mirroring
-   AnimationVisualizer's settled twin (`border-dashed border-accent-red/40
-   bg-accent-red/15`), the user's explicit preference (U-K17). NOT a per-cell
-   `border-red` class: the token is the authority; this is the dashed TREATMENT
-   over it. The hover is the red-accent family (F3 — uninteresting/wrong-color
-   hover cured), a faint tinted wash that reads as the motion language, not the
-   neutral grey accent. */
+/* ── S3 → T.D7 — the DASHED active/settled ring (the token treatment) ──
+   The active cell wears the canonical motion-color (--color-progress — the
+   OD-6 violet authority since T.D7; red is destructive-only) as a DASHED
+   outline — mirroring AnimationVisualizer's settled twin (`border-dashed
+   border-accent-kf/40 bg-accent-kf/15`), the dashed IDIOM the owner kept
+   (U-K17) riding the new hue. NOT a per-cell color class: the token is the
+   authority; this is the dashed TREATMENT over it. The hover is the same
+   accent family, a faint tinted wash that reads as the motion language, not
+   the neutral grey accent. */
 .preset-cell {
     outline: 1px dashed transparent;
     outline-offset: -1px;

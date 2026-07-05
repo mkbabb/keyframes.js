@@ -12,9 +12,15 @@
                 class="absolute top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
             >
                 <div class="flex">
+                    <!-- T.D7 (OD-6) — the delete-X is a DESTRUCTIVE affordance:
+                         it rides the demo's destructive register (--accent-red,
+                         red's ONE sanctioned home post-red-kill) instead of the
+                         raw Tailwind red-500 literal, and is destructive-MARKED
+                         so proof:accent-census's red-census recognizes the role. -->
                     <X
                         @click="(e) => emit('remove', e)"
-                        class="p-0 m-0 scale-on-hover cursor-pointer stroke-2 w-6 h-6 text-red-500 hover:text-red-700 bg-transparent hover:bg-transparent"
+                        data-destructive
+                        class="p-0 m-0 scale-on-hover cursor-pointer stroke-2 w-6 h-6 text-accent-red hover:opacity-80 bg-transparent hover:bg-transparent"
                     >
                     </X>
                     <CopyButton class="h-6 w-6" :text="frameString" />

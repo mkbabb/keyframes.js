@@ -19,8 +19,11 @@
  *   (a) --ball-tone == icon hue per scene (the S3 colour oracle, the J.md
  *       headline move): easing → --rainbow-violet (#e64de6, bg rgb(230,77,230));
  *       motion-path traveller → --rainbow-cyan (#1ae6e6, bg rgb(26,230,230));
- *       spring ball → --color-progress (the RED-DASHED authority, bg rgb(229,93,93)
- *       — K.W4 S3/clause(d): the green is GONE on the motion surfaces); square box → --subject-teal
+ *       spring ball → --color-progress (the ONE motion-color authority — the
+ *       OD-6 violet since T.D7; the ball bg is probe-compared to the RESOLVED
+ *       token, so a per-scene consumer on the WRONG token still reds, and the
+ *       "is it the BLESSED hue, not red" half is proof:accent-census's OWNER
+ *       clause); square box → --subject-teal
  *       (#52e898, bg rgb(82,232,152)) AND aquamarine (rgb(127,255,212)) DEAD.
  *   (b) the display register's computed font-family resolves Instrument Serif at
  *       the named moments (the four Target headers: ease/SpringProgress/Sequence/
@@ -166,35 +169,48 @@ async function runSuffusion() {
             // (the motion-path traveller --ball-tone == --rainbow-cyan check was
             //  RETIRED at T.E3 — the motion-path scene was PRUNED, OD-1 = PRUNE.)
 
-            // spring ball → --color-progress (the RED-DASHED motion-color bind —
-            // K.W4 S3/clause(d): the green palette is GONE on the motion surfaces,
-            // --color-progress now resolves the --accent-red family; the ball bg
-            // resolves the red rgb(229,93,93), NOT the retired green rgb(33,196,93)).
+            // spring ball → --color-progress (the ONE motion-color authority —
+            // the OD-6 VIOLET since T.D7; K.W4 S3's red bind is dead with the
+            // latent-red kill). The ball bg is compared to the RESOLVED token via
+            // an in-page probe element painting `var(--color-progress)` — so a
+            // per-scene consumer set to the WRONG token still reds, without this
+            // gate hard-coding any hue (the "is the token the BLESSED violet, not
+            // red" half is proof:accent-census's OWNER clause).
             await page.goto(`${base}/#/spring`, { waitUntil: "load" });
             await navToScene(page, "spring", "Spring", { timeout: 12000 });
             await page.waitForTimeout(700);
             const springTone = await page.evaluate(() => {
                 const cs = getComputedStyle(document.documentElement);
                 const ball = document.querySelector(".spring-ball, .progress-ball.spring-ball");
+                // resolve the token to its COMPUTED color through a real paint
+                const probe = document.createElement("div");
+                probe.style.background = "var(--color-progress)";
+                document.body.appendChild(probe);
+                const resolvedProgress = getComputedStyle(probe).backgroundColor;
+                probe.remove();
                 return {
-                    accentRed: cs.getPropertyValue("--color-progress").trim(),
+                    progressToken: cs.getPropertyValue("--color-progress").trim(),
+                    resolvedProgress,
                     tone: ball ? getComputedStyle(ball).getPropertyValue("--ball-tone").trim() : null,
                     bg: ball ? getComputedStyle(ball).backgroundColor : null,
                 };
             });
             if (
                 springTone.tone &&
-                springTone.tone.toLowerCase() === springTone.accentRed.toLowerCase() &&
-                /229,\s*93,\s*93/.test(springTone.bg ?? "")
+                springTone.tone.toLowerCase() === springTone.progressToken.toLowerCase() &&
+                springTone.bg &&
+                springTone.bg === springTone.resolvedProgress
             ) {
                 ok(
                     `(a) spring .spring-ball --ball-tone == --color-progress (${springTone.tone}, the ` +
-                        `RED-DASHED motion-color authority — K.W4 S3, the green is GONE); bg ${springTone.bg}`,
+                        `ONE motion-color authority — OD-6 violet since T.D7); bg ${springTone.bg} == the ` +
+                        `resolved token paint (probe-compared, no hard-coded hue)`,
                 );
             } else {
                 fail(
                     `(a) spring .spring-ball --ball-tone is NOT the declared --color-progress ` +
-                        `(tone=${springTone.tone}, expected ${springTone.accentRed}; bg=${springTone.bg})`,
+                        `(tone=${springTone.tone}, expected ${springTone.progressToken}; ` +
+                        `bg=${springTone.bg}, resolved token=${springTone.resolvedProgress})`,
                 );
             }
 

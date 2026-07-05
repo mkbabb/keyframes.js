@@ -51,15 +51,22 @@
             "source": "demo/@/styles/style.css",
             "register": "signal",
             "scope": ":root (light)",
-            "note": "the unified motion-color authority (the red-dashed); --color-progress aliases it"
+            "note": "DESTRUCTIVE-ONLY since T.D7 (OD-6 RULED: the latent-red kill) — the hue itself is UNCHANGED and stays pinned; only the token's REACH shrank from sitewide motion authority to destructive/error surfaces (DESIGN.md:7 restored)"
+        },
+        "--accent-kf": {
+            "value": "light-dark(oklch(0.56 0.17 295), oklch(0.74 0.13 305))",
+            "source": "demo/@/styles/style.css",
+            "register": "signal",
+            "scope": ":root (light arm of light-dark())",
+            "note": "T.D7 — THE VIOLET ACCENT AUTHORITY, the OWNER-blessed ramp (OD-6 APPROVED 2026-07-05, verbatim token \"Good.\", on the live P-THEME review; blessed reference branch worktree-wf_1e744f4d-2bb-3). The baseline pins the LIGHT arm; the sanctioned-regeneration clause is satisfied by the OD-6 owner token, not a version bump"
         },
         "--color-progress": {
-            "value": "var(--accent-red)",
-            "resolvesTo": "--accent-red",
+            "value": "var(--accent-kf)",
+            "resolvesTo": "--accent-kf",
             "source": "demo/@/styles/style.css",
             "register": "signal",
             "scope": ":root (light)",
-            "note": "K.W4 S3 collapse — resolves the --accent-red family; the motion-surface red on every .progress-ball/.progress-rail/.progress-dot/scrub track"
+            "note": "T.D7 re-pin (OD-6) — resolves the VIOLET accent authority (was var(--accent-red) at the K.W4 S3 collapse; the red bind died with VERDICT #16's latent-red kill); the motion-surface accent on every .progress-ball/.progress-rail/.progress-dot/scrub track"
         },
         "--face-1": {
             "value": "rgba(255, 0, 0, 0.8)",

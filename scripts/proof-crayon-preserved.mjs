@@ -145,6 +145,58 @@ function parseColor(str) {
         return { r, g, b, a };
     }
 
+    // T.D7 (OD-6) — light-dark(<light>, <dark>): the baseline pins the LIGHT
+    // arm (the default `:root` hue the demo serves at rest — the same doctrine
+    // as "the .dark override is NOT the baseline"). Split at the top-level comma.
+    m = s.match(/^light-dark\((.+)\)$/);
+    if (m) {
+        let depth = 0;
+        const inner = m[1];
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if (c === "(") depth++;
+            else if (c === ")") depth--;
+            else if (c === "," && depth === 0) {
+                return parseColor(inner.slice(0, i).trim());
+            }
+        }
+        return null;
+    }
+
+    // T.D7 (OD-6) — oklch(L C H [/ a]) → sRGB. The violet accent authority is
+    // authored in oklch; the keeper lock must read it. Standard OKLab→LMS→
+    // linear-sRGB→gamma pipeline (values clipped to gamut like the browser does).
+    m = s.match(/^oklch\(([^)]+)\)$/);
+    if (m) {
+        const parts = m[1].split(/[\s/]+/).filter(Boolean);
+        if (parts.length < 3) return null;
+        const L = parseFloat(parts[0]);
+        const C = parseFloat(parts[1]);
+        const H = parseFloat(parts[2]);
+        const a = parts[3] != null ? parseFloat(parts[3]) : 1;
+        if ([L, C, H].some((v) => !Number.isFinite(v))) return null;
+        const hr = (H * Math.PI) / 180;
+        const aa = C * Math.cos(hr);
+        const bb = C * Math.sin(hr);
+        const l_ = L + 0.3963377774 * aa + 0.2158037573 * bb;
+        const m_ = L - 0.1055613458 * aa - 0.0638541728 * bb;
+        const s_ = L - 0.0894841775 * aa - 1.291485548 * bb;
+        const l3 = l_ ** 3;
+        const m3 = m_ ** 3;
+        const s3 = s_ ** 3;
+        const lin = [
+            4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3,
+            -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3,
+            -0.0041960863 * l3 - 0.7034186147 * m3 + 1.707614701 * s3,
+        ];
+        const gam = (x) => {
+            const v = clamp(x, 0, 1);
+            return v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+        };
+        const [r, g, b] = lin.map((x) => round(gam(x) * 255));
+        return { r, g, b, a: +clamp(a, 0, 1).toFixed(3) };
+    }
+
     // The CSS named color `red` — the one literal the --amiga-red hoist retires.
     if (s === "red") return { r: 255, g: 0, b: 0, a: 1 };
     return null;
@@ -255,6 +307,11 @@ const EXTANT_CSS_TOKENS = [
     ["--rainbow-violet", "demo/@/styles/design-idioms.css"],
     ["--rainbow-cyan", "demo/@/styles/design-idioms.css"],
     ["--accent-red", "demo/@/styles/style.css"],
+    // T.D7 (OD-6 APPROVED, 2026-07-05 "Good.") — the violet accent authority is
+    // a KEEPER: the blessed oklch light arm is pinned so a future refinement
+    // cannot silently drift the OWNER-approved hue. Resolved BEFORE
+    // --color-progress (which aliases it).
+    ["--accent-kf", "demo/@/styles/style.css"],
     ["--color-progress", "demo/@/styles/style.css"],
 ];
 
