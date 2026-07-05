@@ -1,5 +1,10 @@
 import { computed, nextTick } from "vue";
 
+// GLASSUI-GAP: segmentedTabsAriaOrientation — the roving-tabindex keyboard half of
+// the KfPillTabs band-aid (BG-1 aria guard + BG-3 material↔role decouple). It is
+// deleted with KfPillTabs.vue on the glass-ui re-pin; see demo/glass-ui-gaps.ts
+// (the primary SFC carries the load-bearing glassUiGap import).
+
 /**
  * S.B7 · S6 (fold row 71 · a12 F1 HIGH) — the roving-tabindex keyboard core for
  * `KfPillTabs`, extracted from the SFC so it is unit-testable the way

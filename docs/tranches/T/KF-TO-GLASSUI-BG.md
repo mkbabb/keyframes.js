@@ -1,8 +1,13 @@
 # keyframes.js → glass-ui Tranche BG/BH — the consolidated cross-repo ask letter (ASK + INFORM)
 
-> **Status: DEVELOPMENT.** This letter is CONTENT authored in the T dev phase; the
-> re-issue as `docs/tranches/T/KF-TO-GLASSUI-BG.md` and the pin-ledger TARGET rows land at
-> **impl time** (T.H2), not here. Per **inv-16** (kf writes only keyframes.js; every
+> **Status: SHIPPED (T.H2, the impl-drive dispatch).** This is the re-issued, shipped
+> ask letter. The machine-readable half landed with it: the pin-ledger TARGET `asks`
+> frontier (`docs/tranches/Q/PIN-LEDGER.json` `target.pins[].asks`, a row per §0 ask),
+> the two new `glassCaps` caps (`dockDismissHold` GU-3 + `dockDropdownPointerdown` BG-4)
+> wired into `scripts/lib/glass-caps.mjs` + `proof:workaround-deletion` (arms S3/S4), the
+> gap ledger `demo/glass-ui-gaps.ts` + its `proof:glass-ui-gap-tripwire` version tripwire
+> (T.H1), and the `proof:pin-ledger-current` (c.5) doc-lint that binds every §0 ask row to
+> a falsifiable kf-side gate. Per **inv-16** (kf writes only keyframes.js; every
 > cross-repo need is a dispatch), keyframes.js does **not** patch glass-ui in-demo — every
 > ask below is a glass-ui-root fix (MEMORY: dock/glass-ui changes go in glass-ui, never the
 > demo), each carrying a **kf-side born-RED acceptance gate** that flips on the re-pin and the
@@ -31,7 +36,7 @@
 | **GU-3** | glass-ui | The dock's own dismiss-pointerdown respects `keepOpen()` holds — a dock does not self-collapse under its own open popover | `proof:workaround-deletion` new row on `glassCaps.dockDismissHold` (cap true ⇒ scaffolding GONE) | `ChromeDock.vue:141-185` re-expand `watch` + popup MUTEX | **T.C6** |
 | **GU-4** | glass-ui | Actuation integrity through the collapse-crossfade — the active `.dock-layer` carrying play survives the crossfade without a swallowed pointerdown (**≡ Q's GU-Q2 ≡ lane-20 "BG-2"**) | `proof:workaround-deletion` **S2** (`glassCaps.dockStrandKeepalive`) + `proof:live-session` S5 | `TransportDock.vue:315-359` `usePlayActuation` (`pointerHandled`/`onPlayPointerDown`) | **T.C6** |
 | **BG-1** | glass-ui | SegmentedTabs **pill** must NOT emit `aria-orientation` on `role=group` (WAI-ARIA 1.2 §6.3) — **PUBLISH the already-authored guard** (**≡ Q's GU-Q1**) | `proof:glassui-aria-ask` PENDING→GREEN (mounted pill `role=group` renders `aria-orientation === null`) + `proof:workaround-deletion` **S1** (`glassCaps.ariaGuard`) | the `:aria-orientation="undefined"` suppress at the two consume sites; **precondition** for the KfPillTabs excision | **T.H6** |
-| **BG-3** | glass-ui | **Decouple SegmentedTabs MATERIAL from ARIA ROLE** — a pill-LOOK panel switcher with `role=tablist` + arrow-key roving-tabindex (a `role`/`as="tablist"` axis; the indicator engine already spans both materials) | zero `KfPillTabs`/`useKfPillTabs` references + both switchers render `role=tablist` with correct aria | **`KfPillTabs.vue` (121L) + `useKfPillTabs.ts` (90L)** in totality | **T.H6** |
+| **BG-3** | glass-ui | **Decouple SegmentedTabs MATERIAL from ARIA ROLE** — a pill-LOOK panel switcher with `role=tablist` + arrow-key roving-tabindex (a `role`/`as="tablist"` axis; the indicator engine already spans both materials) | `proof:glassui-aria-ask` GREEN with the switchers as `role=tablist` + zero `KfPillTabs`/`useKfPillTabs` references (the a11y probe re-derived against the SegmentedTabs `role=tablist` DOM) | **`KfPillTabs.vue` (121L) + `useKfPillTabs.ts` (90L)** in totality | **T.H6** |
 | **BG-4** | glass-ui | `DockDropdownTrigger` pointerdown-open parity with `DockSelectTrigger` (or a `trigger-action="pointerdown"` prop) — survive the press-scale reflow | `proof:dock-popover-opens` + `proof:single-toggle` with the synthesis removed | `MbabbMenu.vue:180-199` pointerdown click-synthesis | **T.H7** |
 | **BG-5** | glass-ui | A **static-backdrop blur mode** (`blur-source="static"` / frozen-backdrop) so the dock/pane glass does not re-rasterize the live animating stage every frame | `proof:blur-not-resampled` (per-scene `no-backdrop-filter` toggle delta < 15%; today morph +250%, motion-path +180%) | the **ineffective** `contain:paint` on `.scene-host` (`App.vue:337`, falsified by measurement) | **T.G1** |
 | **BG-6** | glass-ui | Parameterize the display-rung weight as `font-weight: var(--font-display-weight, 600)` — a single-weight display face becomes ONE token away | `proof:demo-fonts` v3 weight clause (zero visible `Instrument Serif` leaves at computed weight ≠ 400) with the demo `@layer` override RETIRED | the demo-side `@layer` weight override on the `text-display-*` utilities | **T.D2** |

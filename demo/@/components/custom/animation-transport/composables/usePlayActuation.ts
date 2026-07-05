@@ -1,3 +1,11 @@
+// GLASSUI-GAP: dockStrandKeepalive — usePlayActuation re-implements native button
+// click semantics from disjoint pointerup/keydown sources ONLY because glass-ui's
+// dock has no collapse-crossfade keepalive (GU-4); the consumed dist drops the
+// trailing click. It collapses to a plain click handler on the re-pin;
+// proof:glass-ui-gap-tripwire flips RED the instant glassCaps.dockStrandKeepalive
+// is satisfied while this file survives. See demo/glass-ui-gaps.ts (the TransportDock
+// SFC carries the load-bearing glassUiGap import).
+
 /**
  * S.B7 · S6 (fold row 71 · a12 F2/F3) — the play-toggle actuation core for
  * `TransportDock`, extracted from the SFC so the keyboard/pointer contract is

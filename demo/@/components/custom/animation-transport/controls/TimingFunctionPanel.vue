@@ -75,29 +75,26 @@
                             />
                         </div>
 
-                        <div class="flex flex-col gap-1">
-                            <label class="text-mono-caption normal-case text-muted-foreground">jump term</label>
-                            <Select
-                                :model-value="storedAnimationOptions.stepOptions.jumpTerm"
-                                @update:model-value="
-                                    (key: any) => {
-                                        storedAnimationOptions.stepOptions.jumpTerm = key;
-                                        emit('updateTimingFunction', 'steps');
-                                    }
-                                "
-                            >
-                                <SelectTrigger class="font-mono">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup class="font-mono">
-                                        <SelectItem v-for="j in jumpTerms" :value="j">
-                                            {{ j }}
-                                        </SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        <!-- T.H4 — LabeledSelect pure-consumption: the hand-rolled
+                             jump-term label + raw Select-primitive pair is now the
+                             glass-ui labeled-field idiom (the same LabeledSelect the
+                             sibling AnimationControlsControls / LayerConfigPanel rows use). -->
+                        <LabeledSelect
+                            :model-value="storedAnimationOptions.stepOptions.jumpTerm"
+                            :is-open="jumpTermOpen"
+                            :items="jumpTerms"
+                            label="jump term"
+                            label-class="text-mono-caption normal-case text-muted-foreground"
+                            tooltip="steps() jump term"
+                            class="font-mono"
+                            @update:model-value="
+                                (key: string) => {
+                                    storedAnimationOptions.stepOptions.jumpTerm = key as any;
+                                    emit('updateTimingFunction', 'steps');
+                                }
+                            "
+                            @update:open="(v: boolean) => (jumpTermOpen = v)"
+                        />
                     </div>
                 </div>
             </template>
@@ -117,18 +114,11 @@ import {
 import { generateCurveSVGPath } from "./timingCurveUtils";
 import { timingFunctionKind } from "../animationDescriptions";
 
-import {
-    Button,
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
+import { LabeledSelect } from "@mkbabb/glass-ui/labeled-field";
 
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { ArrowLeft } from "@lucide/vue";
 import EasingEditor from "@components/custom/easing-editor/EasingEditor.vue";
 
@@ -143,6 +133,10 @@ const emit = defineEmits<{
     (e: "exitDetailPanel"): void;
     (e: "updateTimingFunction", key: TimingFunctionNames | "cubic-bezier" | string): void;
 }>();
+
+// T.H4 — the jump-term LabeledSelect owns its own open flag (the labeled-field
+// controlled-open contract, mirroring the sibling AnimationControlsControls rows).
+const jumpTermOpen = ref(false);
 
 // I.W2.S3 — the stored value is a re-parseable LITERAL now; the panel keys its
 // cubic-bezier-vs-steps view off the KIND (literal-aware).

@@ -2,6 +2,7 @@
     <div
         ref="menubarHostEl"
         data-dock-tether="bottom"
+        :data-glassui-gap="gap.id"
         :class="[
             'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
             'fixed left-0 right-0 z-dock',
@@ -240,8 +241,15 @@ import { RotateCcw } from "@lucide/vue";
 import { kfEngine } from "@utils/kfEngine";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
 import { usePlayActuation } from "./composables/usePlayActuation";
+// GLASSUI-GAP: dockStrandKeepalive — the disjoint pointerup/keydown play actuation
+// (usePlayActuation) is a band-aid for glass-ui's collapse-crossfade click-strand
+// (GU-4). It collapses to a plain click handler on the re-pin; see
+// demo/glass-ui-gaps.ts.
+import { glassUiGap } from "../../../../glass-ui-gaps";
 
 import type { StoredAnimationGroupControlOptions } from "@state";
+
+const gap = glassUiGap("dockStrandKeepalive");
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 
