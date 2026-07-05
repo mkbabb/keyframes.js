@@ -85,6 +85,10 @@ export const APPEARANCE_TOUCHING = [
     "proof:dock-zorder",
     "proof:drawer-spring",
     "proof:stage-visible",
+    // T.G1 — the blur de-layer's perf acceptance gate (perceived perf = how the
+    // demo FEELS, VERDICT #19). INSTRUMENT (a measured toggle-delta fact), NOT the
+    // OWNER perceived-perf bar (those are T.G6/T.G7/T.G9).
+    "proof:blur-not-resampled",
     // scene-subject render gates (the ones the verdict cited)
     "proof:subject-animates",
     "proof:orbital-rotate3d",
@@ -178,6 +182,7 @@ export const GATE_AUTHORITY = {
     "proof:dock-zorder": "INSTRUMENT",
     "proof:drawer-spring": "INSTRUMENT",
     "proof:stage-visible": "INSTRUMENT",
+    "proof:blur-not-resampled": "INSTRUMENT",
     "proof:subject-animates": "INSTRUMENT",
     "proof:orbital-rotate3d": "INSTRUMENT",
     "proof:amiga-subject-is-pivot": "INSTRUMENT",

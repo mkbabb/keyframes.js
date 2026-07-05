@@ -327,13 +327,26 @@ const mbabbPopupOpen = ref(false);
 .scene-host {
     view-transition-name: scene-subject;
 
-    /* G1 (demo-side, MEASURE-FIRST): paint containment on the perpetually-moving
-       scene host. The rail·stage·rail column separation (H.W3) already moved the
-       glass panels off this host's stacking context; `contain: paint` then walls
-       the host's transforms off so a moving subject (the cube/amiga spin) cannot
-       force the sibling panels' backdrop-filter to re-sample — the panel blur is
-       no longer invalidated per scene frame (proof:scene-host-contained). */
-    contain: paint;
+    /* T.G1 (THE BLUR DE-LAYER — the perf keystone). The former `contain: paint`
+       here was a FALSIFIED mitigation: lane-11 CDP sampling measured it
+       neutral-to-WORSE (cube 90→73, home 95→84), and the mechanism proves why —
+       `contain: paint` on the scene-host *sibling* cannot remove the moving
+       subject's pixels from a *sibling* glass surface's `backdrop-filter`
+       BACKDROP. A live `backdrop-filter` re-rasterizes whenever ANY paint in its
+       backdrop root changes within its footprint, so every frame the stage
+       subject animates the glass chrome's blur re-samples it (over the surviving
+       scene set the `easing` stage is heaviest-coupled: 26→65fps here / the
+       wave's 33→39.5fps @1440×dpr2 when the chrome blur is neutralized — VERDICT
+       #19 root cause #1). The de-layer contract this host now holds: it is composited
+       OUTSIDE any `backdrop-filter` ANCESTOR subtree (the stage never sits inside
+       a filtered subtree — proof:blur-not-resampled's kf-side clause locks this)
+       and carries NO falsified paint-wall. The remaining coupling — the glass
+       chrome's LIVE blur re-sampling the moving stage as its backdrop — has NO
+       pure-CSS kf-side cure (isolation/z-index/radius-cap/geometry all measured
+       neutral); it is the glass-ui `blur-source="static"` frozen-backdrop
+       capability, absent today → the BG-5 staticBackdrop gap (demo/glass-ui-gaps.ts,
+       GLASSUI-GAP: staticBackdrop) handed off to T.H. proof:blur-not-resampled's
+       runtime toggle-delta clause is BORN-RED and greens on that publish. */
 }
 
 /* The host is `tabindex="-1"` solely to receive PROGRAMMATIC focus after the

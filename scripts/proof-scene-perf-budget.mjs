@@ -28,11 +28,18 @@
  *      there — T7 gate-follows-code). The browser is driven at dpr=2
  *      (deviceScaleFactor) so the cap is exercised, not vacuous.
  *
- *   3. proof:scene-host-contained (G1 demo-side — SHIP). The moving `.scene-host`
- *      resolves `contain: paint` so a transform behind a backdrop does not
- *      invalidate the sibling panels' blur per scene frame. BITE: drop
- *      `contain: paint` (App.vue) → the moving scene-host re-samples the panel
- *      backdrop every frame → reds.
+ *   3. proof:scene-host-delayered (G1 — REWRITTEN at T.G1, the BLUR DE-LAYER).
+ *      The former clause asserted the moving `.scene-host` declares `contain:
+ *      paint` — but lane-11 CDP sampling FALSIFIED that mitigation (neutral-to-
+ *      worse: a sibling paint-wall cannot remove the moving subject from a
+ *      sibling glass surface's backdrop-filter BACKDROP). T.G1 DELETED it, so
+ *      this clause is inverted to the de-layer contract: the moving `.scene-host`
+ *      declares NO `contain: paint` (the falsified mitigation is gone) AND has NO
+ *      `backdrop-filter` ANCESTOR (the stage renders outside every filtered
+ *      subtree). BITE: re-adding `contain: paint` reds; nesting the stage under a
+ *      backdrop-filter subtree reds. The runtime toggle-delta (the blur no longer
+ *      re-sampling the moving stage) is the separate BORN-RED proof:blur-not-
+ *      resampled (its clause B, handed to glass-ui `blur-source="static"`, T.H).
  *
  *   4. proof:offscreen-cv (G5 — RECONCILED at I.W3/I.WZ). The amiga `.scene-root`
  *      SHEDS `content-visibility: auto`: cv-over-the-live-WebGL-present-loop made
@@ -155,15 +162,24 @@ console.log("proof:scene-perf-budget — H.W5 S6 (the cube/amiga scene-quality +
         );
     }
 
-    // G1 anchor — `contain: paint` on the scene-host.
+    // G1 anchor (T.G1 DE-LAYER — inverted). The `.scene-host` block must NOT
+    // declare the FALSIFIED `contain: paint` (a sibling paint-wall cannot pull the
+    // moving subject out of a sibling blur's backdrop — lane 11 measured it neutral-
+    // to-worse; T.G1 deleted it). The positive de-layer contract (no backdrop-filter
+    // ancestor) is the runtime clause below.
     const appSrc = read(path.join(DEMO, "app/App.vue"));
-    if (/\.scene-host\b[\s\S]*?contain:\s*paint/.test(appSrc)) {
-        ok("G1 source: .scene-host declares contain: paint (the moving host is paint-walled)");
-    } else {
+    // Strip CSS comments — the T.G1 rationale names `contain: paint` in prose (the
+    // falsified mitigation it explains), which is not a live declaration.
+    const sceneHostBlock = (appSrc.match(/\.scene-host\s*\{[\s\S]*?\n\}/)?.[0] ?? "")
+        .replace(/\/\*[\s\S]*?\*\//g, "");
+    if (/contain:\s*(paint|strict)/.test(sceneHostBlock)) {
         fail(
-            "G1 source — the .scene-host style must declare `contain: paint` so a moving " +
-                "transform behind a backdrop does not invalidate the panel blur per frame",
+            "G1 source — the .scene-host style still declares `contain: paint` (the FALSIFIED " +
+                "mitigation lane 11 measured neutral-to-worse). T.G1 deletes it; a sibling paint-wall " +
+                "cannot remove the moving subject from a sibling blur's backdrop.",
         );
+    } else {
+        ok("G1 source: .scene-host carries NO `contain: paint` (the falsified paint-wall is de-layered)");
     }
 
     // G5 anchor (cv) — RECONCILED at I.W3/I.WZ. The amiga .scene-root once carried
@@ -423,21 +439,48 @@ async function browserHalf() {
             );
         }
 
-        // ── 3. proof:scene-host-contained ───────────────────────────────────
-        const containPaint = await page.evaluate(() => {
+        // ── 3. proof:scene-host-delayered (T.G1 DE-LAYER — inverted) ─────────
+        // The de-layer contract: the moving `.scene-host` carries NO (falsified)
+        // paint-wall AND renders OUTSIDE every backdrop-filter ANCESTOR subtree (the
+        // stage never sits inside a filtered subtree). The runtime toggle-delta — the
+        // chrome blur no longer re-sampling the moving stage — is the separate BORN-RED
+        // proof:blur-not-resampled (clause B, glass-ui `blur-source="static"` handoff).
+        const delayer = await page.evaluate(() => {
             const host = document.querySelector(".scene-host");
             if (!host) return null;
             const c = getComputedStyle(host).contain;
-            return { contain: c, hasPaint: /\bpaint\b/.test(c) || c === "strict" };
+            const filteredAncestors = [];
+            let el = host.parentElement;
+            while (el) {
+                const bf = getComputedStyle(el).backdropFilter;
+                if (bf && bf !== "none")
+                    filteredAncestors.push((el.className || el.tagName).toString().slice(0, 40));
+                el = el.parentElement;
+            }
+            return {
+                contain: c,
+                hasPaint: /\bpaint\b/.test(c) || c === "strict",
+                filteredAncestors,
+            };
         });
-        if (containPaint == null) {
-            fail("scene-host contained — the .scene-host element is absent (the shell did not mount)");
-        } else if (containPaint.hasPaint) {
-            ok(`scene-host contained: the moving .scene-host resolves contain: '${containPaint.contain}' (includes paint — G1)`);
-        } else {
+        if (delayer == null) {
+            fail("scene-host de-layered — the .scene-host element is absent (the shell did not mount)");
+        } else if (delayer.hasPaint) {
             fail(
-                `scene-host contained — the .scene-host resolves contain: '${containPaint.contain}' ` +
-                    `(no paint containment); a transform behind a backdrop invalidates the panel blur per frame (G1)`,
+                `scene-host de-layered — the .scene-host resolves contain: '${delayer.contain}' (the FALSIFIED ` +
+                    `paint-wall is back); T.G1 deletes it — a sibling paint-wall cannot pull the moving subject out ` +
+                    `of a sibling blur's backdrop (G1)`,
+            );
+        } else if (delayer.filteredAncestors.length > 0) {
+            fail(
+                `scene-host de-layered — the moving .scene-host sits INSIDE a backdrop-filter subtree ` +
+                    `(filtered ancestor(s): ${delayer.filteredAncestors.join(", ")}); the stage must render outside ` +
+                    `every filtered subtree (G1)`,
+            );
+        } else {
+            ok(
+                "scene-host de-layered: the moving .scene-host carries no falsified `contain: paint` AND renders " +
+                    "outside every backdrop-filter ancestor subtree (G1 de-layer)",
             );
         }
 
@@ -609,14 +652,15 @@ await browserHalf();
 if (failures.length > 0) {
     console.error(
         `\nproof:scene-perf-budget — FAIL (${failures.length}): a cube/amiga scene-perf budget ` +
-            `clause reds (A3 tile-count/pixel-identity · A2 pixel-cap · G1 contain:paint · ` +
+            `clause reds (A3 tile-count/pixel-identity · A2 pixel-cap · G1 de-layer (no contain:paint + no backdrop ancestor) · ` +
             `G5 content-visibility/will-change · A5 engine-drives-mesh).`,
     );
     process.exit(1);
 }
 console.log(
     "\nproof:scene-perf-budget — PASS: the amiga tessellation is ≤256 fillRect + pixel-identical, " +
-        "the renderer caps dpr ≤ 2, the scene-host is paint-contained, the amiga root SHEDS " +
+        "the renderer caps dpr ≤ 2, the scene-host is de-layered (no falsified contain:paint + no " +
+        "backdrop-filter ancestor — T.G1), the amiga root SHEDS " +
         "content-visibility (the I.W3 RC-2 fix; the offscreen skip is the keyed-Suspense single-mount + " +
         "an IntersectionObserver pause) with no resident cube will-change, and the engine drives the mesh (H.W5 S6 · I.W3 reconciled).",
 );

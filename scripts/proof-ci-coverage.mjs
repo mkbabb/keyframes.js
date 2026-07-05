@@ -257,6 +257,12 @@ const EXCLUDED = new Set([
     "proof:subject-legible",
     "proof:subject-full",
     "proof:roster-ceiling",
+    // T.G1 — the blur de-layer's frozen-backdrop acceptance gate. Born-RED: the
+    // kf-side de-layer clauses green now, but the runtime toggle-delta stays RED
+    // until glass-ui ships `blur-source="static"` (BG-5) + kf adopts it. Recorded
+    // tripwire, never a blocking &&-chain member (clause 11 re-verifies its
+    // T_BORNRED_BACKLOG registration).
+    "proof:blur-not-resampled",
     // T batch ① — the cube pose-flap visual-lock re-baseline landed born-RED
     // (env-drift proven at base; registered in T_BORNRED_BACKLOG). Lockstep with
     // clause 11: a declared-backlog gate rides CI as a recorded tripwire, never a
