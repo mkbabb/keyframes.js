@@ -1,26 +1,27 @@
 # Tranche T — PROGRESS (the board)
 
-> Phase: **DEVELOPMENT + PROTOTYPING** (impl NOT authorized). Board discipline per
-> T.md §5 + lane 27 rec 4: every entry is appended at the event, never reconstructed;
-> a board row citing state that a re-run contradicts is a defect (`proof:board-live`
-> is a T.M deliverable — until it exists, treat this board as claims, verify by git +
-> gate runs).
+> Phase: **IMPL DRIVE** (opened 2026-07-05; the row-2 hold LIFTED per OWNER-ASKS row 3,
+> execution ordered by the owner post-compaction). Branch `tranche-t-impl` off
+> `tranche-s-impl` @ `76d4278`. Board discipline per T.md §5 + lane 27 rec 4: every
+> entry is appended at the event, never reconstructed; a board row citing state that a
+> re-run contradicts is a defect (`proof:board-live` is a T.M1-adjacent deliverable —
+> until it lands, treat this board as claims, verify by git + gate runs).
 
 ## State
 
 | Band | State | Notes |
 |---|---|---|
-| T.M | DEVELOPED-HARDENED | wave doc authored from lanes 29/24/26/28/27 |
-| T.A | DEVELOPED-HARDENED | lanes 02/03/04/07 |
-| T.B | DEVELOPED-HARDENED | lanes 23/10/06/04/30/21 |
+| T.M | **IN-DRIVE ①** | mechanism first — M1/M2/M6/M7-ledger/M8/M9/M10 batch ①; M3 awaits T.A/T.D renders; M4/M5 land born-RED (backlog posture) |
+| T.A | DEVELOPED-HARDENED | lanes 02/03/04/07 · queued after T.M |
+| T.B | DEVELOPED-HARDENED | lanes 23/10/06/04/30/21 · OD-5 riders R1/R2 born-OWNER |
 | T.C | DEVELOPED-HARDENED | lanes 08/30/20 |
-| T.D | DEVELOPED-HARDENED | lanes 09/31/01/12/17/19 · OD-2/4/6 pending owner |
-| T.E | DEVELOPED-HARDENED | lanes 07/05/18/26/29 · OD-1/OD-7 pending owner |
-| T.F | DEVELOPED-HARDENED | lanes 13/14/15/16/22/18/19/21 (21 recs 4/5/6 → T.F23, GRAND COLOCATION EDICT) |
-| T.G | DEVELOPED-HARDENED | lanes 11/32/26/12 |
-| T.H | DEVELOPED-HARDENED | lanes 20/21/08/09/12 |
-| T.S | DEVELOPED-HARDENED | lanes 27/32/28 · unblocks the S.Z close |
-| Prototypes | PENDING | OD-4/5/6 vehicles; kept worktrees, owner review on :5180 |
+| T.D | DEVELOPED-HARDENED | lanes 09/31/01/12/17/19 · OD-2 more-subtle amendment binds T.D13 |
+| T.E | **IN-DRIVE ①** | OD-1 = PRUNE FINAL → T.E3 executes (T.E2 DEAD); batch ① = E1/E3/E4/E5/E11-partial; easing redemption (E6–E10) later batch, OD-7 still pending-owner |
+| T.F | DEVELOPED-HARDENED | THE GRAND COLOCATION EDICT (23 waves) · after E+B settle the survivor set |
+| T.G | DEVELOPED-HARDENED | lanes 11/32/26/12 · measures the final surface |
+| T.H | **IN-DRIVE ①** | batch ① = H1 gap-ledger/H2 letter/H4 LabeledSelect; H3 Drawer rides with T.B; H5/H6 gated-on-publish tripwires |
+| T.S | DEVELOPED-HARDENED | lanes 27/32/28 · parallel; unblocks the S.Z close |
+| Prototypes | SERVED (blessed) | P-HERO/P-PANEL/P-THEME = the born-OWNER baselines; kept worktrees, NEVER purged |
 
 ## Session log
 
@@ -78,6 +79,20 @@
   CEILING per the amendment). **T = DEVELOPED + RATIFIED. IMPL EXPLICITLY HELD** ("Do not
   begin dev yet"). Standing: the 4 servers stay live for reference; the S.Z close remains
   queued behind the T impl drive (T.S band).
+
+- **2026-07-05 — THE DRIVE OPENS.** Post-compaction, per the owner's execution order
+  ("Begin and continue the current tranche … completed the plan IN TOTALITY"). Branch
+  `tranche-t-impl` cut off `tranche-s-impl` @ `76d4278`; board flipped to IMPL DRIVE;
+  draft PR onto master opened. **Batch ① launched** (3 Opus worktree lanes per T.md §5):
+  **T.M** (the mechanism — M1/M2/M6/M9/M10 full + M7 retirement ledger + M8 FROZEN
+  discharge + M4/M5 born-RED backlog posture; M3 deferred to post-T.A/T.D renders) ∥
+  **T.E prune** (E1 compose-delete + E3 morph/motion-path-prune per OD-1 PRUNE FINAL +
+  E4 utility-keyed-layout kill + E5 narrowed + E11 partial retirement execution) ∥
+  **T.H** (H1 gap-ledger+tripwire + H2 letter-shipped+caps + H4 LabeledSelect; H5/H6
+  ledgered gated-on-publish). Register note at entry: OD-1..6 carry tokens; **OD-7
+  (easing gallery design) is the one PENDING-OWNER row** — T.E6's oracle stays
+  unauthored until its token; the easing batch will build+serve the surface for the
+  mid-drive owner review alongside OD-5's R1/R2 riders.
 
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
