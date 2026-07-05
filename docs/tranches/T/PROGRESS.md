@@ -64,3 +64,8 @@
   AWAITING OWNER TOKENS: OD-1 (svg fuse-vs-prune), OD-2 (Aurora vs remove), OD-3 (ppMode),
   OD-4/5/6 (the served prototypes). Tokens land in OWNER-DECISIONS.md; per T.M's mechanism
   they unlock the born-OWNER design-wave oracles. T development is otherwise COMPLETE.
+- **2026-07-05** — OWNER TOKENS (first tranche): **OD-2 = AURORA-ON-HERO** ("Aurora on
+  hero"), **OD-3 = KEEP** ("Keep ppmycota"), **OD-1 = PROVISIONAL-PRUNE** ("Prune morph and
+  motion path unless you can convince me otherwise" — the FUSE case presented once; PRUNE
+  executes absent a reversal). OD-4/5/6 pending the live prototype review
+  (:5181/:5182/:5183 vs :5180, all verified LIVE).
