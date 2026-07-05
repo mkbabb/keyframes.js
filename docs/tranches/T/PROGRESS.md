@@ -152,6 +152,39 @@
   (S1 residual triage, S2 drag-gesture, S5 backfill, S7 row-4 transfer, S3 pin
   evaluation).
 
+- **2026-07-05 — BATCH ②′ MERGED + VERIFIED (T4/T5).** Fleet `wf_da0354ca-c67`, 3/3.
+  **T.A CUBE COMPLETE** (A1–A5): the `--spin-energy` 3D-flattener DELETED — all six
+  faces render (proof:cube-silhouette browser-verified 6/6, `.cube` 225×225 honest);
+  stage stripped per #5/#8 (readout/legend/tags/rainbow-corpse gone, cube
+  gesture-manifest row re-cut); ONE settle language (ease-out-back, ≤1 overshoot,
+  PRM-snap — the visual-lock pose-flap CAUSE removed; terminal re-baseline rides
+  T.M3); re-light writes quantized (~2.6× dedup, honest deviation from the
+  aspirational 5× documented in the gate); SUBJECTS.json cube leg verified.
+  **T.A AMIGA COMPLETE** (A7–A12): rides the group compositor via ONE plain-vars
+  pose adapter + ADDITIVE gesture offset (one mesh writer, no stomp); the Boing IS
+  the scene (timers/egg/boot/flags deleted, SpringProgress re-seat stop,
+  grep-zero setTimeout); honest arc (fit apparatus deleted, max|py|=3.998 ≥
+  2.5·radius, linear tilted-axis spin); CRT/telemetry/legend dead + grid-room in
+  (composition PENDING-OWNER); decay-visible KEYSTONE re-armed to the non-DOM ω
+  probe in the same motion; render-on-demand at rest. SUBJECTS.json amiga leg
+  verified → **proof:subject-full GREEN, backlog row DISCHARGED**. **T.S COMPLETE**:
+  chronic rows 71/72 green (69 waits on square-honest v2, batch ③; honest count
+  correction: ~30 missing-witness FOLD rows remain, each owned by its landing wave);
+  **drag-gesture SEAM defect FIXED** (glass-ui useTouchGate swallowed mouse presses
+  under Chromium's ontouchstart=true — mouse/pen now bypass; the residual is a
+  dock-occlusion half riding T.C); S session log backfilled to terminus; OWNER-ASKS
+  row 4 → terminal-by-transfer (the S.Z unblock); **THE VALUE.JS RE-PIN FIRED:
+  ^3.1.0** (isolated-clone verified, then independently re-verified on the merged
+  tree: check/tests/builds/boundary/zero-alloc/replay-equality/color-fidelity all
+  green; `proof:no-nested-self-dependency` DISCHARGED — 3.1.0 fixed the phantom;
+  KF-7 still unfixed → `no-collision-rename` stays the external born-RED).
+  **Merge composition:** gesture-manifest resolved as the union of BOTH scene-row
+  cuts (5 rows); APPEARANCE-WAVES union (3 PENDING-OWNER packets); two roster
+  UNEXPECTED reds adjudicated — design-refinement's S3 amiga arm re-cut (its
+  power-on egg was owner-ruled removed; lockstep executed at merge) + the
+  OrbitControls change-listener allowlisted (THREE.EventDispatcher, not DOM).
+  Roster: 83 gates, failing set = exactly the declared backlog.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
