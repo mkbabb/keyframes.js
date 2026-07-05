@@ -387,12 +387,10 @@ export const T_BORNRED_BACKLOG = {
             "no-blur-over-glyph + edge-energy floor: reds on the resting blur(3px) dock " +
             "icon (#4). Existence ≠ legibility — supersedes proof:icon-paint-live (a)'s bbox clause.",
     },
-    "proof:subject-full": {
-        dischargedBy: "T.A (cube --spin-energy bloom delete + amiga NaN/rotation cure)",
-        reason:
-            "rendered-region fullness: reds on the one-face cube (#1) and the bare-grid " +
-            "morph (#21). Supersedes the ≥3-distinct-transform / d-attr-mutation existence proxies.",
-    },
+    // (proof:subject-full DISCHARGED at batch ②′ — the cube leg flipped verified
+    //  with the T.A1 bloom-delete browser render check, the amiga leg with the
+    //  T.A6/T.A7 plain-vars + compositor cure (3833 visible ball pixels), and the
+    //  morph clause retired with the OD-1 prune at batch ①. The gate exits 0.)
     "proof:roster-ceiling": {
         dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
         reason:

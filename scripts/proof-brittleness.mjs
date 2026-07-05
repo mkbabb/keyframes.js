@@ -73,7 +73,13 @@ const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
 // CONVERTED (useResizeObserver), so it is not allowlisted; its sibling Three.js
 // present loop stays a proof:decomposition concern (rAF), out of clause 4's scope.
 const LISTENER_ALLOWLIST = new Set([
-    // (none — the demo listener/observer surface rides @vueuse/core entirely)
+    // T.A12 — Three.js OrbitControls "change" (render-on-demand dirty flag).
+    // OrbitControls is a THREE.EventDispatcher, NOT a DOM EventTarget: there is
+    // no window/element leak surface for vueuse to manage, and the subscription
+    // dies with the controls object itself (controls.dispose() on unmount,
+    // useAmigaThree.ts dispose()). A vueuse wrapper here would wrap a non-DOM
+    // emitter for no cleanup gain — allowlisted, not converted.
+    "demo/scenes/amiga/useAmigaThree.ts",
 ]);
 
 const failures = [];

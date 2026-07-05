@@ -138,18 +138,13 @@ const W11_EGGS = [
         note: "S2 — the orientation-coupled RE-LIT die: faces toward the pinned light brighten + catch a --lit specular as the cube orbits (rides useCubeRelit off the live transform, NO second rAF); the dblclick ROLL is the kept engine-dogfooded tumble",
         browser: { scene: "cube", host: ".cube", trigger: "dblclick", probe: "relit" },
     },
-    {
-        scene: "amiga",
-        files: ["scenes/amiga/AmigaScene.vue", "scenes/amiga/useAmigaDemo.ts"],
-        domMarker: /power-on|booting|amiga--boot|boot-sequence/,
-        dogfood: /AnimationGroup|Group|loadAnimationEngine|play\(\)/,
-        triggerFile: "scenes/amiga/AmigaScene.vue",
-        // Fires once on the IntersectionObserver re-entry — the trigger is the
-        // observer wiring, not a click.
-        trigger: /IntersectionObserver|power-on|booting|onEnter/,
-        note: "S3 — the once-on-enter power-on BOOT (flash → H-hold roll → 3 wall-slam Boing bounces) off the IntersectionObserver re-entry; PRM-snapped; the Boing AnimationGroup dogfooded",
-        browser: { scene: "amiga", host: ".amiga-canvas", trigger: "reenter", probe: "power-on|booting" },
-    },
+    // amiga — the S3 power-on BOOT arm is RE-CUT (T.A10, lane-18 lockstep): the
+    // once-on-enter boot flash (useAmigaBoot + .amiga-canvas--power-on + the
+    // IntersectionObserver re-arm) was an owner-ruled removal (#2/#8 genus —
+    // "remove all elements like this"); the Boing is now THE SCENE (T.A8, the
+    // transport plays the continuous group), not a boot egg. The gate KEY
+    // survives — it retires only when the LAST coupled instrument-egg is
+    // dispositioned (T.M7/T.E11).
     {
         scene: "square",
         files: ["scenes/square/useSquareDemo.ts"],
@@ -413,8 +408,8 @@ if (failures.length > 0) {
 console.log(
     "\nproof:design-refinement — PASS: every scene's NEW W11 instrument egg is wired " +
         "(a hidden trigger → an observable off-the-normal-path effect, each dogfooding a public " +
-        "engine primitive, none hand-rolling a rAF): home source-card · cube re-lit die · amiga " +
-        "power-on · square palette-sweep · easing trace-smear · spring four-lane derby · sequence " +
+        "engine primitive, none hand-rolling a rAF): home source-card · cube re-lit die · " +
+        "square palette-sweep · easing trace-smear · spring four-lane derby · sequence " +
         "lane-detonate.",
 );
 process.exit(0);
