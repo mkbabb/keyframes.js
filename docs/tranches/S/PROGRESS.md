@@ -246,6 +246,43 @@ Branch `tranche-s-dev` is the doc home (docs-only; no source/test/config/git edi
 mechanism = **letter + book** (letters travel with the registry event; books bind to named triggers,
 never gates; no RUN-BOARD). glass-ui stays a book, never a gate.
 
+## State of play (2026-07-04 — the T-pivot resume anchor; supersedes the 2026-07-03 anchor below for resume purposes)
+
+A compacted instance resumes HERE. **The S impl drive is 30/33 waves CLOSED on `tranche-s-impl` @
+`dee5aa6` (pushed; PR #4 the CI carrier)**: bands A/B/C/D/F/G/H fully landed incl. the keystone
+(CI cause-green; the target posture was REACHED), the SOTA surface (viewTransition ·
+compileToViewTransition · compileToEntry · the trigger driver, all oracle-proven), the R.W0
+override-Map retirement, the demo partition + stage contract, and **THE EXTERNAL SPINE EXECUTED
+END-TO-END** (parse-that 1.0.0 published at S.H4 → value.js **2.0.1** follow-on EXECUTED BY THE KF
+DRIVE per value.js's own R book (their session mid-S-dev; hand-back letter committed in their repo)
+→ S.C4/S2 consumed: the deletion map grep-zero, ^2.0.1, the KF-1 vector, PIN-LEDGER). Roster truth:
+83/85 green + visual-lock (observe-in-CI, recorded) + **drag-gesture = the ONE named BACKLOG carry
+→ Tranche T** (the G3 discharge missed one surface). REMAINING S: S.A3 (auto-deploy — now unblocked
+by the green demo-correctness posture) + S.Z1/Z2/Z3 — **the Z close is BLOCKED pending Tranche T
+dispositioning** (proof:prompt-recap-s requires OWNER-ASKS row 4 dispositioned).
+
+**THE PIVOT: the owner live-audited the demo (dev server :5180) and REJECTED it wholesale —
+2026-07-04.** The verbatim directive: `docs/tranches/T/audit/owner-review/ORIGINAL-PROMPT.md`
+(re-ingest it in full); the itemized 28-row catalogue: `VERDICT.md` (18 preserved shots). The
+directive: **Tranche T DEVELOPMENT (+ prototyping) ONLY** — the 32-agent audit of the S plan +
+everything landed + the live defects; Fable+frontend-design for ALL design; Opus/Sonnet fanout;
+batches of 3; chronic+deferred folds; the total prompt recap. THE META-FINDING T must encode: the
+instruments' bar ≠ the owner's bar (all-green gates + 100% critic convergence certified a rejected
+demo; the S.E-shelf lesson at full scale).
+
+**LIVE STATE a resumed instance must check:** (1) the 32-lane audit fleet — workflow
+`wf_66c7e419-23f` (task id at launch: wfjimxytm; scriptPath
+`~/.claude/projects/-Users-mkbabb-Programming-keyframes-js/10dfa2b9-2e44-4e6b-a6c5-b028a506ba71/workflows/scripts/tranche-t-audit-32-wf_66c7e419-23f.js`;
+resume via Workflow({scriptPath, resumeFromRunId:"wf_66c7e419-23f"}) if walled — completed lanes
+replay cached); lanes write `docs/tranches/T/audit/lanes/<id>.md`, 32 lanes 3-at-a-time, ~11
+chunks. (2) The dev server on :5180 (background; keep for owner audits). (3) The 2-hourly guarded
+RESUME cron. **NEXT after the fleet:** Fable synthesis over the 32 lane reports + VERDICT +
+ORIGINAL-PROMPT → the T corpus (docs/tranches/T/{T.md, PROGRESS.md, waves/, audit/}) with
+born-RED/born-OWNER gates, the S-residue fold (A3 + Z + drag-gesture + the S ledger's carries),
+design prototypes where the owner's bar demands live proof (the pass-3 pattern; owner-review-
+in-the-loop BEFORE folding design into waves — the S.E lesson), and the prompt-recap. NO
+implementation; NO landing on tranche-s-impl beyond docs/tranches/T/.
+
 ## Owner rulings (dispositioned at drive entry)
 
 Pre-booked at SPEC §6.3. Rulings 5-6 RATIFIED + executed 2026-07-03. **Rulings 1-4: resolved to
