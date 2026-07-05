@@ -268,7 +268,7 @@
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "@mkbabb/value.js": "^1.2.0"
+        "@mkbabb/value.js": "^2.0.1"
     },
     "optionalDependencies": {
         "@mkbabb/glass-ui": "~4.0.0"

@@ -3,26 +3,29 @@
     "tranche": "S",
     "schemaVersion": 1,
     "owningWave": "S.A0",
-    "recordedAt": "2026-07-03",
+    "recordedAt": "2026-07-04",
     "shipped": {
-        "$comment": "The pins the SHIPPED 5.1.0 keyframes.js declares + installs. `declared` is read from the LOCAL package.json (the pin spec); `installed` is read from node_modules/<pkg>/package.json (the resolved tree) + cross-checked against package-lock.json. The HARD clause reds on ANY drift from these. Source-of-record: package.json dependencies.@mkbabb/value.js (^1.2.0), package.json optionalDependencies.@mkbabb/glass-ui (~4.0.0); value.js 1.2.0's own dependencies declare parse-that ^0.13.0 (transitive).",
-        "self": { "name": "@mkbabb/keyframes.js", "version": "5.1.0" },
+        "$comment": "The pins the SHIPPED 5.1.0 keyframes.js declares + installs. `declared` is read from the LOCAL package.json (the pin spec); `installed` is read from node_modules/<pkg>/package.json (the resolved tree) + cross-checked against package-lock.json. The HARD clause reds on ANY drift from these. Source-of-record: package.json dependencies.@mkbabb/value.js (^2.0.1), package.json optionalDependencies.@mkbabb/glass-ui (~4.0.0); value.js 2.0.1's own dependencies declare parse-that ^1.0.0 (transitive).",
+        "self": {
+            "name": "@mkbabb/keyframes.js",
+            "version": "5.1.0"
+        },
         "pins": [
             {
                 "name": "@mkbabb/value.js",
-                "declared": "^1.2.0",
+                "declared": "^2.0.1",
                 "declaredIn": "dependencies",
-                "installed": "1.2.0",
+                "installed": "2.0.1",
                 "edge": "direct",
-                "note": "the caret pin — a future value.js 1.2.x is auto-consumed with NO re-pin observable until the next re-pin wave records it (the `target` row). This ledger makes that silent-consume an OBSERVABLE edge. The ^1.2.0 re-pin FIRED at Q.WG4 (the @function inlining + leaves-externalize + ColorChannelPlan SoA + if-multibranch consume); the value.js-2.0.x consume-edge is the named S.C4/S2 re-pin, un-fired until value.js publishes its 2.0.x follow-on."
+                "note": "the caret pin — the value.js-2.0.x consume-edge FIRED at S.C4/S2 (owner rulings 5+6, 2026-07-04): the SINGLE re-pin carrying BOTH payloads (KF-1 param-grammar fix + rename via 2.0.0; parse-that 1.0.0 via the 2.0.1 follow-on kf executed per the value.js R book). The normalizeParam/VJS_PARAM_BUG_MAX recovery apparatus is DELETED (the S7 lifecycle completed)."
             },
             {
                 "name": "@mkbabb/parse-that",
                 "declared": "^0.13.0",
                 "declaredIn": "transitive-via-value.js",
-                "installed": "0.13.0",
+                "installed": "1.0.0",
                 "edge": "transitive",
-                "note": "kf does NOT declare parse-that directly (the S9 dep removal — constellation IMPL drive); it arrives transitively through value.js 1.2.0's own `dependencies` (@mkbabb/parse-that ^0.13.0). The HARD clause asserts the INSTALLED transitive version only (kf declares no spec to drift)."
+                "note": "transitive via value.js 2.0.1 (^1.0.0) — the S.H4 cut (PACKRAT_ARMED arming; *Span surface deleted; chainError retired + the C-16 falsy-seed chain() fix) arrived through the single S.C4/S2 re-pin."
             },
             {
                 "name": "@mkbabb/glass-ui",

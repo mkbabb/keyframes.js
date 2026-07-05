@@ -103,9 +103,13 @@ function main() {
         const SHARED_COMPOSABLES = "demo/@/composables";
 
         // Every `use*Demo.ts` (the per-scene demo composable) must sit in a dir
-        // that ALSO holds a sibling `*Target.vue` — the colocation invariant (the
-        // Target + its composable live together). An orphan (a use*Demo with no
-        // sibling Target) is the manufactured-split the spec forbids.
+        // that ALSO holds a sibling `*Target.vue` OR `*Scene.vue` — the
+        // colocation invariant (the composable lives beside the surface it
+        // drives). The Scene-sibling arm is the FUSED-scene form (S.D4's C-17
+        // rename surfaced it: amiga/square render their subject INSIDE
+        // <Name>Scene.vue and never had a separate Target — manufacturing one
+        // would be exactly the manufactured-split the spec forbids). An orphan
+        // (a use*Demo with NEITHER sibling) still reds.
         const orphans = [];
         const sceneComposables = sources.filter((abs) =>
             /\/use[A-Za-z]+Demo\.ts$/.test(toPosix(abs)),
@@ -113,23 +117,23 @@ function main() {
         for (const abs of sceneComposables) {
             const dir = path.dirname(abs);
             const siblings = fs.readdirSync(dir);
-            const hasTarget = siblings.some((s) => /Target\.vue$/.test(s));
-            if (!hasTarget) {
+            const hasSurface = siblings.some((s) => /(?:Target|Scene)\.vue$/.test(s));
+            if (!hasSurface) {
                 orphans.push(relPosix(abs));
             }
         }
         if (orphans.length > 0) {
             failures.push(
                 `[colocate] ${orphans.length} \`use*Demo\` composable(s) filed ` +
-                    `WITHOUT a sibling \`*Target.vue\` in the same dir — a scene ` +
-                    `composable colocates with its Target (no orphan in a wrong ` +
+                    `WITHOUT a sibling \`*Target.vue\`/\`*Scene.vue\` in the same dir — a scene ` +
+                    `composable colocates with its driven surface (no orphan in a wrong ` +
                     `dir; H.W12.S3/I10). Orphans:\n      ` +
                     orphans.join("\n      "),
             );
         } else {
             console.log(
                 `  ✓ [colocate] all ${sceneComposables.length} use*Demo ` +
-                    `composables colocate with a sibling *Target.vue`,
+                    `composables colocate with a sibling *Target.vue/*Scene.vue`,
             );
         }
 

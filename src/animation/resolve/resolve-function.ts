@@ -19,20 +19,14 @@ import {
 import { DROP, type ResolveContext, type Resolved } from "./env";
 
 /**
- * R.W3 §2C — version assertion for the value.js 1.2.0 `@function` grammar bug.
- *
- * value.js ≤1.2.0 `extractFunctions` mislays `<syntax>` onto `name` and the
- * default onto `type` (`@function --f(--x <length>: 0px)` arrives as
- * `{ name: "--x <length>", type: "0px" }`). `normalizeParam` below compensates
- * with string-surgery. When value.js fixes `extractFunctions`, `normalizeParam`
- * must be DELETED and this assertion bumped — the build then fails loud at the
- * mis-recovered shape, rather than silently producing garbage.
- *
- * Dispatch: https://github.com/mkbabb/value.js (the B.1 exemplar in
- * docs/tranches/R/audit/lib-legacy-sweep.md). Follow the S7 lifecycle:
- * upstream fix → kf consume → DELETE normalizeParam + bump VJS_PARAM_BUG_MAX.
+ * S.C4/S2 (owner rulings 5+6, the value.js-2.0.0 consume-edge) — the R.W3 §2C
+ * recovery apparatus is DELETED. value.js 2.0.x fixed the `@function` param
+ * grammar at the source (KF-1: whitespace-split name/`<css-type>`, the default
+ * at the first depth-0 string-safe top-level colon; `type→syntax`,
+ * `defaultValue→default`), so `CustomFunctionParameter` arrives CLEAN and is
+ * threaded DIRECTLY — `.name`/`.syntax`/`.default` reads, no shim, no version
+ * assertion (the S7 lifecycle completed: upstream fix → consume → delete).
  */
-const VJS_PARAM_BUG_MAX = "1.2.0";
 
 /** The injected core node resolver (the recursion seam — `resolve/index.ts`). */
 export type ResolveNode = (
@@ -41,64 +35,13 @@ export type ResolveNode = (
 ) => Resolved<ValueUnit | FunctionValue>;
 
 /**
- * The dashed-ident + the registered `<syntax>` of an `@function` parameter,
- * normalized off the value.js `CustomFunctionParameter` shape. value.js 1.2.0's
- * `extractFunctions` does NOT cleanly split the typed-param grammar: it hands
- * `@function --f(--x <length>: 0px)` back as `{ name: "--x <length>", type:
- * "0px" }` — the `<syntax>` glued onto `name`, the DEFAULT mis-landed on `type`.
- * kf does NOT re-author value.js's `@function` grammar (inv-16); it READS the
- * descriptor value.js produced and splits the dashed-ident from the trailing
- * `<syntax>`, and reads the default from whichever field carries it.
- */
-interface NormalizedParam {
-    /** The `<dashed-ident>` the call binds positionally (e.g. `--x`). */
-    ident: string;
-    /** The registered `<syntax>` string (e.g. `<length>`), or `undefined`. */
-    syntax: string | undefined;
-    /** The optional default value VERBATIM (e.g. `0px`), or `undefined`. */
-    defaultValue: string | undefined;
-}
-
-/**
- * Normalize a `CustomFunctionParameter` into {@link NormalizedParam}. Splits the
- * value.js-glued `name` (`"--x <length>"`) into the dashed-ident + the `<syntax>`
- * tail, and recovers the default from `defaultValue` (a clean build) or `type`
- * (the 1.2.0 build mis-assigns the default there). A bare untyped param
- * (`{ name: "--x" }`) yields `{ ident: "--x", syntax: undefined, defaultValue }`.
- */
-const normalizeParam = (param: CustomFunctionParameter): NormalizedParam => {
-    const rawName = param.name.trim();
-    // The dashed-ident is the leading `--token`; an optional `<syntax>` tail
-    // (everything after the first whitespace) value.js glued onto `name`.
-    const ws = rawName.search(/\s/);
-    const ident = ws === -1 ? rawName : rawName.slice(0, ws);
-    const nameTail = ws === -1 ? "" : rawName.slice(ws).trim();
-    // A `<...>` syntax glued onto the name wins; else there is no declared syntax.
-    const syntax =
-        nameTail.startsWith("<") && nameTail.endsWith(">")
-            ? nameTail
-            : undefined;
-    // The default lives on `defaultValue` (a clean value.js build) OR on `type`
-    // (the 1.2.0 build mis-assigns the default-value string there). Prefer the
-    // explicit `defaultValue`; fall back to `type` only when it is NOT itself a
-    // `<syntax>` token (a `<length>` on `type` is a syntax, not a default).
-    const fromType =
-        param.type !== undefined &&
-        !(param.type.startsWith("<") && param.type.endsWith(">"))
-            ? param.type
-            : undefined;
-    const defaultValue = param.defaultValue ?? fromType;
-    return { ident, syntax, defaultValue };
-};
-
-/**
  * Coerce ONE bound call-arg against the param's registered `<syntax>` (the CSS
- * Functions & Mixins L1 typed-arg coercion). value.js 1.2.0 exposes
+ * Functions & Mixins L1 typed-arg coercion). value.js exposes
  * `coerceToSyntax(valueText, syntax)` on the resolve path EXACTLY for this consume
  * (inv-16 — kf consumes the validator, never re-authors a parallel checker).
  *
  * Returns the coerced node when the arg satisfies the syntax; otherwise the
- * re-parsed `defaultValue` (the spec fallback); otherwise `DROP` (a mismatched
+ * re-parsed `default` (the spec fallback); otherwise `DROP` (a mismatched
  * arg with NO default is a guaranteed-invalid call — never a NaN substitution).
  * When the param declares NO `<syntax>` (an untyped param), the arg passes
  * through as-is (presence-validate-only — there is nothing to coerce against).
@@ -110,7 +53,7 @@ const normalizeParam = (param: CustomFunctionParameter): NormalizedParam => {
  */
 const coerceArg = (
     arg: ValueUnit | FunctionValue,
-    param: NormalizedParam,
+    param: CustomFunctionParameter,
     diagnostics: ResolveContext["diagnostics"],
 ): Resolved<ValueUnit | FunctionValue> => {
     if (param.syntax === undefined) return arg;
@@ -118,18 +61,17 @@ const coerceArg = (
     if (coerced !== null) return coerced;
     // Type mismatch → the param default (re-parsed), never a spliced-in garbage
     // arg that would lerp to NaN. No default → guaranteed-invalid → DROP.
-    if (param.defaultValue === undefined) return DROP;
+    if (param.default === undefined) return DROP;
     try {
-        return parseCSSValue(param.defaultValue);
+        return parseCSSValue(param.default);
     } catch (err) {
-        // R.W3 §2C: surface the absorption — the default failed to parse
-        // (value.js 1.2.0 bug — see VJS_PARAM_BUG_MAX and normalizeParam).
+        // FAIL-EXPLICIT: a default the author wrote that does not parse is a
+        // surfaced absorption, never a silent drop (the generic arm — the
+        // 1.2.0 mis-assignment arm retired with the S2 consume).
         diagnostics?.push({
             code: "CUSTOM_FN_ARG_DROP",
-            property: param.ident,
-            message:
-                `--fn() arg coercion: default for ${param.ident} failed to parse ` +
-                `(value.js ≤${VJS_PARAM_BUG_MAX} bug — ${String(err)})`,
+            property: param.name,
+            message: `--fn() arg coercion: default for ${param.name} failed to parse (${String(err)})`,
         });
         return DROP;
     }
@@ -175,7 +117,7 @@ const substituteParams = (
  * (Q.WB2 — the CSS Functions & Mixins L1 call-inlining). The lowering: bind →
  * coerce → substitute → evaluate.
  *   - BIND each positional arg to the descriptor's parameters; a MISSING
- *     positional takes the param's `defaultValue` (re-parsed); a SURPLUS arg → DROP.
+ *     positional takes the param's `default` (re-parsed); a SURPLUS arg → DROP.
  *   - COERCE each bound arg through value.js's `coerceToSyntax` against the param's
  *     registered `<syntax>` (a mismatch falls back to the default; no default → DROP).
  *   - SUBSTITUTE each `var(--param)` in the descriptor's `result` with its bound value.
@@ -202,7 +144,7 @@ export const resolveFunctionCall = (
         return DROP;
     }
 
-    const params = (desc.parameters ?? []).map(normalizeParam);
+    const params = desc.parameters ?? [];
     const args = node.values;
 
     // A SURPLUS arg (more args than params) is a guaranteed-invalid call shape.
@@ -217,19 +159,18 @@ export const resolveFunctionCall = (
         if (arg === undefined) {
             // MISSING positional → the param default (re-parsed). No default →
             // guaranteed-invalid call → DROP.
-            if (param.defaultValue === undefined) return DROP;
+            if (param.default === undefined) return DROP;
             try {
-                bound = parseCSSValue(param.defaultValue);
+                bound = parseCSSValue(param.default);
             } catch (err) {
-                // R.W3 §2C: surface the absorption — missing-positional default
-                // failed to parse (value.js 1.2.0 bug — see VJS_PARAM_BUG_MAX).
+                // FAIL-EXPLICIT (the generic arm — the version-bug arm retired
+                // with the S2 consume).
                 ctx.diagnostics?.push({
                     code: "CUSTOM_FN_ARG_DROP",
-                    property: param.ident,
+                    property: param.name,
                     message:
-                        `--fn() missing-positional default for ${param.ident} ` +
-                        `failed to parse (value.js ≤${VJS_PARAM_BUG_MAX} bug — ` +
-                        `${String(err)})`,
+                        `--fn() missing-positional default for ${param.name} ` +
+                        `failed to parse (${String(err)})`,
                 });
                 return DROP;
             }
@@ -237,7 +178,7 @@ export const resolveFunctionCall = (
             bound = coerceArg(arg, param, ctx.diagnostics);
         }
         if (bound === DROP) return DROP;
-        binding.set(param.ident, bound);
+        binding.set(param.name, bound);
     }
 
     // SUBSTITUTE var(--param) refs into a CLONE of the shared result expression.

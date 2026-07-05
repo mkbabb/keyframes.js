@@ -1,0 +1,222 @@
+/* CubeTarget — the scene-target stylesheet (scoped via the SFC style block that
+   sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
+   component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
+   sourced-stylesheet precedent, S.D2/S.A0). */
+/* L.W11.S2 — register --lit (re-lit luminance) + --spin-energy (bloom) so they INTERPOLATE. */
+@property --lit {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0.5;
+}
+@property --spin-energy {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+}
+/* P.W5.S3 — the axis-lock reveal (@property --axis-active + the .axis-line
+   styles) lives in the colocated CubeAxisLines sub-unit, beside its markup. */
+
+.graph {
+    perspective: 1200px;
+}
+
+/* EASTER EGG — "the Roll" (H.W12.S6): while the die tumbles, the cube ignores
+   pointer input so a stray drag mid-roll cannot fight the spring; the engine
+   owns the rotation for the ~1s tumble, then hands control back. Isomorphic —
+   no visual change, just the gesture hand-off. */
+.cube--rolling {
+    pointer-events: none;
+}
+
+/* CSS twin of the engine's reduced-motion gate: the always-on idle bob runs
+   only when the user has not asked the OS to reduce motion. */
+@media (prefers-reduced-motion: no-preference) {
+    .idle-hover {
+        animation: idle-bob 3s var(--ease-standard) infinite alternate;
+    }
+    .idle-hover.playing {
+        animation: none;
+    }
+}
+@keyframes idle-bob {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(5px);
+    }
+}
+
+.cube {
+    --side-size: min(25vh, 25vw, 15rem);
+    --side-offset: calc(var(--side-size) / 2);
+    --rotationX: 360deg;
+
+    height: calc(var(--side-size) * 2);
+    contain: style;
+}
+
+/* G5 (transient will-change): the cube is the element that actually transforms
+   (the matrix/rotation animations + the OrbitalDrag container). Promote it to
+   its own compositor layer ONLY while it is moving — playing or hovered — and
+   drop the hint at rest, so an idle/off-screen cube holds no resident layer (a
+   resident `will-change` keeps the layer alive forever, the G5 anti-pattern).
+   The idle-bob is a 5px translate the compositor handles without the hint. */
+.idle-hover.playing .cube,
+.graph:hover .cube {
+    will-change: transform;
+}
+
+@media (max-width: 1023px) {
+    .cube {
+        --side-size: min(50vh, 50vw, 18rem);
+    }
+}
+
+.cube-side {
+    width: var(--side-size);
+    height: var(--side-size);
+    backface-visibility: hidden;
+    /* L.W11.S2 — smooth the per-face re-light between rotation ticks (the
+       registered @property --lit interpolates at the rotation cadence). */
+    transition: --lit 160ms linear;
+    /* G5: the faces carry a STATIC per-face transform (they never re-transform —
+       only the parent .cube/.idle-hover/OrbitalDrag container animates), so the
+       former resident `will-change: transform` here pinned six permanent
+       compositor layers for nothing. Dropped — the parent's transient hint
+       promotes the whole 3D subtree while it moves. */
+
+    &.front {
+        transform: rotateY(0deg) translateZ(var(--side-offset));
+    }
+    &.back {
+        transform: rotateY(180deg) translateZ(var(--side-offset));
+    }
+    &.top {
+        transform: rotateX(90deg) translateZ(var(--side-offset));
+    }
+    &.bottom {
+        transform: rotateX(-90deg) translateZ(var(--side-offset));
+    }
+    &.left {
+        transform: rotateY(-90deg) translateZ(var(--side-offset));
+    }
+    &.right {
+        transform: rotateY(90deg) translateZ(var(--side-offset));
+    }
+}
+
+/* L.W11.S2 — the lit-lacquer MATERIAL: a glossy lacquer read over the inline
+   crayon backgroundColor (LUMINANCE-only — proof:crayon-preserved unaffected). */
+.face-lacquer {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+    /* a fixed diagonal lacquer sheen over the crayon backgroundColor */
+    background-image: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.22) 0%,
+        rgba(255, 255, 255, 0) 38%,
+        rgba(0, 0, 0, 0.14) 100%
+    );
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.28),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* The re-lit overlay: highlight rises with --lit (face toward the light), shadow
+   veil deepens as it falls. The crayon is never recolored — only lit. */
+.face-relit {
+    border-radius: inherit;
+    background:
+        /* upper-right specular sweep, strengthening toward the light */
+        radial-gradient(
+            120% 120% at 78% 18%,
+            rgba(255, 255, 255, calc(0.05 + 0.5 * var(--lit, 0.5))) 0%,
+            rgba(255, 255, 255, 0) 52%
+        ),
+        /* a --background-tinted shadow veil that lifts as the face turns away */
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 46%), transparent) 0%,
+            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 62%), transparent) 100%
+        );
+}
+
+/* The face numeral rides the content plane (z off the named --z-* scale). */
+.face-numeral {
+    z-index: var(--z-content);
+}
+/* The drafting-stamp axis tag — Fira-Code annotation, muted axis register (FRAME). */
+.face-axis-tag {
+    right: 0.55rem;
+    bottom: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: clamp(0.6rem, 1.4cqi, 0.8rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--muted-foreground);
+    opacity: 0.62;
+    font-feature-settings: "tnum";
+    z-index: var(--z-content);
+}
+
+/* --spin-energy bloom + drop-shadow: the kept physics made VISIBLE — grows with
+   live angular motion + the roll flash, bleeds off via the transition. PRM-gated. */
+.cube--relit {
+    transition:
+        filter 240ms var(--ease-standard),
+        --spin-energy 220ms var(--ease-standard);
+}
+@media (prefers-reduced-motion: no-preference) {
+    .cube--relit {
+        filter: drop-shadow(
+            0 calc(2px + var(--spin-energy, 0) * 10px)
+                calc(6px + var(--spin-energy, 0) * 22px)
+                color-mix(in srgb, var(--color-progress) calc(18% + var(--spin-energy, 0) * 34%), transparent)
+        );
+    }
+    .cube--relit::after {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        z-index: var(--z-behind);
+        border-radius: 50%;
+        pointer-events: none;
+        background: radial-gradient(
+            circle at 50% 50%,
+            color-mix(in srgb, var(--color-progress) calc(var(--spin-energy, 0) * 22%), transparent) 0%,
+            transparent 62%
+        );
+        opacity: var(--spin-energy, 0);
+        transition: opacity 240ms var(--ease-standard);
+    }
+}
+
+/* the live attitude readout chip — bottom-left; .readout-accent + tnum. L.W11 —
+   value DEEPENED toward --foreground for WCAG AA (--accent-red TOKEN untouched). */
+.cube-attitude {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    z-index: var(--z-content);
+    font-family: var(--font-mono);
+    font-size: clamp(0.62rem, 1.3cqi, 0.78rem);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    font-feature-settings: "tnum";
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, var(--foreground));
+}
+.cube-attitude__axis {
+    color: var(--muted-foreground);
+    margin-inline: 0.15em 0.1em;
+}
+@media (max-width: 1023px) {
+    .cube-attitude {
+        left: 0.5rem;
+        bottom: 0.5rem;
+        font-size: var(--type-micro);
+    }
+}

@@ -169,8 +169,11 @@ requireAll("coerce", RESOLVE, [
         re: /coerceToSyntax\(String\(arg\),\s*param\.syntax\)/,
     },
     {
-        name: "a coercion miss falls back to the param defaultValue (the CSS Mixins L1 fallback, never a NaN substitution)",
-        re: /coerceArg[\s\S]*?param\.defaultValue\b/,
+        // S.C4/S2 — the field is `.default` since the value.js 2.0.x consume
+        // (the KF-1 rename `defaultValue→default`; the shim-era anchor followed
+        // the code to the clean direct read).
+        name: "a coercion miss falls back to the param default (the CSS Mixins L1 fallback, never a NaN substitution)",
+        re: /coerceArg[\s\S]*?param\.default\b/,
     },
 ]);
 

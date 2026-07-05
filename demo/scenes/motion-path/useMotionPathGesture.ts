@@ -1,4 +1,5 @@
-import { onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
+import { onMounted, ref, watch, type Ref } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 
 import { kfEngine } from "@utils/kfEngine";
 import { ManualTimeline } from "@mkbabb/keyframes.js";
@@ -124,15 +125,9 @@ export function useMotionPathGesture(
     };
 
     // Track the stage size so the traveller re-scales on every resize (rotate,
-    // sheet open, breakpoint). Disconnected on unmount.
-    let stageResizeObserver: ResizeObserver | undefined;
-    const observeStageResize = (): void => {
-        const stage = stageEl.value;
-        if (!stage || typeof ResizeObserver === "undefined") return;
-        stageResizeObserver = new ResizeObserver(() => writeTravellerPath());
-        stageResizeObserver.observe(stage);
-    };
-    onBeforeUnmount(() => stageResizeObserver?.disconnect());
+    // sheet open, breakpoint) — on @vueuse's useResizeObserver (the inv-ζ
+    // listener discipline: scope-disposed cleanup, no manual disconnect).
+    useResizeObserver(stageEl, () => writeTravellerPath());
 
     // ── The tangent at a [0,1] distance — two nearby getPointAtLength samples ─
     const computeTangent = (ratio: number): number => {
@@ -167,7 +162,6 @@ export function useMotionPathGesture(
         // guide (not a 0..VIEW px path that escapes a sub-VIEW stage), then observe
         // the stage so it re-scales on every resize.
         writeTravellerPath();
-        observeStageResize();
         remeasure();
         tangentDeg.value = computeTangent(distance.value);
 

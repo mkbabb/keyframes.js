@@ -81,6 +81,31 @@ const templateValueString = (
 };
 
 describe("Q.WB2 — emerging-css-resolve-fn (@function call-inlining)", () => {
+    // ── S.C4/S2 — THE KF-1 RUNTIME VECTOR (owner ruling 5; the value.js-2.0.x
+    //    consume-edge gate clause). The spec-form typed param with a default —
+    //    `--f(--x <length>: 0px)` — must arrive from value.js's extractFunctions
+    //    as the CLEAN split {name:"--x", syntax:"<length>", default:"0px"}
+    //    (value.js ≤1.2.0 mis-split it as {name:"--x <length>", type:"0px"} —
+    //    the shim kf deleted at S2 compensated for exactly that). The vector
+    //    exercises BOTH clean fields end-to-end: the MISSING positional takes
+    //    the parsed default (0px), and a syntax-mismatched arg falls back to it.
+    it("KF-1: --f(--x <length>: 0px) — the clean typed-param split rides the resolve path (missing positional → the 0px default)", () => {
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            "@function --f(--x <length>: 0px) { result: calc(var(--x) + 10px); }\n" +
+                "@keyframes z {\n" +
+                "  0% { width: --f(); }\n" +
+                "  100% { width: 200px; }\n" +
+                "}",
+        );
+        const v = compiledValueString(anim, "width");
+        // The call token is GONE and the default (0px) was substituted — the
+        // clean `.default` field parsed and bound (a mis-split 1.2.0-shaped
+        // descriptor would have DROPped the frame: no recoverable default).
+        expect(v).toBeDefined();
+        expect(v).not.toContain("--f(");
+        expect(v).toContain("0px");
+    });
+
     // ── inline-evaluates (KEYSTONE): --double(50px) → calc(50px * 2) ─────────
     it("inlines a registered @function call: --double(50px) substitutes var(--x)→50px and drops the call token", () => {
         const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
