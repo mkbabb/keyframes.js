@@ -262,6 +262,12 @@ const EXCLUDED = new Set([
     // clause 11: a declared-backlog gate rides CI as a recorded tripwire, never a
     // blocking &&-chain member (T.S1 fold — the batch-① EXCLUDED miss).
     "proof:visual-lock",
+    // T.S3 — the two value.js upstream-owned tripwires (KF-7 collision-rename +
+    // the 2.0.1 self-dependency phantom). Born-RED today; discharged EXTERNALLY
+    // (value.js renames PropertyDescriptor / a re-pin drops the nested self-dep).
+    // Recorded tripwires, never blocking &&-chain members (clause 11).
+    "proof:no-collision-rename",
+    "proof:no-nested-self-dependency",
 ]);
 
 const gates = Object.keys(pkg.scripts)

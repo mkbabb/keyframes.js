@@ -62,6 +62,16 @@
                     { "id": "BG-9", "side": "glass-ui docs", "acceptanceGate": "GAP: docs ask, non-blocking (the demo already drives progress)", "retires": "— (docs ask)", "gap": "—" },
                     { "id": "BG-10", "side": "glass-ui", "acceptanceGate": "GAP: additive ToggleChip cell preview slot", "retires": "— (additive component ask)", "gap": "—" }
                 ]
+            },
+            {
+                "name": "@mkbabb/value.js",
+                "target": "^3.0.0",
+                "firesOn": "value.js 3.0.0 is registry `latest` (dist-tags.latest=3.0.0 confirmed 2026-07-05). A MAJOR bump — the actual re-pin is a DEDICATED, isolated motion (fresh clone / npm ci), NOT executed in the T.S3 worktree (whose node_modules symlinks the shared install; an in-worktree `npm install` would corrupt sibling lanes).",
+                "consumes": "the value.js self-dependency-phantom fix (3.0.0 drops `@mkbabb/value.js` from its own deps — greens proof:no-nested-self-dependency). Does NOT discharge KF-7 (3.0.0 STILL exports PropertyDescriptor un-renamed — proof:no-collision-rename stays RED until value.js publishes the CSSPropertyDescriptor rename).",
+                "rePinWave": "T.Z or a dedicated re-pin motion",
+                "dispatchDoc": "docs/tranches/T/KF-TO-VALUEJS-T.md",
+                "executionContract": "re-pin ONLY IF (a) adopt-event watch confirms dist-tags.latest ≥ 3.0.0 (it does) AND (b) the full library gate set stays green after: proof:library-correctness + proof:boundary + build + vitest. The courtesy letter says the kf-consumed surface is unchanged (resolveEasing convergence book) — VERIFY it; if anything reds, revert the pin and record this row GATED with the failing evidence.",
+                "status": "TARGET (gated, not executed T.S3)"
             }
         ]
     }
