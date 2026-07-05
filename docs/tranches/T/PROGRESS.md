@@ -69,3 +69,12 @@
   motion path unless you can convince me otherwise" — the FUSE case presented once; PRUNE
   executes absent a reversal). OD-4/5/6 pending the live prototype review
   (:5181/:5182/:5183 vs :5180, all verified LIVE).
+- **2026-07-05** — **ALL OD TOKENS LANDED + THE CORPUS RATIFIED** (OWNER-ASKS row 2,
+  verbatim): OD-1 PRUNE FINAL · OD-2 Aurora AMENDED more-subtle · OD-3 KEEP · OD-4
+  APPROVED · OD-5 APPROVED-DIRECTION (+2 named reworks: the controls composition; the
+  top-left curve preview "improved dramatically" — born-OWNER riders on T.B4/T.B6/T.D) ·
+  OD-6 APPROVED. Every born-OWNER design oracle now has its reference (the P-HERO /
+  P-PANEL / P-THEME branches are the blessed baselines; P-HERO's aurora setting is a
+  CEILING per the amendment). **T = DEVELOPED + RATIFIED. IMPL EXPLICITLY HELD** ("Do not
+  begin dev yet"). Standing: the 4 servers stay live for reference; the S.Z close remains
+  queued behind the T impl drive (T.S band).
