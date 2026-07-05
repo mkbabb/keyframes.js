@@ -235,6 +235,8 @@
         "proof:easing-curve-editor": "node scripts/proof-easing-curve-editor.mjs",
         "proof:amiga-decay-visible": "node scripts/proof-amiga-decay-visible.mjs",
         "proof:no-cross-realm-cast": "node scripts/proof-no-cross-realm-cast.mjs",
+        "proof:no-collision-rename": "node scripts/proof-no-collision-rename.mjs",
+        "proof:no-nested-self-dependency": "node scripts/proof-no-nested-self-dependency.mjs",
         "proof:color-soa": "node scripts/proof-color-soa.mjs",
         "proof:glassui-aria-ask": "node scripts/proof-glassui-aria-ask.mjs",
         "proof:no-dead-dependency": "node scripts/proof-no-dead-dependency.mjs",

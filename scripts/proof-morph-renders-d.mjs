@@ -36,6 +36,13 @@
  *       the morph is WAAPI-ineligible by construction (always the rAF path where
  *       the renderer fires). BITE: a target-bearing morph that kept the default
  *       renderer (would never write --morph-d) reds.
+ *   attr-at-rest (T.A14) — a target-bearing morph built with autoPlay:false and
+ *       NO frame seeded (no interpFrames call) still carries a NON-EMPTY, parseable
+ *       `from` path on the target's `d` ATTRIBUTE (the browser's bbox area > 0 at
+ *       rest — the subject paints with NO live engine write). BITE: revert the
+ *       build-time setAttribute("d", from) seed → the attribute is absent → the
+ *       at-rest subject blanks (shot-17 invisible-at-rest class) → reds. NEVER
+ *       green by re-seeding a frame — the point is rest-WITHOUT-a-write.
  *
  * Mirrors proof:morphsvg-consume — exits 1 on any residual.
  */
@@ -67,9 +74,31 @@ if (typeof eng.fromMorphSVG !== "function") {
   process.exit(0);
 }
 
-// A structural style-write target — captures the per-frame renderer's writes.
+// A structural style-write target — captures the per-frame renderer's writes
+// AND the T.A14 build-time attribute seed (setAttribute/getAttribute).
 const writes = {};
-const target = { style: { setProperty(k, v) { writes[k] = v; } } };
+const attrs = {};
+const target = {
+  style: { setProperty(k, v) { writes[k] = v; } },
+  setAttribute(name, value) { attrs[name] = value; },
+  getAttribute(name) { return name in attrs ? attrs[name] : null; },
+};
+
+// T.A14 attr-at-rest — a SEPARATE target built with NO frame seed: the d
+// ATTRIBUTE must carry the from-shape at rest, with the per-frame CSS channel
+// untouched (the shot-17 invisible-at-rest cure — rest paints WITHOUT a write).
+const restWrites = {};
+const restAttrs = {};
+const restTarget = {
+  style: { setProperty(k, v) { restWrites[k] = v; } },
+  setAttribute(name, value) { restAttrs[name] = value; },
+  getAttribute(name) { return name in restAttrs ? restAttrs[name] : null; },
+};
+eng.fromMorphSVG(TRIANGLE, SQUARE, { samples: 24, autoPlay: false, target: restTarget });
+const restD = restTarget.getAttribute("d");
+const restAttrValid = typeof restD === "string" && /^M [\\d.-]+ [\\d.-]+/.test(restD);
+const restNoLiveWrite =
+  restWrites["--morph-d"] === undefined && restWrites["d"] === undefined;
 
 const anim = eng.fromMorphSVG(TRIANGLE, SQUARE, { samples: 24, autoPlay: false, target });
 // Drive ONE apply frame at mid-t — the engine invokes the custom renderer.
@@ -94,6 +123,9 @@ console.log(JSON.stringify({
   morphDDistinct: morphD !== dFrom && morphD !== dTo,
   waapiIneligible: usesDefault === false,
   morphDHead: typeof morphD === "string" ? morphD.slice(0, 36) : null,
+  restAttrValid,
+  restNoLiveWrite,
+  restDHead: typeof restD === "string" ? restD.slice(0, 36) : null,
 }));
 `;
 
@@ -165,6 +197,19 @@ try {
                 fail(
                     "waapi-ineligible",
                     `a target-bearing morph kept the DEFAULT DOM-style renderer (usesDefaultRenderer true) — it would delegate to WAAPI and NEVER write --morph-d.`,
+                );
+            }
+            // attr-at-rest (T.A14)
+            if (r.restAttrValid && r.restNoLiveWrite) {
+                ok(
+                    "attr-at-rest",
+                    `a target-bearing morph seeds the from-shape on the target's d ATTRIBUTE at build ("${r.restDHead}…") with the per-frame CSS channel untouched at rest — the subject paints WITHOUT a live engine write`,
+                );
+            } else {
+                fail(
+                    "attr-at-rest",
+                    `the at-rest attribute seed is MISSING (attr-valid=${r.restAttrValid}, no-live-write=${r.restNoLiveWrite}) — ` +
+                        `a target-bearing morph must write the from-path to the target's d ATTRIBUTE at BUILD time so it paints at rest with no frame write (the shot-17 invisible-at-rest failure class). NEVER green by seeding a frame.`,
                 );
             }
         }

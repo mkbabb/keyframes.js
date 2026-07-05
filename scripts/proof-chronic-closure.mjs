@@ -169,15 +169,31 @@ const PROOF_ALL = SCRIPTS["proof:all"] ?? "";
 // severity re-taxonomy). A chronic closes via a RUNTIME gate that BIT, which lives
 // in the demo-correctness tier; retarget here in lockstep with the rename (T7).
 const PROOF_CORRECTNESS = SCRIPTS["proof:demo-correctness"] ?? "";
+// T.S1 (lane 27 F2) — the S.A4 taxonomy is THREE tiers, not one. The pre-fix
+// tier-check consulted ONLY proof:demo-correctness, so every LIBRARY-side and
+// HYGIENE-side chronic (proof:compile-replay/boundary/zero-alloc/decomposition/…)
+// that runs+passes live got the false "NOT in the DEMO-CORRECTNESS tier" +
+// (paired) "NOT a RUNTIME gate" flag — 26 of 52 rows were this category error
+// (they were NEVER meant to be browser-actuated). Bind all three tier chains.
+const PROOF_LIBRARY = SCRIPTS["proof:library-correctness"] ?? "";
+const PROOF_HYGIENE_CHAIN = SCRIPTS["proof:hygiene-chain"] ?? "";
 
 const resolves = (gate) => Object.prototype.hasOwnProperty.call(SCRIPTS, gate);
 const inChain = (chain, gate) =>
     new RegExp(`\\brun ${gate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(chain);
 const inProofAll = (gate) => inChain(PROOF_ALL, gate);
-// A gate satisfies the CORRECTNESS tier iff it runs in proof:demo-correctness (the
-// S.A4-renamed actuating tier; or, if no sub-aggregator exists, directly in proof:all).
-const inCorrectnessTier = (gate) =>
+// The DEMO (browser-actuating) tier — the one that DEMANDS a runtime gate.
+const inDemoTier = (gate) =>
     PROOF_CORRECTNESS ? inChain(PROOF_CORRECTNESS, gate) : inProofAll(gate);
+// The SOURCE-shape correctness tiers — library-correctness + hygiene-chain. A
+// gate here is a legitimate NON-browser closure (a source/compile/boundary
+// oracle), EXEMPT from the browser-RUNTIME requirement by construction.
+const inSourceTier = (gate) =>
+    inChain(PROOF_LIBRARY, gate) || inChain(PROOF_HYGIENE_CHAIN, gate);
+// A gate satisfies the CORRECTNESS taxonomy iff it runs in ANY of the three
+// S.A4 tiers (demo-correctness ∪ library-correctness ∪ hygiene-chain); the
+// proof:all fallback stands only when no sub-aggregator exists.
+const inCorrectnessTier = (gate) => inDemoTier(gate) || inSourceTier(gate);
 
 // ── The RUNTIME-gate detection (S4 rule 3) — routed through the ONE lib-aware
 //    authority (scripts/lib/gate-shape.mjs), the SAME detector proof:gate-is-
@@ -566,14 +582,18 @@ function auditRow(row, srcLabel) {
                 continue;
             }
             if (!inCorrectnessTier(g)) {
-                fail(`[${name}] closure gate \`${g}\` resolves but is NOT in the DEMO-CORRECTNESS tier of proof:all (proof:demo-correctness — the S.A4-renamed actuating tier) — a chronic must close via a CORRECTNESS gate that runs, not a hygiene/orphan one. Wire it into proof:demo-correctness.`);
+                fail(`[${name}] closure gate \`${g}\` resolves but is NOT in ANY S.A4 correctness tier (proof:demo-correctness ∪ proof:library-correctness ∪ proof:hygiene-chain) — a chronic must close via a CORRECTNESS gate that runs, not an orphan one. Wire it into the tier matching its shape.`);
             }
-            // (3) THE S4 CORE — the cited gate must be a RUNTIME gate that actuates.
+            // (3) THE S4 CORE — a DEMO-tier (browser-interaction) chronic must close
+            // via a RUNTIME gate that actuates. But a LIBRARY/HYGIENE source-shape
+            // chronic (compile/boundary/decomposition/…) closes via a source oracle
+            // by construction — it was NEVER meant to open a browser (T.S1 lane 27
+            // F2). Exempt source-tier gates from the browser-runtime requirement.
             const rt = isRuntimeGate(g);
-            if (!rt.runtime) {
-                fail(`[${name}] closure gate \`${g}\` is NOT a RUNTIME/INTERACTION gate (${rt.why}) — a chronic exits ONLY via a gate that opens a browser AND drives the live interaction the chronic lives in. A source-shape / load-rest / proxy gate cannot close a chronic (S4 rule 3; the keystone fix).`);
-            } else {
+            if (rt.runtime) {
                 runtimeGates.push(g);
+            } else if (!inSourceTier(g)) {
+                fail(`[${name}] closure gate \`${g}\` is NOT a RUNTIME/INTERACTION gate (${rt.why}) AND is NOT a source-tier (library-correctness/hygiene-chain) gate — a browser-interaction chronic exits ONLY via a gate that opens a browser AND drives the live interaction it lives in; a source-shape closure is legitimate ONLY when the gate runs in a source tier (S4 rule 3; the keystone fix + the T.S1 tier-aware exemption).`);
             }
         }
         // (4) BORN-RED — a non-RE-AFFIRM runtime-closing row that cites a gate must

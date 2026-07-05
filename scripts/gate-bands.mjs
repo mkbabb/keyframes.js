@@ -416,4 +416,28 @@ export const T_BORNRED_BACKLOG = {
             "since the S-era capture). Correctness corroborators verified green first: " +
             "occlusion, mobile-single-page, live-session, scene-control-dfa.",
     },
+    "proof:no-collision-rename": {
+        dischargedBy:
+            "value.js renames the exported PropertyDescriptor → a collision-free name " +
+            "(e.g. CSSPropertyDescriptor) [EXTERNAL] + kf re-points its import + Map<…> types",
+        reason:
+            "KF-7 (T.S3 / lane 27 F5): value.js exports a type `PropertyDescriptor` that " +
+            "collides with the ambient DOM global, so API-Extractor mangles it into kf's " +
+            "PUBLISHED dist/keyframes.d.ts as `PropertyDescriptor_2` (verified live at :11/:814/" +
+            ":2732). value.js 2.0.1 AND 3.0.0 still export it un-renamed; the gate greens the " +
+            "instant value.js renames it and kf re-points (the adopt-event watch gates the re-point). " +
+            "See docs/tranches/T/KF-TO-VALUEJS-T.md.",
+    },
+    "proof:no-nested-self-dependency": {
+        dischargedBy:
+            "value.js drops the self-dependency from its own package.json (3.0.0 already " +
+            "does) [EXTERNAL] + kf re-points to that version (npm then dedupes to ONE copy)",
+        reason:
+            "the value.js self-dependency phantom (T.S3 / lane 27 F6): value.js@2.0.1's own " +
+            "deps carry `@mkbabb/value.js`, so npm cannot dedupe it against itself and every " +
+            "npm ci nests a stale value.js 1.2.0 + parse-that 0.13.0 inside kf's node_modules " +
+            "(verified live in package-lock.json). value.js 3.0.0 DROPS the self-dep — the gate " +
+            "greens once kf re-points to a value.js whose lockfile no longer nests a self/duplicate " +
+            "@mkbabb install. See docs/tranches/T/KF-TO-VALUEJS-T.md.",
+    },
 };
