@@ -65,6 +65,15 @@ export function installedGlassUiVersion() {
  *   dockDropdownPointerdown — BG-4 (NEW, T.H2): `DockDropdownTrigger` opens on
  *                             pointerdown (parity with `DockSelectTrigger`), so the
  *                             press-scale reflow no longer strands the click.
+ *   drawerDetentInset       — BG-11 (NEW, T.H3): a DETENTED live-behind `Drawer`
+ *                             gains a bottom-reserve token
+ *                             (`--drawer-inset-block-end`) + a max-detent-height CAP,
+ *                             so a full detent no longer forces height:100%/bottom:0
+ *                             over the bottom menubar band. Today the consumed
+ *                             `dist/styles/drawer.css` snap-points selector is
+ *                             `height:100%; max-height:100%` with NO inset lever →
+ *                             false → the T.H3 Drawer swap stays HELD (the occlusion
+ *                             cure would regress); flips true when the cure ships.
  *
  * The two EXISTING caps (ariaGuard / dockStrandKeepalive) are moved here VERBATIM
  * from proof-workaround-deletion.mjs — the single-source hoist, byte-for-byte the
@@ -73,6 +82,7 @@ export function installedGlassUiVersion() {
 export function computeGlassCaps() {
     const tabsDist = distFile("tabs.js");
     const dockDist = distFile("dock.js");
+    const drawerCss = distFile("styles/drawer.css");
 
     // ariaGuard — an `aria-orientation` PROP-BIND whose value carries a
     // role-conditional `: void 0`/`: undefined`/`: null` else arm (present ONLY
@@ -144,11 +154,38 @@ export function computeGlassCaps() {
         );
     })();
 
+    // drawerDetentInset (BG-11, NEW) — the cure gives a DETENTED live-behind
+    // Drawer a bottom-reserve lever + a genuine max-detent cap. Its structural
+    // signature: the drawer stylesheet declares the proposed
+    // `--drawer-inset-block-end` token AND the detented (snap-points) selector no
+    // longer fills the viewport unconditionally — its `max-height` is CAPPED
+    // (references calc/min/clamp/var or the inset token) rather than a bare
+    // `100%`/`100vh`. The installed 4.0.1 drawer.css forces
+    // `.glass-drawer[data-glass-drawer-snap-points="true"] { height:100%;
+    // max-height:100% }` with `bottom:0` and NO inset token (VERIFIED) → false →
+    // the T.H3 tripwire is vacuously green today (the bespoke sheet is still the
+    // occlusion-correct choice), flips the instant the cure lands.
+    const drawerDetentInset = (() => {
+        if (!drawerCss) return false;
+        const tokenPresent = /--drawer-inset-block-end/.test(drawerCss);
+        // Isolate the detented (snap-points) rule block and read its max-height.
+        const m = drawerCss.match(
+            /\.glass-drawer\[data-glass-drawer-snap-points\s*=\s*["']true["']\]\s*\{([\s\S]*?)\}/,
+        );
+        const detentBlock = m ? m[1] : "";
+        const maxH = (detentBlock.match(/max-height\s*:\s*([^;]+);/) || [])[1] || "";
+        const detentCapped =
+            /calc\(|min\(|clamp\(|var\(|--drawer-inset-block-end/.test(maxH) &&
+            !/^\s*(?:100%|100vh|100dvh|none)\s*$/.test(maxH);
+        return tokenPresent && detentCapped;
+    })();
+
     return {
         ariaGuard,
         dockStrandKeepalive,
         dockDismissHold,
         dockDropdownPointerdown,
+        drawerDetentInset,
     };
 }
 

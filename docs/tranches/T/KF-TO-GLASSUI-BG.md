@@ -27,7 +27,7 @@
 
 ---
 
-## §0 The ask roster (twelve asks + one retired duplicate)
+## §0 The ask roster (thirteen asks + one retired duplicate)
 
 | id | side | ask (one line) | kf acceptance gate (born-RED, flips on re-pin) | kf workaround retired | owning T-wave (lands the gate) |
 |---|---|---|---|---|---|
@@ -44,12 +44,16 @@
 | **BG-8** | glass-ui | `EasingPicker` **named-catalogue coverage beyond bezier/steps** — the demo's **bounce family** is not expressible as one cubic-bezier, so it stays kf-owned (the gallery is the scene's, the bezier/steps editor is `EasingPicker`'s); an extensible named-curve catalogue closes the gap (lane 05 F6) | delineated GAP (`EasingPicker` consumed as the sole editor; the bounce family kf-owned until covered) — no born-RED flip, a forward consumption note | — (a NAMED gap; the bounce catalogue stays kf-side, not a workaround) | **T.E8** (consumer) / **T.H2** (letter) |
 | **BG-9** | glass-ui docs | An **externally-driven-`progress` example** in `EasingPicker` docs — the demo drives the picker's `progress` ref from the scene sweep; a documented pattern makes the consume idiomatic (lane 05 F6) | delineated GAP (docs ask, non-blocking; the demo already drives `progress` — the example de-risks the consume) | — (docs ask, no workaround) | **T.E8** (consumer) / **T.H2** (letter) |
 | **BG-10** | glass-ui | `ToggleChip variant="cell"` with a **live-animating preview slot** — preset chips that render a live curve/ball preview inside the cell (lane 05 F6; T.B6 consumes `ToggleChip variant="cell"` for presets) | delineated GAP (additive slot on an existing component; the demo consumes `ToggleChip cell` today without the preview slot) | — (additive component ask, no workaround) | **T.E8** (consumer) / **T.H2** (letter) |
+| **BG-11** | glass-ui | A DETENTED live-behind `Drawer` needs a **bottom-reserve token** (proposed `--drawer-inset-block-end`) + a **max-detent-height cap** — a full detent must NOT force `height:100%`/`bottom:0` over the bottom menubar band (the T.H3 batch-④ Drawer finding) | `proof:glass-ui-gap-tripwire` (the `drawerDetentInset` arm: cap satisfied ∧ the bespoke peek/half/full sheet survives ⇒ RED — the T.H3 swap becomes safe + overdue) | the bespoke `ControlsPaneWrapper` sheet host + `useSheetGesture`/`useSheetSpring`/`useSheetState`/`SheetGrabHandle` (the T.H3 swap deletes ~350L on publish) | **T.H3** (disposition) / **T.H2** (letter) |
 | ~~BG-2~~ | — | **RETIRED — duplicate.** Lane 20 §4's "BG-2 (re-issue GU-Q2, dock collapse-crossfade keepalive)" is the SAME defect as **GU-4** / Q's GU-Q2 (`glassCaps.dockStrandKeepalive`, already an arm in `proof:workaround-deletion` S2). Do **NOT** re-number a second ask here. | — | — | — |
 
-**Breaking-ness.** GU-1..4, BG-1, BG-4, BG-5, BG-6, BG-7, BG-9 are **non-breaking** (guards that
-OMIT a prohibited attribute, additive props, opt-in modes, a token default, a docs example).
-**BG-3, BG-8, BG-10** are **additive** (a new opt-in axis / an extensible catalogue / an additive
-preview slot on an existing component). A single BG/BH cut can ship them. **BG-8/BG-9/BG-10 are the
+**Breaking-ness.** GU-1..4, BG-1, BG-4, BG-5, BG-6, BG-7, BG-9, BG-11 are **non-breaking** (guards
+that OMIT a prohibited attribute, additive props, opt-in modes, a token default, a docs example, a
+NEW token + a cap the default keeps at `100%`). **BG-3, BG-8, BG-10** are **additive** (a new opt-in
+axis / an extensible catalogue / an additive preview slot on an existing component). A single BG/BH
+cut can ship them. **BG-11** is the T.H3 disposition: the demo does NOT adopt `Drawer
+mode="live-behind"` for the mobile sheet YET — the detented geometry regresses the occlusion cure —
+so the swap is HELD behind the token (the tripwire executes it on publish). **BG-8/BG-9/BG-10 are the
 easing-picker consumption asks** (lane 05 F6, routed from T.E8) — forward-looking, non-blocking; the
 demo consumes `EasingPicker` today with the bounce family kf-owned.
 
@@ -75,6 +79,7 @@ prior tranche numbered overlapping asks independently; the reconciliation:
 | BG-8 EasingPicker named-catalogue | — | — | — | (no cap — a component-catalogue ask) | from lane 05 F6 (routed via T.E8) |
 | BG-9 external-`progress` docs | — | — | — | (no cap — a docs ask) | from lane 05 F6 (routed via T.E8) |
 | BG-10 `ToggleChip cell` preview slot | — | — | — | (no cap — an additive-slot ask) | from lane 05 F6 (routed via T.E8) |
+| BG-11 drawer detent bottom-inset | — | (§2b Drawer) | — | `glassCaps.drawerDetentInset` (new cap) | the T.H3 batch-④ Drawer finding — HOLD the swap until the token ships |
 
 **Cap-name discipline (do NOT fragment the probe).** GU-4's defect already has a coded cap —
 `glassCaps.dockStrandKeepalive` in `scripts/proof-workaround-deletion.mjs:255`. Lane 08/T.C6
@@ -297,11 +302,71 @@ internal composable** (`proof:cursor-light-no-sync-layout`, T.D13, is the recurr
 
 ---
 
+### BG-11 — a detented live-behind Drawer covers the bottom menubar band (the T.H3 finding)
+
+**The context (T.H3, lane 20 rec 1).** glass-ui 4.0.1 ALREADY ships the exact
+`Drawer mode="live-behind"` peek/half/full bottom sheet the demo hand-rolls in ~350L
+(`ControlsPaneWrapper` host + `useSheetGesture`/`useSheetSpring`/`useSheetState` + `SheetGrabHandle`
++ the sheet half of `ControlsPaneWrapper.css`), and it drives `--glass-drawer-t` off kf's OWN
+`SpringProgress` (the dogfood is preserved transitively). T.H3 is the big pure-consumption win —
+delete the bespoke sheet, adopt `<Drawer>`.
+
+**The defect, in the CONSUMED dist (VERIFIED — `dist/styles/drawer.css`).** A DETENTED (multi-snap)
+Drawer is forced to fill the viewport at any snap:
+```css
+.glass-drawer {               /* :50-53 — the base sheet */
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;                /* pinned to the viewport bottom */
+    …
+    max-height: 97vh;
+    margin-top: 6rem;
+}
+.glass-drawer[data-glass-drawer-snap-points="true"] {   /* :134-137 — the detented case */
+    height: 100%;
+    max-height: 100%;
+    margin-top: 0;
+}
+```
+The house engine positions the sheet by translating it `(1 - --glass-drawer-t) * 100%` along its
+drag axis (`DrawerContent.vue`), so a snap fraction reads as that fraction OF THE VIEWPORT ONLY when
+the sheet fills height — hence the detented selector's `height:100%; max-height:100%`. Its FULL
+detent therefore covers the whole viewport (`bottom:0` → top of screen), overlapping the bottom
+menubar band at ANY snap. There is **NO blessed prop** that provides a bottom-inset or a max-detent
+cap (the census found `mode`/`direction`/`snapPoints`, none a geometry lever).
+
+**Why the swap is HELD (the occlusion regression).** kf's mobile sheet carries an owner-VERIFIED
+occlusion cure: a **52dvh stage-reserve**, a sheet that is **≤70dvh (never full-height)** and
+**never occludes the bottom menubar** (`useSheetState` detents are both ≤70dvh — VERIFIED). Adopting
+the detented Drawer as-is would REGRESS that cure — the full detent is `height:100%` over the
+menubar. So the T.H3 swap is **HELD** until BG-11: the bespoke sheet stays the occlusion-correct
+choice, and the version tripwire (`glassCaps.drawerDetentInset`) EXECUTES the swap the instant the
+lever ships.
+
+**glass-ui deliverable.** For a detented live-behind sheet: a **bottom-reserve token** (proposed
+`--drawer-inset-block-end`, default `0` so the current look is unchanged) that insets the sheet's
+bottom edge, AND a **max-detent-height cap** (the full detent resolves to `calc(100% -
+var(--drawer-inset-block-end))` / a `min(…)` cap rather than a bare `100%`), so a consumer can
+reserve the bottom menubar band without abandoning the snap ladder or the `--glass-drawer-t` spring
+dogfood.
+
+**kf acceptance + retire.** `proof:glass-ui-gap-tripwire`'s `drawerDetentInset` arm
+(`demo/glass-ui-gaps.ts`): the cap is a dist-content probe over `dist/styles/drawer.css` (the token
+present ∧ the snap-points selector's `max-height` genuinely capped — not `100%`). Cap satisfied ∧
+the bespoke sheet still present ⇒ RED — the T.H3 swap is now safe + overdue; kf deletes the ~350L of
+bespoke gesture/spring/state + the sheet CSS and mounts `<Drawer mode="live-behind"
+direction="bottom">` with the bottom reserve. **Vacuously green today** (4.0.1 ships no lever). The
+geometry DECISION — HOLD-the-cure (recommended) vs ADOPT-full-height-Drawer — is owner-open:
+`docs/tranches/T/verdicts/T.H3.md` (PENDING-OWNER); the owner flips it at review if they prefer the
+Drawer's full-detent geometry over the reserved-inset occlusion cure.
+
+---
+
 ## §5 The pin/version state at this dispatch
 
 | package | declared (`package.json`) | installed | this letter |
 |---|---|---|---|
-| `@mkbabb/glass-ui` | `~4.0.0` (`:274`) | **4.0.1** | GU-1..4, BG-1/3/4/5/6/7 all target the BG/BH cut |
+| `@mkbabb/glass-ui` | `~4.0.0` (`:274`) | **4.0.1** | GU-1..4, BG-1/3/4/5/6/7 + BG-8/9/10 + **BG-11** all target the BG/BH cut |
 | `@mkbabb/value.js` | `^2.0.1` (`:271`) | 2.0.1 | (unaffected — value.js asks are T.S's letter) |
 
 `docs/tranches/Q/PIN-LEDGER.json` already records the glass-ui TARGET frontier
@@ -332,10 +397,12 @@ oracle-bound in both directions.
 ## §7 INFORM (the DAG + the delete edges glass-ui must know)
 
 ```
-glass-ui BG/BH publish (GU-1..4, BG-1/3/4/5/6/7; USER-DOMAIN cut)
+glass-ui BG/BH publish (GU-1..4, BG-1/3/4/5/6/7 + BG-11; USER-DOMAIN cut)
    ─► kf re-pin (T.H2 pin-ledger TARGET → shipped)
       ─► kf S1/S2 workaround delete (proof:workaround-deletion PENDING→GREEN)
       ─► kf KfPillTabs / usePlayActuation / MbabbMenu-synthesis excision (T.H6/T.H7, GATED)
+      ─► kf Drawer swap: bespoke sheet DELETED (~350L) → <Drawer mode="live-behind"> (T.H3,
+         proof:glass-ui-gap-tripwire drawerDetentInset arm)
       ─► kf dock-render gates flip (proof:dock-rest-crisp / -morph-continuity, T.C5)
       ─► kf perf gate flips (proof:blur-not-resampled, T.G1)
       ─► kf type gate flips (proof:demo-fonts v3 weight, T.D2)
