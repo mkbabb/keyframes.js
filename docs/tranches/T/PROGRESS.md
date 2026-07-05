@@ -78,3 +78,40 @@
   CEILING per the amendment). **T = DEVELOPED + RATIFIED. IMPL EXPLICITLY HELD** ("Do not
   begin dev yet"). Standing: the 4 servers stay live for reference; the S.Z close remains
   queued behind the T impl drive (T.S band).
+
+## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
+
+**AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
+post-compaction.** Everything needed to open the drive without re-derivation:
+
+1. **Branch + phase 0**: create `tranche-t-impl` off `tranche-s-impl` (tip `701fb47`+);
+   flip this board's bands to IN-DRIVE as they open; draft PR onto master (the CI carrier,
+   the S pattern). The S board is closed history; S.Z rides T.S.
+2. **The DAG (T.md §2)**: T.M (mechanism, FIRST — its born-OWNER instruments gate every
+   wave-close) ∥ T.E (prune early — compose + morph + motion-path DELETE per OD-1 PRUNE
+   FINAL; removals with lockstep gate-rewires) ∥ T.H (dispatch KF-TO-GLASSUI-BG.md to the
+   glass-ui session; land the kf acceptance gates born-RED now). Then T.A → T.B → T.C ∥
+   T.D; T.F after E+B settle the survivor set; T.G measures the final surface; T.S
+   parallel throughout (it unblocks S.Z = tasks #292/#297); T.Z last.
+3. **Orchestration (T.md §5)**: Fable = orchestration/design/synthesis; Opus/Sonnet =
+   fan-out; batches of 3 worktree agents; EVERY batch prompt carries merge-tranche-t-impl-
+   first + the arming-audit clause + path-anchored-gate greps + the SFC+sibling-.css rule;
+   the orchestrator independently re-runs every claimed gate (T4/T5), merges, boards,
+   pushes per batch. Wall recovery: committed salvage → merge → edit the persisted script
+   → relaunch scriptPath+resumeFromRunId. Guard cron a202e1af (2-hourly at :23) is armed
+   with exactly this recipe.
+4. **The blessed references (born-OWNER baselines)**: kept worktrees
+   `worktree-wf_1e744f4d-2bb-1` (P-HERO — aurora at 0.15 = the CEILING; OD-2 demands MORE
+   SUBTLE), `-2` (P-PANEL — OD-5 riders: the controls composition REWORK + the top-left
+   curve preview improved DRAMATICALLY, both born-OWNER mid-drive re-reviews), `-3`
+   (P-THEME — approved as-is). Waves may graft prototype code but land production-grade
+   with gates + lockstep. NEVER purge these three worktrees in wall-recovery cleanup.
+5. **Environment**: dev servers :5180 (baseline) / :5181/:5182/:5183 (prototypes) were
+   live at compaction — respawn on demand post-compaction (`npx vite --port NNNN
+   --strictPort`, prototype ports cd into their worktree first). KF_PLAYWRIGHT_DIR=
+   /Users/mkbabb/Programming/glass-ui for all browser gates. Build: `npm run build &&
+   npm run gh-pages`. Test-count clause: re-derive, never trust a frozen number.
+6. **Binding tokens**: OWNER-DECISIONS.md — OD-1 PRUNE FINAL · OD-2 AURORA MORE-SUBTLE ·
+   OD-3 KEEP ppmycota · OD-4 APPROVED · OD-5 APPROVED+2 riders · OD-6 APPROVED. The GRAND
+   COLOCATION EDICT (OWNER-ASKS row 1) = T.F's 23 waves. OWNER-ASKS rows 1-3 all
+   dispositioned; `proof:prompt-recap-t` teeth arm in T.M.
