@@ -126,6 +126,32 @@
   ci-coverage version-literal→T.S1). glass-ui is mid-BG (dirty tree) — the letter
   dispatch rests on kf's shipped copy per the write-boundary; the BG session consumes.
 
+- **2026-07-05 — BATCH ② HIT THE WALL; SALVAGE MERGED (T4/T5).** Fleet `wf_66940164-6e2`
+  died on the session limit (reset 9:10am ET) with 1/3 lanes reporting. **Salvage
+  (committed work only, drive lesson 4):** the amiga lane landed **T.A6** (`efcb244` —
+  `compile/plain-vars.ts`: the plain-vars projection, BOTH consumer paths, zero-alloc
+  held, 5/5 unit oracle + full library-gate re-verification) and deferred A7–A12 as one
+  coupled rebuild with resume recipes; the T.S lane landed **T.A14** (MorphSVG
+  attribute-first + writes-suppressed oracle), **T.S4** (DM-22 de-deferred — the
+  resolution EXISTS at bindTimeline; comment retired), **T.S1-partial** (tier-check fix
+  + the ci.yml stale-literal fix → `proof:ci-coverage` FULLY GREEN first time;
+  chronic-closure 52→3 residuals), **T.S3** (KF-TO-VALUEJS-T.md letter + 2 born-RED
+  tripwires registered in the backlog; pin still ^2.0.1 — the gated 3.0.0 evaluation
+  is remainder), **T.S6** (deploy auto-path mechanism, firing gated on T.M); the cube
+  lane died empty. **Merge composition:** ONE real cross-lane integration fault found
+  by the merged-tree suite — MorphSVG's transform still unwrapped array-boxed
+  ValueUnits under T.A6's plain-vars contract → aligned to plain numbers
+  (fail-explicit kept); visual-lock un-ledgered from RETIREMENT_LEDGER (the
+  either-retired-or-greened model clause — T.M3 owns the terminal call);
+  chronic-closure registered in the backlog (discharge: rows 69→T.A13+T.B3,
+  71→T.H5/T.F16, 72→ratify). Merged tree: tsc clean, 1035/1052 tests, builds green,
+  ci-coverage/retirement-ledger/prompt-recap-t/board-live/pin-ledger/morph-renders-d/
+  zero-alloc/boundary/amiga-browser-pair all green (decay-visible's batched-loop
+  exit-1 was startup contention — isolation re-run PASS). **Remainder relaunched**
+  (post-reset): cube T.A1–A5 (full) ∥ amiga A7–A12 (coupled rebuild) ∥ T.S remainder
+  (S1 residual triage, S2 drag-gesture, S5 backfill, S7 row-4 transfer, S3 pin
+  evaluation).
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
