@@ -1,6 +1,7 @@
 <template>
     <div
         ref="menubarHostEl"
+        data-dock-tether="bottom"
         :class="[
             'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
             'fixed left-0 right-0 z-dock',

@@ -448,12 +448,21 @@
            TOP edge + the φ /4 gap; the bottom transport tethers its bottom edge
            to the stage cell's BOTTOM edge + the φ /φ gap. Both clamp to the card
            (which is itself clamped), so the docks hug the content card on a
-           cinema display by geometric construction, not by a capped offset. */
-        .z-dock:has(> .pointer-events-auto) {
+           cinema display by geometric construction, not by a capped offset.
+
+           T.E4 — the tether keys on an EXPLICIT opt-in attribute on the two real
+           dock bands (`[data-dock-tether="top|bottom"]`), NOT a `:has()` structural
+           test on a generic `.z-dock` utility class. The former
+           `.z-dock:has(> .pointer-events-auto)` fired on ANY `.z-dock` with a
+           `pointer-events-auto` child — which the pruned compose AssetViewport
+           also was, re-tethering it off `inset-0` and collapsing the asset layer
+           to height 0. No layout/position rule may key on a `z-*`/`pointer-events-*`
+           utility class (proof:brittleness enforces this). */
+        [data-dock-tether="top"] {
             position-anchor: --stage;
             top: calc(anchor(--stage top) + var(--dock-margin) / 4);
         }
-        .menubar-safe-pb.z-dock {
+        [data-dock-tether="bottom"] {
             position-anchor: --stage;
             top: auto;
             bottom: calc(anchor(--stage bottom) + var(--dock-margin) / var(--phi));

@@ -185,6 +185,7 @@ watch(isAnyOpen, (open) => {
 
 <template>
     <div
+        data-dock-tether="top"
         class="fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
