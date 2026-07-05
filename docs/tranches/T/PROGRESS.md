@@ -231,6 +231,30 @@
   decision recorded PENDING-OWNER, hold-the-cure recommended) + T.C5 (GU-1/GU-2
   born-RED acceptance gates) + T.B10 (the ordered transport-action model).
 
+- **2026-07-05 — BATCH ④′ MERGED + VERIFIED (T4/T5) @ `3125936`+.** Fleet
+  `wf_b977ef4e-a08`, 3/3. **T.B1-α LANDED**: the additive SceneFacility descriptor;
+  cube/amiga/square expose facility from REAL group members; SEQUENCE OFF THE DECOY
+  (its useContractAnimGroup call site deleted; transport rides facility.playback,
+  live-session S5 verified); the shell binding prefers facility; transport labels
+  derive from channels; proof:scene-facility split honestly — clause (a) 8/8 GREEN,
+  clause (b) decoy-zero born-RED (dischargedBy the batch-⑤ T.B1-β/T.B7 joint
+  motion). **T.D CORE LANDED (Fable, OD-6 packet FILLED with "Good.")**: T.D7 the
+  red-kill + ONE violet oklch authority (--accent-kf light-dark ramp grafted from
+  P-THEME; new BLOCKING OWNER oracle proof:accent-census — ~2,230 rendered
+  paints/theme, zero red outside destructive); T.D2 honest weight
+  (font-synthesis:none + BG-6 @layer); T.D3 Jakarta body (system-stack pin +
+  .dock-label serif force DELETED); T.D4 mono→data; T.D1 the style-TUPLE census
+  REWRITTEN over the committed font-roles.json manifest; the arming-audit re-cut
+  suffusion/ribbon/crayon probes; visual-lock re-captured on-theme. **T.H3 →
+  GATED-ON-PUBLISH**: BG-11 authored (drawer bottom-reserve + max-detent cap,
+  dist-css evidence) + drawerDetentInset cap/tripwire; the geometry decision
+  PENDING-OWNER (hold-the-cure recommended). **T.C5 LANDED born-RED MEASURED**
+  (dock-rest-crisp blur(3px) + morph-continuity jump-cut, OWNER+blocking-not-
+  OBSERVE, dischargedBy GU-1/GU-2 publish). **T.B10 LANDED** (actions model GREEN;
+  the play-first RENDER clause born-RED dischargedBy T.C1). Merge: ci-coverage +
+  gate-authority unions; 1037 tests; the batch-⑤ running order = T.B1-β/B7/B2/B5-model
+  ∥ T.D hero (Fable, P-HERO) ∥ T.C dock recut (consumes the B5 contract + B10).
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
