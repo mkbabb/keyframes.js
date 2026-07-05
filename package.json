@@ -138,6 +138,7 @@
         "proof:fsm-suspend-resume-live": "node scripts/proof-fsm-suspend-resume-live.mjs",
         "proof:visual-lock": "node scripts/proof-visual-lock.mjs",
         "proof:browser": "node scripts/proof-browser.mjs",
+        "proof:scene-facility": "node scripts/proof-scene-facility.mjs",
         "proof:scene-machine-irrefragable": "node scripts/proof-scene-machine-irrefragable.mjs",
         "proof:drawer-spring": "node scripts/proof-drawer-spring.mjs",
         "proof:panel-naked-rail": "node scripts/proof-panel-naked-rail.mjs",
