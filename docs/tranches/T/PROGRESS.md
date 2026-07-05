@@ -49,3 +49,18 @@
   OWNER-DECISIONS (OD-1..7), SYNTHESIS-INDEX 206/206 covered, 3 harden reports.
   PROTOTYPE PHASE OPENED: P-HERO (OD-4+OD-2), P-PANEL (OD-5), P-THEME (OD-6) — one batch of 3
   Fable+frontend-design worktree agents; kept branches; captures → audit/prototypes/.
+- **2026-07-05** — **PROTOTYPES COMPLETE + SERVED** (`wf_1e744f4d-2bb`: 3/3 Fable lanes, 0
+  errors). Review board (baseline :5180 = the current rejected tree):
+  · **P-HERO** (OD-4+OD-2) → http://localhost:5181 — `#/` the ink-on-graph-paper hero
+    (per-char wave, φ-band seat, honest 400 ink, serif deck, egg excised, play-first);
+    `/?light=1#/` the Aurora cursor-light fork. Branch `worktree-wf_1e744f4d-2bb-1` @ 88bde55.
+  · **P-PANEL** (OD-5) → http://localhost:5182 — `#/square` the honest triad returns (Play
+    tours ±90px/360°, knobs govern paint), pane deleted → two floating GlassPanels, docks
+    elide, stage stripped, teal tether. Branch `worktree-wf_1e744f4d-2bb-2` @ 031fd1e.
+  · **P-THEME** (OD-6) → http://localhost:5183 — sitewide faux-bold kill + Jakarta body +
+    mono demotion + ONE violet oklch authority (red → destructive-only). Branch
+    `worktree-wf_1e744f4d-2bb-3` @ cc3e64d.
+  Captures + PROTO-NOTES committed per-branch under docs/tranches/T/audit/prototypes/.
+  AWAITING OWNER TOKENS: OD-1 (svg fuse-vs-prune), OD-2 (Aurora vs remove), OD-3 (ppMode),
+  OD-4/5/6 (the served prototypes). Tokens land in OWNER-DECISIONS.md; per T.M's mechanism
+  they unlock the born-OWNER design-wave oracles. T development is otherwise COMPLETE.
