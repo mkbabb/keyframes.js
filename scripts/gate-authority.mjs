@@ -190,6 +190,16 @@ export const GATE_AUTHORITY = {
     // lesson of the T.G band (every existing perf instrument was neutered to OBSERVE).
     // Born-RED today; a recorded T_BORNRED_BACKLOG tripwire (not the OBSERVE bucket).
     "proof:perf-counters": "OWNER",
+    // T.G9 (lighthouse-mobile, the mobile half of the perceived bar) — its OWNER
+    // flip is DEFERRED, not dropped: the gate rides demo-roster OBSERVE_GATES today
+    // (bucket 3 — the lighthouse binary is absent in CI), and flipping it to OWNER
+    // while it sits in the OBSERVE bucket would red T.M6.2 with no calibrated runner
+    // to make it actually blocking. The T-open born-RED baseline is COMMITTED
+    // (scripts/baselines/lighthouse-mobile-t-open.json) and its integrity clause is
+    // device-independent + always-on; the OWNER flip dischargedBy the calibrated
+    // runner provisioning (T.G9 lockstep → T.Z/T.S deploy-of-record) + the mobile
+    // perf cure lifting every scene to its B floor. Recorded here so the deferral is
+    // explicit, not a silent drop.
     // (proof:owner-golden lands with T.A/T.D renders — its OWNER row is added then)
 
     // ── INSTRUMENT authority (correctness facts; may NOT stand as the appearance bar) ──

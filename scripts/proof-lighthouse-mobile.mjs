@@ -124,6 +124,81 @@ const SPRING_LCP_BOUND_S = 15;
 
 const VIEWPORT = { name: "mobile", width: 375, height: 667 };
 
+// ── T.G9 — the committed T-open BEFORE baseline (lane 32 T-PERF-C) ────────────
+// The measured baseline nobody accumulated: run hard, every scene misses its
+// mobile ceiling (FAIL 6). This artifact is that committed fact — a board-
+// reconcilable record (T.M9), not a re-derivable transcript curiosity. The
+// `baseline-below-floor` clause below is DEVICE-INDEPENDENT (a pure JSON integrity
+// check) and runs EVERYWHERE — even when the browser/lighthouse binary is
+// withheld locally — so the T-open born-RED state cannot silently drift from the
+// gate's floors (change SCENE_CEILINGS without updating the artifact → RED). It
+// is a GREEN assertion (the record correctly captures the red); the actual
+// mobile-perf red rides KF_REQUIRE_LH on a calibrated runner (still the infra
+// dependency — T.G9 lockstep). A structural mismatch here is HARD everywhere (an
+// artifact-integrity fact, not the device-dependent perf measurement).
+const T_OPEN_BASELINE = path.join(REPO, "scripts/baselines/lighthouse-mobile-t-open.json");
+
+function assertTOpenBaseline() {
+    const failures = [];
+    if (!fs.existsSync(T_OPEN_BASELINE)) {
+        failures.push(
+            `the committed T-open baseline artifact is absent at ` +
+                `scripts/baselines/lighthouse-mobile-t-open.json (T.G9 — the measured BEFORE ` +
+                `must be a committed fact, not a transcript curiosity).`,
+        );
+        return failures;
+    }
+    let baseline;
+    try {
+        baseline = JSON.parse(fs.readFileSync(T_OPEN_BASELINE, "utf8"));
+    } catch (e) {
+        failures.push(`the T-open baseline is not valid JSON: ${e.message}`);
+        return failures;
+    }
+    const scenes = baseline.scenes ?? {};
+    // (a) every ceilinged scene has a baseline row whose floor matches the gate's
+    //     SCENE_CEILINGS (keep the committed record in lockstep with the floors).
+    for (const [key, floor] of Object.entries(SCENE_CEILINGS)) {
+        const row = scenes[key];
+        if (!row) {
+            failures.push(`the T-open baseline omits scene "${key}" (a ceilinged scene must be recorded).`);
+            continue;
+        }
+        if (row.floor !== floor) {
+            failures.push(
+                `the T-open baseline's "${key}" floor (${row.floor}) drifted from the gate's ` +
+                    `SCENE_CEILINGS (${floor}) — update the artifact WITH the floor change.`,
+            );
+        }
+    }
+    // (b) the T-open state is BORN-RED: every scene either below its floor or (for
+    //     spring, which clears Perf) over its LCP bound. If the record ever shows
+    //     the whole roster GREEN it is either a stale artifact or the perf was
+    //     restored — either way the born-RED baseline must be re-cut deliberately.
+    const anyRed = Object.values(scenes).some(
+        (r) => r && (r.belowFloor === true || r.lcpOverBound === true),
+    );
+    if (!anyRed) {
+        failures.push(
+            `the T-open baseline records NO scene below floor / over LCP bound — a born-RED ` +
+                `BEFORE baseline must capture the god-awful state (VERDICT #19); re-cut it ` +
+                `deliberately if mobile perf was genuinely restored.`,
+        );
+    }
+    if (failures.length === 0) {
+        const below = Object.entries(scenes)
+            .filter(([, r]) => r.belowFloor || r.lcpOverBound)
+            .map(([k]) => k);
+        console.log(
+            `  ✓ baseline-below-floor (T.G9) — the committed T-open baseline ` +
+                `(${baseline._capturedAtCommit ?? "?"}) is consistent with the gate floors and ` +
+                `records the born-RED BEFORE (${baseline.verdict ?? "?"}: ${below.join(", ")} ` +
+                `below floor / over LCP bound). The mobile half of VERDICT #19 is a committed fact.`,
+        );
+    }
+    return failures;
+}
+
 function resolveLighthouse() {
     const root = process.env.KF_LIGHTHOUSE_DIR ?? REPO;
     const requireFrom = createRequire(path.join(root, "package.json"));
@@ -157,6 +232,20 @@ function lcpSeconds(lhr) {
 }
 
 async function main() {
+    // The committed-baseline integrity clause runs FIRST and DEVICE-INDEPENDENTLY
+    // (a pure JSON check — no browser). A mismatch is HARD everywhere (an
+    // artifact-integrity fact, not the throttled perf measurement), so it reds
+    // even in the withheld/observe environments the perf measurement can't bite in.
+    const baselineFailures = assertTOpenBaseline();
+    if (baselineFailures.length > 0) {
+        console.error(
+            `proof:lighthouse-mobile — FAIL (${baselineFailures.length}): the committed T-open ` +
+                `baseline is inconsistent (T.G9 — a device-independent artifact-integrity miss):`,
+        );
+        for (const f of baselineFailures) console.error(`  ✗ ${f}`);
+        process.exit(1);
+    }
+
     if (DO_BUILD) {
         console.log("proof:lighthouse-mobile — building dist/gh-pages (npm run gh-pages)…");
         const r = spawnSync("npm", ["run", "gh-pages"], {
