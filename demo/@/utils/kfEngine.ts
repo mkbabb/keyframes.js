@@ -54,6 +54,3 @@ export const kfEngine = (): AnimationEngine => {
     }
     return resolved;
 };
-
-/** Whether the heavy engine surface has resolved (for null-tolerant callers). */
-export const kfEngineReady = (): boolean => resolved !== null;

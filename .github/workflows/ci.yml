@@ -220,6 +220,10 @@ jobs:
               run: npm run proof:no-orphan-module
             - name: proof:no-dead-dependency (S.C3a — the 8 zero-importer shadcn devDeps + SPRING_SMOOTH denylist, the dead-identifier grep; the shadcn census clause is NON-GATING, discharged at S.C3b)
               run: npm run proof:no-dead-dependency
+            - name: proof:no-dead-export (T.F23a — the demo export-census; a named demo export with zero consumer across demo/src/test/scripts, the granularity no-orphan-module (file) + no-dead-dependency (package) miss; ratchets the deferred backlog DOWN)
+              run: npm run proof:no-dead-export
+            - name: proof:any-ceiling (T.F23b — the demo `any`-count ratchet; the count may only fall, a fresh `any` REDs)
+              run: npm run proof:any-ceiling
             - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
               run: npm run proof:zero-alloc
             # F.W2 — the library-scoped engine/correctness gates the workflow

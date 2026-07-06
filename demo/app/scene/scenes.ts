@@ -57,7 +57,9 @@ type SceneLoader = () => Promise<unknown>;
  * `storyboard` keep their content card. UNKNOWN/home falls back to `subject`
  * (the conservative full-bleed default for the cube backdrop landing).
  */
-export type StageMode = "subject" | "editor" | "storyboard";
+// Internal-only (T.F23a un-export): consumed solely by this module's
+// SceneDescriptor.stageMode + STAGE_MODES record; no external importer.
+type StageMode = "subject" | "editor" | "storyboard";
 
 export interface SceneDescriptor {
     id: string;

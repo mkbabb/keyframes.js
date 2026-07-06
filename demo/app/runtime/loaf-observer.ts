@@ -11,7 +11,9 @@
  * Baseline); feature-detected so every other engine no-ops.
  */
 
-export interface LoAFRecord {
+// Internal-only (T.F23a un-export): the window.__kfLoaf buffer shape, consumed
+// solely within this observer; no external importer.
+interface LoAFRecord {
     /** Entry start time (ms, performance clock). */
     ts: number;
     /** Total frame duration (ms). */
