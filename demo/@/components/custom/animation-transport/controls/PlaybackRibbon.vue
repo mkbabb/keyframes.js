@@ -12,7 +12,7 @@
                     variant="timeline"
                     class="p-2"
                     :min="0"
-                    :max="animation.options.duration"
+                    :max="effectiveDuration"
                     :model-value="[currentT]"
                     @update:model-value="(val: any) => scrubTo(val[0])"
                 />
@@ -64,6 +64,7 @@
         </div>
 
         <AnimationVisualizer
+            v-if="animation"
             :class="['w-full', !isAnimStarted ? 'is-disabled' : '']"
             :animation="animation"
             :is-playing="isAnimPlaying"
@@ -80,6 +81,7 @@
 // shared across this ribbon and the scene play buttons.
 import "./playback-button.css";
 
+import { computed } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
@@ -88,13 +90,30 @@ import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 
-const { animation } = defineProps<{
-    animation: KeyframesAnimation<any>;
+const { animation, source } = defineProps<{
+    // T.B1-β STAGE 1 — the ribbon is CHANNEL-capable: its time source is EITHER
+    // the selected channel's painting `animation` (the engine-clocked path —
+    // scrubs emit `sliderUpdate`, the visualizer twin mounts) OR a progress-
+    // scalar `source` (`progress()`/`setProgress()` — a light channel; scrubs
+    // seat the scalar directly, no visualizer twin). At least one is required.
+    animation?: KeyframesAnimation<any>;
+    source?: {
+        progress(): number;
+        setProgress(t: number): void;
+        /** The scrub scale (ms). Defaults to 1 (a normalized [0,1] rail). */
+        duration?: number;
+    };
     currentT: number;
     isAnimPlaying: boolean;
     isAnimStarted: boolean;
     userReversed: boolean;
 }>();
+
+/** The scrub rail's scale: the animation clock when present, else the
+ *  source's declared duration (1 ⇒ a normalized [0,1] rail). */
+const effectiveDuration = computed(
+    () => animation?.options.duration ?? source?.duration ?? 1,
+);
 
 const emit = defineEmits<{
     (e: "scrubStart"): void;
@@ -155,18 +174,25 @@ const gatedSliderDown = (e: PointerEvent) => {
 };
 
 const scrubTo = (effectiveT: number) => {
-    const rawT = animation.reversed
-        ? animation.options.duration - effectiveT
-        : effectiveT;
+    if (animation) {
+        const rawT = animation.reversed
+            ? animation.options.duration - effectiveT
+            : effectiveT;
 
-    // Playback is always group-owned now (H.W1): the scrub routes a
-    // `sliderUpdate` through the group, which `setChildTime`s just this
-    // animation. The old SOLO branch (poke `animation.t`/`interpFrames`
-    // directly) is DELETED with the SOLO authority.
-    emit("sliderUpdate", {
-        t: rawT,
-        animation,
-    });
+        // Playback is always group-owned now (H.W1): the scrub routes a
+        // `sliderUpdate` through the group/channel seam, which seats just this
+        // animation. The old SOLO branch (poke `animation.t`/`interpFrames`
+        // directly) is DELETED with the SOLO authority.
+        emit("sliderUpdate", {
+            t: rawT,
+            animation,
+        });
+    } else if (source) {
+        // The progress-scalar path (a light channel): seat the normalized
+        // playhead through the channel's own round-trip.
+        const dur = effectiveDuration.value;
+        source.setProgress(dur > 0 ? effectiveT / dur : 0);
+    }
 
     // Re-arm any idled sync loop.
     emit("scrubbed");

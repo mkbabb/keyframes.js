@@ -18,6 +18,7 @@
         <ControlsPaneWrapper
             v-if="hasControlSurfaces"
             :animation-group="animationGroup"
+            :channels="channels"
             :stored-controls="storedControls"
             :hide-controls="hideControls"
             :stage-mode="stageMode"
@@ -127,19 +128,21 @@ import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
 import TransportDock from "./TransportDock.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";
-import type { AnimationGroup } from "@mkbabb/keyframes.js";
+import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
+import type { TransportChannel } from "./transportSource";
 import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
 import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 
-const { superKey, animationGroup, channelNames, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs, machinePlaying } = defineProps<{
+const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs, machinePlaying } = defineProps<{
     animationGroup: AnimationGroup<any>;
-    // T.B1 STAGE 1 — the active scene's `SceneFacility.channels` names. When
-    // present, they ARE the transport-select labels (the honest channel set);
+    // T.B1-β STAGE 1 — the active scene's `SceneFacility.channels`. When
+    // present, they ARE the transport axis (select labels, host mounts, the
+    // selection/validation set, the scrub round-trip — the honest channel set);
     // `undefined` falls back to the group's animation keys (a non-migrated scene /
     // a standalone host).
-    channelNames?: string[];
+    channels?: TransportChannel[];
     superKey?: string;
     autoPlay?: boolean;
     // S.A0 — the machine → transport intent edge (the amiga/hero cold-race).
@@ -178,11 +181,16 @@ const { superKey, animationGroup, channelNames, autoPlay, hideControls, stageMod
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 
-// T.B1 STAGE 1 — the transport-select labels: the facility's channel names when
-// the scene exposes them (the honest set), else the group's animation keys (the
-// legacy path, for a non-migrated scene / a standalone host).
+// T.B1-β STAGE 1 — the transport axis: the facility's channels when the scene
+// exposes them (the honest set), else the group's animation keys (the legacy
+// path, for a non-migrated scene / a standalone host).
 const transportNames = computed(
-    () => channelNames ?? Object.keys(animationGroup.animations),
+    () => channels?.map((c) => c.name) ?? Object.keys(animationGroup.animations),
+);
+
+/** The selected channel (facility scenes only; undefined on the group path). */
+const selectedChannel = computed(() =>
+    channels?.find((c) => c.name === storedControls.selectedAnimation),
 );
 
 // Collect refs to each AnimationControls for ribbon actions
@@ -198,15 +206,18 @@ const activeTimelineRef = computed(() => {
     return name ? animControlRefs[name]?.timelineRef : null;
 });
 
-// Validate stored selection — clear stale values via watchEffect (reacts to group changes).
-// Skip validation when the group has no animations (e.g. empty placeholder during init)
-// to avoid clearing a valid localStorage selection before the real group arrives.
+// Validate stored selection — clear stale values via watchEffect (reacts to
+// group/channel changes). T.B1-β STAGE 1: the valid-name set is the CHANNEL
+// axis when the scene exposes one, else the group keys. Skip validation when
+// the axis is empty (e.g. empty placeholder during init) to avoid clearing a
+// valid localStorage selection before the real axis arrives.
 watchEffect(() => {
-    const hasAnimations = Object.keys(animationGroup.animations).length > 0;
+    const validNames =
+        channels?.map((c) => c.name) ?? Object.keys(animationGroup.animations);
     if (
-        hasAnimations &&
+        validNames.length > 0 &&
         storedControls.selectedAnimation &&
-        !animationGroup.animations[storedControls.selectedAnimation]
+        !validNames.includes(storedControls.selectedAnimation)
     ) {
         storedControls.selectedAnimation = null;
     }
@@ -226,13 +237,50 @@ const {
     toggleAnimationGroup,
     onScrubStart,
     onScrubEnd,
-    sliderUpdate,
-    getActiveT,
-    scrubActive,
+    sliderUpdate: groupSliderUpdate,
+    getActiveT: groupGetActiveT,
+    scrubActive: groupScrubActive,
     cycleAnimation,
 } = useAnimationGroupPlayback(() => animationGroup, storedControls, emit);
 
-const { animationProgress } = useAnimationProgress(() => animationGroup, isPlaying);
+// T.B1-β STAGE 1 — the CHANNEL-capable scrub seam. A scrub whose animation is a
+// facility channel's routes through THAT channel's `setProgress` (the uniform
+// raf round-trip — the group cannot `setChildTime` an animation it does not
+// hold); the group path is the fallback for group scenes / standalone hosts.
+const sliderUpdate = (val: { t: number; animation: KeyframesAnimation<any> }) => {
+    const ch = channels?.find(
+        (c) => c.animation && c.animation.id === val.animation.id,
+    );
+    if (ch) {
+        const dur = val.animation.options.duration ?? 1000;
+        ch.setProgress(dur > 0 ? val.t / dur : 0);
+        return;
+    }
+    groupSliderUpdate(val);
+};
+
+/** The selected axis-member's normalized t (channel first, group fallback). */
+const getActiveT = (): number => {
+    const ch = selectedChannel.value;
+    if (ch) return Math.max(0, Math.min(1, ch.progress()));
+    return groupGetActiveT();
+};
+
+/** Scrub the selected axis-member to a normalized fraction (channel first). */
+const scrubActive = (fraction: number) => {
+    const ch = selectedChannel.value;
+    if (ch) {
+        ch.setProgress(Math.max(0, Math.min(1, fraction)));
+        return;
+    }
+    groupScrubActive(fraction);
+};
+
+const { animationProgress } = useAnimationProgress(
+    () => animationGroup,
+    isPlaying,
+    () => channels,
+);
 
 // Sync play state when the animationGroup prop changes (e.g. after scene-switch
 // restoration sets the group to playing). Without this, isPlaying/isStarted refs

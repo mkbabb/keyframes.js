@@ -75,7 +75,7 @@
         <AnimationControlsGroup
             :key="superKey"
             :animation-group="animationGroup"
-            :channel-names="channelNames"
+            :channels="channels"
             :super-key="superKey"
             :auto-play="autoPlay"
             :machine-playing="machinePlaying"
@@ -127,6 +127,7 @@ import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { Keyboard } from "@lucide/vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
+import type { TransportChannel } from "@components/custom/animation-transport/transportSource";
 
 import "@styles/style.css";
 
@@ -135,11 +136,11 @@ initIOSPlatformClass();
 const props = withDefaults(
     defineProps<{
         animationGroup: AnimationGroup<any>;
-        // T.B1 STAGE 1 — the active scene's `SceneFacility.channels` names,
-        // forwarded to the transport as the select labels. `undefined` for a
-        // non-migrated scene / a standalone host → the transport falls back to
-        // the group's animation keys.
-        channelNames?: string[];
+        // T.B1-β STAGE 1 — the active scene's `SceneFacility.channels`,
+        // forwarded to the transport as the whole channel axis (labels + host
+        // mounts + scrub round-trip). `undefined` for a non-migrated scene / a
+        // standalone host → the transport falls back to the group's keys.
+        channels?: TransportChannel[];
         superKey?: string;
         showStartScreen?: boolean;
         gridBackground?: boolean;

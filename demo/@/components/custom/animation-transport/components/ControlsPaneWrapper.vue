@@ -56,28 +56,31 @@
                      the LEAVING scene's, and the (already-projected) watch source
                      never re-fired — so the single writer never wrote the new
                      scene's surface. Keyed, every scene entry gets a fresh host
-                     whose immediate derivation-sync projects into ITS OWN store. -->
+                     whose immediate derivation-sync projects into ITS OWN store.
+
+                     T.B1-β STAGE 1 — the hosts derive from the CHANNEL axis when
+                     the scene exposes a facility (each painting channel mounts
+                     an honest AnimationControls host on its OWN animation); the
+                     group axis is the fallback (`controlHosts` below). -->
                 <template
-                    v-for="[name, groupObject] in Object.entries(
-                        animationGroup.animations,
-                    )"
-                    :key="groupObject.animation.id"
+                    v-for="host in controlHosts"
+                    :key="host.animation.id"
                 >
-                    <div v-show="storedControls.selectedAnimation == name">
+                    <div v-show="storedControls.selectedAnimation == host.name">
                         <AnimationControls
-                            :ref="(el: any) => { if (el) animControlRefs[name] = el }"
+                            :ref="(el: any) => { if (el) animControlRefs[host.name] = el }"
                             @slider-update="(v) => emit('sliderUpdate', v)"
                             @keyframes-update="(v) => emit('keyframesUpdate', v)"
                             @toggle-play="emit('togglePlay')"
                             @layer-config-update="
-                                (v) => emit('layerConfigUpdate', name, v)
+                                (v) => emit('layerConfigUpdate', host.name, v)
                             "
                             @scrub-start="emit('scrubStart')"
                             @scrub-end="emit('scrubEnd')"
-                            :animation="groupObject.animation"
+                            :animation="host.animation"
                             :is-playing="isPlaying"
-                            :layer-config="groupObject.layer"
-                            :active="storedControls.selectedAnimation == name"
+                            :layer-config="host.layer"
+                            :active="storedControls.selectedAnimation == host.name"
                             :extra-tabs="extraTabs"
                         >
                             <template #tabs-trigger>
@@ -128,7 +131,8 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
-import { useTemplateRef } from "vue";
+import { computed, useTemplateRef } from "vue";
+import type { TransportChannel } from "../transportSource";
 import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SheetGrabHandle from "./SheetGrabHandle.vue";
@@ -138,6 +142,9 @@ import { useControlsLayout } from "../composables/useControlsLayout";
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;
+    // T.B1-β STAGE 1 — the facility channel axis (host mounts derive from the
+    // painting channels when present; the group axis is the fallback).
+    channels?: TransportChannel[];
     storedControls: StoredAnimationGroupControlOptions;
     hideControls?: boolean;
     // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the stage
@@ -153,6 +160,41 @@ const props = defineProps<{
     // injects its "Assets" tab here, AS DATA, not via a reka `<TabsTrigger>`).
     extraTabs?: SegmentedTabOption[];
 }>();
+
+// ── T.B1-β STAGE 1 — the host axis ───────────────────────────────────────────
+// The AnimationControls hosts mount from the CHANNEL axis when the scene
+// exposes a facility: every channel that carries a painting `animation` gets an
+// honest host (its layer config resolves through the group by name when the
+// channel mirrors a group member; a light-scene channel has none). The group
+// axis (`Object.entries(group.animations)`) is the fallback for a non-migrated
+// scene / a standalone host.
+interface ControlHost {
+    name: string;
+    animation: KeyframesAnimation<any>;
+    layer: AnimationLayerConfig | undefined;
+}
+const controlHosts = computed<ControlHost[]>(() => {
+    if (props.channels && props.channels.length > 0) {
+        return props.channels.flatMap((c) =>
+            c.animation
+                ? [
+                      {
+                          name: c.name,
+                          animation: c.animation,
+                          layer: props.animationGroup.animations[c.name]?.layer,
+                      },
+                  ]
+                : [],
+        );
+    }
+    return Object.entries(props.animationGroup.animations).map(
+        ([name, groupObject]) => ({
+            name,
+            animation: groupObject.animation,
+            layer: groupObject.layer,
+        }),
+    );
+});
 
 // The resolved stage mode (the pane register concern) lives in usePaneRegister
 // (the K.WZ proof:demo-no-oversize seam). T.B4 (OD-5): `isDesktop` left with the

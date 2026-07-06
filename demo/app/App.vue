@@ -25,7 +25,7 @@
 
     <EditorShell
         :animation-group="currentAnimationGroup"
-        :channel-names="currentChannelNames"
+        :channels="currentChannels"
         :super-key="currentSuperKey"
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
@@ -215,13 +215,11 @@ const currentAnimationGroup = shallowRef<AnimationGroup<any>>(
 );
 const autoPlayNext = ref(false);
 
-// T.B1 STAGE 1 — the transport-select labels come from the active scene's
-// `SceneFacility.channels` when it exposes one (the honest channel names);
-// `undefined` for a scene that has not migrated (easing/spring — STAGE 2) or
-// home, in which case the transport falls back to the group's animation keys.
-const currentChannelNames = computed<string[] | undefined>(() =>
-    sceneRef.value?.facility?.channels.map((c) => c.name),
-);
+// T.B1-β STAGE 1 — the transport axis comes from the active scene's
+// `SceneFacility.channels` when it exposes one (the honest channel set: labels,
+// host mounts, selection, the scrub round-trip); `undefined` for home / a
+// non-facility scene, in which case the transport falls back to the group keys.
+const currentChannels = computed(() => sceneRef.value?.facility?.channels);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 

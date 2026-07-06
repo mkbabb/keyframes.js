@@ -77,19 +77,26 @@ export function useSceneMachineShellBinding(opts: {
             group ?? new (kfEngine().AnimationGroup)(),
         );
 
-        // The selection default + desktop force-open apply ONLY when there is a
-        // real group with members (a facility-only scene has an empty group and
-        // an empty DFA — nothing to put in the rail; force-opening it was the
-        // structural source of the hollow 400px ghost rail, J.W7a S5 / XH-1).
-        if (group) {
-            // Pick the first animation when none is selected yet (the controls
+        // The selection default + desktop force-open apply when there is a real
+        // selection AXIS: the facility's channels (T.B1-β — the honest set) or a
+        // real group with members. A facility-only scene with an empty DFA
+        // (sequence) still defaults its channel selection (the transport label)
+        // but its rail never force-opens (controlSurfaces is empty — the hollow
+        // 400px ghost rail, J.W7a S5 / XH-1, stays impossible).
+        const axisNames =
+            facility?.channels.map((c) => c.name) ??
+            (group ? Object.keys(group.animations) : []);
+        if (axisNames.length > 0) {
+            // Pick the first axis member when none is selected yet (the controls
             // panel needs a selection to render anything).
             const controls = getStoredAnimationGroupControlOptions(
                 currentSuperKey.value,
             );
-            if (!controls.selectedAnimation) {
-                const names = Object.keys(group.animations);
-                if (names.length > 0) controls.selectedAnimation = names[0]!;
+            if (
+                !controls.selectedAnimation ||
+                !axisNames.includes(controls.selectedAnimation)
+            ) {
+                controls.selectedAnimation = axisNames[0]!;
             }
             if (
                 window.innerWidth >= 1024 &&
