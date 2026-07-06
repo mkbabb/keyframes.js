@@ -74,7 +74,9 @@ const STAGGER_EACH = 260;
 export const STAGGER_MAX = 1600;
 
 /** One storyboard row: index + its resolved start offset on the master clock. */
-export interface SequenceRow {
+// Internal-only (T.F23a un-export): the computed rows shape, consumed solely
+// within this composable; no external importer.
+interface SequenceRow {
     /** 0-based row index (top → bottom). */
     index: number;
     /** This row's resolved start offset on the master clock (ms). */

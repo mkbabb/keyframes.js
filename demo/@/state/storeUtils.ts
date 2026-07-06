@@ -1,6 +1,7 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
-export const STORE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+// Internal-only (T.F23a un-export): consumed solely by isStale() below.
+const STORE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export const STORE_KEYS = [
     "animation-groups-options-store",
