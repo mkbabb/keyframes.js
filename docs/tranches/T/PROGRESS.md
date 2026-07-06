@@ -381,6 +381,31 @@
   instrument fold + styles split + colocation keystone — post-B8), the easing
   terminal (OD-7-gated), M3, T.S residuals, T.Z.
 
+- **2026-07-06 — BATCH ⑨ MERGED + VERIFIED (T4/T5) @ `26de246`: THE T.B BAND IS
+  COMPLETE.** Fleet `wf_f4ae673a-841`, 3/3. **T.B8 LANDED** (the 5th D12 shadow
+  carrier dead — isPlaying machine-derived, direct group verbs deleted, SCRUB
+  dispatched from group scenes, the adapter dual-family collapsed, machinePlaying
+  retired; the arming-audit caught + fixed a home empty-group regression live; 2
+  born-green gates wired). **T.S1 TERMINAL: proof:chronic-closure 31→0 GREEN +
+  DISCHARGED** (every S FOLD row re-pointed at its now-live oracle). **M3-PREP
+  landed** (proof:owner-golden + candidate goldens PENDING-OWNER).
+  **REVIEW-PACKET.md ASSEMBLED** (the one owner review surface: OD state, every
+  PENDING-OWNER packet, the backlog + external-blocked set, serving instructions).
+  **T.G4-tail landed** (sequence + heatmap → transforms) + **the Monaco-eager LCP
+  regression CURED** (the T.B2 triad-derivation had put vendor-monaco's 4MB on
+  every scene's first paint — root-caused via the chunk graph; idle/interaction-
+  gated warm; mechanically verified) + proof:scene-rests/no-layout-animation
+  born-GREEN. **Composition:** the stale-era gate re-arms (live-session S5 →
+  derived-triad triggers; fsm-c/irrefragable/stage-is-ball → honest-press under
+  rest-on-entry; suffusion (a) → the ONE-authority seam per the owner's own #16a;
+  the ⑧ chain typos; the ⑨ idle-warm timers onto vueuse); the two easing
+  surface-locks backlogged to the OD-7 terminal (their subject IS the E8-deletion
+  target). The QUIET adjudicating roster ran: 87 gates, both residual unexpecteds
+  cleared (irrefragable = contention, isolated PASS; decomposition = the vueuse
+  transposition, now green). **Failing ⊆ declared backlog exactly.** Remaining:
+  T.F structure fold (batch ⑩) + T.G2's single-raf-clock question + the
+  OD-7-gated easing terminal + M3 blessing + T.Z.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
