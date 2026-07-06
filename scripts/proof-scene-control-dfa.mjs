@@ -142,32 +142,31 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
         );
     }
 
-    // D2 TOTALITY — re-derive the table from source + assert every declared scene
-    // id maps AND the selector is total (an unknown id falls back to the triad).
+    // D2 TOTALITY — T.B2: no table, a TOTAL `surfacesFor(facility, selected)`
+    // DERIVATION instead. Assert (a) no `Record<SceneId,ControlSurface[]>` literal
+    // survives; (b) surfacesFor is the derivation; (c) it is TOTAL — a `home`
+    // scene with no facility falls back to [] (never undefined), the same
+    // no-undefined-behavior guarantee the navigation matrix needs.
     const dfa = read(
         path.join(
             DEMO,
             "@/state/controlSurfaceDFA.ts",
         ),
     );
-    const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence"];
-    const tableBlock = (dfa.match(/CONTROL_SURFACES[^=]*=\s*\{([\s\S]*?)\};/) || [])[1] ?? "";
-    const allMapped = declaredScenes.every((s) => {
-        const re = new RegExp(`["']?${s.replace("-", "\\-")}["']?\\s*:`);
-        return re.test(tableBlock);
-    });
-    const totalSelector = /const set = CONTROL_SURFACES\[sceneId\];\s*return set \? \[\.\.\.set\] : \[\.\.\.BUILT_IN_SURFACES\]/.test(
-        dfa.replace(/\s+/g, " "),
-    );
-    if (allMapped && totalSelector) {
+    const oneLine = dfa.replace(/\s+/g, " ");
+    const noTable = !/Record<SceneId,\s*ControlSurface\[\]>/.test(dfa);
+    const derives = /export function surfacesFor\(/.test(dfa);
+    const totalOnAbsent = /if \(!facility\) return \[\];/.test(oneLine);
+    if (noTable && derives && totalOnAbsent) {
         ok(
-            `D2 totality: all ${declaredScenes.length} declared scenes map in CONTROL_SURFACES + ` +
-                `controlSurfacesFor is TOTAL (unknown id → the built-in triad; every nav cell defined)`,
+            `D2 totality: no Record<SceneId,ControlSurface[]> table — surfacesFor(facility, ` +
+                `selected) DERIVES the set, TOTAL on an absent facility (home → []; every nav ` +
+                `cell defined) (T.B2 inversion)`,
         );
     } else {
         fail(
-            `D2 totality — every declared scene must map AND the selector must be total ` +
-                `(allMapped:${allMapped}, totalSelector:${totalSelector})`,
+            `D2 totality — the DFA must be the surfacesFor DERIVATION, total on absent facility ` +
+                `(noTable:${noTable}, derives:${derives}, totalOnAbsent:${totalOnAbsent})`,
         );
     }
 }
@@ -186,15 +185,16 @@ const EXPECT = {
     // HONEST animation — the controls-tab trigger PROJECTS on square now (the
     // VERDICT #12/#25 panel RETURN). proof:square-honest v2 owns the paint oracle.
     square: { hasPanel: true, trigger: "Controls" },
-    // T.B5-RENDER / T.C1 — easing + spring each expose exactly ONE control surface,
-    // redundant with the scene identity → the control-tab TRIGGER is ELIDED (no
-    // `[aria-label='Controls tab']` node; VERDICT #17 dup KILL). `hasPanel` here
-    // reads the control-tab TRIGGER presence, so it is now false for these scenes
-    // (the collapse TOGGLE still renders — a separate affordance the DFA still gates
-    // via hasControlPanel — but there is nothing to SELECT). noBuiltInTriad still
-    // holds: no keyframes/timeline node leaks.
-    easing: { hasPanel: false, trigger: null, noBuiltInTriad: true },
-    spring: { hasPanel: false, trigger: null, noBuiltInTriad: true },
+    // T.B2 (the INVERSION) — easing + spring each carry a PAINTING preview channel
+    // (previewAnim / Sweep+Entry), so they earn the full built-in triad BY
+    // CONSTRUCTION (the owner's #25 asymmetry cure — a painting group can never be
+    // denied the triad), UNIONED with their facility facet (easing Curve / spring
+    // Physics). The default selected surface is 'controls' (the set's first
+    // member), so the control-tab trigger reads "Controls" and the built-in triad
+    // (Keyframes/Timeline) is now HONESTLY present — the pre-T.B2 single-surface
+    // elision is superseded (the facet rides the multi-surface select alongside).
+    easing: { hasPanel: true, trigger: "Controls" },
+    spring: { hasPanel: true, trigger: "Controls" },
     sequence: { hasPanel: false },
 };
 

@@ -118,14 +118,20 @@ import "@styles/brand.css";
 // type-keyed slide recipe (the owner-domain HANDOFF), the directional look returns
 // for free with no demo CSS.
 
-import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
 import {
-    ACTIVE_CONTROL_CONDITIONALS_KEY,
+    computed,
+    markRaw,
+    provide,
+    ref,
+    shallowRef,
+    useTemplateRef,
+    watchEffect,
+} from "vue";
+import {
     ACTIVE_SCENE_KEY,
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
 } from "@components/custom/animation-transport/injectionKeys";
-import type { ControlSurface } from "@state";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
 // T.D13 — the home hero's Aurora backdrop (colocated in editor-shell/ beside
@@ -140,10 +146,10 @@ import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
 import {
     getStoredAnimationGroupControlOptions,
+    surfacesFor,
     useSceneMachine,
 } from "@state";
 
-import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeDemo";
 import CubeScene from "../scenes/cube/CubeScene.vue";
 import { useSceneMachineRouterBinding } from "./scene/useSceneMachineRouterBinding";
 import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding";
@@ -222,46 +228,45 @@ const currentChannels = computed(() => sceneRef.value?.facility?.channels);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
-// ── The ACTIVE conditional surfaces (J.W2 S2) ────────────────────────────────
-// Cube's `matrix-controls` is the ONE conditional surface: active iff the
-// Matrix animation is selected — a stored fact, synchronous with the switch, no
-// mount dependency (`CONDITIONAL_SURFACES` keeps the projection total per
-// scene). Single-sourced here and PROVIDED (with the active superKey) to the
-// AnimationControls derivation-sync — the ONE `selectedControl` writer — so the
-// dock read, the panel projection, and the writer all consume the SAME
-// conditional fact.
-const activeControlConditionals = computed<readonly ControlSurface[]>(() =>
-    storedControls.value.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
-        ? ["matrix-controls"]
-        : [],
-);
-provide(ACTIVE_CONTROL_CONDITIONALS_KEY, activeControlConditionals);
 provide(ACTIVE_SCENE_KEY, currentSuperKey);
 
-// ── The dock's extra control tabs — machine-PROJECTED (J.W0.S3) ──────────────
-// The scene-specific tab metadata (easing→Easing, spring→Spring) derives from
-// the machine's `activeScene` through the DFA's tab table, so the dock trigger
-// label is BORN-CORRECT on the very tick the route rests on the destination —
-// never the SOURCE scene's stale label through a `sceneRef.extraControlTabs`
-// re-bind gated on the destination's <Suspense> mount (the scene-control-dfa
-// trigger-lag race; that per-scene injection is DELETED).
-const extraControlTabs = computed(() =>
-    machine.extraControlTabs(activeControlConditionals.value),
+// ── THE CONTROL-SURFACE DERIVATION (T.B2 — the inversion) ────────────────────
+// The valid surface set is DERIVED from the active scene's live facility × the
+// selected channel (`surfacesFor`), no longer a table row keyed by `activeScene`.
+// The triad is COMPUTED from "does the selected channel paint" (a painting group
+// can never be denied it — the #25 asymmetry cure), unioned with the facility's
+// additive facets (easing Curve, spring Physics) and the SELECTED channel's own
+// conditional facets (cube's matrix-controls — visible only while the Matrix
+// channel is selected, so the old `activeControlConditionals` threading DIED).
+// The App is the only place both the facility (on the mounted scene) and the
+// selection are visible, so it feeds the derived set to the machine — the ONE
+// writer the dock/panel projections read (`machine.controlSurfaces`).
+const derivedSurfaces = computed(() =>
+    surfacesFor(
+        sceneRef.value?.facility,
+        storedControls.value.selectedAnimation ?? undefined,
+    ),
 );
+watchEffect(() => machine.setActiveSurfaces(derivedSurfaces.value));
+
+// ── The dock's extra control tabs — DERIVED (T.B2 / J.W0.S3) ─────────────────
+// The scene-specific facet surfaces' tab metadata (easing→Easing, spring→Spring,
+// cube→Matrix Controls) derives from the machine's fed surface SET through the
+// ONE `SURFACE_META` registry, so the dock trigger label settles synchronously
+// with `setActiveSurfaces` — never a tick-late `sceneRef.extraControlTabs`
+// re-bind gated on the destination's <Suspense> mount.
+const extraControlTabs = computed(() => machine.extraControlTabs());
 
 // The dock trigger's SELECTED surface — the SAME I.W2 machine projection the
-// in-panel tab host already binds (`AnimationControls` `<Tabs> :model-value`),
-// extended to the dock READ (J.W0.S3). The raw `storedControls.selectedControl`
-// is the per-superKey stored PICK; on a transition-arrival it can hold an
-// invalid surface for the destination until the J.W2 single writer corrects the
-// store — binding the projection (`selectedControlSurfaceFor(activeScene, pick,
-// activeConditionals)`) makes the trigger label born-correct on the rest tick.
+// in-panel tab host binds (`AnimationControls` `<Tabs> :model-value`), extended
+// to the dock READ. The raw `storedControls.selectedControl` is the per-superKey
+// stored PICK; on a transition-arrival it can hold an invalid surface for the
+// destination until the single writer corrects the store — binding the
+// projection makes the trigger label born-correct on the rest tick.
 const dockSelectedControl = computed(
     () =>
-        machine.selectedControlSurface(
-            storedControls.value.selectedControl,
-            activeControlConditionals.value,
-        ) ?? storedControls.value.selectedControl,
+        machine.selectedControlSurface(storedControls.value.selectedControl) ??
+        storedControls.value.selectedControl,
 );
 
 // ── Home ↔ cube SPLIT (the alias is DEAD — two distinct machine states) ──────
@@ -295,7 +300,7 @@ const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
 // belt against a mid-transition emit racing the store key.
 function onDockSelectControl(v: string) {
     storedControls.value.selectedControl =
-        machine.selectedControlSurface(v, activeControlConditionals.value) ?? v;
+        machine.selectedControlSurface(v) ?? v;
 }
 
 // ── The scene-machine ↔ App-shell reconcile (S2/S4/S5) ───────────────────────

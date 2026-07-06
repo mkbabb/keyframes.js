@@ -35,6 +35,10 @@ export interface ChannelHandle {
     animation?: KeyframesAnimation<any>;
     /** A light channel's honest surface subset (no fictional keyframes). */
     surfaces?: ControlSurface[];
+    /** Conditional facets contributed to the derived surface set ONLY while THIS
+     *  channel is selected (T.B2 — cube's Matrix channel → matrix-controls, so
+     *  selection-gating is just "which channel is selected"). */
+    facets?: SceneFacet[];
     /** The channel's normalized [0,1] playhead. */
     progress(): number;
     /** Seat the channel's normalized [0,1] playhead. */
@@ -72,15 +76,23 @@ export interface SceneFacility {
  */
 export function facilityFromGroup(
     getGroup: () => AnimationGroup<any>,
-    opts?: { facets?: SceneFacet[] },
+    opts?: {
+        facets?: SceneFacet[];
+        /** Per-channel CONDITIONAL facets keyed by channel name (T.B2 — cube's
+         *  Matrix channel → matrix-controls). Contributed to the derived surface
+         *  set only while that channel is selected. */
+        channelFacets?: Record<string, SceneFacet[]>;
+    },
 ): SceneFacility {
     const group = getGroup();
     const channels: ChannelHandle[] = Object.entries(group.animations).map(
         ([name, groupObj]) => {
             const anim = groupObj.animation;
+            const facets = opts?.channelFacets?.[name];
             return {
                 name,
                 animation: anim,
+                ...(facets ? { facets } : {}),
                 progress: () => {
                     const dur = anim.options.duration ?? 1000;
                     return dur > 0 ? anim.t / dur : 0;

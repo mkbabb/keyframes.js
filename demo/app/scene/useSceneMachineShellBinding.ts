@@ -15,6 +15,7 @@ import { kfEngine } from "@utils/kfEngine";
 import type { ScenePlayback } from "@state";
 import {
     getStoredAnimationGroupControlOptions,
+    surfacesFor,
     useSceneMachine,
     createGroupAdapter,
 } from "@state";
@@ -98,9 +99,15 @@ export function useSceneMachineShellBinding(opts: {
             ) {
                 controls.selectedAnimation = axisNames[0]!;
             }
+            // T.B2 — the desktop force-open reads the DERIVED surface set for the
+            // live facility × the selected channel (no longer the table-keyed
+            // `machine.controlSurfaces`, which the App feeds reactively and may
+            // lag this synchronous bind). A panel-less scene (sequence → []) never
+            // force-opens — the hollow ghost rail (XH-1) stays impossible.
             if (
                 window.innerWidth >= 1024 &&
-                machine.controlSurfaces.value.length > 0
+                surfacesFor(facility, controls.selectedAnimation ?? undefined)
+                    .length > 0
             ) {
                 controls.isControlsPanelOpen = true;
             }

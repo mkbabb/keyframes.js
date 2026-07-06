@@ -97,21 +97,25 @@ console.log(
     );
     if (fs.existsSync(dfaPath)) {
         const src = read(dfaPath);
-        const hasTable = /export const CONTROL_SURFACES\s*:\s*Record<SceneId/.test(src);
-        const easingOnly = /easing:\s*\[\s*["']easing["']\s*\]/.test(src);
-        const springOnly = /spring:\s*\[\s*["']spring["']\s*\]/.test(src);
-        const seqEmpty = /sequence:\s*\[\s*\]/.test(src);
-        const total = /export function controlSurfacesFor/.test(src);
-        if (hasTable && easingOnly && springOnly && seqEmpty && total) {
+        // T.B2 — the DFA INVERTED: no `Record<SceneId, ControlSurface[]>` table,
+        // a `surfacesFor(facility, selected)` DERIVATION instead (the triad is
+        // COMPUTED from paint, not declared per scene).
+        const noTable = !/Record<SceneId,\s*ControlSurface\[\]>/.test(src);
+        const derives = /export function surfacesFor\(/.test(src);
+        const paintComputed =
+            /selected\?\.animation\s*\n?\s*\?\s*\[\.\.\.BUILT_IN_SURFACES\]/.test(
+                src.replace(/\s+/g, " "),
+            ) || /selected\?\.animation/.test(src);
+        if (noTable && derives && paintComputed) {
             ok(
-                "DFA source: CONTROL_SURFACES table present (easing→[easing], spring→[spring], " +
-                    "sequence→[]) + a TOTAL controlSurfacesFor selector",
+                "DFA source: the control-surface set DERIVES via surfacesFor(facility, " +
+                    "selected) — no Record<SceneId,ControlSurface[]> table; the triad is " +
+                    "computed from paint (T.B2)",
             );
         } else {
             fail(
-                `DFA source — controlSurfaceDFA.ts must define the CONTROL_SURFACES table ` +
-                    `(table:${hasTable}, easingOnly:${easingOnly}, springOnly:${springOnly}, ` +
-                    `seqEmpty:${seqEmpty}, total:${total})`,
+                `DFA source — controlSurfaceDFA.ts must DERIVE surfacesFor (T.B2 inversion) ` +
+                    `(noTable:${noTable}, derives:${derives}, paintComputed:${paintComputed})`,
             );
         }
     } else {
@@ -130,7 +134,11 @@ console.log(
     );
     const projection =
         /controlSurfaces:\s*readonly\(/.test(useMachine) &&
-        /controlSurfacesFor\(machine\.value\.context\.activeScene\)/.test(useMachine);
+        // T.B2 — the projection READS the App-fed derived surface set
+        // (`setActiveSurfaces` ← `surfacesFor`), no longer a table lookup by
+        // activeScene.
+        /activeSurfaces\.value/.test(useMachine) &&
+        /setActiveSurfaces/.test(useMachine);
     const reducer = read(
         path.join(
             DEMO,

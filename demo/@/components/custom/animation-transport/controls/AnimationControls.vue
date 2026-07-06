@@ -235,10 +235,7 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import {
-    ACTIVE_CONTROL_CONDITIONALS_KEY,
-    TABS_EXTERNALLY_MANAGED_KEY,
-} from "../injectionKeys";
+import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "@lucide/vue";
 import { useTabStripScroll } from "./composables/useTabStripScroll";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
@@ -317,7 +314,7 @@ const stripOptions = computed<KfPillTabOption[]>(() => {
     // instead of the machine) — see the `extraTabs` prop note.
     const extra: KfPillTabOption[] = tabsExternallyManaged
         ? machine
-              .extraControlTabs(activeConditionals?.value)
+              .extraControlTabs()
               .map((t) => ({ value: t.value, label: t.label }))
         : (extraTabs ?? []);
     return [...builtInTabs.value, ...extra];
@@ -341,8 +338,8 @@ const isSingleSurfaceScene = computed(
 // projection all live in useSelectedControlSurface (the K.WZ proof:demo-no-
 // oversize seam; zero behavior change). `stripOptions`/`builtInTabs` deliberately
 // stay HERE (the proof:scene-control-dfa D1 source anchor greps the host). The
-// activeConditionals inject is read for the dock-parity strip union below.
-const activeConditionals = inject(ACTIVE_CONTROL_CONDITIONALS_KEY, undefined);
+// cube matrix-controls conditional is now folded into the derived surface set
+// (T.B2 — the Matrix channel's facet), so no `activeConditionals` inject remains.
 const { selectedControlSurface, projectPick } = useSelectedControlSurface({
     animation,
     storedControls,

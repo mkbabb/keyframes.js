@@ -17,6 +17,7 @@ import { createGlobalState, useStorage } from "@vueuse/core";
 import {
     computed,
     readonly,
+    ref,
     shallowRef,
     type DeepReadonly,
     type Ref,
@@ -31,9 +32,8 @@ import {
     type ScenePlayback,
 } from "./sceneMachine";
 import {
-    controlSurfacesFor,
-    extraControlTabsFor,
-    selectedControlSurfaceFor,
+    extraTabsFrom,
+    selectedSurfaceFrom,
     type ControlSurface,
     type ControlSurfaceTab,
 } from "./controlSurfaceDFA";
@@ -118,6 +118,23 @@ export const useSceneMachine = createGlobalState(() => {
     /** Get the adapter for a scene (effect layer only). */
     function adapterFor(sceneId: SceneId): ScenePlayback | undefined {
         return adapters.get(sceneId);
+    }
+
+    // ── THE ACTIVE CONTROL-SURFACE SET (T.B2 — the derivation seam) ───────────
+    // The control-surface axis INVERTED (T.B2): the valid set is no longer a
+    // table row keyed by `activeScene` — it is DERIVED by the App from the live
+    // scene facility × the selected channel (`surfacesFor(facility, selected)`),
+    // which only the App can see (the facility lives on the mounted scene's
+    // exposed surface, not in the machine). The App feeds the derived set here via
+    // `setActiveSurfaces`; the projections below (`controlSurfaces`,
+    // `extraControlTabs`, `selectedControlSurface`) read it. Empty for home /
+    // a panel-less scene (sequence) → no control affordance renders.
+    const activeSurfaces = ref<ControlSurface[]>([]);
+
+    /** The App's single write of the derived surface set (T.B2). Idempotent —
+     *  a re-derivation to the same set is a no-op (ref equality on the array). */
+    function setActiveSurfaces(surfaces: ControlSurface[]): void {
+        activeSurfaces.value = surfaces;
     }
 
     // ── THE SINGLE WRITER ────────────────────────────────────────────────────
@@ -281,68 +298,37 @@ export const useSceneMachine = createGlobalState(() => {
         perScene: readonly(computed(() => machine.value.context.perScene)),
         machine: readonly(machine) as DeepReadonly<Ref<MachineState>>,
 
-        // ── THE CONTROL-SURFACE PROJECTION (H.W11.S4 / I2 — the third axis) ───
-        // A PURE, reactive projection of the active scene onto its valid
-        // control-surface set (the DFA table in controlSurfaceDFA.ts). NOT a
-        // reducer mutation — it derives from `activeScene` ONLY, so the W1
-        // machine's identity is untouched (proof:scene-machine-irrefragable
-        // stays green). The tab hosts read `controlSurfaces` to gate what
-        // renders per scene (the easing scene → ['easing'], so NO keyframes/
-        // timeline tab node exists for it).
-        controlSurfaces: readonly(
-            computed<ControlSurface[]>(() =>
-                controlSurfacesFor(machine.value.context.activeScene),
-            ),
-        ),
-        /** The DFA selector for an ARBITRARY scene (the navigation-matrix
-         *  totality the gate asserts: every scene resolves a DEFINED set). */
-        controlSurfacesFor,
+        // ── THE CONTROL-SURFACE PROJECTION (T.B2 — the derived axis) ──────────
+        // A reactive READ of the App-fed derived surface set (`setActiveSurfaces`
+        // ← `surfacesFor(facility, selected)`). NOT a reducer mutation and NOT a
+        // table row — the machine's W1 identity is untouched
+        // (proof:scene-machine-irrefragable stays green). The tab hosts read
+        // `controlSurfaces` to gate what renders (a light-only scene like
+        // sequence derives [], so NO control node exists for it).
+        controlSurfaces: readonly(computed<ControlSurface[]>(() => activeSurfaces.value)),
+        /** The App's single write of the derived surface set (T.B2). */
+        setActiveSurfaces,
 
         // ── THE EXTRA-TAB PROJECTION (J.W0.S3 — the dock trigger born-correct) ─
-        // The scene-specific surfaces' TAB METADATA (easing→Easing,
-        // spring→Spring) as a projection of `activeScene` through the DFA's
-        // metadata table — NOT a value that arrives a tick LATE through the
-        // scene component's `extraControlTabs` re-bind on <Suspense> mount. The
-        // dock binds THIS, so the trigger label is correct on the very tick
-        // `activeScene` rests on the destination (the I.W2 single-authority
-        // extended from the SELECTED surface to the tab PROJECTION).
-        // `activeConditionals` carries the caller-supplied conditional surfaces
-        // (cube's matrix-controls while the Matrix animation is selected).
-        extraControlTabsFor,
-        /** The active scene's scene-specific control tabs — reactive on
-         *  `activeScene`, synchronously correct per tick. */
-        extraControlTabs: (
-            activeConditionals?: readonly ControlSurface[],
-        ): ControlSurfaceTab[] =>
-            extraControlTabsFor(
-                machine.value.context.activeScene,
-                activeConditionals,
-            ),
+        // The scene-specific facet surfaces' TAB METADATA (easing→Easing,
+        // spring→Spring, cube→Matrix Controls) as a projection of the DERIVED
+        // set through the ONE `SURFACE_META` registry — settling synchronously
+        // with the App's `setActiveSurfaces`, never a tick-late scene re-bind.
+        extraControlTabs: (): ControlSurfaceTab[] =>
+            extraTabsFrom(activeSurfaces.value),
 
         // ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1) ───────────────────
-        // The order-independent control-panel mount projection I.W1's S3
-        // consumes: the SELECTED control surface for the active scene, resolved
-        // as a PURE FUNCTION of (the DFA-valid set × a preferred pick). The tab
-        // host binds `<Tabs> :model-value` to THIS (not a free
-        // `storedControls.selectedControl`), so on a switch the model-value is
-        // born correct on the mounting tick — the reka `passive`-latch is taken
-        // `"easing"`, not `undefined`/stale (the B4 desync cure). The pure
-        // selector is exposed for a host that carries its OWN preference ref.
-        selectedControlSurfaceFor,
-        /** The active scene's selected surface, given a preferred pick (+ the
-         *  caller-supplied ACTIVE conditional surfaces, J.W2 S2 — cube's
-         *  `matrix-controls` while the Matrix animation is selected). A reactive
-         *  PROJECTION of `activeScene` × the caller's preference — the value
-         *  `<Tabs> :model-value` reads, synchronously correct per tick. */
+        // The SELECTED control surface, resolved as a PURE FUNCTION of (the
+        // DERIVED set × a preferred pick). The tab host binds `<Tabs>
+        // :model-value` to THIS (not a free `storedControls.selectedControl`),
+        // so on a switch the value is born correct on the mounting tick — the
+        // reka `passive`-latch is taken with the valid surface, not undefined/
+        // stale (the B4 desync cure). A stale/cross-scene pick falls back to the
+        // set's first surface AT the authority.
         selectedControlSurface: (
             preferred?: string,
-            activeConditionals?: readonly ControlSurface[],
         ): ControlSurface | undefined =>
-            selectedControlSurfaceFor(
-                machine.value.context.activeScene,
-                preferred,
-                activeConditionals,
-            ),
+            selectedSurfaceFrom(activeSurfaces.value, preferred),
 
         // The single WRITE surface.
         dispatch,

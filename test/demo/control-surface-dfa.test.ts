@@ -1,243 +1,215 @@
-// H.W11 S4 / I2 — the control-surface DFA pure-core unit test.
-//
-// The per-scene control-surface DFA is the THIRD orthogonal axis on the W1
-// machine (scene + playback + control-surface). `controlSurfacesFor(sceneId)` is
-// a PURE, TOTAL selector over a static table — unit-testable in isolation (no
-// Vue, no DOM). This file proves: (1) each scene maps to its enumerated set
-// (easing → [easing], sequence/path → []); (2) the selector is TOTAL (every
-// declared scene + an unknown id resolve a DEFINED set — the no-undefined-
-// behavior guarantee the navigation matrix needs); (3) the built-in-triad
-// projection filters correctly. It does NOT touch the W1 reducer (the DFA
-// EXTENDS, never re-authors — proof:scene-machine-irrefragable stays green).
+// T.B2 — the control-surface DERIVATION pure-core unit test (INVERTED from the
+// H.W11 exclusion TABLE). The per-scene control-surface axis is the THIRD
+// orthogonal axis on the W1 machine (scene + playback + control-surface). It is
+// no longer a hand-maintained `Record<SceneId, ControlSurface[]>` row — it is
+// DERIVED by `surfacesFor(facility, selected)` from the live scene facility ×
+// the selected channel (does the channel PAINT). This file proves: (1) a
+// painting channel earns the built-in triad BY CONSTRUCTION (the #25 asymmetry
+// cure — no row can deny it); (2) a light channel contributes only its honest
+// declared subset (sequence → []); (3) the facility + selected-channel facets
+// union on (easing Curve, spring Physics, cube's conditional matrix-controls);
+// (4) `extraTabsFrom`/`selectedSurfaceFrom` resolve the tab metadata + the
+// selected member from the derived SET through the ONE `SURFACE_META` registry.
+// It does NOT touch the W1 reducer — proof:scene-machine-irrefragable stays green.
 
 import { describe, it, expect } from "vitest";
 import {
-    CONTROL_SURFACES,
-    CONDITIONAL_SURFACES,
     BUILT_IN_SURFACES,
-    controlSurfacesFor,
-    isSurfaceValidForScene,
-    builtInSurfacesFor,
+    SURFACE_META,
+    surfacesFor,
+    extraTabsFrom,
+    selectedSurfaceFrom,
     dockCardinality,
+    type SurfaceFacilityLike,
     type ControlSurfaceTab,
 } from "../../demo/@/state/controlSurfaceDFA";
 
-const DECLARED_SCENES = [
-    "home",
-    "cube",
-    "amiga",
-    "square",
-    "easing",
-    "spring",
-    "sequence",
-] as const;
+// ── Facility fixtures mirroring the live scenes' `SceneFacility` shape ────────
 
-describe("H.W11 control-surface DFA — the per-scene table", () => {
-    it("maps easing to ONLY the easing surface (not the meaningless triad)", () => {
-        expect(controlSurfacesFor("easing")).toEqual(["easing"]);
-        expect(controlSurfacesFor("easing")).not.toContain("keyframes");
-        expect(controlSurfacesFor("easing")).not.toContain("timeline");
-        expect(controlSurfacesFor("easing")).not.toContain("controls");
+/** cube/amiga/square — every channel PAINTS (carries an `animation`). Cube's
+ *  Matrix channel adds `matrix-controls` as a conditional facet. */
+const groupFacility: SurfaceFacilityLike = {
+    channels: [
+        { name: "Rotations", animation: {} },
+        {
+            name: "Matrix",
+            animation: {},
+            facets: [{ surface: "matrix-controls" }],
+        },
+        { name: "Hover", animation: {} },
+    ],
+    facets: [],
+};
+
+/** easing — one PAINTING preview channel + the Curve facet (facility-wide). */
+const easingFacility: SurfaceFacilityLike = {
+    channels: [{ name: "Easing", animation: {} }],
+    facets: [{ surface: "easing" }],
+};
+
+/** spring — two PAINTING channels + the Physics facet. */
+const springFacility: SurfaceFacilityLike = {
+    channels: [
+        { name: "Sweep", animation: {} },
+        { name: "Entry", animation: {} },
+    ],
+    facets: [{ surface: "spring" }],
+};
+
+/** sequence — one LIGHT channel (no paint, honest empty subset), no facet. */
+const sequenceFacility: SurfaceFacilityLike = {
+    channels: [{ name: "Sequence", surfaces: [] }],
+    facets: [],
+};
+
+describe("T.B2 control-surface derivation — the triad is COMPUTED from paint", () => {
+    it("a painting channel earns the full built-in triad (the #25 asymmetry cure)", () => {
+        expect(surfacesFor(groupFacility, "Rotations")).toEqual([
+            "controls",
+            "keyframes",
+            "timeline",
+        ]);
     });
 
-    it("maps spring to ONLY the spring surface", () => {
-        expect(controlSurfacesFor("spring")).toEqual(["spring"]);
+    it("easing/spring — a painting channel earns the triad + the facility facet", () => {
+        expect(surfacesFor(easingFacility, "Easing")).toEqual([
+            "controls",
+            "keyframes",
+            "timeline",
+            "easing",
+        ]);
+        expect(surfacesFor(springFacility, "Sweep")).toEqual([
+            "controls",
+            "keyframes",
+            "timeline",
+            "spring",
+        ]);
     });
 
-    it("maps the editor scenes (cube/amiga/square) to the full built-in triad", () => {
-        // T.A13 + T.B3 (fold row 69) — square RE-TABLED into the triad: the G2
-        // collapse is CURED (the "Transform" anim is LIVE via the num() normalizer
-        // + four-corner keyframes + the {idle,drag,playback} FSM), so the triad
-        // edits an HONEST animation — the VERDICT #12/#25 panel RETURN.
-        for (const s of ["cube", "amiga", "square"]) {
-            expect(controlSurfacesFor(s)).toEqual([
-                "controls",
-                "keyframes",
-                "timeline",
-            ]);
-        }
+    it("cube's matrix-controls is a CONDITIONAL facet on the Matrix channel", () => {
+        // Selecting Matrix adds matrix-controls; selecting any other channel does
+        // not — selection-gating IS "which channel is selected" (no separate
+        // activeConditionals thread).
+        expect(surfacesFor(groupFacility, "Matrix")).toEqual([
+            "controls",
+            "keyframes",
+            "timeline",
+            "matrix-controls",
+        ]);
+        expect(surfacesFor(groupFacility, "Hover")).not.toContain(
+            "matrix-controls",
+        );
     });
 
-    it("maps the self-contained scene (sequence) to NO panel", () => {
-        // sequence stays self-contained — the drag/spring-autonomous scene whose
-        // live controls live ON the stage, not in a rail. (motion-path/morph were
-        // PRUNED at T.E3, OD-1 = PRUNE.)
-        expect(controlSurfacesFor("sequence")).toEqual([]);
+    it("a LIGHT channel contributes only its honest subset (sequence → [])", () => {
+        expect(surfacesFor(sequenceFacility, "Sequence")).toEqual([]);
     });
 
-    it("maps home to NO control surface", () => {
-        expect(controlSurfacesFor("home")).toEqual([]);
-    });
-});
-
-describe("H.W11 control-surface DFA — TOTALITY (no undefined navigation cell)", () => {
-    it("resolves a DEFINED array for EVERY declared scene", () => {
-        for (const s of DECLARED_SCENES) {
-            const set = controlSurfacesFor(s);
-            expect(Array.isArray(set)).toBe(true);
-        }
+    it("home (no facility) derives the empty set", () => {
+        expect(surfacesFor(undefined, undefined)).toEqual([]);
     });
 
-    it("resolves a DEFINED set for an UNKNOWN scene id (the conservative triad)", () => {
-        // The no-undefined-behavior guarantee: a never-seen scene falls back to
-        // the built-in editor triad, never `undefined`.
-        const set = controlSurfacesFor("a-scene-that-does-not-exist");
-        expect(set).toEqual([...BUILT_IN_SURFACES]);
+    it("falls back to the FIRST channel when the selection is absent/unknown", () => {
+        // No selection → the first channel drives the triad (deterministic floor).
+        expect(surfacesFor(groupFacility, undefined)).toEqual([
+            "controls",
+            "keyframes",
+            "timeline",
+        ]);
+        expect(surfacesFor(groupFacility, "does-not-exist")).toEqual([
+            "controls",
+            "keyframes",
+            "timeline",
+        ]);
     });
 
-    it("the (scene → scene) navigation matrix is TOTAL (every cell defined)", () => {
-        // Every ordered pair lands on a DEFINED destination set — the matrix the
-        // gate asserts has no undefined cell.
-        for (const from of DECLARED_SCENES) {
-            for (const to of DECLARED_SCENES) {
-                void from; // the from-scene does not affect the destination set
-                expect(controlSurfacesFor(to)).toBeDefined();
-                expect(Array.isArray(controlSurfacesFor(to))).toBe(true);
-            }
-        }
-    });
-
-    it("returns a FRESH array (callers never mutate the table)", () => {
-        const a = controlSurfacesFor("cube");
+    it("is deduplicated + order-preserving, and returns a FRESH array", () => {
+        // A facet duplicating a base surface never doubles.
+        const dupFacility: SurfaceFacilityLike = {
+            channels: [{ name: "A", animation: {} }],
+            facets: [{ surface: "controls" }],
+        };
+        expect(surfacesFor(dupFacility, "A")).toEqual([
+            "controls",
+            "keyframes",
+            "timeline",
+        ]);
+        const a = surfacesFor(groupFacility, "Rotations");
         a.push("matrix-controls");
-        // The table entry is unchanged — controlSurfacesFor copies.
-        expect(controlSurfacesFor("cube")).toEqual([
+        expect(surfacesFor(groupFacility, "Rotations")).toEqual([
             "controls",
             "keyframes",
             "timeline",
         ]);
-        // Sanity: the table object itself is not the returned reference.
-        expect(controlSurfacesFor("cube")).not.toBe(CONTROL_SURFACES.cube);
     });
 });
 
-describe("H.W11 control-surface DFA — the built-in projection + conditional", () => {
-    it("builtInSurfacesFor filters the triad to the scene's valid subset", () => {
-        expect(builtInSurfacesFor("cube")).toEqual([
-            "controls",
-            "keyframes",
-            "timeline",
+describe("T.B2 — extraTabsFrom resolves facet metadata from ONE registry", () => {
+    it("filters the built-in triad and maps the rest through SURFACE_META", () => {
+        const tabs = extraTabsFrom(surfacesFor(easingFacility, "Easing"));
+        expect(tabs).toEqual([SURFACE_META.easing]);
+        // No built-in surface leaks into the extra-tab set.
+        for (const s of BUILT_IN_SURFACES) {
+            expect(tabs.map((t) => t.value)).not.toContain(s);
+        }
+    });
+
+    it("cube's Matrix selection projects the matrix-controls tab", () => {
+        expect(extraTabsFrom(surfacesFor(groupFacility, "Matrix"))).toEqual([
+            SURFACE_META["matrix-controls"],
         ]);
-        // easing's set is ['easing'] → NO built-in triad member survives.
-        expect(builtInSurfacesFor("easing")).toEqual([]);
-        expect(builtInSurfacesFor("sequence")).toEqual([]);
     });
 
-    it("cube's matrix-controls is a CONDITIONAL surface (valid, but not static)", () => {
-        // Not in the static set...
-        expect(controlSurfacesFor("cube")).not.toContain("matrix-controls");
-        // ...but recorded as a valid conditional surface.
-        expect(CONDITIONAL_SURFACES.cube).toContain("matrix-controls");
-        // isSurfaceValidForScene includes the conditional ceiling (may-ever-render).
-        expect(isSurfaceValidForScene("cube", "matrix-controls")).toBe(true);
-        // easing may NEVER show keyframes (neither static nor conditional).
-        expect(isSurfaceValidForScene("easing", "keyframes")).toBe(false);
+    it("a light scene with no facet projects no extra tabs", () => {
+        expect(extraTabsFrom(surfacesFor(sequenceFacility, "Sequence"))).toEqual(
+            [],
+        );
     });
 });
 
-// ── T.B5-MODEL — the dock cardinality projection (the ONE elision rule) ──────
-describe("T.B5 dock cardinality — controlZone / channelZone / cross-axis", () => {
-    const tab = (value: string, label: string): ControlSurfaceTab => ({
-        value: value as ControlSurfaceTab["value"],
-        label,
+describe("T.B2 — selectedSurfaceFrom resolves the selected member", () => {
+    it("returns undefined for the empty set (home/sequence mount no pane)", () => {
+        expect(selectedSurfaceFrom([])).toBeUndefined();
     });
 
-    it("controlZone: >1 tab ⇒ select; ==1 ⇒ inline; 0 ⇒ absent", () => {
-        const many = dockCardinality({
-            tabs: [tab("controls", "Controls"), tab("keyframes", "Keyframes")],
-            channels: [],
-        });
-        expect(many.controlZone.kind).toBe("select");
-        if (many.controlZone.kind === "select") {
-            expect(many.controlZone.tabs).toHaveLength(2);
-        }
-
-        const one = dockCardinality({
-            tabs: [tab("spring", "Spring")],
-            channels: [],
-        });
-        expect(one.controlZone.kind).toBe("inline");
-        if (one.controlZone.kind === "inline") {
-            expect(one.controlZone.tab.label).toBe("Spring");
-        }
-
-        const none = dockCardinality({ tabs: [], channels: [] });
-        expect(none.controlZone.kind).toBe("absent");
+    it("honors a valid preferred pick", () => {
+        const set = surfacesFor(easingFacility, "Easing");
+        expect(selectedSurfaceFrom(set, "easing")).toBe("easing");
     });
 
-    it("channelZone: >1 channel ⇒ select; ≤1 ⇒ absent (a lone channel needs no picker)", () => {
-        const two = dockCardinality({
-            tabs: [],
-            channels: ["Sweep", "Entry"],
-        });
-        expect(two.channelZone.kind).toBe("select");
-        if (two.channelZone.kind === "select") {
-            expect(two.channelZone.channels).toEqual(["Sweep", "Entry"]);
-        }
+    it("falls back to the FIRST surface for an absent/invalid pick", () => {
+        const set = surfacesFor(easingFacility, "Easing");
+        expect(selectedSurfaceFrom(set)).toBe("controls");
+        expect(selectedSurfaceFrom(set, "spring")).toBe("controls");
+    });
+});
 
+describe("T.B5 dock cardinality (unchanged by T.B2)", () => {
+    const tab = (value: string): ControlSurfaceTab =>
+        SURFACE_META[value as keyof typeof SURFACE_META];
+
+    it("select for >1 tab, inline for exactly 1, absent for 0", () => {
         expect(
-            dockCardinality({ tabs: [], channels: ["Sweep"] }).channelZone.kind,
-        ).toBe("absent");
+            dockCardinality({
+                tabs: [tab("controls"), tab("keyframes")],
+                channels: [],
+            }).controlZone.kind,
+        ).toBe("select");
         expect(
-            dockCardinality({ tabs: [], channels: [] }).channelZone.kind,
-        ).toBe("absent");
+            dockCardinality({ tabs: [tab("spring")], channels: [] }).controlZone
+                .kind,
+        ).toBe("inline");
+        expect(dockCardinality({ tabs: [], channels: [] }).controlZone.kind).toBe(
+            "absent",
+        );
     });
 
-    it("cross-axis redundancy: a lone tab whose identity duplicates the scene label ⇒ render nothing", () => {
-        // owner shot 14's "Spring\nSpring" → "Spring": the sole control-surface
-        // label is a strict subset of the adjacent scene identity.
-        const redundant = dockCardinality({
-            tabs: [tab("spring", "Spring")],
+    it("flags a lone control label redundant with the adjacent scene label", () => {
+        const d = dockCardinality({
+            tabs: [tab("spring")],
             channels: [],
             sceneLabel: "Spring",
         });
-        expect(redundant.controlLabelRedundant).toBe(true);
-
-        // case/whitespace-insensitive.
-        expect(
-            dockCardinality({
-                tabs: [tab("easing", "Easing")],
-                channels: [],
-                sceneLabel: "  easing ",
-            }).controlLabelRedundant,
-        ).toBe(true);
-    });
-
-    it("cross-axis redundancy is FALSE for a distinct label, multi-tab, or no scene label", () => {
-        // distinct identity — the control label adds information.
-        expect(
-            dockCardinality({
-                tabs: [tab("matrix-controls", "Matrix Controls")],
-                channels: [],
-                sceneLabel: "Cube",
-            }).controlLabelRedundant,
-        ).toBe(false);
-        // a multi-tab select is never a redundant lone label.
-        expect(
-            dockCardinality({
-                tabs: [tab("controls", "Controls"), tab("timeline", "Timeline")],
-                channels: [],
-                sceneLabel: "Cube",
-            }).controlLabelRedundant,
-        ).toBe(false);
-        // no adjacent scene label ⇒ nothing to be redundant against.
-        expect(
-            dockCardinality({
-                tabs: [tab("spring", "Spring")],
-                channels: [],
-            }).controlLabelRedundant,
-        ).toBe(false);
-    });
-
-    it("returns FRESH arrays (the model is never a live table reference)", () => {
-        const tabs = [tab("controls", "Controls"), tab("keyframes", "Keyframes")];
-        const channels = ["A", "B"];
-        const model = dockCardinality({ tabs, channels });
-        if (model.controlZone.kind === "select") {
-            expect(model.controlZone.tabs).not.toBe(tabs);
-        }
-        if (model.channelZone.kind === "select") {
-            expect(model.channelZone.channels).not.toBe(channels);
-        }
+        expect(d.controlLabelRedundant).toBe(true);
     });
 });

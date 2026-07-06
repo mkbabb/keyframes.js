@@ -1,8 +1,5 @@
 import { computed, inject, watch, type ComputedRef } from "vue";
-import {
-    ACTIVE_CONTROL_CONDITIONALS_KEY,
-    ACTIVE_SCENE_KEY,
-} from "../../injectionKeys";
+import { ACTIVE_SCENE_KEY } from "../../injectionKeys";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useSceneMachine } from "@state";
 import type { StoredAnimationGroupControlOptions } from "@state";
@@ -62,13 +59,13 @@ export function useSelectedControlSurface(
 
     const machine = useSceneMachine();
 
-    // J.W2 S2 — the ACTIVE scene's superKey + the currently-active conditional
-    // surfaces (App-provided; undefined on a standalone host). The superKey is
-    // atomic with `machine.activeScene`, so the write gate below can never lag the
-    // transition; the conditionals make the projection conditional-surface-aware
-    // (cube's matrix-controls falls back AT the authority when Matrix deselects).
+    // J.W2 S2 — the ACTIVE scene's superKey (App-provided; undefined on a
+    // standalone host). The superKey is atomic with `machine.activeScene`, so the
+    // write gate below can never lag the transition. The conditional-surface
+    // awareness (cube's matrix-controls) is now folded INTO the derived surface
+    // set (T.B2 — the Matrix channel's facet), so the machine projection is
+    // already conditional-aware with no separate `activeConditionals` thread.
     const activeSuperKey = inject(ACTIVE_SCENE_KEY, undefined);
-    const activeConditionals = inject(ACTIVE_CONTROL_CONDITIONALS_KEY, undefined);
 
     // Does THIS host's store belong to the ACTIVE scene? During the NAVIGATE →
     // SCENE_READY window the controls still host the LEAVING scene's animations
@@ -83,10 +80,8 @@ export function useSelectedControlSurface(
 
     const selectedControlSurface = computed<string>(() =>
         tabsExternallyManaged
-            ? machine.selectedControlSurface(
-                  storedControls.selectedControl,
-                  activeConditionals?.value,
-              ) ?? storedControls.selectedControl
+            ? machine.selectedControlSurface(storedControls.selectedControl) ??
+              storedControls.selectedControl
             : storedControls.selectedControl,
     );
 
@@ -113,8 +108,7 @@ export function useSelectedControlSurface(
     // transiting through the store.
     const projectPick = (pick: string): string =>
         tabsExternallyManaged
-            ? machine.selectedControlSurface(pick, activeConditionals?.value) ??
-              pick
+            ? machine.selectedControlSurface(pick) ?? pick
             : pick;
 
     return { selectedControlSurface, projectPick };

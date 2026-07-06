@@ -1,33 +1,41 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// THE CONTROL-SURFACE DFA — the THIRD orthogonal axis on the H.W1 keystone
-// (H.W11.S4 / I2). Pure core, co-located with the scene+playback reducer it
+// THE CONTROL-SURFACE DERIVATION — the THIRD orthogonal axis on the H.W1
+// keystone (H.W11.S4 / I2), INVERTED at T.B2 from a hand-maintained per-scene
+// exclusion TABLE (the deleted `CONTROL_SURFACES` / `CONDITIONAL_SURFACES` rows,
+// keyed by SceneId) into a DERIVATION off the live scene facility. The valid
+// surface set is now COMPUTED from "does the
+// selected channel paint" — never declared per scene — so no row can deny a
+// painting group its triad (the owner's #25 asymmetry vanishes BY
+// CONSTRUCTION). Pure core, co-located with the scene+playback reducer it
 // EXTENDS (sceneMachine.ts owns scene+playback; THIS owns control-surface
-// VISIBILITY keyed by scene). The reactive projection is exposed through the
-// effect layer (useSceneMachine.ts `controlSurfacesFor`).
+// VISIBILITY). The reactive projection is exposed through the effect layer
+// (useSceneMachine.ts `controlSurfaces`, fed the active facility by the App via
+// `setActiveSurfaces`).
 //
-// WHY a separate axis: W1 owns TWO orthogonal axes (the SCENE axis and the
-// PLAYBACK-status axis). The per-scene control-surface VISIBILITY had no formal
-// owner — `AnimationControls.vue` hard-coded the {controls,keyframes,timeline}
-// triad for EVERY scene, and each scene poke-set `selectedControl`/
-// `isControlsPanelOpen` with reka-tab-fallback HACKS (EasingScene's onMounted
-// nextTick re-assert, etc.). This DFA is the explicit owner those hacks stood
-// in for: a STATIC, TOTAL map (scene → valid control-surface set) the tab hosts
-// render FROM, so an INVALID surface CANNOT render per scene.
+// THE DERIVATION (T.B2): `surfacesFor(facility, selected)` =
+//   [...(selected.animation ? BUILT_IN_SURFACES : selected.surfaces ?? []),
+//    ...(the selected channel's own conditional facets — cube's matrix-controls),
+//    ...facility.facets.map(f => f.surface)]
+// A channel that carries a painting `animation` earns the BUILT-IN triad
+// (Controls/Keyframes/Timeline); a light channel declares its honest subset; the
+// facility's additive facets (easing Curve, spring Physics) union on top. Cube's
+// `matrix-controls` is a facet on its Matrix CHANNEL descriptor — visible only
+// while that channel is selected, so selection-gating is just "which channel is
+// selected" (the old CONDITIONAL_SURFACES + activeConditionals threading DIED).
 //
 // DO NOT touch the W1 reducer (`transition`) — this is a PURE orthogonal
-// PROJECTION, never a state mutation. `transition(state, event)` is unchanged;
-// proof:scene-machine-irrefragable stays GREEN by construction.
+// PROJECTION, never a state mutation. proof:scene-machine-irrefragable stays
+// GREEN by construction.
 // ─────────────────────────────────────────────────────────────────────────────
-
-import type { SceneId } from "./sceneMachine";
 
 /**
  * The control-surface alphabet — every surface a scene MAY expose in the control
  * dock/panel. `controls`/`keyframes`/`timeline` are the BUILT-IN editor triad;
- * `easing`/`spring`/`matrix-controls` are the scene-specific surfaces whose tab
- * metadata projects through `extraControlTabsFor` (J.W0.S3). The DFA is the
- * authority on WHICH of these are valid per scene; the tab host renders the
- * INTERSECTION of its known tab descriptors with this set.
+ * `easing`/`spring`/`matrix-controls` are the scene-specific facet surfaces whose
+ * tab metadata resolves from the ONE `SURFACE_META` registry. The derivation is
+ * the authority on WHICH of these hold for the active (facility × selected
+ * channel); the tab host renders the INTERSECTION of its known tab descriptors
+ * with the derived set.
  */
 export type ControlSurface =
     | "controls"
@@ -38,125 +46,87 @@ export type ControlSurface =
     | "matrix-controls";
 
 /** The BUILT-IN editor triad — the surfaces `AnimationControls`/`ChromeDock`
- *  carry as first-class tab descriptors. A scene shows a triad member ONLY when
- *  its DFA entry includes it. */
+ *  carry as first-class tab descriptors. A channel that PAINTS (carries an
+ *  `animation`) earns the whole triad by construction. */
 export const BUILT_IN_SURFACES: readonly ControlSurface[] = [
     "controls",
     "keyframes",
     "timeline",
 ];
 
-/**
- * THE DFA TABLE — (scene → valid control-surface set). The (scene ×
- * control-surface) matrix made EXPLICIT + TOTAL: every declared scene id maps to
- * an enumerated set; `controlSurfacesFor` makes UNKNOWN scenes total (no
- * undefined behavior navigating any (scene → scene) pair — every cell resolves).
- *
- *   • home          → []                                (no editor — the landing)
- *   • cube/amiga     → [controls, keyframes, timeline]  (the full editor triad;
- *                                                        cube ADDS matrix-controls
- *                                                        CONDITIONALLY — see below)
- *   • easing         → [easing]                         (ONLY easing — NOT the
- *                                                        meaningless keyframes/
- *                                                        timeline triad)
- *   • spring         → [spring]                         (ONLY spring)
- *   • square         → [controls, keyframes, timeline]  (T.A13+T.B3 / fold row 69 —
- *                                                        the G2 collapse CURED: the
- *                                                        "Transform" animation is now
- *                                                        LIVE (num()-normalized four-
- *                                                        corner keyframes), so the
- *                                                        triad edits an HONEST anim —
- *                                                        Play obeys duration/easing.)
- *   • sequence       → []                               (self-contained; no panel)
- *
- * CUBE'S matrix-controls is a CONDITIONAL surface (valid only while the Matrix
- * animation is selected). It is therefore NOT a static table member; it composes
- * on top through `extraControlTabsFor`'s `activeConditionals` argument (the App
- * supplies the selection predicate — a stored, synchronous fact). The static
- * table enumerates the surface set that holds REGARDLESS of the in-scene
- * selection; the cube's CONDITIONAL ceiling is recorded in `CONDITIONAL_SURFACES`
- * so the navigation-matrix gate knows the cube cell's full possible set is
- * DEFINED.
- */
-export const CONTROL_SURFACES: Record<SceneId, ControlSurface[]> = {
-    home: [],
-    cube: ["controls", "keyframes", "timeline"],
-    amiga: ["controls", "keyframes", "timeline"],
-    // T.A13 + T.B3 (fold row 69, the G2 inversion CURED) — square RE-TABLED into
-    // the full built-in triad. S.G2 collapsed square to [] because Play painted
-    // nothing (the "0pxpx" CSSOM discard). With the unit-honest `num()` normalizer
-    // + the real four-corner keyframes + the {idle,drag,playback} FSM (T.A13), the
-    // "Transform" animation is LIVE — Play visibly obeys duration/easing/direction,
-    // so the triad edits an honest animation (the VERDICT #12/#25 panel RETURN).
-    square: ["controls", "keyframes", "timeline"],
-    easing: ["easing"],
-    spring: ["spring"],
-    sequence: [],
-};
+// ── THE DERIVATION INPUT (T.B2 — structural, cycle-free) ─────────────────────
+// `surfacesFor` reads the live `SceneFacility` STRUCTURALLY (the app/scene/
+// `SceneFacility`/`ChannelHandle`/`SceneFacet` satisfy these), so this pure
+// state module never imports the app-scene layer (which imports FROM @state —
+// the cycle the structural typing breaks).
 
-/**
- * The CONDITIONAL surfaces a scene MAY add on top of its static set, gated by an
- * in-scene selection (cube's matrix-controls appears only when the Matrix
- * animation is selected). Enumerated so the navigation-matrix gate can assert the
- * cube cell's FULL possible surface set is DEFINED (no undefined behavior even
- * with the conditional extra). The App projects these through
- * `extraControlTabsFor` (J.W0.S3 — the caller supplies WHICH conditionals are
- * currently active); the DFA records that they are EXPECTED + valid.
- */
-export const CONDITIONAL_SURFACES: Record<SceneId, ControlSurface[]> = {
-    cube: ["matrix-controls"],
-};
+/** The channel shape `surfacesFor` reads: does it paint (`animation`), what
+ *  honest subset does a light channel declare (`surfaces`), and what conditional
+ *  facets does selecting IT add (cube's Matrix channel → matrix-controls). */
+export interface SurfaceChannelLike {
+    name: string;
+    /** Present ⇒ this channel PAINTS ⇒ it earns the BUILT-IN triad. */
+    animation?: unknown;
+    /** A light channel's honest surface subset (no fictional keyframes). */
+    surfaces?: readonly ControlSurface[];
+    /** Conditional facets contributed ONLY while THIS channel is selected. */
+    facets?: readonly { surface: ControlSurface }[];
+}
 
-/**
- * The TOTAL selector — the valid control-surface set for ANY scene id. An
- * unknown/unregistered scene id falls back to the BUILT-IN editor triad (the
- * conservative default: a never-seen scene gets the standard editor, never an
- * undefined set). This totality is the no-undefined-behavior guarantee: every
- * (scene → scene) navigation lands on a DEFINED control-surface set.
- *
- * Returns a fresh array per call (the table value is never mutated by callers).
- */
-export function controlSurfacesFor(sceneId: SceneId): ControlSurface[] {
-    const set = CONTROL_SURFACES[sceneId];
-    return set ? [...set] : [...BUILT_IN_SURFACES];
+/** The facility shape `surfacesFor` reads: the transport channels + the
+ *  facility-wide additive facets (easing Curve, spring Physics). */
+export interface SurfaceFacilityLike {
+    channels: readonly SurfaceChannelLike[];
+    facets: readonly { surface: ControlSurface }[];
 }
 
 /**
- * Is `surface` valid for `sceneId`? Includes the CONDITIONAL surfaces (cube's
- * matrix-controls) so a host can ask "may this surface EVER render here" — the
- * gate's TOTAL-matrix question. For the STRICT "renders right now without a
- * conditional selection" question, intersect against `controlSurfacesFor`.
+ * THE DERIVATION (T.B2). The valid control-surface set for a scene, COMPUTED
+ * from its live facility × the selected channel — never a hand-maintained table
+ * row. The triad half is *computed* from "does the selected channel paint," so a
+ * painting group can never be denied it (the #25 asymmetry cure). A light
+ * channel contributes only its declared honest `surfaces` (sequence → []). The
+ * selected channel's own conditional facets union on (cube's matrix-controls —
+ * visible only while the Matrix channel is selected); the facility-wide facets
+ * (easing Curve / spring Physics) always union. `home` (no facility) → [].
+ *
+ * Deduplicated, order-preserving. Returns a fresh array per call.
  */
-export function isSurfaceValidForScene(
-    sceneId: SceneId,
-    surface: ControlSurface,
-): boolean {
-    if (controlSurfacesFor(sceneId).includes(surface)) return true;
-    return (CONDITIONAL_SURFACES[sceneId] ?? []).includes(surface);
+export function surfacesFor(
+    facility: SurfaceFacilityLike | undefined,
+    selectedName?: string,
+): ControlSurface[] {
+    if (!facility) return [];
+    const { channels, facets } = facility;
+    const selected =
+        channels.find((c) => c.name === selectedName) ?? channels[0];
+
+    // The triad is COMPUTED from paint: a channel carrying an `animation` earns
+    // {controls,keyframes,timeline}; a light channel contributes its honest
+    // declared subset (sequence's lone channel declares []).
+    const base: ControlSurface[] = selected?.animation
+        ? [...BUILT_IN_SURFACES]
+        : [...(selected?.surfaces ?? [])];
+
+    // The selected channel's conditional facets (cube's Matrix channel →
+    // matrix-controls) — selection-gating IS "which channel is selected."
+    const channelFacets = (selected?.facets ?? []).map((f) => f.surface);
+
+    // The facility-wide additive facets (easing Curve, spring Physics).
+    const facilityFacets = facets.map((f) => f.surface);
+
+    const all = [...base, ...channelFacets, ...facilityFacets];
+    return all.filter((s, i) => all.indexOf(s) === i);
 }
 
-/**
- * Project the BUILT-IN editor triad through the DFA for a scene: the subset of
- * {controls,keyframes,timeline} this scene is allowed to show. The tab hosts
- * render exactly these built-in triggers (the easing scene → [], so NO
- * keyframes/timeline node exists for it), then UNION the machine-projected
- * `extraControlTabs` (`extraControlTabsFor` — the scene-specific surfaces' tab
- * metadata). KISS·DRY: one authority for the triad's per-scene visibility.
- */
-export function builtInSurfacesFor(sceneId: SceneId): ControlSurface[] {
-    const valid = controlSurfacesFor(sceneId);
-    return BUILT_IN_SURFACES.filter((s) => valid.includes(s));
-}
-
-// ── THE EXTRA-TAB PROJECTION (J.W0.S3 — the dock trigger born-correct) ───────
+// ── THE SURFACE-METADATA REGISTRY (T.B2 — the triplication fold) ─────────────
 // The scene-specific surfaces' TAB METADATA (value + label + icon), single-
-// sourced HERE beside the DFA table that declares WHERE each surface is valid.
-// Formerly each scene component carried its own `extraControlTabs` computed and
-// the App re-bound it through `sceneRef` — so the dock's trigger label arrived
-// a tick LATE, gated on the destination scene's <Suspense> mount (the
-// scene-control-dfa trigger-lag race, `ci-linux-open-item.md §2`). The metadata
-// is STATIC per surface; deriving it from `activeScene` through this table makes
-// the dock projection settle synchronously with the route transition.
+// sourced HERE. Formerly the surface→{label,icon} map existed THREE times —
+// `SCENE_SURFACE_TABS` here, `BUILT_IN_TAB_META` in AnimationControls.vue,
+// `BUILT_IN_CONTROL_TABS`+`TAB_ICONS` in ChromeDock.vue — three hand-synced
+// copies of one fact. This is the SINGLE source: both docks and the in-panel
+// strip derive their tab descriptors from it (ChromeDock's `TAB_ICONS` survives
+// as the string→component ICON registry, a render concern, not metadata).
 
 /** A dock/tab-host descriptor for a control surface. The `icon` is a key into
  *  the host's icon-COMPONENT registry (ChromeDock `TAB_ICONS` — a string→
@@ -168,13 +138,9 @@ export interface ControlSurfaceTab {
 }
 
 /**
- * THE ONE SURFACE-METADATA REGISTRY (T.B2 — the triplication fold). The
- * surface→{label,icon} map formerly existed THREE times — `SCENE_SURFACE_TABS`
- * here, `BUILT_IN_TAB_META` in AnimationControls.vue, `BUILT_IN_CONTROL_TABS`
- * in ChromeDock.vue — three hand-synced copies of one fact. This is the SINGLE
- * source: both docks and the in-panel strip derive their tab descriptors from
- * it (ChromeDock's `TAB_ICONS` survives as the string→component ICON registry,
- * a render concern, not metadata). Total over the ControlSurface alphabet.
+ * THE ONE SURFACE-METADATA REGISTRY. Total over the ControlSurface alphabet —
+ * both docks and the in-panel strip resolve every tab's `{label,icon}` from HERE
+ * (proof:dfa-derived's "resolves from exactly ONE module" clause).
  */
 export const SURFACE_META: Record<ControlSurface, ControlSurfaceTab> = {
     controls: { value: "controls", label: "Controls", icon: "SlidersHorizontal" },
@@ -190,93 +156,35 @@ export const SURFACE_META: Record<ControlSurface, ControlSurfaceTab> = {
 };
 
 /**
- * The scene-specific control tabs for a scene — the dock's `extraControlTabs`,
- * derived PURELY from the DFA table (the same `controlSurfacesFor(activeScene)`
- * authority that already owns the SET), NOT from a mounted scene component.
- *
- * `activeConditionals` carries the conditional surfaces currently active (cube's
- * `matrix-controls` while the Matrix animation is selected — the caller supplies
- * the predicate result, a stored synchronous fact). The intersection with
- * `CONDITIONAL_SURFACES[sceneId]` keeps the projection TOTAL: a conditional that
- * is not declared for the scene can never render there.
+ * The scene-specific control tabs derived from a surface SET — the non-built-in
+ * surfaces mapped through the ONE `SURFACE_META` registry (the dock's
+ * `extraControlTabs`). Pure over the derived set: the caller (App) computes the
+ * set via `surfacesFor`, so the tab metadata settles synchronously with the
+ * route (no tick-late `sceneRef.extraControlTabs` re-bind).
  */
-export function extraControlTabsFor(
-    sceneId: SceneId,
-    activeConditionals: readonly ControlSurface[] = [],
+export function extraTabsFrom(
+    surfaces: readonly ControlSurface[],
 ): ControlSurfaceTab[] {
-    const statics = controlSurfacesFor(sceneId).filter(
-        (s) => !BUILT_IN_SURFACES.includes(s),
-    );
-    const conditionals = (CONDITIONAL_SURFACES[sceneId] ?? []).filter((s) =>
-        activeConditionals.includes(s),
-    );
-    return [...statics, ...conditionals].flatMap((s) => {
-        const tab = SURFACE_META[s];
-        return tab ? [tab] : [];
-    });
+    return surfaces
+        .filter((s) => !BUILT_IN_SURFACES.includes(s))
+        .map((s) => SURFACE_META[s]);
 }
 
-// ── THE SELECTED-SURFACE SINGLE AUTHORITY (I.W2.S1) ──────────────────────────
-// The order-independent control-panel mount projection I.W1's S3 consumes. The
-// SELECTED control surface is a PURE FUNCTION of (the scene's DFA-valid set ×
-// the group's preferred pick) — never a free `storedControls.selectedControl`
-// that a scene mutates in `setup` and hopes wins the reka `<Tabs>` latch race.
-//
-// THE CONTRACT: the selected surface is `preferred` IFF it is a VALID member of
-// the scene's surface set; otherwise it DEFAULTS to the scene's first valid
-// surface (the deterministic floor). So on a switch the model-value is born
-// correct on the very tick the `<Tabs>` root mounts — the reka `useVModel`
-// `passive`-latch is taken with `"easing"` (not `undefined`/stale), and the
-// fresh + switched paths CONVERGE. A multi-pane scene (cube/amiga) keeps its
-// user pick (a valid member); a single-surface scene (easing/spring) ALWAYS
-// resolves its sole surface regardless of a stale stored pick from another
-// scene. This is `controlSurfacesFor(activeScene)` projected onto a single
-// selected value — the same single-authority the DFA already owns for the SET,
-// extended to the SELECTED member.
-
 /**
- * Resolve the SELECTED control surface for a scene as a pure function of the
- * DFA set × a preferred pick × the ACTIVE conditional surfaces. Returns the
- * scene's first valid surface when the preference is absent / not a valid
- * member (the deterministic default), so the value is synchronously correct on
- * the mounting tick (no latch race).
- *
- * `activeConditionals` (J.W2 S2 / DS-1) carries the conditional surfaces
- * CURRENTLY active (cube's `matrix-controls` while the Matrix animation is
- * selected — the same caller-supplied predicate `extraControlTabsFor` consumes).
- * A preferred CONDITIONAL surface is honored ONLY while its condition holds;
- * when the condition lapses (the Matrix animation deselects) the projection
- * itself falls back to the scene's first static surface (`"controls"` for
- * cube) — the fallback is a function OF the DFA, computed at the single
- * writer, NOT a scene-side imperative (the deleted `CubeScene` rogue watch).
- *
- * `undefined` only when the scene has NO valid surfaces (home/sequence) —
- * those scenes mount no control pane, so there is no selected surface to
- * project.
+ * Resolve the SELECTED control surface from a derived surface SET × a preferred
+ * pick — a PURE FUNCTION so the value is synchronously correct on the mounting
+ * tick (no reka latch race). Returns the set's first surface when the preference
+ * is absent / not a valid member (the deterministic default); `undefined` only
+ * when the set is empty (home/sequence mount no control pane).
  */
-export function selectedControlSurfaceFor(
-    sceneId: SceneId,
+export function selectedSurfaceFrom(
+    surfaces: readonly ControlSurface[],
     preferred?: string,
-    activeConditionals: readonly ControlSurface[] = [],
 ): ControlSurface | undefined {
-    const valid = controlSurfacesFor(sceneId);
-    if (valid.length === 0) return undefined;
-    if (!preferred) return valid[0];
-    // Honor the preferred pick when it is a STATIC member of the scene's set, or
-    // a CONDITIONAL member whose condition is CURRENTLY active (declared for the
-    // scene AND supplied by the caller). A stale conditional pick (the condition
-    // lapsed) or a cross-scene pick DEFAULTS to the scene's first static surface
-    // (the deterministic floor — a single-surface scene always resolves its sole
-    // surface, immune to a stale pick from another scene).
+    if (surfaces.length === 0) return undefined;
     const pick = preferred as ControlSurface;
-    if (valid.includes(pick)) return pick;
-    if (
-        (CONDITIONAL_SURFACES[sceneId] ?? []).includes(pick) &&
-        activeConditionals.includes(pick)
-    ) {
-        return pick;
-    }
-    return valid[0];
+    if (preferred && surfaces.includes(pick)) return pick;
+    return surfaces[0];
 }
 
 // ── THE DOCK CARDINALITY PROJECTION (T.B5-MODEL — the ONE elision rule) ───────
@@ -337,7 +245,7 @@ export interface DockCardinality {
  * redundancy against the scene label; it holds no dock state and draws no chrome.
  *
  * `tabs` — the scene's control-surface tab descriptors (the derived triad + facet
- *          set once T.B2 lands; the DFA-projected set today).
+ *          set, T.B2).
  * `channels` — the transport channel names (`facility.channels.map(c => c.name)`).
  * `sceneLabel` — the scene identity already shown by the adjacent scene-select
  *          (the cross-axis redundancy comparand); omit for scenes with no adjacent
