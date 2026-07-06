@@ -204,8 +204,14 @@ const SWEEP_META = {
     // trigger PROJECTS. `group-play` — Play drives the honest four-corner tour
     // (proof:square-honest v2 owns the Play-paints oracle).
     square: { trigger: "Controls", label: "Square", kind: "group-play" },
-    easing: { trigger: "Easing", label: "Easing", kind: "group-play" },
-    spring: { trigger: "Spring", label: "Spring", kind: "spring-rail" },
+    // T.B5-RENDER / T.C1 — easing + spring each expose exactly ONE control surface,
+    // redundant with the scene identity the compass already shows. Per the elision
+    // (VERDICT #17, the `∿ Spring │ ∿ Spring` dup KILL) the control-tab trigger is
+    // ABSENT for these scenes (no `[aria-label='Controls tab']` node), so the
+    // expected trigger is `null`. The scene-selector still reads "Easing"/"Spring";
+    // the elided one was the demoted single-surface tab, not the scene identity.
+    easing: { trigger: null, label: "Easing", kind: "group-play" },
+    spring: { trigger: null, label: "Spring", kind: "spring-rail" },
     sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
 };
 {
@@ -530,7 +536,7 @@ async function runBattery() {
             await page.waitForTimeout(700);
             // Switch into easing via the hash route (the accepted switch-in repro of
             // the reka passive-latch). Then open the easing controls tab if needed.
-            await navToScene(page, "easing", "Easing");
+            await navToScene(page, "easing", null) /* T.B5-RENDER: easing control-tab elided */;
             await page.waitForTimeout(1500);
             const easing = await page.evaluate(async () => {
                 const canvas = document.querySelector(".easing-curve-canvas");
@@ -1183,7 +1189,7 @@ async function runBattery() {
                 const page = await ctx.newPage();
                 budget.attach(page, "S2:prm-sheet-snap");
                 await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-                await navToScene(page, "easing", "Easing");
+                await navToScene(page, "easing", null) /* T.B5-RENDER: easing control-tab elided */;
                 await page.waitForTimeout(1200);
                 const haveSheet = await page.evaluate(() => {
                     const w = document.querySelector(".controls-pane-wrapper");
@@ -1245,8 +1251,12 @@ async function runBattery() {
             });
 
             // (1) Tab ORDER: walk the focusable set; the play <button> must be
-            // REACHABLE (in the tab order, not tabindex=-1/pointer-only), with
-            // the dock's transport combobox encountered on the way.
+            // REACHABLE (in the tab order, not tabindex=-1/pointer-only). T.C1 —
+            // PLAY now LEADS the transport (rail-core, first from actions.primary,
+            // VERDICT #6), so the walk breaks AT play (the primary), and the
+            // animation combobox rides AFTER it in the same nav row. The transport
+            // combobox is therefore verified as present + keyboard-focusable (not
+            // "encountered before play" — that was the rejected play-last order).
             const walk = [];
             let reachedAt = -1;
             for (let i = 1; i <= 60; i++) {
@@ -1262,8 +1272,22 @@ async function runBattery() {
                     break;
                 }
             }
-            const sawTransport = walk.includes("Select animation");
             const playReachable = reachedAt > 0;
+            // The transport animation combobox is present + keyboard-focusable (cube
+            // is multi-animation, so the select renders — its own trigger or a
+            // focusable descendant is tabbable). Play-first means it sits AFTER play
+            // in the tab order; the walk breaks at play, so verify reachability
+            // structurally. A select made unreachable (tabindex=-1 / removed) reds.
+            const sawTransport =
+                walk.includes("Select animation") ||
+                (await page.evaluate(() => {
+                    const el = document.querySelector('[aria-label="Select animation"]');
+                    if (!el) return false;
+                    const focusable =
+                        el.matches('button,[role="combobox"],[tabindex]') ||
+                        el.querySelector('button,[role="combobox"],[tabindex]') != null;
+                    return focusable && el.getAttribute("tabindex") !== "-1";
+                }));
 
             // (2) focus-visible RENDERED on the keyboard-focused play button —
             // the ring must be a PAINTED DELTA over the unfocused rest state
@@ -1375,7 +1399,7 @@ async function runBattery() {
             const genAfter = budget.charges.filter((c) => /_gen-crash|_gen|Cannot read propert/.test(c.text)).length;
 
             // resume-iff-was-playing — switch back to easing + replay (continuity).
-            await navToScene(page, "easing", "Easing");
+            await navToScene(page, "easing", null) /* T.B5-RENDER: easing control-tab elided */;
             await page.waitForTimeout(1500);
             await page.waitForTimeout(500);
             await clickRainbowPlay(page);

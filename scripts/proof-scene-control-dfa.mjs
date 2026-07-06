@@ -186,8 +186,15 @@ const EXPECT = {
     // HONEST animation — the controls-tab trigger PROJECTS on square now (the
     // VERDICT #12/#25 panel RETURN). proof:square-honest v2 owns the paint oracle.
     square: { hasPanel: true, trigger: "Controls" },
-    easing: { hasPanel: true, trigger: "Easing", noBuiltInTriad: true },
-    spring: { hasPanel: true, trigger: "Spring", noBuiltInTriad: true },
+    // T.B5-RENDER / T.C1 — easing + spring each expose exactly ONE control surface,
+    // redundant with the scene identity → the control-tab TRIGGER is ELIDED (no
+    // `[aria-label='Controls tab']` node; VERDICT #17 dup KILL). `hasPanel` here
+    // reads the control-tab TRIGGER presence, so it is now false for these scenes
+    // (the collapse TOGGLE still renders — a separate affordance the DFA still gates
+    // via hasControlPanel — but there is nothing to SELECT). noBuiltInTriad still
+    // holds: no keyframes/timeline node leaks.
+    easing: { hasPanel: false, trigger: null, noBuiltInTriad: true },
+    spring: { hasPanel: false, trigger: null, noBuiltInTriad: true },
     sequence: { hasPanel: false },
 };
 

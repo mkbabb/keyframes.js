@@ -140,7 +140,7 @@ async function runSuffusion() {
             // ── (a) --ball-tone == icon hue per scene (the S3 colour oracle) ──
             // easing → violet
             await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-            await navToScene(page, "easing", "Easing", { timeout: 12000 });
+            await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 12000 });
             const easeTone = await page.evaluate(() => {
                 const cs = getComputedStyle(document.documentElement);
                 const ball = document.querySelector(".easing-target .progress-ball, .progress-ball, .hero-ball");
@@ -180,7 +180,7 @@ async function runSuffusion() {
             // gate hard-coding any hue (the "is the token the BLESSED violet, not
             // red" half is proof:accent-census's OWNER clause).
             await page.goto(`${base}/#/spring`, { waitUntil: "load" });
-            await navToScene(page, "spring", "Spring", { timeout: 12000 });
+            await navToScene(page, "spring", /*T.B5-RENDER elided*/ null, { timeout: 12000 });
             await page.waitForTimeout(700);
             const springTone = await page.evaluate(() => {
                 const cs = getComputedStyle(document.documentElement);
@@ -304,7 +304,7 @@ async function runSuffusion() {
             // ── (d) the easing projected curve PRESENT + MUTATING on a handle drag ──
             // (run before (c) so we stay on the desktop viewport for the drag)
             await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-            await navToScene(page, "easing", "Easing", { timeout: 12000 });
+            await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 12000 });
             await page.waitForTimeout(900);
             const curveBefore = await page.evaluate(() => ({
                 stage: document.querySelector(".easing-stage-curve-path")?.getAttribute("d") ?? null,

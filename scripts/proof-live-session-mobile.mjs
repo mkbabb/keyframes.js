@@ -715,9 +715,12 @@ async function runBattery() {
                         );
                     }
                     // The per-EXPECTED-destination-state predicate (J.W0): the
-                    // machine rests on easing AND the destination control-tab
-                    // trigger projects "Easing" (the trigger TEXT discriminates
-                    // the destination — never the source's stale surface).
+                    // machine rests on easing AND — T.B5-RENDER / T.C1 — the
+                    // control-tab trigger is ABSENT (easing exposes ONE control
+                    // surface, redundant with the scene identity → elided, VERDICT
+                    // #17). The destination is discriminated by machine=easing +
+                    // the ABSENCE of the Controls-tab node (the old `text==="Easing"`
+                    // asserted the now-deleted single-surface dup).
                     await page
                         .waitForFunction(
                             () => {
@@ -726,10 +729,7 @@ async function runBattery() {
                                         localStorage.getItem("keyframes-js-scene-machine") || "{}",
                                     );
                                     const trig = document.querySelector("[aria-label='Controls tab']");
-                                    return (
-                                        m.activeScene === "easing" &&
-                                        (trig?.textContent?.trim() || "") === "Easing"
-                                    );
+                                    return m.activeScene === "easing" && !trig;
                                 } catch {
                                     return false;
                                 }
@@ -749,15 +749,16 @@ async function runBattery() {
                             trigger: document.querySelector("[aria-label='Controls tab']")?.textContent?.trim() ?? null,
                         };
                     });
-                    if (dest.machine === "easing" && dest.trigger === "Easing") {
+                    if (dest.machine === "easing" && dest.trigger === null) {
                         ok(
                             `M2 dock SWITCH: the touch combobox commit landed cube→easing per the ` +
-                                `expected-destination-state predicate (machine=easing, trigger="Easing")`,
+                                `expected-destination-state predicate (machine=easing, control-tab ABSENT — the ` +
+                                `single-surface trigger is elided, T.B5-RENDER/#17)`,
                         );
                     } else {
                         fail(
                             `M2 dock SWITCH: the destination state never projected ` +
-                                `(machine=${dest.machine}, trigger=${dest.trigger}; expected easing/"Easing") ` +
+                                `(machine=${dest.machine}, trigger=${dest.trigger}; expected easing + ABSENT control-tab) ` +
                                 `— the touch switch is broken or lags its control surface`,
                         );
                     }
@@ -990,7 +991,7 @@ async function runAppearanceBand() {
         },
         async (page, { url: base }) => {
             await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-            await navToScene(page, "easing", "Easing", { timeout: 12000 });
+            await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 12000 });
             await page.waitForTimeout(900);
             return page.evaluate(() => {
                 const isDark = document.documentElement.classList.contains("dark");

@@ -289,11 +289,10 @@ const EXCLUDED = new Set([
     // glass-ui GU-1/GU-2 publish + re-pin (T.C6).
     "proof:dock-rest-crisp",
     "proof:dock-morph-continuity",
-    // T.B10 — the transport play-first RENDER clause. Born-RED: the MODEL clause
-    // (proof:transport-action-order) is GREEN + blocking, but TransportDock renders
-    // play markup-last today. Recorded tripwire; dischargedBy T.C1's rail-core
-    // rebuild (renders play first from actions.primary).
-    "proof:transport-play-first-render",
+    // (proof:transport-play-first-render — DISCHARGED at T.C1: it now GREENS on the
+    // rail-core rebuild and joins the blocking proof:hygiene-chain, so it is a normal
+    // covered gate, no longer an EXCLUDED born-RED tripwire — removed here + from
+    // T_BORNRED_BACKLOG in the same commit as the render, drive clause 7.)
 ]);
 
 const gates = Object.keys(pkg.scripts)

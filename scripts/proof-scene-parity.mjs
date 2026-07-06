@@ -307,7 +307,7 @@ async function freshEasingPage(browser, base, vw, vh) {
     // navToScene re-asserts the hash + waits for the FSM to rest on easing AND
     // the easing control surface to project (the per-EXPECTED settle — the
     // easing dock trigger reads "Easing").
-    await navToScene(page, "easing", "Easing", { timeout: 8000 });
+    await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.evaluate((ck) => {
         try {

@@ -151,7 +151,7 @@ async function runtimeHalf() {
         },
         async (page, { url }) => {
             await page.goto(url + "#/spring", { waitUntil: "load" });
-            await navToScene(page, "spring", "Spring");
+            await navToScene(page, "spring", /*T.B5-RENDER elided*/ null);
             await page.waitForTimeout(1500);
 
             // Open the spring control pane (the heatmap lives in SpringSidebar).

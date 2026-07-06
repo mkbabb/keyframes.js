@@ -85,11 +85,15 @@
             ]"
         ></div>
 
-        <!-- Bottom transport dock — hidden when no animation scene is active.
-             (J.W2 S4 / CD-1: the menubar-era name is renamed to TransportDock —
-             the rename the D FINAL claimed; the component's ROLE was already
-             the transport dock, only the name lagged.) -->
+        <!-- Bottom transport dock — T.C2: the transport MOUNTS iff the scene
+             exposes ≥1 painting channel (`transportNames.length > 0`). Home derives
+             `transportNames = []` (no facility, empty group), so the transport does
+             NOT render — home is COMPASS ONLY (VERDICT #6, shot 06: the orphaned
+             home transport cluster is deleted at the root; the start-screen CTA
+             lives in the start screen). Coordinates with T.B2 (home → [] channels).
+             (J.W2 S4 / CD-1: the menubar-era name is renamed to TransportDock.) -->
         <TransportDock
+            v-if="transportNames.length > 0"
             ref="transportDockRef"
             :stored-controls="storedControls"
             :is-playing="isPlaying"
