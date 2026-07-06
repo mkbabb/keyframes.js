@@ -266,6 +266,7 @@
         "proof:board-live": "node scripts/proof-board-live.mjs",
         "proof:prompt-recap-t": "node scripts/proof-prompt-recap-t.mjs",
         "proof:roster-ceiling": "node scripts/proof-roster-ceiling.mjs",
+        "proof:owner-golden": "node scripts/proof-owner-golden.mjs",
         "proof:stage-inventory": "node scripts/proof-stage-inventory.mjs",
         "proof:subject-legible": "node scripts/proof-subject-legible.mjs",
         "proof:subject-full": "node scripts/proof-subject-full.mjs",

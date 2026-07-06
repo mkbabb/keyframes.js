@@ -146,6 +146,7 @@ export const APPEARANCE_TOUCHING = [
     "proof:visual-lock",
     // the born-OWNER gate class (T.M) — OWNER authority by construction
     "proof:owner-verdict-recorded",
+    "proof:owner-golden",
     "proof:stage-inventory",
     "proof:subject-legible",
     "proof:subject-full",
@@ -205,7 +206,13 @@ export const GATE_AUTHORITY = {
     // runner provisioning (T.G9 lockstep → T.Z/T.S deploy-of-record) + the mobile
     // perf cure lifting every scene to its B floor. Recorded here so the deferral is
     // explicit, not a silent drop.
-    // (proof:owner-golden lands with T.A/T.D renders — its OWNER row is added then)
+    // T.M3 — the owner-anchored perceptual reference oracle (supersedes
+    // proof:visual-lock's self-baseline). OWNER by construction: its green cannot
+    // be reached without a committed owner BLESSING token
+    // (docs/tranches/T/goldens/BLESSED.json) over the 12 candidate frames. Born-RED
+    // BACKLOG (not OBSERVE — it reds hard everywhere; kept out of the &&-chain as
+    // declared backlog), dischargedBy the owner golden-blessing at review.
+    "proof:owner-golden": "OWNER",
 
     // ── INSTRUMENT authority (correctness facts; may NOT stand as the appearance bar) ──
     // T.C7 — the structural dock oracles (the meta-fact cure: the S roster never

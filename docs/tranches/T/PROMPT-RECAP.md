@@ -20,6 +20,14 @@
 > design/appearance/interaction row cannot flip to `OWNER-APPROVED` on critic-convergence + a green
 > born-RED oracle alone — those are **necessary but not sufficient**; a committed owner (or
 > owner-proxy live-review, the pass-3 chrome-devtools-mcp + live-shot pattern) token is required.
+>
+> **The review surface (the tokens land HERE).** The single owner-facing review document is
+> [`REVIEW-PACKET.md`](./REVIEW-PACKET.md) — the mid-drive/close surface that assembles every
+> PENDING-OWNER appearance row (OD-7 easing gallery, the cube/amiga/panel/Drawer taste calls), the
+> RULED-and-applied verdict packets to glance-confirm, the T.M3 owner-golden blessing action, the
+> `T_BORNRED_BACKLOG` + external-blocked set (KF-7, GU-1/2, BG-5/11), and how to serve each surface
+> (the landed tree + the P-HERO/P-THEME/P-GALLERY prototype worktrees). The tokens the spirit
+> column below cites are supplied through that packet.
 
 ## The spirit-column schema (the token vocabulary)
 

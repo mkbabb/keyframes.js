@@ -533,23 +533,23 @@ export const T_BORNRED_BACKLOG = {
             "locks, crayon, icon-paint-live) + the FROZEN discharge land — a declared backlog, " +
             "not a mask.",
     },
-    "proof:chronic-closure": {
-        dischargedBy:
-            "T.S1 remainder (the residual-row C-20 triage): row 71 re-pointed GREEN " +
-            "onto the T.H5 glass-ui-gap-tripwire + T.F16 excision, row 72 ratified " +
-            "GREEN as a historical RECORD; row 69 DISCHARGED (batch ③ T.A13+T.B3): " +
-            "`proof:square-honest` REWRITTEN v2 (panel PRESENT + Play paints) + TIERED " +
-            "into proof:demo-correctness (a runtime browser gate) — the row's cited " +
-            "gate is now resolve+tier+runtime, so row 69 is GREEN. FULL greening is a " +
-            "WHOLE-TRANCHE discharge: ~30 further S-ledger FOLD rows (rows 1/4/5/6-15/ " +
-            "23/25/… — the 'missing-witness wording' class) name their closure gate in " +
-            "prose but not in backticks, each owned by its landing wave.",
+    "proof:owner-golden": {
+        dischargedBy: "the owner golden-blessing at review",
         reason:
-            "HONEST COUNT (measured on this lane's tree post-square-landing): the gate " +
-            "has 31 row-fails (row 69 square-honest v2 is now GREEN; the prior handoff " +
-            "measured 33). Greening the rest re-authors the S-ledger closure column " +
-            "wave-by-wave (each row's owning wave backticks + tiers its gate), so this " +
-            "stays a whole-tranche born-RED backlog. Exit 1 verified on the tree.",
+            "T.M3 — the owner-anchored perceptual reference oracle that SUPERSEDES " +
+            "proof:visual-lock's self-captured baseline + full-subject mask (the one " +
+            "appearance tripwire that painted the amiga sphere / CSS-3D cube / engine " +
+            "balls / typing dots FLAT before the diff, blind to verdict #1/#4/#9/#21 and " +
+            "locking the owner-rejected layout as its golden). BORN-RED + BORN-OWNER: its " +
+            "GREEN is UNREACHABLE without a committed owner BLESSING token " +
+            "(docs/tranches/T/goldens/BLESSED.json) over the 12 candidate frames " +
+            "(home/cube/amiga/square/easing/spring × light/dark), each subject-full (the " +
+            "mask is FORBIDDEN — the subject stays IN) and matched by the live render " +
+            "(dHash under PRM). Reds today: BLESSED.json is absent. The candidates are " +
+            "captured from the LANDED tree as PENDING-OWNER " +
+            "(`node scripts/proof-owner-golden.mjs --capture-candidates`); the owner " +
+            "blesses at the mid-drive/close review, and the visual-lock demote-vs-retire " +
+            "call (T.M3 lockstep) executes WITH the blessing.",
     },
     "proof:visual-lock": {
         dischargedBy:
