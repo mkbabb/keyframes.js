@@ -16,7 +16,7 @@ demo/
 │   │   ├── useSceneMachineRouterBinding.ts   # scene-machine ↔ router reconcile
 │   │   └── router.ts          # hash-mode vue-router; routes select the active scene id (GH-Pages-safe)
 │   ├── transition/            # useSceneSwap.ts · useSceneTransition.ts (VT dispatch over kf's viewTransition + SpringProgress cross-dissolve fallback; NO demo-side ::view-transition CSS — glass-ui owns the look, S.G2 S11)
-│   ├── runtime/               # cross-scene recipes: useRafScene.ts · useSceneVisibilityPause.ts · rafConstants.ts · useContractAnimGroup.ts · useSceneTransport.ts · loaf-observer.ts · useMonacoCancellationGuard.ts
+│   ├── runtime/               # cross-scene recipes: useRafScene.ts · useSceneVisibilityPause.ts · rafConstants.ts · useSceneTransport.ts · loaf-observer.ts · useMonacoCancellationGuard.ts
 │   └── public/robots.txt
 ├── scenes/                    # THE fused scenes (R.W5): each dir co-locates <Name>Scene.vue + its composables + targets
 │   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaDemo, utils (tesselateSphere), amigaKeys, checkerboard.jpg

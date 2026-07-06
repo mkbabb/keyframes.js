@@ -69,15 +69,15 @@ const tabsContent = () => h(EasingSidebar, { demo });
 const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
-    const dur = demo.contractAnim.options.duration;
+    const dur = demo.previewAnim.options.duration;
     if (dur > 0) demo.progress.value = Math.max(0, Math.min(1, v.t / dur));
 };
 
 const onToggleReverse = () => {
     userReversed.value = !userReversed.value;
-    // Flip the contract clock's direction so the standard visualizer/scrubber
+    // Flip the preview clock's direction so the standard visualizer/scrubber
     // (which read `effectiveT = reversed ? duration - t : t`) mirror the reverse.
-    demo.contractAnim.reversed = userReversed.value;
+    demo.previewAnim.reversed = userReversed.value;
 };
 
 let wasPlayingBeforeScrub = false;
@@ -93,8 +93,10 @@ const onScrubEnd = () => {
 const ribbonContent = (slotProps: { selectedControl: string }) =>
     slotProps.selectedControl === "easing"
         ? h(PlaybackRibbon, {
-              animation: demo.contractAnim,
-              currentT: demo.progress.value * demo.contractAnim.options.duration,
+              // T.B1-β — the ribbon binds the REAL preview channel animation
+              // (its timingFunction IS the edited easing); the decoy is DEAD.
+              animation: demo.previewAnim,
+              currentT: demo.progress.value * demo.previewAnim.options.duration,
               isAnimPlaying: demo.isPlaying.value,
               isAnimStarted: true,
               userReversed: userReversed.value,
@@ -107,7 +109,10 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
         : null;
 
 defineExpose({
-    animationGroup: computed(() => demo.animationGroup),
+    // T.B1-β — the SceneFacility descriptor (the ONE real preview channel, the
+    // `easing` facet, the raw-rAF playback). The decoy `animationGroup` expose
+    // is DELETED with the contract-group decoy; the shell binds the facility.
+    facility: computed(() => demo.facility),
     superKey: SUPER_KEY,
     isPlaying,
     isStarted,

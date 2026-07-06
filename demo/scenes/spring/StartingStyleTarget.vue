@@ -84,7 +84,6 @@ import { Button, Card } from "@mkbabb/glass-ui";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
-import { useCompiledEntry } from "./useCompiledEntry";
 import CopyButton from "@components/custom/CopyButton.vue";
 
 import { SPRING_DEMO_KEY } from "./springKeys";
@@ -127,10 +126,9 @@ const copyableCss = computed(
 // S.F3 EN-d — the REAL `compileToEntry` artifact for this card's entry/exit,
 // compiled off the SAME shared spring params (dogfood: the demo runs the
 // published emitter and shows its verbatim output, not a hand-typed twin).
-const { css: compiledEntryCss } = useCompiledEntry(
-    () => demo.response.value,
-    () => demo.dampingFraction.value,
-);
+// T.B1-β/T.B7 — the compile now lives in useSpringDemo (its `entryAnim` IS the
+// facility's Entry channel); this target renders the demo-owned readout.
+const compiledEntryCss = demo.compiledEntryCss;
 </script>
 
 <style scoped>

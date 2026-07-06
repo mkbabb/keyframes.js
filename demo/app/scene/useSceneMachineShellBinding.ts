@@ -49,10 +49,10 @@ export function useSceneMachineShellBinding(opts: {
 
     /**
      * Bind the active scene's ScenePlayback adapter to the machine. Home
-     * registers NONE (no group — the cube backdrop drives no playback). A scene
-     * may expose its OWN adapter (the raw-rAF scenes — easing); otherwise the
-     * group is wrapped (cube/amiga/square + the dummy-group scenes' bottom-bar
-     * contract). Idempotent — tears the prior registration down first.
+     * registers NONE (no group — the cube backdrop drives no playback). Every
+     * non-home scene exposes a `SceneFacility` (T.B1-β) whose `playback` is the
+     * registered adapter; the group-wrap path survives only as the fallback for
+     * a facility-less host. Idempotent — tears the prior registration down first.
      */
     function bindSceneAdapter() {
         releaseAdapter?.();
@@ -106,9 +106,10 @@ export function useSceneMachineShellBinding(opts: {
             }
         }
 
-        // The playback authority: the facility's adapter first, then a scene's own
-        // raw-rAF adapter (easing/spring — the STAGE-2 legacy path), then wrap the
-        // group. A facility-only scene always resolves via `facility.playback`.
+        // The playback authority: the facility's adapter first (every migrated
+        // scene — the same object the scene's own `scenePlayback` expose carries),
+        // then a scene's own raw-rAF adapter, then wrap the group (the
+        // facility-less fallback).
         const exposed = sceneRef.value?.scenePlayback as ScenePlayback | undefined;
         const adapter =
             facility?.playback ??

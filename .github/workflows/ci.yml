@@ -435,6 +435,12 @@ jobs:
             # dischargedBy T.C1 — not CI-blocking.)
             - name: proof:transport-action-order (T.B10 — the ordered transport-action model · primary.kind==="play" first)
               run: npm run proof:transport-action-order
+            # T.B1-β/T.B7 (batch ⑥′ STAGE 2) — proof:scene-facility DISCHARGED from
+            # the born-RED backlog: every scene rides real facility channels and the
+            # useContractAnimGroup decoy is DELETED (decoy-zero clause (b) GREEN).
+            # STATIC source grep — the fast gates job; also a hygiene-chain member.
+            - name: proof:scene-facility (T.B1 — the SceneFacility keystone · descriptor + every scene channel-honest + decoy-zero)
+              run: npm run proof:scene-facility
             # ════════════════════════════════════════════════════════════════════
             # F-7 STATIC-GATE MIGRATION (Q.WA3 S4) — the device-dependence harden.
             # These ELEVEN gates open NO browser and read NO gh-pages build artifact

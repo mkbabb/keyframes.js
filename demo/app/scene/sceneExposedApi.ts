@@ -17,12 +17,12 @@ import type { SceneFacility } from "./sceneFacility";
 
 export interface SceneExposedApi {
     /**
-     * The `SceneFacility` descriptor (T.B1 — STAGE 1). When a scene exposes this,
-     * the shell binding PREFERS it: `facility.playback` is registered with the
-     * machine and `facility.channels` drives the transport-select labels. ADDITIVE
-     * during the stage — a migrated scene may still carry the legacy
-     * `animationGroup?`/`scenePlayback?` fields below (the two STAGE-2 scenes,
-     * easing/spring, carry only the legacy fields until batch ⑤).
+     * The `SceneFacility` descriptor (T.B1). EVERY non-home scene exposes one
+     * (the T.B1-β/T.B7 joint motion completed the set): the shell binding
+     * registers `facility.playback` with the machine and `facility.channels`
+     * drives the whole transport axis (labels, host mounts, selection, scrub).
+     * The legacy `animationGroup?`/`scenePlayback?` fields below remain as the
+     * group-scene panel handle + the ready-guard identity.
      */
     facility?: SceneFacility;
     /** The active AnimationGroup for the scene (or undefined if not set up yet). */

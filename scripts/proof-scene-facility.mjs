@@ -12,17 +12,14 @@
  *       the decoy. These clauses PASS on this tree; a regression (a scene dropping
  *       its facility, or a migrated scene re-growing a contract group) reds them.
  *
- *   (b) BORN-RED — the decoy-ZERO clause: ZERO `useContractAnimGroup` references
- *       anywhere under demo/. This is RED TODAY because easing + spring still ride
- *       the contract group (the STAGE-2 channel-rendering joint motion,
- *       T.B1-β/T.B7, batch ⑤, has not landed) and the `useContractAnimGroup.ts`
- *       definition still exists. Registered in scripts/gate-bands.mjs
- *       T_BORNRED_BACKLOG (dischargedBy the batch-⑤ joint motion); rides CI as a
- *       recorded tripwire, never a blocking &&-chain member.
+ *   (b) decoy-ZERO: ZERO `useContractAnimGroup` references anywhere under
+ *       demo/. GREEN since the T.B1-β/T.B7 joint motion (batch ⑥′ STAGE 2)
+ *       deleted the easing/spring call sites + the definition — the gate was
+ *       DISCHARGED from T_BORNRED_BACKLOG in that same commit and now rides the
+ *       blocking proof:hygiene-chain + a ci.yml gates-job step (drive clause 7).
  *
- * The gate exits 1 while clause (b) is unmet (born-RED). When batch ⑤ deletes the
- * easing/spring call sites + the definition, clause (b) greens and the gate exits
- * 0 — the discharge is machine-observed, not prose.
+ * The gate exits 1 if EITHER clause family regresses (a migrated scene losing
+ * its facility, or ANY decoy reference re-growing).
  *
  * Re-runnable: `node scripts/proof-scene-facility.mjs`
  */
@@ -121,6 +118,33 @@ if (
     greenFails.push("(a4) sequence — useSequenceDemo.ts must build a `SceneFacility`");
 }
 
+// ── Clause (a6) — the LIGHT scenes (easing/spring) expose channel facilities ──
+// (T.B1-β/T.B7 batch ⑥′: easing = ONE real preview channel; spring = the
+//  Sweep/Entry channel pair. Each scene exposes `facility: computed(() =>
+//  demo.facility)` and its composable assembles a `SceneFacility`.)
+const LIGHT_SCENES = [
+    ["easing", "demo/scenes/easing/EasingScene.vue", "demo/scenes/easing/useEasingDemo.ts"],
+    ["spring", "demo/scenes/spring/SpringScene.vue", "demo/scenes/spring/useSpringDemo.ts"],
+];
+for (const [name, sceneRel, composableRel] of LIGHT_SCENES) {
+    const sceneOk =
+        exists(sceneRel) &&
+        /facility:\s*computed\(\(\)\s*=>\s*demo\.facility\)/.test(read(sceneRel));
+    const composableOk =
+        exists(composableRel) &&
+        /const facility:\s*SceneFacility/.test(read(composableRel));
+    if (sceneOk && composableOk) {
+        greenPasses.push(
+            `(a6) light-scene — ${name} exposes a channel facility (real channels, no decoy)`,
+        );
+    } else {
+        greenFails.push(
+            `(a6) light-scene — ${name} must expose \`facility: computed(() => demo.facility)\` ` +
+                `and its composable must build a \`SceneFacility\``,
+        );
+    }
+}
+
 // ── Clause (a5) — the four MIGRATED scenes touch NO decoy ────────────────────
 const MIGRATED_DIRS = ["cube", "amiga", "square", "sequence"];
 const migratedDecoy = [];
@@ -152,11 +176,11 @@ for (const f of collectSources(DEMO)) {
 const bornRedGreen = decoyHits.length === 0;
 if (!bornRedGreen) {
     bornRedFails.push(
-        "(b) decoy-zero [BORN-RED] — useContractAnimGroup still referenced in: " +
+        "(b) decoy-zero — useContractAnimGroup RE-GREW; referenced in: " +
             decoyHits.join(", ") +
-            ". Discharged by the STAGE-2 easing/spring channel-rendering joint motion " +
-            "(T.B1-β/T.B7, batch ⑤): migrate easing + spring off the contract group, then " +
-            "delete demo/app/runtime/useContractAnimGroup.ts.",
+            ". The decoy was DELETED at the T.B1-β/T.B7 joint motion (batch ⑥′): " +
+            "easing + spring ride real facility channels — cure the regression, " +
+            "never resurrect demo/app/runtime/useContractAnimGroup.ts.",
     );
 }
 
@@ -165,7 +189,7 @@ console.log("proof:scene-facility — T.B1 STAGE 1 (SceneFacility keystone)\n");
 console.log("  clause (a) — STAGE-1 GREEN:");
 for (const p of greenPasses) console.log("    ✓ " + p);
 for (const f of greenFails) console.log("    ✗ " + f);
-console.log("\n  clause (b) — BORN-RED (T_BORNRED_BACKLOG; dischargedBy batch ⑤):");
+console.log("\n  clause (b) — decoy-zero (DISCHARGED at batch ⑥′ — must stay GREEN):");
 if (bornRedGreen) console.log("    ✓ (b) decoy-zero — ZERO useContractAnimGroup references under demo/");
 for (const f of bornRedFails) console.log("    ✗ " + f);
 
@@ -178,9 +202,9 @@ if (greenFails.length > 0) {
 }
 if (!bornRedGreen) {
     console.error(
-        "\nproof:scene-facility — BORN-RED: STAGE-1 clauses GREEN; the decoy-zero clause (b) " +
-            "stays RED until batch ⑤ (easing/spring channel-rendering) lands. This is the declared " +
-            "backlog (scripts/gate-bands.mjs T_BORNRED_BACKLOG), not a silent red.",
+        "\nproof:scene-facility — FAIL: the decoy-zero clause (b) REGRESSED — a " +
+            "useContractAnimGroup reference re-grew under demo/. The decoy was deleted at " +
+            "the T.B1-β/T.B7 joint motion (batch ⑥′); scenes ride SceneFacility channels.",
     );
     process.exit(1);
 }

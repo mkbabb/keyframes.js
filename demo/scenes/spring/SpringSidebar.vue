@@ -24,7 +24,12 @@
         class="spring-pane w-full overflow-visible"
     >
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
-            <!-- Card header — the drag affordance (S7) + the view switcher (S4). -->
+            <!-- Card header — the drag affordance (S7). T.B7 (T-SPR-3): the
+                 former KfPillTabs "Live solver / Discrete transition" view
+                 switcher is DELETED — the view fork is CHANNEL DATA now (the
+                 transport Select's Sweep/Entry channels fork the stage); the
+                 pill strip vanished without replacement (the T.B5 elision law
+                 running in the pluralization direction). -->
             <div class="flex items-center gap-2">
                 <button
                     ref="dragHandleEl"
@@ -35,19 +40,6 @@
                 >
                     <GripVertical class="w-4 h-4" />
                 </button>
-                <!-- R.W6 / DM-5 CONTINGENCY KILL — the kf-internal KfPillTabs
-                     replaces glass-ui SegmentedTabs here: the installed 4.0.1
-                     SegmentedTabs pill emits the orientation attribute
-                     UNCONDITIONALLY on its `role=group`, which forced an
-                     undefined-binding suppress (the DM-5 band-aid P-invariant-28
-                     forbids re-carrying). KfPillTabs is a `role=tablist`/`tab`
-                     switcher — ARIA-correct by construction, no suppress. -->
-                <KfPillTabs
-                    v-model="viewModel"
-                    :options="VIEW_OPTIONS"
-                    aria-label="Spring view"
-                    class="spring-view-tabs min-w-0 flex-1"
-                />
             </div>
 
             <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
@@ -153,14 +145,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onScopeDispose, useTemplateRef } from "vue";
+import { onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { GripVertical, RefreshCw } from "@lucide/vue";
-
-import KfPillTabs from "@components/custom/KfPillTabs.vue";
-import type { KfPillTabOption } from "@components/custom/useKfPillTabs";
 
 import KeyframesEditor from "@components/custom/keyframes-editor/KeyframesEditor.vue";
 import SpringHeatmap from "./SpringHeatmap.vue";
@@ -174,18 +163,6 @@ const props = defineProps<{ demo: SpringDemoContext }>();
 const demo = props.demo;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
-
-// ── View switcher (the SegmentedTabs model bridges the demo's `view` ref) ──────
-const VIEW_OPTIONS: KfPillTabOption[] = [
-    { label: "Live solver", value: "solver" },
-    { label: "Discrete transition", value: "discrete" },
-];
-const viewModel = computed<string>({
-    get: () => demo.view.value,
-    set: (v) => {
-        if (v === "solver" || v === "discrete") demo.view.value = v;
-    },
-});
 
 // ── J.W2 S5 (DS-3) — the preset-cell ball painter (the 60 Hz hot path) ─────────
 const trackBallEls: (HTMLElement | null)[] = [];
@@ -234,10 +211,6 @@ onScopeDispose(() => detachDrag?.());
 /* ── §LABEL-subgrid consume ──
    The params ride the shared `.labeled-field-grid` idiom (design-idioms.css —
    the DRY home). Nothing is re-authored here. */
-
-.spring-view-tabs {
-    align-self: center;
-}
 
 /* The pane card translates under the drag handle; keep its transform crisp +
    above siblings while dragging (the un-clip half of S7). */

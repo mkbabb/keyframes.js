@@ -274,13 +274,11 @@ const EXCLUDED = new Set([
     // Recorded tripwires, never blocking &&-chain members (clause 11).
     "proof:no-collision-rename",
     "proof:no-nested-self-dependency",
-    // T.B1 STAGE 1 (batch-④′ α) — the SceneFacility keystone gate. Clause (a)
-    // (descriptor + group scenes + sequence migrated) is GREEN; clause (b) (ZERO
-    // useContractAnimGroup references under demo/) is BORN-RED until batch ⑤ (the
-    // easing/spring channel-rendering joint motion) deletes the last call sites +
-    // the definition. Registered in T_BORNRED_BACKLOG; a recorded tripwire, never
-    // a blocking &&-chain member (clause 11 re-verifies the registration).
-    "proof:scene-facility",
+    // (proof:scene-facility — DISCHARGED at the T.B1-β/T.B7 joint motion (batch
+    //  ⑥′ STAGE 2): the easing/spring channel-rendering landed, the decoy
+    //  useContractAnimGroup.ts is DELETED, clause (b) decoy-zero GREENS. The gate
+    //  now rides the blocking proof:hygiene-chain as a normal covered gate —
+    //  removed here + from T_BORNRED_BACKLOG in the same commit, drive clause 7.)
     // T.C5 — the two dock RENDER acceptance gates (GU-1/GU-2). MEASURED born-RED:
     // the resting dock computes blur(3px) (dock-rest-crisp) and the width morph
     // snaps/jump-cuts (dock-morph-continuity). Per MEMORY the fix is glass-ui-root;

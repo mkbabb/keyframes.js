@@ -495,21 +495,14 @@ export const T_BORNRED_BACKLOG = {
             "(I.W7 S5). Correctness corroborators verified green: cube-silhouette, cube-settle, " +
             "live-session, subject-full (cube leg), occlusion, scene-control-dfa.",
     },
-    "proof:scene-facility": {
-        dischargedBy:
-            "T.B1-β/T.B7 (the easing/spring channel-rendering joint motion, batch ⑤): " +
-            "migrate easing + spring off the contract group onto real channels, then " +
-            "DELETE demo/app/runtime/useContractAnimGroup.ts in the same motion.",
-        reason:
-            "T.B1 STAGE 1 (batch-④′ α) split the keystone honestly: clause (a) — the " +
-            "SceneFacility descriptor + the GROUP scenes (cube/amiga/square) + SEQUENCE " +
-            "migrated onto facilities, decoy-free — is GREEN NOW; clause (b) — ZERO " +
-            "useContractAnimGroup references under demo/ — is BORN-RED because easing + " +
-            "spring still ride the contract group (their channel-rendering is the STAGE-2 " +
-            "joint motion with T.B7's decoy deletion) and the useContractAnimGroup.ts " +
-            "definition still exists. 3 real references remain (the def + easing + spring); " +
-            "the gate greens the instant batch ⑤ deletes them.",
-    },
+    // (proof:scene-facility — DISCHARGED at the T.B1-β/T.B7 joint motion (batch
+    //  ⑥′ STAGE 2): easing rides ONE real preview channel (a CSSKeyframesAnimation
+    //  whose timingFunction IS the edited easing), spring rides the Sweep
+    //  (springEditAnim) + Entry (the compiled @starting-style animation) channels,
+    //  and demo/app/runtime/useContractAnimGroup.ts is DELETED in the same motion.
+    //  Clause (b) decoy-zero GREENS — the gate exits 0 and joins the blocking
+    //  proof:hygiene-chain as a normal covered gate (removed here + from the
+    //  ci-coverage EXCLUDED set in the same commit, drive clause 7).)
     "proof:no-collision-rename": {
         dischargedBy:
             "value.js renames the exported PropertyDescriptor → a collision-free name " +

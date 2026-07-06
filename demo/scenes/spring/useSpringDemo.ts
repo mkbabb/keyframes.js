@@ -5,12 +5,13 @@ import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 
 import { useRafScene } from "@app/runtime/useRafScene";
-import { useContractAnimGroup } from "@app/runtime/useContractAnimGroup";
 import { useSceneTransport } from "@app/runtime/useSceneTransport";
-import { useSceneMachine } from "@state";
+import type { SceneFacility } from "@app/scene/sceneFacility";
+import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 import { SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
 import { useSpringKeyframesEditor } from "./useSpringKeyframesEditor";
+import { useCompiledEntry } from "./useCompiledEntry";
 import { useSpringDerby } from "./useSpringDerby";
 
 // The comparison-row vocabulary stays importable from the demo composable (the
@@ -48,16 +49,26 @@ const SAMPLER_DURATION = 1400;
 export function useSpringDemo() {
 
     // ── Sub-view selection (H.W5.S3 — the Discrete→Spring merge) ──────
-    // The Spring scene now hosts TWO views of one spring curve:
+    // The Spring scene hosts TWO views of one spring curve:
     //   • "solver"   — the live SpringProgress rail + springTimingFunction sweep;
     //   • "discrete" — that same spring linear() easing a real @starting-style /
     //                  allow-discrete CSS transition (the former standalone
     //                  Discrete scene, merged here in one motion).
-    // Both surface the artifact through the ONE useSpringLinearStops composable
-    // (the 2→1 fold). The active view + the discrete card's visibility are owned
-    // HERE so they live within the spring scene's SINGLE ScenePlayback
-    // registration — NO second scene, NO second adapter.
+    // T.B7 (T-SPR-3) — THE VIEW FORK IS CHANNEL DATA now, not chrome: the two
+    // views ARE the facility's two channels ("Sweep" / "Entry"), so the
+    // transport Select forks the stage and the former KfPillTabs pill strip
+    // vanished without replacement (the same elision law as T.B5 running in the
+    // pluralization direction). `view` DERIVES from the stored channel
+    // selection (the watch below); nothing else writes it.
     const view = ref<"solver" | "discrete">("solver");
+    const storedControls = getStoredAnimationGroupControlOptions("Spring");
+    watch(
+        () => storedControls.selectedAnimation,
+        (name) => {
+            view.value = name === "Entry" ? "discrete" : "solver";
+        },
+        { immediate: true },
+    );
 
     // The discrete-transition card's visibility (folded from the former
     // useStartingStyleDemo). The user drives it; the spring scene owns it.
@@ -188,7 +199,7 @@ export function useSpringDemo() {
             // rest EXACTLY where the loop left them (no snap-back to a stale 6 Hz
             // mirror when the machine pauses mid-sweep).
             paintScrubberPhase();
-            contractAnim.t = springLive.phase * contractAnim.options.duration;
+            springEditAnim.t = springLive.phase * springEditAnim.options.duration;
             return false;
         }
 
@@ -224,7 +235,7 @@ export function useSpringDemo() {
         // visualizer ball's time-twin. Neither touches the badges (those ride the
         // 6 Hz throttle below) — the painter channel, NOT a re-paint storm.
         paintScrubberPhase();
-        contractAnim.t = springLive.phase * contractAnim.options.duration;
+        springEditAnim.t = springLive.phase * springEditAnim.options.duration;
 
         // Cold path — the reactive readout mirrors at a few Hz only.
         maybeFlushReadouts(now);
@@ -272,7 +283,7 @@ export function useSpringDemo() {
         flushReadouts();
         repaintSprings();
         paintScrubberPhase();
-        contractAnim.t = clamped * contractAnim.options.duration;
+        springEditAnim.t = clamped * springEditAnim.options.duration;
     }
 
     // ── Methods ──────────────────────────────────────────────────────
@@ -351,7 +362,7 @@ export function useSpringDemo() {
         flushReadouts();
         repaintSprings();
         paintScrubberPhase();
-        contractAnim.t = 0;
+        springEditAnim.t = 0;
         startTime = performance.now();
         machine.dispatch({ type: "RESET" });
     };
@@ -364,37 +375,63 @@ export function useSpringDemo() {
     // (The derby's pending-timer teardown is owned by `useSpringDerby`'s own
     // onScopeDispose; the raw RAFPlayback teardown by useRafScene's.)
 
-    // ── Scene-contract group (the bottom-bar transport host) ──────────
-    // The transport host + its one-way `paused` projection are shared via
-    // `useContractAnimGroup` (R.W5 B.1). This scene's motion is the light
-    // SpringProgress / NumericAnimation trackers above; the group drives no
-    // motion. The preview dogfoods the same spring twin the rails ride.
-    const { contractAnim, animationGroup } = useContractAnimGroup({
-        duration: SAMPLER_DURATION,
-        timingFunction: springTimingFunction({
-            response: 0.5,
-            dampingFraction: 0.45,
-        }),
-        direction: "alternate",
-        name: "Spring Preview",
-        superKey: "Spring",
-        isPlaying,
-    });
+    // ── THE SPRING FACILITY (T.B1-β/T.B7 — the decoy is DEAD) ─────────────────
+    // The former contract-group opacity decoy (the "Spring Preview"
+    // transport host that painted nothing) is DELETED. The transport now rides
+    // TWO REAL channels:
+    //   • "Sweep" — `springEditAnim`, the two-way KeyframesEditor animation
+    //     (K.W4 S1). Its clock IS the sweep time-twin (the per-frame `.t` write
+    //     in `frame()` + every scrub/reset seam — the K.W4 S2 born-continuous
+    //     visualizer channel), so the standard PlaybackRibbon binds an animation
+    //     whose keyframes a panel edit really re-shapes.
+    //   • "Entry" — the compiled `@starting-style` entry animation from
+    //     `useCompiledEntry` (S.F3 EN-d). Selecting it forks the stage to the
+    //     discrete view (the `view` watch above — T-SPR-3: the fork is channel
+    //     data, not chrome).
+    // `playback` is the SAME raw-rAF ScenePlayback adapter the machine registers;
+    // the `spring` facet is the scene's additive surface (the DFA reads it).
+    const { css: compiledEntryCss, entryAnim } = useCompiledEntry(
+        () => response.value,
+        () => dampingFraction.value,
+    );
 
-    // G3 (H.W10.S2) — the contract animation's clock mirrors the sweep phase so
-    // the STANDARD PlaybackRibbon (the AnimationVisualizer ball — it polls
-    // `effectiveT/duration` on its own rAF) tracks the live sweep. The contract
-    // anim drives NO motion (no DOM target) — a pure time-twin.
-    //
-    // K.W4 S2 — the per-frame `contractAnim.t` write now lives in `frame()` (the
-    // 60 Hz hot path) + every scrub/reset/restore seam, so the visualizer twin is
-    // born-CONTINUOUS like the scrubber thumb — NOT the former 6 Hz `watch(progress)`
-    // mirror that stepped the position (live-spring-sequence-mp-verdict.md §2b).
-    // The watch is RETIRED (no-legacy); this is the ONE-TIME mount sync so the
-    // twin is seated before the loop's first frame.
-    contractAnim.t = progress.value * contractAnim.options.duration;
+    // The one-time mount sync so the Sweep twin is seated before the loop's
+    // first frame (the per-frame write lives in `frame()` — K.W4 S2).
+    springEditAnim.t = progress.value * springEditAnim.options.duration;
+
+    const facility: SceneFacility = {
+        channels: [
+            {
+                name: "Sweep",
+                animation: springEditAnim,
+                progress: () => springLive.phase,
+                setProgress: (t: number) => scrubTo(t),
+            },
+            {
+                name: "Entry",
+                animation: entryAnim,
+                progress: () => {
+                    const dur = entryAnim.options.duration ?? 500;
+                    return dur > 0
+                        ? Math.max(0, Math.min(1, entryAnim.t / dur))
+                        : 0;
+                },
+                setProgress: (t: number) => {
+                    const dur = entryAnim.options.duration ?? 500;
+                    entryAnim.t = Math.max(0, Math.min(1, t)) * dur;
+                },
+            },
+        ],
+        facets: [{ surface: "spring", label: "Spring", icon: "Activity" }],
+        playback: scenePlayback,
+    };
 
     return {
+        // T.B1-β — the SceneFacility descriptor (channels + facet + playback).
+        facility,
+        // S.F3 EN-d — the compiled @starting-style artifact readout (the
+        // StartingStyleTarget renders it; the Entry channel rides its animation).
+        compiledEntryCss,
         // Sub-view (H.W5.S3 — the merged Discrete view)
         view,
         visible,
@@ -449,14 +486,10 @@ export function useSpringDemo() {
         springEditAnim,
         seedKeyframes,
 
-        // Scene contract
-        animationGroup,
-        // The contract animation (the time-twin the standard PlaybackRibbon binds
-        // its scrubber + visualizer to — G3/H.W10.S2).
-        contractAnim,
         // The raw-rAF ScenePlayback adapter — the App registers this on
         // SCENE_READY so suspend/restore route through the contract (the
-        // spring↔cube cross-pair the group gate misses).
+        // spring↔cube cross-pair the group gate misses). Also carried by
+        // `facility.playback` (the same object — ONE adapter).
         scenePlayback,
     };
 }

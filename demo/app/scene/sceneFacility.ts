@@ -10,12 +10,12 @@
 // `progress()`/`setProgress()` + `playback` IS what `{paused, started, t,
 // duration, play/pause}` exposed, so no impersonation.
 //
-// STAGE 1 (this lane) is ADDITIVE: scenes expose `facility` ALONGSIDE the legacy
-// `animationGroup?`/`scenePlayback?` fields, and the shell binding PREFERS the
-// facility when present. The GROUP scenes (cube/amiga/square) + SEQUENCE migrate
-// here; easing/spring keep their contract group until the STAGE-2 channel-
-// rendering joint motion (T.B1-β/T.B7, batch ⑤). The contract-group decoy-zero
-// grep is BORN-RED until that stage (T_BORNRED_BACKLOG).
+// T.B1-β/T.B7 (batch ⑥′) — THE KEYSTONE IS COMPLETE: every scene exposes a
+// facility. The GROUP scenes (cube/amiga/square) ride `facilityFromGroup`;
+// SEQUENCE + EASING + SPRING assemble theirs over their raw-rAF playback
+// (sequence one master channel; easing ONE real preview animation; spring the
+// Sweep/Entry channel pair). The contract-group decoy (useContractAnim…) is
+// DELETED — proof:scene-facility's decoy-zero clause is GREEN and blocking.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";

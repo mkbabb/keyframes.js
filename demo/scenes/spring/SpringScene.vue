@@ -81,7 +81,7 @@ const tabsContent = () => h(SpringSidebar, { demo });
 const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
-    const dur = demo.contractAnim.options.duration;
+    const dur = demo.springEditAnim.options.duration;
     // K.W4 S2 + F5 — route the scrub through `scrubTo` (the ONE continuous seam):
     // it moves the thumb + the visualizer + the live ball together AND works
     // while idle (scrub-while-idle — the playhead is set without play first). The
@@ -92,7 +92,7 @@ const onScrubUpdate = (v: { t: number }) => {
 
 const onToggleReverse = () => {
     userReversed.value = !userReversed.value;
-    demo.contractAnim.reversed = userReversed.value;
+    demo.springEditAnim.reversed = userReversed.value;
 };
 
 let wasPlayingBeforeScrub = false;
@@ -107,13 +107,17 @@ const onScrubEnd = () => {
 
 const standardRibbon = () =>
     h(PlaybackRibbon, {
-        animation: demo.contractAnim,
+        // T.B1-β/T.B7 — the ribbon binds the Sweep CHANNEL's REAL animation
+        // (`springEditAnim`, the two-way KeyframesEditor animation whose clock
+        // is the sweep time-twin) — the opacity decoy `contractAnim` is DEAD.
+        animation: demo.springEditAnim,
         // K.W4 S2 — the scrubber thumb reads the CONTINUOUS 60 Hz position
         // channel (`scrubberPhase`), NOT the 6 Hz `progress` text mirror that
         // made the thumb visibly STEP (live-spring-sequence-mp-verdict.md §2). A
         // single position read per frame moves only the thumb (the badges ride
         // the 6 Hz throttle elsewhere) — the slider is born-continuous.
-        currentT: demo.scrubberPhase.value * demo.contractAnim.options.duration,
+        currentT:
+            demo.scrubberPhase.value * demo.springEditAnim.options.duration,
         isAnimPlaying: demo.isPlaying.value,
         isAnimStarted: true,
         userReversed: userReversed.value,
@@ -174,7 +178,10 @@ const ribbonContent = (slotProps: { selectedControl: string }) => {
 };
 
 defineExpose({
-    animationGroup: computed(() => demo.animationGroup),
+    // T.B1-β/T.B7 — the SceneFacility descriptor (Sweep + Entry channels, the
+    // `spring` facet, the raw-rAF playback). The decoy `animationGroup` expose
+    // is DELETED with the contract-group decoy; the shell binds the facility.
+    facility: computed(() => demo.facility),
     superKey: SUPER_KEY,
     isPlaying,
     isStarted,
