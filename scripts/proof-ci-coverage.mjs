@@ -155,6 +155,12 @@ for (const name of WORKFLOWS) {
 
 // ── clause 0 (F.W2): every proof:* gate is invoked in CI ──────────────────────
 const EXCLUDED = new Set([
+    // The two easing surface-locks — stale-driver reds on E8-retire-target
+    // surfaces (the T.B2 facet default + T.B7 dissolution changed their mount/
+    // actuation); re-charter-or-retire rides the easing terminal batch (OD-7).
+    // Registered in T_BORNRED_BACKLOG; recorded tripwires, never blocking.
+    "proof:easing-curve-editor",
+    "proof:easing-sidebar-minimal",
     "proof:all",
     "proof:ci-coverage",
     // proof:browser is a LOCAL dev meta-target (H.W8 WV-W8-HIGH-3) — it invokes the

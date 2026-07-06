@@ -60,7 +60,7 @@
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { navToScene, withPage } from "./lib/demo-driver.mjs";
+import { navToScene, pressPlayToggle, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -81,7 +81,11 @@ const CTRL_KEY = "animation-groups-control-options-store";
  *  the controls pane + the easing tab so the SIDEBAR editor mounts (clause 3); the
  *  singular stage is the default view. Rest ≥500ms. */
 async function settleOnEasing(page, viewportWidth, viewportHeight) {
-    await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 8000 });
+    await navToScene(page, "easing", /*T.B2-derived: Controls projects*/ null, { timeout: 8000 });
+    // T.G3 RE-ARM: the scene RESTS on entry (autoPlays:false, true rest) — the
+    // traverse clause needs an HONEST PRESS to put the curve in motion.
+    await pressPlayToggle(page, { intent: "play" });
+    await page.waitForTimeout(600);
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.evaluate((ck) => {
         try {

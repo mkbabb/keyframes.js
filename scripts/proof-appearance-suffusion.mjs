@@ -151,21 +151,28 @@ async function runSuffusion() {
                     defaultGreen: cs.getPropertyValue("--color-progress").trim(),
                 };
             });
-            // The hue map BITES per scene: the tone must == the icon hue AND != the
-            // default green (so a per-scene consumer set to the WRONG token reds).
-            if (
+            // T.E9 RE-ARM (VERDICT #16a, owner-RULED): the per-scene icon-hue map is
+            // DEAD — the easing scene collapsed to the ONE violet authority
+            // (--ball-tone == the resolved --color-progress == --accent-kf; the
+            // divergent magenta --rainbow-violet left the scene). The clause now
+            // asserts the ONE-authority seam: tone == the progress token AND the
+            // painted ball is NOT the old magenta.
+            const oneAuthority =
                 easeTone.tone &&
-                easeTone.tone.toLowerCase() === easeTone.violet.toLowerCase() &&
-                /230,\s*77,\s*230/.test(easeTone.bg ?? "")
-            ) {
+                easeTone.defaultGreen &&
+                easeTone.tone.toLowerCase() === easeTone.defaultGreen.toLowerCase() &&
+                !/230,\s*77,\s*230/.test(easeTone.bg ?? "");
+            if (oneAuthority) {
                 ok(
-                    `(a) easing --ball-tone == --rainbow-violet (${easeTone.tone}); ball bg ` +
-                        `${easeTone.bg} (the violet hue its icon promises, NOT the default green ${easeTone.defaultGreen})`,
+                    `(a) easing --ball-tone rides the ONE violet authority (${easeTone.tone} == ` +
+                        `--color-progress); ball bg ${easeTone.bg} (the T.E9/#16a collapse — the ` +
+                        `divergent magenta is gone)`,
                 );
             } else {
                 fail(
-                    `(a) easing --ball-tone is NOT the icon's violet (tone=${easeTone.tone}, ` +
-                        `expected ${easeTone.violet}; bg=${easeTone.bg}) — the colour seam did not carry the icon hue`,
+                    `(a) easing --ball-tone is OFF the ONE authority (tone=${easeTone.tone}, ` +
+                        `--color-progress=${easeTone.defaultGreen}; bg=${easeTone.bg}) — either the ` +
+                        `token seam broke or the old magenta resurfaced (#16a)`,
                 );
             }
 

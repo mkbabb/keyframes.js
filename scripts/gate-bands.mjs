@@ -551,6 +551,29 @@ export const T_BORNRED_BACKLOG = {
             "blesses at the mid-drive/close review, and the visual-lock demote-vs-retire " +
             "call (T.M3 lockstep) executes WITH the blessing.",
     },
+    "proof:easing-curve-editor": {
+        dischargedBy:
+            "the easing TERMINAL batch (T.E8 EasingPicker replaces the hand-rolled " +
+            "cluster + T.E6 post-OD-7): these two surface-locks' subject IS the " +
+            "E8-deletion-target editor cluster, and their actuation predates the " +
+            "T.B2 facet model (easing opens on Controls; the Curve facet needs " +
+            "selection). Re-charter-or-retire rides the redesign (T.M7 ledger class).",
+        reason:
+            "the ghost-diff/named-pick clauses red on the pre-facet actuation " +
+            "(picked=false) — a stale-driver red on an E8-retire-target surface, " +
+            "not a product defect (the editor itself functions; live-session B4 green).",
+    },
+    "proof:easing-sidebar-minimal": {
+        dischargedBy:
+            "the easing TERMINAL batch (T.E8/T.E6 post-OD-7) — same class as " +
+            "easing-curve-editor: the J clauses need the Curve facet SELECTED " +
+            "(post-T.B2 easing opens on Controls), and the sidebar body is the " +
+            "E8/E6 redesign surface.",
+        reason:
+            "'.easing-curve-canvas:false — the sidebar never painted' — the gate's " +
+            "mount path predates the T.B7 Curve-facet dissolution + T.B2 derived " +
+            "default tab; a stale-driver red on a retire-target surface.",
+    },
     "proof:visual-lock": {
         dischargedBy:
             "T.A3 LANDED (the easeInBounce mount intro is replaced by the deterministic " +

@@ -515,6 +515,11 @@ async function browserHalves() {
 
         await navToScene(page, "spring", TRIGGER.spring);
         await page.waitForTimeout(1800);
+        // T.G3 RE-ARM: spring RESTS on entry (autoPlays:false — the true-rest
+        // policy; idle = zero rAF). The algebra's precondition is now an HONEST
+        // PRESS, not an autoplay expectation.
+        await pressPlayToggle(page, { intent: "play" });
+        await page.waitForTimeout(900);
         const springPlaying = await activeIntentPlaying(page);
         const springLive = (await liveLoopMoving(page)).moving;
 
@@ -534,7 +539,7 @@ async function browserHalves() {
         const springResumedPaused = !(await activeIntentPlaying(page));
         const springLiveAfterReturn = (await liveLoopMoving(page)).moving;
 
-        // Assertions: spring was playing on first entry (auto-plays); after a
+        // Assertions: spring plays after the honest press (rest-on-entry, T.G3); after a
         // PAUSE-then-leave-then-return it stays PAUSED (the snapshot algebra
         // EXECUTED — captureActive's suspend completed because S1/S2 let it).
         const cOk =

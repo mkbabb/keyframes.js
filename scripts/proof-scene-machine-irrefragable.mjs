@@ -115,6 +115,7 @@ import {
     SCENE_MACHINE_KEY,
     navToScene,
     withPage,
+    pressPlayToggle,
 } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -263,8 +264,12 @@ const activeIsPlaying = (page) =>
  *  null/stale). */
 async function ensurePlaying(page) {
     if (!(await activeIsPlaying(page))) {
-        const clicked = await clickTransport(page, "play");
-        if (clicked) await page.waitForTimeout(700);
+        // T.G3 RE-ARM: scenes REST on entry (autoPlays:false for the light
+        // scenes) and the transport is @pointerup-bound (R.W6) — a synthetic
+        // element.click() no longer actuates it. Press honestly (the S.B7
+        // full pointer pair) via the house helper.
+        await pressPlayToggle(page, { intent: "play" });
+        await page.waitForTimeout(700);
     }
     // wait for the snapshot to settle to playing:true (auto-play scenes persist
     // it on SCENE_READY→PLAY; the read otherwise races the persistence).

@@ -210,8 +210,11 @@ const SWEEP_META = {
     // ABSENT for these scenes (no `[aria-label='Controls tab']` node), so the
     // expected trigger is `null`. The scene-selector still reads "Easing"/"Spring";
     // the elided one was the demoted single-surface tab, not the scene identity.
-    easing: { trigger: null, label: "Easing", kind: "group-play" },
-    spring: { trigger: null, label: "Spring", kind: "spring-rail" },
+    // T.B2 RE-ARM: easing/spring now DERIVE the full triad from their painting
+    // channels (the #25 asymmetry cure) — the Controls tab PROJECTS on entry
+    // (the pre-B2 null expectation asserted the exclusion-table state).
+    easing: { trigger: "Controls", label: "Easing", kind: "group-play" },
+    spring: { trigger: "Controls", label: "Spring", kind: "spring-rail" },
     sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
 };
 {
