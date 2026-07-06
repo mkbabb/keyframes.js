@@ -266,3 +266,100 @@ export function selectedControlSurfaceFor(
     }
     return valid[0];
 }
+
+// ── THE DOCK CARDINALITY PROJECTION (T.B5-MODEL — the ONE elision rule) ───────
+// VERDICT #17 ("when we have a page with ONE option … elide that intelligently")
+// + #6 (the superfluous divider). Single-option elision was half-built, DUPLICATED
+// across three sites (ChromeDock `multipleControlTabs`, TransportDock
+// `animationNames.length`, AnimationControls `isSingleSurfaceScene`), and each
+// SUBSTITUTED A STATIC LABEL instead of eliding — the very move the owner rejected
+// (owner shot 14's second "Spring"). This is the ONE derived cardinality model both
+// docks read, so the elision is decided in ONE place and consumed identically.
+//
+// Lane 3 (the dock host) CONSUMES this projection and DELETES the per-dock `.length`
+// arithmetic + the static-label branches. This module is the single writer of the
+// order-of-truth; it renders no chrome itself.
+
+/**
+ * The control-surface zone's cardinality state. `select` (>1 surface) draws the
+ * dock `Select`; `inline` (exactly 1) draws the tab body with ZERO dock chrome and
+ * NO static-label duplicate; `absent` (0) draws NO node AND no flanking separator.
+ */
+export type ControlZone =
+    | { kind: "select"; tabs: ControlSurfaceTab[] }
+    | { kind: "inline"; tab: ControlSurfaceTab }
+    | { kind: "absent" };
+
+/**
+ * The transport-channel zone's cardinality state. `select` (>1 channel) draws the
+ * transport `Select`; `absent` (≤1) draws NO node and no flanking separator — a
+ * lone channel needs no picker (its identity is the scene's).
+ */
+export type ChannelZone =
+    | { kind: "select"; channels: string[] }
+    | { kind: "absent" };
+
+/**
+ * The ONE derived dock cardinality model both docks read (T.B5). `controlZone`
+ * and `channelZone` decide select-vs-inline-vs-absent from the SAME axis-counts,
+ * so the dock never re-derives `.length > 1` per site. `controlLabelRedundant`
+ * carries the cross-axis clause (lane 30 rec 4): the sole control-surface identity
+ * is a strict subset of the adjacent scene identity already shown — so the answer
+ * is RENDER NOTHING, not a demoted label.
+ */
+export interface DockCardinality {
+    controlZone: ControlZone;
+    channelZone: ChannelZone;
+    /**
+     * The cross-axis redundancy clause: the control zone is `inline` AND its sole
+     * tab's identity duplicates the adjacent scene identity already shown (owner
+     * shot 14's "Spring\nSpring" → "Spring"). Lane 3 renders nothing for the
+     * control zone when this holds.
+     */
+    controlLabelRedundant: boolean;
+}
+
+/**
+ * Derive the dock cardinality model from the two axis inputs. PURE — it counts the
+ * control-surface tabs and the transport channels and resolves the cross-axis
+ * redundancy against the scene label; it holds no dock state and draws no chrome.
+ *
+ * `tabs` — the scene's control-surface tab descriptors (the derived triad + facet
+ *          set once T.B2 lands; the DFA-projected set today).
+ * `channels` — the transport channel names (`facility.channels.map(c => c.name)`).
+ * `sceneLabel` — the scene identity already shown by the adjacent scene-select
+ *          (the cross-axis redundancy comparand); omit for scenes with no adjacent
+ *          scene label.
+ */
+export function dockCardinality(input: {
+    tabs: readonly ControlSurfaceTab[];
+    channels: readonly string[];
+    sceneLabel?: string;
+}): DockCardinality {
+    const { tabs, channels, sceneLabel } = input;
+
+    let controlZone: ControlZone;
+    if (tabs.length > 1) {
+        controlZone = { kind: "select", tabs: [...tabs] };
+    } else if (tabs.length === 1) {
+        controlZone = { kind: "inline", tab: tabs[0]! };
+    } else {
+        controlZone = { kind: "absent" };
+    }
+
+    const channelZone: ChannelZone =
+        channels.length > 1
+            ? { kind: "select", channels: [...channels] }
+            : { kind: "absent" };
+
+    // The cross-axis subset test: a lone control-surface label whose identity the
+    // adjacent scene-select already shows is redundant — render nothing, not a
+    // demoted static label (owner shot 14).
+    const controlLabelRedundant =
+        controlZone.kind === "inline" &&
+        !!sceneLabel &&
+        controlZone.tab.label.trim().toLowerCase() ===
+            sceneLabel.trim().toLowerCase();
+
+    return { controlZone, channelZone, controlLabelRedundant };
+}

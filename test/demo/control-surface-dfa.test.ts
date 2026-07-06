@@ -18,6 +18,8 @@ import {
     controlSurfacesFor,
     isSurfaceValidForScene,
     builtInSurfacesFor,
+    dockCardinality,
+    type ControlSurfaceTab,
 } from "../../demo/@/state/controlSurfaceDFA";
 
 const DECLARED_SCENES = [
@@ -130,5 +132,112 @@ describe("H.W11 control-surface DFA — the built-in projection + conditional", 
         expect(isSurfaceValidForScene("cube", "matrix-controls")).toBe(true);
         // easing may NEVER show keyframes (neither static nor conditional).
         expect(isSurfaceValidForScene("easing", "keyframes")).toBe(false);
+    });
+});
+
+// ── T.B5-MODEL — the dock cardinality projection (the ONE elision rule) ──────
+describe("T.B5 dock cardinality — controlZone / channelZone / cross-axis", () => {
+    const tab = (value: string, label: string): ControlSurfaceTab => ({
+        value: value as ControlSurfaceTab["value"],
+        label,
+    });
+
+    it("controlZone: >1 tab ⇒ select; ==1 ⇒ inline; 0 ⇒ absent", () => {
+        const many = dockCardinality({
+            tabs: [tab("controls", "Controls"), tab("keyframes", "Keyframes")],
+            channels: [],
+        });
+        expect(many.controlZone.kind).toBe("select");
+        if (many.controlZone.kind === "select") {
+            expect(many.controlZone.tabs).toHaveLength(2);
+        }
+
+        const one = dockCardinality({
+            tabs: [tab("spring", "Spring")],
+            channels: [],
+        });
+        expect(one.controlZone.kind).toBe("inline");
+        if (one.controlZone.kind === "inline") {
+            expect(one.controlZone.tab.label).toBe("Spring");
+        }
+
+        const none = dockCardinality({ tabs: [], channels: [] });
+        expect(none.controlZone.kind).toBe("absent");
+    });
+
+    it("channelZone: >1 channel ⇒ select; ≤1 ⇒ absent (a lone channel needs no picker)", () => {
+        const two = dockCardinality({
+            tabs: [],
+            channels: ["Sweep", "Entry"],
+        });
+        expect(two.channelZone.kind).toBe("select");
+        if (two.channelZone.kind === "select") {
+            expect(two.channelZone.channels).toEqual(["Sweep", "Entry"]);
+        }
+
+        expect(
+            dockCardinality({ tabs: [], channels: ["Sweep"] }).channelZone.kind,
+        ).toBe("absent");
+        expect(
+            dockCardinality({ tabs: [], channels: [] }).channelZone.kind,
+        ).toBe("absent");
+    });
+
+    it("cross-axis redundancy: a lone tab whose identity duplicates the scene label ⇒ render nothing", () => {
+        // owner shot 14's "Spring\nSpring" → "Spring": the sole control-surface
+        // label is a strict subset of the adjacent scene identity.
+        const redundant = dockCardinality({
+            tabs: [tab("spring", "Spring")],
+            channels: [],
+            sceneLabel: "Spring",
+        });
+        expect(redundant.controlLabelRedundant).toBe(true);
+
+        // case/whitespace-insensitive.
+        expect(
+            dockCardinality({
+                tabs: [tab("easing", "Easing")],
+                channels: [],
+                sceneLabel: "  easing ",
+            }).controlLabelRedundant,
+        ).toBe(true);
+    });
+
+    it("cross-axis redundancy is FALSE for a distinct label, multi-tab, or no scene label", () => {
+        // distinct identity — the control label adds information.
+        expect(
+            dockCardinality({
+                tabs: [tab("matrix-controls", "Matrix Controls")],
+                channels: [],
+                sceneLabel: "Cube",
+            }).controlLabelRedundant,
+        ).toBe(false);
+        // a multi-tab select is never a redundant lone label.
+        expect(
+            dockCardinality({
+                tabs: [tab("controls", "Controls"), tab("timeline", "Timeline")],
+                channels: [],
+                sceneLabel: "Cube",
+            }).controlLabelRedundant,
+        ).toBe(false);
+        // no adjacent scene label ⇒ nothing to be redundant against.
+        expect(
+            dockCardinality({
+                tabs: [tab("spring", "Spring")],
+                channels: [],
+            }).controlLabelRedundant,
+        ).toBe(false);
+    });
+
+    it("returns FRESH arrays (the model is never a live table reference)", () => {
+        const tabs = [tab("controls", "Controls"), tab("keyframes", "Keyframes")];
+        const channels = ["A", "B"];
+        const model = dockCardinality({ tabs, channels });
+        if (model.controlZone.kind === "select") {
+            expect(model.controlZone.tabs).not.toBe(tabs);
+        }
+        if (model.channelZone.kind === "select") {
+            expect(model.channelZone.channels).not.toBe(channels);
+        }
     });
 });
