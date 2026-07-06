@@ -51,7 +51,7 @@
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { navToScene, withPage } from "./lib/demo-driver.mjs";
+import { navToScene, pressPlayToggle, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -153,6 +153,14 @@ async function exerciseEasing(page, label) {
     res.aDetail = st;
 
     if (!res.a) return res; // (b)/(c) need the mounted canvas
+
+    // T.G3 — the easing scene RESTS on entry now (autoPlays:false). Clause (b)'s
+    // discriminant is that the traveling dot's `cy` SHIFTS across the sweep after a
+    // curve edit — which needs the sweep ACTUALLY RUNNING. Actuate Play (the honest
+    // F3-guard-passing press) so the preview sweeps; a curve edit then re-eases the
+    // live progress and the sampled dot-cy set moves. No-op if already playing.
+    await pressPlayToggle(page, { intent: "play" });
+    await page.waitForTimeout(300);
 
     // ── clause (b) — ≥2 handles, drag mutates `d` AND re-animates ──
     const handleCount = await page.evaluate(

@@ -43,7 +43,7 @@
  * CORRECTNESS oracle for S1+S2; K.W5 owns wiring it into the `proof:*` roster + CI
  * (the gate-truth wave). It is standalone-runnable as-is.
  */
-import { withPage, navToScene, REQUIRE_BROWSER } from "./lib/demo-driver.mjs";
+import { withPage, navToScene, pressPlayToggle, REQUIRE_BROWSER } from "./lib/demo-driver.mjs";
 
 const PASS = "\x1b[32m✓\x1b[0m";
 const FAIL = "\x1b[31m✗\x1b[0m";
@@ -63,6 +63,13 @@ const MIN_FRAMES = 40; // the play window actually sampled a LIVE thumb (not a f
 const MAX_DWELL = 4; // a continuous thumb dwells ≤ a few frames; 6 Hz dwells ~21
 
 async function ensurePlaying(page) {
+    // T.G3 — the spring scene RESTS on entry now (autoPlays:false), so this gate
+    // must actuate Play before it can sample a LIVE 60 Hz thumb (the former
+    // auto-play made the scene arrive already `playing`). A bare `button.click()`
+    // is EXACTLY the ghost-actuation the transport's F3 press-origin guard rejects
+    // (S.B7): the press must originate on the control as an honest primary pointer
+    // down→up. `pressPlayToggle(intent:"play")` dispatches that full press; it is a
+    // no-op when the transport already reads "Pause".
     const label = await page.evaluate(() => {
         const b = [...document.querySelectorAll("button")].find((x) => {
             const al = (x.getAttribute("aria-label") || "").toLowerCase();
@@ -71,14 +78,7 @@ async function ensurePlaying(page) {
         return b?.getAttribute("aria-label") || null;
     });
     if ((label || "").toLowerCase().includes("play")) {
-        await page.evaluate(() => {
-            const b = [...document.querySelectorAll("button")].find((x) =>
-                (x.getAttribute("aria-label") || "")
-                    .toLowerCase()
-                    .includes("play"),
-            );
-            b?.click();
-        });
+        await pressPlayToggle(page, { intent: "play" });
         await page.waitForTimeout(900);
     }
 }

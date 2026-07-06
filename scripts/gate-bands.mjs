@@ -446,29 +446,19 @@ export const T_BORNRED_BACKLOG = {
             "The runtime clause is subsumed by T.G6's proof:perf blur-delta once lane 11's " +
             "toggle-probe is promoted. See demo/glass-ui-gaps.ts staticBackdrop (BG-5).",
     },
-    "proof:perf-counters": {
-        dischargedBy:
-            "T.G3 (scenes reach true rest — greens the per-frame RECALC churn: cube restyles " +
-            "on every frame today, 1.00 recalc/frame) + T.G4 (transform-not-`left` — greens the " +
-            "per-frame LAYOUT thrash: spring lays out on every frame, 1.00 layout/frame). NOTE " +
-            "the blur half of VERDICT #19 is proof:blur-not-resampled's (an fps toggle): the " +
-            "`backdrop-filter` cost is compositor/GPU and INVISIBLE to these main-thread CDP " +
-            "counters in headless (measured — neutralizing every backdrop-filter left cube's " +
-            "TaskDuration flat), which is exactly why the counter gate owns the rest/thrash half.",
-        reason:
-            "T.G7 (lane 32 T-PERF-B). The perf-oracle re-home: proof:perf-frame-budget's " +
-            "rAF-interval sampler reads cube at '0 dropped @120Hz' while the cube in fact forces " +
-            "a style RECALC on every one of those frames and never rests — the sampler is blind " +
-            "to per-frame WORK (§2.1). This gate reads the CDP RecalcStyleCount/LayoutCount " +
-            "counters lane 11 validated as device-independent and gates the PER-FRAME ratios " +
-            "(recalc/frame, layout/frame — the free-running frame count cancels the machine " +
-            "factor). Reds today at lane 11's measured ratios (cube 1.00 recalc/frame, spring " +
-            "2.03 recalc + 1.00 layout/frame, easing 1.82 + 0.76; square/sequence/amiga 0.00 in " +
-            "the same run prove the budget achievable). A recorded tripwire, never a blocking " +
-            "&&-chain member. authority=OWNER (the OWNER perceived-perf bar, VERDICT #19) + " +
-            "blocking-not-OBSERVE (T.M6.2) — it may NOT be demoted to the demo-roster OBSERVE " +
-            "bucket the way perf-frame-budget was.",
-    },
+    // (proof:perf-counters DISCHARGED at batch ⑧ (T.G3 + T.G4): cube/spring/easing
+    //  now reach TRUE REST at idle — recalc AND layout both 0.00/frame (measured
+    //  WITH browser on the built dist/gh-pages; square/sequence 0.00 same-run
+    //  references). T.G3 removed the perpetual idle churn (spring/easing autoPlays →
+    //  false so the raw-rAF loop never arms at rest; the cube's non-compositable
+    //  `preserve-3d` idle-bob — 1.00 recalc/frame — removed, the die rests still and
+    //  comes alive on play/hover). T.G4 moved the spring ball off the `left` layout-
+    //  thrash. The gate flips from a recorded tripwire to a NORMAL COVERED gate on
+    //  the blocking proof:demo-correctness chain (authority=OWNER + blocking-not-
+    //  OBSERVE, T.M6.2) — removed here + from proof:ci-coverage's EXCLUDED set in the
+    //  same commit, drive clause 7. The blur half of VERDICT #19 stays
+    //  proof:blur-not-resampled's (an fps toggle; the compositor cost is invisible to
+    //  these main-thread CDP counters).)
     "proof:roster-ceiling": {
         dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
         reason:

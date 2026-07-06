@@ -185,11 +185,14 @@ defineExpose({
     superKey: SCENE_ID,
     isPlaying,
     isStarted,
-    // The spring preview auto-plays on first visit (the former isPlaying =
-    // ref(true)). The App reads this on SCENE_READY to dispatch PLAY for a fresh
-    // scene, so the machine reaches `playing` and the raw-rAF loop (gated on the
-    // machine) actually sweeps.
-    autoPlays: true,
+    // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: the spring
+    // sampler swept forever at idle, burning ~33% of a core (90 layouts/s) with
+    // no gesture ("god awful"). The raw-rAF loop gates on
+    // `machine.status === 'playing'`, so a paused-on-entry machine leaves the loop
+    // un-armed → zero rAF ticks, zero style recalc/layout at rest
+    // (proof:perf-counters). The sampler sweeps + the ball springs the instant the
+    // user presses Play (or taps the rail — `reseat` re-arms the loop directly).
+    autoPlays: false,
     // The raw-rAF ScenePlayback adapter — the App registers it with the machine
     // on SCENE_READY so the spring's sweep phase/isPlaying round-trip through the
     // CONTRACT (the spring↔cube cross-pair the group gate misses).
