@@ -122,6 +122,24 @@ const WAVE_HARD_GATES = [
 // gate whose ONLY actuation is a pointer move/hover is recorded as the
 // rest-appearance class and named, so the distinction is honest, not hidden.
 
+// ── The MEASUREMENT-CLASS exemption (T.G perf/rest oracles) ───────────────────
+// A perf/rest oracle's CORRECTNESS FACT is the MEASURED CDP-counter state of the
+// running product at IDLE — recalc/layout per-frame, idle LayoutCount, the
+// blur-toggle fps delta. It opens a real browser over the built dist (the harness
+// anchor IS required + checked above), but it does NOT — must not — actuate: the
+// property under test is the scene AT REST, and firing a click/drag would defeat
+// the very measurement (you cannot measure "reaches true rest" while poking it).
+// This is a legitimate runtime-gate SUBCLASS, categorically distinct from the
+// "lazy goto+rest load oracle" the actuation rule forbids (a gate that CLAIMS to
+// test behaviour but only loads a page). The distinction is the OWNER-perceived-
+// perf / true-rest axis (VERDICT #19) — the very thing that has no actuation.
+// Named here so the exemption is explicit and auditable, never hidden.
+const MEASUREMENT_GATES = new Set([
+    "proof:perf-counters", // T.G7 — the per-frame recalc/layout CDP ratio (OWNER)
+    "proof:scene-rests", // T.G3 — the cross-scene idle true-rest oracle
+    "proof:no-layout-animation", // T.G4 — the source guard + idle-layout confirmation
+]);
+
 // A gate "RUNS in <chain>" iff that chain invokes `npm run <gate>`.
 const inChain = (chain, gate) =>
     new RegExp(`\\brun ${gate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(chain);
@@ -201,6 +219,20 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
     }
 
     if (actsPresent.length === 0) {
+        if (MEASUREMENT_GATES.has(gate)) {
+            // The perf/rest MEASUREMENT class: a browser gate whose correctness
+            // fact is the MEASURED CDP-counter state at idle (VERDICT #19 perceived
+            // perf / true rest). It opens the harness (checked above) but does NOT
+            // actuate BY DESIGN — actuating would defeat measuring the scene at rest.
+            ok(
+                `[${wave}] \`${gate}\` — RUNTIME (measurement class): opens the browser harness over the ` +
+                    `built dist + reads live CDP counters; its CORRECTNESS oracle is the MEASURED idle/perf ` +
+                    `state of the running product (the perceived-perf / true-rest axis, VERDICT #19). It does ` +
+                    `not actuate BY DESIGN — the property under test is the scene AT REST. Wired to the ` +
+                    `correctness tier.`,
+            );
+            continue;
+        }
         fail(
             `[${wave}] \`${gate}\` (${rel}) opens a browser but does NOT ACTUATE — it references NONE of ` +
                 `{page.click, dispatchEvent, page.mouse, page.keyboard, page.dragAndDrop, PointerEvent, ` +

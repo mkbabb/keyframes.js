@@ -220,6 +220,16 @@ export const GATE_AUTHORITY = {
     "proof:dock-grammar": "INSTRUMENT",
     "proof:dock-elision": "INSTRUMENT",
     "proof:dock-single-tooltip": "INSTRUMENT",
+    // T.G3/T.G4 — the cross-scene rest oracle + the transform-not-left guard.
+    // INSTRUMENT: each asserts a falsifiable measured fact (idle LayoutCount /
+    // RecalcStyleCount / TaskDuration at true rest; zero animated-layout tell in
+    // demo/scenes source), NOT the OWNER perceived-perf bar (that is
+    // proof:perf-counters). GREEN as of the batch-⑧ rest cures + the T.G4-tail
+    // sequence/spring-heatmap transform conversions; blocking demo-correctness
+    // members. They own the ABSOLUTE idle-count + CPU-busy axis + the source
+    // recurrence guard; proof:perf-counters owns the per-frame RATIO.
+    "proof:scene-rests": "INSTRUMENT",
+    "proof:no-layout-animation": "INSTRUMENT",
     "proof:idioms": "INSTRUMENT",
     "proof:phi-leaf-zero": "INSTRUMENT",
     "proof:icon-idiom": "INSTRUMENT",

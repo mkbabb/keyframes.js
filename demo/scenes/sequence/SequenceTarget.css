@@ -108,6 +108,10 @@
     height: 2rem;
     display: flex;
     align-items: center;
+    /* T.G4 — the traveller rides `translateX(<cqw>)`; `cqw` resolves against this
+       row track's inline size, so the engine-driven `--ball-p` sweep is
+       compositor-only (no per-frame `left` layout). */
+    container-type: inline-size;
 }
 
 /* The draggable row start-handle (R-SEQ-D; J.WZ target-size): the START GATE the
@@ -182,14 +186,19 @@
    --ball-p (the engine's inline write) read via `var(--x, fallback)`. */
 .seq-ball {
     --ball-size: 1.6rem;
-    /* usable = full rail minus the ball's width; left walks from the start gate to
-       the far end as --ball-p sweeps 0→1 (both read via the fallback form). */
-    left: calc(
-        (var(--row-start, 0) + var(--ball-p, 0) * (1 - var(--row-start, 0))) *
-            (100% - var(--ball-size))
+    /* T.G4 — anchored at the rail's left edge; the engine's `--ball-p` sweep rides
+       `translateX(<cqw>)` (compositor-only, no per-frame layout). usable = full
+       rail (100cqw) minus the ball's width; the offset walks from the start gate
+       to the far end as --ball-p sweeps 0→1 (both read via the fallback form). */
+    left: 0;
+    transform: translateX(
+        calc(
+            (var(--row-start, 0) + var(--ball-p, 0) * (1 - var(--row-start, 0))) *
+                (100cqw - var(--ball-size))
+        )
     );
     z-index: var(--z-seq-handle); /* the traveller rests ON its gate, above it */
-    will-change: left;
+    will-change: transform;
     /* L.W11 S7 — THE IGNITION CASCADE (lane-detonate): kept ball/rail/rainbow STAY;
        the glow scales with the engine's --ball-p so staggered lanes BLOOM in a
        DIAGONAL cascade. One box-shadow calc() — no rAF (inv ζ). */
