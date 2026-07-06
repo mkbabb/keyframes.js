@@ -5,7 +5,7 @@ import { useEventListener, useTimeoutFn } from "@vueuse/core";
 import { axes } from "..";
 import type { PressedKeys } from "../types";
 
-export interface OrbitalPointerParams {
+interface OrbitalPointerParams {
     sensitivity: number;
     touchSensitivity: number;
     containerRef: Readonly<ShallowRef<HTMLElement | null>>;

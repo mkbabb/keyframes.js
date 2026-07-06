@@ -24,7 +24,7 @@ import { decay, type DecaySample } from "@mkbabb/keyframes.js";
  * duration); a miss falls through to OrbitControls untouched. The two gesture
  * landlords are disjoint by hit-test, never racing.
  */
-export interface SphereSpinOptions {
+interface SphereSpinOptions {
     /** The mesh the drag spins (the raycast hit-test target). */
     getMesh: () => THREE.Object3D | undefined;
     /** The camera the raycaster projects through. */

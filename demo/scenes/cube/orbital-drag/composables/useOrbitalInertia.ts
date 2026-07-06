@@ -15,7 +15,7 @@ import { decay } from "@mkbabb/keyframes.js";
 // a pure module so the inertia-parity gate imports it without the .vue graph.
 import { TARGET_DT, inertiaFactorToFriction } from "./inertiaDecay";
 
-export interface OrbitalInertiaParams {
+interface OrbitalInertiaParams {
     model: Ref<TransformState>;
     velocity: Ref<VelocityState>;
     isDragging: Ref<boolean>;

@@ -26,16 +26,16 @@ export const SPHERE_HOME = 0;
 //   · Y slams FLOOR ↔ upper-third under a gravity-flavoured bounce.
 //   · Z motion DIES — the original Boing is planar.
 //   · spin is LINEAR about a tilted axis, its sign flipping at each wall reversal.
-export const WALL_X = 5; // room half (6) − sphere radius (1)
+const WALL_X = 5; // room half (6) − sphere radius (1)
 export const FLOOR_Y = -4; // the floor slam (|py| = 4 ≥ 2.5·radius, gate T.A9)
 export const APEX_Y = 2; // the upper-third apex
-export const SPIN_AMP = Math.PI; // the ±π triangle peak of the linear spin
+const SPIN_AMP = Math.PI; // the ±π triangle peak of the linear spin
 
 // The X sweep period: 25%→75% (+WALL_X → −WALL_X) is ONE wall-to-wall crossing =
 // half the period, so 4s/crossing ⇒ 8s period. The spin shares this period so
 // its sign flips exactly at the X walls (25% / 75%).
-export const X_PERIOD_MS = 8000;
-export const Y_PERIOD_MS = 1600;
+const X_PERIOD_MS = 8000;
+const Y_PERIOD_MS = 1600;
 
 /**
  * The rendered POSE the group composites into — NOT the mesh. `AmigaScene`'s

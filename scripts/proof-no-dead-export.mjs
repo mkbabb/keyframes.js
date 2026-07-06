@@ -96,37 +96,19 @@ const DEFERRED = [
     ["demo/@/components/custom/keyframe-timeline/utils/snapshotCapture.ts", "captureNonDefaultSnapshot"],
     ["demo/@/components/custom/keyframes-editor/composables/useToolbarKeyboard.ts", "ToolbarKeyboard"],
     ["demo/@/components/custom/animation-transport/useKfPillTabs.ts", "UseKfPillTabsParams"],
-    ["demo/@/composables/useDoubleTap.ts", "UseDoubleTapOptions"],
-    ["demo/@/composables/useDragScrub.ts", "ReleasePolicy"],
-    ["demo/@/composables/useDragScrub.ts", "UseDragScrub"],
-    ["demo/@/composables/useDragScrub.ts", "UseDragScrubOptions"],
-    ["demo/@/state/controlSurfaceDFA.ts", "ChannelZone"],
-    ["demo/@/state/controlSurfaceDFA.ts", "ControlZone"],
-    ["demo/@/state/controlSurfaceDFA.ts", "DockCardinality"],
+    // ── @/state/ (the app-level reset-hook registry seam) ──
+    // `registerStoreReset` is retained as the general reset-composer CONTRACT
+    // (@/state/index.ts documents it: the last consumer — compose's asset store —
+    // was PRUNED under OD-1, the seam kept for the next feature store). Deliberate
+    // retention, not confirmed-superfluous: it stays deferred until a consumer
+    // returns or the contract is formally retired.
     ["demo/@/state/index.ts", "registerStoreReset"],
-    // ── app/ runtime + scene (reflexive handle/option types) ──
-    ["demo/app/runtime/useRafScene.ts", "RafSceneHandleApi"],
-    ["demo/app/runtime/useRafScene.ts", "RafSceneOptions"],
-    ["demo/app/runtime/useSceneTransport.ts", "TransportActionKind"],
-    ["demo/app/scene/sceneFacility.ts", "SceneFacet"],
+    // ── glass-ui gap ledger (T.H surface, not the T.F23 demo purge) ──
     ["demo/glass-ui-gaps.ts", "GlassCapKey"],
     ["demo/glass-ui-gaps.ts", "GlassUiGap"],
     ["demo/glass-ui-gaps.ts", "GlassUiGapId"],
-    // ── scenes/ (amiga tuning constants + reflexive scene-composable types) ──
-    ["demo/scenes/amiga/useAmigaDemo.ts", "SPIN_AMP"],
-    ["demo/scenes/amiga/useAmigaDemo.ts", "WALL_X"],
-    ["demo/scenes/amiga/useAmigaDemo.ts", "X_PERIOD_MS"],
-    ["demo/scenes/amiga/useAmigaDemo.ts", "Y_PERIOD_MS"],
-    ["demo/scenes/amiga/useAmigaThree.ts", "AmigaThreeHandle"],
-    ["demo/scenes/amiga/useSphereSpin.ts", "SphereSpinOptions"],
-    ["demo/scenes/cube/orbital-drag/composables/useOrbitalInertia.ts", "OrbitalInertiaParams"],
-    ["demo/scenes/cube/orbital-drag/composables/useOrbitalPinch.ts", "OrbitalPinchParams"],
-    ["demo/scenes/cube/orbital-drag/composables/useOrbitalPointer.ts", "OrbitalPointerParams"],
-    // ── easing/spring scene dirs (facility-lane OFF-LIMITS this batch) ──
+    // ── easing scene dir (OD-7 redesign target — do NOT restructure) ──
     ["demo/scenes/easing/easingGroups.ts", "CurveGroup"],
-    ["demo/scenes/spring/useSpringDerby.ts", "DerbyLane"],
-    ["demo/scenes/spring/useSpringHotPath.ts", "SpringPainter"],
-    ["demo/scenes/square/useSquareKeyboard.ts", "SquareKeyboardOptions"],
 ];
 
 // ── source helpers ────────────────────────────────────────────────────────────

@@ -23,7 +23,7 @@ import { useEventListener } from "@vueuse/core";
  * RESETS the pending single (so a drag between two taps cannot be laundered into a
  * double-tap). The two seams coexist on one element without fighting.
  */
-export interface UseDoubleTapOptions {
+interface UseDoubleTapOptions {
     /** The surface the double-tap is recognized on (the rail / box / canvas). */
     el: Ref<HTMLElement | null>;
     /** Fired when two taps land on `el` within `windowMs` with no drag between. */

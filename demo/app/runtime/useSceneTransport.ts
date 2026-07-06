@@ -17,7 +17,7 @@ import type { useSceneMachine } from "@state";
  * `proof:transport-action-order` (model clause) and `proof:dock-grammar`'s "play
  * first" render clause (T.C1) must agree on.
  */
-export type TransportActionKind = "play" | "reset" | "clear";
+type TransportActionKind = "play" | "reset" | "clear";
 
 export interface TransportAction {
     /** The action's stable semantic kind — the ordering + render key. */
