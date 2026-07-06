@@ -7,6 +7,7 @@ import {
     type ComputedRef,
     type Ref,
 } from "vue";
+import { useTimeoutFn } from "@vueuse/core";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 export interface UseKeyframesPaneRevealOptions {
@@ -66,7 +67,11 @@ export function useKeyframesPaneReveal(
     // window (a `requestIdleCallback` warm) or the instant the user reaches for it.
     const keyframesWarmed = ref(false);
     let idleHandle: number | undefined;
-    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    // The vueuse fallback timer (scope-disposed automatically — the decomposition
+    // async-blob discipline; no raw setTimeout).
+    const idleFallback = useTimeoutFn(() => warmKeyframes(), 1500, {
+        immediate: false,
+    });
     const warmKeyframes = (): void => {
         if (keyframesWarmed.value) return;
         keyframesWarmed.value = true;
@@ -75,12 +80,12 @@ export function useKeyframesPaneReveal(
             cancelIdleCallback?: (h: number) => void;
         };
         if (idleHandle !== undefined) w.cancelIdleCallback?.(idleHandle);
-        if (idleTimer !== undefined) clearTimeout(idleTimer);
+        idleFallback.stop();
     };
 
     // Warm during the first idle after mount (post-LCP). `requestIdleCallback`
-    // (Baseline: Safari 17+) falls back to a short timeout where absent so the warm
-    // still lands promptly on older engines — always AFTER the synchronous
+    // (Baseline: Safari 17+) falls back to a short vueuse timer where absent so the
+    // warm still lands promptly on older engines — always AFTER the synchronous
     // first-paint work, never blocking it.
     const scheduleIdleWarm = (): void => {
         const w = globalThis as unknown as {
@@ -91,7 +96,7 @@ export function useKeyframesPaneReveal(
                 timeout: 4000,
             });
         } else {
-            idleTimer = setTimeout(warmKeyframes, 1500);
+            idleFallback.start();
         }
     };
     scheduleIdleWarm();
@@ -112,7 +117,7 @@ export function useKeyframesPaneReveal(
             cancelIdleCallback?: (h: number) => void;
         };
         if (idleHandle !== undefined) w.cancelIdleCallback?.(idleHandle);
-        if (idleTimer !== undefined) clearTimeout(idleTimer);
+        // (the vueuse fallback timer disposes with the scope on its own)
     });
 
     watch(keyframesActive, (active) => {
