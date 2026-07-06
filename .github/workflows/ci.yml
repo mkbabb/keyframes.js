@@ -354,15 +354,17 @@ jobs:
             # Linux-container apparatus DROPPED — SA-7) or a ratified KILL, and no
             # disposition may launder a deferral verb (observe/watch/re-affirm/verify) over
             # a sacred 6-cell parse shape (C-20/SA-6/T3-x2-#8). Static, HYGIENE-tier, no
-            # browser. BORN-RED BY DESIGN during the S drive: the S ledger is the forward
-            # disposition board, so the runtime-gate contract discharges as each owning wave
-            # lands its gate; this meta-gate GREENs only re-run on the merged tree at S.Z2.
-            # NOT a CI step until then (the claude-paths-live pattern — S.A5): a
-            # deliberately-red forward-board meta-gate in the blocking job would red CI
-            # outside the S.A0 backlog. It stays a proof:hygiene-chain member (local truth
-            # + the S.Z3 from-clean closeable-roster run) and is EXCLUDED-with-rationale in
-            # proof:ci-coverage; S.Z2 re-wires this step in the same commit that re-runs it
-            # green (its RE-EXECUTION clause).
+            # browser. Was BORN-RED BY DESIGN during the S drive (the S ledger is the
+            # forward disposition board, so the runtime-gate contract discharges as each
+            # owning wave lands its gate — GREEN only re-run on the merged tree at S.Z2).
+            # DISCHARGED at T.S1 (the S.Z2 RE-EXECUTION substitute): the residual-row C-20
+            # triage re-pointed each landed row's closure at its NOW-LIVE gate (backticked
+            # + tiered + born-RED witness) OR ratified-KILL for the OD-1-pruned surfaces.
+            # The gate exits 0 on the merged tree, so it JOINS the blocking gates job here
+            # (this step re-wired in the same commit its EXCLUDED entry + T_BORNRED_BACKLOG
+            # row are deleted — drive clause 7) + stays a proof:hygiene-chain member.
+            - name: proof:chronic-closure (I.W7 S4 · S.A1 → T.S1 — the S chronic ledger closes to RUNTIME + SUBSTANCE discipline; DISCHARGED, now blocking)
+              run: npm run proof:chronic-closure
             - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
               run: npm run proof:ci-coverage
             # M.W1 — proof:report-all: the parallel report-all runner meta-gate.

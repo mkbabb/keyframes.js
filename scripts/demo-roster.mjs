@@ -163,6 +163,12 @@ export const CORRECTNESS_ROSTER = [
     "proof:taste-packet",
     "proof:scene-machine-irrefragable",
     "proof:scene-control-dfa",
+    // T.B2 (the DFA INVERSION) — dfa-derived's LIVE census (S4: a painting-channel
+    // scene renders the full triad) rides the demo-correctness browser roster
+    // beside its scene-control-dfa sibling. It landed unwired at batch ⑧ (a
+    // coverage miss — ci-coverage's forward clause caught it); wired here in the
+    // T.S1 chronic-closure re-run motion.
+    "proof:dfa-derived",
     "proof:control-surface-single-writer",
     "proof:scene-transition-perf",
     "proof:dock-popover-opens",

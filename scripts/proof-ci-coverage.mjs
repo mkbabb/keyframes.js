@@ -202,18 +202,18 @@ const EXCLUDED = new Set([
     //  build:lib) and clause (b) reads dist/gh-pages, both of which the demo job
     //  builds; it is NAMED in STATIC_DEMO_CARVEOUT below as a build-dependent
     //  static gate. The forward-coverage clause now DEMANDS its CI invocation.)
-    // S.A1 — proof:chronic-closure is BORN-RED-BY-DESIGN through the S impl
-    // drive: it now parses the S ledger (the R→S substrate re-point), whose
-    // FOLD rows are the FORWARD disposition board — they cite born-RED gates
-    // their owning waves author later, so the runtime-gate-that-BIT contract
-    // structurally cannot be green until the waves land. Same pattern as
-    // claude-paths-live directly above: it stays a proof:hygiene-chain member
-    // (local truth + the S.Z3 from-clean closeable-roster run) but is NOT a
-    // blocking ci.yml step until S.Z2's RE-EXECUTION clause re-runs it green
-    // on the merged tree and re-wires the step + deletes this exclusion in
-    // that same commit. Its parse-shape + substance clauses were non-vacuity
-    // proven at S.A1 (planted malformed/violating rows RED; plants removed).
-    "proof:chronic-closure",
+    // (S.A1 → T.S1 DISCHARGE — proof:chronic-closure was BORN-RED-BY-DESIGN
+    //  through the S impl drive: it parses the S ledger (the R→S substrate
+    //  re-point), whose FOLD rows are the FORWARD disposition board citing
+    //  born-RED gates their owning waves author later. The S.Z2 RE-EXECUTION
+    //  clause never ran in-S; T.S1 is its substitute: the residual-row C-20
+    //  triage re-pointed each landed row's closure at its NOW-LIVE gate
+    //  (backticked + tiered + born-RED witness) OR ratified-KILL for the
+    //  OD-1-pruned surfaces (compose/motion-path). The gate now exits 0 on the
+    //  merged tree — it JOINS the blocking gates job (the ci.yml step re-wired
+    //  in this same commit) + stays a proof:hygiene-chain member. This
+    //  exclusion entry + its T_BORNRED_BACKLOG row are deleted in the same
+    //  commit — no orphan survives, drive clause 7.)
     // (R.W0 — the sibling-adapter publish tripwire was RETIRED with its package: the
     //  overfit Vue adapter was removed entirely + npm-revoked. Its gate script,
     //  package.json key, ci.yml step, release.yml publish job, AND this exclusion entry
