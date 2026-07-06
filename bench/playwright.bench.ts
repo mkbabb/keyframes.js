@@ -1,9 +1,9 @@
 /**
  * The LoAF >50ms-trace gate — the LoAF observer's REAL second consumer.
  *
- * `demo/app/loaf-observer.ts` records every long-animation-frame over 50ms to
- * `window.__kfLoaf` "so the Playwright >50ms-trace gate and the bench can read
- * it" (its docstring). For two tranches that consumer was a stub
+ * `demo/app/runtime/loaf-observer.ts` records every long-animation-frame over
+ * 50ms to `window.__kfLoaf` "so the Playwright >50ms-trace gate and the bench
+ * can read it" (its docstring). For two tranches that consumer was a stub
  * (`expect(true).toBe(true)`), leaving the observer a 1-consumer speculative
  * surface (an overfitting-precept violation) and the >50ms-trace chronic open.
  * This gate IS that consumer: it
@@ -20,8 +20,8 @@
  * The observer is DEV-only in the demo (DCE'd from prod by `main.ts`'s
  * `import.meta.env.DEV` guard). The bench does NOT go through that path: the
  * served bench page mounts the observer EXPLICITLY (importing the same
- * `demo/app/loaf-observer.ts` source, transpiled on the fly), so the prod demo
- * build stays observer-free while the bench drives the real observer.
+ * `demo/app/runtime/loaf-observer.ts` source, transpiled on the fly), so the
+ * prod demo build stays observer-free while the bench drives the real observer.
  *
  * Chromium resolves from `KF_PLAYWRIGHT_DIR` (the sibling that has playwright
  * installed) or this repo — the same convention `scripts/occlusion-gate.mjs`
@@ -49,6 +49,15 @@ import { IN_CI } from "../scripts/lib/ci-env.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
+
+// The real observer source the bench transpiles on the fly. It moved from
+// `demo/app/loaf-observer.ts` → `demo/app/runtime/loaf-observer.ts` at the S.D1
+// `demo/app/` partition (commit 440e5c3) WITHOUT this bench's path following it,
+// which ENOENT'd the whole gate silently for 116 commits (lane 32 §2.7). The
+// `assertBenchPathsResolve` clause in proof:bench-taxonomy now statically
+// asserts every REPO-relative path this bench reads still resolves, so a future
+// re-partition reds loudly instead of zeroing this gate's signal again.
+const OBSERVER_SRC = path.join(REPO, "demo/app/runtime/loaf-observer.ts");
 
 const LOAF_THRESHOLD_MS = 50;
 
@@ -144,6 +153,20 @@ async function serve(noObserver: boolean) {
     );
 
     // The observer module the bench imports as `@kf/loaf-observer`.
+    // Pre-flight the source path with a DISTINCT, human-legible error rather
+    // than a raw ENOENT deep in `readFileSync` — the ENOENT was
+    // indistinguishable in the CI log from a genuine bench failure and the
+    // `|| true`-wrapped `grep -q 'loaf-gate.*PASS'` step could not tell "the
+    // observer moved" from "the observer regressed" (lane 32 §2.7 / T-PERF-A).
+    if (!noObserver && !fs.existsSync(OBSERVER_SRC)) {
+        throw new Error(
+            `loaf-gate — FAIL: the LoAF observer source is missing at ` +
+                `${path.relative(REPO, OBSERVER_SRC)} — it MOVED. Update ` +
+                `bench/playwright.bench.ts's OBSERVER_SRC path (and the ` +
+                `proof:bench-taxonomy path-resolves anchor will have already ` +
+                `flagged this statically).`,
+        );
+    }
     const observerJs = noObserver
         ? // True no-op: never touches `window.__kfLoaf`, so the ring stays
           // ABSENT — the gate must redden on its "the observer ran"
@@ -152,10 +175,7 @@ async function serve(noObserver: boolean) {
           `export function observeLongAnimationFrames(){ return undefined; }`
         : (
               await transformWithOxc(
-                  fs.readFileSync(
-                      path.join(REPO, "demo/app/loaf-observer.ts"),
-                      "utf8",
-                  ),
+                  fs.readFileSync(OBSERVER_SRC, "utf8"),
                   "loaf-observer.ts",
                   { lang: "ts", target: "es2022" },
               )

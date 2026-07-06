@@ -167,6 +167,66 @@ if (!existsSync(dispatchPath)) {
     }
 }
 
+// ── Clause: bench source paths resolve (T-PERF-A / T.G8 static anchor) ────────
+// bench/playwright.bench.ts reads `demo/app/runtime/loaf-observer.ts` off the
+// tree at run time (transpiled on the fly). That path moved once already
+// (demo/app/loaf-observer.ts → demo/app/runtime/loaf-observer.ts at the S.D1
+// partition, commit 440e5c3) WITHOUT the bench following it, ENOENT-ing the
+// whole LoAF gate SILENTLY for 116 commits — invisible at every tier (lane 32
+// §2.7). This is the guard the wave names: statically extract every
+// `path.join(REPO, "…")` string literal the bench reads and assert it resolves,
+// so a future demo/app re-partition reds LOUDLY here instead of zeroing the
+// LoAF signal. HARD everywhere (a device-independent structural fact).
+{
+    const benchSrcPath = join(root, "bench", "playwright.bench.ts");
+    if (!existsSync(benchSrcPath)) {
+        fail("bench-paths", `bench/playwright.bench.ts is absent (renamed?)`);
+    } else {
+        const src = readFileSync(benchSrcPath, "utf8");
+        // Match `path.join(REPO, "…")` — the REPO-relative tree reads (the
+        // observer source, dist artifacts). We intentionally do NOT match
+        // path.join(HERE, …) (colocated bench assets) — the historical break was
+        // a REPO-relative demo/ path drifting out from under the bench.
+        const re = /path\.join\(\s*REPO\s*,\s*"([^"]+)"\s*\)/g;
+        const relPaths = new Set();
+        let m;
+        while ((m = re.exec(src)) !== null) relPaths.add(m[1]);
+        if (relPaths.size === 0) {
+            fail(
+                "bench-paths",
+                `no path.join(REPO, "…") reads found in bench/playwright.bench.ts ` +
+                    `— the anchor's extraction regex has drifted from the source`,
+            );
+        }
+        const srcRels = [...relPaths].filter(
+            (r) => r !== "dist" && !r.startsWith("dist/"),
+        );
+        for (const rel of relPaths) {
+            // Skip build artifacts that only exist after `npm run build` (the
+            // `dist/` tree + the `dist/keyframes.js` entry) — the bench already
+            // guards those at run time; this anchor is about SOURCE paths that
+            // must exist on a clean tree.
+            if (rel === "dist" || rel.startsWith("dist/")) continue;
+            if (!existsSync(join(root, rel))) {
+                fail(
+                    "bench-paths",
+                    `bench/playwright.bench.ts reads path.join(REPO, "${rel}") ` +
+                        `but ${rel} does NOT resolve on the tree — it moved. ` +
+                        `Update the bench's path (this is the exact silent ENOENT ` +
+                        `that dead-ended the LoAF gate for 116 commits).`,
+                );
+            }
+        }
+        if (!failures.some((f) => f.includes("[bench-paths]"))) {
+            ok(
+                "bench-paths",
+                `every REPO-relative source path bench/playwright.bench.ts reads ` +
+                    `resolves on the tree (${srcRels.join(", ")})`,
+            );
+        }
+    }
+}
+
 // ── Run the benches once, capture the structured report ──────────────────────
 const tmp = mkdtempSync(join(tmpdir(), "kf-bench-taxonomy-"));
 const outFile = join(tmp, "bench.json");

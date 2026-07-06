@@ -11,7 +11,8 @@
  *
  * THE FIX. D4: the easing loop now positions the sweep dots via DIRECT,
  * non-reactive `style.transform` writes (square's discipline) + writes the
- * reactive readout at a few Hz only → the cube-parity 60 fps. D3: the dock
+ * reactive readout at a few Hz only → the cube-parity main-thread cadence (NOT
+ * felt fps — see the T.G7 note below). D3: the dock
  * width-morph is GLASS-UI-OWNED (kf pins `~3.9.0`, the dock retune consumed); this
  * gate MEASURES whether 3.9.0 holds the dock budget — GREEN if it does, a recorded
  * glass-ui HANDOFF flag if it still animates `width` under the backdrop-filter
@@ -21,12 +22,32 @@
  *  • throttle = 4× CPU (the single named device-class proxy).
  *  • clause (c) dock-expand: dropped ≤ 2 (born-RED witness: HEAD 12/114).
  *  • clause (d) easing-play: dropped ≤ 3 (born-RED witness: HEAD 36 unthrottled /
- *    62 under 4×). GREEN ≈ 0 dropped at 60 fps (cube-parity).
+ *    62 under 4×). GREEN ≈ 0 dropped main-thread frames (cube-parity CADENCE —
+ *    not felt fps; the compositor cost is proof:perf-counters' job, T.G7).
  * A dropped frame = a sampled rAF interval > 24 ms (a missed 60 fps frame —
  * clock-invariant per the b16 headless caveat). The perf clauses INHERIT the
  * zero-error floor (console.error/pageerror/unhandledrejection/"......" = 0, hard).
- *  • clause (e) HYGIENE NON-LOAD-BEARING: a backdrop-surface count + an on-device
- *    re-measure FLAG. It does NOT gate.
+ *  • clause (e) HYGIENE NON-LOAD-BEARING HERE: a backdrop-surface count + an
+ *    on-device re-measure FLAG. It does NOT gate IN THIS SCRIPT — the census is
+ *    now FOLDED INTO AN ACTUAL BUDGET by proof:perf-counters (T.G7), which reads
+ *    the CDP TaskDuration/LayoutCount/RecalcStyleCount counters this rAF-interval
+ *    sampler is structurally blind to (§ below) and gates the surface-count ×
+ *    moving-subject → TaskDuration-spike correlation as a same-report toggle-delta.
+ *
+ * ── THE rAF-INTERVAL SAMPLER IS NON-AUTHORITATIVE FOR COMPOSITOR COST (T.G7) ──
+ * The clauses below sample `requestAnimationFrame` INTERVALS — how fast the
+ * MAIN-THREAD callback loop iterates. That is a real, distinct question (a
+ * per-frame REACTIVE STORM blows the interval — clause (d)'s born-RED witness).
+ * But `backdrop-filter` blur (lane 11's #1 dominant cost) is a COMPOSITOR-THREAD
+ * raster cost that does NOT block the main thread, and in this headless harness
+ * (no vsync pump) rAF free-runs at ~120Hz INDEPENDENT of paint cost: this gate
+ * reads cube at ~8.3ms mean (~120Hz) while lane 11's CDP counters read ~20.9fps
+ * on the identical build (lane 32 §2.1). So the cadence numbers below are
+ * MAIN-THREAD cadence, NOT the felt frame rate — the compositor-bound perceived
+ * cost is measured by proof:perf-counters (T.G7), never by these intervals. The
+ * historical "cube-parity ≈ 60 fps" ground-truth in this file's prose was a
+ * quiet fiction (the live interval is ~120Hz main-thread / ~20fps felt); it is
+ * corrected to "cube-parity main-thread cadence" wherever it appears below.
  *
  * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
  * resolveChromium + context/teardown, J.W3 S1; under KF_REQUIRE_BROWSER a
@@ -304,7 +325,8 @@ async function browserHalf() {
 
         // ── clause (d) — /easing preview holds the frame budget under 4× ──────
         // PLAY the preview, sample rAF over a ≥70-frame window. D4: the hot dot
-        // write left the Vue render graph → cube-parity 60 fps (≈ 0 dropped).
+        // write left the Vue render graph → cube-parity main-thread cadence (≈ 0
+        // dropped intervals; NOT a felt-fps claim — see the T.G7 header note).
         {
             const { ctx, page, errors } = await openSceneThrottled(browser, base, "easing", VW, EASING_THROTTLE);
             try {
@@ -466,7 +488,8 @@ if (IN_CI) {
 }
 console.log(
     `\nproof:perf-frame-budget — PASS: the kf-blocking /easing preview holds its RELATIVE budget ` +
-        `(dropped ≤ cube-reference + ${EASING_RELATIVE_MARGIN}, cube-parity ≈ 60 fps) with a clean zero-error ` +
+        `(dropped ≤ cube-reference + ${EASING_RELATIVE_MARGIN}, cube-parity main-thread cadence — NOT felt ` +
+        `fps; the compositor-bound perceived cost is proof:perf-counters' job, T.G7) with a clean zero-error ` +
         `floor. D4 moved the hot positional write off the Vue render graph. The glass-ui-owned dock width-morph ` +
         `clause (c) is a NON-BLOCKING recorded HANDOFF (dock width-morph → glass-ui; NO kf dock.css override). ` +
         `The backdrop-surface count (clause e) is a recorded HYGIENE flag (on-device re-measure), non-load-bearing.`,

@@ -83,6 +83,37 @@ const ALLOWANCES = {
     //     entry is removed so a future missing alt bites HERE, not silently.
     // NB: `landmark-one-main` is deliberately NOT bucketed — S1 closed it (the
     // real `<main>`), so it MUST pass; if S1 regresses, this gate reddens.
+    //
+    // ── T.G10 (lane 32 T-PERF-D) — the T-era a11y misses are MEASURED CURED ──────
+    // Lane 32 @ 929ef0e found 3 UNBUCKETED a11y failures firing this gate, their
+    // verdict discarded by ci.yml's continue-on-error: `home/desktop` +
+    // `cube/desktop` `color-contrast`, and `sequence/mobile` `target-size`. On the
+    // CURRENT tree ALL THREE are MEASURED GREEN (re-run this gate: home/desktop
+    // a11y=100, cube/desktop holds only the glass-ui bucket, sequence/mobile+desktop
+    // a11y=100). The `color-contrast` pair was cured by T.D's red-kill (VERDICT #16
+    // "I don't like this latent red theme" → the ONE oklch violet accent authority);
+    // the `target-size` miss by the T.C/T.F dock/chrome recut. So there is NOTHING
+    // to bucket: a `bucket-t-pending` for audits that now PASS would be the
+    // PRECAUTIONARY-ENTRY anti-pattern this file explicitly rejects (see bucket-w2's
+    // image-alt removal) — it would MASK a future regression of a currently-passing
+    // audit. The gate's biting logic is sound and UNCHANGED: a future unbucketed
+    // a11y regression exits 1 here.
+    //
+    // The remaining T.G10 half — un-SILENCING that exit so it BLOCKS rather than
+    // riding demo-device-observe's job-level `continue-on-error` — shares T.G9's
+    // infra dependency: this gate lives in the observe job because lighthouse is
+    // install-or-observe (binary absent in CI). Making its bite blocking needs a
+    // calibrated runner / a blocking job with lighthouse installed (the SAME
+    // provisioning as proof:lighthouse-mobile's KF_REQUIRE_LH hard path). Removing
+    // only the STEP-level continue-on-error would be harmful (it would abort the
+    // sibling observe steps at a failure) AND ineffective (the JOB-level
+    // continue-on-error still swallows). So the CI-blocking flip is a named HANDOFF
+    // → the T.G9/T.Z calibrated-runner provisioning; the DEFECT half is discharged
+    // (cured + measured green). The `continue-on-error` neuter PATTERN (charter
+    // conflict #5) across the LoAF `|| true` (T.G8 — path now fixed, the grep emits
+    // a real PASS/legible-error), the lighthouse-mobile OBSERVE posture (T.G9 —
+    // legitimately device-dependent), and this a11y step is audited together HERE
+    // and dispositioned per sibling: cured / infra-deferred / legitimate-observe.
 };
 
 // Flattened set of every allowed audit id, for O(1) membership.

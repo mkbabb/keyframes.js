@@ -80,15 +80,23 @@ try {
     process.exit(1);
 }
 
-const { ratioGate, absoluteGate } = helper;
+const { ratioGate, absoluteGate, ratioGateValue } = helper;
 if (typeof ratioGate !== "function") {
     fail("helper-present", "portable-perf.mjs does not export `ratioGate` as a function");
 }
 if (typeof absoluteGate !== "function") {
     fail("helper-present", "portable-perf.mjs does not export `absoluteGate` as a function");
 }
+if (typeof ratioGateValue !== "function") {
+    fail(
+        "helper-present",
+        "portable-perf.mjs does not export `ratioGateValue` as a function " +
+            "(the demo-DOM same-report ratio primitive, T-PERF-E — the demo-perf gates " +
+            "would hand-roll `if (value < floor)`, the X1 duplication)",
+    );
+}
 if (!failures.some((f) => f.includes("[helper-present]"))) {
-    ok("helper-present", "scripts/lib/portable-perf.mjs exports `ratioGate` + `absoluteGate`");
+    ok("helper-present", "scripts/lib/portable-perf.mjs exports `ratioGate` + `absoluteGate` + `ratioGateValue`");
 }
 
 // ── Build a fixture vitest bench report ─────────────────────────────────────
@@ -290,6 +298,89 @@ if (typeof absoluteGate === "function") {
             "absolute-gate-no-comment",
             "absoluteGate without marginComment → THROWS (K3 portability spine enforced)",
         );
+    }
+}
+
+// ── Clause: ratio-value-atmost (the demo-perf COST budget) ───────────────────
+// The default demo-perf direction: a cost counter (TaskDuration ms) WITH the
+// suspect property must not exceed the neutralized baseline by more than the
+// margin. candidate/baseline <= ceilFraction → PASS.
+if (typeof ratioGateValue === "function") {
+    // PASS: candidate 110 / baseline 100 = 1.1× <= ceil 1.15×.
+    let failCalled = false;
+    const passResult = ratioGateValue({
+        label: "TaskDuration ms (blur on vs neutralized)",
+        baseline: 100,
+        candidate: 110,
+        direction: "atMost",
+        ceilFraction: 1.15,
+        posture: "hard",
+        fail: () => { failCalled = true; },
+        note: () => {},
+    });
+    // FAIL: candidate 250 / baseline 100 = 2.5× > ceil 1.15× (the born-RED shape:
+    // the blur re-samples the moving stage → a TaskDuration spike).
+    let failCalled2 = false;
+    const failResult = ratioGateValue({
+        label: "TaskDuration ms (blur re-sampling the moving stage)",
+        baseline: 100,
+        candidate: 250,
+        direction: "atMost",
+        ceilFraction: 1.15,
+        posture: "hard",
+        fail: () => { failCalled2 = true; },
+        note: () => {},
+    });
+    if (!passResult?.pass || failCalled) {
+        fail("ratio-value-atmost", `1.1× <= ceil 1.15× should PASS (got pass=${passResult?.pass}, failCalled=${failCalled})`);
+    } else if (failResult?.pass !== false || !failCalled2) {
+        fail("ratio-value-atmost", `2.5× > ceil 1.15× should FAIL + call the fail hook (got pass=${failResult?.pass}, failCalled=${failCalled2})`);
+    } else {
+        ok("ratio-value-atmost", "cost budget: 1.1×<=1.15× PASS · 2.5×>1.15× FAILs the fail hook (the born-RED blur-spike shape)");
+    }
+}
+
+// ── Clause: ratio-value-atleast (throughput) + structural + bad-direction ─────
+if (typeof ratioGateValue === "function") {
+    // atLeast (throughput): candidate 200 / baseline 100 = 2.0× >= floor 1.2× → PASS.
+    const speedup = ratioGateValue({
+        label: "throughput",
+        baseline: 100,
+        candidate: 200,
+        direction: "atLeast",
+        floorFraction: 1.2,
+        posture: "hard",
+        fail: () => {},
+        note: () => {},
+    });
+    // structural miss: baseline 0 → null + process.exitCode=1.
+    const savedExit = process.exitCode;
+    process.exitCode = 0;
+    const structural = ratioGateValue({
+        label: "absent",
+        baseline: 0,
+        candidate: 100,
+        direction: "atMost",
+        ceilFraction: 1.15,
+        posture: "hard",
+        fail: () => {},
+        note: () => {},
+    });
+    const structuralSetExit = !!process.exitCode;
+    process.exitCode = savedExit;
+    // bad direction throws.
+    let threw = false;
+    try {
+        ratioGateValue({ label: "x", baseline: 1, candidate: 1, direction: "sideways", ceilFraction: 1 });
+    } catch { threw = true; }
+    if (!speedup?.pass) {
+        fail("ratio-value-atleast", `2.0× >= floor 1.2× should PASS (got pass=${speedup?.pass})`);
+    } else if (structural !== null || !structuralSetExit) {
+        fail("ratio-value-atleast", `baseline 0 should return null + set exitCode=1 (got ${JSON.stringify(structural)}, exitSet=${structuralSetExit})`);
+    } else if (!threw) {
+        fail("ratio-value-atleast", "an unknown direction should THROW");
+    } else {
+        ok("ratio-value-atleast", "throughput 2.0×>=1.2× PASS · baseline-0 → null+exitCode=1 (HARD structural) · bad direction THROWS");
     }
 }
 
