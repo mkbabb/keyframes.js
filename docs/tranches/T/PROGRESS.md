@@ -256,6 +256,32 @@
   gate-authority unions; 1037 tests; the batch-⑤ running order = T.B1-β/B7/B2/B5-model
   ∥ T.D hero (Fable, P-HERO) ∥ T.C dock recut (consumes the B5 contract + B10).
 
+- **2026-07-05 — BATCH ⑤ MERGED + VERIFIED (T4/T5).** Fleet `wf_08a80d91-4c1` (one
+  full-fleet API-outage relaunch mid-batch; recovered via scriptPath+resume). **THE
+  HERO REBORN (Fable; OD-4/OD-2 packets FILLED):** T.D9 φ-band seat + the
+  hero-rung/-balance/-cls FROZEN locks RETIRED via machine-witnessed MIGRATION
+  discharges into the new OWNER oracle proof:hero-two-focal (GREEN);
+  appearance-suffusion clause (c) INVERTED; T.D10 per-CHAR two-tier uplift with the
+  sr-only mirror (demo-usability clause 2 re-armed GREEN); T.D11 serif-italic deck;
+  T.D12 typing-card EXCISED (design-refinement S1 arm re-cut); T.D13 Aurora-on-hero
+  MORE SUBTLE (public @mkbabb/glass-ui/aurora, ceiling below 0.15 encoded); T.D14
+  proof:no-hand-rolled-cursor-tracker recurrence guard; + the ②′-merge INDEX.json
+  conflict-marker debris cured. **THE DOCK RECUT LANDED:** T.C1 both docks on the
+  glass-ui grammar (zone-derived separators, play FIRST — transport-play-first-render
+  DISCHARGED); T.B5-RENDER single-option elision (the "Spring│Spring" dup DEAD;
+  static labels deleted; no-single-option-select RE-CHARTERED single⇒NOTHING); T.C2
+  home=compass-only + Clear-all into MbabbMenu; T.C3 ONE tooltip authority; T.C4
+  verified-discharged (T.D3 had killed the serif flip); T.C7 three dock oracles
+  wired. **T.B5-MODEL landed on the DFA** (dockCardinality + the cross-axis clause,
+  16/16 tests). **Merge composition:** the flagged dockZones.ts stand-in DELETED —
+  both docks + proof:no-single-option-select repointed onto the DFA projection (ONE
+  count authority, the lane-18 dual-formula rule); hygiene-chain unioned. 1042
+  tests; dock/hero/theme oracles all green. **The facility joint motion
+  (B1-β/B2/B7/E7) deferred a SECOND time** by protect-the-green lanes — batch ⑥
+  gives it a dedicated max-effort Fable lane with the staged recipe; alongside: the
+  T.F LIBRARY half (src-only, collision-free) ∥ the P-GALLERY prototype (OD-7's
+  vehicle, kept worktree, never merges).
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately

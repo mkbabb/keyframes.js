@@ -9,11 +9,10 @@ import {
     DockSelectTrigger,
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
-// T.C1 — the elision RENDER consumes the cardinality model. The AUTHORITATIVE
-// model is T.B5's DFA projection (lane 1); until that export lands in-tree this
-// consumes the FLAGGED local adapter (dockZones.ts) — same arithmetic, reconciled
-// at merge. See dockZones.ts's header.
-import { controlZone } from "@components/custom/animation-transport/dockZones";
+// T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
+// (the DFA projection; the batch-5 dockZones.ts stand-in was deleted at merge —
+// ONE source of the count arithmetic, per lane 18's dual-formula rule).
+import { dockCardinality } from "@state/controlSurfaceDFA";
 import {
     Select,
     SelectContent,
@@ -122,16 +121,15 @@ const hasControlPanel = computed(() => allControlTabs.value.length > 0);
 // label duplicating the scene name (the owner-rejected #17 register). The
 // `hasControlPanel` (`> 0`) predicate still gates the collapse TOGGLE — a 1-tab
 // scene HAS a panel to open/close, it just has nothing to PICK.
-const controlZoneKind = computed(
-    () =>
-        controlZone(
-            allControlTabs.value.length,
-            allControlTabs.value.length === 1
-                ? allControlTabs.value[0]?.label
-                : undefined,
-            props.currentLabel,
-        ).kind,
-);
+const controlZoneKind = computed(() => {
+    const { controlZone: cz, controlLabelRedundant } = dockCardinality({
+        tabs: allControlTabs.value,
+        channels: [],
+        sceneLabel: props.currentLabel,
+    });
+    // The cross-axis clause folds here: a redundant inline label renders NOTHING.
+    return controlLabelRedundant ? "absent" : cz.kind;
+});
 // The controls `<Select>` renders ONLY for kind "select" (≥2 tabs). This is the
 // count-guard the U4/no-single-option-select gate keys on (bound to `> 1`).
 const multipleControlTabs = computed(() => allControlTabs.value.length > 1);

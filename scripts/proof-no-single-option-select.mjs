@@ -20,7 +20,7 @@
  *       single-animation `v-else` name span). A regression that RESURRECTS the
  *       static label (the rejected dup) reds.
  *
- * The count authority is the dock-zone model (dockZones.ts — the T.B5 stand-in; when
+ * The count authority is T.B5's DFA projection (dockCardinality in controlSurfaceDFA.ts; when
  * T.B5's DFA projection lands, repoint this check at `@state`). Clause (3) asserts
  * that model binds `> 1` — a rewrite admitting a 1-option zone reds.
  *
@@ -54,30 +54,27 @@ console.log(
     "proof:no-single-option-select — RE-CHARTERED (single ⇒ NOTHING; the #17 static-label dup is DELETED)",
 );
 
-// ── (0) The zone model binds `> 1` (dockZones.ts — the T.B5 stand-in) ────────
+// ── (0) The zone model binds `> 1` (T.B5's DFA projection — dockCardinality) ─
 {
-    const file = path.join(
-        DEMO,
-        "@/components/custom/animation-transport/dockZones.ts",
-    );
+    const file = path.join(DEMO, "@/state/controlSurfaceDFA.ts");
     if (!fs.existsSync(file)) {
         fail(
-            `(0) dockZones.ts not found at ${path.relative(REPO, file)} — the ` +
+            `(0) the DFA cardinality model not found at ${path.relative(REPO, file)} — the ` +
                 "cardinality model moved (T.B5 landed?); repoint the count-guard check.",
         );
     } else {
         const src = stripComments(read(file));
-        const controlGuard = /tabCount\s*>\s*1/.test(src);
-        const channelGuard = /nameCount\s*>\s*1/.test(src);
+        const controlGuard = /tabs\.length\s*>\s*1/.test(src);
+        const channelGuard = /channels\.length\s*>\s*1/.test(src);
         if (controlGuard && channelGuard) {
             ok(
                 "(0) the dock-zone model binds BOTH zones to `> 1` (controlZone: tabCount > 1, " +
-                    "channelZone: nameCount > 1) — a 1-option zone resolves ABSENT, never a select.",
+                    "channelZone: channels.length > 1) — a 1-option zone resolves ABSENT, never a select.",
             );
         } else {
             fail(
-                "(0) the dock-zone model (dockZones.ts) does NOT bind both zones to a `> 1` " +
-                    `count (controlZone tabCount>1: ${controlGuard}, channelZone nameCount>1: ` +
+                "(0) the DFA cardinality model does NOT bind both zones to a `> 1` " +
+                    `count (controlZone tabs.length>1: ${controlGuard}, channelZone channels.length>1: ` +
                     `${channelGuard}) — a rewrite admitting a 1-option zone would render a dead dropdown.`,
             );
         }
@@ -94,9 +91,10 @@ console.log(
         fail(`(A) TransportDock.vue not found at ${path.relative(REPO, file)}.`);
     } else {
         const src = stripComments(read(file));
-        // Count-guard: the select is governed by the channel zone kind, bound to the
-        // animation count via channelZone(animationNames.length).
-        const zoneDerive = /channelZone\(\s*animationNames\.length\s*\)/.test(src);
+        // Count-guard: the select is governed by the channel zone kind, derived
+        // from T.B5's DFA projection (dockCardinality over the channel names).
+        const zoneDerive =
+            /dockCardinality\(\{[^}]*channels:\s*animationNames/.test(src);
         const zoneGuard = /channelZoneKind\s*===\s*['"]select['"]/.test(src);
         // Legacy direct guard (accepted too, for forward parity).
         const legacyGuard = /v-if\s*=\s*"\s*animationNames\.length\s*>\s*1\s*"/.test(
@@ -105,12 +103,12 @@ console.log(
         if ((zoneDerive && zoneGuard) || legacyGuard) {
             ok(
                 "(A) the animation <Select> renders ONLY under the channel count-guard " +
-                    "(channelZoneKind === 'select', derived from channelZone(animationNames.length) > 1).",
+                    "(channelZoneKind === 'select', derived from dockCardinality(channels).channelZone).",
             );
         } else {
             fail(
                 "(A) the animation <Select> in TransportDock.vue is NOT count-guarded — " +
-                    "no `channelZoneKind === 'select'` (from channelZone(animationNames.length)) " +
+                    "no `channelZoneKind === 'select'` (from dockCardinality over the channel names) " +
                     "and no legacy `v-if=\"animationNames.length > 1\"`. A lone-option dropdown could render.",
             );
         }

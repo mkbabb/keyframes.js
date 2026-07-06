@@ -222,8 +222,8 @@ import {
 } from "@mkbabb/glass-ui/dock";
 // T.C1 — the channel-elision RENDER consumes the cardinality model. The
 // authoritative model is T.B5's DFA projection (lane 1); until it lands in-tree
-// this consumes the FLAGGED local adapter (dockZones.ts) — reconciled at merge.
-import { channelZone } from "./dockZones";
+// this consumes T.B5's DFA projection (dockCardinality — ONE count authority).
+import { dockCardinality } from "@state/controlSurfaceDFA";
 import {
     Select,
     SelectContent,
@@ -385,7 +385,9 @@ const emit = defineEmits<{
 // (the animation `<Select>` renders only for kind "select"; a lone/zero animation
 // renders no node + no flanking separator, the elision). The count IS the guard
 // the U4/no-single-option-select gate keys on (bound to `.length > 1`).
-const channelZoneKind = computed(() => channelZone(animationNames.length).kind);
+const channelZoneKind = computed(
+    () => dockCardinality({ tabs: [], channels: animationNames }).channelZone.kind,
+);
 
 /** Set a single CSS custom property; the stylesheet computes gradient + shadow. */
 const dotStyle = (name: string): Record<string, string> => {
