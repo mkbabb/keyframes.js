@@ -19,7 +19,7 @@ import { AnimationGroup } from "../../src/animation/group";
 import { warmKfEngine } from "../../demo/@/utils/kfEngine";
 import { useSceneMachine } from "../../demo/@/state/useSceneMachine";
 import { createGroupAdapter } from "../../demo/@/state/scenePlaybackAdapters";
-import { useAnimationGroupPlayback } from "../../demo/@/components/custom/animation-transport/composables/useAnimationGroupPlayback";
+import { useAnimationGroupPlayback } from "../../demo/@/components/custom/instrument/transport/composables/useAnimationGroupPlayback";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 // The demo composables read the HEAVY engine surface synchronously via the warmed

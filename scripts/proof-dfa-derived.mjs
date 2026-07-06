@@ -92,7 +92,7 @@ console.log("proof:dfa-derived â€” T.B2 (control-surface DFA: exclusion table â†
     const meta = /export const SURFACE_META\s*:\s*Record<ControlSurface, ControlSurfaceTab>/.test(dfa);
     const dock = read(path.join(DEMO, "app/dock/ChromeDock.vue"));
     const ac = read(
-        path.join(DEMO, "@/components/custom/animation-transport/controls/AnimationControls.vue"),
+        path.join(DEMO, "@/components/custom/instrument/transport/controls/AnimationControls.vue"),
     );
     const dockDerives = /SURFACE_META\[s\]/.test(dock);
     const acDerives = /SURFACE_META\[s\]/.test(ac);

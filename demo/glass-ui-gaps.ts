@@ -63,8 +63,8 @@ export const GLASS_UI_GAPS = {
         glassCap: "ariaGuard",
         fixVersion: "@mkbabb/glass-ui BG/BH (aria guard + material↔role decouple)",
         workaroundSites: [
-            "demo/@/components/custom/animation-transport/KfPillTabs.vue",
-            "demo/@/components/custom/animation-transport/useKfPillTabs.ts",
+            "demo/@/components/custom/instrument/transport/KfPillTabs.vue",
+            "demo/@/components/custom/instrument/transport/useKfPillTabs.ts",
         ],
         acceptanceGate: "proof:glassui-aria-ask",
     },
@@ -76,8 +76,8 @@ export const GLASS_UI_GAPS = {
         glassCap: "dockStrandKeepalive",
         fixVersion: "@mkbabb/glass-ui BG/BH (dock-layer keepalive)",
         workaroundSites: [
-            "demo/@/components/custom/animation-transport/TransportDock.vue",
-            "demo/@/components/custom/animation-transport/composables/usePlayActuation.ts",
+            "demo/@/components/custom/instrument/transport/TransportDock.vue",
+            "demo/@/components/custom/instrument/transport/composables/usePlayActuation.ts",
         ],
         acceptanceGate: "proof:workaround-deletion",
     },
@@ -129,8 +129,8 @@ export const GLASS_UI_GAPS = {
         // sites import @mkbabb/glass-ui (CLAUSE B of the tripwire is satisfied by
         // the import; they are NOT edited by T.H3 — lane-owned).
         workaroundSites: [
-            "demo/@/components/custom/animation-transport/components/ControlsPaneWrapper.vue",
-            "demo/@/components/custom/animation-transport/composables/useSheetGesture.ts",
+            "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue",
+            "demo/@/components/custom/instrument/transport/composables/useSheetGesture.ts",
         ],
         acceptanceGate: "proof:glass-ui-gap-tripwire",
     },

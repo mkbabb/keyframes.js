@@ -78,15 +78,15 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // S.D2 (T7 walker-root arming-audit, P2-1 F5): `animation-controls/` was carved
-// into three sibling `@/` peers — `animation-transport/` (the shells + controls/
-// + composables/), `keyframes-editor/` (the Monaco editor), `keyframe-timeline/`
+// into three sibling `@/` peers — `instrument/transport/` (the shells + controls/
+// + composables/), `instrument/keyframes/` (the Monaco editor), `instrument/timeline/`
 // (the draggable timeline). The structural sweep now roots at ALL THREE so the
 // peer-moved files are NOT silently dropped from the walk (the false-green
 // blindspot a peer move risks). The former `keyframes/` and `timeline/` subtrees
 // are now the KEYFRAMES_EDITOR / KEYFRAME_TIMELINE peers (clauses 2/3 below).
-const TRANSPORT = path.join(REPO, "demo/@/components/custom/animation-transport");
-const KEYFRAMES_EDITOR = path.join(REPO, "demo/@/components/custom/keyframes-editor");
-const KEYFRAME_TIMELINE = path.join(REPO, "demo/@/components/custom/keyframe-timeline");
+const TRANSPORT = path.join(REPO, "demo/@/components/custom/instrument/transport");
+const KEYFRAMES_EDITOR = path.join(REPO, "demo/@/components/custom/instrument/keyframes");
+const KEYFRAME_TIMELINE = path.join(REPO, "demo/@/components/custom/instrument/timeline");
 const CONTROLS_ROOTS = [TRANSPORT, KEYFRAMES_EDITOR, KEYFRAME_TIMELINE];
 
 // H.W8 RECONCILIATION (drift-red a) — the DEMO ceiling sweep is RETIRED. The
@@ -164,9 +164,9 @@ const ASYNC = /\b(?:setTimeout|setInterval|requestAnimationFrame)\b/g;
 // The four W0-flagged sites that MUST be transposed onto vueuse (repo-relative
 // POSIX). The gate names them so the manifest is visible in its own output.
 const W0_ASYNC_SITES = [
-    "demo/@/components/custom/keyframe-timeline/composables/useTimeline.ts",
-    "demo/@/components/custom/keyframes-editor/KeyframesStringControls.vue",
-    "demo/@/components/custom/animation-transport/composables/usePaneHover.ts",
+    "demo/@/components/custom/instrument/timeline/composables/useTimeline.ts",
+    "demo/@/components/custom/instrument/keyframes/KeyframesStringControls.vue",
+    "demo/@/components/custom/instrument/transport/composables/usePaneHover.ts",
 ];
 
 // The engine-loop allowlist: raw-rAF sites that are NOT animation/timer blobs a
@@ -200,7 +200,7 @@ function main() {
             console.error(
                 "proof:decomposition — ERROR: control-suite peer not found at " +
                     relPosix(root) +
-                    " (the S.D2 animation-transport/keyframes-editor/keyframe-timeline carve)",
+                    " (the S.D2 animation-transport/instrument/keyframes/keyframe-timeline carve)",
             );
             process.exit(3);
         }
@@ -225,7 +225,7 @@ function main() {
     console.log(
         `  source files scanned: ${ceilingSources.length} library file(s) for ` +
             `the ceiling (src/animation/**); the demo structural clauses sweep ` +
-            `the animation-transport/keyframes-editor/keyframe-timeline peers + demo/** (demo file-size → proof:demo-no-oversize)`,
+            `the animation-transport/instrument/keyframes/keyframe-timeline peers + demo/** (demo file-size → proof:demo-no-oversize)`,
     );
 
     // ── 1. LIBRARY CEILING ─────────────────────────────────────────────
@@ -320,9 +320,9 @@ function main() {
         for (const abs of sources) {
             const rel = relPosix(abs);
             if (
-                rel.endsWith("keyframes-editor/KeyframesStringControls.vue") ||
-                rel.endsWith("keyframes-editor/composables/useKeyframesEditor.ts") ||
-                toPosix(abs).includes("keyframes-editor/utils/")
+                rel.endsWith("instrument/keyframes/KeyframesStringControls.vue") ||
+                rel.endsWith("instrument/keyframes/composables/useKeyframesEditor.ts") ||
+                toPosix(abs).includes("instrument/keyframes/utils/")
             ) {
                 continue; // already accounted for above / the canonical home
             }
@@ -360,7 +360,7 @@ function main() {
     {
         const composablesDirs = [];
         const utilsTimeline = path.join(KEYFRAME_TIMELINE, "utils");
-        // Every `keyframe-timeline/composables/*.ts` must import vue (be a real
+        // Every `instrument/timeline/composables/*.ts` must import vue (be a real
         // composable). A pure module there is a mis-file.
         const composablesTimeline = path.join(KEYFRAME_TIMELINE, "composables");
         const VUE_IMPORT = /\bfrom\s+["']vue["']/;
@@ -674,7 +674,7 @@ function main() {
         // member reds.
         {
             const producerRel =
-                "demo/@/components/custom/editor-shell/useShareState.ts";
+                "demo/@/components/custom/instrument/shell/useShareState.ts";
             const producerAbs = path.join(REPO, producerRel);
             if (fs.existsSync(producerAbs)) {
                 const src = blankComments(read(producerAbs));

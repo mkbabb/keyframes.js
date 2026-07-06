@@ -153,7 +153,7 @@ import CSSPasteDialog from "./CSSPasteDialog.vue";
 import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
-import CSSCodeEditor from "../keyframes-editor/CSSCodeEditor.vue";
+import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";
 import type { TimelineKeyframe } from "./timelineTypes";

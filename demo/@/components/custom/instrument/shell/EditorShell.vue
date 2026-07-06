@@ -117,7 +117,7 @@ import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
 import SharePopover from "./SharePopover.vue";
 import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
-import AnimationControlsGroup from "@components/custom/animation-transport/AnimationControlsGroup.vue";
+import AnimationControlsGroup from "@components/custom/instrument/transport/AnimationControlsGroup.vue";
 
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
@@ -126,7 +126,7 @@ import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { Keyboard } from "@lucide/vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import type { TransportChannel } from "@components/custom/animation-transport/transportSource";
+import type { TransportChannel } from "@components/custom/instrument/transport/transportSource";
 
 import "@styles/style.css";
 

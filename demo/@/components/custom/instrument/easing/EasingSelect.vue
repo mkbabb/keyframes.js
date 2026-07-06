@@ -105,12 +105,12 @@ import {
     SelectTrigger,
 } from "@mkbabb/glass-ui";
 
-import { getCurvePath } from "@components/custom/animation-transport/controls/timingCurveUtils";
+import { getCurvePath } from "@components/custom/instrument/transport/controls/timingCurveUtils";
 import {
     EASING_GROUPS,
     type CurveGroupItem,
-} from "../../../../scenes/easing/easingGroups";
-import { isDetailTimingFunction } from "@components/custom/animation-transport/animationDescriptions";
+} from "../../../../../scenes/easing/easingGroups";
+import { isDetailTimingFunction } from "@components/custom/instrument/transport/animationDescriptions";
 import { computed } from "vue";
 
 const props = defineProps<{

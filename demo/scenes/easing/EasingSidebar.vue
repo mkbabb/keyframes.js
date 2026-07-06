@@ -119,7 +119,7 @@ import {
     LabeledSlider,
 } from "@mkbabb/glass-ui/labeled-field";
 
-import EasingEditor from "@components/custom/easing-editor/EasingEditor.vue";
+import EasingEditor from "@components/custom/instrument/easing/EasingEditor.vue";
 import type { EasingDemoContext } from "./easingKeys";
 
 const JUMP_TERMS = ["jump-start", "jump-end", "jump-none", "jump-both"] as const;
@@ -158,7 +158,7 @@ const onStepsChangeValue = (value: string) => {
 <style scoped>
 /* H.W4.S1 — the editor root is a container so the EasingCurveCanvas can size
    its block off the CONTAINER inline size, not the viewport. Pairs with the
-   TimingFunctionPanel's own `easing-editor` container so the canvas is bounded
+   TimingFunctionPanel's own `instrument/easing` container so the canvas is bounded
    in BOTH render hosts (the full-rail sidebar AND the in-panel detail Card).
    Baseline-2023 — no fallback owed. */
 .easing-editor {

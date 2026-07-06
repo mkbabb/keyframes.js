@@ -609,9 +609,9 @@ function main() {
                 p.endsWith(".vue") && fs.existsSync(cssSibling) ? read(cssSibling) : "";
             return css ? `${sfc}\n${css}` : sfc;
         };
-        const GROUP = "demo/@/components/custom/animation-transport/AnimationControlsGroup.vue";
-        const PANE = "demo/@/components/custom/animation-transport/components/ControlsPaneWrapper.vue";
-        const TABS = "demo/@/components/custom/animation-transport/controls/AnimationControls.vue";
+        const GROUP = "demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue";
+        const PANE = "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue";
+        const TABS = "demo/@/components/custom/instrument/transport/controls/AnimationControls.vue";
         const MATRIX = "demo/scenes/cube/matrix-editor/MatrixEditor.vue";
 
         // Comment-blank each file so a doc-comment NAMING the retired literal/token

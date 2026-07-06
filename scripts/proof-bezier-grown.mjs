@@ -67,7 +67,7 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
 const PANEL_SRC = path.join(
     REPO,
-    "demo/@/components/custom/animation-transport/controls/TimingFunctionPanel.vue",
+    "demo/@/components/custom/instrument/transport/controls/TimingFunctionPanel.vue",
 );
 
 const W9_CEILING = 220; // the W9 F2 cap the I7 grow must exceed

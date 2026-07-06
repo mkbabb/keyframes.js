@@ -51,7 +51,7 @@
  * assertions (e.g. `proof-scene-colocated.mjs` greps for them to prove
  * they're gone — that's the discriminator, not the defect), and the
  * extensive `<SegmentedTabs>` design-history comments scattered through
- * `demo/@/components/custom/animation-transport/**` explain a real, true
+ * `demo/@/components/custom/instrument/transport/**` explain a real, true
  * architecture decision (the DM-5 contingency-kill of glass-ui's
  * `SegmentedTabs` for `KfPillTabs`) — accurate technical history, not a false
  * claim that something exists. That corpus is explicitly DISCRETIONARY
@@ -257,7 +257,7 @@ const DEAD_IDENTIFIERS = [
 // The live narration surfaces — the doc sites a reader trusts as "what exists
 // today". NOT docs/tranches/ (the historical record legitimately carries
 // these names) and NOT every source comment (the SegmentedTabs design-history
-// narration in demo/@/components/custom/animation-transport/** is accurate
+// narration in demo/@/components/custom/instrument/transport/** is accurate
 // technical history, carved out as S.C3a S6 discretionary, not this clause's
 // scope).
 const NARRATION_SURFACES = [

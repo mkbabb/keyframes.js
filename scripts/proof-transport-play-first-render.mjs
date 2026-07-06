@@ -32,7 +32,7 @@ const DOCK =
     process.env.KF_TRANSPORT_DOCK ||
     join(
         root,
-        "demo/@/components/custom/animation-transport/TransportDock.vue",
+        "demo/@/components/custom/instrument/transport/TransportDock.vue",
     );
 
 const failures = [];

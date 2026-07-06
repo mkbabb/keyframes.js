@@ -85,7 +85,7 @@ console.log(
 {
     const file = path.join(
         DEMO,
-        "@/components/custom/animation-transport/TransportDock.vue",
+        "@/components/custom/instrument/transport/TransportDock.vue",
     );
     if (!fs.existsSync(file)) {
         fail(`(A) TransportDock.vue not found at ${path.relative(REPO, file)}.`);

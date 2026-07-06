@@ -135,7 +135,7 @@ function stripCssComments(src) {
 function staticHalf() {
     const sheetPath = path.join(
         REPO,
-        "demo/@/components/custom/animation-transport/components/ControlsPaneWrapper.vue",
+        "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue",
     );
     if (!fs.existsSync(sheetPath)) {
         fail(`static — the sheet file ControlsPaneWrapper.vue not found at ${sheetPath}`);
@@ -199,7 +199,7 @@ function staticHalf() {
     // whose `--sheet-t` it binds — read the composable alongside so the wire resolves.
     const sheetStatePath = path.join(
         REPO,
-        "demo/@/components/custom/animation-transport/composables/useSheetState.ts",
+        "demo/@/components/custom/instrument/transport/composables/useSheetState.ts",
     );
     const sheetState = fs.existsSync(sheetStatePath)
         ? fs.readFileSync(sheetStatePath, "utf8")

@@ -27,7 +27,7 @@
  *
  *   • A DIRECTORY SUB-ZONE (`@/components/custom/<dir>/`) is legitimate shared-lib
  *     structure if it is consumed by ANY OTHER `@/` module (an internal peer edge,
- *     e.g. `keyframe-timeline/` ← `animation-transport/`) OR by ≥2 external
+ *     e.g. `instrument/timeline/` ← `instrument/transport/`) OR by ≥2 external
  *     (scene/app/playground) areas. It REDs only when exactly ONE external area
  *     privately owns it with NO shared-lib consumer — a scene/app/playground-
  *     private directory misfiled in `@/` (born-RED today on `dock/`, imported by
@@ -89,7 +89,7 @@ const ALLOWLIST = new Map([
     // (an out-of-D3-scope app-partition decision owns any future move). The
     // stale-guard keeps it honest: if it EVER regains a 2nd consumer, this entry reds.
     [
-        "components/custom/editor-shell",
+        "components/custom/instrument/shell",
         "app-private after the S.D3 playground-fold, but proof:app-is-shell forbids " +
             "non-concern-subzone dirs under app/, so it cannot be colocated there; the " +
             "relocation is an out-of-scope app-partition decision. Stale-guard reds on a 2nd consumer.",
@@ -171,7 +171,21 @@ function sharedModuleId(abs) {
     if (rel.startsWith("..")) return null;
     const parts = rel.split("/");
     if (parts[0] === "components") {
-        if (parts[1] === "custom") return `components/custom/${parts[2]}`;
+        if (parts[1] === "custom") {
+            // T.F5 fold: the instrument facility's PEERS (transport/keyframes/
+            // timeline/shell/easing) are the @/ consumer-area units — one dir
+            // deeper than the flat pre-fold peers. Descend so a leaf shared
+            // ACROSS peers still counts ≥2 distinct areas.
+            if (parts[2] === "instrument") {
+                // The facility umbrella barrel (instrument/index.ts) is a pure
+                // re-export FACADE — transparent to this gate (neither a shared
+                // module nor a consuming area; its `export * from ./<peer>` must
+                // not count as consumption of the peers it re-exports).
+                if (parts.length === 4 && parts[3] === "index.ts") return null;
+                return `components/custom/instrument/${parts[3]}`;
+            }
+            return `components/custom/${parts[2]}`;
+        }
         return `components/${parts[1]}`; // ui/, etc — whole tree = one module
     }
     if (parts[0] === "composables" || parts[0] === "utils") {
@@ -210,8 +224,27 @@ function enumerateModules() {
     // components/custom/* — dirs + flat single files
     const custom = path.join(SHARED, "components/custom");
     for (const e of fs.readdirSync(custom, { withFileTypes: true })) {
-        if (e.isDirectory()) push(`components/custom/${e.name}`, path.join(custom, e.name));
-        else if (SOURCE_EXT.has(path.extname(e.name)))
+        if (e.isDirectory()) {
+            if (e.name === "instrument") {
+                // T.F5 fold: the facility's PEERS are the gated units (each an
+                // @/ consumer area), enumerated one level deeper — NOT the
+                // `instrument/` umbrella itself. This preserves the pre-fold
+                // per-peer ≥2-consumer / dir-sub-zone checks.
+                const inst = path.join(custom, e.name);
+                for (const pe of fs.readdirSync(inst, { withFileTypes: true })) {
+                    // Only the PEER directories are gated units — the bare
+                    // umbrella barrel (instrument/index.ts) is a re-export facade,
+                    // not an independent shared leaf.
+                    if (pe.isDirectory())
+                        push(
+                            `components/custom/instrument/${pe.name}`,
+                            path.join(inst, pe.name),
+                        );
+                }
+            } else {
+                push(`components/custom/${e.name}`, path.join(custom, e.name));
+            }
+        } else if (SOURCE_EXT.has(path.extname(e.name)))
             push(`components/custom/${e.name}`, path.join(custom, e.name));
     }
     // composables/* and utils/* — each leaf/dir a module

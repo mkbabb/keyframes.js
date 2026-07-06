@@ -25,7 +25,7 @@ import { type App, createApp, defineComponent, h, nextTick, ref } from "vue";
 import {
     useKfPillTabs,
     type KfPillTabOption,
-} from "@components/custom/animation-transport/useKfPillTabs";
+} from "@components/custom/instrument/transport/useKfPillTabs";
 
 interface Harness {
     /** The rendered tab buttons, in DOM order. */

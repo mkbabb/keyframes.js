@@ -217,7 +217,7 @@ console.log(
 {
     const HERO = path.join(
         DEMO,
-        "@/components/custom/editor-shell/EditorStartScreen.vue",
+        "@/components/custom/instrument/shell/EditorStartScreen.vue",
     );
     if (!fs.existsSync(HERO)) {
         fail(

@@ -70,11 +70,11 @@ console.log("proof:cartoon-is-panel-depth — H.W2 S1 (the cartoon-depth restora
 
 // ── 1. SOURCE-SHAPE (static, always runs) ─────────────────────────────────────
 {
-    const AC = path.join(DEMO, "@/components/custom/animation-transport");
+    const AC = path.join(DEMO, "@/components/custom/instrument/transport");
     // S.D2 — keyframes/ and timeline/ are now sibling peers (keyframes-editor/,
     // keyframe-timeline/), not sub-dirs of the transport shell.
-    const KE = path.join(DEMO, "@/components/custom/keyframes-editor");
-    const KT = path.join(DEMO, "@/components/custom/keyframe-timeline");
+    const KE = path.join(DEMO, "@/components/custom/instrument/keyframes");
+    const KT = path.join(DEMO, "@/components/custom/instrument/timeline");
     // T.E1 (OD-1 PRUNE) — the compose scene (with its AssetViewport Card) was
     // PRUNED; the contract-named panel set is the surviving 4.
     // The 4 contract-named panel Card sites (H.W2 §Hard-gate). Each is the FIRST

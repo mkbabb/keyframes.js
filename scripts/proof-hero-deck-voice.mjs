@@ -40,7 +40,7 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
 const START_SCREEN = path.join(
     REPO,
-    "demo/@/components/custom/editor-shell/EditorStartScreen.vue",
+    "demo/@/components/custom/instrument/shell/EditorStartScreen.vue",
 );
 
 const failures = [];

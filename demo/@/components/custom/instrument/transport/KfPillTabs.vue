@@ -48,7 +48,7 @@ import type { KfPillTabOption } from "./useKfPillTabs";
 // role=group (BG-1) + coupling material to role (BG-3). It dies on the re-pin;
 // proof:glass-ui-gap-tripwire flips RED the instant glassCaps.ariaGuard is
 // satisfied while this file survives. See demo/glass-ui-gaps.ts.
-import { glassUiGap } from "../../../../glass-ui-gaps";
+import { glassUiGap } from "../../../../../glass-ui-gaps";
 const gap = glassUiGap("segmentedTabsAriaOrientation");
 
 const {
