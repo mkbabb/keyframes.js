@@ -212,9 +212,9 @@ import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "./PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
-import { useAnimationSync } from "./composables/useAnimationSync";
-import { usePlaybackToggle } from "./composables/usePlaybackToggle";
-import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
+import { useAnimationSync } from "../composables/useAnimationSync";
+import { usePlaybackToggle } from "../composables/usePlaybackToggle";
+import { useTimingFunctionEditor } from "../composables/useTimingFunctionEditor";
 import EasingSelect from "@components/custom/instrument/easing/EasingSelect.vue";
 
 import { Teleport, computed, onMounted, ref, toRef } from "vue";

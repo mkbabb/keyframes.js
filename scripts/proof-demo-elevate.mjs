@@ -174,7 +174,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // proof:brittleness, so a hit here is the vueuse form).
     const visFiles = [
         "demo/app/runtime/useSceneVisibilityPause.ts",
-        "demo/@/components/custom/instrument/transport/controls/composables/useAnimationSync.ts",
+        "demo/@/components/custom/instrument/transport/composables/useAnimationSync.ts",
         "demo/scenes/amiga/AmigaScene.vue",
     ];
     const visSrc = ctrls + visFiles.map(read).join("\n");

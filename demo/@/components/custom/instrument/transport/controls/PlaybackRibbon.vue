@@ -85,7 +85,7 @@ import { computed } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
-import { useDragCapture } from "./composables/useDragCapture";
+import { useDragCapture } from "../composables/useDragCapture";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";

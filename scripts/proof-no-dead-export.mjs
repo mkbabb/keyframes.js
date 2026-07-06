@@ -82,13 +82,13 @@ const DEFERRED = [
     ["demo/@/components/custom/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeReturn"],
     ["demo/@/components/custom/instrument/transport/composables/useSheetState.ts", "UseSheetStateOptions"],
     ["demo/@/components/custom/instrument/transport/composables/useSheetState.ts", "UseSheetStateReturn"],
-    ["demo/@/components/custom/instrument/transport/controls/composables/useDragCapture.ts", "DragCaptureHandlers"],
-    ["demo/@/components/custom/instrument/transport/controls/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealOptions"],
-    ["demo/@/components/custom/instrument/transport/controls/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealReturn"],
-    ["demo/@/components/custom/instrument/transport/controls/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceOptions"],
-    ["demo/@/components/custom/instrument/transport/controls/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceReturn"],
-    ["demo/@/components/custom/instrument/transport/controls/composables/useTabStripScroll.ts", "UseTabStripScrollOptions"],
-    ["demo/@/components/custom/instrument/transport/controls/composables/useTabStripScroll.ts", "UseTabStripScrollReturn"],
+    ["demo/@/components/custom/instrument/transport/composables/useDragCapture.ts", "DragCaptureHandlers"],
+    ["demo/@/components/custom/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealOptions"],
+    ["demo/@/components/custom/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealReturn"],
+    ["demo/@/components/custom/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceOptions"],
+    ["demo/@/components/custom/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceReturn"],
+    ["demo/@/components/custom/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollOptions"],
+    ["demo/@/components/custom/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollReturn"],
     // ── keyframes-editor / keyframe-timeline / shared leaves (reflexive types) ──
     // (GestureLegend.vue / GestureLegendItem RETIRED at T.M batch ⑧ — the whole
     //  file was deleted with the on-stage gesture-legend layer, VERDICT #8; the
