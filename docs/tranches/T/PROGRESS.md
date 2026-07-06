@@ -282,6 +282,29 @@
   T.F LIBRARY half (src-only, collision-free) ∥ the P-GALLERY prototype (OD-7's
   vehicle, kept worktree, never merges).
 
+- **2026-07-06 — BATCH ⑥ MERGED (2/3) + THE WALL AGAIN; ⑥′ RE-DEPLOYED (owner
+  order).** Fleet `wf_558e7859-5ca`. **T.F22 LANDED (the edict's library half):**
+  proof:zone-cohesion (per-zone internal cohesion, 400L concern threshold below the
+  500L hard ceiling, justified-single-concern declarations machine-checked; the §4
+  ring-fence machine-verified) + 3 genuine intra-zone carves (backward/format →
+  format-options; scroll/scene → dispatch; svg/morph-svg → morph-geometry — all
+  pure, public surface byte-identical, 3 path-anchored gates rewired) + 11 honest
+  single-concern justifications; library gate set green; the lane's 2 flagged
+  "pre-existing reds" adjudicated at merge as DIST-ORDERING ARTIFACTS
+  (published-surface + claude-paths-live both exit 0 after the build+gh-pages
+  sequence). **P-GALLERY LANDED-PENDING-OWNER (the OD-7 vehicle):** kept worktree
+  `worktree-wf_558e7859-5ca-3` @ `8414cb5` — 33 specimen tiles on ONE shared clock
+  over the surviving registerDotPainter seam, native to the landed OD-6 theme;
+  singular hero deleted in-prototype; 8 captures + PROTO-NOTES under
+  audit/prototypes/P-GALLERY/; proof:easing-gallery correctly UNAUTHORED (T.M2).
+  **NEVER purge `wf_558e7859-5ca-3` — it joins the three blessed prototypes in the
+  protected set.** The FACILITY joint-motion lane hit the session wall with ZERO
+  commits (max-effort recon burned the window) — ⑥′ relaunches it (Fable, HIGH
+  effort, HARD per-stage commit mandate) ∥ T.G6 (the perf-oracle re-home,
+  scripts-only) ∥ T.F23-gates (no-dead-export + any-ceiling ratchet at honest
+  current thresholds + the glass-ui-usage census; the demo sweeps ride the
+  facility-settled batch).
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
