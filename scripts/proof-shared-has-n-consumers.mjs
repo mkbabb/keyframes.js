@@ -82,7 +82,7 @@ const ALLOWLIST = new Map([
     // dropping it to ONE external area (`app`). The gate's remedy — colocate it
     // into the sole consumer — is BLOCKED by a sibling gate: proof:app-is-shell
     // permits ONLY the concern sub-zones (scene/ · transition/ · runtime/ ·
-    // chrome/ · public/) under app/, and editor-shell (the multi-file shell
+    // dock/ · public/) under app/, and editor-shell (the multi-file shell
     // component) is none of those. So the two gates are in genuine tension:
     // editor-shell is app-private by consumer-count yet cannot live IN app/ by the
     // shell-partition contract. It remains a shared-lib module by that constraint

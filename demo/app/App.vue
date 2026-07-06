@@ -134,8 +134,8 @@ import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell"
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
 import HeroAurora from "@components/custom/editor-shell/HeroAurora.vue";
-import ChromeDock from "./chrome/ChromeDock.vue";
-import MbabbMenu from "./chrome/MbabbMenu.vue";
+import ChromeDock from "./dock/ChromeDock.vue";
+import MbabbMenu from "./dock/MbabbMenu.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
@@ -330,7 +330,7 @@ const { runSceneSwitch } = useSceneTransition(
 );
 
 // The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
-// lives in @app/chrome/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
+// lives in @app/dock/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
 // combined open state via `v-model:open` so ChromeDock's `:items-popup-open` holds
 // the dock's expanded layer mounted while the menu (or its hover→press window) is
 // live — the layer-collapse half of the D9 fix.

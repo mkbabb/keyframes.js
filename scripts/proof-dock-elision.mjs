@@ -32,7 +32,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const CHROME = path.join(DEMO, "app/chrome/ChromeDock.vue");
+const CHROME = path.join(DEMO, "app/dock/ChromeDock.vue");
 const TRANSPORT = path.join(
     DEMO,
     "@/components/custom/animation-transport/TransportDock.vue",

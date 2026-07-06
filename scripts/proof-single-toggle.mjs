@@ -64,9 +64,9 @@ console.log("proof:single-toggle — H.W1 S8/BLK-8 (the @mbabb trigger carries e
 {
     // Strip HTML comments first — the S8 fix is DOCUMENTED in a comment naming the
     // dropped `<DropdownMenuTrigger` wrapper; the tag-count must not see the prose.
-    // The @mbabb menu markup lives in app/chrome/MbabbMenu.vue since
+    // The @mbabb menu markup lives in app/dock/MbabbMenu.vue since
     // S.D1 (extracted out of App.vue — a23 F2).
-    const menu = read(path.join(DEMO, "app/chrome/MbabbMenu.vue")).replace(/<!--[\s\S]*?-->/g, "");
+    const menu = read(path.join(DEMO, "app/dock/MbabbMenu.vue")).replace(/<!--[\s\S]*?-->/g, "");
 
     // Isolate the @mbabb <DropdownMenu> block (open tag → its </DropdownMenu>).
     const menuOpen = menu.indexOf("<DropdownMenu");

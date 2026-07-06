@@ -58,11 +58,12 @@ const RESOLVE_EXT = [".ts", ".vue", ".css", ".js", ".mjs", ".json"];
 // Clause (iii) — the honest shell-root membership (a23 Layout C). The root holds
 // exactly these files + these concern sub-zones; anything else is a mis-home.
 const ALLOWED_ROOT_FILES = new Set(["App.vue", "main.ts", "index.html"]);
-// S.D2 — `chrome/` joins the concern sub-zones: the app's own glass-ui dock +
-// @mbabb menu (ChromeDock.vue, MbabbMenu.vue), evicted from `@/components/custom/
-// dock/` because they are APP-private (a24 F3; imported by App.vue alone — they
-// fail proof:shared-has-n-consumers as a single-external-area @/ module).
-const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "runtime", "public", "chrome"]);
+// T.F3 — `dock/` (was `chrome/` — browser-jargon evicted) joins the concern
+// sub-zones: the app's own glass-ui dock + @mbabb menu (ChromeDock.vue,
+// MbabbMenu.vue), evicted from `@/components/custom/dock/` because they are
+// APP-private (a24 F3; imported by App.vue alone — they fail
+// proof:shared-has-n-consumers as a single-external-area @/ module).
+const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "runtime", "public", "dock"]);
 // Skip-list for non-source droppings that are not a concern violation.
 const IGNORE_ROOT_ENTRIES = new Set([".DS_Store"]);
 
