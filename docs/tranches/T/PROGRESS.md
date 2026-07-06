@@ -305,7 +305,7 @@
   current thresholds + the glass-ui-usage census; the demo sweeps ride the
   facility-settled batch).
 
-- **2026-07-06 — BATCH ⑥′ MERGED + VERIFIED (T4/T5): THE DECOY IS DEAD.** Fleet
+- **2026-07-06 — BATCH ⑥′ MERGED + VERIFIED (T4/T5) @ `82f7820`: THE DECOY IS DEAD.** Fleet
   `wf_104e6b6e-fd4`, 3/3, per-stage commits held. **T.B1-β LANDED (root-cause #2
   TERMINAL):** every transport render seam channel-capable (ControlsPaneWrapper
   hosts from facility.channels; PlaybackRibbon takes a channel animation OR a
