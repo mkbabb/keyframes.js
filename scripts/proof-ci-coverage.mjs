@@ -257,6 +257,14 @@ const EXCLUDED = new Set([
     "proof:subject-legible",
     "proof:subject-full",
     "proof:roster-ceiling",
+    // T.M3 — proof:owner-golden, the owner-anchored perceptual reference oracle
+    // (supersedes proof:visual-lock's self-baseline). BORN-RED + BORN-OWNER: its
+    // green is UNREACHABLE without a committed owner BLESSING token over the 12
+    // candidate frames (docs/tranches/T/goldens/). Recorded tripwire, never a
+    // blocking &&-chain member; clause 11 re-verifies its T_BORNRED_BACKLOG
+    // registration. DischargedBy the owner golden-blessing at review (the
+    // visual-lock retire-vs-demote call executes WITH the blessing).
+    "proof:owner-golden",
     // T.G1 — the blur de-layer's frozen-backdrop acceptance gate. Born-RED: the
     // kf-side de-layer clauses green now, but the runtime toggle-delta stays RED
     // until glass-ui ships `blur-source="static"` (BG-5) + kf adopts it. Recorded

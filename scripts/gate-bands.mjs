@@ -533,6 +533,24 @@ export const T_BORNRED_BACKLOG = {
             "locks, crayon, icon-paint-live) + the FROZEN discharge land — a declared backlog, " +
             "not a mask.",
     },
+    "proof:owner-golden": {
+        dischargedBy: "the owner golden-blessing at review",
+        reason:
+            "T.M3 — the owner-anchored perceptual reference oracle that SUPERSEDES " +
+            "proof:visual-lock's self-captured baseline + full-subject mask (the one " +
+            "appearance tripwire that painted the amiga sphere / CSS-3D cube / engine " +
+            "balls / typing dots FLAT before the diff, blind to verdict #1/#4/#9/#21 and " +
+            "locking the owner-rejected layout as its golden). BORN-RED + BORN-OWNER: its " +
+            "GREEN is UNREACHABLE without a committed owner BLESSING token " +
+            "(docs/tranches/T/goldens/BLESSED.json) over the 12 candidate frames " +
+            "(home/cube/amiga/square/easing/spring × light/dark), each subject-full (the " +
+            "mask is FORBIDDEN — the subject stays IN) and matched by the live render " +
+            "(dHash under PRM). Reds today: BLESSED.json is absent. The candidates are " +
+            "captured from the LANDED tree as PENDING-OWNER " +
+            "(`node scripts/proof-owner-golden.mjs --capture-candidates`); the owner " +
+            "blesses at the mid-drive/close review, and the visual-lock demote-vs-retire " +
+            "call (T.M3 lockstep) executes WITH the blessing.",
+    },
     "proof:visual-lock": {
         dischargedBy:
             "T.A3 LANDED (the easeInBounce mount intro is replaced by the deterministic " +
