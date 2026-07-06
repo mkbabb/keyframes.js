@@ -2,6 +2,8 @@ import { ref, type Ref } from "vue";
 
 import type { SpringProgress } from "@mkbabb/keyframes.js";
 
+import { useThrottledReadout } from "@composables/useThrottledReadout";
+
 import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
@@ -44,7 +46,10 @@ export type SpringPainter = () => void;
  *                track's spring into its reactive read-out refs.
  */
 export function useSpringHotPath(tracks: SpringTrack[]) {
-    let lastReadoutAt = 0;
+    // The shared few-Hz cold-path throttle seam (T.F23(c) — the DRY extraction
+    // that retired the hand-rolled `lastReadoutAt` accumulator this scene, easing,
+    // and historically amiga/sequence each copy-pasted).
+    const readout = useThrottledReadout(PROGRESS_READOUT_HZ);
 
     // ── Reactive READOUT mirrors — written at PROGRESS_READOUT_HZ only ──────
     // The human-readable numerals/badge, NEVER per frame. The 60 Hz positional
@@ -130,10 +135,7 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
     /** The cold-path cadence gate: flush the readout mirrors at
      *  PROGRESS_READOUT_HZ (called from the 60 Hz loop with its `now`). */
     const maybeFlushReadouts = (now: DOMHighResTimeStamp): void => {
-        if (now - lastReadoutAt >= 1000 / PROGRESS_READOUT_HZ) {
-            lastReadoutAt = now;
-            flushReadouts();
-        }
+        readout.maybeFlush(now, flushReadouts);
     };
 
     /** K.W4 S2 — push the CONTINUOUS sweep phase into the scrubber-position
