@@ -23,6 +23,7 @@ import type { SceneFacility } from "@app/scene/sceneFacility";
 import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
 import { useSceneMachine } from "@state";
 import { kfEngine } from "@utils/kfEngine";
+import { EASING_SCENE_ID } from "./easingKeys";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
 import { useEasingGhost } from "./useEasingGhost";
 import { useEasingTraceSmear } from "./useEasingTraceSmear";
@@ -341,7 +342,7 @@ export function useEasingDemo() {
         ),
     );
     previewAnim.name = "Easing";
-    previewAnim.superKey = "Easing";
+    previewAnim.superKey = EASING_SCENE_ID;
 
     // The edited easing + duration RE-SEAT the preview animation's options (the
     // decoy captured construction-time values and never tracked an edit — the

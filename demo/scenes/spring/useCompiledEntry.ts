@@ -18,6 +18,7 @@ import { markRaw, ref, watch, type Ref } from "vue";
 import { loadAnimationEngine, springTimingFunction } from "@mkbabb/keyframes.js";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
+import { SPRING_SCENE_ID } from "./springKeys";
 
 /** The discrete card's entry animation, as a 2-stop `@keyframes` body. */
 const ENTER_KEYFRAMES = `@keyframes kf-entry {
@@ -59,7 +60,7 @@ export function useCompiledEntry(
         }).fromString(ENTER_KEYFRAMES),
     );
     entryAnim.name = "Entry";
-    entryAnim.superKey = "Spring";
+    entryAnim.superKey = SPRING_SCENE_ID;
 
     const recompile = async (): Promise<void> => {
         const { compileToEntry } = await loadAnimationEngine();

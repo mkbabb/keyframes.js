@@ -2,6 +2,7 @@ import { markRaw } from "vue";
 
 import { kfEngine } from "@utils/kfEngine";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
+import { SPRING_SCENE_ID } from "./springKeys";
 
 /**
  * K.W4 S1 — the spring scene's PROPER keyframes-EDITOR animation (the cube
@@ -62,7 +63,7 @@ export function useSpringKeyframesEditor(
         }).fromString(buildSpringKeyframesCSS()),
     );
     springEditAnim.name = "Spring Keyframes";
-    springEditAnim.superKey = "Spring";
+    springEditAnim.superKey = SPRING_SCENE_ID;
 
     /** Explicit re-seed of the editor from the current spring params (the
      *  "re-sample from spring" user action — NOT a reactive overwrite). After

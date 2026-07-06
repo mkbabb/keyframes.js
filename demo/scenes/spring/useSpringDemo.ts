@@ -8,6 +8,7 @@ import { useRafScene } from "@app/runtime/useRafScene";
 import { useSceneTransport } from "@app/runtime/useSceneTransport";
 import type { SceneFacility } from "@app/scene/sceneFacility";
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
+import { SPRING_SCENE_ID } from "./springKeys";
 import { SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
 import { useSpringKeyframesEditor } from "./useSpringKeyframesEditor";
@@ -61,7 +62,7 @@ export function useSpringDemo() {
     // pluralization direction). `view` DERIVES from the stored channel
     // selection (the watch below); nothing else writes it.
     const view = ref<"solver" | "discrete">("solver");
-    const storedControls = getStoredAnimationGroupControlOptions("Spring");
+    const storedControls = getStoredAnimationGroupControlOptions(SPRING_SCENE_ID);
     watch(
         () => storedControls.selectedAnimation,
         (name) => {
