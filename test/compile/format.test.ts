@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation, resolveKeyframes } from "../../src/animation/engine";
-import {
-    animationOptionsToString,
-    CSSKeyframesToString,
-} from "../../src/animation/compile/backward/format";
+import { CSSKeyframesToString } from "../../src/animation/compile/backward/format";
+import { animationOptionsToString } from "../../src/animation/compile/backward/format-options";
 import { defaultOptions } from "../../src/animation/constants";
 
 const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;

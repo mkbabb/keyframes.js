@@ -97,6 +97,11 @@ const GRAMMAR = "src/animation/scroll/grammar.ts";
 // fractions) off scene.ts into the colocated range.ts; the scroll module SET is
 // the three colocated files (driver + grammar + range mapping).
 const RANGE = "src/animation/scroll/range.ts";
+// T.F22 — the per-zone cohesion carve split the native-vs-JS backend dispatch +
+// the `position:sticky` pin synthesis OFF the TIME driver into the colocated
+// `dispatch.ts` (dispatchScrollBackend / pinCSS). The (c-dispatch)/(d-pin)
+// clauses anchor there; `scene.ts` keeps only the ScrollScene driver.
+const DISPATCH = "src/animation/scroll/dispatch.ts";
 const SCROLL_SET = [SCROLL, GRAMMAR, RANGE];
 const INDEX = "src/animation/index.ts";
 const TEST = "test/scroll/scroll-scene.test.ts";
@@ -273,7 +278,7 @@ requireAll("a-driver", SCROLL, [
 ]);
 
 // ── (c-dispatch) — conservative-correct backend choice with a queryable reason ─
-requireAll("c-dispatch", SCROLL, [
+requireAll("c-dispatch", DISPATCH, [
     {
         name: "the dispatch consults the SHIPPED isWAAPIEligible gate",
         re: /isWAAPIEligible\(/,
@@ -299,7 +304,7 @@ requireAll("c-dispatch", SCROLL, [
 // ── (d-pin) — SO-3 the pin is position:sticky, never transform-tracking ───────
 {
     const clause = "d-pin";
-    const src = read(SCROLL);
+    const src = read(DISPATCH);
     // Strip comments + JSDoc (the module RECORDS the SO-4 kill by NAMING the
     // forbidden `transform: translateY(...)` primitive in prose — that recording
     // must NOT trip the anti-jitter assert; only an actual EMIT does). Drop
@@ -317,7 +322,7 @@ requireAll("c-dispatch", SCROLL, [
     if (!emitsSticky) {
         fail(
             clause,
-            `${SCROLL}: pinCSS does NOT emit \`position: sticky\` — SO-3 requires sticky synthesis (kf authors the platform's pin).`,
+            `${DISPATCH}: pinCSS does NOT emit \`position: sticky\` — SO-3 requires sticky synthesis (kf authors the platform's pin).`,
         );
     } else if (transformPin) {
         fail(

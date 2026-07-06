@@ -135,7 +135,8 @@ animation/
 │       ├── backward.ts       # compileToCSS — orchestration graph → zero-runtime CSS
 │       ├── backward-walk.ts  # the input-graph walkers
 │       ├── backward-color.ts # the oklab densify (per-percentage color stops)
-│       ├── format.ts         # the @keyframes serializer (declaredKeyframeBodyFor / bodyByStop)
+│       ├── format.ts         # the @keyframes body/block serializer (declaredKeyframeBodyFor / bodyByStop)
+│       ├── format-options.ts # the animation-OPTIONS serializer (T.F22 carve — the .class{animation-*} block + shorthand + composition longhand + @property re-serialize)
 │       ├── easing-serialize.ts / densify.ts  # serializeEasing CSS-twin (EN-a) + the linear() densify
 │       └── index.ts
 ├── resolve/               # HEAVY emerging-CSS lowering pass (if()/@function/env/spring()) — one recursive rewriter
@@ -149,6 +150,7 @@ animation/
 ├── scroll/                # HEAVY: the scroll grammar round-trip + the JS ScrollScene driver
 │   ├── grammar.ts         # the value.js scroll-grammar parse/serialize
 │   ├── scene.ts           # the ScrollScene continuous scrub/snap driver (kf owns TIME)
+│   ├── dispatch.ts        # the native-vs-JS backend dispatch + position:sticky pin synthesis (T.F22 carve off scene.ts)
 │   ├── range.ts           # the animation-range → [0,1] mapping
 │   ├── trigger.ts         # the discrete animation-trigger idle→active→done lifecycle (S.F4)
 │   └── index.ts
@@ -167,7 +169,8 @@ animation/
 ├── svg/                   # HEAVY SVG factories over CSSKeyframesAnimation
 │   ├── motion-path.ts     # MotionPath / fromMotionPath — offset-distance over an author offset-path
 │   ├── draw-svg.ts        # DrawSVG / fromDrawSVG — stroke-dashoffset line drawing
-│   ├── morph-svg.ts       # MorphSVG / fromMorphSVG — path-shape morph over value.js's PathGeometry
+│   ├── morph-svg.ts       # MorphSVG / fromMorphSVG — path-shape morph (the public factory + class)
+│   ├── morph-geometry.ts  # the morph geometry-sampling + per-frame render machinery (T.F22 carve — PathGeometry polyline sampler, key naming, makeMorphRenderer)
 │   ├── handle.ts          # the abstract animation-handle base (closes the .finished asymmetry, S.B4)
 │   └── index.ts
 └── internal/              # value.js-free LEAF tier (NOT a zone — no barrel, C-5)

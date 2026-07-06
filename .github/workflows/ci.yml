@@ -212,6 +212,8 @@ jobs:
               run: npm run proof:engine
             - name: proof:compile-backward-leg (S.B3 — compile/ FORWARD/BACKWARD layering · no re-export bridge · no cross-zone deep-import)
               run: npm run proof:compile-backward-leg
+            - name: proof:zone-cohesion (T.F22 — per-zone internal cohesion · 400L intra-zone ceiling or justified single-concern · ring-fence intact · no test in src)
+              run: npm run proof:zone-cohesion
             - name: proof:no-flat-siblings (R.W1 — the 11-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
               run: npm run proof:no-flat-siblings
             - name: proof:no-orphan-module (S.C1 — dynamic-import-aware reachability walker + the scoped front-door `animate` grep; the zero-importer zombie class made structural)
