@@ -1,47 +1,25 @@
 <template>
-    <!-- K.W4 (LANE A) — the spring control pane RE-CUT at the design altitude.
-         The J.W7c panel the user called "awful" carried a read-only @keyframes
-         viewer (overwritten on every param change), a triple-shown preset surface,
-         a solid-green active ring, and no drag affordance. The re-cut:
-           • S1 — the read-only artifact viewer is RETIRED; the engine-owned
-             `KeyframesEditor` (the cube card grammar) is MOUNTED, two-way bound
-             (per-stop value, add/remove). The editor is the PRIMARY authoring
-             surface; the presets are a derived convenience.
-           • S3 — the active/settled preset-cell ring is the RED-DASHED treatment
-             (the --color-progress token, repointed red by Lane B, + a dashed
-             outline — mirroring AnimationVisualizer's settled twin), NOT the solid
-             inset; the hover wears the red-accent family (F3).
-           • S4 — the view switcher is `SegmentedTabs variant="pill"` (the legible
-             4.0.0 chip), NOT the near-invisible underline fork (retired with the
-             artifact section).
-           • S7 — the pane is DRAGGABLE via kf's OWN `Draggable` primitive (a drag
-             handle in the card header), contained to the work area (left-clip
-             cured). -->
-    <Card
-        ref="paneCardEl"
-        surface="cartoon"
-        tier="quiet"
-        class="spring-pane w-full overflow-visible"
-    >
+    <!-- T.B7 — THE PHYSICS FACET (the SpringSidebar dissolution). The bespoke
+         313L sidebar monolith (view-fork pill + params + heatmap + presets + a
+         capped keyframes editor + a hand-dragged pane) DISSOLVED into the
+         spring facility:
+           · the view fork became CHANNEL DATA (stage 2 — the transport Select's
+             Sweep/Entry channels fork the stage; the KfPillTabs strip is gone);
+           · the pane drag DIED with `useSpringPaneDrag.ts` (168L bespoke
+             pane-dragging — panel placement is the shell's concern, not a
+             per-scene drag toy);
+           · what remains IS the Physics facet: the two LabeledSlider param
+             rows + the parameter-space heatmap + the four canonical presets as
+             clickable points — consumed glass components end to end. (The
+             merged axis-labeled canvas instrument of T-SPR-6 stays
+             design-PENDING per the drive brief; the heatmap is the live
+             parameter-space surface until that design lands.)
+         The engine-owned per-stop KeyframesEditor section below survives THIS
+         stage bound to the REAL Sweep channel animation (`springEditAnim`); its
+         terminal home is the derived Keyframes triad tab (T.B2 — the shared
+         editor pane takes over and this section dies in that motion). -->
+    <Card surface="cartoon" tier="quiet" class="spring-pane w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
-            <!-- Card header — the drag affordance (S7). T.B7 (T-SPR-3): the
-                 former KfPillTabs "Live solver / Discrete transition" view
-                 switcher is DELETED — the view fork is CHANNEL DATA now (the
-                 transport Select's Sweep/Entry channels fork the stage); the
-                 pill strip vanished without replacement (the T.B5 elision law
-                 running in the pluralization direction). -->
-            <div class="flex items-center gap-2">
-                <button
-                    ref="dragHandleEl"
-                    type="button"
-                    class="pane-drag-handle btn-interactive shrink-0 grid place-items-center rounded-md p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
-                    aria-label="Drag the spring control pane"
-                    title="Drag to move this pane"
-                >
-                    <GripVertical class="w-4 h-4" />
-                </button>
-            </div>
-
             <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
                  The two sliders join ONE `.labeled-field-grid` so their labels
                  ("response" / "damping (ζ)") resolve the SAME width (U5). -->
@@ -109,13 +87,13 @@
                 </ToggleChip>
             </div>
 
-            <!-- ── KEYFRAMES EDITOR (S1) ───────────────────────────────────────
+            <!-- ── KEYFRAMES EDITOR (K.W4 S1 — survives THIS stage) ────────────
                  The engine-owned KeyframesEditor (the SAME per-stop card grammar
-                 the cube scene uses) — two-way bound, per-stop value editable,
-                 add/remove stop. This REPLACES the retired read-only
-                 `linear()`/@keyframes artifact viewer (no-legacy). A typed edit
-                 PERSISTS (the editor is authoritative); "Re-sample from spring"
-                 explicitly re-seeds it from the current solver params. -->
+                 the cube scene uses) — two-way bound to the REAL Sweep channel
+                 animation. A typed edit PERSISTS (the editor is authoritative);
+                 "Re-sample from spring" explicitly re-seeds it from the current
+                 solver params. Terminal home: the derived Keyframes triad tab
+                 (T.B2) — this section + the 26rem cap die in that motion. -->
             <div class="keyframes-section grid gap-2">
                 <div class="flex items-center justify-between gap-2">
                     <!-- T.D4 — section label + button ride the body register
@@ -133,7 +111,7 @@
                 </div>
                 <div class="keyframes-editor-scroll">
                     <!-- K.W1′ — `:framed="false"` DROPS the editor's own inner
-                         `Card` so the per-stop list flows into THIS sidebar's lone
+                         `Card` so the per-stop list flows into THIS facet's lone
                          quiet parent Card directly (no card-in-card; the glass-ui
                          4.0.0 single-surface contract — the
                          proof:easing-sidebar-normalized G6 flatten clause). -->
@@ -145,16 +123,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onScopeDispose, useTemplateRef } from "vue";
+import { onMounted, onScopeDispose } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
-import { GripVertical, RefreshCw } from "@lucide/vue";
+import { RefreshCw } from "@lucide/vue";
 
 import KeyframesEditor from "@components/custom/keyframes-editor/KeyframesEditor.vue";
 import SpringHeatmap from "./SpringHeatmap.vue";
-
-import { useSpringPaneDrag } from "./useSpringPaneDrag";
 
 import type { SpringDemoContext } from "./springKeys";
 import type { SpringPreset, SpringTrack } from "./useSpringDemo";
@@ -190,39 +166,12 @@ const applyPreset = (preset: SpringPreset) => {
     demo.response.value = preset.response;
     demo.dampingFraction.value = preset.dampingFraction;
 };
-
-// ── S7 — the pane drag (dogfood kf's OWN Draggable) ────────────────────────────
-const paneCardEl = useTemplateRef<InstanceType<typeof Card>>("paneCardEl");
-const dragHandleEl = useTemplateRef<HTMLElement>("dragHandleEl");
-const paneDrag = useSpringPaneDrag();
-
-let detachDrag: (() => void) | null = null;
-onMounted(() => {
-    // The Card's root element (glass-ui Card exposes $el via the component).
-    const cardRoot = (paneCardEl.value as any)?.$el as HTMLElement | undefined;
-    if (dragHandleEl.value && cardRoot) {
-        detachDrag = paneDrag.attach(dragHandleEl.value, cardRoot);
-    }
-});
-onScopeDispose(() => detachDrag?.());
 </script>
 
 <style scoped>
 /* ── §LABEL-subgrid consume ──
    The params ride the shared `.labeled-field-grid` idiom (design-idioms.css —
    the DRY home). Nothing is re-authored here. */
-
-/* The pane card translates under the drag handle; keep its transform crisp +
-   above siblings while dragging (the un-clip half of S7). */
-.spring-pane {
-    will-change: transform;
-}
-
-/* ── S7 — the drag handle affordance ──
-   A quiet grip glyph that lifts on hover; the cursor reads grab/grabbing. */
-.pane-drag-handle {
-    touch-action: none;
-}
 
 /* ── Preset cells — the SINGLE preset surface ──
    The rail + ball geometry come from the shared .progress-rail / .progress-ball
@@ -263,7 +212,7 @@ onScopeDispose(() => detachDrag?.());
     outline-color: color-mix(in srgb, var(--color-progress) 65%, transparent);
 }
 
-/* ── The keyframes editor section ──
+/* ── The keyframes editor section (T.B2-terminal — see the template note) ──
    The engine-owned KeyframesEditor is authored for the cube's full-height pane;
    in the rail it is CAPPED to a scrollable band so the per-stop cards + the
    stop-position slider stay reachable without the pane growing unbounded. The
@@ -271,11 +220,6 @@ onScopeDispose(() => detachDrag?.());
 .keyframes-section {
     min-width: 0;
 }
-/* Cap the editor to a scrollable band so the per-stop cards stay reachable
-   without the rail growing unbounded; the editor's `display:contents` grid is
-   preserved (the cap rides a wrapper, not the editor's own layout root). The
-   inner KeyframeCardList scrolls; the editor's sticky footer slider/menubar
-   stays usable. */
 .keyframes-editor-scroll {
     max-height: 26rem;
     overflow-y: auto;

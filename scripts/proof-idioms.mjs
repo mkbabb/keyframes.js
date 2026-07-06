@@ -448,7 +448,7 @@ function main() {
         const consumers = [
             "demo/scenes/spring/SpringTarget.vue",
             "demo/scenes/easing/EasingTarget.vue",
-            "demo/scenes/spring/SpringSidebar.vue",
+            "demo/scenes/spring/SpringPhysicsFacet.vue",
         ];
         const allConsume = consumers.every((p) => {
             const src = fs.existsSync(path.join(REPO, p)) ? read(path.join(REPO, p)) : "";

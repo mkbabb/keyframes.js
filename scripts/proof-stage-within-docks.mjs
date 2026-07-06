@@ -381,7 +381,7 @@ function staticHalf() {
         "demo/scenes/easing/EasingSidebar.vue",
         "demo/scenes/spring/SpringTarget.vue",
         "demo/scenes/spring/StartingStyleTarget.vue",
-        "demo/scenes/spring/SpringSidebar.vue",
+        "demo/scenes/spring/SpringPhysicsFacet.vue",
         "demo/scenes/easing/EasingScene.vue",
         "demo/scenes/spring/SpringScene.vue",
         "demo/scenes/sequence/SequenceTarget.vue",

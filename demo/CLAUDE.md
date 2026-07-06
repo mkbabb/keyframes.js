@@ -21,9 +21,9 @@ demo/
 ├── scenes/                    # THE fused scenes (R.W5): each dir co-locates <Name>Scene.vue + its composables + targets
 │   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaDemo, utils (tesselateSphere), amigaKeys, checkerboard.jpg
 │   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeDemo/useCubeRelit, cubeTransformStore, matrix-editor/ + orbital-drag/ (S.D2 colocation, a24 F3), cube.png
-│   ├── easing/       # EasingScene.vue + EasingSidebar/EasingTarget/EasingHeroStage/EasingCurvePhysics, useEasingDemo/Gallery/Ghost/TraceSmear, easingGroups/easingKeys
+│   ├── easing/       # EasingScene.vue + EasingSidebar (the Curve-facet body)/EasingTarget/EasingHeroStage/EasingCurvePhysics, useEasingDemo/Gallery/Ghost/TraceSmear, easingGroups/easingKeys
 │   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument/useTypedTrigger (S.D2 colocation, a24 F4), sequenceKeys
-│   ├── spring/       # SpringScene.vue + SpringSidebar/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/PaneDrag/useCompiledEntry (S.F3 EN-d entry/exit dogfood), springKeys/springPresets
+│   ├── spring/       # SpringScene.vue + SpringPhysicsFacet (T.B7 — the sidebar dissolved into the facility facet)/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/useCompiledEntry (S.F3 EN-d entry/exit dogfood), springKeys/springPresets
 │   └── square/       # SquareScene.vue + SquareInstrument, useSquareDemo/useSquareKeyboard, squareKeys (custom transform fn)
 │   # (morph/ · motion-path/ · compose/ were PRUNED at T.E1/T.E3, OD-1 = PRUNE; the
 │   #  LIBRARY MotionPath/MorphSVG/DrawSVG factories in src/animation/svg/ survive.)

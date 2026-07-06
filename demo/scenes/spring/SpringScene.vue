@@ -22,7 +22,7 @@ import PlaybackRibbon from "@components/custom/animation-transport/controls/Play
 
 import SpringTarget from "./SpringTarget.vue";
 import StartingStyleTarget from "./StartingStyleTarget.vue";
-import SpringSidebar from "./SpringSidebar.vue";
+import SpringPhysicsFacet from "./SpringPhysicsFacet.vue";
 import { useSpringDemo } from "./useSpringDemo";
 import { SPRING_DEMO_KEY, SPRING_SUPER_KEY } from "./springKeys";
 
@@ -64,7 +64,7 @@ const isStarted = ref(true);
 // single-surface scenes: no model-value to project, no latch to race — the
 // panel is mounted BY CONSTRUCTION. The TabsTrigger/TabsContent wrappers are
 // DELETED in the same motion (no legacy beside the replacement).
-const tabsContent = () => h(SpringSidebar, { demo });
+const tabsContent = () => h(SpringPhysicsFacet, { demo });
 
 // G3 + G7 (H.W10.S2) — the spring scene's PRIMARY playback transport is the
 // STANDARD PlaybackRibbon (the SAME component cube/amiga mount): a scrubber +
