@@ -19,17 +19,17 @@ import EasingIcon from "@assets/icons/easing.svg?component";
 import SpringIcon from "@assets/icons/spring.svg?component";
 import SequenceIcon from "@assets/icons/sequence.svg?component";
 
-// The per-scene `superKey` single-source (R.W5 C.4) — each scene's keys module
-// OWNS its superKey constant; the descriptor below AND the scene SFC both import
-// it, so no string literal is declared in a file that doesn't own it.
-import { EASING_SUPER_KEY } from "../../scenes/easing/easingKeys";
-import { SEQUENCE_SUPER_KEY } from "../../scenes/sequence/sequenceKeys";
-import { SQUARE_SUPER_KEY } from "../../scenes/square/squareKeys";
-import { SPRING_SUPER_KEY } from "../../scenes/spring/springKeys";
-import { AMIGA_SUPER_KEY } from "../../scenes/amiga/amigaKeys";
-// Cube's superKey single-sources from cubeKeys.ts (S.D2 S5 — 8/8 scene-key
-// parity; a10), mirroring the seven `<name>Keys.ts` imports above.
-import { CUBE_SUPER_KEY } from "../../scenes/cube/cubeKeys";
+// The per-scene registry-id single-source (R.W5 C.4 / T.B9 — the ONE keyspace):
+// each scene's keys module OWNS its `*_SCENE_ID` constant; the descriptor below
+// (its `id` AND the store-keying `superKey`) AND the scene SFC both import it, so
+// the id literal is declared in exactly one file the scene owns. The `superKey`
+// field now === the `id` (the divergent PascalCase super-key constant is retired).
+import { EASING_SCENE_ID } from "../../scenes/easing/easingKeys";
+import { SEQUENCE_SCENE_ID } from "../../scenes/sequence/sequenceKeys";
+import { SQUARE_SCENE_ID } from "../../scenes/square/squareKeys";
+import { SPRING_SCENE_ID } from "../../scenes/spring/springKeys";
+import { AMIGA_SCENE_ID } from "../../scenes/amiga/amigaKeys";
+import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
  *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
@@ -128,7 +128,7 @@ export const HOME_SCENE_ID = "home";
 export const homeScene: SceneDescriptor = {
     id: HOME_SCENE_ID,
     label: "Home",
-    superKey: "__home__",
+    superKey: HOME_SCENE_ID,
     stageMode: "subject",
     showStartScreen: true,
 };
@@ -137,7 +137,7 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "cube",
         label: "Cube",
-        superKey: CUBE_SUPER_KEY,
+        superKey: CUBE_SCENE_ID,
         stageMode: "subject",
         icon: CubeIcon,
         component: lazyScene("cube", () => import("../../scenes/cube/CubeScene.vue")),
@@ -145,7 +145,7 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "amiga",
         label: "Amiga",
-        superKey: AMIGA_SUPER_KEY,
+        superKey: AMIGA_SCENE_ID,
         stageMode: "subject",
         icon: AmigaIcon,
         component: lazyScene("amiga", () => import("../../scenes/amiga/AmigaScene.vue")),
@@ -153,7 +153,7 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "square",
         label: "Square",
-        superKey: SQUARE_SUPER_KEY,
+        superKey: SQUARE_SCENE_ID,
         stageMode: "subject",
         icon: SquareIcon,
         component: lazyScene("square", () => import("../../scenes/square/SquareScene.vue")),
@@ -161,7 +161,7 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "easing",
         label: "Easing",
-        superKey: EASING_SUPER_KEY,
+        superKey: EASING_SCENE_ID,
         stageMode: "editor",
         icon: EasingIcon,
         component: lazyScene("easing", () => import("../../scenes/easing/EasingScene.vue")),
@@ -169,7 +169,7 @@ export const scenes: SceneDescriptor[] = [
     {
         id: "spring",
         label: "Spring",
-        superKey: SPRING_SUPER_KEY,
+        superKey: SPRING_SCENE_ID,
         stageMode: "storyboard",
         icon: SpringIcon,
         component: lazyScene("spring", () => import("../../scenes/spring/SpringScene.vue")),
@@ -181,7 +181,7 @@ export const scenes: SceneDescriptor[] = [
         // engine's TEMPORAL orchestrator the way the cube proves the compositor.
         id: "sequence",
         label: "Sequence",
-        superKey: SEQUENCE_SUPER_KEY,
+        superKey: SEQUENCE_SCENE_ID,
         stageMode: "storyboard",
         icon: SequenceIcon,
         component: lazyScene(

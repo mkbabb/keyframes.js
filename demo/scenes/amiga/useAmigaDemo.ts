@@ -1,4 +1,5 @@
 import { kfEngine } from "@utils/kfEngine";
+import { AMIGA_SCENE_ID } from "./amigaKeys";
 
 // ── The room + the honest arc (T.A9) ────────────────────────────────────────
 // The camera frames the ROOM (BOX_SIZE cube), not the rest pose. The authored
@@ -52,7 +53,10 @@ export interface AmigaPose {
     spin: number;
 }
 
-export const SUPER_KEY = "Amiga";
+// T.B9 — the ONE keyspace: the registry SceneId, single-sourced from amigaKeys
+// (was a divergent hardcoded PascalCase `"Amiga"`). Each `animation.superKey`
+// field carries this id so the option-store bucket keys match the machine.
+export const SCENE_ID = AMIGA_SCENE_ID;
 
 export function useAmigaDemo() {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
@@ -137,11 +141,11 @@ export function useAmigaDemo() {
     );
 
     spinning.name = "Spin";
-    spinning.superKey = SUPER_KEY;
+    spinning.superKey = SCENE_ID;
     bouncingX.name = "Bouncing X";
-    bouncingX.superKey = SUPER_KEY;
+    bouncingX.superKey = SCENE_ID;
     bouncingY.name = "Bouncing Y";
-    bouncingY.superKey = SUPER_KEY;
+    bouncingY.superKey = SCENE_ID;
 
     // T.A7 — the flagship AnimationGroup scene RIDES the group compositor: all
     // three animations composite through the singleTarget SoA blend onto ONE

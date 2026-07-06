@@ -12,7 +12,7 @@ import { effectScope, ref } from "vue";
 import { SpringProgress } from "../../src/animation/physics/spring";
 import { useSquareKeyboard } from "../../demo/scenes/square/useSquareKeyboard";
 import { useSquareDemo } from "../../demo/scenes/square/useSquareDemo";
-import { SQUARE_SUPER_KEY } from "../../demo/scenes/square/squareKeys";
+import { SQUARE_SCENE_ID } from "../../demo/scenes/square/squareKeys";
 import { warmKfEngine } from "../../demo/@/utils/kfEngine";
 
 function harness() {
@@ -92,7 +92,7 @@ describe("useSquareDemo construction", () => {
         const anim = scope.run(() => useSquareDemo(ref(null)))!;
         expect(anim.springX).toBeInstanceOf(SpringProgress);
         expect(anim.springY).toBeInstanceOf(SpringProgress);
-        expect(SQUARE_SUPER_KEY).toBe("Square");
+        expect(SQUARE_SCENE_ID).toBe("square");
         scope.stop();
     });
 });

@@ -202,12 +202,14 @@ function readObjectAt(text, braceIdx) {
 }
 
 /**
- * Resolve the imported `superKey` constants (R.W5 C.4 — each scene's keys module
- * OWNS its `*_SUPER_KEY = "…"` string; scenes.ts imports the identifier rather
- * than re-declaring the literal). Build an identifier→value map by following each
- * `import { X_SUPER_KEY[ as ALIAS] } from "<rel>"` in scenes.ts to its module and
- * reading the `export const X_SUPER_KEY = "…"`. The descriptor then references
- * `superKey: AMIGA_SUPER_KEY` (an identifier), which this map resolves to a string.
+ * Resolve the imported scene-id constants (R.W5 C.4 / T.B9 — the ONE keyspace:
+ * each scene's keys module OWNS its `*_SCENE_ID = "…"` string; scenes.ts imports
+ * the identifier rather than re-declaring the literal, and the descriptor's
+ * store-keying `superKey` field === that id). Build an identifier→value map by
+ * following each `import { X_SCENE_ID[ as ALIAS] } from "<rel>"` in scenes.ts to
+ * its module and reading the `export const X_SCENE_ID = "…"`. The descriptor then
+ * references `superKey: AMIGA_SCENE_ID` (an identifier), which this map resolves.
+ * (The retired `*_SUPER_KEY` name is still matched so a stale mixed tree resolves.)
  */
 function buildSuperKeyMap(scenesSrc) {
     const map = new Map();
@@ -217,14 +219,14 @@ function buildSuperKeyMap(scenesSrc) {
     while ((m = importRe.exec(scenesSrc))) {
         const names = m[1];
         const rel = m[2];
-        // Only follow imports that bring in a *_SUPER_KEY (possibly aliased).
+        // Only follow imports that bring in a *_SCENE_ID / *_SUPER_KEY (possibly aliased).
         const specRe = /\b([A-Za-z_][\w]*)(?:\s+as\s+([A-Za-z_][\w]*))?\b/g;
         let s;
         const wanted = [];
         while ((s = specRe.exec(names))) {
             const orig = s[1];
             const alias = s[2] ?? s[1];
-            if (/SUPER_KEY$/.test(orig)) wanted.push({ orig, alias });
+            if (/(?:SUPER_KEY|SCENE_ID)$/.test(orig)) wanted.push({ orig, alias });
         }
         if (wanted.length === 0) continue;
         const modPath = path.resolve(path.dirname(SCENES_TS), rel + ".ts");
@@ -243,8 +245,9 @@ function buildSuperKeyMap(scenesSrc) {
 }
 
 /** Extract `id` + `superKey` from one descriptor literal. `superKey` is either a
- *  string literal (legacy) or an imported `*_SUPER_KEY` identifier resolved via
- *  `superKeyMap` (R.W5 C.4). */
+ *  string literal (legacy), the `HOME_SCENE_ID` symbol, or an imported
+ *  `*_SCENE_ID` identifier resolved via `superKeyMap` (R.W5 C.4 / T.B9 — the ONE
+ *  keyspace: `superKey` === the registry id). */
 function parseDescriptor(objText, superKeyMap) {
     const idM = objText.match(/\bid:\s*(?:HOME_SCENE_ID|["'`]([^"'`]+)["'`])/);
     const skLitM = objText.match(/\bsuperKey:\s*["'`]([^"'`]+)["'`]/);
@@ -253,13 +256,17 @@ function parseDescriptor(objText, superKeyMap) {
     const id = idM ? (idM[1] ?? "home") : null;
     if (!id) throw new Error(`demo-driver: descriptor without an id in scenes.ts: ${objText.slice(0, 60)}`);
     let superKey = skLitM ? skLitM[1] : null;
+    // `superKey: HOME_SCENE_ID` resolves to "home" (defined in scenes.ts itself,
+    // not imported, so it is not in superKeyMap — the ONE keyspace: home's store
+    // key is the registry id, not the retired "__home__" sentinel).
+    if (!superKey && skIdentM && skIdentM[1] === "HOME_SCENE_ID") superKey = "home";
     if (!superKey && skIdentM && superKeyMap) {
         superKey = superKeyMap.get(skIdentM[1]) ?? null;
     }
     if (!superKey) {
         throw new Error(
             `demo-driver: descriptor "${id}" without a resolvable superKey in ` +
-                `scenes.ts (string literal or an imported *_SUPER_KEY constant).`,
+                `scenes.ts (string literal or an imported *_SCENE_ID constant).`,
         );
     }
     return { id, superKey };
@@ -672,7 +679,9 @@ export async function openControlsPanel(page) {
         location.hash.replace(/^#\/?/, ""),
     );
     const superKey = SUPER_KEY_BY_ROUTE[route];
-    if (!superKey || superKey === "__home__") return; // home has no panel
+    // T.B9 — home's store key is now the registry id "home" (the "__home__"
+    // sentinel is retired); home still has no controls panel.
+    if (!superKey || superKey === "home") return; // home has no panel
 
     // 1. Select the first animation via the dock's "Select animation" trigger.
     //    This is what unhides the controls pane (its v-show keys on it).

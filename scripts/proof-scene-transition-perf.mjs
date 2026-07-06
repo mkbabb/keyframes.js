@@ -154,11 +154,13 @@ console.log(
 
 // ── BROWSER half (the live measured budget + the round-trip identity) ─────────
 const CTRL_KEY = "animation-groups-control-options-store";
+// T.B9 — the ONE keyspace: the option stores key by the registry SceneId, so this
+// scene → store-key map is the identity (was a divergent PascalCase super-key).
 const SUPER_KEY = {
-    cube: "Cube",
-    easing: "Easing",
-    spring: "Spring",
-    sequence: "Sequence",
+    cube: "cube",
+    easing: "easing",
+    spring: "spring",
+    sequence: "sequence",
 };
 
 // The destination control-tab labels navToScene settles on (the per-EXPECTED

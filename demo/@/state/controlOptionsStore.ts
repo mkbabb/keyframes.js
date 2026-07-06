@@ -1,6 +1,11 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
-import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
+import {
+    checkAndResetExpiredStore,
+    gcAndMigrateStoreBuckets,
+    getAnimationSuperKey,
+} from "./storeUtils";
+import type { SceneId } from "./sceneMachine";
 
 export type StoredAnimationGroupControlOptions = {
     selectedControl: string;
@@ -47,7 +52,9 @@ export const useAnimationGroupsControlOptionsStore = createGlobalState(() => {
 });
 
 export const getStoredAnimationGroupControlOptions = (
-    superKey: KeyframesAnimation<any> | string | undefined = undefined,
+    // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an
+    // animation whose `.superKey` field IS the SceneId). No divergent PascalCase.
+    superKey: KeyframesAnimation<any> | SceneId | undefined = undefined,
 ): StoredAnimationGroupControlOptions => {
     superKey = getAnimationSuperKey(superKey, superKey);
 
@@ -71,4 +78,17 @@ export const getStoredAnimationGroupControlOptions = (
 export const _resetAnimationGroupsControlOptionsStore = () => {
     const store = useAnimationGroupsControlOptionsStore();
     store.value = { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions;
+};
+
+/** T.B9 — migrate legacy PascalCase buckets to the registry `SceneId` keyspace
+ *  and GC orphans (a pruned scene's bucket). Called at boot beside the machine's
+ *  `gcOrphans` over the SAME valid-id set (the one `gcOrphans(validSceneIds,
+ *  ...tables)` sweep, spread across the three globalState modules). */
+export const _gcAndMigrateAnimationGroupsControlOptionsStore = (
+    validSceneIds: Iterable<SceneId>,
+) => {
+    gcAndMigrateStoreBuckets(
+        useAnimationGroupsControlOptionsStore(),
+        validSceneIds,
+    );
 };

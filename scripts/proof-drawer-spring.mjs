@@ -112,7 +112,7 @@ const CTRL_KEY = "animation-groups-control-options-store";
 // The scene the probe drives: cube — a `subject` mode-class scene whose sheet is
 // the full SpringProgress drawer over the full-bleed stage (the flagship motion).
 const PROBE_SCENE = "cube";
-const PROBE_SUPER_KEY = "Cube"; // getAnimationSuperKey("cube") — the control projection key
+const PROBE_SUPER_KEY = "cube"; // T.B9 — the ONE keyspace: the store key IS the registry SceneId
 
 // The settle budget the contract names (response 0.3 / ζ 0.8 ≈176ms; the 550ms CSS
 // ease and the response-0.5 `--spring-snappy` ≈401ms both FAIL it).

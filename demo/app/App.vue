@@ -123,7 +123,7 @@ import "@styles/brand.css";
 import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
 import {
     ACTIVE_CONTROL_CONDITIONALS_KEY,
-    ACTIVE_SUPER_KEY,
+    ACTIVE_SCENE_KEY,
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
 } from "@components/custom/animation-transport/injectionKeys";
@@ -237,7 +237,7 @@ const activeControlConditionals = computed<readonly ControlSurface[]>(() =>
         : [],
 );
 provide(ACTIVE_CONTROL_CONDITIONALS_KEY, activeControlConditionals);
-provide(ACTIVE_SUPER_KEY, currentSuperKey);
+provide(ACTIVE_SCENE_KEY, currentSuperKey);
 
 // ── The dock's extra control tabs — machine-PROJECTED (J.W0.S3) ──────────────
 // The scene-specific tab metadata (easing→Easing, spring→Spring) derives from

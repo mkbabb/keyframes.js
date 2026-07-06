@@ -14,7 +14,7 @@ import {
     STAGGER_MAX,
     useSequenceDemo,
 } from "../../demo/scenes/sequence/useSequenceDemo";
-import { SEQUENCE_SUPER_KEY } from "../../demo/scenes/sequence/sequenceKeys";
+import { SEQUENCE_SCENE_ID } from "../../demo/scenes/sequence/sequenceKeys";
 import { warmKfEngine } from "../../demo/@/utils/kfEngine";
 
 describe("useSequenceInstrument — the scrub/power-on state", () => {
@@ -59,7 +59,7 @@ describe("useSequenceDemo construction", () => {
         const scope = effectScope();
         const demo = scope.run(() => useSequenceDemo())!;
         expect(demo).toBeTruthy();
-        expect(SEQUENCE_SUPER_KEY).toBe("Sequence");
+        expect(SEQUENCE_SCENE_ID).toBe("sequence");
         scope.stop();
     });
 });

@@ -2,7 +2,12 @@ import { jumpTerms } from "@mkbabb/value.js";
 import { kfEngine } from "@utils/kfEngine";
 import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
-import { checkAndResetExpiredStore, getAnimationSuperKey } from "./storeUtils";
+import {
+    checkAndResetExpiredStore,
+    gcAndMigrateStoreBuckets,
+    getAnimationSuperKey,
+} from "./storeUtils";
+import type { SceneId } from "./sceneMachine";
 
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
@@ -62,7 +67,9 @@ export const useAnimationGroupsOptionsStore = createGlobalState(() => {
 
 export const getStoredAnimationOptions = (
     animationId: KeyframesAnimation<any> | string | undefined = undefined,
-    superKey: KeyframesAnimation<any> | string | undefined = undefined,
+    // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an
+    // animation whose `.superKey` field IS the SceneId). No divergent PascalCase.
+    superKey: KeyframesAnimation<any> | SceneId | undefined = undefined,
 ): StoredAnimationOptions => {
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = kfEngine().getAnimationId(animationId!);
@@ -101,7 +108,7 @@ export const getStoredAnimationOptions = (
 
 export const createAnimationUUId = (
     animationId: KeyframesAnimation<any> | string | undefined = undefined,
-    superKey: KeyframesAnimation<any> | string | undefined = undefined,
+    superKey: KeyframesAnimation<any> | SceneId | undefined = undefined,
 ) => {
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = kfEngine().getAnimationId(animationId!);
@@ -113,4 +120,13 @@ export const createAnimationUUId = (
 export const _resetAnimationGroupsOptionsStore = () => {
     const store = useAnimationGroupsOptionsStore();
     store.value = { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions;
+};
+
+/** T.B9 — migrate legacy PascalCase buckets to the registry `SceneId` keyspace
+ *  and GC orphans. Called at boot beside the machine's `gcOrphans` over the SAME
+ *  valid-id set (the one gc sweep spread across the three globalState modules). */
+export const _gcAndMigrateAnimationGroupsOptionsStore = (
+    validSceneIds: Iterable<SceneId>,
+) => {
+    gcAndMigrateStoreBuckets(useAnimationGroupsOptionsStore(), validSceneIds);
 };

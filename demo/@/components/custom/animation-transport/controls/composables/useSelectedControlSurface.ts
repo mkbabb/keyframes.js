@@ -1,7 +1,7 @@
 import { computed, inject, watch, type ComputedRef } from "vue";
 import {
     ACTIVE_CONTROL_CONDITIONALS_KEY,
-    ACTIVE_SUPER_KEY,
+    ACTIVE_SCENE_KEY,
 } from "../../injectionKeys";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useSceneMachine } from "@state";
@@ -67,7 +67,7 @@ export function useSelectedControlSurface(
     // atomic with `machine.activeScene`, so the write gate below can never lag the
     // transition; the conditionals make the projection conditional-surface-aware
     // (cube's matrix-controls falls back AT the authority when Matrix deselects).
-    const activeSuperKey = inject(ACTIVE_SUPER_KEY, undefined);
+    const activeSuperKey = inject(ACTIVE_SCENE_KEY, undefined);
     const activeConditionals = inject(ACTIVE_CONTROL_CONDITIONALS_KEY, undefined);
 
     // Does THIS host's store belong to the ACTIVE scene? During the NAVIGATE →

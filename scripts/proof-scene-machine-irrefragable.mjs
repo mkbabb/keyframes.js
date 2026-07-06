@@ -142,17 +142,19 @@ console.log(
 const MACHINE_KEY = SCENE_MACHINE_KEY; // SCENE_MACHINE_PERSIST_KEY (lib-sourced)
 const CTRL_KEY = "animation-groups-control-options-store";
 
-// The scene id → superKey map (mirrors scenes.ts; the control projection is
-// keyed by superKey, the playback snapshot by scene id).
+// The scene id → store key map (mirrors scenes.ts). T.B9 — the ONE keyspace: the
+// option stores now key by the registry SceneId (was a divergent PascalCase
+// super-key), so this map is the identity — control projection AND playback
+// snapshot are keyed by the SAME id.
 const SUPER_KEY = {
-    home: "__home__",
-    cube: "Cube",
-    amiga: "Amiga",
-    square: "Square",
-    easing: "Easing",
-    spring: "Spring",
-    sequence: "Sequence",
-    "starting-style": "StartingStyle",
+    home: "home",
+    cube: "cube",
+    amiga: "amiga",
+    square: "square",
+    easing: "easing",
+    spring: "spring",
+    sequence: "sequence",
+    "starting-style": "starting-style",
 };
 
 // The matrix scene set the gate drives. A FOCUSED ordered set that covers BOTH

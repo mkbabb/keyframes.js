@@ -1,9 +1,7 @@
-/** The scene's transport superKey — the SINGLE source (R.W5 C.4): the registry
- *  descriptor AND the Scene SFC both import it, so no string literal is declared
- *  in a file that doesn't own it. S.D2 S5 (a10) lands this for 8/8 scene-key
- *  parity — cube was the lone scene carrying its superKey inline in
- *  `useCubeDemo.ts` (renamed from `useCubeAnimations.ts` at S.D4, C-17) rather
- *  than a `cubeKeys.ts` peer. (Cube wires its
- *  sub-components in the Scene SFC + provides `matrix-controls` via a scene
- *  inject, so this module carries the superKey alone, mirroring the other seven.) */
-export const CUBE_SUPER_KEY = "Cube";
+/** The scene's registry id — the ONE keyspace (T.B9): the scene machine keys
+ *  `perScene` by this id AND both option stores key by it, so a scene has exactly
+ *  ONE identity (the divergent PascalCase super-key constant is retired). The registry
+ *  descriptor (scenes.ts) AND the Scene SFC + `useCubeDemo` (the
+ *  `animation.superKey` field) all import it, so no id literal is declared in a
+ *  file that doesn't own it (R.W5 C.4). Value === the router/registry id. */
+export const CUBE_SCENE_ID = "cube";

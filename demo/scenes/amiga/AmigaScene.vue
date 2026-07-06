@@ -35,9 +35,9 @@ import {
 import { useSphereSpin } from "./useSphereSpin";
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
 import { facilityFromGroup } from "@app/scene/sceneFacility";
-import { AMIGA_SUPER_KEY } from "./amigaKeys";
+import { AMIGA_SCENE_ID } from "./amigaKeys";
 
-const superKey = AMIGA_SUPER_KEY;
+const superKey = AMIGA_SCENE_ID;
 
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
 const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");

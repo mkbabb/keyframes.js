@@ -54,10 +54,10 @@ import CubeTarget from "./CubeTarget.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 import { facilityFromGroup } from "@app/scene/sceneFacility";
 import { useTransformState } from "./matrix-editor/useTransformState";
-import { useCubeDemo, SUPER_KEY } from "./useCubeDemo";
+import { useCubeDemo, SCENE_ID } from "./useCubeDemo";
 import { useCubeTransform } from "./cubeTransformStore";
 
-const superKey = SUPER_KEY;
+const superKey = SCENE_ID;
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 storedControls.ppMode ??= false;

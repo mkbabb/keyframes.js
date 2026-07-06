@@ -465,6 +465,8 @@ jobs:
               run: npm run proof:no-deprecated-guard
             - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
               run: npm run proof:single-writer
+            - name: proof:scene-superkey-single-source (T.B9 — the ONE keyspace; the *_SUPER_KEY constants retired, stores key by the registry SceneId, one gc/migrate sweep)
+              run: npm run proof:scene-superkey-single-source
             - name: proof:composable-encapsulation (H.W12 S2/I9 — the motion-path gesture engine is in the composable · pure store getters)
               run: npm run proof:composable-encapsulation
             - name: proof:no-brittle-selector (H.W12 S4/I11 — zero class-string DOM walks · named SAMPLE_STEP · ONE documented square-viewBox scale helper)

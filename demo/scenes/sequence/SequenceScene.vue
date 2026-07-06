@@ -11,9 +11,9 @@ import { getStoredAnimationGroupControlOptions } from "@state";
 
 import SequenceTarget from "./SequenceTarget.vue";
 import { useSequenceDemo } from "./useSequenceDemo";
-import { SEQUENCE_DEMO_KEY, SEQUENCE_SUPER_KEY } from "./sequenceKeys";
+import { SEQUENCE_DEMO_KEY, SEQUENCE_SCENE_ID } from "./sequenceKeys";
 
-const SUPER_KEY = SEQUENCE_SUPER_KEY;
+const SCENE_ID = SEQUENCE_SCENE_ID;
 
 const demo = useSequenceDemo();
 provide(SEQUENCE_DEMO_KEY, demo);
@@ -27,7 +27,7 @@ provide(SEQUENCE_DEMO_KEY, demo);
 // / I2 — `CONTROL_SURFACES.sequence = []`) is the AUTHORITY on this being a
 // self-contained, panel-less stage: the dock shows NO control affordance for an
 // empty DFA set. The local closed-default keeps the panel container collapsed.
-const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
+const storedControls = getStoredAnimationGroupControlOptions(SCENE_ID);
 storedControls.isControlsPanelOpen = false;
 
 defineExpose({
@@ -37,7 +37,7 @@ defineExpose({
     // also exposed as the STABLE bind-target identity the shell's once-per-entry
     // ready-guard keys on (a facility-only scene has no `animationGroup`).
     facility: computed(() => demo.facility),
-    superKey: SUPER_KEY,
+    superKey: SCENE_ID,
     isPlaying: demo.isPlaying,
     isStarted: ref(true),
     scenePlayback: demo.scenePlayback,

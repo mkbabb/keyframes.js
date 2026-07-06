@@ -22,7 +22,11 @@
 import { watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { isNavigationFailure, NavigationFailureType } from "vue-router";
-import { useSceneMachine, HOME_SCENE_ID } from "@state";
+import {
+    useSceneMachine,
+    HOME_SCENE_ID,
+    gcAndMigrateSceneKeyspace,
+} from "@state";
 import { sceneMap, allScenes } from "./scenes";
 import { getStoredAnimationGroupControlOptions } from "@state";
 
@@ -52,8 +56,12 @@ export function useSceneMachineRouterBinding() {
     // seed dispatches it — no boot onto a route that no longer exists.
     machine.migrateActiveScene(allScenes.map((s) => s.id));
 
-    // ── boot GC: prune orphan superKeys from prior sessions (ST-7) ──
-    machine.gcOrphans(allScenes.map((s) => s.id));
+    // ── boot GC + keyspace migration (T.B9): ONE sweep over ALL THREE per-scene
+    // tables (the machine's perScene snapshot + both option stores). Prunes
+    // orphaned pruned-scene buckets AND migrates any legacy PascalCase option
+    // bucket ("Cube") to the registry SceneId ("cube") — the collapse that ends
+    // the two-keyspace drift. ──
+    gcAndMigrateSceneKeyspace(allScenes.map((s) => s.id));
 
     // The echo guard's generation: the WRITER bumps it before a push so the
     // immediately-following afterEach (the echo of our own push) is recognised

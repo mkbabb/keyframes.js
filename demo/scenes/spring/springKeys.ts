@@ -3,8 +3,8 @@ import type { useSpringDemo } from "./useSpringDemo";
 
 export type SpringDemoContext = ReturnType<typeof useSpringDemo>;
 
-/** The scene's transport superKey — the SINGLE source (R.W5 C.4). */
-export const SPRING_SUPER_KEY = "Spring";
+/** The scene's registry id — the ONE keyspace (T.B9). Value === the registry id. */
+export const SPRING_SCENE_ID = "spring";
 
 export const SPRING_DEMO_KEY: InjectionKey<SpringDemoContext> =
     Symbol("spring-demo");

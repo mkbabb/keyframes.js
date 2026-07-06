@@ -20,9 +20,9 @@ import type { TransformState } from "../../demo/scenes/cube/orbital-drag";
 import { FACE_NORMALS, useCubeRelit } from "../../demo/scenes/cube/useCubeRelit";
 import {
     CUBE_ANIMATION_NAMES,
-    SUPER_KEY,
+    SCENE_ID,
 } from "../../demo/scenes/cube/useCubeDemo";
-import { CUBE_SUPER_KEY } from "../../demo/scenes/cube/cubeKeys";
+import { CUBE_SCENE_ID } from "../../demo/scenes/cube/cubeKeys";
 
 const restTransform = (rotate = { x: 0, y: 0, z: 0 }): TransformState => ({
     rotate,
@@ -81,7 +81,9 @@ describe("cube scene registry keys", () => {
             Rotations: "Rotations",
             Hover: "Hover",
         });
-        expect(SUPER_KEY).toBe(CUBE_SUPER_KEY);
-        expect(CUBE_SUPER_KEY).toBe("Cube");
+        // T.B9 — the ONE keyspace: the store key IS the registry SceneId ("cube",
+        // not the retired PascalCase "Cube"), single-sourced from cubeKeys.
+        expect(SCENE_ID).toBe(CUBE_SCENE_ID);
+        expect(CUBE_SCENE_ID).toBe("cube");
     });
 });

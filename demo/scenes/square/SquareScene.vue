@@ -97,10 +97,10 @@ import GestureLegend from "@components/custom/GestureLegend.vue";
 import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
-import { SQUARE_SUPER_KEY } from "./squareKeys";
+import { SQUARE_SCENE_ID } from "./squareKeys";
 import { facilityFromGroup } from "@app/scene/sceneFacility";
 
-const superKey = SQUARE_SUPER_KEY;
+const superKey = SQUARE_SCENE_ID;
 
 // T.A13 (SQ-T1) — THE PLAY VERB MADE HONEST (the G2 inversion cured, not collapsed).
 // S.G2 amputated the panel because Play painted nothing: the box transformFunc was

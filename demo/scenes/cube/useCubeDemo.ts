@@ -4,12 +4,12 @@ import type { Ref } from "vue";
 import { kfEngine } from "@utils/kfEngine";
 import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
-import { CUBE_SUPER_KEY } from "./cubeKeys";
+import { CUBE_SCENE_ID } from "./cubeKeys";
 
-// S.D2 S5 (a10) — the superKey now single-sources from `cubeKeys.ts` (8/8 scene
-// parity); this re-export keeps the existing `SUPER_KEY` consumers (CubeScene +
-// this module's 8 internal uses) unchanged.
-export const SUPER_KEY = CUBE_SUPER_KEY;
+// T.B9 — the ONE keyspace: the store key (and each `animation.superKey` field) is
+// the registry SceneId, single-sourced from `cubeKeys.ts`. This re-export keeps
+// the existing `SCENE_ID` consumers (CubeScene + this module's internal uses).
+export const SCENE_ID = CUBE_SCENE_ID;
 
 export const CUBE_ANIMATION_NAMES = {
     Matrix: "Matrix",
@@ -28,7 +28,7 @@ export function useCubeDemo(
 
     const matrixAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Matrix,
-        SUPER_KEY,
+        SCENE_ID,
     );
 
     const matrixAnim = shallowRef(
@@ -42,11 +42,11 @@ export function useCubeDemo(
         ),
     );
     matrixAnim.value.name = CUBE_ANIMATION_NAMES.Matrix;
-    matrixAnim.value.superKey = SUPER_KEY;
+    matrixAnim.value.superKey = SCENE_ID;
 
     const rotationAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Rotations,
-        SUPER_KEY,
+        SCENE_ID,
     );
 
     const rotationAnim = shallowRef(
@@ -72,18 +72,18 @@ export function useCubeDemo(
         ),
     );
     rotationAnim.value.name = CUBE_ANIMATION_NAMES.Rotations;
-    rotationAnim.value.superKey = SUPER_KEY;
+    rotationAnim.value.superKey = SCENE_ID;
 
     const hoverAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Hover,
-        SUPER_KEY,
+        SCENE_ID,
     );
 
     const hoverAnim = shallowRef(
         markRaw(presets.hover(hoverAnimationOptions.animationOptions)),
     );
     hoverAnim.value.name = CUBE_ANIMATION_NAMES.Hover;
-    hoverAnim.value.superKey = SUPER_KEY;
+    hoverAnim.value.superKey = SCENE_ID;
 
     const animationGroup = shallowRef(
         markRaw(

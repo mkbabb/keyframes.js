@@ -253,8 +253,11 @@ export const useSceneMachine = createGlobalState(() => {
         };
     }
 
-    // ── boot GC: drop orphan superKeys (ST-7) ────────────────────────────────
-    // Prunes snapshot entries for scenes that no longer exist in the registry.
+    // ── boot GC: drop orphan scene snapshots (ST-7 / T.B9) ────────────────────
+    // Prunes `perScene` snapshot entries for scenes that no longer exist in the
+    // registry. The option stores are pruned+migrated in the SAME sweep by
+    // `gcAndMigrateSceneKeyspace` (index.ts) over the SAME valid-id set — the ONE
+    // keyspace: all three per-scene tables key by the registry SceneId.
     function gcOrphans(validSceneIds: Iterable<SceneId>): void {
         const valid = new Set(validSceneIds);
         const perScene: Record<SceneId, PlaybackSnapshot> = {};

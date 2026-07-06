@@ -24,9 +24,9 @@ import SpringTarget from "./SpringTarget.vue";
 import StartingStyleTarget from "./StartingStyleTarget.vue";
 import SpringPhysicsFacet from "./SpringPhysicsFacet.vue";
 import { useSpringDemo } from "./useSpringDemo";
-import { SPRING_DEMO_KEY, SPRING_SUPER_KEY } from "./springKeys";
+import { SPRING_DEMO_KEY, SPRING_SCENE_ID } from "./springKeys";
 
-const SUPER_KEY = SPRING_SUPER_KEY;
+const SCENE_ID = SPRING_SCENE_ID;
 
 const demo = useSpringDemo();
 provide(SPRING_DEMO_KEY, demo);
@@ -182,7 +182,7 @@ defineExpose({
     // `spring` facet, the raw-rAF playback). The decoy `animationGroup` expose
     // is DELETED with the contract-group decoy; the shell binds the facility.
     facility: computed(() => demo.facility),
-    superKey: SUPER_KEY,
+    superKey: SCENE_ID,
     isPlaying,
     isStarted,
     // The spring preview auto-plays on first visit (the former isPlaying =

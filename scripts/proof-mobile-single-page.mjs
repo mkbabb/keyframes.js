@@ -122,13 +122,15 @@ const TOL = 2;
 // The route → superKey map (demo/app/scene/scenes.ts) the control-options store is
 // keyed by. The harness seeds the OPEN state under this key so the sheet's
 // `v-show` (gated on selectedAnimation) materialises.
+// T.B9 — the ONE keyspace: the option stores key by the registry SceneId, so this
+// scene → store-key map is the identity (was a divergent PascalCase super-key).
 const SUPER_KEY_BY_SCENE = {
-    cube: "Cube",
-    amiga: "Amiga",
-    square: "Square",
-    easing: "Easing",
-    spring: "Spring",
-    sequence: "Sequence",
+    cube: "cube",
+    amiga: "amiga",
+    square: "square",
+    easing: "easing",
+    spring: "spring",
+    sequence: "sequence",
 };
 
 // The scenes by mode-class (scenes.ts `STAGE_MODES`). `subject` carries the

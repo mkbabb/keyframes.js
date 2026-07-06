@@ -71,10 +71,36 @@ export {
 
 export { getAnimationSuperKey, STORE_KEYS } from "./storeUtils";
 
-import { _resetAnimationGroupsOptionsStore } from "./animationOptionsStore";
-import { _resetAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
+import {
+    _resetAnimationGroupsOptionsStore,
+    _gcAndMigrateAnimationGroupsOptionsStore,
+} from "./animationOptionsStore";
+import {
+    _resetAnimationGroupsControlOptionsStore,
+    _gcAndMigrateAnimationGroupsControlOptionsStore,
+} from "./controlOptionsStore";
 import { STORE_KEYS } from "./storeUtils";
-import { SCENE_MACHINE_PERSIST_KEY } from "./useSceneMachine";
+import { SCENE_MACHINE_PERSIST_KEY, useSceneMachine } from "./useSceneMachine";
+import type { SceneId } from "./sceneMachine";
+
+export { gcAndMigrateStoreBuckets } from "./storeUtils";
+
+/**
+ * T.B9 — the ONE gc/migrate sweep over ALL THREE per-scene tables (the scene
+ * machine's `perScene` snapshot map + both option stores). Replaces the lone
+ * `machine.gcOrphans` boot call: one valid-id set, three tables migrated to the
+ * registry `SceneId` keyspace + pruned of orphans in lockstep, so no table can
+ * drift its keyspace from the others (the machine keyed by `SceneId` while the
+ * option stores kept a divergent PascalCase — the very drift this closes). The
+ * option stores additionally MIGRATE a legacy case-variant bucket ("Cube" →
+ * "cube") so a returning user's state is not orphaned by the collapse.
+ */
+export const gcAndMigrateSceneKeyspace = (validSceneIds: Iterable<SceneId>) => {
+    const ids = [...validSceneIds];
+    useSceneMachine().gcOrphans(ids);
+    _gcAndMigrateAnimationGroupsOptionsStore(ids);
+    _gcAndMigrateAnimationGroupsControlOptionsStore(ids);
+};
 
 // S.D2 / a24 F2 — the app-level reset composer (dependency inversion). The state
 // barrel used to reach SIDEWAYS into a UI/feature component — a state layer owning

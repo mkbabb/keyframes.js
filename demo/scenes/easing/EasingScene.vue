@@ -12,9 +12,9 @@ import PlaybackRibbon from "@components/custom/animation-transport/controls/Play
 import EasingTarget from "./EasingTarget.vue";
 import EasingSidebar from "./EasingSidebar.vue";
 import { useEasingDemo } from "./useEasingDemo";
-import { EASING_DEMO_KEY, EASING_SUPER_KEY } from "./easingKeys";
+import { EASING_DEMO_KEY, EASING_SCENE_ID } from "./easingKeys";
 
-const SUPER_KEY = EASING_SUPER_KEY;
+const SCENE_ID = EASING_SCENE_ID;
 
 const demo = useEasingDemo();
 provide(EASING_DEMO_KEY, demo);
@@ -113,7 +113,7 @@ defineExpose({
     // `easing` facet, the raw-rAF playback). The decoy `animationGroup` expose
     // is DELETED with the contract-group decoy; the shell binds the facility.
     facility: computed(() => demo.facility),
-    superKey: SUPER_KEY,
+    superKey: SCENE_ID,
     isPlaying,
     isStarted,
     // The easing preview auto-plays on first visit (the former isPlaying =
