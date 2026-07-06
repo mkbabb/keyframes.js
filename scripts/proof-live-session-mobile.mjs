@@ -714,13 +714,13 @@ async function runBattery() {
                             `M2 dock: the Scene combobox ${optionsOpen ? "opened but the Easing option commit did not project (reka pointerup/click not received)" : "never projected its options under the touch tap"} (touch commit failed)`,
                         );
                     }
-                    // The per-EXPECTED-destination-state predicate (J.W0): the
-                    // machine rests on easing AND — T.B5-RENDER / T.C1 — the
-                    // control-tab trigger is ABSENT (easing exposes ONE control
-                    // surface, redundant with the scene identity → elided, VERDICT
-                    // #17). The destination is discriminated by machine=easing +
-                    // the ABSENCE of the Controls-tab node (the old `text==="Easing"`
-                    // asserted the now-deleted single-surface dup).
+                    // The per-EXPECTED-destination-state predicate (J.W0), RE-ARMED
+                    // at T.B2: easing now DERIVES the full triad from its painting
+                    // channel (the surfacesFor inversion — the #25 asymmetry cure),
+                    // so the Controls-tab trigger PROJECTS on easing (the pre-B2
+                    // ABSENT expectation asserted the exclusion-table state). The
+                    // destination is discriminated by machine=easing + the
+                    // Controls-tab node PRESENT (the derived triad's tell).
                     await page
                         .waitForFunction(
                             () => {
@@ -729,7 +729,7 @@ async function runBattery() {
                                         localStorage.getItem("keyframes-js-scene-machine") || "{}",
                                     );
                                     const trig = document.querySelector("[aria-label='Controls tab']");
-                                    return m.activeScene === "easing" && !trig;
+                                    return m.activeScene === "easing" && !!trig;
                                 } catch {
                                     return false;
                                 }
@@ -749,17 +749,17 @@ async function runBattery() {
                             trigger: document.querySelector("[aria-label='Controls tab']")?.textContent?.trim() ?? null,
                         };
                     });
-                    if (dest.machine === "easing" && dest.trigger === null) {
+                    if (dest.machine === "easing" && dest.trigger !== null) {
                         ok(
                             `M2 dock SWITCH: the touch combobox commit landed cube→easing per the ` +
-                                `expected-destination-state predicate (machine=easing, control-tab ABSENT — the ` +
-                                `single-surface trigger is elided, T.B5-RENDER/#17)`,
+                                `expected-destination-state predicate (machine=easing, control-tab "${dest.trigger}" ` +
+                                `PROJECTS — the T.B2-derived triad's tell, the #25 asymmetry cure)`,
                         );
                     } else {
                         fail(
                             `M2 dock SWITCH: the destination state never projected ` +
-                                `(machine=${dest.machine}, trigger=${dest.trigger}; expected easing + ABSENT control-tab) ` +
-                                `— the touch switch is broken or lags its control surface`,
+                                `(machine=${dest.machine}, trigger=${dest.trigger}; expected easing + a PRESENT ` +
+                                `control-tab per the T.B2 derivation) — the touch switch is broken or lags its control surface`,
                         );
                     }
                 }
@@ -1044,8 +1044,11 @@ async function runAppearanceBand() {
         const d = a2.value;
         const ballC = contrastRatio(d.ballBg, d.bodyBg);
         const accentC = contrastRatio(d.accentColor, d.bodyBg);
-        const tokenResolved =
-            !!d.ballTone && /#e64de6/i.test(d.ballTone); // the suffused violet token cascades
+        // T.D7 RE-ARM: the pre-OD-6 suffused-violet hex pin (#e64de6) is stale —
+        // --ball-tone now cascades the OD-6 oklch authority (--color-progress →
+        // --accent-kf). The HUE window is proof:accent-census's bar (the OWNER
+        // oracle); THIS clause asserts the token RESOLVES + the WCAG floors hold.
+        const tokenResolved = !!d.ballTone && d.ballTone.length > 0;
         if (
             d.isDark &&
             tokenResolved &&
@@ -1056,7 +1059,7 @@ async function runAppearanceBand() {
         ) {
             ok(
                 `A2 appearance — DARK --ball-tone/accent legible: the .dark token surface is LIVE ` +
-                    `(html.dark, backdrop ${d.bodyBg}), --ball-tone resolves the suffused violet (${d.ballTone}); ` +
+                    `(html.dark, backdrop ${d.bodyBg}), --ball-tone resolves the OD-6 accent (${d.ballTone}); ` +
                     `the violet ball (${d.ballBg}) contrasts ${ballC.toFixed(2)} and the .readout-accent ` +
                     `(${d.accentColor}) contrasts ${accentC.toFixed(2)} — both ≥ the ${CONTRAST_FLOOR} legibility floor`,
             );
