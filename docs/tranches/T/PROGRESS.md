@@ -305,6 +305,35 @@
   current thresholds + the glass-ui-usage census; the demo sweeps ride the
   facility-settled batch).
 
+- **2026-07-06 — BATCH ⑥′ MERGED + VERIFIED (T4/T5): THE DECOY IS DEAD.** Fleet
+  `wf_104e6b6e-fd4`, 3/3, per-stage commits held. **T.B1-β LANDED (root-cause #2
+  TERMINAL):** every transport render seam channel-capable (ControlsPaneWrapper
+  hosts from facility.channels; PlaybackRibbon takes a channel animation OR a
+  progress source; the TransportChannel contract = lane 21 rec 3's TransportSource);
+  useContractAnimGroup.ts DELETED with both call sites — easing rides ONE real
+  preview animation (timingFunction IS the edited easing, live re-seat), spring
+  rides Sweep (springEditAnim) + Entry (the compiled @starting-style anim);
+  **proof:scene-facility FULLY GREEN + DISCHARGED**; live-session re-verified ×4.
+  **T.B7 PARTIAL:** the view fork is channel DATA; SpringSidebar + useSpringPaneDrag
+  DELETED → SpringPhysicsFacet (the canvas instrument stays design-PENDING); the
+  five sidebar-lock gates re-verified GREEN on the dissolved surface. **T.B2
+  PARTIAL:** ONE SURFACE_META (the triplication dead); the surfacesFor inversion +
+  re-charters deferred WITH a resume recipe + one design question (the sequence
+  channel shape). **T.E7 LANDED** (#13 curve-physics + #15 gallery-door deleted;
+  gesture-manifest easing rows + easter-egg's gallery leg re-cut same commit; S5
+  left alive as ordered). **T.G6-family:** cdp-perf.mjs substrate + proof:perf-counters
+  (born-RED OWNER oracle registered) + the LoAF gate REVIVED (silently ENOENT-dead
+  116 commits since S.D1 — repointed) + the lighthouse-mobile T-open baseline
+  COMMITTED (home 57 / cube 50 / amiga 37 / square 56 / easing 56 / spring 55 —
+  the honest before) + the a11y defect half measured CURED. KEY FINDING: the
+  backdrop-blur cost is compositor-side, INVISIBLE to main-thread CDP counters —
+  BG-5 remains the only cure. **T.F23 gates:** no-dead-export (54-row deferred
+  backlog, ratchets down) + any-ceiling (ratchet PAID at merge: 4 ref-anys typed,
+  ceiling tightened 109→108) + useThrottledReadout seam + the glass-ui census.
+  1047 tests / 112 files. Remaining open: T.B2's inversion + T.B8/B9 + the easing
+  RULED waves (E8/E9/E10) + T.F demo-half + T.G close-waves + M3/M7/M8 completion +
+  T.S residuals + T.Z.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
