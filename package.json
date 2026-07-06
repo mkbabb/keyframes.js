@@ -136,6 +136,7 @@
         "proof:font-census": "node scripts/proof-font-census.mjs",
         "proof:drag-gesture": "node scripts/proof-drag-gesture.mjs",
         "proof:perf-frame-budget": "node scripts/proof-perf-frame-budget.mjs",
+        "proof:perf-counters": "node scripts/proof-perf-counters.mjs",
         "proof:easing-editor-live": "node scripts/proof-easing-editor-live.mjs",
         "proof:fsm-suspend-resume-live": "node scripts/proof-fsm-suspend-resume-live.mjs",
         "proof:visual-lock": "node scripts/proof-visual-lock.mjs",

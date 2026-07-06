@@ -94,6 +94,13 @@ export const APPEARANCE_TOUCHING = [
     // demo FEELS, VERDICT #19). INSTRUMENT (a measured toggle-delta fact), NOT the
     // OWNER perceived-perf bar (those are T.G6/T.G7/T.G9).
     "proof:blur-not-resampled",
+    // T.G7 — the CDP-counter perf oracle. This IS the OWNER perceived-perf bar
+    // (VERDICT #19 "god awful on every single page"): its verdict is the absolute
+    // felt-performance axis C-10 forbade a LIBRARY gate but the demo requires. OWNER
+    // + blocking-not-OBSERVE (T.M6.2) — it may NOT ride the OBSERVE bucket the way
+    // perf-frame-budget's rAF-interval clauses do (that demotion is why the 20fps
+    // stage rode green). Born-RED; a recorded T_BORNRED_BACKLOG tripwire, dischargedBy T.G1.
+    "proof:perf-counters",
     // T.C5 — the two dock RENDER acceptance gates (GU-1/GU-2). A "blurry janky
     // dock" is a taste-authority surface (VERDICT #4) — OWNER + blocking-not-OBSERVE
     // (T.M6): a resting blur-blob / a jump-cut morph may not ride non-blocking.
@@ -176,6 +183,13 @@ export const GATE_AUTHORITY = {
     "proof:hero-two-focal": "OWNER",
     "proof:hero-deck-voice": "OWNER",
     "proof:cursor-light-subtle": "OWNER",
+    // T.G7 (T.M6 coordination — the doctrine is T.M's, the gate is T.G's; charter §1).
+    // The OWNER perceived-perf bar (VERDICT #19): its green cannot be reached without
+    // the demo actually being fast (the live-blur/neutralized CDP TaskDuration toggle-
+    // delta within budget). BLOCKING-not-OBSERVE per T.M6.2 — the single most important
+    // lesson of the T.G band (every existing perf instrument was neutered to OBSERVE).
+    // Born-RED today; a recorded T_BORNRED_BACKLOG tripwire (not the OBSERVE bucket).
+    "proof:perf-counters": "OWNER",
     // (proof:owner-golden lands with T.A/T.D renders — its OWNER row is added then)
 
     // ── INSTRUMENT authority (correctness facts; may NOT stand as the appearance bar) ──

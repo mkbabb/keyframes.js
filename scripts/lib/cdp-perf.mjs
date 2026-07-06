@@ -116,6 +116,65 @@ export async function measureCounters(page, { windowMs = 2500, cdp } = {}) {
     };
 }
 
+/**
+ * Measure the CDP counter deltas AND the rAF frame count over the SAME window,
+ * yielding the DEVICE-INDEPENDENT per-frame ratios `recalcPerFrame` /
+ * `layoutPerFrame`. This is the substrate's headline measurement.
+ *
+ * WHY per-frame is device-independent where a raw count is not: in this headless
+ * harness (no vsync pump) rAF free-runs at whatever cadence the event loop
+ * allows (~120Hz on a fast box, slower on a contended VM), so a raw
+ * RecalcStyleCount over a fixed wall-clock window scales with the machine. But
+ * `recalcCount / rafFrameCount` divides BOTH by that same free-running frame
+ * count — the machine factor cancels. A scene that restyles/re-lays-out EVERY
+ * frame reads ~1.0/frame on any machine; a scene at true rest reads ~0/frame on
+ * any machine (measured: square/sequence 0.00, cube 1.00 recalc, spring 1.00
+ * layout — the `left`-thrash — all reproducible). It is the same-report ratio
+ * the perf-counter gate asserts (ratioGateValue, atMost).
+ *
+ * NOTE the compositor caveat (§ this file's header): `backdrop-filter` blur is a
+ * compositor/GPU raster cost INVISIBLE to these main-thread CDP counters in
+ * headless Chromium (measured: neutralizing every backdrop-filter left cube's
+ * TaskDuration flat) — the blur half of VERDICT #19 is measured by the fps
+ * toggle (proof:blur-not-resampled), while these counters measure the
+ * no-true-rest churn (T.G3) + the layout-thrash (T.G4) half.
+ *
+ * @param {import('playwright-core').Page} page
+ * @param {{ windowMs?: number, cdp?: import('playwright-core').CDPSession }} [opts]
+ */
+export async function measurePerFrame(page, { windowMs = 2000, cdp } = {}) {
+    const session = cdp ?? (await attachCounters(page));
+    const before = await snapshotCounters(session);
+    // The in-page rAF frame counter IS the window: it runs for ~windowMs and
+    // returns the frame count, so the counter delta and the frame count cover
+    // the identical span.
+    const frames = await page.evaluate(
+        (ms) =>
+            new Promise((resolve) => {
+                let n = 0;
+                const t0 = performance.now();
+                const tick = () => {
+                    n++;
+                    if (performance.now() - t0 >= ms) resolve(n);
+                    else requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            }),
+        windowMs,
+    );
+    const after = await snapshotCounters(session);
+    const delta = counterDelta(before, after);
+    const f = Math.max(1, frames);
+    return {
+        ...delta,
+        frames,
+        windowMs,
+        recalcPerFrame: delta.recalcCount / f,
+        layoutPerFrame: delta.layoutCount / f,
+        busyFraction: windowMs > 0 ? delta.taskMs / windowMs : 0,
+    };
+}
+
 // ── The backdrop-filter census + toggle (lane 11 methodology) ──────────────────
 
 /**

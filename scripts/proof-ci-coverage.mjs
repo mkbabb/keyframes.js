@@ -263,6 +263,14 @@ const EXCLUDED = new Set([
     // tripwire, never a blocking &&-chain member (clause 11 re-verifies its
     // T_BORNRED_BACKLOG registration).
     "proof:blur-not-resampled",
+    // T.G7 — the CDP-counter perf oracle (the rAF-interval blindspot cure). Born-RED:
+    // reads the CDP RecalcStyleCount/LayoutCount counters lane 11 validated as
+    // device-independent and gates the PER-FRAME ratios (recalc/frame, layout/frame)
+    // the main-thread rAF-interval sampler is blind to (§2.1). authority=OWNER +
+    // blocking-not-OBSERVE (T.M6.2); rides CI as a recorded tripwire, never a blocking
+    // &&-chain member (clause 11 re-verifies the T_BORNRED_BACKLOG registration);
+    // dischargedBy T.G3 (scenes reach rest) + T.G4 (transform-not-left).
+    "proof:perf-counters",
     // T batch ① — the cube pose-flap visual-lock re-baseline landed born-RED
     // (env-drift proven at base; registered in T_BORNRED_BACKLOG). Lockstep with
     // clause 11: a declared-backlog gate rides CI as a recorded tripwire, never a
