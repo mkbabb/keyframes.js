@@ -54,6 +54,12 @@
             "selector": ".labeled-field-label",
             "expect": { "voice": "body", "weight": 500 },
             "note": "field labels are CONTROLS: Jakarta medium (T.D4 demoted them off the mono voice; the glass-ui labeled-field display bind is re-voiced in @layer demo-typography)"
+        },
+        {
+            "role": "easing-curve-name",
+            "selector": ".easing-target .text-display",
+            "expect": { "voice": "display", "weight": 400, "style": "normal" },
+            "note": "T.E10 (VERDICT #16b/#24/#27, easing-scoped) — the easing scene's poster title (the selected curve NAME) is the one easing-route DISPLAY rung, NAMED here so the manifest governs it explicitly (the census clause (e) reads it): Instrument Serif at its one TRUE weight 400, roman. The route's other rungs consume the SHARED roles above (panel labels → control-label Jakarta; the readout literal + curve identifiers → the mono data-register contract below), extending the manifest rather than double-asserting the route-wide totality/dock/display clauses proof:font-census already enforces on all 7 scenes incl. easing."
         }
     ],
     "monoAllowedSelectors": [
