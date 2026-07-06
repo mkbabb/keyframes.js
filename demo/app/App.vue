@@ -241,11 +241,17 @@ provide(ACTIVE_SCENE_KEY, currentSuperKey);
 // The App is the only place both the facility (on the mounted scene) and the
 // selection are visible, so it feeds the derived set to the machine — the ONE
 // writer the dock/panel projections read (`machine.controlSurfaces`).
+// Home renders the SAME CubeScene component (the backdrop) — so `sceneRef` on
+// home exposes cube's PAINTING facility. Home is the landing with NO controls
+// (the start screen), so it derives [] explicitly, never cube's triad (the
+// home↔cube split — home registers no adapter, shows no rail).
 const derivedSurfaces = computed(() =>
-    surfacesFor(
-        sceneRef.value?.facility,
-        storedControls.value.selectedAnimation ?? undefined,
-    ),
+    isHome.value
+        ? []
+        : surfacesFor(
+              sceneRef.value?.facility,
+              storedControls.value.selectedAnimation ?? undefined,
+          ),
 );
 watchEffect(() => machine.setActiveSurfaces(derivedSurfaces.value));
 

@@ -115,24 +115,21 @@ console.log("proof:dfa-derived — T.B2 (control-surface DFA: exclusion table �
 }
 
 // ── L1 BROWSER CENSUS ─────────────────────────────────────────────────────────
-// A painting-channel scene renders the full built-in triad. Read the OPENED
-// control select for the Keyframes + Timeline tab nodes on cube/easing/spring.
-const triadPresent = (page) =>
+// A painting-channel scene renders the full built-in triad. The observable #25
+// cure: on cube/easing/spring the control-surface SELECT (the reka combobox
+// trigger `[aria-label='Controls tab'][role=combobox]`) renders — a MULTI-option
+// picker over the triad (+ facet). On the pre-T.B2 tree easing/spring elided to a
+// SINGLE non-select surface (no combobox at all), so the picker's presence is the
+// direct witness that the painting channel earned its triad (>1 surface). The
+// trigger's collapsed label reads the SELECTED surface (default 'controls').
+const controlSelect = (page) =>
     page.evaluate(() => {
-        const visible = (el) => {
-            const r = el.getBoundingClientRect();
-            return r.width > 0 && r.height > 0;
+        const trig = document.querySelector("[aria-label='Controls tab']");
+        return {
+            present: !!trig,
+            isCombobox: trig?.getAttribute("role") === "combobox",
+            label: trig?.textContent?.trim() ?? null,
         };
-        const labels = new Set();
-        for (const el of document.querySelectorAll(
-            "button, [role=option], [role=tab], .dock-label, span",
-        )) {
-            const t = (el.textContent || "").trim();
-            if ((t === "Keyframes" || t === "Timeline" || t === "Controls") && visible(el)) {
-                labels.add(t);
-            }
-        }
-        return { keyframes: labels.has("Keyframes"), timeline: labels.has("Timeline") };
     });
 
 async function browserHalf() {
@@ -150,27 +147,29 @@ async function browserHalf() {
             const paintingScenes = ["cube", "easing", "spring"];
             for (const id of paintingScenes) {
                 await navToScene(page, id, "Controls");
-                // Open the control select so the triad tab nodes are in the DOM.
-                await page
-                    .click("[aria-label='Controls tab']", { timeout: 4000 })
-                    .catch(() => {});
-                await page.waitForTimeout(400);
-                const t = await triadPresent(page);
-                if (t.keyframes && t.timeline) {
+                await page.waitForTimeout(300);
+                const s = await controlSelect(page);
+                // The triad grants >1 surface ⇒ the dock renders the MULTI-option
+                // control SELECT (a combobox), not a single elided inline surface.
+                if (s.present && s.isCombobox && s.label === "Controls") {
                     clean++;
-                    ok(`L1 ${id}: renders the full built-in triad (Keyframes + Timeline present) — the #25 cure`);
+                    ok(
+                        `L1 ${id}: renders the multi-surface control SELECT (combobox, label='Controls') ` +
+                            `— the painting channel earned its triad (the #25 cure)`,
+                    );
                 } else {
                     fail(
-                        `L1 ${id} — the painting-channel scene did NOT render the full triad ` +
-                            `(keyframes:${t.keyframes}, timeline:${t.timeline}); the derivation must ` +
-                            `grant a painting channel its triad`,
+                        `L1 ${id} — the painting-channel scene did NOT render the triad's multi-surface ` +
+                            `select (present:${s.present}, combobox:${s.isCombobox}, label='${s.label}'); ` +
+                            `the derivation must grant a painting channel its triad`,
                     );
                 }
-                // Close the select before the next nav.
-                await page.keyboard.press("Escape").catch(() => {});
             }
             if (clean === paintingScenes.length) {
-                ok(`L1 census: ${clean}/${paintingScenes.length} painting-channel scenes render the full triad`);
+                ok(
+                    `L1 census: ${clean}/${paintingScenes.length} painting-channel scenes render the ` +
+                        `triad's multi-surface select (the #25 asymmetry cure)`,
+                );
             }
         },
     );

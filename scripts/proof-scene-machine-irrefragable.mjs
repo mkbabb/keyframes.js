@@ -545,6 +545,35 @@ async function clauseRouteStability(browser, base) {
 async function clauseSceneIsolation(browser, base) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     try {
+        // T.B2 — easing's PAINTING preview channel earns the full triad, so the
+        // control store's default `selectedControl:"controls"` opens the Controls
+        // body, NOT the Curve facet. Seed the store's easing bucket with the
+        // 'easing' facet pick (a VALID member of easing's derived set) so the
+        // scene opens on its signature surface — the anti-regression bite (the
+        // curve canvas paints for the 'easing' surface) is preserved at full
+        // strength; a leaked/wrong surface set would carry no such facet.
+        await page.addInitScript(
+            (ck) => {
+                try {
+                    localStorage.setItem(
+                        ck,
+                        JSON.stringify({
+                            _storeTimestamp: Date.now(),
+                            easing: {
+                                selectedControl: "easing",
+                                selectedAnimation: "Easing",
+                                selectedKeyframesControl: "string",
+                                isTimelineExpanded: false,
+                                isControlsPanelOpen: true,
+                            },
+                        }),
+                    );
+                } catch {
+                    /* ignore */
+                }
+            },
+            CTRL_KEY,
+        );
         await page.goto(`${base}/#/easing`, { waitUntil: "load" });
         await page.waitForTimeout(4000);
 

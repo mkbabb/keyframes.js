@@ -215,43 +215,35 @@ const dockTrigger = (page) =>
 //     'controls' (RibbonBar.vue);
 //   • easing/spring: the scene's ribbonContent (the `.timeline-green` playback
 //     scrub) renders iff the field is 'easing'/'spring' (the slot guard).
+// T.B9 — the ONE keyspace: the option stores key by the registry SceneId
+// (lowercase), NOT the retired PascalCase super-key. T.B2 — easing/spring each
+// carry a PAINTING preview channel, so they earn the full triad: the default
+// selected surface is 'controls' (the set's first member) and the control-tab
+// trigger reads "Controls" (the pre-T.B2 single-surface elision is superseded).
 const SWEEP = [
     {
         scene: "cube",
-        superKey: "Cube",
+        superKey: "cube",
         trigger: "Controls",
         expect: "controls",
         liveProbe: "#controls-ribbon-target",
     },
     {
         scene: "easing",
-        superKey: "Easing",
-        // T.B5-RENDER / T.C1 — the single control surface is redundant with the
-        // scene identity, so the control-tab TRIGGER is ELIDED (null); the panel
-        // content (the curve canvas) + the live ribbon scrub still render — only
-        // the dead 1-option dock select is gone (VERDICT #17).
-        trigger: null,
-        expect: "easing",
-        panelProbe: ".easing-curve-canvas",
-        liveProbe: ".timeline-green",
+        superKey: "easing",
+        trigger: "Controls",
+        expect: "controls",
     },
     {
         scene: "spring",
-        superKey: "Spring",
-        // T.B5-RENDER / T.C1 — the control-tab trigger is elided (single surface).
-        trigger: null,
-        expect: "spring",
-        // J.W7c U5 REDESIGNED the spring panel: the legacy `.preset-row` comparison
-        // rows became the `.preset-cell` cells inside `.preset-grid` (same flat-mounted
-        // preset surface, evolved markers). The probe reads either shape so the bite is
-        // unchanged — the single-surface spring panel content must render on screen.
-        panelProbe: ".preset-cell, .preset-grid, .preset-row",
-        liveProbe: ".timeline-green",
+        superKey: "spring",
+        trigger: "Controls",
+        expect: "controls",
     },
-    { scene: "sequence", superKey: "Sequence", trigger: null, expect: null },
+    { scene: "sequence", superKey: "sequence", trigger: null, expect: null },
     {
         scene: "cube",
-        superKey: "Cube",
+        superKey: "cube",
         trigger: "Controls",
         expect: "controls",
         liveProbe: "#controls-ribbon-target",
@@ -348,21 +340,30 @@ async function browserHalf() {
                 );
             }
 
-            // (b2) cross-store purity — the recorded corruption shape.
-            const easingField = await storeField(page, "Easing");
-            const springField = await storeField(page, "Spring");
-            if (easingField === "easing" && springField === "spring") {
+            // (b2) cross-store purity — the recorded corruption shape (the Easing
+            // store ending on a spring-only surface). T.B2 — easing's valid set is
+            // {controls,keyframes,timeline,easing}; 'spring' is NEVER valid for it
+            // (and vice-versa). The invariant: NO cross-scene-ONLY surface leaked
+            // into a leaving scene's store mid-transition. Each store holds either
+            // its default ('controls'/null on a gestureless sweep) or one of ITS
+            // OWN valid surfaces — never the sibling's exclusive facet.
+            const easingField = await storeField(page, "easing");
+            const springField = await storeField(page, "spring");
+            const easingClean = easingField === null || easingField !== "spring";
+            const springClean = springField === null || springField !== "easing";
+            if (easingClean && springClean) {
                 ok(
-                    "clause (b2) — cross-store purity after the sweep: Easing store holds 'easing', " +
-                        "Spring store holds 'spring' (suspend-on-leave — no mid-transition cross-write " +
-                        "corrupted a leaving scene's store)",
+                    "clause (b2) — cross-store purity after the sweep: the Easing store never holds " +
+                        "spring's exclusive facet, the Spring store never holds easing's (suspend-on-" +
+                        `leave — no mid-transition cross-write; Easing=${JSON.stringify(easingField)}, ` +
+                        `Spring=${JSON.stringify(springField)})`,
                 );
             } else {
                 fail(
                     `clause (b2) — a leaving scene's store was CORRUPTED by a cross-scene write ` +
                         `mid-transition (the perf-battery §2 recorded shape): Easing=` +
-                        `${JSON.stringify(easingField)} (expected 'easing'), Spring=` +
-                        `${JSON.stringify(springField)} (expected 'spring')`,
+                        `${JSON.stringify(easingField)} (must never be 'spring'), Spring=` +
+                        `${JSON.stringify(springField)} (must never be 'easing')`,
                 );
             }
 
@@ -383,7 +384,8 @@ async function browserHalf() {
                             ck,
                             JSON.stringify({
                                 _storeTimestamp: Date.now(),
-                                Cube: {
+                                // T.B9 — the store keys by the lowercase registry SceneId.
+                                cube: {
                                     selectedControl: "matrix-controls",
                                     selectedAnimation: "Rotations",
                                     selectedKeyframesControl: "string",
@@ -415,7 +417,7 @@ async function browserHalf() {
             await page.waitForTimeout(2000);
 
             const trig = await dockTrigger(page);
-            const field = await storeField(page, "Cube");
+            const field = await storeField(page, "cube");
             if (trig === "Controls" && field === "controls") {
                 ok(
                     "clause (b3) — a stale 'matrix-controls' pick with a non-Matrix selection " +

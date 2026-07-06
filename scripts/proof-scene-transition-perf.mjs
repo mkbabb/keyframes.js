@@ -172,9 +172,10 @@ const SUPER_KEY = {
 };
 
 // The destination control-tab labels navToScene settles on (the per-EXPECTED
-// predicate): easing projects its scene-specific "Easing" surface; cube keeps
-// the built-in "Controls" default.
-const TRIGGER = { cube: "Controls", easing: "Easing" };
+// predicate). T.B2 — easing's PAINTING preview channel earns the full triad, so
+// its default selected surface is the built-in "Controls" (the set's first
+// member), same as cube; the "Easing" facet rides the multi-surface select.
+const TRIGGER = { cube: "Controls", easing: "Controls" };
 
 /** Drive ONE cross-scene transition and measure the settle: from the hash
  *  assignment to the control-surface re-render committed two rAFs after the
@@ -265,15 +266,19 @@ async function browserHalf() {
         await navToScene(page, "easing", TRIGGER.easing);
         const easingAfter = await controlProjection(page, SUPER_KEY.easing);
 
+        // T.B2 — easing's default selected surface is 'controls' (the triad's
+        // first member). The round-trip INVARIANT is unchanged: the DFA-gated
+        // surface state suspends on leave + fully resumes byte-identical on
+        // SCENE_READY (selectedControl returns to its pre-leave 'controls').
         const roundTrips =
             easingBefore &&
             easingAfter &&
             JSON.stringify(easingBefore) === JSON.stringify(easingAfter) &&
-            easingBefore.selectedControl === "easing";
+            easingBefore.selectedControl === "controls";
         if (roundTrips) {
             ok(
                 `control-surface round-trip: easing↔cube preserves the control projection ` +
-                    `byte-identical (${JSON.stringify(easingAfter)}; selectedControl='easing' ` +
+                    `byte-identical (${JSON.stringify(easingAfter)}; selectedControl='controls' ` +
                     `resumes — the DFA-gated surface state suspends + fully resumes on SCENE_READY)`,
             );
         } else {
@@ -282,7 +287,7 @@ async function browserHalf() {
                     `      before: ${JSON.stringify(easingBefore)}\n` +
                     `      after:  ${JSON.stringify(easingAfter)}\n` +
                     `      (the DFA-gated surface state must suspend on leave + fully resume; ` +
-                    `selectedControl must return to 'easing')`,
+                    `selectedControl must return to 'controls')`,
             );
         }
 
