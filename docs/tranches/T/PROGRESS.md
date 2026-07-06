@@ -353,6 +353,34 @@
   T.H picker asks — rides the post-review easing terminal batch). Styles-split +
   proof:colocation deferred (premature before F1/F2 structure waves).
 
+- **2026-07-06 — BATCH ⑧ MERGED + VERIFIED (T4/T5).** Fleet `wf_e0c8cf2a-740`, 3/3.
+  **T.B2 THE INVERSION LANDED browser-verified**: the exclusion table is DEAD —
+  surfacesFor(facility, selected) derives the triad from does-the-channel-paint
+  (the #25 asymmetry cure; cube matrix = a selection-gated facet; the
+  activeConditionals threading died; proof:dfa-derived born→green; 6 gates
+  re-anchored). PENDING-OWNER note: easing/spring now surface the full triad — a
+  visible reversal of the #17 single-surface elision, recipe-directed, flagged for
+  the review glance (they open on Controls, not their signature facet). **T.G3
+  TRUE REST LANDED measured**: cube/spring/easing 0.00 recalc+layout/frame at idle
+  (was 1.00–3.03) — spring/easing autoPlays:false + the cube idle-bob REMOVED
+  (Chromium refuses to composite a transform anim wrapping a live preserve-3d
+  subtree — measured; the die rests still, noted for review); proof:perf-counters
+  DISCHARGED → BLOCKING. T.G4 spring converted (transform:cqw, no left thrash);
+  G2 substantially cured via rest; G5 core verified landed upstream. **THE
+  FURNITURE TERMINAL**: the last gesture legends died (spring/square/sequence) +
+  GestureLegend.vue deleted + proof:gesture-manifest RETIRED (migration →
+  stage-inventory); proof:easter-egg + proof:design-refinement RETIRED (the
+  mandate dies, the eggs stay as unmandated delights); the four remaining
+  stage-manifests filled; the FROZEN sweep re-run (44 live / 8 discharges; roster
+  228 → converging, honestly noted). **Merge composition**: the ⑦ KfPillTabs
+  import-depth regression (broke gh-pages, invisible to tsc — all three lanes hit
+  it) resolved; live-session-mobile A2 re-armed off the stale pre-OD-6 hex + M2's
+  destination predicate re-armed to the derived-triad tell — the full mobile
+  battery PASSES. 1050 tests. **Remaining**: T.B8 (4th-attempt lane, refined
+  anchor), T.G4-tail + the Monaco-eager LCP cure (G9), T.F structure (F2
+  instrument fold + styles split + colocation keystone — post-B8), the easing
+  terminal (OD-7-gated), M3, T.S residuals, T.Z.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
