@@ -1,4 +1,5 @@
 import { easeInBounce } from "@mkbabb/value.js";
+import type { Vars } from "@mkbabb/keyframes.js";
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { mat4 } from "gl-matrix";
@@ -92,7 +93,7 @@ export function useTransformState(
         toMatrix: mat4,
         reset: boolean = false,
     ) => {
-        const transformFunc = ({ transform: { matrix3d } }: any) => {
+        const transformFunc = ({ transform: { matrix3d } }: Vars) => {
             const matrixValues = matrix3d.valueOf();
 
             matrix3dEnd.value.values.forEach((value, i) => {

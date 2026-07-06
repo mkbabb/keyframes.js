@@ -1,3 +1,4 @@
+import type { Vars } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
 import { AMIGA_SCENE_ID } from "./amigaKeys";
 
@@ -77,7 +78,7 @@ export function useAmigaDemo() {
     // `vars.rotation.y` arrive as real numbers, never array-boxed ValueUnits. The
     // transform writes the POSE (not the mesh); the scene composes it. No
     // `singleTarget` dodge, no per-frame allocation.
-    const transform = (vars: Record<string, any>) => {
+    const transform = (vars: Vars) => {
         const p = vars.position;
         if (p) {
             if (typeof p.x === "number") pose.px = p.x;

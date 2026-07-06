@@ -51,7 +51,7 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 const BUILT_IN_CONTROL_TABS: { value: string; label: string; icon?: string }[] =
     BUILT_IN_SURFACES.map((s) => SURFACE_META[s]);
 
-const TAB_ICONS: Record<string, any> = {
+const TAB_ICONS: Record<string, Component> = {
     SlidersHorizontal,
     Braces,
     Clock,

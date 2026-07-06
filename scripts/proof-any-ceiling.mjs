@@ -20,8 +20,10 @@
  * extension-agnostic, so this gate is too — a `Record<string, any>` smuggled into
  * a `.css`/`.json`/`.md` still counts). node_modules/dist are never under demo/.
  *
- * THE RATCHET. `CEILING` is the count at authoring time (T.F23(b): re-derived to
- * 109 on the post-excision tree). The gate REDs if:
+ * THE RATCHET. `CEILING` is the count at authoring time (T.F23(b): 109 on the
+ * post-excision tree; ratcheted to 103 at batch ⑩ when the scene/app transform
+ * seams adopted the library's own `Vars` contract type + the dock icon/matrix
+ * slider seams were typed). The gate REDs if:
  *   · the live count EXCEEDS CEILING (a NEW `any` — type it, or if it is a
  *     genuinely-dynamic seam, lower nothing and justify inline then RAISE nothing:
  *     the ceiling is a one-way ratchet, so a real new dynamic seam must be paid
@@ -47,7 +49,7 @@ const DEMO = path.join(REPO, "demo");
 // The one-way ratchet. LOWER this (never raise) as the post-facility sweep types
 // the cluster; the gate REDs if the live count drifts off this number in EITHER
 // direction (above = a new `any`; below = a stale ceiling after a sweep).
-const CEILING = 108;
+const CEILING = 103;
 
 // The charter's verbatim extended-regex (any ONE alternative on a line counts the
 // line once — LINE counting, matching `grep -rnE … | wc -l`).
