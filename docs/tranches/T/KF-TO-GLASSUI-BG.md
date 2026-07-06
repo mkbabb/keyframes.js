@@ -425,3 +425,44 @@ glass-ui BG/BH publish (GU-1..4, BG-1/3/4/5/6/7 + BG-11; USER-DOMAIN cut)
   `proof:workaround-deletion`, author `proof:glass-ui-gap-tripwire`.
 - **On the BG/BH publish (owner-domain):** re-pin, and every gated excision (T.H6/T.H7,
   T.C5/T.C6, T.G1, T.D2) flips from born-RED/PENDING to GREEN in lockstep.
+
+---
+
+## §FORWARDING — THE OWNER'S DRAWER-ADOPTION DIRECTIVE (2026-07-06, binding on the glass-ui tranche)
+
+> **The owner's words (verbatim):** "We shall adopt the glass-ui drawer, but ensure that we
+> identify any gaps in that implementation and forward any and all glass-ui suggestions to that working agent's tranche execution (with the exhortation to research, plan, and fold into our running BG/BH wave set--no prefunctory implementation)"
+
+**What this means for the glass-ui session:** keyframes.js is ADOPTING `Drawer
+mode="live-behind"` for its mobile sheet NOW (not holding behind BG-11). Every gap the
+adoption surfaces below is a REAL consumer finding from a live integration — the owner's
+exhortation is that each be **researched and planned into the running BG/BH wave set as a
+first-class wave** (charter → falsifiable gate → landed), **never a perfunctory patch**.
+
+The adoption-gap set (each carries kf-side measured evidence + a kf acceptance tripwire):
+
+1. **BG-11 (now URGENT — the adoption ships against it):** a detented live-behind Drawer
+   needs a bottom-inset/safe-area reserve token (proposed `--drawer-inset-block-end`) + a
+   max-detent-height cap. Measured: `.glass-drawer[data-glass-drawer-snap-points=true]`
+   forces `height:100%/max-height:100%` atop `bottom:0` — the full detent covers the
+   viewport and overlaps a consumer's bottom dock band at ANY snap; no blessed prop moves
+   it. kf's occlusion contract (52dvh stage-reserve / ≤70dvh detents / never occlude the
+   menubar — an owner-verified cure) can only be approximated via snapPoints until this
+   ships; the kf gates that guard it re-derive to best-effort + a BG-11-blocked backlog
+   row that discharges on your publish.
+2. **BG-5 (the single highest-leverage perf ask):** the static-backdrop blur mode.
+   Measured on kf: the live backdrop-filter re-samples the moving stage structurally
+   (26→66fps when neutralized); kf proved NO consumer-side CSS decoupling exists
+   (isolation/z-index/radius/geometry all neutral) AND that the cost is compositor-side
+   (invisible to main-thread CDP counters — measure on the GPU side when you research).
+3. **GU-1/GU-2 (dock render):** rest-crisp (the resting collapsed dock computes
+   blur(3px) both themes) + width-morph continuity (the max-content jump-cut) — kf's
+   measured acceptance gates (`proof:dock-rest-crisp`, `proof:dock-morph-continuity`)
+   are born-RED on the consumer side awaiting these.
+4. **BG-1/BG-3/BG-4/GU-3/GU-4:** the tabs-aria + material↔role axis + dock interaction
+   set (unchanged; the kf tripwires arm the excisions on publish).
+5. **BG-6..BG-10:** the token/aurora/easing-picker asks (unchanged).
+6. **Anything NEW the T.H3-ADOPT integration surfaces** (PRM behavior of the drawer
+   spring, focus/scroll interplay with a live-behind stage, snap-velocity tuning) will be
+   APPENDED here by the adoption wave with the same evidence discipline — treat appended
+   rows with the same research/plan/fold mandate.

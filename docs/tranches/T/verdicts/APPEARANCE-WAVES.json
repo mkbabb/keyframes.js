@@ -7,7 +7,8 @@
       "title": "SVG FUSE (scenes/svg/)",
       "od": "OD-1",
       "oracle": null,
-      "note": "DEAD per OD-1 PRUNE FINAL — oracle never authored (mutually exclusive with T.E3)"
+      "note": "DEAD per OD-1 PRUNE FINAL — oracle never authored (mutually exclusive with T.E3)",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.E6",
@@ -15,7 +16,8 @@
       "title": "easing specimen-drawer gallery IS the easing scene",
       "od": "OD-7",
       "oracle": "proof:easing-gallery",
-      "note": "OD-7 is the ONE PENDING-OWNER row — proof:easing-gallery may NOT be authored until OD-7 carries a token (T.M2 enforcement surface)"
+      "note": "OD-7 is the ONE PENDING-OWNER row — proof:easing-gallery may NOT be authored until OD-7 carries a token (T.M2 enforcement surface)",
+      "verdict": "OD-7 RULED APPROVED 2026-07-06 — P-GALLERY blessed as the reference; the easing terminal batch lands it (R2 folded in)"
     },
     {
       "id": "T.D7",
@@ -23,7 +25,8 @@
       "title": "the one oklch violet accent authority (accent-census)",
       "od": "OD-6",
       "oracle": "proof:accent-census",
-      "note": "OD-6 APPROVED ('Good.', 2026-07-05) — the oracle IS authored + GREEN on the applied tree (OWNER authority, blocking, correctness roster); verdict FILLED at verdicts/T.D7.md with the applied-theme capture packet (shots-TD-theme/) + named deviations (hero ink/deck/egg → the hero batch)"
+      "note": "OD-6 APPROVED ('Good.', 2026-07-05) — the oracle IS authored + GREEN on the applied tree (OWNER authority, blocking, correctness roster); verdict FILLED at verdicts/T.D7.md with the applied-theme capture packet (shots-TD-theme/) + named deviations (hero ink/deck/egg → the hero batch)",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.D9",
@@ -31,7 +34,8 @@
       "title": "hero φ-seat + two-focal capture",
       "od": "OD-4",
       "oracle": "proof:hero-two-focal",
-      "note": "OD-4 APPROVED — LANDED batch ⑤: proof:hero-two-focal AUTHORED post-token (OWNER, blocking, correctness roster) + GREEN on the landed tree; the machine-witnessed MIGRATION successor of the retired FROZEN hero-rung/-balance/-cls locks (gate-bands.mjs DISCHARGE). Verdict FILLED at verdicts/T.D9.md with the landed capture packet (shots-TD-hero/) + named P-HERO deviations; the packet rides the owner's mid-drive re-verify."
+      "note": "OD-4 APPROVED — LANDED batch ⑤: proof:hero-two-focal AUTHORED post-token (OWNER, blocking, correctness roster) + GREEN on the landed tree; the machine-witnessed MIGRATION successor of the retired FROZEN hero-rung/-balance/-cls locks (gate-bands.mjs DISCHARGE). Verdict FILLED at verdicts/T.D9.md with the landed capture packet (shots-TD-hero/) + named P-HERO deviations; the packet rides the owner's mid-drive re-verify.",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.D11",
@@ -39,7 +43,8 @@
       "title": "hero deck-voice ramp",
       "od": "OD-4",
       "oracle": "proof:hero-deck-voice",
-      "note": "OD-4 APPROVED — LANDED batch ⑤: proof:hero-deck-voice AUTHORED post-token (OWNER) + GREEN; the serif-italic deck ramp landed with ONE named rung deviation (hint heading→title, forced by the T.D2 serif floor). Verdict FILLED at verdicts/T.D11.md; T-TY9 resolves KEEP (the deck uses the italic axis)."
+      "note": "OD-4 APPROVED — LANDED batch ⑤: proof:hero-deck-voice AUTHORED post-token (OWNER) + GREEN; the serif-italic deck ramp landed with ONE named rung deviation (hint heading→title, forced by the T.D2 serif floor). Verdict FILLED at verdicts/T.D11.md; T-TY9 resolves KEEP (the deck uses the italic axis).",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.D13",
@@ -47,7 +52,8 @@
       "title": "cursor-light disposition (Aurora-on-hero, more subtle)",
       "od": "OD-2",
       "oracle": "proof:cursor-light-subtle",
-      "note": "OD-2 AURORA MORE-SUBTLE — LANDED batch ⑤: proof:cursor-light-subtle AUTHORED post-token (OWNER) + GREEN; HERO_AURORA_OPACITY_CEILING = 0.1 encoded (strictly under the P-HERO 0.15 wall), default-mounted home-only. Verdict FILLED at verdicts/T.D13.md; T.D14's recurrence guard (proof:no-hand-rolled-cursor-tracker, INSTRUMENT) banded into REGRESSION_GUARDS."
+      "note": "OD-2 AURORA MORE-SUBTLE — LANDED batch ⑤: proof:cursor-light-subtle AUTHORED post-token (OWNER) + GREEN; HERO_AURORA_OPACITY_CEILING = 0.1 encoded (strictly under the P-HERO 0.15 wall), default-mounted home-only. Verdict FILLED at verdicts/T.D13.md; T.D14's recurrence guard (proof:no-hand-rolled-cursor-tracker, INSTRUMENT) banded into REGRESSION_GUARDS.",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.B-panel",
@@ -55,7 +61,8 @@
       "title": "two-floating-panel composition capture",
       "od": "OD-5",
       "oracle": "proof:panel-composition",
-      "note": "OD-5 APPROVED-DIRECTION + two named reworks (R1 controls composition, R2 top-left curve preview)"
+      "note": "OD-5 APPROVED-DIRECTION + two named reworks (R1 controls composition, R2 top-left curve preview)",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.A-cube-taste",
@@ -63,7 +70,8 @@
       "title": "cube restage taste slice (axis-line rest opacity 0.45 + ease-out-back settle)",
       "od": null,
       "oracle": null,
-      "note": "the ONE T.A cube taste packet (T.A2 axis opacity + T.A3 settle choice); NO taste-keyed born-RED oracle (rides T.M capture sign-off — the objective clauses are proof:cube-silhouette/-settle/-relight-writes). Verdict PENDING-OWNER in docs/tranches/T/verdicts/T.A-cube-taste.md — genuinely owner-open (no VERDICT line names the number/easing choice)"
+      "note": "the ONE T.A cube taste packet (T.A2 axis opacity + T.A3 settle choice); NO taste-keyed born-RED oracle (rides T.M capture sign-off — the objective clauses are proof:cube-silhouette/-settle/-relight-writes). Verdict PENDING-OWNER in docs/tranches/T/verdicts/T.A-cube-taste.md — genuinely owner-open (no VERDICT line names the number/easing choice)",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.A10",
@@ -71,7 +79,8 @@
       "title": "amiga grid-room composition (paper-grid floor/back-wall + contact-shadow)",
       "od": null,
       "oracle": null,
-      "note": "T.A7–A12 impl drive: the RULED removals (#8 legend, CRT, boot flash) are executed born-RED; the grid-room COMPOSITION (grid density/tint, floor↔back-wall balance, contact-shadow softness) is a T.M2 capture sign-off surface — lane-driven, no OD row, PENDING-OWNER. No born-RED oracle authored (oracle:null) ahead of the token."
+      "note": "T.A7–A12 impl drive: the RULED removals (#8 legend, CRT, boot flash) are executed born-RED; the grid-room COMPOSITION (grid density/tint, floor↔back-wall balance, contact-shadow softness) is a T.M2 capture sign-off surface — lane-driven, no OD row, PENDING-OWNER. No born-RED oracle authored (oracle:null) ahead of the token.",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.A11",
@@ -79,7 +88,8 @@
       "title": "amiga transient-ω decay badge (existence + placement)",
       "od": null,
       "oracle": null,
-      "note": "T.A11: the parked telemetry is REMOVED (correctness, landed) + the decay witness moves to a non-DOM probe; whether a transient on-stage ω badge is wanted AT ALL (glass-ui MetricBadge, top-right) is a T.M2 design disposition. Default per T.M4 = removal, no un-manifested chrome. No born-RED existence oracle authored (oracle:null); PENDING-OWNER."
+      "note": "T.A11: the parked telemetry is REMOVED (correctness, landed) + the decay witness moves to a non-DOM probe; whether a transient on-stage ω badge is wanted AT ALL (glass-ui MetricBadge, top-right) is a T.M2 design disposition. Default per T.M4 = removal, no un-manifested chrome. No born-RED existence oracle authored (oracle:null); PENDING-OWNER.",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     },
     {
       "id": "T.H3",
@@ -87,7 +97,8 @@
       "title": "mobile-sheet Drawer geometry disposition (hold-the-cure vs adopt-full-height)",
       "od": null,
       "oracle": null,
-      "note": "T.H3 (lane 20 rec 1): glass-ui 4.0.1 ships Drawer mode=\"live-behind\" but a DETENTED drawer is forced height:100%/bottom:0 (drawer.css [data-glass-drawer-snap-points=true]) — its full detent covers the bottom menubar band; no bottom-inset lever exists. Adopting as-is REGRESSES the owner-verified occlusion cure (52dvh reserve, ≤70dvh, never-occlude-menubar). The GEOMETRY choice — HOLD the bespoke sheet behind BG-11 (recommended; the drawerDetentInset tripwire executes the swap on publish) vs ADOPT full-height Drawer now (delete ~350L, accept the overlap) — is genuinely owner-open (no VERDICT line rules the mobile-sheet geometry). No born-RED taste oracle authored (oracle:null); the objective clause is proof:glass-ui-gap-tripwire's drawerDetentInset arm. Verdict PENDING-OWNER in docs/tranches/T/verdicts/T.H3.md."
+      "note": "T.H3 (lane 20 rec 1): glass-ui 4.0.1 ships Drawer mode=\"live-behind\" but a DETENTED drawer is forced height:100%/bottom:0 (drawer.css [data-glass-drawer-snap-points=true]) — its full detent covers the bottom menubar band; no bottom-inset lever exists. Adopting as-is REGRESSES the owner-verified occlusion cure (52dvh reserve, ≤70dvh, never-occlude-menubar). The GEOMETRY choice — HOLD the bespoke sheet behind BG-11 (recommended; the drawerDetentInset tripwire executes the swap on publish) vs ADOPT full-height Drawer now (delete ~350L, accept the overlap) — is genuinely owner-open (no VERDICT line rules the mobile-sheet geometry). No born-RED taste oracle authored (oracle:null); the objective clause is proof:glass-ui-gap-tripwire's drawerDetentInset arm. Verdict PENDING-OWNER in docs/tranches/T/verdicts/T.H3.md.",
+      "verdict": "OWNER-RATIFIED 2026-07-06 (the blanket ratification token; see the wave's verdicts/*.md OWNER VERDICT block)"
     }
   ]
 }

@@ -22,3 +22,10 @@ VERDICT line touches the ω readout, so the existence question is genuinely
 owner-open (S.G lesson: no bespoke on-stage readout rebuilt without owner sign-off).
 Default per T.M4 = removal, no replacement. No born-RED existence oracle is authored
 ahead of the token; this packet records the option for the owner review.
+
+
+## OWNER VERDICT — FILLED 2026-07-06
+
+> **Token (verbatim):** “Ratify all with your best judgment. We shall adopt the glass-ui drawer, but ensure that we identify any gaps in that implementation and forward any and all glass-ui suggestions to that working agent's tranche execution (with the exhortation to research, plan, and fold into our running BG/BH wave set--no prefunctory implementation)”
+>
+> **Disposition:** RATIFIED: THE REMOVAL STANDS — no on-stage ω badge (the T.M4 no-un-manifested-chrome default; consistent with the #8/#13 rulings). The transient MetricBadge spec is retained dormant.

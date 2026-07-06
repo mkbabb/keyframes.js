@@ -24,3 +24,10 @@ Reference: lane 03 rec 5 (T-AM5); grid-room composition is a T.M2 capture sign-o
 surface (grid density/tint, floor↔back-wall balance, contact-shadow softness). The
 color TOKENS ride T.D. The RULED REMOVALS + the in-canvas draw are landed; the
 COMPOSITION awaits the owner token before its born-RED capture oracle is authored.
+
+
+## OWNER VERDICT — FILLED 2026-07-06
+
+> **Token (verbatim):** “Ratify all with your best judgment. We shall adopt the glass-ui drawer, but ensure that we identify any gaps in that implementation and forward any and all glass-ui suggestions to that working agent's tranche execution (with the exhortation to research, plan, and fold into our running BG/BH wave set--no prefunctory implementation)”
+>
+> **Disposition:** RATIFIED AS LANDED — the paper-grid room + contact-shadow composition approved (the demo's own substrate over the foreign gray box).

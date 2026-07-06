@@ -1,6 +1,7 @@
 # Tranche T — the OWNER DECISION register (OD-1 … OD-7)
 
-> **Status: DEVELOPMENT. Seven rulings PENDING-OWNER. Every ruling slot is EMPTY.**
+> **Status: ALL SEVEN RULINGS FILLED (OD-1..6 on 2026-07-05; OD-7 on 2026-07-06 via the
+> blanket ratification). The register is CLOSED; the tokens live in the table.**
 > This is charter §3 materialized as a live register: one row per pending disposition, each with
 > the decision, the options + their lane evidence, the prototype/artifact that serves the call,
 > and an EMPTY ruling slot the owner fills.
@@ -28,7 +29,7 @@
 | **OD-4** | The hero DIRECTION: "ink on graph paper" φ-band seat + per-CHAR two-tier uplift | per-char uplift is RULED (#3); honest ink (weight 400, de-glow) is RULED | the whole home COMPOSITION (seat, deck voice, two-focal balance) | **T.D9 / T.D10 / T.D11** + the live hero prototype | ✅ **RULED 2026-07-05: APPROVED** (P-HERO reviewed live — no objection to the composition; the aurora subtlety amendment (OD-2) is the only rider. The born-OWNER hero oracle unlocks against the P-HERO branch as the blessed reference) |
 | **OD-5** | Panel chrome: **two floating GlassPanels**, no surrounding pane | the surrounding pane is OUT (#7 "remove the surrounding pane") | the two-floating-panel REPLACEMENT composition | **T.B** (panel facility) + the live panel prototype | ✅ **RULED 2026-07-05: APPROVED-DIRECTION, TWO NAMED REWORKS** ("Square is much better, but the controls need work. And that curve preview in the top left needs to be improved dramatically." — verbatim. The triad restore + pane removal + elision are BLESSED; two riders bind the impl waves: (R1) the controls composition reworked — T.B4/T.B6 carry it as a born-OWNER re-review; (R2) the top-left easing-curve preview improved DRAMATICALLY — the curve canvas redesign joins T.B6/T.D as a born-OWNER surface (lane 19 rec 4 tokenization rides it)) |
 | **OD-6** | Theme: Jakarta body + honest-weight serif + ONE violet accent ramp | the red-kill (`--accent-red` → destructive-only, ~168 refs) is RULED; Jakarta body is RULED | the violet ramp CHOICE (the oklch hue/chroma arms) | **T.D7** + the live theme prototype | ✅ **RULED 2026-07-05: APPROVED** ("Good." — verbatim, on P-THEME live review. The violet authority + Jakarta + honest-weight direction is the blessed reference; T.D\'s born-OWNER theme oracles unlock against the P-THEME branch) |
-| **OD-7** | Easing specimen-drawer gallery: the drawer layout / tile treatment / one-shared-clock comparative sweep | the DIRECTION is ruled — #14 "just have the easing balls previewed here" (the balls ARE the scene) | the gallery DESIGN (drawer geometry, tile treatment, the shared-clock sweep) | **T.E6** + the live easing prototype | ⬜ **PENDING-OWNER** |
+| **OD-7** | Easing specimen-drawer gallery: the drawer layout / tile treatment / one-shared-clock comparative sweep | the DIRECTION is ruled — #14 "just have the easing balls previewed here" (the balls ARE the scene) | the gallery DESIGN (drawer geometry, tile treatment, the shared-clock sweep) | **T.E6** + the live easing prototype | ✅ **RULED 2026-07-06: APPROVED** (the blanket ratification; **P-GALLERY = the blessed reference**; OD-5 R2 folds in; the easing terminal lands T.E6+T.E8) |
 
 ---
 
@@ -50,7 +51,7 @@ scene instead of two broken bespoke ones.
 **Gated waves (cannot be authored until the token).** T.E2 (FUSE) and T.E3 (PRUNE) are mutually
 exclusive — the ruling selects exactly one. The other's gate is never authored.
 
-**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+**Ruling:** ✅ RULED — see the register table above (the table is the token of record; reconciled 2026-07-06 per the packet drift note).
 
 ---
 
@@ -78,7 +79,7 @@ in `KF-TO-GLASSUI-BG.md` (do NOT hand-copy glass-ui's internal `createSpecularWr
 
 **Gated wave.** T.D13's disposition-specific oracle is not authored until the token picks A or B.
 
-**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+**Ruling:** ✅ RULED — see the register table above (the table is the token of record; reconciled 2026-07-06 per the packet drift note).
 
 ---
 
@@ -109,7 +110,7 @@ call, not assumed either way.
 outcome routes to either "recorded KEEP" or a CUT wave in **T.E/T.F** (decorative-chrome sweep)
 with the grep gate attached at that time.
 
-**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+**Ruling:** ✅ RULED — see the register table above (the table is the token of record; reconciled 2026-07-06 per the packet drift note).
 
 ---
 
@@ -133,7 +134,7 @@ the live hero prototype.
 **Gated waves (BORN-OWNER):** T.D9's two-focal capture oracle + T.D11's deck-voice oracle are not
 authored until OD-4 carries a token.
 
-**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+**Ruling:** ✅ RULED — see the register table above (the table is the token of record; reconciled 2026-07-06 per the packet drift note).
 
 ---
 
@@ -154,7 +155,7 @@ prototype.
 **Gated wave (BORN-OWNER):** T.B's panel-composition capture oracle is not authored until OD-5
 carries a token; the mechanical pane-removal is RULED and lands now.
 
-**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+**Ruling:** ✅ RULED — see the register table above (the table is the token of record; reconciled 2026-07-06 per the packet drift note).
 
 ---
 
@@ -179,7 +180,7 @@ of T.D2/T.D3/T.D8/T.D17 all consume this token, so its ramp choice is upstream o
 **Gated wave (BORN-OWNER):** T.D7's accent-census oracle is not authored until OD-6 carries a
 token (the red-kill mechanical lever is RULED and lands now; the ramp values ride the token).
 
-**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+**Ruling:** ✅ RULED — see the register table above (the table is the token of record; reconciled 2026-07-06 per the packet drift note).
 
 ---
 
@@ -207,7 +208,7 @@ invisible here.
 **Gated wave (BORN-OWNER):** T.E6's `proof:easing-gallery` born-RED oracle is not authored until
 OD-7 carries a token.
 
-**Ruling:** ⬜ **PENDING-OWNER** — token: `___`
+**Ruling:** ✅ RULED — see the register table above (the table is the token of record; reconciled 2026-07-06 per the packet drift note).
 
 ---
 

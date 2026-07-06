@@ -43,3 +43,10 @@ The before/after review packet (cured-cube captures + the two taste deltas):
 
 Disposition: PENDING-OWNER
 Reference: shots-02-cube/02-cube-cured-filter-off.png ; CubeAxisLines.vue:51 (0.45) ; useCubeDemo.ts changeGraphPerspectiveAnim (ease-out-back, 650ms)
+
+
+## OWNER VERDICT — FILLED 2026-07-06
+
+> **Token (verbatim):** “Ratify all with your best judgment. We shall adopt the glass-ui drawer, but ensure that we identify any gaps in that implementation and forward any and all glass-ui suggestions to that working agent's tranche execution (with the exhortation to research, plan, and fold into our running BG/BH wave set--no prefunctory implementation)”
+>
+> **Disposition:** RATIFIED AS LANDED — axis-line rest opacity 0.45 + the ease-out-back settle (one settle language; only the locked axis speaks).

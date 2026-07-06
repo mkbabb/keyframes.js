@@ -57,3 +57,10 @@ Disposition: APPROVED
 Reference: OD-4 (OWNER-DECISIONS.md) · P-HERO branch `worktree-wf_1e744f4d-2bb-1` ·
 landed captures `shots-TD-hero/` · oracles proof:hero-deck-voice (OWNER) +
 proof:font-census roles hero-deck/hero-hint (T.D1 manifest).
+
+
+## OWNER VERDICT — FILLED 2026-07-06
+
+> **Token (verbatim):** “Ratify all with your best judgment. We shall adopt the glass-ui drawer, but ensure that we identify any gaps in that implementation and forward any and all glass-ui suggestions to that working agent's tranche execution (with the exhortation to research, plan, and fold into our running BG/BH wave set--no prefunctory implementation)”
+>
+> **Disposition:** RE-CONFIRMED under the blanket ratification (the one named rung deviation accepted).
