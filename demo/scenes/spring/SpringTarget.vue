@@ -11,13 +11,6 @@
         :shadow="false"
         class="spring-target relative flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
     >
-        <!-- S.G3 S1 — the drafting-stamp gesture legend (the census TELL for the
-             derby egg; fades after the first derby fires). -->
-        <GestureLegend
-            scene="spring"
-            :items="[{ id: 'derby', glyph: '⁚⁚', label: 'double-tap the rail: derby' }]"
-            :used="derbyUsed"
-        />
         <!-- Header readout.
              J.W7a S2 (D7 / TYP-2, SP-2) — the scene name lifts to the
              Instrument-Serif `text-display` rung (the display voice carried
@@ -165,20 +158,18 @@
 
 <script setup lang="ts">
 import type { ComponentPublicInstance } from "vue";
-import { inject, onMounted, onScopeDispose, ref, useTemplateRef } from "vue";
+import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
-import GestureLegend from "@components/custom/GestureLegend.vue";
 import { SPRING_DEMO_KEY } from "./springKeys";
 import SpringTrace from "./SpringTrace.vue";
 
 const demo = inject(SPRING_DEMO_KEY)!;
 
 // S.G3 S2 — the derby is POINTER-based double-tap now (touch parity; never native
-// `dblclick`, which mobile browsers do not synthesize reliably). The legend stamp
-// fades once it fires.
-const derbyUsed = ref(false);
+// `dblclick`, which mobile browsers do not synthesize reliably). A discovered
+// double-tap gesture egg (the on-stage legend layer was retired at T.M — VERDICT #8).
 
 const railEl = useTemplateRef<HTMLElement>("railEl");
 const liveBallEl = useTemplateRef<HTMLElement>("liveBallEl");
@@ -258,7 +249,6 @@ useDoubleTap({
     el: railEl,
     onDoubleTap: () => {
         demo.derby();
-        derbyUsed.value = true;
     },
 });
 

@@ -49,7 +49,8 @@ export const APPEARANCE_TOUCHING = [
     "proof:typing-dots",
     "proof:dogfood-hero",
     "proof:crayon-preserved",
-    "proof:design-refinement",
+    // (proof:design-refinement RETIRED at T.M7/T.M8 batch ⑧ — the axis shrinks with
+    //  the roster; its FROZEN KILL discharge lives in scripts/gate-bands.mjs.)
     // easing-scene appearance locks
     "proof:easing-canvas-bounded",
     "proof:scene-uses-standard-ribbon",
@@ -127,8 +128,9 @@ export const APPEARANCE_TOUCHING = [
     "proof:motion-path-copy",
     "proof:motion-path-scale",
     "proof:square-honest",
-    "proof:gesture-manifest",
-    "proof:easter-egg",
+    // (proof:gesture-manifest / proof:easter-egg RETIRED at T.M7/T.M8 batch ⑧ —
+    //  gesture-manifest via the RETIREMENT_LEDGER, easter-egg (FROZEN) via a KILL
+    //  discharge; the axis shrinks with the roster.)
     "proof:compose-scene",
     "proof:appearance-suffusion",
     "proof:accent-census",
@@ -219,7 +221,6 @@ export const GATE_AUTHORITY = {
     "proof:typing-dots": "INSTRUMENT",
     "proof:dogfood-hero": "INSTRUMENT",
     "proof:crayon-preserved": "INSTRUMENT",
-    "proof:design-refinement": "INSTRUMENT",
     "proof:easing-canvas-bounded": "INSTRUMENT",
     "proof:scene-uses-standard-ribbon": "INSTRUMENT",
     "proof:easing-sidebar-normalized": "INSTRUMENT",
@@ -271,8 +272,6 @@ export const GATE_AUTHORITY = {
     "proof:motion-path-copy": "INSTRUMENT",
     "proof:motion-path-scale": "INSTRUMENT",
     "proof:square-honest": "INSTRUMENT",
-    "proof:gesture-manifest": "INSTRUMENT",
-    "proof:easter-egg": "INSTRUMENT",
     "proof:compose-scene": "INSTRUMENT",
     "proof:appearance-suffusion": "INSTRUMENT",
     "proof:specular-absent-at-rest": "INSTRUMENT",

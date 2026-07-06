@@ -53,7 +53,6 @@ const CANDIDATE_GATES = [
     "proof:scene-parity",
     "proof:scene-perf-budget",
     "proof:sequence-rows-draggable",
-    "proof:easter-egg",
     "proof:mobile-single-page",
     "proof:drawer-spring",
     "proof:dock-zorder",

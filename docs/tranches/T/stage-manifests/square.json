@@ -1,0 +1,18 @@
+{
+  "_doc": "T.M4 owner-sanctioned on-stage inventory for the square scene, post the T.M gesture-legend strip (batch ⑧) + the T.B facility rebuild (OD-5 riders R1/R2). The `sanctioned` set is the on-stage element inventory the restaged scene renders; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The on-stage drafting-stamp gesture legend (#8) is EXPLICITLY forbidden — the owner ruled the on-stage annotation layer OUT ('remove all elements like this') and it is deleted THIS batch. The square caption/telemetry block (#11) is a ruled removal whose on-stage DOM prune rides T.B (OD-5); it is listed forbidden so the browser rendered-set reconciliation reds until T.B prunes it. SKELETON: the tether-vs-telemetry furniture disposition inside SquareInstrument is a T.B/OD-5 owner sign-off (T.M2).",
+  "scene": "square",
+  "sanctioned": [
+    "square-stage-card (the standard glass Card protagonist plate — `<Card surface=glass>` grid place-items-center; the drag arena, SQ-1/SQ-3/SQ-4)",
+    "demo-box (the 'drag me' subject — .demo-box .text-display .focus-ring, role=group; the box the per-axis springs chase across two axes)",
+    "axis-sliders (the two visually-hidden `role=slider` per-axis a11y children — .sr-only-slider; the WCAG 4.1.2 contract, no visual furniture)",
+    "rubber-band-tether (the SquareInstrument spring tether SVG — the spring pull made visible, a derived-read subject visualization fed deflX/deflY)"
+  ],
+  "forbidden": [
+    "gesture-legend (#8 — the on-stage drafting-stamp gesture legend, ruled OUT; GestureLegend.vue + the square:tumble/drag stamp deleted at T.M batch ⑧)",
+    "square-caption-block (#11 — the SquareInstrument telemetry/caption strip; a ruled removal whose on-stage DOM prune rides T.B/OD-5, browser-reconciliation reds until then)"
+  ],
+  "pendingOwner": [
+    "square-instrument-disposition (T.B/OD-5: which of the SquareInstrument layers — tether, coordinate field, telemetry strip — survive the caption-block prune is a T.M2 design sign-off; default = the caption/telemetry #11 removal, the tether kept as the subject visualization)"
+  ],
+  "status": "SKELETON — the gesture-legend removal (#8) is executed THIS batch; the sanctioned subject set (stage-card + box + a11y sliders + tether) is derived from the landed DOM. The #11 caption-block DOM prune + its owner sign-off ride T.B/OD-5. RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER)."
+}

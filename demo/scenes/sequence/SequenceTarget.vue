@@ -55,15 +55,6 @@
                  (C-SEQ-3, --row-start) so the stagger reads as a DIAGONAL CASCADE
                  even at t=0 — the distribution SEEN, not piled left. -->
             <div class="seq-storyboard px-4 py-4 shrink-0">
-                <!-- S.G3 S1 — the census TELL for the headline drag-to-retime
-                     gesture (the charter's "no tell" miss): a quiet drafting stamp
-                     naming the otherwise-silent row-handle drag. -->
-                <p
-                    class="seq-gesture-tell text-caption text-muted-foreground"
-                    data-gesture-tell="sequence:retime"
-                >
-                    <span aria-hidden="true">↔</span> drag a row handle to re-time its start
-                </p>
                 <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing
                      detonates the lanes in a diagonal cascade chasing the thumb
                      (`--scrub-dir` flips on drag-back); `.is-powering-on` runs the

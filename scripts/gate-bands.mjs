@@ -70,13 +70,19 @@ export const FROZEN_SET = [
     "proof:dock-zorder",
     "proof:drawer-spring",
     "proof:crayon-preserved",
-    "proof:design-refinement",
+    // (proof:design-refinement + proof:easter-egg were FROZEN here until T.M7/T.M8
+    //  KILLED them (batch ⑧) — VERDICT #2/#13/#15 "remove this crap" / "remove all
+    //  of this" made the owner-rejected instrument-egg program machine-MANDATORY;
+    //  the WHOLE key goes. The eggs SURVIVE in the code as discovered delights, but
+    //  NO gate mandates them; the on-stage legend layer that surfaced them (the
+    //  census MANDATE) is retired, replaced by the negative-space proof:stage-
+    //  inventory (T.M4). Their machine-witnessed KILL discharges live in DISCHARGE
+    //  below.)
     // scene-editor / interaction appearance locks
     "proof:sequence-rows-draggable",
     // (proof:motion-path-editable / proof:motion-path-copy were FROZEN here until
     //  T.E3 KILLED them — the motion-path scene was PRUNED (OD-1 = PRUNE); their
     //  machine-witnessed KILL discharges live in DISCHARGE below.)
-    "proof:easter-egg",
     "proof:demo-no-oversize",
     "proof:demo-usability",
     "proof:demo-elevate",
@@ -205,6 +211,57 @@ export const DISCHARGE = {
                 "witness is machine-continuous: this clause re-verifies every run that " +
                 "the script file is absent, the package key is absent, and the " +
                 "CORRECTNESS_ROSTER membership is gone.",
+        },
+    },
+    // T.M7/T.M8 (batch ⑧) — the owner-rejected instrument-egg PROGRAM's gate-lock
+    // dies. VERDICT #2/#13/#15 ("remove this crap" / "Remove all of this" / "remove
+    // this button") ruled the decorative, library-orthogonal egg chrome + the on-
+    // stage LEGEND layer that surfaced it OUT; the S taste error had made the eggs
+    // machine-MANDATORY (a gate that browser-actuated each one + red if it was
+    // unreachable). The eggs THEMSELVES survive in the code as discovered delights
+    // (cube roll, spring derby, square tumble, sequence retime — kept deliberately);
+    // what dies is the GATE MANDATE. Owner-ruled KILL. The re-run witness re-verifies
+    // every run that the script is gone from disk, the key is absent, and the
+    // CORRECTNESS_ROSTER membership is gone (all three landed THIS commit).
+    "proof:easter-egg": {
+        kind: "kill",
+        ledger:
+            "T ledger — VERDICT #2/#13/#15 (OWNER-DECISIONS.md): the Gallery + the " +
+            "seven kf-source eggs were decorative library-orthogonal chrome the owner " +
+            "ruled OUT; the S regime made them machine-mandatory (proof:easter-egg " +
+            "browser-actuated each egg + red if unreachable — the taste error made a " +
+            "MANDATE). T.M7 retires the WHOLE key; the eggs stay as unmandated delights.",
+        witness: {
+            cmd: "node scripts/proof-easter-egg.mjs",
+            cite:
+                "the on-stage LEGEND layer that surfaced the eggs is deleted (T.M — " +
+                "GestureLegend.vue + the 3 remaining tells: square/spring/sequence, " +
+                "cube/amiga at T.A2/T.A10; the easing gallery-door at T.E7). No gate " +
+                "MANDATES an egg now; the negative-space proof:stage-inventory (T.M4) " +
+                "asserts the at-rest stage carries NO un-manifested chrome. The re-run " +
+                "witness is machine-continuous: this clause re-verifies every run that " +
+                "the script file is absent, the package key is absent, and the " +
+                "CORRECTNESS_ROSTER membership is gone.",
+        },
+    },
+    "proof:design-refinement": {
+        kind: "kill",
+        ledger:
+            "T ledger — VERDICT #2/#13/#15 (OWNER-DECISIONS.md): the nine instrument-" +
+            "eggs (the S1 @KEYFRAMES·LIVE typing card, the S5 easing drag-smear " +
+            "telemetry, …) were the owner-rejected 'remove this crap' surface the S " +
+            "regime crystallized into a machine-mandatory gate. The coupled surfaces " +
+            "landed removed across the drive (S1 typing card → T.D12; S5 easing smear " +
+            "surface fate → OD-7's T.E6). T.M7 retires the WHOLE key.",
+        witness: {
+            cmd: "node scripts/proof-design-refinement.mjs",
+            cite:
+                "the S1 kf-source typing card was excised at T.D12 (useHeroSourceEgg.ts " +
+                "deleted; absence browser-asserted by proof:hero-two-focal clause (c)); " +
+                "no gate MANDATES a design-refinement egg now. The re-run witness is " +
+                "machine-continuous: this clause re-verifies every run that the script " +
+                "file is absent, the package key is absent, and the CORRECTNESS_ROSTER " +
+                "membership is gone.",
         },
     },
 };
@@ -412,13 +469,19 @@ export const ROSTER_CEILING = 120;
  */
 export const T_BORNRED_BACKLOG = {
     "proof:stage-inventory": {
-        dischargedBy: "T.A/T.B/T.C/T.D/T.E (furniture prune + owner-sanctioned per-scene manifests)",
+        dischargedBy: "T.A/T.B/T.C/T.D/T.E (furniture prune) + the browser rendered-set reconciliation (the KF_REQUIRE_BROWSER discharge, a later wave)",
         reason:
-            "the on-stage negative-space gate: reds until the retire-target chrome " +
-            "(#5 cube readout / #6 dock ghost-tooltip+divider / #7 controls pane / #11 " +
-            "square caption / #22 cursor light) is pruned AND each scene carries a " +
-            "committed owner-sanctioned manifest. Per-scene manifest slots are EMPTY-RED " +
-            "by design (bands fill them).",
+            "the on-stage negative-space gate. The MANIFEST LAYER is now FULLY GREEN " +
+            "(batch ⑧ T.M4: all 7 per-scene slots carry a committed owner-sanctioned " +
+            "inventory — home/cube/amiga filled earlier; square/spring/sequence/easing " +
+            "filled here as the gesture-legend strip landed). It STAYS born-RED because " +
+            "(a) the browser RENDERED-set reconciliation (KF_REQUIRE_BROWSER=1: does the " +
+            "running demo paint exactly the sanctioned set?) is not yet implemented — a " +
+            "later wave opens the browser and asserts it; and (b) the retire-target chrome " +
+            "the manifests mark FORBIDDEN (#11 square caption, #17 dock-label dup, the OD-7 " +
+            "easing gallery redesign, …) has its on-stage DOM prune / redesign PENDING " +
+            "across T.B/T.C/T.D/T.E, so the browser reconciliation would still red. " +
+            "Converges as those prunes + the reconciliation land.",
     },
     "proof:subject-legible": {
         dischargedBy: "T.C (dock icon de-blur — a glass-ui born-RED handoff)",
@@ -463,8 +526,12 @@ export const T_BORNRED_BACKLOG = {
         dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
         reason:
             "the count clause reds while the proof:* roster exceeds the declared ceiling " +
-            `(${ROSTER_CEILING}); today 203. It CONVERGES as M7's ~15 feature-coupled ` +
-            "retirements + the FROZEN discharge land — a declared backlog, not a mask.",
+            `(${ROSTER_CEILING}); today 228 (batch ⑧: 231 − the gesture-manifest / easter-egg ` +
+            "/ design-refinement retirement = 228; each altitude band kept authoring MORE " +
+            "born-RED oracles than the M7 retirements removed, so the count converges SLOWLY). " +
+            "It CONVERGES as the remaining M7 feature-coupled retirements (the easing surface-" +
+            "locks, crayon, icon-paint-live) + the FROZEN discharge land — a declared backlog, " +
+            "not a mask.",
     },
     "proof:chronic-closure": {
         dischargedBy:
