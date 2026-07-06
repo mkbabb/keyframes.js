@@ -99,7 +99,9 @@ export const APPEARANCE_TOUCHING = [
     // felt-performance axis C-10 forbade a LIBRARY gate but the demo requires. OWNER
     // + blocking-not-OBSERVE (T.M6.2) — it may NOT ride the OBSERVE bucket the way
     // perf-frame-budget's rAF-interval clauses do (that demotion is why the 20fps
-    // stage rode green). Born-RED; a recorded T_BORNRED_BACKLOG tripwire, dischargedBy T.G1.
+    // stage rode green). DISCHARGED GREEN at batch ⑧ (T.G3 rest + T.G4 transform):
+    // cube/spring/easing measure 0.00 recalc+layout/frame; now a BLOCKING member of
+    // proof:demo-correctness (out of T_BORNRED_BACKLOG + the ci-coverage EXCLUDED set).
     "proof:perf-counters",
     // T.C5 — the two dock RENDER acceptance gates (GU-1/GU-2). A "blurry janky
     // dock" is a taste-authority surface (VERDICT #4) — OWNER + blocking-not-OBSERVE
@@ -188,7 +190,8 @@ export const GATE_AUTHORITY = {
     // the demo actually being fast (the live-blur/neutralized CDP TaskDuration toggle-
     // delta within budget). BLOCKING-not-OBSERVE per T.M6.2 — the single most important
     // lesson of the T.G band (every existing perf instrument was neutered to OBSERVE).
-    // Born-RED today; a recorded T_BORNRED_BACKLOG tripwire (not the OBSERVE bucket).
+    // DISCHARGED GREEN at batch ⑧ (T.G3 + T.G4) — now a BLOCKING proof:demo-correctness
+    // member (out of T_BORNRED_BACKLOG), OWNER authority retained.
     "proof:perf-counters": "OWNER",
     // T.G9 (lighthouse-mobile, the mobile half of the perceived bar) — its OWNER
     // flip is DEFERRED, not dropped: the gate rides demo-roster OBSERVE_GATES today

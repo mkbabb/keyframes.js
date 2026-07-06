@@ -207,11 +207,17 @@ let unregisterPainter: (() => void) | null = null;
 onMounted(() => {
     unregisterPainter = demo.registerSpringPainter(() => {
         const live = demo.springLive;
+        // T.G4 — position by `transform: translateX(<cqw>)`, NEVER `left`. Animating
+        // `left` re-LAYS-OUT every frame (the born-RED spring layout thrash); a
+        // `translateX` composites on the GPU with zero layout. `cqw` = 1% of the
+        // nearest container's inline size (the rail/track/lane carry
+        // `container-type: inline-size`), so the value axis stays rail-relative with
+        // NO per-frame width read (the AnimationVisualizer/easing transform idiom).
         if (liveBallEl.value) {
-            liveBallEl.value.style.left = `${live.value * 100}%`;
+            liveBallEl.value.style.transform = `translateX(${live.value * 100}cqw)`;
         }
         if (samplerBallEl.value) {
-            samplerBallEl.value.style.left = `${clampSweep(live.sampled) * 100}%`;
+            samplerBallEl.value.style.transform = `translateX(${clampSweep(live.sampled) * 100}cqw)`;
         }
         // L.W11 S6 — position the four derby-lane balls from the live tracker
         // values (clampSweep RELAXED here so the bouncy lane visibly rings PAST
@@ -224,7 +230,7 @@ onMounted(() => {
                 // Allow a small overshoot beyond 100% so the ring is seen; cap so
                 // the ball can't leave the lane entirely.
                 const v = Math.max(0, Math.min(1.18, trackValues[i] ?? 0));
-                el.style.left = `${v * 100}%`;
+                el.style.transform = `translateX(${v * 100}cqw)`;
             }
         }
     });
@@ -304,6 +310,10 @@ const onKeydown = (e: KeyboardEvent) => {
 .sampler-track {
     display: flex;
     align-items: center;
+    /* T.G4 — the balls ride `translateX(<cqw>)`; `cqw` resolves against the nearest
+       inline-size container, so the rail/track ARE that container (the value axis
+       stays rail-relative with no per-frame width read). */
+    container-type: inline-size;
 }
 
 /* The rail + ball geometry now come from the shared .progress-rail /
@@ -339,16 +349,20 @@ const onKeydown = (e: KeyboardEvent) => {
    its small translucent rung so the hierarchy (protagonist > sampler) is
    legible at a glance. */
 .spring-ball {
+    /* T.G4 — anchored at the rail's left edge; the painter's `translateX(<cqw>)`
+       carries the position (compositor-only, no layout). */
+    left: 0;
     margin-left: calc(var(--ball-size, 36px) / -2);
-    will-change: left;
+    will-change: transform;
 }
 
 .sampler-ball {
     --ball-size: 1.25rem;
     --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
+    left: 0;
     margin-left: calc(var(--ball-size) / -2);
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
-    will-change: left;
+    will-change: transform;
 }
 
 /* ── L.W11 S6 — the y=1 TARGET LINE + the settle-pulse ──
@@ -416,6 +430,9 @@ const onKeydown = (e: KeyboardEvent) => {
     height: 0.9rem;
     display: flex;
     align-items: center;
+    /* T.G4 — the lane ball rides `translateX(<cqw>)`; the lane is its inline-size
+       container. */
+    container-type: inline-size;
 }
 .derby-lane-rail {
     position: absolute;
@@ -432,9 +449,10 @@ const onKeydown = (e: KeyboardEvent) => {
     --ball-glow: 30%;
     position: absolute;
     top: 50%;
+    left: 0; /* T.G4 — painter's translateX(<cqw>) carries the position */
     margin-top: calc(var(--ball-size) / -2);
     margin-left: calc(var(--ball-size) / -2);
-    will-change: left;
+    will-change: transform;
     /* the phosphor afterglow in the lane hue */
     filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent));
 }

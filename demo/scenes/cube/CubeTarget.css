@@ -23,24 +23,16 @@
     pointer-events: none;
 }
 
-/* CSS twin of the engine's reduced-motion gate: the always-on idle bob runs
-   only when the user has not asked the OS to reduce motion. */
-@media (prefers-reduced-motion: no-preference) {
-    .idle-hover {
-        animation: idle-bob 3s var(--ease-standard) infinite alternate;
-    }
-    .idle-hover.playing {
-        animation: none;
-    }
-}
-@keyframes idle-bob {
-    0% {
-        transform: translateY(0);
-    }
-    100% {
-        transform: translateY(5px);
-    }
-}
+/* T.G3 — THE CUBE RESTS AT IDLE (VERDICT #19: "the performance on every single
+   page is god awful"). The former always-on `idle-bob` (a 3s infinite `translateY`
+   float) could NOT be composited: it lived on the `preserve-3d` `.idle-hover`, and
+   even hoisted to a flat wrapper with `will-change`, Chromium refuses to promote a
+   transform animation that wraps a live 3D perspective subtree — so it re-flattened
+   the whole cube on the MAIN THREAD every frame (measured 1.00 style-recalc/frame
+   at rest, the born-RED proof:perf-counters churn). A perpetual idle float IS the
+   "never rests" defect the owner named; the die now sits STILL at idle and comes
+   alive on play (the group spin) or hover (`.graph:hover .cube`), where the motion
+   is intended and the layer promotion is honest. Reduced-motion was already still. */
 
 /* T.A4 — HONEST geometry. The die is a side×side box (was 0 × 450px: the faces
    are absolutely positioned so the flex item collapsed to zero width, and the

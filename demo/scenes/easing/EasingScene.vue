@@ -116,11 +116,14 @@ defineExpose({
     superKey: SCENE_ID,
     isPlaying,
     isStarted,
-    // The easing preview auto-plays on first visit (the former isPlaying =
-    // ref(true)). The App reads this on SCENE_READY to dispatch PLAY for a fresh
-    // scene, so the machine reaches `playing` and the raw-rAF loop (gated on the
-    // machine) actually sweeps.
-    autoPlays: true,
+    // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: a scene that
+    // sweeps forever with no gesture burned a full core at idle ("god awful").
+    // The raw-rAF loop gates on `machine.status === 'playing'`, so a paused-on-
+    // entry machine leaves the loop un-armed → zero rAF ticks, zero style recalc
+    // at rest (proof:perf-counters). The preview sweeps the instant the user
+    // presses Play (the dock/Space transport); the composed first frame stands
+    // still until then.
+    autoPlays: false,
     // The raw-rAF ScenePlayback adapter — the App registers it with the machine
     // on SCENE_READY so easing's progress/isPlaying round-trip through the
     // CONTRACT (the literal D12 repro; proof:scene-contract-identity).

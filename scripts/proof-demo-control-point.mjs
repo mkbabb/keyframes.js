@@ -54,7 +54,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { navToScene, withPage } from "./lib/demo-driver.mjs";
+import { navToScene, pressPlayToggle, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -221,6 +221,13 @@ async function browserHalf() {
             await navToScene(page, "cube", "Controls", { timeout: 8000 });
             await page.waitForTimeout(700);
             await switchScene(page, "easing", "Easing");
+
+            // T.G3 — the easing scene RESTS on entry (autoPlays:false). Clause (3)'s
+            // `reTimed` bite reads the subject-ball position spread across the sweep,
+            // which needs the preview ACTUALLY SWEEPING. Actuate Play (the honest
+            // F3-guard-passing press) so a handle drag re-times a LIVE ball.
+            await pressPlayToggle(page, { intent: "play" });
+            await page.waitForTimeout(300);
 
             // ── clause (3) live-drag (KEYSTONE) ──
             console.log("\nclause (3) live-drag (KEYSTONE — a real handle drag re-shapes the curve + re-times the ball)");
