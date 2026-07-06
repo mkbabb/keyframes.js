@@ -117,7 +117,7 @@ const CTRL_KEY = "animation-groups-control-options-store";
  *  the FULL-RAIL EasingSidebar render (the .easing-editor root + canvas) mounts —
  *  the 680px born-RED was on THIS render (WV-W4-MED-2 / HD-W4-3). */
 async function settleOnEasing(page, viewportWidth, viewportHeight) {
-    await navToScene(page, "easing", "Easing", { timeout: 8000 });
+    await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     // Force the controls pane OPEN + the easing tab selected (the EasingSidebar is
     // teleported into the easing TabsContent — it mounts only when the pane is open

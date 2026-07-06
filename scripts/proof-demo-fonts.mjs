@@ -102,7 +102,7 @@ async function browserHalf() {
 
         // (d) ACTUATION leg (J.W3 S5, kept): the resolved body face must SURVIVE a
         // real cube→spring scene switch byte-identical — and still be Jakarta.
-        await navToScene(page, "spring", "Spring");
+        await navToScene(page, "spring", /*T.B5-RENDER elided*/ null);
         const afterSwitch = await page.evaluate(async () => {
             await document.fonts.ready;
             return getComputedStyle(document.body).fontFamily;

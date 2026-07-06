@@ -516,15 +516,8 @@ export const T_BORNRED_BACKLOG = {
             "clears. glass-ui-root fix; OWNER authority + blocking-not-OBSERVE (T.M6). See " +
             "demo/glass-ui-gaps.ts dockMorphMeasure (GU-2).",
     },
-    "proof:transport-play-first-render": {
-        dischargedBy:
-            "T.C1 (the play-first rail-core dock rebuild — renders primary first from the " +
-            "T.B10 actions model; one source of order truth with proof:dock-grammar).",
-        reason:
-            "T.B10 RENDER clause. The MODEL half (proof:transport-action-order) is GREEN — " +
-            "useSceneTransport exposes { primary:{kind:'play'}, secondary:[reset,clear] }. " +
-            "But TransportDock.vue still renders the primary Play button MARKUP-LAST (after " +
-            "Reset + Clear) — VERDICT #6 wants play FIRST. Measured born-RED on template " +
-            "order today; flips GREEN when T.C1 draws play first from actions.primary.",
-    },
+    // proof:transport-play-first-render — DISCHARGED at T.C1 (batch ⑤). The rail-core
+    // rebuild renders play FIRST (from actions.primary); the gate flipped GREEN and
+    // moved to the blocking proof:hygiene-chain in the SAME commit (drive clause 7 —
+    // discharge = cure). No longer a born-RED backlog row.
 };

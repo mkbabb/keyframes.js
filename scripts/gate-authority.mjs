@@ -95,6 +95,14 @@ export const APPEARANCE_TOUCHING = [
     // (T.M6): a resting blur-blob / a jump-cut morph may not ride non-blocking.
     "proof:dock-rest-crisp",
     "proof:dock-morph-continuity",
+    // T.C7 — the three STRUCTURAL dock oracles (grammar / elision / single tooltip).
+    // INSTRUMENT: they assert falsifiable structure (DockSeparator grammar, zero
+    // static-label nodes, zero native `title=`), NOT the dock aesthetic — the "two
+    // quiet instruments" composition rides T.M's capture sign-off (taste-packet),
+    // never a standalone born-RED (the T.A2 precedent).
+    "proof:dock-grammar",
+    "proof:dock-elision",
+    "proof:dock-single-tooltip",
     // scene-subject render gates (the ones the verdict cited)
     "proof:subject-animates",
     "proof:orbital-rotate3d",
@@ -157,6 +165,11 @@ export const GATE_AUTHORITY = {
     // (proof:owner-golden lands with T.A/T.D renders — its OWNER row is added then)
 
     // ── INSTRUMENT authority (correctness facts; may NOT stand as the appearance bar) ──
+    // T.C7 — the structural dock oracles (the meta-fact cure: the S roster never
+    // looked at a dock's grammar). Falsifiable structure, not the dock aesthetic.
+    "proof:dock-grammar": "INSTRUMENT",
+    "proof:dock-elision": "INSTRUMENT",
+    "proof:dock-single-tooltip": "INSTRUMENT",
     "proof:idioms": "INSTRUMENT",
     "proof:phi-leaf-zero": "INSTRUMENT",
     "proof:icon-idiom": "INSTRUMENT",

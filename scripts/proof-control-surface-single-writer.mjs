@@ -226,7 +226,11 @@ const SWEEP = [
     {
         scene: "easing",
         superKey: "Easing",
-        trigger: "Easing",
+        // T.B5-RENDER / T.C1 — the single control surface is redundant with the
+        // scene identity, so the control-tab TRIGGER is ELIDED (null); the panel
+        // content (the curve canvas) + the live ribbon scrub still render — only
+        // the dead 1-option dock select is gone (VERDICT #17).
+        trigger: null,
         expect: "easing",
         panelProbe: ".easing-curve-canvas",
         liveProbe: ".timeline-green",
@@ -234,7 +238,8 @@ const SWEEP = [
     {
         scene: "spring",
         superKey: "Spring",
-        trigger: "Spring",
+        // T.B5-RENDER / T.C1 — the control-tab trigger is elided (single surface).
+        trigger: null,
         expect: "spring",
         // J.W7c U5 REDESIGNED the spring panel: the legacy `.preset-row` comparison
         // rows became the `.preset-cell` cells inside `.preset-grid` (same flat-mounted

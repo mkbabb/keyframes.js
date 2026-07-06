@@ -81,7 +81,7 @@ const CTRL_KEY = "animation-groups-control-options-store";
  *  the controls pane + the easing tab so the SIDEBAR editor mounts (clause 3); the
  *  singular stage is the default view. Rest ≥500ms. */
 async function settleOnEasing(page, viewportWidth, viewportHeight) {
-    await navToScene(page, "easing", "Easing", { timeout: 8000 });
+    await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 8000 });
     await page.setViewportSize({ width: viewportWidth, height: viewportHeight });
     await page.evaluate((ck) => {
         try {

@@ -371,8 +371,25 @@ jobs:
             # (no browser, glass-ui-free) — reads the demo Vue SFC tree, asserts the
             # `length > 1` count guard. A future component re-rendering a single-option
             # dropdown unconditionally reds. Rides the library gates job (device-independent).
-            - name: proof:no-single-option-select (L.W4 S5 — the U4 lone-option count-guard is live in every scene-driven select)
+            - name: proof:no-single-option-select (L.W4 S5 / RE-CHARTERED T.C1 — single/zero option ⇒ NOTHING, the #17 dup is elided)
               run: npm run proof:no-single-option-select
+            # T.C1/T.C7 — the three STRUCTURAL dock oracles (the meta-fact cure: the
+            # S roster never looked at a dock's grammar). STATIC source gates (no
+            # browser, glass-ui-free) — the dock GRAMMAR (glass-ui DockSeparator,
+            # no hand-rolled dividers, identity leads, serif flip deleted, home =
+            # compass), the single-option ELISION (single/zero ⇒ NOTHING), and the
+            # single TOOLTIP authority (no native `title=`). Ride the library gates job.
+            - name: proof:dock-grammar (T.C1 — both docks speak glass-ui DockSeparator grammar; no hand-rolled dividers; home is compass only)
+              run: npm run proof:dock-grammar
+            - name: proof:dock-elision (T.B5-RENDER — single/zero option ⇒ NOTHING; the #17 Spring│Spring dup is elided)
+              run: npm run proof:dock-elision
+            - name: proof:dock-single-tooltip (T.C3 — ONE tooltip authority; no native `title=` double-render)
+              run: npm run proof:dock-single-tooltip
+            # T.B10/T.C1 — proof:transport-play-first-render: DISCHARGED (was born-RED).
+            # The rail-core rebuild renders play FIRST (from actions.primary); this joins
+            # the blocking gates job in the same commit as the render (drive clause 7).
+            - name: proof:transport-play-first-render (T.C1 — play drawn first from actions.primary; VERDICT #6)
+              run: npm run proof:transport-play-first-render
             # L.W4 S2 — proof:settle-is-predicate: the load-bearing openControlsPanel
             # helper settles on a STATE PREDICATE (waitForRender), never a fixed-ms sleep
             # (the 259-sleep macOS-pass / Linux-fail render-race class). STATIC grep over

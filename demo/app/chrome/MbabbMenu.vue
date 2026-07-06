@@ -65,6 +65,20 @@
                 </div>
             </DropdownMenuItem>
 
+            <DropdownMenuSeparator />
+
+            <!-- T.C2 — Clear all & reload (relocated from the transport dock: a
+                 destructive storage reset is a settings action). Confirm-guarded. -->
+            <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer text-destructive" @click="clearAllAndReload">
+                <Trash class="w-5 h-5 shrink-0" />
+                <div class="flex-1 min-w-0">
+                    <span class="text-small">Clear all &amp; reload</span>
+                    <p class="text-admin-label text-muted-foreground leading-tight">Reset every saved animation to defaults</p>
+                </div>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
             <!-- @mbabb -->
             <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1">
                 <Avatar class="w-7 h-7">
@@ -98,7 +112,8 @@ import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuIte
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
-import { getStoredAnimationGroupControlOptions } from "@state";
+import { Trash } from "@lucide/vue";
+import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
 // GLASSUI-GAP: dockDropdownPointerdown — the trigger's pointerdown click-synthesis
 // (onMbabbTriggerPointerdown / onMbabbTriggerClickCapture) is a band-aid for
 // DockDropdownTrigger opening on click while the press-scale reflow drops it (BG-4).
@@ -122,6 +137,24 @@ const open = defineModel<boolean>("open", { default: false });
 function togglePpMode() {
     const stored = getStoredAnimationGroupControlOptions(props.superKey);
     stored.value.ppMode = !(stored.value.ppMode ?? false);
+}
+
+// T.C2 — "Clear all & reload" RELOCATED from the transport dock into the @mbabb
+// settings menu (a destructive storage reset is a settings action, not transport
+// chrome; VERDICT #6 — the transport carried the destructive Clear beside Play).
+// Confirm-guarded: resetAllStores() wipes every persisted store (control options,
+// the scene-machine persist key) and the reload re-seeds from the cleared state.
+function clearAllAndReload() {
+    if (
+        typeof window !== "undefined" &&
+        !window.confirm(
+            "Clear all saved animation state and reload? This cannot be undone.",
+        )
+    ) {
+        return;
+    }
+    resetAllStores();
+    window.location.reload();
 }
 
 // F5 — the dark-mode dropdown row's click target. The same singleton glass-ui

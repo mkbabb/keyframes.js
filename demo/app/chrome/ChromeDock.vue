@@ -7,7 +7,13 @@ import {
     GlassDock,
     DockIconButton,
     DockSelectTrigger,
+    DockSeparator,
 } from "@mkbabb/glass-ui/dock";
+// T.C1 — the elision RENDER consumes the cardinality model. The AUTHORITATIVE
+// model is T.B5's DFA projection (lane 1); until that export lands in-tree this
+// consumes the FLAGGED local adapter (dockZones.ts) — same arithmetic, reconciled
+// at merge. See dockZones.ts's header.
+import { controlZone } from "@components/custom/animation-transport/dockZones";
 import {
     Select,
     SelectContent,
@@ -106,23 +112,37 @@ const allControlTabs = computed(() => {
 // affordance presence now settles synchronously with the route.
 const hasControlPanel = computed(() => allControlTabs.value.length > 0);
 
-// K.W4 S6 (U-K16) — single-option-select TOTALITY, by CONSTRUCTION. The
-// controls-tab `<Select>` renders ONLY when there is MORE THAN ONE tab to choose
-// between (`> 1`); a scene with exactly ONE control surface (easing → ['easing'],
-// spring → ['spring']) has nothing to SELECT, so it renders a STATIC label instead
-// of a dead 1-item dropdown that opens onto the value the trigger already shows
-// (the U4 dead-chrome case, `controlSurfaceDFA.ts:76-85`). This mirrors
-// TransportDock's single-animation pattern (a static name when there is one
-// animation, a Select when there are many). The rule is the boundary: `> 1 ⇒
-// select, else static label` — NOT a raised count threshold to paper a scene.
-// `hasControlPanel` (`> 0`) still gates the collapse toggle + separators (a
-// 1-tab scene HAS a panel — it just has nothing to pick), so those still render.
+// T.C1 + T.B5-RENDER (VERDICT #17 — the `∿ Spring │ ∿ Spring` dup KILL). The
+// control-tab zone is a projection of the tab COUNT × the scene identity (the
+// cross-axis redundancy predicate): `> 1 ⇒ select`; `1 ⇒ absent` when the sole
+// tab's label is redundant with the scene identity the compass already shows
+// (easing→"Easing", spring→"Spring" — always true on the surviving scene set);
+// `0 ⇒ absent`. The K.W4 S6 STATIC-LABEL else-branch is DELETED: a single control
+// surface now renders NOTHING (no node, no flanking separator), not a demoted
+// label duplicating the scene name (the owner-rejected #17 register). The
+// `hasControlPanel` (`> 0`) predicate still gates the collapse TOGGLE — a 1-tab
+// scene HAS a panel to open/close, it just has nothing to PICK.
+const controlZoneKind = computed(
+    () =>
+        controlZone(
+            allControlTabs.value.length,
+            allControlTabs.value.length === 1
+                ? allControlTabs.value[0]?.label
+                : undefined,
+            props.currentLabel,
+        ).kind,
+);
+// The controls `<Select>` renders ONLY for kind "select" (≥2 tabs). This is the
+// count-guard the U4/no-single-option-select gate keys on (bound to `> 1`).
 const multipleControlTabs = computed(() => allControlTabs.value.length > 1);
-
-// The lone control tab (when `hasControlPanel && !multipleControlTabs`) — its
-// label + icon drive the static label that replaces the dead dropdown.
-const soleControlTab = computed(() =>
-    allControlTabs.value.length === 1 ? allControlTabs.value[0] : undefined,
+// The control section is INHABITED for "select" (dropdown) or "inline" (bare tab
+// body); "absent" renders no node and no flanking separator (the elision).
+const showControlSection = computed(() => controlZoneKind.value !== "absent");
+// The inline zone body (a non-redundant single surface — never on the surviving
+// scene set, carried for T.B5 contract parity). NOT a static label: it is the
+// contextual zone's tab body, rendered without dropdown chrome.
+const inlineControlTab = computed(() =>
+    controlZoneKind.value === "inline" ? allControlTabs.value[0] : undefined,
 );
 
 const isMobile = useMediaQuery("(max-width: 1023px)");
@@ -203,76 +223,15 @@ watch(isAnyOpen, (open) => {
                  the items mount directly in the GlassDock default slot. -->
             <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
                 <div class="flex items-center gap-2">
-                        <!-- Controls collapse -->
-                        <DockIconButton
-                            v-if="hasControlPanel"
-                            :title="isControlsPanelOpen ? 'Close controls' : 'Open controls'"
-                            @click="emit('toggleControlsPanel')"
-                        >
-                            <template v-if="isMobile">
-                                <ChevronUp v-if="isControlsPanelOpen" class="icon-lg" />
-                                <ChevronDown v-else class="icon-lg" />
-                            </template>
-                            <template v-else>
-                                <PanelLeftClose v-if="isControlsPanelOpen" class="icon-lg" />
-                                <PanelLeftOpen v-else class="icon-lg" />
-                            </template>
-                        </DockIconButton>
+                        <!-- T.C1 — THE COMPASS RECUT (rail-core | section | nav on
+                             glass-ui DockSeparator; separators derive from INHABITED
+                             zones by construction — zero hand-rolled dock-separator
+                             divs). Identity LEADS (the scene trigger is rail-core);
+                             the controls tab is the contextual section (≥2 only, the
+                             elision render); the panel-collapse toggle + @mbabb chip
+                             trail as nav (the toggle NEVER leads — VERDICT #6). -->
 
-                        <div v-if="hasControlPanel" class="dock-separator"></div>
-
-                        <!-- Controls tab selector. K.W4 S6 (U-K16) — the SELECT
-                             renders ONLY when there is more than one tab to choose
-                             between (`multipleControlTabs`); a single-surface scene
-                             (easing/spring) renders the STATIC label below instead
-                             of a dead 1-item dropdown (the U4 totality rule, by
-                             construction — `> 1 ⇒ select, else static label`). -->
-                        <Select
-                            v-if="multipleControlTabs"
-                            :model-value="selectedControl ?? 'controls'"
-                            :open="controlsSelectOpen"
-                            @update:open="controlsSelectOpen = $event"
-                            @update:model-value="(v) => emit('updateSelectedControl', String(v))"
-                        >
-                            <DockSelectTrigger aria-label="Controls tab" class="dock-label [&>span]:line-clamp-none">
-                                <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
-                                <SelectValue />
-                            </DockSelectTrigger>
-                            <SelectContent class="min-w-[var(--dropdown-min-width)]">
-                                <SelectGroup class="dock-label">
-                                    <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
-                                        <span class="flex items-center gap-2">
-                                            <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="icon-md text-muted-foreground" />
-                                            <StatusDot :variant="selectedControl === tab.value ? 'active' : 'idle'" />
-                                            <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
-                                        </span>
-                                    </SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-
-                        <!-- K.W4 S6 (U-K16) — the single-surface STATIC label. When
-                             a scene has exactly ONE control tab (easing/spring) there
-                             is nothing to select, so the dropdown is replaced by a
-                             plain icon+label readout (the same dock-label register the
-                             trigger used, minus the chevron + the click affordance).
-                             Mirrors TransportDock's single-animation static name. -->
-                        <div
-                            v-else-if="hasControlPanel && soleControlTab"
-                            aria-label="Controls tab"
-                            class="dock-label dock-static-label flex items-center gap-2"
-                        >
-                            <component
-                                v-if="soleControlTab.icon && TAB_ICONS[soleControlTab.icon]"
-                                :is="TAB_ICONS[soleControlTab.icon]"
-                                class="icon-md text-muted-foreground"
-                            />
-                            <span>{{ soleControlTab.label }}</span>
-                        </div>
-
-                        <div v-if="hasControlPanel" class="dock-separator"></div>
-
-                        <!-- Scene selector -->
+                        <!-- rail-core: the scene trigger (identity first) -->
                         <Select
                             :model-value="currentSceneId"
                             :open="sceneSelectOpen"
@@ -311,9 +270,76 @@ watch(isAnyOpen, (open) => {
                             </SelectContent>
                         </Select>
 
-                        <div class="dock-separator"></div>
+                        <!-- section (contextual): the controls tab. Rendered ONLY
+                             when the zone is INHABITED (controlZoneKind !== "absent")
+                             — a single control surface (easing/spring) is redundant
+                             with the scene identity above, so the zone is ABSENT: NO
+                             node and NO flanking separator (T.B5-RENDER, #17 dup
+                             KILL). The SELECT renders only for ≥2 tabs; the "inline"
+                             arm draws the bare tab body for a non-redundant single
+                             surface (T.B5 contract parity; never on the current
+                             scene set). -->
+                        <template v-if="showControlSection">
+                            <DockSeparator />
+                            <Select
+                                v-if="multipleControlTabs"
+                                :model-value="selectedControl ?? 'controls'"
+                                :open="controlsSelectOpen"
+                                @update:open="controlsSelectOpen = $event"
+                                @update:model-value="(v) => emit('updateSelectedControl', String(v))"
+                            >
+                                <DockSelectTrigger aria-label="Controls tab" class="dock-label [&>span]:line-clamp-none">
+                                    <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
+                                    <SelectValue />
+                                </DockSelectTrigger>
+                                <SelectContent class="min-w-[var(--dropdown-min-width)]">
+                                    <SelectGroup class="dock-label">
+                                        <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
+                                            <span class="flex items-center gap-2">
+                                                <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="icon-md text-muted-foreground" />
+                                                <StatusDot :variant="selectedControl === tab.value ? 'active' : 'idle'" />
+                                                <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
+                                            </span>
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            <div
+                                v-else-if="inlineControlTab"
+                                aria-label="Controls tab"
+                                class="dock-label dock-inline-tab flex items-center gap-2"
+                            >
+                                <component
+                                    v-if="inlineControlTab.icon && TAB_ICONS[inlineControlTab.icon]"
+                                    :is="TAB_ICONS[inlineControlTab.icon]"
+                                    class="icon-md text-muted-foreground"
+                                />
+                                <span>{{ inlineControlTab.label }}</span>
+                            </div>
+                        </template>
 
-                        <!-- Header items slot -->
+                        <!-- nav: the panel-collapse toggle (never leading — VERDICT
+                             #6) + the @mbabb chip. Separated from the identity/section
+                             by one DockSeparator. The toggle's ultimate home is the
+                             panel edge (co-decided with T.B4's naked-rail recut); it
+                             rides nav here, never the lead. -->
+                        <DockSeparator />
+                        <DockIconButton
+                            v-if="hasControlPanel"
+                            :aria-label="isControlsPanelOpen ? 'Close controls' : 'Open controls'"
+                            @click="emit('toggleControlsPanel')"
+                        >
+                            <template v-if="isMobile">
+                                <ChevronUp v-if="isControlsPanelOpen" class="icon-lg" />
+                                <ChevronDown v-else class="icon-lg" />
+                            </template>
+                            <template v-else>
+                                <PanelLeftClose v-if="isControlsPanelOpen" class="icon-lg" />
+                                <PanelLeftOpen v-else class="icon-lg" />
+                            </template>
+                        </DockIconButton>
+
+                        <!-- Header items slot (@mbabb chip) -->
                         <slot name="items" />
                 </div>
 
@@ -343,13 +369,14 @@ watch(isAnyOpen, (open) => {
 </template>
 
 <style scoped>
-/* K.W4 S6 (U-K16) — the single-surface STATIC label register. When a 1-tab scene
-   (easing/spring) renders a static label instead of the dead controls-tab dropdown,
-   it must read at the SAME inline height + padding the `DockSelectTrigger` occupied
-   so the dock row keeps its rhythm (no height jump vs a multi-tab scene's trigger).
-   The `dock-label` glass-ui class supplies the font register; this rule only pads
-   the inline box to the trigger's footprint and keeps the text from wrapping. */
-.dock-static-label {
+/* T.C1 — the "inline" control-zone body register (a non-redundant single control
+   surface: the tab body drawn WITHOUT dropdown chrome, per the T.B5 contract). It
+   reads at the same inline height + padding a `DockSelectTrigger` occupies so the
+   dock row keeps its rhythm. Not to be confused with the DELETED K.W4 single-option
+   STATIC label (the #17 dup that duplicated the scene name — now elided to ABSENT).
+   The `dock-label` glass-ui class supplies the font register (Jakarta, T.D3); this
+   rule only pads the inline box + keeps the text from wrapping. */
+.dock-inline-tab {
     padding-inline: var(--dock-label-padding-inline, 0.5rem);
     white-space: nowrap;
     color: var(--foreground);

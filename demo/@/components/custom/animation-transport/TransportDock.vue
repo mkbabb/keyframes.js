@@ -42,102 +42,21 @@
             closes on the user's review packet.
         -->
         <GlassDock ref="dockRef" :always-expanded="false" :fit-content="true">
-            <!-- Expanded state: full controls -->
+            <!-- Expanded state: full controls.
+                 T.C1 — THE TRANSPORT RECUT (rail-core | section | nav on glass-ui
+                 DockSeparator). PLAY LEADS as rail-core, drawn FIRST from the
+                 ordered T.B10 action model (`actions.primary.kind === "play"`, the
+                 data-layer order truth — VERDICT #6). The animation select is the
+                 contextual section (≥2 channels only — the channelZone elision).
+                 Reset + the timeline-collapse chip trail as one nav utility group.
+                 "Clear all & reload" LEFT the transport for the @mbabb settings menu
+                 (T.C2 — a destructive storage reset is a settings action, not
+                 transport chrome). Separators derive from INHABITED zones (zero
+                 hand-rolled dock-separator divs). Tooltips are the single visible
+                 renderer (IconTooltip); the accessible name rides aria-label — every
+                 `title=` passthrough is GONE (T.C3, the double-tooltip KILL). -->
             <div class="flex items-center gap-3">
-                <IconTooltip text="Select animation">
-                    <div class="relative flex items-center gap-1.5">
-                        <!-- J.W7c U4 — the animation select renders ONLY when
-                             there is more than one animation to choose between.
-                             A select/dropdown with a single option is dead
-                             chrome (a chevron that opens onto its own current
-                             value); single-animation scenes (spring, sequence,
-                             motion-path — one contractAnim each) instead show
-                             the lone animation's NAME as a static label, with no
-                             trigger affordance. Multi-animation scenes (cube,
-                             amiga, square) get the real select. Applies across
-                             all scenes by construction (the count is the gate). -->
-                        <Select
-                            v-if="animationNames.length > 1"
-                            class="p-0 m-0 cursor-pointer"
-                            :model-value="storedControls.selectedAnimation"
-                            @update:model-value="
-                                (key) => {
-                                    emit('selectAnimation', String(key));
-                                }
-                            "
-                        >
-                            <DockSelectTrigger
-                                aria-label="Select animation"
-                                class="dock-label"
-                            >
-                                <!-- The empty-state leading glyph — rendered
-                                     directly, not via reka's SelectIcon slot
-                                     (the one headless reach past the glass-ui
-                                     surface; DockSelectTrigger owns the trigger
-                                     + its chevron, GG-6). -->
-                                <List
-                                    v-if="!storedControls.selectedAnimation"
-                                />
-                                <SelectValue class="text-ellipsis">{{
-                                    storedControls.selectedAnimation
-                                }}</SelectValue>
-                            </DockSelectTrigger>
-                            <SelectContent class="min-w-[var(--dropdown-min-width)]">
-                                <SelectGroup class="dock-label">
-                                    <template
-                                        v-for="name in animationNames"
-                                    >
-                                        <SelectItem class="py-2 px-3" hide-indicator :value="name">
-                                            <span class="flex items-center gap-2">
-                                                <!-- Playing: live conic-gradient progress ring driven by --dot-p.
-                                                     Idle/paused: discrete glass-ui StatusDot state colour. -->
-                                                <span
-                                                    v-if="isPlaying"
-                                                    class="progress-dot w-2.5 h-2.5"
-                                                    :style="dotStyle(name)"
-                                                ></span>
-                                                <StatusDot
-                                                    v-else
-                                                    size="md"
-                                                    :variant="isStarted ? 'paused' : 'idle'"
-                                                />
-                                                <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
-                                            </span>
-                                        </SelectItem>
-                                    </template>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                        <!-- Single-animation scenes: the name as a static label,
-                             no dropdown chrome, no chevron. -->
-                        <span
-                            v-else
-                            class="dock-label text-foreground whitespace-nowrap text-ellipsis"
-                        >{{ storedControls.selectedAnimation }}</span>
-                    </div>
-                </IconTooltip>
-
-                <!-- Vertical divider -->
-                <div class="dock-separator"></div>
-
-                <IconTooltip text="Reset animation">
-                    <DockIconButton title="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
-                        <RotateCcw
-                            ref="resetIconEl"
-                            class="icon-lg"
-                        />
-                    </DockIconButton>
-                </IconTooltip>
-
-                <IconTooltip text="Clear all & reload">
-                    <DockIconButton title="Clear all & reload" @click="() => { trashIconShake(); emit('reset', true); }">
-                        <Trash
-                            ref="trashIconEl"
-                            class="icon-lg"
-                        />
-                    </DockIconButton>
-                </IconTooltip>
-
+                <!-- rail-core: PLAY, FIRST (actions.primary) -->
                 <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
                     <Button
                         variant="ghost"
@@ -158,12 +77,88 @@
                     </Button>
                 </IconTooltip>
 
-                <!-- Timeline controls merged into menubar when expanded -->
-                <template v-if="storedControls.isTimelineExpanded">
-                    <div class="dock-separator"></div>
+                <!-- section (contextual): the animation select. Rendered ONLY when
+                     channelZone is INHABITED (≥2 channels — kind "select"). One or
+                     zero channels ⇒ zone ABSENT: NO node and NO flanking separator
+                     (T.B5-RENDER — the single-animation static NAME span is DELETED;
+                     a lone animation is the scene identity, transported without a
+                     dead 1-item dropdown or a demoted label). -->
+                <template v-if="channelZoneKind === 'select'">
+                    <DockSeparator />
+                    <IconTooltip text="Select animation">
+                        <div class="relative flex items-center gap-1.5">
+                            <Select
+                                class="p-0 m-0 cursor-pointer"
+                                :model-value="storedControls.selectedAnimation"
+                                @update:model-value="
+                                    (key) => {
+                                        emit('selectAnimation', String(key));
+                                    }
+                                "
+                            >
+                                <DockSelectTrigger
+                                    aria-label="Select animation"
+                                    class="dock-label"
+                                >
+                                    <!-- The empty-state leading glyph — rendered
+                                         directly, not via reka's SelectIcon slot
+                                         (the one headless reach past the glass-ui
+                                         surface; DockSelectTrigger owns the trigger
+                                         + its chevron, GG-6). -->
+                                    <List
+                                        v-if="!storedControls.selectedAnimation"
+                                    />
+                                    <SelectValue class="text-ellipsis">{{
+                                        storedControls.selectedAnimation
+                                    }}</SelectValue>
+                                </DockSelectTrigger>
+                                <SelectContent class="min-w-[var(--dropdown-min-width)]">
+                                    <SelectGroup class="dock-label">
+                                        <template
+                                            v-for="name in animationNames"
+                                        >
+                                            <SelectItem class="py-2 px-3" hide-indicator :value="name">
+                                                <span class="flex items-center gap-2">
+                                                    <!-- Playing: live conic-gradient progress ring driven by --dot-p.
+                                                         Idle/paused: discrete glass-ui StatusDot state colour. -->
+                                                    <span
+                                                        v-if="isPlaying"
+                                                        class="progress-dot w-2.5 h-2.5"
+                                                        :style="dotStyle(name)"
+                                                    ></span>
+                                                    <StatusDot
+                                                        v-else
+                                                        size="md"
+                                                        :variant="isStarted ? 'paused' : 'idle'"
+                                                    />
+                                                    <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
+                                                </span>
+                                            </SelectItem>
+                                        </template>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </IconTooltip>
+                </template>
 
+                <!-- nav: reset (+ the timeline-collapse chip when the timeline pane
+                     is expanded — one utility group, no internal separator). The
+                     timeline chip's ultimate home is the timeline pane it controls
+                     (T.C1 → T.B/T.F edge owner); it rides nav here until that lands. -->
+                <DockSeparator />
+                <IconTooltip text="Reset animation">
+                    <DockIconButton aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
+                        <RotateCcw
+                            ref="resetIconEl"
+                            class="icon-lg"
+                        />
+                    </DockIconButton>
+                </IconTooltip>
+
+                <template v-if="storedControls.isTimelineExpanded">
                     <IconTooltip text="Collapse timeline">
-                        <DockIconButton title="Collapse timeline" @click="emit('expandTimeline', false)">
+                        <DockIconButton aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
                             <Minimize2 class="icon-lg" />
                         </DockIconButton>
                     </IconTooltip>
@@ -210,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 
 import {
@@ -218,13 +213,17 @@ import {
     Minimize2,
     Pause,
     Play,
-    Trash,
 } from "@lucide/vue";
 
 import {
     DockIconButton,
     DockSelectTrigger,
+    DockSeparator,
 } from "@mkbabb/glass-ui/dock";
+// T.C1 — the channel-elision RENDER consumes the cardinality model. The
+// authoritative model is T.B5's DFA projection (lane 1); until it lands in-tree
+// this consumes the FLAGGED local adapter (dockZones.ts) — reconciled at merge.
+import { channelZone } from "./dockZones";
 import {
     Select,
     SelectContent,
@@ -382,6 +381,12 @@ const emit = defineEmits<{
     (e: "expandTimeline", expanded: boolean): void;
 }>();
 
+// T.C1 / T.B5-RENDER — the channel zone: `>1 channels ⇒ select`, else ABSENT
+// (the animation `<Select>` renders only for kind "select"; a lone/zero animation
+// renders no node + no flanking separator, the elision). The count IS the guard
+// the U4/no-single-option-select gate keys on (bound to `.length > 1`).
+const channelZoneKind = computed(() => channelZone(animationNames.length).kind);
+
 /** Set a single CSS custom property; the stylesheet computes gradient + shadow. */
 const dotStyle = (name: string): Record<string, string> => {
     const p = animationProgress[name] ?? 0;
@@ -396,7 +401,6 @@ const resolveEl = (ref: any): HTMLElement | null => {
 };
 
 const resetIconEl = useTemplateRef<HTMLElement>("resetIconEl");
-const trashIconEl = useTemplateRef<HTMLElement>("trashIconEl");
 
 // HEAVY constructor from the warmed engine (kfEngine(), L.W8 S1 dogfood
 // inversion) — synchronous, since the warm resolves before the app mounts.
@@ -411,17 +415,6 @@ const resetSpinAnim = new CSSKeyframesAnimation({
     100% { transform: perspective(200px) rotateY(-360deg) scale(1); }
 }`);
 
-const trashShakeAnim = new CSSKeyframesAnimation({
-    duration: 400,
-    timingFunction: "easeInOutCubic",
-}).fromString(/*css*/ `@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-3px) rotate(-5deg); }
-    40% { transform: translateX(3px) rotate(5deg); }
-    60% { transform: translateX(-2px) rotate(-3deg); }
-    80% { transform: translateX(2px) rotate(3deg); }
-}`);
-
 const resetIconSpin = () => {
     const el = resolveEl(resetIconEl.value);
     if (el) {
@@ -431,16 +424,12 @@ const resetIconSpin = () => {
     }
 };
 
-const trashIconShake = () => {
-    const el = resolveEl(trashIconEl.value);
-    if (el) {
-        trashShakeAnim.setTargets(el);
-        trashShakeAnim.reset();
-        trashShakeAnim.play();
-    }
-};
+// T.C2 — "Clear all & reload" (the trash icon + its shake, `emit('reset', true)`)
+// MOVED OUT of the transport into the @mbabb settings menu (a destructive storage
+// reset is a settings action, not transport chrome). The trashShakeAnim +
+// trashIconShake are removed with it.
 
-defineExpose({ resetIconSpin, trashIconShake });
+defineExpose({ resetIconSpin });
 </script>
 
 <style scoped>

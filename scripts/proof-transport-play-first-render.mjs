@@ -1,25 +1,24 @@
 #!/usr/bin/env node
 /**
- * proof:transport-play-first-render — T.B10 RENDER clause. BORN-RED (backlog).
+ * proof:transport-play-first-render — T.B10 RENDER clause. DISCHARGED at T.C1.
  *
  * VERDICT #6's second clause ("the play button should be the FIRST element"). The
- * MODEL half (`proof:transport-action-order`) is GREEN — `useSceneTransport` now
+ * MODEL half (`proof:transport-action-order`) is GREEN — `useSceneTransport`
  * exposes an ordered `{ primary: { kind:"play" }, secondary:[reset, clear] }`. This
- * is the RENDER half: the dock must draw play FROM `actions.primary` FIRST, never a
- * hardcoded markup-last template position.
+ * is the RENDER half: the dock must draw play FIRST (from `actions.primary`), never
+ * markup-last.
  *
- * BORN-RED TODAY BY MEASUREMENT (source order, device-independent). The current
- * `TransportDock.vue` EXPANDED menubar transport renders, in template order:
- * Select animation → Reset (`title="Reset animation"`) → Clear
- * (`title="Clear all & reload"`) → **Play LAST** (the primary transport button,
- * `aria-label` "Play animation" / "Pause animation"). Play is emitted AFTER Reset
- * and Clear → this gate reds. It is NOT a blocking &&-chain member (EXCLUDED +
- * T_BORNRED_BACKLOG); it flips GREEN when T.C1's rail-core rebuild renders play
- * first from `actions.primary`.
+ * DISCHARGED (T.C1 rail-core rebuild). `TransportDock.vue` now renders, in template
+ * order: **PLAY (rail-core, first)** → the animation `<Select>` (contextual section)
+ * → Reset (nav). "Clear all & reload" LEFT the transport for the @mbabb settings
+ * menu (T.C2), so the former Reset/Clear-before-Play ordering is gone. This gate
+ * flipped from BORN-RED to a standing GREEN assertion: the primary Play control is
+ * emitted BEFORE the animation select AND before Reset. It moved OUT of
+ * T_BORNRED_BACKLOG and joins the blocking hygiene roster in the SAME commit as the
+ * render (the discharge = the cure, drive clause 7).
  *
- * dischargedBy: T.C1 (the play-first rail-core dock rebuild — renders `primary`
- * first from the T.B10 model). One source of order truth: this gate + the
- * `proof:dock-grammar` "first interactive element is play" clause must agree.
+ * One source of order truth: this gate + `proof:transport-action-order` (the model)
+ * + `proof:dock-grammar`'s "play first" clause must agree.
  *
  * Overrides (plant-test): KF_TRANSPORT_DOCK.
  *   node scripts/proof-transport-play-first-render.mjs
@@ -40,7 +39,7 @@ const failures = [];
 const passes = [];
 
 console.log(
-    "proof:transport-play-first-render — T.B10 RENDER clause (play drawn first from actions.primary) [BORN-RED]\n",
+    "proof:transport-play-first-render — T.B10 RENDER clause (play drawn first from actions.primary)\n",
 );
 
 let src = "";
@@ -57,58 +56,62 @@ if (src) {
         m.replace(/[^\n]/g, " "),
     );
 
-    // The template-order positions of the three controls (the FIRST real emission
-    // of each). The primary play control is the menubar transport button whose
-    // aria-label resolves to "Play animation" (the COLLAPSED-dock mirror carries
-    // the DISTINCT "Play animation (collapsed dock)" name — excluded so we anchor
-    // on the primary expanded transport, the element VERDICT #6 orders).
-    const resetIdx = markup.indexOf('title="Reset animation"');
-    const clearIdx = markup.indexOf('title="Clear all & reload"');
-    // Primary play: a "Play animation" aria-label NOT followed by "(collapsed dock)".
+    // The primary play control: a "Play animation" aria-label NOT followed by
+    // "(collapsed dock)" — the COLLAPSED-dock mirror carries the DISTINCT name so
+    // we anchor on the primary expanded transport (the element VERDICT #6 orders).
     const playIdx = (() => {
-        const re = /aria-label\s*=\s*["'][^"']*Play animation(?! \(collapsed dock\))[^"']*["']|['"]Play animation['"]/g;
-        // Prefer a ternary form `isPlaying ? 'Pause animation' : 'Play animation'`
-        // (the primary transport) — match the FIRST 'Play animation' literal that
-        // is not the collapsed-dock name.
+        const re =
+            /aria-label\s*=\s*["'][^"']*Play animation(?! \(collapsed dock\))[^"']*["']|['"]Play animation['"]/g;
         let m;
         while ((m = re.exec(markup)) !== null) {
             const tail = markup.slice(m.index, m.index + m[0].length + 24);
             if (!/collapsed dock/.test(tail)) return m.index;
         }
-        // Fallback: the primary play handler binding (expanded uses a NON-.stop
+        // Fallback: the primary play handler (the expanded button uses a NON-.stop
         // @pointerdown; the collapsed mirror uses @pointerdown.stop).
-        const h = markup.search(/@pointerdown\s*=\s*["']onPlayPointerDown/);
-        return h;
+        return markup.search(/@pointerdown\s*=\s*["']onPlayPointerDown/);
     })();
 
-    const found = [];
-    if (resetIdx === -1) found.push("Reset (title=\"Reset animation\")");
-    if (clearIdx === -1) found.push('Clear (title="Clear all & reload")');
-    if (playIdx === -1) found.push("primary Play control");
-    if (found.length > 0) {
-        // A rebuild that renamed/removed these markers: report honestly (the gate
-        // cannot verdict order without them). This is a real red — the anchors the
-        // order contract keys on are gone; T.C1's rebuild re-establishes them.
+    // The animation select (the contextual section) + Reset (the nav utility). The
+    // Clear control is GONE (relocated to the @mbabb menu, T.C2), so it is no
+    // longer an order anchor. A missing SELECT is legitimate on a single-channel
+    // scene's SOURCE only if the whole select markup were removed — it is not (it
+    // renders under the channelZone guard), so both markers resolve statically.
+    const selectIdx = markup.indexOf('aria-label="Select animation"');
+    const resetIdx = markup.indexOf('aria-label="Reset animation"');
+
+    if (playIdx === -1) {
         failures.push(
-            "anchors — could not locate the play/reset/clear control markers in TransportDock.vue: " +
-                found.join(", ") +
-                ". The play-first order cannot be verified — T.C1's rail-core rebuild must render " +
-                "play first from actions.primary with a locatable primary Play control.",
+            "anchors — could not locate the primary Play control in TransportDock.vue " +
+                "(no non-collapsed 'Play animation' aria-label, no onPlayPointerDown handler). " +
+                "The play-first order cannot be verified — the rail-core Play must be locatable.",
         );
     } else {
-        const playFirst = playIdx < resetIdx && playIdx < clearIdx;
-        if (playFirst) {
-            passes.push(
-                "play-first — the primary Play control is emitted BEFORE Reset and Clear in template " +
-                    "order (VERDICT #6: play is the first interactive transport element).",
+        // Play must precede EVERY other transport control it can be ordered against.
+        const others = [];
+        if (selectIdx !== -1) others.push(["animation select", selectIdx]);
+        if (resetIdx !== -1) others.push(["Reset", resetIdx]);
+        if (others.length === 0) {
+            failures.push(
+                "anchors — located Play but neither the animation select " +
+                    '(aria-label="Select animation") nor Reset (aria-label="Reset animation") — ' +
+                    "the T.C1 recut markers are gone; re-ground the order gate.",
             );
         } else {
-            failures.push(
-                "play-first — the primary Play control is emitted AFTER Reset/Clear in TransportDock.vue " +
-                    `template order (play@${playIdx} > reset@${resetIdx}, clear@${clearIdx}). VERDICT #6: ` +
-                    "the play button must be FIRST. RED TODAY — the dock renders play markup-last; discharged " +
-                    "when T.C1's rail-core rebuild draws play first from actions.primary (the T.B10 model).",
-            );
+            const after = others.filter(([, idx]) => idx < playIdx);
+            if (after.length === 0) {
+                passes.push(
+                    "play-first — the primary Play control is emitted BEFORE " +
+                        others.map(([n]) => n).join(" and ") +
+                        " in template order (VERDICT #6: play is the first interactive transport element).",
+                );
+            } else {
+                failures.push(
+                    "play-first — the primary Play control is emitted AFTER " +
+                        after.map(([n, idx]) => `${n}@${idx}`).join(", ") +
+                        ` (play@${playIdx}). VERDICT #6: the play button must be FIRST (rail-core, from actions.primary).`,
+                );
+            }
         }
     }
 }
@@ -116,7 +119,7 @@ if (src) {
 for (const p of passes) console.log("  ✓ " + p);
 if (failures.length > 0) {
     console.error(
-        `\nproof:transport-play-first-render — FAIL (${failures.length}) [BORN-RED backlog — T_BORNRED_BACKLOG; dischargedBy T.C1]:`,
+        `\nproof:transport-play-first-render — FAIL (${failures.length}):`,
     );
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
