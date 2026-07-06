@@ -1,35 +1,45 @@
 <template>
-    <!-- F.W16.S2 — the LCP hero's accessible + typographic substrate.
-         (a) A single visually-hidden mirror carries the whole word to AT, so a
-             screen reader reads "Select an animation", not the "S…e…l…e…c…t"
-             per-glyph stream the per-character split produced.
-         (b) The decorative visual layer is aria-hidden — the stagger is now
-             WORD-granular (not per-character), so the text run is NOT shredded
-             into per-glyph inline-blocks and glass-ui's `.text-display-*`
-             `text-wrap: balance` can balance the rag (the run wraps at the real
-             spaces between words). The lift-down motion is preserved at the new
-             granularity (a befitting motion-granularity delta). -->
+    <!-- T P-HERO (OD-4 / lane 01 F2) — the PER-CHAR uplift rebirth, two-tier.
+         The word-granular F.W16 split was REJECTED by the owner ("should uplift
+         each individual char"): 3 word lumps heaving in the first 0.6s of a 5.8s
+         cycle left the poster dead for ~5.2s. The rebirth restores the original
+         per-char wave WITHOUT re-breaking the two recorded lessons:
+         (a) a11y mirror (F.W16a) — ONE sr-only span carries the whole phrase to
+             AT; the visual layer is aria-hidden. AT never hears the
+             "S…e…l…e…c…t" glyph stream.
+         (b) X-5 gap — Vue's `whitespace: 'condense'` strips whitespace-only text
+             nodes between sibling spans. The inter-word gap is a per-word
+             `margin-inline-end: 0.25em` (never a rendered space character), so
+             the naive-split "Selectananimation" cannot recur.
+         Two tiers: WORDS own wrapping + the gap (inline-block wrappers, so
+         `text-wrap: balance` still breaks at real word boundaries); CHARS own
+         the motion. Delay = GLOBAL char index (counted across words — the wave
+         sweeps the whole line, never restarting per word) × ~55ms over one
+         shared ~3.6s cycle: the sweep crosses ~17 glyphs in ~0.9s, rests, and
+         repeats. Em-relative lift (−0.09em — the old −10px was rung-blind at
+         177px). Transform-only, compositor-friendly; PRM rests everything. -->
     <span class="sr-only">{{ text }}</span>
-    <span aria-hidden="true">
-        <template v-for="(word, index) in words" :key="`${index}-${word}`">
-            <!-- The inter-word gap is a per-word margin-inline-end, NOT a
-                 whitespace text node: Vue's template compiler (whitespace:
-                 'condense', the default) STRIPS the whitespace-only text node
-                 between the per-word <span>s at compile time, so the LCP rendered
-                 "Selectananimation" (0px gap, X-5). A margin needs no rendered
-                 whitespace and preserves the word-split substrate that lets
-                 text-wrap: balance + the sr-only a11y mirror work. The last word
-                 carries no trailing margin (it is not a separator). -->
+    <span
+        aria-hidden="true"
+        :style="{ '--wave-cycle': `${cycleMs}ms` }"
+    >
+        <template v-for="(word, wi) in words" :key="`${wi}-${word.text}`">
             <span
-                class="lift-down"
-                v-bind="$attrs"
+                class="wave-word"
                 :style="{
-                    animationDelay: `${index * offset}s`,
-                    animationDuration: duration,
                     marginInlineEnd:
-                        index < words.length - 1 ? '0.25em' : undefined,
+                        wi < words.length - 1 ? '0.25em' : undefined,
                 }"
-                >{{ word }}</span
+                ><span
+                    v-for="(ch, ci) in word.chars"
+                    :key="`${ci}-${ch}`"
+                    class="wave-char"
+                    v-bind="$attrs"
+                    :style="{
+                        animationDelay: `${(word.startIndex + ci) * offsetMs}ms`,
+                    }"
+                    >{{ ch }}</span
+                ></span
             >
         </template>
     </span>
@@ -38,66 +48,78 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-// $attrs (e.g. the `depth-text` class the hero passes to the title) bind to the
-// per-word visual spans, not the host — so the decorative classes still apply to
-// the animated layer while the host stays a clean inline.
+// $attrs bind to the per-char visual spans (the animated layer), not the host —
+// decorative classes passed by a consumer still land on the moving glyphs.
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps({
-    text: {
-        type: String,
-        required: true,
+const props = withDefaults(
+    defineProps<{
+        text: string;
+        /** Per-char stagger step, ms of delay per global char index. */
+        offsetMs?: number;
+        /** The one shared wave cycle, ms. All chars ride the same clock. */
+        cycleMs?: number;
+    }>(),
+    {
+        offsetMs: 55,
+        cycleMs: 3600,
     },
-    offset: {
-        type: Number,
-        default: 0.2,
-    },
+);
+
+const { offsetMs, cycleMs } = props;
+
+// WORDS carry a running GLOBAL char index (spaces excluded — 17 for the default
+// "Select an animation") so the per-char delays are strictly monotone across
+// the whole line: one wave, left to right, crossing word boundaries.
+const words = computed(() => {
+    let index = 0;
+    return props.text
+        .split(/\s+/)
+        .filter((w) => w.length > 0)
+        .map((w) => {
+            const startIndex = index;
+            index += w.length;
+            return { text: w, chars: w.split(""), startIndex };
+        });
 });
-
-// Split into WORDS (whitespace-separated). Word-granular spans let the browser
-// wrap + `text-wrap: balance` the run at real space boundaries — the per-CHARACTER
-// split defeated `balance` (it had nothing to balance once the run was shredded).
-// No `useWindowSize` / `width < 768` JS line-break any more: CSS owns wrapping
-// (the JS media query driving layout was a pre-container-query anti-pattern).
-const words = computed(() =>
-    props.text.split(/\s+/).filter((w) => w.length > 0),
-);
-
-const duration = computed(
-    () => `${props.text.length * props.offset + props.offset * 10}s`,
-);
 </script>
 
 <style scoped>
-.lift-down {
+/* Words own wrapping: inline-block keeps each word unbreakable so the line
+   breaks only at real word boundaries (the balance substrate). */
+.wave-word {
     display: inline-block;
-    animation: liftDown 3s var(--ease-standard) infinite;
-    animation-fill-mode: forwards;
 }
 
-@keyframes liftDown {
+/* Chars own the motion: one shared cycle, per-char phase via animation-delay.
+   The lift is em-relative so it scales with the rung (mega 177px → phone 54px).
+   Peak at 6%, ease-out settle by 14%, rest to 100% — the sweep reads as one
+   ripple crossing the line, then the poster holds still ~2.7s. */
+.wave-char {
+    display: inline-block;
+    animation: charLift var(--wave-cycle, 3.6s) infinite both;
+}
+
+@keyframes charLift {
     0% {
         transform: translateY(0);
+        animation-timing-function: cubic-bezier(0.35, 0, 0.55, 1);
     }
-    5% {
-        transform: translateY(-10px);
+    6% {
+        transform: translateY(-0.09em);
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     }
-    10% {
-        transform: translateY(0);
-    }
+    14%,
     100% {
         transform: translateY(0);
     }
 }
 
-/* PRM guard: the hero is the LCP node and runs perpetual infinite decorative
-   motion. Under prefers-reduced-motion the words settle to their resting frame
-   (no lift) — the engine's withReducedMotion authority mirrored at the CSS layer
-   for this template-only hero. (The ellipsis blink is no longer here: H.W6 moved
-   it to the dogfooded TypingDots primitive, deleting `.dot-fade`/`@keyframes
-   dotFade` with the swap — no legacy beside the replacement.) */
+/* PRM guard: the hero is the LCP node; under prefers-reduced-motion every char
+   rests at its 0%/100% frame (no wave) — the CSS mirror of the engine's
+   withReducedMotion authority for this template-only hero. */
 @media (prefers-reduced-motion: reduce) {
-    .lift-down {
+    .wave-char {
         animation: none;
     }
 }

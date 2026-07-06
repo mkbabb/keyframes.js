@@ -49,9 +49,11 @@ export const FROZEN_SET = [
     "proof:bezier-single-card",
     "proof:bezier-grown",
     "proof:pp-logo-svg",
-    "proof:hero-rung",
-    "proof:hero-balance",
-    "proof:hero-cls",
+    // (proof:hero-rung / proof:hero-balance / proof:hero-cls were FROZEN here
+    //  until T.D9/T.D10 RETIRED them — the word-split top-band hero geometry
+    //  they locked was the owner-REJECTED state (VERDICT #3); their surviving
+    //  live properties MIGRATED to proof:hero-two-focal (OWNER, OD-4). The
+    //  machine-witnessed migration discharges live in DISCHARGE below.)
     "proof:cartoon-is-panel-depth",
     "proof:glass-and-cartoon",
     "proof:dock-popover-opens",
@@ -108,6 +110,41 @@ export const FROZEN_SET = [
  * motion-path scene those interaction locks asserted was pruned outright).
  */
 export const DISCHARGE = {
+    // T.D9/T.D10 (OD-4 APPROVED) — the three FROZEN hero locks are discharged by
+    // MIGRATION to `proof:hero-two-focal` (OWNER authority, the born-OWNER T.D9
+    // oracle over the P-HERO blessed reference). Each lock's SURVIVING live
+    // property is re-asserted by the successor; the property that died was the
+    // rejected state itself (lane 29: "the hero-rung gates crystallize the
+    // rejected word-split").
+    "proof:hero-rung": {
+        kind: "migration",
+        successor: "proof:hero-two-focal",
+        note:
+            "The mega-φ-rung survivorship (its ONE live property — the hero stays " +
+            "text-display-mega) is hero-two-focal clause (a); its top-band SEAT " +
+            "half asserted the rejected header-band hero (VERDICT #3 'lower on the " +
+            "page') and is INVERTED by clause (b). proof:phi-leaf-zero HALF 2 " +
+            "co-asserts the rung statically.",
+    },
+    "proof:hero-balance": {
+        kind: "migration",
+        successor: "proof:hero-two-focal",
+        note:
+            "The one-optical-block poster (title + dots as one block) survives in " +
+            "hero-two-focal clause (b)+(c) + proof:demo-usability clause 2 (the " +
+            "re-armed per-char contract); the hero∩cube==0 half was OVERTURNED by " +
+            "OD-4 (overlap WELCOME — 'it's OK if it sits a bit on top of the cube').",
+    },
+    "proof:hero-cls": {
+        kind: "migration",
+        successor: "proof:hero-two-focal",
+        note:
+            "The CLS companion locked the WORD-split geometry (per-word spans in " +
+            "the top band — the rejected state). Its live substrate (the Capsize " +
+            "metric-matched fallback + the mega rung) is re-asserted by " +
+            "hero-two-focal clause (a) + proof:demo-elevate's first-paint clause " +
+            "(size-adjust/ascent/descent overrides).",
+    },
     // T.E3 (OD-1 = PRUNE) — the motion-path SCENE was pruned outright, so its two
     // FROZEN interaction-appearance locks (which asserted the editable control-net
     // + the copyable offset-path artifact ON that scene) are obsolete. Owner-ruled
@@ -192,6 +229,11 @@ export const REGRESSION_GUARDS = [
     "proof:no-dup-utility",
     "proof:no-brittle-selector",
     "proof:no-single-option-select",
+    // T.D14 (lane 12 T-CL-3) — the hand-rolled cursor-tracker pattern was
+    // independently authored TWICE (H.W9 .cartoon-specular → ComposeTarget
+    // .foundry-keylight); this standing guard keeps a THIRD impossible. NOT
+    // compose-coupled — it guards the future.
+    "proof:no-hand-rolled-cursor-tracker",
 ];
 
 /**
@@ -287,18 +329,15 @@ export const RETIREMENT_LEDGER = {
         executedBy: "T.D",
         successor: "proof:hero-two-focal (T.D9)",
     },
-    "proof:typing-dots": {
-        coupledFeature: "the home typing-card indicator",
-        verdictItem: "#2 — remove the typing card",
-        executedBy: "T.D",
-        successor: null,
-    },
-    "proof:dogfood-hero": {
-        coupledFeature: "the rejected hero dogfood lock",
-        verdictItem: "#3 — re-spec with the new hero",
-        executedBy: "T.D",
-        successor: "proof:hero-two-focal (T.D9)",
-    },
+    // T.D10/T.D12 (LANDED, batch ⑤) — `proof:typing-dots` + `proof:dogfood-hero`
+    // were NOT retired; they leave the ledger (the square-honest precedent: a key
+    // is either being RETIRED or being GREENED, never both). The T.D12 removal was
+    // the @KEYFRAMES·LIVE typing CARD (kf-source-egg + useHeroSourceEgg —
+    // design-refinement's S1 arm re-cut; absence asserted by hero-two-focal
+    // clause (c)); the TypingDots ELLIPSIS these two gates actually guard was
+    // KEPT by T.D10 ("keep <TypingDots/> as the faster-cadence tail — the
+    // engine-dogfooded pulse"), so both gates stay LIVE re-specced in place
+    // (typing-dots' static clause re-anchored `.lift-down`→`.wave-char`).
     "proof:crayon-preserved": {
         coupledFeature: "the crayon idiom (likely dies with the latent-red theme)",
         verdictItem: "#16 — don't like this latent red theme",

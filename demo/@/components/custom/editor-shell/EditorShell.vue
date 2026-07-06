@@ -2,6 +2,12 @@
     <div
         class="editor-shell relative grid h-dvh max-h-dvh w-dvw overflow-hidden place-items-center bg-background"
     >
+        <!-- T.D13 (OD-2) — the ambient-backdrop seam. DOM-ordered BEFORE the
+             grid-background so a host-supplied wash (the home hero's Aurora)
+             paints over the bg-background field but UNDER the graph-paper ink
+             lines — the wash tints the paper; the lines stay crisp. Empty by
+             default (no layer, no cost). -->
+        <slot name="backdrop"></slot>
         <div
             v-if="gridBackground"
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
@@ -44,7 +50,14 @@
         </HeaderRibbon>
 
         <Transition name="fade" appear>
-            <div v-if="showStartScreen" class="absolute inset-0 z-content flex items-center justify-center pointer-events-none">
+            <!-- T.D9 (OD-4) — the start screen rides z-controls (above the
+                 scene subject, below the docks): the φ-band hero deliberately
+                 OVERLAPS the die ("it's OK if it sits a bit on top of the
+                 cube") and the ink must PRINT OVER the subject
+                 deterministically — at z-content the paint order fell to DOM
+                 order and the mobile die occluded the glyphs. pointer-events
+                 stays none: gestures pass through to the subject. -->
+            <div v-if="showStartScreen" class="absolute inset-0 z-controls flex items-center justify-center pointer-events-none">
                 <slot name="start-screen">
                     <EditorStartScreen />
                 </slot>

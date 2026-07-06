@@ -66,9 +66,13 @@ export const APPEARANCE_TOUCHING = [
     "proof:bezier-single-card",
     "proof:bezier-grown",
     "proof:pp-logo-svg",
-    "proof:hero-rung",
-    "proof:hero-balance",
-    "proof:hero-cls",
+    // T.D9/T.D11/T.D13 — the born-OWNER hero oracles (they replaced the retired
+    // hero-rung/-balance/-cls INSTRUMENT locks; gate-bands.mjs DISCHARGE) + the
+    // T.D14 recurrence guard (a cursor-light effect is an appearance surface).
+    "proof:hero-two-focal",
+    "proof:hero-deck-voice",
+    "proof:cursor-light-subtle",
+    "proof:no-hand-rolled-cursor-tracker",
     "proof:cartoon-is-panel-depth",
     "proof:glass-and-cartoon",
     "proof:dock-popover-opens",
@@ -154,6 +158,16 @@ export const GATE_AUTHORITY = {
     // machine fact nor ride an OBSERVE bucket. Born-RED until the glass-ui re-pin.
     "proof:dock-rest-crisp": "OWNER",
     "proof:dock-morph-continuity": "OWNER",
+    // T.D9/T.D11/T.D13 (batch ⑤) — the hero oracles are OWNER by construction:
+    // each one's green window IS a committed owner token — the OD-4 APPROVED
+    // home composition (hero-two-focal: the φ-band two-focal seat; deck-voice:
+    // the serif-italic ramp the live review resolved) and the OD-2 AMENDED
+    // subtlety bound (cursor-light-subtle encodes the ≤0.1 ceiling, strictly
+    // under the P-HERO 0.15 wall). BLOCKING (correctness roster), per the
+    // T.M6.2 blocking-not-OBSERVE tooth.
+    "proof:hero-two-focal": "OWNER",
+    "proof:hero-deck-voice": "OWNER",
+    "proof:cursor-light-subtle": "OWNER",
     // (proof:owner-golden lands with T.A/T.D renders — its OWNER row is added then)
 
     // ── INSTRUMENT authority (correctness facts; may NOT stand as the appearance bar) ──
@@ -180,9 +194,11 @@ export const GATE_AUTHORITY = {
     "proof:bezier-single-card": "INSTRUMENT",
     "proof:bezier-grown": "INSTRUMENT",
     "proof:pp-logo-svg": "INSTRUMENT",
-    "proof:hero-rung": "INSTRUMENT",
-    "proof:hero-balance": "INSTRUMENT",
-    "proof:hero-cls": "INSTRUMENT",
+    // (hero-rung/-balance/-cls rows removed WITH their retirement — the axis
+    //  shrinks with the roster, per this module's header contract.)
+    // T.D14 — the no-hand-rolled-cursor-tracker recurrence guard asserts a
+    // structural absence fact (a grep), never taste: INSTRUMENT (T.D14 spec).
+    "proof:no-hand-rolled-cursor-tracker": "INSTRUMENT",
     "proof:cartoon-is-panel-depth": "INSTRUMENT",
     "proof:glass-and-cartoon": "INSTRUMENT",
     "proof:dock-popover-opens": "INSTRUMENT",
