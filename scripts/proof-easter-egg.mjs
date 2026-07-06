@@ -23,8 +23,8 @@
  *   • spring      "the Derby"           — dblclick the rail → the canonical
  *                  trackers launch in a staggered wave (the live ball sweeps off
  *                  its rest position).
- *   • easing      "the Gallery"         — dblclick the curve → the hero canvas
- *                  tours the expressive easing catalogue (the .bezier-path d cycles).
+ *   (easing "the Gallery" — RETIRED at T.E7 (VERDICT #15): the gallery-door +
+ *    useEasingGallery were owner-ruled removals; the T.E6 scene IS the gallery.)
  *
  * STATIC HALF (always runs — each egg's trigger + its dogfood): every scene's
  *   source carries a hidden egg trigger (a dblclick handler / a typed-code key
@@ -111,17 +111,10 @@ const STATIC_EGGS = [
         triggerTokens: [/useDoubleTap\(/, /derby/],
         note: '"the Derby" — dblclick the rail launches the canonical trackers in a staggered SpringProgress wave',
     },
-    {
-        scene: "easing",
-        // The Gallery effect spans the colocated pair: useEasingDemo wires it
-        // (`gallery`/`selectEasing`), useEasingGallery owns the tour state
-        // (`galleryRunning`) — the I.WZ concern-seam split.
-        file: ["scenes/easing/useEasingDemo.ts", "scenes/easing/useEasingGallery.ts"],
-        tokens: [/\bgallery\b/, /galleryRunning/, /selectEasing/],
-        triggerFile: "scenes/easing/EasingSidebar.vue",
-        triggerTokens: [/data-gesture-tell="easing:gallery"/, /@click="demo\.gallery"/],
-        note: '"the Gallery" — dblclick the curve tours the expressive easing catalogue (the .bezier-path d cycles)',
-    },
+    // (easing "the Gallery" — RETIRED at T.E7, VERDICT #15: the gallery-door
+    //  button + useEasingGallery.ts were owner-ruled removals; the redesigned
+    //  easing scene (T.E6, OD-7) IS the gallery. Row re-cut in lockstep with the
+    //  deletion — never green a clause by resurrecting the button.)
 ];
 
 for (const egg of STATIC_EGGS) {
@@ -374,124 +367,13 @@ async function browserHalf() {
             }
         }
 
-        // ── easing "the Gallery" — dblclick curve → the .bezier-path d cycles ──
-        {
-            // The easing curve canvas lives in the full-rail SIDEBAR, which mounts
-            // only when the easing TabsContent is the ACTIVE tab — and reka's Tabs
-            // activation rides EasingScene.vue's onMounted+nextTick re-assert, which
-            // fires on a FRESH mount. After the shared page cycled through cube/amiga/
-            // square/spring the reka Tabs state is sticky (it lands on `controls`), so
-            // a same-browser new page does NOT reliably activate the easing tab. Run
-            // the easing egg in its OWN browser CONTEXT (isolated localStorage = a
-            // clean first-mount, the proven freshEasingPage condition).
-            const ectx = await browser.newContext({
-                viewport: { width: VW, height: VH },
-            });
-            const ep = await ectx.newPage();
-            try {
-                await ep.goto(`${url}/#/easing`, { waitUntil: "load" });
-                await navToScene(ep, "easing", EXPECTED_TRIGGER.easing, { timeout: 8000 });
-                await ep.setViewportSize({ width: VW, height: VH });
-                // Open the controls pane + the easing tab (the sidebar host). Mirror
-                // proof:scene-parity's freshEasingPage: write the store AND toggle
-                // the controls-layout class (the reka Tabs init race needs both — the
-                // EasingScene onMounted+nextTick re-assert fires on this fresh load).
-                // RETRY the open until the egg-host mounts: on a browser cycled
-                // through other scenes the reka Tabs state can land on `controls`, so
-                // re-assert the store + the class a few times until the sidebar curve
-                // appears (the scene-parity tab-init-race remedy).
-                const openEasingTab = () =>
-                    ep.evaluate(() => {
-                        try {
-                            const ck = "animation-groups-control-options-store";
-                            const s = JSON.parse(localStorage.getItem(ck) || "{}");
-                            s.isControlsPanelOpen = true;
-                            s.selectedControl = "easing";
-                            localStorage.setItem(ck, JSON.stringify(s));
-                        } catch {
-                            /* fall through to the class toggle */
-                        }
-                        const el = document.querySelector(".controls-layout");
-                        if (el) {
-                            el.classList.add("controls-layout--open");
-                            el.classList.remove("controls-layout--closed");
-                        }
-                    });
-                // NB: `.canvas-egg-host` is `display: contents` (it dissolves its
-                // own box so the canvas stays the direct grid child), so it has NO
-                // bounding box — we assert its EXISTENCE + that its child curve has a
-                // real box (the visible sidebar curve the dblclick tours).
-                let hostReady = false;
-                for (let attempt = 0; attempt < 6 && !hostReady; attempt++) {
-                    await openEasingTab();
-                    hostReady = await ep
-                        .waitForFunction(
-                            () => {
-                                const h = document.querySelector(".canvas-egg-host");
-                                if (!h) return false;
-                                const curve = h.querySelector(".bezier-path");
-                                if (!curve) return false;
-                                const r = curve.getBoundingClientRect();
-                                return r.width > 0 && r.height > 0;
-                            },
-                            { timeout: 1500 },
-                        )
-                        .then(() => true)
-                        .catch(() => false);
-                }
-                const pathReady = await ep.evaluate(
-                    () => !!document.querySelector(".canvas-egg-host .bezier-path"),
-                );
-                if (!hostReady || !pathReady) {
-                    fail(
-                        `[easing] egg fires — the curve host did not mount ` +
-                            `(.canvas-egg-host:${hostReady}, .bezier-path:${pathReady}); the ` +
-                            `easing tab may not be active`,
-                    );
-                } else {
-                    // Read the SIDEBAR curve specifically (the one inside the
-                    // egg-host the dblclick tours), not any other .bezier-path.
-                    const beforeD = await ep.evaluate(
-                        () =>
-                            document
-                                .querySelector(".canvas-egg-host .bezier-path")
-                                ?.getAttribute("d") ?? "",
-                    );
-                    // S.G3: the gallery's discoverable trigger is the VISIBLE
-                    // gallery-door BUTTON (@click; the census tell) — the sealed
-                    // canvas double-click is retired. Click the real control.
-                    await ep.click('[data-gesture-tell="easing:gallery"]');
-                    // The gallery tours a catalogue ~520ms apart; the .bezier-path d
-                    // re-derives per step — sample over the tour window for a change.
-                    let changed = false;
-                    for (let k = 0; k < 30 && !changed; k++) {
-                        const d = await ep.evaluate(
-                            () =>
-                                document
-                                    .querySelector(".canvas-egg-host .bezier-path")
-                                    ?.getAttribute("d") ?? "",
-                        );
-                        if (d && d !== beforeD) changed = true;
-                        await ep.waitForTimeout(120);
-                    }
-                    if (changed) {
-                        ok(
-                            `[easing] "the Gallery" fires — dblclick toured the easing ` +
-                                `catalogue (the .bezier-path d cycled away from its resting curve)`,
-                        );
-                    } else {
-                        fail(
-                            `[easing] "the Gallery" fires — dblclick did NOT cycle the ` +
-                                `curve (the .bezier-path d never changed over the tour window); ` +
-                                `the egg is inert`,
-                        );
-                    }
-                }
-            } finally {
-                await ep.close();
-                await ectx.close();
-            }
-        }
+        // ── easing "the Gallery" — RETIRED at T.E7 (VERDICT #15, owner-ruled). ──
+        // The gallery-door button + useEasingGallery.ts + the galleryActive seam
+        // were DELETED (S.G3 had promoted a sealed dblclick egg into primary
+        // chrome; the ruling is removal — the redesigned scene (T.E6, OD-7) IS
+        // the gallery, so a tour of it is moot). The manifest easing:gallery row
+        // was re-cut in the same motion (the lane-18-rec-3 lockstep); no clause
+        // may resurrect the button.
 
         // ── sequence EE-SEQ-1 "the reel" — type "reel" → .reel-active ─────────
         {
@@ -563,6 +445,6 @@ console.log(
     "\nproof:easter-egg — PASS: every scene has its hidden on-aesthetic egg, each " +
         "fired by a hidden trigger to an observable off-the-normal-path effect, each " +
         "dogfooding the engine (inv ζ): sequence reel · cube roll · square tumble · " +
-        "spring derby · easing gallery. (amiga's boing was RETIRED at T.A8 — the Boing " +
+        "spring derby. (easing's gallery was RETIRED at T.E7 (VERDICT #15); amiga's boing was RETIRED at T.A8 — the Boing " +
         "IS the scene now, not a hidden egg; motion-path was PRUNED at T.E3.)",
 );

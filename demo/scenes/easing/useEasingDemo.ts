@@ -7,7 +7,7 @@ import {
     stepStart,
     timingFunctions,
 } from "@mkbabb/value.js";
-import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
+import { computed, markRaw, ref, watch } from "vue";
 
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
@@ -24,7 +24,6 @@ import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
 import { useSceneMachine } from "@state";
 import { kfEngine } from "@utils/kfEngine";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
-import { useEasingGallery } from "./useEasingGallery";
 import { useEasingGhost } from "./useEasingGhost";
 import { useEasingTraceSmear } from "./useEasingTraceSmear";
 
@@ -272,12 +271,6 @@ export function useEasingDemo() {
     // the adapter) then re-seats progress + the playing/paused status.
     startLoop();
 
-    // Stop the gallery's pending timers on scope dispose (the raw RAFPlayback's
-    // own teardown is owned by useRafScene's onScopeDispose(stopLoop)).
-    onScopeDispose(() => {
-        disposeGallery();
-    });
-
     // ── Methods ────────────────────────────────────────────────────
 
     const selectEasing = (name: string) => {
@@ -297,12 +290,9 @@ export function useEasingDemo() {
         }
     };
 
-    // EASTER EGG — "the Gallery" (H.W12.S6): the self-playing curve tour (colocated in useEasingGallery).
-    const { gallery, galleryActive, disposeGallery } = useEasingGallery(
-        selectEasing,
-        currentEasingName,
-        timingFunctionsAnd,
-    );
+    // ("the Gallery" tour — RETIRED at T.E7, VERDICT #15: the tour + its door
+    //  button were owner-ruled removals; the T.E6/OD-7 redesigned scene IS the
+    //  gallery.)
 
     // EASTER EGG — "the drag-bend SMEAR" (L.W11 S5): SmoothProgress-decay smear (colocated).
     const { amount: traceSmearAmount, kickFromPoints } = useEasingTraceSmear();
@@ -441,8 +431,6 @@ export function useEasingDemo() {
         // Methods
         selectEasing,
         updateBezierPoints,
-        gallery,
-        galleryActive,
         play,
         pause,
         togglePlay,

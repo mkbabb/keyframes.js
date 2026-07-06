@@ -28,45 +28,26 @@
                  the readout J stripped from this rail (the parity gap) as the
                  complete, re-parseable literal (`readoutLiteral`).
 
-                 S.G3 S2 — "the Gallery" tour is now driven by a VISIBLE
-                 gallery-door BUTTON (below), never the former canvas `@dblclick`
-                 (mouse-only; mobile browsers do not synthesize a reliable
-                 double-click, so on touch the tour was unreachable — SG-8). The
-                 wrapper stays (`display: contents`) so the editor remains the
-                 full-width hero grid child. -->
-            <div class="canvas-egg-host">
-                <EasingEditor
-                    :easing-fn="demo.currentEasingFn.value"
-                    :svg-path="demo.svgPath.value"
-                    :progress="demo.progress.value"
-                    :current-name="demo.currentEasingName.value"
-                    :timing-functions-and="demo.timingFunctionsAnd"
-                    :bezier-points="demo.isBezierEditable.value ? demo.bezierControlPoints.value : undefined"
-                    :editable="demo.isBezierEditable.value"
-                    :readout-value="readoutLiteral"
-                    :ghost-path-d="demo.ghostPathD.value"
-                    @update:bezier-points="demo.updateBezierPoints"
-                    @update:name="demo.selectEasing"
-                />
-            </div>
-
-            <!-- S.G3 S1/S2 — the VISIBLE gallery-door button: the discoverable,
-                 touch-reliable path to the easing-catalogue tour (replacing the
-                 sealed canvas double-click). It IS the census tell
-                 (`data-gesture-tell="easing:gallery"`) and the manifest gate's
-                 touch target; its active state reads `demo.galleryActive`. -->
-            <button
-                type="button"
-                class="gallery-door focus-ring tap-floor"
-                data-gesture-tell="easing:gallery"
-                :class="{ 'gallery-door--touring': demo.galleryActive.value }"
-                :aria-pressed="demo.galleryActive.value"
-                aria-label="Gallery — tour the expressive easing catalogue"
-                @click="demo.gallery"
-            >
-                <span class="gallery-door__glyph" aria-hidden="true">⇢</span>
-                {{ demo.galleryActive.value ? "touring…" : "Gallery" }}
-            </button>
+                 T.E7 (VERDICT #15, owner-ruled) — the gallery-door button + the
+                 `.canvas-egg-host` dblclick wrapper are DELETED with
+                 useEasingGallery.ts: S.G3 had promoted a sealed easter-egg tour
+                 into primary chrome (a full-width red-glyph button); the ruling
+                 is removal — the redesigned scene (T.E6, OD-7) IS the gallery.
+                 The gesture-manifest easing:gallery row + proof:easter-egg's
+                 gallery clause were re-cut in the SAME motion (lane 18 rec 3). -->
+            <EasingEditor
+                :easing-fn="demo.currentEasingFn.value"
+                :svg-path="demo.svgPath.value"
+                :progress="demo.progress.value"
+                :current-name="demo.currentEasingName.value"
+                :timing-functions-and="demo.timingFunctionsAnd"
+                :bezier-points="demo.isBezierEditable.value ? demo.bezierControlPoints.value : undefined"
+                :editable="demo.isBezierEditable.value"
+                :readout-value="readoutLiteral"
+                :ghost-path-d="demo.ghostPathD.value"
+                @update:bezier-points="demo.updateBezierPoints"
+                @update:name="demo.selectEasing"
+            />
 
             <!-- Step options (shown only for steps) — label-left rows -->
             <template v-if="demo.isSteps.value">
@@ -117,11 +98,13 @@
                  canvas handles or picking from the sole `<EasingSelect>` dropdown. The
                  text-input authoring path is STRIPPED (fold row 5 backlog discharge). -->
 
-            <!-- P.W7 — the curve PHYSICS telemetry + the "name that curve" egg,
-                 colocated in EasingCurvePhysics.vue (S.A0: split at its natural
-                 concern seam when the sidebar crossed the 500L demo ceiling —
-                 a self-contained read-only instrument over currentEasingFn). -->
-            <EasingCurvePhysics :demo="demo" />
+            <!-- T.E7 (VERDICT #13, owner-ruled: "Remove all of this") — the
+                 curve-physics telemetry block (EasingCurvePhysics.vue, 234L:
+                 peak-velocity/overshoot/anticipation rows + the italic prose
+                 verdict + the "name this curve" dblclick egg — P.W7 instrument
+                 accretion) is DELETED in totality. No replacement — the ruling
+                 is removal. The gesture-manifest easing:identify row was re-cut
+                 in the SAME motion (lane 18 rec 3). -->
         </CardContent>
     </Card>
 </template>
@@ -137,7 +120,6 @@ import {
 } from "@mkbabb/glass-ui/labeled-field";
 
 import EasingEditor from "@components/custom/easing-editor/EasingEditor.vue";
-import EasingCurvePhysics from "./EasingCurvePhysics.vue";
 import type { EasingDemoContext } from "./easingKeys";
 
 const JUMP_TERMS = ["jump-start", "jump-end", "jump-none", "jump-both"] as const;
@@ -169,8 +151,8 @@ const onStepsChangeValue = (value: string) => {
     if (v > 0) demo.stepOptions.value.steps = v;
 };
 
-// P.W7 — the curve-physics telemetry + the "name that curve" egg live in the
-// colocated EasingCurvePhysics.vue (S.A0: the 500L-ceiling concern-seam split).
+// T.E7 — the curve-physics telemetry + its "name that curve" egg are DELETED
+// (VERDICT #13, owner-ruled removal; no replacement).
 </script>
 
 <style scoped>
@@ -182,15 +164,6 @@ const onStepsChangeValue = (value: string) => {
 .easing-editor {
     container-type: inline-size;
     container-name: easing-editor;
-}
-
-/* The egg-host wrapper carries the "Gallery" dblclick without changing layout:
-   `display: contents` dissolves its own box so the canvas remains the direct
-   full-width grid child (the J6 grow + the subgrid full-bleed rule still apply
-   to the canvas), while the wrapper stays in the DOM tree to catch the bubbled
-   double-click. */
-.canvas-egg-host {
-    display: contents;
 }
 
 /* J6 (H.W12.S7) — the in-SIDEBAR hero canvas GROWS into the space the value
@@ -237,44 +210,5 @@ const onStepsChangeValue = (value: string) => {
     width: 100%;
 }
 
-/* The curve-physics telemetry styles live in the colocated
-   EasingCurvePhysics.vue (S.A0: the 500L-ceiling concern-seam split). */
 
-/* S.G3 S2 — the gallery-door button. A quiet cartoon-register control (matches
-   the sidebar's language), full-width under the canvas, with a 44px tap floor
-   (`.tap-floor`) and the demo focus ring (`.focus-ring`). Its `--touring` state
-   wears the scene accent while the tour plays. */
-.gallery-door {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    width: 100%;
-    padding: 0.4rem 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-    border-radius: var(--radius-md, 0.5rem);
-    background: color-mix(in srgb, var(--background) 70%, transparent);
-    color: var(--foreground);
-    /* T.D4 — a BUTTON label rides the body register (mono is data, not the UI
-       voice); the mono bind is dropped, Jakarta inherits. */
-    font-size: var(--type-small, 0.8125rem);
-    font-weight: 500;
-    cursor: pointer;
-    transition:
-        background-color var(--duration-fast, 160ms) var(--ease-standard, ease),
-        border-color var(--duration-fast, 160ms) var(--ease-standard, ease);
-}
-.gallery-door:hover {
-    background: color-mix(in srgb, var(--color-progress) 8%, var(--background));
-    border-color: color-mix(in srgb, var(--color-progress) 40%, var(--border));
-}
-.gallery-door__glyph {
-    color: var(--color-progress);
-    font-weight: 700;
-}
-.gallery-door--touring {
-    background: color-mix(in srgb, var(--color-progress) 14%, var(--background));
-    border-color: color-mix(in srgb, var(--color-progress) 55%, transparent);
-    color: color-mix(in srgb, var(--color-progress) 55%, var(--foreground));
-}
 </style>

@@ -69,26 +69,13 @@ export const GESTURE_MANIFEST = [
         touch: { kind: "double-tap", target: ".demo-box" },
         effect: { kind: "attr-present", selector: ".demo-box[data-palette-sweep]" },
     },
-    // easing — the gallery tour, now on a VISIBLE gallery-door BUTTON (the tell IS
-    // the touch target). Effect: the button enters its `--touring` state.
-    {
-        scene: "easing",
-        id: "gallery",
-        label: "tap the gallery-door button → the easing-catalogue tour",
-        tell: '[data-gesture-tell="easing:gallery"]',
-        touch: { kind: "tap", target: '[data-gesture-tell="easing:gallery"]' },
-        effect: { kind: "class-appears", selector: '[data-gesture-tell="easing:gallery"]', token: "gallery-door--touring" },
-    },
-    // easing — "name that curve": double-tap the physics block → the nearest named
-    // easing badge. Tell: the inline stamp. Effect: the `.curve-physics-egg` appears.
-    {
-        scene: "easing",
-        id: "identify",
-        label: "double-tap the curve-physics block → name the nearest easing",
-        tell: '[data-gesture-tell="easing:identify"]',
-        touch: { kind: "double-tap", target: ".curve-physics" },
-        effect: { kind: "element-appears", selector: ".curve-physics-egg" },
-    },
+    // (easing rows RE-CUT at T.E7 — both owner-ruled removals, the lane-18-rec-3
+    //  lockstep: the `gallery` row died with the gallery-door button +
+    //  useEasingGallery.ts (VERDICT #15 "remove this button"; the T.E6/OD-7
+    //  redesigned scene IS the gallery), and the `identify` row died with
+    //  EasingCurvePhysics.vue (VERDICT #13 "Remove all of this" — the telemetry
+    //  block INCLUDING its "name this curve" dblclick egg). No easing row may
+    //  point at a deleted tell.)
     // sequence — the headline drag-to-retime (charter: "tell-less"). Tell: the
     // inline drafting stamp. Effect: a row handle's aria-valuenow changes on drag.
     {

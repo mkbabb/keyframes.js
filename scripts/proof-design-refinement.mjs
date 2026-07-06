@@ -155,7 +155,9 @@ const W11_EGGS = [
     },
     {
         scene: "easing",
-        files: ["scenes/easing/useEasingDemo.ts", "scenes/easing/EasingHeroStage.vue", "scenes/easing/useEasingGallery.ts"],
+        // (useEasingGallery.ts was DELETED at T.E7 — VERDICT #15; the S5 smear
+        //  arm SURVIVES: its markers live in useEasingDemo/EasingHeroStage.)
+        files: ["scenes/easing/useEasingDemo.ts", "scenes/easing/EasingHeroStage.vue"],
         domMarker: /trace-smear|drag-smear|self-draw|trace-glow|graticule-boot/,
         dogfood: /SmoothProgress|DrawSVG|fromDrawSVG/,
         triggerFile: "scenes/easing/EasingHeroStage.vue",
