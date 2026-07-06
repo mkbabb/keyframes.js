@@ -12,12 +12,10 @@ import { markRaw, watch, type ComputedRef, type Ref, type ShallowRef } from "vue
 import { useDocumentVisibility } from "@vueuse/core";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
-import type { ScenePlayback } from "@state";
 import {
     getStoredAnimationGroupControlOptions,
     surfacesFor,
     useSceneMachine,
-    createGroupAdapter,
 } from "@state";
 import { sceneMap } from "./scenes";
 import type { SceneExposedApi } from "./sceneExposedApi";
@@ -50,43 +48,44 @@ export function useSceneMachineShellBinding(opts: {
 
     /**
      * Bind the active scene's ScenePlayback adapter to the machine. Home
-     * registers NONE (no group — the cube backdrop drives no playback). Every
-     * non-home scene exposes a `SceneFacility` (T.B1-β) whose `playback` is the
-     * registered adapter; the group-wrap path survives only as the fallback for
-     * a facility-less host. Idempotent — tears the prior registration down first.
+     * registers NONE (no facility — the cube backdrop drives no playback). Every
+     * non-home scene exposes a `SceneFacility` (T.B1-β/T.B7 keystone, batch ⑥′)
+     * whose `playback` is the registered adapter — the ONE adapter path
+     * (proof:one-adapter). Idempotent — tears the prior registration down first.
      */
     function bindSceneAdapter() {
         releaseAdapter?.();
         releaseAdapter = null;
 
-        // T.B1 STAGE 1 — PREFER the SceneFacility when the scene exposes it. A
-        // facility carries its OWN `playback` adapter (built from the channels),
-        // so the shell registers that instead of wrapping the group. A migrated
-        // group scene (cube/amiga/square) still exposes `animationGroup` (the
-        // panel group); a facility-only scene (sequence) has none — its
-        // `currentAnimationGroup` is an empty placeholder (DFA [] → no panel).
+        // T.B8 — every non-home scene exposes a `SceneFacility`; the shell
+        // registers `facility.playback` (built FROM the channels by the ONE
+        // builder — createGroupAdapter for group scenes via facilityFromGroup,
+        // createRafAdapter for raw-rAF scenes). There is NO per-scene "expose
+        // scenePlayback or wrap the group" fallback — the dual-family branch is
+        // gone (proof:one-adapter). Home + a degenerate mid-teardown ref (no
+        // facility) register NOTHING and rest on the empty placeholder group.
         const facility = sceneRef.value?.facility;
         const group = facility?.group ?? sceneRef.value?.animationGroup;
-        if (isHome.value || (!group && !facility)) {
+        if (isHome.value || !facility) {
             currentAnimationGroup.value = markRaw(
-                new (kfEngine().AnimationGroup)(),
+                group ?? new (kfEngine().AnimationGroup)(),
             );
             return;
         }
 
+        // A migrated group scene (cube/amiga/square) rides its real group as the
+        // panel group; a facility-only scene (sequence) has none — an empty
+        // placeholder (DFA [] → no panel).
         currentAnimationGroup.value = markRaw(
             group ?? new (kfEngine().AnimationGroup)(),
         );
 
-        // The selection default + desktop force-open apply when there is a real
-        // selection AXIS: the facility's channels (T.B1-β — the honest set) or a
-        // real group with members. A facility-only scene with an empty DFA
-        // (sequence) still defaults its channel selection (the transport label)
-        // but its rail never force-opens (controlSurfaces is empty — the hollow
-        // 400px ghost rail, J.W7a S5 / XH-1, stays impossible).
-        const axisNames =
-            facility?.channels.map((c) => c.name) ??
-            (group ? Object.keys(group.animations) : []);
+        // The selection default + desktop force-open apply over the facility's
+        // channels (T.B1-β — the honest set). A facility-only scene with an empty
+        // DFA (sequence) still defaults its channel selection (the transport
+        // label) but its rail never force-opens (controlSurfaces is empty — the
+        // hollow 400px ghost rail, J.W7a S5 / XH-1, stays impossible).
+        const axisNames = facility.channels.map((c) => c.name);
         if (axisNames.length > 0) {
             // Pick the first axis member when none is selected yet (the controls
             // panel needs a selection to render anything).
@@ -113,16 +112,10 @@ export function useSceneMachineShellBinding(opts: {
             }
         }
 
-        // The playback authority: the facility's adapter first (every migrated
-        // scene — the same object the scene's own `scenePlayback` expose carries),
-        // then a scene's own raw-rAF adapter, then wrap the group (the
-        // facility-less fallback).
-        const exposed = sceneRef.value?.scenePlayback as ScenePlayback | undefined;
-        const adapter =
-            facility?.playback ??
-            exposed ??
-            createGroupAdapter(() => currentAnimationGroup.value);
-        releaseAdapter = machine.register(currentSceneId.value, adapter);
+        // The playback authority: the facility's ONE adapter (built from the
+        // channels by the single builder). No fallback family — the dual-adapter
+        // branch died with the keystone (proof:one-adapter).
+        releaseAdapter = machine.register(currentSceneId.value, facility.playback);
     }
 
     // ── The SCENE_READY emit (S4 — once per entry, targets-attached) ──────────

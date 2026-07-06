@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, useTemplateRef, watch, watchEffect } from "vue";
+import { computed, onMounted, reactive, useTemplateRef, watchEffect } from "vue";
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
@@ -135,7 +135,7 @@ import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardS
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./composables/useAnimationProgress";
 
-const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs, machinePlaying } = defineProps<{
+const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs } = defineProps<{
     animationGroup: AnimationGroup<any>;
     // T.B1-β STAGE 1 — the active scene's `SceneFacility.channels`. When
     // present, they ARE the transport axis (select labels, host mounts, the
@@ -145,18 +145,10 @@ const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, h
     channels?: TransportChannel[];
     superKey?: string;
     autoPlay?: boolean;
-    // S.A0 — the machine → transport intent edge (the amiga/hero cold-race).
-    // The transport's local `isPlaying` is written by its OWN gestures
-    // (syncPlayState) and a group-identity watch that samples `group.started` —
-    // but a MACHINE-initiated start (the S.A0 queued play consumed at
-    // SCENE_READY, the hero auto-play) starts the engine via the adapter, and
-    // `group.started` flips only on the FIRST rAF tick, so a transport mounting
-    // around that start can read a stale `false` forever (aria stuck on "Play"
-    // while the engine runs — reproduced under 20× CPU throttle). A
-    // machine-driven host (the App) threads the machine's `playing` status down
-    // this prop; the transport syncs its local ref to that truth. A standalone
-    // host (the playground) omits it — `undefined` never syncs.
-    machinePlaying?: boolean;
+    // T.B8 — the `machinePlaying` prop is RETIRED. `useAnimationGroupPlayback`
+    // now projects `isPlaying` directly off `machine.status` (the single
+    // authority), so there is no private shadow ref to sync to the machine — the
+    // S.A0 stale-`false` cold-race the prop cured is impossible by construction.
     hideControls?: boolean;
     // The mobile STAGE mode-class (H.W7.S1c) — drives the per-mode overlay
     // register: `subject` full-bleeds the fixed stage (cube/amiga/square),
@@ -282,35 +274,21 @@ const { animationProgress } = useAnimationProgress(
     () => channels,
 );
 
-// Sync play state when the animationGroup prop changes (e.g. after scene-switch
-// restoration sets the group to playing). Without this, isPlaying/isStarted refs
-// stay stale from the initial mount.
-watch(() => animationGroup, () => {
-    const group = animationGroup;
-    if (group.started) {
-        syncPlayState();
-    }
-}, { flush: 'post' });
-
-// S.A0 — the machine → transport intent edge (see the `machinePlaying` prop
-// note): sync the transport's local ref to the machine's `playing` truth on a
-// machine-initiated start/stop. `immediate: true` covers a transport that
-// mounts AFTER the machine already started the engine (the failing order under
-// throttle). The equality guard terminates the echo (syncPlayState emits →
-// App dispatches the state the machine is already in → the prop is unchanged).
-watch(
-    () => machinePlaying,
-    (v) => {
-        if (v === undefined || v === isPlaying.value) return;
-        syncPlayState(v);
-    },
-    { immediate: true, flush: "post" },
-);
+// T.B8 — the two former resync watches (the `animationGroup`-change resync and
+// the `machinePlaying` intent edge) are BOTH deleted: `isPlaying`/`isStarted`
+// are machine-derived computeds now, so a group swap or a machine-initiated
+// start settles them automatically — there is no shadow ref to re-seat.
 
 // Auto-play on mount if requested (e.g. when navigating from home to a scene).
+// Route through the machine (syncPlayState → PLAY) and gate on !isPlaying so a
+// scene the machine already restored to playing is never toggled OFF.
 onMounted(() => {
-    if (autoPlay && Object.keys(animationGroup.animations).length > 0) {
-        toggleAnimationGroup();
+    if (
+        autoPlay &&
+        !isPlaying.value &&
+        Object.keys(animationGroup.animations).length > 0
+    ) {
+        syncPlayState(true);
     }
 });
 

@@ -11,8 +11,11 @@ export interface UseAnimationGroupActionsDeps {
     storedControls: StoredAnimationGroupControlOptions;
     /** Resolve the group object backing an Animation (from useAnimationGroupPlayback). */
     findAnimationGroupObject: (animation: KeyframesAnimation<any>) => any;
-    /** Re-sync isPlaying/isStarted from the group (from useAnimationGroupPlayback). */
-    syncPlayState: () => void;
+    /** Emit the play/start INTENT to the host (from useAnimationGroupPlayback).
+     *  T.B8 — the machine is the single authority, so reset/clear pass the
+     *  post-stop state explicitly (`false`); the emit drives PAUSE through the
+     *  machine (never a direct group toggle). */
+    syncPlayState: (playing?: boolean) => void;
 }
 
 export interface UseAnimationGroupActionsReturn {
@@ -50,13 +53,16 @@ export function useAnimationGroupActions(
     };
 
     const reset = () => {
+        // `stop()` rewinds + halts the draw loop (NOT a play/pause-axis method —
+        // it is the hard reset, allowed by proof:no-shadow-playback-authority);
+        // the emit(false) tells the machine to rest paused (PAUSE → adapter).
         getGroup().stop();
-        syncPlayState();
+        syncPlayState(false);
     };
 
     const clear = () => {
         getGroup().stop();
-        syncPlayState();
+        syncPlayState(false);
         storedControls.selectedAnimation = null;
         // resetAllStores() now also wipes the scene-machine persist key, so the
         // active-scene fact resets to HOME_SCENE_ID on reload. The old raw

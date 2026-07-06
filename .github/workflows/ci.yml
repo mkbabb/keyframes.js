@@ -465,6 +465,13 @@ jobs:
               run: npm run proof:no-deprecated-guard
             - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
               run: npm run proof:single-writer
+            # T.B8 — the machine single-writer completion: the grep half is a pure
+            # source scan + a jsdom scrub-persistence vitest (no browser), and
+            # proof:one-adapter is a pure source grep — both ride the fast gates job.
+            - name: proof:no-shadow-playback-authority (T.B8 — createGroupAdapter is the ONLY group play/pause path + the scrub-persistence vitest)
+              run: npm run proof:no-shadow-playback-authority
+            - name: proof:one-adapter (T.B8 — one adapter path; the shell registers facility.playback, no dual-family fallback)
+              run: npm run proof:one-adapter
             - name: proof:scene-superkey-single-source (T.B9 — the ONE keyspace; the *_SUPER_KEY constants retired, stores key by the registry SceneId, one gc/migrate sweep)
               run: npm run proof:scene-superkey-single-source
             - name: proof:composable-encapsulation (H.W12 S2/I9 — the motion-path gesture engine is in the composable · pure store getters)
