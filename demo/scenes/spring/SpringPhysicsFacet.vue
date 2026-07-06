@@ -153,7 +153,10 @@ onMounted(() => {
         const values = demo.springLive.trackValues;
         for (let i = 0; i < trackBallEls.length; i++) {
             const el = trackBallEls[i];
-            if (el) el.style.left = `${clamp01(values[i] ?? 0) * 100}%`;
+            // T.G4 — position by `transform: translateX(<cqw>)`, never `left` (the
+            // compositor-only value axis; `cqw` = 1% of the `.preset-track`
+            // inline-size container). No per-frame layout, no width read.
+            if (el) el.style.transform = `translateX(${clamp01(values[i] ?? 0) * 100}cqw)`;
         }
     });
 });
@@ -181,11 +184,17 @@ const applyPreset = (preset: SpringPreset) => {
 .preset-track .progress-rail {
     --rail-tint: 14%;
 }
+/* T.G4 — the track is the `cqw` inline-size container the preset ball's
+   `translateX(<cqw>)` resolves against. */
+.preset-track {
+    container-type: inline-size;
+}
 .preset-ball {
     --ball-size: 0.85rem;
     --ball-glow: 0%;
+    left: 0; /* T.G4 — painter's translateX(<cqw>) carries the position */
     margin-left: calc(var(--ball-size) / -2);
-    will-change: left;
+    will-change: transform;
 }
 
 /* ── S3 → T.D7 — the DASHED active/settled ring (the token treatment) ──
