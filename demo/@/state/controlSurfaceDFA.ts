@@ -158,16 +158,28 @@ export function builtInSurfacesFor(sceneId: SceneId): ControlSurface[] {
 // is STATIC per surface; deriving it from `activeScene` through this table makes
 // the dock projection settle synchronously with the route transition.
 
-/** A dock/tab-host descriptor for a scene-specific control surface. The `icon`
- *  is a key into the host's icon registry (ChromeDock `TAB_ICONS`). */
+/** A dock/tab-host descriptor for a control surface. The `icon` is a key into
+ *  the host's icon-COMPONENT registry (ChromeDock `TAB_ICONS` — a string→
+ *  component map, not metadata). */
 export interface ControlSurfaceTab {
     value: ControlSurface;
     label: string;
     icon?: string;
 }
 
-/** The tab metadata per scene-specific surface (the non-built-in alphabet). */
-const SCENE_SURFACE_TABS: Partial<Record<ControlSurface, ControlSurfaceTab>> = {
+/**
+ * THE ONE SURFACE-METADATA REGISTRY (T.B2 — the triplication fold). The
+ * surface→{label,icon} map formerly existed THREE times — `SCENE_SURFACE_TABS`
+ * here, `BUILT_IN_TAB_META` in AnimationControls.vue, `BUILT_IN_CONTROL_TABS`
+ * in ChromeDock.vue — three hand-synced copies of one fact. This is the SINGLE
+ * source: both docks and the in-panel strip derive their tab descriptors from
+ * it (ChromeDock's `TAB_ICONS` survives as the string→component ICON registry,
+ * a render concern, not metadata). Total over the ControlSurface alphabet.
+ */
+export const SURFACE_META: Record<ControlSurface, ControlSurfaceTab> = {
+    controls: { value: "controls", label: "Controls", icon: "SlidersHorizontal" },
+    keyframes: { value: "keyframes", label: "Keyframes", icon: "Braces" },
+    timeline: { value: "timeline", label: "Timeline", icon: "Clock" },
     easing: { value: "easing", label: "Easing", icon: "Activity" },
     spring: { value: "spring", label: "Spring", icon: "Activity" },
     "matrix-controls": {
@@ -199,7 +211,7 @@ export function extraControlTabsFor(
         activeConditionals.includes(s),
     );
     return [...statics, ...conditionals].flatMap((s) => {
-        const tab = SCENE_SURFACE_TABS[s];
+        const tab = SURFACE_META[s];
         return tab ? [tab] : [];
     });
 }

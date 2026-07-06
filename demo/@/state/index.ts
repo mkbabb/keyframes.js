@@ -51,9 +51,11 @@ export { useSceneMachine, SCENE_MACHINE_PERSIST_KEY } from "./useSceneMachine";
 // useSceneMachine (the effect layer above).
 export {
     type ControlSurface,
+    type ControlSurfaceTab,
     BUILT_IN_SURFACES,
     CONTROL_SURFACES,
     CONDITIONAL_SURFACES,
+    SURFACE_META,
     controlSurfacesFor,
     selectedControlSurfaceFor,
     isSurfaceValidForScene,

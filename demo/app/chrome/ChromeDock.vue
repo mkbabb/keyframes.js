@@ -12,7 +12,11 @@ import {
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection; the batch-5 dockZones.ts stand-in was deleted at merge —
 // ONE source of the count arithmetic, per lane 18's dual-formula rule).
-import { dockCardinality } from "@state/controlSurfaceDFA";
+import {
+    BUILT_IN_SURFACES,
+    SURFACE_META,
+    dockCardinality,
+} from "@state/controlSurfaceDFA";
 import {
     Select,
     SelectContent,
@@ -38,14 +42,14 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 // The BUILT-IN editor tab descriptors (label + icon for the {controls,keyframes,
 // timeline} triad). The DFA (controlSurfaceDFA.ts) is the AUTHORITY on WHICH of
 // these render per scene — `allControlTabs` filters this list against the
-// `controlSurfaces` prop (the active scene's valid set). The easing scene's set
-// is ['easing'] (a scene-specific surface carried by `extraControlTabs`), so NONE
-// of this triad renders for it — NO keyframes/timeline tab node exists there.
-const BUILT_IN_CONTROL_TABS: { value: string; label: string; icon?: string }[] = [
-    { value: "controls", label: "Controls", icon: "SlidersHorizontal" },
-    { value: "keyframes", label: "Keyframes", icon: "Braces" },
-    { value: "timeline", label: "Timeline", icon: "Clock" },
-];
+// `controlSurfaces` prop (the active scene's valid set). T.B2 — the {label,icon}
+// metadata itself DERIVES from the ONE `SURFACE_META` registry (the former
+// hand-synced literal here was one of the three triplicated sites); `TAB_ICONS`
+// below survives as the string→COMPONENT icon registry (a render concern, not
+// metadata). The easing scene's set is ['easing'] (a scene-specific surface
+// carried by `extraControlTabs`), so NONE of this triad renders for it.
+const BUILT_IN_CONTROL_TABS: { value: string; label: string; icon?: string }[] =
+    BUILT_IN_SURFACES.map((s) => SURFACE_META[s]);
 
 const TAB_ICONS: Record<string, any> = {
     SlidersHorizontal,

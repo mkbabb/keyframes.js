@@ -246,6 +246,7 @@ import { useSelectedControlSurface } from "./composables/useSelectedControlSurfa
 import {
     useSceneMachine,
     BUILT_IN_SURFACES,
+    SURFACE_META,
     type ControlSurface,
 } from "@state";
 
@@ -290,17 +291,15 @@ const tabsExternallyManaged = inject(TABS_EXTERNALLY_MANAGED_KEY, false);
 // default) shows the FULL built-in triad: it is the standalone editor, not a
 // per-scene DFA-gated surface.
 const machine = useSceneMachine();
-const BUILT_IN_TAB_META: Record<string, { value: string; label: string }> = {
-    controls: { value: "controls", label: "Controls" },
-    keyframes: { value: "keyframes", label: "Keyframes" },
-    timeline: { value: "timeline", label: "Timeline" },
-};
+// T.B2 — the tab {label,icon} metadata resolves from the ONE `SURFACE_META`
+// registry (controlSurfaceDFA.ts); the former local `BUILT_IN_TAB_META` copy
+// (one of the three hand-synced sites) is DELETED.
 const hasSurface = (surface: ControlSurface): boolean =>
     !tabsExternallyManaged || machine.controlSurfaces.value.includes(surface);
 const builtInTabs = computed(() =>
     BUILT_IN_SURFACES.filter(
         (s) => !tabsExternallyManaged || machine.controlSurfaces.value.includes(s),
-    ).map((s) => BUILT_IN_TAB_META[s]!),
+    ).map((s) => SURFACE_META[s]),
 );
 
 // glass-ui 4.0.0 (BA.W-TABS) — the `<SegmentedTabs>` strip is OPTIONS-DRIVEN, so
