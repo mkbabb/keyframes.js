@@ -448,6 +448,8 @@ jobs:
               run: npm run proof:shared-has-n-consumers
             - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
               run: npm run proof:no-dup-utility
+            - name: proof:no-hand-rolled-cursor-tracker (T.D14 / lane 12 T-CL-3 — the standing recurrence guard; no bare pointermove + --*-x/--*-y write outside glass-ui's public cursor door)
+              run: npm run proof:no-hand-rolled-cursor-tracker
             - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
               run: npm run proof:idioms
             - name: proof:phi-leaf-zero (H.W4 — the φ-hero chronic SYSTEM-property gate CH-2/M1 · zero raw rungs AND the hero on the audacious top φ rung)

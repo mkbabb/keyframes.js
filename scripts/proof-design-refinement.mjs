@@ -31,9 +31,9 @@
  * refinement guards the NINE NEW W11 instrument eggs.
  *
  * ── THE NINE NEW EGGS (the S1-S9 recipes — design-fold-clauses.txt is the oracle) ─
- *   S1 home        — the live-source quadrant card TYPES its own @keyframes block in
- *                    Fira Code (red caret) → format.ts serializes it back on a ~6s
- *                    round-trip; dogfood: CSSKeyframesAnimation + format.ts.
+ *   (S1 home typing-card arm RE-CUT at T.D12 — VERDICT #2 "remove this crap":
+ *    the kf-source-egg card + useHeroSourceEgg.ts are owner-ruled removals;
+ *    proof:hero-two-focal now asserts the card's ABSENCE on home.)
  *   S2 cube        — the orientation-coupled RE-LIT die: faces toward the pinned
  *                    light brighten + catch specular as the cube orbits (rides
  *                    syncRotationToModel, NO second rAF); the kept dblclick ROLL
@@ -110,18 +110,16 @@ const HANDROLLED_RAF = /requestAnimationFrame\s*\(/;
 // the refinement introduces, the NEW engine dogfood, the hidden trigger, and the
 // browser-half observable. Born-RED: these markers do NOT exist yet. ───────────
 const W11_EGGS = [
-    {
-        scene: "home",
-        // The S1 live-source quadrant card — a NEW GLASS card that types its own
-        // @keyframes block (Fira Code, red caret) and round-trips it via format.ts.
-        files: ["@/components/custom/editor-shell/EditorStartScreen.vue", "@/components/custom/editor-shell/AnimatedText.vue"],
-        domMarker: /kf-source-egg|source-typing-card|hero-keyframes-card/,
-        dogfood: /loadAnimationEngine|CSSKeyframesAnimation|format|serialize/,
-        triggerFile: "@/components/custom/editor-shell/EditorStartScreen.vue",
-        trigger: /kf-source-egg|source-typing-card|hero-keyframes-card/,
-        note: "S1 — the quadrant GLASS card TYPES a @keyframes block (Fira Code, red caret), format.ts serializes it back on a ~6s round-trip loop (the moat made visible)",
-        browser: { scene: "home", host: ".kf-source-egg, .source-typing-card, .hero-keyframes-card", trigger: "none" },
-    },
+    // home — the S1 typing-card arm is RE-CUT (T.D12, lane-18 lockstep — the
+    // same motion the amiga S3 boot arm got): the @KEYFRAMES·LIVE quadrant card
+    // (kf-source-egg + useHeroSourceEgg.ts) was an owner-RULED removal
+    // (VERDICT #2 "remove this crap"; its red dot/caret were the latent-red
+    // vocabulary #16; its perpetual type-in interval was #19). The card, its
+    // ~140L scoped CSS, and the composable are DELETED; the home stage is the
+    // two-focal hero + die (proof:hero-two-focal clause (c) asserts the card's
+    // ABSENCE — the polarity this arm's presence-assert inverted). The gate KEY
+    // survives — it retires only when the LAST coupled instrument-egg is
+    // dispositioned (T.M7/T.E11).
     {
         scene: "cube",
         files: ["scenes/cube/CubeTarget.vue", "scenes/cube/orbital-drag/OrbitalDrag.vue"],

@@ -33,9 +33,21 @@
         },
         {
             "role": "hero-display",
-            "selector": "h1.hero-display",
-            "expect": { "voice": "display", "weight": 400 },
-            "note": "the home hero: Instrument Serif at its one TRUE weight (T.D2 honest ink; the seat/composition is OD-4's, batch ⑤)"
+            "selector": "h1.hero-display .wave-char",
+            "expect": { "voice": "display", "weight": 400, "style": "normal" },
+            "note": "the home hero, measured at its per-CHAR leaves (T.D10 — the census sees LEAVES, and the h1 hosts only spans): Instrument Serif at its one TRUE weight, roman (T.D2 honest ink; the φ-band seat landed at T.D9, OD-4 APPROVED)"
+        },
+        {
+            "role": "hero-deck",
+            "selector": ".hero-deck",
+            "expect": { "voice": "display", "weight": 400, "style": "italic" },
+            "note": "T.D11 (OD-4) — the home deck joins the poster's voice: Instrument Serif TRUE italic 400 at --type-title (the serif-italic deck ramp; the bold-italic system-sans register is dead)"
+        },
+        {
+            "role": "hero-hint",
+            "selector": ".hero-hint",
+            "expect": { "voice": "display", "weight": 400, "style": "italic" },
+            "note": "T.D11 — the hint rides the SAME title rung, muted ink (the T.D2 serif floor rules the heading rung out for the display face; ink strength carries the deck→hint step — a named P-HERO deviation)"
         },
         {
             "role": "control-label",

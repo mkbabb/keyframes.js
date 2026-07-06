@@ -1,17 +1,17 @@
 {
-  "_doc": "T.M4 owner-sanctioned on-stage inventory for the home scene, derived from the blessed P-HERO prototype (OD-4 APPROVED, OWNER-DECISIONS.md). The `sanctioned` set is the EXACT on-stage element inventory the owner blessed; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The typing card (#2) and the kf-source egg card are EXPLICITLY excluded (owner: 'remove this crap' / 'remove decorative library-orthogonal chrome').",
+  "_doc": "T.M4 owner-sanctioned on-stage inventory for the home scene. Seeded from the blessed P-HERO prototype (OD-4 APPROVED, OWNER-DECISIONS.md) at T.M4; RE-DERIVED at T.D9/T.D10/T.D11/T.D13 (batch ⑤) against the LANDED hero — the landed tree matches this set (deviations from P-HERO are named in the T.D9/T.D11/T.D13 verdict packets). The `sanctioned` set is the EXACT on-stage element inventory the owner blessed; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The typing card (#2) and the kf-source egg card are EXPLICITLY excluded (owner: 'remove this crap' / 'remove decorative library-orthogonal chrome') — their ABSENCE is browser-asserted NOW by proof:hero-two-focal clause (c).",
   "scene": "home",
   "sanctioned": [
-    "hero-mark (per-char uplift, φ-band seat, honest 400 ink)",
-    "hero-deck (serif-italic deck ramp)",
-    "play-CTA (play-first)",
-    "scene-cube-preview (hero overlaps cube — allowed)",
-    "aurora-cursor-light (OD-2 more-subtle; ceiling = P-HERO opacity)"
+    "hero-mark (h1.hero-display — per-CHAR two-tier uplift over .wave-word/.wave-char, φ-band seat off the work-area chain, honest 400 --foreground ink, TypingDots engine-dogfooded pulse tail)",
+    "hero-deck (.hero-deck/.hero-hint — Instrument Serif TRUE italic 400; both on the title rung, hint muted — the T.D2 serif-floor deviation named in the T.D11 packet)",
+    "play-CTA (the transport dock's play control — play-first ordering rides T.C/T.B10)",
+    "scene-cube-preview (the die; hero overlaps its lower quadrant — WELCOME per OD-4, ink prints over it at z-controls)",
+    "aurora-cursor-light (HeroAurora on glass-ui's public Aurora, DEFAULT-mounted home-only; OD-2 more-subtle — ceiling 0.1, strictly under the P-HERO 0.15; proof:cursor-light-subtle)"
   ],
   "forbidden": [
-    "typing-card (#2 — remove this crap)",
-    "kf-source-egg-card (#2 — decorative library-orthogonal chrome)",
+    "typing-card (#2 — remove this crap; excised at T.D12 with useHeroSourceEgg.ts)",
+    "kf-source-egg-card (#2 — decorative library-orthogonal chrome; absence asserted by proof:hero-two-focal clause (c))",
     "gallery-door-button (#15)"
   ],
-  "status": "SKELETON — owner-derived from P-HERO; the RENDERED-set reconciliation is the discharge (T.D, browser render check, KF_REQUIRE_BROWSER)"
+  "status": "FILLED (T.D9/T.D13, batch ⑤) — owner-derived from P-HERO, re-derived against the landed hero; the forbidden set is browser-asserted by proof:hero-two-focal clause (c). The generic RENDERED-set reconciliation inside proof:stage-inventory itself (KF_REQUIRE_BROWSER discharge across ALL scenes) remains the T_BORNRED_BACKLOG carry."
 }

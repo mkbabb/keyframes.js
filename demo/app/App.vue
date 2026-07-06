@@ -35,6 +35,16 @@
         @play-state-change="onPlayStateChange"
         @start-state-change="onStartStateChange"
     >
+        <!-- T.D13 (OD-2: AURORA-ON-HERO, more subtle) — glass-ui's Aurora as
+             the home hero's ambient background, mounted BY DEFAULT (the owner
+             blessed the P-HERO ?light=1 fork AS the default; the review-lever
+             query toggle is gone). Home only; navigating away tears the layer
+             down. The subtlety bound lives in HeroAurora
+             (HERO_AURORA_OPACITY_CEILING, proof:cursor-light-subtle). -->
+        <template v-if="isHome" #backdrop>
+            <HeroAurora />
+        </template>
+
         <template #start-screen>
             <EditorStartScreen hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;" />
         </template>
@@ -120,6 +130,10 @@ import {
 import type { ControlSurface } from "@state";
 
 import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell";
+// T.D13 — the home hero's Aurora backdrop (colocated in editor-shell/ beside
+// the start screen it backs; imported directly, not via the barrel — a
+// single-consumer leaf, the P-HERO import shape).
+import HeroAurora from "@components/custom/editor-shell/HeroAurora.vue";
 import ChromeDock from "./chrome/ChromeDock.vue";
 import MbabbMenu from "./chrome/MbabbMenu.vue";
 

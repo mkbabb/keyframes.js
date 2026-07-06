@@ -1,15 +1,10 @@
 {
   "_doc": "T.M4 (proof:stage-inventory) — the per-scene owner-sanctioned on-stage element manifest index. The INVERSE of the DFA: instead of 'the control set equals the table', assert 'the on-stage element set equals the owner-sanctioned inventory', so extra chrome NOT in the manifest REDs. This is the negative-space gate that catches the entire never-gated Class D ('no gate can assert this element should not exist'). Each scene's `manifest` slot is either an owner-sanctioned inventory file (docs/tranches/T/stage-manifests/<scene>.json) or the string 'EMPTY-RED' (born-RED — the band that rebuilds the scene fills it WITH owner sign-off, T.M4 lockstep). A scene whose manifest is EMPTY-RED, or whose retire-target chrome is un-manifested, REDs. Blessed prototype scenes (P-HERO/P-PANEL/P-THEME + the VERDICT removals) may carry a derivable skeleton NOW; T.A/T.B/T.C/T.D rebuild the rest.",
   "scenes": [
-    { "scene": "home", "manifest": "home.json", "note": "blessed P-HERO reference (OD-4 APPROVED) — skeleton derivable" },
+    { "scene": "home", "manifest": "home.json", "note": "T.D9/T.D13 LANDED (batch ⑤) — re-derived against the landed hero (per-char mark, serif deck, default aurora at the 0.1 amended ceiling); forbidden set browser-asserted by proof:hero-two-focal clause (c)" },
     { "scene": "square", "manifest": "EMPTY-RED", "note": "T.B rebuild (OD-5 riders R1/R2) — #11 caption block un-manifested until pruned + owner-signed" },
-<<<<<<< HEAD
-    { "scene": "cube", "manifest": "cube.json", "note": "T.A restage COMPLETE — #5 rx/ry/rz readout + #8 gesture legend removed; owner-sanctioned inventory filled (rulings #5/#8)" },
-    { "scene": "amiga", "manifest": "EMPTY-RED", "note": "T.A rebuild — #8 gesture legend + #10 caption un-manifested" },
-=======
-    { "scene": "cube", "manifest": "EMPTY-RED", "note": "T.A rebuild — #5 rx/ry/rz readout un-manifested until removed" },
+    { "scene": "cube", "manifest": "cube.json", "note": "T.A restage COMPLETE — #5 rx/ry/rz readout + #8 gesture legend removed; owner-sanctioned inventory filled (rulings #5/#8). (An unresolved ②′-merge conflict marker sat across the cube/amiga rows until batch ⑤ — cured as the UNION: both sides' filled manifests exist on disk.)" },
     { "scene": "amiga", "manifest": "amiga.json", "note": "T.A7–A12 rebuild (impl drive): #8 gesture legend + CRT overlay + boot flash + parked telemetry REMOVED; WebGL-only stage. Grid-room composition + transient-ω-badge option PENDING-OWNER (T.M2)" },
->>>>>>> worktree-wf_da0354ca-c67-2
     { "scene": "easing", "manifest": "EMPTY-RED", "note": "T.E rebuild (OD-7 PENDING-OWNER) — #13 telemetry + #15 gallery door un-manifested" },
     { "scene": "spring", "manifest": "EMPTY-RED", "note": "T.B rebuild — #17 dock dup" },
     { "scene": "sequence", "manifest": "EMPTY-RED", "note": "T.B facility" }

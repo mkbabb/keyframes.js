@@ -219,9 +219,14 @@ export const CORRECTNESS_ROSTER = [
     "proof:gesture-manifest",
     "proof:easter-egg",
     "proof:design-refinement",
-    "proof:hero-rung",
-    "proof:hero-balance",
-    "proof:hero-cls",
+    // T.D9/T.D11/T.D13 (batch ⑤) — the born-OWNER hero oracles (OD-4/OD-2
+    // APPROVED tokens; the P-HERO blessed reference). They REPLACE the retired
+    // hero-rung/-balance/-cls FROZEN locks (machine-witnessed migrations in
+    // scripts/gate-bands.mjs DISCHARGE — those three crystallized the rejected
+    // word-split top-band hero). OWNER authority ⇒ BLOCKING (T.M6.2).
+    "proof:hero-two-focal",
+    "proof:hero-deck-voice",
+    "proof:cursor-light-subtle",
     "proof:brittleness",
     "proof:modern-web",
     "proof:platform-adopt",

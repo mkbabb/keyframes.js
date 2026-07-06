@@ -29,9 +29,12 @@
  *       the named moments (the four Target headers: ease/SpringProgress/Sequence/
  *       MotionPath) AND the amiga stage carries NO display title (the binding
  *       headerless exception — enforced, not assumed).
- *   (c) the 390×844 hero/subject overlap == 0px (the S1 H3/TYP-1 oracle, the
- *       APPEARANCE-CERTIFICATION fact J.W4 §S1 also certifies): hero h1 rect ∩
- *       cube subject rect AREA == 0.
+ *   (c) the 390×844 mobile hero contract — RE-SPEC'D at T.D9 (OD-4 APPROVED):
+ *       the former hero∩cube==0 assertion locked the state the owner overturned
+ *       ("it's OK if it sits a bit on top of the cube"). Now: hero∩dock == 0,
+ *       h1.top on the lower φ band (≥ 0.38 × viewport), and the hero band
+ *       resolves a positive z-index (the ink PRINTS over the die — the real
+ *       H3 cure); the cube overlap is measured + reported, never failed.
  *   (d) the easing stage's projected curve PRESENT + MUTATING on a real handle
  *       drag (the S4 math oracle): .easing-stage-curve-path has a non-empty `d`,
  *       distinct from the sidebar .bezier-path; a REAL mouse drag of sidebar
@@ -476,12 +479,22 @@ async function runSuffusion() {
         return false;
     }
 
-    // ── (c) the 390×844 hero/subject overlap == 0px (a SEPARATE mobile context) ──
+    // ── (c) the 390×844 mobile hero contract (RE-SPEC'D at T.D9 / OD-4) ─────────
+    // The former clause asserted hero∩cube == 0 — the EXACT lock the owner
+    // overturned (VERDICT #3: "it's OK if it sits a bit on top of the cube";
+    // OD-4 APPROVED the overlapping two-focal composition — the arming-audit
+    // lesson: a gate asserting the rejected state is re-cut in the SAME motion
+    // the new hero lands). The clause now asserts the NEW placement contract:
+    // the hero clears BOTH glass docks, sits on the lower φ band (never back in
+    // the top band), and PRINTS OVER the die (z-controls ≥ the subject — the
+    // ink stays legible exactly because the paint order is deterministic, the
+    // real cure for the H3 "word behind the cube face" defect). The cube
+    // overlap itself is measured + REPORTED, never failed.
     const mobile = await withPage(
         {
             distDir: DIST,
             context: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 3 },
-            label: "the appearance-suffusion mobile overlap (clause c)",
+            label: "the appearance-suffusion mobile hero contract (clause c)",
         },
         async (page, { url: base }) => {
             await page.goto(`${base}/#/`, { waitUntil: "load" });
@@ -493,18 +506,20 @@ async function runSuffusion() {
                     if (b.width < 4 || b.height < 4) return null;
                     return { x: b.x, y: b.y, right: b.right, bottom: b.bottom, w: b.width, h: b.height };
                 };
-                const hero = document.querySelector("h1");
-                // The home subject is the CSS-3D cube (its faces are .cube-side); the
-                // subject envelope is the union of the visible face rects.
-                const faces = [...document.querySelectorAll(".cube-side, .cube")].filter((e) => {
-                    const b = e.getBoundingClientRect();
-                    const cs = getComputedStyle(e);
-                    return b.width > 8 && b.height > 8 && cs.visibility !== "hidden" && cs.display !== "none";
-                });
+                const inter = (a, b) => {
+                    if (!a || !b) return 0;
+                    const ix = Math.max(0, Math.min(a.right, b.right) - Math.max(a.x, b.x));
+                    const iy = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y));
+                    return Math.round(ix * iy);
+                };
+                const hero = rect(document.querySelector("h1"));
+                const docks = [...document.querySelectorAll(".glass-dock")].map(rect).filter(Boolean);
+                // The home subject envelope (union of visible cube faces).
                 let cube = null;
-                for (const f of faces) {
-                    const r = f.getBoundingClientRect();
-                    if (!cube) cube = { x: r.x, y: r.y, right: r.right, bottom: r.bottom };
+                for (const f of document.querySelectorAll(".cube-side, .cube")) {
+                    const r = rect(f);
+                    if (!r) continue;
+                    if (!cube) cube = { ...r };
                     else {
                         cube.x = Math.min(cube.x, r.x);
                         cube.y = Math.min(cube.y, r.y);
@@ -512,36 +527,69 @@ async function runSuffusion() {
                         cube.bottom = Math.max(cube.bottom, r.bottom);
                     }
                 }
-                const hr = rect(hero);
-                let overlap = null;
-                if (hr && cube) {
-                    const ix = Math.max(0, Math.min(hr.right, cube.right) - Math.max(hr.x, cube.x));
-                    const iy = Math.max(0, Math.min(hr.bottom, cube.bottom) - Math.max(hr.y, cube.y));
-                    overlap = Math.round(ix * iy);
-                }
+                // Paint-order determinism: the hero's stacking context resolves
+                // ABOVE the subject (the z-controls print — the actual H3 cure).
+                const band = document.querySelector(".hero-band");
+                const bandZ = band ? getComputedStyle(band).zIndex : null;
+                const overlayZ = band?.parentElement
+                    ? getComputedStyle(band.parentElement).zIndex
+                    : null;
                 return {
-                    heroFound: !!hr,
+                    heroFound: !!hero,
+                    hero: hero ? { y: Math.round(hero.y), bottom: Math.round(hero.bottom) } : null,
+                    dockHits: docks.map((d) => inter(hero, d)).filter((a) => a > 0),
+                    dockCount: docks.length,
                     cubeFound: !!cube,
-                    hero: hr ? { y: Math.round(hr.y), bottom: Math.round(hr.bottom) } : null,
-                    cube: cube ? { y: Math.round(cube.y), bottom: Math.round(cube.bottom) } : null,
-                    overlapArea: overlap,
+                    cubeOverlap: inter(hero, cube),
+                    bandZ,
+                    overlayZ,
+                    innerHeight: window.innerHeight,
                 };
             });
         },
     );
     if (!mobile.skipped) {
         const m = mobile.value;
-        if (m.heroFound && m.cubeFound && m.overlapArea === 0) {
-            ok(
-                `(c) 390×844 hero/subject overlap == 0px — hero h1 (y ${m.hero.y}–${m.hero.bottom}) and the ` +
-                    `cube subject (y ${m.cube.y}–${m.cube.bottom}) do not intersect (the H3/TYP-1 collision CURED)`,
-            );
+        if (!m.heroFound) {
+            fail("(c) 390×844 — the hero h1 did not render a visible rect");
         } else {
-            fail(
-                `(c) 390×844 hero/subject overlap is NOT 0 (heroFound=${m.heroFound}, cubeFound=${m.cubeFound}, ` +
-                    `overlapArea=${m.overlapArea}px²; hero=${JSON.stringify(m.hero)}, cube=${JSON.stringify(m.cube)}) — ` +
-                    `the mobile hero word is physically behind the cube face (the H3 defect)`,
-            );
+            if (m.dockHits.length === 0 && m.dockCount >= 1) {
+                ok(
+                    `(c) 390×844 hero∩dock == 0 — the hero (y ${m.hero.y}–${m.hero.bottom}) clears all ` +
+                        `${m.dockCount} glass dock plate(s) (the hero owns the φ band, the docks own theirs)`,
+                );
+            } else {
+                fail(
+                    `(c) 390×844 hero∩dock ≠ 0 — overlapping areas ${JSON.stringify(m.dockHits)}px² ` +
+                        `across ${m.dockCount} dock plate(s)`,
+                );
+            }
+            const floor = Math.round(0.38 * m.innerHeight);
+            if (m.hero.y >= floor) {
+                ok(
+                    `(c) 390×844 the hero sits on the lower φ band — h1.top ${m.hero.y}px ≥ ${floor}px ` +
+                        `(0.38 × viewport; the top-band header hero is the rejected state)`,
+                );
+            } else {
+                fail(
+                    `(c) 390×844 the hero is back in the top band — h1.top ${m.hero.y}px < ${floor}px ` +
+                        `(VERDICT #3: lower on the page, toward the centre)`,
+                );
+            }
+            const zResolved = [m.bandZ, m.overlayZ].some((z) => z !== null && z !== "auto" && parseInt(z, 10) > 0);
+            if (zResolved) {
+                ok(
+                    `(c) 390×844 the hero prints deterministically OVER the subject (z-controls resolved: ` +
+                        `band z=${m.bandZ}, overlay z=${m.overlayZ}) — overlap-with-cube ${m.cubeOverlap}px² is ` +
+                        `WELCOME per OD-4 (reported, never failed)`,
+                );
+            } else {
+                fail(
+                    `(c) 390×844 the hero band resolves NO positive z-index (band=${m.bandZ}, ` +
+                        `overlay=${m.overlayZ}) — with overlap welcome, the ink MUST print over the die by ` +
+                        `stacking context, not DOM-order accident (the H3 word-behind-the-face defect)`,
+                );
+            }
         }
     }
 
@@ -566,7 +614,8 @@ console.log(
     "\nproof:appearance-suffusion — PASS: every per-finding COMPUTED appearance oracle holds on the live " +
         "built dist — the --ball-tone carries each scene's icon hue (violet/cyan/green/teal, aquamarine dead), " +
         "the Instrument-Serif display register lands at the named moments (amiga headerless), the 390×844 " +
-        "hero/subject overlap is 0, the easing stage projects its OWN curve and it mutates on a real handle " +
+        "hero clears the docks on the lower φ band (overlap-with-die welcome, ink printing over it), the " +
+        "easing stage projects its OWN curve and it mutates on a real handle " +
         "drag, the ghost rail is absent, the amiga is rounded-glass, and the substrate is legible two-tier " +
         "graph paper (W6-3 discharged). The design suffusion is certified through the human's eye, clause by clause.",
 );
