@@ -375,12 +375,17 @@ useResizeObserver(trackContainerEl, () => measureTrackWidth());
 .easing-target {
     --track-ball-size-active: 36px;
     --track-ball-size-muted: 24px;
-    /* J.W7a S3 (D11 / CP-1) — the scene's ONE colour consumer: the easing
-       subject keeps its icon's promise (easing.svg draws the violet curve).
-       Cascades from the stage root to the shared .progress-rail/.progress-ball
-       idiom, the readout accent, and the active track label — one token, the
-       whole scene agrees (cross-color-pops §5.1). */
-    --ball-tone: var(--rainbow-violet);
+    /* T.E9 (VERDICT #16a, owner-ruled) — the easing scene collapses to ONE
+       violet family: the scene's ONE colour consumer rides THE single brand
+       violet authority (--color-progress = --accent-kf, the OD-6 blessed ramp),
+       NOT the divergent magenta --rainbow-violet (hsl 300) the owner's "one
+       violet family" ruling retires. The scene icon still promises violet
+       (easing.svg's curve); now the subject, the readout accent, and the active
+       track label all consume the SAME authority proof:accent-census governs —
+       one token, the whole scene agrees, zero second literal (the four-hue
+       divergence — violet curve / magenta ball / red transport / warm grid — is
+       dead; T.D7 killed the red transport, this kills the magenta ball). */
+    --ball-tone: var(--color-progress);
 }
 
 /* The singular hero stage's projected-bezier + hero-ball rules (J.W7a D16 /
