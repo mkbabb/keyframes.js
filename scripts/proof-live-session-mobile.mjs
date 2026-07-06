@@ -72,7 +72,7 @@
  * defect; they gate on J.W7a + J.W3 and green ONLY on the post-W7a tree). The
  * three legs run AFTER the input-modality battery, each on its own mobile
  * context, each born-RED-able on a self-contained dist plant:
- *   · A1 — S1 mobile hero/subject overlap == 0 on 390×844 (the H3/A-01 cure
+ *   · A1 — S1 mobile hero PRINT-OVER contract on 390×844 (overlap sanctioned per #3; re-armed at T.D9
  *          certification): hero h1 rect ∩ cube subject rect AREA == 0.
  *   · A2 — S3 DARK --ball-tone/accent computed-contrast ≥ floor on a 390×844 +
  *          colorScheme:dark context: the easing violet ball + .readout-accent
@@ -946,10 +946,32 @@ async function runAppearanceBand() {
                     }
                 }
                 let overlap = null;
+                let printsOver = null;
                 if (hr && cube) {
                     const ix = Math.max(0, Math.min(hr.right, cube.right) - Math.max(hr.x, cube.x));
                     const iy = Math.max(0, Math.min(hr.bottom, cube.bottom) - Math.max(hr.y, cube.y));
                     overlap = Math.round(ix * iy);
+                    if (overlap > 0) {
+                        // T.D9 (VERDICT #3): overlap is SANCTIONED — the contract is
+                        // PRINT-OVER: at the intersection centre the topmost element
+                        // must belong to the hero band (the ink prints over the die),
+                        // never a cube face over the ink.
+                        const cx = (Math.max(hr.x, cube.x) + Math.min(hr.right, cube.right)) / 2;
+                        const cy = (Math.max(hr.y, cube.y) + Math.min(hr.bottom, cube.bottom)) / 2;
+                        // The hero band is pointer-events:none by design (clicks pass
+                        // through to the scene) — elementFromPoint would skip it even
+                        // when the ink visually paints over. Momentarily enable
+                        // pointer-events on the hero's band ancestors for the probe.
+                        const band = hero.closest(".hero-band, .start-screen, [class*=start-screen]") ?? hero;
+                        const patched = [];
+                        for (const el of [band, hero]) {
+                            patched.push([el, el.style.pointerEvents]);
+                            el.style.pointerEvents = "auto";
+                        }
+                        const top = document.elementFromPoint(cx, cy);
+                        for (const [el, prev] of patched) el.style.pointerEvents = prev;
+                        printsOver = !!top && !top.closest(".cube-side, .cube");
+                    }
                 }
                 return {
                     heroFound: !!hr,
@@ -957,22 +979,32 @@ async function runAppearanceBand() {
                     hero: hr ? { y: Math.round(hr.y), bottom: Math.round(hr.bottom) } : null,
                     cube: cube ? { y: Math.round(cube.y), bottom: Math.round(cube.bottom) } : null,
                     overlap,
+                    printsOver,
                 };
             });
         },
     );
     if (!a1.skipped) {
         const m = a1.value;
-        if (m.heroFound && m.cubeFound && m.overlap === 0) {
+        // T.D9 RE-ARM (VERDICT #3 "it's OK if it sits a bit on top of the cube"):
+        // the pre-verdict overlap==0 rule is OWNER-OVERTURNED. The T contract is
+        // PRINT-OVER — the hero ink may overlap the die but must paint OVER it
+        // (mirrors proof:hero-two-focal's print-over clause; the mobile die-seat
+        // BALANCE question is a named deviation in the T.D9 PENDING-OWNER packet).
+        const printContractHolds =
+            m.heroFound && m.cubeFound && (m.overlap === 0 || m.printsOver === true);
+        if (printContractHolds) {
             ok(
-                `A1 appearance — 390×844 hero/subject overlap == 0: hero h1 (y ${m.hero.y}–${m.hero.bottom}) ` +
-                    `and the cube subject (y ${m.cube.y}–${m.cube.bottom}) do not intersect (the H3/A-01 collision CURED)`,
+                `A1 appearance — 390×844 hero/subject print-over contract holds: hero h1 ` +
+                    `(y ${m.hero.y}–${m.hero.bottom}) vs cube (y ${m.cube.y}–${m.cube.bottom}), ` +
+                    `overlap=${m.overlap}px² ${m.overlap === 0 ? "(disjoint)" : "(SANCTIONED per #3 — the ink prints over the die)"}`,
             );
         } else {
             fail(
-                `A1 appearance — 390×844 hero/subject overlap is NOT 0 (heroFound=${m.heroFound}, ` +
-                    `cubeFound=${m.cubeFound}, overlap=${m.overlap}px²; hero=${JSON.stringify(m.hero)}, ` +
-                    `cube=${JSON.stringify(m.cube)}) — the mobile hero word is behind the cube (the H3 defect)`,
+                `A1 appearance — the 390×844 print-over contract is BROKEN (heroFound=${m.heroFound}, ` +
+                    `cubeFound=${m.cubeFound}, overlap=${m.overlap}px², printsOver=${m.printsOver}; ` +
+                    `hero=${JSON.stringify(m.hero)}, cube=${JSON.stringify(m.cube)}) — a cube face paints ` +
+                    `OVER the hero ink (the inverted H3 defect; overlap itself is sanctioned per #3)`,
             );
         }
     }
