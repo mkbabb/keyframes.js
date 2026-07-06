@@ -106,7 +106,6 @@ const DEFERRED = [
     ["demo/app/runtime/useRafScene.ts", "RafSceneHandleApi"],
     ["demo/app/runtime/useRafScene.ts", "RafSceneOptions"],
     ["demo/app/runtime/useSceneTransport.ts", "TransportActionKind"],
-    ["demo/app/scene/sceneFacility.ts", "ChannelHandle"],
     ["demo/app/scene/sceneFacility.ts", "SceneFacet"],
     ["demo/glass-ui-gaps.ts", "GlassCapKey"],
     ["demo/glass-ui-gaps.ts", "GlassUiGap"],
@@ -125,7 +124,6 @@ const DEFERRED = [
     ["demo/scenes/easing/easingGroups.ts", "CurveGroup"],
     ["demo/scenes/spring/useSpringDerby.ts", "DerbyLane"],
     ["demo/scenes/spring/useSpringHotPath.ts", "SpringPainter"],
-    ["demo/scenes/spring/useSpringPaneDrag.ts", "SpringPaneDragHandle"],
     ["demo/scenes/square/useSquareKeyboard.ts", "SquareKeyboardOptions"],
 ];
 

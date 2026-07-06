@@ -47,7 +47,7 @@ const DEMO = path.join(REPO, "demo");
 // The one-way ratchet. LOWER this (never raise) as the post-facility sweep types
 // the cluster; the gate REDs if the live count drifts off this number in EITHER
 // direction (above = a new `any`; below = a stale ceiling after a sweep).
-const CEILING = 109;
+const CEILING = 108;
 
 // The charter's verbatim extended-regex (any ONE alternative on a line counts the
 // line once — LINE counting, matching `grep -rnE … | wc -l`).

@@ -80,7 +80,7 @@
                     <span class="preset-track relative block w-full h-2">
                         <span class="progress-rail"></span>
                         <span
-                            :ref="(el: any) => setTrackBallEl(i, el)"
+                            :ref="(el) => setTrackBallEl(i, el)"
                             class="progress-ball preset-ball"
                         ></span>
                     </span>
@@ -123,6 +123,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ComponentPublicInstance } from "vue";
 import { onMounted, onScopeDispose } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
@@ -142,7 +143,7 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 // ── J.W2 S5 (DS-3) — the preset-cell ball painter (the 60 Hz hot path) ─────────
 const trackBallEls: (HTMLElement | null)[] = [];
-const setTrackBallEl = (i: number, el: any) => {
+const setTrackBallEl = (i: number, el: Element | ComponentPublicInstance | null) => {
     trackBallEls[i] = (el as HTMLElement) ?? null;
 };
 

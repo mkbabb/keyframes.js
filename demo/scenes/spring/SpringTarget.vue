@@ -121,7 +121,7 @@
                     >
                         <span class="derby-lane-rail"></span>
                         <span
-                            :ref="(el: any) => setDerbyBallEl(lane.index, el)"
+                            :ref="(el) => setDerbyBallEl(lane.index, el)"
                             class="progress-ball derby-lane-ball"
                         ></span>
                         <span class="derby-lane-tag text-mono-caption tabular-nums">
@@ -164,6 +164,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ComponentPublicInstance } from "vue";
 import { inject, onMounted, onScopeDispose, ref, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
@@ -193,7 +194,7 @@ const clampSweep = (v: number) => Math.max(0, Math.min(1, v));
 // on the value axis so the curve crosses the target line (bouncy rings PAST it);
 // the ball still rides its bounded horizontal rail.
 const derbyBallEls: (HTMLElement | null)[] = [];
-const setDerbyBallEl = (i: number, el: any) => {
+const setDerbyBallEl = (i: number, el: Element | ComponentPublicInstance | null) => {
     derbyBallEls[i] = (el as HTMLElement) ?? null;
 };
 
