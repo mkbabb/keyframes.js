@@ -62,11 +62,24 @@ export function useSceneMachineShellBinding(opts: {
         // builder — createGroupAdapter for group scenes via facilityFromGroup,
         // createRafAdapter for raw-rAF scenes). There is NO per-scene "expose
         // scenePlayback or wrap the group" fallback — the dual-family branch is
-        // gone (proof:one-adapter). Home + a degenerate mid-teardown ref (no
-        // facility) register NOTHING and rest on the empty placeholder group.
+        // gone (proof:one-adapter).
         const facility = sceneRef.value?.facility;
         const group = facility?.group ?? sceneRef.value?.animationGroup;
-        if (isHome.value || !facility) {
+        // HOME registers NO adapter and rides an EMPTY placeholder group — the
+        // childless-backdrop invariant the rainbow-play navigate-intercept keys on
+        // (App.onPlayStateChange: an empty home group ⇒ the CTA navigates to cube
+        // instead of playing an empty group in place). Home uses the CubeScene
+        // component, which DOES expose a facility/group, so this must NOT adopt it
+        // (the pre-T.B8 behavior — home was always the empty group).
+        if (isHome.value) {
+            currentAnimationGroup.value = markRaw(
+                new (kfEngine().AnimationGroup)(),
+            );
+            return;
+        }
+        // A degenerate non-home ref with no facility (a transient mid-teardown
+        // sceneRef) registers NOTHING and rests on the group-or-empty placeholder.
+        if (!facility) {
             currentAnimationGroup.value = markRaw(
                 group ?? new (kfEngine().AnimationGroup)(),
             );
