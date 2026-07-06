@@ -61,11 +61,15 @@ import {
 } from "./backward-walk";
 import type { CompileChild, CompileInput } from "./backward-walk";
 import {
-    animationComposition,
-    animationShorthand,
     keyframesBlock,
     premultipliedKeyframesBlock,
 } from "./format";
+// T.F22 — the animation-options serialization (shorthand + composition longhand)
+// carved into `./format-options` off `format.ts`.
+import {
+    animationComposition,
+    animationShorthand,
+} from "./format-options";
 import { densifiedKeyframesBlock } from "./densify";
 import { densifyColorBlock, round } from "./backward-color";
 // a19 F2 (S.B3 S5) — reach the scroll round-trip through the `../../scroll`

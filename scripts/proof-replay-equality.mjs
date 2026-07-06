@@ -90,6 +90,13 @@ console.log(
 );
 
 const FORMAT = "src/animation/compile/backward/format.ts";
+// T.F22 — the animation-OPTIONS serialization (the `.class{animation-*}` block,
+// the shorthand, the composition longhand, and the `@property` re-serialize via
+// serializeStylesheetItem) was carved off `format.ts` into the colocated
+// `format-options.ts` sibling on the body-vs-options cohesion seam. The
+// property-backward clause reads the UNION of both (wherever the carve landed
+// the @property backward-serialize edge).
+const FORMAT_OPTIONS = "src/animation/compile/backward/format-options.ts";
 const FRAME_COMPILER = "src/animation/compile/frame-compiler.ts";
 // R.W2b carved the keyframe-SELECTOR grammar (the named-range regexes,
 // `NAMED_SELECTOR_SUPERTYPE`, the `namedSelectorToFraction` resolver) off
@@ -154,20 +161,30 @@ const requireAll = (clause, file, anchors) => {
 // `serializeStylesheetItem`. Read the import block specifically — a comment that
 // names the symbol must not false-pass the clause.
 {
-    const formatSrc = existsSync(join(root, FORMAT)) ? read(FORMAT) : "";
-    const m = /import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js["']/.exec(
-        formatSrc,
-    );
-    const valueImports = m ? m[1] : "";
-    if (/\bserializeStylesheetItem\b/.test(valueImports)) {
+    // Read the UNION of format.ts + format-options.ts — the @property serialize
+    // edge (serializeStylesheetItem + propertyRegistryToString) rides
+    // format-options.ts after the T.F22 carve, and CSSKeyframesToString
+    // (format.ts) still composes it. The clause is satisfied by SOME file in the
+    // pair carrying the value.js runtime import.
+    const importFrom = (rel) => {
+        const src = existsSync(join(root, rel)) ? read(rel) : "";
+        const m = /import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js["']/.exec(
+            src,
+        );
+        return m ? m[1] : "";
+    };
+    const wired =
+        /\bserializeStylesheetItem\b/.test(importFrom(FORMAT)) ||
+        /\bserializeStylesheetItem\b/.test(importFrom(FORMAT_OPTIONS));
+    if (wired) {
         ok(
             "property-backward",
-            "format.ts IMPORTS serializeStylesheetItem (the @property backward-serialize path is wired)",
+            "format-options.ts IMPORTS serializeStylesheetItem (the @property backward-serialize path is wired; T.F22 carve)",
         );
     } else {
         fail(
             "property-backward",
-            "format.ts does not IMPORT serializeStylesheetItem from @mkbabb/value.js — `CSSKeyframesToString` cannot prepend the @property typing blocks from `animation.propertyRegistry`; the typing block is silently lost on re-ship.",
+            "neither format.ts nor format-options.ts IMPORTS serializeStylesheetItem from @mkbabb/value.js — `CSSKeyframesToString` cannot prepend the @property typing blocks from `animation.propertyRegistry`; the typing block is silently lost on re-ship.",
         );
     }
 }

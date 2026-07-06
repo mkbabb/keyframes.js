@@ -6,16 +6,19 @@
  * value.js owns the scroll VALUES). The barrel owns the unified surface — the
  * former scene.ts→grammar hub re-export relay is retired here.
  */
-export { ScrollScene, createScrollScene, dispatchScrollBackend, pinCSS } from "./scene";
+export { ScrollScene, createScrollScene } from "./scene";
 export type {
     ScrollSceneOptions,
-    ScrollDispatchRequest,
-    ScrollDispatch,
     ScrollBackend,
     ScrollSceneEvent,
     ScrollSceneSubscriber,
     SnapPoints,
 } from "./scene";
+// T.F22 — the native-vs-JS backend dispatch + the `position:sticky` pin
+// synthesis live in the colocated `./dispatch` half (carved off `scene.ts` on
+// the driver-vs-decision cohesion seam). The barrel reaches it DIRECTLY.
+export { dispatchScrollBackend, pinCSS } from "./dispatch";
+export type { ScrollDispatchRequest, ScrollDispatch } from "./dispatch";
 // S.B4 (a19 F3) — the range → [0,1] mapping lives in `./range`; the barrel
 // reaches it DIRECTLY, not relayed through `./scene` (the half-retired two-hop
 // bridge `scene.ts` carried alongside its own `./range` import is deleted there).

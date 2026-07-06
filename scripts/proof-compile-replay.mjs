@@ -149,11 +149,17 @@ requireAll("compiler-exists", COMPILE, [
         );
         return m ? m[1] : "";
     };
-    const formatImports = importsOf(FORMAT);
+    // T.F22 — the `animation` SHORTHAND inverse (reverseAnimationShorthand via
+    // animationShorthand) rides the colocated format-options.ts after the
+    // body-vs-options cohesion carve; read the UNION of the format pair.
+    const formatImports =
+        importsOf(FORMAT) +
+        "\n" +
+        importsOf("src/animation/compile/backward/format-options.ts");
     const colorImports = importsOf(COMPILE_COLOR);
     const consumes = [
         {
-            name: "reverseAnimationShorthand IMPORTED in format.ts (the animation-shorthand inverse — CC-1)",
+            name: "reverseAnimationShorthand IMPORTED in the format seam (format.ts ∪ format-options.ts — the animation-shorthand inverse, CC-1)",
             ok: /\breverseAnimationShorthand\b/.test(formatImports),
         },
         {
