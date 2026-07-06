@@ -213,12 +213,14 @@ export const CORRECTNESS_ROSTER = [
     // S.G2 S2 (fold row 69) — the square honest-controls oracle (the lying editor
     // panel COLLAPSED; box + mono caption ARE the live controls). Browser actuator.
     "proof:square-honest",
-    // S.G3 S6 (fold row 67) — the per-scene gesture census oracle: every sealed
-    // affordance carries an on-stage tell + a browser-actuated reliable-primitive
-    // touch path (pointer double-tap / button tap / drag — never native dblclick).
-    "proof:gesture-manifest",
-    "proof:easter-egg",
-    "proof:design-refinement",
+    // (proof:gesture-manifest / proof:easter-egg / proof:design-refinement RETIRED
+    //  at T.M7/T.M8 batch ⑧ — VERDICT #8/#15 "remove all elements like this" +
+    //  #2/#13 "remove this crap". The on-stage gesture LEGEND layer + the census
+    //  MANDATE die (the negative-space proof:stage-inventory is the T.M4 successor);
+    //  the eggs SURVIVE as sealed, discovered gestures but NO gate mandates them.
+    //  gesture-manifest rides the RETIREMENT_LEDGER (successor stage-inventory);
+    //  easter-egg + design-refinement (FROZEN) carry machine-witnessed KILL
+    //  discharges in scripts/gate-bands.mjs DISCHARGE.)
     // T.D9/T.D11/T.D13 (batch ⑤) — the born-OWNER hero oracles (OD-4/OD-2
     // APPROVED tokens; the P-HERO blessed reference). They REPLACE the retired
     // hero-rung/-balance/-cls FROZEN locks (machine-witnessed migrations in

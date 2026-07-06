@@ -90,7 +90,9 @@ const DEFERRED = [
     ["demo/@/components/custom/animation-transport/controls/composables/useTabStripScroll.ts", "UseTabStripScrollOptions"],
     ["demo/@/components/custom/animation-transport/controls/composables/useTabStripScroll.ts", "UseTabStripScrollReturn"],
     // ── keyframes-editor / keyframe-timeline / shared leaves (reflexive types) ──
-    ["demo/@/components/custom/GestureLegend.vue", "GestureLegendItem"],
+    // (GestureLegend.vue / GestureLegendItem RETIRED at T.M batch ⑧ — the whole
+    //  file was deleted with the on-stage gesture-legend layer, VERDICT #8; the
+    //  ratchet drops the discharged row.)
     ["demo/@/components/custom/keyframe-timeline/utils/snapshotCapture.ts", "captureNonDefaultSnapshot"],
     ["demo/@/components/custom/keyframes-editor/composables/useToolbarKeyboard.ts", "ToolbarKeyboard"],
     ["demo/@/components/custom/animation-transport/useKfPillTabs.ts", "UseKfPillTabsParams"],

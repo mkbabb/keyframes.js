@@ -1,0 +1,19 @@
+{
+  "_doc": "T.M4 on-stage inventory SKELETON for the easing scene, post the RULED removals (T.E7: #13 EasingCurvePhysics telemetry + #15 gallery-door button DELETED; T.E9/T.E10: the ONE violet family + the rendered-rung tuple roles LANDED). The `sanctioned` set is the CURRENT landed on-stage subject; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The curve-physics telemetry block (#13) and the gallery-door button (#15) are EXPLICITLY forbidden (ruled removals, executed T.E7). SKELETON — the OD-7 easing GALLERY REDESIGN (T.E6, proof:easing-gallery deliberately UNAUTHORED per OD-7) is PENDING-OWNER; the final sanctioned inventory rides that redesign's owner sign-off (T.M2). The set below reflects the landed transitional surface, not a blessed-final composition.",
+  "scene": "easing",
+  "sanctioned": [
+    "easing-target-card (the standard glass Card protagonist plate — `<Card surface=glass>`; the I5 STAGE-CARD register)",
+    "easing-readout (the f(t)= live progress readout — the AnimatedDigit pair wearing the scene accent, the small muted f(t)= notation label; the engine-driven number that proves the easing runs)",
+    "view-select (the standard glass `<Select>` Singular/Group/All view switch — replaced the audit's bare-text DockSelectTrigger, T.E redesign)",
+    "easing-hero-stage (EasingHeroStage — the singular-view hero: ONE large engine-driven ball tracing the selected easing curve)",
+    "easing-curve-grid (the group/all-view curve grid — one engine-driven ball per curve, `data-curve`-tagged so the registered painter resolves each easing fn)"
+  ],
+  "forbidden": [
+    "curve-physics-telemetry (#13 — the EasingCurvePhysics telemetry block incl. its 'name this curve' dblclick egg; ruled OUT, DELETED at T.E7 with useEasingTraceSmear's S5 surface fate riding OD-7)",
+    "gallery-door-button (#15 — the full-width red-glyph button promoting the easter-egg gallery tour into primary chrome; ruled OUT, DELETED at T.E7 — the T.E6/OD-7 redesigned scene IS the gallery)"
+  ],
+  "pendingOwner": [
+    "easing-gallery-redesign (OD-7 — the T.E6 easing gallery redesign is PENDING-OWNER; proof:easing-gallery stays UNAUTHORED per OD-7. The final on-stage inventory + its owner-sanctioned tokens ride that review, T.M2 — the sanctioned set here is the landed transitional surface, subject to the redesign)"
+  ],
+  "status": "SKELETON — the RULED removals (#13/#15) are executed (T.E7); the sanctioned set reflects the landed T.E7/E9/E10 surface (hero stage + curve grid + f(t)= readout + view select). The OD-7 GALLERY REDESIGN (T.E6) + its owner sign-off (T.M2) are PENDING — the final composition may revise this. RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER)."
+}

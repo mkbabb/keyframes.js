@@ -1,0 +1,20 @@
+{
+  "_doc": "T.M4 owner-sanctioned on-stage inventory for the spring scene, post the T.M gesture-legend strip (batch ⑧) + the T.B7 facility rebuild (the SpringSidebar dissolved into the SpringPhysicsFacet, LANDED). The `sanctioned` set is the on-stage element inventory the scene renders; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The on-stage drafting-stamp gesture legend (#8 — the spring:derby stamp) is EXPLICITLY forbidden, deleted THIS batch. The #17 duplicate is a DOCK-LABEL dedup (the '∿ Spring │ ∿ Spring' redundant control-tab), an app-shell dock concern (proof:no-single-option-select WIDEN, T.C) — it is NOT an on-stage subject element, listed under pendingOwner for the record.",
+  "scene": "spring",
+  "sanctioned": [
+    "spring-target-card (the standard glass Card protagonist plate — `<Card surface=glass>`; the I5 STAGE-CARD register)",
+    "spring-readout (the live solver state — the display-tier x displacement wearing the scene accent + the quieter v/settled caption row + the settled/tracking status badge; the numbers that prove the engine runs, K.W4-tiered)",
+    "spring-rail (the subject — .spring-rail with the progress-rail + spring-ball + spring-target-marker + settle-pulse; the SpringProgress made visible)",
+    "derby-lanes (the four-lane derby visualization — the discovered double-tap derby gesture's on-stage race track)",
+    "sampler-track (the springTimingFunction sweep — the sampler-ball tracing the compiled linear() stops)",
+    "spring-trace (the SpringTrace phase-portrait overlay)"
+  ],
+  "forbidden": [
+    "gesture-legend (#8 — the on-stage drafting-stamp gesture legend, ruled OUT; GestureLegend.vue + the spring:derby stamp deleted at T.M batch ⑧)"
+  ],
+  "pendingOwner": [
+    "dock-label-dedup (#17 — the redundant '∿ Spring' dock control-tab label; an app-shell DOCK concern, proof:no-single-option-select WIDEN executed by T.C, NOT an on-stage subject element)",
+    "spring-physics-facet (T.B7: the canvas instrument that replaced the dissolved sidebar stays design-PENDING — a T.M2 sign-off surface)"
+  ],
+  "status": "SKELETON — the gesture-legend removal (#8) is executed THIS batch; the sanctioned subject set is derived from the landed DOM (rail + readout + derby-lanes + sampler + trace). The #17 dock-label dedup rides T.C; the SpringPhysicsFacet composition awaits owner sign-off (T.M2). RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER)."
+}

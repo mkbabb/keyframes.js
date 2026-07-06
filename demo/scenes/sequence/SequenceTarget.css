@@ -24,19 +24,6 @@
     --scrub-dir: 1; /* L.W11 S7 — cascade direction (+1 fwd); the scrubber flips it. */
 }
 
-/* S.G3 S1 — the drag-to-retime tell: a quiet drafting stamp above the rows. */
-.seq-gesture-tell {
-    display: flex;
-    align-items: baseline;
-    gap: 0.35rem;
-    margin: 0 0 0.5rem;
-    letter-spacing: 0.01em;
-    opacity: 0.85;
-}
-.seq-gesture-tell span[aria-hidden] {
-    color: color-mix(in srgb, var(--color-progress) 60%, var(--muted-foreground));
-}
-
 /* L.W11 S7 — IGNITION-CASCADE heat: scrubbing lifts the shared --seq-glow. */
 .seq-stage.is-scrubbing {
     --seq-glow: 1;
