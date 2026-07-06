@@ -31,7 +31,7 @@
             <div class="progress-rail"></div>
             <div
                 class="progress-ball scrub-ball"
-                :style="{ left: `calc(${clamp01(demo.progress.value) * 100}%)` }"
+                :style="{ transform: `translateX(calc(${clamp01(demo.progress.value) * 100}cqw))` }"
             ></div>
         </div>
     </div>
@@ -116,6 +116,10 @@ const onScrubKeydown = (e: KeyboardEvent) => {
 .seq-scrub {
     display: flex;
     align-items: center;
+    /* T.G4 — the scrub-ball rides `translateX(<cqw>)`; `cqw` resolves against
+       this rail's inline size, so the master playhead position stays rail-
+       relative with no per-frame `left` layout (compositor-only). */
+    container-type: inline-size;
 }
 
 /* L.W11 S7 — the instrument-panel micro-cap label convention (Fira Code,
@@ -150,7 +154,10 @@ const onScrubKeydown = (e: KeyboardEvent) => {
    paint), at the idiom-default --ball-size + full glow: the DOMINANT ball that
    drives the whole storyboard (SEQ-12). */
 .scrub-ball {
+    /* T.G4 — anchored at the rail's left edge; the inline `translateX(<cqw>)`
+       carries the position (compositor-only, no per-frame layout). */
+    left: 0;
     margin-left: calc(var(--ball-size, 36px) / -2);
-    will-change: left;
+    will-change: transform;
 }
 </style>

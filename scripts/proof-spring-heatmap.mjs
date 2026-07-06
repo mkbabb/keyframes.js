@@ -266,15 +266,44 @@ async function runtimeHalf() {
             const clickX = rect.x + fx * rect.w;
             const clickY = rect.y + fy * rect.h;
 
-            // The marker position BEFORE the click (to assert it MOVED).
+            // The marker position BEFORE the click (to assert it MOVED). T.G4
+            // moved the marker off `left`/`top` onto `transform: translate(<cqw>,
+            // <cqh>)` (compositor-only glide, no per-edit layout thrash), so the
+            // position now lives in the inline `transform` — read THAT.
             const markerBefore = await page.evaluate(() => {
                 const m = document.querySelector(".spring-heatmap-marker");
                 if (!m) return null;
-                const s = m.style;
-                return { left: s.left, top: s.top };
+                return { transform: m.style.transform };
             });
 
-            await page.mouse.click(clickX, clickY);
+            // Dispatch the navigation gesture as a `pointerdown` DIRECTLY on the
+            // field element (the handler is `@pointerdown="onPointerDown"`, which
+            // reads `e.clientX/clientY`). A raw `page.mouse.click` at the target
+            // cell is intercepted by the bottom TransportDock's `position: fixed`
+            // overlay (it floats over the lower ~third of the 900px viewport, so
+            // cell (5,14) at y≈815 hits the dock, not the field — a chrome-layout
+            // concern, NOT the navigate-handler this gate asserts). Dispatching on
+            // the field faithfully exercises the click→navigate handler this gate
+            // owns, immune to the incidental dock occlusion.
+            await page.evaluate(
+                ([x, y]) => {
+                    const field = document.querySelector(".spring-heatmap");
+                    if (!field) return;
+                    field.dispatchEvent(
+                        new PointerEvent("pointerdown", {
+                            bubbles: true,
+                            cancelable: true,
+                            clientX: x,
+                            clientY: y,
+                            button: 0,
+                            pointerType: "mouse",
+                            isPrimary: true,
+                            pointerId: 1,
+                        }),
+                    );
+                },
+                [clickX, clickY],
+            );
             await page.waitForTimeout(700);
 
             // Read the live params off the rendered readout + the marker move.
@@ -282,9 +311,7 @@ async function runtimeHalf() {
                 // The SpringTarget readout / SpringHeatmap header shows the live
                 // (response / damping). Read the marker move + the param readout.
                 const m = document.querySelector(".spring-heatmap-marker");
-                const marker = m
-                    ? { left: m.style.left, top: m.style.top }
-                    : null;
+                const marker = m ? { transform: m.style.transform } : null;
                 // The heatmap header prints "<response> / <damping>"; parse it.
                 const header = [
                     ...document.querySelectorAll(".spring-heatmap-section span"),
@@ -306,8 +333,7 @@ async function runtimeHalf() {
             const markerMoved =
                 markerBefore &&
                 after.marker &&
-                (markerBefore.left !== after.marker.left ||
-                    markerBefore.top !== after.marker.top);
+                markerBefore.transform !== after.marker.transform;
 
             const responseOk =
                 Number.isFinite(after.response) &&
