@@ -8,6 +8,7 @@ import {
     timingFunctions,
 } from "@mkbabb/value.js";
 import { computed, markRaw, ref, watch } from "vue";
+import { useThrottledReadout } from "@composables/useThrottledReadout";
 
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
@@ -173,7 +174,9 @@ export function useEasingDemo() {
     // `liveProgress()` is the always-current sweep value the painters + the scrub
     // path read (the reactive `progress` lags it by ≤ 1 readout tick, by design).
     let livePhaseValue = 0; // the raw eased sweep value [0,1], updated every frame
-    let lastReadoutAt = 0;
+    // T.F23(c) — the cold-path readout cadence rides the ONE shared seam
+    // (useThrottledReadout), not a hand-rolled accumulator (lane 21 rec 4).
+    const readout = useThrottledReadout(PROGRESS_READOUT_HZ);
 
     /** A dot painter: position one moving dot for the given raw sweep value. The
      *  view layer registers these; the loop calls them imperatively each frame. */
@@ -218,10 +221,9 @@ export function useEasingDemo() {
         for (const paint of dotPainters) paint(livePhaseValue);
         // Cold path — write the reactive readout at a few Hz only (the `f(p)=`
         // text + the contract time-twin), NOT per frame.
-        if (now - lastReadoutAt >= 1000 / PROGRESS_READOUT_HZ) {
-            lastReadoutAt = now;
+        readout.maybeFlush(now, () => {
             progress.value = livePhaseValue;
-        }
+        });
         return true;
     };
 

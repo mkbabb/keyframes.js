@@ -224,8 +224,8 @@ import { TooltipProvider, Button } from "@mkbabb/glass-ui";
 // formerly injected reka `<TabsTrigger>` via the `tabs-trigger` slot now ride the
 // strip AS DATA through the machine's `extraControlTabs` projection (the same
 // metadata the dock reads), so no cross-realm reka tab-context is needed.
-import KfPillTabs from "@components/custom/KfPillTabs.vue";
-import type { KfPillTabOption } from "@components/custom/useKfPillTabs";
+import KfPillTabs from "../KfPillTabs.vue";
+import type { KfPillTabOption } from "../useKfPillTabs";
 
 import {
     computed,

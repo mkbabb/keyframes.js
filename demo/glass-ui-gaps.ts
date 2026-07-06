@@ -63,8 +63,8 @@ export const GLASS_UI_GAPS = {
         glassCap: "ariaGuard",
         fixVersion: "@mkbabb/glass-ui BG/BH (aria guard + material↔role decouple)",
         workaroundSites: [
-            "demo/@/components/custom/KfPillTabs.vue",
-            "demo/@/components/custom/useKfPillTabs.ts",
+            "demo/@/components/custom/animation-transport/KfPillTabs.vue",
+            "demo/@/components/custom/animation-transport/useKfPillTabs.ts",
         ],
         acceptanceGate: "proof:glassui-aria-ask",
     },

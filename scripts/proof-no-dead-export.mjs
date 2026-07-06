@@ -93,7 +93,7 @@ const DEFERRED = [
     ["demo/@/components/custom/GestureLegend.vue", "GestureLegendItem"],
     ["demo/@/components/custom/keyframe-timeline/utils/snapshotCapture.ts", "captureNonDefaultSnapshot"],
     ["demo/@/components/custom/keyframes-editor/composables/useToolbarKeyboard.ts", "ToolbarKeyboard"],
-    ["demo/@/components/custom/useKfPillTabs.ts", "UseKfPillTabsParams"],
+    ["demo/@/components/custom/animation-transport/useKfPillTabs.ts", "UseKfPillTabsParams"],
     ["demo/@/composables/useDoubleTap.ts", "UseDoubleTapOptions"],
     ["demo/@/composables/useDragScrub.ts", "ReleasePolicy"],
     ["demo/@/composables/useDragScrub.ts", "UseDragScrub"],
