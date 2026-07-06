@@ -93,9 +93,7 @@
                         v-bind="activeSceneProps"
                     />
                     <template #fallback>
-                        <div class="flex h-full w-full items-center justify-center">
-                            <span class="text-subheading text-muted-foreground animate-pulse">Loading scene&#x2026;</span>
-                        </div>
+                        <SceneSkeleton />
                     </template>
                 </Suspense>
             </div>
@@ -134,6 +132,7 @@ import { EditorShell, EditorStartScreen } from "@components/custom/editor-shell"
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
 import HeroAurora from "@components/custom/editor-shell/HeroAurora.vue";
+import SceneSkeleton from "@components/skeletons/SceneSkeleton.vue";
 import ChromeDock from "./dock/ChromeDock.vue";
 import MbabbMenu from "./dock/MbabbMenu.vue";
 
