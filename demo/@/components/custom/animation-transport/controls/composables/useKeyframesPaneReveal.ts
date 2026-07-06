@@ -1,4 +1,12 @@
-import { computed, nextTick, watch, type ComputedRef, type Ref } from "vue";
+import {
+    computed,
+    nextTick,
+    onScopeDispose,
+    ref,
+    watch,
+    type ComputedRef,
+    type Ref,
+} from "vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 export interface UseKeyframesPaneRevealOptions {
@@ -11,6 +19,17 @@ export interface UseKeyframesPaneRevealOptions {
 export interface UseKeyframesPaneRevealReturn {
     /** Whether the keyframes surface is the active control surface. */
     keyframesActive: ComputedRef<boolean>;
+    /**
+     * Whether the Monaco keyframes pane may MOUNT yet (T.G9 — the Monaco-eager LCP
+     * cure). Starts `false` so the ~4 MB `vendor-monaco` chunk is OFF the scene's
+     * initial critical path; flips `true` after LCP settles (a `requestIdleCallback`
+     * warm) OR the instant the user selects/interacts with the keyframes surface —
+     * so the editor still opens instantly on tab-select (no UX regression), it just
+     * no longer pays Monaco's bytes during first paint of every scene.
+     */
+    keyframesWarmed: Ref<boolean>;
+    /** Force the warm now (interaction-gated: e.g. pointerenter on the tab). */
+    warmKeyframes: () => void;
 }
 
 /**
@@ -37,6 +56,65 @@ export function useKeyframesPaneReveal(
         () => storedControls.selectedControl === "keyframes",
     );
 
+    // ── T.G9 — the Monaco-eager LCP cure (idle/interaction-gated warm) ──────────
+    // The force-mount + content-visibility cache (B-2, INP) is preserved: once the
+    // pane mounts it is NEVER torn down, so a tab switch-back stays instant and
+    // never re-spins Monaco's worker/model/themes. What changes is WHEN it first
+    // mounts — no longer on scene entry (which put `vendor-monaco`'s ~4 MB on the
+    // initial critical path of EVERY scene that surfaces a keyframes channel, the
+    // post-T.B triad-derivation regression: mobile LCP 10–16 s), but after the LCP
+    // window (a `requestIdleCallback` warm) or the instant the user reaches for it.
+    const keyframesWarmed = ref(false);
+    let idleHandle: number | undefined;
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    const warmKeyframes = (): void => {
+        if (keyframesWarmed.value) return;
+        keyframesWarmed.value = true;
+        // Cancel the pending idle warm — we've warmed early (select/interaction).
+        const w = globalThis as unknown as {
+            cancelIdleCallback?: (h: number) => void;
+        };
+        if (idleHandle !== undefined) w.cancelIdleCallback?.(idleHandle);
+        if (idleTimer !== undefined) clearTimeout(idleTimer);
+    };
+
+    // Warm during the first idle after mount (post-LCP). `requestIdleCallback`
+    // (Baseline: Safari 17+) falls back to a short timeout where absent so the warm
+    // still lands promptly on older engines — always AFTER the synchronous
+    // first-paint work, never blocking it.
+    const scheduleIdleWarm = (): void => {
+        const w = globalThis as unknown as {
+            requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+        };
+        if (typeof w.requestIdleCallback === "function") {
+            idleHandle = w.requestIdleCallback(() => warmKeyframes(), {
+                timeout: 4000,
+            });
+        } else {
+            idleTimer = setTimeout(warmKeyframes, 1500);
+        }
+    };
+    scheduleIdleWarm();
+
+    // Reaching the keyframes surface (tab select, deep-link, restore) warms it
+    // immediately — the editor is mounting the moment it is asked for, so it opens
+    // without waiting on the idle warm.
+    watch(
+        keyframesActive,
+        (active) => {
+            if (active) warmKeyframes();
+        },
+        { immediate: true },
+    );
+
+    onScopeDispose(() => {
+        const w = globalThis as unknown as {
+            cancelIdleCallback?: (h: number) => void;
+        };
+        if (idleHandle !== undefined) w.cancelIdleCallback?.(idleHandle);
+        if (idleTimer !== undefined) clearTimeout(idleTimer);
+    });
+
     watch(keyframesActive, (active) => {
         if (!active) return;
         nextTick(() => {
@@ -52,5 +130,5 @@ export function useKeyframesPaneReveal(
         });
     });
 
-    return { keyframesActive };
+    return { keyframesActive, keyframesWarmed, warmKeyframes };
 }

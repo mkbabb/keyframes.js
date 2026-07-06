@@ -76,6 +76,8 @@
                     :model-value="selectedControlSurface"
                     aria-label="Control surface"
                     @update:model-value="selectControl"
+                    @pointerenter="warmKeyframes"
+                    @focusin="warmKeyframes"
                     :class="['w-fit max-w-full min-w-0', overflowClass]"
                 />
             </div>
@@ -124,7 +126,7 @@
                      inactive; the focus-move on reveal restores it. `data-state`
                      mirrors the active flag for the panel-slide seam. -->
                 <div
-                    v-if="hasSurface('keyframes')"
+                    v-if="hasSurface('keyframes') && keyframesWarmed"
                     role="tabpanel"
                     :data-state="keyframesActive ? 'active' : 'inactive'"
                     :tabindex="keyframesActive ? 0 : -1"
@@ -376,11 +378,17 @@ const isTimelineVisible = computed(() =>
 );
 
 // B-2: the keyframes pane is force-mounted + content-visibility-cached when
-// inactive; its reveal-focus concern lives in useKeyframesPaneReveal (the K.WZ
-// proof:demo-no-oversize seam; zero behavior change). The template ref stays
-// declared here (template refs resolve in setup scope) and is passed in.
+// inactive; its reveal-focus + the T.G9 idle/interaction warm live in
+// useKeyframesPaneReveal (the K.WZ proof:demo-no-oversize seam). The template ref
+// stays declared here (template refs resolve in setup scope) and is passed in.
+// `keyframesWarmed` gates the FIRST mount off the scene's LCP critical path (the
+// Monaco-eager regression); `warmKeyframes` is the interaction gate (tab hover/
+// focus). Once warmed the force-mount + content-visibility cache is unchanged.
 const keyframesPaneEl = useTemplateRef<any>("keyframesPaneEl");
-const { keyframesActive } = useKeyframesPaneReveal({ storedControls, keyframesPaneEl });
+const { keyframesActive, keyframesWarmed, warmKeyframes } = useKeyframesPaneReveal({
+    storedControls,
+    keyframesPaneEl,
+});
 
 // --- Overflow detection + active-tab scroll-into-view (colocated composable) ---
 // The DFA strip itself (`stripOptions` ← `builtInTabs`) stays here; the overflow
