@@ -334,6 +334,25 @@
   RULED waves (E8/E9/E10) + T.F demo-half + T.G close-waves + M3/M7/M8 completion +
   T.S residuals + T.Z.
 
+- **2026-07-06 — BATCH ⑦ MERGED + VERIFIED (T4/T5).** Fleet `wf_bfe3a184-9cc`, 3/3.
+  **T.B9 LANDED browser-verified** (one keyspace: *_SUPER_KEY dead → registry
+  SceneId; the three-table boot gc/migrate; a live-caught PascalCase-literal
+  regression fixed via scene-transition-perf's round-trip). **T.E9/T.E10 LANDED**
+  (the easing route rides ONE violet family + the rendered-rung tuple roles —
+  #16a/#16b executed). **T.F3 LANDED** (app/chrome→app/dock with the full
+  path-anchored rewire) + **T.F23(c)-spring** + **T.F8-partial** (SceneSkeleton
+  replaces the bare loading span). **Merge composition:** the easing throttle wired
+  onto useThrottledReadout (its 2nd consumer — shared-has-n-consumers GREEN);
+  KfPillTabs COLOCATED into animation-transport/ (its sole consumer — the gate's
+  own cure; glass-ui-gaps/tests/no-dead-export anchors repointed; the T.H5
+  gated-on-publish deletion unchanged). 1051 tests / 113 files; live-session green.
+  **Deferred with verbatim resume recipes (→ batch ⑧ lane 1):** T.B2 (the
+  surfacesFor inversion — the sequence declared-empty-channel RULING encoded: keep
+  transport-only, do NOT flip mobile-single-page's row) + T.B8 (the machine
+  single-writer D12 finish). **T.E8 deferred principled** (coupled to OD-7's T.E6 +
+  T.H picker asks — rides the post-review easing terminal batch). Styles-split +
+  proof:colocation deferred (premature before F1/F2 structure waves).
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
