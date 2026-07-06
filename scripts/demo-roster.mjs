@@ -248,6 +248,19 @@ export const CORRECTNESS_ROSTER = [
     // BLOCKING member now (authority=OWNER + blocking-not-OBSERVE, T.M6.2), moved
     // OUT of T_BORNRED_BACKLOG + the ci-coverage EXCLUDED set in the same commit.
     "proof:perf-counters",
+    // T.G3/T.G4 — the cross-scene TRUE-REST oracle (proof:scene-rests: absolute
+    // idle LayoutCount/RecalcStyleCount/TaskDuration after settle) + the
+    // transform-not-left guard (proof:no-layout-animation: the source recurrence
+    // guard + the live idle-layout confirmation). GREEN as of the batch-⑧ rest
+    // cures + the T.G4-tail sequence/spring-heatmap transform conversions; both
+    // authority=INSTRUMENT (proof:perf-counters owns the OWNER per-frame ratio).
+    "proof:scene-rests",
+    "proof:no-layout-animation",
+    // T.B2 (batch ⑧) — the DFA-derivation gate. A green browser gate that landed
+    // in the proof:demo-correctness CHAIN but was never added to this ROSTER (the
+    // ci-coverage source of truth) → an authored-but-CI-unrun coverage gap. Rostered
+    // here so the demo-correctness JOB actually runs it (it did not before).
+    "proof:dfa-derived",
 ];
 
 // ── The S.A0 enumerated born-RED BACKLOG (SPEC §3 S.A0). These four rows are a
