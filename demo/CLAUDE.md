@@ -6,9 +6,9 @@ Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves
 
 ```
 demo/
-├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/); S.D1 partition: scene/ · transition/ · runtime/ · chrome/
+├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/); S.D1 partition: scene/ · transition/ · runtime/ · dock/
 │   ├── index.html / main.ts / App.vue   # shell: dynamic <component :is> + dock chrome
-│   ├── chrome/                # app-private glass-ui dock (S.D2, a24 F3): ChromeDock.vue (scene switcher + pane toggles) + MbabbMenu.vue (@mbabb dropdown)
+│   ├── dock/                  # app-private glass-ui dock (T.F3 — was chrome/; a24 F3): ChromeDock.vue (scene switcher + pane toggles) + MbabbMenu.vue (@mbabb dropdown)
 │   ├── scene/                 # machine↔shell↔route bridge
 │   │   ├── scenes.ts          # scene registry: lazy scene loaders (→ ../../scenes/<name>/<Name>Scene.vue), inline-SVG icon family, warmScene()
 │   │   ├── sceneExposedApi.ts # the typed SceneExposedApi contract every <Name>Scene.vue exposes

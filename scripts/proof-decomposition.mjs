@@ -727,14 +727,14 @@ function main() {
         //         ChromeDock; green after S1.
         {
             // S.D2 — the dock is APP-private (a24 F3): evicted from
-            // app/chrome/ → demo/app/chrome/ (an app concern sub-zone).
-            const dockBarrel = "demo/app/chrome/index.ts";
+            // app/dock/ → demo/app/dock/ (an app concern sub-zone).
+            const dockBarrel = "demo/app/dock/index.ts";
             const dockBarrelAbs = path.join(REPO, dockBarrel);
-            const chromeDockRel = "demo/app/chrome/ChromeDock.vue";
+            const chromeDockRel = "demo/app/dock/ChromeDock.vue";
             const chromeDockAbs = path.join(REPO, chromeDockRel);
             const topDockAbs = path.join(
                 REPO,
-                "demo/app/chrome/TopDock.vue",
+                "demo/app/dock/TopDock.vue",
             );
 
             const dockFails = [];
@@ -760,7 +760,7 @@ function main() {
             }
             if (fs.existsSync(topDockAbs)) {
                 dockFails.push(
-                    `demo/app/chrome/TopDock.vue still exists — the ` +
+                    `demo/app/dock/TopDock.vue still exists — the ` +
                         `rename to ChromeDock.vue leaves no TopDock.vue beside it.`,
                 );
             }

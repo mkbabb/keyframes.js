@@ -137,7 +137,7 @@ console.log(
 
 // ── (B) The CONTROL-TAB select (ChromeDock.vue) ──────────────────────────────
 {
-    const file = path.join(DEMO, "app/chrome/ChromeDock.vue");
+    const file = path.join(DEMO, "app/dock/ChromeDock.vue");
     if (!fs.existsSync(file)) {
         fail(`(B) ChromeDock.vue not found at ${path.relative(REPO, file)}.`);
     } else {
