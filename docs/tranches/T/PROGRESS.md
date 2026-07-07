@@ -431,6 +431,32 @@
   P-GALLERY ∥ T.H3-ADOPT per the override ∥ close-prep), then the M3 blessing under
   the delegated judgment + T.Z.
 
+- **2026-07-07 — BATCH ⑪ (THE TERMINAL) MERGED + VERIFIED (T4/T5).** Fleet
+  `wf_38443349-581` (the Drawer lane died on an API error mid-verification — its
+  SIX per-stage commits salvaged in full; the ⑥ zero-salvage lesson paid off).
+  **T.E6 LANDED (Fable): THE GALLERY IS THE EASING SCENE** — 33 specimens on ONE
+  shared clock, the singular hero + ghost + smear DELETED, proof:easing-gallery
+  authored under the OD-7 token and browser-green (analytic fn(t) ±2px, zero
+  non-transform writes, true rest). **T.E8+R2 LANDED**: instrument/easing/ (the
+  1,082L cluster) DELETED — glass-ui EasingPicker is the sole edit surface; the
+  F7 truncation dead; the owner's R2 rider DISCHARGED with before/after. NINE
+  keys retired with witnesses (roster 236→228→227-net); the scene-aware default
+  tabs (easing→Curve, spring→Physics) landed. **T.H3-ADOPT SALVAGED-COMPLETE**:
+  the Drawer swap LANDED (the bespoke sheet dead; snap detents approximate the
+  stage-reserve at ≈49dvh; proof:drawer-spring transitively SpringProgress);
+  the occlusion gates re-chartered honestly with the structural residuals
+  BG-11-BLOCKED (incl. a REAL finding: the Drawer's z-modal 140 inverts over the
+  dock band — dock-zorder backlogged, forwarded); the full mobile battery GREEN
+  on the merged tree. **CLOSE-PREP LANDED**: T.G2 dispositioned-with-evidence
+  (2 justified one-shots + 3 house-loop settlers; no manufactured gate); the
+  lighthouse AFTER-baseline committed (scores dipped on the wider glass field —
+  the honest read: the BG-5 tax dominates; the discharge is upstream); FINAL.md
+  drafted (28 verdict items mapped, version RECO 5.2.0-minor); the
+  owner-golden dischargedBy repointed to THE DELEGATED BLESSING. **Composition:**
+  both lanes' chain REMOVALS reconciled (the six retired locks stay out;
+  dock-zorder rides its backlog); ratchets tightened (any 102→99; dead-export
+  clean). The final quiet roster + the delegated M3 blessing + T.Z execute next.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
