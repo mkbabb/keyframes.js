@@ -1,0 +1,193 @@
+.easing-target {
+    /* T.E9 (#16a) + T.D7/OD-6 — the scene's ONE colour consumer is the blessed
+       violet authority, consumed through the sitewide motion token
+       (--color-progress = --accent-kf since T.D7) via the shared --ball-tone
+       seam the .progress-rail/.progress-ball idiom reads. One token; every
+       ball, rail tint, selected sparkline, and active label agrees. */
+    --ball-tone: var(--color-progress);
+}
+
+/* ── Header ── */
+.gallery-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+}
+
+.gallery-id {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.875rem;
+    min-width: 0;
+}
+
+.specimen-name {
+    line-height: 1.05;
+    /* Curve identifiers read as-cased (ease-in-out, bounce-in-ease-half). */
+    text-transform: none;
+}
+
+/* The promoted-name crossfade — quiet 140ms out-in; PRM-suppressed. */
+.specimen-name-enter-active,
+.specimen-name-leave-active {
+    transition:
+        opacity 140ms var(--ease-standard, ease),
+        transform 140ms var(--ease-standard, ease);
+}
+.specimen-name-enter-from {
+    opacity: 0;
+    transform: translateY(0.15em);
+}
+.specimen-name-leave-to {
+    opacity: 0;
+    transform: translateY(-0.1em);
+}
+@media (prefers-reduced-motion: reduce) {
+    .specimen-name-enter-active,
+    .specimen-name-leave-active {
+        transition: none;
+    }
+}
+
+/* The complete re-parseable literal: Fira Code, wraps (never truncates),
+   copy affordance beside it. */
+.specimen-literal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    color: var(--muted-foreground);
+}
+.literal-text {
+    text-transform: none;
+    overflow-wrap: anywhere;
+}
+.literal-copy {
+    /* CopyButton's icons are absolutely-positioned at 100% — the button needs
+       an intrinsic box here (the sidebar mount sizes it externally). */
+    width: 1rem;
+    height: 1rem;
+    flex: none;
+    color: var(--muted-foreground);
+}
+.literal-copy:hover {
+    color: var(--foreground);
+}
+
+/* The family filter is QUIET: caption-rung text pills, horizontal fade-scroll
+   at narrow widths so the row never wraps the header into a tower. */
+.family-filter {
+    max-width: 100%;
+}
+.family-row {
+    display: inline-flex;
+    width: max-content;
+    white-space: nowrap;
+}
+
+/* ── The drawer ── */
+.specimen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.5rem;
+    /* Breathing room so tile hover/pressed rings never clip against the
+       fade-scroll mask edges. */
+    padding: 2px 2px 1rem;
+}
+
+/* Each tile: content-visibility gates off-screen render work (the paint walk
+   is already IO-gated; this gates style/layout too). The intrinsic-size
+   placeholder keeps the scrollbar honest. */
+.specimen-tile {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 104px;
+    align-items: stretch;
+}
+
+/* ── The specimen stage: sparkline portrait + hairline rail + ball ── */
+.tile-stage {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 3.25rem;
+}
+
+/* The static sparkline — the curve's portrait (value vs time), faint behind
+   the race. 18% headroom + visible overflow keep overshoot unclipped. */
+.tile-sparkline {
+    position: absolute;
+    inset: 18% 0;
+    width: 100%;
+    height: 64%;
+    overflow: visible;
+}
+.tile-sparkline path {
+    fill: none;
+    stroke: color-mix(in srgb, var(--foreground) 22%, transparent);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* The hairline rail — 1px (a named delta off the 2px idiom default: 33
+   rails at 2px read as a grid of rules; at 1px they recede to ruled paper).
+   Ticks mark the shared origin + terminus: the departure is LEGIBLE. */
+.tile-rail {
+    height: 1px;
+    --rail-tint: 16%;
+}
+.tile-stage::before,
+.tile-stage::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 1px;
+    height: 9px;
+    transform: translateY(-50%);
+    background: color-mix(in srgb, var(--foreground) 22%, transparent);
+}
+.tile-stage::before {
+    left: 6.5px; /* the departure — every ball's center at phase 0 */
+}
+.tile-stage::after {
+    right: 6.5px; /* the terminus — every ball's center at fn(1) = 1 */
+}
+
+/* The racing ball: 14px, the OD-6 violet, transform-positioned by the shared
+   painter (left: 0 is the origin; translateX carries the race). The glow is
+   STATIC (one composite layer) — never written per frame. */
+.tile-ball {
+    --ball-size: 14px;
+    --ball-glow: 28%;
+    left: 0;
+    will-change: transform;
+}
+
+/* ── Selection ── ToggleChip's data-state="on" carries the glass wash
+   (primary 15% = the violet authority). The specimen adds: the portrait inks
+   up, the name takes the tone. The BALL stays identical — the comparative
+   race reads only when every runner is equal. */
+.specimen-tile[data-state="on"] .tile-sparkline path {
+    stroke: color-mix(in srgb, var(--ball-tone) 65%, transparent);
+    stroke-width: 1.5;
+}
+.specimen-tile[data-state="on"] .tile-name {
+    color: var(--ball-tone);
+    font-weight: 600;
+}
+
+/* ── The name row: room to breathe, never truncated ── */
+.tile-name {
+    text-transform: none; /* identifiers read as-cased */
+    text-align: center;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+    padding-bottom: 0.125rem;
+    color: var(--muted-foreground);
+}
+.specimen-tile:hover .tile-name {
+    color: var(--foreground);
+}

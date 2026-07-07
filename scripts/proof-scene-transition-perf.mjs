@@ -266,7 +266,11 @@ async function browserHalf() {
         await navToScene(page, "easing", TRIGGER.easing);
         const easingAfter = await controlProjection(page, SUPER_KEY.easing);
 
-        // T.B2 — easing's default selected surface is 'controls' (the triad's
+        // ⑪ (item-7a, ratified) — the accepted default set (the scene-aware
+        // default 'easing' = the Curve facet; 'controls' kept for a stored user pick).
+        const ROUND_TRIP_DEFAULTS = ["easing", "controls"];
+        // ⑪ (item-7a, ratified) — easing's SCENE-AWARE default surface is its
+        // Curve facet ('easing'), not the generic 'controls' (the triad's
         // first member). The round-trip INVARIANT is unchanged: the DFA-gated
         // surface state suspends on leave + fully resumes byte-identical on
         // SCENE_READY (selectedControl returns to its pre-leave 'controls').
@@ -274,11 +278,11 @@ async function browserHalf() {
             easingBefore &&
             easingAfter &&
             JSON.stringify(easingBefore) === JSON.stringify(easingAfter) &&
-            easingBefore.selectedControl === "controls";
+            ROUND_TRIP_DEFAULTS.includes(easingBefore.selectedControl);
         if (roundTrips) {
             ok(
                 `control-surface round-trip: easing↔cube preserves the control projection ` +
-                    `byte-identical (${JSON.stringify(easingAfter)}; selectedControl='controls' ` +
+                    `byte-identical (${JSON.stringify(easingAfter)}; selectedControl within the accepted default set ` +
                     `resumes — the DFA-gated surface state suspends + fully resumes on SCENE_READY)`,
             );
         } else {
@@ -287,7 +291,7 @@ async function browserHalf() {
                     `      before: ${JSON.stringify(easingBefore)}\n` +
                     `      after:  ${JSON.stringify(easingAfter)}\n` +
                     `      (the DFA-gated surface state must suspend on leave + fully resume; ` +
-                    `selectedControl must return to 'controls')`,
+                    `selectedControl must return to the scene-aware default set)`,
             );
         }
 
