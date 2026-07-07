@@ -406,6 +406,31 @@
   T.F structure fold (batch ⑩) + T.G2's single-raf-clock question + the
   OD-7-gated easing terminal + M3 blessing + T.Z.
 
+- **2026-07-06 — THE OWNER RATIFICATION (OWNER-ASKS row 4, verbatim there) + BATCH ⑩
+  MERGED @ `a53533e`+.** Every packet token FILLED (verdicts/*.md OWNER VERDICT
+  blocks; APPEARANCE-WAVES verdicts; **OD-7 RULED APPROVED — P-GALLERY = the blessed
+  reference**; OD-5 R1 satisfied-as-landed, R2 → the easing terminal; the ω-badge
+  removal stands; the register reconciled + CLOSED). **T.H3 OWNER-OVERRIDDEN to
+  ADOPT** — the Drawer swap executes in the terminal batch; the glass-ui letter
+  gained §FORWARDING (the owner's research/plan/fold exhortation verbatim; BG-11
+  URGENT). **BATCH ⑩ — THE EDICT'S DEMO FOLD LANDED** (fleet `wf_60ebc70c-921`,
+  3/3): the 5 editor peers → `instrument/{transport,keyframes,timeline,shell,easing}`
+  with a real lazy umbrella (Monaco stays a 4.1MB lazy chunk, entry 380KB — the LCP
+  seam held by construction; ~30 gates + gaps-ledger + tests re-anchored; the
+  browser battery green); the composables double-nest flattened; the styles tier
+  split per-concern ≤300L BYTE-FAITHFULLY (identical custom-property set verified;
+  proof:style-file-ceiling live); **proof:colocation — THE KEYSTONE — LANDED
+  mergeable-green** (kind-appropriate tiers + the no-flat-use* rule, 3 named
+  deferred rows); the purge terminal (22 dead exports excised, backlog 51→28;
+  any-ceiling 108→103→**102** post-merge — the transform callbacks now consume the
+  library's own Vars contract). **Merge composition:** useKfPillTabs colocated into
+  transport/composables/ (the keystone's own first bite, every anchor repointed);
+  the two new gates ci-wired; the ratchets tightened. Honest defers: the constants
+  fold (InjectionKey identity risk), F9/F10/F19 (un-gated, evidence-backed
+  rationales). **NEXT: batch ⑪ — THE TERMINAL** (easing T.E6+E8+R2 from the blessed
+  P-GALLERY ∥ T.H3-ADOPT per the override ∥ close-prep), then the M3 blessing under
+  the delegated judgment + T.Z.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately

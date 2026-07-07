@@ -95,7 +95,7 @@ const DEFERRED = [
     //  ratchet drops the discharged row.)
     ["demo/@/components/custom/instrument/timeline/utils/snapshotCapture.ts", "captureNonDefaultSnapshot"],
     ["demo/@/components/custom/instrument/keyframes/composables/useToolbarKeyboard.ts", "ToolbarKeyboard"],
-    ["demo/@/components/custom/instrument/transport/useKfPillTabs.ts", "UseKfPillTabsParams"],
+    ["demo/@/components/custom/instrument/transport/composables/useKfPillTabs.ts", "UseKfPillTabsParams"],
     // ── @/state/ (the app-level reset-hook registry seam) ──
     // `registerStoreReset` is retained as the general reset-composer CONTRACT
     // (@/state/index.ts documents it: the last consumer — compose's asset store —

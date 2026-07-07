@@ -64,7 +64,7 @@ export const GLASS_UI_GAPS = {
         fixVersion: "@mkbabb/glass-ui BG/BH (aria guard + material↔role decouple)",
         workaroundSites: [
             "demo/@/components/custom/instrument/transport/KfPillTabs.vue",
-            "demo/@/components/custom/instrument/transport/useKfPillTabs.ts",
+            "demo/@/components/custom/instrument/transport/composables/useKfPillTabs.ts",
         ],
         acceptanceGate: "proof:glassui-aria-ask",
     },

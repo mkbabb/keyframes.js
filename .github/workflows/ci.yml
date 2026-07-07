@@ -214,6 +214,10 @@ jobs:
               run: npm run proof:compile-backward-leg
             - name: proof:zone-cohesion (T.F22 — per-zone internal cohesion · 400L intra-zone ceiling or justified single-concern · ring-fence intact · no test in src)
               run: npm run proof:zone-cohesion
+            - name: proof:colocation (T.F21 — THE EDICT keystone · recursive colocation, kind-appropriate tiers, no flat use* beside composables/)
+              run: npm run proof:colocation
+            - name: proof:style-file-ceiling (T.F — the styles split ceiling · every @/styles file ≤300L)
+              run: npm run proof:style-file-ceiling
             - name: proof:no-flat-siblings (R.W1 — the 11-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
               run: npm run proof:no-flat-siblings
             - name: proof:no-orphan-module (S.C1 — dynamic-import-aware reachability walker + the scoped front-door `animate` grep; the zero-importer zombie class made structural)
