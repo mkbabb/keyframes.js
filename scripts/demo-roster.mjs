@@ -134,6 +134,10 @@ export const CORRECTNESS_ROSTER = [
     "proof:cube-relight-writes",
     "proof:fsm-suspend-resume-live",
     "proof:easing-editor-live",
+    // T.E6 (OD-7 APPROVED — P-GALLERY the blessed reference) — the specimen-drawer
+    // gallery OWNER oracle: ≥30 tiles on ONE shared clock, analytic fn(φ)·maxX
+    // placement, transform-only writes, the header promotion, coherent freeze.
+    "proof:easing-gallery",
     "proof:amiga-subject-is-pivot",
     "proof:drag-gesture",
     "proof:icon-paint-live",
@@ -144,8 +148,10 @@ export const CORRECTNESS_ROSTER = [
     "proof:demo-fonts",
     "proof:live-session",
     "proof:live-session-mobile",
-    "proof:demo-control-point",
-    "proof:easing-curve-editor",
+    // (proof:demo-control-point + proof:easing-curve-editor RETIRED at the easing
+    //  TERMINAL batch (T.E8) — their subject (the hand-rolled instrument/easing
+    //  cluster) is deleted; the drag-re-times capability is proof:easing-editor-live
+    //  v2 clause (b). RETIREMENT_LEDGER + gate-bands DISCHARGE carry the witnesses.)
     // proof:scene-switcher-mobile RETIRED at S.A4 (C-6, fold row 18) — a ledgered
     // KILL with a re-run witness (scripts/gate-bands.mjs DISCHARGE). It asserted a
     // mobile scroll-snap carousel + a SceneSwitcherCarousel component that does not
@@ -187,11 +193,11 @@ export const CORRECTNESS_ROSTER = [
     "proof:cartoon-is-panel-depth",
     "proof:glass-and-cartoon",
     "proof:typing-dots",
-    "proof:easing-canvas-bounded",
+    // (the four easing surface-locks — easing-canvas-bounded / -sidebar-normalized
+    //  / -sidebar-minimal / -stage-is-ball — RETIRED at the easing TERMINAL batch
+    //  (T.E6, OD-7 APPROVED): machine-witnessed MIGRATION discharges to
+    //  proof:easing-gallery / proof:easing-editor-live v2 in gate-bands.mjs.)
     "proof:scene-uses-standard-ribbon",
-    "proof:easing-sidebar-normalized",
-    "proof:easing-sidebar-minimal",
-    "proof:easing-stage-is-ball",
     "proof:scene-card-rounded",
     "proof:stage-glass-card",
     "proof:card-rounded-primitive",
@@ -207,9 +213,9 @@ export const CORRECTNESS_ROSTER = [
     // half always runs; the DFA-empty + naked-rail probes need the built dist).
     "proof:panel-naked-rail",
     "proof:sheet-reopen-scroll",
-    "proof:bezier-no-scroll",
-    "proof:bezier-single-card",
-    "proof:bezier-grown",
+    // (proof:bezier-{no-scroll,single-card,grown} RETIRED at T.E8 — the hand-rolled
+    //  detail canvas + its px-arithmetic clamps died with the cluster; MIGRATION
+    //  discharges in gate-bands.mjs.)
     "proof:scene-perf-budget",
     "proof:scene-parity",
     "proof:sequence-rows-draggable",

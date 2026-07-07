@@ -252,8 +252,10 @@ async function runSuffusion() {
             // ── (b) the display register's font-family resolves Instrument Serif
             //    at the named moments + the amiga headerless exception ──────────
             const NAMED_MOMENTS = [
-                { scene: "easing", expected: "Easing", title: "ease" },
-                { scene: "spring", expected: "Spring", title: "SpringProgress" },
+                // item-7a: easing/spring settle on their signature facet — the
+                // control trigger reads the FACET name (Curve/Physics).
+                { scene: "easing", expected: "Curve", title: "ease" },
+                { scene: "spring", expected: "Physics", title: "SpringProgress" },
                 { scene: "sequence", expected: null, title: "Sequence" },
             ];
             for (const m of NAMED_MOMENTS) {

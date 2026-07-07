@@ -627,8 +627,10 @@ async function clauseSceneIsolation(browser, base) {
                 document.querySelector('[role="tabpanel"][data-state="active"]') ||
                 document.querySelector(".controls-pane") ||
                 document.body;
+            // T.E8 — the "easing" surface body IS the glass-ui EasingPicker
+            // (the Curve facet; the hand-rolled curve canvas is deleted).
             const hasEasingEditor = !!panel.querySelector(
-                ".easing-curve-canvas, [class*='instrument/easing'], [class*='EasingEditor']",
+                '[data-testid="easing-picker"]',
             );
             return { hasEasingEditor };
         });

@@ -380,7 +380,7 @@ async function browserHalf() {
                 const moved = await page.evaluate(
                     () =>
                         new Promise((resolve) => {
-                            const ball = document.querySelector(".hero-ball, .track-ball");
+                            const ball = document.querySelector(".tile-ball, .progress-ball"); // T.E6: the gallery tile runners
                             if (!ball) return resolve({ live: false, reason: "no sweep dot" });
                             const first = getComputedStyle(ball).transform;
                             let frames = 0;

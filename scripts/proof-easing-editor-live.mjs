@@ -1,57 +1,54 @@
 #!/usr/bin/env node
 /**
- * proof:easing-editor-live — I.W2 §Hard gate (B4 + the B5 readout seam).
+ * proof:easing-editor-live — v2 (T.E8 · directive #27 · OD-5 R2).
  *
- * THE DEFECT (B4). The easing curve/timing editor is BLANK on every in-app
- * switch-INTO `/easing` — a SILENT render gating (no crash). Root cause
- * (rootcause-rc-easing-editor.md): the editor lives in `TabsContent
- * value="easing"` under a reka `<Tabs :model-value="storedControls.selectedControl">`
- * whose `useVModel` LATCHES `passive` from `modelValue === undefined` AT MOUNT; on
- * a scene SWITCH the `<Tabs>` root is created on a tick where `:model-value`
- * resolves `undefined`, so the panel computes `data-state="inactive"` →
- * `display:none` → the bezier canvas + dropdown unmount. The FRESH load works
- * (EasingScene set `selectedControl="easing"` synchronously). PLUS a parity gap:
- * J's minimalism stripped the read-only value+copy readout the rail lost.
+ * REWRITTEN IN PLACE (the square-honest precedent: a live property is
+ * re-asserted on the redesigned surface, never retired with it). v1 asserted
+ * the HAND-ROLLED editor cluster (.easing-curve-canvas + .control-point.handle
+ * + the demo readout) — the exact 1,082L `instrument/easing/` surface T.E8
+ * DELETES. The live property that SURVIVES — "the easing edit surface actually
+ * works on switch-in: a real drag re-times the preview, the literal is
+ * COMPLETE and re-parseable, a re-mount round-trips with zero
+ * AnimationOptionError" — is re-asserted here over the glass-ui `EasingPicker`
+ * (the SOLE edit surface, the Curve facet body). This IS the owner's R2 rider
+ * cure ("that curve preview in the top left needs to be improved
+ * dramatically" → the EasingPicker + gallery redesign replaces that surface;
+ * verdicts/T.B-panel.md §R2).
  *
- * THE CURE (I.W2): S1 single-sources the SELECTED control surface from the scene
- * machine's control-surface DFA (`selectedControlSurfaceFor`) and binds the
- * `<Tabs> :model-value` to THAT projection, so on a switch the model-value is
- * born `"easing"` on the mounting tick (latch taken correct). S2 force-mounts the
- * single-surface scene's sole `TabsContent`. S3 folds the read-only readout+copy
- * back as a COMPLETE re-parseable `cubic-bezier(…)`/`steps(…)` literal (never the
- * bare `"cubic-bezier"` keyword that `resolveEasingOption ← new
- * CSSKeyframesAnimation` rejects on the next controls re-mount). S4 unifies the
- * two divergent bezier hosts onto ONE `EasingEditor`.
+ * CLAUSES:
+ *   (s) STATIC — the `instrument/easing/` cluster is GONE from disk; the
+ *       `@mkbabb/glass-ui/easing` EasingPicker is imported EXACTLY ONCE under
+ *       demo/scenes/easing/ (the Curve facet body) and exactly once under the
+ *       shared instrument (the TimingFunctionPanel detail body — the R2
+ *       surface); zero references to the deleted cluster components anywhere
+ *       under demo/.
+ *   (a) SWITCH-IN — cube → easing: the scene opens on its Curve facet (the
+ *       item-7a scene-aware default; the dock control trigger reads "Curve")
+ *       and `[data-testid="easing-picker"]` is mounted + visible.
+ *   (b) DRAG RE-TIMES — a REAL mouse drag on a picker bezier handle mutates
+ *       the picker's readout literal AND lands in the demo within a frame:
+ *       the gallery header literal becomes the SAME complete cubic-bezier
+ *       quad (the updateBezierPoints seam → the preview channel's
+ *       timingFunction — honest by construction, watch(cssValue)).
+ *   (c) COMPLETE LITERAL — the picker readout + the header literal are
+ *       complete re-parseable `cubic-bezier(…)`/`steps(…)` forms (never the
+ *       bare keyword, never truncated — the F7 kill).
+ *   (d) STEPS NATIVE — pressing the `steps` gallery tile seeds the picker
+ *       into its native steps mode (`[data-mode="steps"]`) with a complete
+ *       `steps(n, term)` readout.
+ *   (e) RE-MOUNT — Easing→Amiga→Easing forces a controls re-mount with ZERO
+ *       AnimationOptionError (the persisted literal round-trips).
+ *   (f) SPRING NEIGHBOR — spring opens on its Physics facet (item-7a) and the
+ *       facet body renders (the T.B7 SpringPhysicsFacet surface).
+ *   (g) zero pageerror / console.error / `_gen` / bare-dots throughout.
  *
- * THE GATE — a Playwright session over the BUILT `dist/gh-pages/` (the
- * scripts/lib/demo-driver.mjs lifecycle: withPage = serveDist + env-driven
- * resolveChromium + context/teardown, J.W3 S1; navToScene = the J.W0
- * per-EXPECTED-state settle). The switch-in is driven by a hash route
- * change `location.hash="#/easing"` FROM another scene (the accepted repro of the
- * switch-in latch). P6 posture: hard — device-independent correctness oracle
- * (red anywhere; J.W3 S2b). Clauses (I.W2.md §Hard gate):
- *   (a) load `#/cube` → switch INTO Easing → assert `.easing-curve-canvas`
- *       PRESENT + `display !== none` + its host `[role="tabpanel"]`
- *       `data-state="active"`.
- *   (b) ≥2 `.control-point.handle` present; DRAG a handle and assert it (1)
- *       mutates the bezier path `d` AND (2) re-animates the subject (the sampled
- *       position-at-fixed-t changes after the drag — a no-op that only mutates
- *       the SVG `d` still REDs).
- *   (c) the selector dropdown present + changing it re-renders the curve; the
- *       readout + CopyButton value are a complete re-parseable
- *       `cubic-bezier(…)`/`steps(…)` literal (NOT bare `"cubic-bezier"`); switch
- *       away+back (Easing→Amiga→Easing) to force a controls RE-MOUNT and assert
- *       ZERO `AnimationOptionError`.
- *   (d) the same (a)-(c) on the RETURN path AND on spring's single-surface panel;
- *       ZERO `pageerror`/`_gen`/`"......"` throughout.
- *
- * Re-runnable: `node scripts/proof-easing-editor-live.mjs`. Serves the BUILT
- * dist/gh-pages/. Under KF_REQUIRE_BROWSER=1 a playwright-absent skip is a hard
- * fail AT THE LIB SEAM (W7-1/S6d) so a SHIP is never green-reported un-exercised.
+ * Runs over the BUILT dist/gh-pages (scripts/lib/demo-driver.mjs). Under
+ * KF_REQUIRE_BROWSER=1 a playwright-absent skip is a hard fail.
  */
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { navToScene, pressPlayToggle, withPage } from "./lib/demo-driver.mjs";
+import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -64,443 +61,352 @@ const fail = (label) => {
     console.error(`  ✗ ${label}`);
 };
 
-console.log("proof:easing-editor-live — I.W2 §Hard gate (B4 desync + the B5 readout seam)");
+console.log(
+    "proof:easing-editor-live — v2 (T.E8: glass-ui EasingPicker IS the edit surface · OD-5 R2)",
+);
 
 const CTRL_KEY = "animation-groups-control-options-store";
-
-// A complete, re-parseable cubic-bezier(x1, y1, x2, y2) / steps(n, term?) literal
-// — NOT the bare "cubic-bezier"/"steps" keyword. The four-number bezier form and
-// the steps form; nothing else counts as a re-mountable readout.
 const REPARSEABLE_LITERAL =
     /^\s*(?:cubic-bezier\(\s*-?[\d.eE+-]+\s*,\s*-?[\d.eE+-]+\s*,\s*-?[\d.eE+-]+\s*,\s*-?[\d.eE+-]+\s*\)|steps\(\s*\d+\s*(?:,\s*[\w-]+\s*)?\))\s*$/;
-const BARE_TOKEN = /^(cubic-bezier|steps)$/;
-
 const OPTION_ERROR_RE =
     /AnimationOptionError|Invalid value for animation option "timingFunction"/i;
-const GEN_RE = /_gen|this\._gen|is not an object \(evaluating 'this\._gen'\)/;
 const BARE_DOTS_RE = /Parse error at offset 0: "\.{3,}"|"\.{6}"|"\.\.\.\.\.\."/;
 
-/** Switch the active scene via a hash route change (the accepted switch-in repro
- *  — it re-creates the controls host on the swap tick, exercising the reka
- *  passive-latch). Settles via the lib's navToScene (the J.W0 per-EXPECTED-state
- *  wait: machine activeScene rested + the destination control surface projected;
- *  `expectedTrigger` = the destination's control-tab label, or null). */
-async function switchScene(page, scene, expectedTrigger) {
-    await navToScene(page, scene, expectedTrigger, { timeout: 8000 });
-    await page.waitForTimeout(700); // route rested + the scene's controls mounted
-}
-
-/** Resolve the easing/spring scene's control-pane state: the curve canvas (or the
- *  sidebar root for spring), its display, and the host tabpanel's data-state.
- *  J.W2 S2 (S4-stretch): single-surface scenes mount their panel FLAT — there is
- *  NO reka tabpanel (and no model-value latch to race) by design. A flat-mounted,
- *  VISIBLE panel reports `tabpanelState: "(flat)"` and counts as mounted-active
- *  (visibility is the felt property; the latch the data-state probe detected is
- *  structurally gone for these scenes). */
-async function paneState(page, surfaceClass) {
-    return page.evaluate((cls) => {
-        const canvas = document.querySelector(`.${cls}`);
-        const present = !!canvas;
-        let display = "(absent)";
-        let tabpanelState = "(no-host)";
-        let visible = false;
-        if (canvas) {
-            display = getComputedStyle(canvas).display;
-            const r = canvas.getBoundingClientRect();
-            visible = display !== "none" && r.width > 2 && r.height > 2;
-            const host = canvas.closest('[role="tabpanel"]');
-            tabpanelState = host
-                ? host.getAttribute("data-state") || "(no-attr)"
-                : "(flat)";
-        }
-        return { present, display, tabpanelState, visible };
-    }, surfaceClass);
-}
-
-/** Mounted-active under BOTH mount shapes: an ACTIVE tabpanel host (multi-surface
- *  scenes) or the J.W2 flat mount (single-surface scenes — visible, no tabpanel). */
-const isMountedActive = (st) =>
-    st.present &&
-    st.display !== "none" &&
-    (st.tabpanelState === "active" || (st.tabpanelState === "(flat)" && st.visible));
-
-/** Read the easing readout text + the CopyButton's copy payload. The copy text is
- *  read from the CopyButton's `:text` — surfaced via the clipboard write, which we
- *  intercept by reading the button's title/aria or, robustly, by clicking it with
- *  a clipboard shim installed at context level. We read the visible readout text
- *  and the button's bound text attribute fallback. */
-async function readReadout(page) {
-    return page.evaluate(() => {
-        const readout = document.querySelector(".easing-readout .easing-readout-value");
-        const readoutText = readout ? readout.textContent.trim() : null;
-        // The CopyButton renders inside `.easing-readout`. Its copied value is the
-        // `:text` prop — surfaced as the readout value (one source). Capture the
-        // window clipboard shim's last write if present (installed below).
-        const copied = window.__kfLastCopy ?? null;
-        return { readoutText, copied, hasReadout: !!readout };
-    });
-}
-
-/** Drive the easing scene: assert (a) the canvas un-hides, (b) a handle-drag
- *  mutates the path `d` AND re-animates the subject, (c) the dropdown + the
- *  re-parseable readout. Returns a per-clause result map. */
-async function exerciseEasing(page, label) {
-    const res = { label };
-
-    // ── clause (a) — the editor un-hides on switch-IN ──
-    const st = await paneState(page, "easing-curve-canvas");
-    res.a = isMountedActive(st);
-    res.aDetail = st;
-
-    if (!res.a) return res; // (b)/(c) need the mounted canvas
-
-    // T.G3 — the easing scene RESTS on entry now (autoPlays:false). Clause (b)'s
-    // discriminant is that the traveling dot's `cy` SHIFTS across the sweep after a
-    // curve edit — which needs the sweep ACTUALLY RUNNING. Actuate Play (the honest
-    // F3-guard-passing press) so the preview sweeps; a curve edit then re-eases the
-    // live progress and the sampled dot-cy set moves. No-op if already playing.
-    await pressPlayToggle(page, { intent: "play" });
-    await page.waitForTimeout(300);
-
-    // ── clause (b) — ≥2 handles, drag mutates `d` AND re-animates ──
-    const handleCount = await page.evaluate(
-        () => document.querySelectorAll(".easing-curve-canvas .control-point.handle").length,
+const bezierNums = (s) => {
+    const m = (s || "").match(
+        /^cubic-bezier\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)$/,
     );
-    res.handleCount = handleCount;
+    return m ? m.slice(1, 5).map(Number) : null;
+};
 
-    // Sample the traveling-dot's position (the subject sampled at the live sweep
-    // cy) BEFORE the drag, the bezier path `d` BEFORE, then drag a handle, then
-    // re-sample. A genuine curve-change moves BOTH the path `d` AND, because the
-    // sweep eases the SAME curve, the subject's sampled position over a fixed
-    // window. We pin the sweep by sampling the dot cy across two frames.
-    const before = await page.evaluate(async () => {
-        const path = document.querySelector(".easing-curve-canvas .bezier-path");
-        const d0 = path ? path.getAttribute("d") : null;
-        // Sample the traveling dot cy across a short window (the subject under the
-        // current curve). The dot's cy = 1 - easingFn(progress) in SVG space.
-        const sampleDot = () => {
-            const dot = document.querySelector(".easing-curve-canvas .traveling-dot");
-            return dot ? parseFloat(dot.getAttribute("cy")) : null;
-        };
-        const samples = [];
-        for (let i = 0; i < 6; i++) {
-            samples.push(sampleDot());
-            await new Promise((r) => requestAnimationFrame(r));
-        }
-        return { d0, samples };
-    });
-
-    // Drag handle 0 a real distance via trusted pointer events on the SVG.
-    const dragged = await page.evaluate(async () => {
-        const svg = document.querySelector(".easing-curve-canvas");
-        const handle = document.querySelector(
-            '.easing-curve-canvas .control-point.handle[data-index="0"]',
-        );
-        if (!svg || !handle) return false;
-        const r = svg.getBoundingClientRect();
-        const hb = handle.getBoundingClientRect();
-        const startX = hb.x + hb.width / 2;
-        const startY = hb.y + hb.height / 2;
-        // Q.WC1 — the curve handle was consolidated onto `DemoControlPoint` over
-        // the LIGHT `drag2D` (the bespoke SVG-level `@pointerdown="startDragging"`
-        // hit-test was retired). The `drag2D` Draggable binds its `pointerdown`
-        // listener on the HANDLE element (not the SVG), so the synthetic gesture
-        // is dispatched on the handle (`setPointerCapture` retargets move/up to
-        // it). The bite is unchanged: a real handle drag must still mutate the
-        // bezier `d` AND re-time the subject.
-        const fire = (type, x, y) =>
-            handle.dispatchEvent(
-                new PointerEvent(type, {
-                    bubbles: true,
-                    cancelable: true,
-                    pointerId: 1,
-                    pointerType: "mouse",
-                    button: type === "pointerdown" ? 0 : -1,
-                    buttons: type === "pointerup" ? 0 : 1,
-                    clientX: x,
-                    clientY: y,
-                }),
-            );
-        fire("pointerdown", startX, startY);
-        const tx = r.x + r.width * 0.7;
-        const ty = r.y + r.height * 0.15;
-        const STEPS = 12;
-        for (let i = 1; i <= STEPS; i++) {
-            const x = startX + (tx - startX) * (i / STEPS);
-            const y = startY + (ty - startY) * (i / STEPS);
-            fire("pointermove", x, y);
-            await new Promise((res) => requestAnimationFrame(res));
-        }
-        fire("pointerup", tx, ty);
-        return true;
-    });
-    res.dragged = dragged;
-    await page.waitForTimeout(300);
-
-    const after = await page.evaluate(async () => {
-        const path = document.querySelector(".easing-curve-canvas .bezier-path");
-        const d1 = path ? path.getAttribute("d") : null;
-        const sampleDot = () => {
-            const dot = document.querySelector(".easing-curve-canvas .traveling-dot");
-            return dot ? parseFloat(dot.getAttribute("cy")) : null;
-        };
-        const samples = [];
-        for (let i = 0; i < 6; i++) {
-            samples.push(sampleDot());
-            await new Promise((r) => requestAnimationFrame(r));
-        }
-        return { d1, samples };
-    });
-
-    res.dMutated = !!before.d0 && !!after.d1 && before.d0 !== after.d1;
-    // The subject re-animates under the new curve: the sampled dot-cy SET shifts.
-    // A no-op that only mutates `d` would leave the dot path identical (same fn).
-    // We compare the multiset of cy samples — a changed curve eases the same
-    // progress differently, so at least one sampled position must differ beyond a
-    // float epsilon. (The sweep is playing, so progress advances; the discriminant
-    // is whether the CURVE that maps progress→cy changed, witnessed by a cy that
-    // no longer lies on the old curve for any sampled progress.)
-    const beforeSet = (before.samples || []).filter((v) => v != null);
-    const afterSet = (after.samples || []).filter((v) => v != null);
-    const minLen = Math.min(beforeSet.length, afterSet.length);
-    let reanimated = false;
-    if (minLen >= 2) {
-        // The range/spread of the eased position changes when the curve changes
-        // (a steeper/flatter curve reshapes the dot's vertical travel). Compare
-        // the spread (max-min) of the two windows; a curve change moves it.
-        const spread = (arr) => Math.max(...arr) - Math.min(...arr);
-        const sBefore = spread(beforeSet);
-        const sAfter = spread(afterSet);
-        reanimated =
-            Math.abs(sAfter - sBefore) > 0.01 ||
-            // or any individual sample shifted beyond epsilon at a matching index
-            beforeSet.some((v, i) => i < afterSet.length && Math.abs(v - afterSet[i]) > 0.02);
+// ── (s) STATIC ────────────────────────────────────────────────────────────────
+{
+    const clusterDir = path.join(REPO, "demo/@/components/custom/instrument/easing");
+    if (!existsSync(clusterDir)) {
+        ok("(s) the instrument/easing/ hand-rolled cluster (1,082L) is GONE from disk");
+    } else {
+        fail("(s) demo/@/components/custom/instrument/easing/ still exists — the T.E8 deletion did not land");
     }
-    res.reanimated = reanimated;
-    res.b = res.handleCount >= 2 && res.dragged && res.dMutated && res.reanimated;
-    res.bDetail = { handleCount, dMutated: res.dMutated, reanimated, beforeSet, afterSet };
 
-    // ── clause (c) — the selector + the re-parseable readout ──
-    const dropdownPresent = await page.evaluate(
-        () => !!document.querySelector(".easing-trigger-label"),
+    const walk = (dir) => {
+        const out = [];
+        if (!existsSync(dir)) return out;
+        for (const e of readdirSync(dir)) {
+            const p = path.join(dir, e);
+            if (statSync(p).isDirectory()) out.push(...walk(p));
+            else if (/\.(vue|ts)$/.test(e)) out.push(p);
+        }
+        return out;
+    };
+    const countPickerImports = (dir) =>
+        walk(dir).filter((f) =>
+            /@mkbabb\/glass-ui\/easing/.test(readFileSync(f, "utf8")),
+        );
+    const sceneImports = countPickerImports(path.join(REPO, "demo/scenes/easing"));
+    if (sceneImports.length === 1) {
+        ok(
+            `(s) EasingPicker imported EXACTLY ONCE under demo/scenes/easing/ ` +
+                `(${path.relative(REPO, sceneImports[0])} — the Curve facet body, the SOLE scene edit surface)`,
+        );
+    } else {
+        fail(
+            `(s) EasingPicker import count under demo/scenes/easing/ is ${sceneImports.length} ` +
+                `(want exactly 1): ${sceneImports.map((f) => path.relative(REPO, f)).join(", ")}`,
+        );
+    }
+    const instrumentImports = countPickerImports(
+        path.join(REPO, "demo/@/components/custom/instrument"),
     );
-    res.dropdownPresent = dropdownPresent;
-
-    // After the drag the curve is `cubic-bezier` — the readout must be present and
-    // a complete re-parseable literal (NOT the bare keyword).
-    const readout = await readReadout(page);
-    res.readoutText = readout.readoutText;
-    res.copied = readout.copied;
-    const readoutOK =
-        readout.hasReadout &&
-        !!readout.readoutText &&
-        REPARSEABLE_LITERAL.test(readout.readoutText) &&
-        !BARE_TOKEN.test(readout.readoutText.trim());
-    const copyOK =
-        readout.copied == null /* clipboard not intercepted */
-            ? true
-            : REPARSEABLE_LITERAL.test(readout.copied) && !BARE_TOKEN.test(readout.copied.trim());
-    res.c = dropdownPresent && readoutOK && copyOK;
-    res.cDetail = { dropdownPresent, readoutText: readout.readoutText, copied: readout.copied, readoutOK, copyOK };
-
-    return res;
+    if (
+        instrumentImports.length === 1 &&
+        /TimingFunctionPanel\.vue$/.test(instrumentImports[0])
+    ) {
+        ok(
+            "(s) EasingPicker imported exactly once under the shared instrument — " +
+                "TimingFunctionPanel.vue (the OD-5 R2 detail-body replacement)",
+        );
+    } else {
+        fail(
+            `(s) shared-instrument EasingPicker imports: ` +
+                `${instrumentImports.map((f) => path.relative(REPO, f)).join(", ") || "none"} ` +
+                "(want exactly TimingFunctionPanel.vue)",
+        );
+    }
+    const dead = [];
+    for (const f of walk(path.join(REPO, "demo"))) {
+        const src = readFileSync(f, "utf8");
+        if (/from\s+["'][^"']*instrument\/easing\//.test(src)) dead.push(path.relative(REPO, f));
+    }
+    if (dead.length === 0) {
+        ok("(s) zero imports of the deleted instrument/easing/ cluster remain under demo/");
+    } else {
+        fail(`(s) dangling instrument/easing imports: ${dead.join(", ")}`);
+    }
 }
 
+// ── browser half ──────────────────────────────────────────────────────────────
 async function browserHalf() {
     const consoleErrors = [];
-    const result = await withPage(
+    await withPage(
         {
             distDir: DIST,
-            label: "the easing-editor-live runtime clauses",
+            label: "the EasingPicker live clauses",
             context: { viewport: { width: 1440, height: 900 } },
         },
         async (page, { url: base }) => {
-
-        // A clipboard shim — capture the CopyButton's write so clause (c) can read
-        // the COPIED payload (not just the visible readout). Installed before any
-        // navigation so every copy is intercepted.
-        await page.addInitScript(() => {
-            window.__kfLastCopy = null;
-            try {
-                const orig = navigator.clipboard && navigator.clipboard.writeText;
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText = (t) => {
-                        window.__kfLastCopy = String(t);
-                        return orig ? orig.call(navigator.clipboard, t).catch(() => {}) : Promise.resolve();
-                    };
+            page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
+            page.on("console", (m) => {
+                if (m.type() === "error") consoleErrors.push(`console.error: ${m.text()}`);
+                if (m.type() === "warning" && BARE_DOTS_RE.test(m.text()))
+                    consoleErrors.push(`console.warn: ${m.text()}`);
+            });
+            await page.addInitScript((ck) => {
+                try {
+                    localStorage.setItem(ck, JSON.stringify({ isControlsPanelOpen: true }));
+                } catch {
+                    /* ignore */
                 }
-            } catch {
-                /* ignore */
-            }
-        });
-        await page.addInitScript((ck) => {
-            try {
-                localStorage.setItem(ck, JSON.stringify({ isControlsPanelOpen: true }));
-            } catch {
-                /* ignore */
-            }
-        }, CTRL_KEY);
+            }, CTRL_KEY);
 
-        // Capture pageerror + console for the (d) zero-error invariant.
-        page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
-        page.on("console", (m) => {
-            if (m.type() === "error") consoleErrors.push(`console.error: ${m.text()}`);
-            if (m.type() === "warning") {
-                const t = m.text();
-                if (BARE_DOTS_RE.test(t)) consoleErrors.push(`console.warn: ${t}`);
-            }
-        });
+            // ── (a) switch-IN: cube → easing opens on the Curve facet ───────
+            await page.goto(`${base}/#/cube`, { waitUntil: "load" });
+            await navToScene(page, "cube", "Controls", { timeout: 8000 });
+            await page.waitForTimeout(600);
+            await navToScene(page, "easing", "Curve", { timeout: 8000 });
+            await page.waitForTimeout(700);
 
-        // Fresh load on cube (the editor un-hides on a SWITCH-INTO easing; cube is
-        // the starting scene the gate switches AWAY from).
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
-        await navToScene(page, "cube", "Controls", { timeout: 8000 });
-        await page.waitForTimeout(700);
-
-        // ── (a)-(c) on the SWITCH-INTO path: cube → easing ──
-        const errBeforeEasing = consoleErrors.length;
-        await switchScene(page, "easing", "Easing");
-        const easingIn = await exerciseEasing(page, "cube→easing");
-        reportEasing(easingIn);
-
-        // ── (c) re-mount: Easing → Amiga → Easing, assert ZERO AnimationOptionError ──
-        const errBeforeRemount = consoleErrors.length;
-        await switchScene(page, "amiga", "Controls");
-        await switchScene(page, "easing", "Easing");
-        const remountErrors = consoleErrors
-            .slice(errBeforeRemount)
-            .filter((e) => OPTION_ERROR_RE.test(e));
-        if (remountErrors.length === 0) {
-            ok(
-                "clause (c) re-mount — Easing→Amiga→Easing forced a controls RE-MOUNT with ZERO " +
-                    "AnimationOptionError (the persisted timingFunction is a re-mountable literal, not the bare token)",
-            );
-        } else {
-            fail(
-                `clause (c) re-mount — ${remountErrors.length} AnimationOptionError(s) across the ` +
-                    `Easing→Amiga→Easing re-mount (the persisted value is the bare "cubic-bezier"/"steps" ` +
-                    `token, not a re-parseable literal):\n      ` +
-                    remountErrors.slice(0, 4).join("\n      "),
-            );
-        }
-
-        // ── (d) RETURN path: re-exercise (a)-(c) on the returned easing scene ──
-        const easingReturn = await exerciseEasing(page, "amiga→easing (return)");
-        reportEasing(easingReturn);
-
-        // ── (d) SPRING single-surface panel: switch into spring, assert (a) ──
-        await switchScene(page, "spring", "Spring");
-        const springSt = await paneState(page, "spring-sidebar");
-        // SpringSidebar may not carry a `.spring-sidebar` class — fall back to the
-        // sidebar's known content marker: the canonical preset surface. J.W7c U5
-        // REDESIGNED the spring panel from first principles (`SegmentedTabs` + the
-        // single preset surface), renaming the legacy comparison `.preset-row` rows
-        // to the `.preset-cell` cells inside the `.preset-grid` — same flat-mounted
-        // content, evolved markers. The fallback asserts the flat-mounted preset
-        // surface is rendered + visible (both the J.W7c `.preset-cell`/`.preset-grid`
-        // shape AND the legacy `.preset-row` shape are read honestly, so the bite is
-        // unchanged: the spring panel mounts ACTIVE on switch-in). J.W2 S2
-        // (S4-stretch): the spring panel mounts FLAT (no tabpanel).
-        let springA = isMountedActive(springSt);
-        if (!springSt.present) {
-            const springPanel = await page.evaluate(() => {
-                const SEL = ".controls-pane .preset-cell, .controls-pane .preset-grid, .controls-pane .preset-row";
-                const row = document.querySelector(SEL);
-                if (!row) return { flatVisible: false, rows: 0 };
-                const r = row.getBoundingClientRect();
+            const entry = await page.evaluate(() => {
+                const trig = document.querySelector("[aria-label='Controls tab']");
+                const picker = document.querySelector('[data-testid="easing-picker"]');
+                let visible = false;
+                if (picker) {
+                    const r = picker.getBoundingClientRect();
+                    visible = r.width > 40 && r.height > 40;
+                }
                 return {
-                    flatVisible: r.width > 2 && r.height > 2,
-                    rows: document.querySelectorAll(SEL).length,
+                    trigger: trig?.textContent?.trim() ?? null,
+                    pickerPresent: !!picker,
+                    pickerVisible: visible,
                 };
             });
-            springA = springPanel.flatVisible;
-            springSt.fallback = springPanel;
-        }
-        if (springA) {
-            ok(
-                `clause (d) spring — the single-surface spring panel mounts ACTIVE on switch-in ` +
-                    `(${JSON.stringify(springSt)})`,
-            );
-        } else {
-            fail(
-                `clause (d) spring — the spring single-surface panel did NOT mount active on ` +
-                    `switch-in (the latch re-fired): ${JSON.stringify(springSt)}`,
-            );
-        }
+            if (entry.trigger === "Curve" && entry.pickerPresent && entry.pickerVisible) {
+                ok(
+                    "(a) switch-in — easing opened on its Curve facet (item-7a default; trigger reads " +
+                        '"Curve") and the EasingPicker is mounted + visible',
+                );
+            } else {
+                fail(
+                    `(a) switch-in — trigger=${JSON.stringify(entry.trigger)} (want "Curve"), ` +
+                        `picker present=${entry.pickerPresent} visible=${entry.pickerVisible}`,
+                );
+            }
 
-        // ── (d) ZERO pageerror/_gen/"......" throughout ──
-        const fatal = consoleErrors.filter(
-            (e) => GEN_RE.test(e) || BARE_DOTS_RE.test(e) || /^pageerror:/.test(e),
-        );
-        if (fatal.length === 0) {
-            ok(
-                `clause (d) console — ZERO pageerror/_gen/"......" across the cube→easing→amiga→` +
-                    `easing→spring sweep (${consoleErrors.length} non-fatal console line(s) total)`,
-            );
-        } else {
-            fail(
-                `clause (d) console — ${fatal.length} fatal pageerror/_gen/"......" line(s) across ` +
-                    `the switch sweep:\n      ` +
-                    fatal.slice(0, 6).join("\n      "),
-            );
-        }
+            // ── (b)+(c) drag a picker handle → literal + header re-time ────
+            const readSurfaces = () =>
+                page.evaluate(() => {
+                    const picker = document.querySelector('[data-testid="easing-picker"]');
+                    // The picker readout literal (the glass-card code line).
+                    let readout = null;
+                    if (picker) {
+                        for (const el of picker.querySelectorAll("code, [class*='mono'], span")) {
+                            const t = (el.textContent || "").trim();
+                            if (/^(cubic-bezier\(|steps\()/.test(t)) {
+                                readout = t;
+                                break;
+                            }
+                        }
+                    }
+                    return {
+                        readout,
+                        headerName:
+                            document.querySelector(".specimen-name")?.textContent?.trim() ?? null,
+                        headerLiteral:
+                            document
+                                .querySelector(".specimen-literal .literal-text")
+                                ?.textContent?.trim() ?? null,
+                        mode: picker?.getAttribute("data-mode") ?? null,
+                    };
+                });
 
+            const before = await readSurfaces();
+            const handleBox = await page.evaluate(() => {
+                const picker = document.querySelector('[data-testid="easing-picker"]');
+                const svg = picker?.querySelector("svg");
+                if (!svg) return null;
+                const handles = [...svg.querySelectorAll("circle")].filter((c) =>
+                    /cursor/.test(c.getAttribute("style") || ""),
+                );
+                const h = handles[0];
+                if (!h) return null;
+                const r = h.getBoundingClientRect();
+                return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+            });
+            if (!handleBox) {
+                fail("(b) no draggable bezier handle found inside the EasingPicker canvas");
+            } else {
+                await page.mouse.move(handleBox.x, handleBox.y);
+                await page.mouse.down();
+                for (let i = 1; i <= 10; i++) {
+                    await page.mouse.move(handleBox.x + i * 6, handleBox.y - i * 4);
+                    await page.waitForTimeout(16);
+                }
+                await page.mouse.up();
+                await page.waitForTimeout(250);
+
+                const after = await readSurfaces();
+                const readoutMutated =
+                    !!after.readout && after.readout !== before.readout;
+                const pickerNums = bezierNums(after.readout);
+                const headerNums = bezierNums(after.headerLiteral);
+                const agree =
+                    pickerNums &&
+                    headerNums &&
+                    pickerNums.every((v, i) => Math.abs(v - headerNums[i]) < 0.02);
+                if (readoutMutated && agree && after.headerName === "cubic-bezier") {
+                    ok(
+                        `(b) drag re-times — the handle drag mutated the picker literal to ` +
+                            `${after.readout}; the gallery header carries the SAME quad ` +
+                            `(${after.headerLiteral}) through the one authoring seam (the preview ` +
+                            "channel's timingFunction re-seats on the cssValue watch)",
+                    );
+                } else {
+                    fail(
+                        `(b) drag re-times — readout ${JSON.stringify(before.readout)} → ` +
+                            `${JSON.stringify(after.readout)} (mutated=${readoutMutated}); header ` +
+                            `name=${JSON.stringify(after.headerName)} literal=${JSON.stringify(after.headerLiteral)} ` +
+                            `(picker/header quads agree=${!!agree})`,
+                    );
+                }
+                const literalOK =
+                    REPARSEABLE_LITERAL.test(after.readout || "") &&
+                    REPARSEABLE_LITERAL.test(after.headerLiteral || "");
+                if (literalOK) {
+                    ok(
+                        "(c) complete literal — picker readout + header literal are complete " +
+                            "re-parseable cubic-bezier forms (closing paren present — the F7 kill holds)",
+                    );
+                } else {
+                    fail(
+                        `(c) complete literal — picker=${JSON.stringify(after.readout)} ` +
+                            `header=${JSON.stringify(after.headerLiteral)} (must be complete re-parseable forms)`,
+                    );
+                }
+            }
+
+            // ── (d) steps native — the steps tile seeds the picker's steps mode ──
+            const stepsClicked = await page.evaluate(() => {
+                const ball = document.querySelector('.tile-ball[data-curve="steps"]');
+                const tile = ball?.closest(".specimen-tile");
+                if (!tile) return null;
+                tile.scrollIntoView({ block: "center" });
+                const r = tile.getBoundingClientRect();
+                return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+            });
+            if (!stepsClicked) {
+                fail("(d) no steps specimen tile found");
+            } else {
+                await page.mouse.click(stepsClicked.x, stepsClicked.y);
+                await page.waitForTimeout(450);
+                const steps = await readSurfaces();
+                const stepsLiteralOK = /^steps\(\s*\d+\s*,\s*[\w-]+\s*\)$/.test(
+                    steps.headerLiteral || "",
+                );
+                if (steps.mode === "steps" && stepsLiteralOK) {
+                    ok(
+                        `(d) steps native — the steps tile seeded the picker's native steps mode ` +
+                            `(data-mode="steps") with the complete header literal ${steps.headerLiteral}`,
+                    );
+                } else {
+                    fail(
+                        `(d) steps native — picker mode=${JSON.stringify(steps.mode)} ` +
+                            `header literal=${JSON.stringify(steps.headerLiteral)} (want steps mode + steps(n, term))`,
+                    );
+                }
+            }
+
+            // ── (e) re-mount round-trip: Easing→Amiga→Easing, zero option errors ──
+            const errBefore = consoleErrors.length;
+            await navToScene(page, "amiga", "Controls", { timeout: 8000 });
+            await page.waitForTimeout(600);
+            await navToScene(page, "easing", "Curve", { timeout: 8000 });
+            await page.waitForTimeout(700);
+            const remountErrors = consoleErrors
+                .slice(errBefore)
+                .filter((e) => OPTION_ERROR_RE.test(e));
+            const returned = await page.evaluate(
+                () => !!document.querySelector('[data-testid="easing-picker"]'),
+            );
+            if (remountErrors.length === 0 && returned) {
+                ok(
+                    "(e) re-mount — Easing→Amiga→Easing round-tripped with ZERO AnimationOptionError " +
+                        "and the picker re-mounted (the persisted literal is re-parseable)",
+                );
+            } else {
+                fail(
+                    `(e) re-mount — picker returned=${returned}, AnimationOptionErrors=` +
+                        `${remountErrors.length}: ${remountErrors.slice(0, 3).join(" · ")}`,
+                );
+            }
+
+            // ── (f) spring neighbor — opens on Physics (item-7a) ───────────
+            await navToScene(page, "spring", "Physics", { timeout: 8000 });
+            await page.waitForTimeout(700);
+            const spring = await page.evaluate(() => {
+                const trig = document.querySelector("[aria-label='Controls tab']");
+                const SEL =
+                    ".controls-pane .preset-cell, .controls-pane .preset-grid, .controls-pane .preset-row, .controls-pane canvas, .controls-pane [class*='physics']";
+                const body = document.querySelector(SEL);
+                let visible = false;
+                if (body) {
+                    const r = body.getBoundingClientRect();
+                    visible = r.width > 2 && r.height > 2;
+                }
+                return { trigger: trig?.textContent?.trim() ?? null, bodyVisible: visible };
+            });
+            if (spring.trigger === "Physics" && spring.bodyVisible) {
+                ok(
+                    '(f) spring neighbor — spring opened on its Physics facet (trigger "Physics") ' +
+                        "with the facet body rendered",
+                );
+            } else {
+                fail(
+                    `(f) spring neighbor — trigger=${JSON.stringify(spring.trigger)} ` +
+                        `(want "Physics"), facet body visible=${spring.bodyVisible}`,
+                );
+            }
+
+            // ── (g) zero page errors ────────────────────────────────────────
+            if (consoleErrors.length === 0) {
+                ok("(g) zero pageerror/console.error/bare-dots across the whole drive");
+            } else {
+                fail(
+                    `(g) page errors (${consoleErrors.length}): ` +
+                        consoleErrors.slice(0, 5).join(" · "),
+                );
+            }
         },
     );
-    if (result.skipped) console.log(`  ○ browser half skipped — ${result.reason}`);
 }
 
-function reportEasing(r) {
-    if (r.a) {
-        ok(`clause (a) ${r.label} — the editor UN-HIDES on switch-in (${JSON.stringify(r.aDetail)})`);
+const REQUIRE_BROWSER = process.env.KF_REQUIRE_BROWSER === "1";
+try {
+    await browserHalf();
+} catch (e) {
+    const reason = e?.message || String(e);
+    if (/playwright|chromium|browser|launch/i.test(reason) && !REQUIRE_BROWSER) {
+        note(`browser half skipped — ${reason}`);
     } else {
-        fail(
-            `clause (a) ${r.label} — the .easing-curve-canvas is NOT mounted+active+visible on ` +
-                `switch-in (the reka latch blanked it): ${JSON.stringify(r.aDetail)}`,
-        );
-        return; // (b)/(c) cannot run without the panel
-    }
-
-    if (r.b) {
-        ok(
-            `clause (b) ${r.label} — ${r.handleCount} handles; a handle-drag MUTATES the bezier ` +
-                `path d AND re-animates the subject (${JSON.stringify(r.bDetail)})`,
-        );
-    } else {
-        fail(
-            `clause (b) ${r.label} — the handle-drag did not both mutate d AND re-animate the ` +
-                `subject (a no-op SVG mutation still REDs): ${JSON.stringify(r.bDetail)}`,
-        );
-    }
-
-    if (r.c) {
-        ok(
-            `clause (c) ${r.label} — the dropdown is present + the readout/copy is a complete ` +
-                `re-parseable literal "${r.readoutText}" (NOT the bare token)`,
-        );
-    } else {
-        fail(
-            `clause (c) ${r.label} — the selector/readout failed: ${JSON.stringify(r.cDetail)} ` +
-                `(the readout must be a complete cubic-bezier(…)/steps(…) literal, never the bare keyword)`,
-        );
+        fail(`browser half failed — ${reason}`);
     }
 }
-
-await browserHalf();
 
 if (failures.length > 0) {
-    console.error(
-        `\nproof:easing-editor-live — FAIL (${failures.length}): the easing curve/timing editor is ` +
-            `still BLANK on switch-in (the reka passive-latch), OR a handle-drag does not re-animate the ` +
-            `subject, OR the readout/persist value is the bare "cubic-bezier"/"steps" token (the re-mount ` +
-            `throws AnimationOptionError). I.W2 S1-S4 are not all satisfied.`,
-    );
+    console.error(`\nproof:easing-editor-live — FAIL (${failures.length})`);
     process.exit(1);
 }
 console.log(
-    "\nproof:easing-editor-live — PASS: the easing curve editor un-hides on every switch-in (S1 " +
-        "machine-projected model-value + S2 force-mount), a handle-drag mutates the curve AND re-animates " +
-        "the subject (S4 one EasingEditor, wired), the read-only readout/copy is a complete re-parseable " +
-        "literal that survives a controls re-mount with ZERO AnimationOptionError (S3 the B5 readout seam), " +
-        "and spring's single-surface panel + the return path hold the same — ZERO pageerror/_gen/'......'.",
+    "\nproof:easing-editor-live — PASS (v2): the glass-ui EasingPicker is the sole, working " +
+        "edit surface — switch-in on the Curve facet, a real drag re-times the preview through " +
+        "one seam, the literals are complete + re-parseable, the re-mount round-trips clean, " +
+        "and spring opens on Physics.",
 );

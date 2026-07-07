@@ -51,21 +51,21 @@ export const APPEARANCE_TOUCHING = [
     "proof:crayon-preserved",
     // (proof:design-refinement RETIRED at T.M7/T.M8 batch ⑧ — the axis shrinks with
     //  the roster; its FROZEN KILL discharge lives in scripts/gate-bands.mjs.)
-    // easing-scene appearance locks
-    "proof:easing-canvas-bounded",
+    // easing-scene appearance surfaces
+    // (the four easing surface-locks + the bezier trio removed WITH their
+    //  retirement at the easing TERMINAL batch (T.E6/T.E8, OD-7) — the axis
+    //  shrinks with the roster, per this module's header contract.)
     "proof:scene-uses-standard-ribbon",
-    "proof:easing-sidebar-normalized",
-    "proof:easing-sidebar-minimal",
-    "proof:easing-stage-is-ball",
+    // T.E6 — the specimen-drawer gallery OWNER oracle (OD-7 APPROVED 2026-07-06,
+    // P-GALLERY the blessed reference): its green is unreachable without the
+    // owner-blessed composition. OWNER ⇒ blocking-not-OBSERVE (T.M6.2).
+    "proof:easing-gallery",
     // card / stage / dock geometry locks
     "proof:scene-card-rounded",
     "proof:stage-glass-card",
     "proof:card-rounded-primitive",
     "proof:stage-within-docks",
     "proof:mobile-single-page",
-    "proof:bezier-no-scroll",
-    "proof:bezier-single-card",
-    "proof:bezier-grown",
     "proof:pp-logo-svg",
     // T.D9/T.D11/T.D13 — the born-OWNER hero oracles (they replaced the retired
     // hero-rung/-balance/-cls INSTRUMENT locks; gate-bands.mjs DISCHARGE) + the
@@ -238,19 +238,15 @@ export const GATE_AUTHORITY = {
     "proof:typing-dots": "INSTRUMENT",
     "proof:dogfood-hero": "INSTRUMENT",
     "proof:crayon-preserved": "INSTRUMENT",
-    "proof:easing-canvas-bounded": "INSTRUMENT",
     "proof:scene-uses-standard-ribbon": "INSTRUMENT",
-    "proof:easing-sidebar-normalized": "INSTRUMENT",
-    "proof:easing-sidebar-minimal": "INSTRUMENT",
-    "proof:easing-stage-is-ball": "INSTRUMENT",
+    // T.E6 (OD-7) — the gallery composition gate carries the owner token
+    // (OWNER-DECISIONS.md OD-7 RULED APPROVED; P-GALLERY blessed): OWNER.
+    "proof:easing-gallery": "OWNER",
     "proof:scene-card-rounded": "INSTRUMENT",
     "proof:stage-glass-card": "INSTRUMENT",
     "proof:card-rounded-primitive": "INSTRUMENT",
     "proof:stage-within-docks": "INSTRUMENT",
     "proof:mobile-single-page": "INSTRUMENT",
-    "proof:bezier-no-scroll": "INSTRUMENT",
-    "proof:bezier-single-card": "INSTRUMENT",
-    "proof:bezier-grown": "INSTRUMENT",
     "proof:pp-logo-svg": "INSTRUMENT",
     // (hero-rung/-balance/-cls rows removed WITH their retirement — the axis
     //  shrinks with the roster, per this module's header contract.)

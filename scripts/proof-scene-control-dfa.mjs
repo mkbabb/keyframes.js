@@ -193,8 +193,13 @@ const EXPECT = {
     // member), so the control-tab trigger reads "Controls" and the built-in triad
     // (Keyframes/Timeline) is now HONESTLY present — the pre-T.B2 single-surface
     // elision is superseded (the facet rides the multi-surface select alongside).
-    easing: { hasPanel: true, trigger: "Controls" },
-    spring: { hasPanel: true, trigger: "Controls" },
+    // item-7a (the ratified refinement, the easing TERMINAL batch) -- the DEFAULT
+    // selected surface is now SCENE-AWARE (SCENE_DEFAULT_CONTROL): easing opens
+    // on its Curve facet, spring on Physics (the batch-⑧ PENDING-OWNER "they
+    // open on Controls" reversal, cured at the store-seed seam). The triad stays
+    // derived + honestly present in the select; only the DEFAULT pick moved.
+    easing: { hasPanel: true, trigger: "Curve" },
+    spring: { hasPanel: true, trigger: "Physics" },
     sequence: { hasPanel: false },
 };
 

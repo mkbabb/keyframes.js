@@ -177,7 +177,7 @@ const skipOrFail = (reason) => {
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The destination control-tab labels navToScene settles on (per-EXPECTED-state).
-const TRIGGER = { cube: "Controls", easing: "Easing", spring: "Spring" };
+const TRIGGER = { cube: "Controls", easing: "Curve", spring: "Physics" }; // item-7a facet defaults
 
 /** Settle on a scene via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; goto would clear both). Re-assert the viewport AFTER navigation

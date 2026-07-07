@@ -34,20 +34,23 @@ export const FROZEN_SET = [
     "proof:typing-dots",
     "proof:dogfood-hero",
     // easing-scene appearance locks
-    "proof:easing-canvas-bounded",
+    // (proof:easing-canvas-bounded / -sidebar-normalized / -sidebar-minimal /
+    //  -stage-is-ball + proof:bezier-{no-scroll,single-card,grown} were FROZEN
+    //  here until the easing TERMINAL batch (T.E6/T.E8, OD-7 APPROVED) retired
+    //  them — the seven surface-locks certified the owner-REJECTED hand-rolled
+    //  easing surface (VERDICT #16 "re-designed with glass-ui in mind"): the
+    //  singular hero + the 1,082L instrument/easing editor cluster BOTH deleted.
+    //  Every surviving live property MIGRATED to proof:easing-gallery (the
+    //  OD-7 OWNER oracle — the ball-preview INTENT of #14 survives there) and
+    //  proof:easing-editor-live v2 (the EasingPicker edit surface). The
+    //  machine-witnessed migration discharges live in DISCHARGE below.)
     "proof:scene-uses-standard-ribbon",
-    "proof:easing-sidebar-normalized",
-    "proof:easing-sidebar-minimal",
-    "proof:easing-stage-is-ball",
     // card / stage / dock geometry locks
     "proof:scene-card-rounded",
     "proof:stage-glass-card",
     "proof:card-rounded-primitive",
     "proof:stage-within-docks",
     "proof:mobile-single-page",
-    "proof:bezier-no-scroll",
-    "proof:bezier-single-card",
-    "proof:bezier-grown",
     "proof:pp-logo-svg",
     // (proof:hero-rung / proof:hero-balance / proof:hero-cls were FROZEN here
     //  until T.D9/T.D10 RETIRED them — the word-split top-band hero geometry
@@ -150,6 +153,110 @@ export const DISCHARGE = {
             "metric-matched fallback + the mega rung) is re-asserted by " +
             "hero-two-focal clause (a) + proof:demo-elevate's first-paint clause " +
             "(size-adjust/ascent/descent overrides).",
+    },
+    // T.E6/T.E8 (OD-7 APPROVED 2026-07-06 — P-GALLERY the blessed reference; the
+    // easing TERMINAL batch) — the SEVEN easing surface-locks are discharged by
+    // MIGRATION. Each lock certified the owner-REJECTED state (VERDICT #16): the
+    // singular hero stage (stage-is-ball), the hand-rolled sidebar shape
+    // (sidebar-minimal/-normalized), the hand-rolled canvas geometry
+    // (easing-canvas-bounded, bezier-{no-scroll,single-card,grown} — px-arithmetic
+    // clamps over the deleted instrument/easing cluster). The SURVIVING live
+    // properties re-home: the ball-preview INTENT (#14) + the one-scene-one-accent
+    // + the drawer composition → proof:easing-gallery (the OD-7 OWNER oracle);
+    // the working-edit-surface property (mounted-on-switch-in, complete
+    // re-parseable literal, drag-re-times) → proof:easing-editor-live v2 (the
+    // glass-ui EasingPicker surface).
+    "proof:easing-stage-is-ball": {
+        kind: "migration",
+        successor: "proof:easing-gallery",
+        note:
+            "The singular-hero lock asserted ONE large ball as the stage — the " +
+            "owner-rejected 90%-empty composition. The ball-preview INTENT (#14 " +
+            "'just have the easing balls previewed here') survives as the WHOLE " +
+            "gallery: every named curve's ball races x = fn(phase)·maxX under one " +
+            "shared clock (easing-gallery clause 2, the analytic fn(φ)·maxX check).",
+    },
+    "proof:easing-sidebar-minimal": {
+        kind: "migration",
+        successor: "proof:easing-editor-live",
+        note:
+            "The minimal-sidebar lock froze the hand-rolled sidebar's no-text-input " +
+            "shape (a T_BORNRED_BACKLOG stale-driver red since batch ⑨ — its J " +
+            "clauses predated the T.B2 facet model). The live property (ONE minimal " +
+            "edit surface, no redundant chrome, complete literal) is easing-editor-" +
+            "live v2's clauses (s)/(c) over the vendor EasingPicker.",
+    },
+    "proof:easing-sidebar-normalized": {
+        kind: "migration",
+        successor: "proof:easing-editor-live",
+        note:
+            "The normalized-sidebar lock asserted glass-ui Labeled* rows around the " +
+            "hand-rolled canvas. The surviving property (the sidebar is glass-ui-" +
+            "idiomatic) is structural in v2 clause (s): the body IS a published " +
+            "glass-ui component (EasingPicker) + one LabeledSlider.",
+    },
+    "proof:easing-canvas-bounded": {
+        kind: "migration",
+        successor: "proof:easing-editor-live",
+        note:
+            "The canvas geometry lock bounded the hand-rolled EasingCurveCanvas via " +
+            "measured px-arithmetic clamps (deleted with the cluster). The vendor " +
+            "EasingPicker owns its canvas sizing (clamp(200px, 38cqi, 320px)); v2 " +
+            "clause (a) asserts the mounted, visible picker.",
+    },
+    "proof:bezier-no-scroll": {
+        kind: "migration",
+        successor: "proof:easing-editor-live",
+        note:
+            "The fit-without-scroll lock guarded the hand-rolled detail canvas's " +
+            "viewport-height budget arithmetic — deleted with the cluster (T.E8 + " +
+            "OD-5 R2: TimingFunctionPanel's body is the vendor EasingPicker). The " +
+            "surviving property (a usable, visible detail editor) is v2 clause (s) " +
+            "(exactly one instrument mount) + (a).",
+    },
+    "proof:bezier-single-card": {
+        kind: "migration",
+        successor: "proof:easing-editor-live",
+        note:
+            "The single-card lock guarded the de-nested detail panel against " +
+            "card-in-card duplication around the hand-rolled canvas. The vendor " +
+            "picker mounts as the panel body directly (v2 clause (s)); no inner " +
+            "Card exists to duplicate.",
+    },
+    "proof:bezier-grown": {
+        kind: "migration",
+        successor: "proof:easing-editor-live",
+        note:
+            "The grown-canvas lock pinned the hand-rolled canvas's 232px floor — " +
+            "px-arithmetic over the deleted cluster. The vendor canvas sizing is " +
+            "EasingPicker's own contract; v2 clause (a) asserts the visible mount.",
+    },
+    // The easing TERMINAL batch — proof:easing-curve-editor was the SECOND
+    // backlogged stale-driver lock (registered T_BORNRED_BACKLOG at batch ⑨,
+    // discharged with the batch that deleted its subject). Owner-ruled KILL:
+    // its ghost-diff/named-pick clauses actuated the deleted hand-rolled canvas
+    // (ghost + smear died with the hero; the named-pick affordance is the
+    // gallery's tiles now). The re-run witness re-verifies every run that the
+    // script is gone, the key is absent, and the roster membership is gone.
+    "proof:easing-curve-editor": {
+        kind: "kill",
+        ledger:
+            "T ledger — OD-7 APPROVED (2026-07-06) + VERDICT #16/#13: the easing " +
+            "terminal batch deleted the gate's whole subject (the hand-rolled " +
+            "EasingCurveCanvas ghost-diff overlay + the comparison ghost — Q.WC2's " +
+            "useEasingGhost — and the view-mode named-pick). Named-pick lives in " +
+            "the gallery tiles (proof:easing-gallery clause 4); the edit surface " +
+            "is proof:easing-editor-live v2.",
+        witness: {
+            cmd: "node scripts/proof-easing-curve-editor.mjs",
+            cite:
+                "demo/scenes/easing/useEasingGhost.ts + EasingHeroStage.vue + the " +
+                "instrument/easing cluster DELETED at the easing terminal batch " +
+                "(T.E6/T.E8); proof:easing-gallery clause (4) browser-asserts the " +
+                "named-pick promotion. The re-run witness is machine-continuous: " +
+                "this clause re-verifies every run that the script file is absent, " +
+                "the package key is absent, and the roster membership is gone.",
+        },
     },
     // T.E3 (OD-1 = PRUNE) — the motion-path SCENE was pruned outright, so its two
     // FROZEN interaction-appearance locks (which asserted the editable control-net
@@ -442,6 +549,20 @@ export const RETIREMENT_LEDGER = {
         executedBy: "T.C",
         successor: "proof:subject-legible (T.M5 — no-blur + edge-energy floor)",
     },
+    // The easing TERMINAL batch (T.E8) — proof:demo-control-point asserted the
+    // DM-2 chronic's terminal build-in (DemoControlPoint.vue over the LIGHT
+    // drag2D) EXISTS + drags. Its subject is the deleted instrument/easing
+    // cluster: the demo now CONSUMES glass-ui EasingPicker's own pointer-capture
+    // handles instead of hand-rolling a control-point component (the P-inv-28
+    // capability — a draggable curve handle that re-times the animation — is
+    // re-asserted live by proof:easing-editor-live v2 clause (b)).
+    "proof:demo-control-point": {
+        coupledFeature:
+            "the hand-rolled DemoControlPoint/EasingCurveCanvas handle stack (deleted with instrument/easing at T.E8)",
+        verdictItem: "#27 — leverage glass-ui idiomatically (EasingPicker replaces the cluster)",
+        executedBy: "T.E",
+        successor: "proof:easing-editor-live (v2 clause (b) — the vendor handle drag re-times the preview)",
+    },
 };
 
 /**
@@ -526,12 +647,13 @@ export const T_BORNRED_BACKLOG = {
         dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
         reason:
             "the count clause reds while the proof:* roster exceeds the declared ceiling " +
-            `(${ROSTER_CEILING}); today 228 (batch ⑧: 231 − the gesture-manifest / easter-egg ` +
-            "/ design-refinement retirement = 228; each altitude band kept authoring MORE " +
-            "born-RED oracles than the M7 retirements removed, so the count converges SLOWLY). " +
-            "It CONVERGES as the remaining M7 feature-coupled retirements (the easing surface-" +
-            "locks, crayon, icon-paint-live) + the FROZEN discharge land — a declared backlog, " +
-            "not a mask.",
+            `(${ROSTER_CEILING}); today 228 (the easing TERMINAL batch retired NINE keys — the ` +
+            "seven surface-locks + easing-curve-editor + demo-control-point — and authored ONE " +
+            "(proof:easing-gallery, the OD-7 OWNER oracle): 236-era count → 228 net; each " +
+            "altitude band had kept authoring MORE born-RED oracles than the M7 retirements " +
+            "removed, so the count converges SLOWLY). It CONVERGES as the remaining M7 " +
+            "feature-coupled retirements (crayon, icon-paint-live) + the FROZEN discharge land " +
+            "— a declared backlog, not a mask.",
     },
     "proof:owner-golden": {
         dischargedBy: "the owner golden-blessing at review",
@@ -551,29 +673,14 @@ export const T_BORNRED_BACKLOG = {
             "blesses at the mid-drive/close review, and the visual-lock demote-vs-retire " +
             "call (T.M3 lockstep) executes WITH the blessing.",
     },
-    "proof:easing-curve-editor": {
-        dischargedBy:
-            "the easing TERMINAL batch (T.E8 EasingPicker replaces the hand-rolled " +
-            "cluster + T.E6 post-OD-7): these two surface-locks' subject IS the " +
-            "E8-deletion-target editor cluster, and their actuation predates the " +
-            "T.B2 facet model (easing opens on Controls; the Curve facet needs " +
-            "selection). Re-charter-or-retire rides the redesign (T.M7 ledger class).",
-        reason:
-            "the ghost-diff/named-pick clauses red on the pre-facet actuation " +
-            "(picked=false) — a stale-driver red on an E8-retire-target surface, " +
-            "not a product defect (the editor itself functions; live-session B4 green).",
-    },
-    "proof:easing-sidebar-minimal": {
-        dischargedBy:
-            "the easing TERMINAL batch (T.E8/T.E6 post-OD-7) — same class as " +
-            "easing-curve-editor: the J clauses need the Curve facet SELECTED " +
-            "(post-T.B2 easing opens on Controls), and the sidebar body is the " +
-            "E8/E6 redesign surface.",
-        reason:
-            "'.easing-curve-canvas:false — the sidebar never painted' — the gate's " +
-            "mount path predates the T.B7 Curve-facet dissolution + T.B2 derived " +
-            "default tab; a stale-driver red on a retire-target surface.",
-    },
+    // (proof:easing-curve-editor + proof:easing-sidebar-minimal — the two
+    //  BACKLOGGED easing surface-locks — DISCHARGED at the easing TERMINAL batch
+    //  (T.E6/T.E8, OD-7 APPROVED): their subject (the hand-rolled
+    //  instrument/easing cluster + the singular hero) is DELETED, the keys are
+    //  RETIRED with machine-witnessed DISCHARGE records above (curve-editor =
+    //  KILL with re-run witness; sidebar-minimal = MIGRATION →
+    //  proof:easing-editor-live v2), and the rows leave this register in the
+    //  SAME commit — drive clause 7: cure → discharge same commit.)
     "proof:visual-lock": {
         dischargedBy:
             "T.A3 LANDED (the easeInBounce mount intro is replaced by the deterministic " +

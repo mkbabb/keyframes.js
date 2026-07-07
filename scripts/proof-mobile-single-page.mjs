@@ -141,8 +141,8 @@ const SCENES = [
     { scene: "cube", mode: "subject", trigger: "Controls" },
     { scene: "amiga", mode: "subject", trigger: "Controls" },
     { scene: "square", mode: "subject", trigger: "Controls" },
-    { scene: "easing", mode: "editor", trigger: "Easing" },
-    { scene: "spring", mode: "storyboard", trigger: "Spring" },
+    { scene: "easing", mode: "editor", trigger: "Curve" },
+    { scene: "spring", mode: "storyboard", trigger: "Physics" },
     // sequence — SURFACES EMPTY (its DFA set is []; SQ-T3/T.B4: the pane/sheet
     // mounts iff surfacesFor(scene).length > 0, so NO sheet is the CORRECT
     // mobile state — the old always-mounted sheet was a grab handle onto zero

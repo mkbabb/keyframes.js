@@ -177,8 +177,9 @@ const SCENES = [
     { id: "cube", route: "cube", trigger: "Controls" },
     { id: "amiga", route: "amiga", trigger: "Controls" },
     { id: "square", route: "square", trigger: "Square" },
-    { id: "easing", route: "easing", trigger: "Easing" },
-    { id: "spring", route: "spring", trigger: "Spring" },
+    // item-7a: the control trigger reads the FACET name (Curve/Physics).
+    { id: "easing", route: "easing", trigger: "Curve" },
+    { id: "spring", route: "spring", trigger: "Physics" },
     { id: "sequence", route: "sequence", trigger: null },
 ];
 

@@ -46,25 +46,17 @@
  *      the re-seated target over frames). BITE: revert the S5 drag (the dead
  *      `<div>heyyyy`) → no handler → the target/transform never move → reds.
  *
- *   7. proof:easing-curve-editable (sidebar) — settle on easing + open the
- *      controls pane on the easing tab; the SIDEBAR renders an editable
- *      `EasingCurveCanvas` (an `.easing-curve-canvas` carrying the draggable
- *      handles, OUTSIDE `.stage-cell`) AND a handle drag FIRES
- *      `update:bezierPoints` AND the bound `bezierControlPoints` ref CHANGES — the
- *      THREE-NAME wiring (WV-W5-HIGH-2: emit `update:bezierPoints` camelCase →
- *      prop `bezierPoints` → demo ref `bezierControlPoints`). Observed via the
- *      handle `cx/cy` + the rendered `.bezier-path` `d` shifting after the drag
- *      (both re-derive from the ref).
- *      SUPERSEDE (W10.G4 reverses W5.S4 — H.W10.md §supersede-map G4): the easing
- *      STAGE is now ONE engine-driven BALL (proof:easing-stage-is-ball owns the
- *      stage + asserts exactly ONE EasingCurveCanvas, in the sidebar); the editable
- *      curve lives in the SIDEBAR ONLY. So this clause no longer asserts the
- *      deleted on-stage `.easing-stage-curve` — it asserts the SAME interactivity
- *      FLOOR (you CAN edit the curve) + the SAME three-name wiring on the sidebar
- *      host. The two gates are COMPLEMENTARY (ball on the stage, editable curve in
- *      the sidebar), not contradictory.
- *      BITE: delete the sidebar editable host → no editable curve anywhere → reds;
- *      a mis-named handler silently no-ops → the ref never changes → reds.
+ *   7. proof:easing-curve-editable (sidebar) — settle on easing (it opens on
+ *      its Curve facet, item-7a); the facet body renders the glass-ui
+ *      `EasingPicker` (T.E8 — the hand-rolled EasingCurveCanvas/handle stack is
+ *      DELETED with the instrument/easing cluster) AND a REAL page.mouse handle
+ *      drag mutates the picker's curve path AND the authored edit LANDS in the
+ *      demo (the gallery header literal re-derives from `bezierControlPoints`
+ *      through the EasingSidebar onPickerChange → demo.updateBezierPoints
+ *      seam). The interactivity FLOOR (you CAN edit the curve) survives the
+ *      cluster deletion — asserted on the vendor surface.
+ *      BITE: unmount the picker → no editable curve anywhere → reds; a broken
+ *      emission seam silently no-ops → the header literal never changes → reds.
  *
  * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
  * resolveChromium + context/teardown, J.W3 S1) + navToScene (the per-EXPECTED-
@@ -305,9 +297,9 @@ async function freshEasingPage(browser, base, vw, vh) {
     const page = await browser.newPage({ viewport: { width: vw, height: vh } });
     await page.goto(`${base}/#/easing`, { waitUntil: "load" });
     // navToScene re-asserts the hash + waits for the FSM to rest on easing AND
-    // the easing control surface to project (the per-EXPECTED settle — the
-    // easing dock trigger reads "Easing").
-    await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 8000 });
+    // the easing control surface to project (the per-EXPECTED settle — easing
+    // opens on its Curve facet since item-7a, so the trigger reads "Curve").
+    await navToScene(page, "easing", "Curve", { timeout: 8000 });
     await page.setViewportSize({ width: vw, height: vh });
     await page.evaluate((ck) => {
         try {
@@ -477,170 +469,101 @@ async function browserHalf() {
 
         // ── 7. proof:easing-curve-editable (sidebar) — the three-name wiring ──
         //
-        // SUPERSEDE (W10.G4 reverses W5.S4): the easing STAGE is now ONE engine-
-        // driven ball (proof:easing-stage-is-ball owns the stage + the
-        // single-EasingCurveCanvas invariant); the editable curve lives in the
-        // SIDEBAR ONLY. So this clause no longer asserts an ON-STAGE curve (that was
-        // W5.S4's `.easing-stage-curve`, deleted at W10.G4 — H.W10.md §supersede-map
-        // G4). It asserts the SAME interactivity FLOOR (you CAN edit the curve) +
-        // the SAME three-name bezier wiring (emit update:bezierPoints → prop
-        // bezierPoints → demo ref bezierControlPoints), only on the SIDEBAR host the
-        // curve moved to (EasingSidebar.vue's `.easing-editor` Card → the editable
-        // `.easing-curve-canvas`, OUTSIDE the `.stage-cell`). These two gates are
-        // COMPLEMENTARY: the ball is on the stage (proof:easing-stage-is-ball), the
-        // editable curve is in the sidebar (here) — not contradictory.
-        // The editable EasingCurveCanvas renders in the full-rail SIDEBAR, which
-        // mounts only when the easing TabsContent is the ACTIVE tab. reka's <Tabs>
-        // registers the slotted `easing` TabsContent a tick after its built-in
-        // controls/keyframes/timeline children, so an IN-PAGE hash switch
-        // (settleOnScene) lands EasingScene without the easing tab activating — the
-        // tab-init race EasingScene.vue:29-40 fixes on a FRESH mount via
-        // onMounted+nextTick. So clause 7 settles on easing via a real page load
-        // (the ball gate / proof:easing-canvas-bounded idiom), which fires that
-        // re-assert, mounts the easing TabsContent + its sidebar curve, and re-opens
-        // the pane. Clause 7 runs LAST (after square), so the reload
-        // does not disturb the earlier clauses' in-page state. Default curve "ease"
-        // ∈ NAMED_EASING_BEZIER → demo.isBezierEditable → the editable handles render.
-        // Runs on its OWN fresh page (`page` is shadowed for the clause), closed at
-        // the clause's end — the earlier clauses' shared page is untouched.
+        // T.E8 (the easing TERMINAL batch) — the editable curve is the glass-ui
+        // EasingPicker (the Curve facet body; the hand-rolled EasingCurveCanvas +
+        // DemoControlPoint stack is DELETED). The clause asserts the SAME
+        // interactivity FLOOR on the vendor surface: the picker mounts visible
+        // with ≥2 draggable handles, a REAL page.mouse drag mutates its curve
+        // path, AND the edit lands in the demo (the gallery header literal
+        // re-derives from the bezierControlPoints ref through the
+        // EasingSidebar → demo.updateBezierPoints seam). Runs on its OWN fresh
+        // page, closed at the clause's end.
         {
         const page = await freshEasingPage(browser, base, VW, VH);
         try {
-        // The SIDEBAR editable curve = an `.easing-curve-canvas` carrying the
-        // draggable handles, OUTSIDE the `.stage-cell` (the stage is the ball).
-        const sidebarCurveReady = await page
+        const pickerReady = await page
             .waitForFunction(
                 () => {
-                    const cell = document.querySelector(".stage-cell");
-                    const canvases = [
-                        ...document.querySelectorAll(".easing-curve-canvas"),
-                    ];
-                    const sidebar = canvases.find(
-                        (c) =>
-                            (!cell || !cell.contains(c)) &&
-                            c.querySelector(".control-point.handle[data-index='0']") &&
-                            c.querySelector(".bezier-path"),
+                    const picker = document.querySelector('[data-testid="easing-picker"]');
+                    if (!picker) return false;
+                    const r = picker.getBoundingClientRect();
+                    const handles = [...picker.querySelectorAll("svg circle")].filter(
+                        (c) => /cursor/.test(c.getAttribute("style") || ""),
                     );
-                    if (!sidebar) return false;
-                    const r = sidebar.getBoundingClientRect();
-                    return r.width > 0 && r.height > 0;
+                    return r.width > 40 && r.height > 40 && handles.length >= 2;
                 },
                 { timeout: 8000 },
             )
             .then(() => true)
             .catch(() => false);
-        if (!sidebarCurveReady) {
+        if (!pickerReady) {
             fail(
-                `easing-curve-editable (sidebar) — the SIDEBAR did not render an ` +
-                    `editable EasingCurveCanvas (no editable .easing-curve-canvas OUTSIDE ` +
-                    `.stage-cell); the editable curve must live in the sidebar after W10.G4 ` +
-                    `(the stage is the ball), the controls pane may not be open on the ` +
-                    `easing tab, or the FSM did not rest on easing`,
+                "easing-curve-editable (Curve facet) — the glass-ui EasingPicker did not " +
+                    "mount visible with its two draggable handles (the T.E8 sole edit " +
+                    "surface); the Curve facet may not be selected or the FSM did not rest",
             );
         } else {
-            const onStageEditable = await page.evaluate(() => {
-                const cell = document.querySelector(".stage-cell");
-                // The editable curve in the SIDEBAR (outside the stage cell) — the
-                // [editable] proof: the draggable control-point handles render only
-                // when editable && bezierPoints.
-                const canvas = [...document.querySelectorAll(".easing-curve-canvas")].find(
-                    (c) =>
-                        (!cell || !cell.contains(c)) &&
-                        c.querySelector(".control-point.handle[data-index='0']") &&
-                        c.querySelector(".bezier-path"),
-                );
-                if (!canvas) return null;
-                const handle = canvas.querySelector(".control-point.handle[data-index='0']");
-                const bezierPath = canvas.querySelector(".bezier-path");
-                const hr = handle.getBoundingClientRect();
+            const beforeState = await page.evaluate(() => {
+                const picker = document.querySelector('[data-testid="easing-picker"]');
+                const h = [...picker.querySelectorAll("svg circle")].filter((c) =>
+                    /cursor/.test(c.getAttribute("style") || ""),
+                )[0];
+                const r = h.getBoundingClientRect();
                 return {
-                    hasHandle: true,
-                    handleCx: handle.getAttribute("cx"),
-                    handleCy: handle.getAttribute("cy"),
-                    pathD: bezierPath.getAttribute("d"),
-                    drag: {
-                        x: hr.left + hr.width / 2,
-                        y: hr.top + hr.height / 2,
-                    },
+                    drag: { x: r.x + r.width / 2, y: r.y + r.height / 2 },
+                    pathD: [...picker.querySelectorAll("svg path")]
+                        .map((p) => p.getAttribute("d"))
+                        .join("|"),
+                    headerLiteral:
+                        document
+                            .querySelector(".specimen-literal .literal-text")
+                            ?.textContent?.trim() ?? null,
                 };
             });
-            if (!onStageEditable) {
-                fail(
-                    `easing-curve-editable (sidebar) — the sidebar canvas is not EDITABLE ` +
-                        `(no .control-point.handle / .bezier-path); the editable handles render ` +
-                        `only when editable && bezierPoints — the sidebar curve editor is ` +
-                        `incomplete`,
+            await page.mouse.move(beforeState.drag.x, beforeState.drag.y);
+            await page.mouse.down();
+            for (let i = 1; i <= 10; i++) {
+                await page.mouse.move(
+                    beforeState.drag.x + 6 * i,
+                    beforeState.drag.y + 6 * i,
+                );
+                await page.waitForTimeout(16);
+            }
+            await page.mouse.up();
+            await page.waitForTimeout(250);
+            const afterState = await page.evaluate(() => {
+                const picker = document.querySelector('[data-testid="easing-picker"]');
+                return {
+                    pathD: [...picker.querySelectorAll("svg path")]
+                        .map((p) => p.getAttribute("d"))
+                        .join("|"),
+                    headerLiteral:
+                        document
+                            .querySelector(".specimen-literal .literal-text")
+                            ?.textContent?.trim() ?? null,
+                };
+            });
+            const pathChanged = afterState.pathD !== beforeState.pathD;
+            const landed =
+                !!afterState.headerLiteral &&
+                afterState.headerLiteral !== beforeState.headerLiteral &&
+                /^cubic-bezier\(/.test(afterState.headerLiteral);
+            if (pathChanged && landed) {
+                ok(
+                    "easing-curve-editable (Curve facet) — the vendor EasingPicker is the " +
+                        "editable curve: a REAL handle drag mutated the curve path AND the " +
+                        `authored quad landed in the demo (header literal → ${afterState.headerLiteral}) ` +
+                        "— the emission seam (onPickerChange → updateBezierPoints → " +
+                        "bezierControlPoints) holds",
                 );
             } else {
-                // Drag handle[0] downward-right by a visible delta. The canvas
-                // handler hit-tests within 0.08 SVG units of the handle, so the
-                // pointerdown must land ON the handle's screen position.
-                const dx = 60;
-                const dy = 60;
-                await page.mouse.move(onStageEditable.drag.x, onStageEditable.drag.y);
-                await page.mouse.down();
-                for (let i = 1; i <= 10; i++) {
-                    await page.mouse.move(
-                        onStageEditable.drag.x + (dx / 10) * i,
-                        onStageEditable.drag.y + (dy / 10) * i,
-                    );
-                    await page.waitForTimeout(16);
-                }
-                await page.mouse.up();
-                await page.waitForTimeout(200);
-
-                const after = await page.evaluate(() => {
-                    const cell = document.querySelector(".stage-cell");
-                    const canvas = [
-                        ...document.querySelectorAll(".easing-curve-canvas"),
-                    ].find(
-                        (c) =>
-                            (!cell || !cell.contains(c)) &&
-                            c.querySelector(".control-point.handle[data-index='0']") &&
-                            c.querySelector(".bezier-path"),
-                    );
-                    const handle = canvas?.querySelector(
-                        ".control-point.handle[data-index='0']",
-                    );
-                    const bezierPath = canvas?.querySelector(".bezier-path");
-                    return {
-                        handleCx: handle?.getAttribute("cx"),
-                        handleCy: handle?.getAttribute("cy"),
-                        pathD: bezierPath?.getAttribute("d"),
-                    };
-                });
-
-                // The THREE-NAME proof (WV-W5-HIGH-2): a handle drag FIRES
-                // `update:bezierPoints` → `demo.updateBezierPoints` writes the
-                // `bezierControlPoints` ref → the canvas re-derives the handle
-                // cx/cy + the path `d` FROM that ref. So a CHANGE in the handle
-                // position AND the rendered path `d` proves the emit reached the
-                // ref (a mis-named handler would silently no-op → no change).
-                const handleMoved =
-                    after.handleCx !== onStageEditable.handleCx ||
-                    after.handleCy !== onStageEditable.handleCy;
-                const pathChanged = after.pathD !== onStageEditable.pathD;
-
-                if (handleMoved && pathChanged) {
-                    ok(
-                        `easing-curve-editable (sidebar) — the SIDEBAR renders ` +
-                            `EasingCurveCanvas[editable] (outside .stage-cell — the stage is the ` +
-                            `ball, W10.G4) AND a handle drag FIRED update:bezierPoints AND the ` +
-                            `bound bezierControlPoints ref CHANGED (handle ` +
-                            `(${onStageEditable.handleCx},${onStageEditable.handleCy}) → ` +
-                            `(${after.handleCx},${after.handleCy}); the .bezier-path d ` +
-                            `re-derived) — the three-name wiring holds (emit ` +
-                            `update:bezierPoints → prop bezierPoints → ref bezierControlPoints)`,
-                    );
-                } else {
-                    fail(
-                        `easing-curve-editable (sidebar) — the handle drag did NOT propagate ` +
-                            `(handle moved:${handleMoved}, path d changed:${pathChanged}); a ` +
-                            `mis-named handler (the camelCase emit update:bezierPoints vs a ` +
-                            `kebab/typo'd listener) silently no-ops, so the bezierControlPoints ` +
-                            `ref never changes (WV-W5-HIGH-2)`,
-                    );
-                }
+                fail(
+                    "easing-curve-editable (Curve facet) — the handle drag did NOT propagate " +
+                        `(picker path changed:${pathChanged}, header literal ` +
+                        `${JSON.stringify(beforeState.headerLiteral)} → ` +
+                        `${JSON.stringify(afterState.headerLiteral)}); the vendor emission → ` +
+                        "demo seam silently no-ops",
+                );
             }
         }
         } finally {
@@ -669,6 +592,6 @@ console.log(
     "\nproof:scene-parity — PASS: starting-style is merged away (no route/descriptor), " +
         "the survivor new-mode set is {spring, sequence}, springLinearStops() " +
         "is computed in exactly ONE composable, and every surviving mode exposes a pointer-" +
-        "interactive affordance (square-drag · easing-curve-editable in " +
-        "the sidebar — W10.G4 moved the curve editor stage→sidebar, the stage is the ball).",
+        "interactive affordance (square-drag · easing-curve-editable on the " +
+        "glass-ui EasingPicker — the T.E8 Curve facet body; the drawer is the stage).",
 );

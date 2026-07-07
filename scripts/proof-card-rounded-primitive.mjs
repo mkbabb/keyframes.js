@@ -91,7 +91,7 @@ console.log("proof:card-rounded-primitive — H.W11 I4 (no kf-owned card renders
 
 // The destination control-tab labels navToScene settles on (per-EXPECTED-state;
 // null = the scene mounts no control panel — sequence).
-const TRIGGER = { easing: "Easing", spring: "Spring", sequence: null };
+const TRIGGER = { easing: "Curve", spring: "Physics", sequence: null }; // item-7a facet defaults
 
 function stripComments(src) {
     // strip /* … */ + <!-- … --> so a doc-comment quoting the dropped class is not a usage

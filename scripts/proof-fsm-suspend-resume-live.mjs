@@ -87,7 +87,9 @@ const CTRL_KEY = "animation-groups-control-options-store";
 // The destination control-tab labels navToScene settles on (the per-EXPECTED
 // predicate; the lib J.W0 primitive): easing/spring project their scene-specific
 // surfaces; amiga keeps the built-in "Controls" default.
-const TRIGGER = { easing: "Easing", spring: "Spring", amiga: "Controls" };
+// item-7a (the easing TERMINAL batch): easing/spring open on their signature
+// facet -- the control trigger reads the FACET name (SURFACE_META Curve/Physics).
+const TRIGGER = { easing: "Curve", spring: "Physics", amiga: "Controls" };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // clause (d) — STATIC HYGIENE GUARD (the second altitude; does NOT carry

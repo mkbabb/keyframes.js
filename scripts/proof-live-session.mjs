@@ -22,8 +22,8 @@
  *   B2 — a synthetic visibilitychange→hidden on a PLAYING raw-rAF scene raises NO
  *        _gen throw (S2b: the born-RED-of-record; the deterministic dev-server leg
  *        is a NAMED exception, KF_DEV_SERVER=1).
- *   B4 — after a switch-into-easing the .easing-curve-canvas + draggable handles
- *        are present and a handle-drag mutates the path.
+ *   B4 — after a switch-into-easing the glass-ui EasingPicker (the Curve facet
+ *        body, T.E8) is mounted visible and a REAL handle-drag mutates the curve.
  *   B6 — on /square a real drag selects NO text + the transform PERSISTS.
  *   B3 — on /amiga a centre-drag moves the SUBJECT, not the room.
  *   B7 — at rest the glass ::before carry NO bloom.
@@ -213,8 +213,12 @@ const SWEEP_META = {
     // T.B2 RE-ARM: easing/spring now DERIVE the full triad from their painting
     // channels (the #25 asymmetry cure) — the Controls tab PROJECTS on entry
     // (the pre-B2 null expectation asserted the exclusion-table state).
-    easing: { trigger: "Controls", label: "Easing", kind: "group-play" },
-    spring: { trigger: "Controls", label: "Spring", kind: "spring-rail" },
+    // The easing TERMINAL batch (item-7a, ratified): easing/spring open on their
+    // SIGNATURE facet (the scene-aware selectedControl default) — the control
+    // trigger reads the FACET name ("Curve"/"Physics", SURFACE_META), while the
+    // scene-select keeps the scene identity (the #17 cross-axis dedup).
+    easing: { trigger: "Curve", label: "Easing", kind: "group-play" },
+    spring: { trigger: "Physics", label: "Spring", kind: "spring-rail" },
     sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
 };
 {
@@ -526,9 +530,13 @@ async function runBattery() {
             await ctx.close();
         }
 
-        // ── B4 leg — switch INTO easing: .easing-curve-canvas + draggable handles
-        //    present + a handle-drag MUTATES the path. Driven by a real dock switch
-        //    from cube. ─────────────────────────────────────────────────────────
+        // ── B4 leg — switch INTO easing: the glass-ui EasingPicker (the Curve
+        //    facet body since the easing TERMINAL batch, T.E8) mounts visible +
+        //    a REAL handle-drag MUTATES the curve path. Driven from cube via the
+        //    hash route (the accepted switch-in repro of the reka passive-latch).
+        //    The drag rides page.mouse (trusted CDP input) — the vendor picker
+        //    binds pointer-capture on its SVG; a synthetic dispatched pointerId
+        //    would throw at setPointerCapture. ────────────────────────────────
         {
             const ctx = await browser.newContext({ viewport: { width: VW, height: 900 } });
             const page = await ctx.newPage();
@@ -537,70 +545,61 @@ async function runBattery() {
             await page.goto(`${base}/#/cube`, { waitUntil: "load" });
             await waitActiveScene(page, "cube");
             await page.waitForTimeout(700);
-            // Switch into easing via the hash route (the accepted switch-in repro of
-            // the reka passive-latch). Then open the easing controls tab if needed.
-            await navToScene(page, "easing", null) /* T.B5-RENDER: easing control-tab elided */;
+            await navToScene(page, "easing", "Curve") /* item-7a: easing opens on Curve */;
             await page.waitForTimeout(1500);
-            const easing = await page.evaluate(async () => {
-                const canvas = document.querySelector(".easing-curve-canvas");
-                const present = !!canvas;
-                let display = "(absent)";
-                let tabpanelState = "(no-host)";
+            const easing = await page.evaluate(() => {
+                const picker = document.querySelector('[data-testid="easing-picker"]');
+                const present = !!picker;
+                let visible = false;
                 let handleCount = 0;
                 let d0 = null;
-                if (canvas) {
-                    display = getComputedStyle(canvas).display;
-                    const host = canvas.closest('[role="tabpanel"]');
-                    // J.W2 S2 (S4-stretch): the easing panel mounts FLAT (no reka
-                    // tabpanel/latch for single-surface scenes) — a visible flat
-                    // mount IS the mounted-active state.
-                    tabpanelState = host ? host.getAttribute("data-state") || "(no-attr)" : "(flat)";
-                    handleCount = canvas.querySelectorAll(".control-point.handle").length;
-                    const pathEl = canvas.querySelector(".bezier-path");
-                    d0 = pathEl ? pathEl.getAttribute("d") : null;
+                if (picker) {
+                    const r = picker.getBoundingClientRect();
+                    visible = r.width > 40 && r.height > 40;
+                    const svg = picker.querySelector("svg");
+                    handleCount = svg
+                        ? [...svg.querySelectorAll("circle")].filter((c) =>
+                              /cursor/.test(c.getAttribute("style") || ""),
+                          ).length
+                        : 0;
+                    d0 = svg
+                        ? [...svg.querySelectorAll("path")].map((p) => p.getAttribute("d")).join("|")
+                        : null;
                 }
-                return { present, display, tabpanelState, handleCount, d0 };
+                return { present, visible, handleCount, d0 };
             });
             let dMutated = false;
             if (easing.present && easing.handleCount >= 2) {
-                // Drag handle 0. S.A0: dispatch the pointer sequence ON THE
-                // HANDLE, not the SVG — the bespoke SVG-level `@pointerdown`
-                // hit-test was RETIRED for the LIGHT `drag2D` Draggable, which
-                // binds its `pointerdown` on the handle element itself (the
-                // canonical proof:easing-editor-live drive documents + drives
-                // that seam; this in-battery face had gone stale against it).
-                await page.evaluate(async () => {
-                    const svg = document.querySelector(".easing-curve-canvas");
-                    const handle = document.querySelector('.easing-curve-canvas .control-point.handle[data-index="0"]') || document.querySelector(".easing-curve-canvas .control-point.handle");
-                    if (!svg || !handle) return;
-                    const r = svg.getBoundingClientRect();
-                    const hb = handle.getBoundingClientRect();
-                    const sx = hb.x + hb.width / 2;
-                    const sy = hb.y + hb.height / 2;
-                    const fire = (type, x, y) =>
-                        handle.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse", button: type === "pointerdown" ? 0 : -1, buttons: type === "pointerup" ? 0 : 1, clientX: x, clientY: y }));
-                    fire("pointerdown", sx, sy);
-                    const tx = r.x + r.width * 0.7;
-                    const ty = r.y + r.height * 0.15;
-                    for (let i = 1; i <= 12; i++) {
-                        fire("pointermove", sx + ((tx - sx) * i) / 12, sy + ((ty - sy) * i) / 12);
-                        await new Promise((res) => requestAnimationFrame(res));
-                    }
-                    fire("pointerup", tx, ty);
+                const hb = await page.evaluate(() => {
+                    const svg = document.querySelector('[data-testid="easing-picker"] svg');
+                    const h = [...svg.querySelectorAll("circle")].filter((c) =>
+                        /cursor/.test(c.getAttribute("style") || ""),
+                    )[0];
+                    const r = h.getBoundingClientRect();
+                    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
                 });
+                await page.mouse.move(hb.x, hb.y);
+                await page.mouse.down();
+                for (let i = 1; i <= 10; i++) {
+                    await page.mouse.move(hb.x + i * 5, hb.y - i * 4);
+                    await page.waitForTimeout(16);
+                }
+                await page.mouse.up();
                 await page.waitForTimeout(300);
                 const d1 = await page.evaluate(() => {
-                    const pathEl = document.querySelector(".easing-curve-canvas .bezier-path");
-                    return pathEl ? pathEl.getAttribute("d") : null;
+                    const svg = document.querySelector('[data-testid="easing-picker"] svg');
+                    return svg
+                        ? [...svg.querySelectorAll("path")].map((p) => p.getAttribute("d")).join("|")
+                        : null;
                 });
                 dMutated = !!easing.d0 && !!d1 && easing.d0 !== d1;
             }
             dom.B4 = {
                 present: easing.present,
-                mountedActive: easing.present && easing.display !== "none" && (easing.tabpanelState === "active" || easing.tabpanelState === "(flat)"),
+                mountedActive: easing.present && easing.visible,
                 handleCount: easing.handleCount,
                 dMutated,
-                pass: easing.present && easing.display !== "none" && (easing.tabpanelState === "active" || easing.tabpanelState === "(flat)") && easing.handleCount >= 2 && dMutated,
+                pass: easing.present && easing.visible && easing.handleCount >= 2 && dMutated,
             };
             await ctx.close();
         }

@@ -96,7 +96,7 @@ const CTRL_KEY = "animation-groups-control-options-store";
 
 // The destination control-tab label navToScene settles on per scene (null = no
 // control panel projects — sequence).
-const TRIGGER = { square: "Controls", spring: "Spring", sequence: null };
+const TRIGGER = { square: "Controls", spring: "Physics", sequence: null }; // item-7a facet default
 
 /** Open a scene in a FRESH context at its canonical FIRST-LOAD mount. */
 async function openSceneFresh(browser, base, scene, viewportWidth) {
@@ -143,16 +143,15 @@ const DRAG_SURFACES = [
     { scene: "square", handle: ".demo-box" },
     { scene: "spring", handle: ".spring-rail" },
     { scene: "sequence", handle: ".seq-scrub" },
-    {
-        scene: "easing",
-        name: "easing/bezier-handle",
-        handle: ".easing-curve-canvas circle.control-point.handle",
-        land: {
-            selector: ".easing-curve-canvas path.bezier-path",
-            attr: "d",
-            what: "the bezier `d` mutates",
-        },
-    },
+    // (easing/bezier-handle RE-CUT at the easing TERMINAL batch (T.E8): the
+    //  hand-rolled EasingCurveCanvas handle — the surface this row recovered —
+    //  is DELETED with the instrument/easing cluster. Its successor is the
+    //  glass-ui EasingPicker's VENDOR-OWNED pointer-capture drag (the picker
+    //  preventDefault()s the grab, suppressing selection at the UA level — no
+    //  demo drag seam exists on that surface to route through
+    //  gestureSelectSuppression). The drag-LANDS property is re-asserted by
+    //  proof:easing-editor-live v2 clause (b) + proof:live-session B4 (a real
+    //  page.mouse drag mutates the curve + re-times the preview).)
     {
         scene: "easing",
         name: "easing/ribbon-slider",
