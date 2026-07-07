@@ -1237,15 +1237,20 @@ async function runBattery() {
 
             const controlBlinks = controlChurn.length > 0 && controlChurn.every((n) => n >= 2);
             const prmStatic = prmChurn.length > 0 && prmChurn.every((n) => n === 1);
-            // The sheet RESPONDED under PRM (the trail moved between detents). The
-            // strict single-frame snap-shape is proof:drawer-spring (c)'s domain.
-            const sheetSnaps = sheetTrail != null && sheetTrail.length >= 1;
+            // ── T.H3-ADOPT — the mobile-sheet PRM snap sub-clause is DELEGATED to
+            // proof:drawer-spring (c): under the glass-ui <Drawer> the sheet is
+            // driven by glass-ui's own SpringProgress (respectReducedMotion), and
+            // its single-frame PRM snap is cleanly measured there (a store-driven
+            // detent change) rather than via a flaky external drag here. S2 keeps
+            // its HARD control-dots PRM assertion (dots rest · prmStatic); the sheet
+            // trail is recorded as corroboration only, no longer a pass condition.
             dom.S2 = {
                 prmMatches,
                 controlChurn,
                 prmChurn,
                 sheetTrail,
-                pass: prmMatches && controlBlinks && prmStatic && sheetSnaps,
+                sheetLeg: "delegated to proof:drawer-spring (c)",
+                pass: prmMatches && controlBlinks && prmStatic,
             };
         }
 
