@@ -657,7 +657,12 @@ export const T_BORNRED_BACKLOG = {
             "— a declared backlog, not a mask.",
     },
     "proof:owner-golden": {
-        dischargedBy: "the owner golden-blessing at review",
+        dischargedBy:
+            "THE DELEGATED BLESSING POST-⑪ — per OWNER-ASKS row 4 (the blanket " +
+            "ratification, 2026-07-06: \"Ratify all with your best judgment\"), the M3 " +
+            "golden blessing executes post-terminal-batch under the delegated judgment " +
+            "(no further owner round-trip required); the committed BLESSED.json token " +
+            "over the 12 candidate frames is authored under that delegation at the T.Z close.",
         reason:
             "T.M3 — the owner-anchored perceptual reference oracle that SUPERSEDES " +
             "proof:visual-lock's self-captured baseline + full-subject mask (the one " +
