@@ -1,22 +1,15 @@
-/* ════════════════════════════════════════════════════════════════════════
-   demo/@/styles/brand.css — the ppmycota brand-mark rules (D.W2.S2)
-   ────────────────────────────────────────────────────────────────────────
-   Uncaged from the global utils.css monolith. These `.ppmycota-*` rules style
-   the brand mark, which RECURS across three SFCs in the `app/` entry —
-   App.vue (header logo), CubeScene.vue (hover-card logo), CubeTarget.vue (the
-   cube face + large logo). Because the mark is shared across components, a
-   single colocated partial (the spec's "a single brand.css partial if the mark
-   recurs across standalone apps") is the smallest correct shared scope: plain
-   class selectors, NO `[data-v-*]` scoping — so the rules render IDENTICALLY
-   to the global-utils version (isomorphic; no specificity change). Imported by
-   App.vue (the app entry that mounts every brand-mark consumer).
+/* brand.css — the ppmycota brand-mark rules.
+   These `.ppmycota-*` rules style the brand mark, which RECURS across three SFCs
+   in the app/ entry (App.vue header logo, CubeScene.vue hover-card logo,
+   CubeTarget.vue cube face + large logo). Because the mark is shared across
+   components, a single colocated partial is the smallest correct shared scope:
+   plain class selectors, NO `[data-v-*]` scoping, so the rules render identically
+   to a global-utils version (no specificity change). Imported by App.vue.
 
-   The `--ppmycota-primary` TOKEN is NOT here — it stays in style.css `:root`
-   alongside its sibling `--filter-brand-color`, so it loads globally and the
-   EasingSelect / EasingCurveCanvas `var(--ppmycota-primary, …)` consumers
-   resolve it regardless of whether the brand mark is mounted (styling-findings
-   §S5: "the :root { --ppmycota-primary } is a token and stays global").
-   ════════════════════════════════════════════════════════════════════════ */
+   The `--ppmycota-primary` TOKEN is NOT here — it stays in style.css :root beside
+   --filter-brand-color so it loads globally and the EasingSelect / EasingCurveCanvas
+   `var(--ppmycota-primary, …)` consumers resolve it whether or not the brand mark
+   is mounted (a token belongs global, a component rule belongs colocated). */
 
 .ppmycota-cube {
     background-color: var(--secondary);

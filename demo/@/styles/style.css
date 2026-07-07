@@ -119,7 +119,7 @@
     --accent-red: hsl(0 72% 63%);
     --accent-red-foreground: hsl(0 0% 100%);
 
-    /* ── THE VIOLET ACCENT AUTHORITY (OD-6's ramp) ──
+    /* ── THE VIOLET ACCENT AUTHORITY (the owner-approved ramp) ──
        ONE oklch family, BOTH themes: iris-periwinkle in light, orchid in dark — same
        family, only lightness/chroma arm-swap, so the accent keeps ONE identity
        across the theme toggle. light-dark() resolves against color-scheme, which the
