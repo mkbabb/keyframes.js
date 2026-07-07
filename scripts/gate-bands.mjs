@@ -598,11 +598,12 @@ export const T_BORNRED_BACKLOG = {
             "filled here as the gesture-legend strip landed). It STAYS born-RED because " +
             "(a) the browser RENDERED-set reconciliation (KF_REQUIRE_BROWSER=1: does the " +
             "running demo paint exactly the sanctioned set?) is not yet implemented — a " +
-            "later wave opens the browser and asserts it; and (b) the retire-target chrome " +
-            "the manifests mark FORBIDDEN (#11 square caption, #17 dock-label dup, the OD-7 " +
-            "easing gallery redesign, …) has its on-stage DOM prune / redesign PENDING " +
-            "across T.B/T.C/T.D/T.E, so the browser reconciliation would still red. " +
-            "Converges as those prunes + the reconciliation land.",
+            "later wave opens the browser and asserts it; and (b) remaining retire-target " +
+            "chrome the manifests mark FORBIDDEN (#11 square caption, #17 dock-label dup, …) " +
+            "has its on-stage DOM prune PENDING, so the browser reconciliation would still " +
+            "red. (The OD-7 easing gallery redesign LANDED at the easing terminal — T.E6; " +
+            "easing.json is re-derived + owner-sanctioned.) Converges as those prunes + the " +
+            "reconciliation land.",
     },
     "proof:subject-legible": {
         dischargedBy: "T.C (dock icon de-blur — a glass-ui born-RED handoff)",

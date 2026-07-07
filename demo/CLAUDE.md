@@ -21,7 +21,7 @@ demo/
 ├── scenes/                    # THE fused scenes (R.W5): each dir co-locates <Name>Scene.vue + its composables + targets
 │   ├── amiga/        # AmigaScene.vue + AmigaCrtOverlay/AmigaTelemetry, useAmigaThree/useAmigaBoot/useSphereSpin/useAmigaDemo, utils (tesselateSphere), amigaKeys, checkerboard.jpg
 │   ├── cube/         # CubeScene.vue + CubeTarget/CubeAxisLines, useCubeDemo/useCubeRelit, cubeTransformStore, matrix-editor/ + orbital-drag/ (S.D2 colocation, a24 F3), cube.png
-│   ├── easing/       # EasingScene.vue + EasingSidebar (the Curve-facet body)/EasingTarget/EasingHeroStage, useEasingDemo/Ghost/TraceSmear (CurvePhysics + Gallery DELETED at T.E7 — VERDICT #13/#15), easingGroups/easingKeys
+│   ├── easing/       # EasingScene.vue + EasingTarget (the OD-7 specimen GALLERY — 33 tiles, ONE shared clock, T.E6) + EasingSidebar (the Curve-facet body = glass-ui EasingPicker, T.E8), useEasingDemo, easingGroups/easingKeys (hero/Ghost/TraceSmear DELETED at T.E6; CurvePhysics + gallery-door DELETED at T.E7 — VERDICT #13/#15)
 │   ├── sequence/     # SequenceScene.vue + SequenceTarget/Axis/Playhead/Scrubber, useSequenceDemo/Instrument/useTypedTrigger (S.D2 colocation, a24 F4), sequenceKeys
 │   ├── spring/       # SpringScene.vue + SpringPhysicsFacet (T.B7 — the sidebar dissolved into the facility facet)/SpringTarget/StartingStyleTarget/SpringHeatmap/SpringTrace, useSpringDemo/Derby/HotPath/KeyframesEditor/LinearStops/useCompiledEntry (S.F3 EN-d entry/exit dogfood), springKeys/springPresets
 │   └── square/       # SquareScene.vue + SquareInstrument, useSquareDemo/useSquareKeyboard, squareKeys (custom transform fn)
@@ -34,8 +34,8 @@ demo/
 │   │   │   ├── transport/       # the control-suite shells + controls/ + composables/ + KfPillTabs/useKfPillTabs (was animation-transport/; see below)
 │   │   │   ├── keyframes/       # the Monaco CSS keyframes editor (was keyframes-editor/)
 │   │   │   ├── timeline/        # the draggable keyframe timeline (was keyframe-timeline/) + CSSPasteDialog (S.D2 colocation)
-│   │   │   ├── shell/           # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal + useHeroSourceEgg (was editor-shell/)
-│   │   │   └── easing/          # EasingEditor + EasingSelect + EasingCurveCanvas + DemoControlPoint (was easing-editor/) — the E8/easing terminal deletes it; folded MINIMALLY, NOT a facility member (no barrel, absent from the umbrella)
+│   │   │   └── shell/           # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal + useHeroSourceEgg (was editor-shell/)
+│   │   │   # (instrument/easing/ — the 1,082L hand-rolled EasingEditor/EasingSelect/EasingCurveCanvas/DemoControlPoint cluster — was DELETED at T.E8: glass-ui's EasingPicker is the sole curve-authoring surface)
 │   │   └── CopyButton.vue       # the one genuinely-shared flat leaf beside the facility
 │   │                            # (components/ui/ is GONE — the last shadcn island, ui/menubar/, was migrated off + deleted at S.C3b, C-19)
 │   ├── composables/
@@ -68,9 +68,10 @@ replacing animation-transport's old empty "don't import me" stub) that keeps the
 Monaco/highlight.js chunk split (the idle-warm pane-reveal seam,
 `transport/controls/composables/useKeyframesPaneReveal.ts`, is preserved by
 construction — `AnimationControls.vue`'s `import()` calls own pane laziness).
-`instrument/easing/` (was `easing-editor/`) is a transient co-tenant folded
-minimally — the E8/easing terminal deletes it, so it is NOT a facility member
-and is absent from the umbrella barrel. The state layer lives at `@/state/`
+`instrument/easing/` (was `easing-editor/`, the transient E8 co-tenant) was
+DELETED at T.E8 — the demo consumes glass-ui's `EasingPicker` (the easing
+scene's Curve facet body under `scenes/easing/` + the `TimingFunctionPanel.vue`
+detail body) instead of the 1,082L hand-rolled cluster. The state layer lives at `@/state/`
 (`@state`). Top level of `transport/`: **AnimationControlsGroup.vue** + its
 scoped-CSS split `AnimationControlsGroup.css` (orchestrates `AnimationGroup`:
 scrub-pause-resume, playback delegation), **TransportDock.vue**, **KfPillTabs.vue**
@@ -83,7 +84,6 @@ scrub-pause-resume, playback delegation), **TransportDock.vue**, **KfPillTabs.vu
 - **peer `instrument/keyframes/`** (was `keyframes-editor/`) — `CSSCodeEditor.vue` (Monaco wrapper), `KeyframeCard.vue`, `KeyframesEditor.vue`, `KeyframesStringControls.vue`, `index.ts` (lazy barrel); `components/`: `KeyframeCardList`, `KeyframesAddDialog`; `composables/`: `useApplyCSS`, `useHighlightCSS`, `useKeyframeOps`, `useKeyframesEditor`, `useKeyframesParsing`, `useKeyframesState`, `useToolbarKeyboard` (WAI-ARIA roving-tabindex core); `monaco-themes/` (Dracula, GitHub); `utils/`: `contenteditable.ts`, `parseAnimationCSS.ts`
 - **peer `instrument/timeline/`** (was `keyframe-timeline/`) — `KeyframeTimeline.vue` (draggable diamonds, playhead, import/export), `TimelineCaret.vue`, `CSSPasteDialog.vue` (S.D2 colocation), `index.ts` (lazy barrel); `components/`: `TimelineHoverPreview` (html2canvas), `TimelineTrack`; `composables/`: `useTimeline`, `useTimelineBuild`, `useTimelineOps`, `useZoomPan`; `timelineTypes.ts`; `utils/`: `flattenVars`, `snapshotCapture` (getComputedStyle → keyframes), `timelineEngine` (build/export/import CSS)
 - **peer `instrument/shell/`** (was `editor-shell/`) — `EditorShell.vue`, `EditorHeader.vue`, `EditorStartScreen.vue`, `SharePopover.vue` + `index.ts` (barrel) + `useShareState.ts` + `AnimatedText`/`TypingDots`/`KeyboardShortcutsModal`/`HeroAurora`/`useHeroSourceEgg` (L.W11.S1 the live @keyframes source card)
-- **peer `instrument/easing/`** (was `easing-editor/`, E8-transient) — `EasingEditor.vue`, `EasingSelect.vue`, `EasingCurveCanvas.vue`, `DemoControlPoint.vue`; folded MINIMALLY (no barrel, not a facility member) — the E8/easing terminal deletes it
 - **peer `@/state/`** (S.D2 hoist, was `stores/`) — `animationOptionsStore.ts` + `controlOptionsStore.ts` (vueuse `createGlobalState` + `useStorage`, 7-day TTL via `storeUtils.ts`), `controlSurfaceDFA.ts` (the control-surface single-authority DFA), `sceneMachine.ts` + `scenePlaybackAdapters.ts` + `useSceneMachine.ts` (the scene state machine + per-scene playback adapters; machine context persists to localStorage), `hashSharing.ts` (URL-param state encode/decode/restore), `index.ts` (barrel + `resetAllStores` + `registerStoreReset`)
 
 ## Scenes
@@ -96,7 +96,7 @@ via `app/scene/scenes.ts`, exposing the typed `SceneExposedApi`) co-located with
 | CubeScene | `scenes/cube/` | 3 synchronized animations, 3D CSS cube, matrix editor, orbital drag |
 | AmigaScene | `scenes/amiga/` | Three.js sphere, multi-axis rotation + checkerboard spin |
 | SquareScene | `scenes/square/` | Custom transform fn, nested object interpolation |
-| EasingScene | `scenes/easing/` | Easing gallery + unified easing editor |
+| EasingScene | `scenes/easing/` | The specimen gallery (33 curves, ONE shared clock) + the glass-ui EasingPicker Curve facet |
 | SpringScene | `scenes/spring/` | Spring presets, `linear()` stops, `@starting-style` target, heatmap |
 | SequenceScene | `scenes/sequence/` | `Sequence` master-playhead transport, draggable rows |
 

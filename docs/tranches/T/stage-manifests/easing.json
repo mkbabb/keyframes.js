@@ -1,19 +1,24 @@
 {
-  "_doc": "T.M4 on-stage inventory SKELETON for the easing scene, post the RULED removals (T.E7: #13 EasingCurvePhysics telemetry + #15 gallery-door button DELETED; T.E9/T.E10: the ONE violet family + the rendered-rung tuple roles LANDED). The `sanctioned` set is the CURRENT landed on-stage subject; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The curve-physics telemetry block (#13) and the gallery-door button (#15) are EXPLICITLY forbidden (ruled removals, executed T.E7). SKELETON — the OD-7 easing GALLERY REDESIGN (T.E6, proof:easing-gallery deliberately UNAUTHORED per OD-7) is PENDING-OWNER; the final sanctioned inventory rides that redesign's owner sign-off (T.M2). The set below reflects the landed transitional surface, not a blessed-final composition.",
-  "scene": "easing",
-  "sanctioned": [
-    "easing-target-card (the standard glass Card protagonist plate — `<Card surface=glass>`; the I5 STAGE-CARD register)",
-    "easing-readout (the f(t)= live progress readout — the AnimatedDigit pair wearing the scene accent, the small muted f(t)= notation label; the engine-driven number that proves the easing runs)",
-    "view-select (the standard glass `<Select>` Singular/Group/All view switch — replaced the audit's bare-text DockSelectTrigger, T.E redesign)",
-    "easing-hero-stage (EasingHeroStage — the singular-view hero: ONE large engine-driven ball tracing the selected easing curve)",
-    "easing-curve-grid (the group/all-view curve grid — one engine-driven ball per curve, `data-curve`-tagged so the registered painter resolves each easing fn)"
-  ],
-  "forbidden": [
-    "curve-physics-telemetry (#13 — the EasingCurvePhysics telemetry block incl. its 'name this curve' dblclick egg; ruled OUT, DELETED at T.E7 with useEasingTraceSmear's S5 surface fate riding OD-7)",
-    "gallery-door-button (#15 — the full-width red-glyph button promoting the easter-egg gallery tour into primary chrome; ruled OUT, DELETED at T.E7 — the T.E6/OD-7 redesigned scene IS the gallery)"
-  ],
-  "pendingOwner": [
-    "easing-gallery-redesign (OD-7 — the T.E6 easing gallery redesign is PENDING-OWNER; proof:easing-gallery stays UNAUTHORED per OD-7. The final on-stage inventory + its owner-sanctioned tokens ride that review, T.M2 — the sanctioned set here is the landed transitional surface, subject to the redesign)"
-  ],
-  "status": "SKELETON — the RULED removals (#13/#15) are executed (T.E7); the sanctioned set reflects the landed T.E7/E9/E10 surface (hero stage + curve grid + f(t)= readout + view select). The OD-7 GALLERY REDESIGN (T.E6) + its owner sign-off (T.M2) are PENDING — the final composition may revise this. RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER)."
+    "_doc": "T.M4 owner-sanctioned on-stage inventory for the easing scene — RE-DERIVED at the easing TERMINAL batch (T.E6, OD-7 APPROVED 2026-07-06: P-GALLERY is the blessed reference; proof:easing-gallery is the OWNER-authority browser oracle over this composition). THE SPECIMEN DRAWER IS THE SCENE: the singular hero (EasingHeroStage + ghost/smear), the f(t)= readout, and the Singular/Group/All view-mode machinery are DELETED — every named curve is a specimen tile racing under ONE shared departure clock. The `sanctioned` set is the landed OD-7 composition; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The T.E7 ruled removals (#13 telemetry, #15 gallery door) stay explicitly forbidden.",
+    "scene": "easing",
+    "sanctioned": [
+        "easing-gallery-card (the standard glass Card plate hosting the whole drawer — `<Card>` .easing-target.easing-gallery; the I5 STAGE-CARD register; --ball-tone = --color-progress, the ONE OD-6 violet consumer)",
+        "specimen-name (the PROMOTED selected-curve name at the Instrument-Serif display rung — h2.specimen-name; 140ms out-in crossfade on selection, PRM-suppressed)",
+        "specimen-literal (the COMPLETE re-parseable literal beside the name — Fira Code `data-register=code` + the CopyButton affordance; never truncated — the F7 kill; proof:easing-gallery clause (4))",
+        "family-filter (the QUIET single-select ToggleGroup — All · Standard · Sine · … · Back · Bounce · Steps — inside an x-axis FadingScroll; replaced the former unlabeled view-mode Select; proof:easing-gallery clause (5))",
+        "specimen-drawer (the y-axis FadingScroll auto-fill grid of 33 ToggleChip specimen tiles — role=group; the pressed tile IS the selected curve; proof:easing-gallery clause (1))",
+        "specimen-tile stage (per tile: the static sparkline portrait path + the 1px hairline rail with origin/terminus ticks + the 14px OD-6-violet `data-curve` ball racing x = fn(phase)·maxX on the ONE shared registerDotPainter clock — IO-gated, transform-only writes, PRM rests every ball at its terminus; proof:easing-gallery clauses (2)/(3)/(6))",
+        "specimen-tile name (the curve identifier under the stage — `data-register=code` mono caption, as-cased, never truncated at the 150px tile floor)"
+    ],
+    "forbidden": [
+        "easing-hero-stage (EasingHeroStage — the singular one-ball hero; DELETED at T.E6 per OD-7: the buried balls-preview was PROMOTED to be the scene)",
+        "easing-ghost/trace-smear (useEasingGhost + useEasingTraceSmear — the hero's ghost rail + the S5 drag-smear egg surface; died WITH the hero at T.E6; the design-refinement S5 arm was re-cut in gate-bands)",
+        "easing-readout (the f(t)= AnimatedDigit readout — a hero-era companion; the comparative race IS the pedagogy now)",
+        "view-select (the Singular/Group/All view-mode Select — superseded by the family-filter ToggleGroup at T.E6)",
+        "curve-physics-telemetry (#13 — the EasingCurvePhysics telemetry block incl. its 'name this curve' dblclick egg; ruled OUT, DELETED at T.E7)",
+        "gallery-door-button (#15 — the full-width red-glyph button promoting the easter-egg gallery tour into primary chrome; ruled OUT, DELETED at T.E7 — the T.E6/OD-7 scene IS the gallery)",
+        "hand-rolled curve canvas ON STAGE (EasingCurveCanvas/DemoControlPoint — instrument/easing/ DELETED at T.E8; bezier/steps AUTHORING is the glass-ui EasingPicker in the Curve facet BODY (EasingSidebar), a controls-panel concern that never mounts on stage)"
+    ],
+    "authority": "OD-7 (OWNER, APPROVED 2026-07-06 — P-GALLERY blessed reference wf_558e7859-5ca-3) + proof:easing-gallery (the browser oracle: census / analytic fn(φ)·maxX placement / transform-only trace / header promotion / family filter / coherent freeze)",
+    "status": "FILLED + OWNER-SANCTIONED (OD-7). RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER, the T_BORNRED_BACKLOG row)."
 }

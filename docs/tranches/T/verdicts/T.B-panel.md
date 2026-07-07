@@ -82,3 +82,42 @@ authored. Study the P-PANEL reference (`wf_1e744f4d-2bb-2`) and improve on it.
 > **Token (verbatim):** “Ratify all with your best judgment. We shall adopt the glass-ui drawer, but ensure that we identify any gaps in that implementation and forward any and all glass-ui suggestions to that working agent's tranche execution (with the exhortation to research, plan, and fold into our running BG/BH wave set--no prefunctory implementation)”
 >
 > **Disposition:** RATIFIED: R1 satisfied by the LANDED composition (naked rail + two floating GlassPanels + the honest derived triad — the rework of record). R2 (the top-left curve preview improved dramatically) FOLDS INTO the OD-7 easing terminal (the EasingPicker + gallery redesign replaces that surface).
+
+## R2 — the top-left curve preview (DISCHARGED at the easing terminal, T.E8/OD-5-R2)
+
+> The rider: **"the top-left curve preview improved dramatically."** Landed at the
+> T.E terminal batch — this section is the before/after capture of record.
+
+- **Before (the rejected surface):** the top-left of the Controls facet carried a
+  tiny hand-plotted trigger curve (a bespoke inline SVG plot on the easing Select
+  trigger, `AnimationControlsControls.vue`), backed by the 1,082L hand-rolled
+  `instrument/easing/` cluster (`EasingCurveCanvas` + `DemoControlPoint` +
+  `EasingEditor` + `EasingSelect`) wherever a curve was edited — cramped, non-glass,
+  and its readout literal TRUNCATED (the F7 class: a copied `cubic-bezier(0.19, 1`
+  that cannot re-parse).
+
+- **After (T.E8 — ONE editor, the vendor instrument):**
+  - The hand-rolled cluster is **DELETED from disk** (proof:easing-editor-live v2
+    clause (s) witnesses the absence + zero dangling imports).
+  - glass-ui's **`EasingPicker`** is the SOLE curve-authoring surface — the Curve
+    facet body (`scenes/easing/EasingSidebar.vue`) and the `TimingFunctionPanel`
+    detail body. Bezier handle-drag, native steps mode, and the **COMPLETE
+    re-parseable readout literal with copy** (the F7 truncation is dead by
+    construction — v2 clause (c) asserts the closing paren + four numbers).
+  - The Controls easing row rides the standard grouped `Select`; the tiny
+    hand-plotted trigger curve is gone with it.
+  - The named-curve SELECTION surface is the T.E6 specimen gallery (33 tiles, one
+    shared clock — proof:easing-gallery, OWNER authority); the picker is the
+    bezier/steps AUTHORING surface. The bounce/elastic family division stays
+    kf-owned (BG-8 lettered — the honest vendor-catalogue gap, surfaced as a quiet
+    `data-register=code` caption, never a broken seed).
+
+- **Witnesses (all green in-browser at the terminal batch):** `proof:easing-editor-live`
+  v2 (mount-on-Curve-facet · real handle-drag re-times the preview through the one
+  authoring seam · complete literals · steps native · re-mount round-trip · spring
+  opens on Physics), `proof:easing-gallery` (the OD-7 oracle), and the re-armed
+  neighbors (live-session B4 → the picker; suffusion (d) → the specimen portraits).
+
+Disposition: **R2 DISCHARGED** — the top-left curve preview is now the published
+glass-ui curve instrument, dramatically improved per the rider; the surface it
+criticized no longer exists.
