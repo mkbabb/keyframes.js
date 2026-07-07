@@ -3,6 +3,18 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 5.2.0
+
+### Minor Changes (additive)
+
+- **Plain values at the custom-`transform` seam.** A custom `transform` function ("animate any object") now receives plain, authored-shaped values — numbers where you authored numbers, strings where units/colors demand them — fixing the regression under `@mkbabb/value.js` 2.x where internal `ValueUnit`-boxed leaves leaked through to consumers (a second writer concatenating onto a boxed value could produce `NaN` frames). Both the per-animation path and the `AnimationGroup` compositor path deliver the same plain shape; the hot path remains allocation-free.
+- **`fromMorphSVG` renders at rest.** The `from` shape is now written to the target's SVG `d` attribute at construction, so a morph target paints correctly before any frame is written — the at-rest render no longer depends on a live engine write. The per-frame CSS `d:` channel still takes over while a frame is in flight.
+- **Dependency floor: `@mkbabb/value.js` ^3.1.0.** The consumed parsing/geometry surface is unchanged; the bump clears the nested self-dependency install present in 2.x.
+
+### Demo
+
+- The demo was rebuilt end-to-end against a live design review: an honest per-scene control facility (Controls/Keyframes/Timeline derive from real, painting animations), an easing specimen gallery, a per-character hero, one violet accent authority, glass-ui dock/drawer/easing-picker consumption, and measured true-rest/idle performance. Demo-only — no library surface is affected.
+
 ## 5.1.0
 
 ### Minor Changes (additive)

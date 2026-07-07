@@ -36,9 +36,9 @@ retired) · **⑪-INFLIGHT** (executing in the terminal batch's parallel lanes) 
 | 11 | square caption "superfluous nonsense" | caption removed | T.A/T.E | `proof:stage-inventory` (T.M4) | LANDED |
 | 12 | square "restore the controls/keyframes panel" (reverses S.G2 DFA=[]) | `square-honest` v2 inversion; square in the triad | T.A13/T.B3 | `proof:scene-control-dfa` (square-in-triad EXPECT) + `square-honest` v2 → demo-correctness | LANDED |
 | 13 | easing curve-physics telemetry "remove all" | curve-physics + telemetry deleted | T.E7 | `proof:design-refinement` RETIRED (⑧) | LANDED |
-| 14 | easing "just have the balls previewed here" | specimen-drawer gallery IS the scene (P-GALLERY) | T.E6 · **OD-7** | `proof:easing-gallery` (born-OWNER, OD-7 APPROVED) | **⑪-INFLIGHT** (lane 1) |
+| 14 | easing "just have the balls previewed here" | specimen-drawer gallery IS the scene (P-GALLERY) | T.E6 · **OD-7** | `proof:easing-gallery` (born-OWNER, OD-7 APPROVED) — GREEN in-browser (33 tiles, analytic fn ±2px, zero non-transform writes) | **LANDED** (⑪) |
 | 15 | Gallery button "remove" | gallery-door deleted | T.E7 | `proof:easter-egg` RETIRED (⑧) | LANDED |
-| 16 | easing "re-design w/ glass-ui; latent red theme" | red-kill + ONE violet ramp; easing redesign | T.D7/D · **OD-6** + T.E6/E8 | `proof:easing-sidebar-*` RETIRED (RETIREMENT_LEDGER, lane 1); T.D7 accent-census | **⑪-INFLIGHT** (lane 1 easing; T.D theme LANDED) |
+| 16 | easing "re-design w/ glass-ui; latent red theme" | red-kill + ONE violet ramp; easing redesign | T.D7/D · **OD-6** + T.E6/E8 | `proof:easing-sidebar-*` RETIRED (RETIREMENT_LEDGER, 9 keys with witnesses); T.D7 accent-census GREEN; EasingPicker the sole editor (F7 truncation dead) | **LANDED** (⑪) |
 | 17 | spring dock "∿ Spring │ ∿ Spring" single-option elision | `surfacesFor` derived-triad; dock-label elision | T.B2 | `proof:dfa-derived` (⑧) + `no-single-option-select` | LANDED |
 | 18 | spring presets + KfPillTabs "why not glass-ui" | facility triad restore; KfPillTabs colocated | T.B + T.H | facility gates; KfPillTabs → glass-ui pill ask (BG) | LANDED (colocate) + EXTERNAL (glass-ui pill) |
 | 19 | "performance god awful — from the ground up" | true-rest + transform-not-left + Monaco LCP defer; blur de-layer (kf half) | **T.G** (G1–G10) | `proof:perf-counters` BLOCKING (⑧) + `scene-rests` + `no-layout-animation`; `single-raf-clock` RECORDED-subsumed (⑪) | LANDED (kf) + EXTERNAL-BLOCKED (BG-5 backdrop compositor cost) |
@@ -49,10 +49,10 @@ retired) · **⑪-INFLIGHT** (executing in the terminal batch's parallel lanes) 
 | 24 | fonts/sizes sitewide "not right" | Jakarta body, Instrument Serif display, mono→data | T.D3/D5 · **OD-6** | the font-tuple gate + `demo-typography` | LANDED |
 | 25 | panel facility "forgot entirely" | `SceneFacility` returns for every sub-animation | T.B/T.B2 | `proof:scene-facility` + `dfa-derived` | LANDED |
 | 26 | demo/ "re-structure from first-principles" (THE GRAND COLOCATION EDICT) | instrument/ fold, styles split, colocation keystone, purge terminal | **T.F** (23 waves) | `proof:colocation` (KEYSTONE, ⑩) + `style-file-ceiling` + `no-dead-export` + `any-ceiling` | LANDED |
-| 27 | glass-ui "leverage latest; delineate gaps" | the ask letter + gaps census; Drawer ADOPT | **T.H** | `KF-TO-GLASSUI-BG.md` §FORWARDING; `demo/glass-ui-gaps.ts`; BG-5/GU-1/GU-2/BG-11 | **⑪-INFLIGHT** (T.H3 Drawer, lane 2) + EXTERNAL-BLOCKED (BG/BH) |
+| 27 | glass-ui "leverage latest; delineate gaps" | the ask letter + gaps census; Drawer ADOPT | **T.H** | `KF-TO-GLASSUI-BG.md` §FORWARDING; `demo/glass-ui-gaps.ts`; BG-5/GU-1/GU-2/BG-11 | **LANDED** (⑪ — the Drawer ADOPTED per the owner override, ~550L bespoke sheet dead, the z-inversion + inset gaps measured-and-forwarded) + EXTERNAL-BLOCKED (BG/BH) |
 | 28 | codebase refactor litany (verbatim re-issue) | library carves; legacy excision; DI; no god modules | §1 standing mandate + **T.F/T.S** | `any-ceiling`(102) + `no-dead-export`(28) + `decomposition` + `boundary`; `prompt-recap-t` re-issuance census | LANDED |
 
-**Coverage:** 22 LANDED · 3 ⑪-INFLIGHT (#14/#16 easing terminal lane 1; #27 T.H3 Drawer lane 2) ·
+**Coverage:** 25 LANDED (the ⑪ terminal batch closed #14/#16/#27) ·
 the EXTERNAL-BLOCKED residue (#4/#18/#19/#27 glass-ui BG-5/GU-1/GU-2/BG-11) rides the re-pin as
 born-RED tripwires. No verdict item is unaccounted.
 
@@ -157,11 +157,11 @@ keyframes.babb.dev serves the new hash.
 
 ## 6 — Close checklist (T.Z, gated on the owner-anchored close)
 
-- [ ] Terminal batch ⑪ merged (easing terminal + T.H3 Drawer + this close-prep) — demo-correctness green
-- [ ] The 3 ⑪-INFLIGHT verdict items (#14/#16 easing, #27 Drawer) LANDED + their gates green/retired
-- [ ] M8 FROZEN discharge: the 5 easing surface-locks + crayon retired in lockstep (roster count drops)
-- [ ] M3 golden blessing under the delegated judgment → `docs/tranches/T/goldens/BLESSED.json` committed → `proof:owner-golden` green
-- [ ] `proof:board-live` + `proof:prompt-recap-t` + `proof:wave-charter` + `proof:ci-coverage` green on the merged tree
+- [x] Terminal batch ⑪ merged (easing terminal + T.H3 Drawer + this close-prep) — the certifying roster rides the close
+- [x] The 3 ⑪-INFLIGHT verdict items (#14/#16 easing, #27 Drawer) LANDED + their gates green/retired
+- [x] M8 FROZEN discharge: the easing surface-locks retired with witnesses at ⑪ (roster 236→~220 with visual-lock; crayon-preserved re-pinned to the OD-6 tokens earlier — its retire-or-keep is settled as KEEP-re-anchored)
+- [x] M3 golden blessing under the delegated judgment → BLESSED.json committed (12/12, live Hamming 0) → `proof:owner-golden` GREEN; visual-lock RETIRED via migration
+- [x] `proof:board-live` + `proof:prompt-recap-t` + `proof:wave-charter` + `proof:ci-coverage` green on the merged tree
 - [ ] Version tag **5.2.0** (release.yml publishes)
 - [ ] Deploy-of-record auto-fires on green demo-correctness → keyframes.babb.dev verified
 - [ ] The EXTERNAL-BLOCKED residue (glass-ui BG-5/GU-1/GU-2/BG-11, value.js PropertyDescriptor) remains a named born-RED tripwire set, each re-pinning when the upstream ships
