@@ -4,7 +4,7 @@ import {
     DETAIL_TIMING_FUNCTIONS,
 } from "@components/custom/instrument/transport/animationDescriptions";
 
-export interface CurveGroupItem {
+interface CurveGroupItem {
     name: string;
     description: string;
     isBezier: boolean;
