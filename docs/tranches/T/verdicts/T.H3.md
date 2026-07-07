@@ -60,3 +60,42 @@ disposition for the owner review.
 > **Token (verbatim):** “Ratify all with your best judgment. We shall adopt the glass-ui drawer, but ensure that we identify any gaps in that implementation and forward any and all glass-ui suggestions to that working agent's tranche execution (with the exhortation to research, plan, and fold into our running BG/BH wave set--no prefunctory implementation)”
 >
 > **Disposition:** OWNER-OVERRIDDEN: **ADOPT the glass-ui Drawer** (the HOLD recommendation was not taken). Rider: identify every gap the adoption surfaces and FORWARD all glass-ui suggestions to the glass-ui working agent's tranche execution, with the exhortation to research, plan, and fold into the running BG/BH wave set — no perfunctory implementation.
+
+## ADOPTION RECORD — LANDED (batch ⑪, T.H3-ADOPT)
+
+**The swap.** `ControlsPaneWrapper.vue`'s bespoke mobile sheet is REPLACED by
+`<Drawer mode="live-behind" direction="bottom">` + `<DrawerContent :show-overlay="false">`
+(the `.controls-pane` body shared between the mobile Drawer and the desktop naked rail via
+`createReusableTemplate`). DELETED in totality (~550L): `SheetGrabHandle.vue`,
+`useSheetGesture.ts`, `useSheetSpring.ts`, `useSheetState.ts`, and the bespoke sheet CSS
+(the `--sheet-detent-*`/`--sheet-t`/`--stage-strip`/`--stage-reserve` block + the
+`@media (max-width:1023px)` fixed sheet geometry).
+
+**The dogfood holds transitively.** `node_modules/@mkbabb/glass-ui/dist/drawer.js:6`
+literally does `import { SpringProgress as A } from "@mkbabb/keyframes.js"` and `:134`
+constructs `new A({ response: 0.4, dampingFraction: 0.82, respectReducedMotion: true })`
+to drive `--glass-drawer-t` — so the sheet is STILL moved by kf's own `SpringProgress`,
+through glass-ui's facade. `proof:drawer-spring` is re-pointed to that transitive drive.
+
+**The occlusion contract — best-achievable under the Drawer's forced geometry.** The
+Drawer's detented sheet is `bottom:0; height:100%` (drawer.css :53/:134) and its visible
+fraction = the active snap fraction (`--glass-drawer-t`). kf approximates the owner-verified
+cure via `snapPoints`: the expanded detent caps the visible fraction (subject `0.48` ⇒
+sheet.top ≈ 52dvh reserve; editor/storyboard `0.62` ⇒ 26dvh strip). What the snap ladder
+CANNOT cure — the bottom-menubar overlap (`bottom:0`, no bottom-inset lever) — is the BG-11
+structural gap.
+
+**The gap capture + forward (the owner's rider).** Every gap the adoption surfaced is
+recorded with measured evidence in `KF-TO-GLASSUI-BG.md` §FORWARDING item 6 (rows 6a–6e:
+the bottom-inset token [≡ BG-11, escalated URGENT], the persistent-peek/`forceMount`
+affordance, the orphaned keep-open mutex, the live-behind focus/scroll interplay doc, the
+snap-velocity tunability) — each with a proposed glass-ui wave shape + a kf acceptance
+tripwire, carrying the owner's research/plan/fold exhortation verbatim.
+
+**Gate re-charter (the arming-audit under the ruling).** `proof:drawer-spring` re-points to
+the `.glass-drawer` / `--glass-drawer-t` / `.glass-drawer-handle` model + the transitive
+`SpringProgress`. The menubar-clearance clauses the Drawer's forced `bottom:0` structurally
+breaks are registered as **BG-11-BLOCKED** `T_BORNRED_BACKLOG` rows
+(`scripts/gate-bands.mjs`), dischargedBy "glass-ui BG-11 publish + re-pin" — never silently
+weakened. `demo/glass-ui-gaps.ts` `drawerDetentInset` flipped to the ADOPT posture (the
+workaround is now the LIVE Drawer awaiting the inset token, not the deleted bespoke sheet).
