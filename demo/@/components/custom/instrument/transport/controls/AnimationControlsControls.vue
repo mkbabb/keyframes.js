@@ -99,16 +99,48 @@
                                 <!-- I.W2.S3 — the dropdown's model-value is the
                                      KIND (literal-aware), and the persist is the
                                      ONE seam (`updateTimingFunctionFromName`, which
-                                     writes the COMPLETE re-parseable literal). The
-                                     former trailing `= key` poke (which re-wrote
-                                     the bare `cubic-bezier`/`steps` token over the
-                                     literal → the re-mount `AnimationOptionError`)
-                                     is DELETED. -->
-                                <EasingSelect
+                                     writes the COMPLETE re-parseable literal).
+                                     T.E8 + OD-5 R2 — the bespoke EasingSelect (and
+                                     its tiny hand-plotted trigger-curve, the
+                                     rejected "top-left curve preview") died with
+                                     the instrument/easing cluster: this is the
+                                     standard glass-ui Select over the SAME
+                                     family-grouped named-curve catalogue; the
+                                     CURVE rendering now lives in the vendor
+                                     EasingPicker (detail panel) + the T.E6
+                                     gallery sparklines. -->
+                                <Select
                                     :model-value="timingFunctionKind(storedAnimationOptions.animationOptions.timingFunction)"
-                                    :timing-functions-and="timingFunctionsAnd"
-                                    @update:model-value="(key: string) => updateTimingFunctionFromName(key)"
-                                />
+                                    @update:model-value="(key) => updateTimingFunctionFromName(String(key))"
+                                >
+                                    <SelectTrigger aria-label="Timing function">
+                                        <SelectValue placeholder="Pick a curve" />
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-[var(--easing-dropdown-max-h)]">
+                                        <template v-for="(group, gi) in EASING_GROUPS" :key="group.family">
+                                            <SelectSeparator v-if="gi > 0" />
+                                            <SelectGroup>
+                                                <SelectLabel class="text-admin-label text-muted-foreground px-2 py-1">
+                                                    {{ group.family }}
+                                                </SelectLabel>
+                                                <SelectItem
+                                                    v-for="curveItem in group.items"
+                                                    :key="curveItem.name"
+                                                    :value="curveItem.name"
+                                                    class="pr-2"
+                                                >
+                                                    <span class="flex items-center gap-1.5 w-full min-w-0">
+                                                        <span data-register="code" class="font-mono normal-case">{{ curveItem.name }}</span>
+                                                        <span
+                                                            v-if="curveItem.description"
+                                                            class="ml-auto pl-2 text-dropdown-secondary normal-case text-muted-foreground leading-tight whitespace-nowrap"
+                                                        >{{ curveItem.description }}</span>
+                                                    </span>
+                                                </SelectItem>
+                                            </SelectGroup>
+                                        </template>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <Separator class="my-1" />
@@ -203,7 +235,19 @@
 <script setup lang="ts">
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
-import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import {
+    Card,
+    CardContent,
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectSeparator,
+    SelectTrigger,
+    SelectValue,
+    Separator,
+} from "@mkbabb/glass-ui";
 import { DockIconButton } from "@mkbabb/glass-ui/dock";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
@@ -215,7 +259,9 @@ import LayerConfigPanel from "./LayerConfigPanel.vue";
 import { useAnimationSync } from "../composables/useAnimationSync";
 import { usePlaybackToggle } from "../composables/usePlaybackToggle";
 import { useTimingFunctionEditor } from "../composables/useTimingFunctionEditor";
-import EasingSelect from "@components/custom/instrument/easing/EasingSelect.vue";
+// T.E8 — the named-curve catalogue (the thin name→family data adapter the
+// deleted EasingSelect consumed; the easing scene co-owns it).
+import { EASING_GROUPS } from "../../../../../../scenes/easing/easingGroups";
 
 import { Teleport, computed, onMounted, ref, toRef } from "vue";
 import {

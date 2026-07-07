@@ -26,8 +26,6 @@ import { useSceneMachine } from "@state";
 import { kfEngine } from "@utils/kfEngine";
 import { EASING_SCENE_ID } from "./easingKeys";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
-import { useEasingGhost } from "./useEasingGhost";
-import { useEasingTraceSmear } from "./useEasingTraceSmear";
 
 // ── Static data ────────────────────────────────────────────────────
 
@@ -62,8 +60,12 @@ export function useEasingDemo() {
     });
     const duration = ref(1500);
 
-    // Q.WC2 S2 — the comparison-DIFF ghost (colocated in useEasingGhost).
-    const { ghostPathD, capture: captureGhost, clear: clearGhost } = useEasingGhost();
+    // (T.E6 / OD-7 — the comparison-DIFF ghost + the drag-bend smear DIED with
+    // the singular hero: the specimen drawer IS the scene, every curve's
+    // portrait is always on stage, so a ghost baseline has nothing to diff
+    // against and the smear has no beam to smear. useEasingGhost.ts +
+    // useEasingTraceSmear.ts are deleted; the former design-refinement S5 arm
+    // was already retired at batch ⑧ — this removes its surface.)
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
     // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
@@ -279,8 +281,6 @@ export function useEasingDemo() {
     const selectEasing = (name: string) => {
         currentEasingName.value = name;
 
-        clearGhost(); // Q.WC2 S2 — a fresh selection drops the diff baseline.
-
         // Load bezier control points if available
         const bezier = NAMED_EASING_BEZIER[name];
         if (bezier) {
@@ -297,14 +297,7 @@ export function useEasingDemo() {
     //  button were owner-ruled removals; the T.E6/OD-7 redesigned scene IS the
     //  gallery.)
 
-    // EASTER EGG — "the drag-bend SMEAR" (L.W11 S5): SmoothProgress-decay smear (colocated).
-    const { amount: traceSmearAmount, kickFromPoints } = useEasingTraceSmear();
-
     const updateBezierPoints = (points: [number, number, number, number]) => {
-        // L.W11 S5 — kick the trace smear from the handle update's velocity.
-        kickFromPoints(bezierControlPoints.value, points);
-        // Q.WC2 S2 — capture the named baseline ghost BEFORE the name→custom flip.
-        captureGhost(currentEasingName.value, svgPath.value);
         bezierControlPoints.value = points;
         // If editing a named curve's bezier, switch to custom
         if (currentEasingName.value !== "cubic-bezier") {
@@ -314,11 +307,9 @@ export function useEasingDemo() {
 
     // S.G2 S6 — the former `parseCSSValue` typed-literal round-trip (Q.WC2 S2,
     // consumed ONLY by the deleted writable value-input row in EasingSidebar) is
-    // REMOVED with its sole consumer: the minimal-sidebar gate forbids a CSS-value
-    // text input, so the typed-string paste path retires. Precision authoring rides
-    // the handle drag + the Shift+Arrow fine keyboard nudge; named curves ride the
-    // sole `<EasingSelect>` dropdown. (`captureGhost` keeps its other caller above —
-    // the named→custom bezier-drag ghost capture, line ~313.)
+    // REMOVED with its sole consumer. Precision authoring rides the glass-ui
+    // EasingPicker (T.E8 — handle drag + native steps mode); named curves ride
+    // the gallery tiles (T.E6) + the picker's preset dropdown.
 
     // ── THE EASING PREVIEW CHANNEL (T.B1-β/T.B7 — the decoy is DEAD) ──────────
     // The former contract-group opacity decoy ("Easing Preview", a fake
@@ -429,8 +420,6 @@ export function useEasingDemo() {
         currentFamily,
         comparisonCurves,
 
-        ghostPathD, // Q.WC2 S2 — the comparison-DIFF ghost path.
-
         // Methods
         selectEasing,
         updateBezierPoints,
@@ -438,9 +427,6 @@ export function useEasingDemo() {
         pause,
         togglePlay,
         reset,
-
-        // L.W11 S5 — the drag-bend SMEAR amount (SmoothProgress decay, inv ζ).
-        traceSmearAmount,
 
         // T.B1-β — the SceneFacility descriptor (the ONE real preview channel +
         // the `easing` facet + the raw-rAF playback).

@@ -1,127 +1,65 @@
 <template>
-        <div
-            class="w-full grid justify-items-center"
-        >
-            <template v-if="kind === 'cubic-bezier'">
-                <!-- H.W11.I6 — the inner Card is GONE (de-nested). The detail editor
-                     is a VIEW within the parent controls Card (AnimationControlsControls
-                     is itself the `surface="cartoon"` framed surface), so a second Card
-                     here was pure card-in-card duplication. The bezier editor now flows
-                     into the parent content directly — the `instrument/easing` container
-                     (the `38cqi` canvas-sizing context, H.W4.S1) moves onto this plain
-                     wrapper; the H.W9.F2 title-LEFT / dismiss-RIGHT header pattern is
-                     PRESERVED, re-homed onto the flow (no inner Card, no legacy beside
-                     the replacement). -->
-                <div class="easing-editor grid gap-1 w-full">
-                    <!-- H.W9.F2 — title LEFT, dismiss RIGHT: the idiomatic detail-panel
-                         header, re-homed onto the de-nested flow. -->
-                    <div class="flex items-center justify-between gap-2">
-                        <h3 class="text-title">cubic-bézier</h3>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            class="h-auto p-1 text-muted-foreground hover:text-foreground transition-colors"
-                            aria-label="back to controls"
-                            @click="emit('exitDetailPanel')"
-                        >
-                            <ArrowLeft class="icon-sm" />
-                        </Button>
-                    </div>
-                    <!-- I.W2.S4 — the ONE shared EasingEditor. The in-panel detail
-                         editor now mounts the SAME component the rail does (the
-                         dropdown-via-EasingSelect, the editable canvas, AND the
-                         read-only readout/copy — I.W2.S3, the complete `timingString`
-                         literal, NEVER the bare `cubic-bezier` keyword). The preset
-                         Select is folded into the EasingSelect dropdown the editor
-                         already carries, so the divergent in-panel preset picker is
-                         RETIRED (one selector, one readout home). -->
-                    <EasingEditor
-                        :easing-fn="currentBezierFn"
-                        :svg-path="currentBezierSvgPath"
-                        :progress="progress"
-                        :current-name="kind"
-                        :timing-functions-and="timingFunctionsAnd"
-                        :bezier-points="controlPoints"
-                        :editable="true"
-                        :readout-value="timingString"
-                        @update:bezier-points="onBezierPointsUpdate"
-                        @update:name="onSelectName"
-                    />
-                </div>
-            </template>
-
-            <template v-else-if="kind === 'steps'">
-                <!-- H.W11.I6 — the inner Card is GONE here too (the steps variant was
-                     the same card-in-card shape). The steps editor flows into the parent
-                     controls Card directly. -->
-                <div class="grid gap-2 w-full">
-                    <h3 class="text-title">steps</h3>
-                    <!-- Single-column stacked fields (label OVER control), the same
-                         shape as the sidebar's LabeledField rows — H.W3.S3b collapsed
-                         this panel's own label|control two-track grid. -->
-                    <div class="flex flex-col gap-2">
-                        <div class="flex flex-col gap-1">
-                            <label class="text-small font-medium text-muted-foreground">count</label>
-                            <Input
-                                type="number"
-                                class="font-mono"
-                                :model-value="storedAnimationOptions.stepOptions.steps"
-                                @update:model-value="
-                                    (key: any) => {
-                                        storedAnimationOptions.stepOptions.steps = key;
-                                        emit('updateTimingFunction', 'steps');
-                                    }
-                                "
-                            />
-                        </div>
-
-                        <!-- T.H4 — LabeledSelect pure-consumption: the hand-rolled
-                             jump-term label + raw Select-primitive pair is now the
-                             glass-ui labeled-field idiom (the same LabeledSelect the
-                             sibling AnimationControlsControls / LayerConfigPanel rows use). -->
-                        <LabeledSelect
-                            :model-value="storedAnimationOptions.stepOptions.jumpTerm"
-                            :is-open="jumpTermOpen"
-                            :items="jumpTerms"
-                            label="jump term"
-                            label-class="text-small font-medium text-muted-foreground"
-                            tooltip="steps() jump term"
-                            data-register="code"
-                            class="font-mono"
-                            @update:model-value="
-                                (key: string) => {
-                                    storedAnimationOptions.stepOptions.jumpTerm = key as any;
-                                    emit('updateTimingFunction', 'steps');
-                                }
-                            "
-                            @update:open="(v: boolean) => (jumpTermOpen = v)"
-                        />
-                    </div>
-                </div>
-            </template>
+    <div class="w-full grid justify-items-center">
+        <!-- T.E8 + OD-5 R2 ("that curve preview in the top left needs to be
+             improved dramatically") — the detail panel's hand-rolled curve
+             editor (EasingEditor → EasingCurveCanvas + DemoControlPoint, the
+             instrument/easing cluster) is DELETED; the body IS glass-ui's
+             published `EasingPicker` (bezier drag + native steps mode + the
+             COMPLETE re-parseable readout literal + copy). One vendor
+             primitive, both modes — the hand-built steps count/term rows die
+             with the canvas. The H.W9.F2 title-LEFT / dismiss-RIGHT header
+             survives. -->
+        <div class="easing-editor grid gap-2 w-full">
+            <div class="flex items-center justify-between gap-2">
+                <h3 class="text-title">{{ kind === "steps" ? "steps" : "cubic-bézier" }}</h3>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    class="h-auto p-1 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="back to controls"
+                    @click="emit('exitDetailPanel')"
+                >
+                    <ArrowLeft class="icon-sm" />
+                </Button>
+            </div>
+            <!-- The `:key` remount re-seats the picker when the KIND flips
+                 (glass-ui 4.0.1's modelValue is emit-only — no external
+                 write-through / points-in prop; the re-seat gap is forwarded
+                 in KF-TO-GLASSUI-BG.md §FORWARDING). A custom stored quad has
+                 no seedable preset — the picker opens on its catalogue default
+                 and the first authored edit writes through (the initialPoints
+                 ask rides the same forward). -->
+            <EasingPicker
+                :key="pickerKey"
+                :mode="kind === 'steps' ? 'steps' : 'bezier'"
+                :preset="seedPreset"
+                :steps="storedAnimationOptions.stepOptions.steps"
+                :term="storedAnimationOptions.stepOptions.jumpTerm as JumpTerm"
+                :playback="false"
+                label="Easing curve editor"
+                @update:model-value="onPickerChange"
+            />
         </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import type { TimingFunction, TimingFunctionNames } from "@mkbabb/keyframes.js";
+import type { TimingFunctionNames } from "@mkbabb/keyframes.js";
 import type { StoredAnimationOptions } from "@state";
 
-import {
-    CSSCubicBezier,
-    cubicBezierToString,
-    jumpTerms,
-} from "@mkbabb/value.js";
-import { generateCurveSVGPath } from "./timingCurveUtils";
+import { CSSCubicBezier, bezierPresets } from "@mkbabb/value.js";
 import { timingFunctionKind } from "../animationDescriptions";
 
 import { Button } from "@mkbabb/glass-ui";
-import { Input } from "@mkbabb/glass-ui/forms";
-import { LabeledSelect } from "@mkbabb/glass-ui/labeled-field";
+import {
+    EasingPicker,
+    type EasingPickerValue,
+    type JumpTerm,
+} from "@mkbabb/glass-ui/easing";
 
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { ArrowLeft } from "@lucide/vue";
-import EasingEditor from "@components/custom/instrument/easing/EasingEditor.vue";
 
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -135,122 +73,94 @@ const emit = defineEmits<{
     (e: "updateTimingFunction", key: TimingFunctionNames | "cubic-bezier" | string): void;
 }>();
 
-// T.H4 — the jump-term LabeledSelect owns its own open flag (the labeled-field
-// controlled-open contract, mirroring the sibling AnimationControlsControls rows).
-const jumpTermOpen = ref(false);
-
-// I.W2.S3 — the stored value is a re-parseable LITERAL now; the panel keys its
+// I.W2.S3 — the stored value is a re-parseable LITERAL; the panel keys its
 // cubic-bezier-vs-steps view off the KIND (literal-aware).
 const kind = computed(() =>
     timingFunctionKind(props.storedAnimationOptions.animationOptions.timingFunction),
 );
 
-// ── Cubic bezier state ──────────────────────────────────────────
+// ── Seeding (best-effort against the vendor's initial-prop-only seam) ──────
+const quadEq = (
+    a: readonly number[],
+    b: readonly number[],
+): boolean => a.length === b.length && a.every((v, i) => Math.abs(v - b[i]!) < 0.0005);
 
-const controlPoints = computed<[number, number, number, number]>(
-    () => props.storedAnimationOptions.cubicBezierOptions.controlPoints as [number, number, number, number],
-);
+/** Seed the bezier canvas from the STORED quad when the picker's own
+ *  catalogue carries a matching preset (else the catalogue default — the
+ *  stored literal itself stays authoritative until an authored edit). */
+const seedPreset = computed<string | undefined>(() => {
+    if (kind.value === "steps") return undefined;
+    const stored = props.storedAnimationOptions.cubicBezierOptions
+        .controlPoints as readonly number[];
+    return Object.keys(bezierPresets).find((n) =>
+        quadEq(bezierPresets[n as keyof typeof bezierPresets], stored),
+    );
+});
 
-const currentBezierFn = computed<TimingFunction>(
-    () => CSSCubicBezier(...controlPoints.value),
-);
+const pickerKey = computed(() => `${kind.value}:${seedPreset.value ?? "custom"}`);
 
-const currentBezierSvgPath = computed(
-    () => generateCurveSVGPath(currentBezierFn.value),
-);
+// The (re)mount's immediate v-model emission is the SEED echoing back —
+// recognized BY VALUE so opening the panel never clobbers the animation's
+// stored curve with the catalogue default.
+const isSeedEcho = (v: EasingPickerValue): boolean => {
+    if (v.mode === "steps") {
+        const cur = props.storedAnimationOptions.stepOptions;
+        const term = String(cur.jumpTerm);
+        return (
+            v.steps === cur.steps &&
+            (v.term === term || `jump-${v.term}` === term)
+        );
+    }
+    const stored = props.storedAnimationOptions.cubicBezierOptions
+        .controlPoints as readonly number[];
+    if (quadEq(v.points, stored)) return true;
+    // The default-seeded custom case: the echo carries the catalogue seed's
+    // quad (not the stored one) — skip it so the stored curve survives open.
+    const seed = seedPreset.value;
+    if (!seed) {
+        // No preset matched the stored quad → the picker mounted on its
+        // default; its first emission is that default's quad.
+        return quadEq(
+            v.points,
+            bezierPresets["ease-out-back" as keyof typeof bezierPresets],
+        );
+    }
+    return false;
+};
 
-// The COMPLETE, re-parseable `cubic-bezier(x1, y1, x2, y2)` literal — the value
-// the shared EasingEditor reads out + copies (I.W2.S3), NEVER the bare keyword.
-const timingString = computed(
-    () => cubicBezierToString(...controlPoints.value),
-);
-
-const onBezierPointsUpdate = (pts: [number, number, number, number]) => {
+// ── The authored edit → the ONE persist seam ───────────────────────────────
+const onPickerChange = (v: EasingPickerValue | undefined) => {
+    if (!v || isSeedEcho(v)) return;
+    if (v.mode === "steps") {
+        props.storedAnimationOptions.stepOptions.steps = v.steps;
+        props.storedAnimationOptions.stepOptions.jumpTerm = (
+            v.term.startsWith("jump-") ? v.term : `jump-${v.term}`
+        ) as any;
+        emit("updateTimingFunction", "steps");
+        return;
+    }
+    const pts = v.points as [number, number, number, number];
     props.storedAnimationOptions.cubicBezierOptions.controlPoints = pts;
-
     const timingFunction = CSSCubicBezier(...pts);
     props.animation.options.timingFunction = timingFunction;
     props.animation.frames.forEach((frame) => {
         frame.timingFunction = timingFunction;
     });
-
     // The parent's `updateTimingFunctionFromName` re-derives + PERSISTS the
-    // complete `cubic-bezier(...)` literal from the live control points (I.W2.S3
-    // — the ONE persist seam), so a re-mount round-trips with no
+    // complete `cubic-bezier(...)` literal from the live control points
+    // (I.W2.S3 — the ONE persist seam), so a re-mount round-trips with no
     // AnimationOptionError.
     emit("updateTimingFunction", "cubic-bezier");
-};
-
-// I.W2.S4 — the in-panel editor's shared EasingSelect can now CHANGE the curve
-// (the affordance the rail always had). A pick routes through the SAME persist
-// seam as the dropdown (the parent maps `updateTimingFunction` →
-// `updateTimingFunctionFromName`, which writes the re-parseable literal).
-const onSelectName = (name: string) => {
-    emit("updateTimingFunction", name as TimingFunctionNames | "cubic-bezier");
 };
 </script>
 
 <style scoped>
-/* H.W4.S1 — the cubic-bézier detail Card is an `instrument/easing` container so
-   the nested EasingCurveCanvas sizes its block off THIS Card's inline size
-   (`38cqi`), bounded in [160px, 280px] — the same container the EasingSidebar
-   declares, so the canvas is capped in BOTH render hosts. Baseline-2023
-   (container queries Widely available since 2023-02-14) — no fallback owed. */
+/* H.W4.S1 lineage — the detail body is a container so the picker's `38cqi`
+   canvas sizing resolves off THIS panel's inline size (both render hosts
+   bounded; the hand-rolled canvas's measured px-arithmetic clamps died with
+   the cluster — the vendor's own clamp(200px, 38cqi, 320px) governs). */
 .easing-editor {
     container-type: inline-size;
     container-name: easing-editor;
-}
-
-/* H.W11.I7 — the in-panel bezier canvas GROWS to fill the container (the user:
-   "make the bezier controls as BIG/TALL as possible"). I6's inner-Card removal
-   freed the vertical space the W9 220px cap was hoarding against (the two
-   compose: de-nest → more room → grow the canvas to fill it).
-
-   MEASURE-FIRST against the LIVE detail render (cube scene, the bezier detail
-   panel open). The detail-panel host caps at `min(50dvh, 480px)` — VIEWPORT-HEIGHT
-   bound, so it is 360px at a 720-tall viewport and 450px at 900. The de-nested
-   chrome around the canvas (title/readout header + the preset Select + grid gaps)
-   + the `.easing-curve-canvas-wrapper` 0.5rem padding measured 136px total
-   (`scrollHeight − canvasBlockSize`, live, both viewports). So the canvas BUDGET
-   before scroll = `min(50dvh, 480px) − 136px` — 224px at 720, 314px at 900.
-
-   THE GROW — `block-size: clamp(232px, 78cqi, 300px)` lands a 232px FLOOR (a REAL
-   grow over W9's 220 → `proof:bezier-grown` bites: 232 > 220), growing toward the
-   300/46vh ceiling on a wider rail. But the W9 fit-without-scroll invariant
-   (`proof:bezier-no-scroll`) is VIEWPORT-HEIGHT bound, NOT rail-inline bound — at a
-   720-tall viewport the 360px host could not hold a 232px canvas (232 + 136 = 368 >
-   360 → 8px overflow). The 78cqi term ties height to the RAIL inline width (296px →
-   231px), which is identical at 720 and 900, so it cannot self-correct for the
-   shorter cap. The `max-block-size` therefore TRACKS the viewport-height budget:
-   `calc(min(50dvh, 480px) − 9rem)` = 360 − 144 = 216px would clamp BELOW 220 at 720
-   (too tight), so the trim is `8.5rem` (136px) — exactly the measured chrome — minus
-   a 1px sub-pixel guard: `calc(min(50dvh, 480px) − 137px)` resolves 223px at 720
-   (> 220 → grown; 223 + 136 = 359 ≤ 360 → FITS) and 313px at 900 (the rail-inline
-   78cqi floor of 232 wins there — generous height). So both gates hold at BOTH
-   anchors: grown above 220 AND fits without scroll. The square LAW is PRESERVED
-   (`aspect-ratio:1` from EasingCurveCanvas — the 280px-wide canvas is never shorter
-   than width-driven; the height clamp only bounds the block axis). `:deep()` reaches
-   the child's scoped canvas; the bounded ceiling wins over the canvas's own 280 cap.
-
-   J.W7b STY-2 — the viewport term is `50dvh` (dynamic viewport), matching the
-   detail-panel HOST cap (AnimationControlsControls.vue) it mirrors: correct on
-   mobile URL-bar chrome, identical to 50vh on desktop (the measured 720/900
-   anchors above are unchanged). */
-:deep(.easing-curve-canvas) {
-    block-size: clamp(232px, 78cqi, 300px);
-    max-block-size: calc(min(50dvh, 480px) - 137px);
-}
-
-/* I.WZ — the I.W6 native-font reclaim (Plus Jakarta → native sans) re-rendered the
-   detail-panel chrome ~4px TALLER, pushing the bezier stack 3px past the
-   `min(50dvh, 480px)` host cap at a 720-tall viewport → a scrollbar
-   (`proof:bezier-no-scroll` + the `proof:bezier-grown` "still fits" clause both red).
-   The grown canvas must stay above the W9 220px floor (`proof:bezier-grown` clause 1),
-   so the fix RECLAIMS the room from the canvas-wrapper's block padding — scoped to the
-   DETAIL panel only (the easing sidebar keeps its `p-2`, it has the pane room). 8px→4px
-   each side trims 8px of chrome (5px margin under the 360px cap), the canvas stays 223px
-   (> 220 grown). */
-:deep(.easing-curve-canvas-wrapper) {
-    padding-block: 0.25rem;
 }
 </style>
