@@ -35,11 +35,14 @@
  *       h1.top on the lower φ band (≥ 0.38 × viewport), and the hero band
  *       resolves a positive z-index (the ink PRINTS over the die — the real
  *       H3 cure); the cube overlap is measured + reported, never failed.
- *   (d) the easing stage's projected curve PRESENT + MUTATING on a real handle
- *       drag (the S4 math oracle): .easing-stage-curve-path has a non-empty `d`,
- *       distinct from the sidebar .bezier-path; a REAL mouse drag of sidebar
- *       handle[data-index=0] MUTATES the projected `d` (the ball traverses its
- *       OWN curve, not a flat rail).
+ *   (d) the easing stage projects THE CURVES — re-cut at the easing TERMINAL
+ *       batch (T.E6/OD-7: the singular hero + its .easing-stage-curve-path
+ *       projection are DELETED; the specimen drawer is the stage): every
+ *       specimen tile carries its OWN non-empty sparkline portrait `d`, the
+ *       portraits are per-curve DISTINCT (≥2 sampled curves differ), so the
+ *       stage never regresses to "a ball on a flat rail, no curve" (the
+ *       pre-suffusion defect). The ball-traverses-its-own-curve MOTION half is
+ *       proof:easing-gallery clause (2) (the analytic fn(φ)·maxX oracle).
  *   (e) the ghost rail ABSENT (the S5 grammar oracle, the APPEARANCE-CERTIFICATION
  *       fact J.W4 §S5 also certifies): on sequence + motion-path (CONTROL_SURFACES
  *       = []) the [rail] track computes 0px AND .controls-layout--railless is
@@ -63,7 +66,9 @@
  * per-finding computed-style asserts are DEVICE-INDEPENDENT facts and HARD-gate.
  * Absolute-pixel appearance stays owned by proof:visual-lock (observe-only in CI
  * per P6, re-captured by W7a). proof:gate-is-runtime classifies THIS gate
- * RUNTIME/INTERACTION (the clause (d) handle drag is the strong actuation).
+ * RUNTIME/INTERACTION (the cross-scene navToScene sweep is the actuation; the
+ * former clause-(d) handle drag died with the hero at the easing terminal —
+ * the drag actuation now lives in proof:easing-editor-live v2 clause (b)).
  *
  * P6 posture: hard (device-INDEPENDENT computed-style/geometry facts). Under
  * KF_REQUIRE_BROWSER a harness-absent skip is a hard fail at the lib seam.
@@ -310,66 +315,47 @@ async function runSuffusion() {
                 );
             }
 
-            // ── (d) the easing projected curve PRESENT + MUTATING on a handle drag ──
-            // (run before (c) so we stay on the desktop viewport for the drag)
+            // ── (d) the easing stage projects THE CURVES (re-cut, T.E6/OD-7) ──
+            // The singular hero's projected curve died with the hero; the drawer
+            // IS the stage — every tile's sparkline is that curve's portrait.
             await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-            await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 12000 });
+            await navToScene(page, "easing", "Curve", { timeout: 12000 });
             await page.waitForTimeout(900);
-            const curveBefore = await page.evaluate(() => ({
-                stage: document.querySelector(".easing-stage-curve-path")?.getAttribute("d") ?? null,
-                sidebar: document.querySelector(".bezier-path")?.getAttribute("d") ?? null,
-                stageExists: !!document.querySelector(".easing-stage-curve-path"),
-                distinct:
-                    document.querySelector(".easing-stage-curve-path") !==
-                    document.querySelector(".bezier-path"),
-            }));
-            if (!curveBefore.stageExists || !curveBefore.stage || curveBefore.stage.length < 8) {
-                fail(
-                    `(d) the easing stage's projected curve is ABSENT or empty ` +
-                        `(exists=${curveBefore.stageExists}, d.len=${curveBefore.stage?.length}) — ` +
-                        `the stage shows a ball on a flat rail, no projected bezier (the pre-suffusion defect)`,
-                );
-            } else if (!curveBefore.distinct) {
-                fail(
-                    `(d) the projected curve is NOT a distinct element from the sidebar .bezier-path — ` +
-                        `the stage must project its OWN curve, not reuse the sidebar canvas`,
+            const portraits = await page.evaluate(() => {
+                const paths = [...document.querySelectorAll(".tile-sparkline path")];
+                const ds = paths.map((p) => p.getAttribute("d") || "");
+                const linear = document
+                    .querySelector('.tile-ball[data-curve="linear"]')
+                    ?.closest(".specimen-tile")
+                    ?.querySelector(".tile-sparkline path")
+                    ?.getAttribute("d");
+                const expo = document
+                    .querySelector('.tile-ball[data-curve="ease-in-expo"]')
+                    ?.closest(".specimen-tile")
+                    ?.querySelector(".tile-sparkline path")
+                    ?.getAttribute("d");
+                return {
+                    count: paths.length,
+                    nonEmpty: ds.filter((d) => d.length >= 8).length,
+                    distinct: !!linear && !!expo && linear !== expo,
+                };
+            });
+            if (
+                portraits.count >= 30 &&
+                portraits.nonEmpty === portraits.count &&
+                portraits.distinct
+            ) {
+                ok(
+                    `(d) the easing stage projects THE CURVES — ${portraits.count} specimen sparkline ` +
+                        `portraits, every one non-empty, per-curve distinct (linear ≠ ease-in-expo); ` +
+                        `no ball-on-a-flat-rail regression (the motion half is proof:easing-gallery (2))`,
                 );
             } else {
-                // A REAL mouse drag of sidebar handle circle[data-index=0].
-                const handle = await page.evaluate(() => {
-                    const h = document.querySelector("circle[data-index='0']");
-                    if (!h) return null;
-                    const r = h.getBoundingClientRect();
-                    return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
-                });
-                if (!handle) {
-                    fail("(d) the sidebar bezier handle circle[data-index=0] is absent — the drag oracle cannot run");
-                } else {
-                    await page.mouse.move(handle.x, handle.y);
-                    await page.mouse.down();
-                    await page.mouse.move(handle.x + 45, handle.y - 65, { steps: 14 });
-                    await page.mouse.up();
-                    await page.waitForTimeout(500);
-                    const curveAfter = await page.evaluate(() => ({
-                        stage: document.querySelector(".easing-stage-curve-path")?.getAttribute("d") ?? null,
-                        sidebar: document.querySelector(".bezier-path")?.getAttribute("d") ?? null,
-                    }));
-                    const stageMoved = curveAfter.stage !== curveBefore.stage;
-                    const sidebarMoved = curveAfter.sidebar !== curveBefore.sidebar;
-                    if (stageMoved && sidebarMoved) {
-                        ok(
-                            `(d) the projected stage curve PRESENT (distinct element, d.len ` +
-                                `${curveBefore.stage.length}) AND MUTATES on a real handle drag (stage d changed ` +
-                                `in lockstep with the sidebar — the ball traverses its OWN live curve, not a flat rail)`,
-                        );
-                    } else {
-                        fail(
-                            `(d) the handle drag did NOT mutate the projected curve in lockstep ` +
-                                `(stageMoved=${stageMoved}, sidebarMoved=${sidebarMoved}) — a static (non-` +
-                                `bezierPathD-bound) projection that does not track the live curve still REDs`,
-                        );
-                    }
-                }
+                fail(
+                    `(d) the easing stage's curve portraits regressed — tiles=${portraits.count} ` +
+                        `(need ≥30), nonEmpty=${portraits.nonEmpty}, distinct=${portraits.distinct} — ` +
+                        `a ball on a flat rail with no curve is the pre-suffusion defect`,
+                );
             }
 
             // ── (e) the ghost rail ABSENT on the empty-DFA scenes ──────────────
@@ -614,8 +600,8 @@ await runSuffusion();
 if (failures.length > 0) {
     console.error(
         `\nproof:appearance-suffusion — FAIL (${failures.length}): a per-finding appearance oracle red — ` +
-            "the suffusion (the --ball-tone hue map · the display register · the mobile overlap · the projected " +
-            "mutating curve · the railless track · the rounded amiga · the legible substrate) is incomplete or regressed.",
+            "the suffusion (the --ball-tone hue map · the display register · the mobile overlap · the specimen " +
+            "curve portraits · the railless track · the rounded amiga · the legible substrate) is incomplete or regressed.",
     );
     process.exit(1);
 }
@@ -624,7 +610,7 @@ console.log(
         "built dist — the --ball-tone carries each scene's icon hue (violet/cyan/green/teal, aquamarine dead), " +
         "the Instrument-Serif display register lands at the named moments (amiga headerless), the 390×844 " +
         "hero clears the docks on the lower φ band (overlap-with-die welcome, ink printing over it), the " +
-        "easing stage projects its OWN curve and it mutates on a real handle " +
-        "drag, the ghost rail is absent, the amiga is rounded-glass, and the substrate is legible two-tier " +
+        "easing drawer projects every specimen's OWN distinct curve portrait (the T.E6 re-cut — the motion " +
+        "half rides proof:easing-gallery), the ghost rail is absent, the amiga is rounded-glass, and the substrate is legible two-tier " +
         "graph paper (W6-3 discharged). The design suffusion is certified through the human's eye, clause by clause.",
 );

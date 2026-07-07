@@ -121,7 +121,10 @@ console.log("proof:dfa-derived — T.B2 (control-surface DFA: exclusion table �
 // picker over the triad (+ facet). On the pre-T.B2 tree easing/spring elided to a
 // SINGLE non-select surface (no combobox at all), so the picker's presence is the
 // direct witness that the painting channel earned its triad (>1 surface). The
-// trigger's collapsed label reads the SELECTED surface (default 'controls').
+// trigger's collapsed label reads the SELECTED surface — item-7a (the easing
+// TERMINAL batch): the default is SCENE-AWARE (cube → 'Controls'; easing →
+// its Curve facet; spring → Physics), so the census asserts the per-scene
+// expected label, and the COMBOBOX presence stays the triad witness.
 const controlSelect = (page) =>
     page.evaluate(() => {
         const trig = document.querySelector("[aria-label='Controls tab']");
@@ -144,24 +147,30 @@ async function browserHalf() {
             await page.waitForTimeout(3000);
 
             let clean = 0;
-            const paintingScenes = ["cube", "easing", "spring"];
-            for (const id of paintingScenes) {
-                await navToScene(page, id, "Controls");
+            // item-7a: the expected COLLAPSED label is the scene-aware default
+            // (SCENE_DEFAULT_CONTROL) — the combobox presence is the triad tell.
+            const paintingScenes = [
+                { id: "cube", label: "Controls" },
+                { id: "easing", label: "Curve" },
+                { id: "spring", label: "Physics" },
+            ];
+            for (const { id, label } of paintingScenes) {
+                await navToScene(page, id, label);
                 await page.waitForTimeout(300);
                 const s = await controlSelect(page);
                 // The triad grants >1 surface ⇒ the dock renders the MULTI-option
                 // control SELECT (a combobox), not a single elided inline surface.
-                if (s.present && s.isCombobox && s.label === "Controls") {
+                if (s.present && s.isCombobox && s.label === label) {
                     clean++;
                     ok(
-                        `L1 ${id}: renders the multi-surface control SELECT (combobox, label='Controls') ` +
+                        `L1 ${id}: renders the multi-surface control SELECT (combobox, label='${label}') ` +
                             `— the painting channel earned its triad (the #25 cure)`,
                     );
                 } else {
                     fail(
                         `L1 ${id} — the painting-channel scene did NOT render the triad's multi-surface ` +
-                            `select (present:${s.present}, combobox:${s.isCombobox}, label='${s.label}'); ` +
-                            `the derivation must grant a painting channel its triad`,
+                            `select (present:${s.present}, combobox:${s.isCombobox}, label='${s.label}', ` +
+                            `expected '${label}'); the derivation must grant a painting channel its triad`,
                     );
                 }
             }

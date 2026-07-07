@@ -217,9 +217,11 @@ const dockTrigger = (page) =>
 //     scrub) renders iff the field is 'easing'/'spring' (the slot guard).
 // T.B9 — the ONE keyspace: the option stores key by the registry SceneId
 // (lowercase), NOT the retired PascalCase super-key. T.B2 — easing/spring each
-// carry a PAINTING preview channel, so they earn the full triad: the default
-// selected surface is 'controls' (the set's first member) and the control-tab
-// trigger reads "Controls" (the pre-T.B2 single-surface elision is superseded).
+// carry a PAINTING preview channel, so they earn the full triad. item-7a (the
+// easing TERMINAL batch): the DEFAULT selected surface is SCENE-AWARE
+// (SCENE_DEFAULT_CONTROL — the store seeds fresh buckets with the signature
+// facet), so on a gestureless sweep easing renders its Curve facet ('easing')
+// and spring its Physics facet ('spring'); the trigger reads the FACET label.
 const SWEEP = [
     {
         scene: "cube",
@@ -231,14 +233,14 @@ const SWEEP = [
     {
         scene: "easing",
         superKey: "easing",
-        trigger: "Controls",
-        expect: "controls",
+        trigger: "Curve",
+        expect: "easing",
     },
     {
         scene: "spring",
         superKey: "spring",
-        trigger: "Controls",
-        expect: "controls",
+        trigger: "Physics",
+        expect: "spring",
     },
     { scene: "sequence", superKey: "sequence", trigger: null, expect: null },
     {

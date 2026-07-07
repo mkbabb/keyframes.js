@@ -1541,7 +1541,7 @@ function reportBattery(budget, dom) {
 
     verdict("B1", "B1 DE-VACUOUSED — the COLD hero play STARTS the engine (aria flips Play→Pause + slider advances from \"0\"; the wrapper count GATED on aria, idle bob excluded)", "proof:cold-entry (K.W0 S6)");
     verdict("B2", "B2 synthetic visibilitychange on a playing scene raises NO _gen throw", "proof:fsm-suspend-resume-live");
-    verdict("B4", "B4 switch-into-easing mounts the curve canvas + a handle-drag mutates", "proof:easing-editor-live");
+    verdict("B4", "B4 switch-into-easing mounts the EasingPicker + a handle-drag mutates", "proof:easing-editor-live");
     verdict("B3", "B3 amiga centre-drag moves the SUBJECT not the room", "proof:amiga-subject-is-pivot");
     verdict("B6", "B6 /square drag selects NO text + the transform PERSISTS", "proof:drag-gesture (+ proof:perf-frame-budget)");
     verdict("B7", "B7 the glass ::before carry NO bloom at rest", "proof:specular-absent-at-rest");
@@ -1587,7 +1587,7 @@ console.log(
     "\nproof:live-session — PASS: ONE interaction-driven session over the BUILT dist drove the rainbow play + " +
         "the morphing-dock switch + the synthetic visibility tick + the drags, accumulated a ZERO error budget " +
         "(S2a, the complement of the named-benign set) across the WHOLE battery, AND asserted the product-facing " +
-        "DOM — the cube draw loop LIVE (B1), the suspend raising no _gen throw (B2), the easing canvas + handle-" +
+        "DOM — the cube draw loop LIVE (B1), the suspend raising no _gen throw (B2), the EasingPicker mount + handle-" +
         "drag mutation (B4), the amiga subject moving not the room (B3), the square drag selecting no text + " +
         "persisting (B6), the glass ::before flat at rest (B7), every glyph painting (B9), the body font not " +
         "Plus Jakarta (font) — PLUS the J.W4 axes legs: every routed scene entered + played + switched through " +

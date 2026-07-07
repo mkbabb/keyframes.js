@@ -1,5 +1,5 @@
 {
-    "_doc": "T.D1 — the role → tuple manifest (the committed artifact proof:font-census's clause (e) reads). Each role binds a SELECTOR CONTRACT to the tuple it must resolve live: voice ∈ {display, body, mono} (family axis), computed weight, size bounds, style. The VALUES consume the OD-6 owner token (APPROVED 2026-07-05 \"Good.\", the P-THEME blessed reference worktree-wf_1e744f4d-2bb-3): Instrument Serif display at its TRUE 400 ≥28px, Plus Jakarta Sans body/chrome, Fira Code confined to code/data. `monoAllowedSelectors` is the T.D4 data-register contract — a Fira-Code leaf must match it or the census reds (mono is DATA, never the UI voice); `monoCeiling` is the declared non-editor mono leaf ceiling (desktop sweep, regression-proof).",
+    "_doc": "T.D1 — the role → tuple manifest (the committed artifact proof:font-census's clause (e) reads). Each role binds a SELECTOR CONTRACT to the tuple it must resolve live: voice ∈ {display, body, mono} (family axis), computed weight, size bounds, style. The VALUES consume the OD-6 owner token (APPROVED 2026-07-05 \"Good.\", the P-THEME blessed reference worktree-wf_1e744f4d-2bb-3): Instrument Serif display at its TRUE 400 ≥28px, Plus Jakarta Sans body/chrome, Fira Code confined to code/data. `monoAllowedSelectors` is the T.D4 data-register contract — a Fira-Code leaf must match it or the census reds (mono is DATA, never the UI voice); `monoCeiling` is the declared non-editor mono leaf ceiling (desktop sweep, regression-proof; re-derived 70\u219290 at the easing TERMINAL batch \u2014 T.E6's 33 specimen-tile curve identifiers are DATA (`data-register=code`), measured 81 live + slack).",
     "roles": [
         {
             "role": "dock-label",
@@ -74,9 +74,11 @@
         ".code-token",
         "[data-slot='select-trigger']",
         "[data-slot='select-trigger'] *",
+        "[data-testid='easing-picker']",
+        "[data-testid='easing-picker'] *",
         ".metric-badge",
         ".metric-badge *"
     ],
-    "_monoContract": "T.D4 (RULED) — Fira Code is the DATA register only: literals + tabular digits. A mono leaf must be (a) real code/kbd/pre content, (b) a tabular numeric readout (`tabular-nums`), (c) an explicit identifier chip marked `data-register=\"code\"` (curve names, CSS keywords, the @mbabb handle, preset names — reviewed exceptions, self-documented at the call-site), or (d) a glass-ui-OWNED data voice consumed as-shipped (the SelectTrigger `fira-code` value default — CSS-keyword values; the MetricBadge telemetry label idiom). A new demo-authored mono UI label reds the census.",
-    "monoCeiling": 70
+    "_monoContract": "T.D4 (RULED) — Fira Code is the DATA register only: literals + tabular digits. A mono leaf must be (a) real code/kbd/pre content, (b) a tabular numeric readout (`tabular-nums`), (c) an explicit identifier chip marked `data-register=\"code\"` (curve names, CSS keywords, the @mbabb handle, preset names — reviewed exceptions, self-documented at the call-site), or (d) a glass-ui-OWNED data voice consumed as-shipped (the SelectTrigger `fira-code` value default — CSS-keyword values; the MetricBadge telemetry label idiom; the EasingPicker curve-authoring instrument \u2014 its section captions + readout literal ship in the vendor's own mono-caption data voice, T.E8). A new demo-authored mono UI label reds the census.",
+    "monoCeiling": 90
 }
