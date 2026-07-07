@@ -526,15 +526,23 @@ export const T_BORNRED_BACKLOG = {
         dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
         reason:
             "the count clause reds while the proof:* roster exceeds the declared ceiling " +
-            `(${ROSTER_CEILING}); today 228 (batch ⑧: 231 − the gesture-manifest / easter-egg ` +
-            "/ design-refinement retirement = 228; each altitude band kept authoring MORE " +
-            "born-RED oracles than the M7 retirements removed, so the count converges SLOWLY). " +
-            "It CONVERGES as the remaining M7 feature-coupled retirements (the easing surface-" +
-            "locks, crayon, icon-paint-live) + the FROZEN discharge land — a declared backlog, " +
-            "not a mask.",
+            `(${ROSTER_CEILING}); today 236 (batch ⑧: 231 − gesture-manifest / easter-egg / ` +
+            "design-refinement = 228, then batch ⑩'s edict fold AUTHORED the styles-split / " +
+            "colocation-keystone / purge-terminal born-RED oracles back up to 236 — the diet " +
+            "keeps inverting as each altitude band adds MORE structural gates than the M7 " +
+            "retirements remove). It CONVERGES as the LANE-1 easing-terminal retirements (the " +
+            "five FROZEN easing surface-locks — easing-canvas-bounded / scene-uses-standard-" +
+            "ribbon / easing-sidebar-normalized / easing-sidebar-minimal / easing-stage-is-ball) " +
+            "+ crayon + the external-blocked FROZEN discharges land — a declared T born-RED " +
+            "backlog, not a mask.",
     },
     "proof:owner-golden": {
-        dischargedBy: "the owner golden-blessing at review",
+        dischargedBy:
+            "THE DELEGATED BLESSING POST-⑪ — per OWNER-ASKS row 4 (the blanket " +
+            "ratification, 2026-07-06: \"Ratify all with your best judgment\"), the M3 " +
+            "golden blessing executes post-terminal-batch under the delegated judgment " +
+            "(no further owner round-trip required); the committed BLESSED.json token " +
+            "over the 12 candidate frames is authored under that delegation at the T.Z close.",
         reason:
             "T.M3 — the owner-anchored perceptual reference oracle that SUPERSEDES " +
             "proof:visual-lock's self-captured baseline + full-subject mask (the one " +
@@ -563,17 +571,14 @@ export const T_BORNRED_BACKLOG = {
             "(picked=false) — a stale-driver red on an E8-retire-target surface, " +
             "not a product defect (the editor itself functions; live-session B4 green).",
     },
-    "proof:easing-sidebar-minimal": {
-        dischargedBy:
-            "the easing TERMINAL batch (T.E8/T.E6 post-OD-7) — same class as " +
-            "easing-curve-editor: the J clauses need the Curve facet SELECTED " +
-            "(post-T.B2 easing opens on Controls), and the sidebar body is the " +
-            "E8/E6 redesign surface.",
-        reason:
-            "'.easing-curve-canvas:false — the sidebar never painted' — the gate's " +
-            "mount path predates the T.B7 Curve-facet dissolution + T.B2 derived " +
-            "default tab; a stale-driver red on a retire-target surface.",
-    },
+    // (proof:easing-sidebar-minimal was double-listed here AND in RETIREMENT_LEDGER —
+    //  the model violation proof:retirement-ledger (T.M7) REDs on (a key is either
+    //  being RETIRED or being GREENED, never both). It is a RETIRE-target (the easing
+    //  terminal T.E6/T.E8, OD-7, deletes the surface), so its single home is
+    //  RETIREMENT_LEDGER above; this backlog duplicate was removed at batch ⑪ close-prep
+    //  (T.M7 convergence sweep). It stays a live FROZEN_SET member + ci-coverage EXCLUDED
+    //  entry until lane-1's easing terminal retires the gate — the RETIREMENT_LEDGER
+    //  PENDING status accounts its failure meanwhile.)
     "proof:visual-lock": {
         dischargedBy:
             "T.A3 LANDED (the easeInBounce mount intro is replaced by the deterministic " +

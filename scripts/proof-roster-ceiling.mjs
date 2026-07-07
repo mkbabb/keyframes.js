@@ -47,8 +47,9 @@ const CEILING = Number(process.env.KF_ROSTER_CEILING || ROSTER_CEILING);
     if (proofKeys.length > CEILING) {
         failures.push(
             `count-ceiling (T.M8.1, BORN-RED backlog) — ${proofKeys.length} proof:* gates exceed the ` +
-                `declared roster ceiling of ${CEILING}. S.A4's diet INVERTED (203 today). This CONVERGES ` +
-                "as M7's feature-coupled retirements + the FROZEN discharge land — a declared T born-RED " +
+                `declared roster ceiling of ${CEILING}. S.A4's diet INVERTED (203 at S-close; batch ⑩'s ` +
+                "edict fold re-authored it up further). This CONVERGES as the lane-1 easing-terminal " +
+                "retirements + crayon + the external-blocked FROZEN discharges land — a declared T born-RED " +
                 "backlog row (scripts/gate-bands.mjs T_BORNRED_BACKLOG), not a mask.",
         );
     } else {

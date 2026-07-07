@@ -533,3 +533,79 @@ charter (the perf oracle names the seam; the scene/theme/structure work lands th
    blocking-not-OBSERVE doctrine; this band executes it across all three sibling steps. Flagged (an
    arming-audit-shaped note applied to CI wiring): un-silencing one perf/a11y step while leaving its
    siblings neutered re-opens the leak — audit all three in one motion.
+
+---
+
+## Landing notes — batch ⑪ close-prep (2026-07-06)
+
+### T.G2 — the master-rAF-clock DISPOSITION (RECORDED, `proof:single-raf-clock` NOT authored)
+
+**The last open G question, resolved.** The wave-doc's `proof:single-raf-clock` presumed a
+MASTER CLOCK all scene/control loops subscribe to, gated by a source-grep with **allowlist=1**
+(one driver module, avg rAF/frame ≤1.2, peak ≤3). Post-⑧/⑩, that shape does NOT fit what landed —
+and the perf defect it targeted was cured by a different, measured mechanism.
+
+**What the defect actually was, and what cured it.** The measured fault (lane 11 §5: avg 3–5 /
+peak 14–30 concurrent rAF callbacks/frame) was **gratuitous fan-out from perpetual preview loops
+that never rested** — not the absence of a shared clock. It was cured by **T.G3 TRUE REST** (batch
+⑧: cube/spring/easing measured **0.00 recalc+layout/frame at idle**; `proof:perf-counters` is now
+BLOCKING) + **T.G4** (transform-not-`left`) + the loops converging onto the house recipe. The
+fan-out was gratuitous *only because loops never rested*; now they rest, so the concurrent-callback
+count collapses at idle without any master clock.
+
+**The 5 surviving raw-rAF / `useRafFn` owners (grepped at HEAD, post-⑩ fold), each honest:**
+
+| Site (post-⑩ path) | Shape | Disposition |
+|---|---|---|
+| `demo/scenes/cube/matrix-editor/useTransformState.ts:211` | raw `requestAnimationFrame` | **one-shot coalescing write** — a self-clearing `transformUpdateScheduled` flag coalesces slider→`matrix3d` writes to ONE per frame, and only while the group has not started. NOT a loop. |
+| `demo/@/components/custom/CopyButton.vue:64` | raw `requestAnimationFrame` | **one-shot aria-live re-arm** — clear-then-set on the next frame so a repeat copy re-fires the live region. NOT a loop. |
+| `demo/scenes/cube/orbital-drag/composables/useOrbitalInertia.ts:131` | vueuse `useRafFn` (house recipe) | inertia-decay **loop, settle-and-stop**: `immediate:false`, auto-`pause()` when velocity decays to zero, `resume()` only on gesture-end with residual velocity. |
+| `demo/@/components/custom/instrument/transport/composables/useAnimationSync.ts:40` | vueuse `useRafFn` (house recipe) | the markRaw→reactive polling **loop, settle-and-stop** (D.W3.S4): pauses after a 30-frame settle window, resumes on the `isPlaying` edge / tab-visibility / scrub `wake()` — gated on INPUTS, not its own outputs (the deadlock the prior docstring named is avoided). |
+| `demo/@/components/custom/instrument/timeline/composables/useTimelineBuild.ts:71` | vueuse `useRafFn` (house recipe) | **one-shot-per-call** next-frame await (pauses itself on the first tick, resolves all pending promises) for html2canvas paint timing. Not a perpetual loop. |
+
+**Disposition (per the wave-doc's own escape clause — "author the gate ONLY if the wave-doc's
+shape fits what lands, else a RECORDED disposition in the wave-doc's terms").** `proof:single-raf-
+clock` is **RECORDED as SUBSUMED, NOT authored.** Authoring it (allowlist=1) would force a
+manufactured master-clock refactor the perf data says is unneeded, and would falsely red the 2
+legitimate one-shot bursts + the 3 gated house-recipe loops. The perceived-perf goal the gate
+proxied (no gratuitous concurrent-callback fan-out) is held HONESTLY by the landed rest oracles —
+**`proof:perf-counters` (BLOCKING) + `proof:scene-rests` + `proof:no-layout-animation`** — which
+measure the true defect (idle churn) rather than a driver-count proxy. The 5 owners are each
+justified: 2 one-shot bursts + 3 settle-and-stop loops already on the house `useRafFn` recipe. No
+site was touched (all were converged in prior batches D.W3.S4 / T.G3 / T.G4), so no scene leg
+required re-verification.
+
+### The lighthouse AFTER-probe (T.G9 — the honest after)
+
+Ran `proof:lighthouse-mobile --probe` (lane-⑨ methodology) at HEAD with the LCP cure (⑨ Monaco
+defer) + the ⑩ fold landed; committed as `scripts/baselines/lighthouse-mobile-after.json`
+(board-reconcilable, T.M9; INERT to the gate — `baseline-below-floor` reads only the T-open file).
+
+| Scene | T-open (929ef0e) | After (⑪) | Floor | LCP after |
+|---|---|---|---|---|
+| home | 57 | 53 | 63 | 10.1s |
+| cube | 50 | 50 | 64 | 10.1s |
+| amiga | 37 | 35 | 49 | 10.2s |
+| square | 56 | 50 | 62 | 13.1s |
+| easing | 56 | 49 | 61 | 10.5s |
+| spring | 55 | 45 | 52 | **16.6s (> 15s bound)** |
+
+**Honest caveat (the gate's own inv ε).** This sandbox is more contended than the T-open capture
+(parallel worktrees + concurrent builds) and uses a different `--no-save` lighthouse install, so
+the ABSOLUTE Performance scores are systematically depressed and NOT strictly comparable
+run-to-run. The score deltas (−4…−10) sit within sandbox-contention noise, not a demonstrated
+regression; the scores remain in the same 35–53 band as the T-open 37–57.
+
+**The robust, sandbox-invariant signal is LCP:** the ⑨ Monaco-eager defer shows in home/cube/amiga/
+easing LCP now ~10.1–10.5s (the T-open recorded the Monaco-eager LCP at ~16s). Spring LCP 16.6s
+remains over the 15s bound — spring's Monaco editor is its SIGNATURE facet (intrinsic), so its LCP
+is the last hard-LCP miss, riding the idle-warm seam + BG-5.
+
+**Gate disposition: NOT FLIPPED — stays born-RED, posture note updated.** The Performance FLOORS do
+NOT clear (below-floor on every scene). This is EXPECTED + correct: the dominant remaining mobile-
+perf cost is the backdrop-blur COMPOSITOR cost (VERDICT #19 root cause #1), INVISIBLE to main-thread
+CDP counters and with NO pure-CSS kf-side cure (all measured neutral). It rides glass-ui **BG-5**
+(`blur-source="static"` frozen backdrop, external-blocked, T.H / `proof:blur-not-resampled` clause
+B) + the calibrated-runner infra dependency (T.G9 → T.Z/T.S deploy-of-record). The after-probe is
+the honest evidence that the kf-side perf cures that CAN land DID land (true rest, transform-not-
+left, Monaco defer); the residual is glass-ui's to cure.
