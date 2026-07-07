@@ -45,9 +45,10 @@
 | **BG-9** | glass-ui docs | An **externally-driven-`progress` example** in `EasingPicker` docs — the demo drives the picker's `progress` ref from the scene sweep; a documented pattern makes the consume idiomatic (lane 05 F6) | delineated GAP (docs ask, non-blocking; the demo already drives `progress` — the example de-risks the consume) | — (docs ask, no workaround) | **T.E8** (consumer) / **T.H2** (letter) |
 | **BG-10** | glass-ui | `ToggleChip variant="cell"` with a **live-animating preview slot** — preset chips that render a live curve/ball preview inside the cell (lane 05 F6; T.B6 consumes `ToggleChip variant="cell"` for presets) | delineated GAP (additive slot on an existing component; the demo consumes `ToggleChip cell` today without the preview slot) | — (additive component ask, no workaround) | **T.E8** (consumer) / **T.H2** (letter) |
 | **BG-11** | glass-ui | A DETENTED live-behind `Drawer` needs a **bottom-reserve token** (proposed `--drawer-inset-block-end`) + a **max-detent-height cap** — a full detent must NOT force `height:100%`/`bottom:0` over the bottom menubar band (the T.H3 batch-④ Drawer finding) | `proof:glass-ui-gap-tripwire` (the `drawerDetentInset` arm: cap satisfied ∧ the bespoke peek/half/full sheet survives ⇒ RED — the T.H3 swap becomes safe + overdue) | the bespoke `ControlsPaneWrapper` sheet host + `useSheetGesture`/`useSheetSpring`/`useSheetState`/`SheetGrabHandle` (the T.H3 swap deletes ~350L on publish) | **T.H3** (disposition) / **T.H2** (letter) |
+| **BG-12** | glass-ui | `ToggleGroup` **strip posture for horizontal-scroll hosts** — the vendor group CENTERS its content, so inside a scroll container an overflowing group strands its LEADING edge past the scroll origin (the first item unreachable on phones); a `justify-content: safe center` fix (or an explicit strip posture) makes the group scroller-safe without a consumer wrapper (the T.E6 family-filter finding) | delineated GAP (non-blocking; the demo sizes an owned `width: max-content` wrapper row so the overflow condition never arises) | `EasingTarget.vue` `.family-row` (the owned max-content wrapper — dies when the posture ships) | **T.E6** (consumer) / **T.H2** (letter) |
 | ~~BG-2~~ | — | **RETIRED — duplicate.** Lane 20 §4's "BG-2 (re-issue GU-Q2, dock collapse-crossfade keepalive)" is the SAME defect as **GU-4** / Q's GU-Q2 (`glassCaps.dockStrandKeepalive`, already an arm in `proof:workaround-deletion` S2). Do **NOT** re-number a second ask here. | — | — | — |
 
-**Breaking-ness.** GU-1..4, BG-1, BG-4, BG-5, BG-6, BG-7, BG-9, BG-11 are **non-breaking** (guards
+**Breaking-ness.** GU-1..4, BG-1, BG-4, BG-5, BG-6, BG-7, BG-9, BG-11, BG-12 are **non-breaking** (guards
 that OMIT a prohibited attribute, additive props, opt-in modes, a token default, a docs example, a
 NEW token + a cap the default keeps at `100%`). **BG-3, BG-8, BG-10** are **additive** (a new opt-in
 axis / an extensible catalogue / an additive preview slot on an existing component). A single BG/BH
@@ -80,6 +81,7 @@ prior tranche numbered overlapping asks independently; the reconciliation:
 | BG-9 external-`progress` docs | — | — | — | (no cap — a docs ask) | from lane 05 F6 (routed via T.E8) |
 | BG-10 `ToggleChip cell` preview slot | — | — | — | (no cap — an additive-slot ask) | from lane 05 F6 (routed via T.E8) |
 | BG-11 drawer detent bottom-inset | — | (§2b Drawer) | — | `glassCaps.drawerDetentInset` (new cap) | the T.H3 batch-④ Drawer finding — HOLD the swap until the token ships |
+| BG-12 ToggleGroup strip posture | — | — | — | (no cap — a CSS-posture ask) | the T.E6 family-filter finding (the owned max-content wrapper row is the kf band-aid) |
 
 **Cap-name discipline (do NOT fragment the probe).** GU-4's defect already has a coded cap —
 `glassCaps.dockStrandKeepalive` in `scripts/proof-workaround-deletion.mjs:255`. Lane 08/T.C6

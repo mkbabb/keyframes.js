@@ -75,7 +75,9 @@
  *   · A1 — S1 mobile hero PRINT-OVER contract on 390×844 (overlap sanctioned per #3; re-armed at T.D9
  *          certification): hero h1 rect ∩ cube subject rect AREA == 0.
  *   · A2 — S3 DARK --ball-tone/accent computed-contrast ≥ floor on a 390×844 +
- *          colorScheme:dark context: the easing violet ball + .readout-accent
+ *          colorScheme:dark context: the easing violet tile ball + the selected
+ *          specimen tile's accent name (T.E6 re-arm — the hero's .readout-accent
+ *          died with the hero; the pressed tile's name wears --ball-tone now)
  *          keep a WCAG luminance contrast ≥ floor against the .dark backdrop
  *          (device-INDEPENDENT computed ratio; the post-suffusion accents
  *          remain legible on dark).
@@ -1028,8 +1030,14 @@ async function runAppearanceBand() {
             return page.evaluate(() => {
                 const isDark = document.documentElement.classList.contains("dark");
                 const bodyBg = getComputedStyle(document.body).backgroundColor;
-                const ball = document.querySelector(".progress-ball, .hero-ball");
-                const accent = document.querySelector(".readout-accent");
+                // T.E6 re-arm: the hero + its f(t)= readout (.readout-accent) are
+                // DELETED — the drawer's tile balls carry --ball-tone and the
+                // SELECTED specimen tile's name wears the accent ink (the live
+                // accent-on-dark text subject the readout used to be).
+                const ball = document.querySelector(".tile-ball, .progress-ball");
+                const accent = document.querySelector(
+                    '.specimen-tile[data-state="on"] .tile-name',
+                );
                 return {
                     isDark,
                     bodyBg,
@@ -1060,8 +1068,8 @@ async function runAppearanceBand() {
             ok(
                 `A2 appearance — DARK --ball-tone/accent legible: the .dark token surface is LIVE ` +
                     `(html.dark, backdrop ${d.bodyBg}), --ball-tone resolves the OD-6 accent (${d.ballTone}); ` +
-                    `the violet ball (${d.ballBg}) contrasts ${ballC.toFixed(2)} and the .readout-accent ` +
-                    `(${d.accentColor}) contrasts ${accentC.toFixed(2)} — both ≥ the ${CONTRAST_FLOOR} legibility floor`,
+                    `the violet tile ball (${d.ballBg}) contrasts ${ballC.toFixed(2)} and the selected ` +
+                    `tile's accent name (${d.accentColor}) contrasts ${accentC.toFixed(2)} — both ≥ the ${CONTRAST_FLOOR} legibility floor`,
             );
         } else {
             fail(
