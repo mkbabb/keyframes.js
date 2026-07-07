@@ -86,7 +86,7 @@ const ENGINE = "src/animation/engine/animation.ts";
 // `_compiler` write goes through the sanctioned `_setCompiler` accessor).
 const COMPILE_BRIDGE = "src/animation/engine/compile-bridge.ts";
 const DEMO =
-    "demo/@/components/custom/keyframes-editor/composables/useKeyframeOps.ts";
+    "demo/@/components/custom/instrument/keyframes/composables/useKeyframeOps.ts";
 const TEST = "test/ingest/adopt-compiled.test.ts";
 
 // ── verb-exists + transplant + options-rebind + recompute-keys ────────────────

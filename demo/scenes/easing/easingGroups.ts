@@ -2,7 +2,7 @@ import {
     TIMING_DESCRIPTIONS,
     NAMED_EASING_BEZIER,
     DETAIL_TIMING_FUNCTIONS,
-} from "@components/custom/animation-transport/animationDescriptions";
+} from "@components/custom/instrument/transport/animationDescriptions";
 
 export interface CurveGroupItem {
     name: string;

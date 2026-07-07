@@ -35,11 +35,11 @@ const DEMO = path.join(REPO, "demo");
 const CHROME = path.join(DEMO, "app/dock/ChromeDock.vue");
 const TRANSPORT = path.join(
     DEMO,
-    "@/components/custom/animation-transport/TransportDock.vue",
+    "@/components/custom/instrument/transport/TransportDock.vue",
 );
 const ACG = path.join(
     DEMO,
-    "@/components/custom/animation-transport/AnimationControlsGroup.vue",
+    "@/components/custom/instrument/transport/AnimationControlsGroup.vue",
 );
 const STYLE = path.join(DEMO, "@/styles/style.css");
 

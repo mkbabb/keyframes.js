@@ -1,5 +1,5 @@
 import { computed, inject, watch, type ComputedRef } from "vue";
-import { ACTIVE_SCENE_KEY } from "../../injectionKeys";
+import { ACTIVE_SCENE_KEY } from "../injectionKeys";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useSceneMachine } from "@state";
 import type { StoredAnimationGroupControlOptions } from "@state";

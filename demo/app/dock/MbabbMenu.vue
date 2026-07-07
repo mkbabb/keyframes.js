@@ -107,7 +107,7 @@
 // so the dock holds itself open while the menu is open (part 2 of the D9 fix).
 // ─────────────────────────────────────────────────────────────────────────────
 import { ref, watchEffect } from "vue";
-import { SharePopover } from "@components/custom/editor-shell";
+import { SharePopover } from "@components/custom/instrument/shell";
 import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";

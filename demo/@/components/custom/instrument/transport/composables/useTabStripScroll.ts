@@ -1,5 +1,5 @@
 import { nextTick, onMounted, ref, type Ref } from "vue";
-import { useScrollFade } from "../../composables/useScrollFade";
+import { useScrollFade } from "./useScrollFade";
 
 export interface UseTabStripScrollOptions {
     /** The header element wrapping the `<SegmentedTabs>` strip. */

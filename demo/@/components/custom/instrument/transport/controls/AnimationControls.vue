@@ -239,9 +239,9 @@ import {
 } from "vue";
 import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "@lucide/vue";
-import { useTabStripScroll } from "./composables/useTabStripScroll";
-import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
-import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
+import { useTabStripScroll } from "../composables/useTabStripScroll";
+import { useKeyframesPaneReveal } from "../composables/useKeyframesPaneReveal";
+import { useSelectedControlSurface } from "../composables/useSelectedControlSurface";
 import {
     useSceneMachine,
     BUILT_IN_SURFACES,
@@ -249,8 +249,8 @@ import {
     type ControlSurface,
 } from "@state";
 
-const KeyframesStringControls = defineAsyncComponent(() => import("../../keyframes-editor/KeyframesStringControls.vue"));
-const KeyframeTimeline = defineAsyncComponent(() => import("../../keyframe-timeline/KeyframeTimeline.vue"));
+const KeyframesStringControls = defineAsyncComponent(() => import("../../keyframes/KeyframesStringControls.vue"));
+const KeyframeTimeline = defineAsyncComponent(() => import("../../timeline/KeyframeTimeline.vue"));
 import AnimationControlsControls from "./AnimationControlsControls.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 

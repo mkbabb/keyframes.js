@@ -119,7 +119,7 @@ console.log(
 
 // ── 2d (static half) — depth-text grep-zero in editor-shell/ (T.D10 ink) ─────
 {
-    const shellDir = path.join(DEMO, "@/components/custom/editor-shell");
+    const shellDir = path.join(DEMO, "@/components/custom/instrument/shell");
     const hits = [];
     for (const f of fs.readdirSync(shellDir)) {
         const p = path.join(shellDir, f);

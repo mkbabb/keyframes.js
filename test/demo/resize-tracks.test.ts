@@ -132,7 +132,7 @@ describe("proof:resize-tracks — the C1 cache busts on a container resize witho
     it("AnimationVisualizer.vue carries the bumpLayoutEpoch container wire (binds the mechanism to the component)", () => {
         const file = path.resolve(
             import.meta.dirname,
-            "../../demo/@/components/custom/animation-transport/controls/AnimationVisualizer.vue",
+            "../../demo/@/components/custom/instrument/transport/controls/AnimationVisualizer.vue",
         );
         const src = fs.readFileSync(file, "utf8");
         expect(src).toMatch(/useResizeObserver\s*\(\s*containerEl/);

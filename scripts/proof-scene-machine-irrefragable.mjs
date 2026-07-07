@@ -628,7 +628,7 @@ async function clauseSceneIsolation(browser, base) {
                 document.querySelector(".controls-pane") ||
                 document.body;
             const hasEasingEditor = !!panel.querySelector(
-                ".easing-curve-canvas, [class*='easing-editor'], [class*='EasingEditor']",
+                ".easing-curve-canvas, [class*='instrument/easing'], [class*='EasingEditor']",
             );
             return { hasEasingEditor };
         });

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch, useTemplateRef, type Component } from "vue";
-import { CONTROLS_PANE_HOVER_KEY } from "@components/custom/animation-transport/injectionKeys";
+import { CONTROLS_PANE_HOVER_KEY } from "@components/custom/instrument/transport/injectionKeys";
 import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 import {

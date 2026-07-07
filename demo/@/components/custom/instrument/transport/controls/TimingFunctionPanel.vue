@@ -7,7 +7,7 @@
                      is a VIEW within the parent controls Card (AnimationControlsControls
                      is itself the `surface="cartoon"` framed surface), so a second Card
                      here was pure card-in-card duplication. The bezier editor now flows
-                     into the parent content directly — the `easing-editor` container
+                     into the parent content directly — the `instrument/easing` container
                      (the `38cqi` canvas-sizing context, H.W4.S1) moves onto this plain
                      wrapper; the H.W9.F2 title-LEFT / dismiss-RIGHT header pattern is
                      PRESERVED, re-homed onto the flow (no inner Card, no legacy beside
@@ -121,7 +121,7 @@ import { LabeledSelect } from "@mkbabb/glass-ui/labeled-field";
 
 import { computed, ref } from "vue";
 import { ArrowLeft } from "@lucide/vue";
-import EasingEditor from "@components/custom/easing-editor/EasingEditor.vue";
+import EasingEditor from "@components/custom/instrument/easing/EasingEditor.vue";
 
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -191,7 +191,7 @@ const onSelectName = (name: string) => {
 </script>
 
 <style scoped>
-/* H.W4.S1 — the cubic-bézier detail Card is an `easing-editor` container so
+/* H.W4.S1 — the cubic-bézier detail Card is an `instrument/easing` container so
    the nested EasingCurveCanvas sizes its block off THIS Card's inline size
    (`38cqi`), bounded in [160px, 280px] — the same container the EasingSidebar
    declares, so the canvas is capped in BOTH render hosts. Baseline-2023
