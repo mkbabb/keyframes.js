@@ -762,36 +762,68 @@ export async function openControlsPanel(page) {
     }
 
     // 2. Open the controls pane if it is not already open. At width ≥ 1024
-    //    App.vue auto-opens it on selection; on mobile click the toggle
-    //    ("Open controls" / "Close controls" title on the collapse button).
+    //    App.vue auto-opens the desktop rail on selection (`.controls-pane--open`);
+    //    on mobile the sheet is glass-ui's `<Drawer>` (T.H3-ADOPT) — the open fact
+    //    rides the store `isControlsPanelOpen`, which the wrapper maps to the
+    //    Drawer's `activeSnapPoint` (peek ↔ expanded). Seed the OPEN fact + dispatch
+    //    the storage event (the vueuse `useStorage` ref rehydrates) so BOTH layouts
+    //    open; the desktop `[title="Open controls"]` toggle is a fallback click.
     const isOpen = await page.evaluate(
-        () => !!document.querySelector(".controls-pane--open"),
+        () =>
+            !!document.querySelector(".controls-pane--open") ||
+            !!document.querySelector(".glass-drawer"),
     );
     if (!isOpen) {
+        // Layout-agnostic open: seed the store fact + storage-event it (mobile
+        // Drawer reacts) and click the desktop toggle if present.
+        await page.evaluate(
+            ({ storeKey, superKey }) => {
+                let store;
+                try {
+                    store = JSON.parse(localStorage.getItem(storeKey) ?? "{}");
+                } catch {
+                    store = {};
+                }
+                const prev =
+                    store[superKey] && typeof store[superKey] === "object"
+                        ? store[superKey]
+                        : {};
+                store[superKey] = { ...prev, isControlsPanelOpen: true };
+                const nv = JSON.stringify(store);
+                localStorage.setItem(storeKey, nv);
+                window.dispatchEvent(
+                    new StorageEvent("storage", {
+                        key: storeKey,
+                        newValue: nv,
+                        storageArea: localStorage,
+                    }),
+                );
+            },
+            { storeKey: CONTROL_OPTIONS_STORE_KEY, superKey },
+        );
         try {
-            await page.click('[title="Open controls"]', { timeout: 3000 });
-            // SETTLE (L.W4 S2): the pane is OPEN — `.controls-pane--open` in the
-            // DOM OR `#controls-ribbon-target` visible. Not a fixed 600 ms.
-            await waitForRender(
-                page,
-                () =>
-                    !!document.querySelector(".controls-pane--open") ||
-                    !!document.querySelector("#controls-ribbon-target"),
-                { timeout: 3000 },
-            );
+            await page.click('[title="Open controls"]', { timeout: 2000 });
         } catch {
-            /* toggle not present (already open, or no panel) */
+            /* toggle not present (mobile Drawer / already open) */
         }
+        await waitForRender(
+            page,
+            () =>
+                !!document.querySelector(".controls-pane--open") ||
+                !!document.querySelector(".glass-drawer") ||
+                !!document.querySelector("#controls-ribbon-target"),
+            { timeout: 3000 },
+        );
     }
 
-    // 3. Confirm the pane MATERIALISED (L.W4 S2): the trailing fixed-800 ms sleep
-    //    + the follow-up waitForFunction collapse into ONE waitForRender on the
-    //    pane-open predicate. It returns the instant the pane is open; on expiry
-    //    the caller probes the closed layout as-is (honest, not a false green).
+    // 3. Confirm the pane MATERIALISED (L.W4 S2). Desktop `.controls-pane--open` OR
+    //    the mobile `.glass-drawer` OR the ribbon target. On expiry the caller
+    //    probes the layout as-is (honest, not a false green).
     await waitForRender(
         page,
         () =>
             !!document.querySelector(".controls-pane--open") ||
+            !!document.querySelector(".glass-drawer") ||
             !!document.querySelector("#controls-ribbon-target"),
         { timeout: 6000 },
     );

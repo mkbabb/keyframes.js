@@ -80,8 +80,9 @@ const DEFERRED = [
     ["demo/@/components/custom/instrument/transport/composables/usePlayActuation.ts", "PlayActuationHandlers"],
     ["demo/@/components/custom/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeOptions"],
     ["demo/@/components/custom/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeReturn"],
-    ["demo/@/components/custom/instrument/transport/composables/useSheetState.ts", "UseSheetStateOptions"],
-    ["demo/@/components/custom/instrument/transport/composables/useSheetState.ts", "UseSheetStateReturn"],
+    // (useSheetState.ts UseSheetStateOptions/UseSheetStateReturn RETIRED at T.H3-ADOPT —
+    //  the bespoke sheet composable was DELETED with the Drawer swap; the ratchet drops
+    //  the two discharged rows, tightening dead-export by 2.)
     ["demo/@/components/custom/instrument/transport/composables/useDragCapture.ts", "DragCaptureHandlers"],
     ["demo/@/components/custom/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealOptions"],
     ["demo/@/components/custom/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealReturn"],
