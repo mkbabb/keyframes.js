@@ -41,7 +41,7 @@ demo/
 │   ├── composables/
 │   │   ├── gestureSelectSuppression.ts  # the ONE global drag-in-flight select-suppression token (body.is-dragging)
 │   │   └── useDragScrub.ts              # the ONE shared pointer-drag scrub seam (stage rails, square box)
-│   ├── styles/                  # style.css (Tailwind v4 + theme vars), brand.css, design-idioms.css
+│   ├── styles/                  # per-concern, each ≤300L (proof:style-file-ceiling): style.css (Tailwind v4 entry + @theme + color/accent tokens + @layer base/utilities/demo-typography), layout.css (work-area/dock/rail geometry + @media + @supports), design-idioms.css (the rainbow/gold signal tokens + shared idiom recipes + @keyframes enter), brand.css (the ppmycota mark)
 │   └── utils/                   # clipboard.ts, iosTextEntry.ts, kfEngine.ts, toastGuard.ts (vue-sonner private-DOM contract) — the shadcn cn() helper (utils.ts) went with ui/menubar (S.C3b)
 ├── CLAUDE.md
 └── DESIGN.md     # demo design language (extends glass-ui DESIGN.md)
