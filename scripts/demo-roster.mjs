@@ -165,7 +165,6 @@ export const CORRECTNESS_ROSTER = [
     // authority ⇒ BLOCKING (T.M6.2) — it rides the correctness roster.
     "proof:accent-census",
     "proof:spring-slider-continuous",
-    "proof:visual-lock",
     "proof:taste-packet",
     "proof:scene-machine-irrefragable",
     "proof:scene-control-dfa",
@@ -343,7 +342,9 @@ export const BORNRED_TRIPWIRES = ["proof:peer-satisfied"];
 // forbidden masking). Off-CI (on-device) they hard-gate as usual. The x2-#2
 // hard clause holds: the carve-out is EXACTLY the declared-posture set, never a
 // correctness red. ────────────────────────────────────────────────────────────
-export const OBSERVE_IN_CI = ["proof:visual-lock"];
+// (proof:visual-lock RETIRED at the T.M3 blessing → proof:owner-golden; the
+//  observe-in-CI carve-out retires with it.)
+export const OBSERVE_IN_CI = [];
 
 /** The union of every demo gate this module partitions (correctness ∪ observe ∪
  *  tripwires) — the set proof:ci-coverage counts as CI-invoked via the roster. */

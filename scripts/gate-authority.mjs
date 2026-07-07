@@ -143,7 +143,6 @@ export const APPEARANCE_TOUCHING = [
     "proof:no-single-option-select",
     // the appearance TRIPWIRE + self-baseline drift check (INSTRUMENT — authority
     // STRIPPED at I.W7 S5; retired/demoted by T.M3 owner-golden)
-    "proof:visual-lock",
     // the born-OWNER gate class (T.M) — OWNER authority by construction
     "proof:owner-verdict-recorded",
     "proof:owner-golden",
@@ -294,7 +293,6 @@ export const GATE_AUTHORITY = {
     "proof:demo-usability": "INSTRUMENT",
     "proof:demo-no-oversize": "INSTRUMENT",
     "proof:no-single-option-select": "INSTRUMENT",
-    "proof:visual-lock": "INSTRUMENT",
 };
 
 export const VALID_AUTHORITIES = new Set(["INSTRUMENT", "OWNER"]);

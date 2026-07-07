@@ -56,7 +56,6 @@ const CANDIDATE_GATES = [
     "proof:mobile-single-page",
     "proof:drawer-spring",
     "proof:dock-zorder",
-    "proof:visual-lock",
 ];
 
 // Run only the candidates that actually resolve a package.json script (skip the rest).

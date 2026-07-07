@@ -457,6 +457,24 @@
   dock-zorder rides its backlog); ratchets tightened (any 102→99; dead-export
   clean). The final quiet roster + the delegated M3 blessing + T.Z execute next.
 
+- **2026-07-07 — THE M3 BLESSING EXECUTED (the delegated judgment) + THE VISUAL-LOCK
+  ERA ENDS.** The final-roster statics adjudicated (three real ⑪ tails: the reka
+  type-reach → a structural type; EasingTarget split 311+193 per the house idiom;
+  the SheetGrabHandle phantom doc row; transition-perf's round-trip re-armed to the
+  ratified scene-aware default set; the contention pair green isolated). The
+  owner-golden capture harness's two arity/goto faults fixed (never exercised —
+  born-RED by design); **12 PRM-frozen candidates captured from the FINAL tree,
+  reviewed against the ratified references (the hero prints over the full 3-D die;
+  the gallery leads with the complete literal; the Boing ball floats its grid room;
+  the square triad reads honest), and BLESSED** (BLESSED.json, the delegation quote
+  cited; `proof:owner-golden` GREEN — 12/12 live-render Hamming 0). **The T.M3
+  lockstep executed:** proof:visual-lock RETIRED via a DISCHARGE migration →
+  owner-golden (script + baselines + mask machinery deleted; FROZEN/roster/
+  authority/coverage/taxonomy anchors all re-cut; both backlog rows discharged —
+  the backlog is 8, every row external-blocked or convergence-tracked). The S-era
+  "self-baseline with the subject masked" appearance model is formally dead; the
+  reference render is owner-blessed with the subject IN.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately

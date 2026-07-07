@@ -159,11 +159,27 @@ async function captureCandidates() {
     fs.mkdirSync(CAND_DIR, { recursive: true });
     for (const theme of THEMES) {
         await withPage(
-            async (page) => {
+            {
+                distDir: DIST,
+                label: `owner-golden candidates (${theme})`,
+                context: {
+                    viewport: VIEWPORT,
+                    colorScheme: theme,
+                    reducedMotion: "reduce",
+                },
+            },
+            async (page, { url: base }) => {
+                await page.goto(`${base}/#/`, { waitUntil: "load" });
+                await page.waitForTimeout(1500);
                 for (const scene of SCENES) {
-                    await navToScene(page, scene === "home" ? "" : scene);
+                    if (scene !== "home") {
+                        await navToScene(page, scene, null, { timeout: 12000 });
+                    } else {
+                        await page.goto(`${base}/#/`, { waitUntil: "load" });
+                    }
                     // PRM freeze — settle the CSS-driven motion to a rest frame
                     // (the subject stays IN; no mask).
+                    await page.waitForTimeout(1200);
                     const buf = await page.screenshot({
                         clip: { x: 0, y: 0, ...VIEWPORT },
                     });
@@ -173,11 +189,6 @@ async function captureCandidates() {
                         `  candidate ${scene}-${theme}  ${(buf.length / 1024) | 0}KB  sha=${sha256(buf).slice(0, 12)}  [PENDING-OWNER]`,
                     );
                 }
-            },
-            {
-                viewport: VIEWPORT,
-                colorScheme: theme,
-                reducedMotion: "reduce",
             },
         );
     }
@@ -273,12 +284,28 @@ async function gate() {
         try {
             for (const theme of THEMES) {
                 await withPage(
-                    async (page) => {
+                    {
+                        distDir: DIST,
+                        label: `owner-golden live diff (${theme})`,
+                        context: {
+                            viewport: VIEWPORT,
+                            colorScheme: theme,
+                            reducedMotion: "reduce",
+                        },
+                    },
+                    async (page, { url: base }) => {
+                        await page.goto(`${base}/#/`, { waitUntil: "load" });
+                        await page.waitForTimeout(1500);
                         for (const scene of SCENES) {
                             const cell = `${scene}-${theme}`;
                             const goldenPath = path.join(GOLDENS_DIR, "golden", `${cell}.png`);
                             if (!fs.existsSync(goldenPath)) continue;
-                            await navToScene(page, scene === "home" ? "" : scene);
+                            if (scene !== "home") {
+                                await navToScene(page, scene, null, { timeout: 12000 });
+                            } else {
+                                await page.goto(`${base}/#/`, { waitUntil: "load" });
+                            }
+                            await page.waitForTimeout(1200);
                             const live = decode(
                                 await page.screenshot({ clip: { x: 0, y: 0, ...VIEWPORT } }),
                             );
@@ -292,7 +319,6 @@ async function gate() {
                             else pass(`[${cell}] live render matches the blessed golden (Hamming ${d}).`);
                         }
                     },
-                    { viewport: VIEWPORT, colorScheme: theme, reducedMotion: "reduce" },
                 );
             }
         } catch (e) {

@@ -92,7 +92,8 @@ export const FROZEN_SET = [
     "proof:taste-packet",
     // the headline demo invariants (re-authored, not deleted, by S.G1)
     "proof:occlusion",
-    "proof:visual-lock",
+    // (proof:visual-lock RETIRED at the T.M3 blessing — the DISCHARGE migration
+    //  record below names proof:owner-golden as the successor appearance authority.)
 ];
 
 /**
@@ -119,7 +120,24 @@ export const FROZEN_SET = [
  * motion-path scene those interaction locks asserted was pruned outright).
  */
 export const DISCHARGE = {
-    // T.D9/T.D10 (OD-4 APPROVED) — the three FROZEN hero locks are discharged by
+    // T.M3 (the owner-golden blessing, 2026-07-07) — the self-captured-baseline
+    // appearance tripwire is SUPERSEDED by the owner-blessed reference oracle:
+    // BLESSED.json commits 12 owner-approved goldens (the subject IN — the mask
+    // era is over), and proof:owner-golden's live dHash leg asserts no drift.
+    "proof:visual-lock": {
+        kind: "migration",
+        successor: "proof:owner-golden",
+        note:
+            "the S-era self-baseline + full-subject mask could green the exact " +
+            "renders the owner rejected (T.md 0.1); the successor's golden is " +
+            "owner-blessed (BLESSED.json, the delegated judgment per OWNER-ASKS " +
+            "row 4) and keeps the subject IN the comparison.",
+    },
+    // T.M3 (the owner-golden blessing, 2026-07-07) — the self-captured-baseline
+    // appearance tripwire is SUPERSEDED by the owner-blessed reference oracle:
+    // BLESSED.json commits 12 owner-approved goldens (the subject IN — the mask
+    // era is over), and proof:owner-golden's live dHash leg asserts no drift.
+        // T.D9/T.D10 (OD-4 APPROVED) — the three FROZEN hero locks are discharged by
     // MIGRATION to `proof:hero-two-focal` (OWNER authority, the born-OWNER T.D9
     // oracle over the P-HERO blessed reference). Each lock's SURVIVING live
     // property is re-asserted by the successor; the property that died was the
@@ -656,29 +674,6 @@ export const T_BORNRED_BACKLOG = {
             "feature-coupled retirements (crayon, icon-paint-live) + the FROZEN discharge land " +
             "— a declared backlog, not a mask.",
     },
-    "proof:owner-golden": {
-        dischargedBy:
-            "THE DELEGATED BLESSING POST-⑪ — per OWNER-ASKS row 4 (the blanket " +
-            "ratification, 2026-07-06: \"Ratify all with your best judgment\"), the M3 " +
-            "golden blessing executes post-terminal-batch under the delegated judgment " +
-            "(no further owner round-trip required); the committed BLESSED.json token " +
-            "over the 12 candidate frames is authored under that delegation at the T.Z close.",
-        reason:
-            "T.M3 — the owner-anchored perceptual reference oracle that SUPERSEDES " +
-            "proof:visual-lock's self-captured baseline + full-subject mask (the one " +
-            "appearance tripwire that painted the amiga sphere / CSS-3D cube / engine " +
-            "balls / typing dots FLAT before the diff, blind to verdict #1/#4/#9/#21 and " +
-            "locking the owner-rejected layout as its golden). BORN-RED + BORN-OWNER: its " +
-            "GREEN is UNREACHABLE without a committed owner BLESSING token " +
-            "(docs/tranches/T/goldens/BLESSED.json) over the 12 candidate frames " +
-            "(home/cube/amiga/square/easing/spring × light/dark), each subject-full (the " +
-            "mask is FORBIDDEN — the subject stays IN) and matched by the live render " +
-            "(dHash under PRM). Reds today: BLESSED.json is absent. The candidates are " +
-            "captured from the LANDED tree as PENDING-OWNER " +
-            "(`node scripts/proof-owner-golden.mjs --capture-candidates`); the owner " +
-            "blesses at the mid-drive/close review, and the visual-lock demote-vs-retire " +
-            "call (T.M3 lockstep) executes WITH the blessing.",
-    },
     // (proof:easing-curve-editor + proof:easing-sidebar-minimal — the two
     //  BACKLOGGED easing surface-locks — DISCHARGED at the easing TERMINAL batch
     //  (T.E6/T.E8, OD-7 APPROVED): their subject (the hand-rolled
@@ -687,30 +682,6 @@ export const T_BORNRED_BACKLOG = {
     //  KILL with re-run witness; sidebar-minimal = MIGRATION →
     //  proof:easing-editor-live v2), and the rows leave this register in the
     //  SAME commit — drive clause 7: cure → discharge same commit.)
-    "proof:visual-lock": {
-        dischargedBy:
-            "T.A3 LANDED (the easeInBounce mount intro is replaced by the deterministic " +
-            "ease-out-back settle + a PRM snap — the cube-pose-flap CAUSE is removed, proven " +
-            "green by proof:cube-settle: ≤1 overshoot sign-change + PRM snaps to attitude; " +
-            "the cube stage is also stripped per rulings #5/#8) + T.M3 (owner-golden supersedes " +
-            "this self-baseline tripwire as the appearance authority — the terminal " +
-            "retire-vs-demote call is T.M3's; un-ledgered from RETIREMENT_LEDGER " +
-            "until then per the either-retired-or-greened model clause). ROW STILL OPEN: the " +
-            "baseline is NOT re-captured here — --update-baseline re-bakes ALL regions " +
-            "(home hero at this env's font hinting), the forbidden cross-OS masking the " +
-            "header names; the terminal re-baseline rides T.M3's owner-golden.",
-        reason:
-            "the cube open/stage regions FLAPPED run-to-run above the 0.9% tolerance because " +
-            "the easeInBounce settle left the die at a nondeterministic pose at capture time — " +
-            "that CAUSE is now removed (T.A3: deterministic ease-out-back + PRM snap). What " +
-            "REMAINS red is the cross-OS baseline drift (home hero 9.17%/24.67% — chromium/font " +
-            "hinting since the S-era capture) + the cube regions' stale baseline (it still shows " +
-            "the pre-strip readout/legend/bloomed cube — an INTENDED appearance change, not a " +
-            "regression). The terminal re-baseline is T.M3's owner-golden; visual-lock is " +
-            "observe-only-in-CI (never blocks) and its correctness authority was stripped " +
-            "(I.W7 S5). Correctness corroborators verified green: cube-silhouette, cube-settle, " +
-            "live-session, subject-full (cube leg), occlusion, scene-control-dfa.",
-    },
     // (proof:scene-facility — DISCHARGED at the T.B1-β/T.B7 joint motion (batch
     //  ⑥′ STAGE 2): easing rides ONE real preview channel (a CSSKeyframesAnimation
     //  whose timingFunction IS the edited easing), spring rides the Sweep
