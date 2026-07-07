@@ -28,7 +28,7 @@ const ENVELOPE_LEGS: ReadonlyArray<[number, number]> = [
     [0, 0], // home
 ];
 
-export interface SquareKeyboardOptions {
+interface SquareKeyboardOptions {
     /** The two per-axis springs the drag re-seats (read for the live target). */
     springX: SpringProgress;
     springY: SpringProgress;

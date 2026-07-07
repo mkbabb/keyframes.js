@@ -15,7 +15,7 @@ const LANE_TOKENS: Record<string, string> = {
     gentle: "var(--spring-lane-gentle)",
 };
 
-export interface DerbyLane {
+interface DerbyLane {
     /** The preset name (smooth/snappy/bouncy/gentle). */
     name: string;
     /** ζ (the damping fraction) — bouncy=0.45 rings past, gentle=1.0 never crosses. */

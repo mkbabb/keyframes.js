@@ -29,7 +29,7 @@ import { BOX_SIZE, FLOOR_Y, SPHERE_HOME, SPHERE_RADIUS } from "./useAmigaDemo";
  */
 const CONTACT_FLOOR = FLOOR_Y - SPHERE_RADIUS; // the shadow sits on the floor plane
 
-export interface AmigaThreeHandle {
+interface AmigaThreeHandle {
     /** Build the Three.js room. Call once at mount, after the canvas ref is live. */
     setup(): void;
     /** The boing-ball mesh (the interactive subject). Undefined before mount. */

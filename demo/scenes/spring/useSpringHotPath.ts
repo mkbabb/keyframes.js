@@ -21,7 +21,7 @@ export interface SpringTrack {
 /** A spring painter: position the moving ball(s) it owns from `springLive`.
  *  The view layer registers these; the loop calls them imperatively each
  *  frame (direct `style` writes — off the Vue render graph). */
-export type SpringPainter = () => void;
+type SpringPainter = () => void;
 
 /**
  * J.W2 S5 (DS-3) — THE HOT POSITIONAL PATH OFF THE VUE RENDER GRAPH.

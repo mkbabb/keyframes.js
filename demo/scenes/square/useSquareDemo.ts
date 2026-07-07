@@ -1,6 +1,7 @@
 import { kfEngine } from "@utils/kfEngine";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 import { SpringProgress } from "@mkbabb/keyframes.js";
+import type { Vars } from "@mkbabb/keyframes.js";
 import { onScopeDispose, type Ref } from "vue";
 
 /**
@@ -93,7 +94,7 @@ export function useSquareDemo(
      * Every positional leaf routes through `num()` so the raw-number (drag) and
      * the plain-vars authored-string (Play keyframes) writers BOTH resolve.
      */
-    const transformFunc = (vars: Record<string, any>) => {
+    const transformFunc = (vars: Vars) => {
         const el = box.value;
         if (!el) return;
         const { transform, backgroundColor, tilt, squash } = vars;

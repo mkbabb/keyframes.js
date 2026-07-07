@@ -74,7 +74,7 @@
                     ].valueOf() as number,
                 ]"
                 @update:model-value="
-                    (val: any) => {
+                    (val: number[]) => {
                         matrix3dEnd.values[
                             storedControls.matrixOptions.selectedMatrixCell
                         ].setValue(val[0]);

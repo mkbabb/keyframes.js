@@ -205,7 +205,7 @@ export function selectedSurfaceFrom(
  * dock `Select`; `inline` (exactly 1) draws the tab body with ZERO dock chrome and
  * NO static-label duplicate; `absent` (0) draws NO node AND no flanking separator.
  */
-export type ControlZone =
+type ControlZone =
     | { kind: "select"; tabs: ControlSurfaceTab[] }
     | { kind: "inline"; tab: ControlSurfaceTab }
     | { kind: "absent" };
@@ -215,7 +215,7 @@ export type ControlZone =
  * transport `Select`; `absent` (≤1) draws NO node and no flanking separator — a
  * lone channel needs no picker (its identity is the scene's).
  */
-export type ChannelZone =
+type ChannelZone =
     | { kind: "select"; channels: string[] }
     | { kind: "absent" };
 
@@ -227,7 +227,7 @@ export type ChannelZone =
  * is a strict subset of the adjacent scene identity already shown — so the answer
  * is RENDER NOTHING, not a demoted label.
  */
-export interface DockCardinality {
+interface DockCardinality {
     controlZone: ControlZone;
     channelZone: ChannelZone;
     /**

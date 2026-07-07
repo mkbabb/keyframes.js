@@ -5,7 +5,7 @@ import type { TransformState } from "..";
 import { axes } from "..";
 import type { GestureEvent } from "../types";
 
-export interface OrbitalPinchParams {
+interface OrbitalPinchParams {
     model: Ref<TransformState>;
     isTouching: Ref<boolean>;
     isWheeling: Ref<boolean>;
