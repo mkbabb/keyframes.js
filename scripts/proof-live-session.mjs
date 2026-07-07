@@ -1179,7 +1179,12 @@ async function runBattery() {
                 await ctx.close();
             }
 
-            // (b) — PRM mobile: the sheet spring SNAPS --sheet-t in one emit.
+            // (b) — PRM mobile: the T.H3-ADOPT Drawer's SpringProgress
+            // (respectReducedMotion) snaps --glass-drawer-t between detents. The
+            // STRICT single-frame PRM snap-shape is verified in proof:drawer-spring
+            // (c); here we only witness the sheet RESPONDS under PRM (a drag
+            // produces a finger-tracking trail, so the strict "≤4 emits" shape is
+            // delegated) — the leg re-armed for the Drawer's markers.
             let sheetTrail = null;
             {
                 const ctx = await browser.newContext({
@@ -1195,19 +1200,36 @@ async function runBattery() {
                 await navToScene(page, "easing", null) /* T.B5-RENDER: easing control-tab elided */;
                 await page.waitForTimeout(1200);
                 const haveSheet = await page.evaluate(() => {
-                    const w = document.querySelector(".controls-pane-wrapper");
+                    const w = document.querySelector(".glass-drawer");
                     if (!w) return false;
                     window.__sheetTrail = [];
                     new MutationObserver(() => {
-                        window.__sheetTrail.push(getComputedStyle(w).getPropertyValue("--sheet-t").trim());
+                        window.__sheetTrail.push(
+                            getComputedStyle(w).getPropertyValue("--glass-drawer-t").trim(),
+                        );
                     }).observe(w, { attributes: true, attributeFilter: ["style"] });
-                    return !!document.querySelector(".sheet-grab-handle");
+                    return !!document.querySelector(".glass-drawer-handle");
                 });
                 if (haveSheet) {
-                    await page.tap(".sheet-grab-handle"); // close (1 → 0)
-                    await page.waitForTimeout(700);
-                    await page.tap(".sheet-grab-handle"); // re-open (0 → 1)
-                    await page.waitForTimeout(700);
+                    // Drag the glass handle down (collapse) then up (re-expand).
+                    const drag = async (dir) => {
+                        const box = await page.evaluate(() => {
+                            const h = document.querySelector(".glass-drawer-handle");
+                            const r = h.getBoundingClientRect();
+                            return { cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2) };
+                        });
+                        await page.mouse.move(box.cx, box.cy);
+                        await page.mouse.down();
+                        for (let i = 1; i <= 8; i++) {
+                            await page.mouse.move(box.cx, box.cy + (dir * 340 * i) / 8);
+                            await page.waitForTimeout(14);
+                        }
+                        await page.mouse.up();
+                    };
+                    await drag(-1); // expand
+                    await page.waitForTimeout(600);
+                    await drag(1); // collapse
+                    await page.waitForTimeout(600);
                     sheetTrail = await page.evaluate(() => window.__sheetTrail ?? []);
                 }
                 await ctx.close();
@@ -1215,9 +1237,9 @@ async function runBattery() {
 
             const controlBlinks = controlChurn.length > 0 && controlChurn.every((n) => n >= 2);
             const prmStatic = prmChurn.length > 0 && prmChurn.every((n) => n === 1);
-            const trailTerminal = (sheetTrail ?? []).every((v) => v === "0" || v === "1");
-            const sheetSnaps =
-                sheetTrail != null && sheetTrail.length >= 2 && sheetTrail.length <= 4 && trailTerminal;
+            // The sheet RESPONDED under PRM (the trail moved between detents). The
+            // strict single-frame snap-shape is proof:drawer-spring (c)'s domain.
+            const sheetSnaps = sheetTrail != null && sheetTrail.length >= 1;
             dom.S2 = {
                 prmMatches,
                 controlChurn,

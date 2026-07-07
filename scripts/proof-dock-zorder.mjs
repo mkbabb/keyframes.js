@@ -13,7 +13,7 @@
  *
  *   1. Z-ORDER STRICTLY ASCENDING (the born-RED anchor). The fixed stage layer's
  *      computed `z-index` (`.stage-cell` → z-content=10) is STRICTLY BELOW the
- *      open sheet's (`.controls-pane-wrapper` → z-controls=20), which is STRICTLY
+ *      open sheet's (`.glass-drawer` → z-controls=20), which is STRICTLY
  *      BELOW BOTH docks' z-dock (=40). stage < sheet < dock. BITE: a z-inversion
  *      (raise the stage to z-dock, or drop a dock below z-controls) → reds. A
  *      NON-VACUITY guard requires ≥2 z-dock bands carrying a real GlassDock and a
@@ -25,7 +25,7 @@
  *      CONTAINED BY that dock (the fixed stage z-10 + the sheet z-20 sit beneath
  *      the z-40 dock, so the dock wins the hit). BITE: the stage/sheet painting
  *      OVER a dock button (z-inversion or a pointer-events steal) → the hit
- *      resolves to `.stage-cell`/`.controls-pane-wrapper` → reds. Off-viewport
+ *      resolves to `.stage-cell`/`.glass-drawer` → reds. Off-viewport
  *      button centers (the top dock over-fills the 390 band) are EXCLUDED — only
  *      an on-screen center is a meaningful hit-test; a ≥1 in-viewport-button floor
  *      per real band guards non-vacuity.
@@ -151,23 +151,32 @@ async function settleOpen(page) {
     // grab-handle tap (the born-open behavior the store seed relied on is exactly
     // what the contract deletes). The tap makes the open-state measure run on the
     // intended contract, not on the deleted auto-open.
-    const alreadyOpen = await page.evaluate(
-        () => !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
-    );
-    if (!alreadyOpen) {
-        // The grab pill toggles on POINTER events; this context has no hasTouch, so
-        // a real-mouse click (which fires pointerdown/pointerup) is the open gesture
-        // (NOT page.tap, which needs hasTouch).
-        await page.click(".sheet-grab-handle", { timeout: 5000 }).catch(() => {});
-        await page
-            .waitForFunction(
-                () =>
-                    !!document.querySelector(
-                        ".controls-pane-wrapper.controls-pane--open",
-                    ),
-                { timeout: 5000 },
-            )
-            .catch(() => {});
+    // ── T.H3-ADOPT — the mobile sheet is glass-ui's <Drawer> (auto-mounted at
+    // PEEK; permanently open). Wait for `.glass-drawer`, then EXPAND it via a real
+    // grab-handle DRAG (the glass handle is a drag surface — useDrawerSnap). This
+    // gate is a BG-11-BLOCKED backlog tripwire (the Drawer's z-modal + bottom:0
+    // covers the menubar); it reds HONESTLY on the z-inversion. ──
+    await page
+        .waitForFunction(() => !!document.querySelector(".glass-drawer-handle"), {
+            timeout: 5000,
+        })
+        .catch(() => {});
+    {
+        const box = await page.evaluate(() => {
+            const h = document.querySelector(".glass-drawer-handle");
+            if (!h) return null;
+            const r = h.getBoundingClientRect();
+            return { cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2) };
+        });
+        if (box) {
+            await page.mouse.move(box.cx, box.cy);
+            await page.mouse.down();
+            for (let i = 1; i <= 8; i++) {
+                await page.mouse.move(box.cx, box.cy - (340 * i) / 8);
+                await page.waitForTimeout(14);
+            }
+            await page.mouse.up();
+        }
         await page.waitForTimeout(600); // the open spring settles
     }
 }
@@ -184,9 +193,9 @@ async function waitMounted(page) {
                 const realDocks = [
                     ...document.querySelectorAll(".z-dock, [class*='z-dock']"),
                 ].filter((el) => el.querySelector(".glass-dock"));
-                const sheet = document.querySelector(".controls-pane-wrapper");
+                const sheet = document.querySelector(".glass-drawer");
                 const sheetOpen =
-                    sheet && sheet.className.includes("controls-pane--open");
+                    !!sheet /* T.H3-ADOPT: the Drawer is permanently mounted (peek/expanded); presence = open */;
                 return realDocks.length >= 2 && !!sheetOpen;
             },
             undefined,
@@ -216,7 +225,7 @@ async function browserHalf() {
                 realDocks: [
                     ...document.querySelectorAll(".z-dock, [class*='z-dock']"),
                 ].filter((el) => el.querySelector(".glass-dock")).length,
-                sheetOpen: !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
+                sheetOpen: !!document.querySelector(".glass-drawer"),
                 hash: location.hash,
             }));
             fail(
@@ -235,7 +244,7 @@ async function browserHalf() {
             const vh = window.innerHeight;
 
             const stage = document.querySelector(".stage-cell");
-            const sheet = document.querySelector(".controls-pane-wrapper");
+            const sheet = document.querySelector(".glass-drawer");
             const sr = stage.getBoundingClientRect();
             const shr = sheet.getBoundingClientRect();
 
@@ -516,7 +525,7 @@ async function browserHalf() {
                     el.querySelector(".glass-dock") &&
                     el.getBoundingClientRect().top > window.innerHeight / 2,
             );
-            const sheet = document.querySelector(".controls-pane-wrapper");
+            const sheet = document.querySelector(".glass-drawer");
             const mr = menubar ? menubar.getBoundingClientRect() : null;
             const shr = sheet ? sheet.getBoundingClientRect() : null;
             return {
@@ -538,11 +547,11 @@ async function browserHalf() {
                     el.querySelector(".glass-dock") &&
                     el.getBoundingClientRect().top > window.innerHeight / 2,
             );
-            const sheet = document.querySelector(".controls-pane-wrapper");
+            const sheet = document.querySelector(".glass-drawer");
             const mr = menubar ? menubar.getBoundingClientRect() : null;
             const shr = sheet ? sheet.getBoundingClientRect() : null;
             const stillOpen = sheet
-                ? sheet.className.includes("controls-pane--open")
+                ? !!sheet
                 : false;
             return {
                 menubarTop: mr ? Math.round(mr.top) : null,

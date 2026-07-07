@@ -651,6 +651,25 @@ export const T_BORNRED_BACKLOG = {
             "clears. glass-ui-root fix; OWNER authority + blocking-not-OBSERVE (T.M6). See " +
             "demo/glass-ui-gaps.ts dockMorphMeasure (GU-2).",
     },
+    "proof:dock-zorder": {
+        dischargedBy:
+            "glass-ui BG-11 publish + re-pin — the `--drawer-inset-block-end` " +
+            "bottom-reserve token + max-detent-height cap: the live-behind Drawer reserves " +
+            "the bottom menubar band (stops covering it) so the sheet no longer overlaps + " +
+            "sits above the dock. See demo/glass-ui-gaps.ts drawerDetentInset (BG-11).",
+        reason:
+            "T.H3-ADOPT (OWNER-OVERRIDDEN 2026-07-06). The owner RULED ADOPT the glass-ui " +
+            "`<Drawer mode=\"live-behind\">` for the mobile sheet, ACCEPTING the traded " +
+            "occlusion cure. MEASURED born-RED: the Drawer's `.glass-drawer` is `z-index: " +
+            "var(--z-modal)` = 140 (glass-ui tokens.css) — STRICTLY ABOVE the dock's z-dock " +
+            "= 40 — and `position:fixed; bottom:0` (drawer.css), so the peek/expanded sheet " +
+            "COVERS the bottom menubar band and STEALS its pointer events. This structurally " +
+            "INVERTS this gate's central contract (clause 1 stage<sheet<dock; clauses 2/3 the " +
+            "menubar hit-test / no-pointer-steal). NO blessed prop provides a bottom-inset " +
+            "lever — the exact BG-11 gap FORWARDED to glass-ui (KF-TO-GLASSUI-BG.md " +
+            "§FORWARDING 6a). Re-pointed to the `.glass-drawer` markers so it reds HONESTLY " +
+            "on the real inversion, NOT silently weakened. Discharges on the BG-11 re-pin.",
+    },
     // proof:transport-play-first-render — DISCHARGED at T.C1 (batch ⑤). The rail-core
     // rebuild renders play FIRST (from actions.primary); the gate flipped GREEN and
     // moved to the blocking proof:hygiene-chain in the SAME commit (drive clause 7 —
