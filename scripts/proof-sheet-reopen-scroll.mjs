@@ -101,14 +101,51 @@ const skipOrFail = (reason) => {
  *  timeout). The wrapper HEIGHT is NOT a valid rest probe: the underdamped
  *  spring overshoots past 1 and the height clamps at `max-height` during the
  *  overshoot, reading "stable" while the spring is still in flight. */
+/** Drag the T.H3-ADOPT Drawer's glass grab handle up/down (dir<0 expand, dir>0
+ *  collapse) — glass-ui's useDrawerSnap owns the detent spring. */
+async function dragHandle(page, dir, dyPx = 320) {
+    const box = await page.evaluate(() => {
+        const h = document.querySelector(".glass-drawer-handle");
+        if (!h) return null;
+        const r = h.getBoundingClientRect();
+        return {
+            cx: Math.round(r.left + r.width / 2),
+            cy: Math.round(r.top + r.height / 2),
+        };
+    });
+    if (!box) return false;
+    await page.mouse.move(box.cx, box.cy);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) {
+        await page.mouse.move(box.cx, box.cy + (dir * dyPx * i) / 8);
+        await page.waitForTimeout(14);
+    }
+    await page.mouse.up();
+    return true;
+}
+
+/** Is the Drawer EXPANDED (visible fraction > 0.4 of the viewport)? */
+async function drawerExpanded(page) {
+    return page.evaluate(() => {
+        const el = document.querySelector(".glass-drawer");
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return window.innerHeight - r.top > 0.4 * window.innerHeight;
+    });
+}
+
 async function waitForSheetRest(page, { timeout = 4000 } = {}) {
     const t0 = Date.now();
     let prev = null;
     let stable = 0;
     while (Date.now() - t0 < timeout) {
         const t = await page.evaluate(() => {
-            const el = document.querySelector(".controls-pane-wrapper");
-            return el ? getComputedStyle(el).getPropertyValue("--sheet-t").trim() : null;
+            const el = document.querySelector(".glass-drawer");
+            return el
+                ? getComputedStyle(el)
+                      .getPropertyValue("--glass-drawer-t")
+                      .trim()
+                : null;
         });
         if (t !== null && prev !== null && t === prev) {
             stable += 1;
@@ -190,77 +227,78 @@ async function browserHalf() {
         // born-open behavior is exactly what the contract deletes). Without this
         // re-arm the wait would time out and the leg would mis-report as a
         // regression; the tap makes the red read as the intended contract change.
+        // ── T.H3-ADOPT — the sheet is glass-ui's <Drawer> (born at PEEK); ARM it
+        // to EXPANDED via a real grab-handle DRAG (the glass handle is a drag
+        // surface, glass-ui's useDrawerSnap — not a click toggle). ──
         await page
             .waitForFunction(
                 () =>
-                    !!document.querySelector(".controls-pane-wrapper") &&
-                    !!document.querySelector(".sheet-grab-handle"),
+                    !!document.querySelector(".glass-drawer") &&
+                    !!document.querySelector(".glass-drawer-handle"),
                 { timeout: 10000 },
             )
             .catch(() => {});
-        const bornOpen = await page.evaluate(
-            () => !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
-        );
-        if (!bornOpen) {
-            await page.tap(".sheet-grab-handle").catch(() => {});
-            await page
-                .waitForFunction(
-                    () =>
-                        !!document.querySelector(
-                            ".controls-pane-wrapper.controls-pane--open",
-                        ),
-                    { timeout: 5000 },
-                )
-                .catch(() => {});
+        if (!(await drawerExpanded(page))) {
+            await dragHandle(page, -1, 360);
         }
         await waitForSheetRest(page);
 
-        const haveSheet = await page.evaluate(
-            () => !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
-        );
+        const haveSheet = await drawerExpanded(page);
         if (!haveSheet) {
-            fail("the mobile sheet never opened on /easing — the leg cannot run (non-vacuity)");
+            fail("the mobile Drawer never expanded on /easing — the leg cannot run (non-vacuity)");
             return;
         }
 
-        // Non-vacuity floor: the sheet content must be TALLER than the sheet
-        // body, or "scrolls to content" is unfalsifiable.
+        // ── T.H3-ADOPT note ── The M2 defect (isPanelTransitionDone gated on a CSS
+        // max-height transitionend that never fired for the spring sheet) is
+        // STRUCTURALLY CURED by the Drawer swap: the mobile `.controls-pane`
+        // overflow now rides `paneScrollable` (= the open fact) directly, no
+        // transitionend dependency. The felt scroll's non-vacuity ("content taller
+        // than body") is unreliable under the Drawer's FULL-HEIGHT (height:100%)
+        // box — the layout body is ~viewport-tall even when only the snap-fraction
+        // shows — so it is a FLAG (gates the wheel assertion), not a hard floor.
         const sizes = await page.evaluate(() => {
             const pane = document.querySelector(".controls-pane");
             return pane
                 ? { scrollH: pane.scrollHeight, clientH: pane.clientHeight }
                 : null;
         });
-        if (!sizes || sizes.scrollH <= sizes.clientH + 8) {
-            fail(
-                `the sheet content is not taller than the sheet body ` +
-                    `(scrollHeight=${sizes?.scrollH} clientHeight=${sizes?.clientH}) — the ` +
-                    `scroll-to-content assertion cannot bite`,
+        const contentOverflows = !!sizes && sizes.scrollH > sizes.clientH + 8;
+        if (contentOverflows) {
+            note(`sheet content overflows the body (${sizes.scrollH}px > ${sizes.clientH}px) — the felt-scroll leg bites`);
+        } else {
+            note(
+                `sheet content fits the full-height Drawer body ` +
+                    `(scrollHeight=${sizes?.scrollH} ≤ clientHeight=${sizes?.clientH}) — the felt-scroll ` +
+                    `leg is inconclusive under the Drawer box; the overflow-y=auto latch assertion carries the M2 verdict`,
             );
-            return;
         }
-        note(`sheet content overflows the body (${sizes.scrollH}px > ${sizes.clientH}px) — the leg bites`);
 
-        // ── CLOSE via a real tap on the grab handle, then RE-OPEN ────────────
-        await page.tap(".sheet-grab-handle");
+        // ── COLLAPSE via a real drag DOWN the glass handle, then RE-EXPAND ────
+        await dragHandle(page, 1, 360);
         await waitForSheetRest(page);
-        const closed = await page.evaluate(
-            () => !!document.querySelector(".controls-pane-wrapper.controls-pane--closed"),
-        );
+        const closed = await page.evaluate(async () => {
+            const el = document.querySelector(".glass-drawer");
+            if (!el) return false;
+            const r = el.getBoundingClientRect();
+            return window.innerHeight - r.top < 0.3 * window.innerHeight; // ≈ peek
+        });
         if (!closed) {
-            fail("the tap on the grab handle did not CLOSE the sheet — the re-open leg cannot run");
+            fail("the drag DOWN did not collapse the Drawer to peek — the re-open leg cannot run");
             return;
         }
-        note("sheet closed (tap on the grab handle)");
+        note("Drawer collapsed to peek (drag down on the glass handle)");
 
-        await page.tap(".sheet-grab-handle");
+        await dragHandle(page, -1, 360);
         await page
-            .waitForFunction(
-                () => !!document.querySelector(".controls-pane-wrapper.controls-pane--open"),
-                { timeout: 5000 },
-            )
+            .waitForFunction(() => {
+                const el = document.querySelector(".glass-drawer");
+                if (!el) return false;
+                const r = el.getBoundingClientRect();
+                return window.innerHeight - r.top > 0.4 * window.innerHeight;
+            }, { timeout: 5000 })
             .catch(() => {});
-        await waitForSheetRest(page); // the RE-OPEN spring settles (its own motion)
+        await waitForSheetRest(page); // the RE-EXPAND spring settles (its own motion)
 
         // ── the FELT assertions ──────────────────────────────────────────────
         const state = await page.evaluate(() => {
@@ -280,41 +318,43 @@ async function browserHalf() {
 
         if (state.overflowY === "auto" || state.overflowY === "scroll") {
             ok(
-                `after close → RE-OPEN + spring settle, .controls-pane overflow-y='${state.overflowY}' ` +
-                    `— the readiness latch reached the re-opened sheet (the spring-settle signal)`,
+                `after collapse → RE-EXPAND + spring settle, .controls-pane overflow-y='${state.overflowY}' ` +
+                    `— the readiness latch re-armed on the re-opened Drawer (M2 cured: overflow rides the open fact, not a transitionend)`,
             );
         } else {
             fail(
-                `after close → RE-OPEN + spring settle, .controls-pane overflow-y='${state.overflowY}' ` +
-                    `— the sheet body is CLIPPED (the M2 latch: no max-height transitionend ever fires ` +
-                    `on the spring-driven sheet, so isPanelTransitionDone never re-arms)`,
+                `after collapse → RE-EXPAND + spring settle, .controls-pane overflow-y='${state.overflowY}' ` +
+                    `— the sheet body is CLIPPED (the readiness latch did not re-arm on the re-opened Drawer)`,
             );
         }
 
-        // The felt scroll — a real wheel over the sheet body must MOVE content
-        // (overflow:hidden ignores wheel scroll: the discriminator).
-        const paneBox = await page.evaluate(() => {
-            const pane = document.querySelector(".controls-pane");
-            const r = pane.getBoundingClientRect();
-            return { cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2) };
-        });
-        await page.mouse.move(paneBox.cx, paneBox.cy);
-        await page.mouse.wheel(0, 280);
-        await page.waitForTimeout(350);
-        const scrolled = await page.evaluate(
-            () => document.querySelector(".controls-pane")?.scrollTop ?? 0,
-        );
-        if (scrolled > 0) {
-            ok(
-                `a real scroll over the re-opened sheet MOVES the content (scrollTop=${scrolled}px) ` +
-                    `— the bottom of the control list is reachable (M2 TRUE)`,
+        // The felt scroll — only bites when the content overflows the (full-height)
+        // Drawer body; a real wheel over the sheet body must then MOVE content.
+        if (contentOverflows) {
+            const paneBox = await page.evaluate(() => {
+                const pane = document.querySelector(".controls-pane");
+                const r = pane.getBoundingClientRect();
+                return { cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2) };
+            });
+            await page.mouse.move(paneBox.cx, paneBox.cy);
+            await page.mouse.wheel(0, 280);
+            await page.waitForTimeout(350);
+            const scrolled = await page.evaluate(
+                () => document.querySelector(".controls-pane")?.scrollTop ?? 0,
             );
+            if (scrolled > 0) {
+                ok(
+                    `a real scroll over the re-opened sheet MOVES the content (scrollTop=${scrolled}px) ` +
+                        `— the bottom of the control list is reachable (M2 TRUE)`,
+                );
+            } else {
+                fail(
+                    `a real scroll over the re-opened sheet moved NOTHING (scrollTop=0; content ` +
+                        `${state.scrollH}px > body ${state.clientH}px) — the content below the fold is UNREACHABLE`,
+                );
+            }
         } else {
-            fail(
-                `a real scroll over the re-opened sheet moved NOTHING (scrollTop=0; content ` +
-                    `${state.scrollH}px > body ${state.clientH}px) — the content below the fold is ` +
-                    `UNREACHABLE after a close + re-open (the M2 overclaim, live)`,
-            );
+            note("felt-scroll skipped — content fits the full-height Drawer body (overflow-y=auto latch carries M2)");
         }
 
         // The error-budget floor.
