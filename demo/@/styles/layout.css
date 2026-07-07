@@ -1,0 +1,210 @@
+/* layout.css — the demo's LAYOUT / dock geometry concern.
+   The work-area card sizing, the top/bottom dock anchoring, the derived controls
+   rail track, the graph-paper substrate pitches, and the recurring
+   bracket-arbitrary length tokens. Imported by style.css after design-idioms.css.
+   Colors (the accent / face / rainbow families) live in style.css + design-idioms;
+   THIS file is geometry — lengths, ratios, viewport clamps — only. */
+
+/* Geometry tokens — OUTSIDE @layer so they override glass-ui's incidental
+   same-named tokens (authoritative for the demo). NOTE: --panel-max-h / --rail-width
+   / --mask-fade live in design-idioms.css (proof:idioms definition-anchors them
+   there); the @property --rail-width registration rides beside them. */
+:root {
+    /* ── Recurring length homes (each routes a bracket-arbitrary literal to ONE token) ── */
+    --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
+    --header-items-max-w: 500px; /* the EditorHeader expanded items-wrapper cap (collapse animates max-width 0 ↔ this) */
+    --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent dropdown min (recurs ×3) */
+    /* The cube target tracks the STAGE CELL, not the raw viewport: cqi/cqb resolve
+       against the clamped stage column so the loader glyph is bounded by the
+       work-area clamp. cqi = inline (width), cqb = block (height); the svi/svh
+       fallback keeps it sized if the container scope is absent. */
+    --target-viewport-h: 30cqb; /* h-[var(--target-viewport-h)] cube-target loader height */
+    --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width */
+    --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track inset — 1.5rem each side */
+    --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing SelectContent cap */
+    --z-behind: -10; /* the below-plane rung (CubeTarget axis line), below glass-ui's --z-content:10 — see style.css z-contract */
+    --start-hero-band: 34dvh; /* the phone home hero/subject band split (the hero owns above; the subject's centering starts below) — clears the display-4 mobile hero on the 667/844 heights */
+
+    /* The graph / stage-field substrate: two-tier engineering-graph-paper pitches
+       (fine 1rem lines + 5rem majors), line strengths mixed over --foreground so
+       dark mode retints for free. The major tier is held STRICTLY ABOVE the 10%
+       legibility floor proof:appearance-suffusion asserts (clause g). */
+    --graph-pitch: 1rem;
+    --graph-major: 5rem;
+    --graph-opacity: 3%;
+    --graph-major-opacity: 11%;
+    --stage-field-tint: 4%; /* the per-stage field-tint magnitude */
+
+    /* The rest-dim opacity the OPEN controls pane fades to after ~10s of global
+       inactivity (the consuming rules live in ControlsPaneWrapper's scoped style so
+       the fade composes with its open/close transition). */
+    --controls-idle-opacity: 0.35;
+
+    /* ── The work-area card + dock anchoring ──
+       --dock-icon-height + the work-area clamp CEILINGS (a centered card that GROWS
+       into the surplus on a cinema display but stays bounded at 160rem/120rem so on
+       a 5K panel it fills ~50%W/66%H). --work-area-height = the clamped height
+       capped at 100dvh. */
+    --dock-icon-height: 2.75rem;
+    --work-area-max-width: clamp(72rem, 94vw, 160rem);
+    --work-area-max-height: clamp(44rem, 88dvh, 120rem);
+    --work-area-height: min(100dvh, var(--work-area-max-height));
+
+    /* The dock-anchor CEILING caps the FLOAT term so the docks CLUSTER to the
+       clamped content card instead of floating on unbounded viewport slack (past
+       the clamp freeze, slack = viewport − ceiling grows without bound). 4rem is
+       inert at normal desktop sizes and bites only where the slack runs away. --phi
+       is the golden ratio — the single named constant the dock-band proportions
+       derive from (the /4 ÷ /φ anchor asymmetry). */
+    --dock-anchor-ceiling: 4rem;
+    --phi: 1.618;
+
+    /* Optical-balance offset pair: split the vertical slack (100dvh −
+       work-area-height) top:bottom = 1/φ² : (1−1/φ²) = 0.382:0.618 (the golden
+       split), so the subject parks ABOVE geometric centre consistently across
+       viewports. The fractions sum to 1, so top + bottom == the full slack. */
+    --work-area-vertical-bias-top: 0.382; /* 1/φ²  — subject parks above optical centre */
+    --work-area-vertical-bias-bottom: 0.618; /* 1 − 1/φ² */
+    --work-area-vertical-slack: max(calc(100dvh - var(--work-area-height)), 0px);
+    --work-area-top-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-top));
+    --work-area-bottom-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-bottom));
+
+    /* The bottom dock BAND — the menubar pill height + margins, derived from the
+       dock primitives ALONE (no work-area term) so feeding it back into the
+       work-area sizing cannot form a custom-property cycle. Takes the MAX of the
+       token floor and TransportDock's published measured menubar height
+       (--menubar-measured-h, a ResizeObserver fact) so the mobile sheet always
+       clears the menubar the user actually sees. */
+    --dock-band-reserve: max(
+        calc(
+            var(--dock-icon-height) + var(--dock-margin) +
+                env(safe-area-inset-bottom, 0px)
+        ),
+        var(--menubar-measured-h, 0px)
+    );
+
+    /* The STABLE sibling — reads the MONOTONIC peak (--menubar-measured-h-peak,
+       only-ever-grows) instead of the live term, so the mobile full-bleed stage's
+       reserved band never breathes when the bottom sheet toggles (over-reservation
+       only ever keeps the subject MORE clear). */
+    --dock-band-reserve-stable: max(
+        calc(
+            var(--dock-icon-height) + var(--dock-margin) +
+                env(safe-area-inset-bottom, 0px)
+        ),
+        var(--menubar-measured-h-peak, 0px)
+    );
+
+    /* Bottom dock exclusion zone — the y-distance from the viewport bottom to the
+       TOP edge of the menubar pill: the dock's own bottom anchor (which folds the φ
+       push + the optical/notch term) PLUS the band depth. Consumed by the mobile
+       sheet anchor + open-pane max-height. NOT fed into --work-area-max-height
+       (that consumes the cycle-free --dock-band-reserve), so no cycle forms. */
+    --dock-menubar-reserve: calc(
+        var(--dock-bottom-anchor) + var(--dock-band-reserve)
+    );
+
+    /* The TOP dock band. The scene-switcher pill is fixed at --dock-top-anchor from
+       the viewport top, so the band = anchor + band depth (the mobile stage-cell top
+       inset consumes the same anchor, so the top-center band has ONE occupant by
+       construction). The FLOAT is CAPPED — min(optical-offset, --dock-anchor-ceiling)
+       — so the dock clusters to the clamped card; the min() is INSIDE the optical
+       max() so a notched device's safe-area inset still wins when it exceeds the cap. */
+    --dock-top-anchor: calc(
+        min(
+            max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)),
+            var(--dock-anchor-ceiling)
+        ) + var(--dock-margin) / 4
+    );
+    --dock-top-band-reserve: calc(
+        var(--dock-top-anchor) + var(--dock-band-reserve)
+    );
+
+    /* The BOTTOM dock anchor — the golden-asymmetry sibling: the top anchors TIGHT
+       (+ --dock-margin / 4), the bottom with MORE room (+ --dock-margin / φ). Both
+       derive from ONE φ token + the same optical offset + safe-area inset (no
+       hardcoded px). The bottom FLOAT is capped by the SAME --dock-anchor-ceiling;
+       only the FLOAT term is bounded, the golden bias is preserved. */
+    --dock-bottom-anchor: calc(
+        min(
+            max(
+                var(--work-area-bottom-offset, 0px),
+                env(safe-area-inset-bottom, 0px)
+            ),
+            var(--dock-anchor-ceiling)
+        ) + var(--dock-margin) / var(--phi)
+    );
+
+    /* ── Component offsets ── */
+    --caret-offset: 14px;
+    --resize-handle-inset: -4px;
+}
+
+/* THE DOCK-CLUSTER ANCHOR (progressive enhancement, feature-DETECTED). Where CSS
+   anchor-positioning is supported, the docks TETHER directly to the work-area card's
+   stage cell rect (itself clamped) instead of reading the viewport-derived optical
+   offset — the strongest form of "cluster to the content, not the viewport."
+   Anchor-positioning is not yet Baseline, so the whole subsystem is gated behind
+   @supports with the bounded-min() cap (above) as the path every browser takes by
+   default; position-area overrides the inline top/bottom only when live. Desktop
+   only (the mobile stage is a fixed full-bleed layer with no card to tether to). The
+   tether keys on an EXPLICIT [data-dock-tether] opt-in attribute on the two real
+   dock bands, NOT a :has() test on a generic .z-dock utility class (proof:brittleness
+   forbids keying layout on a z-* or pointer-events-* utility class). */
+@supports (anchor-name: --stage) and (top: anchor(--stage top)) {
+    @media (min-width: 1024px) {
+        .stage-cell {
+            anchor-name: --stage;
+        }
+        [data-dock-tether="top"] {
+            position-anchor: --stage;
+            top: calc(anchor(--stage top) + var(--dock-margin) / 4);
+        }
+        [data-dock-tether="bottom"] {
+            position-anchor: --stage;
+            top: auto;
+            bottom: calc(anchor(--stage bottom) + var(--dock-margin) / var(--phi));
+        }
+    }
+}
+
+/* Mobile work-area cap (< lg). --work-area-max-width goes full-bleed; the height
+   caps at min(64rem, viewport − the cycle-free --dock-band-reserve) with NO lower
+   floor (a floor above the viewport is exactly what pinned the work-area above the
+   viewport and collapsed the optical offsets). This guarantees positive slack, so
+   the golden optical offsets re-engage (the menubar floats up off the viewport edge)
+   and the closed-controls stage subject sits inside the dock-free band. The STABLE
+   parallel (--*-stable, from --dock-band-reserve-stable, the peak) reserves the
+   mobile full-bleed stage's band so the fixed stage rect NEVER breathes when the
+   bottom sheet toggles (the live chain oscillates ±8px with the dock reflow). */
+@media (max-width: 1023px) {
+    :root {
+        --work-area-max-width: 100dvw;
+        --work-area-max-height: min(64rem, calc(100dvh - var(--dock-band-reserve)));
+        --work-area-height: min(100dvh, var(--work-area-max-height));
+        --work-area-vertical-slack: max(calc(100dvh - var(--work-area-height)), 0px);
+        --work-area-top-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-top));
+        --work-area-bottom-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-bottom));
+
+        --work-area-max-height-stable: min(
+            64rem,
+            calc(100dvh - var(--dock-band-reserve-stable))
+        );
+        --work-area-vertical-slack-stable: max(
+            calc(100dvh - min(100dvh, var(--work-area-max-height-stable))),
+            0px
+        );
+        --dock-top-anchor-stable: calc(
+            max(
+                    calc(
+                        var(--work-area-vertical-slack-stable) *
+                            var(--work-area-vertical-bias-top)
+                    ),
+                    env(safe-area-inset-top, 0px)
+                ) + var(--dock-margin) / 4
+        );
+        --dock-top-band-reserve-stable: calc(
+            var(--dock-top-anchor-stable) + var(--dock-band-reserve-stable)
+        );
+    }
+}

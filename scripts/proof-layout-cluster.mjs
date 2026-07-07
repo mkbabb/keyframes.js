@@ -393,19 +393,28 @@ function blankComments(s) {
 }
 
 function staticHalf() {
-    const idiomsPath = path.join(DEMO, "@/styles/design-idioms.css");
-    const stylePath = path.join(DEMO, "@/styles/style.css");
-    if (!fs.existsSync(idiomsPath) || !fs.existsSync(stylePath)) {
-        fail(`static (d) — a styling source file is missing (design-idioms.css/style.css)`);
+    // The demo's shared styles tier (`demo/@/styles/` today, or `demo/shared/styles/`
+    // after the rename lane). The T.F styles split carved the rail-width + dock-anchor
+    // geometry OUT of style.css/design-idioms.css into layout.css, so scan EVERY .css
+    // in the tier rather than two fixed filenames (arming-audit: a gate keyed to one
+    // spelling misses a moved token — d.1/d.2 would pass vacuously).
+    const stylesDir = ["demo/@/styles", "demo/shared/styles"]
+        .map((r) => path.join(REPO, r))
+        .find((p) => fs.existsSync(p));
+    if (!stylesDir) {
+        fail(`static (d) — the demo shared styles tier is missing`);
         return;
     }
-    let idioms = blankComments(fs.readFileSync(idiomsPath, "utf8"));
-    let style = blankComments(fs.readFileSync(stylePath, "utf8"));
+    let styleBlob = fs
+        .readdirSync(stylesDir)
+        .filter((f) => f.endsWith(".css"))
+        .map((f) => blankComments(fs.readFileSync(path.join(stylesDir, f), "utf8")))
+        .join("\n");
 
     // FALSIFIABLE WITNESS: KF_LAYOUT_PLANT=1 injects a synthetic fixed-px rail
     // literal — the clause MUST red on it (a re-introduced offset is caught).
     if (process.env.KF_LAYOUT_PLANT === "1") {
-        idioms += "\n:root { --rail-width: 360px; }\n";
+        styleBlob += "\n:root { --rail-width: 360px; }\n";
     }
 
     const hits = [];
@@ -417,14 +426,14 @@ function staticHalf() {
     //       fixed track literal — NOT a clamp()/minmax() that merely CONTAINS a px.
     const railDecl = /--rail-width\s*:\s*([^;]+);/g;
     let m;
-    while ((m = railDecl.exec(idioms)) !== null) {
+    while ((m = railDecl.exec(styleBlob)) !== null) {
         const value = m[1].trim();
         // A RAW fixed-px literal: the whole value is `<number>px` (no
         // clamp/minmax/min/max/var wrapper). A clamp()/minmax() derived track is
         // allowed (its rem/cqi bounds are intrinsic-sizing, not a fixed offset).
         if (/^-?\d*\.?\d+px$/.test(value)) {
             hits.push(
-                `design-idioms.css — \`--rail-width: ${value}\` is a RAW fixed-px rail track literal ` +
+                `styles tier — \`--rail-width: ${value}\` is a RAW fixed-px rail track literal ` +
                     `(C1, the one true hardcoded layout offset U-K7 names); it must be a DERIVED ` +
                     `clamp()/minmax() track (M1), not invariant 400px`,
             );
@@ -441,7 +450,7 @@ function staticHalf() {
     for (const [name] of [["--dock-top-anchor"], ["--dock-bottom-anchor"]]) {
         const re = new RegExp(name + "\\s*:\\s*([\\s\\S]*?);", "g");
         let mm;
-        while ((mm = re.exec(style)) !== null) {
+        while ((mm = re.exec(styleBlob)) !== null) {
             let value = mm[1];
             // Allowlist: strip env(...) defaults (e.g. `, 0px)`) and the named
             // ceiling/margin/phi/offset tokens before scanning for a raw px addend.
@@ -451,7 +460,7 @@ function staticHalf() {
             // After stripping env() + var(), any surviving `<N>px` is a RAW addend.
             if (/-?\d*\.?\d+px/.test(scrubbed)) {
                 hits.push(
-                    `style.css — ${name} carries a RAW fixed-px addend (a re-tuned magic offset is forbidden; ` +
+                    `styles tier — ${name} carries a RAW fixed-px addend (a re-tuned magic offset is forbidden; ` +
                         `the chain may reference only the φ --dock-margin term + the named --dock-anchor-ceiling token): ` +
                         `${value.replace(/\s+/g, " ").trim()}`,
                 );

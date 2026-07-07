@@ -160,7 +160,7 @@ function main() {
                 continue;
             }
             failures.push(
-                `[kind:composables] ${relPosix(abs)} is neither reactive (no Vue/@vueuse ` +
+                `[kind-composables] ${relPosix(abs)} is neither reactive (no Vue/@vueuse ` +
                     `primitive) nor a use*-named factory — a plain module-scope helper ` +
                     `belongs in utils/, not the composables tier.`,
             );
@@ -182,7 +182,7 @@ function main() {
                 continue;
             }
             failures.push(
-                `[kind:utils] ${relPosix(abs)} is engine-loader boot infrastructure, ` +
+                `[kind-utils] ${relPosix(abs)} is engine-loader boot infrastructure, ` +
                     `not a generic DOM/text helper — runtime infra belongs beside state/.`,
             );
         }
@@ -205,7 +205,7 @@ function main() {
                 continue;
             }
             failures.push(
-                `[kind:styles] ${relPosix(abs)} is not global style vocabulary ` +
+                `[kind-styles] ${relPosix(abs)} is not global style vocabulary ` +
                     `(a .css sheet or a token/role .json manifest) — a non-style unit is ` +
                     `mis-filed in the styles tier.`,
             );

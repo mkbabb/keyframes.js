@@ -1,33 +1,31 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@mkbabb/glass-ui/styles";
-/* The OFL woff2 corpus (Fira Code mono + the display/sans faces) — DELIBERATELY
-   excluded from the `styles` index by glass-ui (loaded once, self-contained
-   base64 @font-face, no external request). The consumer MUST import it or
-   --font-mono: "Fira Code" silently renders the SF Mono/Menlo fallback (the
-   index.html "arrives via the styles cascade" note was wrong — the cascade
-   omits it by design). This is the AUTHORITATIVE Fira Code payload. */
+/* The OFL woff2 corpus (Fira Code mono + the display/sans faces) is DELIBERATELY
+   excluded from the glass-ui `styles` index (loaded once, self-contained base64
+   @font-face, no external request). The consumer MUST import it or --font-mono:
+   "Fira Code" silently renders the SF Mono/Menlo fallback. This is the
+   AUTHORITATIVE Fira Code payload. */
 @import "@mkbabb/glass-ui/styles/fonts";
-/* The demo's OWNED design idioms — imported IMMEDIATELY AFTER the glass-ui
-   cascade so the demo's --rainbow-* / --color-gold / .scale-on-hover /
-   @keyframes enter definitions are the AUTHORITATIVE copy (the latent
-   cross-repo rent, now owned + gated). See design-idioms.css (D.W2.S1). */
+/* The demo's OWNED design idioms + layout geometry — imported IMMEDIATELY AFTER the
+   glass-ui cascade so the demo's --rainbow-* / --color-gold / @keyframes enter
+   definitions are the AUTHORITATIVE copy (design-idioms.css); layout.css carries the
+   work-area / dock / rail geometry tokens. */
 @import "./design-idioms.css";
+@import "./layout.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ════════════════════════════════════════════════════════════════════════
-   Z-INDEX ORDERED-LAYER CONTRACT (D.W3.S2 — recorded here, gated there)
+   Z-INDEX ORDERED-LAYER CONTRACT
    ────────────────────────────────────────────────────────────────────────
    The demo's stacking order is single-sourced from glass-ui's --z-* scale
-   (node_modules/@mkbabb/glass-ui/dist/styles/tokens.css), consumed via the
-   Tailwind utilities z-content / z-controls / z-bar / z-dock / z-overlay /
-   z-popover / z-modal. There is NO demo-local z-scale; the demo OWNS the
-   ORDER as a documented contract so a new component knows where to stack
-   without guessing a raw number. Strictly ascending — a higher rung always
-   paints over a lower one:
+   (node_modules/@mkbabb/glass-ui/dist/styles/tokens.css), consumed via the Tailwind
+   z-content / z-controls / z-bar / z-dock / z-overlay / z-popover / z-modal
+   utilities. There is NO demo-local z-scale; the demo OWNS the ORDER as a documented
+   contract, strictly ascending — a higher rung always paints over a lower one:
 
      --z-behind   : -10  (below the content plane — the CubeTarget axis line;
-                          demo-owned, defined in design-idioms.css)
+                          demo-owned, defined in layout.css)
      --z-content  :  10  the scene subject / target plane
      --z-controls :  20  in-scene controls layered over content
      --z-bar      :  30  the editor bars (header / menubar chrome)
@@ -36,52 +34,33 @@
      --z-popover  : 130  popovers (share)
      --z-modal    : 140  modal dialogs — above everything
 
-   Contract: content < controls < bar < dock < overlay < popover < modal,
-   with --z-behind below the whole stack. Use the SEMANTIC z-* utility for the
-   rung; do NOT introduce a raw z-[N] bracket value (proof:brittleness gates
-   against drift). The one raw `z-index: -10` (CubeTarget axis line) reconciles
-   to --z-behind above.
+   Use the SEMANTIC z-* utility for the rung; do NOT introduce a raw z-[N] bracket
+   value (proof:brittleness gates against drift). The one raw `z-index: -10`
+   (CubeTarget axis line) reconciles to --z-behind above.
    ════════════════════════════════════════════════════════════════════════ */
 
 @theme {
-    /* THE SINGLE DISPLAY VOICE AUTHORITY (K.W2 S1/S4 — the typographic root).
-       There is exactly ONE display token: --font-display = Instrument Serif. The
-       former redundant --font-serif (an identical second display declaration that
-       let a future edit split the dock band silently — styling-typography-k §3) is
-       DELETED; no demo consumer reads it.
+    /* THE SINGLE DISPLAY VOICE AUTHORITY. Exactly ONE display token: --font-display
+       = Instrument Serif (the demo's deliberate identity face — one token, zero new
+       payload, a SINGLE weight 400). Of glass-ui's φ-ladder only the text-display-*
+       rungs bind var(--font-display); the text-title/-heading/-subheading/dock-label
+       utilities bind var(--font-text) (the body register). glass-ui's text-display-*
+       rungs hardcode font-weight:600 and there is no --font-display-weight token to
+       swap it, so the honest 400 lands via the @layer demo-typography rung override
+       at the foot of this sheet + font-synthesis:none at :root (the BG-6 glass-ui
+       ask is the durable seam, ledgered in demo/glass-ui-gaps.ts).
 
-       THE TRUE BUILD: of glass-ui's φ-ladder (typography.css) ONLY the
-       `text-display-*` rungs bind var(--font-display); the `text-title`/
-       `-heading`/`-subheading`/`dock-label` utilities bind var(--font-text) (the
-       body register). Instrument Serif is the demo's deliberate identity face —
-       one token, zero new payload — and it ships a SINGLE weight (400, no wght
-       axis). glass-ui's `text-display-*` rungs hardcode `font-weight: 600`
-       (tuned for Plus Jakarta, which HAS a 600) and there is NO
-       --font-display-weight token in glass-ui 4.x to swap it (the prior comment
-       here vouched for that phantom token — FALSE, T.D2 lockstep): the honest
-       400 lands via the @layer demo-typography rung override at the foot of
-       this sheet + `font-synthesis: none` at :root, and the durable token seam
-       is the BG-6 glass-ui ask (demo/glass-ui-gaps.ts).
-
-       T.D3 (OD-6 / T-TY2) — the demo's Tailwind `font-sans` override is
-       DELETED: the body register is glass-ui's own Plus Jakarta Sans (variable,
-       already bundled via the @mkbabb/glass-ui/styles/fonts import above —
-       zero new payload). Three voices, hard-bounded: Instrument Serif (display)
-       · Plus Jakarta Sans (body/chrome) · Fira Code (code/data only).
-
-       "Instrument Serif Fallback" sits between the web font and raw Georgia:
-       it is the metric-matched fallback face defined below (E.W11.S5) so the
-       LCP <h1> (text-display-mega, EditorStartScreen.vue) lands in its FINAL box
-       from first paint and does not reflow on Instrument-Serif arrival. */
+       "Instrument Serif Fallback" is the metric-matched fallback face defined below
+       so the LCP <h1> (text-display-mega, EditorStartScreen.vue) lands in its FINAL
+       box from first paint and does not reflow on Instrument-Serif arrival. */
     --font-display: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif;
     --font-mono: "Fira Code", monospace;
 
     --color-accent-red: var(--accent-red);
     --color-accent-red-foreground: var(--accent-red-foreground);
-    /* T.D7 (OD-6 APPROVED / T-TH1) — the violet authority's Tailwind bridge, so
-       chrome call-sites write bg-accent-kf / border-accent-kf instead of the
-       red family (the AnimationVisualizer ball + dashed twin ride these).
-       --accent-red's bridge above SURVIVES for destructive surfaces only. */
+    /* The violet authority's Tailwind bridge, so chrome call-sites write
+       bg-accent-kf / border-accent-kf instead of the red family; --accent-red's
+       bridge above survives for destructive surfaces only. */
     --color-accent-kf: var(--accent-kf);
     --color-accent-kf-strong: var(--accent-kf-strong);
     --color-accent-kf-subtle: var(--accent-kf-subtle);
@@ -89,25 +68,17 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   METRIC-MATCHED FONT FALLBACK (E.W11.S5 — the CLS-stabilizing LCP fix)
+   METRIC-MATCHED FONT FALLBACK (the CLS-stabilizing LCP fix)
    ────────────────────────────────────────────────────────────────────────
-   The hero <h1 class="text-display-4"> (EditorStartScreen.vue) is the LCP
-   element, rendered in Instrument Serif (--font-display) loaded `&display=swap`
-   from Google Fonts (demo/app/index.html). Instrument Serif is a condensed
-   display serif whose box differs markedly from Georgia → the LARGEST text on
-   the page reflows when the web font arrives, a CLS contribution landing on the
-   LCP node itself (the worst placement).
-
-   The fix mirrors glass-ui's own Capsize idiom (its bundled-face fallbacks in
-   `@mkbabb/glass-ui/styles` — typography.css — carry the same
-   size-adjust/ascent-override/descent-override descriptors). Here a calibrated
-   `local("Georgia")` face is sized to Instrument Serif's box so the fallback
-   occupies the SAME geometry as the web font; only the inter-swap reflow is
-   removed (pixel-STABILIZING — no shift added). `display=swap` is KEPT; the web
-   font is unchanged. The descriptors derive from the Capsize x-height match
-   (Instrument Serif upm 1000, ascent 1024, descent 400, x-height 510; Georgia
-   upm 2048, x-height 986) — they are Baseline widely available and silently
-   ignored where unsupported (no feature-detect needed). */
+   The hero <h1> (EditorStartScreen.vue) is the LCP element, rendered in Instrument
+   Serif (--font-display) loaded &display=swap. Instrument Serif is a condensed
+   display serif whose box differs markedly from Georgia → the LARGEST text on the
+   page reflows when the web font arrives, a CLS contribution landing on the LCP node
+   itself. A calibrated local("Georgia") face sized to Instrument Serif's box makes
+   the fallback occupy the SAME geometry as the web font (pixel-STABILIZING — no
+   shift added; display=swap is KEPT). The descriptors derive from the Capsize
+   x-height match (Instrument Serif upm 1000, ascent 1024, descent 400, x-height 510;
+   Georgia upm 2048, x-height 986). */
 @font-face {
     font-family: "Instrument Serif Fallback";
     src: local("Georgia");
@@ -117,228 +88,23 @@
     line-gap-override: 0%;
 }
 
-/* Project-specific tokens — OUTSIDE @layer so they override glass-ui defaults */
+/* Project-specific tokens — OUTSIDE @layer so they override glass-ui defaults. */
 :root {
     color-scheme: light;
 
-    /* ── T.D2 (OD-6 / T-TY1, RULED #24) — the faux-bold kill, at the root ──
-       Instrument Serif ships ONE weight (400). Every glass-ui display rung bakes
-       font-weight: 600 (tuned for Jakarta, which HAS a 600) — so every display
-       leaf rendered browser-SYNTHESIZED bold: the mushy smeared hero the owner
-       rejected ("Most of the fonts on the site are not right at all"). With
-       synthesis off, a weight the face does not ship falls back to the TRUE
-       face (the honest ink), never a smear. Inherited — one declaration covers
-       every leaf. The computed-weight honesty (400 at the rung) is the @layer
-       demo-typography override at the foot of this sheet (BG-6 consumer-side
-       until glass-ui ships --font-display-weight). */
+    /* Instrument Serif ships ONE weight (400); every glass-ui display rung bakes
+       font-weight:600, so a synthesized bold rendered a mushy smeared hero. With
+       synthesis off, a weight the face does not ship falls back to the TRUE face
+       (the honest ink), never a smear. Inherited — one declaration covers every
+       leaf; the computed-weight honesty at the rung is the @layer demo-typography
+       override at the foot of this sheet. */
     font-synthesis: none;
 
-    /* ── T.D3 (OD-6 / T-TY2, RULED) — the body register RE-ADOPTED ──
-       The I.W6 `--font-stack-text` reclaim (the ui-sans-serif system-stack pin)
-       is DELETED: glass-ui's Plus Jakarta Sans flows natively to every body /
-       controls / dropdown / dock surface. The demo pays for the face (base64 in
-       the fonts import) — now it renders it. ONLY the K.W2 S4 display repoint
-       survives: --font-stack-display bridges to the ONE display authority so
-       the bare `.font-display` utility and the φ `text-display-*` ladder agree
-       (it formerly bridged to --font-stack-text, so `.font-display` resolved
-       the BODY face — the opposite of its name). */
+    /* The body register: glass-ui's Plus Jakarta Sans flows natively to every body /
+       controls / dropdown / dock surface. Only the display repoint survives —
+       --font-stack-display bridges to the ONE display authority so the bare
+       .font-display utility and the φ text-display-* ladder agree. */
     --font-stack-display: var(--font-display);
-
-    /* ── Layout ── */
-    --dock-icon-height: 2.75rem;
-    /* K.W3 M4 — the work-area card GROWS into the surplus on a cinema display
-       (the "distribute the surplus deliberately" rule the §2 probe named missing:
-       pre-cure the card froze at 120rem/66rem = 1920×1056 and everything past it
-       was DEAD GUTTER — 37.5%W / 36.7%H fill at 5K with 1600px empty graph-paper
-       each side). The 94vw / 88dvh RESPONSIVE drivers are unchanged (so 1920×1080
-       still reads the 94%W / 88%H baseline — the happy-path layout-grid-k §2
-       baseline row is byte-stable); only the CEILINGS lift (120rem→160rem width,
-       66rem→120rem height) so the centered card keeps growing past the old freeze
-       and the [stage] minmax(0,1fr) subject fills the new real estate. Still
-       BOUNDED (center-card, not full-bleed): the card caps at 160rem/120rem so on
-       a 5K panel it fills ~50%W/66%H — a large centered card the chrome clusters
-       to (M3's capped docks hug it), NOT a UI marooned in a void. The lifted
-       ceilings keep the rail bounded (M1's 30rem clamp ceiling governs the rail
-       regardless of card width) and the dock anchors bounded (M3's
-       --dock-anchor-ceiling caps the slack regardless of card height). */
-    --work-area-max-width: clamp(72rem, 94vw, 160rem);
-    --work-area-max-height: clamp(44rem, 88dvh, 120rem);
-    --work-area-height: min(100dvh, var(--work-area-max-height));
-
-    /* K.W3 M3 — the dock-anchor CEILING (the named cap the unbounded slack floats
-       are bounded TO; the §2 5K/portrait float dies here). The dock anchors are
-       slack × bias, and slack = viewport − the work-area clamp ceiling — so past
-       the C2/C3 freeze the slack (and the anchors with it) grow WITHOUT BOUND: at
-       5120×2880 the top dock floated 698.8px in, the bottom 1132.2px (the docks
-       maroon mid-void). This ONE named token caps the FLOAT term so the docks
-       CLUSTER to the clamped content card instead of the viewport. 4rem (64px) is
-       the measured call against the five probe viewports: it sits ABOVE every
-       normal-desktop optical offset (800h→36.7px, 900h→41.3px — so the cap is
-       INERT at laptop/baseline sizes, the natural φ-optical balance survives
-       untouched) and FAR below every pathological float (146.7px @1440h up to
-       696.8px @2880h — so it bites exactly where the slack runs away). The §4
-       sketch was 6rem/8rem; 4rem is the tighter measured value that keeps the
-       docks hugging the card on a cinema display while leaving the optical bias
-       free on a laptop. NOT a per-screen media-query ladder, NOT a re-tuned
-       φ-bias — ONE ceiling, capping the slack at the derivation (K.md §MANDATE:
-       "the dock layout dies at the GRID/anchoring system, NOT retuned magic
-       offsets"). The φ --dock-margin/4 ÷ /φ asymmetry (below) is PRESERVED on top
-       of the capped float — it is φ-derived, not a magic number. */
-    --dock-anchor-ceiling: 4rem;
-    /* The golden ratio — the single named constant the dock-band proportions
-       derive from (J.W7c U1). Everything below is a φ-derivation, not a magic
-       number: the vertical-slack bias pair and the bottom dock anchor both
-       reference --phi so the layout's asymmetry is mathematical, not hardcoded. */
-    --phi: 1.618;
-
-    /* Optical-balance offset pair: split the vertical slack
-       (100dvh − work-area-height) as top:bottom = 1/φ² : (1−1/φ²) = 0.382:0.618
-       (the golden split), so the subject parks ABOVE geometric centre (the
-       optical centre) consistently across viewports — not a magic divisor that
-       goes inert when slack is tiny. The fractions sum to 1, so top + bottom ==
-       the full slack; on mobile (small slack) the same golden split still
-       biases proportionally and keeps small subjects clear of the dock band. */
-    --work-area-vertical-bias-top: 0.382; /* 1/φ²  — subject parks above optical centre */
-    --work-area-vertical-bias-bottom: 0.618; /* 1 − 1/φ² */
-    --work-area-vertical-slack: max(calc(100dvh - var(--work-area-height)), 0px);
-    --work-area-top-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-top));
-    --work-area-bottom-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-bottom));
-
-    /* The bottom dock BAND — the height of the menubar pill plus its margins,
-       derived from the dock primitives ALONE (no work-area term). This is the
-       cycle-free reserve the mobile --work-area-max-height cap consumes: feeding
-       the full --dock-menubar-reserve (which references --work-area-bottom-offset)
-       back into the work-area sizing would form a custom-property cycle
-       (max-height → bottom-offset → slack → height → max-height), invalidating
-       the whole chain. The band depends only on dock + safe-area, so it breaks
-       the cycle while still reserving the true menubar exclusion zone.
-
-       J.W4 S7 (CH-3/M1 re-certification): the token half ALONE under-measured
-       the band — the always-expanded TransportDock pill renders ~90px of host
-       (vs --dock-icon-height + --dock-margin ≈ 52px), so the mobile sheet
-       (anchored at --dock-menubar-reserve) ran 30+px BEHIND the menubar and the
-       pill painted over the sheet's bottom control row (the M1 occlusion the
-       I ledger's CH-3 row prescribed curing by "derive sheet anchor from
-       MEASURED menubar height"). TransportDock.vue now publishes its host's
-       REAL border-box height as `--menubar-measured-h` (:root, ResizeObserver);
-       the band takes the MAX of the token floor and the measured fact, so the
-       sheet always clears the menubar the user actually sees. The measured
-       height is content-driven (never a function of this reserve), so the
-       cycle-free property is preserved. Gated: proof:live-session-mobile
-       (sheet.bottom ≤ menubar.top on 390×844 + hasTouch). */
-    --dock-band-reserve: max(
-        calc(
-            var(--dock-icon-height) + var(--dock-margin) +
-                env(safe-area-inset-bottom, 0px)
-        ),
-        var(--menubar-measured-h, 0px)
-    );
-
-    /* J.WZ (S1 stage-rect-invariant) — the STABLE sibling of --dock-band-reserve.
-       --dock-band-reserve folds the LIVE --menubar-measured-h, which oscillates as
-       the bottom sheet toggles (the GlassDock content reflows ~90px↔~84px); the
-       sheet anchor WANTS that live value, but feeding it into the mobile full-bleed
-       stage's `padding-block` SHIFTS the fixed stage rect on every open/close (the
-       S1 violation proof:mobile-single-page clause (b) bites: host Δ ≈ ±8px). This
-       token reads the MONOTONIC peak instead (--menubar-measured-h-peak, published
-       by TransportDock — it only ever grows), so the stage frame reserves a band
-       that never breathes with the dock state. Same token floor; the peak replaces
-       the live term. Over-reservation only ever keeps the subject MORE clear. */
-    --dock-band-reserve-stable: max(
-        calc(
-            var(--dock-icon-height) + var(--dock-margin) +
-                env(safe-area-inset-bottom, 0px)
-        ),
-        var(--menubar-measured-h-peak, 0px)
-    );
-
-    /* Bottom dock exclusion zone — the y-distance from the viewport bottom to
-       the TOP edge of the menubar pill: the dock's own bottom anchor (the gap
-       below the pill) PLUS the pill's measured band depth. Consumed by
-       AnimationControlsGroup.vue's mobile sheet anchor + the open-pane
-       max-height calc; the sheet must clear the pill the user actually sees.
-
-       J.W7c U1 CH-3 RE-CERTIFICATION: U1 pushed the dock DOWN by --dock-margin/φ
-       (the golden-asymmetry bottom anchor below). The reserve must follow the
-       dock to its NEW anchored position or the pill paints over the open sheet's
-       bottom ~5px again (the CH-3 mobile chronic — proof:live-session-mobile
-       caught exactly this: sheet.bottom 698 > menubar.top 693 = dock-margin/φ).
-       So the reserve now derives from --dock-bottom-anchor (which already folds
-       the φ push + the max(bottom-offset, safe-area) optical/notch term),
-       restoring sheet.bottom ≤ menubar.top at both detents. NOT fed back into
-       --work-area-max-height (that consumes the cycle-free --dock-band-reserve),
-       so no custom-property cycle forms. */
-    --dock-menubar-reserve: calc(
-        var(--dock-bottom-anchor) + var(--dock-band-reserve)
-    );
-
-    /* ── The TOP dock band (J.W7a S5 / XH-4 — the top-center band contract) ──
-       The scene-switcher pill is `fixed` at an ANCHOR offset from the viewport
-       top (ChromeDock.vue consumes --dock-top-anchor as its `top:`), so the
-       band it occupies = anchor + the dock band depth. The former mobile stage
-       inset reserved only --dock-band-reserve FROM y=0 and omitted the anchor
-       term — stage-level chrome (the easing metric header, the spring view
-       toggle) rose into the pill's band and collided with it (cross-hierarchy
-       #4, `easing-mobile.png`/`spring-mobile.png`). These two tokens make the
-       REAL band the single source: the anchor is consumed by the dock itself
-       AND by the mobile stage-cell top inset (AnimationControlsGroup), so the
-       top-center band has ONE occupant — the scene-switcher — by construction.
-       (The durable glass-ui `GlassDock` reserved-band QUERY is the W7b handoff
-       edge; this is the kf-side relocation, cross-hierarchy §handoff.)
-
-       K.W3 M3 — the FLOAT is now CAPPED: min(optical-offset, --dock-anchor-ceiling)
-       so the dock CLUSTERS to the clamped work-area card on a cinema display
-       instead of floating on unbounded slack (the §2 5K float — 698.8px in — dies;
-       capped to ≤ 64px + the φ /4 term). The min() is INSIDE the optical max() so
-       the safe-area inset still wins on a notched device when it exceeds the cap.
-       The cap is inert at normal desktop sizes (the offset is below the ceiling
-       there), so the φ-optical balance is untouched on a laptop. */
-    --dock-top-anchor: calc(
-        min(
-            max(var(--work-area-top-offset, 0px), env(safe-area-inset-top, 0px)),
-            var(--dock-anchor-ceiling)
-        ) + var(--dock-margin) / 4
-    );
-    --dock-top-band-reserve: calc(
-        var(--dock-top-anchor) + var(--dock-band-reserve)
-    );
-
-    /* ── The BOTTOM dock anchor (J.W7c U1 — the golden-asymmetry sibling) ──
-       The top dock anchors TIGHT to the top (+ --dock-margin / 4); the bottom
-       dock anchors with MORE breathing room (+ --dock-margin / φ ≈ /1.618 — a
-       larger gap than /4). This is the deliberate, VISIBLE golden asymmetry the
-       live-audit U1 names: the top band hugs the viewport edge, the bottom band
-       floats further off it. Both anchors derive from ONE φ token + the same
-       optical offset + safe-area inset — no hardcoded px on either side.
-       Consumed by TransportDock.vue's `bottom:` (falls back to the bare
-       --work-area-bottom-offset if the anchor is somehow absent).
-
-       K.W3 M3 — the bottom FLOAT is CAPPED by the SAME --dock-anchor-ceiling as
-       the top twin: min(optical-offset, ceiling) + the φ /φ term, so the bottom
-       dock hugs the clamped card on huge screens (the §2 1132.2px @5K /588.3px
-       @portrait float dies; bounded to ≤ 64px + the φ term). The golden /4÷/φ
-       asymmetry is PRESERVED — only the FLOAT term is bounded, not the bias. */
-    --dock-bottom-anchor: calc(
-        min(
-            max(
-                var(--work-area-bottom-offset, 0px),
-                env(safe-area-inset-bottom, 0px)
-            ),
-            var(--dock-anchor-ceiling)
-        ) + var(--dock-margin) / var(--phi)
-    );
-
-    /* R.W6 C.5 — --spring-snappy shadow alias EXCISED. The demo's local
-       --spring-snappy: var(--spring-smooth) silently clobbered glass-ui's own
-       --spring-snappy (the overshoot-carrying curve) with the calmer
-       --spring-smooth — an unintentional global token shadow. The single call
-       site (AnimationControlsGroup.vue .controls-layout transition) is updated
-       to explicitly var(--spring-smooth), making the intent visible and
-       restoring glass-ui's --spring-snappy for all glass-ui components. */
-
-    /* ── Component offsets ── */
-    --caret-offset: 14px;
-    --resize-handle-inset: -4px;
 
     /* ── 3D axis color tokens ── */
     --axis-x: hsl(0 72% 54%);
@@ -346,30 +112,21 @@
     --axis-z: hsl(240 76% 58%);
     --axis-w: var(--foreground);
 
-    /* ── Accent red tokens — DESTRUCTIVE-ONLY (T.D7 / OD-6 RULED / T-TH1) ──
-       DESIGN.md's original contract restored: --accent-red marks destructive /
-       error surfaces (Clear-all, delete, error toasts) and NOTHING else. The
-       K.W4 S3 promotion of this token into the sitewide motion authority is
-       REVERSED below (--color-progress now rides the violet accent). The hue is
-       UNCHANGED (proof:crayon-preserved keeps it pinned) — only its REACH
-       shrinks to the destructive register. */
+    /* ── Accent red — DESTRUCTIVE-ONLY ──
+       --accent-red marks destructive / error surfaces (Clear-all, delete, error
+       toasts) and NOTHING else; the motion authority rides the violet accent below.
+       The hue is UNCHANGED (proof:crayon-preserved pins it). */
     --accent-red: hsl(0 72% 63%);
     --accent-red-foreground: hsl(0 0% 100%);
 
-    /* ── THE VIOLET ACCENT AUTHORITY (T.D7 — OD-6's ramp, the P-THEME graft) ──
-       ONE oklch family, BOTH themes — the latent-red kill's constructive half
-       (owner token: OD-6 APPROVED, "Good.", 2026-07-05, on the live P-THEME
-       review; blessed reference branch worktree-wf_1e744f4d-2bb-3). The brand
-       already owned two violets that never met: the ppmycota periwinkle
-       (hsl 248°) and glass-ui's dark orchid (oklch hue 318). They unify HERE
-       into one ramp: iris-periwinkle in light, orchid in dark — same family,
-       only lightness/chroma arm-swap, so the accent keeps ONE identity across
-       the theme toggle (the identity-flip dies: light's near-black --primary
-       is gone). light-dark() resolves against color-scheme, which the .dark
-       class flips — the arms are theme-live.
-         · base       — interactive accent, progress fills, selection
-         · strong     — hover/active deepen (light) / lift (dark)
-         · subtle     — washes + tinted surfaces
+    /* ── THE VIOLET ACCENT AUTHORITY (OD-6's ramp) ──
+       ONE oklch family, BOTH themes: iris-periwinkle in light, orchid in dark — same
+       family, only lightness/chroma arm-swap, so the accent keeps ONE identity
+       across the theme toggle. light-dark() resolves against color-scheme, which the
+       .dark class flips.
+         · base — interactive accent, progress fills, selection
+         · strong — hover/active deepen (light) / lift (dark)
+         · subtle — washes + tinted surfaces
          · foreground — text/glyph ON the accent */
     --accent-kf: light-dark(oklch(0.56 0.17 295), oklch(0.74 0.13 305));
     --accent-kf-strong: light-dark(oklch(0.49 0.19 295), oklch(0.8 0.14 305));
@@ -379,25 +136,16 @@
         oklch(0.24 0.03 302)
     );
 
-    /* The interactive-accent repoint: glass-ui's --primary was near-BLACK in
-       light and orchid in dark (the accent changed identity per theme). It now
-       rides the one violet authority in both arms; glass-ui's own
-       --primary-foreground arms (white on light-violet, dark ink on orchid)
-       remain contrast-valid against the new values. */
+    /* The interactive-accent repoint: glass-ui's --primary was near-black in light
+       and orchid in dark (identity changed per theme); it now rides the one violet
+       authority in both arms. */
     --primary: var(--accent-kf);
 
-    /* ── The six cube facet crayons (L.W11.S2 — the HUE-EXACT hygiene lift) ──
-       M. Cubert's six saturated facets are the canonical crayon SIGNAL surface
-       (the user's explicit keeper — coherence by REGISTER, not collapse). They
-       lived as raw rgba() literals inside CubeTarget.vue's `cubeSides` array
-       (the `color:` per face), off the token ladder. Lifted here ONE-FOR-ONE,
-       NO hue touched: each --face-N carries the EXACT rgba the facet already
-       drew, so the die is byte-identical (proof:visual-lock / proof:crayon-
-       preserved stay green). CubeTarget now references var(--face-N) per facet;
-       the colors are single-sourced HERE so a future re-material (the lit-
-       lacquer inset — the S2 scene egg, owned by the cube lane) tunes the
-       crayon in ONE place. The face order matches the cubeSides class order:
-       front(1)/right(2)/back(3)/left(4)/top(5)/bottom(6). */
+    /* ── The six cube facet crayons (the HUE-EXACT hygiene lift) ──
+       M. Cubert's six saturated facets are the canonical crayon SIGNAL surface,
+       lifted ONE-FOR-ONE from CubeTarget.vue's raw rgba() literals (byte-identical —
+       proof:visual-lock / proof:crayon-preserved pin them). The face order matches
+       the cubeSides class order: front(1)/right(2)/back(3)/left(4)/top(5)/bottom(6). */
     --face-1: rgba(255, 0, 0, 0.8); /* front — '1' (red) */
     --face-2: rgba(0, 255, 0, 0.8); /* right — '2' (green) */
     --face-3: rgba(0, 0, 255, 0.8); /* back  — '3' (blue) */
@@ -405,21 +153,14 @@
     --face-5: rgba(255, 0, 255, 0.8); /* top   — '5' (magenta) */
     --face-6: rgba(0, 255, 255, 0.8); /* bottom — '6' (cyan) */
 
-    /* ── Progress / slider color tokens (T.D7 / OD-6 — the motion-color
-         authority repointed to the VIOLET) ──
-       K.W4 S3 proved the one-token lever: every motion surface (the conic
-       --dot-p ring, the rail/ball pair, the readout-accent, the status-badge
-       tone, the timeline scrub track, the spring preset dashes) reads
-       --color-progress. That lever now points at the accent the brand actually
-       owns — the downstream references inherit the violet by construction, and
-       red exits the chrome entirely (VERDICT #16's "latent red theme" dies at
-       its root; --accent-red returns to destructive-only above). The slider
-       rail sheds its red twin for a NEUTRAL border-derived tone: rails are
-       substrate, not signal. The rainbow play CTA gradient is a SEPARATE
-       palette (--rainbow-*), PRESERVED VERBATIM — crayons stay bounded to
-       subjects. The settled/FINAL register keeps the dashed-outline idiom
-       (border-dashed border-accent-kf/40 bg-accent-kf/15) at each preset-cell
-       call-site — the IDIOM survives the hue swap. */
+    /* ── Progress / slider color tokens (the motion-color authority = the VIOLET) ──
+       Every motion surface (the conic --dot-p ring, the rail/ball pair, the
+       readout-accent, the status-badge tone, the timeline scrub track, the spring
+       preset dashes) reads --color-progress, which points at the accent the brand
+       owns — so red exits the chrome entirely. The slider rail sheds its red twin
+       for a NEUTRAL border-derived tone (rails are substrate, not signal). The
+       rainbow play-CTA gradient is a SEPARATE palette (--rainbow-*), preserved
+       verbatim. */
     --color-progress: var(--accent-kf);
     --color-slider-track: color-mix(
         in srgb,
@@ -427,188 +168,44 @@
         var(--border)
     );
 
-    /* ── Branding ── (uncaged from utils.css, D.W2.S2)
-       The --ppmycota-primary brand colour stays a GLOBAL token (it is a token,
-       not a component rule — styling-findings §S5) so the brand-mark consumers
-       (brand.css) AND the var(--ppmycota-primary, …) fallback readers
-       (EasingSelect / EasingCurveCanvas) all resolve it regardless of which
-       component is mounted. --filter-brand-color approximates it via a CSS
-       filter for the SVG logo marks.
-       T.D7 (OD-6) — the periwinkle literal folds into the ONE violet
-       authority: brand mark and interactive accent are the same family now
-       (ppmycota itself is KEPT per OD-3). */
+    /* ── Branding ──
+       The --ppmycota-primary brand colour stays a GLOBAL token so the brand-mark
+       consumers (brand.css) AND the var(--ppmycota-primary, …) fallback readers
+       (EasingSelect / EasingCurveCanvas) resolve it regardless of which component is
+       mounted; it folds into the ONE violet authority (brand mark and interactive
+       accent are the same family). --filter-brand-color approximates it via a CSS
+       filter for the SVG logo marks. */
     --ppmycota-primary: var(--accent-kf);
     --filter-brand-color: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%) contrast(103%);
 }
 
 .dark {
     color-scheme: dark;
-    /* Destructive-only dark arm (T.D7): red survives HERE for error /
-       destructive surfaces alone. The motion/progress/slider tokens no longer
-       re-declare — their light-dark() arms flip with color-scheme, and the
-       --primary repoint is re-asserted so the demo's authority wins over any
-       glass-ui .dark-arm declaration regardless of cascade order. */
+    /* Destructive-only dark arm: red survives HERE for error / destructive surfaces
+       alone. The motion/progress/slider tokens do not re-declare (their light-dark()
+       arms flip with color-scheme); --primary is re-asserted so the demo's authority
+       wins over any glass-ui .dark-arm declaration regardless of cascade order. */
     --accent-red: hsl(5 55% 50%);
     --accent-red-foreground: hsl(0 0% 95%);
     --primary: var(--accent-kf);
 }
 
-/* ════════════════════════════════════════════════════════════════════════
-   K.W3 M3 — THE DOCK-CLUSTER ANCHOR (the forward idiom, feature-DETECTED)
-   ────────────────────────────────────────────────────────────────────────
-   The PROGRESSIVE ENHANCEMENT over the always-correct bounded-min() floor (the
-   --dock-{top,bottom}-anchor cap above). Where CSS anchor-positioning is
-   supported, the docks TETHER directly to the work-area card's stage cell rect
-   (which IS clamped by --work-area-max-{width,height}) instead of reading the
-   viewport-derived optical offset at all — the docks hug the card geometrically,
-   the strongest form of "cluster to the content, not the viewport."
-
-   Anchor-positioning is NOT yet Baseline (modern-web css-layout §5: "not
-   natively supported by any major browser yet"), so the WHOLE subsystem is
-   gated behind `@supports (anchor-name: --x)` with the bounded-min() cap as the
-   path every browser takes by default. The wave is GREEN on the min() floor
-   alone — this block is the ≤20-line graceful enhancement the guide's
-   "Interpreting Fallbacks" prefers for a not-yet-Baseline feature, NOT a
-   polyfill. `position-area` overrides the inline `top:`/`bottom:` only when the
-   feature is live; otherwise the capped anchor governs.
-
-   Desktop only: the stage cell is a named grid cell at ≥1024px (the mobile
-   stage is a fixed full-bleed layer with no card to tether to). The tether
-   swaps ONLY the offset SOURCE (the dock's `top:`/`bottom:` inset) — it reads
-   the stage cell's edge via anchor() instead of the viewport-derived capped
-   offset — leaving the docks' existing centering (top: left-1/2) and full-width
-   (bottom: left-0/right-0) placement untouched, so the enhancement is a clean
-   drop-in over the floor, never a re-layout. The φ --dock-margin breathing gap
-   rides on top of the tether (the golden /4 ÷ /φ asymmetry preserved). */
-@supports (anchor-name: --stage) and (top: anchor(--stage top)) {
-    @media (min-width: 1024px) {
-        /* The stage cell publishes the anchor (also set in
-           AnimationControlsGroup's desktop grid; declared here as the contract). */
-        .stage-cell {
-            anchor-name: --stage;
-        }
-        /* The top scene-switcher pill tethers its top edge to the stage cell's
-           TOP edge + the φ /4 gap; the bottom transport tethers its bottom edge
-           to the stage cell's BOTTOM edge + the φ /φ gap. Both clamp to the card
-           (which is itself clamped), so the docks hug the content card on a
-           cinema display by geometric construction, not by a capped offset.
-
-           T.E4 — the tether keys on an EXPLICIT opt-in attribute on the two real
-           dock bands (`[data-dock-tether="top|bottom"]`), NOT a `:has()` structural
-           test on a generic `.z-dock` utility class. The former
-           `.z-dock:has(> .pointer-events-auto)` fired on ANY `.z-dock` with a
-           `pointer-events-auto` child — which the pruned compose AssetViewport
-           also was, re-tethering it off `inset-0` and collapsing the asset layer
-           to height 0. No layout/position rule may key on a `z-*`/`pointer-events-*`
-           utility class (proof:brittleness enforces this). */
-        [data-dock-tether="top"] {
-            position-anchor: --stage;
-            top: calc(anchor(--stage top) + var(--dock-margin) / 4);
-        }
-        [data-dock-tether="bottom"] {
-            position-anchor: --stage;
-            top: auto;
-            bottom: calc(anchor(--stage bottom) + var(--dock-margin) / var(--phi));
-        }
-    }
-}
-
-/* ── Glass content-tier translucency reclaim (K.W1 — the glass-ui 3.13.0 consume edge) ──
-   glass-ui 3.13.0 (AZ.W-ADAPTIVE-AUTO Arm 1, dist/styles/glass/ladder.css:185-196)
-   made the content-tier ink-darken UNCONDITIONAL: a bare, 0-specificity
-   `:where(.glass-floating, .glass-overlay, .glass-card, .glass-resting, .glass-quiet,
-   .glass-wash)` block now lifts `--glass-tint-strength` from the 0% rest default to
-   the AA floor (`--glass-tint-strength-aa`, 20%) and re-points `--glass-tint-source`
-   to warm ink — with NO `@container style(--glass-backdrop: light)` gate (the W54
-   glass-first MAXIMAL default assumes a bright/near-white substrate). The
-   keyframes.js stage is a DARK, themed substrate, so that unconditional self-darken
-   pushed every cartoon-panel Card's quiet plate from its design-intent 0.50 α (the
-   F8 "glass is back" translucency) up to 0.60 α — the opaque regression
-   proof:glass-and-cartoon's ≤0.55 ceiling bites (measured live: bg α 0.6 with
-   --glass-tint-strength:20%; α drops to 0.50 the instant the floor is 0%).
-
-   This is glass-ui's OWN documented dark-substrate opt-out (ladder.css:163-164 — "a
-   dark-substrate consumer who wants the pristine plate sets
-   `--glass-tint-strength: 0%`"). We neutralise the AA FLOOR (not --glass-tint-strength
-   directly) so BOTH the unconditional Arm-1 self-engage AND a future `@container
-   light` darken resolve their `color-mix(in oklab, <rung bg>, --glass-tint-source 0%)`
-   as a ZERO-delta mix — the pristine translucent plate (0.50) returns. Scoped to the
-   demo's glass CONTENT tiers (the cartoon panels are `.glass-quiet`); the dock + the
-   overlay band (Dialog/Popover/DropdownMenu/Tooltip/Select-content) keep glass-ui's
-   adaptive darken untouched. The class/attr selectors carry enough specificity to
-   win over glass-ui's 0-specificity `:where()` self-engage; this is a CONSUME-seam
-   token re-point (inv-16 — never patches node_modules). */
+/* ── Glass content-tier translucency reclaim (the glass-ui consume edge) ──
+   glass-ui made the content-tier ink-darken UNCONDITIONAL (a 0-specificity :where()
+   block lifts --glass-tint-strength from the 0% rest default to the AA floor with no
+   dark-substrate gate). The keyframes.js stage is a DARK substrate, so that self-
+   darken pushed every cartoon-panel Card's quiet plate past proof:glass-and-cartoon's
+   ≤0.55 α ceiling. We neutralise the AA FLOOR (glass-ui's own documented dark-
+   substrate opt-out) so the mix resolves as a ZERO-delta and the pristine translucent
+   plate (0.50) returns. Scoped to the demo's glass CONTENT tiers (the cartoon panels
+   are .glass-quiet); the dock + overlay band keep glass-ui's adaptive darken. The
+   class/attr selectors out-specify glass-ui's 0-specificity :where() self-engage;
+   this is a CONSUME-seam token re-point, never a node_modules patch. */
 :where(.glass-quiet, .glass-wash, .glass-resting),
 [data-tier="quiet"],
 [data-tier="wash"],
 [data-tier="resting"] {
     --glass-tint-strength-aa: 0%;
-}
-
-@media (max-width: 1023px) {
-    :root {
-        --work-area-max-width: 100dvw;
-        /* Cap the work-area to fit viewport − the bottom dock band so the
-           centred subject parks inside the dock-free band. The prior
-           clamp(44rem, 94dvh, 64rem) = 704px OVERFLOWS a 667px viewport: the
-           44rem (704px) FLOOR pinned the work-area ABOVE the viewport, so
-           --work-area-height saturated at 100dvh, the vertical slack went to 0,
-           and BOTH optical offsets collapsed — the menubar sat flush at
-           bottom:0 and a subject centred in a full-viewport work-area had no
-           clearance above the dock. The cap is min(64rem, viewport − dock band):
-           no lower floor (a floor above the viewport is exactly what regressed
-           it), and the dock band is the cycle-free --dock-band-reserve (NOT
-           --dock-menubar-reserve, which would cycle through
-           --work-area-bottom-offset → slack → height → max-height). This
-           guarantees positive slack, so the optical-balance offsets re-engage
-           (the menubar floats up off the viewport edge) and the row-2 stage
-           subject sits inside the dock-free band WHEN the controls pane is
-           closed. NOTE: with the controls pane OPEN the row-2 stage `1fr` is
-           starved by the capped controls-pane-wrapper (it claims most of the
-           work-area), so a tall/animated subject can still reach the dock band —
-           that residual is a controls-grid composition concern, not a
-           work-area-sizing one (see the C.W3 return note). */
-        --work-area-max-height: min(64rem, calc(100dvh - var(--dock-band-reserve)));
-        --work-area-height: min(100dvh, var(--work-area-max-height));
-        /* Recompute slack for the mobile work-area-height; the 0.42:0.58
-           optical-balance split (inherited from :root) re-derives the offsets
-           proportionally, so small subjects still park clear of the bottom
-           dock even when the slack is tiny. */
-        --work-area-vertical-slack: max(calc(100dvh - var(--work-area-height)), 0px);
-        --work-area-top-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-top));
-        --work-area-bottom-offset: calc(var(--work-area-vertical-slack) * var(--work-area-vertical-bias-bottom));
-
-        /* J.WZ (S1 stage-rect-invariant) — the STABLE parallel of the work-area
-           top-band chain, computed from --dock-band-reserve-stable (the peak)
-           rather than the live --dock-band-reserve. The mobile full-bleed stage
-           reserves its top/bottom band from --dock-top-band-reserve-stable so the
-           fixed stage rect NEVER breathes when the bottom sheet toggles (the live
-           chain oscillates ±8px with the dock reflow → proof:mobile-single-page
-           clause (b) bites). The live chain above is UNTOUCHED — the sheet anchor
-           + detents keep tracking the live menubar (proof:live-session-mobile).
-           Mirrors --dock-top-anchor / --dock-top-band-reserve structurally, with
-           the stable band substituted for the live one at every term. */
-        --work-area-max-height-stable: min(
-            64rem,
-            calc(100dvh - var(--dock-band-reserve-stable))
-        );
-        --work-area-vertical-slack-stable: max(
-            calc(100dvh - min(100dvh, var(--work-area-max-height-stable))),
-            0px
-        );
-        --dock-top-anchor-stable: calc(
-            max(
-                    calc(
-                        var(--work-area-vertical-slack-stable) *
-                            var(--work-area-vertical-bias-top)
-                    ),
-                    env(safe-area-inset-top, 0px)
-                ) + var(--dock-margin) / 4
-        );
-        --dock-top-band-reserve-stable: calc(
-            var(--dock-top-anchor-stable) + var(--dock-band-reserve-stable)
-        );
-    }
 }
 
 @layer base {
@@ -634,16 +231,10 @@
     }
 }
 
-/* ════════════════════════════════════════════════════════════════════════
-   GENUINELY-GLOBAL UTILITIES (D.W2.S2 — the utils.css fold)
-   ────────────────────────────────────────────────────────────────────────
-   The three cross-cutting utilities that remained after the utils.css monolith
-   was uncaged (the component-specific families moved to their owners' colocated
-   partials: tab-trigger.css, playback-button.css, brand.css, and SquareScene's
-   scoped .demo-box). A standalone file for three utilities no longer earns its
-   name (KISS / no-legacy), so utils.css was DELETED and these fold here into
-   the @layer utilities so they sit below component CSS in the cascade.
-   ════════════════════════════════════════════════════════════════════════ */
+/* GENUINELY-GLOBAL UTILITIES — the three cross-cutting utilities that remained after
+   the utils.css monolith was uncaged (the component-specific families moved to their
+   owners' colocated partials). They fold into @layer utilities so they sit below
+   component CSS in the cascade. */
 @layer utilities {
     .container-inline-size {
         container-type: inline-size;
@@ -662,25 +253,14 @@
     }
 }
 
-/* ════════════════════════════════════════════════════════════════════════
-   T.D2 (OD-6 / T-TY1) — HONEST DISPLAY WEIGHT AT THE RUNG (the BG-6 override)
-   ────────────────────────────────────────────────────────────────────────
-   The K.W2 S2 `.dock-label` display force is DELETED (the owner's live verdict
-   overrides the K-era dock-display-voice call — VERDICT #24 + the T.C "kill
-   the serif chrome flip" charter row): the dock band reverts to glass-ui's own
-   Jakarta dock-label register. What remains demo-owned is the ONE display
-   correction: glass-ui's `text-display-*` rungs hardcode `font-weight: 600` +
-   negative `--type-tracking-display` — both tuned for Plus Jakarta Sans. Under
-   the single-weight Instrument Serif the 600 synthesizes (killed at :root via
-   font-synthesis) and the negative tracking crushes an already-condensed
-   serif. The rungs resolve the face's TRUE weight (400) and neutral tracking.
-   `@layer demo-typography` is declared LAST so it orders after glass-ui's
-   `utilities` layer and wins the cascade. inv-16: the demo overrides the
-   consumed contract at the @layer it owns, never patches node_modules. (The
-   glass-ui BG-6 ask — parameterize the rung weight as
-   `var(--font-display-weight, 600)` — is the durable home; this is the
-   consumer-side override until the fixVersion publishes, ledgered in
-   demo/glass-ui-gaps.ts with the version tripwire.) */
+/* HONEST DISPLAY WEIGHT AT THE RUNG (the BG-6 override). glass-ui's text-display-*
+   rungs hardcode font-weight:600 + negative --type-tracking-display, both tuned for
+   Plus Jakarta Sans. Under the single-weight Instrument Serif the 600 synthesizes
+   (killed at :root) and the negative tracking crushes an already-condensed serif; the
+   rungs resolve the face's TRUE weight (400) and neutral tracking. @layer
+   demo-typography is declared LAST so it orders after glass-ui's utilities layer and
+   wins the cascade (the demo overrides the consumed contract at the @layer it owns,
+   never patches node_modules; the durable home is the BG-6 glass-ui ask). */
 @layer demo-typography {
     .text-display-audacious,
     .text-display-hero,
@@ -694,31 +274,19 @@
         letter-spacing: 0;
     }
 
-    /* T.D2/T.D3 — the labeled-field consume-edge: glass-ui's
-       `.labeled-field-label` binds `font-family: var(--font-display)` at the
-       body rung (utilities/base.css:69-71) — under glass-ui's OWN Jakarta
-       display default that is a Jakarta label, but under the demo's Instrument
-       swap it became an ~18.6px SERIF control label (below the T.D2 serif
-       floor; the exact swapped-display-face edge BG-6 names). Field labels are
-       CONTROLS → the body register at medium, matching the blessed P-THEME
-       control-label voice. */
+    /* glass-ui binds .labeled-field-label to font-family:var(--font-display) at the
+       body rung — under the demo's Instrument swap that became a serif control
+       label. Field labels are CONTROLS → the body register at medium. */
     .labeled-field-label {
         font-family: var(--font-text);
         font-weight: 500;
     }
 
-    /* T.D3 — the mobile dock-band width fit. glass-ui's dock pill caps at
-       (viewport − inset) and its `.dock-layers` band is FIXED at that cap
-       (measured 291.3px @390w, both trees); the label rung (--type-subheading
-       ≈ 20.4px) fit under the CONDENSED Instrument Serif force but the
-       re-adopted Jakarta at the same rung runs ~10% wider — the full transport
-       layer measured 321.9px and the right-edge Play control clipped past the
-       pill (the 390×844 play-tap hit-test regression). Below lg the dock
-       labels step ONE published rung down (--type-body) so the band fits the
-       capped pill again. Desktop keeps glass-ui's own rung untouched. The
-       durable home is T.C's dock grammar recut + the GU-2 width-morph ask
-       (glass-ui re-measuring its layers); this is the demo-scoped width-fit
-       until then. */
+    /* The mobile dock-band width fit. glass-ui's dock pill caps at (viewport − inset)
+       and its .dock-layers band is FIXED at that cap; the re-adopted Jakarta at the
+       label rung runs ~10% wider than the condensed serif and clipped the right-edge
+       Play control past the pill. Below lg the dock labels step ONE published rung
+       down so the band fits the capped pill again; desktop keeps glass-ui's own rung. */
     @media (max-width: 1023px) {
         .dock-label {
             font-size: var(--type-body);
