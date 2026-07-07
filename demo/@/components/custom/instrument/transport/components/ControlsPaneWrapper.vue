@@ -268,7 +268,12 @@ if (isMobileLayout.value) {
 // (subject 0.48 → sheet.top ≈ 52dvh; editor/storyboard 0.62 → 26dvh strip). The
 // bottom-menubar overlap the ladder cannot cure is the BG-11 structural gap.
 const PEEK_SNAP = 0.12;
-const EXPANDED_SUBJECT = 0.48;
+// The expanded caps APPROXIMATE the occlusion contract's stage-reserve: subject
+// 0.40 keeps ≈49dvh of unoccluded stage above the sheet (the bespoke 52dvh-strip
+// intent, minus the ~11dvh top-dock band — proof:mobile-single-page's 0.45
+// UNOCCLUDED floor); editor/storyboard 0.62 (floor-exempt; the content IS the
+// protagonist) stays ≤ the 0.70 never-full-height ceiling.
+const EXPANDED_SUBJECT = 0.4;
 const EXPANDED_EDITOR = 0.62;
 const expandedSnap = computed(() =>
     stageMode.value === "subject" ? EXPANDED_SUBJECT : EXPANDED_EDITOR,

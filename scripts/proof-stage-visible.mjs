@@ -76,7 +76,7 @@ const REST_FRACTION = 0.65;
 // (1 - snap)·vh. Subject caps the expanded detent at 0.48 (sheet.top ≈ 52dvh
 // reserve); editor/storyboard at 0.62 (26dvh strip).
 const PEEK_SNAP = 0.12;
-const EXPANDED_SUBJECT = 0.48;
+const EXPANDED_SUBJECT = 0.4;
 const EXPANDED_EDITOR = 0.62;
 // The best-achievable stage-reserve the snap-cap yields = (1 - expandedSnap)·vh (the
 // expanded sheet's TOP). A meaningful reserve floor (clause b non-vacuity).
