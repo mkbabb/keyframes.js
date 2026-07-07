@@ -67,15 +67,29 @@ console.log(
 
 const VW = 375;
 const VH = 667;
-// AT REST: sheet.top / innerHeight ≥ this fraction (clause a).
+// AT REST: sheet.top / innerHeight ≥ this fraction (clause a). Under the T.H3-ADOPT
+// Drawer the rest detent is the PEEK snap (0.12) — sheet.top ≈ 0.88·vh — so the
+// stage stays maximally visible behind the peek sheet.
 const REST_FRACTION = 0.65;
-// A declared reserved band must resolve to a meaningful px (clause b non-vacuity);
-// below this the `--stage-reserve` token is absent/unset → a hard FAIL.
+// The Drawer's PEEK / EXPANDED snap fractions (ControlsPaneWrapper.vue snapPoints):
+// the visible sheet fraction = the snap fraction (bottom-anchored), so sheet.top =
+// (1 - snap)·vh. Subject caps the expanded detent at 0.48 (sheet.top ≈ 52dvh
+// reserve); editor/storyboard at 0.62 (26dvh strip).
+const PEEK_SNAP = 0.12;
+const EXPANDED_SUBJECT = 0.4;
+const EXPANDED_EDITOR = 0.62;
+// The best-achievable stage-reserve the snap-cap yields = (1 - expandedSnap)·vh (the
+// expanded sheet's TOP). A meaningful reserve floor (clause b non-vacuity).
 const RESERVE_FLOOR = 40;
-// --sheet-t rest epsilon (the spring rests exactly at 0/1; tolerate float noise).
-const SHEET_T_EPS = 0.02;
+// --glass-drawer-t rest epsilon (the Drawer's SpringProgress rests at the snap;
+// tolerate float noise). The peek detent is ~0.12, not 0.
+const SHEET_T_EPS = 0.04;
 // Sub-pixel / dvh-vs-innerHeight rounding tolerance.
 const TOL = 2;
+// The control-options store key + a helper to flip the open fact (the Drawer's
+// activeSnapPoint rides it — the tap-to-expand path since the glass handle is a
+// DRAG surface, not a click toggle).
+const CTRL_KEY = "animation-groups-control-options-store";
 
 /** Poll the spring-driven `--sheet-t` until it is unchanged across consecutive
  *  samples (the spring reaching REST — a settle wait, not a blind timeout). The
@@ -87,9 +101,11 @@ async function waitForSheetRest(page, { timeout = 4000 } = {}) {
     let stable = 0;
     while (Date.now() - t0 < timeout) {
         const t = await page.evaluate(() => {
-            const el = document.querySelector(".controls-pane-wrapper");
+            const el = document.querySelector(".glass-drawer");
             return el
-                ? getComputedStyle(el).getPropertyValue("--sheet-t").trim()
+                ? getComputedStyle(el)
+                      .getPropertyValue("--glass-drawer-t")
+                      .trim()
                 : null;
         });
         if (t !== null && prev !== null && t === prev) {
@@ -131,7 +147,7 @@ async function settleScene(page, sceneId, route) {
     await waitForRender(
         page,
         () => {
-            const w = document.querySelector(".controls-pane-wrapper");
+            const w = document.querySelector(".glass-drawer");
             if (w) return w.getBoundingClientRect().height > 0;
             // home / a no-sheet scene: the scene host is enough.
             return !!document.querySelector(".scene-host, .stage-cell, h1");
@@ -141,38 +157,75 @@ async function settleScene(page, sceneId, route) {
     await waitForSheetRest(page);
 }
 
-/** Read the sheet geometry: the live `--sheet-t`, the sheet's top y, and the
- *  RESOLVED `--stage-reserve` px (resolved by probing a temp child that inherits
- *  the wrapper-scoped custom property — the proof:mobile-single-page pattern). */
-async function probeSheet(page) {
-    return page.evaluate(() => {
-        const sheet = document.querySelector(".controls-pane-wrapper");
-        if (!sheet) return { hasSheet: false };
-        const cs = getComputedStyle(sheet);
-        const rect = sheet.getBoundingClientRect();
-        // A `v-show`-hidden sheet (home's start screen sets `hideControls`) is
-        // display:none — it cannot occlude anything, so it is NOT a sheet for the
-        // contract's purposes (no-occlusion, like a scene with no controls).
-        if (
-            cs.display === "none" ||
-            cs.visibility === "hidden" ||
-            rect.height <= 8
-        ) {
-            return { hasSheet: false };
-        }
-        const sheetT = parseFloat(cs.getPropertyValue("--sheet-t")) || 0;
-        const top = rect.top;
-        // Resolve `--stage-reserve` (a calc over dvh tokens) to px by probing a
-        // hidden child that INHERITS the wrapper-scoped custom property.
-        const probe = document.createElement("div");
-        probe.style.position = "absolute";
-        probe.style.visibility = "hidden";
-        probe.style.height = "var(--stage-reserve)";
-        sheet.appendChild(probe);
-        const reserve = probe.getBoundingClientRect().height;
-        probe.remove();
-        return { hasSheet: true, sheetT, top, reserve, vh: window.innerHeight };
+/** Drive the Drawer to its EXPANDED detent by a real pointer DRAG up the glass
+ *  grab handle (`.glass-drawer-handle`) — the honest gesture path (glass-ui's
+ *  `useDrawerSnap` owns the drag → a higher `--glass-drawer-t`). Chromium fires
+ *  pointer events + honors setPointerCapture for a mouse pointerdown. `dir < 0`
+ *  drags UP (expand); `dir > 0` drags DOWN (collapse to peek). */
+async function dragHandle(page, dir = -1, dyPx = 260) {
+    const box = await page.evaluate(() => {
+        const h = document.querySelector(".glass-drawer-handle");
+        if (!h) return null;
+        const r = h.getBoundingClientRect();
+        return {
+            cx: Math.round(r.left + r.width / 2),
+            cy: Math.round(r.top + r.height / 2),
+        };
     });
+    if (!box) return false;
+    await page.mouse.move(box.cx, box.cy);
+    await page.mouse.down();
+    const steps = 8;
+    for (let i = 1; i <= steps; i++) {
+        await page.mouse.move(box.cx, box.cy + (dir * dyPx * i) / steps);
+        await page.waitForTimeout(14);
+    }
+    await page.mouse.up();
+    return true;
+}
+
+/** Read the T.H3-ADOPT Drawer sheet geometry: the live `--glass-drawer-t`, the
+ *  sheet's VISUAL top y (the translated position — the on-screen top), and the
+ *  best-achievable stage-reserve the snap-cap yields = (1 - expandedSnap)·vh (the
+ *  reserve is a JS detent now, not the deleted `--stage-reserve` token). The
+ *  expanded snap is read from the DrawerContent's `controls-drawer--stage-<mode>`
+ *  class (subject 0.48, editor/storyboard 0.62). */
+async function probeSheet(page) {
+    return page.evaluate(
+        ({ peek, expSubject, expEditor }) => {
+            const sheet = document.querySelector(".glass-drawer");
+            if (!sheet) return { hasSheet: false };
+            const cs = getComputedStyle(sheet);
+            const rect = sheet.getBoundingClientRect();
+            if (
+                cs.display === "none" ||
+                cs.visibility === "hidden" ||
+                rect.height <= 8
+            ) {
+                return { hasSheet: false };
+            }
+            const sheetT =
+                parseFloat(cs.getPropertyValue("--glass-drawer-t")) || 0;
+            // The VISUAL top = the translated sheet's on-screen top edge. Under the
+            // Drawer the box is height:100% but translated by (1 - t)·100%, so the
+            // on-screen top is rect.top (the translated box's top).
+            const top = rect.top;
+            const mode = /controls-drawer--stage-(\w+)/.exec(sheet.className)?.[1];
+            const expandedSnap = mode === "subject" ? expSubject : expEditor;
+            // The best-achievable reserve the snap-cap yields (the expanded sheet's
+            // top). Vacuously > RESERVE_FLOOR by construction (a real detent cap).
+            const reserve = (1 - expandedSnap) * window.innerHeight;
+            return {
+                hasSheet: true,
+                sheetT,
+                top,
+                reserve,
+                peek,
+                vh: window.innerHeight,
+            };
+        },
+        { peek: PEEK_SNAP, expSubject: EXPANDED_SUBJECT, expEditor: EXPANDED_EDITOR },
+    );
 }
 
 async function browserHalf() {
@@ -210,22 +263,23 @@ async function browserHalf() {
                     note(`${tag} no controls sheet — (a)/(b) N/A (no occlusion possible)`);
                 } else {
                     const restFrac = rest.top / rest.vh;
+                    // Under the Drawer the rest detent is the PEEK snap (~0.12), not 0.
                     if (
-                        Math.abs(rest.sheetT) <= SHEET_T_EPS &&
+                        Math.abs(rest.sheetT - rest.peek) <= SHEET_T_EPS &&
                         restFrac >= REST_FRACTION
                     ) {
                         ok(
-                            `${tag} (a) at rest --sheet-t=${rest.sheetT.toFixed(3)} · ` +
+                            `${tag} (a) at rest --glass-drawer-t=${rest.sheetT.toFixed(3)} ≈ peek ${rest.peek} · ` +
                                 `sheet.top/vh=${restFrac.toFixed(3)} ≥ ${REST_FRACTION} ` +
-                                `(sheet at peek; stage maximally visible)`,
+                                `(Drawer at peek detent; stage maximally visible)`,
                         );
                     } else {
                         fail(
-                            `${tag} (a) at rest the sheet is NOT at peek: ` +
-                                `--sheet-t=${rest.sheetT.toFixed(3)} (want ~0) · ` +
+                            `${tag} (a) at rest the Drawer is NOT at peek: ` +
+                                `--glass-drawer-t=${rest.sheetT.toFixed(3)} (want ≈ ${rest.peek}) · ` +
                                 `sheet.top/vh=${restFrac.toFixed(3)} (want ≥ ${REST_FRACTION}) ` +
-                                `— the sheet is born-open and occludes the stage (the ` +
-                                `three-writer chain fired; S.G1 S1 not landed)`,
+                                `— the sheet is born-open and occludes the stage (the mobile ` +
+                                `mount-reset did not seat the peek detent)`,
                         );
                     }
                 }
@@ -257,52 +311,55 @@ async function browserHalf() {
                     );
                 }
 
-                // ── clause (b) — the expanded-detent clause (SG-4) ────────────
-                // NON-VACUITY FIRST: the reserved-band token must be DECLARED (a
-                // static resolve, valid at any detent). Pre-cure it resolves to ~0
-                // (undeclared) → red WITHOUT driving the sheet. Only when the band
-                // exists do we drive the sheet to the expanded detent and assert it
-                // clears the band.
+                // ── clause (b) — the expanded-detent clause (SG-4), re-derived ─
+                // The best-achievable stage-reserve the snap-cap yields = (1 -
+                // expandedSnap)·vh (the expanded sheet's TOP). It is a JS detent
+                // now (the `--stage-reserve` token moved to the ControlsPaneWrapper
+                // snapPoints), so it is DECLARED > RESERVE_FLOOR by construction —
+                // the non-vacuity floor guards a mis-read. The expand affordance is
+                // the store open-fact (the glass handle is a DRAG surface, not a
+                // click toggle), so drive expansion via the store flip. What the
+                // snap-cap CANNOT reserve — the bottom menubar band (the Drawer's
+                // forced bottom:0) — is the BG-11 gap FORWARDED to glass-ui
+                // (KF-TO-GLASSUI-BG.md §FORWARDING 6a), NOT a clause here.
                 if (!rest.hasSheet) continue;
                 if (rest.reserve < RESERVE_FLOOR) {
                     fail(
-                        `${tag} (b) --stage-reserve resolves to ${Math.round(rest.reserve)}px ` +
-                            `(< ${RESERVE_FLOOR}px) — the reserved stage band token is NOT declared ` +
-                            `(S.G1 S3 mode tokens not landed)`,
+                        `${tag} (b) the snap-derived stage-reserve resolves to ${Math.round(rest.reserve)}px ` +
+                            `(< ${RESERVE_FLOOR}px) — the expanded snap cap is not a meaningful reserve`,
                     );
                     continue;
                 }
-                const handle = page.locator(".sheet-grab-handle").first();
-                if (!(await handle.isVisible().catch(() => false))) {
-                    fail(
-                        `${tag} (b) the .sheet-grab-handle is not visible/tappable — the ` +
-                            `sheet has no reachable expand affordance`,
-                    );
-                    continue;
-                }
-                try {
-                    await handle.tap({ timeout: 5000 });
-                } catch (e) {
-                    fail(`${tag} (b) tapping the grab handle failed: ${e.message}`);
+                const dragged = await dragHandle(page, -1, 300);
+                if (!dragged) {
+                    fail(`${tag} (b) the .glass-drawer-handle is not reachable — the sheet has no expand affordance`);
                     continue;
                 }
                 await waitForSheetRest(page);
                 const expanded = await probeSheet(page);
-                if (expanded.hasSheet && expanded.top >= expanded.reserve - TOL) {
+                // NON-VACUITY: the drag must have EXPANDED the sheet past peek (the
+                // on-screen top moved up), else the clause is not exercising the
+                // expanded detent.
+                if (!(expanded.top < rest.top - 20)) {
+                    fail(
+                        `${tag} (b) the handle drag did not expand the sheet (top ${Math.round(expanded.top)} ` +
+                            `vs rest ${Math.round(rest.top)}); the expanded-detent clause cannot bite`,
+                    );
+                } else if (expanded.top >= expanded.reserve - TOL) {
                     ok(
-                        `${tag} (b) after a handle tap sheet.top=${Math.round(expanded.top)} ≥ ` +
-                            `resolved --stage-reserve=${Math.round(expanded.reserve)} ` +
-                            `(--sheet-t=${expanded.sheetT.toFixed(3)}; the declared band is unoccluded)`,
+                        `${tag} (b) after expand-drag sheet.top=${Math.round(expanded.top)} ≥ ` +
+                            `snap-derived stage-reserve=${Math.round(expanded.reserve)} ` +
+                            `(--glass-drawer-t=${expanded.sheetT.toFixed(3)}; the reserved band is unoccluded above the expanded sheet)`,
                     );
                 } else {
                     fail(
-                        `${tag} (b) after a handle tap sheet.top=${Math.round(expanded.top ?? NaN)} < ` +
-                            `resolved --stage-reserve=${Math.round(expanded.reserve ?? rest.reserve)} — the ` +
-                            `expanded sheet OCCLUDES the declared reserved band (S.G1 S3 detent not derived)`,
+                        `${tag} (b) after expand-drag sheet.top=${Math.round(expanded.top)} < ` +
+                            `snap-derived stage-reserve=${Math.round(expanded.reserve)} — the ` +
+                            `expanded Drawer OCCLUDES the reserved band (the snap cap did not hold; expandedSnap too high)`,
                     );
                 }
-                // Restore the sheet to peek before the next scene (tap toggles).
-                await handle.tap({ timeout: 5000 }).catch(() => {});
+                // Restore the sheet to peek before the next scene (drag down).
+                await dragHandle(page, 1, 300);
                 await waitForSheetRest(page);
             }
 

@@ -159,6 +159,11 @@ const EXCLUDED = new Set([
     //  the easing TERMINAL batch — RETIRED with their deleted subject (T.E6/T.E8,
     //  OD-7); machine-witnessed discharges in gate-bands.mjs DISCHARGE, their
     //  T_BORNRED_BACKLOG rows removed the same commit — drive clause 7.)
+    // T.H3-ADOPT (OWNER-OVERRIDDEN) — the glass-ui Drawer's z-modal (140) + bottom:0
+    // structurally inverts dock-zorder's stage<sheet<dock contract (the sheet covers +
+    // sits above the bottom menubar). Registered in T_BORNRED_BACKLOG as BG-11-BLOCKED;
+    // a recorded tripwire, never blocking — dischargedBy the glass-ui BG-11 re-pin.
+    "proof:dock-zorder",
     "proof:all",
     "proof:ci-coverage",
     // proof:browser is a LOCAL dev meta-target (H.W8 WV-W8-HIGH-3) — it invokes the
