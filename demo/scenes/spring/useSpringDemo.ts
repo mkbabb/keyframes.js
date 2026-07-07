@@ -423,7 +423,7 @@ export function useSpringDemo() {
                 },
             },
         ],
-        facets: [{ surface: "spring", label: "Spring", icon: "Activity" }],
+        facets: [{ surface: "spring", label: "Physics", icon: "Activity" }],
         playback: scenePlayback,
     };
 

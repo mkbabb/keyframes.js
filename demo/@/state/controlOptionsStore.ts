@@ -1,5 +1,6 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
+import { defaultControlSurfaceFor } from "./controlSurfaceDFA";
 import {
     checkAndResetExpiredStore,
     gcAndMigrateStoreBuckets,
@@ -62,9 +63,13 @@ export const getStoredAnimationGroupControlOptions = (
         useAnimationGroupsControlOptionsStore();
 
     if (!animationGroupsControlOptionsStore.value[superKey]) {
-        animationGroupsControlOptionsStore.value[superKey] = structuredClone(
-            defaultStoredAnimationGroupControlOptions,
-        );
+        // item-7a (the ratified refinement) — a fresh bucket seeds the
+        // SCENE-AWARE default surface: easing opens on its Curve facet,
+        // spring on Physics. A stored (user-picked) bucket is untouched.
+        animationGroupsControlOptionsStore.value[superKey] = {
+            ...structuredClone(defaultStoredAnimationGroupControlOptions),
+            selectedControl: defaultControlSurfaceFor(superKey),
+        };
     }
 
     const controls = animationGroupsControlOptionsStore.value[

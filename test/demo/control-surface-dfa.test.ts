@@ -205,11 +205,25 @@ describe("T.B5 dock cardinality (unchanged by T.B2)", () => {
     });
 
     it("flags a lone control label redundant with the adjacent scene label", () => {
+        // The cross-axis clause bites on LABEL EQUALITY (owner shot 14's
+        // "Spring\nSpring") — a synthetic label-equal tab proves the clause.
+        const d = dockCardinality({
+            tabs: [{ value: "spring", label: "Spring" }],
+            channels: [],
+            sceneLabel: "Spring",
+        });
+        expect(d.controlLabelRedundant).toBe(true);
+    });
+
+    it("the renamed facet labels (item-7a) are NOT scene-redundant", () => {
+        // T.E8/item-7a renamed the facet tabs to name the FACET (Curve/
+        // Physics), so the lone-tab case no longer duplicates the scene
+        // identity — the redundancy clause correctly stands down.
         const d = dockCardinality({
             tabs: [tab("spring")],
             channels: [],
             sceneLabel: "Spring",
         });
-        expect(d.controlLabelRedundant).toBe(true);
+        expect(d.controlLabelRedundant).toBe(false);
     });
 });

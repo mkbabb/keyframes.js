@@ -388,7 +388,7 @@ export function useEasingDemo() {
                 },
             },
         ],
-        facets: [{ surface: "easing", label: "Easing", icon: "Activity" }],
+        facets: [{ surface: "easing", label: "Curve", icon: "Activity" }],
         playback: scenePlayback,
     };
 

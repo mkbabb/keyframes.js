@@ -146,14 +146,38 @@ export const SURFACE_META: Record<ControlSurface, ControlSurfaceTab> = {
     controls: { value: "controls", label: "Controls", icon: "SlidersHorizontal" },
     keyframes: { value: "keyframes", label: "Keyframes", icon: "Braces" },
     timeline: { value: "timeline", label: "Timeline", icon: "Clock" },
-    easing: { value: "easing", label: "Easing", icon: "Activity" },
-    spring: { value: "spring", label: "Spring", icon: "Activity" },
+    // T.E8 / item-7a — the scene-facet labels name the FACET, not the scene
+    // (the #17 cross-axis redundancy class: the scene-select already says
+    // Easing/Spring; the facet tab says what the surface IS — the Curve
+    // editor, the Physics instrument).
+    easing: { value: "easing", label: "Curve", icon: "Activity" },
+    spring: { value: "spring", label: "Physics", icon: "Activity" },
     "matrix-controls": {
         value: "matrix-controls",
         label: "Matrix Controls",
         icon: "Grid3X3",
     },
 };
+
+// ── THE SCENE-AWARE DEFAULT SURFACE (the ratified item-7a refinement) ─────────
+// A scene with a SIGNATURE facet opens ON it: easing opens on its Curve facet,
+// spring on Physics (the T.B2 inversion had them opening on Controls — the
+// derived set's first member — a visible reversal of the scene's identity
+// surface, flagged PENDING-OWNER at batch ⑧ and ratified as item-7a). This is
+// the DEFAULT only — a user's stored pick (per-scene bucket) still wins; the
+// store consumes this at bucket creation (controlOptionsStore).
+
+/** The default selected control surface per scene — the signature facet where
+ *  one exists, else the built-in first ("controls"). */
+export const SCENE_DEFAULT_CONTROL: Readonly<Record<string, ControlSurface>> = {
+    easing: "easing",
+    spring: "spring",
+};
+
+/** The scene-aware default the store seeds a fresh per-scene bucket with. */
+export function defaultControlSurfaceFor(sceneId: string): ControlSurface {
+    return SCENE_DEFAULT_CONTROL[sceneId] ?? "controls";
+}
 
 /**
  * The scene-specific control tabs derived from a surface SET — the non-built-in
