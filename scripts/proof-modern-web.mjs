@@ -507,7 +507,7 @@ function walkCount(dir) {
             code: "CSS4",
             axis: "color-mix / oklab",
             disposition: "ALIGNED",
-            anchor: { file: "demo/scenes/easing/EasingTarget.vue", needle: "color-mix" },
+            anchor: { file: "demo/scenes/easing/EasingTarget.css", needle: "color-mix" } // the T.Z template/CSS split — the component surface is SFC + sibling .css,
             note:
                 "the engine also interpolates color in oklab by default (reference impl, modern-web D-11).",
         },
