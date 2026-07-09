@@ -47,7 +47,6 @@
                     <ToggleGroup
                         type="single"
                         :model-value="familyFilter"
-                        class="family-group"
                         aria-label="Filter curves by family"
                         @update:model-value="onFamilyChange"
                     >
@@ -56,7 +55,6 @@
                             :key="f"
                             :value="f"
                             size="sm"
-                            class="family-item"
                         >
                             {{ f }}
                         </ToggleGroupItem>

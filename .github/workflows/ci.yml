@@ -653,7 +653,12 @@ jobs:
             # The S.A0 backlog rows are BLOCKING here (they keep the job RED until
             # S.G2/G3); an UNEXPECTED red (outside the backlog) is the S.A2 signal.
             - name: "demo-correctness roster (S.A2 — one shared chromium + one served dist · report-all · zero continue-on-error masking)"
-              run: npm run demo:correctness
+              # --gate-timeout=600: the runner is far slower than the dev machine
+              # (the device-dependence apparatus concern) — the heaviest gate
+              # (proof:scene-machine-irrefragable, the full six-scene FSM sweep)
+              # legitimately exceeds the 300s local backstop here. The ceiling
+              # stays a hang backstop, not a settle race.
+              run: npm run demo:correctness -- --gate-timeout=600
               env:
                   KF_REQUIRE_BROWSER: "1"
                   # The modern-web-guidance corpus is a local-dev aid (npx

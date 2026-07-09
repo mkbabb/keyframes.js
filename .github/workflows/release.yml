@@ -45,6 +45,11 @@ jobs:
         timeout-minutes: 15
         steps:
             - uses: actions/checkout@v5
+              with:
+                  # proof:changelog reads the PRIOR tag's published-surface
+                  # (`git show v<prev>:docs/published-surface.md`) — a shallow
+                  # checkout has no tag objects. Full history + tags required.
+                  fetch-depth: 0
             - uses: actions/setup-node@v5
               with:
                   node-version: 24
