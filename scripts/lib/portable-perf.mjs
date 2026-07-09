@@ -198,6 +198,134 @@ export function ratioGate({
     return { adopt, ratio, baseHz, candHz, verdict };
 }
 
+// ── ratioGateValue ─────────────────────────────────────────────────────────────
+
+/**
+ * The same-report ratio gate over RAW measured values (device-INDEPENDENT BY
+ * CONSTRUCTION when numerator and denominator are measured in the SAME run).
+ *
+ * `ratioGate` above reads a vitest bench `--outputJson` report (hz per named
+ * case) — the engine hot-loop shape. `ratioGateValue` is the demo-DOM
+ * extension (lane 32 T-PERF-E): the demo-perf gates measure CDP counters
+ * (TaskDuration ms, LayoutCount, busy fraction) not bench hz, but the SAME
+ * same-report/device-independent PRINCIPLE applies — a gate compares two
+ * values from the same browser session and asserts a RATIO, never a fresh
+ * absolute ms number the runner would inflate. This is the ONE home for that
+ * math so no demo-perf gate hand-rolls `if (value < floor)` (the X1
+ * duplication proof:portable-perf's lint-no-raw-floor forbids).
+ *
+ * TWO DIRECTIONS (a demo-perf clause is usually a COST budget, not throughput):
+ *   direction: "atLeast" — candidate/baseline must be >= floorFraction (the
+ *               ratioGate sense: a SPEEDUP; candidate is faster/better).
+ *   direction: "atMost"  — candidate/baseline must be <= ceilFraction (a COST
+ *               budget: e.g. TaskDuration WITH the chrome blur must not exceed
+ *               the blur-neutralized baseline by more than the margin — the
+ *               toggle-delta budget, T.G7). This is the demo-perf default.
+ *
+ * @param {object} opts
+ * @param {string}    opts.label            — human label for the measured quantity
+ * @param {number}    opts.baseline         — the denominator (same-run reference)
+ * @param {number}    opts.candidate        — the numerator (same-run measurement)
+ * @param {"atLeast"|"atMost"} [opts.direction] — default "atMost" (cost budget)
+ * @param {number}   [opts.floorFraction]   — required when direction === "atLeast"
+ * @param {number}   [opts.ceilFraction]    — required when direction === "atMost"
+ * @param {string}   [opts.posture]         — 'observe-only' | 'hard' | 'runner-calibrated'
+ * @param {string}   [opts.reason]          — required when posture === 'observe-only'
+ * @param {string}   [opts.decisionPath]    — if set, writes the durable verdict JSON
+ * @param {object}   [opts.meta]            — extra fields merged into the decision JSON
+ * @param {Function} [opts.fail]            — custom fail hook
+ * @param {Function} [opts.note]            — custom note hook
+ * @returns {{ pass: boolean, ratio: number, baseline: number, candidate: number,
+ *             threshold: number, direction: string } | null}
+ *   null if either value is non-finite/non-positive (a HARD structural miss).
+ */
+export function ratioGateValue({
+    label,
+    baseline,
+    candidate,
+    direction = "atMost",
+    floorFraction,
+    ceilFraction,
+    posture = "observe-only",
+    reason,
+    decisionPath,
+    meta = {},
+    fail: customFail,
+    note: customNote,
+}) {
+    if (direction !== "atLeast" && direction !== "atMost") {
+        throw new Error(
+            `portable-perf ratioGateValue: unknown direction "${direction}" ` +
+                `(expected "atLeast" | "atMost").`,
+        );
+    }
+    const threshold = direction === "atLeast" ? floorFraction : ceilFraction;
+    if (typeof threshold !== "number" || !Number.isFinite(threshold)) {
+        throw new Error(
+            `portable-perf ratioGateValue: direction "${direction}" requires a ` +
+                `finite ${direction === "atLeast" ? "floorFraction" : "ceilFraction"}.`,
+        );
+    }
+
+    const { miss } = declarePosture(posture, {
+        reason,
+        fail: customFail ?? ((l) => { process.exitCode = 1; console.error(`  ✗ ${l}`); }),
+        note: customNote ?? ((l) => console.log(`  · ${l}`)),
+    });
+
+    // Structural miss — a value is absent/non-finite/non-positive. HARD everywhere
+    // (the measurement did not happen), not a device-dependent throughput miss.
+    if (typeof baseline !== "number" || !Number.isFinite(baseline) || baseline <= 0) {
+        process.exitCode = 1;
+        console.error(
+            `  ✗ [ratioGateValue] "${label}" baseline is absent/non-finite/≤0 ` +
+                `(${JSON.stringify(baseline)}) — HARD structural miss.`,
+        );
+        return null;
+    }
+    if (typeof candidate !== "number" || !Number.isFinite(candidate) || candidate < 0) {
+        process.exitCode = 1;
+        console.error(
+            `  ✗ [ratioGateValue] "${label}" candidate is absent/non-finite/<0 ` +
+                `(${JSON.stringify(candidate)}) — HARD structural miss.`,
+        );
+        return null;
+    }
+
+    const ratio = candidate / baseline;
+    const pass =
+        direction === "atLeast" ? ratio >= threshold : ratio <= threshold;
+
+    if (decisionPath) {
+        writeDecision(decisionPath, {
+            $comment:
+                `ratioGateValue verdict (portable-perf.mjs). "${label}": candidate / ` +
+                `baseline = ratio, ${direction === "atLeast" ? ">=" : "<="} ${threshold} to PASS. ` +
+                `SAME-REPORT, device-INDEPENDENT by construction (both measured in the same ` +
+                `browser session). A COST budget (atMost) reds when the suspect property spikes ` +
+                `the counter beyond the margin; a THROUGHPUT budget (atLeast) reds on a slowdown.`,
+            label,
+            direction,
+            threshold,
+            baseline: +baseline.toFixed(4),
+            candidate: +candidate.toFixed(4),
+            ratio: +ratio.toFixed(4),
+            pass,
+            ...meta,
+        });
+    }
+
+    if (!pass) {
+        miss(
+            `[ratioGateValue] "${label}": candidate ${candidate.toFixed(2)} / baseline ` +
+                `${baseline.toFixed(2)} = ${ratio.toFixed(3)}× ` +
+                `${direction === "atLeast" ? `< floor ${threshold}×` : `> ceil ${threshold}×`}`,
+        );
+    }
+
+    return { pass, ratio, baseline, candidate, threshold, direction };
+}
+
 // ── absoluteGate ─────────────────────────────────────────────────────────────
 
 /**

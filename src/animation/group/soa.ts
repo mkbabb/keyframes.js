@@ -45,7 +45,7 @@
  */
 import { ValueUnit, lerp } from "@mkbabb/value.js";
 import type { AnimationLayerConfig } from "../constants";
-import type { AnimationGroupEntry } from "./group";
+import type { AnimationGroupEntry } from "./types";
 
 /**
  * Typed blend-carrier guard — the group is heavy-side (it statically composes
@@ -92,8 +92,15 @@ export interface SoALayerPlan {
      * `add`/`weighted` blend stays byte-identical on the non-numeric tail. EMPTY
      * for the dominant all-numeric transform shape (every leaf a numeric
      * `ValueUnit[]`), so the whole `for..in` collapses to the SoA fold.
+     *
+     * S.F5a S1 — a precomputed `Set`, built ONCE here at `buildSoAPlans`
+     * (structural-change time). The compositor's boxed residual (`boxedBlendArm`)
+     * takes it DIRECTLY as its `only` membership test — killing the per-frame
+     * `new Set(only)` the boxed arm rebuilt every frame on the mixed-leaf shape
+     * (the allocation is hoisted to plan-build time, `proof:zero-alloc`
+     * mixed-leaf clause).
      */
-    boxedKeys: string[];
+    boxedKeys: Set<string>;
 }
 
 /**
@@ -148,8 +155,9 @@ export const groupSoABlendLayer = (
  * layer, the pure-numeric `(carrier, incoming)` element pairs (carrier IS an
  * array, both elements numeric) are extracted into the flat `carriers`/
  * `incomings` arrays the fold loops; every other key it touches (non-array
- * carrier, or ANY non-numeric / mixed element) is recorded in `boxedKeys` for
- * the boxed residual.
+ * carrier, or ANY non-numeric / mixed element) is recorded in the `boxedKeys`
+ * Set for the boxed residual — precomputed HERE (once per structural change) so
+ * the compositor never rebuilds a per-frame `new Set` (S.F5a S1).
  *
  * Free function (Q.WF2): the caller passes the CURRENT shared scratch buffer
  * (`prevBuf`, the group's `_compositeBuf`); the walk grows it to the widest
@@ -189,7 +197,10 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
         // SoA pairs and the boxed residual, mirroring the boxed arm's guards.
         const carriers: ValueUnit<number>[] = [];
         const incomings: ValueUnit<number>[] = [];
-        const boxedKeys: string[] = [];
+        // S.F5a S1 — the boxed residual as a precomputed Set (built once here,
+        // taken directly by `boxedBlendArm`'s `only` membership test; no per-frame
+        // `new Set`).
+        const boxedKeys = new Set<string>();
         for (const key in values) {
             if (whitelist && !whitelist.has(key)) continue;
             const incoming = values[key];
@@ -218,7 +229,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
                         incomings.push(incoming[i] as ValueUnit<number>);
                     }
                 } else {
-                    boxedKeys.push(key);
+                    boxedKeys.add(key);
                 }
                 // The carrier identity is unchanged by an in-place blend, so
                 // `carrierOf[key]` stays the array `existing`.
@@ -227,7 +238,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
                 // assigns `groupedValues[key] = incoming`; record the key for
                 // the residual AND update the resolved carrier so a HIGHER
                 // add/weighted layer sees the same carrier the boxed pass would.
-                boxedKeys.push(key);
+                boxedKeys.add(key);
                 carrierOf[key] = incoming;
             }
         }

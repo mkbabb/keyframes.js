@@ -448,7 +448,7 @@ function main() {
         const consumers = [
             "demo/scenes/spring/SpringTarget.vue",
             "demo/scenes/easing/EasingTarget.vue",
-            "demo/scenes/spring/SpringSidebar.vue",
+            "demo/scenes/spring/SpringPhysicsFacet.vue",
         ];
         const allConsume = consumers.every((p) => {
             const src = fs.existsSync(path.join(REPO, p)) ? read(path.join(REPO, p)) : "";
@@ -495,7 +495,7 @@ function main() {
     }
 
     // ── 8. POST-F SCENE RE-FORK SWEPT — the G.W10 idiom finishing sweep ───────
-    // The post-F W10/W12 scenes (sequence/, motion-path/, spring/) were authored
+    // The post-F W10/W12 scenes (sequence/, spring/) were authored
     // AFTER the D.W2 idiom-ownership sweep + the F §1 rail/ball consolidation, so
     // they re-forked idioms those passes already retired:
     //   • .settled-badge/.tracking-badge byte-dup across two scenes (a SILENT fork
@@ -596,14 +596,23 @@ function main() {
 
         // 8c — TOKENIZED: the coupled literals reference the token, not the raw value.
         const tokenizedFails = [];
+        // S.A0-fallout co-edit: a component's style tier may be carved into a
+        // colocated sourced stylesheet (`<style scoped src="./X.css">` — the D2
+        // ControlsPaneWrapper precedent, applied to AnimationControlsGroup at the
+        // 500L tripwire). The component SURFACE for token-coupling assertions is
+        // the SFC + that sibling stylesheet, concatenated.
         const fileSrc = (p) => {
             const abs = path.join(REPO, p);
-            return fs.existsSync(abs) ? read(abs) : "";
+            const sfc = fs.existsSync(abs) ? read(abs) : "";
+            const cssSibling = abs.replace(/\.vue$/, ".css");
+            const css =
+                p.endsWith(".vue") && fs.existsSync(cssSibling) ? read(cssSibling) : "";
+            return css ? `${sfc}\n${css}` : sfc;
         };
-        const GROUP = "demo/@/components/custom/animation-controls/AnimationControlsGroup.vue";
-        const PANE = "demo/@/components/custom/animation-controls/components/ControlsPaneWrapper.vue";
-        const TABS = "demo/@/components/custom/animation-controls/controls/AnimationControls.vue";
-        const MATRIX = "demo/@/components/custom/matrix-editor/MatrixEditor.vue";
+        const GROUP = "demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue";
+        const PANE = "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue";
+        const TABS = "demo/@/components/custom/instrument/transport/controls/AnimationControls.vue";
+        const MATRIX = "demo/scenes/cube/matrix-editor/MatrixEditor.vue";
 
         // Comment-blank each file so a doc-comment NAMING the retired literal/token
         // (e.g. "the former --tabs-mask-fade shadow is collapsed") does not

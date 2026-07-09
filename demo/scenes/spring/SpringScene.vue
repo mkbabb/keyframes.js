@@ -18,16 +18,15 @@ import { computed, h, provide, ref } from "vue";
 import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
-import PlaybackRibbon from "@components/custom/animation-controls/controls/PlaybackRibbon.vue";
+import PlaybackRibbon from "@components/custom/instrument/transport/controls/PlaybackRibbon.vue";
 
 import SpringTarget from "./SpringTarget.vue";
 import StartingStyleTarget from "./StartingStyleTarget.vue";
-import SpringSidebar from "./SpringSidebar.vue";
+import SpringPhysicsFacet from "./SpringPhysicsFacet.vue";
 import { useSpringDemo } from "./useSpringDemo";
-import { SPRING_DEMO_KEY, SPRING_SUPER_KEY } from "./springKeys";
+import { SPRING_DEMO_KEY, SPRING_SCENE_ID } from "./springKeys";
 
-const SUPER_KEY = SPRING_SUPER_KEY;
+const SCENE_ID = SPRING_SCENE_ID;
 
 const demo = useSpringDemo();
 provide(SPRING_DEMO_KEY, demo);
@@ -43,8 +42,12 @@ provide(SPRING_DEMO_KEY, demo);
 // machine-projected single authority (bound to the `<Tabs> :model-value` in
 // AnimationControls) so the panel is born-selected on switch-in (the B4 cure
 // generalizes to every single-surface scene).
-const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
-storedControls.isControlsPanelOpen = true;
+//
+// S.G1 S1c (p10 F4 — writer c) — the former `storedControls.isControlsPanelOpen =
+// true` born-open POKE is DELETED too (the last dead write of the three-writer
+// chain). On mobile the sheet is born at peek by the host mount-reset
+// (useSheetState); on desktop the shell force-opens the rail
+// (useSceneMachineShellBinding, ≥1024px-gated). The scene pokes nothing.
 
 // `demo.isPlaying` is a read-only projection of the machine status (the shadow
 // `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes through
@@ -61,7 +64,7 @@ const isStarted = ref(true);
 // single-surface scenes: no model-value to project, no latch to race — the
 // panel is mounted BY CONSTRUCTION. The TabsTrigger/TabsContent wrappers are
 // DELETED in the same motion (no legacy beside the replacement).
-const tabsContent = () => h(SpringSidebar, { demo });
+const tabsContent = () => h(SpringPhysicsFacet, { demo });
 
 // G3 + G7 (H.W10.S2) — the spring scene's PRIMARY playback transport is the
 // STANDARD PlaybackRibbon (the SAME component cube/amiga mount): a scrubber +
@@ -78,7 +81,7 @@ const tabsContent = () => h(SpringSidebar, { demo });
 const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
-    const dur = demo.contractAnim.options.duration;
+    const dur = demo.springEditAnim.options.duration;
     // K.W4 S2 + F5 — route the scrub through `scrubTo` (the ONE continuous seam):
     // it moves the thumb + the visualizer + the live ball together AND works
     // while idle (scrub-while-idle — the playhead is set without play first). The
@@ -89,7 +92,7 @@ const onScrubUpdate = (v: { t: number }) => {
 
 const onToggleReverse = () => {
     userReversed.value = !userReversed.value;
-    demo.contractAnim.reversed = userReversed.value;
+    demo.springEditAnim.reversed = userReversed.value;
 };
 
 let wasPlayingBeforeScrub = false;
@@ -104,13 +107,17 @@ const onScrubEnd = () => {
 
 const standardRibbon = () =>
     h(PlaybackRibbon, {
-        animation: demo.contractAnim,
+        // T.B1-β/T.B7 — the ribbon binds the Sweep CHANNEL's REAL animation
+        // (`springEditAnim`, the two-way KeyframesEditor animation whose clock
+        // is the sweep time-twin) — the opacity decoy `contractAnim` is DEAD.
+        animation: demo.springEditAnim,
         // K.W4 S2 — the scrubber thumb reads the CONTINUOUS 60 Hz position
         // channel (`scrubberPhase`), NOT the 6 Hz `progress` text mirror that
         // made the thumb visibly STEP (live-spring-sequence-mp-verdict.md §2). A
         // single position read per frame moves only the thumb (the badges ride
         // the 6 Hz throttle elsewhere) — the slider is born-continuous.
-        currentT: demo.scrubberPhase.value * demo.contractAnim.options.duration,
+        currentT:
+            demo.scrubberPhase.value * demo.springEditAnim.options.duration,
         isAnimPlaying: demo.isPlaying.value,
         isAnimStarted: true,
         userReversed: userReversed.value,
@@ -171,15 +178,21 @@ const ribbonContent = (slotProps: { selectedControl: string }) => {
 };
 
 defineExpose({
-    animationGroup: computed(() => demo.animationGroup),
-    superKey: SUPER_KEY,
+    // T.B1-β/T.B7 — the SceneFacility descriptor (Sweep + Entry channels, the
+    // `spring` facet, the raw-rAF playback). The decoy `animationGroup` expose
+    // is DELETED with the contract-group decoy; the shell binds the facility.
+    facility: computed(() => demo.facility),
+    superKey: SCENE_ID,
     isPlaying,
     isStarted,
-    // The spring preview auto-plays on first visit (the former isPlaying =
-    // ref(true)). The App reads this on SCENE_READY to dispatch PLAY for a fresh
-    // scene, so the machine reaches `playing` and the raw-rAF loop (gated on the
-    // machine) actually sweeps.
-    autoPlays: true,
+    // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: the spring
+    // sampler swept forever at idle, burning ~33% of a core (90 layouts/s) with
+    // no gesture ("god awful"). The raw-rAF loop gates on
+    // `machine.status === 'playing'`, so a paused-on-entry machine leaves the loop
+    // un-armed → zero rAF ticks, zero style recalc/layout at rest
+    // (proof:perf-counters). The sampler sweeps + the ball springs the instant the
+    // user presses Play (or taps the rail — `reseat` re-arms the loop directly).
+    autoPlays: false,
     // The raw-rAF ScenePlayback adapter — the App registers it with the machine
     // on SCENE_READY so the spring's sweep phase/isPlaying round-trip through the
     // CONTRACT (the spring↔cube cross-pair the group gate misses).

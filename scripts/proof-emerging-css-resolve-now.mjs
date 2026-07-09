@@ -10,7 +10,7 @@
  *
  * This is the SOURCE-GREP half (the cure-is-wired anchors) — CHAINED in
  * package.json with the BEHAVIOUR half (`vitest run
- * test/emerging-css-resolve-now.test.ts`, the live observable-truth resolution:
+ * test/resolve/emerging-css-resolve-now.test.ts`, the live observable-truth resolution:
  * if() → the concrete branch value, spring() → a curve sample-equal to
  * springTimingFunction). All jsdom-clean — NO browser, NO HW-accel sub-claim
  * (the WebKit native-parity assertion is DROPPED per the full-loop RE-SCOPE).
@@ -39,11 +39,18 @@ console.log(
 // files, so a clause's anchor is found wherever the carve landed it.
 const RESOLVE = [
     "src/animation/resolve/index.ts",
+    // S.B4 — the barrel was thinned; the core recursion + the spring-css
+    // timing-function helpers carved into siblings (a02 F3/F4). The RESOLVE
+    // surface is the concatenation, so a clause anchors wherever the carve
+    // landed it (resolveValues/hasResolvableValue/hasPhase2Node → core.ts;
+    // springCssToOptions + the spring algebra → spring-css.ts).
+    "src/animation/resolve/core.ts",
+    "src/animation/resolve/spring-css.ts",
     "src/animation/resolve/env.ts",
     "src/animation/resolve/resolve-if.ts",
     "src/animation/resolve/resolve-function.ts",
 ];
-const ADAPTER = "src/animation/adapter.ts";
+const ADAPTER = "src/animation/compile/adapter.ts";
 
 const requireAll = (clause, file, anchors) => {
     // `file` may be a single path or an array of paths whose concatenation is the
@@ -107,8 +114,10 @@ requireAll("module-exists", RESOLVE, [
     const src = read(ADAPTER);
     const anchors = [
         {
-            name: "adapter imports resolveValues from ./resolve-values",
-            re: /resolveValues[\s\S]*?from\s+["']\.\/resolve["']|from\s+["']\.\/resolve["']/,
+            // S.B3 C-9 — adapter re-homed to compile/adapter.ts, so it reaches
+            // the resolve zone barrel one level up (`../resolve`, was `./resolve`).
+            name: "adapter imports resolveValues from the ../resolve barrel",
+            re: /resolveValues[\s\S]*?from\s+["']\.\.\/resolve["']|from\s+["']\.\.\/resolve["']/,
         },
         {
             name: "adapter invokes resolveValues in declsToVarMap (the flatten seam)",
@@ -145,7 +154,7 @@ if (failures.length > 0) {
     for (const f of failures) console.error(f);
     console.error(
         "\nThe Phase-1 emerging-CSS lowering pass is not wired. The behaviour " +
-            "half (vitest run test/emerging-css-resolve-now.test.ts) carries the " +
+            "half (vitest run test/resolve/emerging-css-resolve-now.test.ts) carries the " +
             "live resolution observables; this source half confirms the pass + " +
             "the seam are in place.",
     );

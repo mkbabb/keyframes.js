@@ -13,7 +13,7 @@
  *
  * This gate is the falsifiable instrument: the source-grep + manifest-existence
  * half (the corpus exists and is authoritative) chained with the behaviour half
- * (`vitest run test/roundtrip-fidelity.test.ts` — the byte-same midpoint).
+ * (`vitest run test/compile/roundtrip-fidelity.test.ts` — the byte-same midpoint).
  * Generalizes G.W4's `proof:roundtrip-easing` (the easing channel only) to the
  * whole value matrix (colors, multi-arg transforms, filters).
  *
@@ -64,7 +64,7 @@ console.log(
 );
 
 const CORPUS = "test/fixtures/keyframes";
-const TEST = "test/roundtrip-fidelity.test.ts";
+const TEST = "test/compile/roundtrip-fidelity.test.ts";
 
 // ── corpus-exists — the manifest + ≥1 .css, every .css covered ─────────────────
 {
@@ -166,10 +166,10 @@ requireAll("format-shape-lock", TEST, [
 {
     // The test must consume the engine + serializer surfaces, never patch them.
     const src = read(TEST);
-    const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
+    const importsEngine = /from "(?:\.\.\/)+src\/animation\/engine"/.test(src);
     // R.W1 moved the serializer `format.ts` → `compile/format.ts`; the round-trip
     // still consumes the real `CSSKeyframesToString` surface at its new zone path.
-    const importsFormat = /from "\.\.\/src\/animation\/compile\/format"/.test(
+    const importsFormat = /from "(?:\.\.\/)+src\/animation\/compile\/backward\/format"/.test(
         src,
     );
     if (importsEngine && importsFormat) {

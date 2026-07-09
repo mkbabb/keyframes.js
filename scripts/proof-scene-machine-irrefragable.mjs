@@ -48,7 +48,7 @@
  *      AND performance.getEntriesByType('navigation').length === 1 (no reload
  *      wiped the trap) AND location.pathname === '/' (no /scene#/scene path-mix).
  *      BITE: the storm fires on RE-RENDER, not idle — an idle gate passes
- *      vacuously; the DRIVEN loop walks easing→motion-path→spring… autonomously
+ *      vacuously; the DRIVEN loop walks easing→sequence→spring… autonomously
  *      on the pre-FSM tree.
  *
  *   C4 SCENE-ISOLATION — after NAVIGATE(easing) the rendered control labels are
@@ -115,6 +115,7 @@ import {
     SCENE_MACHINE_KEY,
     navToScene,
     withPage,
+    pressPlayToggle,
 } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -142,18 +143,19 @@ console.log(
 const MACHINE_KEY = SCENE_MACHINE_KEY; // SCENE_MACHINE_PERSIST_KEY (lib-sourced)
 const CTRL_KEY = "animation-groups-control-options-store";
 
-// The scene id → superKey map (mirrors scenes.ts; the control projection is
-// keyed by superKey, the playback snapshot by scene id).
+// The scene id → store key map (mirrors scenes.ts). T.B9 — the ONE keyspace: the
+// option stores now key by the registry SceneId (was a divergent PascalCase
+// super-key), so this map is the identity — control projection AND playback
+// snapshot are keyed by the SAME id.
 const SUPER_KEY = {
-    home: "__home__",
-    cube: "Cube",
-    amiga: "Amiga",
-    square: "Square",
-    easing: "Easing",
-    spring: "Spring",
-    sequence: "Sequence",
-    "motion-path": "MotionPath",
-    "starting-style": "StartingStyle",
+    home: "home",
+    cube: "cube",
+    amiga: "amiga",
+    square: "square",
+    easing: "easing",
+    spring: "spring",
+    sequence: "sequence",
+    "starting-style": "starting-style",
 };
 
 // The matrix scene set the gate drives. A FOCUSED ordered set that covers BOTH
@@ -262,8 +264,12 @@ const activeIsPlaying = (page) =>
  *  null/stale). */
 async function ensurePlaying(page) {
     if (!(await activeIsPlaying(page))) {
-        const clicked = await clickTransport(page, "play");
-        if (clicked) await page.waitForTimeout(700);
+        // T.G3 RE-ARM: scenes REST on entry (autoPlays:false for the light
+        // scenes) and the transport is @pointerup-bound (R.W6) — a synthetic
+        // element.click() no longer actuates it. Press honestly (the S.B7
+        // full pointer pair) via the house helper.
+        await pressPlayToggle(page, { intent: "play" });
+        await page.waitForTimeout(700);
     }
     // wait for the snapshot to settle to playing:true (auto-play scenes persist
     // it on SCENE_READY→PLAY; the read otherwise races the persistence).
@@ -544,6 +550,35 @@ async function clauseRouteStability(browser, base) {
 async function clauseSceneIsolation(browser, base) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     try {
+        // T.B2 — easing's PAINTING preview channel earns the full triad, so the
+        // control store's default `selectedControl:"controls"` opens the Controls
+        // body, NOT the Curve facet. Seed the store's easing bucket with the
+        // 'easing' facet pick (a VALID member of easing's derived set) so the
+        // scene opens on its signature surface — the anti-regression bite (the
+        // curve canvas paints for the 'easing' surface) is preserved at full
+        // strength; a leaked/wrong surface set would carry no such facet.
+        await page.addInitScript(
+            (ck) => {
+                try {
+                    localStorage.setItem(
+                        ck,
+                        JSON.stringify({
+                            _storeTimestamp: Date.now(),
+                            easing: {
+                                selectedControl: "easing",
+                                selectedAnimation: "Easing",
+                                selectedKeyframesControl: "string",
+                                isTimelineExpanded: false,
+                                isControlsPanelOpen: true,
+                            },
+                        }),
+                    );
+                } catch {
+                    /* ignore */
+                }
+            },
+            CTRL_KEY,
+        );
         await page.goto(`${base}/#/easing`, { waitUntil: "load" });
         await page.waitForTimeout(4000);
 
@@ -592,8 +627,10 @@ async function clauseSceneIsolation(browser, base) {
                 document.querySelector('[role="tabpanel"][data-state="active"]') ||
                 document.querySelector(".controls-pane") ||
                 document.body;
+            // T.E8 — the "easing" surface body IS the glass-ui EasingPicker
+            // (the Curve facet; the hand-rolled curve canvas is deleted).
             const hasEasingEditor = !!panel.querySelector(
-                ".easing-curve-canvas, [class*='easing-editor'], [class*='EasingEditor']",
+                '[data-testid="easing-picker"]',
             );
             return { hasEasingEditor };
         });

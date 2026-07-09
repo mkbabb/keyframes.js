@@ -47,12 +47,12 @@
  *       runs the live `PathGeometry`-backed compositor; a name-only proxy
  *       passes `primitive-exists` but a stub STILL reds here.
  *
- *   test-locks          — `test/morph-svg.test.ts` carries the locking
+ *   test-locks          — `test/svg/morph-svg.test.ts` carries the locking
  *       assertions (the samples-count keyframe set, the degenerate-path
  *       AnimationOptionError refusal, the mid-`t`-distinct interpolation over the
  *       FULL set, the shared-vertex hazard). BITE: delete a lock → reds.
  *
- * The behaviour proof rides the chained `vitest run test/morph-svg.test.ts` (the
+ * The behaviour proof rides the chained `vitest run test/svg/morph-svg.test.ts` (the
  * lead wires the combined `"proof:morphsvg-consume"` script — see the tail).
  *
  * NOTE on the live-morph substrate. The O.W6 spec names the BUILT `dist/`
@@ -90,7 +90,7 @@ console.log(
 const MS = "src/animation/svg/morph-svg.ts";
 const INDEX = "src/animation/index.ts";
 const LOAD_ENGINE = "src/animation/load-engine.ts";
-const TEST = "test/morph-svg.test.ts";
+const TEST = "test/svg/morph-svg.test.ts";
 
 const requireAll = (clause, file, anchors) => {
     const src = read(file);
@@ -310,48 +310,11 @@ console.log(JSON.stringify({
     }
 }
 
-// ── demo-scene (Q.WC4 S3 corroborator) — the library gate LINKS to the demo ───
-// A SOURCE-SHAPE corroborator (the LIVE rendered-morph observable lives in the
-// separate `proof:morph-scene` runtime gate over dist/gh-pages): assert the
-// MorphSVG primitive is DEMOED — `MorphSVGScene.vue` exists, the `morph` scene
-// is registered, and the demo consumes `fromMorphSVG`. BITE: a library-built-
-// but-undemoed primitive (the gate-blindspot) reds — the primitive can never
-// again be exported + tested but never showcased.
-{
-    const sceneFile = "demo/scenes/morph/MorphSVGScene.vue";
-    let sceneSrc = "";
-    try {
-        sceneSrc = read(sceneFile);
-    } catch {
-        sceneSrc = "";
-    }
-    const scenesSrc = read("demo/app/scenes.ts");
-    let useMorphSrc = "";
-    try {
-        useMorphSrc = read("demo/scenes/morph/useMorphDemo.ts");
-    } catch {
-        useMorphSrc = "";
-    }
-    const sceneExists = sceneSrc.length > 0;
-    const registered =
-        /\bid:\s*["']morph["']/.test(scenesSrc) &&
-        /MorphSVGScene\.vue/.test(scenesSrc);
-    const consumes =
-        /\bfromMorphSVG\b/.test(useMorphSrc) || /\bfromMorphSVG\b/.test(sceneSrc);
-    if (sceneExists && registered && consumes) {
-        ok(
-            "demo-scene",
-            "MorphSVGScene.vue exists, is registered as the `morph` scene, and consumes fromMorphSVG (the library gate links to the demo; the live observable is proof:morph-scene)",
-        );
-    } else {
-        fail(
-            "demo-scene",
-            `the MorphSVG primitive is library-built-but-undemoed ` +
-                `(MorphSVGScene.vue exists:${sceneExists}, registered:${registered}, consumes-fromMorphSVG:${consumes}) — ` +
-                `the 3rd HEAVY geometry front door must be SHOWCASED (the gate-blindspot). The LIVE rendered-morph observable is proof:morph-scene.`,
-        );
-    }
-}
+// (The demo-scene corroborator — which asserted MorphSVGScene.vue exists + is
+//  registered + consumes fromMorphSVG — was RETIRED at T.E3: the morph SCENE was
+//  PRUNED (OD-1 = PRUNE). The LIBRARY MorphSVG assertions below + the test-locks
+//  SURVIVE; the published fromMorphSVG factory + test/svg/morph-svg.test.ts are
+//  unaffected.)
 
 // ── test-locks — the locking assertions are present and biting ────────────────
 requireAll("test-locks", TEST, [
@@ -397,5 +360,5 @@ console.log(
         "loadAnimationEngine() (only MorphSVGOptions on the static barrel), and a\n" +
         "live triangle→square morph interpolates with a mid-t sample DISTINCT from\n" +
         "both endpoints (the DM-3 7-tranche P-inv-28 chronic EXITS — a build-in,\n" +
-        "no sibling gate). The behaviour proof rides `vitest run test/morph-svg.test.ts`.",
+        "no sibling gate). The behaviour proof rides `vitest run test/svg/morph-svg.test.ts`.",
 );

@@ -41,12 +41,14 @@ console.log(
     "proof:nan-frame — Q.WD1 (DM-22 named-selector NaN-frame proper cure: bind-resolve + play-time guard)",
 );
 
-// R.W2 — `CSSKeyframesAnimation` moved to `engine/css-animation.ts`.
+// R.W2 — `CSSKeyframesAnimation` moved to `engine/css/css-animation.ts`.
 const engineUrl = pathToFileURL(
-    join(root, "src", "animation", "engine", "css-animation.ts"),
+    join(root, "src", "animation", "engine", "css", "css-animation.ts"),
 ).href;
-const fcUrl = pathToFileURL(
-    join(root, "src", "animation", "compile", "frame-compiler.ts"),
+// S.B3 C-2 — the re-export ceremony through frame-compiler is DEAD;
+// `namedSelectorToFraction` is imported from its REAL home, `compile/selector.ts`.
+const selectorUrl = pathToFileURL(
+    join(root, "src", "animation", "compile", "selector.ts"),
 ).href;
 const timelineUrl = pathToFileURL(
     join(root, "src", "animation", "orchestration", "timeline", "index.ts"),
@@ -63,8 +65,8 @@ const rec = (name, payload) => { out.clauses[name] = payload; };
 // does not crash the whole probe — each clause reports independently.
 let namedSelectorToFraction = null;
 try {
-  const fc = await import(${JSON.stringify(fcUrl)});
-  namedSelectorToFraction = fc.namedSelectorToFraction ?? null;
+  const sel = await import(${JSON.stringify(selectorUrl)});
+  namedSelectorToFraction = sel.namedSelectorToFraction ?? null;
 } catch {}
 
 const CSS = '@keyframes x { entry { opacity: 0 } exit { opacity: 1 } }';
@@ -83,7 +85,7 @@ try {
 
 // ── bind-resolves: namedSelectorToFraction exact mappings ─────────────────────
 if (typeof namedSelectorToFraction !== 'function') {
-  rec('bind-resolves', { ok: false, error: 'namedSelectorToFraction is not exported from frame-compiler.ts' });
+  rec('bind-resolves', { ok: false, error: 'namedSelectorToFraction is not exported from compile/selector.ts' });
 } else {
   try {
     const vals = {

@@ -2,7 +2,7 @@
     <!-- J.W7a S1 (D1 / SQ-3 + SQ-1) — the square joins the I5 STAGE-CARD
          register: the drag arena gains the standard glass protagonist plate
          (`<Card surface="glass" tier="resting" :shadow="false">`, the SAME
-         plate easing/spring/sequence/motion-path stand on) instead of floating
+         plate easing/spring/sequence stand on) instead of floating
          bare on the page grid — the subject finally has a stage. The plate's
          `rounded-card` resolves SQ-4 for free. `grid place-items-center` on the
          stage cell resolves the off-center drift (SQ-1): the box is the
@@ -45,12 +45,12 @@
             ref="box"
             class="demo-box palette-sweep-host text-display focus-ring"
             :class="{ 'demo-box--dragging': dragging }"
+            :data-square-mode="mode"
             role="group"
             aria-label="Drag the box across two axes — a spring chases each axis"
             tabindex="0"
             @pointerdown="onPointerDown"
             @keydown="onKeydown"
-            @dblclick="tumble"
         >
             <span
                 class="sr-only-slider"
@@ -82,25 +82,36 @@ import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTempla
 import { Card } from "@mkbabb/glass-ui";
 import { kfEngine } from "@utils/kfEngine";
 import { useDragScrub } from "@composables/useDragScrub";
-import { useSquareAnimations } from "./useSquareAnimations";
+import { useDoubleTap } from "@composables/useDoubleTap";
+import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
-import { SQUARE_SUPER_KEY } from "./squareKeys";
+import { SQUARE_SCENE_ID } from "./squareKeys";
+import { facilityFromGroup } from "@app/scene/sceneFacility";
 
-const superKey = SQUARE_SUPER_KEY;
+const superKey = SQUARE_SCENE_ID;
 
-// S5b (K.W0 / U-K5 "none of the animations work properly /square") — THE PLAY VERB
-// MADE HONEST. The box is drag-autonomous (the spring loop owns its paint); the
-// contract `AnimationGroup` below is a keyframes-readout transport host whose
-// grouped interpolation passes FLAT ValueUnits that don't match the nested-object
-// structure the box transformFunc reads (`singleTarget = false`), so `group.play()`
-// painted NOTHING — a dead Play. The cure (the named decision, option (b)): Play
-// TUMBLES the box. `isPlaying` is a WRITABLE ref the App toggles (the cube/amiga
-// contract); a rising edge fires the existing spring-driven `tumble()` — a real,
-// visible 360° barrel-roll with a colour sweep, painted by the ONE spring-loop
-// authority — and the play state self-clears when the tumble settles (`onSettle`).
-// No new shadow playback authority, no timer: the loop's own settle is the signal.
+// T.A13 (SQ-T1) — THE PLAY VERB MADE HONEST (the G2 inversion cured, not collapsed).
+// S.G2 amputated the panel because Play painted nothing: the box transformFunc was
+// written for the spring loop's RAW NUMBERS, but the engine handed nested vars whose
+// leaves stringified to `"0pxpx"` → CSSOM silently discarded the write. The three-part
+// cure lands in the composable: (1) the unit-honest `num()` normalizer at the shared
+// transformFunc boundary resolves BOTH writers (the spring loop's numbers AND the
+// T.A6 plain-vars authored strings); (2) REAL four-corner keyframes (a ±90px diamond
+// tour, full 360° rotation, nested `d` swell, rainbow sweep) so Play VISIBLY obeys
+// duration/easing/direction; (3) the {idle, drag, playback} single-authority FSM here.
+// Play now drives the group's honest tour (the panel triad edits a LIVE animation,
+// T.B3); the former `isPlaying → tumble()` kill is RETIRED — the tumble stays a
+// discovered double-tap gesture egg, NOT the Play verb. `isPlaying` is the WRITABLE
+// ref the App toggles (the cube/amiga group-scene contract).
 const isPlaying = ref(false);
+
+// T.A13 — the single-authority FSM state. `idle` = at rest (springs settled, group
+// stopped/paused); `playback` = the group plays the four-corner tour; `drag` = a
+// pointer owns the box (the group is paused, the springs chase the pointer). The
+// pose-capture takeover (`seatFromPose`) makes the playback→drag edge jump-free.
+type SquareMode = "idle" | "drag" | "playback";
+const mode = ref<SquareMode>("idle");
 
 const box = useTemplateRef<HTMLElement>("box");
 
@@ -118,13 +129,13 @@ const deflY = ref(0);
 const tumbleHintShown = ref(false);
 let hasDragged = false;
 
-const { anim, springX, springY, reseat, settle, travel, paintRest, tumble, dispose } =
-    useSquareAnimations(
+const { anim, springX, springY, reseat, settle, seatFromPose, travel, paintRest, tumble, dispose } =
+    useSquareDemo(
         box,
         () => {
-            // The barrel-roll has come to rest — return the Play button to its idle
-            // posture (the honest one-shot verb).
-            isPlaying.value = false;
+            // The spring loop has come fully to rest (a drag/tumble settled). If
+            // the group is not touring, the box is idle.
+            if (!animationGroup.started || animationGroup.paused) mode.value = "idle";
         },
         // The per-frame derived-read hook: mirror the live spring snapshot into the
         // tether + badge bindings. The tether is visible while the springs are
@@ -146,11 +157,14 @@ anim.superKey = superKey;
 // (The tether SVG geometry lives in the colocated SquareInstrument sub-unit,
 // fed `deflX`/`deflY` as props — the derived-read instrument layer.)
 
-// Fire the honest tumble on the Play CTA's rising edge (the App writes `isPlaying`
-// for this scene — the non-`scenePlayback` writable-ref contract). A falling edge
-// (settle / pause) needs no action: the tumble is a self-completing one-shot.
-watch(isPlaying, (playing, was) => {
-    if (playing && !was) tumble();
+// T.A13 — the FSM tracks the App-written play state. Play (rising edge) enters
+// `playback`: the group (below) plays the honest four-corner tour — NO tumble.
+// Pause (falling edge) settles the FSM to `idle` unless a drag is mid-gesture
+// (the drag owns the box until release). The tumble is a discovered double-tap
+// egg only (see `useDoubleTap` below), never the Play verb.
+watch(isPlaying, (playing) => {
+    if (playing) mode.value = "playback";
+    else if (mode.value === "playback") mode.value = "idle";
 });
 
 // HEAVY (AnimationGroup); constructed through the warmed engine surface
@@ -158,8 +172,11 @@ watch(isPlaying, (playing, was) => {
 // before any scene mounts.
 const { AnimationGroup } = kfEngine();
 const animationGroup = markRaw(new AnimationGroup(anim));
-// Force per-animation transform path — the grouped path passes flat ValueUnit
-// values which don't match the nested object structure our transform expects.
+// T.A13 — the per-animation transform path: each child applies its OWN nested
+// custom `transformFunc` (fed the T.A6 plain-vars authored-shape projection, now
+// unit-honest via `num()`), rather than the grouped SoA composite. The square is
+// a single-animation scene, so per-animation IS the natural path; the group is a
+// real playback authority now (Play drives the four-corner tour), not a decoy.
 animationGroup.singleTarget = false;
 
 // A live spring read-out for the slider's aria-valuetext (no per-frame Vue work
@@ -212,6 +229,17 @@ const captureFrame = () => {
     // (the hint appears once the first drag settles) and mark the tether active.
     hasDragged = true;
     tetherActive.value = true;
+    // T.A13 — the {playback → drag} FSM edge. A pointerdown mid-tour PAUSES the
+    // group and SEATS the springs from the box's CURRENT painted pose (via
+    // DOMMatrix), so the spring chase begins exactly where the tour left the box
+    // — a seamless, jump-free takeover (the library's own adopt idea at demo
+    // scale). Sync the App-written play state so the transport reflects the pause.
+    if (animationGroup.started && !animationGroup.paused) {
+        animationGroup.pause();
+        seatFromPose();
+        isPlaying.value = false;
+    }
+    mode.value = "drag";
     const el = box.value;
     if (!el) return;
     const br = el.getBoundingClientRect();
@@ -244,9 +272,22 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     // paint loop so the final chase paints even if it had momentarily settled.
     onEnd: () => {
         settle();
+        // T.A13 — the {drag → idle} FSM edge: the pointer released, the spring
+        // chases to rest at the dragged target (persist). The group stays paused
+        // (Play resumes the tour from here).
+        mode.value = "idle";
         springReadout.x = springX.target.toFixed(2);
         springReadout.y = springY.target.toFixed(2);
         syncAxisNow();
+    },
+});
+
+// S.G3 S2 — the Tumble is a POINTER-based double-tap now (touch parity; the former
+// `@dblclick` was mouse-only). Drag-disjoint: moving the box never triggers it.
+useDoubleTap({
+    el: box,
+    onDoubleTap: () => {
+        tumble();
     },
 });
 
@@ -268,12 +309,16 @@ const { onKeydown } = useSquareKeyboard({
 });
 
 defineExpose({
+    // T.B1 STAGE 1 — the additive SceneFacility: square's REAL nested-keyframes
+    // channel paints (the honest four-corner tour); the legacy `animationGroup`
+    // stays for the panel group. The facility's playback is the group adapter.
+    facility: computed(() => facilityFromGroup(() => animationGroup)),
     animationGroup: computed(() => animationGroup),
     superKey,
-    // S5b — the writable play state the App toggles for a group-adapter scene
+    // T.A13 — the writable play state the App toggles for a group-adapter scene
     // (the cube/amiga contract: `onPlayStateChange` writes `isPlaying` when the
-    // scene does NOT own its own `scenePlayback`). Here the rising edge tumbles
-    // the box (the honest Play verb), and `onSettle` clears it back to idle.
+    // scene does NOT own its own `scenePlayback`). Here Play drives the group's
+    // honest four-corner tour (the FSM enters `playback`); a drag takes over.
     isPlaying,
 });
 </script>
@@ -283,164 +328,4 @@ defineExpose({
      `simple` scene was removed), so its smallest shared scope is this SFC's
      own scoped block — the most encapsulated home. The `.demo-container` grid
      it once paired with is dead (zero consumers) and was deleted outright. -->
-<style scoped>
-.square-stage {
-    /* The stage is the drag arena; the box translates within it. The plate
-       (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
-    overflow: hidden;
-    position: relative;
-}
-
-/* The instrument layer (field · tether · telemetry · legend) is styled inside
-   the colocated SquareInstrument sub-unit (markup + styles together). This scene
-   keeps only the subject (the box) + the stage's palette-sweep bloom. */
-
-/* P.W6 S1(a) — the per-axis sliders are SEMANTIC-only (the visible affordance is
-   the box itself + its instrument layer). Visually hidden but present for AT,
-   the canonical sr-only clip pattern (no layout footprint, focusable-exempt —
-   they carry no tabindex; the box is the single keyboard target). */
-.sr-only-slider {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-.demo-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    z-index: var(--z-content);
-    --size: 12rem;
-    width: var(--size);
-    height: var(--size);
-    border-radius: var(--radius-lg);
-    /* J.W7a S3 (D13 / SQ-5, the no-legacy delta) — the raw `aquamarine`
-       named-colour literal DIES: the fill is the owned --subject-teal token
-       (design-idioms.css — the EGG_HUES terminal stop, so the tumble egg
-       settles INTO the box's own rest hue). The ink is a deep teal DERIVED
-       from the same token (never a second literal), so "drag me" holds AA on
-       its fill in BOTH themes — the former inherited foreground inverted to
-       near-white-on-mint in dark mode.
-       (The font-weight/size leaves with the D7 `text-display` swap above —
-       the published rung owns the type; scoped rules no longer shadow it.)
-       L.W11 S4 — a two-tone material (a subtle top-down oklab gradient + an
-       inset edge-light) reads the teal as a physical chip under the graph light,
-       not a flat fill. The base --subject-teal token is the KEPT identity; the
-       gradient only adds depth (the keeper hue is untouched). */
-    background-color: var(--subject-teal);
-    background-image: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--subject-teal) 92%, white 8%),
-        var(--subject-teal)
-    );
-    color: color-mix(in oklab, var(--subject-teal) 25%, black);
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-        0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
-    /* Direct-manipulation affordance (S5). The transformFunc owns `transform`,
-       so the cursor + touch-action carry the drag posture. */
-    cursor: grab;
-    touch-action: none;
-    will-change: transform;
-    transition: box-shadow var(--duration-fast, 160ms) var(--ease-standard, ease);
-}
-
-/* L.W11 S4 — hover-arm: the rig "powers on" under the pointer (the deflection-
-   reactive aura blooms a faint red motion-authority ring at the edge). */
-.demo-box:hover {
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
-        0 0 0 0.5rem color-mix(in srgb, var(--color-progress) 12%, transparent);
-}
-
-/* P.W6 S1(d) — the dragging shadow now also intensifies with the live velocity
-   BANK: the box paints `--spring-tilt` (the skew magnitude) onto itself from the
-   spring loop, and the motion-authority edge ring brightens with it — a fast
-   pull READS as kinetic energy at the edge (the spring's velocity surfaced as
-   light, not just geometry). `--spring-tilt` defaults to 0 (a flat box glows the
-   base 22%). */
-.demo-box--dragging {
-    cursor: grabbing;
-    --tilt-glow: calc(var(--spring-tilt, 0) * 1.4%);
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
-        0 0 0 0.5rem
-            color-mix(
-                in srgb,
-                var(--color-progress) calc(22% + var(--tilt-glow)),
-                transparent
-            );
-}
-
-/* P.W6 S1(d) — the grab-pulse "capture confirmed" ring. A one-shot expanding
-   ring fires from the box edge the instant a drag begins (the `--dragging` class
-   flips the `::before` into existence, and `@starting-style` transitions it from
-   a tight, opaque ring to a wide, faded one — a single tactile thunk, zero JS,
-   one transition). The ring is the red motion-authority hue (the same the
-   deflection aura uses). Pointer-events:none so it never steals the gesture.
-   On browsers without @starting-style the ::before simply renders at its end
-   state (invisible) — it degrades to no-pulse, never a broken layout. */
-.demo-box--dragging::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    z-index: var(--z-behind);
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-progress) 55%, transparent);
-    opacity: 0;
-    transition:
-        box-shadow var(--duration-slow, 420ms) var(--ease-out, ease-out),
-        opacity var(--duration-slow, 420ms) var(--ease-out, ease-out);
-}
-@starting-style {
-    .demo-box--dragging::before {
-        box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--color-progress) 80%, transparent);
-        opacity: 0.9;
-    }
-}
-
-/* ── L.W11 S4 — the palette-sweep BLOOM (the tumble egg's landing thunk) ──
-   While `data-palette-sweep` is set (the egg's colour sweep is live, painted by
-   the kept SpringProgress spin) the box blooms a soft rainbow-sourced halo so
-   the barrel-roll lands as an EVENT — the off-the-normal-path effect the
-   design-refinement probe reads. PRM collapses it to no bloom (the box still
-   tumbles + sweeps colour; only the decorative halo is dropped). */
-.demo-box[data-palette-sweep] {
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 30%, transparent),
-        0 0 1.5rem 0.25rem color-mix(in srgb, var(--rainbow-violet) 35%, transparent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .square-tether {
-        /* Snap: no fade, the line is either present or not (geometry unchanged). */
-        transition: none;
-    }
-    .demo-box,
-    .demo-box:hover,
-    .demo-box--dragging {
-        transition: none;
-    }
-    /* PRM — drop the grab-pulse entry transition (the ring is decorative; the
-       box still banks + captures, only the expanding pulse is suppressed). */
-    .demo-box--dragging::before {
-        transition: none;
-        opacity: 0;
-    }
-    .demo-box[data-palette-sweep] {
-        /* Drop the decorative bloom under reduced motion (the tumble + colour
-           sweep still play — only the halo is suppressed). */
-        box-shadow:
-            inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-            0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
-    }
-}
-</style>
+<style scoped src="./SquareScene.css"></style>

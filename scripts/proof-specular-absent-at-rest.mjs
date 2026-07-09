@@ -61,8 +61,8 @@ const REST_OPACITY_MAX = 0.05; // a catch-light radial at rest must contribute ~
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The destination control-tab label navToScene settles on per scene (null = no
-// control panel projects — sequence/motion-path).
-const TRIGGER = { cube: "Controls", easing: "Easing", spring: "Spring", sequence: null, "motion-path": null };
+// control panel projects — sequence).
+const TRIGGER = { cube: "Controls", easing: "Easing", spring: "Spring", sequence: null };
 
 async function openScene(browser, base, scene) {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -75,7 +75,7 @@ async function openScene(browser, base, scene) {
 }
 
 async function browserHalf() {
-    const SCENES = ["cube", "easing", "spring", "sequence", "motion-path"];
+    const SCENES = ["cube", "easing", "spring", "sequence"];
     const result = await withPage(
         { distDir: DIST, label: "the specular-absent-at-rest pixel assertions" },
         async (_page, { url: base, browser }) => {

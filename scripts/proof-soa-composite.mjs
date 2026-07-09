@@ -411,9 +411,9 @@ if (existsSync(decisionPath)) {
 // + bit-identical + zero-alloc, all measured live on the REAL group via a tsx probe.
 {
     // R.W2 — `CSSKeyframesAnimation` was carved out of `engine/animation.ts` into
-    // `engine/css-animation.ts`; the probe imports it from its new home.
+    // `engine/css/css-animation.ts`; the probe imports it from its new home.
     const engineUrl = pathToFileURL(
-        join(root, "src", "animation", "engine", "css-animation.ts"),
+        join(root, "src", "animation", "engine", "css", "css-animation.ts"),
     ).href;
     const groupUrl = pathToFileURL(
         join(root, "src", "animation", "group", "group.ts"),
@@ -430,7 +430,7 @@ import { ValueUnit, lerp } from ${JSON.stringify(valueUrl)};
 // (margin → length-2 ValueUnit[]) — the SoA fold covers all; the multi-component
 // leaf exercises the contiguous multi-slot stride. (The var()/computed boxed-
 // residual path needs a DOM target and is covered by the jsdom corpus —
-// test/blend.test.ts + test/iw0-cube-composite.test.ts, the chained proof:blend.)
+// test/group/blend.test.ts + test/engine/iw0-cube-composite.test.ts, the chained proof:blend.)
 const css = \`0% { transform: translate(0px,0px) scale(1) rotate(0deg); opacity: 1; margin: 0px 0px }
              100% { transform: translate(120px,60px) scale(1.4) rotate(45deg); opacity: 0.4; margin: 10px 20px }\`;
 const mk = (c) => new CSSKeyframesAnimation({ duration: 1000 }).fromString(c);

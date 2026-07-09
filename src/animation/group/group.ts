@@ -1,23 +1,22 @@
-import { withReducedMotion } from "../internal/reduced-motion";
 import { RAFPlayback } from "../physics/playback";
 // PKG-3 (L.W8 §S4): the engine class is `KeyframesAnimation` (formerly
 // `Animation`; the @deprecated alias was DROPPED in 5.0.0 — Q.WE1). The value
 // import provides the runtime constructor (the `instanceof` guard) + the type.
 // `getAnimationId` is the value.js-free leaf (R.W2c — kills group→engine edge).
-import { KeyframesAnimation } from "../engine/animation";
+import { KeyframesAnimation } from "../engine";
 import { getAnimationId } from "../internal/animation-id";
-import {
-    renderMultiTarget,
-    requireEntry,
-    setChildrenPaused,
-    snapChildrenToFinal,
-} from "./entries";
-import { advanceBatched, advanceSlice } from "./scheduler";
+import { renderMultiTarget, requireEntry } from "./entries";
+import { advanceBatched, advanceSlice } from "./yield-batch";
 import { advanceLayerSprings } from "./springs";
 import type { LayerTransitionSpring } from "./springs";
 import { compositeFrame } from "./compositor";
 import * as layerApi from "./layer-api";
+// S.B5 (a19 F1) — the TRANSPORT verbs (play/pause/resume/stop/settle/reset/
+// playing + the reduced-motion snap) are FREE FUNCTIONS in the colocated
+// `./lifecycle` module; the methods below are thin `this`-delegates over them.
+import * as lifecycle from "./lifecycle";
 import type { SoALayerPlan } from "./soa";
+import type { PlainProjection } from "../compile/plain-vars";
 import type {
     AnimationLayerConfig,
     TransformFunction,
@@ -26,7 +25,7 @@ import type {
 import { defaultLayerConfig, NOOP_TRANSFORM } from "../constants";
 
 // R.W2 — the `group-layer-springs.ts` junk-drawer 3-way split (entry-set helpers
-// → `./entries`, scheduler-yield batching → `./scheduler`, K.W11 PHYS-C
+// → `./entries`, scheduler-yield batching → `./yield-batch`, K.W11 PHYS-C
 // spring-weight helpers → `./springs`) + the `transformFramesGrouped`/
 // `boxedBlendArm` composite carve → `./compositor` (the SoA fold itself lives in
 // `./soa`). `_soaPlans`/`_compositeBuf` stay instance state here. The
@@ -34,20 +33,12 @@ import { defaultLayerConfig, NOOP_TRANSFORM } from "../constants";
 // `transitionLayer`/`crossfade` signatures read unchanged.
 export type { LayerTransitionSpring };
 
-export interface AnimationGroupEntry<V extends Vars> {
-    animation: KeyframesAnimation<V>;
-    values: Record<string, unknown>;
-    layer: AnimationLayerConfig;
-}
-
-export interface AnimationGroupObject<V extends Vars> {
-    [key: string]: AnimationGroupEntry<V>;
-}
-
-/** Input — a bare Animation or one with a layer config. */
-export type AnimationGroupInput<V extends Vars> =
-    | KeyframesAnimation<V>
-    | { animation: KeyframesAnimation<V>; layer?: Partial<AnimationLayerConfig> };
+// S.B4 (a04) — the entry/object/input shapes live in the `./types` leaf.
+import type {
+    AnimationGroupEntry,
+    AnimationGroupObject,
+    AnimationGroupInput,
+} from "./types";
 
 export class AnimationGroup<V extends Vars> {
     animations: AnimationGroupObject<V> = {};
@@ -70,17 +61,39 @@ export class AnimationGroup<V extends Vars> {
      * groups batch with a `scheduler.yield()` between slices (INP relief). */
     static readonly YIELD_BATCH = 32;
 
+    /** Construct a group from a first animation + rest (S.B4 / a06 F1/F2 — the
+     * genuine-ownership replacement for the excised `KeyframesAnimation.group()`
+     * service locator; each input is a bare animation or `{ animation, layer }`). */
+    static of<V extends Vars>(
+        first: KeyframesAnimation<V> | AnimationGroupInput<V>,
+        ...rest: (KeyframesAnimation<V> | AnimationGroupInput<V>)[]
+    ): AnimationGroup<V> {
+        return new AnimationGroup<V>(first, ...rest);
+    }
+
     singleTarget = true;
+
+    /**
+     * T.A6 — true when the group's composite `transform` is a CUSTOM (non-DOM)
+     * consumer that expects the nested PLAIN authored-shape projection (the
+     * "animate any object" seam), inherited from the first child's own
+     * `unflatten` flag alongside its transform. False (the default) keeps the
+     * DOM-style default renderer's FLAT `_grouped` map, byte-unchanged.
+     */
+    unflatten = false;
 
     lastTickTime: number = 0;
 
     /** THE rAF owner for the group's draw loop. */
     readonly playback = new RAFPlayback();
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
-    private _playingPromise: Promise<void> | null = null;
+    /** The ONE held play promise the `finished` front-door exposes. INTERNAL
+     * (S.B5) — read/written by the transport free functions in `./lifecycle`. */
+    _playingPromise: Promise<void> | null = null;
 
-    /** Pre-bound frame callback — allocated once to avoid a per-loop closure. */
-    private _boundFrame: (t: number) => boolean | Promise<boolean>;
+    /** Pre-bound frame callback — allocated once to avoid a per-loop closure.
+     * INTERNAL (S.B5) — read by `./lifecycle`'s `play`/`resume` loop start. */
+    _boundFrame: (t: number) => boolean | Promise<boolean>;
 
     /** Cached entries sorted by layer zIndex (see `getEntries`). */
     private _entries: AnimationGroupEntry<V>[] = [];
@@ -102,6 +115,13 @@ export class AnimationGroup<V extends Vars> {
      * `buildSoAPlans` in `./soa`, rebuilt ONLY on a structural change). INTERNAL
      * (R.W2) — read/written by `./compositor`. */
     _soaPlans: SoALayerPlan[] | null = null;
+    /**
+     * T.A6 — the group's PLAIN authored-shape projection (built from the
+     * composite `_grouped` leaf map when `unflatten` is set), rebuilt lazily on a
+     * structural change (the SAME `_groupedKeysDirty` seam that drops the SoA
+     * plan). Null until the first composited frame populates `_grouped`. INTERNAL
+     * — read/written by `./compositor`. */
+    _plainProj: PlainProjection | null = null;
     /** The long-lived SoA fold scratch — the contiguous numeric accumulate buffer,
      * sized to the WIDEST single-layer pair count once per structural change
      * (reused, zero per-frame alloc). INTERNAL (R.W2) — read by `./compositor`. */
@@ -136,6 +156,10 @@ export class AnimationGroup<V extends Vars> {
                 animation.frames[0] != null
             ) {
                 this.transform = animation.frames[0].transform;
+                // T.A6 — inherit the child's flatten discipline alongside its
+                // transform: a custom-transform child (`unflatten = true`) makes
+                // the group project the nested PLAIN authored-shape composite.
+                this.unflatten = animation.unflatten;
             }
 
             const name = getAnimationId(animation);
@@ -288,14 +312,8 @@ export class AnimationGroup<V extends Vars> {
         // rendered the blend, so settle is pure teardown, never a repaint (a
         // completion `reset()` would end a fadeIn group invisible at frame 0).
         this.settle();
-        this._resolvePlay();
+        lifecycle.resolvePlay(this);
         return false;
-    }
-
-    private _resolvePlay() {
-        const resolve = this.resolvePromise;
-        this.resolvePromise = null;
-        resolve?.();
     }
 
     /** The completion front-door (G.W13) — `await group.finished` resolves once
@@ -306,46 +324,9 @@ export class AnimationGroup<V extends Vars> {
     }
 
     /** Start the group. Resolves when all children complete (or on stop/reset).
-     * Re-entrant: an in-flight `play()` returns the same promise. Under
-     * `respectReducedMotion` + an active query, snaps to final (no rAF loop). */
+     * Re-entrant, and PRM-aware — body in `./lifecycle` (S.B5 / a19 F1). */
     async play(): Promise<void> {
-        if (this._playingPromise) return this._playingPromise;
-
-        const result = withReducedMotion(
-            this.respectReducedMotion,
-            () => this._playReducedMotion(),
-            () =>
-                new Promise<void>((resolve) => {
-                    this.resolvePromise = resolve;
-                    this.playback.loop(this._boundFrame);
-                }),
-        );
-
-        this._playingPromise = result;
-        result.finally(() => {
-            this._playingPromise = null;
-        });
-        return result;
-    }
-
-    /** `prefers-reduced-motion` snap: rest = final, paint it, settle — the SAME
-     * terminal path a completed play takes, motion elided. */
-    private _playReducedMotion(): Promise<void> {
-        this.started = true;
-        // The PRM snap is INSTANTANEOUS — no rAF clock; the snap's `t` is
-        // non-normative for a pure-CSS transform. No `|| performance.now()` silent
-        // fallback (R.W2): the snap's clock IS 0 (the at-rest `lastTickTime`).
-        const now = this.lastTickTime;
-
-        // Snap every child to its final frame, then composite one final paint.
-        snapChildrenToFinal(this.getEntries());
-        if (this.singleTarget) {
-            this.transformFramesGrouped(now);
-        }
-
-        this.settle();
-
-        return Promise.resolve();
+        return lifecycle.play(this);
     }
 
     // ── The managed-child lifecycle contract (full statement in
@@ -355,38 +336,18 @@ export class AnimationGroup<V extends Vars> {
     // `startTime` jump-free; `resume()` un-pauses children DIRECTLY (never
     // `child.resume()`); `settle()` releases the child (`managed = false`).
 
-    /** Pause the group — idempotent. Pausing an already-paused (or not-yet-started)
-     * group is a no-op, NOT a resume. Cancels the rAF loop + renders a final-frame
-     * snapshot so the visual matches the pause moment. */
+    /** Pause the group — idempotent. Cancels the rAF loop + renders a final-frame
+     * snapshot so the visual matches the pause moment; records each child's
+     * jump-free `pausedTime`. Body in `./lifecycle` (S.B5). */
     pause() {
-        if (!this.started || this.paused) return this;
-
-        this.paused = true;
-        // A started group has ticked, so `lastTickTime` is set (R.W2 — no
-        // `|| performance.now()` fallback for a never-occurring case). Record it on
-        // each child's `pausedTime` so resume adjusts startTime jump-free.
-        const now = this.lastTickTime;
-        for (const entry of this.getEntries()) {
-            const anim = entry.animation;
-            anim.pause();
-            if (anim.pausedTime === 0) {
-                anim.pausedTime = now;
-            }
-        }
-
-        this.playback.stop();
-        this.render();
-
+        lifecycle.pause(this);
         return this;
     }
 
-    /** Resume the group — idempotent. Unpauses every child DIRECTLY (not via
-     * `child.resume()` — the group's draw loop owns the ticking) + re-registers it. */
+    /** Resume the group — idempotent. Unpauses every child DIRECTLY (the group's
+     * draw loop owns the ticking). Body in `./lifecycle` (S.B5). */
     resume() {
-        if (!this.started || !this.paused) return this;
-        this.paused = false;
-        setChildrenPaused(this.getEntries(), false);
-        this.playback.loop(this._boundFrame);
+        lifecycle.resume(this);
         return this;
     }
 
@@ -396,46 +357,29 @@ export class AnimationGroup<V extends Vars> {
     }
 
     /** Pure state teardown — never paints. Releases every child (`managed = false`,
-     * `child.settle()`) and clears the group flags, leaving the rest frame painted. */
+     * `child.settle()`) and clears the group flags. Body in `./lifecycle` (S.B5). */
     settle() {
-        for (const entry of this.getEntries()) {
-            entry.animation.managed = false;
-            entry.animation.settle();
-        }
-
-        this.started = false;
-        this.done = false;
-        this.paused = false;
-        this.lastTickTime = 0;
-
+        lifecycle.settle(this);
         return this;
     }
 
     /** Explicit rewind: paint every started child back to its INITIAL frame, then
-     * settle — the user-facing "return to start" (completion does NOT come here). */
+     * settle — the user-facing "return to start". Body in `./lifecycle` (S.B5). */
     reset() {
-        for (const entry of this.getEntries()) {
-            const anim = entry.animation;
-            if (anim.started && anim.frames.length > 0) {
-                anim.interpFrames(0, true);
-            }
-        }
-
-        return this.settle();
+        lifecycle.reset(this);
+        return this;
     }
 
     /** Halt the draw loop, rewind to the initial frame (the transport-stop
-     * semantic the demo's controls expect), and resolve any pending `play()`. */
+     * semantic the demo's controls expect), and resolve any pending `play()`.
+     * Body in `./lifecycle` (S.B5). */
     stop() {
-        this.playback.stop();
-        this.reset();
-        this._resolvePlay();
-
+        lifecycle.stop(this);
         return this;
     }
 
     playing() {
-        return !(!this.started || this.paused);
+        return lifecycle.playing(this);
     }
 
     // R.W2 — `forcePause`/`forcePlay` EXCISED (lib-group §5: test-scaffold leaks

@@ -58,38 +58,39 @@ console.log("proof:dock-popover-opens — H.W1 S8/BLK-8 (the @mbabb dock popover
 {
     // Strip HTML comments first — the S8 fix is DOCUMENTED in a comment that names
     // `<DropdownMenuTrigger` (the wrapper it dropped); the tag regex must not match
-    // the explanatory prose, only a real markup tag.
-    const app = read(path.join(DEMO, "app/App.vue")).replace(/<!--[\s\S]*?-->/g, "");
+    // the explanatory prose, only a real markup tag. The @mbabb menu markup moved
+    // out of App.vue into app/dock/MbabbMenu.vue at S.D1 (a23 F2).
+    const menu = read(path.join(DEMO, "app/dock/MbabbMenu.vue")).replace(/<!--[\s\S]*?-->/g, "");
 
     // Isolate the @mbabb <DropdownMenu> block — the trigger lives between the
     // opening <DropdownMenu and the first <DropdownMenuContent.
-    const menuOpen = app.indexOf("<DropdownMenu");
-    const contentIdx = app.indexOf("<DropdownMenuContent", menuOpen);
-    const triggerBlock = menuOpen !== -1 && contentIdx !== -1 ? app.slice(menuOpen, contentIdx) : "";
+    const menuOpen = menu.indexOf("<DropdownMenu");
+    const contentIdx = menu.indexOf("<DropdownMenuContent", menuOpen);
+    const triggerBlock = menuOpen !== -1 && contentIdx !== -1 ? menu.slice(menuOpen, contentIdx) : "";
 
     // (a) the inner DockDropdownTrigger IS mounted (the reka trigger that opens it).
     const hasDockTrigger = /<DockDropdownTrigger\b/.test(triggerBlock);
     // (b) NO outer DropdownMenuTrigger wraps it (the double-wrap that swallowed the
     //     click). Forbid both the tag in the trigger block AND the import.
     const hasOuterWrapTag = /<DropdownMenuTrigger\b/.test(triggerBlock);
-    const importsOuterTrigger = /import[^;]*\bDropdownMenuTrigger\b[^;]*from/.test(app);
+    const importsOuterTrigger = /import[^;]*\bDropdownMenuTrigger\b[^;]*from/.test(menu);
 
     if (hasDockTrigger && !hasOuterWrapTag) {
-        ok("App.vue @mbabb menu mounts <DockDropdownTrigger> directly inside <DropdownMenu> (no outer wrap)");
+        ok("MbabbMenu.vue mounts <DockDropdownTrigger> directly inside <DropdownMenu> (no outer wrap)");
     } else if (!hasDockTrigger) {
-        fail("App.vue @mbabb menu must mount a <DockDropdownTrigger> (the reka trigger) inside <DropdownMenu>");
+        fail("MbabbMenu.vue @mbabb menu must mount a <DockDropdownTrigger> (the reka trigger) inside <DropdownMenu>");
     } else {
         fail(
-            "App.vue @mbabb menu still wraps the trigger in an outer <DropdownMenuTrigger> — " +
+            "MbabbMenu.vue @mbabb menu still wraps the trigger in an outer <DropdownMenuTrigger> — " +
                 "the double-wrap swallows the click (BLK-8); use <DockDropdownTrigger> directly",
         );
     }
 
     if (!importsOuterTrigger) {
-        ok("App.vue does not import DropdownMenuTrigger (the now-unused outer-wrap symbol)");
+        ok("MbabbMenu.vue does not import DropdownMenuTrigger (the now-unused outer-wrap symbol)");
     } else {
         fail(
-            "App.vue still imports DropdownMenuTrigger — drop the now-unused import (App.vue:152, BLK-8 step b)",
+            "MbabbMenu.vue still imports DropdownMenuTrigger — drop the now-unused import (BLK-8 step b)",
         );
     }
 }

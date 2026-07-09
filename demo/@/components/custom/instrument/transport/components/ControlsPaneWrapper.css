@@ -1,0 +1,148 @@
+/* ControlsPaneWrapper.vue scoped style tier — colocated stylesheet (S.D2, the
+ * P2-1 F6 scoped-CSS split). Referenced from the SFC via
+ * <style scoped src="./ControlsPaneWrapper.css">.
+ *
+ * ── T.H3-ADOPT (OWNER-OVERRIDDEN 2026-07-06) — the bespoke mobile sheet CSS is
+ * DELETED ──
+ * The ~250L of bespoke bottom-sheet geometry (the `--sheet-detent-*` token block,
+ * the `@media (max-width:1023px) .controls-pane-wrapper { position:fixed; … }`
+ * sheet, the `--sheet-t` height lerp / opacity fade / closed pointer-events) is
+ * GONE with the SpringProgress hand-roll it drove. The mobile sheet is now
+ * glass-ui's `<Drawer mode="live-behind">` (drawer.css owns the sheet surface +
+ * the `--glass-drawer-t` snap-translate; the spring is kf's OWN SpringProgress
+ * transitively — drawer.js:6/:134). What survives here: the DESKTOP naked-rail
+ * grammar (the [rail]-track collapse open/close axis) + the shared body's mobile
+ * padding/scroll-fade the Drawer portals.
+ *
+ * The G1 stage-visibility contract (`--stage-strip`/`--stage-reserve`) moved with
+ * the bespoke sheet: under the Drawer the visible fraction is the snap-fraction
+ * cap (ControlsPaneWrapper.vue's `snapPoints` — subject 0.48 ≈ 52dvh reserve,
+ * editor/storyboard 0.62 ≈ 26dvh strip), so the reserve is a JS detent, not a CSS
+ * token. proof:stage-visible re-derives against the Drawer's `--glass-drawer-t`. */
+
+/* ── T.B4 (OD-5, VERDICT #7) — the surrounding pane is GONE ──
+   The rail is a NAKED column — no border, no background, no radius; the two
+   floating GlassPanel instruments are the only plates. The 0.75rem gap below is
+   the whole grouping grammar. proof:panel-naked-rail asserts no border/background
+   survives between the rail cell and the two cards. */
+.controls-content {
+    position: relative;
+    gap: 0.75rem;
+}
+
+/* ── MOBILE (< 1024px): the adopted glass-ui Drawer body ──
+   The Drawer (`.glass-drawer` — drawer.css) portals the shared `.controls-pane`
+   body to <body>; it is `display:flex; flex-direction:column; height:100%` at a
+   detented snap. The `.controls-pane` slot child flex-fills under the glass grab
+   handle and scrolls its own content — glass-ui's `useDrawerSnap` owns the
+   open/close SPRING (kf's SpringProgress, transitively) + the detent/fling
+   gesture; this file only lays the body out inside the sheet. */
+@media (max-width: 1023px) {
+    .controls-drawer-content .controls-pane {
+        min-height: 0;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        touch-action: pan-y;
+    }
+    .controls-drawer-content .controls-content {
+        padding-inline: 0.75rem;
+    }
+
+    /* The scroll-fade mask degrades to un-faded content on a browser without
+       mask-image support (D.W3.S3). The fade magnitude reads the single-sourced
+       --mask-fade token. scroll-fade-both aliases scroll-fade-y. */
+    @supports (-webkit-mask-image: linear-gradient(#000, #000)) or
+        (mask-image: linear-gradient(#000, #000)) {
+        .controls-drawer-content .scroll-fade-both {
+            mask-image: linear-gradient(
+                to bottom,
+                transparent,
+                black var(--mask-fade),
+                black calc(100% - var(--mask-fade)),
+                transparent
+            );
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                transparent,
+                black var(--mask-fade),
+                black calc(100% - var(--mask-fade)),
+                transparent
+            );
+        }
+    }
+}
+
+/* ── Desktop: the [rail]-track collapse IS the open/close axis ──
+   H.W3.S4 (WV-W3-HIGH-2): the [rail] track (AnimationControlsGroup) collapses
+   var(--rail-width) ↔ 0 and the stage reflows into the freed width; the pane is a
+   real grid column, not an overlay. The wrapper clips its fixed-width content as
+   the track shrinks (overflow:hidden), the content fades (opacity), and
+   pointer-events drop when closed so the collapsed rail captures nothing. */
+@media (min-width: 1024px) {
+    .controls-pane-wrapper {
+        max-height: none;
+        max-width: none;
+        margin-top: 0;
+        padding-inline: 0;
+        display: block;
+        /* Clip the fixed-width .controls-content as the [rail] track collapses. */
+        overflow: hidden;
+    }
+    .controls-pane-wrapper.controls-pane--open {
+        pointer-events: auto;
+        /* The desktop open/close axis is the [rail]-track collapse; the F9
+           idle-fade OPACITY transition is the only transition that remains. */
+        transition: opacity var(--duration-normal) var(--ease-standard);
+    }
+    .controls-pane-wrapper.controls-pane--closed {
+        pointer-events: none;
+    }
+    .controls-pane--open .controls-pane {
+        opacity: 1;
+        transition: opacity var(--duration-normal) var(--ease-out);
+    }
+    .controls-pane--closed .controls-pane {
+        opacity: 0;
+        transition: opacity var(--duration-fast) var(--ease-in);
+    }
+
+    /* ── F9 (H.W9.S6) — the controls idle-fade (restoration) ──
+       After IDLE_MS (10s) of GLOBAL window inactivity the OPEN pane rest-dims to
+       --controls-idle-opacity. `useIdle` (usePaneHover.ts) owns the WHEN; CSS
+       owns the magnitude + transition + the instant lift. :hover / :focus-within
+       lift it to full opacity at once. Desktop only. */
+    .controls-pane-wrapper.controls-pane--idle:not(.controls-pane--hovered) {
+        opacity: var(--controls-idle-opacity, 0.35);
+    }
+    .controls-pane-wrapper:hover,
+    .controls-pane-wrapper:focus-within {
+        opacity: 1;
+    }
+
+    .controls-content {
+        /* Couples to the grid's [rail] track via the --rail-width token — the
+           pane IS exactly the rail width (the single width authority, H.W3.S3).
+           box-sizing: border-box keeps the shadow-clearance padding inside the
+           budget. */
+        width: var(--rail-width);
+        box-sizing: border-box;
+        /* ── F7 (H.W9.S2) — symmetric shadow-clearance so the cartoon stamp
+           clears the wrapper's load-bearing overflow:hidden. The cartoon offset
+           shadow casts bottom-LEFT; padding renders the shadow INSIDE the padded
+           box so the clip never reaches it. */
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-bottom: 12px;
+    }
+}
+
+/* ── F9 PRM guard — snap, don't animate the idle-fade ──
+   Under PRM the desktop idle dim still APPLIES (an opacity rest state,
+   legibility-preserving) but its transition SNAPS. (The mobile sheet's PRM snap
+   is owned by the Drawer's own SpringProgress respectReducedMotion — no CSS
+   here.) */
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+    .controls-pane-wrapper.controls-pane--open {
+        transition: none;
+    }
+}

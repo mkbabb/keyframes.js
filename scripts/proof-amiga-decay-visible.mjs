@@ -13,18 +13,20 @@
  *
  * THE GATE — a Playwright session over the BUILT `dist/gh-pages/` (the
  * scripts/lib/demo-driver.mjs lifecycle). Clauses:
- *   (1) amiga-telemetry-live (KEYSTONE — the APPEARANCE-axis observable):
- *       navigate `#/amiga`, drive a REAL drag + release over the sphere, assert
- *       the `.amiga-telemetry` readout shows a NON-ZERO angular velocity at
- *       release that DECAYS toward zero over the glide window (the visible
- *       `decay()` curve — the engine dogfood witnessed). BITE: no telemetry
- *       element, or a static / non-decaying readout reds.
+ *   (1) amiga-decay-probe-live (KEYSTONE — RE-ARMED at T.A11): navigate
+ *       `#/amiga`, drive a REAL drag + release over the sphere, assert the NON-DOM
+ *       gesture-layer probe `window.__kfAmigaProbe.omega()` shows a NON-ZERO
+ *       angular velocity at release that DECAYS toward zero over the glide window
+ *       (the visible `decay()` curve — the engine dogfood witnessed WITHOUT a
+ *       parked telemetry readout, which the owner ruled out). BITE: no probe hook,
+ *       or a static / non-decaying reading reds.
  *   (2) specular-material (appearance corroborator — source-shape): the sphere
  *       material is a specular material (`MeshPhongMaterial`/`MeshStandardMaterial`),
  *       NOT `MeshLambertMaterial`. BITE: the flat material reds.
- *   (3) boing-teardown-safe (state corroborator): flick + navigate away within the
- *       boing window, assert NO post-teardown write error in the console. BITE: a
- *       leaked late write reds.
+ *   (3) glide-teardown-safe (state corroborator, RE-ARMED at T.A8): flick + navigate
+ *       away mid-glide, assert NO post-teardown write error in the console. BITE: a
+ *       leaked late write reds. (The boing double-tap was deleted at T.A8 — the Boing
+ *       IS the scene; the surviving mid-flight motion is the glide.)
  *
  * Re-runnable: `node scripts/proof-amiga-decay-visible.mjs`. Serves the BUILT
  * dist/gh-pages/. Honors KF_DEMO_URL (the NAMED dev-server exception) so the
@@ -125,26 +127,34 @@ async function runClauses(page, base, consoleErrors) {
     await navToScene(page, "amiga", "Controls", { timeout: 8000 });
     await page.waitForTimeout(1000);
 
-    // ── clause (1) amiga-telemetry-live (KEYSTONE) ──
-    console.log("\nclause (1) amiga-telemetry-live (KEYSTONE — a flick shows the engine's decay() glide as a decaying angular-velocity readout)");
-    const telemetryPresent = await page.evaluate(
-        () => !!document.querySelector(".amiga-telemetry"),
+    // ── clause (1) amiga-decay-probe-live (KEYSTONE — RE-ARMED at T.A11) ──
+    // The parked `.amiga-telemetry` DOM readout was DELETED (owner-ruled — the
+    // dishonest "ω 0.00 rad/s forever at rest"). The decay() dogfood is now
+    // witnessed through a NON-DOM sampling hook on the gesture layer
+    // (`window.__kfAmigaProbe.omega()`) — the SAME already-tracked physics, made
+    // legible without an on-stage readout. The assertion is unchanged: a real
+    // flick spikes the angular velocity, which then DECAYS toward zero over the
+    // glide window (the visible decay() coast).
+    console.log("\nclause (1) amiga-decay-probe-live (KEYSTONE — a flick spikes the non-DOM decay probe, which decays over the glide)");
+    const probePresent = await page.evaluate(
+        () =>
+            typeof (window.__kfAmigaProbe && window.__kfAmigaProbe.omega) ===
+            "function",
     );
-    if (!telemetryPresent) {
+    if (!probePresent) {
         fail(
-            "(1) NO `.amiga-telemetry` element — the engine's decay() glide runs INVISIBLY (the dogfood unwitnessed).",
+            "(1) NO `window.__kfAmigaProbe.omega()` hook — the engine's decay() glide runs UNWITNESSED (the non-DOM dogfood probe is absent).",
         );
     } else {
-        // Read the telemetry's numeric value via a small parser (the readout shows
-        // a rad/s number; strip non-numeric chrome).
+        // Read the coasting angular velocity from the gesture-layer probe.
         const readValue = () =>
             page.evaluate(() => {
-                const el =
-                    document.querySelector(".amiga-telemetry-value") ||
-                    document.querySelector(".amiga-telemetry");
-                if (!el) return null;
-                const m = (el.textContent || "").match(/-?\d+(?:\.\d+)?/);
-                return m ? parseFloat(m[0]) : null;
+                try {
+                    const v = window.__kfAmigaProbe.omega();
+                    return typeof v === "number" ? v : null;
+                } catch {
+                    return null;
+                }
             });
 
         const flicked = await flickSphere(page);
@@ -175,15 +185,15 @@ async function runClauses(page, base, consoleErrors) {
         }
     }
 
-    // ── clause (3) boing-teardown-safe ──
-    console.log("\nclause (3) boing-teardown-safe (a flick + unmount within the boing window raises NO post-teardown write error)");
+    // ── clause (3) glide-teardown-safe (RE-ARMED at T.A8/T.A11) ──
+    // The boing double-tap egg was DELETED (the Boing IS the scene now — no
+    // dormant arc to wake). The teardown-safety observable moves to the surviving
+    // mid-flight motion: a flick seeds a live decay() glide + the group may be
+    // playing; navigating away mid-glide must raise NO post-teardown write error
+    // (the present loop + glide are canceled on unmount, the probe hook removed).
+    console.log("\nclause (3) glide-teardown-safe (a flick + unmount mid-glide raises NO post-teardown write error)");
     const errBefore = consoleErrors.length;
-    // Double-click to fire the boing (a guaranteed boing trigger), then nav away
-    // IMMEDIATELY (within the 4.2s boing window) to unmount the scene.
-    await page.evaluate(() => {
-        const c = document.querySelector(".amiga-canvas, canvas");
-        c?.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
-    });
+    await flickSphere(page);
     await page.waitForTimeout(200);
     await navToScene(page, "cube", "Controls", { timeout: 8000 });
     await page.waitForTimeout(800);
@@ -195,7 +205,7 @@ async function runClauses(page, base, consoleErrors) {
             ),
         );
     if (teardownErrors.length === 0) {
-        ok("(3) a flick + unmount within the boing window raised NO post-teardown write error (the boing arc is canceled on unmount).");
+        ok("(3) a flick + unmount mid-glide raised NO post-teardown write error (the present loop + glide are canceled on unmount).");
     } else {
         fail(
             `(3) ${teardownErrors.length} post-teardown error(s) after a flick + unmount:\n      ` +
@@ -248,13 +258,13 @@ await browserHalf();
 if (failures.length > 0) {
     console.error(
         `\nproof:amiga-decay-visible — FAIL (${failures.length}): the amiga decay() dogfood is not witnessed — ` +
-            `there is no decaying telemetry readout after a flick, OR the sphere is the flat unlit MeshLambertMaterial, OR a ` +
-            `flick + unmount leaks a post-teardown write. Q.WC5 S1–S3 are not all satisfied.`,
+            `the non-DOM decay probe does not decay after a flick, OR the sphere is the flat unlit MeshLambertMaterial, OR a ` +
+            `flick + unmount leaks a post-teardown write.`,
     );
     process.exit(1);
 }
 console.log(
-    "\nproof:amiga-decay-visible — PASS: a real flick shows the engine's decay() glide as a decaying angular-velocity " +
-        "readout (amiga-telemetry-live), the sphere is a specular lit surface (specular-material), and a flick + unmount " +
-        "raises no post-teardown write (boing-teardown-safe). The engine's analytic decay() dogfood is finally WITNESSED.",
+    "\nproof:amiga-decay-visible — PASS: a real flick shows the engine's decay() glide as a decaying angular velocity " +
+        "on the non-DOM probe (amiga-decay-probe-live), the sphere is a specular lit surface (specular-material), and a flick + " +
+        "unmount raises no post-teardown write (glide-teardown-safe). The engine's analytic decay() dogfood is WITNESSED.",
 );

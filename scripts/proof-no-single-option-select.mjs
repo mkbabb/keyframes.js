@@ -1,48 +1,30 @@
 #!/usr/bin/env node
 /**
- * proof:no-single-option-select — L.W4 S5 (the audit's W2: U4's "a lone-option
- * dropdown does NOT render" rule is a SHIPPED product behaviour with no gate).
+ * proof:no-single-option-select — RE-CHARTERED at T.C1 + T.B5-RENDER.
  *
- * THE PRODUCT RULE (J.W7c U4, FINAL.md:325). A `<Select>` whose option set can
- * collapse to a SINGLE item must NOT render a dead 1-item dropdown — a chevron
- * that opens onto the value the trigger already shows. The shipped behaviour is
- * the COUNT GUARD: the select renders ONLY when there is MORE THAN ONE thing to
- * choose between (`length > 1`); the single-item case renders a STATIC label
- * instead. Two scene-driven dropdowns carry option arrays that genuinely
- * collapse to length-1 on real scenes:
+ * THE RE-CHARTER (charter §0.1 "a gate enforces the rejected UI"; VERDICT #17). The
+ * L.W4 doctrine was "a single-option select ⇒ a STATIC LABEL" — and the STATIC LABEL
+ * was exactly the owner-rejected `∿ Spring │ ∿ Spring` duplication (#17: the sole
+ * control surface's label demoted beside the scene identity it already reads). This
+ * gate USED to ENFORCE that rejected state (it verified the count-guard while the
+ * else-branch drew the dup). T.B5-RENDER + T.C1 flip the doctrine:
  *
- *   (A) the ANIMATION select (TransportDock.vue) — single-animation scenes
- *       (spring/sequence/motion-path: one contractAnim each) collapse
- *       `animationNames` to length 1; the guard is `v-if="animationNames.length
- *       > 1"`, the else-branch is the lone animation's NAME as a static label.
+ *     single/zero option ⇒ NOTHING — no node, no flanking separator (the ELISION).
  *
- *   (B) the CONTROL-TAB select (ChromeDock.vue) — single-surface scenes
- *       (easing → ['easing'], spring → ['spring']) collapse the control-tab list
- *       to length 1; the guard is `v-if="multipleControlTabs"` where
- *       `multipleControlTabs = allControlTabs.value.length > 1`, the else-branch
- *       is the lone tab's STATIC label.
+ * So the re-chartered teeth are TWO clauses per scene-driven select:
+ *   (1) COUNT-GUARD PRESENT — the `<Select>` renders ONLY when its option count is
+ *       `> 1` (via the zone kind bound to `> 1`, or a direct `.length > 1` v-if);
+ *       AND
+ *   (2) NO STATIC-LABEL FALLBACK — the demoted single-option static label is GONE
+ *       (ChromeDock's `dock-static-label`/`soleControlTab`; TransportDock's
+ *       single-animation `v-else` name span). A regression that RESURRECTS the
+ *       static label (the rejected dup) reds.
  *
- * THE GATE (STATIC — no browser; runs in the glass-ui-free library `gates` job).
- * It reads the demo Vue SFC source tree and asserts, for each U4-class select,
- * that its rendering is guarded by a `length > 1` count-guard (or a computed
- * that IS such a guard). A future regression — a component re-rendering one of
- * these dropdowns UNCONDITIONALLY (the count-guard deleted) — reds.
+ * The count authority is T.B5's DFA projection (dockCardinality in controlSurfaceDFA.ts; when
+ * T.B5's DFA projection lands, repoint this check at `@state`). Clause (3) asserts
+ * that model binds `> 1` — a rewrite admitting a 1-option zone reds.
  *
- * WHY NOT "every <Select> in demo/ must be guarded": that over-broad rule is
- * WRONG. Most demo selects iterate STATIC catalogs that never collapse to one:
- * the easing catalog (EasingSelect — dozens of EASING_GROUPS items), the scene
- * switcher (ChromeDock — home + 8 scenes, never 1), the CSS jump-term picker
- * (TimingFunctionPanel — 4 fixed terms), the view-mode picker (EasingTarget —
- * "singular" + every family). Forcing a count-guard onto a never-single select
- * would be dead code the U4 rule does not call for. The U4 rule targets exactly
- * the dropdowns whose option array is SCENE-DRIVEN and can be length 1 — this
- * gate gates those by name + verifies the guard is present + structurally bound
- * to the option array's length.
- *
- * BITE: delete the `v-if="animationNames.length > 1"` guard on the animation
- * select (rendering it unconditionally), or rewrite `multipleControlTabs` to a
- * non-count predicate that admits a 1-tab scene → reds. Re-runnable:
- * `node scripts/proof-no-single-option-select.mjs`. No build, no browser.
+ * STATIC (no browser). Re-runnable: `node scripts/proof-no-single-option-select.mjs`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -59,7 +41,7 @@ const fail = (label) => {
 };
 const read = (p) => fs.readFileSync(p, "utf8");
 
-/** Strip HTML comments + // and /* *​/ JS comments so a rule named only in prose
+/** Strip HTML comments + // and block JS comments so a rule named only in prose
  *  never counts as live markup/code. */
 function stripComments(src) {
     return src
@@ -68,138 +50,129 @@ function stripComments(src) {
         .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1);
 }
 
-/** The opening tag of the FIRST root `<Select` whose attribute span mentions
- *  `anchor` — returns the raw open-tag text, or null. The open tag runs from
- *  `<Select` to the `>` that closes the START tag, SKIPPING any `>` inside a
- *  quoted attribute value (a `(key) => {...}` arrow handler carries a literal
- *  `>` that is NOT the tag close). */
-function selectOpenTagMentioning(src, anchor) {
-    let i = 0;
-    while ((i = src.indexOf("<Select", i)) !== -1) {
-        // Skip <SelectContent>, <SelectItem>, <SelectTrigger>, etc. — only the
-        // bare <Select (followed by whitespace or >) is the root component.
-        const after = src[i + "<Select".length];
-        if (after && /[A-Za-z]/.test(after)) {
-            i += "<Select".length;
-            continue;
-        }
-        // Walk to the start-tag close, respecting quoted attribute values.
-        let quote = null;
-        let end = -1;
-        for (let k = i; k < src.length; k++) {
-            const ch = src[k];
-            if (quote) {
-                if (ch === quote) quote = null;
-            } else if (ch === '"' || ch === "'") {
-                quote = ch;
-            } else if (ch === ">") {
-                end = k;
-                break;
-            }
-        }
-        if (end === -1) break;
-        const openTag = src.slice(i, end + 1);
-        if (openTag.includes(anchor)) return openTag;
-        i = end + 1;
-    }
-    return null;
-}
-
 console.log(
-    "proof:no-single-option-select — L.W4 S5 (the U4 lone-option count-guard is live in every scene-driven select)",
+    "proof:no-single-option-select — RE-CHARTERED (single ⇒ NOTHING; the #17 static-label dup is DELETED)",
 );
+
+// ── (0) The zone model binds `> 1` (T.B5's DFA projection — dockCardinality) ─
+{
+    const file = path.join(DEMO, "@/state/controlSurfaceDFA.ts");
+    if (!fs.existsSync(file)) {
+        fail(
+            `(0) the DFA cardinality model not found at ${path.relative(REPO, file)} — the ` +
+                "cardinality model moved (T.B5 landed?); repoint the count-guard check.",
+        );
+    } else {
+        const src = stripComments(read(file));
+        const controlGuard = /tabs\.length\s*>\s*1/.test(src);
+        const channelGuard = /channels\.length\s*>\s*1/.test(src);
+        if (controlGuard && channelGuard) {
+            ok(
+                "(0) the dock-zone model binds BOTH zones to `> 1` (controlZone: tabCount > 1, " +
+                    "channelZone: channels.length > 1) — a 1-option zone resolves ABSENT, never a select.",
+            );
+        } else {
+            fail(
+                "(0) the DFA cardinality model does NOT bind both zones to a `> 1` " +
+                    `count (controlZone tabs.length>1: ${controlGuard}, channelZone channels.length>1: ` +
+                    `${channelGuard}) — a rewrite admitting a 1-option zone would render a dead dropdown.`,
+            );
+        }
+    }
+}
 
 // ── (A) The ANIMATION select (TransportDock.vue) ─────────────────────────────
 {
     const file = path.join(
         DEMO,
-        "@/components/custom/animation-controls/TransportDock.vue",
+        "@/components/custom/instrument/transport/TransportDock.vue",
     );
     if (!fs.existsSync(file)) {
-        fail(
-            `(A) TransportDock.vue not found at ${path.relative(REPO, file)} — ` +
-                "the animation-select host moved; re-ground the gate.",
-        );
+        fail(`(A) TransportDock.vue not found at ${path.relative(REPO, file)}.`);
     } else {
         const src = stripComments(read(file));
-        // The animation select is the <Select whose trigger is the "Select
-        // animation" dock control (aria-label inside its content). The root
-        // <Select open tag must carry a v-if count-guard over animationNames.
-        const openTag = selectOpenTagMentioning(src, "selectAnimation");
-        if (!openTag) {
-            fail(
-                "(A) could not locate the animation <Select> in TransportDock.vue " +
-                    "(no <Select> whose open tag emits 'selectAnimation') — the host shape changed.",
+        // Count-guard: the select is governed by the channel zone kind, derived
+        // from T.B5's DFA projection (dockCardinality over the channel names).
+        const zoneDerive =
+            /dockCardinality\(\{[^}]*channels:\s*animationNames/.test(src);
+        const zoneGuard = /channelZoneKind\s*===\s*['"]select['"]/.test(src);
+        // Legacy direct guard (accepted too, for forward parity).
+        const legacyGuard = /v-if\s*=\s*"\s*animationNames\.length\s*>\s*1\s*"/.test(
+            src,
+        );
+        if ((zoneDerive && zoneGuard) || legacyGuard) {
+            ok(
+                "(A) the animation <Select> renders ONLY under the channel count-guard " +
+                    "(channelZoneKind === 'select', derived from dockCardinality(channels).channelZone).",
             );
         } else {
-            // The count guard: v-if on animationNames.length > 1 (the U4 form).
-            // Accept any `> 1` length comparison over the animation-name array so
-            // a refactor of the array's identifier (e.g. a computed alias) still
-            // greens as long as it is a strict-greater-than-one count guard.
-            const guard = /v-if\s*=\s*"\s*[A-Za-z0-9_.]*[Nn]ames?\.length\s*>\s*1\s*"/;
-            if (guard.test(openTag)) {
-                ok(
-                    "(A) the animation <Select> renders ONLY when animationNames.length > 1 " +
-                        "(single-animation scenes show a static label, not a dead 1-item dropdown — U4).",
-                );
-            } else {
-                fail(
-                    "(A) the animation <Select> in TransportDock.vue is NOT guarded by a " +
-                        '`v-if="...Names.length > 1"` count-guard — U4 forbids a lone-option ' +
-                        `dropdown rendering unconditionally. Open tag: ${openTag.replace(/\s+/g, " ").trim()}`,
-                );
-            }
+            fail(
+                "(A) the animation <Select> in TransportDock.vue is NOT count-guarded — " +
+                    "no `channelZoneKind === 'select'` (from dockCardinality over the channel names) " +
+                    "and no legacy `v-if=\"animationNames.length > 1\"`. A lone-option dropdown could render.",
+            );
+        }
+        // No static-label fallback: the single-animation `v-else` name span is gone.
+        // Exclude the #collapsed template (its pill legitimately shows the name).
+        const collapsedAt = src.indexOf("#collapsed");
+        const expanded = collapsedAt === -1 ? src : src.slice(0, collapsedAt);
+        const staticSpan =
+            /v-else[\s\S]{0,80}?{{\s*storedControls\.selectedAnimation\s*}}/.test(
+                expanded,
+            );
+        if (!staticSpan) {
+            ok(
+                "(A) NO single-animation static-label fallback in the expanded transport " +
+                    "(the #17 demoted name span is DELETED — single/zero channel ⇒ NOTHING).",
+            );
+        } else {
+            fail(
+                "(A) a single-animation STATIC name span (v-else → storedControls.selectedAnimation) " +
+                    "survives in the expanded transport — the rejected #17 dup. The re-charter forbids it: " +
+                    "single ⇒ NOTHING.",
+            );
         }
     }
 }
 
 // ── (B) The CONTROL-TAB select (ChromeDock.vue) ──────────────────────────────
 {
-    const file = path.join(DEMO, "@/components/custom/dock/ChromeDock.vue");
+    const file = path.join(DEMO, "app/dock/ChromeDock.vue");
     if (!fs.existsSync(file)) {
-        fail(
-            `(B) ChromeDock.vue not found at ${path.relative(REPO, file)} — ` +
-                "the control-tab select host moved; re-ground the gate.",
-        );
+        fail(`(B) ChromeDock.vue not found at ${path.relative(REPO, file)}.`);
     } else {
         const src = stripComments(read(file));
-        // The control-tab select is the <Select whose open tag emits the
-        // 'updateSelectedControl' event. It must be v-if-guarded on the
-        // `multipleControlTabs` count predicate.
-        const openTag = selectOpenTagMentioning(src, "updateSelectedControl");
-        if (!openTag) {
-            fail(
-                "(B) could not locate the control-tab <Select> in ChromeDock.vue " +
-                    "(no <Select> whose open tag emits 'updateSelectedControl') — the host shape changed.",
+        // Count-guard: v-if="multipleControlTabs" + multipleControlTabs = computed(...length > 1).
+        const guardName = /v-if\s*=\s*"\s*multipleControlTabs\s*"/.test(src);
+        const countDef =
+            /const\s+multipleControlTabs\s*=\s*computed\(\s*\(\)\s*=>\s*[A-Za-z0-9_.]*\.length\s*>\s*1\s*\)/.test(
+                src,
+            );
+        if (guardName && countDef) {
+            ok(
+                "(B) the control-tab <Select> renders ONLY when multipleControlTabs " +
+                    "(= allControlTabs.length > 1) — a single-surface scene shows NOTHING.",
             );
         } else {
-            const guardName = /v-if\s*=\s*"\s*multipleControlTabs\s*"/;
-            if (!guardName.test(openTag)) {
-                fail(
-                    "(B) the control-tab <Select> in ChromeDock.vue is NOT guarded by " +
-                        '`v-if="multipleControlTabs"` — U4 forbids a 1-tab scene rendering a ' +
-                        `dead dropdown. Open tag: ${openTag.replace(/\s+/g, " ").trim()}`,
-                );
-            } else {
-                // The guard NAME is present — now bind it to a `> 1` count so a
-                // future rewrite of `multipleControlTabs` to a non-count predicate
-                // (admitting a 1-tab scene) reds. The computed must be a strict
-                // `.length > 1`.
-                const countDef =
-                    /const\s+multipleControlTabs\s*=\s*computed\(\s*\(\)\s*=>\s*[A-Za-z0-9_.]*\.length\s*>\s*1\s*\)/;
-                if (countDef.test(src)) {
-                    ok(
-                        "(B) the control-tab <Select> renders ONLY when multipleControlTabs " +
-                            "(= allControlTabs.length > 1); single-surface scenes show a static label (U4).",
-                    );
-                } else {
-                    fail(
-                        "(B) `multipleControlTabs` is the v-if guard but is NOT defined as a " +
-                            "`computed(() => ...length > 1)` count predicate — a non-count rewrite " +
-                            "could admit a 1-tab scene's dead dropdown. Bind the guard to the option count.",
-                    );
-                }
-            }
+            fail(
+                "(B) the control-tab <Select> in ChromeDock.vue is not count-guarded by " +
+                    `\`v-if="multipleControlTabs"\` (present: ${guardName}) bound to a ` +
+                    `\`computed(() => ...length > 1)\` (present: ${countDef}).`,
+            );
+        }
+        // No static-label fallback: the K.W4 single-surface static label is DELETED.
+        const staticLabel =
+            /dock-static-label/.test(src) || /soleControlTab/.test(src);
+        if (!staticLabel) {
+            ok(
+                "(B) NO single-surface static-label fallback in ChromeDock (the K.W4 " +
+                    "`dock-static-label`/`soleControlTab` branch is DELETED — single surface ⇒ NOTHING).",
+            );
+        } else {
+            fail(
+                "(B) a single-surface STATIC label (dock-static-label / soleControlTab) survives " +
+                    "in ChromeDock — the rejected #17 dup. The re-charter forbids it: single ⇒ NOTHING.",
+            );
         }
     }
 }
@@ -208,13 +181,13 @@ console.log(
 if (failures.length > 0) {
     console.error(
         `\nproof:no-single-option-select — FAIL (${failures.length}): a scene-driven ` +
-            "<Select> can render a lone-option dropdown unconditionally (the U4 count-guard " +
-            "is missing or unbound from the option count — J.W7c U4 regressed).",
+            "<Select> is either not count-guarded, or a demoted single-option STATIC label " +
+            "(the owner-rejected #17 dup) survives. Re-charter: single/zero option ⇒ NOTHING.",
     );
     process.exit(1);
 }
 console.log(
     "\nproof:no-single-option-select — PASS: every scene-driven <Select> (animation, " +
-        "control-tab) renders ONLY when its option count > 1; the lone-option case is a " +
-        "static label, not a dead 1-item dropdown (U4 totality, by construction).",
+        "control-tab) renders ONLY when its option count > 1; the single/zero-option case " +
+        "renders NOTHING — no node, no separator, no demoted static label (the elision).",
 );

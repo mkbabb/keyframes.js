@@ -133,7 +133,7 @@ function walkCount(dir) {
 {
     const id = "proof:monaco-deferred";
     const editorRel =
-        "demo/@/components/custom/animation-controls/keyframes/CSSCodeEditor.vue";
+        "demo/@/components/custom/instrument/keyframes/CSSCodeEditor.vue";
     const src = read(editorRel);
     if (src == null) {
         fail(id, `${editorRel} not found.`);
@@ -272,7 +272,7 @@ function walkCount(dir) {
 {
     const id = "proof:demo-yield";
     const opsRel =
-        "demo/@/components/custom/animation-controls/keyframes/composables/useKeyframeOps.ts";
+        "demo/@/components/custom/instrument/keyframes/composables/useKeyframeOps.ts";
     const src = read(opsRel);
     if (src == null) {
         fail(id, `${opsRel} not found.`);
@@ -329,7 +329,7 @@ function walkCount(dir) {
 // vueuse useDocumentVisibility gate via useSceneVisibilityPause; verified here).
 {
     const id = "proof:loop-yield";
-    const composableRel = "demo/app/useSceneVisibilityPause.ts";
+    const composableRel = "demo/app/runtime/useSceneVisibilityPause.ts";
     const amigaRel = "demo/scenes/amiga/AmigaScene.vue";
     const composable = read(composableRel);
     const amiga = read(amigaRel);
@@ -359,8 +359,8 @@ function walkCount(dir) {
 // Scene routes warm their dynamic-import chunk on pointer-enter of the dock nav.
 {
     const id = "proof:hover-warmup";
-    const scenesRel = "demo/app/scenes.ts";
-    const dockRel = "demo/@/components/custom/dock/ChromeDock.vue";
+    const scenesRel = "demo/app/scene/scenes.ts";
+    const dockRel = "demo/app/dock/ChromeDock.vue";
     const appRel = "demo/app/App.vue";
     const scenesSrc = read(scenesRel);
     const dockSrc = read(dockRel);
@@ -419,7 +419,7 @@ function walkCount(dir) {
             axis: "INP / scheduler.yield (demo edit path)",
             disposition: "ALIGNED",
             anchor: {
-                file: "demo/@/components/custom/animation-controls/keyframes/composables/useKeyframeOps.ts",
+                file: "demo/@/components/custom/instrument/keyframes/composables/useKeyframeOps.ts",
                 needle: "yieldToMain",
             },
         },
@@ -452,7 +452,7 @@ function walkCount(dir) {
             code: "C5",
             axis: "next-nav — SPA route-chunk warmup (NOT Speculation Rules)",
             disposition: "ALIGNED",
-            anchor: { file: "demo/app/scenes.ts", needle: "warmScene" },
+            anchor: { file: "demo/app/scene/scenes.ts", needle: "warmScene" },
         },
         {
             code: "C6",
@@ -507,7 +507,8 @@ function walkCount(dir) {
             code: "CSS4",
             axis: "color-mix / oklab",
             disposition: "ALIGNED",
-            anchor: { file: "demo/scenes/easing/EasingTarget.vue", needle: "color-mix" },
+            // The T.Z template/CSS split — the component surface is SFC + sibling .css.
+            anchor: { file: "demo/scenes/easing/EasingTarget.css", needle: "color-mix" },
             note:
                 "the engine also interpolates color in oklab by default (reference impl, modern-web D-11).",
         },

@@ -14,12 +14,13 @@
  *
  * Two falsifiable halves, each BITING on the exact regression:
  *
- *   1. SOURCE-SHAPE (STATIC — always runs). The 5 contract-named panel Card
- *      sites (the `proof:cartoon-is-panel-depth` set, H.W2 §Hard-gate) each carry
+ *   1. SOURCE-SHAPE (STATIC — always runs). The 4 contract-named panel Card
+ *      sites (the `proof:cartoon-is-panel-depth` set, H.W2 §Hard-gate; the compose
+ *      AssetViewport Card was PRUNED at T.E1) each carry
  *      `surface="cartoon"` AND no longer carry the manual `.glass-card` plate or
  *      the `transition-shadow duration-normal` G2 hover anti-pattern (deleted in
- *      the SAME edit). A flake-free source check that anchors the 5 named sites.
- *      BITE: drop `surface="cartoon"` from any of the 5 → reds; re-introduce the
+ *      the SAME edit). A flake-free source check that anchors the 4 named sites.
+ *      BITE: drop `surface="cartoon"` from any of the 4 → reds; re-introduce the
  *      manual `.glass-card`/`transition-shadow` plate → reds.
  *
  *   2. COMPUTED-DEPTH (BROWSER — runs when playwright resolves + dist is built).
@@ -69,17 +70,20 @@ console.log("proof:cartoon-is-panel-depth — H.W2 S1 (the cartoon-depth restora
 
 // ── 1. SOURCE-SHAPE (static, always runs) ─────────────────────────────────────
 {
-    const AC = path.join(DEMO, "@/components/custom/animation-controls");
-    const AM = path.join(DEMO, "@/components/custom/asset-manager");
-    // The 5 contract-named panel Card sites (H.W2 §Hard-gate / WV-W2-HIGH-1: the
-    // never-enumerated 5th AssetViewport Card is in the set or the gate reds
-    // against a faithful S1). Each is the FIRST `<Card …>` opening tag in its file.
+    const AC = path.join(DEMO, "@/components/custom/instrument/transport");
+    // S.D2 — keyframes/ and timeline/ are now sibling peers (keyframes-editor/,
+    // keyframe-timeline/), not sub-dirs of the transport shell.
+    const KE = path.join(DEMO, "@/components/custom/instrument/keyframes");
+    const KT = path.join(DEMO, "@/components/custom/instrument/timeline");
+    // T.E1 (OD-1 PRUNE) — the compose scene (with its AssetViewport Card) was
+    // PRUNED; the contract-named panel set is the surviving 4.
+    // The 4 contract-named panel Card sites (H.W2 §Hard-gate). Each is the FIRST
+    // `<Card …>` opening tag in its file.
     const PANELS = [
         ["AnimationControlsControls.vue", path.join(AC, "controls/AnimationControlsControls.vue")],
         ["RibbonBar.vue", path.join(AC, "components/RibbonBar.vue")],
-        ["KeyframesEditor.vue", path.join(AC, "keyframes/KeyframesEditor.vue")],
-        ["KeyframeTimeline.vue", path.join(AC, "timeline/KeyframeTimeline.vue")],
-        ["AssetViewport.vue", path.join(AM, "AssetViewport.vue")],
+        ["KeyframesEditor.vue", path.join(KE, "KeyframesEditor.vue")],
+        ["KeyframeTimeline.vue", path.join(KT, "KeyframeTimeline.vue")],
     ];
 
     // Pull the FIRST `<Card …>` opening tag (not a CardContent/Header/etc child).
@@ -126,9 +130,9 @@ console.log("proof:cartoon-is-panel-depth — H.W2 S1 (the cartoon-depth restora
     }
     if (allPass) {
         ok(
-            `source-shape: all 5 contract-named panel Cards carry surface="cartoon" + ` +
+            `source-shape: all 4 contract-named panel Cards carry surface="cartoon" + ` +
                 `dropped the manual .glass-card plate + the transition-shadow G2 hover ` +
-                `(AnimationControlsControls · RibbonBar · KeyframesEditor · KeyframeTimeline · AssetViewport)`,
+                `(AnimationControlsControls · RibbonBar · KeyframesEditor · KeyframeTimeline)`,
         );
     }
 }
@@ -137,7 +141,7 @@ console.log("proof:cartoon-is-panel-depth — H.W2 S1 (the cartoon-depth restora
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The destination control-tab labels navToScene settles on (per-EXPECTED-state).
-const TRIGGER = { cube: "Controls", easing: "Easing", spring: "Spring" };
+const TRIGGER = { cube: "Controls", easing: "Curve", spring: "Physics" }; // item-7a facet defaults
 
 /** Settle on a scene via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; goto would clear both). Re-assert the viewport AFTER navigation

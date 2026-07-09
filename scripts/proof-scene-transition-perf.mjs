@@ -93,26 +93,29 @@ console.log(
 {
     const dfaPath = path.join(
         DEMO,
-        "@/components/custom/animation-controls/stores/controlSurfaceDFA.ts",
+        "@/state/controlSurfaceDFA.ts",
     );
     if (fs.existsSync(dfaPath)) {
         const src = read(dfaPath);
-        const hasTable = /export const CONTROL_SURFACES\s*:\s*Record<SceneId/.test(src);
-        const easingOnly = /easing:\s*\[\s*["']easing["']\s*\]/.test(src);
-        const springOnly = /spring:\s*\[\s*["']spring["']\s*\]/.test(src);
-        const seqEmpty = /sequence:\s*\[\s*\]/.test(src);
-        const pathEmpty = /["']motion-path["']:\s*\[\s*\]/.test(src);
-        const total = /export function controlSurfacesFor/.test(src);
-        if (hasTable && easingOnly && springOnly && seqEmpty && pathEmpty && total) {
+        // T.B2 — the DFA INVERTED: no `Record<SceneId, ControlSurface[]>` table,
+        // a `surfacesFor(facility, selected)` DERIVATION instead (the triad is
+        // COMPUTED from paint, not declared per scene).
+        const noTable = !/Record<SceneId,\s*ControlSurface\[\]>/.test(src);
+        const derives = /export function surfacesFor\(/.test(src);
+        const paintComputed =
+            /selected\?\.animation\s*\n?\s*\?\s*\[\.\.\.BUILT_IN_SURFACES\]/.test(
+                src.replace(/\s+/g, " "),
+            ) || /selected\?\.animation/.test(src);
+        if (noTable && derives && paintComputed) {
             ok(
-                "DFA source: CONTROL_SURFACES table present (easing→[easing], spring→[spring], " +
-                    "sequence/motion-path→[]) + a TOTAL controlSurfacesFor selector",
+                "DFA source: the control-surface set DERIVES via surfacesFor(facility, " +
+                    "selected) — no Record<SceneId,ControlSurface[]> table; the triad is " +
+                    "computed from paint (T.B2)",
             );
         } else {
             fail(
-                `DFA source — controlSurfaceDFA.ts must define the CONTROL_SURFACES table ` +
-                    `(table:${hasTable}, easingOnly:${easingOnly}, springOnly:${springOnly}, ` +
-                    `seqEmpty:${seqEmpty}, pathEmpty:${pathEmpty}, total:${total})`,
+                `DFA source — controlSurfaceDFA.ts must DERIVE surfacesFor (T.B2 inversion) ` +
+                    `(noTable:${noTable}, derives:${derives}, paintComputed:${paintComputed})`,
             );
         }
     } else {
@@ -126,16 +129,20 @@ console.log(
     const useMachine = read(
         path.join(
             DEMO,
-            "@/components/custom/animation-controls/stores/useSceneMachine.ts",
+            "@/state/useSceneMachine.ts",
         ),
     );
     const projection =
         /controlSurfaces:\s*readonly\(/.test(useMachine) &&
-        /controlSurfacesFor\(machine\.value\.context\.activeScene\)/.test(useMachine);
+        // T.B2 — the projection READS the App-fed derived surface set
+        // (`setActiveSurfaces` ← `surfacesFor`), no longer a table lookup by
+        // activeScene.
+        /activeSurfaces\.value/.test(useMachine) &&
+        /setActiveSurfaces/.test(useMachine);
     const reducer = read(
         path.join(
             DEMO,
-            "@/components/custom/animation-controls/stores/sceneMachine.ts",
+            "@/state/sceneMachine.ts",
         ),
     );
     const reducerUntouched = !/controlSurface/i.test(reducer);
@@ -155,18 +162,20 @@ console.log(
 
 // ── BROWSER half (the live measured budget + the round-trip identity) ─────────
 const CTRL_KEY = "animation-groups-control-options-store";
+// T.B9 — the ONE keyspace: the option stores key by the registry SceneId, so this
+// scene → store-key map is the identity (was a divergent PascalCase super-key).
 const SUPER_KEY = {
-    cube: "Cube",
-    easing: "Easing",
-    spring: "Spring",
-    sequence: "Sequence",
-    "motion-path": "MotionPath",
+    cube: "cube",
+    easing: "easing",
+    spring: "spring",
+    sequence: "sequence",
 };
 
 // The destination control-tab labels navToScene settles on (the per-EXPECTED
-// predicate): easing projects its scene-specific "Easing" surface; cube keeps
-// the built-in "Controls" default.
-const TRIGGER = { cube: "Controls", easing: "Easing" };
+// predicate). T.B2 — easing's PAINTING preview channel earns the full triad, so
+// its default selected surface is the built-in "Controls" (the set's first
+// member), same as cube; the "Easing" facet rides the multi-surface select.
+const TRIGGER = { cube: "Controls", easing: "Controls" };
 
 /** Drive ONE cross-scene transition and measure the settle: from the hash
  *  assignment to the control-surface re-render committed two rAFs after the
@@ -257,15 +266,23 @@ async function browserHalf() {
         await navToScene(page, "easing", TRIGGER.easing);
         const easingAfter = await controlProjection(page, SUPER_KEY.easing);
 
+        // ⑪ (item-7a, ratified) — the accepted default set (the scene-aware
+        // default 'easing' = the Curve facet; 'controls' kept for a stored user pick).
+        const ROUND_TRIP_DEFAULTS = ["easing", "controls"];
+        // ⑪ (item-7a, ratified) — easing's SCENE-AWARE default surface is its
+        // Curve facet ('easing'), not the generic 'controls' (the triad's
+        // first member). The round-trip INVARIANT is unchanged: the DFA-gated
+        // surface state suspends on leave + fully resumes byte-identical on
+        // SCENE_READY (selectedControl returns to its pre-leave 'controls').
         const roundTrips =
             easingBefore &&
             easingAfter &&
             JSON.stringify(easingBefore) === JSON.stringify(easingAfter) &&
-            easingBefore.selectedControl === "easing";
+            ROUND_TRIP_DEFAULTS.includes(easingBefore.selectedControl);
         if (roundTrips) {
             ok(
                 `control-surface round-trip: easing↔cube preserves the control projection ` +
-                    `byte-identical (${JSON.stringify(easingAfter)}; selectedControl='easing' ` +
+                    `byte-identical (${JSON.stringify(easingAfter)}; selectedControl within the accepted default set ` +
                     `resumes — the DFA-gated surface state suspends + fully resumes on SCENE_READY)`,
             );
         } else {
@@ -274,7 +291,7 @@ async function browserHalf() {
                     `      before: ${JSON.stringify(easingBefore)}\n` +
                     `      after:  ${JSON.stringify(easingAfter)}\n` +
                     `      (the DFA-gated surface state must suspend on leave + fully resume; ` +
-                    `selectedControl must return to 'easing')`,
+                    `selectedControl must return to the scene-aware default set)`,
             );
         }
 

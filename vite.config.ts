@@ -43,11 +43,12 @@ function engineDtsRollupPlugin(): Plugin {
         async closeBundle() {
             const root = import.meta.dirname;
             // R.W4b — the `./engine` subpath dts roll-up is the FULL static
-            // mirror, so the SOURCE entry is the composition barrel
-            // `engine/public.ts` (not the zone-pure `engine/index.ts`). The
+            // mirror, so the SOURCE entry is the composition barrel `public.ts`
+            // (S.B2 hoisted it out of `engine/` to the `src/animation` root
+            // beside `load-engine.ts`; NOT the zone-pure `engine/index.ts`). The
             // INSTALL path stays `dist/engine/index.d.ts` (the exports map is
             // UNCHANGED) — only the tsc-emit + API-Extractor INPUT moves.
-            const entry = path.resolve(root, "src/animation/engine/public.ts");
+            const entry = path.resolve(root, "src/animation/public.ts");
             const distEngine = path.resolve(root, "dist/engine/index.d.ts");
             if (!fs.existsSync(entry)) return;
 
@@ -79,15 +80,21 @@ function engineDtsRollupPlugin(): Plugin {
             program.emit(undefined, undefined, undefined, true);
 
             // tsc emits the declaration graph mirroring the source path under
-            // `rootDir: src/animation`, so the composition barrel
-            // `engine/public.ts` lands at `engine/public.d.ts` (R.W4b — this is
-            // the API-Extractor main entry point, NOT `engine/index.d.ts`).
-            const emittedEntry = path.join(tmp, "engine/public.d.ts");
+            // `rootDir: src/animation`, so the composition barrel `public.ts`
+            // (S.B2 root-hoisted) lands at `public.d.ts` (R.W4b — this is the
+            // API-Extractor main entry point, NOT `engine/index.d.ts`).
+            const emittedEntry = path.join(tmp, "public.d.ts");
             if (!fs.existsSync(emittedEntry)) {
-                this.warn(
-                    "kf-engine-dts-rollup: engine declarations did not emit; leaving dts as-is",
+                // S.B6 S6 (a08 F2) — HARD-fail the build. A silent warn+return
+                // left a STALE `dist/engine/index.d.ts` in place (the plugin only
+                // overwrites on success), shipping rotted subpath types with a
+                // green build — the same silent-drift class as the 12-byte-stub
+                // failure the barrel already guards.
+                this.error(
+                    "kf-engine-dts-rollup: engine declarations did not emit " +
+                        `(expected ${emittedEntry}). The ./engine subpath d.ts ` +
+                        "roll-up cannot regenerate; refusing to ship a stale artifact.",
                 );
-                return;
             }
 
             // 2. API Extractor → a self-contained roll-up (value.js external).
@@ -129,7 +136,14 @@ function engineDtsRollupPlugin(): Plugin {
                 tsdocMetadata: { enabled: false },
                 dtsRollup: {
                     enabled: true,
-                    untrimmedFilePath: extractorRollup,
+                    // S.B6 S2/S3 — emit the PUBLIC-trimmed roll-up (`@internal`
+                    // members stripped), MATCHING vite-plugin-dts's barrel pass
+                    // (which already trims `@internal` — 6 "Excluded from this
+                    // release type" markers). Before this, the engine plugin
+                    // emitted the UNTRIMMED roll-up, so S.B5's `@internal` tags on
+                    // `Sequence` diverged the two surfaces — the exact a29 F5
+                    // silent-drift `proof:dts-rollups-agree` (S.B6 S3) now gates.
+                    publicTrimmedFilePath: extractorRollup,
                 },
                 messages: {
                     compilerMessageReporting: { default: { logLevel: "none" } },
@@ -147,10 +161,16 @@ function engineDtsRollupPlugin(): Plugin {
                 showVerboseMessages: false,
             });
             if (!result.succeeded || !fs.existsSync(extractorRollup)) {
-                this.warn(
-                    "kf-engine-dts-rollup: API Extractor did not produce a roll-up",
+                // S.B6 S6 (a08 F2) — HARD-fail the build (was warn+return). A
+                // roll-up that silently fails to regenerate leaves the previous
+                // `dist/engine/index.d.ts` in place, so an incremental build ships
+                // types that no longer match the JS with no red.
+                this.error(
+                    "kf-engine-dts-rollup: API Extractor did not produce a " +
+                        `roll-up (succeeded=${result.succeeded}, exists=${fs.existsSync(
+                            extractorRollup,
+                        )}). Refusing to ship a stale ./engine subpath d.ts.`,
                 );
-                return;
             }
 
             // 3. Install the roll-up at the stable subpath the exports map points
@@ -309,6 +329,9 @@ const defaultOptions = {
                 "src/animation/index.ts",
             ),
             "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
+            // S.D2 — the hoisted demo state peer (a24 F2). A dir alias resolves
+            // both the bare barrel (`@state` → state/index.ts) and subpaths.
+            "@state": path.resolve(import.meta.dirname, "demo/@/state"),
             "@components": path.resolve(import.meta.dirname, "demo/@/components"),
             "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
             "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
@@ -470,18 +493,20 @@ export default defineConfig((mode) => {
                             "src/animation/index.ts",
                         ),
                         // R.W4b — the `./engine` subpath SOURCE is the
-                        // composition barrel `engine/public.ts` (the FULL static
-                        // mirror of the heavy `loadAnimationEngine()` surface),
-                        // NOT the zone-pure `engine/index.ts` (which carries the
-                        // engine CORE only). The OUTPUT name stays `engine/index`
-                        // so the emit path (`dist/engine/index.js`) the exports
-                        // map points at is UNCHANGED — only the source moves. The
-                        // shared engine chunk is still deduped across the two
-                        // entries + the `loadAnimationEngine()` lazy split, so the
-                        // subpath stays a thin re-export, never a duplicate.
+                        // composition barrel `public.ts` (the FULL static mirror
+                        // of the heavy `loadAnimationEngine()` surface; S.B2
+                        // hoisted it to the `src/animation` root beside
+                        // `load-engine.ts`), NOT the zone-pure `engine/index.ts`
+                        // (which carries the engine CORE only). The OUTPUT name
+                        // stays `engine/index` so the emit path
+                        // (`dist/engine/index.js`) the exports map points at is
+                        // UNCHANGED — only the source moves. The shared engine
+                        // chunk is still deduped across the two entries + the
+                        // `loadAnimationEngine()` lazy split, so the subpath stays
+                        // a thin re-export, never a duplicate.
                         "engine/index": path.resolve(
                             import.meta.dirname,
-                            "src/animation/engine/public.ts",
+                            "src/animation/public.ts",
                         ),
                     },
                     name: "Keyframes",
@@ -682,26 +707,6 @@ export default defineConfig((mode) => {
                       ]
                     : []),
             ],
-        };
-    } else if (mode.mode === "playground") {
-        // Playground demo: asset manager + multi-element animations
-        return {
-            ...defaultOptions,
-            root: "./demo/playground/",
-            resolve: {
-                ...defaultOptions.resolve,
-                conditions: devConditions,
-            },
-            optimizeDeps: {
-                include: [
-                    "vue",
-                    "reka-ui",
-                    "@vueuse/core",
-                    "@lucide/vue",
-                    "vue-sonner",
-                ],
-            },
-            plugins: [...defaultPlugins],
         };
     } else {
         // Dev mode: serve the demo app with HMR.

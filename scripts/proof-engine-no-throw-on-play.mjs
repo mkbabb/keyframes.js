@@ -30,7 +30,7 @@
  *            unreachable in the product (`KeyframesEditor.vue` has no mount;
  *            see the clause-body RE-SCOPE RECORD + `docs/tranches/J/impl/J.W1.md`);
  *            the per-card ITERATION is pinned born-RED at the jsdom tier
- *            (`test/serialize-from-template.test.ts`).
+ *            (`test/compile/serialize-from-template.test.ts`).
  *   [J.W1 b] every non-conforming keyframe selector ("abc" / "5px" / "150%")
  *            driven through the public `fromKeyframes` construction path of
  *            the BUILT `dist/keyframes.js`, LIVE in the page, throws the
@@ -157,19 +157,53 @@ const MIME = {
 // map onto the INSTALLED deps — the exact resolution a consumer's bundler
 // performs, pinned to what `node_modules` actually carries.
 const LIB_DIST = path.join(REPO, "dist");
-const VENDOR = {
-    "/__kf-vendor__/value.js": path.join(
+// S.A0(4) — the shared value.js-subpath importmap harness fix. value.js O did the
+// subpath split, so the lazy engine chunk imports BOTH bare `@mkbabb/value.js` AND
+// `@mkbabb/value.js/math` (→ dist/subpaths/math.js); both deps are multi-chunk
+// (value.js's `dist/value.js` imports `./units-*.js` / `./math-*.js`; parse-that's
+// `dist/parse.js` imports `./core.js` / `./packrat-entry-*.js`). A single-file map
+// 404s on those relative chunks AND has no entry for the `/math` subpath → a hard
+// in-browser `TypeError: Failed to resolve module specifier` (the DM-13 red; DM-11b
+// swallows the same throw as a 30 s timeout). Fix: serve each dep's WHOLE dist
+// subtree behind a prefix + teach the importmap the subpath namespace (keeping the
+// bare map), with an extensionless-`.js` fallback (importmap prefix substitution
+// yields `.../subpaths/math` with no extension).
+const VENDOR_ROOTS = {
+    "/__kf-vendor__/value.js/": path.join(
         REPO,
-        "node_modules/@mkbabb/value.js/dist/value.js",
+        "node_modules/@mkbabb/value.js/dist",
     ),
-    "/__kf-vendor__/parse-that.js": path.join(
+    "/__kf-vendor__/parse-that/": path.join(
         REPO,
-        "node_modules/@mkbabb/parse-that/dist/parse.js",
+        "node_modules/@mkbabb/parse-that/dist",
     ),
 };
+/** Serve a file out of a whole-dist-subtree vendor root (prefix-walked). Returns
+ *  true iff the request matched a vendor prefix (and was answered/404'd). */
+function serveVendor(urlPath, res) {
+    for (const [prefix, root] of Object.entries(VENDOR_ROOTS)) {
+        if (!urlPath.startsWith(prefix)) continue;
+        let fp = path.join(root, urlPath.slice(prefix.length));
+        if (!fp.startsWith(root)) {
+            res.writeHead(403).end();
+            return true;
+        }
+        // `@mkbabb/value.js/math` → importmap → `.../subpaths/math` (no ext) →
+        // serve `subpaths/math.js`.
+        if (!fs.existsSync(fp) && fs.existsSync(fp + ".js")) fp += ".js";
+        if (!fs.existsSync(fp) || fs.statSync(fp).isDirectory()) {
+            res.writeHead(404).end();
+            return true;
+        }
+        res.writeHead(200, { "content-type": "text/javascript" });
+        fs.createReadStream(fp).pipe(res);
+        return true;
+    }
+    return false;
+}
 const LIB_PROBE_HTML = `<!doctype html>
 <html><head><meta charset="utf-8">
-<script type="importmap">{"imports":{"@mkbabb/value.js":"/__kf-vendor__/value.js","@mkbabb/parse-that":"/__kf-vendor__/parse-that.js"}}</script>
+<script type="importmap">{"imports":{"@mkbabb/value.js":"/__kf-vendor__/value.js/value.js","@mkbabb/value.js/":"/__kf-vendor__/value.js/subpaths/","@mkbabb/parse-that":"/__kf-vendor__/parse-that/parse.js","@mkbabb/parse-that/":"/__kf-vendor__/parse-that/"}}</script>
 </head><body>built-dist library probe (proof:engine-no-throw-on-play, J.W1)</body></html>`;
 
 // The gate's SPECIALIZED server (deliberately LOCAL — see the header): the
@@ -182,9 +216,7 @@ function serveDist() {
             res.writeHead(200, { "content-type": "text/html" }).end(LIB_PROBE_HTML);
             return;
         }
-        if (VENDOR[urlPath]) {
-            res.writeHead(200, { "content-type": "text/javascript" });
-            fs.createReadStream(VENDOR[urlPath]).pipe(res);
+        if (serveVendor(urlPath, res)) {
             return;
         }
         if (urlPath.startsWith("/__kf-lib__/")) {
@@ -398,7 +430,7 @@ async function browserHalf() {
         //    template authority as the per-card path — asserting the VERBATIM
         //    `rotateX(var(--rotationX))` token (a check the I.W0 clause (d)
         //    "@keyframes-shaped" read never made). The per-card ITERATION's
-        //    bite lives at the jsdom tier (`test/serialize-from-template.test.ts`,
+        //    bite lives at the jsdom tier (`test/compile/serialize-from-template.test.ts`,
         //    witnessed born-RED under the format.ts stash-probe). The orphaned
         //    card editor's mount-or-delete adjudication is a RECORDED handoff
         //    (demo-behavior — J.W2/J.WZ), not a quiet drop. See

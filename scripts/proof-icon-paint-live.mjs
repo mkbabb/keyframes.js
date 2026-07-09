@@ -60,7 +60,7 @@ import { navToScene, withPage } from "./lib/demo-driver.mjs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
 const DEMO = path.join(REPO, "demo");
-const SCENES_TS = path.join(REPO, "demo/app/scenes.ts");
+const SCENES_TS = path.join(REPO, "demo/app/scene/scenes.ts");
 const VITE_CONFIG = path.join(REPO, "vite.config.ts");
 
 const failures = [];
@@ -247,7 +247,6 @@ const TRIGGER = {
     easing: "Easing",
     spring: "Spring",
     sequence: null,
-    "motion-path": null,
 };
 
 // Track every server-side 404 (a real miss) so clause (b) can assert the set is
@@ -504,7 +503,8 @@ async function browserHalves(iconScenes) {
                 await page.click('[aria-label="Scene"]', { timeout: 4000 }).catch(() => {});
                 await page.waitForTimeout(400);
                 // The Select options carry NO value attribute and render the scene
-                // LABEL (e.g. "motion-path" → "Path"). We find the first
+                // LABEL (the scene's display label, which may differ from its id).
+                // We find the first
                 // [role=option] whose label differs from the active "Cube" in-page,
                 // then COMMIT it with a TRUSTED Playwright click — reka-ui's
                 // SelectItem commits on REAL pointer events (pointerdown/up), NOT a

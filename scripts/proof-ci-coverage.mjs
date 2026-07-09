@@ -10,9 +10,10 @@
 //   proof:platform-adopt previously had ZERO matches in ci.yml — authored but
 //   never run, the exact gate-coverage hole the retro named. Drop any proof:*
 //   from ci.yml → it reds.
-// CLAUSE 0b (J.W3 S3b) — coverage, CONVERSE: every `npm run proof:*` step that
-//   gates ci.yml MUST be reachable from `proof:all` (= the proof:correctness ∪
-//   proof:hygiene chains), modulo the named EXCLUDED set. Before J.W3 three
+// CLAUSE 0b (J.W3 S3b · THREE-TIER at S.A4) — coverage, CONVERSE: every `npm run
+//   proof:*` step that gates ci.yml MUST be reachable from `proof:all` (= the
+//   proof:library-correctness ∪ proof:demo-correctness ∪ proof:hygiene chains),
+//   modulo the named EXCLUDED set. Before J.W3 three
 //   CI-hard gates (dock-zorder, scene-control-dfa, scene-transition-perf) ran
 //   in CI but lived in NO aggregator — a dev's `proof:all` was a strictly
 //   WEAKER verdict than CI (GC-2/BP-4). With both directions asserted,
@@ -78,9 +79,24 @@
 //   whose `^0.10.0→^0.11.0` re-pin is HISTORY; stale-by-construction. Script +
 //   package.json key + this exclusion entry deleted in ONE motion.)
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+// S.A2 — the demo-gate partition is single-sourced in scripts/demo-roster.mjs
+// (the roster driver reads the SAME module), so ci-coverage counts the roster's
+// gates as CI-invoked even though they are run INSIDE the report-all roster step
+// rather than as individual `npm run proof:*` ci.yml lines.
+import {
+    ALL_DEMO_GATES,
+    CORRECTNESS_ROSTER,
+    BORNRED_TRIPWIRES,
+} from "./demo-roster.mjs";
+// S.A4 S3/S4/S7 — the gate-band manifests (the FROZEN appearance set + its
+// machine-distinguishable discharge ledger + the regression-guard band). Clauses
+// 9 + 10 below read these; they are single-sourced here so a FROZEN key cannot be
+// deleted without a discharge row, and a regression-guard cannot drift out of the
+// hygiene tier, unnoticed.
+import { FROZEN_SET, DISCHARGE, REGRESSION_GUARDS } from "./gate-bands.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const wf = (name) =>
@@ -139,17 +155,33 @@ for (const name of WORKFLOWS) {
 
 // ── clause 0 (F.W2): every proof:* gate is invoked in CI ──────────────────────
 const EXCLUDED = new Set([
+    // (proof:easing-curve-editor + proof:easing-sidebar-minimal left this set at
+    //  the easing TERMINAL batch — RETIRED with their deleted subject (T.E6/T.E8,
+    //  OD-7); machine-witnessed discharges in gate-bands.mjs DISCHARGE, their
+    //  T_BORNRED_BACKLOG rows removed the same commit — drive clause 7.)
+    // T.H3-ADOPT (OWNER-OVERRIDDEN) — the glass-ui Drawer's z-modal (140) + bottom:0
+    // structurally inverts dock-zorder's stage<sheet<dock contract (the sheet covers +
+    // sits above the bottom menubar). Registered in T_BORNRED_BACKLOG as BG-11-BLOCKED;
+    // a recorded tripwire, never blocking — dischargedBy the glass-ui BG-11 re-pin.
+    "proof:dock-zorder",
     "proof:all",
     "proof:ci-coverage",
     // proof:browser is a LOCAL dev meta-target (H.W8 WV-W8-HIGH-3) — it invokes the
     // browser gates that are ALREADY individually CI-wired in the demo-smoke job, so
     // it is not a distinct CI gate (running it in CI would duplicate them).
     "proof:browser",
-    // I.W7 S5 — the two-tier SUB-AGGREGATORS. proof:correctness + proof:hygiene are
-    // the partition proof:all chains (proof:all = proof:correctness && proof:hygiene);
-    // each is a chain of already-individually-CI-wired gates, not a distinct gate
-    // (running them in CI would duplicate every member), exactly like proof:all.
-    "proof:correctness",
+    // I.W7 S5, RE-TAXONOMISED at S.A4 — the THREE-tier SUB-AGGREGATORS. S.A4 replaced
+    // the harness-defined two-tier model (`proof:correctness` = "opens-a-browser")
+    // with a SEVERITY-axis taxonomy (a27 F1): proof:library-correctness (node/jsdom
+    // value-proofs, split off from hygiene-chain) + proof:demo-correctness (browser
+    // actuators — the RENAMED proof:correctness; proof:gate-is-runtime polices THIS
+    // tier) + proof:hygiene (structure/boundary/absence). proof:all = the three
+    // chains via run-all --all. Each is a chain of already-individually-CI-wired
+    // gates, not a distinct CI gate (running one in CI would duplicate every member),
+    // exactly like proof:all. The clause-0b converse now unions all THREE tiers — omit
+    // proof:library-correctness there and every LC gate reds `ciOnly` (the linchpin).
+    "proof:library-correctness",
+    "proof:demo-correctness",
     "proof:hygiene",
     // L.W4 S3 — proof:all:demo is the DEMO-roster meta-aggregator the Makefile
     // `ci-linux` target runs inside the node:24-slim container (proof:demo-smoke +
@@ -168,6 +200,29 @@ const EXCLUDED = new Set([
     // tier membership that would re-introduce the abort — the gate rides CI as a
     // report-all tripwire, by L.W4 S8's born-RED contract, not as an aggregator member.
     "proof:peer-satisfied",
+    // (S.B8 DISCHARGE — proof:claude-paths-live's exclusion was DELETED here.
+    //  Its src/animation/CLAUDE.md flat-tree backlog (the 22 dead tree-fence
+    //  paths, fold row 41, C-8 "gate-first, regen-last") is GONE: S.B8
+    //  regenerated the map against the final post-B tree, so the gate is FULLY
+    //  green and is now an ORDINARY BLOCKING proof:hygiene-chain member — the
+    //  move the S.A5 exclusion text itself named. It rides the demo-correctness
+    //  ROSTER (like proof:modern-web/proof:platform-adopt) because clause (c)
+    //  reads the built dist/keyframes.d.ts (present via `npm ci`'s `prepare` =
+    //  build:lib) and clause (b) reads dist/gh-pages, both of which the demo job
+    //  builds; it is NAMED in STATIC_DEMO_CARVEOUT below as a build-dependent
+    //  static gate. The forward-coverage clause now DEMANDS its CI invocation.)
+    // (S.A1 → T.S1 DISCHARGE — proof:chronic-closure was BORN-RED-BY-DESIGN
+    //  through the S impl drive: it parses the S ledger (the R→S substrate
+    //  re-point), whose FOLD rows are the FORWARD disposition board citing
+    //  born-RED gates their owning waves author later. The S.Z2 RE-EXECUTION
+    //  clause never ran in-S; T.S1 is its substitute: the residual-row C-20
+    //  triage re-pointed each landed row's closure at its NOW-LIVE gate
+    //  (backticked + tiered + born-RED witness) OR ratified-KILL for the
+    //  OD-1-pruned surfaces (compose/motion-path). The gate now exits 0 on the
+    //  merged tree — it JOINS the blocking gates job (the ci.yml step re-wired
+    //  in this same commit) + stays a proof:hygiene-chain member. This
+    //  exclusion entry + its T_BORNRED_BACKLOG row are deleted in the same
+    //  commit — no orphan survives, drive clause 7.)
     // (R.W0 — the sibling-adapter publish tripwire was RETIRED with its package: the
     //  overfit Vue adapter was removed entirely + npm-revoked. Its gate script,
     //  package.json key, ci.yml step, release.yml publish job, AND this exclusion entry
@@ -189,35 +244,116 @@ const EXCLUDED = new Set([
     // proof:hygiene/proof:correctness/proof:all). Excluded from the forward-coverage
     // demand for the same reason those sub-aggregators are.
     "proof:hygiene-chain",
+    // (S.B6 → T.M8/F9 DISCHARGE — the three type-surface / ./engine-drift gates
+    //  (engine-subpath-mirror / no-any-default / dts-rollups-agree) are NO LONGER
+    //  EXCLUDED. Lane 27 F9 named them "runnable + passing, never CI-wired"; T.M8
+    //  folded them out of dev-only orphan status: they now ride the ci.yml `gates`
+    //  job (individual steps, after build:lib — same BUILT-dist precondition as
+    //  proof:published-surface / proof:alias-dropped) AND proof:hygiene-chain (local
+    //  truth). The forward-coverage clause now DEMANDS their CI invocation; the three
+    //  exclusion entries were deleted in this same commit — no orphan survives.)
+    //
+    // T.M4/T.M5/T.M8 — the T born-RED BACKLOG gates (scripts/gate-bands.mjs
+    // T_BORNRED_BACKLOG). They red on today's real defects (the blurred dock icon,
+    // the one-face cube, the un-manifested chrome) OR on a not-yet-converged roster
+    // count. Per the S.A0 doctrine ("failing ⊆ declared backlog, exactly") they are
+    // kept OUT of every blocking aggregator (&&-chain / roster) and ride CI as
+    // RECORDED tripwires — the proof:peer-satisfied / proof:chronic-closure precedent.
+    // Clause 11 below RE-VERIFIES each is registered in T_BORNRED_BACKLOG with a
+    // non-empty reason + dischargedBy, so a born-RED gate cannot escape the declared
+    // backlog register. Each is individually runnable NOW (`npm run proof:stage-inventory`).
+    "proof:stage-inventory",
+    "proof:subject-legible",
+    "proof:subject-full",
+    "proof:roster-ceiling",
+    // T.M3 — proof:owner-golden, the owner-anchored perceptual reference oracle
+    // (supersedes proof:visual-lock's self-baseline). BORN-RED + BORN-OWNER: its
+    // green is UNREACHABLE without a committed owner BLESSING token over the 12
+    // candidate frames (docs/tranches/T/goldens/). Recorded tripwire, never a
+    // blocking &&-chain member; clause 11 re-verifies its T_BORNRED_BACKLOG
+    // registration. DischargedBy the owner golden-blessing at review (the
+    // visual-lock retire-vs-demote call executes WITH the blessing).
+    "proof:owner-golden",
+    // T.G1 — the blur de-layer's frozen-backdrop acceptance gate. Born-RED: the
+    // kf-side de-layer clauses green now, but the runtime toggle-delta stays RED
+    // until glass-ui ships `blur-source="static"` (BG-5) + kf adopts it. Recorded
+    // tripwire, never a blocking &&-chain member (clause 11 re-verifies its
+    // T_BORNRED_BACKLOG registration).
+    "proof:blur-not-resampled",
+    // (proof:perf-counters DISCHARGED at batch ⑧ (T.G3 + T.G4): cube/spring/easing
+    //  reach true rest — recalc AND layout 0.00/frame (measured WITH browser). It is
+    //  no longer born-RED; it joins the blocking proof:demo-correctness chain as a
+    //  NORMAL COVERED gate (authority=OWNER + blocking-not-OBSERVE, T.M6.2) — removed
+    //  from EXCLUDED here + from T_BORNRED_BACKLOG in the same commit, drive clause 7.
+    //  The converse coverage clause now sees it reachable via proof:demo-correctness.)
+    // T batch ① — the cube pose-flap visual-lock re-baseline landed born-RED
+    // (env-drift proven at base; registered in T_BORNRED_BACKLOG). Lockstep with
+    // clause 11: a declared-backlog gate rides CI as a recorded tripwire, never a
+    // blocking &&-chain member (T.S1 fold — the batch-① EXCLUDED miss).
+    // T.S3 — the two value.js upstream-owned tripwires (KF-7 collision-rename +
+    // the 2.0.1 self-dependency phantom). Born-RED today; discharged EXTERNALLY
+    // (value.js renames PropertyDescriptor / a re-pin drops the nested self-dep).
+    // Recorded tripwires, never blocking &&-chain members (clause 11).
+    "proof:no-collision-rename",
+    "proof:no-nested-self-dependency",
+    // (proof:scene-facility — DISCHARGED at the T.B1-β/T.B7 joint motion (batch
+    //  ⑥′ STAGE 2): the easing/spring channel-rendering landed, the decoy
+    //  useContractAnimGroup.ts is DELETED, clause (b) decoy-zero GREENS. The gate
+    //  now rides the blocking proof:hygiene-chain as a normal covered gate —
+    //  removed here + from T_BORNRED_BACKLOG in the same commit, drive clause 7.)
+    // T.C5 — the two dock RENDER acceptance gates (GU-1/GU-2). MEASURED born-RED:
+    // the resting dock computes blur(3px) (dock-rest-crisp) and the width morph
+    // snaps/jump-cuts (dock-morph-continuity). Per MEMORY the fix is glass-ui-root;
+    // kf cannot self-cure. Recorded tripwires, never blocking &&-chain members
+    // (clause 11 re-verifies the T_BORNRED_BACKLOG registration); dischargedBy the
+    // glass-ui GU-1/GU-2 publish + re-pin (T.C6).
+    "proof:dock-rest-crisp",
+    "proof:dock-morph-continuity",
+    // (proof:transport-play-first-render — DISCHARGED at T.C1: it now GREENS on the
+    // rail-core rebuild and joins the blocking proof:hygiene-chain, so it is a normal
+    // covered gate, no longer an EXCLUDED born-RED tripwire — removed here + from
+    // T_BORNRED_BACKLOG in the same commit as the render, drive clause 7.)
 ]);
 
 const gates = Object.keys(pkg.scripts)
     .filter((s) => s.startsWith("proof:") && !EXCLUDED.has(s))
     .sort();
 
-const missing = gates.filter((g) => !ci.includes(`npm run ${g}`));
+// S.A2 — a gate is CI-invoked if it appears as an `npm run proof:*` line in
+// ci.yml OR it is a member of the demo roster (scripts/demo-roster.mjs), which
+// the demo-correctness job runs as ONE report-all step (the net-deletion). The
+// roster is thus a first-class CI-invocation surface, not a coverage hole.
+const rosterCovered = new Set(ALL_DEMO_GATES);
+const missing = gates.filter(
+    (g) => !ci.includes(`npm run ${g}`) && !rosterCovered.has(g),
+);
 
 if (missing.length > 0) {
     failures.push(
         "coverage — these proof:* gates are declared in package.json but NEVER " +
-            "invoked in ci.yml: " +
+            "invoked in ci.yml (nor in the demo roster): " +
             missing.join(", ") +
             ". An authored-but-unrun gate is a coverage lie — wire it into the " +
-            "`gates` job (library-scoped) or the `demo-smoke` job (needs the demo " +
-            "build), per F.W2.",
+            "`gates` job (library-scoped), the `demo-device-observe` job, or the " +
+            "demo-correctness roster (scripts/demo-roster.mjs), per F.W2.",
     );
 } else {
     passes.push(
         `coverage — all ${gates.length} proof:* gates are invoked in CI ` +
-            `(${EXCLUDED.size} recorded exclusions); the inv-tagged gates run.`,
+            `(${EXCLUDED.size} recorded exclusions; ${rosterCovered.size} via the ` +
+            `demo-correctness roster + demo-device-observe); the inv-tagged gates run.`,
     );
 }
 
-// ── clause 0b (J.W3 S3b): the CONVERSE — every CI-gated proof:* step is
-// reachable from proof:all (proof:correctness ∪ proof:hygiene), modulo the
-// named EXCLUDED set. Before this clause, the local/CI asymmetry (3 CI-only
-// orphans, GC-2/BP-4/WZ §E) was structurally invisible: this gate enforced only
-// `proof:* ⟹ CI-invoked`, never `CI-hard-gated ⟹ in-an-aggregator`. ─────────
+// ── clause 0b (J.W3 S3b · THREE-TIER at S.A4): the CONVERSE — every CI-gated
+// proof:* step is reachable from proof:all (proof:library-correctness ∪
+// proof:demo-correctness ∪ proof:hygiene), modulo the named EXCLUDED set. Before
+// this clause, the local/CI asymmetry (3 CI-only orphans, GC-2/BP-4/WZ §E) was
+// structurally invisible: this gate enforced only `proof:* ⟹ CI-invoked`, never
+// `CI-hard-gated ⟹ in-an-aggregator`. S.A4 split library-correctness OUT of
+// hygiene-chain — the union MUST now name all THREE tiers or every one of the 39
+// LC gates (still CI-invoked in the `gates` job) reds `ciOnly`. This union is the
+// airtightness linchpin the S.A4 lockstep names. ────────────────────────────────
 {
     // Resolve a tier's MEMBERSHIP. A tier value is normally the parseable `&&` chain
     // (the M.W1 single source). Q.WA3 S4 makes `proof:hygiene` a REPORT-ALL DELEGATOR
@@ -235,7 +371,10 @@ if (missing.length > 0) {
     };
     const chainMembers = (chain) =>
         new Set([...String(chain).matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]));
-    const correctness = chainMembers(resolveTier("proof:correctness"));
+    // S.A4 — the THREE-tier union (was correctness ∪ hygiene). Omitting
+    // libraryCorrectness here reds ALL 39 LC gates as `ciOnly`: the linchpin.
+    const libraryCorrectness = chainMembers(resolveTier("proof:library-correctness"));
+    const demoCorrectness = chainMembers(resolveTier("proof:demo-correctness"));
     const hygiene = chainMembers(resolveTier("proof:hygiene"));
     const ciInvoked = [
         ...new Set([...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1])),
@@ -245,7 +384,8 @@ if (missing.length > 0) {
     const ciOnly = ciInvoked.filter(
         (g) =>
             (g in pkg.scripts) &&
-            !correctness.has(g) &&
+            !libraryCorrectness.has(g) &&
+            !demoCorrectness.has(g) &&
             !hygiene.has(g) &&
             !EXCLUDED.has(g),
     );
@@ -261,19 +401,20 @@ if (missing.length > 0) {
     if (ciOnly.length > 0) {
         failures.push(
             "converse-coverage (J.W3 S3b) — these gates are CI-invoked but reachable from " +
-                "NEITHER proof:correctness NOR proof:hygiene (so `npm run proof:all` is a " +
-                "WEAKER verdict than CI): " +
+                "NONE of proof:library-correctness / proof:demo-correctness / proof:hygiene " +
+                "(so `npm run proof:all` is a WEAKER verdict than CI): " +
                 ciOnly.join(", ") +
-                ". Fold each into a tier (hygiene unless it is a wave's §Hard actuating " +
-                "oracle) — proof:all == the CI roster must hold BOTH ways.",
+                ". Fold each into a tier (library-correctness for a node/jsdom value-proof, " +
+                "demo-correctness for a browser actuator, else hygiene) — proof:all == the CI " +
+                "roster must hold BOTH ways.",
         );
     }
     if (undefinedKeys.length === 0 && ciOnly.length === 0) {
         passes.push(
             `converse-coverage (J.W3 S3b) — all ${ciInvoked.length} CI-invoked proof:* gates ` +
-                `are reachable from proof:all (correctness ${correctness.size} ∪ hygiene ` +
-                `${hygiene.size}, modulo the ${EXCLUDED.size} recorded exclusions): ` +
-                `proof:all == the CI roster, both directions.`,
+                `are reachable from proof:all (library-correctness ${libraryCorrectness.size} ∪ ` +
+                `demo-correctness ${demoCorrectness.size} ∪ hygiene ${hygiene.size}, modulo the ` +
+                `${EXCLUDED.size} recorded exclusions): proof:all == the CI roster, both directions.`,
         );
     }
 }
@@ -667,9 +808,12 @@ if (noConcurrency.length > 0) {
     }
 }
 
-// ── ci.yml job partition (shared by clauses 6 + 7): split ci.yml into the two
-// jobs by their top-level `<name>:` keys at 4-space indent (`gates:` / `demo-smoke:`).
-// The `gates` job is the FAST library job; `demo-smoke` is the SLOW browser job. ───
+// ── ci.yml job partition (shared by clauses 6 + 7): split ci.yml into its jobs
+// by their top-level `<name>:` keys at 4-space indent. The `gates` job is the
+// FAST library job; S.A2 split the former SLOW `demo-smoke` browser job into
+// `demo-correctness` (BLOCKING · the report-all roster) + `demo-device-observe`
+// (OBSERVE-ONLY · job-level continue-on-error). `demoJob` is the union demo
+// surface the placement/tripwire clauses reason over. ─────────────────────────
 const jobBounds = (() => {
     const lines = ci.split("\n");
     const heads = [];
@@ -684,59 +828,54 @@ const jobBounds = (() => {
         const end = idx + 1 < heads.length ? heads[idx + 1].line : lines.length;
         return lines.slice(start, end).join("\n");
     };
-    return { gatesJob: span("gates"), demoJob: span("demo-smoke") };
+    const demoCorrectnessJob = span("demo-correctness");
+    const demoObserveJob = span("demo-device-observe");
+    return {
+        gatesJob: span("gates"),
+        demoCorrectnessJob,
+        demoObserveJob,
+        demoJob: demoCorrectnessJob + "\n" + demoObserveJob,
+    };
 })();
 
-// ── clause 6 (Q.WA3 S1): terminal-aggregate-excludes-bornred ──────────────────
-// The demo-smoke terminal `check-failures` aggregator must NOT add any born-RED-by-
-// design tripwire to its BLOCKING exit-1 set. Including a born-RED tripwire there
-// made demo-smoke STRUCTURALLY NEVER green → the deploy-of-record (gated on a green
-// demo-smoke) could never fire. The remaining tripwire (peer-satisfied)
-// is the EXCLUDED-set member that rides
-// CI as a RECORDED report-all tripwire, never as a blocking aggregator member. We
-// derive the born-RED set from the EXCLUDED tripwires that STILL EXIST as
-// package.json keys (so a retired one — e.g. the gates deleted at Q.WA2 / R.W0 — is
-// simply not demanded), and assert NONE appears in a blocking `failed="$failed …"` line.
+// ── clause 6 (Q.WA3 S1, RE-GROUNDED at S.A2): bornred-tripwire-not-blocking ────
+// A born-RED-by-design tripwire (peer-satisfied) must NEVER gate deploy. Under
+// S.A2 the blocking surface is the demo-correctness ROSTER (CORRECTNESS_ROSTER)
+// run by the report-all driver — a born-RED tripwire in that set would make
+// demo-correctness STRUCTURALLY never green → the deploy-of-record (gated on a
+// green demo-correctness) could never fire. The tripwire instead rides
+// demo-device-observe as a step-level continue-on-error step, RECORDED not
+// blocking. This clause asserts BOTH: (a) no present born-RED tripwire is in the
+// blocking correctness roster, and (b) each present tripwire that IS wired in the
+// demo surface rides the OBSERVE job (with continue-on-error), never a blocking
+// step. ────────────────────────────────────────────────────────────────────────
 {
-    const BORNRED_TRIPWIRES = [
-        "proof:peer-satisfied",
-    ].filter((g) => g in pkg.scripts); // only those still present
-    // Find the check-failures step body (everything from its `- name: …check-failures`
-    // anchor to the end of the demo job — the aggregator is the demo job's tail step).
-    const lines = jobBounds.demoJob.split("\n");
-    const cfIdx = lines.findIndex((l) => /check-failures/.test(l));
-    const aggregator = cfIdx === -1 ? "" : lines.slice(cfIdx).join("\n");
-    if (cfIdx === -1) {
+    const presentTripwires = BORNRED_TRIPWIRES.filter((g) => g in pkg.scripts);
+    const inBlockingRoster = presentTripwires.filter((g) =>
+        CORRECTNESS_ROSTER.includes(g),
+    );
+    // A tripwire wired into demo-correctness as a raw blocking step (should be none).
+    const inCorrectnessJob = presentTripwires.filter((g) =>
+        new RegExp(`run: npm run ${g.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
+            jobBounds.demoCorrectnessJob,
+        ),
+    );
+    if (inBlockingRoster.length > 0 || inCorrectnessJob.length > 0) {
         failures.push(
-            "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke job has NO " +
-                "`check-failures` terminal aggregator step; the report-all exit gate is missing.",
+            "bornred-tripwire-not-blocking (Q.WA3 S1 / S.A2) — born-RED-by-design tripwire(s) " +
+                "sit on the BLOCKING demo-correctness surface: " +
+                [...new Set([...inBlockingRoster, ...inCorrectnessJob])].join(", ") +
+                ". A born-RED tripwire in the blocking roster/job makes demo-correctness " +
+                "STRUCTURALLY never green → the deploy-of-record stays dead. Move it to " +
+                "demo-device-observe (step continue-on-error, RECORDED), out of CORRECTNESS_ROSTER.",
         );
     } else {
-        // A gate is in the BLOCKING set iff a line adds it to `failed` (NOT `bornred`).
-        const blockingBornred = BORNRED_TRIPWIRES.filter((gate) => {
-            const id = gate.replace(/^proof:/, "proof-");
-            const re = new RegExp(
-                `steps\\.${id.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\.outcome[\\s\\S]*?failed="\\$failed ${id.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}"`,
-            );
-            return re.test(aggregator);
-        });
-        if (blockingBornred.length > 0) {
-            failures.push(
-                "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke terminal " +
-                    "aggregator ADDS born-RED-by-design tripwire(s) to its BLOCKING `failed` set: " +
-                    blockingBornred.join(", ") +
-                    ". A born-RED tripwire in the exit-1 set makes demo-smoke STRUCTURALLY " +
-                    "never green → the deploy-of-record stays dead. RECORD it (a `bornred` " +
-                    "annotation), do NOT block on it.",
-            );
-        } else {
-            passes.push(
-                "terminal-aggregate-excludes-bornred (Q.WA3 S1) — the demo-smoke terminal " +
-                    `aggregator's BLOCKING set excludes all ${BORNRED_TRIPWIRES.length} ` +
-                    `present born-RED tripwire(s) [${BORNRED_TRIPWIRES.join(", ") || "none"}]; ` +
-                    "they are RECORDED (annotated), not blocking — demo-smoke can go green.",
-            );
-        }
+        passes.push(
+            "bornred-tripwire-not-blocking (Q.WA3 S1 / S.A2) — all " +
+                `${presentTripwires.length} present born-RED tripwire(s) [${presentTripwires.join(", ") || "none"}] ` +
+                "are OUT of the blocking demo-correctness roster; they ride demo-device-observe " +
+                "as RECORDED (continue-on-error) steps — demo-correctness can go green.",
+        );
     }
 }
 
@@ -768,6 +907,13 @@ const jobBounds = (() => {
         // browser, but not a pure source gate either.
         "proof:modern-web",
         "proof:platform-adopt",
+        // S.B8 — the doc-authority gate is ALSO build-dependent (not a browser gate):
+        // its export-list clause (c) reads the built dist/keyframes.d.ts and the demo
+        // doc-drift clause (b) reads dist/gh-pages, so it rides the demo-correctness
+        // roster (which has BOTH — dist/keyframes.d.ts via `npm ci`'s prepare=build:lib
+        // and dist/gh-pages via `npm run gh-pages`), not the glass-ui-free fast gates
+        // job. Same build-dependent carve-out rationale as the two above.
+        "proof:claude-paths-live",
     ]);
     // The browser-harness import signatures (a gate that opens chromium, inline or via
     // the demo-driver lifecycle lib). A KF_REQUIRE_BROWSER env on the CI step is the
@@ -792,9 +938,14 @@ const jobBounds = (() => {
             src,
         );
     };
-    // The set of static (browser-less) gates that are CI-invoked.
+    // The set of gates that ride the demo tier: textually in either demo job OR a
+    // member of the demo roster (S.A2 — the correctness roster is run as ONE step,
+    // so its members are not textual `npm run` lines but still ride the slow tier).
     const ciGateKeys = [
-        ...new Set([...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1])),
+        ...new Set([
+            ...[...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1]),
+            ...ALL_DEMO_GATES,
+        ]),
     ];
     const misplaced = [];
     for (const gate of ciGateKeys) {
@@ -802,14 +953,12 @@ const jobBounds = (() => {
         if (EXCLUDED.has(gate)) continue; // aggregators / tripwires handled elsewhere
         if (STATIC_DEMO_CARVEOUT.has(gate)) continue; // named carve-out
         if (opensBrowser(gate)) continue; // legitimately browser-bound → demo job
-        // It is a static (browser-less) gate. It must ride the gates job, NOT demo-smoke.
-        const id = gate.replace(/^proof:/, "proof-");
-        const inDemo = new RegExp(`run: npm run ${gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
-            jobBounds.demoJob,
-        );
-        const inGates = new RegExp(`run: npm run ${gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b`).test(
-            jobBounds.gatesJob,
-        );
+        // It is a static (browser-less) gate. It must ride the gates job, NOT the demo tier.
+        const esc = gate.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&");
+        const inDemo =
+            ALL_DEMO_GATES.includes(gate) ||
+            new RegExp(`run: npm run ${esc}\\b`).test(jobBounds.demoJob);
+        const inGates = new RegExp(`run: npm run ${esc}\\b`).test(jobBounds.gatesJob);
         // A born-RED demo tripwire (peer-satisfied et al) needs the registry glass-ui
         // install (demo job context) — already EXCLUDED above; this is the static set.
         if (inDemo && !inGates) {
@@ -819,7 +968,8 @@ const jobBounds = (() => {
     if (misplaced.length > 0) {
         failures.push(
             "static-gate-placement (Q.WA3 S4) — these browser-less static gate(s) ride the " +
-                "slow demo-smoke job instead of the fast library `gates` job (the F-7 harden): " +
+                "slow demo tier (demo-correctness roster / demo-device-observe) instead of the " +
+                "fast library `gates` job (the F-7 harden): " +
                 misplaced.join(", ") +
                 ". A pure source grep / graph-walk must ride the fast job (it pays no browser " +
                 "wall-clock + dodges the slow-Linux render-race class) — migrate it, or add a " +
@@ -831,6 +981,224 @@ const jobBounds = (() => {
                 `library \`gates\` job (the ${STATIC_DEMO_CARVEOUT.size} named carve-outs — the ` +
                 "pre-existing-RED source gates + the build-dependent demo gates — stay on " +
                 "demo-smoke's report-all surface by recorded reason). The F-7 device harden holds.",
+        );
+    }
+}
+
+// ── clause 8 (S.A2, the hard clause): demo-correctness carries ZERO step-level
+// `continue-on-error` masking (SPEC §3 S.A2 · x2-#2 falsifiability). The blocking
+// correctness tier's report-all is INSIDE the roster driver (one step), so no step
+// needs continue-on-error; a residual one would mask a red and let a broken demo
+// deploy. The OBSERVE job legitimately carries continue-on-error (it is the
+// observe tier); this clause is scoped to demo-correctness alone. ──────────────
+{
+    if (!jobBounds.demoCorrectnessJob) {
+        failures.push(
+            "no-mask (S.A2) — the `demo-correctness` job is ABSENT from ci.yml; the S.A2 " +
+                "demo-gate split did not land (or the job was renamed). Re-ground the gate.",
+        );
+    } else {
+        const coeLines = jobBounds.demoCorrectnessJob
+            .split("\n")
+            .map((l, i) => ({ l, i }))
+            .filter(({ l }) => /^\s*continue-on-error\s*:/.test(l));
+        if (coeLines.length > 0) {
+            failures.push(
+                "no-mask (S.A2) — the BLOCKING `demo-correctness` job carries " +
+                    `${coeLines.length} \`continue-on-error\` line(s) — that is masking. The tier's ` +
+                    "report-all lives INSIDE the roster driver (one step); no step needs " +
+                    "continue-on-error. Remove it (a residual mask lets a broken demo deploy). " +
+                    "The observe tier (demo-device-observe) is the only place continue-on-error belongs.",
+            );
+        } else {
+            passes.push(
+                "no-mask (S.A2) — the BLOCKING `demo-correctness` job carries ZERO " +
+                    "`continue-on-error` (the report-all is inside the roster driver); no masking " +
+                    "can let a broken demo deploy.",
+            );
+        }
+    }
+}
+
+// ── clause 9 (S.A4 S3/S4): the FROZEN-set discharge, machine-distinguishable ────
+// The ~51 FROZEN demo-appearance gates (scripts/gate-bands.mjs FROZEN_SET) are
+// RED-authorized by S and frozen IN PLACE at S.A4. Each is discharged LATER (S.G1/
+// S.D3) by EITHER a MIGRATION to a named live successor system gate OR an
+// owner-ratified KILL with a re-run witness — enforced HERE: a FROZEN key deleted
+// from package.json WITHOUT a DISCHARGE record REDs (free-prose "deletion-with-
+// cause" is BANNED, x2-#7); a KILL record without a re-run witness REDs; a migration
+// whose successor is not a live gate REDs. The C-6 `proof:scene-switcher-mobile`
+// zombie retire (fold row 18) is the FIRST discharge — a KILL whose witness is
+// machine-continuous (this clause re-verifies the script is gone, the key is gone,
+// and the CORRECTNESS_ROSTER membership is gone, every run). ─────────────────────
+{
+    const isLive = (g) => g in pkg.scripts;
+    const clauseFails0 = failures.length;
+    // (1) FROZEN completeness — every FROZEN gate is live OR discharged.
+    for (const g of FROZEN_SET) {
+        if (isLive(g)) continue;
+        if (!DISCHARGE[g]) {
+            failures.push(
+                `frozen-discharge (S.A4 S3) — FROZEN gate ${g} was DELETED from ` +
+                    "package.json with NO discharge record in scripts/gate-bands.mjs. " +
+                    "Free-prose deletion-with-cause is BANNED — add a machine record: " +
+                    `{ kind:"migration", successor:"proof:<live-system-gate>" } OR ` +
+                    `{ kind:"kill", ledger, witness:{ cmd, cite } }.`,
+            );
+        }
+    }
+    // (2) every DISCHARGE record is machine-valid AND the retired gate is gone.
+    for (const [g, d] of Object.entries(DISCHARGE)) {
+        if (isLive(g)) {
+            failures.push(
+                `frozen-discharge (S.A4 S3) — a discharge record exists for ${g} but it ` +
+                    "is STILL a live package.json script. A discharge for a present gate " +
+                    "is a lie — remove the gate, or remove the record.",
+            );
+            continue;
+        }
+        if (d.kind === "migration") {
+            if (!d.successor || !isLive(d.successor)) {
+                failures.push(
+                    `frozen-discharge (S.A4 S3) — ${g} MIGRATION cites successor ` +
+                        `${d.successor || "(none)"} which is NOT a live proof:* gate. The ` +
+                        "successor system gate that re-asserts the live property must exist.",
+                );
+            }
+        } else if (d.kind === "kill") {
+            if (!d.ledger) {
+                failures.push(
+                    `frozen-discharge (S.A4 S4) — ${g} KILL names NO S-ledger row. An ` +
+                        "owner-ratified KILL must cite its ledger row (not free prose).",
+                );
+            }
+            const w = d.witness;
+            if (!w || !w.cmd || !w.cite) {
+                failures.push(
+                    `frozen-discharge (S.A4 S4) — ${g} KILL lacks a re-run witness ` +
+                        "(witness.cmd + witness.cite). A KILL without a re-run witness is " +
+                        "BANNED — the witness is what distinguishes a ratified retire from a " +
+                        "silent deletion.",
+                );
+            } else {
+                const sm = w.cmd.match(/scripts\/([a-z0-9.-]+\.mjs)/i);
+                if (sm && existsSync(join(root, "scripts", sm[1]))) {
+                    failures.push(
+                        `frozen-discharge (S.A4 S4) — ${g} KILL witness cites ${sm[1]} but ` +
+                            "that script STILL exists on disk. The re-run witness is FALSIFIED " +
+                            "— the retire did not delete the script.",
+                    );
+                }
+            }
+            if (CORRECTNESS_ROSTER.includes(g)) {
+                failures.push(
+                    `frozen-discharge (S.A4 S4) — KILLED gate ${g} is STILL a member of ` +
+                        "CORRECTNESS_ROSTER (scripts/demo-roster.mjs). A ledgered KILL must " +
+                        "remove EVERY roster/manifest membership.",
+                );
+            }
+        } else {
+            failures.push(
+                `frozen-discharge (S.A4 S3) — ${g} has an UNKNOWN discharge kind ` +
+                    `"${d.kind}". Only { kind:"migration" } or { kind:"kill" } are ` +
+                    "machine-distinguishable; anything else is the banned free prose.",
+            );
+        }
+    }
+    if (failures.length === clauseFails0) {
+        const dischargedKills = Object.entries(DISCHARGE).filter(
+            ([, d]) => d.kind === "kill",
+        ).length;
+        const dischargedMig = Object.entries(DISCHARGE).filter(
+            ([, d]) => d.kind === "migration",
+        ).length;
+        passes.push(
+            `frozen-discharge (S.A4 S3/S4) — all ${FROZEN_SET.length} FROZEN gates are ` +
+                `live-or-discharged (${dischargedMig} migration + ${dischargedKills} KILL ` +
+                "discharge(s), each machine-witnessed); free-prose deletion is impossible.",
+        );
+    }
+}
+
+// ── clause 10 (S.A4 S7): the regression-guard band ──────────────────────────────
+// The absence/excision guards (scripts/gate-bands.mjs REGRESSION_GUARDS) are banded
+// under one explicit header; this clause gives the band teeth — every member must be
+// a LIVE gate wired into the hygiene tier (proof:hygiene-chain). A regression-guard
+// that vanishes or drifts out of hygiene REDs. ──────────────────────────────────
+{
+    const hygieneChain = String(pkg.scripts["proof:hygiene-chain"] ?? "");
+    const notLive = REGRESSION_GUARDS.filter((g) => !(g in pkg.scripts));
+    const notInHygiene = REGRESSION_GUARDS.filter(
+        (g) =>
+            g in pkg.scripts &&
+            !new RegExp(`\\brun ${g.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(
+                hygieneChain,
+            ),
+    );
+    if (notLive.length > 0) {
+        failures.push(
+            "regression-guard-band (S.A4 S7) — banded regression-guard(s) that no longer " +
+                "resolve to a package.json script: " +
+                notLive.join(", ") +
+                ". A vanished absence-guard lets the excised anti-pattern silently return.",
+        );
+    } else if (notInHygiene.length > 0) {
+        failures.push(
+            "regression-guard-band (S.A4 S7) — banded regression-guard(s) NOT wired into the " +
+                "hygiene tier (proof:hygiene-chain): " +
+                notInHygiene.join(", ") +
+                ". An absence-guard is a hygiene member by taxonomy — re-band it.",
+        );
+    } else {
+        passes.push(
+            `regression-guard-band (S.A4 S7) — all ${REGRESSION_GUARDS.length} banded ` +
+                "regression-guards are live hygiene-chain members (the excision-guard band is " +
+                "an explicit, machine-checked set).",
+        );
+    }
+}
+
+// ── clause 11 (T.M8 / the S.A0 doctrine, T-side): the T born-RED backlog register
+// Every gate that lands BORN-RED by design (reds on today's real defects / a
+// not-yet-converged count) must be REGISTERED so "failing ⊆ declared backlog,
+// exactly" holds — nothing reds silently. This clause asserts every key in
+// scripts/gate-bands.mjs T_BORNRED_BACKLOG: (a) is a live package.json script, (b)
+// is in this gate's EXCLUDED set (kept out of every blocking aggregator), and (c)
+// carries a non-empty reason + dischargedBy. A born-RED gate that is NOT registered,
+// or a registry row without a discharge owner, REDs — the register is machine-bound,
+// not prose. ────────────────────────────────────────────────────────────────────
+{
+    const { T_BORNRED_BACKLOG } = await import("./gate-bands.mjs");
+    const clauseFails0 = failures.length;
+    for (const [g, rec] of Object.entries(T_BORNRED_BACKLOG)) {
+        if (!(g in pkg.scripts)) {
+            failures.push(
+                `t-bornred-backlog (T.M8) — ${g} is registered in T_BORNRED_BACKLOG but is NOT a ` +
+                    "live package.json script. A backlog register must name a real gate.",
+            );
+        }
+        if (!EXCLUDED.has(g)) {
+            failures.push(
+                `t-bornred-backlog (T.M8) — born-RED gate ${g} is registered but NOT in this gate's ` +
+                    "EXCLUDED set — it would be demanded as CI-invoked (forward-coverage) and, being " +
+                    "born-RED, would red a blocking surface. A declared-backlog gate rides CI as a " +
+                    "recorded tripwire, never a blocking &&-chain member.",
+            );
+        }
+        if (!rec || !rec.reason || !rec.dischargedBy) {
+            failures.push(
+                `t-bornred-backlog (T.M8) — ${g}'s registry row lacks a non-empty reason + dischargedBy. ` +
+                    "The discharge owner + the born-RED reason ARE the backlog declaration (no silent red).",
+            );
+        }
+    }
+    if (failures.length === clauseFails0) {
+        passes.push(
+            `t-bornred-backlog (T.M8) — all ${Object.keys(T_BORNRED_BACKLOG).length} T born-RED gate(s) ` +
+                "[" +
+                Object.keys(T_BORNRED_BACKLOG).join(", ") +
+                "] are live, EXCLUDED from blocking aggregators, and carry a reason + discharge owner " +
+                "(the declared backlog is machine-bound — failing ⊆ backlog, exactly).",
         );
     }
 }

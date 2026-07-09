@@ -90,7 +90,7 @@ const requireAll = (clause, file, anchors) => {
 console.log("proof:orchestration — F.W3 (the orchestration tier, named-gated)");
 
 // ── stagger-distribution — origin-weighted spread is locked ──────────────────
-requireAll("stagger-distribution", "test/stagger.test.ts", [
+requireAll("stagger-distribution", "test/orchestration/stagger.test.ts", [
     {
         name: "from:'center' symmetric about the zero origin (delays[2] === 0; arms mirror)",
         re: /from:\s*"center"[\s\S]*?expect\(delays\[2\]\)\.toBe\(0\)[\s\S]*?expect\(delays\[0\]\)\.toBe\(delays\[4\]\)/,
@@ -106,7 +106,7 @@ requireAll("stagger-distribution", "test/stagger.test.ts", [
 ]);
 
 // ── flip-rect — first/last/invert/play identity + thrash lock ────────────────
-requireAll("flip-rect", "test/flip.test.ts", [
+requireAll("flip-rect", "test/orchestration/flip.test.ts", [
     {
         name: "t=0 inverts to the BEFORE rect (FLIP identity: tx === before.x − after.x)",
         re: /the FLIP identity[\s\S]*?expect\(tx\)\.toBeCloseTo\(before\.x\s*-\s*after\.x\)/,
@@ -122,7 +122,7 @@ requireAll("flip-rect", "test/flip.test.ts", [
 ]);
 
 // ── decay-rest — the v0·e^(−kt) closed form + projected rest endpoint ─────────
-requireAll("decay-rest", "test/drag.test.ts", [
+requireAll("decay-rest", "test/physics/drag.test.ts", [
     {
         name: "decay matches the x(t) = x0 + v0/k·(1 − e^(−kt)) analytic to 9 places",
         re: /x0\s*\+\s*\(v0\s*\/\s*k\)\s*\*\s*\(1\s*-\s*Math\.exp\(-k\s*\*\s*t\)\)[\s\S]*?expect\(sample\(t\)\.value\)\.toBeCloseTo\(expected,\s*9\)/,
@@ -138,7 +138,7 @@ requireAll("decay-rest", "test/drag.test.ts", [
 ]);
 
 // ── sequence-ordering — add/label/seek/play boundary order is locked ──────────
-requireAll("sequence-ordering", "test/sequence.test.ts", [
+requireAll("sequence-ordering", "test/orchestration/sequence.test.ts", [
     {
         name: "auto-append starts after the previous segment ends (cursor at 1000)",
         re: /auto-append[\s\S]*?expect\(seq\.entries\.find\([\s\S]*?\.at\)\.toBe\(1000\)/,
@@ -158,7 +158,7 @@ requireAll("sequence-ordering", "test/sequence.test.ts", [
 ]);
 
 // ── api-isolation — the two LIGHT public-API edges, locked in isolation ───────
-requireAll("api-isolation", "test/orchestration-api.test.ts", [
+requireAll("api-isolation", "test/orchestration/orchestration-api.test.ts", [
     {
         name: "createNativeTimeline returns the guard-absent fallback (null) for kind:'scroll'",
         re: /globalThis\.ScrollTimeline is absent[\s\S]*?expect\(createNativeTimeline\(\{\s*kind:\s*"scroll"\s*\}\)\)\.toBeNull\(\)/,

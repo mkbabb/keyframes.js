@@ -7,14 +7,17 @@
 // gate, and exits 1 iff ANY gate red'd (the accumulator — equivalent to CI's
 // `continue-on-error` + terminal `check-failures`, now local).
 //
-// It reads the tier membership from `package.json` (`proof:correctness` /
-// `proof:hygiene` keep their parseable `&&`-chain VALUE so `proof:gate-is-runtime`
-// + `proof:ci-coverage` still derive their rosters by regex — the SCHEDULE moves
-// here, the MEMBERSHIP stays in package.json: one source of truth). A leaf is one
-// `&&`-separated command (`npm run proof:X` or `vitest run …`), run verbatim.
+// It reads the tier membership from `package.json`. S.A4 made the roster a
+// THREE-tier taxonomy — `proof:library-correctness` (node/jsdom value-proofs) +
+// `proof:demo-correctness` (browser actuators, the renamed proof:correctness) keep
+// their parseable direct `&&`-chain VALUE (so `proof:gate-is-runtime` +
+// `proof:ci-coverage` still derive their rosters by regex, no delegation
+// indirection); `proof:hygiene` delegates to `proof:hygiene-chain`. The SCHEDULE
+// moves here, the MEMBERSHIP stays in package.json: one source of truth. A leaf is
+// one `&&`-separated command (`npm run proof:X` or `vitest run …`), run verbatim.
 //
 // Usage:
-//   node scripts/run-all.mjs --all                 # proof:correctness ∪ proof:hygiene
+//   node scripts/run-all.mjs --all                 # library-correctness ∪ demo-correctness ∪ hygiene
 //   node scripts/run-all.mjs --tier=proof:hygiene  # one tier (repeatable)
 //   node scripts/run-all.mjs --all --workers=8     # concurrency (default: cpus-2, capped 8)
 //   node scripts/run-all.mjs --all --workers=1     # serial (debug parity)
@@ -39,7 +42,7 @@ const cwd = dirname(pkgPath);
 const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
 
 const tiers = argv.includes("--all")
-    ? ["proof:correctness", "proof:hygiene"]
+    ? ["proof:library-correctness", "proof:demo-correctness", "proof:hygiene"]
     : argv.filter((a) => a.startsWith("--tier=")).map((a) => a.slice("--tier=".length));
 
 if (tiers.length === 0) {

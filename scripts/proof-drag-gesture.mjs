@@ -31,7 +31,7 @@
  *    away from the document text-select machinery (the synthetic-drag artifact
  *    that read 0 chars), the STRUCTURAL assertion is the born-RED-of-record — the
  *    gate NEVER passes on a synthetic 0-char read. Run against EVERY drag surface
- *    (square, spring, sequence, motion-path) — the seam owns it, the gate covers it.
+ *    (square, spring, sequence) — the seam owns it, the gate covers it.
  *  • clause (b) — drag the square box to a measured non-centre offset, release,
  *    wait for the spring to settle → its `transform` ≠ identity (persisted, NOT
  *    recentred). Then assert `Home`/`End` STILL recentres (no capability lost).
@@ -95,8 +95,8 @@ console.log("proof:drag-gesture — I.W4 D1+D2 (B6 drag select-suppression + per
 const CTRL_KEY = "animation-groups-control-options-store";
 
 // The destination control-tab label navToScene settles on per scene (null = no
-// control panel projects — sequence/motion-path).
-const TRIGGER = { square: "Controls", spring: "Spring", sequence: null, "motion-path": null };
+// control panel projects — sequence).
+const TRIGGER = { square: "Controls", spring: "Physics", sequence: null }; // item-7a facet default
 
 /** Open a scene in a FRESH context at its canonical FIRST-LOAD mount. */
 async function openSceneFresh(browser, base, scene, viewportWidth) {
@@ -143,17 +143,15 @@ const DRAG_SURFACES = [
     { scene: "square", handle: ".demo-box" },
     { scene: "spring", handle: ".spring-rail" },
     { scene: "sequence", handle: ".seq-scrub" },
-    { scene: "motion-path", handle: ".mp-traveller" },
-    {
-        scene: "easing",
-        name: "easing/bezier-handle",
-        handle: ".easing-curve-canvas circle.control-point.handle",
-        land: {
-            selector: ".easing-curve-canvas path.bezier-path",
-            attr: "d",
-            what: "the bezier `d` mutates",
-        },
-    },
+    // (easing/bezier-handle RE-CUT at the easing TERMINAL batch (T.E8): the
+    //  hand-rolled EasingCurveCanvas handle — the surface this row recovered —
+    //  is DELETED with the instrument/easing cluster. Its successor is the
+    //  glass-ui EasingPicker's VENDOR-OWNED pointer-capture drag (the picker
+    //  preventDefault()s the grab, suppressing selection at the UA level — no
+    //  demo drag seam exists on that surface to route through
+    //  gestureSelectSuppression). The drag-LANDS property is re-asserted by
+    //  proof:easing-editor-live v2 clause (b) + proof:live-session B4 (a real
+    //  page.mouse drag mutates the curve + re-times the preview).)
     {
         scene: "easing",
         name: "easing/ribbon-slider",
@@ -165,6 +163,84 @@ const DRAG_SURFACES = [
         },
     },
 ];
+
+// ── The honest settle predicates for clause (b) (C-10) ────────────────────────
+// The live spring (square) has a STARTUP PAUSE: the first RAFPlayback frame after
+// `reseat()` re-arms the loop ticks with dt=0 (no move), so for a beat after a
+// `Home` re-seat the box holds at its prior position. A naive "poll until two
+// consecutive reads coincide" predicate FALSE-SETTLES on that pause — two equal
+// reads at a NON-rest position — which flipped this gate run-to-run (the observed
+// clause-(b) flake). The cure is to assert the REAL end-states, never "stopped
+// changing for one interval": a SUSTAINED-stable dwell for persist, and the actual
+// identity end-state for the Home recenter. The wall-clock bounds are DEFENSIVE
+// backstops (a genuinely stuck box still reds), never the pass/fail closure (C-10:
+// no raw absolute frame/ms threshold is the closure — the closure is the observed
+// rest state / reached identity).
+
+/** identity = "none" or a matrix with ~zero translate + ~unit scale. */
+const isIdentityTransform = (t) => {
+    if (!t || t === "none") return true;
+    const m = t.match(/matrix(?:3d)?\(([^)]+)\)/);
+    if (!m) return true;
+    const n = m[1].split(",").map((s) => parseFloat(s.trim()));
+    if (n.length === 6) {
+        // matrix(a,b,c,d,e,f): translate=(e,f), scale≈(a,d)
+        const [a, , , d, e, f] = n;
+        return Math.abs(e) < 1 && Math.abs(f) < 1 && Math.abs(a - 1) < 0.02 && Math.abs(d - 1) < 0.02;
+    }
+    return false;
+};
+
+/** Read a live computed transform for a selector on the page. */
+const readTransformOf = (page, sel) =>
+    page.evaluate((s) => {
+        const el = document.querySelector(s);
+        return el ? getComputedStyle(el).transform : "none";
+    }, sel);
+
+/**
+ * SUSTAINED-stable settle (C-10). Poll until the transform holds identical across
+ * a sustained confirmation window (≥ `holdMs`), so the spring's startup-pause
+ * cannot false-settle at a transient. The `timeoutMs` is a defensive backstop; the
+ * closure is "the value truly stopped moving." Returns the settled transform.
+ */
+async function settleTransform(page, sel, { holdMs = 260, stepMs = 60, timeoutMs = 4000 } = {}) {
+    const need = Math.max(3, Math.ceil(holdMs / stepMs));
+    const deadline = Date.now() + timeoutMs;
+    let last = await readTransformOf(page, sel);
+    let stable = 0;
+    while (Date.now() < deadline) {
+        await page.waitForTimeout(stepMs);
+        const cur = await readTransformOf(page, sel);
+        if (cur === last) {
+            if (++stable >= need) return cur;
+        } else {
+            stable = 0;
+            last = cur;
+        }
+    }
+    return last;
+}
+
+/**
+ * END-STATE predicate for the Home recenter (C-10). Wait until the transform
+ * REACHES identity — the actual assertion ("Home recenters"). A startup-pause
+ * false-settle cannot red this (we wait for the real end-state, not "stopped
+ * changing"); if the box genuinely never recenters (the B6-b regression this
+ * clause guards) the backstop expires and we report not-reached. Returns
+ * `{ reached, last }`.
+ */
+async function waitForIdentity(page, sel, { stepMs = 60, timeoutMs = 4000 } = {}) {
+    const deadline = Date.now() + timeoutMs;
+    let last = await readTransformOf(page, sel);
+    if (isIdentityTransform(last)) return { reached: true, last };
+    while (Date.now() < deadline) {
+        await page.waitForTimeout(stepMs);
+        last = await readTransformOf(page, sel);
+        if (isIdentityTransform(last)) return { reached: true, last };
+    }
+    return { reached: false, last };
+}
 
 async function browserHalf() {
     const VW = 1440;
@@ -393,76 +469,60 @@ async function browserHalf() {
                     }
                     await page.mouse.up();
 
-                    // Wait for the spring to stop changing (settle) — poll the
-                    // transform up to a ~900 ms bound.
-                    const readTransform = () =>
-                        page.evaluate(() => {
-                            const el = document.querySelector(".demo-box");
-                            return el ? getComputedStyle(el).transform : "none";
-                        });
-                    let prev = await readTransform();
-                    let settled = prev;
-                    for (let i = 0; i < 12; i++) {
-                        await page.waitForTimeout(80);
-                        const cur = await readTransform();
-                        if (cur === prev) {
-                            settled = cur;
-                            break;
-                        }
-                        prev = cur;
-                        settled = cur;
-                    }
-
-                    // identity = "none" or a matrix with zero translate + unit scale.
-                    const isIdentity = (t) => {
-                        if (!t || t === "none") return true;
-                        const m = t.match(/matrix(?:3d)?\(([^)]+)\)/);
-                        if (!m) return true;
+                    // The dragged box must PERSIST at its dragged offset (D2). Wait
+                    // for a SUSTAINED-stable settle (not one coincident read — the
+                    // spring startup pause would false-settle a naive predicate),
+                    // then assert the rest pose is ≠ identity AND still carries the
+                    // dragged translate (it did NOT recenter — the B6-b guard).
+                    const settled = await settleTransform(page, ".demo-box");
+                    const translateOf = (t) => {
+                        const m = String(t).match(/matrix(?:3d)?\(([^)]+)\)/);
+                        if (!m) return { e: 0, f: 0 };
                         const n = m[1].split(",").map((s) => parseFloat(s.trim()));
-                        if (n.length === 6) {
-                            // matrix(a,b,c,d,e,f): translate=(e,f), scale≈(a,d)
-                            const [a, , , d, e, f] = n;
-                            return Math.abs(e) < 1 && Math.abs(f) < 1 && Math.abs(a - 1) < 0.02 && Math.abs(d - 1) < 0.02;
-                        }
-                        return false;
+                        return n.length === 6 ? { e: n[4], f: n[5] } : { e: 0, f: 0 };
                     };
-
-                    if (isIdentity(settled)) {
+                    const persistTr = translateOf(settled);
+                    const persisted =
+                        !isIdentityTransform(settled) &&
+                        (Math.abs(persistTr.e) > 20 || Math.abs(persistTr.f) > 20);
+                    if (!persisted) {
                         fail(
-                            `clause (b) — after drag+settle the box transform is IDENTITY (${settled}) — it ` +
-                                `recentred instead of persisting (B6-b: pointerup → reseat(0,0) born-RED shape)`,
+                            `clause (b) — after drag+settle the box did NOT persist at its dragged ` +
+                                `offset (transform=${String(settled).slice(0, 48)}…, translate=` +
+                                `(${Math.round(persistTr.e)},${Math.round(persistTr.f)})) — it recentred ` +
+                                `instead of persisting (B6-b: pointerup → reseat(0,0) born-RED shape)`,
                         );
                     } else {
                         ok(
                             `clause (b) — the dragged box PERSISTS after settle (transform=${String(settled).slice(0, 48)}…, ` +
-                                `≠ identity); releasePolicy:"persist" leaves the spring at the dragged target (D2)`,
+                                `translate=(${Math.round(persistTr.e)},${Math.round(persistTr.f)}) ≠ home); ` +
+                                `releasePolicy:"persist" leaves the spring at the dragged target (D2)`,
                         );
                     }
 
                     // Home/End STILL recenters (no capability lost). Focus the box,
-                    // press Home, wait for the recenter spring to settle.
-                    await page.evaluate(() => document.querySelector(".demo-box")?.focus());
-                    await page.keyboard.press("Home");
-                    let homePrev = await readTransform();
-                    let homeSettled = homePrev;
-                    for (let i = 0; i < 12; i++) {
-                        await page.waitForTimeout(80);
-                        const cur = await readTransform();
-                        if (cur === homePrev) {
-                            homeSettled = cur;
-                            break;
-                        }
-                        homePrev = cur;
-                        homeSettled = cur;
+                    // press Home, then wait for the recenter spring to actually REACH
+                    // identity (the asserted end-state — never "stopped changing," so
+                    // the spring's post-reseat startup pause cannot false-fail it; a
+                    // box that genuinely never recenters reds via the backstop).
+                    const focused = await page.evaluate(() => {
+                        const el = document.querySelector(".demo-box");
+                        el?.focus();
+                        return document.activeElement === el;
+                    });
+                    if (!focused) {
+                        fail("clause (b) — the .demo-box could not take keyboard focus (Home cannot actuate)");
                     }
-                    if (isIdentity(homeSettled)) {
+                    await page.keyboard.press("Home");
+                    const home = await waitForIdentity(page, ".demo-box");
+                    if (home.reached) {
                         ok(
-                            `clause (b) — Home STILL recenters (transform settled to identity, ${homeSettled}) — ` +
+                            `clause (b) — Home STILL recenters (transform reached identity, ${home.last}) — ` +
                                 `the deliberate return-home affordance is preserved`,
                         );
                     } else {
                         fail(
-                            `clause (b) — Home did NOT recenter the box (transform=${String(homeSettled).slice(0, 48)}…) — ` +
+                            `clause (b) — Home did NOT recenter the box (transform=${String(home.last).slice(0, 48)}…) — ` +
                                 `the explicit recenter affordance regressed`,
                         );
                     }

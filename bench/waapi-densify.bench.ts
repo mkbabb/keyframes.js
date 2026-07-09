@@ -58,7 +58,7 @@ export const fixedInteriorTimes = (
 
 /** The sorted boundary times of an animation's frames (start + stop of each). */
 export const boundaryTimes = <V extends Record<string, number | string>>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
 ): number[] => {
     const pts = new Set<number>();
     for (const frame of animation.frames) {
@@ -80,7 +80,7 @@ export const boundaryTimes = <V extends Record<string, number | string>>(
 const GRID = 257; // an odd fine grid → probes land BETWEEN the fixed stops
 
 export const chordToCurveError = <V extends Record<string, number | string>>(
-    animation: Animation<V>,
+    animation: KeyframesAnimation<V>,
     emittedOffsets: number[],
     duration: number,
 ): number => {
@@ -181,7 +181,37 @@ export const chordToCurveError = <V extends Record<string, number | string>>(
  */
 export type CorpusEntry = {
     name: string;
-    build: () => Promise<Animation<Record<string, number | string>>>;
+    build: () => Promise<KeyframesAnimation<Record<string, number | string>>>;
+};
+
+/**
+ * S.F5c S2 — a MULTI-SEGMENT (3-stop) uniform spring `linear()` twin. Before
+ * this wave WAAPI REFUSED any multi-segment CSS-twin easing ("WAAPI restarts the
+ * curve per segment"); the densify + single-`linear()` collapse makes it eligible
+ * — the composite per-segment spring curve is BAKED into densely-sampled
+ * keyframes fed a single bare-`linear` effect easing (identity), so the
+ * compositor's piecewise-linear fill tracks the true rAF curve with NO
+ * per-segment restart. Reused by `proof:waapi-adaptive-densify`'s eligibility
+ * clause (it attaches a fake `{ animate }` target so `isWAAPIEligible` runs in
+ * the node probe).
+ */
+export const buildMultiSegmentSpring = (): KeyframesAnimation<
+    Record<string, number | string>
+> => {
+    const spring = springTimingFunction({
+        response: 0.5,
+        dampingFraction: 0.6,
+    });
+    const a = new CSSKeyframesAnimation({
+        duration: DURATION,
+        timingFunction: spring,
+    });
+    a.fromString(
+        `0% { transform: translateX(0px); }` +
+            ` 50% { transform: translateX(150px); }` +
+            ` 100% { transform: translateX(200px); }`,
+    );
+    return a as unknown as KeyframesAnimation<Record<string, number | string>>;
 };
 
 export const buildCorpus = (): CorpusEntry[] => [
@@ -198,7 +228,7 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
     {
@@ -215,7 +245,7 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translateX(0px); } to { transform: translateX(200px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
     {
@@ -234,7 +264,7 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translate(0px, 0px); } to { transform: translate(120px, 240px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
     {
@@ -248,8 +278,16 @@ export const buildCorpus = (): CorpusEntry[] => [
             a.fromString(
                 `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
             );
-            return a as unknown as Animation<Record<string, number | string>>;
+            return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
+    },
+    {
+        // S.F5c S2 — the MULTI-SEGMENT (2-segment) spring, previously REFUSED
+        // outright (a CSS-twin easing restarts per segment on WAAPI). The densify
+        // bakes the composite per-segment curve into keyframes; the fidelity guard
+        // holds it to ≤ the fixed-8 emit exactly as for the single-segment curves.
+        name: "multi-segment-spring",
+        build: async () => buildMultiSegmentSpring(),
     },
 ];
 
@@ -326,7 +364,7 @@ if (underVitest)
     describe("WAAPI densify emit (Q.WB4 — build-time, observe-only throughput)", () => {
         let corpus: {
             name: string;
-            animation: Animation<Record<string, number | string>>;
+            animation: KeyframesAnimation<Record<string, number | string>>;
             sorted: number[];
         }[] = [];
 

@@ -7,7 +7,8 @@ import {
     stepStart,
     timingFunctions,
 } from "@mkbabb/value.js";
-import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
+import { computed, markRaw, ref, watch } from "vue";
+import { useThrottledReadout } from "@composables/useThrottledReadout";
 
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
@@ -15,17 +16,16 @@ import type { TimingFunction } from "@mkbabb/keyframes.js";
 import {
     generateCurveSVGPath,
     generateStepSVGPath,
-} from "@components/custom/animation-controls/controls/timingCurveUtils";
-import { NAMED_EASING_BEZIER } from "@components/custom/animation-controls/animationDescriptions";
-import { useRafScene } from "@app/useRafScene";
-import { useContractAnimGroup } from "@app/composables/useContractAnimGroup";
-import { useSceneTransport } from "@app/composables/useSceneTransport";
-import { PROGRESS_READOUT_HZ } from "@app/rafConstants";
-import { useSceneMachine } from "@components/custom/animation-controls/stores";
+} from "@components/custom/instrument/transport/controls/timingCurveUtils";
+import { NAMED_EASING_BEZIER } from "@components/custom/instrument/transport/animationDescriptions";
+import { useRafScene } from "@app/runtime/useRafScene";
+import { useSceneTransport } from "@app/runtime/useSceneTransport";
+import type { SceneFacility } from "@app/scene/sceneFacility";
+import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
+import { useSceneMachine } from "@state";
+import { kfEngine } from "@utils/kfEngine";
+import { EASING_SCENE_ID } from "./easingKeys";
 import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
-import { useEasingGallery } from "./useEasingGallery";
-import { useEasingGhost } from "./useEasingGhost";
-import { useEasingTraceSmear } from "./useEasingTraceSmear";
 
 // ── Static data ────────────────────────────────────────────────────
 
@@ -60,8 +60,12 @@ export function useEasingDemo() {
     });
     const duration = ref(1500);
 
-    // Q.WC2 S2 — the comparison-DIFF ghost (colocated in useEasingGhost).
-    const { ghostPathD, capture: captureGhost, clear: clearGhost } = useEasingGhost();
+    // (T.E6 / OD-7 — the comparison-DIFF ghost + the drag-bend smear DIED with
+    // the singular hero: the specimen drawer IS the scene, every curve's
+    // portrait is always on stage, so a ghost baseline has nothing to diff
+    // against and the smear has no beam to smear. useEasingGhost.ts +
+    // useEasingTraceSmear.ts are deleted; the former design-refinement S5 arm
+    // was already retired at batch ⑧ — this removes its surface.)
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
     // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
@@ -172,7 +176,9 @@ export function useEasingDemo() {
     // `liveProgress()` is the always-current sweep value the painters + the scrub
     // path read (the reactive `progress` lags it by ≤ 1 readout tick, by design).
     let livePhaseValue = 0; // the raw eased sweep value [0,1], updated every frame
-    let lastReadoutAt = 0;
+    // T.F23(c) — the cold-path readout cadence rides the ONE shared seam
+    // (useThrottledReadout), not a hand-rolled accumulator (lane 21 rec 4).
+    const readout = useThrottledReadout(PROGRESS_READOUT_HZ);
 
     /** A dot painter: position one moving dot for the given raw sweep value. The
      *  view layer registers these; the loop calls them imperatively each frame. */
@@ -217,10 +223,9 @@ export function useEasingDemo() {
         for (const paint of dotPainters) paint(livePhaseValue);
         // Cold path — write the reactive readout at a few Hz only (the `f(p)=`
         // text + the contract time-twin), NOT per frame.
-        if (now - lastReadoutAt >= 1000 / PROGRESS_READOUT_HZ) {
-            lastReadoutAt = now;
+        readout.maybeFlush(now, () => {
             progress.value = livePhaseValue;
-        }
+        });
         return true;
     };
 
@@ -271,18 +276,10 @@ export function useEasingDemo() {
     // the adapter) then re-seats progress + the playing/paused status.
     startLoop();
 
-    // Stop the gallery's pending timers on scope dispose (the raw RAFPlayback's
-    // own teardown is owned by useRafScene's onScopeDispose(stopLoop)).
-    onScopeDispose(() => {
-        disposeGallery();
-    });
-
     // ── Methods ────────────────────────────────────────────────────
 
     const selectEasing = (name: string) => {
         currentEasingName.value = name;
-
-        clearGhost(); // Q.WC2 S2 — a fresh selection drops the diff baseline.
 
         // Load bezier control points if available
         const bezier = NAMED_EASING_BEZIER[name];
@@ -296,21 +293,11 @@ export function useEasingDemo() {
         }
     };
 
-    // EASTER EGG — "the Gallery" (H.W12.S6): the self-playing curve tour (colocated in useEasingGallery).
-    const { gallery, disposeGallery } = useEasingGallery(
-        selectEasing,
-        currentEasingName,
-        timingFunctionsAnd,
-    );
-
-    // EASTER EGG — "the drag-bend SMEAR" (L.W11 S5): SmoothProgress-decay smear (colocated).
-    const { amount: traceSmearAmount, kickFromPoints } = useEasingTraceSmear();
+    // ("the Gallery" tour — RETIRED at T.E7, VERDICT #15: the tour + its door
+    //  button were owner-ruled removals; the T.E6/OD-7 redesigned scene IS the
+    //  gallery.)
 
     const updateBezierPoints = (points: [number, number, number, number]) => {
-        // L.W11 S5 — kick the trace smear from the handle update's velocity.
-        kickFromPoints(bezierControlPoints.value, points);
-        // Q.WC2 S2 — capture the named baseline ghost BEFORE the name→custom flip.
-        captureGhost(currentEasingName.value, svgPath.value);
         bezierControlPoints.value = points;
         // If editing a named curve's bezier, switch to custom
         if (currentEasingName.value !== "cubic-bezier") {
@@ -318,80 +305,60 @@ export function useEasingDemo() {
         }
     };
 
-    const parseCSSValue = (input: string): boolean => {
-        const trimmed = input.trim().toLowerCase();
+    // S.G2 S6 — the former `parseCSSValue` typed-literal round-trip (Q.WC2 S2,
+    // consumed ONLY by the deleted writable value-input row in EasingSidebar) is
+    // REMOVED with its sole consumer. Precision authoring rides the glass-ui
+    // EasingPicker (T.E8 — handle drag + native steps mode); named curves ride
+    // the gallery tiles (T.E6) + the picker's preset dropdown.
 
-        // cubic-bezier(x1, y1, x2, y2)
-        const bezierMatch = trimmed.match(
-            /cubic-bezier\(\s*([\d.e+-]+)\s*,\s*([\d.e+-]+)\s*,\s*([\d.e+-]+)\s*,\s*([\d.e+-]+)\s*\)/,
-        );
-        if (bezierMatch) {
-            const pts: [number, number, number, number] = [
-                parseFloat(bezierMatch[1]!),
-                parseFloat(bezierMatch[2]!),
-                parseFloat(bezierMatch[3]!),
-                parseFloat(bezierMatch[4]!),
-            ];
-            if (pts.every((n) => !isNaN(n))) {
-                // Q.WC2 S2 — a typed cubic-bezier from a named curve captures the ghost.
-                captureGhost(currentEasingName.value, svgPath.value);
-                bezierControlPoints.value = pts;
-                currentEasingName.value = "cubic-bezier";
-                return true;
-            }
+    // ── THE EASING PREVIEW CHANNEL (T.B1-β/T.B7 — the decoy is DEAD) ──────────
+    // The former contract-group opacity decoy ("Easing Preview", a fake
+    // group whose keyframes painted nothing) is DELETED. The transport rides ONE
+    // REAL `CSSKeyframesAnimation` whose keyframes ARE the preview sweep
+    // (translateX 0→100%, the ball's rail) and whose `timingFunction` IS the
+    // edited easing (the CSS-string twin `cssValue` — H.W0 H-A1: a custom
+    // TimingFunction has no `animation-timing-function` string; edits re-seat it
+    // via the watch below, honest by construction). Its clock is the sweep
+    // time-twin the standard PlaybackRibbon binds (scrubber + visualizer).
+    const { CSSKeyframesAnimation } = kfEngine();
+    const previewAnim = markRaw(
+        new CSSKeyframesAnimation<{ transform: { translateX: number } }>({
+            duration: duration.value,
+            iterationCount: "infinite",
+            direction: "alternate",
+            timingFunction: cssValue.value,
+        }).fromString(
+            `@keyframes easing-preview {
+    from { transform: translateX(0%); }
+    to   { transform: translateX(100%); }
+}`,
+        ),
+    );
+    previewAnim.name = "Easing";
+    previewAnim.superKey = EASING_SCENE_ID;
+
+    // The edited easing + duration RE-SEAT the preview animation's options (the
+    // decoy captured construction-time values and never tracked an edit — the
+    // dishonesty class T.B1 kills). `setTimingFunction` normalizes the CSS twin.
+    watch(cssValue, (v) => {
+        try {
+            previewAnim.setTimingFunction(v);
+        } catch {
+            // A mid-edit twin (e.g. a transiently bare name) keeps the last
+            // valid timing function — fail-soft on the live edit path.
         }
-
-        // steps(N, jump-term?)
-        const stepsMatch = trimmed.match(
-            /steps\(\s*(\d+)\s*(?:,\s*(jump-start|jump-end|jump-none|jump-both|start|end)\s*)?\)/,
-        );
-        if (stepsMatch) {
-            stepOptions.value = {
-                steps: parseInt(stepsMatch[1]!, 10),
-                // The regex alternation IS the jump-term validation — the match
-                // group can only hold a member of the union (a typed narrowing,
-                // not an `any` erasure; J.W2 S6 / LS-20).
-                jumpTerm: (stepsMatch[2] as JumpTerm | undefined) ?? "jump-end",
-            };
-            currentEasingName.value = "steps";
-            return true;
-        }
-
-        // Named function
-        if (trimmed in timingFunctionsAnd) {
-            selectEasing(trimmed);
-            return true;
-        }
-
-        return false;
-    };
-
-    // ── Scene-contract group (the bottom-bar transport host) ──────────
-    // The transport host + its one-way `paused` projection are shared via
-    // `useContractAnimGroup` (R.W5 B.1). The CSS-string twin (`cssValue`, not the
-    // bare closure) is passed so the bottom-bar Keyframes readout round-trips
-    // (H.W0 H-A1: a custom `TimingFunction` has no `animation-timing-function`
-    // string). The group drives NO scene motion — the light NumericAnimation
-    // sweep above is the authority.
-    const { contractAnim, animationGroup } = useContractAnimGroup({
-        duration: () => duration.value,
-        timingFunction: () => cssValue.value,
-        direction: "alternate",
-        name: "Easing Preview",
-        superKey: "Easing",
-        isPlaying,
+    });
+    watch(duration, (d) => {
+        previewAnim.setDuration(d);
     });
 
-    // G3 (H.W10.S2) — mirror the linear sweep onto the contract animation's clock
+    // G3 (H.W10.S2) — mirror the linear sweep onto the preview animation's clock
     // so the STANDARD PlaybackRibbon (the scrubber Slider + the AnimationVisualizer
     // ball, mounted in the scene's ribbonContent slot) tracks the real progress:
     // the visualizer reads `effectiveT/duration`, the scrubber reads `currentT`.
-    // The contract anim still drives NO motion (it has no DOM target) — this is a
-    // pure time-twin so the standard transport reflects the live sweep. A watch
-    // (not the rAF frame) avoids the contractAnim TDZ — the loop arms at mount
-    // before this `const` is declared.
+    // A watch (not the rAF frame) keeps the twin write off the hot path.
     watch(progress, (p) => {
-        contractAnim.t = p * contractAnim.options.duration;
+        previewAnim.t = p * previewAnim.options.duration;
         // I.W4 D4 — keep the imperatively-painted dots in lock-step with a PAUSED
         // scrub. The scene's scrubber writes `demo.progress.value` directly (a
         // discrete paused-scrub event), so when the loop is idle a `progress`
@@ -403,6 +370,27 @@ export function useEasingDemo() {
             repaintDots();
         }
     }, { immediate: true });
+
+    // ── THE EASING FACILITY (T.B1-β) ──────────────────────────────────────────
+    // ONE real channel ("Easing" — the preview animation above; its triad is
+    // honest: the edited easing IS its timingFunction) + the `easing` facet (the
+    // curve editor surface) + the SAME raw-rAF ScenePlayback adapter the machine
+    // registers. The scrub round-trip seats the reactive `progress` authority;
+    // the idle-gated watch above reconciles the live value + repaints the dots.
+    const facility: SceneFacility = {
+        channels: [
+            {
+                name: "Easing",
+                animation: previewAnim,
+                progress: () => liveProgress(),
+                setProgress: (t: number) => {
+                    progress.value = Math.max(0, Math.min(1, t));
+                },
+            },
+        ],
+        facets: [{ surface: "easing", label: "Curve", icon: "Activity" }],
+        playback: scenePlayback,
+    };
 
     return {
         // Static
@@ -432,29 +420,23 @@ export function useEasingDemo() {
         currentFamily,
         comparisonCurves,
 
-        ghostPathD, // Q.WC2 S2 — the comparison-DIFF ghost path.
-
         // Methods
         selectEasing,
         updateBezierPoints,
-        parseCSSValue,
-        gallery,
         play,
         pause,
         togglePlay,
         reset,
 
-        // L.W11 S5 — the drag-bend SMEAR amount (SmoothProgress decay, inv ζ).
-        traceSmearAmount,
-
-        // Scene contract
-        animationGroup,
-        // The contract animation (the time-twin the standard PlaybackRibbon binds
-        // its scrubber + visualizer to — G3/H.W10.S2).
-        contractAnim,
+        // T.B1-β — the SceneFacility descriptor (the ONE real preview channel +
+        // the `easing` facet + the raw-rAF playback).
+        facility,
+        // The preview animation (the REAL channel animation the standard
+        // PlaybackRibbon binds its scrubber + visualizer to — G3/H.W10.S2).
+        previewAnim,
         // The raw-rAF ScenePlayback adapter — the App registers this on
         // SCENE_READY so suspend/restore route through the contract (the easing↔
-        // cube cross-pair the group gate misses).
+        // cube cross-pair the group gate misses). Also `facility.playback`.
         scenePlayback,
     };
 }

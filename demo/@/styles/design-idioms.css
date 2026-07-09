@@ -1,378 +1,95 @@
-/* ════════════════════════════════════════════════════════════════════════
-   demo/@/styles/design-idioms.css — the demo's OWNED design vocabulary
-   ────────────────────────────────────────────────────────────────────────
-   D.W2.S1 (styling-findings §1). The demo REFERENCES these idioms everywhere
-   (the rainbow gradients, the gold sparkle accent, the tab-panel slide) but,
-   before this file, DEFINED them nowhere in its own tree — they resolved only by
-   accident of the transitive `@mkbabb/glass-ui` + `tw-animate-css` import. That
-   is an ungated, undocumented cross-repo RENT: glass-ui OWNS the `--rainbow-*` /
-   `--color-gold` vocabulary and is free to rename or drop it; the day it does,
-   the demo's affordances silently flatten with no error and no gate.
+/* design-idioms.css — the demo's OWNED design vocabulary (the playful spectrum, the
+   gold accent, the shared idiom recipes). Imported by style.css right after glass-ui
+   so these are the AUTHORITATIVE demo copy (proof:idioms asserts each referenced idiom
+   resolves from THIS file), not an ungated rent. Geometry → layout.css. */
 
-   H.W2.S4 correction: the `.scale-on-hover` lift is NOT re-authored here — the
-   former demo copy was a re-author of glass-ui's first-class `@utility
-   scale-on-hover` (which glass-ui in fact extracted FROM the demo's 13 sites),
-   a no-legacy violation. The demo now CONSUMES that `@utility` directly (the
-   class name is identical, zero call-site churn); only the `--scale-hover` token
-   (the magnitude) stays demo-owned. See the deletion note below.
-
-   This layer makes the demo OWN what it depends on. It is imported by
-   `style.css` IMMEDIATELY AFTER `@import "@mkbabb/glass-ui/styles"`, so these
-   definitions are the AUTHORITATIVE copy for the demo — the latent rent
-   becomes a deliberate, single-sourced, gate-able contract (proof:idioms
-   clause 1 asserts each idiom resolves from THIS file's contribution to the
-   built demo CSS, not merely from the glass-ui dependency).
-
-   NOT defined here (inv-16 — the demo CONSUMES glass-ui recipes, it does not
-   re-author them): the `.rainbow-vivid` / `.rainbow-pastel` play-button
-   utilities are glass-ui's full multi-stop gradient recipes the demo merely
-   APPLIES. They stay glass-ui-owned; if glass-ui ever drops them that is a
-   glass-ui ASK, not a demo patch.
-   ════════════════════════════════════════════════════════════════════════ */
-
-/* ── K.W3 M1 — register --rail-width as a typed <length> custom property ──
-   The derived rail track (clamp(25rem, 33svi, 32rem) — K.W4 F1 widened) is
-   registered as a typed
-   `syntax: "<length>"` property so it COMPUTES to a USED px value rather than
-   staying an un-resolved string: `svi` (small-viewport-inline) is a viewport
-   unit — computationally independent of layout — so a registered <length>
-   resolves the clamp to px at computed-value time (an UNREGISTERED custom
-   property, by contrast, returns its specified expression verbatim from
-   getComputedStyle; and a registered property using `cqi` would NOT resolve
-   either, since container units stay layout-dependent). `inherits: true`
-   cascades that ONE computed length down unchanged, so the grid [rail] track on
-   `.controls-layout` AND the consuming `.controls-content { width }` pane read
-   the IDENTICAL resolved length — track and visible pane agree by construction
-   (no mismatch). `svi` is the right viewport unit here: it widens the rail on a
-   cinema display and bounds it on a phone-narrow shell, the VIEWPORT-AWARE
-   intrinsic sizing the §Hard-gate clause (b) checks (the rail SCALED, not
-   invariant 400px). initial-value is 320px (the px equivalent of the 20rem
-   floor — see the note on the declaration: a rem initial is rejected). */
-@property --rail-width {
-    syntax: "<length>";
-    inherits: true;
-    /* initial-value MUST be computationally-independent (an absolute length):
-       `20rem` is REJECTED by Chromium's @property registration ("initial value
-       not computationally independent" — rem is treated as context-dependent for
-       a registered initial), which silently DROPS the whole registration and
-       leaves --rail-width an un-resolved string. 400px is the px equivalent of
-       the 25rem clamp floor at the default 16px root (K.W4 F1 — lifted with the
-       wider clamp) — the valid absolute-length fallback that keeps the
-       registration LIVE so the clamp/svi resolves to a used px value. */
-    initial-value: 400px;
-}
-
-/* ── Tokens: the demo's playful spectrum + gold accent + layout constants ──
-   OUTSIDE @layer so these override glass-ui's incidental same-named tokens —
-   the demo's copy is authoritative for the demo. */
+/* Signal tokens: the playful spectrum + gold accent.
+   OUTSIDE @layer so the demo's copy overrides glass-ui's incidental same-named
+   tokens (authoritative for the demo). */
 :root {
-    /* ── The rainbow six-colour family ──
-       The demo's canonical playful spectrum. Referenced by the two gradient
-       sites the demo authored:
-         • #rainbow-gradient SVG <linearGradient> — AnimationControlsGroup.vue
-           (the Format paintbrush stroke), six stops red→violet.
-         • the .progress-bar brush-sweep gradient — KeyframesEditor.vue, the
-           same ramp PLUS a cyan mid-stop.
-       Values match the spectrum the demo painted via glass-ui until now, so
-       this localization is isomorphic (pixels unchanged). */
+    /* The rainbow six-colour family — referenced by the #rainbow-gradient SVG
+       stroke and the .progress-bar brush-sweep gradient (+ the cyan mid-stop). */
     --rainbow-red: hsl(0 85% 60%);
     --rainbow-orange: hsl(30 90% 55%);
     --rainbow-yellow: hsl(55 90% 55%);
     --rainbow-green: hsl(130 70% 50%);
     --rainbow-blue: hsl(210 80% 55%);
     --rainbow-violet: hsl(300 75% 60%);
-
-    /* The lone inline `hsl(180 80% 50%)` cyan stop in KeyframesEditor's
-       .progress-bar gradient, folded into the family as a NAMED member so the
-       gradient reads off ONE palette (six tokens) rather than five tokens + a
-       literal. The component edit (replace the literal with var(--rainbow-cyan))
-       is the sibling styling task; the token lives here. */
     --rainbow-cyan: hsl(180 80% 50%);
 
-    /* ── The Amiga Boing-Ball crayon red (L.W11.S3 — the HUE-EXACT lift) ──
-       The 1985 Boing Ball's saturated red checker is a kept crayon SIGNAL
-       surface. It lived as the raw CSS named-colour literal `'red'`
-       (AmigaScene.vue tesselateSphere('white','red',…)) — off the rainbow
-       ladder, un-tunable, no dark variant, AND the visually-garish pure
-       rgb(255,0,0) rather than the demo's canonical crayon. RE-SOURCED here to
-       the sanctioned spectrum: --amiga-red ALIASES --rainbow-red, so the ball
-       wears the SAME crayon red as the rest of the demo's signal palette
-       ("right colour, raw plumbing" — the red was never the defect, the literal
-       was). The AmigaScene call-site now passes var(--amiga-red) and
-       tesselateSphere resolves it against the live DOM at paint time. Tune the
-       Boing red ONCE here; proof:crayon-preserved pins it to --rainbow-red. */
+    /* The Amiga Boing-Ball checker red ALIASES --rainbow-red (same crayon red). */
     --amiga-red: var(--rainbow-red);
 
-    /* ── The four spring-derby lane hues (L.W11.S6 — sanctioned-rainbow CONSUME) ──
-       The spring scene's four-lane DERBY easter egg (gated behind the kept
-       dblclick — SpringTarget.vue) races four SpringProgress solvers in four
-       coloured lanes. The lane hues are the crayon palette used WITH PROPORTION
-       — the one place the page must tell four springs apart by colour — so they
-       CONSUME the sanctioned --rainbow-* family rather than minting a fifth
-       identity. The exact mapping (spring.md / the crayon-preserved baseline):
-       smooth→blue, snappy→green, bouncy→violet (the playful ring), gentle
-       (critically damped → the RED identity)→--color-progress (the unified
-       motion-red). Aliases only — every hue resolves to a keeper, so the derby
-       borrows the signal palette without abrogating it. */
+    /* The four spring-derby lane hues CONSUME the rainbow family (smooth→blue,
+       snappy→green, bouncy→violet, gentle→motion). */
     --spring-lane-smooth: var(--rainbow-blue);
     --spring-lane-snappy: var(--rainbow-green);
     --spring-lane-bouncy: var(--rainbow-violet);
     --spring-lane-gentle: var(--color-progress);
 
-    /* ── The gold sparkle accent ──
-       The Format-button <Sparkles> accent. Referenced by
-       AnimationControlsGroup.vue (text-[var(--color-gold)], routing to the
-       .text-gold utility below) and AnimationControlsControls.vue
-       (color: var(--color-gold)). Theme-aware: the demo toggles dark mode by
-       the `.dark` CLASS (color-scheme is set imperatively, not via the
-       light-dark() CSS form — see style.css), so a class override is the
-       correct theme mechanism here; light-dark() would not respond to the
-       class toggle. The dark value lifts the lightness so the gold stays
-       legible on the dark surface — a befitting dark-mode-parity delta named
-       in styling-findings §Isomorphism. Light value matches glass-ui's
-       --gold base, so light mode is isomorphic. */
+    /* The gold sparkle accent (Format <Sparkles>). Theme-aware via the .dark CLASS;
+       the light value matches glass-ui's --gold base, the ramp .gold-shimmer sweeps
+       matches --gold-dark/light. */
     --color-gold: hsl(43 74% 49%);
-
-    /* The full gold RAMP the .gold-shimmer gradient sweeps (S1). glass-ui's
-       shimmer reads --color-gold-dark / --color-gold-light around the
-       --color-gold mid-stop; the demo owned only the mid-stop until now. These
-       derivations match glass-ui's --gold-dark / --gold-light (light mode) so
-       the localized shimmer paints the identical metallic gradient. */
     --color-gold-light: hsl(51 100% 50%);
     --color-gold-dark: hsl(34 87% 38%);
 
-    /* ── Hover-lift scale ──
-       The amount .scale-on-hover lifts on hover. Mirrors glass-ui's
-       --scale-hover default so the lift is isomorphic; named here so the demo
-       owns the magnitude even if glass-ui drops its token. */
+    /* The .scale-on-hover lift magnitude (mirrors glass-ui's --scale-hover). */
     --scale-hover: 1.08;
 
-    /* ── Layout tokens (S3 — the recurring viewport/width literals) ──
-       Named homes for the bracket-arbitrary values that RECUR across the demo,
-       so the component migration (the sibling S3 task) routes each literal to
-       ONE token rather than re-typing the fraction. Defined here so the idiom
-       layer is the single source for the demo's structural constants. */
-    --panel-max-h: 60dvh; /* max-h-[var(--panel-max-h)] panel caps — ONE unit (dvh):
-                             mobile-correct (tracks the dynamic viewport, no URL-bar
-                             over-reservation), reconciled from the former 60vh +
-                             two stray 60dvh literals (E.W3.S3). */
-    --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
-    --header-items-max-w: 500px; /* the EditorHeader expanded items-wrapper cap
-                                    (J.W7b STY-5 — the former raw `max-width:
-                                    500px`; the collapse animates max-width
-                                    0 ↔ this token, value unchanged). */
-    --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent
-                                    dropdown min (recurs ×3 — TransportDock +
-                                    TopDock ×2; distinct from the wider --dock-panel-width). */
-    /* K.W3 M4/C6 — the cube target tracks the STAGE CELL, not the raw viewport.
-       The former 30vh/30vw sized the loader glyph off the viewport, so it
-       OVER-GREW past the C2/C3 work-area freeze (a glyph 30% of a 5K panel is a
-       island in the surplus, not anchored to the clamped stage). M2 makes
-       `.controls-layout` a container (container-type: inline-size) and the
-       `.stage-cell` lives inside it, so cqi/cqb resolve against the clamped
-       stage column — the glyph now tracks the cell the cube centres in, bounded
-       by the work-area clamp rather than the raw viewport. cqi = inline (width),
-       cqb = block (height); the loader glyph is square-ish, so each axis reads
-       its own container dimension. The fallback (svi/svh on a non-qualifying
-       ancestor) keeps it sized if the container scope is ever absent. */
-    --target-viewport-h: 30cqb; /* h-[var(--target-viewport-h)] cube-target loader height — tracks the stage cell block-size */
-    --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width — tracks the stage cell inline-size
-                                  — the dimensional sibling of --target-viewport-h (a cqb
-                                  token cannot name an inline width; E.W3.S2 corrects the conflation). */
-    --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track
-                                        inset — couples to the left-6 (1.5rem) inset each side
-                                        = 3rem total gutter; one token keeps the calc and the
-                                        inset in sync (E.W3.S2). */
-    --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[var(--easing-dropdown-max-h)] easing
-                                                   SelectContent cap — its 60dvh half is the S3
-                                                   reconciled unit. */
-    /* K.W3 M1 — the rail track is DERIVED, not a fixed 400px (C1, the one true
-       hardcoded layout offset U-K7 names; the born-RED witness: controlsPane.w
-       == 400 INVARIANT across a 4× viewport-area span — 1280/1920/3440/5120 —
-       the clearest proof the layout did not respond to large screens). The fixed
-       400px DIES (net-deletion, no legacy beside its replacement); the rail now
-       WIDENS on a cinema display and BOUNDS on a phone via an intrinsic clamp():
-         • 20rem FLOOR — the rail never starves below its control rows;
-         • 33svi MID — viewport-aware intrinsic sizing: registered as a typed
-           <length> @property (above) so the clamp resolves to px (svi is a
-           viewport unit, layout-independent), and the ONE computed length
-           cascades (inherits: true) so the grid [rail] track and the
-           `.controls-content { width }` pane read the IDENTICAL value (no
-           track/content mismatch). It resolves ≈ 475px at a 1440 shell, saturates
-           at the 32rem (512px) cap from ~1552px-wide up (3440/5120 cinema), and
-           bottoms at the 25rem (400px) floor on a phone-narrow shell — scaled but
-           bounded, the §Hard-gate clause (b) property;
-         • 32rem CEILING — no 32rem-wide rail maroons a 5K panel; the chrome stays
-           bounded while the stage GROWS into the surplus (M4).
-
-       K.W4 F1 — the rail ~25% WIDER (the user's live verdict: "the controls rail
-       is TOO THIN — make it ~25% WIDER"). The K.W3 clamp(20rem, 26svi, 30rem)
-       ≈ 374px@1440 read too narrow; widened to clamp(25rem, 33svi, 32rem)
-       ≈ 475px@1440 (≈ 27% wider). STILL DERIVED + bounded (floor/mid/ceiling lift
-       in lockstep, the svi viewport-aware mid preserved) — NO fixed px
-       re-introduced, so proof:layout-cluster stays green: the rail still SCALES
-       across viewports (400px floor → 475px@1440 → 512px cap) and bounds at the
-       cap, clause (b)'s "scaled, not invariant 400px" property holds AND stays
-       within the gate's RAIL_MAX bound (the cap 512px ≤ the 520px envelope, so the
-       gate's bounded-check passes without a gate-script edit — the cap moved
-       inside the existing design envelope, not by raising the threshold). The
-       25rem floor (400px) keeps the wider control rows from starving on a phone.
-       A <length>, so it is valid as BOTH the grid [rail] track AND the
-       `.controls-content { width }` consumer — the single width authority is
-       preserved (H.W3.S3): the lg grid track (AnimationControlsGroup,
-       grid-template-columns: [rail] var(--rail-width) [stage] minmax(0,1fr)), the
-       pane width (ControlsPaneWrapper .controls-content), and the expanded
-       timeline ([rail] track) ALL resolve to this one derived value, so the
-       sidebar, ribbon, and timeline match by construction. The open/close axis
-       (the track between var(--rail-width) and 0px) is PRESERVED — only the
-       open-width literal changes from 400px to the derived clamp(). */
+    /* Three DRY layout tokens the demo owns HERE (proof:idioms anchors these; the rest
+       of the geometry is in layout.css). --rail-width is the DERIVED rail track
+       (@property below) — 25rem/33svi/32rem, the single width authority for the lg
+       [rail] track AND the pane; --panel-max-h caps mobile panels; --mask-fade the fade. */
     --rail-width: clamp(25rem, 33svi, 32rem);
-    --mask-fade: 2.5rem; /* the edge-fade magnitude — ONE design decision ("how wide is an
-                            edge fade") consumed by BOTH the tab-overflow horizontal fade
-                            (AnimationControls) and the controls-pane vertical scroll fade
-                            (ControlsPaneWrapper). Was forked under two local names
-                            (--tabs-mask-fade / --mask-fade-width) at the same 2.5rem value
-                            (G.W10.S5); single-sourced here. The @supports-paired mask
-                            recipe itself stays scoped (its whole-recipe .edge-fade-{x,y}
-                            promotion is the recorded larger move, not this token unification). */
+    --panel-max-h: 60dvh;
+    --mask-fade: 2.5rem;
 
-    /* ── The below-plane stacking rung ──
-       Reconciles the one orphan raw `z-index: -10` (CubeTarget.vue, the
-       below-plane axis line) into the named z-contract. Sits BELOW
-       glass-ui's --z-content:10 — see the ordered-layer contract in style.css.
-       (Recorded here for D.W3.S2; the orphan's component reconciliation is
-       the brittleness lane's task.) */
-    --z-behind: -10;
-
-    /* ── The start-screen hero/subject band split (J.W7a S1 / D6 / H3) ──
-       At phone widths the home landing hosts TWO focal elements in one
-       viewport: the mega hero text (top) and M. Cubert (the subject). The
-       former layout centered the cube in the FULL stage while the hero floated
-       at a fixed offset — they physically overlapped at 375–390w (pane-home H3,
-       cross-typography TYP-1). This token names the SPLIT: the hero owns the
-       band ABOVE it (anchored under the scene-switcher band), the cube's
-       centering region starts BELOW it (CubeScene `cube-stage--hero-recede`).
-       The band is measured INSIDE the stage cell (whose content box already
-       starts at --dock-top-band-reserve): 34dvh clears the display-4 mobile
-       hero block (h1 ≈102px + subtitle + hint ≈ 210–220px) on both the 667 and
-       844 phone heights while leaving the lower region to the subject.
-       Mobile-only consumption; one decision, tuned HERE. */
-    --start-hero-band: 34dvh;
-
-    /* ── The square subject's owned identity hue (J.W7a S3 / D13 / SQ-5) ──
-       Retires the raw `background-color: aquamarine` literal (SquareScene.vue —
-       the ONE raw named-colour in the scene corpus, off the rainbow/gold token
-       ladder, un-tunable, no dark variant). The value is the EGG_HUES terminal
-       stop (#52E898, useSquareAnimations.ts) — the contract keyframe's 100%
-       backgroundColor, i.e. the hue the tumble egg already settles INTO — so
-       the box's rest colour and the egg's landing colour are ONE identity hue
-       by construction (cross-color-pops §5.3; pane-square SQ-5/SQ-11). */
+    /* The square subject's owned identity hue (retires a raw `aquamarine`): the
+       EGG_HUES terminal stop, so the box's rest colour == the tumble egg's landing
+       colour by construction. */
     --subject-teal: #52e898;
-
-    /* ── The graph / stage-field vocabulary (J.W7a S4 / D17 + D19 / W6-3) ──
-       The GRID brand pillar, finally tokenized (cross-grid-math C5/G3 names
-       the glass-ui `.bg-graph-paper` promotion as the W7b handoff edge; these
-       kf-LOCAL tokens are the now-shipping half).
-         • --graph-pitch / --graph-major — the two-tier engineering-graph-paper
-           pitches (fine 1rem lines + bolder 5rem majors) the page substrate
-           draws (EditorShell .grid-background, D19 — the W6-3 substrate-depth
-           fold: the glass plate finally has structure to refract against).
-         • --graph-opacity / --graph-major-opacity — the line strengths, mixed
-           over --foreground so dark mode retints for free. The major layer
-           deliberately resolves ABOVE the former near-invisible 0.10α
-           corner-tick floor (the §Hard-gate substrate-legibility clause g).
-
-           K.W4 S8 (U-K20 token half) — the grid lines dialed LESS opaque, the
-           user's "less busy substrate" verdict (the FourierField removal is Lane
-           C's; this is the opacity half). The fine pitch drops 5% → 3% (no gate
-           floor on the fine tier — proof-appearance-suffusion reads --graph-opacity
-           but asserts no minimum). The major pitch drops 12% → 11% — LESS opaque,
-           but DELIBERATELY held STRICTLY ABOVE the 10% legibility floor the gate
-           asserts (proof-appearance-suffusion clause (g): majorOpacityPct > 10).
-           The spec's sketch was ~8%, but 8% < the gate floor and would RED the
-           substrate-legibility gate; 11% is the measured call that reads quieter
-           while keeping the major tier above its asserted floor (re-check the gate,
-           not just the eye — the named §Hard-gate guard).
-         • --stage-field-tint — the per-stage field-tint magnitude (MP-OPP1's
-           `color-mix(… 4% …)` clean stage field). */
-    --graph-pitch: 1rem;
-    --graph-major: 5rem;
-    --graph-opacity: 3%;
-    --graph-major-opacity: 11%;
-    --stage-field-tint: 4%;
-
-    /* ── The controls idle-fade opacity (F9, H.W9.S6) ──
-       The rest-dim magnitude the OPEN controls pane fades to after ~10s of
-       global window inactivity (the idle-fade restoration — see the §idle-fade
-       section at the foot of this file + ControlsPaneWrapper's desktop rules).
-       The user's "much more transparent" is louder than the historical 0.85;
-       floor at ~0.25 so the controls stay legible while they still capture
-       pointer/focus. Demo-owned (one decision) so the magnitude tunes HERE,
-       not at the consuming rule. */
-    --controls-idle-opacity: 0.35;
 }
 
-/* Dark-mode gold parity — class-based, matching the demo's `.dark` idiom.
-   The full ramp lifts in lockstep with glass-ui's dark --gold-light / --gold-dark
-   so the localized .gold-shimmer gradient stays isomorphic in dark mode too. */
+/* Register --rail-width as a typed <length> so the clamp COMPUTES to a used px and
+   inherits ONE length to both the [rail] track and the pane; initial-value must be an
+   absolute length (rem would drop the registration) — 400px is the 25rem floor. */
+@property --rail-width {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 400px;
+}
+
+/* Dark-mode gold parity — the ramp lifts with glass-ui's dark --gold-light/--gold-dark. */
 .dark {
     --color-gold: hsl(43 74% 55%);
     --color-gold-light: hsl(51 100% 55%);
     --color-gold-dark: hsl(34 87% 45%);
 }
 
-/* ── The demo-owned :focus-visible contract (E.W11.S3 — the a11y keystone) ──
-   Before this, the keyboard focus ring was owned in exactly ONE place —
-   playback-button.css's `.btn-playback:focus-visible` — rather than as a
-   demo-wide contract, so every OTHER custom interactive surface the demo
-   authored (the role="slider" tracker, the timeline markers/playhead, the
-   visualizer, the CopyButton-turned-<button>) had no shared focus affordance.
-   This establishes the SINGLE demo-owned contract: any element carrying the
-   `.focus-ring` idiom paints glass-ui's canonical `--focus-ring-shadow` (the
-   same token playback-button.css consumes, single-sourced) on `:focus-visible`
-   and suppresses the raw UA outline. `:focus-visible` (not `:focus`) means the
-   ring shows for keyboard/AT focus only — pointer focus stays quiet, so this is
-   a keyboard-only paint, pixel-isomorphic for the mouse/sighted case.
-
-   The per-component a11y roles (role/aria-label/keyboard handlers) are the
-   sibling a11y-uniformity lane; THIS file owns only the shared ring so every
-   swept control inherits one proven, gate-able focus affordance. */
+/* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance:
+   `.focus-ring` paints glass-ui's --focus-ring-shadow on :focus-visible (keyboard/AT
+   focus only, so pointer focus stays quiet — pixel-isomorphic for the mouse case). */
 .focus-ring:focus-visible {
     box-shadow: var(--focus-ring-shadow);
     outline: none;
 }
 
-/* ── .text-gold utility ──
-   Consumes --color-gold. Replaces the off-idiom `text-[var(--color-gold)]`
-   arbitrary value on the Format <Sparkles> icon (S3) with a named utility, so
-   the callsite reads `class="text-gold"` and the token resolves through this
-   owned layer. */
+/* .tap-floor — the WCAG 2.5.5 44px minimum touch-target floor (box only). */
+.tap-floor {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* .text-gold — the named utility behind the Format <Sparkles> icon. */
 .text-gold {
     color: var(--color-gold);
 }
 
-/* ── icon-{xs,sm,md,lg} — the icon-sizing @utility family (H.W4.S4, NEW) ──
-   The single largest idiom-ownership gap the demo carried: 61 callsites across
-   four size names (icon-xs×3 / icon-sm×34 / icon-md×13 / icon-lg×11) that
-   resolved to NOTHING — no rule with an `.icon-*` selector existed anywhere
-   (not the demo, not glass-ui), so all four sizes computed IDENTICALLY at
-   Lucide's default 24px. A 61-site idiom resolving to literally nothing is the
-   strictly-worse instance of the exact cross-repo rent this file exists to
-   retire. Owning it here makes the icons finally DIFFERENTIATE — the uniform
-   24px was the ACCIDENT, not the intent (a befitting NAMED delta per the
-   Mandate): xs(14px) < sm(16px) < md(20px) < lg(24px).
-
-   This is design-idioms.css's FIRST `@utility` family — the deliberate v4 idiom
-   upgrade (the file previously held only `.class` rules). `@utility` is the
-   correct shape for a sizing primitive: it composes with Tailwind's variant
-   machinery and is tree-shaken to the referenced members.
-
-   CASCADE INTO NESTED SVGs (WV-W4-MED-1): a Lucide glyph ships its own
-   `<svg width="24" height="24">`, and many callsites apply the class to a
-   WRAPPER (e.g. `<CopyButton class="icon-md">`, a `<button>`), not the SVG
-   itself — `@apply size-N` on the wrapper sizes the BUTTON box, leaving the
-   inner 24px glyph untouched. The nested `& svg { @apply size-N }` rule sizes
-   the descendant glyph too, so a wrapper callsite actually shrinks its icon. */
+/* icon-{xs,sm,md,lg} — the icon-sizing @utility family (61 call-sites used to
+   resolve to nothing, all computing at Lucide's default 24px). Differentiates
+   xs(14) < sm(16) < md(20) < lg(24); the nested `& svg { size-N }` sizes the
+   descendant glyph so a WRAPPER call-site shrinks its inner 24px glyph too. */
 @utility icon-xs {
     @apply size-3.5;
     & svg {
@@ -398,94 +115,17 @@
     }
 }
 
-/* ── ppmycota-stroke — the easing-curve glyph stroke (J.W7b STY-3) ──
-   The SVG curve previews (EasingSelect's trigger + per-item glyphs) stroke
-   with the host-page `--ppmycota-primary` accent when the demo is embedded
-   (papio-pythonis), falling back to the demo's --foreground. The value
-   recurred as a bracket-arbitrary `stroke-[var(--ppmycota-primary,
-   var(--foreground))]` at every glyph; named ONCE here so the fallback chain
-   is single-sourced (identical computed stroke — a pure naming move). */
+/* ppmycota-stroke — the easing-glyph stroke: host-page --ppmycota-primary when embedded, else --foreground. */
 @utility ppmycota-stroke {
     stroke: var(--ppmycota-primary, var(--foreground));
 }
 
-/* ── .scale-on-hover — DELETED (H.W2.S4, no-legacy) ──
-   The demo's `.scale-on-hover` block lived here as a re-author of glass-ui's
-   first-class `@utility scale-on-hover` (`utilities.css:680-690`) — the IDENTICAL
-   `scale: 1 → var(--scale-hover)` recipe glass-ui extracted FROM the 13 demo
-   sites (its own comment names that lineage). A replaced surface living beside
-   its replacement is the no-legacy violation; the class name is identical so the
-   13 call-sites resolve to glass-ui's `@utility` with zero churn.
-
-   PRM: the deleted block carried a `@media (prefers-reduced-motion: reduce) {
-   transition: none }` guard. glass-ui's `@utility` ships NO inline PRM guard —
-   BUT glass-ui's GLOBAL PRM bracket (`utilities.css:1025-1036`) covers it: under
-   `prefers-reduced-motion: reduce` it restricts `transition-property` to
-   `opacity, color, background-color, border-color, box-shadow` (dropping `scale`)
-   on every `*:not([data-allow-motion])`, so the scale lift applies instantly with
-   no transition — the EXACT behaviour the demo's own guard produced. The guard is
-   therefore redundant, not load-bearing, and is deleted with the base rule (the
-   global bracket is the single source). The `--scale-hover` token (above, :80)
-   stays demo-owned so the demo owns the magnitude even if glass-ui drops its
-   token (the `var(--scale-hover, 1.08)` fallback in glass-ui's `@utility`
-   resolves through it). */
-
-/* ── the tracked-specular subsystem is REMOVED (H.W9.F3+F6) ──
-   The W2 S2-COMPOSITE bezier card carried a tracked, cursor-following catch-light
-   (the `.cartoon-specular` recipe projecting onto glass-ui's `.glass-specular-track`
-   `::before`, wired by `useSpecularPointer`). The user read it as too-dramatic (F3)
-   and inconsistent — present on ONE card only (F6) — and the lead adopted REMOVE.
-   The whole subsystem is deleted: this recipe block, the manual `glass-specular-track`
-   class on the bezier Card, the `useSpecularPointer` wire + the composable file. The
-   calm register is now glass + cartoon, broad, with NO tracked catch-light: every
-   panel is `surface="cartoon" tier="quiet"` (the offset-stamp depth over a 0.50α glass
-   plate). Net deletion — one register, less code. (inv-16; chronic D2 stays closed via
-   the inverted `proof:no-orphan-specular`, exception set → ∅.) */
-
-/* ── cartoon Card focus-elevation (H.W2.S1, WV-W2-LOW-1, named delta) ──
-   Flipping the panel Cards to `surface="cartoon"` deletes the manual `.glass-card`
-   plate — and with it `.glass-card:has(:focus-visible)`'s focus-elevation rung
-   (`glass.css:197`, which lifts the card a rung on descendant KEYBOARD focus).
-   `cartoon-surface` does NOT replicate that affordance (its lift is `:hover`-only),
-   so re-apply it here on the cartoon surface: descendant `:focus-visible` lifts the
-   offset stamp to the `lg` rung — the same elevation the hover-lift gives, but for
-   keyboard users — so the focus affordance is not silently lost. `:has()` is
-   Baseline Widely available. The lift is shadow-only (no `translate`) so it does
-   not displace portaled child content on focus. */
+/* cartoon Card focus-elevation — re-applies the descendant keyboard-focus lift cartoon-surface drops (shadow-only). */
 .cartoon-surface:has(:focus-visible) {
     box-shadow: var(--shadow-cartoon-lg);
 }
 
-/* ── .gold-shimmer — DELETED (J.W7b S1g / STY-1, no-legacy) ──
-   The demo's `.gold-shimmer` block + its slide keyframe lived
-   here as a byte-equivalent re-author of glass-ui's published recipe — the
-   IDENTICAL gradient/background-clip composition (`utilities.css:356-366`,
-   `@layer components`) + the IDENTICAL keyframe (`animations.css:139-142`,
-   200% → -200%), both shipped by the consumed 3.9.0 and imported via
-   `@mkbabb/glass-ui/styles`. A replaced surface living beside its replacement
-   is the no-legacy violation; the class name is identical so the three
-   call-sites (AnimationControlsControls.vue, EasingSelect.vue ×2) resolve to
-   glass-ui's copy with zero churn.
-
-   PRM: glass-ui's copy wraps the `animation:` line in the same
-   `prefers-reduced-motion: no-preference` bracket the local copy carried —
-   PRM users keep the static gold gradient, no sweep.
-
-   DURATION: glass-ui's copy reads the unsuffixed `var(--duration-shimmer)`
-   (5s, theme.css) — the same value the local `var(--duration-shimmer, 5s)`
-   fallback resolved, so the sweep cadence is unchanged.
-
-   The demo KEEPS what it owns: the `--color-gold` / `--color-gold-light` /
-   `--color-gold-dark` token ramp (:root above) + the `.dark` parity bridge —
-   glass-ui's recipe paints THROUGH those demo-owned tokens (consumer
-   configuration, not a fork). */
-
-/* ── .progress-bar ──
-   The keyframe-editor brush-sweep bar (S4) — the rainbow gradient reading the
-   demo-owned --rainbow-* family (six stops + the cyan mid). Was duplicated
-   verbatim in two `<style scoped>` blocks (KeyframesEditor.vue,
-   KeyframesAddDialog.vue); single-sourced here beside the family it consumes,
-   both components apply the class through this owned layer. */
+/* .progress-bar — the keyframe-editor brush-sweep bar (rainbow, six stops + cyan mid). */
 .progress-bar {
     @apply h-2 rounded-md;
     background: linear-gradient(
@@ -500,15 +140,7 @@
     );
 }
 
-/* ── .progress-dot ──
-   The active-playing progress ring (E.W11.S4 — promoted from
-   TransportDock.vue's scoped block to the owned idiom layer, beside its
-   sibling .progress-bar; the same promotion E.W3 §S4 did for .progress-bar).
-   A conic-gradient ring + glow driven by the --dot-p (0–1) custom property —
-   the active-playing companion to glass-ui's discrete <StatusDot>. Driving the
-   gradient by ONE custom-property value (not a re-emitted string per frame)
-   keeps it allocation-free. The call site keeps `class="progress-dot"`; only
-   the definition relocated, so it is pixel-identical (same computed values). */
+/* .progress-dot — the active-playing conic ring + glow, driven by --dot-p (0–1), allocation-free. */
 .progress-dot {
     display: inline-block;
     flex-shrink: 0;
@@ -523,45 +155,11 @@
     box-shadow: 0 0 var(--glow-spread) var(--glow-blur) color-mix(in srgb, var(--color-progress) 40%, transparent);
 }
 
-/* ── .progress-rail / .progress-ball ──
-   The REAL rail-line + scrubber-ball idiom pair (F.W16.S1 — the honest
-   correction of the E record). W11's commit claimed "progress-dot promoted" but
-   promoted the conic-gradient PLAYING-RING (`.progress-dot` above) — a DIFFERENT
-   primitive. The rail/ball — a green ball travelling a tinted rail line — was
-   STILL authored four ways with drift across the newest scenes:
-     • SpringTarget   `.spring-rail-line` (rail-tint 12%) / `.spring-ball`
-       (glow 40%, 1.75rem) / `.sampler-ball` (65% tint, 1.25rem)
-     • EasingTarget   `.track-line` (rail-tint 8%) / `.track-ball--active`
-       (glow 35%, 36px) / `.track-ball--muted` (24px)
-     • SpringSidebar  `.preset-line` (rail-tint 10%) / `.preset-ball`
-       (no glow, 1.1rem)
-   → three rail tints (12/8/10%), two glow strengths (40/35%), four ball sizes —
-   the cross-scene incoherence D.W2's idiom-ownership pass eliminated everywhere
-   ELSE. This promotes the correct primitive ONCE, parameterized by the three
-   custom properties that name the drift axes, defaulting to EasingTarget's
-   AA-contrast lineage (the canonical tint/glow). Each consumer sets only the
-   per-site variation it earns (a befitting motion-cohesion delta — the same
-   class as the W11 --spring-snappy reconcile). ONE green, ONE glow, ONE rail,
-   ONE source. The four scoped blocks are REMOVED (no-legacy).
-
-   --ball-size names the same seam EasingTarget already exposed for its JS
-   getComputedStyle read (--track-ball-size-active/muted); that scene maps its
-   active/muted tokens onto --ball-size per ball so the read stays the source of
-   truth.
-
-   ── --ball-tone (J.W7a S3 / D10 — the colour seam, the J.md headline move) ──
-   The fill + glow + rail tint are PARAMETERIZED by ONE hue var, --ball-tone
-   (default --color-progress — pixel-identical for any scene that sets nothing),
-   the planned twin of .status-badge's proven --badge-tone seam one section
-   below. This is where the two-palette drift dies: the ICON palette promised a
-   spectrum (easing violet, motion-path cyan, sequence violet→green) that the
-   SUBJECT palette had collapsed to one green; each scene now sets ONE token at
-   its stage root and the subject keeps its icon's promise (cross-color-pops
-   §5.1; D11/D12). NOTE the fallback form `var(--ball-tone, …)` rather than a
-   self-declaration: the per-scene consumers set the token on an ANCESTOR (the
-   stage root / the sequence row), and a declaration on the ball itself would
-   shadow that cascade — the badge declares on itself because its consumers are
-   sibling CLASSES on the same element. */
+/* .progress-rail / .progress-ball — the rail-line + scrubber-ball pair, promoted ONCE
+   (was authored four ways) and parameterized by drift-axis custom properties. --ball-size
+   is the seam EasingTarget reads via getComputedStyle; --ball-tone (default
+   --color-progress) parameterizes fill+glow+rail-tint via a `var(--ball-tone, …)` fallback
+   so a per-scene ANCESTOR sets it without shadowing (each subject keeps its icon's hue). */
 .progress-rail {
     position: absolute;
     top: 50%;
@@ -585,27 +183,13 @@
     pointer-events: none;
 }
 
-/* ── .readout-accent (J.W7a S3 / D14 / CP-4) ──
-   The LIVE computed value in each scene's mono readout wears the scene accent
-   (the cascaded --ball-tone): "the number that proves the engine runs is the
-   number that carries the colour" (cross-color-pops §5.4). Labels stay
-   --muted-foreground — only the live value pops (the proportionate readout
-   colour, never a panel tint). */
+/* .readout-accent — the LIVE readout value wears the scene accent (--ball-tone); labels stay muted. */
 .readout-accent {
     color: var(--ball-tone, var(--color-progress));
 }
 
-/* ── .stage-field-{x,y} — the ghosted coordinate frame (J.W7a S4 / D17 / C2) ──
-   The designed stage-plate field: value gridlines at the 0.25/0.5/0.75 quarter
-   marks, drawn with the SAME `var(--border)` hairline the easing curve canvas's
-   own `.grid-line` treatment uses (EasingCurveCanvas — the sidebar specimen and
-   the stage share ONE visual language by construction). `-y` rules the VALUE
-   axis (horizontal lines + the bottom t-axis baseline — the easing stage's
-   frame for its projected curve); `-x` rules a TIME/POSITION axis (vertical
-   quarter ticks — the spring displacement rail, the sequence master-clock
-   region). kf-LOCAL + token-clean; the glass-ui `<GraphFrame>` promotion is the
-   recorded W7b ledger edge (cross-grid-math G1). The frame AMPLIFIES in the
-   stage region only — never the page field (the §S4 proportion anti-goal). */
+/* .stage-field-{x,y} — the ghosted coordinate frame: quarter-mark gridlines in the var(--border)
+   hairline. `-y` rules the VALUE axis (horizontal lines + baseline); `-x` a TIME/POSITION axis. */
 .stage-field-y {
     background-image:
         linear-gradient(to top, var(--border) 1px, transparent 1px),
@@ -623,43 +207,27 @@
     );
 }
 
-/* ── .status-badge family (settled / tracking / reverse) ──
-   The caption-rung status tint (G.W10.S1 — the honest correction of the
-   post-F W10/W12-scene re-fork). SpringTarget + SequenceTarget BOTH authored
-   `.settled-badge` / `.tracking-badge` byte-identically — and the SequenceTarget
-   copy SILENTLY FORKED the a11y-load-bearing AA-contrast value (it dropped the
-   comment that documents the 14%/50% lineage), so a contrast tune on one copy
-   would drift the other and re-fail contrast with no gate. This promotes the ONE
-   recipe, parameterized by --badge-tone (the only axis that varies), defaulting
-   to the AA-contrast lineage, with the AA comment single-sourced HERE.
-
-   AA-CONTRAST LINEAGE (the C.W2 lighthouse leaf — single-sourced, load-bearing):
-   the tint paints --badge-tone at --badge-tint (14%) over the surface; the text
-   pushes --badge-tone toward --foreground at --badge-text-mix (50%) so it reads
-   ≥4.5:1 against the tint in BOTH themes — the bare --color-progress green on its
-   own 14% tint was 1.97:1 (lighthouse color-contrast). The hue survives the mix;
-   only the lightness moves to meet AA. A future contrast tune lands ONCE here.
-
-   --badge-tone names the same parameterization seam .progress-ball's --ball-tone
-   (J.W7a S3 / D10 — the once-planned twin, now cut) exposes: each per-site badge
-   sets only --badge-tone, never re-authors the recipe.
-     • .settled-badge  → tone --color-progress (the canonical progress green)
-     • .tracking-badge → tone --muted (its own neutral recipe: muted surface
-       tint + muted-foreground text, no AA mix needed)
-     • .reverse-badge  → tone --rainbow-violet (the reverse-direction tint) */
+/* .status-badge family — the caption-rung status tint, parameterized by --badge-tone.
+   AA-CONTRAST (load-bearing): the tint paints --badge-tone at --badge-tint (14%); the
+   text pushes it toward --foreground at --badge-text-mix (50%) so it reads ≥4.5:1
+   against the tint in both themes. .settled→--color-progress · .tracking→--muted ·
+   .reverse→--rainbow-violet. */
 .status-badge {
     --badge-tone: var(--color-progress);
     --badge-tint: 14%;
     --badge-text-mix: 50%;
     background: color-mix(in srgb, var(--badge-tone) var(--badge-tint), transparent);
     color: color-mix(in srgb, var(--badge-tone) var(--badge-text-mix), var(--foreground));
+    /* A status WORD is a UI label, not data: the badge rides the Jakarta body
+       register at medium (call-sites compose text-admin-label for the SIZE rung
+       only; this un-layered rule out-cascades that utility's mono family bind). */
+    font-family: var(--font-text);
+    font-weight: 500;
 }
 .settled-badge {
     --badge-tone: var(--color-progress);
 }
-/* The neutral tracking tint reads off --muted directly (a muted surface + the
-   muted-foreground text token), so it overrides the tint magnitude + text rule
-   rather than the AA color-mix — its contrast is the glass-ui muted pairing. */
+/* The neutral tracking tint reads --muted directly (overrides the tint + text, not the AA mix). */
 .tracking-badge {
     background: color-mix(in srgb, var(--muted) 60%, transparent);
     color: var(--muted-foreground);
@@ -670,115 +238,17 @@
     --badge-text-mix: 55%;
 }
 
-/* ── .code-token ──
-   The inline-code idiom for in-prose API names (G.W10.S2). SpringTarget +
-   MotionPathTarget BOTH typed this two-property rule byte-identically; promoted
-   ONCE here so the next prose-bearing scene CONSUMES it rather than re-forking.
-   The camelCase API names (response, dampingFraction, offset-distance,
-   offset-path) read AS-CASED at the caption mono size; the mono-caption rung
-   would uppercase them, so this is the case-preserving inline-code register. */
+/* .code-token — inline-code for in-prose API names (camelCase, case-preserving mono). */
 .code-token {
     font-family: var(--font-mono);
     font-size: var(--type-caption);
 }
 
-/* ── .dock-inset — DELETED (H.W10.S5/G8) ──
-   The per-scene bottom-only dock-band inset is SUPERSEDED by the [stage]-track
-   containment PRIMITIVE (AnimationControlsGroup.vue `.stage-cell` reserves the
-   dock band symmetrically top + bottom, for EVERY scene). The old `.dock-inset`
-   padded `padding-bottom` ONLY — so the easing/spring stage card's TOP edge ran
-   under the top ChromeDock (the G8 clip). The reserve now lives ONCE on the
-   grid's stage cell (no per-scene class; the band is reserved by the layout, not
-   patched per scene). No legacy beside the replacement — the class + its three
-   scene callsites are removed in one motion. */
-
-/* ── §STAGE-CARD register + card-rounding (I5 + I4, H.W11.S1/S2) ──────────────
-   THE STAGE REGISTER (I5, REVERSES W10 G8 full-bleed). The four STAGE-scene
-   protagonists (easing / spring / @starting-style / sequence / motion-path)
-   converge from THREE states — W10's full-bleed (easing/spring), the bare
-   `glass-resting cartoon-surface` square card (sequence/path), and the target —
-   to ONE standard, NON-cartoon glass `<Card surface="glass" tier="resting">`:
-   the PROTAGONIST PLATE. There is NO rule to author here: the register IS the
-   consumed glass-ui `<Card>` primitive (`rounded-card glass-resting
-   glass-specular-track` by construction). The full-bleed div / the bare cartoon
-   div are GONE (the swap lands at the five `*Target.vue` roots; no legacy beside
-   the replacement). The control PANELS keep cartoon+quiet (W2/W9) — TWO
-   altitudes, cleanly separated: cartoon = the control chrome; glass-resting =
-   the stage subject. The card sits in the [stage] track, dock-contained by the
-   surviving `.stage-cell` PRIMITIVE (the G8 LAYOUT half survives untouched; only
-   the SURFACE half reverses — `.dock-inset` stays deleted, see the note above).
-
-   FORK I5-shadow (lead default): every stage `<Card>` is `:shadow="false"`.
-   MEASURED against the live render — the protagonist plate sits INSIDE the
-   dock-band-reserved `.stage-cell`, not nested chrome; a drop-shadow on a plate
-   that already fills its reserved cell reads as visual noise (the cleaner
-   protagonist-plate read). `shadow-card` only applies for `surface="glass"` +
-   `shadow`, so the off is one prop; the on-state (the default) is the discarded
-   measured alternative — recorded so a later wave knows this was a measured call,
-   not an accident.
-
-   THE ROUNDING (I4, closes FOR FREE alongside I5). The user caught it on
-   motion-path: "the card is NOT rounded — it should be impossible." It WAS
-   square because the radius lives on the `<Card>` root's `rounded-card`, NOT the
-   `cartoon-surface` @utility (glass-ui cards.css:33-48 — the utility is
-   decoration-only: 2px border + offset-stamp shadow + hover-lift, ZERO radius).
-   The I5 swap to `<Card>` rounds sequence/path with ZERO ad-hoc `rounded-*`
-   literal (consume the primitive, do NOT patch the demo). The demo-side
-   born-GREEN guarantee lands HERE-AND-NOW (the swap); a stage card can no longer
-   render square because it is no longer a bare `cartoon-surface` div.
-
-   inv-16 HANDOFF (born-RED-paired, glass-ui-owned, NOT patched in kf). The
-   DEEPER ask — make a `cartoon-surface`-ONLY element impossible to leave square
-   from the PRIMITIVE itself — is glass-ui's: `@utility cartoon-surface`
-   (cards.css:33-48) should gain `border-radius: var(--radius-card)` by default,
-   OR ship a `rounded-card`-carrying `cartoon-card` primitive. That is a
-   cross-repo durable fix (consumed published; sibling = HANDOFF). The kf gate
-   half (`proof:card-rounded-primitive`) greens now on the swap; the glass-ui
-   HANDOFF half stays born-RED until the published bump. See
-   docs/tranches/H/audit/harden/impl-w11-stage.md for the HANDOFF ledger. */
-
-/* ── §LABEL-subgrid — the UNIFORM label-column idiom (I1, H.W11.S3) ───────────
-   THE DEFECT (REFINES W9 F1). W9 F1 restored label-LEFT / value-RIGHT rows by
-   giving EACH `.labeled-field` its OWN per-row `grid-template-columns: auto 1fr`
-   — so every row derived its OWN `auto` label width. MEASURED live on the easing
-   sidebar before this change: `value` label = 43.1px, `duration` label = 68.9px
-   — a ~26px misalignment, labels NOT uniform across rows. The user wants ONE
-   uniform label column (one derived width, not per-row auto). The W9 F1
-   direction — label-left/value-right, ONE column of rows — is PRESERVED and
-   STRENGTHENED; only the per-row-`auto`-width is replaced.
-
-   THE MECHANISM (CSS subgrid). A consuming panel applies `.labeled-field-grid`
-   to its ROW CONTAINER → the container is a 2-track grid `[label] auto [value]
-   1fr`. Each `.labeled-field` row then participates in that ONE shared track via
-   `grid-template-columns: subgrid; grid-column: 1 / -1` — so the `auto` label
-   column is sized ONCE, from the WIDEST label across ALL rows, and every row's
-   label cell resolves the SAME width by construction. The `.labeled-field` DOM
-   is `<div class="labeled-field"> <label class="labeled-field-label"/> {control}
-   {.labeled-field-error?} </div>` (glass-ui labeled-field.js — the tooltip
-   wrapper is reka render-less `as-child`, so the `<label>` is the first grid
-   item even with a tooltip). The label is column 1, the control column 2; the
-   error region spans both (`grid-column: 1 / -1`). subgrid is Baseline-2023
-   (Widely available 2023-09) — no fallback owed.
-
-   THE DRY HOME. This idiom is the SINGLE source for the panel-row label-column
-   shape — it REPLACES the two former per-component `:deep(.labeled-field){
-   grid-template-columns: auto 1fr }` copies (AnimationControlsControls.vue +
-   EasingSidebar.vue, each now CONSUMING `.labeled-field-grid` on its row
-   container, NOT re-authoring the rule). Non-`.labeled-field` direct children of
-   a `.labeled-field-grid` (a Separator, a hand-rolled easing field, the advanced
-   nav row) span the full width via `:not(.labeled-field) { grid-column: 1 / -1 }`
-   — so a mixed-content container keeps its non-field rows full-width while the
-   field rows share the uniform label track. The single-column-pack invariant
-   STAYS TRUE (`proof:single-column-pack` green): every row still has ONE left
-   edge; the rows still stack in one column. The free-text-mono guard +
-   per-site input tweaks stay scoped to the consuming component.
-
-   THE DURABLE HOME is a glass-ui HANDOFF (inv-16): the W9-BOOKed `LabeledField
-   orientation="horizontal"` extended to subgrid-participation, so a field is
-   born subgrid-ready. Until then the demo-side parent-subgrid wrapper lands
-   TODAY (born-GREEN path B, mirroring AssetPropertiesPanel.vue's
-   `grid grid-cols-[auto_1fr]` precedent — promoted from per-row `auto` to a
-   shared subgrid track). gap-y > gap-x preserves Gestalt proximity. */
+/* §LABEL-subgrid — the UNIFORM label-column idiom. A panel applies
+   `.labeled-field-grid` to its ROW CONTAINER (a 2-track grid [label] auto [value]
+   1fr); each `.labeled-field` row participates via subgrid, so the auto label column
+   is sized ONCE from the widest label across all rows. The error region + non-field
+   direct children span both columns (mixed content keeps its full-width rows). */
 .labeled-field-grid {
     display: grid;
     grid-template-columns: [label] auto [value] 1fr;
@@ -792,28 +262,16 @@
     grid-column: 1 / -1;
     align-items: center;
 }
-/* The error region (revealed on :user-invalid) spans both columns so it sits
-   under the control, not in the label gutter. */
 .labeled-field-grid > .labeled-field > .labeled-field-error {
     grid-column: 1 / -1;
 }
-/* A non-field direct child (Separator, the hand-rolled easing field, the
-   advanced nav row) spans the full width — the uniform label track governs ONLY
-   the `.labeled-field` rows; mixed content keeps its full-width members. */
 .labeled-field-grid > :not(.labeled-field) {
     grid-column: 1 / -1;
 }
 
-/* ── @keyframes enter ──
-   The tab-panel slide-in keyframe. Until now this resolved ONLY through
-   `tw-animate-css`'s internal `enter` name (driven by its private --tw-enter-*
-   custom-property contract) — a second landlord for the same rent. Defined
-   here with the existing --tw-enter-* values (opacity fade + 0.5rem x-translate)
-   so the demo's tab slide no longer depends on the animate-css internal name.
-   The consuming rule ([data-state=active][role=tabpanel]) is component-local
-   and moves to AnimationControls.vue's <style scoped> (sibling S2 task); the
-   keyframe itself is global and belongs here. The --tw-enter-* fallbacks keep
-   it compatible with the existing consuming rule, which sets those vars. */
+/* @keyframes enter — the tab-panel slide-in keyframe (opacity fade + 0.5rem
+   x-translate via the --tw-enter-* vars the consuming rule sets) so the demo's tab
+   slide no longer depends on tw-animate-css's internal `enter` name. */
 @keyframes enter {
     from {
         opacity: var(--tw-enter-opacity, 0);
@@ -825,44 +283,11 @@
     }
 }
 
-/* ── §idle-fade — the controls rest-dim idiom (F9, H.W9.S6) ──────────────────
-   The OPEN controls pane fades to --controls-idle-opacity (token above) after
-   ~10s of GLOBAL window inactivity, restoring the rest-dim a D-era refactor
-   dropped (it kept the usePaneHover plumbing but deleted the consuming opacity
-   rule, leaving `.controls-pane--hovered` vestigial). The WHEN is dogfooded via
-   `@vueuse/core useIdle(10_000)` in usePaneHover.ts (inv ζ — no hand-rolled
-   setTimeout); `useControlsLayout` forwards `isPaneIdle = idle && !isPaneHovered`
-   and ControlsPaneWrapper applies `.controls-pane--idle`.
-
-   The CONSUMING RULES live in ControlsPaneWrapper.vue's scoped <style> (desktop
-   block) rather than here, because the rest-dim opacity transition must COMPOSE
-   with that component's existing `.controls-pane--open` grid-template-rows
-   open/close transition — co-locating them keeps the cascade specificity honest
-   (a global rule here would lose to the scoped two-class --open selector and the
-   fade would snap). This file owns the TOKEN (the one tunable decision) + this
-   documenting anchor; the rule shape — `.controls-pane--idle:not(.--hovered)`
-   dim + `:hover`/`:focus-within` instant lift (a NAMED a11y improvement: a
-   keyboard user tabbing in is never left ghosted) + the MANDATORY PRM snap-guard
-   — is in the wrapper. opacity is compositor-thread (cheap fade, modern-web
-   css §9). NO new rule is authored HERE; the token is the demo-owned magnitude. */
-
-/* ── §gesture-in-flight — the global drag select-suppression (I.W4 D1) ───────
-   The demo had NO seam that knew "a drag is live," so a window-scope drag (the
-   square box, the spring/sequence/motion-path rails) let the pointer sweep the
-   chrome (dock + control labels) and highlight every caption it crossed (B6-a).
-   The CURE is structural: `useDragScrub` — the single shared drag seam — now
-   sets `body.is-dragging` for the gesture duration (and clears it on
-   pointerup/pointercancel, reference-counted for nesting safety). THIS is the
-   one consuming rule. Suppressing `user-select` on the WHOLE document for the
-   gesture means no surface the pointer crosses can begin a text selection,
-   inherited by EVERY drag surface that routes through the seam — not a per-scene
-   `select-none` sprinkle. The token is the seam's authority; this rule is the
-   demo-owned magnitude (the `*` reach + the `html:has()` lift to the document
-   element itself + the `::selection` clear that drops any selection already in
-   flight when the gesture begins). The `html:has(body.is-dragging)` arm makes the
-   suppression truly document-wide: `body.is-dragging *` reaches every DESCENDANT
-   of body (all chrome), but the `<html>` root is body's ANCESTOR, so it needs the
-   `:has()` arm to be suppressed too (the whole-document structural witness). */
+/* §gesture-in-flight — the global drag select-suppression. useDragScrub (the one
+   shared drag seam) sets `body.is-dragging` for the gesture (ref-counted); THIS is the
+   one consuming rule, suppressing user-select document-wide. The
+   `html:has(body.is-dragging)` arm reaches the <html> root (which `body.is-dragging *`
+   cannot); the `::selection` clear drops any selection already in flight. */
 html:has(body.is-dragging),
 body.is-dragging,
 body.is-dragging * {

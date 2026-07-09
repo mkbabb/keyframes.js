@@ -54,7 +54,7 @@
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { navToScene, withPage } from "./lib/demo-driver.mjs";
+import { navToScene, pressPlayToggle, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -102,6 +102,9 @@ const PLAY_SLIDER = '[role="slider"]';
 const EXPECT = {
     cube: { trigger: "Controls" },
     amiga: { trigger: "Controls" },
+    // T.A13 + T.B3 (fold row 69): square RE-TABLED into the built-in triad — the
+    // G2 collapse is CURED (the "Transform" anim is LIVE), so the "Controls"
+    // trigger projects like the other group-adapter scenes.
     square: { trigger: "Controls" },
 };
 
@@ -128,24 +131,15 @@ const sliderValue = (page) =>
         return v == null ? null : parseFloat(v);
     }, PLAY_SLIDER);
 
-/** Find + click the rainbow play (the dock play pill — the user's first gesture).
- *  Returns the selector clicked, or null. */
+/** Actuate the rainbow play (the dock play pill — the user's first gesture) via a
+ *  REAL pointerup, the way the product's `@pointerup`-bound transport consumes it
+ *  (R.W6 excised the strand-prone `@click`; a synthetic `element.click()` no longer
+ *  actuates it — see `pressPlayToggle`). Returns the actuated control label, or
+ *  null. */
 async function clickRainbowPlay(page) {
-    return page.evaluate(() => {
-        for (const sel of [
-            'button[aria-label="Play animation"]',
-            'button[aria-label="Play animation (collapsed dock)"]',
-            'button[aria-label*="Play animation" i]',
-            ".rainbow-pastel",
-        ]) {
-            const el = document.querySelector(sel);
-            if (el) {
-                el.click();
-                return sel;
-            }
-        }
-        return null;
-    });
+    // intent:"play" — the cold legs START a stopped scene (the old Play-only
+    // selector semantics); an auto-playing scene must not be toggled into pause.
+    return pressPlayToggle(page, { intent: "play" });
 }
 
 /** Wait — per an EXPECTED predicate, NOT a fixed settleMs (the J.W0 settle-
@@ -362,7 +356,17 @@ async function runBattery() {
                 const sliderBefore = await sliderValue(page);
                 const ariaBefore = await ariaState(page);
                 await clickRainbowPlay(page);
-                const started = await waitEngineStarted(page, 4000);
+                // T.A13 + T.B3 (fold row 69) re-ground — square's HONEST Play now
+                // drives the group's CONTINUOUS four-corner tour (the "Transform"
+                // anim, iterationCount infinite), so square is a PERSISTENT-playhead
+                // group scene like cube/amiga (the former one-shot tumble is retired
+                // to a double-tap egg). Its playhead slider advances and its box
+                // transform sweeps continuously — no special one-shot window.
+                const oneShot = false;
+                const corrEarly = oneShot
+                    ? await sampleEngineSubject(page, ENGINE_WRITE_SUBJECT[id])
+                    : null;
+                const started = oneShot ? false : await waitEngineStarted(page, 4000);
                 const ariaAfter = await ariaState(page);
                 const sliderAfter = await sliderValue(page);
 
@@ -371,9 +375,16 @@ async function runBattery() {
                 // attributable playhead); the aria flip is optimistic UI, reported
                 // in the pair but not the verdict.
                 const sliderAdvanced = started && (sliderAfter ?? 0) > 0 && (sliderBefore ?? 0) === 0;
-                const corr = await sampleEngineSubject(page, ENGINE_WRITE_SUBJECT[id]);
+                const corr = oneShot
+                    ? corrEarly
+                    : await sampleEngineSubject(page, ENGINE_WRITE_SUBJECT[id]);
 
-                const enginePair = sliderAdvanced && ariaAfter === "Pause";
+                // One-shot verdict: the engine drove the subject through ≥3 distinct
+                // transforms WHILE aria showed Pause (both facts inside the gated
+                // sampler — if it collected, aria WAS Pause during the tumble).
+                const enginePair = oneShot
+                    ? corr.distinct >= 3
+                    : sliderAdvanced && ariaAfter === "Pause";
                 if (enginePair) {
                     const corrNote =
                         ENGINE_WRITE_SUBJECT[id] == null
@@ -385,8 +396,12 @@ async function runBattery() {
                             : ` (corroborator LABELED: ${ENGINE_WRITE_SUBJECT[id]} ${corr.distinct} distinct ` +
                               `gated on aria=Pause — the aria+slider pair is the load-bearer)`;
                     ok(
-                        `clause (b) ${id} direct-hash: the engine STARTS — aria flipped → "Pause animation", ` +
-                            `slider advanced ${sliderBefore} → ${sliderAfter}.${corrNote}`,
+                        oneShot
+                            ? `clause (b) ${id} direct-hash: the engine STARTS — the one-shot tumble drove ` +
+                              `${ENGINE_WRITE_SUBJECT[id]} through ${corr.distinct} distinct transforms gated ` +
+                              `on aria=Pause (the spring one-shot channel; slider ${sliderBefore} → ${sliderAfter} informational).`
+                            : `clause (b) ${id} direct-hash: the engine STARTS — aria flipped → "Pause animation", ` +
+                              `slider advanced ${sliderBefore} → ${sliderAfter}.${corrNote}`,
                     );
                 } else {
                     fail(

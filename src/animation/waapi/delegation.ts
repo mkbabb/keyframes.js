@@ -4,7 +4,7 @@ import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 import { isWAAPIEligible } from "./eligibility";
 import { toWAAPIKeyframes } from "./emission";
-import { toWAAPIOptions } from "./options";
+import { toWAAPIOptions } from "./waapi-options";
 
 /**
  * Drive an animation via WAAPI for compositor-thread visuals while
@@ -71,11 +71,11 @@ export async function playWAAPI<V extends Vars>(
                 }
                 wa.cancel();
             } catch {
-                /* already detached/cancelled — nothing to commit or cancel */
+                /* KEEP: already detached/cancelled — nothing to commit or cancel */
             }
         }
     } catch {
-        // `Animation.stop()`/`reset()` cancelled the compositor animations,
+        // KEEP: `Animation.stop()`/`reset()` cancelled the compositor animations,
         // rejecting `finished` with an AbortError — a deliberate halt, not
         // an error (`_cancelWAAPI` already cleared the handles). Swallow it so
         // the awaited `play()` resolves cleanly.

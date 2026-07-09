@@ -13,7 +13,7 @@
  * A SOURCE-GREP gate in the style of `proof:motion-path` / `proof:engine`: each
  * clause reds on the exact regression it forbids — verified, not asserted. The
  * VALUE proof (the exact blended numbers, the four §gate clauses a/b/c/d) lives
- * in the chained `vitest run test/blend.test.ts` (the lead wires the combined
+ * in the chained `vitest run test/group/blend.test.ts` (the lead wires the combined
  * `"proof:blend"` script — see the note at the tail).
  *
  * CLAUSES (each BITES):
@@ -36,7 +36,7 @@
  *       leaves the import dormant → the test reds (weighted returns the bare
  *       incoming).
  *
- *   test-locks       — `test/blend.test.ts` carries the four value clauses
+ *   test-locks       — `test/group/blend.test.ts` carries the four value clauses
  *       (add→1.0, weighted→0.25, the un-clamped 1.6, the multi-component leaf).
  *       BITE: delete a lock → reds.
  *
@@ -74,9 +74,9 @@ console.log("proof:blend — G.W17 (the dead add/weighted blend-leaf correction)
 // R.W2 — the boxed `add`/`weighted` blend leaf (`boxedBlendArm`) was carved out
 // of `group.ts` into the colocated `./compositor` (the lib-group 146L+70L split);
 // the blend-leaf source clauses below grep it at its new home ("gate follows code
-// to its new home"). The behavioral value-locks ride `test/blend.test.ts`.
+// to its new home"). The behavioral value-locks ride `test/group/blend.test.ts`.
 const GROUP = "src/animation/group/compositor.ts";
-const TEST = "test/blend.test.ts";
+const TEST = "test/group/blend.test.ts";
 
 // ── array-guard — both arms guard on Array.isArray(existing && incoming) ──────
 {
@@ -199,5 +199,5 @@ console.log(
         "element-wise (min(existing.length, incoming.length), per-element numeric\n" +
         "guard), mutate existing[i].value IN PLACE (add `+=`, weighted `lerp`,\n" +
         "un-clamped per GL-6), and replace a non-numeric index — no length-1\n" +
-        "special case, lerp live. The value proof rides `vitest run test/blend.test.ts`.",
+        "special case, lerp live. The value proof rides `vitest run test/group/blend.test.ts`.",
 );

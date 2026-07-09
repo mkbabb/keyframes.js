@@ -13,8 +13,7 @@
          object lifecycle, no new library API (inv ζ). -->
     <div class="spring-heatmap-section grid gap-2">
         <div class="flex items-center justify-between gap-2">
-            <span class="text-mono-small text-muted-foreground">
-                parameter space — overshoot
+            <span class="text-small font-medium text-muted-foreground">parameter space — overshoot
             </span>
             <span class="text-mono-caption text-muted-foreground tabular-nums">
                 {{ demo.response.value.toFixed(2) }} /
@@ -48,7 +47,7 @@
         </div>
 
         <!-- The legend — names the three regimes the landscape reveals. -->
-        <div class="flex items-center justify-between gap-2 text-mono-caption text-muted-foreground">
+        <div class="flex items-center justify-between gap-2 text-caption text-muted-foreground">
             <span>← underdamped (rings)</span>
             <span>critical / overdamped →</span>
         </div>
@@ -187,9 +186,14 @@ const markerStyle = computed(() => {
     const ry =
         (DAMPING_MAX - demo.dampingFraction.value) /
         (DAMPING_MAX - DAMPING_MIN);
+    // T.G4 — position by `transform: translate(<cqw>, <cqh>)` (compositor-only),
+    // NOT `left`/`top`: the marker's glide-on-edit transition then rides `transform`
+    // instead of animating layout properties (no per-edit layout thrash). `cqw`/`cqh`
+    // resolve against the field (`.spring-heatmap` is a `container-type: size`).
+    const px = Math.max(0, Math.min(1, rx)) * 100;
+    const py = Math.max(0, Math.min(1, ry)) * 100;
     return {
-        left: `${Math.max(0, Math.min(1, rx)) * 100}%`,
-        top: `${Math.max(0, Math.min(1, ry)) * 100}%`,
+        transform: `translate(${px}cqw, ${py}cqh)`,
     };
 });
 
@@ -291,6 +295,11 @@ watch(
     max-height: 16rem;
     border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
     background: var(--background);
+    /* T.G4 — the field is the marker's query container (both axes: the marker
+       rides `translate(<cqw>, <cqh>)`). The field's size is fixed by aspect-ratio
+       + width, independent of contents, so `container-type: size` cannot collapse
+       it. */
+    container-type: size;
 }
 
 /* The live marker — a ringed dot tracking (response, damping). Reads the scene
@@ -298,6 +307,12 @@ watch(
    canvas with a soft phosphor glow so it stays legible over the saturated cells. */
 .spring-heatmap-marker {
     position: absolute;
+    /* T.G4 — anchored at the field's top-left; `transform: translate(<cqw>,<cqh>)`
+       carries the (response, damping) position and the negative margins centre the
+       0.9rem dot on it. The glide-on-edit transition rides `transform`
+       (compositor-only), never `left`/`top` (no per-edit layout thrash). */
+    top: 0;
+    left: 0;
     width: 0.9rem;
     height: 0.9rem;
     margin-left: -0.45rem;
@@ -309,10 +324,8 @@ watch(
         0 0 0 1.5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, transparent),
         0 0 8px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 55%, transparent);
     pointer-events: none;
-    transition:
-        left var(--duration-fast, 160ms) var(--ease-standard, ease),
-        top var(--duration-fast, 160ms) var(--ease-standard, ease);
-    will-change: left, top;
+    transition: transform var(--duration-fast, 160ms) var(--ease-standard, ease);
+    will-change: transform;
     z-index: var(--z-content);
 }
 

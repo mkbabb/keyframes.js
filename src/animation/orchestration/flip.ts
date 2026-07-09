@@ -21,7 +21,7 @@
  * await flip(card, () => card.classList.toggle("expanded"), { duration: 300 });
  * ```
  */
-import type { Easing, TimingFunction } from "../constants";
+import type { Easing, TimingFunction } from "../constants/types";
 import { ElementMorph, type MorphRect } from "../physics/morph";
 import { RAFPlayback } from "../physics/playback";
 

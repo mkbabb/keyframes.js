@@ -194,6 +194,76 @@ check(
         : `no TARGET rows — the caret-pin consume frontier is un-witnessed`,
 );
 
+// ── (c.5) T.H2 — the ask-letter doc-lint: docs/tranches/T/KF-TO-GLASSUI-BG.md
+//     exists AND every §0 ask row carries a non-empty acceptance-gate cell that
+//     NAMES a well-formed `proof:*` gate OR is a delineated non-blocking GAP note
+//     (BG-7..BG-10). This makes "each letter ask names a falsifiable kf-side gate"
+//     a machine fact — no ask row can ship with an empty/prose-only acceptance
+//     cell. The resolution of each named gate against package.json is REPORTED
+//     (observe-only): the letter's DAG spans downstream bands (T.C5/T.C6/T.G1/
+//     T.D2), so a gate NAMED here but not yet authored is a legitimate pending
+//     edge, NOT a drift — requiring every named gate to exist today would born-RED
+//     against those future waves. ──
+{
+    const LETTER = resolve(REPO, "docs/tranches/T/KF-TO-GLASSUI-BG.md");
+    if (!existsSync(LETTER)) {
+        check(
+            "(c.5)/letter-present",
+            false,
+            "docs/tranches/T/KF-TO-GLASSUI-BG.md ABSENT — the consolidated ask letter is un-shipped",
+        );
+    } else {
+        check("(c.5)/letter-present", true, "docs/tranches/T/KF-TO-GLASSUI-BG.md present (the shipped dispatch)");
+        const letter = readFileSync(LETTER, "utf8");
+        // §0 ask rows: a table row whose id cell is **GU-N** / **BG-N** (skip the
+        // ~~BG-2~~ retired-duplicate row). Column 4 (1-indexed between pipes) is the
+        // kf acceptance gate.
+        const rows = letter
+            .split("\n")
+            .filter((l) => /^\|\s*\*\*(?:GU|BG)-\d+\*\*\s*\|/.test(l));
+        const proofKeys = new Set(
+            Object.keys(pkg.scripts ?? {}).filter((k) => k.startsWith("proof:")),
+        );
+        let bad = [];
+        let namedResolve = [];
+        let namedPending = [];
+        for (const row of rows) {
+            const cells = row.split("|").map((c) => c.trim());
+            // cells[0] is '' (leading pipe); id=cells[1], side=cells[2], ask=cells[3],
+            // gate=cells[4].
+            const id = (cells[1] ?? "").replace(/\*/g, "");
+            const gateCell = cells[4] ?? "";
+            const gateTokens = [...gateCell.matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]);
+            const isGap = /\bGAP\b|delineated|docs ask|non-blocking/i.test(gateCell);
+            if (gateCell.length === 0 || (gateTokens.length === 0 && !isGap)) {
+                bad.push(`${id} (cell: "${gateCell.slice(0, 48)}…")`);
+                continue;
+            }
+            for (const g of gateTokens) {
+                if (proofKeys.has(g)) namedResolve.push(`${id}→${g}`);
+                else namedPending.push(`${id}→${g}`);
+            }
+        }
+        check(
+            "(c.5)/ask-gate-nonempty",
+            rows.length > 0 && bad.length === 0,
+            bad.length === 0
+                ? `all ${rows.length} §0 ask row(s) carry a non-empty acceptance gate (a well-formed proof:* key or a delineated GAP note)`
+                : `ask row(s) with an EMPTY / prose-only acceptance-gate cell (no proof:* key, no GAP note): ${bad.join(", ")}`,
+        );
+        // Observe-only resolution report (never blocks — the letter's DAG spans
+        // downstream bands whose gates land later).
+        if (namedResolve.length > 0)
+            console.log(
+                `  · [gate-resolution observe-only] resolves in package.json now: ${namedResolve.join(", ")}`,
+            );
+        if (namedPending.length > 0)
+            console.log(
+                `  · [gate-resolution observe-only] named but pending a downstream band's wave (legitimate per the letter DAG): ${namedPending.join(", ")}`,
+            );
+    }
+}
+
 // ── (c.4) OBSERVE-ONLY: the `npm view @mkbabb/keyframes` registry cross-check. A NETWORK
 //     leg — observe-only BY CONSTRUCTION (the SAME shape Q.WA3 gives the deploy-roundtrip
 //     live leg): opt-in via KF_PIN_REGISTRY=1 (never runs in CI by default → no flake on

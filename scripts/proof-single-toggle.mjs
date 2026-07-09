@@ -64,22 +64,24 @@ console.log("proof:single-toggle — H.W1 S8/BLK-8 (the @mbabb trigger carries e
 {
     // Strip HTML comments first — the S8 fix is DOCUMENTED in a comment naming the
     // dropped `<DropdownMenuTrigger` wrapper; the tag-count must not see the prose.
-    const app = read(path.join(DEMO, "app/App.vue")).replace(/<!--[\s\S]*?-->/g, "");
+    // The @mbabb menu markup lives in app/dock/MbabbMenu.vue since
+    // S.D1 (extracted out of App.vue — a23 F2).
+    const menu = read(path.join(DEMO, "app/dock/MbabbMenu.vue")).replace(/<!--[\s\S]*?-->/g, "");
 
     // Isolate the @mbabb <DropdownMenu> block (open tag → its </DropdownMenu>).
-    const menuOpen = app.indexOf("<DropdownMenu");
-    const menuClose = app.indexOf("</DropdownMenu>", menuOpen);
-    const block = menuOpen !== -1 && menuClose !== -1 ? app.slice(menuOpen, menuClose) : "";
+    const menuOpen = menu.indexOf("<DropdownMenu");
+    const menuClose = menu.indexOf("</DropdownMenu>", menuOpen);
+    const block = menuOpen !== -1 && menuClose !== -1 ? menu.slice(menuOpen, menuClose) : "";
 
     const dockTriggers = (block.match(/<DockDropdownTrigger\b/g) ?? []).length;
     const outerTriggers = (block.match(/<DropdownMenuTrigger\b/g) ?? []).length;
     const totalTriggers = dockTriggers + outerTriggers;
 
     if (totalTriggers === 1 && dockTriggers === 1) {
-        ok("App.vue @mbabb block has exactly ONE trigger (a single <DockDropdownTrigger>, no outer wrap)");
+        ok("MbabbMenu.vue @mbabb block has exactly ONE trigger (a single <DockDropdownTrigger>, no outer wrap)");
     } else {
         fail(
-            `App.vue @mbabb block must hold exactly ONE trigger — found ${totalTriggers} ` +
+            `MbabbMenu.vue @mbabb block must hold exactly ONE trigger — found ${totalTriggers} ` +
                 `(${dockTriggers}× DockDropdownTrigger + ${outerTriggers}× DropdownMenuTrigger). ` +
                 "The outer DropdownMenuTrigger wrap stacks a second toggle (handlerCount:2, BLK-8).",
         );

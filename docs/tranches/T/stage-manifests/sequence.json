@@ -1,0 +1,16 @@
+{
+  "_doc": "T.M4 owner-sanctioned on-stage inventory for the sequence scene, post the T.M gesture-tell strip (batch ⑧) + the T.B facility rebuild. The `sanctioned` set is the on-stage element inventory the scene renders; any rendered on-stage element NOT in this set REDs proof:stage-inventory. The inline drag-to-retime drafting-stamp tell (`data-gesture-tell=\"sequence:retime\"`, the .seq-gesture-tell drafting stamp naming the row-handle drag) is EXPLICITLY forbidden — the owner ruled the on-stage annotation layer OUT (#8 'remove all elements like this') and it is deleted THIS batch (the affordance is now self-evident from the draggable row handles + the standard transport, not an on-stage legend, per the T.M4 negative-space doctrine).",
+  "scene": "sequence",
+  "sanctioned": [
+    "seq-target-card (the standard glass Card protagonist plate — `<Card surface=glass>`; the contained timeline frame, C-SEQ-2)",
+    "seq-storyboard (the master-tinted .seq-stage that OWNS its time grid — the CONTAINMENT that cures the void-bleed)",
+    "seq-axis (SequenceAxis — the master-clock axis ruler naming the time axis)",
+    "seq-playhead (SequencePlayhead — the swept phosphor master-playhead)",
+    "seq-rows (the traveller lanes on a CSS subgrid — .seq-row with its label + .seq-track + the draggable .seq-handle resting at its at: start gate; the Sequence subject, the diagonal stagger cascade)",
+    "seq-scrubber (SequenceScrubber — the master-clock transport scrubber)"
+  ],
+  "forbidden": [
+    "seq-gesture-tell (#8 — the inline drag-to-retime drafting-stamp tell, `data-gesture-tell=\"sequence:retime\"`, ruled OUT; the <p> + its .seq-gesture-tell CSS deleted at T.M batch ⑧)"
+  ],
+  "status": "SKELETON — the gesture-tell removal (#8) is executed THIS batch; the sanctioned subject set (storyboard + axis + playhead + rows + scrubber) is derived from the landed T.B-facility DOM. RENDERED-set reconciliation is the browser discharge (KF_REQUIRE_BROWSER)."
+}

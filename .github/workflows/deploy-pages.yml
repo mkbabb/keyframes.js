@@ -17,6 +17,20 @@
 #
 # SECRET DISCIPLINE: CLOUDFLARE_API_TOKEN (Pages:Edit + Read) + CLOUDFLARE_ACCOUNT_ID
 # are GH Actions repo secrets, consumed via ${{ secrets.* }}, never inlined/echoed.
+#
+# T.S6 (S.A3 revival) — the auto-deploy-of-record path is GATED ON GREEN
+# demo-correctness. The `ci` workflow's `success` conclusion already REQUIRES the
+# `demo-correctness` blocking job (ci.yml — it "gates deploy"), so a green ci run
+# IS a green demo-correctness run. T.S6 makes that coupling EXPLICIT + fail-loud:
+# the `demo-correctness-green` preflight job below re-asserts, via the triggering
+# run's jobs API, that the SPECIFIC demo-correctness job concluded `success` — so a
+# future ci restructure that demotes demo-correctness from blocking cannot silently
+# ship a red-stage build. The job NAME is single-sourced in ONE place
+# (env.DEMO_CORRECTNESS_JOB); if ci.yml renames that job the preflight reds in
+# lockstep (the drive lesson: gates anchor literal paths — the same for job refs).
+# NOTE: T.S6 wires the MECHANISM only. The auto-path FIRING is permitted at T.Z,
+# gated on the T.M owner-anchored render gates (the auto-path is the mechanism; the
+# owner gates are the permission — T.S charter note 4). No deploy fires from T.S6.
 name: deploy-pages
 
 on:
@@ -31,12 +45,56 @@ concurrency:
 
 permissions:
     contents: read
+    actions: read
+
+env:
+    # SINGLE SOURCE of the ci.yml demo-correctness job name (T.S6). The preflight
+    # gate below matches the triggering run's job of this exact name; a ci.yml
+    # rename must update THIS string in lockstep (else the preflight reds).
+    DEMO_CORRECTNESS_JOB: "demo correctness (inv γ paints + inv δ occlusion-free · BLOCKING · gates deploy)"
 
 jobs:
+    # T.S6 — the demo-correctness green preflight (the S.A3 explicit gate). On a
+    # workflow_run trigger, re-assert that the SPECIFIC demo-correctness job of the
+    # triggering ci run concluded `success` before the deploy job runs. A manual
+    # dispatch skips this (break-glass, break the loop by hand). The job name is
+    # read from the single-sourced env.DEMO_CORRECTNESS_JOB.
+    demo-correctness-green:
+        name: preflight — demo-correctness concluded green
+        if: >-
+            github.event_name == 'workflow_dispatch' ||
+            (github.event.workflow_run.conclusion == 'success' &&
+             github.event.workflow_run.head_branch == 'master' &&
+             github.event.workflow_run.event == 'push')
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - name: assert the demo-correctness job succeeded (single-sourced job name)
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  set -euo pipefail
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                      echo "manual dispatch (break-glass) — skipping the demo-correctness preflight."
+                      exit 0
+                  fi
+                  RUN_ID="${{ github.event.workflow_run.id }}"
+                  echo "Auditing ci run $RUN_ID for a green '$DEMO_CORRECTNESS_JOB' job…"
+                  CONCLUSION=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --paginate \
+                      --jq --arg n "$DEMO_CORRECTNESS_JOB" '.jobs[] | select(.name == $n) | .conclusion' | head -1)
+                  echo "demo-correctness conclusion: '${CONCLUSION:-<job not found>}'"
+                  if [ "$CONCLUSION" != "success" ]; then
+                      echo "::error::demo-correctness did not conclude green (got '${CONCLUSION:-missing}') — the auto-deploy path is GATED on green demo-correctness (S.A3). Not shipping."
+                      exit 1
+                  fi
+                  echo "demo-correctness is green — deploy may proceed."
+
     deploy:
         name: build demo + ship → Cloudflare Pages
+        needs: demo-correctness-green
         # Deploy on a manual dispatch, OR whenever the `ci` workflow finishes GREEN
-        # on a master PUSH. No path filter: every green-CI master push re-ships the
+        # on a master PUSH (with the demo-correctness-green preflight satisfied — the
+        # S.A3 explicit gate). No path filter: every green-CI master push re-ships the
         # live site (the prior tip-commit filter skipped pushes with a docs-only
         # tip even when earlier commits changed the demo).
         if: >-

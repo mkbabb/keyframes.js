@@ -4,7 +4,7 @@
  *
  * This module owns the `await import("./engine")` (and `./group`,
  * `./svg/motion-path`, `./svg/draw-svg`, `./svg/morph-svg`, `./ingest`,
- * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/format`,
+ * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/backward/format`,
  * `./compile/parse-flatten`, `./internal/scheduler`)
  * DYNAMIC edges — never a STATIC `@mkbabb/value.js` import. Every value.js-
  * bearing import here is `import type` (erased under `verbatimModuleSyntax`),
@@ -68,12 +68,25 @@ import type {
     dispatchScrollBackend as dispatchScrollBackendImpl,
     resolveRange as resolveRangeImpl,
     pinCSS as pinCSSImpl,
+    // S.F4 — the discrete `animation-trigger` lifecycle driver.
+    TriggerScene as TriggerSceneClass,
+    createTriggerScene as createTriggerSceneImpl,
+    supportsNativeTrigger as supportsNativeTriggerImpl,
 } from "./scroll";
 // K.W10 COMPILE (FLAGGED ADDITIVE EDIT) — the HEAVY compiler runtime surface,
 // merged onto the engine below (compile statically imports value.js's
 // reverseAnimationShorthand/sampleColorRamp + the engine, so it rides the
 // dynamic boundary, never the LIGHT static barrel).
 import type { compileToCSS as compileToCSSImpl } from "./compile";
+// S.F1 VT-c (FLAGGED ADDITIVE) — the View-Transitions emitter (compileToCSS's
+// sibling over the same value.js-bearing backward substrate). Merged onto the
+// engine below; rides the dynamic boundary, never the LIGHT static barrel (its
+// LIGHT twin is `orchestration/view-transition`'s dispatch).
+import type { compileToViewTransition as compileToViewTransitionImpl } from "./compile/view-transition";
+// S.F3 EN-c (FLAGGED ADDITIVE) — the entry/exit emitter (compileToCSS's
+// declared-endpoint sibling). Merged onto the engine below; rides the dynamic
+// boundary, never the LIGHT static barrel.
+import type { compileToEntry as compileToEntryImpl } from "./compile/entry";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the HEAVY validate/explain
 // runtime surface, merged onto the engine below (validate.ts statically imports
 // the engine + compile + waapi, all value.js-bearing, so it rides the dynamic
@@ -95,7 +108,7 @@ import type {
     CSSKeyframesToString as CSSKeyframesToStringImpl,
     CSSKeyframesToStrings as CSSKeyframesToStringsImpl,
     formatCSSKeyframeString as formatCSSKeyframeStringImpl,
-} from "./compile/format";
+} from "./compile/backward/format";
 import type { transformTargetsStyle as transformTargetsStyleImpl } from "./compile/parse-flatten";
 import type { yieldToMain as yieldToMainImpl } from "./internal/scheduler";
 import type * as AnimationPresets from "./presets/index";
@@ -104,7 +117,7 @@ import type {
     AnimationLayerConfig,
     TimingFunction,
     TimingFunctionNames,
-} from "./constants";
+} from "./constants/types";
 import type { Stylesheet } from "@mkbabb/value.js";
 
 /**
@@ -184,8 +197,18 @@ export interface AnimationEngine {
     resolveRange: typeof resolveRangeImpl;
     /** `position:sticky` pin synthesis. */
     pinCSS: typeof pinCSSImpl;
+    /** The discrete `animation-trigger` lifecycle driver (idle→active→done). */
+    TriggerScene: typeof TriggerSceneClass;
+    /** Construct a `TriggerScene` from a parsed trigger / scroll options. */
+    createTriggerScene: typeof createTriggerSceneImpl;
+    /** Feature-detect native `animation-trigger` (Chrome 145+; never UA-sniffed). */
+    supportsNativeTrigger: typeof supportsNativeTriggerImpl;
     /** The round-trip's BACKWARD half: orchestration graph → zero-runtime CSS. */
     compileToCSS: typeof compileToCSSImpl;
+    /** S.F1 — compile a name-keyed VT role spec → zero-runtime `::view-transition-*` CSS. */
+    compileToViewTransition: typeof compileToViewTransitionImpl;
+    /** S.F3 — compile a selector-keyed entry/exit spec → zero-runtime `@starting-style` CSS. */
+    compileToEntry: typeof compileToEntryImpl;
     /** Read-only validation envelope over the compile/adapter/WAAPI channels. */
     validate: typeof validateImpl;
     /** Format the `validate` verdict as deterministic human/LLM-readable text. */
@@ -269,6 +292,15 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         // merged here so consumers reach the round-trip's BACKWARD half the same
         // way as the rest of the heavy surface.
         import("./compile/index"),
+        // S.F1 VT-c (FLAGGED ADDITIVE) — the View-Transitions emitter. Statically
+        // imports value.js (formatCSS/reverseCSSTime) + the backward compile
+        // substrate; merged here so consumers reach the `::view-transition-*`
+        // emitter the same way as the rest of the heavy surface.
+        import("./compile/view-transition"),
+        // S.F3 EN-c (FLAGGED ADDITIVE) — the entry/exit emitter. Statically imports
+        // value.js + the backward substrate; merged here so consumers reach the
+        // `@starting-style`/`allow-discrete` emitter the same way.
+        import("./compile/entry"),
         // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE) — validate.ts statically
         // imports the engine + compile + waapi (all value.js-bearing); merged here
         // so consumers reach the forward-half VALIDATION layer the same way as the
@@ -277,12 +309,13 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         import("./validate"),
         import("./presets/index"),
         // L.W8 S1 ED-3 DOGFOOD INVERSION (FLAGGED ADDITIVE) — the format/
-        // parse-flatten/scheduler helpers. `compile/format`/`compile/parse-flatten`
-        // are value.js-bearing and already sit on the engine chunk's static graph;
-        // `internal/scheduler` is value.js-free. Merged here so a consumer reaching
-        // the serialization / DOM-paint / yield helpers does so the same way as the
-        // rest of the heavy surface — no new static value.js edge on the LIGHT barrel.
-        import("./compile/format"),
+        // parse-flatten/scheduler helpers. `compile/backward/format` (S.B3 C-2) /
+        // `compile/parse-flatten` are value.js-bearing and already sit on the engine
+        // chunk's static graph; `internal/scheduler` is value.js-free. Merged here so
+        // a consumer reaching the serialization / DOM-paint / yield helpers does so
+        // the same way as the rest of the heavy surface — no new static value.js edge
+        // on the LIGHT barrel.
+        import("./compile/backward/format"),
         import("./compile/parse-flatten"),
         import("./internal/scheduler"),
     ]).then(
@@ -295,6 +328,8 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
             ingestMod,
             scrollMod,
             compileMod,
+            vtMod,
+            entryMod,
             validateMod,
             presets,
             formatMod,
@@ -324,7 +359,12 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
                     dispatchScrollBackend: scrollMod.dispatchScrollBackend,
                     resolveRange: scrollMod.resolveRange,
                     pinCSS: scrollMod.pinCSS,
+                    TriggerScene: scrollMod.TriggerScene,
+                    createTriggerScene: scrollMod.createTriggerScene,
+                    supportsNativeTrigger: scrollMod.supportsNativeTrigger,
                     compileToCSS: compileMod.compileToCSS,
+                    compileToViewTransition: vtMod.compileToViewTransition,
+                    compileToEntry: entryMod.compileToEntry,
                     validate: validateMod.validate,
                     explain: validateMod.explain,
                     presets,

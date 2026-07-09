@@ -1,0 +1,55 @@
+{
+  "blessedBy": "mkbabb (via the delegated judgment \u2014 OWNER-ASKS row 4, 2026-07-06: \"Ratify all with your best judgment\"; executed by the drive orchestrator against the ratified references)",
+  "blessedAt": "2026-07-07T01:27:59-04:00",
+  "blessedCommit": "d35f4ab",
+  "entries": {
+    "amiga-dark": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "11829fb67354ec094727ffde039e7a1bdab350ecc7792215a858338b9cf81923"
+    },
+    "amiga-light": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "93da4b77a51468bd9d8310f0621d8076fe7265418bf00a0c7090760e74b54f0a"
+    },
+    "cube-dark": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "0c3063ff6dd33cbb1fa31409fb47f1415cc19cec3edd1ac31701212a43e9695d"
+    },
+    "cube-light": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "42197d8dec814ecb0fcf8aac73c1391109450a1689e347e31b5c680a0ddb7187"
+    },
+    "easing-dark": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "d0d93e194049734e74a4661cc67cd2c853f8c468a12d48b2589d5373db07b922"
+    },
+    "easing-light": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "cbd0cdb90baf382f1cf3cc731996a568939c66537f7c04cbfb0ba64f7b14c710"
+    },
+    "home-dark": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "b7fbc3bc67ad2b0f5112d167d75aefd57c863973555ff93148734250c0d56209"
+    },
+    "home-light": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "eb686be9ea2caedbad5a952fc51e86845c06151f3088d82288ac4456efe42be9"
+    },
+    "spring-dark": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "b3b3a520253dd5be9eefd157df48c21505db395a3204e7abe9383e2998bf19d1"
+    },
+    "spring-light": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "66f8f009c57bd9fea68c025c107017c7275fbd5c48f33f8539d30db11f3bc4a8"
+    },
+    "square-dark": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "ac25fb0bcf1ca4af2cb70d711c810920533bbdc4f954e35d1001c7cbc3bbd130"
+    },
+    "square-light": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "c3a4eb44fdd18cf67610b5ecf4514c8fe16ed959ddcc52c21bc50c4783e26212"
+    }
+  }
+}

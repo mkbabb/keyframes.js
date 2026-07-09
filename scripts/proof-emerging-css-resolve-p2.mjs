@@ -10,7 +10,7 @@
  *
  * This is the SOURCE-GREP half (the cure-is-wired anchors) — CHAINED in
  * package.json with the BEHAVIOUR half (`vitest run
- * test/emerging-css-resolve-p2.test.ts`, the live observable-truth resolution
+ * test/resolve/emerging-css-resolve-p2.test.ts`, the live observable-truth resolution
  * against a REAL attached jsdom DOM target: if(style(--p)) → the resolved branch,
  * sibling-index() → the integer position). The behaviour half is the gate-
  * blindspot-proof witness (a real DOM resolution, NOT a source grep).
@@ -41,18 +41,25 @@ console.log(
 // files, so a clause's anchor is found wherever the carve landed it.
 const RESOLVE = [
     "src/animation/resolve/index.ts",
+    // S.B4 — the core recursion (resolveNode/hasResolvableValue/hasPhase2Node)
+    // carved off the barrel into ./core (a02 F3/F4). The RESOLVE surface is the
+    // concatenation, so the element-aware anchors are found wherever the carve
+    // landed them.
+    "src/animation/resolve/core.ts",
+    "src/animation/resolve/spring-css.ts",
     "src/animation/resolve/env.ts",
     "src/animation/resolve/resolve-if.ts",
     "src/animation/resolve/resolve-function.ts",
 ];
 const ENGINE = "src/animation/engine/animation.ts";
 // R.W2 — the Phase-2 element-aware SECOND-pass resolver (the `resolveValues`
-// rewriter + the env-populate) was carved out of the engine god-class into the
-// colocated `engine/element-resolve.ts` (lib-engine F-7); `setTargets` (on the
-// base class) calls it as a one-line delegate. The body anchors follow the code
-// to its new home, in the free-function form (`resolveElementAwareValues`/
-// `buildElementAwareEnv`, no leading underscore).
-const ELEMENT_RESOLVE = "src/animation/engine/element-resolve.ts";
+// rewriter + the env-populate) was carved out of the engine god-class; S.B2
+// (a17 F5, RULED) RE-HOMED it into the `resolve/` zone it coheres with
+// (`resolve/element-resolve.ts`), and folded `setTargets`' whole binding body
+// into a `bindTargets(this)` delegate there (which calls
+// `resolveElementAwareValues`). The body anchors follow the code to its new home
+// (`bindTargets`/`resolveElementAwareValues`/`buildElementAwareEnv`).
+const ELEMENT_RESOLVE = "src/animation/resolve/element-resolve.ts";
 
 const requireAll = (clause, file, anchors) => {
     // `file` may be a single path or an array of paths whose concatenation is the
@@ -117,15 +124,20 @@ requireAll("sibling-resolved", RESOLVE, [
 ]);
 
 // ── second-pass (S3) — the element-aware second-pass resolver + the engine's
-//    setTargets delegate. R.W2: the resolver body lives in `./element-resolve`;
-//    `setTargets` (on the base class) calls it (`resolveElementAwareValues`).
+//    setTargets delegate. S.B2: the resolver body lives in `resolve/element-
+//    resolve.ts`; `setTargets` (on the base class) delegates its whole binding
+//    body to `bindTargets(this)`, which runs `resolveElementAwareValues`.
 requireAll("second-pass", ENGINE, [
     {
-        name: "setTargets runs the element-aware second pass (resolveElementAwareValues delegate)",
-        re: /resolveElementAwareValues\s*\(\s*this\s*\)/,
+        name: "setTargets delegates the element-aware second pass to bindTargets(this)",
+        re: /bindTargets\s*\(\s*this\s*\)/,
     },
 ]);
 requireAll("second-pass", ELEMENT_RESOLVE, [
+    {
+        name: "bindTargets runs the element-aware second pass (resolveElementAwareValues delegate)",
+        re: /resolveElementAwareValues\s*\(\s*animation\s*\)/,
+    },
     {
         name: "the resolver imports hasPhase2Node + resolveValues from ../resolve (the second-pass seam)",
         re: /hasPhase2Node[\s\S]*?from\s+["']\.\.\/resolve["']|resolveValues[\s\S]*?from\s+["']\.\.\/resolve["']/,
@@ -149,7 +161,7 @@ if (failures.length > 0) {
     for (const f of failures) console.error(f);
     console.error(
         "\nThe Phase-2 element-aware emerging-CSS lowering pass is not wired. The " +
-            "behaviour half (vitest run test/emerging-css-resolve-p2.test.ts) carries " +
+            "behaviour half (vitest run test/resolve/emerging-css-resolve-p2.test.ts) carries " +
             "the live resolution observables against a REAL attached DOM target; this " +
             "source half confirms the style/sibling-* arms + the widened guard + the " +
             "setTargets env-populate + the second pass are in place.",

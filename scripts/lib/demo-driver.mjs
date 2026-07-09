@@ -12,7 +12,7 @@
  *
  * Exports (the lane contract — keep stable; both gates depend on it):
  *   SCENES         — Array<{ key, route, subjectSelector, dockFloatAllowed }>
- *                    RE-SOURCED from `demo/app/scenes.ts` at H.W8 S1 (was a
+ *                    RE-SOURCED from `demo/app/scene/scenes.ts` at H.W8 S1 (was a
  *                    hand-maintained 6-entry array that drifted to the demo's 8
  *                    scenes). `key` === the scenes.ts id; `route` === the hash
  *                    route. `dockFloatAllowed: true` ONLY for the full-bleed
@@ -51,16 +51,15 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// H.W8 S1 (I-1) — RE-SOURCE THE SCENES MANIFEST FROM `demo/app/scenes.ts`.
+// H.W8 S1 (I-1) — RE-SOURCE THE SCENES MANIFEST FROM `demo/app/scene/scenes.ts`.
 //
-// Before H.W8 this manifest was a HAND-MAINTAINED 6-entry array. It DRIFTED: the
-// demo ships 8 scenes (the cube/amiga/square/easing/spring originals + the
-// sequence/motion-path primitives; `starting-style` was merged INTO spring at
-// H.W5), but the array still knew only 6 — so `sequence`/`motion-path` were
-// NEVER occlusion-checked, lighthouse-scored, or captured by any runtime gate.
+// Before H.W8 this manifest was a HAND-MAINTAINED 6-entry array. It DRIFTED: it
+// knew fewer scenes than the demo shipped — so newly-added scenes were NEVER
+// occlusion-checked, lighthouse-scored, or captured by any runtime gate. (The
+// compose/morph/motion-path scenes were later PRUNED at T.E1/T.E3, OD-1 = PRUNE.)
 //
 // The fix (the load-bearing prerequisite): the manifest's SCENE SET is now
-// DERIVED from `scenes.ts` — the single source the router (`demo/app/router.ts`)
+// DERIVED from `scenes.ts` — the single source the router (`demo/app/scene/router.ts`)
 // already trusts. The id UNION is `[homeScene.id, ...scenes.map(s => s.id)]`
 // (home is SEPARATE from the `scenes[]` array). `route` and `superKey` are read
 // FROM each descriptor (route = `id` for non-home, `""` for home — verified 1:1
@@ -80,7 +79,7 @@ import { fileURLToPath } from "node:url";
 
 const SCENES_TS = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "../../demo/app/scenes.ts",
+    "../../demo/app/scene/scenes.ts",
 );
 
 // The per-id GATE metadata — the only hand-maintained scene data that remains.
@@ -126,17 +125,6 @@ const SCENE_GATE_META = {
     // also catches the Target root and any glass-card.
     sequence: {
         subjectSelector: ".stage-cell [data-surface], [class*=Target], [class*=glass-card]",
-        dockFloatAllowed: false,
-    },
-    "motion-path": {
-        subjectSelector: ".stage-cell [data-surface], [class*=Target], [class*=glass-card]",
-        dockFloatAllowed: false,
-    },
-    // The MorphSVG stage (Q.WC4) — the subject is the live morphing <path>
-    // (data-morph-subject) the engine drives via the render contract, on its
-    // designed violet stage; the broad selector also catches the Target card.
-    morph: {
-        subjectSelector: "[data-morph-subject], .morph-stage, [class*=Target], [class*=glass-card]",
         dockFloatAllowed: false,
     },
 };
@@ -214,12 +202,14 @@ function readObjectAt(text, braceIdx) {
 }
 
 /**
- * Resolve the imported `superKey` constants (R.W5 C.4 — each scene's keys module
- * OWNS its `*_SUPER_KEY = "…"` string; scenes.ts imports the identifier rather
- * than re-declaring the literal). Build an identifier→value map by following each
- * `import { X_SUPER_KEY[ as ALIAS] } from "<rel>"` in scenes.ts to its module and
- * reading the `export const X_SUPER_KEY = "…"`. The descriptor then references
- * `superKey: AMIGA_SUPER_KEY` (an identifier), which this map resolves to a string.
+ * Resolve the imported scene-id constants (R.W5 C.4 / T.B9 — the ONE keyspace:
+ * each scene's keys module OWNS its `*_SCENE_ID = "…"` string; scenes.ts imports
+ * the identifier rather than re-declaring the literal, and the descriptor's
+ * store-keying `superKey` field === that id). Build an identifier→value map by
+ * following each `import { X_SCENE_ID[ as ALIAS] } from "<rel>"` in scenes.ts to
+ * its module and reading the `export const X_SCENE_ID = "…"`. The descriptor then
+ * references `superKey: AMIGA_SCENE_ID` (an identifier), which this map resolves.
+ * (The retired `*_SUPER_KEY` name is still matched so a stale mixed tree resolves.)
  */
 function buildSuperKeyMap(scenesSrc) {
     const map = new Map();
@@ -229,14 +219,14 @@ function buildSuperKeyMap(scenesSrc) {
     while ((m = importRe.exec(scenesSrc))) {
         const names = m[1];
         const rel = m[2];
-        // Only follow imports that bring in a *_SUPER_KEY (possibly aliased).
+        // Only follow imports that bring in a *_SCENE_ID / *_SUPER_KEY (possibly aliased).
         const specRe = /\b([A-Za-z_][\w]*)(?:\s+as\s+([A-Za-z_][\w]*))?\b/g;
         let s;
         const wanted = [];
         while ((s = specRe.exec(names))) {
             const orig = s[1];
             const alias = s[2] ?? s[1];
-            if (/SUPER_KEY$/.test(orig)) wanted.push({ orig, alias });
+            if (/(?:SUPER_KEY|SCENE_ID)$/.test(orig)) wanted.push({ orig, alias });
         }
         if (wanted.length === 0) continue;
         const modPath = path.resolve(path.dirname(SCENES_TS), rel + ".ts");
@@ -255,8 +245,9 @@ function buildSuperKeyMap(scenesSrc) {
 }
 
 /** Extract `id` + `superKey` from one descriptor literal. `superKey` is either a
- *  string literal (legacy) or an imported `*_SUPER_KEY` identifier resolved via
- *  `superKeyMap` (R.W5 C.4). */
+ *  string literal (legacy), the `HOME_SCENE_ID` symbol, or an imported
+ *  `*_SCENE_ID` identifier resolved via `superKeyMap` (R.W5 C.4 / T.B9 — the ONE
+ *  keyspace: `superKey` === the registry id). */
 function parseDescriptor(objText, superKeyMap) {
     const idM = objText.match(/\bid:\s*(?:HOME_SCENE_ID|["'`]([^"'`]+)["'`])/);
     const skLitM = objText.match(/\bsuperKey:\s*["'`]([^"'`]+)["'`]/);
@@ -265,13 +256,17 @@ function parseDescriptor(objText, superKeyMap) {
     const id = idM ? (idM[1] ?? "home") : null;
     if (!id) throw new Error(`demo-driver: descriptor without an id in scenes.ts: ${objText.slice(0, 60)}`);
     let superKey = skLitM ? skLitM[1] : null;
+    // `superKey: HOME_SCENE_ID` resolves to "home" (defined in scenes.ts itself,
+    // not imported, so it is not in superKeyMap — the ONE keyspace: home's store
+    // key is the registry id, not the retired "__home__" sentinel).
+    if (!superKey && skIdentM && skIdentM[1] === "HOME_SCENE_ID") superKey = "home";
     if (!superKey && skIdentM && superKeyMap) {
         superKey = superKeyMap.get(skIdentM[1]) ?? null;
     }
     if (!superKey) {
         throw new Error(
             `demo-driver: descriptor "${id}" without a resolvable superKey in ` +
-                `scenes.ts (string literal or an imported *_SUPER_KEY constant).`,
+                `scenes.ts (string literal or an imported *_SCENE_ID constant).`,
         );
     }
     return { id, superKey };
@@ -316,7 +311,7 @@ const sceneIds = sceneRecords.map((r) => r.id);
  * Shape UNCHANGED from the pre-H.W8 hand-maintained array
  * (`{ key, route, subjectSelector, dockFloatAllowed }`); `key` === the scenes.ts
  * id, `route` === the hash route (`""` for home, `id` for the rest — 1:1 with
- * `demo/app/router.ts`). DERIVED from `scenes.ts` so a new scene auto-enrolls.
+ * `demo/app/scene/router.ts`). DERIVED from `scenes.ts` so a new scene auto-enrolls.
  */
 export const SCENES = sceneRecords.map((r) => ({
     key: r.id,
@@ -327,7 +322,7 @@ export const SCENES = sceneRecords.map((r) => ({
 }));
 
 // The route → superKey map the demo's control-options store is keyed by
-// (demo/app/scenes.ts). openControlsPanel seeds the store under this key so
+// (demo/app/scene/scenes.ts). openControlsPanel seeds the store under this key so
 // App.vue reads the OPEN state on the next mount. DERIVED from scenes.ts (the
 // superKey lives ON each descriptor) so it can never drift from the manifest.
 const SUPER_KEY_BY_ROUTE = Object.fromEntries(
@@ -500,6 +495,32 @@ export async function withBrowser(fn, { launch = {}, label } = {}) {
             label,
         );
     }
+    // ── S.A2 S2 — the NET-DELETION seam (ONE shared chromium). When the roster
+    // driver (scripts/run-demo-roster.mjs) provides KF_SHARED_BROWSER_WS, CONNECT
+    // to its already-launched chromium instead of launching a fresh one — the
+    // ~50-launch surface amortises onto one instance. `browser.close()` on a
+    // connected browser closes only THIS connection (+ its contexts); the roster's
+    // launchServer persists for the next gate. A connect failure is a transient
+    // that falls through to the local-launch path below (the gate is never worse
+    // off than pre-net-deletion).
+    const sharedWs = process.env.KF_SHARED_BROWSER_WS;
+    if (sharedWs) {
+        let browser = null;
+        try {
+            browser = await chromium.connect(sharedWs);
+        } catch {
+            browser = null; // fall through to the local-launch path
+        }
+        if (browser) {
+            const unregister = registerTeardown(() => browser.close());
+            try {
+                return { skipped: false, value: await fn(browser) };
+            } finally {
+                unregister();
+                await browser.close().catch(() => {});
+            }
+        }
+    }
     // J.W4 fix-round-1 (the launch-flake closed-guard — the W3 single-source seam).
     // A bounded retry around the chromium LAUNCH only: on a shared/contended host
     // the GPU/network-service process can crash during launch, surfacing as
@@ -575,7 +596,7 @@ export async function withBrowser(fn, { launch = {}, label } = {}) {
  */
 export async function withPage(opts, fn) {
     const {
-        distDir = path.resolve(
+        distDir: distDirOpt = path.resolve(
             path.dirname(fileURLToPath(import.meta.url)),
             "../../dist/gh-pages",
         ),
@@ -584,26 +605,54 @@ export async function withPage(opts, fn) {
         serve = {},
         label,
     } = opts ?? {};
-    if (!fs.existsSync(path.join(distDir, "index.html"))) {
+    // ── S.A2 S2 — the NET-DELETION seam (ONE served dist, wipe-immune). When the
+    // roster driver provides KF_SHARED_DIST_DIR it is a STABLE SNAPSHOT of the
+    // built demo — served ONCE by the roster and immune to a mid-roster
+    // `build:lib` that empties the real dist/ (the observed cascade: a gate that
+    // runs build:lib emptied dist/gh-pages, redding every concurrent gate with a
+    // false HarnessRequiredError). The snapshot dir OVERRIDES any explicit
+    // per-gate distDir so no gate re-binds to the wipeable tree. KF_SHARED_DIST_URL
+    // is the roster's already-running server; a gate reuses it UNLESS it needs its
+    // own serve options (e.g. `serve.onMiss`, the honest-404 recorder), in which
+    // case it serves its own tiny server off the same snapshot dir.
+    const sharedDir = process.env.KF_SHARED_DIST_DIR;
+    const sharedUrl = process.env.KF_SHARED_DIST_URL;
+    const distDir = sharedDir ?? distDirOpt;
+    // The existence check is skipped when the roster's shared server holds the
+    // snapshot (the gate need not see dist on disk at all — the cascade cure);
+    // otherwise the (possibly-snapshot) dir must carry the built index.html.
+    if (!sharedUrl && !fs.existsSync(path.join(distDir, "index.html"))) {
         return harnessUnavailable(
             "dist/gh-pages not built (run `npm run gh-pages` first)",
             label,
         );
     }
+    // Reuse the shared server iff one is offered AND this gate needs no bespoke
+    // serve options (onMiss et al) — those gates serve their own off the snapshot.
+    const reuseSharedServer =
+        !!sharedUrl && Object.keys(serve).length === 0;
     return withBrowser(
         async (browser) => {
-            const server = await serveDist(distDir, serve);
-            const unregisterServer = registerTeardown(() => server.close());
+            let server = null;
+            let unregisterServer = null;
+            let url;
+            if (reuseSharedServer) {
+                url = sharedUrl;
+            } else {
+                server = await serveDist(distDir, serve);
+                unregisterServer = registerTeardown(() => server.close());
+                url = server.url;
+            }
             const context = await browser.newContext(contextOpts);
             const unregisterCtx = registerTeardown(() => context.close());
             try {
                 const page = await context.newPage();
-                return await fn(page, { url: server.url, server, browser, context });
+                return await fn(page, { url, server, browser, context });
             } finally {
                 unregisterCtx();
-                unregisterServer();
+                if (unregisterServer) unregisterServer();
                 await context.close();
-                await server.close();
+                if (server) await server.close();
             }
         },
         { launch, label },
@@ -630,7 +679,9 @@ export async function openControlsPanel(page) {
         location.hash.replace(/^#\/?/, ""),
     );
     const superKey = SUPER_KEY_BY_ROUTE[route];
-    if (!superKey || superKey === "__home__") return; // home has no panel
+    // T.B9 — home's store key is now the registry id "home" (the "__home__"
+    // sentinel is retired); home still has no controls panel.
+    if (!superKey || superKey === "home") return; // home has no panel
 
     // 1. Select the first animation via the dock's "Select animation" trigger.
     //    This is what unhides the controls pane (its v-show keys on it).
@@ -711,36 +762,68 @@ export async function openControlsPanel(page) {
     }
 
     // 2. Open the controls pane if it is not already open. At width ≥ 1024
-    //    App.vue auto-opens it on selection; on mobile click the toggle
-    //    ("Open controls" / "Close controls" title on the collapse button).
+    //    App.vue auto-opens the desktop rail on selection (`.controls-pane--open`);
+    //    on mobile the sheet is glass-ui's `<Drawer>` (T.H3-ADOPT) — the open fact
+    //    rides the store `isControlsPanelOpen`, which the wrapper maps to the
+    //    Drawer's `activeSnapPoint` (peek ↔ expanded). Seed the OPEN fact + dispatch
+    //    the storage event (the vueuse `useStorage` ref rehydrates) so BOTH layouts
+    //    open; the desktop `[title="Open controls"]` toggle is a fallback click.
     const isOpen = await page.evaluate(
-        () => !!document.querySelector(".controls-pane--open"),
+        () =>
+            !!document.querySelector(".controls-pane--open") ||
+            !!document.querySelector(".glass-drawer"),
     );
     if (!isOpen) {
+        // Layout-agnostic open: seed the store fact + storage-event it (mobile
+        // Drawer reacts) and click the desktop toggle if present.
+        await page.evaluate(
+            ({ storeKey, superKey }) => {
+                let store;
+                try {
+                    store = JSON.parse(localStorage.getItem(storeKey) ?? "{}");
+                } catch {
+                    store = {};
+                }
+                const prev =
+                    store[superKey] && typeof store[superKey] === "object"
+                        ? store[superKey]
+                        : {};
+                store[superKey] = { ...prev, isControlsPanelOpen: true };
+                const nv = JSON.stringify(store);
+                localStorage.setItem(storeKey, nv);
+                window.dispatchEvent(
+                    new StorageEvent("storage", {
+                        key: storeKey,
+                        newValue: nv,
+                        storageArea: localStorage,
+                    }),
+                );
+            },
+            { storeKey: CONTROL_OPTIONS_STORE_KEY, superKey },
+        );
         try {
-            await page.click('[title="Open controls"]', { timeout: 3000 });
-            // SETTLE (L.W4 S2): the pane is OPEN — `.controls-pane--open` in the
-            // DOM OR `#controls-ribbon-target` visible. Not a fixed 600 ms.
-            await waitForRender(
-                page,
-                () =>
-                    !!document.querySelector(".controls-pane--open") ||
-                    !!document.querySelector("#controls-ribbon-target"),
-                { timeout: 3000 },
-            );
+            await page.click('[title="Open controls"]', { timeout: 2000 });
         } catch {
-            /* toggle not present (already open, or no panel) */
+            /* toggle not present (mobile Drawer / already open) */
         }
+        await waitForRender(
+            page,
+            () =>
+                !!document.querySelector(".controls-pane--open") ||
+                !!document.querySelector(".glass-drawer") ||
+                !!document.querySelector("#controls-ribbon-target"),
+            { timeout: 3000 },
+        );
     }
 
-    // 3. Confirm the pane MATERIALISED (L.W4 S2): the trailing fixed-800 ms sleep
-    //    + the follow-up waitForFunction collapse into ONE waitForRender on the
-    //    pane-open predicate. It returns the instant the pane is open; on expiry
-    //    the caller probes the closed layout as-is (honest, not a false green).
+    // 3. Confirm the pane MATERIALISED (L.W4 S2). Desktop `.controls-pane--open` OR
+    //    the mobile `.glass-drawer` OR the ribbon target. On expiry the caller
+    //    probes the layout as-is (honest, not a false green).
     await waitForRender(
         page,
         () =>
             !!document.querySelector(".controls-pane--open") ||
+            !!document.querySelector(".glass-drawer") ||
             !!document.querySelector("#controls-ribbon-target"),
         { timeout: 6000 },
     );
@@ -799,7 +882,7 @@ export async function waitForRender(page, predicate, { timeout = 8000, arg } = {
  * @param expectedTrigger  the destination's control-tab label (e.g.
  *                         `"Controls"`, `"Easing"`, `"Spring"`), or `null`
  *                         when the scene has no control panel
- *                         (home/sequence/motion-path).
+ *                         (home/sequence).
  */
 export async function navToScene(
     page,
@@ -843,6 +926,77 @@ export async function navToScene(
             { timeout },
         )
         .catch(() => {});
+}
+
+/**
+ * pressPlayToggle — actuate the dock play/pause transport the way a REAL pointer
+ * gesture does. R.W6 C.6 (the DM-1 contingency KILL) moved the play toggle off the
+ * strand-prone `@click` onto `@pointerup`/`@keydown` (the collapse-crossfade-
+ * INDEPENDENT path — `TransportDock.onPlayPointerUp`), so a synthetic in-page
+ * `element.click()` no longer actuates it (a bare `click` fires neither `pointerup`
+ * nor `keydown`; a real mouse/touch/pen press fires `pointerup`, a keyboard press
+ * fires `keydown`). This dispatches a primary-button `pointerup` on the VISIBLE
+ * transport button — the exact event `onPlayPointerUp` consumes — so a gate reads
+ * the real product's actuation contract, not the pre-R.W6 click path it outgrew.
+ *
+ * The transport is a single toggle (`isPlaying ? "Pause" : "Play"`), so pressing
+ * "whichever is visible" starts a stopped scene and pauses a playing one; the
+ * expanded button is preferred, the collapsed-dock mirror + the rainbow pill are
+ * fallbacks. `intent: "play"` restricts the press to a visible PLAY control (a
+ * gate that must START must no-op — not toggle into pause — on an auto-playing
+ * scene); `intent: "pause"` mirrors it; `"toggle"` (default) presses whichever
+ * face is visible. Returns the actuated control's aria-label/selector, or null
+ * when no matching transport button is present (the same shape the gates' own
+ * finders returned).
+ */
+export async function pressPlayToggle(page, { intent = "toggle" } = {}) {
+    return page.evaluate((intent) => {
+        const ALL = [
+            'button[aria-label="Play animation"]',
+            'button[aria-label="Pause animation"]',
+            'button[aria-label="Play animation (collapsed dock)"]',
+            'button[aria-label="Pause animation (collapsed dock)"]',
+            'button[aria-label*="Play animation" i]',
+            'button[aria-label*="Pause animation" i]',
+            ".rainbow-vivid",
+            ".rainbow-pastel",
+        ];
+        const SELECTORS =
+            intent === "play"
+                ? ALL.filter((s) => !/Pause|rainbow-vivid/.test(s))
+                : intent === "pause"
+                  ? ALL.filter((s) => !/Play animation|rainbow-pastel/.test(s))
+                  : ALL;
+        const isVisible = (el) => {
+            const r = el.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+        };
+        for (const sel of SELECTORS) {
+            const el = document.querySelector(sel);
+            if (el && isVisible(el)) {
+                // S.B7 (usePlayActuation F3 press-origin guard): a bare synthetic
+                // `pointerup` is EXACTLY the ghost-actuation shape the transport
+                // now rejects — the press must ORIGINATE on the control. The
+                // driver dispatches the honest full press (down THEN up on the
+                // same element, SAME pointerId) with the real gesture's
+                // properties: `isPrimary` (synthetic PointerEvents default it
+                // FALSE, which the guard rightly ignores as a secondary touch)
+                // and a stable pointerId for the down/up pairing.
+                const opts = {
+                    bubbles: true,
+                    cancelable: true,
+                    button: 0,
+                    pointerType: "mouse",
+                    isPrimary: true,
+                    pointerId: 1,
+                };
+                el.dispatchEvent(new PointerEvent("pointerdown", opts));
+                el.dispatchEvent(new PointerEvent("pointerup", opts));
+                return el.getAttribute("aria-label") ?? sel;
+            }
+        }
+        return null;
+    }, intent);
 }
 
 /**

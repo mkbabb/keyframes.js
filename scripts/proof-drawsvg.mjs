@@ -11,7 +11,7 @@
  * exact regression it forbids — verified, not asserted. The behaviour proof
  * (single getTotalLength read / dasharray===L / stroke-dashoffset sweep /
  * eligibility / delegation) lives in the chained `vitest run
- * test/draw-svg.test.ts` (the lead wires the combined `"proof:drawsvg"` script —
+ * test/svg/draw-svg.test.ts` (the lead wires the combined `"proof:drawsvg"` script —
  * see the note at the tail).
  *
  * CLAUSES (each BITES):
@@ -45,7 +45,7 @@
  *       expose them on the static barrel → the light-only consumer pulls the
  *       engine and proof:boundary reds.
  *
- *   test-locks         — `test/draw-svg.test.ts` carries the locking assertions
+ *   test-locks         — `test/svg/draw-svg.test.ts` carries the locking assertions
  *       (single getTotalLength read, dasharray===L, the stroke-dashoffset sweep,
  *       eligibility true, compositor delegation). BITE: delete a lock → reds.
  *
@@ -89,7 +89,7 @@ const INDEX = "src/animation/index.ts";
 // re-export. The barrel-wired clause reads the load-engine surface for the
 // runtime wiring and BOTH surfaces for the no-static-value-export prohibition.
 const LOAD_ENGINE = "src/animation/load-engine.ts";
-const TEST = "test/draw-svg.test.ts";
+const TEST = "test/svg/draw-svg.test.ts";
 
 // ── primitive-exists — fromDrawSVG + DrawSVG are exported ──────────────────────
 requireAll("primitive-exists", DS, [
@@ -252,5 +252,5 @@ console.log(
         "stroke-dasharray:L (one getTotalLength read), reuses the one WAAPI\n" +
         "eligibility gate (no stroke-specific predicate), carries zero value.js\n" +
         "edge, and rides loadAnimationEngine(). The behaviour proof rides\n" +
-        "`vitest run test/draw-svg.test.ts`.",
+        "`vitest run test/svg/draw-svg.test.ts`.",
 );

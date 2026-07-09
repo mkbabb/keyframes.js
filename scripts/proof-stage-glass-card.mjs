@@ -29,7 +29,7 @@
  * control PANELS stay cartoon+quiet (W2/W9) — two altitudes, cleanly separated.
  *
  * The BROWSER clause, BITING the exact defect, for EACH of {easing, spring,
- * sequence, motion-path}: the stage SUBJECT root — uniquely the
+ * sequence}: the stage SUBJECT root — uniquely the
  * `[data-surface="glass"]` Card inside `.stage-cell` (this selector EXCLUDES
  * spring's `spring-view-switch` cartoon pill, which carries `cartoon-surface` +
  * `rounded-full` but NO `data-surface` — it is chrome, not the protagonist plate)
@@ -84,11 +84,11 @@ const fail = (label) => {
     console.error(`  ✗ ${label}`);
 };
 
-console.log("proof:stage-glass-card — H.W11 I5 (the four stage scenes converge to ONE standard glass Card; REVERSES W10 G8 full-bleed)");
+console.log("proof:stage-glass-card — H.W11 I5 (the stage scenes converge to ONE standard glass Card; REVERSES W10 G8 full-bleed)");
 
 // The destination control-tab labels navToScene settles on (per-EXPECTED-state;
-// null = the scene mounts no control panel — sequence/motion-path).
-const TRIGGER = { easing: "Easing", spring: "Spring", sequence: null, "motion-path": null };
+// null = the scene mounts no control panel — sequence).
+const TRIGGER = { easing: "Easing", spring: "Spring", sequence: null };
 
 /** Settle on #/<scene> via the lib's in-page hash nav (storage + the H.W1 trap
  *  survive; page.goto clears both). Re-assert the viewport AFTER navigation. The
@@ -133,7 +133,6 @@ const SCENES = [
     { scene: "easing", label: "easing" },
     { scene: "spring", label: "spring" },
     { scene: "sequence", label: "sequence" },
-    { scene: "motion-path", label: "motion-path" },
 ];
 
 async function browserHalf() {
@@ -272,18 +271,18 @@ async function browserHalf() {
         return;
     }
 
-    // the four-scene convergence: all four must resolve the SAME register
+    // the stage-scene convergence: all must resolve the SAME register
     if (REQUIRE_BROWSER || converged > 0) {
         if (converged === SCENES.length) {
             ok(
-                `the FOUR stage scenes (${SCENES.map((s) => s.label).join(", ")}) converged to ONE ` +
+                `the ${SCENES.length} stage scenes (${SCENES.map((s) => s.label).join(", ")}) converged to ONE ` +
                     `standard glass-card register (the I5/I8/I12 isomorphism — three states → one)`,
             );
         } else if (failures.length === 0) {
-            // converged>0 but <4 with no recorded failure means a scene was skipped — surface it
+            // converged>0 but <N with no recorded failure means a scene was skipped — surface it
             fail(
                 `only ${converged}/${SCENES.length} stage scenes converged to the glass-card register ` +
-                    `(all four MUST converge — any left full-bleed or bare-cartoon breaks the isomorphism)`,
+                    `(all MUST converge — any left full-bleed or bare-cartoon breaks the isomorphism)`,
             );
         }
     }
@@ -300,7 +299,7 @@ if (failures.length > 0) {
     process.exit(1);
 }
 console.log(
-    "\nproof:stage-glass-card — PASS: the four stage scenes (easing/spring/sequence/motion-path) each " +
+    "\nproof:stage-glass-card — PASS: the stage scenes (easing/spring/sequence) each " +
         "resolve ONE standard non-cartoon glass <Card> (data-surface=glass · rounded-card radius · glass " +
-        "backdrop · NOT cartoon) — the I5 reversal of W10 G8's full-bleed, the four-protagonist convergence.",
+        "backdrop · NOT cartoon) — the I5 reversal of W10 G8's full-bleed, the protagonist convergence.",
 );

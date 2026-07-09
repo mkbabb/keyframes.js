@@ -1,28 +1,31 @@
 {
-    "$schema-note": "The constellation pin-ledger witness — Q.WA4 §S4. The SHIPPED pin set (kf 4.4.0 → value.js ^1.1.0 → parse-that ^0.12.0 transitive; glass-ui ~4.0.0 installs 4.0.1) made a single machine-readable record so the caret-pin silent-consume (B6-crossrepo-versions) is an OBSERVABLE edge. proof:pin-ledger-current (scripts/proof-pin-ledger-current.mjs) reads the LOCAL package.json declared pins + the installed tree (node_modules/<pkg>/package.json) + the lockfile and HARD-asserts they equal `shipped` (device-independent, pure-filesystem). The `npm view` registry cross-check is OBSERVE-ONLY (declarePosture). The `target` rows record the Q re-pin frontier (the consume edges Q.WG4 fires) WITHOUT a network/sibling dependency.",
-    "tranche": "Q",
+    "$schema-note": "The constellation pin-ledger witness — Q.WA4 §S4, re-authored to the SHIPPED reality at S.A0 (a31 CRITICAL). The SHIPPED pin set (kf 5.1.0 → value.js ^1.2.0 → parse-that ^0.13.0 transitive; glass-ui ~4.0.0 installs 4.0.1) is the single machine-readable record so the caret-pin silent-consume (B6-crossrepo-versions) is an OBSERVABLE edge. proof:pin-ledger-current (scripts/proof-pin-ledger-current.mjs) reads the LOCAL package.json declared pins + the installed tree (node_modules/<pkg>/package.json) + the lockfile and HARD-asserts they equal `shipped` (device-independent, pure-filesystem). The `npm view` registry cross-check is OBSERVE-ONLY (declarePosture). The `target` rows record the remaining un-fired re-pin frontier (the consume edges not yet published) WITHOUT a network/sibling dependency. The value.js ^1.2.0 + parse-that ^0.13.0 targets FIRED (Q.WG4) and fold into `shipped`; the ledger keeps its docs/tranches/Q/ path — only its contents advance.",
+    "tranche": "S",
     "schemaVersion": 1,
-    "owningWave": "Q.WA4",
-    "recordedAt": "2026-06-23",
+    "owningWave": "S.A0",
+    "recordedAt": "2026-07-04",
     "shipped": {
-        "$comment": "The pins the SHIPPED 4.4.0 keyframes.js declares + installs. `declared` is read from the LOCAL package.json (the pin spec); `installed` is read from node_modules/<pkg>/package.json (the resolved tree) + cross-checked against package-lock.json. The HARD clause reds on ANY drift from these. Source-of-record: package.json dependencies.@mkbabb/value.js (^1.1.0), package.json optionalDependencies.@mkbabb/glass-ui (~4.0.0); value.js 1.1.0's own dependencies declare parse-that ^0.12.0 (transitive).",
-        "self": { "name": "@mkbabb/keyframes.js", "version": "4.4.0" },
+        "$comment": "The pins the SHIPPED 5.1.0 keyframes.js declares + installs. `declared` is read from the LOCAL package.json (the pin spec); `installed` is read from node_modules/<pkg>/package.json (the resolved tree) + cross-checked against package-lock.json. The HARD clause reds on ANY drift from these. Source-of-record: package.json dependencies.@mkbabb/value.js (^2.0.1), package.json optionalDependencies.@mkbabb/glass-ui (~4.0.0); value.js 2.0.1's own dependencies declare parse-that ^1.0.0 (transitive).",
+        "self": {
+            "name": "@mkbabb/keyframes.js",
+            "version": "5.1.0"
+        },
         "pins": [
             {
                 "name": "@mkbabb/value.js",
-                "declared": "^1.1.0",
+                "declared": "^3.1.0",
                 "declaredIn": "dependencies",
-                "installed": "1.1.0",
+                "installed": "3.1.0",
                 "edge": "direct",
-                "note": "the caret pin — a future value.js 1.2.0 is auto-consumed with NO re-pin observable until Q.WG4 records the ^1.2.0 re-pin (the `target` row). This ledger makes that silent-consume an OBSERVABLE edge."
+                "note": "the caret pin — the value.js-3.x consume-edge FIRED at T.S3 (2026-07-05): re-pinned ^2.0.1 -> ^3.1.0 (npm install @^3.0.0 resolved dist-tags.latest=3.1.0; ^<installed> convention, as the prior ^2.0.1). VERIFIED in a DEDICATED isolated clone (fresh npm ci, NOT the shared-symlink worktree): check + build + gh-pages + vitest + proof:library-correctness + proof:boundary + proof:zero-alloc + proof:replay-equality + proof:color-fidelity + proof:emerging-css-resolve (the KF-1 vector) all GREEN. 3.1.0 DROPS the value.js self-dependency phantom -> proof:no-nested-self-dependency flips GREEN (discharged; removed from T_BORNRED_BACKLOG). KF-7 is STILL unfulfilled at 3.1.0 (PropertyDescriptor un-renamed) so proof:no-collision-rename STAYS a born-RED backlog tripwire. The 3.x breaking changes (logerp arg order / color-soa removal) DO NOT touch kf's surface (grep-zero in src/). The prior 2.0.x normalizeParam/VJS_PARAM_BUG_MAX apparatus stays DELETED."
             },
             {
                 "name": "@mkbabb/parse-that",
-                "declared": "^0.12.0",
+                "declared": "^0.13.0",
                 "declaredIn": "transitive-via-value.js",
-                "installed": "0.12.0",
+                "installed": "1.0.0",
                 "edge": "transitive",
-                "note": "kf does NOT declare parse-that directly (the S9 dep removal — constellation IMPL drive); it arrives transitively through value.js 1.1.0's own `dependencies` (@mkbabb/parse-that ^0.12.0). The HARD clause asserts the INSTALLED transitive version only (kf declares no spec to drift)."
+                "note": "transitive via value.js 2.0.1 (^1.0.0) — the S.H4 cut (PACKRAT_ARMED arming; *Span surface deleted; chainError retired + the C-16 falsy-seed chain() fix) arrived through the single S.C4/S2 re-pin."
             },
             {
                 "name": "@mkbabb/glass-ui",
@@ -30,36 +33,46 @@
                 "declaredIn": "optionalDependencies",
                 "installed": "4.0.1",
                 "edge": "direct-dev",
-                "note": "the tilde pin admits 4.0.x patch only; ~4.0.0 installs 4.0.1. The glass-ui BC cut (Q.WG3) re-pins the peer range to admit 5.0.0 — recorded in the `target` row."
+                "note": "the tilde pin admits 4.0.x patch only; ~4.0.0 installs 4.0.1. The glass-ui 5.0.0 consume is an owner-domain HANDOFF (the 2026-07-03 S.E shelf) with no owning S wave — the pin posture (hold ~4.0.x, tilde never caret) rides S.C4 per C-12; recorded in the `target` row."
             }
         ]
     },
     "target": {
-        "$comment": "The Q TARGET pins — the consume edges Q.WG4 / Q.WG-GATED-CONSUMES re-pin ON the sibling publish. These are RECORDED here so the caret-pin consume is an explicit, observable edge a future audit can check (B6-crossrepo-versions). They are NOT asserted by the HARD clause (the publish has not fired on today's tree — the DAG's no-unpublished-consume invariant forbids consuming them early); they are the witness frontier, reported OBSERVE-ONLY against the registry.",
+        "$comment": "The remaining un-fired TARGET pin — the ONE consume edge whose publish has NOT fired on today's tree (the DAG's no-unpublished-consume invariant forbids consuming it early). Recorded here so the caret-pin consume frontier is an explicit, observable edge a future audit can check (B6-crossrepo-versions). NOT asserted by the HARD clause; reported OBSERVE-ONLY against the registry. The value.js ^1.2.0 + parse-that ^0.13.0 targets FIRED (Q.WG4) and folded into `shipped`. T.H2 SUPERSEDES the Q dispatch (KF-TO-GLASSUI-Q.md) with the consolidated T letter (docs/tranches/T/KF-TO-GLASSUI-BG.md) and expands the single glass-ui consume edge into a per-ask `asks` frontier (a row per KF-TO-GLASSUI-BG.md §0 ask) — all 13 asks (incl. the T.H3 BG-11 drawer-detent-inset finding) fire on the ONE glass-ui BG/BH re-pin.",
         "pins": [
-            {
-                "name": "@mkbabb/value.js",
-                "target": "^1.2.0",
-                "firesOn": "value.js 1.2.0 publish (Q.WG2)",
-                "consumes": "@function inlining (Q.WB2) + leaves externalize (Q.WE2) + ColorChannelPlan SoA (Q.WB3-color) + S8 VJ-L1 + if-multibranch",
-                "rePinWave": "Q.WG4",
-                "dispatchDoc": "KF-TO-VALUEJS-Q.md"
-            },
-            {
-                "name": "@mkbabb/parse-that",
-                "target": "^0.13.0",
-                "firesOn": "parse-that 0.13.0 publish (Q.WG1) — consumed transitively via value.js 1.1.1/1.2.0",
-                "consumes": "the re-entrancy-sound packrat behind the CSSKeyframesAnimation facade",
-                "rePinWave": "Q.WG1 (value.js-side) → transitive",
-                "dispatchDoc": "KF-TO-PARSETHAT-Q.md"
-            },
             {
                 "name": "@mkbabb/glass-ui",
                 "target": "^4.0.0 || ^5.0.0",
-                "firesOn": "glass-ui BC cut (Q.WG3) — the peer-range widen to admit the kf 5.0.0 cut",
-                "consumes": "the SegmentedTabs aria guard + the dock collapse-crossfade strand fix + the N-Stage unshelf rebase (Q.WC3-NSTAGE-UNSHELF)",
-                "rePinWave": "Q.WG-GATED-CONSUMES",
-                "dispatchDoc": "KF-TO-GLASSUI-Q.md"
+                "firesOn": "glass-ui BG/BH publish — the peer-range widen to admit the aria/dock/specular consume; an owner-domain HANDOFF since the 2026-07-03 S.E shelf (no owning S wave)",
+                "consumes": "the thirteen KF-TO-GLASSUI-BG.md asks (dock render/interaction GU-1..4, tabs aria+role BG-1/3, dropdown pointerdown BG-4, static-backdrop BG-5, --font-display-weight BG-6, public specular writer BG-7, easing-picker BG-8/9/10, drawer detent bottom-inset BG-11)",
+                "rePinWave": "owner-domain HANDOFF (glass-ui BG/BH dev-complete, unbuilt)",
+                "dispatchDoc": "docs/tranches/T/KF-TO-GLASSUI-BG.md",
+                "asks": [
+                    { "id": "GU-1", "side": "glass-ui", "acceptanceGate": "proof:dock-rest-crisp", "retires": "— (glass-ui-root render defect)", "gap": "segmentedTabsAriaOrientation-adjacent (dockRestBlur)" },
+                    { "id": "GU-2", "side": "glass-ui", "acceptanceGate": "proof:dock-morph-continuity", "retires": "— (glass-ui-root defect)", "gap": "dockMorphMeasure" },
+                    { "id": "GU-3", "side": "glass-ui", "acceptanceGate": "proof:workaround-deletion", "retires": "ChromeDock.vue re-expand watch + popup mutex", "gap": "dockDismissHold" },
+                    { "id": "GU-4", "side": "glass-ui", "acceptanceGate": "proof:workaround-deletion", "retires": "TransportDock.vue usePlayActuation", "gap": "dockStrandKeepalive" },
+                    { "id": "BG-1", "side": "glass-ui", "acceptanceGate": "proof:glassui-aria-ask", "retires": "the aria-orientation suppress (precondition for the KfPillTabs excision)", "gap": "segmentedTabsAriaOrientation" },
+                    { "id": "BG-3", "side": "glass-ui", "acceptanceGate": "proof:glassui-aria-ask", "retires": "KfPillTabs.vue + useKfPillTabs.ts", "gap": "segmentedTabsAriaOrientation" },
+                    { "id": "BG-4", "side": "glass-ui", "acceptanceGate": "proof:dock-popover-opens", "retires": "MbabbMenu.vue pointerdown click-synthesis", "gap": "dockDropdownPointerdown" },
+                    { "id": "BG-5", "side": "glass-ui", "acceptanceGate": "proof:blur-not-resampled", "retires": "the ineffective contain:paint on .scene-host", "gap": "staticBackdrop" },
+                    { "id": "BG-6", "side": "glass-ui", "acceptanceGate": "proof:demo-fonts", "retires": "the demo-side @layer weight override", "gap": "fontDisplayWeight" },
+                    { "id": "BG-7", "side": "glass-ui", "acceptanceGate": "GAP: served by public @mkbabb/glass-ui/aurora (T.D13/OD-2)", "retires": "— (a NAMED gap, not a workaround)", "gap": "specularWriterPublic" },
+                    { "id": "BG-8", "side": "glass-ui", "acceptanceGate": "GAP: EasingPicker consumed as the sole editor; the bounce family kf-owned", "retires": "— (a NAMED gap)", "gap": "—" },
+                    { "id": "BG-9", "side": "glass-ui docs", "acceptanceGate": "GAP: docs ask, non-blocking (the demo already drives progress)", "retires": "— (docs ask)", "gap": "—" },
+                    { "id": "BG-10", "side": "glass-ui", "acceptanceGate": "GAP: additive ToggleChip cell preview slot", "retires": "— (additive component ask)", "gap": "—" },
+                    { "id": "BG-11", "side": "glass-ui", "acceptanceGate": "proof:glass-ui-gap-tripwire", "retires": "the bespoke ControlsPaneWrapper sheet + useSheetGesture/Spring/State + SheetGrabHandle (~350L) on the T.H3 swap", "gap": "drawerDetentInset" }
+                ]
+            },
+            {
+                "name": "@mkbabb/value.js",
+                "target": "^3.0.0",
+                "firesOn": "value.js 3.0.0 is registry `latest` (dist-tags.latest=3.0.0 confirmed 2026-07-05). A MAJOR bump — the actual re-pin is a DEDICATED, isolated motion (fresh clone / npm ci), NOT executed in the T.S3 worktree (whose node_modules symlinks the shared install; an in-worktree `npm install` would corrupt sibling lanes).",
+                "consumes": "the value.js self-dependency-phantom fix (3.0.0 drops `@mkbabb/value.js` from its own deps — greens proof:no-nested-self-dependency). Does NOT discharge KF-7 (3.0.0 STILL exports PropertyDescriptor un-renamed — proof:no-collision-rename stays RED until value.js publishes the CSSPropertyDescriptor rename).",
+                "rePinWave": "T.S3 (executed 2026-07-05)",
+                "dispatchDoc": "docs/tranches/T/KF-TO-VALUEJS-T.md",
+                "executionContract": "re-pin ONLY IF (a) adopt-event watch confirms dist-tags.latest ≥ 3.0.0 AND (b) the full library gate set stays green after: proof:library-correctness + proof:boundary + build + vitest. VERIFIED + EXECUTED at T.S3: dist-tags.latest=3.1.0; the FULL set greened in an isolated clone (the shared-symlink worktree can't npm install without corrupting sibling lanes — the dedicated-isolated-motion contract honored). FOLDED into shipped (@mkbabb/value.js declared ^3.1.0 / installed 3.1.0).",
+                "status": "FIRED (T.S3, 2026-07-05 — folded into shipped)"
             }
         ]
     }

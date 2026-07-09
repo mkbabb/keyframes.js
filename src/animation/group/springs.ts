@@ -17,7 +17,7 @@
  * adds no boundary edge — `group.ts` is HEAVY regardless.
  */
 import { SpringProgress, type SpringProgressOptions } from "../physics/spring";
-import type { AnimationGroupEntry } from "./group";
+import type { AnimationGroupEntry } from "./types";
 
 /**
  * Options for `AnimationGroup.transitionLayer` / `crossfade` (K.W11 PHYS-C).

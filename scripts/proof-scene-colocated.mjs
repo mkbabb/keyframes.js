@@ -44,17 +44,18 @@ const SCENES = path.join(DEMO, "scenes");
 const SKIP_DIR = new Set(["dist", "node_modules", ".git", "coverage"]);
 const SOURCE_EXT = new Set([".ts", ".vue"]);
 
-// The eight fused scenes (the verified roster, ascending-complexity order). Each
-// becomes ONE colocated directory `demo/scenes/<name>/` carrying `<Name>Scene.vue`.
+// The colocated scenes (the verified roster, ascending-complexity order). Each is
+// ONE colocated directory `demo/scenes/<name>/` carrying `<Name>Scene.vue` + a
+// `use<Name>Demo` peer (C-17, the fleet-wide naming convention — S.D4 landed the
+// last three `use<Name>Animations` stragglers: square/amiga/cube). The
+// compose/morph/motion-path scenes were PRUNED at T.E1/T.E3 (OD-1 = PRUNE).
 const SCENE_DIRS = [
-    { name: "morph", scene: "MorphSVGScene.vue", demo: "useMorphDemo.ts" },
-    { name: "motion-path", scene: "MotionPathScene.vue", demo: "useMotionPathDemo.ts" },
     { name: "easing", scene: "EasingScene.vue", demo: "useEasingDemo.ts" },
     { name: "sequence", scene: "SequenceScene.vue", demo: "useSequenceDemo.ts" },
-    { name: "square", scene: "SquareScene.vue", demo: "useSquareAnimations.ts" },
+    { name: "square", scene: "SquareScene.vue", demo: "useSquareDemo.ts" },
     { name: "spring", scene: "SpringScene.vue", demo: "useSpringDemo.ts" },
-    { name: "amiga", scene: "AmigaScene.vue", demo: "useAmigaAnimations.ts" },
-    { name: "cube", scene: "CubeScene.vue", demo: "useCubeAnimations.ts" },
+    { name: "amiga", scene: "AmigaScene.vue", demo: "useAmigaDemo.ts" },
+    { name: "cube", scene: "CubeScene.vue", demo: "useCubeDemo.ts" },
 ];
 
 const toPosix = (p) => p.split(path.sep).join("/");
@@ -131,7 +132,7 @@ function main() {
         if (fs.existsSync(appScenes)) {
             issues.push(
                 `demo/app/scenes/ still exists — it must be empty-deleted after ` +
-                    `all 8 scenes fuse into demo/scenes/<name>/`,
+                    `all 9 scenes fuse into demo/scenes/<name>/`,
             );
         }
         if (issues.length > 0) {
@@ -226,6 +227,84 @@ function main() {
             console.log(
                 `  ✓ [dead-code] SceneSwitcherCarousel + useScrollSnapScene ` +
                     `excised everywhere; Animated.vue + ResponsiveSelect.vue gone`,
+            );
+        }
+    }
+
+    // ── ASSERTION 4 — S.D2 scene-private colocation reference-count ─────────
+    // The canonical A4 → D2 → D3 edit order (SPEC §3 DAG); this is edit #2. S.D2
+    // evicted the single-area-private modules OUT of demo/@ INTO their sole-
+    // consuming scene (a24 F3/F4): orbital-drag/ + matrix-editor/ → scenes/cube/,
+    // useTypedTrigger → scenes/sequence/. This reference-count clause LOCKS that
+    // privacy: each colocated module must have ZERO importer OUTSIDE its host
+    // scene — an external reference means it was never scene-private (it belongs
+    // back in @/), so it REDs. Falsifiable: import orbital-drag from another scene
+    // → the external ref reds this clause.
+    {
+        const COLOCATED = [
+            ["scenes/cube/orbital-drag", "scenes/cube"],
+            ["scenes/cube/matrix-editor", "scenes/cube"],
+            ["scenes/sequence/useTypedTrigger.ts", "scenes/sequence"],
+        ];
+        const SPEC_RE =
+            /\bfrom\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|^\s*import\s*["']([^"']+)["']/gm;
+        const allDemo = collectSources(DEMO).sort();
+        const issues = [];
+        for (const [modRel, host] of COLOCATED) {
+            const modAbs = path.join(DEMO, modRel);
+            const modExists =
+                fs.existsSync(modAbs) ||
+                fs.existsSync(modAbs + ".ts") ||
+                fs.existsSync(modAbs + ".vue");
+            if (!modExists) {
+                issues.push(
+                    `${modRel} — the S.D2 colocation target does not exist (regressed)`,
+                );
+                continue;
+            }
+            const hostPrefix = toPosix(path.join(DEMO, host)) + "/";
+            const modPrefix = toPosix(modAbs);
+            const external = [];
+            for (const abs of allDemo) {
+                if (toPosix(abs).startsWith(hostPrefix)) continue; // inside host scene — allowed
+                const dir = path.dirname(abs);
+                const src = fs.readFileSync(abs, "utf8");
+                let m;
+                SPEC_RE.lastIndex = 0;
+                while ((m = SPEC_RE.exec(src)) !== null) {
+                    const spec = m[1] ?? m[2] ?? m[3];
+                    if (!spec || !(spec.startsWith("./") || spec.startsWith("../")))
+                        continue;
+                    const resolved = toPosix(path.resolve(dir, spec));
+                    if (
+                        resolved === modPrefix ||
+                        resolved.startsWith(modPrefix + "/") ||
+                        resolved === modPrefix.replace(/\.ts$/, "")
+                    ) {
+                        external.push(relPosix(abs));
+                        break;
+                    }
+                }
+            }
+            if (external.length > 0) {
+                issues.push(
+                    `${modRel} is imported from OUTSIDE ${host}/ (${external.length} site(s): ` +
+                        external.join(", ") +
+                        `) — it is not scene-private; it belongs in @/, not colocated`,
+                );
+            }
+        }
+        if (issues.length > 0) {
+            failures.push(
+                `[d2-ref-count] ${issues.length} S.D2 scene-private colocation(s) ` +
+                    `referenced externally:\n      ` +
+                    issues.join("\n      "),
+            );
+        } else {
+            console.log(
+                `  ✓ [d2-ref-count] the S.D2 scene-private colocations ` +
+                    `(orbital-drag/matrix-editor→cube, useTypedTrigger→sequence) ` +
+                    `have zero external importer`,
             );
         }
     }

@@ -44,25 +44,26 @@
 
 import { PathGeometry } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../engine";
-import type {
-    InputAnimationOptions,
-    TransformFunction,
-    Vars,
-} from "../constants";
+import { SVGAnimationHandle } from "./handle";
+import type { InputAnimationOptions, Vars } from "../constants";
 import { AnimationOptionError } from "../internal/errors";
+// T.F22 — the geometry-sampling + per-frame render machinery is carved into the
+// colocated `./morph-geometry` sibling (the mechanism beneath the public factory
+// + class). `MorphPoint` is re-exported below so the barrel surface is unchanged.
+import {
+    DEFAULT_SAMPLES,
+    xKey,
+    yKey,
+    angleKey,
+    samplePolyline,
+    pointsToD,
+    makeMorphRenderer,
+    type ElementWithStyle,
+    type ElementWithAttribute,
+    type MorphPoint,
+} from "./morph-geometry";
 
-/** A sampled point on a path polyline. */
-export interface MorphPoint {
-    x: number;
-    y: number;
-    /**
-     * The tangent angle (radians) of the source path at this point — populated
-     * ONLY when the morph is built with `orient: true` (the
-     * `PathGeometry.sampleAtLength` tangent, the `rotate: auto` value). Absent
-     * (`undefined`) on a position-only morph (the default ~130-key floor).
-     */
-    angle?: number;
-}
+export type { MorphPoint };
 
 export interface MorphSVGOptions extends Partial<InputAnimationOptions> {
     /**
@@ -117,131 +118,12 @@ export interface MorphSVGOptions extends Partial<InputAnimationOptions> {
     autoPlay?: boolean;
 }
 
-/** The default uniform-sample count — the keystone-validated resolution. */
-const DEFAULT_SAMPLES = 64;
-
-/** The per-point coordinate key prefix (a CSS custom property, kebab-safe). */
-const xKey = (i: number): string => `--morph-${i}-x`;
-const yKey = (i: number): string => `--morph-${i}-y`;
-/** The per-point tangent-angle key (radians) — emitted ONLY when `orient`. */
-const angleKey = (i: number): string => `--morph-${i}-angle`;
-
-/**
- * Sample a {@link PathGeometry} at `n + 1` uniform `t` in `[0, 1]`, returning
- * the `(x, y)` point array (length `n + 1`). The arc-length table was built at
- * construction, so each `getPointAtT` is a binary-search + lerp — no re-parse.
- *
- * When `orient` is true, each point ALSO carries the path's tangent `angle`
- * (radians) at that step. The arc-length conversion is the correctness pivot:
- * the position is sampled by NORMALIZED `t` via `getPointAtT(i/n)`, but
- * `sampleAtLength` takes an arc-LENGTH — so the tangent at the SAME point is
- * `sampleAtLength(totalLength * (i/n)).angle`, NOT `sampleAtLength(i/n)` (which
- * would read the tangent a fraction of a pixel along the path — a degenerate
- * near-origin angle).
- */
-const samplePolyline = (
-    geo: PathGeometry,
-    n: number,
-    orient: boolean,
-): MorphPoint[] => {
-    const pts: MorphPoint[] = new Array(n + 1);
-    for (let i = 0; i <= n; i++) {
-        if (orient) {
-            const s = geo.sampleAtLength(geo.totalLength * (i / n));
-            pts[i] = { x: s.x, y: s.y, angle: s.angle };
-        } else {
-            pts[i] = geo.getPointAtT(i / n);
-        }
-    }
-    return pts;
-};
-
-/** Format ONE number for a `d` string — integers bare, fractions to 3 places. */
-const fmtNum = (n: number): string =>
-    Number.isInteger(n) ? `${n}` : n.toFixed(3);
-
-/** Assemble a polyline point array into an SVG `d` string (`M … L … L …`). */
-const pointsToD = (pts: MorphPoint[]): string => {
-    if (pts.length === 0) return "";
-    let d = `M ${fmtNum(pts[0]!.x)} ${fmtNum(pts[0]!.y)}`;
-    for (let i = 1; i < pts.length; i++) {
-        d += ` L ${fmtNum(pts[i]!.x)} ${fmtNum(pts[i]!.y)}`;
-    }
-    return d;
-};
-
-/**
- * The minimal style-write surface the morph renderer needs — `style.setProperty`
- * (the `--morph-d` custom property + the `d:` property). Both `HTMLElement` and
- * `SVGElement` satisfy it; typed structurally so the renderer composes off-DOM
- * (the same DOM-free posture as the rest of the geometry path) over any
- * `{ style: { setProperty } }` target without a `document` cast.
- */
-interface ElementWithStyle {
-    style: { setProperty(property: string, value: string): void };
-}
-
-/**
- * Build the per-frame RENDER contract (S1) — the custom `transform` a
- * target-bearing {@link fromMorphSVG} supplies to `fromKeyframes`. Each frame
- * the engine invokes this with the interpolated `vars` (the `--morph-{i}-x/y`
- * keys, each `vars[key][0].value` the lerped number — the SAME shape
- * {@link MorphSVG.sampleD} reads); it reassembles the points into a `d` string
- * and writes it onto `target.style` as BOTH the `d:` CSS property and the
- * `--morph-d` custom property.
- *
- * ZERO-ALLOC on the steady frame: the scratch point-array is hoisted into THIS
- * closure once (`scratch`, length `samples + 1`), and each frame mutates its
- * slots in place — NO `new Array` per render (contrast `MorphSVG.sampleD`'s
- * per-call allocation, fine for a one-off manual pull, NOT a 60Hz render).
- */
-const makeMorphRenderer = <V extends Vars>(
-    target: ElementWithStyle,
-    samples: number,
-): TransformFunction<V> => {
-    // The ONE hoisted scratch buffer — reused every frame (zero-alloc steady).
-    const scratch: MorphPoint[] = new Array(samples + 1);
-    for (let i = 0; i <= samples; i++) scratch[i] = { x: 0, y: 0 };
-
-    return (vars: V) => {
-        const v = vars as unknown as Record<
-            string,
-            ReadonlyArray<{ value?: number }> | undefined
-        >;
-        for (let i = 0; i <= samples; i++) {
-            const pt = scratch[i]!;
-            // R.W3 §2D (FAIL-EXPLICIT): the morph renderer seeds EVERY point
-            // key at construction time (xKey(i)/yKey(i) for every i in [0,samples]),
-            // so a missing key here is an engine-invariant violation, NOT an
-            // expected-absent case. Mask-to-0 would corrupt the path silently —
-            // throw instead (the honest-or-refuse law from the factory below).
-            const lx = v[xKey(i)]?.[0]?.value;
-            const ly = v[yKey(i)]?.[0]?.value;
-            if (lx === undefined || ly === undefined) {
-                throw new Error(
-                    `morph render: point ${i} lost its coordinate leaf ` +
-                        `(engine invariant violated — xKey/yKey seeded at construction)`,
-                );
-            }
-            pt.x = lx;
-            pt.y = ly;
-        }
-        const d = pointsToD(scratch);
-        // The cross-browser author channel (var(--morph-d) + the JS reader) AND
-        // the directly-rendered `d:` property (Chromium/Safari). Both writes are
-        // honest: `d` paints natively where supported; `--morph-d` is the
-        // documented Firefox-lags fallback.
-        target.style.setProperty("--morph-d", d);
-        target.style.setProperty("d", `path("${d}")`);
-    };
-};
-
 /**
  * Build an SVG path-shape morph: sample two `d` strings at `samples` uniform
  * arc-length steps each, pair the point sets, and interpolate the `(x, y)`
  * pairs from the `from`-polyline (`0%`) to the `to`-polyline (`100%`). Returns
  * the constructed {@link CSSKeyframesAnimation} as the control handle (the
- * `animate()` contract — `.play()` / `.pause()` / `.stop()` / `.finished`),
+ * control-handle contract — `.play()` / `.pause()` / `.stop()` / `.finished`),
  * consistent with the `from*` factory family.
  *
  * value.js's `PathGeometry` owns the geometry (the `d`-parse + arc-length
@@ -271,7 +153,7 @@ const makeMorphRenderer = <V extends Vars>(
  * // morphing shape paints directly (no author-side reader needed on Chromium/
  * // Safari; `<path style="d: var(--morph-d)">` is the Firefox-lags fallback).
  */
-export function fromMorphSVG<V extends Record<string, any> = any>(
+export function fromMorphSVG<V extends Vars = Vars>(
     from: string,
     to: string,
     options: MorphSVGOptions = {},
@@ -389,6 +271,20 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
               )
             : undefined;
 
+    // T.A14 (ATTRIBUTE-FIRST) — seed the `from` shape onto the target's SVG `d`
+    // ATTRIBUTE at BUILD time, BEFORE any play/frame write. So at rest (no frame
+    // in flight — pre-play under autoPlay:false, or post-settle) the subject
+    // paints from the attribute alone; the per-frame CSS `d:` channel only
+    // overrides it while animating. The at-rest state never depends on a live
+    // engine write (the shot-17 invisible-at-rest failure class is impossible by
+    // construction). We write the RAW `from` `d` here (the attribute's native
+    // form), not the reassembled polyline, so a NON-morphing at-rest subject
+    // shows its authored geometry faithfully.
+    const attrTarget = target as unknown as Partial<ElementWithAttribute>;
+    if (target != null && typeof attrTarget.setAttribute === "function") {
+        attrTarget.setAttribute("d", from);
+    }
+
     const animation = new CSSKeyframesAnimation<V>(animOptions).fromKeyframes(
         keyframes,
         renderTransform,
@@ -397,7 +293,7 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
     if (autoPlay) {
         // Fire the play loop; the handle carries the play promise via its own
         // re-entrant `play()`. We do NOT await — the handle IS the control
-        // surface (the `animate()` contract).
+        // surface (the control-handle contract).
         void animation.play();
     }
 
@@ -412,15 +308,18 @@ export function fromMorphSVG<V extends Record<string, any> = any>(
  * that ALSO exposes {@link sampleD} — the morphed `d` string at a normalized
  * `t`, reassembled from the interpolated point coordinates.
  */
-export class MorphSVG<V extends Record<string, any> = any> {
-    /** The underlying coordinate-interpolating animation — the control handle. */
-    readonly animation: CSSKeyframesAnimation<V>;
+export class MorphSVG<
+    V extends Vars = Vars,
+> extends SVGAnimationHandle<V> {
+    // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
+    // delegation live on `SVGAnimationHandle`; MorphSVG adds only its `sampleD`
+    // sampling surface (+ the `samples` count) on top of the shared handle.
 
     /** The uniform-sample count (point pairs = samples + 1). */
     readonly samples: number;
 
     constructor(from: string, to: string, options: MorphSVGOptions = {}) {
-        this.animation = fromMorphSVG<V>(from, to, options);
+        super(fromMorphSVG<V>(from, to, options));
         this.samples = options.samples ?? DEFAULT_SAMPLES;
     }
 
@@ -445,27 +344,5 @@ export class MorphSVG<V extends Record<string, any> = any> {
             pts[i] = { x: x ?? 0, y: y ?? 0 }; // KEEP: pre-tick geometric identity
         }
         return pointsToD(pts);
-    }
-
-    /** Start (or re-enter) the morph play loop. */
-    play(): Promise<void> {
-        return this.animation.play();
-    }
-
-    /** Pause the play loop, retaining the playhead. */
-    pause(): this {
-        this.animation.pause();
-        return this;
-    }
-
-    /** Halt and rewind the play loop. */
-    stop(): this {
-        this.animation.stop();
-        return this;
-    }
-
-    /** Resolve once the morph completes — the {@link Animation.finished} front-door. */
-    get finished(): Promise<void> {
-        return this.animation.finished;
     }
 }

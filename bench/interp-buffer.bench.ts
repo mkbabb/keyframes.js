@@ -196,8 +196,8 @@ const packSoA = (anim: ReturnType<typeof makeTransformAnim>) => {
         const from = new Float64Array(K);
         const to = new Float64Array(K);
         frame.allInterpVars.forEach((iv, k) => {
-            from[k] = iv.start.value as number;
-            to[k] = iv.stop.value as number;
+            from[k] = iv.start.value as unknown as number;
+            to[k] = iv.stop.value as unknown as number;
         });
         return {
             start: frame.time.start,
@@ -488,8 +488,8 @@ describe("warmEngine pre-resolve (L.W7 S1, W121)", () => {
             // `_enginePromise` — one microtask, no second import (the S1 contract).
             const engine = await loadAnimationEngine();
             // Touch the resolved surface so the await is not dead-code-eliminated.
-            // (R.W4 excised `animate()`; `CSSKeyframesAnimation` is the canonical
-            // heavy-surface member — the idiomatic "in" the subpath now mirrors.)
+            // `CSSKeyframesAnimation` is the canonical heavy-surface member — the
+            // idiomatic "in" the subpath now mirrors.
             if (typeof engine.CSSKeyframesAnimation !== "function") {
                 throw new Error(
                     "warmEngine pre-resolve did not settle the engine",

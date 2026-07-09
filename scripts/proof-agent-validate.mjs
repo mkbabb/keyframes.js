@@ -35,7 +35,7 @@
  *       returned object in the barrel (the dynamic surface) AND only as erased
  *       TYPES on the LIGHT static barrel (heavy-boundary). The runtime presence
  *       on the dynamic surface is asserted by the behaviour half
- *       (`test/agent-validate.test.ts`); this clause asserts the wiring is
+ *       (`test/compile/agent-validate.test.ts`); this clause asserts the wiring is
  *       SOURCE-present + boundary-clean. BITE: drop the export, or leak the
  *       runtime onto the LIGHT barrel → reds.
  *       RED-TODAY WITNESS: `validate.ts` absent → `loadAnimationEngine().validate
@@ -56,7 +56,7 @@
  *       value.js 0.13.0 DROPS the whole declaration at the AST level, mirroring
  *       the browser. kf does NOT honor/emit it — the gate asserts the spec-
  *       faithful reality, NOT that `!important` is honored.) The behaviour proof
- *       rides `vitest run test/agent-validate.test.ts`; this script asserts the
+ *       rides `vitest run test/compile/agent-validate.test.ts`; this script asserts the
  *       test LOCKS the clause (the .test.ts imports `validate` + carries the
  *       @property/!important fixture asserts).
  *
@@ -79,7 +79,7 @@
  * LOOP teaches the loop, the projection is honest), not an error count.
  *
  * RUN: npm run proof:agent-validate
- *      (chains `node scripts/proof-agent-validate.mjs && vitest run test/agent-validate.test.ts`)
+ *      (chains `node scripts/proof-agent-validate.mjs && vitest run test/compile/agent-validate.test.ts`)
  */
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -100,7 +100,7 @@ console.log(
 const VALIDATE = "src/animation/validate.ts";
 const BARREL = "src/animation/index.ts";
 const LLMS = "llms.txt";
-const TEST = "test/agent-validate.test.ts";
+const TEST = "test/compile/agent-validate.test.ts";
 
 /** The heading the LOOP section opens with (clause (b)/(e) anchor). */
 const LOOP_HEADING = "## Agent authoring loop";
@@ -265,12 +265,14 @@ const requireAll = (clause, file, anchors) => {
         );
     } else {
         const src = read(TEST);
+        // S.B7 — the test lives under test/<zone>/ now, so it reaches src via a
+        // depth-agnostic `(../)+src/animation/validate` (not the old flat `../src`).
         const importsValidate =
-            /from\s+["']\.\.\/src\/animation\/validate["']/.test(src);
+            /from\s+["'](?:\.\.\/)+src\/animation\/validate["']/.test(src);
         if (!importsValidate) {
             fail(
                 "behaviour-locks",
-                `${TEST} does not import \`validate\` from ../src/animation/validate — the behaviour proof must exercise the real verb, not a shim.`,
+                `${TEST} does not import \`validate\` from src/animation/validate — the behaviour proof must exercise the real verb, not a shim.`,
             );
         }
         // (c) — the @property/!important fixture projects the spec-faithful verdict.

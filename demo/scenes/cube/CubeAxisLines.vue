@@ -44,11 +44,13 @@ defineProps<{
     width: 1000vw;
     height: 0px;
     border: 1px dashed var(--color);
-    /* P.W5.S3 — at rest the axis lines sit at the 0.75 register; holding the
-       matching X/Y/Z key drives --axis-active → 1, lifting the locked line to
-       full opacity and blooming a drop-shadow in its own axis color, so the
-       single-axis constraint OrbitalDrag enforces becomes spatially legible. */
-    opacity: calc(0.75 + var(--axis-active, 0) * 0.25);
+    /* P.W5.S3 — at rest the axis lines sit at the QUIET 0.45 register (T.A2:
+       demoted from 0.75 so only the LOCKED axis speaks — the resting grid no
+       longer competes with the die); holding the matching X/Y/Z key drives
+       --axis-active → 1, lifting the locked line to FULL opacity and blooming a
+       drop-shadow in its own axis color, so the single-axis constraint OrbitalDrag
+       enforces becomes spatially legible. */
+    opacity: calc(0.45 + var(--axis-active, 0) * 0.55);
     filter: drop-shadow(
         0 0 calc(var(--axis-active, 0) * 6px)
             color-mix(in srgb, var(--color) calc(var(--axis-active, 0) * 80%), transparent)

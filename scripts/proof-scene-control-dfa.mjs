@@ -27,10 +27,13 @@
  *   D3 LIVE PER-SCENE — for each scene the EFFECTIVE rendered control-tab set
  *      equals the DFA entry: easing → ONLY the easing surface (NO keyframes/
  *      timeline tab node anywhere on the page); spring → ONLY spring; cube/amiga/
- *      square → the full built-in triad (controls+keyframes+timeline visible in
- *      the OPENED dock select); sequence/motion-path → NO control panel
- *      affordance at all (the empty DFA set → no controls-tab trigger). BITE: the
- *      pre-DFA easing route showed the meaningless keyframes/timeline triggers.
+ *      square → the full built-in triad (controls+keyframes+timeline visible in the
+ *      OPENED dock select); sequence → NO control panel affordance at all (the empty
+ *      DFA set → no controls-tab trigger). BITE: the pre-DFA easing route showed the
+ *      meaningless keyframes/timeline triggers.
+ *      T.A13 + T.B3 (fold row 69): square RE-TABLED into the triad — the G2 collapse
+ *      is CURED (the "Transform" anim is LIVE, Play obeys duration/easing), so the
+ *      panel RETURNS honestly (proof:square-honest v2 owns the Play-paints oracle).
  *
  *   D4 LIVE NAVIGATION-MATRIX — drive every (scene → scene) ordered pair across a
  *      representative matrix; after each the rendered control-surface set is the
@@ -69,7 +72,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 {
     const acPath = path.join(
         DEMO,
-        "@/components/custom/animation-controls/controls/AnimationControls.vue",
+        "@/components/custom/instrument/transport/controls/AnimationControls.vue",
     );
     const ac = read(acPath);
     // The triggers come from the DFA (the built-in triad + the scene-conditional
@@ -106,7 +109,7 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
         );
     }
 
-    const dock = read(path.join(DEMO, "@/components/custom/dock/ChromeDock.vue"));
+    const dock = read(path.join(DEMO, "app/dock/ChromeDock.vue"));
     const dockFilters =
         /controlSurfaces\?:\s*string\[\]/.test(dock) &&
         /BUILT_IN_CONTROL_TABS\.filter\(\(t\)\s*=>\s*valid\.includes\(t\.value\)\)/.test(
@@ -139,32 +142,31 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
         );
     }
 
-    // D2 TOTALITY — re-derive the table from source + assert every declared scene
-    // id maps AND the selector is total (an unknown id falls back to the triad).
+    // D2 TOTALITY — T.B2: no table, a TOTAL `surfacesFor(facility, selected)`
+    // DERIVATION instead. Assert (a) no `Record<SceneId,ControlSurface[]>` literal
+    // survives; (b) surfacesFor is the derivation; (c) it is TOTAL — a `home`
+    // scene with no facility falls back to [] (never undefined), the same
+    // no-undefined-behavior guarantee the navigation matrix needs.
     const dfa = read(
         path.join(
             DEMO,
-            "@/components/custom/animation-controls/stores/controlSurfaceDFA.ts",
+            "@/state/controlSurfaceDFA.ts",
         ),
     );
-    const declaredScenes = ["home", "cube", "amiga", "square", "easing", "spring", "sequence", "motion-path", "morph"];
-    const tableBlock = (dfa.match(/CONTROL_SURFACES[^=]*=\s*\{([\s\S]*?)\};/) || [])[1] ?? "";
-    const allMapped = declaredScenes.every((s) => {
-        const re = new RegExp(`["']?${s.replace("-", "\\-")}["']?\\s*:`);
-        return re.test(tableBlock);
-    });
-    const totalSelector = /const set = CONTROL_SURFACES\[sceneId\];\s*return set \? \[\.\.\.set\] : \[\.\.\.BUILT_IN_SURFACES\]/.test(
-        dfa.replace(/\s+/g, " "),
-    );
-    if (allMapped && totalSelector) {
+    const oneLine = dfa.replace(/\s+/g, " ");
+    const noTable = !/Record<SceneId,\s*ControlSurface\[\]>/.test(dfa);
+    const derives = /export function surfacesFor\(/.test(dfa);
+    const totalOnAbsent = /if \(!facility\) return \[\];/.test(oneLine);
+    if (noTable && derives && totalOnAbsent) {
         ok(
-            `D2 totality: all ${declaredScenes.length} declared scenes map in CONTROL_SURFACES + ` +
-                `controlSurfacesFor is TOTAL (unknown id → the built-in triad; every nav cell defined)`,
+            `D2 totality: no Record<SceneId,ControlSurface[]> table — surfacesFor(facility, ` +
+                `selected) DERIVES the set, TOTAL on an absent facility (home → []; every nav ` +
+                `cell defined) (T.B2 inversion)`,
         );
     } else {
         fail(
-            `D2 totality — every declared scene must map AND the selector must be total ` +
-                `(allMapped:${allMapped}, totalSelector:${totalSelector})`,
+            `D2 totality — the DFA must be the surfacesFor DERIVATION, total on absent facility ` +
+                `(noTable:${noTable}, derives:${derives}, totalOnAbsent:${totalOnAbsent})`,
         );
     }
 }
@@ -177,12 +179,28 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 const EXPECT = {
     cube: { hasPanel: true, trigger: "Controls" },
     amiga: { hasPanel: true, trigger: "Controls" },
+    // T.A13 + T.B3 (fold row 69) — square RE-TABLED into the built-in triad. The
+    // G2 collapse is CURED: the "Transform" anim is LIVE (num()-normalized four-
+    // corner keyframes + the {idle,drag,playback} FSM), so the triad edits an
+    // HONEST animation — the controls-tab trigger PROJECTS on square now (the
+    // VERDICT #12/#25 panel RETURN). proof:square-honest v2 owns the paint oracle.
     square: { hasPanel: true, trigger: "Controls" },
-    easing: { hasPanel: true, trigger: "Easing", noBuiltInTriad: true },
-    spring: { hasPanel: true, trigger: "Spring", noBuiltInTriad: true },
+    // T.B2 (the INVERSION) — easing + spring each carry a PAINTING preview channel
+    // (previewAnim / Sweep+Entry), so they earn the full built-in triad BY
+    // CONSTRUCTION (the owner's #25 asymmetry cure — a painting group can never be
+    // denied the triad), UNIONED with their facility facet (easing Curve / spring
+    // Physics). The default selected surface is 'controls' (the set's first
+    // member), so the control-tab trigger reads "Controls" and the built-in triad
+    // (Keyframes/Timeline) is now HONESTLY present — the pre-T.B2 single-surface
+    // elision is superseded (the facet rides the multi-surface select alongside).
+    // item-7a (the ratified refinement, the easing TERMINAL batch) -- the DEFAULT
+    // selected surface is now SCENE-AWARE (SCENE_DEFAULT_CONTROL): easing opens
+    // on its Curve facet, spring on Physics (the batch-⑧ PENDING-OWNER "they
+    // open on Controls" reversal, cured at the store-seed seam). The triad stays
+    // derived + honestly present in the select; only the DEFAULT pick moved.
+    easing: { hasPanel: true, trigger: "Curve" },
+    spring: { hasPanel: true, trigger: "Physics" },
     sequence: { hasPanel: false },
-    "motion-path": { hasPanel: false },
-    morph: { hasPanel: false },
 };
 
 /** Read the dock's control-tab state: the collapsed trigger label (or null if
@@ -267,8 +285,8 @@ async function browserHalf() {
             ["easing", "cube"],
             ["easing", "sequence"],
             ["sequence", "easing"],
-            ["spring", "motion-path"],
-            ["motion-path", "spring"],
+            ["spring", "sequence"],
+            ["sequence", "spring"],
             ["cube", "spring"],
         ];
         let matrixClean = 0;

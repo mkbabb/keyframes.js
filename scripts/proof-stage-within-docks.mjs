@@ -169,7 +169,7 @@ async function waitSubjectMounted(page, subjectSel) {
  *  saw clip (the contract's "stage SUBJECT" — the ball / the rail, NOT the
  *  full-bleed flex envelope whose box legitimately fills the padded cell). */
 const SCENES = [
-    { scene: "easing", subject: ".hero-ball", label: "easing singular hero ball" },
+    { scene: "easing", subject: ".tile-ball", label: "easing gallery specimen ball (T.E6 — the drawer is the stage)" },
     { scene: "spring", subject: ".spring-rail", label: "spring solver rail" },
 ];
 const WIDTHS = [
@@ -381,10 +381,9 @@ function staticHalf() {
         "demo/scenes/easing/EasingSidebar.vue",
         "demo/scenes/spring/SpringTarget.vue",
         "demo/scenes/spring/StartingStyleTarget.vue",
-        "demo/scenes/spring/SpringSidebar.vue",
+        "demo/scenes/spring/SpringPhysicsFacet.vue",
         "demo/scenes/easing/EasingScene.vue",
         "demo/scenes/spring/SpringScene.vue",
-        "demo/scenes/motion-path/MotionPathTarget.vue",
         "demo/scenes/sequence/SequenceTarget.vue",
     ];
     let usages = 0;
@@ -399,7 +398,7 @@ function staticHalf() {
         }
     }
     if (usages === 0) {
-        ok("static — no easing/spring/motion-path/sequence scene template references `dock-inset` in live markup");
+        ok("static — no easing/spring/sequence scene template references `dock-inset` in live markup");
     }
 }
 

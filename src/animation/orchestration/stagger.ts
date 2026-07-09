@@ -22,7 +22,7 @@
  * );
  * ```
  */
-import type { Easing, TimingFunction } from "../constants";
+import type { Easing, TimingFunction } from "../constants/types";
 import { toEasing } from "../easing";
 import { AnimationOptionError } from "../internal/errors";
 import { clamp } from "../internal/leaves";
@@ -59,14 +59,20 @@ export interface StaggerOptions {
 }
 
 /**
- * A per-index delay function: `(i, total) => delayMs`. Carries a
- * `.delays(total)` helper that materializes the whole distribution as an
- * array — convenient when the count is known up front.
+ * A per-index delay function: `(i, total?) => delayMs`. Carries a
+ * `.delays(total?)` helper that materializes the whole distribution as an
+ * array — convenient when the count is known up front. Both `total` args are
+ * OPTIONAL: the implementation defaults them to the construction-time count
+ * (`stagger(items, …)` / `stagger(count, …)`), so `fn(i)` and `fn.delays()`
+ * are valid — the type must mirror that (it did not before S.B7, which is why
+ * `test/stagger.test.ts`'s defaulting assertions RED'd once `test/` joined the
+ * typecheck).
  */
 export interface StaggerFn {
-    (index: number, total: number): number;
-    /** Materialize the delays for a run of `total` indices. */
-    delays(total: number): number[];
+    (index: number, total?: number): number;
+    /** Materialize the delays for a run of `total` indices (defaults to the
+     *  construction-time count). */
+    delays(total?: number): number[];
 }
 
 /** Resolve the (possibly symbolic) origin to a concrete index in `[0, total)`. */

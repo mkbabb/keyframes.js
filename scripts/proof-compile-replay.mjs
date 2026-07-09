@@ -18,7 +18,7 @@
  * symbols `reverseAnimationShorthand`/`sampleColorRamp`/`deltaEOK`, is HEAVY —
  * reached only via `loadAnimationEngine`, NOT the LIGHT barrel — and the four
  * refusals are NAMED in the source) CHAINED with the BEHAVIOUR half
- * (`vitest run test/compile-roundtrip.test.ts` — the replay-equality + densify
+ * (`vitest run test/compile/compile-roundtrip.test.ts` — the replay-equality + densify
  * ΔE-ε + the four refusals). It does NOT re-implement the replay (that lives in
  * the .test.ts), it asserts the compiler is wired + faithful + honest, and BITES
  * on a deleted lock.
@@ -85,20 +85,20 @@ console.log(
     "proof:compile-replay — K.W10 THE COMPILE (the round-trip's BACKWARD half · replay-equality)",
 );
 
-const COMPILE = "src/animation/compile/backward.ts";
+const COMPILE = "src/animation/compile/backward/backward.ts";
 // R.W2b carved the "orchestration graph → CompileChild[]" walkers (walkGroup /
 // walkSequence / walkList — incl. the static/spring `weighted` partition) off
 // `backward.ts` into the colocated `backward-walk.ts`. The COMPILE-BACKWARD
 // SURFACE is both files; clauses whose anchors may land in either read it.
-const COMPILE_WALK = "src/animation/compile/backward-walk.ts";
-const COMPILE_COLOR = "src/animation/compile/backward-color.ts";
-const FORMAT = "src/animation/compile/format.ts";
+const COMPILE_WALK = "src/animation/compile/backward/backward-walk.ts";
+const COMPILE_COLOR = "src/animation/compile/backward/backward-color.ts";
+const FORMAT = "src/animation/compile/backward/format.ts";
 const BARREL = "src/animation/index.ts";
 // The L-tranche engine-loader extraction home (the dynamic `import("./compile")`
 // + `compileToCSS: compileMod.compileToCSS` assign live here now, re-exported by
 // the barrel). The heavy-boundary clause reads the wiring from both.
 const LOAD_ENGINE = "src/animation/load-engine.ts";
-const TEST = "test/compile-roundtrip.test.ts";
+const TEST = "test/compile/compile-roundtrip.test.ts";
 
 /** Assert every anchor is present in `file`; the clause reds on any missing. */
 const requireAll = (clause, file, anchors) => {
@@ -149,11 +149,17 @@ requireAll("compiler-exists", COMPILE, [
         );
         return m ? m[1] : "";
     };
-    const formatImports = importsOf(FORMAT);
+    // T.F22 — the `animation` SHORTHAND inverse (reverseAnimationShorthand via
+    // animationShorthand) rides the colocated format-options.ts after the
+    // body-vs-options cohesion carve; read the UNION of the format pair.
+    const formatImports =
+        importsOf(FORMAT) +
+        "\n" +
+        importsOf("src/animation/compile/backward/format-options.ts");
     const colorImports = importsOf(COMPILE_COLOR);
     const consumes = [
         {
-            name: "reverseAnimationShorthand IMPORTED in format.ts (the animation-shorthand inverse — CC-1)",
+            name: "reverseAnimationShorthand IMPORTED in the format seam (format.ts ∪ format-options.ts — the animation-shorthand inverse, CC-1)",
             ok: /\breverseAnimationShorthand\b/.test(formatImports),
         },
         {
@@ -272,8 +278,8 @@ requireAll("densify-delta-proof", TEST, [
 // ── no-source-edit — the replay rides the unchanged surfaces ───────────────────
 {
     const src = existsSync(join(root, TEST)) ? read(TEST) : "";
-    const importsCompile = /from "\.\.\/src\/animation\/compile"/.test(src);
-    const importsEngine = /from "\.\.\/src\/animation\/engine"/.test(src);
+    const importsCompile = /from "(?:\.\.\/)+src\/animation\/compile"/.test(src);
+    const importsEngine = /from "(?:\.\.\/)+src\/animation\/engine"/.test(src);
     if (importsCompile && importsEngine) {
         ok(
             "no-source-edit",

@@ -39,12 +39,21 @@
             serves the three dist trees from, so the page loads the BUILT
             `dist/keyframes.js` engine on the real layout path.
         -->
+        <!--
+            S.A0(4) — the value.js O subpath split means the lazy engine chunk
+            imports BOTH bare `@mkbabb/value.js` AND `@mkbabb/value.js/math`
+            (→ dist/subpaths/math.js). Map the subpath namespaces (keeping the
+            bare maps); the bench server's extensionless-`.js` fallback serves
+            `/value/subpaths/math` → `subpaths/math.js`.
+        -->
         <script type="importmap">
             {
                 "imports": {
                     "@mkbabb/keyframes.js": "/kf/keyframes.js",
                     "@mkbabb/value.js": "/value/value.js",
-                    "@mkbabb/parse-that": "/parse-that/parse.js"
+                    "@mkbabb/value.js/": "/value/subpaths/",
+                    "@mkbabb/parse-that": "/parse-that/parse.js",
+                    "@mkbabb/parse-that/": "/parse-that/"
                 }
             }
         </script>

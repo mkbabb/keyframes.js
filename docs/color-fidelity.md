@@ -48,6 +48,6 @@ npm run bench:color-fidelity   # re-measure + re-render this artifact
 ```
 
 The corpus is `test/fixtures/color-fidelity-corpus.ts`; the gated
-measurement is `test/color-fidelity.test.ts`; the producer is value.js's
+measurement is `test/engine/color-fidelity.test.ts`; the producer is value.js's
 `deltaEOK` (the SAME kernel K.W10's CC-2 densify pixel-proof consumes —
 one producer, two consumers, both RIPE).

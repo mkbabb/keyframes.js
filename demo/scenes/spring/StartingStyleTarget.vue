@@ -47,13 +47,18 @@
             </Button>
         </div>
 
-        <!-- The copy-pasteable artifact: the emitted linear() string. -->
+        <!-- S.F3 EN-d DOGFOOD — the copy-pasteable artifact is the REAL
+             `compileToEntry` output for THIS card's entry/exit (its opacity/
+             transform endpoints eased by the same spring), not a hand-typed
+             timing-function line. A designer pastes it verbatim to reproduce the
+             discrete transition: base(closed) + `.is-open` + `@starting-style`,
+             with `display`/`overlay` `allow-discrete` and the spring `linear()`. -->
         <div class="w-full max-w-3xl shrink-0">
             <div class="flex items-center justify-between mb-1.5">
-                <span class="text-small text-foreground">transition-timing-function</span>
-                <CopyButton class="shrink-0 w-4 h-4" :text="copyableCss" />
+                <span class="text-small text-foreground">compileToEntry() artifact</span>
+                <CopyButton class="shrink-0 w-4 h-4" :text="compiledEntryCss || copyableCss" />
             </div>
-            <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full overflow-x-auto whitespace-nowrap">{{ springCss }}</code>
+            <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full max-h-32 overflow-auto whitespace-pre">{{ compiledEntryCss || springCss }}</code>
         </div>
 
         <!-- K.W4 S5 — the redundant 4-preset ROW is RETIRED (the same four
@@ -64,8 +69,8 @@
              (the same shared params drive it), so the discrete view stays
              legible about WHICH spring it eases without re-mounting the picker. -->
         <div class="active-preset-line flex w-full max-w-3xl items-center justify-center gap-2 shrink-0">
-            <span class="text-mono-caption text-muted-foreground">eased by</span>
-            <span class="active-preset-chip text-mono-small capitalize">{{ activePresetName }}</span>
+            <span class="text-caption text-muted-foreground">eased by</span>
+            <span class="active-preset-chip text-mono-small capitalize" data-register="code">{{ activePresetName }}</span>
             <span class="text-mono-caption text-muted-foreground tabular-nums">
                 ({{ demo.response.value.toFixed(2) }} / {{ demo.dampingFraction.value.toFixed(2) }})
             </span>
@@ -117,6 +122,13 @@ const springCss = useSpringLinearStops(
 const copyableCss = computed(
     () => `transition-timing-function: ${springCss.value};`,
 );
+
+// S.F3 EN-d — the REAL `compileToEntry` artifact for this card's entry/exit,
+// compiled off the SAME shared spring params (dogfood: the demo runs the
+// published emitter and shows its verbatim output, not a hand-typed twin).
+// T.B1-β/T.B7 — the compile now lives in useSpringDemo (its `entryAnim` IS the
+// facility's Entry channel); this target renders the demo-owned readout.
+const compiledEntryCss = demo.compiledEntryCss;
 </script>
 
 <style scoped>

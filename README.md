@@ -193,6 +193,31 @@ const dAtMid = morph.sampleD(0.5); // the interpolated `d` at t = 0.5
 
 Options: `samples` (point count per path; default `64`), plus every `AnimationOptions` key. Both inputs must be non-degenerate path `d` strings (non-zero arc length, ≥ 2 samples) — a degenerate input refuses with a typed `AnimationOptionError`. `MorphSVG.sampleD(t)` reassembles the morphed `d` at any `t`; the per-point coordinates also surface as `--morph-{i}-x`/`--morph-{i}-y` custom properties for direct CSS binding.
 
+### The emerging-CSS resolver
+
+kf's parser accepts CSS the platform can't animate yet. The `resolve/` zone lowers `if(supports(...))` / `if(media(...))` / `if(style(--custom-prop))` and `@function` calls to concrete values **in JS, at parse/bind time** — so a `@keyframes` block authored against tomorrow's conditional grammar plays correctly **today, in every browser kf runs in**, even though the native CSS features themselves are Chromium-only (`if()` shipped Chrome 137; `@function`, Chrome 139 — neither ships in Firefox or Safari). `env()` sits outside this: it's ordinary CSS the platform has resolved for years, so there's no cross-browser gap for kf to bridge there.
+
+This is a **resolve-once, not react-forever** lowering, not a live binding. The element-independent forms (`if(supports)`, `if(media)`, `@function`) resolve once when the keyframes parse; the element-aware forms (`if(style(--p))`, `sibling-index()`, `sibling-count()`) resolve once per `setTargets()`. None of them re-evaluate on a later media-query flip or custom-property write — rebuild the animation to re-resolve.
+
+```ts run
+const { resolveKeyframes } = await loadAnimationEngine();
+
+// Author against a condition the browser can't natively evaluate in if() yet —
+// kf resolves it in JS and bakes the concrete branch into the parsed frame.
+// Off-DOM (no CSS.supports), the SSR-safe default deterministically picks `else`:
+const { keyframes } = resolveKeyframes(`
+    @keyframes x {
+        0%   { color: if(supports(color: lch(0 0 0)): red; else: blue) }
+        100% { color: green }
+    }
+`);
+String(keyframes.get("0%")?.color); // => "rgb(0 0 255)"
+```
+
+**What it refuses.** A condition that resolves to nothing is a CSS *guaranteed-invalid value* — `if()` with no matching branch and no `else`, or an over-deep/self-referential `@function` chain (cycle-guarded at depth 32) — **drops the declaration** (the prior/initial value wins), never an empty or malformed string. A `@function` call whose argument can't be coerced to the parameter's declared syntax drops the whole call too, surfaced as a named `CUSTOM_FN_ARG_DROP` diagnostic on `resolveKeyframes`'s `diagnostics` channel — never a silent `NaN`.
+
+Gated by `npm run proof:emerging-css-resolve` (the `if(supports)`/`if(media)` pass, the element-aware `if(style)`/`sibling-index()`/`sibling-count()` pass, and `@function` call-inlining) — all jsdom-clean, behavior-level; no browser required, because the resolution is kf's JS, not a platform feature.
+
 ## `CSSKeyframesAnimation`
 
 An abstraction over `KeyframesAnimation` that parses CSS `@keyframes` into `TemplateAnimationFrame` objects, then adds them to a base `KeyframesAnimation`.
@@ -275,7 +300,7 @@ keyframes.js's authoring object **is** parsed CSS `@keyframes`. That one fact op
 
 1. **Ingest** — read the live web's CSS (`@keyframes` in a stylesheet, or a *running* CSS animation) straight into a kf `CSSKeyframesAnimation`.
 2. **Drive** — run it through the engine: physics-shaped springs, perceptual `oklab` color, scroll-driven progress, weighted blending.
-3. **Compile** — emit the result **back** to zero-runtime CSS — `compileToCSS` is the parser run *backward* over the same data model (`format.ts` is `keyframes.ts` in reverse).
+3. **Compile** — emit the result **back** to zero-runtime CSS. Three sibling emitters run the SAME parser *backward* over the same data model (`format.ts` is `keyframes.ts` in reverse): [`compileToCSS`](#compile--the-parser-run-backward) (plain `@keyframes`), [`compileToViewTransition`](#compiletoviewtransition) (the `::view-transition-*` pseudo tree), and [`compileToEntry`](#compiletoentry) (`@starting-style`/`allow-discrete` entry-exit).
 
 This is the moat. GSAP, Motion, and anime author in a bespoke tween model — for them "export to CSS" is a lossy re-derivation nobody ships, and "import the page's CSS" has no meaning. Because kf's internal model is *already* CSS, the forward and backward halves are inverses over one structure: a `var()`, a `matrix3d()`, a `cqw` round-trips **verbatim**. The whole round-trip rides the heavy engine, reached through one `await loadAnimationEngine()`.
 
@@ -341,7 +366,7 @@ pinCSS({ top: 24 }); // => "position: sticky; top: 24px;"
 
 ### Compile — the parser run backward
 
-`compileToCSS` walks an orchestration graph — an [`AnimationGroup`](#animationgroup), a [`Sequence`](#sequence), or a bare child list (e.g. a [`stagger`](#stagger)-delayed cohort) — and emits a **pure, zero-runtime CSS** artifact: one `@keyframes` block + an `animation` shorthand per child, `replace`/`add` layering as `animation-composition`, springs as `linear()`, materialized stagger delays, and computed units (`vh`/`cqw`/`calc()`/`var()`) verbatim. A human pastes the result and ships with **zero kf bytes on the page**.
+`compileToCSS` walks an orchestration graph — an [`AnimationGroup`](#animationgroup), a [`Sequence`](#sequence), or a bare child list (e.g. a [`stagger`](#stagger)-delayed cohort) — and emits a **pure, zero-runtime CSS** artifact: one `@keyframes` block + an `animation` shorthand per child, `replace`/`add` layering as `animation-composition`, springs as `linear()`, materialized stagger delays, and computed units (`vh`/`cqw`/`calc()`/`var()`) verbatim. A human pastes the result and ships with **zero kf bytes on the page**. Two siblings emit from the same substrate for two other target surfaces — [`compileToViewTransition`](#compiletoviewtransition) (the `::view-transition-*` pseudo tree) and [`compileToEntry`](#compiletoentry) (`@starting-style`/`allow-discrete` entry-exit) — both taught under [Beyond CSS](#beyond-css).
 
 ```ts
 const { CSSKeyframesAnimation, compileToCSS } = await loadAnimationEngine();
@@ -383,6 +408,8 @@ When `useWAAPI` is `true` (default), eligible animations run on the compositor t
 
 A spring timing function (`springTimingFunction`) carries its CSS `linear()` equivalent, so a WAAPI-delegated spring animation runs the true overshoot/settle curve on the compositor instead of a flattened `linear` ramp — the JS easing and the compositor curve are one solver.
 
+A spring keyframed across **multiple** declared stops is compositor-eligible too: rather than restart the curve at each stop (WAAPI's one-easing-per-segment model would), kf **densifies** the composite curve into extra keyframe stops fed a single bare `linear` effect easing, so the compositor's piecewise-linear fill still tracks the true multi-segment curve. Gated by `proof:waapi-adaptive-densify`.
+
 ## Baseline, tree-shaking & reduced motion
 
 keyframes.js targets a modern-web Baseline and documents the tier of every platform facility it leans on:
@@ -393,8 +420,9 @@ keyframes.js targets a modern-web Baseline and documents the tier of every platf
 | `scheduler.yield()` | Newly available | Feature-detected; falls back to a `MessageChannel` macrotask (≤20 LOC) |
 | WAAPI `linear()` springs | Newly available | Feature-detected; the rAF spring path is the default fallback |
 | `Element.animate()` (WAAPI) | Widely available | Opt-out via `useWAAPI: false` |
+| CSS `if()` / `@function` | Limited availability (Chromium) | kf resolves both in JS at parse/bind time — see [The emerging-CSS resolver](#the-emerging-css-resolver) |
 
-**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry and fails the build if any light module reintroduces a static value.js edge.
+**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry from SOURCE and fails the build if any light module reintroduces a static value.js edge. `proof:consume-bundle` re-proves the same claim from the CONSUMER side — it bundles the PUBLISHED `dist/keyframes.js` (value.js/parse-that kept non-external, so any leak must surface) exactly as a downstream app's bundler would, and fails if that eager graph carries a single value.js/parse-that module or a statically-inlined engine class. (Deliberately no prose kB figure here: `proof:consume-bundle` floors the LIGHT edge's *composition* — zero value.js, zero engine — not a byte count, so a specific kB number would be a claim neither gate actually verifies; re-run `npm run proof:consume-bundle` against a fresh build for the current graph, not a number frozen in prose.)
 
 **Reduced motion.** Both the light and heavy engines honor `prefers-reduced-motion: reduce`. Opt in per surface:
 
@@ -693,6 +721,58 @@ Positions: a number (absolute ms), `"+=n"` / `"-=n"` (relative to the insertion 
 | `GroupEffect` (parallel children) | [`AnimationGroup`](#animationgroup) |
 | `SequenceEffect` / proposed `EffectTiming` `align: sequence` | `Sequence` auto-append |
 | `EffectTiming` `align: start` | `Sequence` `at: 0` |
+
+### `viewTransition`
+
+The LIGHT View-Transitions dispatch: mutate the DOM behind a native View Transition where the platform ships one, and fall back to a `flipShared` shared-element morph (or a bare immediate mutation) everywhere else — behind ONE normalized handle whose `backend` is queryable and whose promises never reject. Feature-detects `startViewTransition` (and its typed-`update` object overload); PRM routes through the ONE `withReducedMotion` gate (mutate directly, settle).
+
+```ts run
+// Off-platform (no `document.startViewTransition`, no shared pairs) it degrades
+// to a bare immediate mutation — backend queryable SYNCHRONOUSLY at dispatch:
+const vt = viewTransition(() => box.classList.add("open"), { types: ["forward"] });
+vt.backend; // => "immediate"
+await vt.finished; // never rejects — a skipped/aborted transition settles cleanly
+```
+
+Options: `types` (typed same-doc VT), `shared` (`[from, to]` `flipShared` fallback pairs — `backend: "flip"`), `duration`/`timingFunction` (the fallback play), `fallback` (`"flip"` | `"none"` | a custom async runner), `respectReducedMotion` (default `true` — PRM snaps to `"immediate"`). The `backend` is `"view-transition"` (native), `"flip"` (the `flipShared` fallback), or `"immediate"` (bare mutate). Its zero-runtime CSS twin is [`compileToViewTransition`](#compiletoviewtransition).
+
+### `compileToViewTransition`
+
+The round-trip engine pointed at native View Transitions: compile a **name-keyed role spec** to a PURE, ZERO-RUNTIME CSS artifact over the `::view-transition-*` pseudo tree (HEAVY — reached via `loadAnimationEngine()`). Each name's `old`/`new` get a full kf `@keyframes` block + `animation` shorthand (springs → `linear()`); `::view-transition-group(name)` gets a **timing-only** override (duration + timing-function, never `animation-name` — the UA's rect-morph keyframes ARE the free zero-runtime FLIP), so the group stays temporally coherent with the tracks. Non-round-trippable shapes REFUSE with a named reason (the CC-3 four ∪ `vt-scroll-grammar` / `vt-element-scoped-computed` / `vt-snapshot-inapplicable` / `vt-name-collision`).
+
+```ts run
+const { CSSKeyframesAnimation, compileToViewTransition } = await loadAnimationEngine();
+
+const out = new CSSKeyframesAnimation({ duration: 300 });
+out.fromString(`@keyframes o { from { opacity: 1 } to { opacity: 0; transform: scale(0.9) } }`);
+const enter = new CSSKeyframesAnimation({ duration: 300 });
+enter.fromString(`@keyframes n { from { opacity: 0; transform: scale(1.05) } to { opacity: 1 } }`);
+
+const vt = await compileToViewTransition({ hero: { old: out, new: enter } }, { types: ["forward"] });
+vt.names; // => ["hero"]
+vt.css.includes("::view-transition-group(hero)"); // => true
+vt.css.includes("animation-name"); // => false   // the group override is timing-only
+```
+
+Options: `types` (wraps rules in `:active-view-transition-type(...)`), `crossDocument` (prepend `@view-transition { navigation: auto }`), `reducedMotion` (append the PRM `animation: none` block, default `true`), plus every `CompileOptions` key. The consumer assigns `view-transition-name: <name>` to its elements from the returned `names`.
+
+### `compileToEntry`
+
+Modern entry/exit compilation: compile a selector-keyed `{ enter?, exit? }` spec to zero-runtime **`@starting-style` + `transition-behavior: allow-discrete`** CSS — the two-endpoint entrance/exit grammar the platform shipped (Chromium 117+/Safari 26). HEAVY (reached via `loadAnimationEngine()`). It is a **declared-endpoint projection** (each animation is a 2-stop transition endpoint pair), emitting the three-rule grammar: a base/closed rule (exit's last frame + `display: none` + the exit transition list), an open rule (enter's last frame + `display` + the entry list), and `@starting-style { <open> { enter's first frame } }`. Asymmetric entry/exit duration+easing ride the two lists; `display`/`overlay <dur> allow-discrete` ride BOTH (`overlay` is inert-but-harmless off the top layer); spring `linear()`s ride verbatim; **color endpoints canonicalize to `oklab()`** so the transition interpolates in kf's default perceptual space natively — NO densify, ZERO intermediate stops (the `@keyframes` `perceptual-oklab` refusal INVERTED to a feature). Non-two-endpoint shapes REFUSE (3 inherited + 6 entry-specific: `entry-multi-keyframe` / `entry-iteration` / `entry-composition` / `entry-scroll-grammar` / `entry-color-space` / `entry-easing-twin`).
+
+```ts run
+const { CSSKeyframesAnimation, compileToEntry } = await loadAnimationEngine();
+
+const enter = new CSSKeyframesAnimation({ duration: 350 });
+enter.fromString(`@keyframes en { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }`);
+
+const dialog = await compileToEntry({ ".dialog": { enter } }, { openSelector: "[open]" });
+dialog.eligible; // => true
+dialog.css.includes("@starting-style"); // => true
+dialog.css.includes("display 350ms allow-discrete"); // => true
+```
+
+Options: `openSelector` (`".open"` | `"[data-open]"` | `":popover-open"` | `"[open]"`, concatenated onto the base selector), `display` (the open display, default `"block"`), `overlay` (emit `overlay allow-discrete`, default `true`), `printWidth`. The `exit` defaults to `enter` reversed. **Born-open elements RUN the entry at first render** (an `@starting-style` platform semantic — an SSR'd open dialog animates in on load; opt out by not matching the open selector at initial render). Where `transition-behavior` is unsupported the artifact **degrades honestly** — snap-entry, correct end state, no broken half-transition.
 
 ## Ecosystem & agents
 

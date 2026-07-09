@@ -53,14 +53,12 @@ const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 const read = (p) => fs.readFileSync(p, "utf8");
 
-// The motion-path gesture-engine home (clause 1) + the Target that must stay
-// projection-math-free.
-const GESTURE_COMPOSABLE = "demo/scenes/motion-path/useMotionPathGesture.ts";
-const MOTION_PATH_TARGET = "demo/scenes/motion-path/MotionPathTarget.vue";
+// (The motion-path gesture-engine clause-1 consts were RETIRED at T.E3 with the
+//  pruned scene, OD-1 = PRUNE.)
 
 // The store-module dir (clause 2a): the ONLY legitimate home for a store write.
 const STORE_DIR =
-    "demo/@/components/custom/animation-controls/stores";
+    "demo/@/state";
 
 // The recorded write-on-read carve-out (clause 2a): the lazy-localStorage
 // singletons seed a missing key with `structuredClone(default…)` on the first
@@ -73,13 +71,13 @@ const STORE_DIR =
 // lazy load). It is informational provenance, not a location exemption.
 const SEED_ON_READ = new Map([
     [
-        "demo/@/components/custom/animation-controls/stores/controlOptionsStore.ts",
+        "demo/@/state/controlOptionsStore.ts",
         "getStoredAnimationGroupControlOptions seeds a missing superKey with " +
             "structuredClone(default) on first read — the lazy-localStorage " +
             "singleton idiom (idempotent), not a reactive read-side-effect.",
     ],
     [
-        "demo/@/components/custom/animation-controls/stores/animationOptionsStore.ts",
+        "demo/@/state/animationOptionsStore.ts",
         "getStoredAnimationOptions seeds a missing animationId with " +
             "structuredClone(default) on first read — same lazy-singleton idiom.",
     ],
@@ -134,10 +132,8 @@ function blankComments(s) {
     return out;
 }
 
-// The projection-math signature: the engine reads/seats the geometry. A scene
-// Target must hold NONE of it (the gesture composable owns it).
-const PROJECTION_MATH =
-    /\b(?:getBoundingClientRect|getTotalLength|getPointAtLength|ManualTimeline|fromMotionPath|setChildTime)\b/g;
+// (The PROJECTION_MATH signature that clause 1 matched was RETIRED with the
+//  pruned motion-path scene, T.E3, OD-1 = PRUNE.)
 
 function main() {
     if (!fs.existsSync(DEMO)) {
@@ -149,65 +145,10 @@ function main() {
         "proof:composable-encapsulation — H.W12 S2/I9 (engine in the composable · pure store getters)",
     );
 
-    // ── CLAUSE 1 — the gesture engine lives in the composable ──────────────
-    {
-        const gestureAbs = path.join(REPO, GESTURE_COMPOSABLE);
-        const targetAbs = path.join(REPO, MOTION_PATH_TARGET);
-
-        if (!fs.existsSync(gestureAbs)) {
-            failures.push(
-                `[engine-home] ${GESTURE_COMPOSABLE} does not exist — the ` +
-                    `lifted gesture engine must live in a colocated composable ` +
-                    `(H.W12.S2 / the W-MP-5 lift).`,
-            );
-        } else {
-            const gestureSrc = blankComments(read(gestureAbs));
-            const engineHits = (gestureSrc.match(PROJECTION_MATH) || []).length;
-            if (engineHits === 0) {
-                failures.push(
-                    `[engine-home] ${GESTURE_COMPOSABLE} carries NO projection ` +
-                        `math (getBoundingClientRect/getTotalLength/getPointAtLength/` +
-                        `ManualTimeline/fromMotionPath/setChildTime) — the gesture ` +
-                        `engine is not where it should be.`,
-                );
-            } else {
-                console.log(
-                    `  ✓ [engine-home] the gesture engine lives in ` +
-                        `${GESTURE_COMPOSABLE} (${engineHits} projection-math sites)`,
-                );
-            }
-        }
-
-        if (!fs.existsSync(targetAbs)) {
-            failures.push(
-                `[target-clean] ${MOTION_PATH_TARGET} does not exist.`,
-            );
-        } else {
-            const targetSrc = blankComments(read(targetAbs));
-            const leaks = [];
-            for (const m of targetSrc.matchAll(PROJECTION_MATH)) {
-                const line = targetSrc.slice(0, m.index).split("\n").length;
-                leaks.push({ sym: m[0], line });
-            }
-            if (leaks.length > 0) {
-                failures.push(
-                    `[target-clean] ${MOTION_PATH_TARGET} holds ${leaks.length} ` +
-                        `projection-math site(s) in its <script> (comment-blanked) ` +
-                        `— the Target must hold ONLY refs + markup; the gesture ` +
-                        `engine lives in ${GESTURE_COMPOSABLE} (H.W12.S2/I9). ` +
-                        `Leaks:\n      ` +
-                        leaks
-                            .map((l) => `${MOTION_PATH_TARGET}:${l.line}  ${l.sym}`)
-                            .join("\n      "),
-                );
-            } else {
-                console.log(
-                    `  ✓ [target-clean] ${MOTION_PATH_TARGET} holds ZERO ` +
-                        `projection math (refs + markup only; the engine is lifted)`,
-                );
-            }
-        }
-    }
+    // (CLAUSE 1 — the motion-path gesture-engine-in-composable + Target-stays-clean
+    //  check — was RETIRED at T.E3: the motion-path scene (useMotionPathGesture.ts +
+    //  MotionPathTarget.vue) was PRUNED, OD-1 = PRUNE. Clause 2's store-encapsulation
+    //  checks below are scene-agnostic and SURVIVE.)
 
     // ── CLAUSE 2a — store writes are confined to the store-module dir ───────
     {

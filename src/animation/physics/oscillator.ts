@@ -7,10 +7,16 @@
  * phase clock, NOT a CSS value parser, so it carries ZERO static edge to
  * `@mkbabb/value.js` (proof:boundary gates it as a value.js-free LIGHT entry).
  *
- * The consume signal is glass-ui BB's `W-EASING-PRIMITIVE` wave — its speedtest
- * idle-breath and the demo's `KF-OSCILLATOR` scene read the phase to drive a
- * looping motion. glass-ui co-schedules; kf owns the phase math
- * (`docs/tranches/L/waves/L.W9.md §S5`).
+ * ── C-13 (S.G2 S12, fold row 56) — INTENTIONAL PUBLIC LEAF ─────────────────────
+ * `Oscillator` is an intentional public LIGHT leaf: the phase math IS the product,
+ * consumed EXTERNALLY (glass-ui BB's `W-EASING-PRIMITIVE` wave — its speedtest
+ * idle-breath reads the phase to drive a looping motion; glass-ui co-schedules, kf
+ * owns the phase math — `docs/tranches/L/waves/L.W9.md §S5`). It carries NO internal
+ * demo scene: the former header claim of a "demo `KF-OSCILLATOR` scene" was fictional
+ * (no such scene exists on disk), so the C-13 decision STRIPPED the claim rather than
+ * build a scene disproportionate to a periodic phase clock — a published primitive
+ * that stands on its own beside `SmoothProgress`/`SpringProgress`, gated LIGHT by
+ * proof:boundary, needs no in-repo demo to justify its export.
  *
  * NO rAF ownership — the caller drives the loop. `tick(dt)` advances the phase
  * by `frequency × dt` (with `dt` in SECONDS from the caller's `RAFPlayback`

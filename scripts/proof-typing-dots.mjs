@@ -8,7 +8,7 @@
  * left "..." whitespace-free → a single token → a single inline-block), driven
  * by a TITLE-sized 2.6s duration, blanking to `opacity: 0` for 43% of every
  * cycle (measured: 325 rAF samples, min 0.000, 43% < 0.3). No `. → ·· → ···`
- * cadence — one slow ghost-swell. AND `.lift-down` + `.dot-fade` BOTH set the
+ * cadence — one slow ghost-swell. AND the title lift + `.dot-fade` BOTH set the
  * `animation` shorthand on that one span → a silent cascade loser.
  *
  * THE FIX (H.W6). The ellipsis becomes its OWN substrate — `TypingDots.vue`:
@@ -16,7 +16,7 @@
  * (`iterationCount: Infinity`, the dogfood seam) with a `stagger()`-distributed
  * per-dot `delay` and a `steppedEase` cadence, interpolating ONLY numeric
  * opacity (rest 0.2 → peak 1 → 0.2, NEVER 0) on a FIXED short 1.2s cycle. The
- * cascade collision dies WITH the split (the dots carry NEITHER `.lift-down`
+ * cascade collision dies WITH the split (the dots carry NEITHER the title lift
  * NOR `.dot-fade`; `.dot-fade` + `@keyframes dotFade` are deleted — no legacy).
  *
  * THE GATE — five clauses, each BITING on the exact defect it forbids:
@@ -37,12 +37,13 @@
  *   (e) The CASCADE LINT (static + browser · a-styling-idioms §4). No single
  *       element class-set carries TWO rules that both set the `animation`
  *       shorthand: STATIC — `AnimatedText.vue` declares exactly one
- *       `animation:`-shorthand rule (`.lift-down`) and carries NO `.dot-fade` /
+ *       `animation:`-shorthand rule (the title lift — `.lift-down` in the H-era
+ *       word split, `.wave-char` since the T.D10 per-char rebirth) and carries NO `.dot-fade` /
  *       `@keyframes dotFade` residue (no-legacy); the `.typing-dot` substrate
  *       declares NO CSS `animation` shorthand (the engine drives it). BROWSER —
  *       each rendered dot resolves a SINGLE `animation-name` (`none` — the JS
  *       engine paints opacity inline, so no CSS animation collides). BITE:
- *       re-stack `.lift-down` + `.dot-fade` on one node → a dot resolves two
+ *       re-stack the title lift + `.dot-fade` on one node → a dot resolves two
  *       animation-names / a second `animation:`-shorthand rule reappears → reds.
  *
  * ISOLATION (WV-W6-HIGH-1). The home route cannot mount the dots pre-render —
@@ -69,8 +70,8 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
 const HARNESS = path.join(REPO, "scripts/lib/typing-dots-harness");
 const HARNESS_DIST = path.join(REPO, "dist/_proof-typing-dots");
-const TYPING_DOTS = path.join(DEMO, "@/components/custom/TypingDots.vue");
-const ANIMATED_TEXT = path.join(DEMO, "@/components/custom/AnimatedText.vue");
+const TYPING_DOTS = path.join(DEMO, "@/components/custom/instrument/shell/TypingDots.vue");
+const ANIMATED_TEXT = path.join(DEMO, "@/components/custom/instrument/shell/AnimatedText.vue");
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);
@@ -89,7 +90,7 @@ console.log(
 // The structural lock (a-styling-idioms §4): the dots live on a DISJOINT
 // substrate (TypingDots), so no node carries two `animation` shorthands. Static
 // half (always runs, browser-free): AnimatedText declares exactly one
-// `animation:`-shorthand rule (`.lift-down`), the `.dot-fade` + `@keyframes
+// `animation:`-shorthand rule (the title lift — `.wave-char` post-T.D10), the `.dot-fade` + `@keyframes
 // dotFade` are GONE (no-legacy), and the `.typing-dot` substrate carries NO CSS
 // `animation` shorthand (the engine drives opacity via inline style).
 {
@@ -140,7 +141,8 @@ console.log(
         }
 
         // Exactly one rule in AnimatedText sets the `animation` shorthand: the
-        // title lift (`.lift-down`). `animation-fill-mode` / `animation: none`
+        // title lift (`.wave-char` since T.D10; `.lift-down` in the H era).
+        // `animation-fill-mode` / `animation: none`
         // (the PRM longhand + the reset) are NOT the shorthand — count only a
         // bare `animation:` followed by a NON-`none` value list (the shorthand).
         const shorthandRules = [
@@ -150,7 +152,7 @@ console.log(
             fail(
                 `[cascade-lint] ${rel(ANIMATED_TEXT)} declares ${shorthandRules.length} ` +
                     `\`animation\`-shorthand rule(s) (expected exactly 1 — the title ` +
-                    `\`.lift-down\` lift): ${shorthandRules
+                    `title lift): ${shorthandRules
                         .map((m) => m[2].trim())
                         .join(" | ")}. Two shorthand rules on one node is the ` +
                     `cascade collision (a-styling-idioms §4).`,

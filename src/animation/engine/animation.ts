@@ -1,15 +1,16 @@
 /**
  * `engine/animation.ts` — the base `KeyframesAnimation` class over a composed
  * `FrameCompiler`. The CSS-parsing `CSSKeyframesAnimation` subclass lives in
- * `./css-animation`; the play machine / interp hot-path / option-apply / compile
- * bridge / element-aware resolver are carved into `./playback` / `./interpolate`
- * / `./option-setters` / `./compile-bridge` / `./element-resolve` (R.W2).
+ * the `./css` sub-zone; the play machine / interp hot-path / option-apply /
+ * compile bridge are carved into `./playback` / `./interpolate` /
+ * `./option-setters` / `./compile-bridge`, the element-aware resolver into
+ * `../resolve/element-resolve` (R.W2 + S.B2).
  * Statically imports the heavy `@mkbabb/value.js` surface — reachable ONLY
  * through the `./index` dynamic boundary (`await loadAnimationEngine()`).
  */
 import type { ValueUnit } from "@mkbabb/value.js";
 import { RAFPlayback } from "../physics/playback";
-import type { Diagnostic } from "../adapter";
+import type { Diagnostic } from "../compile/adapter";
 import { defaultOptions } from "../constants";
 import type {
     AnimationFrame,
@@ -20,21 +21,23 @@ import type {
     TransformFunction,
     Vars,
 } from "../constants";
-// R.W2c — `AnimationGroup` TYPE-ONLY (erased); `.group()` builds it via the
-// neutral `getGroupFactory()` seam, inverting the engine→group back-edge.
-import type { AnimationGroup } from "../group";
-import { getGroupFactory } from "../internal/group-factory";
+// S.B4 (a06 F1/F2) — the engine carries ZERO edge to `group/`. The former
+// `.group()` convenience (which reached the group ctor via the
+// `internal/group-factory` service locator) is EXCISED; group construction is
+// now `AnimationGroup.of(first, ...rest)` (genuine ownership — the compositor
+// owns its own construction), so the engine↔group ring is one-directional
+// (group → engine) BY CONSTRUCTION, with no back-edge to invert.
 import { FrameCompiler } from "../compile/frame-compiler";
 import {
     type ParsedVarMap,
     transformTargetsStyle,
 } from "../compile/parse-flatten";
-import * as playback from "./playback";
-import { PlaybackState } from "./playback";
+import * as playback from "./play-lifecycle";
+import { PlaybackState } from "./playback-state";
 import * as interpolate from "./interpolate";
 import * as setters from "./option-setters";
 import * as compileBridge from "./compile-bridge";
-import { resolveElementAwareValues } from "./element-resolve";
+import { bindTargets } from "../resolve/element-resolve";
 
 // `getAnimationId` moved to the value.js-free `internal/animation-id.ts` leaf
 // (R.W2c — kills the group→engine edge); re-exported, surface UNCHANGED.
@@ -50,7 +53,7 @@ let nextId = 0;
  * leaking a suffixed collision alias into the d.ts. The legacy `Animation`
  * re-export alias was DROPPED in 5.0.0 (Q.WE1 — NO-LEGACY).
  */
-export class KeyframesAnimation<V extends Vars = any> {
+export class KeyframesAnimation<V extends Vars = Vars> {
     id: number = nextId++;
     name: string | undefined;
     superKey: string | undefined;
@@ -83,11 +86,26 @@ export class KeyframesAnimation<V extends Vars = any> {
      * own them via `this._playback` directly (no cast, no re-publication). */
     readonly _playback: PlaybackState;
 
-    startTime: number | undefined = undefined;
-    pausedTime: number = 0;
-    t: number = 0;
-
-    iteration: number = 0;
+    // The run-state FSM (S.B2 — C-15): single-STORAGE in `_playback`, exposed as
+    // PUBLIC accessor delegates so every external writer keeps its `anim.<field> =`
+    // write while the backing store is unified (the engine-internal hot path reads
+    // `anim._playback.*` directly). `managed` stays a real field (ownership).
+    get startTime(): number | undefined { return this._playback.startTime; }
+    set startTime(v: number | undefined) { this._playback.startTime = v; }
+    get pausedTime(): number { return this._playback.pausedTime; }
+    set pausedTime(v: number) { this._playback.pausedTime = v; }
+    get t(): number { return this._playback.t; }
+    set t(v: number) { this._playback.t = v; }
+    get iteration(): number { return this._playback.iteration; }
+    set iteration(v: number) { this._playback.iteration = v; }
+    get started(): boolean { return this._playback.started; }
+    set started(v: boolean) { this._playback.started = v; }
+    get done(): boolean { return this._playback.done; }
+    set done(v: boolean) { this._playback.done = v; }
+    get reversed(): boolean { return this._playback.reversed; }
+    set reversed(v: boolean) { this._playback.reversed = v; }
+    get paused(): boolean { return this._playback.paused; }
+    set paused(v: boolean) { this._playback.paused = v; }
 
     /** Structured parse/honoring diagnostics (K.W7 S4) — a FLAT additive array
      * of stable-coded {@link Diagnostic} rows surfaced from `resolveKeyframes` +
@@ -108,11 +126,6 @@ export class KeyframesAnimation<V extends Vars = any> {
     /** True once a non-`replace` operator was seen — the hot path skips ALL
      * composition work when false. INTERNAL — read by `./interpolate` (R.W2). */
     _hasComposition: boolean = false;
-
-    started: boolean = false;
-    done: boolean = false;
-    reversed: boolean = false;
-    paused: boolean = false;
 
     /** True when an `AnimationGroup` drives this animation's `advanceTo()`/
      * `interpFrames()` from its own rAF loop. Standalone `.play()` throws when
@@ -323,15 +336,9 @@ export class KeyframesAnimation<V extends Vars = any> {
     }
 
     reverse() {
-        // Adjust startTime so effectiveT remains continuous across the flip.
-        // Before: effectiveT = reversed ? duration - t : t
-        // After flip we need the same effectiveT, so shift raw t to (duration - t).
-        if (this.startTime !== undefined) {
-            const rawT = this.t;
-            const shift = this.options.duration - 2 * rawT;
-            this.startTime -= shift;
-        }
-        this.reversed = !this.reversed;
+        // The startTime clock-shift that keeps `effectiveT` continuous across the
+        // flip is a playback concern — body in `./playback` (R.W2 delegation).
+        playback.reverse(this);
         return this;
     }
 
@@ -462,38 +469,15 @@ export class KeyframesAnimation<V extends Vars = any> {
 
     setTargets(...targets: HTMLElement[]) {
         this.targets = targets;
-
-        // Q.WB1 — the emerging-CSS Phase-2 element-AWARE resolution pass (R.W2:
-        // body in `./element-resolve`). Re-runs the resolver over the pre-flatten
-        // template snapshot against the now-bound element, then re-`parse()`s;
-        // returns true iff it re-parsed. The common all-concrete animation skips
-        // it (returns false) and takes the fast target-propagate path below.
-        const rebuilt = resolveElementAwareValues(this);
-        if (!rebuilt) {
-            // The fast path (no Phase-2 node): propagate the bound target onto the
-            // ALREADY-compiled interp carriers so value.js's computed-unit DOM
-            // resolution reads the live box.
-            this.frames.forEach((frame) => {
-                Object.values(frame.interpVars).forEach((values) => {
-                    values.forEach(({ start, stop, value }) => {
-                        start.setTargets(this.targets);
-                        stop.setTargets(this.targets);
-                        value.setTargets(this.targets);
-                    });
-                });
-            });
-        }
-
+        // S.B2 — the element-binding body lives in `../resolve/element-resolve`
+        // (the emerging-CSS Phase-2 element-aware pass + the fast target-propagate
+        // fallback): it coheres with the resolve zone, not the run-state class.
+        bindTargets(this);
         return this;
     }
 
-    group(...animations: KeyframesAnimation<V>[]): AnimationGroup<V> {
-        // R.W2c — via the neutral DI seam (no static engine→group edge).
-        const group = getGroupFactory()(this, ...animations);
-        return group as unknown as AnimationGroup<V>;
-    }
 }
 
-// R.W2 carve homes: `CSSKeyframesAnimation` → `./css-animation` (F-4); the
-// Phase-2 element-aware resolver → `./element-resolve` (F-7); the heavy-surface
-// bundling re-exports → `./index` (the engine barrel; gestalt §5).
+// R.W2/S.B2 carve homes: `CSSKeyframesAnimation` → `./css` sub-zone (F-4); the
+// Phase-2 element-aware resolver → `../resolve/element-resolve` (F-7); the
+// heavy-surface bundling re-exports → `./index` (the engine barrel; gestalt §5).

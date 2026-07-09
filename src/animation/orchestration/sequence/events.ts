@@ -26,7 +26,7 @@
  */
 
 import type { KeyframesAnimation } from "../../engine";
-import type { Vars } from "../../constants";
+import type { Vars } from "../../constants/types";
 
 /**
  * A resolved sequence segment: a child animation anchored at an absolute ms

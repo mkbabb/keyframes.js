@@ -11,13 +11,7 @@
  * accessors to it; the compile inputs it needs (`options`, and `targets` for
  * `parse`) are passed in, never reached back through the owning class.
  */
-import {
-    parseCSSValueUnit,
-    seekPreviousValue,
-    unflattenObject,
-    ValueUnit,
-} from "@mkbabb/value.js";
-import { AnimationOptionError } from "../internal/errors";
+import { seekPreviousValue, unflattenObject, ValueUnit } from "@mkbabb/value.js";
 import type {
     AnimationFrame,
     AnimationOptions,
@@ -34,22 +28,29 @@ import {
     type ParsedVarMap,
 } from "./parse-flatten";
 // The keyframe-SELECTOR grammar (the regexes, the named-range tag, the
-// named-phase → fraction resolver, the content-id scale) lives in the colocated
-// `./selector` module (R.W2b carve). `namedSelectorToFraction` +
-// `NAMED_SELECTOR_SUPERTYPE` re-export THROUGH this module so css-animation /
-// interpolate / `proof:nan-frame` resolve them at the unchanged path.
-import {
-    FRAME_ID_SCALE,
-    SELECTOR_KEYWORD_RE,
-    SELECTOR_PERCENT_RE,
-    SELECTOR_NAMED_RANGE_RE,
-    SELECTOR_REASON,
-    NAMED_SELECTOR_SUPERTYPE,
-} from "./selector";
-export {
-    namedSelectorToFraction,
-    NAMED_SELECTOR_SUPERTYPE,
-} from "./selector";
+// named-phase → fraction resolver, the content-id scale) AND the selector
+// validate+parse function (`parseKeyframeSelector`, carved off `addFrame` at
+// S.B5) live in the colocated `./selector` module (R.W2b + S.B5). S.B3 C-2 — the
+// re-export CEREMONY is DEAD: consumers (`engine/interpolate.ts`,
+// `test/nan-frame.ts`) import `namedSelectorToFraction` / `NAMED_SELECTOR_SUPERTYPE`
+// from `./selector` DIRECTLY; this module imports only what IT uses.
+import { FRAME_ID_SCALE, parseKeyframeSelector } from "./selector";
+
+/**
+ * A frame mid-compile (a29 F7). `createFrame` returns this: every field EXCEPT
+ * the two derived ones (`vars`/`flatVars`) is present, and those two are
+ * honestly OMITTED — not forged with `undefined as unknown as V`, which under
+ * `exactOptionalPropertyTypes` is a per-field lie (a `V` slot holding
+ * `undefined`). `finalizeFrameVars` derives `vars`/`flatVars` from `interpVars`
+ * at the tail of `parse()` and narrows the segment to a complete
+ * `AnimationFrame<V>` (the fill-site narrow the audit named). The steady-state
+ * `frames` array is `AnimationFrame<V>[]` — fully finalized — before any
+ * consumer reads it (`parse()` is synchronous).
+ */
+type FrameUnderConstruction<V extends Vars = Vars> = Omit<
+    AnimationFrame<V>,
+    "vars" | "flatVars"
+>;
 
 /**
  * Map a segment's percent endpoints onto the wall-clock window. Inlined here
@@ -70,13 +71,13 @@ function calcFrameTime<V extends Vars>(
 // The numeric SoA fold plan (`buildNumericPlan` + its `isNumericInterpVar`
 // predicate) lives in the colocated `./numeric-plan` module (R.W2b carve);
 // `finalizeFrameVars` builds one per frame. The heavy-surface easing-input
-// resolver (`resolveEasingOption`) lives in `./easing-option` and is re-exported
-// THROUGH this module so `engine/options.ts` resolves it at the unchanged path.
+// resolver (`resolveEasingOption`) lives in `./easing-option`. S.B3 C-2 — the
+// re-export CEREMONY is DEAD: `engine/options.ts` imports `resolveEasingOption`
+// from `./easing-option` DIRECTLY; this module imports only what IT uses.
 import { buildNumericPlan } from "./numeric-plan";
 import { resolveEasingOption } from "./easing-option";
-export { resolveEasingOption } from "./easing-option";
 
-export class FrameCompiler<V extends Vars = any> {
+export class FrameCompiler<V extends Vars = Vars> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
     parsedVars: ParsedVarMap[] = [];
     frames: AnimationFrame<V>[] = [];
@@ -129,71 +130,16 @@ export class FrameCompiler<V extends Vars = any> {
             start = String(start);
         }
 
-        // Fail-explicit belt (H.W0 H-A2, made TOTAL in J.W1 S3 — SEAM-1).
-        // The pre-J guard caught ONLY the blank selector; non-empty garbage
-        // ("abc") still reached value.js and threw the cryptic, un-typed
-        // `Parse error at offset 0: "…"`, while a length/time ("5px",
-        // "500ms") or an out-of-range percent ("150%") was SILENTLY accepted
-        // as a selector. The guard validates against the NAMED conforming
-        // grammar (percentage 0%–100% ∪ from/to ∪ the scroll-range named
-        // selectors — see SELECTOR_PERCENT_RE / SELECTOR_KEYWORD_RE /
-        // SELECTOR_NAMED_RANGE_RE) BEFORE `parseCSSValueUnit`, so EVERY
-        // non-conforming selector is a clear, typed `AnimationOptionError`.
-        // The blank case carries the stable structured code "EMPTY_PARSE"
-        // (J.W1 S8) so a programmatic consumer branches on the reason, never
-        // on the message string.
-        const selector = start.trim();
-        if (selector === "") {
-            throw new AnimationOptionError(
-                "start",
-                start,
-                `${SELECTOR_REASON} — got an empty/blank string`,
-                "EMPTY_PARSE",
-            );
-        }
-
-        // L.W1 S4 (viol17/W118) — the scroll-range named selectors
-        // (`entry`/`exit`/`cover`/`contain`, optionally `entry 0%`) are
-        // CONFORMING, not garbage: value.js parses them (`kind:"named"`) and
-        // the adapter surfaces them literally. The pre-L guard THREW on them —
-        // what value.js produced, the frame-compiler could not ingest. The cure
-        // is NOT "silently accept and ignore" but "accept AND preserve": store
-        // the raw token opaquely as `ValueUnit(rawSelector, undefined,
-        // [NAMED_SELECTOR_SUPERTYPE])` — `value` holds the selector STRING so it
-        // round-trips VERBATIM through `format.ts` (`String(start)`), and the
-        // `superType` tag is the channel the deferred phase resolver keys on. No
-        // `parseCSSValueUnit` (it THROWS on `entry`); no pre-attach throw (the
-        // named selector resolves to a numeric `%` only under a ScrollTimeline/
-        // ManualTimeline phase mapper, deferred to attach time — the genuinely-
-        // resolution-required-but-timeline-absent case refuses with the
-        // structured `NAMED_SELECTOR_NO_TIMELINE`, never an invented number).
-        let parsedStart: ValueUnit;
-        if (SELECTOR_NAMED_RANGE_RE.test(selector)) {
-            parsedStart = new ValueUnit(selector, undefined, [
-                NAMED_SELECTOR_SUPERTYPE,
-            ]);
-        } else {
-            if (
-                !SELECTOR_KEYWORD_RE.test(selector) &&
-                !(
-                    SELECTOR_PERCENT_RE.test(selector) &&
-                    parseFloat(selector) <= 100
-                )
-            ) {
-                throw new AnimationOptionError(
-                    "start",
-                    start,
-                    `${SELECTOR_REASON} — got ${JSON.stringify(start)}`,
-                );
-            }
-
-            // Guarded-total: the conforming set ("<n>%", "from", "to") is
-            // exactly what value.js parses to a percentage ValueUnit — `from` →
-            // 0%, `to` → 100% — so no post-parse conversion/clamp remains (the
-            // former `convertFrameStart` time-selector branch died with the
-            // total guard: a time is not a keyframe selector).
-            parsedStart = parseCSSValueUnit(selector);
-        }
+        // Fail-explicit belt (H.W0 H-A2, made TOTAL in J.W1 S3 — SEAM-1;
+        // L.W1-S4-extended for the scroll-range named selectors). The validate+
+        // parse guard lives BESIDE the grammar it checks against, in
+        // `./selector` (the S.B5 carve): every non-conforming selector is a
+        // clear, typed `AnimationOptionError` (blank → the "EMPTY_PARSE"
+        // structured code), and a conforming scroll-range named selector
+        // (`entry`/`exit`/…) ingests OPAQUELY — round-trips VERBATIM, resolves
+        // to a numeric `%` only under a ScrollTimeline/ManualTimeline at attach
+        // time (never a parse-time throw or an invented number).
+        const parsedStart: ValueUnit = parseKeyframeSelector(start);
 
         let templateFrame = {
             id: this.frameId,
@@ -291,19 +237,22 @@ export class FrameCompiler<V extends Vars = any> {
         // declared composite of the value the segment is interpolating INTO).
         const composition = endFrame.composition;
 
-        return {
+        // The segment is a `FrameUnderConstruction<V>` — `vars`/`flatVars` are
+        // OMITTED (not forged as `undefined as unknown as V`); `finalizeFrameVars`
+        // derives them from `interpVars` at the tail of `parse()` and the buffer
+        // narrows to `AnimationFrame<V>` there (a29 F7 — the fill-site narrow).
+        const frame: FrameUnderConstruction<V> = {
             id,
             ixs,
             start: startFrame.start,
             time,
-            vars: undefined as unknown as V,
-            flatVars: undefined as unknown as V,
             interpVars: {},
             allInterpVars: [],
             transform,
             timingFunction,
             ...(composition != null ? { composition } : {}),
-        } as AnimationFrame<V>;
+        };
+        return frame as AnimationFrame<V>;
     }
 
     /**
@@ -389,19 +338,25 @@ export class FrameCompiler<V extends Vars = any> {
     parse(targets: HTMLElement[]) {
         this.frames = [];
 
-        // P.W9 (DM-22 named-selector NaN-frame) — DEFERRED to a follow-up wave.
+        // DM-22 named-selector resolution — BUILT (Q.WD1-bind S2), not deferred.
         // A scroll-range named selector (`entry`/`exit`/`cover`/`contain`) is
         // stored opaquely as `ValueUnit(rawSelector, undefined,
         // [NAMED_SELECTOR_SUPERTYPE])` (`.value` = raw STRING) so it INGESTS and
         // round-trips VERBATIM (the L.W1 S4 floor — `fromString` must not throw).
         // The correct cure is NOT a throw at parse() (that poisons the opaque-
-        // ingest floor): it is a deferred-resolution step that maps the named
-        // phase to a numeric `%` under a ScrollTimeline/ManualTimeline at attach
-        // time, refusing with the structured `NAMED_SELECTOR_NO_TIMELINE` only at
-        // the genuinely-demanded PLAY-without-timeline point — not at ingest. That
-        // is a frame/play-pipeline change carried to its own wave; here we keep the
-        // shipped (tranche-L) behavior: named frames round-trip; the NaN is latent
-        // at sample-time only (no timeline = user error, surfaced at play).
+        // ingest floor): the deferred-resolution step LIVES at attach time in
+        // `CSSKeyframesAnimation.bindTimeline`, which maps each named phase to a
+        // numeric `%` `ValueUnit` (via `namedSelectorToFraction`), CLEARS the
+        // `NAMED_SELECTOR_SUPERTYPE` tag, and re-compiles — so a frame SAMPLED after
+        // `bindTimeline` yields finite times, never NaN (locked by
+        // `test/engine/nan-frame.test.ts` "after bindTimeline … finite"). The
+        // play-time guard (`assertNoUnresolvedNamedSelector`) is belt-and-braces:
+        // it refuses a raw `interpFrames`/`play()` on an UNBOUND named animation
+        // with the typed `NAMED_SELECTOR_NO_TIMELINE` (no timeline = user error,
+        // surfaced fail-explicit at play) rather than producing a NaN frame — the
+        // accepted terminal contract for the sample-before-bind path. `parse()`
+        // itself stays opaque-tolerant: it neither throws nor resolves (bind owns
+        // resolution); named starts simply carry their raw string until bound.
         this.templateFrames.sort((a, b) => a.start.value - b.start.value);
 
         this.parsedVars = this.templateFrames.map((frame) => {
@@ -459,6 +414,10 @@ export class FrameCompiler<V extends Vars = any> {
         }, {});
         frame.flatVars = flatVars as unknown as V;
         frame.vars = unflattenObject(frame.flatVars);
+        // T.A6 — invalidate the PLAIN authored-shape projection (rebuilt lazily
+        // on the next apply). Its writers cache the interp-carrier `ValueUnit`
+        // refs, which `renormalizeColors` replaces, so a re-finalize MUST drop it.
+        frame._plainProj = undefined;
         // Pre-flatten for zero-alloc iteration in interpFrames()
         frame.allInterpVars = Object.values(frame.interpVars).flat();
         // Q.WB3 S2 — build the numeric SoA fold plan over the now-stable iv set

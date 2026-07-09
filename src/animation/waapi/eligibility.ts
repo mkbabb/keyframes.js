@@ -168,17 +168,19 @@ export function isWAAPIEligible<V extends Vars>(
                 };
             }
         }
-        // WAAPI applies its single easing PER SEGMENT (between consecutive
-        // keyframe stops). A CSS-twinned easing (a spring's `linear()`)
-        // across 2+ segments would restart the curve at every stop —
-        // silently wrong on the compositor — so it stays on the rAF path,
-        // which runs the true curve across the whole span.
-        if (firstTF.css !== undefined) {
-            return {
-                eligible: false,
-                reason: "CSS-twinned easing across multiple segments (WAAPI restarts the curve per segment)",
-            };
-        }
+        // A multi-segment CSS-twin easing (a spring's `linear()` across 2+
+        // keyframe segments) is NO LONGER refused (S.F5c S2). Emitting the
+        // per-segment `.css` twin as the effect easing WOULD restart the curve
+        // at every stop — silently wrong — so instead the emit DENSIFIES the
+        // composite per-segment curve into keyframes fed a SINGLE bare-`linear`
+        // effect easing (`toWAAPIKeyframes` bakes `interpFrames`' true
+        // multi-segment curve at the offsets where it bends; `toWAAPIOptions`
+        // emits `linear` for the multi-segment case). The compositor's
+        // piecewise-linear fill over the baked stops then tracks the true rAF
+        // curve with NO per-segment restart — the "densify → single `linear()`"
+        // collapse. The fidelity is guarded by `proof:waapi-adaptive-densify`
+        // (the multi-segment-spring corpus curve + the multi-segment-eligible
+        // clause). WebKit still holds a `linear()` twin on rAF below (CE-1.0).
     }
 
     // WAAPI may delegate ONLY when the (uniform) easing has a FAITHFUL CSS
@@ -214,6 +216,15 @@ export function isWAAPIEligible<V extends Vars>(
         };
     }
 
+    // DATED RE-CHECK (S.F6, 2026-07-04): this hold is a measured-on-device
+    // engine behavior, not a syntax gap — CE-1.0's `webkitConvertPointFromNodeToPage`
+    // feature-detect will keep firing on every future Safari release until
+    // WebKit itself ships HW-accel for a `linear()`-eased animation. RE-VERIFY ON
+    // EACH SAFARI RELEASE: the first release that hardware-accelerates a custom
+    // `linear()` timing function makes this carve-out removable — unlocking
+    // compositor-thread springs on WebKit (kf's "springs on the compositor"
+    // headline is a Chrome/Firefox story only until then). No re-check has found
+    // that release yet.
     for (const frame of animation.frames) {
         for (const [property, interpVarArr] of Object.entries(
             frame.interpVars,

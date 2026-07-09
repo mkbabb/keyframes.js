@@ -1,0 +1,159 @@
+.square-stage {
+    /* The stage is the drag arena; the box translates within it. The plate
+       (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
+    overflow: hidden;
+    position: relative;
+}
+
+/* The instrument layer (field · tether · telemetry · legend) is styled inside
+   the colocated SquareInstrument sub-unit (markup + styles together). This scene
+   keeps only the subject (the box) + the stage's palette-sweep bloom. */
+
+/* P.W6 S1(a) — the per-axis sliders are SEMANTIC-only (the visible affordance is
+   the box itself + its instrument layer). Visually hidden but present for AT,
+   the canonical sr-only clip pattern (no layout footprint, focusable-exempt —
+   they carry no tabindex; the box is the single keyboard target). */
+.sr-only-slider {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.demo-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: var(--z-content);
+    --size: 12rem;
+    width: var(--size);
+    height: var(--size);
+    border-radius: var(--radius-lg);
+    /* J.W7a S3 (D13 / SQ-5, the no-legacy delta) — the raw `aquamarine`
+       named-colour literal DIES: the fill is the owned --subject-teal token
+       (design-idioms.css — the EGG_HUES terminal stop, so the tumble egg
+       settles INTO the box's own rest hue). The ink is a deep teal DERIVED
+       from the same token (never a second literal), so "drag me" holds AA on
+       its fill in BOTH themes — the former inherited foreground inverted to
+       near-white-on-mint in dark mode.
+       (The font-weight/size leaves with the D7 `text-display` swap above —
+       the published rung owns the type; scoped rules no longer shadow it.)
+       L.W11 S4 — a two-tone material (a subtle top-down oklab gradient + an
+       inset edge-light) reads the teal as a physical chip under the graph light,
+       not a flat fill. The base --subject-teal token is the KEPT identity; the
+       gradient only adds depth (the keeper hue is untouched). */
+    background-color: var(--subject-teal);
+    background-image: linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--subject-teal) 92%, white 8%),
+        var(--subject-teal)
+    );
+    color: color-mix(in oklab, var(--subject-teal) 25%, black);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+        0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
+    /* Direct-manipulation affordance (S5). The transformFunc owns `transform`,
+       so the cursor + touch-action carry the drag posture. */
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+    transition: box-shadow var(--duration-fast, 160ms) var(--ease-standard, ease);
+}
+
+/* L.W11 S4 — hover-arm: the rig "powers on" under the pointer (the deflection-
+   reactive aura blooms a faint red motion-authority ring at the edge). */
+.demo-box:hover {
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
+        0 0 0 0.5rem color-mix(in srgb, var(--color-progress) 12%, transparent);
+}
+
+/* P.W6 S1(d) — the dragging shadow now also intensifies with the live velocity
+   BANK: the box paints `--spring-tilt` (the skew magnitude) onto itself from the
+   spring loop, and the motion-authority edge ring brightens with it — a fast
+   pull READS as kinetic energy at the edge (the spring's velocity surfaced as
+   light, not just geometry). `--spring-tilt` defaults to 0 (a flat box glows the
+   base 22%). */
+.demo-box--dragging {
+    cursor: grabbing;
+    --tilt-glow: calc(var(--spring-tilt, 0) * 1.4%);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
+        0 0 0 0.5rem
+            color-mix(
+                in srgb,
+                var(--color-progress) calc(22% + var(--tilt-glow)),
+                transparent
+            );
+}
+
+/* P.W6 S1(d) — the grab-pulse "capture confirmed" ring. A one-shot expanding
+   ring fires from the box edge the instant a drag begins (the `--dragging` class
+   flips the `::before` into existence, and `@starting-style` transitions it from
+   a tight, opaque ring to a wide, faded one — a single tactile thunk, zero JS,
+   one transition). The ring is the red motion-authority hue (the same the
+   deflection aura uses). Pointer-events:none so it never steals the gesture.
+   On browsers without @starting-style the ::before simply renders at its end
+   state (invisible) — it degrades to no-pulse, never a broken layout. */
+.demo-box--dragging::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: var(--z-behind);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-progress) 55%, transparent);
+    opacity: 0;
+    transition:
+        box-shadow var(--duration-slow, 420ms) var(--ease-out, ease-out),
+        opacity var(--duration-slow, 420ms) var(--ease-out, ease-out);
+}
+@starting-style {
+    .demo-box--dragging::before {
+        box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--color-progress) 80%, transparent);
+        opacity: 0.9;
+    }
+}
+
+/* ── L.W11 S4 — the palette-sweep BLOOM (the tumble egg's landing thunk) ──
+   While `data-palette-sweep` is set (the egg's colour sweep is live, painted by
+   the kept SpringProgress spin) the box blooms a soft rainbow-sourced halo so
+   the barrel-roll lands as an EVENT — the off-the-normal-path effect the
+   design-refinement probe reads. PRM collapses it to no bloom (the box still
+   tumbles + sweeps colour; only the decorative halo is dropped). */
+.demo-box[data-palette-sweep] {
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, white 30%, transparent),
+        0 0 1.5rem 0.25rem color-mix(in srgb, var(--rainbow-violet) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .square-tether {
+        /* Snap: no fade, the line is either present or not (geometry unchanged). */
+        transition: none;
+    }
+    .demo-box,
+    .demo-box:hover,
+    .demo-box--dragging {
+        transition: none;
+    }
+    /* PRM — drop the grab-pulse entry transition (the ring is decorative; the
+       box still banks + captures, only the expanding pulse is suppressed). */
+    .demo-box--dragging::before {
+        transition: none;
+        opacity: 0;
+    }
+    .demo-box[data-palette-sweep] {
+        /* Drop the decorative bloom under reduced motion (the tumble + colour
+           sweep still play — only the halo is suppressed). */
+        box-shadow:
+            inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+            0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
+    }
+}

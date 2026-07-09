@@ -12,7 +12,7 @@
  *
  * This is the SOURCE-GREP half (the cure-is-wired anchors) — CHAINED in
  * package.json with the BEHAVIOUR half (`vitest run
- * test/emerging-css-resolve-fn.test.ts`, the live observable-truth inlining: the
+ * test/resolve/emerging-css-resolve-fn.test.ts`, the live observable-truth inlining: the
  * `--ident(args)` call is REPLACED by its substituted `result` expression on the
  * compiled frame). The behaviour half is the gate-blindspot-proof witness (a real
  * engine compile, NOT a source grep).
@@ -48,6 +48,12 @@ console.log(
 // files, so a clause's anchor is found wherever the carve landed it.
 const RESOLVE = [
     "src/animation/resolve/index.ts",
+    // S.B4 — the core recursion (resolveNode + the dashed-function arm) carved
+    // off the barrel into ./core (a02 F3/F4). The RESOLVE surface is the
+    // concatenation, so the resolveFunctionCall anchors are found wherever the
+    // carve landed them.
+    "src/animation/resolve/core.ts",
+    "src/animation/resolve/spring-css.ts",
     "src/animation/resolve/env.ts",
     "src/animation/resolve/resolve-if.ts",
     "src/animation/resolve/resolve-function.ts",
@@ -163,8 +169,11 @@ requireAll("coerce", RESOLVE, [
         re: /coerceToSyntax\(String\(arg\),\s*param\.syntax\)/,
     },
     {
-        name: "a coercion miss falls back to the param defaultValue (the CSS Mixins L1 fallback, never a NaN substitution)",
-        re: /coerceArg[\s\S]*?param\.defaultValue\b/,
+        // S.C4/S2 — the field is `.default` since the value.js 2.0.x consume
+        // (the KF-1 rename `defaultValue→default`; the shim-era anchor followed
+        // the code to the clean direct read).
+        name: "a coercion miss falls back to the param default (the CSS Mixins L1 fallback, never a NaN substitution)",
+        re: /coerceArg[\s\S]*?param\.default\b/,
     },
 ]);
 
@@ -198,7 +207,7 @@ if (failures.length > 0) {
     for (const f of failures) console.error(f);
     console.error(
         "\nThe @function CALL-inlining arm is not wired. The behaviour half " +
-            "(vitest run test/emerging-css-resolve-fn.test.ts) carries the live " +
+            "(vitest run test/resolve/emerging-css-resolve-fn.test.ts) carries the live " +
             "inlining observables against the real engine compile (--double(50px) → " +
             "calc(50px * 2), the nested recursion, the self-reference DROP, the typed " +
             "coerce-fallback); this source half confirms the resolveFunctionCall arm + " +

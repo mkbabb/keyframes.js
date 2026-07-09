@@ -8,101 +8,24 @@
         :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
         :extra-control-tabs="extraControlTabs"
-        :items-popup-open="mbabbMenuOpen || mbabbPressing"
+        :items-popup-open="mbabbPopupOpen"
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
         @update-selected-control="onDockSelectControl"
     >
         <template #items>
-            <!-- @mbabb dropdown — S8 (BLK-8) / D9 re-cure: DockDropdownTrigger is
-                 itself a reka trigger (mirroring DockSelectTrigger), so it mounts
-                 DIRECTLY inside <DropdownMenu>. The former outer
-                 <DropdownMenuTrigger as-child> double-wrapped it (two triggers,
-                 the inner click swallowed); that wrap is GONE. reka still OWNS the
-                 open/close latch (uncontrolled) — a clean single toggle.
-
-                 The D9 race re-surfaced under the J.W7c U1 golden-proportion dock:
-                 reka's DockSelectTrigger opens on POINTERDOWN (wins instantly), but
-                 DockDropdownTrigger opens on CLICK — it needs pointerdown AND
-                 pointerup on the SAME node. The dock-control press-scale
-                 (`:active { scale: var(--scale-press-dock) /* .96 */ }`, glass-ui's
-                 affordance shared with the Select) shrinks the pill mid-press, so
-                 pointerup lands off the trigger and no `click` is ever synthesised →
-                 the menu never opens (the deterministic born-RED in a fresh context).
-
-                 FIX (product seam, no reka/glass-ui patch): on the trigger's
-                 POINTERDOWN we SYNTHESISE the click reka needs (a reflow-immune
-                 actuation mirroring the Select's pointerdown-wins behaviour) and kill
-                 the trailing native click, leaving reka in sole control of the
-                 toggle; and we surface the menu's open state to ChromeDock
-                 (`:items-popup-open`) so the DOCK holds itself open — keeping the
-                 trigger's expanded layer mounted while the menu is open (the slot's
-                 own useOptionalDockContext can't reach the GlassDock provider). See
-                 the handlers below for the full rationale. -->
-            <DropdownMenu @update:open="onMbabbMenuOpen">
-                <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small" @pointerenter="onMbabbTriggerEnter" @pointerleave="onMbabbTriggerLeave" @pointerdown="onMbabbTriggerPointerdown" @click.capture="onMbabbTriggerClickCapture">@mbabb</DockDropdownTrigger>
-                <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[var(--dock-panel-width)] text-body p-1.5">
-                    <!-- Share -->
-                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
-                        <SharePopover :on-scene-restore="(id: string) => runSceneSwitch(id)" />
-                        <div class="flex-1 min-w-0">
-                            <span class="text-small text-foreground">Share</span>
-                            <p class="text-admin-label text-muted-foreground leading-tight">Copy link or load shared state</p>
-                        </div>
-                    </DropdownMenuItem>
-
-                    <!-- Dark mode — the whole row is the toggle target (F5,
-                         mirroring the ppmycota row below): a row-level @click
-                         flips the theme, and <DarkModeToggle passive> makes the
-                         inner icon a pure INDICATOR (`@click="!passive &&
-                         toggleDark()"` short-circuits) so the row fires exactly
-                         once — no double-toggle. -->
-                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" @click="toggleDark()">
-                        <DarkModeToggle
-                            passive
-                            title="Toggle dark mode"
-                            class="aspect-square w-5"
-                        />
-                        <span class="text-small text-foreground">Dark mode</span>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    <!-- ppmycota logo — toggles pp mode -->
-                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" @click="togglePpMode">
-                        <div class="ppmycota-logo-sm w-7 h-7 shrink-0 scale-on-hover"></div>
-                        <div class="flex-1 min-w-0">
-                            <!-- Brand colour consumes the --ppmycota-primary token
-                                 directly (inline, not a text-[var(...)] arbitrary
-                                 utility): the dropdown content is portalled, so an
-                                 inline style is the portal-safe home for the token
-                                 ref while it co-locates with the brand mark (S2). -->
-                            <span class="text-small" :style="{ color: 'var(--ppmycota-primary)' }">ppmycota</span>
-                            <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
-                        </div>
-                    </DropdownMenuItem>
-
-                    <!-- @mbabb -->
-                    <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1">
-                        <Avatar class="w-7 h-7">
-                            <AvatarImage
-                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                            ></AvatarImage>
-                        </Avatar>
-                        <div class="flex-1 min-w-0">
-                            <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="text-mono-caption normal-case font-semibold text-foreground hover:underline">@mbabb</a>
-                            <p class="text-admin-label text-muted-foreground leading-tight">CSS keyframe animation engine</p>
-                            <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
-                        </div>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <MbabbMenu
+                v-model:open="mbabbPopupOpen"
+                :super-key="currentSuperKey"
+                :on-scene-restore="runSceneSwitch"
+            />
         </template>
     </ChromeDock>
 
     <EditorShell
         :animation-group="currentAnimationGroup"
+        :channels="currentChannels"
         :super-key="currentSuperKey"
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
@@ -111,6 +34,16 @@
         @play-state-change="onPlayStateChange"
         @start-state-change="onStartStateChange"
     >
+        <!-- T.D13 (OD-2: AURORA-ON-HERO, more subtle) — glass-ui's Aurora as
+             the home hero's ambient background, mounted BY DEFAULT (the owner
+             blessed the P-HERO ?light=1 fork AS the default; the review-lever
+             query toggle is gone). Home only; navigating away tears the layer
+             down. The subtlety bound lives in HeroAurora
+             (HERO_AURORA_OPACITY_CEILING, proof:cursor-light-subtle). -->
+        <template v-if="isHome" #backdrop>
+            <HeroAurora />
+        </template>
+
         <template #start-screen>
             <EditorStartScreen hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;" />
         </template>
@@ -159,9 +92,7 @@
                         v-bind="activeSceneProps"
                     />
                     <template #fallback>
-                        <div class="flex h-full w-full items-center justify-center">
-                            <span class="text-subheading text-muted-foreground animate-pulse">Loading scene&#x2026;</span>
-                        </div>
+                        <SceneSkeleton />
                     </template>
                 </Suspense>
             </div>
@@ -174,43 +105,58 @@
 // non-scoped partial is the smallest shared scope for every brand-mark consumer
 // App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
-// Q.WC3 — the co-located scene-switch motion (the global directional VT
-// keyframes; GLOBAL because the `::view-transition-*` pseudo-tree paints at the
-// document root, never scoped).
-import "./scene-transition.css";
+// S.G2 S11 — the demo carries NO `::view-transition-*` CSS of its own (fold row
+// 5 backlog, proof:icon-paint-live clause (e-grep)). The animation glyphs that
+// paint the scene swap are glass-ui-owned (its `view-transition.css`, loaded via
+// `@import "@mkbabb/glass-ui/styles"`): the untyped cross-fade + the `scene-subject`
+// shared-element morph are the default UA/glass-ui look. The former Q.WC3 demo-side
+// `scene-transition.css` (the typed `forward`/`backward` `::view-transition-old/new`
+// slide keyframes) was demo-side VT residue the gate forbids — DELETED here. The
+// direction is still DERIVED and passed as `view-transition-type` (useSceneTransition
+// S.F1 dogfood over kf's `viewTransition`), so when glass-ui ships a generic
+// type-keyed slide recipe (the owner-domain HANDOFF), the directional look returns
+// for free with no demo CSS.
 
-import { computed, markRaw, provide, ref, shallowRef, useTemplateRef } from "vue";
 import {
-    ACTIVE_CONTROL_CONDITIONALS_KEY,
-    ACTIVE_SUPER_KEY,
+    computed,
+    markRaw,
+    provide,
+    ref,
+    shallowRef,
+    useTemplateRef,
+    watchEffect,
+} from "vue";
+import {
+    ACTIVE_SCENE_KEY,
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
-} from "@components/custom/animation-controls/injectionKeys";
-import type { ControlSurface } from "@components/custom/animation-controls/stores";
+} from "@components/custom/instrument/transport/injectionKeys";
 
-import { EditorShell, EditorStartScreen, SharePopover } from "@components/custom/editor-shell";
-import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
-import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
-import { useGlobalDark } from "@mkbabb/glass-ui/dark";
-import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
-import ChromeDock from "@components/custom/dock/ChromeDock.vue";
+import { EditorShell, EditorStartScreen } from "@components/custom/instrument/shell";
+// T.D13 — the home hero's Aurora backdrop (colocated in editor-shell/ beside
+// the start screen it backs; imported directly, not via the barrel — a
+// single-consumer leaf, the P-HERO import shape).
+import HeroAurora from "@components/custom/instrument/shell/HeroAurora.vue";
+import SceneSkeleton from "@components/skeletons/SceneSkeleton.vue";
+import ChromeDock from "./dock/ChromeDock.vue";
+import MbabbMenu from "./dock/MbabbMenu.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
 import {
     getStoredAnimationGroupControlOptions,
+    surfacesFor,
     useSceneMachine,
-} from "@components/custom/animation-controls/stores";
+} from "@state";
 
-import { CUBE_ANIMATION_NAMES } from "../scenes/cube/useCubeAnimations";
 import CubeScene from "../scenes/cube/CubeScene.vue";
-import { useSceneMachineRouter } from "./useSceneMachineRouter";
-import { useSceneMachineApp } from "./useSceneMachineApp";
-import { useSceneSwap } from "./useSceneSwap";
-import { useSceneTransition } from "./useSceneTransition";
-import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scenes";
-import type { SceneExposedApi } from "./sceneExposedApi";
-import { useMonacoCancellationGuard } from "./useMonacoCancellationGuard";
+import { useSceneMachineRouterBinding } from "./scene/useSceneMachineRouterBinding";
+import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding";
+import { useSceneSwap } from "./transition/useSceneSwap";
+import { useSceneTransition } from "./transition/useSceneTransition";
+import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scene/scenes";
+import type { SceneExposedApi } from "./scene/sceneExposedApi";
+import { useMonacoCancellationGuard } from "./runtime/useMonacoCancellationGuard";
 
 // Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
 // disposed mid-async on a fast scene switch) — app-lifetime, scope-managed.
@@ -227,13 +173,17 @@ provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 // ── The ONE authority: the scene+playback state machine ──────────────────────
 // The machine OWNS the active-scene fact + the per-scene playback snapshot.
 // Route reconcile (ONE reader + ONE writer + echo guard) + the first-load seed
-// + the ?anim= projection + boot GC all live in useSceneMachineRouter (it owns
-// the router binding). App reads the machine's readonly refs only.
+// + the ?anim= projection + boot GC all live in useSceneMachineRouterBinding (it
+// owns the router binding). App reads the machine's readonly refs only.
 const machine = useSceneMachine();
-useSceneMachineRouter();
+useSceneMachineRouterBinding();
 
 const currentSceneId = computed(() => machine.activeScene.value);
 const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
+// T.B8 — the `machinePlaying` computed (the machine → transport intent edge) is
+// RETIRED: `useAnimationGroupPlayback` derives `isPlaying` directly from
+// `machine.status` now, so the transport can never read a stale `false` — the
+// S.A0 race it papered over is impossible by construction. No prop is threaded.
 const currentScene = computed(() => sceneMap.get(currentSceneId.value) ?? sceneMap.get(HOME_SCENE_ID)!);
 const currentSuperKey = computed(() => currentScene.value.superKey);
 const currentLabel = computed(() => currentScene.value.label ?? "Home");
@@ -267,48 +217,59 @@ const currentAnimationGroup = shallowRef<AnimationGroup<any>>(
 );
 const autoPlayNext = ref(false);
 
+// T.B1-β STAGE 1 — the transport axis comes from the active scene's
+// `SceneFacility.channels` when it exposes one (the honest channel set: labels,
+// host mounts, selection, the scrub round-trip); `undefined` for home / a
+// non-facility scene, in which case the transport falls back to the group keys.
+const currentChannels = computed(() => sceneRef.value?.facility?.channels);
+
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
 
-// ── The ACTIVE conditional surfaces (J.W2 S2) ────────────────────────────────
-// Cube's `matrix-controls` is the ONE conditional surface: active iff the
-// Matrix animation is selected — a stored fact, synchronous with the switch, no
-// mount dependency (`CONDITIONAL_SURFACES` keeps the projection total per
-// scene). Single-sourced here and PROVIDED (with the active superKey) to the
-// AnimationControls derivation-sync — the ONE `selectedControl` writer — so the
-// dock read, the panel projection, and the writer all consume the SAME
-// conditional fact.
-const activeControlConditionals = computed<readonly ControlSurface[]>(() =>
-    storedControls.value.selectedAnimation === CUBE_ANIMATION_NAMES.Matrix
-        ? ["matrix-controls"]
-        : [],
-);
-provide(ACTIVE_CONTROL_CONDITIONALS_KEY, activeControlConditionals);
-provide(ACTIVE_SUPER_KEY, currentSuperKey);
+provide(ACTIVE_SCENE_KEY, currentSuperKey);
 
-// ── The dock's extra control tabs — machine-PROJECTED (J.W0.S3) ──────────────
-// The scene-specific tab metadata (easing→Easing, spring→Spring) derives from
-// the machine's `activeScene` through the DFA's tab table, so the dock trigger
-// label is BORN-CORRECT on the very tick the route rests on the destination —
-// never the SOURCE scene's stale label through a `sceneRef.extraControlTabs`
-// re-bind gated on the destination's <Suspense> mount (the scene-control-dfa
-// trigger-lag race; that per-scene injection is DELETED).
-const extraControlTabs = computed(() =>
-    machine.extraControlTabs(activeControlConditionals.value),
+// ── THE CONTROL-SURFACE DERIVATION (T.B2 — the inversion) ────────────────────
+// The valid surface set is DERIVED from the active scene's live facility × the
+// selected channel (`surfacesFor`), no longer a table row keyed by `activeScene`.
+// The triad is COMPUTED from "does the selected channel paint" (a painting group
+// can never be denied it — the #25 asymmetry cure), unioned with the facility's
+// additive facets (easing Curve, spring Physics) and the SELECTED channel's own
+// conditional facets (cube's matrix-controls — visible only while the Matrix
+// channel is selected, so the old `activeControlConditionals` threading DIED).
+// The App is the only place both the facility (on the mounted scene) and the
+// selection are visible, so it feeds the derived set to the machine — the ONE
+// writer the dock/panel projections read (`machine.controlSurfaces`).
+// Home renders the SAME CubeScene component (the backdrop) — so `sceneRef` on
+// home exposes cube's PAINTING facility. Home is the landing with NO controls
+// (the start screen), so it derives [] explicitly, never cube's triad (the
+// home↔cube split — home registers no adapter, shows no rail).
+const derivedSurfaces = computed(() =>
+    isHome.value
+        ? []
+        : surfacesFor(
+              sceneRef.value?.facility,
+              storedControls.value.selectedAnimation ?? undefined,
+          ),
 );
+watchEffect(() => machine.setActiveSurfaces(derivedSurfaces.value));
+
+// ── The dock's extra control tabs — DERIVED (T.B2 / J.W0.S3) ─────────────────
+// The scene-specific facet surfaces' tab metadata (easing→Easing, spring→Spring,
+// cube→Matrix Controls) derives from the machine's fed surface SET through the
+// ONE `SURFACE_META` registry, so the dock trigger label settles synchronously
+// with `setActiveSurfaces` — never a tick-late `sceneRef.extraControlTabs`
+// re-bind gated on the destination's <Suspense> mount.
+const extraControlTabs = computed(() => machine.extraControlTabs());
 
 // The dock trigger's SELECTED surface — the SAME I.W2 machine projection the
-// in-panel tab host already binds (`AnimationControls` `<Tabs> :model-value`),
-// extended to the dock READ (J.W0.S3). The raw `storedControls.selectedControl`
-// is the per-superKey stored PICK; on a transition-arrival it can hold an
-// invalid surface for the destination until the J.W2 single writer corrects the
-// store — binding the projection (`selectedControlSurfaceFor(activeScene, pick,
-// activeConditionals)`) makes the trigger label born-correct on the rest tick.
+// in-panel tab host binds (`AnimationControls` `<Tabs> :model-value`), extended
+// to the dock READ. The raw `storedControls.selectedControl` is the per-superKey
+// stored PICK; on a transition-arrival it can hold an invalid surface for the
+// destination until the single writer corrects the store — binding the
+// projection makes the trigger label born-correct on the rest tick.
 const dockSelectedControl = computed(
     () =>
-        machine.selectedControlSurface(
-            storedControls.value.selectedControl,
-            activeControlConditionals.value,
-        ) ?? storedControls.value.selectedControl,
+        machine.selectedControlSurface(storedControls.value.selectedControl) ??
+        storedControls.value.selectedControl,
 );
 
 // ── Home ↔ cube SPLIT (the alias is DEAD — two distinct machine states) ──────
@@ -335,10 +296,6 @@ const activeSceneProps = computed(() => {
 // per-scene playback codec is now the machine + its ScenePlayback adapters.
 const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
 
-function togglePpMode() {
-    storedControls.value.ppMode = !(storedControls.value.ppMode ?? false);
-}
-
 // J.W2 S2 — the dock's pick lands as a DFA PROJECTION of the pick, never the
 // raw value: the store (keyed by the ACTIVE superKey, atomic with the scene)
 // only ever holds projections of the single authority. The dock itself renders
@@ -346,26 +303,20 @@ function togglePpMode() {
 // belt against a mid-transition emit racing the store key.
 function onDockSelectControl(v: string) {
     storedControls.value.selectedControl =
-        machine.selectedControlSurface(v, activeControlConditionals.value) ?? v;
+        machine.selectedControlSurface(v) ?? v;
 }
-
-// F5 — the dark-mode dropdown row's click target. The same singleton glass-ui
-// `useGlobalDark` the CSS editor consumes (CSSCodeEditor.vue); the row fires
-// `toggleDark()` while `<DarkModeToggle passive>` becomes a pure indicator, so
-// the theme flips exactly once per row click (no double-toggle).
-const { toggleDark } = useGlobalDark();
 
 // ── The scene-machine ↔ App-shell reconcile (S2/S4/S5) ───────────────────────
 // Adapter registration, the targets-attached SCENE_READY emit, the bottom-bar
 // play/pause routing, the scene switch, and the tab-visibility fold all live in
-// the colocated composable (proof:app-shell-thinness). `runSceneSwitch` is read
-// lazily (defined just below — the VT wrap), resolving the cyclic reference.
+// the colocated binding (proof:app-is-shell). `runSceneSwitch` is read lazily
+// (defined just below — the VT wrap), resolving the cyclic reference.
 const {
     onSceneResolved,
     onPlayStateChange,
     onStartStateChange,
     switchScene,
-} = useSceneMachineApp({
+} = useSceneMachineShellBinding({
     sceneRef,
     currentSceneId,
     currentSuperKey,
@@ -385,78 +336,12 @@ const { runSceneSwitch } = useSceneTransition(
     currentSceneId,
 );
 
-// ── S8/BLK-8 (D9): the @mbabb menu opens on POINTERDOWN, dock pinned while open ──
-//
-// THE RACE (BLK-8 root, re-surfaced by the J.W7c U1 golden-proportion dock): reka's
-// `DockSelectTrigger` opens on `pointerdown` (it wins instantly), but the
-// `DockDropdownTrigger` opens on `click` — it needs pointerdown AND pointerup to
-// land on the SAME element. The collapsed dock only stays expanded on hover, and
-// the press reflows/collapses the pill between down and up, moving the trigger out
-// from under the pointer; no `click` is synthesised → the menu never opens
-// (aria-expanded:false, finalOpen:false — the exact born-RED, deterministic in a
-// fresh context).
-//
-// FIX (product seam, no reka/glass-ui patch), two coupled parts:
-//
-//  (1) THE PRESS-SCALE REFLOW. The dock-control press affordance
-//      (`:active { scale: var(--scale-press-dock) /* .96 */ }`, glass-ui, shared
-//      with the Select) shrinks the pill mid-press, so the native pointerup/click
-//      lands off the trigger and reka — which opens on CLICK — never sees one. On
-//      the trigger's POINTERDOWN we SYNTHESISE the click reka listens for (a
-//      reflow-immune actuation that mirrors the Select's pointerdown-wins
-//      behaviour), and KILL the trailing native click in the capture phase so the
-//      latch toggles exactly once. reka stays UNCONTROLLED and owns open/close — a
-//      naturally clean toggle (closed→open→closed→open).
-//
-//  (2) THE LAYER COLLAPSE. The trigger lives in the dock's EXPANDED layer; once the
-//      dock collapses, that layer goes `visibility:hidden` and the trigger vanishes
-//      (so a second click can't reach it to close). The slot content is set up in
-//      App.vue, so its `useOptionalDockContext()` resolves ABOVE the GlassDock
-//      provider and CANNOT hold the dock — the prior S8 keep-open here was a silent
-//      no-op. We instead surface the menu's open state to ChromeDock
-//      (`:items-popup-open`), which holds the dock via its OWN dockRef — the same
-//      hold the scene/controls Selects ride.
-const mbabbMenuOpen = ref(false);
-// Pins the dock the instant the pointer is over the @mbabb trigger — BEFORE the
-// reka open-state round-trips back through @update:open — so a collapse already
-// scheduled (the pointer was parked off the dock) is suppressed before it can hide
-// the trigger's layer mid-press. Cleared on leave once the menu isn't open.
-const mbabbPressing = ref(false);
-// True only while OUR synthetic click is in flight — the capture-phase guard lets
-// that one reach reka and kills every native (reflow-prone) click.
-let mbabbSynthClick = false;
-function onMbabbTriggerEnter() {
-    mbabbPressing.value = true; // pin the dock open across the hover→press window
-}
-function onMbabbTriggerLeave() {
-    if (!mbabbMenuOpen.value) mbabbPressing.value = false;
-}
-function onMbabbTriggerPointerdown(event: PointerEvent) {
-    // Primary-button, non-ctrl only (match reka's Select pointerdown gate). Mouse,
-    // pen AND touch all actuate here: the press-scale reflow can swallow the native
-    // click on any input, so we synthesise on pointerdown across the board and kill
-    // the trailing native click (the capture guard) for a single clean toggle (D9).
-    if (event.button !== 0 || event.ctrlKey) return;
-    event.preventDefault();
-    mbabbPressing.value = true;
-    const el = event.currentTarget as HTMLElement | null;
-    mbabbSynthClick = true;
-    el?.click(); // reka's trigger onClick toggles on THIS synthetic, reflow-immune click
-    mbabbSynthClick = false;
-}
-function onMbabbTriggerClickCapture(event: MouseEvent) {
-    // Our synthetic click passes through to reka; a trailing NATIVE click (if the
-    // reflow even let one land) is killed in capture so it cannot double-toggle.
-    if (mbabbSynthClick) return;
-    event.preventDefault();
-    event.stopPropagation();
-}
-function onMbabbMenuOpen(open: boolean) {
-    // reka owns the latch; mirror its open state to ChromeDock's dock hold so the
-    // trigger's layer stays mounted (visible) while the menu is open.
-    mbabbMenuOpen.value = open;
-    if (!open) mbabbPressing.value = false; // closed → drop the press pin
-}
+// The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
+// lives in @app/dock/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
+// combined open state via `v-model:open` so ChromeDock's `:items-popup-open` holds
+// the dock's expanded layer mounted while the menu (or its hover→press window) is
+// live — the layer-collapse half of the D9 fix.
+const mbabbPopupOpen = ref(false);
 </script>
 
 <style scoped>
@@ -470,13 +355,26 @@ function onMbabbMenuOpen(open: boolean) {
 .scene-host {
     view-transition-name: scene-subject;
 
-    /* G1 (demo-side, MEASURE-FIRST): paint containment on the perpetually-moving
-       scene host. The rail·stage·rail column separation (H.W3) already moved the
-       glass panels off this host's stacking context; `contain: paint` then walls
-       the host's transforms off so a moving subject (the cube/amiga spin) cannot
-       force the sibling panels' backdrop-filter to re-sample — the panel blur is
-       no longer invalidated per scene frame (proof:scene-host-contained). */
-    contain: paint;
+    /* T.G1 (THE BLUR DE-LAYER — the perf keystone). The former `contain: paint`
+       here was a FALSIFIED mitigation: lane-11 CDP sampling measured it
+       neutral-to-WORSE (cube 90→73, home 95→84), and the mechanism proves why —
+       `contain: paint` on the scene-host *sibling* cannot remove the moving
+       subject's pixels from a *sibling* glass surface's `backdrop-filter`
+       BACKDROP. A live `backdrop-filter` re-rasterizes whenever ANY paint in its
+       backdrop root changes within its footprint, so every frame the stage
+       subject animates the glass chrome's blur re-samples it (over the surviving
+       scene set the `easing` stage is heaviest-coupled: 26→65fps here / the
+       wave's 33→39.5fps @1440×dpr2 when the chrome blur is neutralized — VERDICT
+       #19 root cause #1). The de-layer contract this host now holds: it is composited
+       OUTSIDE any `backdrop-filter` ANCESTOR subtree (the stage never sits inside
+       a filtered subtree — proof:blur-not-resampled's kf-side clause locks this)
+       and carries NO falsified paint-wall. The remaining coupling — the glass
+       chrome's LIVE blur re-sampling the moving stage as its backdrop — has NO
+       pure-CSS kf-side cure (isolation/z-index/radius-cap/geometry all measured
+       neutral); it is the glass-ui `blur-source="static"` frozen-backdrop
+       capability, absent today → the BG-5 staticBackdrop gap (demo/glass-ui-gaps.ts,
+       GLASSUI-GAP: staticBackdrop) handed off to T.H. proof:blur-not-resampled's
+       runtime toggle-delta clause is BORN-RED and greens on that publish. */
 }
 
 /* The host is `tabindex="-1"` solely to receive PROGRAMMATIC focus after the

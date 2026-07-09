@@ -18,11 +18,14 @@
  *
  * CLAUSES (each BITES):
  *
- *   1. LIBRARY CEILING — every `src/animation/**` module is ≤ its ceiling
- *      (350L `.vue`, 550L `.ts`), modulo a rationale-bearing per-file
- *      `LIBRARY_CEILING_OVERRIDE` (G.W5, with a stale-entry guard). A NEW
- *      un-exempted 600L library file reds it; the four genuinely-cohesive
- *      god-modules (engine/animations/group/sequence) carry recorded exceptions.
+ *   1. LIBRARY CEILING — every `src/animation/**` module is ≤ the HARD base
+ *      ceiling (350L `.vue`, 500L `.ts`). S.B5 RETIRED the per-file cap-raising
+ *      `LIBRARY_CEILING_OVERRIDE` mechanism (the R.W0 keystone, completed): the
+ *      last data-volume holdout (`presets/classic.ts`) was split into
+ *      factories + `classic-data.ts`, emptying the Map. The Map survives ONLY as
+ *      an empty-by-construction tripwire — any entry re-added is a self-raising
+ *      cap (a hard RED, T2). A NEW oversized library file reds it; the cure is a
+ *      cohesion carve, never a raised ceiling (the reds ARE the backlog).
  *
  *      H.W8 RECONCILIATION (drift-red a): the DEMO file-size half of this clause
  *      is RETIRED here — it duplicated, and CONTRADICTED, the H.W12-authored
@@ -74,10 +77,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CONTROLS = path.join(
-    REPO,
-    "demo/@/components/custom/animation-controls",
-);
+// S.D2 (T7 walker-root arming-audit, P2-1 F5): `animation-controls/` was carved
+// into three sibling `@/` peers — `instrument/transport/` (the shells + controls/
+// + composables/), `instrument/keyframes/` (the Monaco editor), `instrument/timeline/`
+// (the draggable timeline). The structural sweep now roots at ALL THREE so the
+// peer-moved files are NOT silently dropped from the walk (the false-green
+// blindspot a peer move risks). The former `keyframes/` and `timeline/` subtrees
+// are now the KEYFRAMES_EDITOR / KEYFRAME_TIMELINE peers (clauses 2/3 below).
+const TRANSPORT = path.join(REPO, "demo/@/components/custom/instrument/transport");
+const KEYFRAMES_EDITOR = path.join(REPO, "demo/@/components/custom/instrument/keyframes");
+const KEYFRAME_TIMELINE = path.join(REPO, "demo/@/components/custom/instrument/timeline");
+const CONTROLS_ROOTS = [TRANSPORT, KEYFRAMES_EDITOR, KEYFRAME_TIMELINE];
 
 // H.W8 RECONCILIATION (drift-red a) — the DEMO ceiling sweep is RETIRED. The
 // D.W1/E.W1 demo line-count ceiling (350L `.vue` across `animation-controls/**`
@@ -121,38 +131,26 @@ const read = (p) => fs.readFileSync(p, "utf8");
 // — engine/group/waapi/resolve — RED until carved.) The override map AND its
 // stale-entry guard loop are gone (R.W0 §2c; R.md §5; challenge-library §7).
 //
-// presets/classic.ts data-volume note: at ~700L (54% raw CSS string data),
-// classic.ts may red after the presets/ split (R.W1). Per R.md §7 +
-// challenge-library §4b, splitting a flat list of 34 preset constants three ways
-// by taxonomy purely to satisfy a line gate on string-literal DATA is the
-// contrivance the precepts forbid. The honest disposition is a SINGLE documented
-// data-volume override entry below (data, not logic) — NOT a forced 3-way split.
+// presets/classic.ts data-volume note (S.B5 — RESOLVED): the last holdout was
+// ~728L of raw preset CSS strings (54% string data). Rather than a taxonomy
+// 3-way split of the strings (a forced data-partition with no cohesion benefit —
+// the contrivance R.md §7 / challenge-library §4b forbid), S.B5 split the DATA
+// off the FACTORIES: `classic.ts` now holds the 34 factory functions and
+// `classic-data.ts` the 34 keyframe strings — BOTH clear the base ceiling with
+// NO override. That is the honest disposition, and it makes the override map
+// EMPTY (the terminal removal below).
 const LIBRARY_CEILING = { ".vue": 350, ".ts": 500 };
 
-// The ONE documented data-volume exception (R.md §7 / challenge-library §4b):
-// `presets/classic.ts` is ~700L of raw cubic-bezier/stepped preset CSS string
-// data (a flat list of value-equivalent constants), NOT an algorithm. A taxonomy
-// 3-way split (classic-enter/exit/attention) is a forced data-partition with no
-// cohesion benefit — the precepts forbid it. This single rationale-bearing entry
-// is the honest disposition. (Empty until the presets/ split lands; if classic.ts
-// reds, this is the named exception, never the self-raising cap the keystone deleted.)
-const LIBRARY_CEILING_OVERRIDE = new Map([
-    [
-        "src/animation/presets/classic.ts",
-        {
-            cap: 750,
-            why:
-                "DATA-VOLUME exception (R.md §7 / challenge-library §4b) — the 34 " +
-                "cubic-bezier/stepped preset constants are a flat list of " +
-                "value-equivalent raw-CSS-string leaves (~54% string data), ONE " +
-                "responsibility (the classic preset catalog), not an algorithm. A " +
-                "taxonomy 3-way split (classic-enter/exit/attention) purely to clear " +
-                "the line gate is a forced data-partition with no cohesion benefit — " +
-                "the contrivance the precepts forbid. This single documented " +
-                "data-volume override is the honest disposition.",
-        },
-    ],
-]);
+// S.B5 — the R.W0 keystone COMPLETED (a20 F5; fold rows 32/33). The per-file
+// cap-raising `LIBRARY_CEILING_OVERRIDE` mechanism is RETIRED: no documented
+// data-volume exception remains (the last one, `presets/classic.ts`, was split —
+// see the note above). The Map is kept ONLY as an empty-by-construction tripwire:
+// the ceiling loop below NO LONGER reads a per-file cap from it (every library
+// file is measured against the hard base ceiling), and the guard clause REDs on
+// ANY entry — re-adding a self-raising cap (the exact anti-pattern R.W0 deleted)
+// is a hard RED (T2), not a silent mask. There is no mechanism to raise a file's
+// ceiling; the reds ARE the carve backlog.
+const LIBRARY_CEILING_OVERRIDE = new Map();
 
 // Directories that never hold reviewable SOURCE.
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
@@ -166,9 +164,9 @@ const ASYNC = /\b(?:setTimeout|setInterval|requestAnimationFrame)\b/g;
 // The four W0-flagged sites that MUST be transposed onto vueuse (repo-relative
 // POSIX). The gate names them so the manifest is visible in its own output.
 const W0_ASYNC_SITES = [
-    "demo/@/components/custom/animation-controls/timeline/composables/useTimeline.ts",
-    "demo/@/components/custom/animation-controls/keyframes/KeyframesStringControls.vue",
-    "demo/@/components/custom/animation-controls/composables/usePaneHover.ts",
+    "demo/@/components/custom/instrument/timeline/composables/useTimeline.ts",
+    "demo/@/components/custom/instrument/keyframes/KeyframesStringControls.vue",
+    "demo/@/components/custom/instrument/transport/composables/usePaneHover.ts",
 ];
 
 // The engine-loop allowlist: raw-rAF sites that are NOT animation/timer blobs a
@@ -177,7 +175,7 @@ const W0_ASYNC_SITES = [
 // tree this gate sweeps — the tree must be raw-async-FREE. Kept as an explicit
 // set so a future justified exception is a deliberate diff to THIS array.
 const ASYNC_ALLOWLIST = new Set([
-    // (none under animation-controls/** today — AmigaScene is in demo/app/scenes/)
+    // (none under the three carved peers today — AmigaScene is in demo/scenes/amiga/)
 ]);
 
 /** Walk a dir, collecting every source file (skipping dist/ + deps). */
@@ -197,17 +195,21 @@ function collectSources(dir, out = []) {
 const failures = [];
 
 function main() {
-    if (!fs.existsSync(CONTROLS)) {
-        console.error(
-            "proof:decomposition — ERROR: animation-controls/ tree not found at " +
-                relPosix(CONTROLS),
-        );
-        process.exit(3);
+    for (const root of CONTROLS_ROOTS) {
+        if (!fs.existsSync(root)) {
+            console.error(
+                "proof:decomposition — ERROR: control-suite peer not found at " +
+                    relPosix(root) +
+                    " (the S.D2 animation-transport/instrument/keyframes/keyframe-timeline carve)",
+            );
+            process.exit(3);
+        }
     }
 
-    // Clauses 2–4 are controls-specific (the parse adapter, the timeline utils,
-    // the async blobs) — they sweep the controls tree only.
-    const sources = collectSources(CONTROLS);
+    // Clauses 2–4 are control-suite-specific (the parse adapter, the timeline
+    // utils, the async blobs) — they sweep the three carved peers only.
+    const sources = [];
+    for (const root of CONTROLS_ROOTS) collectSources(root, sources);
     sources.sort();
 
     // Clause 1 (ceilings) sweeps the LIBRARY surface ONLY (`src/animation/**`,
@@ -223,7 +225,7 @@ function main() {
     console.log(
         `  source files scanned: ${ceilingSources.length} library file(s) for ` +
             `the ceiling (src/animation/**); the demo structural clauses sweep ` +
-            `animation-controls/** + demo/** (demo file-size → proof:demo-no-oversize)`,
+            `the animation-transport/instrument/keyframes/keyframe-timeline peers + demo/** (demo file-size → proof:demo-no-oversize)`,
     );
 
     // ── 1. LIBRARY CEILING ─────────────────────────────────────────────
@@ -232,17 +234,32 @@ function main() {
     // DELETED — only the ONE documented data-volume exception
     // (`presets/classic.ts`) remains. The reds on every oversized library file
     // ARE the R.W1/R.W2 decomposition backlog (measured by the gate, not prose).
+    // S.B5 — the empty-by-construction override guard (the R.W0 keystone's
+    // terminal falsifiability). The cap-raising mechanism is retired: the loop
+    // below measures EVERY library file against the hard base ceiling. Any entry
+    // re-added to `LIBRARY_CEILING_OVERRIDE` is a self-raising cap (the anti-
+    // pattern the keystone deleted) and REDs here — a cap raised vs the prior
+    // tranche is a hard RED (T2), never a silent mask.
+    if (LIBRARY_CEILING_OVERRIDE.size > 0) {
+        failures.push(
+            `[ceiling] LIBRARY_CEILING_OVERRIDE carries ` +
+                `${LIBRARY_CEILING_OVERRIDE.size} entry(ies) — the per-file ` +
+                `cap-raising override is RETIRED (the R.W0 keystone, completed at ` +
+                `S.B5). Every library file is measured against the hard base ceiling ` +
+                `(350L .vue / 500L .ts); carve at the cohesion seam, do NOT raise the ` +
+                `cap. Entries: ${[...LIBRARY_CEILING_OVERRIDE.keys()].join(", ")}.`,
+        );
+    }
+
     const overCeiling = [];
     for (const abs of ceilingSources) {
         const ext = path.extname(abs);
         const rel = relPosix(abs);
         const base = LIBRARY_CEILING[ext];
         if (base == null) continue;
-        const override = LIBRARY_CEILING_OVERRIDE.get(rel);
-        const ceiling = override ? override.cap : base;
         const lines = fs.readFileSync(abs, "utf8").split("\n").length;
-        if (lines > ceiling) {
-            overCeiling.push({ rel, lines, ceiling, override });
+        if (lines > base) {
+            overCeiling.push({ rel, lines, ceiling: base });
         }
     }
     if (overCeiling.length > 0) {
@@ -250,27 +267,23 @@ function main() {
             failures.push(
                 `[ceiling] ${o.rel}: ${o.lines}L exceeds the ${o.ceiling}L ` +
                     `library ceiling for ${path.extname(o.rel)} — split at its ` +
-                    `natural concern seam (the R.W1/R.W2 carve backlog). A ` +
-                    `documented DATA-VOLUME case takes the single ` +
-                    `LIBRARY_CEILING_OVERRIDE entry, never the self-raising cap ` +
-                    `the R.W0 keystone deleted.`,
+                    `natural concern seam (the R.W1/R.W2/S.B5 carve backlog). The ` +
+                    `per-file cap-raising override was RETIRED at S.B5 (the R.W0 ` +
+                    `keystone): there is no exception to raise, only the carve.`,
             );
         }
     } else {
-        const totalOverrides = LIBRARY_CEILING_OVERRIDE.size;
         console.log(
-            `  ✓ [ceiling] all library files ≤ ceiling (350L .vue / 500L .ts)` +
-                (totalOverrides > 0
-                    ? `; ${totalOverrides} documented data-volume override(s)`
-                    : ""),
+            `  ✓ [ceiling] all library files ≤ ceiling (350L .vue / 500L .ts); ` +
+                `no LIBRARY_CEILING_OVERRIDE (the R.W0 keystone completed at S.B5)`,
         );
     }
 
     // ── 2. PARSE ADAPTER — exactly ONE definition ──────────────────────
     {
-        const utilsDir = path.join(CONTROLS, "keyframes/utils");
+        const utilsDir = path.join(KEYFRAMES_EDITOR, "utils");
         // The ONE canonical definition: an `export … parseAnimationCSS` body in
-        // keyframes/utils/. Count the export DECLARATIONS (not call-site imports).
+        // keyframes-editor/utils/. Count the export DECLARATIONS (not call-site imports).
         const EXPORT_DEF =
             /\bexport\s+(?:const|function|async\s+function)\s+parseAnimationCSS\b/g;
         let canonicalDefs = 0;
@@ -288,10 +301,10 @@ function main() {
             /\b(?:const|let|var|function)\s+(?:parseAnimationCSS|parseCSSAnimationKeyframes)\s*[=(]/g;
         const inlineCopies = [];
         for (const relFile of [
-            "keyframes/KeyframesStringControls.vue",
-            "keyframes/composables/useKeyframesEditor.ts",
+            "KeyframesStringControls.vue",
+            "composables/useKeyframesEditor.ts",
         ]) {
-            const abs = path.join(CONTROLS, relFile);
+            const abs = path.join(KEYFRAMES_EDITOR, relFile);
             if (!fs.existsSync(abs)) continue;
             const src = fs.readFileSync(abs, "utf8");
             const m = src.match(INLINE_DEF);
@@ -307,9 +320,9 @@ function main() {
         for (const abs of sources) {
             const rel = relPosix(abs);
             if (
-                rel.endsWith("keyframes/KeyframesStringControls.vue") ||
-                rel.endsWith("keyframes/composables/useKeyframesEditor.ts") ||
-                toPosix(abs).includes("keyframes/utils/")
+                rel.endsWith("instrument/keyframes/KeyframesStringControls.vue") ||
+                rel.endsWith("instrument/keyframes/composables/useKeyframesEditor.ts") ||
+                toPosix(abs).includes("instrument/keyframes/utils/")
             ) {
                 continue; // already accounted for above / the canonical home
             }
@@ -346,10 +359,10 @@ function main() {
     // ── 3. PURE UTILS RE-HOMED ─────────────────────────────────────────
     {
         const composablesDirs = [];
-        const utilsTimeline = path.join(CONTROLS, "timeline/utils");
-        // Every `timeline/composables/*.ts` must import vue (be a real
+        const utilsTimeline = path.join(KEYFRAME_TIMELINE, "utils");
+        // Every `instrument/timeline/composables/*.ts` must import vue (be a real
         // composable). A pure module there is a mis-file.
-        const composablesTimeline = path.join(CONTROLS, "timeline/composables");
+        const composablesTimeline = path.join(KEYFRAME_TIMELINE, "composables");
         const VUE_IMPORT = /\bfrom\s+["']vue["']/;
         const REACTIVITY = /\b(?:ref|reactive|computed|watch|watchEffect|onMounted|onUnmounted|onScopeDispose)\s*\(/;
 
@@ -472,7 +485,7 @@ function main() {
         if (residual.length === 0 && ASYNC_ALLOWLIST.size === 0) {
             console.log(
                 `  ✓ [async-blob] zero raw setTimeout/setInterval/` +
-                    `requestAnimationFrame under animation-controls/**`,
+                    `requestAnimationFrame under the carved control-suite peers`,
             );
         }
     }
@@ -661,7 +674,7 @@ function main() {
         // member reds.
         {
             const producerRel =
-                "demo/@/components/custom/editor-shell/useShareState.ts";
+                "demo/@/components/custom/instrument/shell/useShareState.ts";
             const producerAbs = path.join(REPO, producerRel);
             if (fs.existsSync(producerAbs)) {
                 const src = blankComments(read(producerAbs));
@@ -713,13 +726,15 @@ function main() {
         //   BITE: today — the barrel exists, TopDock.vue imports from ".", no
         //         ChromeDock; green after S1.
         {
-            const dockBarrel = "demo/@/components/custom/dock/index.ts";
+            // S.D2 — the dock is APP-private (a24 F3): evicted from
+            // app/dock/ → demo/app/dock/ (an app concern sub-zone).
+            const dockBarrel = "demo/app/dock/index.ts";
             const dockBarrelAbs = path.join(REPO, dockBarrel);
-            const chromeDockRel = "demo/@/components/custom/dock/ChromeDock.vue";
+            const chromeDockRel = "demo/app/dock/ChromeDock.vue";
             const chromeDockAbs = path.join(REPO, chromeDockRel);
             const topDockAbs = path.join(
                 REPO,
-                "demo/@/components/custom/dock/TopDock.vue",
+                "demo/app/dock/TopDock.vue",
             );
 
             const dockFails = [];
@@ -745,7 +760,7 @@ function main() {
             }
             if (fs.existsSync(topDockAbs)) {
                 dockFails.push(
-                    `demo/@/components/custom/dock/TopDock.vue still exists — the ` +
+                    `demo/app/dock/TopDock.vue still exists — the ` +
                         `rename to ChromeDock.vue leaves no TopDock.vue beside it.`,
                 );
             }

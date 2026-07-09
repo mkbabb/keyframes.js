@@ -40,7 +40,7 @@
  */
 
 import { CSSKeyframesAnimation } from "../engine";
-import type { Diagnostic } from "../adapter";
+import type { Diagnostic } from "../compile/adapter";
 import type { Vars } from "../constants";
 import {
     resolveLiveKeyframes,
@@ -86,7 +86,7 @@ export interface AdoptRunningOptions extends IngestOptions {
  * carries any honest refusal (no running animation by that name → a row, never
  * a silent no-op).
  */
-export interface AdoptResult<V extends Vars = any> {
+export interface AdoptResult<V extends Vars = Vars> {
     /** The kf animation now driving the element (null on a refused adopt). */
     animation: CSSKeyframesAnimation<V> | null;
     /** The captured native `currentTime` (ms) the kf playhead seeded from. */
@@ -137,7 +137,7 @@ const isCSSUnitValue = (
  * // the kf object now drives `el` from the exact playhead — no visible seam.
  * animation?.pause();   // ...now scrub / spring-ify / re-color it.
  */
-export const adoptRunning = async <V extends Vars = any>(
+export const adoptRunning = async <V extends Vars = Vars>(
     el: Element,
     options: AdoptRunningOptions,
 ): Promise<AdoptResult<V>> => {
@@ -274,13 +274,14 @@ export const adoptRunning = async <V extends Vars = any>(
     try {
         live.cancel();
     } catch {
-        /* a finished/detached animation throws on cancel — already yielded */
+        /* KEEP: a finished/detached animation throws on cancel — already yielded */
     }
 
     // (3)+(5) seed the kf engine at the captured playhead and hand it control.
     // `seekAndPlay` starts the loop with `startTime` shifted so `effectiveT`
     // begins at `currentTime` — the continuity seed, NOT seed-at-zero. We do not
-    // await the play promise (the handle IS the control surface, like `animate`).
+    // await the play promise (the handle IS the control surface, the same
+    // control-handle contract every `from*` factory returns).
     seedAtTime(animation, currentTime);
 
     return { animation, currentTime, diagnostics };

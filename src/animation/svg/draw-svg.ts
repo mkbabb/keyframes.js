@@ -36,7 +36,8 @@
  */
 
 import { CSSKeyframesAnimation } from "../engine";
-import type { InputAnimationOptions } from "../constants";
+import { SVGAnimationHandle } from "./handle";
+import type { InputAnimationOptions, Vars } from "../constants";
 
 /**
  * The minimal geometry contract DrawSVG needs: any SVG element that exposes
@@ -99,7 +100,7 @@ const asFraction = (v: string | number): number => {
  * ONCE, set `stroke-dasharray` to that length (one solid full-length dash), and
  * sweep `stroke-dashoffset` from → to (default `0% → 100%` ⇒ offset `L → 0`,
  * the line draws in). Returns the constructed {@link CSSKeyframesAnimation} as
- * the control handle (the `animate()` contract — `.play()` / `.pause()` /
+ * the control handle (the control-handle contract — `.play()` / `.pause()` /
  * `.stop()` / `.finished`), consistent with the `from*` factory family.
  *
  * The returned animation passes the EXISTING WAAPI eligibility gate
@@ -118,7 +119,7 @@ const asFraction = (v: string | number): number => {
  * // Draw a path stroke in over 2s:
  * fromDrawSVG(pathEl, { duration: 2000 });
  */
-export function fromDrawSVG<V extends Record<string, any> = any>(
+export function fromDrawSVG<V extends Vars = Vars>(
     target: SVGDrawTarget,
     options: DrawSVGOptions = {},
 ): CSSKeyframesAnimation<V> {
@@ -169,7 +170,7 @@ export function fromDrawSVG<V extends Record<string, any> = any>(
     if (autoPlay) {
         // Fire the play loop; the handle carries the play promise via its own
         // re-entrant `play()`. We do NOT await — the handle IS the control
-        // surface (the `animate()` contract).
+        // surface (the control-handle contract).
         void animation.play();
     }
 
@@ -182,33 +183,12 @@ export function fromDrawSVG<V extends Record<string, any> = any>(
  * is the factory: `new DrawSVG(target).animation` is the control handle. The
  * factory is the canonical entry; this is a thin ergonomic wrapper.
  */
-export class DrawSVG<V extends Record<string, any> = any> {
-    /** The underlying stroke-dashoffset animation — the control handle. */
-    readonly animation: CSSKeyframesAnimation<V>;
-
+export class DrawSVG<
+    V extends Vars = Vars,
+> extends SVGAnimationHandle<V> {
+    // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
+    // delegation live on `SVGAnimationHandle` (the hand-duplicated one-liners are gone).
     constructor(target: SVGDrawTarget, options: DrawSVGOptions = {}) {
-        this.animation = fromDrawSVG<V>(target, options);
-    }
-
-    /** Start (or re-enter) the line-drawing play loop. */
-    play(): Promise<void> {
-        return this.animation.play();
-    }
-
-    /** Pause the play loop, retaining the playhead. */
-    pause(): this {
-        this.animation.pause();
-        return this;
-    }
-
-    /** Halt and rewind the play loop. */
-    stop(): this {
-        this.animation.stop();
-        return this;
-    }
-
-    /** Resolve once the draw completes — the {@link Animation.finished} front-door. */
-    get finished(): Promise<void> {
-        return this.animation.finished;
+        super(fromDrawSVG<V>(target, options));
     }
 }

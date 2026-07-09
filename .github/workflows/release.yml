@@ -69,13 +69,14 @@ jobs:
               run: npm run proof:published-surface
             - name: proof:deps-current (L.W4 S7 — @mkbabb/* pins current · protocol-clean · realm-convergent lock)
               run: npm run proof:deps-current
-            # Q.WE1/Q.WZ S2 — the breaking-surface gates on the publish path: a 5.0.0 publish
+            # Q.WE1/Q.WZ S2 + S.C1 — the breaking-surface gates on the publish path: a publish
             # with un-dropped @deprecated aliases (proof:alias-dropped, over the built d.ts) or an
-            # undocumented breaking set (proof:changelog-5, the MIGRATION-5.0.0.md oracle) is BLOCKED.
+            # undocumented breaking removal (proof:changelog, the C-18 generalized MIGRATION oracle)
+            # is BLOCKED.
             - name: proof:alias-dropped (Q.WE1 — the @deprecated Animation/ScrollTimeline aliases are GONE from the built d.ts · the no-legacy breaking surface)
               run: npm run proof:alias-dropped
-            - name: proof:changelog-5 (Q.WE1 — docs/MIGRATION-5.0.0.md records the full breaking alias-drop old→new set)
-              run: npm run proof:changelog-5
+            - name: proof:changelog (S.C1 · C-18 — every removed published-surface row is documented in docs/MIGRATION-<version>.md)
+              run: npm run proof:changelog
             # L.W4 S8 — proof:peer-satisfied on the publish path: the F-2 peer-cycle
             # tripwire. BORN-RED-BY-DESIGN (glass-ui's published peer range rejects
             # value.js 0.13.0 → ELSPROBLEMS). It rides the publish path as a RECORDED

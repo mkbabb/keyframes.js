@@ -1,9 +1,9 @@
 /**
  * The LoAF >50ms-trace gate — the LoAF observer's REAL second consumer.
  *
- * `demo/app/loaf-observer.ts` records every long-animation-frame over 50ms to
- * `window.__kfLoaf` "so the Playwright >50ms-trace gate and the bench can read
- * it" (its docstring). For two tranches that consumer was a stub
+ * `demo/app/runtime/loaf-observer.ts` records every long-animation-frame over
+ * 50ms to `window.__kfLoaf` "so the Playwright >50ms-trace gate and the bench
+ * can read it" (its docstring). For two tranches that consumer was a stub
  * (`expect(true).toBe(true)`), leaving the observer a 1-consumer speculative
  * surface (an overfitting-precept violation) and the >50ms-trace chronic open.
  * This gate IS that consumer: it
@@ -20,8 +20,8 @@
  * The observer is DEV-only in the demo (DCE'd from prod by `main.ts`'s
  * `import.meta.env.DEV` guard). The bench does NOT go through that path: the
  * served bench page mounts the observer EXPLICITLY (importing the same
- * `demo/app/loaf-observer.ts` source, transpiled on the fly), so the prod demo
- * build stays observer-free while the bench drives the real observer.
+ * `demo/app/runtime/loaf-observer.ts` source, transpiled on the fly), so the
+ * prod demo build stays observer-free while the bench drives the real observer.
  *
  * Chromium resolves from `KF_PLAYWRIGHT_DIR` (the sibling that has playwright
  * installed) or this repo — the same convention `scripts/occlusion-gate.mjs`
@@ -45,18 +45,53 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { transformWithOxc } from "vite";
 import { bench, describe } from "vitest";
+import { IN_CI } from "../scripts/lib/ci-env.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
 
+// The real observer source the bench transpiles on the fly. It moved from
+// `demo/app/loaf-observer.ts` → `demo/app/runtime/loaf-observer.ts` at the S.D1
+// `demo/app/` partition (commit 440e5c3) WITHOUT this bench's path following it,
+// which ENOENT'd the whole gate silently for 116 commits (lane 32 §2.7). The
+// `assertBenchPathsResolve` clause in proof:bench-taxonomy now statically
+// asserts every REPO-relative path this bench reads still resolves, so a future
+// re-partition reds loudly instead of zeroing this gate's signal again.
+const OBSERVER_SRC = path.join(REPO, "demo/app/runtime/loaf-observer.ts");
+
 const LOAF_THRESHOLD_MS = 50;
-// 200 children = 6.25× AnimationGroup.YIELD_BATCH (32), so the group ticks in
-// ~7 batches with a `scheduler.yield()` between each — the batched path S4
-// verifies. Large enough that an un-yielded tick would block >50ms; with the
-// engine's yield batching the clean composite blocks ~10-15ms (well under
-// budget) while paint-heavy frames (high total duration, ~0 blocking) are
-// correctly ignored. Override with KF_LOAF_COUNT.
-const COMPOSITE_COUNT = Number(process.env.KF_LOAF_COUNT ?? 200);
+
+// S.A2 S3 — the DE-MAGIC of `KF_LOAF_COUNT`. The 50ms threshold itself is NEVER
+// relaxed (the runner-calibrated posture: ci-env.mjs §THE THREE POSTURES); only
+// the yield-stress SIZE is sized to the runner, and that size is a NAMED profile
+// here, no longer a bare magic `48` injected by ci.yml prose.
+//
+//   LOAF_COMPOSITE_FULL (200) — the real-hardware yield stress. 200 children =
+//     6.25× AnimationGroup.YIELD_BATCH (32), so the group ticks in ~7 batches
+//     with a `scheduler.yield()` between each — the batched path this bench
+//     verifies. Large enough that an un-yielded tick would block >50ms; with the
+//     engine's yield batching the clean composite blocks ~10-15ms locally.
+//   LOAF_COMPOSITE_CI_SMOKE (48) — the runner-calibrated size. The shared GitHub
+//     VM runs ~6× slower than real hardware, so the full 200-cell loop
+//     legitimately blocks ~130ms there (local: ~20ms) with NO regression — a
+//     single absolute threshold cannot separate that host cost from the
+//     bite-test's 120ms inject. 48 still crosses the YIELD_BATCH=32 boundary
+//     (exercises the yield path; loop worst-frame ~30ms, comfortably under the
+//     UNCHANGED strict 50ms), and the 120ms inject still reddens. cf. tranche-B
+//     5fa76b4 (CI perf SMOKE robust, real gate local).
+export const LOAF_COMPOSITE_FULL = 200;
+export const LOAF_COMPOSITE_CI_SMOKE = 48;
+
+// The size is derived from the ONE IN_CI authority (scripts/lib/ci-env.mjs) — CI
+// self-selects the runner-calibrated smoke, local uses the full stress — with an
+// explicit numeric `KF_LOAF_COUNT` override kept for experimentation. ci.yml no
+// longer carries the magic literal; the profile is named + single-sourced here.
+const COMPOSITE_COUNT =
+    process.env.KF_LOAF_COUNT != null
+        ? Number(process.env.KF_LOAF_COUNT)
+        : IN_CI
+          ? LOAF_COMPOSITE_CI_SMOKE
+          : LOAF_COMPOSITE_FULL;
 
 /** Resolve Chromium the way the occlusion gate does. */
 function resolveChromium() {
@@ -118,6 +153,20 @@ async function serve(noObserver: boolean) {
     );
 
     // The observer module the bench imports as `@kf/loaf-observer`.
+    // Pre-flight the source path with a DISTINCT, human-legible error rather
+    // than a raw ENOENT deep in `readFileSync` — the ENOENT was
+    // indistinguishable in the CI log from a genuine bench failure and the
+    // `|| true`-wrapped `grep -q 'loaf-gate.*PASS'` step could not tell "the
+    // observer moved" from "the observer regressed" (lane 32 §2.7 / T-PERF-A).
+    if (!noObserver && !fs.existsSync(OBSERVER_SRC)) {
+        throw new Error(
+            `loaf-gate — FAIL: the LoAF observer source is missing at ` +
+                `${path.relative(REPO, OBSERVER_SRC)} — it MOVED. Update ` +
+                `bench/playwright.bench.ts's OBSERVER_SRC path (and the ` +
+                `proof:bench-taxonomy path-resolves anchor will have already ` +
+                `flagged this statically).`,
+        );
+    }
     const observerJs = noObserver
         ? // True no-op: never touches `window.__kfLoaf`, so the ring stays
           // ABSENT — the gate must redden on its "the observer ran"
@@ -126,10 +175,7 @@ async function serve(noObserver: boolean) {
           `export function observeLongAnimationFrames(){ return undefined; }`
         : (
               await transformWithOxc(
-                  fs.readFileSync(
-                      path.join(REPO, "demo/app/loaf-observer.ts"),
-                      "utf8",
-                  ),
+                  fs.readFileSync(OBSERVER_SRC, "utf8"),
                   "loaf-observer.ts",
                   { lang: "ts", target: "es2022" },
               )
@@ -156,7 +202,17 @@ async function serve(noObserver: boolean) {
         ];
         for (const [prefix, dir] of route) {
             if (p.startsWith(prefix)) {
-                const file = path.join(dir, p.slice(prefix.length));
+                let file = path.join(dir, p.slice(prefix.length));
+                // S.A0(4) — extensionless-`.js` fallback: importmap prefix
+                // substitution yields `/value/subpaths/math` (no extension) for the
+                // `@mkbabb/value.js/math` subpath specifier; serve `subpaths/math.js`.
+                if (
+                    file.startsWith(dir) &&
+                    !fs.existsSync(file) &&
+                    fs.existsSync(file + ".js")
+                ) {
+                    file += ".js";
+                }
                 if (file.startsWith(dir) && fs.existsSync(file) && fs.statSync(file).isFile()) {
                     send(
                         res,

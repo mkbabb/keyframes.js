@@ -28,19 +28,26 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
     right: 1rem;
     pointer-events: none;
     z-index: var(--z-seq-playhead);
+    /* T.G4 — the playhead line rides `translateX(<cqw>)`; `cqw` resolves against
+       this track's inline size (the SAME axis the row handles ride), so the
+       progress sweep is compositor-only (no per-frame `left` layout). */
+    container-type: inline-size;
 }
 .seq-playhead {
     position: absolute;
     top: 0;
     bottom: 0;
-    left: calc(var(--playhead-p, 0) * 100%);
+    /* T.G4 — anchored at the track's left edge; `translateX(<cqw>)` carries the
+       progress position and the `- 50%` (of the 2px line width) keeps the line
+       centred on its position — one compositor-only transform, no layout. */
+    left: 0;
     width: 2px;
-    transform: translateX(-50%);
+    transform: translateX(calc(var(--playhead-p, 0) * 100cqw - 50%));
     background: var(--ball-tone, var(--color-progress));
     border-radius: var(--radius-pill);
     box-shadow: 0 0 calc(2px + var(--seq-glow, 0) * 8px)
         color-mix(in srgb, var(--ball-tone, var(--color-progress)) calc(35% + var(--seq-glow, 0) * 45%), transparent);
-    will-change: left;
+    will-change: transform;
 }
 /* The machined diamond head — a 45°-rotated cap with a lighter bevel (AE cap). */
 .seq-playhead::before {

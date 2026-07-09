@@ -91,9 +91,7 @@ export type {
 // stagger/flip/drag/decay/Sequence carry zero static value.js edge: stagger is
 // a pure delay generator, flip composes ElementMorph, drag/decay ride
 // SpringProgress, Sequence drives Animation.advanceTo over a master clock (the
-// Animation runtime is the consumer's; Sequence holds only its type). The
-// single-call `animate()` front door is HEAVY (it constructs CSSKeyframesAnimation)
-// and rides loadAnimationEngine below.
+// Animation runtime is the consumer's; Sequence holds only its type).
 export { stagger } from "./orchestration/stagger";
 export type {
     StaggerOrigin,
@@ -102,6 +100,33 @@ export type {
 } from "./orchestration/stagger";
 export { flip, flipShared } from "./orchestration/flip";
 export type { FlipOptions } from "./orchestration/flip";
+// S.F2 SplitText — a11y-first text-splitter (LIGHT: composes `stagger` + the
+// platform Intl.Segmenter; zero static value.js edge — proof:boundary enrolls it
+// off this barrel). Returns a fragment cohort + a ready stagger; the container
+// keeps the whole pre-split string as its accessible name (aria-label + aria-
+// hidden fragments). `by:"line"` is measure-or-refuse (SplitTextRefusalError).
+export { splitText, SplitTextRefusalError } from "./orchestration/split-text";
+export type {
+    SplitBy,
+    SplitTextOptions,
+    SplitTextResult,
+    SplitTextRefusalReason,
+    TextSegment,
+} from "./orchestration/split-text";
+// S.F1 View Transitions — the LIGHT dispatch (VT-a; p09). `viewTransition(mutate,
+// opts)` mutates the DOM behind a native View Transition where the platform ships
+// one, falling back to a `flipShared` shared-element morph (or a bare immediate
+// mutation) everywhere else — behind ONE normalized `ViewTransitionHandle` whose
+// `backend` is queryable. LIGHT (composes `flipShared` + the ONE `withReducedMotion`
+// gate; feature-detects `startViewTransition`; zero static value.js edge —
+// `proof:boundary` enrolls it off this barrel). The HEAVY companion
+// `compileToViewTransition` (the zero-runtime CSS emitter) rides loadAnimationEngine.
+export { viewTransition } from "./orchestration/view-transition";
+export type {
+    ViewTransitionOptions,
+    ViewTransitionHandle,
+    ViewTransitionMutate,
+} from "./orchestration/view-transition";
 export { drag, Draggable, drag2D } from "./orchestration/drag";
 export type {
     DragOptions,
@@ -145,17 +170,12 @@ export type {
     WeightStepper,
     Vars,
     InterpolatedVar,
-} from "./constants";
+} from "./constants/types";
 export type { ResolvedKeyframes } from "./engine";
 // R.W2c — `AnimationGroupEntry` is sourced from its own `group/` zone (no longer
 // re-exported through the engine barrel, which broke the engine↔group ring). The
 // type re-export is erased, so the LIGHT package barrel stays value.js-free.
 export type { AnimationGroupEntry } from "./group";
-// R.W4 §2.5 — `animate()` was EXCISED from the published surface (dead-by-disuse:
-// 0 demo call sites; the `@mkbabb/keyframes.js/engine` subpath + direct
-// `new CSSKeyframesAnimation(...)` are the idiomatic "in"). `animate.ts` stays a
-// HEAVY chunk reachable via deep import, but its option types are no longer a
-// published advertisement — owner-ratified 2026-06-24.
 // CSS-native MotionPath (F.W12) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/path types are erased here.
 export type { MotionPathOptions, OffsetPath } from "./svg/motion-path";
@@ -221,6 +241,30 @@ export type {
     CompileRefusal,
     CompileRefusalReason,
 } from "./compile";
+// S.F1 VT-c (FLAGGED ADDITIVE EDIT) — the View-Transitions emitter's TYPE surface.
+// HEAVY (view-transition.ts statically imports value.js + the backward substrate),
+// so the runtime `compileToViewTransition` rides loadAnimationEngine below; ONLY
+// its role-spec / option / refusal / result TYPES are re-exported here (erased —
+// no static value.js edge on the LIGHT barrel; proof:boundary stays green).
+export type {
+    VTRoleSpec,
+    ViewTransitionCompileOptions,
+    VTCompileRefusalReason,
+    VTCompileRefusal,
+    CompiledViewTransitionCSS,
+} from "./compile/view-transition";
+// S.F3 EN-c (FLAGGED ADDITIVE EDIT) — the entry/exit emitter's TYPE surface.
+// HEAVY (entry.ts statically imports value.js + the backward substrate), so the
+// runtime `compileToEntry` rides loadAnimationEngine below; ONLY its spec /
+// option / refusal / result TYPES are re-exported here (erased — no static
+// value.js edge on the LIGHT barrel; proof:boundary stays green).
+export type {
+    EntryRoleSpec,
+    EntryCompileOptions,
+    EntryRefusalReason,
+    EntryRefusal,
+    CompiledEntryCSS,
+} from "./compile/entry";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the round-trip's FORWARD
 // half: the VALIDATION layer over the compile surface. `validate`/`explain` are
 // a READ-ONLY projection over three already-typed channels (the adapter

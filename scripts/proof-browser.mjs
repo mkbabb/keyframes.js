@@ -53,13 +53,9 @@ const CANDIDATE_GATES = [
     "proof:scene-parity",
     "proof:scene-perf-budget",
     "proof:sequence-rows-draggable",
-    "proof:motion-path-editable",
-    "proof:motion-path-copy",
-    "proof:easter-egg",
     "proof:mobile-single-page",
     "proof:drawer-spring",
     "proof:dock-zorder",
-    "proof:visual-lock",
 ];
 
 // Run only the candidates that actually resolve a package.json script (skip the rest).

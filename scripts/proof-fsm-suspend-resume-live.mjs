@@ -54,6 +54,7 @@ import {
     REQUIRE_BROWSER,
     SCENE_MACHINE_KEY,
     navToScene,
+    pressPlayToggle,
     withBrowser,
     withPage,
 } from "./lib/demo-driver.mjs";
@@ -86,7 +87,9 @@ const CTRL_KEY = "animation-groups-control-options-store";
 // The destination control-tab labels navToScene settles on (the per-EXPECTED
 // predicate; the lib J.W0 primitive): easing/spring project their scene-specific
 // surfaces; amiga keeps the built-in "Controls" default.
-const TRIGGER = { easing: "Easing", spring: "Spring", amiga: "Controls" };
+// item-7a (the easing TERMINAL batch): easing/spring open on their signature
+// facet -- the control trigger reads the FACET name (SURFACE_META Curve/Physics).
+const TRIGGER = { easing: "Curve", spring: "Physics", amiga: "Controls" };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // clause (d) — STATIC HYGIENE GUARD (the second altitude; does NOT carry
@@ -514,23 +517,20 @@ async function browserHalves() {
 
         await navToScene(page, "spring", TRIGGER.spring);
         await page.waitForTimeout(1800);
+        // T.G3 RE-ARM: spring RESTS on entry (autoPlays:false — the true-rest
+        // policy; idle = zero rAF). The algebra's precondition is now an HONEST
+        // PRESS, not an autoplay expectation.
+        await pressPlayToggle(page, { intent: "play" });
+        await page.waitForTimeout(900);
         const springPlaying = await activeIntentPlaying(page);
         const springLive = (await liveLoopMoving(page)).moving;
 
         // Leg 2: PAUSE spring, switch to easing, switch BACK to spring — spring
         // must come back PAUSED (resume-iff-was-playing: it was paused on leave).
-        await page.evaluate(() => {
-            for (const b of document.querySelectorAll("button[aria-label]")) {
-                const t = (b.getAttribute("aria-label") || "").trim().toLowerCase();
-                if (t === "pause animation") {
-                    const r = b.getBoundingClientRect();
-                    if (r.width > 0 && r.height > 0) {
-                        b.click();
-                        return;
-                    }
-                }
-            }
-        });
+        // Actuate via a REAL pointerup (the product's transport is `@pointerup`-
+        // bound since R.W6 excised the strand-prone `@click`; a synthetic
+        // `element.click()` no longer actuates it — see `pressPlayToggle`).
+        await pressPlayToggle(page, { intent: "pause" });
         await page.waitForTimeout(700);
         const springPausedAfterClick = !(await activeIntentPlaying(page));
 
@@ -541,7 +541,7 @@ async function browserHalves() {
         const springResumedPaused = !(await activeIntentPlaying(page));
         const springLiveAfterReturn = (await liveLoopMoving(page)).moving;
 
-        // Assertions: spring was playing on first entry (auto-plays); after a
+        // Assertions: spring plays after the honest press (rest-on-entry, T.G3); after a
         // PAUSE-then-leave-then-return it stays PAUSED (the snapshot algebra
         // EXECUTED — captureActive's suspend completed because S1/S2 let it).
         const cOk =

@@ -49,9 +49,9 @@ import {
  * put (the spring/MotionPath posture). `"recenter"` fires `onRelease` so the
  * scene can re-seat home on release.
  */
-export type ReleasePolicy = "persist" | "recenter";
+type ReleasePolicy = "persist" | "recenter";
 
-export interface UseDragScrubOptions<T = number> {
+interface UseDragScrubOptions<T = number> {
     /** The element that captures the pointer for the gesture (the rail / handle). */
     el: Ref<HTMLElement | null>;
     /**
@@ -82,7 +82,7 @@ export interface UseDragScrubOptions<T = number> {
     onRelease?: () => void;
 }
 
-export interface UseDragScrub {
+interface UseDragScrub {
     /** True while a drag gesture is in flight (drives the `--dragging` affordance). */
     dragging: Ref<boolean>;
     /** Attach to the capture element's `@pointerdown`. */
@@ -119,7 +119,7 @@ export function useDragScrub<T = number>(
         try {
             el.value?.setPointerCapture(e.pointerId);
         } catch {
-            /* capture unavailable — window listeners still drive the drag */
+            /* KEEP: capture unavailable — window listeners still drive the drag */
         }
         onStart?.(e);
         onScrub(project(e));

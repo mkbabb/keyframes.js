@@ -7,15 +7,14 @@
 <script setup lang="ts">
 import { computed, h, provide, ref } from "vue";
 
-import { getStoredAnimationGroupControlOptions } from "@components/custom/animation-controls/stores";
-import PlaybackRibbon from "@components/custom/animation-controls/controls/PlaybackRibbon.vue";
+import PlaybackRibbon from "@components/custom/instrument/transport/controls/PlaybackRibbon.vue";
 
 import EasingTarget from "./EasingTarget.vue";
 import EasingSidebar from "./EasingSidebar.vue";
 import { useEasingDemo } from "./useEasingDemo";
-import { EASING_DEMO_KEY, EASING_SUPER_KEY } from "./easingKeys";
+import { EASING_DEMO_KEY, EASING_SCENE_ID } from "./easingKeys";
 
-const SUPER_KEY = EASING_SUPER_KEY;
+const SCENE_ID = EASING_SCENE_ID;
 
 const demo = useEasingDemo();
 provide(EASING_DEMO_KEY, demo);
@@ -32,8 +31,12 @@ provide(EASING_DEMO_KEY, demo);
 // `<Tabs> :model-value` in AnimationControls): on a switch-in the model-value is
 // born `"easing"` on the mounting tick, so the reka `passive`-latch is taken
 // correct (the B4 desync cure) without a poke that loses the race.
-const storedControls = getStoredAnimationGroupControlOptions(SUPER_KEY);
-storedControls.isControlsPanelOpen = true;
+//
+// S.G1 S1c (p10 F4 — writer c) — the former `storedControls.isControlsPanelOpen =
+// true` born-open POKE is DELETED too (the last dead write of the three-writer
+// chain). On mobile the sheet is born at peek by the host mount-reset
+// (useSheetState); on desktop the shell force-opens the rail
+// (useSceneMachineShellBinding, ≥1024px-gated). The scene pokes nothing.
 
 // `demo.isPlaying` is now a read-only projection of the machine status (the
 // shadow `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes
@@ -66,15 +69,15 @@ const tabsContent = () => h(EasingSidebar, { demo });
 const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
-    const dur = demo.contractAnim.options.duration;
+    const dur = demo.previewAnim.options.duration;
     if (dur > 0) demo.progress.value = Math.max(0, Math.min(1, v.t / dur));
 };
 
 const onToggleReverse = () => {
     userReversed.value = !userReversed.value;
-    // Flip the contract clock's direction so the standard visualizer/scrubber
+    // Flip the preview clock's direction so the standard visualizer/scrubber
     // (which read `effectiveT = reversed ? duration - t : t`) mirror the reverse.
-    demo.contractAnim.reversed = userReversed.value;
+    demo.previewAnim.reversed = userReversed.value;
 };
 
 let wasPlayingBeforeScrub = false;
@@ -90,8 +93,10 @@ const onScrubEnd = () => {
 const ribbonContent = (slotProps: { selectedControl: string }) =>
     slotProps.selectedControl === "easing"
         ? h(PlaybackRibbon, {
-              animation: demo.contractAnim,
-              currentT: demo.progress.value * demo.contractAnim.options.duration,
+              // T.B1-β — the ribbon binds the REAL preview channel animation
+              // (its timingFunction IS the edited easing); the decoy is DEAD.
+              animation: demo.previewAnim,
+              currentT: demo.progress.value * demo.previewAnim.options.duration,
               isAnimPlaying: demo.isPlaying.value,
               isAnimStarted: true,
               userReversed: userReversed.value,
@@ -104,15 +109,21 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
         : null;
 
 defineExpose({
-    animationGroup: computed(() => demo.animationGroup),
-    superKey: SUPER_KEY,
+    // T.B1-β — the SceneFacility descriptor (the ONE real preview channel, the
+    // `easing` facet, the raw-rAF playback). The decoy `animationGroup` expose
+    // is DELETED with the contract-group decoy; the shell binds the facility.
+    facility: computed(() => demo.facility),
+    superKey: SCENE_ID,
     isPlaying,
     isStarted,
-    // The easing preview auto-plays on first visit (the former isPlaying =
-    // ref(true)). The App reads this on SCENE_READY to dispatch PLAY for a fresh
-    // scene, so the machine reaches `playing` and the raw-rAF loop (gated on the
-    // machine) actually sweeps.
-    autoPlays: true,
+    // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: a scene that
+    // sweeps forever with no gesture burned a full core at idle ("god awful").
+    // The raw-rAF loop gates on `machine.status === 'playing'`, so a paused-on-
+    // entry machine leaves the loop un-armed → zero rAF ticks, zero style recalc
+    // at rest (proof:perf-counters). The preview sweeps the instant the user
+    // presses Play (the dock/Space transport); the composed first frame stands
+    // still until then.
+    autoPlays: false,
     // The raw-rAF ScenePlayback adapter — the App registers it with the machine
     // on SCENE_READY so easing's progress/isPlaying round-trip through the
     // CONTRACT (the literal D12 repro; proof:scene-contract-identity).

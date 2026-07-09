@@ -491,9 +491,11 @@ function clauseE() {
         }
     }
     // R.W5 fused the per-scene dirs into demo/scenes/<name>/ — the top-level demo
-    // dirs CLAUDE.md now names are @ / app / scenes / playground (the scene dirs
-    // amiga|cube|easing|… live UNDER demo/scenes/ and are gated by proof:scene-colocated).
-    for (const real of ["@", "app", "scenes", "playground"]) {
+    // dirs CLAUDE.md now names are @ / app / scenes (the scene dirs
+    // amiga|cube|easing|…|compose live UNDER demo/scenes/ and are gated by
+    // proof:scene-colocated). S.D3 (C-4) DELETED demo/playground/ — the standalone
+    // app folded into scenes/compose/ — so `playground` is no longer a demo dir.
+    for (const real of ["@", "app", "scenes"]) {
         if (!fs.existsSync(path.join(REPO, "demo", real))) {
             failures.push(
                 `(e) demo dir \`demo/${real}/\` named by root CLAUDE.md does not exist.`,
@@ -501,7 +503,8 @@ function clauseE() {
         }
     }
     // R.W5: the now-phantom top-level scene dirs must NOT reappear at demo/<name>/.
-    for (const fused of ["amiga", "cube", "easing", "motion-path", "sequence", "spring", "square", "morph"]) {
+    // (motion-path/morph/compose were PRUNED at T.E1/T.E3, OD-1 = PRUNE.)
+    for (const fused of ["amiga", "cube", "easing", "sequence", "spring", "square"]) {
         if (fs.existsSync(path.join(REPO, "demo", fused))) {
             failures.push(
                 `(e) demo dir \`demo/${fused}/\` reappeared at top level — R.W5 fused it into demo/scenes/${fused}/.`,
@@ -530,14 +533,23 @@ function clauseE() {
         checked++;
     }
 
-    // (e.4) Frozen integers match `ls … | wc -l` (TB-4): the parenthetical
-    // "(<N> files / <M> tests at the J.W5 rewrite" + "(<K> at the J.W5 rewrite".
-    const testFiles = fs.readdirSync(path.join(REPO, "test")).filter((f) => f.endsWith(".test.ts")).length;
-    const benchFiles = fs.readdirSync(path.join(REPO, "bench")).filter((f) => f.endsWith(".bench.ts")).length;
+    // (e.4) Frozen integers match the derived count (TB-4): the parenthetical
+    // "(<N> files / <M> tests …" + "(<K> at the J.W5 rewrite". S.B7 regrouped
+    // test/ into test/<zone>/ subdirs, so the count is RECURSIVE now (the old flat
+    // `ls test/*.test.ts` reads 0 post-move) — still a doc-truth tripwire, just
+    // derived by walking the tree.
+    const countRec = (dir, suffix) =>
+        fs.readdirSync(dir, { withFileTypes: true }).reduce((n, e) => {
+            const p = path.join(dir, e.name);
+            if (e.isDirectory()) return n + countRec(p, suffix);
+            return n + (e.name.endsWith(suffix) ? 1 : 0);
+        }, 0);
+    const testFiles = countRec(path.join(REPO, "test"), ".test.ts");
+    const benchFiles = countRec(path.join(REPO, "bench"), ".bench.ts");
     const testClaim = doc.match(/\((\d+)\s+files\s*\/\s*\d+\s+tests/);
     if (testClaim && Number(testClaim[1]) !== testFiles) {
         failures.push(
-            `(e) root CLAUDE.md freezes the test-file count at ${testClaim[1]} but \`ls test/*.test.ts | wc -l\` → ${testFiles} — the count re-rotted; re-derive it.`,
+            `(e) root CLAUDE.md freezes the test-file count at ${testClaim[1]} but \`find test -name '*.test.ts' | wc -l\` → ${testFiles} — the count re-rotted; re-derive it.`,
         );
     }
     const benchClaim = doc.match(/\((\d+)\s+at the J\.W5 rewrite\)/);
@@ -670,7 +682,7 @@ function clauseG() {
                         "the BOOK must disclose the uncovered status, not imply coverage.",
                 );
             }
-            const cited = [...row.coverage.matchAll(/`(test\/[\w.-]+\.test\.ts)`/g)].map((m) => m[1]);
+            const cited = [...row.coverage.matchAll(/`(test\/[\w./-]+\.test\.ts)`/g)].map((m) => m[1]);
             if (cited.length === 0) {
                 failures.push(`(g) EP-3 PATH B row \`${name}\` cites NO \`test/*.test.ts\` unit coverage — an undisclosed-coverage BOOK.`);
                 continue;

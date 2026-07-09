@@ -73,7 +73,13 @@ const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
 // CONVERTED (useResizeObserver), so it is not allowlisted; its sibling Three.js
 // present loop stays a proof:decomposition concern (rAF), out of clause 4's scope.
 const LISTENER_ALLOWLIST = new Set([
-    // (none — the demo listener/observer surface rides @vueuse/core entirely)
+    // T.A12 — Three.js OrbitControls "change" (render-on-demand dirty flag).
+    // OrbitControls is a THREE.EventDispatcher, NOT a DOM EventTarget: there is
+    // no window/element leak surface for vueuse to manage, and the subscription
+    // dies with the controls object itself (controls.dispose() on unmount,
+    // useAmigaThree.ts dispose()). A vueuse wrapper here would wrap a non-DOM
+    // emitter for no cleanup gain — allowlisted, not converted.
+    "demo/scenes/amiga/useAmigaThree.ts",
 ]);
 
 const failures = [];
@@ -634,6 +640,74 @@ function main() {
             console.log(
                 `  ✓ [z-comma] zero var(--z-content,/var(--z-behind, comma-defaults ` +
                     `in demo source (bare var(--z-*) guaranteed)`,
+            );
+        }
+    }
+
+    // ── 7. NO UTILITY-KEYED LAYOUT (T.E4) ──────────────────────────────────
+    {
+        // A layout/position declaration keyed onto a GENERIC z-index /
+        // pointer-events utility class (optionally via a `:has()` structural
+        // test) is fragile: it fires on ANY element carrying that utility, not
+        // just the one intended. The compose-killer `.z-dock:has(> .pointer-
+        // events-auto)` re-tethered the AssetViewport (a `.z-dock` with a
+        // `pointer-events-auto` child) off `inset-0`, collapsing its layer to
+        // height 0. The dock tether now keys on the explicit `[data-dock-tether]`
+        // opt-in. This clause forbids the whole CLASS: (a) any `:has(` selector
+        // carrying a position/top/bottom/inset/position-anchor declaration whose
+        // ROOT is a utility class (`.z-*` / `.pointer-events-*`), and (b) any
+        // position/top/bottom/inset/position-anchor declaration ROOTED on a
+        // `.z-*` / `.pointer-events-*` class selector.
+        const layoutCss = collect(DEMO, new Set([".css"]));
+        layoutCss.push(...collect(DEMO, new Set([".vue"]))); // <style> blocks
+        const POS_PROP =
+            /\b(?:position-anchor|position|top|bottom|left|right|inset)\s*:/;
+        // A rule head → its declaration block. Match `<selector> { <body> }` at
+        // one nesting level (the demo's anchor rules live one level inside a
+        // media/@supports block; the body regex stops at the next `}`).
+        const RULE = /([^{}]+)\{([^{}]*)\}/g;
+        const utilRootSel =
+            /(?:^|[\s,>~+])\.(?:z-[a-z0-9-]+|pointer-events-[a-z0-9-]+)\b/;
+        const offenders = [];
+        for (const abs of layoutCss) {
+            const src = blankComments(read(abs));
+            let m;
+            RULE.lastIndex = 0;
+            while ((m = RULE.exec(src)) !== null) {
+                const sel = m[1];
+                const body = m[2];
+                if (!POS_PROP.test(body)) continue;
+                const hasHasUtility =
+                    /:has\(/.test(sel) && utilRootSel.test(sel);
+                const rootedOnUtility = utilRootSel.test(sel);
+                if (hasHasUtility || rootedOnUtility) {
+                    const line = src.slice(0, m.index).split("\n").length;
+                    offenders.push({
+                        rel: relPosix(abs),
+                        line,
+                        sel: sel.replace(/\s+/g, " ").trim().slice(0, 80),
+                    });
+                }
+            }
+        }
+        if (offenders.length > 0) {
+            failures.push(
+                `[utility-keyed-layout] ${offenders.length} position/layout ` +
+                    `declaration(s) keyed on a generic z-*/pointer-events-* utility ` +
+                    `class (or a :has() test rooted on one) in demo CSS — a layout ` +
+                    `rule that fires on ANY element carrying the utility (the T.E4 ` +
+                    `compose-killer class). Key the reposition on an explicit opt-in ` +
+                    `attribute (e.g. [data-dock-tether]) on the intended element. Sites:\n      ` +
+                    offenders
+                        .slice(0, 12)
+                        .map((o) => `${o.rel}:${o.line}  ${o.sel}`)
+                        .join("\n      "),
+            );
+        } else {
+            console.log(
+                `  ✓ [utility-keyed-layout] zero position/layout rules keyed on a ` +
+                    `z-*/pointer-events-* utility class (or a :has() test rooted on one); ` +
+                    `the dock tether keys on the explicit [data-dock-tether] attribute (T.E4)`,
             );
         }
     }

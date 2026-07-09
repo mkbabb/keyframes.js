@@ -26,7 +26,7 @@
  *
  * ── BOUNDARY: HEAVY (no NEW static value.js edge).
  *   `motion-path.ts` constructs `CSSKeyframesAnimation`, so it statically
- *   imports `./engine` — exactly like `animate.ts`. It carries NO
+ *   imports `./engine` — exactly like `draw-svg.ts`. It carries NO
  *   `@mkbabb/value.js` import of its own (any light leaf it needs comes from
  *   `./internal/leaves`), so it adds no new value.js edge beyond the engine it
  *   already composes; the barrel places it behind `loadAnimationEngine()` (the
@@ -35,7 +35,8 @@
  */
 
 import { CSSKeyframesAnimation } from "../engine";
-import type { InputAnimationOptions } from "../constants";
+import { SVGAnimationHandle } from "./handle";
+import type { InputAnimationOptions, Vars } from "../constants";
 
 /**
  * The author's path geometry — the `offset-path` value set on the target. Any
@@ -84,7 +85,7 @@ const asDistance = (v: string | number): string =>
  * Build a CSS-native path-motion animation: set the author `offset-path` (and
  * optional `offset-rotate`) on the target(s), and sweep `offset-distance` from
  * → to. Returns the constructed {@link CSSKeyframesAnimation} as the control
- * handle (the `animate()` contract — `.play()` / `.pause()` / `.stop()` / the
+ * handle (the control-handle contract — `.play()` / `.pause()` / `.stop()` / the
  * awaitable play promise), consistent with the `from*` factory family.
  *
  * The returned animation passes the EXISTING WAAPI eligibility gate
@@ -102,7 +103,7 @@ const asDistance = (v: string | number): string =>
  *   duration: 2000,
  * });
  */
-export function fromMotionPath<V extends Record<string, any> = any>(
+export function fromMotionPath<V extends Vars = Vars>(
     target: HTMLElement | HTMLElement[],
     options: MotionPathOptions,
 ): CSSKeyframesAnimation<V> {
@@ -148,7 +149,7 @@ export function fromMotionPath<V extends Record<string, any> = any>(
     if (autoPlay) {
         // Fire the play loop; the handle carries the play promise via its own
         // re-entrant `play()`. We do NOT await — the handle IS the control
-        // surface (the `animate()` contract).
+        // surface (the control-handle contract).
         void animation.play();
     }
 
@@ -161,31 +162,16 @@ export function fromMotionPath<V extends Record<string, any> = any>(
  * the factory: `new MotionPath(target, { path }).animation` is the control
  * handle. The factory is the canonical entry; this is a thin ergonomic wrapper.
  */
-export class MotionPath<V extends Record<string, any> = any> {
-    /** The underlying offset-distance animation — the control handle. */
-    readonly animation: CSSKeyframesAnimation<V>;
-
+export class MotionPath<
+    V extends Vars = Vars,
+> extends SVGAnimationHandle<V> {
+    // S.B4 (a20 F1+F2) — the `animation` control handle + play/pause/stop/finished
+    // delegation live on `SVGAnimationHandle`; `extends` gives `MotionPath` the
+    // `.finished` getter it was silently MISSING (closed by construction).
     constructor(
         target: HTMLElement | HTMLElement[],
         options: MotionPathOptions,
     ) {
-        this.animation = fromMotionPath<V>(target, options);
-    }
-
-    /** Start (or re-enter) the path-motion play loop. */
-    play(): Promise<void> {
-        return this.animation.play();
-    }
-
-    /** Pause the play loop, retaining the playhead. */
-    pause(): this {
-        this.animation.pause();
-        return this;
-    }
-
-    /** Halt and rewind the play loop. */
-    stop(): this {
-        this.animation.stop();
-        return this;
+        super(fromMotionPath<V>(target, options));
     }
 }

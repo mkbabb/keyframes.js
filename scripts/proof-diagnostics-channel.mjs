@@ -34,7 +34,7 @@
  *       (the consumer-queryable channel). BITE: drop the surface → the rows are
  *       computed then dropped (the dead-field anti-pattern) → the value test reds.
  *
- *   test-locks     — `test/diagnostics-channel.test.ts` carries the per-code
+ *   test-locks     — `test/compile/diagnostics-channel.test.ts` carries the per-code
  *       born-RED clauses. BITE: delete a lock → reds.
  *
  * Mirrors proof:blend / proof:composition-honored: exits 1 on any residual.
@@ -69,7 +69,7 @@ console.log(
     "proof:diagnostics-channel — K.W7 S4 (the consumed structured diagnostics)",
 );
 
-const ADAPTER = "src/animation/adapter.ts";
+const ADAPTER = "src/animation/compile/adapter.ts";
 const ENGINE = "src/animation/engine/animation.ts";
 // K.WZ — the COMPOSITION_FALLBACK engine row is PUSHED from the extracted
 // `engine-composition.ts` (the K.W7 leaf logic lifted off the engine god-object
@@ -78,9 +78,9 @@ const ENGINE = "src/animation/engine/animation.ts";
 // `this.diagnostics` (passed by reference). The push anchor follows the code.
 const COMPOSITION = "src/animation/engine/composition.ts";
 // R.W2 — `fromString` (the `resolved.diagnostics` surfacer) lives in the carved
-// `engine/css-animation.ts` CSS subclass.
-const CSS_ANIMATION = "src/animation/engine/css-animation.ts";
-const TEST = "test/diagnostics-channel.test.ts";
+// `engine/css/css-animation.ts` CSS subclass.
+const CSS_ANIMATION = "src/animation/engine/css/css-animation.ts";
+const TEST = "test/compile/diagnostics-channel.test.ts";
 
 // ── field-exists — ResolvedKeyframes carries diagnostics: Diagnostic[] ────────
 requireAll("field-exists", ADAPTER, [
@@ -192,5 +192,5 @@ console.log(
         "ParseDiagnostic/OnParseError producer; every silent fallback site\n" +
         "(EMPTY_PARSE, UNKNOWN_TIMING_FN, COMPOSITION_FALLBACK) is a citable\n" +
         "stable-coded row, surfaced on the animation. The value proof rides\n" +
-        "`vitest run test/diagnostics-channel.test.ts`.",
+        "`vitest run test/compile/diagnostics-channel.test.ts`.",
 );

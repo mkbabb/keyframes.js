@@ -15,6 +15,14 @@ const read = (p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), "ut
 const exists = (p) => existsSync(join(root, p));
 /** Blank /* *​/ block comments so a grep matches real declarations, not prose. */
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " ");
+/** Blank block AND `//` line comments (JS/TS sources) — the clause-6b hand-roll
+ *  grep must match real CALLS, never docstring prose (S.A0: the gate's own
+ *  contract said "a backtick prose mention does NOT match", but the raw-source
+ *  grep matched `document.startViewTransition({ update, types })` inside
+ *  useSceneTransition.ts's block docstring — a gate false-positive on prose).
+ *  The `(^|[^:])` guard keeps `https://…` URLs intact. */
+const stripCommentsJs = (s) =>
+    stripComments(s).replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1);
 
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
 /** Walk a repo-relative dir collecting absolute paths matching one of `exts`. */
@@ -43,12 +51,12 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 1. VT clause ─────────────────────────────────────────────────────────────
 {
-    const vt = read("demo/app/useSceneTransition.ts");
-    const swap = read("demo/app/useSceneSwap.ts");
+    const vt = read("demo/app/transition/useSceneTransition.ts");
+    const swap = read("demo/app/transition/useSceneSwap.ts");
     if (/startViewTransition/.test(vt) && /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(vt)) {
         ok("vt", "switchScene routes through glass-ui startViewTransition (feature-detected helper)");
     } else {
-        fail("vt", "demo/app/useSceneTransition.ts does not route through glass-ui startViewTransition");
+        fail("vt", "demo/app/transition/useSceneTransition.ts does not route through glass-ui startViewTransition");
     }
     // The no-VT SpringProgress fallback is preserved + feature-gated (stands down only where VT runs).
     if (/SpringProgress/.test(swap) && /supportsViewTransition|startViewTransition|view-?transition/i.test(swap)) {
@@ -74,14 +82,14 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         fail("a11y", "CopyButton is not a <button> with no @click <span> (interactive span invisible to AT/keyboard)");
     }
     // The timeline markers carry the role=slider + keyboard template.
-    const track = read("demo/@/components/custom/animation-controls/timeline/components/TimelineTrack.vue");
+    const track = read("demo/@/components/custom/instrument/timeline/components/TimelineTrack.vue");
     if (/role=["']slider["']/.test(track) && /aria-valuenow/.test(track)) {
         ok("a11y", "timeline markers carry role=slider + aria-valuenow + keyboard handling");
     } else {
         fail("a11y", "timeline markers missing the role=slider + aria-valuenow a11y template");
     }
     // The redundant visualizer twin is aria-hidden (or carries a role).
-    const vis = read("demo/@/components/custom/animation-controls/controls/AnimationVisualizer.vue");
+    const vis = read("demo/@/components/custom/instrument/transport/controls/AnimationVisualizer.vue");
     if (/aria-hidden=["']true["']/.test(vis) || /role=["']slider["']/.test(vis)) {
         ok("a11y", "AnimationVisualizer is aria-hidden (redundant twin) or carries a role");
     } else {
@@ -99,12 +107,23 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 {
     const style = stripComments(read("demo/@/styles/style.css"));
     const idioms = stripComments(read("demo/@/styles/design-idioms.css"));
-    // --spring-snappy resolves to a canonical token — no demo-local linear() shadow on it.
+    // --spring-snappy carries NO demo-local linear() shadow. The clause's intent
+    // (no demo-local shadow on the canonical token) is satisfied in TWO shapes:
+    // (a) a demo-local def that resolves to a canonical spring var (the original
+    // W11 reconcile), or (b) NO demo-local def at all — the R.W6 C.5 EXCISION
+    // (style.css documented: the local `--spring-snappy: var(--spring-smooth)`
+    // alias silently CLOBBERED glass-ui's own overshoot-carrying --spring-snappy,
+    // so the alias was deleted, restoring the canonical token un-shadowed — the
+    // strongest satisfaction). The gate previously demanded shape (a) only and
+    // red on the excision (S.A0: gate-staleness vs the refactor it should
+    // tolerate). A def carrying linear() still REDs (the bite is intact).
     const snappyDef = style.match(/--spring-snappy\s*:\s*([^;]+);/);
-    if (snappyDef && /var\(--spring-/.test(snappyDef[1]) && !/linear\(/.test(snappyDef[1])) {
+    if (!snappyDef) {
+        ok("idiom-r3", "--spring-snappy carries NO demo-local definition (the R.W6 C.5 excision — glass-ui's canonical overshoot token reigns un-shadowed)");
+    } else if (/var\(--spring-/.test(snappyDef[1]) && !/linear\(/.test(snappyDef[1])) {
         ok("idiom-r3", "--spring-snappy resolves to a canonical spring var (no demo ζ=0.65 linear() shadow)");
     } else {
-        fail("idiom-r3", "--spring-snappy still carries a demo-local linear() shadow (must reconcile to the canonical token)");
+        fail("idiom-r3", "--spring-snappy still carries a demo-local linear() shadow (must reconcile to the canonical token or excise the alias)");
     }
     // progress-dot is demo-local (in design-idioms.css), not a component scoped block.
     if (/\.progress-dot\s*\{/.test(idioms)) {
@@ -126,7 +145,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 4. first-paint clause ────────────────────────────────────────────────────
 {
-    const at = read("demo/@/components/custom/AnimatedText.vue");
+    const at = read("demo/@/components/custom/instrument/shell/AnimatedText.vue");
     if (/prefers-reduced-motion/.test(at) && !/\b200%\s*\{/.test(at)) {
         ok("first-paint", "AnimatedText carries a PRM guard + no 200% keyframe stop");
     } else {
@@ -142,7 +161,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 5. CWV-levers + artifact clause ──────────────────────────────────────────
 {
-    const ctrls = read("demo/@/components/custom/animation-controls/controls/AnimationControls.vue");
+    const ctrls = read("demo/@/components/custom/instrument/transport/controls/AnimationControls.vue");
     // Monaco-heavy panes forceMount'd + content-visibility behind @supports.
     if (/force-?mount|forceMount/.test(ctrls) && /content-visibility/.test(ctrls)) {
         ok("cwv", "the Monaco panes are forceMount'd + content-visibility-gated when inactive");
@@ -154,8 +173,8 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // code for the vueuse visibility gate (raw addEventListener is barred by
     // proof:brittleness, so a hit here is the vueuse form).
     const visFiles = [
-        "demo/app/useSceneVisibilityPause.ts",
-        "demo/@/components/custom/animation-controls/controls/composables/useAnimationSync.ts",
+        "demo/app/runtime/useSceneVisibilityPause.ts",
+        "demo/@/components/custom/instrument/transport/composables/useAnimationSync.ts",
         "demo/scenes/amiga/AmigaScene.vue",
     ];
     const visSrc = ctrls + visFiles.map(read).join("\n");
@@ -186,14 +205,14 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // substrate). The SHIP is a scoped style block in EditorStartScreen.vue.
     // Comments stripped so a prose mention ("no text-wrap: pretty support") does
     // NOT satisfy the presence check — only a real declaration counts.
-    const startScreen = stripComments(read("demo/@/components/custom/editor-shell/EditorStartScreen.vue"));
+    const startScreen = stripComments(read("demo/@/components/custom/instrument/shell/EditorStartScreen.vue"));
     const hasPretty = /text-wrap:\s*pretty/.test(startScreen);
     // The hero <h1> is `.text-display-4` rendered through AnimatedText — the prose
     // SHIP must NOT leak onto it. Bite: a `.text-display-4 { text-wrap: pretty }`
     // (or a `text-wrap: pretty` on the AnimatedText hero layer) reds the scope.
     const heroLeak =
         /\.text-display-4[^}]*text-wrap:\s*pretty/.test(startScreen) ||
-        /text-wrap:\s*pretty/.test(stripComments(read("demo/@/components/custom/AnimatedText.vue")));
+        /text-wrap:\s*pretty/.test(stripComments(read("demo/@/components/custom/instrument/shell/AnimatedText.vue")));
     if (hasPretty && !heroLeak) {
         ok("platform-adopt", "text-wrap: pretty rides the start-screen prose (not the LCP hero) — the F.W13.S1 SHIP");
     } else if (!hasPretty) {
@@ -208,14 +227,16 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // `document.startViewTransition` in the helper docstring does NOT match — the
     // pattern requires an OPEN-PAREN + OBJECT-LITERAL call). Bite: add a direct
     // document.startViewTransition({ update, types }) in the demo → this reds.
-    const handRoll = collectDemo().some((src) => /document\.startViewTransition\s*\(\s*\{/.test(src));
-    const consumesHelper = /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(read("demo/app/useSceneTransition.ts"));
+    const handRoll = collectDemo().some((src) =>
+        /document\.startViewTransition\s*\(\s*\{/.test(stripCommentsJs(src)),
+    );
+    const consumesHelper = /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(read("demo/app/transition/useSceneTransition.ts"));
     if (!handRoll && consumesHelper) {
         ok("platform-adopt", "the demo consumes glass-ui's startViewTransition — no hand-rolled document.startViewTransition({ types }) (inv-16 boundary holds)");
     } else if (handRoll) {
         fail("platform-adopt", "the demo hand-rolls document.startViewTransition({ ... }) — bypasses glass-ui's feature-detect + instant fallback (inv-16 forbids; route OUT as glass-ui-HANDOFF H-1)");
     } else {
-        fail("platform-adopt", "demo/app/useSceneTransition.ts no longer imports startViewTransition from glass-ui (the VT substrate boundary moved)");
+        fail("platform-adopt", "demo/app/transition/useSceneTransition.ts no longer imports startViewTransition from glass-ui (the VT substrate boundary moved)");
     }
 
     // 6c — the engine ships ZERO VT surface (the boundary: VT/scroll-CSS is
@@ -256,10 +277,10 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // now just invokes useControlsKeyboardShortcuts({…})); read both so the registry
     // bindings + labels resolve across the seam.
     const group =
-        read("demo/@/components/custom/animation-controls/AnimationControlsGroup.vue") +
+        read("demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue") +
         "\n" +
         read(
-            "demo/@/components/custom/animation-controls/composables/useControlsKeyboardShortcuts.ts",
+            "demo/@/components/custom/instrument/transport/composables/useControlsKeyboardShortcuts.ts",
         );
     // Mod+Z / Mod+Shift+Z are registered through the ONE registry (registerShortcut),
     // grouped + labeled so they surface in the KeyboardShortcutsModal — NOT a second
@@ -274,12 +295,12 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     }
     // The timeline composable wraps the centralized state in useRefHistory (the
     // idiomatic seam) and exposes undo/redo/canUndo/canRedo — bite: drop the wrap
-    // → the behavioural round-trip test (test/timeline-undo.test.ts) reds, and the
+    // → the behavioural round-trip test (test/demo/timeline-undo.test.ts) reds, and the
     // exposure check here reds too.
-    const tl = read("demo/@/components/custom/animation-controls/timeline/composables/useTimeline.ts");
-    const tlComp = read("demo/@/components/custom/animation-controls/timeline/KeyframeTimeline.vue");
+    const tl = read("demo/@/components/custom/instrument/timeline/composables/useTimeline.ts");
+    const tlComp = read("demo/@/components/custom/instrument/timeline/KeyframeTimeline.vue");
     if (/useRefHistory/.test(tl) && /debounceFilter/.test(tl) && /undo,\s*\n\s*redo,/.test(tlComp + "\n")) {
-        ok("undo", "the timeline wraps state in a debounced useRefHistory + exposes undo/redo (the round-trip is locked by test/timeline-undo.test.ts)");
+        ok("undo", "the timeline wraps state in a debounced useRefHistory + exposes undo/redo (the round-trip is locked by test/demo/timeline-undo.test.ts)");
     } else {
         fail("undo", "the timeline does not wrap its state in a debounced useRefHistory exposing undo/redo (F.W14.S1)");
     }
@@ -292,7 +313,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // aria-label) AND the .focus-ring keystone idiom. Bite: strip role/aria-label
     // → the labeled-textbox assertion reds; remove .focus-ring → the focus-
     // visibility assertion reds.
-    const card = read("demo/@/components/custom/animation-controls/keyframes/KeyframeCard.vue");
+    const card = read("demo/@/components/custom/instrument/keyframes/KeyframeCard.vue");
     const labeled =
         /role=["']textbox["']/.test(card) &&
         /aria-multiline=["']true["']/.test(card) &&
@@ -306,20 +327,14 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         fail("a11y-w15", "the contenteditable CSS pane has no .focus-ring — its keyboard-focus state is invisible (F.W15.S1)");
     }
 
-    // 8b — the playground asset <img> carries a meaningful :alt bound to the asset
-    // name. Bite: remove the :alt → this reds (reds today — verified State 2).
-    const viewport = read("demo/@/components/custom/asset-manager/AssetViewport.vue");
-    if (/:alt=["']asset\.name["']/.test(viewport)) {
-        ok("a11y-w15", "the playground asset <img> has a meaningful :alt bound to asset.name (E-UX-8 completed)");
-    } else {
-        fail("a11y-w15", "the playground asset <img> has no :alt=\"asset.name\" — user content unnamed to AT (F.W15.S2)");
-    }
+    // (8b — the compose-scene asset <img> :alt clause was RETIRED at T.E1: the
+    //  compose scene + its asset-manager were PRUNED, OD-1 = PRUNE.)
 
     // 8c — a VISIBLE control (not the `?` shortcut) opens the shortcuts modal by
     // setting shortcutsOpen. The `?` shortcut still works (additive). Bite: remove
     // the visible @click="shortcutsOpen = true" → this reds (reds today — toggled
     // only by `?`).
-    const shell = read("demo/@/components/custom/editor-shell/EditorShell.vue");
+    const shell = read("demo/@/components/custom/instrument/shell/EditorShell.vue");
     const hasVisibleTrigger = /@click=["']shortcutsOpen\s*=\s*true["']/.test(shell);
     const stillHasShortcut = /registerShortcut\(\s*["']\?["']/.test(shell);
     if (hasVisibleTrigger && stillHasShortcut) {
@@ -338,7 +353,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // Strip both block (/* */) and line (//) comments so a prose mention of the
     // deleted anti-pattern ("the former `width < 768` break") does NOT satisfy a
     // presence check — only live declarations/markup count.
-    const at = stripComments(read("demo/@/components/custom/AnimatedText.vue")).replace(
+    const at = stripComments(read("demo/@/components/custom/instrument/shell/AnimatedText.vue")).replace(
         /^\s*\/\/.*$/gm,
         " ",
     );

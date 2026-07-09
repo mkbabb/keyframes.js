@@ -4,25 +4,28 @@ import { useEventListener } from "@vueuse/core";
 // closed form (the SAME idiom the cube's orbital inertia rides,
 // useOrbitalInertia.ts). A pointer-drag on the mesh accumulates an angular
 // velocity; on RELEASE the engine's frictional glide bleeds that velocity off
-// over many frames, so the engine drives a NON-DOM (Three.js) target —
-// independent of the camera orbit (OrbitControls). `decay` is the light surface
-// (zero value.js edge), imported directly like every demo engine consumer.
+// over many frames. `decay` is the light surface (zero value.js edge), imported
+// directly like every demo engine consumer.
 import { decay, type DecaySample } from "@mkbabb/keyframes.js";
 
 /**
- * The interactive subject of the amiga scene (A5 rebuild). Drag the SPHERE to
- * spin it; on release the engine `decay()` glide coasts the spin to rest. This
- * is the demo's proof that the engine drives a non-DOM mesh — the sphere
- * `rotation` keeps changing for ≥N frames after release under the closed-form
- * glide, NOT under autoplay (WV-W5-MED-3).
+ * The interactive subject of the amiga scene. Drag the SPHERE to spin it; on
+ * release the engine `decay()` glide coasts the spin to rest.
+ *
+ * T.A7 — the gesture is an ADDITIVE LAYER, never a second mesh writer. It
+ * accumulates into `offset` (a stable `{ x, y }` object the scene reads each
+ * frame); the scene composes `groupPose + offset` into the mesh transform (ONE
+ * writer). So drag and the group animation compose by construction — the user's
+ * spin delta accumulates ON TOP of the composite bounce/spin, and the pre-gesture
+ * pose is preserved after the glide settles.
  *
  * Camera orbit (OrbitControls) stays the BACKGROUND gesture: a pointerdown that
  * RAYCASTS the sphere is the spin gesture (and suppresses orbit for its
  * duration); a miss falls through to OrbitControls untouched. The two gesture
  * landlords are disjoint by hit-test, never racing.
  */
-export interface SphereSpinOptions {
-    /** The mesh the drag spins (the non-DOM engine target). */
+interface SphereSpinOptions {
+    /** The mesh the drag spins (the raycast hit-test target). */
     getMesh: () => THREE.Object3D | undefined;
     /** The camera the raycaster projects through. */
     getCamera: () => THREE.Camera | undefined;
@@ -35,37 +38,12 @@ export interface SphereSpinOptions {
     friction?: number;
     /** Drag pixels → radians of spin. Default 0.01. */
     sensitivity?: number;
-    /**
-     * P.W5.S3 (the amiga egg — flick-to-boing). Invoked on RELEASE when the
-     * measured angular speed `Math.hypot(velX, velY)` clears `FLICK_BOING_RAD_S`
-     * — the gesture earns the boing without a double-click. The scene wires its
-     * `onBoing` here; the composable owns the velocity it already tracks, the
-     * scene owns the boing arc. No-op if absent (the dblclick path still works).
-     */
-    onFlick?: () => void;
 }
 
 const DEFAULT_FRICTION = 2.4;
 const DEFAULT_SENSITIVITY = 0.01;
 // Below this (rad/s) the glide is visually at rest — stop integrating.
 const REST_SPEED = 1e-3;
-
-// P.W5.S3 — the named, CALIBRATED flick-to-boing threshold (rad/s). NOT a magic
-// in-line literal: the boing earns its trigger from a HARD flick of the sphere,
-// and this const is the single auditable knob the gate fixture asserts a
-// synthetic flick clears by ≥1.5× margin.
-//
-// Calibration: `velX`/`velY` are rad/s, accumulated as (drag-px · sensitivity)
-// / dt in `onPointerMove`. At the default sensitivity (0.01 rad/px) a release at
-// the gentle end of a deliberate spin sits well under ~5 rad/s (a ~30px/16ms
-// drift ≈ 18 rad/s only at the very end of an aggressive sweep); instrumenting
-// real flick releases over the live scene, a confident hard flick lands at
-// ~12–20 rad/s while a casual settle-drag stays ≤ ~4 rad/s. 8.0 rad/s sits in
-// that gap — high enough that a gentle drag-to-rest never mis-fires the boing,
-// low enough that a committed flick always clears it (and clears the gate's
-// 1.5× margin: a synthetic dx≈20px/16ms × 8-frame flick yields ≈ 12.5 rad/s,
-// > 8.0 × 1.5 = 12.0).
-export const FLICK_BOING_RAD_S = 8.0;
 
 export function useSphereSpin(options: SphereSpinOptions) {
     const friction = options.friction ?? DEFAULT_FRICTION;
@@ -75,6 +53,10 @@ export function useSphereSpin(options: SphereSpinOptions) {
     const ndc = new THREE.Vector2();
 
     let canvasEl: HTMLCanvasElement | undefined;
+
+    // T.A7 — the ADDITIVE gesture offset (rad), a stable object the scene composes
+    // onto the group pose each frame. `x` = pitch (drag-y), `y` = yaw (drag-x).
+    const offset = { x: 0, y: 0 };
 
     // ── Drag state ───────────────────────────────────────────────────────────
     let dragging = false;
@@ -87,10 +69,8 @@ export function useSphereSpin(options: SphereSpinOptions) {
     let velY = 0;
 
     // ── Glide state: a `decay()` sampler per axis, advanced by wall-clock ──────
-    // seconds in the render loop. `sample.value` is the cumulative angle the
-    // glide has coasted through since release; the per-frame DELTA is applied to
-    // the mesh rotation, so the spin keeps moving the non-DOM target until the
-    // velocity bleeds below REST_SPEED.
+    // seconds in the render loop. The per-frame DELTA is added to the offset, so
+    // the spin keeps accumulating until the velocity bleeds below REST_SPEED.
     let glideX: ((t: number) => DecaySample) | undefined;
     let glideY: ((t: number) => DecaySample) | undefined;
     let glideStart = 0;
@@ -107,6 +87,9 @@ export function useSphereSpin(options: SphereSpinOptions) {
         const mesh = options.getMesh();
         const camera = options.getCamera();
         if (!mesh || !camera || !canvasEl) return false;
+        // The mesh world transform is written by the scene's present loop; ensure
+        // it is current for the raycast even between render-on-demand frames.
+        mesh.updateMatrixWorld();
         toNDC(clientX, clientY);
         raycaster.setFromCamera(ndc, camera);
         return raycaster.intersectObject(mesh, false).length > 0;
@@ -131,18 +114,17 @@ export function useSphereSpin(options: SphereSpinOptions) {
 
     const onPointerMove = (e: PointerEvent) => {
         if (!dragging || e.pointerId !== activePointer) return;
-        const mesh = options.getMesh();
-        if (!mesh) return;
         const now = performance.now();
         const dt = Math.max((now - lastMoveTime) / 1000, 1e-3);
         const dx = e.clientX - lastX;
         const dy = e.clientY - lastY;
 
-        // Horizontal drag → yaw (rotation.y); vertical drag → pitch (rotation.x).
+        // Horizontal drag → yaw (offset.y); vertical drag → pitch (offset.x). The
+        // gesture accumulates into the ADDITIVE offset, never the mesh (T.A7).
         const dAngY = dx * sensitivity;
         const dAngX = dy * sensitivity;
-        mesh.rotation.y += dAngY;
-        mesh.rotation.x += dAngX;
+        offset.y += dAngY;
+        offset.x += dAngX;
 
         // Track instantaneous angular velocity (rad/s) for the release impulse.
         velY = dAngY / dt;
@@ -162,8 +144,8 @@ export function useSphereSpin(options: SphereSpinOptions) {
         }
         options.setOrbitEnabled(true);
 
-        // Hand the release velocity to the engine's closed-form glide. Only
-        // seed an axis whose flick had real speed (a static tap glides nowhere).
+        // Hand the release velocity to the engine's closed-form glide. Only seed
+        // an axis whose flick had real speed (a static tap glides nowhere).
         const seed = (v: number) =>
             Math.abs(v) > REST_SPEED
                 ? decay({ velocity: v, friction })
@@ -173,41 +155,30 @@ export function useSphereSpin(options: SphereSpinOptions) {
         glideStart = performance.now();
         lastGlideX = 0;
         lastGlideY = 0;
-
-        // P.W5.S3 EGG — flick-to-boing. The release angular speed is the same
-        // `Math.hypot(velX, velY)` the glide is seeded from; a HARD flick (clears
-        // the named, calibrated FLICK_BOING_RAD_S) earns the boing autonomously —
-        // no double-click. The scene's `onFlick` (→ onBoing) owns the arc + its
-        // PRM gate + its already-boinging guard, so the egg is one threshold here
-        // and a CSS/engine state flip there (KISS). The dblclick path is KEPT.
-        const releaseSpeed = Math.hypot(velX, velY);
-        if (releaseSpeed >= FLICK_BOING_RAD_S) options.onFlick?.();
     };
 
     /**
-     * Advance the release glide one render frame. Call from the scene's rAF
-     * present loop AFTER `controls.update()`. Returns true while the engine
-     * glide is still driving the mesh (the liveness `proof:amiga-engine-drives-
-     * mesh` asserts this stays true for ≥N frames post-release).
+     * Advance the release glide one render frame — call from the scene's present
+     * loop. Adds the engine `decay()` delta to the ADDITIVE offset. Returns true
+     * while the glide is still live (used by the render-on-demand present loop,
+     * T.A12).
      */
     const tickGlide = (): boolean => {
         if (!glideX && !glideY) return false;
-        const mesh = options.getMesh();
-        if (!mesh) return false;
 
         const t = (performance.now() - glideStart) / 1000;
         let live = false;
 
         if (glideX) {
             const s = glideX(t);
-            mesh.rotation.x += s.value - lastGlideX;
+            offset.x += s.value - lastGlideX;
             lastGlideX = s.value;
             if (Math.abs(s.velocity) > REST_SPEED) live = true;
             else glideX = undefined;
         }
         if (glideY) {
             const s = glideY(t);
-            mesh.rotation.y += s.value - lastGlideY;
+            offset.y += s.value - lastGlideY;
             lastGlideY = s.value;
             if (Math.abs(s.velocity) > REST_SPEED) live = true;
             else glideY = undefined;
@@ -216,9 +187,8 @@ export function useSphereSpin(options: SphereSpinOptions) {
     };
 
     // The canvas-pointer listeners ride @vueuse/core's useEventListener (the
-    // inv-ζ dogfood discipline the demo's other drag seams keep — useDragCapture /
-    // useOrbitalPointer): each returns a stop() handle, and the whole set is also
-    // auto-released on the host's scope dispose, so a missed detach() cannot leak.
+    // inv-ζ dogfood discipline the demo's other drag seams keep): each returns a
+    // stop() handle, auto-released on the host's scope dispose too.
     let stopHandles: Array<() => void> = [];
 
     /** Wire the pointer listeners onto the canvas (imperative — the canvas exists
@@ -243,29 +213,33 @@ export function useSphereSpin(options: SphereSpinOptions) {
         canvasEl = undefined;
     };
 
+    /**
+     * T.A11 — the decay() dogfood witness, a NON-DOM sampling hook (no readout
+     * DOM). The current angular speed (rad/s): the live `Math.hypot(velX, velY)`
+     * accumulator during a drag, the engine `decay()` sampler's instantaneous
+     * velocity during the glide (the SAME already-tracked physics). It bleeds to 0
+     * as the glide settles — the visible decay() coast, now witnessed by a probe
+     * on the gesture layer rather than a parked telemetry readout.
+     */
+    const angularVelocity = (): number => {
+        if (dragging) return Math.hypot(velX, velY);
+        if (!glideX && !glideY) return 0;
+        const t = (performance.now() - glideStart) / 1000;
+        const gx = glideX ? glideX(t).velocity : 0;
+        const gy = glideY ? glideY(t).velocity : 0;
+        return Math.hypot(gx, gy);
+    };
+
     return {
         attach,
         detach,
         tickGlide,
+        /** The additive gesture offset (rad) the scene composes onto the pose. */
+        offset,
         /** True while the user is actively dragging the sphere. */
         isDragging: () => dragging,
-        /** True while the release glide is still driving the mesh. */
+        /** True while the release glide is still driving the offset. */
         isGliding: () => !!(glideX || glideY),
-        /**
-         * P.W5.S2 — the current angular speed (rad/s) of the sphere, for the
-         * telemetry overlay. During an active drag it is the live
-         * `Math.hypot(velX, velY)` accumulator; during the release glide it is
-         * the engine `decay()` sampler's instantaneous velocity (the SAME
-         * already-tracked physics, made legible — zero new state). It bleeds to
-         * 0 as the glide settles, witnessing the `decay()` coast.
-         */
-        angularVelocity: (): number => {
-            if (dragging) return Math.hypot(velX, velY);
-            if (!glideX && !glideY) return 0;
-            const t = (performance.now() - glideStart) / 1000;
-            const gx = glideX ? glideX(t).velocity : 0;
-            const gy = glideY ? glideY(t).velocity : 0;
-            return Math.hypot(gx, gy);
-        },
+        angularVelocity,
     };
 }

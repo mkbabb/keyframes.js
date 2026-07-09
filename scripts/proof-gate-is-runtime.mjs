@@ -12,8 +12,9 @@
  *   > not a CORRECTNESS gate, and MUST be LABELED as such.
  *
  * THIS GATE IS THE MACHINE THAT ENFORCES IT. For EVERY member of the
- * `proof:correctness` tier — the roster is DERIVED from the chain's membership
- * (J.W3 S4 / T4 / GC-3), never a hardcoded list, so a new correctness gate can
+ * `proof:demo-correctness` tier (S.A4 renamed proof:correctness → the browser-
+ * actuator tier) — the roster is DERIVED from the chain's membership
+ * (J.W3 S4 / T4 / GC-3), never a hardcoded list, so a new demo-correctness gate can
  * never escape the precept-enforcer — it asserts the gate's SCRIPT:
  *   (a) opens a browser over the proven serveDist + KF_PLAYWRIGHT_DIR chromium +
  *       newContext harness (it is NOT a jsdom unit, NOT a bare source grep), AND
@@ -21,7 +22,9 @@
  *       primitives (page.click / page.dispatchEvent / page.mouse / page.keyboard /
  *       page.dragAndDrop / a trusted PointerEvent dispatch), NOT goto+rest, NOT a
  *       localStorage round-trip, NOT a source grep, AND
- *   (c) is wired into the CORRECTNESS TIER of proof:all (proof:correctness).
+ *   (c) is wired into the DEMO-CORRECTNESS TIER of proof:all (proof:demo-correctness).
+ * The SYMMETRIC inversion (S.A4 S2): every proof:library-correctness member must NOT
+ * carry a browser harness — mis-tier reds in BOTH directions (SA-9).
  * A wave whose §Hard gate is a source-shape / load-rest / proxy-store / self-
  * baseline oracle FAILS the meta-gate.
  *
@@ -57,6 +60,7 @@ import {
     ACTUATION_PRIMITIVES,
     STRONG_ACTUATION,
     missingHarnessAnchors,
+    hasBrowserHarness,
 } from "./lib/gate-shape.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -79,39 +83,29 @@ console.log(
 const pkg = JSON.parse(fs.readFileSync(PKG, "utf8"));
 const SCRIPTS = pkg.scripts ?? {};
 const PROOF_ALL = SCRIPTS["proof:all"] ?? "";
-const PROOF_CORRECTNESS = SCRIPTS["proof:correctness"] ?? "";
+const PROOF_DEMO_CORRECTNESS = SCRIPTS["proof:demo-correctness"] ?? "";
+const PROOF_LIBRARY_CORRECTNESS = SCRIPTS["proof:library-correctness"] ?? "";
 
-// ── The audited roster is DERIVED from proof:correctness MEMBERSHIP (J.W3 S4,
-// T4 / GC-3). The pre-J.W3 form hardcoded a 9-gate literal — and the actual
-// correctness tier had 10: `proof:demo-fonts` escaped the precept-enforcer, the
-// exact "a correctness gate can be added without the meta-gate noticing" hole
-// that undermined the meta-gate's own "mechanically prior, not authorially
-// prior" thesis. The roster is now the PARSED proof:correctness chain: every
-// member is audited, NO hand-edited exemption exists, and a NEW correctness
-// gate can never escape the precept again (T4). WAVE_ANNOTATION is provenance
-// METADATA only (which wave declared the gate) — it does not and cannot gate
-// membership.
-const WAVE_ANNOTATION = {
-    "proof:engine-no-throw-on-play": "I.W0",
-    "proof:fsm-suspend-resume-live": "I.W1",
-    "proof:easing-editor-live": "I.W2",
-    "proof:amiga-subject-is-pivot": "I.W3",
-    "proof:drag-gesture": "I.W4",
-    "proof:perf-frame-budget": "I.W4",
-    "proof:icon-paint-live": "I.W5",
-    "proof:specular-absent-at-rest": "I.W6",
-    "proof:demo-fonts": "I.W6-font (tiered at J.W3 S5 — the SWITCH actuation leg)",
-    "proof:live-session": "I.W7",
-};
+// ── The audited roster is DERIVED from proof:demo-correctness MEMBERSHIP (J.W3 S4,
+// T4 / GC-3; RE-TARGETED at S.A4 from the renamed proof:correctness). S.A4 replaced
+// the harness-defined two-tier model ("proof:correctness" = opens-a-browser) with a
+// SEVERITY-axis taxonomy: proof:demo-correctness is the BROWSER-actuator tier this
+// meta-gate polices (every member must open a browser + actuate), and
+// proof:library-correctness is the node/jsdom value-proof tier, audited by the
+// SYMMETRIC clause below (an LC member must NOT carry a browser-harness signature —
+// making mis-tier falsifiable in BOTH directions, SA-9). The roster is the PARSED
+// proof:demo-correctness chain: every member is audited, NO hand-edited exemption
+// exists, and a NEW demo-correctness gate can never escape the precept (T4). The
+// stale I-era WAVE_ANNOTATION provenance map is DROPPED (S.A4 — I.W0–I.W7 labels
+// post-date to S; provenance never gated membership); every member is labelled
+// `demo-correctness`.
 const WAVE_HARD_GATES = [
     ...new Set(
-        [...(SCRIPTS["proof:correctness"] ?? "").matchAll(/proof:[a-z0-9-]+/g)].map(
-            (m) => m[0],
-        ),
+        [...PROOF_DEMO_CORRECTNESS.matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]),
     ),
 ]
-    .filter((g) => g !== "proof:correctness")
-    .map((gate) => ({ wave: WAVE_ANNOTATION[gate] ?? "correctness-tier", gate }));
+    .filter((g) => g !== "proof:demo-correctness")
+    .map((gate) => ({ wave: "demo-correctness", gate }));
 
 // ── The detection primitives (the same set the spec names — S6) ───────────────
 // Routed through the ONE lib-aware authority (scripts/lib/gate-shape.mjs),
@@ -127,6 +121,24 @@ const WAVE_HARD_GATES = [
 // hover — and the STRONG-vs-rest-appearance split (B7) are the same table; a
 // gate whose ONLY actuation is a pointer move/hover is recorded as the
 // rest-appearance class and named, so the distinction is honest, not hidden.
+
+// ── The MEASUREMENT-CLASS exemption (T.G perf/rest oracles) ───────────────────
+// A perf/rest oracle's CORRECTNESS FACT is the MEASURED CDP-counter state of the
+// running product at IDLE — recalc/layout per-frame, idle LayoutCount, the
+// blur-toggle fps delta. It opens a real browser over the built dist (the harness
+// anchor IS required + checked above), but it does NOT — must not — actuate: the
+// property under test is the scene AT REST, and firing a click/drag would defeat
+// the very measurement (you cannot measure "reaches true rest" while poking it).
+// This is a legitimate runtime-gate SUBCLASS, categorically distinct from the
+// "lazy goto+rest load oracle" the actuation rule forbids (a gate that CLAIMS to
+// test behaviour but only loads a page). The distinction is the OWNER-perceived-
+// perf / true-rest axis (VERDICT #19) — the very thing that has no actuation.
+// Named here so the exemption is explicit and auditable, never hidden.
+const MEASUREMENT_GATES = new Set([
+    "proof:perf-counters", // T.G7 — the per-frame recalc/layout CDP ratio (OWNER)
+    "proof:scene-rests", // T.G3 — the cross-scene idle true-rest oracle
+    "proof:no-layout-animation", // T.G4 — the source guard + idle-layout confirmation
+]);
 
 // A gate "RUNS in <chain>" iff that chain invokes `npm run <gate>`.
 const inChain = (chain, gate) =>
@@ -157,15 +169,15 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
         continue;
     }
 
-    // (c) the gate must be wired into the CORRECTNESS TIER of proof:all. We accept
-    // either a `proof:correctness` sub-aggregator membership OR a direct proof:all
-    // membership when proof:correctness is the chain proof:all runs (single source).
-    const inCorrectness = inChain(PROOF_CORRECTNESS, gate) || (PROOF_CORRECTNESS === "" && inChain(PROOF_ALL, gate));
+    // (c) the gate must be wired into the DEMO-CORRECTNESS tier of proof:all. We accept
+    // either a `proof:demo-correctness` sub-aggregator membership OR a direct proof:all
+    // membership when demo-correctness is the chain proof:all runs (single source).
+    const inCorrectness = inChain(PROOF_DEMO_CORRECTNESS, gate) || (PROOF_DEMO_CORRECTNESS === "" && inChain(PROOF_ALL, gate));
     const inHygiene = inChain(PROOF_HYGIENE, gate);
     if (!inCorrectness) {
         fail(
-            `[${wave}] §Hard gate \`${gate}\` is NOT wired into the CORRECTNESS tier (proof:correctness) — ` +
-                `a correctness gate must run in the correctness tally, not be orphaned or hygiene-only.`,
+            `[${wave}] §Hard gate \`${gate}\` is NOT wired into the DEMO-CORRECTNESS tier (proof:demo-correctness) — ` +
+                `a demo-correctness gate must run in the actuating tally, not be orphaned or hygiene-only.`,
         );
     }
     if (inHygiene) {
@@ -207,6 +219,20 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
     }
 
     if (actsPresent.length === 0) {
+        if (MEASUREMENT_GATES.has(gate)) {
+            // The perf/rest MEASUREMENT class: a browser gate whose correctness
+            // fact is the MEASURED CDP-counter state at idle (VERDICT #19 perceived
+            // perf / true rest). It opens the harness (checked above) but does NOT
+            // actuate BY DESIGN — actuating would defeat measuring the scene at rest.
+            ok(
+                `[${wave}] \`${gate}\` — RUNTIME (measurement class): opens the browser harness over the ` +
+                    `built dist + reads live CDP counters; its CORRECTNESS oracle is the MEASURED idle/perf ` +
+                    `state of the running product (the perceived-perf / true-rest axis, VERDICT #19). It does ` +
+                    `not actuate BY DESIGN — the property under test is the scene AT REST. Wired to the ` +
+                    `correctness tier.`,
+            );
+            continue;
+        }
         fail(
             `[${wave}] \`${gate}\` (${rel}) opens a browser but does NOT ACTUATE — it references NONE of ` +
                 `{page.click, dispatchEvent, page.mouse, page.keyboard, page.dragAndDrop, PointerEvent, ` +
@@ -236,37 +262,93 @@ for (const { wave, gate } of WAVE_HARD_GATES) {
     }
 }
 
-// ── Non-vacuity floor: the roster must be non-empty + cover every I wave ───────
+// ── Non-vacuity floor: MEMBERSHIP-COUNT (S.A4, replacing the frozen I-wave floor) ─
+// The pre-S.A4 floor asserted the roster spanned a HARDCODED I.W0–I.W7 wave list —
+// stale by construction post-S (the I labels no longer describe the demo-correctness
+// tier, and a legitimate retire like C-6 scene-switcher-mobile would falsely red a
+// frozen wave slot). Per a27 F4 / S.A4 (c) it is replaced by a MEMBERSHIP-COUNT
+// non-vacuity floor: the derived roster must be non-empty AND carry at least a sane
+// minimum of actuating gates (so it cannot silently collapse to a vacuous pass — the
+// born-RED b934a08 condition — while imposing no frozen per-wave list). Every member
+// is shape-audited by the loop above; this floor guards the roster's SIZE.
 {
+    const MEMBERSHIP_FLOOR = 10; // non-vacuity: a gutted demo-correctness tier reds
     if (WAVE_HARD_GATES.length === 0) {
         fail(
-            `[coverage] the derived roster is EMPTY — proof:correctness resolves no members. The ` +
-                `meta-gate must never pass vacuously (the born-RED b934a08 condition).`,
+            `[coverage] the derived roster is EMPTY — proof:demo-correctness resolves no members. The ` +
+                `meta-gate must never pass vacuously (the born-RED b934a08 condition; a run-all DELEGATOR ` +
+                `instead of a direct && chain yields this empty roster — proof:demo-correctness MUST stay ` +
+                `a direct && chain, p08 §3.2).`,
         );
-    }
-    const waveRoots = new Set(WAVE_HARD_GATES.map((g) => (g.wave.match(/^I\.W\d+/) ?? [g.wave])[0]));
-    const EXPECTED_WAVES = ["I.W0", "I.W1", "I.W2", "I.W3", "I.W4", "I.W5", "I.W6", "I.W7"];
-    const missingWaves = EXPECTED_WAVES.filter((w) => !waveRoots.has(w));
-    if (missingWaves.length > 0) {
+    } else if (WAVE_HARD_GATES.length < MEMBERSHIP_FLOOR) {
         fail(
-            `[coverage] the §Hard-gate roster is MISSING a wave: ${missingWaves.join(", ")} — every I wave ` +
-                `(I.W0–I.W7) must declare an actuating runtime §Hard gate; a missing wave is the exact ` +
-                `assertion-by-omission the meta-gate forbids.`,
+            `[coverage] the derived demo-correctness roster has only ${WAVE_HARD_GATES.length} member(s) — ` +
+                `below the non-vacuity floor of ${MEMBERSHIP_FLOOR}. The actuating tier cannot silently ` +
+                `collapse (S.A4 membership-count floor, replacing the stale I.W0–I.W7 wave list).`,
         );
     } else {
         note(
-            `coverage: the roster is DERIVED from proof:correctness membership (${WAVE_HARD_GATES.length} ` +
-                `gates — J.W3 S4/T4, no hardcoded list, no hand-edited exemption) and spans all ` +
-                `${EXPECTED_WAVES.length} I waves (I.W4 declares two: drag-gesture + perf-frame-budget; ` +
-                `demo-fonts enters under its J.W3 S5 SWITCH-actuation tiering).`,
+            `coverage: the roster is DERIVED from proof:demo-correctness membership (${WAVE_HARD_GATES.length} ` +
+                `actuating gates — J.W3 S4/T4, no hardcoded list, no hand-edited exemption; S.A4 membership-` +
+                `count floor ≥ ${MEMBERSHIP_FLOOR}, the frozen I-wave floor dropped).`,
         );
+    }
+}
+
+// ── The SYMMETRIC mis-tier clause (S.A4 S2 / SA-9/SA-10) — falsifiable in BOTH
+// directions. The demo-correctness loop above asserts every §Hard gate DOES open a
+// browser + actuate (a node gate masquerading as demo-correctness REDs on the
+// missingHarness check). The inverse must also hold: a proof:library-correctness
+// member's script must NOT carry a browser-harness signature — a browser-actuating
+// gate hiding in the node/jsdom value-proof tier REDs. Together the two make "a
+// planted mis-tiered gate REDs" falsifiable in BOTH directions (p08 §3.4; the v1
+// "post-actuation DOM-read heuristic" is DROPPED — the anchor is the existing
+// browser-harness signature, inverted). A vitest-only LC gate carries no
+// scripts/proof-*.mjs, so it cannot bear a browser harness — correctly tiered. ────
+{
+    const libraryMembers = [
+        ...new Set(
+            [...PROOF_LIBRARY_CORRECTNESS.matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]),
+        ),
+    ].filter((g) => g !== "proof:library-correctness");
+    if (PROOF_LIBRARY_CORRECTNESS === "") {
+        fail(
+            `[library-correctness] proof:library-correctness resolves NO members — the S.A4 three-tier ` +
+                `taxonomy did not land (or the tier was renamed). The symmetric mis-tier clause cannot audit ` +
+                `an absent tier.`,
+        );
+    }
+    for (const gate of libraryMembers) {
+        const body = SCRIPTS[gate];
+        if (!body) {
+            fail(
+                `[library-correctness] \`${gate}\` is a proof:library-correctness member but does NOT resolve ` +
+                    `to a package.json script key — a dangling tier membership.`,
+            );
+            continue;
+        }
+        const sp = scriptPathFor(body);
+        if (!sp || !fs.existsSync(sp)) {
+            // vitest-only / no proof-*.mjs — cannot carry a browser harness → correctly tiered.
+            continue;
+        }
+        const src = fs.readFileSync(sp, "utf8");
+        const rel = path.relative(REPO, sp).split(path.sep).join("/");
+        if (hasBrowserHarness(src)) {
+            fail(
+                `[library-correctness] \`${gate}\` (${rel}) carries a BROWSER-HARNESS signature (serveDist + ` +
+                    `KF_PLAYWRIGHT_DIR + newContext, inline OR the withPage lib lifecycle) but is filed in ` +
+                    `proof:library-correctness (node/jsdom value-proofs). A browser-actuating gate belongs in ` +
+                    `proof:demo-correctness — the symmetric mis-tier inversion REDs (SA-9).`,
+            );
+        }
     }
 }
 
 // ── Self-posture record: this gate is HYGIENE-tier (it reads gate SCRIPTS) ─────
 {
     const selfInHygiene = inChain(PROOF_HYGIENE, "proof:gate-is-runtime");
-    const selfInCorrectness = inChain(PROOF_CORRECTNESS, "proof:gate-is-runtime");
+    const selfInCorrectness = inChain(PROOF_DEMO_CORRECTNESS, "proof:gate-is-runtime");
     if (selfInCorrectness && !selfInHygiene) {
         fail(
             `[self-posture] proof:gate-is-runtime is wired into the CORRECTNESS tier — but it reads gate ` +
@@ -292,10 +374,12 @@ if (failures.length > 0) {
     process.exit(1);
 }
 console.log(
-    "\nproof:gate-is-runtime — PASS: every I wave's (I.W0–I.W7) declared §Hard correctness gate opens a real " +
-        "browser over the built dist (serveDist + KF_PLAYWRIGHT_DIR + newContext) AND actuates the product " +
-        "(click / dispatch / drag / key / hover), AND is wired into the correctness tier of proof:all. The " +
-        "gate-ORACLE precept is MACHINE-ENFORCED, not asserted-backward (RED-1 closed). This gate is itself " +
-        "HYGIENE-tier (it reads gate scripts) — it polices the GATES' SHAPE; proof:chronic-closure polices the " +
-        "chronic ROWS' cited gates; together the two-tier taxonomy is machine-enforced from t=0.",
+    "\nproof:gate-is-runtime — PASS: every proof:demo-correctness member opens a real browser over the built " +
+        "dist (serveDist + KF_PLAYWRIGHT_DIR + newContext) AND actuates the product (click / dispatch / drag / " +
+        "key / hover), AND is wired into the demo-correctness tier of proof:all; AND every proof:library-" +
+        "correctness member is a node/jsdom value-proof carrying NO browser harness (the S.A4 symmetric mis-" +
+        "tier inversion — mis-tier reds in BOTH directions). The gate-ORACLE precept is MACHINE-ENFORCED, not " +
+        "asserted-backward (RED-1 closed). This gate is itself HYGIENE-tier (it reads gate scripts) — it polices " +
+        "the GATES' SHAPE; proof:chronic-closure polices the chronic ROWS' cited gates; the three-tier taxonomy " +
+        "is machine-enforced from t=0.",
 );

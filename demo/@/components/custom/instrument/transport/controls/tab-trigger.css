@@ -1,0 +1,79 @@
+/* ════════════════════════════════════════════════════════════════════════
+   tab-trigger.css — the filing-tab trigger skin + tab-panel slide (D.W2.S2)
+   ────────────────────────────────────────────────────────────────────────
+   Uncaged from the global utils.css monolith and colocated with its owner,
+   AnimationControls.vue (the filing-tab host). The `.tab-trigger-*` classes
+   are applied to reka-ui <TabsTrigger> elements rendered BOTH here and by the
+   scene tab triggers (CubeScene / EasingScene / SpringScene / playground), and
+   the `[data-state=active][role=tabpanel]` slide targets reka-ui's generated
+   <TabsContent> panels. Because these classes are shared across components and
+   land on reka-ui's own DOM (not this SFC's template), they CANNOT live in a
+   `<style scoped>` block — scoping would add a `[data-v-*]` attribute that both
+   changes specificity AND fails to match the other consumers' elements.
+
+   A non-scoped colocated partial imported by AnimationControls.vue is the
+   correct home: plain class selectors, NO `[data-v-*]` — so they render
+   IDENTICALLY to the global-utils version (isomorphic; no specificity change),
+   while the rules now live WITH the component that owns the tab host. The
+   partial loads whenever AnimationControls mounts (every app that shows tabs).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tab trigger variants ── */
+.tab-trigger-base {
+    flex-shrink: 0;
+    background: transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: var(--type-body, 1rem);
+    line-height: 1.75rem;
+    /* T.D3 (OD-6 / T-TY2) — the K.W2 display bind dies: filing tabs are
+       CONTROLS, so they ride the inherited Jakarta body register (body rung,
+       medium; activation steps to 600 below — a REAL Jakarta weight now, not a
+       synthesized serif smear). */
+    font-weight: 500;
+    /* J.W7b STY-6 — the over-broad `transition: all` narrowed to the three
+       properties the trigger states actually change (color on activation,
+       background on the pill hover/active, font-weight on activation). `all`
+       silently animated EVERY future property change (layout included). */
+    transition:
+        color var(--duration-fast) var(--ease-standard),
+        background var(--duration-fast) var(--ease-standard),
+        font-weight var(--duration-fast) var(--ease-standard);
+}
+.tab-trigger-base[data-state="inactive"] {
+    color: var(--muted-foreground);
+}
+.tab-trigger-base[data-state="inactive"]:hover {
+    color: var(--foreground);
+}
+.tab-trigger-base[data-state="active"] {
+    color: var(--foreground);
+    font-weight: 600;
+}
+
+.tab-trigger-pill {
+    border-radius: var(--radius-lg);
+}
+.tab-trigger-pill[data-state="inactive"]:hover {
+    background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+.tab-trigger-pill[data-state="active"] {
+    background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.tab-trigger-underline {
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+}
+.tab-trigger-underline[data-state="active"] {
+    border-bottom-color: var(--foreground);
+}
+
+/* ── Tab panel slide-in on switch ──
+   Consumes the demo-owned `@keyframes enter` (design-idioms.css, D.W2.S1) —
+   no longer the tw-animate-css internal name. Targets reka-ui's generated
+   tab-panel DOM. */
+[data-state="active"][role="tabpanel"] {
+    animation: enter var(--duration-fast) var(--ease-out);
+    --tw-enter-opacity: 0;
+    --tw-enter-translate-x: 0.5rem;
+}

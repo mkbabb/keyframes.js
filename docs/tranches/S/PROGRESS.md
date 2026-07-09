@@ -1,0 +1,788 @@
+# Tranche S — PROGRESS
+
+**Branch:** `tranche-s-impl` (from `tranche-s-dev` @ c6eef78) · **Phase:** **IMPL DRIVE — OPEN**
+(owner-authorized 2026-07-03: "Begin and continue the current tranche … complete the plan IN
+TOTALITY") · **Opened:** 2026-07-02 (dev) · **Drive opened:** 2026-07-03
+
+The honesty-then-altitude tranche: make the repo's own instruments tell the truth again (master CI
+red on every push since K; the deploy-of-record dead; the authoritative library map documenting a
+tree that no longer exists), then — on a truthful substrate — the deep structural work R only
+top-partitioned and the mid-2026 platform uplift that compiles back to zero-runtime CSS (SPEC §1).
+(The chartered scene-stage resurrection — DM-24 REVIVED — was built, converged 100/100 at pass 3,
+live-reviewed, and **SHELVED by owner ruling 2026-07-03**; see `waves/S.E.md` and fold row 17.) Source of truth for the development pass:
+`audit/pass1/SPEC-v3.md` (converged: 11/11 critics, 95/95 blocking edits absorbed, 0 disputed; both
+Pass-2 probes executed and folded). The per-band wave docs under `waves/` (one file per band) + this
+board + THE ledger below are what the impl drive executes from.
+
+**The ONE external consume-edge, named (SPEC §1/T12 — re-revised at the 2026-07-03 S.E shelf; no
+others without an owner ruling):** S.H4 (owner-controlled parse-that 1.0.0 publish-then-re-pin;
+gates born-SPECIFIED). The former glass-ui consume-edge left the plan with the S.E shelf — fold
+rows 11/51/52/53/55 are owner-domain HANDOFFs (rows 51/52 render `HANDOFF — external — row N` in
+the S.Z3 FINAL per C-21). S.C3b is explicitly forbidden from external gating.
+
+## The wave board
+
+Every wave is DEV-AUTHORED with a falsifiable born-RED gate (or born-SPECIFIED for the
+publish-coupled external edge — the two S.H4 oracles — SPEC §3 preamble/T4) and is **PENDING-IMPL**: nothing runs until the
+owner authorizes the impl drive. A wave is CLOSED only when its gate is GREEN re-run on the merged
+tree (T4), and S.Z2 re-executes every closure oracle at close. Mode (REWRITE/REFINE) per C-14 is
+stated in each wave doc. No gate carries a raw absolute frame/ms threshold as a CI closure (C-10)
+or a numeric line count as its GREEN criterion (SPEC §2.1-5).
+
+| Band | Wave | Title | Phase | Gate (the falsifiable oracle) | Depends-on | Status |
+|---|---|---|---|---|---|---|
+| A | **S.A0** | CI-GREEN by cause, one convergent pass — **THE KEYSTONE** (fix-by-cause sweep, p12-recast; owns the `.morph-ghost--from` line, PIN-LEDGER re-author, LoAF exit-code decouple, the shared value.js-subpath importmap harness fix ×2, the `demo-usability` stale-gate re-point, `cold-entry` + DM-14 behavioral fixes, the full 159-member non-fail-fast pass) (SPEC §3 S.A0) | DEV-AUTHORED | Cause-shaped: each blocking red discharged by a named cause verified against a locally-reproduced signature; CI failing steps ⊆ the enumerated born-RED backlog (`drag-gesture`→S.G3 · `easing-sidebar-minimal`→S.G2 · `scene-perf-budget` A2→S.G2 · `icon-paint-live`→S.G2 w/ glass-ui-home check); any red outside the backlog REDs; masking (threshold-loosen / timeout-widen / continue-on-error / observe-reclassification) FORBIDDEN — a discharge of that shape REDs; full green re-asserted at S.Z3 | none — first | **CLOSED** (T4 exits in session log; CI failing ⊆ backlog+named-chronics; full green re-asserted at S.Z3) |
+| A | S.A1 | Chronic ledger R→S + terminal-ization with substance (this file's ledger becomes the parse substrate) (SPEC §3 S.A1) | DEV-AUTHORED | Re-shaped `proof:chronic-closure` + planted-malformed-row non-vacuity proof; REDs any `*-TERMINATED` row not citing a deterministic re-shaped gate or ratified-KILL row; REDs deferral verbs without a paired re-shape/KILL row (T3 extended to the disposition column, x2-#8); every disposition re-derived from a locally-reproduced signature (macOS reproduction IS the discriminator — the Linux-container/act apparatus DROPPED) | S.A0 | **DONE — gate born-RED by design to S.Z2** (substrate re-pointed R→S; substance clauses A+B + sacred parse shape non-vacuity-proven by plants; 4 laundering dispositions reworded; EXCLUDED-with-rationale in ci-coverage until the S.Z2 RE-EXECUTION re-wire) |
+| A | S.A2 | The demo-gate system: correctness/observe split, browser-harness net-deletion (ONE shared chromium + one served dist across the ~50-launch surface), four disposition buckets (genuine→FOLD by cause · absolute-threshold→relative budget · binary-absent→install-or-observe · stale-gate→re-point the parser); de-magic `KF_LOAF_COUNT`; `proof:settle-is-predicate` widened to ban numeric `waitForTimeout` (SPEC §3 S.A2) | DEV-AUTHORED | demo-correctness job green on the Linux runner with zero continue-on-error masking, modulo S.A0's enumerated backlog; hard clause (x2-#2): the split may NOT green a red whose signature reproduces off-runner | S.A0 | **CLOSED** (T4: settle-widen plant 1→0; ci-coverage clause-8 no-mask plant 1→0; roster driver proven live — ONE chromium + ONE dist snapshot + heal-after-each, report-all in ONE step, zero step-level continue-on-error; DM-12 split glass-ui-HANDOFF + relative budget; visual-lock adjudicated observe-only-in-CI, baselines NOT overwritten; CI leg adjudicates on push) |
+| A | S.A3 | Deploy-of-record revived (`workflow_run` on green demo-correctness; manual dispatch demoted to documented break-glass; timing rides the keystone — fires post-backlog, expected + recorded) (SPEC §3 S.A3) | DEV-AUTHORED | One auto-path deploy run `success` with `proof:deploy-roundtrip` live-leg green (DM-20's live-byte round-trip observed on the auto path) | S.A2 | PENDING-IMPL |
+| A | S.A4 | Gate-roster diet + the ~51-gate FROZEN migration, with the 5-artifact lockstep co-edit (package.json direct `&&` chains · ci-coverage EXCLUDED + clause-0b three-tier union `:238-239` · gate-is-runtime retarget `:82`/`:108` + membership-count floor · run-all.mjs:42 · gate-taxonomy.md rows) + the symmetric mis-tier clause; C-6 zombie-gate retirement (re-corrected at the S.E shelf: proof:scene-switcher-mobile retired as a ledgered KILL, ASSERTION 3 stays whole, no stage rebirth); morph/emerging-css triple merges; `BORNRED_TRIPWIRES` retarget; regression-guard band header; 190→~138→~120 (SPEC §3 S.A4) | DEV-AUTHORED | `proof:ci-coverage` + reformed `proof:gate-is-runtime` green over the new manifest; a planted mis-tiered gate REDs **in both directions** (an LC member must NOT carry browser-harness anchors); zero gates orphaned; FROZEN discharge machine-distinguishable — successor-mapping ci-coverage row (migration) or ledgered KILL with re-run witness; free-prose "deletion-with-cause" BANNED (x2-#7) | S.A0; BLOCKS the FROZEN reds of S.D3/S.G being declarable | **CLOSED** (T4: 7 born-RED witnesses A–D + FROZEN-A/B/C all red→green; the symmetric clause took a REAL bite — kf-differential LC→hygiene; S6 constellation-merge DEFERRED with rationale — peer-satisfied by-name blast radius; tiers landed LC 38 · DC 23 · hygiene 118; keys 192→188, FROZEN 51 declared+mechanism-built, fold at G1/D3) |
+| A | S.A5 | Doc-authority restoration, gate-first (hot-fix the actively wrong lines: animate listed live; ScrollTimeline→KeyframesScrollTimeline; "seven-zone"→true count; waapi/ registered; parse-that row struck); full regen deferred to S.B8 (C-8) (SPEC §3 S.A5) | DEV-AUTHORED | Born-RED `proof:claude-paths-live` — every backtick path/symbol in root + src/animation + demo CLAUDE.md resolves on disk / in the built surface; HEAVY export list ⊆ AnimationEngine keys | S.A0 | **DONE — gate born-RED held to S.B8 per C-8** (root+demo CLAUDE.md clauses 0 findings after hot-fix; the 21 src/animation/CLAUDE.md stale tree nodes = the named S.B8 backlog; ci-coverage EXCLUDED entry per the tripwire precedent; bonus same-class fix: no-flat-siblings ZONE_DIRS was silently missing waapi/) |
+| B | S.B1 | The constants seam: `constants/types.ts` (LIGHT-pure) + `constants/defaults.ts` + back-compat barrel; the 10 mandatory LIGHT repoints (p03 — "~55 consumers" was ceremony overcount) (SPEC §3 S.B1) | DEV-AUTHORED | `proof:boundary` + a FILE-level clause: any non-`import type` import line in `constants/types.ts` REDs; zero light-zone module imports the bare barrel | S.A0 | **CLOSED** (T4: boundary 1→0 incl. clause-5/6 plants; 11th light importer load-engine.ts repointed — strengthen, not weaken) |
+| B | S.B2 | engine/ sub-zone (`engine/css/` per C-1, metadata.ts rename) + PlaybackState single-STORAGE (C-15: 8 accessor delegates over a `_playback` backing store; class GROWS 442→455L) + the animation.ts(499)/playback.ts(498) ceiling carves pulled FORWARD from B5; the 10-site/9-script gate co-edit enumerated (p01); element-resolve.ts RULED → `resolve/`; `public.ts` hoisted; vestigial `transform()` deleted; `proof:engine-seam-split` KILLED (C-11); KeyframesAnimation stays at engine/animation.ts (a19) (SPEC §3 S.B2) | DEV-AUTHORED | `proof:engine` (recursive walk) + the honest FSM clause — "no FSM transition field is DECLARED on the class body (accessor delegates only)" (planted class-body field → RED); `proof:decomposition` green with headroom; **`proof:all` green** (not the Q1 subset) | S.B1 | **CLOSED** (T4: FSM single-STORAGE plant 1→0; recursive engine scan; carves animation 486L·playback 487L — a19-floor honest, ≤460 stays an observed tripwire; 2 extra-table T7 co-edits caught by the full 38-tier) |
+| B | S.B3 | compile/ sub-zone: `compile/backward/` + re-export-ceremony kill (C-2) + `adapter.ts` re-home (C-9) + the color-ramp hoist (a18 F4, ~15× fewer samples) + **EN-a + EN-b (the two P2-2 library-correctness fixes, homed here per C-25)**; `declaredKeyframeBodyFor` deletion REVERSED (row 58); FrameCompiler NOT split (a18 F12); T7 fixture co-edits (compile-replay/compile-deterministic) in the same commit (SPEC §3 S.B3) | DEV-AUTHORED | Born-RED clauses: compile/ root holds ONLY the forward set; no re-export-only bridge module anywhere in src/animation; no cross-zone deep-import; + the EN-a browser-parse clause + the EN-b mixed-artifact clause (see the EN-a/EN-b rows) | S.B1; **BLOCKS S.F3/EN-c** (C-25 DAG edge) | **CLOSED** (T4: compile-backward-leg plants 4/4 + live witness; EN-a/EN-b oracle red→green vs reverted source — the pre-fix browser-dead signature verbatim; orchestrator merge-carve: format.ts 659→465 at the easing-serialize/densify seams) |
+| B | **EN-a** | serializeEasing CSS-twin fix (in S.B3): `format.ts:43-58` emits registry names (`ease-out-cubic`) that are not CSS `<easing-function>`s — the SHIPPED `@keyframes` artifact is browser-dead for most registry easings TODAY; fix = registry name → CSS twin (Penner closed-form `cubic-bezier()`s; universal `linear()` densify fallback; throw preserved for twinless closures; ~3 files) (SPEC §3 S.B3/EN-a; P2-2 F6) | DEV-AUTHORED | Born-RED **browser-parse** clause: a browser-actuated parse of an emitted `easeOutCubic` artifact — computed `animation-name !== none` (the kf-parser round-trip structurally cannot catch it; browser-harness by necessity) | within S.B3 | **CLOSED** (browser-parse oracle: pre-fix animation-name none; post-fix a0 + linear() twin — n=32 universal densify, throw preserved) |
+| B | **EN-b** | Mixed-track densify body-drop fix (in S.B3): `compileChild` swaps the WHOLE block for the densified one (`backward.ts:289-293`) while `densifyColorBlock` builds from color declarations only — mixed tracks compile eligible-with-zero-refusals to a color-only `@keyframes`; fix = thread the densify through `keyframesBlock`'s `bodyByStop` per `format.ts:212-222`'s own design (~3–4 files) (SPEC §3 S.B3/EN-b; P2-2 F5) | DEV-AUTHORED | Born-RED clause: a mixed `opacity+color` compile artifact contains BOTH properties | within S.B3 | **CLOSED** (mixed opacity+transform+color artifact carries ALL properties; percentage-keyed merge — the spec bodyByStop intent realized at the correct key) |
+| B | S.B4 | Barrel purity + ownership inversion + zone normalization: resolve/ thin barrel + core + spring-css (resolveNode seam untouched); Timeline family out of the barrel; dead re-exports + scroll relay deleted; internal/index.ts deleted + ZONE_DIRS ruling (C-5); ONE barrel policy gated; 3 colliding basenames renamed; `.group()` excised → `AnimationGroup.of()` (one caller migrated); group/types.ts leaf; svg/handle.ts abstract base; transport.ts PRM DRY (SPEC §3 S.B4) | DEV-AUTHORED | no-flat-siblings with derived FAMILY + waapi/internal ruling; barrel-policy clause; depcruise green with group→engine one-directional (plant a re-added `.group()` → RED) | S.B2, S.B3 | **CLOSED** (T4: barrel-policy plant 1→0; depcruise .group() plant exit-2→0 — group→engine ONE-directional; service locator DELETED; AnimationGroup.of() + the one caller migrated; 3 basename collisions renamed; svg/handle.ts base closes the finished asymmetry by construction) |
+| B | S.B5 | Near-ceiling pre-carve remainder (group/group 496 → group/lifecycle.ts; frame-compiler 499; spring/progress 499; sequence/sequence 499) + presets/classic.ts (728) → classic-data.ts + factory; **DELETE the last LIBRARY_CEILING_OVERRIDE entry and, emptied, the Map itself** — R.W0's keystone completed (SPEC §3 S.B5) | DEV-AUTHORED | `proof:decomposition` with an EMPTY override map and max file ≤ ~460L (a headroom tripwire the carves must clear, not a target to park under); no-re-export-bridge holds | S.B2, S.B3, S.B4 | **CLOSED** (T4: override-entry plant 1→0 + 521L-probe plant 1→0 — the Map RETIRED empty-by-construction, R.W0 keystone COMPLETE; 4 cohesion carves + classic 728→304+458 data split; progress.ts 492L = the honest solver floor, recorded) |
+| B | S.B6 | Type surface + the `./engine` drift gate: 11 `= any` → `= Vars` + SVG generics unified (version-ruling input i); `@internal` + API-Extractor trimmed roll-up (126 leaked privates — input ii); `proof:dts-rollups-agree` (NEW; authored + frozen at S.B6) frozen NOW; dts-plugin soft-fails → hard; `FrameUnderConstruction<V>`; PropertyDescriptor rename; the loader collapse DECOUPLED → owner option (§6.3) (SPEC §3 S.B6) | DEV-AUTHORED | `proof:engine-subpath-mirror` in the TYPE-diff form — runtime keys ⊆ the `AnimationEngine` d.ts TYPE key list (born-RED plant: add a runtime key to engine/public without the interface field → RED); `proof:no-any-default` over the built d.ts | S.B2 | **CLOSED** (T4: no-any-default 36→0; TYPE-diff mirror plant 1→0 — authored PAIRED-addition-safe for F1/F3; dts-rollups-agree FROZEN and caught a REAL inherited @internal drift on first freeze; dts-plugin hard-fail witnessed; loader collapse NOT shipped per ruling-2 default; PropertyDescriptor → the KF-7 value.js dispatch) |
+| B | S.B7 | Test + bench perimeter: test/<zone>/ regroup ONE diff with the sub-zoning; tsconfig.test.json in check roster; bench under type-check + the 9 stale `Animation<...>` sites; composable tests for the 5 uncovered scenes; vi.spyOn(private) footguns removed; **KfPillTabs.test.ts + the interaction-axis fixes** (arrow-moves-focus, keyup actuation, press-origin guard — a12 F1/F2 HIGH + TransportDock auto-repeat; row 71; a panel primitive per se-B6) (SPEC §3 S.B7) | DEV-AUTHORED | `npm run check` covers test/ + bench/ (plant a private-access in a test → RED); the 5 scenes each referenced from test/; KfPillTabs.test.ts green | S.B2–B5 (paths final) | **CLOSED** (T4: check now covers test/+bench — private-reach plant REDs at tsc; 106 suites zoned in ONE diff with the count clause honestly recursive; 5 scene composable tests; KfPillTabs arrow-focus + TransportDock keyup/press-origin fixes with the T8 suites; the press-origin guard forced the pressPlayToggle honest-press re-arm at merge) |
+| B | S.B8 | The library map, regenerated once: full src/animation/CLAUDE.md rewrite against the post-B tree; root CLAUDE.md zone roster + HEAVY list regenerated mechanically from AnimationEngine keys; two-'in' policy stated once (SPEC §3 S.B8) | DEV-AUTHORED | `proof:claude-paths-live` green (was born-RED at S.A5) | S.B1–B7 complete | PENDING-IMPL |
+| C | S.C1 | The animate.ts zombie cluster DELETED (file + both tests + `proof:animate-orchestration` + every doc mention) + MIGRATION-5.1.0.md backfill + the C-18 generalized changelog gate (git-show previous published tag's published-surface.md; RED on removed row without a MIGRATION entry) + the hardened orphan gate (SPEC §3 S.C1) | DEV-AUTHORED | Born-RED `proof:no-orphan-module` — reachability walker with dynamic `import()` string-specifier edges + pinned entry roots {index.ts, load-engine.ts, engine/index.ts, engine/public.ts} (animate.ts REDs it today); zero front-door `animate(` references outside the `Element.animate()`/CHANGELOG allowlist; T7: re-runs green on the post-B tree or is root-set-agnostic | S.A0 | **CLOSED** (T4: no-orphan-module 1→0 derived-roots; changelog gate GENERALIZED → proof:changelog, prev-tag guard v5.0.0; published-surface count co-edit 97→95) |
+| C | S.C2 | no-silent-fallback with teeth, scope-honest: demo clauses enforced; Clause 1 widened src-wide with the machine-checked `KEEP:` allowlist idiom; the 6 demo-composable `as any` sites censused; useTimingFunctionEditor.ts:196 fixed (widen the return type) (SPEC §3 S.C2) | DEV-AUTHORED | The gate REDs on a planted demo bare-catch; zero UNLABELLED `as any` in demo composables (labelled survivors pass) | S.A0 | **CLOSED** (T4: plants RED clauses 1a+4; live census 2 as-any FIXED not labelled — stronger than spec; 13 KEEP: survivors recorded) |
+| C | S.C3a | Dead deps + stale narration (gated/discretionary split stated): SPRING_SMOOTH + void hack deleted; the 8 zero-importer shadcn devDeps removed; dead-identifier grep (specific identifiers, NOT the phrase "scene-switcher"); proof-script narration corpus; discretionary best-effort items stated ungated (SPEC §3 S.C3a) | DEV-AUTHORED | Born-RED `proof:no-dead-dependency` (allowlist form keyed off the 8 named packages; a generalized form must match only real import/require specifiers + scan config/scripts/plugin sites); the dead-identifier clause; the shadcn census clause (`cn(`/`class-variance-authority`/`@radix-*` grep empty post-purge — x1-#4) | S.A0 | **CLOSED** (T4: no-dead-dependency 1→0 + 4 falsifier plants + 2 false-RED-immunity checks; 8 devDeps purged on a stash-round-trip census; SPRING_SMOOTH+void excised; narration fixed) |
+| C | S.C3b | The menubar migration (its own priced sub-item): KeyframesEditor menubar → glass-ui **dropdown-menu** (present in 4.0.x — NO external gate; C-19) with the a24-F6 relocate-in-place fallback; ui/menubar/ (16 files) + utils.ts(`cn`) deleted; external gating FORBIDDEN (T12) (SPEC §3 S.C3b) | DEV-AUTHORED | The C3a shadcn census clause REDs while ui/menubar exists, green after; KeyframesEditor menu interactions covered by an interaction-axis test (T8) | S.A0 (independent of D3) | **CLOSED** (T4: census clause FLIPPED non-gating→gating, restored-island witness 1→0 + regrowth plant; the a24-F6 relocate-in-place path taken WITH C-19 documentation — the surface was a 4-affordance TOOLBAR, zero menu content; dropdown would bury authoring verbs + break the brush mount-binding; useToolbarKeyboard roving-tabindex + 4-test T8 suite) |
+| C | S.C4 | Dependency posture: dependency-cruiser 17→18 (re-verify `[]` baseline), fast-check 3→4, @types/node to the engines floor; the value.js-2.0.0 consume-edge (S2 = the ruled 2.0.0 consume-edge; late slice, after the S.H4→2.0.x spine — owner ruling 5, RATIFIED 2026-07-03); glass-ui pin held ~4.0.x per C-12 (SPEC §3 S.C4) | DEV-AUTHORED | `proof:pin-ledger-current` green post-bumps; lint baseline still `[]`; the S2 clauses (grep-zero normalizeParam/NormalizedParam/VJS_PARAM_BUG_MAX in src/; check:lib on the direct field reads; the KF-1 vector through `proof:emerging-css-resolve`; PIN-LEDGER co-edited to value.js 2.0.x) | S.A0 (S1/S3); the external spine S.H4→value.js 2.0.x (S2) | **S1+S3 DONE** (depcruise 17→18 verified via isolated binary pre-bump, baseline []; fast-check 3→4 property suites green; @types/node → engines floor; glass-ui ~4.0.x tilde HELD; lock-only in the worktree, real install at merge — zero shared-tree writes during the fan-out). **S2 = the value.js 2.0.0 consume-edge, OPEN — awaits the 2.0.x follow-on (the spine watch)** |
+| D | S.D1 | app/ partition (p04 — mechanical, ~38 files/~60 lines): `scene/`·`transition/`·`runtime/`; the five cross-scene recipes STAY in app/runtime/ (sd-#2); ONLY cubeTransformStore.ts evicted → scenes/cube/; the scenes.ts `../scenes/`→`../../scenes/` depth bump (16 lines); same-commit atomicity with the 7 proof scripts + demo-driver.mjs:83; @mbabb dropdown → dock/MbabbMenu.vue; useSceneMachineApp/Router rename (SPEC §3 S.D1) | DEV-AUTHORED | Born-RED `proof:app-is-shell` — (i) no app/ file imported by exactly one non-app area (born-RED today via cubeTransformStore.ts); (ii) no moved file's relative import escapes into a stale depth; (iii) shell-ness structural — App.vue's line count is an observed tripwire, NOT a GREEN criterion | S.A0 (runs PARALLEL to A4 — D1 reds no FROZEN appearance gate, p04 F4) | **CLOSED** (T4: app-is-shell 1→0; 9 path anchors + 4 unenumerated App.vue content-anchor gates co-edited red→green; App.vue 496→339 observed; browser sample green) |
+| D | S.D2 | @/ partition: the state hoist (stores → demo/@/state/ as first-class peer, ~46 sites/~ZERO gate reds) + the transport peer move (1 real external import edge / HIGH gate: ~7–10 shell-path scope-set gates repointed in the SAME commit) + single-consumer colocations + the ControlsPaneWrapper scoped-CSS/template split (import-neutral, NOT logic decomposition) + KfPillTabs promotion + cubeKeys.ts 8/8 parity + the reset composer; walker-root arming-audit (`proof:decomposition` roots at animation-controls/, `:79`); `@state` bare + wildcard tsconfig pair (P2-1 — probe-VALIDATED, ~3–4 days, LOW risk) (SPEC §3 S.D2) | DEV-AUTHORED | Born-RED `proof:shared-has-n-consumers` — any @/ module with <2 consuming areas REDs (C-23 per-scene counting); reference-count clause added to scene-colocated (edit order A4→D2→D3); verification run = `check` AND `gh-pages` AND vitest after build:lib (tsc does NOT type-check .vue); `proof:stage-visible` re-run green on the post-carve tree (C-24) | S.D1, S.G1 (edge CONFIRMED load-bearing, not relaxable) | **CLOSED** (T4: shared-has-n-consumers born-RED(8)→0 + plant; stores→@state hoist 22+7 imports; 3 peers carved; ~30 gate repoints SAME-commit; ControlsPaneWrapper 497→200L sourced-CSS split with G1 tokens verbatim; stage-visible re-run 0 post-carve per C-24) |
+| D | S.D3 | Playground → scenes/compose/ (C-4, p06): the ninth scene registered (SceneExposedApi via `tabsContent`; `useComposeDemo.ts` per C-17; superKey kept); asset-manager + EditableLabel relocated; demo/playground/ deleted (app, vite mode, outDir landmine, 9.6MB debris, dev:playground); the SIX-item touch set (SCENE_GATE_META.compose FIRST — else all 82 demo-driving gates throw; DFA triple; SCENE_DIRS+=compose; published-surface minus "playground"; S9 egg re-point; "8 scenes" prose sweep); Image/SVG asset-kind decision; foundry fixes as the scene's W1 (SPEC §3 S.D3) | DEV-AUTHORED | Born-RED `proof:compose-scene` — the scene mounts in the SPA, the standalone entry is GONE (repo grep + vite modes), the ignition moment drives a real DrawSVG; authored at D3 but **CLOSES after S.G** (compose auto-enrolls in the occlusion/a11y/font/stage-visible runtime fleet — sd-#4) | S.D2, S.A4 | **CLOSED at S.G2 — the sd-#4 fleet condition satisfied (G1+G2 landed; compose rides the runtime fleet green)** (T4: compose-scene born-RED→0 stable 3/3 — mount + standalone-gone + ignition-drives-DrawSVG; the SIX-item touch set landed SCENE_GATE_META-first; playground DELETED T6; the editor-shell two-gate tension resolved via stale-guarded allowlist, documented; Image/SVG = MAKE-REAL preserving the a11y lock) |
+| D | S.D4 | Demo taxonomy + docs truth: C-17 fleet-wide `use<Name>Demo` renames; demo/CLAUDE.md @ section regenerated (3 phantom files killed) + doc-drift clause; stale gate-comment/baseline sweep; `@/` kept (RULED — alias churn buys nothing; documented) (SPEC §3 S.D4) | DEV-AUTHORED | `proof:claude-paths-live` extended over demo/CLAUDE.md | S.D1–D3 | **CLOSED** (T4: 3 stragglers renamed atomically with gates+tests; demo/CLAUDE.md regenerated COMPREHENSIVELY — an 18-file quiet drift class found beyond the named phantoms; plant-proven doc-drift clause; @/ KEEP ruled + documented) |
+| E | **S.E** | Scene-stage resurrection — **SHELVED (owner ruling 2026-07-03)**: "Looks awful. Scrap the scene selector for now, shelf it, and then remove those plans from the current wave set." Built + converged 100/100 at pass 3, live-reviewed, ruled scrapped-for-now. Shelf: branch `scene-stage-proto-s` @ 63ccab0 + `audit/pass3/`; record: `waves/S.E.md` | SHELVED | — no waves exist; no gate is authored or owed; nothing may depend on this band (re-opening requires a new owner ruling) | — | SHELVED |
+| F | S.F1 | View Transitions (flagship; p09) — four sub-waves: **VT-a** LIGHT `orchestration/view-transition/` dispatch (`ViewTransitionHandle`, flipShared fallback, ONE `withReducedMotion` gate); **VT-b** the `backward.ts:339` selector-factory carve (behavior-neutral); **VT-c** `compile/view-transition.ts` — name-keyed `VTRoleSpec` input, THREE emission surfaces (old/new full `@keyframes`; group pseudo **timing-only, mandatory-by-default** — never `animation-name`), class-cohort branch, cross-doc preamble opt-in, PRM block, the FOUR VT refusals (`vt-scroll-grammar`, `vt-element-scoped-computed`, `vt-snapshot-inapplicable`, `vt-name-collision`) atop the inherited set, surface wiring (loadAnimationEngine + `./engine` mirror + LIGHT barrel + published-surface co-edits); **VT-d** demo dogfood + README (SPEC §3 S.F1) | DEV-AUTHORED | Born-RED `proof:vt-roundtrip` — browser-actuating, device-INDEPENDENT: structural `getAnimations()` assertions (names/durations/`linear()` on the pseudos via `effect.pseudoElement`; group carries the emitted duration) + ONE settled-state rect-tolerance clause; NO per-frame pixel/ms thresholds (p09 script = oracle skeleton) | S.B2/B3, S.A0 (~12–14 files, measured) | **CLOSED** (T4: vt-roundtrip born-RED witnessed — group-disabled ships the UA 250ms/ease incoherence — → 0; the THREE surfaces live incl. the MANDATORY timing-only group pseudo; VT-b byte-neutral — compile-replay/deterministic untouched; PAIRED mirror additions; the demo scene transition now dogfoods kf viewTransition) |
+| F | S.F2 | SplitText: `orchestration/split-text/` — `splitText(el, {by, a11y})` fragment cohort + ready stagger; a11y-first; `by:"line"` = **measure-or-refuse** (getClientRects + re-measure on resize; typed REFUSE under container-query/resize instability) (SPEC §3 S.F2) | DEV-AUTHORED | Browser-actuated **computed-accessible-name equality** (container `aria-label` + `aria-hidden` fragments → computed name equals the pre-split string via the a11y tree — T8); fragments animate under the engine; LIGHT boundary green | S.B1 | **CLOSED** (T4: split-a11y born-RED (a11y-disabled: name-equality fails) → 0 via CDP AX-tree — role=img consolidation, the load-bearing detail the spec under-specified; LIGHT boundary auto-enrolled 0; 10 jsdom tests + the browser oracle pair) |
+| F | **S.F3 / EN-c** | Modern entry/exit compilation, PROMOTED at Pass-2 (C-22): `compile/entry.ts` (~250–300L) — a **declared-endpoint projection over the format.ts substrate** (`declaredKeyframeBodyFor` + twin-fixed `serializeEasing`), NOT a compileToCSS post-transform; the three-rule grammar (base/closed = exit last frame + `display:none` + EXIT list; open = enter last frame + open display + ENTRY list; `@starting-style` = enter FIRST frame); `display`/`overlay <dur> allow-discrete` on BOTH lists (`overlay` emits unconditionally); `linear()` springs verbatim; **oklab() endpoint canonicalization** (perceptual-oklab INVERTS to a feature); API = `compileToEntry(spec: Record<selector, EntryRoleSpec>, opts)` → `CompiledEntryCSS` with `EntryRefusalReason` = 3 inherited (`custom-renderer`, `weighted-blend`, `computed-unit-drift`) + 6 entry-specific (`entry-multi-keyframe`, `entry-iteration`, `entry-composition`, `entry-scroll-grammar`, `entry-color-space`, `entry-easing-twin` w/ `linear()` pre-refusal remedy); surface wiring load-engine + engine/public + published-surface + README; born-open-runs-entry documented (escape hatch named); degrade-honest without `transition-behavior` (SPEC §3 S.F3) | DEV-AUTHORED | Born-RED `proof:entry-roundtrip` (browser-actuating; P2-2 `live.mjs` = oracle skeleton): S1 entry transitions with emitted duration/`linear()` + scrub-0 equals the `@starting-style` endpoint; S2/S4 control clauses (no `@starting-style` → zero transitions; no allow-discrete → instant vanish); S3 mid-exit computed `display` HELD `block`, post-finish `none`; S7 top-layer `overlay` hold. Scrub-based structural assertions only — zero frame/ms races; entry `display` produces NO CSSTransition (assertions target the EXIT hold only) | **S.B3 (carrying EN-a + EN-b — EN-c is unshippable on today's serializeEasing)** | **CLOSED** (T4: entry-roundtrip born-RED witnessed — @starting-style dropped fails S1 — → 0; S1–S7 scrub-based; declared-endpoint projection over format.ts; oklab canonicalization via colorUnitToOklabCSS; 3+6 refusal taxonomy) |
+| F | **EN-d** | The demo dialog/popover entry-exit pane riding the compiled artifact (the S.F6 narrative twin) + README claims (~2–3 files) (SPEC §3 S.F3/EN-d) | DEV-AUTHORED | `proof:readme-runs` covers the claims; the pane rides the real compiled artifact | EN-c | **CLOSED** (the spring @starting-style card surfaces the REAL compileToEntry artifact via useCompiledEntry; readme-runs 19 snippets green) |
+| F | S.F4 | Drive animation-trigger: scroll/scene.ts realizes the already-parsed trigger grammar (idle→active→done; backward/repeat) — native where Chrome 145+ ships, kf ScrollScene everywhere else (SPEC §3 S.F4) | DEV-AUTHORED | A trigger round-trips grammar→behavior in the JS driver (browser-actuated) | S.B4 (the wave that freezes scroll/scene.ts's takeover surface) | **CLOSED** (T4: trigger-roundtrip born-RED — stubbed driver observes [idle,idle,idle] — → 0; once-LATCH/repeat-RESET/alternate-FLIP/state-FOLLOWS all distinguishable; native via CSS.supports feature-detect; the trigger layer colocated scroll/trigger.ts 317L, B4 surface untouched) |
+| F | S.F5a | Zero-alloc completion + budgeted perf floors: boxedKeys precomputed as a Set on SoALayerPlan at `buildSoAPlans` (kills the per-frame `new Set(only)` at compositor.ts:182); proof:zero-alloc extended to the mixed-leaf shape; 6 colorTail arms + compositor replace-arm → budgeted device-independent ratios (C-10); `reseatToSpring` vs `decayRest` benched — wire the winner or record the measured reason (C-13) (SPEC §3 S.F5a) | DEV-AUTHORED | `proof:zero-alloc` mixed-leaf clause born-RED today; taxonomy budgeted floors hold | S.B2/B4 | **CLOSED** (T4: zero-alloc mixed-leaf clause + boxedKeys Set hoist landed via the wall-salvage; colorTail+compositor arms budgeted C-10; the C-13 bench REAL — decayRest 357,338hz vs reseatToSpring 16,033hz ≈22.3× — verdict RETAIN-both, recorded in scripts/reseat-vs-decay-decision.json + the seam comment) |
+| F | S.F5b | Bench coverage: bench/resolve.bench.ts (887L zone, zero coverage) + the static-vs-dynamic cold-import bench (ties to proof:consume-bundle) (SPEC §3 S.F5b) | DEV-AUTHORED | `proof:bench-taxonomy` coverage rows extended — born-RED on the missing rows | S.B2/B4 | **CLOSED** (T4: bench-taxonomy born-RED 9 unclassified → 0; resolve/ zone first coverage 7 arms; the cold-import boundary pair — LIGHT ~26× faster, consume-bundle made runtime-visible) |
+| F | S.F5c | Typed-OM verdict + WAAPI multi-segment densify: Typed-OM pre-booked **default KILL-with-recorded-bench-measurement** (ADOPT only above a pre-stated write-throughput threshold, then as a SEPARATE authored wave — §8-11); the densify ships as an extension of `proof:waapi-adaptive-densify` (SPEC §3 S.F5c) | DEV-AUTHORED | The densify clause born-RED (multi-segment refused today → eligible after); the Typed-OM verdict recorded terminally with its bench artifact | S.B2/B4 | **CLOSED** (T4: multi-segment-eligible clause born-RED → 0 — densify→single linear() with the browser-verified double-ease finding; Typed-OM verdict = KILL-with-measurement recorded terminally per the pre-book) |
+| F | S.F6 | Narrative (near-zero code): the emerging-CSS resolver marketed honestly; dated WebKit-linear() re-check note in eligibility.ts; the light-entry byte-count claim rides `proof:consume-bundle`, NOT readme-runs (sf-#10) (SPEC §3 S.F6) | DEV-AUTHORED | `proof:readme-runs` covers the executable claims; `proof:consume-bundle` carries the byte floor | S.F1/F2/F4 text final | PENDING-IMPL |
+| G | S.G1 | The mobile stage-visibility contract (probe-PROVEN, p10: 12.1%→72%): the three-writer peek cure (host mobile mount-reset in useSheetState; the useControlsLayout.ts:64 auto-open watch DESKTOP-GATED; the two born-open scene pokes DELETED; store default `isControlsPanelOpen: true` STAYS); the one-open-axis mandate as a gate guard clause; mode-declared `--stage-strip`/`--stage-reserve` tokens (subject 52dvh; editor/storyboard 26dvh; per-scene SceneDescriptor = the declared unused escape hatch); the `.controls-pane--open` gate-arming audit (`proof:sheet-reopen-scroll:185` was one) (SPEC §3 S.G1) | DEV-AUTHORED | Born-RED `proof:stage-visible` (replaces the per-pixel occlusion locks; feeds A4's FROZEN migration) — at 375×667 across all 9 scenes: (a) at rest `--sheet-t == 0` ∧ `sheet.top/viewportH ≥ 0.65`; (b) after a handle tap `sheet.top ≥` resolved `--stage-reserve` (the expanded-detent clause); (c) the subject's live rect intersects the band (transform-sampling oracle) | S.A4, S.D1; **precedes S.D2** (C-24) | **CLOSED** (T4: stage-visible born-RED FAIL(15) → PASS(26); 72.0% stage at rest == p10; 3 arming re-arms T7; pointer-vs-click tap lesson recorded) |
+| G | S.G2 | Per-scene W1 batch, per-item born-RED oracles (rubric gate replaced — sg-#6): motion-path traveller scaling (rect ⊂ stage at 375px; real scalePathD + ResizeObserver; hit-halos); square honest controls (Play obeys duration/easing OR the panel collapses); home directional copy + first-visit dock reveal; cube rest-attitude + readout anchor; amiga telemetry relocation + gesture caption + `setPixelRatio(min(dpr,2))` (discharges scene-perf-budget A2); easing sheet cap + un-truncated literal + telemetry-anchor-into-`--stage-reserve` (p10 F7); morph shape-ring picker; sequence scrubber unburied + axis-label collision; spring Race button + peek sheet; compose chrome-red; `easing-sidebar-minimal` + `icon-paint-live` backlog rows discharged (the latter w/ glass-ui-home check); **the Oscillator decision (C-13)**; per-scene sheet-pane scroll-reach sanity (p10 risk c) (SPEC §3 S.G2) | DEV-AUTHORED | Each item's named oracle green via the demo-correctness harness; the FROZEN-set reds discharged per A4's machine-distinguishable migration/KILL rule — never free prose | S.G1 (+ S.D3 for compose items) | **CLOSED** (T4: 5 named oracles red→green — motion-path-scale 21/21 sweep ⊂ stage; square-honest DFA-collapse; the THREE backlog rows DISCHARGED with the honest roster flip (scene-perf-budget A2 anchor T7-followed to useAmigaThree; easing-sidebar-minimal value-input stripped + the curve-editor gate conflict resolved on the record; icon-paint-live demo residue deleted + the typed-VT glass-ui HANDOFF documented); C-13 Oscillator = strip-the-fiction, ledgered public leaf) |
+| G | S.G3 | The affordance layer + touch parity, manifest-gated: one drafting-stamp-proportion gesture legend per scene (fade after first use); touch parity for every dblclick/keyboard-only delight; focus rings on the primary instruments; 44px floors; `drag-gesture` backlog row discharged (userSelect held through the gesture); touch mechanisms pinned to reliable primitives (spring pointer-based 300ms double-tap; easing visible gallery-door button) — NEVER native `dblclick` synthesis (SPEC §3 S.G3) | DEV-AUTHORED | The machine-readable per-scene gesture manifest exists (the census source-of-truth); every entry's on-stage tell + browser-actuated touch path green; a manifest entry without a tell REDs | S.G2 | PENDING-IMPL |
+| G | S.G4 | Ten per-scene easter eggs — **DE-SCOPED to §8 Recorded-future** (x2 prune; the repaired gate shape — actuated trigger, PRM-snapped, dogfoods a named primitive, no "or-documented" escape, after G3 — carried for the successor tranche; the D3 S9 egg re-point still ships) | DEV-AUTHORED | — (no S gate; §8-1 carries the shape) | — | DE-SCOPED → §8 |
+| H | S.H1 | Packrat-epoch arming (p11: 14–18% short-value throughput, ~34% retained heap; above the 5% KILL floor): `PACKRAT_ARMED` latch — enter/exit true no-ops until a `memoize()` is constructed; the type ripple (`packratEnter(): PackratEpoch or null`; null-guarded exit; `resetPackrat()` early-return when unarmed — decided); honest changelog % (never a flat 18%) (SPEC §3 S.H1) | DEV-AUTHORED | The retained-heap born-RED clause ("N non-memoized parses allocate flat") run in a **memoize-free process** (the latch never disarms — isolation documented); **NO throughput-% gate** (probe-confirmed flake trap, §8-13) | none (parallel with H2) | PENDING-IMPL |
+| H | S.H2 | The 1.0.0 legacy cut + the chain() fix (C-16 Option A): span.ts + all 15 `*Span` exports deleted; dist-surface.test.ts flipped; the truly-additive falsy-seed fix + `chainError` retired in the same breaking cut; parse-that/CLAUDE.md refreshed (stale on four counts) (SPEC §3 S.H2) | DEV-AUTHORED | `proof:no-span-surface` born-RED today (the current keep-gate asserts their presence); the chain regression suite red-then-green (`0`/`''`/`false`-seed threads; genuine-error short-circuit; the recorded 0-hit `chainError=true` caller scan) | none (parallel with H1) | PENDING-IMPL |
+| H | S.H3 | Pratt binding-power combinator — **DE-SCOPED to §8 Recorded-future** (sh prune; its design-doc + external-sign-off "gate" violated T1 and would have been a third external edge; NOT counted as a closable born-RED) | DEV-AUTHORED | — (design appendix/seed only) | — | DE-SCOPED → §8 |
+| H | S.H4 | Ledger closure + the cut (**born-SPECIFIED** — fires at the impl drive's publish step; T12's second, owner-controlled external edge): verify DQ-1/DQ-2 landed in 0.13.0; verify fold-row 46 (color2Into) at the re-pin; record the non-goals + the two r6 decisions (r6 #6 no-zone-partition; r6 #8 zero-copy delegated to value.js); WDM/LR keep PROVISIONAL pending the bbnf-lang LR-consumer question; cut **ONE 1.0.0** (H1+H2 payload); kf re-pins exactly once (SPEC §3 S.H4) | DEV-AUTHORED | Born-SPECIFIED: `proof:pin-ledger-current` reflects the new pin; the kf-side consume gate green; the value.js suite green against the re-pinned build | S.H1 + S.H2; → before S.Z | PENDING-IMPL |
+| Z | S.Z1 | The prompt-recap, total, with oracle-resolving teeth: the ask ledger at `docs/tranches/S/PROMPT-RECAP.md` (ask → origin → letter → spirit → S disposition) over the cited precept enumeration (r1 §5's twelve kickoff asks + the 7-clause standing mandate); the three re-verifications bound to concrete oracles (keyframes-vue KILL → `npm view` 404 + repo-grep zero; lint-tier → `[]` baseline + enforcer exists; decomposition-spirit → B5's empty-override + ≤460L + no-bridge exit codes); recap integrity symmetric (re-measures r1's own p12-refuted ADDRESSED-map); cross-repo rows dispositioned via the kf-side CONSUME gate; mid-S asks → `docs/tranches/S/OWNER-ASKS.md` fully-dispositioned; MEMORY = observe-tier, stated (SPEC §3 S.Z1) | DEV-AUTHORED | Born-RED `proof:prompt-recap-s` — (i) REDs any row without a C-20-terminal disposition; (ii) every ADDRESSED row names an oracle that resolves AND matches a green exit in the S.Z3 from-clean closeable-roster run (a cited-but-absent/red oracle REDs); (iii) REDs if any enumerated precept lacks a band mapping; non-vacuity = a planted un-dispositioned row AND a planted red-oracle row each RED | all bands | PENDING-IMPL |
+| Z | S.Z2 | The tranche-development TEMPLATE: docs/tranches/TEMPLATE.md + `proof:tranche-template`, honestly partitioned — directly checked {T2 caps-only-shrink, T3 deferral-verb⇄ledger incl. the S disposition column, T4/T5 exit-codes + clean-checkout re-runs, T10 closeable-roster table + clean SHA}; sibling-asserted {T1→gate-is-runtime, T6→no-orphan-module, T7→ci-coverage + co-edit evidence, T8→the B7 interaction suite, T9→the D2/C3 census artifacts}; the "REDs on any violation" overclaim DELETED (SPEC §3 S.Z2) | DEV-AUTHORED | `proof:tranche-template` over S's own FINAL; **the RE-EXECUTION clause (x2-#4):** re-executes the closure oracle of every wave marked CLOSED (a re-run, not a re-parse) — a FINAL citing a green gate that is red at the close commit REDs; the per-mandate non-vacuity plant table REDs row-by-row | S.Z1 | PENDING-IMPL |
+| Z | S.Z3 | FINAL + version ruling + the keystone re-armed: FINAL over a from-clean **closeable-roster** run (C-21: full roster MINUS owner-ratified external HANDOFF gates, each rendered `HANDOFF — external — row N`, never omitted) with the exact SHA; the version decision = an OWNER RULING with its two inputs surfaced (§6.3); MEMORY updates (specular retired, dock-doubleclick sharpened + E6 contingency, DM-24 REVIVED recorded); docs/precepts/audits/ → §8 (SPEC §3 S.Z3) | DEV-AUTHORED | Born-RED precondition: `gh run list --workflow ci.yml --branch master` shows a **green push run on the FINAL SHA** (the tranche is not closable over a red master — the Q/R mode structurally forbidden); the post-close fallout guard: any src/bench/scripts commit between the FINAL SHA and the version tag REDs (the 6f2493d anti-pattern, mechanized) | S.Z1, S.Z2 | PENDING-IMPL |
+
+### The DAG (SPEC §3, verbatim)
+
+```
+S.A0 ──► S.A1, S.A2, S.A4, S.A5, S.C1, S.C2, S.C3a, S.C3b, S.C4, S.B1, S.D1
+S.A2 ──► S.A3  (auto-deploy fires when demo-correctness is green — post-backlog)
+S.A4 + S.D1 ──► S.G1 ──► S.D2 ──► S.D3 ──► S.G2(compose items)
+S.B1 ──► S.B2 ──► S.B4, S.B6 ;  S.B1 ──► S.B3 ──► S.B4 ──► S.B5 ──► S.B7 ──► S.B8
+        (B2 owns the animation.ts/playback.ts ceiling carves — B2 precedes B5 by construction)
+S.B2/B3 ──► S.F1 ;  S.B3 (carrying EN-a + EN-b) ──► S.F3/EN-c ──► EN-d ;  S.B4 ──► S.F4 ;  S.B2/B4 ──► S.F5a/b/c ;  S.B1 ──► S.F2
+(band S.E SHELVED by owner ruling 2026-07-03 — its edges are removed; see waves/S.E.md)
+S.G1 ──► S.G2 ──► S.G3        (S.G4 → §8)
+S.H1, S.H2 parallel ;  S.H1 + S.H2 ──► S.H4 ──► (1.0.0 publish → kf re-pin) ──► before S.Z
+ALL ──► S.Z1 ──► S.Z2 ──► S.Z3   (Z3 pre-gated on master-green at the FINAL SHA)
+```
+
+Tracks: lib = S.B, S.F; demo = S.D, S.G; gates = S.A; dispatch = S.H; design = S.G;
+close = S.Z. (Band S.E SHELVED — no track membership.) Cross-band constraints: a19's engine↔group constraint (KeyframesAnimation stays at
+engine/animation.ts through B2); A4's FROZEN-set declaration precedes any demo wave that reds a
+*layout/appearance* gate (D3, G — NOT D1, which reds only source-path gates, p04 F4);
+`proof:scene-colocated` canonical edit order A4 → D2 → D3; C-24 (G1 before D2, `proof:stage-visible`
+re-run after the carve).
+
+## Open deferrals
+
+**THE chronic-closure parse substrate (for `proof:chronic-closure`) — the S consolidated
+open-deferrals ledger.** The DIRECT successor to R's (`docs/tranches/R/PROGRESS.md §"Open
+deferrals"`). At **S.A1** the live `CHRONIC_LEDGER` in `scripts/proof-chronic-closure.mjs` re-points
+`R/PROGRESS.md` → THIS table and `LEDGER_LABEL` → `"S/PROGRESS.md"` — atomic with the
+planted-malformed-row non-vacuity proof (r2 S5) and the S.A1 substance re-shape of the gate itself.
+Every open-at-R-close item is re-stated here with its S-terminal disposition + chronicity integer
+incremented for the R→S carry, so no chronic drops across the transition. Scope (SPEC §4 header,
+x1-#3): "open item" = open at R-close — every open row from r8 §6 + the audit lanes + the Pass-1
+NEW debts + the two Pass-2 discoveries (rows 73/74). The five already-ratified R KILL/RECORD
+terminals (DM-7, DM-1, DM-5 S1, DQ-3, VJ-Q9 — r8 §1a) are excluded *by definition* and NOT
+re-litigated as rows (§8-15).
+
+> **SUBSTRATE-TRANSITION NOTE (S.A1 — the R→S re-point + gate co-edits + non-vacuity proof are ONE
+> atomic commit; PENDING-IMPL until the drive is authorized).** This section's heading is EXACTLY
+> `## Open deferrals` and the rows below are ONE flat table (the R/Q/L/K/J/I shape
+> `parseChronicTable` accepts byte-for-byte). Band grouping is carried in each row's Disposition
+> cell, NOT in `###` sub-headings (which would end the single-table parse region). S.A1 additionally
+> RE-SHAPES the gate (the substance clause): it REDs any `*-TERMINATED` row that does not cite a
+> deterministic re-shaped gate or a ratified-KILL ledger row, and REDs any disposition containing
+> deferral verbs (observe/watch/re-affirm/verify) without a paired re-shape/KILL row (T3 extended
+> to this column — x2-#8). Every disposition below is the DEV-AUTHORED target; at impl each is
+> **re-derived from a locally-reproduced signature** (C-20 — macOS reproduction IS the
+> device-dependence discriminator; DM-14 is the standing proof of why nothing is inherited from a
+> pre-written guess).
+>
+> **CHRONICITY CONVENTION:** shown as `R-close → S-entry` (the R→S carry increments every carried
+> integer, the R-ledger "3→4" precedent); `new→1` = born in Q/R fallout, entering its first carry;
+> non-integer labels (chronic/ancient/structural/accreting/mixed/old) carry `(→S)`.
+>
+> **DISPOSITION VOCABULARY:** `FOLD` (into a named S wave) · `KILL` · `HANDOFF` · `DISPATCH` ·
+> `REVIVED` · `REVERSED` · `FOLD-LANDED` · `RECORDED-FUTURE` · `RECORD` (row 17's owner-ruled
+> SHELF). (`RESIDUAL CARRY` is HISTORICAL — it existed for rows 51/52/53 while the glass-ui
+> consume-edge was an S wave; since the 2026-07-03 S.E shelf those rows are unconditional
+> owner-domain HANDOFFs, never presented as terminals; C-20/x2-#6.) Under **C-20, "terminal" is structural**:
+> a deterministic re-shaped gate (device dependence folded OUT so the gate REDs honestly on any
+> runner) or an owner-ratified KILL with a re-run witness — `VERIFY-ONLY`, `RE-AFFIRM`, `WATCH`,
+> and observe-in-CI are NOT terminals (the DM-11 ten-tranche mechanism relabeled) and the re-shaped
+> gate REDs them. A `proof:*` name in BACKTICKS is a load-bearing closure oracle held to the band's
+> contract; a bare (no-backtick) `proof:*` name is prose evidence (a named non-gate terminal
+> mechanism) — the Q/R ledger convention, carried.
+>
+> **BORN-RED + RUNTIME contract (the kf-runtime-closing FOLD rows):** a backtick-wrapped closure
+> oracle must resolve, run in the reformed correctness tiers (library-correctness /
+> demo-correctness — S.A4), open the dist + actuate, and carry a born-RED witness in prose (SPEC §3
+> plants each where the defect is live today). The publish-coupled external-edge oracles (the two
+> S.H4 oracles) are **born-SPECIFIED** (T4 — they fire at the impl drive's
+> publish/consume step). KILL / HANDOFF / DISPATCH /
+> RECORDED-FUTURE rows close by their own discipline (a non-gate terminal mechanism), NOT a kf
+> runtime gate.
+
+| Item | Born | Chronicity | Disposition | Owning S wave | Gate / evidence (closure oracle) |
+|---|---|---|---|---|---|
+| **1. Master CI red on every push** (neither Q 5.0.0 nor R 5.1.0 ever produced a green master; both shipped via manual workflow_dispatch) | K | 3→4 (K,Q,R→S) | **FOLD — the keystone fix-by-cause sweep** | **S.A0** | The cause-shaped keystone gate: every blocking red discharged by a named cause verified against a locally-reproduced signature; the CI run's failing steps ⊆ the enumerated born-RED backlog (a red outside the backlog REDs; a backlog row without a named owning wave REDs); threshold-loosen / timeout-widen / residual continue-on-error / observe-reclassification FORBIDDEN. Master push CI turns fully green when the last backlog row's owning wave closes; re-asserted at S.Z3 on the FINAL SHA. Closure oracle: `proof:published-on-master` (asserts the FINAL SHA == the published master head — RED while master CI is red on push). |
+| **2. `proof:styling-idioms` orphan `.morph-ghost--from`** (`MorphTarget.vue:71`) | R.W5 | new→1 (R→S) | **FOLD — one-line genuine-source fix** | S.A0 | `proof:styling-idioms` GREEN (RED today on the reproduced p12 signature). **Cure PROVEN pass3** (`audit/pass3/ci-fix-proto.md` c): the one added `.morph-ghost--from` rule flips the gate exit 1 → 0 in an isolated worktree. |
+| **3. `proof:pin-ledger-current` RED** (PIN-LEDGER frozen 4.4.0/1.1.0/0.12.0 vs installed 5.1.0/1.2.0/0.13.0 — a31 CRITICAL) | Q→R | new→1 (R→S) | **FOLD** | S.A0 | `proof:pin-ledger-current` GREEN after re-author to 5.1.0/1.2.0/0.13.0 (`docs/tranches/Q/PIN-LEDGER.json`); re-verified at S.C4 (post-bumps) and S.H4 (the parse-that 1.0.0 re-pin). **Cure PROVEN pass3** (`audit/pass3/ci-fix-proto.md` d): the JSON refresh (5-row drift → owningWave S.A0-stamped) flips the gate exit 1 → 0. |
+| **4. LoAF bench exit-code flake** (step exits 1 with a GREEN metric) | C-era | chronic (→S) | **FOLD — exit-code decouple** | S.A0 | The step asserts the green metric via a `window.__kfLoaf`-style node probe wrapper; the vitest process exit no longer gates the step (ci.yml ~5 lines). |
+| **5. 14 demo-smoke blocking reds — the p12-verified taxonomy** (2 genuine source + ONE shared harness-importmap bug across 2 gates + 5 genuine demo born-RED + 1 gate-staleness false-positive + 1 exit-plumbing; true device render-races = **0**) | I–R | structural (→S) | **FOLD — fix-by-cause + the four-bucket disposition** | S.A0 + S.A2 | S.A0 discharges by cause with the enumerated authorized-RED backlog (NOT re-tiered): `drag-gesture` → S.G3 · `easing-sidebar-minimal` → S.G2 · `scene-perf-budget` A2 → S.G2 (amiga `setPixelRatio(min(dpr,2))`) · `icon-paint-live` → S.G2 (impl-time glass-ui-home check — if the `::view-transition-*` residue KILL target is glass-ui-owned, the clause becomes a named HANDOFF). S.A2's buckets: genuine → FOLD by cause; absolute-threshold → relative budget; binary-absent → install-or-observe; stale-gate → re-point the gate's parser (the `demo-usability` class). Hard clause (x2-#2): the correctness↔observe split may NOT green a red whose signature reproduces off-runner. Downstream unverified gates (`computed-real-dom`, `lighthouse-a11y`, `scene-parity`, `live-session`, `live-session-mobile`) re-run post-fix and sized then. Closure oracle: `proof:demo-smoke` (born-RED: the 14 blocking reds reproduced on macOS, each discharged by named cause; the four-bucket taxonomy verified). |
+| **6. DM-8 Lighthouse floors** | B-era | 5→6 (M,O,P,Q,R→S) | **FOLD — C-20 terminal-ization** | S.A1 | Deterministic re-shape (relative budgets, structural assertions) or ratified KILL — observe-in-CI is NOT accepted; the disposition re-derived from a locally-reproduced signature. The K/M floors remain the reference; the terminal shape REDs honestly on any runner. Closure oracle: `proof:lighthouse-a11y` (the Lighthouse floor gate; RED on the reproduced signature). |
+| **7. DM-9 specular-at-rest** | D | 8→9 (D,H,I,K,M,O,Q,R,R→S) | **FOLD — C-20 terminal-ization** | S.A1 | `proof:specular-absent-at-rest` re-shaped to a deterministic terminal (or ratified KILL) and re-run on the S dist from a reproduced signature — the serial RE-AFFIRM ride ends here. |
+| **8. DM-10 typography / font-census** | D | 9→10 (D,I,J,K,L,M,O,Q,R,R→S) | **FOLD — C-20 terminal-ization** | S.A1 | `proof:font-census` re-shaped to the deterministic terminal form (born-RED lineage: the dock voice resolved system-sans in its origin tranche); no re-verify verb survives the substance clause. |
+| **9. DM-11 (a) spring-slider-continuous** | D | 10→11 (D,H,I,J,K,L,M,O,Q,R,R→S) | **FOLD — C-20 terminal-ization** | S.A1 | `proof:spring-slider-continuous` re-shaped deterministic, born-RED on the reproduced signature. S explicitly ENDS the VERIFY-ONLY perpetual carry — DM-11 rode ten tranches on serial re-affirmation (r2 Part IV). |
+| **10. DM-11b subject-animates — RED (30 s-timeout signature)** | D | 10→11 (D,…,R→S) | **FOLD — the shared importmap harness fix** | **S.A0** | The SAME importmap-subpath harness bug as row 12 — ONE shared fix (p12 §3.1): teach the vendor importmap the value.js subpath namespace (`"@mkbabb/value.js/": "/__kf-vendor__/value.js/dist/subpaths/"`, keep the bare map) AND serve the whole value.js `dist/` subtree, in `scripts/proof-subject-animates.mjs`. NOT "fix or calibrate" — the timeout is a *swallowed deterministic module-load throw*, not a render race. **Importmap ROOT cure PROVEN pass3** (`audit/pass3/ci-fix-proto.md` a): all 3 synthetic arms (raf/waapi/group) flip RED→GREEN; the fix must also serve parse-that's dist subtree + an extensionless-`.js` subpath fallback (S.A0(4) refined). **Residual located pass3:** the gate still exits 1 on the distinct `[real-cube]` cold-path — a separate born-RED owned by **S.A0(6)/cold-entry**, NOT the importmap; `proof:subject-animates` GREEN only once that residual closes. |
+| **11. DM-12 perf-frame-budget (glass-ui-owned dock clause)** | D | 8→9 (D,H,I,K,M,O,Q,R,R→S) | **FOLD (kf clause) + HANDOFF (dock width-morph → glass-ui)** | S.A2 | Split the kf-blocking clause (C-20-terminal, relative budget) from the glass-ui-owned dock width-morph clause — a named owner-domain HANDOFF. Re-homed at the 2026-07-03 S.E shelf: the former S-side re-entry wave no longer exists; re-entry is a future owner ruling (USER-DOMAIN). Closure oracle for the kf-blocking clause: `proof:portable-perf` (the device-independent relative-ratio perf floor — RED on the reproduced signature). |
+| **12. DM-13 engine-no-throw-on-play — RED** | A | 8→9 (A,H,I,K,M,O,Q,R,R→S) | **FOLD — the shared importmap harness fix** | **S.A0** | The same ONE fix as row 10, replicated in `scripts/proof-engine-no-throw-on-play.mjs` (~10–20 LOC, ONE change ×2 — a hard prerequisite of S.A0's own gate; it lives in A0, not a downstream row). `proof:engine-no-throw-on-play` GREEN; terminal. **Cure PROVEN pass3** (`audit/pass3/ci-fix-proto.md` a): the shared importmap fix flips this born-RED gate clean exit 1 → 0 (`[J.W1 b]` typed AnimationOptionError + conforming control compiles). |
+| **13. DM-14 fsm-suspend-resume-live — RED** | H | 7→8 (H,I,K,L,M,O,Q,R→S) | **FOLD — GENUINE source fix** | **S.A0** | A genuine spring pause/resume-continuity source defect (`springPausedAfterClick=false` — the spring scene does not pause; p12 §3.1): a real behavioral fix with a live reproduced signature (~½–1 day). NOT a timing calibrate — SPEC-v1's row repeated the r8-F1 error verbatim and was corrected. `proof:fsm-suspend-resume-live` GREEN. |
+| **14. DM-15 control-surface-single-writer** | I | 7→8 (I,J,K,L,M,O,Q,R→S) | **FOLD — C-20 terminal-ization** | S.A1 | `proof:control-surface-single-writer` terminal-ized from a reproduced signature (deterministic re-shape or ratified KILL — no re-verify verb). |
+| **15. DM-5 S8 FN_NAME source-probe** | K | 5→6 (K,L,M,O,P,Q,R→S) | **FOLD — re-derive as regression-guard** | S.A1 | Re-derived from signature; terminal as a regression-guard (banded under S.A4's explicit regression-guard header). Closure oracle: `proof:no-foreign-symbol-stamp` (the FN_NAME source-probe regression-guard). |
+| **16. DM-20 auto-deploy-of-record dead** (every `workflow_run` deploy since K skipped) | L.WZ | 4→5→6 (L,M,O/P,Q/R,R→S,S→T) | **HANDOFF → Tranche T (T.S6 revival + T.Z fires) — S.A3 NEVER executed (lane 27 F8: no `S.A3` commit exists anywhere)** | S.A3 (VOID) → **T.S6** | HONEST re-disposition (T.S1, lane 27 F8): the prior "FOLD — deploy revived / S.A3" read as executed but NO `S.A3` commit was ever authored (`git log --oneline --all` → zero); the drive's own "State of play" is honest 400 lines away ("REMAINING S: S.A3"). Terminal by TRANSFER: the `deploy-pages.yml` `workflow_run`-on-green-`demo-correctness` MECHANISM is built at **T.S6**; the auto-path deploy-run `success` oracle (with `proof:deploy-roundtrip` live-leg) fires at **T.Z**, gated on the T.M owner-anchored render gates (the mechanism is the auto-path; the owner gates are the permission — T.S charter note 4). NOT re-affirmed in S. |
+| **17. DM-24 N-Stage scene-switcher (the R KILL, disputed)** | N | 4→5 (N,O,P→Q,Q→R,R→S) | **RECORD — owner-ruled SHELF (the pass-3 revival was built, converged, live-reviewed, and ruled scrapped-for-now; the prototype is preserved on scene-stage-proto-s; NOT a silent re-deferral — the ruling is S-terminal)** | — (band S.E SHELVED; record: `waves/S.E.md`) | Closure mechanism = the OWNER RULING itself (2026-07-03, after a live review of the working prototype): "Looks awful. Scrap the scene selector for now, shelf it, and then remove those plans from the current wave set." — a non-gate terminal RECORD, ratified by the owner with the review as its witness. What was built: the first-principles DK-64 stage, designed + prototyped LIVE + converged 100/100 across a 3-round Fable loop (pass3); the H1 stale-arm class cured (browse verbs LOCKED during committing) and adversarially proven by the A–G driver roster (transcripts in `audit/pass3/stage-proto-v3.md` §5). Shelf: branch `scene-stage-proto-s` @ 63ccab0 (prototype + `demo/stage-proto/gates/` drivers) + the `audit/pass3/` design/build/critique corpus. No S.E waves exist; nothing may depend on this band; re-opening requires a NEW owner ruling. |
+| **18. `proof:scene-switcher-mobile` zombie gate** (masked by continue-on-error; the roster simultaneously forbade and required a switcher) | R.W5 | new→1 (R→S) | **FOLD — retire (C-6, re-corrected at the 2026-07-03 S.E shelf)** | S.A4 | EXECUTED at S.A4 (impl 2026-07-04): script + package.json key + CORRECTNESS_ROSTER membership deleted in one motion (T6); the machine KILL witness lives in `scripts/gate-bands.mjs` DISCHARGE (kind:kill + re-run witness cmd), re-verified by `proof:ci-coverage` clause 9 on every run — script-absent, key-absent, roster-absent. The shelved rebirth stays shelved (band S.E); `proof:scene-colocated` ASSERTION 3 stays whole. |
+| **19. `proof:scene-colocated` ASSERTION 3 vs the charter** | R.W5 | new→1 (R→S) | **RECORD — conflict DISSOLVED (C-6 re-corrected at the 2026-07-03 S.E shelf)** | S.A4 (records the re-correction) | ASSERTION 3 stays WHOLE — the carousel-absence clause is truthful again under the no-stage status quo (the charter no longer plans a switcher); the contradiction's other half (the zombie requiring-gate, row 18) is retired at A4, which dissolves the contradiction. Canonical cross-band edit order A4 → D2 → D3 (T7) unchanged. |
+| **20. The ~51 demo-layout ossifying gates (the FROZEN set)** | H–R | accreting (→S) | **FOLD — the FROZEN migration** | S.A4 | Machine-distinguishable discharge (x2-#7): (a) **migration** — the live property asserted by a named successor system gate (`stage-visible`/`occlusion-free`/`a11y`/`dogfood`), enforced by a ci-coverage mapping clause that REDs if a FROZEN key is deleted without a successor row; or (b) **KILL** — an owner-ratified S-ledger row with a re-run witness. Free-prose "deletion-with-cause" BANNED. p04: the FROZEN set is structurally immune to source moves (reds only on visual/DOM change — S.D3/S.G since the S.E shelf). |
+| **21. `proof:app-shell-thinness` phantom citations** | R | new→1 (R→S) | **FOLD — author the real gate** | S.D1 | Born-RED `proof:app-is-shell` (directional, three clauses; App.vue line count = an observed tripwire recorded in the wave doc, NOT a GREEN criterion — sd-#7); the phantom citations resolved. |
+| **22. `proof:engine-seam-split` never authored** | Q | 2→3 (Q,R,R→S) | **KILL — superseded (C-11); RATIFIED at T.S1** | S.B2 (supersession) / **T.S1 (ratification)** | Non-gate terminal mechanism: superseded by proof:engine's body-span clause + the S.B2 recursive-scan fix + the no-re-export-bridge clause. RATIFIED (T.S1, lane 27 fold row 22): the KILL happened at S.B2 but the ratification never did (the S.Z close never ran); it is ratified HERE — the gate was never authored, its coverage is subsumed by `proof:engine`'s body-span + recursive-scan + no-re-export-bridge clauses (verified present), so no gate is orphaned by the KILL. Terminal by ratified-KILL, not deferred. |
+| **23. The animate.ts zombie cluster** (213 LOC, zero importers, two self-referential tests, still documented as "the single-call front door") | R.W4 | new→1 (R→S) | **FOLD — DELETE (T6 total excision)** | S.C1 | Born-RED `proof:no-orphan-module` — a reachability walker whose graph edges include dynamic `import()` string specifiers, with the pinned entry-root set {`index.ts`, `load-engine.ts`, `engine/index.ts`, `engine/public.ts`} (animate.ts REDs it today); zero front-door `animate(` references outside the `Element.animate()`/CHANGELOG allowlist; file + both tests + the animate-orchestration gate + every doc mention deleted. |
+| **24. MIGRATION-5.1.0.md absent (the R semver gap)** | R.W4 | new→1 (R→S) | **FOLD — backfill + the C-18 gate** | S.C1 | `docs/MIGRATION-5.1.0.md` backfilled; the generalized changelog gate with C-18's diff mechanism: `git show v<prev>:docs/published-surface.md` diffed vs HEAD, RED on any removed row lacking a `docs/MIGRATION-<new>.md` entry (prev tag from npm `dist-tags.latest`, fallback highest `v*`). |
+| **25. no-silent-fallback demo arm toothless** (r2 W-weak-1) | R.W3 | new→1 (R→S) | **FOLD — teeth, scope-honest** | S.C2 | Demo clauses promoted to enforced; Clause 1 widened from the 4-file R.W3 set to a src-wide deny-pattern scan with the machine-checked `KEEP:` allowlist idiom. Oracle: `proof:no-silent-fallback` REDs on a planted demo bare-catch. |
+| **26. §2K row-4 `as any` survivor** (`useTimingFunctionEditor.ts:196`) | R.W3 | new→1 (R→S) | **FOLD** | S.C2 | Fixed by widening the return type (not a cast); all 6 demo-composable `as any` sites censused, legitimate survivors `KEEP:`-labelled. Oracle: zero UNLABELLED `as any` in demo composables — closure oracle `proof:any-ceiling` (the bounded demo `any` census). |
+| **27. 8 zero-importer shadcn devDeps** (v-calendar, vaul-vue, embla-carousel-vue, @unovis/ts, @unovis/vue, vee-validate, @vee-validate/zod, zod) | pre-A | ancient (→S) | **FOLD — delete** | S.C3a | Born-RED `proof:no-dead-dependency` — the explicit 8-package allowlist form (a generalized form must match only real import/require specifiers, never comment/prose substrings, and scan config + scripts/ + plugin sites). |
+| **28. ui/menubar island + utils.ts(`cn`)** | pre-A | ancient (→S) | **FOLD — migrate + delete (C-19)** | S.C3b | Migrate to glass-ui **dropdown-menu** (present in 4.0.x — NO external gate; the menubar→dropdown UX remap acknowledged) with the a24-F6 relocate-in-place fallback — both internally closable; gating on a missing external surface FORBIDDEN (T12). ui/menubar (16 files) + utils.ts(`cn`) deleted. Oracle: the C3a shadcn census clause REDs while ui/menubar exists, green after; interaction-axis test coverage (T8). |
+| **29. Playground identity + blank build + un-pinned outDir landmine + 9.6MB dist debris** | I-era | 3+→4 | **KILL (T.E) — the compose scene PRUNED at T.E (OD-1, owner-ruled); the S-side scene-migration superseded** | S.D3 → **T.E** | The S-side six-item touch set excised the standalone playground (SCENE_DIRS += compose, published-surface minus "playground" + tree regen, the S9 egg re-point) — the playground debris/blank-build/un-pinned-outDir defect was RESOLVED. The replacement compose scene was then PRUNED at T.E (OD-1, owner-ruled prune of compose/morph/motion-path); `proof:compose-scene` RETIRED (required ABSENT — verified absent from package.json + proof:all). Terminal by ratified-KILL: no compose surface survives, so no gate is orphaned. |
+| **30. cubeTransformStore in app/ + the five cross-scene app files un-zoned** | R.W5/6 | new→1 (R→S) | **FOLD (sd-#2)** | S.D1 | Evict ONLY `cubeTransformStore.ts` → `scenes/cube/`; the five (`useRafScene`, `rafConstants`, `useSceneVisibilityPause`, `useContractAnimGroup`, `useSceneTransport`) are cross-scene recipes (≥6 scene importers, verified) → stay in `app/runtime/`. Oracle: `proof:app-is-shell` clause (i) — born-RED today via cubeTransformStore.ts. |
+| **31. animation-controls monolith "do not touch" fiat** (74 files / 10,093 lines, declared untouchable with no importer census) | R | new→1 (R→S) | **FOLD — carve; the fiat OVERTURNED by the a24 census (T9); probe-VALIDATED (P2-1 confirms-spec: every move-caused red path-anchored; no @/ re-inventory; gate-repoint-dominated, ~3–4 days, LOW risk)** | S.D2 | Born-RED `proof:shared-has-n-consumers` (C-23 per-scene counting: any @/ module with <2 consuming areas REDs). The binding P2-1 cost model: stores hoist = HIGH source (~46 sites) / ~ZERO gate reds; transport peer move = LOW source (1 real external import edge — the a24 census over-counted comment/JSDoc mentions) / HIGH gate (~7–10 shell-path scope-set gates repointed in the SAME commit). Walker-root arming-audit (proof:decomposition roots at `animation-controls/`, `:79`); `@state` bare + wildcard alias pair; verification run = `check` AND `gh-pages` AND vitest (tsc does not check .vue); lands AFTER G1 with proof:stage-visible re-run green post-carve (C-24, edge CONFIRMED load-bearing). Closure oracle: `proof:shared-has-n-consumers` (source-tier; the C-23 per-scene consumer count). |
+| **32. presets/classic.ts — the last ceiling override (728L)** | Q→R | 2→3 (Q,R,R→S) | **FOLD — data split; the keystone completed** | S.B5 | classic-data.ts (the 34 CSS-string constants) + factory logic; DELETE the last LIBRARY_CEILING_OVERRIDE entry and, emptied, the Map itself (R.W0's keystone completed). Oracle: `proof:decomposition` with an EMPTY override map + max file ≤ ~460L headroom. |
+| **33. Six files parked at 488–499L (carve-to-ceiling residue)** | R.W2b | new→1 (R→S) | **FOLD — cohesion-first carves** | S.B2 + S.B5 | S.B2 pulls engine/animation.ts (499) + engine/playback.ts (498) FORWARD (the C-15 delegate fold grows the class 442→455 past the ceiling — sb-#3/p02); S.B5 carves the remaining four at cohesion seams (group/group 496 → group/lifecycle.ts; frame-compiler 499; spring/progress 499; sequence/sequence 499). 500L is a tripwire, not a target; no numeric line count is a GREEN criterion. Closure oracle: `proof:decomposition` (source-tier; RED on any over-ceiling file). |
+| **34. constants.ts heavy-runtime/light-type mix** | pre-R | old (→S) | **FOLD — the seam split (p03 confirms)** | S.B1 | `constants/types.ts` (LIGHT-pure) + `constants/defaults.ts` + back-compat barrel; the 10 mandatory LIGHT repoints. Oracle: `proof:boundary` + the FILE-level clause (any non-`import type` import line in constants/types.ts REDs; zero light-zone bare-barrel imports). |
+| **35. PlaybackState half-carve (the FSM still on the class)** | R.W2 | new→1 (R→S) | **FOLD — single-STORAGE accessor fold (C-15; p02)** | S.B2 | The 8 FSM fields move into PlaybackState as the sole backing store; 8 accessor delegates (the FSM is a public, externally-written surface — 4 zones + 107 test sites + the demo's `contractAnim.t =`); hot path → `anim._playback.*`, zero-alloc preserved (22/22 hot-path tests green in p02). Oracle: the honest born-RED clause — "no FSM transition field is DECLARED on the class body (accessor delegates only)" (planted class-body field → RED). The literal single-writer hard fold = a FUTURE BREAKING wave (§8-3), explicitly out of S scope. Closure oracle: `proof:single-writer` (source-tier; no FSM transition field declared on the class body — planted class-body field REDs). |
+| **36. getGroupFactory service locator (mislabelled DI; 1 caller)** | R.W2c | new→1 (R→S) | **FOLD — ownership inversion** | S.B4 | Excise `KeyframesAnimation.group()`; delete internal/group-factory.ts + the register side-effect; add `AnimationGroup.of()`; migrate the one caller (KeyframesEditor.vue). Oracle: `proof:decomposition` — depcruise green with group→engine one-directional (a planted re-added `.group()` → RED). |
+| **37. `./engine` mirror drift-ungated; the triple surface** | R.W4b | new→1 (R→S) | **FOLD — the TYPE-diff drift gate (p07)** | S.B6 | `proof:engine-subpath-mirror` asserts **runtime keys ⊆ the `AnimationEngine` d.ts TYPE key list** (a runtime-vs-runtime `Object.keys()` diff is vacuous once the loader sources from one module). Born-RED plant: add a runtime key to engine/public without the interface field → RED. The `loadAnimationEngine → import("./engine/public")` collapse = an owner-recordable option (§6.3); the gate holds either way. |
+| **38. d.ts: 11 `= any` generic defaults; 126 leaked privates; dual roll-ups** | Q–R | old (→S) | **FOLD** | S.B6 | `= any` → `= Vars` + SVG generics `extends Vars` (version-ruling input i, §6.3); `@internal` + API-Extractor trimmed roll-up (input ii); `proof:dts-rollups-agree` (NEW; authored + frozen at S.B6) frozen NOW, before zoning churns options; dts-plugin soft-fails → hard build failures; `FrameUnderConstruction<V>`. Oracle: `proof:no-any-default` over the built d.ts. |
+| **39. bench/ + test/ outside typecheck; waapi-densify 9 stale `Animation<...>` sites** | R-fallout | new→1 (R→S) | **FOLD** | S.B7 | tsconfig.test.json in the check roster; bench under type-check; the 9 stale sites fixed. Oracle: `npm run check` covers test/ + bench/ (a planted private-access in a test → RED). |
+| **40. 5 scenes with zero composable test coverage** | R.W5 | new→1 (R→S) | **FOLD** | S.B7 | Composable tests added; the 5 scenes each referenced from test/ (gate clause). Closure oracle: `proof:composable-encapsulation` (source-tier; per-scene composable coverage). |
+| **41. src/animation/CLAUDE.md pre-R (the doc-authority inversion, 9 lanes) + root doc drift** | Q | 2→3 (Q,R,R→S) | **FOLD — gate-first, regen-last (C-8)** | S.A5 + S.B8 | S.A5: born-RED `proof:claude-paths-live` (every backtick path/symbol resolves on disk / in the built surface; HEAVY list ⊆ AnimationEngine keys) + the actively-wrong lines hot-fixed. S.B8: the full regen against the post-B tree → the gate green. Extended over demo/CLAUDE.md at S.D4. |
+| **42. 6 colorTail benches observe-only (SOTA claims unfloored)** | Q.WB3 | 1→2 (Q,R→S) | **FOLD — budgeted device-independent ratios (C-10)** | S.F5a | The 6 colorTail arms + the compositor replace-arm converted to budgeted ratios; no raw absolute fps/ms threshold is a CI closure anywhere in S. Oracle: taxonomy budgeted floors hold; `proof:zero-alloc` mixed-leaf clause born-RED today. |
+| **43. Typed-OM adopt/kill undecided** | P | 3→4 (P,Q,R,R→S) | **FOLD — the pre-booked verdict (sf-#7)** | S.F5c | Default verdict = **KILL-with-recorded-bench-measurement** (one real-browser bench: Typed-OM per-set vs string-set; the artifact + one doc line close it). ADOPT fires ONLY above a pre-stated write-throughput threshold, and then as a SEPARATE authored wave (§8-11). Verdict recorded terminally with its bench artifact. |
+| **44. WAAPI multi-segment densify unshipped** | P | 3→4 (P,Q,R,R→S) | **FOLD** | S.F5c | Ships as an extension of `proof:waapi-adaptive-densify` with a new born-RED clause: the multi-segment case refused today → eligible after (no un-gated feature — sf-#8). |
+| **45. resolve/ zone zero bench coverage** | P–Q | 2→3 | **FOLD** | S.F5b | bench/resolve.bench.ts + the static-vs-dynamic cold-import bench. Oracle: `proof:bench-taxonomy` coverage rows born-RED on the missing rows (a bench without a taxonomy row rots — sf-#6). |
+| **46. color2Into cross-repo WATCH (value.js)** | P | 2→3 (P,Q/R,R→S) | **DISPATCH (value.js) — closes at the S.H4 re-pin or the named exit fires** | S.H4 | Verified at the S.H4 re-pin (carried in H4's wave TEXT, not just this table — sh-#7); if unverifiable there, the named exit fires — never silently re-WATCHed. |
+| **47. DQ-1 packrat re-entrancy — landed?** (dropped from the R ledger, r8 F2) | Q | 1→2 (Q,R→S) | **FOLD — the parse-that 0.13.0 landed-check (S.H4)** | S.H4 | Verified actually landed in parse-that 0.13.0 at the H4 ledger closure; the kf-side `proof:consume-bundle` green at the re-pin. |
+| **48. DQ-2 parse-that dead API / `*Span`** | Q | 1→2 (Q,R→S) | **FOLD — the 1.0.0 legacy cut** | S.H2 + S.H4 | span.ts + all 15 `*Span` exports deleted; dist-surface.test.ts flipped to zero-`*Span`. Oracle: proof:no-span-surface **born-RED today** (the current keep-gate asserts their presence). |
+| **49. parse-that packrat 3-Map default-path alloc** | (found r6) | new→1 (→S) | **FOLD — packrat-epoch arming (p11 confirms: 14–18% short-value, ~34% retained heap)** | S.H1 | `PACKRAT_ARMED` latch; `packratEnter(): PackratEpoch or null`; null-guarded exit; `resetPackrat()` early-return unarmed; soundness proven armed (left recursion 2/2). Oracle: the retained-heap born-RED clause ("N non-memoized parses allocate flat") in a **memoize-free process** (the latch never disarms — isolation documented); NO throughput-% gate (§8-13). Closure oracle: `proof:packrat-sound` (source-tier; the kf-side consume gate over the packrat-armed parse-that). |
+| **50. parse-that chain() falsy-skip bug** | (found r6) | new→1 (→S) | **FOLD — C-16 Option A (truly additive)** | S.H2 | `if (state.isError) return state; return fn(state.value).parser(state);` + the now-moot `chainError` param retired in the same 1.0.0 breaking cut (0 callers, verified). Oracle: the `0`/`''`/`false`-seed regression test red-then-green + a genuine-error short-circuit test + the recorded 0-hit caller scan. Closure oracle: `proof:packrat-sound` (source-tier; the kf-side consume gate green on the re-pinned parse-that). |
+| **51. glass-ui proof:glassui-aria-ask PENDING-BC** | Q | 2→3 (Q,R,R→S) | **HANDOFF (owner — USER-DOMAIN, glass-ui-owned)** | — (no S wave; rendered at S.Z3 per C-21) | Re-homed at the 2026-07-03 S.E shelf: the former S-side consume-edge wave no longer exists, so re-entry is the BC/5.0.0 publish under a FUTURE owner ruling — never an S wave. Rendered in the S.Z3 FINAL as `HANDOFF — external — row 51` (C-21), never presented as a terminal (x2-#6). |
+| **52. glass-ui proof:peer-satisfied born-RED peer-cycle** | L | 4→5 (L,M/O,P/Q,R,R→S) | **HANDOFF (owner — USER-DOMAIN, glass-ui-owned)** | — (no S wave; rendered at S.Z3 per C-21) | Re-homed at the 2026-07-03 S.E shelf: re-entry is the glass-ui peer-widen (`proof:peer-satisfied` flips green; subpath-survival clause) under a FUTURE owner ruling — the former S-side consume-edge wave no longer exists. Rendered in the S.Z3 FINAL as `HANDOFF — external — row 52` (C-21), never presented as a terminal. |
+| **53. Dock double-click chronic** | ~J | 4+→5 | **HANDOFF (owner — glass-ui-root; re-homed at the 2026-07-03 S.E shelf)** | — (owner-domain HANDOFF; MEMORY note re-sharpened at S.Z3 S6) | The chronic is glass-ui-root (MEMORY: fix in glass-ui root, never patched in demo). The kf-internal contingency fallback (the DM-1 R.W6 precedent, formerly authored inside the stage integration wave) rode the shelved band and is SHELVED with it — its shape survives on branch scene-stage-proto-s and in `waves/S.E.md` if a future ruling revives it. Verification vs a built glass-ui 5.0.0 is a FUTURE owner-domain step, not an S wave. |
+| **54. Stale MEMORY specular=off expectation** | M-era | 3→4 | **RECORD — retire at close (MEMORY note; non-gated user-domain)** | S.Z3 | Retired (BG resolves affirmatively). MEMORY updates are observe-tier, user-domain, non-gated — stated as such, not dressed as gated work. |
+| **55. glass-ui pin frozen ~4.0.0 (2 minors behind)** | Q | 2→3 (Q,R,R→S) | **FOLD — deliberate hold (C-12, amended at the 2026-07-03 S.E shelf) + HANDOFF (the future 5.0.0 consume — owner-domain)** | S.C4 (carries the pin posture) | Hold ~4.0.x through S (interim 4.2.0 catch-up REJECTED; tilde, never caret) — S.C4 owns the hold. The 5.0.0 consume left the plan with the S.E shelf: it is a FUTURE owner-domain step (with the visual-lock re-baseline as its own multi-gate effort — §8-8), never an S wave. Closure oracle for the pin posture: `proof:pin-ledger-current` (source-tier; the ~4.0.x tilde hold recorded). |
+| **56. Oscillator fictional demo claim; reseatToSpring unconsumed** | L–P | 3→4 | **FOLD — the ONE decision wave (C-13, pinned se-B7)** | S.G2 + S.F5a | S.G2 lands the Oscillator decision: build the promised demo home OR strip the fictional header and ledger it as an intentional public leaf. S.F5a benches `reseatToSpring` vs `decayRest` and wires the winner or records the measured reason it stays. No carry. |
+| **57. SPRING_SMOOTH dead constant + `void` suppression hack** | P | 2→3 (P,Q/R,R→S) | **FOLD — delete** | S.C3a | Deleted with its `void` suppression (a20 F4); covered by the C3a gated clauses. |
+| **58. `declaredKeyframeBodyFor` "dead export"** | Q | 1→2 (Q,R→S) | **REVERSED at Pass-2 — construct, not delete** | S.B3 | a18 F3's "likely-dead" call OVERTURNED by P2-2 F1/F5: the export is the EN-b/EN-c **load-bearing substrate** (the `bodyByStop` mixed-track fix threads it; the entry emitter projects first/last stop bodies from it). Constructed, NOT deleted. |
+| **59. MotionPath.finished asymmetry** | O | 2→3 (O,P/Q,R,R→S) | **FOLD** | S.B4 | svg/handle.ts abstract base closes the asymmetry by construction (a20 F6). Closure oracle: `proof:decomposition` (source-tier; the shared svg/handle.ts base is depcruise-clean, one-directional). |
+| **60. transport.ts hand-rolled prefersReducedMotion copy** | R.W2b | new→1 (R→S) | **FOLD — DRY** | S.B4 | DRY'd through internal/reduced-motion (a16 F3); the hand-rolled copy removed. Closure oracle: `proof:no-dup-utility` (source-tier; one shared reduced-motion source). |
+| **61. VJS_PARAM_BUG_MAX (value.js ≤1.2.0 extractFunctions bug)** | Q | 1→2 (Q,R→S) | **FOLD — RULED consume-edge (owner ruling 5)** | S.C4/S2 | RULED 2026-07-03 (owner ruling 5; inbound letter VALUEJS-R-COORDINATION-2026-07-03 b7fea38): S.C4/S2 is re-scoped into the NAMED value.js-2.0.0 consume-edge — the letter §1 deletion map executed verbatim (DELETE normalizeParam + NormalizedParam at resolve/resolve-function.ts:22-90 threading CustomFunctionParameter directly; retire the coerceArg ≤1.2.0 CUSTOM_FN_ARG_DROP arm keeping the generic type-mismatch DROP; DELETE VJS_PARAM_BUG_MAX) + re-pin @mkbabb/value.js ^2.0.x — NOT the letter-forbidden silent else-KEEP. Gate: the extended S.C4 HARD GATE (grep-zero normalizeParam/NormalizedParam/VJS_PARAM_BUG_MAX in src/; check:lib green on the direct field reads; the KF-1 vector "--x <length>: 0px" resolving to name --x syntax <length> default 0px green through proof:emerging-css-resolve; the S.A0 PIN-LEDGER co-edited to value.js 2.0.x). LATE slice — sequenced after the external spine (S.H4 parse-that 1.0.0 cut → value.js 2.0.x follow-on; owner ruling 6). Verify npm view @mkbabb/value.js shows 2.0.x before acting. |
+| **62. dependency-cruiser 17→18 · fast-check 3→4 · @types/node floor** | old | old (→S) | **FOLD — deliberate tested bumps** | S.C4 | Re-verify the `[]` depcruise baseline post-bump. Oracle: `proof:pin-ledger-current` green post-bumps; lint baseline still `[]`. |
+| **63. Stale comments/narration corpus** (dead identifiers ×5, soa.ts/group-barrel/renamed-file headers, dep-cruiser/lint baselines, taxonomy BORN-RED prose, `<SegmentedTabs>` narration, proof-script sites, 2 orphaned pre-2024 assets) | Q–R | mixed (→S) | **FOLD — the gated/discretionary split, stated** | S.C3a | GATED: the dead-identifier grep bans the specific identifiers (`SceneSwitcherCarousel`, `SegmentedTabs`, `Animated.vue`, `ResponsiveSelect`, `AnimationMenuBar`) — NOT the phrase "scene-switcher" (sc-§3.2 — the identifier-only form stays the falsifiability-correct shape; historical docs and the S.E shelf record legitimately carry the phrase); corpus includes the proof-script narration sites (proof-visual-lock.mjs:172). DISCRETIONARY best-effort (stated, ungated): the remaining narration items. |
+| **64. docs/frontend-design/demo/*.md pre-fusion paths** | pre-R | 1→2 (R,R→S) | **FOLD — remap (discretionary tier, stated)** | S.C3a | Paths relocated (remapped) land BEFORE S.G reads them (a30) — the pre-fusion doc paths deleted/relocated. |
+| **65. docs/precepts/audits/ ownerless** | old | old (→S) | **RECORDED-FUTURE (owner)** | — (§8-6) | "Fold or freeze" names two options and chooses neither — a non-decision does not ship as a close deliverable (sz prune). An owner record-future item; re-enterable by owner ruling. |
+| **66. Mobile-sheet occlusion systemic** (all 10 design lanes; the bottom sheet occludes each scene's thesis) | H-era | chronic (→S) | **FOLD — the probe-PROVEN cure (p10: 12.1% → 72% stage visible at rest)** | S.G1 | The three-writer peek cure + the one-open-axis mandate (a per-layout fork reds `proof:live-session-mobile`'s touch battery — observed, 3 clauses) + mode-declared `--stage-strip`/`--stage-reserve` (52dvh subject / 26dvh editor-storyboard) + the `.controls-pane--open` gate-arming audit. Oracle: born-RED `proof:occlusion` — at 375×667 across all 9 scenes: (a) at rest `--sheet-t == 0` ∧ `sheet.top/viewportH ≥ 0.65`; (b) post-handle-tap `sheet.top ≥` resolved `--stage-reserve`; (c) the subject's live rect intersects the band. Replaces the per-pixel occlusion locks (feeds the A4 FROZEN migration). |
+| **67. Hidden-affordance systemic** (cube's gesture grammar invisible; spring derby + easing gallery dblclick-only; sequence drag-to-retime tell-less; amiga boing threshold unknowable) | H-era | chronic (→S) | **FOLD — manifest-gated** | S.G3 | The machine-readable per-scene gesture manifest (the census source-of-truth); EVERY entry carries an on-stage tell + a browser-actuated touch path; touch mechanisms pinned to reliable primitives (spring pointer-based 300ms double-tap; easing's visible gallery-door button) — NEVER native `dblclick` synthesis. Oracle: the manifest exists; every entry's tell + touch path browser-actuated green; an entry without a tell REDs. **The `drag-gesture` discharge claim is CORRECTED (T.S2, lane 27 F3): the S.G3 `354bab8` discharge was INCOMPLETE.** T.S2 root-caused the reopened ribbon-slider red to TWO defects and fixed the seam one: (1) SEAM — `PlaybackRibbon.vue`'s `gatedSliderDown` routed a MOUSE press through glass-ui `useTouchGate`, whose `"ontouchstart" in window` desktop-detection is TRUE in Chromium, so `handleTouchStart` returned `false` on the first press and SWALLOWED `acquireSelectSuppression`; FIXED — mouse/pen bypass the touch gate (validated: with the occluder neutralized, `body.is-dragging` arms on down, holds through move, clears on up). (2) OCCLUSION (residual, EASING-only) — the fixed `TransportDock` (`.menubar-safe-pb`, z-40, y 767-831) overlaps the controls-pane ribbon (y 795-835) on the easing scene, so the pointerdown never reaches the slider; the other 4 surfaces (square/spring/sequence/bezier) pass clean. The occlusion RIDES the easing/dock redesign (T.C dock recut · T.E/T.B controls-model — VERDICT #4/#12-16; T.S2 edges: "ride the redesign, not harden a doomed widget"), so `proof:drag-gesture`'s browser leg still reds on this ONE surface — the backlog row REMAINS (a NAMED carry, not a mask). |
+| **68. Motion-path traveller offset-path scaling defect** (unscaled user units detach the creature on any stage <~400px) | pre-R | 2→3 | **KILL (T.E) — the motion-path scene PRUNED at T.E (OD-1, owner-ruled); defect MOOT; the S-side per-item cure superseded** | S.G2 → **T.E** | The S-side cure (real `scalePathD` + ResizeObserver + hit-halos) landed, but the motion-path scene was subsequently PRUNED at T.E (OD-1, owner-ruled prune of compose/morph/motion-path); the traveller offset-path scaling defect is MOOT — the surface no longer exists. `proof:motion-path-editable` RETIRED (required ABSENT — verified absent from package.json + proof:all). Terminal by ratified-KILL. |
+| **69. Square lying controls panel** (the panel edits a CSSKeyframesAnimation that paints nothing) | pre-R | 2→3 | **FOLD → T.A13+T.B3 (the square honest-Play inversion)** | S.G2 → **T.A13/T.B3** | The load-bearing biting mechanism is `proof:square-honest` v2 — the T.A13+T.B3 born-RED inversion (the "Play visibly obeys duration/easing" assertion re-cut to RED on a paints-nothing panel; the panel restored to live controls with the mono caption), landing batch ③. The v2 gate is authored + tiered at that landing; until then this row rides the T_BORNRED_BACKLOG (the named gate exists but is not yet in a correctness tier — batch ③'s inversion wires it). Not re-affirmed. |
+| **70. Gate roster 190 → ~120 consolidation** | H–R | accreting (→S) | **FOLD — the roster diet** | S.A4 | Three-tier taxonomy (library-correctness / demo-correctness / hygiene) + the 5-artifact lockstep co-edit + the symmetric mis-tier clause (~15 LOC); the morph/emerging-css triple merges; `BORNRED_TRIPWIRES` retarget (`peer-satisfied` is the one merge touching a born-RED tripwire). Arithmetic: 190 → ~138 immediate → ~120 once the FROZEN fold discharges (cited to Q4/p04 + the D/G migration, not re-asserted). Oracle: `proof:ci-coverage` + reformed `proof:gate-is-runtime` green; a planted mis-tiered gate REDs in BOTH directions; zero gates orphaned. |
+| **71. KfPillTabs roving-tabindex keyboard-broken + TransportDock auto-repeat** (a12 F1/F2, HIGH — keyboard traversal collapses after one hop; a 3rd tab unreachable) | R (the DM-1/DM-5 replacements) | new→1 (R→S) | **FOLD → T.H5 (glass-ui gap tripwire) + T.F16 (KfPillTabs excision)** | S.B7 + S.D2 → **T.H5/T.F16** | Terminal mechanism: `proof:glass-ui-gap-tripwire` (the segmentedTabsAriaOrientation row — the born-RED gated-on-publish tripwire that stays RED until glass-ui ships the aria-orientation fix) + `proof:glassui-aria-ask` (the kf-side ask gate); the bespoke KfPillTabs surface is excised onto glass-ui Tabs at T.F16 (the rename). The keyboard-traversal defect terminates when the tripwire greens on the glass-ui BG/BH re-pin AND the excision lands — no roving-tabindex KfPillTabs survives. The S.B7 KfPillTabs.test.ts interaction-axis fixes (arrow-moves-focus, keyup actuation, press-origin guard, the TransportDock auto-repeat) remain the interim guard. |
+| **72. DQ-4 (false-RED S1/S2) · DQ-5 (ci-coverage) · DQ-6 (emerging-CSS-P2) · DQ-7 (wave-charter)** — dropped from the R ledger (r8-F2) | Q | 1→2 (Q,R→S) | **RECORD — ratified ledger row (the DQ-4..7 drops witnessed)** | S.Z1 → **T.S1** | Ratified as an explicit historical RECORD (T.S1, lane 27), not re-run: the r8-F2 DQ-4/DQ-5/DQ-6/DQ-7 drops are recorded with witness. DQ-5 (ci-coverage) is GREEN on today's tree (`proof:ci-coverage` exit 0); DQ-4 (false-RED S1/S2), DQ-6 (emerging-CSS-P2), DQ-7 (wave-charter) recorded as landed-in-Q per r8-F2 (witness = the Q close ledger). No re-run contract survives — the S.Z1 recap is closed by transfer to T.S7, so this is a terminal RECORD, not a live gate. |
+| **73. EN-a: serializeEasing emits browser-invalid easing names** (`format.ts:43-58` returns registry names like `ease-out-cubic` — not CSS `<easing-function>`s; the browser drops the whole declaration, computed `animation-name: none` — **the shipped `@keyframes` artifact is browser-dead for most registry easings TODAY**; the kf-parser round-trip structurally cannot see it) — P2-2 F6 | pre-Q (found at S dev, P2-2) | new→1 (latent since pre-Q) | **FOLD — library-correctness fix, homed in the compile wave (C-25: same-file cohesion; honesty-first sequencing; T7 fixtures in B3's blast radius)** | **S.B3 / EN-a** | The CSS-twin fix: registry name → its CSS twin (closed-form `cubic-bezier()`s for the Penner set; the universal fallback = a `linear()` densify of the callable; throw preserved for twinless closures; ~3 files). Born-RED **browser-parse** gate clause: a browser-actuated parse of an emitted `easeOutCubic` artifact asserts computed `animation-name !== none` — browser-harness by necessity (the artifact round-trips through KF but not through the BROWSER). T7: `proof:compile-replay`/`proof:compile-deterministic` fixtures co-edited in the same commit. **Cure PROVEN pass3** (`audit/pass3/en-fix-proto.md`): the fix = the universal `linear()`-densify twin (a re-parse fixpoint), NOT a partial bezier table; the browser-parse oracle REDs pre-fix / GREENs post-fix; the EN-a clause is a browser-harness gate (jsdom cannot see the dropped shorthand). T7 fixture co-edit BENIGN for the existing fixtures. |
+| **74. EN-b: compileChild whole-block densify swap drops every non-color property on mixed tracks** (`backward.ts:289-293` swaps the WHOLE block for the densified one while `densifyColorBlock` builds from color declarations only — a mixed `opacity + transform + color` track compiles eligible-with-zero-refusals to a color-ONLY `@keyframes` TODAY) — P2-2 F5 | O–Q (found at S dev, P2-2) | new→1 (latent since O–Q) | **FOLD — library-correctness fix, homed in the compile wave (C-25)** | **S.B3 / EN-b** | Thread the densify through `keyframesBlock`'s `bodyByStop` (merge color stops WITH the declared non-color declarations) per `format.ts:212-222`'s own design (~3–4 files; `declaredKeyframeBodyFor` is the substrate — row 58 REVERSED). Born-RED gate clause: a mixed `opacity+color` compile artifact contains BOTH properties. Same T7 fixture co-edit; **BLOCKS S.F3/EN-c** (the C-25 DAG edge — EN-c is unshippable on today's serializeEasing). **Cure PROVEN pass3** (`audit/pass3/en-fix-proto.md`): the fix = the percentage-keyed `densifiedKeyframesBlock` merge (color stops merged WITH the declared non-color projection; static colors preserved), a single-caller return-contract change; the mixed `opacity+transform+color` artifact carries all three props post-fix. |
+
+## State of play (2026-07-03 — the resume anchor)
+
+A compacted instance can resume from here. Tranche S is **fully DEVELOPED** (dev passes 1-3 closed;
+convergence 100% at pass 2; the pass-3 de-risk loops folded). **Band S.E is SHELVED by owner ruling**
+(the SceneStage prototype converged 100/100, was live-reviewed, ruled scrapped-for-now; shelf branch
+`scene-stage-proto-s` @ 63ccab0 + `audit/pass3/`). **Owner rulings 1-4 PENDING; rulings 5-6 RATIFIED +
+executed 2026-07-03** (5: re-scope S.C4/S2 into the named value.js-2.0.0 consume-edge; 6: single kf
+re-pin after value.js's 2.0.x `^1.0.0`-carrying follow-on). **IMPL is NOT authorized — the impl drive
+is the next owner action.** The plan's one external motion is the **single external SPINE**: S.H4's
+parse-that 1.0.0 cut → value.js's 2.0.x follow-on → the single kf re-pin+consume at S.C4/S2 (the
+adopt-event watch = `npm view @mkbabb/value.js` — **act at 2.0.x, not 2.0.0**, which still rides
+parse-that 0.13.0). The pass-3 PROVEN cause-fixes wait in **S.A0** (the shared importmap harness fix;
+styling-idioms; pin-ledger; DM-13/DM-14) and the EN-a/EN-b library-correctness fixes in **S.B3**.
+Branch `tranche-s-dev` is the doc home (docs-only; no source/test/config/git edits). Coordination
+mechanism = **letter + book** (letters travel with the registry event; books bind to named triggers,
+never gates; no RUN-BOARD). glass-ui stays a book, never a gate.
+
+## State of play (2026-07-04 — the T-pivot resume anchor; supersedes the 2026-07-03 anchor below for resume purposes)
+
+A compacted instance resumes HERE. **The S impl drive is 30/33 waves CLOSED on `tranche-s-impl` @
+`dee5aa6` (pushed; PR #4 the CI carrier)**: bands A/B/C/D/F/G/H fully landed incl. the keystone
+(CI cause-green; the target posture was REACHED), the SOTA surface (viewTransition ·
+compileToViewTransition · compileToEntry · the trigger driver, all oracle-proven), the R.W0
+override-Map retirement, the demo partition + stage contract, and **THE EXTERNAL SPINE EXECUTED
+END-TO-END** (parse-that 1.0.0 published at S.H4 → value.js **2.0.1** follow-on EXECUTED BY THE KF
+DRIVE per value.js's own R book (their session mid-S-dev; hand-back letter committed in their repo)
+→ S.C4/S2 consumed: the deletion map grep-zero, ^2.0.1, the KF-1 vector, PIN-LEDGER). Roster truth:
+83/85 green + visual-lock (observe-in-CI, recorded) + **drag-gesture = the ONE named BACKLOG carry
+→ Tranche T** (the G3 discharge missed one surface). REMAINING S: S.A3 (auto-deploy — now unblocked
+by the green demo-correctness posture) + S.Z1/Z2/Z3 — **the Z close is BLOCKED pending Tranche T
+dispositioning** (proof:prompt-recap-s requires OWNER-ASKS row 4 dispositioned).
+
+**THE PIVOT: the owner live-audited the demo (dev server :5180) and REJECTED it wholesale —
+2026-07-04.** The verbatim directive: `docs/tranches/T/audit/owner-review/ORIGINAL-PROMPT.md`
+(re-ingest it in full); the itemized 28-row catalogue: `VERDICT.md` (18 preserved shots). The
+directive: **Tranche T DEVELOPMENT (+ prototyping) ONLY** — the 32-agent audit of the S plan +
+everything landed + the live defects; Fable+frontend-design for ALL design; Opus/Sonnet fanout;
+batches of 3; chronic+deferred folds; the total prompt recap. THE META-FINDING T must encode: the
+instruments' bar ≠ the owner's bar (all-green gates + 100% critic convergence certified a rejected
+demo; the S.E-shelf lesson at full scale).
+
+**LIVE STATE a resumed instance must check:** (1) the 32-lane audit fleet — workflow
+`wf_66c7e419-23f` (task id at launch: wfjimxytm; scriptPath
+`~/.claude/projects/-Users-mkbabb-Programming-keyframes-js/10dfa2b9-2e44-4e6b-a6c5-b028a506ba71/workflows/scripts/tranche-t-audit-32-wf_66c7e419-23f.js`;
+resume via Workflow({scriptPath, resumeFromRunId:"wf_66c7e419-23f"}) if walled — completed lanes
+replay cached); lanes write `docs/tranches/T/audit/lanes/<id>.md`, 32 lanes 3-at-a-time, ~11
+chunks. (2) The dev server on :5180 (background; keep for owner audits). (3) The 2-hourly guarded
+RESUME cron. **NEXT after the fleet:** Fable synthesis over the 32 lane reports + VERDICT +
+ORIGINAL-PROMPT → the T corpus (docs/tranches/T/{T.md, PROGRESS.md, waves/, audit/}) with
+born-RED/born-OWNER gates, the S-residue fold (A3 + Z + drag-gesture + the S ledger's carries),
+design prototypes where the owner's bar demands live proof (the pass-3 pattern; owner-review-
+in-the-loop BEFORE folding design into waves — the S.E lesson), and the prompt-recap. NO
+implementation; NO landing on tranche-s-impl beyond docs/tranches/T/.
+
+## Owner rulings (dispositioned at drive entry)
+
+Pre-booked at SPEC §6.3. Rulings 5-6 RATIFIED + executed 2026-07-03. **Rulings 1-4: resolved to
+their stated defaults at drive entry (2026-07-03)** — the owner authorized the drive "IN TOTALITY"
+with an explicit no-relinquish directive, which (a) resolves ruling 4 directly (executing S whole =
+the split is NOT ordered) and (b) leaves rulings 1-3 on their plan-stated defaults, adopted and
+recorded here (OWNER-ASKS.md row 2026-07-03): **1** = additive-minor (formally re-surfaced at S.Z3
+with its two inputs, per the wave spec); **2** = the B6 loader collapse does NOT ship (it ships only
+on explicit owner approval, which was not given; the TYPE-diff drift gate ships regardless);
+**3** = the kf (S.F) + parse-that (S.H) reading — no speculative value.js SOTA band (x1 prune):
+
+1. **The version ruling's two inputs (sz-B8 — surfaced, not glossed; lands at S.Z3):**
+   (i) S.B6's `= any → = Vars` d.ts narrowing is source-breaking for consumers who passed arbitrary
+   property bags — minor or major? (ii) does the 126-leaked-private API-Extractor strip count as
+   "published-surface removal" for the C-18 changelog gate? Default remains **additive-minor**;
+   any surface removal rides a MIGRATION doc per C-18.
+2. **The B6 loader-collapse option (p07):** collapsing `loadAnimationEngine` onto
+   `import("./engine/public")` is behaviorally neutral (−100 LOC, −6% JS bytes, 23→5 dist files,
+   ONE 97.32 kB engine chunk, dynamic engine chunks 2→1, drift-proof by construction) at the cost
+   of foreclosed partial-engine code-splitting for a consumer that does not exist today. The
+   TYPE-diff drift gate ships regardless; the collapse ships only on owner approval.
+3. **The "SOTA both repos" reading (x1-#6):** the spec serves kf (S.F) + parse-that (S.H), matching
+   the r5/r6 lane structure — the supported default. If the owner meant the full constellation, a
+   value.js SOTA lane is a missing band (not added speculatively — x1 prune).
+4. **The breadth ruling (x2 §5):** SPEC §1 states why S is not split into an honesty cut (A/B/C)
+   and an altitude cut (D/E/F/G) — the altitude bands' born-RED gates are only declarable against
+   S.A4's reformed taxonomy, and the compensators are now structural (cause-shaped keystone,
+   closure re-execution, master-green-on-FINAL-SHA, machine-distinguishable FROZEN discharge,
+   the S.G4/S.H3 de-scopes). The owner may still order the split — an explicit pre-impl decision
+   point.
+5. **The value.js-2.0.0 consume slot — RATIFIED 2026-07-03 (owner ruling 5).** DECISION: **re-scope**
+   S.C4/S2 into the named value.js-2.0.0 consume-edge (the inbound-letter §1 deletion map + the
+   `^2.0.x` re-pin), NOT the letter-forbidden silent else-KEEP. Executed across the S doc set:
+   `waves/S.C.md` S.C4/S2 rewritten as "the value.js 2.0.0 consume-edge (RULED)", the S.C4 HARD GATE
+   extended with the S2 clauses (grep-zero `normalizeParam`/`NormalizedParam`/`VJS_PARAM_BUG_MAX`;
+   `check:lib` on the direct field reads; the KF-1 runtime vector through `proof:emerging-css-resolve`;
+   the S.A0 PIN-LEDGER co-edit to value.js 2.0.x); fold row 61 → FOLD — RULED consume-edge; the DAG
+   edge stated (the LATE slice, after the external spine). (Context — as authored, S.C4/S2 was a
+   conditional `VJS_PARAM_BUG_MAX` check whose 'else KEEP' branch fired silently; the else-KEEP only
+   existed because value.js 2.0.0 was uncut when S was authored.)
+6. **The re-pin sequencing — RATIFIED 2026-07-03 (owner ruling 6).** DECISION: **single re-pin after
+   the 2.0.x follow-on** — kf is parse-that-free, so parse-that 1.0.0 (S.H4's cut) reaches kf only via
+   value.js's `^1.0.0`-carrying 2.0.x follow-on; ONE kf re-pin at S.C4/S2 carries BOTH payloads
+   (KF-1/2.0.0 + parse-that 1.0.0), not two re-pin events. Executed: the S.H4 INBOUND-LETTER NOTE +
+   S.H charter/S7/verification updated (the kf-side adopt+consume is S.C4/S2, cross-ref); S.md's "kf
+   re-pins exactly once" is now TRUE BY RULING (the letter's undercount critique resolved); the
+   external-edge phrasing amended to ONE external SPINE everywhere (S.md/S.C/S.F/S.H/S.Z).
+
+## Session log (the S development phase — docs only; no source, test, config, or git-state edits)
+
+- `3a51f7b` (2026-07-02) — **S dev pass 1:** the 50-lane evidence corpus (8 research + 32 R-audit +
+  10 Fable design lanes) + SPEC-v1 + the 12-probe prototype fleet (p01–p12).
+- `24e913c` (2026-07-02) — **S dev pass 1 close:** CRITIQUE.json (11 critics, avg 50%) + SPEC-v2
+  (95/95 blocking edits absorbed, 0 disputed, 21 prunes recorded to §8).
+- `41d4030` (2026-07-02) — **S dev pass 2:** the two residual probes executed (P2-1 demo-shared
+  carve — confirms-spec; P2-2 `@starting-style` hand-compile — adjusts-spec, SUCCESS branch fired
+  live in Chromium 149) + SPEC-v3 (EN-a/EN-b hoisted to S.B3 per C-25; the D2 cap lifted; F3
+  PROMOTED to the EN wave-set; zero drops).
+- 2026-07-02 — **Convergence loop closed at 100%** (11/11 critics, empty blocking set); SPEC-v3 is
+  the converged source of truth (1,833 lines, standalone; retained as audit evidence). House-format
+  transcription authored: this board + THE ledger above + the wave docs under `waves/`. S remains
+  **development-only** — the impl drive awaits explicit owner authorization (inv-16, held honestly).
+- 2026-07-03 — **S dev pass 3** (`audit/pass3/`): three targeted probe-and-design loops AFTER SPEC
+  convergence, de-risking the plan's highest-uncertainty surfaces with LIVE prototypes. (i) The
+  **SceneStage design loop** (band S.E) converged **100/100** over a 3-round Fable loop (design-v1 →
+  proto-v1 → critique 70/~60 → v2 → re-critique 88/90 → v3 → final 100/100 FROZEN); the first-principles
+  DK-64 stage supersedes the salvage-only framing, and the H1 stale-arm class is cured (browse verbs
+  LOCKED during committing) + adversarially proven (the A–G driver, clause G). The **kept prototype
+  worktree** is `.claude/worktrees/wf_2fbb9dbc-c40-1` (runnable A–G/occlusion/warm-Suspense/fps/geometry
+  drivers under `demo/stage-proto/gates/`; **run instructions + transcripts in
+  `audit/pass3/stage-proto-v3.md`**). (ii) **ci-fix-proto** — 4 CI cause-fixes PROVEN GREEN
+  (`styling-idioms` · `pin-ledger-current` · `demo-usability` X-6 · the DM-13 shared importmap harness
+  fix, discharging DM-11b's importmap root) + 2 behavioral residuals precisely LOCATED (DM-14; the
+  DM-11b `[real-cube]` cold-path → S.A0(6)/cold-entry). (iii) **en-fix-proto** — EN-a + EN-b PROVEN
+  via a Chromium browser-parse oracle (RED pre-fix / GREEN post-fix; `check:lib` + 6 compile gates +
+  71 tests pass). Docs-only; nothing landed (isolated worktrees; node_modules symlink git-ignored). S
+  remains **development-only** — the impl drive awaits explicit owner authorization (inv-16).
+- 2026-07-03 — **Band S.E SHELVED by owner ruling.** The pass-3 SceneStage loop converged 100/100
+  and the owner live-reviewed the working prototype → RULING: *"Looks awful. Scrap the scene
+  selector for now, shelf it, and then remove those plans from the current wave set."* Executed
+  across the S doc set: `waves/S.E.md` replaced with the shelf RECORD; the board's E1–E8 rows
+  collapsed to ONE SHELVED row; every S.E DAG edge removed; fold row 17 (DM-24) → **RECORD —
+  owner-ruled SHELF** (built, converged, live-reviewed, ruled scrapped-for-now — NOT a silent
+  re-deferral; the ruling is S-terminal); rows 11/51/52/53/55 re-homed as owner-domain HANDOFFs
+  (no row cites a shelved wave); row 18 → retire-only (C-6 re-corrected: ASSERTION 3 stays);
+  C-7/C-10/C-12/C-17 re-corrected; T12 → exactly ONE external consume-edge (S.H4). The prototype +
+  gate drivers are preserved on branch **`scene-stage-proto-s` @ 63ccab0**; the design/build/critique
+  corpus stays frozen under `audit/pass3/`. Re-opening requires a NEW owner ruling. Docs-only.
+- 2026-07-03 — **Inbound letter RECEIVED + BOOKED: `VALUEJS-R-COORDINATION-2026-07-03.md`**
+  (b7fea38, from the value.js Tranche R orchestrator; letter+book mechanism — letters travel with
+  the registry event, books bind to named triggers, never gates; the tri-tranche RUN-BOARD is
+  ruled stale, not rejoined). Payload booked: value.js **2.0.0** (their R.W1, publishing now) lands
+  the KF-1 param-grammar fix + the `type→syntax`/`defaultValue→default` rename → kf's recovery
+  apparatus becomes dead code (deletion map noted at S.C4/S2); their commitments adopted on the
+  record (S.H4 trigger correction, the `^1.0.0` follow-on with widened verify, color2Into held
+  green → fold row 46 closes without its exit — noted at S.H4); glass-ui edge stays disjoint.
+  **Owner rulings 5 (2.0.0 consume slot: re-scope S.C4/S2 vs successor-book) and 6 (single-vs-double
+  re-pin sequencing) OPENED** — see "Owner rulings (pending)"; asked 2026-07-03, owner AFK, both
+  remain PENDING with orchestrator recommendations recorded (re-scope; single re-pin after 2.0.x).
+  No wave gate changed; do not act before `@mkbabb/value.js@2.0.0` is on the registry.
+- 2026-07-03 — **Owner rulings 5 + 6 RATIFIED + EXECUTED (docs-only).** The owner ratified rulings 5
+  (re-scope) and 6 (single re-pin after the 2.0.x follow-on) exactly as recommended. Executed across
+  the S doc set: **(5)** `waves/S.C.md` S.C4/S2 rewritten as the NAMED value.js-2.0.0 consume-edge —
+  the letter §1 deletion map verbatim (DELETE `normalizeParam` + `NormalizedParam` at
+  `resolve/resolve-function.ts:22-90` threading `CustomFunctionParameter` directly; retire the
+  `coerceArg` ≤1.2.0 `CUSTOM_FN_ARG_DROP` arm keeping the generic type-mismatch DROP; DELETE
+  `VJS_PARAM_BUG_MAX`) + the `^2.0.x` re-pin; the S.C4 HARD GATE extended (grep-zero, `check:lib`, the
+  KF-1 runtime vector through `proof:emerging-css-resolve`, the S.A0 PIN-LEDGER co-edit); the DAG edge
+  stated (S2 = the LATE slice, after the S.H4→value.js-2.0.x spine); fold row 61 → **FOLD — RULED
+  consume-edge**. **(6)** the S.H4 INBOUND-LETTER NOTE + S.H charter/S7/verification updated — ONE kf
+  re-pin at S.C4/S2 after the follow-on, both payloads; S.md's "kf re-pins exactly once" now **TRUE BY
+  RULING** (the undercount critique resolved). **(3, executed alongside)** the external-edge phrasing
+  amended to **ONE external SPINE** everywhere it appears (S.md "What S is NOT" + T12 + DAG;
+  `waves/S.C`, `S.F`, `S.H`, `S.Z`): S.H4's parse-that 1.0.0 cut → value.js's 2.0.x follow-on → the
+  single kf re-pin+consume at S.C4/S2 — two registry events on ONE owner-controlled causal chain;
+  glass-ui stays a book, never a gate. PROGRESS.md: rulings 5-6 → RATIFIED, the S.C4 board row + fold
+  row 61 updated, the "State of play" resume anchor added. Rulings 1-4 remain **PENDING**. **IMPL NOT
+  authorized.** No source/test/config/git edits — docs-only.
+
+## Session log (the S impl drive)
+
+- 2026-07-03 — **THE IMPL DRIVE IS AUTHORIZED + OPENED.** Owner directive (verbatim ask recorded in
+  `OWNER-ASKS.md`): "Begin and continue the current tranche … adhere exactly to the plan, in
+  particular regarding agent orchestration and deep parallelization … do not relinquish control back
+  to me until you have completed the plan IN TOTALITY. NO quick solutions, NO workarounds: idiomatic,
+  gestalt approaches … maximal parallelism and workflow usage … authorized to publish, push, and
+  pull … deploy anything and everything … core model for orchestration/design/synthesis, Opus or
+  Sonnet for workflow fanout." Drive branch: **`tranche-s-impl`** (from `tranche-s-dev` @ c6eef78);
+  a draft PR to master carries Linux CI runs through the drive (ci.yml fires on `pull_request` +
+  master push only). Rulings 1-4 resolved to their stated defaults at drive entry (see "Owner
+  rulings"). Registry at drive-open: value.js **1.2.0** (2.0.0 not yet cut — the spine watch is
+  live), parse-that **0.13.0**, kf **5.1.0**, glass-ui 4.2.0 (pin held ~4.0.x per C-12). Wave order
+  per the DAG: S.A0 keystone first (kf tree) ∥ S.H1+S.H2 (parse-that tree); every wave's gate re-run
+  by the orchestrator on the merged tree before its board row flips CLOSED (T4/T5).
+- 2026-07-03 — **S.H1 + S.H2 CLOSED (T4/T5 recorded).** Implemented on parse-that
+  `tranche-s-kf-dispatch` (934b2fa, 043c4d1). Orchestrator re-ran independently: `proof:all` exit 0
+  (11 gates, incl. the two new), tsc 0, vitest 124/124; BOTH born-RED signatures reproduced on the
+  base tree (2c806fb) in a throwaway worktree — `proof:packrat-armed` RED "15000 packrat Maps /
+  5000 non-memoized parses (3.0/parse; expected 0)"; `proof:no-span-surface` RED "span.ts exists +
+  dist declares all 15 *Span". chain() = C-16 Option A verbatim, `chainError` retired, 0-hit caller
+  scan recorded. NO throughput-% gate (§8-13 held).
+- 2026-07-03 — **S.H4 CUT + PUBLISHED — the SPINE's first registry event.** H4 commit 7eab78c on
+  parse-that master (merged, tagged v1.0.0, pushed): DQ-1/DQ-2 verified landed in 0.13.0 (rows
+  47/48); non-goals + r6 #6/#8 + the PROVISIONAL WDM/LR keep recorded (CHANGELOG 1.0.0 +
+  future-research.md §17; §7 reconciled). Orchestrator re-verified the tagged tree (tsc 0, build,
+  124/124, proof:all 0, pack artifact zero-span) and published: **`@mkbabb/parse-that@1.0.0` is
+  `latest` on the registry** (2026-07-03). The kf-side born-SPECIFIED gates (pin-ledger, consume,
+  value.js-suite) fire at S.C4/S2 after value.js's 2.0.x follow-on. fold row 46 (color2Into) is
+  verified at that re-pin, per the letter's commitment.
+- 2026-07-03 — **value.js 2.0.0 PUBLISHED (their R.W1) + the KF-VALUEJS-2.0.0 letter delivered**
+  (their commit 9a0f6cb, directly onto `tranche-s-impl` — letters travel with the registry event;
+  registry watch confirmed 1.2.0 → 2.0.0, deps still parse-that `^0.13.0` as forecast — **NOT the
+  adopt event**). Letter §6's two ruling requests are the already-RATIFIED rulings 5+6 (c6eef78);
+  §1-§5 match the S.C4/S2 wave text verbatim (deletion map, KF-1 vector, `.chain()` line-shift
+  note is value.js-side only). BOOKED — no gate change, no new owner asks. The registry monitor
+  stays armed for the `^1.0.0`-carrying 2.0.x follow-on (the S.C4/S2 adopt event).
+- 2026-07-03 — **S.A0 KEYSTONE executed + orchestrator-verified (T4/T5 recorded); status
+  green-modulo-backlog pending the Linux CI adjudication.** 13 per-cause commits (dde51fb…80c1445).
+  The seven enumerated fixes landed; the sweep additionally discharged SIX further gate-staleness
+  instances (dogfood allowlist; demo-elevate ×2; scene-parity valuetext; live-session ×3 stale
+  drives) + ONE genuine product a11y defect (easing `<dl>` content model → axe definition-list) +
+  the consequent EasingCurvePhysics colocated split (500L ceiling held honestly, no park). **Two
+  C-20 divergences recorded (the plan's own predicted causes REFUTED by reproduced signatures):**
+  DM-14 and `cold-entry` were GATE ACTUATION-STALENESS (synthetic `el.click()` vs R.W6's
+  pointerup-only transport) — the product pause/resume + cold-start paths PROVEN working under real
+  pointer actuation (`pressPlayToggle` driver, the TransportDock contract); NO product change to
+  `useContractAnimGroup`/`toggleAnimationGroup`. The importmap cause had FIVE instances (DM-13,
+  DM-11b, LoAF bench, kf-differential, computed-real-dom) — one shape fixed ×5. The LoAF
+  "exit-1-with-green-metric" premise did not reproduce; the decouple landed as durable plumbing
+  (bite verified both ways). Orchestrator re-ran ALL 13 discharged gates → exit 0 each; check 0;
+  build+gh-pages 0; vitest 97 files / 957 (954 pass, 2 expected-fail, 1 skip); backlog rows
+  sampled RED (drag-gesture 1, easing-sidebar-minimal 1). **Full-roster serial adjudication:
+  failing set = the 4 enumerated backlog rows + 3 pre-existing chronics with named owners**
+  (`perf-frame-budget` DM-12 → S.A2 bucket-2; `lighthouse-mobile` DM-8 → S.A1 row 6; `visual-lock`
+  cross-env font-metric baseline drift, red identically at base 7cd9dd8 → S.A2 bucket
+  adjudication; `scene-switcher-mobile` = the C-6 zombie, not a CI failing step → S.A4 retirement).
+  **Evidence for S.A2 banked:** run-all self-interferes (gates running `build:lib` empty
+  `dist/gh-pages` mid-roster → cascading false HarnessRequiredError reds) — the shared-dist
+  net-deletion is now observationally mandated. Linux CI verdict in flight on run 28684794006;
+  the keystone's "full green" clause is re-asserted at S.Z3 per the gate text.
+- 2026-07-03 — **S.A0 CI adjudication + the two CI-only causes CLOSED (the keystone completes).**
+  Run 28684851522 blocking failures = the 4 enumerated backlog rows + visual-lock (the named S.A2
+  chronic) + TWO CI-only discoveries, both then fixed by cause: **(i) the amiga cold-race**
+  (Linux-only; reproduced byte-identical under CDP cpuThrottling×20) — the REAL seam diverged from
+  the plan's arming-race guess (C-20): the scene machine's reducer dropped PLAY during
+  `status==="loading"` while the transport's optimistic aria flipped; cured as QUEUE-then-start-on-arm
+  (sceneMachine.ts queue/withdraw + scenePlaybackAdapters.ts queued-fresh START + the
+  machine→transport `machinePlaying` intent edge; reducer tests re-derived, 2 new cases) — commit
+  1f9106f; **(ii) proof:published-on-master** — red on EVERY CI run since authoring (depth-1
+  checkout: no tags, no master ref, detached HEAD) + the frozen `v4.4.0` witness rot; cured by
+  fetch-depth:0 on the gates job only + run-time derived `v${package.version}` + origin/master
+  fallback (verified in a CI-shaped detached scratch clone) — commit 09ba78a. Gates re-verified
+  post-fix: cold-entry, fsm-suspend-resume-live, subject-animates, scene-machine-irrefragable,
+  control-surface-single-writer, single-toggle, live-session, tsc — all 0.
+- 2026-07-03 — **Fan-out ① (S.C1 + S.C2 + S.B1) MERGED + orchestrator-verified (T4/T5).** Three
+  parallel worktree agents; ALL branches merged conflict-free; the full union re-run GREEN on the
+  merged tree by the orchestrator: check/check:lib/build/gh-pages 0; vitest 95 files / 939 (936
+  pass, 2 expected-fail, 1 skip — the 2-file drop IS S.C1's test deletion, count co-edited);
+  proof: boundary · no-silent-fallback · no-orphan-module · changelog · published-surface ·
+  published-on-master · ci-coverage · gate-is-runtime · decomposition · engine · no-flat-siblings ·
+  lint-clean · cold-entry · fsm-suspend-resume-live · subject-animates · live-session — ALL exit 0.
+  Wave notes of record: S.C1 derived the orphan-walker root set (4 pinned entries + zone barrels,
+  T7-robust vs B2/B4/B6), generalized the changelog gate (renamed `proof:changelog`, prev-tag
+  strictly-below guard → v5.0.0, 4 removed rows surfaced incl. the granular loaders), and excised
+  animate-orchestration wholesale (T6). S.C2's live census REFUTED the spec's 6-site as-any table
+  (R.W3 had already fixed 4; TimingFunctionPanel.vue no longer exists) — the 2 real survivors were
+  FIXED (casts removed clean under tsc), not labelled; 13 legitimate swallow sites KEEP:-labelled;
+  the hardened gate REDs planted bare-catch (1a) and unlabelled as-any (4). S.B1 landed the
+  constants seam with a derived clause-6 that caught the 11th bare-barrel light importer
+  (load-engine.ts) and repointed it. ORCHESTRATION LESSON: workflow worktrees fork from the DEFAULT
+  branch, not the impl branch — C1/B1 based on master (merges were clean; all gates re-run on the
+  merged tree); every future batch prompt carries an explicit merge-tranche-s-impl-first step.
+- 2026-07-03 — **The ①-merge CI adjudication caught two T7 debts + one ceiling breach; all cured by
+  cause (ee184fb).** Run 28687054310: `proof:replay-equality` + `proof:spring-blend-weight` anchored
+  TYPE declarations at the literal `src/animation/constants.ts` path S.B1 renamed — the owed T7
+  co-edit; both re-pointed to `constants/types.ts` (whole-scripts sweep: no other stale anchor).
+  replay-equality had NEVER executed on CI (it sat behind published-on-master's permanent red — the
+  A0 fix made it visible for the first time). `proof:demo-no-oversize`: A0's intent-edge threading
+  pushed the R-parked AnimationControlsGroup.vue to 505L — cured at the natural seam (the cohesive
+  220L macro-layout style block carved to a colocated sourced stylesheet, the plan's own D2
+  ControlsPaneWrapper precedent; NOT trimmed); check/gh-pages/demo-no-oversize/styling-idioms/
+  replay-equality/occlusion/demo-shell-grid re-verified 0. META-LESSON banked: the merged-tree
+  union re-run now includes every gate whose ANCHORS see changed paths, not only gates the waves
+  named.
+- 2026-07-03 — **Fan-out ② (S.A2 + S.C3a + S.A5) MERGED + orchestrator-verified (T4/T5).** Clean
+  merges; the full union re-run GREEN on the merged tree: check/check:lib/build/gh-pages 0; vitest
+  95/939; 19 static+hygiene gates exit 0 (ci-coverage with A2's new clause-8 no-mask + A5's
+  EXCLUDED entry composed cleanly); browser sample cold-entry/subject-animates/live-session/
+  occlusion 0; claude-paths-live exit 1 = its DESIGNED state (S.B8 discharges). **S.A2 landed the
+  demo-gate system**: ci.yml demo-smoke → demo-correctness (BLOCKING, report-all inside ONE roster
+  step — zero step-level continue-on-error, clause-8 gated) + demo-device-observe (job-level
+  observe); scripts/run-demo-roster.mjs = ONE shared chromium + ONE dist SNAPSHOT + heal-after-each
+  (the observed HarnessRequiredError cascade cured); KF_LOAF_COUNT de-magicked (named profiles);
+  settle-is-predicate widened driver-wide (plant-proven); the four buckets single-sourced in
+  scripts/demo-roster.mjs; DM-12 split (dock clause → glass-ui HANDOFF; easing clause → same-run
+  relative budget); visual-lock = cross-env pixel class, observe-only-in-CI, baselines NOT
+  overwritten. **S.C3a purged the dead tier** (8 shadcn devDeps + SPRING_SMOOTH) behind
+  proof:no-dead-dependency (4 plants + 2 false-RED-immunity checks). **S.A5 restored doc authority
+  gate-first** (root+demo CLAUDE.md hot-fixed to 0 findings; the gate deliberately unwired from
+  blocking chains until S.B8, EXCLUDED-with-rationale per the tripwire precedent; found+fixed the
+  ZONE_DIRS waapi/ under-check — the same defect class the wave hunts). A2's coordination note
+  banked for S.A4: drop proof:scene-switcher-mobile from scripts/demo-roster.mjs at the C-6
+  retirement.
+- 2026-07-04 — **The partition's first CI run adjudicated + finishing cures (4953fa5).** Run
+  28688428478: the roster verdict machinery worked (report-all, backlog classification, observe job
+  separated); library `npm ci` = registry ECONNRESET (network flake); the 4 UNEXPECTED reds all
+  dispositioned by cause — scene-switcher-mobile (the zombie now running honestly → S.A4's
+  retirement, landed); visual-lock (A2's own observe-in-CI adjudication made EXECUTABLE:
+  `OBSERVE_IN_CI` in demo-roster.mjs + the driver carve-out — records-not-blocks IN CI, hard-gates
+  on-device); mobile-single-page (the carve class: static surface = SFC + sourced stylesheet);
+  modern-web (`KF_MWG_OPTIONAL=1` restored on the roster step — the gate's own sanctioned CI
+  escape the rewrite dropped). Plus the ②-fallout: proof:idioms component-surface generalized to
+  the SFC+stylesheet pair; **gl-matrix DECLARED — a real latent phantom dependency C3a's purge
+  exposed** (8 demo files import it; it rode extraneous maplibre-gl; CI clean-install broke);
+  semver + proof-packrat-sound's transitive parse-that import booked to S.C4 posture.
+- 2026-07-04 — **Fan-out ③ (S.A4 + S.D1 + S.A1) MERGED + orchestrator-verified (T4/T5).** One
+  package.json conflict (A4's re-tiered hygiene chain vs D1's app-is-shell insertion) resolved by
+  grafting; the union re-run GREEN on the merged tree: check/build/gh-pages 0; vitest 95/939;
+  ci-coverage + gate-is-runtime + app-is-shell + no-orphan-module + boundary + decomposition +
+  published-surface 0; the 8-gate browser sample (cold-entry, live-session, occlusion,
+  single-toggle, dock-popover-opens, darkmode-row-toggle, pp-logo-svg, mobile-single-page) 0.
+  **S.A4**: the 5-artifact lockstep in one commit; the SYMMETRIC mis-tier clause took a REAL bite
+  on p08's own dry-run (proof:kf-differential — a browser non-actuator filed as LC — moved to
+  hygiene); FROZEN mechanism = scripts/gate-bands.mjs (51 FROZEN + DISCHARGE ledger + 9
+  regression-guards); C-6 KILL executed with machine witness (ledger row 18 closure updated);
+  S6 constellation-merge DEFERRED honestly (peer-satisfied is a by-name-referenced born-RED
+  tripwire — highest blast radius; zero orphans without it); chronic-closure found as the 6th
+  tier-name consumer and co-edited. **S.D1**: the app/ partition landed atomically (16 renames +
+  eviction + depth bump + MbabbMenu extraction + S7 renames per r4 §1.4); 9 (not 7) path anchors
+  re-derived + 4 UNENUMERATED App.vue content-anchor gates surfaced by the browser sample and
+  co-edited; App.vue 496→339. **S.A1**: the substrate re-point + substance clauses + sacred
+  parse shape, all plant-proven; 4 laundering dispositions reworded; the gate is BORN-RED BY
+  DESIGN on the forward board (73 findings = FOLD rows citing future gates) → EXCLUDED-with-
+  rationale (the claude-paths-live pattern) + its ci.yml step removed until S.Z2's RE-EXECUTION
+  re-wire — the S.Z2 wave re-runs it green on the merged tree and deletes the exclusion in the
+  same commit.
+- 2026-07-04 — **THE TARGET CI POSTURE REACHED (run 28690254873, tree f38b441):** library gate
+  SUCCESS (the first green library job since Tranche K — every gate executing, nothing masked) ·
+  demo device-observe SUCCESS · demo-correctness RED (4/74) with **failing set ⊆ the S.A0 backlog
+  EXACTLY**. En route, one more measurement falsehood cured by reproduced cause: demo-usability's
+  X-5 hero-gap clause — the INFINITE staggered liftDown defeats a ±2px same-line filter in ~17% of
+  snapshots (reproduced 10/60 locally); cure = same-line tolerance of half a box height (a true
+  line break is a full line box; translateY never changes the horizontal gap) + a bounded zero-pair
+  resample; 4/4 consecutive green, the real 44.3px gap witnessed.
+- 2026-07-04 — **Fan-out ④ (S.B2 + S.B3 + S.G1) MERGED + orchestrator-verified (T4/T5).** The
+  B2×B3 rename-vs-repoint conflicts (css-animation.ts, metadata.ts, public.ts) hand-resolved
+  composing BOTH waves' intents at corrected relative depths (B3's bridge-kill selector import +
+  transformTargetsStyle addition landed INTO B2's engine/css/ homes). **Orchestrator merge-carve:**
+  the combined tree pushed compile/backward/format.ts to 659L (B3's EN additions atop the move;
+  decomposition was not in B3's verification subset) — carved at TWO real seams: easing-serialize.ts
+  (the EN-a Easing→CSS tier: NATIVE_CSS_EASING + linearDensifyEasing + serializeEasing) + densify.ts
+  (the EN-b percentage-keyed merge) → format.ts 465L; consumers + 2 test imports repointed directly,
+  no re-export bridges. Verified on the merged tree: check/check:lib/build/gh-pages 0; vitest 96
+  files / 945 (940 pass; one transient browser-oracle blip re-ran clean twice — the dist-rebuild
+  contention class A0 documented); proof:library-correctness (38) 0; compile-backward-leg,
+  compile-browser-parse, ci-coverage, gate-is-runtime, no-orphan-module, boundary, decomposition,
+  no-flat-siblings 0; the G1 browser set (stage-visible, sheet-reopen-scroll, dock-zorder,
+  mobile-single-page, live-session-mobile, occlusion, demo-shell-grid, drawer-spring) 0. **The p10
+  cure is live fleet-wide: 72.0% stage visible at rest (== the probe), the three-writer peek cure,
+  mode-declared --stage-strip/--stage-reserve tokens.** G1's tap-vs-click lesson recorded:
+  SheetGrabHandle toggles on POINTER events — no-hasTouch contexts must page.click (real mouse
+  fires pointerdown/up); page.tap swallows silently. B2 flags for S.B5: animation.ts 486L is
+  a19-FLOOR-BOUND (further reduction needs a public-API-breaking class split — out of S scope);
+  playback.ts 487L got the clean STATE↔BEHAVIOR carve; ≤460 remains an observed tripwire per T2.
+  proof:soa-composite noted as a pre-existing bench-timing flake standalone on a busy machine
+  (green in-tier + 3/4 standalone; passed pre-wave) — the known device-dependence class.
+- 2026-07-04 — **Runner re-adjudications (④ tree):** run 28691459403 demo posture PERFECT (4/76 ⊆
+  backlog) but published-surface clause (e) BIT on CI — B3's en-fix-oracle rotted the frozen
+  test-count (95→96); re-derived (a18c2da) → run 28692093664 back at the FULL target posture
+  (library ✓ observe ✓ demo 4/76 ⊆ backlog). The 2-test suite blip run to ground: vite-cache
+  contention when a sibling worktree's concurrent build races the shared node_modules — 6
+  consecutive clean runs on a quiet tree; occurs only during active fan-outs.
+- 2026-07-04 — **Fan-out ⑤ (S.B4 + S.D2 + S.F2) MERGED + orchestrator-verified (T4/T5).** Conflicts:
+  the CLAUDE.md count line (3-way — resolved by re-derivation post-merge: 98 files / 957, verified
+  by the actual run) + the orchestration barrel (B4's explicit-named policy × F2's split-text
+  exports — composed: F2's exports re-stated explicit-named under B4's policy). Verified on the
+  merged tree: check/check:lib/build/gh-pages 0; vitest 98 files / 957 (954 pass) — the count
+  placeholder EXACT; library-correctness(38) 0; depcruise 0; boundary · no-flat-siblings(derived
+  FAMILY) · no-orphan-module · decomposition · published-surface · engine · scene-colocated ·
+  shared-has-n-consumers · ci-coverage · gate-is-runtime · composition-honored · platform-adopt ·
+  alias-dropped · emerging-css-resolve(the A4-merged single key) 0; the D2-repointed browser set
+  (stage-visible — the C-24 POST-CARVE re-run — mobile-single-page, drawer-spring,
+  control-surface-single-writer, demo-shell-grid, idioms, cartoon-is-panel-depth) 0; split-a11y 0;
+  cold-entry/live-session/occlusion 0. **S.B4**: ownership INVERTED (KeyframesAnimation.group()
+  excised, internal/group-factory.ts DELETED, AnimationGroup.of(), the one demo caller migrated);
+  internal/index.ts deleted per C-5 (waapi/ in ZONE_DIRS, internal/ excluded by documented design,
+  FAMILY derived); 3 colliding basenames renamed (waapi-options, play-lifecycle, yield-batch — the
+  spec's playback-state name was TAKEN by B2's carve, honest rename divergence); explicit-named
+  barrel policy on orchestration/physics/presets; svg/handle.ts abstract base closes the
+  MotionPath.finished asymmetry BY CONSTRUCTION; scroll relay deleted; transport PRM DRY'd.
+  **S.D2**: the stores hoist (demo/@/state/, @state alias pair, 22+7 import swaps, reset-registry
+  inversion), the 3-peer carve (animation-transport · keyframes-editor · keyframe-timeline),
+  single-consumer colocations (orbital-drag+matrix-editor→scenes/cube, useTypedTrigger→
+  scenes/sequence, easing-editor cluster, editor-shell trio, CSSPasteDialog, dock→app/chrome),
+  ControlsPaneWrapper sourced-CSS split (497→200L; G1 tokens verbatim), cubeKeys 8/8, ~30 gate
+  repoints in the same commits, the decomposition walker-root re-aimed (T7). D2's HANDOFF to D3
+  banked: the shared-has-n-consumers ALLOWLIST rows for asset-manager + EditableLabel go stale at
+  the compose fold — D3 deletes them in the same commit. **S.F2**: splitText LIGHT primitive
+  (split-text/ 4 files; measure-or-refuse by:line; typed refusals), proof:split-a11y via CDP
+  Accessibility (role=img + aria-label — a bare aria-label on role=generic computes NO name; the
+  spec's wording under-specified the naming role), fragments animate under a ready stagger.
+- 2026-07-04 — **Fan-out ⑥ walled then re-deployed; MERGED + orchestrator-verified (T4/T5).** The
+  first launch died 3/3 on a session-limit wall (~6 min in, nothing committed); worktrees purged and
+  the SAME script relaunched via scriptPath+resumeFromRunId (the persisted-script pattern); the
+  2-hourly guarded RESUME cron re-armed. All three waves landed on the retry: **S.B5** — the R.W0
+  KEYSTONE COMPLETED: the last LIBRARY_CEILING_OVERRIDE entry deleted and the Map retired
+  EMPTY-BY-CONSTRUCTION (a re-added entry REDs; a planted 521L file has "no exception to raise,
+  only the carve" — both witnessed); 4 cohesion carves (group/lifecycle.ts, sequence/lifecycle.ts,
+  the addFrame selector validation → compile/selector.ts, spring/managed-play.ts via a
+  SpringPlayback ring-break interface) + presets/classic.ts 728→304L factories + 458L data;
+  progress.ts lands 492L — the solver is the irreducible anchored core (honest floor, ≤460 stays
+  observed-only per T2). **S.C3b** — the shadcn menubar island EXCISED (16 files + the private cn
+  helper); the C-19 choice DOCUMENTED: relocate-in-place, NOT dropdown-menu — the surface was a
+  4-affordance authoring TOOLBAR (zero MenubarContent); a dropdown would bury always-used verbs and
+  break the persistent brushAnimation mount-binding; glass-ui's ./dropdown-menu export VERIFIED
+  present so the choice is usability-grounded, not external-gated (T12-clean); keyboard semantics
+  restored via useToolbarKeyboard (WAI-ARIA roving tabindex) + the 4-test T8 suite; C3a's census
+  clause FLIPPED non-gating→gating and discharged red→green. **S.C4 S1+S3** — dependency-cruiser
+  17→18 (pre-verified clean via an npx-isolated binary against the unmodified tree; baseline stays
+  []), fast-check 3→4 (grammar-fuzz + property suites green), @types/node re-aligned DOWN to the
+  >=22 engines floor; glass-ui ~4.0.x tilde HELD per C-12; the worktree landed lock-only (verified
+  ZERO writes into the shared node_modules mid-fan-out) and the orchestrator ran the real npm
+  install at merge. Merged-tree union GREEN: check/check:lib/build/gh-pages/lint(depcruise 18) 0;
+  vitest 99 files / 961 (958 pass); library-correctness(38) 0; decomposition (override-free) ·
+  no-dead-dependency (census gating) · pin-ledger · deps-current · grammar-fuzz · boundary ·
+  no-orphan-module · ci-coverage · gate-is-runtime · shared-has-n-consumers · no-flat-siblings ·
+  compile-backward-leg 0; published-surface clause (e) bit AGAIN on C3b's +1 test file (the
+  count-tripwire's third bite this drive) → re-derived 99/961 → 0; browser sample
+  (easing-editor-live, live-session, stage-visible, cold-entry) 0.
+- 2026-07-04 — **Fan-out ⑦ (S.B6 + S.B7 + S.D3) MERGED + orchestrator-verified (T4/T5).** Zero git
+  conflicts (rename-detection composed B7's test regroup with D3's repoints); THREE composition
+  breaks surfaced by the union re-run, each cured by cause: (1) the asset-store test import — D3
+  repointed it relative to test/ root, B7 then moved the file a level deeper (depth fix); (2)
+  proof:compose-scene red on UNTRACKED demo/playground/dist debris (gitignored, so the merge's
+  deletions left it on MY disk — removed); (3) proof:color-fidelity "STALE doc" — the rendered
+  artifact CITES the test path B7's regroup moved (re-rendered via its own prescribed command);
+  (4) the BIG one — proof:{cold-entry,fsm,subject-animates,live-session} ALL red because B7's F3
+  press-origin guard rightly rejects pressPlayToggle's bare synthetic pointerup (the ghost-
+  actuation shape it exists to forbid) AND synthetic PointerEvents default isPrimary:false (the
+  guard reads that as a secondary touch): the driver now dispatches the honest full press
+  (down+up, same pointerId, isPrimary:true) → all four 1→0. THE LESSON (the p10 arming-audit
+  class, third recurrence): a wave changing ACTUATION semantics must re-arm the shared driver in
+  the same motion — encoded for future prompts. Merged-tree union GREEN: check(now covering
+  test/+bench)/check:lib/build/gh-pages 0; vitest 106 files / 1006 (999 pass); library-
+  correctness(38) 0; the B6 type-gates (no-any-default 36→0; TYPE-diff mirror; dts-rollups-agree —
+  which caught a REAL inherited drift at authorship: the barrel trimmed @internal, the engine
+  roll-up did not) 0; compose-scene 0 (formal close rides S.G); scene-colocated (edit #3 of
+  A4→D2→D3 complete) · shared-has-n-consumers · published-surface · ci-coverage · gate-is-runtime ·
+  decomposition · boundary · no-orphan-module · no-flat-siblings 0; browser sample (stage-visible,
+  live-session, demo-usability, occlusion, mobile-single-page) 0; test/demo zone 141/141. S.B6's
+  S8 disposition: PropertyDescriptor_2 is UNFIXABLE kf-locally (API-Extractor renames by the
+  SOURCE symbol) → filed as the KF-7 value.js dispatch rider on the KF-VALUEJS-2.0.0 letter,
+  consumed at the S.C4/S2 re-pin. The DEMO IS NOW 10 SCENES (compose = THE FOUNDRY, ninth
+  authored scene + home).
+- 2026-07-04 — **Fan-out ⑧ walled TWICE, salvaged, then LANDED in full (T4/T5).** Two session-limit
+  walls (resets 5:30am + 6:40pm) each killed the 3-lane launch; recovery per the pattern —
+  worktrees purged, the persisted script relaunched. The second wall left REAL committed salvage:
+  F5a's S1–S3 (the boxedKeys Set hoist killing the per-frame compositor allocation; the mixed-leaf
+  zero-alloc coverage; the C-10 budgeted colorTail/compositor ratios) — merged + verified + the
+  bench-skeleton taxonomy rows classified (29dc0a9); the third launch ran F5a as S4-ONLY (the
+  script edited in place) and ALL THREE lanes returned. **S.F1 CLOSED** — the flagship:
+  orchestration/view-transition/ (LIGHT viewTransition with normalized handle + flipShared/
+  immediate fallbacks), the VT-b selector-factory carve (byte-neutral, replay gates untouched),
+  compile/view-transition.ts (name-keyed VTRoleSpec; THREE emission surfaces with the MANDATORY
+  timing-only group pseudo; 4 VT refusals; PAIRED mirror wiring), the demo scene-transition
+  dogfood; proof:vt-roundtrip born-RED witnessed (group-emission disabled → the UA 250ms/ease
+  incoherence observed) → 0. **S.F3/EN-c + EN-d CLOSED** — compile/entry.ts (the declared-endpoint
+  projection; three-rule grammar; display/overlay allow-discrete both lists; oklab endpoint
+  canonicalization — the perceptual-oklab INVERSION realized; 3+6 refusals; compileToEntry on the
+  paired mirror), the spring scene's @starting-style card now surfaces the REAL artifact;
+  proof:entry-roundtrip born-RED (S1 fails with @starting-style dropped) → 0, S1–S7 scrub-based.
+  **S.F4 CLOSED** — the trigger grammar REALIZED (once-LATCH · repeat-RESET · alternate-FLIP ·
+  state-FOLLOWS, all state-sequence-distinguishable; native/fallback via CSS.supports
+  feature-detect, never UA-sniff; colocated scroll/trigger.ts, the B4-frozen scene.ts surface
+  untouched); proof:trigger-roundtrip born-RED (stubbed driver → [idle,idle,idle]) → 0.
+  **S.F5a CLOSED** — the C-13 bench made real and RUN: decayRest 357,338 hz vs reseatToSpring
+  16,033 hz (≈22.3× — they compute DIFFERENT things); verdict RETAIN-both recorded in
+  scripts/reseat-vs-decay-decision.json + the fold-row-56 seam comment. MERGE: 2 conflicts
+  composed (package.json gate keys; the count line re-derived 112 files / 1057 tests). Union
+  GREEN on the merged tree: check/check:lib/build/gh-pages 0; vitest 112/1057 all pass;
+  library-correctness(38) 0; vt/entry/trigger/compile-browser-parse oracles 0; published-surface ·
+  readme-runs(19 snippets) · engine-subpath-mirror · no-any-default · dts-rollups-agree ·
+  boundary · ci-coverage · gate-is-runtime · compile-replay · compile-deterministic ·
+  bench-taxonomy · scroll-roundtrip · decomposition · no-orphan-module 0. The library's SOTA
+  surface now ships: viewTransition (LIGHT) · compileToViewTransition · compileToEntry · the
+  realized animation-trigger driver — every uplift compiling back to zero-runtime, current-spec
+  CSS (the r5 charter line, executed).
+- 2026-07-04 — **Fan-out ⑨ (S.G2 + S.F5b/c + S.D4) MERGED + orchestrator-verified (T4/T5); the
+  BACKLOG COLLAPSES to ONE row.** Clean merges. **S.G2 CLOSED** — 5 per-item oracles red→green
+  (motion-path scalePathD+ResizeObserver, 21/21 sweep samples ⊂ stage; square honest-collapse via
+  the DFA — the lying panel deleted, the box+dock ARE the controls); the THREE S.A0 backlog rows
+  DISCHARGED with the honest roster flip (their BACKLOG rows removed — a regression now reads
+  UNEXPECTED): scene-perf-budget (the A2 anchor T7-followed to useAmigaThree.ts — the cap was
+  ALREADY live, the gate anchored a stale path), easing-sidebar-minimal (the value input stripped;
+  the REAL easing-curve-editor gate conflict resolved on the record — precision authoring rides
+  Shift+Arrow + handle drag), icon-paint-live (the demo-side ::view-transition-* residue deleted —
+  S.F1's dogfood had already rewired the runtime VT through kf viewTransition; the typed
+  directional-slide upgrade documented as the glass-ui owner-domain HANDOFF per MEMORY);
+  the C-13 Oscillator decision = strip the fictional header, ledgered intentional public leaf.
+  **S.F5b/c CLOSED** — resolve/ zone first bench coverage (7 arms) + the cold-import boundary pair
+  (LIGHT ~26× faster than the dynamic HEAVY door — consume-bundle made runtime-visible);
+  bench-taxonomy born-RED(9)→0; the WAAPI multi-segment densify clause born-RED→0 with a REAL
+  browser-verified correctness finding (WAAPI re-transforms iteration progress BEFORE keyframe
+  interpolation → the multi-segment emit must be bare linear, never a per-segment twin — the
+  double-ease); the Typed-OM verdict recorded TERMINALLY as the pre-booked KILL-with-measurement.
+  **S.D4 CLOSED** — the 3 use<Name>Animations stragglers renamed atomically; demo/CLAUDE.md
+  regenerated comprehensively (an ~18-file QUIET drift class found beyond the 3 named phantoms —
+  the regen was done against the REAL tree, not the spec's list); the doc-drift clause
+  plant-proven; @/ KEEP ruled. **S.D3 formally CLOSED** (the sd-#4 condition: G1+G2 landed,
+  compose rides the fleet green). Union on the merged tree: check/build/gh-pages 0; vitest
+  112/1057 all pass; the discharged trio + motion-path-scale + square-honest +
+  waapi-adaptive-densify + bench-taxonomy + scene-colocated + live-session + stage-visible +
+  ci-coverage 0; claude-paths-live red ONLY on the authorized S.B8 backlog (22 paths — the next
+  batch discharges it). **The roster BACKLOG is now ONE row: drag-gesture → S.G3.**
+
+<!-- T.S5 BACKFILL (append-only; docs-only, mechanical from git log) — the S session log
+     stopped at fan-out ⑨ (drag-gesture → S.G3), ~40% before the drive's actual terminus at
+     dee5aa6. Lane 27 F4: 20 further commits landed real work the log never narrated; the entries
+     below carry it to the terminus so a reader who trusts the log alone learns that S.C4/S2 fired,
+     that a tenth fan-out happened, and WHY row 67's discharge claim is false. -->
+
+- 2026-07-04 — **S.G3 S5: `proof:drag-gesture` DISCHARGED — then re-opened.** `354bab8` landed the
+  honest clause-(b) settle predicate (`userSelect` held through the gesture) and flipped the LAST
+  backlog row green, collapsing the roster BACKLOG to zero. **This discharge was later found
+  INCOMPLETE** (see the terminus entry) — it verified only one surface. Recorded here so the S.G3
+  narrative and the eventual reopen are both in the log.
+- 2026-07-04 — **S.F6 CLOSED — the honest emerging-CSS narrative.** `32f586d`: the emerging-CSS
+  resolver's marketing tempered to the shipped reality (a dated WebKit re-check note, the byte-claim
+  gate-fix). A narrative-honesty slice, no engine change.
+- 2026-07-04 — **S.B8 CLOSED — the library map regen + the hygiene-chain wiring.** `c866d72`
+  regenerated `src/animation/CLAUDE.md` once against the final post-B tree (C-8: regen against the
+  REAL tree, not a spec list). `1c04de9` (same slice) wired `proof:claude-paths-live` into
+  `proof:hygiene-chain` and DELETED its exclusion in the same commit — the lockstep the T7
+  arming-audit demands.
+- 2026-07-04 — **S.G3 CLOSED — the affordance layer + the machine-readable gesture census.**
+  `13bf2e8` (S1-S4) built the affordance layer + touch parity on reliable primitives (pointer-based
+  double-tap, the visible gallery-door button — NEVER native `dblclick` synthesis); `f55a9a9` (S6)
+  added the per-scene gesture census + `proof:gesture-manifest` (born-RED — every entry carries an
+  on-stage tell + a browser-actuated touch path; a tell-less entry REDs).
+- 2026-07-04 — **S.C4/S2 — THE CONSUME-EDGE FIRED (owner rulings 5+6).** `74ee9d2`: the adopt event
+  arrived (value.js's `^1.0.0`-carrying **2.0.1** follow-on) and the SINGLE kf re-pin executed,
+  carrying BOTH payloads — the KF-1 param-grammar fix + the rename via 2.0.0, and parse-that 1.0.0
+  via the 2.0.1 follow-on. `normalizeParam`/`NormalizedParam`/`VJS_PARAM_BUG_MAX` DELETED (grep-zero);
+  `CustomFunctionParameter` threaded directly (`.name`/`.syntax`/`.default`); the ≤1.2.0 bug arm
+  retired; the KF-1 runtime vector landed (26/26); the PIN-LEDGER co-edited to `^2.0.1`; the `-fn`
+  anchor followed the rename (T7). **fold row 46 (color2Into) verified at this re-pin per the H4
+  letter's commitment** (the itemized oracle re-captured later at T.S3 §3).
+- 2026-07-04 — **S ⑩ — the full-roster long-tail sweep (8 reds by cause).** `d5479ad`: the
+  CubeTarget/SequenceTarget sourced-CSS carves (522/521→302/264), the colocate clause widened to
+  accept the fused `*Scene.vue` form, motion-path's `ResizeObserver` → vueuse, the easter-egg/
+  design-refinement anchors + the browser leg re-armed to `useDoubleTap`'s real gesture + the
+  gallery-door button, the readout single-lined with its own-box scroll.
+- 2026-07-04 — **THE T-PIVOT — S drive TERMINUS.** `f2d05c7`: the owner live-reviewed the demo
+  (`:5180`) and REJECTED it wholesale — Tranche T DEVELOPMENT opened, the 22-defect VERDICT recorded
+  (18 shots preserved, `docs/tranches/T/audit/owner-review/VERDICT.md`), OWNER-ASKS row 4 filed, the
+  S close (Z1-Z3) BLOCKED pending T dispositioning; the S instruments were ALL-GREEN when the verdict
+  landed (the META-FINDING: the instruments' bar ≠ the owner's bar). `dee5aa6` (the drive HEAD): the
+  `scene-perf-budget` G5 clause re-grounded to the CubeTarget SFC+CSS pair, and **`drag-gesture`
+  RE-OPENED as the named BACKLOG carry → Tranche T** — the S.G3 `354bab8` discharge was incomplete
+  (one surface; reproduced serially), so **row 67's table cell claiming discharge is FALSE** (the
+  ledger-vs-script disagreement lane 27 F3 names; corrected at T.S2). OWNER-ASKS row-4 overstatement
+  corrected in the same commit. The S drive stands verified-by-instrument at `dee5aa6`; every carry
+  from here is transferred to Tranche T, not re-run in S.

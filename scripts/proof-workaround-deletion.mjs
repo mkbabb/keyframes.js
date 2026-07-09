@@ -47,6 +47,10 @@ import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { execFileSync } from "node:child_process";
+// T.H2 — the glass-ui consumed-dist cap shape is hoisted to the SINGLE source
+// scripts/lib/glass-caps.mjs so this gate AND proof:glass-ui-gap-tripwire read
+// ONE probe (the T.H1 edge: never a second copy — else the two can disagree).
+import { glassCaps } from "./lib/glass-caps.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -183,95 +187,14 @@ const vjsCaps = {
 // ── glass-ui content-probe (Q.WG-S1S2-HYGIENE — the false-RED fix) ──
 //
 // A registry version EXISTING does NOT prove the glass-ui FIX is in the dist kf
-// CONSUMES. glass-ui 4.1.0 is published, but kf installs 4.0.1 (the
-// prohibited-aria dist), and the BC aria/dock cures are hard-gated behind the
-// unexecuted USER-DOMAIN BD.W-CUT — so deleting the S1/S2 band-aids NOW
-// re-breaks ARIA / the dock click-strand. The S1/S2 arms therefore CANNOT key
-// on the registry version (the false-RED that exits 1 today, failing
-// proof:hygiene). They must read the INSTALLED glass-ui dist CONTENT — the EXACT
-// `vjsCaps` discipline (S7/S8/S9 already carry `apiPresent`), now mirrored for
-// glass-ui. Both probes are DIST-CONTENT GREPS (device-INDEPENDENT — they do NOT
-// mount a component; the mounted-DOM readback is the SEPARATE, device-bearing
-// `proof:glassui-aria-ask` gate, kept distinct so this gate stays portable).
-const glassCaps = (() => {
-    let tabsDist = "";
-    let dockDist = "";
-    try {
-        tabsDist = readFileSync(
-            join(root, "node_modules/@mkbabb/glass-ui/dist/tabs.js"),
-            "utf8",
-        );
-    } catch {
-        /* dist absent — content false → PENDING (held, never false-RED) */
-    }
-    try {
-        dockDist = readFileSync(
-            join(root, "node_modules/@mkbabb/glass-ui/dist/dock.js"),
-            "utf8",
-        );
-    } catch {
-        /* dist absent — content false → PENDING */
-    }
-    return {
-        // ariaGuard — the SegmentedTabs aria-orientation guard is present iff the
-        // installed `dist/tabs.js` does NOT emit `aria-orientation` UNCONDITIONALLY
-        // on `role=group`. The installed 4.0.1 emits `aria-orientation": L.value ?
-        // "vertical" : "horizontal"` — an UNCONDITIONAL ternary (no role-guarded
-        // else arm) → ariaGuard=false → PENDING. When the BC cut ships the guard,
-        // the dist carries the role-conditional `: void 0`/`: undefined` else arm
-        // on the `aria-orientation` bind → the GUARDED shape grep matches →
-        // ariaGuard=true. A DIST-CONTENT grep, NOT a registry/DOM probe.
-        ariaGuard: (() => {
-            if (!tabsDist) return false;
-            // The GUARDED shape: an `aria-orientation` PROP-BIND (`aria-orientation":
-            // <expr>`) whose value carries a role-conditional `: void 0`/`:
-            // undefined`/`: null` else arm (the pill/group variant suppresses the
-            // attribute) — present ONLY after the BC SFC guard ships. Scan EVERY
-            // `aria-orientation"` PROP-BIND occurrence (the dist also carries the
-            // bare attr-name in a `["role","aria-orientation"]` array — NOT a bind,
-            // skipped by requiring the trailing `:`), and match the suppress-else
-            // token within the bind's value window. The UNCONDITIONAL 4.0.1 emit
-            // (`aria-orientation": L.value ? "vertical" : "horizontal"`) carries no
-            // suppress-else → no match → ariaGuard=false → PENDING.
-            const BIND = /aria-orientation["']\s*:\s*([^,}\n]{0,120})/g;
-            let m;
-            while ((m = BIND.exec(tabsDist)) !== null) {
-                if (/:\s*(?:void 0|undefined|null)\b/.test(m[1])) return true;
-            }
-            return false;
-        })(),
-        // dockStrandKeepalive — the collapse-crossfade keepalive is present iff the
-        // installed `dist/dock.js` carries the keepalive's STRUCTURAL signature: the
-        // active `.dock-layer` RETAINS pointer-events/hit-test across the crossfade
-        // (rather than the current drop/recreate that swallows a mid-crossfade
-        // pointerdown). A device-INDEPENDENT dist-content grep, NOT a live DOM
-        // session (the BEHAVIORAL observable — a pointerdown lands mid-crossfade —
-        // is the SEPARATE, device-bearing `proof:live-session` consume gate). It
-        // needs NO forward-named PUBLIC API string: it reads the structural dist
-        // signature the cure necessarily leaves. The installed 4.0.1 dock carries
-        // only the UNRELATED `useDockClickIntegrity` + `pointer-events-none` on the
-        // indicator — NOT a `.dock-layer` keepalive → dockStrandKeepalive=false →
-        // PENDING.
-        dockStrandKeepalive: (() => {
-            if (!dockDist) return false;
-            // The keepalive signature: the dock-layer markup carries a
-            // pointer-events KEEPALIVE on the ACTIVE layer across the crossfade —
-            // the cure-specific token the BC cut introduces. We match a
-            // `dock-layer` token co-located with a pointer-events KEEPALIVE
-            // (`pointer-events:auto`/`pointer-events-auto`/a `keepalive`/`keep-alive`
-            // marker) — NOT the existing `pointer-events-none` indicator. Absent
-            // today (the cure not in the dist) → false → PENDING.
-            return (
-                /dock-layer[^]{0,400}?(?:pointer-events:\s*auto|pointer-events-auto|keep-?alive)/i.test(
-                    dockDist,
-                ) ||
-                /(?:keep-?alive|keepActiveLayer|retainActiveLayer)[^]{0,200}?dock-layer/i.test(
-                    dockDist,
-                )
-            );
-        })(),
-    };
-})();
+// CONSUMES. The `glassCaps` shape (ariaGuard / dockStrandKeepalive +, T.H2, the
+// two new dockDismissHold / dockDropdownPointerdown caps) is now hoisted to the
+// SINGLE source scripts/lib/glass-caps.mjs (imported above) so this gate AND
+// proof:glass-ui-gap-tripwire read ONE probe. Each cap is a DIST-CONTENT GREP
+// (device-INDEPENDENT — it does NOT mount a component; the mounted-DOM readback
+// is the SEPARATE, device-bearing `proof:glassui-aria-ask` gate). glass-ui 4.0.1
+// (the installed, prohibited-aria dist) satisfies NONE, so every glass-ui arm is
+// PENDING — deleting a band-aid now re-breaks ARIA / the dock, never a false-RED.
 
 // ── Publish probe (the three-state classifier's PUBLISHED/UNPUBLISHED axis) ──
 
@@ -358,6 +281,48 @@ const arms = [
         // is observed in the consumed dist — never a false-RED on 4.1.0.
         sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB collapse-crossfade dock-layer keepalive (GU-Q2, content-probed)" },
         apiPresent: glassCaps.dockStrandKeepalive,
+    },
+    {
+        id: "S3",
+        title:
+            "dock dismiss-hold re-expand watch + popup mutex (ChromeDock.vue) " +
+            "→ glass-ui GU-3 dismiss-pointerdown-respects-keepOpen cure",
+        // The band-aid: ChromeDock's `isAnyOpen` popup mutex + the re-expand
+        // `watch` that re-`expand()`s the dock when glass-ui's own dismiss-synthetic
+        // pointerdown self-collapses it under an open popover (the dock's hold
+        // contract not covering its own dismiss path). Witness the `isAnyOpen`
+        // mutex token — the re-expand scaffolding the GU-3 cure retires.
+        witness: {
+            subpath: "demo/app/dock/ChromeDock.vue",
+            fileFilter: exact("demo/app/dock/ChromeDock.vue"),
+            pattern: /isAnyOpen/,
+        },
+        // T.H2 — the NEW `glassCaps.dockDismissHold` dist-content cap (glass-caps.mjs).
+        // FALSE on 4.0.1 (no dismiss-outside handler reads keepOpen) → PENDING;
+        // deleting the re-expand watch now re-breaks the dock self-collapse.
+        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "GU-3 dock dismiss-pointerdown respects keepOpen() (content-probed)" },
+        apiPresent: glassCaps.dockDismissHold,
+    },
+    {
+        id: "S4",
+        title:
+            "DockDropdownTrigger pointerdown click-synthesis (MbabbMenu.vue) " +
+            "→ glass-ui BG-4 DockDropdownTrigger pointerdown-open parity",
+        // The band-aid: MbabbMenu synthesizes reka's click on the trigger's
+        // pointerdown (a reflow-immune actuation mirroring DockSelectTrigger's
+        // pointerdown-wins behaviour) and kills the trailing native click, because
+        // DockDropdownTrigger opens on CLICK and the press-scale reflow drops it.
+        // Witness the synthesis handlers.
+        witness: {
+            subpath: "demo/app/dock/MbabbMenu.vue",
+            fileFilter: exact("demo/app/dock/MbabbMenu.vue"),
+            pattern: /onMbabbTriggerPointerdown|onMbabbTriggerClickCapture/,
+        },
+        // T.H2 — the NEW `glassCaps.dockDropdownPointerdown` dist-content cap.
+        // FALSE on 4.0.1 (the dropdown opens on click) → PENDING; deleting the
+        // synthesis now re-strands the open under the press-scale reflow.
+        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BG-4 DockDropdownTrigger pointerdown-open parity (content-probed)" },
+        apiPresent: glassCaps.dockDropdownPointerdown,
     },
     {
         id: "S7",

@@ -2,7 +2,9 @@ import { ref, type Ref } from "vue";
 
 import type { SpringProgress } from "@mkbabb/keyframes.js";
 
-import { PROGRESS_READOUT_HZ } from "@app/rafConstants";
+import { useThrottledReadout } from "@composables/useThrottledReadout";
+
+import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
 /** One live tracker plus its reactive read-out, for the comparison row. */
@@ -19,7 +21,7 @@ export interface SpringTrack {
 /** A spring painter: position the moving ball(s) it owns from `springLive`.
  *  The view layer registers these; the loop calls them imperatively each
  *  frame (direct `style` writes — off the Vue render graph). */
-export type SpringPainter = () => void;
+type SpringPainter = () => void;
 
 /**
  * J.W2 S5 (DS-3) — THE HOT POSITIONAL PATH OFF THE VUE RENDER GRAPH.
@@ -44,7 +46,10 @@ export type SpringPainter = () => void;
  *                track's spring into its reactive read-out refs.
  */
 export function useSpringHotPath(tracks: SpringTrack[]) {
-    let lastReadoutAt = 0;
+    // The shared few-Hz cold-path throttle seam (T.F23(c) — the DRY extraction
+    // that retired the hand-rolled `lastReadoutAt` accumulator this scene, easing,
+    // and historically amiga/sequence each copy-pasted).
+    const readout = useThrottledReadout(PROGRESS_READOUT_HZ);
 
     // ── Reactive READOUT mirrors — written at PROGRESS_READOUT_HZ only ──────
     // The human-readable numerals/badge, NEVER per frame. The 60 Hz positional
@@ -130,10 +135,7 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
     /** The cold-path cadence gate: flush the readout mirrors at
      *  PROGRESS_READOUT_HZ (called from the 60 Hz loop with its `now`). */
     const maybeFlushReadouts = (now: DOMHighResTimeStamp): void => {
-        if (now - lastReadoutAt >= 1000 / PROGRESS_READOUT_HZ) {
-            lastReadoutAt = now;
-            flushReadouts();
-        }
+        readout.maybeFlush(now, flushReadouts);
     };
 
     /** K.W4 S2 — push the CONTINUOUS sweep phase into the scrubber-position

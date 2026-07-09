@@ -119,17 +119,43 @@ const DETENT_CEILING = 0.7;
 // Sub-pixel / dvh-vs-innerHeight rounding tolerance.
 const TOL = 2;
 
-// The route → superKey map (demo/app/scenes.ts) the control-options store is
+/** Drive the T.H3-ADOPT Drawer by a real pointer DRAG up/down the glass grab
+ *  handle (`.glass-drawer-handle`) — glass-ui's `useDrawerSnap` owns the detent
+ *  math. `dir < 0` = expand (drag up), `dir > 0` = collapse (drag down). Chromium
+ *  fires pointer events + honors setPointerCapture for a mouse pointerdown. */
+async function dragHandle(page, dir = -1, dyPx = 300) {
+    const box = await page.evaluate(() => {
+        const h = document.querySelector(".glass-drawer-handle");
+        if (!h) return null;
+        const r = h.getBoundingClientRect();
+        return {
+            cx: Math.round(r.left + r.width / 2),
+            cy: Math.round(r.top + r.height / 2),
+        };
+    });
+    if (!box) return false;
+    await page.mouse.move(box.cx, box.cy);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) {
+        await page.mouse.move(box.cx, box.cy + (dir * dyPx * i) / 8);
+        await page.waitForTimeout(14);
+    }
+    await page.mouse.up();
+    return true;
+}
+
+// The route → superKey map (demo/app/scene/scenes.ts) the control-options store is
 // keyed by. The harness seeds the OPEN state under this key so the sheet's
 // `v-show` (gated on selectedAnimation) materialises.
+// T.B9 — the ONE keyspace: the option stores key by the registry SceneId, so this
+// scene → store-key map is the identity (was a divergent PascalCase super-key).
 const SUPER_KEY_BY_SCENE = {
-    cube: "Cube",
-    amiga: "Amiga",
-    square: "Square",
-    easing: "Easing",
-    spring: "Spring",
-    sequence: "Sequence",
-    "motion-path": "MotionPath",
+    cube: "cube",
+    amiga: "amiga",
+    square: "square",
+    easing: "easing",
+    spring: "spring",
+    sequence: "sequence",
 };
 
 // The scenes by mode-class (scenes.ts `STAGE_MODES`). `subject` carries the
@@ -140,10 +166,16 @@ const SCENES = [
     { scene: "cube", mode: "subject", trigger: "Controls" },
     { scene: "amiga", mode: "subject", trigger: "Controls" },
     { scene: "square", mode: "subject", trigger: "Controls" },
-    { scene: "easing", mode: "editor", trigger: "Easing" },
-    { scene: "spring", mode: "storyboard", trigger: "Spring" },
-    { scene: "sequence", mode: "storyboard", trigger: null },
-    { scene: "motion-path", mode: "storyboard", trigger: null },
+    { scene: "easing", mode: "editor", trigger: "Curve" },
+    { scene: "spring", mode: "storyboard", trigger: "Physics" },
+    // sequence — SURFACES EMPTY (its DFA set is []; SQ-T3/T.B4: the pane/sheet
+    // mounts iff surfacesFor(scene).length > 0, so NO sheet is the CORRECT
+    // mobile state — the old always-mounted sheet was a grab handle onto zero
+    // content, the exact occlusion-recurrence T.B4 cures). When T.B2's
+    // derivation lands and sequence derives the triad from its real painting
+    // channels, flip `surfaces` back and this row re-joins the sheet clauses
+    // (the batch-④ arming-audit).
+    { scene: "sequence", mode: "storyboard", trigger: null, surfaces: false },
 ];
 const TRIGGER_BY_SCENE = Object.fromEntries(SCENES.map((s) => [s.scene, s.trigger]));
 
@@ -194,13 +226,44 @@ async function settleAndOpen(page, scene) {
         },
         [CTRL_KEY, superKey],
     );
-    // The store is read on mount; a reload re-hydrates the seeded OPEN state and
-    // the spring writes --sheet-t→1 (the open detent). Re-pin the hash + viewport
-    // after reload (a reload restarts at the index route).
+    // The store is read on mount; a reload re-hydrates the seeded state. Re-pin the
+    // hash + viewport after reload (a reload restarts at the index route).
     await page.reload({ waitUntil: "load" });
     await navToScene(page, scene, TRIGGER_BY_SCENE[scene], { timeout: 8000 });
     await page.setViewportSize({ width: VW, height: VH });
     await page.waitForTimeout(900); // the spring settles (<350ms) + reflow
+
+    // ── S.G1 S4 (p10 F5 arming re-arm; T7 — gate follows code) ──
+    // The mobile sheet is now BORN AT PEEK (the S.G1 three-writer peek cure): the
+    // host mount-reset overrides the seeded `isControlsPanelOpen:true` on the mobile
+    // layout. This gate measures the EXPANDED-detent overlay geometry (clause a's
+    // unoccluded floor + the editor/storyboard non-vacuity "sheet must occupy the
+    // viewport"), so it DRIVES the sheet to its expanded detent via a real
+    // grab-handle tap — exactly what this function's contract already names. The
+    // born-open state the store seed relied on is what the contract deletes; the tap
+    // restores the measured state without depending on the deleted auto-open.
+    // ── T.H3-ADOPT — DRIVE the Drawer to its EXPANDED detent ──
+    // The mobile sheet is glass-ui's `<Drawer>` (held permanently open at PEEK);
+    // this gate measures the EXPANDED-detent overlay geometry, so DRAG the glass
+    // grab handle up to expand it (the glass handle is a DRAG surface — glass-ui's
+    // useDrawerSnap — not a click toggle). The born-at-peek state is the mobile
+    // mount-reset; the drag drives the measured expanded state.
+    await page
+        .waitForFunction(() => !!document.querySelector(".glass-drawer-handle"), {
+            timeout: 5000,
+        })
+        .catch(() => {});
+    // Expand only if not already expanded (visible fraction > ~0.4).
+    const expandedAlready = await page.evaluate(() => {
+        const el = document.querySelector(".glass-drawer");
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return window.innerHeight - r.top > 0.4 * window.innerHeight;
+    });
+    if (!expandedAlready) {
+        await dragHandle(page, -1, 340);
+        await page.waitForTimeout(600); // the expand spring settles to the detent
+    }
 }
 
 /** Wait until the fixed stage + the named subject host + the sheet resolve (not
@@ -211,7 +274,7 @@ async function waitMounted(page) {
             () => {
                 const cell = document.querySelector(".stage-cell");
                 const host = document.querySelector(".scene-host");
-                const sheet = document.querySelector(".controls-pane-wrapper");
+                const sheet = document.querySelector(".glass-drawer");
                 if (!cell || !host || !sheet) return false;
                 const hr = host.getBoundingClientRect();
                 const sr = sheet.getBoundingClientRect();
@@ -231,33 +294,36 @@ async function probeGeometry(page) {
         const vh = window.innerHeight;
         const clamp = (v) => Math.max(0, Math.min(vh, v));
         const host = document.querySelector(".scene-host");
-        const sheet = document.querySelector(".controls-pane-wrapper");
+        const sheet = document.querySelector(".glass-drawer");
         const cell = document.querySelector(".stage-cell");
         const hr = host.getBoundingClientRect();
         const sr = sheet.getBoundingClientRect();
         const sheetCs = getComputedStyle(sheet);
         const cellCs = getComputedStyle(cell);
 
-        // The live mode-class (controls-pane--stage-<mode>) — single-sourced from
-        // scenes.ts stageModeFor, threaded App→EditorShell→…→the sheet wrapper.
+        // ── T.H3-ADOPT — the Drawer's VISIBLE geometry ──
+        // The Drawer's box is `bottom:0; height:100%` (drawer.css), translated by
+        // (1 - --glass-drawer-t)·100% so only the snap-fraction shows on-screen.
+        // The CONTRACT is about VISIBLE occlusion, so re-derive to the on-screen
+        // rect: the visible TOP is sr.top (the translated box top); the visible
+        // BOTTOM is clamped to vh (the box extends off-screen below); the visible
+        // HEIGHT is vh − clamp(sr.top). (The 100vh box height is a Drawer impl
+        // detail, NOT the occluding height — clause d asserts the VISIBLE height.)
+        const visibleTop = clamp(sr.top);
+        const visibleBottom = clamp(sr.bottom);
+        const visibleH = Math.max(0, vh - visibleTop);
+
+        // The live mode-class — the DrawerContent tags `.glass-drawer` with
+        // `controls-drawer--stage-<mode>` (ControlsPaneWrapper.vue).
         const modeClass =
             [...sheet.classList]
-                .map((c) => /^controls-pane--stage-(.+)$/.exec(c)?.[1])
+                .map((c) => /^controls-drawer--stage-(.+)$/.exec(c)?.[1])
                 .find(Boolean) ?? null;
 
-        // The resolved expanded detent (the px the open sheet's height lerps to).
-        // getComputedStyle returns the COMPUTED custom-property value, but it may
-        // be the un-resolved calc() expression; resolve it by probing a temp.
-        const detentExprPx = (() => {
-            const probe = document.createElement("div");
-            probe.style.position = "absolute";
-            probe.style.visibility = "hidden";
-            probe.style.height = "var(--sheet-detent-expanded)";
-            sheet.appendChild(probe);
-            const h = probe.getBoundingClientRect().height;
-            probe.remove();
-            return h;
-        })();
+        // The expanded detent's VISIBLE px = the current on-screen sheet height
+        // (the drag drove it to the expanded detent). It is the occluding height
+        // the ≤70dvh ceiling (clause d) measures.
+        const detentExprPx = visibleH;
 
         // Dock-band identification (robust to the multi-z-dock DOM): a dock is a
         // z-dock element with real area; affixed iff position:fixed.
@@ -283,10 +349,12 @@ async function probeGeometry(page) {
             vh,
             host: { top: hr.top, bottom: hr.bottom, w: hr.width, h: hr.height },
             sheet: {
-                top: sr.top,
-                bottom: sr.bottom,
+                // The VISIBLE (on-screen) sheet rect — the occluding geometry the
+                // contract measures (the 100vh Drawer box is translated off-screen).
+                top: visibleTop,
+                bottom: visibleBottom,
                 w: sr.width,
-                h: sr.height,
+                h: visibleH,
                 pos: sheetCs.position,
                 zi: sheetCs.zIndex,
             },
@@ -314,11 +382,39 @@ async function browserHalf() {
         // Per-scene FRESH pages in their OWN contexts (fresh storage — the
         // scene-machine restore must not bleed a prior scene's persisted state
         // into the next scene's load), from the lifecycle's browser handle.
-        for (const { scene, mode } of SCENES) {
+        for (const { scene, mode, surfaces } of SCENES) {
             const page = await browser.newPage({
                 viewport: { width: VW, height: VH },
             });
             await page.goto(`${base}/#/${scene}`, { waitUntil: "load" });
+
+            // A surfaces:false scene mounts NO sheet by construction (SQ-T3):
+            // assert the stage mounts AND the wrapper is ABSENT, then move on —
+            // the sheet-geometry clauses are vacuous for it, and forcing the
+            // sheet open would resurrect the zero-content grab handle.
+            if (surfaces === false) {
+                await navToScene(page, scene, TRIGGER_BY_SCENE[scene], { timeout: 8000 });
+                const state = await page.evaluate(() => ({
+                    hasCell: !!document.querySelector(".stage-cell"),
+                    hasHost: !!document.querySelector(".scene-host"),
+                    hasSheet: !!document.querySelector(".controls-pane-wrapper"),
+                }));
+                if (state.hasCell && state.hasHost && !state.hasSheet) {
+                    ok(
+                        `${scene} (${mode}) ${VW}×${VH} — stage mounted, NO sheet ` +
+                            `(surfaces empty; the SQ-T3 mount-iff-content invariant holds)`,
+                    );
+                } else {
+                    fail(
+                        `${scene} (${mode}) ${VW}×${VH} — expected stage WITHOUT a sheet ` +
+                            `(surfaces empty), got cell:${state.hasCell} host:${state.hasHost} ` +
+                            `sheet:${state.hasSheet}`,
+                    );
+                }
+                await page.close();
+                continue;
+            }
+
             await settleAndOpen(page, scene);
             const mounted = await waitMounted(page);
             const tag = `${scene} (${mode}) ${VW}×${VH}`;
@@ -369,7 +465,7 @@ async function browserHalf() {
                         `0.45 floor keys on the SUBJECT class — a wrong class would mis-gate)`,
                 );
             } else {
-                ok(`${tag} — mode-class read per scene (controls-pane--stage-${mode})`);
+                ok(`${tag} — mode-class read per scene (controls-drawer--stage-${mode})`);
             }
 
             // ── (a) THE FULL-BLEED BACKGROUND — visible fraction ≥ 0.45 (SUBJECT only) ──
@@ -418,15 +514,14 @@ async function browserHalf() {
             const sheetFrac = g.sheet.h / g.vh;
             if (detentFrac <= DETENT_CEILING + 0.005 && sheetFrac <= DETENT_CEILING + 0.005) {
                 ok(
-                    `${tag} — (d) detents ≤ 70dvh (expanded detent ${Math.round(g.detentExprPx)}px = ` +
-                        `${detentFrac.toFixed(3)}·vh; open sheet ${Math.round(g.sheet.h)}px = ${sheetFrac.toFixed(3)}·vh) — never full-height`,
+                    `${tag} — (d) VISIBLE detent ≤ 70dvh (expanded sheet visible ${Math.round(g.detentExprPx)}px = ` +
+                        `${detentFrac.toFixed(3)}·vh) — the Drawer snap-cap holds; never full-height on-screen`,
                 );
             } else {
                 fail(
-                    `${tag} — (d) a detent exceeds the 70dvh ceiling ` +
-                        `(--sheet-detent-expanded ${Math.round(g.detentExprPx)}px = ${detentFrac.toFixed(3)}·vh; ` +
-                        `open sheet ${Math.round(g.sheet.h)}px = ${sheetFrac.toFixed(3)}·vh). ` +
-                        `The near-full-viewport max-height must stay DELETED (S1b — never full-height).`,
+                    `${tag} — (d) the VISIBLE expanded sheet exceeds the 70dvh ceiling ` +
+                        `(on-screen height ${Math.round(g.sheet.h)}px = ${sheetFrac.toFixed(3)}·vh). ` +
+                        `The Drawer snapPoints expanded cap (subject 0.48 / editor 0.62) must stay ≤ 0.70.`,
                 );
             }
 
@@ -460,15 +555,14 @@ async function browserHalf() {
                     const h = document.querySelector(".scene-host").getBoundingClientRect();
                     return { top: h.top, bottom: h.bottom, left: h.left };
                 });
-                const clicked = await page
-                    .click(".sheet-grab-handle", { timeout: 4000 })
-                    .then(() => true)
-                    .catch(() => false);
+                // Collapse the Drawer via a real drag DOWN the glass handle (the
+                // detent swap); the fixed full-bleed host must not shift.
+                const clicked = await dragHandle(page, 1, 340);
                 await page.waitForTimeout(600); // the spring settles the detent swap
                 if (!clicked) {
                     fail(
-                        `${tag} — (b) the grab handle was not clickable (the disjoint gesture ` +
-                            `surface must own the open/close swipe, BLK-6) — cannot assert the no-shift overlay`,
+                        `${tag} — (b) the glass grab handle was not reachable (the Drawer's ` +
+                            `useDrawerSnap gesture surface) — cannot assert the no-shift overlay`,
                     );
                 } else {
                     const hostAfter = await page.evaluate(() => {
@@ -516,13 +610,23 @@ function stripComments(src) {
 function staticHalf() {
     const groupPath = path.join(
         REPO,
-        "demo/@/components/custom/animation-controls/AnimationControlsGroup.vue",
+        "demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue",
     );
     if (!fs.existsSync(groupPath)) {
         fail(`static — AnimationControlsGroup.vue not found at ${groupPath}`);
         return;
     }
-    const src = stripComments(fs.readFileSync(groupPath, "utf8"));
+    // S.A0-fallout co-edit: the component's style tier lives in a colocated
+    // sourced stylesheet (`<style scoped src="./AnimationControlsGroup.css">` —
+    // the 500L-tripwire carve, D2-precedent). The static surface is the SFC +
+    // that sibling stylesheet, concatenated.
+    const groupCssPath = groupPath.replace(/\.vue$/, ".css");
+    const src = stripComments(
+        fs.readFileSync(groupPath, "utf8") +
+            (fs.existsSync(groupCssPath)
+                ? "\n" + fs.readFileSync(groupCssPath, "utf8")
+                : ""),
+    );
 
     // (1) The `grid-rows-[auto_1fr_auto]` mobile stack is GONE (no legacy beside
     //     the replacement). The mobile stack was the literal Tailwind arbitrary

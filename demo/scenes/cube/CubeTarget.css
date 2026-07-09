@@ -1,0 +1,154 @@
+/* CubeTarget — the scene-target stylesheet (scoped via the SFC style block that
+   sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
+   component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
+   sourced-stylesheet precedent, S.D2/S.A0). */
+/* L.W11.S2 — register --lit (re-lit luminance) so it INTERPOLATES between ticks. */
+@property --lit {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0.5;
+}
+/* P.W5.S3 — the axis-lock reveal (@property --axis-active + the .axis-line
+   styles) lives in the colocated CubeAxisLines sub-unit, beside its markup. */
+
+.graph {
+    perspective: 1200px;
+}
+
+/* EASTER EGG — "the Roll" (H.W12.S6): while the die tumbles, the cube ignores
+   pointer input so a stray drag mid-roll cannot fight the spring; the engine
+   owns the rotation for the ~1s tumble, then hands control back. Isomorphic —
+   no visual change, just the gesture hand-off. */
+.cube--rolling {
+    pointer-events: none;
+}
+
+/* T.G3 — THE CUBE RESTS AT IDLE (VERDICT #19: "the performance on every single
+   page is god awful"). The former always-on `idle-bob` (a 3s infinite `translateY`
+   float) could NOT be composited: it lived on the `preserve-3d` `.idle-hover`, and
+   even hoisted to a flat wrapper with `will-change`, Chromium refuses to promote a
+   transform animation that wraps a live 3D perspective subtree — so it re-flattened
+   the whole cube on the MAIN THREAD every frame (measured 1.00 style-recalc/frame
+   at rest, the born-RED proof:perf-counters churn). A perpetual idle float IS the
+   "never rests" defect the owner named; the die now sits STILL at idle and comes
+   alive on play (the group spin) or hover (`.graph:hover .cube`), where the motion
+   is intended and the layer promotion is honest. Reduced-motion was already still. */
+
+/* T.A4 — HONEST geometry. The die is a side×side box (was 0 × 450px: the faces
+   are absolutely positioned so the flex item collapsed to zero width, and the
+   former `height: calc(var(--side-size) * 2)` was double the die — it rendered
+   by accident of outer centering). Size it to the true die footprint; the faces
+   center inside it via `inset: 0; margin: auto` (below). */
+.cube {
+    --side-size: min(25vh, 25vw, 15rem);
+    --side-offset: calc(var(--side-size) / 2);
+    --rotationX: 360deg;
+
+    width: var(--side-size);
+    height: var(--side-size);
+    contain: style;
+}
+
+/* G5 (transient will-change): the cube is the element that actually transforms
+   (the matrix/rotation animations + the OrbitalDrag container). Promote it to
+   its own compositor layer ONLY while it is moving — playing or hovered — and
+   drop the hint at rest, so an idle/off-screen cube holds no resident layer (a
+   resident `will-change` keeps the layer alive forever, the G5 anti-pattern).
+   The idle-bob is a 5px translate the compositor handles without the hint. */
+.idle-hover.playing .cube,
+.graph:hover .cube {
+    will-change: transform;
+}
+
+@media (max-width: 1023px) {
+    .cube {
+        --side-size: min(50vh, 50vw, 18rem);
+    }
+}
+
+.cube-side {
+    width: var(--side-size);
+    height: var(--side-size);
+    /* T.A4 — the faces are absolutely positioned; center them in the now
+       honestly-sized side×side `.cube` box. */
+    inset: 0;
+    margin: auto;
+    backface-visibility: hidden;
+    /* L.W11.S2 — smooth the per-face re-light between rotation ticks (the
+       registered @property --lit interpolates at the rotation cadence). */
+    transition: --lit 160ms linear;
+    /* G5: the faces carry a STATIC per-face transform (they never re-transform —
+       only the parent .cube/.idle-hover/OrbitalDrag container animates), so the
+       former resident `will-change: transform` here pinned six permanent
+       compositor layers for nothing. Dropped — the parent's transient hint
+       promotes the whole 3D subtree while it moves. */
+
+    &.front {
+        transform: rotateY(0deg) translateZ(var(--side-offset));
+    }
+    &.back {
+        transform: rotateY(180deg) translateZ(var(--side-offset));
+    }
+    &.top {
+        transform: rotateX(90deg) translateZ(var(--side-offset));
+    }
+    &.bottom {
+        transform: rotateX(-90deg) translateZ(var(--side-offset));
+    }
+    &.left {
+        transform: rotateY(-90deg) translateZ(var(--side-offset));
+    }
+    &.right {
+        transform: rotateY(90deg) translateZ(var(--side-offset));
+    }
+}
+
+/* L.W11.S2 — the lit-lacquer MATERIAL: a glossy lacquer read over the inline
+   crayon backgroundColor (LUMINANCE-only — proof:crayon-preserved unaffected). */
+.face-lacquer {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+    /* a fixed diagonal lacquer sheen over the crayon backgroundColor */
+    background-image: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.22) 0%,
+        rgba(255, 255, 255, 0) 38%,
+        rgba(0, 0, 0, 0.14) 100%
+    );
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.28),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* The re-lit overlay: highlight rises with --lit (face toward the light), shadow
+   veil deepens as it falls. The crayon is never recolored — only lit. */
+.face-relit {
+    border-radius: inherit;
+    background:
+        /* upper-right specular sweep, strengthening toward the light */
+        radial-gradient(
+            120% 120% at 78% 18%,
+            rgba(255, 255, 255, calc(0.05 + 0.5 * var(--lit, 0.5))) 0%,
+            rgba(255, 255, 255, 0) 52%
+        ),
+        /* a --background-tinted shadow veil that lifts as the face turns away */
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 46%), transparent) 0%,
+            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 62%), transparent) 100%
+        );
+}
+
+/* The face numeral rides the content plane (z off the named --z-* scale). */
+.face-numeral {
+    z-index: var(--z-content);
+}
+
+/* T.A1 — the former bloom channel (a `filter: drop-shadow(...)` on the die + an
+   `::after` halo, driven by the deleted velocity-coupled luminance var) is GONE.
+   `filter` is a CSS grouping property → it forced `.cube`'s USED `transform-style`
+   to `flat`, collapsing the six 3D faces onto one plane (only face 1 survived —
+   verdict #1). The re-light (`--lit`) + lacquer sheen carry the depth; no
+   compensating ancestor shadow is re-introduced (any ancestor in the 3D chain
+   re-flattens). */

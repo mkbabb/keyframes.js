@@ -1,35 +1,56 @@
 #!/usr/bin/env node
 /**
- * proof:no-flat-siblings — the R.W1 directory-partition born-RED gate.
+ * proof:no-flat-siblings — the R.W1 directory-partition born-RED gate
+ * (+ the S.B4 barrel-policy clause; C-5 / a02 F4).
  *
  * Tranche Q branded a "decomposition close" but spawned EIGHT flat hyphenated
  * siblings (`engine-playback.ts`, `group-soa.ts`, `waapi-densify.ts`,
  * `frame-compiler-numeric.ts`, …) instead of real directory sub-modules — and
  * those siblings created 15 circular-import violations (the known-violations
- * baseline). R.W1 promotes every family cluster into the 7-zone directory
- * partition. This gate locks the partition so a future tranche cannot re-spawn a
+ * baseline). R.W1 promotes every family cluster into the zone directory
+ * partition (11 zones as of S.A5 — `waapi.ts` was itself promoted to a
+ * `waapi/` directory post-R.W1; fold row 41 caught its ZONE_DIRS omission,
+ * the exact same "invisible zone" defect class as root CLAUDE.md's).
+ * This gate locks the partition so a future tranche cannot re-spawn a
  * flat hyphenated sibling under the old shape.
  *
  * CLAUSES (each BITES):
  *
  *   1. NO FLAT HYPHENATED SIBLINGS — no `src/animation/*.ts` file survives whose
- *      name matches `<base>-<suffix>.ts` for a zone family base (engine, group,
- *      spring, compile, waapi, frame-compiler, ingest, scroll, sequence) — nor the
+ *      name matches `<base>-<suffix>.ts` for a zone FAMILY base — nor the
  *      camelCase spring drift (`spring[A-Z]*.ts`), `drag-2d.ts`, or `animations.ts`.
- *      Each family is now a DIRECTORY (`physics/spring/`, `engine/`, …).
+ *      The FAMILY set is DERIVED from the directory listing (S.B4 / C-5 — every
+ *      sub-directory basename under `src/animation`, so a NEW zone directory
+ *      protects its own name with no hand-list to drift); each family is a
+ *      DIRECTORY (`physics/spring/`, `engine/`, …), so a `<dir>-<suffix>.ts` flat
+ *      file belongs INSIDE that directory.
  *
- *   2. ZONE BARRELS PRESENT — every introduced zone directory (physics,
- *      orchestration, engine, group, compile, resolve, ingest, scroll, presets,
- *      svg) carries an `index.ts` barrel (the single public surface).
+ *   2. ZONE BARRELS PRESENT — every PUBLIC zone directory (ZONE_DIRS: physics,
+ *      orchestration, engine, group, compile, resolve, ingest, scroll, waapi,
+ *      presets, svg) carries an `index.ts` barrel (the single public surface).
+ *      `internal/` is EXCLUDED from ZONE_DIRS by documented design (C-5): it is
+ *      the value.js-free LEAF tier, not a zone — its members are consumed as raw
+ *      leaves by DIRECT path (`./internal/leaves`, …), never through a barrel, so
+ *      the zero-consumer `internal/index.ts` was DELETED at S.B4 (a20/DIGEST).
  *
  *   3. KNOWN-VIOLATIONS DISSOLVED — the count of entries in
  *      `.dependency-cruiser-known-violations.json` is STRICTLY LESS than the
  *      pre-R.W1 value (15 — the sibling cycles the directory partition dissolves).
  *
- * Plant test (RED-state proof): add `engine-playback.ts` back as a flat file in
- * `src/animation/` (alongside the new `engine/` directory). Run this gate.
- * Clause 1 must RED with `engine-playback.ts` in the violation list. Remove the
- * spurious flat file; confirm GREEN.
+ *   4. BARREL POLICY: EXPLICIT-NAMED PUBLIC (S.B4 / a02 F4) — no PUBLIC zone
+ *      barrel (any ZONE_DIRS `index.ts`) uses the silent-forwarding `export *
+ *      from "./x"` flatten form; `export *` is reserved for the leaf tier. The
+ *      explicit-named + `export type` form is the reviewable one: a new/accidental
+ *      `export const` in a member file joins the public namespace ONLY through a
+ *      reviewed barrel edit. NOTE: `export * as ns from "./x"` is a NAMED
+ *      namespace export (the `ns` binding is explicit) and is ALLOWED — only the
+ *      bare `export * from` flatten is the violation.
+ *
+ * Plant tests (RED-state proofs):
+ *   - clause 1: add `engine-playback.ts` back as a flat file in `src/animation/`
+ *     (alongside `engine/`); clause 1 REDs with it listed. Remove → GREEN.
+ *   - clause 4: add `export * from "./drag"` to any ZONE_DIRS barrel; clause 4
+ *     REDs with that barrel listed. Remove → GREEN.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -42,22 +63,29 @@ const ANIM = path.join(REPO, "src/animation");
 // dissolves. Clause 3 asserts the live count is STRICTLY less.
 const PRE_RW1_KNOWN_VIOLATIONS = 15;
 
-// The flat-hyphenated-sibling pattern: `<base>-<suffix>.ts` for a zone family
-// base, plus the camelCase spring drift + the two named singletons.
-const FAMILY_BASES = [
-    "engine",
-    "group",
-    "spring",
-    "compile",
-    "waapi",
-    "frame-compiler",
-    "ingest",
-    "scroll",
-    "sequence",
-];
+// The flat-hyphenated-sibling FAMILY set is DERIVED from the directory listing
+// (S.B4 / C-5 — no hand list): every sub-directory basename under
+// `src/animation` (recursively) is a zone-family base, so a `<base>-<suffix>.ts`
+// flat file at root belongs inside that directory. Deriving it means a NEW zone
+// directory protects its own name automatically. `internal/` is a directory too,
+// so `internal-*.ts` at root is (correctly) forbidden as well.
+const FAMILY_BASES = (function deriveFamilyBases(root) {
+    const bases = new Set();
+    (function walk(dir) {
+        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+            if (!e.isDirectory()) continue;
+            bases.add(e.name);
+            walk(path.join(dir, e.name));
+        }
+    })(root);
+    return [...bases];
+})(ANIM);
 const NAMED_SINGLETONS = new Set(["drag-2d.ts", "animations.ts"]);
 
-// Every zone directory must carry an index.ts barrel.
+// Every PUBLIC zone directory must carry an index.ts barrel. `internal/` is
+// EXCLUDED by documented design (C-5): it is the value.js-free LEAF tier, not a
+// zone — consumed by direct path, never through a barrel (its zero-consumer
+// `index.ts` was deleted at S.B4).
 const ZONE_DIRS = [
     "physics",
     "orchestration",
@@ -67,6 +95,7 @@ const ZONE_DIRS = [
     "resolve",
     "ingest",
     "scroll",
+    "waapi",
     "presets",
     "svg",
 ];
@@ -153,6 +182,36 @@ if (!(count < PRE_RW1_KNOWN_VIOLATIONS)) {
     );
 }
 
+// ── 4. BARREL POLICY: EXPLICIT-NAMED PUBLIC (S.B4 / a02 F4) ─────────────────
+// No PUBLIC zone barrel may use the silent-forwarding `export * from "./x"`
+// flatten form (`export * as ns from` — a NAMED namespace export — is allowed).
+const STAR_FORWARD_RE = /^\s*export\s+\*\s+from\s+["'][^"']+["']/m;
+const starOffenders = [];
+for (const dir of ZONE_DIRS) {
+    const barrel = path.join(ANIM, dir, "index.ts");
+    if (!fs.existsSync(barrel)) continue; // clause 2 already reds a missing barrel
+    const lines = fs.readFileSync(barrel, "utf8").split("\n");
+    for (let i = 0; i < lines.length; i++) {
+        if (STAR_FORWARD_RE.test(lines[i])) {
+            starOffenders.push(`${dir}/index.ts:${i + 1} — ${lines[i].trim()}`);
+        }
+    }
+}
+if (starOffenders.length > 0) {
+    failures.push(
+        "[barrel-policy] these PUBLIC zone barrel(s) use the silent-forwarding " +
+            "`export * from` flatten form — convert to explicit-named + `export " +
+            "type` (the reviewable form; `export * as ns from` is allowed): " +
+            starOffenders.join("; ") +
+            ". `export *` is reserved for the leaf tier (a02 F4).",
+    );
+} else {
+    console.log(
+        "  ✓ [barrel-policy] no PUBLIC zone barrel uses the `export * from` " +
+            "flatten form (explicit-named public surface; a02 F4)",
+    );
+}
+
 if (failures.length > 0) {
     console.error("\nproof:no-flat-siblings — FAIL:");
     for (const f of failures) console.error("  ✗ " + f);
@@ -160,7 +219,9 @@ if (failures.length > 0) {
 }
 
 console.log(
-    "\nproof:no-flat-siblings — PASS: the 7-zone directory partition holds — no " +
-        "flat-hyphenated sibling survives, every zone carries a barrel, and the " +
-        "sibling cycles dissolved (known-violations < 15).",
+    `\nproof:no-flat-siblings — PASS: the ${ZONE_DIRS.length}-zone directory partition holds — no ` +
+        "flat-hyphenated sibling survives (FAMILY derived from the directory " +
+        "listing), every public zone carries an explicit-named barrel, the " +
+        "sibling cycles dissolved (known-violations < 15), and no public barrel " +
+        "uses `export * from` (a02 F4).",
 );

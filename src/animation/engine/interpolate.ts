@@ -21,7 +21,11 @@ import { clamp, lerpArray, lerpValue, scale, type ValueUnit } from "@mkbabb/valu
 import { binarySearchRange } from "../internal/binarySearch";
 import { AnimationOptionError } from "../internal/errors";
 import { applyComposition as applyCompositionImpl } from "./composition";
-import { NAMED_SELECTOR_SUPERTYPE } from "../compile/frame-compiler";
+import {
+    buildPlainProjection,
+    refreshPlainProjection,
+} from "../compile/plain-vars";
+import { NAMED_SELECTOR_SUPERTYPE } from "../compile/selector";
 import type { AnimationFrame, Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 
@@ -93,11 +97,11 @@ export function at<V extends Vars>(
     // Q.WD1 S3 — the oracle path shares the named-selector guard (an unresolved
     // named-selector animation would otherwise produce NaN here too).
     assertNoUnresolvedNamedSelector(anim);
-    const saved = anim.reversed;
-    anim.reversed = false;
+    const saved = anim._playback.reversed;
+    anim._playback.reversed = false;
     const t = clamp(progress, 0, 1) * anim.options.duration;
     const result = interpFrames(anim, t, apply);
-    anim.reversed = saved;
+    anim._playback.reversed = saved;
     return result;
 }
 
@@ -123,7 +127,7 @@ export function interpFrames<V extends Vars>(
     transformFrames: boolean = false,
     out?: Record<string, ValueUnit[]>,
 ): Record<string, ValueUnit[]> {
-    t = anim.reversed ? anim.options.duration - t : t;
+    t = anim._playback.reversed ? anim.options.duration - t : t;
 
     const frames = anim.frames;
     const len = frames.length;
@@ -282,7 +286,28 @@ function processFrame<V extends Vars>(
     }
 
     if (transformFrames) {
-        frame.transform(anim.unflatten ? frame.vars : frame.flatVars, t);
+        if (anim.unflatten) {
+            // T.A6 — a custom transform ("animate any object") consumes the
+            // nested PLAIN authored-shape projection (numbers where authored
+            // numbers, strings where a unit/color demands) — NOT `frame.vars`,
+            // whose leaves are array-boxed `ValueUnit`s under value.js ≥ 2.0.1.
+            // Built lazily on first apply, refreshed in place by the SAME interp
+            // stride that filled `value.value` above (hot numeric path
+            // zero-alloc). The DOM-style default renderer keeps the flat path.
+            let proj = frame._plainProj;
+            if (proj === undefined) {
+                proj = buildPlainProjection(
+                    frame.flatVars as unknown as Record<string, ValueUnit[]>,
+                );
+                frame._plainProj = proj;
+                frame.plainVars = proj.root as V;
+            } else {
+                refreshPlainProjection(proj);
+            }
+            frame.transform(frame.plainVars as V, t);
+        } else {
+            frame.transform(frame.flatVars, t);
+        }
     }
 }
 
@@ -298,7 +323,7 @@ function applyComposition<V extends Vars>(
     frame: AnimationFrame<V>,
 ): void {
     applyCompositionImpl(frame, {
-        iteration: anim.iteration,
+        iteration: anim._playback.iteration,
         target: anim.targets[0],
         compositionBase: anim._compositionBase,
         compositionFallbackSeen: anim._compositionFallbackSeen,

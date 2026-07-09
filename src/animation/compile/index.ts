@@ -1,16 +1,25 @@
 /**
- * compile/ — the forward + backward CSS-keyframe compile pipeline (R.W1).
+ * compile/ — the forward + backward CSS-keyframe compile pipeline (R.W1, S.B3).
  *
- * HEAVY (value.js-bearing). FORWARD: `parse-flatten.ts` (CSS leaves → ValueUnits)
- * → `frame-compiler.ts` (build frames + the numeric SoA plan, folded back from
- * the retired `frame-compiler-numeric.ts`). BACKWARD: `backward.ts`
- * (`compileToCSS` — orchestration graph → zero-runtime CSS) + `backward-color.ts`
- * (oklab densify) + `format.ts` (the @keyframes serializer). `easing-registry.ts`
- * is the HEAVY synchronous `getTimingFunction` resolver. This barrel is the zone's
- * single surface (consumers reach it through `loadAnimationEngine`).
+ * HEAVY (value.js-bearing). FORWARD (this directory's root): `parse-flatten.ts`
+ * (CSS leaves → ValueUnits) → `frame-compiler.ts` (build frames + the numeric SoA
+ * plan) + `easing-registry.ts` (the synchronous `getTimingFunction` resolver) +
+ * `easing-option.ts` (the heavy-surface easing-input resolver) + `selector.ts`
+ * (the keyframe-selector grammar). BACKWARD (the `backward/` sub-zone, S.B3 C-2):
+ * `compileToCSS` + the oklab densify + the `@keyframes` serializer — re-exported
+ * here from `./backward`. `adapter.ts` (`resolveKeyframes`) is the ingest→template
+ * feeder for `FrameCompiler.parse` (C-9). This barrel is the zone's single surface
+ * (consumers reach it through `loadAnimationEngine`).
+ *
+ * S.B3 C-2 — the FORWARD re-export CEREMONY through `frame-compiler` is DEAD:
+ * `resolveEasingOption` comes from `./easing-option` and `namedSelectorToFraction`
+ * / `NAMED_SELECTOR_SUPERTYPE` from `./selector` DIRECTLY (their real modules),
+ * not bridged through `frame-compiler`.
  */
 // Forward pipeline
-export { FrameCompiler, resolveEasingOption, namedSelectorToFraction, NAMED_SELECTOR_SUPERTYPE } from "./frame-compiler";
+export { FrameCompiler } from "./frame-compiler";
+export { resolveEasingOption } from "./easing-option";
+export { namedSelectorToFraction, NAMED_SELECTOR_SUPERTYPE } from "./selector";
 export {
     parseAndFlattenObject,
     createInterpVarValue,
@@ -18,19 +27,42 @@ export {
 } from "./parse-flatten";
 export type { ParsedVarMap } from "./parse-flatten";
 export { getTimingFunction } from "./easing-registry";
-// Backward pipeline
-export { compileToCSS, DEFAULT_DELTA_E_EPSILON, DEFAULT_DENSIFY_STOPS } from "./backward";
+// Backward pipeline (the compile/backward/ sub-zone barrel)
+export {
+    compileToCSS,
+    DEFAULT_DELTA_E_EPSILON,
+    DEFAULT_DENSIFY_STOPS,
+} from "./backward";
 export type {
     CompileOptions,
     CompiledCSS,
     CompileRefusal,
     CompileRefusalReason,
+    CompileInput,
 } from "./backward";
-// The input-shape type + the walkers live in the colocated `./backward-walk`.
-export type { CompileInput } from "./backward-walk";
 export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
     serializeEasing,
-} from "./format";
+} from "./backward";
+// S.F1 VT-c — the View-Transitions emitter (compileToCSS's sibling; a
+// name-keyed role spec → zero-runtime `::view-transition-*` CSS).
+export { compileToViewTransition } from "./view-transition";
+export type {
+    VTRoleSpec,
+    ViewTransitionCompileOptions,
+    VTCompileRefusalReason,
+    VTCompileRefusal,
+    CompiledViewTransitionCSS,
+} from "./view-transition";
+// S.F3 EN-c — the entry/exit emitter (compileToCSS's DECLARED-ENDPOINT sibling; a
+// selector-keyed spec → zero-runtime `@starting-style` + `allow-discrete` CSS).
+export { compileToEntry } from "./entry";
+export type {
+    EntryRoleSpec,
+    EntryCompileOptions,
+    EntryRefusalReason,
+    EntryRefusal,
+    CompiledEntryCSS,
+} from "./entry";

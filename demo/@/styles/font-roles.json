@@ -1,0 +1,84 @@
+{
+    "_doc": "T.D1 — the role → tuple manifest (the committed artifact proof:font-census's clause (e) reads). Each role binds a SELECTOR CONTRACT to the tuple it must resolve live: voice ∈ {display, body, mono} (family axis), computed weight, size bounds, style. The VALUES consume the OD-6 owner token (APPROVED 2026-07-05 \"Good.\", the P-THEME blessed reference worktree-wf_1e744f4d-2bb-3): Instrument Serif display at its TRUE 400 ≥28px, Plus Jakarta Sans body/chrome, Fira Code confined to code/data. `monoAllowedSelectors` is the T.D4 data-register contract — a Fira-Code leaf must match it or the census reds (mono is DATA, never the UI voice); `monoCeiling` is the declared non-editor mono leaf ceiling (desktop sweep, regression-proof; re-derived 70\u219290 at the easing TERMINAL batch \u2014 T.E6's 33 specimen-tile curve identifiers are DATA (`data-register=code`), measured 81 live + slack).",
+    "roles": [
+        {
+            "role": "dock-label",
+            "selector": ".dock-label",
+            "expect": { "voice": "body" },
+            "note": "the dock band rides glass-ui's own Jakarta dock-label register (T.D3; the K.W2 serif force is deleted — VERDICT #24 + T.C 'kill the serif chrome flip')"
+        },
+        {
+            "role": "transport-button",
+            "selector": ".btn-playback",
+            "expect": { "voice": "body", "weight": 500 },
+            "note": "Play/Pause + the transport band: CONTROLS ride the body register at medium (T.D3; the K.W2 display bind died)"
+        },
+        {
+            "role": "filing-tab",
+            "selector": ".tab-trigger-base[data-state='inactive']",
+            "expect": { "voice": "body", "weight": 500 },
+            "note": "inactive filing tabs: body medium; activation steps to 600 (a REAL Jakarta weight) via the active rule"
+        },
+        {
+            "role": "filing-tab-active",
+            "selector": ".tab-trigger-base[data-state='active']",
+            "expect": { "voice": "body", "weight": 600 },
+            "note": "active filing tab: Jakarta semibold — an honest shipped weight, never synthesis"
+        },
+        {
+            "role": "pill-tab",
+            "selector": ".kf-pill-tab",
+            "expect": { "voice": "body" },
+            "note": "KfPillTabs pills are controls → body register (the component itself is a T.H gated-on-publish excision; the register holds until then)"
+        },
+        {
+            "role": "hero-display",
+            "selector": "h1.hero-display .wave-char",
+            "expect": { "voice": "display", "weight": 400, "style": "normal" },
+            "note": "the home hero, measured at its per-CHAR leaves (T.D10 — the census sees LEAVES, and the h1 hosts only spans): Instrument Serif at its one TRUE weight, roman (T.D2 honest ink; the φ-band seat landed at T.D9, OD-4 APPROVED)"
+        },
+        {
+            "role": "hero-deck",
+            "selector": ".hero-deck",
+            "expect": { "voice": "display", "weight": 400, "style": "italic" },
+            "note": "T.D11 (OD-4) — the home deck joins the poster's voice: Instrument Serif TRUE italic 400 at --type-title (the serif-italic deck ramp; the bold-italic system-sans register is dead)"
+        },
+        {
+            "role": "hero-hint",
+            "selector": ".hero-hint",
+            "expect": { "voice": "display", "weight": 400, "style": "italic" },
+            "note": "T.D11 — the hint rides the SAME title rung, muted ink (the T.D2 serif floor rules the heading rung out for the display face; ink strength carries the deck→hint step — a named P-HERO deviation)"
+        },
+        {
+            "role": "control-label",
+            "selector": ".labeled-field-label",
+            "expect": { "voice": "body", "weight": 500 },
+            "note": "field labels are CONTROLS: Jakarta medium (T.D4 demoted them off the mono voice; the glass-ui labeled-field display bind is re-voiced in @layer demo-typography)"
+        },
+        {
+            "role": "easing-curve-name",
+            "selector": ".easing-target .text-display",
+            "expect": { "voice": "display", "weight": 400, "style": "normal" },
+            "note": "T.E10 (VERDICT #16b/#24/#27, easing-scoped) — the easing scene's poster title (the selected curve NAME) is the one easing-route DISPLAY rung, NAMED here so the manifest governs it explicitly (the census clause (e) reads it): Instrument Serif at its one TRUE weight 400, roman. The route's other rungs consume the SHARED roles above (panel labels → control-label Jakarta; the readout literal + curve identifiers → the mono data-register contract below), extending the manifest rather than double-asserting the route-wide totality/dock/display clauses proof:font-census already enforces on all 7 scenes incl. easing."
+        }
+    ],
+    "monoAllowedSelectors": [
+        "code",
+        "code *",
+        "kbd",
+        "pre",
+        "pre *",
+        "[class*='tabular-nums']",
+        "[data-register='code']",
+        "[data-register='code'] *",
+        ".code-token",
+        "[data-slot='select-trigger']",
+        "[data-slot='select-trigger'] *",
+        "[data-testid='easing-picker']",
+        "[data-testid='easing-picker'] *",
+        ".metric-badge",
+        ".metric-badge *"
+    ],
+    "_monoContract": "T.D4 (RULED) — Fira Code is the DATA register only: literals + tabular digits. A mono leaf must be (a) real code/kbd/pre content, (b) a tabular numeric readout (`tabular-nums`), (c) an explicit identifier chip marked `data-register=\"code\"` (curve names, CSS keywords, the @mbabb handle, preset names — reviewed exceptions, self-documented at the call-site), or (d) a glass-ui-OWNED data voice consumed as-shipped (the SelectTrigger `fira-code` value default — CSS-keyword values; the MetricBadge telemetry label idiom; the EasingPicker curve-authoring instrument \u2014 its section captions + readout literal ship in the vendor's own mono-caption data voice, T.E8). A new demo-authored mono UI label reds the census.",
+    "monoCeiling": 90
+}

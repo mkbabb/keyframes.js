@@ -1,0 +1,37 @@
+{
+  "_doc": "T.M5 (proof:subject-legible + proof:subject-full) — the quality oracles replacing existence proxies. `legible` subjects assert no-blur-over-glyph + an edge-energy floor (retiring proof:icon-paint-live (a)'s bbox-only clause — a blur-filtered icon still has a non-zero box, #4). `full` subjects assert a RENDERED-REGION (all six cube faces, a visible filled morph shape over the grid) not an attribute read (subject-animates certifies '≥3 distinct transforms' — a single die-face that tilts passes, #1; morph-scene reads the d-attr mutation on a possibly-invisible path, #21). Each subject's `verified` is false until the browser render check passes on the CURED render — BORN-RED against today's defects (the blurred dock icon, the one-face cube) — the morph clause RETIRED in lockstep with the OD-1 PRUNE (T.E3, batch ①). The band that cures the defect flips `verified` WITH the browser oracle.",
+  "legible": [
+    {
+      "subject": "dock-icon",
+      "assertion": "no blur filter over the glyph + edge-energy ≥ floor",
+      "verdictItem": "#4 (resting blur(3px))",
+      "cure": "T.C dock de-blur (glass-ui born-RED handoff)",
+      "verified": false
+    },
+    {
+      "subject": "dock-glyphs",
+      "assertion": "crisp icon set across both docks",
+      "verdictItem": "#4 (blurry/janky)",
+      "cure": "T.C dock recut",
+      "verified": false
+    }
+  ],
+  "full": [
+    {
+      "subject": "cube",
+      "assertion": "all six faces render (rendered-region, not ≥3-transform)",
+      "verdictItem": "#1 (one die face)",
+      "cure": "T.A --spin-energy bloom delete",
+      "verified": true,
+      "verifiedBy": "T.A1/T.A4 — proof:cube-silhouette browser render check (KF_REQUIRE_BROWSER=1): 6/6 .cube-side faces render with w AND h > 0.25·side (56.3px), .cube box = 225×225px (side×side). The bloom filter-flatten is deleted; the die is 3D."
+    },
+    {
+      "subject": "amiga-ball",
+      "assertion": "the ball renders visible (not NaN-collapsed)",
+      "verdictItem": "#9 (broken mess)",
+      "cure": "T.A NaN/rotation cure (T.A6 plain-vars projection + T.A7 group-compositor ride — no array-boxed leaf reaches the mesh; the transform receives plain numbers)",
+      "verified": true,
+      "renderCheck": "T.A7–A12 impl drive: the red-checker ball paints visible on #/amiga (3833 red-checker pixels, KF_REQUIRE_BROWSER SwiftShader render) and is centroid-detectable by proof:amiga-subject-is-pivot clause (b); the boing arc renders at authored scale (py peaks ±3.998 world units)"
+    }
+  ]
+}

@@ -9,7 +9,7 @@
          `max-w-3xl` rides the content column as an optical reading measure. -->
     <Card
         :shadow="false"
-        class="spring-target flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
+        class="spring-target relative flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
     >
         <!-- Header readout.
              J.W7a S2 (D7 / TYP-2, SP-2) — the scene name lifts to the
@@ -36,7 +36,7 @@
                     SpringProgress
                 </span>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-mono-small text-muted-foreground">x</span>
+                    <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
                     <span class="spring-readout-primary tabular-nums">{{ demo.liveValue.value.toFixed(3) }}</span>
                 </div>
             </div>
@@ -60,7 +60,7 @@
                  graduated field, not blank glass. -->
             <div
                 ref="railEl"
-                class="spring-rail stage-field-x relative w-full h-12 cursor-pointer select-none"
+                class="spring-rail stage-field-x focus-ring relative w-full h-12 cursor-pointer select-none"
                 :class="{ 'spring-rail--derby': demo.derbyActive.value }"
                 role="slider"
                 aria-label="Drag to re-seat the spring target"
@@ -70,7 +70,6 @@
                 tabindex="0"
                 @pointerdown="onPointerDown"
                 @keydown="onKeydown"
-                @dblclick="demo.derby"
             >
                 <div class="progress-rail"></div>
                 <!-- L.W11 S6 — the y=1 TARGET LINE every trace is measured
@@ -115,7 +114,7 @@
                     >
                         <span class="derby-lane-rail"></span>
                         <span
-                            :ref="(el: any) => setDerbyBallEl(lane.index, el)"
+                            :ref="(el) => setDerbyBallEl(lane.index, el)"
                             class="progress-ball derby-lane-ball"
                         ></span>
                         <span class="derby-lane-tag text-mono-caption tabular-nums">
@@ -158,13 +157,19 @@
 </template>
 
 <script setup lang="ts">
+import type { ComponentPublicInstance } from "vue";
 import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
+import { useDoubleTap } from "@composables/useDoubleTap";
 import { SPRING_DEMO_KEY } from "./springKeys";
 import SpringTrace from "./SpringTrace.vue";
 
 const demo = inject(SPRING_DEMO_KEY)!;
+
+// S.G3 S2 — the derby is POINTER-based double-tap now (touch parity; never native
+// `dblclick`, which mobile browsers do not synthesize reliably). A discovered
+// double-tap gesture egg (the on-stage legend layer was retired at T.M — VERDICT #8).
 
 const railEl = useTemplateRef<HTMLElement>("railEl");
 const liveBallEl = useTemplateRef<HTMLElement>("liveBallEl");
@@ -180,7 +185,7 @@ const clampSweep = (v: number) => Math.max(0, Math.min(1, v));
 // on the value axis so the curve crosses the target line (bouncy rings PAST it);
 // the ball still rides its bounded horizontal rail.
 const derbyBallEls: (HTMLElement | null)[] = [];
-const setDerbyBallEl = (i: number, el: any) => {
+const setDerbyBallEl = (i: number, el: Element | ComponentPublicInstance | null) => {
     derbyBallEls[i] = (el as HTMLElement) ?? null;
 };
 
@@ -193,11 +198,17 @@ let unregisterPainter: (() => void) | null = null;
 onMounted(() => {
     unregisterPainter = demo.registerSpringPainter(() => {
         const live = demo.springLive;
+        // T.G4 — position by `transform: translateX(<cqw>)`, NEVER `left`. Animating
+        // `left` re-LAYS-OUT every frame (the born-RED spring layout thrash); a
+        // `translateX` composites on the GPU with zero layout. `cqw` = 1% of the
+        // nearest container's inline size (the rail/track/lane carry
+        // `container-type: inline-size`), so the value axis stays rail-relative with
+        // NO per-frame width read (the AnimationVisualizer/easing transform idiom).
         if (liveBallEl.value) {
-            liveBallEl.value.style.left = `${live.value * 100}%`;
+            liveBallEl.value.style.transform = `translateX(${live.value * 100}cqw)`;
         }
         if (samplerBallEl.value) {
-            samplerBallEl.value.style.left = `${clampSweep(live.sampled) * 100}%`;
+            samplerBallEl.value.style.transform = `translateX(${clampSweep(live.sampled) * 100}cqw)`;
         }
         // L.W11 S6 — position the four derby-lane balls from the live tracker
         // values (clampSweep RELAXED here so the bouncy lane visibly rings PAST
@@ -210,7 +221,7 @@ onMounted(() => {
                 // Allow a small overshoot beyond 100% so the ring is seen; cap so
                 // the ball can't leave the lane entirely.
                 const v = Math.max(0, Math.min(1.18, trackValues[i] ?? 0));
-                el.style.left = `${v * 100}%`;
+                el.style.transform = `translateX(${v * 100}cqw)`;
             }
         }
     });
@@ -229,6 +240,16 @@ const { onPointerDown } = useDragScrub({
         return (e.clientX - rect.left) / rect.width;
     },
     onScrub: (ratio) => demo.reseat(ratio),
+});
+
+// S.G3 S2 — the reliable-primitive double-tap on the rail launches the derby (the
+// touch parity for the former `@dblclick`; drag-disjoint — a scrub never triggers
+// it). The SAME path serves mouse, pen, and touch.
+useDoubleTap({
+    el: railEl,
+    onDoubleTap: () => {
+        demo.derby();
+    },
 });
 
 const onKeydown = (e: KeyboardEvent) => {
@@ -266,7 +287,9 @@ const onKeydown = (e: KeyboardEvent) => {
    SAME small MetricBadge size (the equal-weight inversion U-K18 named). */
 .spring-readout-primary {
     font-size: clamp(2.25rem, 6cqi, 3.25rem);
-    font-weight: 650;
+    /* T.D2 (RULED #24) — the `650` magic weight dies: weights step the ladder
+       (100-multiples only); the readout numeral reads the semibold token. */
+    font-weight: var(--font-weight-semibold, 600);
     line-height: 1;
     letter-spacing: -0.01em;
     color: var(--ball-tone, var(--color-progress));
@@ -277,6 +300,10 @@ const onKeydown = (e: KeyboardEvent) => {
 .sampler-track {
     display: flex;
     align-items: center;
+    /* T.G4 — the balls ride `translateX(<cqw>)`; `cqw` resolves against the nearest
+       inline-size container, so the rail/track ARE that container (the value axis
+       stays rail-relative with no per-frame width read). */
+    container-type: inline-size;
 }
 
 /* The rail + ball geometry now come from the shared .progress-rail /
@@ -312,16 +339,20 @@ const onKeydown = (e: KeyboardEvent) => {
    its small translucent rung so the hierarchy (protagonist > sampler) is
    legible at a glance. */
 .spring-ball {
+    /* T.G4 — anchored at the rail's left edge; the painter's `translateX(<cqw>)`
+       carries the position (compositor-only, no layout). */
+    left: 0;
     margin-left: calc(var(--ball-size, 36px) / -2);
-    will-change: left;
+    will-change: transform;
 }
 
 .sampler-ball {
     --ball-size: 1.25rem;
     --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
+    left: 0;
     margin-left: calc(var(--ball-size) / -2);
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
-    will-change: left;
+    will-change: transform;
 }
 
 /* ── L.W11 S6 — the y=1 TARGET LINE + the settle-pulse ──
@@ -389,6 +420,9 @@ const onKeydown = (e: KeyboardEvent) => {
     height: 0.9rem;
     display: flex;
     align-items: center;
+    /* T.G4 — the lane ball rides `translateX(<cqw>)`; the lane is its inline-size
+       container. */
+    container-type: inline-size;
 }
 .derby-lane-rail {
     position: absolute;
@@ -405,9 +439,10 @@ const onKeydown = (e: KeyboardEvent) => {
     --ball-glow: 30%;
     position: absolute;
     top: 50%;
+    left: 0; /* T.G4 — painter's translateX(<cqw>) carries the position */
     margin-top: calc(var(--ball-size) / -2);
     margin-left: calc(var(--ball-size) / -2);
-    will-change: left;
+    will-change: transform;
     /* the phosphor afterglow in the lane hue */
     filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent));
 }
