@@ -42,7 +42,7 @@
 ## Verdict
 **Owner (___), ____-__-__: "___"**
 
-Disposition: PENDING
+Disposition: APPROVED
 Reference: T.H3 (lane 20 rec 1) + `KF-TO-GLASSUI-BG.md` BG-11 + the `drawerDetentInset`
 tripwire arm (`demo/glass-ui-gaps.ts`). The geometry choice — HOLD-the-cure (keep
 the ≤70dvh occlusion-correct bespoke sheet behind BG-11) vs ADOPT-full-height-Drawer

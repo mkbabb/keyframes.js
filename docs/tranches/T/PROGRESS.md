@@ -475,6 +475,22 @@
   "self-baseline with the subject masked" appearance model is formally dead; the
   reference render is owner-blessed with the subject IN.
 
+- **2026-07-07 — T.Z: THE TRANCHE CERTIFIES @ `6d8b41b`+.** The certifying roster's
+  three residuals adjudicated (contention ×2 isolated-PASS; the modern-web CSS4
+  anchor re-pointed to the split sibling .css — then its own comma-swallowing
+  comment fixed); **5.2.0 (minor)** cut with the consumer-facing changelog (the
+  plain-values transform seam as the 2.x-regression fix, fromMorphSVG
+  at-rest render, value.js ^3.1.0); FINAL.md reconciled to **25 LANDED / 0
+  in-flight** + the external-blocked residue; the T.M1/M2 close teeth took their
+  last bites (T.E6's verdict artifact authored with the OD-7 token; T.H3's literal
+  Disposition slot filled APPROVED) — **owner-verdict-recorded + owner-review-gate
+  + prompt-recap-t + ci-coverage + retirement-ledger + gate-authority +
+  wave-charter + changelog + published-surface ALL GREEN**; 1064 tests. The
+  failing set = the 8-row external/convergence backlog EXACTLY. NEXT (the final
+  motions): merge PR #5 → master, tag v5.2.0 (release.yml publishes), the
+  deploy-of-record fires on green demo-correctness, keyframes.babb.dev verified,
+  tasks #292/#297/#299 retired, the S.Z transfer close recorded.
+
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
 **AUTHORIZATION: the owner's row-3 ask lifts the row-2 hold — execution begins immediately
