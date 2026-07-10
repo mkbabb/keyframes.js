@@ -119,7 +119,11 @@ function valueJsImportNames(src) {
     // a lone `import type { Stylesheet } from "@mkbabb/value.js"` sits far below
     // many `import … from "./engine"` blocks).
     const re = new RegExp(
-        String.raw`import\s+(?:type\s+)?\{((?:[^{}]|\n)*?)\}\s*from\s*["']${SPEC}["']`,
+        // `[^{}]` already matches `\n` — the old `(?:[^{}]|\n)*?` alternation
+        // made every newline two-way ambiguous, i.e. CATASTROPHIC backtracking
+        // on every failing multi-line import (the library-gate job hung >14min
+        // on the CI runner's node 24; local node 26 crawled too, 2026-07-10).
+        String.raw`import\s+(?:type\s+)?\{([^{}]*?)\}\s*from\s*["']${SPEC}["']`,
         "g",
     );
     for (const m of src.matchAll(re)) {
