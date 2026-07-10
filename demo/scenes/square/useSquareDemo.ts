@@ -376,7 +376,8 @@ export function useSquareDemo(
             tx = m.m41;
             ty = m.m42;
         } catch {
-            // A malformed/"none" transform → seat at home (no jump from rest).
+            // KEEP: a malformed/"none" transform → seat at home (no jump from
+            // rest) — the DOMMatrix parse is best-effort by design.
         }
         springX.reset(Math.max(-1, Math.min(1, tx / TRAVEL)), 0);
         springY.reset(Math.max(-1, Math.min(1, ty / TRAVEL)), 0);

@@ -344,8 +344,8 @@ export function useEasingDemo() {
         try {
             previewAnim.setTimingFunction(v);
         } catch {
-            // A mid-edit twin (e.g. a transiently bare name) keeps the last
-            // valid timing function — fail-soft on the live edit path.
+            // KEEP: a mid-edit twin (e.g. a transiently bare name) keeps the
+            // last valid timing function — fail-soft on the live edit path.
         }
     });
     watch(duration, (d) => {

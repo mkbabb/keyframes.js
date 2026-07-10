@@ -53,10 +53,15 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 {
     const vt = read("demo/app/transition/useSceneTransition.ts");
     const swap = read("demo/app/transition/useSceneSwap.ts");
-    if (/startViewTransition/.test(vt) && /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(vt)) {
-        ok("vt", "switchScene routes through glass-ui startViewTransition (feature-detected helper)");
+    // RE-ARMED at the T close: S.F1 (VT-a) moved the VT dispatch INTO the
+    // library — the demo eats kf's own LIGHT `viewTransition` (feature-detect +
+    // reduced-motion + no-VT fallback built in); glass-ui keeps only the LOOK
+    // (::view-transition CSS). The old glass-ui/motion-core routing is the
+    // superseded F.W13-era boundary.
+    if (/viewTransition\s*\(/.test(vt) && /from\s+["']@mkbabb\/keyframes\.js["']/.test(vt)) {
+        ok("vt", "switchScene routes through kf's LIGHT viewTransition dispatch (S.F1 VT-a dogfood; glass-ui keeps the LOOK)");
     } else {
-        fail("vt", "demo/app/transition/useSceneTransition.ts does not route through glass-ui startViewTransition");
+        fail("vt", "demo/app/transition/useSceneTransition.ts does not route through kf's viewTransition (the S.F1 dogfood dispatch)");
     }
     // The no-VT SpringProgress fallback is preserved + feature-gated (stands down only where VT runs).
     if (/SpringProgress/.test(swap) && /supportsViewTransition|startViewTransition|view-?transition/i.test(swap)) {
@@ -230,24 +235,33 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     const handRoll = collectDemo().some((src) =>
         /document\.startViewTransition\s*\(\s*\{/.test(stripCommentsJs(src)),
     );
-    const consumesHelper = /from\s+["']@mkbabb\/glass-ui\/motion-core["']/.test(read("demo/app/transition/useSceneTransition.ts"));
-    if (!handRoll && consumesHelper) {
-        ok("platform-adopt", "the demo consumes glass-ui's startViewTransition — no hand-rolled document.startViewTransition({ types }) (inv-16 boundary holds)");
+    const vtSrc = read("demo/app/transition/useSceneTransition.ts");
+    const consumesDispatch =
+        /viewTransition\s*\(/.test(vtSrc) &&
+        /from\s+["']@mkbabb\/keyframes\.js["']/.test(vtSrc);
+    if (!handRoll && consumesDispatch) {
+        ok("platform-adopt", "the demo consumes kf's viewTransition — no hand-rolled document.startViewTransition({ types }) (the S.F1 dispatch boundary holds)");
     } else if (handRoll) {
-        fail("platform-adopt", "the demo hand-rolls document.startViewTransition({ ... }) — bypasses glass-ui's feature-detect + instant fallback (inv-16 forbids; route OUT as glass-ui-HANDOFF H-1)");
+        fail("platform-adopt", "the demo hand-rolls document.startViewTransition({ ... }) — bypasses kf's viewTransition feature-detect + fallback (the S.F1 dispatch owns the platform call)");
     } else {
-        fail("platform-adopt", "demo/app/transition/useSceneTransition.ts no longer imports startViewTransition from glass-ui (the VT substrate boundary moved)");
+        fail("platform-adopt", "demo/app/transition/useSceneTransition.ts no longer imports viewTransition from @mkbabb/keyframes.js (the VT dispatch boundary moved)");
     }
 
-    // 6c — the engine ships ZERO VT surface (the boundary: VT/scroll-CSS is
-    // glass-ui-owned). Bite: add a startViewTransition helper to src/ → this reds.
-    const engineVT = /startViewTransition/.test(
-        collect("src", new Set([".ts"])).map((p) => readFileSync(p, "utf8")).join("\n"),
+    // 6c — the VT platform call is CONFINED (re-armed at the T close): S.F1
+    // (VT-a) SUPERSEDED F.W13 §A-2's zero-VT engine boundary — `viewTransition`
+    // is now the library's LIGHT orchestration-tier surface, and the ONLY src/
+    // module that may touch document.startViewTransition is its home. Bite: a
+    // second src/ module reaching the platform call directly → this reds.
+    const VT_HOME = "orchestration/view-transition/";
+    const vtStrays = collect("src", new Set([".ts"])).filter(
+        (p) =>
+            !p.includes(VT_HOME) &&
+            /document\.startViewTransition/.test(stripCommentsJs(readFileSync(p, "utf8"))),
     );
-    if (!engineVT) {
-        ok("platform-adopt", "the engine ships zero VT surface (grep startViewTransition src/ = 0) — the boundary holds");
+    if (vtStrays.length === 0) {
+        ok("platform-adopt", "the VT platform call is confined to orchestration/view-transition/ (the S.F1 dispatch home) — the boundary holds");
     } else {
-        fail("platform-adopt", "the engine grew a startViewTransition surface — VT is glass-ui-owned, the engine must ship zero VT (F.W13 §A-2)");
+        fail("platform-adopt", `document.startViewTransition escaped its S.F1 home into: ${vtStrays.join(", ")} — route through the viewTransition dispatch`);
     }
 
     // 6d — the VT-types upgrade is recorded as a glass-ui-HANDOFF (H-1) in the

@@ -8,7 +8,7 @@
         "$comment": "The pins the SHIPPED 5.1.0 keyframes.js declares + installs. `declared` is read from the LOCAL package.json (the pin spec); `installed` is read from node_modules/<pkg>/package.json (the resolved tree) + cross-checked against package-lock.json. The HARD clause reds on ANY drift from these. Source-of-record: package.json dependencies.@mkbabb/value.js (^2.0.1), package.json optionalDependencies.@mkbabb/glass-ui (~4.0.0); value.js 2.0.1's own dependencies declare parse-that ^1.0.0 (transitive).",
         "self": {
             "name": "@mkbabb/keyframes.js",
-            "version": "5.1.0"
+            "version": "5.2.0"
         },
         "pins": [
             {

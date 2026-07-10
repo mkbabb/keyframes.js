@@ -330,7 +330,15 @@ async function browserHalf() {
             // ── (5) the family filter ──────────────────────────────────────
             const pressFilter = async (label) => {
                 const box = await page.evaluate((l) => {
-                    const items = [...document.querySelectorAll(".family-item")];
+                    // The accessible contract, not a styling hook: the filter is
+                    // the aria-labeled single-select ToggleGroup (the old
+                    // .family-item class was an unstyled dead-ref, removed at
+                    // the T close — proof:styling-idioms resolve-or-red).
+                    const items = [
+                        ...document.querySelectorAll(
+                            '[aria-label="Filter curves by family"] button',
+                        ),
+                    ];
                     const el = items.find((i) => i.textContent.trim() === l);
                     if (!el) return null;
                     const r = el.getBoundingClientRect();
