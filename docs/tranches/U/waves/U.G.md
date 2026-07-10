@@ -7,10 +7,12 @@
 > **Charter sentence (U.md §2).** DESIGN.md promoted from 28-line stub to THE
 > authoritative design-language spec (spec-first, gates-derive); the
 > component-module skeleton + API grammar ratified (props/emits/slots/context —
-> ONE grammar each); the two scene genres reconciled under owner review
-> (telemetry-whisper for cube/amiga OR blessed designed-silence); the golden
-> authority completed (sequence-{light,dark} born-OWNER; idle-state pinned in the
-> capture protocol); the Vue idiom rulings R1–R7 ratified as standing law.
+> ONE grammar each), RECONCILED with the glass-ui post-BH audit
+> (`audit/glassui-idioms-post-bh.md`); the 3D scenes (cube/amiga) get the idiomatic
+> instrument register — OD-U9 RULED, designed ONE direction (owner-reviewed mocks), no
+> both-ways fork; the golden authority completed (sequence-{light,dark} born-OWNER;
+> idle-state pinned in the capture protocol); the Vue idiom rulings R1–R7 ratified as
+> standing law.
 >
 > **Provenance lanes:** 24 (design-restructure-system — the four-grammar props
 > census, the emit/name drift, the §9 house component-module skeleton + §9.2
@@ -30,9 +32,11 @@
 > source edits. **The anti-sprawl covenant (U.md §6):** U.G authors **ZERO** new
 > standalone gates — every enforcement shape it ratifies lands as a clause on a
 > surviving gate (U.B12) or inside a wave another band already charters (U.D's
+> `proof:publish` reachability clause — OD-U11 dropped the standalone
 > `proof:chunk-graph`). **The T lesson (MEMORY, S.E scene-stage):** critic
 > consensus ≠ owner verdict — the owner review sits INSIDE the design loop; OD-U9
-> is designed BOTH ways and the owner picks.
+> is RULED (instrument the 3D scenes), so U.G designs the ONE ruled direction to
+> owner-review completeness (mocks reviewed against renders, never self-blessed).
 
 ---
 
@@ -75,7 +79,10 @@ up — verified on the live tree (`tranche-u-dev`, 5.2.0):
    exception)" (verified at :31–34 in the header spec). The same gate's clause (a)
    still specifies "motion-path traveller → --rainbow-cyan" (verified) for a scene
    PRUNED at T.E1/T.E3. A design decision expressible only as a gate exception
-   dies here — OD-U9 rules which way.
+   dies here — **OD-U9 RULED it (2026-07-10): "ratify those 3d scenes getting
+   idiomatic instrumentation."** The asymmetry is resolved ONE way — cube + amiga GET
+   the idiomatic instrument register; U.G designs that single direction to
+   owner-review completeness, no both-ways fork.
 
 4. **The blessed appearance authority is incomplete and state-inconsistent**
    (lane 25 F3, verified). `goldens/golden/` holds exactly **12** files — no
@@ -104,7 +111,7 @@ up — verified on the live tree (`tranche-u-dev`, 5.2.0):
 |---|---|---|---|---|
 | **U.G1** | **THE CODEX: DESIGN.md 27L stub → the authoritative design-language spec** (voices, color authorities incl. the NEW material register, card registers, specimen grammar, idiom catalog, φ geometry, z-contract, token-home partition, prose-purge map) · KEYSTONE | L | the codex file replaces the stub (docs deliverable, owner-observable) + a one-shot cross-ref witness: every surviving design-gate clause cites a codex § anchor | 25 F1/F5/F6/F7 |
 | **U.G2** | The component-module skeleton + API grammar RATIFIED (lane 24 §9.1–9.3 + §10 as a codex chapter; the split-threshold reconciled to ONE number) | M | the codex chapter is the authority U.B12's gate-clause extensions DERIVE from (clauses on existing gates — net gate count flat); vitest/AST one-pass shapes only | 24 §9/§10; 26 R3 |
-| **U.G3** | The scene-genre reconciliation designed BOTH ways for OD-U9 (telemetry-whisper register vs blessed designed-silence) + the ONE stage-legend affordance grammar | M | OD-U9 ruling recorded in OWNER-DECISIONS.md; the picked option lands as codex ch. 8; candidate renders through the goldens candidate flow (NEVER self-blessed) | 25 F2/F4 |
+| **U.G3** | The 3D-scene instrument register designed ONE direction (OD-U9 RULED — cube + amiga GET idiomatic instrumentation; owner-reviewed mocks, no both-ways fork) + the ONE stage-legend affordance grammar | M | OD-U9 recorded RULED in OWNER-DECISIONS.md; the register lands as codex ch. 8; candidate renders through the goldens candidate flow (NEVER self-blessed) | 25 F2/F4 |
 | **U.G4** | The golden authority COMPLETION: sequence-{light,dark} born-OWNER + the idle-state pin in the capture protocol + re-bless the deviating frames | M | `proof:owner-golden` (SURVIVES — fence 3) green on BLESSED.json 12→14 with ONE pinned pane state; **U.A4's re-arm target** (A4 HARD-GATED here) | 25 F3 |
 | **U.G5** | The Vue idiom rulings R1–R7 ratified as STANDING LAW (demo/CLAUDE.md law section + codex chapter; each ruling = rationale + named gate shape + owning wave) | M | the law section exists; every ruling names the surviving gate/clause and the U.A/U.B/U.D/U.H wave that lands it; OD-U7 ruling recorded for R5 | 26 §3 R1–R7 |
 
@@ -114,17 +121,18 @@ scene-genre + goldens mid").**
 ```
 U.G1 (codex)  ── DAY 1 ──┬── U.G2 (skeleton+grammar chapter) ── BEFORE U.B's first move
                           ├── U.G5 (R1–R7 law chapter)        ── BEFORE U.B/U.A gate re-arms
-                          └── U.G3 (scene-genre BOTH ways) ── owner picks (OD-U9)
+                          └── U.G3 (3D-scene instrument register — ONE direction, OD-U9 RULED)
                                         │
                               U.G4 (goldens: sequence pair + idle pin + re-bless)
-                                        │      ── AFTER the OD-U9 pick (ONE blessing pass)
+                                        │      ── AFTER the OD-U9 register mocks (ONE blessing pass)
                               U.A4 (the 77-gate retirement) ── HARD-GATED on U.G4
 ```
 
 Keystones: **G1/G2/G5 land day 1** — U.B's transposition waves cite the codex and
 cut to the skeleton; a move executed before its law is a move executed twice.
-**G4 after G3's ruling** — if OD-U9 picks the whisper, cube/amiga's appearance
-changes and their goldens re-bless ONCE, never twice. **U.A4 waits on G4** — the
+**G4 after G3** — the OD-U9 instrument register changes cube/amiga's appearance, so
+their goldens re-bless ONCE with the register in place, never twice. **U.A4 waits on
+G4** — the
 appearance-genre retirement has no re-arm target until the golden authority is
 complete and unambiguous (U.A's own risk register, U.A.md:493–495).
 
@@ -280,6 +288,33 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
     `playback-button.css` — global-cascade vocabulary parked in module dirs)
     NEVER live in a module: design-system tier (`@/styles/design-idioms.css`)
     or the glass-ui upstream ch. 6 names.
+  - **The glass-ui post-BH reconciliation (audit §1, OD-U2).** Lane 24 §9 and the
+    glass-ui audit (`audit/glassui-idioms-post-bh.md`) CONVERGE — the codex records the
+    reconciliation so the shape is HOMOGENEOUS across the constellation, not derived
+    twice:
+    - **RATIFIED verbatim from glass-ui:** every component a **kebab-case dir** with
+      **PascalCase SFCs**, an **`index.ts` barrel** (re-export only), **`constants.ts`**
+      (typed constants/enums/pure helpers with **types-through-the-barrel** — SFCs can't
+      re-export a type, so unions live in `constants.ts`/the composable and re-export
+      from `index.ts`), and a per-component **`composables/useXxx.ts`** for any bound
+      hook (glass-ui `easing/composables/`, `drawer/composables/`, `dock/composables/`).
+    - **The `composables/` refinement.** This REFINES lane 24 §9.1's flat-single-hook
+      preference: a complex component gets a `composables/` dir (the glass-ui idiom); a
+      leaf with a single trivial hook may still keep it flat (glass-ui `button/` is
+      flat). >~500L renderers carve OUT of the SFC into `composables/` (glass-ui's
+      `useFourierField`/`useAurora`/`useMetaballRenderer` precedent), enforced as the
+      SFC-line clause.
+    - **The CSS convergence, stated HONESTLY (audit §4 vs kf's T-era split).** glass-ui
+      is CENTRAL-styles today (a `src/styles/` `@import` cascade; component recipes as
+      central `.css` under `@layer components`), with 5.0.0 moving **9** component sheets
+      (border-progress, completion-seal, configurator, instrument-chassis, hover-popover,
+      drawer, segmented-tabs, select, icon-chip) TOWARD colocation via a GATHER +
+      `@import`-rewrite (B2.6); kf's T-era split is ALREADY sibling-css (`<Name>.css`
+      beside the SFC). The codex RULES the convergence point BOTH repos are moving to:
+      **tokens + cross-component idioms stay CENTRAL** (`@/styles/design-idioms.css` /
+      the token partials — glass-ui's `styles/tokens`, `styles/glass`),
+      **component-specific recipes COLOCATE** (the sibling `<Name>.css`). Not "glass-ui
+      central vs kf colocated" — ONE rule, both repos converging.
 - **Gate posture (lane 24 §10 — anti-sprawl-honest).** The chapter is the
   authority U.B12's clause extensions DERIVE from: `proof:colocation` gains
   (a) the inverse-colocate clause (single-owner member inside a shared tier →
@@ -301,60 +336,53 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
   THIS chapter's threshold; one statement, two citations), → **U.G1** (chapter
   9 of the codex).
 
-### U.G3 — The scene-genre reconciliation designed BOTH ways (OD-U9) + the ONE stage-legend affordance grammar
+### U.G3 — The 3D-scene instrument register (OD-U9 RULED) + the ONE stage-legend affordance grammar
 
-- **Substance (lane 25 F2 — the fork, designed, not decided).** The product's
-  core identity — *the instrument reads the engine live* — goes silent on the
+- **Substance (lane 25 F2 — OD-U9 RULED, designed ONE direction).** The product's
+  core identity — *the instrument reads the engine live* — went silent on the
   two most spectacular scenes (amiga's 3-channel additive pose + decay() glide
   exposed today only to a window probe, AmigaScene.vue:184–198; cube floating
-  bare on the page grid, the only plate-less scene). The asymmetry survives as
-  a gate exception (suffusion clause (b), verified). Per OD-U9 (NEEDS RULING,
-  in-loop) this wave designs BOTH options to owner-pickable completeness:
-  - **Option (a) — THE TELEMETRY WHISPER.** The square's corner-instrument
-    composition (SquareInstrument.vue:168–201, verified: absolute top-left
-    serif title + accent readout + settled/tracking badge, `pointer-events:
-    none`, `z-index: var(--z-content)` — asymmetric chrome around the centred
-    subject) promoted to a shared idiom — a `.stage-whisper` register in
-    design-idioms.css (position anchors, title rung, mono readout rung,
-    optional tri-state badge, PRM behavior, pointer transparency) — and
-    applied over the full-bleed canvases: **amiga** whispers spin ω + pose y
-    with the verb line "drag the ball — release to coast" (the decay() dogfood
-    finally discoverable on touch, where `cursor: grab` does not exist);
-    **cube** whispers the active channel + a live matrix cell or Euler triple
-    with "drag to orbit." The canvas stays full-bleed; the whisper floats —
-    the instrument voice carried into the immersive genre WITHOUT a plate.
-  - **Option (b) — DESIGNED SILENCE.** The two-genre rule stated in the codex
-    (instrument scenes speak; immersive scenes are silent theater), the
-    suffusion "headerless exception" re-cut from exception to RULE (and then
-    retired with its genre at U.A4 — the rule lives in codex ch. 8, verified
-    by owner-golden), and cube's plate-lessness given its stated rationale:
-    the page-wide axis lines ARE its coordinate field — the stage-field idiom
-    at page scale.
-  - **The affordance grammar rides the fork (lane 25 F4).** Today four
-    spellings: spring's explicit caption, square's progressive-disclosure
-    corner legend, amiga's cursor-only, cube's home-only hint. Under (a): ONE
-    `.stage-legend` idiom (position register, caption rung,
-    progressive-disclosure timing, PRM/touch behavior) gives every manipulable
-    scene its verb line. Under (b): the legend unifies across the four
-    instrument scenes; the immersive pair's silence is the designed rule and
-    the touch-discoverability loss is stated IN the ruling (the owner decides
-    with the cost visible). Either way the four-grammar mix dies.
-- **The review-loop protocol (the S.E lesson — owner review INSIDE the
-  loop).** Both options are delivered as specs + candidate renders captured
-  through the goldens **candidates** flow (`goldens/candidates/`,
-  NEVER self-blessed — the born-OWNER discipline); the owner picks against
-  renders, not prose. The ruling lands in OWNER-DECISIONS.md OD-U9; the picked
-  option becomes codex ch. 8; if (a), the implementation rides U.B8's scene
-  convergence wave as a rider (the whisper components are new module-shaped
-  members cut to G2's skeleton).
+  bare on the page grid, the only plate-less scene). The asymmetry survived as
+  a gate exception (suffusion clause (b), verified). **OD-U9 RULED (2026-07-10):
+  "ratify those 3d scenes getting idiomatic instrumentation"** — so this wave
+  designs the ONE ruled direction, NO both-ways fork (the S.E lesson still holds
+  — owner review sits INSIDE the loop, but the direction is decided):
+  - **THE INSTRUMENT REGISTER (the telemetry whisper).** The square's
+    corner-instrument composition (SquareInstrument.vue:168–201, verified:
+    absolute top-left serif title + accent readout + settled/tracking badge,
+    `pointer-events: none`, `z-index: var(--z-content)` — asymmetric chrome around
+    the centred subject) is promoted to a shared idiom — a `.stage-whisper`
+    register in design-idioms.css (position anchors, title rung, mono readout rung,
+    optional tri-state badge, PRM behavior, pointer transparency) — and applied over
+    the full-bleed canvases: **amiga** whispers spin ω + pose y with the verb line
+    "drag the ball — release to coast" (the decay() dogfood finally discoverable on
+    touch, where `cursor: grab` does not exist); **cube** whispers the active channel
+    + a live matrix cell or Euler triple with "drag to orbit." The canvas stays
+    full-bleed; the whisper floats — the instrument voice carried into the immersive
+    genre WITHOUT a plate. The suffusion "headerless exception" (clause (b)) is
+    RETIRED with its genre at U.A4; cube/amiga now speak like the four instrument
+    scenes.
+  - **The ONE stage-legend affordance grammar (lane 25 F4).** Today four spellings:
+    spring's explicit caption, square's progressive-disclosure corner legend, amiga's
+    cursor-only, cube's home-only hint. ONE `.stage-legend` idiom (position register,
+    caption rung, progressive-disclosure timing, PRM/touch behavior) gives EVERY
+    manipulable scene its verb line — the four-grammar mix dies and the 3D scenes
+    gain the touch-discoverable affordance the cursor-only hint denied them.
+- **The review-loop protocol (the S.E lesson — owner review INSIDE the loop).** The
+  register is delivered as a spec + candidate renders captured through the goldens
+  **candidates** flow (`goldens/candidates/`, NEVER self-blessed — the born-OWNER
+  discipline); the owner reviews the MOCKS against renders, not prose, and refines the
+  ONE ruled direction (not a fork pick). The register lands as codex ch. 8; the
+  implementation rides U.B8's scene convergence wave as a rider (the whisper components
+  are new module-shaped members cut to G2's skeleton).
 - **Size.** M. **MID-BAND** (after G1 opens ch. 8; before G4's blessing pass).
-- **Oracle.** OD-U9 ruling recorded; codex ch. 8 states the picked rule; the
-  candidate renders exist under `candidates/` with PENDING-OWNER status; if
-  (a) — owner-golden re-blessing for cube/amiga flows through G4 (ONE pass);
-  if (b) — the suffusion clause re-cut rides U.A4's genre retirement.
-- **Edges.** ↔ **OD-U9** (the fork IS the decision), → **U.G4** (blessing
-  AFTER the pick), ↔ **U.B8** (the (a)-rider), → **U.G1** (ch. 8), ↔ **U.A4**
-  (the (b)-path's clause re-cut is subsumed by the genre retirement).
+- **Oracle.** OD-U9 recorded RULED; codex ch. 8 states the instrument-register rule;
+  the candidate renders exist under `candidates/` with PENDING-OWNER status;
+  owner-golden re-blessing for cube/amiga flows through G4 (ONE pass, with the register
+  in place).
+- **Edges.** ↔ **OD-U9** (RULED — instrument the 3D scenes), → **U.G4** (blessing AFTER
+  the register mocks), ↔ **U.B8** (the implementation rider), → **U.G1** (ch. 8), ↔
+  **U.A4** (the suffusion clause re-cut is subsumed by the genre retirement).
 
 ### U.G4 — The golden authority COMPLETION: sequence pair + the idle-state pin + re-bless
 
@@ -379,10 +407,10 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
      amendment to the SURVIVING owner-golden mechanism, not a new gate).
   3. **Re-capture + re-bless the deviating frames** through the same
      born-OWNER flow, so the 14-frame set means ONE thing.
-- **Sequencing.** AFTER U.G3's OD-U9 ruling: if (a) is picked, cube/amiga
-  change appearance and their frames bless ONCE with the protocol amendment —
-  never a bless-then-re-bless double pass. The sequence pair and the protocol
-  clause can draft day-1; the blessing EVENT is single and late.
+- **Sequencing.** AFTER U.G3's OD-U9 RULED instrument register: cube/amiga
+  change appearance (they gain the whisper), so their frames bless ONCE with the
+  protocol amendment — never a bless-then-re-bless double pass. The sequence pair and
+  the protocol clause can draft day-1; the blessing EVENT is single and late.
 - **Why this wave is load-bearing beyond design.** U.A4 retires the 77
   line-anchored appearance gates INTO `proof:owner-golden` + one behavioral
   smoke — and U.A's risk register rules that retirement HARD-GATED on this
@@ -397,7 +425,7 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
   surviving mechanism).
 - **Edges.** → **U.A4** (HARD gate — the retirement's re-arm target),
   → **U.E2** (HARD gate — the `FROZEN_SET` 36 discharge target),
-  → **U.G3** (the pick sequences the blessing), ↔ **U.B** (the transposition
+  → **U.G3** (the RULED register sequences the blessing), ↔ **U.B** (the transposition
   preserves appearance — "transposes, never redesigns," U.md §6; the goldens
   are its verification), ↔ **U.Z** (the close's certifying sweep runs on the
   completed authority).
@@ -419,10 +447,10 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
   - **R2 — Laziness lives at the consumer's seam, never in a re-export.**
     Sanctioned async boundaries: scene/router entries, pane-reveal seams,
     heavy-vendor bearers. A barrel never wraps `defineAsyncComponent`. *Gate
-    shape:* `proof:chunk-graph` — **U.D's chartered gate** (born-RED on the
-    verified 906KB vendor-highlight leak; one of the two new standalone gates in U
-    (the other being `proof:scripts-colocated`, U.A9), owner-signed under U.D's
-    charter). G5 states the LAW; U.D lands the witness.
+    shape:* the **`proof:publish` reachability clause** — **U.D-owned** (born-RED on
+    the verified 906KB vendor-highlight leak; OD-U11 DROPPED the standalone
+    `proof:chunk-graph` into this clause, so net NEW standalone gates in U = ZERO).
+    G5 states the LAW; U.D lands the witness.
   - **R3 — The mechanical SFC/CSS split** (>100L style block OR >300L SFC →
     sibling sheet; every demo `.css` ≤300L) — ONE statement with G2's
     threshold (single source; G2 ch. 9 cites R3). *Gate shape:*
@@ -468,7 +496,7 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
   ruling is recorded (R5 executes only on the owner's blessing of the
   carve-out); zero gates authored by this wave.
 - **Edges.** → **OD-U7** (R5's carve-out ruling), ↔ **U.B12** (the standing
-  clauses), ↔ **U.D** (chunk-graph = R2's witness), ↔ **U.H** (the mirror =
+  clauses), ↔ **U.D** (the `proof:publish` reachability clause = R2's witness, OD-U11), ↔ **U.H** (the mirror =
   R5's execution), ↔ **U.A10** (the anti-sprawl covenant — R-series
   enforcement is clause-shaped by construction), → **U.G1/G2** (consonance:
   ONE threshold, ONE lexicon, ONE law).
@@ -479,20 +507,23 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
 
 The stale-era re-arm class is **EXPECTED** (charter §5). U.G authors **ZERO**
 new standalone gates; its enforcement shapes land as clauses on surviving gates
-(U.B12) or inside U.D's chartered `proof:chunk-graph`. Net gate delta from this
-band: **0 authored, several retired-into** (the appearance genre dissolves into
-the codex + owner-golden authority this band completes).
+(U.B12) or inside U.D's `proof:publish` reachability clause (OD-U11 — no standalone
+`proof:chunk-graph`). Net gate delta from this band: **0 authored, several
+retired-into** (the appearance genre dissolves into the codex + owner-golden authority
+this band completes).
 
 | Wave | Invalidates / at risk | Disposition |
 |---|---|---|
 | **G1** | The 27L DESIGN.md stub (the last design-axis legacy artifact); the retired appearance-gate genre's clause-table rationale (suffusion hue oracles, crayon pins, font census) which would otherwise be orphaned by U.A4; `proof:idioms`' geometry-token anchors (the F5 stray moves) and the two stale home-pointer comments | SUPERSEDE the stub with the codex; the retired genres' rationale TRANSFERS into codex sections (spec-first — owner-golden verifies against a stated law); the token moves + any surviving anchor re-arm ride U.B's styles pass IN ONE MOTION (charter §3: structural gates re-anchor WITH the move); the prose-purge map executes via U.B/U.E — if `proof:idioms` is retired at U.A4 before the move, the re-anchor is moot (delete wins) |
 | **G2** | Lane 24's ~40L split threshold (superseded by R3's 100L/300L — the reconciliation is EXPLICIT, recorded in the chapter); the four legacy grammars (`withDefaults`, runtime-object props, call-signature emits, manual `update:*`); the `ReturnType`-derived context APIs; `@/components/skeletons/` (the one-orphan tier) | ONE number stated once (G2 ch. 9 = R3; a contradiction here would make U.B12 enforce two rules — the named risk, cured by single-sourcing); the grammar conversions + renames RIDE U.B's import-touching moves (never a second pass); the skeleton tier completes as U.B10 (T.F8's deferred half) citing this chapter |
-| **G3** | If (a): the blessed cube/amiga goldens (appearance changes) + the suffusion headerless-exception clause; if (b): the suffusion clause's "exception" framing + amiga/cube's undiscoverable-gesture state (the touch-discoverability loss is STATED in the ruling). Either way: the four-spelling affordance mix | The pick sequences G4 (ONE blessing pass — bless-then-re-bless is the named waste); the suffusion clause is retired with its genre at U.A4 regardless (the rule's home is codex ch. 8, its verification owner-golden); OD-U9 unruled at U.Z = the fork FAILS the zero-deferral exit — both options are delivered pick-ready precisely so the ruling is cheap |
+| **G3** | The blessed cube/amiga goldens (appearance changes — they gain the whisper) + the suffusion headerless-exception clause; the four-spelling affordance mix | OD-U9 RULED (instrument the 3D scenes) sequences G4 (ONE blessing pass with the register in place — bless-then-re-bless is the named waste); the suffusion clause is retired with its genre at U.A4 (the rule's home is codex ch. 8, its verification owner-golden); the RULED register is designed to owner-review completeness, so the mocks refine ONE direction, never a fork |
 | **G4** | BLESSED.json's current hashes for the state-deviating frames (re-bless is the POINT); the capture protocol's silence on pane state; **U.A4's entire 77-gate retirement AND U.E2's `FROZEN_SET` 36 discharge** (both hard-gated here — the schedule risk of the band: owner-blessing latency stalls the apparatus dissolution) | Re-bless through the born-OWNER flow with `blessedCommit` updated; the protocol clause lands beside the PRM freeze (same mechanism, one more frozen axis); MITIGATE the latency: candidates + protocol draft day-1, ONE late blessing event, A4's genre deletions staged so only the final retirement waits on the blessing |
 | **G5** | The folklore state of R1–R7 (four wave-spec restatements risk drift); the DEFERRED tolerance map (dies — R6); `PIN`-style exceptions generally (exceptions now change the RULE); if OD-U7 rules AGAINST the mirror: R5's clause dies and every structural gate needs test-exclusion carve-outs (the fallback cost is recorded IN the ruling request so the decision is informed) | The law lives ONCE, cited everywhere; the map deletion executes in U.B1 with the two re-homes (no tolerance survives); an adverse OD-U7 ruling re-charters R5's slice to U.H as a colocation design (bounded blast radius — the other six rulings stand independent) |
 
-**The zero-deferral posture.** This band carries TWO in-loop owner decisions
-(OD-U9, OD-U7) and one hard downstream gate (U.A4 on G4). None is a deferral
-device: both decisions are delivered pick-ready inside U (both options designed;
-both rationales recorded), and U.Z's exit criterion holds them — an unruled fork
-at close fails the tranche, by design.
+**The zero-deferral posture.** OD-U9 is now RULED (instrument the 3D scenes — no
+longer an in-loop fork); this band carries ONE remaining in-loop owner decision
+(OD-U7, the test-mirror carve-out) and one hard downstream gate (U.A4 on G4). Neither
+is a deferral device: OD-U9's register is designed to owner-review completeness (ONE
+direction, mocks reviewed against renders), OD-U7 is delivered ruling-ready with its
+fallback cost recorded, and U.Z's exit criterion holds them — an unruled decision at
+close fails the tranche, by design.

@@ -9,11 +9,12 @@
 > DRAFT `KF-TO-VALUEJS-U.md` (subpath+boxing+`@function`+`PathGeometry` contract
 > freeze, the unified `parseTimingFunction` ask, the KF-7 rename renewal, the
 > plain-vars binary decision, the pin posture) — consume-edge ONLY, the sibling
-> tranche is active; re-probe the five glass-ui caps against FETCHED 4.1.0 + 4.2.0
-> dist, move tilde→caret within the major (OD-U4), re-architect the tripwire to
-> probe `dist-tags.latest` (the vacuous-green cure), and issue ONE consolidated
-> BG/BH letter with absorb-or-expire deadlines; certify parse-that clean in one line
-> and excise the dead REALM-CONVERGENCE machinery.
+> tranche is active; re-target the glass-ui consume edge to glass-ui **5.0.0** (OD-U4
+> — the pin moves on its publish, the planned joint BG+BH cut), re-probe the five caps
+> against the 5.0.0 dist, re-architect the tripwire to probe `dist-tags.latest` (the
+> vacuous-green cure), and issue ONE consolidated BG/BH letter reconciled against what
+> 5.0.0 actually ships with absorb-or-expire deadlines; certify parse-that clean in one
+> line and excise the dead REALM-CONVERGENCE machinery.
 >
 > **Provenance lanes:** 27 (constellation-valuejs-edge — F1 megabarrel→subpath,
 > F2 the `getTimingFunction` grammar shard, F3 the plain-vars boxing adapter, F4
@@ -90,6 +91,16 @@ covenant the current apparatus green-lights while it drifts:
    (verified `:72-73`), a version 12 majors stale that would green-light a resolver
    that breaks kf outright.
 
+   **OD-U4 (2026-07-10) resolves the pin question entirely — the edge re-targets to
+   glass-ui 5.0.0.** Not tilde-vs-caret within 4.x: the consume edge moves to
+   glass-ui **5.0.0**, the planned joint BG+BH cut (audit §3 — no 5.0.0 tag/branch
+   yet; 5.0.0 is where BG + BH land together). The break is exactly: **`./api`
+   dropped + 203 symbols re-homed to per-component subpaths (200 pure path-swaps + 3
+   orphans gaining an export) + one rename `goo-blob → blob`**; glass-ui 5.0.0 bumps
+   its own kf peer to **`^5.1.0`** (compatible with kf 5.3, OD-U8). The pin moves on
+   the 5.0.0 publish; the five caps + the consolidated letter re-probe / reconcile
+   against the 5.0.0 dist; the tilde→caret-within-4.x machinery is SUPERSEDED.
+
 parse-that is the clean edge: transitive-only via value.js 3.1.0 → parse-that
 `^1.0.0` (registry latest 1.0.0), zero `src/` specifiers, the cross-realm cast
 structurally impossible — nothing owed but a one-line certified-clean record and the
@@ -105,8 +116,8 @@ excision of the machinery that narrates the closed question (lane 28 A1–A4).
 | **U.F2** | The demo subpath transposition — 23 `demo/**` files onto the same contract | M | `proof:boundary` subpath clause extended to `demo/` + the demo builds green | 27 F6 |
 | **U.F3** | **DRAFT `KF-TO-VALUEJS-U.md`** — the coordination letter (the deliverable) | M | the letter file exists + is complete (contract freeze / `parseTimingFunction` / authored-plain / KF-7 / pin) — a docs deliverable, owner-observable | 27 F2/F3/F5/F7; 28 B7 |
 | **U.F4** | The kf-side dispositions: plain-vars binary decision + `getTimingFunction` dispatcher BOOK'd as deadlined covenants | S | `proof:workaround-deletion` arms (keyed on the value.js API's presence) — net-neutral vs. the retired S7 arm | 27 F2/F3 |
-| **U.F5** | **THE glass-ui FETCHED-DIST RE-PROBE + tilde→caret + tripwire re-architecture** · KEYSTONE (glass-ui) | M | `proof:glass-ui-gap-tripwire` re-architected to `dist-tags.latest` (same gate, coupled probe) + `proof:workaround-deletion` arms retired for any shipped cure | 28 B2/B3/B5 |
-| **U.F6** | **DRAFT the ONE consolidated BG/BH letter** (`KF-TO-GLASSUI-U.md`) + stale-narration refresh + MEMORY re-pin | M | the letter file exists + carries absorb-or-expire deadlines; the pin snapshots DERIVE from `package.json` | 28 B4/B6 |
+| **U.F5** | **THE glass-ui 5.0.0 RE-TARGET (OD-U4) + fetched-dist re-probe + tripwire re-architecture** · KEYSTONE (glass-ui) | M | `proof:glass-ui-gap-tripwire` re-architected to `dist-tags.latest` (same gate, coupled probe) + `proof:workaround-deletion` arms retired for any 5.0.0-shipped cure; the pin moves to 5.0.0 on its publish | 28 B2/B3/B5 |
+| **U.F6** | **DRAFT the ONE consolidated BG/BH letter** (`KF-TO-GLASSUI-U.md`) reconciled against what 5.0.0 ships + stale-narration refresh + MEMORY re-pin | M | the letter file exists + carries absorb-or-expire deadlines reconciled against 5.0.0; the pin snapshots DERIVE from `package.json` | 28 B4/B6 |
 | **U.F7** | `proof:deps-current` currency truth — value.js floor 0.13→3.1, excise REALM-CONVERGENCE, glass-ui drift assertion, parse-that certified-clean one-liner | S | `proof:deps-current` (re-armed — the floor now bites; drift is caught; realm reduced to one line) | 27 F4; 28 A3/A4 |
 
 **Sequencing (band-internal DAG, charter §3 "letters early — upstream latency").**
@@ -118,7 +129,7 @@ U.F6 (glass-ui letter)  ── DAY 1 (parallel; the absorb-or-expire clock start
 U.F1 (value.js subpath transposition) ──┬── consumes F3's frozen subpath contract (A.1)
                                         └──> U.F2 (demo edge — SAME contract, co-sched U.B)
 U.F4 (plain-vars + dispatcher dispositions) ── rides F3's asks B/C; the tripwire arms
-U.F5 (glass-ui re-probe + re-pin + tripwire) ── independent; feeds F6's negative/positive record
+U.F5 (glass-ui 5.0.0 re-target + re-probe + tripwire) ── independent; feeds F6's negative/positive record
 U.F7 (deps-current currency) ── ONE pass with U.A's CI trim (same path-pinned gate file)
 ```
 
@@ -183,8 +194,9 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
   entirely on the HEAVY surface; `internal/leaves.ts`'s `/math` LIGHT leaf is
   unchanged; `proof:boundary` proves no LIGHT file gains a value.js specifier.
 - **Oracle.** `proof:boundary` re-armed with the subpath clause (the megabarrel import
-  of a subpath-exported symbol REDs); the chunk-graph witness (U.D's `proof:chunk-graph`
-  / `bench`) proves parse-that is SEVERED from the chunks that never parse (the
+  of a subpath-exported symbol REDs); the reachability witness (U.D's `proof:publish`
+  post-build clause / `bench`, OD-U11 — no standalone `proof:chunk-graph`) proves
+  parse-that is SEVERED from the chunks that never parse (the
   `easing`/`units`/`transform` splits carry 0 packrat markers after the move — lane 27
   measured the subpath dists at 0 markers today); vitest proves the HEAVY behavior is
   byte-identical (a pure import-source move — the runtime symbols are the same).
@@ -322,6 +334,14 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
 > **§G — Non-asks (explicitly out of scope).** kf charters NO value.js-internal
 > refactor, NO grammar change beyond §B/§C/§D, NO parse-that work (parse-that is
 > value.js's transitive concern; kf has no direct edge — confirmed clean).
+>
+> **§H — A courtesy FLAG (not an ask, not kf work).** value.js's own demo carries the
+> SAME vestigial `demo/@/` shadcn-scaffold directory kf is dissolving in U (OD-U2 — the
+> `@/` is a shadcn ALIAS materialized as a real dir; glass-ui has none, only a 3-plane
+> `@glass` alias). Flagged for value.js's ACTIVE tranche to consider dissolving its twin
+> (hoist `demo/@/`'s children to `demo/{components,composables,…}/`, alias spellings
+> unchanged, 3-plane declaration) for constellation homogeneity — a NOTE, NOT a kf
+> deliverable and NOT a consume-edge ask.
 
 ### U.F4 — The kf-side dispositions: plain-vars binary decision + `getTimingFunction` BOOK'd as deadlined covenants
 
@@ -364,24 +384,35 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
   workaround ledger — coordinate the arm set), → **U.F5** (the glass-ui
   workaround-deletion arms are re-probed in the same gate — one coherent ledger pass).
 
-### U.F5 — THE glass-ui FETCHED-DIST RE-PROBE + tilde→caret + tripwire re-architecture · **KEYSTONE (glass-ui)**
+### U.F5 — THE glass-ui 5.0.0 RE-TARGET (OD-U4) + fetched-dist re-probe + tripwire re-architecture · **KEYSTONE (glass-ui)**
 
-- **Substance — the fetched-dist re-probe (lane 28 B2, ask 1).** FETCH glass-ui 4.1.0
-  AND 4.2.0 dist (a `pack`/registry-tarball read of the two published minors) and
-  re-probe the five `glassCaps` caps (`ariaGuard`, `dockStrandKeepalive`,
-  `dockDropdownPointerdown`, `dockDismissHold`, `drawerDetentInset`) against them —
-  NOT the frozen installed 4.0.1. Determine whether any BG/BH cure (BG-1/BG-4/GU-3/GU-4/
-  BG-11) already shipped. For each cure found: re-pin to the cut carrying it and DELETE
-  the stranded `proof:workaround-deletion` arm + the demo band-aid it guards (net gate
-  DOWN). For each still absent: record the NEGATIVE with fetched-dist evidence (a
-  distinguishable state from "unpublished").
-- **Substance — tilde→caret (OD-U4, lane 28 ask 3).** Replace the deliberate `~4.0.0`
-  tilde hold with a **caret within the BG/BH major** (`^4.0.0`, or the explicit BG/BH
-  cut once identified) so consumed minors flow in and the content probe SEES them.
-  Supersede the `PIN-LEDGER.json` "hold ~4.0.x, tilde never caret" posture note — it
-  predates 4.1.0/4.2.0 existing and now silently defeats the entire T.H tripwire
-  design. (Note: this REVERSES a recorded posture — OD-U4 NEEDS RULING; the wave stages
-  the re-pin behind the owner ruling.)
+- **Substance — the glass-ui 5.0.0 re-target (OD-U4 RULED, audit §3).** The owner
+  ruled the consume edge onto glass-ui **5.0.0** ("Glass-ui has a forthcoming 5.0.0
+  release. We use this") — this SUPERSEDES the tilde-vs-caret-within-4.x question
+  entirely. 5.0.0 is the planned joint **BG + BH** cut (audit §3 — no 5.0.0 tag/branch
+  yet; `docs/tranches/BH/PLAN.md` plans it). The consumer break is EXACTLY: **`./api`
+  dropped + 203 symbols re-homed to per-component subpaths** (200 pure path-swaps + 3
+  orphans gaining an export — `Surface→/card`, `MenuItemVariants→/command`,
+  `ControlSize→/forms`) **+ one rename `goo-blob → blob`**. glass-ui 5.0.0 bumps its
+  OWN kf peer to **`^5.1.0`** (compatible with kf 5.3, OD-U8) — the two majors line up.
+  kf moves its glass-ui pin to `^5.0.0` (or the exact cut) ON the 5.0.0 publish, a
+  WITNESSED consume; the re-pin is staged behind the publish + owner confirm.
+- **Substance — the fetched-dist re-probe against 5.0.0 (lane 28 B2, ask 1).** On the
+  5.0.0 publish, FETCH the 5.0.0 dist (a `pack`/registry-tarball read) and re-probe the
+  five `glassCaps` caps (`ariaGuard`, `dockStrandKeepalive`, `dockDropdownPointerdown`,
+  `dockDismissHold`, `drawerDetentInset`) against IT — NOT the frozen installed 4.0.1,
+  and NOT the interim 4.1/4.2 minors (which 5.0.0 subsumes). Determine which BG/BH cures
+  5.0.0 actually SHIPPED. For each cure found: adopt the 5.0.0 surface the consume edge
+  now imports through and DELETE the stranded `proof:workaround-deletion` arm + the demo
+  band-aid it guards (net gate DOWN). For each still absent in 5.0.0: record the NEGATIVE
+  with fetched-dist evidence (a distinguishable state from "unpublished") in the letter
+  (U.F6).
+- **Substance — adopt the 5.0.0 per-component subpath idiom (audit §3/§4).** Where
+  glass-ui 5.0.0's per-component subpath exports (`./button`, `./drawer`, `./easing`,
+  …) let the demo import a leaf directly instead of the root barrel, ADOPT them WHERE it
+  slims the demo graph (the same subpath-consume discipline U.F1/U.F2 apply to value.js
+  — one contract, both siblings). Consume-edge ONLY (the demo's import granularity),
+  never a glass-ui patch.
 - **Substance — the tripwire re-architecture (lane 28 B2, ask 2 — the vacuous-green
   cure).** Re-architect `scripts/lib/glass-caps.mjs` so the cap probe runs against a
   **fetched `dist-tags.latest` glass-ui dist** (a registry-tarball read), not the
@@ -389,9 +420,10 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
   `installedGlassUiVersion` today read `node_modules/@mkbabb/glass-ui/dist`). A cure
   landing in ANY reachable published minor then ARMS the tripwire. Give each
   `demo/glass-ui-gaps.ts` entry a **concrete `fixVersion`** (today all abstract
-  "@mkbabb/glass-ui BG/BH …" — verified `glass-ui-gaps.ts:64,77,90`) the probe compares
-  against both `installedGlassUiVersion()` AND `dist-tags.latest`, so "cure expected by
-  4.x but latest is 4.2.0 and still absent" is DISTINGUISHABLE from "unpublished." Also
+  "@mkbabb/glass-ui BG/BH …" — verified `glass-ui-gaps.ts:64,77,90`; now pinned to the
+  5.0.0 cut) the probe compares against both `installedGlassUiVersion()` AND
+  `dist-tags.latest`, so "cure expected in 5.0.0 but latest is still 4.2.0
+  (unpublished)" vs "shipped in 5.0.0" is DISTINGUISHABLE from "unpublished." Also
   retarget `proof-workaround-deletion.mjs`'s hard-coded `"4.1.0"` sentinels
   (`:263,:282,:303,:324`) to the fetched-latest content probe so the sentinel (registry
   existence) and the content probe (dist grep) STOP being decoupled.
@@ -400,14 +432,14 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
   kf's pin and kf's probe mechanism, nothing upstream.
 - **Oracle.** `proof:glass-ui-gap-tripwire` re-architected — same gate, now probing
   `dist-tags.latest` (the mechanism change is net-neutral on gate count; the vacuous
-  green is CURED); `proof:workaround-deletion` arms RETIRED for any 4.1/4.2-shipped cure
-  (net DOWN). A one-shot witness: a cap cure present in 4.2.0 but absent in installed
-  4.0.1 now ARMS the tripwire (proving the blind spot is closed).
+  green is CURED); `proof:workaround-deletion` arms RETIRED for any 5.0.0-shipped cure
+  (net DOWN). A one-shot witness: a cap cure present in the fetched 5.0.0 dist but absent
+  in installed 4.0.1 now ARMS the tripwire (proving the blind spot is closed).
 - **Edges.** → **U.F6** (the positive/negative re-probe record is the letter's cited
   evidence), → **U.F7** (the glass-ui drift assertion in `deps-current` complements the
   re-architected tripwire), ↔ **U.F4** (shared `proof:workaround-deletion` ledger — one
-  coherent pass over both siblings' arms), ↔ **OD-U4** (staged behind the ruling that
-  reverses the recorded tilde posture).
+  coherent pass over both siblings' arms), ↔ **OD-U4** (RULED — the 5.0.0 re-target; the
+  re-pin is staged behind the 5.0.0 publish + owner confirm).
 
 ### U.F6 — DRAFT the ONE consolidated BG/BH letter + stale-narration refresh + MEMORY re-pin
 
@@ -415,7 +447,10 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
   BG/BH letter (`docs/tranches/U/KF-TO-GLASSUI-U.md`) superseding the T-era
   `KF-TO-GLASSUI-BG.md` (482 lines, §0 roster + §FORWARDING). It carries the full
   expectation set with **hard kf-side postures — absorb-or-expire deadlines** on each
-  ask (a cure absorbed by a re-pin, or the ask expires and kf ratifies its own posture):
+  ask (a cure absorbed by a re-pin, or the ask expires and kf ratifies its own posture).
+  **Each ask is RECONCILED against what glass-ui 5.0.0 actually ships (OD-U4, U.F5's
+  re-probe):** a cure 5.0.0 absorbs is recorded ABSORBED (its arm retired on the re-pin);
+  only the still-absent asks carry a deadline forward.
   - **BG-5** (static-backdrop blur mode — the dominant systemic perf killer, morph
     33→116fps; kf acceptance gate `proof:blur-not-resampled`; owner-visible VERDICT #19).
   - **BG-11** (detented Drawer bottom-reserve token `--drawer-inset-block-end` + max-detent
@@ -434,10 +469,9 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
     demo-side controlled-`modelValue` fix (chartered at **U.B6**, dischargeable WITHOUT a
     glass-ui change — lane 30 ask 7) retires the `:key`-remount re-seat; the letter RECORDS it
     discharged-kf-side (no born-RED tripwire armed against glass-ui for it).
-  - Each ask gets an **absorb-or-expire deadline** tied to the caret pin (U.F5): the cure
-    is either absorbed by a re-pin within the BG/BH major or the ask EXPIRES and kf's
-    posture (band-aid or acceptance) becomes permanent kf-owned — no vacuous perpetual
-    tripwire.
+  - Each ask gets an **absorb-or-expire deadline** tied to the 5.0.0 re-target (U.F5): the
+    cure is either absorbed by the 5.0.0 re-pin or the ask EXPIRES and kf's posture
+    (band-aid or acceptance) becomes permanent kf-owned — no vacuous perpetual tripwire.
 - **Substance — stale-narration refresh (lane 28 B6, ask 6).** Refresh the stale version
   narration and DERIVE it from `package.json` at gate time instead of hand-copied prose
   that drifts every re-pin: `KF-TO-GLASSUI-BG.md:372` §5 pin table says value.js `^2.0.1`
@@ -448,7 +482,7 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
 - **Substance — MEMORY re-pin (lane 28 ask 7).** Re-pin the constellation MEMORY note
   `project_glassui_specular_consume_edge` (and MEMORY.md's stale "kf pins ~3.5.1") to the
   current `~4.0.x`-installs-4.0.1 reality with the 4.2.0 registry frontier — and, once
-  U.F5's caret lands, to the caret posture.
+  U.F5's 5.0.0 re-target lands, to the glass-ui 5.0.0 posture (`^5.0.0`, peer kf `^5.1.0`).
 - **Size.** M. **Deliverable = the letter** (docs; owner-observable). **DAY 1** (parallel
   with U.F3 — upstream latency). **Ring-fence 1** — a letter + a MEMORY note, no glass-ui
   patch.
@@ -520,8 +554,8 @@ names (`proof:valuejs-subpath`) is folded as a CLAUSE of the surviving `proof:bo
 | **F2** | the `proof:boundary` subpath clause's file set (library-only); the 23 demo megabarrel imports | RE-ARM the clause to `demo/`; rides U.B's file moves (one re-point, not two) |
 | **F3** | `KF-TO-VALUEJS-T.md` (T-era, stale pin snapshot) | SUPERSEDE with `KF-TO-VALUEJS-U.md` (the drafted deliverable); the T letter is archived provenance |
 | **F4** | `proof:workaround-deletion` (the S7 linear()-normalize arm retired; plain-vars UN-tracked; the dispatcher untracked) | RE-ARM: the `getTimingFunction` dispatcher arm added (keyed on §B); the plain-vars arm added (path b) OR the value.js-provenance framing PURGED (path a — no arm, ratified kf-owned). Net arm count flat (fills the retired S7 slot) |
-| **F5** | `proof:glass-ui-gap-tripwire` + `glass-caps.mjs` (installed-dist probe); `proof:workaround-deletion`'s hard-coded 4.1.0 sentinels; the `~4.0.0` tilde pin + the `PIN-LEDGER.json` "tilde never caret" note; the abstract `fixVersion` fields | RE-ARCHITECT the tripwire to `dist-tags.latest` (same gate, mechanism cured); RETIRE any arm whose cure shipped in 4.1/4.2 (net DOWN); RE-PIN tilde→caret (OD-U4, behind the ruling); concrete `fixVersion` per entry; SUPERSEDE the tilde-posture note |
-| **F6** | `KF-TO-GLASSUI-BG.md` (T-era); the stale §5 value.js `^2.0.1` narration; `PIN-LEDGER.json` `$comment`; MEMORY `project_glassui_specular_consume_edge` + "~3.5.1" | SUPERSEDE with `KF-TO-GLASSUI-U.md` (absorb-or-expire deadlines); REFRESH the narration DERIVED from `package.json`; RE-PIN the MEMORY notes to the 4.0.1/4.2.0-frontier reality |
+| **F5** | `proof:glass-ui-gap-tripwire` + `glass-caps.mjs` (installed-dist probe); `proof:workaround-deletion`'s hard-coded 4.1.0 sentinels; the `~4.0.0` pin + the `PIN-LEDGER.json` "tilde never caret" note; the abstract `fixVersion` fields | RE-ARCHITECT the tripwire to `dist-tags.latest` (same gate, mechanism cured); RETIRE any arm whose cure shipped in **5.0.0** (net DOWN); **RE-TARGET the pin to glass-ui 5.0.0 on its publish** (OD-U4 RULED — the tilde→caret-within-4.x machinery is SUPERSEDED); concrete 5.0.0 `fixVersion` per entry; SUPERSEDE the tilde-posture note |
+| **F6** | `KF-TO-GLASSUI-BG.md` (T-era); the stale §5 value.js `^2.0.1` narration; `PIN-LEDGER.json` `$comment`; MEMORY `project_glassui_specular_consume_edge` + "~3.5.1" | SUPERSEDE with `KF-TO-GLASSUI-U.md` (absorb-or-expire deadlines, reconciled against what **5.0.0** ships); REFRESH the narration DERIVED from `package.json`; RE-PIN the MEMORY notes to the 4.0.1/4.2.0-frontier reality → the 5.0.0 posture once U.F5's re-target lands |
 | **F7** | `proof:deps-current` — the `value.js 0.13.0`/`parse-that 0.9.0` FLOOR; the 90-line REALM-CONVERGENCE clause 3 + `G-HANDOFF-1` + the `utils.ts:248` narration; the optional-sibling skip | ADVANCE the value.js floor to 3.1.0 (bites); COLLAPSE realm clause 3 to a one-line single-realm invariant + DELETE the parse-that FLOOR/`G-HANDOFF-1`/`utils.ts` narration; ADD the glass-ui drift clause; DERIVE narration from `package.json`. Same gate, sharper |
 
 **Standing covenants the band CREATES, not clears (the deadlined-external class — carries to V

@@ -53,3 +53,22 @@
   edict-conformance, all SOUND-WITH-FIXES — 1 blocker [the U.C4 spring-oracle ownership,
   now U.H1's named deliverable], 7 major, 9 minor) APPLIED across 8 corpus docs; the two
   new-gate anti-sprawl sign-offs registered as OD-U10/OD-U11.
+- **2026-07-10** — **THE 2026-07-10 RULING BATCHES EXECUTED (OWNER-ASKS rows 3-4).**
+  The owner's two verbatim ruling batches propagated through the corpus: OD-U1..U13 now
+  register terminal-or-confirm — OD-U1 (the RULED 10× wall-clock + zero-loss fold-map
+  exit criteria), OD-U2 (component-CORE redesign to the glass-ui post-BH idiom + the
+  `demo/@/` DISSOLUTION revised-reco, pending one-word confirm; `components/custom/`
+  dissolution STANDS), OD-U4 (glass-ui **5.0.0** — the pin moves on its publish, the
+  joint BG+BH cut), OD-U5 (Monaco kept FULLY-FEATURED but ON-DEMAND), OD-U7
+  (tests-stay), OD-U8 (**5.3.0** — U binds to a compatible published surface, additive
+  only), OD-U9 (RULED — instrument the 3D scenes, designed ONE direction, no both-ways
+  fork), OD-U10/OD-U11 (both proposed standalone gates DROPPED to clauses), OD-U12 (the
+  scene-facet loading model — verbatim design authority), OD-U13 (the amiga +
+  suspend/resume in-U cure). The glass-ui post-BH idiom audit LANDED
+  (`audit/glassui-idioms-post-bh.md` — the OD-U2 homogeneity evidence, feeding
+  U.B/U.F/U.G). The amiga + scene suspend/resume first-principles investigation
+  DISPATCHED (OD-U13; dossier → `audit/defect-amiga-suspend-resume.md`; the fix is the
+  new wave **U.B13**). **ZERO new standalone gates survive the rulings** (OD-U10/U11 —
+  both fold into clauses on existing gates; net NEW standalone gates in U = ZERO). The
+  corpus propagation applied to `U.md` + six wave docs
+  (`U.A`/`U.B`/`U.C`/`U.D`/`U.F`/`U.G`).

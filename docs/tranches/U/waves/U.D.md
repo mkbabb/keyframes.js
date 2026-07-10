@@ -8,9 +8,12 @@
 > property; U.D re-aims performance at the seam that actually costs frames —
 > library (render-seam transposition, the allocation+throughput harness that
 > SURVIVES the U.A trim, WAAPI sync-fast-path restore, drag2D onto one vector
-> spring) and demo (8MB dead Monaco workers → 0, the eager shell value.js-free,
-> LCP decoupled from engine warm, highlight.js retired, and the chunk-graph +
-> weight budget as ONE standing dist gate born-RED on the 906KB spring leak).
+> spring) and demo (Monaco kept FULLY-FEATURED but ON-DEMAND — zero editor bytes on
+> first paint, 8MB dead workers → 0, OD-U5; the eager shell value.js-free, LCP
+> decoupled from engine warm, highlight.js retired, and the reachability +
+> weight-budget assertion as ONE post-build clause inside `proof:publish` — no
+> standalone gate, OD-U11 — with the 906KB spring-leak cure moving to U.B's OD-U12
+> facet seam, U.D owning the measurement).
 >
 > **Provenance lanes.** `audit/lane-21-perf-library-hotpaths.md` (library
 > hot-path profile, F1–F7), `audit/lane-22-perf-demo-runtime.md` (demo chunk
@@ -23,10 +26,12 @@
 > deferral devices. NO legacy (dead workers, booked-and-declined Typed-OM,
 > namespace-drag imports are all excised, not tolerated). Net gate count only
 > goes DOWN: the harness is vitest (folds INTO `npm test`, survives U.A);
-> exactly ONE new standalone `proof-*.mjs` is chartered WITHIN U.D (the dist-artifact gate),
-> owner-sanctioned as the structurally-blind gate class the source-shape roster
-> cannot see (OD-U5 "gated"; lane 26 charter). Every claim below carries a
-> `file:line` cite spot-checked against the live tree (5.2.0, `tranche-u-dev`).
+> **ZERO new standalone `proof-*.mjs` (OD-U11):** the dist-artifact reachability +
+> weight-budget assertion the draft once proposed as `proof:chunk-graph` is DROPPED
+> to ONE post-build CLAUSE inside `proof:publish` (KISS — one build-output check
+> total; the structurally-blind gate class the source-shape roster cannot see, FOLDED
+> not spawned). Every claim below carries a `file:line` cite spot-checked against the
+> live tree (5.2.0, `tranche-u-dev`).
 
 ---
 
@@ -38,8 +43,8 @@
 | **U.D2** | The allocation + throughput regression harness | Headless, **vitest-runnable** (survives U.A's trim — co-charter with U.A). (a) heap-delta==0 over ~1000 **apply** frames (not just sample); (b) an absolute-throughput floor per hot path, device-classed with tolerance, auto-re-baselined on every value.js re-pin. Re-cut the stale decision-JSON ratios (`processframe-soa-decision.json` 60.28× → measured 20.7×) against 5.2.0/value.js 3.1.0. Fold F6 (per-frame closure alloc, `play-lifecycle.ts:211-215`) as a covered assertion. Fold F4: vitest `exclude: ['**/.claude/**','**/node_modules/**','**/dist/**']` + pinned `root` so bench/test never traverse stale worktrees. | M | IS the gate — vitest under `npm test`; collapses `proof:zero-alloc`/`proof:standalone-zero-alloc`/`proof:processframe-soa` node-halves into vitest (U.A doubling genre). | co-charter **U.A** (mechanism survivor); **U.D1/3/4** are its clients |
 | **U.D3** | Restore the WAAPI sync fast-path | `waapi/delegation.ts:38` — the `async` shadow callback ALWAYS returns a Promise, so `RAFPlayback`'s zero-microtask sync fast-path (`physics/playback.ts:139-147`, the J.W6 headline) never applies to WAAPI. Transpose to a plain function that inspects `advanceTo`'s return type and defers ONLY on the genuine first-tick thenable (mirroring the rAF path's own shape, `play-lifecycle.ts:222-225`). ONE scheduling idiom across both loops. | S | `proof:event-ordering` (existing, must stay green) + a U.D2 microtask-hop assertion (steady WAAPI frame does zero `.then`). | after **U.C** engine carves settle |
 | **U.D4** | drag2D onto one 2-lane vector spring | `orchestration/drag/drag-2d.ts`: two independent scalar `Draggable`s (each its own `SpringProgress`) → ONE 2-lane `SpringVectorLanes` (`physics/spring/vector.ts`) — one closed-form step/tick, `exp`/`cos`/`sin` hoisted ONCE across both axes. Preserve the `Drag2DHandle` surface + per-axis `bounds`/`snap`/`rubberBand` pass-through; LIGHT preserved (zero value.js edge). | M | `proof:drag2d-light-certified` (existing, must stay green) + `spring-vector` bench arm re-baselined (`spring-vector-decision.json`) + U.D2 behavior parity. | with **lane 13** / **U.C** spring modal-kernel unification (vector.ts is that kernel) |
-| **U.D5** | Demo: Monaco slim · eager shell value.js-free · LCP decouple · highlight retire · THREE named | Monaco (`CSSCodeEditor.vue:52`): drop the full `import("monaco-editor")` barrel → `editor.api` + `language/css/monaco.contribution` only ⇒ ZERO ts/html/json workers (8.02MB dead → 0), `vendor-monaco` ≤~2.2MB. Eager shell value.js-free: `animationOptionsStore.ts:1` `jumpTerms` off the eager `@state` graph → routed through the warmed HEAVY engine surface (or a value.js LIGHT subpath ask → U.F). LCP decouple (`main.ts:50`): mount IMMEDIATELY, warm the engine at idle, transpose the sync non-null `AnimationGroup` contract to async-tolerant. highlight.js (`useHighlightCSS.ts:3`): `highlight.js/lib/core` (~40KB) or consolidate onto Monaco's colorizer and retire hljs entirely. THREE (`amiga/*`): `import * as THREE` → named/used-only. | L | The U.D6 dist-artifact gate + owner-golden LCP/paint parity. | LCP contract touches the scene-machine → **U.B8**; value.js-free routing → **U.F** if a LIGHT subpath is needed; feeds **U.D6** clause-b/c |
-| **U.D6** | `proof:chunk-graph` + the standing weight budget (ONE dist gate, born-RED) | ONE new post-build `proof-*.mjs` over `dist/gh-pages/assets/` `from"./…"` edges + byte census (the ONLY new standalone gate; anti-sprawl owner sign-off recorded — the gate class source-shape roster is blind to). **Clause a** (born-RED): no scene chunk statically reaches `vendor-monaco`/`vendor-highlight`/`html2canvas`; `vendor-three` only from `AmigaScene` — RED today on `SpringScene-*.js → vendor-highlight` (906KB, lane 26 F1). **Clause b**: zero non-css language worker emitted to dist (OD-U5). **Clause c**: per-chunk + eager-total byte ceilings (entry, eager CSS ≤~250KB, largest lazy vendor). | M | IS the gate; goes GREEN as **U.D5** + **U.B**'s facet seam land. | co-scheduled with **U.B** module cuts (the facet `defineAsyncComponent` cure is U.B's move; this gate is its born-RED witness); clause-b after **U.D5** |
+| **U.D5** | Demo: Monaco ON-DEMAND (full-featured) · eager shell value.js-free · LCP decouple · highlight retire · THREE named | Monaco (`CSSCodeEditor.vue:52`) STAYS fully-featured but ON-DEMAND (OD-U5): ZERO editor bytes on first paint; on facet-open, load monaco CORE + the needed language worker PER-LANGUAGE on demand + themes lazily + prettier as an on-demand chunk (the format action loads it on first USE) — the 8MB defect is DELIVERY (eagerly emitted, never fetched), NOT feature-set; an alternatives bake-off (CodeMirror 6 etc.) is RECORDED-only (replacement requires proof of strict superiority AND slimness). Eager shell value.js-free: `animationOptionsStore.ts:1` `jumpTerms` off the eager `@state` graph → routed through the warmed HEAVY engine surface (or a value.js LIGHT subpath ask → U.F). LCP decouple (`main.ts:50`): mount IMMEDIATELY, warm the engine at idle, transpose the sync non-null `AnimationGroup` contract to async-tolerant. highlight.js (`useHighlightCSS.ts:3`): `highlight.js/lib/core` (~40KB) or consolidate onto Monaco's colorizer and retire hljs entirely. THREE (`amiga/*`): `import * as THREE` → named/used-only. | L | The U.D6 `proof:publish` post-build clause + owner-golden LCP/paint parity. | LCP contract touches the scene-machine → **U.B8**; value.js-free routing → **U.F** if a LIGHT subpath is needed; feeds **U.D6** sub-checks b/c |
+| **U.D6** | The `proof:publish` reachability + weight-budget clause (ONE post-build check, born-RED — OD-U11) | ONE post-build CLAUSE inside `proof:publish` over `dist/gh-pages/assets/` `from"./…"` edges + byte census (OD-U11: the standalone `proof:chunk-graph` gate is DROPPED — net NEW standalone gates = ZERO; the structurally-blind check the source-shape roster cannot see, FOLDED into `proof:publish`). **Sub-check a** (born-RED): no scene chunk statically reaches `vendor-monaco`/`vendor-highlight`/`html2canvas`; `vendor-three` only from `AmigaScene` — RED today on `SpringScene-*.js → vendor-highlight` (906KB, lane 26 F1); the CURE is U.B's OD-U12 facet seam (U.D owns the measurement). **Sub-check b**: zero non-css language worker emitted to dist (OD-U5). **Sub-check c**: per-chunk + eager-total byte ceilings (entry, eager CSS ≤~250KB, largest lazy vendor). | M | IS the clause; goes GREEN as **U.D5** + **U.B**'s facet seam land. | co-scheduled with **U.B** module cuts (the facet `defineAsyncComponent` cure is U.B's OD-U12 move; this clause is its born-RED witness); sub-check b after **U.D5** |
 
 ---
 
@@ -158,10 +163,17 @@ U.C's kernel carve settles.
 The full barrel registers the TS/HTML/JSON language contributions, each declaring a
 `new Worker(new URL('…/{ts,html,json}.worker'))` Vite statically emits — so dist
 ships `ts.worker` (6.9MB) + `html.worker` (719KB) + `json.worker` (409KB) = 8.02MB
-the `getWorker` (editor+css only) can NEVER spawn. **Transposition:** import the
-language-free `editor.api` core + explicitly `language/css/monaco.contribution`; the
-ts/html/json worker edges never enter the graph. Target: 0 language workers,
-`vendor-monaco` ≤~2.2MB. **F2 — value.js on the eager entry (verified
+the `getWorker` (editor+css only) can NEVER spawn. **Transposition (OD-U5 — Monaco
+STAYS fully-featured; the 8MB is a DELIVERY defect, eagerly emitted and never
+fetched, NOT a feature-set defect):** ON-DEMAND DELIVERY — nothing on first paint,
+everything available when the editor facet OPENS. On facet-open, load monaco CORE +
+the needed language worker PER-LANGUAGE on demand (css now; any other language only
+if a facet needs it, fetched when its language is), themes LAZILY, and prettier as an
+on-demand chunk (the format action loads it on FIRST USE). Target: 0 editor bytes on
+first paint; 0 eagerly-emitted unused workers (8.02MB dead → 0). An alternatives
+bake-off (CodeMirror 6 etc.) may be RECORDED but replaces Monaco ONLY on proof of
+strict superiority AND slimness — no compromise on the fully-featured editor
+(prettier / language support / theming). **F2 — value.js on the eager entry (verified
 `animationOptionsStore.ts:1` `import { jumpTerms }`).** One value.js helper on the
 eager `@state` store drags 124KB of value.js onto the LCP critical path, violating
 the same boundary the library obeys. **Transposition:** route `jumpTerms` (and any
@@ -180,38 +192,42 @@ language).** Transposition: `highlight.js/lib/core` (~40KB) + the css grammar, O
 consolidate all CSS highlighting onto Monaco's colorizer and RETIRE hljs entirely
 (the deeper no-legacy cure). **F6 — THREE (verified `amiga/*` `import * as THREE`).**
 Named/used-only imports so rolldown drops unused three modules. **Gate:** the U.D6
-dist-artifact gate + owner-golden LCP/paint parity. **Edges:** LCP contract → **U.B8**;
-value.js LIGHT subpath (if needed) → U.F.
+`proof:publish` post-build clause + owner-golden LCP/paint parity. **Edges:** LCP
+contract → **U.B8**; value.js LIGHT subpath (if needed) → U.F.
 
-### U.D6 — `proof:chunk-graph` + the weight budget (ONE dist gate, born-RED — lane 26 F1, lane 22 F5)
+### U.D6 — The `proof:publish` reachability + weight-budget clause (ONE post-build check, born-RED — OD-U11; lane 26 F1, lane 22 F5)
 
 **Evidence (verified).** `SpringPhysicsFacet.vue:133` eagerly deep-imports
 `KeyframesEditor.vue` → `useHighlightCSS` → static `highlight.js`; built-graph
 trace: `SpringScene-*.js → parseAnimationCSS-*.js → vendor-highlight` (906KB). The
 ONLY two chunks statically importing `vendor-highlight` are `KeyframesStringControls`
 (correctly behind the pane-reveal `defineAsyncComponent`, `AnimationControls.vue:252`)
-and **SpringScene** — the leak. NO gate looks at the chunk graph, so it shipped
-green. `proof:chunk-graph` is confirmed absent (`ls scripts/ | grep chunk` empty);
-227 `proof:*` keys today.
+and **SpringScene** — the leak. NO post-build check looks at the chunk graph, so it
+shipped green. There is no chunk-graph check today (`ls scripts/ | grep chunk`
+empty); 227 `proof:*` keys.
 
-**The gate (the ONE new standalone `proof-*.mjs` U.D charters).** A post-build
+**The check (OD-U11 — a `proof:publish` CLAUSE, NOT a standalone gate).** A post-build
 static assertion over `dist/gh-pages/assets/` `from"./…"` edges + a byte census —
-the gate CLASS the source-shape roster is structurally blind to (the recorded
-gate-blind-spot lesson made mechanical). Three clauses in ONE script (anti-sprawl:
-one new gate, not three; owner-sanctioned via OD-U5 "gated" + lane 26's charter):
-- **Clause a (born-RED today):** no scene chunk statically reaches `vendor-monaco`/
+the check CLASS the source-shape roster is structurally blind to (the recorded
+gate-blind-spot lesson made mechanical). Per OD-U11 ("Both new proof: items sound
+like junk") the standalone `proof:chunk-graph` gate is DROPPED; this lands as ONE
+post-build clause INSIDE `proof:publish` (KISS — one build-output check total; net
+NEW standalone gates = ZERO). Three sub-checks in the ONE clause:
+- **Sub-check a (born-RED today):** no scene chunk statically reaches `vendor-monaco`/
   `vendor-highlight`/`html2canvas`; `vendor-three` reachable only from `AmigaScene`.
   RED on the SpringScene→vendor-highlight leak — goes GREEN when U.B re-seats the
-  facet's editor card behind a `defineAsyncComponent` reveal seam (U.B's colocation
-  move; this gate is its born-RED witness, co-scheduled per charter §3).
-- **Clause b:** zero non-css language worker emitted to dist (fails if any
+  facet's editor card behind a `defineAsyncComponent` reveal seam (U.B's OD-U12 facet
+  move; this clause is its born-RED witness, U.D owning the measurement, co-scheduled
+  per charter §3).
+- **Sub-check b:** zero non-css language worker emitted to dist (fails if any
   `{ts,html,json}.worker` reaches `dist/gh-pages`) — the OD-U5 born-RED companion;
-  goes GREEN with U.D5's Monaco slim.
-- **Clause c:** per-chunk + eager-total byte ceilings — entry, eager CSS ≤~250KB
+  goes GREEN with U.D5's Monaco ON-DEMAND delivery.
+- **Sub-check c:** per-chunk + eager-total byte ceilings — entry, eager CSS ≤~250KB
   (lane 22 F5: `index-*.css` is 582KB today), largest lazy vendor — so the perf
-  edict is a STANDING gate, not a one-time cleanup.
+  edict is a STANDING check, not a one-time cleanup.
 
-**Edges:** co-scheduled with U.B (clause-a cure); clause-b after U.D5.
+**Edges:** co-scheduled with U.B (sub-check-a cure — the OD-U12 facet seam); sub-check-b
+after U.D5.
 
 ---
 
@@ -229,13 +245,13 @@ gate's frozen expectation. Disposition below (re-arm-or-delete, citing the rulin
 | U.D3 | `proof:event-ordering` (locks the lifecycle-event order across the sync/async seam) | **MUST STAY GREEN** — the fast-path restore is behavior-preserving; the gate is the oracle that proves it. Re-run independently on the merged tree (orchestration §5). |
 | U.D4 | `proof:drag2d-light-certified`, `proof:published-surface` (LIGHT set) | **MUST STAY GREEN** — vector-spring re-seat preserves the LIGHT boundary + the `Drag2DHandle` surface; the gates are the oracle. |
 | U.D5 | any test/fixture importing the full `monaco-editor` barrel; `vendor-monaco`/`vendor-highlight`/`vendor-three` chunk-size expectations; the sync non-null `AnimationGroup` prop contract (scene-machine) | **RE-ANCHOR with the move** (charter §3 — structural gates re-anchor WITH the moves, never lag); the `AnimationGroup`-contract change is co-scheduled with U.B. |
-| U.D6 | NEW gate `proof:chunk-graph` — born-RED (clauses a+b) at authoring | **BORN-RED by design**: green as U.D5 + U.B land within U (no row carries to V — no-deferral). ONE new standalone `proof-*.mjs`; anti-sprawl owner sign-off recorded (OD-U5 + lane 26). It ABSORBS the ad-hoc weight concerns (lane 22 F5/F6) as clause-c rather than spawning new gates. |
+| U.D6 | the `proof:publish` reachability/weight CLAUSE — born-RED (sub-checks a+b) at authoring | **BORN-RED by design**: green as U.D5 + U.B's OD-U12 facet seam land within U (no row carries to V — no-deferral). **NOT a standalone gate (OD-U11 — `proof:chunk-graph` DROPPED); ONE post-build clause inside `proof:publish`, net NEW standalone gates = ZERO.** It ABSORBS the ad-hoc weight concerns (lane 22 F5/F6) as sub-check-c rather than spawning new gates. |
 
 **Cross-band edges out of U.D (not U.D waves — recorded so nothing strands).**
 Lane 21 F5 (per-frame color-batch fold in `lerpColorValue`) and F7 (epoch-scoped
 incremental computed-cache invalidation instead of the wholesale `resize` clear) are
 **value.js consume-edge charters → U.F** (`KF-TO-VALUEJS-U.md`), NOT kf parallel arms
 (ring-fence 1, no-duplicate/no-legacy). The SpringPhysicsFacet `defineAsyncComponent`
-cure (U.D6 clause-a's green condition) is **U.B's** colocation move. The
+cure (U.D6 sub-check-a's green condition) is **U.B's** OD-U12 facet-seam move. The
 async-tolerant `AnimationGroup` scene-machine contract (U.D5 F3) is co-owned with
 **U.B8**. drag2D's vector kernel is **U.C**'s spring modal-kernel unification (lane 13).

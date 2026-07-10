@@ -121,8 +121,9 @@ freeze declared, finally happening — lane 05 §2).
 | Interaction/state | `proof:dock-popover-opens`, `proof:single-toggle`, `proof:darkmode-row-toggle`, `proof:idle-fade`, `proof:drawer-spring`, `proof:sequence-rows-draggable` | 6 | → `proof:demo-smoke` (the behavior actuates) |
 
 (`proof:demo-smoke` here is an EXISTING gate RE-ARMED for the behavioral discharge — NOT a new
-gate; the only NEW standalone gates in U are `proof:scripts-colocated` (U.A9) + `proof:chunk-graph`
-(U.D6).)
+gate; per OD-U10/U11 there are **NO new standalone gates in U** — `proof:scripts-colocated`
+(U.A9) and `proof:chunk-graph` (U.D6) were BOTH DROPPED to clauses on existing gates
+(`proof:colocation` + lint; `proof:publish`), net NEW standalone gates = ZERO.)
 
 `FROZEN_SET` (+ the ci-coverage frozen-discharge clause) is EMPTY and DELETED at close.
 A frozen px-lock is legacy the moment its surface is rebuilt (lane 05 §2).

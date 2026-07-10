@@ -11,6 +11,15 @@
 > to the colocation edict, and standing up an anti-sprawl covenant — with the gate
 > re-anchoring CO-SCHEDULED against every U.B/U.C move in ONE coordinated pass.
 >
+> **The RULED exit criteria (OD-U1, 2026-07-10 — terminal).** The owner ruled the
+> trim a TOTAL reimagining (KISS, "no loss of functionality," "sped up by at least an
+> order of magnitude"), binding U.A to two hard exit criteria: (a) **ZERO
+> functionality loss** — every real invariant a deleted gate asserted is folded into
+> vitest / `proof:publish`, witnessed by a **fold-map deliverable** (the §A.2 table
+> landed as a checked artifact, one row per real gate → its surviving oracle, not a
+> claim); (b) **≥10× merge-gating wall-clock** — the CI path drops from ~35-40 min to
+> **≤4 min**. Both are the band's close criteria (verified at U.A10 / U.Z).
+>
 > **Provenance lanes:** 07 (ci-tautology — the five tautology classes + trimmed
 > roster), 08 (ci-runtime-and-pipeline — the pipeline cost + the coverage-contract
 > forcing function + deploy coupling), 09 (gate-apparatus-meta — the apparatus IS
@@ -22,7 +31,12 @@
 > appearance genre dissolves INTO it (fence 3); the LIGHT/HEAVY boundary is
 > preserved (fence 2 — `proof:boundary` is one of the three surviving mechanisms);
 > net gate count only goes DOWN and a new standalone `proof-*.mjs` requires owner
-> sign-off (§6 anti-sprawl). DEVELOPMENT ONLY — this is the charter, not the edit.
+> sign-off (§6 anti-sprawl). **NET NEW standalone gates in U = ZERO (OD-U10/U11):**
+> the `proof:scripts-colocated` gate this band once proposed is DROPPED — the
+> `scripts/` restructure (U.A9) is instead held by ONE clause on the EXISTING
+> `proof:colocation` gate + lint; the tranche's other proposed gate
+> (`proof:chunk-graph`) is likewise DROPPED into a `proof:publish` clause (U.D).
+> DEVELOPMENT ONLY — this is the charter, not the edit.
 
 ---
 
@@ -71,8 +85,8 @@ gate deleted.** That is U.A1.
 | **U.A6** | Tier-manifest-as-data + the `ci.yml` collapse + `demo-device-observe` deletion + the device-honesty subsystem | `scripts/lib/tiers.mjs` (arrays, not `&&` mega-strings); collapse `ci.yml` 756L/134 steps/3 jobs → ONE fast job / `run-all --all` over the manifest; DELETE `demo-device-observe` (continue-on-error, gates nothing); delete `ci-env.mjs` posture machinery + `portable-perf.mjs` + `cdp-perf.mjs` + clause-4 posture manifest (the Linux runner justified them) | L | the single `gates` job green; no browser/Monaco/chromium on the merge path | A5; lane 23 F5/F6 |
 | **U.A7** | The browser roster re-homing — nightly + on-device | Move the 77-gate `run-demo-roster` suite off the merge path to a `schedule:` cron + `workflow_dispatch` (writes `last-demo-green=<sha>`) + on-device pre-push (fast macOS, where MEMORY says browser correctness actually holds); fold `demo-device-observe`'s LoAF/lighthouse into the nightly; dedupe `dfa-derived` | M | the nightly run green + `last-demo-green` ref written | A6 |
 | **U.A8** | Deploy-of-record redesign (OD-U3) | `deploy-pages.yml` gates on library-`ci`-green on master AND `last-demo-green` an ancestor of the deploy SHA (`merge-base --is-ancestor`); RETIRE the single-sourced `DEMO_CORRECTNESS_JOB` literal + the preflight coupling; a red nightly freezes the deploy ref (opens an issue), never blocks every push | M | a deploy-of-record dry-run on the redesigned trigger | A7; OD-U3 ruling |
-| **U.A9** | The `scripts/` backend restructure (the colocation edict's backend arm) | Transpose the 209 flat `proof-*.mjs` into `scripts/gates/<family>/` (surface/hygiene/correctness/live/appearance-residual/perf) with `index.mjs` barrels the tier manifest derives from; `scripts/lib/gate.mjs` (one `Gate()` clause/report/exit — migrate the 133 reporters); `scripts/lib/serve.mjs` (the 48 inline servers); decompose `demo-driver.mjs` (1043L) → `lib/driver/{launch,scene,serve,cdp,assert}.mjs`; colocate the 4 `vite.config.ts` plugins → `scripts/build/vite/`; externalize `api-extractor.json`; delete dead artifacts (0-ref decision JSONs, retired `baselines/visual-lock/`); author `proof:scripts-colocated` (the backend twin of `proof:colocation`) | L | `proof:scripts-colocated` (the ONE new gate — owner-signed per anti-sprawl); `tiers.mjs` derives from the barrels | A5 (population settled); lane 23 F1/F3/F4/F7/F8 |
-| **U.A10** | The anti-sprawl covenant (STANDING) | Ratify the precept: additions expensive, deletions FREE (`git rm` + drop the key — no witness, no discharge, no successor-migration proof); new enforcement lands as a vitest test OR a `proof:publish` clause; a new standalone `proof-*.mjs` requires owner sign-off. Net gate count only goes DOWN | S | the covenant recorded in `DESIGN.md`/`U.md §6`; verified at U.Z close (roster ≤ target, monotone-down) | rides throughout; ratified at U.Z |
+| **U.A9** | The `scripts/` backend restructure (the colocation edict's backend arm) | Transpose the 209 flat `proof-*.mjs` into `scripts/gates/<family>/` (surface/hygiene/correctness/live/appearance-residual/perf) with `index.mjs` barrels the tier manifest derives from; `scripts/lib/gate.mjs` (one `Gate()` clause/report/exit — migrate the 133 reporters); `scripts/lib/serve.mjs` (the 48 inline servers); decompose `demo-driver.mjs` (1043L) → `lib/driver/{launch,scene,serve,cdp,assert}.mjs`; colocate the 4 `vite.config.ts` plugins → `scripts/build/vite/`; externalize `api-extractor.json`; delete dead artifacts (0-ref decision JSONs, retired `baselines/visual-lock/`); the restructure's shape is HELD by ONE clause on the EXISTING `proof:colocation` gate + lint (OD-U10 — the standalone `proof:scripts-colocated` gate is DROPPED) | L | `proof:colocation` backend clause + lint (OD-U10 — NO new gate); `tiers.mjs` derives from the barrels | A5 (population settled); lane 23 F1/F3/F4/F7/F8 |
+| **U.A10** | The anti-sprawl covenant (STANDING) + the RULED close criteria (OD-U1) | Ratify the precept: additions expensive, deletions FREE (`git rm` + drop the key — no witness, no discharge, no successor-migration proof); new enforcement lands as a vitest test OR a `proof:publish` clause; a new standalone `proof-*.mjs` requires owner sign-off. Net gate count only goes DOWN (**net NEW standalone gates in U = ZERO** — OD-U10/U11). PLUS the two hard OD-U1 exit criteria: **ZERO functionality loss** (witnessed by the §A.2 fold-map deliverable) + **≥10× wall-clock** (~35-40min → ≤4min) | S | the covenant + criteria recorded in `DESIGN.md`/`U.md §6`; verified at U.Z close (roster ≤ target monotone-down; fold-map complete; CI path ≤4 min) | rides throughout; ratified at U.Z |
 
 ---
 
@@ -88,7 +102,7 @@ prove folds into `proof:publish`; everything **taste** folds into owner-golden.
 | Library value (interp/compile/blend/roundtrip/spring/color/soa) | ~37 | **~16 tests** | `npm test` | keep the vitest oracles; drop the 25 `.mjs` grep halves (U.A2); fold the roundtrip cluster (`compile-replay`/`replay-equality`/`roundtrip-fidelity`/`roundtrip-easing`/`entry`/`vt`/`trigger`/`scroll`/`ingest`) into 2 property tests (U.H) |
 | Boundary / published surface | ~10 | **2 gates** | `proof:publish` | `proof:boundary` + `proof:published-surface`; fold `engine-subpath-mirror`, `dts-rollups-agree`, `no-any-default`, `alias-dropped`, `in-is-importable`, `demo-on-published-surface`, `agent-surface`, `claude-paths-live` (all re-read the built d.ts/exports — ONE invariant asserted 8×) |
 | Dependency floor | ~1 | **1 gate** | `proof:publish` | `proof:deps-current` (the `@mkbabb/*` floor — the only source-static thing a test can't prove) |
-| Zone / decomposition / colocation | ~8 | **2 gates** | hygiene tier | `proof:colocation` (real import-graph walk, re-authored for the U tree) + `proof:scripts-colocated` (U.A9); drop `no-flat-siblings`/`zone-cohesion`/`decomposition`/`no-nested-self-dependency` (tsc + graph cover) |
+| Zone / decomposition / colocation | ~8 | **1 gate + 1 clause** | hygiene tier | `proof:colocation` (real import-graph walk, re-authored for the U tree) + its U.A9 BACKEND CLAUSE + lint (OD-U10 — the `scripts/` restructure is held by a clause, NOT a standalone `proof:scripts-colocated`); drop `no-flat-siblings`/`zone-cohesion`/`decomposition`/`no-nested-self-dependency` (tsc + graph cover) |
 | No-legacy / regression greps | ~16 | **0 standing** | `proof:lint-clean` | U.A3 |
 | Demo appearance / geometry | ~77 | **1 oracle + 1 smoke** | owner-golden + `demo-smoke` | U.A4 |
 | Demo behavioral (renders/plays) | ~26 | **~5 nightly** | nightly roster | `subject-animates`, `easing-gallery`, `drag-gesture`, `spring-slider-continuous`, one scene-switch smoke (U.A7) |
@@ -227,8 +241,9 @@ the SAME pass as the U.B scene/transport/editor moves, not before (dangling anch
 and not after (a window of green-against-moved-files).
 
 **Gate/oracle.** `proof:owner-golden` (SURVIVES — ring-fence 3) + `proof:demo-smoke`
-(an EXISTING gate RE-ARMED — NOT new; the NEW-gate set in U is exactly
-`proof:scripts-colocated` (U.A9) + `proof:chunk-graph` (U.D6)). Neither is 77 greps.
+(an EXISTING gate RE-ARMED — NOT new; per OD-U10/U11 the NET-new standalone-gate set
+in U is now ZERO — both once-proposed gates (`proof:scripts-colocated`,
+`proof:chunk-graph`) fold into clauses on existing gates). Neither is 77 greps.
 
 **Edges.** A1; **CO-SCHEDULED with U.B** (every scene/transport/editor move); needs
 U.G (the owner-golden authority + idle-state capture protocol). Before A5.
@@ -300,8 +315,9 @@ must not re-list deleted meta-gates). Co-owned with U.E (`T_BORNRED_BACKLOG` par
 re-parses by `.split("&&")`. (b) Collapse `ci.yml` 756L / 134 hand-listed steps / 3
 `ubuntu-latest` jobs → ONE fast deterministic job (target <90s cached):
 `npm ci` → `check:lib` → `build:lib` → dts-check → `npm test` (full suite ONCE) →
-`proof:publish` → the fast STRUCTURAL edict gates (colocation/scripts-colocated —
-sub-second static). **No browser. No Monaco. No chromium.** (c) DELETE
+`proof:publish` → the fast STRUCTURAL edict gate (`proof:colocation`, now carrying
+the scripts-backend clause per OD-U10 — sub-second static). **No browser. No Monaco.
+No chromium.** (c) DELETE
 `demo-device-observe` (`ci.yml:672-751`) — job-level `continue-on-error: true`
 (`:678`): it provisions chromium+lighthouse on every PR to produce numbers that BY
 CONSTRUCTION can never fail the workflow. (d) Delete the device-honesty subsystem the
@@ -406,12 +422,17 @@ it polices everywhere else. Transpose:
   `scripts/baselines/visual-lock/_diff/` (44 orphaned `*.diff.png`, retired at T.M3);
   relocate live decision records + the `typing-dots-harness/` fixture into their owning
   gate's family dir.
-- **`proof:scripts-colocated`** — the ONE new standing gate (owner-signed per
-  anti-sprawl), the backend twin of `proof:colocation`, so the flat pile cannot re-form
-  and a decision-JSON with zero readers reds.
+- **The `proof:colocation` BACKEND CLAUSE + lint (OD-U10 — no new gate)** — the
+  standalone `proof:scripts-colocated` gate is DROPPED (the owner: "sounds overfit
+  junk — unless this is truly well designed"). Its enforcement folds into ONE clause
+  on the EXISTING `proof:colocation` gate + a lint rule, so the flat pile cannot
+  re-form and a decision-JSON with zero readers reds. The `scripts/` restructure
+  itself is KEPT in full; only the bespoke gate is retired. If the drive shows a
+  one-clause extension provably cannot hold the shape, the redesign returns HERE for
+  owner sign-off rather than shipping a bespoke gate.
 
-**Gate/oracle.** `proof:scripts-colocated` (the sole new gate); the tier manifest
-deriving from the barrels is self-witnessing.
+**Gate/oracle.** `proof:colocation` backend clause + lint (OD-U10 — NO new gate);
+the tier manifest deriving from the barrels is self-witnessing.
 
 **Edges.** A5 (population settled — restructure the survivors, not the deleted). Lane
 23 F1/F3/F4/F7/F8. Runs after the deletions so it moves ~36 scripts, not 209.
@@ -435,6 +456,16 @@ covenant, recorded in `DESIGN.md` + `U.md §6`:
 2. **Addition is EXPENSIVE** — new enforcement lands as a vitest test OR a clause of
    `proof:publish`. A new standalone `proof-*.mjs` requires OWNER SIGN-OFF.
 3. **Net gate count only goes DOWN** — verified at U.Z close (monotone-down from 227).
+   **Net NEW standalone gates in U = ZERO (OD-U10/U11):** both gates the drafts once
+   proposed — `proof:scripts-colocated` (U.A9) and `proof:chunk-graph` (U.D6) — are
+   DROPPED to a clause on an existing gate; the covenant is now realized as literally
+   zero net additions.
+4. **The RULED close criteria (OD-U1, terminal).** U closes only against two hard,
+   owner-ruled criteria — verified HERE at U.A10 / U.Z: (a) **ZERO functionality
+   loss**, witnessed by the §A.2 **fold-map deliverable** (every real deleted gate →
+   its surviving vitest/`proof:publish` oracle, a checked artifact, not a claim); (b)
+   **≥10× merge-gating wall-clock** — the CI path measured ~35-40 min → **≤4 min**. A
+   trim that loses a real invariant or misses the 10× floor is NOT done.
 
 **Why not a gate.** A ceiling is symptom-treatment (lane 09 F1: the count game
 diverged 190→203→236→228→227 against a ceiling of 120 that was "about to be reached"
@@ -497,12 +528,12 @@ gate's expectation. The disposition is DELETE (the genre is dissolved) or RE-ANC
 | **A1** | `proof:ci-coverage` CLAUSE 0 literal-step contract | RE-ANCHOR transitionally (reachability-from-tier); DELETE at A5 |
 | **A2** | the ~25 `.mjs` source-grep halves; `proof:ci-coverage` CLAUSE 0 membership | DELETE the halves; the vitest oracle survives (re-armed by U.H's project split) |
 | **A3** | the ~16 `REGRESSION_GUARDS`/kin greps | DELETE as `proof:*`; RE-ARM as `proof:lint-clean` rules |
-| **A4** | the 77 line-anchored appearance gates + `FROZEN_SET`(36)/`DISCHARGE`(17) | DELETE the genre; RE-ARM `proof:owner-golden` (survives) + the EXISTING `proof:demo-smoke` (re-armed, NOT new — the NEW-gate set is `proof:scripts-colocated`+`proof:chunk-graph`) (CO-SCHED U.B) |
+| **A4** | the 77 line-anchored appearance gates + `FROZEN_SET`(36)/`DISCHARGE`(17) | DELETE the genre; RE-ARM `proof:owner-golden` (survives) + the EXISTING `proof:demo-smoke` (re-armed, NOT new — per OD-U10/U11 the NET-new standalone-gate set in U is ZERO) (CO-SCHED U.B) |
 | **A5** | 27 self-policing gates; `gate-bands.mjs` full; `proof-ci-coverage.mjs`; `proof-decomposition`/`chronic-closure`/`retirement-ledger`/`roster-ceiling`/`gate-is-runtime`; `gate-taxonomy.md`; `T_BORNRED_BACKLOG`(8) | DELETE wholesale (coverage true-by-construction); `T_BORNRED_BACKLOG` PARTITION → U.F letter (external) / fix-or-re-judge (self) — co-owned U.E |
 | **A6** | `ci.yml` 134-step enumeration; `demo-device-observe`; `ci-env.mjs` posture / `portable-perf.mjs` / `cdp-perf.mjs`; the `package.json` `&&` mega-strings | DELETE the enumeration+observe job+device-honesty subsystem; RE-ARM membership as `scripts/lib/tiers.mjs` data |
 | **A7** | the per-push `demo-correctness` browser job; the `dfa-derived` dup | RE-HOME to nightly + on-device (same driver, no rewrite); DEDUPE |
 | **A8** | `deploy-pages.yml` `DEMO_CORRECTNESS_JOB` literal + preflight coupling | DELETE the literal coupling; RE-ARM as library-green + `last-demo-green` ancestor assertion (OD-U3) |
-| **A9** | the 209-flat layout; 133 reporters; 48 inline servers; `demo-driver.mjs` monolith; `vite.config.ts` inline plugins; 0-ref JSONs + retired baselines | RE-STRUCTURE survivors into `gates/<family>/` + `lib/gate.mjs`/`serve.mjs`/`driver/`; DELETE dead artifacts; ONE new gate `proof:scripts-colocated` (owner-signed) |
+| **A9** | the 209-flat layout; 133 reporters; 48 inline servers; `demo-driver.mjs` monolith; `vite.config.ts` inline plugins; 0-ref JSONs + retired baselines | RE-STRUCTURE survivors into `gates/<family>/` + `lib/gate.mjs`/`serve.mjs`/`driver/`; DELETE dead artifacts; held by a clause on the EXISTING `proof:colocation` + lint (OD-U10 — NO new gate; `proof:scripts-colocated` DROPPED) |
 | **A10** | `ROSTER_CEILING`(120) / the count game | DELETE the ceiling; RE-ARM as a PRECEPT (target shape, not number), verified at U.Z |
 
 **Standing invalidation the band CREATES, not clears (forwarded):** U.A4's
@@ -514,7 +545,10 @@ the interim (A6→A9 window) carries a hand-maintained array that A9 makes
 self-witnessing — a bounded, in-band exposure, not a deferral.
 
 **Net gate delta (the band's headline):** 227 → ~36. Every row above is DOWN or
-flat; the ONLY NEW standing gate this band adds is the owner-signed
-`proof:scripts-colocated` (U.A9; the tranche's other new gate, `proof:chunk-graph`, is
-U.D-owned) — the appearance genre re-arms onto the EXISTING `proof:demo-smoke` + the
-surviving `proof:owner-golden`, each REPLACING 36–77 deleted gates.
+flat; **this band adds ZERO new standing gates (OD-U10):** the `proof:scripts-colocated`
+gate the draft once proposed is DROPPED to a clause on the EXISTING `proof:colocation`
+gate + lint (U.A9), and the tranche's other once-proposed gate `proof:chunk-graph` is
+likewise DROPPED into a `proof:publish` clause (OD-U11, U.D-owned) — so **net NEW
+standalone gates in U = ZERO**. The appearance genre re-arms onto the EXISTING
+`proof:demo-smoke` + the surviving `proof:owner-golden`, each REPLACING 36–77 deleted
+gates.

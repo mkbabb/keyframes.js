@@ -2,11 +2,18 @@
 
 > **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
 >
-> **Charter sentence (U.md §2, the U.B row).** Keystone-first move: dissolve
-> `components/custom/` + rename `demo/@/`→`demo/shared/` (T.F1/F2 executed as
-> DELETIONS, gates re-anchored in the same motion, S.D4 struck on its false
-> premise); then per-area recursive colocation to the ratified component-module
-> skeleton (lane 24 §9) — transport's 15 private composables into their owners;
+> **Charter sentence (U.md §2, the U.B row — RE-CUT per OD-U2, 2026-07-10).**
+> Keystone-first move: the component CORE redesigned to the glass-ui post-BH idiom
+> (`audit/glassui-idioms-post-bh.md` §1 — kebab-case component dirs, PascalCase SFCs,
+> `index.ts` barrel, `constants.ts` types-through-the-barrel, per-component
+> `composables/`, >500L renderer carves, README/skeleton if-needed) + dissolve
+> `components/custom/` (STANDS); the `demo/@/` DISSOLUTION replaces the former
+> `@→shared` rename as the REVISED RECO (hoist its five children to
+> `demo/{components,composables,state,styles,utils}/`, alias SPELLINGS unchanged,
+> 3-plane declaration — executes on the owner's one-word confirm; the ~34 gate
+> path-literal re-anchor pass is IDENTICAL either way); then per-area recursive
+> colocation to the ratified component-module skeleton (lane 24 §9) — transport's 15
+> private composables into their owners;
 > per-parent module dirs; editors unified on ONE keyframe-authoring core; shell
 > purged of home-hero pieces + dead EditorHeader; scenes converged on
 > `useManagedLoop`/`usePainterRegistry`/`useSweepScene`; the SceneFacility
@@ -31,10 +38,11 @@
 > standalone `proof-*.mjs`. Every new assertion is a CLAUSE on an existing gate
 > (`proof:colocation`, `proof:style-file-ceiling`, `proof:styling-idioms`) or a rule
 > in the already-running dependency-cruiser pass; several gates RETIRE
-> (`proof:demo-no-oversize`, the tolerant-`SHARED`/`DEFERRED` machinery). The one
-> post-build `proof:chunk-graph` is **U.D-owned** (owner-signed, born-RED on the
-> spring leak); U.B lands the module cuts it certifies (DAG: "chunk-graph gate lands
-> WITH B's module cuts"). Net gate count only goes DOWN.
+> (`proof:demo-no-oversize`, the tolerant-`SHARED`/`DEFERRED` machinery). The
+> post-build reachability/weight assertion is **U.D-owned as ONE clause inside
+> `proof:publish`** (OD-U11 — the standalone `proof:chunk-graph` gate is DROPPED,
+> net NEW standalone gates in U = ZERO); U.B lands the module cuts it certifies (the
+> facet-seam cure, OD-U12). Net gate count only goes DOWN.
 
 ---
 
@@ -55,14 +63,20 @@ So U.B's acceptance oracle is lane 03's: **"the owner can read the tree at the f
 `ls`."** The keystone (U.B1) makes the invisible work visible by DELETING the two
 wrapper concepts and re-forging the gate from tolerant to REQUIRING; every
 subsequent wave recuts one area to lane 24 §9 so the tree's shape STATES its
-ownership.
+ownership. Per **OD-U2** (2026-07-10) the keystone now goes further than the T-era
+`@→shared` rename: the component CORE is redesigned to the glass-ui post-BH idiom
+(`audit/glassui-idioms-post-bh.md` §1) and `demo/@/` DISSOLVES (its five children
+hoist to `demo/{components,composables,state,styles,utils}/`, alias spellings
+unchanged, declared across all three planes) — the owner reads a tree HOMOGENEOUS
+with glass-ui's, not merely a renamed wrapper.
 
 ## §1 — The DAG (within U.B; edges to sibling bands)
 
 ```
-U.B1  (KEYSTONE — dissolve custom/ + @→shared as deletions; re-anchor + re-forge
-       proof:colocation tolerant→REQUIRING) ── the root every U.B wave rides;
-       co-scheduled with U.A's gate re-anchoring (one coordinated pass, lane 32)
+U.B1  (KEYSTONE — component-core redesign to the glass-ui post-BH idiom + dissolve
+       custom/ + @-DISSOLUTION (REVISED RECO, one-word confirm) as deletions;
+       re-anchor + re-forge proof:colocation tolerant→REQUIRING) ── the root every
+       U.B wave rides; co-scheduled with U.A's gate re-anchoring (one pass, lane 32)
    │
    ├── U.B2  (transport module recut — §9.4 shape)          ── rides B1
    │     └── U.B3  (transport de-tangle + the ONE demo ticker) ── rides B2 (hoist targets)
@@ -75,8 +89,9 @@ U.B1  (KEYSTONE — dissolve custom/ + @→shared as deletions; re-anchor + re-f
               empty DEFERRED residuals → delete tolerance)   ── rides B2,B4,B8 (hoist destinations settled)
    │
    U.B10 (skeleton tier per module — T.F8 completion)        ── rides each module recut (B2/B4/B5/B8)
-   U.B11 (barrel discipline + async-seam module cuts)        ── rides B1; co-scheduled with U.D proof:chunk-graph
+   U.B11 (barrel discipline + async-seam facet cuts, OD-U12) ── rides B1; co-sched U.D's proof:publish reachability clause (OD-U11)
    U.B12 (grammar + CSS-split residual sweep + §10 clause)   ── LAST; sweeps what the move-waves didn't touch
+   U.B13 (amiga anim + scene suspend/resume cure, OD-U13)    ── rides B8 (useManagedLoop); ← U.H1 (net covers scene switch/visibility FIRST)
 ```
 
 **The net underneath every move (U.H1).** Every U.B move rides on U.H1's
@@ -96,7 +111,7 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 
 | id | title | size | gate / oracle | edges |
 |---|---|---|---|---|
-| **U.B1** | KEYSTONE: dissolve `custom/` + `@→shared` as DELETIONS; re-anchor gates; re-forge `proof:colocation` tolerant→REQUIRING | L | `proof:colocation` REQUIRING (asserts `demo/shared/` exists, `demo/@`+`components/custom` do NOT) + `grep` 0-hit witness + vitest demo suite green through the alias repoint | ROOT; co-sched U.A (lane 32); precedes all U.B |
+| **U.B1** | KEYSTONE (OD-U2): component-core redesign to the glass-ui post-BH idiom (audit §1) + dissolve `custom/` (STANDS) + `@`-DISSOLUTION (REVISED RECO, one-word confirm) as DELETIONS; re-anchor gates; re-forge `proof:colocation` tolerant→REQUIRING | L | `proof:colocation` REQUIRING (asserts the hoisted `demo/{components,composables,state,styles,utils}/` homes exist, `demo/@`+`components/custom` do NOT) + `grep` 0-hit witness + vitest demo suite green through the alias repoint | ROOT; co-sched U.A (lane 32); precedes all U.B |
 | **U.B2** | Transport module recut to §9.4: dissolve the flat `composables/` drawer, collapse `components/`+`controls/` into per-parent module dirs, carve `useMenubarMeasure`+`useIconSpin` from `TransportDock` | L | `proof:colocation` REQUIRING (inverse clause: single-owner member in a shared tier → RED) + transport vitest behavior tests + owner-golden | B1; retires `proof:demo-no-oversize` (U.A) |
 | **U.B3** | Transport de-tangle + the ONE demo ticker: hoist shared playback widgets + reference-data, invert the 6-level `../` import, unify per-host rAF into one visibility-gated `useDemoTicker`, idiom-CSS → `design-idioms.css`, `DemoGlobalChrome` → document-singleton tier | M | vitest (transport + easing/spring scene tests unchanged) + a headless one-shot ticker-count witness (one rAF, gated) + owner-golden | B2 (hoist targets settled) |
 | **U.B4** | Editors: ONE keyframe-authoring core — unify all 3 surfaces on `useKeyframesEditor`, fold `useKeyframeBrushApply`, collapse the duplicated `selectedKeyframesControl` store field, retire the `Ï` magic-char shortcut, hoist `CSSCodeEditor` to an `instrument/`-shared Monaco leaf | L | vitest editor round-trip (CSS ⇄ animation parity across surfaces) + `proof:control-surface-single-writer` green | B1 |
@@ -106,32 +121,57 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 | **U.B8** | Scenes convergence: generalize `useRafScene`→`useManagedLoop`, route `sequence`+`square` through it (no bare `new RAFPlayback()` at scene scope); kill sequence's 60 Hz reactive-progress write; extract `usePainterRegistry`; charter `useSweepScene` recipe (easing+spring onto it); DELETE `num()`/`toRGB`/`sweepHue` for `ValueUnit`/`Color`; colocate the square tumble egg; `channelFromAnimation`; uniform `onScopeDispose`; split `app/runtime/` scene-recipes → `shared/composables/scene-runtime/` | L | scene vitest (`scene-raf-leak`, `scene-visibility-pause`, per-scene) + a headless dogfood witness (no hand-rolled unit/color parse) + owner-golden (each scene) | B1, B7 (facility contract home) |
 | **U.B9** | App-shell honesty + shared-tier re-homing: guards → `app/lifecycle/`; instrument-only `iosTextEntry`+`toastGuard` → `instrument/utils/`; `kfEngine` → shared root; `SceneSkeleton` → `app/`; `font-roles.json` → `scripts/`; `glass-ui-gaps.ts` → shared tier; EMPTY the `DEFERRED` residuals (`gestureSelectSuppression`, `kfEngine`) then DELETE the tolerance machinery | M | `proof:colocation` (`app/` shell-only; `@/utils` global-only; **tolerance-free** — DEFERRED map deleted) + `proof:shared-has-n-consumers` + vitest | B2,B4,B8 (destinations settled) |
 | **U.B10** | Skeleton tier per module (T.F8 completion): `<Name>.skeleton.vue` colocated per lazily-delivered module, wired by the module barrel's `loadingComponent`; the Monaco panes get their skeletons; DELETE `@/components/skeletons/` | M | `proof:colocation` skeleton clause (lazy barrel w/o `loadingComponent` → RED) + owner-golden (no scene-swap text-flash) | rides B2/B4/B5/B8 |
-| **U.B11** | Barrel discipline + async-seam module cuts: DELETE the zero-consumer umbrella barrel; barrels become explicit-named EAGER contracts (`defineAsyncComponent` leaves the barrels); cure `SpringPhysicsFacet`→`KeyframesEditor` eager deep import via a facet-level async seam; depcruise demo ruleset (`no-cross-module-deep`/`no-self-barrel`/`no-star-export`) | M | `proof:chunk-graph` (**U.D-owned**, born-RED on the 906 KB leak) + depcruise (existing run) + `proof:published-surface` unaffected | B1; co-sched **U.D** |
+| **U.B11** | Barrel discipline + async-seam FACET cuts (OD-U12 design authority): DELETE the zero-consumer umbrella barrel; barrels become explicit-named EAGER contracts (`defineAsyncComponent` leaves the barrels); every scene composes the multi-facet instrument (controls / keyframes-if-befitting / scene-specific facets — cube's matrix, etc.), heavy editors (Monaco/highlight) load ONLY when their facet is SHOWN; excise the NAMED violation — `SpringPhysicsFacet`→`KeyframesEditor` eager deep import (the inline spring editor) — via a facet-level async seam; depcruise demo ruleset (`no-cross-module-deep`/`no-self-barrel`/`no-star-export`) | M | the `proof:publish` reachability/weight clause (**U.D-owned**, OD-U11 — no standalone `proof:chunk-graph`; born-RED on the 906 KB leak) + depcruise (existing run) + `proof:published-surface` unaffected | B1; co-sched **U.D** |
 | **U.B12** | Grammar + CSS-split residual sweep + the §10 standing clause: convert residual `withDefaults`/runtime-object props + manual `update:*` emits not covered by move-waves; split `SpringTarget.vue`'s 200 L `<style>` block; `@apply`-confinement; EXTEND `proof:colocation` + `proof:style-file-ceiling` + `proof:styling-idioms` per §10 | S | the extended existing gates (one AST pass, no browser) + `proof:styling-idioms` @apply clause | LAST; U.G codex authority |
+| **U.B13** | The amiga animation + scene suspend/resume cure (OD-U13): first-principles fixes from the defect dossier (`audit/defect-amiga-suspend-resume.md`, investigation in flight — the wave's substance is the dossier's `## The U fix charter` section once it lands), owner-mandated in-U | M | the characterization net (U.H1) covers scene switch/visibility semantics BEFORE the fix (the cure is WITNESSED, not asserted) + owner-golden (amiga plays; suspend/resume clean across scene switch) | B8 (useManagedLoop convergence); ← U.H1 (net FIRST) |
 
 ---
 
 ## §3 — Per-wave detail
 
-### U.B1 — THE KEYSTONE (dissolve `custom/` + `@→shared` as deletions; re-anchor + re-forge)
+### U.B1 — THE KEYSTONE (OD-U2: component-core redesign + dissolve `custom/` + `@`-dissolution as deletions; re-anchor + re-forge)
 
 - **substance.** The single highest-fanout first move, executed as DELETIONS not
-  relocations (lane 03 F1/F5, lane 20 F1/F2, lane 32 F1):
-  - **`demo/@/` → `demo/shared/`.** Rename the on-disk dir; repoint the 5 alias RHS
-    strings in `vite.config.ts:331-337` and the 7 path RHS in `tsconfig.json:31-41`
-    (`demo/@/…` → `demo/shared/…`). The alias TOKENS consumers import
-    (`@components/`, `@utils/`, `@composables/`, `@styles/`, `@state/`) are
-    **UNCHANGED** — `grep -rn 'from "@/' demo` → **0 hits** (verified, lane 20 F1),
-    so this touches **ZERO `.vue`/`.ts` import statements**. S.D4's "a rename would
-    touch every import" premise is factually false; strike the "ruled terminally to
-    keep `@/`" paragraph from `demo/CLAUDE.md`.
+  relocations (lane 03 F1/F5, lane 20 F1/F2, lane 32 F1), **RE-CUT per OD-U2
+  (2026-07-10, two parts):**
+  - **The component CORE redesigned to the glass-ui post-BH idiom (OD-U2 part 1 —
+    RULED terminal).** Per `audit/glassui-idioms-post-bh.md` §1, every component
+    becomes a **kebab-case dir** with **PascalCase SFCs** + an **`index.ts` barrel**
+    (re-export only) + **`constants.ts`** (typed constants/enums/pure helpers, with
+    types flowing **through the barrel** — SFCs cannot re-export a type) + a
+    per-component **`composables/useXxx.ts`** for any bound hook, with **>500L
+    renderers carved** out of the SFC and an optional **`README.md`/skeleton "if
+    needed."** This IS the homogeneity the owner demanded ("ensure homogenaity with
+    our other repos") — the demo's component set now reads like glass-ui's
+    `custom/`/`ui/` families. The per-area recut waves (B2/B4/B5/B8) cut each module
+    to THIS shape; lane 24 §9 is the same skeleton, now ANCHORED to the glass-ui
+    evidence rather than derived in isolation.
+  - **`demo/@/` DISSOLVES (OD-U2 part 2 — REVISED RECO, executes on the owner's
+    one-word confirm).** The literal on-disk `@/` is a shadcn-scaffold vestige
+    (shadcn's `@/` is an ALIAS to the src root; the scaffold materialized it as a real
+    directory — glass-ui has NO on-disk `@`, only a 3-plane `@glass` alias; audit §2).
+    Rather than the T-era `@→shared` RENAME, **hoist `demo/@/`'s five children to
+    `demo/{components,composables,state,styles,utils}/`** (the glass-ui root shape, no
+    `shared/` wrapper). The alias SPELLINGS consumers import (`@components/`,
+    `@composables/`, `@state/`, `@styles/`, `@utils/`) are **UNCHANGED** — repointed at
+    the new homes and declared across **ALL THREE PLANES** per the glass-ui discipline:
+    `tsconfig.json` `paths`, `vite.config.ts` `resolve.alias`, AND `vitest.config.ts`
+    `resolve.alias` (none reads the others — the audit's twin-declaration law).
+    `grep -rn 'from "@/' demo` → **0 hits** (verified, lane 20 F1), so this touches
+    **ZERO `.vue`/`.ts` import statements**; the ~34 gate path-literal re-anchor pass
+    is **IDENTICAL** whether the dir is renamed `shared/` or dissolved. S.D4's "a
+    rename would touch every import" premise is factually false; strike the "ruled
+    terminally to keep `@/`" paragraph from `demo/CLAUDE.md`. **Toolchain integrity**
+    (the 3-plane declaration builds + tests green) is an acceptance clause — the owner:
+    "ensure we're not breaking our tool chaining, too." (Same vestige noted in
+    value.js's demo — a letter row to its active tranche, U.F, not kf work.)
   - **Dissolve `components/custom/`.** `@/components/` holds exactly `{custom/,
     skeletons/}`; `custom/` holds exactly `{instrument/, CopyButton.vue}` — the
     shadcn "not-`ui/`" bucket whose sibling `ui/` died at S.C3b, now a
     single-facility-plus-one-leaf wrapper the "NO legacy" edict forbids. Hoist
     `custom/instrument/` → `components/instrument/`, `custom/CopyButton.vue` →
     `components/CopyButton.vue` (17 import sites `@components/custom/…` →
-    `@components/…`; `@components` RHS still `demo/shared/components`). CopyButton's
+    `@components/…`; `@components` RHS now `demo/components` post-dissolution). CopyButton's
     shared legitimacy is preserved (cross-tier: easing/spring targets + four
     instrument files). Delete the empty `custom/`; delete
     `proof-shared-has-n-consumers.mjs:174`'s `if (parts[1] === "custom")`
@@ -145,8 +185,9 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     double-touch the same files (lane 20 F8, lane 32 note).
   - **Re-forge `proof:colocation` from tolerant to REQUIRING** (lane 03 F2, lane 26
     Finding 3). Delete the tolerant `SHARED = ["demo/@","demo/shared"].find(exists)`
-    (`:50`) → assert the canonical `demo/shared/` EXISTS and `demo/@`/`custom` do
-    NOT. The `DEFERRED` map (`:69-90`) has its `custom/@`-era entries emptied by the
+    (`:50`) → assert the canonical hoisted homes (`demo/components/`,
+    `demo/composables/`, `demo/state/`, `demo/styles/`, `demo/utils/`) EXIST and
+    `demo/@`/`custom` do NOT. The `DEFERRED` map (`:69-90`) has its `custom/@`-era entries emptied by the
     move here; its two remaining residuals (`gestureSelectSuppression`, `kfEngine`)
     are cleared and the tolerance machinery fully deleted at **U.B9** (their re-home
     destinations settle there). A keystone that cannot fail on the rejected tree is
@@ -378,6 +419,13 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     `app/` then DEPENDS on the contract instead of owning it, and
     `controlSurfaceDFA`/`controlSurfaces.ts` (U.B6) imports the REAL type instead of
     the `:58-59` structural duck-type dodge.
+  - **The `SceneFacet` contract IS the OD-U12 multi-facet seam (design authority).**
+    The `SceneFacet` this hoisted contract defines is the unit OD-U12 composes per
+    scene — every scene exposes its facets (controls / keyframes-if-befitting /
+    scene-specific: cube's matrix, spring's physics, etc.), the shell reveals one at a
+    time, and heavy editors load ONLY when their facet is SHOWN. U.B7 fixes the
+    CONTRACT so the facet is a single-authority descriptor; **U.B11** lands the
+    async load seam over it and **U.D** the delivery.
 - **evidence.** `sceneFacility.ts:4,112` (the "replaces the triple" claim vs the
   always-set `.group`); `sceneExposedApi.ts:24-31`;
   `useSceneMachineShellBinding.ts:67` (dead `??`); the three scene `animationGroup`
@@ -512,10 +560,15 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 - **size** M. **edges.** Rides each module recut (B2/B4/B5/B8 — the modules must exist
   in §9 shape before their barrels can wire skeletons).
 
-### U.B11 — Barrel discipline + async-seam module cuts
+### U.B11 — Barrel discipline + async-seam FACET cuts (OD-U12)
 
-- **substance** (lane 26 Finding 1/2/7, R1/R2). The T.F5 lazy-barrel apparatus is
-  decorative and one deep import bypasses it into a 906 KB leak:
+- **substance** (lane 26 Finding 1/2/7, R1/R2; **OD-U12 the design authority**). The
+  T.F5 lazy-barrel apparatus is decorative and one deep import bypasses it into a
+  906 KB leak. **OD-U12 (verbatim design authority) governs this wave:** every scene
+  composes the shared multi-facet instrument — controls / keyframes-if-befitting /
+  scene-specific facets (cube's matrix, etc.) — and heavy editors (Monaco, highlight)
+  load ONLY when their facet is SHOWN, never inline in a scene and never eagerly in a
+  facet module graph. The moves:
   - **DELETE the zero-consumer umbrella** `instrument/index.ts` (`export *` ×4, ZERO
     importers — verified: only `demo/CLAUDE.md` references it). Its `export *`
     contradicts the house's own barrel policy (`proof:no-flat-siblings` clause 4
@@ -524,12 +577,15 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     LEAVES the barrels (re-exporting async-ness makes the boundary invisible at the
     call site). Laziness lives at the CONSUMER's seam (scene/router entries;
     pane-reveal `defineAsyncComponent`; heavy-vendor bearers).
-  - **Cure the `SpringPhysicsFacet` leak** — `SpringPhysicsFacet.vue:133` eagerly
-    deep-imports `KeyframesEditor` (verified), which statically drags
-    `vendor-highlight` (906 KB) into `SpringScene`'s entry chunk (built-graph trace,
-    lane 26 Finding 1). The facet's editor card is a reveal boundary; the import
-    becomes `defineAsyncComponent` at the facet's seam (the same class as
-    `AnimationControls.vue:252`).
+  - **Excise the OD-U12 NAMED violation — the spring inline-editor import.**
+    `SpringPhysicsFacet.vue:133` eagerly deep-imports `KeyframesEditor` (verified) —
+    the "inline monaco editor for spring" the owner named ("We should not have an
+    inline monaco editor for spring") — which statically drags `vendor-highlight`
+    (906 KB) into `SpringScene`'s entry chunk (built-graph trace, lane 26 Finding 1).
+    The facet's editor card is a reveal boundary; the import becomes
+    `defineAsyncComponent` at the facet's seam (the same class as
+    `AnimationControls.vue:252`), so Monaco/highlight load ONLY when the keyframes
+    facet is shown — never eagerly for the spring scene.
   - **Depcruise demo ruleset** — `no-cross-module-deep` (cross-module imports go
     through the module's `index.ts`; intra-module stays deep-relative),
     `no-self-barrel`, `no-star-export` — folded into the EXISTING depcruise run (no
@@ -539,12 +595,14 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   `instrument/index.ts` zero runtime importers (verified); the 13 external consumers
   all deep-import (lane 26 §1.4).
 - **shape authority.** lane 24 §9.1 (barrel = re-export-only contract) + lane 26 R1/R2.
-- **gate/oracle.** `proof:chunk-graph` (**U.D-owned**, born-RED on the leak: no scene
-  chunk statically reaches `vendor-monaco`/`vendor-highlight`/`html2canvas`;
+- **gate/oracle.** the **`proof:publish` reachability/weight clause** (**U.D-owned**,
+  OD-U11 — the standalone `proof:chunk-graph` gate is DROPPED; born-RED on the leak:
+  no scene chunk statically reaches `vendor-monaco`/`vendor-highlight`/`html2canvas`;
   `vendor-three` only from AmigaScene) + depcruise + `proof:published-surface`
-  unaffected. `highlight.js` retirement + Monaco vendor slimming are **U.D**.
-- **size** M. **edges.** Rides B1; co-scheduled with U.D's `proof:chunk-graph` (DAG:
-  "the chunk-graph gate lands with B's module cuts").
+  unaffected. `highlight.js` retirement + Monaco on-demand delivery are **U.D**.
+- **size** M. **edges.** Rides B1; co-scheduled with U.D's `proof:publish` reachability
+  clause (OD-U11 — the facet cuts are what green it; DAG: "the clause lands with B's
+  module cuts").
 
 ### U.B12 — Grammar + CSS-split residual sweep + the §10 standing clause
 
@@ -557,10 +615,11 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     to slotted components (EditorShell 9 sites, AnimationControlsGroup 4, …); complete
     the lexicon rename (facility/transport/channel/scene/target/facet).
   - **The Kf-vanity retirement** — `KfPillTabs`/`useKfPillTabs` et al. (the `Kf`-prefixed
-    vanity names) rename to the ratified U.G lexicon, DROPPING the `Kf` prefix (adopt the
-    glass-ui tabs primitive where it covers the need), in the SAME import-touching moves — so
-    U.R4's "Kf-vanity de-vanitized" clearing-oracle is satisfiable (RED until zero `Kf`-prefixed
-    vanity survives).
+    vanity names) rename to the ratified U.G lexicon, DROPPING the `Kf` prefix, and where the
+    pill-tabs merely re-implement glass-ui's public tabs surface, ADOPT **`SegmentedTabs`**
+    (glass-ui `custom/tabs/` — the PUBLIC tabs component per audit §1; `ui/tabs` is off the
+    public surface), in the SAME import-touching moves — so U.R4's "Kf-vanity de-vanitized"
+    clearing-oracle is satisfiable (RED until zero `Kf`-prefixed vanity survives).
   - **CSS split** — `SpringTarget.vue` keeps a 200 L inline `<style scoped>` block
     (the largest SFC, no split) while smaller SFCs split to `<Name>.css`. Split it via
     the house `<style scoped src="./SpringTarget.css">` idiom; make the split MECHANICAL
@@ -580,6 +639,33 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   R3/R4/R6/R7.
 - **gate/oracle.** the extended existing gates (no new script) + `proof:styling-idioms`.
 - **size** S. **edges.** LAST; U.G ratifies §9/§10 as the codex this wave enforces.
+
+### U.B13 — The amiga animation + scene suspend/resume cure (OD-U13)
+
+- **substance (OD-U13, owner-mandated in-U — "our amiga animation, and our scene
+  suspend/resume facilities have been broken for many tranches … investigated from
+  first principles and fixed within this tranche").** The amiga scene's animation and
+  the demo's scene suspend/resume facilities have been broken across multiple tranches
+  while the gates said green throughout (a vacuous-green exhibit for RC-1). The
+  first-principles defect investigation is RUNNING in U-dev; its dossier lands at
+  **`audit/defect-amiga-suspend-resume.md`**. **The wave's substance IS the dossier's
+  `## The U fix charter` section** once the investigation completes — the fixes are
+  executed from the dossier's root-cause findings, not guessed here. Expected surface
+  (pending the dossier): the amiga rAF/engine lifecycle + the visibility/scene-switch
+  suspend→resume semantics, converged onto the SAME `useManagedLoop` recipe U.B8
+  charters (own the `markRaw(RAFPlayback)` + idempotent start/stop + `onScopeDispose`
+  + `useSceneVisibilityPause`), so no scene leaks a loop or freezes on resume.
+- **The witnessed-cure discipline (← U.H1).** The characterization net (U.H1) must
+  COVER scene-switch and visibility (suspend/resume) semantics BEFORE the fix lands,
+  so the cure is WITNESSED (green-across-the-fix = behavior restored), not asserted —
+  the exact discipline the vacuous-green history violated.
+- **shape authority.** lane 24 §9 (the amiga scene recut to the module skeleton) +
+  U.B8's `useManagedLoop` convergence (the shared loop the cure rides).
+- **gate/oracle.** the U.H1 net (scene switch/visibility covered FIRST) + owner-golden
+  (amiga plays; suspend→resume clean across every scene switch).
+- **size** M. **edges.** Rides **U.B8** (useManagedLoop convergence — the amiga loop
+  joins the one recipe); ← **U.H1** (the net covers scene switch/visibility BEFORE the
+  fix). Owner-mandated in-U (OD-U13); the impl drive lands it IN U.
 
 ---
 
@@ -613,14 +699,14 @@ delete-citing-the-ruling.
 | `proof:demo-no-oversize` | B2 (it manufactured the orphan-composable drawer) | **RETIRE** (U.A CI-trim) — a `.vue`'s line count is not a defect; a mis-homed composable is. Survivors (all-demo-`.css` + SFC style-block) absorbed into `proof:style-file-ceiling` at B12. |
 | `proof:style-file-ceiling` | B12 (all-demo-`.css` sweep + SFC style-block clause) | **RE-ARM + MERGE** — retire the `@/styles`-only scope; absorb the oversize survivors. Net −1 gate. |
 | `proof:shared-has-n-consumers` | B1 (`custom` special-case `:174` deleted), B9 (re-homes) | **RE-ARM** — delete the `custom/` module-ID special-case in the same commit; counts unchanged. |
-| `proof:scene-colocated` / `proof:decomposition` / `proof:hero-two-focal` / `proof:pp-logo-svg` / `proof:stage-within-docks` (~34 scripts, `demo/@/` literals) | B1 (path rename) | **RE-ANCHOR** the fs-path literals in the SAME commit, co-scheduled with U.A's cull (never two passes). `proof:hero-two-focal` re-anchors to `app/` when the hero moves (B5); several are CI-trim candidates (U.A). |
+| `proof:scene-colocated` / `proof:decomposition` / `proof:hero-two-focal` / `proof:pp-logo-svg` / `proof:stage-within-docks` (~34 scripts, `demo/@/` literals) | B1 (path DISSOLUTION — `demo/@/` → `demo/{components,…}/`) | **RE-ANCHOR** the fs-path literals in the SAME commit, co-scheduled with U.A's cull (never two passes; the pass is IDENTICAL whether renamed or dissolved). `proof:hero-two-focal` re-anchors to `app/` when the hero moves (B5); several are CI-trim candidates (U.A). |
 | `proof:scene-facility` | B7 (dual-path deleted) | **RE-ARM** to assert the SOLE seam (no `animationGroup`/`scenePlayback` field, no `ownsPlayback`). |
 | `proof:no-dead-export` | B5 (EditorHeader excised) | **RE-ARM** — one deferred row cleared (coordinates with U.E's 26-row NO-DEFERRAL sweep). |
 | `proof:control-surface-single-writer` | B4 (store-field collapse), B6 (`applySharedState`) | **RE-ARM** — the disciplined writer strengthens it; DFA split preserves the derivation it checks. |
 | depcruise (existing run) | B11 (demo ruleset) | **EXTEND** — `no-cross-module-deep`/`no-self-barrel`/`no-star-export` folded in; no new script. |
 | `proof:styling-idioms` | B3 (idiom-CSS moved), B12 (@apply clause) | **RE-ARM** — the `.btn-playback`/`.tab-trigger` classes resolve from `design-idioms.css`; add the @apply/@reference confinement clause. |
 | `proof:transport-play-first-render` · `no-single-option-select` · `dfa-derived` · `stage-inventory` · `cursor-light-subtle` | B1 (path), B2/B3 (transport recut) | **RE-ANCHOR path; behavior PRESERVED** — verified by vitest + owner-golden (the T-blessed product surface is transposed, never redesigned). |
-| `proof:chunk-graph` (NEW, **U.D-owned**) | born-RED on the 906 KB spring leak | **LANDS WITH B11** — the module cuts (async seam, umbrella delete) are what green it; owner-signed per the anti-sprawl covenant. |
+| the `proof:publish` reachability/weight clause (**U.D-owned**, OD-U11 — NOT a standalone gate) | born-RED on the 906 KB spring leak | **LANDS WITH B11** — the facet async-seam + umbrella delete are what green it; the standalone `proof:chunk-graph` is DROPPED into a `proof:publish` clause (net NEW standalone gates = ZERO). |
 | `test/demo/*` (flat 24 files) | every area move (B2/B4/B6/B7/B8) | **RE-HOME** into `test/demo/<area>/` (OD-U7/R5 mirror), with the import-resolves-into-area integrity clause folded into `proof:zone-cohesion`. |
 
 **The one standing hazard.** The keystone gate (`proof:colocation`) is being edited by

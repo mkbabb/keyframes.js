@@ -29,6 +29,16 @@
 > package "in"s (`.` + `./engine`) remain the only entries; U.H's characterization net locks
 > their observable behavior BEFORE any move here.
 >
+> **The OD-U8 COMPATIBILITY CONSTRAINT (RULED 2026-07-10 — 5.3.0).** The owner ruled the
+> close version **5.3.0**, which BINDS this band to a COMPATIBLE published surface: **no
+> published symbol or entry may be REMOVED or RE-SHAPED.** U.C's exports rationalization,
+> dead-export excisions, and transport-verb additions land **ADDITIVELY / internally** — a
+> NEW symbol (`seek`/`adoptClock`/`seekAndPlay`, `driveScrollCSS`) is fine; the FSM-poke
+> retirement touches only the UNDOCUMENTED internal raw-field surface (all callers
+> internal). The waves once flagged "potentially BREAKING" (C2/C11/C13) carry this as a
+> HARD constraint; anything that would truly break the published surface is OUT of U's
+> scope (the breaking major is later, NOT U).
+>
 > **Provenance lanes:** 11-lib-engine-group (F1–F6), 12-lib-compile-resolve-validate
 > (F1–F8), 13-lib-physics-orchestration (F1–F7), 14-lib-ingest-scroll-waapi-svg-presets
 > (F1–F8), 15-lib-surface-boundary (F1–F8), 16-lib-colocation-map (F1–F7).
@@ -179,8 +189,12 @@ touch the same path-pinned gate scripts — ONE coordinated re-anchor pass, neve
   `SceneFacility` hand-reseat is replaced by the engine's own `seek`/`adoptClock`/`seekAndPlay`
   verbs — the S6 chronic handoff discharged HERE (the library owns the state codec its consumers
   were open-coding; **U.B7** is the demo consumer of this codec).
-- **BREAKING** to the undocumented FSM-poke surface — which is precisely why it was deferred
-  and precisely why U is where it lands. Feeds **OD-U8** (version delta).
+- **Must land ADDITIVELY (OD-U8 — 5.3.0 binds a compatible surface).** The new
+  `seek`/`adoptClock`/`seekAndPlay` verbs land ADDITIVELY; the FSM-poke retirement touches
+  only the UNDOCUMENTED internal raw-field surface (all callers are internal —
+  ingest/sequence/group), so the PUBLISHED surface stays compatible. Any variant that would
+  REMOVE or RE-SHAPE a published symbol/entry is OUT of U's scope (the breaking major is
+  later, not U). Feeds the U.Z close ledger as an additive-only delta.
 - **Size.** L. **HEAVY** (engine/ingest). **Depends U.C1.**
 - **Oracle.** U.H goldens for ingest adopt-running, sequence timing, and group-pause behavior
   (the three drivers whose raw writes are being replaced) — the observable takeover/seek
@@ -470,8 +484,9 @@ touch the same path-pinned gate scripts — ONE coordinated re-anchor pass, neve
   dispatch is the SOLE eligibility/feature-detect site handing `attach` a pre-validated pair).
   ONE eligibility computation, ONE native construction per dispatch; the conservative-correct
   queryable-reason contract preserved.
-- **Size.** M. **HEAVY** (scroll). New public export `driveScrollCSS` → feeds **OD-U8**
-  (surface delta) + the U.C13 surface roster.
+- **Size.** M. **HEAVY** (scroll). New public export `driveScrollCSS` lands ADDITIVELY (a
+  NEW symbol — no existing entry removed or re-shaped, OD-U8-compatible) → joins the U.C13
+  surface roster; the additive delta feeds the U.Z close ledger.
 - **Oracle.** vitest scroll round-trip (parse→drive→observed timeline identical);
   a `bench` witness that a native dispatch runs the eligibility scan exactly once.
 - **Edges.** → **U.C13** (the new `driveScrollCSS` symbol joins the surface roster the
@@ -564,7 +579,10 @@ touch the same path-pinned gate scripts — ONE coordinated re-anchor pass, neve
   triplication policing — several become vacuous once there is ONE roster; feed the
   now-redundant belt to U.A's genre-deletion — charter §3 "one coordinated pass"), → **U.C11**
   (the new `driveScrollCSS` symbol is in the roster the derived type picks up), → **OD-U8** (the
-  exports/`main` drop + any surface delta is the version-decision input at close).
+  collapse must land ADDITIVELY/internally — 5.3.0 binds a compatible surface; the CJS-era
+  `main` drop removes a NON-EMITTED dead artifact, not a published symbol; any change that
+  would remove/re-shape a published symbol is OUT of U's scope. The additive delta is the U.Z
+  close-ledger input).
 
 ---
 
@@ -607,14 +625,16 @@ band delivers the CARVES; the enforcement re-home is U.A's, co-scheduled. The cu
 drift (`cssom.ts:3`, `adopt.ts:7`, `grammar.ts:11`, `scene.ts:15`, `densify.ts:19`,
 `waapi/index.ts:8`) is cured in-motion as each carve wave opens those files.
 
-**R4 — U.C2 + U.C13 are potentially BREAKING (→ OD-U8).** U.C2 changes the undocumented
-FSM-poke surface (the 16 accessor delegates removed; `seek`/`adoptClock`/`seekAndPlay` added).
-U.C13 drops the CJS-era `main` and rationalizes `exports`; U.C11 adds `driveScrollCSS`. None
-changes the two package "in"s or the LIGHT/HEAVY boundary, but the published symbol/entry set
-shifts. **Disposition:** OD-U8 decides the version AT CLOSE from the actual surface delta (6.0.0
-if any published symbol/entry changed, else 5.3.0) — this is a by-design close-deferral, not a
-deferral row. Feed U.C13's exports delta + U.C11's new symbol + U.C2's transport-verb surface to
-the close ledger.
+**R4 — U.C2 + U.C13 + U.C11 must land ADDITIVELY (OD-U8 RULED — 5.3.0).** U.C2 ADDS
+`seek`/`adoptClock`/`seekAndPlay` and retires the UNDOCUMENTED internal FSM-poke surface (all
+callers internal — no published symbol removed); U.C13 rationalizes `exports` and drops the dead
+CJS-era `main` (a NON-EMITTED artifact, ESM-only); U.C11 ADDS `driveScrollCSS`. None changes the
+two package "in"s, the LIGHT/HEAVY boundary, or any PUBLISHED symbol/entry in a
+removing/re-shaping way. **Disposition:** OD-U8 RULED the close version **5.3.0** and BINDS U to a
+compatible published surface — every C surface change lands ADDITIVELY / internally; anything
+that would REMOVE or RE-SHAPE a published symbol/entry is OUT of U's scope (the breaking major is
+later, NOT U). Feed U.C13's additive exports delta + U.C11's new symbol + U.C2's new transport
+verbs to the U.Z close ledger as the ADDITIVE-only surface record.
 
 **R5 — The correctness-hazard oracle must be authored, not assumed (U.C4).** The scalar≡vector
 trajectory-equality test is the ONE thing that makes the modal-kernel unification falsifiable —
