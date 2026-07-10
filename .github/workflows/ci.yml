@@ -48,7 +48,12 @@ jobs:
     gates:
         name: library gate (glass-ui-free)
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        # 20: the T-era roster (131 steps) runs ~10-12min on this runner — the old
+        # 10 ceiling timeout-killed the job at step ~122 once demo-elevate went
+        # green and the run finally reached the tail (2026-07-10). A timeout kill
+        # reports "cancelled", poisoning the run conclusion the deploy-of-record
+        # workflow_run gates on. The U CI-trim owns the real reduction.
+        timeout-minutes: 20
         steps:
             # S.A0 — proof:published-on-master asserts release-tag → master
             # ANCESTRY (`git rev-list -n1 v<version>` + `merge-base --is-ancestor`
