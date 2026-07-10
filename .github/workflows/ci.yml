@@ -697,6 +697,15 @@ jobs:
             - name: "[born-RED tripwire] proof:peer-satisfied (RECORDED — the live F-2 peer-cycle)"
               continue-on-error: true
               run: npm run proof:peer-satisfied
+            # [born-RED tripwire] RECORDED, never blocking — the BG-11 z-inversion is
+            # glass-ui's to cure (the owner's T.H3 ADOPT override accepted the traded
+            # occlusion); proof:glass-ui-gap-tripwire flips hard-RED on the glass-ui
+            # publish until the fix is consumed (T_BORNRED_BACKLOG discharge row).
+            - name: "[born-RED tripwire] proof:dock-zorder (RECORDED — glass-ui BG-11 drawer-inset publish + re-pin)"
+              continue-on-error: true
+              run: npm run proof:dock-zorder
+              env:
+                  KF_REQUIRE_BROWSER: "1"
             # bucket 2 (absolute-threshold → relative budget): the kf easing clause
             # is a same-run cube-reference relative budget; the DM-12 dock clause is
             # a NON-BLOCKING glass-ui HANDOFF (dock width-morph → glass-ui). The whole

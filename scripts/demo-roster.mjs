@@ -206,7 +206,12 @@ export const CORRECTNESS_ROSTER = [
     // successor for the frozen occlusion keys; p10 F6). Runs the full 375×667
     // scene sweep on the shared harness.
     "proof:stage-visible",
-    "proof:dock-zorder",
+    // (proof:dock-zorder moved to BORNRED_TRIPWIRES at the T.Z close — the
+    //  FINAL.md checklist names the external-blocked residue "a named born-RED
+    //  tripwire set": its red is glass-ui BG-11's to cure (the owner's T.H3
+    //  ADOPT override accepted the traded occlusion), so it RECORDS in the
+    //  observe job instead of holding the deploy-of-record hostage. It stays in
+    //  T_BORNRED_BACKLOG + proof:glass-ui-gap-tripwire re-arms on the publish.)
     "proof:drawer-spring",
     // T.B4 (OD-5 #7) — the naked-rail + SQ-T3 DFA-elision browser gate (static
     // half always runs; the DFA-empty + naked-rail probes need the built dist).
@@ -332,7 +337,13 @@ export const OBSERVE_GATES = [
 // ── The born-RED-by-design tripwire (Q.WA3 S1). RECORDED in the observe job,
 // never blocking (it stays RED until glass-ui BB widens its peer range + kf
 // re-pins — an external HANDOFF, not an S wave). ──────────────────────────────
-export const BORNRED_TRIPWIRES = ["proof:peer-satisfied"];
+export const BORNRED_TRIPWIRES = [
+    "proof:peer-satisfied",
+    // T.Z close — the BG-11 external-blocked z-inversion (the owner's T.H3
+    // ADOPT override accepted the trade); RECORDED in the observe job until
+    // the glass-ui publish + re-pin discharges it (T_BORNRED_BACKLOG row).
+    "proof:dock-zorder",
+];
 
 // ── OBSERVE-IN-CI (the header's visual-lock adjudication, made executable).
 // These gates RIDE the correctness roster (amortised on the shared harness) but

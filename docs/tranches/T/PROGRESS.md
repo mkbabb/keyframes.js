@@ -490,6 +490,28 @@
   motions): merge PR #5 → master, tag v5.2.0 (release.yml publishes), the
   deploy-of-record fires on green demo-correctness, keyframes.babb.dev verified,
   tasks #292/#297/#299 retired, the S.Z transfer close recorded.
+- **2026-07-09 — THE FINAL MOTIONS: PR #5 MERGED (`8ed0e63`) + 5.2.0 PUBLISHED + the
+  runner reds cured (`cf9b268`, `9d03124`).** The Linux runner disagreed with the
+  certified macOS tree three ways, each cured by cause: (1) release.yml's shallow
+  checkout could not `git show v5.1.0:` — fetch-depth: 0; the v5.2.0 tag re-cut on the
+  fix → **@mkbabb/keyframes.js 5.2.0 ON NPM (latest)**; (2) irrefragable legitimately
+  outruns the 300s backstop there — the roster rides `--gate-timeout=600` in CI;
+  (3) styling-idioms caught `family-group`/`family-item` as unresolved — REAL dead-refs
+  (unstyled since the P-GALLERY birth), removed; the removal exposed that
+  proof:easing-gallery had been *selecting* on `.family-item`, re-pointed to the
+  accessible contract (`[aria-label="Filter curves by family"] button`, verified live
+  6-tile Bounce narrow + 33-tile restore). The library gate's fail-fast ordering had
+  been masking two more: **proof:demo-elevate RE-ARMED to the S.F1 boundary** (kf owns
+  the VT dispatch, confined to `orchestration/view-transition/`; glass-ui keeps the
+  LOOK — F.W13 §A-2 superseded; the stale-era class strikes again) + two T-lane bare
+  catches KEEP-labeled + the Q pin-ledger self-version bumped 5.2.0. The full
+  post-elevate library-gate tail (25 gates) swept green (3-lane workflow + direct
+  re-runs). **proof:dock-zorder moved CORRECTNESS_ROSTER → BORNRED_TRIPWIRES** per the
+  FINAL.md checklist's own words ("the EXTERNAL-BLOCKED residue … remains a named
+  born-RED tripwire set"): the peer-satisfied precedent — RECORDED in the observe job
+  (`continue-on-error`), never gating the deploy the owner's T.H3 ADOPT override
+  already accepted the trade for; T_BORNRED_BACKLOG row + glass-ui-gap-tripwire
+  discharge unchanged. ci-coverage/board-live/wave-charter re-verified green.
 
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
