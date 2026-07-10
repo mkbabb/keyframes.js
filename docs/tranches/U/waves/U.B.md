@@ -277,9 +277,24 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   - **Re-home `DemoGlobalChrome`** (the rainbow `<defs>` paint-server + the teleported
     `<Toaster>`, self-labeled "resolve against the DOCUMENT") from
     `transport/components/` to a document-singleton tier beside the app shell chrome.
+  - **Reconcile the `LayerConfigPanel` blend selector on multi-target groups (OD-U14
+    behavior lane D4).** `LayerConfigPanel.vue:69` exposes the
+    `["replace","add","weighted"]` blend selector (wired through
+    `useAnimationGroupActions.ts:45` → `group.setLayerConfig`) for EVERY group — but blend
+    modes are a NO-OP on `singleTarget=false` groups: `renderMultiTarget`
+    (`group/entries.ts:87-96`) applies each child DIRECTLY to its own target with NO
+    cross-child composite, so `add`/`weighted`/z-order do NOTHING there. The demo's `square`
+    scene IS `singleTarget=false`, so a user picks "add", sees no change — a live control that
+    does nothing (an appearance-axis blind spot, not identity). GATE the blend selector OFF
+    for multi-target groups, or surface an explicit **"independent targets — no cross-layer
+    blend"** note in its place. Provenance: `audit/assay-compositor-behavior.md` (the adjacent
+    semantic gap found while driving the stacking matrix); the LIBRARY-side compositor
+    re-charter is U.C14/U.C15, this is the demo control's honesty.
 - **evidence.** `AnimationControlsControls.vue:264` (verified 6-level import);
   `useAnimationSync.ts:40`, `AnimationVisualizer.vue:236-250` (lane 17 F5);
-  `PlaybackRibbon.vue:82` + `AnimationControls.vue:214` (verified side-effect imports).
+  `PlaybackRibbon.vue:82` + `AnimationControls.vue:214` (verified side-effect imports);
+  `LayerConfigPanel.vue:69` blend selector live on `square` (`singleTarget=false`) where
+  `renderMultiTarget` has no blend arm (OD-U14 behavior lane D4).
 - **shape authority.** lane 24 §9.2 rule 4 (cross-area shared → `@/` tier, kind-
   appropriate) + §6 CSS three-tier rule (cross-component idiom never lives in a
   module).

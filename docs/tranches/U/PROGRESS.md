@@ -84,3 +84,29 @@
   loop but not the group clock. Chartered: **U.C14** (the projection-as-view cure +
   the born-RED past-the-boundary characterization) + **U.B13 re-cut** (the ONE
   symmetric suspend contract, consuming C14).
+- **2026-07-10** — **THE OD-U14 COMPOSITOR ASSAY LANDED** (`wf_418fb3a3-3f1`: the
+  3-lane first-principles assay — semantics · behavior · architecture — over the
+  owner's named "primary issue" [compositing/stacking/layering]; dossiers at
+  `audit/assay-compositor-{semantics,behavior,architecture}.md`). **Headline:** the
+  C14 amiga freeze is ONE of a THREE-instance stale-leaf-cache CLASS — the composite
+  `_grouped` is a POINTER TABLE into borrowed frame-leaf buffers the interpolator
+  re-points at every segment crossing; besides the plain-vars projection (D1, amiga),
+  the SoA `add`/`weighted` plan capture (D2) silently collapses the blended layer to
+  the base at the first boundary — **demo-reachable** via `LayerConfigPanel`'s blend
+  selector on the FLAT/DOM path, NOT gated by `unflatten`, and green under every gate
+  (`proof:blend`/`proof:soa-composite` all sample within a single segment) — and
+  layer-removal leaks frozen keys (D3). Beyond the class: blending is unit-blind +
+  colour-blind across layers, `weighted` is a non-normalized order-dependent lerp that
+  drops a lone layer's weight, and the group zone has ZERO WAAPI references (any
+  animation drops to main-thread rAF the instant it joins a group). **Chartered into
+  U.C:** **U.C14 WIDENED** (the plain-vars cure → THE COMPOSITE-STATE CURE — the
+  composite becomes a value store the compositor OWNS; born-RED gates for D1/D2/D3;
+  size M→L), **U.C3 RE-CHARTERED** (the group-zone redesign — owned `CompositeState`
+  in a carved `group/draw.ts` + a `Renderer` seam + a declarative layer stack; M→L),
+  **U.C15 NEW** (one op axis `replace|add|accumulate` + orthogonal normalized weight;
+  unit/colour correctness guards; M), **U.C16 NEW** (group WAAPI lowering — a
+  single-target all-eligible group lowers to N native `target.animate(kf,
+  {composite})` calls; L). All ADDITIVE on the OD-U8 5.3 bind. Corpus propagation:
+  OD-U14 disposition (ASSAY COMPLETE) + `U.md` §1 RC-2b + §2 U.C row + `waves/U.C.md`
+  (wave index/DAG/Risks R4+R8) + `waves/U.B.md` (U.B3 gains the
+  LayerConfigPanel-inert-on-multi-target reconciliation, behavior lane D4).
