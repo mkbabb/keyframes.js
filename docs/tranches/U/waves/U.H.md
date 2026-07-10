@@ -116,7 +116,11 @@ It goldens OBSERVABLE behavior, never source shape: (a) compiled-CSS BYTES from
 clock (the `KeyframesScrollTimeline`/`ManualTimeline` injectable-clock idiom — no rAF,
 no wall-clock); (c) each scene MOUNTS → plays → switches without throwing (behavior,
 not the `SceneExposedApi` field shape — so it stays green across U.B7's
-`animationGroup?`/`scenePlayback?` field deletion). The model already in-tree is
+`animationGroup?`/`scenePlayback?` field deletion); (d) each scene's
+visibility-pause / suspend→resume observable behavior over the injectable clock
+(tab-hidden suspends the group clock; resume produces NO forward jump) — goldened
+BEFORE U.B13's fix lands, so the suspend cure is WITNESSED green-across-the-fix,
+never asserted (the OD-U13 discipline U.B13 consumes). The model already in-tree is
 `test/demo/scene-machine-reducer.test.ts` (pure, path-shallow, one public symbol).
 
 **Named deliverable — the spring trajectory oracle (U.C4's pre-condition).** U.H1
@@ -142,7 +146,9 @@ behavior perturbation reds it.
 
 **Edges.** ROOT of the impl DAG. Precedes all U.B/U.C/U.D moves. Needed by U.A1 (the
 apparatus target's "A2 test-half survival is provable" clause depends on this net
-existing).
+existing). → **U.C4** (owns the spring trajectory oracle C4's ODE-deletion gates on);
+→ **U.B13** (owns the suspend/resume coverage — golden (d) — that B13's witnessed-cure
+discipline consumes).
 
 **Evidence.** `vitest.config.ts:15-19` (self-alias → source, ONE realm);
 `demo/app/scene/scenes.ts:143-189` (the six lazy scene entries);

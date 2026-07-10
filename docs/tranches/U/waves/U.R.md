@@ -23,17 +23,19 @@
 
 ---
 
-## The load-bearing conclusion (why this band exists)
+## Why this band exists
 
 The owner's U prompt is **not a new tranche of new asks — it is the same 7-clause mandate
 re-issued for the ~10th time** (`J/J.md:111-119` → verbatim through K,L,M,O,P,Q,R,S,T →
 `U/ORIGINAL-PROMPT.md:14-16`), plus two escalations (CI-trim, grand-restructure). **The
-recurrence is the finding** (lane 01 §0). A precept spirit-met to the owner's bar would not
-need restating nine times; each re-issue **auto-REDs** its prior "ADDRESSED (chartered)" claim.
+recurrence is the finding** (lane 01 §0). Every time the owner re-issued the mandate, it
+proved the previous "ADDRESSED (chartered)" claim false — you don't restate a satisfied
+instruction nine times. (In the ledger's token vocabulary: each re-issue auto-REDs the
+prior claim.)
 
-Every recap A→S measured LETTER and self-certified its SPIRIT column **by citing a band**
-(→ S.G / → S.D / → S.E — the three bands the owner rejected on sight): "the anti-leak column
-certified the leak." T cured half of this — `proof:prompt-recap-t` forbids band-as-oracle and
+And each recap A→S had marked itself compliant **by pointing at a band** (→ S.G / → S.D /
+→ S.E — the three bands the owner then rejected on sight): the check meant to catch the
+gap was the thing hiding it. T cured half of this — `proof:prompt-recap-t` forbids band-as-oracle and
 green-design-gate-as-oracle. **But T then reproduced the exact pathology one level down:**
 verdict #26 (the GRAND COLOCATION EDICT) is marked LANDED · `proof:colocation` KEYSTONE ⑩
 (`T/FINAL.md:44`), while on the live tree (verified `tranche-u-dev`, 5.2.0):
@@ -120,7 +122,12 @@ the owner's bar, wave by wave.
     `T_BORNRED_BACKLOG` rows) — each a deadlined external covenant with a named producer, NONE to V.
   - **§5** parse-that certified clean (one line; zero specifier in tree).
   - **§6** the per-tranche terminal asks (recorded, not re-opened).
-  - **§7** the OWNER-ASKS disposition mirror (U's two rows).
+  - **§7** the OWNER-ASKS disposition mirror — ALL current rows (rows 1–6 at this
+    authoring: the edict, the "why so long" answer, the two ruling batches, the
+    compositor assay, the convergence-loop mandate), GROWING at the event as new
+    asks land; the OD register's open rulings (OD-U10..U18, the convergence-loop
+    rulings OD-U15..U18 included) are tracked through §2/§4 until each lands a
+    wave set or an explicit owner token.
   - **§8** the recurring-correction-shape register (U.R4's content).
   - **§9** the per-wave update protocol (U.R3's content).
   - **§10** mid-U owner asks (fills at the event).
@@ -165,8 +172,9 @@ the owner's bar, wave by wave.
     **U REFINEMENT:** a `TREE-WITNESSED file:line` counts as a clearance for a STRUCTURAL clause
     (dev-only posture, legacy-tier absence) but NOT for a design/perf clause, which still needs an
     owner token (the owner-golden loop).
-  - **(v) OWNER-ASKS dispositioned** — `U/OWNER-ASKS.md`'s rows all carry a real disposition (both
-    U rows do — §7). Unchanged.
+  - **(v) OWNER-ASKS dispositioned** — `U/OWNER-ASKS.md`'s rows ALL carry a real disposition
+    (all U rows do — §7; rows 1–6 at authoring, and the census bites on every
+    later-arriving row too). Unchanged in mechanism.
   - **(correction-shape)** — the §8 register exists with ≥1 promoted precept + its gate. **U
     REFINEMENT:** the required promoted precept is now the tolerant-gate-on-rejected-tree shape
     ("a keystone that cannot fail on the rejected structure is retired"), bound to

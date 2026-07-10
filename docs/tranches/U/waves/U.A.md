@@ -78,10 +78,10 @@ gate deleted.** That is U.A1.
 | # | Title | Substance | Size | Gate / oracle | Edges |
 |---|---|---|---|---|---|
 | **U.A1** | Target ratification + the coverage-contract inversion (KEYSTONE) | Ratify the three-mechanism target in `package.json`; AUTHOR `proof:publish` = `boundary && published-surface && deps-current`; INVERT `proof-ci-coverage.mjs` CLAUSE 0 to reachability-from-a-TIER (transitional — the gate itself dies in U.A5) so every subsequent deletion is legal | L | `proof:publish` green; one-shot witness: delete a throwaway `proof:*` key WITHOUT `proof:ci-coverage` reding | FIRST in band; needs U.H (characterization net exists BEFORE any move, DAG); before every A-deletion |
-| **U.A2** | CLASS 3 collapse — the ~25 `node .mjs && vitest` doublings → the vitest oracle alone | Drop the source-grep `.mjs` halves of the ~25 belt-and-suspenders gates; the `.test.ts` value proof is the oracle; widen the test where the grep uniquely covered a behavior | M | the surviving vitest tests (npm test); the deleted keys drop from `ci.yml` under A1's inverted contract | A1; co-sched U.H (vitest library/demo project split); before A5 |
-| **U.A3** | CLASS 4 collapse — the ~16 no-legacy/regression greps → lint rules | Fold the `REGRESSION_GUARDS` band + kin (16 hand-rolled AST-by-regex scripts) into `proof:lint-clean` as `no-restricted-syntax`/custom rules; no-legacy is the linter's job | M | `proof:lint-clean` (existing) carries the folded rules; a one-shot re-introduction witness reds in lint | A1; co-sched U.E (legacy-zero); before A5 |
-| **U.A4** | CLASS 2 dissolution — the 77 line-anchored appearance/geometry gates → owner-golden + ONE `demo-smoke` | Retire all 77 demo-geometry greps CONCURRENT with the U.B restructure that deletes their subject files; replace with `proof:owner-golden` (taste) + one behavioral `demo-smoke` (each scene mounts/plays/switches) | L | `proof:owner-golden` (SURVIVES — fence 3) + `proof:demo-smoke` | A1; **CO-SCHEDULED with U.B** (structural gates re-anchor WITH the move, never lag); U.G (owner-golden authority); before A5 |
-| **U.A5** | CLASS 1 + the lifecycle-ledger + the meta-gate layer — DELETE WHOLESALE | Delete the 27 self-policing gates; `gate-bands.mjs` IN FULL (all five registers); `proof-ci-coverage.mjs` (1,216L); `proof-gate-is-runtime.mjs`, `proof-roster-ceiling.mjs`, `proof-chronic-closure.mjs`, `proof-retirement-ledger.mjs`, `proof-decomposition.mjs`; `gate-taxonomy.md`. Coverage becomes true-by-construction | L | NONE (deletion) — the surviving `npm test` + `proof:publish` ARE the coverage | A2+A3+A4 (population must collapse first); before A6 |
+| **U.A2** | Delete the ~25 belt-and-suspenders gates that re-check code shape (`node .mjs`) on top of a real value test — keep the test (lane 07 class 3) | Drop the source-grep `.mjs` halves of the ~25 belt-and-suspenders gates; the `.test.ts` value proof is the oracle; widen the test where the grep uniquely covered a behavior | M | the surviving vitest tests (npm test); the deleted keys drop from `ci.yml` under A1's inverted contract | A1; co-sched U.H (vitest library/demo project split); before A5 |
+| **U.A3** | Fold the ~16 keep-it-deleted grep gates into lint rules (lane 07 class 4) | Fold the `REGRESSION_GUARDS` band + kin (16 hand-rolled AST-by-regex scripts) into `proof:lint-clean` as `no-restricted-syntax`/custom rules; no-legacy is the linter's job | M | `proof:lint-clean` (existing) carries the folded rules; a one-shot re-introduction witness reds in lint | A1; co-sched U.E (legacy-zero); before A5 |
+| **U.A4** | Retire the 77 pixel-geometry appearance gates → owner-golden + ONE behavioral `demo-smoke` (lane 07 class 2) | Retire all 77 demo-geometry greps CONCURRENT with the U.B restructure that deletes their subject files; replace with `proof:owner-golden` (taste) + one behavioral `demo-smoke` (each scene mounts/plays/switches) | L | `proof:owner-golden` (SURVIVES — fence 3) + `proof:demo-smoke` | A1; **CO-SCHEDULED with U.B** (structural gates re-anchor WITH the move, never lag); U.G (owner-golden authority); before A5 |
+| **U.A5** | Delete the 27 gates that only police other gates, plus the lifecycle-ledger + meta-gate layer — WHOLESALE (lane 07 class 1) | Delete the 27 self-policing gates; `gate-bands.mjs` IN FULL (all five registers); `proof-ci-coverage.mjs` (1,216L); `proof-gate-is-runtime.mjs`, `proof-roster-ceiling.mjs`, `proof-chronic-closure.mjs`, `proof-retirement-ledger.mjs`, `proof-decomposition.mjs`; `gate-taxonomy.md`. Coverage becomes true-by-construction | L | NONE (deletion) — the surviving `npm test` + `proof:publish` ARE the coverage | A2+A3+A4 (population must collapse first); before A6 |
 | **U.A6** | Tier-manifest-as-data + the `ci.yml` collapse + `demo-device-observe` deletion + the device-honesty subsystem | `scripts/lib/tiers.mjs` (arrays, not `&&` mega-strings); collapse `ci.yml` 756L/134 steps/3 jobs → ONE fast job / `run-all --all` over the manifest; DELETE `demo-device-observe` (continue-on-error, gates nothing); delete `ci-env.mjs` posture machinery + `portable-perf.mjs` + `cdp-perf.mjs` + clause-4 posture manifest (the Linux runner justified them) | L | the single `gates` job green; no browser/Monaco/chromium on the merge path | A5; lane 23 F5/F6 |
 | **U.A7** | The browser roster re-homing — nightly + on-device | Move the 77-gate `run-demo-roster` suite off the merge path to a `schedule:` cron + `workflow_dispatch` (writes `last-demo-green=<sha>`) + on-device pre-push (fast macOS, where MEMORY says browser correctness actually holds); fold `demo-device-observe`'s LoAF/lighthouse into the nightly; dedupe `dfa-derived` | M | the nightly run green + `last-demo-green` ref written | A6 |
 | **U.A8** | Deploy-of-record redesign (OD-U3) | `deploy-pages.yml` gates on library-`ci`-green on master AND `last-demo-green` an ancestor of the deploy SHA (`merge-base --is-ancestor`); RETIRE the single-sourced `DEMO_CORRECTNESS_JOB` literal + the preflight coupling; a red nightly freezes the deploy ref (opens an issue), never blocks every push | M | a deploy-of-record dry-run on the redesigned trigger | A7; OD-U3 ruling |
@@ -151,7 +151,7 @@ test-half survival is provable. Blocks every A-deletion.
 
 ---
 
-### U.A2 — CLASS 3 collapse: the ~25 `node .mjs && vitest` doublings → the vitest oracle alone
+### U.A2 — Delete the ~25 shape-recheck doublings (`node .mjs && vitest`) — keep the test (lane 07 class 3)
 
 **Substance.** ~25 keys run `node scripts/proof-X.mjs && vitest run test/X.test.ts`
 where the `.mjs` half is a SOURCE-GREP asserting the fixed code SHAPE and the
@@ -182,7 +182,7 @@ surviving tests land in the right project). Before A5.
 
 ---
 
-### U.A3 — CLASS 4 collapse: the ~16 no-legacy/regression greps → lint rules
+### U.A3 — Fold the ~16 keep-it-deleted greps into lint rules (lane 07 class 4)
 
 **Substance.** `gate-bands.mjs:404-419` bands 10 "keep-a-deleted-thing-deleted" greps
 + ~6 outside the band; each locks a single historical excision now permanent. Fold
@@ -213,7 +213,7 @@ are the same ones U.E terminally adjudicates). Before A5.
 
 ---
 
-### U.A4 — CLASS 2 dissolution: the 77 line-anchored appearance gates → owner-golden + `demo-smoke`
+### U.A4 — Retire the 77 pixel-geometry appearance gates → owner-golden + `demo-smoke` (lane 07 class 2)
 
 **Substance.** 58 gate scripts hard-code `demo/{scenes,@,app}/…` paths and 15 anchor a
 specific `*Target.vue` line number; together they encode the pixel geometry of ONE
@@ -234,7 +234,8 @@ only the survivors).
 **Why gestalt + CO-SCHEDULING.** A geometry grep cannot survive its subject's rewrite;
 re-authoring 77 against the new layout is exactly the "no quick fixes" anti-pattern the
 owner forbade. Two of the anchors (`proof-card-rounded-primitive.mjs:6-9`) already
-point at `MotionPathTarget.vue`, PRUNED at OD-1 — the gate's own `gate-bands.mjs:541`
+point at `MotionPathTarget.vue`, a file deleted when the owner pruned the motion-path
+scene (tranche T's ruling OD-1) — the gate's own `gate-bands.mjs:541`
 witness says so, yet the anchor lingers. This is the DAG's central discipline (U.md
 §3, lane 32): **structural gates re-anchor WITH the move, never lag** — U.A4 lands in
 the SAME pass as the U.B scene/transport/editor moves, not before (dangling anchors)
@@ -255,7 +256,7 @@ rewrite, S.G1/S.D3" = U); `gate-authority.mjs:208-214` (`proof:owner-golden`).
 
 ---
 
-### U.A5 — CLASS 1 + the lifecycle-ledger + the meta-gate layer — DELETE WHOLESALE
+### U.A5 — Delete the 27 self-policing gates + the lifecycle-ledger + the meta-gate layer, WHOLESALE (lane 07 class 1)
 
 **Substance.** With the population collapsed by A2/A3/A4, the machinery that MANAGED
 the population has nothing left to manage. Delete, in one wave:
@@ -419,7 +420,8 @@ it polices everywhere else. Transpose:
   (`:248-283`) that silently rots when tokens move.
 - **Dead artifacts** — `git rm` the 0-reference decision JSONs (`typed-om-decision.json`,
   `leaves-externalization-decision.json`, `reseat-vs-decay-decision.json`), the retired
-  `scripts/baselines/visual-lock/_diff/` (44 orphaned `*.diff.png`, retired at T.M3);
+  `scripts/baselines/visual-lock/_diff/` (44 orphaned `*.diff.png` from the visual-lock
+  era, retired when the blessed-screenshot mechanism replaced it at T.M3);
   relocate live decision records + the `typing-dots-harness/` fixture into their owning
   gate's family dir.
 - **The `proof:colocation` BACKEND CLAUSE + lint (OD-U10 — no new gate)** — the

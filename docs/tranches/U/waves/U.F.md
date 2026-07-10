@@ -38,7 +38,7 @@
 
 ---
 
-## The load-bearing conclusion (why this band exists)
+## Why this band exists
 
 Four external edges, each verified on the live tree (`tranche-u-dev`, 5.2.0), each a
 covenant the current apparatus green-lights while it drifts:

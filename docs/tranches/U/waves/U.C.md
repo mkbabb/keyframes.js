@@ -11,8 +11,8 @@
 > hand-spelled, index.ts's 150-line type re-list deleted; presets 34×4 hand-lists → data;
 > ingest's seekAndPlay primitive; env.d.ts → demo."*
 >
-> **The one-sentence thesis.** The library is ~80% mature (R.W1's 11-zone partition +
-> S.B's sub-zone carves landed cleanly) — but it built the same *play machine three times*,
+> **Summary.** The library is ~80% mature (the 11-zone directory partition landed at
+> tranche R (R.W1) + S.B's sub-zone carves landed cleanly) — but it built the same *play machine three times*,
 > the same *spring ODE twice* (a correctness hazard, not hygiene), spells its *HEAVY surface
 > five times* behind a fleet of drift-gates that a single composition barrel already
 > obviates, hand-maintains *34 presets × 4 parallel lists*, and lets ingest/sequence/group
@@ -45,7 +45,7 @@
 
 ---
 
-## The load-bearing conclusion (why this band exists)
+## Why this band exists
 
 Four duplications, each verified on the live tree (`master`, 5.2.0), each with ONE gestalt cure:
 
@@ -81,20 +81,20 @@ and a cluster of NO-LEGACY carves the two long-flat zones owe.
 
 | id | title | size | oracle (existing mechanism — no new standalone gate) | lanes |
 |---|---|---|---|---|
-| **U.C1** | **THE TRANSPORT CORE — one FSM, three drivers** · KEYSTONE | XL | vitest (transport behavior net, U.H) + `proof:boundary` (leaf stays LIGHT) | 11 F1/F4; 13 F5 |
+| **U.C1** | **THE TRANSPORT CORE — one play/pause/stop state machine (FSM) shared by all three drivers** (engine, group, sequence — today each carries its own copy) · KEYSTONE | XL | vitest (transport behavior net, U.H) + `proof:boundary` (leaf stays LIGHT) | 11 F1/F4; 13 F5 |
 | **U.C2** | The single-writer seam: `seek`/`adoptClock`/`seekAndPlay`; retire the 16 FSM-poke delegates | L | vitest (ingest/sequence/adopt goldens, U.H) + tsc (the poke surface is gone) | 11 F2; 14 F2/F7 |
-| **U.C3** | **THE GROUP-ZONE REDESIGN (OD-U14 architecture verdict)** — the `CompositeState` value store owns the five draw-scratch fields (`_grouped`/`_groupedKeys`/`_soaPlans`/`_compositeBuf`/`_plainProj`) inside a carved `group/draw.ts` renderer module; a `Renderer` seam (`Renderer.apply(vars,t)` — DOM-flat + plain-object-projection, `plain-vars.ts` moves OUT of `compile/`); a declarative layer-stack descriptor (`{op, weight, mask, z}` first-class data, `setLayerConfig` the mutation verb); disabled-layer union filter + contributed-epoch (no per-frame `delete`) | L | vitest (group blend goldens) + `bench` (idle-toggle stays fast-props) | 11 F3/F5; OD-U14 architecture lane |
+| **U.C3** | **REDESIGN THE GROUP/LAYER STACK (OD-U14 architecture verdict)**: give the compositor its own value store for the five scratch buffers (in a carved `group/draw.ts`), add a `Renderer` seam and a declarative layer descriptor `{op, weight, mask, z}`, and stop the per-frame delete churn — field-by-field detail in §U.C3 | L | vitest (group blend goldens) + `bench` (idle-toggle stays fast-props) | 11 F3/F5; OD-U14 architecture lane |
 | **U.C4** | **THE SPRING MODAL KERNEL — one ODE, both perf profiles** | M | vitest (scalar≡vector trajectory equality, the hazard oracle) + `proof:boundary` | 13 F1/F4/F6 |
 | **U.C5** | SmoothProgress managed-play completion — the `ManagedStepper` contract | M | vitest (smooth/spring managed-play parity) + `proof:boundary` | 13 F2 |
-| **U.C6** | Engine correctness hygiene: `_out` reentrancy + composition base-capture reparse | S | vitest (reentrant `.at()` witness; composite-base parity) | 13 F7; 11 F6 |
-| **U.C7** | `physics/spring/` colocation — `solver/` + `css/` sub-modules | M | `proof:boundary` (both sub-modules LIGHT) + `proof:zone-cohesion` re-anchor | 16 F1 |
-| **U.C8** | `compile/emit/` + `compile/easing/` colocation — the emitter trio under one roof | L | `proof:boundary` (HEAVY preserved) + a18 FORWARD↔`emit/` re-anchor | 16 F2; 12 F3 |
+| **U.C6** | **Fix two engine correctness bugs**: calling `.at()` while a frame is mid-render corrupts the shared `_out` scratch (make it per-instance); a composed animation re-parses its base pose on every capture (parse once through value.js) | S | vitest (reentrant `.at()` witness; composite-base parity) | 13 F7; 11 F6 |
+| **U.C7** | `physics/spring/` colocation — `solver/` + `css/` sub-modules | M | `proof:boundary` (both sub-modules LIGHT) + `proof:zone-cohesion` re-anchor | 16 F1; OD-U16 (the long-file carve direction) |
+| **U.C8** | `compile/emit/` + `compile/easing/` colocation — the emitter trio under one roof | L | `proof:boundary` (HEAVY preserved) + a18 FORWARD↔`emit/` re-anchor | 16 F2; 12 F3; OD-U16 (its named example — `easing-option.ts` → `compile/easing/`) |
 | **U.C9** | compile backward de-accretion — `refusal-probes.ts` + >350L carves + primitive dedup | L | vitest (compileToCSS/Entry/VT emit goldens unchanged) | 12 F2/F4/F7 |
 | **U.C10** | value.js consume-edge honesty — excise dead `PARSE_ERROR`; BOOK the WAAPI unit literal | S | vitest (`validate.parseable` contract corrected) + U.F letter | 12 F1; 14 F3 |
 | **U.C11** | scroll drive symmetry — `driveScrollCSS` + dispatch de-dup + `ScrollBackend` re-home | M | vitest (scroll round-trip) + `bench` (one eligibility scan/dispatch) | 14 F4/F8 |
 | **U.C12** | presets → ONE `PRESET_SPECS` table + `definePreset` generator | M | vitest (34-preset catalog parity + barrel/taxonomy derivation) | 14 F1/F6 |
 | **U.C13** | **THE SURFACE COLLAPSE — one composition barrel, derived type** | L | `proof:publish`/`proof:published-surface` (re-armed) + tsc d.ts roll-up | 15 F1/F2/F3/F5/F6/F7 |
-| **U.C14** | **THE COMPOSITE-STATE CURE (OD-U13 + OD-U14)** · EARLY — the stale-leaf-cache CLASS cured as ONE architectural change (the architecture lane's T2): **the composite becomes a value store the compositor OWNS** — stable `ValueUnit[]` leaves allocated once per structural change; every blend arm WRITES values (replace copies `.value`, add accumulates), never assigns a foreign leaf reference, so the projection AND the SoA plans capture the composite's OWN leaves which never re-point. Closes all THREE instances the assay found: **D1** the plain-vars projection freeze (the amiga sphere pins at the 25% pose ~2s in — `compile/plain-vars.ts:109` caches a leaf `engine/interpolate.ts:194` re-points at every segment crossing); **D2** the SoA `add`/`weighted` plan capture (`soa.ts` `carriers`/`incomings` — the blended layer's contribution silently VANISHES at the first segment boundary, demo-reachable via `LayerConfigPanel`'s blend selector, flat/DOM path, NOT gated by `unflatten`); **D3** the layer-removal key leak (`computeGroupedKeys` unions only current entries → a removed layer's props stay frozen-applied). Dossiers: `audit/assay-compositor-{semantics,behavior,architecture}.md` + `audit/defect-amiga-suspend-resume.md` | L | vitest — born-RED characterizations: **(a)** the `unflatten` freeze past the boundary (the existing amiga one — values KEEP CHANGING past t≈2s); **(b)** an `add` AND a `weighted` group over a ≥3-keyframe child past its first segment, asserting the blended delta PERSISTS across ≥2 segments (the D2 window every gate missed — flat path, no `unflatten`); **(c)** layer-removal leaves no frozen keys (`_grouped[key] === undefined`); + one demo-smoke clause sampling `#/amiga` ≥3s | 11 F5-adjacent; the OD-U13 + OD-U14 dossiers; ↔ U.B13 (the demo consumer); subsumes the U.C3 delete-compaction fix (one object) |
+| **U.C14** | **THE COMPOSITE-STATE CURE (OD-U13 + OD-U14)** · EARLY — the stale-leaf-cache CLASS cured as ONE architectural change (the architecture lane's T2): **the composite becomes a value store the compositor OWNS** — stable `ValueUnit[]` leaves allocated once per structural change; every blend arm WRITES values (replace copies `.value`, add accumulates), never assigns a foreign leaf reference, so the projection AND the SoA plans capture the composite's OWN leaves which never re-point. Closes all THREE instances the assay found: **D1** the plain-vars projection freeze (the amiga sphere pins at the 25% pose ~2s in — `compile/plain-vars.ts:109` caches a leaf `engine/interpolate.ts:194` re-points at every segment crossing); **D2** the SoA `add`/`weighted` plan capture (`soa.ts` `carriers`/`incomings` — the blended layer's contribution silently VANISHES at the first segment boundary, demo-reachable via `LayerConfigPanel`'s blend selector, flat/DOM path, NOT gated by `unflatten`); **D3** the layer-removal key leak (`computeGroupedKeys` unions only current entries → a removed layer's props stay frozen-applied). Dossiers: `audit/assay-compositor-{semantics,behavior,architecture}.md` + `audit/defect-amiga-suspend-resume.md` | L | vitest born-RED checks: **(a)** the amiga sphere KEEPS MOVING after ~2 s (today it freezes); **(b)** with two layers combined by `add`, and again by `weighted`, over a child that has 3+ keyframes, the second layer's contribution still shows after the child crosses its first keyframe boundary (today it silently drops to the base layer — the window no existing gate sampled); **(c)** after removing a layer, its properties are no longer applied (`_grouped[key] === undefined`); **(d)** a smoke test samples the amiga scene for 3+ s | 11 F5-adjacent; the OD-U13 + OD-U14 dossiers; ↔ U.B13 (the demo consumer); subsumes the U.C3 delete-compaction fix (one object) |
 | **U.C15** | **THE COMPOSITION VOCABULARY UNIFICATION** — ONE op axis `replace \| add \| accumulate` shared by the keyframe operator + whole-animation composite + group layer (today two enums — `BlendMode` invents non-standard `weighted`, omits `accumulate`); `weight: number` ORTHOGONAL to the op, normalized across the contributing pool (sum-0 defined; the lone/bottom weighted layer honors its weight); `weighted` survives as a deprecated alias `{op:'replace', weight}` — ADDITIVE on the 5.3 bind, no functionality lost, the group gains `accumulate` free. Plus the correctness guards: unit-equality classification (a `10px`+`50%` pair → explicit `COMPOSITION_FALLBACK` refusal, never silent `60px`); colour leaves through the value.js oklab blend in `add`/`weighted` (or an EXPLICIT replace-only refusal) | M | vitest (op-axis matrix + unit-mismatch refusal + colour-blend goldens) | 11 F5; OD-U14 semantics/architecture lanes; **OD-U8 additive-only** |
 | **U.C16** | **GROUP WAAPI LOWERING** — today the group zone has ZERO WAAPI references (a managed child throws before eligibility → ANY animation drops to main-thread rAF the instant it joins a group). Per-layer eligibility + a group-level all-eligible gate; a single-target all-eligible group lowers to N native `target.animate(kf, {composite})` calls (`waapi-options` gains the `composite` key); the rAF compositor stays the always-correct fallback; the delegation must produce the SAME stacked output as the compositor (the split-brain closure) | L | vitest parity (delegated vs compositor stacked output) + the WAAPI eligibility suite re-armed | 11; OD-U14 architecture lane; **OD-U8 additive-only** |
 
@@ -119,6 +119,14 @@ U.C14 (the COMPOSITE-STATE cure) ── EARLY (a live 5.2.0 product freeze + the
 U.C13 (surface collapse) ── LAST of the surface work; re-arms the gate belt → feeds U.A
 ```
 
+**Edge glyphs (all Edges columns, this band):** `→` = this wave precedes/provides;
+`←` = this wave depends on; `↔` = co-scheduled/co-owned, no precedence.
+
+**Granularity note (OD-U16).** U.C7/U.C8 execute the long-file CARVE direction's two
+named instances. The opposite direction — absurdly small modules inlined-and-deleted —
+plus the per-module carve/keep/inline assay over EVERY library module, arrives from the
+convergence loop (OD-U18, band U.L); its wave set develops at 100% convergence.
+
 Keystones: **U.C1 first** (C2/C3 depend on the shared store). **U.C14 → U.C3 → U.C15 →
 U.C16** — the compositor re-charter sequence (OD-U14): the owned `CompositeState` store is
 the SUBSTRATE; the group-zone redesign is built around it; the vocabulary lands on the new
@@ -133,7 +141,7 @@ pass, never two.**
 
 ## The waves
 
-### U.C1 — THE TRANSPORT CORE: one FSM, three drivers · **KEYSTONE**
+### U.C1 — THE TRANSPORT CORE: one play/pause/stop state machine (FSM), three drivers · **KEYSTONE**
 
 - **Substance.** Charter ONE value.js-free Transport core in a new leaf `internal/transport/`
   (the `internal/` tier is C-5 barrel-free and LIGHT by construction — lane 16 F5 affirms it
@@ -166,8 +174,8 @@ pass, never two.**
   it byte-for-byte after. `proof:boundary` proves the leaf stays LIGHT. No new gate — the
   transport contract is proven by the existing behavior net (charter §3 U.H).
 - **Edges.** → **U.C2** (the single-writer verbs are authored ON this store), → **U.C3**
-  (the group FSM folds INTO this store, not a parallel `GroupPlaybackState`), → **U.H**
-  (the characterization net must land first — ring-fence 5). ↔ **U.D** (the SoA blend fold
+  (the group FSM folds INTO this store, not a parallel `GroupPlaybackState`), ← **U.H**
+  (the characterization net lands first — ring-fence 5). ↔ **U.D** (the SoA blend fold
   reads the group's run-state; the store's field layout is coordinated so the hot path is
   unchanged).
 
@@ -213,8 +221,8 @@ pass, never two.**
   (the three drivers whose raw writes are being replaced) — the observable takeover/seek
   behavior must be identical. `tsc` proves the poke surface is gone (the setters no longer
   exist; any surviving raw write fails to compile). No new gate.
-- **Edges.** → **U.C1** (verbs authored on the store), → **U.H** (ingest/sequence goldens),
-  → **U.F** (the diagnostics letter is separate; this is the ingest-continuity seam only),
+- **Edges.** ← **U.C1** (verbs authored on the store), ← **U.H** (ingest/sequence goldens
+  land first), → **U.F** (the diagnostics letter is separate; this is the ingest-continuity seam only),
   ↔ **U.B7** (the demo consumer of this codec — the eight-field hand-reseat retires onto these verbs).
 
 ### U.C3 — THE GROUP-ZONE REDESIGN (OD-U14 architecture verdict)
@@ -265,7 +273,7 @@ pass, never two.**
   carve; a `bench` witness that a mid-play `setLayerEnabled` toggle does NOT collapse
   `_grouped` to dictionary mode (allocation-count stable across the toggle — coordinates with
   U.D's alloc harness).
-- **Edges.** → **U.C1** (folds the group FSM in), ← **U.C14** (built around the owned store),
+- **Edges.** ← **U.C1** (the keystone precedes — folds the group FSM in), ← **U.C14** (built around the owned store),
   → **U.C15** (the vocabulary lands on this redesigned substrate; the declarative stack
   carries `{op, weight}`), → **U.C16** (the declarative stack is what lowers to native
   `composite`), ↔ **U.D** (the SoA blend fold + the shape-stability assertion; U.D owns the
@@ -340,7 +348,7 @@ pass, never two.**
   managed-play lifecycle, C4 the ODE kernel, no overlap), → **U.C7** (the `managed-play.ts`
   binding stays at `physics/spring/` root per lane 16 F1's target tree).
 
-### U.C6 — Engine correctness hygiene: `_out` reentrancy + composition base-capture reparse
+### U.C6 — Fix two engine correctness bugs: `.at()` re-entrancy (`_out`) + the composition base-capture reparse
 
 - **Substance (lane 13 F7).** `NumericAnimation._out` is a module-scope `Float64Array` reused
   across EVERY instance's `.at()` (`numeric.ts:25,198-206`) — zero-alloc and safe
@@ -370,7 +378,8 @@ pass, never two.**
 
 ### U.C7 — `physics/spring/` colocation: `solver/` + `css/` sub-modules
 
-- **Substance (lane 16 F1).** `physics/spring/` is 11 flat files across three concerns.
+- **Substance (lane 16 F1; OD-U16 — the long-file carve direction of the granularity
+  ruling drives this carve).** `physics/spring/` is 11 flat files across three concerns.
   Recursively colocate into two sub-modules mirroring `engine/css/`, both LIGHT:
 
   ```
@@ -390,13 +399,14 @@ pass, never two.**
 - **Oracle.** `proof:boundary` (LIGHT preserved) + `proof:zone-cohesion`'s JUSTIFIED-allowlist
   re-anchor: the `progress.ts` (492L) hot-path entry stays justified; the 5 solver siblings'
   and the twins' justifications are RETIRED BY STRUCTURE (lane 16 F4 — carve, don't declare).
-- **Edges.** → **U.C4** (kernel settles first). **Re-anchor in the same motion** every
+- **Edges.** ← **U.C4** (kernel settles first). **Re-anchor in the same motion** every
   path-literal gate that names `physics/spring/*.ts` basenames (charter §3: gates anchor
   literal basenames — the S-drive lesson).
 
 ### U.C8 — `compile/emit/` + `compile/easing/` colocation: the emitter trio under one roof
 
-- **Substance (lane 16 F2 + lane 12 F3).** `compile/` is 11 flat root files + a SPLIT emitter
+- **Substance (lane 16 F2 + lane 12 F3; OD-U16 — this carve lands the ruling's NAMED
+  example, `compile/easing-option.ts` → `compile/easing/`).** `compile/` is 11 flat root files + a SPLIT emitter
   trio: three "→ zero-runtime CSS" emitters, one concern, three homes — `compileToCSS`
   (`backward/backward.ts`), `compileToEntry` (`entry.ts`, 434L, flat root), `compileToViewTransition`
   (`view-transition.ts`, 393L, flat root). The two root emitters import UPWARD into
@@ -458,9 +468,10 @@ pass, never two.**
 - **Size.** L. **HEAVY.** **Depends U.C8** (`emit/` home).
 - **Oracle.** vitest emit goldens unchanged (the extraction is behavior-preserving); tsc (the
   local `isColorUnit`/`percentOf`/no-op are gone).
-- **Edges.** → **U.C8** (home exists first), → **U.E** (the wholesale comment-archaeology
-  purge; this wave is the compile-zone co-located slice), → **U.C10** (the `PARSE_ERROR`
-  excision touches `validate`/`adapter` — sequence so the two adapter edits don't collide).
+- **Edges.** ← **U.C8** (home exists first), → **U.E** (the wholesale comment-archaeology
+  purge; this wave is the compile-zone co-located slice), ↔ **U.C10** (co-edit
+  coordination on `adapter.ts`/`validate` — no precedence, coordinate so the two edits
+  don't collide).
 - **OPTIONAL adjacency** (lane 16 F7): `resolve/` is 6 flat resolvers under `core.ts`
   dispatch → a `resolve/resolvers/` cluster; charter only if the directory-density disposition
   (Risks §R3) sets its N ≤ 5. Lowest priority; HEAVY, `core.ts`→`resolvers/` module-load safe.
@@ -496,7 +507,7 @@ pass, never two.**
 - **Oracle.** vitest: `validate.parseable` now reflects the honest contract (a partially-parsed
   malformed block is no longer reported `parseable: true` on the false-PARSE_ERROR branch).
 - **Edges.** → **U.F** (both ASKs are letter rows — the deadlined covenants, no vacuous
-  tripwire), → **U.C9** (adapter/validate co-edit sequencing).
+  tripwire), ↔ **U.C9** (the same adapter/validate co-edit — coordinate, not ordered).
 
 ### U.C11 — scroll drive symmetry: `driveScrollCSS` + dispatch de-dup + `ScrollBackend` re-home
 
@@ -587,8 +598,10 @@ pass, never two.**
      typechecker in the consumer matrix needs it (verify). ONE ESM resolution surface.
   5. **`env.d.ts` → `demo/env.d.ts`** (lane 15 F6). `src/env.d.ts` declares `*.vue`/`*.svg?
      component`/`vite/client` — DEMO-only, yet it sits in `src/` so `tsconfig.lib.json`'s graph
-     sees a Vue/SVG ambient the library never ships. Move it to the demo; purify the lib graph;
-     fix the CLAUDE.md path drift (it lists `src/animation/env.d.ts`; the file is `src/env.d.ts`).
+     sees a Vue/SVG ambient the library never ships. Move it to the demo; purify the lib graph.
+     (The CLAUDE.md path drift it exposed — the file lists `src/animation/env.d.ts`; the real
+     path is `src/env.d.ts` — dies with the file: ALL CLAUDE.md files DELETE under OD-U15,
+     content re-homed per U.E7.)
   6. **Strip the 53 tranche-tag / FLAGGED-ADDITIVE archaeology comments** from the three surface
      files (index 20, load-engine 24, public 9) — provenance lives in `docs/tranches/`, not
      shipped source (this is the surface-file slice of U.E's NO-LEGACY purge, done in the same
@@ -613,7 +626,7 @@ pass, never two.**
 - **Edges.** → **U.A** (the collapse RETIRES `proof:engine-subpath-mirror`, `proof:published-
   surface` clause (d), and vacates `proof:claude-paths-live`/`proof:dts-rollups-agree`'s
   triplication policing — several become vacuous once there is ONE roster; feed the
-  now-redundant belt to U.A's genre-deletion — charter §3 "one coordinated pass"), → **U.C11**
+  now-redundant belt to U.A's genre-deletion — charter §3 "one coordinated pass"), ← **U.C11**
   (the new `driveScrollCSS` symbol is in the roster the derived type picks up), → **OD-U8** (the
   collapse must land ADDITIVELY/internally — 5.3.0 binds a compatible surface; the CJS-era
   `main` drop removes a NON-EMITTED dead artifact, not a published symbol; any change that
@@ -677,7 +690,8 @@ pass, never two.**
   - + one demo-smoke clause sampling `#/amiga` ≥3s.
 - **Edges.** → **U.C3** (the group-zone redesign is built AROUND this owned store — U.C14
   subsumes C3's delete-compaction fix), → **U.C15** (the owned store is the substrate the
-  op-axis writes into), ↔ **U.B13** (the demo consumer — the amiga suspend cure rides this),
+  op-axis writes into), → **U.C16** (the owned-store semantics are lowered LAST, after C15),
+  ↔ **U.B13** (the demo consumer — the amiga suspend cure rides this),
   ↔ **U.D** (the SoA blend fold reads the owned store; the alloc harness measures the
   shape-stability). Provenance: the OD-U13 dossier +
   `audit/assay-compositor-{semantics,behavior,architecture}.md`.
@@ -787,8 +801,8 @@ agree`, `proof:in-is-importable`, `proof:no-any-default`, `proof:alias-dropped` 
 exist largely to police the five-fold triplication (lane 15). Once there is ONE composition
 barrel + a derived type: clause (d) is DELETED WITH the interface it diffs; `engine-subpath-
 mirror` (diffing subpath keys vs interface keys) is vacuous (they are the same module);
-`claude-paths-live`'s HEAVY-list-⊆-AnimationEngine-keys clause re-anchors to the derived type or
-retires. **Disposition:** these are handed to **U.A** for genre-deletion in the SAME coordinated
+`claude-paths-live` RETIRES outright — its subject files (the CLAUDE.md inventories) DELETE
+under OD-U15 (U.E7), so there is nothing left for it to police. **Disposition:** these are handed to **U.A** for genre-deletion in the SAME coordinated
 pass (charter §3); `proof:publish` (boundary/surface/deps — one of U's three surviving
 mechanisms) absorbs the residual real check (the published surface is what it claims). Do NOT
 leave a gate diffing a hand-roster that no longer exists.

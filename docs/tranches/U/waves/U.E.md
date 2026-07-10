@@ -14,6 +14,12 @@
 > the VJ-L2 pending scaffold + the `SceneExposedApi` dual-path deleted, the
 > `proof-deps-current` FLOORS re-based, and the per-version MIGRATION docs consolidated.
 >
+> **Amended 2026-07-10 (OWNER-ASKS row 6):** the band gains **U.E7** — ALL CLAUDE.md
+> files deleted, content re-homed inline or into the README (OD-U15) — and **U.E8** —
+> suppression files removed by FIXING the suppressed violations (OD-U17). Both wave
+> sets are specced by the convergence loop (OD-U18, band U.L) and develop at 100%
+> convergence.
+>
 > **Provenance lanes:** 02 (precepts-conformance — the five structural legacy findings:
 > glass-ui band-aid cluster, SceneExposedApi dual-path, deps-current stale floors, VJ-L2
 > scaffold, constants label), 04 (deferral-archaeology-docs — the four chronics + the
@@ -72,8 +78,10 @@ now-empty machinery; nothing carries to V.
 | **U.E2** | `FROZEN_SET` 36 — wholesale discharge into owner-golden | Each of 36 appearance/geometry locks discharged AS the U.B restructure deletes its subject: its surviving live property migrates to `proof:owner-golden` (the T.M3 blessed oracle, U.G authority) OR is killed with a re-run witness (the subject pruned). `FROZEN_SET` EMPTY at close, deleted with `gate-bands.mjs`. The 36-row class-adjudication table is the deliverable | L | `proof:owner-golden` (SURVIVES — fence 3); the FROZEN register absent post-U.A5 | CO-SCHEDULED with U.B moves + U.A4 (the 77-gate appearance dissolution — same commit); needs U.G golden authority |
 | **U.E3** | The chronic ledger adjudicated + `proof:chronic-closure` DELETED | Adjudicate the ~33 live FOLD rows to terminal dispositions (fix / delete-subject / external-covenant); run the DM-9..DM-15 cited browser gates on the merged tree → CLOSED-with-live-witness or re-open as a U cure (no defer device to re-book into); collapse the two parallel registers (S ledger + T backlog, U.E1) into ONE terminal sweep; DELETE `proof:chronic-closure` (do NOT re-point the substrate — with no honest-defer device there is no ledger) | L | one-shot: DM-9..DM-15 live-green witnesses recorded in `docs/`; `proof:chronic-closure` deleted (co-U.A5) | U.E1 (T backlog); co-own U.A5; the DM witnesses ride U.A7's nightly roster driver |
 | **U.E4** | The dead-export DOUBLE sweep (26 demo + 26 src) + speculative-seam edict | Demo: un-export the 16 reflexive `Use*Options/Return/Deps` interfaces, DELETE the 2 dead description tables (`COLOR_SPACE_DESCRIPTIONS`, `HUE_METHOD_DESCRIPTIONS`) + `captureNonDefaultSnapshot` + `registerStoreReset` (zero consumers, speculative seam), delete the `DEFERRED` array + ratchet. Src: drop `export` on the 26 symbol-grain dead exports (`renderFrame`, `fmtNum`, `SELECTOR_*_RE`, `DensifyResult`, `SpringSolution`, … — byte-neutral, all used in-file); RE-ARM `proof:no-dead-export` to a SECOND root (`src/animation`) so the library blind spot is guarded, floor both at zero | M | `proof:no-dead-export` floors at 0 for BOTH roots (re-armed, not new); a one-shot re-introduction witness reds | co-sched U.B (demo rows sit under `components/custom/` → move WITH the `custom/` dissolution) + U.C (src un-exports touch carved files); the 3 glass-ui-gap types resolve by U.F |
-| **U.E5** | Source LEGACY ZERO — orphaned assets + comment archaeology + the constants barrel | `git rm` the 2 orphaned assets (110KB) + their `demo/CLAUDE.md` mentions; purge the tranche-tag comment archaeology across the 117 src files (provenance moves to `docs/`, NO-LEGACY: source narrates behavior, not tranche history); DISSOLVE the constants back-compat barrel (colocation-true: LIGHT importers → `constants/types`, the ≤8 runtime consumers → `constants/defaults`, delete the barrel that exists only to mimic a deleted monolith) | M | `npm test` + `check` green post-move; asset-reachability folds as a clause of an existing hygiene gate (NOT a new gate) | co-sched U.C (constants dissolution touches the carved library); comment purge rides every U.B/U.C move |
+| **U.E5** | Source LEGACY ZERO — orphaned assets + comment archaeology + the constants barrel | `git rm` the 2 orphaned assets (110KB) — their `demo/CLAUDE.md` mentions die with the file (deleted under OD-U15, U.E7); purge the tranche-tag comment archaeology across the 117 src files (provenance moves to `docs/`, NO-LEGACY: source narrates behavior, not tranche history); DISSOLVE the constants back-compat barrel (colocation-true: LIGHT importers → `constants/types`, the ≤8 runtime consumers → `constants/defaults`, delete the barrel that exists only to mimic a deleted monolith) | M | `npm test` + `check` green post-move; asset-reachability folds as a clause of an existing hygiene gate (NOT a new gate) | co-sched U.C (constants dissolution touches the carved library); comment purge rides every U.B/U.C move |
 | **U.E6** | Stale config + doc + scaffold reconciliation | Re-base `proof-deps-current` FLOORS to the live constellation (value.js → 3.x floor, DELETE the `parse-that 0.9.0` entry for the severed dep, collapse the K/J archaeology comment block); reconcile the VJ-L2 pending scaffold (delete `vjL2LinearLanded` + `skipIf` + PENDING witness, make the round-trip arm UNCONDITIONAL against the shipped 3.x parser); fold the `SceneExposedApi` legacy dual-path (delete `animationGroup?`/`scenePlayback?`, the 3 shell reads → `facility.*`, drop the dual expose from all 6 scenes — rides WITH U.B's SceneFacility subsumption); consolidate `MIGRATION-5.0.0/5.1.0` → one version-sectioned `docs/MIGRATION.md` (fix the `proof:changelog` phantom, or moot it if U.A5 deletes the gate); set the `gcAndMigrateStoreBuckets` sunset condition (retires once the 7-day store TTL guarantees no pre-T.B9 bucket survives) | M | the VJ-L2 arm runs unconditionally (npm test); deps floor bites 3.x; one-shot: `SceneExposedApi` has ONE surface | co-sched U.B (SceneExposedApi) + U.C/U.F (deps floor) + U.F (VJ-L2 consume-edge) |
+| **U.E7** | ALL CLAUDE.md files DELETED (OD-U15) — documentation re-homed inline or into the README | Inventory the three CLAUDE.md files' load-bearing content (the convergence loop's research step — OD-U18, band U.L; the exact re-home map develops at 100% convergence); re-home each piece as inline docstrings at the code it describes or a brief, deft README section; then `git rm` all three files WITH every gate that reads them (`proof:claude-paths-live`, the claude-structure-sync class — they die in the same motion, co-U.A5). U.G5's R1–R7 law targets the DESIGN codex + README, never a CLAUDE.md; U.B1/U.B9's CLAUDE.md touch-ups become deletions | M | one-shot: `find . -name CLAUDE.md` → ZERO hits; the content-inventory table complete (every load-bearing piece named with its new home); the reader gates absent | wave set specced BY the convergence loop (OD-U18, U.L); co-own U.A5 (reader-gate deletion); ↔ U.G5 (law re-target); rides U.B/U.C moves |
+| **U.E8** | Suppression files REMOVED (OD-U17) — violations FIXED, not ledgered | Inventory every suppression surface: `.dependency-cruiser-known-violations.json` (the owner-named file) + eslint-disable comments + cspell word-lists + api-extractor overrides (the loop's research step inventories; OD-U18). FIX each suppressed violation — or honestly RE-SCOPE the rule it suppresses — then `git rm` the suppression ledgers: suppression-by-ledger dies exactly like the dead-export `DEFERRED` ratchet (same disease, different file) | M | one-shot: the known-violations JSON ABSENT; depcruise green with ZERO suppressions; the suppression-inventory table complete | wave set specced BY the convergence loop (OD-U18, U.L); co-sched U.B11/U.G5 (the depcruise demo ruleset) + U.A3 (the lint fold) |
 
 **Net gate delta (the band's headline):** U.E authors **ZERO new standing gates**.
 It DELETES `proof:chronic-closure` (co-U.A5), the dead-export `DEFERRED` ratchet, and
@@ -282,9 +290,9 @@ anti-sprawl cost); a one-shot re-introduction witness reds. If U.A3 folds dead-e
 lint, the second-root coverage folds with it — coordinate.
 
 **Edges.** Co-sched U.B (the 16 demo rows sit under `components/custom/instrument/…` →
-their `export` drops WITH the `custom/` dissolution + `@`→`shared` rename, so the paths
-re-point ONCE); co-sched U.C (the src un-exports touch carved library files); the 3
-glass-ui-gap types resolve by the U.F consolidation.
+their `export` drops WITH the `custom/` dissolution + the `demo/@/` dissolution (OD-U2),
+so the paths re-point ONCE); co-sched U.C (the src un-exports touch carved library
+files); the 3 glass-ui-gap types resolve by the U.F consolidation.
 
 **Evidence.** `proof-no-dead-export.mjs:62` (`EXPORT_ROOT="demo"`), `:70-113` (the 26
 DEFERRED rows); lane 31 F1 (the 26 src census, `renderFrame` at `play-lifecycle.ts:229`
@@ -296,7 +304,8 @@ used only `:224-225`), F2/F3/F6.
 
 **Substance.** (a) `git rm demo/scenes/amiga/checkerboard.jpg`
 `demo/scenes/cube/cube.png` (110KB, zero code refs — both scenes render their imagery in
-code; pre-fusion relics never re-wired at R.W5) + remove the 2 `demo/CLAUDE.md` mentions.
+code; pre-fusion relics never re-wired at R.W5). Their 2 `demo/CLAUDE.md` mentions die
+with the file itself — ALL CLAUDE.md files DELETE under OD-U15 (U.E7).
 (b) Purge the tranche-tag comment archaeology across the 117 src files carrying
 `S.B1`/`T.M3`/`OD-N`/`R.W`-class provenance — source narrates BEHAVIOR, not tranche
 history; provenance lives in `docs/`. (c) DISSOLVE the constants back-compat barrel: the
@@ -368,6 +377,66 @@ F2/F3/F4, lane 31 F8.
 
 ---
 
+### U.E7 — ALL CLAUDE.md files DELETED (OD-U15): documentation re-homed inline or into the README
+
+**Substance (OD-U15, RULED 2026-07-10).** The owner ruled ALL CLAUDE.md files
+deprecated and removed TOTALLY — "that documentation can either live inline or briefly
+and deftly integrated into our readme." Three steps:
+(a) **Inventory** the three CLAUDE.md files' load-bearing content (the root build/entry
+map, `src/animation/CLAUDE.md`'s per-file inventory, `demo/CLAUDE.md`'s conventions) —
+this inventory is the convergence loop's research step (OD-U18, band U.L); the exact
+re-home map develops at 100% convergence.
+(b) **Re-home** each piece: inline docstrings at the code it describes (the module
+barrel or the file head) or a brief, deft README section — never a new sidecar doc.
+(c) **`git rm`** all three files WITH every gate that reads them —
+`proof:claude-paths-live`, the claude-structure-sync class — dying in the SAME motion
+(co-U.A5; a reader gate with no subject is vacuous by construction). glass-ui's own
+5.0.0 plan carries the identical "delete CLAUDE.md" act (B4f), so the constellation
+converges on the same posture.
+
+**Consequences already propagated:** U.G5's R1–R7 law targets the DESIGN codex +
+README (never a CLAUDE.md); U.B1's "keep `@/`" paragraph and U.B9's reconciliation die
+as deletions; U.C13's env.d.ts path-drift note dies with the file.
+
+**Gate/oracle.** One-shot: `find . -name CLAUDE.md` → ZERO hits; the content-inventory
+table complete (every load-bearing piece named with its new inline/README home); the
+reader gates absent. No new gate.
+
+**Edges.** Wave set specced BY the convergence loop (OD-U18, U.L); co-own U.A5 (the
+reader-gate deletion); ↔ U.G5 (the law re-target); rides every U.B/U.C move that would
+otherwise have edited a CLAUDE.md.
+
+**Evidence.** `OWNER-DECISIONS.md` OD-U15 (RULED verbatim); OWNER-ASKS row 6; the three
+files at `CLAUDE.md`, `src/animation/CLAUDE.md`, `demo/CLAUDE.md`.
+
+---
+
+### U.E8 — Suppression files REMOVED (OD-U17): violations FIXED, not ledgered
+
+**Substance (OD-U17, RULED 2026-07-10).** The owner named
+`.dependency-cruiser-known-violations.json` for removal. The principle generalizes:
+suppression-by-ledger is the SAME disease as the dead-export `DEFERRED` ratchet and the
+born-RED backlog — a green gate over an acknowledged violation. Three steps:
+(a) **Inventory** every suppression surface — the depcruise known-violations JSON,
+eslint-disable comments, cspell word-lists, api-extractor overrides (the convergence
+loop's research step, OD-U18, inventories the full set).
+(b) **FIX** each suppressed violation, or honestly RE-SCOPE the rule it suppresses (an
+exception changes the RULE or moves the file — the R6 discipline).
+(c) **`git rm`** the suppression ledger files; depcruise and kin run with ZERO
+suppressions from then on.
+
+**Gate/oracle.** One-shot: the known-violations JSON ABSENT; depcruise green with zero
+suppressions; the suppression-inventory table complete. No new gate.
+
+**Edges.** Wave set specced BY the convergence loop (OD-U18, U.L); co-sched U.B11/U.G5
+(the depcruise demo ruleset lands with zero seed suppressions) + U.A3 (the lint fold —
+any grep-gate that becomes a lint rule starts suppression-free).
+
+**Evidence.** `OWNER-DECISIONS.md` OD-U17 (RULED verbatim); OWNER-ASKS row 6;
+`.dependency-cruiser-known-violations.json` (the owner-named file, in-tree).
+
+---
+
 ## Risks + the re-arm map
 
 The stale-era re-arm class is EXPECTED (U.md §5): every U.E discharge/deletion invalidates
@@ -382,6 +451,8 @@ RE-ARM (an existing gate survives, re-pointed) — cited per wave. U.E adds NO s
 | **E4** | the demo `DEFERRED` ratchet (26 rows); `proof:no-dead-export`'s `EXPORT_ROOT="demo"` scope; the 26 un-guarded src exports; `any-ceiling` boundary overlap | DELETE the ratchet; RE-ARM the gate to a SECOND root (`src/animation`), floor both at 0; the demo rows re-point WITH U.B's `custom/` dissolution |
 | **E5** | 2 orphaned assets; the 117-file tranche-tag comment archaeology; `constants/index.ts` back-compat barrel (52 importers) | `git rm` the assets (asset-reachability → existing hygiene clause); purge the comments (source narrates behavior); DISSOLVE the barrel → `constants/types`+`constants/defaults` (co-U.C, ONE pass) |
 | **E6** | `proof-deps-current` stale FLOORS; the VJ-L2 `skipIf` scaffold; the `SceneExposedApi` dual-path; the `MIGRATION-5.2.0.md` phantom; the `gcAndMigrate` migration | RE-BASE the floors to 3.x (DELETE the parse-that entry); make the VJ-L2 arm unconditional; FOLD the dual-path (co-U.B); consolidate MIGRATION (fix/moot the phantom per U.A5); SUNSET the gc migration (KEEP, not delete) |
+| **E7** | the three CLAUDE.md files + every gate that reads them (`proof:claude-paths-live`, the claude-structure-sync class); every wave that would have EDITED a CLAUDE.md | DELETE the files (OD-U15) with their reader gates in the SAME motion (co-U.A5); content re-homed inline/README per the loop's inventory; CLAUDE.md edits across U.B/U.C/U.G become deletions |
+| **E8** | `.dependency-cruiser-known-violations.json` + every other suppression ledger (lint disables, cspell words, api-extractor overrides); any depcruise rule that only passes via suppression | FIX the violations or RE-SCOPE the rule (OD-U17), then DELETE the ledgers; new rules (U.B11/U.G5/U.A3) land suppression-free |
 
 **Standing invalidation the band CREATES, not clears (forwarded):** U.E2's discharge
 targets (`proof:owner-golden` + `proof:demo-smoke`) depend on U.G ratifying the golden
@@ -393,7 +464,8 @@ rows would silently re-carry (the exact device U terminates). These two are the 
 inter-band load-bearing edges.
 
 **Net gate delta (the band's headline):** U.E authors ZERO new standing gates. It DELETES
-`proof:chronic-closure` + the dead-export `DEFERRED` ratchet, and its row-emptying lets
+`proof:chronic-closure` + the dead-export `DEFERRED` ratchet + the CLAUDE.md reader gates
+(U.E7, OD-U15) + the suppression ledgers (U.E8, OD-U17), and its row-emptying lets
 U.A5 delete `FROZEN_SET`/`T_BORNRED_BACKLOG`/`ROSTER_CEILING`/the freeze+ledger machinery
 wholesale. `proof:no-dead-export` is RE-ARMED (second root), the asset-reachability +
 no-back-compat-barrel invariants FOLD into existing hygiene/lint gates, and every external

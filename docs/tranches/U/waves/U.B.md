@@ -680,7 +680,8 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   projection caches a stale leaf reference and the amiga sphere freezes at the 25%
   pose ~2s into EVERY play (a live 5.2.0 product defect; only the
   `singleTarget`+`unflatten` path hits it, which is why cube/square dodge). Its cure
-  is **U.C14** (the projection-as-view fix + the born-RED past-the-segment-boundary
+  is **U.C14** (the library composite-state cure — the D1 amiga instance of the
+  widened three-instance stale-leaf class, with its born-RED past-the-segment-boundary
   characterization); this wave CONSUMES U.C14. **Defect B (the demo half, THIS
   wave):** the "resume broken" symptom is mostly Defect A wearing a mask — the
   machinery is otherwise sound (no orphaned rAF loops; cube/easing suspend/resume
@@ -700,8 +701,10 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 - **gate/oracle.** the U.H1 net (scene switch/visibility covered FIRST) + owner-golden
   (amiga plays; suspend→resume clean across every scene switch).
 - **size** M. **edges.** Rides **U.B8** (useManagedLoop convergence — the amiga loop
-  joins the one recipe); ← **U.H1** (the net covers scene switch/visibility BEFORE the
-  fix). Owner-mandated in-U (OD-U13); the impl drive lands it IN U.
+  joins the one recipe); ↔ **U.C14** (Fix A — the library composite-state cure, the
+  D1 amiga instance, consumed here); ← **U.H1** (the net covers scene
+  switch/visibility BEFORE the fix). Owner-mandated in-U (OD-U13); the impl drive
+  lands it IN U.
 
 ---
 

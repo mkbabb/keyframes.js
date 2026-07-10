@@ -40,7 +40,7 @@
 
 ---
 
-## The load-bearing conclusion (why this band exists)
+## Why this band exists
 
 The demo's design system is disciplined at the token level and lawless one level
 up — verified on the live tree (`tranche-u-dev`, 5.2.0):
@@ -113,7 +113,7 @@ up — verified on the live tree (`tranche-u-dev`, 5.2.0):
 | **U.G2** | The component-module skeleton + API grammar RATIFIED (lane 24 §9.1–9.3 + §10 as a codex chapter; the split-threshold reconciled to ONE number) | M | the codex chapter is the authority U.B12's gate-clause extensions DERIVE from (clauses on existing gates — net gate count flat); vitest/AST one-pass shapes only | 24 §9/§10; 26 R3 |
 | **U.G3** | The 3D-scene instrument register designed ONE direction (OD-U9 RULED — cube + amiga GET idiomatic instrumentation; owner-reviewed mocks, no both-ways fork) + the ONE stage-legend affordance grammar | M | OD-U9 recorded RULED in OWNER-DECISIONS.md; the register lands as codex ch. 8; candidate renders through the goldens candidate flow (NEVER self-blessed) | 25 F2/F4 |
 | **U.G4** | The golden authority COMPLETION: sequence-{light,dark} born-OWNER + the idle-state pin in the capture protocol + re-bless the deviating frames | M | `proof:owner-golden` (SURVIVES — fence 3) green on BLESSED.json 12→14 with ONE pinned pane state; **U.A4's re-arm target** (A4 HARD-GATED here) | 25 F3 |
-| **U.G5** | The Vue idiom rulings R1–R7 ratified as STANDING LAW (demo/CLAUDE.md law section + codex chapter; each ruling = rationale + named gate shape + owning wave) | M | the law section exists; every ruling names the surviving gate/clause and the U.A/U.B/U.D/U.H wave that lands it; OD-U7 ruling recorded for R5 | 26 §3 R1–R7 |
+| **U.G5** | The Vue idiom rulings R1–R7 ratified as STANDING LAW (the DESIGN codex chapter + a brief README pointer — demo/CLAUDE.md DELETES under OD-U15/U.E7, so no law lands there; each ruling = rationale + named gate shape + owning wave) | M | the codex law chapter exists; every ruling names the surviving gate/clause and the U.A/U.B/U.D/U.H wave that lands it; OD-U7 ruling recorded for R5 | 26 §3 R1–R7; OD-U15 |
 
 **Sequencing (band-internal DAG; charter §3 "codex early — B's moves cite it;
 scene-genre + goldens mid").**
@@ -198,8 +198,8 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
      arrives in-tranche — an owner decision inside the loop, NOT a deferral;
      it dies at U.Z if unruled).
   9. **The component-module skeleton + API grammar** — U.G2's chapter.
-  10. **The Vue idiom law (R1–R7)** — U.G5's chapter (cross-ref;
-      demo/CLAUDE.md carries the law's enforcement-facing copy).
+  10. **The Vue idiom law (R1–R7)** — U.G5's chapter (the codex IS the law's
+      single home; demo/CLAUDE.md DELETES under OD-U15/U.E7 — no copy lives there).
 - **Substance — the design-prose purge MAP (lane 25 F6).** The codex chapter
   ends with the re-point map: the five "red motion-authority" comments
   (SquareInstrument.vue:6, :144; SquareScene.css:70, :79, :100 — values correct,
@@ -345,8 +345,9 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
   bare on the page grid, the only plate-less scene). The asymmetry survived as
   a gate exception (suffusion clause (b), verified). **OD-U9 RULED (2026-07-10):
   "ratify those 3d scenes getting idiomatic instrumentation"** — so this wave
-  designs the ONE ruled direction, NO both-ways fork (the S.E lesson still holds
-  — owner review sits INSIDE the loop, but the direction is decided):
+  designs the ONE ruled direction, NO both-ways fork (the S-era scene-stage lesson
+  still holds — critic consensus is not the owner's verdict, so owner review sits
+  INSIDE the loop (S.E); but the direction is decided):
   - **THE INSTRUMENT REGISTER (the telemetry whisper).** The square's
     corner-instrument composition (SquareInstrument.vue:168–201, verified:
     absolute top-left serif title + accent readout + settled/tracking badge,
@@ -368,7 +369,8 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
     caption rung, progressive-disclosure timing, PRM/touch behavior) gives EVERY
     manipulable scene its verb line — the four-grammar mix dies and the 3D scenes
     gain the touch-discoverable affordance the cursor-only hint denied them.
-- **The review-loop protocol (the S.E lesson — owner review INSIDE the loop).** The
+- **The review-loop protocol — owner review INSIDE the loop (the S.E scene-stage
+  lesson: a design the critics converged on at 100% was still rejected on sight).** The
   register is delivered as a spec + candidate renders captured through the goldens
   **candidates** flow (`goldens/candidates/`, NEVER self-blessed — the born-OWNER
   discipline); the owner reviews the MOCKS against renders, not prose, and refines the
@@ -433,8 +435,9 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
 ### U.G5 — The Vue idiom rulings R1–R7 ratified as STANDING LAW
 
 - **Substance (lane 26 §3 — the ruling set, ratified with rationale + gate
-  shape + owning wave; the law lands in `demo/CLAUDE.md` as ONE section
-  replacing folklore, with codex ch. 10 as the design-side statement).**
+  shape + owning wave; the law lands ONCE in the DESIGN codex as ch. 10, with
+  a brief README pointer — `demo/CLAUDE.md` is DELETED under OD-U15 (U.E7),
+  so no law may live there).**
   - **R1 — Module = directory; barrel = contract; one door.** Explicit-named
     `index.ts` per module; cross-module imports via the barrel; intra-module
     deep-relative; `export *` forbidden (already library law,
@@ -487,11 +490,12 @@ complete and unambiguous (U.A's own risk register, U.A.md:493–495).
   and 26 each derived law from evidence; U.A/U.B/U.D/U.H each execute slices
   of it. Without ONE ratified statement, the same rule would exist in four
   wave specs with drift risk (the exact multi-hand-list defect U charters
-  against elsewhere). After G5: the law lives ONCE (demo/CLAUDE.md + codex
-  ch. 10); every executing wave and every gate clause CITES it; every future
+  against elsewhere). After G5: the law lives ONCE (the DESIGN codex ch. 10;
+  demo/CLAUDE.md deletes under OD-U15/U.E7); every executing wave and every
+  gate clause CITES it; every future
   wave inherits rules, not archaeology (lane 26 imperative 8).
 - **Size.** M. **DAY 1** (with G1/G2 — U.B/U.A's gate re-arms cite the law).
-- **Oracle.** The demo/CLAUDE.md law section exists, complete against R1–R7,
+- **Oracle.** The codex ch. 10 law exists, complete against R1–R7,
   each ruling carrying rationale + named gate shape + owning wave; the OD-U7
   ruling is recorded (R5 executes only on the owner's blessing of the
   carve-out); zero gates authored by this wave.

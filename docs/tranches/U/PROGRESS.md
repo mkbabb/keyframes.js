@@ -17,6 +17,7 @@
 | U.G | THE DESIGN CODEX | CHARTERED |
 | U.H | THE TEST SUBSTRATE (FIRST) | CHARTERED |
 | U.R | PROMPT-RECAP-U (STANDING) | CHARTERED |
+| U.L | THE CONVERGENCE LOOP (Track A + Track B) | STANDING — ratified OD-U18; Track A + Track B pass 1 RUN; the OD-U15/U16/U17 wave sets develop at 100% convergence |
 | U.Z | THE CLOSE | CHARTERED |
 
 **IMPL NOT AUTHORIZED** — development only, per the edict's own clause.
@@ -110,3 +111,37 @@
   OD-U14 disposition (ASSAY COMPLETE) + `U.md` §1 RC-2b + §2 U.C row + `waves/U.C.md`
   (wave index/DAG/Risks R4+R8) + `waves/U.B.md` (U.B3 gains the
   LayerConfigPanel-inert-on-multi-target reconciliation, behavior lane D4).
+- **2026-07-10** — **THE CONVERGENCE-LOOP MANDATE REGISTERED (OWNER-ASKS row 6,
+  verbatim; OD-U15..U18).** The owner mandated the 5-step convergence loop as U's
+  development methodology (research ≤8∥ → synthesis → worktree prototype fleet →
+  critique fleet with % convergence → agglomerator, looped to 100%, then the exact
+  wave sets develop) — ratified as **OD-U18** and chartered as band **U.L** (Track A =
+  the spec coherence/cogency workflow; Track B = the library+demo module-restructure
+  pass, pass 1 deployed: 8 research lanes → SPEC-B1 → 6 worktree prototypes →
+  critiques → agglomerator; artifacts under `loop/`). Three companion rulings
+  registered: **OD-U15** (ALL CLAUDE.md files deleted totally, content re-homed
+  inline/README — placeholder home **U.E7**), **OD-U16** (module granularity BOTH
+  directions — the carve direction rides U.C7/U.C8; the small-module inlining + the
+  per-module assay arrive from the loop), **OD-U17** (suppression files removed by
+  FIXING the violations — placeholder home **U.E8**). Prototypes are EVIDENCE (kept
+  worktree branches), never merged; the owner review sits inside the loop.
+- **2026-07-10** — **TRACK A SPEC-COHERENCE PASS APPLIED** (4 lenses — consistency ·
+  cogency/plain-language · coverage-overlap · dag-integrity — 36 findings: 3 blocker,
+  18 major, 15 minor; ~half landed in the earlier wall-salvage commit `51d495c`, the
+  remainder applied this pass). Load-bearing corrections: U.Z fully conformed to
+  OD-U8 RULED (5.3.0 fixed; the surface diff is a CONSTRAINT CHECK, never a 6.0.0
+  trigger; the close ledger widened to OD-U1..U18 + the four-part V-inherits-NOTHING
+  check gains clause (d) for the loop rulings); OD-U15/U16/U17/U18 given explicit
+  homes (band U.L in `U.md` §2/§3; **U.E7** CLAUDE.md deletion + **U.E8** suppression
+  removal authored in `waves/U.E.md`; OD-U16 cited at U.C7/U.C8 + the granularity
+  note); every "law lives in demo/CLAUDE.md" clause re-targeted to the DESIGN codex
+  (U.G5) and every CLAUDE.md reconcile/fix re-cut as a deletion (U.B/U.C/U.E);
+  U.H1 gains golden (d) — the suspend/resume coverage U.B13's witnessed-cure edge
+  consumes — plus the → U.C4/→ U.B13 consumer edges; U.R's recap census widened from
+  "two rows" to ALL OWNER-ASKS rows (1–6, growing); the plain-language sweep landed
+  (CLASS-N gate titles → plain deletions, the U.C3/U.C6/U.C14 index cells rewritten
+  cold-readable, FSM expanded at first use, "load-bearing conclusion" headers → "Why
+  this band exists", tranche-code shorthand demoted to parenthetical cites); the
+  C-band edge glyphs harmonized (→ precedes / ← depends / ↔ co-scheduled, stated
+  once) killing the false 2-cycles (C1↔C3, C9↔C10, C11↔C13) and the one-sided
+  C14→C16 edge.
