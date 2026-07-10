@@ -11,9 +11,11 @@
  * chord-to-curve fill — both DETERMINISTIC, device-independent. The `bench()`
  * arms below are an OBSERVE-ONLY throughput note (the emit is build-time, never
  * a hard CI predicate — the device-dependence-greening spine); the
- * count/error VERDICT the gate asserts is computed deterministically by
- * {@link measureDensifyCorpus}, which `scripts/proof-waapi-adaptive-densify.mjs`
- * imports and writes to `scripts/waapi-densify-decision.json`.
+ * count/error VERDICT is computed deterministically by
+ * {@link measureDensifyCorpus}. (U.N2: the former
+ * `proof:waapi-adaptive-densify` decision-JSON gate dissolved; the densify
+ * fidelity/count/boundary + multi-segment-eligible oracles now live in
+ * `test/waapi/waapi-densify.test.ts`.)
  *
  * Imports `CSSKeyframesAnimation` from the VALUE module `engine`, never the
  * type-only barrel `../src/animation`.

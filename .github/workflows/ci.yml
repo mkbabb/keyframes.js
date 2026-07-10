@@ -301,13 +301,10 @@ jobs:
             # EPF1_CURE=1 (NOT in L.W7). Library job.
             - name: proof:epf1-measure (L.W7 S5 — the EPF-1 ingest read/write thrash baseline · observe-only · forced-layout)
               run: npm run proof:epf1-measure
-            # L.W7 S2 (W122) — proof:spring-vector: the SpringProgress vector-sugar
-            # MEASURE-FIRST ADOPT-or-KILL probe. Asserts the recorded verdict
-            # (scripts/spring-vector-decision.json): ADOPT (>=20% at K=8 →
-            # setTargets(Float64Array) authorized) OR KILL (the sugar is not built —
-            # no unproven code). A vitest-bench probe over src/ — library job.
-            - name: proof:spring-vector (L.W7 S2 — the SpringProgress vector-sugar ADOPT-or-KILL probe · MEASURE-FIRST, no unproven code)
-              run: npm run proof:spring-vector
+            # U.N2 — the proof:spring-vector ADOPT/KILL gate RETIRED (the decision-JSON
+            # dissolve): the setTargets(Float64Array) vector sugar's correctness lives in
+            # test/physics/spring.test.ts (vector-mode block) and its ADOPT perf floor in
+            # bench/taxonomy.json's budgeted "vector · K=8" row (proof:bench-taxonomy).
             # H.W8 S1 (I-1) — the SCENES manifest is RE-SOURCED from demo/app/scene/scenes.ts:
             # the runtime SCENES keys ≡ scenes.ts ids (bidirectional set-equality, NOT a
             # hard count — auto-tracks every scene add/remove). A new scene with no manifest
@@ -498,16 +495,18 @@ jobs:
               run: npm run proof:record-truth
             # ════════════════════════════════════════════════════════════════════
             # IMPL-DRIVE GATES (Constellation IMPL drive 4.4.0) — wired here at Q.WA3
-            # S1. FOUR are PURE-NODE static (no vitest, no browser) → the fast library
-            # gates job. (proof:soa-composite chains `npm run proof:blend`, a vitest,
-            # but its own script is a node bench-probe; proof:spring-heatmap's browser
-            # half honestly SKIPs when playwright is absent — its static analytic-
-            # formula clauses are the verdict here, no KF_REQUIRE_BROWSER.)
+            # S1. PURE-NODE static (no vitest, no browser) → the fast library gates job.
+            # (proof:spring-heatmap's browser half honestly SKIPs when playwright is
+            # absent — its static analytic-formula clauses are the verdict here.)
+            # U.N2 — proof:soa-composite RETIRED (the decision-JSON dissolve): its
+            # correctness oracles (soa-path-taken + bit-identical) re-homed to
+            # test/group/soa-composite-identity.test.ts, its zero-alloc oracle to
+            # test/engine/zero-alloc.test.ts, its ADOPT perf floor to bench/taxonomy.json's
+            # budgeted "add/weighted SoA · K=8" rows. proof:blend runs standalone (its
+            # own G.W17 step); it no longer rides a proof:soa-composite chain.
             # ════════════════════════════════════════════════════════════════════
             - name: proof:no-foreign-symbol-stamp (M — no foreign-symbol stamp leaks the cross-realm seam)
               run: npm run proof:no-foreign-symbol-stamp
-            - name: proof:soa-composite (P.W2 — the SoA compositor fold · MEASURE-FIRST ADOPT/KILL · byte-identical to boxed · zero-alloc · chains proof:blend)
-              run: npm run proof:soa-composite
             - name: proof:portable-perf (P.W1 — the same-report ratio gate · device-independent perf floor)
               run: npm run proof:portable-perf
             - name: proof:spring-heatmap (P.W6 — the analytic parameter-space heatmap · closed-form overshoot · zero live SpringProgress · browser half skips when playwright absent)
@@ -542,32 +541,35 @@ jobs:
             - name: proof:pin-ledger-current (Q.WA4 — the constellation pin-ledger witness · local pins == the shipped set · npm-view leg observe-only)
               run: npm run proof:pin-ledger-current
             # ════════════════════════════════════════════════════════════════════
-            # Q STAGE-3 GATES (Band B/C/D NOW) — emerging-CSS P2 · processFrame SoA ·
-            # NaN-frame cure · WAAPI adaptive densify · grammar-fuzz · differential.
-            # node + jsdom-vitest (no browser, no demo build) → the fast library gates job.
+            # Q STAGE-3 GATES (Band B/C/D NOW) — NaN-frame cure · grammar-fuzz ·
+            # differential. node + jsdom-vitest (no browser, no demo build) → the fast
+            # library gates job.
+            # U.N2 — proof:processframe-soa + proof:waapi-adaptive-densify RETIRED (the
+            # decision-JSON dissolve): the processFrame interp-equal oracle re-homed to
+            # test/engine/processframe-soa-identity.test.ts (perf floor: the budgeted
+            # "K=8 … SoA Float64Array+lerpArray" taxonomy row); the densify oracles
+            # (count-shrinks / fidelity-never-regresses / boundaries-preserved /
+            # multi-segment-eligible) live in test/waapi/waapi-densify.test.ts.
             # ════════════════════════════════════════════════════════════════════
-            - name: proof:processframe-soa (Q.WB3 — single-animation processFrame Float64 SoA fold · measure-first ADOPT · bit-identical)
-              run: npm run proof:processframe-soa
             - name: proof:nan-frame (Q.WD1 — named-selector deferred-resolution + play-time guard · S4 round-trip held · no-NaN-at-play)
               run: npm run proof:nan-frame
-            - name: proof:waapi-adaptive-densify (Q.WB4 — curvature-adaptive sub-segment densify · chord-error ≤ fixed-8 on every corpus curve)
-              run: npm run proof:waapi-adaptive-densify
             - name: proof:grammar-fuzz (Q.WD2 — fast-check @keyframes arbitraries · parse→serialize→reparse fixpoint)
               run: npm run proof:grammar-fuzz
             - name: proof:kf-differential (Q.WD2 — kf-vs-browser WAAPI midpoint differential · observe-only in CI, hard under KF_REQUIRE_BROWSER)
               run: npm run proof:kf-differential
             # ════════════════════════════════════════════════════════════════════
-            # Q STAGE-5 GATED CONSUMES (value.js) — @function inline · leaves
-            # externalize · color-SoA measure · glass-ui aria content-probe. node + jsdom.
-            # The value.js floor is single-sourced in package.json's declared range
-            # (T.S1 / lane 27 F7 — NO caret/tilde version literal in workflow prose;
-            # the S.C4/S2 re-pin proved a hardcoded value.js floor here drifts silently
-            # and reds proof:ci-coverage's version-literal clause).
+            # Q STAGE-5 GATED CONSUMES (value.js) — leaves externalize · glass-ui aria
+            # content-probe. node + jsdom. The value.js floor is single-sourced in
+            # package.json's declared range (T.S1 / lane 27 F7 — NO caret/tilde version
+            # literal in workflow prose; the S.C4/S2 re-pin proved a hardcoded value.js
+            # floor here drifts silently and reds proof:ci-coverage's version-literal clause).
+            # U.N2 — proof:color-soa RETIRED (the decision-JSON dissolve): the channel-plan
+            # color-fold correctness is proven by test/engine/color-fidelity.test.ts (the
+            # real engine's oklab midpoint vs the value.js mixColors reference), and its
+            # SoA floor by bench/taxonomy.json's budgeted "colorTail SoA · K=3/8/12" rows.
             # ════════════════════════════════════════════════════════════════════
             - name: proof:no-cross-realm-cast (Q.WE2 — leaves externalized onto value.js/math · the 4 compile-color casts annotated · no kf math duplicate)
               run: npm run proof:no-cross-realm-cast
-            - name: proof:color-soa (Q.WB3-color — MEASURE-FIRST · the channel-plan fold ships in-leaf via the package.json-declared value.js re-pin · DECLINE the dead parallel arm · bit-identical)
-              run: npm run proof:color-soa
             - name: proof:glassui-aria-ask (Q.WG-S1S2 — the glass-ui aria/dock content-probe · observe-only PENDING-until-BC-publish)
               run: npm run proof:glassui-aria-ask
             # ════════════════════════════════════════════════════════════════════

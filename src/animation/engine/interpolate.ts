@@ -246,15 +246,18 @@ function processFrame<V extends Vars>(
     const scaled = start === stop ? 1 : scale(t, start, stop, 0, 1);
     const eased = frame.timingFunction.fn(scaled);
 
-    // Q.WB3 S2 — the numeric SoA fold (ADOPT-verdicted, `processframe-soa-
-    // decision.json`). The pure-numeric iv subset folds through ONE contiguous
+    // Q.WB3 S2 — the numeric SoA fold (ADOPT-verdicted; the interp-equal +
+    // fold-taken oracles live in `test/engine/processframe-soa-identity.test.ts`,
+    // the ADOPT floor in `bench/taxonomy.json`'s budgeted K=8 SoA-lerpArray row).
+    // The pure-numeric iv subset folds through ONE contiguous
     // `lerpArray` over the precomputed `Float64Array` endpoint buffers (built
     // ONCE at `parse` — `frame._numericPlan`), replacing the per-channel boxed
     // `lerpValue` megamorphic dispatch on the DOMINANT single-animation path.
     // The result strides back into each numeric leaf's `value.value` slot (the
     // SAME slot `lerpValue` wrote), so the apply/composition/transform below —
     // which read the now-folded `flatVars`/`vars` — run EXACTLY as before
-    // (bit-identical, `proof:processframe-soa` interp-equal). The BOXED residual
+    // (bit-identical; the interp-equal oracle is in
+    // `test/engine/processframe-soa-identity.test.ts`). The BOXED residual
     // (color/computed/mixed) keeps the per-element `lerpValue`, UNCHANGED.
     const plan = frame._numericPlan;
     if (plan !== undefined && plan.numeric.length > 0) {

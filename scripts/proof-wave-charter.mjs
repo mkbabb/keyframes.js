@@ -9,7 +9,7 @@
 // authored as a DISCIPLINE but never wired as a GATE. So the "aggressively optimize"
 // trap was re-armed for Q: a perf wave could charter on a TRANSPLANTED ratio (the
 // 3.86× reused across paths — the exact trap the impl drive hit and reverted,
-// spring-vector-decision.json lineage) with no gate to bite it. And the Q DAG was
+// the spring-vector decision lineage) with no gate to bite it. And the Q DAG was
 // DEV-authored as a machine-readable manifest (docs/tranches/Q/DAG.md) but NO gate
 // parsed it — nothing asserted it acyclic or no-unpublished-consume.
 //

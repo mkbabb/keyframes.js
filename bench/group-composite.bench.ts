@@ -2,7 +2,7 @@
  * group-composite.bench.ts — the AnimationGroup compositor-BLEND bench (Tranche
  * P / P.W2 S1, the MEASURE-FIRST step P.W1 S2 flagged absent).
  *
- * The SoA compositor win (the validated 3.7× — `scripts/soa-composite-decision.json`)
+ * The SoA compositor win (the validated ADOPT: >=1.2× at K=8, bit-identical)
  * was benched in the isolated spike (`bench/group-soa-validate.mjs`); this is the
  * FORMAL vitest bench on `AnimationGroup.transformFramesGrouped`'s OWN blend path
  * — the three blend arms (`replace` / `add` / `weighted`) benched SEPARATELY in
@@ -26,11 +26,13 @@
  *     the per-arm ratio is device-independent BY CONSTRUCTION (numerator and
  *     denominator in the same pass — the inv-L-device-honesty discipline).
  *
- * `proof:soa-composite` reads this report, computes the per-arm `soaOverBoxed`
- * ratio at K=8, and records the ADOPT/KILL verdict in
- * `scripts/soa-composite-decision.json` (the P-inv-28 durable terminal), whose
- * `$comment` SCOPES the ratio to `transformFramesGrouped` — never a transplanted
- * `SpringProgress.setTargets` number from a different codepath.
+ * `bench/taxonomy.json`'s budgeted `add SoA · K=8` / `weighted SoA · K=8` rows
+ * read this report as the numerator, their `add/weighted boxed · K=8` twins as
+ * the same-report denominator, and `proof:bench-taxonomy` asserts the per-arm
+ * `soaOverBoxed` ratio clears the 1.2× ADOPT floor — scoped to
+ * `transformFramesGrouped`, never a transplanted `SpringProgress.setTargets`
+ * number from a different codepath. (U.N2: the former `proof:soa-composite`
+ * decision-JSON gate dissolved into this budget + the identity test.)
  *
  * Imports the VALUE modules `engine` + `group` directly, never the type-only
  * barrel `../src/animation`.

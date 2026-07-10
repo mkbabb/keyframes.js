@@ -4,8 +4,10 @@
  * flagship perf: the `add`/`weighted` blend arms — a boxed per-element AoS loop
  * (`for..in` + `Array.isArray` + per-element `isNumericUnit` dispatch) — are
  * transposed onto a contiguous {@link Float64Array} fold over a PRECOMPUTED
- * numeric-slot layout (the validated 3.7×, bit-identical `maxErr=0`,
- * `scripts/soa-composite-decision.json`).
+ * numeric-slot layout (the validated ADOPT: bit-identical `maxErr=0` +
+ * >=1.2× at K=8). The bit-identity + fold-taken oracles live in
+ * `test/group/soa-composite-identity.test.ts`; the same-report ADOPT floor in
+ * `bench/taxonomy.json`'s budgeted `add/weighted SoA · K=8` rows.
  *
  * Cohesion (the decomposition seam, F.W2/Q.WF2): the SoA machinery is a
  * self-contained planning+folding unit that rides the group's
@@ -109,8 +111,8 @@ export interface SoALayerPlan {
 }
 
 /**
- * P.W2 — the SoA fold for ONE `add`/`weighted` layer (the validated 3.7×,
- * `scripts/soa-composite-decision.json`: bit-identical `maxErr=0`). Replaces the
+ * P.W2 — the SoA fold for ONE `add`/`weighted` layer (the validated ADOPT:
+ * bit-identical `maxErr=0`, >=1.2× at K=8). Replaces the
  * boxed `for..in` + `Array.isArray` + per-element `isNumericUnit` dispatch with a
  * contiguous {@link Float64Array} fold over the plan's precomputed numeric
  * `(carrier, incoming)` pairs: seed the buffer from each carrier, apply the op
