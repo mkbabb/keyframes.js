@@ -27,12 +27,19 @@
 > rulings), 32 (target-tree-synthesis — the move-once sequence). Cross-cited: 02/29
 > (the SceneFacility subsumption F1, U.B7).
 >
-> **The shape authority.** Every move-wave below cuts to the **house component
-> module skeleton, lane 24 §9** (shape §9.1, placement rule §9.2, API grammar §9.3,
-> the timeline recut §9.4 as the reference implementation). U.G ratifies §9/§10 as
-> the DESIGN CODEX; U.B EXECUTES the moves cut to it — grammar/lexicon conversions
-> ride the import-touching moves (lane 24 §4: "the rename is free at the move, and
-> NEVER cheaper later"), never as a standalone pass.
+> **The shape authority — the house component shape, stated once.** Every move-wave
+> below cuts to ONE skeleton (from audit lane 24 §9, anchored to the glass-ui post-BH
+> idiom): each component is a **kebab-case directory** holding its **PascalCase
+> `.vue`**, an **`index.ts` barrel** (re-export only), a **`constants.ts`** for its
+> typed constants (types flow through the barrel), and a **`composables/`** folder
+> for its hooks; renderers over ~500 lines get carved into composables; a member
+> lives at the LOWEST directory containing all its consumers (the placement rule);
+> props/emits/slots each follow ONE grammar. Below, "cut to the house component
+> shape" means exactly this; (lane 24 §9.1/9.2/9.3, §9.4 = the timeline recut as the
+> reference implementation) are the audit cites. U.G ratifies §9/§10 as the DESIGN
+> CODEX; U.B EXECUTES the moves cut to it — grammar/lexicon conversions ride the
+> import-touching moves (lane 24 §4: "the rename is free at the move, and NEVER
+> cheaper later"), never as a standalone pass.
 >
 > **The anti-sprawl covenant (binding, U.md §6).** U.B introduces **ZERO** new
 > standalone `proof-*.mjs`. Every new assertion is a CLAUSE on an existing gate
@@ -46,7 +53,7 @@
 
 ---
 
-## §0 — The through-line (why this band exists)
+## §0 — Why this band exists
 
 Lane 03 is the indictment: T verdict #26 (the GRAND COLOCATION EDICT) is marked
 LANDED, but the two ROOT structure waves **never executed** — `demo/@/` is still a
@@ -84,7 +91,7 @@ U.B1  (KEYSTONE — component-core redesign to the glass-ui post-BH idiom + diss
    │     └── U.B5  (shell purge + tier)                       ── rides B4 (CSSCodeEditor hoist)
    ├── U.B6  (@/state hygiene + controlSurfaceDFA split)     ── rides B1
    ├── U.B7  (SceneFacility subsumption + contract hoist)    ── rides B1; edge U.C2 (the seek/adoptClock codec), U.F (value.js plain-vars)
-   ├── U.B8  (scenes convergence + app/runtime split)        ── rides B1,B7 (facility contract home)
+   ├── U.B8  (scenes convergence + app/runtime split)        ── rides B1,B7 (facility contract home); ↔ U.D5 (async contract, co-owned)
    └── U.B9  (app-shell honesty + shared-tier re-homing;
               empty DEFERRED residuals → delete tolerance)   ── rides B2,B4,B8 (hoist destinations settled)
    │
@@ -99,9 +106,9 @@ characterization net (green across the move = behavior preserved; red = drift),
 authored BEFORE U.B per U.md §3 — a file relocation that reds the net is a behavior
 regression, not a cosmetic move.
 
-**Sequencing keystones (lane 32).** (1) `custom/` dissolution + `@→shared` FIRST so
-every import/gate re-points ONCE — it is the HIGHEST-fanout path change; any inner
-recut before it re-points imports TWICE. (2) The CI-trim and the restructure touch
+**Sequencing keystones (lane 32).** (1) `custom/` dissolution + the `demo/@/`
+DISSOLUTION (OD-U2) FIRST so every import/gate re-points ONCE — it is the
+HIGHEST-fanout path change; any inner recut before it re-points imports TWICE. (2) The CI-trim and the restructure touch
 the SAME path-pinned gate scripts (~34 hardcode `demo/@/…`) — ONE coordinated pass
 with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 
@@ -116,10 +123,10 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 | **U.B3** | Transport de-tangle + the ONE demo ticker: hoist shared playback widgets + reference-data, invert the 6-level `../` import, unify per-host rAF into one visibility-gated `useDemoTicker`, idiom-CSS → `design-idioms.css`, `DemoGlobalChrome` → document-singleton tier | M | vitest (transport + easing/spring scene tests unchanged) + a headless one-shot ticker-count witness (one rAF, gated) + owner-golden | B2 (hoist targets settled) |
 | **U.B4** | Editors: ONE keyframe-authoring core — unify all 3 surfaces on `useKeyframesEditor`, fold `useKeyframeBrushApply`, collapse the duplicated `selectedKeyframesControl` store field, retire the `Ï` magic-char shortcut, hoist `CSSCodeEditor` to an `instrument/`-shared Monaco leaf | L | vitest editor round-trip (CSS ⇄ animation parity across surfaces) + `proof:control-surface-single-writer` green | B1 |
 | **U.B5** | Shell purge + tier: DELETE dead `EditorHeader.vue`, move the home-hero trio (`HeroAurora`/`AnimatedText`/`TypingDots`) to `app/`, tier the residual editor-chrome shell to the §9 skeleton | M | `proof:no-dead-export` (EditorHeader row cleared) + `proof:colocation` (tier-once-peer-has-subcomponents+composable clause) + owner-golden (home hero) | B4 (CSSCodeEditor hoist) |
-| **U.B6** | `@/state` hygiene: disciplined `applySharedState(patch)` writer (hashSharing stops reaching into `.value`); split `controlSurfaceDFA.ts` into pure `controlSurfaces.ts` (→ `@/state`) + `surfaceTabs.ts` (→ instrument facility) | M | `proof:control-surface-single-writer` + `scene-machine`/`control-surface-dfa`/`sharing` vitest suites | B1 |
-| **U.B7** | SceneFacility subsumption: hoist the contract out of `app/scene/` → `shared/scene-facility/`; DELETE `animationGroup?`/`scenePlayback?` from `SceneExposedApi`, the `?? animationGroup` dead fallback, the `ownsPlayback` discriminator; stable `identity` + sole play authority; kill the `controlSurfaceDFA` structural duck-type | M | `proof:scene-facility` (re-armed to assert the SOLE seam) + vitest scene-machine binding tests + owner-golden (all 6 scenes play) | B1; edge **U.C2** (the seek/adoptClock codec), **U.F** (plain-vars re-pin) |
-| **U.B8** | Scenes convergence: generalize `useRafScene`→`useManagedLoop`, route `sequence`+`square` through it (no bare `new RAFPlayback()` at scene scope); kill sequence's 60 Hz reactive-progress write; extract `usePainterRegistry`; charter `useSweepScene` recipe (easing+spring onto it); DELETE `num()`/`toRGB`/`sweepHue` for `ValueUnit`/`Color`; colocate the square tumble egg; `channelFromAnimation`; uniform `onScopeDispose`; split `app/runtime/` scene-recipes → `shared/composables/scene-runtime/` | L | scene vitest (`scene-raf-leak`, `scene-visibility-pause`, per-scene) + a headless dogfood witness (no hand-rolled unit/color parse) + owner-golden (each scene) | B1, B7 (facility contract home) |
-| **U.B9** | App-shell honesty + shared-tier re-homing: guards → `app/lifecycle/`; instrument-only `iosTextEntry`+`toastGuard` → `instrument/utils/`; `kfEngine` → shared root; `SceneSkeleton` → `app/`; `font-roles.json` → `scripts/`; `glass-ui-gaps.ts` → shared tier; EMPTY the `DEFERRED` residuals (`gestureSelectSuppression`, `kfEngine`) then DELETE the tolerance machinery | M | `proof:colocation` (`app/` shell-only; `@/utils` global-only; **tolerance-free** — DEFERRED map deleted) + `proof:shared-has-n-consumers` + vitest | B2,B4,B8 (destinations settled) |
+| **U.B6** | `@/state` hygiene: disciplined `applySharedState(patch)` writer (hashSharing stops reaching into `.value`); split the control-surface state machine (`controlSurfaceDFA.ts`) into its pure derivation logic (`controlSurfaces.ts` → `@/state`) vs its dock tab labels (`surfaceTabs.ts` → instrument facility) | M | `proof:control-surface-single-writer` + `scene-machine`/`control-surface-dfa`/`sharing` vitest suites | B1 |
+| **U.B7** | SceneFacility subsumption: hoist the contract out of `app/scene/` → `demo/composables/scene-facility/` (the OD-U2 dissolution home); DELETE `animationGroup?`/`scenePlayback?` from `SceneExposedApi`, the `?? animationGroup` dead fallback, the `ownsPlayback` discriminator; stable `identity` + sole play authority; kill the `controlSurfaceDFA` structural duck-type | M | `proof:scene-facility` (re-armed to assert the SOLE seam) + vitest scene-machine binding tests + owner-golden (all 6 scenes play) | B1; edge **U.C2** (the seek/adoptClock codec), **U.F** (plain-vars re-pin) |
+| **U.B8** | Scenes convergence: generalize `useRafScene`→`useManagedLoop`, route `sequence`+`square` through it (no bare `new RAFPlayback()` at scene scope); kill sequence's 60 Hz reactive-progress write; extract `usePainterRegistry`; charter `useSweepScene` recipe (easing+spring onto it); DELETE `num()`/`toRGB`/`sweepHue` for `ValueUnit`/`Color`; colocate the square tumble egg; `channelFromAnimation`; uniform `onScopeDispose`; split `app/runtime/` scene-recipes → `demo/composables/scene-runtime/` | L | scene vitest (`scene-raf-leak`, `scene-visibility-pause`, per-scene) + a headless dogfood witness (no hand-rolled unit/color parse) + owner-golden (each scene) | B1, B7 (facility contract home); ↔ U.D5 (F3 async-tolerant AnimationGroup contract, co-owned) |
+| **U.B9** | App-shell honesty + shared-tier re-homing: guards → `app/lifecycle/`; instrument-only `iosTextEntry`+`toastGuard` → `instrument/utils/`; `kfEngine` → the demo root (`demo/kf-engine.ts`); `SceneSkeleton` → `app/`; `font-roles.json` → `scripts/`; `glass-ui-gaps.ts` → `demo/utils/`; EMPTY the `DEFERRED` residuals (`gestureSelectSuppression`, `kfEngine`) then DELETE the tolerance machinery | M | `proof:colocation` (`app/` shell-only; `@/utils` global-only; **tolerance-free** — DEFERRED map deleted) + `proof:shared-has-n-consumers` + vitest | B2,B4,B8 (destinations settled) |
 | **U.B10** | Skeleton tier per module (T.F8 completion): `<Name>.skeleton.vue` colocated per lazily-delivered module, wired by the module barrel's `loadingComponent`; the Monaco panes get their skeletons; DELETE `@/components/skeletons/` | M | `proof:colocation` skeleton clause (lazy barrel w/o `loadingComponent` → RED) + owner-golden (no scene-swap text-flash) | rides B2/B4/B5/B8 |
 | **U.B11** | Barrel discipline + async-seam FACET cuts (OD-U12 design authority): DELETE the zero-consumer umbrella barrel; barrels become explicit-named EAGER contracts (`defineAsyncComponent` leaves the barrels); every scene composes the multi-facet instrument (controls / keyframes-if-befitting / scene-specific facets — cube's matrix, etc.), heavy editors (Monaco/highlight) load ONLY when their facet is SHOWN; excise the NAMED violation — `SpringPhysicsFacet`→`KeyframesEditor` eager deep import (the inline spring editor) — via a facet-level async seam; depcruise demo ruleset (`no-cross-module-deep`/`no-self-barrel`/`no-star-export`) | M | the `proof:publish` reachability/weight clause (**U.D-owned**, OD-U11 — no standalone `proof:chunk-graph`; born-RED on the 906 KB leak) + depcruise (existing run) + `proof:published-surface` unaffected | B1; co-sched **U.D** |
 | **U.B12** | Grammar + CSS-split residual sweep + the §10 standing clause: convert residual `withDefaults`/runtime-object props + manual `update:*` emits not covered by move-waves; split `SpringTarget.vue`'s 200 L `<style>` block; `@apply`-confinement; EXTEND `proof:colocation` + `proof:style-file-ceiling` + `proof:styling-idioms` per §10 | S | the extended existing gates (one AST pass, no browser) + `proof:styling-idioms` @apply clause | LAST; U.G codex authority |
@@ -160,8 +167,9 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     `grep -rn 'from "@/' demo` → **0 hits** (verified, lane 20 F1), so this touches
     **ZERO `.vue`/`.ts` import statements**; the ~34 gate path-literal re-anchor pass
     is **IDENTICAL** whether the dir is renamed `shared/` or dissolved. S.D4's "a
-    rename would touch every import" premise is factually false; strike the "ruled
-    terminally to keep `@/`" paragraph from `demo/CLAUDE.md`. **Toolchain integrity**
+    rename would touch every import" premise is factually false; the stale "ruled
+    terminally to keep `@/`" paragraph dies with `demo/CLAUDE.md` itself (OD-U15 —
+    ALL CLAUDE.md files delete wholesale; U.E7 owns the removal). **Toolchain integrity**
     (the 3-plane declaration builds + tests green) is an acceptance clause — the owner:
     "ensure we're not breaking our tool chaining, too." (Same vestige noted in
     value.js's demo — a letter row to its active tranche, U.F, not kf work.)
@@ -233,8 +241,9 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     the ratified lexicon (e.g. `TransportChannelControls`); `defineModel` for
     `KfPillTabs`'s manual `update:modelValue`; named-tuple emits.
 - **evidence.** `transport/composables/` = 18 files, no `index.ts` (verified);
-  extraction stamp "lifted out … the K.WZ `proof:demo-no-oversize` seam" on
-  `useAnimationGroupActions.ts:31` et al. (lane 17 F1); `TransportDock.vue:290-321,
+  the extraction stamps on `useAnimationGroupActions.ts:31` et al. show these files
+  were split out only to satisfy the now-retired line-count gate
+  `proof:demo-no-oversize`, not by ownership (lane 17 F1); `TransportDock.vue:290-321,
   398-434` (lane 17 F7).
 - **shape authority.** lane 24 §9.4 (the recut is the timeline's, generalized to
   transport) + §9.2 ownership rule.
@@ -307,7 +316,7 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 
 - **substance** (lane 18 F1/F4/F5/F6/F7). The editors carry the oldest demo code —
   THREE divergent CSS-`@keyframes` parse/serialize paths:
-  - **Unify on `useKeyframesEditor`** (the state+parsing+ops trio from S.D2).
+  - **Unify on `useKeyframesEditor`** (the existing state+parse+ops composable trio).
     `KeyframesStringControls.vue` (the ONLY editor `AnimationControls.vue:137`
     mounts) re-implements serialize+parse INLINE (`:100-209`) and does NOT use the
     trio at all; `KeyframeTimeline.vue:229-248` hand-parses declarations by raw `:`/`;`
@@ -430,7 +439,7 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   - **Hoist the contract out of the shell.** `app/scene/sceneFacility.ts` DEFINES the
     `SceneFacility`/`ChannelHandle`/`SceneFacet` contract that six scenes + the
     instrument transport + the state DFA depend UPWARD into — a dependency inversion
-    (leaf → shell). Hoist to `shared/scene-facility/` (contract + `facilityFromGroup`);
+    (leaf → shell). Hoist to `demo/composables/scene-facility/` (contract + `facilityFromGroup` — the OD-U2 dissolution home);
     `app/` then DEPENDS on the contract instead of owning it, and
     `controlSurfaceDFA`/`controlSurfaces.ts` (U.B6) imports the REAL type instead of
     the `:58-59` structural duck-type dodge.
@@ -495,7 +504,7 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     teardown on `onScopeDispose` across all scene units (amiga included).
   - **Split `app/runtime/`** (lane 20 F4): the four scene-consumed recipes
     (`useRafScene`→`useManagedLoop`, `useSceneVisibilityPause`, `useSceneTransport`,
-    `rafConstants`) → `shared/composables/scene-runtime/` (an encapsulated module);
+    `rafConstants`) → `demo/composables/scene-runtime/` (an encapsulated module);
     the two app-private guards (`loaf-observer`, `useMonacoCancellationGuard`) → B9's
     `app/lifecycle/`.
   - **The async-tolerant scene-machine contract.** The scene-machine's `AnimationGroup` prop
@@ -524,13 +533,14 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     `KeyframesAddDialog.vue` + `CSSPasteDialog.vue`) → `instrument/utils/` (used
     across ≥2 instrument peers → the facility's own tier). Hoist `kfEngine.ts` (the
     widest fan-out — 13 consuming areas, the demo's one universal engine-loader seam)
-    to the shared root as `shared/kf-engine.ts`. Leave `clipboard.ts` with CopyButton.
+    to the demo root as `demo/kf-engine.ts` (under OD-U2's dissolution the demo root
+    IS the shared tier). Leave `clipboard.ts` with CopyButton.
     `@/utils/` shrinks to genuinely-global helpers.
   - **Relocate the mislocated singletons** — `SceneSkeleton.vue` (App-only Suspense
     fallback, one consumer) → `app/` beside `App.vue`, deleting the one-member
     `@/components/skeletons/` tier; `font-roles.json` (consumed only by two gates, a
-    manifest not a style) → `scripts/`; `glass-ui-gaps.ts` (spans app/ + @/) off the
-    demo root into the shared tier.
+    manifest not a style) → `scripts/`; `glass-ui-gaps.ts` (spans app/ + the hoisted tiers) off the
+    demo root into `demo/utils/`.
   - **Empty the `DEFERRED` residuals, then DELETE the tolerance machinery.** The two
     entries the map still carries (`gestureSelectSuppression`, `kfEngine`) are cleared
     by their re-homes (kfEngine above; `gestureSelectSuppression` confirmed a recorded
@@ -539,9 +549,11 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     the `DEFERRED` map + its tolerant branch from `proof-colocation.mjs:69-96` — the
     gate becomes tolerance-free (an exception changes the RULE, never enrolls in a
     list). This is the NO-MORE-DEFERRALS reading applied to gate internals.
-  - **Reconcile `demo/CLAUDE.md`** to disk-truth (stale composables inventory — omits
-    `useDoubleTap`/`useThrottledReadout`; undocumented `sceneFacility.ts`;
-    `useHeroSourceEgg` listed in shell but deleted).
+  - **`demo/CLAUDE.md` is DELETED, not reconciled (OD-U15).** Its stale composables
+    inventory (omits `useDoubleTap`/`useThrottledReadout`; undocumented
+    `sceneFacility.ts`; `useHeroSourceEgg` listed but deleted) is one more exhibit for
+    the removal — the load-bearing content re-homes inline or into the README per
+    U.E7's OD-U15 wave; this wave writes NOTHING into it.
 - **evidence.** util consumer counts (lane 20 F5); `SceneSkeleton` sole consumer
   `App.vue:140` (lane 24 §2); `font-roles.json` gate-only (lane 20 F7);
   `proof-colocation.mjs:69-96` (verified DEFERRED machinery).

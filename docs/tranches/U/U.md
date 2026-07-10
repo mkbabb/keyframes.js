@@ -12,14 +12,39 @@
 
 ---
 
-## §0 — The one-sentence thesis
+## §0 — Summary
 
-The repository's largest remaining defect is its own enforcement-and-deferral
-apparatus; U dissolves it into three honest mechanisms, executes the structure edict
-the apparatus was shaped to tolerate skipping, re-aims performance work at the seam
-that actually costs frames, and converts every external dependency from a
-vacuously-green tripwire into a deadlined covenant — with **zero deferrals surviving
-into V**.
+The repo's biggest remaining problem is its own enforcement-and-deferral machinery —
+73.5k lines of scripts guarding a 22k-line library. U dissolves that machinery into
+three honest checks (`npm test`, `proof:publish`, owner review), then does the
+restructuring the machinery was shaped to let us skip. It also re-aims performance
+work at the per-frame apply/render path that actually costs frames, and turns every
+external-dependency tripwire into a deadlined covenant. No deferral survives into the
+next tranche (V).
+
+## Terms (plain definitions, stated once — used freely below)
+
+- **owner-golden** — a blessed screenshot the owner signs off as correct; the gate
+  passes if the current render matches it.
+- **born-RED** — a test written to FAIL now (it pins a known bug) and go green when
+  the bug is fixed.
+- **vacuous-green** — a gate that passes without actually checking anything (e.g. an
+  empty selector match, or a sample window that never reaches the defect).
+- **fold-map** — a table proving each deleted gate's real check now lives in a
+  surviving test.
+- **re-arm / re-anchor** — re-point a gate at the moved files so it checks the new tree.
+- **co-scheduled** — done in the same commit/pass as a paired move.
+- **seam** — the boundary or code path where one part hands off to another (named
+  concretely per use: the per-frame apply/render path, a lazy-load boundary, a store's
+  single write entry).
+- **FSM** — a finite state machine; here, the play/pause/stop transport machine.
+- **DFA** — a deterministic finite automaton; here, the demo's control-surface state
+  machine.
+- **SoA** — structure-of-arrays; the group compositor's typed-array blend layout.
+- **LoAF** — Long Animation Frames, the browser's long-frame performance API.
+- **T_BORNRED_BACKLOG / FROZEN_SET** — two machine ledgers of deferred defects and
+  locked appearance screenshots (both dissolve in U).
+- **DISCHARGE** — the ledger act of retiring a locked/deferred row with a witness.
 
 ## §1 — The four root causes (the audit's convergent verdict)
 
@@ -50,22 +75,23 @@ with two long-flat zones and a five-times-hand-spelled HEAVY surface
 (lanes 15/16). The deepest demo path is 8 levels through a dead shadcn vestige
 (lane 32).
 
-**RC-2b — THE COMPOSITOR IS TWO HALF-BUILT VOCABULARIES OVER A BORROWED-POINTER
-COMPOSITE** (the owner's named "primary issue with our animations" — OD-U14, NOW
-NAMED AND CONFIRMED). The OD-U14 3-lane assay (`audit/assay-compositor-*.md`) reads
-the layering model as unreconciled: it keeps two incompatible composition
-vocabularies for one operation (group `BlendMode = replace|add|weighted` — inventing
-a non-normalizing `weighted`, omitting `accumulate` — vs `CompositeOperator =
-replace|add|accumulate`), blends unit-blind AND colour-blind across layers, and the
-composite `_grouped` aliases borrowed frame-leaf references the interpolator
-re-points at every keyframe-segment boundary — a STALE-LEAF class of THREE instances
-(the amiga freeze OD-U13 root-caused is ONE; the SoA add/weighted collapse,
-demo-reachable via `LayerConfigPanel` and green under every gate, is the un-found
-sibling; the layer-removal leak the third) — with NO group WAAPI path at all (any
-animation drops to main-thread rAF the instant it joins a group). It is not *wrong*
-so much as **unreconciled** — it grew a second composition tier beside the first and
-never merged them. Chartered as the U.C compositor re-charter (U.C14 widened + U.C3
-re-chartered + U.C15/U.C16 new).
+**RC-2b — THE LAYERING SYSTEM WAS BUILT TWICE AND NEVER MERGED (the owner's named
+primary animation bug — OD-U14, NOW NAMED AND CONFIRMED).** When you stack animations
+on one element, the code has two different, incompatible ways to describe "combine
+these layers" — the group's `BlendMode = replace|add|weighted` (inventing a
+non-normalizing `weighted`, omitting `accumulate`) vs the engine's
+`CompositeOperator = replace|add|accumulate` — and never reconciled them. Worse, the
+combined result stores POINTERS into each layer's frame data instead of its own copy;
+the interpolator swaps that data out at every keyframe boundary, so the combined layer
+silently freezes or vanishes. This is a stale-leaf class of THREE instances (the amiga
+freeze OD-U13 root-caused is ONE; the SoA add/weighted collapse, demo-reachable via
+`LayerConfigPanel` and green under every gate, is the un-found sibling; the
+layer-removal leak the third). Blending is also unit-blind AND colour-blind across
+layers, and there is NO group WAAPI path at all (any animation drops to main-thread
+rAF the instant it joins a group). It is not *wrong* so much as **unreconciled** — it
+grew a second composition tier beside the first and never merged them. Chartered as
+the U.C compositor re-charter (U.C14 widened + U.C3 re-chartered + U.C15/U.C16 new;
+the 3-lane assay evidence at `audit/assay-compositor-*.md`).
 
 **RC-3 — THE PERFORMANCE FRONTIER IS MISALLOCATED.** The SoA campaign optimized
 interpolation (~5% of tick cost) while the apply/render seam (~95%, measured ~49×
@@ -97,6 +123,7 @@ transitive-only, zero specifiers in tree, 1.0.0 latest — certified, no band
 | **U.G** | THE DESIGN CODEX | DESIGN.md promoted from 28-line stub to THE authoritative design-language spec (spec-first, gates-derive); the component-module skeleton + API grammar ratified (props/emits/slots/context — ONE grammar each); the two scene genres reconciled under owner review (telemetry-whisper for cube/amiga OR blessed designed-silence); the golden authority completed (sequence-{light,dark} born-OWNER; idle-state pinned in the capture protocol); the Vue idiom rulings R1–R7 ratified as standing law. All design work Fable + frontend-design. (24/25/26) | M |
 | **U.H** | THE TEST SUBSTRATE (FIRST) | The restructure-safe characterization tier BEFORE any transposition: imports only through the two package "in"s + demo scene entries, goldening observable behavior at the seams; vitest split into library/demo projects (glass-ui stub deleted, demo tests out of the library gate); the test/<zone> mirror ratified + gate-checked; measure tests re-homed; the value.js-testing file deleted or re-chartered as a named consume-edge contract. (10/26) | M |
 | **U.R** | PROMPT-RECAP-U (STANDING) | Lane 01's total ask ledger (~10 verbatim re-issues of the same 7-clause mandate) persisted as a MAINTAINED artifact under `proof:prompt-recap-u`: born at entry, updated per wave, verdicts owner-observable — the mandate clears against the tree, never self-certifies at close. The T-verdict residue (#26 overstatement) is row 1. (01/03) | S |
+| **U.L** | THE CONVERGENCE LOOP (Track A + Track B) | OD-U18 RULED: the 5-step convergence loop IS U's development methodology from 2026-07-10 — research (≤8 parallel) → synthesis (1) → prototype fleet (worktree-isolated) → critique fleet (each item scored % convergence) → agglomerator, looped; at 100% convergence the exact wave sets develop. Track A = the spec coherence/cogency workflow; Track B = the library+demo module-restructure pass. The loop OWNS the wave sets for **OD-U15** (delete ALL CLAUDE.md files — placeholder home U.E7), **OD-U16** (module granularity BOTH directions — the carve direction lands via U.C7/U.C8; the small-module INLINING direction + the per-module assay arrive from the loop), and **OD-U17** (suppression files removed — placeholder home U.E8). Prototypes are EVIDENCE (kept worktree branches), never merged; the owner review sits inside the loop (critic consensus ≠ owner verdict). | M |
 | **U.Z** | THE CLOSE | The certifying sweep on the terminal tree; version cut **5.3.0 (OD-U8** — U binds to a compatible published surface; U.C's exports rationalization + dead-export excisions land additively/internally, anything truly breaking is out of U's scope); the deploy-of-record on the REDESIGNED gating; the S/T-pattern close ledger; zero open deferrals as the hard exit criterion. | M |
 
 > **Net NEW standalone gates in U = ZERO** (OD-U10/U11). Both gates the drafts
@@ -116,14 +143,19 @@ U.B (demo transposition)     ─┤   B/C move (lane 32: structural gates re-anc
 U.C (library transposition) ──┘   the moves, never lag) — A's deletions FIRST where a
                                   gate would otherwise have to be re-anchored twice
 U.D (perf frontier) ── after C settles the hot-path homes (render seam rides the
-                       carved tree; chunk-graph gate lands with B's module cuts)
+                       carved tree; the chunk-graph reachability/weight CLAUSE inside
+                       proof:publish lands with B's module cuts — OD-U11, no standalone gate)
 U.E (discharge + legacy zero) ── rides throughout; terminal adjudication at U.Z
 U.F (constellation) ── parallel from day 1 (letters early — upstream latency)
 U.G (design codex) ── codex early (B's moves cite it); scene-genre + goldens mid
+U.L (convergence loop) ── standing from 2026-07-10 (OD-U18); the OD-U15/U16/U17 wave
+                          sets are specced BY the loop and develop at 100% convergence
+                          (placeholder homes: U.E7 CLAUDE.md · U.E8 suppression · U.C granularity)
 U.Z ── last; zero-deferral exit criterion
 ```
 
-Sequencing keystones (lane 32): (1) `custom/` dissolution + `@→shared` move FIRST so
+Sequencing keystones (lane 32): (1) `custom/` dissolution + the `demo/@/` dissolution
+(OD-U2 — hoist to `demo/{components,composables,state,styles,utils}/`) move FIRST so
 every subsequent import/gate re-points ONCE; (2) library-first within C (anchors
 before dependents); (3) the CI trim and the restructure touch the same path-pinned
 gate scripts — ONE coordinated pass, never two.

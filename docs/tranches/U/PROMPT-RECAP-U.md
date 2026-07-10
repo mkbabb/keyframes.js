@@ -115,7 +115,8 @@ the `instrument/` fold, the scene prunes, the file-size discipline) is genuinely
 nested one level under the two un-dissolved vendored-legacy wrappers (`@`, `custom`), so the owner
 opens `demo/`, sees them, and correctly reads "not restructured." **U clearing oracle:** U.B
 executes F1/F2 as DELETIONS (not moves) + re-forges `proof:colocation` from tolerant to REQUIRING
-(it must assert the canonical shared name EXISTS and `demo/@`/`components/custom` do NOT; the
+(it must assert the hoisted `demo/{components,composables,state,styles,utils}/` homes EXIST and
+`demo/@` + `components/custom` do NOT — the OD-U2 dissolution shape; the
 DEFERRED map emptied by landing its moves; born-RED on any residual). Cleared only by a
 post-restructure owner review of a tree readable at first `ls` (lane 03 rec 7).
 
@@ -125,14 +126,14 @@ post-restructure owner review of a tree readable at first `ls` (lane 03 rec 7).
 |---|---|---|---|---|
 | 2 | perf "from the ground up" (#19) is BLOCKING but the oracle exits 0 headless | `proof-perf-counters.mjs:186-187` `process.exit(0)` when unmeasurable; the CI trim removes the browser tier it rides | `OWNER-REJECTED → U.D` | U.D headless-failable ratio floor + render-seam transposition |
 | 3 | the `Kf`-vanity surface the owner derided (#18 "KF? Pills?") | `demo/@/components/custom/.../KfPillTabs.vue` + `useKfPillTabs.ts` still in tree behind an external-blocked defer | `OWNER-REJECTED → U.B` | de-vanitize now over glass-ui primitives; NO-legacy is binding |
-| 4 | CI trim (U escalation 2a) — "runner superfluous, most tautological" | 226 `proof:*` keys vs `ROSTER_CEILING = 120` (`gate-bands.mjs:595`); `proof:roster-ceiling` a permanently-RED backlog row (`:665`) | `PENDING-OWNER → U.A` | the three-mechanism dissolution (npm test + proof:publish + owner-golden); the permanently-RED ceiling pattern DELETED |
+| 4 | CI trim (U escalation 2a) — "runner superfluous, most tautological" | 227 `proof:*` keys (the U.A ground-truth census) vs `ROSTER_CEILING = 120` (`gate-bands.mjs:595`); `proof:roster-ceiling` a permanently-RED backlog row (`:665`) | `PENDING-OWNER → U.A` | the three-mechanism dissolution (npm test + proof:publish + owner-golden); the permanently-RED ceiling pattern DELETED |
 | 5 | grand restructure widened to "**all backend files too**" (U escalation 2b) | `scripts/lib/` shared vs per-gate colocation unaudited; library ~80% compliant with two long-flat zones (lanes 15/16) | `PENDING-OWNER → U.A/U.B/U.C` | colocation as standing drift-RED enforcement across demo + library + `scripts/`; long-file god-modules disproven (the R-flagged-cosmetic `decomposition` overrides re-checked) |
 
 ---
 
 ## §3 — U's two escalations (the genuinely-new asks, lane 01 §2)
 
-- **CI TRIM (`ORIGINAL-PROMPT.md:8`) — UNADDRESSED at entry.** 226 `proof:*` keys against
+- **CI TRIM (`ORIGINAL-PROMPT.md:8`) — UNADDRESSED at entry.** 227 `proof:*` keys against
   `ROSTER_CEILING = 120`; `.github/workflows/ci.yml` a 60KB/152-step monolith; the owner calls
   most of it tautological, and the permanently-RED ceiling row proves the boards already agree.
   **Gestalt cure (not a shave to 120 — that is the forbidden workaround):** classify all keys into
@@ -157,7 +158,7 @@ external covenant with a named upstream producer** (never an open tripwire); NON
 | Deferred item | Tree witness | Class | Spirit-status | U home |
 |---|---|---|---|---|
 | KF-7 `PropertyDescriptor_2` d.ts collision | present in BOTH `dist/keyframes.d.ts` + `dist/engine/index.d.ts` at value.js 3.1.0; `proof:no-collision-rename` born-RED | EXTERNAL (value.js) | `PENDING → U.F` | §E of `KF-TO-VALUEJS-U.md`; discharge on the value.js rename |
-| glass-ui backdrop-compositor cost (BG-5) | `proof:blur-not-resampled` born-RED (`gate-bands.mjs:609`); glass-ui pinned `~4.0.0` freezes tree at 4.0.1 while 4.1/4.2 shipped | EXTERNAL (glass-ui) | `PENDING → U.F` | `KF-TO-GLASSUI-U.md` absorb-or-expire deadline; tilde→caret (OD-U4); tripwire → `dist-tags.latest` |
+| glass-ui backdrop-compositor cost (BG-5) | `proof:blur-not-resampled` born-RED (`gate-bands.mjs:609`); glass-ui pinned `~4.0.0` freezes tree at 4.0.1 while 4.1/4.2 shipped | EXTERNAL (glass-ui) | `PENDING → U.F` | `KF-TO-GLASSUI-U.md` absorb-or-expire deadline; the glass-ui 5.0.0 re-target (OD-U4 — supersedes tilde-vs-caret); the pin moves on the 5.0.0 publish; tripwire → `dist-tags.latest` |
 | dock de-blur / morph continuity (GU-1/GU-2) + dock z-inversion | `proof:{subject-legible,dock-rest-crisp,dock-morph-continuity,dock-zorder}` external tripwires | EXTERNAL (glass-ui) | `PENDING → U.F` | folded into the ONE glass-ui letter |
 | `T_BORNRED_BACKLOG` (8 live rows incl. `roster-ceiling`, `stage-inventory`, `blur-not-resampled`, `subject-legible`) | `gate-bands.mjs:609` | mixed | `PENDING → U.E/U.A/U.F` | each row cured in-U or converted to a deadlined covenant; the ledger dissolved at U.Z |
 
@@ -187,15 +188,20 @@ whole history.
 
 ---
 
-## §7 — OWNER-ASKS disposition mirror (`U/OWNER-ASKS.md`)
+## §7 — OWNER-ASKS disposition mirror (`U/OWNER-ASKS.md` — ALL rows, grows at the event)
 
 | # | Ask (operative) | Disposition |
 |---|---|---|
 | 1 | THE DISSOLUTION EDICT (in full) | OPEN — this corpus is the response; the 32-lane fleet ran; parse-that answered (§5) |
 | 2 | "Why is this taking so long?" — the close-out CI serialization | ANSWERED in-session: ~40-min runner round-trips × fail-fast masking; the same pathology is RC-1 / U.A's charter |
+| 3 | THE RULING BATCH (2026-07-10) | EXECUTED into the register: OD-U1/U2/U4/U5/U7/U8/U10 RULED; the corpus amendment propagated (U.A/U.B/U.C/U.D/U.F) |
+| 4 | THE MID-TURN RULING BATCH II (2026-07-10) | EXECUTED: OD-U2 revised (`@` dissolution reco), OD-U9 RULED, OD-U10/U11 DROPPED, OD-U12 (facet loading model) + OD-U13 (amiga/suspend-resume) registered |
+| 5 | The compositing/stacking/layering assay | EXECUTED: OD-U14 registered; assay COMPLETE → dossiers at `audit/assay-compositor-{semantics,behavior,architecture}.md`; folds into U.C (C14 widened, C3 re-chartered, C15/C16 new) |
+| 6 | THE CONVERGENCE-LOOP MANDATE (2026-07-10) | EXECUTED: OD-U15..U18 registered; Track A (spec coherence) + Track B (module restructure) deployed; the OD-U15/U16/U17 wave sets develop at 100% convergence (§10 tracks them) |
 
-With both rows carrying a real disposition, `OWNER-ASKS.md` is fully-dispositioned — the recap
-gate's disposition clause can green.
+With every row carrying a real disposition, `OWNER-ASKS.md` is fully-dispositioned — the recap
+gate's disposition clause can green. This mirror covers ALL current rows and grows at the event
+(the U.R2 clause (v) census bites on every row, not a frozen two).
 
 ---
 
@@ -246,4 +252,7 @@ reconstructed at close.
 
 | # | Date | Ask (verbatim headline) | Spirit-status (token) | U home |
 |---|---|---|---|---|
-| — | — | (none yet — U opened 2026-07-09; this row class fills at the event) | — | — |
+| 1 | 2026-07-10 | THE RULING BATCH ("The trim is substantial. Total reimagining. KISS. … 5.3 …") | RULED — OD-U1/U2/U4/U5/U7/U8/U10 registered terminal | OWNER-DECISIONS.md; propagated U.A/U.B/U.C/U.D/U.F |
+| 2 | 2026-07-10 | RULING BATCH II ("Why even have this @ … ratify those 3d scenes … amiga … suspend/resume … fixed within this tranche") | RULED — OD-U9/U12/U13 registered; OD-U10/U11 DROPPED; OD-U2 revised | U.B13/U.C14 (amiga), U.G3 (3D instrumentation), U.B11/U.D (facets) |
+| 3 | 2026-07-10 | "The primary issue with our animations was that the compositing and stacking and layering. Ensure that's assayed." | EXECUTED — OD-U14; assay COMPLETE (3 dossiers) | U.C14/U.C3/U.C15/U.C16 |
+| 4 | 2026-07-10 | THE CONVERGENCE-LOOP MANDATE (delete ALL CLAUDE.md; granularity both directions; suppression files removed; the 5-step loop to 100% convergence) | `PENDING-OWNER` — OD-U15..U18 registered; Track A + Track B deployed; the exact wave sets develop at 100% convergence (each ruling either lands as a wave set in-U or carries an explicit owner deferral token at close — U.Z2) | U.E7/U.E8 (CLAUDE.md + suppression), U.C7/U.C8 + the loop (granularity), U.md §2 U.L |

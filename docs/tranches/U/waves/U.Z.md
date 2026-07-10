@@ -6,12 +6,12 @@
 > actions it gates (the certifying sweep, the OD-U8 version cut, the deploy-of-record
 > firing on the REDESIGNED gating) land at U.Z under the owner-anchored close; the
 > deliverable authored here is `docs/tranches/U/FINAL-U.md` (born as a DRAFT, reconciled
-> at close — the S.Z3→T.Z lineage).
+> at close — the same born-draft pattern the S and T closes used).
 >
 > **Charter sentence (U.md §2).** The certifying sweep on the terminal tree; the version
-> cut (5.3.0 or 6.0.0 per the surface deltas — OD-U8, version-owner decides at close);
-> the deploy-of-record on the REDESIGNED gating (U.A8); the S/T-pattern close ledger;
-> **zero open deferrals as the HARD exit criterion.**
+> cut **5.3.0** (OD-U8 RULED — U is additive-only; anything truly breaking is deferred to
+> a later major, NOT U); the deploy-of-record on the REDESIGNED gating (U.A8); the
+> S/T-pattern close ledger; **zero open deferrals as the HARD exit criterion.**
 >
 > **Provenance lanes:** 01 (prompt-recap-total — the standing-mandate clearance bar, the
 > "no chronic exits U" mandate, parse-that certified clean), 06 (chronic-census — the
@@ -45,12 +45,12 @@
 | the ledgers the exit oracle must NOT resurrect | `T_BORNRED_BACKLOG` (8), `FROZEN_SET` (36), `proof:chronic-closure` (S-substrate), `ROSTER_CEILING` (120) | `gate-bands.mjs`; `proof-chronic-closure.mjs:145` — **all deleted at U.A5/U.E** |
 | the three surviving mechanisms | `npm test` (correctness) + `proof:publish` (boundary/surface/deps) + owner-golden | U.A §A.0 target; `proof:publish` AUTHORED at U.A1 |
 | the standing recap mechanism | `proof:prompt-recap-u` (renamed from `-t`, refreshed teeth) | U.R2; survives U.A5 (ring-fence 3 — a mandate mechanism, not a meta-gate) |
-| OD-U8 status | **DEFERRED-TO-CLOSE by design** (not a deferral row) | `OWNER-DECISIONS.md` OD-U8 |
-| OWNER-ASKS rows | 2 (row 1 the dissolution edict OPEN; row 2 "why so long" ANSWERED) | `OWNER-ASKS.md` |
+| OD-U8 status | **RULED (2026-07-10): 5.3.0** — BINDS U to a compatible (additive-only) published surface | `OWNER-DECISIONS.md` OD-U8 |
+| OWNER-ASKS rows | 6 (row 1 the dissolution edict OPEN; row 2 ANSWERED; rows 3–6 the 2026-07-10 ruling batches + the convergence-loop mandate, EXECUTED into the register) | `OWNER-ASKS.md` |
 
 **The one sentence.** The T close fired against a 227-gate roster and a `proof:all`
 mega-run; the U close fires against **three mechanisms and no ledger** — so the
-certifying sweep is smaller, the version cut is a surface-diff not a guess, the deploy
+certifying sweep is smaller, the version cut is the RULED 5.3.0 verified by a surface-diff, the deploy
 gating is the redesigned U.A8 trigger, and the zero-deferral exit is machine-checked by
 the SURVIVING recap gate plus a one-shot absence witness — **never by resurrecting a
 backlog register, which is the exact device U dissolved.**
@@ -63,7 +63,7 @@ backlog register, which is the exact device U dissolved.**
 |---|---|---|---|---|---|
 | **U.Z1** | THE CERTIFYING SWEEP (the three-mechanism close-run) | Define + run the terminal certifying sweep on the merged tree: `npm test` (both vitest projects — all correctness, the folded value-proofs + characterization net) + `proof:publish` (`boundary && published-surface && deps-current`) + `proof:prompt-recap-u` (mandate + residue cleared) + the U.A7 nightly demo roster GREEN (writes `last-demo-green`) + owner-golden BLESSED. The orchestrator INDEPENDENTLY re-runs every claimed gate on the merged tree (the T4/T5 re-run discipline) — no agent self-report is trusted | M | the sweep passes: `npm test` green, `proof:publish` green, `proof:prompt-recap-u` green, nightly roster green, owner-golden BLESSED — no new gate | LAST; after every U band lands; needs U.A1 (`proof:publish` exists) + U.A7 (nightly) + U.G (owner-golden authority) + U.R (recap gate) |
 | **U.Z2** | THE ZERO-OPEN-DEFERRALS HARD EXIT (machine-checked without resurrecting a ledger) | The exit oracle = `proof:prompt-recap-u` §2/§4 (every open-residue + chronic/external row cleared to an owner/tree token OR converted to a U.F deadlined covenant with a NAMED producer + absorb-or-expire deadline) + a ONE-SHOT close witness that the roster contains NO gate exiting 0 while asserting a failure (the born-RED-exit-0 device is structurally gone with `gate-bands.mjs`). State the falsifiable "V inherits NOTHING" check | M | `proof:prompt-recap-u` clause (v) (no `PENDING-OWNER` stuck at close) + a one-shot roster absence-scan (`gate-bands.mjs`/`T_BORNRED_BACKLOG`/`proof:chronic-closure` ABSENT; no exit-0 mask) — no new standing gate | U.Z1; co-own U.E1/U.E3 (the adjudications this certifies) + U.F (the covenants) + U.A5 (the deleted ledgers) |
-| **U.Z3** | OD-U8 — THE VERSION CUT (surface-delta derivation) | Derive the bump from the ACTUAL published-surface delta vs 5.2.0: run `proof:published-surface` in diff mode; enumerate every removed/renamed published symbol + dropped entry point (the CJS-era `main`, the U.E4 src dead-export d.ts shrink, the U.C surface collapse). **6.0.0 IFF the removed/renamed set is non-empty; else 5.3.0.** The version-owner decides at close on the enumerated delta, not a guess. Cut the git tag → `release.yml` publishes | M | `proof:published-surface` diff (surviving mechanism) — the enumerated delta is the decision input; a one-shot at close, no new gate | U.Z1 (surface stable); OD-U8 ruling (DEFERRED-TO-CLOSE by design); after U.C/U.E4 (the surface-shaping waves) |
+| **U.Z3** | OD-U8 — THE VERSION CUT: 5.3.0 (RULED) + the additive-only CONSTRAINT CHECK | The cut is **5.3.0 (MINOR), fixed by owner ruling (OD-U8)**. Run `proof:published-surface` in diff mode vs 5.2.0 to CONFIRM the removed/renamed published-symbol set is EMPTY (the additive-only bind); enumerate the additive delta (new transport verbs, `driveScrollCSS`, the widened `BlendMode`) for FINAL-U. A non-empty removed/renamed set is a WAVE BUG to fix before close, never a trigger to bump to 6.0.0 (anything truly breaking is OUT of U's scope). Cut the git tag → `release.yml` publishes | M | `proof:published-surface` diff (surviving mechanism) — asserts the removed/renamed set is EMPTY; a one-shot at close, no new gate | U.Z1 (surface stable); OD-U8 RULED (5.3.0, additive-only); after U.C/U.E4 (the surface-shaping waves) |
 | **U.Z4** | THE DEPLOY-OF-RECORD FIRING (on the redesigned U.A8 gating) | Fire the close deploy sequence on the REDESIGNED trigger: `deploy-pages.yml` gates on library-`ci`-green on master AND `last-demo-green` an ANCESTOR of the deploy SHA (`merge-base --is-ancestor`, U.A8) — the `DEMO_CORRECTNESS_JOB` literal + `proof:published-on-master`/`proof:deploy-roundtrip` standing gates are GONE (U.A5/U.A8); the ancestry assertion lives IN the workflow, not a `proof:*` key. Verify keyframes.babb.dev serves the new hash | S | a deploy-of-record FIRE witness on the redesigned trigger + the live hash served (one-shot, not a standing gate) | U.Z1 (sweep green) + U.Z3 (tag cut) + U.A8 (the redesigned trigger) + U.A7 (`last-demo-green` written) |
 | **U.Z5** | THE CLOSE LEDGER + MEMORY/BOARD ROWS (the S/T FINAL pattern) | Author `FINAL-U.md` (born DRAFT now, reconciled at close): the mandate/verdict → cure map, the OD register final state, the covenant residue with named producers, the version + deploy record. Flip `PROGRESS.md` band states → LANDED/CLOSED (owner-observable docs — `proof:board-live` deleted at U.A5); write the `project_tranche_u` MEMORY note + the T→U ledger handoff. Restate what V inherits (NOTHING) + its falsifiable check | S | the docs deliverables complete + owner-observable; `proof:prompt-recap-u` green on the fully-updated ledger (the recap gate is the board's surviving witness) | U.Z1–Z4 (records their outcomes); ↔ U.R (the recap ledger is FINAL-U's §-source) |
 
@@ -162,7 +162,7 @@ cannot show a GREEN witness is re-opened as a U cure, never re-booked into a def
 (there is none to re-book into).
 
 **The falsifiable "V inherits NOTHING" check (state it, so it can be broken).** V inherits
-nothing IFF ALL THREE hold, and is FALSIFIED the moment any one fails:
+nothing IFF ALL FOUR hold, and is FALSIFIED the moment any one fails:
 - **(a)** NO born-RED gate exists — no `proof:*` exits 0 while asserting a RED (the roster
   absence-scan is clean). *Falsified by:* any gate re-introducing an exit-0 mask.
 - **(b)** every U.F external covenant is EITHER absorbed (the sibling shipped, kf re-pinned,
@@ -171,6 +171,11 @@ nothing IFF ALL THREE hold, and is FALSIFIED the moment any one fails:
   token at close (a silent fifth re-carry — the device U terminates).
 - **(c)** `proof:prompt-recap-u` greens with ZERO `PENDING-OWNER` rows in §2/§4. *Falsified
   by:* the recap gate reding on a stuck row.
+- **(d)** every convergence-loop ruling (OD-U15 CLAUDE.md removal, OD-U16 granularity both
+  directions, OD-U17 suppression removal, OD-U18 the loop itself) is EITHER a landed wave
+  set OR carries an explicit owner deferral token at close. *Falsified by:* an OD-U15..U18
+  ruling silently absent from the close ledger (the exact self-certification gap the loop
+  mandate forbids).
 
 This check is the whole point: the exit is decided by an owner-observable ledger clearance +
 a construction fact, never by an apparatus scanning itself.
@@ -191,48 +196,45 @@ teeth); lane 09 F2 (deletion becomes `git rm`, no ledger).
 
 ---
 
-### U.Z3 — OD-U8: THE VERSION CUT (surface-delta derivation)
+### U.Z3 — OD-U8: THE VERSION CUT — 5.3.0 (RULED) + the additive-only constraint check
 
-**Substance.** OD-U8 is DEFERRED-TO-CLOSE BY DESIGN (not a deferral row — the decision needs
-the actual terminal surface). The procedure is a DERIVATION, not a judgment call in a vacuum:
+**Substance.** OD-U8 is **RULED (2026-07-10): the close version is 5.3.0 (MINOR)**, fixed
+by the owner — and the ruling BINDS U to a compatible published surface (additive-only;
+anything truly breaking is OUT of U's scope, deferred to a later major, NOT bumped to
+6.0.0 inside U). The close procedure is therefore a CONSTRAINT CHECK, not a version
+derivation:
 
 1. Run **`proof:published-surface`** (a surviving `proof:publish` leg) in DIFF mode against
    the 5.2.0 published artifact (`dist/keyframes.d.ts` + `dist/engine/index.d.ts` + the
    `exports` map + the tarball file list).
-2. Enumerate the **removed/renamed published-symbol set** and the **dropped entry-point
-   set**. The U candidates that shape it: the CJS-era `main` drop (the exports
-   rationalization); the U.E4 src dead-export sweep (26 `src/animation` symbols lose
-   `export` — a d.ts SHRINK); the U.C surface collapse (`loadAnimationEngine = () =>
-   import("./public")`, the AnimationEngine type DERIVED not hand-spelled, index.ts's
-   150-line type re-list deleted — INTERNAL iff the exported KEY SET is byte-identical).
-3. **The rule: 6.0.0 IFF the removed/renamed published set is non-empty; else 5.3.0.**
-
-**The version-owner's judgment at close (the honest nuance).** The U.E4 dead-export excisions
-remove symbols that were EXPORTED but had ZERO external consumers — a d.ts surface shrink that
-is arguably not-API (they were never reachable API). The version-owner decides at close
-whether that shrink is a breaking REMOVAL (→ 6.0.0) or a non-API cleanup invisible to any real
-consumer (→ 5.3.0, consistent with the T `MotionPath`/`MorphSVG` survival reasoning at
-`T/FINAL.md:120-121`). The two package "in"s are UNCHANGED (fence 5) and the U.F subpath
-transposition is INTERNAL import-granularity (U.F ring-fence 5 — "not one published symbol
-shifts"), so absent a real removal the honest call is **5.3.0 MINOR**; a genuine entry-point
-drop (the CJS `main`) or a real symbol removal forces **6.0.0**. The decision input is the
-ENUMERATED delta, tabled in FINAL-U — never a guess.
+2. **ASSERT the removed/renamed published-symbol set and the dropped entry-point set are
+   EMPTY** (the OD-U8 additive-only bind). The U changes near this line: the CJS-era `main`
+   drop is a NON-EMITTED dead artifact (not a published entry — OD-U8-compatible); the U.E4
+   src dead-export sweep un-exports symbols with ZERO external consumers (a d.ts shrink of
+   never-reachable API, the T `MotionPath`/`MorphSVG` survival reasoning at
+   `T/FINAL.md:120-121`); the U.C surface collapse is INTERNAL iff the exported KEY SET is
+   byte-identical — each is designed to keep the set empty.
+3. **If the diff shows ANY removed/renamed published symbol, that is a WAVE BUG to fix
+   before close** — never a trigger to bump to 6.0.0. The offending wave re-lands
+   additively or its breaking slice is deferred out of U.
+4. Enumerate the ADDITIVE delta (the new `seek`/`adoptClock`/`seekAndPlay` verbs,
+   `driveScrollCSS`, the `BlendMode` widen) — tabled in FINAL-U as the 5.3.0 record.
 
 **The cut mechanism.** The version bump is a git TAG at close; `release.yml` publishes on the
 tag (tag-triggered, CI-INDEPENDENT — the cut does not wait on CI, MEMORY
 `project_tranche_r_impl_drive_shipped`).
 
-**Gate/oracle.** `proof:published-surface` diff (the surviving mechanism supplies the delta);
-the enumerated removed/renamed set IS the decision input. A one-shot at close — no new gate.
+**Gate/oracle.** `proof:published-surface` diff (the surviving mechanism) asserting the
+removed/renamed set is EMPTY + supplying the additive delta. A one-shot at close — no new gate.
 
-**Edges.** U.Z1 (the surface is stable on the merge SHA). OD-U8 ruling (DEFERRED-TO-CLOSE).
+**Edges.** U.Z1 (the surface is stable on the merge SHA). OD-U8 RULED (5.3.0, additive-only).
 After U.C (surface collapse) + U.E4 (dead-export shrink) — the two surface-shaping waves.
 Feeds U.Z4 (the tag fires the deploy) + U.Z5 (FINAL-U §version).
 
-**Evidence.** `OWNER-DECISIONS.md` OD-U8 (the 6.0.0/5.3.0 rule); `T/FINAL.md:111-134` (the T
-version-owner reasoning — the pattern); U.C brief (the surface collapse); U.E §E.2 Table 3
-(the 26 src dead exports — d.ts shrink); U.F ring-fence 5 (subpath is internal); `package.json`
-version 5.2.0.
+**Evidence.** `OWNER-DECISIONS.md` OD-U8 (RULED 5.3.0, the additive-only bind);
+`T/FINAL.md:111-134` (the T version-owner reasoning — the pattern); U.C brief + Risks R4 (the
+additive-only constraint carried per wave); U.E §E.2 Table 3 (the 26 src dead exports — d.ts
+shrink); U.F ring-fence 5 (subpath is internal); `package.json` version 5.2.0.
 
 ---
 
@@ -288,13 +290,15 @@ not re-derives), reconciled at close. Its sections mirror `T/FINAL.md`:
    §1 binding column (each clause → its owner-observable U oracle), the CI-trim + grand-restructure
    escalations LANDED, every §2 open-residue row terminal (row 1 = the T #26 overstatement,
    cleared by U.B's F1/F2 DELETIONS + `proof:colocation` REQUIRING + an owner review).
-2. **The OD register final state** — OD-U1..U9 final tokens (the T.M2 machine-bound shape).
+2. **The OD register final state** — OD-U1..U18 final tokens (the T.M2 machine-bound shape),
+   including the four convergence-loop rulings (OD-U15..U18): each is either a LANDED wave
+   set or carries an explicit owner deferral token — never silently absent.
 3. **The covenant residue** — the five U.F deadlined covenants with named producers + deadlines
    (value.js KF-7 / `parseTimingFunction` / authored-plain; glass-ui BG-5/GU-1/GU-2/BG-11), each
    absorb-or-expire, NONE to V.
 4. **The version + deploy record** — the OD-U8 enumerated delta + the cut; the deploy-of-record
    firing + the served hash.
-5. **The zero-deferral exit** — U.Z2's three-part falsifiable check, evaluated true.
+5. **The zero-deferral exit** — U.Z2's four-part falsifiable check, evaluated true.
 
 **The MEMORY/board close rows.**
 - Flip `PROGRESS.md` band states U.A..U.Z → **LANDED/CLOSED** (owner-observable docs — note
@@ -309,7 +313,7 @@ not re-derives), reconciled at close. Its sections mirror `T/FINAL.md`:
 **What V inherits — NOTHING, by charter (U.md §0), and the falsifiable check that proves it.**
 V inherits no born-RED gate, no chronic ledger row, no `T_BORNRED_BACKLOG`, no FROZEN lock, no
 open deferral device — because U.A dissolved the apparatus that HELD deferrals and U.E adjudicated
-every row terminal. The check is U.Z2's three-part test evaluated at close (no exit-0 gate; every
+every row terminal. The check is U.Z2's four-part test evaluated at close (no exit-0 gate; every
 covenant absorbed-or-owner-re-deadlined; recap greens with zero PENDING). If V opens and finds a
 kf-owned born-RED gate or a silently-carried covenant, THIS check was falsified — that is the
 owner-observable contract, not a promise.
@@ -337,7 +341,7 @@ re-shaped. Disposition is USE-THE-SURVIVOR (the certifying mechanisms) or ONE-SH
 |---|---|---|
 | **Z1** | the T `proof:all` mega-run + `proof:ci-coverage` cross-check as the certifying shape | USE the three surviving mechanisms (`npm test` + `proof:publish` + owner-golden) + the two mandate witnesses (`proof:prompt-recap-u`, nightly roster); independent re-run on the merge SHA. No new gate |
 | **Z2** | the deleted ledgers (`T_BORNRED_BACKLOG`, `proof:chronic-closure`, `FROZEN_SET`) as the "any open deferrals?" answerers — a naive re-scan would RESURRECT them | The exit oracle is `proof:prompt-recap-u` §2/§4 clearance + a ONE-SHOT roster absence-scan; the standing-exit-check-gate temptation is REFUSED (it would be the resurrected `ci-coverage`). The V-inheritance check is falsifiable, owner-observable |
-| **Z3** | any hardcoded version constant (the T `v4.4.0`-rot class, `proof-published-on-master.mjs:16`); a guessed bump | DERIVE the bump from `proof:published-surface` diff (the surviving mechanism); the tag is the cut, `release.yml` publishes. The enumerated delta is the input, not a guess |
+| **Z3** | any hardcoded version constant (the T `v4.4.0`-rot class, `proof-published-on-master.mjs:16`); any wave whose surface delta violates the additive-only bind | The cut is the RULED 5.3.0 (OD-U8); `proof:published-surface` diff CONFIRMS the removed/renamed set is EMPTY — a non-empty diff is a wave defect fixed before close, never a 6.0.0 bump. The tag is the cut, `release.yml` publishes |
 | **Z4** | `deploy-pages.yml`'s `DEMO_CORRECTNESS_JOB` literal + preflight; `proof:published-on-master` + `proof:deploy-roundtrip` (the T standing deploy gates, DELETED at U.A5) | FIRE on the redesigned U.A8 trigger (library-green + `last-demo-green` ancestor); the ancestry assertion lives IN the workflow; verify the served hash (one-shot). No standing deploy gate survives |
 | **Z5** | `proof:board-live` (self-policing, DELETED at U.A5) as the board witness; `T/PROMPT-RECAP.md` as the live ledger | The board close is a docs deliverable witnessed by `proof:prompt-recap-u` freshness; `T/PROMPT-RECAP.md` → frozen provenance, `PROMPT-RECAP-U.md` the live ledger; the MEMORY note authored |
 
