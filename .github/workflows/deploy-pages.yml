@@ -80,8 +80,11 @@ jobs:
                   fi
                   RUN_ID="${{ github.event.workflow_run.id }}"
                   echo "Auditing ci run $RUN_ID for a green '$DEMO_CORRECTNESS_JOB' job…"
+                  # gh api's --jq takes exactly ONE expression (no jq --arg passthrough
+                  # — the first live workflow_run firing died on "accepts 1 arg(s),
+                  # received 4"); the job name reaches jq via env access instead.
                   CONCLUSION=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --paginate \
-                      --jq --arg n "$DEMO_CORRECTNESS_JOB" '.jobs[] | select(.name == $n) | .conclusion' | head -1)
+                      --jq '.jobs[] | select(.name == env.DEMO_CORRECTNESS_JOB) | .conclusion' | head -1)
                   echo "demo-correctness conclusion: '${CONCLUSION:-<job not found>}'"
                   if [ "$CONCLUSION" != "success" ]; then
                       echo "::error::demo-correctness did not conclude green (got '${CONCLUSION:-missing}') — the auto-deploy path is GATED on green demo-correctness (S.A3). Not shipping."
