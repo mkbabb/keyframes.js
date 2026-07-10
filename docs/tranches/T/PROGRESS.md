@@ -512,6 +512,22 @@
   (`continue-on-error`), never gating the deploy the owner's T.H3 ADOPT override
   already accepted the trade for; T_BORNRED_BACKLOG row + glass-ui-gap-tripwire
   discharge unchanged. ci-coverage/board-live/wave-charter re-verified green.
+- **2026-07-10 — THE TRANCHE TERMINATES: the deploy-of-record OBSERVED end-to-end.**
+  Two more runner-only defects cured en route (each had NEVER exercised on CI —
+  fail-fast masking + skipped-gate history): the library-gate job's own 10-min
+  ceiling (outgrown the moment demo-elevate stopped failing it early; kills report
+  "cancelled" and poison the workflow_run conclusion) and
+  proof:no-cross-realm-cast's catastrophic-backtracking import regex
+  ((?:[^{}]|\n)*? — >14min on the runner's node 24, 0.2s fixed at `72d1873`); then
+  the deploy preflight's FIRST live firing exposed gh api --jq's missing --arg
+  passthrough (fixed `2810268`). **`72d1873` = the first fully-green master CI of
+  the tranche era; `2810268` = the second; the auto-deploy (`29067263918`) fired on
+  it and SUCCEEDED — keyframes.babb.dev serves the 5.2.0 build (entry
+  index-mZE3Gjyy.js, the specimen-gallery chunk live). 5.2.0 is npm latest.** The
+  close checklist rows are ALL checked; the external-blocked residue rides as the
+  named born-RED tripwire set per FINAL.md. Task #299 CLOSED. (The runner-red
+  chain is preserved as Tranche U RC-1 evidence — U's charter dissolves the
+  apparatus that made it possible.)
 
 ## State of play — the T impl-drive entry anchor (2026-07-05, written at compaction-prep)
 
