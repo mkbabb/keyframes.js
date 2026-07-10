@@ -94,6 +94,7 @@ and a cluster of NO-LEGACY carves the two long-flat zones owe.
 | **U.C11** | scroll drive symmetry — `driveScrollCSS` + dispatch de-dup + `ScrollBackend` re-home | M | vitest (scroll round-trip) + `bench` (one eligibility scan/dispatch) | 14 F4/F8 |
 | **U.C12** | presets → ONE `PRESET_SPECS` table + `definePreset` generator | M | vitest (34-preset catalog parity + barrel/taxonomy derivation) | 14 F1/F6 |
 | **U.C13** | **THE SURFACE COLLAPSE — one composition barrel, derived type** | L | `proof:publish`/`proof:published-surface` (re-armed) + tsc d.ts roll-up | 15 F1/F2/F3/F5/F6/F7 |
+| **U.C14** | **THE PLAIN-VARS PROJECTION CURE (OD-U13 Fix A)** — the live 5.2.0 freeze: `compile/plain-vars.ts:109` caches a `ValueUnit[]` LEAF REFERENCE that `engine/interpolate.ts:194` re-points on every keyframe-segment crossing, so a `singleTarget`+`unflatten` group's projection reads an orphaned frozen leaf from t≈2s on (the amiga sphere pins at the 25% pose; dossier: `audit/defect-amiga-suspend-resume.md`). The cure: the projection becomes a VIEW, not a snapshot — `refreshPlainProjection` re-resolves the live `_grouped` leaf per frame (flat-key + source identity, zero-alloc), and the "built ONCE (structure is stable)" premise is struck from the docstring | M | vitest — a born-RED characterization: play a `singleTarget`+`unflatten` ≥3-keyframe group past its first segment boundary and assert values KEEP CHANGING (the exact window every green gate skipped); + one demo-smoke clause sampling `#/amiga` ≥3s | 11 F5-adjacent; the OD-U13 dossier; ↔ U.B13 (the demo consumer — Fix B rides this) |
 
 **Sequencing (band-internal DAG, charter §3 "library-first within C: anchors before
 dependents").**
@@ -107,6 +108,8 @@ U.C5, U.C6  ── independent (LIGHT physics; parallel from day 1)
 U.C8 (emit/ + easing/ dirs) ──> U.C9 (refusal-probes + carves land in the emit/ home)
 U.C10 ── independent (excision; the ASK is U.F's letter)
 U.C11, U.C12 ── independent (scroll / presets)
+U.C14 (plain-vars projection cure) ── independent; EARLY (a live 5.2.0 product freeze —
+       the highest-priority correctness wave in the band); U.B13's demo half consumes it
 U.C13 (surface collapse) ── LAST of the surface work; re-arms the gate belt → feeds U.A
 ```
 

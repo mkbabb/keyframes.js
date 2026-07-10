@@ -72,3 +72,15 @@
   both fold into clauses on existing gates; net NEW standalone gates in U = ZERO). The
   corpus propagation applied to `U.md` + six wave docs
   (`U.A`/`U.B`/`U.C`/`U.D`/`U.F`/`U.G`).
+- **2026-07-10** — **THE OD-U13 DOSSIER LANDED** (`audit/defect-amiga-suspend-resume.md`):
+  the "amiga broken" mandate root-caused to a LIVE 5.2.0 LIBRARY BUG — the plain-vars
+  projection (`compile/plain-vars.ts:109`) caches a `ValueUnit[]` leaf reference that
+  `engine/interpolate.ts:194` re-points on every keyframe-segment crossing; the
+  `singleTarget`+`unflatten` path (amiga alone) reads the orphaned frozen leaf and the
+  sphere pins at the 25% pose ~2s into every play (introduced `efcb244`+`f060c17`,
+  Tranche T 2026-07-05; three green gates each sample BEFORE the 2000ms boundary — the
+  vacuous-green exhibit made concrete). Suspend/resume machinery otherwise SOUND (no
+  orphaned rAF; cube/easing clean); one real gap — amiga's tab-hide pauses the WebGL
+  loop but not the group clock. Chartered: **U.C14** (the projection-as-view cure +
+  the born-RED past-the-boundary characterization) + **U.B13 re-cut** (the ONE
+  symmetric suspend contract, consuming C14).

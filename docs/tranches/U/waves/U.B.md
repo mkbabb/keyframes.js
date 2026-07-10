@@ -91,7 +91,7 @@ U.B1  (KEYSTONE — component-core redesign to the glass-ui post-BH idiom + diss
    U.B10 (skeleton tier per module — T.F8 completion)        ── rides each module recut (B2/B4/B5/B8)
    U.B11 (barrel discipline + async-seam facet cuts, OD-U12) ── rides B1; co-sched U.D's proof:publish reachability clause (OD-U11)
    U.B12 (grammar + CSS-split residual sweep + §10 clause)   ── LAST; sweeps what the move-waves didn't touch
-   U.B13 (amiga anim + scene suspend/resume cure, OD-U13)    ── rides B8 (useManagedLoop); ← U.H1 (net covers scene switch/visibility FIRST)
+   U.B13 (amiga suspend-contract cure, OD-U13 Fix B)         ── rides B8 (useManagedLoop); ↔ U.C14 (Fix A, the library freeze); ← U.H1 (net FIRST)
 ```
 
 **The net underneath every move (U.H1).** Every U.B move rides on U.H1's
@@ -123,7 +123,7 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 | **U.B10** | Skeleton tier per module (T.F8 completion): `<Name>.skeleton.vue` colocated per lazily-delivered module, wired by the module barrel's `loadingComponent`; the Monaco panes get their skeletons; DELETE `@/components/skeletons/` | M | `proof:colocation` skeleton clause (lazy barrel w/o `loadingComponent` → RED) + owner-golden (no scene-swap text-flash) | rides B2/B4/B5/B8 |
 | **U.B11** | Barrel discipline + async-seam FACET cuts (OD-U12 design authority): DELETE the zero-consumer umbrella barrel; barrels become explicit-named EAGER contracts (`defineAsyncComponent` leaves the barrels); every scene composes the multi-facet instrument (controls / keyframes-if-befitting / scene-specific facets — cube's matrix, etc.), heavy editors (Monaco/highlight) load ONLY when their facet is SHOWN; excise the NAMED violation — `SpringPhysicsFacet`→`KeyframesEditor` eager deep import (the inline spring editor) — via a facet-level async seam; depcruise demo ruleset (`no-cross-module-deep`/`no-self-barrel`/`no-star-export`) | M | the `proof:publish` reachability/weight clause (**U.D-owned**, OD-U11 — no standalone `proof:chunk-graph`; born-RED on the 906 KB leak) + depcruise (existing run) + `proof:published-surface` unaffected | B1; co-sched **U.D** |
 | **U.B12** | Grammar + CSS-split residual sweep + the §10 standing clause: convert residual `withDefaults`/runtime-object props + manual `update:*` emits not covered by move-waves; split `SpringTarget.vue`'s 200 L `<style>` block; `@apply`-confinement; EXTEND `proof:colocation` + `proof:style-file-ceiling` + `proof:styling-idioms` per §10 | S | the extended existing gates (one AST pass, no browser) + `proof:styling-idioms` @apply clause | LAST; U.G codex authority |
-| **U.B13** | The amiga animation + scene suspend/resume cure (OD-U13): first-principles fixes from the defect dossier (`audit/defect-amiga-suspend-resume.md`, investigation in flight — the wave's substance is the dossier's `## The U fix charter` section once it lands), owner-mandated in-U | M | the characterization net (U.H1) covers scene switch/visibility semantics BEFORE the fix (the cure is WITNESSED, not asserted) + owner-golden (amiga plays; suspend/resume clean across scene switch) | B8 (useManagedLoop convergence); ← U.H1 (net FIRST) |
+| **U.B13** | The amiga suspend-contract cure (OD-U13 Fix B — the dossier at `audit/defect-amiga-suspend-resume.md` SPLIT the mandate: the dominant freeze is the LIBRARY bug U.C14 cures; this wave folds amiga's IntersectionObserver + visibility pause + machine TAB_HIDDEN into ONE symmetric suspend seam governing both the render loop AND the group clock — no drift-then-jump on tab return), owner-mandated in-U | M | the characterization net (U.H1) covers scene switch/visibility semantics BEFORE the fix (the cure is WITNESSED, not asserted) + owner-golden (amiga plays ≥3s; suspend/resume clean + jump-free) | ↔ U.C14 (Fix A — the library freeze, consumed here); B8 (useManagedLoop convergence); ← U.H1 (net FIRST) |
 
 ---
 
@@ -647,14 +647,23 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   first principles and fixed within this tranche").** The amiga scene's animation and
   the demo's scene suspend/resume facilities have been broken across multiple tranches
   while the gates said green throughout (a vacuous-green exhibit for RC-1). The
-  first-principles defect investigation is RUNNING in U-dev; its dossier lands at
-  **`audit/defect-amiga-suspend-resume.md`**. **The wave's substance IS the dossier's
-  `## The U fix charter` section** once the investigation completes — the fixes are
-  executed from the dossier's root-cause findings, not guessed here. Expected surface
-  (pending the dossier): the amiga rAF/engine lifecycle + the visibility/scene-switch
-  suspend→resume semantics, converged onto the SAME `useManagedLoop` recipe U.B8
-  charters (own the `markRaw(RAFPlayback)` + idempotent start/stop + `onScopeDispose`
-  + `useSceneVisibilityPause`), so no scene leaks a loop or freezes on resume.
+  first-principles investigation COMPLETED in U-dev; the dossier is
+  **`audit/defect-amiga-suspend-resume.md`**, and it SPLIT the mandate:
+  **Defect A (the dominant bug) is a LIBRARY bug, not a demo bug** — the plain-vars
+  projection caches a stale leaf reference and the amiga sphere freezes at the 25%
+  pose ~2s into EVERY play (a live 5.2.0 product defect; only the
+  `singleTarget`+`unflatten` path hits it, which is why cube/square dodge). Its cure
+  is **U.C14** (the projection-as-view fix + the born-RED past-the-segment-boundary
+  characterization); this wave CONSUMES U.C14. **Defect B (the demo half, THIS
+  wave):** the "resume broken" symptom is mostly Defect A wearing a mask — the
+  machinery is otherwise sound (no orphaned rAF loops; cube/easing suspend/resume
+  cleanly) — but ONE real gap remains: amiga's tab-visibility pause governs only its
+  WebGL render loop, never its animation-group clock (machine `TAB_HIDDEN` is
+  status-only), so the group drifts while hidden and jumps forward on return. The
+  cure: ONE symmetric suspend contract — the IntersectionObserver + visibility pause
+  + machine `TAB_HIDDEN` fold into the same seam governing BOTH the render loop and
+  the group clock, converged onto the `useManagedLoop` recipe U.B8 charters, so
+  suspend is jump-free exactly like the raw-rAF scenes.
 - **The witnessed-cure discipline (← U.H1).** The characterization net (U.H1) must
   COVER scene-switch and visibility (suspend/resume) semantics BEFORE the fix lands,
   so the cure is WITNESSED (green-across-the-fix = behavior restored), not asserted —
