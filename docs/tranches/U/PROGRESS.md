@@ -175,3 +175,54 @@
   queue of FOUR** (`demo/DESIGN.md` KEEP · the `@`-dissolution one-word confirm · D1 easing
   canonicality · D5 oklab eyeball) **is the ONLY thing between the corpus and impl
   authorization** — which remains NOT authorized (ring-fence 4).
+
+## State of play — THE U IMPL-DRIVE ENTRY ANCHOR (2026-07-11, written at compaction-prep)
+
+**AUTHORIZATION: the owner's 2026-07-11 "Ratify all. Prepare for compaction and
+tranche execution." (OWNER-ASKS row 8, OD-U22) — the impl drive begins immediately
+post-compaction.** Everything needed to open the drive without re-derivation:
+
+1. **The order of record**: `docs/tranches/U/loop/PASS-5.md` "## The wave-set
+   development order" — RATIFIED, folded into the corpus (U.md §7 + the wave docs).
+   The governing spec is `loop/SPEC-B5.md` (over the B1→B4 chain; 16 measured
+   errata; 25 rulings). The sequencing one-liner: owner-rides DONE → U.H
+   (characterization net FIRST) → the keystone (N1-MOVE-SCRIPT §①–⑤ verbatim,
+   NOW UNGATED) → B/C recuts + carves with co-scheduled gate re-anchors (U.A's
+   deletions first where a gate would re-anchor twice) → meta-legacy (U.E9) +
+   dogfood (U.E10) waves ride the same passes → U.D after U.C settles hot paths →
+   U.F letters from day 1 → U.G codex early → U.E terminal adjudication → U.Z
+   (zero open deferrals; the 5.3.0 cut per OD-U8).
+2. **The ride-queue ratifications (terminal)**: DESIGN.md KEEP · @-dissolution
+   CONFIRMED (step ① executes in full: demo/@ + custom/ dissolve, components.json
+   rm, the 72-file by-name sweep, ci.yml:496 re-word) · D1 = value.js bezierPresets
+   canonical (23 rows adopt; 6 quart/quint documented-delta pending D-GAP-1; the
+   gallery curve change is a recorded CORRECTION) · D5 oklab blessed.
+3. **The frozen evidence worktrees (NEVER purge)**: wf_ca7d0632-287-{10,11,12,16,
+   17,18} (P1 compile/easing carve · P2 inline sweep + fold-map · P3 CLAUDE.md
+   fold + P3-FOLD-MAP · P4 known-violations kill · P5 component recut template ·
+   P6 README) + wf_645e7d37-d7f-{11,12,13} (N1 one-home move + N1-MOVE-SCRIPT ·
+   N2 meta-legacy + N2-DELETION-LEDGER · N3 dogfood + N3-EXCISION-LEDGER). The T
+   blessed prototypes (wf_1e744f4d-2bb-{1,2,3}, wf_558e7859-5ca-3) also stay.
+   "Absorbs" = the wave replays the frozen worktree's record, never re-derives.
+4. **Standing law in EVERY wave**: P1's re-anchor template + R11's 8-class site
+   sweep; R21 sweeps-are-measurements (+ ruling 24 by-name disposal); R16/R20 a
+   measured refutation AMENDS the charter; the OD-U1 zero-loss fold-map on every
+   deletion; per-stage compile-green commits (the T wall lesson); merge-U-first in
+   every lane prompt; the orchestrator independently re-runs claimed gates on the
+   merged tree (T4/T5); batches of 3 (rate walls are real — 3 walls hit in U-dev,
+   all salvaged via committed stages + resumeFromRunId).
+5. **Hard binds**: 5.3.0 at close (published surface additive-only — OD-U8);
+   glass-ui 5.0.0 is the consume edge (watch for its publish; the five caps
+   re-probe against its dist; the letter reconciles); value.js letter rows =
+   D-GAP-1/5/6 exactly (consume-edge only, its tranche is active elsewhere);
+   NO new standalone gates (net DOWN; OD-U10/U11 dropped); CLAUDE.md files DELETE
+   (U.E7, delete-LAST per wave 6 coupling); the 10× CI target (≤4 min merge path)
+   + zero-loss fold-map are U.A's exit criteria.
+6. **Environment**: KF_PLAYWRIGHT_DIR=/Users/mkbabb/Programming/glass-ui for
+   browser gates; worktree node_modules via ln -sfn (NEVER git add); npm run
+   build THEN gh-pages (build clobbers gh-pages); the roster false-red classes
+   (worktree-glob contamination, roster contention, MODULE_NOT_FOUND masquerade,
+   zsh glob-abort, pipe-masked exits) are in the T memory. Master is GREEN
+   (deploy-of-record observed; keyframes.babb.dev serves 5.2.0; npm latest 5.2.0).
+   The U corpus lives on `tranche-u-dev`; the impl branch forks master with the
+   corpus merged (the T pattern: `tranche-u-impl`, draft PR onto master).
