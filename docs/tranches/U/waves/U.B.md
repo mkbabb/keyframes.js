@@ -99,6 +99,7 @@ U.B1  (KEYSTONE — component-core redesign to the glass-ui post-BH idiom + diss
    U.B11 (barrel discipline + async-seam facet cuts, OD-U12) ── rides B1; co-sched U.D's proof:publish reachability clause (OD-U11)
    U.B12 (grammar + CSS-split residual sweep + §10 clause)   ── LAST; sweeps what the move-waves didn't touch
    U.B13 (amiga suspend-contract cure, OD-U13 Fix B)         ── rides B8 (useManagedLoop); ↔ U.C14 (Fix A, the library freeze); ← U.H1 (net FIRST)
+   U.B14 (small-module INLINE wave, OD-U16 inline — U.B half) ── rides B1; target-by-target from P2's fold-map (`287-11`); ↔ U.C constants fold (paired)
 ```
 
 **The net underneath every move (U.H1).** Every U.B move rides on U.H1's
@@ -131,6 +132,7 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 | **U.B11** | Barrel discipline + async-seam FACET cuts (OD-U12 design authority): DELETE the zero-consumer umbrella barrel; barrels become explicit-named EAGER contracts (`defineAsyncComponent` leaves the barrels); every scene composes the multi-facet instrument (controls / keyframes-if-befitting / scene-specific facets — cube's matrix, etc.), heavy editors (Monaco/highlight) load ONLY when their facet is SHOWN; excise the NAMED violation — `SpringPhysicsFacet`→`KeyframesEditor` eager deep import (the inline spring editor) — via a facet-level async seam; depcruise demo ruleset (`no-cross-module-deep`/`no-self-barrel`/`no-star-export`) | M | the `proof:publish` reachability/weight clause (**U.D-owned**, OD-U11 — no standalone `proof:chunk-graph`; born-RED on the 906 KB leak) + depcruise (existing run) + `proof:published-surface` unaffected | B1; co-sched **U.D** |
 | **U.B12** | Grammar + CSS-split residual sweep + the §10 standing clause: convert residual `withDefaults`/runtime-object props + manual `update:*` emits not covered by move-waves; split `SpringTarget.vue`'s 200 L `<style>` block; `@apply`-confinement; EXTEND `proof:colocation` + `proof:style-file-ceiling` + `proof:styling-idioms` per §10 | S | the extended existing gates (one AST pass, no browser) + `proof:styling-idioms` @apply clause | LAST; U.G codex authority |
 | **U.B13** | The amiga suspend-contract cure (OD-U13 Fix B — the dossier at `audit/defect-amiga-suspend-resume.md` SPLIT the mandate: the dominant freeze is the LIBRARY bug U.C14 cures; this wave folds amiga's IntersectionObserver + visibility pause + machine TAB_HIDDEN into ONE symmetric suspend seam governing both the render loop AND the group clock — no drift-then-jump on tab return), owner-mandated in-U | M | the characterization net (U.H1) covers scene switch/visibility semantics BEFORE the fix (the cure is WITNESSED, not asserted) + owner-golden (amiga plays ≥3s; suspend/resume clean + jump-free) | ↔ U.C14 (Fix A — the library freeze, consumed here); B8 (useManagedLoop convergence); ← U.H1 (net FIRST) |
+| **U.B14** | THE SMALL-MODULE INLINE WAVE (OD-U16 inline direction, U.B half): absurdly-small demo modules inlined-and-deleted, cut **target-by-target from P2's fold-map** (`287-11`), NEVER a bulk sweep; **paired with U.C's constants fold** (the OD-U16 both-directions ruling closes in one motion) | M | `proof:colocation` (a single-symbol / single-in-area-consumer module → RED, cured by the inline; no new clause) + demo vitest green through each inline + the fold-map complete (every target inlined or exempted BY NAME) | rides B1; ↔ **U.C** (OD-U16 inline direction, U.B+U.C paired); loop-chartered (OD-U18, U.L) |
 
 ---
 
@@ -141,6 +143,17 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
 - **substance.** The single highest-fanout first move, executed as DELETIONS not
   relocations (lane 03 F1/F5, lane 20 F1/F2, lane 32 F1), **RE-CUT per OD-U2
   (2026-07-10, two parts):**
+  - **THE WAVE ORDER IS `N1-MOVE-SCRIPT.md` §①–⑤, EXECUTED VERBATIM from the frozen
+    evidence** (the convergence loop's converged keystone — P7/N1 @ 100, worktree
+    `d7f-11`; OD-U18, band U.L). **Steps ①/④ are owner-gated per the ride queue:**
+    **①** dissolve `demo/@/` + `custom/` + the riders + **`git rm components.json`**
+    (R21/E16 — the dead shadcn scaffold config, both its `demo/@` paths die with it, no
+    re-point) + the six-bucket 72-file measured sweep (re-measured in-commit, ruling 24 —
+    every hit disposed BY NAME, in-sweep-space ≠ disposed) + the `ci.yml:496` step-name
+    re-word; **②** the dock re-home (already EXECUTED as evidence — replays from the
+    manifest); **③** the singleton re-homes; **④** the interior recut (owner-gated
+    point 2); **⑤** `demo/CLAUDE.md` deletes LAST (couples to U.E7). The two OD-U2 parts
+    below ARE steps ①/④'s substance; the ~34-gate re-anchor pass is co-scheduled with U.A.
   - **The component CORE redesigned to the glass-ui post-BH idiom (OD-U2 part 1 —
     RULED terminal).** Per `audit/glassui-idioms-post-bh.md` §1, every component
     becomes a **kebab-case dir** with **PascalCase SFCs** + an **`index.ts` barrel**
@@ -246,7 +259,10 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   `proof:demo-no-oversize`, not by ownership (lane 17 F1); `TransportDock.vue:290-321,
   398-434` (lane 17 F7).
 - **shape authority.** lane 24 §9.4 (the recut is the timeline's, generalized to
-  transport) + §9.2 ownership rule.
+  transport) + §9.2 ownership rule + **P5's responsibility-recut TEMPLATE** (the
+  convergence loop's demo-component-recut prototype, frozen evidence `287-17`: actuation
+  hoisted to the host, the options form purified, the Channel-lexicon naming rule) — the
+  TEMPLATE every U.B recut wave cuts to.
 - **gate/oracle.** `proof:colocation` with the lane 24 §5 **inverse clause**
   (single-owner member inside a shared tier → RED) — turns the keystone into the
   skeleton's enforcement arm; transport vitest (`useAnimationGroupPlayback.test.ts`,
@@ -352,7 +368,9 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   (lane 18 F1); `KeyframesEditor.vue:231-290` vs `KeyframesStringControls.vue:211-249`
   brush dup (F4); `controlOptionsStore.ts:18,20-25,39` (F5).
 - **shape authority.** lane 24 §9.3 (one authoring core = the module's declared
-  contract) + §7 (context DECLARED, not `ReturnType`-derived).
+  contract) + §7 (context DECLARED, not `ReturnType`-derived) + **P5's
+  responsibility-recut TEMPLATE** (`287-17`) — the editors converge on ONE keyframe-
+  authoring core exactly as P5 hoisted actuation to the host and purified the options form.
 - **gate/oracle.** vitest editor round-trip (CSS text ⇄ animation parity across all
   three surfaces — the unification's proof) + `proof:control-surface-single-writer`.
 - **size** L. **edges.** Rides B1; CSSCodeEditor hoist feeds B5.
@@ -515,7 +533,9 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   2/4); `useSequenceDemo.ts:179-195,188-450`; `useSquareDemo.ts:75-87,187-214`;
   `useEasingDemo.ts:186-201` / `useSpringHotPath.ts:101-117` (lane 19 F1–F6).
 - **shape authority.** lane 24 §9.4 (scene sub-modules by ownership — spring's 6
-  components/6 composables → `target/`, `heatmap/`, `physics-facet/`) + §9.2.
+  components/6 composables → `target/`, `heatmap/`, `physics-facet/`) + §9.2 + **P5's
+  responsibility-recut TEMPLATE** (`287-17`) — the scenes recut on the same host-hoist /
+  options-purify pattern the loop proved.
 - **gate/oracle.** scene vitest (`scene-raf-leak.test.ts`,
   `scene-visibility-pause.test.ts`, per-scene) preserved through the moves + a
   headless dogfood witness (grep: no hand-rolled unit/color parse in `scenes/`) +
@@ -705,6 +725,38 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
   D1 amiga instance, consumed here); ← **U.H1** (the net covers scene
   switch/visibility BEFORE the fix). Owner-mandated in-U (OD-U13); the impl drive
   lands it IN U.
+
+### U.B14 — THE SMALL-MODULE INLINE WAVE (OD-U16 inline direction, U.B half)
+
+- **substance (OD-U16 the INLINE direction; loop-chartered, band U.L — P2's demo half,
+  frozen evidence `287-11`).** OD-U16 rules module granularity BOTH ways: U.C7/U.C8
+  execute the long-file CARVE direction; THIS wave (with U.C's constants fold) executes
+  the OPPOSITE — **absurdly-small modules inlined-and-deleted.** The convergence loop's
+  P2 prototype (small-module-inline-sweep, EXITED at 100 at pass 2) produced the demo-side
+  **fold-map that IS this wave's work order**: each single-symbol / single-consumer demo
+  module is inlined into its sole owner and deleted, **cut target-by-target from the
+  fold-map — NEVER a bulk sweep** (the G3/G9 per-target adjudication form: a module is
+  inlined only where the fold-map names it, with its one consumer, BY NAME — ruling 24's
+  in-sweep-space ≠ disposed clause). A module with ≥2 genuine consumers KEEPS its file
+  (the placement rule, unchanged).
+- **paired with the U.C constants fold.** OD-U16's inline direction is **U.B+U.C paired**:
+  the demo half (this wave) and the library half (U.C's constants back-compat barrel
+  dissolution + P2's byte-clean LIBRARY fold-map, same `287-11` evidence) run the SAME
+  target-by-target discipline and co-schedule, so the OD-U16 both-directions ruling closes
+  in one motion.
+- **evidence.** P2's demo fold-map (`287-11`) — the per-target inline ledger the loop
+  minted and froze; each row = one small module + its sole consumer + the inlined home.
+- **shape authority.** the placement rule (a member lives at the LOWEST dir containing all
+  its consumers — inline where that dir IS the sole consumer) + OD-U16 (granularity both
+  directions) + the fold-map zero-loss discipline (OD-U1 — a deletion proves its content's
+  new home).
+- **gate/oracle.** `proof:colocation` (a single-symbol module with one in-area consumer is
+  a colocation defect the inline cures — no new clause) + the demo vitest suite green
+  through each inline (a pure move); the fold-map's completeness is the deliverable (every
+  named target inlined or exempted-by-name).
+- **size** M. **edges.** Rides **B1** (the homes must settle first); ↔ **U.C** (the OD-U16
+  inline direction, U.B+U.C paired — the library constants fold rides the same
+  target-by-target discipline); loop-chartered (OD-U18, band U.L).
 
 ---
 

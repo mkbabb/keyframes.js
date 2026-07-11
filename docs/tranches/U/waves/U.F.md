@@ -45,10 +45,12 @@ covenant the current apparatus green-lights while it drifts:
 
 1. **The value.js edge is stuck at the pre-2.x megabarrel** (lane 27 F1, verified).
    **42** HEAVY files import the bare `@mkbabb/value.js` `.` root barrel; exactly
-   **1** file (`internal/leaves.ts:28`) uses a subpath (`/math`). value.js 3.1.0
-   publishes **8** code-split subpaths — `. ./color ./easing ./parsing ./transform
-   ./units ./math ./quantize` (verified: `node_modules/@mkbabb/value.js/package.json`
-   `exports`) — a taxonomy that maps almost one-to-one onto kf's zone symbol
+   **1** file (`internal/leaves.ts:28`) uses a subpath (`/math`). value.js 3.1.0's
+   `exports` table has **eight entries of which SEVEN are subpaths** — `./color
+   ./easing ./parsing ./transform ./units ./math ./quantize` (the eighth is the root
+   `.`, not a subpath; **no `/root` subpath exists** — the convergence loop's E15
+   ground-truth correction, `node_modules/@mkbabb/value.js/package.json` read
+   directly) — a taxonomy that maps almost one-to-one onto kf's zone symbol
    clusters, and kf consumes NONE of it but the one `/math` leaf. Every lazy HEAVY
    chunk that touches value.js pulls the whole root graph (which re-exports the
    grammar/parse-that tier) even when it needs only `COMPUTED_UNITS`
@@ -242,7 +244,13 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
   freezes the consume-edge contract kf now depends on, files the two new asks
   (`parseTimingFunction`, authored-plain unflatten), renews KF-7, and states the pin
   posture. **Consume-edge ONLY** (ring-fence 1): every ask is a request to value.js's
-  active tranche, never a kf-side parallel arm.
+  active tranche, never a kf-side parallel arm. **The value.js letter-row set is, in full,
+  D-GAP-1 + D-GAP-5 + D-GAP-6** (§I below — the quart/quint `bezierPresets` gap; the
+  shallow/leaf-predicate `flattenObject` mode; the bare-path-data/flipped-coords bezier
+  sampler — the convergence loop's dogfood-census resolution, SPEC-B5 E14), and **E15's
+  seven-subpath table** (`./color ./easing ./parsing ./transform ./units ./math
+  ./quantize` beside the root `.`; no `/root`) is the transposition's ground truth §A.1
+  freezes.
 - **Size.** M. **Deliverable = the letter** (docs; owner-observable). **DAY 1** —
   upstream latency gates the whole band.
 - **Oracle.** the file exists and is complete against the five sections below; the
@@ -265,8 +273,10 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
 > **§A — The consume-edge contract kf now depends on (FREEZE these; a break breaks
 > kf's HEAVY surface):**
 > 1. **The subpath taxonomy** `. ./color ./easing ./parsing ./transform ./units
->    ./math ./quantize` is now a load-bearing kf API. kf transposes its whole HEAVY
->    edge onto it (42 files, U.F1). ASKS: (a) keep these subpaths stable and their
+>    ./math ./quantize` is now a load-bearing kf API (**E15 ground truth: the `exports`
+>    table is EIGHT entries, SEVEN of them subpaths — the eighth is the root `.`; no
+>    `/root` subpath; the transposition maps onto these SEVEN**). kf transposes its whole
+>    HEAVY edge onto it (42 files, U.F1). ASKS: (a) keep these subpaths stable and their
 >    symbol membership ADDITIVE (a removed/renamed export is a kf HEAVY-surface break);
 >    (b) keep `./easing ./color ./units ./transform ./math` **parse-that-free** — they
 >    are today (0 packrat markers in each subpath dist, measured) and that is precisely
@@ -342,6 +352,29 @@ trim and the constellation currency touch it in ONE coordinated pass, never two.
 > (hoist `demo/@/`'s children to `demo/{components,composables,…}/`, alias spellings
 > unchanged, 3-plane declaration) for constellation homogeneity — a NOTE, NOT a kf
 > deliverable and NOT a consume-edge ask.
+>
+> **§I — Constellation gap rows (the loop's dogfood census — the value.js letter-row set,
+> in full).** The convergence loop's demo↔library duplication census (OD-U21, N3) and the
+> D8/D9 refutations (SPEC-B5 E14, R20 folded) resolved the value.js letter-row set to
+> EXACTLY THREE gap rows — each a value.js CAPABILITY GAP a kf/demo dogfood cannot yet
+> close (SPEC-B3 §N3's law: a gap is a library ask; only a re-implementation of SHIPPED
+> functionality is a demo defect):
+> - **D-GAP-1** — value.js's `bezierPresets` lacks the **quart / quint** easings (E13);
+>   until published, the demo's quart/quint curves stay hand-authored data.
+> - **D-GAP-5** — value.js has **no shallow / leaf-predicate `flattenObject` mode**: today
+>   `flattenObject({transform:{translateX,translateY},opacity})` DECOMPOSES the composite
+>   `transform` into `transform.translateX`/`…`, which is why the demo's `flattenVars`
+>   KEEPS its `valueOf`-leaf guard (D8 measured NOT a duplication — the in-tree disposition
+>   comment names this). A `leafPredicate` / shallow option would let the demo delete it.
+> - **D-GAP-6** — value.js has **no bare-path-data / flipped-coords bezier sampler**:
+>   `cubicBezierToSVG(0.4,0,0.2,1)` returns a full `<path d="M0 0 L0 0 …">` ELEMENT in raw
+>   un-flipped coordinates, where the demo binds bare path DATA y-flipped (`1 - v`) like
+>   every sibling `getCurvePath` branch (D9 measured NOT a duplication — `timingCurveUtils.ts:37-44`
+>   names it). A `sampleBezierPath`-style bare-data, y-flip-optional sampler closes it.
+>
+> (D-GAP-2 retired at E13; D-GAP-3 and D-GAP-4 are accepted demo glue — SPEC-B3 D10 row +
+> N3 ledger §4 — NOT letter rows. **The set is D-GAP-1 + D-GAP-5 + D-GAP-6, no more** — the
+> loop's E14 verified this for undercount against the installed value.js.)
 
 ### U.F4 — The kf-side dispositions: plain-vars binary decision + `getTimingFunction` BOOK'd as deadlined covenants
 

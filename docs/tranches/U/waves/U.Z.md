@@ -97,6 +97,25 @@ nightly demo roster GREEN** (the ~5-gate behavioral roster re-homed off the merg
 writing `last-demo-green=<sha>` — consumed by U.Z4) and **`proof:prompt-recap-u` GREEN**
 (the mandate cleared against the tree, U.R).
 
+**The convergence-loop sweep witnesses (U.Z re-runs EVERY measured sweep the loop minted —
+the closing witness of the terminal wave order, `loop/PASS-5.md` §7 item 10).** The
+certifying sweep also re-runs, on the merged tree, each sweep the Track B loop measured and
+froze, verifying the wave order's measured residue is actually gone:
+
+- **the §①.6 72-file `demo/@` grep** (`git grep -l 'demo/@' -- . ':(exclude)docs/tranches/**'`)
+  — expect on the terminal tree **the 9 provenance files ONLY** (the keystone dissolution
+  U.B1 swept the rest; a stray `demo/@` in active source is a keystone MISS);
+- **the §4 N2-residue grep**
+  (`git grep -nE 'proof:soa-composite|proof:spring-vector|proof-(spring-vector|soa-composite)\.mjs'`)
+  — expect **tombstones ONLY** (past-tense / retired form; any present-tense hit is an
+  uncured §4 residue). **N2's chartered clause (U.E9, ruling 23) is DONE only when this
+  witness is GREEN** — this is where N2's missing 12 points are earned;
+- **P3's fold-map witnesses** — `find . -name CLAUDE.md` → ZERO, and every load-bearing
+  claim resolvable at its new inline/README home (the `loop/P3-FOLD-MAP.md` completeness
+  check, U.E7);
+- **P4's stricter-lint red-on-plant** — the suppression baseline deleted, a planted
+  violation REDs against the strictly-stricter lint (U.E8's born-RED-on-plant witness).
+
 **The independent re-run discipline (the T4/T5 lesson, MEMORY `project_tranche_r_impl_drive_shipped`).**
 The orchestrator re-runs EVERY claimed gate on the MERGED tree — agent self-reports are
 not trusted (R caught 3 "pre-existing" regressions, a bench excision, and integration
@@ -109,8 +128,11 @@ is nothing to cross-check, so there is no `proof:ci-coverage` mega-gate and no `
 union to reconcile. The sweep is smaller than T's by two orders of magnitude and asserts
 strictly MORE (behavior, not source shape).
 
-**Gate/oracle.** The three mechanisms + the two mandate witnesses, each green on the merge
-SHA. NO new gate — the sweep IS the surviving apparatus exercised once.
+**Gate/oracle.** The three mechanisms + the two mandate witnesses + the four
+convergence-loop sweep witnesses (§①.6 `demo/@` grep → 9 provenance files only; §4 residue
+grep → tombstones only; `find CLAUDE.md` → zero; suppression red-on-plant), each green on
+the merge SHA. NO new gate — the sweep IS the surviving apparatus exercised once, now also
+closing the loop's measured sweeps.
 
 **Edges.** LAST in the tranche. Needs U.A1 (`proof:publish` exists), U.A7 (the nightly
 roster + `last-demo-green`), U.G (owner-golden authority — else the third leg has no

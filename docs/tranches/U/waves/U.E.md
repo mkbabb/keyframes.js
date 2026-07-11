@@ -82,6 +82,8 @@ now-empty machinery; nothing carries to V.
 | **U.E6** | Stale config + doc + scaffold reconciliation | Re-base `proof-deps-current` FLOORS to the live constellation (value.js → 3.x floor, DELETE the `parse-that 0.9.0` entry for the severed dep, collapse the K/J archaeology comment block); reconcile the VJ-L2 pending scaffold (delete `vjL2LinearLanded` + `skipIf` + PENDING witness, make the round-trip arm UNCONDITIONAL against the shipped 3.x parser); fold the `SceneExposedApi` legacy dual-path (delete `animationGroup?`/`scenePlayback?`, the 3 shell reads → `facility.*`, drop the dual expose from all 6 scenes — rides WITH U.B's SceneFacility subsumption); consolidate `MIGRATION-5.0.0/5.1.0` → one version-sectioned `docs/MIGRATION.md` (fix the `proof:changelog` phantom, or moot it if U.A5 deletes the gate); set the `gcAndMigrateStoreBuckets` sunset condition (retires once the 7-day store TTL guarantees no pre-T.B9 bucket survives) | M | the VJ-L2 arm runs unconditionally (npm test); deps floor bites 3.x; one-shot: `SceneExposedApi` has ONE surface | co-sched U.B (SceneExposedApi) + U.C/U.F (deps floor) + U.F (VJ-L2 consume-edge) |
 | **U.E7** | ALL CLAUDE.md files DELETED (OD-U15) — documentation re-homed inline or into the README | Inventory the three CLAUDE.md files' load-bearing content (the convergence loop's research step — OD-U18, band U.L; the exact re-home map develops at 100% convergence); re-home each piece as inline docstrings at the code it describes or a brief, deft README section; then `git rm` all three files WITH every gate that reads them (`proof:claude-paths-live`, the claude-structure-sync class — they die in the same motion, co-U.A5). U.G5's R1–R7 law targets the DESIGN codex + README, never a CLAUDE.md; U.B1/U.B9's CLAUDE.md touch-ups become deletions | M | one-shot: `find . -name CLAUDE.md` → ZERO hits; the content-inventory table complete (every load-bearing piece named with its new home); the reader gates absent | wave set specced BY the convergence loop (OD-U18, U.L); co-own U.A5 (reader-gate deletion); ↔ U.G5 (law re-target); rides U.B/U.C moves |
 | **U.E8** | Suppression files REMOVED (OD-U17) — violations FIXED, not ledgered | Inventory every suppression surface: `.dependency-cruiser-known-violations.json` (the owner-named file) + eslint-disable comments + cspell word-lists + api-extractor overrides (the loop's research step inventories; OD-U18). FIX each suppressed violation — or honestly RE-SCOPE the rule it suppresses — then `git rm` the suppression ledgers: suppression-by-ledger dies exactly like the dead-export `DEFERRED` ratchet (same disease, different file) | M | one-shot: the known-violations JSON ABSENT; depcruise green with ZERO suppressions; the suppression-inventory table complete | wave set specced BY the convergence loop (OD-U18, U.L); co-sched U.B11/U.G5 (the depcruise demo ruleset) + U.A3 (the lint fold) |
+| **U.E9** | THE META-LEGACY WAVE (OD-U20 — the deleted-gate residue class): replay P8/N2's six gated decision-JSON dissolves (oracles re-homed to vitest, green twice) + execute the ruling-23 §4 eight-hit residue table — every surviving-source reference to the two N2-DELETED gates (`proof-soa-composite.mjs`, `proof-spring-vector.mjs`) disposed BY NAME, incl. the ONE CODE deletion at `proof-portable-perf.mjs:426` (the live `KNOWN_PRIOR_ART` Set entry) + the ledger's own completeness-claim correction | M | one-shot: the §4 residue grep runs **empty-or-tombstone-only** on the terminal tree (the U.Z witness) + `npm run proof:bench-taxonomy` green (the re-homed floors, incl. the two flipped SoA floors); N2's missing 12 points EARNED | absorbs N2 (`d7f-12`, P8's `N2-DELETION-LEDGER.md` §§1+4 + PASS-5 §4); co-U.A5 (the gate deletions); U.Z witnesses; loop-chartered (OD-U18, U.L) |
+| **U.E10** | THE DOGFOOD WAVE (OD-U21 — the demo dogfoods the library): P9/N3's D2–D7 excisions (the clamp class complete, 43 sites onto value.js `/math`) + the D8/D9 KEEP-with-disposition comments (`flattenVars` / `getCurvePath`'s bezier branch — measured NOT duplications, R20 folded) + D1 held for the owner ride; D10/D-GAP-3/D-GAP-4 stay accepted demo glue | M | vitest (demo behavior unchanged post-excision) + a headless dogfood witness (no hand-rolled clamp/unit/color parse the constellation ships) | absorbs N3 (`d7f-13`, P9's `N3-EXCISION-LEDGER.md` §§1–3 + the R20 dispositions); D-GAP-5/6 book to U.F (E14); loop-chartered (OD-U18, U.L) |
 
 **Net gate delta (the band's headline):** U.E authors **ZERO new standing gates**.
 It DELETES `proof:chronic-closure` (co-U.A5), the dead-export `DEFERRED` ratchet, and
@@ -381,7 +383,13 @@ F2/F3/F4, lane 31 F8.
 
 **Substance (OD-U15, RULED 2026-07-10).** The owner ruled ALL CLAUDE.md files
 deprecated and removed TOTALLY — "that documentation can either live inline or briefly
-and deftly integrated into our readme." Three steps:
+and deftly integrated into our readme." **This wave's work order IS P3's** — the
+convergence loop's `claudemd-fold` prototype (EXITED at 100 at pass 2, frozen evidence
+`287-12`), whose three-step order (**redistribute** the load-bearing claims → **re-home**
+the reader gates → **delete LAST**) and zero-loss ledger `loop/P3-FOLD-MAP.md` this wave
+REPLAYS; the fold-map is step (a)'s inventory deliverable, already minted (one row per
+claim → its new home or an explicit `DROPPED — reason`; silence is not a ruling). Three
+steps:
 (a) **Inventory** the three CLAUDE.md files' load-bearing content (the root build/entry
 map, `src/animation/CLAUDE.md`'s per-file inventory, `demo/CLAUDE.md`'s conventions) —
 this inventory is the convergence loop's research step (OD-U18, band U.L); the exact
@@ -416,7 +424,11 @@ files at `CLAUDE.md`, `src/animation/CLAUDE.md`, `demo/CLAUDE.md`.
 **Substance (OD-U17, RULED 2026-07-10).** The owner named
 `.dependency-cruiser-known-violations.json` for removal. The principle generalizes:
 suppression-by-ledger is the SAME disease as the dead-export `DEFERRED` ratchet and the
-born-RED backlog — a green gate over an acknowledged violation. Three steps:
+born-RED backlog — a green gate over an acknowledged violation. **This wave's work order
+IS P4's** — the convergence loop's `known-violations-fix` prototype (EXITED at 100 at
+pass 3, frozen evidence `287-16`), the suppression-DIES-BY-FIXING **archetype**: the
+baseline JSON deleted, the lint made STRICTLY stricter, and a planted violation reds (the
+born-RED-on-plant witness U.Z re-runs). Three steps:
 (a) **Inventory** every suppression surface — the depcruise known-violations JSON,
 eslint-disable comments, cspell word-lists, api-extractor overrides (the convergence
 loop's research step, OD-U18, inventories the full set).
@@ -437,6 +449,109 @@ any grep-gate that becomes a lint rule starts suppression-free).
 
 ---
 
+### U.E9 — THE META-LEGACY WAVE (OD-U20): P8's `N2-DELETION-LEDGER.md` §§1+4 + the ruling-23 residue clause
+
+**Substance (OD-U20, RULED 2026-07-10; loop-chartered, band U.L — P8/N2, frozen evidence
+`d7f-12`).** The owner ruled the meta/legacy file class deletes (named:
+`demo/glass-ui-gaps.ts`); the convergence loop's `meta-legacy-delete` prototype (N2)
+generalized it to the in-tree decision-JSON gate class and EXECUTED the dissolution as
+evidence. This wave's work order IS **P8's `N2-DELETION-LEDGER.md` §§1 (the six gated
+decision-JSON dissolves) + §4 (PASS-5's measured residue table), verbatim** — two moves:
+
+(a) **Replay the six dissolves** (already EXECUTED as evidence `d7f-12`): the
+decision-JSON gates whose oracles were re-homed to vitest — the SoA-composite and
+spring-vector oracles now live in `test/group/soa-composite-identity.test.ts` +
+`test/physics/spring.test.ts`; both gate scripts (`proof-soa-composite.mjs`,
+`proof-spring-vector.mjs`) `git rm`'d with their `package.json` keys, co-U.A5. The
+re-homes are independently green TWICE (the critique's 13/13 and the agglomerator's
+`proof:bench-taxonomy` PASS — 86 cases, every budgeted floor held, incl. the two flipped
+SoA floors `add·K=8` ≈4.94× and `weighted·K=8` ≈4.49×).
+
+(b) **Execute the ruling-23 §4 residue table** — the honest residue the pass-4 census
+ENUMERATED instead of MEASURED. The whole-tree measurement
+(`git grep -nE 'proof:soa-composite|proof:spring-vector|proof-(spring-vector|soa-composite)\.mjs'`
+over `scripts src test bench package.json`, archive excluded), **every hit disposed BY
+NAME** (ruling 24 — in-sweep-space ≠ disposed):
+- `proof-portable-perf.mjs:419` — present-tense "existing gates" → re-word to the
+  surviving gate set (`proof-bench-taxonomy.mjs`);
+- **`proof-portable-perf.mjs:426` — the live `KNOWN_PRIOR_ART` Set entry
+  `"proof-spring-vector.mjs"`: a ONE-LINE CODE deletion** (behaviorally inert — the lint
+  never matches a deleted file — but a comment-only commit could not remove it; the pass-4
+  order under-specified it);
+- `proof-portable-perf.mjs:455`, `bench/taxonomy.json:393`, `group/soa.ts:24`,
+  `group/soa.ts:46`, `group/compositor.ts:13` — present-tense references re-worded /
+  re-attributed to the surviving anchors + the re-homed tests;
+- `physics/spring/progress.ts:389` — the borderline historical-ADOPT attribution gains
+  its retired marker;
+- the tombstone-shaped hits (`bench/group-composite.bench.ts:34`, `taxonomy.json:320/401/431/439`,
+  `proof-morphsvg-consume.mjs:61`, the re-homed tests) are the ALLOWED past-tense form — none.
+- the ledger's own affirmative "the ONE surviving-source residue … CURED"
+  (`N2-DELETION-LEDGER.md:238`) asserted a completeness it did not have — the correction
+  rides this same sweep.
+
+**Why chartered, not scored (ruling 23).** N2 stands at **88** in the loop's final table;
+the 100 it lacks is exactly this residue class — measured in full, disposition-named, and
+graduated from loop work to WAVE work rather than scored away by a terminal pass. **This
+clause is N2's missing 12 points, and U.Z's certifying sweep re-runs the §4 grep on the
+terminal tree as its closing witness — DONE only when that grep is empty-or-tombstone-only.**
+
+**Gate/oracle.** One-shot: the §4 residue grep empty-or-tombstone-only (U.Z witness);
+`npm run proof:bench-taxonomy` green (the re-homed floors). No new gate.
+
+**Edges.** Absorbs N2 (`d7f-12`); co-own U.A5 (the two gate scripts + keys delete); U.Z2
+witnesses the residue grep; loop-chartered (OD-U18, band U.L). Rides the U.B/U.C moves that
+open `group/soa.ts` / `compositor.ts` / `progress.ts` (touch-once with the comment purge).
+
+**Evidence.** `OWNER-DECISIONS.md` OD-U20 (RULED); `loop/PASS-5.md` §4 (the eight-hit
+table) + §5 ruling 23; P8's `N2-DELETION-LEDGER.md` §§1+4 (`d7f-12`);
+`loop/pass3-research-meta-legacy-census.md` (the class census).
+
+---
+
+### U.E10 — THE DOGFOOD WAVE (OD-U21): P9's `N3-EXCISION-LEDGER.md` §§1–3 + the R20 dispositions
+
+**Substance (OD-U21, RULED 2026-07-10; loop-chartered, band U.L — P9/N3, frozen evidence
+`d7f-13`).** The owner ruled demo↔library duplication excises — the demo DOGFOODS the
+library. The convergence loop's `duplication-excise` prototype (N3, EXITED at 100 at
+pass 4) ran the duplication census and executed the excisions; this wave's work order IS
+**P9's `N3-EXCISION-LEDGER.md` §§1–3 + the R20 dispositions, verbatim**:
+- **D2–D7 excisions** — the demo's hand-rolled clamp/normalize/mix primitives replaced by
+  the library / value.js they showcase; **the clamp class complete — 43 sites onto
+  value.js `/math`** (the demo cannot hand-roll what the constellation ships).
+- **D8/D9 KEEP-with-disposition (R20 folded — a measured refutation AMENDS the charter).**
+  Both were CHARTERED as re-base/route duplications but measured FALSE: `flattenObject`
+  DECOMPOSES a composite `transform` (breaking the one-valid-CSS-property contract
+  `flattenVars`'s `valueOf`-leaf guard keeps whole), and `cubicBezierToSVG` returns a full
+  `<path>` ELEMENT in raw un-flipped coords where the demo binds bare path DATA y-flipped.
+  Each KEEPS its body with an in-tree disposition comment (`flattenVars.ts` doc block;
+  `timingCurveUtils.ts:37-44`) so no future pass re-hunts the "duplication"; the gaps book
+  as **U.F value.js letter rows D-GAP-5 + D-GAP-6** (E14; a gap is a library ask, only a
+  re-implementation of SHIPPED functionality is a demo defect).
+- **D1 held for the owner ride** — `NAMED_EASING_BEZIER` canonicality is owner-taste (ride
+  queue item iii; N3 ledger §3 D1), not excised in this wave.
+- **D10 / D-GAP-3 / D-GAP-4 stay accepted demo glue** (SPEC-B3 D10 row + N3 ledger §4) —
+  correctly NOT excisions and NOT letter rows.
+
+**Why gestalt.** The dogfood excision is the demo-side of NO-LEGACY: every demo primitive
+that re-implements shipped functionality dies; every measured false-positive KEEPS with a
+disposition comment so the census does not thrash. R20 is the standing law here — a lane
+records the refutation, the critique verifies, the agglomerator ratifies; no wave
+re-litigates D8 or D9.
+
+**Gate/oracle.** vitest (demo behavior unchanged post-excision) + a headless dogfood
+witness (grep: no hand-rolled clamp/unit/color parse in the demo). No new gate.
+
+**Edges.** Absorbs N3 (`d7f-13`); → **U.F** (D-GAP-5/D-GAP-6 book as value.js letter rows,
+E14; D-GAP-1 joins them); ↔ **U.B8** (the demo's `num()`/`toRGB`/`sweepHue` dogfood is the
+first instance of this class, executed there); D1 ↔ the owner-ride queue; loop-chartered
+(OD-U18, band U.L).
+
+**Evidence.** `OWNER-DECISIONS.md` OD-U21 (RULED); P9's `N3-EXCISION-LEDGER.md` §§1–3 +
+R20 (`d7f-13`); `loop/pass3-research-demo-lib-duplication.md` (the census); SPEC-B5 E14
+(the D8/D9 ratification + D-GAP-5/6 booking).
+
+---
+
 ## Risks + the re-arm map
 
 The stale-era re-arm class is EXPECTED (U.md §5): every U.E discharge/deletion invalidates
@@ -453,6 +568,8 @@ RE-ARM (an existing gate survives, re-pointed) — cited per wave. U.E adds NO s
 | **E6** | `proof-deps-current` stale FLOORS; the VJ-L2 `skipIf` scaffold; the `SceneExposedApi` dual-path; the `MIGRATION-5.2.0.md` phantom; the `gcAndMigrate` migration | RE-BASE the floors to 3.x (DELETE the parse-that entry); make the VJ-L2 arm unconditional; FOLD the dual-path (co-U.B); consolidate MIGRATION (fix/moot the phantom per U.A5); SUNSET the gc migration (KEEP, not delete) |
 | **E7** | the three CLAUDE.md files + every gate that reads them (`proof:claude-paths-live`, the claude-structure-sync class); every wave that would have EDITED a CLAUDE.md | DELETE the files (OD-U15) with their reader gates in the SAME motion (co-U.A5); content re-homed inline/README per the loop's inventory; CLAUDE.md edits across U.B/U.C/U.G become deletions |
 | **E8** | `.dependency-cruiser-known-violations.json` + every other suppression ledger (lint disables, cspell words, api-extractor overrides); any depcruise rule that only passes via suppression | FIX the violations or RE-SCOPE the rule (OD-U17), then DELETE the ledgers; new rules (U.B11/U.G5/U.A3) land suppression-free |
+| **E9** | the six N2-deleted decision-JSON gates + their `package.json` keys; the §4 residue class (8 present-tense refs to the deleted gates across `scripts`/`src`/`bench`) + `N2-DELETION-LEDGER.md:238`'s over-claim | DELETE the gate scripts + keys (co-U.A5); re-word / re-attribute / delete every §4 hit BY NAME (incl. the ONE CODE deletion at `proof-portable-perf.mjs:426`); U.Z re-runs the §4 grep empty-or-tombstone-only (ruling 23) |
+| **E10** | the demo's 43-site hand-rolled clamp class + D2–D7 primitives duplicating value.js `/math`; the D8/D9 charter premises (measured FALSE, R20) | EXCISE D2–D7 onto value.js `/math`; KEEP D8/D9 with in-tree disposition comments (no re-hunt), book D-GAP-5/6 to U.F; hold D1 for the owner ride |
 
 **Standing invalidation the band CREATES, not clears (forwarded):** U.E2's discharge
 targets (`proof:owner-golden` + `proof:demo-smoke`) depend on U.G ratifying the golden
@@ -465,7 +582,8 @@ inter-band load-bearing edges.
 
 **Net gate delta (the band's headline):** U.E authors ZERO new standing gates. It DELETES
 `proof:chronic-closure` + the dead-export `DEFERRED` ratchet + the CLAUDE.md reader gates
-(U.E7, OD-U15) + the suppression ledgers (U.E8, OD-U17), and its row-emptying lets
+(U.E7, OD-U15) + the suppression ledgers (U.E8, OD-U17) + the six N2 decision-JSON gates
+(U.E9, OD-U20), and its row-emptying lets
 U.A5 delete `FROZEN_SET`/`T_BORNRED_BACKLOG`/`ROSTER_CEILING`/the freeze+ledger machinery
 wholesale. `proof:no-dead-export` is RE-ARMED (second root), the asset-reachability +
 no-back-compat-barrel invariants FOLD into existing hygiene/lint gates, and every external

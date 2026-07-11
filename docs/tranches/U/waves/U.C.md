@@ -42,6 +42,18 @@
 > **Provenance lanes:** 11-lib-engine-group (F1–F6), 12-lib-compile-resolve-validate
 > (F1–F8), 13-lib-physics-orchestration (F1–F7), 14-lib-ingest-scroll-waapi-svg-presets
 > (F1–F8), 15-lib-surface-boundary (F1–F8), 16-lib-colocation-map (F1–F7).
+>
+> **Standing law from the convergence loop (OD-U18, band U.L — active in EVERY U.C move).**
+> Three loop-minted disciplines govern this band's carves and sweeps: **P1's re-anchor
+> template + R11's 8-class site sweep** (the `compile/easing` carve, frozen evidence
+> `287-10`, proved the carve-and-re-anchor pattern on its HARD case — every path-literal
+> gate naming a moved basename re-points in the SAME commit, across all 8 site classes)
+> governs U.C7/U.C8/U.C9/U.C13; **R21 sweep-as-measurement + ruling 24's by-name clause**
+> (a doc/prose/comment sweep is DEFINED BY MEASUREMENT, never enumeration — every hit
+> disposed BY NAME; in-sweep-space ≠ disposed) governs every header/comment sweep here;
+> **R16/R20** (a measured refutation AMENDS the charter, ratified at step 5 — the D8/D9
+> refutations, SPEC-B5 E14) governs any wave that meets a false premise; the fold-map
+> zero-loss discipline (OD-U1) governs every deletion.
 
 ---
 
@@ -88,7 +100,7 @@ and a cluster of NO-LEGACY carves the two long-flat zones owe.
 | **U.C5** | SmoothProgress managed-play completion — the `ManagedStepper` contract | M | vitest (smooth/spring managed-play parity) + `proof:boundary` | 13 F2 |
 | **U.C6** | **Fix two engine correctness bugs**: calling `.at()` while a frame is mid-render corrupts the shared `_out` scratch (make it per-instance); a composed animation re-parses its base pose on every capture (parse once through value.js) | S | vitest (reentrant `.at()` witness; composite-base parity) | 13 F7; 11 F6 |
 | **U.C7** | `physics/spring/` colocation — `solver/` + `css/` sub-modules | M | `proof:boundary` (both sub-modules LIGHT) + `proof:zone-cohesion` re-anchor | 16 F1; OD-U16 (the long-file carve direction) |
-| **U.C8** | `compile/emit/` + `compile/easing/` colocation — the emitter trio under one roof | L | `proof:boundary` (HEAVY preserved) + a18 FORWARD↔`emit/` re-anchor | 16 F2; 12 F3; OD-U16 (its named example — `easing-option.ts` → `compile/easing/`) |
+| **U.C8** | `compile/emit/` + `compile/easing/` colocation — the emitter trio under one roof (**absorbs P1** — the loop's carve template, frozen evidence `287-10`) | L | `proof:boundary` (HEAVY preserved) + a18 FORWARD↔`emit/` re-anchor | 16 F2; 12 F3; OD-U16 (its named example — `easing-option.ts` → `compile/easing/`); P1 (`287-10`) |
 | **U.C9** | compile backward de-accretion — `refusal-probes.ts` + >350L carves + primitive dedup | L | vitest (compileToCSS/Entry/VT emit goldens unchanged) | 12 F2/F4/F7 |
 | **U.C10** | value.js consume-edge honesty — excise dead `PARSE_ERROR`; BOOK the WAAPI unit literal | S | vitest (`validate.parseable` contract corrected) + U.F letter | 12 F1; 14 F3 |
 | **U.C11** | scroll drive symmetry — `driveScrollCSS` + dispatch de-dup + `ScrollBackend` re-home | M | vitest (scroll round-trip) + `bench` (one eligibility scan/dispatch) | 14 F4/F8 |
@@ -122,10 +134,15 @@ U.C13 (surface collapse) ── LAST of the surface work; re-arms the gate belt 
 **Edge glyphs (all Edges columns, this band):** `→` = this wave precedes/provides;
 `←` = this wave depends on; `↔` = co-scheduled/co-owned, no precedence.
 
-**Granularity note (OD-U16).** U.C7/U.C8 execute the long-file CARVE direction's two
-named instances. The opposite direction — absurdly small modules inlined-and-deleted —
-plus the per-module carve/keep/inline assay over EVERY library module, arrives from the
-convergence loop (OD-U18, band U.L); its wave set develops at 100% convergence.
+**Granularity note (OD-U16 — both directions, RATIFIED by the loop).** U.C7/U.C8 execute
+the long-file CARVE direction's two named instances (under P1's re-anchor template + R11's
+8-class sweep — the standing law above). The OPPOSITE direction — absurdly-small modules
+inlined-and-deleted — is the convergence loop's terminal yield: **P2's library constants
+fold (byte-clean at frozen evidence `287-11`) rides the constants wave** (the back-compat
+barrel dissolution, co-scheduled with U.E5), **paired with U.B14's demo half** so the
+OD-U16 both-directions ruling closes in one U.B+U.C motion, cut target-by-target from the
+P2 fold-map — never a bulk sweep. The per-module carve/keep/inline assay over EVERY library
+module IS that fold-map (OD-U18, band U.L), developed at 100% convergence.
 
 Keystones: **U.C1 first** (C2/C3 depend on the shared store). **U.C14 → U.C3 → U.C15 →
 U.C16** — the compositor re-charter sequence (OD-U14): the owned `CompositeState` store is
@@ -406,7 +423,12 @@ pass, never two.**
 ### U.C8 — `compile/emit/` + `compile/easing/` colocation: the emitter trio under one roof
 
 - **Substance (lane 16 F2 + lane 12 F3; OD-U16 — this carve lands the ruling's NAMED
-  example, `compile/easing-option.ts` → `compile/easing/`).** `compile/` is 11 flat root files + a SPLIT emitter
+  example, `compile/easing-option.ts` → `compile/easing/`). ABSORBS P1** — the convergence
+  loop's compile-easing-carve prototype (EXITED at 100 at pass 3, frozen evidence
+  `287-10`): P1 proved the carve-and-re-anchor TEMPLATE on THIS wave's hard case, so
+  U.C8's work order IS P1's executed record (the `emit/` + `easing/` homes, the a18
+  FORWARD↔`emit/` re-anchor, and the 8-class path-literal sweep — R11) replayed from the
+  frozen tree, not re-derived. `compile/` is 11 flat root files + a SPLIT emitter
   trio: three "→ zero-runtime CSS" emitters, one concern, three homes — `compileToCSS`
   (`backward/backward.ts`), `compileToEntry` (`entry.ts`, 434L, flat root), `compileToViewTransition`
   (`view-transition.ts`, 393L, flat root). The two root emitters import UPWARD into

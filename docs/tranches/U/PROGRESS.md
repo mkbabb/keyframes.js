@@ -9,16 +9,16 @@
 | Band | Title | State |
 |---|---|---|
 | U.A | THE APPARATUS DISSOLUTION | CHARTERED |
-| U.B | THE DEMO TRANSPOSITION | CHARTERED |
-| U.C | THE LIBRARY TRANSPOSITION | CHARTERED |
+| U.B | THE DEMO TRANSPOSITION | **CHARTERED-CONVERGED** — the loop's keystone (N1) + recut template (P5) + U.B14 small-module-inline (P2) folded |
+| U.C | THE LIBRARY TRANSPOSITION | **CHARTERED-CONVERGED** — U.C8 absorbs P1 (`287-10`); the P1/R11/R21 standing-law header + P2's constants fold folded |
 | U.D | THE PERFORMANCE FRONTIER | CHARTERED |
-| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | CHARTERED |
-| U.F | CONSTELLATION COVENANTS | CHARTERED |
+| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
+| U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
 | U.G | THE DESIGN CODEX | CHARTERED |
 | U.H | THE TEST SUBSTRATE (FIRST) | CHARTERED |
 | U.R | PROMPT-RECAP-U (STANDING) | CHARTERED |
-| U.L | THE CONVERGENCE LOOP (Track A + Track B) | STANDING — ratified OD-U18; Track A + Track B pass 1 RUN; the OD-U15/U16/U17 wave sets develop at 100% convergence |
-| U.Z | THE CLOSE | CHARTERED |
+| U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
+| U.Z | THE CLOSE | **CHARTERED-CONVERGED** — the four loop sweep witnesses (§①.6 grep · §4 residue · CLAUDE.md · red-on-plant) fold into the certifying sweep |
 
 **IMPL NOT AUTHORIZED** — development only, per the edict's own clause.
 
@@ -145,3 +145,33 @@
   C-band edge glyphs harmonized (→ precedes / ← depends / ↔ co-scheduled, stated
   once) killing the false 2-cycles (C1↔C3, C9↔C10, C11↔C13) and the one-sided
   C14→C16 edge.
+- **2026-07-10** — **THE CONVERGENCE LOOP TERMINATED (OD-U18) + THE WAVE-SET DEVELOPMENT
+  ORDER RATIFIED AND FOLDED.** Track B ran **five passes** (overall convergence
+  73 → 97 → 96 → 98.4 → **98.8%**; ~7.9M subagent tokens across the research / prototype /
+  critique / agglomerator fleets) and TERMINATED at pass 5 (`loop/PASS-5.md` — the RATIFIED
+  "## The wave-set development order"). **Nine of the ten scored items stand at 100**
+  (P1–P6, N1, N3, SPEC-B5); the one non-100 is **N2 at 88** — its cures green and
+  independently verified twice (the critique's 13/13 + the agglomerator's `proof:bench-taxonomy`
+  PASS), its residue a fully-measured, line-located, disposition-named comment/prose class
+  **chartered into the meta-legacy wave (U.E9) under ruling 23**, witnessed by U.Z's
+  certifying sweep (the un-earned 12 points convert to chartered impl work, never a
+  self-certified 100 — the exact failure mode the loop existed to prevent). **The yield:**
+  nine frozen evidence worktrees (`wf_ca7d0632-287-{10,11,12,16,17,18}` = P1–P6;
+  `wf_645e7d37-d7f-{11,12,13}` = P7/N1 · P8/N2 · P9/N3, EVIDENCE never merged), four
+  work-order artifacts (`N1-MOVE-SCRIPT.md`, `N2-DELETION-LEDGER.md`, `N3-EXCISION-LEDGER.md`,
+  `loop/P3-FOLD-MAP.md`), **25 binding rulings**, and **SPEC-B5** as the governing spec
+  (16 errata measured — E14 books D-GAP-5/6 to U.F, E15 the seven-subpath truth, E16
+  `components.json` rm + sweep-as-measurement). **The wave-set development order (PASS-5 §7)
+  is RATIFIED and FOLDED into the corpus:** `U.md` §2/§3 (the U.B keystone now cites
+  `N1-MOVE-SCRIPT.md` §①–⑤ verbatim; the new **U.B14** small-module-inline wave; the
+  ratified impl-sequencing line) + new **§7** (the loop's yield); `waves/U.B.md` (B1 = the
+  N1 move script verbatim; U.B14; P5's recut TEMPLATE on transport / editors / scenes);
+  `waves/U.C.md` (U.C8 absorbs P1 `287-10`; the P1/R11/R21 standing-law header; the
+  constants fold on P2's byte-clean evidence `287-11`); `waves/U.E.md` (U.E7 = P3's
+  fold-map, U.E8 = P4's suppression-dies-by-fixing archetype, new **U.E9** meta-legacy =
+  N2's §§1+4 + the ruling-23 residue, new **U.E10** dogfood = N3's §§1–3 + R20);
+  `waves/U.F.md` (the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth);
+  `waves/U.Z.md` (the four loop sweep witnesses on the terminal tree). **The owner-ride
+  queue of FOUR** (`demo/DESIGN.md` KEEP · the `@`-dissolution one-word confirm · D1 easing
+  canonicality · D5 oklab eyeball) **is the ONLY thing between the corpus and impl
+  authorization** — which remains NOT authorized (ring-fence 4).
