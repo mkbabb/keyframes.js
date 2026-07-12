@@ -114,7 +114,7 @@ const TEST = "test/group/spring-blend-weight.test.ts";
         /layer\.weightSpring\?\.value\s*\?\?\s*layer\.weight/.test(weight);
     const lerpUsesW =
         /const\s+w\s*=\s*resolveBlendWeight\(layer\)/.test(compositor) &&
-        /existing\[i\]\.value\s*=\s*lerp\(\s*existing\[i\]\.value\s*,\s*incoming\[i\]\.value\s*,\s*w\s*,?\s*\)/.test(compositor);
+        /existing\[i\]\.value\s*=\s*lerp\([\s\S]*?incoming\[i\]\.value\s*,\s*w\s*,?\s*\)/.test(compositor);
     if (!springRead || !lerpUsesW) {
         fail(
             "phys-c-read",

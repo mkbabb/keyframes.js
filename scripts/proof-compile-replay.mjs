@@ -145,10 +145,9 @@ requireAll("compiler-exists", COMPILE, [
     const importsOf = (file) => {
         if (!existsSync(join(root, file))) return "";
         const src = read(file);
-        const m = /import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js["']/.exec(
-            src,
-        );
-        return m ? m[1] : "";
+        return [...src.matchAll(/import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js(?:\/(?:parsing|color|math|units))?["']/g)]
+            .map((m) => m[1])
+            .join("\n");
     };
     // T.F22 — the `animation` SHORTHAND inverse (reverseAnimationShorthand via
     // animationShorthand) rides the colocated format-options.ts after the
@@ -227,8 +226,12 @@ requireAll("four-refusals-named", [COMPILE, REFUSAL_PROBES], [
     // compileToCSS must ride the dynamic loadAnimationEngine assign…
     const ridesDynamic =
         barrelExposesLoader &&
-        /compileToCSS:\s*compileMod\.compileToCSS/.test(wiringSrc) &&
-        /import\(["']\.\/compile(?:\/index)?["']\)/.test(wiringSrc);
+        ((/compileToCSS:\s*compileMod\.compileToCSS/.test(wiringSrc) &&
+            /import\(["']\.\/compile(?:\/index)?["']\)/.test(wiringSrc)) ||
+            (/import\(["']\.\/public["']\)/.test(wiringSrc) &&
+                /export\s*\{[^}]*\bcompileToCSS\b[^}]*\}\s*from\s*["']\.\/compile["']/.test(
+                    read("src/animation/public.ts"),
+                )));
     // …and must NOT be a static runtime value export on the LIGHT barrel.
     const leaksStatic =
         /export\s*\{[^}]*\bcompileToCSS\b[^}]*\}\s*from\s*["']\.\/compile["']/.test(

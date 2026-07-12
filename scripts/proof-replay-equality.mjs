@@ -168,7 +168,7 @@ const requireAll = (clause, file, anchors) => {
     // pair carrying the value.js runtime import.
     const importFrom = (rel) => {
         const src = existsSync(join(root, rel)) ? read(rel) : "";
-        const m = /import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js["']/.exec(
+        const m = /import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js(?:\/parsing)?["']/.exec(
             src,
         );
         return m ? m[1] : "";

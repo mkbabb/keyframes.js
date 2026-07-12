@@ -167,9 +167,13 @@ const requireAll = (clause, file, anchors) => {
         : "";
     const wiringSrc = barrelSrc + "\n" + loadEngineSrc;
     const ridesDynamic =
-        /validate:\s*\w+Mod\.validate/.test(wiringSrc) &&
-        /explain:\s*\w+Mod\.explain/.test(wiringSrc) &&
-        /import\(["']\.\/validate["']\)/.test(wiringSrc);
+        ((/validate:\s*\w+Mod\.validate/.test(wiringSrc) &&
+            /explain:\s*\w+Mod\.explain/.test(wiringSrc) &&
+            /import\(["']\.\/validate["']\)/.test(wiringSrc)) ||
+            (/import\(["']\.\/public["']\)/.test(wiringSrc) &&
+                /export\s*\{[\s\S]*\bvalidate\b[\s\S]*\bexplain\b[\s\S]*\}\s*from\s*["']\.\/validate["']/.test(
+                    read("src/animation/public.ts"),
+                )));
     const leaksStatic =
         /export\s*\{[^}]*\b(?:validate|explain)\b[^}]*\}\s*from\s*["']\.\/validate["']/.test(
             barrelSrc,

@@ -147,7 +147,7 @@ requireAll("in-place-blend", GROUP, [
 // ── lerp-live — the lerp import is live (its weighted call-site is reached) ───
 {
     const src = read(GROUP);
-    const imported = /import\s*\{[\s\S]*?\blerp\b[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js(?:\/math)?["']/.test(
+    const imported = /import\s*\{[^}]*\blerp\b[^}]*\}\s*from\s*["']@mkbabb\/value\.js(?:\/math)?["']/.test(
         src,
     );
     const called = /=\s*lerp\(/.test(src);
