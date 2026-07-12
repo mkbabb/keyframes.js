@@ -124,6 +124,11 @@ export class SpringProgress implements SpringPlayback {
     /** @internal (S.B5) — the bound per-frame callback (`play` sets, `stop` clears). */
     _onFrame: SpringFrameCallback | undefined = undefined;
 
+    /** @internal — ManagedStepper callback projection. */
+    _emitManagedFrame(): void {
+        this._onFrame?.(this.value, this.velocity);
+    }
+
     constructor(options?: Partial<SpringProgressOptions>) {
         this.options = { ...defaultSpringOptions, ...options };
 
