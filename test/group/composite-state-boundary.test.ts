@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { AnimationGroup } from "../../src/animation/group";
+import { CompositeState } from "../../src/animation/group/composite-state";
 import { compositeFramesAt } from "../support/group-probe";
 
 const scalar = (out: Record<string, unknown>, key: string) =>
@@ -13,6 +14,30 @@ const multi = (css: string, t: number) => {
 };
 
 describe("U.C14 owned CompositeState", () => {
+    it("keeps grouped properties shape-stable while contributions change", () => {
+        const state = new CompositeState();
+        state.configure(["opacity"]);
+        state.clear();
+        state.copy("opacity", [{ value: 1, clone: () => ({ value: 1 }) }]);
+        state.pruneInactive();
+        const keys = Object.keys(state.values);
+        state.clear();
+        state.pruneInactive();
+        expect(Object.keys(state.values)).toEqual(keys);
+        expect(state.values.opacity).toBeUndefined();
+    });
+
+    it("excludes disabled layers from the grouped-key union", () => {
+        const base = multi("from{opacity:0}to{opacity:1}", 500);
+        const disabled = multi("from{left:0px}to{left:20px}", 500);
+        const group = new AnimationGroup<any>(
+            { animation: base },
+            { animation: disabled, layer: { enabled: false } },
+        );
+        compositeFramesAt(group, 0);
+        expect(Object.keys(group._grouped)).toEqual(["opacity"]);
+    });
+
     it.each(["add", "weighted"] as const)(
         "keeps the %s contribution live after a segment boundary",
         (blendMode) => {

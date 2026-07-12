@@ -6,22 +6,29 @@ type CloneableUnit = ValueUnit<unknown> & { clone(): ValueUnit<unknown> };
 export class CompositeState {
     readonly values: Record<string, unknown> = {};
     private keys: string[] = [];
-    private readonly active = new Set<string>();
+    private readonly epochs: Record<string, number> = Object.create(null) as Record<string, number>;
+    private epoch = 0;
 
     configure(keys: string[]): void {
         const next = new Set(keys);
         for (const key of this.keys) {
+            // Structural reconfiguration is outside the frame hot path; drop
+            // keys that no longer belong to the declared union so serializers
+            // never observe a stale field after layer removal.
             if (!next.has(key)) delete this.values[key];
         }
         this.keys = keys;
     }
 
     clear(): void {
-        this.active.clear();
+        // Advance the contributed epoch instead of deleting properties. The
+        // compositor's grouped object therefore keeps its fast-property shape
+        // across disabled-layer toggles and other frame-local absences.
+        this.epoch++;
     }
 
     copy(key: string, incoming: unknown): unknown {
-        this.active.add(key);
+        this.epochs[key] = this.epoch;
         if (!Array.isArray(incoming)) {
             this.values[key] = incoming;
             return incoming;
@@ -50,7 +57,7 @@ export class CompositeState {
 
     pruneInactive(): void {
         for (const key of this.keys) {
-            if (!this.active.has(key)) delete this.values[key];
+            if (this.epochs[key] !== this.epoch) this.values[key] = undefined;
         }
     }
 }
