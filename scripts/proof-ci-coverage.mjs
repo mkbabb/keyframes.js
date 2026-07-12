@@ -153,7 +153,7 @@ for (const name of WORKFLOWS) {
     }
 }
 
-// ── clause 0 (F.W2): every proof:* gate is invoked in CI ──────────────────────
+// ── clause 0 (U.A1): every proof:* gate is reachable from a tier ─────────────
 const EXCLUDED = new Set([
     // (proof:easing-curve-editor + proof:easing-sidebar-minimal left this set at
     //  the easing TERMINAL batch — RETIRED with their deleted subject (T.E6/T.E8,
@@ -316,32 +316,52 @@ const EXCLUDED = new Set([
 ]);
 
 const gates = Object.keys(pkg.scripts)
-    .filter((s) => s.startsWith("proof:") && !EXCLUDED.has(s))
+    .filter((s) => s.startsWith("proof:"))
     .sort();
 
-// S.A2 — a gate is CI-invoked if it appears as an `npm run proof:*` line in
-// ci.yml OR it is a member of the demo roster (scripts/demo-roster.mjs), which
-// the demo-correctness job runs as ONE report-all step (the net-deletion). The
-// roster is thus a first-class CI-invocation surface, not a coverage hole.
-const rosterCovered = new Set(ALL_DEMO_GATES);
-const missing = gates.filter(
-    (g) => !ci.includes(`npm run ${g}`) && !rosterCovered.has(g),
+// U.A1 inverts the old hand-enumerated CI contract. A gate's local authority is
+// its tier membership; CI is a consumer of that tier, not the source of truth.
+// Aggregators are not leaves, and EXCLUDED entries remain explicitly recorded
+// tripwires until their owning wave discharges them. The tier chains are parsed
+// below in clause 0b, so this clause reports tier reachability directly.
+const aggregators = new Set([
+    "proof:all",
+    "proof:all:demo",
+    "proof:library-correctness",
+    "proof:demo-correctness",
+    "proof:hygiene",
+    "proof:hygiene-chain",
+    "proof:observed",
+    "proof:observed-chain",
+]);
+const tierText = [
+    pkg.scripts["proof:library-correctness"],
+    pkg.scripts["proof:demo-correctness"],
+    pkg.scripts["proof:hygiene-chain"],
+    pkg.scripts["proof:observed-chain"],
+].filter(Boolean).join(" ");
+const tierLeaves = new Set(
+    [...tierText.matchAll(/proof:[a-z0-9-]+/g)].map((m) => m[0]),
 );
-
-if (missing.length > 0) {
+const unreachable = gates.filter(
+    (g) => !aggregators.has(g) && !EXCLUDED.has(g) && !tierLeaves.has(g),
+);
+if (unreachable.length > 0) {
     failures.push(
-        "coverage — these proof:* gates are declared in package.json but NEVER " +
-            "invoked in ci.yml (nor in the demo roster): " +
-            missing.join(", ") +
-            ". An authored-but-unrun gate is a coverage lie — wire it into the " +
-            "`gates` job (library-scoped), the `demo-device-observe` job, or the " +
-            "demo-correctness roster (scripts/demo-roster.mjs), per F.W2.",
+        "tier-reachability — proof:* leaves are declared but unreachable from " +
+            "proof:library-correctness / proof:demo-correctness / proof:hygiene: " +
+            unreachable.join(", ") +
+            ". Add each leaf to its owning tier or record an explicit retirement; " +
+            "CI step presence is no longer the authority (U.A1).",
     );
 } else {
+    const ciInvoked = new Set(
+        [...ci.matchAll(/npm run (proof:[a-z0-9-]+)/g)].map((m) => m[1]),
+    );
     passes.push(
-        `coverage — all ${gates.length} proof:* gates are invoked in CI ` +
-            `(${EXCLUDED.size} recorded exclusions; ${rosterCovered.size} via the ` +
-            `demo-correctness roster + demo-device-observe); the inv-tagged gates run.`,
+        `tier-reachability — all ${gates.length - aggregators.size} proof:* leaves are ` +
+            `reachable from a correctness/hygiene tier; CI currently consumes ` +
+            `${ciInvoked.size} npm-run entries (U.A1 inverted contract).`,
     );
 }
 
