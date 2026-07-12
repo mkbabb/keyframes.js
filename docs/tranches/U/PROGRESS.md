@@ -9,7 +9,7 @@
 | Band | Title | State |
 |---|---|---|
 | U.A | THE APPARATUS DISSOLUTION | CHARTERED |
-| U.B | THE DEMO TRANSPOSITION | **CHARTERED-CONVERGED** — the loop's keystone (N1) + recut template (P5) + U.B14 small-module-inline (P2) folded |
+| U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **CHARTERED-CONVERGED** — U.C8 absorbs P1 (`287-10`); the P1/R11/R21 standing-law header + P2's constants fold folded |
 | U.D | THE PERFORMANCE FRONTIER | CHARTERED |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
@@ -25,6 +25,21 @@ green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
 
+- **2026-07-12** — **U.B1 KEYSTONE COMPLETE.** The canonical-home dissolution
+  (`969990f6`) removed `demo/@`, `components/custom`, and `components.json`,
+  re-anchoring the 72-file measurement across all three alias planes, tests,
+  gates, and live prose; only the nine provenance files retain the old spelling.
+  The dock moved out of the app shell (`ddca40d1`), and shared SceneFacility /
+  scene-runtime contracts plus app lifecycle guards reached their terminal
+  homes (`27073789`). Each stage independently passed `npm run check`, both
+  Vitest projects, and its named structural gates. Three frozen-script premises
+  were measured false and amended rather than inherited: Step ① had assumed the
+  dock prototype already landed; the custom-path count was 28 sites / 22 files,
+  not 26 / 20; and Step ④'s intermediate P5 shape would immediately be moved
+  again by U.B2. Accordingly P5's ChannelGroup/ChannelControls/ChannelOptions
+  semantics land directly in U.B2's terminal owner modules, while skeleton,
+  barrel, editor, shell, and inline work remains with B10/B12/B4/B5/B14. The
+  CLAUDE.md delete-last act remains U.E7 with its redistribution/fold-map.
 - **2026-07-12** — **THE U IMPL DRIVE OPENED; U.H COMPLETE.** Forked
   `tranche-u-impl` from green master, merged the ratified corpus (`0b423142`),
   and landed the required pre-move test substrate in three isolated lanes.

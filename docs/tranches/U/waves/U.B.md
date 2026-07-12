@@ -1,6 +1,10 @@
 # Tranche U — Band U.B — THE DEMO TRANSPOSITION
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: IN PROGRESS (2026-07-12).** U.B1's canonical-home keystone is
+> complete through the home, dock, and singleton/runtime moves
+> (`969990f6..27073789`). The measured-refutation law folded the frozen Step ④
+> transport semantics into U.B2's terminal recut and retained Step ⑤ as U.E7's
+> redistribute/readers/delete-last work order, avoiding two transient moves.
 >
 > **Charter sentence (U.md §2, the U.B row — RE-CUT per OD-U2, 2026-07-10).**
 > Keystone-first move: the component CORE redesigned to the glass-ui post-BH idiom
