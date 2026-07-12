@@ -71,6 +71,8 @@ jobs:
               run: npx playwright install --with-deps chromium
             - name: build demo
               run: npm run gh-pages
+            - name: publish artifact boundary (post-build)
+              run: npm run proof:publish
             - name: demo roster (report-all)
               run: npm run demo:correctness -- --gate-timeout=600
               env:
