@@ -1,15 +1,13 @@
-// proof:ci-coverage — F.W2 (wire proof:all into CI) + G.W6 (workflow hygiene).
+// proof:ci-coverage — U.A1 tier reachability + G.W6 workflow hygiene.
 //
 // The gate's conceptual scope WIDENED at G.W6 from "ci-coverage" to "workflow
 // hygiene": it now reads ALL THREE workflows (ci.yml + release.yml +
 // deploy-pages.yml) and folds four findings into ONE self-policing instrument.
 //
-// CLAUSE 0 (F.W2) — coverage, FORWARD: every `proof:*` gate declared in
-//   package.json MUST be invoked by the CI workflow. Three inv-tagged gates
-//   (proof:dogfood/inv ζ, proof:demo-elevate/inv ο, proof:modern-web) +
-//   proof:platform-adopt previously had ZERO matches in ci.yml — authored but
-//   never run, the exact gate-coverage hole the retro named. Drop any proof:*
-//   from ci.yml → it reds.
+// CLAUSE 0 (U.A1) — coverage, FORWARD: every non-aggregator `proof:*` leaf
+//   declared in package.json MUST be reachable from an owning tier. CI consumes
+//   those tiers; its hand-enumerated step list is no longer the source of truth.
+//   This is transitional: A2–A6 collapse the old roster and retire this gate.
 // CLAUSE 0b (J.W3 S3b · THREE-TIER at S.A4) — coverage, CONVERSE: every `npm run
 //   proof:*` step that gates ci.yml MUST be reachable from `proof:all` (= the
 //   proof:library-correctness ∪ proof:demo-correctness ∪ proof:hygiene chains),
@@ -265,7 +263,6 @@ const EXCLUDED = new Set([
     "proof:stage-inventory",
     "proof:subject-legible",
     "proof:subject-full",
-    "proof:roster-ceiling",
     // T.M3 — proof:owner-golden, the owner-anchored perceptual reference oracle
     // (supersedes proof:visual-lock's self-baseline). BORN-RED + BORN-OWNER: its
     // green is UNREACHABLE without a committed owner BLESSING token over the 12

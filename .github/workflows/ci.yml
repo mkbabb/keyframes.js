@@ -153,10 +153,6 @@ jobs:
               run: npm run proof:owner-review-gate
             - name: proof:gate-authority (T.M6 — the INSTRUMENT/OWNER authority axis + blocking-not-OBSERVE)
               run: npm run proof:gate-authority
-            - name: proof:retirement-ledger (T.M7 — feature-coupled retirement, derive-from-tree)
-              run: npm run proof:retirement-ledger
-            - name: proof:board-live (T.M9 — board↔tree + session-log freshness)
-              run: npm run proof:board-live
             - name: proof:prompt-recap-u (U.R2 — the tree-cleared recap witness)
               run: npm run proof:prompt-recap-u
             # S.C1 — the GENERALIZED breaking-set MIGRATION-doc oracle (C-18): git-
@@ -322,8 +318,6 @@ jobs:
             # the SYMMETRIC clause asserts every proof:library-correctness member carries NO
             # browser harness (mis-tier reds BOTH ways). A source-shape / load-rest / proxy
             # §Hard gate FAILS. HYGIENE-tier itself (it reads gate SCRIPTS) — static, no build.
-            - name: "[HYGIENE-meta] proof:gate-is-runtime (I.W7 S6 · S.A4 — every demo-correctness gate is an actuating runtime gate + every library-correctness gate is harness-free · mis-tier reds both ways)"
-              run: npm run proof:gate-is-runtime
             # I.W7 S4 + S.A1 — proof:chronic-closure: parse the canonical chronic table
             # (docs/tranches/S/PROGRESS.md §"Open deferrals", which SUPERSEDES R's, the
             # R→S re-point) and assert each kf-runtime-closing row exits via a RUNTIME gate
@@ -342,10 +336,6 @@ jobs:
             # The gate exits 0 on the merged tree, so it JOINS the blocking gates job here
             # (this step re-wired in the same commit its EXCLUDED entry + T_BORNRED_BACKLOG
             # row are deleted — drive clause 7) + stays a proof:hygiene-chain member.
-            - name: proof:chronic-closure (I.W7 S4 · S.A1 → T.S1 — the S chronic ledger closes to RUNTIME + SUBSTANCE discipline; DISCHARGED, now blocking)
-              run: npm run proof:chronic-closure
-            - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
-              run: npm run proof:ci-coverage
             # M.W1 — proof:report-all: the parallel report-all runner meta-gate.
             # Plants a real multi-red tree + observes that scripts/run-all.mjs
             # (the new proof:all) surfaces EVERY red in ONE pass (the serial `&&`

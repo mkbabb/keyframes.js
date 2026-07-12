@@ -139,15 +139,12 @@ if (overlap2 && !overlap1)
     ok("C5 concurrency: --workers=2 OVERLAPS the two sleepers; --workers=1 serialises them");
 else bad(`C5 concurrency — expected overlap@2 & no-overlap@1; got overlap2=${overlap2} overlap1=${overlap1}`);
 
-// ── C6 — membership: the real meta-gates still green (tier rosters survive) ───
-const gir = spawnSync("npm", ["run", "proof:gate-is-runtime"], { cwd: REPO, encoding: "utf8" });
+// ── C6 — membership: the surviving coverage oracle stays green ────────────────
 const cic = spawnSync("npm", ["run", "proof:ci-coverage"], { cwd: REPO, encoding: "utf8" });
-if (gir.status === 0 && cic.status === 0)
-    ok("C6 membership: proof:gate-is-runtime + proof:ci-coverage still GREEN (the parseable tier rosters survive the topology change)");
+if (cic.status === 0)
+    ok("C6 membership: proof:ci-coverage GREEN (tier reachability survives the topology change)");
 else
-    bad(
-        `C6 membership — a meta-gate red after the refactor: gate-is-runtime=${gir.status} ci-coverage=${cic.status}`,
-    );
+    bad(`C6 membership — proof:ci-coverage red after the refactor: status=${cic.status}`);
 
 console.log(
     fails === 0

@@ -661,18 +661,6 @@ export const T_BORNRED_BACKLOG = {
     //  same commit, drive clause 7. The blur half of VERDICT #19 stays
     //  proof:blur-not-resampled's (an fps toggle; the compositor cost is invisible to
     //  these main-thread CDP counters).)
-    "proof:roster-ceiling": {
-        dischargedBy: "T.M7 retirements + the FROZEN discharge fold (converges as bands delete keys)",
-        reason:
-            "the count clause reds while the proof:* roster exceeds the declared ceiling " +
-            `(${ROSTER_CEILING}); today 228 (the easing TERMINAL batch retired NINE keys — the ` +
-            "seven surface-locks + easing-curve-editor + demo-control-point — and authored ONE " +
-            "(proof:easing-gallery, the OD-7 OWNER oracle): 236-era count → 228 net; each " +
-            "altitude band had kept authoring MORE born-RED oracles than the M7 retirements " +
-            "removed, so the count converges SLOWLY). It CONVERGES as the remaining M7 " +
-            "feature-coupled retirements (crayon, icon-paint-live) + the FROZEN discharge land " +
-            "— a declared backlog, not a mask.",
-    },
     // (proof:easing-curve-editor + proof:easing-sidebar-minimal — the two
     //  BACKLOGGED easing surface-locks — DISCHARGED at the easing TERMINAL batch
     //  (T.E6/T.E8, OD-7 APPROVED): their subject (the hand-rolled
