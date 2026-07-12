@@ -11,7 +11,7 @@
 | U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta gates are deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. Remaining gate-band and ledger rehoming stays routed. |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; B9 runtime homes and B14 first fold target now landed; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
-| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D5 now defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live; D4 vector drag remains pending |
+| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D4's shared vector facet is carved and the ceiling is green, while the pointer-aware drag fusion remains routed; D5 defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
 | U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
@@ -106,6 +106,14 @@ green master and the ratified corpus merged at `0b423142`.
   `useDemoTicker` moved into the transport composables tier. The shared-consumer
   census is now green with no single-area shared leaves; demo tests remain
   24 files/141 tests green and `gh-pages` builds.
+
+- **2026-07-12** — **U.D4 VECTOR-FACET CARVE.** The scalar `SpringProgress`
+  tracker now delegates lane-buffer lifecycle and dispatch to the dedicated
+  LIGHT `vector-surface.ts` helper. The public vector API is unchanged, the
+  focused spring suite is 23/23, and `proof:decomposition` now passes all 139
+  library-file ceilings. The larger drag2D pointer/release fusion remains a
+  separate routed seam because the current vector kernel has no pointer-aware
+  bounds/snap/reseat contract.
 
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
   is deleted from the package/hygiene chain; `run-all` remains the executable
