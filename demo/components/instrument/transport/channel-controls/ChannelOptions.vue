@@ -254,11 +254,11 @@ import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
-import PlaybackRibbon from "./PlaybackRibbon.vue";
+import PlaybackRibbon from "../controls/PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
-import { useAnimationSync } from "../composables/useAnimationSync";
-import { usePlaybackToggle } from "../composables/usePlaybackToggle";
-import { useTimingFunctionEditor } from "../composables/useTimingFunctionEditor";
+import { useAnimationSync } from "./composables/useAnimationSync";
+import { usePlaybackToggle } from "./composables/usePlaybackToggle";
+import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 // T.E8 — the named-curve catalogue (the thin name→family data adapter the
 // deleted EasingSelect consumed; the easing scene co-owns it).
 import { EASING_GROUPS } from "../../../../scenes/easing/easingGroups";

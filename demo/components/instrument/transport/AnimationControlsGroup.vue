@@ -123,7 +123,7 @@ import { computed, onMounted, reactive, useTemplateRef, watchEffect } from "vue"
 import { TooltipProvider } from "@mkbabb/glass-ui";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 
-import ControlsPaneWrapper from "./components/ControlsPaneWrapper.vue";
+import ControlsPaneWrapper from "./controls-pane/ControlsPaneWrapper.vue";
 import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
 import TransportDock from "./TransportDock.vue";
 

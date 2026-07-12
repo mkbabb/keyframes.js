@@ -100,7 +100,7 @@
                     data-state="active"
                     tabindex="0"
                 >
-                    <AnimationControlsControls
+                    <ChannelOptions
                         :animation="animation"
                         :is-playing="isPlayingProp"
                         :layer-config="layerConfig"
@@ -110,7 +110,7 @@
                         @layer-config-update="(v) => emit('layerConfigUpdate', v)"
                         @scrub-start="emit('scrubStart')"
                         @scrub-end="emit('scrubEnd')"
-                    ></AnimationControlsControls>
+                    ></ChannelOptions>
                 </div>
 
                 <!-- B-2 (CWV/INP): FORCE-MOUNT the Monaco-heavy keyframes pane and
@@ -211,7 +211,7 @@
 // host's plain gated panel divs (which carry `role=tabpanel` + `data-state`), and
 // the `.tab-trigger-*` classes survive for the scene tab triggers that still
 // reference them (a cross-cluster follow-on migrates those).
-import "./tab-trigger.css";
+import "../controls/tab-trigger.css";
 
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
@@ -239,9 +239,9 @@ import {
 } from "vue";
 import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "@lucide/vue";
-import { useTabStripScroll } from "../composables/useTabStripScroll";
-import { useKeyframesPaneReveal } from "../composables/useKeyframesPaneReveal";
-import { useSelectedControlSurface } from "../composables/useSelectedControlSurface";
+import { useTabStripScroll } from "./composables/useTabStripScroll";
+import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
+import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
     useSceneMachine,
     BUILT_IN_SURFACES,
@@ -251,7 +251,7 @@ import {
 
 const KeyframesStringControls = defineAsyncComponent(() => import("../../keyframes/KeyframesStringControls.vue"));
 const KeyframeTimeline = defineAsyncComponent(() => import("../../timeline/KeyframeTimeline.vue"));
-import AnimationControlsControls from "./AnimationControlsControls.vue";
+import ChannelOptions from "./ChannelOptions.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 
 const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = defineProps<{
@@ -453,4 +453,3 @@ defineExpose({
     }
 }
 </style>
-

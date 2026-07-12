@@ -39,7 +39,7 @@
         >
             <div class="controls-content h-full flex flex-col">
                 <!-- J.W2 S2 — the v-for is KEYED by the animation name so an
-                     AnimationControls instance is BORN with its animation (and
+                     ChannelControls instance is BORN with its animation (and
                      dies with it). T.B1-β STAGE 1 — the hosts derive from the
                      CHANNEL axis when the scene exposes a facility. -->
                 <template
@@ -47,7 +47,7 @@
                     :key="host.animation.id"
                 >
                     <div v-show="storedControls.selectedAnimation == host.name">
-                        <AnimationControls
+                        <ChannelControls
                             :ref="(el: any) => { if (el) animControlRefs[host.name] = el }"
                             @slider-update="(v) => emit('sliderUpdate', v)"
                             @keyframes-update="(v) => emit('keyframesUpdate', v)"
@@ -82,7 +82,7 @@
                                     :is-playing="isPlaying"
                                 ></slot>
                             </template>
-                        </AnimationControls>
+                        </ChannelControls>
                     </div>
                 </template>
 
@@ -166,7 +166,7 @@ import { Drawer, DrawerContent, DrawerTitle } from "@mkbabb/glass-ui/drawer";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
 import { computed, useTemplateRef } from "vue";
 import type { TransportChannel } from "../transportSource";
-import AnimationControls from "../controls/AnimationControls.vue";
+import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import { usePaneRegister } from "../ControlsPaneWrapper/usePaneRegister";
 import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
