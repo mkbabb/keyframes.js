@@ -80,7 +80,7 @@
                             class="seq-row"
                             :style="{
                                 '--ball-tone': ROW_TONES[row.index],
-                                '--row-start': clamp01(row.at / demo.STAGGER_MAX),
+                                '--row-start': clamp(row.at / demo.STAGGER_MAX, 0, 1),
                                 '--row-index': row.index,
                             }"
                         >
@@ -133,6 +133,7 @@
 
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from "vue";
+import { clamp } from "@mkbabb/value.js/math";
 import { useTypedTrigger } from "./useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
 // J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0).
@@ -149,8 +150,6 @@ import SequencePlayhead from "./SequencePlayhead.vue";
 import SequenceAxis from "./SequenceAxis.vue";
 
 const demo = inject(SEQUENCE_DEMO_KEY)!;
-
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 // J.W7c C-SEQ-2 (U6) — the axis-ruler quarter marks. Labels = `q × STAGGER_MAX`
 // ms, so the time grid is NAMED from the same domain the handles + playhead ride
@@ -216,7 +215,7 @@ const { onPointerDown: onRowScrubDown } = useDragScrub({
         const el = i == null ? null : rowEls[i];
         if (i == null || !el) return 0;
         const rect = el.getBoundingClientRect();
-        const ratio = clamp01((e.clientX - rect.left) / rect.width);
+        const ratio = clamp((e.clientX - rect.left) / rect.width, 0, 1);
         return ratio * demo.STAGGER_MAX;
     },
     onScrub: (at) => {
