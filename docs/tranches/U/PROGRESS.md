@@ -12,7 +12,7 @@
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D5 now defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live; D4 vector drag remains pending |
-| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; only D1 owner-ridden and D8/D9 documented keeps remain |
+| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
 | U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
@@ -92,6 +92,14 @@ green master and the ratified corpus merged at `0b423142`.
   `proof:scene-colocated` pass. `proof:decomposition` still reports the
   pre-existing 502-line spring-progress ceiling, so no broader decomposition
   claim is made; remaining fold-map rows stay target-by-target.
+
+- **2026-07-12** — **U.E VJ-L2 SCAFFOLD DISCHARGE.** The round-trip suite's
+  `vjL2LinearLanded` feature probe and `skipIf` arm were stale: value.js 3.1.0
+  already supplies the VJ-L2 canonical serializer, while its parser never
+  promised to accept the synthetic flat-comma form. The pending machinery and
+  contradictory witness were deleted; the live canonical spring round-trip
+  remains unconditional and green. This closes the internal deferral without
+  changing the value.js consume edge or the glass-ui hold.
 
 - **2026-07-12** — **U.A1 COVERAGE-CONTRACT INVERSION.** The transitional
   coverage contract now derives authority from correctness/hygiene tier
