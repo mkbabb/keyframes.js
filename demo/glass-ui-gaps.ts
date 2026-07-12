@@ -88,7 +88,7 @@ export const GLASS_UI_GAPS = {
             "pointerdown; the press-scale reflow (scale:.96) drops the native click",
         glassCap: "dockDropdownPointerdown",
         fixVersion: "@mkbabb/glass-ui BG/BH (DockDropdownTrigger pointerdown parity)",
-        workaroundSites: ["demo/app/dock/MbabbMenu.vue"],
+        workaroundSites: ["demo/components/dock/MbabbMenu.vue"],
         acceptanceGate: "proof:dock-popover-opens",
     },
     dockDismissHold: {
@@ -98,7 +98,7 @@ export const GLASS_UI_GAPS = {
             "open popover — the hold contract does not cover its own dismiss path",
         glassCap: "dockDismissHold",
         fixVersion: "@mkbabb/glass-ui BG/BH (dismiss-pointerdown respects keepOpen)",
-        workaroundSites: ["demo/app/dock/ChromeDock.vue"],
+        workaroundSites: ["demo/components/dock/ChromeDock.vue"],
         acceptanceGate: "proof:workaround-deletion",
     },
     drawerDetentInset: {

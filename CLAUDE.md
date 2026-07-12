@@ -57,7 +57,8 @@ demo/                # Vue 3 demo (see demo/CLAUDE.md)
 ├── state/           # Global scene/control state
 ├── styles/          # Global tokens, layout, and design idioms
 ├── utils/           # Shared clipboard and engine-loader helpers
-├── app/             # THE multi-scene SPA (npm run dev / gh-pages): router + scene machine + App shell + chrome/ dock
+├── app/             # THE multi-scene SPA (npm run dev / gh-pages): router + scene machine + App shell
+├── components/      # Shared components, including the dock/ module
 └── scenes/          # Fused per-scene dirs (R.W5) — scenes/<name>/ for amiga · cube · easing · sequence · spring · square (6 scenes; compose · morph · motion-path PRUNED at T.E1/T.E3, OD-1 = PRUNE): each holds <Name>Scene.vue + Target + composables + keys, colocated
 
 test/                # Vitest (jsdom), regrouped into test/<zone>/ mirroring src/animation/<zone>/ (S.B7). Count: `find test -name '*.test.ts' | wc -l` files, `npx vitest list | wc -l` tests

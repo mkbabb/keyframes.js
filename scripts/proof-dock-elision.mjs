@@ -32,10 +32,10 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const CHROME = path.join(DEMO, "app/dock/ChromeDock.vue");
+const CHROME = path.join(DEMO, "components/dock/ChromeDock.vue");
 const TRANSPORT = path.join(
     DEMO,
-    "@/components/instrument/transport/TransportDock.vue",
+    "components/instrument/transport/TransportDock.vue",
 );
 
 const failures = [];

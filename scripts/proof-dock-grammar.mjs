@@ -32,16 +32,16 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const CHROME = path.join(DEMO, "app/dock/ChromeDock.vue");
+const CHROME = path.join(DEMO, "components/dock/ChromeDock.vue");
 const TRANSPORT = path.join(
     DEMO,
-    "@/components/instrument/transport/TransportDock.vue",
+    "components/instrument/transport/TransportDock.vue",
 );
 const ACG = path.join(
     DEMO,
-    "@/components/instrument/transport/AnimationControlsGroup.vue",
+    "components/instrument/transport/AnimationControlsGroup.vue",
 );
-const STYLE = path.join(DEMO, "@/styles/style.css");
+const STYLE = path.join(DEMO, "styles/style.css");
 
 const failures = [];
 const ok = (l) => console.log(`  ✓ ${l}`);

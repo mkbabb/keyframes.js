@@ -56,7 +56,7 @@ console.log(
 
 // ── (0) The zone model binds `> 1` (T.B5's DFA projection — dockCardinality) ─
 {
-    const file = path.join(DEMO, "@/state/controlSurfaceDFA.ts");
+    const file = path.join(DEMO, "state/controlSurfaceDFA.ts");
     if (!fs.existsSync(file)) {
         fail(
             `(0) the DFA cardinality model not found at ${path.relative(REPO, file)} — the ` +
@@ -85,7 +85,7 @@ console.log(
 {
     const file = path.join(
         DEMO,
-        "@/components/instrument/transport/TransportDock.vue",
+        "components/instrument/transport/TransportDock.vue",
     );
     if (!fs.existsSync(file)) {
         fail(`(A) TransportDock.vue not found at ${path.relative(REPO, file)}.`);
@@ -137,7 +137,7 @@ console.log(
 
 // ── (B) The CONTROL-TAB select (ChromeDock.vue) ──────────────────────────────
 {
-    const file = path.join(DEMO, "app/dock/ChromeDock.vue");
+    const file = path.join(DEMO, "components/dock/ChromeDock.vue");
     if (!fs.existsSync(file)) {
         fail(`(B) ChromeDock.vue not found at ${path.relative(REPO, file)}.`);
     } else {

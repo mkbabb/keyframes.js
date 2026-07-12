@@ -21,10 +21,10 @@ import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
 const DOCKS = [
-    ["ChromeDock", path.join(DEMO, "app/dock/ChromeDock.vue")],
+    ["ChromeDock", path.join(DEMO, "components/dock/ChromeDock.vue")],
     [
         "TransportDock",
-        path.join(DEMO, "@/components/instrument/transport/TransportDock.vue"),
+        path.join(DEMO, "components/instrument/transport/TransportDock.vue"),
     ],
 ];
 

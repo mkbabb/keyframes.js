@@ -59,8 +59,8 @@ console.log("proof:dock-popover-opens — H.W1 S8/BLK-8 (the @mbabb dock popover
     // Strip HTML comments first — the S8 fix is DOCUMENTED in a comment that names
     // `<DropdownMenuTrigger` (the wrapper it dropped); the tag regex must not match
     // the explanatory prose, only a real markup tag. The @mbabb menu markup moved
-    // out of App.vue into app/dock/MbabbMenu.vue at S.D1 (a23 F2).
-    const menu = read(path.join(DEMO, "app/dock/MbabbMenu.vue")).replace(/<!--[\s\S]*?-->/g, "");
+    // out of App.vue into components/dock/MbabbMenu.vue at S.D1 (a23 F2).
+    const menu = read(path.join(DEMO, "components/dock/MbabbMenu.vue")).replace(/<!--[\s\S]*?-->/g, "");
 
     // Isolate the @mbabb <DropdownMenu> block — the trigger lives between the
     // opening <DropdownMenu and the first <DropdownMenuContent.

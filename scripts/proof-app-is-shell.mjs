@@ -37,6 +37,9 @@
  *       NOT a GREEN criterion — a cosmetic App.vue line-shrink cannot satisfy this
  *       gate, and a loose composable dumped back at app/ root reds it.
  *
+ *   (iv) COMPONENTS LEAVE THE SHELL. No component SFC other than App.vue and
+ *       App.skeleton.vue lives anywhere under demo/app/.
+ *
  * Re-runnable: `node scripts/proof-app-is-shell.mjs`
  */
 import fs from "node:fs";
@@ -63,12 +66,9 @@ const ALLOWED_ROOT_FILES = new Set([
     "main.ts",
     "index.html",
 ]);
-// T.F3 — `dock/` (was `chrome/` — browser-jargon evicted) joins the concern
-// sub-zones: the app's own glass-ui dock + @mbabb menu (ChromeDock.vue,
-// MbabbMenu.vue), evicted from `@/components/dock/` because they are
-// APP-private (a24 F3; imported by App.vue alone — they fail
-// proof:shared-has-n-consumers as a single-external-area @/ module).
-const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "runtime", "public", "dock"]);
+// OD-U19: component modules live under the canonical component home; app/
+// contains orchestration concerns only.
+const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "runtime", "public"]);
 // Skip-list for non-source droppings that are not a concern violation.
 const IGNORE_ROOT_ENTRIES = new Set([".DS_Store"]);
 
@@ -88,6 +88,7 @@ function collectSources(dir, out = []) {
             out.push(path.join(dir, e.name));
         }
     }
+
     return out;
 }
 
@@ -292,6 +293,22 @@ function main() {
                 `  · [observed tripwire] App.vue is ${n} lines (recorded for drift ` +
                     `only — clause (iii) is membership-based, NOT a line ceiling)`,
             );
+        }
+    }
+
+    // ── CLAUSE (iv) — no component SFCs inside the app shell ───────────────
+    {
+        const allowed = new Set(["demo/app/App.vue", "demo/app/App.skeleton.vue"]);
+        const components = collectSources(APP)
+            .map(relPosix)
+            .filter((rel) => rel.endsWith(".vue") && !allowed.has(rel));
+        if (components.length > 0) {
+            failures.push(
+                `[no-component-in-shell] ${components.length} component .vue file(s) ` +
+                    `live under demo/app/ — ${components.join(", ")}`,
+            );
+        } else {
+            console.log("  ✓ [no-component-in-shell] app/ contains only App.vue + App.skeleton.vue");
         }
     }
 

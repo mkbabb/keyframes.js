@@ -716,39 +716,40 @@ function main() {
             }
         }
 
-        // ── 9. proof:dock-barrel-absent — G.W12 (the D.W5 dock close) ────────
-        // The dock pass-through barrel (dock/index.ts re-exporting glass-ui's
-        // GlassDock/DockLayerGroup + ./TopDock.vue) is DELETED (the §Mandate
-        // forbids a re-export barrel that exists only to re-route names already
-        // available at their source). The dock SFC is RENAMED TopDock→ChromeDock
+        // ── 9. proof:dock-module-honest — G.W12 narrowed for OD-U19 ──────────
+        // The old pass-through barrel re-exporting glass-ui primitives stays
+        // forbidden. The component module's own-member barrel is required.
+        // The dock SFC is RENAMED TopDock→ChromeDock
         // (the name reads true), and the dock primitives are imported DIRECTLY
         // from @mkbabb/glass-ui/dock (no nested-import barrel).
         //   BITE: today — the barrel exists, TopDock.vue imports from ".", no
         //         ChromeDock; green after S1.
         {
             // S.D2 — the dock is APP-private (a24 F3): evicted from
-            // app/dock/ → demo/app/dock/ (an app concern sub-zone).
-            const dockBarrel = "demo/app/dock/index.ts";
+            // components/dock/ → demo/components/dock/ (an app concern sub-zone).
+            const dockBarrel = "demo/components/dock/index.ts";
             const dockBarrelAbs = path.join(REPO, dockBarrel);
-            const chromeDockRel = "demo/app/dock/ChromeDock.vue";
+            const chromeDockRel = "demo/components/dock/ChromeDock.vue";
             const chromeDockAbs = path.join(REPO, chromeDockRel);
             const topDockAbs = path.join(
                 REPO,
-                "demo/app/dock/TopDock.vue",
+                "demo/components/dock/TopDock.vue",
             );
 
             const dockFails = [];
 
-            // 9a — the pass-through barrel is GONE (or carries no re-export).
-            if (fs.existsSync(dockBarrelAbs)) {
+            // 9a — an own-member barrel exists and never re-exports glass-ui.
+            if (!fs.existsSync(dockBarrelAbs)) {
+                dockFails.push(`${dockBarrel} is absent — the dock module requires its own surface.`);
+            } else {
                 const barrelSrc = blankComments(read(dockBarrelAbs));
-                if (/\bexport\b/.test(barrelSrc)) {
+                if (!/ChromeDock/.test(barrelSrc) || !/MbabbMenu/.test(barrelSrc)) {
                     dockFails.push(
-                        `${dockBarrel} still exists with re-export(s) — the pure ` +
-                            `pass-through dock barrel is DELETED (import glass-ui ` +
-                            `dock primitives directly; G.W12.S1).`,
+                        `${dockBarrel} must export its ChromeDock and MbabbMenu members.`,
                     );
                 }
+                if (/@mkbabb\/glass-ui/.test(barrelSrc))
+                    dockFails.push(`${dockBarrel} re-exports glass-ui — pass-through exports stay forbidden.`);
             }
 
             // 9b — ChromeDock.vue exists; TopDock.vue does not.
@@ -760,7 +761,7 @@ function main() {
             }
             if (fs.existsSync(topDockAbs)) {
                 dockFails.push(
-                    `demo/app/dock/TopDock.vue still exists — the ` +
+                    `demo/components/dock/TopDock.vue still exists — the ` +
                         `rename to ChromeDock.vue leaves no TopDock.vue beside it.`,
                 );
             }
@@ -807,13 +808,13 @@ function main() {
 
             if (dockFails.length === 0) {
                 console.log(
-                    `  ✓ [dock-barrel-absent] no dock/index.ts pass-through ` +
-                        `barrel; ChromeDock.vue present (no TopDock); dock ` +
+                    `  ✓ [dock-module-honest] own-member dock barrel present ` +
+                        `(no glass-ui pass-through); ChromeDock.vue present (no TopDock); dock ` +
                         `primitives imported directly from @mkbabb/glass-ui/dock`,
                 );
             } else {
                 for (const f of dockFails)
-                    failures.push(`[dock-barrel-absent] ${f}`);
+                    failures.push(`[dock-module-honest] ${f}`);
             }
         }
 

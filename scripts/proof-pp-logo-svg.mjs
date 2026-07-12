@@ -59,8 +59,8 @@ console.log("proof:pp-logo-svg — H.W9 F4 (the ppmycota menu leads with the SVG
 // stable anchor; preserved by F4). We slice from the <DropdownMenuItem that owns
 // the togglePpMode @click to its closing </DropdownMenuItem>. The @mbabb menu (and
 // its ppmycota row) moved out of App.vue into
-// app/dock/MbabbMenu.vue at S.D1 (a23 F2).
-const menuRaw = read(path.join(DEMO, "app/dock/MbabbMenu.vue"));
+// components/dock/MbabbMenu.vue at S.D1 (a23 F2).
+const menuRaw = read(path.join(DEMO, "components/dock/MbabbMenu.vue"));
 const menu = menuRaw.replace(/<!--[\s\S]*?-->/g, "");
 
 // Find the item open-tag that contains the togglePpMode handler. Anchor on the
@@ -136,7 +136,7 @@ if (!ppBlock) {
 
 // ── 3. THE SVG ASSET RESOLVES (resolve-or-red, mirrors proof:idioms clause-1) ──
 {
-    const brandCssPath = path.join(DEMO, "@/styles/brand.css");
+    const brandCssPath = path.join(DEMO, "styles/brand.css");
     if (!fs.existsSync(brandCssPath)) {
         fail("demo/styles/brand.css is missing — the .ppmycota-logo-sm background-image rule lives there");
     } else {

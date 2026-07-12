@@ -6,9 +6,8 @@ Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves
 
 ```
 demo/
-├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/); S.D1 partition: scene/ · transition/ · runtime/ · dock/
+├── app/                       # THE multi-scene SPA shell (NO scene content — scenes live in scenes/<name>/); S.D1 partition: scene/ · transition/ · runtime/
 │   ├── index.html / main.ts / App.vue   # shell: dynamic <component :is> + dock chrome
-│   ├── dock/                  # app-private glass-ui dock (T.F3 — was chrome/; a24 F3): ChromeDock.vue (scene switcher + pane toggles) + MbabbMenu.vue (@mbabb dropdown)
 │   ├── scene/                 # machine↔shell↔route bridge
 │   │   ├── scenes.ts          # scene registry: lazy scene loaders (→ ../../scenes/<name>/<Name>Scene.vue), inline-SVG icon family, warmScene()
 │   │   ├── sceneExposedApi.ts # the typed SceneExposedApi contract every <Name>Scene.vue exposes
@@ -28,6 +27,7 @@ demo/
 │   # (morph/ · motion-path/ · compose/ were PRUNED at T.E1/T.E3, OD-1 = PRUNE; the
 │   #  LIBRARY MotionPath/MorphSVG/DrawSVG factories in src/animation/svg/ survive.)
 ├── components/                 # shared component facilities
+│   ├── dock/                   # ChromeDock.vue + MbabbMenu.vue + own-member barrel
 │   ├── instrument/             # transport, keyframes, timeline and shell peers
 │   │   ├── transport/
 │   │   ├── keyframes/

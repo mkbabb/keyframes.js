@@ -41,7 +41,7 @@
  *    surface unconditionally, so the stale pick sticks); green on S2.
  *  • the HYGIENE corroborator (LABELED, source-shape — corroborates, never
  *    substitutes): zero `*.selectedControl =` writes in demo/scenes/,
- *    RibbonBar.vue, and demo/app/dock/.
+ *    RibbonBar.vue, and demo/components/dock/.
  *
  * Mirrors the serveDist + playwright-core (KF_PLAYWRIGHT_DIR) plumbing of
  * scripts/proof-scene-transition-perf.mjs. Under KF_REQUIRE_BROWSER a
@@ -84,9 +84,9 @@ console.log(
         }
     };
     collect(path.join(DEMO, "scenes"));
-    collect(path.join(DEMO, "app/dock"));
+    collect(path.join(DEMO, "components/dock"));
     targets.push(
-        path.join(DEMO, "@/components/instrument/transport/components/RibbonBar.vue"),
+        path.join(DEMO, "components/instrument/transport/components/RibbonBar.vue"),
     );
 
     const writeRe = /\.selectedControl\s*=(?!=)/;
