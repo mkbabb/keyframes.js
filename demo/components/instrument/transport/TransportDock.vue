@@ -222,7 +222,7 @@ import {
 // T.C1 — the channel-elision RENDER consumes the cardinality model. The
 // authoritative model is T.B5's DFA projection (lane 1); until it lands in-tree
 // this consumes T.B5's DFA projection (dockCardinality — ONE count authority).
-import { dockCardinality } from "@state/controlSurfaceDFA";
+import { dockCardinality } from "@components/instrument/surfaceTabs";
 import {
     Select,
     SelectContent,

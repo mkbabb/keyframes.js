@@ -1,5 +1,5 @@
-import { useAnimationGroupsOptionsStore } from "./animationOptionsStore";
-import { useAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
+import { applySharedAnimationState, useAnimationGroupsOptionsStore } from "./animationOptionsStore";
+import { applySharedControlState, useAnimationGroupsControlOptionsStore } from "./controlOptionsStore";
 
 // --- URL state sharing (lossless, base64-encoded) ---
 
@@ -57,13 +57,10 @@ export const restoreStateFromParam = (
     if (!state || !isValidState(state)) return { restored: false };
 
     if (state.options) {
-        Object.assign(useAnimationGroupsOptionsStore().value, state.options);
+        applySharedAnimationState(state.options);
     }
     if (state.controls) {
-        Object.assign(
-            useAnimationGroupsControlOptionsStore().value,
-            state.controls,
-        );
+        applySharedControlState(state.controls);
     }
 
     return state.activeScene === undefined

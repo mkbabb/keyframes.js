@@ -1,6 +1,6 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
-import { defaultControlSurfaceFor } from "./controlSurfaceDFA";
+import { defaultControlSurfaceFor } from "./controlSurfaces";
 import {
     checkAndResetExpiredStore,
     gcAndMigrateStoreBuckets,
@@ -55,6 +55,13 @@ export const useAnimationGroupsControlOptionsStore = createGlobalState(() => {
     } as StoredAnimationGroupsControlOptions);
     return store;
 });
+
+export const applySharedControlState = (patch: object): void => {
+    const entries = Object.entries(patch).filter(([key, value]) =>
+        key !== "_storeTimestamp" && typeof value === "object" && value !== null,
+    );
+    Object.assign(useAnimationGroupsControlOptionsStore().value, Object.fromEntries(entries));
+};
 
 export const getStoredAnimationGroupControlOptions = (
     // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an

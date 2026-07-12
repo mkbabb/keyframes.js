@@ -65,6 +65,13 @@ export const useAnimationGroupsOptionsStore = createGlobalState(() => {
     return store;
 });
 
+export const applySharedAnimationState = (patch: object): void => {
+    const entries = Object.entries(patch).filter(([key, value]) =>
+        key !== "_storeTimestamp" && typeof value === "object" && value !== null,
+    );
+    Object.assign(useAnimationGroupsOptionsStore().value, Object.fromEntries(entries));
+};
+
 export const getStoredAnimationOptions = (
     animationId: KeyframesAnimation<any> | string | undefined = undefined,
     // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an

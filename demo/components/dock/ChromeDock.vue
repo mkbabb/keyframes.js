@@ -14,9 +14,11 @@ import {
 // ONE source of the count arithmetic, per lane 18's dual-formula rule).
 import {
     BUILT_IN_SURFACES,
+} from "@state/controlSurfaces";
+import {
     SURFACE_META,
     dockCardinality,
-} from "@state/controlSurfaceDFA";
+} from "@components/instrument/surfaceTabs";
 import {
     Select,
     SelectContent,
