@@ -3,7 +3,7 @@ import { useEventListener } from "@vueuse/core";
 import {
     acquireSelectSuppression,
     releaseSelectSuppression,
-} from "@composables/gestureSelectSuppression";
+} from "@utils/gestureSelectSuppression";
 
 export interface DragCaptureHandlers {
     onStart?: (e: PointerEvent) => void;

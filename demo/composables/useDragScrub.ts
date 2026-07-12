@@ -3,7 +3,7 @@ import { useEventListener } from "@vueuse/core";
 import {
     acquireSelectSuppression,
     releaseSelectSuppression,
-} from "./gestureSelectSuppression";
+} from "@utils/gestureSelectSuppression";
 
 /**
  * useDragScrub — the ONE pointer-drag scrub seam the stage scenes share

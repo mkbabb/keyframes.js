@@ -93,6 +93,14 @@ green master and the ratified corpus merged at `0b423142`.
   pre-existing 502-line spring-progress ceiling, so no broader decomposition
   claim is made; remaining fold-map rows stay target-by-target.
 
+- **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
+  is deleted from the package/hygiene chain; `run-all` remains the executable
+  report-all mechanism. The `gestureSelectSuppression` deferred colocation row
+  is discharged by moving the plain DOM counter from `demo/composables/` to
+  `demo/utils/` and retargeting its two genuine consumers. `proof:colocation`,
+  `proof:drag-gesture`, `proof:ci-coverage`, and `check` pass; `kfEngine` remains
+  the sole deferred runtime-infrastructure row pending its state-tier move.
+
 - **2026-07-12** — **U.E VJ-L2 SCAFFOLD DISCHARGE.** The round-trip suite's
   `vjL2LinearLanded` feature probe and `skipIf` arm were stale: value.js 3.1.0
   already supplies the VJ-L2 canonical serializer, while its parser never

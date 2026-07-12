@@ -68,10 +68,6 @@ const stripComments = (s) =>
  */
 const DEFERRED = new Map([
     [
-        "composables/gestureSelectSuppression.ts",
-        "not a Vue composable (a plain body-class counter) → T.F13 re-homes it to utils/",
-    ],
-    [
         "utils/kfEngine.ts",
         "the engine-loader boot accessor (runtime infra) → T.F13 promotes it beside state/",
     ],
