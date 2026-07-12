@@ -284,6 +284,7 @@ export const createInterpVarValue = (
  * before return) and JS is single-threaded, so no two applies interleave over it.
  */
 const _styleOut: Record<string, string> = {};
+const _styleKeys: string[] = [];
 // CompositeState keeps inactive grouped keys as `undefined` to preserve the
 // hot-path object shape. The value.js serializer intentionally assumes every
 // enumerable value is printable, so reuse one filtered view at this output
@@ -310,10 +311,14 @@ export function transformTargetsStyle<V extends Vars>(
         if (value !== undefined) _definedVars[key] = value as any[];
     }
     const styleStringVars = unflattenObjectToString(_definedVars, _styleOut);
+    let styleKeyCount = 0;
+    for (const key in styleStringVars) _styleKeys[styleKeyCount++] = key;
+    _styleKeys.length = styleKeyCount;
 
     targets.forEach((target) => {
-        Object.entries(styleStringVars).forEach(([key, value]) => {
-            target.style.setProperty(key, value);
-        });
+        for (let i = 0; i < styleKeyCount; i++) {
+            const key = _styleKeys[i]!;
+            target.style.setProperty(key, styleStringVars[key]!);
+        }
     });
 }
