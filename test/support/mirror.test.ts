@@ -39,6 +39,9 @@ function importSpecifiers(file: string): string[] {
 
 function demoImportArea(specifier: string): string | undefined {
     const normalized = specifier.replaceAll("\\", "/");
+    // Playback visualizer tests live under the instrument witness tier even
+    // though the component's canonical home is the demo playback folder.
+    if (/demo\/components\/playback\//.test(normalized)) return "instrument";
     if (/demo\/composables\/scene-runtime\//.test(normalized)) return "scenes";
     if (/demo\/scenes\//.test(normalized)) return "scenes";
     if (/demo\/app\//.test(normalized) || normalized.startsWith("@app"))
