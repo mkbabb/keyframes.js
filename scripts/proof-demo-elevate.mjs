@@ -309,12 +309,12 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     }
     // The timeline composable wraps the centralized state in useRefHistory (the
     // idiomatic seam) and exposes undo/redo/canUndo/canRedo — bite: drop the wrap
-    // → the behavioural round-trip test (test/demo/timeline-undo.test.ts) reds, and the
+    // → the behavioural round-trip test (test/demo/instrument/timeline-undo.test.ts) reds, and the
     // exposure check here reds too.
     const tl = read("demo/@/components/custom/instrument/timeline/composables/useTimeline.ts");
     const tlComp = read("demo/@/components/custom/instrument/timeline/KeyframeTimeline.vue");
     if (/useRefHistory/.test(tl) && /debounceFilter/.test(tl) && /undo,\s*\n\s*redo,/.test(tlComp + "\n")) {
-        ok("undo", "the timeline wraps state in a debounced useRefHistory + exposes undo/redo (the round-trip is locked by test/demo/timeline-undo.test.ts)");
+        ok("undo", "the timeline wraps state in a debounced useRefHistory + exposes undo/redo (the round-trip is locked by test/demo/instrument/timeline-undo.test.ts)");
     } else {
         fail("undo", "the timeline does not wrap its state in a debounced useRefHistory exposing undo/redo (F.W14.S1)");
     }

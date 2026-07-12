@@ -7,6 +7,7 @@ const testRoot = path.join(root, "test");
 const animationRoot = path.join(root, "src/animation");
 const infrastructureDirs = new Set([
     "_root",
+    "characterization",
     "demo",
     "fixtures",
     "stubs",
@@ -29,12 +30,10 @@ function importSpecifiers(file: string): string[] {
     const source = readFileSync(file, "utf8");
     const imports = Array.from(
         source.matchAll(/(?:from\s*|import\s*\()(["'])([^"']+)\1/g),
-        (match) => match[2],
-    );
+    ).flatMap((match) => (match[2] === undefined ? [] : [match[2]]));
     const inspectedModules = Array.from(
         source.matchAll(/(["'])([^"']*demo\/[^"']+)\1/g),
-        (match) => match[2],
-    );
+    ).flatMap((match) => (match[2] === undefined ? [] : [match[2]]));
     return [...new Set([...imports, ...inspectedModules])];
 }
 
