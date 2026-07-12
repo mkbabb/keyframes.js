@@ -1,0 +1,228 @@
+# Tranche U — THE BOARD
+
+> The board of record for THE DISSOLUTION TRANCHE. Amended AT THE EVENT (the T.M9
+> freshness discipline) — never reconstructed at close. The charter is `U.md`; the
+> band docs are `waves/U.<band>.md`.
+
+## Band status
+
+| Band | Title | State |
+|---|---|---|
+| U.A | THE APPARATUS DISSOLUTION | CHARTERED |
+| U.B | THE DEMO TRANSPOSITION | **CHARTERED-CONVERGED** — the loop's keystone (N1) + recut template (P5) + U.B14 small-module-inline (P2) folded |
+| U.C | THE LIBRARY TRANSPOSITION | **CHARTERED-CONVERGED** — U.C8 absorbs P1 (`287-10`); the P1/R11/R21 standing-law header + P2's constants fold folded |
+| U.D | THE PERFORMANCE FRONTIER | CHARTERED |
+| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
+| U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
+| U.G | THE DESIGN CODEX | CHARTERED |
+| U.H | THE TEST SUBSTRATE (FIRST) | CHARTERED |
+| U.R | PROMPT-RECAP-U (STANDING) | CHARTERED |
+| U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
+| U.Z | THE CLOSE | **CHARTERED-CONVERGED** — the four loop sweep witnesses (§①.6 grep · §4 residue · CLAUDE.md · red-on-plant) fold into the certifying sweep |
+
+**IMPL NOT AUTHORIZED** — development only, per the edict's own clause.
+
+## Session log
+
+- **2026-07-09** — U opened by the owner's dissolution edict (verbatim at
+  `ORIGINAL-PROMPT.md`, committed to master at `b95973a` mid-T-close). Received
+  while the T deploy-of-record was in flight; the two tracks ran in parallel.
+- **2026-07-10** — **THE 32-LANE AUDIT FLEET COMPLETE** (`wf_3e2440f9-452`: 31/32
+  structured + 1 report-only [lane 12, StructuredOutput cap; report real at 186L;
+  lane 14's structured summary was junk but its report is real at 279L], 3.8M
+  tokens, ~83min, 11 batches of 3; design lanes 24–26 on Fable + frontend-design).
+  Reports at `audit/lane-*.md`. The four root causes converged hard: the apparatus
+  IS the legacy (73.5k scripts LOC vs 22k src; ~40/227 gates real); the structure
+  edict was executed tolerantly (T #26 overstated — F1/F2 skipped, the keystone
+  gate shaped around them); the perf frontier is misallocated (the render seam is
+  ~95% of tick cost, untouched; 8MB dead Monaco workers = 48% of shipped JS); the
+  constellation edges drift vacuously (tilde-frozen glass-ui + installed-dist-only
+  tripwires). parse-that certified CLEAN (transitive-only, zero specifiers).
+- **2026-07-10** — the Fable synthesis: `U.md` (4 root causes → 10 bands → DAG →
+  ring-fences), `OWNER-DECISIONS.md` (OD-U1..U9; three PRE-RATIFIED off the edict's
+  plain text), `OWNER-ASKS.md`. The wave-doc fleet launched (`wf_8eeb3b4c-d2b`,
+  10 band authors, batches of 3, U.G on Fable + frontend-design).
+- **2026-07-10** — T-close interleave (master, not this branch): the first
+  fully-green master CI in the tranche era (`72d1873`) after the close-out chain —
+  styling-idioms dead-refs, demo-elevate re-arm, easing-gallery selector,
+  KEEP labels, pin-ledger, dock-zorder→tripwire, library-gate timeout,
+  no-cross-realm-cast catastrophic-backtracking regex (never once completed on CI),
+  deploy-preflight gh-api --jq bug on its first live firing (fixed `2810268`);
+  5.2.0 published to npm (latest); break-glass dispatch fired while the fixed
+  auto-path re-proves.
+- **2026-07-10** — the 3-critic harden pass (`wf_0703d8a4-940`: coverage / DAG-edges /
+  edict-conformance, all SOUND-WITH-FIXES — 1 blocker [the U.C4 spring-oracle ownership,
+  now U.H1's named deliverable], 7 major, 9 minor) APPLIED across 8 corpus docs; the two
+  new-gate anti-sprawl sign-offs registered as OD-U10/OD-U11.
+- **2026-07-10** — **THE 2026-07-10 RULING BATCHES EXECUTED (OWNER-ASKS rows 3-4).**
+  The owner's two verbatim ruling batches propagated through the corpus: OD-U1..U13 now
+  register terminal-or-confirm — OD-U1 (the RULED 10× wall-clock + zero-loss fold-map
+  exit criteria), OD-U2 (component-CORE redesign to the glass-ui post-BH idiom + the
+  `demo/@/` DISSOLUTION revised-reco, pending one-word confirm; `components/custom/`
+  dissolution STANDS), OD-U4 (glass-ui **5.0.0** — the pin moves on its publish, the
+  joint BG+BH cut), OD-U5 (Monaco kept FULLY-FEATURED but ON-DEMAND), OD-U7
+  (tests-stay), OD-U8 (**5.3.0** — U binds to a compatible published surface, additive
+  only), OD-U9 (RULED — instrument the 3D scenes, designed ONE direction, no both-ways
+  fork), OD-U10/OD-U11 (both proposed standalone gates DROPPED to clauses), OD-U12 (the
+  scene-facet loading model — verbatim design authority), OD-U13 (the amiga +
+  suspend/resume in-U cure). The glass-ui post-BH idiom audit LANDED
+  (`audit/glassui-idioms-post-bh.md` — the OD-U2 homogeneity evidence, feeding
+  U.B/U.F/U.G). The amiga + scene suspend/resume first-principles investigation
+  DISPATCHED (OD-U13; dossier → `audit/defect-amiga-suspend-resume.md`; the fix is the
+  new wave **U.B13**). **ZERO new standalone gates survive the rulings** (OD-U10/U11 —
+  both fold into clauses on existing gates; net NEW standalone gates in U = ZERO). The
+  corpus propagation applied to `U.md` + six wave docs
+  (`U.A`/`U.B`/`U.C`/`U.D`/`U.F`/`U.G`).
+- **2026-07-10** — **THE OD-U13 DOSSIER LANDED** (`audit/defect-amiga-suspend-resume.md`):
+  the "amiga broken" mandate root-caused to a LIVE 5.2.0 LIBRARY BUG — the plain-vars
+  projection (`compile/plain-vars.ts:109`) caches a `ValueUnit[]` leaf reference that
+  `engine/interpolate.ts:194` re-points on every keyframe-segment crossing; the
+  `singleTarget`+`unflatten` path (amiga alone) reads the orphaned frozen leaf and the
+  sphere pins at the 25% pose ~2s into every play (introduced `efcb244`+`f060c17`,
+  Tranche T 2026-07-05; three green gates each sample BEFORE the 2000ms boundary — the
+  vacuous-green exhibit made concrete). Suspend/resume machinery otherwise SOUND (no
+  orphaned rAF; cube/easing clean); one real gap — amiga's tab-hide pauses the WebGL
+  loop but not the group clock. Chartered: **U.C14** (the projection-as-view cure +
+  the born-RED past-the-boundary characterization) + **U.B13 re-cut** (the ONE
+  symmetric suspend contract, consuming C14).
+- **2026-07-10** — **THE OD-U14 COMPOSITOR ASSAY LANDED** (`wf_418fb3a3-3f1`: the
+  3-lane first-principles assay — semantics · behavior · architecture — over the
+  owner's named "primary issue" [compositing/stacking/layering]; dossiers at
+  `audit/assay-compositor-{semantics,behavior,architecture}.md`). **Headline:** the
+  C14 amiga freeze is ONE of a THREE-instance stale-leaf-cache CLASS — the composite
+  `_grouped` is a POINTER TABLE into borrowed frame-leaf buffers the interpolator
+  re-points at every segment crossing; besides the plain-vars projection (D1, amiga),
+  the SoA `add`/`weighted` plan capture (D2) silently collapses the blended layer to
+  the base at the first boundary — **demo-reachable** via `LayerConfigPanel`'s blend
+  selector on the FLAT/DOM path, NOT gated by `unflatten`, and green under every gate
+  (`proof:blend`/`proof:soa-composite` all sample within a single segment) — and
+  layer-removal leaks frozen keys (D3). Beyond the class: blending is unit-blind +
+  colour-blind across layers, `weighted` is a non-normalized order-dependent lerp that
+  drops a lone layer's weight, and the group zone has ZERO WAAPI references (any
+  animation drops to main-thread rAF the instant it joins a group). **Chartered into
+  U.C:** **U.C14 WIDENED** (the plain-vars cure → THE COMPOSITE-STATE CURE — the
+  composite becomes a value store the compositor OWNS; born-RED gates for D1/D2/D3;
+  size M→L), **U.C3 RE-CHARTERED** (the group-zone redesign — owned `CompositeState`
+  in a carved `group/draw.ts` + a `Renderer` seam + a declarative layer stack; M→L),
+  **U.C15 NEW** (one op axis `replace|add|accumulate` + orthogonal normalized weight;
+  unit/colour correctness guards; M), **U.C16 NEW** (group WAAPI lowering — a
+  single-target all-eligible group lowers to N native `target.animate(kf,
+  {composite})` calls; L). All ADDITIVE on the OD-U8 5.3 bind. Corpus propagation:
+  OD-U14 disposition (ASSAY COMPLETE) + `U.md` §1 RC-2b + §2 U.C row + `waves/U.C.md`
+  (wave index/DAG/Risks R4+R8) + `waves/U.B.md` (U.B3 gains the
+  LayerConfigPanel-inert-on-multi-target reconciliation, behavior lane D4).
+- **2026-07-10** — **THE CONVERGENCE-LOOP MANDATE REGISTERED (OWNER-ASKS row 6,
+  verbatim; OD-U15..U18).** The owner mandated the 5-step convergence loop as U's
+  development methodology (research ≤8∥ → synthesis → worktree prototype fleet →
+  critique fleet with % convergence → agglomerator, looped to 100%, then the exact
+  wave sets develop) — ratified as **OD-U18** and chartered as band **U.L** (Track A =
+  the spec coherence/cogency workflow; Track B = the library+demo module-restructure
+  pass, pass 1 deployed: 8 research lanes → SPEC-B1 → 6 worktree prototypes →
+  critiques → agglomerator; artifacts under `loop/`). Three companion rulings
+  registered: **OD-U15** (ALL CLAUDE.md files deleted totally, content re-homed
+  inline/README — placeholder home **U.E7**), **OD-U16** (module granularity BOTH
+  directions — the carve direction rides U.C7/U.C8; the small-module inlining + the
+  per-module assay arrive from the loop), **OD-U17** (suppression files removed by
+  FIXING the violations — placeholder home **U.E8**). Prototypes are EVIDENCE (kept
+  worktree branches), never merged; the owner review sits inside the loop.
+- **2026-07-10** — **TRACK A SPEC-COHERENCE PASS APPLIED** (4 lenses — consistency ·
+  cogency/plain-language · coverage-overlap · dag-integrity — 36 findings: 3 blocker,
+  18 major, 15 minor; ~half landed in the earlier wall-salvage commit `51d495c`, the
+  remainder applied this pass). Load-bearing corrections: U.Z fully conformed to
+  OD-U8 RULED (5.3.0 fixed; the surface diff is a CONSTRAINT CHECK, never a 6.0.0
+  trigger; the close ledger widened to OD-U1..U18 + the four-part V-inherits-NOTHING
+  check gains clause (d) for the loop rulings); OD-U15/U16/U17/U18 given explicit
+  homes (band U.L in `U.md` §2/§3; **U.E7** CLAUDE.md deletion + **U.E8** suppression
+  removal authored in `waves/U.E.md`; OD-U16 cited at U.C7/U.C8 + the granularity
+  note); every "law lives in demo/CLAUDE.md" clause re-targeted to the DESIGN codex
+  (U.G5) and every CLAUDE.md reconcile/fix re-cut as a deletion (U.B/U.C/U.E);
+  U.H1 gains golden (d) — the suspend/resume coverage U.B13's witnessed-cure edge
+  consumes — plus the → U.C4/→ U.B13 consumer edges; U.R's recap census widened from
+  "two rows" to ALL OWNER-ASKS rows (1–6, growing); the plain-language sweep landed
+  (CLASS-N gate titles → plain deletions, the U.C3/U.C6/U.C14 index cells rewritten
+  cold-readable, FSM expanded at first use, "load-bearing conclusion" headers → "Why
+  this band exists", tranche-code shorthand demoted to parenthetical cites); the
+  C-band edge glyphs harmonized (→ precedes / ← depends / ↔ co-scheduled, stated
+  once) killing the false 2-cycles (C1↔C3, C9↔C10, C11↔C13) and the one-sided
+  C14→C16 edge.
+- **2026-07-10** — **THE CONVERGENCE LOOP TERMINATED (OD-U18) + THE WAVE-SET DEVELOPMENT
+  ORDER RATIFIED AND FOLDED.** Track B ran **five passes** (overall convergence
+  73 → 97 → 96 → 98.4 → **98.8%**; ~7.9M subagent tokens across the research / prototype /
+  critique / agglomerator fleets) and TERMINATED at pass 5 (`loop/PASS-5.md` — the RATIFIED
+  "## The wave-set development order"). **Nine of the ten scored items stand at 100**
+  (P1–P6, N1, N3, SPEC-B5); the one non-100 is **N2 at 88** — its cures green and
+  independently verified twice (the critique's 13/13 + the agglomerator's `proof:bench-taxonomy`
+  PASS), its residue a fully-measured, line-located, disposition-named comment/prose class
+  **chartered into the meta-legacy wave (U.E9) under ruling 23**, witnessed by U.Z's
+  certifying sweep (the un-earned 12 points convert to chartered impl work, never a
+  self-certified 100 — the exact failure mode the loop existed to prevent). **The yield:**
+  nine frozen evidence worktrees (`wf_ca7d0632-287-{10,11,12,16,17,18}` = P1–P6;
+  `wf_645e7d37-d7f-{11,12,13}` = P7/N1 · P8/N2 · P9/N3, EVIDENCE never merged), four
+  work-order artifacts (`N1-MOVE-SCRIPT.md`, `N2-DELETION-LEDGER.md`, `N3-EXCISION-LEDGER.md`,
+  `loop/P3-FOLD-MAP.md`), **25 binding rulings**, and **SPEC-B5** as the governing spec
+  (16 errata measured — E14 books D-GAP-5/6 to U.F, E15 the seven-subpath truth, E16
+  `components.json` rm + sweep-as-measurement). **The wave-set development order (PASS-5 §7)
+  is RATIFIED and FOLDED into the corpus:** `U.md` §2/§3 (the U.B keystone now cites
+  `N1-MOVE-SCRIPT.md` §①–⑤ verbatim; the new **U.B14** small-module-inline wave; the
+  ratified impl-sequencing line) + new **§7** (the loop's yield); `waves/U.B.md` (B1 = the
+  N1 move script verbatim; U.B14; P5's recut TEMPLATE on transport / editors / scenes);
+  `waves/U.C.md` (U.C8 absorbs P1 `287-10`; the P1/R11/R21 standing-law header; the
+  constants fold on P2's byte-clean evidence `287-11`); `waves/U.E.md` (U.E7 = P3's
+  fold-map, U.E8 = P4's suppression-dies-by-fixing archetype, new **U.E9** meta-legacy =
+  N2's §§1+4 + the ruling-23 residue, new **U.E10** dogfood = N3's §§1–3 + R20);
+  `waves/U.F.md` (the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth);
+  `waves/U.Z.md` (the four loop sweep witnesses on the terminal tree). **The owner-ride
+  queue of FOUR** (`demo/DESIGN.md` KEEP · the `@`-dissolution one-word confirm · D1 easing
+  canonicality · D5 oklab eyeball) **is the ONLY thing between the corpus and impl
+  authorization** — which remains NOT authorized (ring-fence 4).
+
+## State of play — THE U IMPL-DRIVE ENTRY ANCHOR (2026-07-11, written at compaction-prep)
+
+**AUTHORIZATION: the owner's 2026-07-11 "Ratify all. Prepare for compaction and
+tranche execution." (OWNER-ASKS row 8, OD-U22) — the impl drive begins immediately
+post-compaction.** Everything needed to open the drive without re-derivation:
+
+1. **The order of record**: `docs/tranches/U/loop/PASS-5.md` "## The wave-set
+   development order" — RATIFIED, folded into the corpus (U.md §7 + the wave docs).
+   The governing spec is `loop/SPEC-B5.md` (over the B1→B4 chain; 16 measured
+   errata; 25 rulings). The sequencing one-liner: owner-rides DONE → U.H
+   (characterization net FIRST) → the keystone (N1-MOVE-SCRIPT §①–⑤ verbatim,
+   NOW UNGATED) → B/C recuts + carves with co-scheduled gate re-anchors (U.A's
+   deletions first where a gate would re-anchor twice) → meta-legacy (U.E9) +
+   dogfood (U.E10) waves ride the same passes → U.D after U.C settles hot paths →
+   U.F letters from day 1 → U.G codex early → U.E terminal adjudication → U.Z
+   (zero open deferrals; the 5.3.0 cut per OD-U8).
+2. **The ride-queue ratifications (terminal)**: DESIGN.md KEEP · @-dissolution
+   CONFIRMED (step ① executes in full: demo/@ + custom/ dissolve, components.json
+   rm, the 72-file by-name sweep, ci.yml:496 re-word) · D1 = value.js bezierPresets
+   canonical (23 rows adopt; 6 quart/quint documented-delta pending D-GAP-1; the
+   gallery curve change is a recorded CORRECTION) · D5 oklab blessed.
+3. **The frozen evidence worktrees (NEVER purge)**: wf_ca7d0632-287-{10,11,12,16,
+   17,18} (P1 compile/easing carve · P2 inline sweep + fold-map · P3 CLAUDE.md
+   fold + P3-FOLD-MAP · P4 known-violations kill · P5 component recut template ·
+   P6 README) + wf_645e7d37-d7f-{11,12,13} (N1 one-home move + N1-MOVE-SCRIPT ·
+   N2 meta-legacy + N2-DELETION-LEDGER · N3 dogfood + N3-EXCISION-LEDGER). The T
+   blessed prototypes (wf_1e744f4d-2bb-{1,2,3}, wf_558e7859-5ca-3) also stay.
+   "Absorbs" = the wave replays the frozen worktree's record, never re-derives.
+4. **Standing law in EVERY wave**: P1's re-anchor template + R11's 8-class site
+   sweep; R21 sweeps-are-measurements (+ ruling 24 by-name disposal); R16/R20 a
+   measured refutation AMENDS the charter; the OD-U1 zero-loss fold-map on every
+   deletion; per-stage compile-green commits (the T wall lesson); merge-U-first in
+   every lane prompt; the orchestrator independently re-runs claimed gates on the
+   merged tree (T4/T5); batches of 3 (rate walls are real — 3 walls hit in U-dev,
+   all salvaged via committed stages + resumeFromRunId).
+5. **Hard binds**: 5.3.0 at close (published surface additive-only — OD-U8);
+   glass-ui 5.0.0 is the consume edge (watch for its publish; the five caps
+   re-probe against its dist; the letter reconciles); value.js letter rows =
+   D-GAP-1/5/6 exactly (consume-edge only, its tranche is active elsewhere);
+   NO new standalone gates (net DOWN; OD-U10/U11 dropped); CLAUDE.md files DELETE
+   (U.E7, delete-LAST per wave 6 coupling); the 10× CI target (≤4 min merge path)
+   + zero-loss fold-map are U.A's exit criteria.
+6. **Environment**: KF_PLAYWRIGHT_DIR=/Users/mkbabb/Programming/glass-ui for
+   browser gates; worktree node_modules via ln -sfn (NEVER git add); npm run
+   build THEN gh-pages (build clobbers gh-pages); the roster false-red classes
+   (worktree-glob contamination, roster contention, MODULE_NOT_FOUND masquerade,
+   zsh glob-abort, pipe-masked exits) are in the T memory. Master is GREEN
+   (deploy-of-record observed; keyframes.babb.dev serves 5.2.0; npm latest 5.2.0).
+   The U corpus lives on `tranche-u-dev`; the impl branch forks master with the
+   corpus merged (the T pattern: `tranche-u-impl`, draft PR onto master).
