@@ -1,6 +1,10 @@
 # U.H — THE TEST SUBSTRATE (FIRST)
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: COMPLETE (2026-07-12).** Implemented on `tranche-u-impl` before any
+> U.B/U.C move. Merged-tree evidence: library project 84 passed files / 909
+> passed tests; demo project 24 files / 141 tests against installed glass-ui
+> 4.0.1; `npm run check` green. The demo project is explicitly re-run when the
+> owner-held glass-ui 5.0.0 consume edge becomes release-ready.
 >
 > **Charter sentence (U.md §2).** Stand up the restructure-safe characterization tier
 > BEFORE any transposition — goldening OBSERVABLE behavior imported only through the

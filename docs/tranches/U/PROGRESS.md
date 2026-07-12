@@ -15,14 +15,30 @@
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
 | U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
 | U.G | THE DESIGN CODEX | CHARTERED |
-| U.H | THE TEST SUBSTRATE (FIRST) | CHARTERED |
+| U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
 | U.R | PROMPT-RECAP-U (STANDING) | CHARTERED |
 | U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
 | U.Z | THE CLOSE | **CHARTERED-CONVERGED** — the four loop sweep witnesses (§①.6 grep · §4 residue · CLAUDE.md · red-on-plant) fold into the certifying sweep |
 
-**IMPL NOT AUTHORIZED** — development only, per the edict's own clause.
+**IMPL AUTHORIZED** — OD-U22; implementation branch `tranche-u-impl` opened from
+green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **THE U IMPL DRIVE OPENED; U.H COMPLETE.** Forked
+  `tranche-u-impl` from green master, merged the ratified corpus (`0b423142`),
+  and landed the required pre-move test substrate in three isolated lanes.
+  Stable package/scene-entry characterization (`7dc1d1be`), the library/demo
+  Vitest split and 13-alias collapse (`b72562e5`), the area mirror/value-only
+  test deletion/preset fold (`902c4f04`), and the merged-tree re-anchor repair
+  (`286aae16`) are green together: library 84 files / 909 tests; demo 24 / 141;
+  `npm run check` green. Independent verification caught and cured two misses
+  before close: the mirror initially rejected the new characterization tier,
+  and four runnable aliases still named the old flat demo paths. glass-ui
+  consume-edge work remains HELD: its sibling tree reports a local 5.0.0
+  version but no `v5.0.0` tag/release-ready state and an unresolved
+  `goo-blob`/`blob` export contradiction. U.H tested current 4.0.1 and records
+  the mandatory post-release demo-project re-run.
 
 - **2026-07-09** — U opened by the owner's dissolution edict (verbatim at
   `ORIGINAL-PROMPT.md`, committed to master at `b95973a` mid-T-close). Received
