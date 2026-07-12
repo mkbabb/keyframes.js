@@ -78,6 +78,9 @@ import { densifyColorBlock, round } from "./backward-color";
 import { serializeScrollOptions } from "../../scroll";
 import type { CSSTimelineOptions } from "../../scroll";
 import type { Vars } from "../../constants";
+import { probeChildRefusal } from "./refusal-probes";
+import type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
+export type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
 
 // ── The ineligibility report (CC-3) — the four named refusals ────────────────
 
@@ -87,21 +90,6 @@ import type { Vars } from "../../constants";
  * names the kf axis that exceeds pure CSS (the refusal is marketing for the
  * moat). A refused child's JS playback is the only faithful path.
  */
-export type CompileRefusalReason =
-    | "weighted-blend"
-    | "custom-renderer"
-    | "perceptual-oklab"
-    | "computed-unit-drift";
-
-/** A single refusal — the child name + a typed reason + a human message. */
-export interface CompileRefusal {
-    /** The compiled child's class/animation name. */
-    name: string;
-    reason: CompileRefusalReason;
-    /** The verbatim message the demo's ineligibility UI shows (CC-4). */
-    message: string;
-}
-
 /** Options for {@link compileToCSS}. */
 export interface CompileOptions {
     /**
@@ -203,18 +191,6 @@ export const DEFAULT_DENSIFY_STOPS = 16;
  * emit of `vh`/`cqw`/`calc()`/`var()`). Retained by construction, parallel to the
  * `declaredKeyframeBodyFor` reversal (S7).
  */
-function findComputedDrift<V extends Vars>(
-    animation: KeyframesAnimation<V>,
-): string | undefined {
-    for (let i = 0; i < animation.templateFrames.length; i++) {
-        const declared = animation.parsedVars[i] ?? {};
-        for (const [key, arr] of Object.entries(declared)) {
-            if (!Array.isArray(arr) || arr.length === 0) return key;
-        }
-    }
-    return undefined;
-}
-
 /**
  * The per-child compile: project the `@keyframes` block (with CC-2 densify where
  * a color leg admits it) + the `animation` shorthand, OR record a CC-3 refusal.
@@ -226,49 +202,9 @@ export function compileChild<V extends Vars>(
     refusals: CompileRefusal[],
 ): string | null {
     const { animation, name } = child;
-
-    // CC-3 §3a — a `weighted` layer blend has NO CSS twin (proves axis-3's
-    // uniqueness from the other side). REFUSE, never silently approximate.
-    if (child.weighted) {
-        refusals.push({
-            name,
-            reason: "weighted-blend",
-            message:
-                "weighted layer blend has no animation-composition equivalent " +
-                "(CSS composites replace/add/accumulate only); the weighted axis is " +
-                "kf's unique blend tier — the JS playback is the only faithful path",
-        });
-        return null;
-    }
-
-    // CC-3 §3b — a custom renderer (a transform closure that is NOT the default
-    // DOM-style renderer) cannot be CSS (same gate as WAAPI's reject).
-    for (const frame of animation.frames) {
-        if (!animation.usesDefaultRenderer(frame.transform)) {
-            refusals.push({
-                name,
-                reason: "custom-renderer",
-                message:
-                    "custom renderer (a transform closure, not the default DOM-style " +
-                    "renderer) cannot be expressed as CSS — the JS playback is the only " +
-                    "faithful path",
-            });
-            return null;
-        }
-    }
-
-    // CC-3 §3e — the computed-unit DRIFT residue (NOT a blanket reject —
-    // vh/cqw/calc()/var() emit VERBATIM and re-resolve natively).
-    const driftKey = findComputedDrift(animation);
-    if (driftKey) {
-        refusals.push({
-            name,
-            reason: "computed-unit-drift",
-            message:
-                `computed-unit drift on "${driftKey}" — the declared value cannot be ` +
-                "re-emitted as a faithful authored string; the JS playback is the only " +
-                "faithful path",
-        });
+    const refusal = probeChildRefusal(child);
+    if (refusal) {
+        refusals.push(refusal);
         return null;
     }
 

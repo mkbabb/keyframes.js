@@ -92,6 +92,7 @@ const COMPILE = "src/animation/compile/emit/backward.ts";
 // SURFACE is both files; clauses whose anchors may land in either read it.
 const COMPILE_WALK = "src/animation/compile/emit/backward-walk.ts";
 const COMPILE_COLOR = "src/animation/compile/emit/backward-color.ts";
+const REFUSAL_PROBES = "src/animation/compile/emit/refusal-probes.ts";
 const FORMAT = "src/animation/compile/emit/format.ts";
 const BARREL = "src/animation/index.ts";
 // The L-tranche engine-loader extraction home (the dynamic `import("./compile")`
@@ -186,7 +187,7 @@ requireAll("compiler-exists", COMPILE, [
 }
 
 // ── four-refusals-named — CC-3's four named refusal reasons ─────────────────────
-requireAll("four-refusals-named", COMPILE, [
+requireAll("four-refusals-named", [COMPILE, REFUSAL_PROBES], [
     { name: '"weighted-blend" refusal (the §3a axis-3 proof)', re: /"weighted-blend"/ },
     { name: '"custom-renderer" refusal (a closure cannot be CSS)', re: /"custom-renderer"/ },
     { name: '"perceptual-oklab" refusal (densify beyond ΔE-ε)', re: /"perceptual-oklab"/ },
