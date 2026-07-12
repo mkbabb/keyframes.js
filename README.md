@@ -43,15 +43,16 @@ Works both in and out of the browser. Anything that touches the DOM (`getCompute
 ## Project Structure
 
 ```
-src/animation/   # THE library — engine + every primitive (see src/animation/CLAUDE.md)
-demo/            # Vue 3 demo apps (see demo/CLAUDE.md)
+src/animation/   # THE library — engine + every primitive
+demo/            # Vue 3 demo apps
 test/            # Vitest suites (jsdom)
 bench/           # Vitest benchmarks
 scripts/         # CI gates (proof:* scripts) + code generators
 docs/            # Migration guide, published surface manifest, architecture notes
 ```
 
-For the authoritative per-file inventory, see [`src/animation/CLAUDE.md`](src/animation/CLAUDE.md).
+Each library zone documents its contract at its owning barrel; the published
+surface and package manifests are the authorities for exports and build shape.
 
 ## Animation
 
@@ -255,7 +256,7 @@ The parser uses [`@mkbabb/parse-that`](https://github.com/mkbabb/parse-that) and
 
 ### Units
 
-Unit parsing and resolution (length, angle, time, percentage, color, and container-query units) are handled by [`@mkbabb/value.js`](https://github.com/mkbabb/value.js). `ValueUnit`, `FunctionValue`, and `ValueArray` are the three token shapes; all define `toString()`, `valueOf()`, and `lerp()`.
+Unit parsing and resolution (length, angle, time, percentage, color, and container-query units) are handled by [`@mkbabb/value.js`](https://github.com/mkbabb/value.js). `ValueUnit`, `FunctionValue`, and `ValueArray` are the three token shapes; all define `toString()`, `valueOf()`, and `lerp()`. Computed container units are resolved against the measured layout epoch; consumers that change the containing layout must call `bumpLayoutEpoch()` before sampling again so cached conversions are invalidated.
 
 ## `AnimationGroup`
 
@@ -272,6 +273,10 @@ Three blend modes:
 - **`replace`**: highest `zIndex` wins (default)
 - **`add`**: numeric values accumulate
 - **`weighted`**: linear interpolation by `weight` (0–1)
+
+Managed children are paused and resumed by the group clock: pause captures the
+last rAF timestamp, resume clears the managed pause directly (never by calling a
+child's public `resume()`), and settling releases the child from group ownership.
 
 Layer configuration per animation: `zIndex`, `weight`, `blendMode`, `enabled`, `properties` (whitelist). Property whitelisting enables effect layering—one layer animates position, another animates opacity.
 

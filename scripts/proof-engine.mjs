@@ -296,26 +296,20 @@ for (const f of [
 }
 
 // ── E.W5 BOOK — the managed-child lifecycle contract is documented in ONE place
-// (a NOTE, not code), with a group.ts cross-link. `tryParseCache` eviction stays
+// (a source note, not code), in group.ts. `tryParseCache` eviction stays
 // recorded-WITHHELD (measure-first, the D-3 / E.W5 posture: an unbounded memo with
 // a small working set is not a measured cost — an LRU would be speculative
-// complexity). Both BITE: stub the note → reds; drop the cross-link → reds.
+// complexity). The source note is the authority and is checked here.
 {
-    const claude = read("src/animation/CLAUDE.md");
-    const hasContract =
-        /Managed-child lifecycle/.test(claude) &&
-        /last(\s|-)*rAF/i.test(claude) &&
-        /never\s+`?child\.resume\(\)`?|not\s+via\s+`?child\.resume/i.test(claude);
-    if (!hasContract) {
-        fail("managed-pause-doc", "src/animation/CLAUDE.md is missing the consolidated managed-child lifecycle contract (loop-owned; last-rAF-clock pausedTime; resume un-pauses directly, never child.resume())");
-    } else {
-        ok("managed-pause-doc", "CLAUDE.md states the managed-child lifecycle contract in one place");
-    }
     const group = read("src/animation/group/group.ts");
-    if (!/managed-child lifecycle contract/i.test(group)) {
-        fail("managed-pause-doc", "group.ts is missing the cross-link comment to the CLAUDE.md managed-child lifecycle contract");
+    const hasContract =
+        /Managed-child lifecycle/.test(group) &&
+        /last(\s|-)*rAF/i.test(group) &&
+        /never\s+`?child\.resume\(\)`?|not\s+via\s+`?child\.resume/i.test(group);
+    if (!hasContract) {
+        fail("managed-pause-doc", "group.ts is missing the consolidated managed-child lifecycle contract (loop-owned; last-rAF-clock pausedTime; resume un-pauses directly, never child.resume())");
     } else {
-        ok("managed-pause-doc", "group.ts cross-links the lifecycle contract above pause/resume");
+        ok("managed-pause-doc", "group.ts states the managed-child lifecycle contract in one place");
     }
 }
 

@@ -5,7 +5,7 @@ import { quat } from "gl-matrix";
 // is the quaternion (gimbal-free accumulation); the Euler triple is the v-model
 // surface (per-axis sliders + the share hash). Both directions use the
 // `Rx · Ry · Rz` convention `useTransformState` consumes (see the Euler note in
-// demo/components/CLAUDE.md). No Vue/component dependency — colocated
+// demo component docs). No Vue/component dependency — colocated
 // math, kept out of the SFC.
 
 const RAD2DEG = 180 / Math.PI;

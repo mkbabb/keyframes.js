@@ -331,12 +331,12 @@ export class AnimationGroup<V extends Vars> {
         return lifecycle.play(this);
     }
 
-    // ── The managed-child lifecycle contract (full statement in
-    // src/animation/CLAUDE.md → AnimationGroup → "Managed-child lifecycle"): a
-    // managed child is loop-owned — it throws on direct `play()`; `pause()` records
-    // the last rAF clock on each child's `pausedTime` so `resume()` adjusts
-    // `startTime` jump-free; `resume()` un-pauses children DIRECTLY (never
-    // `child.resume()`); `settle()` releases the child (`managed = false`).
+    // ── Managed-child lifecycle contract: a managed child is loop-owned — it
+    // throws on direct `play()`; `pause()` records the last rAF clock on each
+    // child's `pausedTime` so `resume()` adjusts `startTime` jump-free;
+    // `resume()` un-pauses children DIRECTLY (never `child.resume()`); and
+    // `settle()` releases the child (`managed = false`). This source comment is
+    // the authoritative contract for proof:engine and for consumers.
 
     /** Pause the group — idempotent. Cancels the rAF loop + renders a final-frame
      * snapshot so the visual matches the pause moment; records each child's

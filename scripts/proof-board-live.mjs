@@ -8,8 +8,8 @@
  *
  *  (a) BOARD↔TREE — a PROGRESS.md row citing a GREEN gate exit that REDs at HEAD
  *      REDs the board. Each row that cites `proof:X exits 0` / `proof:X green` is
- *      reconciled against a LIVE re-run (same shape as proof:claude-paths-live gates
- *      CLAUDE.md). Today the T board cites no gate exits → vacuously green; a planted
+ *      reconciled against a LIVE re-run (same shape as the retired doc gate).
+ *      Today the T board cites no gate exits → vacuously green; a planted
  *      "proof:X green" row whose gate reds REDs the board. (Set KF_BOARD_LIVE_NORERUN=1
  *      to parse-only — the re-run is skipped in a no-exec context; the citation shape
  *      is still validated.)

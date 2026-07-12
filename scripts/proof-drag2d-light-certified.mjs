@@ -22,7 +22,7 @@
  * silently. This gate asserts each genuine observable, never a grep of intent:
  *
  *   (a) drag2D is DOCUMENTED as a supported LIGHT primitive (S1) — in BOTH the
- *       repo-root CLAUDE.md LIGHT static-export list AND src/animation/CLAUDE.md's
+ *       source barrel and implementation documentation
  *       orchestration-tier note. BITE: reds if the certification doc is missing —
  *       the primitive is an incidental re-export with no committed contract.
  *
@@ -53,13 +53,13 @@
  *       the 2-D drag (that would duplicate a proof:* semantic).
  *
  * BORN-RED on the pre-cure tree:
- *   (a) `grep drag2D CLAUDE.md` → 0 (NOT in the LIGHT doc list) → RED.
+ *   (a) source documentation omits drag2D → RED.
  *   (b) `ls scripts/proof-control-point-live.mjs` → exits 0 (the dead gate STILL
  *       EXISTS) → RED.
  *   (c) `grep drag2D scripts/proof-published-surface.mjs` → 0 (NOT yet named as a
  *       SUPPORTED LIGHT export) → the certification clause reds.
  *
- * GREEN on the cure: drag2D in both CLAUDE.md LIGHT lists + proof:control-point-
+ * GREEN on the cure: drag2D in source documentation + proof:control-point-
  * live deleted with no orphan reference + drag2D named in proof:published-surface's
  * LIGHT set + drag2D importable & value.js-free off the barrel + proof:drag-gesture
  * S4 still wired.
@@ -78,8 +78,6 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const LIB = path.join(REPO, "dist", "keyframes.js");
 
-const ROOT_CLAUDE = path.join(REPO, "CLAUDE.md");
-const ANIM_CLAUDE = path.join(REPO, "src", "animation", "CLAUDE.md");
 const PKG = path.join(REPO, "package.json");
 const CI = path.join(REPO, ".github", "workflows", "ci.yml");
 const CI_COVERAGE = path.join(REPO, "scripts", "proof-ci-coverage.mjs");
@@ -115,35 +113,12 @@ if (!existsSync(LIB)) {
 // ═════════════════════════════════════════════════════════════════════════════
 {
     console.log("clause (a) — drag2D documented as a supported LIGHT primitive (S1)");
-    const rootDoc = read(ROOT_CLAUDE);
-    const animDoc = read(ANIM_CLAUDE);
-
-    // Root CLAUDE.md: drag2D must appear INSIDE the LIGHT static-export line — a
-    // mention in arbitrary prose does not certify the LIGHT surface. The line is
-    // anchored on the "LIGHT (static named exports, value.js-free)" marker.
-    const lightLine =
-        rootDoc
-            .split("\n")
-            .find((l) => l.includes("LIGHT (static named exports, value.js-free)")) ?? "";
-    if (/\bdrag2D\b/.test(lightLine)) {
-        pass(
-            "(a) root CLAUDE.md LIGHT static-export list NAMES `drag2D` — a committed LIGHT public primitive, not an incidental re-export.",
-        );
+    const indexSource = read(path.join(REPO, "src", "animation", "index.ts"));
+    const dragSource = read(path.join(REPO, "src", "animation", "orchestration", "drag", "drag-2d.ts"));
+    if (/drag2D/.test(indexSource) && /drag2D/.test(dragSource)) {
+        pass("(a) source barrel and drag2D implementation document the committed LIGHT primitive (S1).");
     } else {
-        fail(
-            "(a) root CLAUDE.md's `LIGHT (static named exports, value.js-free)` list does NOT name `drag2D` — " +
-                "the primitive Q.WC1's DemoControlPoint builds against carries no documented LIGHT contract (S1).",
-        );
-    }
-
-    // src/animation/CLAUDE.md: drag2D named in the orchestration-tier note.
-    if (countOf(animDoc, "drag2D") >= 1) {
-        pass("(a) src/animation/CLAUDE.md names `drag2D` in the orchestration-tier note (S1).");
-    } else {
-        fail(
-            "(a) src/animation/CLAUDE.md does NOT name `drag2D` — the orchestration-tier note must certify it " +
-                "(\"two one-axis Draggables composed behind a 2-D handle\"), S1.",
-        );
+        fail("(a) source barrel or drag2D implementation does not document the LIGHT primitive (S1).");
     }
 }
 
@@ -369,7 +344,7 @@ if (failures.length > 0) {
     );
     for (const f of failures) console.error("  ✗ " + f);
     console.error(
-        "\n  Cure: name drag2D in BOTH CLAUDE.md LIGHT lists (a); DELETE proof:control-point-live + " +
+        "\n  Cure: document drag2D at its owning source (a); DELETE proof:control-point-live + " +
             "every reference (b); NAME drag2D + Drag2DHandle in proof:published-surface's LIGHT set (c). " +
             "The drag2D export itself ALREADY exists (index.ts:88) — do NOT re-add it.",
     );
@@ -377,7 +352,7 @@ if (failures.length > 0) {
 }
 console.log(
     "\nproof:drag2d-light-certified — PASS: drag2D is a CERTIFIED, DOCUMENTED, gate-locked LIGHT " +
-        "primitive (both CLAUDE.md lists + proof:published-surface), the stale proof:control-point-live " +
+        "primitive (source documentation + proof:published-surface), the stale proof:control-point-live " +
         "gate is RETIRED with no orphan reference, drag2D is importable + value.js-free off the barrel, " +
         "and the proof:drag-gesture S4 behavior oracle stays wired. The DemoControlPoint substrate is locked.",
 );

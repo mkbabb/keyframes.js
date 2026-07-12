@@ -247,7 +247,7 @@ export const CORRECTNESS_ROSTER = [
     "proof:brittleness",
     "proof:modern-web",
     "proof:platform-adopt",
-    // S.B8 — the doc-authority gate (root + src/animation + demo CLAUDE.md
+    // S.B8 — the retired doc-authority gate
     // path/symbol liveness). NOT a browser gate, but build-dependent like the two
     // above: clause (c) reads the built dist/keyframes.d.ts (present via `npm ci`'s
     // prepare=build:lib) and clause (b) reads dist/gh-pages — both of which the
@@ -255,7 +255,6 @@ export const CORRECTNESS_ROSTER = [
     // glass-ui-free fast gates job. Green as of S.B8's full map regen (the 22-path
     // flat-tree backlog is discharged); a NAMED STATIC_DEMO_CARVEOUT entry in
     // proof-ci-coverage.mjs keeps clause 7 (static-gate-placement) satisfied.
-    "proof:claude-paths-live",
     // T.G7 (DISCHARGED at batch ⑧ by T.G3 + T.G4) — the CDP-counter perf oracle,
     // the OWNER perceived-perf bar (VERDICT #19). Reads RecalcStyleCount/LayoutCount
     // per-frame ratios on the built dist/gh-pages: cube/spring/easing now measure

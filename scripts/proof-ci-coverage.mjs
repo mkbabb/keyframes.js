@@ -200,8 +200,8 @@ const EXCLUDED = new Set([
     // tier membership that would re-introduce the abort — the gate rides CI as a
     // report-all tripwire, by L.W4 S8's born-RED contract, not as an aggregator member.
     "proof:peer-satisfied",
-    // (S.B8 DISCHARGE — proof:claude-paths-live's exclusion was DELETED here.
-    //  Its src/animation/CLAUDE.md flat-tree backlog (the 22 dead tree-fence
+    // (S.B8 DISCHARGE — the former doc-authority exclusion was deleted here.
+    //  Its flat-tree backlog (the 22 dead tree-fence
     //  paths, fold row 41, C-8 "gate-first, regen-last") is GONE: S.B8
     //  regenerated the map against the final post-B tree, so the gate is FULLY
     //  green and is now an ORDINARY BLOCKING proof:hygiene-chain member — the
@@ -912,7 +912,6 @@ const jobBounds = (() => {
         // roster (which has BOTH — dist/keyframes.d.ts via `npm ci`'s prepare=build:lib
         // and dist/gh-pages via `npm run gh-pages`), not the glass-ui-free fast gates
         // job. Same build-dependent carve-out rationale as the two above.
-        "proof:claude-paths-live",
     ]);
     // The browser-harness import signatures (a gate that opens chromium, inline or via
     // the demo-driver lifecycle lib). A KF_REQUIRE_BROWSER env on the CI step is the

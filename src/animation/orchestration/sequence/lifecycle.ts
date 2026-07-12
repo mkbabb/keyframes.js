@@ -101,7 +101,7 @@ export function pause<V extends Vars>(seq: Sequence<V>): void {
  * Resume a paused sequence — restart the rAF loop with the origin re-anchored so
  * the FIRST resumed frame's master clock equals the retained `_time` (the
  * no-forward-jump re-anchor, the same `RAFPlayback`/`AnimationGroup` managed-pause
- * contract — `src/animation/CLAUDE.md` §Managed-child lifecycle). No-op when not
+ * contract documented at the owning group source). No-op when not
  * paused.
  */
 export function resume<V extends Vars>(seq: Sequence<V>): void {

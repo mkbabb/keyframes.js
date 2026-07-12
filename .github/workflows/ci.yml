@@ -118,7 +118,7 @@ jobs:
             # `npm pack --dry-run`, no demo build, no browser). Clause (a) tarball ==
             # files declaration (no `_redirects`), (b) every public export taught or
             # manifested, (d) AnimationEngine interface ≡ runtime surface (ENG-6),
-            # (e) root CLAUDE.md structural-claim tripwire, (f) peer-dep honesty.
+            # (e) published structural-shape tripwire, (f) peer-dep honesty.
             - name: proof:published-surface (J.W5 — tarball == exports == docs · the publish-boundary oracle)
               run: npm run proof:published-surface
             # Q.WE1 — the NO-LEGACY breaking-surface oracle: the three @deprecated

@@ -11,7 +11,7 @@
  * `demo/` — dead weight in the install graph, never proven live (a20 F4, a30,
  * DIGEST.json). Alongside them, a dead LOCAL constant (`SPRING_SMOOTH`) was
  * kept alive only by a `void` suppression dodging `noUnusedLocals`, and a
- * handful of narration sites (CLAUDE.md doc listings, a proof-script comment)
+ * handful of narration sites (README/DESIGN listings, a proof-script comment)
  * asserted things that no longer exist. T9 (census before fiat): totality is
  * proven by a census-shaped gate, not by naming one island.
  *
@@ -43,7 +43,7 @@
  * `SegmentedTabs`, `Animated.vue`, `ResponsiveSelect`, `AnimationMenuBar` —
  * NEVER the phrase "scene-switcher" (banning the phrase would false-RED the
  * historical tranche docs + the S.E shelf record, which legitimately carry
- * it). Scoped to the repo's LIVE NARRATION SURFACES — the CLAUDE.md family
+ * it). Scoped to the repo's LIVE NARRATION SURFACES — README and DESIGN
  * (root, `src/animation/`, `demo/`) + `README.md` + `demo/DESIGN.md` — the
  * doc sites a reader actually trusts as "what exists today". This is
  * DELIBERATELY narrower than "every comment in every file": `scripts/*.mjs`
@@ -80,7 +80,7 @@
  * `class-variance-authority`, or `@radix-*` REGROWTH in src/+demo/ now REDs.
  *
  * BORN-RED PROOF. Before S.C3a: all 8 packages in `package.json`,
- * `SPRING_SMOOTH` + its `void` hack live, `demo/CLAUDE.md` claims
+ * `SPRING_SMOOTH` + its `void` hack live, historical docs claims
  * `AnimationMenuBar.vue`/`ResponsiveSelect` exist (they don't),
  * `proof-visual-lock.mjs:172` narrates a dead "unovis" attribution → clauses 1
  * + 2 RED; the census carries 12 hits (RED, non-gating). S.C3a discharges
@@ -261,10 +261,7 @@ const DEAD_IDENTIFIERS = [
 // technical history, carved out as S.C3a S6 discretionary, not this clause's
 // scope).
 const NARRATION_SURFACES = [
-    "CLAUDE.md",
     "README.md",
-    "src/animation/CLAUDE.md",
-    "demo/CLAUDE.md",
     "demo/DESIGN.md",
 ].map((p) => path.join(REPO, p));
 
@@ -292,7 +289,7 @@ if (identifierHits.length > 0) {
 } else {
     console.log(
         `  ✓ zero of the 5 dead identifiers survive across the ${NARRATION_SURFACES.length} live ` +
-            "narration surfaces (CLAUDE.md family + README.md + DESIGN.md).",
+            "narration surfaces (README.md + DESIGN.md).",
     );
 }
 

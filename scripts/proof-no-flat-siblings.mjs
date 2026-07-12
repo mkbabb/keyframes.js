@@ -10,7 +10,7 @@
  * baseline). R.W1 promotes every family cluster into the zone directory
  * partition (11 zones as of S.A5 — `waapi.ts` was itself promoted to a
  * `waapi/` directory post-R.W1; fold row 41 caught its ZONE_DIRS omission,
- * the exact same "invisible zone" defect class as root CLAUDE.md's).
+ * the exact same "invisible zone" defect class as the former root inventory).
  * This gate locks the partition so a future tranche cannot re-spawn a
  * flat hyphenated sibling under the old shape.
  *
