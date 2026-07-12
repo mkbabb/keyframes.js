@@ -76,13 +76,6 @@ const DEFERRED = [
     // (GestureLegend.vue / GestureLegendItem RETIRED at T.M batch ⑧ — the whole
     //  file was deleted with the on-stage gesture-legend layer, VERDICT #8; the
     //  ratchet drops the discharged row.)
-    // ── @/state/ (the app-level reset-hook registry seam) ──
-    // `registerStoreReset` is retained as the general reset-composer CONTRACT
-    // (@/state/index.ts documents it: the last consumer — compose's asset store —
-    // was PRUNED under OD-1, the seam kept for the next feature store). Deliberate
-    // retention, not confirmed-superfluous: it stays deferred until a consumer
-    // returns or the contract is formally retired.
-    ["demo/state/index.ts", "registerStoreReset"],
     // ── glass-ui gap ledger (T.H surface, not the T.F23 demo purge) ──
     ["demo/glass-ui-gaps.ts", "GlassCapKey"],
     ["demo/glass-ui-gaps.ts", "GlassUiGap"],

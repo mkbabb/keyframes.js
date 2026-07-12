@@ -102,28 +102,9 @@ export const gcAndMigrateSceneKeyspace = (validSceneIds: Iterable<SceneId>) => {
     _gcAndMigrateAnimationGroupsControlOptionsStore(ids);
 };
 
-// S.D2 / a24 F2 — the app-level reset composer (dependency inversion). The state
-// barrel used to reach SIDEWAYS into a UI/feature component — a state layer owning
-// a control-surface component's internals (altitude inversion). It now owns only a
-// HOOK REGISTRY: feature stores that live outside the state peer register their own
-// reset here, and the app assembles the full reset by importing those features, so
-// the edge points the correct way (feature → @state) and the state peer imports no
-// component. (T.E1 — the compose scene's asset store, the last such consumer, was
-// PRUNED under OD-1; the registry seam is retained as the general contract.)
-const externalResetHooks = new Set<() => void>();
-
-/** Register an external store's reset with the app-level `resetAllStores`
- *  composer (a24 F2). Returns an unregister fn. Called by feature stores that
- *  live outside `@/state/`. */
-export const registerStoreReset = (reset: () => void): (() => void) => {
-    externalResetHooks.add(reset);
-    return () => externalResetHooks.delete(reset);
-};
-
 export const resetAllStores = () => {
     _resetAnimationGroupsOptionsStore();
     _resetAnimationGroupsControlOptionsStore();
-    for (const reset of externalResetHooks) reset();
 
     // The scene+playback machine persists the active-scene fact + per-scene
     // snapshots (H.W1 — replacing the deleted raw `keyframes-js-active-scene`
