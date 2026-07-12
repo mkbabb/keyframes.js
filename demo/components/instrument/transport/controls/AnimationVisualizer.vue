@@ -237,7 +237,7 @@ const gatedPointerDown = (e: PointerEvent) => {
 // Always poll — the animation's effectiveT changes during playback, slider scrub,
 // and visualizer drag. The cost is one progress calc + setBallProgress per frame.
 
-const { start: startSync } = useRafLoop(() => {
+useRafLoop(() => {
     const anim = props.animation;
     if (!isDragging.value && !coastPlayback.running && anim.options.duration > 0) {
         const progress = Math.max(
@@ -246,8 +246,7 @@ const { start: startSync } = useRafLoop(() => {
         );
         setBallProgress(progress);
     }
-});
-startSync();
+}, { guard: computed(() => props.isPlaying || isDragging.value) });
 
 // Stop the raw coast RAFPlayback on dispose — the sync loop rides useRafLoop's
 // auto-cleanup, but coastPlayback is a second raw playback; unmounting mid-fling

@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from "vue";
-import { useRafFn, useDocumentVisibility } from "@vueuse/core";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
+import { useDemoTicker } from "@composables/useDemoTicker";
 
 /**
  * Syncs reactive refs to a markRaw animation's state via rAF polling.
@@ -37,7 +37,8 @@ export function useAnimationSync(
     // Frames the polled state has held identical while not playing.
     let stableFrames = 0;
 
-    const { pause, resume, isActive } = useRafFn(
+    const tickerActive = ref(true);
+    useDemoTicker(
         () => {
             const animation = getAnimation();
             const t = animation.effectiveT;
@@ -63,15 +64,15 @@ export function useAnimationSync(
             if (changed) {
                 stableFrames = 0;
             } else if (++stableFrames >= SETTLE_FRAMES) {
-                pause();
+                tickerActive.value = false;
             }
         },
-        { immediate: false },
+        tickerActive,
     );
 
     const wake = () => {
         stableFrames = 0;
-        if (!isActive.value) resume();
+        tickerActive.value = true;
     };
 
     // Resume on ANY play-state change (an input, not an output → no deadlock):
@@ -83,15 +84,6 @@ export function useAnimationSync(
 
     // Re-sync when the tab becomes visible again (it may have advanced/changed
     // while hidden, and rAF is throttled/paused by the browser when hidden).
-    const visibility = useDocumentVisibility();
-    watch(visibility, (state) => {
-        if (state === "visible") wake();
-    });
-
-    // Start running (happy path: immediately syncing). The settle-detect idles
-    // it once the animation comes to rest.
-    resume();
-
     // `wake` is exported so SCRUB entry points can re-arm the loop: scrubbing a
     // SETTLED (non-playing) animation mutates `effectiveT` via setChildTime()
     // without touching `isPlaying`, so without this the idled loop would never
