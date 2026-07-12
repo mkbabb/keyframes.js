@@ -102,7 +102,7 @@ and a cluster of NO-LEGACY carves the two long-flat zones owe.
 | **U.C7** | `physics/spring/` colocation — `solver/` + `css/` sub-modules | M | `proof:boundary` (both sub-modules LIGHT) + `proof:zone-cohesion` re-anchor | 16 F1; OD-U16 (the long-file carve direction) |
 | **U.C8** | `compile/emit/` + `compile/easing/` colocation — the emitter trio under one roof (**absorbs P1** — the loop's carve template, frozen evidence `287-10`) | L | `proof:boundary` (HEAVY preserved) + a18 FORWARD↔`emit/` re-anchor | 16 F2; 12 F3; OD-U16 (its named example — `easing-option.ts` → `compile/easing/`); P1 (`287-10`) |
 | **U.C9** | compile backward de-accretion — `refusal-probes.ts` + >350L carves + primitive dedup | L | vitest (compileToCSS/Entry/VT emit goldens unchanged) | 12 F2/F4/F7 |
-| **U.C10** | value.js consume-edge honesty — excise dead `PARSE_ERROR`; BOOK the WAAPI unit literal | S | vitest (`validate.parseable` contract corrected) + U.F letter | 12 F1; 14 F3 |
+| **U.C10** | value.js consume-edge honesty — excise the dead compile-adapter `PARSE_ERROR` sink; BOOK the WAAPI unit literal | S | vitest (`validate.parseable` contract corrected) + U.F letter | 12 F1; 14 F3 |
 | **U.C11** | scroll drive symmetry — `driveScrollCSS` + dispatch de-dup + `ScrollBackend` re-home | M | vitest (scroll round-trip) + `bench` (one eligibility scan/dispatch) | 14 F4/F8 |
 | **U.C12** | presets → ONE `PRESET_SPECS` table + `definePreset` generator | M | vitest (34-preset catalog parity + barrel/taxonomy derivation) | 14 F1/F6 |
 | **U.C13** | **THE SURFACE COLLAPSE — one composition barrel, derived type** | L | `proof:publish`/`proof:published-surface` (re-armed) + tsc d.ts roll-up | 15 F1/F2/F3/F5/F6/F7 |
@@ -498,18 +498,15 @@ pass, never two.**
   dispatch → a `resolve/resolvers/` cluster; charter only if the directory-density disposition
   (Risks §R3) sets its N ≤ 5. Lowest priority; HEAVY, `core.ts`→`resolvers/` module-load safe.
 
-### U.C10 — value.js consume-edge honesty: excise dead `PARSE_ERROR`; BOOK the WAAPI unit literal
+### U.C10 — value.js consume-edge honesty: excise the dead adapter sink; BOOK the WAAPI unit literal
 
-- **Substance (lane 12 F1).** The `PARSE_ERROR` diagnostics channel is **dead scaffold**
-  (chronic since K): `adapter.ts:246-249` declares an `onParseError` sink then `void
-  onParseError` — never passed to a parser; value.js 3.1.0's `parseCSSStylesheet: (input:
-  string) => Stylesheet` (`stylesheet.d.ts:3`) accepts **no error callback**, so a
-  `PARSE_ERROR` Diagnostic can never fire. Downstream it silently weakens trust:
-  `validate.ts:156-159` branches `parseable` on `d.code === "PARSE_ERROR"` (never fires) → a
-  block with a malformed declaration value.js partially parses reports `parseable: true`.
-  **Excise** the un-fireable branch NOW: the `DiagnosticCode.PARSE_ERROR` member, the
-  `OnParseError` import + `onParseError`/`void onParseError` pair, and correct `validate`'s
-  `parseable` contract + doc. "NO legacy code" applies to dead honesty channels most of all.
+- **Substance (lane 12 F1; measured amendment).** The compile adapter's `onParseError`
+  sink was dead scaffold: it was declared and `void`ed, never passed to a parser, while
+  value.js 3.1.0's `parseCSSStylesheet` accepts no callback. The impossible validator
+  branch is removed, so `validate.parseable` now keys off the real `EMPTY_PARSE` signal.
+  The `DiagnosticCode.PARSE_ERROR` enum and row remain because the independent CSSOM-ingest
+  path emits that row for per-rule reconstruction failures; full enum excision is therefore
+  routed to the U.F value.js diagnostics covenant rather than asserted here.
   The value.js diagnostics-returning-parse ASK (an `onParseError`-accepting `parseCSSStylesheet`
   or a `{ ast, diagnostics }` return) is a **U.F letter row**, wired in one motion the moment
   value.js exposes the producer (ring-fence 1 — no parallel upstream arm).
@@ -526,8 +523,9 @@ pass, never two.**
   `WAAPI_INELIGIBLE_UNITS = new Set([...COMPUTED_UNITS, "%", ...VIEWPORT_LENGTH_UNITS,
   ...CONTAINER_LENGTH_UNITS])` and the literal vanishes.
 - **Size.** S. **HEAVY.** **Sequence with U.C9** (shared `adapter.ts`/`validate` edits).
-- **Oracle.** vitest: `validate.parseable` now reflects the honest contract (a partially-parsed
-  malformed block is no longer reported `parseable: true` on the false-PARSE_ERROR branch).
+- **Oracle.** vitest: `validate.parseable` now reflects the honest compile-adapter contract (a
+  partially-parsed malformed block is no longer classified through an impossible callback
+  branch; ingest-owned `PARSE_ERROR` rows remain independently observable).
 - **Edges.** → **U.F** (both ASKs are letter rows — the deadlined covenants, no vacuous
   tripwire), ↔ **U.C9** (the same adapter/validate co-edit — coordinate, not ordered).
 
