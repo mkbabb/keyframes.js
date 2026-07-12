@@ -65,9 +65,6 @@ import type {
 // in `./dispatch` (dispatchScrollBackend / pinCSS — T.F22 cohesion carve).
 // ═══════════════════════════════════════════════════════════════════════════
 
-/** Which backend a `ScrollScene` dispatched to, and why the JS path was chosen. */
-export type ScrollBackend = "native" | "js";
-
 /** The set of enter/leave threshold events the range-derived detector fires. */
 export type ScrollSceneEvent = "enter" | "leave";
 

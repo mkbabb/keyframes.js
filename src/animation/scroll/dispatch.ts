@@ -50,6 +50,9 @@ export interface ScrollDispatchRequest<V extends Vars> {
     velocity?: boolean | undefined;
 }
 
+/** The backend selected for a scroll-driven animation. */
+export type ScrollBackend = "native" | "js";
+
 /** The dispatch verdict — which backend, and (for JS) the human-readable reason. */
 export type ScrollDispatch =
     | { backend: "native"; attachment: NativeScrollAttachment }
@@ -104,13 +107,17 @@ export function dispatchScrollBackend<V extends Vars>(
 
     // Feature-detect the native global. createNativeTimeline → null on Firefox-
     // default / jsdom / SSR; the caller keeps the JS sampler.
-    if (createNativeTimeline(nativeSpec) == null) {
+    const timeline = createNativeTimeline(nativeSpec);
+    if (timeline == null) {
         return { backend: "js", reason: "native scroll/view timeline unavailable (feature absent)" };
     }
 
     // Eligible + native present + no kf-only capability → attach NATIVE (zero
     // main-thread sampling), via the SHIPPED bridge.
-    const attachment = attachNativeScrollTimeline(animation, nativeSpec);
+    const attachment = attachNativeScrollTimeline(animation, nativeSpec, {
+        eligibility: elig,
+        timeline,
+    });
     if (!attachment.attached) {
         // The bridge re-checked and refused — surface its reason on the JS path.
         return { backend: "js", reason: attachment.reason };

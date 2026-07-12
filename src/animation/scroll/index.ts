@@ -9,7 +9,6 @@
 export { ScrollScene, createScrollScene } from "./scene";
 export type {
     ScrollSceneOptions,
-    ScrollBackend,
     ScrollSceneEvent,
     ScrollSceneSubscriber,
     SnapPoints,
@@ -18,7 +17,7 @@ export type {
 // synthesis live in the colocated `./dispatch` half (carved off `scene.ts` on
 // the driver-vs-decision cohesion seam). The barrel reaches it DIRECTLY.
 export { dispatchScrollBackend, pinCSS } from "./dispatch";
-export type { ScrollDispatchRequest, ScrollDispatch } from "./dispatch";
+export type { ScrollBackend, ScrollDispatchRequest, ScrollDispatch } from "./dispatch";
 // S.B4 (a19 F3) — the range → [0,1] mapping lives in `./range`; the barrel
 // reaches it DIRECTLY, not relayed through `./scene` (the half-retired two-hop
 // bridge `scene.ts` carried alongside its own `./range` import is deleted there).

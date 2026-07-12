@@ -3,6 +3,7 @@ import type { NativeTimelineSpec } from "../orchestration/timeline/native";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 import { isWAAPIEligible } from "./eligibility";
+import type { WAAPIEligibility } from "./eligibility";
 import { toWAAPIKeyframes } from "./emission";
 import { toWAAPIOptions } from "./waapi-options";
 
@@ -103,6 +104,12 @@ export type NativeScrollAttachment =
     | { attached: true; animations: globalThis.Animation[] }
     | { attached: false; reason: string };
 
+/** Precomputed native-dispatch inputs; avoids repeating the hot eligibility scan. */
+export interface NativeScrollDispatchContext {
+    eligibility: Extract<WAAPIEligibility, { eligible: true }>;
+    timeline: AnimationTimeline;
+}
+
 /**
  * The ADDITIVE native `ScrollTimeline`/`ViewTimeline` WAAPI bridge
  * (D-LIB-2 / F-5 / S-1) — attach an eligible DOM animation to a native
@@ -132,13 +139,14 @@ export type NativeScrollAttachment =
 export function attachNativeScrollTimeline<V extends Vars>(
     animation: KeyframesAnimation<V>,
     spec: NativeTimelineSpec,
+    context?: NativeScrollDispatchContext,
 ): NativeScrollAttachment {
-    const elig = isWAAPIEligible(animation);
+    const elig = context?.eligibility ?? isWAAPIEligible(animation);
     if (!elig.eligible) {
         return { attached: false, reason: elig.reason };
     }
 
-    const timeline = createNativeTimeline(spec);
+    const timeline = context?.timeline ?? createNativeTimeline(spec);
     if (timeline == null) {
         return {
             attached: false,
