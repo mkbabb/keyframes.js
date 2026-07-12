@@ -40,7 +40,7 @@ import { useSceneVisibilityPause } from "./useSceneVisibilityPause";
  * The scene composable supplies the per-FRAME work (`frame`) and the per-ARM
  * clock rebase (`onArm`); everything else is owned here.
  */
-interface RafSceneOptions {
+interface SweepSceneOptions {
     /**
      * The per-frame work. Returns `true` to keep the loop running, `false` to
      * self-terminate (e.g. when the scene machine leaves `playing`). The loop
@@ -63,7 +63,7 @@ interface RafSceneOptions {
     getPlaying: () => boolean;
 }
 
-interface RafSceneHandleApi {
+interface SweepSceneHandleApi {
     /** THE owned managed rAF driver (read `.running` for the loop state). */
     readonly playback: RAFPlayback;
     /** Re-arm the rAF loop (idempotent; re-seeds the clock via `onArm` first). */
@@ -74,7 +74,7 @@ interface RafSceneHandleApi {
     scenePlayback: ScenePlayback;
 }
 
-export function useRafScene(opts: RafSceneOptions): RafSceneHandleApi {
+export function useSweepScene(opts: SweepSceneOptions): SweepSceneHandleApi {
     const playback = markRaw(new RAFPlayback());
 
     /** Re-arm the rAF loop. Idempotent — a no-op while already running; on a

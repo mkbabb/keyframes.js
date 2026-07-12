@@ -18,7 +18,8 @@ import {
     generateStepSVGPath,
 } from "@utils/reference-data/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
-import { useRafScene } from "@composables/scene-runtime/useRafScene";
+import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
+import { usePainterRegistry } from "@composables/scene-runtime/usePainterRegistry";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
 import { PROGRESS_READOUT_HZ } from "@utils/rafConstants";
@@ -180,26 +181,8 @@ export function useEasingDemo() {
     // (useThrottledReadout), not a hand-rolled accumulator (lane 21 rec 4).
     const readout = useThrottledReadout(PROGRESS_READOUT_HZ);
 
-    /** A dot painter: position one moving dot for the given raw sweep value. The
-     *  view layer registers these; the loop calls them imperatively each frame. */
-    type DotPainter = (phase: number) => void;
-    const dotPainters = new Set<DotPainter>();
-
-    /** Register a non-reactive dot painter (returns an unregister fn). The view
-     *  layer hands us a closure that writes `el.style.transform` directly — the
-     *  loop drives it off the render graph. Paints once immediately so the dot is
-     *  correct at registration time (e.g. on a paused scene). */
-    const registerDotPainter = (paint: DotPainter): (() => void) => {
-        dotPainters.add(paint);
-        paint(livePhaseValue);
-        return () => dotPainters.delete(paint);
-    };
-
-    /** Repaint every registered dot at the current live phase (used after a scrub
-     *  / curve change so the dots track even while the loop is paused). */
-    const repaintDots = (): void => {
-        for (const paint of dotPainters) paint(livePhaseValue);
-    };
+    const { registerPainter: registerDotPainter, repaint: repaintDots } =
+        usePainterRegistry(() => [livePhaseValue] as const);
 
     /** The always-current raw sweep value [0,1] (the painters + scrub read this;
      *  the reactive `progress` lags it by ≤ one readout tick, by design). */
@@ -220,7 +203,7 @@ export function useEasingDemo() {
         const phase = ((now - startTime) / (duration.value * 2)) % 1;
         livePhaseValue = sweep.at(phase).p;
         // Hot path — direct DOM writes, NO Vue reactivity (D4).
-        for (const paint of dotPainters) paint(livePhaseValue);
+        repaintDots();
         // Cold path — write the reactive readout at a few Hz only (the `f(p)=`
         // text + the contract time-twin), NOT per frame.
         readout.maybeFlush(now, () => {
@@ -229,13 +212,13 @@ export function useEasingDemo() {
         return true;
     };
 
-    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useRafScene) ──
-    // useRafScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
+    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useSweepScene) ──
+    // useSweepScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
     // createRafAdapter wiring, the onScopeDispose(stopLoop) seam, AND the
     // useSceneVisibilityPause registration with BOUND callbacks (no scene can
     // re-introduce the unbound `playback.stop` that threw `this._gen`). The
     // scene supplies only the per-frame work + the per-arm clock rebase.
-    const { playback, startLoop, scenePlayback } = useRafScene({
+    const { playback, startLoop, scenePlayback } = useSweepScene({
         frame,
         // Re-seed startTime from the LIVE phase so the sweep resumes in phase. The
         // loop reconciles `progress` to `livePhaseValue` on stop, so the two agree

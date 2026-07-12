@@ -4,7 +4,7 @@ import { SpringProgress } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 
-import { useRafScene } from "@composables/scene-runtime/useRafScene";
+import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
@@ -244,13 +244,13 @@ export function useSpringDemo() {
         return true;
     };
 
-    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useRafScene) ──
-    // useRafScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
+    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useSweepScene) ──
+    // useSweepScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
     // createRafAdapter wiring, the onScopeDispose(stopLoop) seam, AND the
     // useSceneVisibilityPause registration with BOUND callbacks (no scene can
     // re-introduce the unbound `playback.stop` that threw `this._gen`). The
     // scene supplies only the per-frame work + the per-arm clock rebase.
-    const { startLoop, scenePlayback } = useRafScene({
+    const { startLoop, scenePlayback } = useSweepScene({
         frame,
         // Re-seed the shared clock (lastNow = 0 so the first frame steps by dt=0)
         // + rebase startTime from the LIVE phase so the sweep resumes in phase
@@ -374,7 +374,7 @@ export function useSpringDemo() {
     startLoop();
 
     // (The derby's pending-timer teardown is owned by `useSpringDerby`'s own
-    // onScopeDispose; the raw RAFPlayback teardown by useRafScene's.)
+    // onScopeDispose; the raw RAFPlayback teardown by useSweepScene's.)
 
     // ── THE SPRING FACILITY (T.B1-β/T.B7 — the decoy is DEAD) ─────────────────
     // The former contract-group opacity decoy (the "Spring Preview"

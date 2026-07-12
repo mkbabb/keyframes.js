@@ -3,6 +3,7 @@ import { ref, type Ref } from "vue";
 import type { SpringProgress } from "@mkbabb/keyframes.js";
 
 import { useThrottledReadout } from "@composables/useThrottledReadout";
+import { usePainterRegistry } from "@composables/scene-runtime/usePainterRegistry";
 
 import { PROGRESS_READOUT_HZ } from "@utils/rafConstants";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
@@ -17,11 +18,6 @@ export interface SpringTrack {
     velocity: Ref<number>;
     settled: Ref<boolean>;
 }
-
-/** A spring painter: position the moving ball(s) it owns from `springLive`.
- *  The view layer registers these; the loop calls them imperatively each
- *  frame (direct `style` writes — off the Vue render graph). */
-type SpringPainter = () => void;
 
 /**
  * J.W2 S5 (DS-3) — THE HOT POSITIONAL PATH OFF THE VUE RENDER GRAPH.
@@ -98,23 +94,8 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
         phase: 0,
     };
 
-    const springPainters = new Set<SpringPainter>();
-
-    /** Register a non-reactive spring painter (returns an unregister fn).
-     *  Paints once immediately so the balls are correct at registration time
-     *  (e.g. on a paused scene). */
-    const registerSpringPainter = (paint: SpringPainter): (() => void) => {
-        springPainters.add(paint);
-        paint();
-        return () => springPainters.delete(paint);
-    };
-
-    /** Repaint every registered painter at the current live state (the hot
-     *  path each frame; also used after a scrub / reset so the balls track
-     *  while the loop is paused). */
-    const repaintSprings = (): void => {
-        for (const paint of springPainters) paint();
-    };
+    const { registerPainter: registerSpringPainter, repaint: repaintSprings } =
+        usePainterRegistry(() => [] as const);
 
     /** Flush the live snapshot into the reactive READOUT mirrors (the few-Hz
      *  cold path: the numerals, the settled badge, the contract time-twin). */
