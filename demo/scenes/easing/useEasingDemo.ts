@@ -378,6 +378,7 @@ export function useEasingDemo() {
     // registers. The scrub round-trip seats the reactive `progress` authority;
     // the idle-gated watch above reconciles the live value + repaints the dots.
     const facility: SceneFacility = {
+        identity: scenePlayback,
         channels: [
             {
                 name: "Easing",
@@ -390,6 +391,7 @@ export function useEasingDemo() {
         ],
         facets: [{ surface: "easing", label: "Curve", icon: "Activity" }],
         playback: scenePlayback,
+        isPlaying: () => scenePlayback.isPlaying(),
     };
 
     return {

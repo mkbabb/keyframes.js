@@ -112,9 +112,8 @@ defineExpose({
     // T.B1-β — the SceneFacility descriptor (the ONE real preview channel, the
     // `easing` facet, the raw-rAF playback). The decoy `animationGroup` expose
     // is DELETED with the contract-group decoy; the shell binds the facility.
-    facility: computed(() => demo.facility),
+    facility: demo.facility,
     superKey: SCENE_ID,
-    isPlaying,
     isStarted,
     // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: a scene that
     // sweeps forever with no gesture burned a full core at idle ("god awful").
@@ -127,7 +126,6 @@ defineExpose({
     // The raw-rAF ScenePlayback adapter — the App registers it with the machine
     // on SCENE_READY so easing's progress/isPlaying round-trip through the
     // CONTRACT (the literal D12 repro; proof:scene-contract-identity).
-    scenePlayback: demo.scenePlayback,
     tabsContent,
     ribbonContent,
 });

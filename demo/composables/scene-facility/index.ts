@@ -60,9 +60,13 @@ export interface SceneFacet {
  * group.
  */
 export interface SceneFacility {
+    /** Stable once-per-entry identity used by the shell readiness guard. */
+    identity: object;
     channels: ChannelHandle[];
     facets: SceneFacet[];
     playback: ScenePlayback;
+    /** Uniform readonly playback projection for every scene family. */
+    isPlaying(): boolean;
     /** The real group a group-clocked scene rides (cube/amiga/square). */
     group?: AnimationGroup<any>;
 }
@@ -84,8 +88,7 @@ export function facilityFromGroup(
         channelFacets?: Record<string, SceneFacet[]>;
     },
 ): SceneFacility {
-    const group = getGroup();
-    const channels: ChannelHandle[] = Object.entries(group.animations).map(
+    const channels = (): ChannelHandle[] => Object.entries(getGroup().animations).map(
         ([name, groupObj]) => {
             const anim = groupObj.animation;
             const facets = opts?.channelFacets?.[name];
@@ -105,10 +108,19 @@ export function facilityFromGroup(
             };
         },
     );
+    const playback = createGroupAdapter(getGroup);
     return {
-        channels,
+        get identity() {
+            return getGroup();
+        },
+        get channels() {
+            return channels();
+        },
         facets: opts?.facets ?? [],
-        playback: createGroupAdapter(getGroup),
-        group,
+        playback,
+        isPlaying: () => getGroup().playing(),
+        get group() {
+            return getGroup();
+        },
     };
 }

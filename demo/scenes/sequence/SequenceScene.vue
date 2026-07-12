@@ -36,10 +36,8 @@ defineExpose({
     // raw-rAF adapter the shell registers with the machine. `scenePlayback` is
     // also exposed as the STABLE bind-target identity the shell's once-per-entry
     // ready-guard keys on (a facility-only scene has no `animationGroup`).
-    facility: computed(() => demo.facility),
+    facility: demo.facility,
     superKey: SCENE_ID,
-    isPlaying: demo.isPlaying,
     isStarted: ref(true),
-    scenePlayback: demo.scenePlayback,
 });
 </script>

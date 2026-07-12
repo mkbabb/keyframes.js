@@ -412,6 +412,7 @@ export function useSequenceDemo() {
     // there is no `group` (progress-scalar scene). `facets` is empty — the DFA row
     // is [] so no panel renders.
     const facility: SceneFacility = {
+        identity: scenePlayback,
         channels: [
             {
                 name: "Sequence",
@@ -424,6 +425,7 @@ export function useSequenceDemo() {
         ],
         facets: [],
         playback: scenePlayback,
+        isPlaying: () => scenePlayback.isPlaying(),
     };
 
     // Paint the initial (t=0) frame so the balls rest at their rail origin and

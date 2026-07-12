@@ -87,11 +87,11 @@ const GROUP_SCENES = [
     ["square", "demo/scenes/square/SquareScene.vue"],
 ];
 for (const [name, rel] of GROUP_SCENES) {
-    if (exists(rel) && /facility:\s*computed\(\(\)\s*=>\s*facilityFromGroup/.test(read(rel))) {
+    if (exists(rel) && /const facility\s*=\s*facilityFromGroup/.test(read(rel))) {
         greenPasses.push(`(a3) group-scene — ${name} exposes facility via facilityFromGroup`);
     } else {
         greenFails.push(
-            `(a3) group-scene — ${name} (${rel}) must expose \`facility: computed(() => facilityFromGroup(...))\``,
+            `(a3) group-scene — ${name} (${rel}) must expose one stable facility built by facilityFromGroup`,
         );
     }
 }
@@ -99,14 +99,14 @@ for (const [name, rel] of GROUP_SCENES) {
 // ── Clause (a4) — SEQUENCE migrated: facility exposed + its contract group gone ──
 if (
     exists("demo/scenes/sequence/SequenceScene.vue") &&
-    /facility:\s*computed\(\(\)\s*=>\s*demo\.facility\)/.test(
+    /facility:\s*demo\.facility/.test(
         read("demo/scenes/sequence/SequenceScene.vue"),
     )
 ) {
     greenPasses.push("(a4) sequence — SequenceScene exposes `facility` (its decoy group is deleted)");
 } else {
     greenFails.push(
-        "(a4) sequence — SequenceScene.vue must expose `facility: computed(() => demo.facility)`",
+        "(a4) sequence — SequenceScene.vue must expose the stable `demo.facility`",
     );
 }
 if (
@@ -129,7 +129,7 @@ const LIGHT_SCENES = [
 for (const [name, sceneRel, composableRel] of LIGHT_SCENES) {
     const sceneOk =
         exists(sceneRel) &&
-        /facility:\s*computed\(\(\)\s*=>\s*demo\.facility\)/.test(read(sceneRel));
+        /facility:\s*demo\.facility/.test(read(sceneRel));
     const composableOk =
         exists(composableRel) &&
         /const facility:\s*SceneFacility/.test(read(composableRel));
@@ -139,10 +139,25 @@ for (const [name, sceneRel, composableRel] of LIGHT_SCENES) {
         );
     } else {
         greenFails.push(
-            `(a6) light-scene — ${name} must expose \`facility: computed(() => demo.facility)\` ` +
+            `(a6) light-scene — ${name} must expose the stable \`demo.facility\` ` +
                 `and its composable must build a \`SceneFacility\``,
         );
     }
+}
+
+// ── Clause (a7) — the facility is the sole exposed playback seam ────────────
+const exposedApi = read("demo/app/scene/sceneExposedApi.ts");
+const shellBinding = read("demo/app/scene/useSceneMachineShellBinding.ts");
+if (
+    !/animationGroup\?:|scenePlayback\?:/.test(exposedApi) &&
+    !/ownsPlayback|sceneRef\.value\?\.animationGroup|sceneRef\.value\?\.scenePlayback/.test(
+        shellBinding,
+    ) &&
+    /identity:\s*object/.test(read("demo/composables/scene-facility/index.ts"))
+) {
+    greenPasses.push("(a7) sole-seam — facility identity/playback is the only shell contract");
+} else {
+    greenFails.push("(a7) sole-seam — legacy animationGroup/scenePlayback/ownsPlayback path survives");
 }
 
 // ── Clause (a5) — the four MIGRATED scenes touch NO decoy ────────────────────

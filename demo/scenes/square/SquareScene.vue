@@ -308,18 +308,18 @@ const { onKeydown } = useSquareKeyboard({
     },
 });
 
+const facility = facilityFromGroup(() => animationGroup);
+
 defineExpose({
     // T.B1 STAGE 1 — the additive SceneFacility: square's REAL nested-keyframes
     // channel paints (the honest four-corner tour); the legacy `animationGroup`
     // stays for the panel group. The facility's playback is the group adapter.
-    facility: computed(() => facilityFromGroup(() => animationGroup)),
-    animationGroup: computed(() => animationGroup),
+    facility,
     superKey,
     // T.A13 — the writable play state the App toggles for a group-adapter scene
     // (the cube/amiga contract: `onPlayStateChange` writes `isPlaying` when the
     // scene does NOT own its own `scenePlayback`). Here Play drives the group's
     // honest four-corner tour (the FSM enters `playback`); a drag takes over.
-    isPlaying,
 });
 </script>
 

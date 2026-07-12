@@ -229,12 +229,13 @@ onBeforeUnmount(() => {
     // (the Three.js room + IntersectionObserver auto-release on scope dispose)
 });
 
+const facility = facilityFromGroup(() => animationGroup);
+
 defineExpose({
     // T.B1 STAGE 1 — the additive SceneFacility: amiga's REAL group members are
     // the painting channels; the legacy `animationGroup` stays for the panel
     // group. The facility's playback is the standard group adapter.
-    facility: computed(() => facilityFromGroup(() => animationGroup)),
-    animationGroup: computed(() => animationGroup),
+    facility,
     superKey,
 });
 </script>

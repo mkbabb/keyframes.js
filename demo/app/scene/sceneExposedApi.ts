@@ -11,8 +11,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { VNode } from "vue";
-import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import type { ScenePlayback } from "@state";
 import type { SceneFacility } from "@composables/scene-facility";
 
 export interface SceneExposedApi {
@@ -21,14 +19,8 @@ export interface SceneExposedApi {
      * (the T.B1-β/T.B7 joint motion completed the set): the shell binding
      * registers `facility.playback` with the machine and `facility.channels`
      * drives the whole transport axis (labels, host mounts, selection, scrub).
-     * The legacy `animationGroup?`/`scenePlayback?` fields below remain as the
-     * group-scene panel handle + the ready-guard identity.
      */
     facility?: SceneFacility;
-    /** The active AnimationGroup for the scene (or undefined if not set up yet). */
-    animationGroup?: AnimationGroup<any>;
-    /** The scene's own ScenePlayback handle (optional, owned scenes only). */
-    scenePlayback?: ScenePlayback;
     /** Render-fn slot projections (cross-sibling via defineExpose). */
     tabsContent?: () => VNode;
     ribbonContent?: (slotProps: { selectedControl: string }) => VNode | null;
@@ -37,8 +29,6 @@ export interface SceneExposedApi {
     superKey?: string;
     /** True if the scene auto-starts on mount. */
     autoPlays?: boolean;
-    /** True if the scene is currently playing (read by useSceneMachineApp). */
-    isPlaying?: boolean;
     /** True if the scene has started at least once. */
     isStarted?: boolean;
 }

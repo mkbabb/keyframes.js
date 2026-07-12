@@ -401,6 +401,7 @@ export function useSpringDemo() {
     springEditAnim.t = progress.value * springEditAnim.options.duration;
 
     const facility: SceneFacility = {
+        identity: scenePlayback,
         channels: [
             {
                 name: "Sweep",
@@ -425,6 +426,7 @@ export function useSpringDemo() {
         ],
         facets: [{ surface: "spring", label: "Physics", icon: "Activity" }],
         playback: scenePlayback,
+        isPlaying: () => scenePlayback.isPlaying(),
     };
 
     return {

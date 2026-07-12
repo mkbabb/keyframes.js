@@ -225,6 +225,18 @@ onBeforeUnmount(() => {
     };
 });
 
+const facility = facilityFromGroup(() => animationGroup.value, {
+    channelFacets: {
+        [CUBE_ANIMATION_NAMES.Matrix]: [
+            {
+                surface: "matrix-controls",
+                label: "Matrix Controls",
+                icon: "Grid3X3",
+            },
+        ],
+    },
+});
+
 defineExpose({
     // T.B1 STAGE 1 — the additive SceneFacility: cube's REAL group members are the
     // painting channels; the legacy `animationGroup` stays for the shell binding's
@@ -233,20 +245,7 @@ defineExpose({
     // the derived surface set gains it only while the Matrix channel is selected
     // (selection-gating IS "which channel is selected"; the old
     // CONDITIONAL_SURFACES + activeControlConditionals threading DIED).
-    facility: computed(() =>
-        facilityFromGroup(() => animationGroup.value, {
-            channelFacets: {
-                [CUBE_ANIMATION_NAMES.Matrix]: [
-                    {
-                        surface: "matrix-controls",
-                        label: "Matrix Controls",
-                        icon: "Grid3X3",
-                    },
-                ],
-            },
-        }),
-    ),
-    animationGroup: computed(() => animationGroup.value),
+    facility,
     superKey,
     isPlaying,
     isStarted,
