@@ -32,8 +32,8 @@
  * ABSENT. GREEN once S.C1's S2 backfills the doc naming each removed symbol.
  *
  * CI posture: HARD — a semver-honesty precept, structural and device-independent.
- * (Requires the prev release tag to be resolvable — the same git-tag dependency
- * proof:published-on-master already carries.)
+ * (Requires the previous release tag to be resolvable; release workflow/tag
+ * provenance owns that prerequisite.)
  *
  * RUN: npm run proof:changelog
  */
@@ -106,9 +106,9 @@ if (npmLatest && cmpSemver(npmLatest, CURRENT) < 0) {
 
 if (!prevVersion) {
     failures.push(
-        "(0) no previous published tag resolves below the current version — cannot " +
+            "(0) no previous published tag resolves below the current version — cannot " +
             "reconstruct the prior published surface. Ensure the release tags are fetched " +
-            "(the git-tag dependency proof:published-on-master shares).",
+            "before running the changelog comparison.",
     );
     report();
 }
