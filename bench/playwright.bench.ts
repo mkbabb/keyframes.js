@@ -1,7 +1,7 @@
 /**
  * The LoAF >50ms-trace gate — the LoAF observer's REAL second consumer.
  *
- * `demo/app/runtime/loaf-observer.ts` records every long-animation-frame over
+ * `demo/app/lifecycle/loaf-observer.ts` records every long-animation-frame over
  * 50ms to `window.__kfLoaf` "so the Playwright >50ms-trace gate and the bench
  * can read it" (its docstring). For two tranches that consumer was a stub
  * (`expect(true).toBe(true)`), leaving the observer a 1-consumer speculative
@@ -20,7 +20,7 @@
  * The observer is DEV-only in the demo (DCE'd from prod by `main.ts`'s
  * `import.meta.env.DEV` guard). The bench does NOT go through that path: the
  * served bench page mounts the observer EXPLICITLY (importing the same
- * `demo/app/runtime/loaf-observer.ts` source, transpiled on the fly), so the
+ * `demo/app/lifecycle/loaf-observer.ts` source, transpiled on the fly), so the
  * prod demo build stays observer-free while the bench drives the real observer.
  *
  * Chromium resolves from `KF_PLAYWRIGHT_DIR` (the sibling that has playwright
@@ -51,13 +51,13 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
 
 // The real observer source the bench transpiles on the fly. It moved from
-// `demo/app/loaf-observer.ts` → `demo/app/runtime/loaf-observer.ts` at the S.D1
+// `demo/app/loaf-observer.ts` → `demo/app/lifecycle/loaf-observer.ts` at the S.D1
 // `demo/app/` partition (commit 440e5c3) WITHOUT this bench's path following it,
 // which ENOENT'd the whole gate silently for 116 commits (lane 32 §2.7). The
 // `assertBenchPathsResolve` clause in proof:bench-taxonomy now statically
 // asserts every REPO-relative path this bench reads still resolves, so a future
 // re-partition reds loudly instead of zeroing this gate's signal again.
-const OBSERVER_SRC = path.join(REPO, "demo/app/runtime/loaf-observer.ts");
+const OBSERVER_SRC = path.join(REPO, "demo/app/lifecycle/loaf-observer.ts");
 
 const LOAF_THRESHOLD_MS = 50;
 

@@ -37,7 +37,7 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TRANSPORT =
     process.env.KF_TRANSPORT ||
-    join(root, "demo/app/runtime/useSceneTransport.ts");
+    join(root, "demo/composables/scene-runtime/useSceneTransport.ts");
 
 const failures = [];
 const passes = [];

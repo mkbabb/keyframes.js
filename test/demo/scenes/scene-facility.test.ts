@@ -19,7 +19,7 @@ import { warmKfEngine } from "../../../demo/utils/kfEngine";
 import {
     facilityFromGroup,
     type SceneFacility,
-} from "../../../demo/app/scene/sceneFacility";
+} from "../../../demo/composables/scene-facility";
 import { useSequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo";
 
 beforeAll(async () => {

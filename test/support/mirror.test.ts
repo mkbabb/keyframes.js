@@ -39,6 +39,7 @@ function importSpecifiers(file: string): string[] {
 
 function demoImportArea(specifier: string): string | undefined {
     const normalized = specifier.replaceAll("\\", "/");
+    if (/demo\/composables\/scene-runtime\//.test(normalized)) return "scenes";
     if (/demo\/scenes\//.test(normalized)) return "scenes";
     if (/demo\/app\//.test(normalized) || normalized.startsWith("@app"))
         return "app";

@@ -52,7 +52,7 @@ import { MatrixEditor } from "./matrix-editor";
 import CubeTarget from "./CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";
-import { facilityFromGroup } from "@app/scene/sceneFacility";
+import { facilityFromGroup } from "@composables/scene-facility";
 import { useTransformState } from "./matrix-editor/useTransformState";
 import { useCubeDemo, SCENE_ID, CUBE_ANIMATION_NAMES } from "./useCubeDemo";
 import { useCubeTransform } from "./cubeTransformStore";

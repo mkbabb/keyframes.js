@@ -3,7 +3,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import { useSceneMachine } from "@state";
-import { useSceneTransport } from "@app/runtime/useSceneTransport";
+import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 
 /** The playback emit contract this composable drives — typed to the host
  *  component's `defineEmits` signature so the call site needs no `emit as any`

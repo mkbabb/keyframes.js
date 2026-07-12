@@ -33,8 +33,8 @@ import {
     type AmigaPose,
 } from "./useAmigaDemo";
 import { useSphereSpin } from "./useSphereSpin";
-import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
-import { facilityFromGroup } from "@app/scene/sceneFacility";
+import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
+import { facilityFromGroup } from "@composables/scene-facility";
 import { AMIGA_SCENE_ID } from "./amigaKeys";
 
 const superKey = AMIGA_SCENE_ID;

@@ -59,7 +59,7 @@ void Promise.all([warmKfEngine().catch(() => undefined), fontsDecoded]).finally(
 // to the production build; the dynamic import keeps it off the dev
 // critical path too.
 if (import.meta.env.DEV) {
-    void import("./runtime/loaf-observer").then(({ observeLongAnimationFrames }) => {
+    void import("./lifecycle/loaf-observer").then(({ observeLongAnimationFrames }) => {
         observeLongAnimationFrames();
     });
 }

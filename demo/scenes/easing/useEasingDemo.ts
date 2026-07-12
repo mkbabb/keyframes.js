@@ -18,10 +18,10 @@ import {
     generateStepSVGPath,
 } from "@components/instrument/transport/controls/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@components/instrument/transport/animationDescriptions";
-import { useRafScene } from "@app/runtime/useRafScene";
-import { useSceneTransport } from "@app/runtime/useSceneTransport";
-import type { SceneFacility } from "@app/scene/sceneFacility";
-import { PROGRESS_READOUT_HZ } from "@app/runtime/rafConstants";
+import { useRafScene } from "@composables/scene-runtime/useRafScene";
+import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
+import type { SceneFacility } from "@composables/scene-facility";
+import { PROGRESS_READOUT_HZ } from "@composables/scene-runtime/rafConstants";
 import { useSceneMachine } from "@state";
 import { kfEngine } from "@utils/kfEngine";
 import { EASING_SCENE_ID } from "./easingKeys";

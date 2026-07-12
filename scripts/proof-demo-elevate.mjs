@@ -178,7 +178,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // code for the vueuse visibility gate (raw addEventListener is barred by
     // proof:brittleness, so a hit here is the vueuse form).
     const visFiles = [
-        "demo/app/runtime/useSceneVisibilityPause.ts",
+        "demo/composables/scene-runtime/useSceneVisibilityPause.ts",
         "demo/components/instrument/transport/composables/useAnimationSync.ts",
         "demo/scenes/amiga/AmigaScene.vue",
     ];

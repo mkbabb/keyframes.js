@@ -55,16 +55,16 @@ const bornRedFails = [];
 
 // ── Clause (a1) — the descriptor module exists + exports the seam ────────────
 if (
-    exists("demo/app/scene/sceneFacility.ts") &&
-    /export interface SceneFacility/.test(read("demo/app/scene/sceneFacility.ts")) &&
-    /export function facilityFromGroup/.test(read("demo/app/scene/sceneFacility.ts"))
+    exists("demo/composables/scene-facility/index.ts") &&
+    /export interface SceneFacility/.test(read("demo/composables/scene-facility/index.ts")) &&
+    /export function facilityFromGroup/.test(read("demo/composables/scene-facility/index.ts"))
 ) {
     greenPasses.push(
-        "(a1) descriptor — demo/app/scene/sceneFacility.ts exports SceneFacility + facilityFromGroup",
+        "(a1) descriptor — demo/composables/scene-facility/index.ts exports SceneFacility + facilityFromGroup",
     );
 } else {
     greenFails.push(
-        "(a1) descriptor — demo/app/scene/sceneFacility.ts must export `SceneFacility` + `facilityFromGroup`",
+        "(a1) descriptor — demo/composables/scene-facility/index.ts must export `SceneFacility` + `facilityFromGroup`",
     );
 }
 
@@ -180,7 +180,7 @@ if (!bornRedGreen) {
             decoyHits.join(", ") +
             ". The decoy was DELETED at the T.B1-β/T.B7 joint motion (batch ⑥′): " +
             "easing + spring ride real facility channels — cure the regression, " +
-            "never resurrect demo/app/runtime/useContractAnimGroup.ts.",
+            "never resurrect demo/composables/scene-runtime/useContractAnimGroup.ts.",
     );
 }
 

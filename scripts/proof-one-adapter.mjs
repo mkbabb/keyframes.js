@@ -156,12 +156,12 @@ const shellSrc = blankComments(fs.readFileSync(SHELL, "utf8"));
             sites.push(`${rel}:${line}`);
         }
     }
-    if (sites.length === 1 && sites[0].startsWith("demo/app/scene/sceneFacility.ts")) {
+    if (sites.length === 1 && sites[0].startsWith("demo/composables/scene-facility/index.ts")) {
         ok(`clause C — createGroupAdapter is invoked from exactly ONE site (${sites[0]} — facilityFromGroup, the single builder)`);
     } else {
         fail(
             `clause C — createGroupAdapter is invoked from ${sites.length} site(s) [${sites.join(", ")}] — ` +
-                `expected exactly ONE (demo/app/scene/sceneFacility.ts / facilityFromGroup). More than one ` +
+                `expected exactly ONE (demo/composables/scene-facility/index.ts / facilityFromGroup). More than one ` +
                 `builder site reopens the adapter dual-family (T.B8).`,
         );
     }

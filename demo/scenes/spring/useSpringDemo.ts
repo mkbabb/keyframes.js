@@ -4,9 +4,9 @@ import { SpringProgress } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 
-import { useRafScene } from "@app/runtime/useRafScene";
-import { useSceneTransport } from "@app/runtime/useSceneTransport";
-import type { SceneFacility } from "@app/scene/sceneFacility";
+import { useRafScene } from "@composables/scene-runtime/useRafScene";
+import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
+import type { SceneFacility } from "@composables/scene-facility";
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 import { SPRING_SCENE_ID } from "./springKeys";
 import { SPRING_PRESETS } from "./springPresets";

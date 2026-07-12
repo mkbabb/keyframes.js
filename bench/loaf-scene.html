@@ -64,7 +64,7 @@
             // surface, and it does NOT inherit the prod app's
             // `import.meta.env.DEV`-guarded mount (`demo/app/main.ts`), so the
             // production demo build stays observer-free while the bench drives
-            // the real observer source (`demo/app/runtime/loaf-observer.ts`, transpiled
+            // the real observer source (`demo/app/lifecycle/loaf-observer.ts`, transpiled
             // and served by the gate). `KF_LOAF_NO_OBSERVER=1` makes the gate
             // serve a no-op observer module so the bite-test can prove the gate
             // reddens when nothing populates `window.__kfLoaf`.

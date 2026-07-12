@@ -87,7 +87,7 @@ import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
 import { SQUARE_SCENE_ID } from "./squareKeys";
-import { facilityFromGroup } from "@app/scene/sceneFacility";
+import { facilityFromGroup } from "@composables/scene-facility";
 
 const superKey = SQUARE_SCENE_ID;
 

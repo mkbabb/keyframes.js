@@ -13,7 +13,7 @@
 import type { VNode } from "vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { ScenePlayback } from "@state";
-import type { SceneFacility } from "./sceneFacility";
+import type { SceneFacility } from "@composables/scene-facility";
 
 export interface SceneExposedApi {
     /**

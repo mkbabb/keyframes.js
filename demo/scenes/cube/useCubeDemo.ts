@@ -3,7 +3,7 @@ import { markRaw, shallowRef } from "vue";
 import type { Ref } from "vue";
 import { kfEngine } from "@utils/kfEngine";
 import { getStoredAnimationOptions } from "@state";
-import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
+import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";
 
 // T.B9 — the ONE keyspace: the store key (and each `animation.superKey` field) is

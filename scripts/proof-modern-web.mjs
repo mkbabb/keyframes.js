@@ -329,7 +329,7 @@ function walkCount(dir) {
 // vueuse useDocumentVisibility gate via useSceneVisibilityPause; verified here).
 {
     const id = "proof:loop-yield";
-    const composableRel = "demo/app/runtime/useSceneVisibilityPause.ts";
+    const composableRel = "demo/composables/scene-runtime/useSceneVisibilityPause.ts";
     const amigaRel = "demo/scenes/amiga/AmigaScene.vue";
     const composable = read(composableRel);
     const amiga = read(amigaRel);

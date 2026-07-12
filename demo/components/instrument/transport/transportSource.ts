@@ -20,7 +20,7 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 /** One transport channel — the shared-tier structural twin of the app-side
- *  `ChannelHandle` (demo/app/scene/sceneFacility.ts). */
+ *  `ChannelHandle` (demo/composables/scene-facility/index.ts). */
 export interface TransportChannel {
     /** The transport-select label. */
     name: string;

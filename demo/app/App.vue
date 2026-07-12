@@ -155,7 +155,7 @@ import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
 import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scene/scenes";
 import type { SceneExposedApi } from "./scene/sceneExposedApi";
-import { useMonacoCancellationGuard } from "./runtime/useMonacoCancellationGuard";
+import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGuard";
 
 // Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
 // disposed mid-async on a fast scene switch) — app-lifetime, scope-managed.

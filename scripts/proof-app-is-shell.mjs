@@ -15,14 +15,14 @@
  *       the shell). An "area" is counted PER-SCENE (C-23): each `demo/scenes/
  *       <name>/`, plus `demo/` and `demo/playground/`, is one area; other
  *       `demo/app/` files (shell-internal) are NOT counted. Files imported by
- *       ZERO non-app areas (shell-private) or ≥2 non-app areas (legitimately
- *       cross-scene — the five `app/runtime/` recipes) are LEGAL. Born-RED today
+ *       ZERO non-app areas (shell-private) or ≥2 non-app areas are LEGAL. The
+ *       four cross-scene recipes live under `demo/composables/scene-runtime/`.
  *       via `cubeTransformStore.ts` (lives in app/, imported by exactly one
  *       non-app area — `scenes/cube/`); greens when S3 evicts it → scenes/cube/.
  *
  *   (ii) NO STALE-DEPTH ESCAPE. Every RELATIVE import/dynamic-import specifier in
  *       every `demo/app/` source file resolves to an existing file on disk — so a
- *       move that deepens a file (root → scene/·transition/·runtime/) without the
+ *       move that deepens a file (root → scene/·transition/·lifecycle/) without the
  *       matching `../` depth bump surfaces HERE, not only at `tsc`. Catches the S4
  *       `scenes.ts` `../scenes/` → `../../scenes/` class by construction (the 16
  *       static + dynamic scene imports). Green on the current tree (it builds);
@@ -30,7 +30,7 @@
  *
  *   (iii) SHELL-NESS IS STRUCTURAL. The shell ROOT (`demo/app/`, non-recursive)
  *       holds ONLY the shell files (App.vue · main.ts · index.html) + the concern
- *       sub-zones (scene/ · transition/ · runtime/ · public/) — every composable/
+ *       sub-zones (scene/ · transition/ · lifecycle/ · public/) — every composable/
  *       store/router file lives in a concern sub-zone, NOT loose at root. Measured
  *       by FILE MEMBERSHIP (concern grouping), NOT by line count (SD-7; T2
  *       corollary). App.vue's line count is an OBSERVED TRIPWIRE printed below,
@@ -68,7 +68,7 @@ const ALLOWED_ROOT_FILES = new Set([
 ]);
 // OD-U19: component modules live under the canonical component home; app/
 // contains orchestration concerns only.
-const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "runtime", "public"]);
+const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "lifecycle", "public"]);
 // Skip-list for non-source droppings that are not a concern violation.
 const IGNORE_ROOT_ENTRIES = new Set([".DS_Store"]);
 
@@ -213,7 +213,7 @@ function main() {
         } else {
             console.log(
                 "  ✓ [no-mis-home] no demo/app/ file is imported by exactly one " +
-                    "non-app area (the five app/runtime/ recipes are ≥2-scene shared)",
+                    "non-app area (cross-scene recipes live in demo/composables/scene-runtime)",
             );
         }
     }
@@ -267,7 +267,7 @@ function main() {
                 strays.push(
                     `demo/app/${e.name} is a loose non-shell file at the app root ` +
                         `(shell root allows only ${[...ALLOWED_ROOT_FILES].join(" · ")}) ` +
-                        `— it belongs in a concern sub-zone (scene/·transition/·runtime/)`,
+                        `— it belongs in a concern sub-zone (scene/·transition/·lifecycle/)`,
                 );
             }
         }
@@ -281,7 +281,7 @@ function main() {
         } else {
             console.log(
                 "  ✓ [shell-structural] demo/app/ root holds only the shell files + " +
-                    "the scene/·transition/·runtime/·public/ sub-zones",
+                    "the scene/·transition/·lifecycle/·public/ sub-zones",
             );
         }
         // OBSERVED TRIPWIRE (NOT a GREEN criterion — SD-7/T2 corollary): App.vue's
@@ -323,7 +323,7 @@ function main() {
     console.log(
         "\nproof:app-is-shell — PASS: demo/app/ is an honest shell — no single-" +
             "consumer mis-home, no stale-depth relative import, and the root is the\n" +
-            "shell files + the scene/·transition/·runtime/ concern sub-zones (a23 Layout C).",
+            "shell files + the scene/·transition/·lifecycle/ concern sub-zones (a23 Layout C).",
     );
 }
 

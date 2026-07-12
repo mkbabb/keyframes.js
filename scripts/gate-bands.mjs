@@ -686,7 +686,7 @@ export const T_BORNRED_BACKLOG = {
     //  ⑥′ STAGE 2): easing rides ONE real preview channel (a CSSKeyframesAnimation
     //  whose timingFunction IS the edited easing), spring rides the Sweep
     //  (springEditAnim) + Entry (the compiled @starting-style animation) channels,
-    //  and demo/app/runtime/useContractAnimGroup.ts is DELETED in the same motion.
+    //  and demo/composables/scene-runtime/useContractAnimGroup.ts is DELETED in the same motion.
     //  Clause (b) decoy-zero GREENS — the gate exits 0 and joins the blocking
     //  proof:hygiene-chain as a normal covered gate (removed here + from the
     //  ci-coverage EXCLUDED set in the same commit, drive clause 7).)
