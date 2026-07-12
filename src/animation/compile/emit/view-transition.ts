@@ -1,5 +1,5 @@
 /**
- * compile/view-transition.ts — S.F1 VT-c THE VIEW-TRANSITIONS EMITTER (p09).
+ * compile/emit/view-transition.ts — S.F1 VT-c THE VIEW-TRANSITIONS EMITTER (p09).
  *
  * `compileToViewTransition` compiles a NAME-KEYED role spec to a PURE,
  * ZERO-RUNTIME CSS artifact over the `::view-transition-*` pseudo tree — the
@@ -38,16 +38,17 @@
  * the LIGHT barrel (its LIGHT twin is `orchestration/view-transition`'s dispatch).
  */
 import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
-import type { KeyframesAnimation } from "../engine";
-import type { AnimationOptions, Vars } from "../constants";
-import {
-    compileChild,
-    cssIdent,
-    declaredKeyframeBodyFor,
-    serializeEasing,
-} from "./backward";
+import type { KeyframesAnimation } from "../../engine";
+import type { AnimationOptions, Vars } from "../../constants";
+// The emit-substrate helpers, imported from the real sibling FILES inside emit/
+// (never the emit/ barrel — the barrel re-exports THIS file, so a barrel import
+// would cycle; the same file-not-barrel idiom the easing carve proved).
+import { compileChild } from "./backward";
+import { cssIdent } from "./backward-walk";
+import { declaredKeyframeBodyFor } from "./format";
+import { serializeEasing } from "./easing-serialize";
+import type { CompileChild } from "./backward-walk";
 import type {
-    CompileChild,
     CompileOptions,
     CompileRefusal,
     CompileRefusalReason,

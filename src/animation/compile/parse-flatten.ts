@@ -98,9 +98,9 @@ const applyPropertyContext = (
 };
 
 // `getTimingFunction` (the synchronous timing-function resolver) moved to the
-// colocated `./easing-registry` module (R.W1; lib-support F1/F7) so `easing.ts`
-// can narrow its dynamic import. This module is now the CSS-leaf parse/flatten
-// pipeline only.
+// `./easing/easing-registry` module in the `compile/easing/` sub-zone (R.W1;
+// lib-support F1/F7; relocated U.C8) so `easing.ts` can narrow its dynamic
+// import. This module is now the CSS-leaf parse/flatten pipeline only.
 
 /**
  * Bounded LRU over the string→flattened-leaf parse. value.js's `memoize`

@@ -1,5 +1,5 @@
 /**
- * compile/backward-walk.ts — the COMPILE input walkers (K.W10, carved off
+ * compile/emit/backward-walk.ts — the COMPILE input walkers (K.W10, carved off
  * `backward.ts` in R.W2b).
  *
  * The "orchestration graph → `CompileChild[]`" half of the backward compile:

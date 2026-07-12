@@ -71,11 +71,11 @@ function calcFrameTime<V extends Vars>(
 // The numeric SoA fold plan (`buildNumericPlan` + its `isNumericInterpVar`
 // predicate) lives in the colocated `./numeric-plan` module (R.W2b carve);
 // `finalizeFrameVars` builds one per frame. The heavy-surface easing-input
-// resolver (`resolveEasingOption`) lives in `./easing-option`. S.B3 C-2 — the
-// re-export CEREMONY is DEAD: `engine/options.ts` imports `resolveEasingOption`
-// from `./easing-option` DIRECTLY; this module imports only what IT uses.
+// resolver (`resolveEasingOption`) lives in `./easing/easing-option`. S.B3 C-2 —
+// the re-export CEREMONY is DEAD: `engine/options.ts` imports `resolveEasingOption`
+// from `./easing/easing-option` DIRECTLY; this module imports only what IT uses.
 import { buildNumericPlan } from "./numeric-plan";
-import { resolveEasingOption } from "./easing-option";
+import { resolveEasingOption } from "./easing/easing-option";
 
 export class FrameCompiler<V extends Vars = Vars> {
     templateFrames: TemplateAnimationFrame<V>[] = [];

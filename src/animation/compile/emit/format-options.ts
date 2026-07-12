@@ -1,5 +1,5 @@
 /**
- * compile/backward/format-options.ts — the OPTION/SHORTHAND serialization half
+ * compile/emit/format-options.ts — the OPTION/SHORTHAND serialization half
  * of the backward `format` surface (T.F22 — the per-zone cohesion carve off
  * `format.ts`).
  *

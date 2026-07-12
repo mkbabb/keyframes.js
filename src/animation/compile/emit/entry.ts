@@ -1,5 +1,5 @@
 /**
- * compile/entry.ts — S.F3 EN-c THE ENTRY/EXIT EMITTER (C-22 revised; P2-2).
+ * compile/emit/entry.ts — S.F3 EN-c THE ENTRY/EXIT EMITTER (C-22 revised; P2-2).
  *
  * `compileToEntry` compiles a selector-keyed entry/exit spec to zero-runtime
  * `@starting-style` + `transition-behavior: allow-discrete` CSS — the modern
@@ -41,13 +41,13 @@ import {
     unflattenObjectToString,
     ValueUnit,
 } from "@mkbabb/value.js";
-import type { KeyframesAnimation } from "../engine";
-import type { Vars } from "../constants";
-import {
-    colorUnitToOklabCSS,
-    isColorUnit,
-    serializeEasing,
-} from "./backward";
+import type { KeyframesAnimation } from "../../engine";
+import type { Vars } from "../../constants";
+// The emit-substrate helpers, imported from the real sibling FILES inside emit/
+// (never the emit/ barrel — the barrel re-exports THIS file, so a barrel import
+// would cycle; the same file-not-barrel idiom the easing carve proved).
+import { colorUnitToOklabCSS, isColorUnit } from "./backward-color";
+import { serializeEasing } from "./easing-serialize";
 
 // ── The spec + options (P2-2 API contract) ───────────────────────────────────
 

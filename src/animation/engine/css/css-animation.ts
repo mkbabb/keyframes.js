@@ -33,7 +33,7 @@ import {
     NAMED_SELECTOR_SUPERTYPE,
 } from "../../compile/selector";
 import type { Timeline } from "../../orchestration/timeline";
-import { getTimingFunction } from "../../compile/easing-registry";
+import { getTimingFunction } from "../../compile/easing/easing-registry";
 import { transformTargetsStyle } from "../../compile/parse-flatten";
 import { KeyframesAnimation } from "../animation";
 

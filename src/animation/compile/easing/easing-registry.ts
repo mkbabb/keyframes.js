@@ -1,12 +1,13 @@
 /**
- * compile/easing-registry.ts — `getTimingFunction`, the HEAVY synchronous
+ * compile/easing/easing-registry.ts — `getTimingFunction`, the HEAVY synchronous
  * timing-function resolver (R.W1; lib-support F1/F7). Split off the misnamed
  * `utils.ts` god-module (now `parse-flatten.ts`) so it owns ONE concern: resolve
  * a timing-function input (a callable, a registry name, or a CSS
  * `cubic-bezier()`/`steps()`/`linear()` literal) to a callable `TimingFunction`.
+ * Relocated into the `compile/easing/` sub-zone beside `easing-option.ts` in U.C8.
  *
  * Lives here (not in `easing.ts`) so `easing.ts:resolveEasing` can narrow its
- * dynamic import from the full engine chunk to `"./compile/easing-registry"`
+ * dynamic import from the full engine chunk to `"./compile/easing/easing-registry"`
  * (lib-support F7). HEAVY (value.js-bearing — the registry + the CSS parsers).
  */
 import {
@@ -20,7 +21,7 @@ import {
 import type {
     TimingFunction,
     TimingFunctionNames,
-} from "../constants";
+} from "../../constants";
 
 /**
  * Match a CSS `cubic-bezier(x1, y1, x2, y2)` literal. Accepts

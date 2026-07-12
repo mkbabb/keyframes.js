@@ -8,7 +8,7 @@
  * {@link ViewTransitionHandle} whose `backend` is queryable. LIGHT (value.js-
  * free): composes `flipShared` + the ONE `withReducedMotion` gate; feature-
  * detects `startViewTransition`. The HEAVY companion `compileToViewTransition`
- * (`compile/view-transition.ts`) rides `loadAnimationEngine()`. The barrel is the
+ * (`compile/emit/view-transition.ts`) rides `loadAnimationEngine()`. The barrel is the
  * zone's single public surface (what `proof:no-flat-siblings` asserts).
  */
 export { viewTransition } from "./view-transition";

@@ -136,24 +136,24 @@ export type {
 export { compileToCSS } from "./compile";
 // S.F1 VT-c — the View-Transitions emitter (PAIRED with the AnimationEngine
 // `compileToViewTransition` field — the proof:engine-subpath-mirror TYPE-diff).
-export { compileToViewTransition } from "./compile/view-transition";
+export { compileToViewTransition } from "./compile/emit/view-transition";
 export type {
     VTRoleSpec,
     ViewTransitionCompileOptions,
     VTCompileRefusalReason,
     VTCompileRefusal,
     CompiledViewTransitionCSS,
-} from "./compile/view-transition";
+} from "./compile/emit/view-transition";
 // S.F3 EN-c — the entry/exit emitter (PAIRED with the AnimationEngine
 // `compileToEntry` field — the proof:engine-subpath-mirror TYPE-diff).
-export { compileToEntry } from "./compile/entry";
+export { compileToEntry } from "./compile/emit/entry";
 export type {
     EntryRoleSpec,
     EntryCompileOptions,
     EntryRefusalReason,
     EntryRefusal,
     CompiledEntryCSS,
-} from "./compile/entry";
+} from "./compile/emit/entry";
 
 // ── validate — the round-trip's FORWARD half (the validation layer) ──────────
 export { validate, explain } from "./validate";
@@ -164,6 +164,6 @@ export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
-} from "./compile/backward/format";
+} from "./compile/emit/format";
 export { transformTargetsStyle } from "./compile/parse-flatten";
 export { yieldToMain } from "./internal/scheduler";

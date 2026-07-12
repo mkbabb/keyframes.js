@@ -1,5 +1,5 @@
 /**
- * compile/backward/easing-serialize — the Easing → CSS `<easing-function>`
+ * compile/emit/easing-serialize — the Easing → CSS `<easing-function>`
  * serialization tier (EN-a, S.B3; carved from format.ts at the S.B3 merge —
  * the 500L cohesion tripwire; this IS a seam: TimingFunction→CSS text, no
  * keyframe/block emission).

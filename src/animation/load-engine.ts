@@ -4,7 +4,7 @@
  *
  * This module owns the `await import("./engine")` (and `./group`,
  * `./svg/motion-path`, `./svg/draw-svg`, `./svg/morph-svg`, `./ingest`,
- * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/backward/format`,
+ * `./scroll`, `./compile`, `./validate`, `./presets`, `./compile/emit/format`,
  * `./compile/parse-flatten`, `./internal/scheduler`)
  * DYNAMIC edges — never a STATIC `@mkbabb/value.js` import. Every value.js-
  * bearing import here is `import type` (erased under `verbatimModuleSyntax`),
@@ -82,11 +82,11 @@ import type { compileToCSS as compileToCSSImpl } from "./compile";
 // sibling over the same value.js-bearing backward substrate). Merged onto the
 // engine below; rides the dynamic boundary, never the LIGHT static barrel (its
 // LIGHT twin is `orchestration/view-transition`'s dispatch).
-import type { compileToViewTransition as compileToViewTransitionImpl } from "./compile/view-transition";
+import type { compileToViewTransition as compileToViewTransitionImpl } from "./compile/emit/view-transition";
 // S.F3 EN-c (FLAGGED ADDITIVE) — the entry/exit emitter (compileToCSS's
 // declared-endpoint sibling). Merged onto the engine below; rides the dynamic
 // boundary, never the LIGHT static barrel.
-import type { compileToEntry as compileToEntryImpl } from "./compile/entry";
+import type { compileToEntry as compileToEntryImpl } from "./compile/emit/entry";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the HEAVY validate/explain
 // runtime surface, merged onto the engine below (validate.ts statically imports
 // the engine + compile + waapi, all value.js-bearing, so it rides the dynamic
@@ -108,7 +108,7 @@ import type {
     CSSKeyframesToString as CSSKeyframesToStringImpl,
     CSSKeyframesToStrings as CSSKeyframesToStringsImpl,
     formatCSSKeyframeString as formatCSSKeyframeStringImpl,
-} from "./compile/backward/format";
+} from "./compile/emit/format";
 import type { transformTargetsStyle as transformTargetsStyleImpl } from "./compile/parse-flatten";
 import type { yieldToMain as yieldToMainImpl } from "./internal/scheduler";
 import type * as AnimationPresets from "./presets/index";
@@ -296,11 +296,11 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         // imports value.js (formatCSS/reverseCSSTime) + the backward compile
         // substrate; merged here so consumers reach the `::view-transition-*`
         // emitter the same way as the rest of the heavy surface.
-        import("./compile/view-transition"),
+        import("./compile/emit/view-transition"),
         // S.F3 EN-c (FLAGGED ADDITIVE) — the entry/exit emitter. Statically imports
         // value.js + the backward substrate; merged here so consumers reach the
         // `@starting-style`/`allow-discrete` emitter the same way.
-        import("./compile/entry"),
+        import("./compile/emit/entry"),
         // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE) — validate.ts statically
         // imports the engine + compile + waapi (all value.js-bearing); merged here
         // so consumers reach the forward-half VALIDATION layer the same way as the
@@ -309,13 +309,13 @@ export const loadAnimationEngine = (): Promise<AnimationEngine> =>
         import("./validate"),
         import("./presets/index"),
         // L.W8 S1 ED-3 DOGFOOD INVERSION (FLAGGED ADDITIVE) — the format/
-        // parse-flatten/scheduler helpers. `compile/backward/format` (S.B3 C-2) /
+        // parse-flatten/scheduler helpers. `compile/emit/format` (S.B3 C-2) /
         // `compile/parse-flatten` are value.js-bearing and already sit on the engine
         // chunk's static graph; `internal/scheduler` is value.js-free. Merged here so
         // a consumer reaching the serialization / DOM-paint / yield helpers does so
         // the same way as the rest of the heavy surface — no new static value.js edge
         // on the LIGHT barrel.
-        import("./compile/backward/format"),
+        import("./compile/emit/format"),
         import("./compile/parse-flatten"),
         import("./internal/scheduler"),
     ]).then(

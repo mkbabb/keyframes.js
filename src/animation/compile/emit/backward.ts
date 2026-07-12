@@ -138,7 +138,7 @@ export interface CompileOptions {
  * (`.${name}` — the class selector p09 identified as the ONE hardcoded seam at
  * the rule emit) reproduces today's artifact BYTE-FOR-BYTE (behavior-neutral;
  * `proof:compile-replay`/`proof:compile-deterministic` stay green untouched). The
- * VT emitter (`compile/view-transition.ts`) passes a factory that re-targets the
+ * VT emitter (`compile/emit/view-transition.ts`) passes a factory that re-targets the
  * SAME block+rule onto `::view-transition-old(name)` / `…new(name)` (optionally
  * wrapped in `:active-view-transition-type(T)`) — the p09 "byte-reusable
  * per-child pipeline" made real. NOT on the public `CompileOptions` surface: it

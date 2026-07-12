@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { springTimingFunction } from "../../src/animation/physics/spring";
-import { compileToViewTransition } from "../../src/animation/compile/view-transition";
+import { compileToViewTransition } from "../../src/animation/compile/emit/view-transition";
 
 const spring = springTimingFunction({ response: 0.4, dampingFraction: 0.7 });
 const mk = (css: string, opts: Record<string, unknown> = {}): CSSKeyframesAnimation<any> => {

@@ -1,5 +1,5 @@
 /**
- * compile/backward/densify — the EN-b percentage-keyed densify MERGE tier
+ * compile/emit/densify — the EN-b percentage-keyed densify MERGE tier
  * (S.B3; carved from format.ts at the S.B3 merge — the mixed-track cure:
  * densified changing-color stops merged WITH the declared non-color
  * projection into ONE @keyframes block).

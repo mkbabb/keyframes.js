@@ -23,7 +23,7 @@ import {
     defaultOptions,
 } from "../constants";
 import type { AnimationOptions, InputAnimationOptions } from "../constants";
-import { resolveEasingOption } from "../compile/easing-option";
+import { resolveEasingOption } from "../compile/easing/easing-option";
 import { AnimationOptionError, parseOption } from "../internal/errors";
 
 /** `parseCSSTime` that converts a parse failure to `undefined` for the option seam. */

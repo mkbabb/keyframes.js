@@ -22,7 +22,7 @@
  * none), S7 (top-layer overlay hold). The oracle SKIPS (never fails) when
  * playwright-core is not resolvable; set KF_PLAYWRIGHT_DIR to actuate.
  *
- * BORN-RED WITNESS: no `compile/entry.ts` emitter (the oracle's import of
+ * BORN-RED WITNESS: no `compile/emit/entry.ts` emitter (the oracle's import of
  * `compileToEntry` fails → RED); AND the substrate is browser-dead until S.B3's
  * EN-a lands (`serializeEasing` emits `ease-out-cubic` → `animation-name: none`),
  * so even a naive emitter's S1 has nothing to actuate. GREEN once EN-a is in and
