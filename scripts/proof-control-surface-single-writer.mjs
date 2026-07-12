@@ -86,7 +86,7 @@ console.log(
     collect(path.join(DEMO, "scenes"));
     collect(path.join(DEMO, "components/dock"));
     targets.push(
-        path.join(DEMO, "components/instrument/transport/components/RibbonBar.vue"),
+        path.join(DEMO, "components/instrument/transport/controls-pane/RibbonBar.vue"),
     );
 
     const writeRe = /\.selectedControl\s*=(?!=)/;

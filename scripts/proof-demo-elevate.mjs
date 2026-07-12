@@ -94,7 +94,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         fail("a11y", "timeline markers missing the role=slider + aria-valuenow a11y template");
     }
     // The redundant visualizer twin is aria-hidden (or carries a role).
-    const vis = read("demo/components/instrument/transport/controls/AnimationVisualizer.vue");
+    const vis = read("demo/components/playback/AnimationVisualizer.vue");
     if (/aria-hidden=["']true["']/.test(vis) || /role=["']slider["']/.test(vis)) {
         ok("a11y", "AnimationVisualizer is aria-hidden (redundant twin) or carries a role");
     } else {
