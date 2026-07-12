@@ -21,6 +21,7 @@
 import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { ControlSurface, ScenePlayback } from "@state";
 import { createGroupAdapter } from "@state";
+import { clamp } from "@mkbabb/value.js/math";
 
 /**
  * ONE transport channel. `name` is the transport-select label. A channel that
@@ -102,7 +103,7 @@ export function facilityFromGroup(
                 },
                 setProgress: (t: number) => {
                     const dur = anim.options.duration ?? 1000;
-                    const clamped = Math.max(0, Math.min(1, t));
+                    const clamped = clamp(t, 0, 1);
                     getGroup().setChildTime(anim, clamped * dur).render();
                 },
             };

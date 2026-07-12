@@ -43,6 +43,7 @@
 import { onScopeDispose, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { bumpLayoutEpoch } from "@mkbabb/value.js";
+import { clamp } from "@mkbabb/value.js/math";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { SmoothProgress } from "@mkbabb/keyframes.js";
 import { SpringProgress } from "@mkbabb/keyframes.js";
@@ -104,7 +105,7 @@ const progressFromPointerX = (clientX: number): number => {
     const ballW = ballEl.value?.clientWidth ?? 48;
     const maxX = rect.width - ballW;
     if (maxX <= 0) return 0;
-    const x = Math.max(0, Math.min(clientX - rect.left - ballW / 2 - grabOffset, maxX));
+    const x = clamp(clientX - rect.left - ballW / 2 - grabOffset, 0, maxX);
     return x / maxX;
 };
 
@@ -182,7 +183,7 @@ const startCoast = () => {
     coastSpring.target = velocity > 0 ? 1 : 0;
 
     coastPlayback.drive(coastSpring, () => {
-        const p = Math.max(0, Math.min(coastSpring.value, 1));
+        const p = clamp(coastSpring.value, 0, 1);
         lastProgress = p;
         applyProgress(p);
         if (coastSpring.settled) emit("dragEnd");

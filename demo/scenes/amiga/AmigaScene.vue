@@ -23,7 +23,7 @@ import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core
 import * as THREE from "three";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 // OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
-import { lerp } from "@mkbabb/value.js/math";
+import { clamp, lerp } from "@mkbabb/value.js/math";
 
 import { useAmigaThree } from "./useAmigaThree";
 import {
@@ -158,7 +158,7 @@ function onFrame(): boolean {
     const shadow = three.getContactShadow();
     if (shadow) {
         const h = (rendered.py - FLOOR_Y) / (APEX_Y - FLOOR_Y); // 0 floor → 1 apex
-        const t = Math.min(1, Math.max(0, h));
+        const t = clamp(h, 0, 1);
         shadow.position.x = rendered.px;
         shadow.position.y = CONTACT_FLOOR + 0.01;
         shadow.scale.setScalar(lerp(1, 1.9, t));

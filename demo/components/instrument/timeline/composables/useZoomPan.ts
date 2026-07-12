@@ -1,5 +1,6 @@
 import { computed, ref } from "vue";
 import type { Ref } from "vue";
+import { clamp } from "@mkbabb/value.js/math";
 
 export function useZoomPan(trackEl: Ref<HTMLElement | null>) {
     const zoomLevel = ref(1);
@@ -15,7 +16,7 @@ export function useZoomPan(trackEl: Ref<HTMLElement | null>) {
 
     const clampPan = () => {
         const maxPan = 100 - 100 / zoomLevel.value;
-        panOffset.value = Math.max(0, Math.min(maxPan, panOffset.value));
+        panOffset.value = clamp(panOffset.value, 0, maxPan);
     };
 
     // Dynamic tick marks based on zoom level
@@ -47,7 +48,7 @@ export function useZoomPan(trackEl: Ref<HTMLElement | null>) {
             const pointerPercent = positionToPercent(pointerX * 100);
 
             const factor = event.deltaY < 0 ? 1.05 : 1 / 1.05;
-            const newZoom = Math.max(1, Math.min(10, zoomLevel.value * factor));
+        const newZoom = clamp(zoomLevel.value * factor, 1, 10);
 
             // Adjust pan so pointer stays at same percent
             panOffset.value = pointerPercent - (pointerX * 100) / newZoom;

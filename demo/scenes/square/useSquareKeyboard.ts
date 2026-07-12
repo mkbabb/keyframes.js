@@ -1,5 +1,6 @@
 import { onBeforeUnmount } from "vue";
 import type { SpringProgress } from "@mkbabb/keyframes.js";
+import { clamp } from "@mkbabb/value.js/math";
 
 /**
  * R.W6-decomp — the square scene's keyboard layer (the arrow/Home nudge + the
@@ -88,8 +89,8 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
             return;
         } else return;
         e.preventDefault();
-        const nx = Math.max(-1, Math.min(1, springX.target + dx));
-        const ny = Math.max(-1, Math.min(1, springY.target + dy));
+        const nx = clamp(springX.target + dx, -1, 1);
+        const ny = clamp(springY.target + dy, -1, 1);
         reseat(nx, ny);
         onTarget(nx, ny);
     };

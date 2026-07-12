@@ -1,6 +1,7 @@
 import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
 import { SpringProgress } from "@mkbabb/keyframes.js";
+import { clamp } from "@mkbabb/value.js/math";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 
@@ -278,7 +279,7 @@ export function useSpringDemo() {
     // transport-scrubber drag calls it directly (the former `progress.value = v`
     // wrote only the 6 Hz mirror + repainted nothing while idle).
     function scrubTo(t: number): void {
-        const clamped = Math.max(0, Math.min(1, t));
+        const clamped = clamp(t, 0, 1);
         springLive.phase = clamped;
         springLive.sampled = samplerAnim.at(clamped).x;
         flushReadouts();
@@ -291,7 +292,7 @@ export function useSpringDemo() {
 
     /** Re-seat the interactive target *and* all canonical trackers together. */
     const reseat = (value: number) => {
-        const v = Math.max(0, Math.min(1, value));
+        const v = clamp(value, 0, 1);
         target.value = v;
         liveSpring.target = v;
         for (const t of tracks) t.spring.target = v;
@@ -415,12 +416,12 @@ export function useSpringDemo() {
                 progress: () => {
                     const dur = entryAnim.options.duration ?? 500;
                     return dur > 0
-                        ? Math.max(0, Math.min(1, entryAnim.t / dur))
+                        ? clamp(entryAnim.t / dur, 0, 1)
                         : 0;
                 },
                 setProgress: (t: number) => {
                     const dur = entryAnim.options.duration ?? 500;
-                    entryAnim.t = Math.max(0, Math.min(1, t)) * dur;
+                    entryAnim.t = clamp(t, 0, 1) * dur;
                 },
             },
         ],

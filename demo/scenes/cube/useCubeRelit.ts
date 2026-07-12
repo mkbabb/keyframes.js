@@ -1,6 +1,7 @@
 import { computed, type Ref } from "vue";
 
 import type { TransformState } from "./orbital-drag";
+import { clamp } from "@mkbabb/value.js/math";
 
 /**
  * L.W11.S2 — the orientation-coupled RE-LIT die (the cube scene's instrument
@@ -62,7 +63,7 @@ function litFor(n: readonly number[], r: { x: number; y: number; z: number }) {
     s = Math.sin(rx);
     [y, z] = [y * c - z * s, y * s + z * c];
     const d = x * KEY_LIGHT[0] + y * KEY_LIGHT[1] + z * KEY_LIGHT[2];
-    return Math.max(0, Math.min(1, 0.5 + 0.5 * d));
+    return clamp(0.5 + 0.5 * d, 0, 1);
 }
 
 export function useCubeRelit(transform: Ref<TransformState>) {

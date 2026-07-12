@@ -122,6 +122,7 @@
 import { computed, onMounted, reactive, useTemplateRef, watchEffect } from "vue";
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
+import { clamp } from "@mkbabb/value.js/math";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 
 import ControlsPaneWrapper from "./controls-pane/ControlsPaneWrapper.vue";
@@ -255,7 +256,7 @@ const sliderUpdate = (val: { t: number; animation: KeyframesAnimation<any> }) =>
 /** The selected axis-member's normalized t (channel first, group fallback). */
 const getActiveT = (): number => {
     const ch = selectedChannel.value;
-    if (ch) return Math.max(0, Math.min(1, ch.progress()));
+    if (ch) return clamp(ch.progress(), 0, 1);
     return groupGetActiveT();
 };
 
@@ -263,7 +264,7 @@ const getActiveT = (): number => {
 const scrubActive = (fraction: number) => {
     const ch = selectedChannel.value;
     if (ch) {
-        ch.setProgress(Math.max(0, Math.min(1, fraction)));
+        ch.setProgress(clamp(fraction, 0, 1));
         return;
     }
     groupScrubActive(fraction);

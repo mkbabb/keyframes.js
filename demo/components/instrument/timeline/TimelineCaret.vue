@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef } from "vue";
+import { clamp } from "@mkbabb/value.js/math";
 
 const props = defineProps<{
     keyframeId: string;
@@ -58,7 +59,7 @@ const commitEdit = () => {
     if (!isEditing.value) return;
     const val = parseFloat(inputEl.value?.value ?? "");
     if (!isNaN(val)) {
-        emit("update:percent", Math.max(0, Math.min(100, Math.round(val))));
+        emit("update:percent", clamp(Math.round(val), 0, 100));
     }
     isEditing.value = false;
 };

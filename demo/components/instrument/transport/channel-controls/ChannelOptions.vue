@@ -254,6 +254,7 @@ import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
+import { clamp } from "@mkbabb/value.js/math";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
@@ -332,7 +333,7 @@ const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted, wake } = u
 const normalizedProgress = computed(() => {
     const dur = props.animation.options.duration;
     if (!dur || dur <= 0) return 0;
-    return Math.max(0, Math.min(1, currentT.value / dur));
+    return clamp(currentT.value / dur, 0, 1);
 });
 
 const emit = defineEmits<{

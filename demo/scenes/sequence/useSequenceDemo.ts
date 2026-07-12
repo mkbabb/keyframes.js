@@ -5,6 +5,7 @@ import type { CSSKeyframesAnimation as CSSKeyframesAnimationT } from "@mkbabb/ke
 import { Sequence } from "@mkbabb/keyframes.js";
 import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
+import { clamp } from "@mkbabb/value.js/math";
 
 import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
@@ -176,7 +177,7 @@ export function useSequenceDemo() {
 
     /** Read the live Sequence playhead into the reactive progress mirror. */
     const syncFromSequence = () => {
-        progress.value = Math.max(0, Math.min(1, sequence.progress));
+        progress.value = clamp(sequence.progress, 0, 1);
     };
 
     // The reactivity mirror — the master progress read-out — rides the engine's
@@ -196,7 +197,7 @@ export function useSequenceDemo() {
         onArm: () => syncFromSequence(),
         getProgress: () => progress.value,
         setProgress: (t) => {
-            sequence.progress = Math.max(0, Math.min(1, t));
+            sequence.progress = clamp(t, 0, 1);
             syncFromSequence();
         },
         getPlaying: () => machine.status.value === "playing",
@@ -277,7 +278,7 @@ export function useSequenceDemo() {
 
     const scrub = (p: number) => {
         if (isPlaying.value) pause();
-        sequence.progress = Math.max(0, Math.min(1, p));
+        sequence.progress = clamp(p, 0, 1);
         syncFromSequence();
         // Record the scrubbed playhead onto the machine snapshot so it survives a
         // scene switch (the raw-rAF round-trip).
@@ -324,7 +325,7 @@ export function useSequenceDemo() {
     const reseatRow = (index: number, at: number) => {
         if (index < 0 || index >= ROW_COUNT) return;
         if (isPlaying.value) pause();
-        const clamped = Math.max(0, Math.min(STAGGER_MAX, Math.round(at)));
+        const clamped = clamp(Math.round(at), 0, STAGGER_MAX);
         const next = [...delays.value];
         next[index] = clamped;
         delays.value = next;
@@ -399,7 +400,7 @@ export function useSequenceDemo() {
     const scenePlayback: ScenePlayback = createRafAdapter({
         getProgress: () => progress.value,
         setProgress: (t) => {
-            sequence.progress = Math.max(0, Math.min(1, t));
+            sequence.progress = clamp(t, 0, 1);
             syncFromSequence();
         },
         getPlaying: () => machine.status.value === "playing",
@@ -425,7 +426,7 @@ export function useSequenceDemo() {
                 name: "Sequence",
                 progress: () => progress.value,
                 setProgress: (t: number) => {
-                    sequence.progress = Math.max(0, Math.min(1, t));
+                    sequence.progress = clamp(t, 0, 1);
                     syncFromSequence();
                 },
             },

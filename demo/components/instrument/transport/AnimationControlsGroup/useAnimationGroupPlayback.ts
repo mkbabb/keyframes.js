@@ -4,6 +4,7 @@ import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import { useSceneMachine } from "@state";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
+import { clamp } from "@mkbabb/value.js/math";
 
 /** The playback emit contract this composable drives — typed to the host
  *  component's `defineEmits` signature so the call site needs no `emit as any`
@@ -171,7 +172,7 @@ export function useAnimationGroupPlayback(
         if (!groupObj) return;
         const anim = groupObj.animation;
         const dur = anim.options.duration ?? 1000;
-        const t = Math.max(0, Math.min(dur, fraction * dur));
+        const t = clamp(fraction * dur, 0, dur);
         sliderUpdate({ t, animation: anim });
     };
 

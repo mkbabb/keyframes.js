@@ -3,6 +3,7 @@ import type { Ref } from "vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { TransportChannel } from "../transportSource";
 import { useRafLoop } from "../composables/useRafLoop";
+import { clamp } from "@mkbabb/value.js/math";
 
 export function useAnimationProgress(
     getAnimationGroup: () => AnimationGroup<any>,
@@ -20,7 +21,7 @@ export function useAnimationProgress(
             const channels = getChannels();
             if (channels && channels.length > 0) {
                 for (const ch of channels) {
-                    p[ch.name] = Math.min(1, Math.max(0, ch.progress()));
+                    p[ch.name] = clamp(ch.progress(), 0, 1);
                 }
             } else {
                 const animationGroup = getAnimationGroup();
@@ -31,7 +32,7 @@ export function useAnimationProgress(
                     const dur = anim.options.duration ?? 1000;
                     p[name] =
                         dur > 0
-                            ? Math.min(1, Math.max(0, (anim.t ?? 0) / dur))
+                            ? clamp((anim.t ?? 0) / dur, 0, 1)
                             : 0;
                 }
             }

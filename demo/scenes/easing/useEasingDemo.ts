@@ -23,6 +23,7 @@ import { usePainterRegistry } from "@composables/scene-runtime/usePainterRegistr
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
 import { PROGRESS_READOUT_HZ } from "@utils/rafConstants";
+import { clamp } from "@mkbabb/value.js/math";
 import { useSceneMachine } from "@state";
 import { kfEngine } from "@utils/kfEngine";
 import { EASING_SCENE_ID } from "./easingKeys";
@@ -368,7 +369,7 @@ export function useEasingDemo() {
                 animation: previewAnim,
                 progress: () => liveProgress(),
                 setProgress: (t: number) => {
-                    progress.value = Math.max(0, Math.min(1, t));
+                    progress.value = clamp(t, 0, 1);
                 },
             },
         ],

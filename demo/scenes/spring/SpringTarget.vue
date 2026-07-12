@@ -160,6 +160,7 @@
 import type { ComponentPublicInstance } from "vue";
 import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
+import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { SPRING_DEMO_KEY } from "./springKeys";
@@ -177,8 +178,6 @@ const samplerBallEl = useTemplateRef<HTMLElement>("samplerBallEl");
 
 // The sweep can overshoot past 1 (underdamped) — clamp the *marker* position
 // so the ball stays inside the track even though the read-out shows >1.
-const clampSweep = (v: number) => Math.max(0, Math.min(1, v));
-
 // ── L.W11 S6 — the four DERBY LANE balls (painter-positioned) ────────────────
 // Each lane ball reads the live `springLive.trackValues[index]` directly (the
 // engine's physics, off the Vue render graph). The lanes' clampSweep is RELAXED
@@ -220,7 +219,7 @@ onMounted(() => {
             if (el) {
                 // Allow a small overshoot beyond 100% so the ring is seen; cap so
                 // the ball can't leave the lane entirely.
-                const v = Math.max(0, Math.min(1.18, trackValues[i] ?? 0));
+                const v = clamp(trackValues[i] ?? 0, 0, 1.18);
                 el.style.transform = `translateX(${v * 100}cqw)`;
             }
         }

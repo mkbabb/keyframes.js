@@ -111,6 +111,7 @@
 <script setup lang="ts">
 import { ref, useTemplateRef } from "vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui";
+import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
 import TimelineHoverPreview from "./TimelineHoverPreview.vue";
@@ -161,7 +162,7 @@ const getPercentFromPointer = (event: PointerEvent): number => {
     const rect = trackEl.value.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const posPercent = (x / rect.width) * 100;
-    return Math.max(0, Math.min(100, positionToPercent(posPercent)));
+    return clamp(positionToPercent(posPercent), 0, 100);
 };
 
 const onTrackPointerDown = (event: PointerEvent) => {
@@ -209,7 +210,7 @@ const onMarkerKeydown = (event: KeyboardEvent, kf: TimelineKeyframe) => {
     if (next === null) return;
     event.preventDefault();
     emit("select", kf.id);
-    emit("moveKeyframe", kf.id, Math.max(0, Math.min(100, next)));
+    emit("moveKeyframe", kf.id, clamp(next, 0, 100));
 };
 </script>
 

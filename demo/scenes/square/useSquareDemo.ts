@@ -2,6 +2,7 @@ import { kfEngine } from "@utils/kfEngine";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import type { Vars } from "@mkbabb/keyframes.js";
 import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";
+import { clamp } from "@mkbabb/value.js/math";
 import { useSquareTumble } from "./useSquareTumble";
 import { onScopeDispose, type Ref } from "vue";
 import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
@@ -184,7 +185,7 @@ export function useSquareDemo(
         const SQUASH_GAIN = 0.035; // scale delta per (unit/s)
         const SQUASH_CAP = 0.1;
         const clampTilt = (v: number) =>
-            spinning ? 0 : Math.max(-TILT_CAP, Math.min(TILT_CAP, v * TILT_GAIN));
+            spinning ? 0 : clamp(v * TILT_GAIN, -TILT_CAP, TILT_CAP);
         // The skew banks PERPENDICULAR to each axis's motion (x-velocity skews the
         // vertical edges, y-velocity skews the horizontal edges) for a coherent lean.
         const tiltX = clampTilt(springY.velocity);
@@ -269,8 +270,8 @@ export function useSquareDemo(
      * loop re-arms so the chase paints even if it had settled.
      */
     const reseat = (nx: number, ny: number): void => {
-        springX.target = Math.max(-1, Math.min(1, nx));
-        springY.target = Math.max(-1, Math.min(1, ny));
+        springX.target = clamp(nx, -1, 1);
+        springY.target = clamp(ny, -1, 1);
         startLoop();
     };
 
@@ -313,8 +314,8 @@ export function useSquareDemo(
             // KEEP: a malformed/"none" transform → seat at home (no jump from
             // rest) — the DOMMatrix parse is best-effort by design.
         }
-        springX.reset(Math.max(-1, Math.min(1, tx / TRAVEL)), 0);
-        springY.reset(Math.max(-1, Math.min(1, ty / TRAVEL)), 0);
+        springX.reset(clamp(tx / TRAVEL, -1, 1), 0);
+        springY.reset(clamp(ty / TRAVEL, -1, 1), 0);
         springSpin.reset(0, 0);
     };
 

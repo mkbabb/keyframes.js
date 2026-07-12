@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import { computed, h, provide, ref } from "vue";
+import { clamp } from "@mkbabb/value.js/math";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
@@ -70,7 +71,7 @@ const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
     const dur = demo.previewAnim.options.duration;
-    if (dur > 0) demo.progress.value = Math.max(0, Math.min(1, v.t / dur));
+    if (dur > 0) demo.progress.value = clamp(v.t / dur, 0, 1);
 };
 
 const onToggleReverse = () => {

@@ -12,6 +12,7 @@ import {
 } from "../utils/timelineEngine";
 import { flattenVars } from "../utils/flattenVars";
 import { toast } from "vue-sonner";
+import { clamp } from "@mkbabb/value.js/math";
 
 /**
  * The BUILD half of the timeline: everything that touches the engine
@@ -49,7 +50,7 @@ export function useTimelineBuild(
     };
 
     const scrub = (t: number) => {
-        scrubT.value = Math.max(0, Math.min(1, t));
+        scrubT.value = clamp(t, 0, 1);
 
         if (animation.value) {
             animation.value.paused = true;
