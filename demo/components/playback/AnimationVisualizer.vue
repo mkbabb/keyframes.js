@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { onScopeDispose, useTemplateRef } from "vue";
+import { computed, onScopeDispose, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { bumpLayoutEpoch } from "@mkbabb/value.js";
 import { clamp } from "@mkbabb/value.js/math";
