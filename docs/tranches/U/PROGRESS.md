@@ -25,6 +25,15 @@ green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
 
+- **2026-07-12** — **RECORDS AUDIT / EXTERNAL HOLDS PRESERVED.** Commits
+  `1b1ba5d4` and `53bd96fd` reconcile the wave headers and record U.G4's
+  owner-golden hold. The current witness is the inherited 12-cell matrix;
+  `proof:owner-golden` reports 12 checks green but skips its render leg without
+  a new blessing token and built `dist/gh-pages/`. U.G4 still requires
+  sequence-light/sequence-dark (12→14) and the `PANE=LIT` idle-state pin. The
+  glass-ui 5.0.0 consume edge remains untouched and release-held. This entry
+  is an evidence correction, not a close claim.
+
 - **2026-07-12** — **U.F SUBPATH TRANSPOSITION + U.R2 RETARGET.** Commits
   `5377d2e2`, `6161215c`, and `10ddaa15` move the published heavy value.js
   consumers (library and demo) onto the frozen 3.1.0 subpaths, including the
