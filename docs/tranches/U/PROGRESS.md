@@ -118,7 +118,7 @@ green master and the ratified corpus merged at `0b423142`.
 - **2026-07-12** — **U.E4 DEAD-EXPORT BACKLOG DISCHARGE.** The transport
   colocation sweep removed export visibility from 16 in-file-only interfaces and
   reference tables, and deleted their stale deferred rows. `proof:no-dead-export`
-  now passes with no new or stale findings (7 intentionally routed rows remain
+  now passes with no new or stale findings (4 intentionally routed rows remain
   dispositioned); check and the 141-test demo suite remain green.
 
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
