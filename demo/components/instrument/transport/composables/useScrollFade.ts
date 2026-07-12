@@ -8,7 +8,7 @@ import {
 } from "vue";
 import { useEventListener, useResizeObserver } from "@vueuse/core";
 
-export interface UseScrollFadeOptions {
+interface UseScrollFadeOptions {
     /** The scrollable element to measure. */
     el: Ref<HTMLElement | null>;
     /** Scroll axis to track. */
@@ -30,7 +30,7 @@ export interface UseScrollFadeOptions {
     observeEl?: Ref<HTMLElement | null>;
 }
 
-export interface UseScrollFadeReturn {
+interface UseScrollFadeReturn {
     overflowStart: Ref<boolean>;
     overflowEnd: Ref<boolean>;
     fadeClass: ComputedRef<string>;

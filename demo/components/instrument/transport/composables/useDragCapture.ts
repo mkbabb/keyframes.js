@@ -5,7 +5,7 @@ import {
     releaseSelectSuppression,
 } from "@utils/gestureSelectSuppression";
 
-export interface DragCaptureHandlers {
+interface DragCaptureHandlers {
     onStart?: (e: PointerEvent) => void;
     onMove?: (e: PointerEvent) => void;
     onEnd?: (e: PointerEvent) => void;

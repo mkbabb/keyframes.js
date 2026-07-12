@@ -69,12 +69,9 @@ const EXTS = new Set([".ts", ".vue", ".mts", ".mjs"]);
 // export missing from here REDs; a stale row (no longer dead) REDs.
 const DEFERRED = [
     // ── the animation-transport suite (facility-lane OFF-LIMITS this batch) ──
-    ["demo/components/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeOptions"],
-    ["demo/components/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeReturn"],
     // (useSheetState.ts UseSheetStateOptions/UseSheetStateReturn RETIRED at T.H3-ADOPT —
     //  the bespoke sheet composable was DELETED with the Drawer swap; the ratchet drops
     //  the two discharged rows, tightening dead-export by 2.)
-    ["demo/components/instrument/transport/composables/useDragCapture.ts", "DragCaptureHandlers"],
     // ── keyframes-editor / keyframe-timeline / shared leaves (reflexive types) ──
     // (GestureLegend.vue / GestureLegendItem RETIRED at T.M batch ⑧ — the whole
     //  file was deleted with the on-stage gesture-legend layer, VERDICT #8; the
