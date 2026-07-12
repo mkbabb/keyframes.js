@@ -25,8 +25,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createHook } from "node:async_hooks";
-import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { AnimationGroup } from "../../src/animation/group";
+import { CSSKeyframesAnimation } from "../src/animation/engine";
+import { AnimationGroup } from "../src/animation/group";
 
 if (typeof globalThis.AnimationEvent === "undefined") {
     (globalThis as { AnimationEvent?: unknown }).AnimationEvent =

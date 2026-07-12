@@ -233,19 +233,10 @@ jobs:
               run: npm run proof:no-dead-export
             - name: proof:any-ceiling (T.F23b — the demo `any`-count ratchet; the count may only fall, a fresh `any` REDs)
               run: npm run proof:any-ceiling
-            - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
-              run: npm run proof:zero-alloc
-            # F.W2 — the library-scoped engine/correctness gates the workflow
-            # previously never ran (E's engine-correctness/standalone-zero-alloc/
-            # compile-deterministic + the whole F gate cohort). Each is a vitest
-            # run / node script over src/ — no demo build needed, so they ride
-            # the fast library job.
-            - name: proof:engine-correctness (E.W7 — five engine correctness locks)
-              run: npm run proof:engine-correctness
-            - name: proof:standalone-zero-alloc (E.W7 — the standalone play-loop buffer)
-              run: npm run proof:standalone-zero-alloc
-            - name: proof:compile-deterministic (E.W8 — byte-deterministic compile ids)
-              run: npm run proof:compile-deterministic
+            - name: Vitest library project
+              run: npm test -- --run --project=library
+            - name: Vitest demo project (real glass-ui)
+              run: npm test -- --run --project=demo
             - name: proof:compile-replay (K.W10 — THE COMPILE; the round-trip's BACKWARD half replays equal or REFUSES)
               run: npm run proof:compile-replay
             - name: proof:replay-equality (L.W1 — the replay-equality FLOOR; @property/per-stop-composition/named-selector/composite round-trip; keyframe !important spec-faithfully dropped)
@@ -256,14 +247,6 @@ jobs:
               run: npm run proof:transport-events
             - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)
               run: npm run proof:interp-fastprops
-            - name: proof:sync-step (F.W5 — the drive sync fast-path + the event-ordering lock)
-              run: npm run proof:sync-step
-            - name: proof:event-ordering (J.W6 S1/FB-2 — animationstart → iteration* → animationend · paint-before-event · awaited play resolves after end)
-              run: npm run proof:event-ordering
-            - name: proof:roundtrip-easing (F.W7 — per-keyframe + spring linear() round-trip)
-              run: npm run proof:roundtrip-easing
-            - name: proof:adapter-capture (F.W8 — composition capture + shorthand-applied + AST-decide)
-              run: npm run proof:adapter-capture
             - name: proof:blend (G.W17 — the dead add/weighted blend leaf, element-wise)
               run: npm run proof:blend
             - name: proof:composition-honored (K.W7 — the engine HONORS the animation-composition operator add/accumulate/composite)
@@ -288,16 +271,6 @@ jobs:
               run: npm run proof:ingest-replay
             - name: proof:orbital-rotate3d (G.W18 — the orbital rotate3d output collapse)
               run: npm run proof:orbital-rotate3d
-            - name: proof:scene-raf-leak (G.W9 — the scene rAF-leak lifecycle correction)
-              run: npm run proof:scene-raf-leak
-            - name: proof:scene-contract-identity (H.W1 — the raw-rAF ScenePlayback round-trip + easing↔cube cross-pairs)
-              run: npm run proof:scene-contract-identity
-            - name: proof:group-snapshot-identity (H.W1 — the born-RED engine serialize()/hydrate() HANDOFF witness)
-              run: npm run proof:group-snapshot-identity
-            - name: proof:resize-tracks (G.W3 — cqw tracks a non-window container resize)
-              run: npm run proof:resize-tracks
-            - name: proof:cohesion (F.W11 — clamp convergence · inverted-tier · preset reachability)
-              run: npm run proof:cohesion
             - name: proof:repin-witness (G.W2 — the C1 computed-endpoint memo resolves O(frames)→O(1) on kf's path)
               run: npm run proof:repin-witness
             - name: proof:bench-runs (F.W1 — the compile/interp/parser benches run, non-empty)

@@ -1,6 +1,6 @@
 import { unflattenObjectToString } from "@mkbabb/value.js";
 import { describe, expect, it } from "vitest";
-import { CSSKeyframesAnimation } from "../../src/animation/engine";
+import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 /**
  * D.W4 D-3 — measure-first artifact for the "changed-keys write" transposition.

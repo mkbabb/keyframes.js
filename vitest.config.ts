@@ -27,23 +27,28 @@ export default defineConfig({
             // R.W5 fused scenes to demo/scenes/ and routed cross-scene imports
             // through @app (demo/app/); vitest must mirror the demo build alias.
             "@app": path.resolve(import.meta.dirname, "demo/app"),
-            // The library gate is glass-ui-FREE (inv β); vitest runs only there.
-            // Alias glass-ui's motion-core subpath to a shim so demo-encapsulation
-            // tests (which transitively import it via useSceneSwap/useSceneTransition)
-            // transform without the dangling optional sibling. The REAL module is
-            // used in the demo build (gh-pages / demo-smoke), never under vitest.
-            "@mkbabb/glass-ui/motion-core": path.resolve(
-                import.meta.dirname,
-                "test/stubs/glass-ui-motion-core.ts",
-            ),
         },
     },
     test: {
-        // S.B7 — tests regrouped into test/<zone>/ mirroring src/animation/<zone>/
-        // (a25). The glob is RECURSIVE so the zone dirs are discovered; the old
-        // flat `test/*.ts` would silently run zero suites after the move.
-        include: ["test/**/*.test.ts", "test/**/*.measure.test.ts"],
-        environment: "jsdom",
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: "library",
+                    include: ["test/**/*.test.ts"],
+                    exclude: ["test/demo/**"],
+                    environment: "jsdom",
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: "demo",
+                    include: ["test/demo/**/*.test.ts"],
+                    environment: "jsdom",
+                },
+            },
+        ],
     },
     benchmark: {
         include: ["bench/*.bench.ts"],
