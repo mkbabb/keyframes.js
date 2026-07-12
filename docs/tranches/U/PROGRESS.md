@@ -25,6 +25,15 @@ green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
 
+- **2026-07-12** — **U.E HYGIENE RE-ARM AFTER E8/E10.** Commit `244a8c3a`
+  reconciles the standing structural records after the suppression-ledger and
+  measured demo sweeps: the dissolved dependency-cruiser ledger is witnessed as
+  an absent zero-entry baseline, the demo `any` ratchet is tightened to its live
+  97-line count, and the glass-ui gap ledger follows the relocated pill-tabs
+  composable. `proof:ci-coverage` remains green; focused no-flat-siblings,
+  any-ceiling, and glass-ui-gap-tripwire proofs pass. The glass-ui package and
+  source remain release-held and untouched.
+
 - **2026-07-12** — **U.G CODEX COMPLETE FOR G1/G2/G3/G5.** Commit `db1e7795`
   promotes `demo/DESIGN.md` from a stub to the ten-chapter design authority:
   material/voice/card registers, stage/φ/z contract, idiom/token homes,
