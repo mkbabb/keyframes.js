@@ -17,6 +17,7 @@ import * as layerApi from "./layer-api";
 import * as lifecycle from "./lifecycle";
 import type { SoALayerPlan } from "./soa";
 import type { PlainProjection } from "../compile/plain-vars";
+import { CompositeState } from "./composite-state";
 import type {
     AnimationLayerConfig,
     TransformFunction,
@@ -101,7 +102,8 @@ export class AnimationGroup<V extends Vars> {
 
     /** Long-lived composite buffer, cleared in place each frame (zero-alloc).
      * INTERNAL (R.W2) — read/written by `./compositor`. */
-    _grouped: Record<string, unknown> = {};
+    readonly _compositeState = new CompositeState();
+    _grouped: Record<string, unknown> = this._compositeState.values;
 
     /** The compile-stable union of every child's contributed keys — what `_grouped`
      * is null-filled to each frame so the composite clears WITHOUT `delete` (F.W4

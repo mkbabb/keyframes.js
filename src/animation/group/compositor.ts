@@ -23,6 +23,7 @@ import { computeGroupedKeys } from "./entries";
 import { buildSoAPlans, groupSoABlendLayer, isNumericUnit } from "./soa";
 import { buildPlainProjection, refreshPlainProjection } from "../compile/plain-vars";
 import type { AnimationGroup } from "./group";
+import type { CompositeState } from "./composite-state";
 
 /**
  * Composite all animation values into a single grouped transform (per-frame for
@@ -43,6 +44,7 @@ export function compositeFrame<V extends Vars>(
         // The compile-stable key UNION (whitelist-filtered) — recomputed only on
         // a structural change, never per frame (fold in `./entries`).
         group._groupedKeys = computeGroupedKeys(group.getEntries());
+        group._compositeState.configure(group._groupedKeys);
         group._groupedKeysDirty = false;
         // P.W2 — drop the SoA plan; it is rebuilt lazily on the next frame (once
         // each child's `entry.values` is populated, so the carrier + incoming
@@ -59,9 +61,7 @@ export function compositeFrame<V extends Vars>(
     // `_grouped` in V8 dictionary mode). Inactive keys read back `undefined`; the
     // blend skips them and the post-blend compaction drops any uncontributed key.
     const groupedKeys = group._groupedKeys;
-    for (let i = 0; i < groupedKeys.length; i++) {
-        groupedValues[groupedKeys[i]!] = undefined;
-    }
+    group._compositeState.clear();
 
     const entries = group.getEntries();
 
@@ -102,7 +102,7 @@ export function compositeFrame<V extends Vars>(
                 if (whitelist && !whitelist.has(key)) continue;
                 const incoming = values[key];
                 if (incoming === undefined) continue;
-                groupedValues[key] = incoming;
+                group._compositeState.copy(key, incoming);
             }
             continue;
         }
@@ -118,10 +118,10 @@ export function compositeFrame<V extends Vars>(
             const plan = group._soaPlans![soaIdx++]!;
             groupSoABlendLayer(group._compositeBuf!, plan);
             if (plan.boxedKeys.size > 0) {
-                boxedBlendArm(layer, values, groupedValues, whitelist, plan.boxedKeys);
+                boxedBlendArm(layer, values, groupedValues, whitelist, plan.boxedKeys, group._compositeState);
             }
         } else {
-            boxedBlendArm(layer, values, groupedValues, whitelist);
+            boxedBlendArm(layer, values, groupedValues, whitelist, undefined, group._compositeState);
         }
     }
 
@@ -130,7 +130,11 @@ export function compositeFrame<V extends Vars>(
     // `buildSoAPlans` (INTERNAL, `./soa`) grows the shared scratch and returns it
     // alongside the plans; re-park both as instance state.
     if (!useSoA) {
-        const { plans, compositeBuf } = buildSoAPlans(entries, group._compositeBuf);
+        const { plans, compositeBuf } = buildSoAPlans(
+            entries,
+            group._compositeBuf,
+            groupedValues,
+        );
         group._soaPlans = plans;
         group._compositeBuf = compositeBuf;
     }
@@ -140,10 +144,7 @@ export function compositeFrame<V extends Vars>(
     // Drop any key NO enabled child contributed this frame so the transform never
     // serializes an `undefined`. In the common case this deletes nothing, so
     // `_grouped` stays in fast-properties mode (delete-free, zero-alloc).
-    for (let i = 0; i < groupedKeys.length; i++) {
-        const key = groupedKeys[i]!;
-        if (groupedValues[key] === undefined) delete groupedValues[key];
-    }
+    group._compositeState.pruneInactive();
 
     // I.W0 S3 — lazy composite-transform resolution. A child constructed before
     // `parse()` populates its `frames` keeps `transform`'s no-op default
@@ -212,6 +213,7 @@ export function boxedBlendArm(
     groupedValues: Record<string, unknown>,
     whitelist: Set<string> | undefined,
     only?: ReadonlySet<string>,
+    state?: CompositeState,
 ): void {
     if (layer.blendMode === "add") {
         // Accumulate each numeric leaf element in place (the leaf is a
@@ -234,7 +236,8 @@ export function boxedBlendArm(
                     }
                 }
             } else {
-                groupedValues[key] = incoming;
+                if (state) state.copy(key, incoming);
+                else groupedValues[key] = incoming;
             }
         }
         return;
@@ -268,7 +271,8 @@ export function boxedBlendArm(
                 }
             }
         } else {
-            groupedValues[key] = incoming;
+            if (state) state.copy(key, incoming);
+            else groupedValues[key] = incoming;
         }
     }
 }

@@ -82,7 +82,11 @@ export interface SoALayerPlan {
     /** The pure-numeric carrier units the fold seeds the composite buffer from + writes back to. */
     carriers: ValueUnit<number>[];
     /** The incoming numeric units folded against each carrier (parallel to `carriers`). */
-    incomings: ValueUnit<number>[];
+    incomingSlots: Array<{
+        values: Record<string, unknown>;
+        key: string;
+        index: number;
+    }>;
     /**
      * The keys this layer touches that the SoA fold does NOT cover — a non-array
      * carrier (first-touch of a key, or a scalar that a lower layer left
@@ -124,7 +128,7 @@ export const groupSoABlendLayer = (
     buf: Float64Array,
     plan: SoALayerPlan,
 ): void => {
-    const { carriers, incomings } = plan;
+    const { carriers, incomingSlots } = plan;
     const n = carriers.length;
     if (n === 0) return;
     // Seed from the live carriers (the lower layers' freshly-lerped `.value`).
@@ -134,12 +138,18 @@ export const groupSoABlendLayer = (
         // exact `?? layer.weight` read the boxed weighted arm hoists.
         const w = plan.layer.weightSpring?.value ?? plan.layer.weight;
         for (let s = 0; s < n; s++) {
-            buf[s] = lerp(buf[s]!, incomings[s]!.value, w);
+            const slot = incomingSlots[s]!;
+            const incoming = (slot.values[slot.key] as ValueUnit<number>[])[slot.index]!;
+            buf[s] = lerp(buf[s]!, incoming.value, w);
         }
     } else {
         // UN-CLAMPED accumulate — a Float64 `+=` is naturally un-clamped, the
         // GL-6 `0.8 + 0.8 → 1.6` contract preserved by construction.
-        for (let s = 0; s < n; s++) buf[s] = buf[s]! + incomings[s]!.value;
+        for (let s = 0; s < n; s++) {
+            const slot = incomingSlots[s]!;
+            const incoming = (slot.values[slot.key] as ValueUnit<number>[])[slot.index]!;
+            buf[s] = buf[s]! + incoming.value;
+        }
     }
     // Write the folded result back to the carrier units (the live composite).
     for (let s = 0; s < n; s++) carriers[s]!.value = buf[s]!;
@@ -170,6 +180,7 @@ export const groupSoABlendLayer = (
 export const buildSoAPlans = <V extends Record<string, unknown>>(
     entries: AnimationGroupEntry<V>[],
     prevBuf: Float64Array | null,
+    ownedValues?: Record<string, unknown>,
 ): { plans: SoALayerPlan[]; compositeBuf: Float64Array | null } => {
     const plans: SoALayerPlan[] = [];
     // The carrier each key currently resolves to (the leaf a lower layer
@@ -188,7 +199,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
                 if (whitelist && !whitelist.has(key)) continue;
                 const incoming = values[key];
                 if (incoming === undefined) continue;
-                carrierOf[key] = incoming;
+                carrierOf[key] = ownedValues?.[key] ?? incoming;
             }
             continue;
         }
@@ -196,7 +207,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
         // `add` / `weighted` — partition this layer's keys into the numeric
         // SoA pairs and the boxed residual, mirroring the boxed arm's guards.
         const carriers: ValueUnit<number>[] = [];
-        const incomings: ValueUnit<number>[] = [];
+        const incomingSlots: SoALayerPlan["incomingSlots"] = [];
         // S.F5a S1 — the boxed residual as a precomputed Set (built once here,
         // taken directly by `boxedBlendArm`'s `only` membership test; no per-frame
         // `new Set`).
@@ -226,7 +237,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
                 if (allNumeric) {
                     for (let i = 0; i < n; i++) {
                         carriers.push(existing[i] as ValueUnit<number>);
-                        incomings.push(incoming[i] as ValueUnit<number>);
+                        incomingSlots.push({ values, key, index: i });
                     }
                 } else {
                     boxedKeys.add(key);
@@ -248,7 +259,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
             layer,
             weighted,
             carriers,
-            incomings,
+            incomingSlots,
             boxedKeys,
         });
     }
