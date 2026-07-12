@@ -10,7 +10,7 @@
 |---|---|---|
 | U.A | THE APPARATUS DISSOLUTION | CHARTERED |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
-| U.C | THE LIBRARY TRANSPOSITION | **CHARTERED-CONVERGED** — U.C8 absorbs P1 (`287-10`); the P1/R11/R21 standing-law header + P2's constants fold folded |
+| U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C4/C5/C6/C7/C8/C9/C12 landed on `tranche-u-impl`; C3/C10/C11/C13/C15/C16 remain in the ratified PASS-5 order |
 | U.D | THE PERFORMANCE FRONTIER | CHARTERED |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
 | U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
@@ -24,6 +24,16 @@
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.C12 PRESET CATALOG COMPLETE.** Commit `60a3bf55`
+  replaces the classic/spring split hand-lockstep lists with one typed 38-row
+  `PRESET_SPECS` catalog and `definePreset` generator. Named factories and the
+  enter/exit/attention/loop taxonomy derive from that table; all CSS rows pass
+  through the bare-body normalizer, including the four historical wrapped
+  constants. The focused preset suites (56 tests), `npm run check`,
+  `build:lib`, and `proof:boundary` passed. C13 remains measured as an
+  API-Extractor-sensitive surface-collapse lane; no glass-ui consume-edge
+  change was made.
 
 - **2026-07-12** — **U.B1 KEYSTONE COMPLETE.** The canonical-home dissolution
   (`969990f6`) removed `demo/@`, `components/custom`, and `components.json`,
