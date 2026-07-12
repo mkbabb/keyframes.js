@@ -20,11 +20,11 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
-import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { AnimationGroup } from "../../src/animation/group";
-import { warmKfEngine } from "../../demo/@/utils/kfEngine";
-import { useEasingDemo } from "../../demo/scenes/easing/useEasingDemo";
-import { useSceneMachine } from "../../demo/@/state/useSceneMachine";
+import { CSSKeyframesAnimation } from "../../../src/animation/engine";
+import { AnimationGroup } from "../../../src/animation/group";
+import { warmKfEngine } from "../../../demo/@/utils/kfEngine";
+import { useEasingDemo } from "../../../demo/scenes/easing/useEasingDemo";
+import { useSceneMachine } from "../../../demo/@/state/useSceneMachine";
 
 // L.W8 S1 ED-3 — the demo composables read the HEAVY engine surface synchronously
 // via the warmed `kfEngine()`; the unit harness has no app boot, so warm it once.
@@ -35,8 +35,8 @@ import {
     createGroupAdapter,
     createRafAdapter,
     type RafSceneHandle,
-} from "../../demo/@/state/scenePlaybackAdapters";
-import type { ScenePlayback } from "../../demo/@/state/sceneMachine";
+} from "../../../demo/@/state/scenePlaybackAdapters";
+import type { ScenePlayback } from "../../../demo/@/state/sceneMachine";
 
 // ── A controllable rAF queue (mirrors scene-raf-leak's harness) ──────────────
 // A raw-rAF scene's loop is real; we drive it deterministically so isPlaying()

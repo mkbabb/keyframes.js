@@ -18,7 +18,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
-import { useSphereSpin } from "../../demo/scenes/amiga/useSphereSpin";
+import { useSphereSpin } from "../../../demo/scenes/amiga/useSphereSpin";
 
 /** A canvas whose getBoundingClientRect is deterministic (jsdom returns 0×0). */
 function makeCanvas(w = 200, h = 200): HTMLCanvasElement {

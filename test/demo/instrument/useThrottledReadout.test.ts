@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     useThrottledReadout,
     type ThrottledReadout,
-} from "../../demo/@/composables/useThrottledReadout";
+} from "../../../demo/@/composables/useThrottledReadout";
 
 // T.F23(c) — the extracted few-Hz cold-path readout throttle. The four+ scenes'
 // hand-rolled `1000 / PROGRESS_READOUT_HZ` accumulator + reconcile-on-settle,

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, ref } from "vue";
 import type { Ref } from "vue";
-import { useTimeline } from "../../demo/@/components/custom/instrument/timeline/composables/useTimeline";
-import type { TimelineKeyframe } from "../../demo/@/components/custom/instrument/timeline/timelineTypes";
+import { useTimeline } from "../../../demo/@/components/custom/instrument/timeline/composables/useTimeline";
+import type { TimelineKeyframe } from "../../../demo/@/components/custom/instrument/timeline/timelineTypes";
 
 /**
  * F.W14 — undo/redo for the destructive editor (the round-trip behavioural lock).

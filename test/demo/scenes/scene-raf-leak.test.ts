@@ -16,9 +16,9 @@
  */
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
-import { warmKfEngine } from "../../demo/@/utils/kfEngine";
-import { useEasingDemo } from "../../demo/scenes/easing/useEasingDemo";
-import { useSpringDemo } from "../../demo/scenes/spring/useSpringDemo";
+import { warmKfEngine } from "../../../demo/@/utils/kfEngine";
+import { useEasingDemo } from "../../../demo/scenes/easing/useEasingDemo";
+import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
 
 // L.W8 S1 ED-3 — the demo composables now read the HEAVY engine surface
 // synchronously via the warmed `kfEngine()` (the demo warms it before mount).
@@ -26,7 +26,7 @@ import { useSpringDemo } from "../../demo/scenes/spring/useSpringDemo";
 beforeAll(async () => {
     await warmKfEngine();
 });
-import { useSceneMachine } from "../../demo/@/state/useSceneMachine";
+import { useSceneMachine } from "../../../demo/@/state/useSceneMachine";
 
 /**
  * Drive the (H.W1) scene machine into `playing` for `scene` so the easing

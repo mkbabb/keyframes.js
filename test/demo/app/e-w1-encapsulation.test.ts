@@ -11,13 +11,13 @@
 
 import { describe, it, expect } from "vitest";
 import { computed, createApp, defineComponent, h } from "vue";
-import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { AnimationGroup } from "../../src/animation/group";
-import { useSceneSwap } from "../../demo/app/transition/useSceneSwap";
+import { CSSKeyframesAnimation } from "../../../src/animation/engine";
+import { AnimationGroup } from "../../../src/animation/group";
+import { useSceneSwap } from "../../../demo/app/transition/useSceneSwap";
 import {
     createGroupAdapter,
     restoreGroupPlaybackState,
-} from "../../demo/@/state/scenePlaybackAdapters";
+} from "../../../demo/@/state/scenePlaybackAdapters";
 
 function makeGroup(): AnimationGroup<any> {
     const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`

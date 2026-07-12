@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { AnimationGroup } from "../../src/animation/group";
+import { CSSKeyframesAnimation } from "../../../src/animation/engine";
+import { AnimationGroup } from "../../../src/animation/group";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import { useAnimationGroupPlayback } from "../../demo/@/components/custom/instrument/transport/composables/useAnimationGroupPlayback";
-import { spyOnComposite } from "../support/group-probe";
+import { useAnimationGroupPlayback } from "../../../demo/@/components/custom/instrument/transport/composables/useAnimationGroupPlayback";
+import { spyOnComposite } from "../../support/group-probe";
 
 /** A complete `StoredAnimationGroupControlOptions` with test-relevant overrides —
  *  the composable only reads/writes `.selectedAnimation`, but the type is total. */

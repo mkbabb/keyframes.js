@@ -13,14 +13,14 @@
 
 import { beforeAll, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
-import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { AnimationGroup } from "../../src/animation/group";
-import { warmKfEngine } from "../../demo/@/utils/kfEngine";
+import { CSSKeyframesAnimation } from "../../../src/animation/engine";
+import { AnimationGroup } from "../../../src/animation/group";
+import { warmKfEngine } from "../../../demo/@/utils/kfEngine";
 import {
     facilityFromGroup,
     type SceneFacility,
-} from "../../demo/app/scene/sceneFacility";
-import { useSequenceDemo } from "../../demo/scenes/sequence/useSequenceDemo";
+} from "../../../demo/app/scene/sceneFacility";
+import { useSequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo";
 
 beforeAll(async () => {
     await warmKfEngine();

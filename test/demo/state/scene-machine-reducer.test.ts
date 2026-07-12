@@ -13,7 +13,7 @@ import {
     transition,
     type MachineState,
     type PlaybackSnapshot,
-} from "../../demo/@/state/sceneMachine";
+} from "../../../demo/@/state/sceneMachine";
 
 const snap = (over: Partial<PlaybackSnapshot> = {}): PlaybackSnapshot => ({
     playing: false,

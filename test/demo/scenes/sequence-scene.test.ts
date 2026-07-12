@@ -8,14 +8,14 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
-import { useSequenceInstrument } from "../../demo/scenes/sequence/useSequenceInstrument";
+import { useSequenceInstrument } from "../../../demo/scenes/sequence/useSequenceInstrument";
 import {
     ROW_COUNT,
     STAGGER_MAX,
     useSequenceDemo,
-} from "../../demo/scenes/sequence/useSequenceDemo";
-import { SEQUENCE_SCENE_ID } from "../../demo/scenes/sequence/sequenceKeys";
-import { warmKfEngine } from "../../demo/@/utils/kfEngine";
+} from "../../../demo/scenes/sequence/useSequenceDemo";
+import { SEQUENCE_SCENE_ID } from "../../../demo/scenes/sequence/sequenceKeys";
+import { warmKfEngine } from "../../../demo/@/utils/kfEngine";
 
 describe("useSequenceInstrument — the scrub/power-on state", () => {
     it("setScrubbing toggles the scrubbing flag", () => {
