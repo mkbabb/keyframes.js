@@ -14,7 +14,7 @@
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D3 WAAPI shadow-tick fast path landed; D2 microtask-hop harness and remaining frontier rows pending |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; only D1 owner-ridden and D8/D9 documented keeps remain |
 | U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
-| U.G | THE DESIGN CODEX | CHARTERED |
+| U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
 | U.R | PROMPT-RECAP-U (STANDING) | CHARTERED |
 | U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
@@ -24,6 +24,14 @@
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.G CODEX COMPLETE FOR G1/G2/G3/G5.** Commit `db1e7795`
+  promotes `demo/DESIGN.md` from a stub to the ten-chapter design authority:
+  material/voice/card registers, stage/φ/z contract, idiom/token homes,
+  OD-U9's one-direction 3D instrument register, component/API grammar, and
+  Vue R1–R7 law. Font, colocation, crayon, check, and related doc witnesses
+  pass; G4's owner-golden blessing and known deferred styling rows remain
+  routed.
 
 - **2026-07-12** — **U.F3 + U.E10 DOGFOOD CLOSURES.** Commit `43b28182`
   authors `KF-TO-VALUEJS-U.md` with verified value.js 3.1.0 subpath facts,
