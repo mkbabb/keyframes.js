@@ -44,7 +44,7 @@
 | deploy workflows | `ci.yml`, `deploy-pages.yml`, `release.yml` | `ls .github/workflows/` |
 | deploy-of-record target | keyframes.babb.dev (Cloudflare Pages, branch `master`) | MEMORY `project_deploy_cloudflare_pages` |
 | npm publish trigger | tag-triggered `release.yml` — **CI-independent** | MEMORY `project_tranche_r_impl_drive_shipped` |
-| the deploy ancestry oracle TODAY | `proof:published-on-master` (`v${version}` derived, `merge-base --is-ancestor`) | `scripts/proof-published-on-master.mjs:1-20` — **a self-policing gate DELETED at U.A5** |
+| the deploy ancestry oracle TODAY | `deploy-pages.yml` preflight (`merge-base --is-ancestor` over library CI and `last-demo-green`) | workflow-owned U.A8 trigger — the superseded self-policing gates are deleted |
 | the ledgers the exit oracle must NOT resurrect | `T_BORNRED_BACKLOG` (8), `FROZEN_SET` (36), `proof:chronic-closure` (S-substrate), `ROSTER_CEILING` (120) | `gate-bands.mjs`; `proof-chronic-closure.mjs:145` — **all deleted at U.A5/U.E** |
 | the three surviving mechanisms | `npm test` (correctness) + `proof:publish` (boundary/surface/deps) + owner-golden | U.A §A.0 target; `proof:publish` AUTHORED at U.A1 |
 | the standing recap mechanism | `proof:prompt-recap-u` (renamed from `-t`, refreshed teeth) | U.R2; survives U.A5 (ring-fence 3 — a mandate mechanism, not a meta-gate) |

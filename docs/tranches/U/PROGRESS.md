@@ -8,7 +8,7 @@
 
 | Band | Title | State |
 |---|---|---|
-| U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta gates are deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. Remaining gate-band and ledger rehoming stays routed. |
+| U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta/deploy proof gates are deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. Remaining gate-band and ledger rehoming stays routed. |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; B9 runtime homes and B14 first fold target now landed; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D4's shared vector facet is carved and the ceiling is green, while the pointer-aware drag fusion remains routed; D5 defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live |
@@ -126,6 +126,12 @@ green master and the ratified corpus merged at `0b423142`.
   store was pruned. It was removed rather than carried as a speculative contract;
   `resetAllStores` retains the two live option-store resets. The dead-export proof
   now leaves only the three glass-ui gap-ledger types.
+
+- **2026-07-12** — **U.A5/Z4 DEPLOY-PROOF RETIREMENT.** The superseded
+  `proof:published-on-master` and `proof:deploy-roundtrip` scripts and package
+  entries are deleted. Deploy ancestry and post-deploy validation remain owned by
+  the redesigned workflow, while the surviving close apparatus stays at
+  `npm test` + `proof:publish` + owner-golden/recap witnesses.
 
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
   is deleted from the package/hygiene chain; `run-all` remains the executable
