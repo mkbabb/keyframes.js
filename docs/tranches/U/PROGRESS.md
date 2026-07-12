@@ -33,6 +33,8 @@ green master and the ratified corpus merged at `0b423142`.
   decision gates plus every named residue. Group/scroll suites pass (98 tests,
   one expected failure); `proof:blend`, `proof:portable-perf`, and the lead
   `proof:bench-taxonomy` pass (86 classified cases and all budget floors).
+  The post-integration full suites are green: library 90 files / 931 passed
+  (2 expected failures, 15 skips) and demo 24 files / 141 passed.
 
 - **2026-07-12** — **U.C11 DRIVE COMPOSITION COMPLETE.** Commit `fa3b7e7a`
   adds the additive `driveScrollCSS` entry and exact `{ scene, trigger?, backend,
