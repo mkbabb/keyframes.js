@@ -37,7 +37,8 @@
 > `scripts/` restructure (U.A9) is instead held by ONE clause on the EXISTING
 > `proof:colocation` gate + lint; the tranche's other proposed gate
 > (`proof:chunk-graph`) is likewise DROPPED into a `proof:publish` clause (U.D).
-> DEVELOPMENT ONLY — this is the charter, not the edit.
+> The charter remains the normative design; implementation evidence is tracked in
+> the checkpoint below and in `PROGRESS.md`.
 
 ### Implementation checkpoint (2026-07-12)
 
