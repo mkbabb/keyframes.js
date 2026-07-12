@@ -344,7 +344,7 @@ const { animation } = await adoptRunning(element, { animationName: "spin" });
 The CSS `animation-timeline` / `animation-range` grammar, round-tripped through value.js's typed extractor, and driven by a JS `ScrollScene` where the platform's native scroll-driven timelines aren't available. value.js owns the scroll **values** (the grammar, parsed verbatim — `scroll(root block)`, `entry 0%`, `cover 100%`); the kf `ScrollScene` owns **time** (resolving the live scroller against the DOM).
 
 ```ts
-const { parseScrollCSS, roundTripScrollCSS, createScrollScene, pinCSS } =
+const { parseScrollCSS, roundTripScrollCSS, createScrollScene, driveScrollCSS, pinCSS } =
     await loadAnimationEngine();
 
 // PARSE the author grammar into typed options — verbatim, no DOM resolution:
@@ -361,6 +361,11 @@ roundTripScrollCSS(`.hero { animation-timeline: scroll(root block); }`);
 // maps the resolved range onto [0, 1]; feed `.progress` to any interpolator.
 const scene = createScrollScene({ range: opts.range, scrub: 0.2 });
 element.style.opacity = String(scene.progress);
+
+// DRIVE the complete parsed value through the range scene, optional trigger,
+// and conservative native-vs-JS backend decision in one symmetric entry:
+const driven = driveScrollCSS(opts, element, { scrub: 0.2 });
+driven.backend; // "native" or "js"
 
 // pinCSS — synthesize the position:sticky pin a scroll-pinned scene needs:
 pinCSS();            // => "position: sticky; top: 0px;"
