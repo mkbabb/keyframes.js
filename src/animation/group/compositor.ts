@@ -24,6 +24,7 @@ import { buildSoAPlans, groupSoABlendLayer, isNumericUnit } from "./soa";
 import { buildPlainProjection, refreshPlainProjection } from "../compile/plain-vars";
 import type { AnimationGroup } from "./group";
 import type { CompositeState } from "./composite-state";
+import { resolveBlendWeight } from "./weight";
 
 /**
  * Composite all animation values into a single grouped transform (per-frame for
@@ -250,7 +251,7 @@ export function boxedBlendArm(
     // hoisted out of the element loop (a per-LAYER scalar), so the crossfade can
     // overshoot 1.0 and settle. On settle the spring clears and the read falls
     // back to the constant (byte-unchanged when no spring).
-    const w = layer.weightSpring?.value ?? layer.weight;
+    const w = resolveBlendWeight(layer);
     for (const key in values) {
         if (only && !only.has(key)) continue;
         if (whitelist && !whitelist.has(key)) continue;

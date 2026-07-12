@@ -46,6 +46,7 @@
 import { ValueUnit, lerp } from "@mkbabb/value.js";
 import type { AnimationLayerConfig } from "../constants";
 import type { AnimationGroupEntry } from "./types";
+import { resolveBlendWeight } from "./weight";
 
 /**
  * Typed blend-carrier guard — the group is heavy-side (it statically composes
@@ -136,7 +137,7 @@ export const groupSoABlendLayer = (
     if (plan.weighted) {
         // ONE per-LAYER weight (the spring overshoot or the constant) — the
         // exact `?? layer.weight` read the boxed weighted arm hoists.
-        const w = plan.layer.weightSpring?.value ?? plan.layer.weight;
+        const w = resolveBlendWeight(plan.layer);
         for (let s = 0; s < n; s++) {
             const slot = incomingSlots[s]!;
             const incoming = (slot.values[slot.key] as ValueUnit<number>[])[slot.index]!;
