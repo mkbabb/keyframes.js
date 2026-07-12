@@ -12,7 +12,7 @@
 //
 //   (1) FLOOR — every `@mkbabb/*` dependency (across `dependencies` +
 //       `optionalDependencies`) is INSTALLED at ≥ the published floor:
-//       `value.js≥0.11.2`, `parse-that≥0.9.0`, `glass-ui≥3.11.2`. The floor
+//       `value.js≥3.1.0`, `glass-ui≥4.0.0`. The floor
 //       tracks the CORRECTNESS MINIMUM the I bugfixes require, not the re-pin
 //       history (J.W3 S6b / BP-5 / BP-6). Read from the installed
 //       `node_modules/<pkg>/package.json` `version` — the artifact npm actually
@@ -59,19 +59,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 // require, not the re-pin history. A future sibling release advances these
 // explicitly — the floor is the standing minimum.
 const FLOORS = {
-    // BP-5: 0.11.2 is the floor that protects the B1/B5 empty-input regression —
-    // a dev pinning 0.11.1 (valid in the old range) re-introduces the
-    // `Parse error at offset 0: "......"` crash.
-    // K.W1: ADVANCED to 0.12.0 — the value.js Tranche N currency re-pin
-    // (^0.11.2 → ^0.12.0; the N2 witness-flip slate). 0.12.0 ships the
-    // ParseDiagnostic/OnParseError producer (the K.W7 fidelity-floor diagnostics
-    // channel consumes it), plus the RIPE edges (lerpArray, deltaEOK,
-    // reverseAnimationShorthand) the Band-II compile/color-fidelity waves spend.
-    // (value.js 0.13.0 — the K-dispatched scroll/ramp grammar fold — is the Band
-    // II K.W9/K.W10 consume edge, not yet published.)
-    "@mkbabb/value.js": "0.13.0",
-    "@mkbabb/parse-that": "0.9.0",
-    // BP-6: 3.9.0 was the floor that protects the B7 specular regression —
+    // U.F7: the consume edge now relies on the published 3.1.0 subpath
+    // taxonomy. parse-that is intentionally absent from kf's manifest: the
+    // direct realm apparatus was dissolved and value.js owns its parser realm.
+    "@mkbabb/value.js": "3.1.0",
+    // The glass-ui edge remains 4.0.0 until OD-U4's explicitly forthcoming
+    // 5.0.0 release is registry-visible. No consume-edge change is made here.
     // a resolver downgrading into 3.5.x–3.8.x (valid in the old range)
     // re-introduces the at-rest bloom; 3.9.0 carries `specular="off"`
     // (proof:specular-absent-at-rest is the runtime contract).
