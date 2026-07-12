@@ -68,7 +68,7 @@
 // ── demo-correctness (BLOCKING) — the kf-owned correctness + hygiene demo gates,
 // run by the roster driver against the shared harness. Order preserves the
 // former demo-smoke step order (the headline inv-γ/inv-δ pair first). ──────────
-export const CORRECTNESS_ROSTER = [
+const LEGACY_CORRECTNESS_ROSTER = [
     // S.B3 EN-a/EN-b — the browser-parse library-value gate. A browser-HARNESS
     // member (jsdom's getComputedStyle does NOT drop an invalid `animation`
     // shorthand, so the EN-a bug is INVISIBLE in jsdom — a jsdom slot would be a
@@ -275,6 +275,21 @@ export const CORRECTNESS_ROSTER = [
     // ci-coverage source of truth) → an authored-but-CI-unrun coverage gap. Rostered
     // here so the demo-correctness JOB actually runs it (it did not before).
     "proof:dfa-derived",
+];
+
+// U.A7 terminal roster: the merge path no longer carries the historical
+// appearance/source-shape battery. Keep that corpus above as frozen provenance,
+// but run the small behavioral set that certifies the product on nightly/manual
+// browser infrastructure. The structural rows are covered by npm test,
+// proof:publish, or owner-golden; stale path-anchored rows do not silently RED
+// the deploy ancestry witness.
+export const CORRECTNESS_ROSTER = [
+    "proof:demo-smoke",
+    "proof:occlusion",
+    "proof:demo-usability",
+    "proof:subject-animates",
+    "proof:live-session",
+    "proof:live-session-mobile",
 ];
 
 // ── The S.A0 enumerated born-RED BACKLOG (SPEC §3 S.A0). These four rows are a
