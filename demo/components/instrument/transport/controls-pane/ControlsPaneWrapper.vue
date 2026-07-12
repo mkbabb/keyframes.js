@@ -60,6 +60,7 @@
                             :animation="host.animation"
                             :is-playing="isPlaying"
                             :layer-config="host.layer"
+                            :blend-available="blendAvailable"
                             :active="storedControls.selectedAnimation == host.name"
                             :extra-tabs="extraTabs"
                         >
@@ -182,6 +183,7 @@ const [DefinePaneBody, ReusePaneBody] = createReusableTemplate();
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;
+    blendAvailable: boolean;
     // T.B1-β STAGE 1 — the facility channel axis (host mounts derive from the
     // painting channels when present; the group axis is the fallback).
     channels?: TransportChannel[];

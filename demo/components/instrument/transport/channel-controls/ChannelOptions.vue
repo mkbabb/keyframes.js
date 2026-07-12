@@ -200,6 +200,7 @@
                             <div v-if="layerConfig" class="labeled-field-grid">
                                 <LayerConfigPanel
                                     :layer-config="layerConfig"
+                                    :blend-available="blendAvailable"
                                     :is-open="isOpen"
                                     :set-open="setOpen"
                                     @update="(v) => emit('layerConfigUpdate', v)"
@@ -283,6 +284,7 @@ const props = defineProps<{
     animation: KeyframesAnimation<any>;
     isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
+    blendAvailable: boolean;
     active?: boolean;
 }>();
 

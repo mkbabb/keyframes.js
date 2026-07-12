@@ -104,6 +104,7 @@
                         :animation="animation"
                         :is-playing="isPlayingProp"
                         :layer-config="layerConfig"
+                        :blend-available="blendAvailable"
                         :active="active"
                         @slider-update="(v) => emit('sliderUpdate', v)"
                         @toggle-play="emit('togglePlay')"
@@ -257,6 +258,7 @@ const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = 
     animation: KeyframesAnimation<any>;
     isPlaying?: boolean;
     layerConfig?: AnimationLayerConfig;
+    blendAvailable: boolean;
     active?: boolean;
     // glass-ui 4.0.0 (BA.W-TABS) — the STANDALONE-host extra-tab seam. A non-
     // scene-machine host (the playground EditorShell, `tabsExternallyManaged`

@@ -6,6 +6,7 @@
          panel-row split; this component does NOT re-author it). -->
     <template v-if="layerConfig">
         <LabeledSelect
+            v-if="blendAvailable"
             :model-value="layerConfig.blendMode"
             :is-open="isOpen('blend')"
             :items="BLEND_MODES"
@@ -15,6 +16,15 @@
             @update:model-value="(v) => emit('update', { blendMode: v })"
             @update:open="(v) => setOpen('blend', v)"
         />
+        <LabeledField
+            v-else
+            label="blend"
+            tooltip="Blend modes apply only when layers share one target"
+        >
+            <span class="text-small text-muted-foreground text-right">
+                independent targets
+            </span>
+        </LabeledField>
 
         <!-- z-index: a raw <LabeledField> + slotted <Input> so blend/z-index/
              enabled are all one-cell rows (one paradigm, H.W3.S2). LabeledField
@@ -36,7 +46,7 @@
             />
         </LabeledField>
 
-        <template v-if="layerConfig.blendMode === 'weighted'">
+        <template v-if="blendAvailable && layerConfig.blendMode === 'weighted'">
             <LabeledSlider
                 label="weight"
                 tooltip="Blend weight (0 = none, 1 = full)"
@@ -70,6 +80,7 @@ const BLEND_MODES = ["replace", "add", "weighted"] as const;
 
 defineProps<{
     layerConfig: AnimationLayerConfig;
+    blendAvailable: boolean;
     isOpen: (name: string) => boolean;
     setOpen: (name: string, open: boolean) => void;
 }>();

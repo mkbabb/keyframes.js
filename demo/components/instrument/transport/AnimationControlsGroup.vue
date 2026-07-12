@@ -18,6 +18,7 @@
         <ControlsPaneWrapper
             v-if="hasControlSurfaces"
             :animation-group="animationGroup"
+            :blend-available="animationGroup.singleTarget"
             :channels="channels"
             :stored-controls="storedControls"
             :hide-controls="hideControls"
