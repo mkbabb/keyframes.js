@@ -33,6 +33,8 @@ green master and the ratified corpus merged at `0b423142`.
   Commit `d770b99b` routes the four Sequence/Spring `clamp01` copies through
   value.js math; its demo checks and dogfood proof passed. E7/E8 delete-last work
   remains intentionally untouched.
+  The post-cure full suites are green: library 88 files / 924 passed (2
+  expected failures, 15 skipped) and demo 24 files / 141 passed.
 
 - **2026-07-12** — **U.C11 DISPATCH-DEDUPE SLICE COMPLETE.** Commit `a664442c`
   re-homes `ScrollBackend` beside dispatch and passes the precomputed WAAPI
