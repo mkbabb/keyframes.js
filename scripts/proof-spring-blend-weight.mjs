@@ -80,6 +80,7 @@ const GROUP_SPRINGS = "src/animation/group/springs.ts";
 // colocated `./compositor` (the 146L+70L carve); the `phys-c-read` clause greps
 // it at its new home.
 const GROUP_COMPOSITOR = "src/animation/group/compositor.ts";
+const GROUP_WEIGHT = "src/animation/group/weight.ts";
 // R.W2 — the layer-management + spring-transition API (`transitionLayer`/
 // `crossfade` + the spring park/re-seat statements) moved off `group.ts` into the
 // colocated `./layer-api` (the cohesive "layer API" carve); the transition
@@ -104,20 +105,20 @@ const TEST = "test/group/spring-blend-weight.test.ts";
 // ── PHYS-C (a) — the weighted leaf reads the stepper value, not the constant ──
 // BITE: revert the lerp factor to the bare `layer.weight` → the spring no longer
 // drives the blend → the overshoot value test reds (a hard cut, no overshoot).
+// The resolver body lives in `weight.ts`; the compositor consumes that resolver
+// once per layer before lerping, so this gate follows both halves of the seam.
 {
-    const src = read(GROUP_COMPOSITOR);
+    const compositor = read(GROUP_COMPOSITOR);
+    const weight = read(GROUP_WEIGHT);
     const springRead =
-        /const\s+w\s*=\s*layer\.weightSpring\?\.value\s*\?\?\s*layer\.weight/.test(
-            src,
-        );
+        /layer\.weightSpring\?\.value\s*\?\?\s*layer\.weight/.test(weight);
     const lerpUsesW =
-        /existing\[i\]\.value\s*=\s*lerp\(\s*existing\[i\]\.value\s*,\s*incoming\[i\]\.value\s*,\s*w\s*,?\s*\)/.test(
-            src,
-        );
+        /const\s+w\s*=\s*resolveBlendWeight\(layer\)/.test(compositor) &&
+        /existing\[i\]\.value\s*=\s*lerp\(\s*existing\[i\]\.value\s*,\s*incoming\[i\]\.value\s*,\s*w\s*,?\s*\)/.test(compositor);
     if (!springRead || !lerpUsesW) {
         fail(
             "phys-c-read",
-            `${GROUP_COMPOSITOR}: the weighted leaf must read \`const w = layer.weightSpring?.value ?? layer.weight\` (found ${springRead}) AND lerp by \`w\` (found ${lerpUsesW}) — a bare \`layer.weight\` third-arg is the static-weight HARD CUT the spring-driven blend cures.`,
+            `${GROUP_COMPOSITOR} + ${GROUP_WEIGHT}: the weighted leaf must resolve \`layer.weightSpring?.value ?? layer.weight\` (found ${springRead}) and lerp by the resolved \`w\` (found ${lerpUsesW}) — a bare \`layer.weight\` third-arg is the static-weight HARD CUT the spring-driven blend cures.`,
         );
     } else {
         ok(
