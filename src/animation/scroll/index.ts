@@ -32,6 +32,12 @@ export {
     supportsNativeTrigger,
 } from "./trigger";
 export type { TriggerState, TriggerDirection } from "./trigger";
+export { driveScrollCSS } from "./drive";
+export type {
+    ScrollDriveOptions,
+    ScrollDriveTarget,
+    ScrollCSSDrive,
+} from "./drive";
 export {
     parseScrollTimeline,
     parseScrollRange,

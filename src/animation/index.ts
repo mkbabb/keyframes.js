@@ -213,6 +213,9 @@ export type {
 // value.js owns the scroll VALUES.
 export type {
     ScrollSceneOptions,
+    ScrollDriveOptions,
+    ScrollDriveTarget,
+    ScrollCSSDrive,
     ScrollDispatchRequest,
     ScrollDispatch,
     ScrollBackend,

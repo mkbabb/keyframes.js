@@ -101,6 +101,7 @@ export type {
 export {
     ScrollScene,
     createScrollScene,
+    driveScrollCSS,
     parseScrollCSS,
     parseScrollTimeline,
     parseScrollRange,
@@ -116,6 +117,9 @@ export {
 } from "./scroll";
 export type {
     ScrollSceneOptions,
+    ScrollDriveOptions,
+    ScrollDriveTarget,
+    ScrollCSSDrive,
     ScrollDispatchRequest,
     ScrollDispatch,
     ScrollBackend,

@@ -32,6 +32,7 @@ import type {
     adoptRunning,
     ScrollScene,
     createScrollScene,
+    driveScrollCSS,
     parseScrollCSS,
     parseScrollTimeline,
     parseScrollRange,
@@ -87,6 +88,7 @@ export interface AnimationEngine {
     adoptRunning: typeof adoptRunning;
     ScrollScene: typeof ScrollScene;
     createScrollScene: typeof createScrollScene;
+    driveScrollCSS: typeof driveScrollCSS;
     parseScrollCSS: typeof parseScrollCSS;
     parseScrollTimeline: typeof parseScrollTimeline;
     parseScrollRange: typeof parseScrollRange;
