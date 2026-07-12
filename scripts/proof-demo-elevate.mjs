@@ -166,7 +166,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 5. CWV-levers + artifact clause ──────────────────────────────────────────
 {
-    const ctrls = read("demo/components/instrument/transport/controls/AnimationControls.vue");
+    const ctrls = read("demo/components/instrument/transport/channel-controls/ChannelControls.vue");
     // Monaco-heavy panes forceMount'd + content-visibility behind @supports.
     if (/force-?mount|forceMount/.test(ctrls) && /content-visibility/.test(ctrls)) {
         ok("cwv", "the Monaco panes are forceMount'd + content-visibility-gated when inactive");
@@ -294,7 +294,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         read("demo/components/instrument/transport/AnimationControlsGroup.vue") +
         "\n" +
         read(
-            "demo/components/instrument/transport/composables/useControlsKeyboardShortcuts.ts",
+            "demo/components/instrument/transport/AnimationControlsGroup/useControlsKeyboardShortcuts.ts",
         );
     // Mod+Z / Mod+Shift+Z are registered through the ONE registry (registerShortcut),
     // grouped + labeled so they surface in the KeyboardShortcutsModal — NOT a second

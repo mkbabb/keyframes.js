@@ -14,10 +14,9 @@ export type StoredAnimationGroupControlOptions = {
     // paths assign it) — typed so the assignment needs no `as any` (J.W2 S6 /
     // LS-20).
     selectedAnimation: string | null;
-    selectedKeyframesControl: string;
     isTimelineExpanded: boolean;
     isControlsPanelOpen: boolean;
-    keyframeControls?: {
+    keyframeControls: {
         selectedKeyframesControl: string;
         dialogOpen: boolean;
         keyframes: string;
@@ -36,7 +35,12 @@ const defaultStoredAnimationGroupControlOptions: StoredAnimationGroupControlOpti
     {
         selectedControl: "controls",
         selectedAnimation: "",
-        selectedKeyframesControl: "string",
+        keyframeControls: {
+            selectedKeyframesControl: "keyframes",
+            dialogOpen: false,
+            keyframes: "",
+            addKeyframes: "",
+        },
         isTimelineExpanded: false,
         isControlsPanelOpen: true,
     };
@@ -75,6 +79,12 @@ export const getStoredAnimationGroupControlOptions = (
     const controls = animationGroupsControlOptionsStore.value[
         superKey
     ] as StoredAnimationGroupControlOptions;
+
+    // Persisted pre-U.B4 buckets may predate the editor-state member. The store
+    // owns this one migration/default boundary; editor components only consume it.
+    controls.keyframeControls ??= structuredClone(
+        defaultStoredAnimationGroupControlOptions.keyframeControls,
+    );
 
     return controls;
 };

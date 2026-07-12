@@ -213,9 +213,15 @@ async function settleAndOpen(page, scene) {
                 sk && store[sk] && typeof store[sk] === "object" ? store[sk] : {};
             store[sk] = {
                 selectedControl: prev.selectedControl ?? "controls",
-                selectedKeyframesControl: prev.selectedKeyframesControl ?? "string",
                 isTimelineExpanded: false,
                 ...prev,
+                keyframeControls: {
+                    selectedKeyframesControl:
+                        prev.keyframeControls?.selectedKeyframesControl ?? "keyframes",
+                    dialogOpen: prev.keyframeControls?.dialogOpen ?? false,
+                    keyframes: prev.keyframeControls?.keyframes ?? "",
+                    addKeyframes: prev.keyframeControls?.addKeyframes ?? "",
+                },
                 isControlsPanelOpen: true,
                 selectedAnimation:
                     prev.selectedAnimation && prev.selectedAnimation.length > 0

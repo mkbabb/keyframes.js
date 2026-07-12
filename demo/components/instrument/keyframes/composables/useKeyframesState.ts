@@ -15,19 +15,8 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     const animationUUID = createAnimationUUId(animation, animation.superKey);
     const keyframesStyleId = `keyframes-style-${animationUUID}`;
 
-    const defaultKeyframeControls = {
-        selectedKeyframesControl: "keyframes",
-        dialogOpen: false,
-        keyframes: "",
-        addKeyframes: "",
-    };
-
     const storedControls = getStoredAnimationGroupControlOptions(animation);
-    storedControls.keyframeControls ??= defaultKeyframeControls;
-
-    // After ??= above, keyframeControls is guaranteed non-undefined.
-    // Use a local alias to avoid TS18048 on every access.
-    const kfControls = storedControls.keyframeControls!;
+    const kfControls = storedControls.keyframeControls;
 
     // --- Refs ---
 

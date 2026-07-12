@@ -390,7 +390,12 @@ async function browserHalf() {
                                 cube: {
                                     selectedControl: "matrix-controls",
                                     selectedAnimation: "Rotations",
-                                    selectedKeyframesControl: "string",
+                                    keyframeControls: {
+                                        selectedKeyframesControl: "keyframes",
+                                        dialogOpen: false,
+                                        keyframes: "",
+                                        addKeyframes: "",
+                                    },
                                     isTimelineExpanded: false,
                                     isControlsPanelOpen: true,
                                 },
