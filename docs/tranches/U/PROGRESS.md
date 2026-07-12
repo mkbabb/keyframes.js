@@ -31,6 +31,9 @@ green master and the ratified corpus merged at `0b423142`.
   importing the dependency-free solver directly. `npm run lint`,
   `proof:lint-clean`, and `proof:no-silent-fallback` pass; all planted cycle and
   boundary violations still bite. E7's CLAUDE delete-last act remains untouched.
+  A post-build published-surface run passes clauses (a,b,d,f,g,h,i) and reds only
+  the stale root CLAUDE test count (113 recorded vs 117 actual), which remains
+  routed to E7's delete-last cleanup rather than patched in place.
 
 - **2026-07-12** — **POST-C3 REGRESSION CURE + E10 D6 COMPLETE.** Commit
   `516de469` filters epoch-cleared composite leaves at the style output boundary
