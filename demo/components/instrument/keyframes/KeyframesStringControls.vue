@@ -20,24 +20,18 @@
     </div>
 </template>
 <script setup lang="ts">
-import { reverseCSSTime } from "@mkbabb/value.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@utils/kfEngine";
 
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useTimeoutFn } from "@vueuse/core";
 import { useApplyCSS } from "./composables/useApplyCSS";
-import { parseAnimationCSS } from "./utils/parseAnimationCSS";
+import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
 import {
     Paintbrush,
 } from "@lucide/vue";
 
-import {
-    createAnimationUUId,
-    getStoredAnimationGroupControlOptions,
-    getStoredAnimationOptions,
-} from "@state";
 import { toast } from "vue-sonner";
 import { copyText } from "@utils/clipboard";
 
@@ -47,7 +41,7 @@ import { copyText } from "@utils/clipboard";
 // serializes a parsed animation back to CSS; `compileToCSS` (K.W10 CC-4 DEMO LEG)
 // powers the "Export CSS" button — the SAME gated compiler the round-trip proves,
 // surfacing the CC-3 ineligibility report VERBATIM (the editor as a CSS IDE).
-const { CSSKeyframesAnimation, presets, CSSKeyframesToString, compileToCSS } =
+const { CSSKeyframesAnimation, presets, compileToCSS } =
     kfEngine();
 
 import CSSCodeEditor from "./CSSCodeEditor.vue";
@@ -65,22 +59,15 @@ const emit = defineEmits<{
     ): void;
 }>();
 
-const animationUUID = createAnimationUUId(animation, animation.superKey);
-const keyframesStyleId = `keyframes-style-${animationUUID}`;
-
-const defaultKeyframeControls = {
-    selectedKeyframesControl: "keyframes",
-    dialogOpen: false,
-    keyframes: "",
-    addKeyframes: "",
-};
-
-const storedControls = getStoredAnimationGroupControlOptions(animation);
-
-storedControls.keyframeControls ??= defaultKeyframeControls;
+const {
+    cssKeyframesString,
+    keyframesStyleId,
+    getTmpAnimationName,
+    updateFromString,
+    updateCSSAnimationKeyframesStringFromAnimation,
+} = useKeyframesEditor(() => animation, emit);
 
 const editorRef = useTemplateRef<InstanceType<typeof CSSCodeEditor>>("editorRef");
-const cssKeyframesString = ref("");
 const isFormatting = ref(false);
 
 // Reset the formatting flag 300ms after a format completes. useTimeoutFn
@@ -92,37 +79,6 @@ const { start: startFormattingReset } = useTimeoutFn(
     300,
     { immediate: false },
 );
-
-const getTmpAnimationName = () => {
-    return keyframesStyleId.replace("keyframes-style-", "").toLowerCase();
-};
-
-const updateCSSAnimationKeyframesStringFromAnimation = async () => {
-    try {
-        cssKeyframesString.value = await CSSKeyframesToString(
-            animation,
-            getTmpAnimationName(),
-        );
-    } catch (e: unknown) {
-        // I.W0 S4 — kill the mis-attributing placeholder. With the value-seam
-        // (S1) + serialize-from-template (S2) fixes, the empty-`var()` parse
-        // throw no longer reaches here, so this catch fires ONLY for a genuine
-        // structural limit (a custom `timingFunction` with no CSS twin —
-        // `serializeEasing` throwing). NAME THE ACTUAL condition rather than
-        // hard-coding "custom — no CSS twin" for EVERY throw (the old floor
-        // mis-attributed the empty-value parse failure to easing and sent
-        // triage down the B5→B4 false trail). Never silently degrade to
-        // `linear`; the placeholder reports the real reason.
-        const reason = (e as Error).message;
-        console.warn(
-            "[KeyframesString] could not serialize the animation to CSS:",
-            reason,
-        );
-        cssKeyframesString.value = `/* could not serialize: ${reason} */`;
-    }
-
-    return cssKeyframesString.value;
-};
 
 const formatEditor = async () => {
     if (!editorRef.value) return;
@@ -139,63 +95,10 @@ function onKeyDown(e: KeyboardEvent) {
     }
 }
 
-const storedAnimationOptions = getStoredAnimationOptions(animation);
-
-const syncStoredOptionsFromAnimation = (parsedOptions?: Record<string, any>) => {
-    const opts = animation.options;
-    const stored = storedAnimationOptions.animationOptions;
-
-    stored.duration = reverseCSSTime(opts.duration);
-    stored.delay = reverseCSSTime(opts.delay);
-    stored.iterationCount = isFinite(opts.iterationCount)
-        ? opts.iterationCount
-        : "infinite";
-    stored.direction = opts.direction;
-    stored.fillMode = opts.fillMode;
-
-    // Use the raw parsed timing function name (string) when available,
-    // since reverse-lookup by function reference is unreliable (closures).
-    if (parsedOptions?.timingFunction) {
-        stored.timingFunction = parsedOptions.timingFunction;
-    }
-};
-
 const onEditorChange = async (value: string) => {
-    const parseAndUpdate = async () => {
-        const { keyframes, options } = await parseAnimationCSS(value);
-
-        const tmpAnimation = new CSSKeyframesAnimation(
-            animation.options,
-            ...animation.targets,
-        ).fromKeyframes(keyframes);
-
-        // Apply parsed animation options (duration, easing, etc.) if present
-        if (options) {
-            animation.setOptions(options);
-        }
-
-        animation.templateFrames = tmpAnimation.templateFrames;
-
-        animation.parse();
-
-        // Sync stored animation options so the Controls tab reflects changes.
-        // Pass the raw parsed options so we can use the string timing function
-        // name directly (avoids unreliable function-reference reverse-lookup).
-        syncStoredOptionsFromAnimation(options);
-
-        emit("keyframesUpdate", {
-            animation,
-        });
-
-        storedControls.keyframeControls!.keyframes = value;
-
-        if (!isFormatting.value) {
-            toast.success("Keyframes parsed 🎉");
-        }
-    };
-
     try {
-        await parseAndUpdate();
+        await updateFromString(value);
+        if (!isFormatting.value) toast.success("Keyframes parsed 🎉");
     } catch (e: unknown) {
         parseErrorShake.play();
 

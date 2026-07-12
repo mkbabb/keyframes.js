@@ -8,6 +8,7 @@ import type {
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { createKeyframeId } from "../timelineTypes";
 import { flattenVars } from "./flattenVars";
+import { parseAnimationCSS } from "../../keyframes/utils/parseAnimationCSS";
 
 /**
  * Convert timeline keyframes into a CSSKeyframesAnimation. ASYNC because the
@@ -70,11 +71,10 @@ export async function exportTimelineToCSS(
 export async function importCSSToTimeline(
     css: string,
 ): Promise<TimelineKeyframe[]> {
-    const { resolveKeyframes } = await loadAnimationEngine();
-    const parsed = resolveKeyframes(css).keyframes;
+    const { keyframes: parsed } = await parseAnimationCSS(css);
     const keyframes: TimelineKeyframe[] = [];
 
-    for (const [selector, vars] of parsed.entries()) {
+    for (const [selector, vars] of Object.entries(parsed)) {
         let percent: number;
         if (selector === "from") {
             percent = 0;
@@ -98,4 +98,3 @@ export async function importCSSToTimeline(
 
     return keyframes;
 }
-

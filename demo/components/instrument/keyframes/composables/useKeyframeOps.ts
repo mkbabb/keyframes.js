@@ -1,10 +1,11 @@
-import { formatCSS } from "@mkbabb/value.js";
+import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { debounce } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
 import type { KeyframesState } from "./useKeyframesState";
 import { parseAnimationCSS } from "../utils/parseAnimationCSS";
+import { getStoredAnimationOptions } from "@state";
 
 /** The string-generation callbacks the ops thread back into. */
 interface StringSync {
@@ -50,9 +51,34 @@ export function useKeyframeOps(
     const { addKeyframesString, kfControls, getFormatWidth } = state;
     const { updateAllStrings, updateAllStringsAndAnimation } = sync;
 
+    const updateFromString = async (keyframesString: string) => {
+            kfControls.keyframes = keyframesString;
+
+            const { CSSKeyframesAnimation, yieldToMain } = await loadAnimationEngine();
+            const { options, keyframes } = await parseAnimationCSS(keyframesString);
+            await yieldToMain();
+            const compiled = new CSSKeyframesAnimation(
+                options as Record<string, unknown>,
+                ...animation.targets,
+            ).fromKeyframes(keyframes);
+            animation.adoptCompiled(compiled);
+
+            const stored = getStoredAnimationOptions(animation).animationOptions;
+            stored.duration = reverseCSSTime(animation.options.duration);
+            stored.delay = reverseCSSTime(animation.options.delay);
+            stored.iterationCount = isFinite(animation.options.iterationCount)
+                ? animation.options.iterationCount
+                : "infinite";
+            stored.direction = animation.options.direction;
+            stored.fillMode = animation.options.fillMode;
+            if (options?.timingFunction) stored.timingFunction = options.timingFunction;
+
+            emit("keyframesUpdate", { animation });
+            sync.debouncedUpdateAllStrings();
+    };
+
     const updateAnimationFromKeyframesString = debounce(
         (keyframesString: string) => {
-            kfControls.keyframes = keyframesString;
 
             // S4 (INP relief): this is the demo's heaviest edit op — a full CSS
             // parse THEN a fresh compile, run on every Monaco edit. Splitting it
@@ -64,33 +90,7 @@ export function useKeyframeOps(
             // fire-and-forget; the throw path is owned by `withErrorToastAsync`.
             void withErrorToastAsync(
                 async () => {
-                    const { CSSKeyframesAnimation, yieldToMain } =
-                        await loadAnimationEngine();
-
-                    const { options, keyframes } =
-                        await parseAnimationCSS(keyframesString);
-
-                    // Yield AFTER the parse, BEFORE the compile: the two heaviest
-                    // slices land in separate tasks, so neither monopolizes the
-                    // main thread during an active edit.
-                    await yieldToMain();
-
-                    // value.js's CSS-spec AnimationOptions is structurally
-                    // equivalent to keyframes.js's broader InputAnimationOptions
-                    // for the fields CSS authors set (duration, delay, etc.).
-                    // SINGLE COMPILE (E.W8 S0): adopt the throwaway's compiled
-                    // state — `adoptCompiled` re-binds the live-options reference
-                    // and recomputes the key-set (G.W19), so no second compile.
-                    const compiled = new CSSKeyframesAnimation(
-                        options as Record<string, unknown>,
-                        ...animation.targets,
-                    ).fromKeyframes(keyframes);
-
-                    animation.adoptCompiled(compiled);
-
-                    emit("keyframesUpdate", { animation });
-
-                    sync.debouncedUpdateAllStrings();
+                    await updateFromString(keyframesString);
                 },
                 "Could not update keyframes",
                 () => updateAnimationFromKeyframesString(keyframesString),
@@ -195,6 +195,7 @@ export function useKeyframeOps(
     };
 
     return {
+        updateFromString,
         updateAnimationFromKeyframesString,
         updateAnimationFromKeyframeString,
         updateAddKeyframesString,

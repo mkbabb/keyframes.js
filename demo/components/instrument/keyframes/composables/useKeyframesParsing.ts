@@ -99,6 +99,7 @@ export function useKeyframesParsing(
     );
 
     return {
+        updateFromString: ops.updateFromString,
         updateCSSAnimationKeyframesStringFromAnimation,
         updateAllStrings,
         debouncedUpdateAllStrings,

@@ -40,6 +40,7 @@ export function useKeyframesEditor(
         // Functions
         getFormatWidth: state.getFormatWidth,
         getTmpAnimationName: state.getTmpAnimationName,
+        updateFromString: parsing.updateFromString,
         updateCSSAnimationKeyframesStringFromAnimation:
             parsing.updateCSSAnimationKeyframesStringFromAnimation,
         updateAllStrings: parsing.updateAllStrings,
