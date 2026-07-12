@@ -20,6 +20,9 @@ concurrency:
     group: ci-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
+permissions:
+    contents: read
+
 jobs:
     gates:
         name: library gates (npm test + proof:publish)
@@ -50,6 +53,8 @@ jobs:
     demo-correctness:
         name: demo correctness (nightly roster)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        permissions:
+            contents: write
         runs-on: ubuntu-latest
         timeout-minutes: 50
         steps:
