@@ -1,6 +1,8 @@
 # U.F — CONSTELLATION COVENANTS
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: IMPLEMENTATION RECONCILIATION.** F1/F2/F3/F4/F7 are landed on
+> `tranche-u-impl`. F5/F6 remain held until glass-ui 5.0.0 is explicitly
+> release-ready; this file must not be read as authorization to edit that sibling.
 >
 > **Charter sentence (U.md §2).** Convert every external dependency edge from a
 > vacuously-green tripwire into a deadlined covenant: transpose the whole HEAVY

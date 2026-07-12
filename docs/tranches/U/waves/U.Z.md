@@ -1,6 +1,9 @@
 # U.Z — THE CLOSE
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: CLOSE RECONCILIATION.** The U.Z drive is authorized on
+> `tranche-u-impl`; publish/deploy/FINAL-U remain gated until the certifying
+> sweep, owner-golden blessing, and glass-ui 5.0.0 release-readiness are all
+> evidenced. This template is not a claim that close has fired.
 > This is the U.Z close template — the T FINAL.md pattern (`T/FINAL.md`), pre-authored
 > WITH the drive so the close is a RECONCILIATION, not a re-derivation. The terminal
 > actions it gates (the certifying sweep, the OD-U8 version cut, the deploy-of-record

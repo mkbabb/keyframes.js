@@ -1,6 +1,9 @@
 # U.G — THE DESIGN CODEX
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: IMPLEMENTATION RECONCILIATION.** G1/G2/G3/G5 are landed on
+> `tranche-u-impl`. G4 remains externally owner-gated: the committed 12-cell
+> set is intentionally not promoted to the required 12→14 blessed sequence
+> frames and idle-state pin without the owner's blessing.
 > **DESIGN LANE** — authored under the frontend-design skill per the edict's
 > orchestration spec (charter §5: "Fable: … ALL design (with frontend-design)").
 >

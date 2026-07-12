@@ -1,6 +1,8 @@
 # U.E — NO-DEFERRAL DISCHARGE + LEGACY ZERO
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: IMPLEMENTATION RECONCILIATION.** The tranche drive is authorized on
+> `tranche-u-impl`; E7/E8/E9 and E10 D2–D7 are landed. D1 remains owner-ridden,
+> while D8/D9 and the external covenants remain explicitly dispositioned below.
 >
 > **Charter sentence (U.md §2).** Terminally adjudicate every machine ledger row —
 > the 8 `T_BORNRED_BACKLOG` rows (each cured in-U or converted to a DEADLINED external
