@@ -84,6 +84,15 @@ green master and the ratified corpus merged at `0b423142`.
   x/y springs for 90 frames; the actual D4 re-seat remains routed to a bounded
   follow-up rather than silently changing drag behavior.
 
+- **2026-07-12** — **U.B14 FIRST FOLD TARGET.** The P2 fold-map is now in-tree
+  at `loop/P2-FOLD-MAP.md`. Its first post-U.B1 target,
+  `demo/scenes/cube/matrix-editor/index.ts`, was measured as a one-symbol,
+  one-consumer ceremony barrel and deleted; `CubeScene.vue` imports the SFC
+  directly. `npm run check`, the focused demo timeline suite (3/3), and
+  `proof:scene-colocated` pass. `proof:decomposition` still reports the
+  pre-existing 502-line spring-progress ceiling, so no broader decomposition
+  claim is made; remaining fold-map rows stay target-by-target.
+
 - **2026-07-12** — **U.A1 COVERAGE-CONTRACT INVERSION.** The transitional
   coverage contract now derives authority from correctness/hygiene tier
   membership rather than requiring every package `proof:*` key to be repeated as
