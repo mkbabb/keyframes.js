@@ -214,7 +214,6 @@ describe("U.C11 — driveScrollCSS composes parse → scene + trigger + dispatch
         // jsdom has no ViewTimeline; dispatch is still conservative and
         // returns a reason rather than pretending the native lane attached.
         expect(handle.backend).toBe("js");
-        expect(handle.dispatch.backend).toBe("js");
         expect(handle.scene.range.start).toBeCloseTo(0.25, 5);
     });
 });

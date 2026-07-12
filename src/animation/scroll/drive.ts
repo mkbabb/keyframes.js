@@ -13,7 +13,7 @@ import type {
 } from "../orchestration/timeline/native";
 import { createScrollScene, type ScrollScene, type ScrollSceneOptions } from "./scene";
 import { createTriggerScene, type TriggerScene } from "./trigger";
-import { dispatchScrollBackend, type ScrollBackend, type ScrollDispatch } from "./dispatch";
+import { dispatchScrollBackend, type ScrollBackend } from "./dispatch";
 import type { AnimationTimelineValue, CSSTimelineOptions } from "@mkbabb/value.js";
 
 /** Options for the composed `driveScrollCSS` entry. */
@@ -48,10 +48,6 @@ export interface ScrollCSSDrive<V extends Vars = Vars> {
     readonly trigger?: TriggerScene;
     readonly backend: ScrollBackend;
     readonly reason?: string;
-    /** The dispatch verdict is retained for callers that need native handles. */
-    readonly dispatch: ScrollDispatch;
-    /** The animation offered to the native lane, when one was supplied. */
-    readonly animation?: KeyframesAnimation<V>;
 }
 
 function isAnimation<V extends Vars>(value: ScrollDriveTarget<V>): value is KeyframesAnimation<V> {
@@ -81,7 +77,13 @@ function nativeSpecFromCSS<V extends Vars>(
         };
     }
     if (timeline?.kind === "view") {
-        const subject = driver.subject ?? (isElement(target) ? target : undefined);
+        const subject =
+            driver.subject ??
+            (isElement(target)
+                ? target
+                : isAnimation(target) && isElement(target.targets[0])
+                  ? target.targets[0]
+                  : undefined);
         if (subject == null) return undefined;
         return {
             kind: "view",
@@ -115,10 +117,17 @@ export function driveScrollCSS<V extends Vars = Vars>(
     const animation = isAnimation(target)
         ? target
         : driverOptions.animation;
-    const scene = createScrollScene({
-        ...driverOptions,
-        range: options.range,
-    });
+    const {
+        nativeSpec: _nativeSpec,
+        animation: _animation,
+        velocity: _velocity,
+        source: _source,
+        subject: _subject,
+        axis: _axis,
+        inset: _inset,
+        ...sceneOptions
+    } = driverOptions;
+    const scene = createScrollScene({ ...sceneOptions, range: options.range });
     const trigger = options.trigger == null ? undefined : createTriggerScene(options);
     const nativeSpec = nativeSpecFromCSS(options, target, driverOptions);
     const dispatch = dispatchScrollBackend({
@@ -133,7 +142,5 @@ export function driveScrollCSS<V extends Vars = Vars>(
         ...(trigger == null ? {} : { trigger }),
         backend: dispatch.backend,
         ...(dispatch.backend === "js" ? { reason: dispatch.reason } : {}),
-        dispatch,
-        ...(animation == null ? {} : { animation }),
     };
 }
