@@ -12,6 +12,7 @@ import {
     presetTaxonomy,
 } from "../../src/animation/presets";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
+import { PRESET_SPECS, presetFactories } from "../../src/animation/presets/catalog";
 
 const springPresets = {
     springScaleIn,
@@ -57,6 +58,15 @@ describe("spring-eased presets (S6)", () => {
 });
 
 describe("preset taxonomy (S6)", () => {
+    it("derives the complete unique catalog from normalized specification rows", () => {
+        expect(Object.keys(PRESET_SPECS)).toHaveLength(38);
+        expect(new Set(Object.keys(PRESET_SPECS)).size).toBe(38);
+        expect(Object.keys(presetFactories)).toEqual(Object.keys(PRESET_SPECS));
+        for (const spec of Object.values(PRESET_SPECS)) {
+            expect(spec.css).not.toMatch(/@keyframes\s/);
+        }
+    });
+
     it("every taxonomy leaf is canonical and constructs a valid animation", () => {
         const canonicalGroups = {
             enter: enterPresets,
