@@ -25,7 +25,7 @@ import { kfEngine } from "@utils/kfEngine";
 
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useTimeoutFn } from "@vueuse/core";
-import { useApplyCSS } from "./composables/useApplyCSS";
+import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
 import {
@@ -118,36 +118,16 @@ const { isApplied: cssApplied, toggle: toggleApplyCSS, clear: clearApplyCSS } = 
     getClassName: () => getTmpAnimationName(),
 });
 
-const applyCSSStyles = () => {
-    toggleApplyCSS();
-    if (cssApplied.value) {
-        brushAnimation.play();
-    } else {
-        brushAnimation.pause();
-    }
-};
-
-const brushEl = useTemplateRef<HTMLElement>("brushEl");
-
-const brushAnimation = new CSSKeyframesAnimation({
-    duration: 1200,
-    timingFunction: "ease-in-out",
-    iterationCount: "infinite",
-    direction: "alternate",
-}).fromString(
-    /*css*/
-    `@keyframes paintbrushStroke {
-        0% { transform: translateX(0px) rotate(0deg); }
-        30% { transform: translateX(2px) rotate(-8deg); }
-        70% { transform: translateX(-2px) rotate(8deg); }
-        100% { transform: translateX(0px) rotate(0deg); }
-    }`,
-);
+const { applyCSSStyles, cssApplied } = useKeyframeBrushApply({
+    animation,
+    styleId: keyframesStyleId,
+    getCSSString: () => cssKeyframesString.value,
+    templateRef: "brushEl",
+});
 
 const parseErrorShake = presets.shake();
 
 onMounted(async () => {
-    brushAnimation.setTargets(brushEl.value!);
     await updateCSSAnimationKeyframesStringFromAnimation();
 });
 

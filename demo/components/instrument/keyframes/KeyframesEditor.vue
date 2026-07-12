@@ -108,8 +108,8 @@ import { kfEngine } from "@utils/kfEngine";
 
 import { Card, CardContent, Slider } from "@mkbabb/glass-ui";
 
-import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
-import { useApplyCSS } from "./composables/useApplyCSS";
+import { onMounted, useTemplateRef, watch } from "vue";
+import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useCodeHighlight } from "./composables/useHighlightCSS";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
@@ -228,23 +228,12 @@ const animateProgressBar = (el: HTMLElement) => {
         .play();
 };
 
-const { isApplied: cssApplied, toggle: toggleApplyCSS } = useApplyCSS({
-    getAnimation: () => animation,
+const { applyCSSStyles, cssApplied } = useKeyframeBrushApply({
+    animation,
     styleId: keyframesStyleId,
     getCSSString: () => cssKeyframesString.value,
-    getClassName: () => keyframesStyleId,
+    templateRef: "brush",
 });
-
-const applyCSSStyles = () => {
-    toggleApplyCSS();
-    if (cssApplied.value) {
-        brushAnimation.play();
-    } else {
-        brushAnimation.pause();
-    }
-};
-
-const brush = useTemplateRef<HTMLElement>("brush");
 
 // The action toolbar's roving-tabindex keyboard (S.C3b · C-19 — the reka Menubar
 // replacement). `refresh` re-seats the single tab stop once the item buttons
@@ -253,39 +242,14 @@ const toolbarEl = useTemplateRef<HTMLElement>("toolbarEl");
 const { onKeydown: onToolbarKeydown, refresh: refreshToolbar } =
     useToolbarKeyboard(() => toolbarEl.value);
 
-const brushAnimation = new CSSKeyframesAnimation({
-    duration: 700,
-    timingFunction: "linear",
-    iterationCount: "infinite",
-    direction: "alternate",
-}).fromString(
-    /*css*/
-    `@keyframes paintbrushWipe {
-                0%, 100% {
-                    transform: rotate(0deg);
-                }
-                20%, 30%, 40% {
-                    transform: rotate(30deg);
-                }
-                60%, 70%, 80% {
-                    transform: rotate(-90deg);
-                }
-            }`,
-);
-
 // Re-highlight the card list whenever the serialized keyframes change.
 watch(cssKeyframesString, () => {
     highlightAll();
 });
 
 onMounted(() => {
-    brushAnimation.setTargets(brush.value!);
     updateAllStrings();
     // Seat the toolbar's single tab stop now that the item buttons have mounted.
     refreshToolbar();
-});
-
-onUnmounted(() => {
-    brushAnimation.pause();
 });
 </script>
