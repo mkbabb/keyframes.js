@@ -111,13 +111,6 @@ const onEditorChange = async (value: string) => {
     }
 };
 
-const { isApplied: cssApplied, toggle: toggleApplyCSS, clear: clearApplyCSS } = useApplyCSS({
-    getAnimation: () => animation,
-    styleId: keyframesStyleId,
-    getCSSString: () => cssKeyframesString.value,
-    getClassName: () => getTmpAnimationName(),
-});
-
 const { applyCSSStyles, cssApplied } = useKeyframeBrushApply({
     animation,
     styleId: keyframesStyleId,
