@@ -94,12 +94,23 @@
  * CI wiring: owned by J.W3's `proof:ci-coverage` roster motion (recorded
  * there so this correctness gate cannot escape `proof:all`/CI).
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+// U.Z3's additive-only check is a one-shot close mode, not another standing
+// gate. Keep the normal surface oracle unchanged and delegate `--diff` to the
+// registry-artifact comparator so release rehearsal can use the existing
+// `proof:published-surface` entry without adding a new proof key.
+if (process.argv.includes("--diff")) {
+    const helper = path.join(REPO, "scripts", "verify-published-surface-diff.mjs");
+    const args = process.argv.slice(2).filter((arg) => arg !== "--diff");
+    const result = spawnSync(process.execPath, [helper, ...args], { stdio: "inherit" });
+    process.exit(result.status ?? 1);
+}
 const DIST = path.join(REPO, "dist");
 const BARREL = path.join(REPO, "src/animation/index.ts");
 const README = path.join(REPO, "README.md");
