@@ -26,6 +26,7 @@ import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { cpus } from "node:os";
+import { ALL_TIERS } from "./lib/tiers.mjs";
 
 const argv = process.argv.slice(2);
 const flag = (name, def) => {
@@ -42,7 +43,7 @@ const cwd = dirname(pkgPath);
 const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
 
 const tiers = argv.includes("--all")
-    ? ["proof:library-correctness", "proof:demo-correctness", "proof:hygiene"]
+    ? ALL_TIERS
     : argv.filter((a) => a.startsWith("--tier=")).map((a) => a.slice("--tier=".length));
 
 if (tiers.length === 0) {
