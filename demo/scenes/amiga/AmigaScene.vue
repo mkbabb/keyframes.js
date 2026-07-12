@@ -22,6 +22,8 @@ import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
 import { SpringProgress } from "@mkbabb/keyframes.js";
+// OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
+import { lerp } from "@mkbabb/value.js/math";
 
 import { useAmigaThree } from "./useAmigaThree";
 import {
@@ -88,8 +90,6 @@ let wasPlaying = false;
 let reseat: SpringProgress | undefined;
 const reseatFrom: AmigaPose = { px: 0, py: 0, pz: 0, spin: 0 };
 let lastFrameAt = 0;
-
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 function onFrame(): boolean {
     // Advance the release glide (mutates the additive gesture offset).
