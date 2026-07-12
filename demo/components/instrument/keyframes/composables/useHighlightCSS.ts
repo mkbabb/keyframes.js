@@ -1,11 +1,28 @@
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
-import hljs from "highlight.js";
-import css from "highlight.js/lib/languages/css";
-import githubDark from "highlight.js/styles/github-dark.css?inline";
-import githubLight from "highlight.js/styles/github.css?inline";
 
-hljs.registerLanguage("css", css);
+type Highlighter = typeof import("highlight.js/lib/core").default;
+let highlighterBoot: Promise<{
+    hljs: Highlighter;
+    githubDark: string;
+    githubLight: string;
+}> | undefined;
+
+const bootHighlighter = () =>
+    (highlighterBoot ??= Promise.all([
+        import("highlight.js/lib/core"),
+        import("highlight.js/lib/languages/css"),
+        import("highlight.js/styles/github-dark.css?inline"),
+        import("highlight.js/styles/github.css?inline"),
+    ]).then(([core, css, dark, light]) => {
+        const hljs = core.default;
+        hljs.registerLanguage("css", css.default);
+        return {
+            hljs,
+            githubDark: dark.default,
+            githubLight: light.default,
+        };
+    }));
 
 export function useHighlightCSS(styleId: string) {
     const keyframesStyle = ref<HTMLStyleElement | null>(null);
@@ -64,11 +81,14 @@ export function useCodeHighlight(
     const { isDark } = useGlobalDark();
     const themeStyle = ref<HTMLStyleElement | null>(null);
 
-    const setCodeTheme = () => {
+    const setCodeTheme = async () => {
         if (!themeStyle.value) {
             return;
         }
-        themeStyle.value.textContent = isDark.value ? githubDark : githubLight;
+        const { githubDark, githubLight } = await bootHighlighter();
+        if (themeStyle.value) {
+            themeStyle.value.textContent = isDark.value ? githubDark : githubLight;
+        }
     };
 
     const ensureThemeStyle = () => {
@@ -97,9 +117,12 @@ export function useCodeHighlight(
         if (!el || el.getAttribute("highlighted")) {
             return;
         }
-        const h = hljs.highlight(el.innerText, { language: "css" });
-        el.innerHTML = h.value;
-        el.setAttribute("highlighted", "true");
+        void bootHighlighter().then(({ hljs }) => {
+            if (el.getAttribute("highlighted")) return;
+            const h = hljs.highlight(el.innerText, { language: "css" });
+            el.innerHTML = h.value;
+            el.setAttribute("highlighted", "true");
+        });
     };
 
     /**
