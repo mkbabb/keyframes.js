@@ -86,7 +86,6 @@ export const FROZEN_SET = [
     // (proof:motion-path-editable / proof:motion-path-copy were FROZEN here until
     //  T.E3 KILLED them — the motion-path scene was PRUNED (OD-1 = PRUNE); their
     //  machine-witnessed KILL discharges live in DISCHARGE below.)
-    "proof:demo-no-oversize",
     "proof:demo-usability",
     "proof:demo-elevate",
     "proof:taste-packet",

@@ -11,7 +11,7 @@
  *
  * This is a re-runnable STATIC instrument (greps + fs existence checks — no
  * browser, no build), mirroring the collectSources idiom of
- * proof:demo-no-oversize. It BITES on every regression of the fusion:
+ * proof:colocation. It BITES on every regression of the fusion:
  *
  *   ASSERTION 1 — COLOCATION. For each fused scene `<name>`, the entry
  *     `demo/scenes/<name>/<Name>Scene.vue` exists AND at least one peer file

@@ -188,7 +188,6 @@ export const CORRECTNESS_ROSTER = [
     "proof:cartoon-shadow-unclipped",
     "proof:computed-real-dom",
     "proof:decomposition",
-    "proof:demo-no-oversize",
     "proof:cartoon-is-panel-depth",
     "proof:glass-and-cartoon",
     "proof:typing-dots",

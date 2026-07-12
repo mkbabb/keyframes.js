@@ -438,8 +438,8 @@ jobs:
             # gates job (it stays well under its ceiling — ~1.6s total added). They
             # REMAIN proof:hygiene members (the coverage roster is unchanged — only the
             # CI STEP placement moved). proof:ci-coverage's static-gate-placement clause
-            # (S4) enforces this. (The 3 pre-existing-RED source gates —
-            # proof:decomposition / proof:demo-no-oversize / proof:brittleness — are NOT
+            # (S4) enforces this. (The 2 pre-existing-RED source gates —
+            # proof:decomposition / proof:brittleness — are NOT
             # migrated: they carry committed source-shape reds OUTSIDE Q.WA3's zero-source
             # charter, so they stay on demo-smoke's continue-on-error report-all surface
             # until a source-fix wave greens them; static-gate-placement records that

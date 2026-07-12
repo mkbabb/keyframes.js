@@ -139,7 +139,6 @@ export const APPEARANCE_TOUCHING = [
     "proof:font-census",
     "proof:demo-elevate",
     "proof:demo-usability",
-    "proof:demo-no-oversize",
     "proof:no-single-option-select",
     // the appearance TRIPWIRE + self-baseline drift check (INSTRUMENT — authority
     // STRIPPED at I.W7 S5; retired/demoted by T.M3 owner-golden)
@@ -291,7 +290,6 @@ export const GATE_AUTHORITY = {
     "proof:font-census": "INSTRUMENT",
     "proof:demo-elevate": "INSTRUMENT",
     "proof:demo-usability": "INSTRUMENT",
-    "proof:demo-no-oversize": "INSTRUMENT",
     "proof:no-single-option-select": "INSTRUMENT",
 };
 

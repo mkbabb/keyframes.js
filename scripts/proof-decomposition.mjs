@@ -29,7 +29,7 @@
  *
  *      H.W8 RECONCILIATION (drift-red a): the DEMO file-size half of this clause
  *      is RETIRED here — it duplicated, and CONTRADICTED, the H.W12-authored
- *      `proof:demo-no-oversize`, which is the SINGLE demo file-size authority
+ *      `proof:style-file-ceiling`, which owns the surviving demo style-size limits
  *      (≤500L, the H.W12-MEASURED reality). The D-era 350L `.vue` ceiling this
  *      clause once swept across the demo was a stale lower number: the H tranche
  *      legitimately grew the controls SFCs via real enrichment —
@@ -45,8 +45,8 @@
  *      shape the §Mandate forbids). Two demo gates asserting two different
  *      ceilings (350 vs 500) on the SAME files is the DRY contradiction; the
  *      reconciliation collapses demo file-size onto the H.W12 measured 500L in
- *      proof:demo-no-oversize, and this gate KEEPS only the library ceiling
- *      (the unique G.W5 value proof:demo-no-oversize does NOT cover — its sweep
+ *      proof:style-file-ceiling, and this gate KEEPS only the library ceiling
+ *      (the style-focused proof:style-file-ceiling does NOT cover — its sweep
  *      root is `demo/`, never `src/`). The demo STRUCTURAL concerns below
  *      (clauses 2–10) still sweep the demo and BITE — only the raw line-count
  *      ceiling moved authority.
@@ -92,12 +92,12 @@ const CONTROLS_ROOTS = [TRANSPORT, KEYFRAMES_EDITOR, KEYFRAME_TIMELINE];
 // H.W8 RECONCILIATION (drift-red a) — the DEMO ceiling sweep is RETIRED. The
 // D.W1/E.W1 demo line-count ceiling (350L `.vue` across `animation-controls/**`
 // + `demo/app/**` + `orbital-drag/**` + the named EasingCurveCanvas.vue) was a
-// duplicate, contradictory authority: H.W12's proof:demo-no-oversize is the
+// duplicate, contradictory authority: proof:style-file-ceiling is the
 // SINGLE demo file-size gate (≤500L, the H.W12-MEASURED reality), and the H
 // tranche legitimately grew the controls SFCs past the stale 350 (see the
 // header docstring clause 1 for the 5 files + their growth drivers). Two demo
 // gates at two ceilings (350 vs 500) on the SAME files is the DRY contradiction;
-// demo file-size now lives ONLY in proof:demo-no-oversize. The demo STRUCTURAL
+// surviving demo style-size limits now live in proof:style-file-ceiling. The demo STRUCTURAL
 // clauses below (2–10) still sweep the demo — only the raw line ceiling moved.
 
 // G.W5 — the LIBRARY surface (`src/animation/**`). The chronic the F.md ceiling
@@ -117,7 +117,7 @@ const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 const read = (p) => fs.readFileSync(p, "utf8");
 
 // (H.W8: the D.W1 demo CEILING / CEILING_OVERRIDE constants were removed with
-// the demo ceiling sweep — demo file-size is now solely proof:demo-no-oversize.)
+// the demo style ceiling sweep — style size is owned by proof:style-file-ceiling.)
 
 // R.W0 KEYSTONE (the gate-truth reset). The `LIBRARY_CEILING_OVERRIDE` allowlist
 // was DELETED: every per-file cap had been set +1..+71 above the file it measured
@@ -215,7 +215,7 @@ function main() {
     // Clause 1 (ceilings) sweeps the LIBRARY surface ONLY (`src/animation/**`,
     // G.W5), swept at LIBRARY_CEILING / LIBRARY_CEILING_OVERRIDE. H.W8 RETIRED
     // the demo half of this clause (the controls + app + orbital + named
-    // EasingCurveCanvas sweep): demo file-size is now solely proof:demo-no-oversize
+    // EasingCurveCanvas sweep): demo style size is owned by proof:style-file-ceiling
     // (H.W12, ≤500L MEASURED) — two demo gates at 350 vs 500 was the DRY
     // contradiction. The demo STRUCTURAL clauses (2–10) still sweep `sources`.
     const librarySources = collectSources(LIBRARY);
@@ -225,7 +225,7 @@ function main() {
     console.log(
         `  source files scanned: ${ceilingSources.length} library file(s) for ` +
             `the ceiling (src/animation/**); the demo structural clauses sweep ` +
-            `the animation-transport/instrument/keyframes/keyframe-timeline peers + demo/** (demo file-size → proof:demo-no-oversize)`,
+            `the animation-transport/instrument/keyframes/keyframe-timeline peers + demo/** (demo style-size → proof:style-file-ceiling)`,
     );
 
     // ── 1. LIBRARY CEILING ─────────────────────────────────────────────
@@ -869,7 +869,7 @@ function main() {
     console.log(
         "\nproof:decomposition — PASS: every library module is under its ceiling, the\n" +
             "parse adapter has ONE definition, the pure utils are re-homed, and no raw\n" +
-            "async blob survives. D.W1 holds (demo file-size → proof:demo-no-oversize).",
+            "async blob survives. D.W1 holds (demo style-size → proof:style-file-ceiling).",
     );
 }
 

@@ -887,8 +887,8 @@ const jobBounds = (() => {
 // class). We classify each gate by reading its script: a gate is BROWSER-bound iff its
 // script (transitively, via the demo-driver lib) opens a browser — detected by the
 // KF_REQUIRE_BROWSER env on its CI step OR a browser-harness import in its script.
-// RECORDED CARVE-OUT: the three pre-existing-RED source gates (proof:decomposition,
-// proof:demo-no-oversize, proof:brittleness) carry COMMITTED source-shape reds that
+// RECORDED CARVE-OUT: the two pre-existing-RED source gates (proof:decomposition,
+// proof:brittleness) carry COMMITTED source-shape reds that
 // Q.WA3's zero-source charter cannot fix; moving them to the fail-fast gates job would
 // block CI on an out-of-scope defect, so they STAY on demo-smoke's continue-on-error
 // report-all surface until a source-fix wave greens them. The carve-out is NAMED here
@@ -900,7 +900,6 @@ const jobBounds = (() => {
         // device-dependence; an out-of-Q.WA3-scope source red. Delete each entry when
         // its gate greens (then it migrates to the fast gates job).
         "proof:decomposition",
-        "proof:demo-no-oversize",
         "proof:brittleness",
         // Build-dependent demo gates: they read the gh-pages BUILD artifact (dist/
         // gh-pages CSS), so they MUST run after the demo build in demo-smoke — not a
