@@ -74,6 +74,16 @@ green master and the ratified corpus merged at `0b423142`.
   The ≤4-minute merge path is configured and measured structurally; final
   elapsed CI and owner-golden closure remain U.Z evidence.
 
+- **2026-07-12** — **U.D4 FEASIBILITY AUDIT.** `drag2D` still exposes two
+  independent `Draggable` instances whose pointer-capture, velocity-window,
+  bounds/rubber-band, snap, and per-axis spring semantics are part of the live
+  handle contract. `SpringVectorLanes` currently lacks a pointer-aware reset/
+  release API, so replacing the pair with one vector spring is not a safe local
+  refactor without first designing that seam. A two-lane scalar-parity
+  characterization now proves the existing vector kernel matches independent
+  x/y springs for 90 frames; the actual D4 re-seat remains routed to a bounded
+  follow-up rather than silently changing drag behavior.
+
 - **2026-07-12** — **U.A1 COVERAGE-CONTRACT INVERSION.** The transitional
   coverage contract now derives authority from correctness/hygiene tier
   membership rather than requiring every package `proof:*` key to be repeated as
