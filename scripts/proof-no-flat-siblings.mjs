@@ -163,9 +163,17 @@ let known = [];
 try {
     known = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
 } catch (e) {
-    failures.push(
-        `[known-violations] could not read ${path.basename(baselinePath)}: ${e.message}`,
-    );
+    if (e.code === "ENOENT") {
+        // E8 dissolved the suppression ledger after fixing the cycle class. An
+        // absent file is the strongest possible zero-entry witness; do not
+        // resurrect a deleted suppression artifact merely to satisfy this
+        // historical count clause.
+        known = [];
+    } else {
+        failures.push(
+            `[known-violations] could not read ${path.basename(baselinePath)}: ${e.message}`,
+        );
+    }
 }
 const count = Array.isArray(known) ? known.length : Number.NaN;
 if (!(count < PRE_RW1_KNOWN_VIOLATIONS)) {
