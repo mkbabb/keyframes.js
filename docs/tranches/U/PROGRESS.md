@@ -121,6 +121,12 @@ green master and the ratified corpus merged at `0b423142`.
   now passes with no new or stale findings (3 intentionally routed rows remain
   dispositioned); check and the 141-test demo suite remain green.
 
+- **2026-07-12** — **U.E4 RESET-REGISTRY DISCHARGE.** The app-level
+  `registerStoreReset` hook registry had no live external store after the compose
+  store was pruned. It was removed rather than carried as a speculative contract;
+  `resetAllStores` retains the two live option-store resets. The dead-export proof
+  now leaves only the three glass-ui gap-ledger types.
+
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
   is deleted from the package/hygiene chain; `run-all` remains the executable
   report-all mechanism. The `gestureSelectSuppression` deferred colocation row
