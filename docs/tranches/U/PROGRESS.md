@@ -133,6 +133,11 @@ green master and the ratified corpus merged at `0b423142`.
   the redesigned workflow, while the surviving close apparatus stays at
   `npm test` + `proof:publish` + owner-golden/recap witnesses.
 
+- **2026-07-12** — **U.B1 ACTIVE-DOC ROOT RECONCILIATION.** Dogfood and
+  frontend-design documentation no longer names the dissolved `demo/@` scaffold;
+  all active references now resolve to canonical demo homes. The PASS-5 §①.6
+  `demo/@` sweep is clean outside frozen tranche provenance.
+
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
   is deleted from the package/hygiene chain; `run-all` remains the executable
   report-all mechanism. The `gestureSelectSuppression` deferred colocation row
