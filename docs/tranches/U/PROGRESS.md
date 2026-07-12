@@ -10,7 +10,7 @@
 |---|---|---|
 | U.A | THE APPARATUS DISSOLUTION | CHARTERED |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
-| U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C4/C5/C6/C7/C8/C9/C12 landed on `tranche-u-impl`; C3/C10/C11/C13/C15/C16 remain in the ratified PASS-5 order |
+| U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C4/C5/C6/C7/C8/C9/C10/C12 landed on `tranche-u-impl`; C3/C11/C13/C15/C16 remain in the ratified PASS-5 order |
 | U.D | THE PERFORMANCE FRONTIER | CHARTERED |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
 | U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
@@ -24,6 +24,14 @@
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.C10 DEAD-CALLBACK CURE COMPLETE.** Commit `ecec148c`
+  removes the unreachable `OnParseError` callback sink from the compile adapter
+  and makes `validate.parseable` depend only on the real `EMPTY_PARSE` signal.
+  Measurement found that `DiagnosticCode.PARSE_ERROR` remains live in the
+  independent CSSOM-ingest path, so the enum is retained and full excision is
+  routed to the U.F value.js diagnostics covenant. `npm run check`, the adapter /
+  validator / ingest suites (29 tests), and `proof:boundary` passed.
 
 - **2026-07-12** — **U.C12 PRESET CATALOG COMPLETE.** Commit `60a3bf55`
   replaces the classic/spring split hand-lockstep lists with one typed 38-row
