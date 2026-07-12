@@ -16,12 +16,12 @@ import {
     getCurvePath,
     generateCurveSVGPath,
     generateStepSVGPath,
-} from "../../controls/timingCurveUtils";
+} from "@utils/reference-data/timingCurveUtils";
 import {
     NAMED_EASING_BEZIER,
     isDetailTimingFunction,
     timingFunctionKind,
-} from "../../animationDescriptions";
+} from "@utils/reference-data/animationDescriptions";
 
 import { computed, ref, watch } from "vue";
 

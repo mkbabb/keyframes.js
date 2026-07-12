@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { computed, h, provide, ref } from "vue";
 
-import PlaybackRibbon from "@components/instrument/transport/controls/PlaybackRibbon.vue";
+import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
 import EasingTarget from "./EasingTarget.vue";
 import EasingSidebar from "./EasingSidebar.vue";

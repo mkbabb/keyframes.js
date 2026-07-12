@@ -47,8 +47,8 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { SmoothProgress } from "@mkbabb/keyframes.js";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
-import { useRafLoop } from "../composables/useRafLoop";
-import { useDragCapture } from "../composables/useDragCapture";
+import { useRafLoop } from "@components/instrument/transport/composables/useRafLoop";
+import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { useTouchGate } from "@mkbabb/glass-ui";
 
 const props = defineProps<{

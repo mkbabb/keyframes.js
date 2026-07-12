@@ -3,6 +3,9 @@
    so these are the AUTHORITATIVE demo copy (proof:idioms asserts each referenced idiom
    resolves from THIS file), not an ungated rent. Geometry → layout.css. */
 
+@import "./playback-idiom.css";
+@import "./tab-idiom.css";
+
 /* Signal tokens: the playful spectrum + gold accent.
    OUTSIDE @layer so the demo's copy overrides glass-ui's incidental same-named
    tokens (authoritative for the demo). */

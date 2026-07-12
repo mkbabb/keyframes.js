@@ -211,7 +211,6 @@
 // host's plain gated panel divs (which carry `role=tabpanel` + `data-state`), and
 // the `.tab-trigger-*` classes survive for the scene tab triggers that still
 // reference them (a cross-cluster follow-on migrates those).
-import "../controls/tab-trigger.css";
 
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";

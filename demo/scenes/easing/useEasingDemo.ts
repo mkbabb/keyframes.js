@@ -16,8 +16,8 @@ import type { TimingFunction } from "@mkbabb/keyframes.js";
 import {
     generateCurveSVGPath,
     generateStepSVGPath,
-} from "@components/instrument/transport/controls/timingCurveUtils";
-import { NAMED_EASING_BEZIER } from "@components/instrument/transport/animationDescriptions";
+} from "@utils/reference-data/timingCurveUtils";
+import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
 import { useRafScene } from "@composables/scene-runtime/useRafScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
@@ -25,7 +25,7 @@ import { PROGRESS_READOUT_HZ } from "@utils/rafConstants";
 import { useSceneMachine } from "@state";
 import { kfEngine } from "@utils/kfEngine";
 import { EASING_SCENE_ID } from "./easingKeys";
-import { getFamilyForCurve, getFamilyCurves } from "./easingGroups";
+import { getFamilyForCurve, getFamilyCurves } from "@utils/reference-data/easingGroups";
 
 // ── Static data ────────────────────────────────────────────────────
 

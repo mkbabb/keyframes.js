@@ -120,8 +120,8 @@ import { cubicBezierToString, stepEnd, stepStart, steppedEase } from "@mkbabb/va
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 import CopyButton from "@components/CopyButton.vue";
-import { getCurvePath } from "@components/instrument/transport/controls/timingCurveUtils";
-import { EASING_GROUPS } from "./easingGroups";
+import { getCurvePath } from "@utils/reference-data/timingCurveUtils";
+import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
 const demo = inject(EASING_DEMO_KEY)!;

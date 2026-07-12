@@ -49,7 +49,7 @@ import type { TimingFunctionNames } from "@mkbabb/keyframes.js";
 import type { StoredAnimationOptions } from "@state";
 
 import { CSSCubicBezier, bezierPresets } from "@mkbabb/value.js";
-import { timingFunctionKind } from "../animationDescriptions";
+import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
 
 import { Button } from "@mkbabb/glass-ui";
 import {

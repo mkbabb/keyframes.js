@@ -76,7 +76,7 @@ import {
 } from "@mkbabb/glass-ui/easing";
 import { bezierPresets } from "@mkbabb/value.js";
 
-import { NAMED_EASING_BEZIER } from "@components/instrument/transport/animationDescriptions";
+import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
 import type { EasingDemoContext } from "./easingKeys";
 
 const props = defineProps<{ demo: EasingDemoContext }>();
