@@ -80,7 +80,6 @@ import type { CSSTimelineOptions } from "../../scroll";
 import type { Vars } from "../../constants";
 import { probeChildRefusal } from "./refusal-probes";
 import type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
-export type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
 
 // ── The ineligibility report (CC-3) — the four named refusals ────────────────
 
