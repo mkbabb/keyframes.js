@@ -157,8 +157,8 @@ jobs:
               run: npm run proof:retirement-ledger
             - name: proof:board-live (T.M9 — board↔tree + session-log freshness)
               run: npm run proof:board-live
-            - name: proof:prompt-recap-t (T.M10 — the born-OWNER recap gate teeth)
-              run: npm run proof:prompt-recap-t
+            - name: proof:prompt-recap-u (U.R2 — the tree-cleared recap witness)
+              run: npm run proof:prompt-recap-u
             # S.C1 — the GENERALIZED breaking-set MIGRATION-doc oracle (C-18): git-
             # reconstructs the previous published tag's docs/published-surface.md, diffs it
             # against HEAD, and REDs on any removed public-surface row lacking a matching
