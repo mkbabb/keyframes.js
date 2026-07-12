@@ -12,7 +12,7 @@
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; B9 runtime homes and B14 first fold target now landed; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D4's shared vector facet is carved and the ceiling is green, while the pointer-aware drag fusion remains routed; D5 defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live |
-| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
+| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E4 dead-export sweep, E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
 | U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
@@ -114,6 +114,12 @@ green master and the ratified corpus merged at `0b423142`.
   library-file ceilings. The larger drag2D pointer/release fusion remains a
   separate routed seam because the current vector kernel has no pointer-aware
   bounds/snap/reseat contract.
+
+- **2026-07-12** — **U.E4 DEAD-EXPORT BACKLOG DISCHARGE.** The transport
+  colocation sweep removed export visibility from 16 in-file-only interfaces and
+  reference tables, and deleted their stale deferred rows. `proof:no-dead-export`
+  now passes with no new or stale findings (10 intentionally routed rows remain
+  dispositioned); check and the 141-test demo suite remain green.
 
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
   is deleted from the package/hygiene chain; `run-all` remains the executable
