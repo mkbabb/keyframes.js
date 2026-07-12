@@ -11,7 +11,7 @@
 | U.A | THE APPARATUS DISSOLUTION | CHARTERED |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C12/C14/C15(partial) landed on `tranche-u-impl`; C11/C13/C15(operator-axis remainder)/C16 remain in the ratified PASS-5 order |
-| U.D | THE PERFORMANCE FRONTIER | CHARTERED |
+| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D3 WAAPI shadow-tick fast path landed; D2 microtask-hop harness and remaining frontier rows pending |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
 | U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
 | U.G | THE DESIGN CODEX | CHARTERED |
@@ -24,6 +24,13 @@
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.D3 WAAPI SHADOW-TICK CURE COMPLETE.** Commit `d5f89b43`
+  keeps steady `playWAAPI` reconciliation synchronous and defers only a
+  genuinely thenable first tick, removing the forced per-frame Promise/
+  microtask hop. `npm run check` and the sync-step, event-ordering, and WAAPI
+  lifecycle suites (20 tests) passed. D2's dedicated microtask-hop harness and
+  the remaining performance frontier stay routed forward.
 
 - **2026-07-12** — **U.C15 WEIGHT-AXIS SLICE COMPLETE.** Commit `67fd0f8e`
   centralizes static layer-weight normalization in a single resolver, clamps
