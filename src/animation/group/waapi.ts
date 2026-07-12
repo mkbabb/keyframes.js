@@ -13,6 +13,7 @@ import { toWAAPIKeyframes } from "../waapi/emission";
 import { toWAAPIOptions } from "../waapi/waapi-options";
 import type { AnimationGroup } from "./group";
 import type { AnimationGroupEntry } from "./types";
+import { isWeightedBlend, resolveBlendOperator } from "./weight";
 
 export type GroupWAAPIEligibility =
     | { eligible: true; target: HTMLElement; entries: AnimationGroupEntry<any>[] }
@@ -37,7 +38,7 @@ export function isGroupWAAPIEligible<V extends Vars>(
     for (const entry of entries) {
         if (!entry.layer.enabled) return { eligible: false, reason: "disabled layer stays on rAF" };
         if (entry.layer.properties) return { eligible: false, reason: "property-masked layer stays on rAF" };
-        if (entry.layer.blendMode === "weighted" || entry.layer.weightSpring) {
+        if (isWeightedBlend(entry.layer) || entry.layer.weightSpring) {
             return { eligible: false, reason: "weighted layer has no native composite equivalent" };
         }
         if (entry.animation.targets[0] !== target) {
@@ -59,7 +60,7 @@ export function lowerGroupWAAPI<V extends Vars>(
     const verdict = isGroupWAAPIEligible(group);
     if (!verdict.eligible) return null;
     return verdict.entries.map((entry) => {
-        const composite = entry.layer.blendMode === "add" ? "add" : "replace";
+        const composite = resolveBlendOperator(entry.layer);
         return verdict.target.animate(toWAAPIKeyframes(entry.animation), {
             ...toWAAPIOptions(entry.animation),
             composite,

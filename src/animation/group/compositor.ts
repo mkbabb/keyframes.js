@@ -20,11 +20,20 @@ import { lerp, type ValueUnit } from "@mkbabb/value.js";
 import { NOOP_TRANSFORM } from "../constants";
 import type { AnimationLayerConfig, Vars } from "../constants";
 import { computeGroupedKeys } from "./entries";
-import { buildSoAPlans, groupSoABlendLayer, isNumericUnit } from "./soa";
+import {
+    buildSoAPlans,
+    groupSoABlendLayer,
+    isNumericUnit,
+    isCompatibleNumericUnit,
+} from "./soa";
 import { buildPlainProjection, refreshPlainProjection } from "../compile/plain-vars";
 import type { AnimationGroup } from "./group";
 import type { CompositeState } from "./composite-state";
-import { resolveBlendWeight } from "./weight";
+import {
+    isWeightedBlend,
+    resolveBlendOperator,
+    resolveBlendWeight,
+} from "./weight";
 
 /**
  * Composite all animation values into a single grouped transform (per-frame for
@@ -96,7 +105,9 @@ export function compositeFrame<V extends Vars>(
         // blend arm walks `values` with `for..in` (allocation-free).
         const whitelist = layer.properties;
 
-        if (layer.blendMode === "replace") {
+        const op = resolveBlendOperator(layer);
+        const weighted = isWeightedBlend(layer);
+        if (op === "replace" && !weighted) {
             // The DEFAULT arm — a bare reference-assign (z-order last-writer-wins).
             // Already dispatch-free; UNTOUCHED by the SoA transposition.
             for (const key in values) {
@@ -108,7 +119,9 @@ export function compositeFrame<V extends Vars>(
             continue;
         }
 
-        // `add` / `weighted` — the non-default boxed-AoS arms the SoA fold targets.
+        // `add` / `accumulate` / weighted alias — the non-default boxed-AoS arms
+        // the SoA fold targets. `accumulate` is additive at group scope; repeat
+        // stacking remains owned by the per-animation engine operator.
         // When the plan is built, fold the pure-numeric pairs through
         // `_compositeBuf` (`groupSoABlendLayer`, called DIRECTLY), then run the
         // boxed path ONLY over the residual (non-numeric / mixed / first-touch)
@@ -216,7 +229,8 @@ export function boxedBlendArm(
     only?: ReadonlySet<string>,
     state?: CompositeState,
 ): void {
-    if (layer.blendMode === "add") {
+    const op = resolveBlendOperator(layer);
+    if (op === "add" || op === "accumulate") {
         // Accumulate each numeric leaf element in place (the leaf is a
         // `ValueUnit[]` — scalar = length 1, multi-component = N). Numeric add is
         // UN-CLAMPED (CSS `animation-composition: add` clamps at use, not
@@ -229,8 +243,27 @@ export function boxedBlendArm(
             const existing = groupedValues[key];
             if (Array.isArray(existing) && Array.isArray(incoming)) {
                 const n = Math.min(existing.length, incoming.length);
+                let unitMismatch = false;
                 for (let i = 0; i < n; i++) {
-                    if (isNumericUnit(existing[i]) && isNumericUnit(incoming[i])) {
+                    if (
+                        isNumericUnit(existing[i]) &&
+                        isNumericUnit(incoming[i]) &&
+                        existing[i].unit !== incoming[i].unit
+                    ) {
+                        unitMismatch = true;
+                        break;
+                    }
+                }
+                if (unitMismatch) {
+                    // A numeric unit pair with different CSS units has no
+                    // faithful sum (10px + 50% is not 60px). Refuse the
+                    // composite explicitly by replacing the whole leaf.
+                    if (state) state.copy(key, incoming);
+                    else groupedValues[key] = incoming;
+                    continue;
+                }
+                for (let i = 0; i < n; i++) {
+                    if (isCompatibleNumericUnit(existing[i], incoming[i])) {
                         existing[i].value += incoming[i].value;
                     } else {
                         existing[i] = incoming[i];
@@ -260,8 +293,24 @@ export function boxedBlendArm(
         const existing = groupedValues[key];
         if (Array.isArray(existing) && Array.isArray(incoming)) {
             const n = Math.min(existing.length, incoming.length);
+            let unitMismatch = false;
             for (let i = 0; i < n; i++) {
-                if (isNumericUnit(existing[i]) && isNumericUnit(incoming[i])) {
+                if (
+                    isNumericUnit(existing[i]) &&
+                    isNumericUnit(incoming[i]) &&
+                    existing[i].unit !== incoming[i].unit
+                ) {
+                    unitMismatch = true;
+                    break;
+                }
+            }
+            if (unitMismatch) {
+                if (state) state.copy(key, incoming);
+                else groupedValues[key] = incoming;
+                continue;
+            }
+            for (let i = 0; i < n; i++) {
+                if (isCompatibleNumericUnit(existing[i], incoming[i])) {
                     existing[i].value = lerp(
                         existing[i].value,
                         incoming[i].value,
@@ -272,8 +321,18 @@ export function boxedBlendArm(
                 }
             }
         } else {
-            if (state) state.copy(key, incoming);
-            else groupedValues[key] = incoming;
+            if (state) {
+                const owned = state.copy(key, incoming);
+                // A weighted layer may be the bottom/lone contributor. Its
+                // weight still applies against the numeric additive identity
+                // (zero); the historical reference assignment silently dropped
+                // that weight. Non-numeric leaves intentionally replace-fallback.
+                if (Array.isArray(owned) && owned.every(isNumericUnit)) {
+                    for (const unit of owned) unit.value = lerp(0, unit.value, w);
+                }
+            } else {
+                groupedValues[key] = incoming;
+            }
         }
     }
 }

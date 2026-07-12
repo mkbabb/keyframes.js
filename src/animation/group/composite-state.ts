@@ -47,7 +47,17 @@ export class CompositeState {
             const source = incoming[index];
             const target = owned[index];
             if (source && target && "value" in source && "value" in target) {
-                target.value = source.value;
+                // Unit identity is part of a leaf's meaning. A mismatched-unit
+                // refusal may replace a px carrier with a % incoming value;
+                // copying only `.value` would silently retain the old unit.
+                if ("unit" in source && "unit" in target && source.unit !== target.unit) {
+                    owned[index] =
+                        source && typeof source.clone === "function"
+                            ? (source as CloneableUnit).clone()
+                            : source;
+                } else {
+                    target.value = source.value;
+                }
             } else {
                 owned[index] = source;
             }

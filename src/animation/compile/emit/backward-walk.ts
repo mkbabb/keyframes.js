@@ -20,6 +20,7 @@ import { AnimationGroup } from "../../group";
 import { getAnimationId } from "../../internal/animation-id";
 import { Sequence } from "../../orchestration/sequence";
 import type { CompositeOperator, Vars } from "../../constants";
+import { isWeightedBlend, resolveBlendOperator } from "../../group/weight";
 
 /** A walked child — its animation + the layer/sequence metadata the compile reads. */
 export interface CompileChild<V extends Vars> {
@@ -72,13 +73,17 @@ export function walkGroup<V extends Vars>(
     const children: CompileChild<V>[] = [];
     for (const key of Object.keys(group.animations)) {
         const entry = group.animations[key]!;
-        const blend = entry.layer.blendMode;
+        const blend = resolveBlendOperator(entry.layer);
         const springWeighted =
-            blend === "weighted" && entry.layer.weightSpring != null;
+            isWeightedBlend(entry.layer) && entry.layer.weightSpring != null;
         const staticWeighted =
-            blend === "weighted" && entry.layer.weightSpring == null;
+            isWeightedBlend(entry.layer) && entry.layer.weightSpring == null;
         const composition: CompositeOperator =
-            blend === "add" ? "add" : staticWeighted ? "accumulate" : "replace";
+            blend === "add" || blend === "accumulate"
+                ? blend
+                : staticWeighted
+                  ? "accumulate"
+                  : "replace";
         children.push({
             animation: entry.animation,
             name: cssIdent(getAnimationId(entry.animation)),

@@ -49,6 +49,7 @@ import { ValueUnit, lerp } from "@mkbabb/value.js";
 import type { AnimationLayerConfig } from "../constants";
 import type { AnimationGroupEntry } from "./types";
 import { resolveBlendWeight } from "./weight";
+import { isWeightedBlend, resolveBlendOperator } from "./weight";
 
 /**
  * Typed blend-carrier guard — the group is heavy-side (it statically composes
@@ -58,6 +59,18 @@ import { resolveBlendWeight } from "./weight";
  */
 export const isNumericUnit = (value: unknown): value is ValueUnit<number> =>
     value instanceof ValueUnit && typeof value.value === "number";
+
+/** Numeric leaves may only compose when their CSS units are identical. */
+export const isCompatibleNumericUnit = (
+    left: unknown,
+    right: unknown,
+): left is ValueUnit<number> =>
+    isNumericUnit(left) &&
+    isNumericUnit(right) &&
+    left.unit === right.unit;
+
+export const isMismatchedNumericUnit = (left: unknown, right: unknown): boolean =>
+    isNumericUnit(left) && isNumericUnit(right) && left.unit !== right.unit;
 
 /**
  * P.W2 — the precomputed SoA fold layout for ONE `add`/`weighted` blend layer.
@@ -195,9 +208,10 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
         const { layer, values } = entry;
         if (!layer.enabled) continue;
         const whitelist = layer.properties;
-        const weighted = layer.blendMode === "weighted";
+        const op = resolveBlendOperator(layer);
+        const weighted = isWeightedBlend(layer);
 
-        if (layer.blendMode === "replace") {
+        if (op === "replace" && !weighted) {
             for (const key in values) {
                 if (whitelist && !whitelist.has(key)) continue;
                 const incoming = values[key];
@@ -229,10 +243,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
                 // discipline: pure-numeric → SoA, anything else → boxed.
                 let allNumeric = true;
                 for (let i = 0; i < n; i++) {
-                    if (
-                        !isNumericUnit(existing[i]) ||
-                        !isNumericUnit(incoming[i])
-                    ) {
+                    if (!isCompatibleNumericUnit(existing[i], incoming[i])) {
                         allNumeric = false;
                         break;
                     }

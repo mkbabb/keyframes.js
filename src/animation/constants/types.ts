@@ -270,7 +270,12 @@ export type InputAnimationOptions = Partial<{
     composite?: CompositeOperator;
 }>;
 
-export type BlendMode = "replace" | "add" | "weighted";
+/**
+ * Public layer vocabulary. `weighted` is retained as a compatibility alias;
+ * the canonical operation axis is {@link CompositeOperator}. `accumulate` is
+ * additive and maps to the same un-clamped fold as `add` at group scope.
+ */
+export type BlendMode = CompositeOperator | "weighted";
 
 /**
  * The minimal stepper surface a spring-driven blend weight reads (K.W11
@@ -315,6 +320,8 @@ export interface AnimationLayerConfig {
      * blends by replacement, the least-surprising composite.
      */
     blendMode: BlendMode;
+    /** Canonical composition operation. Omission preserves `blendMode` callers. */
+    op?: CompositeOperator;
     /** Layer toggle. Default: true */
     enabled: boolean;
     /** Optional property whitelist — only these properties will be output from this layer */

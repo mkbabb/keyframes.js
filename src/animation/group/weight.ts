@@ -1,5 +1,20 @@
 import type { AnimationLayerConfig } from "../constants";
 
+import type { CompositeOperator } from "../constants";
+
+/** Resolve the single canonical operation axis while accepting old callers. */
+export const resolveBlendOperator = (
+    layer: AnimationLayerConfig,
+): CompositeOperator => {
+    if (layer.op !== undefined) return layer.op;
+    return layer.blendMode === "weighted" ? "replace" : layer.blendMode;
+};
+
+/** `weighted` and `{ op: "replace", weight }` are the same compatibility form. */
+export const isWeightedBlend = (layer: AnimationLayerConfig): boolean =>
+    layer.blendMode === "weighted" ||
+    (layer.op === "replace" && layer.weight !== 1);
+
 /**
  * Resolve the orthogonal layer-weight axis.
  *
