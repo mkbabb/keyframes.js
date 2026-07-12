@@ -29,7 +29,7 @@ export function captureSnapshot(
 /**
  * Capture only non-default properties from an element.
  */
-export function captureNonDefaultSnapshot(
+function captureNonDefaultSnapshot(
     element: HTMLElement,
     percent: number,
     properties: string[],

@@ -26,7 +26,7 @@ import { onMounted } from "vue";
  * registration. Non-button decorative icons (the WandSparkles lead) and
  * `aria-hidden`/`disabled` elements are excluded from the roving cohort.
  */
-export interface ToolbarKeyboard {
+interface ToolbarKeyboard {
     /** `keydown` handler to bind on the toolbar container. */
     onKeydown: (event: KeyboardEvent) => void;
     /** (Re)seat the single tab stop — call once the item buttons have mounted. */
