@@ -21,6 +21,69 @@ export interface SpringSolution {
     v: number;
 }
 
+export type SpringModalStep =
+    | { regime: "under"; w: number; z: number; wd: number; decay: number; cos: number; sin: number }
+    | { regime: "critical"; w: number; decay: number; t: number }
+    | { regime: "over"; r1: number; r2: number; e1: number; e2: number };
+
+/** Prepare the regime-specific transcendental terms once for one elapsed time. */
+export function prepareDampedHarmonic(
+    omega: number,
+    zeta: number,
+    omegaD: number,
+    t: number,
+): SpringModalStep {
+    if (zeta < 1) {
+        return {
+            regime: "under",
+            w: omega,
+            z: zeta,
+            wd: omegaD,
+            decay: Math.exp(-zeta * omega * t),
+            cos: Math.cos(omegaD * t),
+            sin: Math.sin(omegaD * t),
+        };
+    }
+    if (zeta === 1) {
+        return { regime: "critical", w: omega, decay: Math.exp(-omega * t), t };
+    }
+    const disc = omega * Math.sqrt(zeta * zeta - 1);
+    const r1 = -zeta * omega + disc;
+    const r2 = -zeta * omega - disc;
+    return { regime: "over", r1, r2, e1: Math.exp(r1 * t), e2: Math.exp(r2 * t) };
+}
+
+/** Apply one prepared modal step to one scalar/lane initial condition. */
+export function solvePreparedDampedHarmonic(
+    x0: number,
+    v0: number,
+    modal: SpringModalStep,
+    out: SpringSolution = { x: 0, v: 0 },
+): SpringSolution {
+    if (modal.regime === "under") {
+        const { w, z, wd, decay, cos, sin } = modal;
+        const A = x0;
+        const B = (v0 + z * w * x0) / wd;
+        out.x = decay * (A * cos + B * sin);
+        out.v = decay * ((B * wd - A * z * w) * cos - (A * wd + B * z * w) * sin);
+        return out;
+    }
+    if (modal.regime === "critical") {
+        const { w, decay, t } = modal;
+        const A = x0;
+        const B = v0 + w * x0;
+        out.x = decay * (A + B * t);
+        out.v = decay * (B - w * (A + B * t));
+        return out;
+    }
+    const { r1, r2, e1, e2 } = modal;
+    const A = (v0 - r2 * x0) / (r1 - r2);
+    const B = x0 - A;
+    out.x = A * e1 + B * e2;
+    out.v = A * r1 * e1 + B * r2 * e2;
+    return out;
+}
+
 /**
  * Closed-form step of the second-order damped harmonic oscillator with
  * `x(0) = x0`, `v(0) = v0` (both RELATIVE to the rest target). Returns
@@ -41,37 +104,9 @@ export function solveDampedHarmonic(
     omegaD: number,
     t: number,
 ): SpringSolution {
-    const w = omega;
-    const z = zeta;
-
-    if (z < 1) {
-        // Underdamped.
-        const wd = omegaD;
-        const decay = Math.exp(-z * w * t);
-        const A = x0;
-        const B = (v0 + z * w * x0) / wd;
-        const cos = Math.cos(wd * t);
-        const sin = Math.sin(wd * t);
-        const x = decay * (A * cos + B * sin);
-        const v =
-            decay * ((B * wd - A * z * w) * cos - (A * wd + B * z * w) * sin);
-        return { x, v };
-    }
-    if (z === 1) {
-        // Critically damped.
-        const decay = Math.exp(-w * t);
-        const A = x0;
-        const B = v0 + w * x0;
-        return { x: decay * (A + B * t), v: decay * (B - w * (A + B * t)) };
-    }
-    // Overdamped. Two real roots of r² + 2ζω r + ω² = 0.
-    const disc = w * Math.sqrt(z * z - 1);
-    const r1 = -z * w + disc;
-    const r2 = -z * w - disc;
-    // Solve A + B = x0, A r1 + B r2 = v0.
-    const A = (v0 - r2 * x0) / (r1 - r2);
-    const B = x0 - A;
-    const e1 = Math.exp(r1 * t);
-    const e2 = Math.exp(r2 * t);
-    return { x: A * e1 + B * e2, v: A * r1 * e1 + B * r2 * e2 };
+    return solvePreparedDampedHarmonic(
+        x0,
+        v0,
+        prepareDampedHarmonic(omega, zeta, omegaD, t),
+    );
 }

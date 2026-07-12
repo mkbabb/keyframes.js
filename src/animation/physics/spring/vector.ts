@@ -1,3 +1,5 @@
+import { prepareDampedHarmonic, solvePreparedDampedHarmonic } from "./solver";
+
 /**
  * `physics/spring/vector.ts` — the SpringProgress MULTI-CHANNEL (SoA) lane
  * subsystem (L.W7 §S2, W122 — ADOPT @ 2.97–3.78× over K scalars), carved off the
@@ -24,6 +26,7 @@
 export const EMPTY_LANES = new Float64Array(0);
 
 export class SpringVectorLanes {
+    private readonly solution = { x: 0, v: 0 };
     private vecOrigin: Float64Array | null = null;
     private vecOriginVel: Float64Array | null = null;
     private vecTarget: Float64Array | null = null;
@@ -97,57 +100,21 @@ export class SpringVectorLanes {
         }
         this.vecElapsed += dt / 1000;
         const t = this.vecElapsed;
-        const w = omega;
-        const z = zeta;
-        const wd = omegaD;
         const origin = this.vecOrigin!;
         const originVel = this.vecOriginVel!;
         const target = this.vecTarget!;
         const current = this.vecCurrent!;
         const velocity = this.vecVelocity!;
 
-        // Hoist the per-tick transcendentals — shared across all lanes.
-        const decayU = z < 1 ? Math.exp(-z * w * t) : 0;
-        const cos = z < 1 ? Math.cos(wd * t) : 0;
-        const sin = z < 1 ? Math.sin(wd * t) : 0;
-        const decayC = z === 1 ? Math.exp(-w * t) : 0;
-        let r1 = 0;
-        let r2 = 0;
-        let e1 = 0;
-        let e2 = 0;
-        if (z > 1) {
-            const disc = w * Math.sqrt(z * z - 1);
-            r1 = -z * w + disc;
-            r2 = -z * w - disc;
-            e1 = Math.exp(r1 * t);
-            e2 = Math.exp(r2 * t);
-        }
+        const modal = prepareDampedHarmonic(omega, zeta, omegaD, t);
+        const solution = this.solution;
 
         for (let i = 0; i < current.length; i++) {
             const x0 = origin[i]! - target[i]!;
             const v0 = originVel[i]!;
-            let xRel: number;
-            let vRel: number;
-            if (z < 1) {
-                const A = x0;
-                const B = (v0 + z * w * x0) / wd;
-                xRel = decayU * (A * cos + B * sin);
-                vRel =
-                    decayU *
-                    ((B * wd - A * z * w) * cos - (A * wd + B * z * w) * sin);
-            } else if (z === 1) {
-                const A = x0;
-                const B = v0 + w * x0;
-                xRel = decayC * (A + B * t);
-                vRel = decayC * (B - w * (A + B * t));
-            } else {
-                const A = (v0 - r2 * x0) / (r1 - r2);
-                const B = x0 - A;
-                xRel = A * e1 + B * e2;
-                vRel = A * r1 * e1 + B * r2 * e2;
-            }
-            current[i] = target[i]! + xRel;
-            velocity[i] = vRel;
+            solvePreparedDampedHarmonic(x0, v0, modal, solution);
+            current[i] = target[i]! + solution.x;
+            velocity[i] = solution.v;
         }
         return current;
     }
