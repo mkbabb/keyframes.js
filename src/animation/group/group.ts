@@ -87,6 +87,14 @@ export class AnimationGroup<V extends Vars> {
 
     /** THE rAF owner for the group's draw loop. */
     readonly playback = new RAFPlayback();
+    /** Native effects installed by the additive group-WAAPI fast lane.
+     * INTERNAL: lifecycle owns pause/resume/cancel; an empty array means the
+     * group is on its ordinary rAF compositor path. */
+    readonly _waAnimations: globalThis.Animation[] = [];
+    /** True while the current play is delegated to native effects. The group
+     * still runs its shadow transport loop so events and completion retain the
+     * rAF contract, but it does not overwrite native compositor output. */
+    _waapiDelegated = false;
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
     /** The ONE held play promise the `finished` front-door exposes. INTERNAL
      * (S.B5) — read/written by the transport free functions in `./lifecycle`. */
@@ -243,7 +251,13 @@ export class AnimationGroup<V extends Vars> {
      */
     render(t: number = this.lastTickTime): void {
         if (this.singleTarget) {
-            this.transformFramesGrouped(t);
+            // Native group effects own visual output while delegated; retain
+            // the exact compositor paint at the terminal tick before settle
+            // cancels those effects, so fill/commit semantics remain parity-
+            // safe. Every non-terminal frame is shadow-only.
+            if (!this._waapiDelegated || this.done) {
+                this.transformFramesGrouped(t);
+            }
         } else {
             renderMultiTarget(this.getEntries());
         }
@@ -301,7 +315,16 @@ export class AnimationGroup<V extends Vars> {
         }
 
         if (this.singleTarget) {
-            this.transformFramesGrouped(t);
+            // The shadow transport still advances every child, but delegated
+            // native effects own visual output until the terminal tick. Keep
+            // the group completion calculation here because `compositeFrame`
+            // is intentionally skipped on the delegated steady path.
+            this.done = this.getEntries().every(
+                (entry) => entry.animation.done,
+            );
+            if (!this._waapiDelegated || this.done) {
+                this.transformFramesGrouped(t);
+            }
         } else {
             this.done = renderMultiTarget(this.getEntries());
         }
