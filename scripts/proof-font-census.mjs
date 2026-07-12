@@ -41,7 +41,7 @@
  *   (d) NO MAGIC WEIGHTS (static) — zero non-100-multiple `font-weight`
  *       literals in demo source (the `650` class of defect).
  *   (e) ROLE TUPLES — the committed role manifest
- *       (demo/@/styles/font-roles.json, the T.D1 artifact whose VALUES consume
+ *       (demo/styles/font-roles.json, the T.D1 artifact whose VALUES consume
  *       the OD-6 token) binds selector-contracted roles to expected tuples;
  *       every live match must resolve its role's tuple, and mono leaves must
  *       match the manifest's data-register selector contract (armed by T.D4).
@@ -64,7 +64,7 @@ import { navToScene, withPage } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
-const ROLES_PATH = path.join(REPO, "demo/@/styles/font-roles.json");
+const ROLES_PATH = path.join(REPO, "demo/styles/font-roles.json");
 
 const failures = [];
 const ok = (l) => console.log(`  ✓ ${l}`);

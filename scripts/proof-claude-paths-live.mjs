@@ -23,7 +23,7 @@
  *       command examples, `<name>`-template placeholders, and glob patterns)
  *       resolves on disk. A `@scope/pkg` token resolves against `package.json`
  *       dependencies instead of the filesystem; a bare `@/…` token substitutes
- *       the literal `demo/@/` directory (an actual on-disk dir named `@`, not
+ *       the literal `demo/` directory (an actual on-disk dir named `@`, not
  *       a bundler alias — confirmed against vite.config.ts/tsconfig.json,
  *       neither of which declares a bare `@` alias).
  *
@@ -44,15 +44,15 @@
  *       as "zones", only that the prose does not contradict itself.
  *
  *   (e) DOC-DRIFT (demo/CLAUDE.md only, S.D4 S2) — the `@` section matches the
- *       real `demo/@/` tree, checked BOTH ways over the doc's two `@`-scoped
+ *       real `demo/` tree, checked BOTH ways over the doc's two `@`-scoped
  *       spans (the `├── @/…` tree-fence subtree + the "## Animation Controls"
  *       section): every `name.ext`-shaped mention (backtick, bold, OR bare
  *       prose — not just backtick/tree-fence like (a)/(b)) must exist
- *       somewhere under `demo/@/` (PHANTOM direction — the exact a24 F7 shape:
+ *       somewhere under `demo/` (PHANTOM direction — the exact a24 F7 shape:
  *       three deleted files, `Animated.vue`/`ResponsiveSelect.vue`/
  *       `AnimationMenuBar.vue`, survived as a bare comma-list with no
  *       backticks, invisible to (a)/(b)); every real immediate child directory
- *       of `demo/@/` or `demo/@/components/custom/` must be named somewhere
+ *       of `demo/` or `demo/components/` must be named somewhere
  *       in those spans (UNCOVERED-PEER direction — an entire new/renamed peer
  *       landing with zero doc update). A mention inside an explicit
  *       removal/negation aside ("gone"/"deleted"/"went with"/…) is exempted —
@@ -204,14 +204,14 @@ function checkTreeFences(content, anchor) {
 // `resolve.alias` + tsconfig.json `paths`, both checked) — mapped so the
 // Conventions section's `@src/`, `@components/`, … mentions resolve to their
 // TRUE target rather than a literal (nonexistent) `@src/` directory. `@/` is
-// deliberately NOT here: `demo/@/` is a literal on-disk directory named `@`
+// deliberately NOT here: `demo/` is a literal on-disk directory named `@`
 // (confirmed: neither config declares a bare `@` alias), handled separately.
 const ALIAS_MAP = {
     "@src": "src",
-    "@components": "demo/@/components",
-    "@composables": "demo/@/composables",
-    "@styles": "demo/@/styles",
-    "@utils": "demo/@/utils",
+    "@components": "demo/components",
+    "@composables": "demo/composables",
+    "@styles": "demo/styles",
+    "@utils": "demo/utils",
     "@app": "demo/app",
     "@assets": "assets",
 };
@@ -229,7 +229,7 @@ const ALIAS_MAP = {
  * those against a single per-file anchor produced false positives (a bare
  * `physics/` mentioned in root CLAUDE.md's intro paragraph is relative to
  * `src/animation/`, not repo root) AND false negatives (demo/CLAUDE.md's
- * component-suite bullets are relative to a nested `@/components/custom/…`
+ * component-suite bullets are relative to a nested `@/components/…`
  * subdirectory the surrounding heading names, not `demo/` itself) in equal
  * measure. Clause (a)'s tree-fence walk already gives comprehensive,
  * unambiguous coverage of the full directory shape; clause (b) covers the
@@ -249,8 +249,8 @@ function checkInlinePaths(content) {
                 if (!isPathLike(token)) continue;
                 findings.push({
                     name: token,
-                    rel: path.relative(REPO, path.join(REPO, "demo/@", token.slice(2))),
-                    exists: fs.existsSync(path.join(REPO, "demo/@", token.slice(2))),
+                    rel: path.relative(REPO, path.join(REPO, "demo", token.slice(2))),
+                    exists: fs.existsSync(path.join(REPO, "demo", token.slice(2))),
                 });
                 continue;
             }
@@ -427,12 +427,12 @@ function checkZoneCount(content) {
 // widens the net to every `name.ext` filename-SHAPED mention (backtick, bold,
 // or bare prose alike) within the two `@` spans of demo/CLAUDE.md — the
 // `├── @/…` tree-fence subtree and the "## Animation Controls" section — and
-// checks it BOTH ways against the real `demo/@/` tree:
+// checks it BOTH ways against the real `demo/` tree:
 //
 //   (e1) PHANTOM  — a mentioned filename that does not exist anywhere under
-//        `demo/@/` REDs (the a24 F7 class, generalized past backtick-only).
-//   (e2) UNCOVERED PEER — a real immediate child directory of `demo/@/` or of
-//        `demo/@/components/custom/` that is never named anywhere in the two
+//        `demo/` REDs (the a24 F7 class, generalized past backtick-only).
+//   (e2) UNCOVERED PEER — a real immediate child directory of `demo/` or of
+//        `demo/components/` that is never named anywhere in the two
 //        spans REDs (an entire new/renamed peer landing with zero doc update —
 //        the coarse "the @ section matches the real tree" guarantee; this is
 //        deliberately peer-grained, not leaf-file-exhaustive, so it does not
@@ -446,11 +446,11 @@ const DOC_DRIFT_EXT_RE = /\b[A-Za-z][\w-]*\.(vue|ts|css|json)\b/g;
 const NEGATION_RE =
     /\b(gone|deleted|removed|retired|excised|migrated|went with|no longer|does not exist)\b/i;
 
-/** The two `@`-scoped spans of demo/CLAUDE.md: the tree-fence `@/` subtree and
+/** The two shared-home spans of demo/CLAUDE.md: the structure tree and
  *  the "## Animation Controls" prose section. Returns `null` per span if the
  *  anchor text was not found (structure changed — re-derive this clause). */
 function extractAtScopedSpans(demoContent) {
-    const tree = demoContent.match(/├── @\/[\s\S]*?(?=\n(?:├── |└── ))/);
+    const tree = demoContent.match(/├── components\/[\s\S]*?(?=\n├── CLAUDE\.md)/);
     const prose = demoContent.match(/## Animation Controls[\s\S]*?(?=\n## |$)/);
     return { tree: tree ? tree[0] : null, prose: prose ? prose[0] : null };
 }
@@ -471,22 +471,22 @@ function extractMentionedFilenames(span) {
 }
 
 function checkDocDrift(demoContent) {
-    const AT_ROOT = path.join(REPO, "demo/@");
+    const AT_ROOT = path.join(REPO, "demo");
     if (!fs.existsSync(AT_ROOT)) {
-        return { ok: false, reason: "demo/@/ not found on disk" };
+        return { ok: false, reason: "demo/ not found on disk" };
     }
     const { tree, prose } = extractAtScopedSpans(demoContent);
     if (!tree || !prose) {
         return {
             ok: false,
             reason:
-                "the `@` doc-drift anchors (the `├── @/` tree-fence subtree " +
+                "the shared-home doc-drift anchors (the structure tree " +
                 'and/or the "## Animation Controls" section) were not found in ' +
                 "demo/CLAUDE.md — structure changed; re-derive this clause",
         };
     }
 
-    // Every real basename under demo/@/ (recursive, dist/node_modules-free by
+    // Every real basename under demo/ (recursive, dist/node_modules-free by
     // construction since @/ never contains either).
     const realBasenames = new Set();
     (function walk(dir) {
@@ -503,8 +503,8 @@ function checkDocDrift(demoContent) {
 
     const phantoms = [...mentioned].filter((n) => !realBasenames.has(n)).sort();
 
-    // (e2) — every immediate child of demo/@/ and of
-    // demo/@/components/custom/ must be NAMED (as a directory-name substring)
+    // (e2) — every immediate child of demo/ and of
+    // demo/components/ must be NAMED (as a directory-name substring)
     // somewhere in the two spans.
     const spanText = tree + "\n" + prose;
     const peerDirs = [
@@ -607,13 +607,13 @@ function runGate(fileContents, dts) {
             if (drift.phantoms.length > 0) {
                 failures.push(
                     `(e) ${drift.phantoms.length} phantom filename(s) named in demo/CLAUDE.md's ` +
-                        `\`@\` section do not exist anywhere under demo/@/:\n      ` +
+                        `\`@\` section do not exist anywhere under demo/:\n      ` +
                         drift.phantoms.map((n) => `phantom: \`${n}\``).join("\n      "),
                 );
             }
             if (drift.uncoveredPeers.length > 0) {
                 failures.push(
-                    `(e) ${drift.uncoveredPeers.length} real demo/@/ peer directory(ies) are not ` +
+                    `(e) ${drift.uncoveredPeers.length} real demo/ peer directory(ies) are not ` +
                         `named anywhere in demo/CLAUDE.md's \`@\` section (doc-drift):\n      ` +
                         drift.uncoveredPeers.map((n) => `uncovered: \`${n}/\``).join("\n      "),
                 );

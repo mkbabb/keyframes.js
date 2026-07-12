@@ -208,8 +208,8 @@ const fmt = (c) => (c ? `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a})` : "∅");
 
 // ── Read the live source the keeper tokens live in ───────────────────────────
 const SRC = {
-    "demo/@/styles/design-idioms.css": read(path.join(REPO, "demo/@/styles/design-idioms.css")),
-    "demo/@/styles/style.css": read(path.join(REPO, "demo/@/styles/style.css")),
+    "demo/styles/design-idioms.css": read(path.join(REPO, "demo/styles/design-idioms.css")),
+    "demo/styles/style.css": read(path.join(REPO, "demo/styles/style.css")),
     "demo/scenes/cube/CubeTarget.vue": read(path.join(REPO, "demo/scenes/cube/CubeTarget.vue")),
     // R.W6-decomp — the tesselateSphere() ball-color call moved out of
     // AmigaScene.vue into the colocated useAmigaThree.ts (the Three.js room
@@ -299,20 +299,20 @@ for (const token of Object.keys(keepers)) {
 // and unchanged. The cube facets live as rgbs at the CubeTarget literal site (and
 // are ALSO matched there even after the --face-N hoist — see the facet block below).
 const EXTANT_CSS_TOKENS = [
-    ["--rainbow-red", "demo/@/styles/design-idioms.css"],
-    ["--rainbow-orange", "demo/@/styles/design-idioms.css"],
-    ["--rainbow-yellow", "demo/@/styles/design-idioms.css"],
-    ["--rainbow-green", "demo/@/styles/design-idioms.css"],
-    ["--rainbow-blue", "demo/@/styles/design-idioms.css"],
-    ["--rainbow-violet", "demo/@/styles/design-idioms.css"],
-    ["--rainbow-cyan", "demo/@/styles/design-idioms.css"],
-    ["--accent-red", "demo/@/styles/style.css"],
+    ["--rainbow-red", "demo/styles/design-idioms.css"],
+    ["--rainbow-orange", "demo/styles/design-idioms.css"],
+    ["--rainbow-yellow", "demo/styles/design-idioms.css"],
+    ["--rainbow-green", "demo/styles/design-idioms.css"],
+    ["--rainbow-blue", "demo/styles/design-idioms.css"],
+    ["--rainbow-violet", "demo/styles/design-idioms.css"],
+    ["--rainbow-cyan", "demo/styles/design-idioms.css"],
+    ["--accent-red", "demo/styles/style.css"],
     // T.D7 (OD-6 APPROVED, 2026-07-05 "Good.") — the violet accent authority is
     // a KEEPER: the blessed oklch light arm is pinned so a future refinement
     // cannot silently drift the OWNER-approved hue. Resolved BEFORE
     // --color-progress (which aliases it).
-    ["--accent-kf", "demo/@/styles/style.css"],
-    ["--color-progress", "demo/@/styles/style.css"],
+    ["--accent-kf", "demo/styles/style.css"],
+    ["--color-progress", "demo/styles/style.css"],
 ];
 
 // The live keeper colors as we resolve them — feeds var() alias resolution.
@@ -412,17 +412,17 @@ for (const [token, facetClass] of Object.entries(FACET_CLASS_BY_TOKEN)) {
 // the extant/facet blocks already pinned). Once a token is DECLARED, its hue MUST
 // match the baseline (a recolor on hoist is a HARD FAIL — the hoist is one-for-one).
 const HOIST_TARGETS = [
-    ["--face-1", "demo/@/styles/style.css"],
-    ["--face-2", "demo/@/styles/style.css"],
-    ["--face-3", "demo/@/styles/style.css"],
-    ["--face-4", "demo/@/styles/style.css"],
-    ["--face-5", "demo/@/styles/style.css"],
-    ["--face-6", "demo/@/styles/style.css"],
-    ["--amiga-red", "demo/@/styles/design-idioms.css"],
-    ["--spring-lane-smooth", "demo/@/styles/design-idioms.css"],
-    ["--spring-lane-snappy", "demo/@/styles/design-idioms.css"],
-    ["--spring-lane-bouncy", "demo/@/styles/design-idioms.css"],
-    ["--spring-lane-gentle", "demo/@/styles/design-idioms.css"],
+    ["--face-1", "demo/styles/style.css"],
+    ["--face-2", "demo/styles/style.css"],
+    ["--face-3", "demo/styles/style.css"],
+    ["--face-4", "demo/styles/style.css"],
+    ["--face-5", "demo/styles/style.css"],
+    ["--face-6", "demo/styles/style.css"],
+    ["--amiga-red", "demo/styles/design-idioms.css"],
+    ["--spring-lane-smooth", "demo/styles/design-idioms.css"],
+    ["--spring-lane-snappy", "demo/styles/design-idioms.css"],
+    ["--spring-lane-bouncy", "demo/styles/design-idioms.css"],
+    ["--spring-lane-gentle", "demo/styles/design-idioms.css"],
 ];
 
 for (const [token, file] of HOIST_TARGETS) {

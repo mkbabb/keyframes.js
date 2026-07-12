@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     clampIOSNoZoomFontSize,
     isIOSLikePlatform,
-} from "../../../demo/@/utils/iosTextEntry";
+} from "../../../demo/components/instrument/utils/iosTextEntry";
 
 // R.W3 §2F replaced the deprecated `navigator.platform` heuristic with the modern
 // idiom: UA `iPad|iPhone|iPod` OR (maxTouchPoints > 1 AND the `-webkit-touch-callout`

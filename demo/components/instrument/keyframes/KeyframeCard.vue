@@ -56,7 +56,7 @@
 import { useTemplateRef } from "vue";
 import { Label } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
-import CopyButton from "@components/custom/CopyButton.vue";
+import CopyButton from "@components/CopyButton.vue";
 import { X } from "@lucide/vue";
 
 defineProps<{

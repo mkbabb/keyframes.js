@@ -28,17 +28,17 @@
             // publishable-surface check is unaffected — it still resolves the real
             // package. Mirrors @src; NOT a removal of the self-alias.
             "@mkbabb/keyframes.js": ["./src/animation/index.ts"],
-            "@styles/*": ["./demo/@/styles/*"],
+            "@styles/*": ["./demo/styles/*"],
             // S.D2 — the demo state layer hoisted out of animation-controls/stores/
             // to a first-class @/ peer (a24 F2). Needs BOTH the bare entry (the
             // barrel import `from "@state"`) AND the wildcard (subpath imports
             // `from "@state/sceneMachine"`) — the wildcard alone leaves the bare
             // barrel at TS2307 (P2-1 F7).
-            "@state": ["./demo/@/state/index.ts"],
-            "@state/*": ["./demo/@/state/*"],
-            "@components/*": ["./demo/@/components/*"],
-            "@utils/*": ["./demo/@/utils/*"],
-            "@composables/*": ["./demo/@/composables/*"],
+            "@state": ["./demo/state/index.ts"],
+            "@state/*": ["./demo/state/*"],
+            "@components/*": ["./demo/components/*"],
+            "@utils/*": ["./demo/utils/*"],
+            "@composables/*": ["./demo/composables/*"],
             "@app/*": ["./demo/app/*"],
             "@assets/*": ["./assets/*"]
         }

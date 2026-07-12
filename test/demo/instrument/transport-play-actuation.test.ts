@@ -15,7 +15,7 @@
  * pointerdown-on-this-control press-origin + isPrimary.
  */
 import { describe, expect, it, vi } from "vitest";
-import { usePlayActuation } from "@components/custom/instrument/transport/composables/usePlayActuation";
+import { usePlayActuation } from "@components/instrument/transport/composables/usePlayActuation";
 
 const pointer = (over: Partial<PointerEvent> = {}): PointerEvent =>
     ({

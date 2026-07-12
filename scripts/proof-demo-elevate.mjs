@@ -79,7 +79,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 2. a11y-uniformity clause ────────────────────────────────────────────────
 {
-    const copy = read("demo/@/components/custom/CopyButton.vue");
+    const copy = read("demo/components/CopyButton.vue");
     // CopyButton is now a real <button> (was an interactive <span>).
     if (/<button\b/.test(copy) && !/<span[^>]*@click/.test(copy)) {
         ok("a11y", "CopyButton is a <button> (no interactive <span @click>)");
@@ -87,21 +87,21 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
         fail("a11y", "CopyButton is not a <button> with no @click <span> (interactive span invisible to AT/keyboard)");
     }
     // The timeline markers carry the role=slider + keyboard template.
-    const track = read("demo/@/components/custom/instrument/timeline/components/TimelineTrack.vue");
+    const track = read("demo/components/instrument/timeline/components/TimelineTrack.vue");
     if (/role=["']slider["']/.test(track) && /aria-valuenow/.test(track)) {
         ok("a11y", "timeline markers carry role=slider + aria-valuenow + keyboard handling");
     } else {
         fail("a11y", "timeline markers missing the role=slider + aria-valuenow a11y template");
     }
     // The redundant visualizer twin is aria-hidden (or carries a role).
-    const vis = read("demo/@/components/custom/instrument/transport/controls/AnimationVisualizer.vue");
+    const vis = read("demo/components/instrument/transport/controls/AnimationVisualizer.vue");
     if (/aria-hidden=["']true["']/.test(vis) || /role=["']slider["']/.test(vis)) {
         ok("a11y", "AnimationVisualizer is aria-hidden (redundant twin) or carries a role");
     } else {
         fail("a11y", "AnimationVisualizer is neither aria-hidden nor role-bearing");
     }
     // The demo-owned :focus-visible keystone is single-sourced.
-    if (/:focus-visible/.test(read("demo/@/styles/design-idioms.css"))) {
+    if (/:focus-visible/.test(read("demo/styles/design-idioms.css"))) {
         ok("a11y", "the demo-owned :focus-visible contract is in design-idioms.css");
     } else {
         fail("a11y", "no demo-owned :focus-visible keystone in design-idioms.css");
@@ -110,8 +110,8 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 3. idiom-r3 clause ───────────────────────────────────────────────────────
 {
-    const style = stripComments(read("demo/@/styles/style.css"));
-    const idioms = stripComments(read("demo/@/styles/design-idioms.css"));
+    const style = stripComments(read("demo/styles/style.css"));
+    const idioms = stripComments(read("demo/styles/design-idioms.css"));
     // --spring-snappy carries NO demo-local linear() shadow. The clause's intent
     // (no demo-local shadow on the canonical token) is satisfied in TWO shapes:
     // (a) a demo-local def that resolves to a canonical spring var (the original
@@ -150,13 +150,13 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 4. first-paint clause ────────────────────────────────────────────────────
 {
-    const at = read("demo/@/components/custom/instrument/shell/AnimatedText.vue");
+    const at = read("demo/components/instrument/shell/AnimatedText.vue");
     if (/prefers-reduced-motion/.test(at) && !/\b200%\s*\{/.test(at)) {
         ok("first-paint", "AnimatedText carries a PRM guard + no 200% keyframe stop");
     } else {
         fail("first-paint", "AnimatedText missing the PRM guard or still carries the invalid 200% stop");
     }
-    const style = read("demo/@/styles/style.css");
+    const style = read("demo/styles/style.css");
     if (/size-adjust\s*:/.test(style) && /ascent-override\s*:/.test(style) && /descent-override\s*:/.test(style)) {
         ok("first-paint", "the metric-matched @font-face carries size-adjust + ascent-override + descent-override");
     } else {
@@ -166,7 +166,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
 
 // ── 5. CWV-levers + artifact clause ──────────────────────────────────────────
 {
-    const ctrls = read("demo/@/components/custom/instrument/transport/controls/AnimationControls.vue");
+    const ctrls = read("demo/components/instrument/transport/controls/AnimationControls.vue");
     // Monaco-heavy panes forceMount'd + content-visibility behind @supports.
     if (/force-?mount|forceMount/.test(ctrls) && /content-visibility/.test(ctrls)) {
         ok("cwv", "the Monaco panes are forceMount'd + content-visibility-gated when inactive");
@@ -179,7 +179,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // proof:brittleness, so a hit here is the vueuse form).
     const visFiles = [
         "demo/app/runtime/useSceneVisibilityPause.ts",
-        "demo/@/components/custom/instrument/transport/composables/useAnimationSync.ts",
+        "demo/components/instrument/transport/composables/useAnimationSync.ts",
         "demo/scenes/amiga/AmigaScene.vue",
     ];
     const visSrc = ctrls + visFiles.map(read).join("\n");
@@ -210,14 +210,14 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // substrate). The SHIP is a scoped style block in EditorStartScreen.vue.
     // Comments stripped so a prose mention ("no text-wrap: pretty support") does
     // NOT satisfy the presence check — only a real declaration counts.
-    const startScreen = stripComments(read("demo/@/components/custom/instrument/shell/EditorStartScreen.vue"));
+    const startScreen = stripComments(read("demo/components/instrument/shell/EditorStartScreen.vue"));
     const hasPretty = /text-wrap:\s*pretty/.test(startScreen);
     // The hero <h1> is `.text-display-4` rendered through AnimatedText — the prose
     // SHIP must NOT leak onto it. Bite: a `.text-display-4 { text-wrap: pretty }`
     // (or a `text-wrap: pretty` on the AnimatedText hero layer) reds the scope.
     const heroLeak =
         /\.text-display-4[^}]*text-wrap:\s*pretty/.test(startScreen) ||
-        /text-wrap:\s*pretty/.test(stripComments(read("demo/@/components/custom/instrument/shell/AnimatedText.vue")));
+        /text-wrap:\s*pretty/.test(stripComments(read("demo/components/instrument/shell/AnimatedText.vue")));
     if (hasPretty && !heroLeak) {
         ok("platform-adopt", "text-wrap: pretty rides the start-screen prose (not the LCP hero) — the F.W13.S1 SHIP");
     } else if (!hasPretty) {
@@ -291,10 +291,10 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // now just invokes useControlsKeyboardShortcuts({…})); read both so the registry
     // bindings + labels resolve across the seam.
     const group =
-        read("demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue") +
+        read("demo/components/instrument/transport/AnimationControlsGroup.vue") +
         "\n" +
         read(
-            "demo/@/components/custom/instrument/transport/composables/useControlsKeyboardShortcuts.ts",
+            "demo/components/instrument/transport/composables/useControlsKeyboardShortcuts.ts",
         );
     // Mod+Z / Mod+Shift+Z are registered through the ONE registry (registerShortcut),
     // grouped + labeled so they surface in the KeyboardShortcutsModal — NOT a second
@@ -311,8 +311,8 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // idiomatic seam) and exposes undo/redo/canUndo/canRedo — bite: drop the wrap
     // → the behavioural round-trip test (test/demo/instrument/timeline-undo.test.ts) reds, and the
     // exposure check here reds too.
-    const tl = read("demo/@/components/custom/instrument/timeline/composables/useTimeline.ts");
-    const tlComp = read("demo/@/components/custom/instrument/timeline/KeyframeTimeline.vue");
+    const tl = read("demo/components/instrument/timeline/composables/useTimeline.ts");
+    const tlComp = read("demo/components/instrument/timeline/KeyframeTimeline.vue");
     if (/useRefHistory/.test(tl) && /debounceFilter/.test(tl) && /undo,\s*\n\s*redo,/.test(tlComp + "\n")) {
         ok("undo", "the timeline wraps state in a debounced useRefHistory + exposes undo/redo (the round-trip is locked by test/demo/instrument/timeline-undo.test.ts)");
     } else {
@@ -327,7 +327,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // aria-label) AND the .focus-ring keystone idiom. Bite: strip role/aria-label
     // → the labeled-textbox assertion reds; remove .focus-ring → the focus-
     // visibility assertion reds.
-    const card = read("demo/@/components/custom/instrument/keyframes/KeyframeCard.vue");
+    const card = read("demo/components/instrument/keyframes/KeyframeCard.vue");
     const labeled =
         /role=["']textbox["']/.test(card) &&
         /aria-multiline=["']true["']/.test(card) &&
@@ -348,7 +348,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // setting shortcutsOpen. The `?` shortcut still works (additive). Bite: remove
     // the visible @click="shortcutsOpen = true" → this reds (reds today — toggled
     // only by `?`).
-    const shell = read("demo/@/components/custom/instrument/shell/EditorShell.vue");
+    const shell = read("demo/components/instrument/shell/EditorShell.vue");
     const hasVisibleTrigger = /@click=["']shortcutsOpen\s*=\s*true["']/.test(shell);
     const stillHasShortcut = /registerShortcut\(\s*["']\?["']/.test(shell);
     if (hasVisibleTrigger && stillHasShortcut) {
@@ -367,7 +367,7 @@ console.log("proof:demo-elevate — E.W11 (the demo elevated)\n");
     // Strip both block (/* */) and line (//) comments so a prose mention of the
     // deleted anti-pattern ("the former `width < 768` break") does NOT satisfy a
     // presence check — only live declarations/markup count.
-    const at = stripComments(read("demo/@/components/custom/instrument/shell/AnimatedText.vue")).replace(
+    const at = stripComments(read("demo/components/instrument/shell/AnimatedText.vue")).replace(
         /^\s*\/\/.*$/gm,
         " ",
     );

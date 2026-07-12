@@ -24,7 +24,7 @@ const DOCKS = [
     ["ChromeDock", path.join(DEMO, "app/dock/ChromeDock.vue")],
     [
         "TransportDock",
-        path.join(DEMO, "@/components/custom/instrument/transport/TransportDock.vue"),
+        path.join(DEMO, "@/components/instrument/transport/TransportDock.vue"),
     ],
 ];
 

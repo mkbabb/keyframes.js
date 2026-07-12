@@ -69,41 +69,41 @@ const EXTS = new Set([".ts", ".vue", ".mts", ".mjs"]);
 // export missing from here REDs; a stale row (no longer dead) REDs.
 const DEFERRED = [
     // ── the animation-transport suite (facility-lane OFF-LIMITS this batch) ──
-    ["demo/@/components/custom/instrument/transport/animationDescriptions.ts", "COLOR_SPACE_DESCRIPTIONS"],
-    ["demo/@/components/custom/instrument/transport/animationDescriptions.ts", "HUE_METHOD_DESCRIPTIONS"],
-    ["demo/@/components/custom/instrument/transport/composables/useAnimationGroupActions.ts", "UseAnimationGroupActionsDeps"],
-    ["demo/@/components/custom/instrument/transport/composables/useAnimationGroupActions.ts", "UseAnimationGroupActionsReturn"],
-    ["demo/@/components/custom/instrument/transport/composables/useAnimationGroupPlayback.ts", "AnimationGroupPlaybackEmit"],
-    ["demo/@/components/custom/instrument/transport/composables/useControlsKeyboardShortcuts.ts", "UseControlsKeyboardShortcutsDeps"],
-    ["demo/@/components/custom/instrument/transport/composables/usePaneRegister.ts", "UsePaneRegisterOptions"],
-    ["demo/@/components/custom/instrument/transport/composables/usePaneRegister.ts", "UsePaneRegisterReturn"],
-    ["demo/@/components/custom/instrument/transport/composables/usePlayActuation.ts", "PlayActuationHandlers"],
-    ["demo/@/components/custom/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeOptions"],
-    ["demo/@/components/custom/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeReturn"],
+    ["demo/components/instrument/transport/animationDescriptions.ts", "COLOR_SPACE_DESCRIPTIONS"],
+    ["demo/components/instrument/transport/animationDescriptions.ts", "HUE_METHOD_DESCRIPTIONS"],
+    ["demo/components/instrument/transport/composables/useAnimationGroupActions.ts", "UseAnimationGroupActionsDeps"],
+    ["demo/components/instrument/transport/composables/useAnimationGroupActions.ts", "UseAnimationGroupActionsReturn"],
+    ["demo/components/instrument/transport/composables/useAnimationGroupPlayback.ts", "AnimationGroupPlaybackEmit"],
+    ["demo/components/instrument/transport/composables/useControlsKeyboardShortcuts.ts", "UseControlsKeyboardShortcutsDeps"],
+    ["demo/components/instrument/transport/composables/usePaneRegister.ts", "UsePaneRegisterOptions"],
+    ["demo/components/instrument/transport/composables/usePaneRegister.ts", "UsePaneRegisterReturn"],
+    ["demo/components/instrument/transport/composables/usePlayActuation.ts", "PlayActuationHandlers"],
+    ["demo/components/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeOptions"],
+    ["demo/components/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeReturn"],
     // (useSheetState.ts UseSheetStateOptions/UseSheetStateReturn RETIRED at T.H3-ADOPT —
     //  the bespoke sheet composable was DELETED with the Drawer swap; the ratchet drops
     //  the two discharged rows, tightening dead-export by 2.)
-    ["demo/@/components/custom/instrument/transport/composables/useDragCapture.ts", "DragCaptureHandlers"],
-    ["demo/@/components/custom/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealOptions"],
-    ["demo/@/components/custom/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealReturn"],
-    ["demo/@/components/custom/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceOptions"],
-    ["demo/@/components/custom/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceReturn"],
-    ["demo/@/components/custom/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollOptions"],
-    ["demo/@/components/custom/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollReturn"],
+    ["demo/components/instrument/transport/composables/useDragCapture.ts", "DragCaptureHandlers"],
+    ["demo/components/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealOptions"],
+    ["demo/components/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealReturn"],
+    ["demo/components/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceOptions"],
+    ["demo/components/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceReturn"],
+    ["demo/components/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollOptions"],
+    ["demo/components/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollReturn"],
     // ── keyframes-editor / keyframe-timeline / shared leaves (reflexive types) ──
     // (GestureLegend.vue / GestureLegendItem RETIRED at T.M batch ⑧ — the whole
     //  file was deleted with the on-stage gesture-legend layer, VERDICT #8; the
     //  ratchet drops the discharged row.)
-    ["demo/@/components/custom/instrument/timeline/utils/snapshotCapture.ts", "captureNonDefaultSnapshot"],
-    ["demo/@/components/custom/instrument/keyframes/composables/useToolbarKeyboard.ts", "ToolbarKeyboard"],
-    ["demo/@/components/custom/instrument/transport/composables/useKfPillTabs.ts", "UseKfPillTabsParams"],
+    ["demo/components/instrument/timeline/utils/snapshotCapture.ts", "captureNonDefaultSnapshot"],
+    ["demo/components/instrument/keyframes/composables/useToolbarKeyboard.ts", "ToolbarKeyboard"],
+    ["demo/components/instrument/transport/composables/useKfPillTabs.ts", "UseKfPillTabsParams"],
     // ── @/state/ (the app-level reset-hook registry seam) ──
     // `registerStoreReset` is retained as the general reset-composer CONTRACT
     // (@/state/index.ts documents it: the last consumer — compose's asset store —
     // was PRUNED under OD-1, the seam kept for the next feature store). Deliberate
     // retention, not confirmed-superfluous: it stays deferred until a consumer
     // returns or the contract is formally retired.
-    ["demo/@/state/index.ts", "registerStoreReset"],
+    ["demo/state/index.ts", "registerStoreReset"],
     // ── glass-ui gap ledger (T.H surface, not the T.F23 demo purge) ──
     ["demo/glass-ui-gaps.ts", "GlassCapKey"],
     ["demo/glass-ui-gaps.ts", "GlassUiGap"],

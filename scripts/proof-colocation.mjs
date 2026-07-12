@@ -45,9 +45,9 @@ import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
 
-// The shared library tier. `demo/@/` today; `demo/shared/` if the sibling rename
+// The shared library tier. `demo/` today; `demo/shared/` if the sibling rename
 // lands. Resolve whichever exists so the gate survives the move (arming-audit).
-const SHARED = ["demo/@", "demo/shared"]
+const SHARED = ["demo", "demo/shared"]
     .map((r) => path.join(REPO, r))
     .find((p) => fs.existsSync(p));
 
@@ -76,7 +76,7 @@ const DEFERRED = new Map([
         "the engine-loader boot accessor (runtime infra) → T.F13 promotes it beside state/",
     ],
     [
-        "components/custom/animation-transport/useKfPillTabs.ts",
+        "components/animation-transport/useKfPillTabs.ts",
         "a shared roving-tabindex leaf mis-nested in a feature peer → T.F16 de-vanity + colocation",
     ],
 ]);
@@ -137,13 +137,26 @@ function main() {
 
     if (!SHARED) {
         console.error(
-            "proof:colocation — ERROR: no shared tier found (tried demo/@, demo/shared).",
+            "proof:colocation — ERROR: no shared tier found (tried demo, demo/shared).",
         );
         process.exit(3);
     }
-    const sharedRel = relPosix(SHARED); // demo/@ or demo/shared
+    const sharedRel = relPosix(SHARED); // demo or demo/shared
     const failures = [];
     const deferrals = [];
+
+    // U.B1 keystone: the canonical shared homes are required and the two
+    // scaffold spellings they replace may not survive the atomic move.
+    for (const home of ["components", "composables", "state", "styles", "utils"]) {
+        if (!fs.existsSync(path.join(DEMO, home))) {
+            failures.push(`[canonical-home] demo/${home}/ is required after U.B1.`);
+        }
+    }
+    for (const retired of ["@", "components/custom"]) {
+        if (fs.existsSync(path.join(DEMO, retired))) {
+            failures.push(`[retired-home] demo/${retired}/ must be absent after U.B1.`);
+        }
+    }
 
     // ── CLAUSE (kind) — composables/ must be reactive ──────────────────────
     {

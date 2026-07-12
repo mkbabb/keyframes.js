@@ -13,7 +13,7 @@
  *   (i) NO MIS-HOME. No file under `demo/app/` is imported by EXACTLY ONE
  *       non-app area (a single-non-app-consumer file belongs IN that area, not
  *       the shell). An "area" is counted PER-SCENE (C-23): each `demo/scenes/
- *       <name>/`, plus `demo/@/` and `demo/playground/`, is one area; other
+ *       <name>/`, plus `demo/` and `demo/playground/`, is one area; other
  *       `demo/app/` files (shell-internal) are NOT counted. Files imported by
  *       ZERO non-app areas (shell-private) or ≥2 non-app areas (legitimately
  *       cross-scene — the five `app/runtime/` recipes) are LEGAL. Born-RED today
@@ -57,10 +57,15 @@ const RESOLVE_EXT = [".ts", ".vue", ".css", ".js", ".mjs", ".json"];
 
 // Clause (iii) — the honest shell-root membership (a23 Layout C). The root holds
 // exactly these files + these concern sub-zones; anything else is a mis-home.
-const ALLOWED_ROOT_FILES = new Set(["App.vue", "main.ts", "index.html"]);
+const ALLOWED_ROOT_FILES = new Set([
+    "App.vue",
+    "App.skeleton.vue",
+    "main.ts",
+    "index.html",
+]);
 // T.F3 — `dock/` (was `chrome/` — browser-jargon evicted) joins the concern
 // sub-zones: the app's own glass-ui dock + @mbabb menu (ChromeDock.vue,
-// MbabbMenu.vue), evicted from `@/components/custom/dock/` because they are
+// MbabbMenu.vue), evicted from `@/components/dock/` because they are
 // APP-private (a24 F3; imported by App.vue alone — they fail
 // proof:shared-has-n-consumers as a single-external-area @/ module).
 const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "runtime", "public", "dock"]);

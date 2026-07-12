@@ -10,6 +10,6 @@
 // loop, the stagger() delay distribution, the steppedEase cadence — exactly as
 // it runs in the hero.
 import { createApp, h } from "vue";
-import TypingDots from "@components/custom/instrument/shell/TypingDots.vue";
+import TypingDots from "@components/instrument/shell/TypingDots.vue";
 
 createApp({ render: () => h(TypingDots) }).mount("#app");

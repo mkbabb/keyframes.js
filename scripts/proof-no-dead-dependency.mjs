@@ -51,7 +51,7 @@
  * assertions (e.g. `proof-scene-colocated.mjs` greps for them to prove
  * they're gone — that's the discriminator, not the defect), and the
  * extensive `<SegmentedTabs>` design-history comments scattered through
- * `demo/@/components/custom/instrument/transport/**` explain a real, true
+ * `demo/components/instrument/transport/**` explain a real, true
  * architecture decision (the DM-5 contingency-kill of glass-ui's
  * `SegmentedTabs` for `KfPillTabs`) — accurate technical history, not a false
  * claim that something exists. That corpus is explicitly DISCRETIONARY
@@ -63,7 +63,7 @@
  * A repo-wide (`src/` + `demo/`) grep for `cn(` / `class-variance-authority` /
  * `@radix-*` that must return EMPTY — NO-legacy proven by census, not by naming
  * one island. S.C3a AUTHORED this clause born-RED-and-NON-GATING: while the
- * `demo/@/components/ui/menubar/` (16 files) + `demo/@/utils/utils.ts`'s `cn()`
+ * `demo/components/ui/menubar/` (16 files) + `demo/utils/utils.ts`'s `cn()`
  * shadcn island still existed, a GATING census would have wrongly RED'd S.C3a's
  * own green, so S.C3a surfaced the finding loudly WITHOUT contributing to the
  * exit code, deferring the discharge to S.C3b ("C3a authors the census; C3b's
@@ -257,7 +257,7 @@ const DEAD_IDENTIFIERS = [
 // The live narration surfaces — the doc sites a reader trusts as "what exists
 // today". NOT docs/tranches/ (the historical record legitimately carries
 // these names) and NOT every source comment (the SegmentedTabs design-history
-// narration in demo/@/components/custom/instrument/transport/** is accurate
+// narration in demo/components/instrument/transport/** is accurate
 // technical history, carved out as S.C3a S6 discretionary, not this clause's
 // scope).
 const NARRATION_SURFACES = [
@@ -327,7 +327,7 @@ if (censusHits.length > 0) {
         "clause 3 (shadcn census) — the repo-wide cn( / class-variance-authority / @radix-* " +
             `grep is NOT empty (${censusHits.length} hit(s) across ` +
             `${new Set(censusHits.map((h) => h.split(" — ")[0])).size} file(s)). The last shadcn ` +
-            "island (demo/@/components/ui/menubar/ + the menubar-private cn() helper) was retired at " +
+            "island (demo/components/ui/menubar/ + the menubar-private cn() helper) was retired at " +
             "S.C3b (C-19); any surviving cn()/class-variance-authority/@radix-* footprint is shadcn " +
             "REGROWTH — remove it. Sample: " +
             censusHits.slice(0, 5).join("; ") +

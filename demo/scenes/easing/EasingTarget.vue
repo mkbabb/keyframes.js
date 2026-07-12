@@ -119,8 +119,8 @@ import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { cubicBezierToString, stepEnd, stepStart, steppedEase } from "@mkbabb/value.js";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
-import CopyButton from "@components/custom/CopyButton.vue";
-import { getCurvePath } from "@components/custom/instrument/transport/controls/timingCurveUtils";
+import CopyButton from "@components/CopyButton.vue";
+import { getCurvePath } from "@components/instrument/transport/controls/timingCurveUtils";
 import { EASING_GROUPS } from "./easingGroups";
 import { EASING_DEMO_KEY } from "./easingKeys";
 

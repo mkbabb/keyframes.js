@@ -56,7 +56,7 @@ const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 const read = (p) => fs.readFileSync(p, "utf8");
 
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
-const UI_VENDORED = "/demo/@/components/ui/";
+const UI_VENDORED = "/demo/components/ui/";
 
 const SIZES = ["xs", "sm", "md", "lg"];
 

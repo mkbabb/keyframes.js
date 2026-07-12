@@ -130,14 +130,14 @@ import {
     ACTIVE_SCENE_KEY,
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
-} from "@components/custom/instrument/transport/injectionKeys";
+} from "@components/instrument/transport/injectionKeys";
 
-import { EditorShell, EditorStartScreen } from "@components/custom/instrument/shell";
+import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
 // T.D13 — the home hero's Aurora backdrop (colocated in editor-shell/ beside
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
-import HeroAurora from "@components/custom/instrument/shell/HeroAurora.vue";
-import SceneSkeleton from "@components/skeletons/SceneSkeleton.vue";
+import HeroAurora from "@components/instrument/shell/HeroAurora.vue";
+import SceneSkeleton from "./App.skeleton.vue";
 import ChromeDock from "./dock/ChromeDock.vue";
 import MbabbMenu from "./dock/MbabbMenu.vue";
 

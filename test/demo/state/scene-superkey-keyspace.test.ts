@@ -3,7 +3,7 @@
 // ("cube") and prunes orphaned pruned-scene buckets. Pure — operates on a
 // `{ value }` wrapper, so it is unit-testable with no Vue/localStorage.
 import { describe, expect, it } from "vitest";
-import { gcAndMigrateStoreBuckets } from "../../../demo/@/state/storeUtils";
+import { gcAndMigrateStoreBuckets } from "../../../demo/state/storeUtils";
 
 const VALID = ["home", "cube", "amiga", "square", "easing", "spring", "sequence"];
 

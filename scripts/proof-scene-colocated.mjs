@@ -208,10 +208,10 @@ function main() {
             }
         }
         const DEAD_FILES = [
-            "demo/@/components/custom/Animated.vue",
-            "demo/@/components/custom/ResponsiveSelect.vue",
-            "demo/@/components/custom/SceneSwitcherCarousel.vue",
-            "demo/@/composables/useScrollSnapScene.ts",
+            "demo/components/Animated.vue",
+            "demo/components/ResponsiveSelect.vue",
+            "demo/components/SceneSwitcherCarousel.vue",
+            "demo/composables/useScrollSnapScene.ts",
         ];
         for (const rel of DEAD_FILES) {
             if (fs.existsSync(path.join(REPO, rel))) {
@@ -233,7 +233,7 @@ function main() {
 
     // ── ASSERTION 4 — S.D2 scene-private colocation reference-count ─────────
     // The canonical A4 → D2 → D3 edit order (SPEC §3 DAG); this is edit #2. S.D2
-    // evicted the single-area-private modules OUT of demo/@ INTO their sole-
+    // evicted the single-area-private modules OUT of demo INTO their sole-
     // consuming scene (a24 F3/F4): orbital-drag/ + matrix-editor/ → scenes/cube/,
     // useTypedTrigger → scenes/sequence/. This reference-count clause LOCKS that
     // privacy: each colocated module must have ZERO importer OUTSIDE its host

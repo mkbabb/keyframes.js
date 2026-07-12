@@ -57,7 +57,7 @@ const DEMO = path.join(REPO, "demo");
 // platform-stable matching.
 const ALLOWED = new Set([
     // THE authority: createGroupAdapter's suspend/resume/restore drive the group.
-    "demo/@/state/scenePlaybackAdapters.ts",
+    "demo/state/scenePlaybackAdapters.ts",
     // Scene-owned tab-visibility loop (useSceneVisibilityPause callbacks — the
     // machine explicitly delegates tab-visibility, sceneMachine.ts §TAB_HIDDEN).
     "demo/scenes/cube/useCubeDemo.ts",

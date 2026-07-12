@@ -52,7 +52,11 @@ src/                            # animation/ + env.d.ts — nothing else
 └── env.d.ts                    # *.vue module declaration (dev-only shim; not shipped)
 
 demo/                # Vue 3 demo (see demo/CLAUDE.md)
-├── @/               # Shared library (S.D2): state, animation-transport suite, keyframes-editor, keyframe-timeline, easing-editor, editor-shell, composables, styles, utils
+├── components/      # Shared component facilities, including instrument/
+├── composables/     # Cross-scene Vue composables
+├── state/           # Global scene/control state
+├── styles/          # Global tokens, layout, and design idioms
+├── utils/           # Shared clipboard and engine-loader helpers
 ├── app/             # THE multi-scene SPA (npm run dev / gh-pages): router + scene machine + App shell + chrome/ dock
 └── scenes/          # Fused per-scene dirs (R.W5) — scenes/<name>/ for amiga · cube · easing · sequence · spring · square (6 scenes; compose · morph · motion-path PRUNED at T.E1/T.E3, OD-1 = PRUNE): each holds <Name>Scene.vue + Target + composables + keys, colocated
 

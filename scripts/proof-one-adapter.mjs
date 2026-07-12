@@ -149,7 +149,7 @@ const shellSrc = blankComments(fs.readFileSync(SHELL, "utf8"));
     for (const abs of sources) {
         const rel = relPosix(abs);
         // Skip the definition file (scenePlaybackAdapters.ts declares/exports it).
-        if (rel === "demo/@/state/scenePlaybackAdapters.ts") continue;
+        if (rel === "demo/state/scenePlaybackAdapters.ts") continue;
         const src = blankComments(fs.readFileSync(abs, "utf8"));
         for (const m of src.matchAll(/\bcreateGroupAdapter\s*\(/g)) {
             const line = src.slice(0, m.index).split("\n").length;

@@ -38,7 +38,7 @@ import {
     DialogFooter,
     DialogTitle,
 } from "@mkbabb/glass-ui";
-import { isInsideToaster } from "@utils/toastGuard";
+import { isInsideToaster } from "@components/instrument/utils/toastGuard";
 
 const props = withDefaults(
     defineProps<{

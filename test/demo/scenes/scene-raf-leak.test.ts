@@ -16,7 +16,7 @@
  */
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
-import { warmKfEngine } from "../../../demo/@/utils/kfEngine";
+import { warmKfEngine } from "../../../demo/utils/kfEngine";
 import { useEasingDemo } from "../../../demo/scenes/easing/useEasingDemo";
 import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
 
@@ -26,7 +26,7 @@ import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
 beforeAll(async () => {
     await warmKfEngine();
 });
-import { useSceneMachine } from "../../../demo/@/state/useSceneMachine";
+import { useSceneMachine } from "../../../demo/state/useSceneMachine";
 
 /**
  * Drive the (H.W1) scene machine into `playing` for `scene` so the easing

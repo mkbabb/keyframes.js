@@ -328,13 +328,13 @@ const defaultOptions = {
                 import.meta.dirname,
                 "src/animation/index.ts",
             ),
-            "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
+            "@styles": path.resolve(import.meta.dirname, "demo/styles"),
             // S.D2 — the hoisted demo state peer (a24 F2). A dir alias resolves
             // both the bare barrel (`@state` → state/index.ts) and subpaths.
-            "@state": path.resolve(import.meta.dirname, "demo/@/state"),
-            "@components": path.resolve(import.meta.dirname, "demo/@/components"),
-            "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
-            "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
+            "@state": path.resolve(import.meta.dirname, "demo/state"),
+            "@components": path.resolve(import.meta.dirname, "demo/components"),
+            "@utils": path.resolve(import.meta.dirname, "demo/utils"),
+            "@composables": path.resolve(import.meta.dirname, "demo/composables"),
             "@app": path.resolve(import.meta.dirname, "demo/app"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
         },

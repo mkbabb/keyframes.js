@@ -22,7 +22,7 @@ import "@styles/style.css";
 // constructs an empty placeholder `AnimationGroup` SYNCHRONOUSLY on every scene
 // switch and feeds it into non-null prop contracts (EditorShell → controls), so
 // the engine is warmed ONCE here before mount and read synchronously thereafter
-// (demo/@/utils/kfEngine.ts). This is the honest dogfood: the demo boots on the
+// (demo/utils/kfEngine.ts). This is the honest dogfood: the demo boots on the
 // same dynamic engine chunk a `npm i` consumer reaches — value.js still never
 // lands on the LIGHT static barrel (proof:boundary stays green). The first-paint
 // skeleton + critical CSS are JS-independent (criticalCSSPlugin inlines them), so

@@ -107,7 +107,7 @@ function staticHalf() {
     // (i) the demo CONSUMES the Drawer (no re-hand-rolled sheet).
     const sheetPath = path.join(
         REPO,
-        "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue",
+        "demo/components/instrument/transport/components/ControlsPaneWrapper.vue",
     );
     if (!fs.existsSync(sheetPath)) {
         fail(`static — ControlsPaneWrapper.vue not found at ${sheetPath}`);

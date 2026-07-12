@@ -20,7 +20,7 @@
  *   CLAUSE 2 — COLOCATION COHERENT. Each stage-scene dir colocates its
  *     `*Target.vue` + `use*Demo.ts` (+ its `*Keys.ts` inject key); NO `use*Demo`
  *     composable is orphaned in a dir without a sibling `*Target.vue`. The shared
- *     `useDragScrub` lives at the cross-scene `demo/@/composables/` home (a
+ *     `useDragScrub` lives at the cross-scene `demo/composables/` home (a
  *     scene-shared seam, correctly NOT a scene-private composable). Reds if a
  *     `use*Demo` is filed without its Target sibling (the manufactured-split /
  *     orphan the spec forbids), or a stage-scene dir loses its Target / key.
@@ -100,7 +100,7 @@ function main() {
     {
         // The cross-scene shared composables home (NOT a scene-private dir — a
         // use* here is correctly shared, e.g. useDragScrub).
-        const SHARED_COMPOSABLES = "demo/@/composables";
+        const SHARED_COMPOSABLES = "demo/composables";
 
         // Every `use*Demo.ts` (the per-scene demo composable) must sit in a dir
         // that ALSO holds a sibling `*Target.vue` OR `*Scene.vue` — the

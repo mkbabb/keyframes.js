@@ -244,7 +244,7 @@ import { usePlayActuation } from "./composables/usePlayActuation";
 // (usePlayActuation) is a band-aid for glass-ui's collapse-crossfade click-strand
 // (GU-4). It collapses to a plain click handler on the re-pin; see
 // demo/glass-ui-gaps.ts.
-import { glassUiGap } from "../../../../../glass-ui-gaps";
+import { glassUiGap } from "../../../glass-ui-gaps";
 
 import type { StoredAnimationGroupControlOptions } from "@state";
 

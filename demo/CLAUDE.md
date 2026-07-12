@@ -1,6 +1,6 @@
 # demo/
 
-Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds it to `dist/gh-pages/` (deployed at keyframes.babb.dev). `app/` is the shell + scene machine + router; each scene lives in a SELF-CONTAINED `scenes/<name>/` directory that co-locates its `<Name>Scene.vue` entry with its scene-specific composables and target components (the R.W5 fusion — the old `app/scenes/` entries and the top-level per-scene dirs were merged into `scenes/<name>/`). Six scenes ship: amiga · cube · easing · sequence · spring · square (compose · morph · motion-path were PRUNED at T.E1/T.E3, OD-1 = PRUNE). Design language: `DESIGN.md` (extends glass-ui's).
+Vue 3 demo. ONE multi-scene SPA — `app/` — is the demo: `npm run dev` serves it, `npm run gh-pages` builds the deployed demo at keyframes.babb.dev. `app/` is the shell + scene machine + router; each scene lives in a SELF-CONTAINED `scenes/<name>/` directory that co-locates its `<Name>Scene.vue` entry with its scene-specific composables and target components (the R.W5 fusion — the old `app/scenes/` entries and the top-level per-scene dirs were merged into `scenes/<name>/`). Six scenes ship: amiga · cube · easing · sequence · spring · square (compose · morph · motion-path were PRUNED at T.E1/T.E3, OD-1 = PRUNE). Design language: `DESIGN.md` (extends glass-ui's).
 
 ## Structure
 
@@ -27,37 +27,29 @@ demo/
 │   └── square/       # SquareScene.vue + SquareInstrument, useSquareDemo/useSquareKeyboard, squareKeys (custom transform fn)
 │   # (morph/ · motion-path/ · compose/ were PRUNED at T.E1/T.E3, OD-1 = PRUNE; the
 │   #  LIBRARY MotionPath/MorphSVG/DrawSVG factories in src/animation/svg/ survive.)
-├── @/                         # Shared library
-│   ├── state/                  # the demo's global state layer (S.D2 hoist): sceneMachine/useSceneMachine/scenePlaybackAdapters + option stores + controlSurfaceDFA + hashSharing + index (resetAllStores) — @state alias
-│   ├── components/custom/
-│   │   ├── instrument/          # THE control facility (T.F5 fold) — the four cohering peers under ONE lazy barrel (index.ts: `export type` + `defineAsyncComponent`, no eager Monaco/highlight.js)
-│   │   │   ├── transport/       # the control-suite shells + controls/ + composables/ + KfPillTabs/useKfPillTabs (was animation-transport/; see below)
-│   │   │   ├── keyframes/       # the Monaco CSS keyframes editor (was keyframes-editor/)
-│   │   │   ├── timeline/        # the draggable keyframe timeline (was keyframe-timeline/) + CSSPasteDialog (S.D2 colocation)
-│   │   │   └── shell/           # EditorShell, EditorHeader, EditorStartScreen, SharePopover + useShareState + AnimatedText/TypingDots/KeyboardShortcutsModal + useHeroSourceEgg (was editor-shell/)
-│   │   │   # (instrument/easing/ — the 1,082L hand-rolled EasingEditor/EasingSelect/EasingCurveCanvas/DemoControlPoint cluster — was DELETED at T.E8: glass-ui's EasingPicker is the sole curve-authoring surface)
-│   │   └── CopyButton.vue       # the one genuinely-shared flat leaf beside the facility
-│   │                            # (components/ui/ is GONE — the last shadcn island, ui/menubar/, was migrated off + deleted at S.C3b, C-19)
-│   ├── composables/
-│   │   ├── gestureSelectSuppression.ts  # the ONE global drag-in-flight select-suppression token (body.is-dragging)
-│   │   └── useDragScrub.ts              # the ONE shared pointer-drag scrub seam (stage rails, square box)
-│   ├── styles/                  # per-concern, each ≤300L (proof:style-file-ceiling): style.css (Tailwind v4 entry + @theme + color/accent tokens + @layer base/utilities/demo-typography), layout.css (work-area/dock/rail geometry + @media + @supports), design-idioms.css (the rainbow/gold signal tokens + shared idiom recipes + @keyframes enter), brand.css (the ppmycota mark)
-│   └── utils/                   # clipboard.ts, iosTextEntry.ts, kfEngine.ts, toastGuard.ts (vue-sonner private-DOM contract) — the shadcn cn() helper (utils.ts) went with ui/menubar (S.C3b)
+├── components/                 # shared component facilities
+│   ├── instrument/             # transport, keyframes, timeline and shell peers
+│   │   ├── transport/
+│   │   ├── keyframes/
+│   │   ├── timeline/
+│   │   ├── shell/
+│   │   └── utils/              # instrument-private iOS text and toast helpers
+│   └── CopyButton.vue
+├── state/                      # global scene/control state — @state alias
+├── composables/                # cross-scene Vue composables
+│   ├── gestureSelectSuppression.ts
+│   └── useDragScrub.ts
+├── styles/                     # global tokens, layout and design idioms
+├── utils/                      # clipboard.ts and kfEngine.ts
 ├── CLAUDE.md
 └── DESIGN.md     # demo design language (extends glass-ui DESIGN.md)
 ```
 
-**The `demo/@` → `shared` rename, ruled terminally (S.D4 S4).** `demo/@/` is an
-actual on-disk directory literally named `@` (not a bundler alias — neither
-`vite.config.ts` nor `tsconfig.json` declares a bare `@` path), imported
-everywhere as `@/…`. S.D4 considered renaming it to a self-explaining `shared/`
-and RULED to keep `@/`: every consumer already spells the short form, the
-directory's role (the one cross-scene shared library, vs. `app/` the shell and
-`scenes/<name>/` the per-scene homes) is unambiguous from its siblings, and a
-rename would touch every import in the tree for a documentation-only gain. Alias
-churn buys nothing — this decision is terminal, not deferred.
+The former on-disk at-sign scaffold is dissolved. Shared facilities now live
+directly under the plainly named `demo/{components,composables,state,styles,utils}`
+roots while the established import aliases keep consumer spellings concise.
 
-## Animation Controls (`@/components/custom/instrument/`)
+## Animation Controls (`demo/components/instrument/`)
 
 The primary UI for interacting with animations. S.D2 carved the former
 `animation-controls/` monolith into sibling peers; **T.F5 (THE GRAND COLOCATION
@@ -110,7 +102,7 @@ via `app/scene/scenes.ts`, exposing the typed `SceneExposedApi`) co-located with
 - `monaco-editor` + `monaco-themes` — CSS keyframes editor (wrapped by CSSCodeEditor)
 - `html2canvas` — timeline hover previews
 - `highlight.js` — keyframe CSS highlighting
-- `vue-sonner` — toasts (`@/utils/toastGuard.ts` owns its private DOM contract)
+- `vue-sonner` — toasts (`@components/instrument/utils/toastGuard.ts` owns its private DOM contract)
 - `@lucide/vue`, `@iconify/vue` — icons
 - `@mkbabb/value.js` — Color, math, easing, parsing (also the library's own dependency)
 

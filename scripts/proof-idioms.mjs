@@ -10,7 +10,7 @@
  * current pin. That is an ungated, undocumented cross-repo RENT: a sibling
  * tranche renames `scale-on-hover` or drops a `--rainbow-*` token and the demo
  * silently flattens. D.W2 localizes the demo-authored idioms into ONE owned
- * layer (`demo/@/styles/design-idioms.css`), uncages the `utils.css` monolith,
+ * layer (`demo/styles/design-idioms.css`), uncages the `utils.css` monolith,
  * and terminates the φ-ladder leaf-tail.
  *
  * This is a re-runnable SOURCE instrument that BITES on every regression. Each
@@ -27,7 +27,7 @@
  *      contract, not the rent.
  *
  *   2. LEAF-TAIL SWEPT — `grep -rnoE "\btext-sm\b|\btext-xs\b|\btext-base\b"`
- *      over `demo/` `.vue`, EXCLUDING `demo/@/components/ui/` (vendored shadcn)
+ *      over `demo/` `.vue`, EXCLUDING `demo/components/ui/` (vendored shadcn)
  *      AND `dist/`, returns 0. The φ-ladder leaf-tail (the chronic A→B→C
  *      deferral) is terminated; a raw rung re-appearing reds it.
  *
@@ -228,9 +228,9 @@ function main() {
         const vueFiles = collect(DEMO, new Set([".vue"]));
         const hits = [];
         for (const abs of vueFiles) {
-            // EXCLUDE the vendored shadcn-vue components (demo/@/components/ui/)
+            // EXCLUDE the vendored shadcn-vue components (demo/components/ui/)
             // — they are not demo-authored surface — and dist/ (already skipped).
-            if (toPosix(abs).includes("/demo/@/components/ui/")) continue;
+            if (toPosix(abs).includes("/demo/components/ui/")) continue;
             const src = read(abs);
             const lines = src.split("\n");
             for (let i = 0; i < lines.length; i++) {
@@ -245,7 +245,7 @@ function main() {
             failures.push(
                 `[leaf-tail] ${total} raw text-sm/text-xs/text-base rung(s) ` +
                     `survive across ${hits.length} site(s) (demo .vue, excluding ` +
-                    `demo/@/components/ui/ + dist/). Migrate to the semantic ` +
+                    `demo/components/ui/ + dist/). Migrate to the semantic ` +
                     `ladder (.text-body / .text-small / .text-admin-label / ` +
                     `.text-caption). First sites:\n      ` +
                     head.map((h) => `${h.rel}:${h.line}`).join("\n      ") +
@@ -556,7 +556,7 @@ function main() {
         const sceneFiles = collect(DEMO, new Set([".vue"])).filter((abs) => {
             const rel = toPosix(abs);
             return (
-                !rel.includes("/demo/@/components/ui/") &&
+                !rel.includes("/demo/components/ui/") &&
                 !rel.endsWith("@/styles/design-idioms.css")
             );
         });
@@ -609,9 +609,9 @@ function main() {
                 p.endsWith(".vue") && fs.existsSync(cssSibling) ? read(cssSibling) : "";
             return css ? `${sfc}\n${css}` : sfc;
         };
-        const GROUP = "demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue";
-        const PANE = "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue";
-        const TABS = "demo/@/components/custom/instrument/transport/controls/AnimationControls.vue";
+        const GROUP = "demo/components/instrument/transport/AnimationControlsGroup.vue";
+        const PANE = "demo/components/instrument/transport/components/ControlsPaneWrapper.vue";
+        const TABS = "demo/components/instrument/transport/controls/AnimationControls.vue";
         const MATRIX = "demo/scenes/cube/matrix-editor/MatrixEditor.vue";
 
         // Comment-blank each file so a doc-comment NAMING the retired literal/token

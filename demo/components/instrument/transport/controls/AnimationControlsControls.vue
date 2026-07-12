@@ -261,7 +261,7 @@ import { usePlaybackToggle } from "../composables/usePlaybackToggle";
 import { useTimingFunctionEditor } from "../composables/useTimingFunctionEditor";
 // T.E8 — the named-curve catalogue (the thin name→family data adapter the
 // deleted EasingSelect consumed; the easing scene co-owns it).
-import { EASING_GROUPS } from "../../../../../../scenes/easing/easingGroups";
+import { EASING_GROUPS } from "../../../../scenes/easing/easingGroups";
 
 import { Teleport, computed, onMounted, ref, toRef } from "vue";
 import {

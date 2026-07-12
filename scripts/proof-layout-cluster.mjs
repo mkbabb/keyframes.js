@@ -393,12 +393,12 @@ function blankComments(s) {
 }
 
 function staticHalf() {
-    // The demo's shared styles tier (`demo/@/styles/` today, or `demo/shared/styles/`
+    // The demo's shared styles tier (`demo/styles/` today, or `demo/shared/styles/`
     // after the rename lane). The T.F styles split carved the rail-width + dock-anchor
     // geometry OUT of style.css/design-idioms.css into layout.css, so scan EVERY .css
     // in the tier rather than two fixed filenames (arming-audit: a gate keyed to one
     // spelling misses a moved token — d.1/d.2 would pass vacuously).
-    const stylesDir = ["demo/@/styles", "demo/shared/styles"]
+    const stylesDir = ["demo/styles", "demo/shared/styles"]
         .map((r) => path.join(REPO, r))
         .find((p) => fs.existsSync(p));
     if (!stylesDir) {

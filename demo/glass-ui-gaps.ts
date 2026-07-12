@@ -63,8 +63,8 @@ export const GLASS_UI_GAPS = {
         glassCap: "ariaGuard",
         fixVersion: "@mkbabb/glass-ui BG/BH (aria guard + material↔role decouple)",
         workaroundSites: [
-            "demo/@/components/custom/instrument/transport/KfPillTabs.vue",
-            "demo/@/components/custom/instrument/transport/composables/useKfPillTabs.ts",
+            "demo/components/instrument/transport/KfPillTabs.vue",
+            "demo/components/instrument/transport/composables/useKfPillTabs.ts",
         ],
         acceptanceGate: "proof:glassui-aria-ask",
     },
@@ -76,8 +76,8 @@ export const GLASS_UI_GAPS = {
         glassCap: "dockStrandKeepalive",
         fixVersion: "@mkbabb/glass-ui BG/BH (dock-layer keepalive)",
         workaroundSites: [
-            "demo/@/components/custom/instrument/transport/TransportDock.vue",
-            "demo/@/components/custom/instrument/transport/composables/usePlayActuation.ts",
+            "demo/components/instrument/transport/TransportDock.vue",
+            "demo/components/instrument/transport/composables/usePlayActuation.ts",
         ],
         acceptanceGate: "proof:workaround-deletion",
     },
@@ -137,7 +137,7 @@ export const GLASS_UI_GAPS = {
         // of the tripwire is satisfied by the import + its GLASSUI-GAP marker). On
         // the BG-11 publish this site wires the `--drawer-inset-block-end` token.
         workaroundSites: [
-            "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue",
+            "demo/components/instrument/transport/components/ControlsPaneWrapper.vue",
         ],
         acceptanceGate: "proof:glass-ui-gap-tripwire",
     },

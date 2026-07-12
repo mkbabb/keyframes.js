@@ -69,7 +69,7 @@ import {
 } from "@mkbabb/glass-ui";
 import { FileIcon, FilePlus2 } from "@lucide/vue";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import { isInsideToaster } from "@utils/toastGuard";
+import { isInsideToaster } from "@components/instrument/utils/toastGuard";
 import { useCodeHighlight } from "../composables/useHighlightCSS";
 import { insertTabAtCursor } from "../utils/contenteditable";
 

@@ -24,16 +24,10 @@ import type { InputAnimationOptions, AnimationGroup } from "@mkbabb/keyframes.js
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { copyText } from "@utils/clipboard";
 
-const props = defineProps({
-    text: {
-        type: String,
-        required: true,
-    },
-    label: {
-        type: String,
-        default: "Copy to clipboard",
-    },
-});
+const { text, label = "Copy to clipboard" } = defineProps<{
+    text: string;
+    label?: string;
+}>();
 
 const isCopied = ref(false);
 // AT-only live announcement — empty until a copy fires (re-armed each click so
@@ -55,7 +49,7 @@ const options: Partial<InputAnimationOptions> = {
 const group = shallowRef<AnimationGroup<any> | null>(null);
 
 const handleClick = () => {
-    copyText(props.text);
+    copyText(text);
 
     isCopied.value = true;
     // Re-arm the announcement (clear then set on the next tick) so a repeat

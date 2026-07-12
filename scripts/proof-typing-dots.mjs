@@ -70,8 +70,8 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
 const HARNESS = path.join(REPO, "scripts/lib/typing-dots-harness");
 const HARNESS_DIST = path.join(REPO, "dist/_proof-typing-dots");
-const TYPING_DOTS = path.join(DEMO, "@/components/custom/instrument/shell/TypingDots.vue");
-const ANIMATED_TEXT = path.join(DEMO, "@/components/custom/instrument/shell/AnimatedText.vue");
+const TYPING_DOTS = path.join(DEMO, "@/components/instrument/shell/TypingDots.vue");
+const ANIMATED_TEXT = path.join(DEMO, "@/components/instrument/shell/AnimatedText.vue");
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);
@@ -219,10 +219,10 @@ async function buildHarness() {
         resolve: {
             alias: {
                 "@src": path.resolve(REPO, "src"),
-                "@components": path.resolve(REPO, "demo/@/components"),
-                "@composables": path.resolve(REPO, "demo/@/composables"),
-                "@styles": path.resolve(REPO, "demo/@/styles"),
-                "@utils": path.resolve(REPO, "demo/@/utils"),
+                "@components": path.resolve(REPO, "demo/components"),
+                "@composables": path.resolve(REPO, "demo/composables"),
+                "@styles": path.resolve(REPO, "demo/styles"),
+                "@utils": path.resolve(REPO, "demo/utils"),
                 "@assets": path.resolve(REPO, "assets"),
             },
             // The demo's dev/serve resolution order (vite.config.ts devConditions).

@@ -6,56 +6,56 @@
     "keepers": {
         "--rainbow-red": {
             "value": "hsl(0 85% 60%)",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "note": "the demo's canonical spectrum, stop 1 of 6 (the play-CTA ring + the .progress-bar brush sweep)"
         },
         "--rainbow-orange": {
             "value": "hsl(30 90% 55%)",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "note": "spectrum stop 2 of 6"
         },
         "--rainbow-yellow": {
             "value": "hsl(55 90% 55%)",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "note": "spectrum stop 3 of 6"
         },
         "--rainbow-green": {
             "value": "hsl(130 70% 50%)",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "note": "spectrum stop 4 of 6"
         },
         "--rainbow-blue": {
             "value": "hsl(210 80% 55%)",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "note": "spectrum stop 5 of 6"
         },
         "--rainbow-violet": {
             "value": "hsl(300 75% 60%)",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "note": "spectrum stop 6 of 6"
         },
         "--rainbow-cyan": {
             "value": "hsl(180 80% 50%)",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "note": "the named cyan mid-stop folded into the family (the .progress-bar 50% stop) — part of the spectrum the spring/sequence lanes consume"
         },
         "--accent-red": {
             "value": "hsl(0 72% 63%)",
-            "source": "demo/@/styles/style.css",
+            "source": "demo/styles/style.css",
             "register": "signal",
             "scope": ":root (light)",
             "note": "DESTRUCTIVE-ONLY since T.D7 (OD-6 RULED: the latent-red kill) — the hue itself is UNCHANGED and stays pinned; only the token's REACH shrank from sitewide motion authority to destructive/error surfaces (DESIGN.md:7 restored)"
         },
         "--accent-kf": {
             "value": "light-dark(oklch(0.56 0.17 295), oklch(0.74 0.13 305))",
-            "source": "demo/@/styles/style.css",
+            "source": "demo/styles/style.css",
             "register": "signal",
             "scope": ":root (light arm of light-dark())",
             "note": "T.D7 — THE VIOLET ACCENT AUTHORITY, the OWNER-blessed ramp (OD-6 APPROVED 2026-07-05, verbatim token \"Good.\", on the live P-THEME review; blessed reference branch worktree-wf_1e744f4d-2bb-3). The baseline pins the LIGHT arm; the sanctioned-regeneration clause is satisfied by the OD-6 owner token, not a version bump"
@@ -63,7 +63,7 @@
         "--color-progress": {
             "value": "var(--accent-kf)",
             "resolvesTo": "--accent-kf",
-            "source": "demo/@/styles/style.css",
+            "source": "demo/styles/style.css",
             "register": "signal",
             "scope": ":root (light)",
             "note": "T.D7 re-pin (OD-6) — resolves the VIOLET accent authority (was var(--accent-red) at the K.W4 S3 collapse; the red bind died with VERDICT #16's latent-red kill); the motion-surface accent on every .progress-ball/.progress-rail/.progress-dot/scrub track"
@@ -119,7 +119,7 @@
         "--amiga-red": {
             "value": "var(--rainbow-red)",
             "resolvesTo": "--rainbow-red",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "hoistTarget": true,
             "fromLiteral": "red (AmigaScene.vue:229 tesselateSphere('white','red',…))",
@@ -128,7 +128,7 @@
         "--spring-lane-smooth": {
             "value": "var(--rainbow-blue)",
             "resolvesTo": "--rainbow-blue",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "hoistTarget": true,
             "note": "spring derby lane (smooth) — consumes the sanctioned rainbow, no new identity. Born-RED until added."
@@ -136,7 +136,7 @@
         "--spring-lane-snappy": {
             "value": "var(--rainbow-green)",
             "resolvesTo": "--rainbow-green",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "hoistTarget": true,
             "note": "spring derby lane (snappy) — consumes the sanctioned rainbow. Born-RED until added."
@@ -144,7 +144,7 @@
         "--spring-lane-bouncy": {
             "value": "var(--rainbow-violet)",
             "resolvesTo": "--rainbow-violet",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "hoistTarget": true,
             "note": "spring derby lane (bouncy, the playful ring) — consumes the sanctioned rainbow. Born-RED until added. (spring.md exact mapping.)"
@@ -152,7 +152,7 @@
         "--spring-lane-gentle": {
             "value": "var(--color-progress)",
             "resolvesTo": "--color-progress",
-            "source": "demo/@/styles/design-idioms.css",
+            "source": "demo/styles/design-idioms.css",
             "register": "signal",
             "hoistTarget": true,
             "note": "spring derby lane (gentle, critically damped → the RED identity) — resolves --color-progress (the unified motion-red), per spring.md's exact four-lane mapping (smooth→blue, snappy→green, bouncy→violet, gentle→red). Born-RED until added."

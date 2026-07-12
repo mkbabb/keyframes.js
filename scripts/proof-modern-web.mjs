@@ -133,7 +133,7 @@ function walkCount(dir) {
 {
     const id = "proof:monaco-deferred";
     const editorRel =
-        "demo/@/components/custom/instrument/keyframes/CSSCodeEditor.vue";
+        "demo/components/instrument/keyframes/CSSCodeEditor.vue";
     const src = read(editorRel);
     if (src == null) {
         fail(id, `${editorRel} not found.`);
@@ -272,7 +272,7 @@ function walkCount(dir) {
 {
     const id = "proof:demo-yield";
     const opsRel =
-        "demo/@/components/custom/instrument/keyframes/composables/useKeyframeOps.ts";
+        "demo/components/instrument/keyframes/composables/useKeyframeOps.ts";
     const src = read(opsRel);
     if (src == null) {
         fail(id, `${opsRel} not found.`);
@@ -419,7 +419,7 @@ function walkCount(dir) {
             axis: "INP / scheduler.yield (demo edit path)",
             disposition: "ALIGNED",
             anchor: {
-                file: "demo/@/components/custom/instrument/keyframes/composables/useKeyframeOps.ts",
+                file: "demo/components/instrument/keyframes/composables/useKeyframeOps.ts",
                 needle: "yieldToMain",
             },
         },
@@ -493,7 +493,7 @@ function walkCount(dir) {
             code: "CSS2",
             axis: "container queries (cqw/@container)",
             disposition: "ALIGNED",
-            anchor: { file: "demo/@/styles/style.css", needle: "container-type" },
+            anchor: { file: "demo/styles/style.css", needle: "container-type" },
         },
         {
             code: "CSS3",

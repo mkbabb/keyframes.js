@@ -130,7 +130,7 @@ import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { RefreshCw } from "@lucide/vue";
 
-import KeyframesEditor from "@components/custom/instrument/keyframes/KeyframesEditor.vue";
+import KeyframesEditor from "@components/instrument/keyframes/KeyframesEditor.vue";
 import SpringHeatmap from "./SpringHeatmap.vue";
 
 import type { SpringDemoContext } from "./springKeys";

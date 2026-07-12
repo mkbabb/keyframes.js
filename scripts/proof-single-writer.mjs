@@ -51,8 +51,8 @@ const DEMO = path.join(REPO, "demo");
 // the createGlobalState store it drives, SPLIT per core-api §1). Relative-POSIX
 // paths so the match is platform-stable.
 const ALLOWED_WRITERS = new Set([
-    "demo/@/state/sceneMachine.ts",
-    "demo/@/state/useSceneMachine.ts",
+    "demo/state/sceneMachine.ts",
+    "demo/state/useSceneMachine.ts",
 ]);
 
 const SKIP_DIR = new Set(["node_modules", "dist", ".git", "coverage"]);

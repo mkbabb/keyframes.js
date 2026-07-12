@@ -84,9 +84,9 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // peer-moved files are NOT silently dropped from the walk (the false-green
 // blindspot a peer move risks). The former `keyframes/` and `timeline/` subtrees
 // are now the KEYFRAMES_EDITOR / KEYFRAME_TIMELINE peers (clauses 2/3 below).
-const TRANSPORT = path.join(REPO, "demo/@/components/custom/instrument/transport");
-const KEYFRAMES_EDITOR = path.join(REPO, "demo/@/components/custom/instrument/keyframes");
-const KEYFRAME_TIMELINE = path.join(REPO, "demo/@/components/custom/instrument/timeline");
+const TRANSPORT = path.join(REPO, "demo/components/instrument/transport");
+const KEYFRAMES_EDITOR = path.join(REPO, "demo/components/instrument/keyframes");
+const KEYFRAME_TIMELINE = path.join(REPO, "demo/components/instrument/timeline");
 const CONTROLS_ROOTS = [TRANSPORT, KEYFRAMES_EDITOR, KEYFRAME_TIMELINE];
 
 // H.W8 RECONCILIATION (drift-red a) — the DEMO ceiling sweep is RETIRED. The
@@ -164,9 +164,9 @@ const ASYNC = /\b(?:setTimeout|setInterval|requestAnimationFrame)\b/g;
 // The four W0-flagged sites that MUST be transposed onto vueuse (repo-relative
 // POSIX). The gate names them so the manifest is visible in its own output.
 const W0_ASYNC_SITES = [
-    "demo/@/components/custom/instrument/timeline/composables/useTimeline.ts",
-    "demo/@/components/custom/instrument/keyframes/KeyframesStringControls.vue",
-    "demo/@/components/custom/instrument/transport/composables/usePaneHover.ts",
+    "demo/components/instrument/timeline/composables/useTimeline.ts",
+    "demo/components/instrument/keyframes/KeyframesStringControls.vue",
+    "demo/components/instrument/transport/composables/usePaneHover.ts",
 ];
 
 // The engine-loop allowlist: raw-rAF sites that are NOT animation/timer blobs a
@@ -674,7 +674,7 @@ function main() {
         // member reds.
         {
             const producerRel =
-                "demo/@/components/custom/instrument/shell/useShareState.ts";
+                "demo/components/instrument/shell/useShareState.ts";
             const producerAbs = path.join(REPO, producerRel);
             if (fs.existsSync(producerAbs)) {
                 const src = blankComments(read(producerAbs));
@@ -819,7 +819,7 @@ function main() {
 
         // ── 10. proof:no-reka-reach — G.W12.S4 (the one headless reach KILLED) ─
         // Exactly ZERO direct `from "reka-ui"` import in the DEMO-AUTHORED surface
-        // (excluding the vendored shadcn-vue `demo/@/components/ui/` basis, which
+        // (excluding the vendored shadcn-vue `demo/components/ui/` basis, which
         // legitimately wraps reka). The one demo reach — AnimationMenuBar's raw
         // SelectIcon — is replaced by the glass-ui surface (DockSelectTrigger owns
         // the trigger/chevron).
@@ -829,7 +829,7 @@ function main() {
             const rekaReaches = [];
             for (const abs of demoSources) {
                 const rel = relPosix(abs);
-                if (rel.includes("demo/@/components/ui/")) continue; // vendored basis
+                if (rel.includes("demo/components/ui/")) continue; // vendored basis
                 const src = blankComments(read(abs));
                 if (/\bfrom\s+["']reka-ui["']/.test(src))
                     rekaReaches.push(rel);

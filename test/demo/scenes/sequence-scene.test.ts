@@ -15,7 +15,7 @@ import {
     useSequenceDemo,
 } from "../../../demo/scenes/sequence/useSequenceDemo";
 import { SEQUENCE_SCENE_ID } from "../../../demo/scenes/sequence/sequenceKeys";
-import { warmKfEngine } from "../../../demo/@/utils/kfEngine";
+import { warmKfEngine } from "../../../demo/utils/kfEngine";
 
 describe("useSequenceInstrument — the scrub/power-on state", () => {
     it("setScrubbing toggles the scrubbing flag", () => {

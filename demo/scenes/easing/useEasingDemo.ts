@@ -16,8 +16,8 @@ import type { TimingFunction } from "@mkbabb/keyframes.js";
 import {
     generateCurveSVGPath,
     generateStepSVGPath,
-} from "@components/custom/instrument/transport/controls/timingCurveUtils";
-import { NAMED_EASING_BEZIER } from "@components/custom/instrument/transport/animationDescriptions";
+} from "@components/instrument/transport/controls/timingCurveUtils";
+import { NAMED_EASING_BEZIER } from "@components/instrument/transport/animationDescriptions";
 import { useRafScene } from "@app/runtime/useRafScene";
 import { useSceneTransport } from "@app/runtime/useSceneTransport";
 import type { SceneFacility } from "@app/scene/sceneFacility";

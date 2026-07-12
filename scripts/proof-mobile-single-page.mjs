@@ -610,7 +610,7 @@ function stripComments(src) {
 function staticHalf() {
     const groupPath = path.join(
         REPO,
-        "demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue",
+        "demo/components/instrument/transport/AnimationControlsGroup.vue",
     );
     if (!fs.existsSync(groupPath)) {
         fail(`static — AnimationControlsGroup.vue not found at ${groupPath}`);

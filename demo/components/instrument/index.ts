@@ -2,7 +2,7 @@
 // THE INSTRUMENT FACILITY (T.F5 — the GRAND COLOCATION EDICT, OWNER-ASKS row 1).
 //
 // The animation control panel is ONE facility, cohered here from what were four
-// flat sibling peers under components/custom/. Each member is a real,
+// flat sibling peers under components/. Each member is a real,
 // self-barrelled instrument:
 //
 //   transport/  — the control shells, playback ribbon, TransportDock, the

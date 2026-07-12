@@ -21,7 +21,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { type App, createApp, defineComponent, h, nextTick, ref } from "vue";
-import { useToolbarKeyboard } from "@components/custom/instrument/keyframes/composables/useToolbarKeyboard";
+import { useToolbarKeyboard } from "@components/instrument/keyframes/composables/useToolbarKeyboard";
 
 interface Harness {
     /** The roving cohort — the real (non-aria-hidden) toolbar buttons. */

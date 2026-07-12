@@ -17,7 +17,7 @@ import { useSceneSwap } from "../../../demo/app/transition/useSceneSwap";
 import {
     createGroupAdapter,
     restoreGroupPlaybackState,
-} from "../../../demo/@/state/scenePlaybackAdapters";
+} from "../../../demo/state/scenePlaybackAdapters";
 
 function makeGroup(): AnimationGroup<any> {
     const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`

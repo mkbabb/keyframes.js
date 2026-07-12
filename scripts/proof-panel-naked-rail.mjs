@@ -49,7 +49,7 @@ import { navToScene, withPage } from "./lib/demo-driver.mjs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
 const TRANSPORT =
-    "demo/@/components/custom/instrument/transport";
+    "demo/components/instrument/transport";
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);

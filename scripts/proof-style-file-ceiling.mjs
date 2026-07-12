@@ -24,12 +24,12 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-// The shared styles tier. The dir is `demo/@/styles/` today; if the `@`→`shared`
+// The shared styles tier. The dir is `demo/styles/` today; if the `@`→`shared`
 // rename lands (the sibling structure lane), the same tier lives at
 // `demo/shared/styles/`. Resolve whichever exists so the gate survives the rename
 // without a path edit (the arming-audit lesson: a gate keyed to one spelling breaks
 // on the move).
-const STYLE_DIR_CANDIDATES = ["demo/@/styles", "demo/shared/styles"];
+const STYLE_DIR_CANDIDATES = ["demo/styles", "demo/shared/styles"];
 const STYLE_DIR = STYLE_DIR_CANDIDATES.map((r) => path.join(REPO, r)).find((p) =>
     fs.existsSync(p),
 );
