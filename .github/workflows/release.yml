@@ -55,6 +55,14 @@ jobs:
                   node-version: 24
                   registry-url: "https://registry.npmjs.org"
             - run: npm ci
+            - name: assert release tag matches package version
+              run: |
+                  expected="v$(node -p \"require('./package.json').version\")"
+                  if [ "${GITHUB_REF_NAME}" != "${expected}" ]; then
+                      echo "::error::release tag ${GITHUB_REF_NAME} does not match package.json ${expected}"
+                      exit 1
+                  fi
+                  echo "release tag ${GITHUB_REF_NAME} matches package.json"
             - name: check (tsc --noEmit, library-scoped)
               run: npm run check:lib
             - name: build (library)
