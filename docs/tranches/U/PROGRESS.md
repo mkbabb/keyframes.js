@@ -11,7 +11,7 @@
 | U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta gates are deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. Remaining gate-band and ledger rehoming stays routed. |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
-| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1 indexed render seam + D2 apply-window characterization + D3 WAAPI shadow-tick fast path landed; D4 vector drag, D5 on-demand demo facets, and D6 publish chunk clause remain pending |
+| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D5 now defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live; D4 vector drag remains pending |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; only D1 owner-ridden and D8/D9 documented keeps remain |
 | U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
@@ -48,6 +48,15 @@ green master and the ratified corpus merged at `0b423142`.
   buffer in `transformTargetsStyle`; commit `949f166f` adds the 1000-frame
   Vitest apply-window and epoch-cleared stale-leaf characterization. `check`,
   the focused test, and the full library/demo suites pass.
+
+- **2026-07-12** — **U.D5/D6 DEMO DELIVERY CURE.** Commit `0bfba0a8`
+  defers highlight.js to first editor interaction, shrinking its emitted vendor
+  chunk from 928KB to 34KB. Commit `bdc2250e` removes the eager steps-keyword
+  value.js edge from the animation-options store, and `5fe2e4cb` narrows Monaco
+  to `editor.api`, eliminating unused HTML/JSON/TS workers. The new D6 clause in
+  `proof:publish` passes against the rebuilt 43-asset graph (34,343B deferred
+  highlight; editor/CSS workers only). Demo smoke, editor-live, check, and
+  gh-pages build pass; glass-ui remains untouched.
 
 - **2026-07-12** — **U.A9 BACKEND COLOCATION SEED.** The publish-boundary
   family moved from the flat `scripts/proof-publish.mjs` root into
