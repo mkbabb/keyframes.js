@@ -1,4 +1,3 @@
-import { jumpTerms } from "@mkbabb/value.js/easing";
 import { kfEngine } from "@utils/kfEngine";
 import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
@@ -8,6 +7,19 @@ import {
     getAnimationSuperKey,
 } from "./storeUtils";
 import type { SceneId } from "./sceneMachine";
+
+// Keep the eager state store value.js-free. These seven CSS `steps()` keywords
+// are a closed platform vocabulary; the heavy engine/easing surface owns
+// parsing and validation when the editor actually consumes the stored value.
+const jumpTerms = [
+    "jump-start",
+    "jump-end",
+    "jump-none",
+    "jump-both",
+    "start",
+    "end",
+    "both",
+] as const;
 
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
