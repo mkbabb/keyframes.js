@@ -36,7 +36,10 @@ import {
 import { SpringVectorLanes, EMPTY_LANES } from "./solver/vector";
 // The shared closed-form analytic kernel (R.W2c §spring `solver.ts`, the dep-free
 // leaf) — the scalar `evaluateAt` consumes it; the vector lanes inline it hoisted.
-import { solveDampedHarmonic } from "./solver";
+// Read the closed-form kernel directly. Importing the solver barrel here would
+// route back through `sample.ts`/`reseat.ts`, both of which construct a
+// SpringProgress, recreating a runtime cycle in the spring family.
+import { solveDampedHarmonic } from "./solver/solver";
 
 /**
  * Live-target spring tracker. Sibling of `SmoothProgress` for animations

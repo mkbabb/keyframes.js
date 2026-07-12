@@ -28,17 +28,10 @@
  * gate) — is enforced by proof:ci-coverage's converse-coverage clause, not
  * re-implemented here.
  *
- * THE BASELINE NUANCE (recorded, not hidden). The src/animation/ engine cluster
- * carries pre-existing co-recursive RUNTIME cycles (the module+extracted-submodule
- * pattern: engine↔easing↔frame-compiler↔group↔waapi, spring↔spring-duration↔
- * spring-reseat, group↔group-layer-springs, drag↔drag-2d). Q.WA1 ships ZERO
- * engine code, so it cannot refactor them away; they are recorded in
- * dependency-cruiser's known-violations BASELINE
- * (.dependency-cruiser-known-violations.json) and `lint` runs `--ignore-known`.
- * This is the tool's blessed ratchet: the floor greens on today's tree, no-cycle
- * still BITES any NEW cycle (clause (b) proves a planted new cycle reds THROUGH
- * the baseline), and the baseline holds ZERO boundary-rule (rule 2/3) entries —
- * the value.js/engine boundary guards run with no swallowed debt.
+ * The spring solver family previously carried a runtime cycle through its public
+ * barrel: progress imported the barrel while the sampler/reseat helpers imported
+ * progress. That cycle is now broken by reading the dependency-free kernel
+ * directly, so the source graph can run without any suppression baseline.
  *
  * GREEN on the cure: config present + `npm run lint` exits 0 + all three planted
  * violations red the relevant rule + (via ci-coverage) wired into proof:hygiene.
@@ -73,15 +66,15 @@ console.log(
 );
 
 /**
- * Run `depcruise src --ignore-known` (the same invocation the `lint` script
- * uses). Returns { code, out } — code 0 = clean, non-zero = a LIVE violation.
+ * Run `depcruise src` (the same invocation the `lint` script uses). Returns
+ * { code, out } — code 0 = clean, non-zero = a LIVE violation.
  * `execFileSync` throws on a non-zero exit; we capture the status from the error.
  */
 function runDepcruise() {
     try {
         const out = execFileSync(
             "npx",
-            ["depcruise", "src", "--ignore-known"],
+            ["depcruise", "src"],
             { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
         );
         return { code: 0, out };
@@ -103,54 +96,17 @@ if (!existsSync(CONFIG)) {
 } else {
     ok(".dependency-cruiser.cjs is present");
 }
-if (!existsSync(BASELINE)) {
-    fail(
-        ".dependency-cruiser-known-violations.json (the no-cycle baseline) is " +
-            "ABSENT — `lint --ignore-known` would red on the pre-existing engine-cluster " +
-            "cycles. Generate it with `depcruise src --output-type baseline`.",
-    );
-} else {
-    // The baseline must hold ZERO boundary-rule entries — only the pre-existing
-    // no-cycle debt is ratcheted; the value.js/engine boundary guards (rules 2/3)
-    // run with no swallowed debt. A baselined boundary violation would be a
-    // silent boundary breach.
-    let baseline = [];
-    try {
-        baseline = JSON.parse(readFileSync(BASELINE, "utf8"));
-    } catch {
-        baseline = [];
-    }
-    const boundaryBaselined = baseline.filter(
-        (e) =>
-            e?.rule?.name === "leaf-no-engine-no-valuejs" ||
-            e?.rule?.name === "light-barrel-no-engine",
-    );
-    if (boundaryBaselined.length > 0) {
-        fail(
-            `the known-violations baseline ratchets ${boundaryBaselined.length} ` +
-                "BOUNDARY-rule violation(s) (leaf-no-engine-no-valuejs / " +
-                "light-barrel-no-engine) — the value.js/engine boundary guard must " +
-                "carry ZERO baselined debt (only the pre-existing no-cycle cycles may " +
-                "be ratcheted).",
-        );
-    } else {
-        ok(
-            `the baseline ratchets ${baseline.length} pre-existing cycle(s); ZERO ` +
-                "boundary-rule debt is swallowed (rules 2/3 run live)",
-        );
-    }
-}
+ok("no suppression baseline is consulted; all source-graph violations run live");
 
-// Only RUN depcruise if the config + baseline are present (else npx would error
-// for the absence, not a real lint verdict).
+// Run depcruise against the real source graph.
 if (failures.length === 0) {
     const clean = runDepcruise();
     if (clean.code === 0) {
-        ok("`depcruise src --ignore-known` exits 0 on the clean tree (lint green)");
+        ok("`depcruise src` exits 0 on the clean tree (lint green)");
     } else {
         fail(
-            "`depcruise src --ignore-known` exited non-zero on the CLEAN tree — a " +
-                "LIVE (non-baselined) source-graph violation is present:\n" +
+            "`depcruise src` exited non-zero on the CLEAN tree — a live source-graph " +
+                "violation is present:\n" +
                 clean.out
                     .split("\n")
                     .filter((l) => /error|violation/i.test(l))
@@ -196,8 +152,7 @@ if (failures.length === 0) {
     };
 
     // Plant 1 — a NEW module-pair cycle (a↔b, runtime value imports). It MUST
-    // red no-cycle THROUGH the --ignore-known baseline (the baseline ratchets the
-    // pre-existing cycles only; a new one bites). This is the regression the
+    // red no-cycle directly. This is the regression the
     // floor exists to catch: on the pre-cure tree `tsc --noEmit` greens it.
     plant(
         "a new module-pair cycle (src/animation/__lint_fixture__/{a,b}.ts)",

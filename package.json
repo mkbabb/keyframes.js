@@ -220,7 +220,7 @@
         "proof:record-truth": "node scripts/proof-record-truth.mjs",
         "proof:lint-clean": "node scripts/proof-lint-clean.mjs",
         "proof:no-silent-fallback": "node scripts/proof-no-silent-fallback.mjs",
-        "lint": "depcruise src --ignore-known",
+        "lint": "depcruise src",
         "proof:drag2d-light-certified": "node scripts/proof-drag2d-light-certified.mjs",
         "proof:published-on-master": "node scripts/proof-published-on-master.mjs",
         "proof:deploy-roundtrip": "node scripts/proof-deploy-roundtrip.mjs",
