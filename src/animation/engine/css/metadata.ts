@@ -28,13 +28,7 @@
  * durable fix is the value.js DISPATCH (rename its export, e.g.
  * `CSSPropertyDescriptor`) — recorded in `docs/tranches/S/KF-VALUEJS-2.0.0.md`.
  */
-import {
-    extractAnimationOptions,
-    extractTimelineOptions,
-    type CSSTimelineOptions,
-    type PropertyDescriptor,
-    type Stylesheet,
-} from "@mkbabb/value.js";
+import { extractAnimationOptions, extractTimelineOptions, type CSSTimelineOptions, type PropertyDescriptor, type Stylesheet } from "@mkbabb/value.js/parsing";
 import type { Diagnostic } from "../../compile/adapter";
 import type { CompositeOperator, InputAnimationOptions } from "../../constants";
 

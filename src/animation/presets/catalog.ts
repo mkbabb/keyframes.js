@@ -1,4 +1,4 @@
-import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js";
+import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js/easing";
 import { springTimingFunction } from "../physics/spring";
 import { CSSKeyframesAnimation } from "../engine";
 import type { InputAnimationOptions } from "../constants";

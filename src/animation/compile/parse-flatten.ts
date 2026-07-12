@@ -1,20 +1,9 @@
-import {
-    flattenObject,
-    functionIdentityValue,
-    FunctionValue,
-    memoize,
-    normalizeValueUnits,
-    parseCSSSubValue,
-    prepareInterpVar,
-    unflattenObjectToString,
-    ValueArray,
-    ValueUnit,
-} from "@mkbabb/value.js";
-import type {
-    ColorSpace,
-    HueInterpolationMethod,
-    NormalizeValueUnitsOptions,
-} from "@mkbabb/value.js";
+import { flattenObject, functionIdentityValue, FunctionValue, unflattenObjectToString, ValueArray, ValueUnit } from "@mkbabb/value.js/units";
+import { parseCSSSubValue } from "@mkbabb/value.js/parsing";
+import { memoize, normalizeValueUnits, prepareInterpVar } from "@mkbabb/value.js";
+import type { HueInterpolationMethod } from "@mkbabb/value.js/color";
+import type { ColorSpace } from "@mkbabb/value.js/color";
+import type { NormalizeValueUnitsOptions } from "@mkbabb/value.js";
 import type { Vars } from "../constants";
 
 export type ParsedVarMap = Record<string, ValueArray>;

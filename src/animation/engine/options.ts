@@ -14,7 +14,7 @@
  * `engine.ts` class sheds it WITHOUT changing the `loadAnimationEngine()`
  * boundary. ZERO behavior change.
  */
-import { parseCSSTime } from "@mkbabb/value.js";
+import { parseCSSTime } from "@mkbabb/value.js/parsing";
 import {
     COLOR_SPACES,
     DIRECTIONS,

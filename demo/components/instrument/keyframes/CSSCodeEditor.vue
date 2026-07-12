@@ -37,7 +37,9 @@ import DarkTheme from "./monaco-themes/Dracula.json";
 import LightTheme from "./monaco-themes/GitHub.json";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@components/instrument/utils/iosTextEntry";
-import { convert2, debounce, formatCSS } from "@mkbabb/value.js";
+import { convert2 } from "@mkbabb/value.js/units";
+import { formatCSS } from "@mkbabb/value.js/parsing";
+import { debounce } from "@mkbabb/value.js";
 import { toast } from "vue-sonner";
 
 // The resolved Monaco namespace + a single in-flight boot promise. The boot is

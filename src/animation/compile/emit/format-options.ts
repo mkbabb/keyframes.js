@@ -16,15 +16,8 @@
  * composition emitters from HERE. HEAVY (value.js-bearing) — reached only via
  * `loadAnimationEngine()`.
  */
-import {
-    reverseAnimationShorthand,
-    reverseCSSTime,
-    serializeStylesheetItem,
-} from "@mkbabb/value.js";
-import type {
-    CSSAnimationOptions,
-    PropertyDescriptor,
-} from "@mkbabb/value.js";
+import { reverseAnimationShorthand, reverseCSSTime, serializeStylesheetItem } from "@mkbabb/value.js/parsing";
+import type { CSSAnimationOptions, PropertyDescriptor } from "@mkbabb/value.js/parsing";
 import type { KeyframesAnimation } from "../../engine";
 import type {
     AnimationOptions,

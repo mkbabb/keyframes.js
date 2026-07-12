@@ -40,7 +40,8 @@
  * alloc / proof:engine / proof:event-ordering). value.js is reached ONLY for
  * `sleep` (the first-tick delay-await).
  */
-import { sleep, type ValueUnit } from "@mkbabb/value.js";
+import { type ValueUnit } from "@mkbabb/value.js/units";
+import { sleep } from "@mkbabb/value.js";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport/core";

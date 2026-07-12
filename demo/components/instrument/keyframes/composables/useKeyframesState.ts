@@ -1,4 +1,4 @@
-import { convert2 } from "@mkbabb/value.js";
+import { convert2 } from "@mkbabb/value.js/units";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { ref } from "vue";
 import {

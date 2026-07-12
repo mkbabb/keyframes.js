@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
-import { steppedEase } from "@mkbabb/value.js";
+import { steppedEase } from "@mkbabb/value.js/easing";
 // The inv-ζ dogfood seam: the dots loop on the kf ENGINE itself
 // (mirrors CopyButton.vue:24 / typingCursor / spinner — a per-dot
 // CSSKeyframesAnimation with iterationCount: Infinity). `steppedEase` is the

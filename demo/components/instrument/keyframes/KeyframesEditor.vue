@@ -120,7 +120,7 @@ import KeyframesAddDialog from "./components/KeyframesAddDialog.vue";
 import { Paintbrush, WandSparkles } from "@lucide/vue";
 import { useToolbarKeyboard } from "./composables/useToolbarKeyboard";
 
-import { parseCSSValueUnit } from "@mkbabb/value.js";
+import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";
 import { insertTabAtCursor } from "./utils/contenteditable";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —

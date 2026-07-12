@@ -16,7 +16,8 @@
  * guard, the un-clamped `+=`, the spring-weighted `lerp`, the
  * `groupSoABlendLayer` fold + `_compositeBuf`/`buildSoAPlans`/`_soaPlans`).
  */
-import { lerp, type ValueUnit } from "@mkbabb/value.js";
+import { lerp } from "@mkbabb/value.js/math";
+import { type ValueUnit } from "@mkbabb/value.js/units";
 import { NOOP_TRANSFORM } from "../constants";
 import type { AnimationLayerConfig, Vars } from "../constants";
 import { computeGroupedKeys } from "./entries";

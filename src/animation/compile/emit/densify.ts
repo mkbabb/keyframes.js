@@ -4,11 +4,8 @@
  * densified changing-color stops merged WITH the declared non-color
  * projection into ONE @keyframes block).
  */
-import {
-    camelCaseToHyphen,
-    unflattenObjectToString,
-    ValueUnit,
-} from "@mkbabb/value.js";
+import { unflattenObjectToString, ValueUnit } from "@mkbabb/value.js/units";
+import { camelCaseToHyphen } from "@mkbabb/value.js";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
 import type { ParsedVarMap } from "../parse-flatten";

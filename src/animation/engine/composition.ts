@@ -15,7 +15,7 @@
  * value.js is reached only for `ValueUnit` (the numeric-leaf guard + the
  * segment-end read) — the same heavy surface `engine.ts` already imports.
  */
-import { ValueUnit } from "@mkbabb/value.js";
+import { ValueUnit } from "@mkbabb/value.js/units";
 import type { Diagnostic } from "../compile/adapter";
 import type { AnimationFrame, CompositeOperator, Vars } from "../constants";
 

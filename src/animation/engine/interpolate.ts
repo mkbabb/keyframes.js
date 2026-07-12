@@ -17,7 +17,9 @@
  * nothing per frame (proof:standalone-zero-alloc / proof:interp-fastprops /
  * proof:processframe-soa are the discriminating-bite oracles).
  */
-import { clamp, lerpArray, lerpValue, scale, type ValueUnit } from "@mkbabb/value.js";
+import { clamp, lerpArray, scale } from "@mkbabb/value.js/math";
+import { type ValueUnit } from "@mkbabb/value.js/units";
+import { lerpValue } from "@mkbabb/value.js";
 import { binarySearchRange } from "../internal/binarySearch";
 import { AnimationOptionError } from "../internal/errors";
 import { applyComposition as applyCompositionImpl } from "./composition";

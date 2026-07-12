@@ -22,17 +22,10 @@
  * itself rides `loadAnimationEngine()`. NOT the LIGHT static barrel.
  */
 
-import {
-    color2,
-    COLOR_SPACE_RANGES,
-    deltaEOK,
-    normalizeColorUnit,
-    sampleColorRamp,
-    scale,
-    type Color,
-    type HueInterpolationMethod,
-    type ValueUnit,
-} from "@mkbabb/value.js";
+import { color2, COLOR_SPACE_RANGES, sampleColorRamp, type Color, type HueInterpolationMethod } from "@mkbabb/value.js/color";
+import { scale } from "@mkbabb/value.js/math";
+import { type ValueUnit } from "@mkbabb/value.js/units";
+import { deltaEOK, normalizeColorUnit } from "@mkbabb/value.js/color";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
 

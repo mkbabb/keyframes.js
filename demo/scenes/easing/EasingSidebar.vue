@@ -74,7 +74,7 @@ import {
     type EasingPickerValue,
     type JumpTerm,
 } from "@mkbabb/glass-ui/easing";
-import { bezierPresets } from "@mkbabb/value.js";
+import { bezierPresets } from "@mkbabb/value.js/easing";
 
 import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
 import type { EasingDemoContext } from "./easingKeys";

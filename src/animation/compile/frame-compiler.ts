@@ -11,7 +11,8 @@
  * accessors to it; the compile inputs it needs (`options`, and `targets` for
  * `parse`) are passed in, never reached back through the owning class.
  */
-import { seekPreviousValue, unflattenObject, ValueUnit } from "@mkbabb/value.js";
+import { unflattenObject, ValueUnit } from "@mkbabb/value.js/units";
+import { seekPreviousValue } from "@mkbabb/value.js";
 import type {
     AnimationFrame,
     AnimationOptions,

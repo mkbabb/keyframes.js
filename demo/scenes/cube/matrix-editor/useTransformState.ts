@@ -1,4 +1,4 @@
-import { easeInBounce } from "@mkbabb/value.js";
+import { easeInBounce } from "@mkbabb/value.js/easing";
 import type { Vars } from "@mkbabb/keyframes.js";
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";

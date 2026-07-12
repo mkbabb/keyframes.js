@@ -1,4 +1,4 @@
-import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
+import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { debounce } from "@mkbabb/value.js";

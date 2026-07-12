@@ -9,13 +9,8 @@
  * node resolver, injected as `resolveNode` to break the mutual recursion with the
  * core dispatch (`resolve/index.ts`). HEAVY (value.js `coerceToSyntax`/`parseCSSValue`).
  */
-import {
-    coerceToSyntax,
-    FunctionValue,
-    parseCSSValue,
-    ValueUnit,
-    type CustomFunctionParameter,
-} from "@mkbabb/value.js";
+import { coerceToSyntax, parseCSSValue, type CustomFunctionParameter } from "@mkbabb/value.js/parsing";
+import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
 import { DROP, type ResolveContext, type Resolved } from "./env";
 
 /**

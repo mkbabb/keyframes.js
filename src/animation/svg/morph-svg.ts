@@ -42,7 +42,7 @@
  *   exactly-one specifier.
  */
 
-import { PathGeometry } from "@mkbabb/value.js";
+import { PathGeometry } from "@mkbabb/value.js/transform";
 import { CSSKeyframesAnimation } from "../engine";
 import { SVGAnimationHandle } from "./handle";
 import type { InputAnimationOptions, Vars } from "../constants";

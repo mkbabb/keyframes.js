@@ -1,16 +1,5 @@
-import {
-    extractAnimationOptions,
-    extractFunctions,
-    extractKeyframes,
-    extractProperties,
-    parseCSSStylesheet,
-    ValueArray,
-    type CustomFunctionDescriptor,
-    type KeyframeRule,
-    type ParseDiagnostic,
-    type PropertyDescriptor,
-    type Stylesheet,
-} from "@mkbabb/value.js";
+import { extractAnimationOptions, extractFunctions, extractKeyframes, extractProperties, parseCSSStylesheet, type CustomFunctionDescriptor, type KeyframeRule, type ParseDiagnostic, type PropertyDescriptor, type Stylesheet } from "@mkbabb/value.js/parsing";
+import { ValueArray } from "@mkbabb/value.js/units";
 import {
     DROP,
     hasResolvableValue,

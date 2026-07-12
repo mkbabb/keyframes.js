@@ -1,4 +1,4 @@
-import { FunctionValue, ValueUnit } from "@mkbabb/value.js";
+import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
 import { markRaw, shallowRef } from "vue";
 import type { Ref } from "vue";
 import { kfEngine } from "@utils/kfEngine";

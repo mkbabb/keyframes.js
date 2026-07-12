@@ -1,12 +1,6 @@
-import {
-    camelCaseToHyphen,
-    CSSCubicBezier,
-    cubicBezierToString,
-    steppedEase,
-    stepEnd,
-    stepStart,
-    timingFunctions,
-} from "@mkbabb/value.js";
+import { CSSCubicBezier, steppedEase, stepEnd, stepStart, timingFunctions } from "@mkbabb/value.js/easing";
+import { cubicBezierToString } from "@mkbabb/value.js/math";
+import { camelCaseToHyphen } from "@mkbabb/value.js";
 import { computed, markRaw, ref, watch } from "vue";
 import { useThrottledReadout } from "@composables/useThrottledReadout";
 

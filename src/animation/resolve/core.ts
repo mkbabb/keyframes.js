@@ -27,7 +27,7 @@
  * HEAVY (value.js `FunctionValue`/`ValueUnit`/`ValueArray`) — reached only behind
  * `loadAnimationEngine()`.
  */
-import { FunctionValue, ValueArray, ValueUnit } from "@mkbabb/value.js";
+import { FunctionValue, ValueArray, ValueUnit } from "@mkbabb/value.js/units";
 import { DROP, type ResolveContext, type Resolved } from "./env";
 import { resolveFunctionCall, type ResolveNode } from "./resolve-function";
 import { isStyleConditionIf, resolveIf } from "./resolve-if";

@@ -10,14 +10,7 @@
  * dynamic import from the full engine chunk to `"./compile/easing/easing-registry"`
  * (lib-support F7). HEAVY (value.js-bearing — the registry + the CSS parsers).
  */
-import {
-    CSSCubicBezier,
-    cssLinear,
-    parseLinearStops,
-    parseSteps,
-    steppedEase,
-    timingFunctions,
-} from "@mkbabb/value.js";
+import { CSSCubicBezier, cssLinear, parseLinearStops, parseSteps, steppedEase, timingFunctions } from "@mkbabb/value.js/easing";
 import type {
     TimingFunction,
     TimingFunctionNames,

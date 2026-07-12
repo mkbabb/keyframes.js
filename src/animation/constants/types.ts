@@ -14,13 +14,10 @@
 // The FILE-level purity is gated by `proof:boundary`'s S.B1 clause: any
 // non-`import type` module edge in THIS file reddens the gate (strictly stronger
 // than the whole-surface boundary scan).
-import type {
-    ColorSpace,
-    HueInterpolationMethod,
-    InterpolatedVar,
-    ValueUnit,
-    timingFunctions,
-} from "@mkbabb/value.js";
+import type { HueInterpolationMethod } from "@mkbabb/value.js/color";
+import type { InterpolatedVar, ValueUnit } from "@mkbabb/value.js/units";
+import type { timingFunctions } from "@mkbabb/value.js/easing";
+import type { ColorSpace } from "@mkbabb/value.js/color";
 import type { DIRECTIONS, FILL_MODES } from "./defaults";
 // T.A6 — the PLAIN authored-shape projection type (type-only edge; erased under
 // verbatimModuleSyntax, so `constants/types` stays LIGHT-PURE per proof:boundary).
@@ -29,8 +26,8 @@ import type { PlainProjection } from "../compile/plain-vars";
 export type {
     ColorSpace,
     HueInterpolationMethod,
-    InterpolatedVar,
-} from "@mkbabb/value.js";
+} from "@mkbabb/value.js/color";
+export type { InterpolatedVar } from "@mkbabb/value.js/units";
 
 export type TimingFunctionNames = keyof typeof timingFunctions;
 

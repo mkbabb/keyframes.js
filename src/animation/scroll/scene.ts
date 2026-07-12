@@ -52,11 +52,7 @@ import type { ResolvedRange } from "./range";
 // The driver consumes the value.js scroll-grammar TYPES only (erased under
 // verbatimModuleSyntax — no runtime value.js edge; the static edge lives in
 // `./grammar`, the SO-1 round-trip half re-exported by the scroll barrel).
-import type {
-    AnimationRangeValue,
-    AnimationTimelineValue,
-    CSSTimelineOptions,
-} from "@mkbabb/value.js";
+import type { AnimationRangeValue, AnimationTimelineValue, CSSTimelineOptions } from "@mkbabb/value.js/parsing";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SO-2 — the ScrollScene JS DRIVER (value.js-INDEPENDENT; composes the SHIPPED

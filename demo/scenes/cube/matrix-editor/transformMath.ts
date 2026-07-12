@@ -1,4 +1,4 @@
-import { FunctionValue, ValueUnit } from "@mkbabb/value.js";
+import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
 import { mat4 } from "gl-matrix";
 
 export const MATRIX_AXES = ["x", "y", "z", "w"];

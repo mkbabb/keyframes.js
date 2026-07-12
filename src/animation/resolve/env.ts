@@ -8,7 +8,7 @@
  * else-branch deterministically. The recursive rewriter (`resolve/index.ts`)
  * threads a {@link ResolveContext} built by {@link makeResolveContext}.
  */
-import type { CustomFunctionDescriptor } from "@mkbabb/value.js";
+import type { CustomFunctionDescriptor } from "@mkbabb/value.js/parsing";
 
 /**
  * The injectable environment a Phase-1 resolution evaluates against. Every field

@@ -1,10 +1,6 @@
-import {
-    camelCaseToHyphen,
-    formatCSS,
-    unflattenObjectToString,
-    ValueArray,
-    ValueUnit,
-} from "@mkbabb/value.js";
+import { formatCSS } from "@mkbabb/value.js/parsing";
+import { unflattenObjectToString, ValueArray, ValueUnit } from "@mkbabb/value.js/units";
+import { camelCaseToHyphen } from "@mkbabb/value.js";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
 import { serializeEasing } from "./easing-serialize";

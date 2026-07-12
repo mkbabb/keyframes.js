@@ -1,4 +1,4 @@
-import { clamp } from "@mkbabb/value.js";
+import { clamp } from "@mkbabb/value.js/math";
 import { quat } from "gl-matrix";
 
 // Pure quaternion ↔ Euler-degree conversion — the orbital drag's source-of-truth

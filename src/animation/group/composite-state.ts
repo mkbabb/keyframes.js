@@ -1,4 +1,4 @@
-import type { ValueUnit } from "@mkbabb/value.js";
+import type { ValueUnit } from "@mkbabb/value.js/units";
 
 type CloneableUnit = ValueUnit<unknown> & { clone(): ValueUnit<unknown> };
 

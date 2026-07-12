@@ -8,7 +8,7 @@
  * Statically imports the heavy `@mkbabb/value.js` surface — reachable ONLY
  * through the `./index` dynamic boundary (`await loadAnimationEngine()`).
  */
-import type { ValueUnit } from "@mkbabb/value.js";
+import type { ValueUnit } from "@mkbabb/value.js/units";
 import { RAFPlayback } from "../physics/playback";
 import type { Diagnostic } from "../compile/adapter";
 import { defaultOptions } from "../constants";

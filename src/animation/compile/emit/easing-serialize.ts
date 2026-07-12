@@ -4,7 +4,8 @@
  * the 500L cohesion tripwire; this IS a seam: TimingFunction→CSS text, no
  * keyframe/block emission).
  */
-import { camelCaseToHyphen, timingFunctions } from "@mkbabb/value.js";
+import { timingFunctions } from "@mkbabb/value.js/easing";
+import { camelCaseToHyphen } from "@mkbabb/value.js";
 import type { Easing, TimingFunction } from "../../constants";
 import { AnimationOptionError } from "../../internal/errors";
 

@@ -45,7 +45,8 @@
  * across every layer AND every frame (the F.W4 zero-alloc discipline,
  * proof:zero-alloc and the SoA identity test green).
  */
-import { ValueUnit, lerp } from "@mkbabb/value.js";
+import { ValueUnit } from "@mkbabb/value.js/units";
+import { lerp } from "@mkbabb/value.js/math";
 import type { AnimationLayerConfig } from "../constants";
 import type { AnimationGroupEntry } from "./types";
 import { resolveBlendWeight } from "./weight";

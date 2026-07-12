@@ -62,7 +62,7 @@ import type {
     TimingFunction,
     TimingFunctionNames,
 } from "./constants/types";
-import type { Stylesheet } from "@mkbabb/value.js";
+import type { Stylesheet } from "@mkbabb/value.js/parsing";
 
 export interface AnimationEngine {
     KeyframesAnimation: typeof KeyframesAnimation;

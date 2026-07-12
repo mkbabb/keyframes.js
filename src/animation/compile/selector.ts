@@ -11,7 +11,8 @@
  * {@link namedSelectorToFraction}. value.js-bearing (the `AnimationOptionError`
  * + the phase table) — rides the heavy compile chunk alongside `frame-compiler`.
  */
-import { ValueUnit, parseCSSValueUnit } from "@mkbabb/value.js";
+import { ValueUnit } from "@mkbabb/value.js/units";
+import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";
 import { AnimationOptionError } from "../internal/errors";
 import { PHASE_FRACTIONS } from "../internal/scroll-phases";
 

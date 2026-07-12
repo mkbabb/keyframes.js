@@ -1,9 +1,4 @@
-import {
-    extractAnimationOptions,
-    extractStyleRules,
-    parseCSSStylesheet,
-    type CSSAnimationOptions,
-} from "@mkbabb/value.js";
+import { extractAnimationOptions, extractStyleRules, parseCSSStylesheet, type CSSAnimationOptions } from "@mkbabb/value.js/parsing";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 
 /**

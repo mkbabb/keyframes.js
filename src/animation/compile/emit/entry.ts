@@ -34,13 +34,9 @@
  * ── BOUNDARY: HEAVY (value.js-bearing). ──────────────────────────────────────
  * Reached ONLY via `loadAnimationEngine()` + the `./engine` static mirror.
  */
-import {
-    camelCaseToHyphen,
-    formatCSS,
-    reverseCSSTime,
-    unflattenObjectToString,
-    ValueUnit,
-} from "@mkbabb/value.js";
+import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
+import { unflattenObjectToString, ValueUnit } from "@mkbabb/value.js/units";
+import { camelCaseToHyphen } from "@mkbabb/value.js";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
 // The emit-substrate helpers, imported from the real sibling FILES inside emit/

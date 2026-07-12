@@ -37,7 +37,7 @@
  * Reached ONLY via `loadAnimationEngine()` + the `./engine` static mirror — never
  * the LIGHT barrel (its LIGHT twin is `orchestration/view-transition`'s dispatch).
  */
-import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
+import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
 import type { KeyframesAnimation } from "../../engine";
 import type { AnimationOptions, Vars } from "../../constants";
 // The emit-substrate helpers, imported from the real sibling FILES inside emit/

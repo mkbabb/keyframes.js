@@ -8,12 +8,9 @@
  * (in `../animation`) is value.js-/scroll-agnostic. The `engine/css/index.ts`
  * barrel re-exports the class; the `engine/index.ts` barrel re-exports it onward.
  */
-import {
-    isObject,
-    ValueUnit,
-    type CSSTimelineOptions,
-    type PropertyDescriptor,
-} from "@mkbabb/value.js";
+import { ValueUnit } from "@mkbabb/value.js/units";
+import { type CSSTimelineOptions, type PropertyDescriptor } from "@mkbabb/value.js/parsing";
+import { isObject } from "@mkbabb/value.js";
 import { resolveKeyframes } from "../../compile/adapter";
 import type {
     CompositeOperator,

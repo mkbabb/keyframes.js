@@ -1,4 +1,4 @@
-import { jumpTerms } from "@mkbabb/value.js";
+import { jumpTerms } from "@mkbabb/value.js/easing";
 import { kfEngine } from "@utils/kfEngine";
 import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";

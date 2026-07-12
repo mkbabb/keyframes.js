@@ -44,7 +44,7 @@
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { extractKeyframes, parseCSSStylesheet } from "@mkbabb/value.js";
+import { extractKeyframes, parseCSSStylesheet } from "@mkbabb/value.js/parsing";
 import { CSSKeyframesAnimation } from "./engine";
 import { compileToCSS } from "./compile";
 import { isWAAPIEligible } from "./waapi";

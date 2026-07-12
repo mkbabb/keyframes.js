@@ -40,11 +40,7 @@
 import { clamp } from "../internal/leaves";
 import { resolveRange } from "./range";
 import type { ResolvedRange } from "./range";
-import type {
-    AnimationTriggerValue,
-    CSSTimelineOptions,
-    TriggerType,
-} from "@mkbabb/value.js";
+import type { AnimationTriggerValue, CSSTimelineOptions, TriggerType } from "@mkbabb/value.js/parsing";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // The discrete trigger lifecycle (SF-4 S1) — the idle→active→done state machine

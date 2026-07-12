@@ -50,7 +50,7 @@
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { formatCSS, reverseCSSTime } from "@mkbabb/value.js";
+import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
 import type { KeyframesAnimation } from "../../engine";
 import { AnimationGroup } from "../../group";
 import { Sequence } from "../../orchestration/sequence";
