@@ -21,7 +21,7 @@ import { NAMED_EASING_BEZIER } from "@components/instrument/transport/animationD
 import { useRafScene } from "@composables/scene-runtime/useRafScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
-import { PROGRESS_READOUT_HZ } from "@composables/scene-runtime/rafConstants";
+import { PROGRESS_READOUT_HZ } from "@utils/rafConstants";
 import { useSceneMachine } from "@state";
 import { kfEngine } from "@utils/kfEngine";
 import { EASING_SCENE_ID } from "./easingKeys";

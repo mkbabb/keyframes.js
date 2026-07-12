@@ -4,7 +4,7 @@ import type { SpringProgress } from "@mkbabb/keyframes.js";
 
 import { useThrottledReadout } from "@composables/useThrottledReadout";
 
-import { PROGRESS_READOUT_HZ } from "@composables/scene-runtime/rafConstants";
+import { PROGRESS_READOUT_HZ } from "@utils/rafConstants";
 import { SPRING_PRESETS, type SpringPreset } from "./springPresets";
 
 /** One live tracker plus its reactive read-out, for the comparison row. */
