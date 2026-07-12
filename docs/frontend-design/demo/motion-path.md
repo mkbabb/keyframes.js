@@ -1,7 +1,7 @@
 # MotionPath — frontend-design treatment
 
 > Page: `demo/app/scenes/MotionPathScene.vue` → `demo/motion-path/MotionPathTarget.vue`
-> Design system: glass-ui tokens + `demo/@/styles/{style.css, design-idioms.css, brand.css}` + `demo/DESIGN.md`
+> Design system: glass-ui tokens + `demo/styles/{style.css, design-idioms.css, brand.css}` + `demo/DESIGN.md`
 > Scope: a design PROPOSAL. No source is written outside this doc.
 
 ---

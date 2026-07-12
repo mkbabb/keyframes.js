@@ -1,6 +1,6 @@
 # Square scene — frontend-design treatment
 
-> Scope: `demo/app/scenes/SquareScene.vue` + `demo/square/useSquareAnimations.ts`, riding the demo design language (`demo/@/styles/{style.css,design-idioms.css,brand.css}`, `demo/DESIGN.md`) over `@mkbabb/glass-ui` tokens. This is a PROPOSAL — no source is written outside this doc.
+> Scope: `demo/app/scenes/SquareScene.vue` + `demo/square/useSquareAnimations.ts`, riding the demo design language (`demo/styles/{style.css,design-idioms.css,brand.css}`, `demo/DESIGN.md`) over `@mkbabb/glass-ui` tokens. This is a PROPOSAL — no source is written outside this doc.
 
 ---
 
@@ -112,7 +112,7 @@ It is unforgettable because it makes the *invisible visible*: the two springs fe
 8. `SquareScene.vue` `.square-stage`: deflection-keyed `--stage-field-tint` accent wash (`design-idioms.css:272`).
 9. `SquareScene.vue`: progressive "double-click to tumble" hint after first drag-settle.
 
-**Touch list:** `demo/app/scenes/SquareScene.vue` (template + scoped style — most changes), `demo/square/useSquareAnimations.ts` (transform enrichment + palette reconcile), `demo/@/styles/design-idioms.css` (one token repoint: `--subject-teal`). No new files; no glass-ui patches; every new visual reuses an existing demo idiom or the sanctioned rainbow/red palettes.
+**Touch list:** `demo/app/scenes/SquareScene.vue` (template + scoped style — most changes), `demo/square/useSquareAnimations.ts` (transform enrichment + palette reconcile), `demo/styles/design-idioms.css` (one token repoint: `--subject-teal`). No new files; no glass-ui patches; every new visual reuses an existing demo idiom or the sanctioned rainbow/red palettes.
 
 **Guards to honour throughout:** single spring-loop paint authority (no second rAF/writer); PRM snap-collapse on tether/tilt/stretch/pulses; `prefers-reduced-motion` global bracket already drops `scale`/`transform` transitions; tokens live in `design-idioms.css`/`style.css`, scene rules in the SFC scoped block (per the cascade-ownership contract); the rainbow family is the ONLY sanctioned multi-colour pop, red is the motion authority — the egg rides rainbow, the live drag rides red.
 

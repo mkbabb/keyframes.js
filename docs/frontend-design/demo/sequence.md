@@ -368,7 +368,7 @@ no token fork, no glass-ui patch.
 
 **Files touched (proposal scope, for the eventual impl):** `demo/sequence/SequenceTarget.vue`
 (scoped style + 2 class bindings), `demo/sequence/SequenceScrubber.vue` (readout markup + scoped
-style), `demo/@/styles/design-idioms.css` (one `@property --ball-p` registration + optional `--seq-*`
+style), `demo/styles/design-idioms.css` (one `@property --ball-p` registration + optional `--seq-*`
 token homes). **No** glass-ui edits, **no** new fonts, **no** new dependencies, **no** new tokens
 outside the `--seq-*` namespace + the one `@property` registration. Every motion rides existing
 custom properties the engine already paints.
