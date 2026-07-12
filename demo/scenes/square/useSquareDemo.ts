@@ -1,8 +1,8 @@
 import { kfEngine } from "@utils/kfEngine";
-import { RAFPlayback } from "@mkbabb/keyframes.js";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import type { Vars } from "@mkbabb/keyframes.js";
 import { onScopeDispose, type Ref } from "vue";
+import { useManagedLoop } from "@composables/scene-runtime/useRafScene";
 
 /**
  * useSquareDemo — the dogfood of the custom-transform-function over
@@ -214,7 +214,6 @@ export function useSquareDemo(
     };
 
     // ── The live paint loop (ticks both springs, paints via transformFunc) ──
-    const playback = new RAFPlayback();
     let lastNow = 0;
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
@@ -321,13 +320,13 @@ export function useSquareDemo(
         startLoop();
     };
 
-    /** Arm the loop (idempotent — a no-op while already running). */
-    const startLoop = (): void => {
-        if (!playback.running) {
-            lastNow = 0;
-            playback.loop(frame);
-        }
-    };
+    const { playback, startLoop, stopLoop } = useManagedLoop({
+        frame,
+        onArm: () => { lastNow = 0; },
+        getProgress: () => 0,
+        setProgress: () => {},
+        getPlaying: () => playback.running,
+    });
 
     /**
      * Re-seat both axis targets from a normalized pointer offset. `nx`/`ny` ∈
@@ -451,7 +450,7 @@ export function useSquareDemo(
     };
 
     const dispose = (): void => {
-        playback.stop();
+        stopLoop();
         springX.dispose();
         springY.dispose();
         springSpin.dispose();

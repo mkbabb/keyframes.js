@@ -5,9 +5,8 @@ import type { CSSKeyframesAnimation as CSSKeyframesAnimationT } from "@mkbabb/ke
 import { Sequence } from "@mkbabb/keyframes.js";
 import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
-import { RAFPlayback } from "@mkbabb/keyframes.js";
 
-import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
+import { useManagedLoop } from "@composables/scene-runtime/useRafScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
 import { useSequenceInstrument } from "./useSequenceInstrument";
@@ -185,15 +184,23 @@ export function useSequenceDemo() {
     // machine (the single authority): when the machine leaves `playing` the loop
     // self-terminates. The Sequence's own play loop drives the actual ball motion
     // in parallel; this loop only mirrors the playhead into the reactive readout.
-    const mirror = markRaw(new RAFPlayback());
-    const startMirror = () => {
-        if (mirror.running) return;
-        mirror.loop(() => {
+    const {
+        playback: mirror,
+        startLoop: startMirror,
+        stopLoop: stopMirror,
+    } = useManagedLoop({
+        frame: () => {
             syncFromSequence();
             return machine.status.value === "playing";
-        });
-    };
-    const stopMirror = () => mirror.stop();
+        },
+        onArm: () => syncFromSequence(),
+        getProgress: () => progress.value,
+        setProgress: (t) => {
+            sequence.progress = Math.max(0, Math.min(1, t));
+            syncFromSequence();
+        },
+        getPlaying: () => machine.status.value === "playing",
+    });
 
     // ── The engine-loop drivers (driven by the adapter / the machine) ─────────
     // The adapter's resume/suspend route the engine loop through ONE seam
@@ -432,16 +439,6 @@ export function useSequenceDemo() {
     // the readout shows 0 before the first restore (the SequenceTarget seeks 0 on
     // mount too — this is the composable-side belt-and-braces).
     syncFromSequence();
-
-    // Pause the engine loop while the tab is backgrounded (CWV / battery),
-    // without disturbing the machine's play/pause intent (PRESERVED autoPaused
-    // contract — "only resume what IT paused"). `startLoop` resumes from the
-    // retained playhead with no jump.
-    useSceneVisibilityPause(
-        () => mirror.running,
-        stopLoop,
-        startLoop,
-    );
 
     // Stop the mirror + sequence on scope dispose (the genuine unmount seam) —
     // the host has NO <KeepAlive>, so onDeactivated never fires; this gives the
