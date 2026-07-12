@@ -13,17 +13,31 @@
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D3 WAAPI shadow-tick fast path landed; D2 microtask-hop harness and remaining frontier rows pending |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; only D1 owner-ridden and D8/D9 documented keeps remain |
-| U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
+| U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
-| U.R | PROMPT-RECAP-U (STANDING) | CHARTERED |
+| U.R | PROMPT-RECAP-U (STANDING) | **COMPLETE** — U.R2 retargeted to tree-cleared witness; `proof:prompt-recap-u` passes all seven clauses |
 | U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
-| U.Z | THE CLOSE | **CHARTERED-CONVERGED** — the four loop sweep witnesses (§①.6 grep · §4 residue · CLAUDE.md · red-on-plant) fold into the certifying sweep |
+| U.Z | THE CLOSE | **IN PROGRESS** — publish bundle and certifying sweep are executable; close remains gated by owner-golden blessing and glass-ui 5.0.0 release readiness |
 
 **IMPL AUTHORIZED** — OD-U22; implementation branch `tranche-u-impl` opened from
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.F SUBPATH TRANSPOSITION + U.R2 RETARGET.** Commits
+  `5377d2e2`, `6161215c`, and `10ddaa15` move the published heavy value.js
+  consumers (library and demo) onto the frozen 3.1.0 subpaths, including the
+  easing default and its boundary oracle. `b9505bb1` replaces the T recap gate
+  with the tree-cleared U witness; all 7 clauses pass. Full library (931 passed,
+  2 expected failures, 15 skipped) and demo (141 passed) suites pass, as do
+  `check`, `build:lib`, `proof:boundary`, `proof:published-surface`, and
+  `proof:deps-current`. Glass-ui remains untouched pending its published 5.0.0.
+
+- **2026-07-12** — **U.Z1 PUBLISH BUNDLE AUTHORED.** Commit `d30db16c` adds
+  `proof:publish` (boundary + published surface + dependency currency) and
+  wires it into the release workflow. The bundle and `proof:ci-coverage` pass;
+  the owner-golden render leg still skips without the external blessing token.
 
 - **2026-07-12** — **U.E HYGIENE RE-ARM AFTER E8/E10.** Commit `244a8c3a`
   reconciles the standing structural records after the suppression-ledger and
