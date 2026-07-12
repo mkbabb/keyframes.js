@@ -116,7 +116,8 @@ import { Card } from "@mkbabb/glass-ui";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
-import { cubicBezierToString, stepEnd, stepStart, steppedEase } from "@mkbabb/value.js/easing";
+import { stepEnd, stepStart, steppedEase } from "@mkbabb/value.js/easing";
+import { cubicBezierToString } from "@mkbabb/value.js/math";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 import CopyButton from "@components/CopyButton.vue";
