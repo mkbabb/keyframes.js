@@ -25,6 +25,15 @@ green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
 
+- **2026-07-12** — **POST-C3 REGRESSION CURE + E10 D6 COMPLETE.** Commit
+  `516de469` filters epoch-cleared composite leaves at the style output boundary
+  so shape-stable grouped maps remain compatible with value.js serialization;
+  it also re-anchors the playback visualizer mirror witness. The zero-allocation
+  and mirror suites (12 tests), `npm run check`, and `proof:dogfood` passed.
+  Commit `d770b99b` routes the four Sequence/Spring `clamp01` copies through
+  value.js math; its demo checks and dogfood proof passed. E7/E8 delete-last work
+  remains intentionally untouched.
+
 - **2026-07-12** — **U.C11 DISPATCH-DEDUPE SLICE COMPLETE.** Commit `a664442c`
   re-homes `ScrollBackend` beside dispatch and passes the precomputed WAAPI
   eligibility/timeline context into native attachment, avoiding the duplicate
