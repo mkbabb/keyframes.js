@@ -25,6 +25,7 @@ import { prefersReducedMotion } from "../../internal/reduced-motion";
 import { reanchorSequence, settleSequence } from "./transport";
 import type { Vars } from "../../constants/types";
 import type { Sequence } from "./sequence";
+import { beginPlay } from "../../internal/transport/core";
 
 /**
  * Drive the sequence over real time via `RAFPlayback`. Each child is driven
@@ -38,8 +39,9 @@ import type { Sequence } from "./sequence";
  * paint (a terminal `seek(duration)`), no draw loop.
  */
 export function play<V extends Vars>(seq: Sequence<V>): Promise<void> {
+    // Avoid mutating child anchors on a re-entrant call; beginPlay owns the
+    // corresponding held-promise creation/cleanup path below.
     if (seq._playingPromise) return seq._playingPromise;
-
     if (seq.respectReducedMotion && prefersReducedMotion()) {
         seq.seek(seq.duration);
         return Promise.resolve();
@@ -65,16 +67,10 @@ export function play<V extends Vars>(seq: Sequence<V>): Promise<void> {
     seq._playOrigin = undefined;
     seq._lastClock = undefined;
 
-    const result = new Promise<void>((resolve) => {
+    return beginPlay(seq, () => new Promise<void>((resolve) => {
         seq._resolvePlay = resolve;
         seq.playback.loop(seq._boundFrame);
-    });
-
-    seq._playingPromise = result;
-    result.finally(() => {
-        seq._playingPromise = null;
-    });
-    return result;
+    }));
 }
 
 /** Halt the play loop where it stands and resolve any pending `play()`. */

@@ -442,7 +442,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
 
     /** The explicit flip: pauses if playing, resumes if paused. */
     toggle() {
-        return this.paused ? this.resume() : this.pause();
+        return playback.toggle(this);
     }
 
     stop() {

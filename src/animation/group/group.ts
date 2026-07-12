@@ -353,7 +353,7 @@ export class AnimationGroup<V extends Vars> {
 
     /** The explicit flip: pauses if playing, resumes if paused. */
     toggle() {
-        return this.paused ? this.resume() : this.pause();
+        return lifecycle.toggle(this);
     }
 
     /** Pure state teardown — never paints. Releases every child (`managed = false`,

@@ -28,6 +28,7 @@ import { setChildrenPaused, snapChildrenToFinal } from "./entries";
 import { compositeFrame } from "./compositor";
 import type { Vars } from "../constants";
 import type { AnimationGroup } from "./group";
+import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport/core";
 
 /** Resolve + clear the pending `play()` promise (the completion/stop path). */
 export function resolvePlay<V extends Vars>(group: AnimationGroup<V>): void {
@@ -42,9 +43,7 @@ export function resolvePlay<V extends Vars>(group: AnimationGroup<V>): void {
 export async function play<V extends Vars>(
     group: AnimationGroup<V>,
 ): Promise<void> {
-    if (group._playingPromise) return group._playingPromise;
-
-    const result = withReducedMotion(
+    return beginPlay(group, () => withReducedMotion(
         group.respectReducedMotion,
         () => playReducedMotion(group),
         () =>
@@ -52,13 +51,7 @@ export async function play<V extends Vars>(
                 group.resolvePromise = resolve;
                 group.playback.loop(group._boundFrame);
             }),
-    );
-
-    group._playingPromise = result;
-    result.finally(() => {
-        group._playingPromise = null;
-    });
-    return result;
+    ));
 }
 
 /** `prefers-reduced-motion` snap: rest = final, paint it, settle — the SAME
@@ -117,6 +110,10 @@ export function resume<V extends Vars>(group: AnimationGroup<V>): void {
     group.playback.loop(group._boundFrame);
 }
 
+export function toggle<V extends Vars>(group: AnimationGroup<V>): void {
+    transportToggle(group, () => pause(group), () => resume(group));
+}
+
 /** Pure state teardown — never paints. Releases every child (`managed = false`,
  * `child.settle()`) and clears the group flags, leaving the rest frame painted. */
 export function settle<V extends Vars>(group: AnimationGroup<V>): void {
@@ -154,5 +151,5 @@ export function stop<V extends Vars>(group: AnimationGroup<V>): void {
 
 /** True iff the group is started and not paused. */
 export function playing<V extends Vars>(group: AnimationGroup<V>): boolean {
-    return !(!group.started || group.paused);
+    return transportPlaying(group);
 }

@@ -155,6 +155,7 @@ export class Sequence<V extends Vars = Vars>
     /** @internal (S.B5) — the ONE held play promise the `finished` front-door
      * exposes; read/written by the transport free functions in `./lifecycle`. */
     _playingPromise: Promise<void> | null = null;
+    private _duration = 0;
 
     /**
      * The scalar playback rate — the single field that drives `timeScale`
@@ -199,12 +200,7 @@ export class Sequence<V extends Vars = Vars>
 
     /** The full span of the sequence (ms): the latest segment end. */
     get duration(): number {
-        let end = 0;
-        for (const entry of this.entries) {
-            const segEnd = entry.at + entry.animation.options.duration;
-            if (segEnd > end) end = segEnd;
-        }
-        return end;
+        return this._duration;
     }
 
     /** The current master-clock position (ms). */
@@ -279,6 +275,7 @@ export class Sequence<V extends Vars = Vars>
         // order regardless of insertion order (a later `at:0` is legal).
         this.entries.sort((a, b) => a.at - b.at);
         this.cursor = resolved + animation.options.duration;
+        this._duration = Math.max(this._duration, this.cursor);
         return this;
     }
 
