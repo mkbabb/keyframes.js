@@ -4,7 +4,7 @@ import type { Vars } from "@mkbabb/keyframes.js";
 import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";
 import { useSquareTumble } from "./useSquareTumble";
 import { onScopeDispose, type Ref } from "vue";
-import { useManagedLoop } from "@composables/scene-runtime/useRafScene";
+import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
 
 /**
  * useSquareDemo — the dogfood of the custom-transform-function over

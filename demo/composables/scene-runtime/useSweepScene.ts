@@ -120,3 +120,6 @@ export function useSweepScene(opts: SweepSceneOptions): SweepSceneHandleApi {
 
     return { playback, startLoop, stopLoop, scenePlayback };
 }
+
+/** Compatibility name for non-sweep scene consumers during the convergence. */
+export const useManagedLoop = useSweepScene;

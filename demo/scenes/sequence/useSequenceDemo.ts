@@ -6,7 +6,7 @@ import { Sequence } from "@mkbabb/keyframes.js";
 import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 
-import { useManagedLoop } from "@composables/scene-runtime/useRafScene";
+import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
 import { useSequenceInstrument } from "./useSequenceInstrument";
