@@ -4,8 +4,9 @@
  *
  * Verifies the shared ratio-gate helper exports and contract correctness without
  * running any bench (this gate is pure Node — no vitest, no spawned process).
- * A consumer gate (proof:soa-composite, proof:spring-vector) imports ratioGate /
- * absoluteGate directly and never re-derives the ratio math.
+ * The surviving perf consumers import ratioGate / absoluteGate directly and
+ * never re-derive the ratio math. The former SoA and spring-vector decision
+ * gates were retired after their floors moved into the benchmark taxonomy.
  *
  * ── CLAUSES ──────────────────────────────────────────────────────────────────
  *
@@ -100,7 +101,7 @@ if (!failures.some((f) => f.includes("[helper-present]"))) {
 }
 
 // ── Build a fixture vitest bench report ─────────────────────────────────────
-// The shape proof:spring-vector / proof:soa-composite read from --outputJson.
+// The fixture shape mirrors the historical JSON-consuming perf gates.
 const BASE_HZ = 1000;
 const makeReport = ({ base = BASE_HZ, cand = BASE_HZ * 2, caseName = "cand", baseName = "base" } = {}) => ({
     files: [
@@ -411,17 +412,10 @@ if (typeof ratioGateValue === "function") {
     // ratioGate / absoluteGate. We look for the specific comparison shape
     // `hz < floor` or `hz >= WIN_FRACTION` or `hz < floorHz` as a bare if-predicate.
     // We do NOT flag `floorHz` as a field name (that's taxonomy.json keys, not code).
-    // Note: proof-spring-vector uses WIN_FRACTION and proof-bench-taxonomy uses hz < floor —
-    // those are the OLD duplications the spec acknowledges. This lint clause fires only
-    // on NEW gates (any file NOT in the exclusion list that re-introduces the pattern).
-    // The existing gates (proof-spring-vector.mjs, proof-bench-taxonomy.mjs) are
-    // themselves not in EXCLUDED_FILENAMES, but they are the KNOWN prior art.
-    // Per the spec, the refactor of the existing gates is S3's "no-legacy" purge;
-    // since that refactor is a separate author concern and these are pre-existing,
-    // we scope the lint to catch NEW raw-floor patterns beyond the known two.
+    // proof-bench-taxonomy is the sole surviving taxonomy owner of the raw floor;
+    // this lint catches any new gate that re-introduces the pattern.
     const KNOWN_PRIOR_ART = new Set([
         "proof-bench-taxonomy.mjs",   // pre-existing ratio math (refactor tracked in S3)
-        "proof-spring-vector.mjs",    // pre-existing WIN_FRACTION (refactor tracked in S3)
     ]);
     const RAW_FLOOR_RE = /\bhz\s*[<>]=?\s*(?:floor|floorHz|WIN_FRAC)/;
 
@@ -449,8 +443,7 @@ if (typeof ratioGateValue === "function") {
         ok(
             "lint-no-raw-floor",
             `no raw hz<floor / hz>=WIN_FRAC patterns in new gate scripts ` +
-                `(the known pre-existing prior art in proof-bench-taxonomy.mjs + ` +
-                `proof-spring-vector.mjs is excluded from the lint, tracked for S3 refactor)`,
+                `(the surviving proof-bench-taxonomy prior art is excluded from the lint)`,
         );
     }
 }

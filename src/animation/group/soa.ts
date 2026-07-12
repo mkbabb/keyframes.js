@@ -21,8 +21,8 @@
  *     instance state).
  *   - {@link groupSoABlendLayer} — the per-frame fold for ONE layer (takes the
  *     buffer + plan as arguments; the `AnimationGroup.soaBlendLayer` instance
- *     method stays a thin delegating wrapper, so `proof:soa-composite`'s
- *     `soa-path-taken` monkey-patch on the instance still bites).
+ *     method stays a thin delegating wrapper; the fold-taken identity test
+ *     exercises the same instance seam directly).
  *
  * The gate-anchored composite STATEMENTS the `weighted` leaf + spring seam need
  * (the `?? layer.weight` read INSIDE the boxed arm, `layer.weightSpring =
@@ -43,7 +43,7 @@
  * widest layer's numeric width exceeds the current capacity); `groupSoABlendLayer`
  * allocates NOTHING per frame. The constant-shape draw path reuses one buffer
  * across every layer AND every frame (the F.W4 zero-alloc discipline,
- * proof:zero-alloc + proof:soa-composite green).
+ * proof:zero-alloc and the SoA identity test green).
  */
 import { ValueUnit, lerp } from "@mkbabb/value.js";
 import type { AnimationLayerConfig } from "../constants";

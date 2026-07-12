@@ -394,7 +394,8 @@ export class SpringProgress implements SpringPlayback {
      * solver is the SAME closed form (`evaluateAt`) shared across channels — but
      * step in ONE `tickVector(dt)` call into one `Float64Array` per tick, the
      * dispatch/alloc amortization the W122 probe measured at 2.97–3.78× over K
-     * independent scalar instances (ADOPT @ K=8, `proof:spring-vector`).
+     * independent scalar instances (ADOPT @ K=8, measured by the now-retired
+     * `proof:spring-vector` gate; its floor now lives in bench/taxonomy.json).
      *
      * First call ARMS the lanes (lazily — a scalar-only spring never allocates
      * the vector buffers, so the scalar hot path is unchanged). Subsequent calls

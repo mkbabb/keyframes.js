@@ -39,7 +39,7 @@
         "  group-composite (budgeted) — the compositor-SoA frontier: add/weighted SoA vs",
         "                              boxed at K=3/8/12, replace arm dispatch-free baseline.",
         "                              The SoA-vs-boxed ratio at K=8 is the ADOPT/KILL gate",
-        "                              (proof:soa-composite); the per-arm ratio is same-report",
+        "                              (the retired SoA decision gate); the per-arm ratio is same-report",
         "                              (device-INDEPENDENT by construction). The replace arm",
         "                              benches are observe-only (dispatch-free; nothing to fold).",
         "  color2Into cross-repo      — the value.js-P gamut zero-alloc ask (VJ-P1); added to",
@@ -477,13 +477,13 @@
             "suite": "bench/group-composite.bench.ts",
             "name": "add boxed · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS add blend baseline at K=8 — the denominator of the proof:soa-composite ADOPT/KILL ratio. observe-only in the taxonomy (the ratio gate proof:soa-composite owns the HARD predicate)."
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS add blend baseline at K=8 — denominator for the retired SoA decision gate's ADOPT/KILL ratio. observe-only; the hard floor now lives in the paired budgeted row."
         },
         {
             "suite": "bench/group-composite.bench.ts",
             "name": "add SoA · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. SoA fold add arm at K=8 — the numerator of the proof:soa-composite ADOPT/KILL ratio. observe-only in the taxonomy (proof:soa-composite owns the HARD same-report ratio predicate)."
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold add arm at K=8 — numerator for the retired SoA decision gate's ADOPT/KILL ratio. observe-only; the hard floor now lives in this manifest's paired budgeted row."
         },
         {
             "suite": "bench/group-composite.bench.ts",
@@ -513,13 +513,13 @@
             "suite": "bench/group-composite.bench.ts",
             "name": "weighted boxed · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS weighted blend baseline at K=8 — denominator of the proof:soa-composite weighted-arm ratio. observe-only in taxonomy."
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS weighted blend baseline at K=8 — denominator for the retired SoA weighted-arm ratio. observe-only in taxonomy."
         },
         {
             "suite": "bench/group-composite.bench.ts",
             "name": "weighted SoA · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=8 — numerator of the proof:soa-composite weighted-arm ratio. observe-only in taxonomy."
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=8 — numerator for the retired SoA weighted-arm ratio. observe-only in taxonomy."
         },
         {
             "suite": "bench/group-composite.bench.ts",

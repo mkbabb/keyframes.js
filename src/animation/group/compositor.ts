@@ -10,8 +10,8 @@
  *
  * The gate-anchored blend STATEMENTS follow the code to this new home (R.W2 — the
  * "gate follows code" co-edit): proof:blend's in-place-blend / array-guard /
- * min-loops, proof:spring-blend-weight's `phys-c-read`, and proof:soa-composite's
- * `soa-path-taken` source clause all grep THIS module for the leaf contract (the
+ * min-loops, proof:spring-blend-weight's `phys-c-read`, and the SoA identity
+ * test's fold-taken assertion all exercise THIS module's leaf contract (the
  * `Array.isArray` guard, the `Math.min` loop, the `isNumericUnit` per-element
  * guard, the un-clamped `+=`, the spring-weighted `lerp`, the
  * `groupSoABlendLayer` fold + `_compositeBuf`/`buildSoAPlans`/`_soaPlans`).

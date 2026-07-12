@@ -289,7 +289,7 @@ describe("SpringProgress", () => {
     /**
      * L.W7 §S2, W122 — the ADOPTed multi-channel vector overload
      * (`setTargets(Float64Array)` / `tickVector` / `values`). MEASURE-FIRST: the
-     * `proof:spring-vector` probe measured the vector path at 2.97–3.78× over K=8
+     * The since-retired `proof:spring-vector` probe measured the vector path at 2.97–3.78× over K=8
      * independent scalar instances (>= the 1.2× ADOPT threshold), authorizing
      * this surface. The CORRECTNESS contract: a vector lane rings IDENTICALLY to a
      * scalar `SpringProgress` of the same `(response, dampingFraction)` — same

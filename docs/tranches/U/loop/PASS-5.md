@@ -170,6 +170,13 @@ rides the same chartered sweep. **Nothing else about N2 is open**: all six
 dissolves executed and green, the oracle re-homes live, the bench floors
 independently re-verified (§2).
 
+**U.E9 correction (terminal implementation):** the historical ledger is an
+archive artifact, not a live source claim. Its over-claim is superseded by the
+by-name table above; the implementation's certifying grep is the authority.
+No present-tense assertion of a single surviving residue remains in the source
+tree, and the two deleted gate names below are retained only as explicitly
+retired tombstones where provenance is useful.
+
 ---
 
 ## 5. Agglomerator rulings (terminal) — numbering continues from 20–22
