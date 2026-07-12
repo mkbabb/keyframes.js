@@ -145,6 +145,18 @@ function main() {
     const failures = [];
     const deferrals = [];
 
+    // U.A9 backend clause: enforcement families begin under scripts/gates, with
+    // an index barrel as the tier's executable home. The first migrated family is
+    // the publish surface; subsequent families may move independently without
+    // reintroducing a flat-family exception or a new standalone gate.
+    const backendSurface = path.join(REPO, "scripts", "gates", "surface", "index.mjs");
+    if (!fs.existsSync(backendSurface)) {
+        failures.push(
+            "[backend-colocation] scripts/gates/surface/index.mjs is required as the " +
+                "surface-family executable barrel (U.A9).",
+        );
+    }
+
     // U.B1 keystone: the canonical shared homes are required and the two
     // scaffold spellings they replace may not survive the atomic move.
     for (const home of ["components", "composables", "state", "styles", "utils"]) {

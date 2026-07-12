@@ -35,6 +35,13 @@ green master and the ratified corpus merged at `0b423142`.
   `proof:ci-coverage` parses all three workflows and passes after the cut. No
   glass-ui source or dependency pin changed.
 
+- **2026-07-12** — **U.A9 BACKEND COLOCATION SEED.** The publish-boundary
+  family moved from the flat `scripts/proof-publish.mjs` root into
+  `scripts/gates/surface/index.mjs`; `proof:publish` now executes that family
+  barrel, and `proof:colocation` carries the U.A9 backend-family clause. The
+  remaining flat proof families are intentionally routed for subsequent
+  family-by-family moves; no standalone colocation gate was added.
+
 - **2026-07-12** — **U.A1 COVERAGE-CONTRACT INVERSION.** The transitional
   coverage contract now derives authority from correctness/hygiene tier
   membership rather than requiring every package `proof:*` key to be repeated as

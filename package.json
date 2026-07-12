@@ -43,7 +43,7 @@
         "gh-pages": "vite build --mode gh-pages",
         "proof:boundary": "node scripts/proof-boundary.mjs",
         "proof:published-surface": "node scripts/proof-published-surface.mjs",
-        "proof:publish": "node scripts/proof-publish.mjs",
+        "proof:publish": "node scripts/gates/surface/index.mjs",
         "proof:engine-subpath-mirror": "node scripts/proof-engine-subpath-mirror.mjs",
         "proof:no-any-default": "node scripts/proof-no-any-default.mjs",
         "proof:dts-rollups-agree": "node scripts/proof-dts-rollups-agree.mjs",
