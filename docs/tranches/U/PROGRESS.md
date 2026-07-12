@@ -8,10 +8,10 @@
 
 | Band | Title | State |
 |---|---|---|
-| U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1 coverage inversion landed**: `proof:ci-coverage` now treats tier reachability as authority and the transitional `proof:observed` tier preserves previously unaggregated leaves; the gate population/CI collapse and ledger deletion remain A2–A10 |
+| U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta gates are deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. Remaining gate-band and ledger rehoming stays routed. |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
-| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D3 WAAPI shadow-tick fast path landed; D2 microtask-hop harness and remaining frontier rows pending |
+| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1 indexed render seam + D3 WAAPI shadow-tick fast path landed; D2 allocation/throughput harness, D4 vector drag, D5 on-demand demo facets, and D6 publish chunk clause remain pending |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; only D1 owner-ridden and D8/D9 documented keeps remain |
 | U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
@@ -24,6 +24,16 @@
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.A6–A8 APPARATUS/WORKFLOW CUT.** `scripts/lib/tiers.mjs`
+  now owns the blocking/observed tier names consumed by `run-all`. The merge CI
+  workflow is reduced to `check:lib`, `build:lib`, `npm test -- --run`, and
+  `proof:publish` under a four-minute budget; browser correctness and device
+  observers run on the scheduled/manual roster only. `deploy-pages.yml` now
+  requires a successful library push run plus `last-demo-green` being an ancestor
+  of the deploy SHA, with manual dispatch as the explicit break-glass path.
+  `proof:ci-coverage` parses all three workflows and passes after the cut. No
+  glass-ui source or dependency pin changed.
 
 - **2026-07-12** — **U.A1 COVERAGE-CONTRACT INVERSION.** The transitional
   coverage contract now derives authority from correctness/hygiene tier

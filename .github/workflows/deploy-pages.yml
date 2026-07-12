@@ -1,36 +1,8 @@
-# deploy-pages.yml — keyframes.babb.dev's deploy-of-record (the constellation
-# CF-Pages spine, adopted per `mkbabb/deploy` cf/pages-deploy.sh).
+# Cloudflare Pages deploy-of-record for keyframes.babb.dev.
 #
-# keyframes.babb.dev is a Cloudflare Pages project (`keyframes` →
-# keyframes-8uq.pages.dev), deployed via wrangler — NOT GitHub Pages (the old
-# gh-pages/deploy.yml path served a parallel site the DNS never pointed at; it is
-# RETIRED). This workflow is the standing automated path: it builds the demo +
-# ships it to CF Pages.
-#
-# GREEN-CI-GATED (the constellation inv-28, verified-deploy-of-record): it
-# triggers on the `ci` workflow *completing* and deploys ONLY when that same-SHA
-# run is GREEN, on a master push. A red CI → the deploy job's `if` is false → the
-# SPA does NOT ship. Every green-CI master push DEPLOYS — no path filter (the
-# former tip-commit `git diff HEAD^ HEAD` filter silently skipped a push whose
-# TIP commit was docs-only even when earlier commits in the push changed the demo;
-# a master push should always re-ship the live site).
-#
-# SECRET DISCIPLINE: CLOUDFLARE_API_TOKEN (Pages:Edit + Read) + CLOUDFLARE_ACCOUNT_ID
-# are GH Actions repo secrets, consumed via ${{ secrets.* }}, never inlined/echoed.
-#
-# T.S6 (S.A3 revival) — the auto-deploy-of-record path is GATED ON GREEN
-# demo-correctness. The `ci` workflow's `success` conclusion already REQUIRES the
-# `demo-correctness` blocking job (ci.yml — it "gates deploy"), so a green ci run
-# IS a green demo-correctness run. T.S6 makes that coupling EXPLICIT + fail-loud:
-# the `demo-correctness-green` preflight job below re-asserts, via the triggering
-# run's jobs API, that the SPECIFIC demo-correctness job concluded `success` — so a
-# future ci restructure that demotes demo-correctness from blocking cannot silently
-# ship a red-stage build. The job NAME is single-sourced in ONE place
-# (env.DEMO_CORRECTNESS_JOB); if ci.yml renames that job the preflight reds in
-# lockstep (the drive lesson: gates anchor literal paths — the same for job refs).
-# NOTE: T.S6 wires the MECHANISM only. The auto-path FIRING is permitted at T.Z,
-# gated on the T.M owner-anchored render gates (the auto-path is the mechanism; the
-# owner gates are the permission — T.S charter note 4). No deploy fires from T.S6.
+# U.A8/U.Z4: a push deploy requires the library CI workflow to be green and the
+# latest successful scheduled demo (`last-demo-green`) to be an ancestor of the
+# deploy SHA. Manual dispatch is an explicit break-glass path.
 name: deploy-pages
 
 on:
@@ -47,20 +19,9 @@ permissions:
     contents: read
     actions: read
 
-env:
-    # SINGLE SOURCE of the ci.yml demo-correctness job name (T.S6). The preflight
-    # gate below matches the triggering run's job of this exact name; a ci.yml
-    # rename must update THIS string in lockstep (else the preflight reds).
-    DEMO_CORRECTNESS_JOB: "demo correctness (inv γ paints + inv δ occlusion-free · BLOCKING · gates deploy)"
-
 jobs:
-    # T.S6 — the demo-correctness green preflight (the S.A3 explicit gate). On a
-    # workflow_run trigger, re-assert that the SPECIFIC demo-correctness job of the
-    # triggering ci run concluded `success` before the deploy job runs. A manual
-    # dispatch skips this (break-glass, break the loop by hand). The job name is
-    # read from the single-sourced env.DEMO_CORRECTNESS_JOB.
-    demo-correctness-green:
-        name: preflight — demo-correctness concluded green
+    deploy-preflight:
+        name: preflight (library CI + last-demo-green ancestry)
         if: >-
             github.event_name == 'workflow_dispatch' ||
             (github.event.workflow_run.conclusion == 'success' &&
@@ -69,37 +30,28 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
         steps:
-            - name: assert the demo-correctness job succeeded (single-sourced job name)
+            - uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+                  ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+            - name: assert library CI conclusion
+              if: github.event_name != 'workflow_dispatch'
+              run: test "${{ github.event.workflow_run.conclusion }}" = success
+            - name: assert last-demo-green is an ancestor
+              if: github.event_name != 'workflow_dispatch'
               env:
                   GH_TOKEN: ${{ github.token }}
+                  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
               run: |
                   set -euo pipefail
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                      echo "manual dispatch (break-glass) — skipping the demo-correctness preflight."
-                      exit 0
-                  fi
-                  RUN_ID="${{ github.event.workflow_run.id }}"
-                  echo "Auditing ci run $RUN_ID for a green '$DEMO_CORRECTNESS_JOB' job…"
-                  # gh api's --jq takes exactly ONE expression (no jq --arg passthrough
-                  # — the first live workflow_run firing died on "accepts 1 arg(s),
-                  # received 4"); the job name reaches jq via env access instead.
-                  CONCLUSION=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --paginate \
-                      --jq '.jobs[] | select(.name == env.DEMO_CORRECTNESS_JOB) | .conclusion' | head -1)
-                  echo "demo-correctness conclusion: '${CONCLUSION:-<job not found>}'"
-                  if [ "$CONCLUSION" != "success" ]; then
-                      echo "::error::demo-correctness did not conclude green (got '${CONCLUSION:-missing}') — the auto-deploy path is GATED on green demo-correctness (S.A3). Not shipping."
-                      exit 1
-                  fi
-                  echo "demo-correctness is green — deploy may proceed."
+                  DEMO_SHA=$(gh api "repos/${{ github.repository }}/git/ref/tags/last-demo-green" --jq '.object.sha')
+                  echo "last-demo-green=${DEMO_SHA} deploy=${DEPLOY_SHA}"
+                  git cat-file -e "${DEMO_SHA}^{commit}"
+                  git merge-base --is-ancestor "${DEMO_SHA}" "${DEPLOY_SHA}"
 
     deploy:
         name: build demo + ship → Cloudflare Pages
-        needs: demo-correctness-green
-        # Deploy on a manual dispatch, OR whenever the `ci` workflow finishes GREEN
-        # on a master PUSH (with the demo-correctness-green preflight satisfied — the
-        # S.A3 explicit gate). No path filter: every green-CI master push re-ships the
-        # live site (the prior tip-commit filter skipped pushes with a docs-only
-        # tip even when earlier commits changed the demo).
+        needs: deploy-preflight
         if: >-
             github.event_name == 'workflow_dispatch' ||
             (github.event.workflow_run.conclusion == 'success' &&
@@ -115,13 +67,8 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            # The demo needs glass-ui (the library does not). It is the PUBLISHED
-            # registry package (`@mkbabb/glass-ui ~4.0.0`); `npm ci` installs it
-            # from the registry. No sibling clone, no `file:` link.
-            - name: npm ci (installs the registry @mkbabb/glass-ui)
+            - name: npm ci (registry glass-ui)
               run: npm ci
-            # scripts/pages-deploy.sh builds the demo (BUILD_CMD=npm run gh-pages →
-            # dist/gh-pages) and ships it to the `keyframes` CF Pages project.
             - name: build demo + deploy to Cloudflare Pages
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
