@@ -234,7 +234,24 @@ const outFile = join(tmp, "bench.json");
 try {
     const run = spawnSync(
         "npx",
-        ["vitest", "bench", "--run", ...SUITES, `--outputJson=${outFile}`],
+        [
+            "vitest",
+            "bench",
+            "--run",
+            "--dir",
+            join(root, "bench"),
+            "--exclude",
+            "**/.claude/**",
+            "--exclude",
+            "**/node_modules/**",
+            "--exclude",
+            "**/dist/**",
+            "--no-file-parallelism",
+            "--maxWorkers",
+            "1",
+            ...SUITES,
+            `--outputJson=${outFile}`,
+        ],
         { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
     );
 

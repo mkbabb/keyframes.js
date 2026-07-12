@@ -52,5 +52,6 @@ export default defineConfig({
     },
     benchmark: {
         include: ["bench/*.bench.ts"],
+        exclude: ["**/.claude/**", "**/node_modules/**", "**/dist/**"],
     },
 });
