@@ -63,6 +63,8 @@ jobs:
               run: npm test -- --run
             - name: proof:boundary (value.js static/dynamic boundary gate)
               run: npm run proof:boundary
+            - name: proof:publish (U.Z1 — terminal publish-boundary bundle)
+              run: npm run proof:publish
             # L.W4 S7 — the publish-path roster (Lane 36 ⚠gate-ORACLE completeness).
             # The pre-L release.yml ran only check:lib → build:lib → test →
             # proof:boundary; a publish that shipped a stale @mkbabb/* floor or a
