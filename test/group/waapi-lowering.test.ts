@@ -34,4 +34,24 @@ describe("U.C16 group WAAPI lowering", () => {
         expect(verdict).toEqual({ eligible: false, reason: "weighted layer has no native composite equivalent" });
         expect(lowerGroupWAAPI(group)).toBeNull();
     });
+
+    it("returns to rAF when native effect construction rejects", () => {
+        const el = document.createElement("div");
+        const cancel = vi.fn();
+        let calls = 0;
+        Object.defineProperty(el, "animate", {
+            configurable: true,
+            value: vi.fn(() => {
+                calls += 1;
+                if (calls === 2) throw new TypeError("unsupported composite");
+                return { cancel } as unknown as Animation;
+            }),
+        });
+        const first = animation(el, "0.2");
+        const second = animation(el, "0.3");
+        const group = AnimationGroup.of(first, second);
+
+        expect(lowerGroupWAAPI(group)).toBeNull();
+        expect(cancel).toHaveBeenCalledOnce();
+    });
 });

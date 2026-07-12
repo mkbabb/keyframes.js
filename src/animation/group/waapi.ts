@@ -59,11 +59,30 @@ export function lowerGroupWAAPI<V extends Vars>(
 ): globalThis.Animation[] | null {
     const verdict = isGroupWAAPIEligible(group);
     if (!verdict.eligible) return null;
-    return verdict.entries.map((entry) => {
-        const composite = resolveBlendOperator(entry.layer);
-        return verdict.target.animate(toWAAPIKeyframes(entry.animation), {
-            ...toWAAPIOptions(entry.animation),
-            composite,
-        });
-    });
+    const handles: globalThis.Animation[] = [];
+    try {
+        for (const entry of verdict.entries) {
+            const composite = resolveBlendOperator(entry.layer);
+            handles.push(
+                verdict.target.animate(toWAAPIKeyframes(entry.animation), {
+                    ...toWAAPIOptions(entry.animation),
+                    composite,
+                }),
+            );
+        }
+        return handles;
+    } catch {
+        // The feature probe can pass while a browser rejects a particular
+        // composite/keyframe combination. Tear down any earlier effects and
+        // keep the always-correct rAF compositor; this lane only trades a
+        // native opportunity, never correctness.
+        for (const animation of handles) {
+            try {
+                animation.cancel?.();
+            } catch {
+                /* KEEP: a partially-created effect may already be detached. */
+            }
+        }
+        return null;
+    }
 }
