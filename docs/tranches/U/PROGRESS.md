@@ -112,8 +112,9 @@ green master and the ratified corpus merged at `0b423142`.
   report-all mechanism. The `gestureSelectSuppression` deferred colocation row
   is discharged by moving the plain DOM counter from `demo/composables/` to
   `demo/utils/` and retargeting its two genuine consumers. `proof:colocation`,
-  `proof:drag-gesture`, `proof:ci-coverage`, and `check` pass; `kfEngine` remains
-  the sole deferred runtime-infrastructure row pending its state-tier move.
+  `proof:drag-gesture`, `proof:ci-coverage`, and `check` pass. The follow-up
+  state-tier move for `kfEngine` is now landed; the tolerance-free colocation
+  oracle is green with no deferred runtime-infrastructure row.
 
 - **2026-07-12** — **DS-1 PROOF RE-ANCHOR + SPRING CEILING AUDIT.**
   `proof:scene-control-dfa` was a stale-fixture failure: it opened deleted
