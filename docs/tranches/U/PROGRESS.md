@@ -115,6 +115,17 @@ green master and the ratified corpus merged at `0b423142`.
   `proof:drag-gesture`, `proof:ci-coverage`, and `check` pass; `kfEngine` remains
   the sole deferred runtime-infrastructure row pending its state-tier move.
 
+- **2026-07-12** — **DS-1 PROOF RE-ANCHOR + SPRING CEILING AUDIT.**
+  `proof:scene-control-dfa` was a stale-fixture failure: it opened deleted
+  `transport/controls/AnimationControls.vue` and `state/controlSurfaceDFA.ts`.
+  Both anchors now point to the live U.B2 homes (`ChannelControls.vue` and
+  `controlSurfaces.ts`); the authority implementation was unchanged. The proof
+  passes D1/D2/D3/D4 and its 16-test fixture. The 501-line `SpringProgress` ceiling
+  has no safe one-line extraction: its scalar state, vector-lane delegation, and
+  managed-play contract share private fields. A real carve belongs at the vector
+  surface seam (with parity/lifecycle tests), not a line-count hack; it remains
+  routed to U.D/U.C.
+
 - **2026-07-12** — **U.E VJ-L2 SCAFFOLD DISCHARGE.** The round-trip suite's
   `vjL2LinearLanded` feature probe and `skipIf` arm were stale: value.js 3.1.0
   already supplies the VJ-L2 canonical serializer, while its parser never
