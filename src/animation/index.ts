@@ -286,6 +286,11 @@ export type { KeyframesAnimation, CSSKeyframesAnimation } from "./engine";
 // engine↔group ring). Erased — no static value.js edge on the LIGHT barrel.
 export type { AnimationGroup } from "./group";
 
+// The heavy type roster is derived from the composition barrel.  `export type`
+// is erased from the light build, while keeping the static and dynamic entries
+// on one source of truth.
+export type * from "./public";
+
 // ── HEAVY engine (value.js-bearing, dynamic) ─────────────────────────────
 // The engine-loading machinery — the memoized dynamic-import accessors + their
 // narrowed surface interface types — lives in `./load-engine`. That module owns
