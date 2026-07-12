@@ -4,7 +4,7 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import { resetAllStores } from "@state";
 
-export interface UseAnimationGroupActionsDeps {
+interface UseAnimationGroupActionsDeps {
     /** The active animation group (getter — the prop swaps on scene switch). */
     getGroup: () => AnimationGroup<any>;
     /** The shared per-group control store. */
@@ -18,7 +18,7 @@ export interface UseAnimationGroupActionsDeps {
     syncPlayState: (playing?: boolean) => void;
 }
 
-export interface UseAnimationGroupActionsReturn {
+interface UseAnimationGroupActionsReturn {
     updateLayerConfig: (name: string, config: Partial<AnimationLayerConfig>) => void;
     keyframesUpdate: (e: { animation: KeyframesAnimation<any> }) => void;
     reset: () => void;

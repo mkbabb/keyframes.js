@@ -33,7 +33,7 @@
  * `actuate` (expand dock + emit togglePlay); the two modality-pure sources stay
  * mutually exclusive per activation, so no cross-source de-dupe is needed.
  */
-export interface PlayActuationHandlers {
+interface PlayActuationHandlers {
     onPlayPointerDown(e: PointerEvent): void;
     onPlayPointerUp(e: PointerEvent): void;
     onPlayPointerCancel(e: PointerEvent): void;

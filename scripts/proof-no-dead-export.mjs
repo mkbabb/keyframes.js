@@ -69,34 +69,18 @@ const EXTS = new Set([".ts", ".vue", ".mts", ".mjs"]);
 // export missing from here REDs; a stale row (no longer dead) REDs.
 const DEFERRED = [
     // ── the animation-transport suite (facility-lane OFF-LIMITS this batch) ──
-    ["demo/components/instrument/transport/animationDescriptions.ts", "COLOR_SPACE_DESCRIPTIONS"],
-    ["demo/components/instrument/transport/animationDescriptions.ts", "HUE_METHOD_DESCRIPTIONS"],
-    ["demo/components/instrument/transport/composables/useAnimationGroupActions.ts", "UseAnimationGroupActionsDeps"],
-    ["demo/components/instrument/transport/composables/useAnimationGroupActions.ts", "UseAnimationGroupActionsReturn"],
-    ["demo/components/instrument/transport/composables/useAnimationGroupPlayback.ts", "AnimationGroupPlaybackEmit"],
-    ["demo/components/instrument/transport/composables/useControlsKeyboardShortcuts.ts", "UseControlsKeyboardShortcutsDeps"],
-    ["demo/components/instrument/transport/composables/usePaneRegister.ts", "UsePaneRegisterOptions"],
-    ["demo/components/instrument/transport/composables/usePaneRegister.ts", "UsePaneRegisterReturn"],
-    ["demo/components/instrument/transport/composables/usePlayActuation.ts", "PlayActuationHandlers"],
     ["demo/components/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeOptions"],
     ["demo/components/instrument/transport/composables/useScrollFade.ts", "UseScrollFadeReturn"],
     // (useSheetState.ts UseSheetStateOptions/UseSheetStateReturn RETIRED at T.H3-ADOPT —
     //  the bespoke sheet composable was DELETED with the Drawer swap; the ratchet drops
     //  the two discharged rows, tightening dead-export by 2.)
     ["demo/components/instrument/transport/composables/useDragCapture.ts", "DragCaptureHandlers"],
-    ["demo/components/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealOptions"],
-    ["demo/components/instrument/transport/composables/useKeyframesPaneReveal.ts", "UseKeyframesPaneRevealReturn"],
-    ["demo/components/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceOptions"],
-    ["demo/components/instrument/transport/composables/useSelectedControlSurface.ts", "UseSelectedControlSurfaceReturn"],
-    ["demo/components/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollOptions"],
-    ["demo/components/instrument/transport/composables/useTabStripScroll.ts", "UseTabStripScrollReturn"],
     // ── keyframes-editor / keyframe-timeline / shared leaves (reflexive types) ──
     // (GestureLegend.vue / GestureLegendItem RETIRED at T.M batch ⑧ — the whole
     //  file was deleted with the on-stage gesture-legend layer, VERDICT #8; the
     //  ratchet drops the discharged row.)
     ["demo/components/instrument/timeline/utils/snapshotCapture.ts", "captureNonDefaultSnapshot"],
     ["demo/components/instrument/keyframes/composables/useToolbarKeyboard.ts", "ToolbarKeyboard"],
-    ["demo/components/instrument/transport/composables/useKfPillTabs.ts", "UseKfPillTabsParams"],
     // ── @/state/ (the app-level reset-hook registry seam) ──
     // `registerStoreReset` is retained as the general reset-composer CONTRACT
     // (@/state/index.ts documents it: the last consumer — compose's asset store —

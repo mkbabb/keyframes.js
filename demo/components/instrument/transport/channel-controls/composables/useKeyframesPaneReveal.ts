@@ -10,14 +10,14 @@ import {
 import { useTimeoutFn } from "@vueuse/core";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
-export interface UseKeyframesPaneRevealOptions {
+interface UseKeyframesPaneRevealOptions {
     /** The shared per-group control store (read for the active surface). */
     storedControls: StoredAnimationGroupControlOptions;
     /** The force-mounted keyframes `[role=tabpanel]` element ref. */
     keyframesPaneEl: Ref<any>;
 }
 
-export interface UseKeyframesPaneRevealReturn {
+interface UseKeyframesPaneRevealReturn {
     /** Whether the keyframes surface is the active control surface. */
     keyframesActive: ComputedRef<boolean>;
     /**

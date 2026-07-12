@@ -9,7 +9,7 @@ import { clamp } from "@mkbabb/value.js/math";
 /** The playback emit contract this composable drives — typed to the host
  *  component's `defineEmits` signature so the call site needs no `emit as any`
  *  (J.W2 S6 / LS-20; the DS-5 emit half). */
-export interface AnimationGroupPlaybackEmit {
+interface AnimationGroupPlaybackEmit {
     (e: "playStateChange", playing: boolean): void;
     (e: "startStateChange", started: boolean): void;
 }

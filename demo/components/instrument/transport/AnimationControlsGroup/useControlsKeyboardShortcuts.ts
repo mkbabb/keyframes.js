@@ -1,7 +1,7 @@
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import type { Ref } from "vue";
 
-export interface UseControlsKeyboardShortcutsDeps {
+interface UseControlsKeyboardShortcutsDeps {
     /** Toggle play/pause on the active animation group. */
     toggleAnimationGroup: () => void;
     /** Stop + resync the group (Escape / R). */

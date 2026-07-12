@@ -28,7 +28,7 @@ export interface KfPillTabOption {
     disabled?: boolean;
 }
 
-export interface UseKfPillTabsParams {
+interface UseKfPillTabsParams {
     options: () => readonly KfPillTabOption[];
     orientation: () => "horizontal" | "vertical";
     modelValue: () => string;

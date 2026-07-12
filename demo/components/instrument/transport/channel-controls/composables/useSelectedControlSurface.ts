@@ -4,7 +4,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useSceneMachine } from "@state";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
-export interface UseSelectedControlSurfaceOptions {
+interface UseSelectedControlSurfaceOptions {
     /** The host's animation (its superKey identifies the owning scene). */
     animation: KeyframesAnimation<any>;
     /** The shared per-group control store (read+written as the single authority). */
@@ -13,7 +13,7 @@ export interface UseSelectedControlSurfaceOptions {
     tabsExternallyManaged: boolean;
 }
 
-export interface UseSelectedControlSurfaceReturn {
+interface UseSelectedControlSurfaceReturn {
     /** The machine-projected, synchronously-correct active control surface. */
     selectedControlSurface: ComputedRef<string>;
     /**

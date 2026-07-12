@@ -1,7 +1,7 @@
 import { computed, type ComputedRef, type Ref } from "vue";
 import { useMediaQuery } from "@vueuse/core";
 
-export interface UsePaneRegisterOptions {
+interface UsePaneRegisterOptions {
     /**
      * The mobile STAGE mode-class (H.W7.S1c): `subject` full-bleeds the stage
      * behind the sheet; `editor`/`storyboard` keep a content card. Pass the raw
@@ -10,7 +10,7 @@ export interface UsePaneRegisterOptions {
     stageMode: () => "subject" | "editor" | "storyboard" | undefined;
 }
 
-export interface UsePaneRegisterReturn {
+interface UsePaneRegisterReturn {
     /** The resolved stage mode (the `controls-pane--stage-*` class driver). */
     stageMode: ComputedRef<"subject" | "editor" | "storyboard">;
     /** True at ≥1024px — gates the desktop glass-wash adoption. */

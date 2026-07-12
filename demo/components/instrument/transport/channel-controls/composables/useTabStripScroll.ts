@@ -1,12 +1,12 @@
 import { nextTick, onMounted, ref, type Ref } from "vue";
 import { useScrollFade } from "../../composables/useScrollFade";
 
-export interface UseTabStripScrollOptions {
+interface UseTabStripScrollOptions {
     /** The header element wrapping the `<SegmentedTabs>` strip. */
     tabsHeaderEl: Ref<HTMLElement | null>;
 }
 
-export interface UseTabStripScrollReturn {
+interface UseTabStripScrollReturn {
     /** The overflow edge-fade class for the strip (`tabs-overflow-*`). */
     overflowClass: Ref<string>;
     /** Re-check overflow + scroll the active tab into view (after a tick). */

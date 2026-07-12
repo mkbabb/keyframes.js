@@ -84,7 +84,7 @@ export const timingFunctionKind = (value: unknown): string => {
 export const isDetailTimingFunction = (value: unknown): boolean =>
     DETAIL_TIMING_FUNCTIONS.has(timingFunctionKind(value));
 
-export const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
+const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
     "oklab": "perceptually uniform (default)",
     "srgb": "standard RGB gamut",
     "lab": "CIE L*a*b* perceptual",
@@ -92,7 +92,7 @@ export const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
     "oklch": "cylindrical oklab (hue aware)",
 };
 
-export const HUE_METHOD_DESCRIPTIONS: Record<string, string> = {
+const HUE_METHOD_DESCRIPTIONS: Record<string, string> = {
     "shorter": "shortest arc",
     "longer": "longest arc",
     "increasing": "always clockwise",
