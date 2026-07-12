@@ -1,5 +1,5 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { onMounted, onUnmounted, useTemplateRef } from "vue";
 import { useApplyCSS } from "./useApplyCSS";
 

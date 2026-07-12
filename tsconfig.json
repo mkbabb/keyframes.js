@@ -39,6 +39,7 @@
             "@components/*": ["./demo/components/*"],
             "@utils/*": ["./demo/utils/*"],
             "@composables/*": ["./demo/composables/*"],
+            "@kf-engine": ["./demo/kf-engine.ts"],
             "@app/*": ["./demo/app/*"],
             "@assets/*": ["./assets/*"]
         }

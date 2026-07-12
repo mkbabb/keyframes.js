@@ -1,4 +1,4 @@
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import type { Vars } from "@mkbabb/keyframes.js";
 import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";

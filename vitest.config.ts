@@ -23,6 +23,7 @@ export default defineConfig({
             "@components": path.resolve(import.meta.dirname, "demo/components"),
             "@composables": path.resolve(import.meta.dirname, "demo/composables"),
             "@utils": path.resolve(import.meta.dirname, "demo/utils"),
+            "@kf-engine": path.resolve(import.meta.dirname, "demo/kf-engine.ts"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
             // R.W5 fused scenes to demo/scenes/ and routed cross-scene imports
             // through @app (demo/app/); vitest must mirror the demo build alias.

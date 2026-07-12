@@ -17,7 +17,7 @@
 import { markRaw, ref, watch, type Ref } from "vue";
 import { loadAnimationEngine, springTimingFunction } from "@mkbabb/keyframes.js";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { SPRING_SCENE_ID } from "./springKeys";
 
 /** The discrete card's entry animation, as a 2-stop `@keyframes` body. */

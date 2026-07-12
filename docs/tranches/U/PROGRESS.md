@@ -9,7 +9,7 @@
 | Band | Title | State |
 |---|---|---|
 | U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta gates are deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. Remaining gate-band and ledger rehoming stays routed. |
-| U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
+| U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; B9 runtime homes and B14 first fold target now landed; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D5 now defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live; D4 vector drag remains pending |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
@@ -92,6 +92,13 @@ green master and the ratified corpus merged at `0b423142`.
   `proof:scene-colocated` pass. `proof:decomposition` still reports the
   pre-existing 502-line spring-progress ceiling, so no broader decomposition
   claim is made; remaining fold-map rows stay target-by-target.
+
+- **2026-07-12** — **U.B9 RUNTIME-HOME RESIDUE DISCHARGED.** The plain DOM
+  `gestureSelectSuppression` utility now lives under `demo/utils/`, and the
+  warmed heavy-engine accessor now lives at `demo/kf-engine.ts` with a mirrored
+  `@kf-engine` alias across TypeScript/Vite/Vitest. `proof:colocation` now has
+  no deferred residuals; `proof:ci-coverage`, `proof:drag-gesture`, and the
+  type-check remain green.
 
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
   is deleted from the package/hygiene chain; `run-all` remains the executable

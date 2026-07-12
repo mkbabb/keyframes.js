@@ -104,7 +104,7 @@
 </template>
 <script setup lang="ts">
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 
 import { Card, CardContent, Slider } from "@mkbabb/glass-ui";
 

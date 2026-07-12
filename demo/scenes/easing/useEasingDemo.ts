@@ -19,7 +19,7 @@ import type { SceneFacility } from "@composables/scene-facility";
 import { PROGRESS_READOUT_HZ } from "@utils/rafConstants";
 import { clamp } from "@mkbabb/value.js/math";
 import { useSceneMachine } from "@state";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { EASING_SCENE_ID } from "./easingKeys";
 import { getFamilyForCurve, getFamilyCurves } from "@utils/reference-data/easingGroups";
 

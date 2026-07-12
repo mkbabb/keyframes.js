@@ -1,7 +1,7 @@
 import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
 import { markRaw, shallowRef } from "vue";
 import type { Ref } from "vue";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";

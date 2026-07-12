@@ -18,8 +18,7 @@
  *     must be the RIGHT KIND for that tier:
  *       • `composables/` — a file imports a Vue/@vueuse reactive or lifecycle
  *         primitive (a real composable, not a plain module-scope helper).
- *       • `utils/` — a generic DOM/text helper, NOT boot infrastructure (the
- *         engine-loader accessor is runtime infra, it belongs beside `state/`).
+ *       • `utils/` — a generic DOM/text helper, NOT boot infrastructure.
  *       • `styles/` — global theme/token/idiom vocabulary (a `.css`/`.json` sheet),
  *         not a single-component scoped stylesheet.
  *
@@ -27,13 +26,8 @@
  *     FLAT at a module root when that module already sub-folders a `composables/`
  *     tier — a single-owner satellite colocates into the module's own tier.
  *
- * DEFERRED — the pre-edict move waves (T.F13 leaf re-homing, T.F16 KfPillTabs
- * de-vanity, …) physically relocate the residual violations. Those files are OTHER
- * lanes' surface; this gate names them in DEFERRED so it is honestly-backlogged
- * (mergeable-GREEN) rather than red-on-a-sibling's-in-flight-work. A DEFERRED entry
- * is TOLERANT: it passes whether the violation is still present (deferred) OR
- * already cured by its owning lane — so a merge in either order is green. The
- * orchestrator prunes cleared entries at close.
+ * This oracle is tolerance-free: every shared-tier and satellite violation must
+ * be cured in the tree before the gate can pass.
  *
  * Re-runnable STATIC instrument (no browser, no build):
  *   node scripts/proof-colocation.mjs
@@ -60,35 +54,6 @@ const read = (p) => fs.readFileSync(p, "utf8");
 // reactive-primitive USE (the gestureSelectSuppression false-positive).
 const stripComments = (s) =>
     s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
-
-/**
- * DEFERRED — known residual violations OTHER lanes' pre-edict moves cure. Keyed by
- * the file's relPosix (both `@` and `shared` spellings, since the rename lane may
- * land first). TOLERANT: satisfied whether present-and-deferred or already-cured.
- */
-const DEFERRED = new Map([
-    [
-        "utils/kfEngine.ts",
-        "the engine-loader boot accessor (runtime infra) → T.F13 promotes it beside state/",
-    ],
-    [
-        "components/animation-transport/useKfPillTabs.ts",
-        "a shared roving-tabindex leaf mis-nested in a feature peer → T.F16 de-vanity + colocation",
-    ],
-]);
-// Which shared-relative paths were consulted, so a STALE deferred entry (one that
-// no path in the tree could ever match — a typo) is surfaced. Cured entries are
-// NOT stale (the file legitimately moved); only never-matchable keys warn.
-const deferredHit = new Set();
-
-/** Is `rel` (shared-relative posix) a deferred residual? Records the hit. */
-function isDeferred(rel) {
-    if (DEFERRED.has(rel)) {
-        deferredHit.add(rel);
-        return true;
-    }
-    return false;
-}
 
 function collect(dir, exts, out = []) {
     if (!fs.existsSync(dir)) return out;
@@ -139,7 +104,6 @@ function main() {
     }
     const sharedRel = relPosix(SHARED); // demo or demo/shared
     const failures = [];
-    const deferrals = [];
 
     // U.A9 backend clause: enforcement families begin under scripts/gates, with
     // an index barrel as the tier's executable home. The first migrated family is
@@ -160,6 +124,9 @@ function main() {
             failures.push(`[canonical-home] demo/${home}/ is required after U.B1.`);
         }
     }
+    if (!fs.existsSync(path.join(DEMO, "kf-engine.ts"))) {
+        failures.push("[runtime-home] demo/kf-engine.ts is required for the boot accessor.");
+    }
     for (const retired of ["@", "components/custom"]) {
         if (fs.existsSync(path.join(DEMO, retired))) {
             failures.push(`[retired-home] demo/${retired}/ must be absent after U.B1.`);
@@ -172,14 +139,7 @@ function main() {
         for (const abs of collect(dir, new Set([".ts"]))) {
             const base = path.basename(abs);
             if (base === "index.ts" || base.endsWith(".d.ts")) continue;
-            const relFromShared = toPosix(path.relative(SHARED, abs));
             if (isComposableKind(base, read(abs))) continue;
-            if (isDeferred(relFromShared)) {
-                deferrals.push(
-                    `${relPosix(abs)} — ${DEFERRED.get(relFromShared)}`,
-                );
-                continue;
-            }
             failures.push(
                 `[kind-composables] ${relPosix(abs)} is neither reactive (no Vue/@vueuse ` +
                     `primitive) nor a use*-named factory — a plain module-scope helper ` +
@@ -194,14 +154,7 @@ function main() {
         for (const abs of collect(dir, new Set([".ts"]))) {
             const base = path.basename(abs);
             if (base === "index.ts" || base.endsWith(".d.ts")) continue;
-            const relFromShared = toPosix(path.relative(SHARED, abs));
             if (!isBootInfra(read(abs))) continue;
-            if (isDeferred(relFromShared)) {
-                deferrals.push(
-                    `${relPosix(abs)} — ${DEFERRED.get(relFromShared)}`,
-                );
-                continue;
-            }
             failures.push(
                 `[kind-utils] ${relPosix(abs)} is engine-loader boot infrastructure, ` +
                     `not a generic DOM/text helper — runtime infra belongs beside state/.`,
@@ -218,13 +171,6 @@ function main() {
             // manifests (font-roles.json). A `.ts`/`.vue` module here would be a
             // mis-filed non-style unit.
             if (ext === ".css" || ext === ".json") continue;
-            const relFromShared = toPosix(path.relative(SHARED, abs));
-            if (isDeferred(relFromShared)) {
-                deferrals.push(
-                    `${relPosix(abs)} — ${DEFERRED.get(relFromShared)}`,
-                );
-                continue;
-            }
             failures.push(
                 `[kind-styles] ${relPosix(abs)} is not global style vocabulary ` +
                     `(a .css sheet or a token/role .json manifest) — a non-style unit is ` +
@@ -251,13 +197,6 @@ function main() {
             for (const e of fs.readdirSync(dir)) {
                 if (!/^use[A-Za-z].*\.ts$/.test(e)) continue;
                 const abs = path.join(dir, e);
-                const relFromShared = toPosix(path.relative(SHARED, abs));
-                if (isDeferred(relFromShared)) {
-                    deferrals.push(
-                        `${relPosix(abs)} — ${DEFERRED.get(relFromShared)}`,
-                    );
-                    continue;
-                }
                 failures.push(
                     `[colocate] ${relPosix(abs)} sits FLAT at its module root beside a ` +
                         `composables/ sibling — fold the single-owner composable into ` +
@@ -268,23 +207,6 @@ function main() {
     }
 
     // ── Report ─────────────────────────────────────────────────────────────
-    if (deferrals.length > 0) {
-        console.log(
-            `  ⋯ ${deferrals.length} DEFERRED residual(s) (owned by pre-edict move waves):`,
-        );
-        for (const d of deferrals.sort()) console.log(`      ${d}`);
-    }
-    // Warn on a deferred KEY that no path could ever match (a typo), but never on a
-    // cured entry (the file legitimately moved). We cannot distinguish "cured" from
-    // "typo" purely, so treat an unmatched key as tolerated (informational).
-    const unmatched = [...DEFERRED.keys()].filter((k) => !deferredHit.has(k));
-    if (unmatched.length > 0) {
-        console.log(
-            `  ⋯ ${unmatched.length} deferred entr${unmatched.length === 1 ? "y" : "ies"} ` +
-                `already cleared (owning lane landed the move): ${unmatched.join(", ")}`,
-        );
-    }
-
     if (failures.length > 0) {
         console.error(
             "\nproof:colocation — FAIL (a shared-tier member is the wrong KIND, or a " +
@@ -293,8 +215,8 @@ function main() {
         for (const f of failures) console.error("  ✗ " + f);
         console.error(
             "\n  proof:colocation EXTENDS proof:shared-has-n-consumers (the count bar) " +
-                "with\n  kind-appropriateness + satellite-colocation. A NEW violation " +
-                "(not in the\n  DEFERRED set the pre-edict moves own) must be cured by " +
+                "with\n  kind-appropriateness + satellite-colocation. Every violation " +
+                "must be cured by " +
                 "colocating the\n  member into its true home, per THE GRAND COLOCATION EDICT.",
         );
         process.exit(1);
@@ -302,7 +224,7 @@ function main() {
 
     console.log(
         `\nproof:colocation — PASS: ${sharedRel}/ shared tiers are kind-appropriate ` +
-            `and satellites are colocated (residuals deferred to their owning move waves).`,
+            `and satellites are colocated (the tolerance-free tree oracle is green).`,
     );
 }
 

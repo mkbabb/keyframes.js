@@ -334,6 +334,7 @@ const defaultOptions = {
             "@state": path.resolve(import.meta.dirname, "demo/state"),
             "@components": path.resolve(import.meta.dirname, "demo/components"),
             "@utils": path.resolve(import.meta.dirname, "demo/utils"),
+            "@kf-engine": path.resolve(import.meta.dirname, "demo/kf-engine.ts"),
             "@composables": path.resolve(import.meta.dirname, "demo/composables"),
             "@app": path.resolve(import.meta.dirname, "demo/app"),
             "@assets": path.resolve(import.meta.dirname, "assets"),

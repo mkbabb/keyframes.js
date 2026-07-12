@@ -11,7 +11,7 @@
 import { markRaw, watch, type ComputedRef, type Ref, type ShallowRef } from "vue";
 import { useDocumentVisibility } from "@vueuse/core";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import {
     getStoredAnimationGroupControlOptions,
     surfacesFor,

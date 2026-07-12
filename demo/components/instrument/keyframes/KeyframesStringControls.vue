@@ -21,7 +21,7 @@
 </template>
 <script setup lang="ts">
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useTimeoutFn } from "@vueuse/core";

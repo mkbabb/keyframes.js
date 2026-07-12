@@ -1,4 +1,4 @@
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
 import {

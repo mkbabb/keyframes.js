@@ -212,10 +212,9 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     Finding 3). Delete the tolerant `SHARED = ["demo/@","demo/shared"].find(exists)`
     (`:50`) → assert the canonical hoisted homes (`demo/components/`,
     `demo/composables/`, `demo/state/`, `demo/styles/`, `demo/utils/`) EXIST and
-    `demo/@`/`custom` do NOT. The `DEFERRED` map (`:69-90`) has its `custom/@`-era entries emptied by the
-    move here; its two remaining residuals (`gestureSelectSuppression`, `kfEngine`)
-    are cleared and the tolerance machinery fully deleted at **U.B9** (their re-home
-    destinations settle there). A keystone that cannot fail on the rejected tree is
+    `demo/@`/`custom` do NOT. The `DEFERRED` map (`:69-90`) was emptied by the
+    B9 residue discharge; the proof now requires the canonical runtime home and
+    has no deferred exception for the two former residuals. A keystone that cannot fail on the rejected tree is
     retired.
 - **evidence.** `demo/@/` on-disk (verified `ls`); `custom/` = `{instrument/,
   CopyButton.vue}` (verified); `proof-colocation.mjs:50` tolerant `SHARED`, `:69`
@@ -565,14 +564,11 @@ with U.A, never two. (3) Grammar/lexicon renames ride the move-waves.
     `@/components/skeletons/` tier; `font-roles.json` (consumed only by two gates, a
     manifest not a style) → `scripts/`; `glass-ui-gaps.ts` (spans app/ + the hoisted tiers) off the
     demo root into `demo/utils/`.
-  - **Empty the `DEFERRED` residuals, then DELETE the tolerance machinery.** The two
-    entries the map still carries (`gestureSelectSuppression`, `kfEngine`) are cleared
-    by their re-homes (kfEngine above; `gestureSelectSuppression` confirmed a recorded
-    GLOBAL singleton token — `body.is-dragging`, cross-tier scene ∪ instrument, keep
-    in `composables/` with the justification RECORDED, lane 20 F6/lane 32 F6). Delete
-    the `DEFERRED` map + its tolerant branch from `proof-colocation.mjs:69-96` — the
-    gate becomes tolerance-free (an exception changes the RULE, never enrolls in a
-    list). This is the NO-MORE-DEFERRALS reading applied to gate internals.
+  - **Discharge the former `DEFERRED` residuals.** `kfEngine` now lives at the
+    demo root with a three-plane `@kf-engine` alias; the plain
+    `gestureSelectSuppression` singleton lives in `demo/utils/`. The deferred map
+    and tolerant branch are gone from `proof-colocation.mjs`; the gate is now
+    tolerance-free (an exception changes the RULE, never enrolls in a list).
   - **`demo/CLAUDE.md` is DELETED, not reconciled (OD-U15).** Its stale composables
     inventory (omits `useDoubleTap`/`useThrottledReadout`; undocumented
     `sceneFacility.ts`; `useHeroSourceEgg` listed but deleted) is one more exhibit for

@@ -1,6 +1,6 @@
 import { computed, markRaw, onScopeDispose, ref } from "vue";
 
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import type { CSSKeyframesAnimation as CSSKeyframesAnimationT } from "@mkbabb/keyframes.js";
 import { Sequence } from "@mkbabb/keyframes.js";
 import { stagger } from "@mkbabb/keyframes.js";

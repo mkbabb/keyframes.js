@@ -22,7 +22,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { effectScope } from "vue";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
-import { warmKfEngine } from "../../../demo/utils/kfEngine";
+import { warmKfEngine } from "../../../demo/kf-engine";
 import { useEasingDemo } from "../../../demo/scenes/easing/useEasingDemo";
 import { useSceneMachine } from "../../../demo/state/useSceneMachine";
 

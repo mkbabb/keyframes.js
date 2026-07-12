@@ -13,7 +13,7 @@ import { SpringProgress } from "../../../src/animation/physics/spring";
 import { useSquareKeyboard } from "../../../demo/scenes/square/useSquareKeyboard";
 import { useSquareDemo } from "../../../demo/scenes/square/useSquareDemo";
 import { SQUARE_SCENE_ID } from "../../../demo/scenes/square/squareKeys";
-import { warmKfEngine } from "../../../demo/utils/kfEngine";
+import { warmKfEngine } from "../../../demo/kf-engine";
 
 function harness() {
     const springX = new SpringProgress({

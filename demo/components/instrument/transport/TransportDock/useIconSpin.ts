@@ -1,5 +1,5 @@
 import { useTemplateRef } from "vue";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 
 function resolveElement(value: unknown): HTMLElement | null {
     if (value instanceof HTMLElement) return value;

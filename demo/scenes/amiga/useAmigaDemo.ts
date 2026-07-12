@@ -1,5 +1,5 @@
 import type { Vars } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { AMIGA_SCENE_ID } from "./amigaKeys";
 
 // ── The room + the honest arc (T.A9) ────────────────────────────────────────
