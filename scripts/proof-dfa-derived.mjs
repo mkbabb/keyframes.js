@@ -90,7 +90,7 @@ console.log("proof:dfa-derived â€” T.B2 (control-surface DFA: exclusion table â†
     // AnimationControls derive their built-in tab descriptors FROM it (no
     // hand-synced local {label,icon} triad literal).
     const meta = /export const SURFACE_META\s*:\s*Record<ControlSurface, ControlSurfaceTab>/.test(dfa);
-    const dock = read(path.join(DEMO, "components/dock/ChromeDock.vue"));
+    const dock = read(path.join(DEMO, "app/dock/ChromeDock.vue"));
     const ac = read(
         path.join(DEMO, "components/instrument/transport/controls/AnimationControls.vue"),
     );

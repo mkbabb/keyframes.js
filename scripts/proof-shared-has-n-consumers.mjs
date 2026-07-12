@@ -47,7 +47,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const SHARED = path.join(DEMO, "@");
+const SHARED = DEMO;
 
 const DUMP = process.argv.includes("--dump");
 const PLANT_TEST = process.argv.includes("--plant-test");
@@ -59,14 +59,14 @@ const RESOLVE_EXT = [".ts", ".vue", ".css", ".js", ".mjs", ".json"];
 // Path aliases that target a demo subtree (mirrors vite/tsconfig). `@state` is
 // the S.D2 hoisted peer; the rest are the long-standing demo aliases.
 const ALIASES = [
-    ["@components/", path.join(SHARED, "components")],
-    ["@composables/", path.join(SHARED, "composables")],
-    ["@utils/", path.join(SHARED, "utils")],
-    ["@styles/", path.join(SHARED, "styles")],
-    ["@state/", path.join(SHARED, "state")],
+    ["@components/", path.join(DEMO, "components")],
+    ["@composables/", path.join(DEMO, "composables")],
+    ["@utils/", path.join(DEMO, "utils")],
+    ["@styles/", path.join(DEMO, "styles")],
+    ["@state/", path.join(DEMO, "state")],
     ["@app/", path.join(DEMO, "app")],
 ];
-const BARE_ALIASES = [["@state", path.join(SHARED, "state")]];
+const BARE_ALIASES = [["@state", path.join(DEMO, "state")]];
 
 // Modules with a KNOWN, DOCUMENTED single-area status that a LATER wave (or an
 // out-of-D2-scope decision) owns — allowlisted with a stale-guard: if an entry
@@ -171,20 +171,9 @@ function sharedModuleId(abs) {
     if (rel.startsWith("..")) return null;
     const parts = rel.split("/");
     if (parts[0] === "components") {
-        if (parts[1] === "custom") {
-            // T.F5 fold: the instrument facility's PEERS (transport/keyframes/
-            // timeline/shell/easing) are the @/ consumer-area units — one dir
-            // deeper than the flat pre-fold peers. Descend so a leaf shared
-            // ACROSS peers still counts ≥2 distinct areas.
-            if (parts[2] === "instrument") {
-                // The facility umbrella barrel (instrument/index.ts) is a pure
-                // re-export FACADE — transparent to this gate (neither a shared
-                // module nor a consuming area; its `export * from ./<peer>` must
-                // not count as consumption of the peers it re-exports).
-                if (parts.length === 4 && parts[3] === "index.ts") return null;
-                return `components/instrument/${parts[3]}`;
-            }
-            return `components/${parts[2]}`;
+        if (parts[1] === "instrument") {
+            if (parts.length === 3 && parts[2] === "index.ts") return null;
+            return `components/instrument/${parts[2]}`;
         }
         return `components/${parts[1]}`; // ui/, etc — whole tree = one module
     }
@@ -202,7 +191,9 @@ function areaOf(abs) {
     if ((m = /^scenes\/([^/]+)\//.exec(rel))) return `scenes/${m[1]}`;
     if (rel.startsWith("app/")) return "app";
     if (rel.startsWith("playground/")) return "playground";
-    if (rel.startsWith("@/")) return sharedModuleId(abs); // a @/ peer module
+    if (/^(components|composables|utils|state|styles)\//.test(rel)) {
+        return sharedModuleId(abs); // canonical shared peer module
+    }
     return null;
 }
 
@@ -222,15 +213,15 @@ function enumerateModules() {
         mods.push({ id, isDir: fs.statSync(absPath).isDirectory() });
     };
     // components/* — dirs + flat single files
-    const custom = path.join(SHARED, "components/custom");
-    for (const e of fs.readdirSync(custom, { withFileTypes: true })) {
+    const components = path.join(SHARED, "components");
+    for (const e of fs.readdirSync(components, { withFileTypes: true })) {
         if (e.isDirectory()) {
             if (e.name === "instrument") {
                 // T.F5 fold: the facility's PEERS are the gated units (each an
                 // @/ consumer area), enumerated one level deeper — NOT the
                 // `instrument/` umbrella itself. This preserves the pre-fold
                 // per-peer ≥2-consumer / dir-sub-zone checks.
-                const inst = path.join(custom, e.name);
+                const inst = path.join(components, e.name);
                 for (const pe of fs.readdirSync(inst, { withFileTypes: true })) {
                     // Only the PEER directories are gated units — the bare
                     // umbrella barrel (instrument/index.ts) is a re-export facade,
@@ -242,10 +233,10 @@ function enumerateModules() {
                         );
                 }
             } else {
-                push(`components/${e.name}`, path.join(custom, e.name));
+                push(`components/${e.name}`, path.join(components, e.name));
             }
         } else if (SOURCE_EXT.has(path.extname(e.name)))
-            push(`components/${e.name}`, path.join(custom, e.name));
+                push(`components/${e.name}`, path.join(components, e.name));
     }
     // composables/* and utils/* — each leaf/dir a module
     for (const seg of ["composables", "utils"]) {

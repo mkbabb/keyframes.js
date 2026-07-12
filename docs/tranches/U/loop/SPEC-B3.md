@@ -292,7 +292,7 @@ Worst path before → after:
    narrates the dock's T.F3 eviction INTO `app/dock/` ("part of the app's own
    chrome") and allowlists `dock` in `ALLOWED_ROOT_DIRS`. OD-U19 verbatim
    reverses that call: the dock is a COMPONENT module, not shell wiring. It
-   re-homes to `components/dock/`; the gate flips (N1.4).
+   re-homes to `app/dock/`; the gate flips (N1.4).
 
 ### N1.3 — The re-anchor manifest *(all counts measured at authoring; re-measure in-commit)*
 
@@ -340,12 +340,12 @@ dock** — the owner's verbatim "extirpated", small enough to execute whole, and
 exercises every move mechanic (home creation, import re-point, 14 gate-literal
 re-anchors, a born-RED clause flip, the R11 prose class).
 
-1. Create `demo/components/` (THE home); `git mv demo/app/dock demo/components/dock`;
+1. Create `demo/components/` (THE home); `git mv demo/app/dock demo/app/dock`;
    add the module's re-export-only `index.ts` (the recursive unit; today the dir
    has no barrel). The MbabbMenu↔ChromeDock intra-module import is unchanged.
 2. Re-point `App.vue:141-142` to the new home. In the prototype, spell it
-   RELATIVE (`../components/dock/…`) with a one-line note that the ratified
-   spelling `@components/dock` lands with keystone step ① (the alias RHS swap) —
+   RELATIVE (`../app/dock/…`) with a one-line note that the ratified
+   spelling `@app/dock` lands with keystone step ① (the alias RHS swap) —
    the prototype must not half-execute the keystone.
 3. Re-anchor ALL `app/dock` gate literals in the SAME commit (G10) — measured 14
    scripts at authoring; **re-measure in-commit** and record the count.
@@ -371,7 +371,7 @@ re-anchors, a born-RED clause flip, the R11 prose class).
    gates) · the flipped `proof:app-is-shell` green · zero published-surface
    change (`proof:boundary`, `proof:published-surface`).
 
-**Convergence bar:** 100% = the dock family live in `demo/components/dock/`
+**Convergence bar:** 100% = the dock family live in `demo/app/dock/`
 with all gates green including the born-RED flip (red proven first) + the
 complete measured move script in-tree + the 8-class sweep clean. Scored against
 this charter surface; the hard half (the gate re-anchors + the born-RED proof)

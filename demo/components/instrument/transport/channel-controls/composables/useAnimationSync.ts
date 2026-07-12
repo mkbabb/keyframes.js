@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import { useDemoTicker } from "@composables/useDemoTicker";
+import { useDemoTicker } from "@components/instrument/transport/composables/useDemoTicker";
 
 /**
  * Syncs reactive refs to a markRaw animation's state via rAF polling.

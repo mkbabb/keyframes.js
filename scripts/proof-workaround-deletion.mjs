@@ -293,8 +293,8 @@ const arms = [
         // contract not covering its own dismiss path). Witness the `isAnyOpen`
         // mutex token — the re-expand scaffolding the GU-3 cure retires.
         witness: {
-            subpath: "demo/components/dock/ChromeDock.vue",
-            fileFilter: exact("demo/components/dock/ChromeDock.vue"),
+            subpath: "demo/app/dock/ChromeDock.vue",
+            fileFilter: exact("demo/app/dock/ChromeDock.vue"),
             pattern: /isAnyOpen/,
         },
         // T.H2 — the NEW `glassCaps.dockDismissHold` dist-content cap (glass-caps.mjs).
@@ -314,8 +314,8 @@ const arms = [
         // DockDropdownTrigger opens on CLICK and the press-scale reflow drops it.
         // Witness the synthesis handlers.
         witness: {
-            subpath: "demo/components/dock/MbabbMenu.vue",
-            fileFilter: exact("demo/components/dock/MbabbMenu.vue"),
+            subpath: "demo/app/dock/MbabbMenu.vue",
+            fileFilter: exact("demo/app/dock/MbabbMenu.vue"),
             pattern: /onMbabbTriggerPointerdown|onMbabbTriggerClickCapture/,
         },
         // T.H2 — the NEW `glassCaps.dockDropdownPointerdown` dist-content cap.

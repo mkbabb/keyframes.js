@@ -52,7 +52,7 @@ honored). Spot-checks of its *(measured)* claims: E7's watchlist facts and
 E11's 26→23 ratchet were verified at pass 3 and their applied trims/re-runs
 confirmed in P8's pass-4 commits; **E12's rider verified NOW** —
 `proof-workaround-deletion.mjs` in P7 carries the re-anchored
-`demo/components/dock/…` literals (`:296-297`, `:317-318` — all 14 dock gates
+`demo/app/dock/…` literals (`:296-297`, `:317-318` — all 14 dock gates
 re-anchored, as the rider states); E13's kebab-key and base-commit facts
 confirmed in both ledgers' landed corrections. **ONE minted imprecision found
 (the exact class §Q4 warns of): E10 says value.js 3.1.0 "ships EIGHT subpaths —
@@ -224,7 +224,7 @@ carries; every other *(measured)* claim held under spot-check.
 - **P9 greens at agglomeration:** `check` exit 0 · `test/demo` 141/141 ·
   zero `src`/`bench`/`package.json` diff vs base `e0eaf863`.
 - **E12's rider held:** P7 re-anchored all 14 dock-literal gates including
-  `proof-workaround-deletion.mjs` (`demo/components/dock/…` at `:296-297`,
+  `proof-workaround-deletion.mjs` (`demo/app/dock/…` at `:296-297`,
   `:317-318`).
 
 ---

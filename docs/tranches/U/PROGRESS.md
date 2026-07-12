@@ -100,6 +100,13 @@ green master and the ratified corpus merged at `0b423142`.
   no deferred residuals; `proof:ci-coverage`, `proof:drag-gesture`, and the
   type-check remain green.
 
+- **2026-07-12** — **U.B9 APP-SHELL + TICKER RESIDUE DISCHARGED.** The dock
+  concern moved from `demo/components/dock/` to `demo/app/dock/`, with all
+  path-pinned proof witnesses and the app alias re-anchored. The transport-only
+  `useDemoTicker` moved into the transport composables tier. The shared-consumer
+  census is now green with no single-area shared leaves; demo tests remain
+  24 files/141 tests green and `gh-pages` builds.
+
 - **2026-07-12** — **U.A RESIDUE + B9 REHOME.** The obsolete report-all meta gate
   is deleted from the package/hygiene chain; `run-all` remains the executable
   report-all mechanism. The `gestureSelectSuppression` deferred colocation row

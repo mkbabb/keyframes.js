@@ -201,7 +201,7 @@ components. `proof:app-is-shell` grows a born-RED clause to enforce exactly this
 | `@/` | **DIES** — dissolve, hoist children to `demo/` root | OD-U2 | 1 |
 | `components/custom/` → `components/` | **`custom/` DIES** — shadcn "not-ui/" bucket, `ui/` gone at S.C3b | lane 20 F-2, lane 32 F1 | 1 |
 | `components/skeletons/` | **DIES** — per-module skeleton (§5); `SceneSkeleton`→`app/` | lane 24 §2 | (kind-bin removed) |
-| `app/dock/` (as a component home) | **DIES** — dock → `components/dock/` | OD-U19 "extirpated" | (bucket removed) |
+| `app/dock/` (as a component home) | **DIES** — dock → `app/dock/` | OD-U19 "extirpated" | (bucket removed) |
 | `app/scene/sceneFacility.ts` (in the shell) | **HOISTS** → `demo/scene-facility/` | lane 20 F-3 | — |
 | `app/runtime/` (as a scene library) | **SPLITS** — recipes → `composables/scene-runtime/`; guards → `app/lifecycle/` | lane 20 F-4 | — |
 | `instrument/` · `transport/` · `keyframes/` · `timeline/` · `shell/` | **SURVIVE** — each a real cohesive module | R.W5 / SPEC-B2 | — |
@@ -236,7 +236,7 @@ are unchanged; only their RHS moves; lane 20 F-1):**
   → `@components/instrument/…`; `@components/custom/CopyButton.vue` → `@components/CopyButton.vue`).
 - **1 site** (`app/App.vue:140`) `@components/skeletons/SceneSkeleton.vue` → `./App.skeleton.vue`.
 - **App.vue dock imports** (`./dock/ChromeDock.vue`, `./dock/MbabbMenu.vue`) →
-  `@components/dock` (dock re-homed). MbabbMenu↔ChromeDock internal import stays intra-module.
+  `@app/dock` (dock re-homed). MbabbMenu↔ChromeDock internal import stays intra-module.
 - **~10 sites** re-point per lane 20 F-3/F-4/F-5 (sceneFacility hoist, runtime split,
   ios/toast colocate) — lane-20-owned, co-scheduled.
 
@@ -246,7 +246,7 @@ are unchanged; only their RHS moves; lane 20 F-1):**
 - **35** scripts hardcode `components/custom` → `components/`.
 - Dock-path gates (`proof-dock-grammar`, `proof-dock-rest-crisp`, `proof-app-is-shell`,
   `proof-pp-logo-svg`, `proof-decomposition`, `proof-scene-control-dfa`) re-anchor
-  `app/dock` → `components/dock`.
+  `app/dock` → `app/dock`.
 - Structural cluster (`proof:colocation`, `proof:scene-colocated`,
   `proof:shared-has-n-consumers`, `proof:demo-no-oversize`, `proof:style-file-ceiling`)
   — path roots re-anchor `demo/@` → `demo/`; co-schedule with the CI-trim band (lane 32
@@ -268,7 +268,7 @@ demo-internal.
 1. **Dissolve `@/` → `demo/` root** (OD-U2) + **dissolve `custom/`** (the keystone
    highest-fanout move) in one coordinated commit; re-anchor the 38+35 gate literals and
    the config RHS in the same commit (else deeper moves re-point imports twice).
-2. **Re-home the dock** `app/dock/` → `components/dock/`; born-RED `proof:app-is-shell`
+2. **Re-home the dock** `app/dock/` → `app/dock/`; born-RED `proof:app-is-shell`
    clause flips green.
 3. **Re-home the singletons:** `SceneSkeleton` → `app/App.skeleton.vue` (delete
    `skeletons/`); `sceneFacility` → `demo/scene-facility/`; split `app/runtime/`.
@@ -284,7 +284,7 @@ demo-internal.
 
 1. **RATIFY `demo/components/` as THE ONE shared component home.** It absorbs three of the
    four scattered buckets — `@/components/custom/instrument/` (as `components/instrument/`),
-   `@/components/skeletons/` (dissolved, §5), and `app/dock/` (as `components/dock/`). The
+   `@/components/skeletons/` (dissolved, §5), and `app/dock/` (as `app/dock/`). The
    `@/` and `custom/` wrapper segments DIE (OD-U2; lane 20 F-2). No `shared/` wrapper — the
    glass-ui `src/` root shape (this SUPERSEDES lane 20/32's earlier `demo/shared/` proposal).
 
@@ -293,8 +293,8 @@ demo-internal.
    `demo/components/`; single-scene ⇒ that scene's dir (`demo/scenes/<name>/`, R.W5-blessed);
    shell-private ⇒ `demo/app/`. Two principled homes, one rule — no third bucket.
 
-3. **EXTIRPATE `app/dock/` — dock re-homes to `components/dock/`** (`ChromeDock.vue` +
-   `MbabbMenu.vue` + `index.ts`). App.vue imports it via `@components/dock`. This is a
+3. **EXTIRPATE `app/dock/` — dock re-homes to `app/dock/`** (`ChromeDock.vue` +
+   `MbabbMenu.vue` + `index.ts`). App.vue imports it via `@app/dock`. This is a
    COMPONENT module, not shell wiring (OD-U19 verbatim).
 
 4. **RATIFY the recursive unit = the `keyframes/`-style dir** (lane 24 §9.1 shape + §9.2

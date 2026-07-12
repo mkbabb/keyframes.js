@@ -1,5 +1,5 @@
 import type { Ref } from "vue";
-import { useDemoTicker } from "@composables/useDemoTicker";
+import { useDemoTicker } from "@components/instrument/transport/composables/useDemoTicker";
 
 /**
  * A composable that manages a per-frame loop with optional reactive guard.
