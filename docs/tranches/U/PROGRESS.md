@@ -12,7 +12,7 @@
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11(partial)/C12/C14/C15(partial)/C16(partial) landed on `tranche-u-impl`; C13/C11(drive wrapper)/C15(operator-axis remainder)/C16(lifecycle/parity remainder) remain in the ratified PASS-5 order |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D3 WAAPI shadow-tick fast path landed; D2 microtask-hop harness and remaining frontier rows pending |
-| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E9/E10 measured residue and dogfood anchors recorded; E7/E8 delete-last cleanup and E9/E10 implementation remain pending |
+| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E8 suppression-by-fixing complete; E9/E10 measured and D6 landed; E7 delete-last and remaining E9/E10 work pending |
 | U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
 | U.G | THE DESIGN CODEX | CHARTERED |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
@@ -24,6 +24,13 @@
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.E8 SUPPRESSION-BY-FIXING COMPLETE.** Commit `c61ffec5`
+  deletes the dependency-cruiser known-violations ledger, removes
+  `--ignore-known` from lint/proof paths, and breaks the spring runtime cycle by
+  importing the dependency-free solver directly. `npm run lint`,
+  `proof:lint-clean`, and `proof:no-silent-fallback` pass; all planted cycle and
+  boundary violations still bite. E7's CLAUDE delete-last act remains untouched.
 
 - **2026-07-12** — **POST-C3 REGRESSION CURE + E10 D6 COMPLETE.** Commit
   `516de469` filters epoch-cleared composite leaves at the style output boundary
