@@ -326,6 +326,7 @@ function applyComposition<V extends Vars>(
         iteration: anim._playback.iteration,
         target: anim.targets[0],
         compositionBase: anim._compositionBase,
+        compositionPose: anim._compositionPose,
         compositionFallbackSeen: anim._compositionFallbackSeen,
         diagnostics: anim.diagnostics,
     });

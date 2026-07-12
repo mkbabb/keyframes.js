@@ -42,6 +42,7 @@ export function computeHasComposition<V extends Vars>(
     resetCompositionCaches(
         anim._compositionBase,
         anim._compositionFallbackSeen,
+        anim._compositionPose,
     );
 }
 

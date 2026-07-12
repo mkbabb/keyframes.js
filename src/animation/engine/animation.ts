@@ -117,6 +117,8 @@ export class KeyframesAnimation<V extends Vars = Vars> {
      * per-element numeric base `add`/`accumulate` accumulates ONTO; empty for a
      * pure-`replace` animation. INTERNAL — read by `./interpolate` (R.W2). */
     _compositionBase: Map<string, number[]> = new Map();
+    /** Parsed underlying CSS pose, cached once per property for a capture run. */
+    _compositionPose: Map<string, number[]> = new Map();
 
     /** Properties whose non-numeric composite already emitted its
      * `COMPOSITION_FALLBACK` row (once per property, not per frame). INTERNAL —

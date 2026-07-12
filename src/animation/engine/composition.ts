@@ -36,6 +36,7 @@ export interface CompositionRuntime {
     readonly iteration: number;
     readonly target: HTMLElement | undefined;
     readonly compositionBase: Map<string, number[]>;
+    readonly compositionPose: Map<string, number[]>;
     readonly compositionFallbackSeen: Set<string>;
     readonly diagnostics: Diagnostic[];
 }
@@ -66,9 +67,11 @@ export function computeHasComposition<V extends Vars>(
 export function resetCompositionCaches(
     compositionBase: Map<string, number[]>,
     compositionFallbackSeen: Set<string>,
+    compositionPose?: Map<string, number[]>,
 ): void {
     compositionBase.clear();
     compositionFallbackSeen.clear();
+    compositionPose?.clear();
 }
 
 /**
@@ -120,7 +123,12 @@ export function applyComposition<V extends Vars>(
         // overwrote it). Keyed by the flat property; one number per element.
         let base = runtime.compositionBase.get(key);
         if (base === undefined) {
-            base = captureUnderlyingBase(runtime.target, key, leaf.length);
+            base = captureUnderlyingBase(
+                runtime.target,
+                key,
+                leaf.length,
+                runtime.compositionPose,
+            );
             runtime.compositionBase.set(key, base);
         }
 
@@ -159,6 +167,7 @@ export function captureUnderlyingBase(
     target: HTMLElement | undefined,
     key: string,
     count: number,
+    poseCache?: Map<string, number[]>,
 ): number[] {
     const base = new Array<number>(count).fill(0);
     if (target == null || target.style == null) return base;
@@ -166,6 +175,8 @@ export function captureUnderlyingBase(
     // or `transform.translateX` → `translateX`); read the inline value and
     // parse leading numeric components positionally.
     const prop = key.split(".").pop() ?? key;
+    const cached = poseCache?.get(prop);
+    if (cached !== undefined) return cached.slice(0, count);
     const raw =
         target.style.getPropertyValue(prop) ||
         (target.style as unknown as Record<string, string>)[prop] ||
@@ -177,6 +188,7 @@ export function captureUnderlyingBase(
         const n = Number.parseFloat(nums[i]!);
         if (Number.isFinite(n)) base[i] = n;
     }
+    poseCache?.set(prop, base.slice());
     return base;
 }
 
