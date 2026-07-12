@@ -59,7 +59,7 @@
 | tranche-tag archaeology (src files) | **117** files carry `S.B1`/`T.M3`/`OD-N`/`R.W`-class provenance comments | `grep -rlE` over `src/animation` |
 | `proof-deps-current` FLOORS | value.js pinned to **0.13.0** (pre-1.0, 3 majors stale); `parse-that 0.9.0` for a SEVERED dep | `proof-deps-current.mjs:72-73` |
 | MIGRATION docs | `MIGRATION-5.0.0.md` + `MIGRATION-5.1.0.md` exist; `proof:changelog` cites phantom `MIGRATION-5.2.0.md` | `ls docs/MIGRATION*`; `proof-changelog.mjs:31` |
-| VJ-L2 pending scaffold | `vjL2LinearLanded` probe + `it.skipIf` + PENDING witness — source ALREADY declares VJ-L2 consumed at value.js ≥1.0.0 | `roundtrip-easing.test.ts:46,163,170`; `easing-registry.ts:106-108` |
+| VJ-L2 pending scaffold | **DISCHARGED** — stale `vjL2LinearLanded` probe, `it.skipIf`, and PENDING witness deleted; the canonical spring `linear()` round-trip is unconditional. value.js 3.1.0's VJ-L2 serializer is consumed; its parser never promised the synthetic flat-comma form. | `test/compile/roundtrip-easing.test.ts` (post-10856bc8); `src/animation/compile/easing/easing-registry.ts:106-108` |
 | `SceneExposedApi` dual-path | `facility?` + legacy `animationGroup?`/`scenePlayback?` side-by-side; all 6 scenes expose BOTH | `sceneExposedApi.ts:24-31`; `useSceneMachineShellBinding.ts:163,220,266` |
 
 **The one sentence (lanes 04/05/06 convergent).** The deferral corpus is NOT dominated
