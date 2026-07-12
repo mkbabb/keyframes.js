@@ -51,7 +51,7 @@ let monacoBoot: Promise<typeof Monaco> | undefined;
 
 function bootMonaco(): Promise<typeof Monaco> {
     return (monacoBoot ??= Promise.all([
-        import("monaco-editor"),
+        import("monaco-editor/esm/vs/editor/editor.api"),
         // Each `?worker` virtual module default-exports a Worker constructor; a
         // dynamic import keeps its monaco-proxy edge off the eager scene graph.
         import("monaco-editor/esm/vs/editor/editor.worker?worker"),
