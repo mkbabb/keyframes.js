@@ -35,9 +35,10 @@ export async function playWAAPI<V extends Vars>(
     // same observable state as the rAF path. No interpFrames calls;
     // WAAPI handles the visuals. Rides the animation's own RAFPlayback
     // driver so `stop()` halts it uniformly with every other loop.
-    animation.playback.loop(async (now: number) => {
-        if (animation.done) return false;
-        await animation.advanceTo(now);
+    // Keep the steady WAAPI shadow tick on RAFPlayback's synchronous fast path.
+    // `advanceTo` is thenable only for a genuinely asynchronous first tick; the
+    // old `async` callback forced every frame through a Promise/microtask hop.
+    const reconcile = (): boolean => {
         if (animation.paused) {
             for (const wa of waAnimations) wa.pause();
         } else {
@@ -46,7 +47,20 @@ export async function playWAAPI<V extends Vars>(
             }
         }
         return !animation.done;
-    });
+    };
+
+    const shadowTick = (now: number): boolean | Promise<boolean> => {
+        if (animation.done) return false;
+        const advanced = animation.advanceTo(now);
+        if (
+            advanced &&
+            typeof (advanced as Promise<number>).then === "function"
+        ) {
+            return (advanced as Promise<number>).then(reconcile);
+        }
+        return reconcile();
+    };
+    animation.playback.loop(shadowTick);
 
     try {
         await Promise.all(waAnimations.map((wa) => wa.finished));
