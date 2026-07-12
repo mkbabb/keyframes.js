@@ -12,7 +12,7 @@
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C12/C14/C15(partial)/C16(partial) landed on `tranche-u-impl`; C11/C13/C15(operator-axis remainder)/C16(lifecycle/parity remainder) remain in the ratified PASS-5 order |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D3 WAAPI shadow-tick fast path landed; D2 microtask-hop harness and remaining frontier rows pending |
-| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CHARTERED-CONVERGED** — U.E7=P3, U.E8=P4, +U.E9 meta-legacy (N2), +U.E10 dogfood (N3) folded |
+| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E9/E10 measured residue and dogfood anchors recorded; E7/E8 delete-last cleanup and E9/E10 implementation remain pending |
 | U.F | CONSTELLATION COVENANTS | **CHARTERED-CONVERGED** — the D-GAP-1/5/6 letter-row set + E15's seven-subpath ground truth folded |
 | U.G | THE DESIGN CODEX | CHARTERED |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
@@ -24,6 +24,13 @@
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-12** — **U.E9/E10 RECONNAISSANCE RECORDED.** Commit `094424fe`
+  adds the measured 39-hit residue census, KNOWN_PRIOR_ART classification,
+  current demo clamp families, and the sequencing/gate anchors for the
+  delete-last cleanup. No CLAUDE, suppression, gate, or glass-ui files were
+  changed; E7/E8 re-anchoring and the bounded E9/E10 implementation remain
+  routed.
 
 - **2026-07-12** — **U.C16 CONSERVATIVE LOWERING PRIMITIVE COMPLETE.** Commit
   `5ebf19f0` adds a single-target, all-eligible group gate and one native
