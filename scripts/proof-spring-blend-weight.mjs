@@ -93,7 +93,7 @@ const SPRING = "src/animation/physics/spring/progress.ts";
 // FOLLOWS the code to its new home). `spring.ts` re-exports the public symbols
 // so the barrel resolves them through `./spring` unchanged; the `phys-b2-reseat`
 // arm below greps the function BODIES at their new home.
-const SPRING_RESEAT = "src/animation/physics/spring/reseat.ts";
+const SPRING_RESEAT = "src/animation/physics/spring/solver/reseat.ts";
 // S.B1 — constants carved into constants/{types,defaults}.ts; the phys-c-field
 // anchors (WeightStepper + AnimationLayerConfig.weightSpring) are TYPE
 // declarations and live on the LIGHT-pure types module.

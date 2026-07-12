@@ -1,5 +1,5 @@
-import type { Easing, TimingFunction } from "../../constants/types";
-import { sampleNormalizedSpring } from "./sample";
+import type { Easing, TimingFunction } from "../../../constants/types";
+import { sampleNormalizedSpring } from "../solver/sample";
 import {
     springLinearStops,
     type SpringLinearStopsOptions,

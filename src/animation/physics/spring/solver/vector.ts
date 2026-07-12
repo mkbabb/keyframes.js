@@ -1,7 +1,7 @@
 import { prepareDampedHarmonic, solvePreparedDampedHarmonic } from "./solver";
 
 /**
- * `physics/spring/vector.ts` — the SpringProgress MULTI-CHANNEL (SoA) lane
+ * `physics/spring/solver/vector.ts` — the SpringProgress MULTI-CHANNEL (SoA) lane
  * subsystem (L.W7 §S2, W122 — ADOPT @ 2.97–3.78× over K scalars), carved off the
  * scalar tracker as a cohesive internal seam (R.W2b decomposition).
  *

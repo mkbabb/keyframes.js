@@ -1,5 +1,5 @@
 /**
- * `physics/spring/sample.ts` — the normalized-spring sampler shared by the two
+ * `physics/spring/solver/sample.ts` — the normalized-spring sampler shared by the two
  * CSS serializers (R.W1 §spring; the closed-form kernel split to `./solver` at
  * R.W2c).
  *
@@ -15,7 +15,7 @@
  *
  * value.js-free (LIGHT) — plain Math.
  */
-import { SpringProgress } from "./progress";
+import { SpringProgress } from "../progress";
 
 /** Inputs to the normalized-spring sampler shared by the two serializers. */
 export interface NormalizedSpringSampleOptions {

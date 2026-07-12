@@ -27,13 +27,13 @@ import { springPlay, springStartLoop, springStop } from "./managed-play";
 import {
     durationToSpringOptions,
     type SpringDurationOptions,
-} from "./duration";
+} from "./solver/duration";
 // The SoA multi-channel lane subsystem (L.W7 §S2 vector sugar) lives in the
 // colocated `./vector` module (R.W2b carve); `SpringProgress` holds at most one
 // `SpringVectorLanes` (lazily armed on the first `setTargets`) and delegates its
 // `setTargets`/`tickVector`/`values`/`velocities` surface to it — the scalar hot
 // path never touches a lane buffer.
-import { SpringVectorLanes, EMPTY_LANES } from "./vector";
+import { SpringVectorLanes, EMPTY_LANES } from "./solver/vector";
 // The shared closed-form analytic kernel (R.W2c §spring `solver.ts`, the dep-free
 // leaf) — the scalar `evaluateAt` consumes it; the vector lanes inline it hoisted.
 import { solveDampedHarmonic } from "./solver";

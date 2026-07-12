@@ -1,4 +1,4 @@
-import { sampleNormalizedSpring } from "./sample";
+import { sampleNormalizedSpring } from "../solver/sample";
 
 /**
  * Options for sampling a spring response curve into CSS `linear()` stops.

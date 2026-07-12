@@ -13,8 +13,8 @@
  * / `probeVelocity` / `reseatToSpring`) so every consumer resolves them through
  * the barrel exactly as before; ZERO behaviour change.
  */
-import { SpringProgress } from "./progress";
-import type { SpringProgressOptions } from "./types";
+import { SpringProgress } from "../progress";
+import type { SpringProgressOptions } from "../types";
 
 /**
  * A two-sample window over a position stream — the last two `(value, time)`

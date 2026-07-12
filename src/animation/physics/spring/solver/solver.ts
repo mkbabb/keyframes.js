@@ -1,5 +1,5 @@
 /**
- * `physics/spring/solver.ts` — the closed-form damped-harmonic kernel
+ * `physics/spring/solver/solver.ts` — the closed-form damped-harmonic kernel
  * (R.W2c §spring). The PURE analytic step, extracted off `sample.ts` so it
  * carries ZERO module dependency: both `progress.ts` (the scalar tracker, once
  * per frame) and `sample.ts` (the normalized-curve sampler) read it without

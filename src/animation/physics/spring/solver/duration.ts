@@ -13,8 +13,8 @@
  * for `SpringProgress.fromDuration`, so every consumer resolves the surface
  * through the spring barrel exactly as before; ZERO behaviour change.
  */
-import { clamp } from "../../internal/leaves";
-import { DEFAULT_SPRING_RESPONSE, type SpringProgressOptions } from "./types";
+import { clamp } from "../../../internal/leaves";
+import { DEFAULT_SPRING_RESPONSE, type SpringProgressOptions } from "../types";
 
 /**
  * The modern, time-based spring surface — the idiom Motion now leads its
