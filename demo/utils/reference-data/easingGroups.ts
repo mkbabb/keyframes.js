@@ -11,7 +11,7 @@ interface CurveGroupItem {
     isDetail: boolean;
 }
 
-export interface CurveGroup {
+interface CurveGroup {
     family: string;
     items: CurveGroupItem[];
 }

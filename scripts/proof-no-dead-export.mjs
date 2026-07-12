@@ -91,7 +91,6 @@ const DEFERRED = [
     ["demo/glass-ui-gaps.ts", "GlassUiGap"],
     ["demo/glass-ui-gaps.ts", "GlassUiGapId"],
     // ── easing scene dir (OD-7 redesign target — do NOT restructure) ──
-    ["demo/utils/reference-data/easingGroups.ts", "CurveGroup"],
 ];
 
 // ── source helpers ────────────────────────────────────────────────────────────
