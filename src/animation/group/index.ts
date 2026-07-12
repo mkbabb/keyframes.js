@@ -18,3 +18,7 @@ export type {
     AnimationGroupObject,
     AnimationGroupInput,
 } from "./types";
+export {
+    isGroupWAAPIEligible,
+    lowerGroupWAAPI,
+} from "./waapi";
