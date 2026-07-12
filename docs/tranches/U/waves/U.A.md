@@ -1,6 +1,7 @@
 # U.A — THE APPARATUS DISSOLUTION
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: IMPLEMENTATION IN PROGRESS (U.A1/A5/A6/A7/A8/A9/A10 landed).**
+> The remaining gate-family migrations and close evidence are still routed.
 >
 > **Charter sentence (U.md §2).** Dissolve the 227-gate / 73.5k-LOC enforcement
 > apparatus into three honest mechanisms — `npm test` (all correctness) +
@@ -37,6 +38,24 @@
 > `proof:colocation` gate + lint; the tranche's other proposed gate
 > (`proof:chunk-graph`) is likewise DROPPED into a `proof:publish` clause (U.D).
 > DEVELOPMENT ONLY — this is the charter, not the edit.
+
+### Implementation checkpoint (2026-07-12)
+
+The historical census below remains a frozen baseline; it is not reconstructed at
+close. Current implementation evidence is recorded in `PROGRESS.md`:
+
+- tier reachability is now the transitional coverage authority;
+- five stale self-policing scripts and their CI/package/report-all wiring are
+  deleted;
+- `run-all` consumes `scripts/lib/tiers.mjs`, while browser rosters run on the
+  scheduled/manual path;
+- merge CI runs check/build, `npm test`, and `proof:publish`; deployment checks
+  the `last-demo-green` ancestry tag;
+- the publish bundle is the first family barrel under `scripts/gates/surface/`.
+
+Measured current package roster: 205 `proof:*` keys. The A2–A10 exit remains
+open until the remaining flat families and gate-band records are either folded
+into surviving mechanisms or deleted with their verified fold-map rows.
 
 ---
 

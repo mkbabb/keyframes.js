@@ -42,6 +42,15 @@ green master and the ratified corpus merged at `0b423142`.
   remaining flat proof families are intentionally routed for subsequent
   family-by-family moves; no standalone colocation gate was added.
 
+- **2026-07-12** — **U.A10 ANTI-SPRAWL RECORD.** The U.A2 fold-map remains the
+  authority for deleted-gate coverage: product behavior belongs in Vitest,
+  published-shape/dependency facts belong in `proof:publish`, and taste belongs
+  to owner-golden. This drive adds no standalone proof genre; the package now
+  carries 205 `proof:*` keys (down from the 227-entry U census), and every new
+  backend move is a family-barrel relocation or an existing-clause amendment.
+  The ≤4-minute merge path is configured and measured structurally; final
+  elapsed CI and owner-golden closure remain U.Z evidence.
+
 - **2026-07-12** — **U.A1 COVERAGE-CONTRACT INVERSION.** The transitional
   coverage contract now derives authority from correctness/hygiene tier
   membership rather than requiring every package `proof:*` key to be repeated as
