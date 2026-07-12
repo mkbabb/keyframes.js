@@ -168,8 +168,8 @@ import { computed, useTemplateRef } from "vue";
 import type { TransportChannel } from "../transportSource";
 import AnimationControls from "../controls/AnimationControls.vue";
 import RibbonBar from "./RibbonBar.vue";
-import { usePaneRegister } from "../composables/usePaneRegister";
-import { useControlsLayout } from "../composables/useControlsLayout";
+import { usePaneRegister } from "../ControlsPaneWrapper/usePaneRegister";
+import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
 // GLASSUI-GAP: drawerDetentInset (BG-11) — this site is the T.H3-ADOPT Drawer
 // consumer; demo/glass-ui-gaps.ts tracks the bottom-inset lever the adoption's
 // occlusion contract awaits (see the header block above + KF-TO-GLASSUI-BG.md

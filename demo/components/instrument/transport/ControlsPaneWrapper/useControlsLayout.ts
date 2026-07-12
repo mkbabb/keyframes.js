@@ -2,7 +2,7 @@ import { useMediaQuery } from "@vueuse/core";
 import { ref, watch, type Ref } from "vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import { usePaneHover } from "./usePaneHover";
-import { useScrollFade } from "./useScrollFade";
+import { useScrollFade } from "../composables/useScrollFade";
 
 /**
  * Owns the controls-pane LAYOUT reactivity for AnimationControlsGroup: the

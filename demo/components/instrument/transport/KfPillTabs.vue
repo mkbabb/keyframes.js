@@ -41,8 +41,8 @@
 // colocated composable (S.B7 S6) so both are unit-tested via a representative
 // tablist host — the useToolbarKeyboard precedent. KfPillTabOption is re-exported
 // so `import type { KfPillTabOption } from ".../KfPillTabs.vue"` keeps resolving.
-import { useKfPillTabs } from "./composables/useKfPillTabs";
-import type { KfPillTabOption } from "./composables/useKfPillTabs";
+import { useKfPillTabs } from "./KfPillTabs/useKfPillTabs";
+import type { KfPillTabOption } from "./KfPillTabs/useKfPillTabs";
 // GLASSUI-GAP: segmentedTabsAriaOrientation — this kf-internal pill strip is a
 // band-aid for glass-ui's SegmentedTabs pill emitting aria-orientation on
 // role=group (BG-1) + coupling material to role (BG-3). It dies on the re-pin;

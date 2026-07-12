@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import { useAnimationGroupPlayback } from "../../../demo/components/instrument/transport/composables/useAnimationGroupPlayback";
+import { useAnimationGroupPlayback } from "../../../demo/components/instrument/transport/AnimationControlsGroup/useAnimationGroupPlayback";
 import { spyOnComposite } from "../../support/group-probe";
 
 /** A complete `StoredAnimationGroupControlOptions` with test-relevant overrides —

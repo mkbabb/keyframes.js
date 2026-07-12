@@ -205,8 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
-import { useResizeObserver } from "@vueuse/core";
+import { computed, useTemplateRef } from "vue";
 
 import {
     List,
@@ -237,9 +236,10 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
 import { RotateCcw } from "@lucide/vue";
 
-import { kfEngine } from "@utils/kfEngine";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
-import { usePlayActuation } from "./composables/usePlayActuation";
+import { usePlayActuation } from "./TransportDock/usePlayActuation";
+import { useMenubarMeasure } from "./TransportDock/useMenubarMeasure";
+import { useIconSpin } from "./TransportDock/useIconSpin";
 // GLASSUI-GAP: dockStrandKeepalive — the disjoint pointerup/keydown play actuation
 // (usePlayActuation) is a band-aid for glass-ui's collapse-crossfade click-strand
 // (GU-4). It collapses to a plain click handler on the re-pin; see
@@ -269,9 +269,7 @@ const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 // reserve it feeds), so no custom-property cycle forms.
 // Gated by proof:live-session-mobile (sheet.bottom ≤ menubar.top on a real
 // 390×844 + hasTouch context — the CH-3 re-certification oracle).
-const menubarHostEl = useTemplateRef<HTMLElement>("menubarHostEl");
-const MENUBAR_MEASURED_PROP = "--menubar-measured-h";
-const MENUBAR_PEAK_PROP = "--menubar-measured-h-peak";
+const menubarHostEl = useMenubarMeasure();
 
 // J.WZ (S1 stage-rect-invariant fix) — the menubar pill's border-box height is
 // NOT constant across the sheet toggle: opening the bottom sheet reflows the
@@ -287,38 +285,6 @@ const MENUBAR_PEAK_PROP = "--menubar-measured-h-peak";
 // peak is a pure ceiling over observed heights (never fed back into the measure),
 // so no custom-property cycle forms and over-reservation only ever keeps the
 // subject MORE clear of the dock, never less.
-let menubarPeak = 0;
-
-const publish = () => {
-    const host = menubarHostEl.value;
-    if (!host) return;
-    const h = Math.ceil(host.getBoundingClientRect().height);
-    document.documentElement.style.setProperty(MENUBAR_MEASURED_PROP, `${h}px`);
-    if (h > menubarPeak) {
-        menubarPeak = h;
-        document.documentElement.style.setProperty(
-            MENUBAR_PEAK_PROP,
-            `${menubarPeak}px`,
-        );
-    }
-};
-
-// The menubar-height observer rides @vueuse/core's useResizeObserver (inv-ζ
-// dogfood discipline, E.W2 §S1–S3): it auto-cleans via tryOnScopeDispose, so no
-// hand-rolled disconnect bookkeeping can leak on a mid-resize unmount. The
-// callback IS `publish` (re-emit --menubar-measured-h on every menubar reflow).
-useResizeObserver(menubarHostEl, publish);
-
-// Seed the property once the host is in the DOM (the observer's first callback
-// already fires on observe, but mount-seeding keeps the band math correct even
-// before the first reflow). The token is cleared on unmount so a torn-down dock
-// never strands a stale measured height on :root.
-onMounted(publish);
-onBeforeUnmount(() => {
-    document.documentElement.style.removeProperty(MENUBAR_MEASURED_PROP);
-    document.documentElement.style.removeProperty(MENUBAR_PEAK_PROP);
-    menubarPeak = 0;
-});
 
 // ── R.W6 C.6 — DM-1 CONTINGENCY KILL (the crossfade-strand band-aid EXCISED).
 //
@@ -395,36 +361,7 @@ const dotStyle = (name: string): Record<string, string> => {
     return { "--dot-p": String(p) };
 };
 
-/** Resolve a template ref to a raw HTMLElement (handles component instances). */
-const resolveEl = (ref: any): HTMLElement | null => {
-    if (!ref) return null;
-    if (ref instanceof HTMLElement) return ref;
-    return ref.$el instanceof HTMLElement ? ref.$el : null;
-};
-
-const resetIconEl = useTemplateRef<HTMLElement>("resetIconEl");
-
-// HEAVY constructor from the warmed engine (kfEngine(), L.W8 S1 dogfood
-// inversion) — synchronous, since the warm resolves before the app mounts.
-const { CSSKeyframesAnimation } = kfEngine();
-
-const resetSpinAnim = new CSSKeyframesAnimation({
-    duration: 400,
-    timingFunction: "easeOutCubic",
-}).fromString(/*css*/ `@keyframes twist {
-    0% { transform: perspective(200px) rotateY(0deg) scale(1); }
-    40% { transform: perspective(200px) rotateY(-180deg) scale(0.85); }
-    100% { transform: perspective(200px) rotateY(-360deg) scale(1); }
-}`);
-
-const resetIconSpin = () => {
-    const el = resolveEl(resetIconEl.value);
-    if (el) {
-        resetSpinAnim.setTargets(el);
-        resetSpinAnim.reset();
-        resetSpinAnim.play();
-    }
-};
+const { resetIconEl, resetIconSpin } = useIconSpin();
 
 // T.C2 — "Clear all & reload" (the trash icon + its shake, `emit('reset', true)`)
 // MOVED OUT of the transport into the @mbabb settings menu (a destructive storage

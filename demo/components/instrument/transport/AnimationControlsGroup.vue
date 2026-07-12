@@ -130,10 +130,10 @@ import TransportDock from "./TransportDock.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { TransportChannel } from "./transportSource";
-import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
-import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
-import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
-import { useAnimationProgress } from "./composables/useAnimationProgress";
+import { useAnimationGroupActions } from "./AnimationControlsGroup/useAnimationGroupActions";
+import { useControlsKeyboardShortcuts } from "./AnimationControlsGroup/useControlsKeyboardShortcuts";
+import { useAnimationGroupPlayback } from "./AnimationControlsGroup/useAnimationGroupPlayback";
+import { useAnimationProgress } from "./AnimationControlsGroup/useAnimationProgress";
 
 const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs } = defineProps<{
     animationGroup: AnimationGroup<any>;

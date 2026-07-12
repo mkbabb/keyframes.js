@@ -2,7 +2,7 @@ import { ref } from "vue";
 import type { Ref } from "vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { TransportChannel } from "../transportSource";
-import { useRafLoop } from "./useRafLoop";
+import { useRafLoop } from "../composables/useRafLoop";
 
 export function useAnimationProgress(
     getAnimationGroup: () => AnimationGroup<any>,
