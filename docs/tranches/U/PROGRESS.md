@@ -38,6 +38,12 @@ green master and the ratified corpus merged at `0b423142`.
   acts without claiming owner-golden blessing, glass-ui 5.0.0, publication, or
   deployment.
 
+- **2026-07-12** — **U.F6 GLASS-UI HANDOFF LETTER.** `KF-TO-GLASSUI-U.md`
+  supersedes the T-era ask letter with the complete GU/BG/Dock-z roster,
+  acceptance probes, release-held protocol, and absorb-or-expire deadlines. It
+  is handed to the active BI root inbox; no glass-ui source or keyframes pin
+  change is authorized until the stated 5.0.0 signals exist.
+
 - **2026-07-12** — **U.A6–A8 APPARATUS/WORKFLOW CUT.** `scripts/lib/tiers.mjs`
   now owns the blocking/observed tier names consumed by `run-all`. The merge CI
   workflow is reduced to `check:lib`, `build:lib`, `npm test -- --run`, and
