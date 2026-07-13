@@ -1,7 +1,8 @@
 # U.A — THE APPARATUS DISSOLUTION
 
 > **Status: IMPLEMENTATION IN PROGRESS (U.A1/A5/A6/A7/A8/A9/A10 landed).**
-> The remaining gate-family migrations and close evidence are still routed.
+> The terminal gate-family deletion is landed; only the close evidence remains
+> routed.
 >
 > **Charter sentence (U.md §2).** Dissolve the 227-gate / 73.5k-LOC enforcement
 > apparatus into three honest mechanisms — `npm test` (all correctness) +

@@ -8,13 +8,13 @@
 
 | Band | Title | State |
 |---|---|---|
-| U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta/deploy proof gates are deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. Remaining gate-band and ledger rehoming stays routed. |
+| U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta/deploy proof gates and the remaining `gate-bands`/`proof:ci-coverage` ledgers are now deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. |
 | U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; B9 runtime homes and B14 first fold target now landed; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D4's shared vector facet is carved and the ceiling is green, while the pointer-aware drag fusion remains routed; D5 defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E4 dead-export sweep, E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
 | U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
-| U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; G4 owner-golden blessing remains |
+| U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; the 14-cell owner-golden candidates and `PANE=LIT` protocol are landed, with sequence-light/dark owner blessing remaining |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
 | U.R | PROMPT-RECAP-U (STANDING) | **COMPLETE** — U.R2 retargeted to tree-cleared witness; `proof:prompt-recap-u` passes all seven clauses |
 | U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
@@ -32,8 +32,16 @@ green master and the ratified corpus merged at `0b423142`.
   observers run on the scheduled/manual roster only. `deploy-pages.yml` now
   requires a successful library push run plus `last-demo-green` being an ancestor
   of the deploy SHA, with manual dispatch as the explicit break-glass path.
-  `proof:ci-coverage` parses all three workflows and passes after the cut. No
+  The dissolved coverage meta-gate is no longer part of the close apparatus. No
   glass-ui source or dependency pin changed.
+
+- **2026-07-13** — **U.A5 TERMINAL LEDGER DELETION + U.G4 CANDIDATE MATRIX.**
+  `gate-bands.mjs` and `proof-ci-coverage.mjs` are deleted; the nightly demo
+  roster now classifies reds only from its live `demo-roster` manifest, and the
+  drag2D certification witnesses the dissolved apparatus by absence. The
+  owner-golden mechanism now captures all 14 scene×theme candidates with an
+  explicit `PANE=LIT` pointer pin; no sequence blessing or golden copy has been
+  fabricated. Glass-ui remains release-held at 4.2.0 pending 5.0.0.
 
 - **2026-07-12** — **U.A7 NIGHTLY ROSTER CERTIFIED.** The legacy 75-entry
   browser list is retained as frozen provenance, while the scheduled/manual
