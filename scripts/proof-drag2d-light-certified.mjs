@@ -70,7 +70,6 @@
  *
  * STATIC (no browser). Re-runnable: `node scripts/proof-drag2d-light-certified.mjs`.
  */
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -162,24 +161,18 @@ if (!existsSync(LIB)) {
         );
     }
 
-    // (b.4) No proof-ci-coverage EXCLUSION entry — else the coverage gate would
-    //       red with a "declared exclusion for a non-existent gate" orphan.
-    const coverageRaw = read(CI_COVERAGE);
-    if (countOf(coverageRaw, "control-point-live") === 0) {
-        pass("(b) scripts/proof-ci-coverage.mjs carries ZERO `control-point-live` reference — the EXCLUSION allowlist entry is removed.");
+    // (b.4) The dissolved coverage apparatus is absent; no exclusion ledger
+    // remains that could orphan the retired gate.
+    if (!existsSync(CI_COVERAGE)) {
+        pass("(b) the dissolved proof-ci-coverage apparatus is absent — no exclusion entry can orphan the retired gate.");
     } else {
-        fail(
-            "(b) scripts/proof-ci-coverage.mjs STILL references `control-point-live` " +
-                `(${countOf(coverageRaw, "control-point-live")} hit(s)) — the EXCLUSION entry would orphan against ` +
-                "the deleted gate (S2); delete the carve-out + its comment.",
-        );
+        fail("(b) scripts/proof-ci-coverage.mjs still exists — the dissolved coverage ledger must be deleted.");
     }
 
     // (b.5) No orphan `GlassControlPoint` dead-premise reference anywhere in
     //       scripts/ — EXCEPT this gate's own source, which names the dead
     //       component in its prose to DOCUMENT what it retires (the same
-    //       self-exclusion proof:ci-coverage applies to its own detector text:
-    //       the meta-gate does not audit its own documentation of the thing it kills).
+    //       this gate's own source documents the retired premise.
     const SELF = path.basename(fileURLToPath(import.meta.url));
     const scriptFiles = readdirSync(path.join(REPO, "scripts")).filter(
         (f) => f.endsWith(".mjs") && f !== SELF,
@@ -197,45 +190,6 @@ if (!existsSync(LIB)) {
         );
     }
 
-    // (b.6) The retire orphaned NOTHING control-point-live-shaped in proof:ci-coverage.
-    //       Asserting the WHOLE gate exits 0 would couple this certification to every
-    //       OTHER lane's coverage state (e.g. an un-wired sibling gate reds it for an
-    //       unrelated reason). The genuine observable my retire is responsible for is
-    //       narrower: proof:ci-coverage must not name `control-point-live` in ANY
-    //       finding (a dangling CI step citing a dead key — converse-coverage clause
-    //       0b — OR a stale exclusion entry for a non-existent gate). We run the
-    //       coverage gate and scope the orphan check to control-point-live: zero
-    //       mentions of it in the output means MY retire introduced no orphan,
-    //       independent of unrelated coverage holes sibling lanes own.
-    let coverageOut = "";
-    try {
-        coverageOut = execFileSync("node", [CI_COVERAGE], {
-            cwd: REPO,
-            encoding: "utf8",
-            stdio: ["ignore", "pipe", "pipe"],
-        });
-    } catch (e) {
-        // Non-zero exit is fine here (a sibling lane's unrelated coverage hole) —
-        // we only inspect the OUTPUT for a control-point-live orphan.
-        coverageOut = `${e?.stdout ?? ""}${e?.stderr ?? ""}`;
-    }
-    if (countOf(coverageOut, "control-point-live") === 0) {
-        pass(
-            "(b) `node scripts/proof-ci-coverage.mjs` names ZERO `control-point-live` orphan — the retire left no " +
-                "dangling CI step citing a dead key and no stale exclusion entry (scoped to MY retire; unrelated " +
-                "sibling-lane coverage holes are out of this gate's scope).",
-        );
-    } else {
-        const orphanLines = coverageOut
-            .split("\n")
-            .filter((l) => l.includes("control-point-live"))
-            .slice(0, 4);
-        fail(
-            "(b) proof:ci-coverage still names `control-point-live` as an orphan — the retire left a dangling " +
-                "CI step (converse-coverage 0b) or a stale exclusion entry against the deleted gate (S2):\n      " +
-                orphanLines.join("\n      "),
-        );
-    }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
