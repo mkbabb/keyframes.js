@@ -78,8 +78,9 @@ green master and the ratified corpus merged at `0b423142`.
   roster now runs six live behavioral certifiers (smoke, occlusion, usability,
   subject writes, live session, and mobile live session). A fresh shared-
   Chromium run passed 6/6 on the rebuilt dist after rehoming the demo usability
-  census and fixing a missing Vue `computed` import. The reduced roster is the
-  deploy ancestry witness; glass-ui remains untouched.
+  census and fixing a missing Vue `computed` import. This is local certifying
+  evidence; the workflow-owned `last-demo-green` ancestry tag is not yet
+  written, so deploy remains held. Glass-ui remains untouched.
 
 - **2026-07-12** — **U.D1/D2 APPLY-SEAM MEASUREMENTS.** Commit `9e63cc62`
   replaces per-target `Object.entries` allocation with an indexed reusable key

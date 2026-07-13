@@ -89,7 +89,9 @@ The deploy target is `keyframes.babb.dev` through the redesigned Cloudflare
 Pages workflow. U.Z4 remains pending: the terminal library/recap sweep must be
 green, the owner-golden leg must be blessed, 5.3.0 must be cut/published, and
 the nightly `last-demo-green` ancestry witness must authorize the deploy. No
-live hash is claimed in this draft.
+live hash is claimed in this draft. Current git evidence has no local or origin
+`last-demo-green` tag; the clean local roster run is not silently substituted
+for the workflow-owned ancestry witness.
 
 ## 5a. Current U.Z2 absence witness
 
