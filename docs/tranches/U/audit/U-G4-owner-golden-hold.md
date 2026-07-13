@@ -31,3 +31,8 @@ red for exactly two rows — `[sequence-light]` and `[sequence-dark]` — and sk
 the perceptual render leg because no blessing token exists. Candidate captures
 are committed in the U.G4 implementation slice; no candidate has been copied
 into `BLESSED.json`.
+
+The review packet [U-G4-candidate-manifest.md](U-G4-candidate-manifest.md)
+records the SHA-256 of all 14 current candidates. The inherited 12 blessing
+tokens continue to authenticate the prior `golden/` PNGs only; they are not
+silently reinterpreted as approval of the new candidate captures.
