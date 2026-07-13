@@ -63,7 +63,11 @@ Before keyframes consumes any BG/BH result, the sibling handoff must provide:
 2. a successful registry publication, with `npm view
    @mkbabb/glass-ui@5.0.0 version` returning `5.0.0`;
 3. the exact export-map and break-shape note (including any `./api` removal,
-   per-component subpath moves, and `goo-blob` → `blob` rename);
+   per-component subpath moves, and `goo-blob` → `blob` rename). The current
+   pre-release inbox report also calls out `--ring` → `--focus-ring-color` and
+   motion booleans → `motion: "full" | "reduced" | "off"`; these are provisional
+   migration leads only and must be reconciled against the tagged package before
+   keyframes consumes them;
 4. a built-dist probe report for every row above, including explicit negative
    dispositions; and
 5. owner disposition for each absorb-or-expire row.
