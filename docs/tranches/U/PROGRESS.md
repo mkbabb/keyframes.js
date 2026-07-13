@@ -32,6 +32,12 @@ green master and the ratified corpus merged at `0b423142`.
   6/6 (smoke, occlusion, usability, subject writes, live session, and mobile
   live session); glass-ui remains untouched and the consume edge remains held.
 
+- **2026-07-12** — **U.Z5 CLOSE-RECORD DRAFT.** `FINAL-U.md` is now authored
+  against the current implementation tree. It records the internal cures,
+  OD-U1..U22 reconciliation, named covenant residue, and planned 5.3.0/deploy
+  acts without claiming owner-golden blessing, glass-ui 5.0.0, publication, or
+  deployment.
+
 - **2026-07-12** — **U.A6–A8 APPARATUS/WORKFLOW CUT.** `scripts/lib/tiers.mjs`
   now owns the blocking/observed tier names consumed by `run-all`. The merge CI
   workflow is reduced to `check:lib`, `build:lib`, `npm test -- --run`, and
