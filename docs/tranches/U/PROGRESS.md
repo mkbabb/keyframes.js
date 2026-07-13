@@ -50,6 +50,11 @@ green master and the ratified corpus merged at `0b423142`.
   leaves only the deliberate `proof-drag2d-light-certified` witness; `check`,
   `proof:publish`, and the focused certification remain green.
 
+- **2026-07-13** — **U.G4 OWNER REVIEW PACKET.** `U-G4-candidate-manifest.md`
+  records verified SHA-256 hashes and dimensions for all 14 committed candidate
+  frames. It does not alter the inherited 12-cell blessing or fabricate the two
+  sequence approvals; the owner-golden hold remains explicit.
+
 - **2026-07-12** — **U.A6–A8 APPARATUS/WORKFLOW CUT.** `scripts/lib/tiers.mjs`
   now owns the blocking/observed tier names consumed by `run-all`. The merge CI
   workflow is reduced to `check:lib`, `build:lib`, `npm test -- --run`, and
