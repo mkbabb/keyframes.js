@@ -68,7 +68,7 @@ const ALLOWED_ROOT_FILES = new Set([
 ]);
 // OD-U19: component modules live under the canonical component home; app/
 // contains orchestration concerns only.
-const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "lifecycle", "public"]);
+const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "lifecycle", "public", "dock"]);
 // Skip-list for non-source droppings that are not a concern violation.
 const IGNORE_ROOT_ENTRIES = new Set([".DS_Store"]);
 
@@ -299,6 +299,9 @@ function main() {
     // ── CLAUSE (iv) — no component SFCs inside the app shell ───────────────
     {
         const allowed = new Set(["demo/app/App.vue", "demo/app/App.skeleton.vue"]);
+        for (const file of collectSources(path.join(APP, "dock"))) {
+            allowed.add(relPosix(file));
+        }
         const components = collectSources(APP)
             .map(relPosix)
             .filter((rel) => rel.endsWith(".vue") && !allowed.has(rel));

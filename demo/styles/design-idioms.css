@@ -286,11 +286,9 @@
     }
 }
 
-/* §gesture-in-flight — the global drag select-suppression. useDragScrub (the one
-   shared drag seam) sets `body.is-dragging` for the gesture (ref-counted); THIS is the
-   one consuming rule, suppressing user-select document-wide. The
-   `html:has(body.is-dragging)` arm reaches the <html> root (which `body.is-dragging *`
-   cannot); the `::selection` clear drops any selection already in flight. */
+/* §gesture-in-flight — useDragScrub sets `body.is-dragging` for the gesture;
+   this is the one consuming rule, suppressing user-select document-wide. The
+   `html:has(body.is-dragging)` reaches the root; `::selection` clears in-flight selection. */
 html:has(body.is-dragging),
 body.is-dragging,
 body.is-dragging * {

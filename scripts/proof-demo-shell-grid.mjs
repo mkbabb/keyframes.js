@@ -91,14 +91,13 @@ console.log("proof:demo-shell-grid — H.W3 (the rail·stage·rail architecture 
     // The S1–S4 rewrite files PLUS TimingFunctionPanel.vue (in scope via S3b).
     // AssetPropertiesPanel.vue is EXCLUDED by NOT being in this set (a separate
     // tree — WV-W3-HIGH-1: its grid-cols-[auto_1fr] is legitimate out-of-scope).
-    const AC = path.join(DEMO, "@/components/instrument/transport");
+    const AC = path.join(DEMO, "components/instrument/transport");
     const scopeFiles = [
         path.join(AC, "AnimationControlsGroup.vue"),
-        path.join(AC, "controls/AnimationControlsControls.vue"),
-        path.join(AC, "controls/AnimationControls.vue"),
-        path.join(AC, "components/ControlsPaneWrapper.vue"),
-        path.join(AC, "controls/LayerConfigPanel.vue"),
-        path.join(AC, "controls/TimingFunctionPanel.vue"),
+        path.join(AC, "channel-controls/ChannelControls.vue"),
+        path.join(AC, "controls-pane/ControlsPaneWrapper.vue"),
+        path.join(AC, "channel-controls/LayerConfigPanel.vue"),
+        path.join(AC, "channel-controls/TimingFunctionPanel.vue"),
     ];
 
     // The obsolete apparatus tokens. Each was LIVE on the pre-W3 tree; each is a

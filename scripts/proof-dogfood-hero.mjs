@@ -69,7 +69,7 @@ const DESTRUCTURES_ENGINE_CLASS =
 // The value.js curve — `steppedEase` MUST resolve from value.js, never from
 // `@src` (it is not a kf symbol). This is the negative half of WV-W6-MED-1.
 const STEPPED_EASE_FROM_VALUEJS =
-    /import\s*\{[^}]*\bsteppedEase\b[^}]*\}\s*from\s*["']@mkbabb\/value\.js["']/;
+    /import\s*\{[^}]*\bsteppedEase\b[^}]*\}\s*from\s*["']@mkbabb\/value\.js(?:\/easing)?["']/;
 const STEPPED_EASE_FROM_SRC =
     /import\s*\{[^}]*\bsteppedEase\b[^}]*\}\s*from\s*["']@src\//;
 

@@ -56,7 +56,7 @@ console.log(
 
 // ── (0) The zone model binds `> 1` (T.B5's DFA projection — dockCardinality) ─
 {
-    const file = path.join(DEMO, "state/controlSurfaceDFA.ts");
+    const file = path.join(DEMO, "state/controlSurfaces.ts");
     if (!fs.existsSync(file)) {
         fail(
             `(0) the DFA cardinality model not found at ${path.relative(REPO, file)} — the ` +

@@ -42,7 +42,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const STYLES = path.join(DEMO, "@/styles");
+const STYLES = path.join(DEMO, "styles");
 const DESIGN_IDIOMS = path.join(STYLES, "design-idioms.css");
 const UTILS_CSS = path.join(STYLES, "utils.css");
 
@@ -115,7 +115,7 @@ function main() {
         for (const abs of srcFiles) {
             const rel = toPosix(abs);
             // The idiom layer itself is a DEFINITION home, not a reference site.
-            if (rel.endsWith("@/styles/design-idioms.css")) continue;
+            if (rel.endsWith("styles/design-idioms.css")) continue;
             const src = read(abs);
             for (const m of src.matchAll(RAINBOW_REF)) rainbowRefs.add(m[1]);
             if (COLOR_GOLD_REF.test(src)) colorGoldReferenced.hit = true;
@@ -557,7 +557,7 @@ function main() {
             const rel = toPosix(abs);
             return (
                 !rel.includes("/demo/components/ui/") &&
-                !rel.endsWith("@/styles/design-idioms.css")
+                !rel.endsWith("styles/design-idioms.css")
             );
         });
         const blankComments = (s) =>
@@ -610,8 +610,8 @@ function main() {
             return css ? `${sfc}\n${css}` : sfc;
         };
         const GROUP = "demo/components/instrument/transport/AnimationControlsGroup.vue";
-        const PANE = "demo/components/instrument/transport/components/ControlsPaneWrapper.vue";
-        const TABS = "demo/components/instrument/transport/controls/AnimationControls.vue";
+        const PANE = "demo/components/instrument/transport/controls-pane/ControlsPaneWrapper.vue";
+        const TABS = "demo/components/instrument/transport/channel-controls/ChannelControls.vue";
         const MATRIX = "demo/scenes/cube/matrix-editor/MatrixEditor.vue";
 
         // Comment-blank each file so a doc-comment NAMING the retired literal/token

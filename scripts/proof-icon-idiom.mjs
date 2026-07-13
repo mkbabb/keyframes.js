@@ -49,7 +49,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const DESIGN_IDIOMS = path.join(DEMO, "@/styles/design-idioms.css");
+const DESIGN_IDIOMS = path.join(DEMO, "styles/design-idioms.css");
 
 const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));

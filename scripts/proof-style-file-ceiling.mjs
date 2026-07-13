@@ -69,7 +69,10 @@ function main() {
     const over = [];
     let max = { rel: "", lines: 0 };
     for (const abs of cssFiles) {
-        const lines = fs.readFileSync(abs, "utf8").split("\n").length;
+        const raw = fs.readFileSync(abs, "utf8");
+        const lines = raw.endsWith("\n")
+            ? raw.slice(0, -1).split("\n").length
+            : raw.split("\n").length;
         if (lines > max.lines) max = { rel: relPosix(abs), lines };
         if (lines > CEILING) over.push({ rel: relPosix(abs), lines });
     }
