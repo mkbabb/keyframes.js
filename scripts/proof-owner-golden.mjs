@@ -42,14 +42,14 @@
  * call executes WITH the blessing).
  *
  * ── THE GOLDEN MATRIX ──────────────────────────────────────────────────────────
- * 6 owner-cited scenes × 2 themes = 12 goldens, the PRM-frozen protocol
+ * 7 owner-cited scenes × 2 themes = 14 goldens, the PRM-frozen protocol
  * visual-lock uses (emulate `prefers-reduced-motion: reduce` + `colorScheme`):
- *   home · cube · amiga · square · easing · spring   ×   light · dark
+ *   home · cube · amiga · square · easing · spring · sequence   ×   light · dark
  *
  * ── USAGE ──────────────────────────────────────────────────────────────────────
  *   node scripts/proof-owner-golden.mjs                    — GATE
  *   node scripts/proof-owner-golden.mjs --capture-candidates
- *       — the owner-REVIEW capture harness: (re)capture the 12 CANDIDATE frames
+ *       — the owner-REVIEW capture harness: (re)capture the 14 CANDIDATE frames
  *         from the LANDED tree into docs/tranches/T/goldens/candidates/ as
  *         PENDING-OWNER (NEVER self-blessed — the owner blesses by committing
  *         BLESSED.json naming the candidate SHAs). Serves BUILT dist/gh-pages/
@@ -73,7 +73,7 @@ const CAND_DIR = path.join(GOLDENS_DIR, "candidates");
 const BLESSED_PATH = path.join(GOLDENS_DIR, "BLESSED.json");
 
 // The owner-cited scene matrix (verdict #1/#4/#9/#21 subjects live here).
-const SCENES = ["home", "cube", "amiga", "square", "easing", "spring"];
+const SCENES = ["home", "cube", "amiga", "square", "easing", "spring", "sequence"];
 const THEMES = ["light", "dark"];
 const CELLS = SCENES.flatMap((s) => THEMES.map((t) => `${s}-${t}`));
 
@@ -148,6 +148,12 @@ const DHASH_MAX_HAMMING = 12; // ≤12/64 bits differ ⇒ perceptually the same 
 
 const sha256 = (buf) => crypto.createHash("sha256").update(buf).digest("hex");
 
+/** Pin the controls rail to the owner's canonical LIT state before capture. */
+async function pinPaneLit(page) {
+    await page.mouse.move(VIEWPORT.width / 2, VIEWPORT.height / 2);
+    await page.waitForTimeout(100);
+}
+
 // ── The CAPTURE HARNESS (owner-review candidate frames; NEVER self-blessed) ─────
 async function captureCandidates() {
     if (!fs.existsSync(DIST)) {
@@ -180,6 +186,7 @@ async function captureCandidates() {
                     // PRM freeze — settle the CSS-driven motion to a rest frame
                     // (the subject stays IN; no mask).
                     await page.waitForTimeout(1200);
+                    await pinPaneLit(page);
                     const buf = await page.screenshot({
                         clip: { x: 0, y: 0, ...VIEWPORT },
                     });
@@ -273,7 +280,7 @@ async function gate() {
     // diff against. When absent, the blessing red above already fails the gate; the
     // render leg is declared observe-posture so the gate never PASSES vacuously.
     const canRender =
-        blessed != null && !blessed.__invalid && fs.existsSync(DIST);
+        failures.length === 0 && blessed != null && !blessed.__invalid && fs.existsSync(DIST);
     if (!canRender) {
         console.error(
             "  · owner-golden render leg SKIPPED (observe): no blessing token + built dist to diff " +
@@ -306,6 +313,7 @@ async function gate() {
                                 await page.goto(`${base}/#/`, { waitUntil: "load" });
                             }
                             await page.waitForTimeout(1200);
+                            await pinPaneLit(page);
                             const live = decode(
                                 await page.screenshot({ clip: { x: 0, y: 0, ...VIEWPORT } }),
                             );
@@ -350,7 +358,7 @@ if (MODE === "--capture-candidates") {
                 for (const f of failures) console.error(`  ✗ ${f}`);
                 console.error(
                     `\n  The owner-anchored appearance oracle (T.M3, lane 29 rec 2): GREEN requires a committed owner\n` +
-                        `  BLESSING token (docs/tranches/T/goldens/BLESSED.json) over the 12 CANDIDATE frames, each\n` +
+                    `  BLESSING token (docs/tranches/T/goldens/BLESSED.json) over the 14 CANDIDATE frames, each\n` +
                         `  subject-full (the mask visual-lock painted flat is FORBIDDEN) and matched by the live render.\n` +
                         `  Capture the candidates: \`node scripts/proof-owner-golden.mjs --capture-candidates\` (after \`npm run gh-pages\`).`,
                 );
