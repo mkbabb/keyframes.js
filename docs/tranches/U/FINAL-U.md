@@ -7,7 +7,8 @@
 
 Cross-links: [U.md](U.md), [PROGRESS.md](PROGRESS.md), [PROMPT-RECAP-U.md](PROMPT-RECAP-U.md),
 [OWNER-DECISIONS.md](OWNER-DECISIONS.md), [waves/U.Z.md](waves/U.Z.md), and
-[KF-TO-VALUEJS-U.md](KF-TO-VALUEJS-U.md). The glass-ui edge remains held under
+[KF-TO-VALUEJS-U.md](KF-TO-VALUEJS-U.md), and
+[KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md). The glass-ui edge remains held under
 OD-U4; no glass-ui source or keyframes glass-ui pin is changed by this draft.
 
 ## 1. Mandate and verdict → cure map
@@ -53,7 +54,8 @@ not fabricated as shipped: unified `parseTimingFunction`, authored-plain
 unflatten decision, diagnostics producer, layout-unit taxonomy, KF-7
 `CSSPropertyDescriptor` rename, and D-GAP-1/5/6.
 
-The glass-ui covenant remains release-held. Current evidence is local
+The glass-ui covenant is recorded in [KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md)
+and remains release-held. Current evidence is local
 `@mkbabb/glass-ui@5.0.0` work in the sibling tranche without a `v5.0.0` tag,
 and registry lookup for `@mkbabb/glass-ui@5.0.0` returns E404. Registry latest
 remains 4.2.0. Therefore no glass-ui re-pin, cap re-probe, letter
