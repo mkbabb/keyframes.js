@@ -4,8 +4,8 @@
  * The monolithic `demo-smoke` CI job is split into two jobs by TIER, and this
  * module is the one place the tier membership lives (the M.W1 "membership in one
  * place" pattern) so the roster driver (`scripts/run-demo-roster.mjs`) and the
- * coverage meta-gate (`scripts/proof-ci-coverage.mjs`) can never drift onto
- * different sets:
+ * the roster driver is the sole tier authority and cannot drift onto a
+ * different set:
  *
  *   demo-correctness      — BLOCKING (gates deploy). The kf-owned correctness +
  *                           hygiene demo gates. Run by the roster driver as ONE
@@ -254,13 +254,13 @@ const LEGACY_CORRECTNESS_ROSTER = [
     // demo-correctness job builds, so it rides this roster rather than the
     // glass-ui-free fast gates job. Green as of S.B8's full map regen (the 22-path
     // flat-tree backlog is discharged); a NAMED STATIC_DEMO_CARVEOUT entry in
-    // proof-ci-coverage.mjs keeps clause 7 (static-gate-placement) satisfied.
+    // The tier manifest is the surviving static-gate placement authority.
     // T.G7 (DISCHARGED at batch ⑧ by T.G3 + T.G4) — the CDP-counter perf oracle,
     // the OWNER perceived-perf bar (VERDICT #19). Reads RecalcStyleCount/LayoutCount
     // per-frame ratios on the built dist/gh-pages: cube/spring/easing now measure
     // 0.00 recalc+layout/frame (true rest — the perpetual idle churn removed). A
     // BLOCKING member now (authority=OWNER + blocking-not-OBSERVE, T.M6.2), moved
-    // OUT of T_BORNRED_BACKLOG + the ci-coverage EXCLUDED set in the same commit.
+    // OUT of the retired born-RED ledger in the same commit.
     "proof:perf-counters",
     // T.G3/T.G4 — the cross-scene TRUE-REST oracle (proof:scene-rests: absolute
     // idle LayoutCount/RecalcStyleCount/TaskDuration after settle) + the

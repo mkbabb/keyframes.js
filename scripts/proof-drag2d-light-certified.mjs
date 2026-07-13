@@ -28,9 +28,9 @@
  *
  *   (b) the stale `proof:control-point-live` gate is RETIRED (S2) — the script is
  *       DELETED, and EVERY reference to it is gone (package.json entry, ci.yml
- *       step/id/aggregator/echo, the proof-ci-coverage EXCLUSION entry), and NO
+ *       step/id/aggregator/echo), and NO
  *       orphan `GlassControlPoint` reference survives in scripts/, and
- *       `proof:ci-coverage` exits 0 (no orphan-exclusion red). BITE: reds if the
+ *       dissolved coverage apparatus is absent (no orphan-exclusion red). BITE: reds if the
  *       dead glass-ui gate survives in ANY weave-point — the false "needs drag2D"
  *       premise still mis-blocks the chain and the no-legacy precept is violated.
  *
