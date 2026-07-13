@@ -122,7 +122,7 @@ export const GLASS_UI_GAPS = {
         // — forcing the `--drawer-inset-block-end` binding to be wired (so the
         // sheet finally clears the menubar). The menubar-clearance clauses the
         // adoption structurally breaks are tracked as BG-11-BLOCKED born-RED
-        // backlog rows (gate-bands.mjs T_BORNRED_BACKLOG), dischargedBy the same
+        // external-hold rows in the current tier manifest, discharged by the same
         // publish + re-pin. Vacuously green today (4.0.1 ships no lever). The
         // owner verdict is recorded at docs/tranches/T/verdicts/T.H3.md.
         ask: "BG-11",

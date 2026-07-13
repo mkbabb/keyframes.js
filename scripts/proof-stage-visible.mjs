@@ -15,7 +15,7 @@
  * locks: it asserts RESOLVED TOKEN VALUES + a live-rect intersection, not pixel
  * constants, so it survives D2's later carve and reds honestly on any runner. It
  * FEEDS A4's FROZEN migration (the named successor for the frozen occlusion keys —
- * scripts/gate-bands.mjs; the discharge is registered when those keys retire).
+ * the historical migration record; the discharge is registered when those keys retire).
  *
  * WHAT IT ASSERTS — at 375×667 across ALL scenes (three clauses, p10 F6):
  *   (a) AT REST — `--sheet-t == 0` AND `sheet.top / innerHeight ≥ 0.65` (the sheet

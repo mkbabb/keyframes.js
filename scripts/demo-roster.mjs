@@ -151,9 +151,9 @@ const LEGACY_CORRECTNESS_ROSTER = [
     // (proof:demo-control-point + proof:easing-curve-editor RETIRED at the easing
     //  TERMINAL batch (T.E8) — their subject (the hand-rolled instrument/easing
     //  cluster) is deleted; the drag-re-times capability is proof:easing-editor-live
-    //  v2 clause (b). RETIREMENT_LEDGER + gate-bands DISCHARGE carry the witnesses.)
+    //  v2 clause (b). The historical retirement record carries the witnesses.)
     // proof:scene-switcher-mobile RETIRED at S.A4 (C-6, fold row 18) — a ledgered
-    // KILL with a re-run witness (scripts/gate-bands.mjs DISCHARGE). It asserted a
+    // KILL with a re-run witness in the historical audit. It asserted a
     // mobile scroll-snap carousel + a SceneSwitcherCarousel component that does not
     // exist on disk (proof:scene-colocated ASSERTION 3), masked here by the former
     // demo-smoke continue-on-error. The stage rebirth is SHELVED with band S.E.
@@ -194,7 +194,7 @@ const LEGACY_CORRECTNESS_ROSTER = [
     // (the four easing surface-locks — easing-canvas-bounded / -sidebar-normalized
     //  / -sidebar-minimal / -stage-is-ball — RETIRED at the easing TERMINAL batch
     //  (T.E6, OD-7 APPROVED): machine-witnessed MIGRATION discharges to
-    //  proof:easing-gallery / proof:easing-editor-live v2 in gate-bands.mjs.)
+    //  proof:easing-gallery / proof:easing-editor-live v2 in the historical audit.)
     "proof:scene-uses-standard-ribbon",
     "proof:scene-card-rounded",
     "proof:stage-glass-card",
@@ -205,12 +205,12 @@ const LEGACY_CORRECTNESS_ROSTER = [
     // successor for the frozen occlusion keys; p10 F6). Runs the full 375×667
     // scene sweep on the shared harness.
     "proof:stage-visible",
-    // (proof:dock-zorder moved to BORNRED_TRIPWIRES at the T.Z close — the
+    // (proof:dock-zorder moved to EXTERNAL_HOLD_TRIPWIRES at the T.Z close — the
     //  FINAL.md checklist names the external-blocked residue "a named born-RED
     //  tripwire set": its red is glass-ui BG-11's to cure (the owner's T.H3
     //  ADOPT override accepted the traded occlusion), so it RECORDS in the
     //  observe job instead of holding the deploy-of-record hostage. It stays in
-    //  T_BORNRED_BACKLOG + proof:glass-ui-gap-tripwire re-arms on the publish.)
+    //  external-hold roster + proof:glass-ui-gap-tripwire re-arms on the publish.)
     "proof:drawer-spring",
     // T.B4 (OD-5 #7) — the naked-rail + SQ-T3 DFA-elision browser gate (static
     // half always runs; the DFA-empty + naked-rail probes need the built dist).
@@ -218,13 +218,13 @@ const LEGACY_CORRECTNESS_ROSTER = [
     "proof:sheet-reopen-scroll",
     // (proof:bezier-{no-scroll,single-card,grown} RETIRED at T.E8 — the hand-rolled
     //  detail canvas + its px-arithmetic clamps died with the cluster; MIGRATION
-    //  discharges in gate-bands.mjs.)
+    //  discharges in the historical audit.)
     "proof:scene-perf-budget",
     "proof:scene-parity",
     "proof:sequence-rows-draggable",
     // (proof:motion-path-editable / -copy / -scale RETIRED at T.E3 — the motion-path
     //  SCENE was PRUNED, OD-1 = PRUNE. The two FROZEN keys (-editable, -copy) carry
-    //  machine-witnessed KILL discharges in scripts/gate-bands.mjs.)
+    //  machine-witnessed KILL discharges in the historical audit.)
     // S.G2 S2 (fold row 69) — the square honest-controls oracle (the lying editor
     // panel COLLAPSED; box + mono caption ARE the live controls). Browser actuator.
     "proof:square-honest",
@@ -233,13 +233,13 @@ const LEGACY_CORRECTNESS_ROSTER = [
     //  #2/#13 "remove this crap". The on-stage gesture LEGEND layer + the census
     //  MANDATE die (the negative-space proof:stage-inventory is the T.M4 successor);
     //  the eggs SURVIVE as sealed, discovered gestures but NO gate mandates them.
-    //  gesture-manifest rides the RETIREMENT_LEDGER (successor stage-inventory);
+    //  gesture-manifest rides the historical retirement record (successor stage-inventory);
     //  easter-egg + design-refinement (FROZEN) carry machine-witnessed KILL
-    //  discharges in scripts/gate-bands.mjs DISCHARGE.)
+    //  discharges in the historical audit.)
     // T.D9/T.D11/T.D13 (batch ⑤) — the born-OWNER hero oracles (OD-4/OD-2
     // APPROVED tokens; the P-HERO blessed reference). They REPLACE the retired
     // hero-rung/-balance/-cls FROZEN locks (machine-witnessed migrations in
-    // scripts/gate-bands.mjs DISCHARGE — those three crystallized the rejected
+    // historical migration record — those three crystallized the rejected
     // word-split top-band hero). OWNER authority ⇒ BLOCKING (T.M6.2).
     "proof:hero-two-focal",
     "proof:hero-deck-voice",
@@ -338,7 +338,7 @@ export const BACKLOG = {
 };
 
 // ── demo-device-observe (OBSERVE-ONLY) — the device-dependent proof:* gates.
-// They ride the observe job as individual steps (so proof:ci-coverage sees them
+// They ride the observe job as individual steps (so CI sees them
 // directly); listed here for the four-bucket disposition record + so the roster
 // tooling can name them. NOT blocking, never gates deploy. ────────────────────
 export const OBSERVE_GATES = [
@@ -350,11 +350,11 @@ export const OBSERVE_GATES = [
 // ── The born-RED-by-design tripwire (Q.WA3 S1). RECORDED in the observe job,
 // never blocking (it stays RED until glass-ui BB widens its peer range + kf
 // re-pins — an external HANDOFF, not an S wave). ──────────────────────────────
-export const BORNRED_TRIPWIRES = [
+export const EXTERNAL_HOLD_TRIPWIRES = [
     "proof:peer-satisfied",
     // T.Z close — the BG-11 external-blocked z-inversion (the owner's T.H3
     // ADOPT override accepted the trade); RECORDED in the observe job until
-    // the glass-ui publish + re-pin discharges it (T_BORNRED_BACKLOG row).
+    // the glass-ui publish + re-pin discharges it (external-hold row).
     "proof:dock-zorder",
 ];
 
@@ -371,9 +371,9 @@ export const BORNRED_TRIPWIRES = [
 export const OBSERVE_IN_CI = [];
 
 /** The union of every demo gate this module partitions (correctness ∪ observe ∪
- *  tripwires) — the set proof:ci-coverage counts as CI-invoked via the roster. */
+ *  tripwires) — the set CI invokes through the roster. */
 export const ALL_DEMO_GATES = [
     ...CORRECTNESS_ROSTER,
     ...OBSERVE_GATES,
-    ...BORNRED_TRIPWIRES,
+    ...EXTERNAL_HOLD_TRIPWIRES,
 ];

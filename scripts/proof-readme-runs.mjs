@@ -50,7 +50,7 @@
  *
  * PRECONDITION: the library is built (`npm run build:lib`) — exit 3 otherwise.
  * RUN: npm run proof:readme-runs
- * CI wiring: rides the J.W3 `proof:ci-coverage` roster motion with its parent
+ * CI wiring: rides the J.W3 tier-manifest roster motion with its parent
  * gate (`proof:published-surface`).
  */
 import { execFile } from "node:child_process";

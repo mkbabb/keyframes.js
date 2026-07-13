@@ -193,7 +193,7 @@ if (observedRed.length) {
 }
 if (backlogRed.length) {
     console.log(
-        `  BACKLOG reds (EXPECTED — S.A0/T-bornRED enumerated, discharged at the named wave): ` +
+        `  BACKLOG reds (EXPECTED — S.A0 external holds enumerated, discharged at the named wave): ` +
             backlogRed.map((g) => `${g}→${EXPECTED_BACKLOG[g]}`).join(", "),
     );
 }

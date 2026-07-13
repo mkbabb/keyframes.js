@@ -12,7 +12,7 @@
  * is unreachable without the owner-blessed composition (the gallery layout,
  * tile treatment, one-shared-clock sweep are the OD-7 ruling's subject); the
  * ball-preview INTENT of the retired `proof:easing-stage-is-ball` surface-lock
- * survives HERE (gate-bands.mjs DISCHARGE — migration successor).
+ * survives HERE (historical migration successor).
  *
  * THE COMPOSITION (ruling #14 "just have the easing balls previewed here"):
  * every named curve is a specimen tile — a static sparkline portrait + a

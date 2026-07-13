@@ -17,7 +17,7 @@
  * × {light, dark}. It REDS TODAY because the resting collapsed dock measures
  * `blur(3px)` (the glass-ui-root defect). Per MEMORY (dock fixes go in glass-ui
  * root, never patched in demo) kf CANNOT self-cure it — it is a born-RED handoff:
- * EXCLUDED + T_BORNRED_BACKLOG, dischargedBy the glass-ui GU-1 publish + re-pin
+ * external hold, discharged by the glass-ui GU-1 publish + re-pin
  * (the reveal blur gated on `[data-morphing]`, content-only). AUTHORITY: OWNER +
  * blocking-not-OBSERVE (a "blurry janky dock" may not ride non-blocking — T.M6).
  *
@@ -138,7 +138,7 @@ for (const m of measures) {
 for (const p of passes) console.log("  ✓ " + p);
 if (failures.length > 0) {
     console.error(
-        `\nproof:dock-rest-crisp — FAIL (${failures.length}) [BORN-RED backlog — T_BORNRED_BACKLOG; dischargedBy glass-ui GU-1 publish + re-pin (T.C6)]:`,
+        `\nproof:dock-rest-crisp — FAIL (${failures.length}) [external hold; discharged by glass-ui GU-1 publish + re-pin]:`,
     );
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);

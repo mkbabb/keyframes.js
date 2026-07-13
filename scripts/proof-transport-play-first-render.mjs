@@ -14,7 +14,7 @@
  * menu (T.C2), so the former Reset/Clear-before-Play ordering is gone. This gate
  * flipped from BORN-RED to a standing GREEN assertion: the primary Play control is
  * emitted BEFORE the animation select AND before Reset. It moved OUT of
- * T_BORNRED_BACKLOG and joins the blocking hygiene roster in the SAME commit as the
+ * historical external-hold set and joins the blocking hygiene roster in the SAME commit as the
  * render (the discharge = the cure, drive clause 7).
  *
  * One source of order truth: this gate + `proof:transport-action-order` (the model)

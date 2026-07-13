@@ -18,12 +18,12 @@
  * T.A/T.B/T.C/T.D/T.E). The RENDERED-set reconciliation (does the running demo
  * paint exactly the sanctioned set?) is the BROWSER discharge, gated behind
  * KF_REQUIRE_BROWSER; without it the gate validates the manifest LAYER and reds on
- * the EMPTY-RED slots. This gate rides the T born-RED BACKLOG (scripts/gate-bands.mjs
- * T_BORNRED_BACKLOG) — it is NOT wired into any blocking aggregator until it greens.
+ * the EMPTY-RED slots. This gate is an external owner-review hold — it is NOT wired
+ * into any blocking aggregator until it greens.
  *
  * LOCKSTEP (lane 18): proof:gesture-manifest + scripts/gesture-manifest.mjs + the
  * GestureLegend layer + the 11 data-gesture-tell sites are retired in the SAME
- * motion this gate greens (T.M7 RETIREMENT_LEDGER) — never leave the inventory gate
+ * motion this gate greens (historical retirement record) — never leave the inventory gate
  * pointing at a tell the owner removed. This gate does NOT retire gesture-manifest
  * itself (T.E11/T.M7 lockstep — the coupled DOM spans later batches).
  *
@@ -100,7 +100,7 @@ for (const s of scenes) {
 console.log("proof:stage-inventory — T.M4 (owner-sanctioned on-stage manifest; negative-space gate) [BORN-RED]\n");
 for (const p of passes) console.log("  ✓ " + p);
 if (failures.length > 0) {
-    console.error(`\nproof:stage-inventory — FAIL (${failures.length}) [BORN-RED backlog — T_BORNRED_BACKLOG]:`);
+    console.error(`\nproof:stage-inventory — FAIL (${failures.length}) [external owner-review hold]:`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
 }

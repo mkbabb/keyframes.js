@@ -11,11 +11,11 @@
  * BORN-RED BY DESIGN: each `legible` subject in SUBJECTS.json carries `verified:
  * false` until the CURED render passes the browser check (no-blur + edge-energy).
  * The band that cures the defect (T.C) flips it WITH the browser oracle. This gate
- * rides the T born-RED BACKLOG (T_BORNRED_BACKLOG) — NOT in any blocking aggregator
+ * rides an external owner-review hold — NOT in any blocking aggregator
  * until it greens.
  *
  * LOCKSTEP: proof:icon-paint-live (a)'s bbox clause is superseded/retired as this
- * greens (T.M7 RETIREMENT_LEDGER — proof:icon-paint-live → successor subject-legible).
+ * greens (historical retirement record — proof:icon-paint-live → successor subject-legible).
  *
  * Overrides (plant-test): KF_SUBJECTS.
  */
@@ -53,7 +53,7 @@ for (const s of legible) {
 console.log("proof:subject-legible — T.M5(a) (legibility over existence; no-blur + edge-energy) [BORN-RED]\n");
 for (const p of passes) console.log("  ✓ " + p);
 if (failures.length > 0) {
-    console.error(`\nproof:subject-legible — FAIL (${failures.length}) [BORN-RED backlog — T_BORNRED_BACKLOG]:`);
+    console.error(`\nproof:subject-legible — FAIL (${failures.length}) [external owner-review hold]:`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
 }

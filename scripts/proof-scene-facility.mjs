@@ -15,7 +15,7 @@
  *   (b) decoy-ZERO: ZERO `useContractAnimGroup` references anywhere under
  *       demo/. GREEN since the T.B1-β/T.B7 joint motion (batch ⑥′ STAGE 2)
  *       deleted the easing/spring call sites + the definition — the gate was
- *       DISCHARGED from T_BORNRED_BACKLOG in that same commit and now rides the
+ *       DISCHARGED from the historical external-hold set in that same commit and now rides the
  *       blocking proof:hygiene-chain + a ci.yml gates-job step (drive clause 7).
  *
  * The gate exits 1 if EITHER clause family regresses (a migrated scene losing

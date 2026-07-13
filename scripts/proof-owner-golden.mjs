@@ -33,10 +33,9 @@
  *       the tree-as-shipped.
  *
  * ── TIER / AUTHORITY (T.M6 axis) ───────────────────────────────────────────────
- * AUTHORITY = OWNER (taste). It is a born-RED BACKLOG member
- * (scripts/gate-bands.mjs T_BORNRED_BACKLOG), dischargedBy the owner
- * golden-blessing at review — kept OUT of every blocking aggregator + EXCLUDED in
- * proof:ci-coverage until the blessing token lands, exactly the proof:visual-lock
+ * AUTHORITY = OWNER (taste). It is an external owner-review hold, discharged by
+ * the owner golden-blessing at review — kept OUT of every blocking aggregator and
+ * automated CI aggregation until the blessing token lands, exactly the proof:visual-lock
  * / proof:chronic-closure precedent. On the blessing, visual-lock is retired or
  * demoted to a pure no-drift corroborator (T.M3 lockstep; the demote-vs-retire
  * call executes WITH the blessing).
@@ -353,7 +352,7 @@ if (MODE === "--capture-candidates") {
         .then(() => {
             if (failures.length > 0) {
                 console.error(
-                    `\n✗ proof:owner-golden — FAIL (${failures.length}) [BORN-RED + BORN-OWNER backlog — T_BORNRED_BACKLOG; dischargedBy the owner golden-blessing at review]:`,
+                    `\n✗ proof:owner-golden — FAIL (${failures.length}) [owner-review hold; owner golden-blessing required]:`,
                 );
                 for (const f of failures) console.error(`  ✗ ${f}`);
                 console.error(

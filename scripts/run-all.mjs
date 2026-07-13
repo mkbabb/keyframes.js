@@ -11,7 +11,7 @@
 // THREE-tier taxonomy — `proof:library-correctness` (node/jsdom value-proofs) +
 // `proof:demo-correctness` (browser actuators, the renamed proof:correctness) keep
 // their parseable direct `&&`-chain VALUE (so `proof:gate-is-runtime` +
-// `proof:ci-coverage` still derive their rosters by regex, no delegation
+// legacy coverage helpers still derive their rosters by regex, no delegation
 // indirection); `proof:hygiene` delegates to `proof:hygiene-chain`. The SCHEDULE
 // moves here, the MEMBERSHIP stays in package.json: one source of truth. A leaf is
 // one `&&`-separated command (`npm run proof:X` or `vitest run …`), run verbatim.

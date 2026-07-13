@@ -25,7 +25,7 @@
  *       a planted cycle — that is the live demonstration the floor was absent.
  *
  * Clause (c) — the gate is aggregator-reachable from proof:hygiene (no dead
- * gate) — is enforced by proof:ci-coverage's converse-coverage clause, not
+ * gate) — is enforced by the current CI tier-manifest converse-coverage clause, not
  * re-implemented here.
  *
  * The spring solver family previously carried a runtime cycle through its public

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * proof:no-hand-rolled-cursor-tracker — T.D14 (lane 12 T-CL-3). **INSTRUMENT
- * authority (T.M6); a REGRESSION GUARD** (gate-bands.mjs REGRESSION_GUARDS —
+ * authority (T.M6); a REGRESSION GUARD** (current tier-manifest regression guard —
  * the absence/excision band).
  *
  * THE RECURRENCE IS THE DEFECT. The hand-rolled cursor-follow wash was authored

@@ -12,7 +12,7 @@
  * command away on a workstation.
  *
  * It is a META target (it invokes gates already individually wired into CI), so
- * it is a RECORDED exclusion in proof:ci-coverage — not a distinct CI gate.
+ * it is a RECORDED exclusion in the CI tier manifest — not a distinct CI gate.
  * Re-runnable: `npm run proof:browser`.
  */
 import { execSync } from "node:child_process";

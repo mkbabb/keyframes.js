@@ -21,7 +21,7 @@
  * from `actions.primary`, never a hardcoded markup-last position) — RED today
  * (TransportDock renders Play markup-last) and owned by T.C1's rail-core rebuild.
  * The render clause rides its OWN born-RED gate `proof:transport-play-first-render`
- * (T_BORNRED_BACKLOG, dischargedBy T.C1) so THIS model clause can stand GREEN and
+ * (historical external-hold record, discharged by T.C1) so THIS model clause can stand GREEN and
  * blocking without masking the pending render work.
  *
  * DEVICE-INDEPENDENT (pure source parse; no browser, no Vue runtime): the model is

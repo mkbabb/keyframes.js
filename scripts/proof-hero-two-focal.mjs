@@ -8,7 +8,7 @@
  * docs/tranches/T/verdicts/T.D9.md).
  *
  * THE SUCCESSOR GATE. It structurally replaces the three retired FROZEN hero
- * locks (gate-bands.mjs DISCHARGE, kind: migration):
+ * locks (historical migration record, kind: migration):
  *   • proof:hero-rung    — the mega-φ-rung survivorship is clause (a) here (the
  *     new hero KEEPS text-display-mega; only the SEAT moved).
  *   • proof:hero-balance — the one-optical-block + top-band geometry lock; its

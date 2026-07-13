@@ -91,7 +91,7 @@
  * rather than triggering a recursive `prepare` rebuild mid-measurement.
  *
  * RUN: npm run proof:published-surface
- * CI wiring: owned by J.W3's `proof:ci-coverage` roster motion (recorded
+ * CI wiring: owned by J.W3's tier-manifest roster motion (recorded
  * there so this correctness gate cannot escape `proof:all`/CI).
  */
 import { execFileSync, spawnSync } from "node:child_process";
