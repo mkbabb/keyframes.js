@@ -2,17 +2,17 @@
 /**
  * proof:glass-ui-gap-tripwire — T.H1 (the glass-ui gap ledger version TRIPWIRE).
  *
- * The generalized register over demo/glass-ui-gaps.ts. It reads the INSTALLED
- * @mkbabb/glass-ui version + the `glassCaps` probe (the SINGLE source
+ * The generalized register over demo/glass-ui-gaps.ts. It reads the registry's
+ * latest published @mkbabb/glass-ui version/dist + the `glassCaps` probe (the SINGLE source
  * scripts/lib/glass-caps.mjs — the SAME probe proof:workaround-deletion reads,
  * never a second copy) and enforces two clauses:
  *
  *   CLAUSE A (the version tripwire — the self-justifying-carry killer): for each
  *     ledger entry with a `glassCap` + workaround site(s), when the cap is
- *     SATISFIED in the consumed dist AND a workaround site still exists ⇒ RED. The
- *     excision is now SAFE and OVERDUE. VACUOUSLY GREEN today (glass-ui 4.0.1
- *     satisfies no cap); it flips the instant a fix publishes while the workaround
- *     survives — instead of N "forbids the Nth carry" comments that never fire.
+ *     SATISFIED in the latest published dist AND a workaround site still exists ⇒
+ *     RED. The excision is now SAFE and OVERDUE. If the registry probe is
+ *     unavailable, the result is explicitly PENDING (installed 4.0.x is never a
+ *     substitute), so a cure in an unreachable minor cannot stay invisible.
  *
  *   CLAUSE B (lane-25 rec 2 — the deleted-primitive replacement rule): every
  *     workaround site the ledger names MUST cite its ledger entry (a `GLASSUI-GAP:`
@@ -25,7 +25,10 @@
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { glassCaps, installedGlassUiVersion } from "./lib/glass-caps.mjs";
+import {
+    glassCaps,
+    glassCapsMeta,
+} from "./lib/glass-caps.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const LEDGER = join(root, "demo/glass-ui-gaps.ts");
@@ -87,12 +90,17 @@ if (entries.length === 0) {
     process.exit(1);
 }
 
-const version = installedGlassUiVersion();
 console.log(
-    `  · installed @mkbabb/glass-ui ${version ?? "(absent)"} — caps: ` +
+    `  · published latest @mkbabb/glass-ui ${glassCapsMeta.latestVersion ?? "(unavailable)"} ` +
+        `(${glassCapsMeta.state}; source=${glassCapsMeta.source}; ` +
+        `consumeEligible=${glassCapsMeta.consumeEligible}) — caps: ` +
         Object.entries(glassCaps)
             .map(([k, v]) => `${k}=${v}`)
             .join("  "),
+);
+console.log(
+    `  · installed diagnostic @mkbabb/glass-ui ${glassCapsMeta.installedVersion ?? "(absent)"} ` +
+        `(not used as tripwire authority)`,
 );
 console.log(`  · ledger: ${entries.length} gap entr(ies)\n`);
 
@@ -110,25 +118,32 @@ for (const e of entries) {
         continue;
     }
     if (e.workaroundSites.length === 0) continue; // cap but no site — nothing to strand
-    const capSatisfied = glassCaps[e.glassCap] === true;
+    const capObserved =
+        glassCapsMeta.state === "PUBLISHED" && glassCaps[e.glassCap] === true;
+    const capSatisfied = glassCapsMeta.consumeEligible && capObserved;
     const presentSites = e.workaroundSites.filter((s) =>
         existsSync(join(root, s)),
     );
     if (capSatisfied && presentSites.length > 0) {
         failures.push(
             `tripwire (CLAUSE A) — gap "${e.id}" (${e.ask}): glassCaps.${e.glassCap} is ` +
-                "SATISFIED in the consumed dist, but its workaround site(s) still exist: " +
+                `SATISFIED in latest published ${glassCapsMeta.latestVersion} dist, ` +
+                "but its workaround site(s) still exist: " +
                 presentSites.join(", ") +
                 ". The excision is now SAFE and OVERDUE — delete the workaround and re-pin " +
                 "(this is the version tripwire flipping RED the instant the gap closes).",
         );
     } else {
         passes.push(
-            `tripwire (CLAUSE A) — gap "${e.id}" (${e.ask}): glassCaps.${e.glassCap}=` +
-                `${capSatisfied} — ${
+            `tripwire (CLAUSE A) — gap "${e.id}" (${e.ask}): arm=${capSatisfied} ` +
+                `(glassCaps.${e.glassCap} latestObserved=${capObserved}) — ${
                     capSatisfied
                         ? "workaround already excised"
-                        : "cure UNPUBLISHED, vacuously green (the band-aid is still needed)"
+                        : glassCapsMeta.state !== "PUBLISHED"
+                          ? "latest published dist unavailable — PENDING; installed dist ignored"
+                          : capObserved && !glassCapsMeta.consumeEligible
+                            ? `cap observed in latest ${glassCapsMeta.latestVersion} dist, but consume is held until glass-ui 5.0.0+`
+                            : "cure absent from latest published dist (the band-aid is still needed)"
                 }.`,
         );
     }
@@ -168,9 +183,24 @@ if (failures.length > 0) {
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
 }
-console.log(
-    "\nproof:glass-ui-gap-tripwire — PASS: no gap's cure is satisfied while its " +
-        "workaround survives, and every workaround site cites its ledger entry " +
-        "(vacuously green today — the tripwire is armed for the BG/BH publish).",
-);
+if (glassCapsMeta.state !== "PUBLISHED") {
+    console.log(
+        "\nproof:glass-ui-gap-tripwire — PENDING: latest published glass-ui dist " +
+            "could not be fetched; installed-only evidence was deliberately ignored. " +
+            "Re-run with registry access before treating the cap state as current.",
+    );
+} else if (!glassCapsMeta.consumeEligible) {
+    console.log(
+        "\nproof:glass-ui-gap-tripwire — PASS (release-held): latest published " +
+            `${glassCapsMeta.latestVersion} caps were fetched; any positive cap is ` +
+            "recorded as frontier evidence but no 4.x workaround deletion is armed " +
+            "until the explicitly held glass-ui 5.0.0+ consume edge is authorized.",
+    );
+} else {
+    console.log(
+        "\nproof:glass-ui-gap-tripwire — PASS: no gap's cure is satisfied in the " +
+            `latest published ${glassCapsMeta.latestVersion} dist while its workaround survives, ` +
+            "and every workaround site cites its ledger entry.",
+    );
+}
 process.exit(0);

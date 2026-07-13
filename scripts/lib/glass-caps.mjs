@@ -6,31 +6,43 @@
 // DISAGREE — the cap-name discipline in KF-TO-GLASSUI-BG.md §1). So the probe is
 // hoisted here and BOTH gates import it. Never a second copy.
 //
-// Every cap is a DEVICE-INDEPENDENT DIST-CONTENT GREP over the INSTALLED
-// `@mkbabb/glass-ui/dist/*.js` (a string match, not a timing measurement, not a
-// mounted-component readback — the mounted-DOM oracle is the SEPARATE,
-// device-bearing `proof:glassui-aria-ask` gate, kept distinct so these gates stay
-// portable). A cap is TRUE iff the consumed dist carries the cure's structural
-// signature; FALSE (→ PENDING / vacuously-green tripwire) while the fix is
-// UNPUBLISHED — never a false-RED before the fix ships.
+// Every cap is a DEVICE-INDEPENDENT DIST-CONTENT GREP over the package tarball
+// behind the REGISTRY'S `dist-tags.latest` (a string match, not a timing
+// measurement, not a mounted-component readback — the mounted-DOM oracle is the
+// SEPARATE, device-bearing `proof:glassui-aria-ask` gate, kept distinct so these
+// gates stay portable). The frozen installed dist is diagnostic only. A cap is
+// TRUE iff the published latest dist carries the cure's structural signature;
+// an unavailable registry probe is explicitly INDETERMINATE, never an
+// installed-only/vacuous-green claim.
 
-import { readFileSync } from "node:fs";
+import {
+    existsSync,
+    mkdtempSync,
+    readFileSync,
+    rmSync,
+} from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
+import { execFileSync } from "node:child_process";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
+const PACKAGE = "@mkbabb/glass-ui";
+
 /** Read a glass-ui dist file's content ("" if absent — content false → PENDING). */
-function distFile(rel) {
+function distFileFrom(distRoot, rel) {
     try {
-        return readFileSync(
-            join(root, "node_modules/@mkbabb/glass-ui/dist", rel),
-            "utf8",
-        );
+        return readFileSync(join(distRoot, rel), "utf8");
     } catch {
         return "";
     }
 }
+
+const installedDistRoot = join(
+    root,
+    "node_modules/@mkbabb/glass-ui/dist",
+);
 
 /** The INSTALLED @mkbabb/glass-ui version (the tripwire's version dimension), or
  *  null when the package is absent. Read straight from the installed
@@ -47,6 +59,105 @@ export function installedGlassUiVersion() {
         );
     } catch {
         return null;
+    }
+}
+
+/**
+ * Read the registry's latest tag without treating the installed optional
+ * dependency as a proxy for the published frontier.  A missing registry
+ * response is explicitly INDETERMINATE; callers must not silently substitute
+ * the frozen installed dist, which was the U.F5 vacuous-green blind spot.
+ */
+function latestPublishedVersion() {
+    try {
+        const stdout = execFileSync(
+            "npm",
+            ["view", PACKAGE, "dist-tags.latest", "--json", "--silent"],
+            {
+                cwd: root,
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "pipe"],
+                timeout: 30_000,
+            },
+        );
+        const value = JSON.parse(String(stdout).trim());
+        return typeof value === "string" && value.trim() ? value.trim() : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Fetch the exact tarball behind dist-tags.latest into a temporary directory.
+ * The temporary package is read-only evidence; it never mutates node_modules,
+ * package.json, or the lockfile.  Returning null is an explicit unavailable
+ * state, not permission to fall back to installedGlassUiVersion().
+ */
+function fetchLatestDist() {
+    const version = latestPublishedVersion();
+    if (!version) {
+        return {
+            state: "INDETERMINATE",
+            version: null,
+            distRoot: null,
+            cleanupRoot: null,
+        };
+    }
+
+    const temp = mkdtempSync(join(tmpdir(), "kf-glass-ui-latest-"));
+    try {
+        const stdout = execFileSync(
+            "npm",
+            [
+                "pack",
+                `${PACKAGE}@${version}`,
+                "--ignore-scripts",
+                "--json",
+                "--pack-destination",
+                temp,
+            ],
+            {
+                cwd: root,
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "pipe"],
+                timeout: 120_000,
+            },
+        );
+        const records = JSON.parse(String(stdout));
+        const filename = records?.[0]?.filename;
+        if (typeof filename !== "string") {
+            return { state: "INDETERMINATE", version, distRoot: null, cleanupRoot: temp };
+        }
+        const tarball = join(temp, filename);
+        if (!existsSync(tarball)) {
+            return { state: "INDETERMINATE", version, distRoot: null, cleanupRoot: temp };
+        }
+        execFileSync("tar", ["-xzf", tarball, "-C", temp], {
+            cwd: root,
+            stdio: ["ignore", "ignore", "pipe"],
+            timeout: 30_000,
+        });
+        const packageRoot = join(temp, "package");
+        const packageVersion = (() => {
+            try {
+                return JSON.parse(
+                    readFileSync(join(packageRoot, "package.json"), "utf8"),
+                ).version;
+            } catch {
+                return null;
+            }
+        })();
+        if (packageVersion !== version || !existsSync(join(packageRoot, "dist"))) {
+            return { state: "INDETERMINATE", version, distRoot: null, cleanupRoot: temp };
+        }
+        return {
+            state: "PUBLISHED",
+            version,
+            distRoot: join(packageRoot, "dist"),
+            cleanupRoot: temp,
+        };
+    } catch {
+        return { state: "INDETERMINATE", version, distRoot: null, cleanupRoot: temp };
     }
 }
 
@@ -79,10 +190,10 @@ export function installedGlassUiVersion() {
  * from proof-workaround-deletion.mjs — the single-source hoist, byte-for-byte the
  * same grep shape.
  */
-export function computeGlassCaps() {
-    const tabsDist = distFile("tabs.js");
-    const dockDist = distFile("dock.js");
-    const drawerCss = distFile("styles/drawer.css");
+export function computeGlassCaps(distRoot = installedDistRoot) {
+    const tabsDist = distFileFrom(distRoot, "tabs.js");
+    const dockDist = distFileFrom(distRoot, "dock.js");
+    const drawerCss = distFileFrom(distRoot, "styles/drawer.css");
 
     // ariaGuard — an `aria-orientation` PROP-BIND whose value carries a
     // role-conditional `: void 0`/`: undefined`/`: null` else arm (present ONLY
@@ -189,6 +300,58 @@ export function computeGlassCaps() {
     };
 }
 
-/** The computed cap shape (evaluated once at import — the dist does not change
- *  mid-run). Both consuming gates read THIS object. */
-export const glassCaps = computeGlassCaps();
+/**
+ * The computed cap shape (evaluated once at import — the dist does not change
+ * mid-run). Both consuming gates read THIS object.  The authoritative source is
+ * always the fetched dist behind `dist-tags.latest`; installed 4.0.x is retained
+ * only as diagnostic evidence.  If the registry probe is unavailable, all caps
+ * remain false and `glassCapsMeta.state` is INDETERMINATE — no installed-only
+ * fallback can make the tripwire vacuously green.
+ */
+const latestSnapshot = fetchLatestDist();
+const installedCaps = computeGlassCaps(installedDistRoot);
+const latestCaps =
+    latestSnapshot.state === "PUBLISHED" && latestSnapshot.distRoot
+        ? computeGlassCaps(latestSnapshot.distRoot)
+        : null;
+// OD-U4 keeps the consume edge on the frozen ~4.0.x line until the planned
+// glass-ui 5.0.0 release is both published and explicitly adopted. A positive
+// cap in an intervening 4.x latest (4.2.0 currently carries ariaGuard) is
+// valuable frontier evidence, but it is NOT permission to delete a 4.0.x
+// workaround. The consuming gates therefore arm only for the 5.x release line;
+// they still print the latest 4.x caps so the drift cannot hide.
+const latestMajor = Number.parseInt(
+    String(latestSnapshot.version ?? "").split(".")[0],
+    10,
+);
+const consumeEligible =
+    latestSnapshot.state === "PUBLISHED" && latestMajor >= 5;
+
+export const glassCaps = latestCaps ?? {
+    ariaGuard: false,
+    dockStrandKeepalive: false,
+    dockDismissHold: false,
+    dockDropdownPointerdown: false,
+    drawerDetentInset: false,
+};
+
+export const glassCapsMeta = Object.freeze({
+    state: latestSnapshot.state,
+    latestVersion: latestSnapshot.version,
+    installedVersion: installedGlassUiVersion(),
+    source: latestCaps ? "published-latest" : "unavailable",
+    consumeEligible,
+    installedCaps,
+    latestCaps,
+});
+
+// `fetchLatestDist` owns a temporary directory for the extracted tarball.  The
+// source root is no longer needed after the capability booleans are computed.
+if (latestSnapshot.cleanupRoot) {
+    const tempRoot = latestSnapshot.cleanupRoot;
+    try {
+        rmSync(tempRoot, { recursive: true, force: true });
+    } catch {
+        // Best-effort cleanup only; a failed cleanup cannot alter cap evidence.
+    }
+}
