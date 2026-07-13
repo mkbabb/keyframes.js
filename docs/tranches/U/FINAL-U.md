@@ -102,9 +102,12 @@ The one-shot terminal scan now passes on the current tree: `gate-bands.mjs`,
 `proof-ci-coverage.mjs`, and `proof-chronic-closure.mjs` are absent; the package
 has no `proof:ci-coverage` script; and no retired ledger/authority names remain
 in active files. The sole remaining `proof-ci-coverage` text is the intentional
-absence assertion in `proof-drag2d-light-certified.mjs`. This is evidence for
-U.Z2's apparatus half only; it does not discharge the owner-golden or upstream
-release conditions.
+absence assertion in `proof-drag2d-light-certified.mjs`. The CLAUDE removal
+witness is scoped to the tracked/product tree (`git ls-files '*CLAUDE.md'` is
+empty, and active `git grep` is clean); a raw workspace `find` also sees
+ignored `.claude/worktrees/**` orchestration copies, which are not product
+artifacts and are not deleted. This is evidence for U.Z2's apparatus half only;
+it does not discharge the owner-golden or upstream release conditions.
 
 ## 6. Close checklist
 
