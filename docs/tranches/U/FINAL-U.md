@@ -91,6 +91,16 @@ green, the owner-golden leg must be blessed, 5.3.0 must be cut/published, and
 the nightly `last-demo-green` ancestry witness must authorize the deploy. No
 live hash is claimed in this draft.
 
+## 5a. Current U.Z2 absence witness
+
+The one-shot terminal scan now passes on the current tree: `gate-bands.mjs`,
+`proof-ci-coverage.mjs`, and `proof-chronic-closure.mjs` are absent; the package
+has no `proof:ci-coverage` script; and no retired ledger/authority names remain
+in active files. The sole remaining `proof-ci-coverage` text is the intentional
+absence assertion in `proof-drag2d-light-certified.mjs`. This is evidence for
+U.Z2's apparatus half only; it does not discharge the owner-golden or upstream
+release conditions.
+
 ## 6. Close checklist
 
 - [x] PASS-5 implementation order executed on `tranche-u-impl`.
