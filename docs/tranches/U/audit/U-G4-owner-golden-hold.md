@@ -25,3 +25,9 @@ owner-golden render leg not authoritative until sequence entries are owner-bless
 
 The next action is an owner review through the existing candidates flow. This
 record does not create a new gate and does not alter `docs/tranches/T/goldens`.
+
+**Current machine result:** the latest `npm run proof:owner-golden` run remains
+red for exactly two rows — `[sequence-light]` and `[sequence-dark]` — and skips
+the perceptual render leg because no blessing token exists. Candidate captures
+are committed in the U.G4 implementation slice; no candidate has been copied
+into `BLESSED.json`.
