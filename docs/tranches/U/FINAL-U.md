@@ -61,6 +61,19 @@ and registry lookup for `@mkbabb/glass-ui@5.0.0` returns E404. Registry latest
 remains 4.2.0. Therefore no glass-ui re-pin, cap re-probe, letter
 reconciliation, or consume-edge commit is authorized by this draft.
 
+The five U.F covenant rows have finite terminal actions, not perpetual tripwires:
+
+| Producer | Covenant | Deadline / terminal action |
+|---|---|---|
+| value.js `./easing` | `parseTimingFunction` → retire `getTimingFunction` | next tagged value.js U cut; consume and retire, or owner-expire the thin dispatcher |
+| value.js `./units` | authored-plain unflatten → retire `plain-vars.ts` | next tagged cut; consume, or owner-ratify boxing as kf-owned |
+| value.js `./parsing` | diagnostics producer → honest `validate.parseable` | next tagged cut; wire or owner-re-deadline once |
+| value.js `./units` | layout-unit grouping → WAAPI eligibility | next tagged cut; consume derivation or owner-re-deadline once |
+| value.js root/`./parsing` | KF-7 `PropertyDescriptor` rename | next tagged cut; consume collision-free name or owner-re-deadline explicitly |
+
+The D-GAP-1/5/6 capability rows and the BG/BH rows are additionally enumerated
+with sibling producers and release-review deadlines in the two linked letters.
+
 ## 4. Version record (planned, not cut)
 
 OD-U8 fixes the close version at **5.3.0**. Before a tag is created, the lead
