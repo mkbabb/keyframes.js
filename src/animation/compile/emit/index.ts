@@ -33,9 +33,8 @@ export {
 export type {
     CompileOptions,
     CompiledCSS,
-    CompileRefusal,
-    CompileRefusalReason,
 } from "./backward";
+export type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
 // VT-b (S.F1) — the per-child compile + its selector-factory options, exposed so
 // the sibling View-Transitions emitter (`./view-transition`) re-targets
 // the SAME block+rule pipeline onto the `::view-transition-*` pseudos.

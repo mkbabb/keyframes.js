@@ -50,10 +50,9 @@ import { serializeEasing } from "./easing-serialize";
 import type { CompileChild } from "./backward-walk";
 import type {
     CompileOptions,
-    CompileRefusal,
-    CompileRefusalReason,
     CompiledCSS,
 } from "./backward";
+import type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
 
 // ── The role spec + options (p09 §4.1 API contract) ──────────────────────────
 
