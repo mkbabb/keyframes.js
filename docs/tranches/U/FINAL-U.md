@@ -109,8 +109,10 @@ release conditions.
 - [x] Internal library/demo checks and focused proof families independently rerun as recorded in the board.
 - [x] Value.js consume-edge transposition committed; glass-ui edge held.
 - [x] U.R recap mechanism exists and its current internal clauses pass.
-- [ ] U.Z1 certifying sweep: final `npm test`, `proof:publish`, recap, nightly roster, and owner-golden blessing.
-- [ ] U.Z2 zero-open-deferrals witness, including the one-shot absence scan and V-inherits-nothing check.
+- [x] U.Z1 local certifying legs: final `npm test`, `proof:publish`, recap, and clean 6/6 roster rerun.
+- [ ] U.Z1 owner-golden blessing: sequence-light and sequence-dark remain pending owner review.
+- [x] U.Z2 terminal apparatus absence scan: deleted ledgers/authority are absent, with the deliberate drag2d absence witness retained.
+- [ ] U.Z2 zero-open-deferrals/V-inherits-nothing exit: upstream covenants and owner clearance remain unresolved.
 - [ ] U.Z3 5.2.0→5.3.0 additive-only diff and tag/publish.
 - [ ] U.Z4 deploy-of-record and live-hash verification.
 - [ ] Glass-ui 5.0.0 upstream tag **and** registry publication, followed by an explicitly authorized consume motion.
