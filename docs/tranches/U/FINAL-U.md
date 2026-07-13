@@ -55,11 +55,14 @@ unflatten decision, diagnostics producer, layout-unit taxonomy, KF-7
 `CSSPropertyDescriptor` rename, and D-GAP-1/5/6.
 
 The glass-ui covenant is recorded in [KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md)
-and remains release-held. Current evidence is local
+and remains release-held. The U.F5 probe now reads the registry's
+`dist-tags.latest` tarball: current evidence is
 `@mkbabb/glass-ui@5.0.0` work in the sibling tranche without a `v5.0.0` tag,
 and registry lookup for `@mkbabb/glass-ui@5.0.0` returns E404. Registry latest
-remains 4.2.0. Therefore no glass-ui re-pin, cap re-probe, letter
-reconciliation, or consume-edge commit is authorized by this draft.
+remains 4.2.0; its `ariaGuard` observation is frontier evidence only while
+OD-U4 keeps consume eligibility false. Therefore no glass-ui re-pin, letter
+reconciliation, workaround deletion, or consume-edge commit is authorized by
+this draft.
 
 The five U.F covenant rows have finite terminal actions, not perpetual tripwires:
 
@@ -112,6 +115,7 @@ release conditions.
 - [x] U.Z1 local certifying legs: final `npm test`, `proof:publish`, recap, and clean 6/6 roster rerun.
 - [ ] U.Z1 owner-golden blessing: sequence-light and sequence-dark remain pending owner review.
 - [x] U.Z2 terminal apparatus absence scan: deleted ledgers/authority are absent, with the deliberate drag2d absence witness retained.
+- [x] U.F5 latest-dist tripwire re-probe: `dist-tags.latest` tarball fetched and cleaned; installed 4.0.1 is diagnostic only, with 4.2.0 frontier evidence held outside the 5.0.0 consume line.
 - [ ] U.Z2 zero-open-deferrals/V-inherits-nothing exit: upstream covenants and owner clearance remain unresolved.
 - [ ] U.Z3 5.2.0→5.3.0 additive-only diff and tag/publish.
 - [ ] U.Z4 deploy-of-record and live-hash verification.

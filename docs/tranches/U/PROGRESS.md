@@ -13,7 +13,7 @@
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D4's shared vector facet is carved and the ceiling is green, while the pointer-aware drag fusion remains routed; D5 defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E4 dead-export sweep, E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
-| U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; glass-ui F5/F6 remain release-held under OD-U4 |
+| U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F5/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; F5 now probes the published latest glass-ui tarball without consuming the held pin; F6 and the 5.0.0 consume motion remain release-held under OD-U4 |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; the 14-cell owner-golden candidates and `PANE=LIT` protocol are landed, with sequence-light/dark owner blessing remaining |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
 | U.R | PROMPT-RECAP-U (STANDING) | **COMPLETE** — U.R2 retargeted to tree-cleared witness; `proof:prompt-recap-u` passes all seven clauses |
@@ -43,6 +43,17 @@ green master and the ratified corpus merged at `0b423142`.
   acceptance probes, release-held protocol, and absorb-or-expire deadlines. It
   is handed to the active BI root inbox; no glass-ui source or keyframes pin
   change is authorized until the stated 5.0.0 signals exist.
+
+- **2026-07-12** — **U.F5 LATEST-DIST TRIPWIRE CURE + U.F7 REALM CLEANUP.**
+  Commit `d8494567` re-architects the shared glass-ui cap probe to fetch the
+  registry `dist-tags.latest` tarball into a cleaned temporary extraction;
+  installed 4.0.1 is diagnostic only, and the observed 4.2.0 `ariaGuard` cap is
+  recorded as frontier evidence while OD-U4 keeps `consumeEligible=false` until
+  the explicitly authorized 5.0.0 motion. Registry/tarball failures are explicit
+  `INDETERMINATE/PENDING`, and stale 4.1.0 sentinels are gone. Commit `1ab187ee`
+  simultaneously collapses the dependency realm clause to the direct
+  parse-that-free invariant. `check`, `proof:publish`, both glass tripwires, and
+  `proof:agent-surface` pass; no glass-ui source or keyframes pin changed.
 
 - **2026-07-12** — **U.Z2 TERMINAL AUTHORITY ABSENCE.** Commit `92746148`
   removed stale references to the dissolved gate/ledger apparatus from active
