@@ -68,8 +68,8 @@ function stripCssComments(src) {
 
 // ── (a) STATIC — the deleted glass-wash wrap + border/tint block ─────────────
 function staticWrapDeleted() {
-    const vuePath = path.join(REPO, TRANSPORT, "components/ControlsPaneWrapper.vue");
-    const cssPath = path.join(REPO, TRANSPORT, "components/ControlsPaneWrapper.css");
+    const vuePath = path.join(REPO, TRANSPORT, "controls-pane/ControlsPaneWrapper.vue");
+    const cssPath = path.join(REPO, TRANSPORT, "controls-pane/ControlsPaneWrapper.css");
     if (!fs.existsSync(vuePath) || !fs.existsSync(cssPath)) {
         fail(`(a) static — ControlsPaneWrapper.{vue,css} not found under ${TRANSPORT}`);
         return;
