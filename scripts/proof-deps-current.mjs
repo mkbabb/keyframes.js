@@ -1,10 +1,7 @@
 // proof:deps-current — G.W2 S3 (the standing dep-currency lock the re-pin
-// ships WITH). The falsifiable form of "the `@mkbabb/*` pins are current,
-// protocol-clean, and realm-convergent" — the gate that the F→G pin-lag
-// (`a-constellation-gaps G-CONST-1`: kf 4.0.0 shipped on STALE `value.js
-// ^0.10.0` / `parse-that ^0.8.2` while `0.11.0`/`0.9.0` were PUBLISHED) can
-// never recur silently. It is chained into `proof:all` (S3) so the invariant
-// rides every CI run.
+// ships WITH). The falsifiable form of "the `@mkbabb/*` pins are current and
+// protocol-clean" plus the positive no-direct-parse-that invariant. It is
+// chained into `proof:publish`/CI so the consume edge rides every release run.
 //
 // RUN: node scripts/proof-deps-current.mjs
 //
@@ -29,24 +26,9 @@
 //       "file:../glass-ui"` (or a `link:`/`git:` spec) in the manifest, OR a
 //       `link: true` resolved node in the lockfile → reds.
 //
-//   (3) REALM-CONVERGENCE (fail-EXPLICIT advisory, value.js-handoff) — kf's
-//       declared `parse-that` MINOR vs value.js's OWN declared `parse-that`
-//       minor. kf consumes value.js through the single `lerpValue → iv._lerp`
-//       seam; if kf pins `parse-that ^0.9.x` while the installed value.js still
-//       declares `^0.8.x`, the npm tree carries TWO parse-that realms (kf's
-//       top-level + value.js's nested) — the dual-realm split `utils.ts:248`
-//       casts across with `parseAny as any`. G.md §Design-decision 1 makes the
-//       convergence CONDITIONAL: value.js re-pins its OWN parse-that to match
-//       "IF the cross-realm round-trip bites; NOT a kf-side shim." The wave's
-//       §Hard-gate clause 1 gates ONLY on the FLOOR + PROTOCOL (clauses 1, 2) —
-//       realm-convergence is NOT a §Hard-gate clause. So this clause is
-//       fail-EXPLICIT but NON-GATING: it SURFACES a minor split LOUDLY (never
-//       silent) as a recorded value.js-HANDOFF (G-HANDOFF-1), and ESCALATES to
-//       a hard red ONLY if the cross-realm round-trip is shown to bite (the
-//       `KF_REALM_STRICT=1` escalation, for the wave that proves the bite). A
-//       convergent realm passes cleanly; a divergent-but-non-biting realm
-//       (today: value.js@0.11.0 still declares `^0.8.2`) prints the handoff and
-//       stays green per the authoritative spec.
+//   (3) SINGLE REALM — the manifest declares NO direct
+//       `@mkbabb/parse-that` dependency. kf reaches the parser transitively
+//       through value.js, so a second kf-owned realm cannot be introduced.
 
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -124,8 +106,6 @@ for (const bucket of ["dependencies", "optionalDependencies"]) {
 
 const fail = [];
 const pass = [];
-const handoff = []; // fail-EXPLICIT, non-gating surfacing (the value.js-handoff)
-
 // ── Clause 1 — FLOOR (installed ≥ published floor) ───────────────────────────
 {
     const offenders = [];
@@ -227,68 +207,30 @@ const handoff = []; // fail-EXPLICIT, non-gating surfacing (the value.js-handoff
     }
 }
 
-// ── Clause 3 — REALM-CONVERGENCE (kf parse-that minor === value.js's) ─────────
+// ── Clause 3 — SINGLE REALM (no direct parse-that declaration) ───────────────
 {
-    const kfRange = declared["@mkbabb/parse-that"];
-    const valuejsPkgPath = join(
-        root,
-        "node_modules",
-        "@mkbabb",
-        "value.js",
-        "package.json",
-    );
+    const directDeclarations = [];
+    for (const bucket of [
+        "dependencies",
+        "optionalDependencies",
+        "devDependencies",
+        "peerDependencies",
+    ]) {
+        const range = pkg[bucket]?.["@mkbabb/parse-that"];
+        if (range !== undefined) directDeclarations.push(`${bucket}: ${range}`);
+    }
 
-    if (!kfRange) {
-        // S9 (shipped 4.4.0) REMOVED kf's direct @mkbabb/parse-that dependency —
-        // kf consumes value.js's `parseCSSSubValue`, so the direct parse-that import
-        // AND the cross-realm `parseAny as any` cast (utils.ts) are GONE. With kf
-        // declaring no parse-that, there is exactly ONE parse-that realm (value.js's
-        // transitive one) — a realm SPLIT is structurally impossible, so convergence
-        // holds BY CONSTRUCTION. This is the acyclic-spine goal achieved, not a lost subject.
-        pass.push(
-            "(3) REALM: kf declares NO @mkbabb/parse-that dependency (the S9 acyclic " +
-                "spine — value.js's parseCSSSubValue consumed, the direct import + the " +
-                "cross-realm cast removed). ONE realm, convergent by construction.",
-        );
-    } else if (!existsSync(valuejsPkgPath)) {
+    if (directDeclarations.length > 0) {
         fail.push(
-            "(3) REALM: @mkbabb/value.js is not installed — cannot read its own " +
-                "parse-that declaration.",
+            `(3) SINGLE REALM: package.json declares a direct ` +
+                `@mkbabb/parse-that dependency (${directDeclarations.join(", ")}); ` +
+                `consume it transitively through @mkbabb/value.js instead.`,
         );
     } else {
-        const valuejs = JSON.parse(readFileSync(valuejsPkgPath, "utf8"));
-        const vjRange = valuejs.dependencies?.["@mkbabb/parse-that"];
-        const kfParts = semverParts(kfRange);
-        const vjParts = vjRange ? semverParts(vjRange) : null;
-        if (!vjParts) {
-            fail.push(
-                `(3) REALM: installed @mkbabb/value.js@${valuejs.version} declares ` +
-                    `no parse-that dependency (got ${JSON.stringify(vjRange)}) — ` +
-                    `cannot verify realm convergence.`,
-            );
-        } else if (kfParts[1] !== vjParts[1] || kfParts[0] !== vjParts[0]) {
-            const msg =
-                `(3) REALM: parse-that realm SPLIT — kf declares "${kfRange}" ` +
-                `(${kfParts[0]}.${kfParts[1]}.x) but installed ` +
-                `value.js@${valuejs.version} declares "${vjRange}" ` +
-                `(${vjParts[0]}.${vjParts[1]}.x). The npm tree carries TWO ` +
-                `parse-that realms; the cross-realm cast is utils.ts:248 ` +
-                `(parseAny as any). value.js must re-pin its OWN parse-that to ` +
-                `match (G-HANDOFF-1 / G.md §Design-decision 1: NOT a kf-side ` +
-                `shim).`;
-            // The wave's §Hard-gate gates on FLOOR + PROTOCOL only; convergence
-            // is conditional on the round-trip biting. Surface it explicitly;
-            // escalate to a hard red only under KF_REALM_STRICT (the wave that
-            // proves the bite).
-            if (process.env.KF_REALM_STRICT === "1") fail.push(msg);
-            else handoff.push(msg + " [non-gating: KF_REALM_STRICT unset]");
-        } else {
-            pass.push(
-                `(3) REALM: parse-that realm CONVERGED — kf "${kfRange}" and ` +
-                    `value.js@${valuejs.version} "${vjRange}" share minor ` +
-                    `${kfParts[0]}.${kfParts[1]}.`,
-            );
-        }
+        pass.push(
+            "(3) SINGLE REALM: package.json declares NO direct @mkbabb/parse-that " +
+                "dependency; the parser realm is transitive through value.js by construction.",
+        );
     }
 }
 
@@ -296,11 +238,10 @@ const handoff = []; // fail-EXPLICIT, non-gating surfacing (the value.js-handoff
 if (fail.length > 0) {
     console.error(
         "\nproof:deps-current — FAIL: the @mkbabb/* pins are NOT current / " +
-            "protocol-clean / realm-convergent.\n",
+            "protocol-clean / direct-parse-that-free.\n",
     );
     for (const f of fail) console.error("  ✗ " + f);
     for (const p of pass) console.error("  ✓ " + p);
-    for (const h of handoff) console.error("  ⚠ " + h);
     console.error(
         "\n  The dep-currency invariant is the standing lock against the F→G " +
             "pin-lag (a-constellation-gaps G-CONST-1). Resolve every clause.",
@@ -314,15 +255,3 @@ console.log(
         "re-pin stays pinned.",
 );
 for (const p of pass) console.log("  ✓ " + p);
-// Fail-EXPLICIT, non-gating: a divergent-but-non-biting realm is surfaced as a
-// value.js-HANDOFF, never silently swallowed (the §Mandate's no-silent-degrade).
-for (const h of handoff) console.log("  ⚠ " + h);
-if (handoff.length > 0) {
-    console.log(
-        "\n  ⚠ value.js-HANDOFF (G-HANDOFF-1): the parse-that realm is not " +
-            "converged. The cross-realm round-trip is currently NON-biting " +
-            "(production parse→interp verified), so this is a recorded handoff, " +
-            "not a gate red. Set KF_REALM_STRICT=1 to escalate it to a hard gate " +
-            "once a wave proves the bite.",
-    );
-}
