@@ -42,9 +42,9 @@ tripwire or a claim that unpublished sibling bytes are consumable.
 
 | Producer | Current immutable consumer state | Owner-redlined next boundary |
 |---|---|---|
-| glass-ui | Keyframes consumes exact Glass 5.0.0 with one physical core. | Glass 6.0.0 artifact packet after BG-5 and Dock-z; explicit BG-10 disposition. |
+| glass-ui | Keyframes consumes exact Glass 5.0.0 with one physical core. | Glass 6.0.0 artifact packet after BG-5 and Dock-z; then a registry-only Keyframes successor with optional Glass exactly 6.0.0 and a fresh one-core witness. |
 | value.js | Keyframes consumes the published 3.1.0 subpath taxonomy. | value 4.0 artifact, then the coordinated Keyframes 6 → Glass 6 rail for timing/plain-vars/diagnostics/unit/property-descriptor work. |
-| Atlas / sci-report | The current coherent published tuple remains intact. | sci-report waits for Atlas's next versioned surface; no worktree link or unpublished import is treated as a release. |
+| Atlas / sci-report | The current coherent published tuple remains intact. | Atlas 2.0 waits for the post-Glass-6 Keyframes successor; no worktree link or unpublished import is treated as a release. |
 
 These are owner-re-deadlined producer commitments, not `PENDING-OWNER` rows and
 not permission for Tranche V to invent a new Keyframes deferral apparatus.
