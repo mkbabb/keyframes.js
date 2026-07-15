@@ -55,6 +55,13 @@ green master and the ratified corpus merged at `0b423142`.
   parse-that-free invariant. `check`, `proof:publish`, both glass tripwires, and
   `proof:agent-surface` pass; no glass-ui source or keyframes pin changed.
 
+- **2026-07-15** — **SCI P ONE-CORE ALIGNMENT.** The demo actively imports
+  Glass across the product surface, so the optional edge was retained and
+  changed from the stale `~4.0.0` range to exact published `4.2.0`. The single
+  lockfile now resolves the same 4.2.0 tarball and `^5.0.0` peer; install and
+  realpath checks find one physical Glass package. This is not a 5.0.0 consume:
+  OD-U4's tag/registry release packet remains held.
+
 - **2026-07-12** — **U.Z2 TERMINAL AUTHORITY ABSENCE.** Commit `92746148`
   removed stale references to the dissolved gate/ledger apparatus from active
   proof labels, comments, and roster authority. The one-shot absence scan now

@@ -197,7 +197,7 @@ export function computeGlassCaps(distRoot = installedDistRoot) {
 
     // ariaGuard — an `aria-orientation` PROP-BIND whose value carries a
     // role-conditional `: void 0`/`: undefined`/`: null` else arm (present ONLY
-    // after the BG-1 SFC guard ships). The UNCONDITIONAL 4.0.1 emit
+    // after the BG-1 SFC guard ships). The UNCONDITIONAL 4.2.0 emit
     // (`aria-orientation": L.value ? "vertical" : "horizontal"`) carries no
     // suppress-else → no match → false → PENDING.
     const ariaGuard = (() => {
@@ -212,7 +212,7 @@ export function computeGlassCaps(distRoot = installedDistRoot) {
 
     // dockStrandKeepalive — the active `.dock-layer` RETAINS pointer-events/hit-test
     // across the crossfade (the cure-specific token the BG cut introduces). The
-    // installed 4.0.1 dock carries only the UNRELATED `useDockClickIntegrity` +
+    // installed 4.2.0 dock carries only the UNRELATED `useDockClickIntegrity` +
     // `pointer-events-none` on the indicator → false → PENDING.
     const dockStrandKeepalive = (() => {
         if (!dockDist) return false;
@@ -230,7 +230,7 @@ export function computeGlassCaps(distRoot = installedDistRoot) {
     // dismiss-pointerdown CONSULT the `keepOpen()` hold state before self-
     // collapsing. Its structural signature: a dismiss / pointer-down-outside
     // handler token CO-LOCATED with the `keepOpen`/hold-count state. The installed
-    // 4.0.1 dock carries the `keepOpen` API but NO dismiss-outside handler that
+    // 4.2.0 dock carries the `keepOpen` API but NO dismiss-outside handler that
     // reads it (ChromeDock re-implements the re-expand watch) → false → the GU-3
     // tripwire is vacuously green today, flips the instant the cure lands.
     const dockDismissHold = (() => {
@@ -249,7 +249,7 @@ export function computeGlassCaps(distRoot = installedDistRoot) {
     // pointerdown-open PARITY with `DockSelectTrigger` (the letter's proposed
     // `trigger-action="pointerdown"` prop / open-on-pointerdown). Its structural
     // signature: `DockDropdownTrigger` co-located with an explicit
-    // pointerdown-open marker. The installed 4.0.1 opens the dropdown on CLICK
+    // pointerdown-open marker. The installed 4.2.0 opens the dropdown on CLICK
     // (MbabbMenu synthesizes reka's click on pointerdown to route around the
     // press-scale reflow), so no pointerdown-open marker sits by
     // `DockDropdownTrigger` → false → PENDING.
@@ -271,7 +271,7 @@ export function computeGlassCaps(distRoot = installedDistRoot) {
     // `--drawer-inset-block-end` token AND the detented (snap-points) selector no
     // longer fills the viewport unconditionally — its `max-height` is CAPPED
     // (references calc/min/clamp/var or the inset token) rather than a bare
-    // `100%`/`100vh`. The installed 4.0.1 drawer.css forces
+    // `100%`/`100vh`. The installed 4.2.0 drawer.css forces
     // `.glass-drawer[data-glass-drawer-snap-points="true"] { height:100%;
     // max-height:100% }` with `bottom:0` and NO inset token (VERIFIED) → false →
     // the T.H3 tripwire is vacuously green today (the bespoke sheet is still the

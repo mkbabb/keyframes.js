@@ -7,8 +7,10 @@
 // kf pins value.js `^1.1.0` — a CARET. A future value.js 1.2.0 is auto-consumed with
 // NO re-pin and NO consume-edge observable: a future audit cannot tell whether the
 // 1.2.0 features are actually wired. There was no single machine-readable record of the
-// SHIPPED pin set (kf 4.4.0 → value.js ^1.1.0 → parse-that ^0.12.0 transitive; glass-ui
-// ~4.0.0 installs 4.0.1) a gate could regenerate-and-compare to catch silent drift.
+// SHIPPED pin set (kf 4.4.0 → value.js ^1.1.0 → parse-that ^0.12.0 transitive; the
+// historical glass-ui ~4.0.0 edge installed 4.0.1) a gate could regenerate-and-
+// compare to catch silent drift. The current sci P one-core alignment is exact
+// 4.2.0; 5.0.0 remains a separately held consume motion.
 //
 // THE REAL OBSERVABLE (inv-observable-truth, NOT a proxy): a pin that drifts off the
 // SHIPPED set with no observable edge. The HARD clause reads the LOCAL package.json

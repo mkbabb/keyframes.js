@@ -8,8 +8,9 @@
 Cross-links: [U.md](U.md), [PROGRESS.md](PROGRESS.md), [PROMPT-RECAP-U.md](PROMPT-RECAP-U.md),
 [OWNER-DECISIONS.md](OWNER-DECISIONS.md), [waves/U.Z.md](waves/U.Z.md), and
 [KF-TO-VALUEJS-U.md](KF-TO-VALUEJS-U.md), and
-[KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md). The glass-ui edge remains held under
-OD-U4; no glass-ui source or keyframes glass-ui pin is changed by this draft.
+[KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md). The glass-ui edge is now exactly
+4.2.0 under the explicitly authorized sci P one-core alignment; OD-U4's 5.0.0
+consume remains held, and no glass-ui source was changed by this draft.
 
 ## 1. Mandate and verdict → cure map
 
@@ -113,12 +114,15 @@ it does not discharge the owner-golden or upstream release conditions.
 
 - [x] PASS-5 implementation order executed on `tranche-u-impl`.
 - [x] Internal library/demo checks and focused proof families independently rerun as recorded in the board.
-- [x] Value.js consume-edge transposition committed; glass-ui edge held.
+- [x] Value.js consume-edge transposition committed; sci P Glass edge aligned
+  exactly to published 4.2.0 with one physical installed core; 5.0.0 remains held.
 - [x] U.R recap mechanism exists and its current internal clauses pass.
 - [x] U.Z1 local certifying legs: final `npm test`, `proof:publish`, recap, and clean 6/6 roster rerun.
 - [ ] U.Z1 owner-golden blessing: sequence-light and sequence-dark remain pending owner review.
 - [x] U.Z2 terminal apparatus absence scan: deleted ledgers/authority are absent, with the deliberate drag2d absence witness retained.
-- [x] U.F5 latest-dist tripwire re-probe: `dist-tags.latest` tarball fetched and cleaned; installed 4.0.1 is diagnostic only, with 4.2.0 frontier evidence held outside the 5.0.0 consume line.
+- [x] U.F5 latest-dist tripwire re-probe: `dist-tags.latest` tarball fetched and
+  cleaned; the installed 4.2.0 one-core alignment is diagnostic/product
+  evidence only, with 5.0.0 frontier evidence held outside the consume line.
 - [ ] U.Z2 zero-open-deferrals/V-inherits-nothing exit: upstream covenants and owner clearance remain unresolved.
 - [ ] U.Z3 5.2.0→5.3.0 additive-only diff and tag/publish.
 - [ ] U.Z4 deploy-of-record and live-hash verification.

@@ -103,7 +103,7 @@ export const GLASS_UI_GAPS = {
     },
     drawerDetentInset: {
         // BG-11 (T.H3-ADOPT, OWNER-OVERRIDDEN 2026-07-06). The owner RULED ADOPT:
-        // the demo now consumes glass-ui 4.0.1's `<Drawer mode="live-behind">` for
+        // the demo now consumes glass-ui 4.2.0's `<Drawer mode="live-behind">` for
         // the mobile sheet (ControlsPaneWrapper.vue — the bespoke peek/half/full
         // hand-roll + SheetGrabHandle/useSheetGesture/useSheetSpring/useSheetState
         // are DELETED). The Drawer approximates the occlusion contract via
@@ -123,7 +123,7 @@ export const GLASS_UI_GAPS = {
         // sheet finally clears the menubar). The menubar-clearance clauses the
         // adoption structurally breaks are tracked as BG-11-BLOCKED born-RED
         // external-hold rows in the current tier manifest, discharged by the same
-        // publish + re-pin. Vacuously green today (4.0.1 ships no lever). The
+        // publish + re-pin. Vacuously green today (4.2.0 ships no lever). The
         // owner verdict is recorded at docs/tranches/T/verdicts/T.H3.md.
         ask: "BG-11",
         defect:

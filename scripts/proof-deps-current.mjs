@@ -45,8 +45,10 @@ const FLOORS = {
     // taxonomy. parse-that is intentionally absent from kf's manifest: the
     // direct realm apparatus was dissolved and value.js owns its parser realm.
     "@mkbabb/value.js": "3.1.0",
-    // The glass-ui edge remains 4.0.0 until OD-U4's explicitly forthcoming
-    // 5.0.0 release is registry-visible. No consume-edge change is made here.
+    // The sci P one-core alignment pins the active published cut exactly at
+    // 4.2.0. This is still only the correctness floor: OD-U4's forthcoming
+    // 5.0.0 release remains separately held until its tag and registry packet
+    // are witnessed.
     // a resolver downgrading into 3.5.x–3.8.x (valid in the old range)
     // re-introduces the at-rest bloom; 3.9.0 carries `specular="off"`
     // (proof:specular-absent-at-rest is the runtime contract).

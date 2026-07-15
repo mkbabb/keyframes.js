@@ -13,11 +13,12 @@
 The current keyframes declaration is derived directly from `package.json`:
 
 ```text
-@mkbabb/glass-ui: ~4.0.0
+@mkbabb/glass-ui: 4.2.0
 ```
 
-That range resolves the installed `@mkbabb/glass-ui@4.0.1`. Registry evidence
-is separate: `dist-tags.latest` is 4.2.0, while
+The explicitly authorized sci P one-core alignment now resolves the installed
+`@mkbabb/glass-ui@4.2.0`, matching the active published cut used by Atlas/sci.
+Registry evidence is separate: `dist-tags.latest` is 4.2.0, while
 `npm view @mkbabb/glass-ui@5.0.0 version` returns E404. No `v5.0.0` tag is
 witnessed in the sibling repository. The local sibling work is active, but
 these facts mean the U consume edge remains held. The pin must not move before
@@ -42,7 +43,7 @@ silently disappear.
 | **BG-1** | SegmentedTabs pill omits `aria-orientation` when its role is `group`. | `ariaGuard` cap + mounted DOM proof; prerequisite for retiring local pill suppression. |
 | **BG-3** | Decouple SegmentedTabs material from ARIA role; support pill appearance with `role=tablist` and roving tabindex. | A11y proof; then remove KfPillTabs and its composable. |
 | **BG-4** | DockDropdownTrigger opens on pointerdown, or exposes an equivalent trigger-action prop, matching DockSelectTrigger. | `dockDropdownPointerdown` cap + popover/toggle proofs; remove pointerdown click synthesis. |
-| **BG-5** | Provide a static/frozen backdrop mode (`blur-source="static"` or equivalent) so dock/pane blur does not re-rasterize an animating stage. | `proof:blur-not-resampled`; no false green from installed 4.0.1. |
+| **BG-5** | Provide a static/frozen backdrop mode (`blur-source="static"` or equivalent) so dock/pane blur does not re-rasterize an animating stage. | `proof:blur-not-resampled`; no false green from installed 4.2.0. |
 | **BG-6** | Parameterize display-rung weight through `--font-display-weight`. | Font proof; remove the kf-side utility override when consumed. |
 | **BG-7** | Publish the coalesced specular writer for ordinary-DOM use, or explicitly decline and document the boundary. | Public-export evidence or an owner disposition; no hand-copy is permitted. |
 | **BG-8** | Extend EasingPicker's named catalogue beyond cubic-bezier/steps, or explicitly keep bounce kf-owned. | Reconciled consume note; no silent assumption of coverage. |
@@ -98,6 +99,7 @@ sibling may fold it into its BG/BH register and return a tagged release note.
 Keyframes will independently verify the tag, registry package, export map,
 installed tarball, and built-dist probes before any consume commit.
 
-Until then, the keyframes package remains on `~4.0.0`, glass-ui 5.0.0 remains
+Until then, the keyframes package remains on exact `4.2.0` for the sci P
+one-core alignment, glass-ui 5.0.0 remains
 unpublished (`npm` E404), and this U letter is an honest release-held handoff,
 not a close claim.
