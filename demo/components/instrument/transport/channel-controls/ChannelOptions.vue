@@ -91,9 +91,9 @@
                                              click to open the detail panel) — it carries NO style;
                                              STY-4 deleted only its scoped color RULE (the color now
                                              rides the owned `.text-gold` idiom). -->
-                                        <DockIconButton compact title="Edit easing curve" class="easing-edit-btn text-gold" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                        <DockControl shape="icon" compact title="Edit easing curve" class="easing-edit-btn text-gold" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
                                             <Pencil class="icon-sm" />
-                                        </DockIconButton>
+                                        </DockControl>
                                     </IconTooltip>
                                 </div>
                                 <!-- I.W2.S3 — the dropdown's model-value is the
@@ -180,14 +180,14 @@
                     <div :class="['panel-row', advancedOpen && !showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
                         <div class="panel-content flex flex-col gap-2 w-full">
                             <div class="flex items-center gap-1 mb-1">
-                                <DockIconButton
+                                <DockControl shape="icon"
                                     compact
                                     title="Back"
                                     class="text-muted-foreground"
                                     @click="advancedOpen = false"
                                 >
                                     <ArrowLeft class="icon-md" />
-                                </DockIconButton>
+                                </DockControl>
                                 <span class="text-small font-medium text-muted-foreground">advanced</span>
                             </div>
 
@@ -249,7 +249,7 @@ import {
     SelectValue,
     Separator,
 } from "@mkbabb/glass-ui";
-import { DockIconButton } from "@mkbabb/glass-ui/dock";
+import { DockControl } from "@mkbabb/glass-ui/dock";
 import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
 import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 

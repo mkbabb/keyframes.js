@@ -96,7 +96,8 @@
                                     }
                                 "
                             >
-                                <DockSelectTrigger
+                                <DockTrigger
+                                    for="select"
                                     aria-label="Select animation"
                                     class="dock-label"
                                 >
@@ -111,7 +112,7 @@
                                     <SelectValue class="text-ellipsis">{{
                                         storedControls.selectedAnimation
                                     }}</SelectValue>
-                                </DockSelectTrigger>
+                                </DockTrigger>
                                 <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                     <SelectGroup class="dock-label">
                                         <template
@@ -148,19 +149,19 @@
                      (T.C1 → T.B/T.F edge owner); it rides nav here until that lands. -->
                 <DockSeparator />
                 <IconTooltip text="Reset animation">
-                    <DockIconButton aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
+                    <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
                         <RotateCcw
                             ref="resetIconEl"
                             class="icon-lg"
                         />
-                    </DockIconButton>
+                    </DockControl>
                 </IconTooltip>
 
                 <template v-if="storedControls.isTimelineExpanded">
                     <IconTooltip text="Collapse timeline">
-                        <DockIconButton aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
+                        <DockControl shape="icon" aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
                             <Minimize2 class="icon-lg" />
-                        </DockIconButton>
+                        </DockControl>
                     </IconTooltip>
 
                     <span class="dock-label whitespace-nowrap">Timeline</span>
@@ -215,8 +216,8 @@ import {
 } from "@lucide/vue";
 
 import {
-    DockIconButton,
-    DockSelectTrigger,
+    DockControl,
+    DockTrigger,
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 // T.C1 — the channel-elision RENDER consumes the cardinality model. The

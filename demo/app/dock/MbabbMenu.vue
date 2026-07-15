@@ -23,7 +23,7 @@
          useOptionalDockContext can't reach the GlassDock provider). See the handlers
          below for the full rationale. -->
     <DropdownMenu @update:open="onMbabbMenuOpen">
-        <DockDropdownTrigger aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small" data-register="code" @pointerenter="onMbabbTriggerEnter" @pointerleave="onMbabbTriggerLeave" @pointerdown="onMbabbTriggerPointerdown" @click.capture="onMbabbTriggerClickCapture">@mbabb</DockDropdownTrigger>
+        <DockTrigger for="dropdown" aria-label="@mbabb menu" class="text-mono-caption normal-case lg:text-mono-small" data-register="code" @pointerenter="onMbabbTriggerEnter" @pointerleave="onMbabbTriggerLeave" @pointerdown="onMbabbTriggerPointerdown" @click.capture="onMbabbTriggerClickCapture">@mbabb</DockTrigger>
         <DropdownMenuContent align="end" :side-offset="8" class="z-modal min-w-[var(--dock-panel-width)] text-body p-1.5">
             <!-- Share -->
             <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
@@ -111,7 +111,7 @@ import { SharePopover } from "@components/instrument/shell";
 import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
-import { DockDropdownTrigger } from "@mkbabb/glass-ui/dock";
+import { DockTrigger } from "@mkbabb/glass-ui/dock";
 import { Trash } from "@lucide/vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
 // GLASSUI-GAP: dockDropdownPointerdown — the trigger's pointerdown click-synthesis

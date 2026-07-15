@@ -64,10 +64,10 @@
                  ring (the `.preset-cell--active` token treatment), not the solid
                  green inset; the hover is the red-accent family (F3). -->
             <div class="preset-grid grid grid-cols-2 gap-2">
-                <ToggleChip
+                <Chip
                     v-for="(t, i) in demo.tracks"
                     :key="t.preset.name"
-                    variant="cell"
+                    shape="cell"
                     :model-value="isActivePreset(t)"
                     :title="t.preset.blurb"
                     class="preset-cell rounded-pill border-none bg-background px-3 pt-1.5 pb-2 h-auto items-start gap-1 font-medium leading-normal whitespace-nowrap btn-interactive"
@@ -84,7 +84,7 @@
                             class="progress-ball preset-ball"
                         ></span>
                     </span>
-                </ToggleChip>
+                </Chip>
             </div>
 
             <!-- ── KEYFRAMES EDITOR (K.W4 S1 — survives THIS stage) ────────────
@@ -127,7 +127,7 @@ import type { ComponentPublicInstance } from "vue";
 import { onMounted, onScopeDispose } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
-import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
+import { Chip } from "@mkbabb/glass-ui/chip";
 import { RefreshCw } from "@lucide/vue";
 import { clamp } from "@mkbabb/value.js/math";
 

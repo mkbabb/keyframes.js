@@ -77,10 +77,10 @@
                 role="group"
                 aria-label="Easing curve specimens"
             >
-                <ToggleChip
+                <Chip
                     v-for="curve in visibleCurves"
                     :key="curve.name"
-                    variant="cell"
+                    shape="cell"
                     class="specimen-tile"
                     :model-value="curve.name === demo.currentEasingName.value"
                     @update:model-value="(on: boolean) => onTileToggle(curve.name, on)"
@@ -103,7 +103,7 @@
                     <span class="tile-name text-mono-caption" data-register="code">
                         {{ curve.name }}
                     </span>
-                </ToggleChip>
+                </Chip>
             </div>
         </FadingScroll>
     </Card>
@@ -114,7 +114,7 @@ import { computed, inject, nextTick, onMounted, onScopeDispose, ref, useTemplate
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 import { Card } from "@mkbabb/glass-ui";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
-import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
+import { Chip } from "@mkbabb/glass-ui/chip";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { stepEnd, stepStart, steppedEase } from "@mkbabb/value.js/easing";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
