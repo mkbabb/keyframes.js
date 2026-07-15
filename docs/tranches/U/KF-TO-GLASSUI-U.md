@@ -51,6 +51,16 @@ exact Glass edge and reassess the local tablist, dock actuation, popup mutex,
 dropdown synthesis, and Drawer detent code. U carries no standing tripwire or
 capability registry for those sites.
 
+SCI/Atlas has queued the downstream consume order precisely: after the Glass
+6.0.0 packet is immutable, Keyframes publishes the smallest compatible
+successor with optional Glass exactly 6.0.0, proves one registry-installed
+physical core, and returns its version/tag/tarball/integrity/`gitHead` before
+Atlas 2.0 consumes the pair. Glass `73b852cd` is the producer witness for the
+three real class updates, empty `animate.css` deletion, and ordinary `<mark>`
+FuzzySearch paint. Keyframes' only related source correction is to reword the
+Tailwind-scanned `text-[var(...)]` prose literal at `MbabbMenu.vue:59`; it needs
+no workaround or tripwire.
+
 ## U close disposition
 
 The owner re-deadlined every unshipped row above to the named Glass 6.0.0

@@ -1,10 +1,10 @@
 # Tranche U — FINAL
 
-> **Status: CLOSED (2026-07-15).** Tranche U's implementation and terminal
-> reconciliation are complete. Exact Keyframes 5.3.4 registry and final deploy
-> coordinates below remain explicit placeholders only until the immutable
-> release/deploy workflow packets return; they must be filled from those packets,
-> never inferred from a local build.
+> **Status: CLOSED (2026-07-15).** Tranche U's implementation, immutable
+> Keyframes 5.3.4 release, exact-master browser run, Cloudflare deployment, and
+> terminal reconciliation are complete. The coordinates below were read from
+> the registry, GitHub, tag object, and deployed pages rather than inferred from
+> a local build.
 
 ## Outcome
 
@@ -111,6 +111,16 @@ Unpublished sibling work is neither copied nor treated as a consumable release:
 - sci-report waits for Atlas's next versioned surface, then consumes it
   atomically with the coherent Glass/Keyframes tuple.
 
+SCI/Atlas subsequently queued the next safe consumer motion: after Glass 6.0.0
+is immutable, Keyframes publishes the smallest compatible successor whose
+optional Glass edge is exactly 6.0.0, proves one physical core from registry
+artifacts, and returns its tag/tarball/integrity/`gitHead` before Atlas 2.0
+consumes the tuple. That successor also rewords the Tailwind-scanned
+`text-[var(...)]` prose literal in `MbabbMenu.vue`; Glass commit `73b852cd` owns
+the actual empty-animate/highlight/class cleanup. This is a named future
+artifact boundary, not an inherited U tripwire or permission to consume an
+active worktree.
+
 These are owner-re-deadlined producer boundaries. V inherits no U backlog,
 tripwire, or silently carried Keyframes row.
 
@@ -137,16 +147,16 @@ The immutable run coordinates are recorded with the release packet below.
 
 | Field | Immutable value |
 |---|---|
-| merged source commit | `<PENDING FINAL MERGE SHA>` |
+| merged source commit | `c80ad0bfafd0691daf0477b74d74333e069846cd` (PR #11) |
 | annotated tag | `v5.3.4` |
-| peeled tag commit | `<PENDING TAG PEEL>` |
+| peeled tag commit | `c80ad0bfafd0691daf0477b74d74333e069846cd` |
 | npm version | `5.3.4` |
-| tarball | `<PENDING REGISTRY TARBALL URL>` |
-| integrity | `<PENDING REGISTRY INTEGRITY>` |
-| shasum | `<PENDING REGISTRY SHASUM>` |
-| `gitHead` | `<PENDING REGISTRY GITHEAD>` |
-| provenance | `<PENDING PROVENANCE ATTESTATION>` |
-| release workflow | `<PENDING WORKFLOW RUN>` |
+| tarball | `https://registry.npmjs.org/@mkbabb/keyframes.js/-/keyframes.js-5.3.4.tgz` |
+| integrity | `sha512-6A6nh59XXfindvKZSmWqzyRuFRx5fkNUPWN2/RgBMbCZL5lALyh2FmXqxjenB1y4oM5NzexmfTFfX01aGdAAiw==` |
+| shasum | `efea64198fd5e6ca0e4a6fcf1a5db32aa2282cb0` |
+| `gitHead` | `c80ad0bfafd0691daf0477b74d74333e069846cd` |
+| provenance | `https://registry.npmjs.org/-/npm/v1/attestations/@mkbabb%2fkeyframes.js@5.3.4` (SLSA provenance v1) |
+| release workflow | GitHub Actions `29439848808`, passed in 2m07s |
 
 The preceding immutable published baseline was Keyframes 5.3.3 at
 `8cca894a79654bb99810c48f58fac91179172bfc`, integrity
@@ -158,14 +168,14 @@ no published version is overwritten.
 
 | Field | Immutable value |
 |---|---|
-| deploy source commit | `<PENDING FINAL MASTER SHA>` |
-| CI run | `<PENDING FINAL CI RUN>` |
-| six-observation roster run / `last-demo-green` | `<PENDING FINAL ROSTER RUN/REF>` |
-| Cloudflare deploy run | `<PENDING FINAL DEPLOY RUN>` |
-| preview URL | `<PENDING FINAL PREVIEW URL>` |
+| deploy source commit | `c80ad0bfafd0691daf0477b74d74333e069846cd` |
+| CI run | PR `29439692903` passed in 1m42s; exact-master manual run `29439848044` passed |
+| six-observation roster run / `last-demo-green` | `29439848044` demo job passed in 5m04s; tag points exactly to `c80ad0bf` |
+| Cloudflare deploy run | `29440232383`, passed in 1m30s |
+| preview URL | `https://f75d5c2b.keyframes-8uq.pages.dev` |
 | custom domain | `https://keyframes.babb.dev` |
-| served entry/hash | `<PENDING FINAL SERVED ASSET>` |
-| HTTP / round-trip witness | `<PENDING FINAL HTTP WITNESS>` |
+| served entry/hash | `assets/index-DOE0TX8_.js` |
+| HTTP / round-trip witness | preview and custom domain both HTTP 200 and serve `assets/index-DOE0TX8_.js`; deployed HTML SHA-256 `b830d452a4b5072f54af74fad4d54445928c76201235f5bc11007cbecd2be7e1` |
 
 The last pre-terminal deployment was master `4989aecf`, CI `29430268431`, deploy
 `29430391928`, preview `https://bea45b1c.keyframes-8uq.pages.dev`, with the custom
@@ -185,5 +195,5 @@ domain returning HTTP 200. Those coordinates are historical evidence, not the
 - [x] Glass, value.js, and sci-report/Atlas handoffs queued at their roots with
       versioned artifact boundaries.
 - [x] No U deferral ledger or tripwire passes to V.
-- [ ] Replace only the explicit 5.3.4 release/deploy placeholders above with the
-      immutable workflow values before the close-record commit.
+- [x] Immutable 5.3.4 release, provenance, exact-master roster, deployment, and
+      round-trip coordinates recorded from their returned packets.

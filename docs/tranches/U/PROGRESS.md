@@ -43,8 +43,30 @@ green master and the ratified corpus merged at `0b423142`.
   cohesive `scripts/build/vite/` plugins. Native light/dark review blessed the
   sequence pair, completing the 14-entry golden matrix. Glass, value.js, and
   sci-report/Atlas received non-interrupting root handoffs and immutable artifact
-  boundaries. Exact final 5.3.4 release/deploy coordinates are reconciled in
-  `FINAL-U.md` after the workflow packet returns.
+  boundaries. Exact final 5.3.4 release/deploy coordinates are reconciled from
+  the returned workflow packet in `FINAL-U.md`.
+
+- **2026-07-15** — **U.Z IMMUTABLE CLOSE PACKET.** PR #11 merged at
+  `c80ad0bf`; its compact check passed in 1m42s. Annotated `v5.3.4` peels to the
+  same commit and release run `29439848808` published the provenance-backed
+  registry artifact (integrity
+  `sha512-6A6nh59XXfindvKZSmWqzyRuFRx5fkNUPWN2/RgBMbCZL5lALyh2FmXqxjenB1y4oM5NzexmfTFfX01aGdAAiw==`).
+  Exact-master run `29439848044` passed the library path and six browser
+  observations, then moved `last-demo-green` to `c80ad0bf`. Deploy run
+  `29440232383` shipped preview `https://f75d5c2b.keyframes-8uq.pages.dev`; both
+  preview and `https://keyframes.babb.dev` return HTTP 200 serving
+  `assets/index-DOE0TX8_.js`. The deployed sequence scene was reviewed in both
+  resting and actuated states; all five staggered targets and the master
+  playhead visibly advanced.
+
+- **2026-07-15** — **POST-GLASS-6 SUCCESSOR QUEUED, NOT CONSUMED.** SCI/Atlas
+  requires a versioned Keyframes successor with optional Glass exactly 6.0.0
+  before Atlas 2.0 consumes the tuple. Keyframes waits for immutable Glass 6,
+  then performs the registry-only one-core consume and returns its artifact
+  coordinates. The same slice rewords Keyframes' Tailwind-scanned
+  `MbabbMenu.vue` prose literal; Glass `73b852cd` independently owns its real
+  class, empty animate.css, and highlight cleanup. No worktree link, workaround,
+  or tripwire was added to U.
 
 - **2026-07-15** — **U.F8/U.Z4 GLASS 5.0 CONSUME + RELEASE + DEPLOY.** Glass-ui
   5.0.0 is published and immutable (`v5.0.0`, integrity
