@@ -1,6 +1,6 @@
 {
     "name": "@mkbabb/keyframes.js",
-    "version": "5.3.0",
+    "version": "5.3.1",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "license": "MIT",
     "keywords": [
@@ -268,7 +268,7 @@
         "@mkbabb/value.js": "^3.1.0"
     },
     "optionalDependencies": {
-        "@mkbabb/glass-ui": "4.2.0"
+        "@mkbabb/glass-ui": "5.0.0"
     },
     "devDependencies": {
         "@iconify-json/radix-icons": "^1.2.6",
