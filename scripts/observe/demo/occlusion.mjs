@@ -22,9 +22,8 @@
  * editing state. The gate runs BOTH `controls: closed` and `controls: open`;
  * the open pass drives each scene into its editing state via
  * `openControlsPanel` (shared driver) before probing. The open pass is gated
- * behind the W0 `KF_CAPTURE_OPEN_PANEL` convention — set `KF_CAPTURE_OPEN_PANEL=1`
- * to run it (CI sets it so inv δ is proven in the state it was authored to
- * protect).
+ * behind `KF_CAPTURE_OPEN_PANEL` — set `KF_CAPTURE_OPEN_PANEL=1` when the
+ * heavier open-state matrix is required.
  *
  * The per-scene SUBJECT MANIFEST + the open-panel driver live in
  * `scripts/lib/demo-driver.mjs`, single-sourced with the π capture harness
@@ -70,7 +69,7 @@ const VIEWPORTS = [
 // The controls axis. The open pass is gated behind KF_CAPTURE_OPEN_PANEL (the
 // W0 convention) — the editing state is where docks genuinely occlude, so inv δ
 // must be proven there, but the drive is heavier (a per-scene store-seed +
-// reload), so it is opt-in locally and CI sets the env.
+// reload), so it is opt-in unless the caller sets the environment flag.
 const RUN_OPEN = !!process.env.KF_CAPTURE_OPEN_PANEL;
 const CONTROL_STATES = RUN_OPEN ? ["closed", "open"] : ["closed"];
 
@@ -200,7 +199,7 @@ async function main() {
     if (!RUN_OPEN) {
         console.log(
             "  ○ controls-open axis skipped — set KF_CAPTURE_OPEN_PANEL=1 to run it" +
-                " (CI sets it; the open state is where docks genuinely occlude).",
+                " (the open state is where docks genuinely occlude).",
         );
     }
 
