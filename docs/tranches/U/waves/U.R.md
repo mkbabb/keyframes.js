@@ -1,6 +1,14 @@
 # U.R — PROMPT-RECAP-U (STANDING)
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: CLOSED (2026-07-15).** `PROMPT-RECAP-U.md` has been reviewed against
+> all nine owner asks, the terminal tree, the blessed visual record, and the named
+> sibling release boundaries.
+>
+> **Terminal amendment (OD-U23).** The recap script was deleted because it could
+> green while rows still carried `PENDING-OWNER`; that is the vacuous-green class
+> this band existed to prevent. The surviving artifact is a direct terminal
+> record, not a standing markdown-policing mechanism. All “gate renewal” and
+> development-only language below is retained solely as historical charter.
 >
 > **Charter sentence (U.md §2).** Persist lane 01's total J..U ask ledger — ~10
 > verbatim re-issues of the same 7-clause mandate — as a MAINTAINED artifact under

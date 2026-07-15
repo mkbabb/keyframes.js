@@ -1,8 +1,15 @@
 # U.F — CONSTELLATION COVENANTS
 
-> **Status: IMPLEMENTATION RECONCILIATION.** F1/F2/F3/F4/F7 are landed on
-> `tranche-u-impl`. F5/F6 remain held until glass-ui 5.0.0 is explicitly
-> release-ready; this file must not be read as authorization to edit that sibling.
+> **Status: CLOSED FOR U (2026-07-15).** Keyframes consumes the immutable exact
+> Glass 5.0.0 artifact and value.js 3.1.0 subpaths coherently. The installed-dist
+> blind spot and local tripwire/capability-registry apparatus are gone.
+>
+> **Terminal amendment.** Active sibling work is intentionally not linked or
+> copied. The owner re-deadlined remaining product asks to Glass 6.0.0, value
+> 4.0→Keyframes 6→Glass 6, and Atlas's next published surface, each requiring an
+> immutable artifact packet. The historical 5.0 hold language below describes the
+> pre-publication phase and is superseded by `KF-TO-GLASSUI-U.md` and
+> `KF-TO-VALUEJS-U.md`.
 >
 > **Charter sentence (U.md §2).** Convert every external dependency edge from a
 > vacuously-green tripwire into a deadlined covenant: transpose the whole HEAVY

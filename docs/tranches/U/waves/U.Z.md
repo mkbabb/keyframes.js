@@ -1,9 +1,16 @@
 # U.Z — THE CLOSE
 
-> **Status: CLOSE RECONCILIATION.** The U.Z drive is authorized on
-> `tranche-u-impl`; publish/deploy/FINAL-U remain gated until the certifying
-> sweep, owner-golden blessing, and glass-ui 5.0.0 release-readiness are all
-> evidenced. This template is not a claim that close has fired.
+> **Status: CLOSED (2026-07-15).** The implementation tree, 14-frame visual
+> authority, terminal anti-apparatus amendment, and named sibling release
+> boundaries are reconciled. `FINAL-U.md` is the close record; its 5.3.4
+> release/deploy fields are filled from the immutable workflow packet rather than
+> inferred.
+>
+> **Terminal amendment (OD-U23).** The close does not resurrect
+> `proof:prompt-recap-u`, a backlog absence gate, `run-all`, or a proof roster.
+> Its executable legs are normal checks/tests/builds, `proof:publish`, the six
+> browser observations, and `proof:owner-golden`. The historical close template
+> below describes the pre-amendment design and must not override this ruling.
 > This is the U.Z close template — the T FINAL.md pattern (`T/FINAL.md`), pre-authored
 > WITH the drive so the close is a RECONCILIATION, not a re-derivation. The terminal
 > actions it gates (the certifying sweep, the OD-U8 version cut, the deploy-of-record

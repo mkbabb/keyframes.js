@@ -1,142 +1,189 @@
-# Tranche U — FINAL-U (close-record draft)
+# Tranche U — FINAL
 
-> **Status: DRAFT — close has not fired.** This record is prepared under U.Z5
-> and is deliberately reconciled to the current implementation tree. Glass-ui
-> 5.0.0 consumption, Keyframes publication, and the Cloudflare deploy are now
-> witnessed; owner-golden blessing and upstream covenant clearance remain open.
+> **Status: CLOSED (2026-07-15).** Tranche U's implementation and terminal
+> reconciliation are complete. Exact Keyframes 5.3.4 registry and final deploy
+> coordinates below remain explicit placeholders only until the immutable
+> release/deploy workflow packets return; they must be filled from those packets,
+> never inferred from a local build.
 
-Cross-links: [U.md](U.md), [PROGRESS.md](PROGRESS.md), [PROMPT-RECAP-U.md](PROMPT-RECAP-U.md),
-[OWNER-DECISIONS.md](OWNER-DECISIONS.md), [waves/U.Z.md](waves/U.Z.md), and
-[KF-TO-VALUEJS-U.md](KF-TO-VALUEJS-U.md), and
-[KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md). The glass-ui edge is now exactly
-5.0.0 under the explicitly authorized consume motion; Keyframes 5.3.3 is the
-published consumer cut, and no glass-ui source was changed by this draft.
+## Outcome
 
-## 1. Mandate and verdict → cure map
+U dissolved the repository's enforcement bureaucracy and completed the product
+work it had obscured. The terminal tree retains two narrowly useful `proof:*`
+commands—one for the consumer package boundary and one for human visual
+authority. Correctness lives in Vitest; live demo truth is six direct browser
+observations. No expected-red class, backlog ledger, recap-policing gate, or
+capability registry survives.
 
-The U mandate was the ratified PASS-5 implementation order: dissolve stale
-apparatus, preserve the LIGHT/HEAVY boundary, transpose the library and demo
-without behavior loss, discharge legacy and suppression ledgers honestly,
-land the design codex, and close with zero silent deferrals.
+The implementation also landed the ratified structural and product wave set:
 
-The implementation tree records the following cures as landed or retired:
+- the demo has canonical component/composable/state/style/utility homes, one
+  component-home grammar, shared SceneFacility/runtime seams, and no on-disk
+  `demo/@` or `components/custom` wrapper;
+- the library has shared transport, owned composite state, unified composition
+  semantics, spring/compile carves, generated preset data, scroll/surface work,
+  and additive package compatibility;
+- the render/apply and scheduling paths were simplified, full Monaco is
+  interaction-loaded, unused workers were removed, and highlight delivery is
+  deferred to actual editor use;
+- sequence `segment:enter`, clock forwarding, unsubscribe, and label-crossing
+  behavior now lives in `test/orchestration/sequence-transport.test.ts` rather
+  than a source-shape proof script;
+- the design codex and scene instrumentation landed, and all 14 light/dark
+  owner-golden entries are blessed, including sequence light/dark.
 
-| Area | Current evidence | State |
-|---|---|---|
-| U.A apparatus | tiered run path, reduced CI, redesigned deploy ancestry, deleted legacy meta-ledgers | landed; close witnesses still required |
-| U.B demo | canonical component/state/style homes, app-shell and transport re-anchors | landed in current tree |
-| U.C library | compositor assay/cure, group WAAPI lowering, preset catalog, surface collapse, scroll drive, value subpath consume edge | landed; additive-surface diff still required |
-| U.D performance | apply seam, WAAPI sync path, delivery deferrals, vector facet; pointer-aware drag fusion remains explicitly routed | landed/routed as recorded in PROGRESS |
-| U.E legacy zero | CLAUDE removal, suppression removal, decision/gate residue deletion, clamp and demo dogfood sweep | landed; final residue witness still required |
-| U.F constellation | value.js 3.1.0 subpath transposition, Glass 5.0.0 consume, and compatibility migration | landed; upstream asks remain covenants |
-| U.G design authority | DESIGN.md codex, component/API grammar, owner-golden 14-cell candidate protocol | owner-golden blessing missing |
-| U.H substrate | library/demo Vitest split, real glass demo pool, test mirror and characterization net | complete |
+## The apparatus dissolution, measured
 
-No claim is made here that an external owner verdict has been supplied. The
-remaining owner-golden sequence frames and the glass-ui release are not inferred
-from local green checks.
+| Measure | Historical / terminal input | Closed tree |
+|---|---:|---:|
+| `proof:*` package keys | 227 at U authoring; 204 at the terminal owner audit | **2** |
+| flat root `scripts/proof-*.mjs` | 193 at the terminal audit | **0** |
+| flat proof files deleted in the terminal cut | — | **182** |
+| package scripts, all kinds | 200+ during the apparatus era | **18** |
+| `scripts/` text lines | 66,706 before the terminal cut | **10,776 across 77 files** |
+| `vite.config.ts` | 747 lines | **392 lines** plus cohesive `scripts/build/vite/` modules |
+| merge/release workflow prose | hand-enumerated proof roster | **102-line CI / 55-line release workflow** |
 
-## 2. OD register final-state reconciliation
+The two retained commands are:
 
-OD-U1 through OD-U22 are recorded in `OWNER-DECISIONS.md`. The implementation
-tree has applied the ratified internal decisions, including OD-U8's required
-additive-surface constraint, OD-U14's compositor assay and cure,
-OD-U15/U16/U17's documentation/granularity/suppression decisions, and OD-U18's
-five-step convergence methodology. OD-U4's release predicate is now witnessed:
-Glass-ui `v5.0.0` is tagged and registry-published, the exact break shape was
-reconciled, and Keyframes consumes the exact 5.0.0 edge. The remaining caps and
-the segmented-tabs workaround stay routed until their respective upstream
-fixes are published.
+1. `proof:publish` — boundary, published surface, dependency currency, consumer
+   bundle, and README/package usability;
+2. `proof:owner-golden` — the 14-frame human visual boundary.
 
-## 3. Covenant residue and named producers
+The six nightly/on-demand observations are smoke, occlusion, usability, subject
+animation, live session, and mobile live session. They run direct script paths
+under `scripts/observe/demo/`; there is no expected-red/backlog classification.
 
-The value.js letter is a consume-edge contract, not an upstream implementation
-claim. The witnessed package is `@mkbabb/value.js@3.1.0`; the keyframes side now
-uses its published subpaths. The following asks remain upstream-owned and are
-not fabricated as shipped: unified `parseTimingFunction`, authored-plain
-unflatten decision, diagnostics producer, layout-unit taxonomy, KF-7
-`CSSPropertyDescriptor` rename, and D-GAP-1/5/6.
+The Vite backend extraction preserved the existing critical/deferred CSS and
+declaration behavior while moving the engine d.ts rollup, deferred lazy CSS,
+critical CSS, asset-extension 404, and chunk analysis into
+`scripts/build/vite/`. This was the KISS-forward backend restructuring that
+proved useful; speculative gate/framework layers were deleted.
 
-The glass-ui covenant is recorded in [KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md).
-The release-held predicate has discharged: `@mkbabb/glass-ui@5.0.0` is the
-published registry latest, its tag/integrity are independently witnessed, and
-Keyframes 5.3.3 consumes the exact edge. The public break shape was handled at
-the consumer seam (Chip, DockControl/DockTrigger, Popover hover union, and the
-retired Aurora velocity method). Remaining BG/BH rows are upstream covenants;
-no workaround is deleted merely because the release exists.
+## Wave reconciliation
 
-The five U.F covenant rows have finite terminal actions, not perpetual tripwires:
+| Band | Terminal disposition |
+|---|---|
+| U.H | **CLOSED FIRST.** Stable-surface characterization, library/demo Vitest projects, real-Glass demo tests, the test mirror, and measurement re-homing preceded product moves. |
+| U.B | **CLOSED.** Canonical demo homes and component/editor/transport/scene/runtime recuts landed. |
+| U.C | **CLOSED.** Transport, compositor, spring, compile, preset, scroll, surface, and sequencing work landed compatibly. |
+| U.D | **CLOSED.** Apply/scheduling and delivery work landed; premise-false subplans were amended by measurement. |
+| U.E | **CLOSED.** CLAUDE/suppression/meta/ledger/orphan/dead-scaffold classes were deleted or honestly kept with measured dispositions. |
+| U.F | **CLOSED FOR U.** Published Glass/value edges are coherent; unshipped sibling work has named release producers and no local tripwire. |
+| U.G | **CLOSED.** Codex, instrumentation, `PANE=LIT`, and the 14-frame blessing are complete. |
+| U.A | **CLOSED LAST BY AMENDMENT.** The residual apparatus was reduced from 204 package proof keys to two. |
+| U.R | **CLOSED AS A RECORD.** The vacuous recap gate was deleted; `PROMPT-RECAP-U.md` directly dispositions all nine owner asks. |
+| U.Z | **CLOSED.** Terminal records, executable checks, visual authority, and sibling boundaries are reconciled here. |
 
-| Producer | Covenant | Deadline / terminal action |
-|---|---|---|
-| value.js `./easing` | `parseTimingFunction` → retire `getTimingFunction` | next tagged value.js U cut; consume and retire, or owner-expire the thin dispatcher |
-| value.js `./units` | authored-plain unflatten → retire `plain-vars.ts` | next tagged cut; consume, or owner-ratify boxing as kf-owned |
-| value.js `./parsing` | diagnostics producer → honest `validate.parseable` | next tagged cut; wire or owner-re-deadline once |
-| value.js `./units` | layout-unit grouping → WAAPI eligibility | next tagged cut; consume derivation or owner-re-deadline once |
-| value.js root/`./parsing` | KF-7 `PropertyDescriptor` rename | next tagged cut; consume collision-free name or owner-re-deadline explicitly |
+## Owner decisions and visual authority
 
-The D-GAP-1/5/6 capability rows and the BG/BH rows are additionally enumerated
-with sibling producers and release-review deadlines in the two linked letters.
+OD-U1..U22 were implemented under the ratified PASS-5 order. OD-U23 is the
+terminal amendment: measurement showed the transitional gate-family plan still
+overfit the apparatus, so the charter changed and the residue was deleted.
 
-## 4. Version record
+`docs/tranches/T/goldens/BLESSED.json` now contains 14 owner-approved entries.
+The terminal sequence additions are:
 
-OD-U8 fixed the additive close line at 5.3.0. That predecessor was published,
-followed by 5.3.1 for the exact Glass edge and the current compatibility patch
-release **5.3.3**. The final published-surface diff against 5.2.0 remains
-additive-only; the registry artifact is
-`https://registry.npmjs.org/@mkbabb/keyframes.js/-/keyframes.js-5.3.3.tgz` with
-integrity
+- light: `4f590c97cc81a327b5534b000e284a3daae039372260cd290d1aac66a0831283`;
+- dark: `e9c3e4143d9ea26591bc0eb2e3f86d963bdbfda1563a02affbaf5e52b9b912f0`.
+
+Both were reviewed in the live built sequence scene for legibility, centering,
+actuation, clipping, and theme coherence, then copied byte-for-byte from the
+candidate set into the golden set.
+
+## Constellation boundary
+
+The consumer boundary is versioned and one-core:
+
+- Keyframes consumes exact `@mkbabb/glass-ui@5.0.0`, immutable at `9a8761f0`,
+  integrity
+  `sha512-6O2AxOi7/UXJ4+vr6uAX55etzTdV2obMbZtX/SXWVYiW5m9VK+X2H5ItKDC/ntMEHoeTFe5nk5xzV0hUs1sItw==`;
+- Keyframes consumes value.js 3.1.0 through its published subpath taxonomy;
+- parse-that has no direct Keyframes package/source edge and remains transitive.
+
+Unpublished sibling work is neither copied nor treated as a consumable release:
+
+- Glass returns a 6.0.0 artifact packet after BG-5/Dock-z and an explicit BG-10
+  disposition;
+- value returns 4.0, after which the coordinated value 4→Keyframes 6→Glass 6
+  rail handles timing, authored values, diagnostics, semantic units, and the
+  descriptor collision;
+- sci-report waits for Atlas's next versioned surface, then consumes it
+  atomically with the coherent Glass/Keyframes tuple.
+
+These are owner-re-deadlined producer boundaries. V inherits no U backlog,
+tripwire, or silently carried Keyframes row.
+
+## Verification record
+
+The close requires the terminal tree to pass the normal product and package
+paths:
+
+- `npm run check`;
+- `npm test -- --run`;
+- `npm run lint`;
+- `npm run gh-pages` and `npm run build:lib`;
+- `npm run proof:publish`;
+- `npm run proof:owner-golden` (14/14);
+- `npm run demo:correctness` (six observations);
+- `npm run release:changelog`;
+- one physical Glass core and clean realpaths;
+- absence of flat proof scripts, tracked CLAUDE files, expected-red/backlog
+  machinery, and retired meta helpers.
+
+The immutable run coordinates are recorded with the release packet below.
+
+## Keyframes 5.3.4 release packet
+
+| Field | Immutable value |
+|---|---|
+| merged source commit | `<PENDING FINAL MERGE SHA>` |
+| annotated tag | `v5.3.4` |
+| peeled tag commit | `<PENDING TAG PEEL>` |
+| npm version | `5.3.4` |
+| tarball | `<PENDING REGISTRY TARBALL URL>` |
+| integrity | `<PENDING REGISTRY INTEGRITY>` |
+| shasum | `<PENDING REGISTRY SHASUM>` |
+| `gitHead` | `<PENDING REGISTRY GITHEAD>` |
+| provenance | `<PENDING PROVENANCE ATTESTATION>` |
+| release workflow | `<PENDING WORKFLOW RUN>` |
+
+The preceding immutable published baseline was Keyframes 5.3.3 at
+`8cca894a79654bb99810c48f58fac91179172bfc`, integrity
 `sha512-bkR2MMzNYEF/mM/nuYzy4JJlQn1tiqIWjHe1Tr11N4073SC7GKhqRzOEzN9exI17ihtpFLLLE+C6MqYA046kaw==`.
+Version 5.3.4 is required because the terminal command/config/source bytes differ;
+no published version is overwritten.
 
-## 5. Deploy-of-record
+## Deploy of record
 
-The deploy target is `keyframes.babb.dev` through the redesigned Cloudflare
-Pages workflow. The hosted 6/6 roster wrote `last-demo-green` at master
-`8cca894a`; deploy run `29429888475` passed ancestry preflight and published
-preview `https://4ce10ba6.keyframes-8uq.pages.dev`. Post-deploy validation
-probed `https://keyframes.babb.dev`, received HTTP 200, and confirmed the built
-entry bundle was served. U.Z4's deploy witness is therefore complete; owner-
-golden and covenant residue still prevent final close.
+| Field | Immutable value |
+|---|---|
+| deploy source commit | `<PENDING FINAL MASTER SHA>` |
+| CI run | `<PENDING FINAL CI RUN>` |
+| six-observation roster run / `last-demo-green` | `<PENDING FINAL ROSTER RUN/REF>` |
+| Cloudflare deploy run | `<PENDING FINAL DEPLOY RUN>` |
+| preview URL | `<PENDING FINAL PREVIEW URL>` |
+| custom domain | `https://keyframes.babb.dev` |
+| served entry/hash | `<PENDING FINAL SERVED ASSET>` |
+| HTTP / round-trip witness | `<PENDING FINAL HTTP WITNESS>` |
 
-## 5a. Current U.Z2 absence witness
+The last pre-terminal deployment was master `4989aecf`, CI `29430268431`, deploy
+`29430391928`, preview `https://bea45b1c.keyframes-8uq.pages.dev`, with the custom
+domain returning HTTP 200. Those coordinates are historical evidence, not the
+5.3.4 deploy packet.
 
-The one-shot terminal scan now passes on the current tree: `gate-bands.mjs`,
-`proof-ci-coverage.mjs`, and `proof-chronic-closure.mjs` are absent; the package
-has no `proof:ci-coverage` script; and no retired ledger/authority names remain
-in active files. The sole remaining `proof-ci-coverage` text is the intentional
-absence assertion in `proof-drag2d-light-certified.mjs`. The CLAUDE removal
-witness is scoped to the tracked/product tree (`git ls-files '*CLAUDE.md'` is
-empty, and active `git grep` is clean); a raw workspace `find` also sees
-ignored `.claude/worktrees/**` orchestration copies, which are not product
-artifacts and are not deleted. This is evidence for U.Z2's apparatus half only;
-it does not discharge the owner-golden or upstream release conditions.
+## Closure checklist
 
-## 6. Close checklist
-
-- [x] PASS-5 implementation order executed on `tranche-u-impl`.
-- [x] Internal library/demo checks and focused proof families independently rerun as recorded in the board.
-- [x] Value.js consume-edge transposition committed; Glass edge consumed exactly
-  at published 5.0.0 with one physical installed core.
-- [x] U.R recap mechanism exists and its current internal clauses pass.
-- [x] U.Z1 local certifying legs: final `npm test`, `proof:publish`, recap, and clean 6/6 roster rerun.
-- [ ] U.Z1 owner-golden blessing: sequence-light and sequence-dark remain pending owner review.
-- [x] U.Z2 terminal apparatus absence scan: deleted ledgers/authority are absent, with the deliberate drag2d absence witness retained.
-- [x] U.F5 latest-dist tripwire re-probe and authorized Glass 5.0.0 consume:
-  exact tag, registry integrity, export break shape, lock resolution, and
-  one-core artifact were independently verified.
-- [ ] U.Z2 zero-open-deferrals/V-inherits-nothing exit: upstream covenants and owner clearance remain unresolved.
-- [x] U.Z3 5.2.0→5.3.0 additive-only diff and the 5.3.3 published successor.
-- [x] U.Z4 deploy-of-record and live-hash verification.
-- [x] Glass-ui 5.0.0 upstream tag and registry publication, followed by the
-  explicitly authorized consume motion.
-- [ ] Board state, memory, and task records reconciled only after the preceding rows are evidenced.
-
-## 7. V inheritance falsifier
-
-V inherits nothing only if: no born-RED exit-0 apparatus exists; every U.F
-covenant is absorbed or has a named producer and dated owner re-deadline;
-`proof:prompt-recap-u` has no `PENDING-OWNER` row; and every OD-U15–U18 ruling
-is landed or explicitly tokened. Any missing owner-golden blessing, unpublished
-glass-ui covenant, silent external row, or reintroduced exit-0 mask falsifies
-that statement. Until those checks are green, this document remains a draft and
-U.Z remains open.
+- [x] Ratified PASS-5 implementation order executed.
+- [x] Product structure and direct defect work landed.
+- [x] 204 terminal proof commands collapsed to two useful boundaries.
+- [x] 182 flat proof files and the meta/backlog/expected-red machinery deleted.
+- [x] Behavior folded into Vitest and six direct browser observations.
+- [x] Vite backend extracted into cohesive modules.
+- [x] Sequence light/dark reviewed and 14-frame authority blessed.
+- [x] All nine owner asks terminally dispositioned without a recap meta gate.
+- [x] Glass, value.js, and sci-report/Atlas handoffs queued at their roots with
+      versioned artifact boundaries.
+- [x] No U deferral ledger or tripwire passes to V.
+- [ ] Replace only the explicit 5.3.4 release/deploy placeholders above with the
+      immutable workflow values before the close-record commit.

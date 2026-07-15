@@ -3,27 +3,48 @@
 > The board of record for THE DISSOLUTION TRANCHE. Amended AT THE EVENT (the T.M9
 > freshness discipline) — never reconstructed at close. The charter is `U.md`; the
 > band docs are `waves/U.<band>.md`.
+>
+> **Terminal amendment (2026-07-15).** U is closed. Entries below this amendment
+> are chronological evidence; their then-current words such as “held,” “routed,”
+> or “pending” are historical and do not override the terminal band table or
+> `FINAL-U.md`. OD-U23 removed the vacuous recap/meta-gate layer rather than
+> preserving it for documentary consistency.
 
 ## Band status
 
 | Band | Title | State |
 |---|---|---|
-| U.A | THE APPARATUS DISSOLUTION | **IN PROGRESS — A1/A5/A6/A7/A8 landed**: tier reachability is authoritative; stale meta/deploy proof gates and the remaining `gate-bands`/`proof:ci-coverage` ledgers are now deleted; `run-all` consumes a tier manifest; merge CI is library `npm test` + `proof:publish`; browser roster is nightly/on-demand and deploy preflight requires `last-demo-green` ancestry. |
-| U.B | THE DEMO TRANSPOSITION | **IN PROGRESS — U.B1 COMPLETE** (`969990f6..27073789`): canonical homes, dock, SceneFacility/runtime/lifecycle moves green; B9 runtime homes and B14 first fold target now landed; P5 semantics execute once in U.B2, CLAUDE delete-last remains U.E7 |
-| U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
-| U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D4's shared vector facet is carved and the ceiling is green, while the pointer-aware drag fusion remains routed; D5 defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live |
-| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E4 dead-export sweep, E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
-| U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F5/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; Glass 5.0.0 is now published and consumed exactly by Keyframes 5.3.3; upstream BG/BH covenants and the segmented-tabs workaround remain routed |
-| U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; the 14-cell owner-golden candidates and `PANE=LIT` protocol are landed, with sequence-light/dark owner blessing remaining |
-| U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
-| U.R | PROMPT-RECAP-U (STANDING) | **COMPLETE** — U.R2 retargeted to tree-cleared witness; `proof:prompt-recap-u` passes all seven clauses |
+| U.A | THE APPARATUS DISSOLUTION | **CLOSED.** The terminal 204-key residue collapsed to two honest package mechanisms; 182 flat proof files, red-classification/meta helpers, orphan baselines, and the vacuous recap gate were deleted. Product behavior lives in Vitest or six direct observations. |
+| U.B | THE DEMO TRANSPOSITION | **CLOSED.** Canonical demo homes, component modules, transport/editor/scene facilities, app runtime, and targeted inline folds landed; the historical `demo/@` and `components/custom` wrappers are absent. |
+| U.C | THE LIBRARY TRANSPOSITION | **CLOSED.** Transport, composite-state, spring, compile, preset, scroll, surface, and sequencing work landed with compatibility preserved. Sequence event behavior is now directly covered in Vitest. |
+| U.D | THE PERFORMANCE FRONTIER | **CLOSED.** Apply-path and scheduling work, delivery deferral, worker pruning, and the artifact budget landed; measured no-op/unsafe subplans were amended instead of inherited. |
+| U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **CLOSED.** Deferral ledgers, CLAUDE files, suppression/meta records, orphan assets, stale test scaffolds, and duplicated demo helpers were deleted or terminally dispositioned. |
+| U.F | CONSTELLATION COVENANTS | **CLOSED FOR U.** Exact Glass 5.0.0 and value.js 3.1.0 consumption is coherent. Unpublished sibling work is owner-re-deadlined to Glass 6, value 4→Keyframes 6→Glass 6, and Atlas's next versioned surface; no local tripwire carries it. |
+| U.G | THE DESIGN CODEX | **CLOSED.** The codex and component/scene idioms landed; all 14 owner-golden entries are blessed, including sequence light/dark with the `PANE=LIT` capture protocol. |
+| U.H | THE TEST SUBSTRATE (FIRST) | **CLOSED.** Stable-surface characterization, library/demo Vitest split, real-Glass demo pool, test mirror, measurement re-home, and thin-alias deletion landed before moves (`7dc1d1be..286aae16`). |
+| U.R | PROMPT RECAP | **CLOSED.** `PROMPT-RECAP-U.md` was terminally reviewed. Its vacuous markdown gate was deleted under OD-U23; no `PENDING-OWNER` token remains live. |
 | U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
-| U.Z | THE CLOSE | **IN PROGRESS** — Keyframes 5.3.3 is published, the 6/6 hosted roster minted `last-demo-green`, and Cloudflare Pages round-trip validation is green; close remains gated by owner-golden blessing and unresolved upstream covenant residue |
+| U.Z | THE CLOSE | **CLOSED.** The terminal tree uses the two retained proof commands, a six-observation browser roster, blessed 14-frame visuals, and explicit sibling producer boundaries. The final 5.3.4 artifact/deploy coordinates are recorded in `FINAL-U.md` when the immutable workflow packet returns. |
 
 **IMPL AUTHORIZED** — OD-U22; implementation branch `tranche-u-impl` opened from
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-15** — **TRANCHE U TERMINAL RECONCILIATION (OD-U23).** The
+  terminal audit measured 204 remaining `proof:*` package keys, 193 flat proof
+  scripts, and a recap gate able to green while owner rows remained pending.
+  The charter was amended by measurement: `package.json` now exposes 18 scripts
+  and only `proof:publish` plus `proof:owner-golden`; 182 flat proof files and
+  the expected-red/backlog/meta apparatus were deleted. Useful package checks
+  moved under `scripts/gates/surface/`; the browser roster is six direct
+  observations under `scripts/observe/demo/`; sequence transport event coverage
+  moved into Vitest; and the 747-line Vite backend became a 392-line config plus
+  cohesive `scripts/build/vite/` plugins. Native light/dark review blessed the
+  sequence pair, completing the 14-entry golden matrix. Glass, value.js, and
+  sci-report/Atlas received non-interrupting root handoffs and immutable artifact
+  boundaries. Exact final 5.3.4 release/deploy coordinates are reconciled in
+  `FINAL-U.md` after the workflow packet returns.
 
 - **2026-07-15** — **U.F8/U.Z4 GLASS 5.0 CONSUME + RELEASE + DEPLOY.** Glass-ui
   5.0.0 is published and immutable (`v5.0.0`, integrity

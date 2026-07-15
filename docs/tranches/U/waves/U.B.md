@@ -1,10 +1,15 @@
 # Tranche U — Band U.B — THE DEMO TRANSPOSITION
 
-> **Status: IN PROGRESS (2026-07-12).** U.B1's canonical-home keystone is
-> complete through the home, dock, and singleton/runtime moves
-> (`969990f6..27073789`). The measured-refutation law folded the frozen Step ④
-> transport semantics into U.B2's terminal recut and retained Step ⑤ as U.E7's
-> redistribute/readers/delete-last work order, avoiding two transient moves.
+> **Status: CLOSED (2026-07-15).** The canonical-home keystone and the terminal
+> component/editor/transport/scene recuts landed. `demo/@`,
+> `components/custom`, `components.json`, and the app/dock component home are
+> absent; shared facilities occupy their lowest honest consumer homes.
+>
+> **Terminal amendment.** The per-wave gate re-arm language below is historical.
+> OD-U23 deleted the residual source-shape apparatus instead of retaining gates
+> merely to certify the moved tree. Product behavior is held by Vitest and the six
+> direct browser observations; component-level Glass residue is owner-re-deadlined
+> to the Glass 6 artifact, not carried as a local U/V gate.
 >
 > **Charter sentence (U.md §2, the U.B row — RE-CUT per OD-U2, 2026-07-10).**
 > Keystone-first move: the component CORE redesigned to the glass-ui post-BH idiom

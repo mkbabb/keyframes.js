@@ -1,8 +1,15 @@
 # U.E — NO-DEFERRAL DISCHARGE + LEGACY ZERO
 
-> **Status: IMPLEMENTATION RECONCILIATION.** The tranche drive is authorized on
-> `tranche-u-impl`; E7/E8/E9 and E10 D2–D7 are landed. D1 remains owner-ridden,
-> while D8/D9 and the external covenants remain explicitly dispositioned below.
+> **Status: CLOSED (2026-07-15).** All internal ledger/meta/legacy rows are
+> terminal: tracked CLAUDE and suppression files, the flat proof population,
+> expected-red/backlog machinery, capability registries, orphan baselines, stale
+> scaffolds, and duplicated demo helpers were removed or re-homed.
+>
+> **Terminal amendment.** D8/D9 remain measured, documented non-duplications;
+> they are not deferrals. External rows are owner-re-deadlined to named versioned
+> producer artifacts in U.F rather than retained as Keyframes tripwires. The
+> historical terminal-adjudication tables below record how the old ledgers were
+> dissolved; they are not live registries.
 >
 > **Charter sentence (U.md §2).** Terminally adjudicate every machine ledger row —
 > the 8 `T_BORNRED_BACKLOG` rows (each cured in-U or converted to a DEADLINED external

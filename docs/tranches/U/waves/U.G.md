@@ -1,9 +1,15 @@
 # U.G — THE DESIGN CODEX
 
-> **Status: IMPLEMENTATION RECONCILIATION.** G1/G2/G3/G5 are landed on
-> `tranche-u-impl`. G4 remains externally owner-gated: the committed 12-cell
-> set is intentionally not promoted to the required 12→14 blessed sequence
-> frames and idle-state pin without the owner's blessing.
+> **Status: CLOSED (2026-07-15).** G1/G2/G3/G5 landed and G4 is now
+> owner-approved. `BLESSED.json` carries 14 entries; sequence light/dark were
+> reviewed in the live built scene and their golden images match the recorded
+> SHA-256 values.
+>
+> **Terminal amendment.** The 12-cell/pending language below is historical. The
+> terminal sequence hashes are light `4f590c97…` and dark `e9c3e414…`; the
+> `PANE=LIT` capture state is part of the authority. `proof:owner-golden` remains
+> because it protects a human visual boundary, not because a gate roster demands
+> it.
 > **DESIGN LANE** — authored under the frontend-design skill per the edict's
 > orchestration spec (charter §5: "Fable: … ALL design (with frontend-design)").
 >

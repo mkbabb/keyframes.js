@@ -1,103 +1,59 @@
-# KF → glass-ui — Tranche U consolidated BG/BH handoff
+# KF → glass-ui — Tranche U terminal handoff
 
-> **Status: CONSUME RECONCILED / UPSTREAM COVENANTS OPEN.** This is one
-> coordination letter for the active glass-ui BG/BH work. Glass-ui 5.0.0 is
-> tagged and registry-published; Keyframes consumed it at 5.3.3 after
-> reconciling the published break shape. Handoff target: the active sibling repository root
-> `/Users/mkbabb/Programming/glass-ui`, branch `tranche/BI`; place the inbound
-> copy in its coordination inbox, `docs/tranches/BI/coordination/`, for the
-> BG/BH owner to reconcile.
+**Status:** OWNER-RE-DEADLINED TO GLASS 6.0.0
+**Queued:** 2026-07-15 to the active Glass BI/P root
+**Consumer now:** `@mkbabb/glass-ui@5.0.0`
 
-## 0. Witnessed consume state
+This is a release-boundary handoff, not permission to edit or link the active
+Glass worktree. Keyframes 5.3.x remains on the immutable 5.0.0 artifact until
+Glass publishes the next coherent major.
 
-The current keyframes declaration is derived directly from `package.json`:
+## Witnessed 5.0.0 state
 
-```text
-@mkbabb/glass-ui: 5.0.0
-```
-
-The explicitly authorized consume motion resolves the installed
-`@mkbabb/glass-ui@5.0.0`. Glass evidence is independently witnessed: tag
-`9a8761f0`, registry tarball
-`https://registry.npmjs.org/@mkbabb/glass-ui/-/glass-ui-5.0.0.tgz`, and integrity
+Glass 5.0.0 is immutable at tag/git head `9a8761f0`, tarball
+`https://registry.npmjs.org/@mkbabb/glass-ui/-/glass-ui-5.0.0.tgz`, integrity
 `sha512-6O2AxOi7/UXJ4+vr6uAX55etzTdV2obMbZtX/SXWVYiW5m9VK+X2H5ItKDC/ntMEHoeTFe5nk5xzV0hUs1sItw==`.
-The Keyframes consumer is published as 5.3.3 with the exact 5.0.0 optional edge.
-The 5.0 export break shape was handled in the demo at the named component seams;
-remaining BG/BH rows are still upstream covenants and are not silently marked
-shipped.
+Keyframes consumes that exact optional edge with one physical Glass core.
 
-## 1. Consolidated ask roster
+Three original asks already ship in 5.0.0:
 
-The following asks consolidate the former BG and BH letters and the current U
-gap census. BG/BH may absorb, decline, or re-deadline each row, but no row may
-silently disappear.
+- GU-1: resting dock chrome is crisp.
+- GU-2: dock morph endpoints are measured and bounded.
+- BG-7: `createSpecularWriter` is root-exported with declarations.
 
-| ID | Requested glass-ui posture | Keyframes acceptance / retirement |
-|---|---|---|
-| **GU-1** | Gate dock reveal blur on `[data-morphing]`; resting collapsed and expanded docks are crisp. | `proof:dock-rest-crisp`; no kf band-aid exists to retire. |
-| **GU-2** | Measure laid-out dock geometry (or defer one frame) so expand/collapse has no max-content jump-cut. | `proof:dock-morph-continuity`; no kf band-aid. |
-| **GU-3** | Dock dismiss-pointerdown honors `keepOpen()` while its own popover is open. | `dockDismissHold` cap; then remove ChromeDock re-expand watch and popup mutex. |
-| **GU-4** | Preserve the active dock layer through collapse crossfade so the originating play press is not stranded. | `dockStrandKeepalive` cap + live-session proof; then retire `usePlayActuation` workaround. |
-| **BG-1** | SegmentedTabs pill omits `aria-orientation` when its role is `group`. | `ariaGuard` cap + mounted DOM proof; prerequisite for retiring local pill suppression. |
-| **BG-3** | Decouple SegmentedTabs material from ARIA role; support pill appearance with `role=tablist` and roving tabindex. | A11y proof; then remove KfPillTabs and its composable. |
-| **BG-4** | DockDropdownTrigger opens on pointerdown, or exposes an equivalent trigger-action prop, matching DockSelectTrigger. | `dockDropdownPointerdown` cap + popover/toggle proofs; remove pointerdown click synthesis. |
-| **BG-5** | Provide a static/frozen backdrop mode (`blur-source="static"` or equivalent) so dock/pane blur does not re-rasterize an animating stage. | `proof:blur-not-resampled`; no false green from installed 4.2.0. |
-| **BG-6** | Parameterize display-rung weight through `--font-display-weight`. | Font proof; remove the kf-side utility override when consumed. |
-| **BG-7** | Publish the coalesced specular writer for ordinary-DOM use, or explicitly decline and document the boundary. | Public-export evidence or an owner disposition; no hand-copy is permitted. |
-| **BG-8** | Extend EasingPicker's named catalogue beyond cubic-bezier/steps, or explicitly keep bounce kf-owned. | Reconciled consume note; no silent assumption of coverage. |
-| **BG-9** | Add an EasingPicker documentation example driven by an external progress ref. | Documentation evidence; non-blocking but named. |
-| **BG-10** | Add an optional live-preview slot to `ToggleChip variant="cell"`, or explicitly decline. | Additive API evidence or owner disposition. |
-| **BG-11** | Add a detented Drawer bottom-reserve token (e.g. `--drawer-inset-block-end`) and max-detent cap so the sheet cannot cover the bottom menubar. | `drawerDetentInset` cap; then remove the bespoke sheet host/gesture stack. |
-| **BG-12** | Make ToggleGroup safe for horizontally scrolling strips (safe-start/explicit strip posture). | Consumption note; retire the owned max-content wrapper when absorbed. |
-| **Dock-z** | Preserve dock-layer z-order/inversion through morph and rest states; no active layer may fall beneath the stage or become visually/interaction-inert. | Re-probe dock z-order and actuation on the published dist; record shipped/declined. |
+## Active Glass 6 disposition
 
-GU-4 is the canonical name for the former BG-2/Q-GU-Q2 click-integrity row.
-Do not create a duplicate cap or letter row.
+Read-only audit of Glass `tranche/BI` at `afe62240` found:
 
-## 2. Release-held protocol
+| State | Rows |
+|---|---|
+| Committed after 5.0.0 | GU-3; BG-1, BG-3, BG-4, BG-6, BG-8, BG-9 at `535be914`; GU-4, BG-11, BG-12 at `afe62240` |
+| Active implementation | BG-5 static/frozen backdrop; Dock-z live-behind propagation and layer order |
+| Requires explicit disposition | BG-10, because `ToggleChip` was removed in 5.0.0; supersede/decline it or reformulate against `Chip` |
 
-Before keyframes consumes any BG/BH result, the sibling handoff must provide:
+These commits are not a consumable artifact. Post-5.0 work also removes the
+published root `Section` surface, so the safe boundary is Glass 6.0.0, not an
+assumed patch.
 
-1. a tagged `v5.0.0` release on the active glass-ui line;
-2. a successful registry publication, with `npm view
-   @mkbabb/glass-ui@5.0.0 version` returning `5.0.0`;
-3. the exact export-map and break-shape note (including any `./api` removal,
-   per-component subpath moves, and `goo-blob` → `blob` rename). The current
-   pre-release inbox report also calls out `--ring` → `--focus-ring-color` and
-   motion booleans → `motion: "full" | "reduced" | "off"`; these are provisional
-   migration leads only and must be reconciled against the tagged package before
-   keyframes consumes them;
-4. a built-dist probe report for every row above, including explicit negative
-   dispositions; and
-5. owner disposition for each absorb-or-expire row.
+## Required return packet
 
-Only after those facts are present may keyframes derive a deliberate pin/lockfile
-motion, re-run the caps against the fetched 5.0.0 dist, remove a named
-workaround, or update this letter from DRAFT to reconciled.
+At the next safe release point, the Glass root returns:
 
-## 3. Absorb-or-expire deadlines
+1. annotated `v6.0.0` tag and peeled commit descending from `afe62240` plus
+   the final BG-5/Dock-z commit;
+2. npm version, tarball, integrity, shasum, `gitHead`, and provenance;
+3. final export map and declarations;
+4. browser evidence for static backdrop and dock layering/actuation; and
+5. an explicit BG-10 shipped/superseded/declined disposition.
 
-Each row has one terminal path at the next tagged glass-ui U/BG/BH release review:
+Only that immutable packet authorizes a future Keyframes major to update its
+exact Glass edge and reassess the local tablist, dock actuation, popup mutex,
+dropdown synthesis, and Drawer detent code. U carries no standing tripwire or
+capability registry for those sites.
 
-| Covenant | Producer | Deadline / terminal action |
-|---|---|---|
-| GU-1/GU-2/Dock-z | glass-ui dock/morph owners | At the first tagged 5.0.0 review: ship and keyframes re-probes, or owner-decline with a dated re-deadline and retain the born-red consumer posture. |
-| GU-3/GU-4/BG-1/BG-4/BG-11 | glass-ui interaction/accessibility/drawer owners | At the same tagged review: publish the cap-visible cure, or explicitly decline/re-deadline; no kf workaround may be deleted on prose alone. |
-| BG-5 | glass-ui backdrop/compositor owner | At the 5.0.0 review: publish a measurable static-backdrop posture or record a dated owner disposition with the performance evidence. |
-| BG-3/BG-6/BG-7/BG-8/BG-9/BG-10/BG-12 | respective component/docs owners | At the sibling release review: mark shipped, declined, or re-deadlined with a named producer. |
+## U close disposition
 
-An absent tag or absent registry package is not a decline and does not discharge
-the covenant; it keeps the consume edge release-held.
-
-## 4. Handoff and current posture
-
-This letter is handed to `/Users/mkbabb/Programming/glass-ui`, branch
-`tranche/BI`, coordination inbox `docs/tranches/BI/coordination/`. The active
-sibling may fold it into its BG/BH register and return a tagged release note.
-Keyframes will independently verify the tag, registry package, export map,
-installed tarball, and built-dist probes before any consume commit.
-
-The consume edge is now exact `5.0.0` and the U letter is reconciled for that
-release event. The letter is not a close claim: owner-golden sequence blessing,
-the segmented-tabs workaround retirement, and the remaining BG/BH dispositions
-still belong to their named owners.
+The owner re-deadlined every unshipped row above to the named Glass 6.0.0
+producer and release boundary. That satisfies U.Z2's no-silent-deferral rule:
+the work is neither claimed as shipped nor inherited by another Keyframes U
+row. A later Keyframes major consumes only a versioned artifact.
