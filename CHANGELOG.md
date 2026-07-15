@@ -3,6 +3,13 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 5.3.5
+
+### Patch Changes
+
+- **Glass UI 6 compatibility.** The optional `@mkbabb/glass-ui` edge now resolves exactly to 6.0.0. The Keyframes library surface is unchanged.
+- **Tailwind demo scan.** Reworded an inline-style comment so Tailwind does not mistake its prose for an arbitrary-value utility.
+
 ## 5.2.0
 
 ### Minor Changes (additive)

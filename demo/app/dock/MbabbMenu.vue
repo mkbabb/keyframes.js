@@ -56,8 +56,8 @@
                 <div class="ppmycota-logo-sm w-7 h-7 shrink-0 scale-on-hover"></div>
                 <div class="flex-1 min-w-0">
                     <!-- Brand colour consumes the --ppmycota-primary token
-                         directly (inline, not a text-[var(...)] arbitrary
-                         utility): the dropdown content is portalled, so an
+                         directly through an inline style, not an arbitrary-value
+                         utility: the dropdown content is portalled, so an
                          inline style is the portal-safe home for the token
                          ref while it co-locates with the brand mark (S2). -->
                     <span class="text-small" :style="{ color: 'var(--ppmycota-primary)' }">ppmycota</span>
