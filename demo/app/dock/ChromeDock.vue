@@ -5,8 +5,8 @@ import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, 
 import { useMediaQuery } from "@vueuse/core";
 import {
     GlassDock,
-    DockIconButton,
-    DockSelectTrigger,
+    DockControl,
+    DockTrigger,
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
@@ -242,11 +242,11 @@ watch(isAnyOpen, (open) => {
                             @update:open="sceneSelectOpen = $event"
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
-                            <DockSelectTrigger aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
+                            <DockTrigger for="select" aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
                                 <component v-if="currentIcon" :is="currentIcon" class="icon-sm shrink-0 text-muted-foreground" />
                                 <Home v-else class="icon-sm text-muted-foreground" />
                                 <SelectValue />
-                            </DockSelectTrigger>
+                            </DockTrigger>
                             <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                 <SelectGroup class="dock-label">
                                     <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
@@ -292,10 +292,10 @@ watch(isAnyOpen, (open) => {
                                 @update:open="controlsSelectOpen = $event"
                                 @update:model-value="(v) => emit('updateSelectedControl', String(v))"
                             >
-                                <DockSelectTrigger aria-label="Controls tab" class="dock-label [&>span]:line-clamp-none">
+                                <DockTrigger for="select" aria-label="Controls tab" class="dock-label [&>span]:line-clamp-none">
                                     <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
                                     <SelectValue />
-                                </DockSelectTrigger>
+                                </DockTrigger>
                                 <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                     <SelectGroup class="dock-label">
                                         <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
@@ -328,7 +328,8 @@ watch(isAnyOpen, (open) => {
                              panel edge (co-decided with T.B4's naked-rail recut); it
                              rides nav here, never the lead. -->
                         <DockSeparator />
-                        <DockIconButton
+                        <DockControl
+                            shape="icon"
                             v-if="hasControlPanel"
                             :aria-label="isControlsPanelOpen ? 'Close controls' : 'Open controls'"
                             @click="emit('toggleControlsPanel')"
@@ -341,7 +342,7 @@ watch(isAnyOpen, (open) => {
                                 <PanelLeftClose v-if="isControlsPanelOpen" class="icon-lg" />
                                 <PanelLeftOpen v-else class="icon-lg" />
                             </template>
-                        </DockIconButton>
+                        </DockControl>
 
                         <!-- Header items slot (@mbabb chip) -->
                         <slot name="items" />

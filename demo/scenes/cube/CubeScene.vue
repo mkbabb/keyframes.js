@@ -31,9 +31,9 @@ const props = defineProps<{
 }>();
 
 import {
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
     Button,
 } from "@mkbabb/glass-ui";
 // glass-ui 4.0.0 (K.W1′ BA.W-TABS) — the control tab STRIP migrated from the
@@ -116,15 +116,15 @@ watch(ppmycotaOpen, (open) => {
 // --- Slot sub-components exposed via defineExpose ---
 
 const headerLeft = () =>
-    h(HoverCard, { openDelay: 200, closeDelay: 150, open: ppmycotaOpen.value, "onUpdate:open": (v: boolean) => { ppmycotaOpen.value = v; } }, {
+    h(Popover, { trigger: "hover", openDelay: 200, closeDelay: 150, open: ppmycotaOpen.value, "onUpdate:open": (v: boolean) => { ppmycotaOpen.value = v; } }, {
         default: () => [
-            h(HoverCardTrigger, null, {
+            h(PopoverTrigger, null, {
                 default: () => h("div", {
                     onClick: setPPMode,
                     class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold scale-on-hover",
                 }),
             }),
-            h(HoverCardContent, { class: "z-hovercard p-4 min-w-[var(--dock-panel-width)] text-small" }, {
+            h(PopoverContent, { class: "z-hovercard p-4 min-w-[var(--dock-panel-width)] text-small", role: "card" }, {
                 default: () => [
                     h("div", { class: "flex items-center gap-3" }, [
                         // z-20: LOCAL stacking — lifts the logo glyph above its
