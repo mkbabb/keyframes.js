@@ -1,6 +1,6 @@
 {
     "name": "@mkbabb/keyframes.js",
-    "version": "5.3.2",
+    "version": "5.3.3",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "license": "MIT",
     "keywords": [

@@ -80,11 +80,9 @@ const config = {
 // normalized cursor is clientX/innerWidth (viewport metrics — no style/layout
 // flush). setCursor only stashes uniforms; Aurora's frame loop uploads once
 // per rAF, so a 120-1000 Hz pointer collapses to one write per frame.
-// injectCursorVelocity (the flick swirl-burst) early-outs under PRM inside the
-// runtime — no demo-side PRM branch needed. Mouse-only: on touch, pointermove
+// Cursor velocity bursts are no longer a public Aurora 5.x surface; the
+// continuous setCursor path remains the published interaction contract. Mouse-only: on touch, pointermove
 // fires only mid-drag and would fight the scene gestures.
-let last: { x: number; y: number } | null = null;
-
 const onPointerMove = (e: PointerEvent) => {
     if (e.pointerType !== "mouse") return;
     const aurora = auroraRef.value;
@@ -94,15 +92,10 @@ const onPointerMove = (e: PointerEvent) => {
     const x = e.clientX / w;
     const y = e.clientY / h;
     aurora.setCursor(x, y, 1);
-    if (last) {
-        aurora.injectCursorVelocity(x - last.x, y - last.y);
-    }
-    last = { x, y };
 };
 
 const onPointerLeave = () => {
     auroraRef.value?.clearCursor();
-    last = null;
 };
 
 // The listener surface rides @vueuse/core (the E.W2 §S1–S3 brittleness
