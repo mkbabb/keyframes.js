@@ -3,22 +3,24 @@
  *
  * HEAVY (value.js-bearing). FORWARD (this directory's root): `parse-flatten.ts`
  * (CSS leaves → ValueUnits) → `frame-compiler.ts` (build frames + the numeric SoA
- * plan) + `easing-registry.ts` (the synchronous `getTimingFunction` resolver) +
- * `easing-option.ts` (the heavy-surface easing-input resolver) + `selector.ts`
- * (the keyframe-selector grammar). BACKWARD (the `backward/` sub-zone, S.B3 C-2):
+ * plan) + the `easing/` sub-zone (`getTimingFunction` synchronous resolver +
+ * `resolveEasingOption` heavy-surface input resolver, U.C8) + `selector.ts`
+ * (the keyframe-selector grammar). BACKWARD/emit (the `emit/` sub-zone, S.B3 C-2;
+ * U.C8 renamed `backward/` → `emit/` and moved the two sibling emitters in):
  * `compileToCSS` + the oklab densify + the `@keyframes` serializer — re-exported
- * here from `./backward`. `adapter.ts` (`resolveKeyframes`) is the ingest→template
+ * here from `./emit`; the two declared-endpoint emitters `compileToViewTransition`
+ * / `compileToEntry` re-exported from their files (`./emit/view-transition`,
+ * `./emit/entry`). `adapter.ts` (`resolveKeyframes`) is the ingest→template
  * feeder for `FrameCompiler.parse` (C-9). This barrel is the zone's single surface
  * (consumers reach it through `loadAnimationEngine`).
  *
  * S.B3 C-2 — the FORWARD re-export CEREMONY through `frame-compiler` is DEAD:
- * `resolveEasingOption` comes from `./easing-option` and `namedSelectorToFraction`
- * / `NAMED_SELECTOR_SUPERTYPE` from `./selector` DIRECTLY (their real modules),
- * not bridged through `frame-compiler`.
+ * `resolveEasingOption` comes from `./easing/easing-option` and
+ * `namedSelectorToFraction` / `NAMED_SELECTOR_SUPERTYPE` from `./selector`
+ * DIRECTLY (their real modules), not bridged through `frame-compiler`.
  */
 // Forward pipeline
 export { FrameCompiler } from "./frame-compiler";
-export { resolveEasingOption } from "./easing-option";
 export { namedSelectorToFraction, NAMED_SELECTOR_SUPERTYPE } from "./selector";
 export {
     parseAndFlattenObject,
@@ -26,43 +28,47 @@ export {
     transformTargetsStyle,
 } from "./parse-flatten";
 export type { ParsedVarMap } from "./parse-flatten";
-export { getTimingFunction } from "./easing-registry";
-// Backward pipeline (the compile/backward/ sub-zone barrel)
+// The easing sub-zone (U.C8 — the owner's named example carve): the synchronous
+// `getTimingFunction` resolver + the heavy-surface `resolveEasingOption` input
+// resolver, re-exported here from the `compile/easing/` sub-barrel.
+export { getTimingFunction, resolveEasingOption } from "./easing";
+// Backward/emit pipeline (the compile/emit/ sub-zone barrel)
 export {
     compileToCSS,
     DEFAULT_DELTA_E_EPSILON,
     DEFAULT_DENSIFY_STOPS,
-} from "./backward";
+} from "./emit";
 export type {
     CompileOptions,
     CompiledCSS,
     CompileRefusal,
     CompileRefusalReason,
     CompileInput,
-} from "./backward";
+} from "./emit";
 export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
     serializeEasing,
-} from "./backward";
+} from "./emit";
 // S.F1 VT-c — the View-Transitions emitter (compileToCSS's sibling; a
-// name-keyed role spec → zero-runtime `::view-transition-*` CSS).
-export { compileToViewTransition } from "./view-transition";
+// name-keyed role spec → zero-runtime `::view-transition-*` CSS). Colocated in
+// emit/; reached at its file directly (never the emit/ barrel — self-cycle idiom).
+export { compileToViewTransition } from "./emit/view-transition";
 export type {
     VTRoleSpec,
     ViewTransitionCompileOptions,
     VTCompileRefusalReason,
     VTCompileRefusal,
     CompiledViewTransitionCSS,
-} from "./view-transition";
+} from "./emit/view-transition";
 // S.F3 EN-c — the entry/exit emitter (compileToCSS's DECLARED-ENDPOINT sibling; a
 // selector-keyed spec → zero-runtime `@starting-style` + `allow-discrete` CSS).
-export { compileToEntry } from "./entry";
+export { compileToEntry } from "./emit/entry";
 export type {
     EntryRoleSpec,
     EntryCompileOptions,
     EntryRefusalReason,
     EntryRefusal,
     CompiledEntryCSS,
-} from "./entry";
+} from "./emit/entry";

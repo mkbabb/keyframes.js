@@ -53,7 +53,13 @@ import {
 } from "./lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DIST = path.join(REPO, "dist/gh-pages");
+// The roster driver supplies a wipe-immune snapshot and its already-running
+// static server.  Honor that seam here as well as in withPage: this gate uses
+// withBrowser directly because it needs a fresh page per matrix cell.  When
+// run standalone, retain the canonical deploy artefact and local server.
+const SHARED_DIST_DIR = process.env.KF_SHARED_DIST_DIR;
+const SHARED_DIST_URL = process.env.KF_SHARED_DIST_URL;
+const DIST = SHARED_DIST_DIR ?? path.join(REPO, "dist/gh-pages");
 
 const VIEWPORTS = [
     { name: "mobile", width: 375, height: 667 },
@@ -206,7 +212,7 @@ function dockOverlapsContentRect(subjectRect, docks, inject = null) {
 }
 
 async function main() {
-    if (!fs.existsSync(path.join(DIST, "index.html"))) {
+    if (!SHARED_DIST_URL && !fs.existsSync(path.join(DIST, "index.html"))) {
         console.error("occlusion-gate — FAIL: dist/gh-pages not built (run `npm run gh-pages`).");
         process.exit(2);
     }
@@ -231,7 +237,8 @@ async function main() {
 
     const result = await withBrowser(
         async (browser) => {
-            const { url, close } = await serveDist(DIST);
+            const server = SHARED_DIST_URL ? null : await serveDist(DIST);
+            const url = SHARED_DIST_URL ?? server.url;
             try {
     for (const scene of SCENES) {
         for (const vp of VIEWPORTS) {
@@ -336,7 +343,7 @@ async function main() {
     }
 
             } finally {
-                await close();
+                await server?.close();
             }
         },
         { label: "the occlusion matrix (inv δ)" },

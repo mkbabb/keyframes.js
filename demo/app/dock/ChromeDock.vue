@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch, useTemplateRef, type Component } from "vue";
-import { CONTROLS_PANE_HOVER_KEY } from "@components/custom/instrument/transport/injectionKeys";
+import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
 import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 import {
@@ -14,9 +14,11 @@ import {
 // ONE source of the count arithmetic, per lane 18's dual-formula rule).
 import {
     BUILT_IN_SURFACES,
+} from "@state/controlSurfaces";
+import {
     SURFACE_META,
     dockCardinality,
-} from "@state/controlSurfaceDFA";
+} from "@components/instrument/surfaceTabs";
 import {
     Select,
     SelectContent,

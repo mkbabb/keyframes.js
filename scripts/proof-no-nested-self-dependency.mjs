@@ -16,7 +16,7 @@
  * `node_modules/@mkbabb/value.js/node_modules/@mkbabb/value.js` (+ a nested
  * parse-that). This census REDs on ANY @mkbabb package nested under another
  * @mkbabb package's node_modules (a self/duplicate install). Registered in
- * scripts/gate-bands.mjs T_BORNRED_BACKLOG
+ * the external-hold tier manifest
  * (dischargedBy: value.js 3.0.0 drops the self-dep + kf re-points). Exits 1 on
  * any residual nested @mkbabb install.
  */
@@ -62,7 +62,7 @@ if (offenders.length > 0) {
             `    package.json (3.0.0 already does); kf re-points to that version so npm dedupes to ONE ` +
             `copy. See docs/tranches/T/KF-TO-VALUEJS-T.md.`,
     );
-    console.error("\nproof:no-nested-self-dependency — FAIL (born-RED tripwire; T_BORNRED_BACKLOG).");
+    console.error("\nproof:no-nested-self-dependency — FAIL (external-hold tripwire).");
     process.exit(1);
 }
 

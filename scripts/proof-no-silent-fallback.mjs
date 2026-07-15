@@ -276,7 +276,7 @@ function runDepcruise() {
     try {
         const out = execFileSync(
             "npx",
-            ["depcruise", "src", "--ignore-known"],
+            ["depcruise", "src"],
             { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
         );
         return { code: 0, out };
@@ -289,17 +289,17 @@ function runDepcruise() {
 }
 
 function runClause2() {
-    console.log("\n── Clause 2: lint GREEN (depcruise src --ignore-known) ──");
+    console.log("\n── Clause 2: lint GREEN (depcruise src) ──");
     const lintResult = runDepcruise();
     if (lintResult.code === 0) {
         ok(
-            "Clause 2: `depcruise src --ignore-known` exits 0 — lint GREEN " +
+            "Clause 2: `depcruise src` exits 0 — lint GREEN " +
                 "(the leaves.ts → @mkbabb/value.js/math edge is correctly excluded " +
                 "via pathNot:VALUEJS_MATH_SUBPATH; no boundary violation present)",
         );
     } else {
         fail(
-            "Clause 2: `depcruise src --ignore-known` exits non-zero — lint RED. " +
+            "Clause 2: `depcruise src` exits non-zero — lint RED. " +
                 "A live (non-baselined) source-graph violation is present:\n" +
                 lintResult.out
                     .split("\n")
@@ -468,7 +468,7 @@ if (failures.length > 0) {
 console.log(
     "proof:no-silent-fallback — PASS: all four clauses GREEN.\n" +
         "  Clause 1: zero unlabelled silent-fallback patterns, src-wide + demo-wide.\n" +
-        "  Clause 2: depcruise src --ignore-known exits 0.\n" +
+        "  Clause 2: depcruise src exits 0.\n" +
         "  Clause 3: ../engine plant on leaves.ts reds leaf-no-engine-no-valuejs " +
         "(rule narrowed, not disabled).\n" +
         "  Clause 4: zero unlabelled `as any` in demo composables.",

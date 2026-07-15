@@ -19,7 +19,7 @@
  *   1. demo/scenes/cube/matrix-editor/useTransformState.ts (~:205)
  *        a one-shot post-paint scheduler (write-coalescing debounce) — the
  *        engine has no "run once next frame" surface and shouldn't grow one.
- *   2. demo/@/components/custom/CopyButton.vue — see the inline note below.
+ *   2. demo/components/CopyButton.vue — see the inline note below.
  *
  * (Two earlier sites were pruned as stale when their exceptions died:
  * timeline/composables/useTimeline.ts held a one-shot await-one-paint that
@@ -77,7 +77,7 @@ const ALLOWLIST = new Set([
     // clear `liveStatus` then set it on the next paint frame so a repeat copy
     // re-announces the unchanged text to screen readers. Not an animation a
     // light engine ships; the engine's feedback flash IS the dogfooded part.
-    "demo/@/components/custom/CopyButton.vue",
+    "demo/components/CopyButton.vue",
 ]);
 
 // Source extensions the demo's rAF could live in. (CSS/HTML cannot host a rAF.)

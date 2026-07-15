@@ -2,10 +2,10 @@
 
 > Scope: the easing scene only — `demo/app/scenes/EasingScene.vue`,
 > `demo/easing/EasingSidebar.vue`, `demo/easing/EasingTarget.vue`,
-> `demo/easing/EasingHeroStage.vue`, `demo/@/components/custom/EasingCurveCanvas.vue`,
-> `demo/@/components/custom/EasingEditor.vue`, `demo/@/components/custom/EasingSelect.vue`,
+> `demo/easing/EasingHeroStage.vue`, `demo/components/EasingCurveCanvas.vue`,
+> `demo/components/EasingEditor.vue`, `demo/components/EasingSelect.vue`,
 > the `useEasingDemo` / `useEasingGallery` composables, and the design tokens in
-> `demo/@/styles/{style.css,design-idioms.css}`.
+> `demo/styles/{style.css,design-idioms.css}`.
 > A design PROPOSAL. No source is written outside this doc.
 
 ---

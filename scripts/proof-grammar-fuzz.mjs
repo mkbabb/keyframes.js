@@ -278,7 +278,7 @@ requireAll("harness-exists", TEST, [
         const importsEngine = /from "(?:\.\.\/)+src\/animation\/engine"/.test(src);
         // R.W1 moved the serializer `format.ts` → `compile/format.ts`; the fuzz
         // round-trip still rides the real `CSSKeyframesToString` at its new path.
-        const importsFormat = /from "(?:\.\.\/)+src\/animation\/compile\/backward\/format"/.test(
+        const importsFormat = /from "(?:\.\.\/)+src\/animation\/compile\/(?:emit\/)?format"/.test(
             src,
         );
         if (importsEngine && importsFormat) {

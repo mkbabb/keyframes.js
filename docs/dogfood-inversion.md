@@ -18,7 +18,7 @@ compile helpers) is reached ONLY through the barrel's `loadAnimationEngine()`
 dynamic accessor — `proof:boundary` stays GREEN (value.js never lands on the
 LIGHT static barrel; the built demo keeps `engine-*`/`value-*` as separate lazy
 chunks). The multi-scene app + playground WARM the engine once before mount
-(`demo/@/utils/kfEngine.ts`), so the scene-machine's synchronous heavy
+(`demo/kf-engine.ts`), so the scene-machine's synchronous heavy
 construction reads the resolved surface without threading async through the
 non-null control-suite prop contracts.
 

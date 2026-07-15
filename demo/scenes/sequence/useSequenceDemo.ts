@@ -1,15 +1,15 @@
 import { computed, markRaw, onScopeDispose, ref } from "vue";
 
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import type { CSSKeyframesAnimation as CSSKeyframesAnimationT } from "@mkbabb/keyframes.js";
 import { Sequence } from "@mkbabb/keyframes.js";
 import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
-import { RAFPlayback } from "@mkbabb/keyframes.js";
+import { clamp } from "@mkbabb/value.js/math";
 
-import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
-import { useSceneTransport } from "@app/runtime/useSceneTransport";
-import type { SceneFacility } from "@app/scene/sceneFacility";
+import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
+import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
+import type { SceneFacility } from "@composables/scene-facility";
 import { useSequenceInstrument } from "./useSequenceInstrument";
 import {
     useSceneMachine,
@@ -177,7 +177,7 @@ export function useSequenceDemo() {
 
     /** Read the live Sequence playhead into the reactive progress mirror. */
     const syncFromSequence = () => {
-        progress.value = Math.max(0, Math.min(1, sequence.progress));
+        progress.value = clamp(sequence.progress, 0, 1);
     };
 
     // The reactivity mirror — the master progress read-out — rides the engine's
@@ -185,15 +185,23 @@ export function useSequenceDemo() {
     // machine (the single authority): when the machine leaves `playing` the loop
     // self-terminates. The Sequence's own play loop drives the actual ball motion
     // in parallel; this loop only mirrors the playhead into the reactive readout.
-    const mirror = markRaw(new RAFPlayback());
-    const startMirror = () => {
-        if (mirror.running) return;
-        mirror.loop(() => {
+    const {
+        playback: mirror,
+        startLoop: startMirror,
+        stopLoop: stopMirror,
+    } = useManagedLoop({
+        frame: () => {
             syncFromSequence();
             return machine.status.value === "playing";
-        });
-    };
-    const stopMirror = () => mirror.stop();
+        },
+        onArm: () => syncFromSequence(),
+        getProgress: () => progress.value,
+        setProgress: (t) => {
+            sequence.progress = clamp(t, 0, 1);
+            syncFromSequence();
+        },
+        getPlaying: () => machine.status.value === "playing",
+    });
 
     // ── The engine-loop drivers (driven by the adapter / the machine) ─────────
     // The adapter's resume/suspend route the engine loop through ONE seam
@@ -270,7 +278,7 @@ export function useSequenceDemo() {
 
     const scrub = (p: number) => {
         if (isPlaying.value) pause();
-        sequence.progress = Math.max(0, Math.min(1, p));
+        sequence.progress = clamp(p, 0, 1);
         syncFromSequence();
         // Record the scrubbed playhead onto the machine snapshot so it survives a
         // scene switch (the raw-rAF round-trip).
@@ -317,7 +325,7 @@ export function useSequenceDemo() {
     const reseatRow = (index: number, at: number) => {
         if (index < 0 || index >= ROW_COUNT) return;
         if (isPlaying.value) pause();
-        const clamped = Math.max(0, Math.min(STAGGER_MAX, Math.round(at)));
+        const clamped = clamp(Math.round(at), 0, STAGGER_MAX);
         const next = [...delays.value];
         next[index] = clamped;
         delays.value = next;
@@ -392,7 +400,7 @@ export function useSequenceDemo() {
     const scenePlayback: ScenePlayback = createRafAdapter({
         getProgress: () => progress.value,
         setProgress: (t) => {
-            sequence.progress = Math.max(0, Math.min(1, t));
+            sequence.progress = clamp(t, 0, 1);
             syncFromSequence();
         },
         getPlaying: () => machine.status.value === "playing",
@@ -412,34 +420,26 @@ export function useSequenceDemo() {
     // there is no `group` (progress-scalar scene). `facets` is empty — the DFA row
     // is [] so no panel renders.
     const facility: SceneFacility = {
+        identity: scenePlayback,
         channels: [
             {
                 name: "Sequence",
                 progress: () => progress.value,
                 setProgress: (t: number) => {
-                    sequence.progress = Math.max(0, Math.min(1, t));
+                    sequence.progress = clamp(t, 0, 1);
                     syncFromSequence();
                 },
             },
         ],
         facets: [],
         playback: scenePlayback,
+        isPlaying: () => scenePlayback.isPlaying(),
     };
 
     // Paint the initial (t=0) frame so the balls rest at their rail origin and
     // the readout shows 0 before the first restore (the SequenceTarget seeks 0 on
     // mount too — this is the composable-side belt-and-braces).
     syncFromSequence();
-
-    // Pause the engine loop while the tab is backgrounded (CWV / battery),
-    // without disturbing the machine's play/pause intent (PRESERVED autoPaused
-    // contract — "only resume what IT paused"). `startLoop` resumes from the
-    // retained playhead with no jump.
-    useSceneVisibilityPause(
-        () => mirror.running,
-        stopLoop,
-        startLoop,
-    );
 
     // Stop the mirror + sequence on scope dispose (the genuine unmount seam) —
     // the host has NO <KeepAlive>, so onDeactivated never fires; this gives the

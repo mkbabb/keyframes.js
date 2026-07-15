@@ -11,7 +11,7 @@
 import { markRaw, watch, type ComputedRef, type Ref, type ShallowRef } from "vue";
 import { useDocumentVisibility } from "@vueuse/core";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import {
     getStoredAnimationGroupControlOptions,
     surfacesFor,
@@ -64,7 +64,7 @@ export function useSceneMachineShellBinding(opts: {
         // scenePlayback or wrap the group" fallback — the dual-family branch is
         // gone (proof:one-adapter).
         const facility = sceneRef.value?.facility;
-        const group = facility?.group ?? sceneRef.value?.animationGroup;
+        const group = facility?.group;
         // HOME registers NO adapter and rides an EMPTY placeholder group — the
         // childless-backdrop invariant the rainbow-play navigate-intercept keys on
         // (App.onPlayStateChange: an empty home group ⇒ the CTA navigates to cube
@@ -160,9 +160,7 @@ export function useSceneMachineShellBinding(opts: {
         // (sequence) exposes a stable `scenePlayback` adapter instead — either is
         // a stable per-entry identity for the once-per-(entry × target) guard.
         // `null` for home (no target) and transiently mid-remount.
-        const liveGroup = (sceneRef.value?.animationGroup ??
-            sceneRef.value?.scenePlayback ??
-            null) as object | null;
+        const liveGroup = sceneRef.value?.facility?.identity ?? null;
 
         // Already driven THIS entry against THIS exact group? No-op. A fresh
         // group object for the same scene-id (a remount across the superKey-keyed
@@ -217,7 +215,7 @@ export function useSceneMachineShellBinding(opts: {
     // facility-only scene (sequence) has no `animationGroup`, so watch its stable
     // `scenePlayback` too or its readiness would never re-drive.
     watch(
-        () => sceneRef.value?.animationGroup ?? sceneRef.value?.scenePlayback,
+        () => sceneRef.value?.facility?.identity,
         markSceneReady,
     );
 
@@ -258,15 +256,6 @@ export function useSceneMachineShellBinding(opts: {
         }
         machine.dispatch({ type: playing ? "PLAY" : "PAUSE" });
 
-        // Push the play state onto scenes that hold a WRITABLE `isPlaying` ref
-        // (cube/amiga — CubeTarget reads it as a prop). A scene that exposes its
-        // own `scenePlayback` adapter (easing) owns playback via the machine; its
-        // `isPlaying` is a READONLY machine-derived computed, so the App must NOT
-        // write it (that throws "computed value is readonly").
-        const ownsPlayback = !!sceneRef.value?.scenePlayback;
-        if (!ownsPlayback && sceneRef.value && "isPlaying" in sceneRef.value) {
-            sceneRef.value.isPlaying = playing;
-        }
     }
 
     function onStartStateChange(started: boolean) {

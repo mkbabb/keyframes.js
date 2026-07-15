@@ -27,16 +27,25 @@ import { springPlay, springStartLoop, springStop } from "./managed-play";
 import {
     durationToSpringOptions,
     type SpringDurationOptions,
-} from "./duration";
+} from "./solver/duration";
 // The SoA multi-channel lane subsystem (L.W7 §S2 vector sugar) lives in the
 // colocated `./vector` module (R.W2b carve); `SpringProgress` holds at most one
 // `SpringVectorLanes` (lazily armed on the first `setTargets`) and delegates its
 // `setTargets`/`tickVector`/`values`/`velocities` surface to it — the scalar hot
 // path never touches a lane buffer.
-import { SpringVectorLanes, EMPTY_LANES } from "./vector";
+import type { SpringVectorLanes } from "./solver/vector";
+import {
+    armVectorLanes,
+    tickVectorLanes,
+    vectorValues,
+    vectorVelocities,
+} from "./vector-surface";
 // The shared closed-form analytic kernel (R.W2c §spring `solver.ts`, the dep-free
 // leaf) — the scalar `evaluateAt` consumes it; the vector lanes inline it hoisted.
-import { solveDampedHarmonic } from "./solver";
+// Read the closed-form kernel directly. Importing the solver barrel here would
+// route back through `sample.ts`/`reseat.ts`, both of which construct a
+// SpringProgress, recreating a runtime cycle in the spring family.
+import { solveDampedHarmonic } from "./solver/solver";
 
 /**
  * Live-target spring tracker. Sibling of `SmoothProgress` for animations
@@ -123,6 +132,11 @@ export class SpringProgress implements SpringPlayback {
     readonly _playback = new RAFPlayback();
     /** @internal (S.B5) — the bound per-frame callback (`play` sets, `stop` clears). */
     _onFrame: SpringFrameCallback | undefined = undefined;
+
+    /** @internal — ManagedStepper callback projection. */
+    _emitManagedFrame(): void {
+        this._onFrame?.(this.value, this.velocity);
+    }
 
     constructor(options?: Partial<SpringProgressOptions>) {
         this.options = { ...defaultSpringOptions, ...options };
@@ -377,36 +391,9 @@ export class SpringProgress implements SpringPlayback {
         this._playback.stop();
     }
 
-    // ── Vector mode (L.W7 §S2, W122 — the ADOPTed multi-channel overload) ────
-
-    /**
-     * Re-seat a MULTI-CHANNEL spring vector onto `targets` (one lane per
-     * element), under this spring's `(response, dampingFraction)`. The lanes
-     * ring identically to a scalar `SpringProgress` of the same config — the
-     * solver is the SAME closed form (`evaluateAt`) shared across channels — but
-     * step in ONE `tickVector(dt)` call into one `Float64Array` per tick, the
-     * dispatch/alloc amortization the W122 probe measured at 2.97–3.78× over K
-     * independent scalar instances (ADOPT @ K=8, `proof:spring-vector`).
-     *
-     * First call ARMS the lanes (lazily — a scalar-only spring never allocates
-     * the vector buffers, so the scalar hot path is unchanged). Subsequent calls
-     * re-seat each lane's origin from the lane's CURRENT `(x, v)`, so a mid-flight
-     * target change is continuous per channel — the vector analogue of the scalar
-     * `set target` re-seat. The lane count is fixed by the FIRST `setTargets`
-     * length; a later call with a different length throws (the buffers are
-     * stable references the consumer reads via {@link values}).
-     *
-     * `initialVelocity` (the scalar seed) does NOT carry into the lanes — a fresh
-     * vector starts each lane at rest unless re-seated from prior motion. The
-     * scalar `currentValue` / `target` are untouched; the two modes are
-     * independent surfaces on one solver.
-     */
+    // ── Vector facet (implementation lives in ./vector-surface) ─────────────
     setTargets(targets: Float64Array): void {
-        // Lazily arm the SoA lane subsystem on the first call (a scalar-only
-        // spring never allocates the lane buffers, so the scalar hot path stays
-        // byte-unchanged). Re-seat each lane's origin from its current (x, v) —
-        // continuous per channel (the vector analogue of the scalar re-seat).
-        (this.vectorLanes ??= new SpringVectorLanes()).setTargets(targets);
+        this.vectorLanes = armVectorLanes(this.vectorLanes, targets);
     }
 
     /**
@@ -416,7 +403,7 @@ export class SpringProgress implements SpringPlayback {
      * empty `Float64Array` before the first `setTargets` arms the lanes.
      */
     get values(): Float64Array {
-        return this.vectorLanes?.values ?? EMPTY_LANES;
+        return vectorValues(this.vectorLanes);
     }
 
     /**
@@ -425,7 +412,7 @@ export class SpringProgress implements SpringPlayback {
      * empty before the first {@link setTargets}.
      */
     get velocities(): Float64Array {
-        return this.vectorLanes?.velocities ?? EMPTY_LANES;
+        return vectorVelocities(this.vectorLanes);
     }
 
     /**
@@ -441,7 +428,13 @@ export class SpringProgress implements SpringPlayback {
         if (this.disposed || this.vectorLanes === null || dt <= 0) {
             return this.values;
         }
-        return this.vectorLanes.tick(dt, this.omega, this.zeta, this.omegaD);
+        return tickVectorLanes(
+            this.vectorLanes,
+            dt,
+            this.omega,
+            this.zeta,
+            this.omegaD,
+        );
     }
 
     // ── Subscribe / dispose ──────────────────────────────────────────

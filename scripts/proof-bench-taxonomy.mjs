@@ -168,9 +168,9 @@ if (!existsSync(dispatchPath)) {
 }
 
 // ── Clause: bench source paths resolve (T-PERF-A / T.G8 static anchor) ────────
-// bench/playwright.bench.ts reads `demo/app/runtime/loaf-observer.ts` off the
+// bench/playwright.bench.ts reads `demo/app/lifecycle/loaf-observer.ts` off the
 // tree at run time (transpiled on the fly). That path moved once already
-// (demo/app/loaf-observer.ts → demo/app/runtime/loaf-observer.ts at the S.D1
+// (demo/app/loaf-observer.ts → demo/app/lifecycle/loaf-observer.ts at the S.D1
 // partition, commit 440e5c3) WITHOUT the bench following it, ENOENT-ing the
 // whole LoAF gate SILENTLY for 116 commits — invisible at every tier (lane 32
 // §2.7). This is the guard the wave names: statically extract every
@@ -234,7 +234,24 @@ const outFile = join(tmp, "bench.json");
 try {
     const run = spawnSync(
         "npx",
-        ["vitest", "bench", "--run", ...SUITES, `--outputJson=${outFile}`],
+        [
+            "vitest",
+            "bench",
+            "--run",
+            "--dir",
+            join(root, "bench"),
+            "--exclude",
+            "**/.claude/**",
+            "--exclude",
+            "**/node_modules/**",
+            "--exclude",
+            "**/dist/**",
+            "--no-file-parallelism",
+            "--maxWorkers",
+            "1",
+            ...SUITES,
+            `--outputJson=${outFile}`,
+        ],
         { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
     );
 

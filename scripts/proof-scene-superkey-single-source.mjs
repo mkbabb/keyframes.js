@@ -124,11 +124,11 @@ console.log(
 {
     const stores = [
         {
-            rel: "@/state/controlOptionsStore.ts",
+            rel: "state/controlOptionsStore.ts",
             getter: "getStoredAnimationGroupControlOptions",
         },
         {
-            rel: "@/state/animationOptionsStore.ts",
+            rel: "state/animationOptionsStore.ts",
             getter: "getStoredAnimationOptions",
         },
     ];
@@ -155,7 +155,7 @@ console.log(
 
 // ── (4) the three-table gc/migrate sweep exists + is called at boot ───────────
 {
-    const barrel = path.join(DEMO, "@/state/index.ts");
+    const barrel = path.join(DEMO, "state/index.ts");
     const routerBind = path.join(DEMO, "app/scene/useSceneMachineRouterBinding.ts");
     const barrelSrc = fs.existsSync(barrel) ? stripComments(read(barrel)) : "";
     const routerSrc = fs.existsSync(routerBind)

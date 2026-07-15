@@ -10,12 +10,16 @@ existence proxies).
 
 ## The matrix
 
-6 owner-cited scenes × 2 themes = **12 goldens**, captured under the PRM-frozen
+7 owner-cited scenes × 2 themes = **14 goldens**, captured under the PRM-frozen
 protocol visual-lock uses (`prefers-reduced-motion: reduce` + `colorScheme`, 1440×900):
 
 ```
-home · cube · amiga · square · easing · spring   ×   light · dark
+home · cube · amiga · square · easing · spring · sequence   ×   light · dark
 ```
+
+Every capture pins the controls pane to the canonical **PANE=LIT** state: the
+capture harness emits a fresh pointer move immediately before each screenshot,
+so the 10-second idle fade cannot contaminate the owner reference.
 
 The subjects of verdict items #1/#4/#9/#21 (the CSS-3D cube, the amiga sphere, the
 engine balls, the typing dots) stay **IN** the comparison — the mask visual-lock
@@ -43,7 +47,7 @@ It reds today by design: `BLESSED.json` is absent. The flow:
    KF_PLAYWRIGHT_DIR=/Users/mkbabb/Programming/glass-ui \
      node scripts/proof-owner-golden.mjs --capture-candidates
    ```
-   → writes 12 frames to `candidates/` as **PENDING-OWNER**.
+   → writes 14 frames to `candidates/` as **PENDING-OWNER**.
 
 2. **The owner reviews** the candidate frames at the mid-drive/close review (served
    via the landed tree — see `docs/tranches/T/REVIEW-PACKET.md`).
@@ -76,7 +80,9 @@ It reds today by design: `BLESSED.json` is absent. The flow:
     "easing-light":{ "verdict": "OWNER-APPROVED", "candidate": "<sha256>" },
     "easing-dark": { "verdict": "OWNER-APPROVED", "candidate": "<sha256>" },
     "spring-light":{ "verdict": "OWNER-APPROVED", "candidate": "<sha256>" },
-    "spring-dark": { "verdict": "OWNER-APPROVED", "candidate": "<sha256>" }
+    "spring-dark": { "verdict": "OWNER-APPROVED", "candidate": "<sha256>" },
+    "sequence-light": { "verdict": "OWNER-APPROVED", "candidate": "<sha256>" },
+    "sequence-dark": { "verdict": "OWNER-APPROVED", "candidate": "<sha256>" }
   }
 }
 ```

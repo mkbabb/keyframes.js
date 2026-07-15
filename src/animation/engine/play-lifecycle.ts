@@ -40,9 +40,11 @@
  * alloc / proof:engine / proof:event-ordering). value.js is reached ONLY for
  * `sleep` (the first-tick delay-await).
  */
-import { sleep, type ValueUnit } from "@mkbabb/value.js";
+import { type ValueUnit } from "@mkbabb/value.js/units";
+import { sleep } from "@mkbabb/value.js";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
+import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport/core";
 import { withReducedMotion } from "../internal/reduced-motion";
 import { isWAAPIEligible, playWAAPI } from "../waapi";
 
@@ -370,9 +372,7 @@ export async function play<V extends Vars>(
     // frames. Fired ONLY here (play-without-timeline), NEVER at parse/ingest.
     anim.assertNoUnresolvedNamedSelector();
 
-    if (anim._playback._playingPromise) return anim._playback._playingPromise;
-
-    const result = withReducedMotion(
+    return beginPlay(anim._playback, () => withReducedMotion(
         anim.options.respectReducedMotion,
         // Reduced-motion wins over WAAPI/rAF — snap to the final frame.
         () => {
@@ -392,13 +392,7 @@ export async function play<V extends Vars>(
             anim.waapiIneligibleReason = undefined;
             return playRAF(anim);
         },
-    );
-
-    anim._playback._playingPromise = result;
-    result.finally(() => {
-        anim._playback._playingPromise = null;
-    });
-    return result;
+    ));
 }
 
 /**
@@ -431,8 +425,7 @@ export function resume<V extends Vars>(anim: KeyframesAnimation<V>): void {
 
 /** The explicit flip: pauses if playing, resumes if paused. */
 export function toggle<V extends Vars>(anim: KeyframesAnimation<V>): void {
-    if (anim._playback.paused) resume(anim);
-    else pause(anim);
+    transportToggle(anim._playback, () => pause(anim), () => resume(anim));
 }
 
 /**
@@ -448,7 +441,7 @@ export function stop<V extends Vars>(anim: KeyframesAnimation<V>): void {
 }
 
 export function playing<V extends Vars>(anim: KeyframesAnimation<V>): boolean {
-    return !(!anim._playback.started || anim._playback.paused);
+    return transportPlaying(anim._playback);
 }
 
 /** Returns the effective time accounting for direction reversal. */

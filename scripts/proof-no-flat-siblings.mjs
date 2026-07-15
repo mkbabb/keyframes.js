@@ -10,7 +10,7 @@
  * baseline). R.W1 promotes every family cluster into the zone directory
  * partition (11 zones as of S.A5 — `waapi.ts` was itself promoted to a
  * `waapi/` directory post-R.W1; fold row 41 caught its ZONE_DIRS omission,
- * the exact same "invisible zone" defect class as root CLAUDE.md's).
+ * the exact same "invisible zone" defect class as the former root inventory).
  * This gate locks the partition so a future tranche cannot re-spawn a
  * flat hyphenated sibling under the old shape.
  *
@@ -163,9 +163,17 @@ let known = [];
 try {
     known = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
 } catch (e) {
-    failures.push(
-        `[known-violations] could not read ${path.basename(baselinePath)}: ${e.message}`,
-    );
+    if (e.code === "ENOENT") {
+        // E8 dissolved the suppression ledger after fixing the cycle class. An
+        // absent file is the strongest possible zero-entry witness; do not
+        // resurrect a deleted suppression artifact merely to satisfy this
+        // historical count clause.
+        known = [];
+    } else {
+        failures.push(
+            `[known-violations] could not read ${path.basename(baselinePath)}: ${e.message}`,
+        );
+    }
 }
 const count = Array.isArray(known) ? known.length : Number.NaN;
 if (!(count < PRE_RW1_KNOWN_VIOLATIONS)) {

@@ -129,8 +129,9 @@ import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { RefreshCw } from "@lucide/vue";
+import { clamp } from "@mkbabb/value.js/math";
 
-import KeyframesEditor from "@components/custom/instrument/keyframes/KeyframesEditor.vue";
+import KeyframesEditor from "@components/instrument/keyframes/KeyframesEditor.vue";
 import SpringHeatmap from "./SpringHeatmap.vue";
 
 import type { SpringDemoContext } from "./springKeys";
@@ -138,8 +139,6 @@ import type { SpringPreset, SpringTrack } from "./useSpringDemo";
 
 const props = defineProps<{ demo: SpringDemoContext }>();
 const demo = props.demo;
-
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 // ── J.W2 S5 (DS-3) — the preset-cell ball painter (the 60 Hz hot path) ─────────
 const trackBallEls: (HTMLElement | null)[] = [];
@@ -156,7 +155,7 @@ onMounted(() => {
             // T.G4 — position by `transform: translateX(<cqw>)`, never `left` (the
             // compositor-only value axis; `cqw` = 1% of the `.preset-track`
             // inline-size container). No per-frame layout, no width read.
-            if (el) el.style.transform = `translateX(${clamp01(values[i] ?? 0) * 100}cqw)`;
+            if (el) el.style.transform = `translateX(${clamp(values[i] ?? 0, 0, 1) * 100}cqw)`;
         }
     });
 });

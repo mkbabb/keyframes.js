@@ -18,7 +18,7 @@ import { computed, h, provide, ref } from "vue";
 import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
-import PlaybackRibbon from "@components/custom/instrument/transport/controls/PlaybackRibbon.vue";
+import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
 import SpringTarget from "./SpringTarget.vue";
 import StartingStyleTarget from "./StartingStyleTarget.vue";
@@ -181,9 +181,8 @@ defineExpose({
     // T.B1-β/T.B7 — the SceneFacility descriptor (Sweep + Entry channels, the
     // `spring` facet, the raw-rAF playback). The decoy `animationGroup` expose
     // is DELETED with the contract-group decoy; the shell binds the facility.
-    facility: computed(() => demo.facility),
+    facility: demo.facility,
     superKey: SCENE_ID,
-    isPlaying,
     isStarted,
     // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: the spring
     // sampler swept forever at idle, burning ~33% of a core (90 layouts/s) with
@@ -196,7 +195,6 @@ defineExpose({
     // The raw-rAF ScenePlayback adapter — the App registers it with the machine
     // on SCENE_READY so the spring's sweep phase/isPlaying round-trip through the
     // CONTRACT (the spring↔cube cross-pair the group gate misses).
-    scenePlayback: demo.scenePlayback,
     tabsContent,
     ribbonContent,
 });

@@ -4,8 +4,10 @@
  * flagship perf: the `add`/`weighted` blend arms — a boxed per-element AoS loop
  * (`for..in` + `Array.isArray` + per-element `isNumericUnit` dispatch) — are
  * transposed onto a contiguous {@link Float64Array} fold over a PRECOMPUTED
- * numeric-slot layout (the validated 3.7×, bit-identical `maxErr=0`,
- * `scripts/soa-composite-decision.json`).
+ * numeric-slot layout (the validated ADOPT: bit-identical `maxErr=0` +
+ * >=1.2× at K=8). The bit-identity + fold-taken oracles live in
+ * `test/group/soa-composite-identity.test.ts`; the same-report ADOPT floor in
+ * `bench/taxonomy.json`'s budgeted `add/weighted SoA · K=8` rows.
  *
  * Cohesion (the decomposition seam, F.W2/Q.WF2): the SoA machinery is a
  * self-contained planning+folding unit that rides the group's
@@ -19,8 +21,8 @@
  *     instance state).
  *   - {@link groupSoABlendLayer} — the per-frame fold for ONE layer (takes the
  *     buffer + plan as arguments; the `AnimationGroup.soaBlendLayer` instance
- *     method stays a thin delegating wrapper, so `proof:soa-composite`'s
- *     `soa-path-taken` monkey-patch on the instance still bites).
+ *     method stays a thin delegating wrapper; the fold-taken identity test
+ *     exercises the same instance seam directly).
  *
  * The gate-anchored composite STATEMENTS the `weighted` leaf + spring seam need
  * (the `?? layer.weight` read INSIDE the boxed arm, `layer.weightSpring =
@@ -41,11 +43,14 @@
  * widest layer's numeric width exceeds the current capacity); `groupSoABlendLayer`
  * allocates NOTHING per frame. The constant-shape draw path reuses one buffer
  * across every layer AND every frame (the F.W4 zero-alloc discipline,
- * proof:zero-alloc + proof:soa-composite green).
+ * proof:zero-alloc and the SoA identity test green).
  */
-import { ValueUnit, lerp } from "@mkbabb/value.js";
+import { ValueUnit } from "@mkbabb/value.js/units";
+import { lerp } from "@mkbabb/value.js/math";
 import type { AnimationLayerConfig } from "../constants";
 import type { AnimationGroupEntry } from "./types";
+import { resolveBlendWeight } from "./weight";
+import { isWeightedBlend, resolveBlendOperator } from "./weight";
 
 /**
  * Typed blend-carrier guard — the group is heavy-side (it statically composes
@@ -55,6 +60,18 @@ import type { AnimationGroupEntry } from "./types";
  */
 export const isNumericUnit = (value: unknown): value is ValueUnit<number> =>
     value instanceof ValueUnit && typeof value.value === "number";
+
+/** Numeric leaves may only compose when their CSS units are identical. */
+export const isCompatibleNumericUnit = (
+    left: unknown,
+    right: unknown,
+): left is ValueUnit<number> =>
+    isNumericUnit(left) &&
+    isNumericUnit(right) &&
+    left.unit === right.unit;
+
+export const isMismatchedNumericUnit = (left: unknown, right: unknown): boolean =>
+    isNumericUnit(left) && isNumericUnit(right) && left.unit !== right.unit;
 
 /**
  * P.W2 — the precomputed SoA fold layout for ONE `add`/`weighted` blend layer.
@@ -82,7 +99,11 @@ export interface SoALayerPlan {
     /** The pure-numeric carrier units the fold seeds the composite buffer from + writes back to. */
     carriers: ValueUnit<number>[];
     /** The incoming numeric units folded against each carrier (parallel to `carriers`). */
-    incomings: ValueUnit<number>[];
+    incomingSlots: Array<{
+        values: Record<string, unknown>;
+        key: string;
+        index: number;
+    }>;
     /**
      * The keys this layer touches that the SoA fold does NOT cover — a non-array
      * carrier (first-touch of a key, or a scalar that a lower layer left
@@ -104,8 +125,8 @@ export interface SoALayerPlan {
 }
 
 /**
- * P.W2 — the SoA fold for ONE `add`/`weighted` layer (the validated 3.7×,
- * `scripts/soa-composite-decision.json`: bit-identical `maxErr=0`). Replaces the
+ * P.W2 — the SoA fold for ONE `add`/`weighted` layer (the validated ADOPT:
+ * bit-identical `maxErr=0`, >=1.2× at K=8). Replaces the
  * boxed `for..in` + `Array.isArray` + per-element `isNumericUnit` dispatch with a
  * contiguous {@link Float64Array} fold over the plan's precomputed numeric
  * `(carrier, incoming)` pairs: seed the buffer from each carrier, apply the op
@@ -124,7 +145,7 @@ export const groupSoABlendLayer = (
     buf: Float64Array,
     plan: SoALayerPlan,
 ): void => {
-    const { carriers, incomings } = plan;
+    const { carriers, incomingSlots } = plan;
     const n = carriers.length;
     if (n === 0) return;
     // Seed from the live carriers (the lower layers' freshly-lerped `.value`).
@@ -132,14 +153,20 @@ export const groupSoABlendLayer = (
     if (plan.weighted) {
         // ONE per-LAYER weight (the spring overshoot or the constant) — the
         // exact `?? layer.weight` read the boxed weighted arm hoists.
-        const w = plan.layer.weightSpring?.value ?? plan.layer.weight;
+        const w = resolveBlendWeight(plan.layer);
         for (let s = 0; s < n; s++) {
-            buf[s] = lerp(buf[s]!, incomings[s]!.value, w);
+            const slot = incomingSlots[s]!;
+            const incoming = (slot.values[slot.key] as ValueUnit<number>[])[slot.index]!;
+            buf[s] = lerp(buf[s]!, incoming.value, w);
         }
     } else {
         // UN-CLAMPED accumulate — a Float64 `+=` is naturally un-clamped, the
         // GL-6 `0.8 + 0.8 → 1.6` contract preserved by construction.
-        for (let s = 0; s < n; s++) buf[s] = buf[s]! + incomings[s]!.value;
+        for (let s = 0; s < n; s++) {
+            const slot = incomingSlots[s]!;
+            const incoming = (slot.values[slot.key] as ValueUnit<number>[])[slot.index]!;
+            buf[s] = buf[s]! + incoming.value;
+        }
     }
     // Write the folded result back to the carrier units (the live composite).
     for (let s = 0; s < n; s++) carriers[s]!.value = buf[s]!;
@@ -170,6 +197,7 @@ export const groupSoABlendLayer = (
 export const buildSoAPlans = <V extends Record<string, unknown>>(
     entries: AnimationGroupEntry<V>[],
     prevBuf: Float64Array | null,
+    ownedValues?: Record<string, unknown>,
 ): { plans: SoALayerPlan[]; compositeBuf: Float64Array | null } => {
     const plans: SoALayerPlan[] = [];
     // The carrier each key currently resolves to (the leaf a lower layer
@@ -181,14 +209,15 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
         const { layer, values } = entry;
         if (!layer.enabled) continue;
         const whitelist = layer.properties;
-        const weighted = layer.blendMode === "weighted";
+        const op = resolveBlendOperator(layer);
+        const weighted = isWeightedBlend(layer);
 
-        if (layer.blendMode === "replace") {
+        if (op === "replace" && !weighted) {
             for (const key in values) {
                 if (whitelist && !whitelist.has(key)) continue;
                 const incoming = values[key];
                 if (incoming === undefined) continue;
-                carrierOf[key] = incoming;
+                carrierOf[key] = ownedValues?.[key] ?? incoming;
             }
             continue;
         }
@@ -196,7 +225,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
         // `add` / `weighted` — partition this layer's keys into the numeric
         // SoA pairs and the boxed residual, mirroring the boxed arm's guards.
         const carriers: ValueUnit<number>[] = [];
-        const incomings: ValueUnit<number>[] = [];
+        const incomingSlots: SoALayerPlan["incomingSlots"] = [];
         // S.F5a S1 — the boxed residual as a precomputed Set (built once here,
         // taken directly by `boxedBlendArm`'s `only` membership test; no per-frame
         // `new Set`).
@@ -215,10 +244,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
                 // discipline: pure-numeric → SoA, anything else → boxed.
                 let allNumeric = true;
                 for (let i = 0; i < n; i++) {
-                    if (
-                        !isNumericUnit(existing[i]) ||
-                        !isNumericUnit(incoming[i])
-                    ) {
+                    if (!isCompatibleNumericUnit(existing[i], incoming[i])) {
                         allNumeric = false;
                         break;
                     }
@@ -226,7 +252,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
                 if (allNumeric) {
                     for (let i = 0; i < n; i++) {
                         carriers.push(existing[i] as ValueUnit<number>);
-                        incomings.push(incoming[i] as ValueUnit<number>);
+                        incomingSlots.push({ values, key, index: i });
                     }
                 } else {
                     boxedKeys.add(key);
@@ -248,7 +274,7 @@ export const buildSoAPlans = <V extends Record<string, unknown>>(
             layer,
             weighted,
             carriers,
-            incomings,
+            incomingSlots,
             boxedKeys,
         });
     }

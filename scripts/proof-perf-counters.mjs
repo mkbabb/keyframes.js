@@ -44,7 +44,7 @@
  * ── BORN-RED · OWNER · REGISTERED ────────────────────────────────────────────
  * Reds today at lane 11's measured per-frame ratios. Declares authority=OWNER
  * (the OWNER perceived-perf bar, VERDICT #19; scripts/gate-authority.mjs) and
- * rides the T_BORNRED_BACKLOG (scripts/gate-bands.mjs) as a RECORDED tripwire —
+ * is retained as a RECORDED performance tripwire while its owner baseline is reviewed —
  * kept OUT of every blocking aggregator, never demoted to the demo-roster OBSERVE
  * bucket (the blocking-not-OBSERVE tooth, T.M6.2 — the demotion that let "85/85
  * green" coexist with a 20fps stage). dischargedBy T.G3 (scenes reach true rest —
@@ -189,7 +189,7 @@ if (outcome.skipped) {
 if (failures.length > 0) {
     console.error(
         `\nproof:perf-counters — FAIL (${failures.length}) [BORN-RED · authority=OWNER · ` +
-            `T_BORNRED_BACKLOG, dischargedBy T.G3 (rest) + T.G4 (transform-not-left)]: surviving ` +
+            `owner baseline pending]: surviving ` +
             `scene(s) restyle and/or re-lay-out on more than their per-frame budget — the ` +
             `no-true-rest churn (cube restyles every frame; VERDICT #19 "god awful") and the ` +
             `\`left\`-animation LAYOUT thrash (spring lays out every frame; T.G4). The rAF-interval ` +
@@ -203,5 +203,5 @@ if (failures.length > 0) {
 console.log(
     `\nproof:perf-counters — PASS: every measured surviving scene restyles and re-lays-out ` +
         `within its per-frame budget (the no-true-rest churn + the \`left\` layout thrash are ` +
-        `closed). T.G3 + T.G4 have landed; discharge this row from T_BORNRED_BACKLOG.`,
+        `closed). The current owner baseline must be recorded before this hold is discharged.`,
 );

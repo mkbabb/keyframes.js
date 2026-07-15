@@ -50,7 +50,7 @@ import { execFileSync } from "node:child_process";
 // T.H2 — the glass-ui consumed-dist cap shape is hoisted to the SINGLE source
 // scripts/lib/glass-caps.mjs so this gate AND proof:glass-ui-gap-tripwire read
 // ONE probe (the T.H1 edge: never a second copy — else the two can disagree).
-import { glassCaps } from "./lib/glass-caps.mjs";
+import { glassCaps, glassCapsMeta } from "./lib/glass-caps.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -192,9 +192,10 @@ const vjsCaps = {
 // SINGLE source scripts/lib/glass-caps.mjs (imported above) so this gate AND
 // proof:glass-ui-gap-tripwire read ONE probe. Each cap is a DIST-CONTENT GREP
 // (device-INDEPENDENT — it does NOT mount a component; the mounted-DOM readback
-// is the SEPARATE, device-bearing `proof:glassui-aria-ask` gate). glass-ui 4.0.1
-// (the installed, prohibited-aria dist) satisfies NONE, so every glass-ui arm is
-// PENDING — deleting a band-aid now re-breaks ARIA / the dock, never a false-RED.
+// is the SEPARATE, device-bearing `proof:glassui-aria-ask` gate). The probe reads
+// the tarball behind registry `dist-tags.latest`; the frozen installed 4.0.x
+// dist is diagnostic only. If the registry is unavailable the arms stay PENDING
+// with explicit INDETERMINATE evidence, never an installed-only false-green.
 
 // ── Publish probe (the three-state classifier's PUBLISHED/UNPUBLISHED axis) ──
 
@@ -258,10 +259,11 @@ const arms = [
         // Q.WG-S1S2-HYGIENE: key on the INSTALLED-dist CONTENT (the aria guard's
         // presence), NOT the registry version. RED only when the guard IS in the
         // consumed dist AND the suppress is still present (the genuinely-OVERDUE
-        // state). With the guard ABSENT (today's 4.0.1), the arm is PENDING —
-        // held until the BC SFC guard ships — NOT a false-RED.
-        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB SegmentedTabs aria guard (BD.W-CUT, content-probed)" },
-        apiPresent: glassCaps.ariaGuard,
+        // state). With the guard absent from the currently consumed 4.0.x line,
+        // the arm is PENDING — held until the explicit 5.0.0 consume motion —
+        // NOT a false-RED.
+        sibling: { pkg: "@mkbabb/glass-ui", version: "latest", glassLatest: true, name: "BB SegmentedTabs aria guard (BD.W-CUT, content-probed)" },
+        apiPresent: glassCapsMeta.consumeEligible && glassCaps.ariaGuard,
     },
     {
         id: "S2",
@@ -273,14 +275,12 @@ const arms = [
             fileFilter: isVue,
             pattern: /pointerHandled|onPlayPointerDown/,
         },
-        // Q.WG-S1S2-HYGIENE: retarget OFF the wrong `useDockClickIntegrity`-4.1.0
-        // sentinel (4.1.0 contains only the UNRELATED ASK-2 cure, not the
-        // collapse-crossfade strand) ONTO the BC cut + the keepalive STRUCTURAL
-        // signature (GU-Q2). `apiPresent` reads the installed dock dist for the
-        // keepalive shape (NOT a version), so S2 is PENDING until the keepalive
-        // is observed in the consumed dist — never a false-RED on 4.1.0.
-        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BB collapse-crossfade dock-layer keepalive (GU-Q2, content-probed)" },
-        apiPresent: glassCaps.dockStrandKeepalive,
+        // Q.WG-S1S2-HYGIENE: this arm follows the registry's latest published
+        // dist, not a stale minor existence sentinel. `apiPresent` is gated
+        // by OD-U4's explicit 5.0.0 consume eligibility, so a positive 4.x
+        // frontier observation is recorded but cannot authorize a deletion.
+        sibling: { pkg: "@mkbabb/glass-ui", version: "latest", glassLatest: true, name: "BB collapse-crossfade dock-layer keepalive (GU-Q2, content-probed)" },
+        apiPresent: glassCapsMeta.consumeEligible && glassCaps.dockStrandKeepalive,
     },
     {
         id: "S3",
@@ -298,10 +298,11 @@ const arms = [
             pattern: /isAnyOpen/,
         },
         // T.H2 — the NEW `glassCaps.dockDismissHold` dist-content cap (glass-caps.mjs).
-        // FALSE on 4.0.1 (no dismiss-outside handler reads keepOpen) → PENDING;
+        // FALSE on the consumed 4.0.x dist (no dismiss-outside handler reads
+        // keepOpen) → PENDING;
         // deleting the re-expand watch now re-breaks the dock self-collapse.
-        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "GU-3 dock dismiss-pointerdown respects keepOpen() (content-probed)" },
-        apiPresent: glassCaps.dockDismissHold,
+        sibling: { pkg: "@mkbabb/glass-ui", version: "latest", glassLatest: true, name: "GU-3 dock dismiss-pointerdown respects keepOpen() (content-probed)" },
+        apiPresent: glassCapsMeta.consumeEligible && glassCaps.dockDismissHold,
     },
     {
         id: "S4",
@@ -319,10 +320,10 @@ const arms = [
             pattern: /onMbabbTriggerPointerdown|onMbabbTriggerClickCapture/,
         },
         // T.H2 — the NEW `glassCaps.dockDropdownPointerdown` dist-content cap.
-        // FALSE on 4.0.1 (the dropdown opens on click) → PENDING; deleting the
+        // FALSE on the consumed 4.0.x dist (the dropdown opens on click) → PENDING; deleting the
         // synthesis now re-strands the open under the press-scale reflow.
-        sibling: { pkg: "@mkbabb/glass-ui", version: "4.1.0", name: "BG-4 DockDropdownTrigger pointerdown-open parity (content-probed)" },
-        apiPresent: glassCaps.dockDropdownPointerdown,
+        sibling: { pkg: "@mkbabb/glass-ui", version: "latest", glassLatest: true, name: "BG-4 DockDropdownTrigger pointerdown-open parity (content-probed)" },
+        apiPresent: glassCapsMeta.consumeEligible && glassCaps.dockDropdownPointerdown,
     },
     {
         id: "S7",
@@ -397,6 +398,11 @@ const arms = [
 console.log(
     "proof:workaround-deletion — L.W9 Band-B (the three-state consume-edge deletion ledger)\n",
 );
+console.log(
+    `  · glass-ui cap authority: latest ${glassCapsMeta.latestVersion ?? "(unavailable)"} ` +
+        `(${glassCapsMeta.state}; source=${glassCapsMeta.source}); installed ` +
+        `${glassCapsMeta.installedVersion ?? "(absent)"} is diagnostic only.\n`,
+);
 
 const states = []; // { id, state: GREEN|PENDING|RED, detail }
 
@@ -417,7 +423,12 @@ for (const arm of arms) {
 
     // PRESENT — probe the paired sibling publish.
     const where = hits.map((h) => `${h.file}:${h.line}`).join(", ");
-    const pub = probePublish(arm.sibling.pkg, arm.sibling.version);
+    const latestLabel = arm.sibling.glassLatest
+        ? `${arm.sibling.pkg}@latest (${glassCapsMeta.latestVersion ?? "unavailable"})`
+        : `${arm.sibling.pkg}@${arm.sibling.version}`;
+    const pub = arm.sibling.glassLatest
+        ? glassCapsMeta.state
+        : probePublish(arm.sibling.pkg, arm.sibling.version);
     // RED requires the REPLACEMENT API to genuinely exist, not just the version.
     const apiLanded = arm.apiPresent === undefined || arm.apiPresent === true;
 
@@ -428,24 +439,26 @@ for (const arm of arms) {
             `  ✗ ${arm.id} RED — PRESENT + sibling PUBLISHED. ${arm.title}`,
         );
         console.error(
-            `      workaround at ${where}; ${arm.sibling.pkg}@${arm.sibling.version} ` +
+            `      workaround at ${where}; ${latestLabel} ` +
                 `(${arm.sibling.name}) IS published — DELETE the workaround and re-pin.`,
         );
         states.push({
             id: arm.id,
             state: "RED",
-            detail: `PRESENT @ ${where}; ${arm.sibling.pkg}@${arm.sibling.version} PUBLISHED`,
+            detail: `PRESENT @ ${where}; ${latestLabel} PUBLISHED`,
         });
     } else {
         // PRESENT + (API-not-landed | UNPUBLISHED | INDETERMINATE) → PENDING.
         const why =
-            pub === "PUBLISHED" && arm.apiPresent === false
-                ? `${arm.sibling.pkg}@${arm.sibling.version} is published but its ${arm.sibling.name} has NOT landed (value.js O shipped VJ-L2 only) — held until the API ships`
+            glassCapsMeta.state !== "PUBLISHED"
+                ? `latest published glass-ui dist unavailable (${glassCapsMeta.state}) — cap evidence is indeterminate`
+                : pub === "PUBLISHED" && arm.apiPresent === false
+                ? `${latestLabel} is published but its ${arm.sibling.name} is not consume-eligible on the held ~4.0.x pin — waiting for the explicit glass-ui 5.0.0 consume motion`
                 : pub === "UNPUBLISHED"
-                  ? `${arm.sibling.pkg}@${arm.sibling.version} is NOT YET published (E404)`
-                  : `${arm.sibling.pkg}@${arm.sibling.version} publish state INDETERMINATE (registry unreachable — conservatively PENDING)`;
+                  ? `${latestLabel} is NOT YET published (E404)`
+                  : `${latestLabel} publish state INDETERMINATE (registry unreachable — conservatively PENDING)`;
         console.log(
-            `  … ${arm.id} PENDING — PRESENT + sibling UNPUBLISHED. ${arm.title}`,
+            `  … ${arm.id} PENDING — PRESENT + consume not eligible. ${arm.title}`,
         );
         console.log(
             `      workaround at ${where}; ${why}. Deleting now would break the ` +
@@ -487,9 +500,9 @@ if (red.length > 0) {
 if (pending.length > 0) {
     console.log(
         `\nproof:workaround-deletion — PENDING (${pending.length}): every remaining workaround ` +
-            "is PRESENT with its paired sibling-fix UNPUBLISHED. This is the STAGED Band-B state " +
-            "(not a failure) — each arm GREENs when the sibling publishes AND kf consumes. " +
-            "Exit 0.",
+            "is PRESENT but its latest cap is either absent, unavailable, or outside the " +
+            "release-held consume line. This is the STAGED Band-B state (not a failure) — " +
+            "each arm GREENs when the sibling cure is explicitly consumed. Exit 0.",
     );
     process.exit(0);
 }

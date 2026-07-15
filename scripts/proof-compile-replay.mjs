@@ -85,14 +85,15 @@ console.log(
     "proof:compile-replay — K.W10 THE COMPILE (the round-trip's BACKWARD half · replay-equality)",
 );
 
-const COMPILE = "src/animation/compile/backward/backward.ts";
+const COMPILE = "src/animation/compile/emit/backward.ts";
 // R.W2b carved the "orchestration graph → CompileChild[]" walkers (walkGroup /
 // walkSequence / walkList — incl. the static/spring `weighted` partition) off
 // `backward.ts` into the colocated `backward-walk.ts`. The COMPILE-BACKWARD
 // SURFACE is both files; clauses whose anchors may land in either read it.
-const COMPILE_WALK = "src/animation/compile/backward/backward-walk.ts";
-const COMPILE_COLOR = "src/animation/compile/backward/backward-color.ts";
-const FORMAT = "src/animation/compile/backward/format.ts";
+const COMPILE_WALK = "src/animation/compile/emit/backward-walk.ts";
+const COMPILE_COLOR = "src/animation/compile/emit/backward-color.ts";
+const REFUSAL_PROBES = "src/animation/compile/emit/refusal-probes.ts";
+const FORMAT = "src/animation/compile/emit/format.ts";
 const BARREL = "src/animation/index.ts";
 // The L-tranche engine-loader extraction home (the dynamic `import("./compile")`
 // + `compileToCSS: compileMod.compileToCSS` assign live here now, re-exported by
@@ -144,10 +145,9 @@ requireAll("compiler-exists", COMPILE, [
     const importsOf = (file) => {
         if (!existsSync(join(root, file))) return "";
         const src = read(file);
-        const m = /import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js["']/.exec(
-            src,
-        );
-        return m ? m[1] : "";
+        return [...src.matchAll(/import\s*\{([\s\S]*?)\}\s*from\s*["']@mkbabb\/value\.js(?:\/(?:parsing|color|math|units))?["']/g)]
+            .map((m) => m[1])
+            .join("\n");
     };
     // T.F22 — the `animation` SHORTHAND inverse (reverseAnimationShorthand via
     // animationShorthand) rides the colocated format-options.ts after the
@@ -155,7 +155,7 @@ requireAll("compiler-exists", COMPILE, [
     const formatImports =
         importsOf(FORMAT) +
         "\n" +
-        importsOf("src/animation/compile/backward/format-options.ts");
+        importsOf("src/animation/compile/emit/format-options.ts");
     const colorImports = importsOf(COMPILE_COLOR);
     const consumes = [
         {
@@ -186,7 +186,7 @@ requireAll("compiler-exists", COMPILE, [
 }
 
 // ── four-refusals-named — CC-3's four named refusal reasons ─────────────────────
-requireAll("four-refusals-named", COMPILE, [
+requireAll("four-refusals-named", [COMPILE, REFUSAL_PROBES], [
     { name: '"weighted-blend" refusal (the §3a axis-3 proof)', re: /"weighted-blend"/ },
     { name: '"custom-renderer" refusal (a closure cannot be CSS)', re: /"custom-renderer"/ },
     { name: '"perceptual-oklab" refusal (densify beyond ΔE-ε)', re: /"perceptual-oklab"/ },
@@ -226,8 +226,12 @@ requireAll("four-refusals-named", COMPILE, [
     // compileToCSS must ride the dynamic loadAnimationEngine assign…
     const ridesDynamic =
         barrelExposesLoader &&
-        /compileToCSS:\s*compileMod\.compileToCSS/.test(wiringSrc) &&
-        /import\(["']\.\/compile(?:\/index)?["']\)/.test(wiringSrc);
+        ((/compileToCSS:\s*compileMod\.compileToCSS/.test(wiringSrc) &&
+            /import\(["']\.\/compile(?:\/index)?["']\)/.test(wiringSrc)) ||
+            (/import\(["']\.\/public["']\)/.test(wiringSrc) &&
+                /export\s*\{[^}]*\bcompileToCSS\b[^}]*\}\s*from\s*["']\.\/compile["']/.test(
+                    read("src/animation/public.ts"),
+                )));
     // …and must NOT be a static runtime value export on the LIGHT barrel.
     const leaksStatic =
         /export\s*\{[^}]*\bcompileToCSS\b[^}]*\}\s*from\s*["']\.\/compile["']/.test(

@@ -1,7 +1,7 @@
 # Amiga Scene — frontend-design treatment
 
 > Page: `demo/app/scenes/AmigaScene.vue` (+ `demo/amiga/{useAmigaAnimations,useSphereSpin,utils}.ts`)
-> Design system: glass-ui tokens via `demo/@/styles/{style.css,design-idioms.css,brand.css}` + `demo/DESIGN.md`
+> Design system: glass-ui tokens via `demo/styles/{style.css,design-idioms.css,brand.css}` + `demo/DESIGN.md`
 > Presentation mode: `subject` (the canvas IS the background — `demo/app/scenes.ts:195`)
 
 ---

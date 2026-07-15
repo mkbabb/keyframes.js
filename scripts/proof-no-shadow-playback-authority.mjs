@@ -34,7 +34,7 @@
  *     demo file OUTSIDE the allowlist. Comment-blanked first, so the design prose
  *     that NAMES `group.play()` as the forbidden shape can never red it.
  *
- * PLUS the scrub-persistence vitest (test/demo/no-shadow-playback-authority.test.ts,
+ * PLUS the scrub-persistence vitest (test/demo/state/no-shadow-playback-authority.test.ts,
  * run by the npm script) — a cube scrub with NO play/pause bracket updates the
  * machine snapshot WITHOUT a NAVIGATE/SUSPEND between (the direct-mutation path
  * never dispatched SCRUB; the group scenes persisted the scrub coarsely, only at
@@ -57,7 +57,7 @@ const DEMO = path.join(REPO, "demo");
 // platform-stable matching.
 const ALLOWED = new Set([
     // THE authority: createGroupAdapter's suspend/resume/restore drive the group.
-    "demo/@/state/scenePlaybackAdapters.ts",
+    "demo/state/scenePlaybackAdapters.ts",
     // Scene-owned tab-visibility loop (useSceneVisibilityPause callbacks — the
     // machine explicitly delegates tab-visibility, sceneMachine.ts §TAB_HIDDEN).
     "demo/scenes/cube/useCubeDemo.ts",

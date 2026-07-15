@@ -13,16 +13,16 @@
  *   (i) NO MIS-HOME. No file under `demo/app/` is imported by EXACTLY ONE
  *       non-app area (a single-non-app-consumer file belongs IN that area, not
  *       the shell). An "area" is counted PER-SCENE (C-23): each `demo/scenes/
- *       <name>/`, plus `demo/@/` and `demo/playground/`, is one area; other
+ *       <name>/`, plus `demo/` and `demo/playground/`, is one area; other
  *       `demo/app/` files (shell-internal) are NOT counted. Files imported by
- *       ZERO non-app areas (shell-private) or ≥2 non-app areas (legitimately
- *       cross-scene — the five `app/runtime/` recipes) are LEGAL. Born-RED today
+ *       ZERO non-app areas (shell-private) or ≥2 non-app areas are LEGAL. The
+ *       four cross-scene recipes live under `demo/composables/scene-runtime/`.
  *       via `cubeTransformStore.ts` (lives in app/, imported by exactly one
  *       non-app area — `scenes/cube/`); greens when S3 evicts it → scenes/cube/.
  *
  *   (ii) NO STALE-DEPTH ESCAPE. Every RELATIVE import/dynamic-import specifier in
  *       every `demo/app/` source file resolves to an existing file on disk — so a
- *       move that deepens a file (root → scene/·transition/·runtime/) without the
+ *       move that deepens a file (root → scene/·transition/·lifecycle/) without the
  *       matching `../` depth bump surfaces HERE, not only at `tsc`. Catches the S4
  *       `scenes.ts` `../scenes/` → `../../scenes/` class by construction (the 16
  *       static + dynamic scene imports). Green on the current tree (it builds);
@@ -30,12 +30,15 @@
  *
  *   (iii) SHELL-NESS IS STRUCTURAL. The shell ROOT (`demo/app/`, non-recursive)
  *       holds ONLY the shell files (App.vue · main.ts · index.html) + the concern
- *       sub-zones (scene/ · transition/ · runtime/ · public/) — every composable/
+ *       sub-zones (scene/ · transition/ · lifecycle/ · public/) — every composable/
  *       store/router file lives in a concern sub-zone, NOT loose at root. Measured
  *       by FILE MEMBERSHIP (concern grouping), NOT by line count (SD-7; T2
  *       corollary). App.vue's line count is an OBSERVED TRIPWIRE printed below,
  *       NOT a GREEN criterion — a cosmetic App.vue line-shrink cannot satisfy this
  *       gate, and a loose composable dumped back at app/ root reds it.
+ *
+ *   (iv) COMPONENTS LEAVE THE SHELL. No component SFC other than App.vue and
+ *       App.skeleton.vue lives anywhere under demo/app/.
  *
  * Re-runnable: `node scripts/proof-app-is-shell.mjs`
  */
@@ -57,13 +60,15 @@ const RESOLVE_EXT = [".ts", ".vue", ".css", ".js", ".mjs", ".json"];
 
 // Clause (iii) — the honest shell-root membership (a23 Layout C). The root holds
 // exactly these files + these concern sub-zones; anything else is a mis-home.
-const ALLOWED_ROOT_FILES = new Set(["App.vue", "main.ts", "index.html"]);
-// T.F3 — `dock/` (was `chrome/` — browser-jargon evicted) joins the concern
-// sub-zones: the app's own glass-ui dock + @mbabb menu (ChromeDock.vue,
-// MbabbMenu.vue), evicted from `@/components/custom/dock/` because they are
-// APP-private (a24 F3; imported by App.vue alone — they fail
-// proof:shared-has-n-consumers as a single-external-area @/ module).
-const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "runtime", "public", "dock"]);
+const ALLOWED_ROOT_FILES = new Set([
+    "App.vue",
+    "App.skeleton.vue",
+    "main.ts",
+    "index.html",
+]);
+// OD-U19: component modules live under the canonical component home; app/
+// contains orchestration concerns only.
+const ALLOWED_ROOT_DIRS = new Set(["scene", "transition", "lifecycle", "public", "dock"]);
 // Skip-list for non-source droppings that are not a concern violation.
 const IGNORE_ROOT_ENTRIES = new Set([".DS_Store"]);
 
@@ -83,6 +88,7 @@ function collectSources(dir, out = []) {
             out.push(path.join(dir, e.name));
         }
     }
+
     return out;
 }
 
@@ -207,7 +213,7 @@ function main() {
         } else {
             console.log(
                 "  ✓ [no-mis-home] no demo/app/ file is imported by exactly one " +
-                    "non-app area (the five app/runtime/ recipes are ≥2-scene shared)",
+                    "non-app area (cross-scene recipes live in demo/composables/scene-runtime)",
             );
         }
     }
@@ -261,7 +267,7 @@ function main() {
                 strays.push(
                     `demo/app/${e.name} is a loose non-shell file at the app root ` +
                         `(shell root allows only ${[...ALLOWED_ROOT_FILES].join(" · ")}) ` +
-                        `— it belongs in a concern sub-zone (scene/·transition/·runtime/)`,
+                        `— it belongs in a concern sub-zone (scene/·transition/·lifecycle/)`,
                 );
             }
         }
@@ -275,7 +281,7 @@ function main() {
         } else {
             console.log(
                 "  ✓ [shell-structural] demo/app/ root holds only the shell files + " +
-                    "the scene/·transition/·runtime/·public/ sub-zones",
+                    "the scene/·transition/·lifecycle/·public/ sub-zones",
             );
         }
         // OBSERVED TRIPWIRE (NOT a GREEN criterion — SD-7/T2 corollary): App.vue's
@@ -290,6 +296,25 @@ function main() {
         }
     }
 
+    // ── CLAUSE (iv) — no component SFCs inside the app shell ───────────────
+    {
+        const allowed = new Set(["demo/app/App.vue", "demo/app/App.skeleton.vue"]);
+        for (const file of collectSources(path.join(APP, "dock"))) {
+            allowed.add(relPosix(file));
+        }
+        const components = collectSources(APP)
+            .map(relPosix)
+            .filter((rel) => rel.endsWith(".vue") && !allowed.has(rel));
+        if (components.length > 0) {
+            failures.push(
+                `[no-component-in-shell] ${components.length} component .vue file(s) ` +
+                    `live under demo/app/ — ${components.join(", ")}`,
+            );
+        } else {
+            console.log("  ✓ [no-component-in-shell] app/ contains only App.vue + App.skeleton.vue");
+        }
+    }
+
     if (failures.length > 0) {
         console.error(
             "\nproof:app-is-shell — FAIL (demo/app/ is not honestly zoned as a shell):",
@@ -301,7 +326,7 @@ function main() {
     console.log(
         "\nproof:app-is-shell — PASS: demo/app/ is an honest shell — no single-" +
             "consumer mis-home, no stale-depth relative import, and the root is the\n" +
-            "shell files + the scene/·transition/·runtime/ concern sub-zones (a23 Layout C).",
+            "shell files + the scene/·transition/·lifecycle/ concern sub-zones (a23 Layout C).",
     );
 }
 

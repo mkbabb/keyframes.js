@@ -7,13 +7,14 @@
          --track-inset (inherited from the parent .seq-stage cascade). Pure CSS over
          the engine's `progress` — no per-frame JS. -->
     <div class="seq-playhead-track" aria-hidden="true">
-        <div class="seq-playhead" :style="{ '--playhead-p': clamp01(progress) }"></div>
+        <div class="seq-playhead" :style="{ '--playhead-p': clamp(progress, 0, 1) }"></div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { clamp } from "@mkbabb/value.js/math";
+
 defineProps<{ progress: number }>();
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 </script>
 
 <style scoped>

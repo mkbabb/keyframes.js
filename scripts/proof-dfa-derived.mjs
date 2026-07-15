@@ -60,7 +60,7 @@ console.log("proof:dfa-derived — T.B2 (control-surface DFA: exclusion table �
 
 // ── S1 + S2 + S3 STATIC ──────────────────────────────────────────────────────
 {
-    const dfa = read(path.join(DEMO, "@/state/controlSurfaceDFA.ts"));
+    const dfa = read(path.join(DEMO, "state/controlSurfaces.ts"));
     const oneLine = dfa.replace(/\s+/g, " ");
 
     // S1 — no Record<SceneId, ControlSurface[]> literal survives.
@@ -74,7 +74,7 @@ console.log("proof:dfa-derived — T.B2 (control-surface DFA: exclusion table �
     // S2 — surfacesFor is the derivation, triad computed from paint.
     const derives = /export function surfacesFor\(/.test(dfa);
     const paintComputed =
-        /selected\?\.animation \? \[\.\.\.BUILT_IN_SURFACES\] : \[\.\.\.\(selected\?\.surfaces \?\? \[\]\)\]/.test(
+        /selected\?\.animation\s*\?\s*\[\.\.\.BUILT_IN_SURFACES\]\s*:\s*\[\.\.\.\(selected\?\.surfaces \?\? \[\]\)\]/.test(
             oneLine,
         );
     if (derives && paintComputed) {
@@ -92,7 +92,7 @@ console.log("proof:dfa-derived — T.B2 (control-surface DFA: exclusion table �
     const meta = /export const SURFACE_META\s*:\s*Record<ControlSurface, ControlSurfaceTab>/.test(dfa);
     const dock = read(path.join(DEMO, "app/dock/ChromeDock.vue"));
     const ac = read(
-        path.join(DEMO, "@/components/custom/instrument/transport/controls/AnimationControls.vue"),
+        path.join(DEMO, "components/instrument/transport/channel-controls/ChannelControls.vue"),
     );
     const dockDerives = /SURFACE_META\[s\]/.test(dock);
     const acDerives = /SURFACE_META\[s\]/.test(ac);

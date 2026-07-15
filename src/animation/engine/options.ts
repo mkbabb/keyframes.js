@@ -14,7 +14,7 @@
  * `engine.ts` class sheds it WITHOUT changing the `loadAnimationEngine()`
  * boundary. ZERO behavior change.
  */
-import { parseCSSTime } from "@mkbabb/value.js";
+import { parseCSSTime } from "@mkbabb/value.js/parsing";
 import {
     COLOR_SPACES,
     DIRECTIONS,
@@ -23,7 +23,7 @@ import {
     defaultOptions,
 } from "../constants";
 import type { AnimationOptions, InputAnimationOptions } from "../constants";
-import { resolveEasingOption } from "../compile/easing-option";
+import { resolveEasingOption } from "../compile/easing/easing-option";
 import { AnimationOptionError, parseOption } from "../internal/errors";
 
 /** `parseCSSTime` that converts a parse failure to `undefined` for the option seam. */

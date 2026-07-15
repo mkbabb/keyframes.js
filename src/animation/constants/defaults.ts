@@ -10,8 +10,9 @@
 // `constants/types.ts`, never this file. The `import type` edge back to `./types`
 // (the option/config/transform TYPES the values are annotated with) is a
 // type-only cycle — erased at build, no runtime edge.
-import { COLOR_SPACE_RANGES, easeInOutCubic } from "@mkbabb/value.js";
-import type { ColorSpace, HueInterpolationMethod } from "@mkbabb/value.js";
+import { COLOR_SPACE_RANGES } from "@mkbabb/value.js/color";
+import { easeInOutCubic } from "@mkbabb/value.js/easing";
+import type { ColorSpace, HueInterpolationMethod } from "@mkbabb/value.js/color";
 import type {
     AnimationLayerConfig,
     AnimationOptions,

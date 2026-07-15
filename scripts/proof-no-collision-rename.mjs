@@ -17,7 +17,7 @@
  * collision-rename NOW and GREENs the instant value.js publishes the rename AND
  * kf re-points its `import PropertyDescriptor` + the `Map<…>` types (the KF-2
  * cadence: the adopt-event watch gates the re-point). Registered in
- * scripts/gate-bands.mjs T_BORNRED_BACKLOG (dischargedBy: value.js rename +
+ * the external-hold tier manifest (discharged by: value.js rename +
  * kf re-point). Exits 1 on any residual collision-rename.
  *
  * SCOPE: a `<Name> as <Name>_N` collision-rename on a `@mkbabb/value.js` import
@@ -74,7 +74,7 @@ if (collisions.length > 0) {
             `(e.g. CSSPropertyDescriptor); kf then re-points its import + Map<…> types in the SAME\n` +
             `    motion (the adopt-event watch gates the re-point). See docs/tranches/T/KF-TO-VALUEJS-T.md.`,
     );
-    console.error("\nproof:no-collision-rename — FAIL (born-RED tripwire; T_BORNRED_BACKLOG).");
+    console.error("\nproof:no-collision-rename — FAIL (external-hold tripwire).");
     process.exit(1);
 }
 

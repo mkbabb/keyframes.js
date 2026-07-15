@@ -294,18 +294,18 @@ requireAll("adopt-runtime", INGEST_SURFACE, [
 // The dynamic import + the engine-surface assigns live in the load-engine module
 // the barrel re-exports `loadAnimationEngine` from; the erased TYPE re-export
 // stays on the barrel itself.
-requireAll("barrel-heavy", LOAD_ENGINE, [
+requireAll("barrel-heavy", [LOAD_ENGINE, "src/animation/public.ts"], [
     {
         name: "the ingest module is dynamically imported in loadAnimationEngine",
-        re: /import\(["']\.\/ingest(?:\/index)?["']\)/,
+        re: /import\(["']\.\/ingest(?:\/index)?["']\)|import\(["']\.\/public["']\)/,
     },
     {
         name: "fromStyleSheets is merged onto the heavy engine surface",
-        re: /fromStyleSheets:\s*ingestMod\.fromStyleSheets/,
+        re: /fromStyleSheets:\s*ingestMod\.fromStyleSheets|export\s*\{[\s\S]*\bfromStyleSheets\b[\s\S]*\}\s*from\s*["']\.\/ingest["']/,
     },
     {
         name: "adoptRunning is merged onto the heavy engine surface",
-        re: /adoptRunning:\s*ingestMod\.adoptRunning/,
+        re: /adoptRunning:\s*ingestMod\.adoptRunning|export\s*\{[\s\S]*\badoptRunning\b[\s\S]*\}\s*from\s*["']\.\/ingest["']/,
     },
 ]);
 requireAll("barrel-heavy", INDEX, [

@@ -63,8 +63,8 @@ export const GLASS_UI_GAPS = {
         glassCap: "ariaGuard",
         fixVersion: "@mkbabb/glass-ui BG/BH (aria guard + material↔role decouple)",
         workaroundSites: [
-            "demo/@/components/custom/instrument/transport/KfPillTabs.vue",
-            "demo/@/components/custom/instrument/transport/composables/useKfPillTabs.ts",
+            "demo/components/instrument/transport/KfPillTabs.vue",
+            "demo/components/instrument/transport/KfPillTabs/useKfPillTabs.ts",
         ],
         acceptanceGate: "proof:glassui-aria-ask",
     },
@@ -76,8 +76,8 @@ export const GLASS_UI_GAPS = {
         glassCap: "dockStrandKeepalive",
         fixVersion: "@mkbabb/glass-ui BG/BH (dock-layer keepalive)",
         workaroundSites: [
-            "demo/@/components/custom/instrument/transport/TransportDock.vue",
-            "demo/@/components/custom/instrument/transport/composables/usePlayActuation.ts",
+            "demo/components/instrument/transport/TransportDock.vue",
+            "demo/components/instrument/transport/composables/usePlayActuation.ts",
         ],
         acceptanceGate: "proof:workaround-deletion",
     },
@@ -103,7 +103,7 @@ export const GLASS_UI_GAPS = {
     },
     drawerDetentInset: {
         // BG-11 (T.H3-ADOPT, OWNER-OVERRIDDEN 2026-07-06). The owner RULED ADOPT:
-        // the demo now consumes glass-ui 4.0.1's `<Drawer mode="live-behind">` for
+        // the demo now consumes glass-ui 4.2.0's `<Drawer mode="live-behind">` for
         // the mobile sheet (ControlsPaneWrapper.vue — the bespoke peek/half/full
         // hand-roll + SheetGrabHandle/useSheetGesture/useSheetSpring/useSheetState
         // are DELETED). The Drawer approximates the occlusion contract via
@@ -122,8 +122,8 @@ export const GLASS_UI_GAPS = {
         // — forcing the `--drawer-inset-block-end` binding to be wired (so the
         // sheet finally clears the menubar). The menubar-clearance clauses the
         // adoption structurally breaks are tracked as BG-11-BLOCKED born-RED
-        // backlog rows (gate-bands.mjs T_BORNRED_BACKLOG), dischargedBy the same
-        // publish + re-pin. Vacuously green today (4.0.1 ships no lever). The
+        // external-hold rows in the current tier manifest, discharged by the same
+        // publish + re-pin. Vacuously green today (4.2.0 ships no lever). The
         // owner verdict is recorded at docs/tranches/T/verdicts/T.H3.md.
         ask: "BG-11",
         defect:
@@ -137,7 +137,7 @@ export const GLASS_UI_GAPS = {
         // of the tripwire is satisfied by the import + its GLASSUI-GAP marker). On
         // the BG-11 publish this site wires the `--drawer-inset-block-end` token.
         workaroundSites: [
-            "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue",
+            "demo/components/instrument/transport/components/ControlsPaneWrapper.vue",
         ],
         acceptanceGate: "proof:glass-ui-gap-tripwire",
     },

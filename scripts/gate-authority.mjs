@@ -50,7 +50,7 @@ export const APPEARANCE_TOUCHING = [
     "proof:dogfood-hero",
     "proof:crayon-preserved",
     // (proof:design-refinement RETIRED at T.M7/T.M8 batch ⑧ — the axis shrinks with
-    //  the roster; its FROZEN KILL discharge lives in scripts/gate-bands.mjs.)
+    //  the roster; its historical KILL discharge is retained in tranche records.)
     // easing-scene appearance surfaces
     // (the four easing surface-locks + the bezier trio removed WITH their
     //  retirement at the easing TERMINAL batch (T.E6/T.E8, OD-7) — the axis
@@ -68,7 +68,7 @@ export const APPEARANCE_TOUCHING = [
     "proof:mobile-single-page",
     "proof:pp-logo-svg",
     // T.D9/T.D11/T.D13 — the born-OWNER hero oracles (they replaced the retired
-    // hero-rung/-balance/-cls INSTRUMENT locks; gate-bands.mjs DISCHARGE) + the
+    // hero-rung/-balance/-cls INSTRUMENT locks; historical migration record) + the
     // T.D14 recurrence guard (a cursor-light effect is an appearance surface).
     "proof:hero-two-focal",
     "proof:hero-deck-voice",
@@ -102,7 +102,7 @@ export const APPEARANCE_TOUCHING = [
     // perf-frame-budget's rAF-interval clauses do (that demotion is why the 20fps
     // stage rode green). DISCHARGED GREEN at batch ⑧ (T.G3 rest + T.G4 transform):
     // cube/spring/easing measure 0.00 recalc+layout/frame; now a BLOCKING member of
-    // proof:demo-correctness (out of T_BORNRED_BACKLOG + the ci-coverage EXCLUDED set).
+    // proof:demo-correctness (out of the historical external-hold and coverage sets).
     "proof:perf-counters",
     // T.C5 — the two dock RENDER acceptance gates (GU-1/GU-2). A "blurry janky
     // dock" is a taste-authority surface (VERDICT #4) — OWNER + blocking-not-OBSERVE
@@ -129,7 +129,7 @@ export const APPEARANCE_TOUCHING = [
     "proof:motion-path-scale",
     "proof:square-honest",
     // (proof:gesture-manifest / proof:easter-egg RETIRED at T.M7/T.M8 batch ⑧ —
-    //  gesture-manifest via the RETIREMENT_LEDGER, easter-egg (FROZEN) via a KILL
+    //  gesture-manifest via the historical retirement record, easter-egg (FROZEN) via a KILL
     //  discharge; the axis shrinks with the roster.)
     "proof:compose-scene",
     "proof:appearance-suffusion",
@@ -139,7 +139,6 @@ export const APPEARANCE_TOUCHING = [
     "proof:font-census",
     "proof:demo-elevate",
     "proof:demo-usability",
-    "proof:demo-no-oversize",
     "proof:no-single-option-select",
     // the appearance TRIPWIRE + self-baseline drift check (INSTRUMENT — authority
     // STRIPPED at I.W7 S5; retired/demoted by T.M3 owner-golden)
@@ -193,7 +192,7 @@ export const GATE_AUTHORITY = {
     // delta within budget). BLOCKING-not-OBSERVE per T.M6.2 — the single most important
     // lesson of the T.G band (every existing perf instrument was neutered to OBSERVE).
     // DISCHARGED GREEN at batch ⑧ (T.G3 + T.G4) — now a BLOCKING proof:demo-correctness
-    // member (out of T_BORNRED_BACKLOG), OWNER authority retained.
+    // member (out of the historical external-hold set), OWNER authority retained.
     "proof:perf-counters": "OWNER",
     // T.G9 (lighthouse-mobile, the mobile half of the perceived bar) — its OWNER
     // flip is DEFERRED, not dropped: the gate rides demo-roster OBSERVE_GATES today
@@ -291,7 +290,6 @@ export const GATE_AUTHORITY = {
     "proof:font-census": "INSTRUMENT",
     "proof:demo-elevate": "INSTRUMENT",
     "proof:demo-usability": "INSTRUMENT",
-    "proof:demo-no-oversize": "INSTRUMENT",
     "proof:no-single-option-select": "INSTRUMENT",
 };
 

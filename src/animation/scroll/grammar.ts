@@ -29,17 +29,7 @@
  * against the DOM. This module is the VALUE half — pure grammar, no DOM.
  */
 
-import {
-    extractTimelineOptions,
-    parseAnimationRange,
-    parseAnimationTimeline,
-    parseCSSStylesheet,
-    serializeTimelineOptions,
-    type AnimationRangeValue,
-    type AnimationTimelineValue,
-    type CSSTimelineOptions,
-    type Stylesheet,
-} from "@mkbabb/value.js";
+import { extractTimelineOptions, parseAnimationRange, parseAnimationTimeline, parseCSSStylesheet, serializeTimelineOptions, type AnimationRangeValue, type AnimationTimelineValue, type CSSTimelineOptions, type Stylesheet } from "@mkbabb/value.js/parsing";
 
 // ── re-export the consumed value.js scroll-grammar TYPES (erased) ──────────
 // Consumers annotating a parsed scene reach the typed surface through kf without
@@ -50,7 +40,7 @@ export type {
     CSSTimelineOptions,
     RangeBoundary,
     RangePhase,
-} from "@mkbabb/value.js";
+} from "@mkbabb/value.js/parsing";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SO-1 — the scroll-grammar ROUND-TRIP (value.js-GATED; the acyclic-spine

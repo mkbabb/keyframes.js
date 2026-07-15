@@ -116,12 +116,13 @@ import { Card } from "@mkbabb/glass-ui";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { ToggleChip } from "@mkbabb/glass-ui/toggle-chip";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
-import { cubicBezierToString, stepEnd, stepStart, steppedEase } from "@mkbabb/value.js";
+import { stepEnd, stepStart, steppedEase } from "@mkbabb/value.js/easing";
+import { cubicBezierToString } from "@mkbabb/value.js/math";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
-import CopyButton from "@components/custom/CopyButton.vue";
-import { getCurvePath } from "@components/custom/instrument/transport/controls/timingCurveUtils";
-import { EASING_GROUPS } from "./easingGroups";
+import CopyButton from "@components/CopyButton.vue";
+import { getCurvePath } from "@utils/reference-data/timingCurveUtils";
+import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
 const demo = inject(EASING_DEMO_KEY)!;

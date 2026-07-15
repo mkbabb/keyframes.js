@@ -12,20 +12,20 @@
  * THE RULE (C-23 per-scene "consuming area" counting):
  *   An AREA is one of: each `demo/scenes/<name>/` (per-scene, NOT collectively —
  *   C-23 rejects "all scenes = one area"), `demo/app/`, `demo/playground/`, and
- *   each `demo/@/` top-level module (the shared library's OWN sub-modules count as
+ *   each `demo/` top-level module (the shared library's OWN sub-modules count as
  *   areas too). A module's consuming areas = the distinct areas that import it,
  *   excluding its own (self-imports don't count).
  *
  *   Two module kinds, two thresholds (the a24 F5 flat-single vs F1 sub-zone split):
  *
- *   • A FLAT SINGLE (`@/components/custom/*.vue|*.ts`, a `@/composables/*` or
+ *   • A FLAT SINGLE (`@/components/*.vue|*.ts`, a `@/composables/*` or
  *     `@/utils/*` leaf) must earn its shared-root seat by ≥2 consuming areas.
  *     Exactly one → it belongs INSIDE its sole consumer (colocate), so it REDs.
  *     (Born-RED today on CSSPasteDialog, AnimatedText, TypingDots,
  *     KeyboardShortcutsModal, EasingCurveCanvas, useTypedTrigger — each has one
  *     consuming area; green once S3 colocates them into that area's directory.)
  *
- *   • A DIRECTORY SUB-ZONE (`@/components/custom/<dir>/`) is legitimate shared-lib
+ *   • A DIRECTORY SUB-ZONE (`@/components/<dir>/`) is legitimate shared-lib
  *     structure if it is consumed by ANY OTHER `@/` module (an internal peer edge,
  *     e.g. `instrument/timeline/` ← `instrument/transport/`) OR by ≥2 external
  *     (scene/app/playground) areas. It REDs only when exactly ONE external area
@@ -47,7 +47,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const SHARED = path.join(DEMO, "@");
+const SHARED = DEMO;
 
 const DUMP = process.argv.includes("--dump");
 const PLANT_TEST = process.argv.includes("--plant-test");
@@ -56,23 +56,23 @@ const SKIP_DIR = new Set(["dist", "node_modules", ".git", "coverage"]);
 const SOURCE_EXT = new Set([".ts", ".vue"]);
 const RESOLVE_EXT = [".ts", ".vue", ".css", ".js", ".mjs", ".json"];
 
-// Path aliases that target a demo/@ subtree (mirrors vite/tsconfig). `@state` is
+// Path aliases that target a demo subtree (mirrors vite/tsconfig). `@state` is
 // the S.D2 hoisted peer; the rest are the long-standing demo aliases.
 const ALIASES = [
-    ["@components/", path.join(SHARED, "components")],
-    ["@composables/", path.join(SHARED, "composables")],
-    ["@utils/", path.join(SHARED, "utils")],
-    ["@styles/", path.join(SHARED, "styles")],
-    ["@state/", path.join(SHARED, "state")],
+    ["@components/", path.join(DEMO, "components")],
+    ["@composables/", path.join(DEMO, "composables")],
+    ["@utils/", path.join(DEMO, "utils")],
+    ["@styles/", path.join(DEMO, "styles")],
+    ["@state/", path.join(DEMO, "state")],
     ["@app/", path.join(DEMO, "app")],
 ];
-const BARE_ALIASES = [["@state", path.join(SHARED, "state")]];
+const BARE_ALIASES = [["@state", path.join(DEMO, "state")]];
 
 // Modules with a KNOWN, DOCUMENTED single-area status that a LATER wave (or an
 // out-of-D2-scope decision) owns — allowlisted with a stale-guard: if an entry
 // ever gains ≥2 areas (would pass anyway), the entry is stale and REDs.
 const ALLOWLIST = new Map([
-    // S.D3 (C-4) — the `components/custom/asset-manager` + `EditableLabel.vue`
+    // S.D3 (C-4) — the `components/asset-manager` + `EditableLabel.vue`
     // allowlist entries are RETIRED in the SAME commit that relocated them: the
     // playground fold moved both INTO `scenes/compose/asset-manager/` (a scene, not
     // @/), so they are no longer enumerated @/ modules. Leaving the entries would
@@ -89,7 +89,7 @@ const ALLOWLIST = new Map([
     // (an out-of-D3-scope app-partition decision owns any future move). The
     // stale-guard keeps it honest: if it EVER regains a 2nd consumer, this entry reds.
     [
-        "components/custom/instrument/shell",
+        "components/instrument/shell",
         "app-private after the S.D3 playground-fold, but proof:app-is-shell forbids " +
             "non-concern-subzone dirs under app/, so it cannot be colocated there; the " +
             "relocation is an out-of-scope app-partition decision. Stale-guard reds on a 2nd consumer.",
@@ -164,27 +164,16 @@ function resolveSpecBase(spec, fileDir) {
     return null;
 }
 
-/** The `@/` module identity for a path under demo/@ (dir sub-zone or flat leaf),
- *  or null if the path is not under demo/@. */
+/** The `@/` module identity for a path under demo (dir sub-zone or flat leaf),
+ *  or null if the path is not under demo. */
 function sharedModuleId(abs) {
     const rel = toPosix(path.relative(SHARED, abs));
     if (rel.startsWith("..")) return null;
     const parts = rel.split("/");
     if (parts[0] === "components") {
-        if (parts[1] === "custom") {
-            // T.F5 fold: the instrument facility's PEERS (transport/keyframes/
-            // timeline/shell/easing) are the @/ consumer-area units — one dir
-            // deeper than the flat pre-fold peers. Descend so a leaf shared
-            // ACROSS peers still counts ≥2 distinct areas.
-            if (parts[2] === "instrument") {
-                // The facility umbrella barrel (instrument/index.ts) is a pure
-                // re-export FACADE — transparent to this gate (neither a shared
-                // module nor a consuming area; its `export * from ./<peer>` must
-                // not count as consumption of the peers it re-exports).
-                if (parts.length === 4 && parts[3] === "index.ts") return null;
-                return `components/custom/instrument/${parts[3]}`;
-            }
-            return `components/custom/${parts[2]}`;
+        if (parts[1] === "instrument") {
+            if (parts.length === 3 && parts[2] === "index.ts") return null;
+            return `components/instrument/${parts[2]}`;
         }
         return `components/${parts[1]}`; // ui/, etc — whole tree = one module
     }
@@ -202,11 +191,13 @@ function areaOf(abs) {
     if ((m = /^scenes\/([^/]+)\//.exec(rel))) return `scenes/${m[1]}`;
     if (rel.startsWith("app/")) return "app";
     if (rel.startsWith("playground/")) return "playground";
-    if (rel.startsWith("@/")) return sharedModuleId(abs); // a @/ peer module
+    if (/^(components|composables|utils|state|styles)\//.test(rel)) {
+        return sharedModuleId(abs); // canonical shared peer module
+    }
     return null;
 }
 
-/** Is an area a demo/@ module (vs an external scene/app/playground area)? */
+/** Is an area a demo module (vs an external scene/app/playground area)? */
 const isSharedArea = (area) =>
     area.startsWith("components/") ||
     area.startsWith("composables/") ||
@@ -221,31 +212,31 @@ function enumerateModules() {
         if (EXEMPT_MODULES.has(id)) return;
         mods.push({ id, isDir: fs.statSync(absPath).isDirectory() });
     };
-    // components/custom/* — dirs + flat single files
-    const custom = path.join(SHARED, "components/custom");
-    for (const e of fs.readdirSync(custom, { withFileTypes: true })) {
+    // components/* — dirs + flat single files
+    const components = path.join(SHARED, "components");
+    for (const e of fs.readdirSync(components, { withFileTypes: true })) {
         if (e.isDirectory()) {
             if (e.name === "instrument") {
                 // T.F5 fold: the facility's PEERS are the gated units (each an
                 // @/ consumer area), enumerated one level deeper — NOT the
                 // `instrument/` umbrella itself. This preserves the pre-fold
                 // per-peer ≥2-consumer / dir-sub-zone checks.
-                const inst = path.join(custom, e.name);
+                const inst = path.join(components, e.name);
                 for (const pe of fs.readdirSync(inst, { withFileTypes: true })) {
                     // Only the PEER directories are gated units — the bare
                     // umbrella barrel (instrument/index.ts) is a re-export facade,
                     // not an independent shared leaf.
                     if (pe.isDirectory())
                         push(
-                            `components/custom/instrument/${pe.name}`,
+                            `components/instrument/${pe.name}`,
                             path.join(inst, pe.name),
                         );
                 }
             } else {
-                push(`components/custom/${e.name}`, path.join(custom, e.name));
+                push(`components/${e.name}`, path.join(components, e.name));
             }
         } else if (SOURCE_EXT.has(path.extname(e.name)))
-            push(`components/custom/${e.name}`, path.join(custom, e.name));
+                push(`components/${e.name}`, path.join(components, e.name));
     }
     // composables/* and utils/* — each leaf/dir a module
     for (const seg of ["composables", "utils"]) {
@@ -276,7 +267,7 @@ function buildConsumerMap(allDemo) {
             const resolved = resolveOnDisk(base);
             if (!resolved) continue;
             const modId = sharedModuleId(resolved);
-            if (!modId) continue; // not a demo/@ target
+            if (!modId) continue; // not a demo target
             if (importerArea === null) continue; // untracked importer
             if (importerArea === modId) continue; // self-consumption
             if (!map.has(modId)) map.set(modId, new Set());
@@ -418,6 +409,6 @@ if (all.length > 0) {
 }
 console.log(
     "proof:shared-has-n-consumers — PASS: every @/ module is genuinely shared " +
-        "(≥2 areas, or a peer-consumed sub-zone). The demo/@ partition holds.",
+        "(≥2 areas, or a peer-consumed sub-zone). The demo partition holds.",
 );
 process.exit(0);

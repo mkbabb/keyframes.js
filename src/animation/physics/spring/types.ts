@@ -7,7 +7,7 @@
  * progress↔duration↔reseat circular import ring.
  */
 import type { ReducedMotionPolicy } from "../../internal/reduced-motion";
-import type { RAFPlayback, Tickable } from "../playback";
+import type { ManagedStepper } from "../managed-stepper";
 
 /**
  * iOS-style spring physics options. The pair `(response, dampingFraction)`
@@ -83,11 +83,7 @@ export type SpringFrameCallback = (value: number, velocity: number) => void;
  * helpers additionally read its current `(value, velocity)` for the per-frame
  * callback and route the reduced-motion snap through `snap()`.
  */
-export interface SpringPlayback extends Tickable {
-    /** THE managed rAF driver the loop rides. */
-    readonly _playback: RAFPlayback;
-    /** The bound per-frame callback (`play` sets it; `stop` clears it). */
-    _onFrame: SpringFrameCallback | undefined;
+export interface SpringPlayback extends ManagedStepper<SpringFrameCallback> {
     /** True once `dispose()` has torn the spring down (a disposed spring never plays). */
     readonly disposed: boolean;
     /** Current position — passed to the per-frame callback. */

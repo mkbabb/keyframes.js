@@ -12,7 +12,7 @@
  * HEAVY (value.js `FunctionValue`/`ValueUnit`) — reached only behind
  * `loadAnimationEngine()`.
  */
-import { FunctionValue, ValueUnit } from "@mkbabb/value.js";
+import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
 import { springTimingFunction } from "../physics/spring";
 import type { Easing } from "../constants";
 

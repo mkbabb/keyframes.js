@@ -81,11 +81,11 @@ const bezierNums = (s) => {
 
 // ── (s) STATIC ────────────────────────────────────────────────────────────────
 {
-    const clusterDir = path.join(REPO, "demo/@/components/custom/instrument/easing");
+    const clusterDir = path.join(REPO, "demo/components/instrument/easing");
     if (!existsSync(clusterDir)) {
         ok("(s) the instrument/easing/ hand-rolled cluster (1,082L) is GONE from disk");
     } else {
-        fail("(s) demo/@/components/custom/instrument/easing/ still exists — the T.E8 deletion did not land");
+        fail("(s) demo/components/instrument/easing/ still exists — the T.E8 deletion did not land");
     }
 
     const walk = (dir) => {
@@ -115,7 +115,7 @@ const bezierNums = (s) => {
         );
     }
     const instrumentImports = countPickerImports(
-        path.join(REPO, "demo/@/components/custom/instrument"),
+        path.join(REPO, "demo/components/instrument"),
     );
     if (
         instrumentImports.length === 1 &&

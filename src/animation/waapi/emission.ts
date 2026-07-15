@@ -1,4 +1,4 @@
-import { unflattenObjectToString } from "@mkbabb/value.js";
+import { unflattenObjectToString } from "@mkbabb/value.js/units";
 import { clamp } from "../internal/leaves";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";

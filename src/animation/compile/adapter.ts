@@ -1,17 +1,5 @@
-import {
-    extractAnimationOptions,
-    extractFunctions,
-    extractKeyframes,
-    extractProperties,
-    parseCSSStylesheet,
-    ValueArray,
-    type CustomFunctionDescriptor,
-    type KeyframeRule,
-    type OnParseError,
-    type ParseDiagnostic,
-    type PropertyDescriptor,
-    type Stylesheet,
-} from "@mkbabb/value.js";
+import { extractAnimationOptions, extractFunctions, extractKeyframes, extractProperties, parseCSSStylesheet, type CustomFunctionDescriptor, type KeyframeRule, type ParseDiagnostic, type PropertyDescriptor, type Stylesheet } from "@mkbabb/value.js/parsing";
+import { ValueArray } from "@mkbabb/value.js/units";
 import {
     DROP,
     hasResolvableValue,
@@ -28,8 +16,7 @@ import {
  * lifted onto the structured field). The engine-internal rows
  * (`EMPTY_PARSE`/`UNKNOWN_TIMING_FN`) were J.W1-landed as typed throws; W7 lifts
  * them onto this field. `COMPOSITION_FALLBACK` is the K.W7 honesty row (the
- * non-numeric composite leaf's refusal). `PARSE_ERROR` carries the value.js
- * `OnParseError` producer's structured diagnostic verbatim. The CORS-skip /
+ * non-numeric composite leaf's refusal). The CORS-skip /
  * WAAPI-reason rows are AUTHORED here but POPULATED by K.W8 (which owns the
  * CSSOM walk that produces them).
  */
@@ -62,14 +49,13 @@ export type DiagnosticCode =
 
 /**
  * A structured parse/honoring diagnostic (K.W7 S4). Extends the value.js
- * `ParseDiagnostic` producer (the CONSUMED shape — `message`/`offset`/`line`/
+ * parser diagnostic shape (the consumed shape — `message`/`offset`/`line`/
  * `column`/`expected`/`input`) with a stable kf-side {@link DiagnosticCode} and
  * an optional `property` (the leaf a `COMPOSITION_FALLBACK` names). The
  * value.js half (`message`/`offset`/…) is `Partial` because the engine-internal
  * rows (EMPTY_PARSE, COMPOSITION_FALLBACK) are NOT byte-offset parse failures —
- * they carry a `message` + `code` only; a row sourced from the value.js
- * `OnParseError` producer carries the full positional record. NOT a kf-local
- * re-author of the producer: it CONSUMES `ParseDiagnostic`'s field shape and
+ * they carry a `message` + `code` only. Positional fields are retained for
+ * ingest callers that attach source locations.
  * widens it with the stable code (inv-16 published-only consumption holds).
  */
 export interface Diagnostic extends Partial<ParseDiagnostic> {
@@ -231,24 +217,8 @@ export const resolveKeyframes = (
     env?: ResolveEnv,
 ): ResolvedKeyframes => {
     const diagnostics: Diagnostic[] = [];
-    // The CONSUMED value.js producer (N2 row 10): a sink of the published
-    // `OnParseError` shape. The kf-side honesty rows AND any value.js parse
-    // diagnostic flow through this ONE sink — every row that lands on the
-    // channel passes through the producer's `(ParseDiagnostic) => void` contract
-    // (NOT a re-authored kf-local logger). A value.js parse that emits a
-    // `ParseDiagnostic` (K.W8 wires its CSSOM walk through this) lands as a
-    // `PARSE_ERROR` row; the engine-internal EMPTY_PARSE row rides the same sink.
-    // Ready for K.W8: a value.js parse derailment, surfaced through the
-    // producer's `OnParseError` contract, lands as a `PARSE_ERROR` row verbatim
-    // (the consumed `ParseDiagnostic` shape carried whole). The CSSOM walk K.W8
-    // owns threads THIS sink into its per-sheet parse so one bad sheet becomes a
-    // row, not a thrown abort. Authored here; populated when that producer lands.
-    const onParseError: OnParseError = (d: ParseDiagnostic) => {
-        diagnostics.push({ ...d, code: "PARSE_ERROR" });
-    };
-    void onParseError;
-    // The engine-internal honesty rows ride the SAME flat channel — a stable
-    // `code` + a `message`, the consumed `ParseDiagnostic` field shape widened.
+    // Engine-internal honesty rows use one flat channel: a stable `code` +
+    // `message`, with optional parser-position fields for ingest callers.
     const sink = (code: DiagnosticCode, extra: Partial<Diagnostic>): void => {
         diagnostics.push({ code, message: extra.message ?? code, ...extra });
     };

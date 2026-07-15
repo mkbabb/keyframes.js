@@ -160,6 +160,7 @@
 import type { ComponentPublicInstance } from "vue";
 import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
+import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { SPRING_DEMO_KEY } from "./springKeys";
@@ -177,11 +178,9 @@ const samplerBallEl = useTemplateRef<HTMLElement>("samplerBallEl");
 
 // The sweep can overshoot past 1 (underdamped) — clamp the *marker* position
 // so the ball stays inside the track even though the read-out shows >1.
-const clampSweep = (v: number) => Math.max(0, Math.min(1, v));
-
 // ── L.W11 S6 — the four DERBY LANE balls (painter-positioned) ────────────────
 // Each lane ball reads the live `springLive.trackValues[index]` directly (the
-// engine's physics, off the Vue render graph). The lanes' clampSweep is RELAXED
+// engine's physics, off the Vue render graph). The lane sample marker is bounded
 // on the value axis so the curve crosses the target line (bouncy rings PAST it);
 // the ball still rides its bounded horizontal rail.
 const derbyBallEls: (HTMLElement | null)[] = [];
@@ -208,10 +207,10 @@ onMounted(() => {
             liveBallEl.value.style.transform = `translateX(${live.value * 100}cqw)`;
         }
         if (samplerBallEl.value) {
-            samplerBallEl.value.style.transform = `translateX(${clampSweep(live.sampled) * 100}cqw)`;
+            samplerBallEl.value.style.transform = `translateX(${clamp(live.sampled, 0, 1) * 100}cqw)`;
         }
         // L.W11 S6 — position the four derby-lane balls from the live tracker
-        // values (clampSweep RELAXED here so the bouncy lane visibly rings PAST
+        // values (the live lanes remain relaxed so the bouncy lane visibly rings PAST
         // the target line — the overshoot is the point). Painter-positioned, the
         // SAME hot path; no second writer, no second rAF (inv ζ).
         const trackValues = live.trackValues;
@@ -220,7 +219,7 @@ onMounted(() => {
             if (el) {
                 // Allow a small overshoot beyond 100% so the ring is seen; cap so
                 // the ball can't leave the lane entirely.
-                const v = Math.max(0, Math.min(1.18, trackValues[i] ?? 0));
+                const v = clamp(trackValues[i] ?? 0, 0, 1.18);
                 el.style.transform = `translateX(${v * 100}cqw)`;
             }
         }

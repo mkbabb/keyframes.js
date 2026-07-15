@@ -26,8 +26,43 @@
 import { withReducedMotion } from "../internal/reduced-motion";
 import { setChildrenPaused, snapChildrenToFinal } from "./entries";
 import { compositeFrame } from "./compositor";
+import { lowerGroupWAAPI } from "./waapi";
 import type { Vars } from "../constants";
 import type { AnimationGroup } from "./group";
+import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport/core";
+
+/** Cancel native group effects and return to the empty-handle rAF state. */
+function cancelDelegatedWAAPI<V extends Vars>(group: AnimationGroup<V>): void {
+    for (const animation of group._waAnimations) {
+        try {
+            animation.cancel?.();
+        } catch {
+            /* KEEP: detached native effects are already inert. */
+        }
+    }
+    group._waAnimations.length = 0;
+    group._waapiDelegated = false;
+}
+
+function pauseDelegatedWAAPI<V extends Vars>(group: AnimationGroup<V>): void {
+    for (const animation of group._waAnimations) {
+        try {
+            animation.pause?.();
+        } catch {
+            /* KEEP: a finished/detached effect is already paused. */
+        }
+    }
+}
+
+function resumeDelegatedWAAPI<V extends Vars>(group: AnimationGroup<V>): void {
+    for (const animation of group._waAnimations) {
+        try {
+            animation.play?.();
+        } catch {
+            /* KEEP: a finished/detached effect cannot be resumed. */
+        }
+    }
+}
 
 /** Resolve + clear the pending `play()` promise (the completion/stop path). */
 export function resolvePlay<V extends Vars>(group: AnimationGroup<V>): void {
@@ -42,23 +77,25 @@ export function resolvePlay<V extends Vars>(group: AnimationGroup<V>): void {
 export async function play<V extends Vars>(
     group: AnimationGroup<V>,
 ): Promise<void> {
-    if (group._playingPromise) return group._playingPromise;
-
-    const result = withReducedMotion(
+    return beginPlay(group, () => withReducedMotion(
         group.respectReducedMotion,
         () => playReducedMotion(group),
-        () =>
-            new Promise<void>((resolve) => {
+        () => {
+            // Group lowering is deliberately opt-in through every child's
+            // existing `useWAAPI` option (the gate rejects any false child).
+            // The shadow rAF transport remains authoritative for lifecycle,
+            // events, and completion; native effects only replace visual work.
+            const native = lowerGroupWAAPI(group);
+            if (native) {
+                group._waAnimations.push(...native);
+                group._waapiDelegated = true;
+            }
+            return new Promise<void>((resolve) => {
                 group.resolvePromise = resolve;
                 group.playback.loop(group._boundFrame);
-            }),
-    );
-
-    group._playingPromise = result;
-    result.finally(() => {
-        group._playingPromise = null;
-    });
-    return result;
+            });
+        },
+    ));
 }
 
 /** `prefers-reduced-motion` snap: rest = final, paint it, settle — the SAME
@@ -105,6 +142,7 @@ export function pause<V extends Vars>(group: AnimationGroup<V>): void {
     }
 
     group.playback.stop();
+    if (group._waapiDelegated) pauseDelegatedWAAPI(group);
     group.render();
 }
 
@@ -114,12 +152,18 @@ export function resume<V extends Vars>(group: AnimationGroup<V>): void {
     if (!group.started || !group.paused) return;
     group.paused = false;
     setChildrenPaused(group.getEntries(), false);
+    if (group._waapiDelegated) resumeDelegatedWAAPI(group);
     group.playback.loop(group._boundFrame);
+}
+
+export function toggle<V extends Vars>(group: AnimationGroup<V>): void {
+    transportToggle(group, () => pause(group), () => resume(group));
 }
 
 /** Pure state teardown — never paints. Releases every child (`managed = false`,
  * `child.settle()`) and clears the group flags, leaving the rest frame painted. */
 export function settle<V extends Vars>(group: AnimationGroup<V>): void {
+    if (group._waapiDelegated) cancelDelegatedWAAPI(group);
     for (const entry of group.getEntries()) {
         entry.animation.managed = false;
         entry.animation.settle();
@@ -154,5 +198,5 @@ export function stop<V extends Vars>(group: AnimationGroup<V>): void {
 
 /** True iff the group is started and not paused. */
 export function playing<V extends Vars>(group: AnimationGroup<V>): boolean {
-    return !(!group.started || group.paused);
+    return transportPlaying(group);
 }

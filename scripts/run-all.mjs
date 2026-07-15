@@ -11,7 +11,7 @@
 // THREE-tier taxonomy — `proof:library-correctness` (node/jsdom value-proofs) +
 // `proof:demo-correctness` (browser actuators, the renamed proof:correctness) keep
 // their parseable direct `&&`-chain VALUE (so `proof:gate-is-runtime` +
-// `proof:ci-coverage` still derive their rosters by regex, no delegation
+// legacy coverage helpers still derive their rosters by regex, no delegation
 // indirection); `proof:hygiene` delegates to `proof:hygiene-chain`. The SCHEDULE
 // moves here, the MEMBERSHIP stays in package.json: one source of truth. A leaf is
 // one `&&`-separated command (`npm run proof:X` or `vitest run …`), run verbatim.
@@ -26,6 +26,7 @@ import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { cpus } from "node:os";
+import { ALL_TIERS } from "./lib/tiers.mjs";
 
 const argv = process.argv.slice(2);
 const flag = (name, def) => {
@@ -42,7 +43,7 @@ const cwd = dirname(pkgPath);
 const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
 
 const tiers = argv.includes("--all")
-    ? ["proof:library-correctness", "proof:demo-correctness", "proof:hygiene"]
+    ? ALL_TIERS
     : argv.filter((a) => a.startsWith("--tier=")).map((a) => a.slice("--tier=".length));
 
 if (tiers.length === 0) {

@@ -1,34 +1,10 @@
-# ci — PR + push-to-master gate matrix for @mkbabb/keyframes.js.
+# Merge correctness and publish-boundary workflow for @mkbabb/keyframes.js.
 #
-# TWO gate postures, by inv β:
-#
-#   gates (LIBRARY) — glass-ui-FREE. Every step touches only the
-#   publishable surface (`src/` → `dist/`):
-#     check:lib  — tsc --noEmit -p tsconfig.lib.json   (src/ only; never demo)
-#     build:lib  — vite build --mode production         (library entry; externals
-#                  value.js + glass-ui; demo graph untouched)
-#     test       — vitest (test/, jsdom)                (no glass-ui imports)
-#     proof:boundary — bundle EVERY light barrel entry and assert 0 value.js +
-#                0 static engine edge per entry, the heavy engine dynamic-only,
-#                no dormant static specifier (A inv α, widened in B.W2)
-#   `@mkbabb/glass-ui` is a PUBLISHED registry optionalDependency the LIBRARY
-#   graph never dereferences — check:lib / build:lib / proof:boundary / test stay
-#   glass-ui-free (the library externalizes it; the demo graph is untouched). The
-#   G re-pin retired the former local-sibling dev link: the demo now consumes the
-#   published registry package like any other dep (proof:ci-coverage forbids a
-#   local-link or sibling-clone glass-ui reference in any workflow).
-#
-#   demo-smoke (DEMO) — the demo legitimately needs glass-ui, so this is a
-#   SEPARATE job that `npm ci`-installs the published registry package + a browser
-#   and asserts the BUILT gh-pages demo paints (B inv γ) and occludes nothing
-#   (B inv δ). A blank/tree-shaken build or an occluded page fails CI here.
-#
-# Cross-repo dependency-order note: keyframes.js resolves @mkbabb/value.js
-# via the npm registry (range declared in `package.json`). A breaking value.js
-# publish surfaces here at the `npm ci` + build:lib step — the standard
-# chore(deps) bump routes the breakage through a PR. The floor is single-sourced
-# in `package.json`'s declared range, not hardcoded here (proof:ci-coverage's
-# version-literal clause forbids a bare workflow literal that disagrees with it).
+# U.A6 collapses the merge path to the three surviving mechanisms: the Vitest
+# correctness suite and proof:publish (boundary, published surface, dependency
+# floor). Browser/device observations run only on the scheduled/manual roster
+# below; they never hold a library merge hostage. Glass-ui remains a registry
+# optional dependency and is not cloned or edited here.
 name: ci
 
 on:
@@ -36,607 +12,50 @@ on:
         branches: [master]
     push:
         branches: [master]
+    schedule:
+        - cron: "17 3 * * 1"
+    workflow_dispatch: {}
 
-# Cancel superseded runs on the same ref to save minutes (the constellation
-# guard — `deploy/templates/ci.yml`). The gates job is ~17 proof gates + tsc +
-# build + test; demo-smoke is a Playwright + lighthouse + LoAF matrix.
 concurrency:
     group: ci-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
+permissions:
+    contents: read
+
 jobs:
     gates:
-        name: library gate (glass-ui-free)
+        name: library gates (npm test + proof:publish)
         runs-on: ubuntu-latest
-        # 20: the T-era roster (131 steps) runs ~10-12min on this runner — the old
-        # 10 ceiling timeout-killed the job at step ~122 once demo-elevate went
-        # green and the run finally reached the tail (2026-07-10). A timeout kill
-        # reports "cancelled", poisoning the run conclusion the deploy-of-record
-        # workflow_run gates on. The U CI-trim owns the real reduction.
-        timeout-minutes: 20
+        timeout-minutes: 4
         steps:
-            # S.A0 — proof:published-on-master asserts release-tag → master
-            # ANCESTRY (`git rev-list -n1 v<version>` + `merge-base --is-ancestor`
-            # against origin/master); the default shallow depth-1 checkout carries
-            # neither tags nor history, so that gate exited 128 ("unknown
-            # revision") on every CI run since its authoring. Full history + tags
-            # make the ancestry assertion actually runnable on the runner.
             - uses: actions/checkout@v5
               with:
                   fetch-depth: 0
-            # kf runs Node 24 — the newest runtime the published lib will face;
-            # constellation default is 22; engines floor is >=22 (a NAMED delta,
-            # not silent drift — a library should test the newest runtime).
             - uses: actions/setup-node@v5
               with:
                   node-version: 24
                   cache: "npm"
-            - run: npm ci
-            - name: proof:deps-current (G.W2 — @mkbabb/* pins current · protocol-clean · realm-convergent)
-              run: npm run proof:deps-current
-            - name: check (tsc --noEmit, library-scoped)
+            - name: npm ci
+              run: npm ci
+            - name: check library types
               run: npm run check:lib
-            - name: build (library)
+            - name: build library
               run: npm run build:lib
-            - name: dts artefact is real + the 15 public runtime symbols roll up
-              run: |
-                  test -f dist/keyframes.d.ts
-                  bytes=$(wc -c < dist/keyframes.d.ts)
-                  echo "dist/keyframes.d.ts = $bytes bytes"
-                  test "$bytes" -gt 10000
-                  # The 15 PUBLIC runtime symbols the library ships: the 14 light
-                  # barrel exports + the loadAnimationEngine dynamic accessor. Each
-                  # must roll up to the dts as a PRECISE `export declare …` anchor
-                  # — NOT a loose substring. The former `grep "class Animation"`
-                  # matched the `Animation_2` collision-rename / `AnimationGroup` /
-                  # `AnimationOptionError`, proving none of them; a dropped symbol
-                  # passed green. A symbol ships either directly
-                  # (`export declare class|function|const NAME…`) or, when
-                  # API-Extractor must collision-rename it (`<Name>_2`), as an
-                  # `export { <rename> as NAME }` aliased re-export — either proves it.
-                  # NOTE (Q.WE1): the @deprecated `ScrollTimeline` alias was DROPPED
-                  # in 5.0.0; the canonical name is `KeyframesScrollTimeline` (the
-                  # collision-free PKG-3 class — rolls up as a direct declaration).
-                  SYMS="NumericAnimation SmoothProgress SpringProgress springLinearStops springTimingFunction ElementMorph Timeline KeyframesScrollTimeline ManualTimeline RAFPlayback resolveEasing toEasing AnimationOptionError UnknownEasingError loadAnimationEngine"
-                  missing=""
-                  for sym in $SYMS; do
-                    if grep -qE "^export declare (abstract class|class|function|const|enum) ${sym}[<(:; ]" dist/keyframes.d.ts \
-                       || grep -qE "^export \{ [A-Za-z0-9_]+ as ${sym} \}" dist/keyframes.d.ts; then
-                      :
-                    else
-                      missing="$missing $sym"
-                    fi
-                  done
-                  if [ -n "$missing" ]; then
-                    echo "dts MISSING public runtime symbol declaration(s):$missing"
-                    exit 1
-                  fi
-                  echo "dts public-symbol set complete: 15/15"
-            - name: test
+            - name: correctness suite
               run: npm test -- --run
-            # J.W5 — the PUBLISH/DOCS boundary oracle (library-scoped: built dist +
-            # `npm pack --dry-run`, no demo build, no browser). Clause (a) tarball ==
-            # files declaration (no `_redirects`), (b) every public export taught or
-            # manifested, (d) AnimationEngine interface ≡ runtime surface (ENG-6),
-            # (e) root CLAUDE.md structural-claim tripwire, (f) peer-dep honesty.
-            - name: proof:published-surface (J.W5 — tarball == exports == docs · the publish-boundary oracle)
-              run: npm run proof:published-surface
-            # Q.WE1 — the NO-LEGACY breaking-surface oracle: the three @deprecated
-            # PKG-3 aliases (Animation / ScrollTimeline / ScrollTimelineOptions)
-            # are GONE from the BUILT dist/keyframes.d.ts (the consumer's installed
-            # surface). Runs AFTER build:lib, same precondition as proof:published-
-            # surface. HARD posture — a correctness/precept invariant.
-            - name: proof:alias-dropped (Q.WE1 — the @deprecated aliases are GONE from the published d.ts · NO-LEGACY)
-              run: npm run proof:alias-dropped
-            # T.M8 (lane 27 F9) — the three S.B6 type-surface / ./engine-drift gates
-            # folded out of their dev-only orphan status into a real tier. They read
-            # the BUILT dist/keyframes.d.ts (same precondition as proof:published-
-            # surface / proof:alias-dropped above — after build:lib), so they ride the
-            # gates job here + proof:hygiene-chain (local truth). Was: EXCLUDED as
-            # "development-only" (never CI-wired) since S.B6.
-            - name: proof:engine-subpath-mirror (T.M8/F9 — ./engine subpath mirrors the AnimationEngine keys)
-              run: npm run proof:engine-subpath-mirror
-            - name: proof:no-any-default (T.M8/F9 — no `any` in the default type surface)
-              run: npm run proof:no-any-default
-            - name: proof:dts-rollups-agree (T.M8/F9 — the d.ts roll-ups agree)
-              run: npm run proof:dts-rollups-agree
-            # T.M — the born-OWNER gate class mechanism (batch ①). Pure static reads
-            # (docs/tree/package.json), no browser, no dist — so they ride the fast
-            # gates job + proof:hygiene-chain. Each is green-today (M1/M2 vacuous or
-            # clean; M6/M7 registry-derived; M9 board-live; M10 recap teeth). The
-            # BORN-RED backlog gates (proof:stage-inventory / -subject-legible /
-            # -subject-full / -roster-ceiling) are DECLARED in scripts/gate-bands.mjs
-            # T_BORNRED_BACKLOG + EXCLUDED in proof:ci-coverage (recorded, not blocking).
-            - name: proof:owner-verdict-recorded (T.M1 — K's TASTE-VERDICT revived, blocking per-wave)
-              run: npm run proof:owner-verdict-recorded
-            - name: proof:owner-review-gate (T.M2 — pre-authoring sign-off + convergence≠sufficient)
-              run: npm run proof:owner-review-gate
-            - name: proof:gate-authority (T.M6 — the INSTRUMENT/OWNER authority axis + blocking-not-OBSERVE)
-              run: npm run proof:gate-authority
-            - name: proof:retirement-ledger (T.M7 — feature-coupled retirement, derive-from-tree)
-              run: npm run proof:retirement-ledger
-            - name: proof:board-live (T.M9 — board↔tree + session-log freshness)
-              run: npm run proof:board-live
-            - name: proof:prompt-recap-t (T.M10 — the born-OWNER recap gate teeth)
-              run: npm run proof:prompt-recap-t
-            # S.C1 — the GENERALIZED breaking-set MIGRATION-doc oracle (C-18): git-
-            # reconstructs the previous published tag's docs/published-surface.md, diffs it
-            # against HEAD, and REDs on any removed public-surface row lacking a matching
-            # docs/MIGRATION-<version>.md entry (version-agnostic semver honesty).
-            - name: proof:changelog (S.C1 · C-18 — every removed published-surface row is documented in docs/MIGRATION-<version>.md)
-              run: npm run proof:changelog
-            # K.W12 ED-1 — the agent index (/llms.txt + /llms-full.txt) can never
-            # drift from the J.W5 published surface (the gate-ORACLE at the AGENT
-            # boundary: linked exports == the manifest roster, cited gates real).
-            - name: proof:agent-surface (K.W12 ED-1 — the agent index == the published surface)
-              run: npm run proof:agent-surface
-            # R.W4 — the honest API "in": the @mkbabb/keyframes.js/engine subpath
-            # resolves the heavy surface statically (the Quick Start's `new
-            # CSSKeyframesAnimation`), the Quick Start fence is `ts run`-enforced, and
-            # the agent-surface phantom-export check is co-asserted. Library-scoped.
-            - name: proof:in-is-importable (R.W4 — the honest "in" · ./engine subpath + ts-run Quick Start)
-              run: npm run proof:in-is-importable
-            # L.W6 — the agent-authoring VERB (validate/explain): the round-trip's
-            # FORWARD half, the VALIDATION layer over the compile surface. A HEAVY-
-            # surface oracle that runs in jsdom/node (no browser, no demo build), so
-            # it rides the library `gates` job beside proof:agent-surface. Asserts
-            # the verb exists + is boundary-clean (HEAVY, import-type on the barrel),
-            # the /llms.txt LOOP teaching is fresh, and the (c)/(d) behaviour locks.
-            - name: proof:agent-validate (L.W6 — the agent-authoring verb · validate/explain)
-              run: npm run proof:agent-validate
-            # K.W12 ED-3 — the dogfood inversion boundary-ORACLE at the PACKAGE
-            # boundary (STAGED: the self-alias seam + the @src deep-import census
-            # + the honest disposition; the full flip lands at K.WZ).
-            - name: proof:demo-on-published-surface (K.W12 ED-3 — the demo consumes the published barrel · staged)
-              run: npm run proof:demo-on-published-surface
-            # K.W12 ED-4 — the public color-fidelity conformance: midpoint ΔE vs
-            # the CSS Color 4 reference (via the PUBLISHED deltaEOK), under the
-            # JND. The ONE benchmark only kf can publish honestly (un-spinnable).
-            - name: proof:color-fidelity (K.W12 ED-4 — midpoint ΔE vs CSS Color 4 · the un-spinnable benchmark)
-              run: npm run proof:color-fidelity
-            # J.W5 clause (c) — every README §Beyond CSS / §Animation runnable snippet
-            # EXECUTES against the built dist; `// =>` results verified; the
-            # taught-roster floor forbids the under-tagging false-green.
-            - name: proof:readme-runs (J.W5 — the README snippets EXECUTE against dist)
-              run: npm run proof:readme-runs
-            # R.W7 — README paths live: every ](src/…) link resolves, no stale
-            # `Animation` class-name reference, Quick Start fence is `ts run` + has
-            # an import line. Paired with proof:readme-runs (R.W4 ensures execution;
-            # R.W7 ensures the cited paths exist + the class name is canonical).
-            - name: proof:readme-paths-live (R.W7 — README src/ links live · no stale Animation · Quick Start ts run)
-              run: npm run proof:readme-paths-live
-            - name: proof:boundary (value.js static/dynamic boundary gate, all light entries)
-              run: npm run proof:boundary
-            - name: "proof:consume-bundle (M.W9 atlas — a LIGHT-surface consumer drags zero value.js/engine)"
-              run: npm run proof:consume-bundle
-            - name: "proof:css-parity (M.W11 — kf consumes value.js grammar; P0/nesting/depth-walk cured)"
-              run: npm run proof:css-parity
-            - name: "proof:packrat-sound (M.W10 — consumed parse-that packrat is sound + LR-intact)"
-              run: npm run proof:packrat-sound
-            - name: proof:engine (D.W4 transposition source gate — tick-canon · seam · pause-honest · snap-symmetry · no-legacy)
-              run: npm run proof:engine
-            - name: proof:compile-backward-leg (S.B3 — compile/ FORWARD/BACKWARD layering · no re-export bridge · no cross-zone deep-import)
-              run: npm run proof:compile-backward-leg
-            - name: proof:zone-cohesion (T.F22 — per-zone internal cohesion · 400L intra-zone ceiling or justified single-concern · ring-fence intact · no test in src)
-              run: npm run proof:zone-cohesion
-            - name: proof:colocation (T.F21 — THE EDICT keystone · recursive colocation, kind-appropriate tiers, no flat use* beside composables/)
-              run: npm run proof:colocation
-            - name: proof:style-file-ceiling (T.F — the styles split ceiling · every @/styles file ≤300L)
-              run: npm run proof:style-file-ceiling
-            - name: proof:no-flat-siblings (R.W1 — the 11-zone directory partition · no flat-hyphenated siblings · zone barrels · known-violations dissolved)
-              run: npm run proof:no-flat-siblings
-            - name: proof:no-orphan-module (S.C1 — dynamic-import-aware reachability walker + the scoped front-door `animate` grep; the zero-importer zombie class made structural)
-              run: npm run proof:no-orphan-module
-            - name: proof:no-dead-dependency (S.C3a — the 8 zero-importer shadcn devDeps + SPRING_SMOOTH denylist, the dead-identifier grep; the shadcn census clause is NON-GATING, discharged at S.C3b)
-              run: npm run proof:no-dead-dependency
-            - name: proof:no-dead-export (T.F23a — the demo export-census; a named demo export with zero consumer across demo/src/test/scripts, the granularity no-orphan-module (file) + no-dead-dependency (package) miss; ratchets the deferred backlog DOWN)
-              run: npm run proof:no-dead-export
-            - name: proof:any-ceiling (T.F23b — the demo `any`-count ratchet; the count may only fall, a fresh `any` REDs)
-              run: npm run proof:any-ceiling
-            - name: proof:zero-alloc (AnimationGroup composite allocates 0 bytes/frame + FrameCompiler seam + snap symmetry)
-              run: npm run proof:zero-alloc
-            # F.W2 — the library-scoped engine/correctness gates the workflow
-            # previously never ran (E's engine-correctness/standalone-zero-alloc/
-            # compile-deterministic + the whole F gate cohort). Each is a vitest
-            # run / node script over src/ — no demo build needed, so they ride
-            # the fast library job.
-            - name: proof:engine-correctness (E.W7 — five engine correctness locks)
-              run: npm run proof:engine-correctness
-            - name: proof:standalone-zero-alloc (E.W7 — the standalone play-loop buffer)
-              run: npm run proof:standalone-zero-alloc
-            - name: proof:compile-deterministic (E.W8 — byte-deterministic compile ids)
-              run: npm run proof:compile-deterministic
-            - name: proof:compile-replay (K.W10 — THE COMPILE; the round-trip's BACKWARD half replays equal or REFUSES)
-              run: npm run proof:compile-replay
-            - name: proof:replay-equality (L.W1 — the replay-equality FLOOR; @property/per-stop-composition/named-selector/composite round-trip; keyframe !important spec-faithfully dropped)
-              run: npm run proof:replay-equality
-            - name: proof:orchestration (F.W3 — stagger/FLIP/decay/Sequence behaviour locks)
-              run: npm run proof:orchestration
-            - name: proof:transport-events (L.W5 S3 — Sequence segment/label crossing callback channel)
-              run: npm run proof:transport-events
-            - name: proof:interp-fastprops (F.W4 — the dict-mode buffer fold + single-frame alias)
-              run: npm run proof:interp-fastprops
-            - name: proof:sync-step (F.W5 — the drive sync fast-path + the event-ordering lock)
-              run: npm run proof:sync-step
-            - name: proof:event-ordering (J.W6 S1/FB-2 — animationstart → iteration* → animationend · paint-before-event · awaited play resolves after end)
-              run: npm run proof:event-ordering
-            - name: proof:roundtrip-easing (F.W7 — per-keyframe + spring linear() round-trip)
-              run: npm run proof:roundtrip-easing
-            - name: proof:adapter-capture (F.W8 — composition capture + shorthand-applied + AST-decide)
-              run: npm run proof:adapter-capture
-            - name: proof:blend (G.W17 — the dead add/weighted blend leaf, element-wise)
-              run: npm run proof:blend
-            - name: proof:composition-honored (K.W7 — the engine HONORS the animation-composition operator add/accumulate/composite)
-              run: npm run proof:composition-honored
-            - name: proof:diagnostics-channel (K.W7 — ResolvedKeyframes.diagnostics consumes the value.js ParseDiagnostic producer)
-              run: npm run proof:diagnostics-channel
-            - name: proof:spring-blend-weight (K.W11 — the layer blend weight is spring-driven, zero-alloc on the constant path)
-              run: npm run proof:spring-blend-weight
-            - name: proof:scroll-roundtrip (K.W9 — the scroll-timeline grammar round-trips via value.js 0.13.0; native-vs-JS dispatch)
-              run: npm run proof:scroll-roundtrip
-            - name: proof:drawsvg (G.W13 — CSS-native DrawSVG, WAAPI-eligible)
-              run: npm run proof:drawsvg
-            - name: proof:finished (G.W13 — the .finished completion front-door)
-              run: npm run proof:finished
-            - name: proof:adopt-compiled (G.W19 — the adoptCompiled() engine seam)
-              run: npm run proof:adopt-compiled
-            - name: proof:interpolate-anything (G.W15 — value-type breadth + color fidelity)
-              run: npm run proof:interpolate-anything
-            - name: proof:roundtrip-fidelity (G.W16 — parse→format→reparse byte-same midpoint)
-              run: npm run proof:roundtrip-fidelity
-            - name: proof:ingest-replay (K.W8 — the round-trip FORWARD; CSSOM walk replays equal to source)
-              run: npm run proof:ingest-replay
-            - name: proof:orbital-rotate3d (G.W18 — the orbital rotate3d output collapse)
-              run: npm run proof:orbital-rotate3d
-            - name: proof:scene-raf-leak (G.W9 — the scene rAF-leak lifecycle correction)
-              run: npm run proof:scene-raf-leak
-            - name: proof:scene-contract-identity (H.W1 — the raw-rAF ScenePlayback round-trip + easing↔cube cross-pairs)
-              run: npm run proof:scene-contract-identity
-            - name: proof:group-snapshot-identity (H.W1 — the born-RED engine serialize()/hydrate() HANDOFF witness)
-              run: npm run proof:group-snapshot-identity
-            - name: proof:resize-tracks (G.W3 — cqw tracks a non-window container resize)
-              run: npm run proof:resize-tracks
-            - name: proof:cohesion (F.W11 — clamp convergence · inverted-tier · preset reachability)
-              run: npm run proof:cohesion
-            - name: proof:repin-witness (G.W2 — the C1 computed-endpoint memo resolves O(frames)→O(1) on kf's path)
-              run: npm run proof:repin-witness
-            - name: proof:bench-runs (F.W1 — the compile/interp/parser benches run, non-empty)
-              run: npm run proof:bench-runs
-            # L.W7 S6 (Lane 33) — proof:bench-taxonomy: the budgeted bench manifest
-            # (bench/taxonomy.json). Every bench case is classified {run-check |
-            # budgeted | observe-only | cross-repo}; budgeted floors (the lerpArray
-            # SoA win at K=8, the spring-vector probe, the warmEngine pre-resolve)
-            # are asserted (observe-only/wall-clock in CI per the taxonomy posture
-            # row — RECORDED, never red on the slow runner; hard on-device); the
-            # VJ.L1–VJ.L8 color-math asks are dispatched to value.js Tranche O. A
-            # vitest-bench run over src/ — no demo build, so it rides the library job.
-            - name: proof:bench-taxonomy (L.W7 S6 — the budgeted bench taxonomy · lerpArray SoA + spring-vector + warmEngine floors · VJ.L1–VJ.L8 cross-repo dispatch)
-              run: npm run proof:bench-taxonomy
-            # L.W7 S4 (W123) — proof:scheduler-posttask: the scheduler.postTask
-            # priority-bands born-RED probe. SKIP-when-absent (jsdom/Node lack the
-            # API) + the device-INDEPENDENT assertion that yieldToMain's
-            # scheduler.yield fast-path is unaffected by warmEngine's "background"
-            # postTask adoption. A vitest run over src/ — library job.
-            - name: proof:scheduler-posttask (L.W7 S4 — scheduler.postTask "background" probe · yieldToMain yield-path unaffected)
-              run: npm run proof:scheduler-posttask
-            # L.W7 S5 (W40) — proof:epf1-measure: the EPF-1 ingest read/write
-            # phase-separation MEASURE-FIRST gate. OBSERVE-ONLY (category
-            # forced-layout per inv-L-device-honesty — carries its taxonomy posture
-            # row): it records the device-INDEPENDENT layout-thrash COUNT baseline
-            # (scripts/epf1-baseline.json), exits 0 regardless. The 50%-reduction
-            # floor opens only when the batch-reads/batch-writes cure ships under
-            # EPF1_CURE=1 (NOT in L.W7). Library job.
-            - name: proof:epf1-measure (L.W7 S5 — the EPF-1 ingest read/write thrash baseline · observe-only · forced-layout)
-              run: npm run proof:epf1-measure
-            # L.W7 S2 (W122) — proof:spring-vector: the SpringProgress vector-sugar
-            # MEASURE-FIRST ADOPT-or-KILL probe. Asserts the recorded verdict
-            # (scripts/spring-vector-decision.json): ADOPT (>=20% at K=8 →
-            # setTargets(Float64Array) authorized) OR KILL (the sugar is not built —
-            # no unproven code). A vitest-bench probe over src/ — library job.
-            - name: proof:spring-vector (L.W7 S2 — the SpringProgress vector-sugar ADOPT-or-KILL probe · MEASURE-FIRST, no unproven code)
-              run: npm run proof:spring-vector
-            # H.W8 S1 (I-1) — the SCENES manifest is RE-SOURCED from demo/app/scene/scenes.ts:
-            # the runtime SCENES keys ≡ scenes.ts ids (bidirectional set-equality, NOT a
-            # hard count — auto-tracks every scene add/remove). A new scene with no manifest
-            # entry, or a stale manifest key, reds — so the 3 previously-unmanifested scenes
-            # (sequence/motion-path were never gate-visited) are enrolled in every runtime gate.
-            - name: proof:manifest-sourced (H.W8 S1/I-1 — SCENES keys ≡ scenes.ts ids · auto-enrolls every scene)
-              run: npm run proof:manifest-sourced
-            # I.W7 S6 (RE-TARGETED S.A4) — proof:gate-is-runtime: THE META-GATE that makes
-            # the gate-ORACLE precept MECHANICALLY PRIOR (RED-1). For EVERY proof:demo-
-            # correctness member (the S.A4-renamed browser-actuator tier) — the roster is
-            # DERIVED from the tier's membership (J.W3 S4/T4), never a hardcoded list — it
-            # asserts the script opens a browser (serveDist + KF_PLAYWRIGHT_DIR + newContext,
-            # inline or via the lib lifecycle) AND actuates (click/dispatch/mouse/key/drag/
-            # navToScene-SWITCH) AND is wired into the demo-correctness tier of proof:all;
-            # the SYMMETRIC clause asserts every proof:library-correctness member carries NO
-            # browser harness (mis-tier reds BOTH ways). A source-shape / load-rest / proxy
-            # §Hard gate FAILS. HYGIENE-tier itself (it reads gate SCRIPTS) — static, no build.
-            - name: "[HYGIENE-meta] proof:gate-is-runtime (I.W7 S6 · S.A4 — every demo-correctness gate is an actuating runtime gate + every library-correctness gate is harness-free · mis-tier reds both ways)"
-              run: npm run proof:gate-is-runtime
-            # I.W7 S4 + S.A1 — proof:chronic-closure: parse the canonical chronic table
-            # (docs/tranches/S/PROGRESS.md §"Open deferrals", which SUPERSEDES R's, the
-            # R→S re-point) and assert each kf-runtime-closing row exits via a RUNTIME gate
-            # that BIT AND the S.A1 SUBSTANCE clause holds — a *-TERMINATED terminal-claim
-            # must cite a deterministic re-shaped gate (device dependence folded OUT so it
-            # REDs honestly on any runner; macOS reproduction is the discriminator, the
-            # Linux-container apparatus DROPPED — SA-7) or a ratified KILL, and no
-            # disposition may launder a deferral verb (observe/watch/re-affirm/verify) over
-            # a sacred 6-cell parse shape (C-20/SA-6/T3-x2-#8). Static, HYGIENE-tier, no
-            # browser. Was BORN-RED BY DESIGN during the S drive (the S ledger is the
-            # forward disposition board, so the runtime-gate contract discharges as each
-            # owning wave lands its gate — GREEN only re-run on the merged tree at S.Z2).
-            # DISCHARGED at T.S1 (the S.Z2 RE-EXECUTION substitute): the residual-row C-20
-            # triage re-pointed each landed row's closure at its NOW-LIVE gate (backticked
-            # + tiered + born-RED witness) OR ratified-KILL for the OD-1-pruned surfaces.
-            # The gate exits 0 on the merged tree, so it JOINS the blocking gates job here
-            # (this step re-wired in the same commit its EXCLUDED entry + T_BORNRED_BACKLOG
-            # row are deleted — drive clause 7) + stays a proof:hygiene-chain member.
-            - name: proof:chronic-closure (I.W7 S4 · S.A1 → T.S1 — the S chronic ledger closes to RUNTIME + SUBSTANCE discipline; DISCHARGED, now blocking)
-              run: npm run proof:chronic-closure
-            - name: proof:ci-coverage (F.W2 — every proof:* gate is invoked in CI)
-              run: npm run proof:ci-coverage
-            # M.W1 — proof:report-all: the parallel report-all runner meta-gate.
-            # Plants a real multi-red tree + observes that scripts/run-all.mjs
-            # (the new proof:all) surfaces EVERY red in ONE pass (the serial `&&`
-            # chain aborts-first → the O(N²) 3-hr iterate-to-green, cured). Node-only
-            # (sandbox child processes), library-scoped, no browser/demo build.
-            - name: "[HYGIENE-meta] proof:report-all (M.W1 — the orchestrated proof:all reports every red in one pass · concurrency actuated · no red swallowed · tier membership intact)"
-              run: npm run proof:report-all
-            # L.W4 S5 — proof:no-single-option-select: the U4 lone-option count-guard
-            # is live in every scene-driven <Select> (animation + control-tab). STATIC
-            # (no browser, glass-ui-free) — reads the demo Vue SFC tree, asserts the
-            # `length > 1` count guard. A future component re-rendering a single-option
-            # dropdown unconditionally reds. Rides the library gates job (device-independent).
-            - name: proof:no-single-option-select (L.W4 S5 / RE-CHARTERED T.C1 — single/zero option ⇒ NOTHING, the #17 dup is elided)
-              run: npm run proof:no-single-option-select
-            # T.C1/T.C7 — the three STRUCTURAL dock oracles (the meta-fact cure: the
-            # S roster never looked at a dock's grammar). STATIC source gates (no
-            # browser, glass-ui-free) — the dock GRAMMAR (glass-ui DockSeparator,
-            # no hand-rolled dividers, identity leads, serif flip deleted, home =
-            # compass), the single-option ELISION (single/zero ⇒ NOTHING), and the
-            # single TOOLTIP authority (no native `title=`). Ride the library gates job.
-            - name: proof:dock-grammar (T.C1 — both docks speak glass-ui DockSeparator grammar; no hand-rolled dividers; home is compass only)
-              run: npm run proof:dock-grammar
-            - name: proof:dock-elision (T.B5-RENDER — single/zero option ⇒ NOTHING; the #17 Spring│Spring dup is elided)
-              run: npm run proof:dock-elision
-            - name: proof:dock-single-tooltip (T.C3 — ONE tooltip authority; no native `title=` double-render)
-              run: npm run proof:dock-single-tooltip
-            # T.B10/T.C1 — proof:transport-play-first-render: DISCHARGED (was born-RED).
-            # The rail-core rebuild renders play FIRST (from actions.primary); this joins
-            # the blocking gates job in the same commit as the render (drive clause 7).
-            - name: proof:transport-play-first-render (T.C1 — play drawn first from actions.primary; VERDICT #6)
-              run: npm run proof:transport-play-first-render
-            # L.W4 S2 — proof:settle-is-predicate: the load-bearing openControlsPanel
-            # helper settles on a STATE PREDICATE (waitForRender), never a fixed-ms sleep
-            # (the 259-sleep macOS-pass / Linux-fail render-race class). STATIC grep over
-            # demo-driver.mjs — zero browser, zero demo-smoke wall-clock. Rides the gates job.
-            - name: proof:settle-is-predicate (L.W4 S2 — openControlsPanel settles on a state predicate, not a fixed-ms sleep)
-              run: npm run proof:settle-is-predicate
-            # L.W9 — proof:workaround-deletion: the Band-B consume-edge deletion
-            # ledger. FIVE kf workarounds for sibling defects (aria-orientation
-            # suppress, pointerHandled, the linear() normalize regex, the FN_NAME
-            # Symbol sidechannel, the direct parse-that import). The three-state
-            # model resolves each arm to GREEN (ABSENT) / PENDING (PRESENT +
-            # sibling UNPUBLISHED → exit 0, the STAGED Band-B state) / RED (PRESENT
-            # + sibling PUBLISHED → the deletion is now SAFE and OVERDUE). Today
-            # every paired sibling fix (glass-ui 4.1.0 / value.js 0.14.0) is
-            # UNPUBLISHED, so every arm is PENDING and the gate exits 0 — SAFE for
-            # the blocking gates job (it is a proof:hygiene member, not a report-all
-            # tripwire). STATIC: a device-INDEPENDENT source-tree grep, no browser,
-            # no demo build — rides the library gates job. It only ever turns RED to
-            # demand a consume-edge deletion that the sibling publish has made safe.
-            - name: proof:workaround-deletion (L.W9 — the Band-B consume-edge deletion ledger · PENDING today · RED only when a sibling root-fix publishes)
-              run: npm run proof:workaround-deletion
-            # T.H1 — proof:glass-ui-gap-tripwire: the generalized glass-ui gap ledger
-            # (demo/glass-ui-gaps.ts) version tripwire. Reads the installed glass-ui
-            # version + the SINGLE glassCaps probe (scripts/lib/glass-caps.mjs, reused
-            # by proof:workaround-deletion); RED when a gap's cure is satisfied in the
-            # consumed dist while its workaround survives (vacuously green on 4.0.1),
-            # + the lane-25-rec-2 citation clause (every band-aid site cites its ledger
-            # entry). STATIC dist-content grep, no browser — the fast gates job.
-            - name: proof:glass-ui-gap-tripwire (T.H1 — the glass-ui gap ledger version tripwire · vacuously green on 4.0.1 · flips RED on the BG/BH publish while the workaround survives)
-              run: npm run proof:glass-ui-gap-tripwire
-            # T.H4 — proof:no-hand-rolled-labeled-select: zero hand-rolled
-            # label-adjacent-<Select> pairs in the control/config option rows (each
-            # resolves to glass-ui LabeledSelect). STATIC source grep — the fast gates job.
-            - name: proof:no-hand-rolled-labeled-select (T.H4 — LabeledSelect pure-consumption · zero hand-rolled label+Select pairs in the option/config rows)
-              run: npm run proof:no-hand-rolled-labeled-select
-            # T.B10 — proof:transport-action-order (MODEL clause): useSceneTransport
-            # exposes an ordered { primary:{kind:"play"}, secondary:[reset,clear] }
-            # model — primary.kind==="play" first (play-first as DATA, VERDICT #6).
-            # STATIC source-parse snapshot, no browser — the fast gates job. (The
-            # RENDER clause rides the born-RED proof:transport-play-first-render,
-            # dischargedBy T.C1 — not CI-blocking.)
-            - name: proof:transport-action-order (T.B10 — the ordered transport-action model · primary.kind==="play" first)
-              run: npm run proof:transport-action-order
-            # T.B1-β/T.B7 (batch ⑥′ STAGE 2) — proof:scene-facility DISCHARGED from
-            # the born-RED backlog: every scene rides real facility channels and the
-            # useContractAnimGroup decoy is DELETED (decoy-zero clause (b) GREEN).
-            # STATIC source grep — the fast gates job; also a hygiene-chain member.
-            - name: proof:scene-facility (T.B1 — the SceneFacility keystone · descriptor + every scene channel-honest + decoy-zero)
-              run: npm run proof:scene-facility
-            # ════════════════════════════════════════════════════════════════════
-            # F-7 STATIC-GATE MIGRATION (Q.WA3 S4) — the device-dependence harden.
-            # These ELEVEN gates open NO browser and read NO gh-pages build artifact
-            # — pure source greps / graph-walks, each MEASURED sub-second (105–155ms
-            # local; the measure-first discipline). They previously rode the slow 50m
-            # demo-smoke browser job for no reason; here they ride the fast 10m library
-            # gates job (it stays well under its ceiling — ~1.6s total added). They
-            # REMAIN proof:hygiene members (the coverage roster is unchanged — only the
-            # CI STEP placement moved). proof:ci-coverage's static-gate-placement clause
-            # (S4) enforces this. (The 3 pre-existing-RED source gates —
-            # proof:decomposition / proof:demo-no-oversize / proof:brittleness — are NOT
-            # migrated: they carry committed source-shape reds OUTSIDE Q.WA3's zero-source
-            # charter, so they stay on demo-smoke's continue-on-error report-all surface
-            # until a source-fix wave greens them; static-gate-placement records that
-            # carve-out by reason, not silently.)
-            # ════════════════════════════════════════════════════════════════════
-            - name: proof:no-deprecated-guard (H.W1 S5 — the deprecated next() nav-guard is gone from router.ts)
-              run: npm run proof:no-deprecated-guard
-            - name: proof:single-writer (H.W1 S9.c — the FSM mutation boundary; no consumer writes activeScene/status)
-              run: npm run proof:single-writer
-            # T.B8 — the machine single-writer completion: the grep half is a pure
-            # source scan + a jsdom scrub-persistence vitest (no browser), and
-            # proof:one-adapter is a pure source grep — both ride the fast gates job.
-            - name: proof:no-shadow-playback-authority (T.B8 — createGroupAdapter is the ONLY group play/pause path + the scrub-persistence vitest)
-              run: npm run proof:no-shadow-playback-authority
-            - name: proof:one-adapter (T.B8 — one adapter path; the shell registers facility.playback, no dual-family fallback)
-              run: npm run proof:one-adapter
-            - name: proof:scene-superkey-single-source (T.B9 — the ONE keyspace; the *_SUPER_KEY constants retired, stores key by the registry SceneId, one gc/migrate sweep)
-              run: npm run proof:scene-superkey-single-source
-            - name: proof:composable-encapsulation (H.W12 S2/I9 — the motion-path gesture engine is in the composable · pure store getters)
-              run: npm run proof:composable-encapsulation
-            - name: proof:no-brittle-selector (H.W12 S4/I11 — zero class-string DOM walks · named SAMPLE_STEP · ONE documented square-viewBox scale helper)
-              run: npm run proof:no-brittle-selector
-            - name: proof:scene-colocated (R.W5 — each scene fused to demo/scenes/<name>/ · zero ../../ climbs · dead SceneSwitcher/Animated/ResponsiveSelect gone)
-              run: npm run proof:scene-colocated
-            - name: proof:app-is-shell (S.D1 — demo/app/ partitioned into scene/·transition/·runtime/ · no single-consumer mis-home · no stale-depth relative import · structural shell-ness)
-              run: npm run proof:app-is-shell
-            - name: proof:shared-has-n-consumers (S.D2 — every demo/@ module is genuinely shared · C-23 per-scene areas · flat-single ≥2 vs dir ≥1-peer · the monolith carve holds)
-              run: npm run proof:shared-has-n-consumers
-            - name: proof:no-dup-utility (H.W2 S4/S1/S6 — 0 demo .scale-on-hover rule · 0 <Card> glass-card · glass-card resolves only to the enumerated static set)
-              run: npm run proof:no-dup-utility
-            - name: proof:no-hand-rolled-cursor-tracker (T.D14 / lane 12 T-CL-3 — the standing recurrence guard; no bare pointermove + --*-x/--*-y write outside glass-ui's public cursor door)
-              run: npm run proof:no-hand-rolled-cursor-tracker
-            - name: proof:idioms (D.W2 — owned design-idioms.css · leaf-tail swept · utils.css monolith uncaged)
-              run: npm run proof:idioms
-            - name: proof:phi-leaf-zero (H.W4 — the φ-hero chronic SYSTEM-property gate CH-2/M1 · zero raw rungs AND the hero on the audacious top φ rung)
-              run: npm run proof:phi-leaf-zero
-            - name: proof:icon-idiom (H.W4 S4 — the 61-no-op icon-sizing lock · every icon-* resolves to a design-idioms.css def · SVG cascade)
-              run: npm run proof:icon-idiom
-            - name: proof:styling-idioms (H.W12 I12 — the OWNED-IDIOMS contract membership · resolve-or-red · FORK-I12 reduction guard)
-              run: npm run proof:styling-idioms
-            - name: proof:dogfood (inv ζ — the demo dogfoods the engine, incl. the F.W10 inertia swap)
-              run: npm run proof:dogfood
-            - name: proof:demo-elevate (inv ο — View Transitions · a11y · idioms · the F.W13-16 clauses)
-              run: npm run proof:demo-elevate
-            - name: proof:dogfood-hero (H.W6 inv ζ — the hero dots loop on a kf engine class from @src; steppedEase is the value.js curve, NOT the dogfood symbol)
-              run: npm run proof:dogfood-hero
-            - name: proof:pp-logo-svg (H.W9 F4 — the ppmycota menu leads with the .ppmycota-logo-sm SVG mark · zero emoji · asset resolves)
-              run: npm run proof:pp-logo-svg
-            - name: proof:crayon-preserved (L.W11 — the crayon keepers resolve to their 4.3.0 hue · REFINE not abrogate · the wave SPINE · source-only)
-              run: npm run proof:crayon-preserved
-            # Q.W0 — proof:record-truth: the record-hygiene gate (the primary impl
-            # record reconciled to the shipped 4.4.0 truth). A node-only static gate
-            # over the record substrate — no browser, no demo build — so it rides the
-            # fast library gates job.
-            - name: proof:record-truth (Q.W0 — the primary impl record == the shipped 4.4.0 truth · record-hygiene)
-              run: npm run proof:record-truth
-            # ════════════════════════════════════════════════════════════════════
-            # IMPL-DRIVE GATES (Constellation IMPL drive 4.4.0) — wired here at Q.WA3
-            # S1. FOUR are PURE-NODE static (no vitest, no browser) → the fast library
-            # gates job. (proof:soa-composite chains `npm run proof:blend`, a vitest,
-            # but its own script is a node bench-probe; proof:spring-heatmap's browser
-            # half honestly SKIPs when playwright is absent — its static analytic-
-            # formula clauses are the verdict here, no KF_REQUIRE_BROWSER.)
-            # ════════════════════════════════════════════════════════════════════
-            - name: proof:no-foreign-symbol-stamp (M — no foreign-symbol stamp leaks the cross-realm seam)
-              run: npm run proof:no-foreign-symbol-stamp
-            - name: proof:soa-composite (P.W2 — the SoA compositor fold · MEASURE-FIRST ADOPT/KILL · byte-identical to boxed · zero-alloc · chains proof:blend)
-              run: npm run proof:soa-composite
-            - name: proof:portable-perf (P.W1 — the same-report ratio gate · device-independent perf floor)
-              run: npm run proof:portable-perf
-            - name: proof:spring-heatmap (P.W6 — the analytic parameter-space heatmap · closed-form overshoot · zero live SpringProgress · browser half skips when playwright absent)
-              run: npm run proof:spring-heatmap
-            # The vitest-bearing impl-drive library gates → the library gates job (they run
-            # `npm run … && vitest run <test>` over src/test — jsdom/node, no browser,
-            # no demo build — so they ride beside the other vitest library gates, NOT
-            # the demo-smoke browser job). S.A4 S5 folded two TRIPLES here:
-            #   proof:emerging-css-resolve  = resolve-now + -p2 + -fn (F7, ONE vitest
-            #     boot over the 3 test files instead of 3× reboot);
-            #   proof:morph                 = morphsvg-consume + morph-renders-d +
-            #     morph-orients (F6, ONE boot of test/morph-svg.test.ts, not 3×).
-            # The 6 former keys/steps collapse to these 2 (library-correctness tier).
-            - name: proof:emerging-css-resolve (S.A4 S5 — the emerging-CSS resolve triple · now+p2+fn · node ×3 + vitest over the 3 tests once)
-              run: npm run proof:emerging-css-resolve
-            - name: proof:morph (S.A4 S5 — the morph-gate triple · consume + renders-d + orients · node ×3 + test/morph-svg.test.ts once)
-              run: npm run proof:morph
-            # ════════════════════════════════════════════════════════════════════
-            # Q.WA1/WA2/WA4 APPARATUS GATES — the SLIM lint floor · drag2D LIGHT cert ·
-            # the wave-charter contrivance gate · the constellation pin-ledger witness.
-            # Pure-node static (dep-cruiser graph / barrel import / DAG parse / pin scan)
-            # — no vitest, no browser — so they ride the fast library gates job.
-            # ════════════════════════════════════════════════════════════════════
-            - name: proof:lint-clean (Q.WA1 — the SLIM dependency-cruiser source-graph floor · no-cycle + leaf/light boundary)
-              run: npm run proof:lint-clean
-            - name: proof:no-silent-fallback (R.W3 — legacy/workaround/fallback excision sweep · §2A–2E · 3-clause static gate)
-              run: npm run proof:no-silent-fallback
-            - name: proof:drag2d-light-certified (Q.WA2 — drag2D is a certified, gate-locked LIGHT primitive · the DemoControlPoint substrate)
-              run: npm run proof:drag2d-light-certified
-            - name: proof:wave-charter (Q.WA4 — the 7-question contrivance smell-test + the DAG manifest acyclicity + no-unpublished-consume)
-              run: npm run proof:wave-charter
-            - name: proof:pin-ledger-current (Q.WA4 — the constellation pin-ledger witness · local pins == the shipped set · npm-view leg observe-only)
-              run: npm run proof:pin-ledger-current
-            # ════════════════════════════════════════════════════════════════════
-            # Q STAGE-3 GATES (Band B/C/D NOW) — emerging-CSS P2 · processFrame SoA ·
-            # NaN-frame cure · WAAPI adaptive densify · grammar-fuzz · differential.
-            # node + jsdom-vitest (no browser, no demo build) → the fast library gates job.
-            # ════════════════════════════════════════════════════════════════════
-            - name: proof:processframe-soa (Q.WB3 — single-animation processFrame Float64 SoA fold · measure-first ADOPT · bit-identical)
-              run: npm run proof:processframe-soa
-            - name: proof:nan-frame (Q.WD1 — named-selector deferred-resolution + play-time guard · S4 round-trip held · no-NaN-at-play)
-              run: npm run proof:nan-frame
-            - name: proof:waapi-adaptive-densify (Q.WB4 — curvature-adaptive sub-segment densify · chord-error ≤ fixed-8 on every corpus curve)
-              run: npm run proof:waapi-adaptive-densify
-            - name: proof:grammar-fuzz (Q.WD2 — fast-check @keyframes arbitraries · parse→serialize→reparse fixpoint)
-              run: npm run proof:grammar-fuzz
-            - name: proof:kf-differential (Q.WD2 — kf-vs-browser WAAPI midpoint differential · observe-only in CI, hard under KF_REQUIRE_BROWSER)
-              run: npm run proof:kf-differential
-            # ════════════════════════════════════════════════════════════════════
-            # Q STAGE-5 GATED CONSUMES (value.js) — @function inline · leaves
-            # externalize · color-SoA measure · glass-ui aria content-probe. node + jsdom.
-            # The value.js floor is single-sourced in package.json's declared range
-            # (T.S1 / lane 27 F7 — NO caret/tilde version literal in workflow prose;
-            # the S.C4/S2 re-pin proved a hardcoded value.js floor here drifts silently
-            # and reds proof:ci-coverage's version-literal clause).
-            # ════════════════════════════════════════════════════════════════════
-            - name: proof:no-cross-realm-cast (Q.WE2 — leaves externalized onto value.js/math · the 4 compile-color casts annotated · no kf math duplicate)
-              run: npm run proof:no-cross-realm-cast
-            - name: proof:color-soa (Q.WB3-color — MEASURE-FIRST · the channel-plan fold ships in-leaf via the package.json-declared value.js re-pin · DECLINE the dead parallel arm · bit-identical)
-              run: npm run proof:color-soa
-            - name: proof:glassui-aria-ask (Q.WG-S1S2 — the glass-ui aria/dock content-probe · observe-only PENDING-until-BC-publish)
-              run: npm run proof:glassui-aria-ask
-            # ════════════════════════════════════════════════════════════════════
-            # Q.WA3 APPARATUS GATES (the CI floor) — the master-merge oracle + the
-            # deploy round-trip oracle. Pure-node static (git ancestry / shell-script
-            # parse) — no vitest, no browser — so they ride the fast library gates job.
-            # ════════════════════════════════════════════════════════════════════
-            - name: proof:published-on-master (Q.WA3 S2 — the v4.4.0 release commit is an ancestor of master · the FIRST DAG motion)
-              run: npm run proof:published-on-master
-            - name: proof:deploy-roundtrip (Q.WA3 S3 — pages-deploy.sh validates the round-trip · HTTP-200 + served-vs-built hash · live leg observe-only)
-              run: npm run proof:deploy-roundtrip
+            - name: publish boundary
+              run: npm run proof:publish
 
-    # ════════════════════════════════════════════════════════════════════════
-    # S.A2 — the demo-gate SPLIT (SPEC §3 S.A2 S1). The monolithic `demo-smoke`
-    # job is partitioned by TIER:
-    #   demo-correctness    — BLOCKING (gates deploy). ONE report-all roster step
-    #                         (scripts/run-demo-roster.mjs) runs the kf-owned
-    #                         correctness+hygiene demo gates against ONE shared
-    #                         chromium + ONE served dist snapshot (the S.A2 S2
-    #                         net-deletion), so the job carries ZERO step-level
-    #                         `continue-on-error` masking. It stays honestly RED
-    #                         until the S.A0 enumerated backlog (drag-gesture→S.G3,
-    #                         easing-sidebar-minimal / scene-perf-budget / icon-
-    #                         paint-live→S.G2) discharges (SPEC §3 S.A2 / S.A3
-    #                         timing note).
-    #   demo-device-observe — OBSERVE-ONLY (job-level continue-on-error; never
-    #                         gates deploy). The device-dependent measurements
-    #                         (LoAF / dock-perf / lighthouse) + the born-RED
-    #                         tripwire — RECORDED, not blocking. THE HARD CLAUSE
-    #                         (SPEC §3 S.A2, x2-#2): only genuinely device-
-    #                         dependent reds ride here; NO correctness/gate-bug red
-    #                         is moved off the blocking tier.
-    # The membership partition is single-sourced in scripts/demo-roster.mjs (read
-    # by BOTH the roster driver and proof:ci-coverage).
-    # ════════════════════════════════════════════════════════════════════════
+    # U.A7 — the device-dependent demo roster is nightly/on-demand only. A
+    # scheduled red is recorded for deploy ancestry; it does not block library
+    # merges. Manual dispatch is the explicit break-glass path.
     demo-correctness:
-        name: demo correctness (inv γ paints + inv δ occlusion-free · BLOCKING · gates deploy)
+        name: demo correctness (nightly roster)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        permissions:
+            contents: write
         runs-on: ubuntu-latest
-        # The net-deletion (one shared chromium + one served dist snapshot,
-        # report-all inside the roster driver) amortises the former ~50-launch
-        # surface; the 50m ceiling still BOUNDS the worst case (a real hang dies
-        # far before the 6h GHA default).
         timeout-minutes: 50
         steps:
             - uses: actions/checkout@v5
@@ -644,113 +63,40 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            - name: npm ci (installs the registry @mkbabb/glass-ui)
+            - name: npm ci (registry glass-ui)
               run: npm ci
-            - name: install playwright (demo-gate only; --no-save keeps the lib posture)
+            - name: install playwright
               run: npm i --no-save @playwright/test
             - name: install chromium
               run: npx playwright install --with-deps chromium
-            - name: build the demo (gh-pages)
+            - name: build demo
               run: npm run gh-pages
-            # THE report-all roster (S.A2 S1+S2). ONE step, NO continue-on-error:
-            # the report-all is INSIDE the driver (it collects every gate's exit
-            # code, classifies backlog vs unexpected reds, and exits 1 iff any red).
-            # The S.A0 backlog rows are BLOCKING here (they keep the job RED until
-            # S.G2/G3); an UNEXPECTED red (outside the backlog) is the S.A2 signal.
-            - name: "demo-correctness roster (S.A2 — one shared chromium + one served dist · report-all · zero continue-on-error masking)"
-              # --gate-timeout=600: the runner is far slower than the dev machine
-              # (the device-dependence apparatus concern) — the heaviest gate
-              # (proof:scene-machine-irrefragable, the full six-scene FSM sweep)
-              # legitimately exceeds the 300s local backstop here. The ceiling
-              # stays a hang backstop, not a settle race.
+            - name: publish artifact boundary (post-build)
+              run: npm run proof:publish
+            - name: demo roster (report-all)
               run: npm run demo:correctness -- --gate-timeout=600
               env:
                   KF_REQUIRE_BROWSER: "1"
-                  # The modern-web-guidance corpus is a local-dev aid (npx
-                  # modern-web-guidance install) — absent on a clean runner. The
-                  # gate SANCTIONS this CI escape (its own message names the env):
-                  # every other proof:modern-web clause still runs + bites; only
-                  # the corpus-presence clause is skipped. This restores the
-                  # pre-S.A2 lane posture the roster rewrite dropped.
                   KF_MWG_OPTIONAL: "1"
-
-    demo-device-observe:
-        name: demo device-observe (LoAF / dock-perf / lighthouse · OBSERVE-ONLY · never gates deploy)
-        runs-on: ubuntu-latest
-        # OBSERVE-ONLY: job-level continue-on-error keeps a device-measurement miss
-        # (or the born-RED peer tripwire) from failing the `ci` workflow — so the
-        # deploy-of-record gates on demo-correctness ALONE (SPEC §3 S.A2 / S.A3).
-        continue-on-error: true
-        timeout-minutes: 30
-        steps:
-            - uses: actions/checkout@v5
-            - uses: actions/setup-node@v5
-              with:
-                  node-version: 24
-                  cache: "npm"
-            - name: npm ci (installs the registry @mkbabb/glass-ui)
-              run: npm ci
-            # bucket 3 (binary-absent → install-or-observe): lighthouse is installed
-            # --no-save (keeps the lib posture) and its audits ride this observe tier.
-            - name: install playwright + lighthouse (observe-gate only; --no-save)
-              run: npm i --no-save @playwright/test lighthouse
-            - name: install chromium
-              run: npx playwright install --with-deps chromium
-            - name: build the demo (gh-pages)
-              run: npm run gh-pages
-            # [born-RED tripwire] RECORDED, never blocking (glass-ui BB peer-widen + kf re-pin, L.W9).
-            - name: "[born-RED tripwire] proof:peer-satisfied (RECORDED — the live F-2 peer-cycle)"
-              continue-on-error: true
-              run: npm run proof:peer-satisfied
-            # [born-RED tripwire] RECORDED, never blocking — the BG-11 z-inversion is
-            # glass-ui's to cure (the owner's T.H3 ADOPT override accepted the traded
-            # occlusion); proof:glass-ui-gap-tripwire flips hard-RED on the glass-ui
-            # publish until the fix is consumed (T_BORNRED_BACKLOG discharge row).
-            - name: "[born-RED tripwire] proof:dock-zorder (RECORDED — glass-ui BG-11 drawer-inset publish + re-pin)"
-              continue-on-error: true
-              run: npm run proof:dock-zorder
+            # A successful nightly publishes the SHA consumed by deploy-pages.
+            - name: record last-demo-green
+              if: success()
               env:
-                  KF_REQUIRE_BROWSER: "1"
-            # bucket 2 (absolute-threshold → relative budget): the kf easing clause
-            # is a same-run cube-reference relative budget; the DM-12 dock clause is
-            # a NON-BLOCKING glass-ui HANDOFF (dock width-morph → glass-ui). The whole
-            # gate is device-dependent → OBSERVE.
-            - name: "proof:perf-frame-budget (S.A2 S6 — relative easing budget · glass-ui dock HANDOFF · observe)"
-              continue-on-error: true
-              run: npm run proof:perf-frame-budget
-              env:
-                  KF_REQUIRE_BROWSER: "1"
-            - name: "proof:lighthouse-a11y (C.W1 S6 — A11y=100 + SEO ≥ 90 · observe · install-or-observe)"
-              continue-on-error: true
-              run: npm run proof:lighthouse-a11y
-              env:
-                  KF_REQUIRE_BROWSER: "1"
-            - name: "proof:lighthouse-mobile (J.W4 S6 — per-scene mobile Lighthouse ceilings · observe-only-in-CI)"
-              continue-on-error: true
-              run: npm run proof:lighthouse-mobile
-            # The LoAF >50ms-trace gate needs the LIBRARY build (dist/keyframes.js)
-            # the bench page imports; build:lib runs here LAST (it empties dist/, no
-            # longer disturbing the gh-pages-consuming lighthouse gates above).
-            - name: build the library (dist/keyframes.js for the bench page)
-              run: npm run build:lib
-            # S.A0(3) exit-code decouple + S.A2 S3 KF_LOAF_COUNT DE-MAGIC: the bench
-            # self-selects the runner-calibrated composite size under IN_CI (the
-            # named LOAF_COMPOSITE_CI_SMOKE profile) — no magic literal in the
-            # workflow. The step verdict is the gate's own GREEN metric line.
-            - name: "LoAF >50ms-trace gate (observer's 2nd consumer · observe)"
-              continue-on-error: true
+                  GH_TOKEN: ${{ github.token }}
               run: |
-                  npm run bench -- --run bench/playwright.bench.ts 2>&1 | tee loaf-gate.log || true
-                  if ! grep -qE 'loaf-gate.*PASS: no >[0-9]+ms' loaf-gate.log; then
-                      echo "::error::LoAF gate — the GREEN metric ('loaf-gate — PASS: no >Nms …') is absent; the >50ms-trace assertion did not pass."
-                      exit 1
-                  fi
-                  echo "LoAF gate — GREEN metric asserted (>50ms-trace clean); vitest process exit decoupled."
+                  gh api --method POST "repos/${{ github.repository }}/git/refs" \
+                    -f "ref=refs/tags/last-demo-green" \
+                    -f "sha=${{ github.sha }}" 2>/dev/null || \
+                  gh api --method PATCH "repos/${{ github.repository }}/git/refs/tags/last-demo-green" \
+                    -f "sha=${{ github.sha }}" -F force=true
+            # Device-dependent observers are co-scheduled with the nightly roster
+            # and remain explicitly non-blocking; no separate merge-path job or
+            # demo-device-observe apparatus survives U.A6.
+            - name: install browser observers (recorded)
+              if: always()
+              run: npm i --no-save lighthouse || echo "observer install unavailable; recorded"
+            - name: lighthouse observer (recorded)
+              if: always()
+              run: npm run proof:lighthouse-a11y || echo "lighthouse observer red; recorded"
               env:
                   KF_REQUIRE_BROWSER: "1"
-            # RECORD-ALL note: this OBSERVE job never fails the `ci` workflow
-            # (job-level continue-on-error). A miss above is annotated, not blocking
-            # — the declarePosture observe-only discipline at the job level.
-            - name: "observe-tier note (device-dependent measurements are RECORDED, never gate deploy)"
-              if: always()
-              run: echo "demo-device-observe — OBSERVE-ONLY (SPEC §3 S.A2 S1); LoAF / dock-perf / lighthouse + the peer tripwire are RECORDED (any red above is annotated, non-blocking); the deploy-of-record gates on demo-correctness alone."

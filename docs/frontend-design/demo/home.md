@@ -405,7 +405,7 @@ All source changes are PROPOSALS — this doc writes no code outside itself.
    Immediately upgrades the page from "empty-state label" to "landing."
 
 2. **The live source panel + engine-driven hero (the signature moment).**
-   New SFC `demo/@/components/custom/editor-shell/HeroSourcePanel.vue`:
+   New SFC `demo/components/editor-shell/HeroSourcePanel.vue`:
    types a `@keyframes` string (Fira Code, `--accent-red` caret), parses it via
    `await loadAnimationEngine()` → `CSSKeyframesAnimation`, applies the transform
    to the hero word, and serializes back via `format.ts` on loop. Mount it in

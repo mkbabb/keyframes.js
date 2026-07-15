@@ -14,7 +14,7 @@
  * until the CURED render passes the rendered-region browser check. T.A owns the cube
  * --spin-energy bloom delete + the amiga NaN/rotation cure; morph is PRUNED per OD-1
  * (its clause retires in lockstep with proof:morph-scene, T.M7). Rides the T born-RED
- * BACKLOG (T_BORNRED_BACKLOG).
+ * external owner-review hold.
  *
  * Overrides (plant-test): KF_SUBJECTS.
  */
@@ -52,7 +52,7 @@ for (const s of full) {
 console.log("proof:subject-full — T.M5(b) (fullness over existence; rendered-region) [BORN-RED]\n");
 for (const p of passes) console.log("  ✓ " + p);
 if (failures.length > 0) {
-    console.error(`\nproof:subject-full — FAIL (${failures.length}) [BORN-RED backlog — T_BORNRED_BACKLOG]:`);
+    console.error(`\nproof:subject-full — FAIL (${failures.length}) [external owner-review hold]:`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
 }

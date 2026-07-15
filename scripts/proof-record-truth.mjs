@@ -19,7 +19,11 @@ const QMD = "docs/tranches/Q/Q.md";
 const QP  = "docs/tranches/Q/PROGRESS.md";
 const QW0 = "docs/tranches/Q/waves/Q.W0.md";
 
-// (a) IMPL-RUN-BOARD reconciled to the shipped truth + decision-JSONs committed
+// (a) IMPL-RUN-BOARD reconciled to the shipped truth.
+// U.N2 — the decision-JSON dirty-check RETIRED: the P/Q-era compare-gate decision
+// JSONs (soa-composite/spring-vector/…) were DISSOLVED (their live invariants
+// re-homed to tests + the bench budget), so there is no per-run device-dependent
+// JSON to keep clean.
 const rb = read(RB);
 ok(rb !== null, `(a) ${RB} missing (path must be fully qualified from repo root)`);
 if (rb) {
@@ -27,8 +31,6 @@ if (rb) {
   ok(/DwKmrGBp/.test(rb), `(a) ${RB} does not assert the single live hash index-DwKmrGBp.js`);
   ok(/SUPERSEDED/.test(rb), `(a) ${RB} does not demote the superseded e9_Uza8v hash`);
 }
-const dirtyJson = git("git status --porcelain scripts/soa-composite-decision.json scripts/spring-vector-decision.json");
-ok(dirtyJson === "", `(a) device-dependent decision-JSONs dirty in tree:\n${dirtyJson}`);
 
 // (b) P/O dev-phase boards re-headered to the shipped truth (tolerant of **…**/backtick markdown)
 const pp = read(PP);

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import * as presetExports from "../../src/animation/presets";
 import {
     springScaleIn,
     springSlideIn,
@@ -9,12 +10,9 @@ import {
     attentionPresets,
     loopPresets,
     presetTaxonomy,
-    fadeIn,
-    fadeOut,
-    pulse,
-    spinner,
 } from "../../src/animation/presets";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
+import { PRESET_SPECS, presetFactories } from "../../src/animation/presets/catalog";
 
 const springPresets = {
     springScaleIn,
@@ -60,38 +58,33 @@ describe("spring-eased presets (S6)", () => {
 });
 
 describe("preset taxonomy (S6)", () => {
-    it("groups existing factories by intent without re-implementing them", () => {
-        // Each taxonomy leaf is one of the existing exported factories — the
-        // taxonomy is a discovery index, not a second copy.
-        expect(enterPresets.fadeIn).toBe(fadeIn);
-        expect(exitPresets.fadeOut).toBe(fadeOut);
-        expect(attentionPresets.pulse).toBe(pulse);
-        expect(loopPresets.spinner).toBe(spinner);
+    it("derives the complete unique catalog from normalized specification rows", () => {
+        expect(Object.keys(PRESET_SPECS)).toHaveLength(38);
+        expect(new Set(Object.keys(PRESET_SPECS)).size).toBe(38);
+        expect(Object.keys(presetFactories)).toEqual(Object.keys(PRESET_SPECS));
+        for (const spec of Object.values(PRESET_SPECS)) {
+            expect(spec.css).not.toMatch(/@keyframes\s/);
+        }
     });
 
-    it("the spring presets are placed in their intent buckets", () => {
-        expect(enterPresets.springScaleIn).toBe(springScaleIn);
-        expect(enterPresets.springSlideIn).toBe(springSlideIn);
-        expect(attentionPresets.springPop).toBe(springPop);
-        expect(attentionPresets.springWobble).toBe(springWobble);
-    });
+    it("every taxonomy leaf is canonical and constructs a valid animation", () => {
+        const canonicalGroups = {
+            enter: enterPresets,
+            exit: exitPresets,
+            attention: attentionPresets,
+            loop: loopPresets,
+        };
 
-    it("presetTaxonomy exposes the four intent groups", () => {
-        expect(Object.keys(presetTaxonomy)).toEqual([
-            "enter",
-            "exit",
-            "attention",
-            "loop",
-        ]);
-        expect(presetTaxonomy.enter).toBe(enterPresets);
-        expect(presetTaxonomy.exit).toBe(exitPresets);
-        expect(presetTaxonomy.attention).toBe(attentionPresets);
-        expect(presetTaxonomy.loop).toBe(loopPresets);
-    });
+        for (const [intent, group] of Object.entries(presetTaxonomy)) {
+            const canonicalGroup =
+                canonicalGroups[intent as keyof typeof canonicalGroups];
+            expect(group).toBe(canonicalGroup);
 
-    it("every taxonomy leaf constructs a valid animation", () => {
-        for (const group of Object.values(presetTaxonomy)) {
-            for (const factory of Object.values(group)) {
+            for (const [name, factory] of Object.entries(group)) {
+                const exportName = name === "flip" ? "flipPreset" : name;
+                expect(
+                    presetExports[exportName as keyof typeof presetExports],
+                ).toBe(factory);
                 const anim = factory();
                 expect(anim).toBeInstanceOf(CSSKeyframesAnimation);
                 expect(anim.frames.length).toBeGreaterThan(0);

@@ -25,7 +25,7 @@
  * grouped leaf map is the same `ValueUnit[]` shape, so one projection serves
  * both.
  */
-import { isColorUnit, ValueUnit } from "@mkbabb/value.js";
+import { isColorUnit, ValueUnit } from "@mkbabb/value.js/units";
 
 export interface PlainLeafWriter {
     /** The nested parent object the leaf lives on. */

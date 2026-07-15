@@ -7,7 +7,7 @@ export default defineConfig({
             "@src": path.resolve(import.meta.dirname, "src"),
             // S.B7 — the `@mkbabb/keyframes.js` self-alias, mirroring vite.config.ts
             // (L.W8 dogfood inversion). The demo consumes the PUBLISHED barrel
-            // specifier (`demo/@/utils/kfEngine.ts` → `import … from
+            // specifier (`demo/utils/kfEngine.ts` → `import … from
             // "@mkbabb/keyframes.js"`); without this alias vitest cannot resolve the
             // self-package (a package never installs itself into node_modules), so
             // every demo test transitively importing kfEngine RED-fails at resolve.
@@ -17,35 +17,42 @@ export default defineConfig({
                 import.meta.dirname,
                 "src/animation/index.ts",
             ),
-            "@styles": path.resolve(import.meta.dirname, "demo/@/styles"),
+            "@styles": path.resolve(import.meta.dirname, "demo/styles"),
             // S.D2 — the hoisted demo state peer (a24 F2); mirror the vite alias.
-            "@state": path.resolve(import.meta.dirname, "demo/@/state"),
-            "@components": path.resolve(import.meta.dirname, "demo/@/components"),
-            "@composables": path.resolve(import.meta.dirname, "demo/@/composables"),
-            "@utils": path.resolve(import.meta.dirname, "demo/@/utils"),
+            "@state": path.resolve(import.meta.dirname, "demo/state"),
+            "@components": path.resolve(import.meta.dirname, "demo/components"),
+            "@composables": path.resolve(import.meta.dirname, "demo/composables"),
+            "@utils": path.resolve(import.meta.dirname, "demo/utils"),
+            "@kf-engine": path.resolve(import.meta.dirname, "demo/kf-engine.ts"),
             "@assets": path.resolve(import.meta.dirname, "assets"),
             // R.W5 fused scenes to demo/scenes/ and routed cross-scene imports
             // through @app (demo/app/); vitest must mirror the demo build alias.
             "@app": path.resolve(import.meta.dirname, "demo/app"),
-            // The library gate is glass-ui-FREE (inv β); vitest runs only there.
-            // Alias glass-ui's motion-core subpath to a shim so demo-encapsulation
-            // tests (which transitively import it via useSceneSwap/useSceneTransition)
-            // transform without the dangling optional sibling. The REAL module is
-            // used in the demo build (gh-pages / demo-smoke), never under vitest.
-            "@mkbabb/glass-ui/motion-core": path.resolve(
-                import.meta.dirname,
-                "test/stubs/glass-ui-motion-core.ts",
-            ),
         },
     },
     test: {
-        // S.B7 — tests regrouped into test/<zone>/ mirroring src/animation/<zone>/
-        // (a25). The glob is RECURSIVE so the zone dirs are discovered; the old
-        // flat `test/*.ts` would silently run zero suites after the move.
-        include: ["test/**/*.test.ts", "test/**/*.measure.test.ts"],
-        environment: "jsdom",
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: "library",
+                    include: ["test/**/*.test.ts"],
+                    exclude: ["test/demo/**"],
+                    environment: "jsdom",
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: "demo",
+                    include: ["test/demo/**/*.test.ts"],
+                    environment: "jsdom",
+                },
+            },
+        ],
     },
     benchmark: {
         include: ["bench/*.bench.ts"],
+        exclude: ["**/.claude/**", "**/node_modules/**", "**/dist/**"],
     },
 });

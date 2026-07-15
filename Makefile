@@ -12,7 +12,7 @@
 # `make ci-linux`, no push required.
 #
 # docker is the ONLY new dependency (already present on developer machines that run
-# Playwright). No new npm dependency. proof:ci-coverage's Makefile clause asserts this
+# Playwright). No new npm dependency. The Makefile clause asserts this
 # `ci-linux:` target exists (file-existence, not a Docker execution — the gate stays
 # headless; CI never runs Docker-in-Docker).
 
@@ -21,7 +21,7 @@
 CI_IMAGE ?= node:24-slim
 
 # The demo-smoke roster the container runs: install → build the demo → the demo
-# gate roster (proof:all:demo = proof:demo-smoke + proof:occlusion + the born-RED
+# gate roster (proof:all:demo = proof:demo-smoke + proof:occlusion + the external-hold
 # proof:peer-satisfied F-2 tripwire). The browser-bearing gates need chromium +
 # its system libraries; the slim image lacks them, so the container installs the
 # Playwright browser + deps first (the same `npx playwright install --with-deps

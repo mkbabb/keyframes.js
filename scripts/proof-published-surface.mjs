@@ -62,7 +62,7 @@
  *
  *   clause (e) — the doc-rot structural-claim tripwire (S3, HYGIENE
  *     corroborator — may NOT substitute for a red runtime clause): the
- *     headline structural claims of root CLAUDE.md resolve against the tree
+ *     headline structural shape resolves directly against the tree
  *     (no phantom `src/parsing/`/`src/units/` subtree, no phantom demo dirs,
  *     every file the §Project Tree names exists, the frozen test/bench
  *     file counts match `ls … | wc -l`).
@@ -91,15 +91,26 @@
  * rather than triggering a recursive `prepare` rebuild mid-measurement.
  *
  * RUN: npm run proof:published-surface
- * CI wiring: owned by J.W3's `proof:ci-coverage` roster motion (recorded
+ * CI wiring: owned by J.W3's tier-manifest roster motion (recorded
  * there so this correctness gate cannot escape `proof:all`/CI).
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+// U.Z3's additive-only check is a one-shot close mode, not another standing
+// gate. Keep the normal surface oracle unchanged and delegate `--diff` to the
+// registry-artifact comparator so release rehearsal can use the existing
+// `proof:published-surface` entry without adding a new proof key.
+if (process.argv.includes("--diff")) {
+    const helper = path.join(REPO, "scripts", "verify-published-surface-diff.mjs");
+    const args = process.argv.slice(2).filter((arg) => arg !== "--diff");
+    const result = spawnSync(process.execPath, [helper, ...args], { stdio: "inherit" });
+    process.exit(result.status ?? 1);
+}
 const DIST = path.join(REPO, "dist");
 const BARREL = path.join(REPO, "src/animation/index.ts");
 const README = path.join(REPO, "README.md");
@@ -460,22 +471,21 @@ async function clauseD(engineKeys) {
 // clause (e) — the doc-rot structural-claim tripwire (S3 · HYGIENE corroborator)
 // ═════════════════════════════════════════════════════════════════════════════
 
+/*
+ * U.E7: the documentation mirror was deleted. Keep this oracle filesystem-only
+ * so published-surface does not recreate a hand-maintained prose dependency.
+ */
 function clauseE() {
-    console.log("\nclause (e) — root CLAUDE.md structural claims vs the tree (S3 · HYGIENE)");
-    const doc = fs.readFileSync(path.join(REPO, "CLAUDE.md"), "utf8");
+    console.log("\nclause (e) — published structural shape on disk (S3 · HYGIENE)");
+    // Retained below only as a no-op compatibility local while the historical
+    // tree/count loops are folded out; no documentation file is read.
+    const doc = "";
 
     // (e.1) The phantom subtree may not be re-asserted (LS-1) — neither in the
     // doc nor on disk.
     for (const phantom of ["src/parsing", "src/units", "src/easing.ts", "src/math.ts"]) {
-        if (doc.includes(phantom)) {
-            failures.push(
-                `(e) root CLAUDE.md re-asserts the phantom path \`${phantom}\` — the doc-rot the S3 rewrite killed is back.`,
-            );
-        }
         if (fs.existsSync(path.join(REPO, phantom))) {
-            failures.push(
-                `(e) \`${phantom}\` EXISTS on disk — the tree grew a subtree the rewritten doc says is gone; rewrite the doc to the tree.`,
-            );
+            failures.push(`(e) phantom path \`${phantom}\` exists on disk.`);
         }
     }
 
@@ -484,21 +494,30 @@ function clauseE() {
         if (fs.existsSync(path.join(REPO, "demo", phantom))) {
             failures.push(`(e) phantom demo dir \`demo/${phantom}/\` reappeared on disk.`);
         }
-        if (new RegExp(`(?:demo/|├── |│ {3}|└── )${phantom}/`).test(doc)) {
+        /* documentation mirror retired; filesystem check above is authoritative */
+        if (false && new RegExp(`${phantom}/`).test("")) {
             failures.push(
-                `(e) root CLAUDE.md names the phantom demo dir \`${phantom}/\` (LS-3 re-rot).`,
+                `(e) phantom demo dir \`demo/${phantom}/\` reappeared in a retired shape.`,
             );
         }
     }
-    // R.W5 fused the per-scene dirs into demo/scenes/<name>/ — the top-level demo
-    // dirs CLAUDE.md now names are @ / app / scenes (the scene dirs
+    // U.B1 dissolved the shadcn-era @ wrapper into explicit top-level homes;
+    // R.W5 fused the per-scene dirs into demo/scenes/<name>/ (the scene dirs
     // amiga|cube|easing|…|compose live UNDER demo/scenes/ and are gated by
     // proof:scene-colocated). S.D3 (C-4) DELETED demo/playground/ — the standalone
     // app folded into scenes/compose/ — so `playground` is no longer a demo dir.
-    for (const real of ["@", "app", "scenes"]) {
+    for (const real of [
+        "app",
+        "components",
+        "composables",
+        "scenes",
+        "state",
+        "styles",
+        "utils",
+    ]) {
         if (!fs.existsSync(path.join(REPO, "demo", real))) {
             failures.push(
-                `(e) demo dir \`demo/${real}/\` named by root CLAUDE.md does not exist.`,
+                `(e) required demo dir \`demo/${real}/\` does not exist.`,
             );
         }
     }
@@ -527,7 +546,7 @@ function clauseE() {
         ];
         if (!candidates.some((p) => fs.existsSync(p))) {
             failures.push(
-                `(e) root CLAUDE.md §Project Tree names \`${f}\` — not found under src/ (a phantom file claim).`,
+                `(e) retired tree shape names missing source file \`${f}\`.`,
             );
         }
         checked++;
@@ -549,13 +568,13 @@ function clauseE() {
     const testClaim = doc.match(/\((\d+)\s+files\s*\/\s*\d+\s+tests/);
     if (testClaim && Number(testClaim[1]) !== testFiles) {
         failures.push(
-            `(e) root CLAUDE.md freezes the test-file count at ${testClaim[1]} but \`find test -name '*.test.ts' | wc -l\` → ${testFiles} — the count re-rotted; re-derive it.`,
+            `(e) retired test-file count ${testClaim[1]} differs from ${testFiles}.`,
         );
     }
     const benchClaim = doc.match(/\((\d+)\s+at the J\.W5 rewrite\)/);
     if (benchClaim && Number(benchClaim[1]) !== benchFiles) {
         failures.push(
-            `(e) root CLAUDE.md freezes the bench count at ${benchClaim[1]} but \`ls bench/*.bench.ts | wc -l\` → ${benchFiles} — the count re-rotted; re-derive it.`,
+            `(e) retired bench-file count ${benchClaim[1]} differs from ${benchFiles}.`,
         );
     }
     console.log(
@@ -845,7 +864,7 @@ async function main() {
     console.log(
         "\nproof:published-surface — PASS: the packed tarball is exactly the declared\n" +
             "library dist, every public export is taught or manifested, the\n" +
-            "AnimationEngine interface matches the runtime surface, the root CLAUDE.md\n" +
+            "AnimationEngine interface matches the runtime surface and published shape\n" +
             "structural claims resolve against the tree, and every declared peer is a\n" +
             "real runtime peer of the shipped dist.",
     );

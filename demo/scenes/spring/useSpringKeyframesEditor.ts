@@ -1,6 +1,6 @@
 import { markRaw } from "vue";
 
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { SPRING_SCENE_ID } from "./springKeys";
 

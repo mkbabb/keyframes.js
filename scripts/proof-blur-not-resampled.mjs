@@ -43,9 +43,9 @@
  * coupling only manifests while the subject animates), measures baseline vs a
  * `backdrop-filter: none` overlay, and reports the delta.
  *
- * BORN-RED BY DESIGN — rides the T born-RED BACKLOG (scripts/gate-bands.mjs
- * T_BORNRED_BACKLOG), EXCLUDED from every blocking aggregator (proof:ci-coverage),
- * a recorded CI tripwire. Discharged by T.H (glass-ui blur-source=static) + the
+ * EXTERNAL HOLD BY DESIGN — recorded as an observe-only tripwire while the
+ * glass-ui blur-source=static capability is pending. Discharged by the glass-ui
+ * publish + the kf re-pin + the
  * kf re-pin adopting it. Authority=INSTRUMENT (T.M6 / gate-authority.mjs).
  *
  * LOCKSTEP (lane 18): the falsified `contain: paint` deletion re-arms
@@ -288,7 +288,7 @@ console.log(
 for (const p of passes) console.log("  ✓ " + p);
 if (failures.length > 0) {
     console.error(
-        `\nproof:blur-not-resampled — FAIL (${failures.length}) [BORN-RED backlog — T_BORNRED_BACKLOG; discharged by T.H]:`,
+        `\nproof:blur-not-resampled — FAIL (${failures.length}) [external hold; glass-ui blur-source=static pending]:`,
     );
     for (const f of failures) console.error("  ✗ " + f);
     if (!REQUIRE_BROWSER)

@@ -130,19 +130,18 @@ import {
     ACTIVE_SCENE_KEY,
     CONTROLS_PANE_HOVER_KEY,
     TABS_EXTERNALLY_MANAGED_KEY,
-} from "@components/custom/instrument/transport/injectionKeys";
+} from "@components/instrument/transport/injectionKeys";
 
-import { EditorShell, EditorStartScreen } from "@components/custom/instrument/shell";
+import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
 // T.D13 — the home hero's Aurora backdrop (colocated in editor-shell/ beside
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
-import HeroAurora from "@components/custom/instrument/shell/HeroAurora.vue";
-import SceneSkeleton from "@components/skeletons/SceneSkeleton.vue";
-import ChromeDock from "./dock/ChromeDock.vue";
-import MbabbMenu from "./dock/MbabbMenu.vue";
+import HeroAurora from "@components/instrument/shell/HeroAurora.vue";
+import SceneSkeleton from "./App.skeleton.vue";
+import { ChromeDock, MbabbMenu } from "@app/dock";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import {
     getStoredAnimationGroupControlOptions,
     surfacesFor,
@@ -156,7 +155,7 @@ import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
 import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scene/scenes";
 import type { SceneExposedApi } from "./scene/sceneExposedApi";
-import { useMonacoCancellationGuard } from "./runtime/useMonacoCancellationGuard";
+import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGuard";
 
 // Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
 // disposed mid-async on a fast scene switch) — app-lifetime, scope-managed.

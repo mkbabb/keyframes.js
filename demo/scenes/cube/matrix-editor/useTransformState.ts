@@ -1,9 +1,9 @@
-import { easeInBounce } from "@mkbabb/value.js";
+import { easeInBounce } from "@mkbabb/value.js/easing";
 import type { Vars } from "@mkbabb/keyframes.js";
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { mat4 } from "gl-matrix";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import type { TransformState } from "../orbital-drag";
 import {
     MATRIX_AXES,

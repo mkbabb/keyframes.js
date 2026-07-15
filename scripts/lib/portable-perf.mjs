@@ -19,8 +19,9 @@
  *     Returns { adopt, ratio, baseHz, candHz, verdict } and routes the miss
  *     through `declarePosture(posture, {reason})` (the existing ci-env.mjs
  *     authority — no new posture system). If `decisionPath` is provided,
- *     writes a durable verdict JSON (the P-inv-28 terminal-home shape,
- *     matching `spring-vector-decision.json`).
+ *     writes a durable verdict JSON (the P-inv-28 terminal-home shape — an
+ *     optional caller convenience; kf's own perf floors now live as budgeted
+ *     same-report ratios in `bench/taxonomy.json`, not per-gate decision JSONs).
  *
  *   absoluteGate({ report, candidateCase, floorHz, posture?, reason?,
  *                  marginComment, decisionPath?, meta? })
@@ -90,8 +91,9 @@ function hzMapFromReport(report) {
 }
 
 /**
- * Write a durable verdict JSON in the P-inv-28 terminal-home shape
- * (matching `spring-vector-decision.json`).
+ * Write a durable verdict JSON in the P-inv-28 terminal-home shape (an optional
+ * caller convenience — no kf gate uses it today; the perf floors live as
+ * budgeted same-report ratios in `bench/taxonomy.json`).
  *
  * @param {string} decisionPath
  * @param {object} payload

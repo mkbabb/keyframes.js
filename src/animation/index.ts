@@ -213,6 +213,9 @@ export type {
 // value.js owns the scroll VALUES.
 export type {
     ScrollSceneOptions,
+    ScrollDriveOptions,
+    ScrollDriveTarget,
+    ScrollCSSDrive,
     ScrollDispatchRequest,
     ScrollDispatch,
     ScrollBackend,
@@ -252,7 +255,7 @@ export type {
     VTCompileRefusalReason,
     VTCompileRefusal,
     CompiledViewTransitionCSS,
-} from "./compile/view-transition";
+} from "./compile/emit/view-transition";
 // S.F3 EN-c (FLAGGED ADDITIVE EDIT) — the entry/exit emitter's TYPE surface.
 // HEAVY (entry.ts statically imports value.js + the backward substrate), so the
 // runtime `compileToEntry` rides loadAnimationEngine below; ONLY its spec /
@@ -264,7 +267,7 @@ export type {
     EntryRefusalReason,
     EntryRefusal,
     CompiledEntryCSS,
-} from "./compile/entry";
+} from "./compile/emit/entry";
 // L.W6 AGENT-AUTHORING VERB (FLAGGED ADDITIVE EDIT) — the round-trip's FORWARD
 // half: the VALIDATION layer over the compile surface. `validate`/`explain` are
 // a READ-ONLY projection over three already-typed channels (the adapter
@@ -285,6 +288,11 @@ export type { KeyframesAnimation, CSSKeyframesAnimation } from "./engine";
 // engine barrel no longer re-exports it; that cross-zone re-export closed the
 // engine↔group ring). Erased — no static value.js edge on the LIGHT barrel.
 export type { AnimationGroup } from "./group";
+
+// The heavy type roster is derived from the composition barrel.  `export type`
+// is erased from the light build, while keeping the static and dynamic entries
+// on one source of truth.
+export type * from "./public";
 
 // ── HEAVY engine (value.js-bearing, dynamic) ─────────────────────────────
 // The engine-loading machinery — the memoized dynamic-import accessors + their

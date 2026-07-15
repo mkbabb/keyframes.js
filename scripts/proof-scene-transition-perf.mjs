@@ -93,7 +93,7 @@ console.log(
 {
     const dfaPath = path.join(
         DEMO,
-        "@/state/controlSurfaceDFA.ts",
+        "state/controlSurfaces.ts",
     );
     if (fs.existsSync(dfaPath)) {
         const src = read(dfaPath);
@@ -129,7 +129,7 @@ console.log(
     const useMachine = read(
         path.join(
             DEMO,
-            "@/state/useSceneMachine.ts",
+            "state/useSceneMachine.ts",
         ),
     );
     const projection =
@@ -142,7 +142,7 @@ console.log(
     const reducer = read(
         path.join(
             DEMO,
-            "@/state/sceneMachine.ts",
+            "state/sceneMachine.ts",
         ),
     );
     const reducerUntouched = !/controlSurface/i.test(reducer);

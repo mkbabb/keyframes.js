@@ -213,9 +213,15 @@ async function settleAndOpen(page, scene) {
                 sk && store[sk] && typeof store[sk] === "object" ? store[sk] : {};
             store[sk] = {
                 selectedControl: prev.selectedControl ?? "controls",
-                selectedKeyframesControl: prev.selectedKeyframesControl ?? "string",
                 isTimelineExpanded: false,
                 ...prev,
+                keyframeControls: {
+                    selectedKeyframesControl:
+                        prev.keyframeControls?.selectedKeyframesControl ?? "keyframes",
+                    dialogOpen: prev.keyframeControls?.dialogOpen ?? false,
+                    keyframes: prev.keyframeControls?.keyframes ?? "",
+                    addKeyframes: prev.keyframeControls?.addKeyframes ?? "",
+                },
                 isControlsPanelOpen: true,
                 selectedAnimation:
                     prev.selectedAnimation && prev.selectedAnimation.length > 0
@@ -610,7 +616,7 @@ function stripComments(src) {
 function staticHalf() {
     const groupPath = path.join(
         REPO,
-        "demo/@/components/custom/instrument/transport/AnimationControlsGroup.vue",
+        "demo/components/instrument/transport/AnimationControlsGroup.vue",
     );
     if (!fs.existsSync(groupPath)) {
         fail(`static — AnimationControlsGroup.vue not found at ${groupPath}`);

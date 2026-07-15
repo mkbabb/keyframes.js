@@ -80,14 +80,14 @@
 <script setup lang="ts">
 import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { Card } from "@mkbabb/glass-ui";
-import { kfEngine } from "@utils/kfEngine";
+import { kfEngine } from "@kf-engine";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
 import { SQUARE_SCENE_ID } from "./squareKeys";
-import { facilityFromGroup } from "@app/scene/sceneFacility";
+import { facilityFromGroup } from "@composables/scene-facility";
 
 const superKey = SQUARE_SCENE_ID;
 
@@ -308,18 +308,18 @@ const { onKeydown } = useSquareKeyboard({
     },
 });
 
+const facility = facilityFromGroup(() => animationGroup);
+
 defineExpose({
     // T.B1 STAGE 1 — the additive SceneFacility: square's REAL nested-keyframes
     // channel paints (the honest four-corner tour); the legacy `animationGroup`
     // stays for the panel group. The facility's playback is the group adapter.
-    facility: computed(() => facilityFromGroup(() => animationGroup)),
-    animationGroup: computed(() => animationGroup),
+    facility,
     superKey,
     // T.A13 — the writable play state the App toggles for a group-adapter scene
     // (the cube/amiga contract: `onPlayStateChange` writes `isPlaying` when the
     // scene does NOT own its own `scenePlayback`). Here Play drives the group's
     // honest four-corner tour (the FSM enters `playback`); a drag takes over.
-    isPlaying,
 });
 </script>
 

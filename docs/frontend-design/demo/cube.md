@@ -344,7 +344,7 @@ Priority order — each step is self-contained and shippable.
 Tokens touched: `style.css :root` (`--face-1…6` holding the kept crayon primaries +
 `--face-alpha`), `design-idioms.css` (optional `--lamp-*`/`--spin-energy` defaults). NO
 hue is changed anywhere — the crayons stay; only the material/lighting layers are added. Components touched, in order:
-`demo/cube/CubeTarget.vue`, `demo/@/components/custom/orbital-drag/OrbitalDrag.vue`
+`demo/cube/CubeTarget.vue`, `demo/components/orbital-drag/OrbitalDrag.vue`
 (read-only consume of `currentQuaternion`), `demo/cube/useCubeAnimations.ts`,
-`demo/@/components/custom/matrix-editor/MatrixEditor.vue`, `demo/app/scenes/CubeScene.vue`.
+`demo/components/matrix-editor/MatrixEditor.vue`, `demo/app/scenes/CubeScene.vue`.
 No glass-ui patching (all changes ride demo-owned token layers + scoped styles, per inv-16).

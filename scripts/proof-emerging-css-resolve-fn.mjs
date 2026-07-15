@@ -162,7 +162,7 @@ requireAll("cycle-guard", RESOLVE, [
 requireAll("coerce", RESOLVE, [
     {
         name: "imports coerceToSyntax from @mkbabb/value.js (inv-16: the validator is the sibling's, NOT re-authored)",
-        re: /import\s*\{[\s\S]*?coerceToSyntax[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js["']/,
+        re: /import\s*\{[\s\S]*?coerceToSyntax[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js(?:\/parsing)?["']/,
     },
     {
         name: "coerceArg coerces each bound arg through coerceToSyntax against the param <syntax>",

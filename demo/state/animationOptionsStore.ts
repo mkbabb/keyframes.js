@@ -1,0 +1,151 @@
+import { kfEngine } from "@kf-engine";
+import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
+import { createGlobalState, useStorage } from "@vueuse/core";
+import {
+    checkAndResetExpiredStore,
+    gcAndMigrateStoreBuckets,
+    getAnimationSuperKey,
+} from "./storeUtils";
+import type { SceneId } from "./sceneMachine";
+
+// Keep the eager state store value.js-free. These seven CSS `steps()` keywords
+// are a closed platform vocabulary; the heavy engine/easing surface owns
+// parsing and validation when the editor actually consumes the stored value.
+const jumpTerms = [
+    "jump-start",
+    "jump-end",
+    "jump-none",
+    "jump-both",
+    "start",
+    "end",
+    "both",
+] as const;
+
+export type StoredAnimationOptions = {
+    animationOptions: InputAnimationOptions;
+    // R.W6 C.3 — `animationState` removed: dead state from the pre-machine era
+    // (the machine replaced it at H.W1); never accessed outside this definition.
+    stepOptions: {
+        steps: number;
+        jumpTerm: (typeof jumpTerms)[number];
+    };
+    cubicBezierOptions: {
+        controlPoints: [number, number, number, number];
+    };
+};
+
+export type StoredAnimationGroupOptions = {
+    [name: string]: StoredAnimationOptions;
+};
+
+export type StoredAnimationGroupsOptions = {
+    _storeTimestamp?: number;
+    [name: string]: StoredAnimationGroupOptions | number | undefined;
+};
+
+export const defaultAnimationOptions = {
+    duration: "5s",
+    delay: "0ms",
+    iterationCount: "infinite",
+    fillMode: "forwards",
+    direction: "alternate",
+    timingFunction: "ease-in-out",
+    respectReducedMotion: true,
+} as InputAnimationOptions;
+
+export const defaultStepOptions = {
+    steps: 100,
+    jumpTerm: jumpTerms[0],
+};
+
+export const defaultCubicBezierOptions = {
+    controlPoints: [0.2, 0.65, 0.6, 1],
+};
+
+export const defaultStoredAnimationOptions = {
+    animationOptions: defaultAnimationOptions,
+    stepOptions: defaultStepOptions,
+    cubicBezierOptions: defaultCubicBezierOptions,
+} as StoredAnimationOptions;
+
+export const useAnimationGroupsOptionsStore = createGlobalState(() => {
+    const store = useStorage<StoredAnimationGroupsOptions>(
+        "animation-groups-options-store",
+        { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions,
+    );
+    checkAndResetExpiredStore(store, { _storeTimestamp: Date.now() });
+    return store;
+});
+
+export const applySharedAnimationState = (patch: object): void => {
+    const entries = Object.entries(patch).filter(([key, value]) =>
+        key !== "_storeTimestamp" && typeof value === "object" && value !== null,
+    );
+    Object.assign(useAnimationGroupsOptionsStore().value, Object.fromEntries(entries));
+};
+
+export const getStoredAnimationOptions = (
+    animationId: KeyframesAnimation<any> | string | undefined = undefined,
+    // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an
+    // animation whose `.superKey` field IS the SceneId). No divergent PascalCase.
+    superKey: KeyframesAnimation<any> | SceneId | undefined = undefined,
+): StoredAnimationOptions => {
+    superKey = getAnimationSuperKey(superKey, animationId);
+    animationId = kfEngine().getAnimationId(animationId!);
+
+    const animationGroupsOptionsStore = useAnimationGroupsOptionsStore();
+
+    let animationGroupOptions = animationGroupsOptionsStore.value[
+        superKey
+    ] as StoredAnimationGroupOptions | undefined;
+
+    if (!animationGroupOptions) {
+        animationGroupsOptionsStore.value[superKey] = {
+            [animationId]: {},
+        } as StoredAnimationGroupOptions;
+
+        animationGroupOptions = animationGroupsOptionsStore.value[
+            superKey
+        ] as StoredAnimationGroupOptions;
+    }
+
+    const existing = animationGroupOptions[animationId];
+    if (!existing || Object.keys(existing).length === 0) {
+        (
+            animationGroupsOptionsStore.value[
+                superKey
+            ] as StoredAnimationGroupOptions
+        )[animationId] = structuredClone(defaultStoredAnimationOptions);
+    }
+
+    return (
+        animationGroupsOptionsStore.value[
+            superKey
+        ] as StoredAnimationGroupOptions
+    )[animationId]!;
+};
+
+export const createAnimationUUId = (
+    animationId: KeyframesAnimation<any> | string | undefined = undefined,
+    superKey: KeyframesAnimation<any> | SceneId | undefined = undefined,
+) => {
+    superKey = getAnimationSuperKey(superKey, animationId);
+    animationId = kfEngine().getAnimationId(animationId!);
+
+    return `${superKey}-${animationId}`;
+};
+
+/** Reset the store to defaults (used by resetAllStores). */
+export const _resetAnimationGroupsOptionsStore = () => {
+    const store = useAnimationGroupsOptionsStore();
+    store.value = { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions;
+};
+
+/** T.B9 — migrate legacy PascalCase buckets to the registry `SceneId` keyspace
+ *  and GC orphans. Called at boot beside the machine's `gcOrphans` over the SAME
+ *  valid-id set (the one gc sweep spread across the three globalState modules). */
+export const _gcAndMigrateAnimationGroupsOptionsStore = (
+    validSceneIds: Iterable<SceneId>,
+) => {
+    gcAndMigrateStoreBuckets(useAnimationGroupsOptionsStore(), validSceneIds);
+};

@@ -31,7 +31,7 @@
             <div class="progress-rail"></div>
             <div
                 class="progress-ball scrub-ball"
-                :style="{ transform: `translateX(calc(${clamp01(demo.progress.value) * 100}cqw))` }"
+                :style="{ transform: `translateX(calc(${clamp(demo.progress.value, 0, 1) * 100}cqw))` }"
             ></div>
         </div>
     </div>
@@ -40,12 +40,11 @@
 <script setup lang="ts">
 import { inject, ref, useTemplateRef } from "vue";
 
+import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
 
 const demo = inject(SEQUENCE_DEMO_KEY)!;
-
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 // ── Master scrubber: drag/keyboard scrubs the Sequence progress ──────────────
 // The drag rides the shared `useDragScrub` seam (H.W12.S1 / I8); `project` is the
@@ -79,7 +78,7 @@ const { onPointerDown: onScrubDownRaw } = useDragScrub({
         const el = scrubEl.value;
         if (!el) return demo.progress.value;
         const rect = el.getBoundingClientRect();
-        return clamp01((e.clientX - rect.left) / rect.width);
+        return clamp((e.clientX - rect.left) / rect.width, 0, 1);
     },
     onScrub,
     onStart: () => {

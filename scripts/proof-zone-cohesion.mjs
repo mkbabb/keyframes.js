@@ -135,15 +135,21 @@ const JUSTIFIED = new Map([
             "DRIVES advanceTo per frame) — a split adds per-frame indirection (T.G).",
     ],
     [
-        "src/animation/compile/backward/backward.ts",
+        // U.C8 re-key: backward/ → emit/ pure move (P1). The file exceeds the
+        // ceiling still — the length-reducing refusal-probe carve is DEFERRED to
+        // U.C9, so this entry RE-KEYS to the new path, it does not retire.
+        "src/animation/compile/emit/backward.ts",
         "COHESIVE EMITTER — compileToCSS. The input-graph walkers (backward-walk), " +
             "the oklab densify (backward-color), the linear() densify (densify), " +
             "the format serializer (format/format-options) are ALREADY sibling " +
-            "sub-modules; the residue is the one emit orchestrator + its refusal " +
-            "taxonomy — cohesive, no independent sub-concern to encapsulate.",
+            "sub-modules under emit/; the residue is the one emit orchestrator + " +
+            "its refusal taxonomy — cohesive, no independent sub-concern to " +
+            "encapsulate (true retirement awaits the U.C9 refusal-probe carve).",
     ],
     [
-        "src/animation/compile/entry.ts",
+        // U.C8 re-key: compile/entry.ts → compile/emit/entry.ts pure move (P1);
+        // the file stays over the ceiling, so re-key (not retire) per §2.
+        "src/animation/compile/emit/entry.ts",
         "COHESIVE EMITTER — compileToEntry (the @starting-style/allow-discrete " +
             "three-rule grammar) + its 9-way refusal taxonomy. One declared-" +
             "endpoint projection over format.ts's substrate; a single concern.",
@@ -161,12 +167,6 @@ const JUSTIFIED = new Map([
             "velocity-window sampling + release fling re-seat). The 2-D sugar is " +
             "ALREADY carved to drag-2d.ts; the residue is one input-plumbing class " +
             "whose gesture state is a single lifecycle.",
-    ],
-    [
-        "src/animation/orchestration/sequence/sequence.ts",
-        "COHESIVE CLASS — the master-playhead Sequence. events/lifecycle/transport " +
-            "are ALREADY carved into the sub-zone siblings; the 402L residue is one " +
-            "class (the position-insertion clock map) — barely over, indivisible.",
     ],
 ]);
 

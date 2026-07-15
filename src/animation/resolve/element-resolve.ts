@@ -21,7 +21,8 @@
  * PUBLIC compiler/targets/parse surface, called from `setTargets` as a
  * one-line delegate.
  */
-import { ValueArray, type CustomFunctionDescriptor } from "@mkbabb/value.js";
+import { ValueArray } from "@mkbabb/value.js/units";
+import { type CustomFunctionDescriptor } from "@mkbabb/value.js/parsing";
 import {
     DROP,
     hasPhase2Node,

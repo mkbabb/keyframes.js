@@ -19,6 +19,7 @@ import type { LayerTransitionSpring } from "./springs";
 import type { AnimationLayerConfig, Vars } from "../constants";
 import type { KeyframesAnimation } from "../engine";
 import type { AnimationGroup } from "./group";
+import { normalizeBlendWeight } from "./weight";
 
 /**
  * Set layer config for an animation by name or reference; throws on an
@@ -56,16 +57,21 @@ export function transitionLayer<V extends Vars>(
 ): void {
     const entry = requireEntry(group.animations, nameOrAnim, "transitionLayer");
     const layer = entry.layer;
+    const normalizedTarget = normalizeBlendWeight(target.weight);
     layer.blendMode = "weighted";
 
     const existing = layer.weightSpring;
     if (existing instanceof SpringProgress) {
         // Re-seat the in-flight spring from its live (value, velocity) —
         // velocity-continuous, no kink. `set target` does the re-seat.
-        existing.target = target.weight;
+        existing.target = normalizedTarget;
     } else {
         // Seed a fresh spring at the layer's current weight, then park it.
-        const spring = seedLayerSpring(layer.weight, target.weight, target.spring);
+        const spring = seedLayerSpring(
+            normalizeBlendWeight(layer.weight),
+            normalizedTarget,
+            target.spring,
+        );
         layer.weightSpring = spring;
     }
 

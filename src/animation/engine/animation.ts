@@ -8,7 +8,7 @@
  * Statically imports the heavy `@mkbabb/value.js` surface — reachable ONLY
  * through the `./index` dynamic boundary (`await loadAnimationEngine()`).
  */
-import type { ValueUnit } from "@mkbabb/value.js";
+import type { ValueUnit } from "@mkbabb/value.js/units";
 import { RAFPlayback } from "../physics/playback";
 import type { Diagnostic } from "../compile/adapter";
 import { defaultOptions } from "../constants";
@@ -117,6 +117,8 @@ export class KeyframesAnimation<V extends Vars = Vars> {
      * per-element numeric base `add`/`accumulate` accumulates ONTO; empty for a
      * pure-`replace` animation. INTERNAL — read by `./interpolate` (R.W2). */
     _compositionBase: Map<string, number[]> = new Map();
+    /** Parsed underlying CSS pose, cached once per property for a capture run. */
+    _compositionPose: Map<string, number[]> = new Map();
 
     /** Properties whose non-numeric composite already emitted its
      * `COMPOSITION_FALLBACK` row (once per property, not per frame). INTERNAL —
@@ -442,7 +444,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
 
     /** The explicit flip: pauses if playing, resumes if paused. */
     toggle() {
-        return this.paused ? this.resume() : this.pause();
+        return playback.toggle(this);
     }
 
     stop() {

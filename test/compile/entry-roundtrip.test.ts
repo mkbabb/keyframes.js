@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { springTimingFunction } from "../../src/animation/physics/spring";
-import { compileToEntry } from "../../src/animation/compile/entry";
+import { compileToEntry } from "../../src/animation/compile/emit/entry";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 

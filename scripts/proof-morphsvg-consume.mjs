@@ -57,7 +57,8 @@
  *
  * NOTE on the live-morph substrate. The O.W6 spec names the BUILT `dist/`
  * barrel; this gate runs the live morph over the TS SOURCE through
- * `loadAnimationEngine()` via a `tsx` probe (the `proof:soa-composite`
+ * `loadAnimationEngine()` via a `tsx` probe (following the pattern the since-retired
+ * `proof:soa-composite`
  * precedent) so it stays race-safe alongside the build and exercises the
  * IDENTICAL compositor (the `PathGeometry` sampler is DOM-free — isomorphic
  * jsdom/browser/node). The runtime observable is the same: a real

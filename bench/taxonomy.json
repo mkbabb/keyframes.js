@@ -39,7 +39,7 @@
         "  group-composite (budgeted) — the compositor-SoA frontier: add/weighted SoA vs",
         "                              boxed at K=3/8/12, replace arm dispatch-free baseline.",
         "                              The SoA-vs-boxed ratio at K=8 is the ADOPT/KILL gate",
-        "                              (proof:soa-composite); the per-arm ratio is same-report",
+        "                              (the retired SoA decision gate); the per-arm ratio is same-report",
         "                              (device-INDEPENDENT by construction). The replace arm",
         "                              benches are observe-only (dispatch-free; nothing to fold).",
         "  color2Into cross-repo      — the value.js-P gamut zero-alloc ask (VJ-P1); added to",
@@ -396,7 +396,7 @@
             "suite": "bench/spring-tick.bench.ts",
             "name": "scalar · K=8 independent SpringProgress · 600 tickDt",
             "category": "observe-only",
-            "$note": "the SpringProgress vector-sugar DECISION baseline (L.W7 §S2, W122) — K=8 independent scalar SpringProgress instances, the throughput the vector arm is measured AGAINST. proof:spring-vector reads this pair and records ADOPT (>=1.2×) or KILL (<1.2×); ADOPT shipped setTargets(Float64Array) on SpringProgress."
+            "$note": "the SpringProgress vector-sugar ADOPT baseline (L.W7 §S2, W122) — K=8 independent scalar SpringProgress instances, the throughput the vector arm is measured AGAINST. The budgeted vector twin below asserts the >=1.2× ADOPT floor; setTargets(Float64Array) shipped on SpringProgress (its correctness is test/physics/spring.test.ts's vector-mode block)."
         },
         {
             "suite": "bench/spring-tick.bench.ts",
@@ -404,7 +404,7 @@
             "category": "budgeted",
             "floorFraction": 1.2,
             "baselineCase": "scalar · K=8 independent SpringProgress · 600 tickDt",
-            "$note": "W122 ADOPT win: the multi-channel vector path (the setTargets(Float64Array) body) must run >= 1.2× the K-independent-scalar baseline at K=8 (the §S2 ADOPT threshold). MEASURED at 2.97–3.78× → ADOPT; setTargets(Float64Array) shipped on SpringProgress. The floor is the baselineCase's hz × 1.2, computed at run time from the same report so it tracks the runner (inv-L-device-honesty). proof:spring-vector records the durable ADOPT verdict in scripts/spring-vector-decision.json."
+            "$note": "W122 ADOPT win: the multi-channel vector path (the setTargets(Float64Array) body) must run >= 1.2× the K-independent-scalar baseline at K=8 (the §S2 ADOPT threshold). MEASURED at 2.97–3.78× → ADOPT; setTargets(Float64Array) shipped on SpringProgress. The floor is the baselineCase's hz × 1.2, computed at run time from the same report so it tracks the runner (inv-L-device-honesty). U.N2: this budgeted row IS the durable ADOPT home (the former proof:spring-vector decision-JSON gate dissolved); the vector sugar's correctness is test/physics/spring.test.ts's vector-mode block."
         },
         {
             "suite": "bench/interp-buffer.bench.ts",
@@ -477,13 +477,13 @@
             "suite": "bench/group-composite.bench.ts",
             "name": "add boxed · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS add blend baseline at K=8 — the denominator of the proof:soa-composite ADOPT/KILL ratio. observe-only in the taxonomy (the ratio gate proof:soa-composite owns the HARD predicate)."
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS add blend baseline at K=8 — denominator for the retired SoA decision gate's ADOPT/KILL ratio. observe-only; the hard floor now lives in the paired budgeted row."
         },
         {
             "suite": "bench/group-composite.bench.ts",
             "name": "add SoA · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. SoA fold add arm at K=8 — the numerator of the proof:soa-composite ADOPT/KILL ratio. observe-only in the taxonomy (proof:soa-composite owns the HARD same-report ratio predicate)."
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold add arm at K=8 — numerator for the retired SoA decision gate's ADOPT/KILL ratio. observe-only; the hard floor now lives in this manifest's paired budgeted row."
         },
         {
             "suite": "bench/group-composite.bench.ts",
@@ -513,13 +513,13 @@
             "suite": "bench/group-composite.bench.ts",
             "name": "weighted boxed · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS weighted blend baseline at K=8 — denominator of the proof:soa-composite weighted-arm ratio. observe-only in taxonomy."
+            "$note": "P.W1 S2 / compositor-SoA. Boxed AoS weighted blend baseline at K=8 — denominator for the retired SoA weighted-arm ratio. observe-only in taxonomy."
         },
         {
             "suite": "bench/group-composite.bench.ts",
             "name": "weighted SoA · K=8",
             "category": "observe-only",
-            "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=8 — numerator of the proof:soa-composite weighted-arm ratio. observe-only in taxonomy."
+            "$note": "P.W1 S2 / compositor-SoA. SoA fold weighted arm at K=8 — numerator for the retired SoA weighted-arm ratio. observe-only in taxonomy."
         },
         {
             "suite": "bench/group-composite.bench.ts",

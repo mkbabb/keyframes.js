@@ -58,6 +58,7 @@
 import { computed, onMounted, useTemplateRef, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
+import { clamp } from "@mkbabb/value.js/math";
 
 import type { SpringDemoContext } from "./springKeys";
 
@@ -190,8 +191,8 @@ const markerStyle = computed(() => {
     // NOT `left`/`top`: the marker's glide-on-edit transition then rides `transform`
     // instead of animating layout properties (no per-edit layout thrash). `cqw`/`cqh`
     // resolve against the field (`.spring-heatmap` is a `container-type: size`).
-    const px = Math.max(0, Math.min(1, rx)) * 100;
-    const py = Math.max(0, Math.min(1, ry)) * 100;
+    const px = clamp(rx, 0, 1) * 100;
+    const py = clamp(ry, 0, 1) * 100;
     return {
         transform: `translate(${px}cqw, ${py}cqh)`,
     };
@@ -207,8 +208,8 @@ function navigateFromPointer(clientX: number, clientY: number): void {
     const rect = field.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
-    const fx = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const fy = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    const fx = clamp((clientX - rect.left) / rect.width, 0, 1);
+    const fy = clamp((clientY - rect.top) / rect.height, 0, 1);
 
     // Snap to the nearest cell center on each axis.
     const col = Math.min(COLS - 1, Math.floor(fx * COLS));
@@ -256,9 +257,9 @@ function onKeydown(e: KeyboardEvent): void {
     if (!handled) return;
     e.preventDefault();
     demo.response.value =
-        Math.round(Math.max(RESPONSE_MIN, Math.min(RESPONSE_MAX, r)) * 100) / 100;
+        Math.round(clamp(r, RESPONSE_MIN, RESPONSE_MAX) * 100) / 100;
     demo.dampingFraction.value =
-        Math.round(Math.max(DAMPING_MIN, Math.min(DAMPING_MAX, d)) * 100) / 100;
+        Math.round(clamp(d, DAMPING_MIN, DAMPING_MAX) * 100) / 100;
 }
 
 // ── Lifecycle — paint once at mount; re-paint on resize (the closed-form is so

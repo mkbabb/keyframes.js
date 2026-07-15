@@ -1,12 +1,13 @@
 import { computed, markRaw, onScopeDispose, ref, watch } from "vue";
 
 import { SpringProgress } from "@mkbabb/keyframes.js";
+import { clamp } from "@mkbabb/value.js/math";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
 
-import { useRafScene } from "@app/runtime/useRafScene";
-import { useSceneTransport } from "@app/runtime/useSceneTransport";
-import type { SceneFacility } from "@app/scene/sceneFacility";
+import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
+import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
+import type { SceneFacility } from "@composables/scene-facility";
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 import { SPRING_SCENE_ID } from "./springKeys";
 import { SPRING_PRESETS } from "./springPresets";
@@ -244,13 +245,13 @@ export function useSpringDemo() {
         return true;
     };
 
-    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useRafScene) ──
-    // useRafScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
+    // ── The raw-rAF scene recipe (I.W1 S2 — consolidated in useSweepScene) ──
+    // useSweepScene OWNS the RAFPlayback, the BOUND startLoop/stopLoop, the
     // createRafAdapter wiring, the onScopeDispose(stopLoop) seam, AND the
     // useSceneVisibilityPause registration with BOUND callbacks (no scene can
     // re-introduce the unbound `playback.stop` that threw `this._gen`). The
     // scene supplies only the per-frame work + the per-arm clock rebase.
-    const { startLoop, scenePlayback } = useRafScene({
+    const { startLoop, scenePlayback } = useSweepScene({
         frame,
         // Re-seed the shared clock (lastNow = 0 so the first frame steps by dt=0)
         // + rebase startTime from the LIVE phase so the sweep resumes in phase
@@ -278,7 +279,7 @@ export function useSpringDemo() {
     // transport-scrubber drag calls it directly (the former `progress.value = v`
     // wrote only the 6 Hz mirror + repainted nothing while idle).
     function scrubTo(t: number): void {
-        const clamped = Math.max(0, Math.min(1, t));
+        const clamped = clamp(t, 0, 1);
         springLive.phase = clamped;
         springLive.sampled = samplerAnim.at(clamped).x;
         flushReadouts();
@@ -291,7 +292,7 @@ export function useSpringDemo() {
 
     /** Re-seat the interactive target *and* all canonical trackers together. */
     const reseat = (value: number) => {
-        const v = Math.max(0, Math.min(1, value));
+        const v = clamp(value, 0, 1);
         target.value = v;
         liveSpring.target = v;
         for (const t of tracks) t.spring.target = v;
@@ -374,7 +375,7 @@ export function useSpringDemo() {
     startLoop();
 
     // (The derby's pending-timer teardown is owned by `useSpringDerby`'s own
-    // onScopeDispose; the raw RAFPlayback teardown by useRafScene's.)
+    // onScopeDispose; the raw RAFPlayback teardown by useSweepScene's.)
 
     // ── THE SPRING FACILITY (T.B1-β/T.B7 — the decoy is DEAD) ─────────────────
     // The former contract-group opacity decoy (the "Spring Preview"
@@ -401,6 +402,7 @@ export function useSpringDemo() {
     springEditAnim.t = progress.value * springEditAnim.options.duration;
 
     const facility: SceneFacility = {
+        identity: scenePlayback,
         channels: [
             {
                 name: "Sweep",
@@ -414,17 +416,18 @@ export function useSpringDemo() {
                 progress: () => {
                     const dur = entryAnim.options.duration ?? 500;
                     return dur > 0
-                        ? Math.max(0, Math.min(1, entryAnim.t / dur))
+                        ? clamp(entryAnim.t / dur, 0, 1)
                         : 0;
                 },
                 setProgress: (t: number) => {
                     const dur = entryAnim.options.duration ?? 500;
-                    entryAnim.t = Math.max(0, Math.min(1, t)) * dur;
+                    entryAnim.t = clamp(t, 0, 1) * dur;
                 },
             },
         ],
         facets: [{ surface: "spring", label: "Physics", icon: "Activity" }],
         playback: scenePlayback,
+        isPlaying: () => scenePlayback.isPlaying(),
     };
 
     return {

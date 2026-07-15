@@ -70,9 +70,12 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
 
 // ── D1 + D2 STATIC half ──────────────────────────────────────────────────────
 {
+    // U.B2 terminal home: the former AnimationControls host was folded into
+    // ChannelControls.vue; keep the proof anchored to the live options-driven
+    // surface rather than a deleted pre-transposition path.
     const acPath = path.join(
         DEMO,
-        "@/components/custom/instrument/transport/controls/AnimationControls.vue",
+        "components/instrument/transport/channel-controls/ChannelControls.vue",
     );
     const ac = read(acPath);
     // The triggers come from the DFA (the built-in triad + the scene-conditional
@@ -147,12 +150,11 @@ console.log("proof:scene-control-dfa — H.W11 S4 / I2 (the per-scene control-su
     // survives; (b) surfacesFor is the derivation; (c) it is TOTAL — a `home`
     // scene with no facility falls back to [] (never undefined), the same
     // no-undefined-behavior guarantee the navigation matrix needs.
-    const dfa = read(
-        path.join(
-            DEMO,
-            "@/state/controlSurfaceDFA.ts",
-        ),
-    );
+    // U.B2 terminal home: the derivation moved from the transitional
+    // controlSurfaceDFA.ts filename into the co-located controlSurfaces.ts
+    // authority. Keep this proof pointed at the live module; D2 still asserts
+    // the same total surfacesFor contract.
+    const dfa = read(path.join(DEMO, "state/controlSurfaces.ts"));
     const oneLine = dfa.replace(/\s+/g, " ");
     const noTable = !/Record<SceneId,\s*ControlSurface\[\]>/.test(dfa);
     const derives = /export function surfacesFor\(/.test(dfa);

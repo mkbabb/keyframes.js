@@ -59,7 +59,7 @@ export const cssTwinFor = (name: string): string | undefined => {
  * `"ease-out-cubic"`, … — or a CSS `cubic-bezier()` literal) to a typed
  * {@link Easing}.
  *
- * The lookup rides the dynamic boundary: `import("./compile/easing-registry")`
+ * The lookup rides the dynamic boundary: `import("./compile/easing/easing-registry")`
  * loads ONLY the value.js-bearing timing-function registry (R.W1 narrow — not the
  * full engine chunk; lib-support F7) when a named easing is actually used, so a
  * light-only consumer that never calls this stays value.js-free.
@@ -74,9 +74,9 @@ export const cssTwinFor = (name: string): string | undefined => {
  * ```
  */
 export async function resolveEasing(name: string): Promise<Easing> {
-    let registry: typeof import("./compile/easing-registry");
+    let registry: typeof import("./compile/easing/easing-registry");
     try {
-        registry = await import("./compile/easing-registry");
+        registry = await import("./compile/easing/easing-registry");
     } catch (cause) {
         throw new Error(
             `keyframes: the easing-registry chunk failed to load while ` +

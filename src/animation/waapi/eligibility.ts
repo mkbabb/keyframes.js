@@ -1,4 +1,4 @@
-import { COMPUTED_UNITS } from "@mkbabb/value.js";
+import { COMPUTED_UNITS } from "@mkbabb/value.js/units";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 

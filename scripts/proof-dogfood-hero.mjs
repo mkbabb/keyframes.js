@@ -37,7 +37,7 @@ import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TYPING_DOTS = path.join(
     REPO,
-    "demo/@/components/custom/instrument/shell/TypingDots.vue",
+    "demo/components/instrument/shell/TypingDots.vue",
 );
 const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
 
@@ -47,7 +47,7 @@ const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
 // migrated the demo to consume the PUBLISHED `@mkbabb/keyframes.js`, ALSO accept
 // the sanctioned heavy-surface access the published demo uses: a CSSKeyframesAnimation
 // destructured out of `await loadAnimationEngine()` (the documented dynamic boundary
-// in CLAUDE.md — the heavy class is NOT a static named export; only `import type` is).
+// in the published type surface — the heavy class is NOT a static named export; only `import type` is).
 // Either path proves the dots loop on the kf engine itself; the BITE (a hero with NO
 // kf engine class at all) is unchanged. The hero's dots loop on a per-dot
 // CSSKeyframesAnimation (the PRIMARY path, WV-W6-HIGH-2 — NumericAnimation cannot
@@ -69,7 +69,7 @@ const DESTRUCTURES_ENGINE_CLASS =
 // The value.js curve — `steppedEase` MUST resolve from value.js, never from
 // `@src` (it is not a kf symbol). This is the negative half of WV-W6-MED-1.
 const STEPPED_EASE_FROM_VALUEJS =
-    /import\s*\{[^}]*\bsteppedEase\b[^}]*\}\s*from\s*["']@mkbabb\/value\.js["']/;
+    /import\s*\{[^}]*\bsteppedEase\b[^}]*\}\s*from\s*["']@mkbabb\/value\.js(?:\/easing)?["']/;
 const STEPPED_EASE_FROM_SRC =
     /import\s*\{[^}]*\bsteppedEase\b[^}]*\}\s*from\s*["']@src\//;
 

@@ -86,7 +86,7 @@ console.log(
     collect(path.join(DEMO, "scenes"));
     collect(path.join(DEMO, "app/dock"));
     targets.push(
-        path.join(DEMO, "@/components/custom/instrument/transport/components/RibbonBar.vue"),
+        path.join(DEMO, "components/instrument/transport/controls-pane/RibbonBar.vue"),
     );
 
     const writeRe = /\.selectedControl\s*=(?!=)/;
@@ -390,7 +390,12 @@ async function browserHalf() {
                                 cube: {
                                     selectedControl: "matrix-controls",
                                     selectedAnimation: "Rotations",
-                                    selectedKeyframesControl: "string",
+                                    keyframeControls: {
+                                        selectedKeyframesControl: "keyframes",
+                                        dialogOpen: false,
+                                        keyframes: "",
+                                        addKeyframes: "",
+                                    },
                                     isTimelineExpanded: false,
                                     isControlsPanelOpen: true,
                                 },

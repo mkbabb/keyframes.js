@@ -67,7 +67,7 @@ const read = (p) => fs.readFileSync(p, "utf8");
 const exists = (p) => fs.existsSync(p);
 
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
-const UI_VENDORED = "/demo/@/components/ui/";
+const UI_VENDORED = "/demo/components/ui/";
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);

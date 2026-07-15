@@ -20,16 +20,12 @@
 //   string `style.setProperty` (build string + browser parse)  vs
 //   Typed-OM `attributeStyleMap.set` (build CSSStyleValue + no parse),
 // for a multi-property transform AND a single property. Honest ratio → verdict.
-// Writes the TERMINAL record to scripts/typed-om-decision.json (the *-decision.json
-// precedent). Run: `KF_PLAYWRIGHT_DIR=/path/to/glass-ui node bench/typed-om-validate.mjs`.
+// U.N2 — the terminal verdict is PRINTED (the KILL is self-describing in the
+// record's $comment + verdictReason); the scripts/typed-om-decision.json tombstone
+// was DISSOLVED (no gate parsed it — a KILL adopts nothing).
+// Run: `KF_PLAYWRIGHT_DIR=/path/to/glass-ui node bench/typed-om-validate.mjs`.
 import { createRequire } from "node:module";
-import { writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, "..");
-const decisionPath = join(root, "scripts", "typed-om-decision.json");
+import { join } from "node:path";
 
 // The PRE-STATED threshold — declared HERE, before the measurement, so the
 // verdict is a mechanical comparison against a fixed bar (not a post-hoc read).
@@ -179,10 +175,9 @@ try {
         recordedAt: new Date().toISOString(),
     };
 
-    writeFileSync(decisionPath, JSON.stringify(record, null, 2) + "\n", "utf8");
     console.log(JSON.stringify(record, null, 2));
     console.log(
-        `\ntyped-om-validate — recorded terminal verdict ${verdict} → scripts/typed-om-decision.json`,
+        `\ntyped-om-validate — terminal verdict ${verdict} (printed; no decision-JSON — a KILL adopts nothing)`,
     );
 } finally {
     await browser.close();

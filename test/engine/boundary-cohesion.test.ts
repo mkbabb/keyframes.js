@@ -66,7 +66,9 @@ describe("F.W11 — the group blend's lerp is value.js, not the light leaf (inve
             /import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']\.\.\/internal\/leaves["']/,
         );
         // …it takes the canonical copy from value.js (the heavy posture).
-        expect(c).toMatch(/import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']@mkbabb\/value\.js["']/);
+        expect(c).toMatch(
+            /import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']@mkbabb\/value\.js\/math["']/,
+        );
     });
 });
 

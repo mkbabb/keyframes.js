@@ -122,7 +122,7 @@ const TEST = "test/scroll/scroll-scene.test.ts";
     // @mkbabb/value.js that brings in extractTimelineOptions. `import type {…}`
     // (erased) does NOT satisfy this — the consume must be a real runtime edge.
     const runtimeGrammarImport = sources.some(({ src }) =>
-        /import\s*\{[^}]*\bextractTimelineOptions\b[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js["']/.test(
+        /import\s*\{[\s\S]*?\bextractTimelineOptions\b[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js\/parsing["']/.test(
             src,
         ),
     );
@@ -359,10 +359,10 @@ requireAll("c-dispatch", DISPATCH, [
     // light barrel (which would pull value.js static).
     const loadEngine = read("src/animation/load-engine.ts");
     const wiring = idx + "\n" + loadEngine;
-    const ridesDynamic = /import\(\s*["']\.\/scroll\/index["']\s*\)/.test(wiring);
+    const ridesDynamic = /import\(\s*["']\.\/public["']\s*\)/.test(wiring);
     // The static-value-export leak is checked on the LIGHT barrel ONLY.
     const staticValueExport =
-        /export\s*\{[^}]*\}\s*from\s*["']\.\/scroll\/index["']/.test(idx);
+        /export\s*\{[^}]*\}\s*from\s*["']\.\/scroll(?:\/index)?["']/.test(idx);
     if (!ridesDynamic) {
         fail(
             clause,

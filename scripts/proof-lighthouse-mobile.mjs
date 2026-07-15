@@ -65,7 +65,7 @@ import { SCENES, resolveChromium, serveDist, withBrowser } from "./lib/demo-driv
 // BEFORE the posture below — IN_CI must not soften a declared-calibrated run).
 // The correctness owner of "mobile works" remains the S1 mobile-input battery
 // (proof:live-session-mobile); this gate CORROBORATES. The reason string IS
-// the taxonomy-manifest row (docs/tranches/J/gate-taxonomy.md — proof:ci-coverage
+// the taxonomy-manifest row (docs/tranches/J/gate-taxonomy.md — CI tier-manifest
 // asserts the two-way mapping).
 const redMisses = [];
 const posture = declarePosture("observe-only", {

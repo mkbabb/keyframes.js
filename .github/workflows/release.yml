@@ -55,6 +55,14 @@ jobs:
                   node-version: 24
                   registry-url: "https://registry.npmjs.org"
             - run: npm ci
+            - name: assert release tag matches package version
+              run: |
+                  expected="v$(node -p 'require("./package.json").version')"
+                  if [ "${GITHUB_REF_NAME}" != "${expected}" ]; then
+                      echo "::error::release tag ${GITHUB_REF_NAME} does not match package.json ${expected}"
+                      exit 1
+                  fi
+                  echo "release tag ${GITHUB_REF_NAME} matches package.json"
             - name: check (tsc --noEmit, library-scoped)
               run: npm run check:lib
             - name: build (library)
@@ -63,13 +71,17 @@ jobs:
               run: npm test -- --run
             - name: proof:boundary (value.js static/dynamic boundary gate)
               run: npm run proof:boundary
+            - name: proof:publish (U.Z1 — terminal publish-boundary bundle)
+              run: npm run proof:publish
+            - name: proof:published-surface --diff (U.Z3 — 5.3.0 additive-only surface against v5.2.0)
+              run: npm run proof:published-surface -- --diff --base=v5.2.0
             # L.W4 S7 — the publish-path roster (Lane 36 ⚠gate-ORACLE completeness).
             # The pre-L release.yml ran only check:lib → build:lib → test →
             # proof:boundary; a publish that shipped a stale @mkbabb/* floor or a
             # mismatched API-Extractor surface passed without either gate firing. These
             # two HARD gates close the gap (already in ci.yml; the release.yml addition
-            # authors no new logic). proof:ci-coverage clause 5 asserts BOTH appear here
-            # before `npm publish`.
+            # authors no new logic). The release sequence keeps both publish-boundary
+            # checks before `npm publish`.
             - name: proof:published-surface (L.W4 S7 — tarball == exports == docs · the publish-boundary oracle)
               run: npm run proof:published-surface
             - name: proof:deps-current (L.W4 S7 — @mkbabb/* pins current · protocol-clean · realm-convergent lock)

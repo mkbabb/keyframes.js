@@ -136,9 +136,9 @@ if (!ppBlock) {
 
 // ── 3. THE SVG ASSET RESOLVES (resolve-or-red, mirrors proof:idioms clause-1) ──
 {
-    const brandCssPath = path.join(DEMO, "@/styles/brand.css");
+    const brandCssPath = path.join(DEMO, "styles/brand.css");
     if (!fs.existsSync(brandCssPath)) {
-        fail("demo/@/styles/brand.css is missing — the .ppmycota-logo-sm background-image rule lives there");
+        fail("demo/styles/brand.css is missing — the .ppmycota-logo-sm background-image rule lives there");
     } else {
         const brand = read(brandCssPath);
         // Find the .ppmycota-logo-sm rule's background-image url(@assets/...svg).

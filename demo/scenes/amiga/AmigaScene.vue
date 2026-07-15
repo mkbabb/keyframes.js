@@ -22,6 +22,8 @@ import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
 import { SpringProgress } from "@mkbabb/keyframes.js";
+// OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
+import { clamp, lerp } from "@mkbabb/value.js/math";
 
 import { useAmigaThree } from "./useAmigaThree";
 import {
@@ -33,8 +35,8 @@ import {
     type AmigaPose,
 } from "./useAmigaDemo";
 import { useSphereSpin } from "./useSphereSpin";
-import { useSceneVisibilityPause } from "@app/runtime/useSceneVisibilityPause";
-import { facilityFromGroup } from "@app/scene/sceneFacility";
+import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
+import { facilityFromGroup } from "@composables/scene-facility";
 import { AMIGA_SCENE_ID } from "./amigaKeys";
 
 const superKey = AMIGA_SCENE_ID;
@@ -88,8 +90,6 @@ let wasPlaying = false;
 let reseat: SpringProgress | undefined;
 const reseatFrom: AmigaPose = { px: 0, py: 0, pz: 0, spin: 0 };
 let lastFrameAt = 0;
-
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 function onFrame(): boolean {
     // Advance the release glide (mutates the additive gesture offset).
@@ -158,7 +158,7 @@ function onFrame(): boolean {
     const shadow = three.getContactShadow();
     if (shadow) {
         const h = (rendered.py - FLOOR_Y) / (APEX_Y - FLOOR_Y); // 0 floor → 1 apex
-        const t = Math.min(1, Math.max(0, h));
+        const t = clamp(h, 0, 1);
         shadow.position.x = rendered.px;
         shadow.position.y = CONTACT_FLOOR + 0.01;
         shadow.scale.setScalar(lerp(1, 1.9, t));
@@ -229,12 +229,13 @@ onBeforeUnmount(() => {
     // (the Three.js room + IntersectionObserver auto-release on scope dispose)
 });
 
+const facility = facilityFromGroup(() => animationGroup);
+
 defineExpose({
     // T.B1 STAGE 1 — the additive SceneFacility: amiga's REAL group members are
     // the painting channels; the legacy `animationGroup` stays for the panel
     // group. The facility's playback is the standard group adapter.
-    facility: computed(() => facilityFromGroup(() => animationGroup)),
-    animationGroup: computed(() => animationGroup),
+    facility,
     superKey,
 });
 </script>

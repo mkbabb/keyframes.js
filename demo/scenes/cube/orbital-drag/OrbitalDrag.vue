@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { clamp } from "@mkbabb/value.js";
+import { clamp } from "@mkbabb/value.js/math";
 import { useEventListener } from "@vueuse/core";
 import { quat, vec3 } from "gl-matrix";
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";

@@ -1,6 +1,7 @@
 import { clamp } from "../internal/leaves";
 import { withReducedMotion } from "../internal/reduced-motion";
 import { RAFPlayback } from "./playback";
+import { managedPlay, managedStart, managedStop } from "./managed-stepper";
 
 export interface SmoothProgressOptions {
     /** Damping factor (0, 1]. Higher = faster convergence. Default 0.1 */
@@ -53,8 +54,16 @@ export class SmoothProgress {
     // implements `Tickable` via `tickDt`/`settled`). Auto-stops on settle;
     // `setTarget()` while `onFrame` is attached and the loop is idle
     // auto-resumes the loop.
-    private _playback = new RAFPlayback();
-    private _onFrame: SmoothFrameCallback | undefined = undefined;
+    readonly _playback = new RAFPlayback();
+    _onFrame: SmoothFrameCallback | undefined = undefined;
+
+    get respectReducedMotion() {
+        return this.options.respectReducedMotion;
+    }
+
+    _emitManagedFrame(): void {
+        this._onFrame?.(this.currentValue);
+    }
 
     constructor(options?: Partial<SmoothProgressOptions>) {
         this.options = { ...defaultSmoothOptions, ...options };
@@ -91,7 +100,7 @@ export class SmoothProgress {
                     this.isSettled = false;
                     // Auto-resume the managed loop if `.play()` attached a
                     // callback and the loop idled after a prior settle.
-                    if (this._onFrame) this._startLoop();
+                    if (this._onFrame) managedStart(this);
                 },
             );
         }
@@ -166,19 +175,7 @@ export class SmoothProgress {
      * call `.tickDt(dt)` directly and never invoke `.play()`.
      */
     play(onFrame?: SmoothFrameCallback): void {
-        this._onFrame = onFrame;
-        withReducedMotion(
-            this.options.respectReducedMotion,
-            // Short-circuit to an immediate target snap — one emit, no loop.
-            () => this._snapSettled(),
-            () => {
-                if (this.isSettled) {
-                    onFrame?.(this.currentValue);
-                    return;
-                }
-                this._startLoop();
-            },
-        );
+        managedPlay(this, onFrame);
     }
 
     /**
@@ -186,8 +183,7 @@ export class SmoothProgress {
      * Pairs with `.play()`. Does not touch current/target/settled state.
      */
     stop(): void {
-        this._onFrame = undefined;
-        this._playback.stop();
+        managedStop(this);
     }
 
     /**
@@ -196,6 +192,6 @@ export class SmoothProgress {
      * the driver no-ops while already running.
      */
     private _startLoop(): void {
-        this._playback.drive(this, () => this._onFrame?.(this.currentValue));
+        managedStart(this);
     }
 }

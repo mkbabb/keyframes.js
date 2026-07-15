@@ -10,7 +10,8 @@
  * color/numeric it denotes, not a raw string. The consequent recursion is the
  * injected `resolveNode` (the recursion seam with `resolve/index.ts`).
  */
-import { FunctionValue, parseCSSValue, ValueUnit } from "@mkbabb/value.js";
+import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
+import { parseCSSValue } from "@mkbabb/value.js/parsing";
 import { DROP, type ResolveContext, type Resolved } from "./env";
 import type { ResolveNode } from "./resolve-function";
 

@@ -44,7 +44,7 @@
  *        │ touch-emulation) in docs/tranches/J/gate-taxonomy.md; the durable    │
  *        │ cure is a CDP true-touch driver (Input.dispatchTouchEvent →          │
  *        │ Pointer-Events bridge) or real-device verification (the authoritative│
- *        │ oracle). proof:ci-coverage clause 4 asserts the row's category+cure. │
+ *        │ oracle). The CI tier manifest asserts the row's category+cure.       │
  *        └─────────────────────────────────────────────────────────────────────┘
  *   M3 — THE DRAG SURFACE: on /square a CDP touch-DRAG COMPLETES — the
  *        transform PERSISTS (≠ identity after settle) and `getSelection()` is
@@ -268,8 +268,8 @@ const readGeometry = (page) =>
  * sheet's box (and its visible bottom fraction) COVERS the bottom menubar band —
  * CH-3 (sheet.bottom ≤ menubar.top) is STRUCTURALLY broken by the Drawer's forced
  * geometry. That break is the BG-11 gap, and the menubar-occlusion assertion is
- * OWNED by the BG-11-BLOCKED backlog gate `proof:dock-zorder` (gate-bands.mjs
- * T_BORNRED_BACKLOG, dischargedBy the glass-ui `--drawer-inset-block-end` publish
+ * OWNED by the BG-11 external-hold gate `proof:dock-zorder` (discharged by the
+ * glass-ui `--drawer-inset-block-end` publish
  * + re-pin; KF-TO-GLASSUI-BG.md §FORWARDING 6a). This clause therefore RECORDS the
  * measured overlap as a delegated note (NOT a silent weakening — the hard
  * assertion lives, registered, in the backlog gate), so live-session-mobile's

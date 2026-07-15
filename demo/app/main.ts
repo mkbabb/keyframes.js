@@ -22,12 +22,12 @@ import "@styles/style.css";
 // constructs an empty placeholder `AnimationGroup` SYNCHRONOUSLY on every scene
 // switch and feeds it into non-null prop contracts (EditorShell → controls), so
 // the engine is warmed ONCE here before mount and read synchronously thereafter
-// (demo/@/utils/kfEngine.ts). This is the honest dogfood: the demo boots on the
+// (demo/kf-engine.ts). This is the honest dogfood: the demo boots on the
 // same dynamic engine chunk a `npm i` consumer reaches — value.js still never
 // lands on the LIGHT static barrel (proof:boundary stays green). The first-paint
 // skeleton + critical CSS are JS-independent (criticalCSSPlugin inlines them), so
 // this boot await does not block the visual first paint.
-import { warmKfEngine } from "@utils/kfEngine";
+import { warmKfEngine } from "@kf-engine";
 
 const app = createApp(App);
 app.use(router);
@@ -59,7 +59,7 @@ void Promise.all([warmKfEngine().catch(() => undefined), fontsDecoded]).finally(
 // to the production build; the dynamic import keeps it off the dev
 // critical path too.
 if (import.meta.env.DEV) {
-    void import("./runtime/loaf-observer").then(({ observeLongAnimationFrames }) => {
+    void import("./lifecycle/loaf-observer").then(({ observeLongAnimationFrames }) => {
         observeLongAnimationFrames();
     });
 }

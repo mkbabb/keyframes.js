@@ -1,20 +1,9 @@
-import {
-    flattenObject,
-    functionIdentityValue,
-    FunctionValue,
-    memoize,
-    normalizeValueUnits,
-    parseCSSSubValue,
-    prepareInterpVar,
-    unflattenObjectToString,
-    ValueArray,
-    ValueUnit,
-} from "@mkbabb/value.js";
-import type {
-    ColorSpace,
-    HueInterpolationMethod,
-    NormalizeValueUnitsOptions,
-} from "@mkbabb/value.js";
+import { flattenObject, functionIdentityValue, FunctionValue, unflattenObjectToString, ValueArray, ValueUnit } from "@mkbabb/value.js/units";
+import { parseCSSSubValue } from "@mkbabb/value.js/parsing";
+import { memoize, normalizeValueUnits, prepareInterpVar } from "@mkbabb/value.js";
+import type { HueInterpolationMethod } from "@mkbabb/value.js/color";
+import type { ColorSpace } from "@mkbabb/value.js/color";
+import type { NormalizeValueUnitsOptions } from "@mkbabb/value.js";
 import type { Vars } from "../constants";
 
 export type ParsedVarMap = Record<string, ValueArray>;
@@ -98,9 +87,9 @@ const applyPropertyContext = (
 };
 
 // `getTimingFunction` (the synchronous timing-function resolver) moved to the
-// colocated `./easing-registry` module (R.W1; lib-support F1/F7) so `easing.ts`
-// can narrow its dynamic import. This module is now the CSS-leaf parse/flatten
-// pipeline only.
+// `./easing/easing-registry` module in the `compile/easing/` sub-zone (R.W1;
+// lib-support F1/F7; relocated U.C8) so `easing.ts` can narrow its dynamic
+// import. This module is now the CSS-leaf parse/flatten pipeline only.
 
 /**
  * Bounded LRU over the string→flattened-leaf parse. value.js's `memoize`
@@ -295,6 +284,12 @@ export const createInterpVarValue = (
  * before return) and JS is single-threaded, so no two applies interleave over it.
  */
 const _styleOut: Record<string, string> = {};
+const _styleKeys: string[] = [];
+// CompositeState keeps inactive grouped keys as `undefined` to preserve the
+// hot-path object shape. The value.js serializer intentionally assumes every
+// enumerable value is printable, so reuse one filtered view at this output
+// boundary instead of teaching the upstream sink about compositor sentinels.
+const _definedVars: Record<string, any[]> = {};
 
 /**
  * Default DOM-style renderer used by `Animation.transform` when no
@@ -310,11 +305,20 @@ export function transformTargetsStyle<V extends Vars>(
 ) {
     vars = flat ? vars : (flattenObject(vars) as V);
 
-    const styleStringVars = unflattenObjectToString(vars, _styleOut);
+    for (const key in _definedVars) delete _definedVars[key];
+    for (const key in vars) {
+        const value = vars[key];
+        if (value !== undefined) _definedVars[key] = value as any[];
+    }
+    const styleStringVars = unflattenObjectToString(_definedVars, _styleOut);
+    let styleKeyCount = 0;
+    for (const key in styleStringVars) _styleKeys[styleKeyCount++] = key;
+    _styleKeys.length = styleKeyCount;
 
     targets.forEach((target) => {
-        Object.entries(styleStringVars).forEach(([key, value]) => {
-            target.style.setProperty(key, value);
-        });
+        for (let i = 0; i < styleKeyCount; i++) {
+            const key = _styleKeys[i]!;
+            target.style.setProperty(key, styleStringVars[key]!);
+        }
     });
 }

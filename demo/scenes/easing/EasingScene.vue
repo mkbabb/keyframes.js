@@ -6,8 +6,9 @@
 
 <script setup lang="ts">
 import { computed, h, provide, ref } from "vue";
+import { clamp } from "@mkbabb/value.js/math";
 
-import PlaybackRibbon from "@components/custom/instrument/transport/controls/PlaybackRibbon.vue";
+import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
 import EasingTarget from "./EasingTarget.vue";
 import EasingSidebar from "./EasingSidebar.vue";
@@ -70,7 +71,7 @@ const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
     const dur = demo.previewAnim.options.duration;
-    if (dur > 0) demo.progress.value = Math.max(0, Math.min(1, v.t / dur));
+    if (dur > 0) demo.progress.value = clamp(v.t / dur, 0, 1);
 };
 
 const onToggleReverse = () => {
@@ -112,9 +113,8 @@ defineExpose({
     // T.B1-β — the SceneFacility descriptor (the ONE real preview channel, the
     // `easing` facet, the raw-rAF playback). The decoy `animationGroup` expose
     // is DELETED with the contract-group decoy; the shell binds the facility.
-    facility: computed(() => demo.facility),
+    facility: demo.facility,
     superKey: SCENE_ID,
-    isPlaying,
     isStarted,
     // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: a scene that
     // sweeps forever with no gesture burned a full core at idle ("god awful").
@@ -127,7 +127,6 @@ defineExpose({
     // The raw-rAF ScenePlayback adapter — the App registers it with the machine
     // on SCENE_READY so easing's progress/isPlaying round-trip through the
     // CONTRACT (the literal D12 repro; proof:scene-contract-identity).
-    scenePlayback: demo.scenePlayback,
     tabsContent,
     ribbonContent,
 });

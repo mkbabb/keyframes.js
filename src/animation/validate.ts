@@ -44,7 +44,7 @@
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { extractKeyframes, parseCSSStylesheet } from "@mkbabb/value.js";
+import { extractKeyframes, parseCSSStylesheet } from "@mkbabb/value.js/parsing";
 import { CSSKeyframesAnimation } from "./engine";
 import { compileToCSS } from "./compile";
 import { isWAAPIEligible } from "./waapi";
@@ -75,7 +75,7 @@ export interface ValidateOptions {
  */
 export interface ValidateResult {
     /**
-     * True iff value.js parsed the CSS without a `PARSE_ERROR` diagnostic — the
+     * True iff the adapter produced no `EMPTY_PARSE` diagnostic — the
      * block surfaced at least one recognized stylesheet item (a `@keyframes` /
      * `@property` / style rule). A spec-invalid keyframe `!important` declaration
      * is SILENTLY dropped at the AST by value.js (the L.W1 S1 reality) — that drop
@@ -144,17 +144,16 @@ export async function validate(
 
     // The adapter's structured channel — every silent parse/honoring fallback the
     // resolve path surfaced (EMPTY_PARSE, COMPOSITION_FALLBACK, any value.js
-    // PARSE_ERROR consumed through OnParseError). Read, never re-authored.
+    // Read, never re-authored.
     const diagnostics = [...animation.diagnostics];
 
-    // `parseable` — value.js parsed the CSS without a hard parse failure. A
-    // `PARSE_ERROR` row (the consumed value.js `OnParseError` shape) flips it
-    // false; an `EMPTY_PARSE` row (a non-empty input that yielded zero @keyframes
+    // `parseable` — the adapter surfaced at least one keyframe rule. An
+    // `EMPTY_PARSE` row (a non-empty input that yielded zero @keyframes
     // rules) is a frame-less result, also un-parseable as an animation. A
     // spec-invalid keyframe `!important` is NOT in either class — value.js drops
     // that declaration silently at the AST, so the block stays parseable.
     const hardParseFailure = diagnostics.some(
-        (d) => d.code === "PARSE_ERROR" || d.code === "EMPTY_PARSE",
+        (d) => d.code === "EMPTY_PARSE",
     );
     const parseable = css.trim().length > 0 && !hardParseFailure;
 

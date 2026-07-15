@@ -3,6 +3,7 @@ import type { NativeTimelineSpec } from "../orchestration/timeline/native";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 import { isWAAPIEligible } from "./eligibility";
+import type { WAAPIEligibility } from "./eligibility";
 import { toWAAPIKeyframes } from "./emission";
 import { toWAAPIOptions } from "./waapi-options";
 
@@ -35,9 +36,10 @@ export async function playWAAPI<V extends Vars>(
     // same observable state as the rAF path. No interpFrames calls;
     // WAAPI handles the visuals. Rides the animation's own RAFPlayback
     // driver so `stop()` halts it uniformly with every other loop.
-    animation.playback.loop(async (now: number) => {
-        if (animation.done) return false;
-        await animation.advanceTo(now);
+    // Keep the steady WAAPI shadow tick on RAFPlayback's synchronous fast path.
+    // `advanceTo` is thenable only for a genuinely asynchronous first tick; the
+    // old `async` callback forced every frame through a Promise/microtask hop.
+    const reconcile = (): boolean => {
         if (animation.paused) {
             for (const wa of waAnimations) wa.pause();
         } else {
@@ -46,7 +48,20 @@ export async function playWAAPI<V extends Vars>(
             }
         }
         return !animation.done;
-    });
+    };
+
+    const shadowTick = (now: number): boolean | Promise<boolean> => {
+        if (animation.done) return false;
+        const advanced = animation.advanceTo(now);
+        if (
+            advanced &&
+            typeof (advanced as Promise<number>).then === "function"
+        ) {
+            return (advanced as Promise<number>).then(reconcile);
+        }
+        return reconcile();
+    };
+    animation.playback.loop(shadowTick);
 
     try {
         await Promise.all(waAnimations.map((wa) => wa.finished));
@@ -89,6 +104,12 @@ export type NativeScrollAttachment =
     | { attached: true; animations: globalThis.Animation[] }
     | { attached: false; reason: string };
 
+/** Precomputed native-dispatch inputs; avoids repeating the hot eligibility scan. */
+export interface NativeScrollDispatchContext {
+    eligibility: Extract<WAAPIEligibility, { eligible: true }>;
+    timeline: AnimationTimeline;
+}
+
 /**
  * The ADDITIVE native `ScrollTimeline`/`ViewTimeline` WAAPI bridge
  * (D-LIB-2 / F-5 / S-1) — attach an eligible DOM animation to a native
@@ -118,13 +139,14 @@ export type NativeScrollAttachment =
 export function attachNativeScrollTimeline<V extends Vars>(
     animation: KeyframesAnimation<V>,
     spec: NativeTimelineSpec,
+    context?: NativeScrollDispatchContext,
 ): NativeScrollAttachment {
-    const elig = isWAAPIEligible(animation);
+    const elig = context?.eligibility ?? isWAAPIEligible(animation);
     if (!elig.eligible) {
         return { attached: false, reason: elig.reason };
     }
 
-    const timeline = createNativeTimeline(spec);
+    const timeline = context?.timeline ?? createNativeTimeline(spec);
     if (timeline == null) {
         return {
             attached: false,

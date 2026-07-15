@@ -359,7 +359,7 @@ function stripComments(src, kind) {
 }
 
 function staticHalf() {
-    const cssPath = path.join(REPO, "demo/@/styles/design-idioms.css");
+    const cssPath = path.join(REPO, "demo/styles/design-idioms.css");
     if (!fs.existsSync(cssPath)) {
         fail(`static — design-idioms.css not found at ${cssPath}`);
     } else {

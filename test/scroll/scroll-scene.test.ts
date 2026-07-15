@@ -25,6 +25,7 @@ import {
     ScrollScene,
     TriggerScene,
     createScrollScene,
+    driveScrollCSS,
     createTriggerScene,
     dispatchScrollBackend,
     parseScrollCSS,
@@ -181,6 +182,39 @@ describe("K.W9 clause (b) — the scroll grammar round-trips (parse → serializ
         expect(resolved.start).toBeCloseTo(0, 5);
         // cover band 0.25..0.75 at 40% through → 0.25 + 0.4*0.5 = 0.45
         expect(resolved.end).toBeCloseTo(0.45, 5);
+    });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// U.C11 — the composed drive face fans the SAME parse result into every lane
+// ════════════════════════════════════════════════════════════════════════
+describe("U.C11 — driveScrollCSS composes parse → scene + trigger + dispatch", () => {
+    it("drives the parsed range and trigger without a second grammar path", () => {
+        const options = parseScrollCSS(`.card {
+          animation-timeline: view();
+          animation-range: entry 0% cover 40%;
+          animation-trigger: repeat view() entry 0% cover 40%;
+        }`);
+        const handle = driveScrollCSS(options);
+        expect(handle.backend).toBe("js");
+        expect(handle.reason).toMatch(/non-DOM|native/i);
+        expect(handle.trigger?.type).toBe("repeat");
+        expect(handle.scene.range.end).toBeCloseTo(0.45, 5);
+        handle.scene.scrollProgress(0.1);
+        handle.trigger?.triggerProgress(0.1);
+        expect(handle.trigger?.triggerProgress(0.3)).toBe("active");
+    });
+
+    it("derives a view native spec from an Element target while preserving JS fallback", () => {
+        const subject = mkEl();
+        const options = parseScrollCSS(
+            ".card { animation-timeline: view(block); animation-range: cover 0% cover 100%; }",
+        );
+        const handle = driveScrollCSS(options, subject);
+        // jsdom has no ViewTimeline; dispatch is still conservative and
+        // returns a reason rather than pretending the native lane attached.
+        expect(handle.backend).toBe("js");
+        expect(handle.scene.range.start).toBeCloseTo(0.25, 5);
     });
 });
 

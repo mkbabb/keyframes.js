@@ -33,7 +33,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { CSSKeyframesToString } from "../../src/animation/compile/backward/format";
+import { CSSKeyframesToString } from "../../src/animation/compile/emit/format";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CORPUS = join(HERE, "..", "fixtures", "keyframes");

@@ -16,7 +16,7 @@
  * A SOURCE-GREP gate in the `proof:blend` / `proof:motion-path` style: each clause
  * reds on the exact regression it forbids — verified, not asserted. The VALUE proof
  * (the form lock + the gimbal-pole parity, the axis-angle round-trip) lives in the
- * chained `vitest run test/demo/orbital-rotate3d.test.ts` (the lead wires the combined
+ * chained `vitest run test/demo/scenes/orbital-rotate3d.test.ts` (the lead wires the combined
  * `"proof:orbital-rotate3d"` script — see the note at the tail).
  *
  * CLAUSES (each BITES):
@@ -38,7 +38,7 @@
  *       deleted). BITE: delete the v-model extractor while its caller remains → reds
  *       (this is the O-1b widening this wave defers, forbidden here).
  *
- *   test-locks       — `test/demo/orbital-rotate3d.test.ts` carries the form-lock + the
+ *   test-locks       — `test/demo/scenes/orbital-rotate3d.test.ts` carries the form-lock + the
  *       gimbal-pole-parity clauses. BITE: delete a lock → reds.
  *
  * Mirrors `proof:blend`: exits 1 on any residual. Re-runnable:
@@ -58,7 +58,7 @@ const ok = (clause, msg) => console.log(`  ✓ [${clause}] ${msg}`);
 console.log("proof:orbital-rotate3d — G.W18 (the rotation OUTPUT renders as native rotate3d)");
 
 const SFC = "demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
-const TEST = "test/demo/orbital-rotate3d.test.ts";
+const TEST = "test/demo/scenes/orbital-rotate3d.test.ts";
 
 const sfc = read(SFC);
 
@@ -180,5 +180,5 @@ if (failures.length > 0) {
 console.log(
     "proof:orbital-rotate3d — PASS: the rotation OUTPUT renders as ONE native\n" +
         "rotate3d off the quaternion (loss-free, gimbal-pole-free); the Euler v-model\n" +
-        "is preserved (O-1a). The value proof rides `vitest run test/demo/orbital-rotate3d.test.ts`.",
+        "is preserved (O-1a). The value proof rides `vitest run test/demo/scenes/orbital-rotate3d.test.ts`.",
 );

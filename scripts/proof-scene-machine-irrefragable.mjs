@@ -567,7 +567,12 @@ async function clauseSceneIsolation(browser, base) {
                             easing: {
                                 selectedControl: "easing",
                                 selectedAnimation: "Easing",
-                                selectedKeyframesControl: "string",
+                                keyframeControls: {
+                                    selectedKeyframesControl: "keyframes",
+                                    dialogOpen: false,
+                                    keyframes: "",
+                                    addKeyframes: "",
+                                },
                                 isTimelineExpanded: false,
                                 isControlsPanelOpen: true,
                             },

@@ -14,16 +14,6 @@ interface NumericSegment<T extends Record<string, number>> {
     timingFunction: TimingFunction;
 }
 
-/**
- * Module-scope scratch buffer for the `lerpArray` consume (L.W7 S2). Grown
- * lazily to the widest channel count seen across all `NumericAnimation`
- * instances, never shrunk — a stable reference reused across every `.at()`
- * call so the interpolation hot path allocates nothing. `lerpArray` only ever
- * reads `seg.from.length` channels, so an over-sized `_out` (from a wider
- * sibling animation) is harmless — the trailing slots are ignored.
- */
-let _out = new Float64Array(0);
-
 export interface NumericAnimationOptions {
     /**
      * Easing as a callable `TimingFunction` or a typed `Easing` — both
@@ -73,6 +63,8 @@ export type NumericFrameCallback<T extends Record<string, number>> = (
  *   that resolves when the animation completes
  */
 export class NumericAnimation<T extends Record<string, number>> {
+    /** Per-instance interpolation scratch: reentrant sibling `.at()` calls cannot clobber it. */
+    private _out = new Float64Array(0);
     private keyframes: T[];
     private segments: NumericSegment<T>[];
     private positions: number[];
@@ -195,14 +187,14 @@ export class NumericAnimation<T extends Record<string, number>> {
         // buffer lazily — never shrink it (a stable module-scope reference so
         // the interp hot path allocates nothing).
         const n = seg.keys.length;
-        if (_out.length < n) {
-            _out = new Float64Array(n);
+        if (this._out.length < n) {
+            this._out = new Float64Array(n);
         }
-        lerpArray(seg.from, seg.to, eased, _out);
+        lerpArray(seg.from, seg.to, eased, this._out);
 
         const result = this.result as Record<string, number>;
         for (let i = 0; i < n; i++) {
-            result[seg.keys[i]!] = _out[i]!;
+            result[seg.keys[i]!] = this._out[i]!;
         }
 
         return this.result;

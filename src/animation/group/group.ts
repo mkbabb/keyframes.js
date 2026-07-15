@@ -17,6 +17,7 @@ import * as layerApi from "./layer-api";
 import * as lifecycle from "./lifecycle";
 import type { SoALayerPlan } from "./soa";
 import type { PlainProjection } from "../compile/plain-vars";
+import { CompositeState } from "./composite-state";
 import type {
     AnimationLayerConfig,
     TransformFunction,
@@ -86,6 +87,14 @@ export class AnimationGroup<V extends Vars> {
 
     /** THE rAF owner for the group's draw loop. */
     readonly playback = new RAFPlayback();
+    /** Native effects installed by the additive group-WAAPI fast lane.
+     * INTERNAL: lifecycle owns pause/resume/cancel; an empty array means the
+     * group is on its ordinary rAF compositor path. */
+    readonly _waAnimations: globalThis.Animation[] = [];
+    /** True while the current play is delegated to native effects. The group
+     * still runs its shadow transport loop so events and completion retain the
+     * rAF contract, but it does not overwrite native compositor output. */
+    _waapiDelegated = false;
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
     /** The ONE held play promise the `finished` front-door exposes. INTERNAL
      * (S.B5) — read/written by the transport free functions in `./lifecycle`. */
@@ -101,7 +110,8 @@ export class AnimationGroup<V extends Vars> {
 
     /** Long-lived composite buffer, cleared in place each frame (zero-alloc).
      * INTERNAL (R.W2) — read/written by `./compositor`. */
-    _grouped: Record<string, unknown> = {};
+    readonly _compositeState = new CompositeState();
+    _grouped: Record<string, unknown> = this._compositeState.values;
 
     /** The compile-stable union of every child's contributed keys — what `_grouped`
      * is null-filled to each frame so the composite clears WITHOUT `delete` (F.W4
@@ -241,7 +251,13 @@ export class AnimationGroup<V extends Vars> {
      */
     render(t: number = this.lastTickTime): void {
         if (this.singleTarget) {
-            this.transformFramesGrouped(t);
+            // Native group effects own visual output while delegated; retain
+            // the exact compositor paint at the terminal tick before settle
+            // cancels those effects, so fill/commit semantics remain parity-
+            // safe. Every non-terminal frame is shadow-only.
+            if (!this._waapiDelegated || this.done) {
+                this.transformFramesGrouped(t);
+            }
         } else {
             renderMultiTarget(this.getEntries());
         }
@@ -299,7 +315,16 @@ export class AnimationGroup<V extends Vars> {
         }
 
         if (this.singleTarget) {
-            this.transformFramesGrouped(t);
+            // The shadow transport still advances every child, but delegated
+            // native effects own visual output until the terminal tick. Keep
+            // the group completion calculation here because `compositeFrame`
+            // is intentionally skipped on the delegated steady path.
+            this.done = this.getEntries().every(
+                (entry) => entry.animation.done,
+            );
+            if (!this._waapiDelegated || this.done) {
+                this.transformFramesGrouped(t);
+            }
         } else {
             this.done = renderMultiTarget(this.getEntries());
         }
@@ -329,12 +354,12 @@ export class AnimationGroup<V extends Vars> {
         return lifecycle.play(this);
     }
 
-    // ── The managed-child lifecycle contract (full statement in
-    // src/animation/CLAUDE.md → AnimationGroup → "Managed-child lifecycle"): a
-    // managed child is loop-owned — it throws on direct `play()`; `pause()` records
-    // the last rAF clock on each child's `pausedTime` so `resume()` adjusts
-    // `startTime` jump-free; `resume()` un-pauses children DIRECTLY (never
-    // `child.resume()`); `settle()` releases the child (`managed = false`).
+    // ── Managed-child lifecycle contract: a managed child is loop-owned — it
+    // throws on direct `play()`; `pause()` records the last rAF clock on each
+    // child's `pausedTime` so `resume()` adjusts `startTime` jump-free;
+    // `resume()` un-pauses children DIRECTLY (never `child.resume()`); and
+    // `settle()` releases the child (`managed = false`). This source comment is
+    // the authoritative contract for proof:engine and for consumers.
 
     /** Pause the group — idempotent. Cancels the rAF loop + renders a final-frame
      * snapshot so the visual matches the pause moment; records each child's
@@ -353,7 +378,7 @@ export class AnimationGroup<V extends Vars> {
 
     /** The explicit flip: pauses if playing, resumes if paused. */
     toggle() {
-        return this.paused ? this.resume() : this.pause();
+        return lifecycle.toggle(this);
     }
 
     /** Pure state teardown — never paints. Releases every child (`managed = false`,

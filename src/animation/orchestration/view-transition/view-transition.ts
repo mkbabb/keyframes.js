@@ -13,7 +13,7 @@
  * its typed-`update` object overload. `proof:boundary` enrolls it off the LIGHT
  * barrel automatically.
  *
- * The HEAVY companion — `compileToViewTransition` (`compile/view-transition.ts`),
+ * The HEAVY companion — `compileToViewTransition` (`compile/emit/view-transition.ts`),
  * which compiles a name-keyed role spec to zero-runtime `::view-transition-*` CSS
  * — rides `loadAnimationEngine()`; this dispatch is the runtime side.
  *

@@ -16,8 +16,8 @@
  * under `tsPreCompilationDeps`). LIGHT (value.js-free): it reaches only the
  * shared reduced-motion gate + the injected `RAFPlayback`.
  */
-import { withReducedMotion } from "../../internal/reduced-motion";
 import type { SpringFrameCallback, SpringPlayback } from "./types";
+import { managedPlay, managedStart, managedStop } from "../managed-stepper";
 
 /**
  * Arm the shared driver: it steps `tickDt(dt)` once per frame until `settled`
@@ -26,9 +26,7 @@ import type { SpringFrameCallback, SpringPlayback } from "./types";
  * bound and a re-seat un-settles the spring.
  */
 export function springStartLoop(spring: SpringPlayback): void {
-    spring._playback.drive(spring, () =>
-        spring._onFrame?.(spring.value, spring.velocity),
-    );
+    managedStart(spring);
 }
 
 /**
@@ -43,25 +41,11 @@ export function springPlay(
     spring: SpringPlayback,
     onFrame?: SpringFrameCallback,
 ): void {
-    if (spring.disposed) return;
-    spring._onFrame = onFrame;
-    withReducedMotion(
-        spring.respectReducedMotion,
-        // Snap to target at zero velocity — one emit, no loop.
-        () => spring.snap(),
-        () => {
-            if (spring.settled) {
-                onFrame?.(spring.value, spring.velocity);
-                return;
-            }
-            springStartLoop(spring);
-        },
-    );
+    managedPlay(spring, onFrame);
 }
 
 /** Cancel the managed rAF loop and detach the per-frame callback. Pairs with
  * `springPlay`; does not touch current/target/settled state. */
 export function springStop(spring: SpringPlayback): void {
-    spring._onFrame = undefined;
-    spring._playback.stop();
+    managedStop(spring);
 }

@@ -67,6 +67,10 @@ export const computeGroupedKeys = <V extends Record<string, unknown>>(
 ): string[] => {
     const seen = new Set<string>();
     for (const entry of entries) {
+        // Disabled layers are not contributors. Excluding their exclusive
+        // keys from the stable union avoids allocating/clearing dead fields
+        // and keeps the grouped object shape aligned with active stack data.
+        if (!entry.layer.enabled) continue;
         const whitelist = entry.layer.properties;
         for (const key of entry.animation.flatKeys) {
             if (whitelist && !whitelist.has(key)) continue;

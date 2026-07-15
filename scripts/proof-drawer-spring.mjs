@@ -50,8 +50,8 @@
  * The "the sheet never occludes the bottom menubar" contract is NOT this gate's;
  * it is re-chartered onto the Drawer's snap ladder in proof:stage-visible /
  * proof:mobile-single-page, and the clause the Drawer's forced `bottom:0`
- * structurally breaks is a BG-11-BLOCKED T_BORNRED_BACKLOG row
- * (scripts/gate-bands.mjs), dischargedBy the glass-ui `--drawer-inset-block-end`
+ * structurally breaks is a BG-11 external-hold row in the tier manifest,
+ * discharged by the glass-ui `--drawer-inset-block-end`
  * publish + re-pin.
  *
  * Harness: the scripts/lib/demo-driver.mjs lifecycle. The STATIC clause (a)
@@ -107,7 +107,7 @@ function staticHalf() {
     // (i) the demo CONSUMES the Drawer (no re-hand-rolled sheet).
     const sheetPath = path.join(
         REPO,
-        "demo/@/components/custom/instrument/transport/components/ControlsPaneWrapper.vue",
+        "demo/components/instrument/transport/controls-pane/ControlsPaneWrapper.vue",
     );
     if (!fs.existsSync(sheetPath)) {
         fail(`static — ControlsPaneWrapper.vue not found at ${sheetPath}`);

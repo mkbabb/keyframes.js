@@ -25,7 +25,7 @@
  * playwright-core is not resolvable, so a browserless env is not a false red; set
  * KF_PLAYWRIGHT_DIR to actuate.
  *
- * BORN-RED WITNESS: with no `compile/view-transition.ts` emitter the oracle's
+ * BORN-RED WITNESS: with no `compile/emit/view-transition.ts` emitter the oracle's
  * import of `compileToViewTransition` fails → RED; and with the group timing-only
  * emission deleted, the group pseudo carries the UA 250ms (not the emitted 350ms)
  * → the keystone assertion REDs. GREEN once the emitter ships the three surfaces.

@@ -98,7 +98,7 @@ requireAll("field-exists", ADAPTER, [
 {
     const src = read(ADAPTER);
     const imported =
-        /import\s*\{[\s\S]*?(?:OnParseError|ParseDiagnostic)[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js["']/.test(
+        /import\s*\{[\s\S]*?\b(?:OnParseError|ParseDiagnostic)\b[\s\S]*?\}\s*from\s*["']@mkbabb\/value\.js\/parsing["']/.test(
             src,
         );
     const extendsProducer =
@@ -106,7 +106,7 @@ requireAll("field-exists", ADAPTER, [
     if (!imported || !extendsProducer) {
         fail(
             "consume-types",
-            `${ADAPTER}: ParseDiagnostic/OnParseError imported=${imported}, Diagnostic extends the producer=${extendsProducer} — the channel must CONSUME the value.js producer (N2 row 10), not re-author a kf-local shape (inv-16 published-only consumption).`,
+            `${ADAPTER}: ParseDiagnostic/OnParseError consumed=${imported}, Diagnostic extends the producer=${extendsProducer} — the channel must CONSUME the value.js producer (N2 row 10), not re-author a kf-local shape (inv-16 published-only consumption).`,
         );
     } else {
         ok(

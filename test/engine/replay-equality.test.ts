@@ -20,7 +20,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { CSSKeyframesToString } from "../../src/animation/compile/backward/format";
+import { CSSKeyframesToString } from "../../src/animation/compile/emit/format";
 
 /** Slice the `@keyframes` block off a serialized artifact (the `.class` block
  *  precedes it). The named-selector / per-stop assertions read this half. */

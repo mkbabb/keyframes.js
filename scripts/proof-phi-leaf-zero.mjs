@@ -32,7 +32,7 @@
  *   • EXCLUDE `dist/` — the git-ignored BUILD output that inlines glass-ui's
  *     compiled `.text-*` rungs + every font-size literal (the ~150 noise). A
  *     source-shape gate must never read the build it is asserting the source omits.
- *   • EXCLUDE vendored `ui/` shadcn (`demo/@/components/ui/`) — not demo-authored
+ *   • EXCLUDE vendored `ui/` shadcn (`demo/components/ui/`) — not demo-authored
  *     surface; its `text-sm` rungs are the upstream shadcn shape, not the demo's
  *     φ-ladder (this is the exclusion the residual=2 rests on).
  *   • EXCLUDE `.svg` user-space font-size — the L4 NOT-A-DEFECT
@@ -69,7 +69,7 @@ const ROOTS = ["@", "app", "easing", "spring", "sequence"];
 
 // The vendored shadcn-vue tree — not demo-authored surface. EXCLUDING it is the
 // load-bearing exclusion the residual=2 (NOT 37) rests on (WV-W4-HIGH-1).
-const UI_VENDORED = "/demo/@/components/ui/";
+const UI_VENDORED = "/demo/components/ui/";
 
 const failures = [];
 const ok = (label) => console.log(`  ✓ ${label}`);
@@ -217,7 +217,7 @@ console.log(
 {
     const HERO = path.join(
         DEMO,
-        "@/components/custom/instrument/shell/EditorStartScreen.vue",
+        "components/instrument/shell/EditorStartScreen.vue",
     );
     if (!fs.existsSync(HERO)) {
         fail(

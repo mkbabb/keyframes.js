@@ -289,7 +289,7 @@ describe("SpringProgress", () => {
     /**
      * L.W7 §S2, W122 — the ADOPTed multi-channel vector overload
      * (`setTargets(Float64Array)` / `tickVector` / `values`). MEASURE-FIRST: the
-     * `proof:spring-vector` probe measured the vector path at 2.97–3.78× over K=8
+     * The since-retired `proof:spring-vector` probe measured the vector path at 2.97–3.78× over K=8
      * independent scalar instances (>= the 1.2× ADOPT threshold), authorizing
      * this surface. The CORRECTNESS contract: a vector lane rings IDENTICALLY to a
      * scalar `SpringProgress` of the same `(response, dampingFraction)` — same
@@ -339,6 +339,35 @@ describe("SpringProgress", () => {
                 expect(buf[i]!).toBeLessThan(targets[i]! * 1.2);
                 expect(buf[i]!).toBeGreaterThan(targets[i]! * 0.3);
             }
+        });
+
+        it("keeps a two-lane (x,y) vector identical to independent scalar references", () => {
+            const cfg = {
+                response: 0.42,
+                dampingFraction: 0.72,
+                settleThreshold: 1e-12,
+                velocitySettleThreshold: 1e-12,
+            };
+            const x = new SpringProgress(cfg);
+            const y = new SpringProgress(cfg);
+            const vector = new SpringProgress(cfg);
+            x.target = 120;
+            y.target = -35;
+            vector.setTargets(new Float64Array([120, -35]));
+
+            for (let frame = 0; frame < 90; frame++) {
+                x.tickDt(FRAME_MS);
+                y.tickDt(FRAME_MS);
+                vector.tickVector(FRAME_MS);
+                expect(vector.values[0]).toBeCloseTo(x.value, 10);
+                expect(vector.values[1]).toBeCloseTo(y.value, 10);
+                expect(vector.velocities[0]).toBeCloseTo(x.velocity, 10);
+                expect(vector.velocities[1]).toBeCloseTo(y.velocity, 10);
+            }
+
+            x.dispose();
+            y.dispose();
+            vector.dispose();
         });
 
         it("re-seats each lane continuously from its current (x, v)", () => {

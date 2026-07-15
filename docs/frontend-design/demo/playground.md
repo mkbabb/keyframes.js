@@ -1,6 +1,6 @@
 # Playground — frontend-design treatment
 
-> Scope: the standalone playground app — `demo/playground/App.vue` + `demo/playground/usePlaygroundAnimations.ts`, rendering through `demo/@/components/custom/editor-shell/EditorShell.vue` and the `demo/@/components/custom/asset-manager/*` suite (`AssetViewport.vue`, `AssetLayerPanel.vue`, `AssetLayer.vue`, `AssetPropertiesPanel.vue`), riding the demo design language (`demo/@/styles/{style.css,design-idioms.css,brand.css}`, `demo/DESIGN.md`) over `@mkbabb/glass-ui` tokens. This is a PROPOSAL — no source is written outside this doc.
+> Scope: the standalone playground app — `demo/playground/App.vue` + `demo/playground/usePlaygroundAnimations.ts`, rendering through `demo/components/editor-shell/EditorShell.vue` and the `demo/components/asset-manager/*` suite (`AssetViewport.vue`, `AssetLayerPanel.vue`, `AssetLayer.vue`, `AssetPropertiesPanel.vue`), riding the demo design language (`demo/styles/{style.css,design-idioms.css,brand.css}`, `demo/DESIGN.md`) over `@mkbabb/glass-ui` tokens. This is a PROPOSAL — no source is written outside this doc.
 
 ---
 
@@ -141,10 +141,10 @@ The fleet design verdict is binding; this page was already largely in compliance
 
 **Touch list:**
 - `demo/playground/App.vue` — the gated playground wrapper (`data-foundry`) around the target slot: key-light/vignette atmosphere + bind-ignition orchestration (the playground-only flourishes live here, NOT in the shared suite); wire the bind event from the existing `setTargets` watch (`:98-116`).
-- `demo/@/components/custom/asset-manager/AssetViewport.vue` — motion-authority chrome (`:78,90,93,150`), empty-state redesign (`:8-32`), View-Transition `view-transition-name` per asset + scale-in, grab-pulse/hover-arm.
-- `demo/@/components/custom/asset-manager/AssetLayer.vue` — bound-layer indicator (preset chip + live filament + icon tint), selected-row rail to `--color-progress` (`:9`).
-- `demo/@/components/custom/asset-manager/AssetPropertiesPanel.vue` — font default fix (`:100`), bind preview-on-hover (`:114-132`).
-- `demo/@/components/custom/asset-manager/AssetLayerPanel.vue` — de-duplicate empty-state copy (`:49-54`), live/inert list split, View-Transition reorder wrap (`:141-163`).
-- `demo/@/styles/design-idioms.css` — IF a reusable `.layer-live-filament` / `.foundry-keylight` idiom is extracted (one token home for the playground key-light magnitude), it lands here, behind a playground-scoped selector; otherwise no token churn.
+- `demo/components/asset-manager/AssetViewport.vue` — motion-authority chrome (`:78,90,93,150`), empty-state redesign (`:8-32`), View-Transition `view-transition-name` per asset + scale-in, grab-pulse/hover-arm.
+- `demo/components/asset-manager/AssetLayer.vue` — bound-layer indicator (preset chip + live filament + icon tint), selected-row rail to `--color-progress` (`:9`).
+- `demo/components/asset-manager/AssetPropertiesPanel.vue` — font default fix (`:100`), bind preview-on-hover (`:114-132`).
+- `demo/components/asset-manager/AssetLayerPanel.vue` — de-duplicate empty-state copy (`:49-54`), live/inert list split, View-Transition reorder wrap (`:141-163`).
+- `demo/styles/design-idioms.css` — IF a reusable `.layer-live-filament` / `.foundry-keylight` idiom is extracted (one token home for the playground key-light magnitude), it lands here, behind a playground-scoped selector; otherwise no token churn.
 
 **Guards to honour throughout:** the asset-manager suite is SHARED — playground-only atmosphere (key-light, vignette, ignition bloom) must be gated behind the playground's own wrapper/class, never baked unconditionally into the shared components; generic wins (motion-authority colour, bound-layer indicator, font fix) land in the shared components directly. PRM collapses every flourish (ignition, trail, preview, key-light smoothing, View-Transition lifecycle via the `::view-transition-group(*) { animation: none }` bracket) to instant state. The animation engine is the single paint authority — the ignition/filament READ existing `AnimationGroup` state, never add a second writer. View Transitions are feature-detected with a plain fallback (Baseline Newly available 2025-10). Tokens live in `design-idioms.css`/`style.css`; shared rules in the asset-manager SFC scoped blocks; playground atmosphere scoped to the `App.vue` wrapper. `--color-progress` (red) is the motion authority for chrome + ignition; `--color-gold` is the warm key-light; the existing graph paper is untouched as the deepest substrate layer.

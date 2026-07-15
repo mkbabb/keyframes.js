@@ -23,7 +23,7 @@ import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
-} from "../../src/animation/compile/backward/format";
+} from "../../src/animation/compile/emit/format";
 
 const VAR_CSS = `@keyframes t {
     0% { transform: translateX(var(--x)); }

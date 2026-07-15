@@ -66,7 +66,8 @@ describe("SpringProgress.tickDt throughput (analytic solver)", () => {
  * L.W7 §S2-constraint — the SpringProgress VECTOR-SUGAR ADOPT-or-KILL probe
  * (W122 second half). MEASURE-FIRST: a `setTargets(Float64Array)` multi-spring
  * overload would tick all K channels into one `Float64Array` per tick. A new
- * public surface is NOT free — `proof:spring-vector` ADOPTs the sugar ONLY if
+ * public surface was NOT free — the now-retired `proof:spring-vector` probe
+ * ADOPTed the sugar ONLY if
  * this measurement shows the vector path beats K independent scalar
  * `SpringProgress` instances by >= 20% at K=8; otherwise it KILLs the sugar
  * (no unproven code ships).

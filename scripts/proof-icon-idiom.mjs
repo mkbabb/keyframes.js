@@ -49,14 +49,14 @@ import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEMO = path.join(REPO, "demo");
-const DESIGN_IDIOMS = path.join(DEMO, "@/styles/design-idioms.css");
+const DESIGN_IDIOMS = path.join(DEMO, "styles/design-idioms.css");
 
 const toPosix = (p) => p.split(path.sep).join("/");
 const relPosix = (abs) => toPosix(path.relative(REPO, abs));
 const read = (p) => fs.readFileSync(p, "utf8");
 
 const SKIP_DIR = new Set(["dist", "node_modules", ".git"]);
-const UI_VENDORED = "/demo/@/components/ui/";
+const UI_VENDORED = "/demo/components/ui/";
 
 const SIZES = ["xs", "sm", "md", "lg"];
 

@@ -23,7 +23,7 @@
  * frame off the LIVE dock. It REDS TODAY (the 58→14 snap ≫ 25%, the sliver hold,
  * the post-settle 14→225 jump-cut ≫ 5px). Per MEMORY the fix is glass-ui-root
  * (measure REAL laid-out endpoints / defer the morph one frame) — a born-RED
- * handoff: EXCLUDED + T_BORNRED_BACKLOG, dischargedBy the glass-ui GU-2 publish +
+ * handoff: external hold, discharged by the glass-ui GU-2 publish +
  * re-pin. AUTHORITY: OWNER + blocking-not-OBSERVE (T.M6).
  *
  * Harness: scripts/lib/demo-driver.mjs `withPage`. Serves the BUILT dist/gh-pages/
@@ -262,7 +262,7 @@ if (!series || series.length < 4) {
 for (const p of passes) console.log("  ✓ " + p);
 if (failures.length > 0) {
     console.error(
-        `\nproof:dock-morph-continuity — FAIL (${failures.length}) [BORN-RED backlog — T_BORNRED_BACKLOG; dischargedBy glass-ui GU-2 publish + re-pin (T.C6)]:`,
+        `\nproof:dock-morph-continuity — FAIL (${failures.length}) [external hold; discharged by glass-ui GU-2 publish + re-pin]:`,
     );
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);

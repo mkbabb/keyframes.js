@@ -11,7 +11,7 @@
  * `demo/` — dead weight in the install graph, never proven live (a20 F4, a30,
  * DIGEST.json). Alongside them, a dead LOCAL constant (`SPRING_SMOOTH`) was
  * kept alive only by a `void` suppression dodging `noUnusedLocals`, and a
- * handful of narration sites (CLAUDE.md doc listings, a proof-script comment)
+ * handful of narration sites (README/DESIGN listings, a proof-script comment)
  * asserted things that no longer exist. T9 (census before fiat): totality is
  * proven by a census-shaped gate, not by naming one island.
  *
@@ -43,7 +43,7 @@
  * `SegmentedTabs`, `Animated.vue`, `ResponsiveSelect`, `AnimationMenuBar` —
  * NEVER the phrase "scene-switcher" (banning the phrase would false-RED the
  * historical tranche docs + the S.E shelf record, which legitimately carry
- * it). Scoped to the repo's LIVE NARRATION SURFACES — the CLAUDE.md family
+ * it). Scoped to the repo's LIVE NARRATION SURFACES — README and DESIGN
  * (root, `src/animation/`, `demo/`) + `README.md` + `demo/DESIGN.md` — the
  * doc sites a reader actually trusts as "what exists today". This is
  * DELIBERATELY narrower than "every comment in every file": `scripts/*.mjs`
@@ -51,7 +51,7 @@
  * assertions (e.g. `proof-scene-colocated.mjs` greps for them to prove
  * they're gone — that's the discriminator, not the defect), and the
  * extensive `<SegmentedTabs>` design-history comments scattered through
- * `demo/@/components/custom/instrument/transport/**` explain a real, true
+ * `demo/components/instrument/transport/**` explain a real, true
  * architecture decision (the DM-5 contingency-kill of glass-ui's
  * `SegmentedTabs` for `KfPillTabs`) — accurate technical history, not a false
  * claim that something exists. That corpus is explicitly DISCRETIONARY
@@ -63,7 +63,7 @@
  * A repo-wide (`src/` + `demo/`) grep for `cn(` / `class-variance-authority` /
  * `@radix-*` that must return EMPTY — NO-legacy proven by census, not by naming
  * one island. S.C3a AUTHORED this clause born-RED-and-NON-GATING: while the
- * `demo/@/components/ui/menubar/` (16 files) + `demo/@/utils/utils.ts`'s `cn()`
+ * `demo/components/ui/menubar/` (16 files) + `demo/utils/utils.ts`'s `cn()`
  * shadcn island still existed, a GATING census would have wrongly RED'd S.C3a's
  * own green, so S.C3a surfaced the finding loudly WITHOUT contributing to the
  * exit code, deferring the discharge to S.C3b ("C3a authors the census; C3b's
@@ -80,7 +80,7 @@
  * `class-variance-authority`, or `@radix-*` REGROWTH in src/+demo/ now REDs.
  *
  * BORN-RED PROOF. Before S.C3a: all 8 packages in `package.json`,
- * `SPRING_SMOOTH` + its `void` hack live, `demo/CLAUDE.md` claims
+ * `SPRING_SMOOTH` + its `void` hack live, historical docs claims
  * `AnimationMenuBar.vue`/`ResponsiveSelect` exist (they don't),
  * `proof-visual-lock.mjs:172` narrates a dead "unovis" attribution → clauses 1
  * + 2 RED; the census carries 12 hits (RED, non-gating). S.C3a discharges
@@ -257,14 +257,11 @@ const DEAD_IDENTIFIERS = [
 // The live narration surfaces — the doc sites a reader trusts as "what exists
 // today". NOT docs/tranches/ (the historical record legitimately carries
 // these names) and NOT every source comment (the SegmentedTabs design-history
-// narration in demo/@/components/custom/instrument/transport/** is accurate
+// narration in demo/components/instrument/transport/** is accurate
 // technical history, carved out as S.C3a S6 discretionary, not this clause's
 // scope).
 const NARRATION_SURFACES = [
-    "CLAUDE.md",
     "README.md",
-    "src/animation/CLAUDE.md",
-    "demo/CLAUDE.md",
     "demo/DESIGN.md",
 ].map((p) => path.join(REPO, p));
 
@@ -292,7 +289,7 @@ if (identifierHits.length > 0) {
 } else {
     console.log(
         `  ✓ zero of the 5 dead identifiers survive across the ${NARRATION_SURFACES.length} live ` +
-            "narration surfaces (CLAUDE.md family + README.md + DESIGN.md).",
+            "narration surfaces (README.md + DESIGN.md).",
     );
 }
 
@@ -327,7 +324,7 @@ if (censusHits.length > 0) {
         "clause 3 (shadcn census) — the repo-wide cn( / class-variance-authority / @radix-* " +
             `grep is NOT empty (${censusHits.length} hit(s) across ` +
             `${new Set(censusHits.map((h) => h.split(" — ")[0])).size} file(s)). The last shadcn ` +
-            "island (demo/@/components/ui/menubar/ + the menubar-private cn() helper) was retired at " +
+            "island (demo/components/ui/menubar/ + the menubar-private cn() helper) was retired at " +
             "S.C3b (C-19); any surviving cn()/class-variance-authority/@radix-* footprint is shadcn " +
             "REGROWTH — remove it. Sample: " +
             censusHits.slice(0, 5).join("; ") +

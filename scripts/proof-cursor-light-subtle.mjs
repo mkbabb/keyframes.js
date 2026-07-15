@@ -41,7 +41,7 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(REPO, "dist/gh-pages");
 const HERO_AURORA = path.join(
     REPO,
-    "demo/@/components/custom/instrument/shell/HeroAurora.vue",
+    "demo/components/instrument/shell/HeroAurora.vue",
 );
 const APP = path.join(REPO, "demo/app/App.vue");
 

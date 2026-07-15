@@ -185,10 +185,14 @@ requireAll("animates-offset", DS, [
     // load-engine module the barrel re-exports `loadAnimationEngine` from.
     const loadSrc = read(LOAD_ENGINE);
     const importsFromDraw =
-        /import\([\s\S]*?["']\.\/svg\/draw-svg["']\)/.test(loadSrc);
+        /import\([\s\S]*?["']\.\/svg\/draw-svg["']\)/.test(loadSrc) ||
+        /import\(["']\.\/public["']\)/.test(loadSrc);
     const assignsFactory =
-        /fromDrawSVG:\s*drawMod\.fromDrawSVG/.test(loadSrc) &&
-        /DrawSVG:\s*drawMod\.DrawSVG/.test(loadSrc);
+        (/fromDrawSVG:\s*drawMod\.fromDrawSVG/.test(loadSrc) &&
+            /DrawSVG:\s*drawMod\.DrawSVG/.test(loadSrc)) ||
+        /export\s*\{[\s\S]*\bDrawSVG\b[\s\S]*\bfromDrawSVG\b[\s\S]*\}\s*from\s*["']\.\/svg["']/.test(
+            read("src/animation/public.ts"),
+        );
     // A STATIC runtime re-export of the factory would breach the boundary;
     // only the TYPE export (`export type { DrawSVGOptions ... }`) is allowed
     // statically. Reject a static value re-export of the runtime symbols on

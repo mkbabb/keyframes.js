@@ -1,8 +1,11 @@
-import { kfEngine } from "@utils/kfEngine";
-import { RAFPlayback } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@kf-engine";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import type { Vars } from "@mkbabb/keyframes.js";
+import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";
+import { clamp } from "@mkbabb/value.js/math";
+import { useSquareTumble } from "./useSquareTumble";
 import { onScopeDispose, type Ref } from "vue";
+import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
 
 /**
  * useSquareDemo — the dogfood of the custom-transform-function over
@@ -75,9 +78,9 @@ export function useSquareDemo(
     const num = (v: unknown, pct = false): number => {
         if (typeof v === "number") return v;
         if (typeof v === "string") {
-            const n = Number.parseFloat(v);
-            if (Number.isNaN(n)) return pct ? 1 : 0;
-            return pct && v.trimEnd().endsWith("%") ? n / 100 : n;
+            const parsed = parseCSSValueUnit(v);
+            if (parsed == null || Number.isNaN(parsed.value)) return pct ? 1 : 0;
+            return pct && parsed.unit === "%" ? parsed.value / 100 : parsed.value;
         }
         if (v != null && typeof v === "object" && "value" in v) {
             const inner = (v as { value: unknown }).value;
@@ -152,69 +155,10 @@ export function useSquareDemo(
     // rides the named crayon tokens by construction (hue-exact, zero drift). The
     // lerp math is untouched; the marker is `paletteSweep`/`sweepHue` so the
     // design-refinement gate reads the NEW egg layer.
-    const springSpin = new SpringProgress({ response: 0.55, dampingFraction: 0.58, initial: 0 });
-
-    // The palette-sweep stops, re-sourced from the rainbow tokens at mount. The
-    // fallback hexes are the 4.3.0 EGG_HUES (kept byte-identical so a pre-mount
-    // read or a missing token never drifts the hue): violet → blend → green.
-    const PALETTE_SWEEP_FALLBACK = ["#C462D8", "#7E6BE8", "#52E898"] as const;
-    const paletteSweepHues: string[] = [...PALETTE_SWEEP_FALLBACK];
-
-    /** Resolve the palette-sweep stops from the sanctioned `--rainbow-*` family
-     *  once at mount (violet → cyan → green, the demo's chosen 3-stop slice — the
-     *  SAME spectrum --subject-teal terminates on). A provenance fix: the pixels
-     *  are the named crayons, never a drift-prone literal. */
-    const resolvePaletteSweep = (): void => {
-        const root = typeof document !== "undefined" ? document.documentElement : null;
-        if (!root) return;
-        const cs = getComputedStyle(root);
-        const read = (token: string): string | null => {
-            const v = cs.getPropertyValue(token).trim();
-            return v.length ? v : null;
-        };
-        const violet = read("--rainbow-violet");
-        const cyan = read("--rainbow-cyan");
-        const green = read("--rainbow-green");
-        if (violet && cyan && green) {
-            paletteSweepHues[0] = violet;
-            paletteSweepHues[1] = cyan;
-            paletteSweepHues[2] = green;
-        }
-    };
-
-    // Parse a resolved token value (`rgb(...)`/`#hex`/`hsl(...)` are all served by
-    // getComputedStyle as `rgb(...)`; the fallback may be `#hex`) into channels.
-    const toRGB = (c: string): [number, number, number] => {
-        const s = c.trim();
-        const rgbM = s.match(/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
-        if (rgbM) return [+rgbM[1]!, +rgbM[2]!, +rgbM[3]!];
-        if (s.startsWith("#")) {
-            const h = s.length === 4
-                ? s.slice(1).split("").map((d) => d + d).join("")
-                : s.slice(1);
-            return [
-                parseInt(h.slice(0, 2), 16),
-                parseInt(h.slice(2, 4), 16),
-                parseInt(h.slice(4, 6), 16),
-            ];
-        }
-        return [0, 0, 0];
-    };
-
-    /** The palette-sweep colour at t∈[0,1] across the three rainbow-sourced
-     *  stops (the kept lerp; only the SOURCE of the stops moved to the tokens). */
-    const sweepHue = (t: number): string => {
-        const span = paletteSweepHues.length - 1;
-        const i = Math.min(span - 1, Math.floor(t * span));
-        const f = t * span - i;
-        const mix = (a: number, b: number) => Math.round(a + (b - a) * f);
-        const [r1, g1, b1] = toRGB(paletteSweepHues[i]!);
-        const [r2, g2, b2] = toRGB(paletteSweepHues[i + 1]!);
-        return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
-    };
+    const { spin: springSpin, colorAt: tumbleColorAt, tumble } =
+        useSquareTumble(() => startLoop());
 
     // ── The live paint loop (ticks both springs, paints via transformFunc) ──
-    const playback = new RAFPlayback();
     let lastNow = 0;
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
@@ -241,7 +185,7 @@ export function useSquareDemo(
         const SQUASH_GAIN = 0.035; // scale delta per (unit/s)
         const SQUASH_CAP = 0.1;
         const clampTilt = (v: number) =>
-            spinning ? 0 : Math.max(-TILT_CAP, Math.min(TILT_CAP, v * TILT_GAIN));
+            spinning ? 0 : clamp(v * TILT_GAIN, -TILT_CAP, TILT_CAP);
         // The skew banks PERPENDICULAR to each axis's motion (x-velocity skews the
         // vertical edges, y-velocity skews the horizontal edges) for a coherent lean.
         const tiltX = clampTilt(springY.velocity);
@@ -272,7 +216,7 @@ export function useSquareDemo(
             // (--subject-teal — the rainbow-green terminal stop, J.W7a D13)
             // returns.
             ...(spinning
-                ? { backgroundColor: sweepHue(((((springSpin.value % 360) + 360) % 360) / 360)) }
+                ? { backgroundColor: tumbleColorAt(((((springSpin.value % 360) + 360) % 360) / 360)) }
                 : {}),
         });
         // L.W11 S4 — mark the box with `data-palette-sweep` while the egg's
@@ -311,23 +255,14 @@ export function useSquareDemo(
     // are visually identical to 360°/0°, and the spring chases the new target
     // from wherever it is, so a re-tumble mid-spin keeps rolling smoothly). The
     // colour sweep keys off `value mod 360`, so it cycles every turn.
-    let spinTarget = 0;
 
-    /** Roll the box one full turn (the "Tumble" egg). The box paint loop is the
-     *  SOLE driver (no second rAF) — this only re-seats the spin target. */
-    const tumble = (): void => {
-        spinTarget += 360;
-        springSpin.target = spinTarget;
-        startLoop();
-    };
-
-    /** Arm the loop (idempotent — a no-op while already running). */
-    const startLoop = (): void => {
-        if (!playback.running) {
-            lastNow = 0;
-            playback.loop(frame);
-        }
-    };
+    const { playback, startLoop, stopLoop } = useManagedLoop({
+        frame,
+        onArm: () => { lastNow = 0; },
+        getProgress: () => 0,
+        setProgress: () => {},
+        getPlaying: () => playback.running,
+    });
 
     /**
      * Re-seat both axis targets from a normalized pointer offset. `nx`/`ny` ∈
@@ -335,8 +270,8 @@ export function useSquareDemo(
      * loop re-arms so the chase paints even if it had settled.
      */
     const reseat = (nx: number, ny: number): void => {
-        springX.target = Math.max(-1, Math.min(1, nx));
-        springY.target = Math.max(-1, Math.min(1, ny));
+        springX.target = clamp(nx, -1, 1);
+        springY.target = clamp(ny, -1, 1);
         startLoop();
     };
 
@@ -379,8 +314,8 @@ export function useSquareDemo(
             // KEEP: a malformed/"none" transform → seat at home (no jump from
             // rest) — the DOMMatrix parse is best-effort by design.
         }
-        springX.reset(Math.max(-1, Math.min(1, tx / TRAVEL)), 0);
-        springY.reset(Math.max(-1, Math.min(1, ty / TRAVEL)), 0);
+        springX.reset(clamp(tx / TRAVEL, -1, 1), 0);
+        springY.reset(clamp(ty / TRAVEL, -1, 1), 0);
         springSpin.reset(0, 0);
     };
 
@@ -440,7 +375,6 @@ export function useSquareDemo(
     // from the live `--rainbow-*` tokens here (mount-time, DOM available) so the
     // tumble egg rides the sanctioned crayon family by construction (L.W11 S4).
     const paintRest = (): void => {
-        resolvePaletteSweep();
         transformFunc({
             transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },
             tilt: { x: 0, y: 0 },
@@ -451,10 +385,9 @@ export function useSquareDemo(
     };
 
     const dispose = (): void => {
-        playback.stop();
+        stopLoop();
         springX.dispose();
         springY.dispose();
-        springSpin.dispose();
     };
 
     // Self-clean on the host's setup scope tear-down (the SAME idiom the sibling

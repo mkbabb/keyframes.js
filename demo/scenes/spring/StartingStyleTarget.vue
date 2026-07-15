@@ -84,7 +84,7 @@ import { Button, Card } from "@mkbabb/glass-ui";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
-import CopyButton from "@components/custom/CopyButton.vue";
+import CopyButton from "@components/CopyButton.vue";
 
 import { SPRING_DEMO_KEY } from "./springKeys";
 import { SPRING_PRESETS } from "./springPresets";

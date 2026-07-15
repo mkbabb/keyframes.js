@@ -32,7 +32,7 @@
  * dev tree), OR a still-prohibited-emit dist all collapse to PENDING (never a
  * false-RED stall). It flips HARD on the consume (Q.WG-GATED-CONSUMES): once the
  * guard is in the dist, a `role=group` that STILL renders `aria-orientation`
- * reds. The discriminating bite: pointed at the 4.0.1 dist → PENDING; at a
+ * reds. The discriminating bite: pointed at the installed 4.2.0 dist → PENDING; at a
  * fixture dist carrying the guard → GREEN (the RENDERED attribute is null).
  *
  * Re-runnable: `node scripts/proof-glassui-aria-ask.mjs`.
@@ -86,7 +86,7 @@ const red = (msg) => {
 // ── The dist-content pre-check: is the guard even in the consumed dist? ───────
 // Mirrors `glassCaps.ariaGuard` — a role-conditional `: void 0`/`: undefined`/
 // `: null` else arm on an `aria-orientation"` PROP-BIND. With the guard ABSENT
-// (today's 4.0.1, the unconditional ternary emit), the readback is held PENDING
+// (today's 4.2.0, the unconditional ternary emit), the readback is held PENDING
 // (no point mounting a component whose dist has no guard — and the mount itself
 // is unavailable in this dev tree).
 let tabsDist = "";

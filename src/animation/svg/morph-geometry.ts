@@ -15,7 +15,7 @@
  * `PathGeometry`, the ONE geometry edge the morph legitimately needs) — reached
  * only via `loadAnimationEngine()`.
  */
-import { PathGeometry } from "@mkbabb/value.js";
+import { PathGeometry } from "@mkbabb/value.js/transform";
 import type { TransformFunction, Vars } from "../constants";
 
 /** A sampled point on a path polyline. */
