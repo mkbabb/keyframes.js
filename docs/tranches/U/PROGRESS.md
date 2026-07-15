@@ -13,17 +13,33 @@
 | U.C | THE LIBRARY TRANSPOSITION | **IN PROGRESS** — C1/C3(partial)/C4/C5/C6/C7/C8/C9/C10/C11/C12/C13/C14/C15/C16 landed on `tranche-u-impl`; only the explicit color/value covenant remainder is routed to U.F |
 | U.D | THE PERFORMANCE FRONTIER | **IN PROGRESS** — D1/D2/D3 landed; D4's shared vector facet is carved and the ceiling is green, while the pointer-aware drag fusion remains routed; D5 defers highlight.js and unused Monaco workers, and D6 asset-graph clause is live |
 | U.E | NO-DEFERRAL DISCHARGE + LEGACY ZERO | **IN PROGRESS** — E4 dead-export sweep, E7/E8/E9 complete; E10 D2–D7 complete; the stale VJ-L2 pending test scaffold is deleted; only D1 owner-ridden and D8/D9 documented keeps remain |
-| U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F5/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; F5 now probes the published latest glass-ui tarball without consuming the held pin; F6 and the 5.0.0 consume motion remain release-held under OD-U4 |
+| U.F | CONSTELLATION COVENANTS | **IN PROGRESS — F1/F2/F3/F4/F5/F7 landed**: 63 library/demo consumers transposed to value.js 3.1.0 subpaths; Glass 5.0.0 is now published and consumed exactly by Keyframes 5.3.3; upstream BG/BH covenants and the segmented-tabs workaround remain routed |
 | U.G | THE DESIGN CODEX | **IN PROGRESS** — G1/G2/G3/G5 codex landed; the 14-cell owner-golden candidates and `PANE=LIT` protocol are landed, with sequence-light/dark owner blessing remaining |
 | U.H | THE TEST SUBSTRATE (FIRST) | **COMPLETE** — stable-surface characterization + library/demo Vitest split + real-glass demo pool + test mirror + measurement re-home + 13 thin alias deletions landed before any move (`7dc1d1be..286aae16`) |
 | U.R | PROMPT-RECAP-U (STANDING) | **COMPLETE** — U.R2 retargeted to tree-cleared witness; `proof:prompt-recap-u` passes all seven clauses |
 | U.L | THE CONVERGENCE LOOP (Track A + Track B) | **TERMINATED** — 5 passes (73→97→96→98.4→98.8%); 9/10 items at 100, N2 residue chartered (U.E9); the wave-set development order RATIFIED (`loop/PASS-5.md` §7) and FOLDED into U.B/U.C/U.E/U.F/U.Z |
-| U.Z | THE CLOSE | **IN PROGRESS** — publish bundle and certifying sweep are executable; close remains gated by owner-golden blessing and glass-ui 5.0.0 release readiness |
+| U.Z | THE CLOSE | **IN PROGRESS** — Keyframes 5.3.3 is published, the 6/6 hosted roster minted `last-demo-green`, and Cloudflare Pages round-trip validation is green; close remains gated by owner-golden blessing and unresolved upstream covenant residue |
 
 **IMPL AUTHORIZED** — OD-U22; implementation branch `tranche-u-impl` opened from
 green master and the ratified corpus merged at `0b423142`.
 
 ## Session log
+
+- **2026-07-15** — **U.F8/U.Z4 GLASS 5.0 CONSUME + RELEASE + DEPLOY.** Glass-ui
+  5.0.0 is published and immutable (`v5.0.0`, integrity
+  `sha512-6O2AxOi7/UXJ4+vr6uAX55etzTdV2obMbZtX/SXWVYiW5m9VK+X2H5ItKDC/ntMEHoeTFe5nk5xzV0hUs1sItw==`).
+  Keyframes consumed the exact 5.0.0 edge, migrated the removed public symbols
+  (`Chip`, `DockControl`, `DockTrigger`, and the Popover hover union), removed
+  the retired Aurora velocity call, and published 5.3.3 with provenance
+  (`8cca894a`; registry integrity
+  `sha512-bkR2MMzNYEF/mM/nuYzy4JJlQn1tiqIWjHe1Tr11N4073SC7GKhqRzOEzN9exI17ihtpFLLLE+C6MqYA046kaw==`).
+  The manual master roster passed 6/6 and wrote `last-demo-green` at the same
+  SHA. Deploy run `29429888475` passed ancestry preflight and Cloudflare Pages
+  post-deploy validation: preview `https://4ce10ba6.keyframes-8uq.pages.dev`,
+  custom `https://keyframes.babb.dev` HTTP 200 serving the built entry. The
+  Glass gap tripwire's sole remaining red is the chartered segmented-tabs aria
+  workaround; owner-golden sequence-light/dark and other upstream covenants
+  remain open.
 
 - **2026-07-12** — **U.A7 ROSTER SEAM REPAIR + CERTIFYING RERUN.** Commit
   `3e3ebc67` routes `proof:occlusion` through the roster's immutable
