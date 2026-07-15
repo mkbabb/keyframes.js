@@ -9,10 +9,8 @@
  * post-`setTargets` against the SAME `ResolveContext` shape with an element-
  * populated `env`.
  *
- * A live, OBSERVABLE-TRUTH gate (the resolution is real against a REAL attached
- * jsdom DOM target — NOT a source grep, the gate-blindspot lesson). The source-
- * grep half (`scripts/proof-emerging-css-resolve-P2.mjs`) names the post-cure
- * anchors; this half is the live witness.
+ * A live behaviour check: the resolution runs against a real attached jsdom DOM
+ * target rather than a source-shape proxy.
  *
  * Born-RED on today's tree: `evalCondition` returns `undefined` for `style(...)`,
  * `resolveNode` has no `sibling-*` arm, `hasResolvableValue` skips `sibling-*`,

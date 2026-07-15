@@ -294,6 +294,39 @@ describe("Sequence transport — progress round-trip (S2)", () => {
     });
 });
 
+describe("Sequence transport — crossing events", () => {
+    it("emits segment entry with the child and crossing clock, then unsubscribes", () => {
+        const first = opacityAnim(500);
+        const second = opacityAnim(500);
+        const seq = new Sequence().add(first, 0).add(second, 1000);
+        const entered = vi.fn();
+
+        seq.seek(200);
+        const unsubscribe = seq.on("segment:enter", entered);
+        seq.seek(1200);
+
+        expect(entered).toHaveBeenCalledOnce();
+        expect(entered).toHaveBeenCalledWith(second, 1200);
+
+        unsubscribe();
+        seq.seek(200);
+        seq.seek(1200);
+        expect(entered).toHaveBeenCalledOnce();
+    });
+
+    it("emits a named label when a seek crosses it", () => {
+        const seq = new Sequence().add(opacityAnim(500), 0).label("mid", 750);
+        const crossed = vi.fn();
+
+        seq.seek(200);
+        seq.on("label", crossed);
+        seq.seek(800);
+
+        expect(crossed).toHaveBeenCalledOnce();
+        expect(crossed).toHaveBeenCalledWith("mid", 800);
+    });
+});
+
 describe("Sequence transport — repeat / yoyo phase (S4)", () => {
     it("repeat(2): master clock 1.5*duration folds to phase 0.5*duration (cycle 1)", () => {
         const a = opacityAnim(1000);

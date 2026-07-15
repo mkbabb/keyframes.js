@@ -366,14 +366,12 @@ const mbabbPopupOpen = ref(false);
        wave's 33→39.5fps @1440×dpr2 when the chrome blur is neutralized — VERDICT
        #19 root cause #1). The de-layer contract this host now holds: it is composited
        OUTSIDE any `backdrop-filter` ANCESTOR subtree (the stage never sits inside
-       a filtered subtree — proof:blur-not-resampled's kf-side clause locks this)
+       a filtered subtree)
        and carries NO falsified paint-wall. The remaining coupling — the glass
        chrome's LIVE blur re-sampling the moving stage as its backdrop — has NO
        pure-CSS kf-side cure (isolation/z-index/radius-cap/geometry all measured
        neutral); it is the glass-ui `blur-source="static"` frozen-backdrop
-       capability, absent today → the BG-5 staticBackdrop gap (demo/glass-ui-gaps.ts,
-       GLASSUI-GAP: staticBackdrop) handed off to T.H. proof:blur-not-resampled's
-       runtime toggle-delta clause is BORN-RED and greens on that publish. */
+       capability, queued to Glass BI for its 6.0.0 cut. */
 }
 
 /* The host is `tabindex="-1"` solely to receive PROGRAMMATIC focus after the

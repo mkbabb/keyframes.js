@@ -24,9 +24,8 @@
  *
  * Skips (does not fail) when playwright-core is unresolvable or the driver bundle
  * cannot be produced, so the default `vitest run` stays green in a browserless
- * env; the CI-blocking browser-harness member is
- * `scripts/proof-trigger-roundtrip.mjs` (wired into the demo-correctness roster),
- * which runs under KF_PLAYWRIGHT_DIR.
+ * env; browser CI runs this file through `demo:correctness` under
+ * KF_PLAYWRIGHT_DIR.
  */
 import http from "node:http";
 import { createRequire } from "node:module";

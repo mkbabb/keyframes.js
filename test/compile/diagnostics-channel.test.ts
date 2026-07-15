@@ -1,8 +1,7 @@
 /**
  * diagnostics-channel.test.ts — K.W7 S4 (the ResolvedKeyframes.diagnostics
  * channel): every SILENT fallback site is mirrored by a citable, stable-coded
- * diagnostic row. proof:diagnostics-channel (the value proof; the source-shape
- * lock rides `scripts/proof-diagnostics-channel.mjs`).
+ * diagnostic row. This file is the value-level regression check.
  *
  * The channel CONSUMES the value.js 0.12.0 `ParseDiagnostic`/`OnParseError`
  * producer (N2 row 10) — the rows are the consumed shape widened with a stable

@@ -357,8 +357,7 @@ export class Draggable {
         //
         // S.F5a S4 / C-13 (fold row 56) — the release seam re-seats the
         // PERSISTENT `this.spring` IN PLACE here, NOT via the `reseatToSpring`
-        // constructor. That is a MEASURED decision (RETAIN-both, recorded in
-        // scripts/reseat-vs-decay-decision.json, benched in
+        // constructor. That is a MEASURED decision (RETAIN-both, benched in
         // bench/spring-tick.bench.ts): `reseatToSpring` ALLOCATES a fresh
         // SpringProgress per call (~22× the O(1) `decayRest` projection above
         // and heavier than this in-place reset), and would sever the spring

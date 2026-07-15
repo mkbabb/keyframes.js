@@ -43,7 +43,6 @@ compares it by **ΔE-OK** against the CSS Color 4 reference midpoint
 ## Reproduce
 
 ```sh
-npm run proof:color-fidelity   # gate: re-measure + verify this table
 npm run bench:color-fidelity   # re-measure + re-render this artifact
 ```
 

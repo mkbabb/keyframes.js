@@ -5,8 +5,7 @@
  * over a running CSS animation mid-flight; what cannot ingest faithfully is
  * REFUSED with a named `ParseDiagnostic` row, never silently approximated.
  *
- * proof:ingest-replay (the value proof; the source-shape lock rides
- * `scripts/proof-ingest-replay.mjs`).
+ * This file owns the ingest replay and diagnostic checks.
  *
  * BORN-RED WITNESS: on the pre-cure tree NO CSSOM-walk surface exists
  * (`grep "styleSheets|getAnimations|cssRules" src/` = ZERO) — there is no

@@ -2,8 +2,8 @@
  * E.W7 `proof:engine-correctness` — the five Strand-A lock-tests.
  *
  * Each asserts the CORRECT behaviour a verified W7 finding restored; each
- * reds if its fix is reverted (the bite is noted per-test). Wired into
- * `npm test` and re-run by `scripts/proof-engine-correctness.mjs`.
+ * reds if its fix is reverted (the bite is noted per-test). `npm test` runs
+ * these checks directly.
  */
 import { describe, expect, it, vi } from "vitest";
 import { easeInOutCubic } from "@mkbabb/value.js";

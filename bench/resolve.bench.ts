@@ -3,12 +3,12 @@
  * `resolve/` zone (the emerging-CSS lowering pass — `if()`/`@function`/`env()`/
  * `spring()`), which shipped at P.W13/Q.WB1 and grew to ~887L with ZERO bench
  * coverage. A bench without a taxonomy row rots (sf-#6), so every arm here is
- * classified in `bench/taxonomy.json` and enforced by `proof:bench-taxonomy`.
+ * classified in `bench/taxonomy.json`.
  *
  * The `resolve/` zone is a COMPILE-time pass (once per `resolveKeyframes`, NOT a
  * per-frame hot path), so these arms are RUN-CHECK: they make the zone's cost
- * VISIBLE and catch a TypeError/empty-result regression (the `proof:bench-runs`
- * contract), NOT a wall-clock budget (C-10 — no raw absolute ms/hz floor). The
+ * VISIBLE and catch a TypeError/empty-result regression when `npm run bench`
+ * executes them, NOT a wall-clock budget (C-10 — no raw absolute ms/hz floor). The
  * SOTA-perf floors that ARE budgeted live in the interp/compositor suites; the
  * lowering pass is measured, not floored.
  *

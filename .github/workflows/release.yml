@@ -1,20 +1,8 @@
-# release — publish @mkbabb/keyframes.js to npm on a v*.*.* tag.
+# Publish @mkbabb/keyframes.js to npm on a matching v*.*.* tag.
 #
-# Re-runs the LIBRARY-SCOPED release gate (check:lib → build:lib → test →
-# proof:boundary → proof:published-surface → proof:deps-current → proof:peer-satisfied
-# [recorded, L.W4 S7/S8]) before `npm publish`. The library build is glass-ui-free
-# (A inv β): `@mkbabb/glass-ui` is a PUBLISHED registry optionalDependency used
-# only by the demo, so the library publish leg never reaches the demo seam.
-#
-# keyframes.js sits between value.js and glass-ui in the publish chain — it
-# resolves @mkbabb/value.js via the registry, so value.js's tag-publish must
-# land first when a coordinated bump crosses both.
-#
-# Provenance: `npm publish --provenance` attaches a signed build-provenance
-# attestation (SLSA) generated from this workflow's OIDC identity. Requires
-# `id-token: write`. Publish auth stays the NPM_TOKEN repository secret; the
-# OIDC token signs the attestation, the npm token authenticates the publish.
-# Runs only on tag refs.
+# The release path deliberately reuses the same compact command surface as CI:
+# typecheck, build, tests, the publish-boundary bundle, and the changelog check.
+# Provenance is signed through the workflow's OIDC identity.
 name: release
 
 on:
@@ -22,10 +10,6 @@ on:
         tags:
             - "v*.*.*"
 
-# A publish in flight must NOT be cancelled mid-`npm publish` (a half-published
-# version is the exact corruption the guard prevents) — so cancel-in-progress is
-# FALSE: a second concurrent run on the same tag is BLOCKED, the first runs to
-# completion. The deliberate asymmetry vs ci.yml's cancel-in-progress: true.
 concurrency:
     group: release-${{ github.ref }}
     cancel-in-progress: false
@@ -37,18 +21,10 @@ permissions:
 jobs:
     publish:
         runs-on: ubuntu-latest
-        # F-1 (K.W5 S6): the publish sequence measured <5m warm; 15m is ~3×
-        # headroom and terminates within the runner's billing epoch — closing
-        # the gap the cancel-in-progress: false asymmetry leaves open (a stuck
-        # npm publish is BLOCKED but never CANCELLED → it can stall 6h without
-        # a ceiling). ci-cd-k.md F-1.
         timeout-minutes: 15
         steps:
             - uses: actions/checkout@v5
               with:
-                  # proof:changelog reads the PRIOR tag's published-surface
-                  # (`git show v<prev>:docs/published-surface.md`) — a shallow
-                  # checkout has no tag objects. Full history + tags required.
                   fetch-depth: 0
             - uses: actions/setup-node@v5
               with:
@@ -63,48 +39,17 @@ jobs:
                       exit 1
                   fi
                   echo "release tag ${GITHUB_REF_NAME} matches package.json"
-            - name: check (tsc --noEmit, library-scoped)
+            - name: check library types
               run: npm run check:lib
-            - name: build (library)
+            - name: build library
               run: npm run build:lib
             - name: test
               run: npm test -- --run
-            - name: proof:boundary (value.js static/dynamic boundary gate)
-              run: npm run proof:boundary
-            - name: proof:publish (U.Z1 — terminal publish-boundary bundle)
+            - name: verify publish boundary
               run: npm run proof:publish
-            - name: proof:published-surface --diff (U.Z3 — 5.3.0 additive-only surface against v5.2.0)
-              run: npm run proof:published-surface -- --diff --base=v5.2.0
-            # L.W4 S7 — the publish-path roster (Lane 36 ⚠gate-ORACLE completeness).
-            # The pre-L release.yml ran only check:lib → build:lib → test →
-            # proof:boundary; a publish that shipped a stale @mkbabb/* floor or a
-            # mismatched API-Extractor surface passed without either gate firing. These
-            # two HARD gates close the gap (already in ci.yml; the release.yml addition
-            # authors no new logic). The release sequence keeps both publish-boundary
-            # checks before `npm publish`.
-            - name: proof:published-surface (L.W4 S7 — tarball == exports == docs · the publish-boundary oracle)
-              run: npm run proof:published-surface
-            - name: proof:deps-current (L.W4 S7 — @mkbabb/* pins current · protocol-clean · realm-convergent lock)
-              run: npm run proof:deps-current
-            # Q.WE1/Q.WZ S2 + S.C1 — the breaking-surface gates on the publish path: a publish
-            # with un-dropped @deprecated aliases (proof:alias-dropped, over the built d.ts) or an
-            # undocumented breaking removal (proof:changelog, the C-18 generalized MIGRATION oracle)
-            # is BLOCKED.
-            - name: proof:alias-dropped (Q.WE1 — the @deprecated Animation/ScrollTimeline aliases are GONE from the built d.ts · the no-legacy breaking surface)
-              run: npm run proof:alias-dropped
-            - name: proof:changelog (S.C1 · C-18 — every removed published-surface row is documented in docs/MIGRATION-<version>.md)
-              run: npm run proof:changelog
-            # L.W4 S8 — proof:peer-satisfied on the publish path: the F-2 peer-cycle
-            # tripwire. BORN-RED-BY-DESIGN (glass-ui's published peer range rejects
-            # value.js 0.13.0 → ELSPROBLEMS). It rides the publish path as a RECORDED
-            # report-all step (continue-on-error) — the publish precondition L.W8 reads —
-            # NOT a hard publish-block: it STAYS RED until glass-ui BB widens the peer +
-            # kf re-pins (L.W9), and a hard gate here would deadlock every publish on the
-            # expected RED (the same born-RED posture it carries in the demo-smoke job).
-            - name: "[born-RED tripwire] proof:peer-satisfied (L.W4 S8 — glass-ui peer range vs installed value.js; RECORDED on the publish path, RED until glass-ui BB widens + kf re-pins)"
-              continue-on-error: true
-              run: npm run proof:peer-satisfied
-            - name: publish (with provenance)
+            - name: verify release changelog
+              run: npm run release:changelog
+            - name: publish with provenance
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

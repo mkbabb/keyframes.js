@@ -36,8 +36,7 @@
  *     (consumed via the Q.WG4 `^1.2.0` re-pin). A permanently-RED arm on a
  *     sibling publish would be a BLOCKED harness — the scoped-GREEN discipline.
  *
- * Re-run by `scripts/proof-grammar-fuzz.mjs` (the source-grep + scoped-GREEN +
- * fixture-coverage half) + this `vitest run` body (the property half).
+ * This Vitest body owns the property and fixture-coverage regression check.
  */
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";

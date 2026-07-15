@@ -1,8 +1,7 @@
 /**
  * composition-honored.test.ts — K.W7 (THE FIDELITY FLOOR): the engine HONORS
- * the `animation-composition` operator the author declared. proof:composition-
- * honored (the value proof; the source-shape lock rides
- * `scripts/proof-composition-honored.mjs`).
+ * the `animation-composition` operator the author declared. This file owns the
+ * value-level regression check.
  *
  * BORN-RED WITNESS (the frontier sense): on the pre-cure tree the engine has
  * ZERO reads of the captured `resolved.composition` Map — `engine.ts` drops the

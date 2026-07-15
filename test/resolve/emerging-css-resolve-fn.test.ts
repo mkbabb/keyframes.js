@@ -11,10 +11,8 @@
  * `coerceToSyntax(valueText, syntax)` resolve-path validator. Q.WB2 activates the
  * seam: bind → coerce → substitute → evaluate, cycle-guarded by `ctx.seen`.
  *
- * A live, OBSERVABLE-TRUTH gate (the inlining is real against the real engine
- * compile, NOT a source grep — the gate-blindspot lesson). The source-grep half
- * (`scripts/proof-emerging-css-resolve-fn.mjs`) names the post-cure anchors; this
- * half is the live witness.
+ * A live behaviour check: the inlining runs against the real engine compile
+ * rather than a source-shape proxy.
  *
  * The observable (mirroring the Q.WB1 `sibling-*` idiom): the `--ident(args)`
  * call is REPLACED, before flatten, by its substituted `result` expression — the

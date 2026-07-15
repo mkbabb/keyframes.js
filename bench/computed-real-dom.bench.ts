@@ -17,7 +17,7 @@
  * convention (`KF_PLAYWRIGHT_DIR`, SKIP-locally / HARD-FAIL-in-CI under
  * `KF_REQUIRE_BROWSER`, self-skip under jsdom), the same three-dist-tree
  * importmap. It manufactures no new browser-launch machinery. It is the natural
- * sibling of G.W3's `proof:resize-tracks` — both need a real laid-out DOM; this
+ * sibling of `test/demo/instrument/resize-tracks.test.ts` — both need a real laid-out DOM; this
  * wave establishes the corpus + harness G.W3's container-resize check rides into.
  *
  * Bite controls (the negative cases that MUST redden the gate):
@@ -28,7 +28,7 @@
  *     if dist is stale, so it measures the CURRENT engine source.
  *
  * Run it with `KF_PLAYWRIGHT_DIR=… npm run bench` (or via
- * `scripts/proof-computed-real-dom.mjs`).
+ * `test/engine/computed-resolution.test.ts`).
  */
 import { createRequire } from "node:module";
 import fs from "node:fs";
@@ -157,7 +157,7 @@ interface ComputedRow {
 
 /**
  * Run the gate. Returns nothing on success; throws on any violation so the
- * `bench()` body (and the `proof:computed-real-dom` launcher) reddens.
+ * `bench()` body reddens.
  */
 export async function runComputedGate() {
     const chromium = resolveChromium();

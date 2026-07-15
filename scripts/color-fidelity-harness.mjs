@@ -21,8 +21,8 @@
  *       node scripts/color-fidelity-harness.mjs        (render from the data)
  *       node scripts/color-fidelity-harness.mjs --check (print; write nothing)
  *
- * `proof:color-fidelity` asserts the rendered artifact matches a fresh render of
- * the data AND every published ΔE is under the JND.
+ * `bench:color-fidelity` re-runs the measurement and renders this artifact;
+ * `test/engine/color-fidelity.test.ts` keeps every published ΔE under the JND.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -136,7 +136,6 @@ export function renderArtifact() {
     L.push("## Reproduce");
     L.push("");
     L.push("```sh");
-    L.push("npm run proof:color-fidelity   # gate: re-measure + verify this table");
     L.push("npm run bench:color-fidelity   # re-measure + re-render this artifact");
     L.push("```");
     L.push("");
@@ -163,7 +162,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         console.log(
             `color-fidelity-harness — wrote ${path.relative(REPO, ARTIFACT)} ` +
                 `(${md.length} B) from the gated engine measurement. Run ` +
-                `\`npm run proof:color-fidelity\` to verify.`,
+                `\`npm run bench:color-fidelity\` to reproduce.`,
         );
     }
 }

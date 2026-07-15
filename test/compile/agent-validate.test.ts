@@ -6,9 +6,8 @@
  * `CompiledCSS.{eligible,refusals}` (compile), `WAAPIEligibility` (waapi) — onto
  * ONE agent-shaped envelope (`ValidateResult`) an LLM agent branches on without
  * scraping a message string. `explain(css, opts?)` formats the same verdict
- * human/LLM-readable. The source-shape + boundary + LOOP locks ride
- * `scripts/proof-agent-validate.mjs`; THIS file is the runtime behaviour proof
- * (clauses (c) + (d)).
+ * human/LLM-readable. This file owns the runtime behaviour checks (clauses
+ * (c) + (d)); `proof:publish` owns the package boundary.
  *
  * BORN-RED WITNESS: on today's tree `src/animation/validate.ts` does NOT exist,
  * so this test FILE fails to load (the `validate`/`explain` import cannot

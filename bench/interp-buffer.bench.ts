@@ -10,7 +10,7 @@
  * shape `_frame` takes via the hoisted `_interpOut` buffer, engine.ts:161,747)
  * at the demo's realistic K (2/5/12 flat interpolating keys), so the
  * `delete`-loop dict-mode deopt (engine.ts:573) becomes observable — the shape
- * F4's `proof:interp-fastprops` wall-time clause measures.
+ * the F4 same-report fast-property comparison measures.
  *
  * Imports `CSSKeyframesAnimation` from the VALUE module `engine`, never the
  * type-only barrel `../src/animation` (F.W1 S1).
@@ -104,7 +104,7 @@ describe("interpFrames — threaded out-buffer (realistic playback)", () => {
  * collapses to a bare `lerp` (`F/FINAL.md:39-44`).
  *
  * This bench is the WALL-TIME face of that drop (the call-count assertion lives
- * in `proof:repin-witness`, which counts `iv._computedCache` fresh-writes — 1
+ * in the retired re-pin witness, which counted `iv._computedCache` fresh-writes — 1
  * over 600 frames, the bite). The re-pin makes the computed window track the
  * numeric window's per-frame cost; on `0.10.0` it would scale with `getComputed
  * Value` reflow cost per frame.
@@ -285,7 +285,7 @@ describe("interpFrames — SoA lerpArray arm (J.W6 S2, real-K corpus)", () => {
  * Q.WB3 S1/S3 — the single-animation `processFrame` SoA-vs-boxed K-LADDER (the
  * measure-first decision arm + the K-monotonicity witness).
  *
- * `proof:processframe-soa` reads this arm: the BASELINE is the REAL boxed
+ * The process-frame SoA taxonomy row reads this arm: the BASELINE is the REAL boxed
  * `processFrame` path (`interpFrames(t, false, out)` over the threaded buffer —
  * the per-channel `lerpValue` megamorphic dispatch EVERY preset/`fromString`/
  * single animation rides), the CANDIDATE is the SoA Float64Array+`lerpArray` twin
@@ -369,7 +369,7 @@ describe("processFrame — SoA-vs-boxed K-ladder (Q.WB3 S1/S3, measure-first)", 
 /**
  * Q.WB3 S4 — the COLOR-SoA arm (the GATED color-tail completion, measure-first).
  *
- * `proof:color-soa` reads this arm. The BASELINE is the naive per-element BOXED
+ * The color-SoA taxonomy row reads this arm. The BASELINE is the naive per-element BOXED
  * color reconstruct (`mixColors(start, stop, …)` — the pre-channel-plan path,
  * rebuilding a `Color` per leaf per frame). The CANDIDATE is value.js 1.2.0's
  * `_colorPlan`-FOLDED `lerpColorValue`: `prepareInterpVar`/`normalizeValueUnits`
@@ -469,7 +469,7 @@ describe("colorTail — channel-plan SoA vs boxed (Q.WB3 S4, measure-first)", ()
  * does in `requestIdleCallback`), then each iteration awaits
  * `loadAnimationEngine()`. After the first settle every iteration measures the
  * memoized fast path (the same in-flight Promise, zero re-import) — the
- * "resolves before first animate" quantity. `proof:bench-taxonomy` names this
+ * "resolves before first animate" quantity. `bench/taxonomy.json` names this
  * arm in its `pendingBudgeted` roster: it is BORN-RED until `warmEngine` ships
  * (S1) and this arm exists (S6); GREEN once both land.
  *

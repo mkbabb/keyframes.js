@@ -18,8 +18,8 @@
  * correct RED under S.A4's symmetric mis-tier clause). This actuates a real
  * Chromium (playwright-core via glass-ui's install, KF_PLAYWRIGHT_DIR).
  *
- * Skips (does not fail) when playwright-core is not resolvable; the CI-blocking
- * member is `scripts/proof-entry-roundtrip.mjs` (demo-correctness roster).
+ * Skips (does not fail) when playwright-core is not resolvable; browser CI runs
+ * this file through the `demo:correctness` roster.
  */
 import { createRequire } from "node:module";
 import path from "node:path";

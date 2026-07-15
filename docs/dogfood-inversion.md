@@ -3,19 +3,19 @@
 The boundary-ORACLE at the **package** boundary: the demo consumes the PUBLISHED
 `@mkbabb/keyframes.js` barrel, NOT `@src/animation/*` deep paths — so the running
 storefront is the dynamic integration test of the exact surface a `npm i`
-consumer reaches (`proof:published-surface` made DYNAMIC).
+consumer reaches (the publish-boundary check made DYNAMIC).
 
 ## Status: LANDED (L.W8 S1) — the flip is COMPLETE
 
 The inversion has **landed** at **L.W8 S1**: every demo file consumes the
 published `@mkbabb/keyframes.js` barrel — **zero** `@src/animation/*` deep
-imports. `KFVUE_INVERSION_LANDED=1 npm run proof:demo-on-published-surface` is
-GREEN (clause (b) asserts zero deep imports; the census reads `0 files`). The
+imports. The tranche-local boundary witness recorded a zero-file census before
+its command wrapper was retired. The
 LIGHT named exports (`SpringProgress`, `RAFPlayback`, `stagger`, `decay`,
 `Sequence`, …) are static barrel imports; the HEAVY surface
 (`CSSKeyframesAnimation` / `AnimationGroup` / `presets` / the serialization +
 compile helpers) is reached ONLY through the barrel's `loadAnimationEngine()`
-dynamic accessor — `proof:boundary` stays GREEN (value.js never lands on the
+dynamic accessor — the package boundary stays green (value.js never lands on the
 LIGHT static barrel; the built demo keeps `engine-*`/`value-*` as separate lazy
 chunks). The multi-scene app + playground WARM the engine once before mount
 (`demo/kf-engine.ts`), so the scene-machine's synchronous heavy
@@ -25,8 +25,8 @@ non-null control-suite prop contracts.
 The L.W8 S1 flip also surfaced five HEAVY engine helpers the demo legitimately
 needs onto `loadAnimationEngine()`'s return (`CSSKeyframesToString` /
 `CSSKeyframesToStrings` / `formatCSSKeyframeString` / `transformTargetsStyle` /
-`yieldToMain`) — documented in `docs/published-surface.md`, gated by
-`proof:published-surface` clauses (b)/(d). A type-resolution twin of the vite
+`yieldToMain`) — documented in `docs/published-surface.md` and checked by
+`proof:publish`. A type-resolution twin of the vite
 self-alias (`tsconfig.json` `paths`) keeps TS and the bundler on ONE realm in
 dev so the barrel-specifier types unify with the `loadAnimationEngine()` runtime.
 
@@ -62,7 +62,7 @@ was **gated on K.WZ**. This was the honest version, not a punt — here is exact
 
 3. **The Band-I honesty precondition is satisfied** (the inversion's binding
    gate): Band I (K.W0–K.W4) repaired the demo — the cold path PLAYS
-   post-K.W0 (`proof:cold-entry` green), the panes are re-cut post-K.W4. So
+   post-K.W0 (the historical cold-entry witness was green), the panes are re-cut post-K.W4. So
    when the flip lands at K.WZ, it certifies a WORKING demo against its own
    package, never a broken one.
 
@@ -76,8 +76,8 @@ was **gated on K.WZ**. This was the honest version, not a punt — here is exact
   the inversion rides is live; the inversion is the demo WRITING the public
   specifier over it.
 
-- **The boundary-ORACLE gate** (`proof:demo-on-published-surface`,
-  `scripts/proof-demo-on-published-surface.mjs`) is wired into `proof:hygiene`.
+- **The boundary oracle** was a tranche-local witness;
+  it is not part of the public command surface.
   In the STAGED posture it: asserts the self-alias seam exists (the substrate is
   not removed), takes the deep-import CENSUS (the born-RED witness — the work the
   K.WZ flip closes), and asserts THIS disposition record is honest (it names the
@@ -95,8 +95,8 @@ was **gated on K.WZ**. This was the honest version, not a punt — here is exact
    PUBLIC `loadAnimationEngine()` boundary (an `await` at mount, NOT the raw
    `engine.ts` chunk — a partial flip leaving the raw chunk is still the SOURCE
    boundary, forbidden).
-3. Flip `proof:demo-on-published-surface` clause (b) from the staged census to
-   the full zero-deep-import assertion; it then BITES on any `@src` regression.
+3. Flip the tranche-local boundary witness from the staged census to the full
+   zero-deep-import assertion; it then BITES on any `@src` regression.
 
 ## The boundary held
 

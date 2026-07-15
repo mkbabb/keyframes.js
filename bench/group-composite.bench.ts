@@ -28,10 +28,10 @@
  *
  * `bench/taxonomy.json`'s budgeted `add SoA · K=8` / `weighted SoA · K=8` rows
  * read this report as the numerator, their `add/weighted boxed · K=8` twins as
- * the same-report denominator, and `proof:bench-taxonomy` asserts the per-arm
- * `soaOverBoxed` ratio clears the 1.2× ADOPT floor — scoped to
+ * the same-report denominator; the taxonomy records that the per-arm
+ * `soaOverBoxed` ratio must clear the 1.2× ADOPT floor — scoped to
  * `transformFramesGrouped`, never a transplanted `SpringProgress.setTargets`
- * number from a different codepath. (U.N2: the former `proof:soa-composite`
+ * number from a different codepath. (U.N2: the former SoA composite
  * decision-JSON gate dissolved into this budget + the identity test.)
  *
  * Imports the VALUE modules `engine` + `group` directly, never the type-only

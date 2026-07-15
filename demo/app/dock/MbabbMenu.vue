@@ -114,12 +114,8 @@ import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockTrigger } from "@mkbabb/glass-ui/dock";
 import { Trash } from "@lucide/vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
-// GLASSUI-GAP: dockDropdownPointerdown — the trigger's pointerdown click-synthesis
-// (onMbabbTriggerPointerdown / onMbabbTriggerClickCapture) is a band-aid for
-// DockDropdownTrigger opening on click while the press-scale reflow drops it (BG-4).
-// It is deleted on the re-pin when DockDropdownTrigger gains pointerdown-open parity;
-// proof:glass-ui-gap-tripwire flips RED the instant glassCaps.dockDropdownPointerdown
-// is satisfied while the synthesis survives. See demo/glass-ui-gaps.ts.
+// Pointerdown/click synthesis keeps the published dropdown trigger reliable
+// across its press-scale reflow.
 
 const props = defineProps<{
     // The active superKey — the ppMode store is keyed by it (per-scene brand flag).

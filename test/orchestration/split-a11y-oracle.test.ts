@@ -19,9 +19,8 @@
  * runs in-browser against the live DOM, the shipped LIGHT code as written.
  *
  * Skips (does not fail) when playwright-core is unresolvable or the library is
- * unbuilt, so the default `vitest run` stays green in a browserless env; the
- * CI-blocking browser-harness member is `scripts/proof-split-a11y.mjs` (wired
- * into the demo-correctness roster), which builds the lib + runs under
+ * unbuilt, so the default `vitest run` stays green in a browserless env;
+ * browser CI runs this file through `demo:correctness` under
  * KF_PLAYWRIGHT_DIR.
  */
 import http from "node:http";
