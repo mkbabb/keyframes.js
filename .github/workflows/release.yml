@@ -57,7 +57,7 @@ jobs:
             - run: npm ci
             - name: assert release tag matches package version
               run: |
-                  expected="v$(node -p \"require('./package.json').version\")"
+                  expected="v$(node -p 'require("./package.json").version')"
                   if [ "${GITHUB_REF_NAME}" != "${expected}" ]; then
                       echo "::error::release tag ${GITHUB_REF_NAME} does not match package.json ${expected}"
                       exit 1
