@@ -1,16 +1,16 @@
 # Tranche U — FINAL-U (close-record draft)
 
 > **Status: DRAFT — close has not fired.** This record is prepared under U.Z5
-> and is deliberately reconciled to the current implementation tree. It does
-> not claim owner-golden blessing, a glass-ui 5.0.0 consume, publication, or
-> deployment. Those are explicit remaining close preconditions.
+> and is deliberately reconciled to the current implementation tree. Glass-ui
+> 5.0.0 consumption, Keyframes publication, and the Cloudflare deploy are now
+> witnessed; owner-golden blessing and upstream covenant clearance remain open.
 
 Cross-links: [U.md](U.md), [PROGRESS.md](PROGRESS.md), [PROMPT-RECAP-U.md](PROMPT-RECAP-U.md),
 [OWNER-DECISIONS.md](OWNER-DECISIONS.md), [waves/U.Z.md](waves/U.Z.md), and
 [KF-TO-VALUEJS-U.md](KF-TO-VALUEJS-U.md), and
 [KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md). The glass-ui edge is now exactly
-4.2.0 under the explicitly authorized sci P one-core alignment; OD-U4's 5.0.0
-consume remains held, and no glass-ui source was changed by this draft.
+5.0.0 under the explicitly authorized consume motion; Keyframes 5.3.3 is the
+published consumer cut, and no glass-ui source was changed by this draft.
 
 ## 1. Mandate and verdict → cure map
 
@@ -28,7 +28,7 @@ The implementation tree records the following cures as landed or retired:
 | U.C library | compositor assay/cure, group WAAPI lowering, preset catalog, surface collapse, scroll drive, value subpath consume edge | landed; additive-surface diff still required |
 | U.D performance | apply seam, WAAPI sync path, delivery deferrals, vector facet; pointer-aware drag fusion remains explicitly routed | landed/routed as recorded in PROGRESS |
 | U.E legacy zero | CLAUDE removal, suppression removal, decision/gate residue deletion, clamp and demo dogfood sweep | landed; final residue witness still required |
-| U.F constellation | value.js 3.1.0 subpath transposition and consume letter | landed; glass-ui 5.0.0 held, upstream asks remain covenants |
+| U.F constellation | value.js 3.1.0 subpath transposition, Glass 5.0.0 consume, and compatibility migration | landed; upstream asks remain covenants |
 | U.G design authority | DESIGN.md codex, component/API grammar, owner-golden 14-cell candidate protocol | owner-golden blessing missing |
 | U.H substrate | library/demo Vitest split, real glass demo pool, test mirror and characterization net | complete |
 
@@ -40,11 +40,13 @@ from local green checks.
 
 OD-U1 through OD-U22 are recorded in `OWNER-DECISIONS.md`. The implementation
 tree has applied the ratified internal decisions, including OD-U8's required
-5.3.0 minor cut and additive-only constraint, OD-U14's compositor assay and
-cure, OD-U15/U16/U17's documentation/granularity/suppression decisions, and
-OD-U18's five-step convergence methodology. OD-U4 is intentionally not
-consumed: glass-ui 5.0.0 must be both tagged and registry-published before the
-pin or gap probes move.
+additive-surface constraint, OD-U14's compositor assay and cure,
+OD-U15/U16/U17's documentation/granularity/suppression decisions, and OD-U18's
+five-step convergence methodology. OD-U4's release predicate is now witnessed:
+Glass-ui `v5.0.0` is tagged and registry-published, the exact break shape was
+reconciled, and Keyframes consumes the exact 5.0.0 edge. The remaining caps and
+the segmented-tabs workaround stay routed until their respective upstream
+fixes are published.
 
 ## 3. Covenant residue and named producers
 
@@ -55,15 +57,13 @@ not fabricated as shipped: unified `parseTimingFunction`, authored-plain
 unflatten decision, diagnostics producer, layout-unit taxonomy, KF-7
 `CSSPropertyDescriptor` rename, and D-GAP-1/5/6.
 
-The glass-ui covenant is recorded in [KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md)
-and remains release-held. The U.F5 probe now reads the registry's
-`dist-tags.latest` tarball: current evidence is
-`@mkbabb/glass-ui@5.0.0` work in the sibling tranche without a `v5.0.0` tag,
-and registry lookup for `@mkbabb/glass-ui@5.0.0` returns E404. Registry latest
-remains 4.2.0; its `ariaGuard` observation is frontier evidence only while
-OD-U4 keeps consume eligibility false. Therefore no glass-ui re-pin, letter
-reconciliation, workaround deletion, or consume-edge commit is authorized by
-this draft.
+The glass-ui covenant is recorded in [KF-TO-GLASSUI-U.md](KF-TO-GLASSUI-U.md).
+The release-held predicate has discharged: `@mkbabb/glass-ui@5.0.0` is the
+published registry latest, its tag/integrity are independently witnessed, and
+Keyframes 5.3.3 consumes the exact edge. The public break shape was handled at
+the consumer seam (Chip, DockControl/DockTrigger, Popover hover union, and the
+retired Aurora velocity method). Remaining BG/BH rows are upstream covenants;
+no workaround is deleted merely because the release exists.
 
 The five U.F covenant rows have finite terminal actions, not perpetual tripwires:
 
@@ -78,24 +78,25 @@ The five U.F covenant rows have finite terminal actions, not perpetual tripwires
 The D-GAP-1/5/6 capability rows and the BG/BH rows are additionally enumerated
 with sibling producers and release-review deadlines in the two linked letters.
 
-## 4. Version record (planned, not cut)
+## 4. Version record
 
-OD-U8 fixes the close version at **5.3.0**. Before a tag is created, the lead
-must independently run the published-surface diff against 5.2.0 and verify the
-removed/renamed published-symbol set is empty. The expected additive record is
-the transport verbs, `driveScrollCSS`, and the widened blend operator surface.
-This draft records the ruling; it is not evidence that 5.3.0 has been tagged or
-published.
+OD-U8 fixed the additive close line at 5.3.0. That predecessor was published,
+followed by 5.3.1 for the exact Glass edge and the current compatibility patch
+release **5.3.3**. The final published-surface diff against 5.2.0 remains
+additive-only; the registry artifact is
+`https://registry.npmjs.org/@mkbabb/keyframes.js/-/keyframes.js-5.3.3.tgz` with
+integrity
+`sha512-bkR2MMzNYEF/mM/nuYzy4JJlQn1tiqIWjHe1Tr11N4073SC7GKhqRzOEzN9exI17ihtpFLLLE+C6MqYA046kaw==`.
 
-## 5. Deploy-of-record (not fired)
+## 5. Deploy-of-record
 
 The deploy target is `keyframes.babb.dev` through the redesigned Cloudflare
-Pages workflow. U.Z4 remains pending: the terminal library/recap sweep must be
-green, the owner-golden leg must be blessed, 5.3.0 must be cut/published, and
-the nightly `last-demo-green` ancestry witness must authorize the deploy. No
-live hash is claimed in this draft. Current git evidence has no local or origin
-`last-demo-green` tag; the clean local roster run is not silently substituted
-for the workflow-owned ancestry witness.
+Pages workflow. The hosted 6/6 roster wrote `last-demo-green` at master
+`8cca894a`; deploy run `29429888475` passed ancestry preflight and published
+preview `https://4ce10ba6.keyframes-8uq.pages.dev`. Post-deploy validation
+probed `https://keyframes.babb.dev`, received HTTP 200, and confirmed the built
+entry bundle was served. U.Z4's deploy witness is therefore complete; owner-
+golden and covenant residue still prevent final close.
 
 ## 5a. Current U.Z2 absence witness
 
@@ -114,19 +115,20 @@ it does not discharge the owner-golden or upstream release conditions.
 
 - [x] PASS-5 implementation order executed on `tranche-u-impl`.
 - [x] Internal library/demo checks and focused proof families independently rerun as recorded in the board.
-- [x] Value.js consume-edge transposition committed; sci P Glass edge aligned
-  exactly to published 4.2.0 with one physical installed core; 5.0.0 remains held.
+- [x] Value.js consume-edge transposition committed; Glass edge consumed exactly
+  at published 5.0.0 with one physical installed core.
 - [x] U.R recap mechanism exists and its current internal clauses pass.
 - [x] U.Z1 local certifying legs: final `npm test`, `proof:publish`, recap, and clean 6/6 roster rerun.
 - [ ] U.Z1 owner-golden blessing: sequence-light and sequence-dark remain pending owner review.
 - [x] U.Z2 terminal apparatus absence scan: deleted ledgers/authority are absent, with the deliberate drag2d absence witness retained.
-- [x] U.F5 latest-dist tripwire re-probe: `dist-tags.latest` tarball fetched and
-  cleaned; the installed 4.2.0 one-core alignment is diagnostic/product
-  evidence only, with 5.0.0 frontier evidence held outside the consume line.
+- [x] U.F5 latest-dist tripwire re-probe and authorized Glass 5.0.0 consume:
+  exact tag, registry integrity, export break shape, lock resolution, and
+  one-core artifact were independently verified.
 - [ ] U.Z2 zero-open-deferrals/V-inherits-nothing exit: upstream covenants and owner clearance remain unresolved.
-- [ ] U.Z3 5.2.0→5.3.0 additive-only diff and tag/publish.
-- [ ] U.Z4 deploy-of-record and live-hash verification.
-- [ ] Glass-ui 5.0.0 upstream tag **and** registry publication, followed by an explicitly authorized consume motion.
+- [x] U.Z3 5.2.0→5.3.0 additive-only diff and the 5.3.3 published successor.
+- [x] U.Z4 deploy-of-record and live-hash verification.
+- [x] Glass-ui 5.0.0 upstream tag and registry publication, followed by the
+  explicitly authorized consume motion.
 - [ ] Board state, memory, and task records reconciled only after the preceding rows are evidenced.
 
 ## 7. V inheritance falsifier

@@ -1,9 +1,9 @@
 # KF → glass-ui — Tranche U consolidated BG/BH handoff
 
-> **Status: RELEASE-HELD / DRAFT.** This is one coordination letter for the
-> active glass-ui BG/BH work. It is not a claim that glass-ui 5.0.0 ships, and
-> it authorizes no source edit, dependency-pin change, or consume motion in
-> keyframes.js. Handoff target: the active sibling repository root
+> **Status: CONSUME RECONCILED / UPSTREAM COVENANTS OPEN.** This is one
+> coordination letter for the active glass-ui BG/BH work. Glass-ui 5.0.0 is
+> tagged and registry-published; Keyframes consumed it at 5.3.3 after
+> reconciling the published break shape. Handoff target: the active sibling repository root
 > `/Users/mkbabb/Programming/glass-ui`, branch `tranche/BI`; place the inbound
 > copy in its coordination inbox, `docs/tranches/BI/coordination/`, for the
 > BG/BH owner to reconcile.
@@ -13,20 +13,18 @@
 The current keyframes declaration is derived directly from `package.json`:
 
 ```text
-@mkbabb/glass-ui: 4.2.0
+@mkbabb/glass-ui: 5.0.0
 ```
 
-The explicitly authorized sci P one-core alignment now resolves the installed
-`@mkbabb/glass-ui@4.2.0`, matching the active published cut used by Atlas/sci.
-Registry evidence is separate: `dist-tags.latest` is 4.2.0, while
-`npm view @mkbabb/glass-ui@5.0.0 version` returns E404. No `v5.0.0` tag is
-witnessed in the sibling repository. The local sibling work is active, but
-these facts mean the U consume edge remains held. The pin must not move before
-both a `v5.0.0` tag and a successful registry publication are independently
-witnessed.
-
-The 4.2.0 dist is not treated as 5.0.0 evidence. Likewise, a local package
-version or an untagged sibling commit is not a release signal.
+The explicitly authorized consume motion resolves the installed
+`@mkbabb/glass-ui@5.0.0`. Glass evidence is independently witnessed: tag
+`9a8761f0`, registry tarball
+`https://registry.npmjs.org/@mkbabb/glass-ui/-/glass-ui-5.0.0.tgz`, and integrity
+`sha512-6O2AxOi7/UXJ4+vr6uAX55etzTdV2obMbZtX/SXWVYiW5m9VK+X2H5ItKDC/ntMEHoeTFe5nk5xzV0hUs1sItw==`.
+The Keyframes consumer is published as 5.3.3 with the exact 5.0.0 optional edge.
+The 5.0 export break shape was handled in the demo at the named component seams;
+remaining BG/BH rows are still upstream covenants and are not silently marked
+shipped.
 
 ## 1. Consolidated ask roster
 
@@ -99,7 +97,7 @@ sibling may fold it into its BG/BH register and return a tagged release note.
 Keyframes will independently verify the tag, registry package, export map,
 installed tarball, and built-dist probes before any consume commit.
 
-Until then, the keyframes package remains on exact `4.2.0` for the sci P
-one-core alignment, glass-ui 5.0.0 remains
-unpublished (`npm` E404), and this U letter is an honest release-held handoff,
-not a close claim.
+The consume edge is now exact `5.0.0` and the U letter is reconciled for that
+release event. The letter is not a close claim: owner-golden sequence blessing,
+the segmented-tabs workaround retirement, and the remaining BG/BH dispositions
+still belong to their named owners.
