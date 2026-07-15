@@ -13,7 +13,7 @@
  * a hard CI predicate — the device-dependence-greening spine); the
  * count/error VERDICT is computed deterministically by
  * {@link measureDensifyCorpus}. (U.N2: the former
- * `proof:waapi-adaptive-densify` decision-JSON gate dissolved; the densify
+ * The former adaptive-densify decision gate dissolved; the densify
  * fidelity/count/boundary + multi-segment-eligible oracles now live in
  * `test/waapi/waapi-densify.test.ts`.)
  *
@@ -193,7 +193,7 @@ export type CorpusEntry = {
  * — the composite per-segment spring curve is BAKED into densely-sampled
  * keyframes fed a single bare-`linear` effect easing (identity), so the
  * compositor's piecewise-linear fill tracks the true rAF curve with NO
- * per-segment restart. Reused by `proof:waapi-adaptive-densify`'s eligibility
+ * per-segment restart. Reused by `test/waapi/waapi-densify.test.ts`'s eligibility
  * clause (it attaches a fake `{ animate }` target so `isWAAPIEligible` runs in
  * the node probe).
  */
@@ -303,7 +303,7 @@ export type DensifyMeasure = {
  * The DETERMINISTIC verdict the gate reads: for every corpus curve, the FIXED-8
  * and the CURVATURE-ADAPTIVE emit's (interiorCount, chordError). Pure + device-
  * independent (integer counts + a numeric error over a fixed grid — no
- * wall-clock). `scripts/proof-waapi-adaptive-densify.mjs` imports this.
+ * wall-clock). `test/waapi/waapi-densify.test.ts` owns the correctness claim.
  */
 export const measureDensifyCorpus = async (): Promise<DensifyMeasure[]> => {
     const out: DensifyMeasure[] = [];

@@ -4,25 +4,19 @@
  *
  * Produces `/llms.txt` (the curated INDEX) + `/llms-full.txt` (the round-trip
  * recipe inline + the full export roster) from the J.W5 machine-checked
- * `docs/published-surface.md` manifest + the `proof:*` gate roster in
- * `package.json`. The artifacts are GENERATED, NOT hand-maintained — a
- * hand-maintained markdown drifts; the gate-ORACLE precept forbids the
- * doc-rot. `proof:agent-surface` re-derives the SAME roster and set-equates the
- * index against it, so the artifact cannot lie about the published surface.
+ * `docs/published-surface.md` manifest. The artifacts are GENERATED, NOT
+ * hand-maintained, so the index cannot drift from the published roster.
  *
  * The agent surface is, by construction, the gate-verified surface
  * (ecosystem-distribution.md §6.3): what an agent reads about kf is what kf
- * proves. Every primitive in the index names its `proof:*` gate, so the agent
- * reads "the library PROVES springs, here is the gate" — not "the library
- * claims springs".
+ * verifies. Every primitive in the index names its focused Vitest file or the
+ * package-boundary command.
  *
  * RUN:    node scripts/gen-agent-surface.mjs        (writes the artifacts)
  *         node scripts/gen-agent-surface.mjs --check (prints; writes nothing)
  *
  * The shared roster derivation lives in `scripts/lib/agent-surface.mjs` so the
- * generator and `proof:agent-surface` read the SAME source of truth — the
- * generator EMITS it, the gate ASSERTS the emitted artifact matches a fresh
- * derivation.
+ * generator and package-boundary check read the SAME source of truth.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -51,6 +45,6 @@ if (check) {
     console.log(
         `gen-agent-surface — wrote llms.txt (${llmsTxt.length} B) + ` +
             `llms-full.txt (${llmsFullTxt.length} B) from docs/published-surface.md ` +
-            `+ the proof:* roster. Run \`npm run proof:agent-surface\` to verify.`,
+            `and its focused test references. Run \`npm run proof:publish\` to verify.`,
     );
 }

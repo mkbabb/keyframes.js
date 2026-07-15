@@ -13,9 +13,8 @@
  * BROWSER halves.
  *
  * Skips (does not fail) when playwright-core is not resolvable, so the default
- * `vitest run` stays green in a browserless env; the CI-blocking browser-harness
- * member is `scripts/proof-compile-browser-parse.mjs` (wired into the
- * demo-correctness roster), which runs under KF_PLAYWRIGHT_DIR.
+ * `vitest run` stays green in a browserless env; browser CI runs this file
+ * through `demo:correctness` under KF_PLAYWRIGHT_DIR.
  */
 import { createRequire } from "node:module";
 import path from "node:path";

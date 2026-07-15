@@ -14,7 +14,6 @@
         role="tablist"
         :aria-orientation="orientation"
         :aria-label="ariaLabel"
-        :data-glassui-gap="gap.id"
         class="kf-pill-tabs glass-wash"
     >
         <button
@@ -43,13 +42,8 @@
 // so `import type { KfPillTabOption } from ".../KfPillTabs.vue"` keeps resolving.
 import { useKfPillTabs } from "./KfPillTabs/useKfPillTabs";
 import type { KfPillTabOption } from "./KfPillTabs/useKfPillTabs";
-// GLASSUI-GAP: segmentedTabsAriaOrientation — this kf-internal pill strip is a
-// band-aid for glass-ui's SegmentedTabs pill emitting aria-orientation on
-// role=group (BG-1) + coupling material to role (BG-3). It dies on the re-pin;
-// proof:glass-ui-gap-tripwire flips RED the instant glassCaps.ariaGuard is
-// satisfied while this file survives. See demo/glass-ui-gaps.ts.
-import { glassUiGap } from "../../../glass-ui-gaps";
-const gap = glassUiGap("segmentedTabsAriaOrientation");
+// This local tablist remains until the published Glass component can provide
+// pill material with tablist semantics and roving focus.
 
 const {
     options,

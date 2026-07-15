@@ -45,18 +45,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { transformWithOxc } from "vite";
 import { bench, describe } from "vitest";
-import { IN_CI } from "../scripts/lib/ci-env.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
+const IN_CI = Boolean(process.env.CI);
 
 // The real observer source the bench transpiles on the fly. It moved from
 // `demo/app/loaf-observer.ts` → `demo/app/lifecycle/loaf-observer.ts` at the S.D1
 // `demo/app/` partition (commit 440e5c3) WITHOUT this bench's path following it,
 // which ENOENT'd the whole gate silently for 116 commits (lane 32 §2.7). The
-// `assertBenchPathsResolve` clause in proof:bench-taxonomy now statically
-// asserts every REPO-relative path this bench reads still resolves, so a future
-// re-partition reds loudly instead of zeroing this gate's signal again.
+// Keep this source path beside the benchmark so a future re-partition updates
+// the observer import in the same change.
 const OBSERVER_SRC = path.join(REPO, "demo/app/lifecycle/loaf-observer.ts");
 
 const LOAF_THRESHOLD_MS = 50;
@@ -82,8 +81,7 @@ const LOAF_THRESHOLD_MS = 50;
 export const LOAF_COMPOSITE_FULL = 200;
 export const LOAF_COMPOSITE_CI_SMOKE = 48;
 
-// The size is derived from the ONE IN_CI authority (scripts/lib/ci-env.mjs) — CI
-// self-selects the runner-calibrated smoke, local uses the full stress — with an
+// CI self-selects the runner-calibrated smoke, local uses the full stress, with an
 // explicit numeric `KF_LOAF_COUNT` override kept for experimentation. ci.yml no
 // longer carries the magic literal; the profile is named + single-sourced here.
 const COMPOSITE_COUNT =
@@ -163,8 +161,7 @@ async function serve(noObserver: boolean) {
             `loaf-gate — FAIL: the LoAF observer source is missing at ` +
                 `${path.relative(REPO, OBSERVER_SRC)} — it MOVED. Update ` +
                 `bench/playwright.bench.ts's OBSERVER_SRC path (and the ` +
-                `proof:bench-taxonomy path-resolves anchor will have already ` +
-                `flagged this statically).`,
+                `the source path in the same change).`,
         );
     }
     const observerJs = noObserver

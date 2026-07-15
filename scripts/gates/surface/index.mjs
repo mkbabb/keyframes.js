@@ -2,17 +2,26 @@
 /**
  * proof:publish — surface-family barrel for the terminal publish bundle.
  *
- * Keep the three surviving structural oracles in one explicit, auditable
- * sequence: light/heavy boundary, packed published surface, and dependency
- * currency. Each child remains independently runnable for diagnostics.
+ * Keep the publish boundary in one explicit sequence: light/heavy separation,
+ * packed surface truth, dependency/lock currency, downstream consumption, and
+ * runnable documentation. These are implementation checks, not a public gate
+ * taxonomy; diagnostics run the family files directly.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const checks = ["proof:boundary", "proof:published-surface", "proof:deps-current"];
+const here = dirname(fileURLToPath(import.meta.url));
+const checks = [
+    "boundary.mjs",
+    "published-surface.mjs",
+    "deps-current.mjs",
+    "consume-bundle.mjs",
+    "readme-runs.mjs",
+];
 for (const check of checks) {
-    const result = spawnSync("npm", ["run", check], { stdio: "inherit", shell: true });
+    const result = spawnSync(process.execPath, [join(here, check)], { stdio: "inherit" });
     if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
@@ -51,4 +60,4 @@ if (existsSync(assets)) {
 } else {
     console.log("proof:publish — U.D6 deferred: dist/gh-pages is absent on the library publish path.");
 }
-console.log("proof:publish — PASS: boundary, published surface, and dependency currency are green.");
+console.log("proof:publish — PASS: package boundary, consumption, and runnable docs are green.");

@@ -228,9 +228,8 @@ describe("SpringProgress vector-sugar ADOPT-or-KILL probe (L.W7 §S2, W122)", ()
  * O(1) projection) is itself the evidence they are distinct models. 600
  * interruptions / 600 releases mirror the 600-frame gesture windows above.
  *
- * DECISION (measured → recorded): RETAIN-both. See
- * `scripts/reseat-vs-decay-decision.json` (the numbers + verdict) and the seam
- * doc-comment in `orchestration/drag/draggable.ts:handleUp`. Both stay
+ * DECISION (measured → recorded): RETAIN-both. The seam doc-comment in
+ * `orchestration/drag/draggable.ts:handleUp` records why. Both stay
  * `run-check` in `bench/taxonomy.json` — a cost-visibility measurement, no
  * budget asserted (neither is on a per-frame hot path).
  */

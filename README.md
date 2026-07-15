@@ -47,7 +47,7 @@ src/animation/   # THE library — engine + every primitive
 demo/            # Vue 3 demo apps
 test/            # Vitest suites (jsdom)
 bench/           # Vitest benchmarks
-scripts/         # CI gates (proof:* scripts) + code generators
+scripts/         # package/demo checks + code generators
 docs/            # Migration guide, published surface manifest, architecture notes
 ```
 
@@ -217,7 +217,11 @@ String(keyframes.get("0%")?.color); // => "rgb(0 0 255)"
 
 **What it refuses.** A condition that resolves to nothing is a CSS *guaranteed-invalid value* — `if()` with no matching branch and no `else`, or an over-deep/self-referential `@function` chain (cycle-guarded at depth 32) — **drops the declaration** (the prior/initial value wins), never an empty or malformed string. A `@function` call whose argument can't be coerced to the parameter's declared syntax drops the whole call too, surfaced as a named `CUSTOM_FN_ARG_DROP` diagnostic on `resolveKeyframes`'s `diagnostics` channel — never a silent `NaN`.
 
-Gated by `npm run proof:emerging-css-resolve` (the `if(supports)`/`if(media)` pass, the element-aware `if(style)`/`sibling-index()`/`sibling-count()` pass, and `@function` call-inlining) — all jsdom-clean, behavior-level; no browser required, because the resolution is kf's JS, not a platform feature.
+Covered by the three focused Vitest files in `test/resolve/` (the
+`if(supports)`/`if(media)` pass, the element-aware
+`if(style)`/`sibling-index()`/`sibling-count()` pass, and `@function`
+call-inlining) — all jsdom-clean, behavior-level; no browser required, because
+the resolution is kf's JS, not a platform feature.
 
 ## `CSSKeyframesAnimation`
 
@@ -410,7 +414,7 @@ const { css, eligible, refusals } = await compileToCSS([fade]);
 
 A refusal is **marketing for the moat**: it names exactly the kf axis (weighted blending, perceptual color) that exceeds pure CSS. `compileToCSS(input, options?)` options: `staggerDelays` (the materialized `stagger.delays(total)`, emitted as literal per-child `animation-delay`), `densifyStops` (the oklab stop count), `deltaEEpsilon` (the ship-vs-refuse threshold), `printWidth`.
 
-> The snippets in this section are reached through `loadAnimationEngine()` and run against the built `dist/` (the `ts run` README examples in §Beyond CSS / §Animation are the CI-asserted set — `npm run proof:readme-runs`); the round-trip surface above is additionally exercised by `proof:ingest-replay`, `proof:scroll-roundtrip`, and `proof:compile-replay`.
+> The snippets in this section are reached through `loadAnimationEngine()` and run against the built `dist/`; the executable examples are covered by the test suite.
 
 ## Web Animations API
 
@@ -418,7 +422,7 @@ When `useWAAPI` is `true` (default), eligible animations run on the compositor t
 
 A spring timing function (`springTimingFunction`) carries its CSS `linear()` equivalent, so a WAAPI-delegated spring animation runs the true overshoot/settle curve on the compositor instead of a flattened `linear` ramp — the JS easing and the compositor curve are one solver.
 
-A spring keyframed across **multiple** declared stops is compositor-eligible too: rather than restart the curve at each stop (WAAPI's one-easing-per-segment model would), kf **densifies** the composite curve into extra keyframe stops fed a single bare `linear` effect easing, so the compositor's piecewise-linear fill still tracks the true multi-segment curve. Gated by `proof:waapi-adaptive-densify`.
+A spring keyframed across **multiple** declared stops is compositor-eligible too: rather than restart the curve at each stop (WAAPI's one-easing-per-segment model would), kf **densifies** the composite curve into extra keyframe stops fed a single bare `linear` effect easing, so the compositor's piecewise-linear fill still tracks the true multi-segment curve. Covered by `test/waapi/waapi-densify.test.ts`.
 
 ## Baseline, tree-shaking & reduced motion
 
@@ -432,7 +436,7 @@ keyframes.js targets a modern-web Baseline and documents the tier of every platf
 | `Element.animate()` (WAAPI) | Widely available | Opt-out via `useWAAPI: false` |
 | CSS `if()` / `@function` | Limited availability (Chromium) | kf resolves both in JS at parse/bind time — see [The emerging-CSS resolver](#the-emerging-css-resolver) |
 
-**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. This boundary is **gated in CI** by `proof:boundary`, which builds a spring-only entry from SOURCE and fails the build if any light module reintroduces a static value.js edge. `proof:consume-bundle` re-proves the same claim from the CONSUMER side — it bundles the PUBLISHED `dist/keyframes.js` (value.js/parse-that kept non-external, so any leak must surface) exactly as a downstream app's bundler would, and fails if that eager graph carries a single value.js/parse-that module or a statically-inlined engine class. (Deliberately no prose kB figure here: `proof:consume-bundle` floors the LIGHT edge's *composition* — zero value.js, zero engine — not a byte count, so a specific kB number would be a claim neither gate actually verifies; re-run `npm run proof:consume-bundle` against a fresh build for the current graph, not a number frozen in prose.)
+**Tree-shaking — the value.js boundary.** The package is `"sideEffects": false` and splits along a static/dynamic boundary. The light physics/interpolation engines — `SpringProgress`, `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline` family, `RAFPlayback`, and the spring-stop helpers — carry **zero** static import edge to `@mkbabb/value.js`. A consumer that imports only these never pulls value.js (or the heavy CSS-keyframe parser) into its graph; the heavy engine (`KeyframesAnimation`, `CSSKeyframesAnimation`, `AnimationGroup`) is reached only through `loadAnimationEngine()`'s dynamic `import()`. `npm run proof:publish` verifies both sides of this boundary: it bundles every LIGHT entry from source, then bundles the published `dist/keyframes.js` as a downstream consumer and fails if either eager graph carries value.js, parse-that, or a statically inlined engine class. (Deliberately no prose kB figure here: the check floors the LIGHT edge's *composition* — zero value.js, zero engine — not a byte count.)
 
 **Reduced motion.** Both the light and heavy engines honor `prefers-reduced-motion: reduce`. Opt in per surface:
 
@@ -451,7 +455,7 @@ The library also ships general-purpose interpolation primitives, decoupled from 
 Everything in this section lives on the **light static barrel** — `import { NumericAnimation, SpringProgress, … } from "@mkbabb/keyframes.js"` — and carries zero static value.js edge (see [tree-shaking](#baseline-tree-shaking--reduced-motion)). Two conventions hold throughout:
 
 - **Easing is callable.** Every light primitive takes a `TimingFunction` (`t => t'`) or a typed `Easing` — `toEasing` normalizes a bare callable to the typed shape, synchronously. A string easing *name* throws an `UnknownEasingError` — resolve it once, up front: `const easing = await resolveEasing("easeOutCubic")`.
-- **Every snippet executes.** Each example below runs verbatim against the built package in CI (`npm run proof:readme-runs`); `// =>` comments are asserted results, not aspirations.
+- **Every snippet executes.** Each example below runs against the built package in CI; `// =>` comments are asserted results, not aspirations.
 
 ### `NumericAnimation`
 
@@ -799,7 +803,7 @@ npm run gh-pages     # demo (multi-scene SPA, demo/app) → dist/gh-pages/
 npm run dev          # vite dev server (demo/app)
 npm test             # vitest (jsdom)
 npm run bench        # vitest bench
-npm run proof:readme-runs  # execute every runnable README snippet against the built dist/
+npm test -- --run && npm run proof:publish  # correctness + packaged public surface
 ```
 
 ### Local CI repro
@@ -807,7 +811,7 @@ npm run proof:readme-runs  # execute every runnable README snippet against the b
 A macOS-pass / Linux-fail CI flake (a render-race, an absolute frame/ms threshold) can be reproduced locally — no push, no 30-minute wait — by running the demo-smoke roster inside the same Linux container the CI runner uses:
 
 ```sh
-make ci-linux    # node:24-slim container · npm ci → gh-pages → proof:all:demo
+make ci-linux    # node:24-slim container · npm ci → gh-pages → demo:correctness
 ```
 
 It pulls `node:24-slim` (kf's CI Node), mounts the repo at `/workspace`, installs the Playwright browser, builds the demo, and runs the demo gate roster with `KF_REQUIRE_BROWSER=1`, exiting with the container's code. `docker` is the only requirement.
@@ -820,8 +824,8 @@ It pulls `node:24-slim` (kf's CI Node), mounts the repo at `/workspace`, install
 
 ## Contributing
 
-Open a PR against `master`. Run `npm run proof:all` before pushing — the gate roster is the
-acceptance bar.
+Open a PR against `master`. Run `npm test -- --run && npm run proof:publish`
+before pushing.
 
 ## License
 

@@ -1,8 +1,7 @@
 // proof:no-shadow-playback-authority — T.B8 (lane 30 rec 1), the vitest half.
 //
-// The grep clause (scripts/proof-no-shadow-playback-authority.mjs) proves NO file
-// outside createGroupAdapter / the scene-owned loops drives a group's play/pause
-// axis. THIS suite proves the second half of the sweep: the group-scene SCRUB
+// The implementation keeps group play/pause authority inside createGroupAdapter
+// and the scene-owned loops. This suite proves the behavioural half: group-scene SCRUB
 // PERSISTENCE gap is closed. Before T.B8 the group scenes (cube/amiga/square)
 // never dispatched SCRUB — `sliderUpdate` only did the local `setChildTime`, so
 // the scrubbed playhead persisted COARSELY, refreshed onto the machine snapshot

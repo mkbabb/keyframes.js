@@ -16,9 +16,8 @@
  * KF_PLAYWRIGHT_DIR).
  *
  * Skips (does not fail) when playwright-core is not resolvable, so a browserless
- * `vitest run` stays green; the CI-blocking member is
- * `scripts/proof-vt-roundtrip.mjs` (wired into the demo-correctness roster), which
- * runs under KF_PLAYWRIGHT_DIR.
+ * `vitest run` stays green; browser CI runs this file through
+ * `demo:correctness` under KF_PLAYWRIGHT_DIR.
  */
 import { createRequire } from "node:module";
 import path from "node:path";

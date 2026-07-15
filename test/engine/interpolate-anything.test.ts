@@ -12,10 +12,8 @@
  * `leaves-parity.test.ts` precedent — these lock kf's CONSUMPTION of the
  * value.js seam, not value.js internals (no inv-16 breach).
  *
- * Re-run by `scripts/proof-interpolate-anything.mjs` (the source-grep half) +
- * this `vitest run` body (the behaviour half), wired as
- * `proof:interpolate-anything` / `proof:color-fidelity` / `proof:fn-arity-pad` /
- * `proof:cqw-resolution`.
+ * This Vitest file owns the behaviour matrix; the color conformance artifact is
+ * reproduced separately by `bench:color-fidelity`.
  */
 import { describe, expect, it } from "vitest";
 import {

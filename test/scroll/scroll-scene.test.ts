@@ -1,6 +1,5 @@
 /**
- * scroll-scene.test.ts — K.W9 SCROLL-AS-CSS (the value proof; the source-shape
- * lock rides `scripts/proof-scroll-roundtrip.mjs`).
+ * scroll-scene.test.ts — K.W9 SCROLL-AS-CSS value-level regression suite.
  *
  * BORN-RED WITNESS (DOUBLE-rooted, both now resolved):
  *   (1) the FRONTIER sense — kf had ZERO scroll-parse surface and no

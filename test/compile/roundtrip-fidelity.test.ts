@@ -25,8 +25,7 @@
  * serialization float-precision artifact (folds into G.WV), NOT a kf serializer
  * channel-drop; every other row IS byte-same, so the channel-drop bite is intact.
  *
- * Re-run by `scripts/proof-roundtrip-fidelity.mjs` (the source-grep + manifest
- * existence half) + this `vitest run` body (the round-trip half).
+ * This Vitest body owns the corpus-manifest and round-trip checks.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";

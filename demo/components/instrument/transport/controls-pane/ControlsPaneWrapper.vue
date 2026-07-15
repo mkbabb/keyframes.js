@@ -171,11 +171,8 @@ import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import { usePaneRegister } from "../ControlsPaneWrapper/usePaneRegister";
 import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
-// GLASSUI-GAP: drawerDetentInset (BG-11) — this site is the T.H3-ADOPT Drawer
-// consumer; demo/glass-ui-gaps.ts tracks the bottom-inset lever the adoption's
-// occlusion contract awaits (see the header block above + KF-TO-GLASSUI-BG.md
-// §FORWARDING). The @mkbabb/glass-ui/drawer import above + this marker satisfy
-// proof:glass-ui-gap-tripwire CLAUSE B.
+// The published Drawer still lacks a bottom-inset lever; the live-behind
+// consumer keeps its measured detents until Glass exposes that component seam.
 
 // The shared control-pane body: defined once (DefinePaneBody), reused in the
 // mobile Drawer AND the desktop rail (ReusePaneBody) — the ONE body, two homes.

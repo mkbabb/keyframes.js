@@ -1,9 +1,6 @@
 /**
  * interp-fastprops.test.ts — F.W4 (the dict-mode buffer fold + the single-frame
- * alias), the vitest half of the gate. The `%HasFastProperties` mechanism probe
- * + the wall-time fallback live in `scripts/proof-interp-fastprops.mjs` (a V8
- * intrinsic the esbuild/tsc transform rejects). This file carries the clauses
- * that need no intrinsic:
+ * alias). This file carries the portable correctness clauses:
  *
  *  3. round-trip / pixel-identical — the single-frame alias and the buffer-merge
  *     paths produce the SAME values; a reused buffer never leaks a stale key.

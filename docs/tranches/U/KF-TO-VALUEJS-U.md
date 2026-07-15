@@ -3,13 +3,30 @@
 **From:** keyframes.js Tranche U
 **To:** `@mkbabb/value.js` (its active tranche; upstream-owned work only)
 **Issued:** 2026-07-12
-**Status:** Drafted coordination contract; no value.js implementation is authorized in this repository.
+**Status:** Owner-redeadlined to the next versioned value.js 4.x artifact; no value.js implementation is authorized in this repository.
 
 This letter supersedes the Tranche-T letter at
 `docs/tranches/T/KF-TO-VALUEJS-T.md`. It is a consume-edge document. The kf
 side may re-point imports, update its pin, and consume a published upstream
 surface; it does not implement, fork, or patch value.js internals. The sibling
 tranche owns every ask below.
+
+## Terminal scheduling witness
+
+A read-only audit of the active sibling at `e29f8d1` found the timing parser,
+authored-plain unflatten, semantic unit grouping, collision rename, and the
+remaining D-GAP rows absent or partial. The owner therefore fixed the release
+rail as **value.js 4.x → Keyframes 6.x → Glass UI 6.x**. Keyframes will wait for
+a versioned artifact and will not consume a worktree link or unpublished API.
+
+The value.js tranche owns this smallest coherent queue: carry parse timing on a
+diagnostics-bearing `./parsing` result; preserve authored values for a
+Keyframes-owned interpolation slot instead of exporting a generic unflatten
+policy; add semantic layout-tracking unit classification; remove the colliding
+`PropertyDescriptor` export; dispose D-GAP-1 directly; supersede D-GAP-5 if
+`./units` is removed; and either ship the smallest useful D-GAP-6 sampler or
+decline it explicitly. The published artifact must return its exact version,
+tag, tarball, integrity, export map, declarations, and migration note.
 
 ## Current witnessed package facts
 
@@ -127,9 +144,8 @@ Rename the exported type `PropertyDescriptor` to `CSSPropertyDescriptor` in
 the root and `./parsing` declarations, with no compatibility alias. The
 collision-free name is required because the current name leaks as
 `PropertyDescriptor_2` in kf's public declaration bundle. Kf will re-point its
-imports in the same consume motion. The kf-side `proof:no-collision-rename`
-tripwire remains born-RED until this upstream rename and the kf re-point both
-land.
+imports in the same consume motion. No dedicated born-red script remains; the
+consume motion will verify the rolled declaration directly.
 
 ## §F — Pin and adoption discipline
 
@@ -181,13 +197,12 @@ perpetual tripwire or to ride into the next tranche without an owner decision.
 
 | Covenant | Producer | Deadline / terminal action |
 | --- | --- | --- |
-| `parseTimingFunction` → delete `getTimingFunction` dispatcher | value.js `./easing` | At the next tagged value.js U cut; consume and retire the arm, or explicitly expire and retain the thinest justified kf dispatcher |
-| Authored-plain unflatten → delete `plain-vars.ts` | value.js `./units` | At the next tagged cut; consume and remove both hot-path projections, or record the boxing-declined decision and ratify numbers-out as kf-owned |
-| Diagnostics parse → honest parseability channel | value.js `./parsing` | At the next tagged cut; wire the producer or re-deadline once with an owner decision |
-| Layout-tracking unit grouping → WAAPI derivation | value.js `./units` | At the next tagged cut; consume and derive eligibility or re-deadline once |
-| KF-7 `PropertyDescriptor` rename | value.js root + `./parsing` | At the next tagged cut; consume the collision-free name and discharge `proof:no-collision-rename` or re-deadline explicitly |
-| D-GAP-1/5/6 capabilities | value.js easing/units/math-transform owners | At the sibling tranche's U release review; each row is marked shipped, declined, or re-deadlined with evidence |
+| Timing parse + diagnostics | value.js `./parsing` | At the next versioned value.js 4.x artifact; consume atomically or return an explicit decline |
+| Authored values → Keyframes interpolation slot | value.js parsing/units owners | At the same 4.x cut; preserve authored values for the Keyframes-owned `InterpSlot`, without a generic policy layer |
+| Layout-tracking unit grouping | value.js semantic-unit owner | At the same 4.x cut; consume and derive eligibility or explicitly decline |
+| KF-7 `PropertyDescriptor` rename | value.js root + parsing owner | At the same 4.x cut; consume the collision-free name and verify the rolled declaration directly |
+| D-GAP-1/5/6 capabilities | value.js easing/units/math-transform owners | At the same 4.x review; ship D-GAP-1, supersede D-GAP-5 if `./units` disappears, and ship the smallest D-GAP-6 sampler or decline it |
 
 At each consume, kf records the exact package version, export map, tarball
-identity, and gate/test evidence. No glass-ui 5.0.0 change is implied or
-authorized here.
+identity, and direct test/build evidence. Glass UI 6.x follows Keyframes 6.x
+on the same owner-ratified release rail; no source anticipation is authorized.

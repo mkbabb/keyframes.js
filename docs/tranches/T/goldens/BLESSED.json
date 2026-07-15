@@ -1,7 +1,7 @@
 {
-  "blessedBy": "mkbabb (via the delegated judgment \u2014 OWNER-ASKS row 4, 2026-07-06: \"Ratify all with your best judgment\"; executed by the drive orchestrator against the ratified references)",
-  "blessedAt": "2026-07-07T01:27:59-04:00",
-  "blessedCommit": "d35f4ab",
+  "blessedBy": "mkbabb (delegated close judgment under OWNER-ASKS rows 4 and 9; the drive orchestrator reviewed the committed sequence candidates and live light/dark sequence scene)",
+  "blessedAt": "2026-07-15T13:46:52-04:00",
+  "blessedCommit": "b6fab863",
   "entries": {
     "amiga-dark": {
       "verdict": "OWNER-APPROVED",
@@ -34,6 +34,14 @@
     "home-light": {
       "verdict": "OWNER-APPROVED",
       "candidate": "eb686be9ea2caedbad5a952fc51e86845c06151f3088d82288ac4456efe42be9"
+    },
+    "sequence-dark": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "e9c3e4143d9ea26591bc0eb2e3f86d963bdbfda1563a02affbaf5e52b9b912f0"
+    },
+    "sequence-light": {
+      "verdict": "OWNER-APPROVED",
+      "candidate": "4f590c97cc81a327b5534b000e284a3daae039372260cd290d1aac66a0831283"
     },
     "spring-dark": {
       "verdict": "OWNER-APPROVED",

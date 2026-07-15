@@ -1,7 +1,6 @@
 // proof:scene-facility (the RUNTIME half) — T.B1 STAGE 1 (batch-④′ α).
 //
-// The source-shape clauses live in scripts/proof-scene-facility.mjs (born-RED on
-// clause (b) until batch ⑤). THIS witness asserts the STAGE-1 GREEN shape at
+// This Vitest witness asserts the STAGE-1 GREEN shape at
 // RUNTIME: `facilityFromGroup` maps a real group's members to painting channels +
 // a valid ScenePlayback adapter, and the migrated SEQUENCE scene exposes a
 // facility (its decoy contract group is deleted) whose ONE channel round-trips

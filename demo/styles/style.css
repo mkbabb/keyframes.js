@@ -47,8 +47,7 @@
        utilities bind var(--font-text) (the body register). glass-ui's text-display-*
        rungs hardcode font-weight:600 and there is no --font-display-weight token to
        swap it, so the honest 400 lands via the @layer demo-typography rung override
-       at the foot of this sheet + font-synthesis:none at :root (the BG-6 glass-ui
-       ask is the durable seam, ledgered in demo/glass-ui-gaps.ts).
+       at the foot of this sheet + font-synthesis:none at :root.
 
        "Instrument Serif Fallback" is the metric-matched fallback face defined below
        so the LCP <h1> (text-display-mega, EditorStartScreen.vue) lands in its FINAL

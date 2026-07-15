@@ -1,8 +1,10 @@
 # U.A — THE APPARATUS DISSOLUTION
 
-> **Status: IMPLEMENTATION IN PROGRESS (U.A1/A5/A6/A7/A8/A9/A10 landed).**
-> The terminal gate-family deletion is landed; only the close evidence remains
-> routed.
+> **Status: CLOSED (2026-07-15).** OD-U23 terminally amended the intermediate
+> family/barrel design after measurement showed it still preserved an apparatus.
+> The package now has exactly two `proof:*` commands (`proof:publish` and
+> `proof:owner-golden`), no flat `scripts/proof-*.mjs`, and no expected-red,
+> backlog, capability-registry, or recap-policing layer.
 >
 > **Charter sentence (U.md §2).** Dissolve the 227-gate / 73.5k-LOC enforcement
 > apparatus into three honest mechanisms — `npm test` (all correctness) +
@@ -41,23 +43,17 @@
 > The charter remains the normative design; implementation evidence is tracked in
 > the checkpoint below and in `PROGRESS.md`.
 
-### Implementation checkpoint (2026-07-12)
+### Terminal amendment (2026-07-15)
 
-The historical census below remains a frozen baseline; it is not reconstructed at
-close. Current implementation evidence is recorded in `PROGRESS.md`:
-
-- tier reachability is now the transitional coverage authority;
-- five stale self-policing scripts and their CI/package/report-all wiring are
-  deleted;
-- `run-all` consumes `scripts/lib/tiers.mjs`, while browser rosters run on the
-  scheduled/manual path;
-- merge CI runs check/build, `npm test`, and `proof:publish`; deployment checks
-  the `last-demo-green` ancestry tag;
-- the publish bundle is the first family barrel under `scripts/gates/surface/`.
-
-Measured current package roster: 205 `proof:*` keys. The A2–A10 exit remains
-open until the remaining flat families and gate-band records are either folded
-into surviving mechanisms or deleted with their verified fold-map rows.
+The census below is the historical 5.2.0 baseline. The terminal measurement was
+204 package proof keys and 193 flat proof files. The close removed 182 flat proof
+files and every package proof key except the package-boundary bundle and human
+visual oracle. Correctness moved to Vitest; sequence transport event behavior was
+added to `test/orchestration/sequence-transport.test.ts`; the nightly product
+surface is six direct observations under `scripts/observe/demo/`. The useful Vite
+backend was extracted to `scripts/build/vite/`, reducing `vite.config.ts` from 747
+to 392 lines. This supersedes the intermediate 205/~36 roster checkpoints and the
+transitional tier/run-all design recorded later in this historical charter.
 
 ---
 

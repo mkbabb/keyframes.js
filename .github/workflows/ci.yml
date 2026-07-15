@@ -74,7 +74,7 @@ jobs:
             - name: publish artifact boundary (post-build)
               run: npm run proof:publish
             - name: demo roster (report-all)
-              run: npm run demo:correctness -- --gate-timeout=600
+              run: npm run demo:correctness -- --timeout=600
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_MWG_OPTIONAL: "1"
@@ -95,8 +95,8 @@ jobs:
             - name: install browser observers (recorded)
               if: always()
               run: npm i --no-save lighthouse || echo "observer install unavailable; recorded"
-            - name: lighthouse observer (recorded)
+            - name: lighthouse audit (recorded)
               if: always()
-              run: npm run proof:lighthouse-a11y || echo "lighthouse observer red; recorded"
+              run: npm run audit:lighthouse || echo "lighthouse observer red; recorded"
               env:
                   KF_REQUIRE_BROWSER: "1"

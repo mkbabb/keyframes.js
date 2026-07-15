@@ -20,9 +20,8 @@
 # published library faces; ci.yml setup-node node-version: 24).
 CI_IMAGE ?= node:24-slim
 
-# The demo-smoke roster the container runs: install → build the demo → the demo
-# gate roster (proof:all:demo = proof:demo-smoke + proof:occlusion + the external-hold
-# proof:peer-satisfied F-2 tripwire). The browser-bearing gates need chromium +
+# The demo roster the container runs: install → build the demo → the retained
+# correctness runner. Browser observations need chromium +
 # its system libraries; the slim image lacks them, so the container installs the
 # Playwright browser + deps first (the same `npx playwright install --with-deps
 # chromium` step ci.yml's demo-smoke job runs). KF_REQUIRE_BROWSER=1 makes a
@@ -32,7 +31,7 @@ CI_LINUX_CMD ?= set -e; \
 	npm i --no-save @playwright/test lighthouse; \
 	npx playwright install --with-deps chromium; \
 	npm run gh-pages; \
-	KF_REQUIRE_BROWSER=1 npm run proof:all:demo
+	KF_REQUIRE_BROWSER=1 npm run demo:correctness
 
 .PHONY: ci-linux
 ci-linux:

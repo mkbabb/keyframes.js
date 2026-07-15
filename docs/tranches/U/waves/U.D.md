@@ -1,6 +1,15 @@
 # U.D — THE PERFORMANCE FRONTIER
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: CLOSED (2026-07-15).** The apply/scheduling and demo-delivery work
+> landed; Monaco remains fully featured and on demand, unused workers were
+> removed, highlight delivery was deferred to interaction, and artifact weight
+> remains part of the package-boundary check.
+>
+> **Terminal amendment.** Measured refutations were accepted rather than forcing
+> charter text into code: unsafe or premise-false subplans were narrowed, kept, or
+> routed to their actual product seam. The standalone chunk/performance gate ideas
+> remain abrogated; behavior and budgets live in Vitest, builds, or
+> `proof:publish`, not a new meta family.
 >
 > **Charter sentence.** The SoA campaign optimized interpolation (~5% of a tick)
 > while the apply/render seam (~95%, measured ~45–49× the interp cost) still

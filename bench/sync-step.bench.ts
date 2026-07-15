@@ -11,7 +11,7 @@
  * cost: rAF is stubbed to a synchronous immediate queue so the bench measures
  * the promise+microtask loop-core, NOT real frame pacing.
  *
- * It is the harness F5's `proof:sync-step` promise-count clause measures. The
+ * It is the promise-count seam `test/physics/sync-step.test.ts` covers. The
  * tier had ZERO coverage of `playback.ts` before this.
  *
  * Imports the engine VALUE modules directly (`playback`, `spring`, `smooth`) —

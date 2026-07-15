@@ -1,10 +1,13 @@
 # U.H — THE TEST SUBSTRATE (FIRST)
 
-> **Status: COMPLETE (2026-07-12).** Implemented on `tranche-u-impl` before any
-> U.B/U.C move. Merged-tree evidence: library project 84 passed files / 909
-> passed tests; demo project 24 files / 141 tests against installed glass-ui
-> 4.0.1; `npm run check` green. The demo project is explicitly re-run when the
-> owner-held glass-ui 5.0.0 consume edge becomes release-ready.
+> **Status: CLOSED (2026-07-15).** Implemented before every U.B/U.C move and
+> carried through the terminal exact Glass 5.0.0 consume edge. Stable-surface
+> characterization, separate library/demo projects, the test mirror, measurement
+> re-home, and thin-alias deletion remain the correctness substrate.
+>
+> **Terminal amendment.** The 4.0.1/re-run hold below is historical; Glass 5.0.0
+> is now installed exactly. OD-U23 subsequently removed per-test package aliases
+> and source-shape proof wrappers, leaving behavior in the pooled Vitest projects.
 >
 > **Charter sentence (U.md §2).** Stand up the restructure-safe characterization tier
 > BEFORE any transposition — goldening OBSERVABLE behavior imported only through the

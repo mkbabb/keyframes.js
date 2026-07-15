@@ -1,6 +1,16 @@
 # U.C — THE LIBRARY TRANSPOSITION
 
-> **Status: DEVELOPMENT. Implementation NOT authorized.** Docs-only wave specs.
+> **Status: CLOSED (2026-07-15).** OD-U22 authorized and the library wave set
+> landed: shared transport, owned composite state, composition semantics, spring
+> and compile carves, preset catalog, scroll/surface work, and compatibility
+> coverage are present on the terminal tree.
+>
+> **Terminal amendment.** The development-only and “not authorized” wording in
+> the historical wave prose describes the pre-2026-07-11 corpus. Direct behavior
+> now lives in Vitest; notably, sequence `segment:enter`/clock forwarding and
+> label-crossing emission are covered in
+> `test/orchestration/sequence-transport.test.ts`. External value/color residue
+> is owner-re-deadlined to the value 4→Keyframes 6→Glass 6 release rail.
 >
 > **Band role (charter §2).** *"The unified value.js-free Transport core (dissolving the
 > three copied play FSMs — engine/group/sequence); group.ts carved to engine symmetry;

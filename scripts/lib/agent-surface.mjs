@@ -2,15 +2,13 @@
  * lib/agent-surface — the K.W12 ED-1 agent-surface SOURCE OF TRUTH.
  *
  * The ONE place the agent index is derived from the published surface. The
- * generator (`gen-agent-surface.mjs`) EMITS the artifacts from here; the gate
- * (`proof-agent-surface.mjs`) re-derives from here and set-equates the emitted
- * artifacts against a fresh build — so the agent surface cannot drift from the
- * `docs/published-surface.md` manifest + the `proof:*` gate roster.
+ * generator (`gen-agent-surface.mjs`) EMITS the artifacts from here, so the
+ * agent surface cannot drift from the `docs/published-surface.md` manifest.
  *
- * THE INVARIANT (clause (a) of proof:agent-surface): every export the index
- * LINKS is a real published export (∈ the manifest roster); every `proof:*`
- * gate the index CITES is a real gate (∈ the package.json proof:* roster). The
- * curated index is a sub-selection of the FULL roster — the 13 headline
+ * THE INVARIANT: every export the index LINKS is a real published export
+ * (∈ the manifest roster), and every cited check is a focused Vitest file or
+ * the package-boundary command. The curated index is a sub-selection of the
+ * FULL roster — the 13 headline
  * primitives — but the FULL export roster (the llms-full.txt tail) names EVERY
  * published export, so the union of the two artifacts covers the surface.
  */
@@ -25,15 +23,14 @@ export const REPO = path.resolve(
 );
 
 const MANIFEST = path.join(REPO, "docs/published-surface.md");
-const PKG = path.join(REPO, "package.json");
 const README_URL =
     "https://github.com/mkbabb/keyframes.js/blob/master/README.md";
 
 /**
  * The published-export roster — every backticked export-name row in
  * `docs/published-surface.md`, with its tier (LIGHT/HEAVY). This is the SAME
- * roster `proof:published-surface` clause (b) machine-checks against the
- * barrel, so the agent index is anchored to the gate-verified surface.
+ * roster the publish-boundary suite machine-checks against the barrel, so the
+ * agent index is anchored to the verified surface.
  */
 export function parseManifestRoster() {
     const text = fs.readFileSync(MANIFEST, "utf8");
@@ -50,19 +47,11 @@ export function parseManifestRoster() {
     return rows.filter((r) => (seen.has(r.name) ? false : seen.add(r.name)));
 }
 
-/** The set of every `proof:*` script name in package.json (the gate roster). */
-export function parseProofRoster() {
-    const pkg = JSON.parse(fs.readFileSync(PKG, "utf8"));
-    return new Set(
-        Object.keys(pkg.scripts ?? {}).filter((k) => k.startsWith("proof:")),
-    );
-}
-
 /**
  * THE CURATED INDEX — the 13 headline primitives the agent reads first. Each
  * row: the primitive name, a one-line intent, the published EXPORTS it links
  * (every one ∈ the manifest roster — gate-asserted), the README anchor, and the
- * `proof:*` gate that PROVES it (∈ the proof roster — gate-asserted). This is a
+ * focused check that verifies it. This is a
  * curated SELECTION; the full roster (llms-full.txt) names every export.
  *
  * The "ONLY kf does this" axes are flagged: [axis-1] round-trippable CSS,
@@ -75,7 +64,7 @@ export const CURATED = [
             "parse author CSS @keyframes → animate any element/object; the round-trippable source-of-truth axis [axis-1]",
         exports: ["CSSKeyframesAnimation", "loadAnimationEngine"],
         anchor: "csskeyframesanimation",
-        proof: "proof:roundtrip-fidelity",
+        check: "test/compile/roundtrip-fidelity.test.ts",
     },
     {
         name: "AnimationGroup",
@@ -83,7 +72,7 @@ export const CURATED = [
             "composite many animations with replace/add/weighted layer blending (spatial composition)",
         exports: ["AnimationGroup", "defaultLayerConfig"],
         anchor: "animationgroup",
-        proof: "proof:blend",
+        check: "test/group/blend.test.ts",
     },
     {
         name: "Sequence",
@@ -91,7 +80,7 @@ export const CURATED = [
             "master-playhead temporal orchestration beside AnimationGroup's spatial blend",
         exports: ["Sequence"],
         anchor: "sequence",
-        proof: "proof:orchestration",
+        check: "test/orchestration/sequence.test.ts",
     },
     {
         name: "compileToCSS",
@@ -99,7 +88,7 @@ export const CURATED = [
             "the round-trip's BACKWARD half: an orchestration graph → a pure zero-runtime CSS artifact (the parser run backward; GSAP/Motion cannot do this) [axis-1]",
         exports: ["compileToCSS"],
         anchor: "the-dynamic-engine--loadanimationengine",
-        proof: "proof:compile-replay",
+        check: "test/compile/compile-roundtrip.test.ts",
     },
     {
         name: "fromStyleSheets",
@@ -107,7 +96,7 @@ export const CURATED = [
             "INGEST: read the live web's own CSS @keyframes back into kf animations (CSSOM → CSSKeyframesAnimation), CORS-skip diagnostics never a silent drop [axis-1]",
         exports: ["fromStyleSheets", "fromLiveAnimations", "adoptRunning"],
         anchor: "the-dynamic-engine--loadanimationengine",
-        proof: "proof:ingest-replay",
+        check: "test/ingest/ingest.test.ts",
     },
     {
         name: "ScrollScene",
@@ -115,7 +104,7 @@ export const CURATED = [
             "scroll-driven animation as CSS: parse animation-timeline/-range, drive on the compositor where eligible and shipped physics where not, serialize back to valid CSS [axis-1]",
         exports: ["ScrollScene", "createScrollScene", "roundTripScrollCSS"],
         anchor: "timeline",
-        proof: "proof:scroll-roundtrip",
+        check: "test/scroll/scroll-scene.test.ts",
     },
     {
         name: "SpringProgress",
@@ -123,7 +112,7 @@ export const CURATED = [
             "closed-form spring physics tracker; reseatToSpring for velocity-continuous interruption; the linear() twin is round-trippable",
         exports: ["SpringProgress", "reseatToSpring", "probeVelocity"],
         anchor: "springprogress",
-        proof: "proof:spring-blend-weight",
+        check: "test/group/spring-blend-weight.test.ts",
     },
     {
         name: "springTimingFunction",
@@ -131,7 +120,7 @@ export const CURATED = [
             "spring physics → a typed Easing ({ fn, css }) / a CSS linear() stops string — a spring you can hand to native CSS [axis-1]",
         exports: ["springTimingFunction", "springLinearStops"],
         anchor: "springlinearstops--springtimingfunction",
-        proof: "proof:roundtrip-easing",
+        check: "test/compile/roundtrip-easing.test.ts",
     },
     {
         name: "stagger",
@@ -139,7 +128,7 @@ export const CURATED = [
             "pure construction-time per-index delay distribution (materializes into the compiled CSS)",
         exports: ["stagger"],
         anchor: "stagger",
-        proof: "proof:orchestration",
+        check: "test/orchestration/stagger.test.ts",
     },
     {
         name: "Timeline",
@@ -151,7 +140,7 @@ export const CURATED = [
             "createNativeTimeline",
         ],
         anchor: "timeline",
-        proof: "proof:sync-step",
+        check: "test/physics/sync-step.test.ts",
     },
     {
         name: "NumericAnimation",
@@ -159,7 +148,7 @@ export const CURATED = [
             "zero-alloc keyframe interpolation over { key: number } objects — animate any plain object, no DOM",
         exports: ["NumericAnimation"],
         anchor: "numericanimation",
-        proof: "proof:zero-alloc",
+        check: "test/engine/zero-alloc.test.ts",
     },
     {
         name: "loadAnimationEngine",
@@ -167,7 +156,7 @@ export const CURATED = [
             "the one gateway to the HEAVY tier: an awaited dynamic import that carries the CSS parser + value.js; light-only consumers never pay it [axis-3]",
         exports: ["loadAnimationEngine"],
         anchor: "the-dynamic-engine--loadanimationengine",
-        proof: "proof:boundary",
+        check: "npm run proof:publish",
     },
 ];
 
@@ -213,11 +202,10 @@ function tierOf(roster, name) {
 
 /**
  * The L.W6 agent-authoring LOOP teaching — emitted IFF `validate` AND `explain`
- * are present in the published-surface manifest roster (the gate coupling: no
- * verb in the manifest → no LOOP section → `proof:agent-validate` (b) reds). The
+ * are present in the published-surface manifest roster. The
  * section teaches the validate→fix→compile LOOP as a STRUCTURED code block an LLM
  * follows, not a narrative. Generated (never hand-maintained), so it cannot drift
- * from the actual exports (`proof:agent-validate` (e) byte-checks it).
+ * from the actual exports.
  *
  * Returns the section lines (heading + body), or `[]` when the verb is absent.
  */
@@ -252,7 +240,7 @@ export function buildAgentLoopSection(roster) {
         "console.log(await explain(css));",
         "```",
         "",
-        "proof: `proof:agent-validate` (CI-verified — `npm run proof:agent-validate`)",
+        "check: `test/compile/agent-validate.test.ts`",
         "",
     ];
 }
@@ -270,15 +258,15 @@ export function buildLlmsTxt() {
         "> `@keyframes`, animate any object or DOM element, and round-trip it",
     );
     L.push(
-        "> BACK to CSS. Every capability below is backed by a CI-verified",
+        "> BACK to CSS. Every capability below is backed by a focused test or",
     );
     L.push(
-        "> `proof:*` gate — this index is GENERATED from the machine-checked",
+        "> package check. This index is GENERATED from the machine-checked",
     );
     L.push(
         "> published surface (`docs/published-surface.md`) and cannot drift",
     );
-    L.push("> from it (`proof:agent-surface`).");
+    L.push("> from it.");
     L.push("");
     L.push(
         "The three axes only kf has: [axis-1] author CSS is the source format",
@@ -296,7 +284,7 @@ export function buildLlmsTxt() {
     L.push("");
     L.push(`Install: \`npm i @mkbabb/keyframes.js\` · README: ${README_URL}`);
     L.push("");
-    L.push("## Primitives (each backed by a runnable proof gate)");
+    L.push("## Primitives (each backed by a runnable check)");
     L.push("");
     for (const p of CURATED) {
         const tiers = [...new Set(p.exports.map((e) => tierOf(roster, e)))];
@@ -307,11 +295,11 @@ export function buildLlmsTxt() {
             `- exports: ${p.exports.map((e) => `\`${e}\``).join(", ")}`,
         );
         L.push(`- docs: ${README_URL}#${p.anchor}`);
-        L.push(`- proof: \`${p.proof}\` (CI-verified — \`npm run ${p.proof}\`)`);
+        L.push(`- check: \`${p.check}\``);
         L.push("");
     }
     // L.W6 — the agent-authoring LOOP teaching (emitted IFF validate+explain are
-    // in the manifest; the gate coupling proof:agent-validate (b)/(e) asserts).
+    // in the manifest).
     for (const line of buildAgentLoopSection(roster)) L.push(line);
     L.push("## The full export roster + the round-trip recipe");
     L.push("");
@@ -338,12 +326,12 @@ export function buildLlmsFullTxt() {
         "Generated from `docs/published-surface.md` (the machine-checked",
     );
     L.push(
-        "published-export manifest) + the `proof:*` gate roster. Verified by",
+        "published-export manifest) with focused test references. The index",
     );
     L.push(
-        "`proof:agent-surface`: the index can never advertise an export the",
+        "can never advertise an export the",
     );
-    L.push("surface does not publish, nor cite a gate that does not exist.");
+    L.push("surface does not publish.");
     L.push("");
     L.push(`README: ${README_URL}`);
     L.push("");
@@ -358,7 +346,7 @@ export function buildLlmsFullTxt() {
     for (const p of CURATED) {
         L.push(`- **${p.name}** — ${p.intent}`);
         L.push(
-            `  - exports: ${p.exports.map((e) => `\`${e}\``).join(", ")} · proof: \`${p.proof}\` · docs: ${README_URL}#${p.anchor}`,
+            `  - exports: ${p.exports.map((e) => `\`${e}\``).join(", ")} · check: \`${p.check}\` · docs: ${README_URL}#${p.anchor}`,
         );
     }
     L.push("");
@@ -387,21 +375,19 @@ export function buildLlmsFullTxt() {
         `Total published value exports: ${roster.length} (${light.length} LIGHT + ${heavy.length} HEAVY).`,
     );
     L.push("");
-    L.push("## The proof corpus (the public capability ledger)");
+    L.push("## Verification");
     L.push("");
     L.push(
-        "Every claim above is signed by a CI-executed gate. The proof corpus",
+        "The public surface is exercised by the test and package-boundary suites and",
     );
     L.push(
-        "is itself a public artifact: run `npm run proof:all` to execute the",
+        "is itself a public artifact. Verify the current tree with",
     );
     L.push(
-        "full roster (~" +
-            parseProofRoster().size +
-            " `proof:*` gates). Each gate is a self-describing capability",
+        "`npm test -- --run && npm run proof:publish`. Each retained check is a capability",
     );
     L.push(
-        'claim — not "the library claims X" but "the library PROVES X, here',
+        'claim — not "the library claims X" but "the library verifies X, here',
     );
     L.push('is the gate, here is the runnable snippet CI executes".');
     L.push("");
