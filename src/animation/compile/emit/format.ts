@@ -1,6 +1,7 @@
-import { formatCSS } from "@mkbabb/value.js/parsing";
-import { unflattenObjectToString, ValueArray, ValueUnit } from "@mkbabb/value.js/units";
-import { camelCaseToHyphen } from "@mkbabb/value.js";
+import { serializeCssValue } from "./css-text";
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
+import type { CssValue } from "@mkbabb/value.js/value";
+import { camelCaseToHyphen } from "../../internal/helpers";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
 import { serializeEasing } from "./easing-serialize";
@@ -13,12 +14,45 @@ import {
     animationOptionsToString,
     propertyRegistryToString,
 } from "./format-options";
-import type { ParsedVarMap } from "../parse-flatten";
+import type { ParsedVarMap } from "../value-ast";
 
 
-const DEFAULT_WIDTH = 80;
-const DEFAULT_KEYFRAME_HEADER = `@keyframes animation {\n`;
-const DEFAULT_KEYFRAME_FOOTER = `\n}`;
+const selectorText = (selector: KeyframeSelector): string =>
+    selector.kind === "percent"
+        ? `${selector.value * 100}%`
+        : `${selector.name}${selector.offset === undefined
+            ? ""
+            : ` ${selector.offset * 100}%`}`;
+
+const serializeDeclared = (declared: ParsedVarMap): Record<string, string> =>
+    Object.fromEntries(
+        Object.entries(declared).map(([key, value]) => [
+            key,
+            serializeCssValue(value),
+        ]),
+    );
+
+const scaleValue = (value: CssValue, weight: number): CssValue | undefined => {
+    if (value.kind === "scalar") {
+        if (value.payload.type !== "number") return undefined;
+        return {
+            kind: "scalar",
+            payload: { ...value.payload, value: value.payload.value * weight },
+        };
+    }
+    if (value.kind === "call") {
+        const args = value.args.map((arg) => scaleValue(arg, weight));
+        if (args.some((arg) => arg === undefined)) return undefined;
+        return { kind: "call", name: value.name, args: args as CssValue[] };
+    }
+    const items = value.items.map((item) => scaleValue(item, weight));
+    if (items.some((item) => item === undefined)) return undefined;
+    return {
+        kind: "list",
+        separator: value.separator,
+        items: items as CssValue[],
+    };
+};
 
 /**
  * THE one declared-template projection (J.W1 S1 — ENG-1). Renders stop `i`'s
@@ -51,7 +85,7 @@ function declaredKeyframeBody<V extends Vars>(
 
     const templateFrame = animation.templateFrames[i]!;
 
-    const decls = Object.entries(unflattenObjectToString(declared)).map(
+    const decls = Object.entries(serializeDeclared(declared)).map(
         ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
     );
 
@@ -74,7 +108,7 @@ function declaredKeyframeBody<V extends Vars>(
         decls.push(`  animation-composition: ${composition};`);
     }
 
-    const css = decls.join("\n").trim();
+    const css = decls.join("\n");
 
     return `{\n${css}\n}`;
 }
@@ -94,23 +128,9 @@ export const CSSKeyframesToStrings = async <V extends Vars>(
 ) => {
     const defaultEasing = serializeEasing(animation.options.timingFunction);
 
-    const frameStrings = animation.templateFrames.map(
-        async (templateFrame, i) => {
-            let css = declaredKeyframeBody(animation, i, defaultEasing);
-
-            css = `${templateFrame.start}\n${css}\n`;
-
-            css = DEFAULT_KEYFRAME_HEADER + css + DEFAULT_KEYFRAME_FOOTER;
-
-            css = await formatCSS(css, DEFAULT_WIDTH);
-
-            return css
-                .replace(DEFAULT_KEYFRAME_HEADER, "")
-                .replace(DEFAULT_KEYFRAME_FOOTER, "");
-        },
+    return animation.templateFrames.map((templateFrame, i) =>
+        `${selectorText(templateFrame.start)}\n${declaredKeyframeBody(animation, i, defaultEasing)}\n`,
     );
-
-    return Promise.all(frameStrings);
 };
 
 export function formatCSSKeyframeString(keyframe: string) {
@@ -157,7 +177,7 @@ export function declaredKeyframeBodyFor<V extends Vars>(
  * K.W10 CC-1 — the `@keyframes <name> { … }` block builder, factored out of
  * {@link CSSKeyframesToString} so the multi-animation compiler (`compile.ts`)
  * emits one block per child from the SAME declared-template authority. Returns
- * the UN-formatted block (caller runs `formatCSS` once over the whole artifact);
+ * the deterministic block assembled by Keyframes' own serializer;
  * `bodyByStop` (CC-2 densify) substitutes a per-stop body where provided, else
  * the verbatim declared projection rides. This is the parser run BACKWARD: the
  * block re-parses to the SAME template it serialized from.
@@ -172,19 +192,20 @@ export function keyframesBlock<V extends Vars>(
     // Coalesce identical stop bodies onto one selector list (`0%, 50% { … }`) —
     // the same de-dup `CSSKeyframesToString` does. A densified stop is unique
     // (it carries its own body), so it never coalesces away.
-    const keyframesMap = new Map<string, ValueUnit[]>();
+    const keyframesMap = new Map<string, string[]>();
     animation.templateFrames.forEach((templateFrame, i) => {
         const body =
             bodyByStop?.get(i) ??
             declaredKeyframeBody(animation, i, defaultEasing);
         const existing = keyframesMap.get(body);
-        if (existing) existing.push(templateFrame.start);
-        else keyframesMap.set(body, [templateFrame.start]);
+        const selector = selectorText(templateFrame.start);
+        if (existing) existing.push(selector);
+        else keyframesMap.set(body, [selector]);
     });
 
     let stops = "";
     for (const [body, percents] of keyframesMap) {
-        stops += `${percents.join(", ")} ${body}\n`;
+        stops += `  ${percents.join(", ")} ${body.replace(/\n/g, "\n  ")}\n`;
     }
 
     return `@keyframes ${name} {\n${stops}}`;
@@ -194,7 +215,7 @@ export function keyframesBlock<V extends Vars>(
 /**
  * CC-5 (L.W2 S3) — the STATIC-weight pre-multiply result: a ready `@keyframes`
  * block whose numeric keyframe leaves have been scaled by the constant blend
- * weight (so an `accumulate` layer reproduces the weighted blend in exact CSS), OR
+ * weight (so an `accumulate` layer reproduces the weightBlend blend in exact CSS), OR
  * a refusal naming the non-numeric leaf that cannot be scaled.
  */
 export type PremultiplyResult =
@@ -204,13 +225,13 @@ export type PremultiplyResult =
 /**
  * CC-5 (L.W2 S3) — pre-multiply a child's numeric keyframe leaves by a STATIC
  * blend `weight` and project the scaled `@keyframes` block. A constant-weight
- * `weighted` layer is the simple pre-compositing case: the author chose a fixed
+ * `weightBlend` layer is the simple pre-compositing case: the author chose a fixed
  * scalar blend, so the output keyframe values can be scaled by `weight` at compile
  * time and the layer emitted as `animation-composition: accumulate` — exact CSS,
  * no spring, no JS runtime (`compile.ts` walkGroup partition).
  *
- * READ-ONLY over the animation: each stop's declared `ValueArray`s are CLONED
- * (`ValueArray.clone()`), and only the CLONES' numeric leaves are scaled —
+ * READ-ONLY over the animation: each stop's declared `CssValue`s are CLONED
+ * (`CssValue.clone()`), and only the CLONES' numeric leaves are scaled —
  * `animation.parsedVars` is NEVER mutated (the compiler is read-only over the
  * animation object). The scaled clones flow through the SAME
  * `unflattenObjectToString` projection {@link declaredKeyframeBody} uses, so a
@@ -219,7 +240,7 @@ export type PremultiplyResult =
  * Only NUMERIC leaves scale. A non-numeric leaf (a `color`, a bare string token —
  * `unit === "color"` or a non-`number` `value`) has no scalar pre-multiply, so a
  * static-weight animation carrying one REFUSES (`{ refused, key }`) — the caller
- * records it as a `weighted-blend` refusal (the JS playback is the faithful path).
+ * records it as a `weight-blend` refusal (the JS playback is the faithful path).
  */
 export function premultipliedKeyframesBlock<V extends Vars>(
     animation: KeyframesAnimation<V>,
@@ -228,28 +249,19 @@ export function premultipliedKeyframesBlock<V extends Vars>(
 ): PremultiplyResult {
     const defaultEasing = serializeEasing(animation.options.timingFunction);
 
-    const keyframesMap = new Map<string, ValueUnit[]>();
+    const keyframesMap = new Map<string, string[]>();
     for (let i = 0; i < animation.templateFrames.length; i++) {
         const templateFrame = animation.templateFrames[i]!;
         const declared: ParsedVarMap = animation.parsedVars[i] ?? {};
 
-        // Clone each declared ValueArray and scale ONLY its numeric leaves; a
-        // non-numeric leaf (color/string) refuses. CLONE-only — parsedVars stays
-        // untouched (read-only-over-the-animation invariant).
         const scaled: ParsedVarMap = {};
-        for (const [key, arr] of Object.entries(declared)) {
-            const cloned = (arr as ValueArray).clone();
-            for (const leaf of cloned as Iterable<ValueUnit>) {
-                if (typeof leaf.value === "number") {
-                    leaf.value = leaf.value * weight;
-                } else if (leaf.unit === "color" || typeof leaf.value === "string") {
-                    return { refused: true, key };
-                }
-            }
-            scaled[key] = cloned;
+        for (const [key, value] of Object.entries(declared)) {
+            const next = scaleValue(value, weight);
+            if (next === undefined) return { refused: true, key };
+            scaled[key] = next;
         }
 
-        const decls = Object.entries(unflattenObjectToString(scaled)).map(
+        const decls = Object.entries(serializeDeclared(scaled)).map(
             ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
         );
         const frameEasing = templateFrame.timingFunction
@@ -262,16 +274,17 @@ export function premultipliedKeyframesBlock<V extends Vars>(
         if (composition != null && composition !== "replace") {
             decls.push(`  animation-composition: ${composition};`);
         }
-        const body = `{\n${decls.join("\n").trim()}\n}`;
+        const body = `{\n${decls.join("\n")}\n}`;
 
         const existing = keyframesMap.get(body);
-        if (existing) existing.push(templateFrame.start);
-        else keyframesMap.set(body, [templateFrame.start]);
+        const selector = selectorText(templateFrame.start);
+        if (existing) existing.push(selector);
+        else keyframesMap.set(body, [selector]);
     }
 
     let stops = "";
     for (const [body, percents] of keyframesMap) {
-        stops += `${percents.join(", ")} ${body}\n`;
+        stops += `  ${percents.join(", ")} ${body.replace(/\n/g, "\n  ")}\n`;
     }
     return { block: `@keyframes ${name} {\n${stops}}` };
 }
@@ -279,14 +292,13 @@ export function premultipliedKeyframesBlock<V extends Vars>(
 export async function CSSKeyframesToString<V extends Vars>(
     animation: KeyframesAnimation<V>,
     name: string = "animation",
-    printWidth: number | undefined = undefined,
 ) {
     const options = animation.options;
 
     // Build keyframes from template frames (the declared stops: 0%, 50%, 100%, etc.)
     // rather than interpolation frames (which are transition pairs, not stops).
     // Sample the animation at each stop's percentage to get the resolved CSS values.
-    const keyframesMap = new Map<string, ValueUnit[]>();
+    const keyframesMap = new Map<string, string[]>();
 
     // F.W7 — the per-keyframe easing round-trip. `fromString` READS each stop's
     // `animation-timing-function` (CSS Animations L1: it applies to the interval
@@ -298,7 +310,7 @@ export async function CSSKeyframesToString<V extends Vars>(
     const defaultEasing = serializeEasing(options.timingFunction);
 
     animation.templateFrames.forEach((templateFrame, i) => {
-        const percent = templateFrame.start;
+        const percent = selectorText(templateFrame.start);
         // I.W0 S2 / J.W1 S1 — serialize from the DECLARED template values,
         // NOT a DOM-resolving interpolation sample: the ONE projection both
         // serialize surfaces share (see `declaredKeyframeBody`).
@@ -313,7 +325,7 @@ export async function CSSKeyframesToString<V extends Vars>(
 
     let keyframesString = "";
     for (const [css, percents] of keyframesMap) {
-        keyframesString += `${percents.join(", ")} ${css}`;
+        keyframesString += `  ${percents.join(", ")} ${css.replace(/\n/g, "\n  ")}\n`;
     }
 
     const animationOptionsString = animationOptionsToString(options, name);
@@ -326,7 +338,5 @@ export async function CSSKeyframesToString<V extends Vars>(
 
     const keyframes = `${propertyPrefix}${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
 
-    const out = await formatCSS(keyframes, printWidth);
-
-    return out.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}");
+    return `${keyframes.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}")}\n`;
 }

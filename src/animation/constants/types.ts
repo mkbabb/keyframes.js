@@ -14,22 +14,27 @@
 // The FILE-level purity is gated by `proof:boundary`'s S.B1 clause: any
 // non-`import type` module edge in THIS file reddens the gate (strictly stronger
 // than the whole-surface boundary scan).
-import type { HueInterpolationMethod } from "@mkbabb/value.js/color";
-import type { InterpolatedVar, ValueUnit } from "@mkbabb/value.js/units";
-import type { timingFunctions } from "@mkbabb/value.js/easing";
-import type { ColorSpace } from "@mkbabb/value.js/color";
+import type { HueInterpolationMethod, SpaceId } from "@mkbabb/value.js/color";
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
+import type { BezierPresetName } from "@mkbabb/value.js/easing";
 import type { DIRECTIONS, FILL_MODES } from "./defaults";
-// T.A6 — the PLAIN authored-shape projection type (type-only edge; erased under
-// verbatimModuleSyntax, so `constants/types` stays LIGHT-PURE per proof:boundary).
-import type { PlainProjection } from "../compile/plain-vars";
+import type { FlatAuthoredValues } from "../compile/value-ast";
 
-export type {
-    ColorSpace,
-    HueInterpolationMethod,
-} from "@mkbabb/value.js/color";
-export type { InterpolatedVar } from "@mkbabb/value.js/units";
+export type { SpaceId, HueInterpolationMethod } from "@mkbabb/value.js/color";
 
-export type TimingFunctionNames = keyof typeof timingFunctions;
+export type TimingFunctionNames =
+    | BezierPresetName
+    | "steps"
+    | "ease-in-bounce"
+    | "easeOutCubic"
+    | "easeInOutSine"
+    | "easeInOutCubic"
+    | "easeInOutQuad"
+    | "easeInOutExpo"
+    | "easeInOutCirc"
+    | "easeOutExpo"
+    | "smoothStep3"
+    | "easeInBounce";
 
 export type Vars<T = any> = {
     [arg: string]: number | string | T;
@@ -58,7 +63,7 @@ export interface Easing {
 
 export interface TemplateAnimationFrame<V extends Vars> {
     id: number;
-    start: ValueUnit;
+    start: KeyframeSelector;
     vars: V;
 
     transform?: TransformFunction<V>;
@@ -76,35 +81,11 @@ export interface TemplateAnimationFrame<V extends Vars> {
     composition?: CompositeOperator;
 }
 
-/**
- * Q.WB3 S2 — the precomputed SoA fold layout for ONE compiled frame's NUMERIC
- * interp subset (the single-animation `processFrame` analog of the compositor's
- * `SoALayerPlan`). Built ONCE at `parse` over the STABLE iv set (the F.W4
- * zero-alloc discipline — NO per-frame allocation):
- *   - `numeric` — the numeric ivs (numeric start+stop, NOT computed, NOT color),
- *     in slot order. Each iv's interp-carrier `value` is the `ValueUnit` slot the
- *     strided write-back fills (the SAME slot `lerpValue` writes today).
- *   - `from` / `to` — the packed endpoint `Float64Array`s (`start.value` /
- *     `stop.value`), one slot per `numeric[s]`.
- *   - `out` — the per-frame scratch the `lerpArray` fold writes into (reused
- *     across every frame — zero per-frame alloc).
- *   - `boxed` — the residual ivs (color / computed / mixed) the fold CANNOT cover
- *     — walked by the existing per-element `lerpValue`, UNCHANGED.
- * The boxed-color tail is the GATED `ColorChannelPlan` consume's frontier (S4,
- * value.js 1.2.0) — NOT this NOW numeric arm.
- */
-export interface NumericFoldPlan<V extends Vars> {
-    numeric: Array<InterpolatedVar<V>>;
-    from: Float64Array;
-    to: Float64Array;
-    out: Float64Array;
-    boxed: Array<InterpolatedVar<V>>;
-}
-
+/** Consumer-observable data for one compiled keyframe segment. */
 export interface AnimationFrame<V extends Vars> {
     id: number;
 
-    start: ValueUnit;
+    start: KeyframeSelector;
 
     ixs: {
         start: number;
@@ -116,44 +97,8 @@ export interface AnimationFrame<V extends Vars> {
         stop: number;
     };
 
-    flatVars: V;
+    flatVars: FlatAuthoredValues;
     vars: V;
-
-    interpVars: {
-        [arg: string]: Array<InterpolatedVar<V>>;
-    };
-
-    /**
-     * Pre-flattened array of all interpolation variables across all properties.
-     * Built once during parse() to avoid Object.values().flat() allocation
-     * on every interpFrames() call in the hot path.
-     */
-    allInterpVars: Array<InterpolatedVar<V>>;
-
-    /**
-     * Q.WB3 S2 — the precomputed numeric SoA fold layout (built ONCE at `parse`
-     * over the stable `allInterpVars` set). `processFrame` folds the numeric subset
-     * through ONE `lerpArray` over the packed `Float64Array` buffers and strides
-     * the result back into the numeric leaves' `.value` slots; the boxed residual
-     * (color/computed/mixed) keeps the per-element `lerpValue`. Absent (undefined)
-     * for a frame with no numeric ivs, or before `parse` runs — `processFrame`
-     * falls back to the all-boxed walk. Bit-identical to the boxed path.
-     */
-    _numericPlan?: NumericFoldPlan<V>;
-
-    /**
-     * T.A6 — the nested PLAIN authored-shape projection a custom `transform`
-     * consumes (numbers where the author wrote numbers, strings where a unit or
-     * color demands one). Built lazily on the first apply — `undefined` for a
-     * DOM-style default-renderer frame (which consumes `flatVars` directly) and
-     * before the first `interpFrames(..., true)`. Invalidated at
-     * `finalizeFrameVars` so a color-space renormalize rebuilds it against the
-     * fresh interp carriers.
-     */
-    plainVars?: V;
-
-    /** T.A6 — the per-leaf refresh-writer plan backing {@link plainVars}. */
-    _plainProj?: PlainProjection | undefined;
 
     transform: TransformFunction<V>;
 
@@ -175,14 +120,11 @@ export interface AnimationFrame<V extends Vars> {
 }
 
 /**
- * The CSS `animation-composition` operator (K.W7). Distinct from
- * {@link BlendMode} (the GROUP's per-LAYER blend tier — `replace`/`add`/
- * `weighted`): this is the per-KEYFRAME composite operator the author declares
- * on a single animation, matching the CSS grammar exactly (`weighted` is not a
- * CSS composite; `accumulate` is the repeat-aware one CSS adds). The engine
- * routes `add`/`accumulate` onto the SAME un-clamped numeric leaf the group's
- * `add` layer runs (`group.ts`), so the two tiers share one accumulation
- * semantic without sharing a type.
+ * The CSS `animation-composition` operator (K.W7). A group layer uses this same
+ * grammar through `AnimationLayerConfig.op`; its orthogonal `weight` scalar can
+ * turn a replacement layer into a crossfade. The engine routes
+ * `add`/`accumulate` onto the SAME un-clamped numeric leaf the group layer runs,
+ * so keyframe and group composition share one accumulation semantic.
  */
 export type CompositeOperator = "replace" | "add" | "accumulate";
 
@@ -209,7 +151,7 @@ export type AnimationOptions = {
      */
     respectReducedMotion: boolean;
 
-    colorSpace: ColorSpace;
+    colorSpace: SpaceId;
 
     hueMethod?: HueInterpolationMethod;
 
@@ -219,8 +161,8 @@ export type AnimationOptions = {
      * through a sibling `.class { animation: … }` shorthand/longhand ingest.
      * Distinct from the per-KEYFRAME {@link TemplateAnimationFrame.composition}
      * (the per-stop operator); this is the whole-animation composite the engine
-     * carries off `extractAnimationOptions`'s `composition` field. Omission means
-     * `replace` (the CSS default — the serializer omits it). value.js 0.13.0's
+     * carries off `collectAnimationOptions`'s `composition` field. Omission means
+     * `replace` (the CSS default — the serializer omits it). Value 4's
      * `CSSAnimationOptions.composition` surfaces it; `fromString` reads it here.
      */
     composite?: CompositeOperator;
@@ -259,7 +201,7 @@ export type InputAnimationOptions = Partial<{
     /** When true, snap `play()` to the final frame under `prefers-reduced-motion: reduce`. Default false. */
     respectReducedMotion: boolean;
 
-    colorSpace?: ColorSpace;
+    colorSpace?: SpaceId;
 
     hueMethod?: HueInterpolationMethod;
 
@@ -268,19 +210,12 @@ export type InputAnimationOptions = Partial<{
 }>;
 
 /**
- * Public layer vocabulary. `weighted` is retained as a compatibility alias;
- * the canonical operation axis is {@link CompositeOperator}. `accumulate` is
- * additive and maps to the same un-clamped fold as `add` at group scope.
- */
-export type BlendMode = CompositeOperator | "weighted";
-
-/**
  * The minimal stepper surface a spring-driven blend weight reads (K.W11
  * PHYS-C). A `SpringProgress` satisfies it structurally (`value` getter +
  * `tickDt` + `settled`); typing it as this narrow shape — NOT importing
  * `SpringProgress` — keeps `constants.ts` from gaining a class edge and lets
  * a consumer drive a layer's weight with ANY analytic stepper (a decay glide,
- * a custom `Tickable`). The read is one nullish access in the `weighted` blend
+ * a custom `Tickable`). The read is one nullish access in the weight blend
  * leaf; the group's managed loop advances it per frame via `tickDt`.
  */
 export interface WeightStepper {
@@ -295,15 +230,15 @@ export interface WeightStepper {
 export interface AnimationLayerConfig {
     /** Higher wins. Default: 0 */
     zIndex: number;
-    /** 0–1 for 'weighted' blend mode. Default: 1 */
+    /** 0–1 replacement weight. Default: 1 */
     weight: number;
     /**
      * Optional spring (or any {@link WeightStepper}) DRIVING this layer's
      * blend `weight` (K.W11 PHYS-C — the spring-driven crossfade). When
-     * present the `weighted` blend leaf reads `weightSpring.value` in place of
+     * present the weight blend reads `weightSpring.value` in place of
      * the constant `weight` (one nullish read; the per-frame lerp untouched),
      * so a layer transition follows a PHYSICAL trajectory that can overshoot
-     * and settle — the flagship demo moment only kf's weighted-blend substrate
+     * and settle — the flagship demo moment only kf's weight-blend substrate
      * can hold. Constructed + advanced by `AnimationGroup.transitionLayer` /
      * `crossfade`; cleared on settle, when the read falls back to the
      * now-updated constant `weight`. Absent on a static-weight layer (the
@@ -311,14 +246,12 @@ export interface AnimationLayerConfig {
      */
     weightSpring?: WeightStepper;
     /**
-     * Default: 'replace'. Defaulting on a genuinely-omitted blend mode is
+     * Default: 'replace'. Defaulting on a genuinely-omitted operation is
      * the sanctioned contract (the fail-explicit seam throws only on
      * malformed PRESENT input, never on omission) — an unspecified layer
      * blends by replacement, the least-surprising composite.
      */
-    blendMode: BlendMode;
-    /** Canonical composition operation. Omission preserves `blendMode` callers. */
-    op?: CompositeOperator;
+    op: CompositeOperator;
     /** Layer toggle. Default: true */
     enabled: boolean;
     /** Optional property whitelist — only these properties will be output from this layer */

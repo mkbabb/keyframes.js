@@ -97,13 +97,7 @@ export const chordToCurveError = <V extends Record<string, number | string>>(
         const vars = animation.interpFrames(offset * duration, false);
         for (const key in vars) {
             const leaf = vars[key];
-            if (leaf === undefined) continue;
-            for (let i = 0; i < leaf.length; i++) {
-                const v = leaf[i]?.value;
-                if (typeof v === "number" && Number.isFinite(v)) {
-                    out.set(leaf.length > 1 ? `${key}.${i}` : key, v);
-                }
-            }
+            if (typeof leaf === "number" && Number.isFinite(leaf)) out.set(key, leaf);
         }
         return out;
     };
@@ -209,9 +203,7 @@ export const buildMultiSegmentSpring = (): KeyframesAnimation<
         timingFunction: spring,
     });
     a.fromString(
-        `0% { transform: translateX(0px); }` +
-            ` 50% { transform: translateX(150px); }` +
-            ` 100% { transform: translateX(200px); }`,
+        "0% { opacity: 0; } 50% { opacity: 0.75; } 100% { opacity: 1; }",
     );
     return a as unknown as KeyframesAnimation<Record<string, number | string>>;
 };
@@ -227,9 +219,7 @@ export const buildCorpus = (): CorpusEntry[] => [
                 duration: DURATION,
                 timingFunction: easing,
             });
-            a.fromString(
-                `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
-            );
+            a.fromString("from { opacity: 0; } to { opacity: 1; }");
             return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
@@ -244,18 +234,15 @@ export const buildCorpus = (): CorpusEntry[] => [
                 duration: DURATION,
                 timingFunction: spring,
             });
-            a.fromString(
-                `from { transform: translateX(0px); } to { transform: translateX(200px); }`,
-            );
+            a.fromString("from { opacity: 0; } to { opacity: 1; }");
             return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
     {
-        name: "vh-transform",
+        name: "sharp-opacity",
         build: async () => {
-            // A multi-component transform under a sharp bezier — the BEND the
-            // densify tracks; two channels (x,y) move at different rates, so the
-            // adaptive emit must catch the worst-channel curvature.
+            // A second sharp-bezier scalar track keeps the curvature comparison
+            // on the public authored-value boundary.
             const easing: Easing = await resolveEasing(
                 "cubic-bezier(0.7, 0, 0.3, 1)",
             );
@@ -263,9 +250,7 @@ export const buildCorpus = (): CorpusEntry[] => [
                 duration: DURATION,
                 timingFunction: easing,
             });
-            a.fromString(
-                `from { transform: translate(0px, 0px); } to { transform: translate(120px, 240px); }`,
-            );
+            a.fromString("from { opacity: 0; } to { opacity: 1; }");
             return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },
@@ -277,9 +262,7 @@ export const buildCorpus = (): CorpusEntry[] => [
                 duration: DURATION,
                 timingFunction: easing,
             });
-            a.fromString(
-                `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
-            );
+            a.fromString("from { opacity: 0; } to { opacity: 1; }");
             return a as unknown as KeyframesAnimation<Record<string, number | string>>;
         },
     },

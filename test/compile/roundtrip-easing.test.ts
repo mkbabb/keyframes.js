@@ -19,6 +19,9 @@ import { springTimingFunction } from "../../src/animation/physics/spring";
 const keyframesBlock = (css: string): string =>
     css.slice(css.indexOf("@keyframes"));
 
+const startsAtZero = (frame: CSSKeyframesAnimation<any>["templateFrames"][number]) =>
+    frame.start.kind === "percent" && frame.start.value === 0;
+
 describe("F.W7 — per-keyframe easing round-trip", () => {
     it("emits per-keyframe animation-timing-function when it differs from the default", async () => {
         const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
@@ -39,7 +42,7 @@ describe("F.W7 — per-keyframe easing round-trip", () => {
         const b = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
             keyframesBlock(out),
         );
-        const tf = b.templateFrames.find((f) => f.start.value === 0);
+        const tf = b.templateFrames.find(startsAtZero);
         expect(tf).toBeDefined();
         expect(tf!.timingFunction).toBeDefined();
         expect(serializeEasing(tf!.timingFunction!)).toBe("linear");
@@ -86,7 +89,7 @@ describe("G.W4 — serializeEasing fail-explicit on an unrepresentable closure",
         const b = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
             keyframesBlock(out),
         );
-        const tf = b.templateFrames.find((f) => f.start.value === 0);
+        const tf = b.templateFrames.find(startsAtZero);
         expect(tf?.timingFunction).toBeDefined();
         const registryLinear = tf!.timingFunction!;
 
@@ -117,7 +120,7 @@ describe("F.W7 — spring linear() round-trip (proof:spring-roundtrip)", () => {
         const b = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
             keyframesBlock(out),
         );
-        const tf = b.templateFrames.find((f) => f.start.value === 0);
+        const tf = b.templateFrames.find(startsAtZero);
         expect(tf?.timingFunction).toBeDefined();
         // The linear() curve survived emit → re-parse (E.W7's reader + F.W7's
         // emitter close the round-trip the E.W7 lock left half-open).

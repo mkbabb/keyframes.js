@@ -37,7 +37,7 @@
  * Reached ONLY via `loadAnimationEngine()` + the `./engine` static mirror — never
  * the LIGHT barrel (its LIGHT twin is `orchestration/view-transition`'s dispatch).
  */
-import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
+import { reverseCSSTime } from "./css-text";
 import type { KeyframesAnimation } from "../../engine";
 import type { AnimationOptions, Vars } from "../../constants";
 // The emit-substrate helpers, imported from the real sibling FILES inside emit/
@@ -229,7 +229,7 @@ function emitRole<V extends Vars>(
         animation,
         name,
         composition: "replace",
-        weighted: false,
+        weightBlend: false,
         delay: 0,
     };
     const inherited: CompileRefusal[] = [];
@@ -383,11 +383,5 @@ export async function compileToViewTransition<V extends Vars>(
     }
 
     const raw = chunks.join("\n\n");
-    let css: string;
-    try {
-        css = await formatCSS(raw, opts.printWidth);
-    } catch {
-        css = raw;
-    }
-    return { css, eligible, refusals, names };
+    return { css: `${raw}\n`, eligible, refusals, names };
 }

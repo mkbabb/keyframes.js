@@ -6,9 +6,8 @@
  * compile-stable caches (`_stableKeys`, `_hasComposition` + the per-run
  * composition base/fallback) that the interpolation hot path reads.
  *
- * `adoptCompiled` writes the backing `_compiler` field via the internal
- * `_setCompiler` accessor (the only sanctioned cross-module write — an external
- * `animation.compiler = …` stays a compile error, the G.W19 reach-in lock).
+ * Compiler identity lives in the engine-private WeakMap store, so adoption can
+ * transfer it atomically without adding implementation fields to public d.ts.
  */
 import {
     computeHasComposition as computeHasCompositionImpl,
@@ -16,6 +15,9 @@ import {
 } from "./composition";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
+import type { CompiledAnimationFrame } from "../compile/compiled-frame";
+import { bindInterpSlotTarget } from "../compile/interp-slot";
+import { compilerFor, setCompilerFor } from "./compiler-state";
 
 /**
  * Compile the template frames into the sampled `frames[]`, then re-derive the
@@ -23,7 +25,7 @@ import type { KeyframesAnimation } from "./animation";
  * targets so computed-unit resolution reads the box.
  */
 export function parse<V extends Vars>(anim: KeyframesAnimation<V>): void {
-    anim.compiler.parse(anim.targets);
+    compilerFor<V>(anim).parse(anim.targets);
     computeStableKeys(anim);
     computeHasComposition(anim);
 }
@@ -71,7 +73,7 @@ export function computeStableKeys<V extends Vars>(
  *
  * The transplant moves the `{ compiler, options, unflatten }` triad together and
  * re-binds the live-options reference BY CONSTRUCTION — `options` is read OFF the
- * adopted compiler, so `anim.options === anim.compiler.options` holds without
+ * adopted compiler, so the live options identity holds without
  * relying on the caller's assignment order. This is the invariant the demo
  * formerly held by a comment + three ordered field writes; here it is the
  * method's contract, enforced by `proof:adopt-compiled`. A `compiler` adopted
@@ -89,12 +91,22 @@ export function adoptCompiled<V extends Vars>(
     source: KeyframesAnimation<V>,
 ): void {
     // Transplant the compiled compiler whole (its `frames`/`templateFrames`/
-    // `parsedVars` come with it) into the backing field via the internal setter.
-    anim._setCompiler(source.compiler);
-    // Re-bind the live-options reference OFF the adopted compiler, so
-    // `anim.options === anim.compiler.options` is true by construction.
-    anim.options = anim.compiler.options;
+    // `parsedVars` come with it) into the engine-private ownership store.
+    const compiler = compilerFor<V>(source);
+    setCompilerFor(anim, compiler);
+    // Re-bind the live-options reference OFF the adopted compiler.
+    anim.options = compiler.options;
     anim.unflatten = source.unflatten;
+    // The compiler is transferred as a whole, but computed slots belong to the
+    // receiving animation's target set. Rebind only those slots and invalidate
+    // their caches; compiled frame/sink identity remains intact.
+    const target = anim.targets[0];
+    const frames = anim.frames as CompiledAnimationFrame<V>[];
+    for (const frame of frames) {
+        for (const value of Object.values(frame.interpVars)) {
+            for (const slot of value.slots) bindInterpSlotTarget(slot, target);
+        }
+    }
     // The adopted frames may carry a different key-set / composition operators —
     // recompute the stable-key union + re-derive the honoring flag (K.W7).
     computeStableKeys(anim);

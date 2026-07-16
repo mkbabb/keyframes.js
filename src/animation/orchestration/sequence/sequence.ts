@@ -16,7 +16,7 @@
  * (b) SUBSUMPTION — `Sequence` sits BESIDE `AnimationGroup`; it does NOT
  *     replace it.
  *     `AnimationGroup` is the *spatial* compositor: many animations on ONE
- *     target, blended per-frame (`replace`/`add`/`weighted`) into a single
+ *     target, blended per-frame (`replace`/`add`/`weightBlend`) into a single
  *     transform — the at:0-parallel case where every child shares the clock AND
  *     the paint. `Sequence` is the *temporal* orchestrator: many animations,
  *     each positioned at its own offset along a master playhead, each painting
@@ -46,10 +46,10 @@
  * local clock to `[0, duration]`, `interpFrames` it, paint) used for scrubbing
  * and for the unit gate; `play()` rides `RAFPlayback` over the same map.
  *
- * ── BOUNDARY: LIGHT (value.js-free).
+ * ── BOUNDARY: LIGHT (Value `/math` leaf only).
  * `sequence.ts` imports only `./playback` (the rAF driver) and the light
  * `./internal/leaves` clamp, plus types (`./engine`, `./constants`) that erase
- * under `verbatimModuleSyntax`. It carries NO static `@mkbabb/value.js` edge: it
+ * under `verbatimModuleSyntax`. Its sole Value edge is rootless `/math`: it
  * drives `Animation` through its public `advanceTo` / `interpFrames` / `seek`
  * surface, never the CSS parser. The `Animation` value itself arrives from the
  * caller (who built it via the heavy engine), so the sequence never constructs

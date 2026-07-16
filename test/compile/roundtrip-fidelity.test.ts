@@ -60,12 +60,18 @@ const manifest = JSON.parse(
 /** Just the `@keyframes` block (drop any leading `@property` etc.). */
 const kfBlock = (css: string): string => css.slice(css.indexOf("@keyframes"));
 
+const animation = () =>
+    new CSSKeyframesAnimation<any>({ duration: 1000 }, document.createElement("div"));
+
+const authoredKeys = (keys: readonly string[]): string[] =>
+    [...new Set(keys.map((key) => key.split(".", 1)[0]!))].sort();
+
 /** The serialized, sorted, flattened midpoint of `interpFrames(0.5)` (= at(0.5)). */
 const midpointSig = (a: CSSKeyframesAnimation<any>): string => {
     const r = a.at(0.5);
     return Object.keys(r)
         .sort()
-        .map((k) => `${k}=${r[k]!.map((v) => String(v)).join(",")}`)
+        .map((k) => `${k}=${String(r[k])}`)
         .join(" ; ");
 };
 
@@ -89,9 +95,7 @@ describe("G.W16 TR-4 — the parse corpus is authoritative (frame structure lock
     for (const fx of manifest.fixtures) {
         it(`${fx.file} — normalized frame structure matches the manifest AST`, () => {
             const css = readFileSync(join(CORPUS, fx.file), "utf8");
-            const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
-                css,
-            );
+            const a = animation().fromString(css);
             a.parse();
             // The expected template-frame count (the parsed @keyframes stop count).
             expect(a.templateFrames.length).toBe(fx.frames);
@@ -101,12 +105,12 @@ describe("G.W16 TR-4 — the parse corpus is authoritative (frame structure lock
                 const keys = [
                     ...new Set(a.parsedVars.flatMap((m) => Object.keys(m))),
                 ].sort();
-                expect(keys).toEqual(fx.keys);
+                expect(keys).toEqual(authoredKeys(fx.keys));
                 return;
             }
             // The expected flattened sub-property keys at the midpoint (the
             // normalized AST shape the grammar produces).
-            expect(Object.keys(a.at(0.5)).sort()).toEqual(fx.keys);
+            expect(Object.keys(a.at(0.5)).sort()).toEqual(authoredKeys(fx.keys));
             // BITE: delete a fixture's expected `frames`/`keys` from the manifest
             // (or regress the grammar to drop a key) → the corpus claim is no
             // longer falsifiable / the shape diverges → reds (no silent grammar
@@ -120,9 +124,7 @@ describe("G.W16 TR-4 — the value-fidelity round-trip (parse→format→reparse
         if (fx.roundtrip === "text") {
             it(`${fx.file} — serialize→reparse→serialize is byte-stable and the authored tokens survive VERBATIM (text)`, async () => {
                 const css = readFileSync(join(CORPUS, fx.file), "utf8");
-                const a = new CSSKeyframesAnimation({
-                    duration: 1000,
-                }).fromString(css);
+                const a = animation().fromString(css);
 
                 const once = await CSSKeyframesToString(a);
                 // The serialize-from-template claim (I.W0 S2, format.ts): a
@@ -133,9 +135,7 @@ describe("G.W16 TR-4 — the value-fidelity round-trip (parse→format→reparse
                     expect(once).toContain(token);
                 }
 
-                const b = new CSSKeyframesAnimation({
-                    duration: 1000,
-                }).fromString(kfBlock(once));
+                const b = animation().fromString(kfBlock(once));
                 const twice = await CSSKeyframesToString(b);
                 // BITE: a reparse that mangles the computed value diverges here.
                 expect(twice).toBe(once);
@@ -144,9 +144,7 @@ describe("G.W16 TR-4 — the value-fidelity round-trip (parse→format→reparse
         }
         it(`${fx.file} — interpFrames(0.5) survives the round trip (${fx.roundtrip})`, async () => {
             const css = readFileSync(join(CORPUS, fx.file), "utf8");
-            const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
-                css,
-            );
+            const a = animation().fromString(css);
             const before = midpointSig(a);
 
             const formatted = await CSSKeyframesToString(a);
@@ -155,9 +153,7 @@ describe("G.W16 TR-4 — the value-fidelity round-trip (parse→format→reparse
             for (const token of fx.verbatim ?? []) {
                 expect(formatted).toContain(token);
             }
-            const b = new CSSKeyframesAnimation({
-                duration: 1000,
-            }).fromString(kfBlock(formatted));
+            const b = animation().fromString(kfBlock(formatted));
             const after = midpointSig(b);
 
             if (fx.roundtrip === "byte") {

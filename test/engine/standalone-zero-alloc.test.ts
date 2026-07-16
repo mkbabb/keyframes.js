@@ -9,14 +9,14 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import type { ValueUnit } from "@mkbabb/value.js";
+import type { FlatAuthoredValues } from "../../src/animation/compile/value-ast";
 
 describe("E.W7 proof:standalone-zero-alloc — inv ν", () => {
     it("interpFrames returns the SAME buffer it is handed (zero-alloc contract)", () => {
         const el = document.createElement("div");
         const a = new CSSKeyframesAnimation({ duration: 100 }, el);
         a.fromString(`@keyframes p { from { left: 0px } to { left: 100px } }`);
-        const buf: Record<string, ValueUnit[]> = {};
+        const buf: FlatAuthoredValues = {};
         const r1 = a.interpFrames(10, false, buf);
         const r2 = a.interpFrames(80, false, buf);
         expect(r1).toBe(buf);

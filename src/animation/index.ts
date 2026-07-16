@@ -5,17 +5,16 @@
  *
  *   LIGHT (static)  — the physics/interpolation engines. `SpringProgress`,
  *     `SmoothProgress`, `NumericAnimation`, `ElementMorph`, the `Timeline`
- *     family, and the spring-stop helpers. None of them carries a static
- *     import edge to `@mkbabb/value.js`: they read their handful of leaf
- *     helpers (rAF + clamp/lerp/scale) from `./internal/leaves`, and accept
+ *     family, and the spring-stop helpers. They share only Value's rootless
+ *     `/math` clamp/lerp/scale leaf through `./internal/leaves`, and accept
  *     easing as a callable `TimingFunction` rather than resolving string
- *     names through value.js's registry. A consumer that imports only these
- *     never pulls value.js into its graph.
+ *     names through Value's registry. A consumer that imports only these pulls
+ *     neither Value's parser/color graph nor Keyframes' heavy engine.
  *
  *   HEAVY (dynamic) — the CSS-keyframe parsing engine. `Animation`,
- *     `CSSKeyframesAnimation`, `AnimationGroup`, `getTimingFunction`,
+ *     `CSSKeyframesAnimation`, `AnimationGroup`,
  *     `resolveKeyframes`, and the animation-options constants. These
- *     genuinely need value.js (`ValueUnit`/`Color`/the CSS parser/the
+ *     genuinely need value.js (`CssValue`/`Color`/the CSS parser/the
  *     easing registry) and live in `./engine`, reached ONLY through
  *     `loadAnimationEngine()` — an `await import("./engine")`. The barrel
  *     holds no static edge to that module, so the heavy graph (and value.js)
@@ -26,7 +25,7 @@
  * no runtime edge. Only runtime *values* are gated behind the dynamic accessor.
  */
 
-// ── LIGHT engines (value.js-free, static) ────────────────────────────────
+// ── LIGHT engines (Value `/math` leaf only, static) ─────────────────────────
 export { NumericAnimation } from "./physics/numeric";
 export type {
     NumericAnimationOptions,
@@ -87,8 +86,8 @@ export type {
     OscillatorWaveform,
 } from "./physics/oscillator";
 
-// ── Orchestration tier (E.W10 — value.js-free light helpers over the engines) ─
-// stagger/flip/drag/decay/Sequence carry zero static value.js edge: stagger is
+// ── Orchestration tier (E.W10 — parser-free light helpers over the engines) ─
+// stagger/flip/drag/decay/Sequence share only Value's `/math` leaf: stagger is
 // a pure delay generator, flip composes ElementMorph, drag/decay ride
 // SpringProgress, Sequence drives Animation.advanceTo over a master clock (the
 // Animation runtime is the consumer's; Sequence holds only its type).
@@ -101,7 +100,7 @@ export type {
 export { flip, flipShared } from "./orchestration/flip";
 export type { FlipOptions } from "./orchestration/flip";
 // S.F2 SplitText — a11y-first text-splitter (LIGHT: composes `stagger` + the
-// platform Intl.Segmenter; zero static value.js edge — proof:boundary enrolls it
+// platform Intl.Segmenter; no parser/color edge — proof:boundary enrolls it
 // off this barrel). Returns a fragment cohort + a ready stagger; the container
 // keeps the whole pre-split string as its accessible name (aria-label + aria-
 // hidden fragments). `by:"line"` is measure-or-refuse (SplitTextRefusalError).
@@ -118,7 +117,7 @@ export type {
 // one, falling back to a `flipShared` shared-element morph (or a bare immediate
 // mutation) everywhere else — behind ONE normalized `ViewTransitionHandle` whose
 // `backend` is queryable. LIGHT (composes `flipShared` + the ONE `withReducedMotion`
-// gate; feature-detects `startViewTransition`; zero static value.js edge —
+// gate; feature-detects `startViewTransition`; no parser/color edge —
 // `proof:boundary` enrolls it off this barrel). The HEAVY companion
 // `compileToViewTransition` (the zero-runtime CSS emitter) rides loadAnimationEngine.
 export { viewTransition } from "./orchestration/view-transition";
@@ -155,7 +154,7 @@ export { AnimationOptionError, UnknownEasingError } from "./internal/errors";
 // ── TYPE surface (erased; no runtime edge) ───────────────────────────────
 // The animation-domain types consumers should prefer over redefining their
 // own. These re-export from value.js-bearing modules, but `import type` is
-// stripped at build so the static barrel stays value.js-free.
+// stripped at build so the static barrel retains only its `/math` runtime edge.
 export type {
     TimingFunction,
     TimingFunctionNames,
@@ -165,16 +164,14 @@ export type {
     InputAnimationOptions,
     TemplateAnimationFrame,
     AnimationFrame,
-    BlendMode,
     AnimationLayerConfig,
     WeightStepper,
     Vars,
-    InterpolatedVar,
 } from "./constants/types";
 export type { ResolvedKeyframes } from "./engine";
 // R.W2c — `AnimationGroupEntry` is sourced from its own `group/` zone (no longer
 // re-exported through the engine barrel, which broke the engine↔group ring). The
-// type re-export is erased, so the LIGHT package barrel stays value.js-free.
+// type re-export is erased, so it adds nothing to the LIGHT package graph.
 export type { AnimationGroupEntry } from "./group";
 // CSS-native MotionPath (F.W12) — HEAVY (composes the engine); the runtime rides
 // loadAnimationEngine below. Its option/path types are erased here.
@@ -300,7 +297,7 @@ export type * from "./public";
 // the `await import("./engine")` (and the per-front-door chunk imports) DYNAMIC
 // edges; it names NO static `@mkbabb/value.js` specifier (every value.js-bearing
 // import there is an erased `import type`). Re-exporting the accessors + the
-// surface TYPES THROUGH the barrel keeps the LIGHT barrel value.js-free AND the
+// surface TYPES THROUGH the barrel keeps the LIGHT barrel parser/color-free AND the
 // PUBLIC surface UNCHANGED: `loadAnimationEngine()` (the full heavy surface), the
 // granular `loadEngine`/`loadCompiler`/`loadIngest` (L.W7 S3), and the
 // fire-and-forget `warmEngine()` (L.W7 S1) all reach the consumer exactly as

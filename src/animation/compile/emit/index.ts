@@ -13,7 +13,7 @@
  * colocated here (U.C8: the `backward/` → `emit/` rename + the two move-ins; the
  * refusal-probe de-accretion interior stays DEFERRED to U.C9).
  *
- * The FORWARD leg (`frame-compiler.ts`, `parse-flatten.ts`, `selector.ts`,
+ * The FORWARD leg (`frame-compiler.ts`, `value-ast.ts`, `selector.ts`,
  * `numeric-plan.ts`, and the `easing/` sub-zone — `easing-registry.ts` +
  * `easing-option.ts`, U.C8) stays in `compile/` (root + the `easing/` FORWARD
  * sub-zone) — the real seam is FORWARD vs BACKWARD/emit (a18: zero

@@ -60,13 +60,12 @@ function resolveChromium() {
     return null;
 }
 
-/** The three externalised dist trees the bench importmap points at. */
+/** The built Keyframes and Value 4 dist trees the import map points at. */
 function distRoots() {
-    const req = createRequire(path.join(REPO, "package.json"));
+    const valueCss = fileURLToPath(import.meta.resolve("@mkbabb/value.js/css"));
     return {
         kf: path.join(REPO, "dist"),
-        value: path.dirname(req.resolve("@mkbabb/value.js")),
-        parseThat: path.dirname(req.resolve("@mkbabb/parse-that")),
+        value: path.dirname(path.dirname(valueCss)),
     };
 }
 
@@ -89,7 +88,7 @@ function send(
     res.end(body);
 }
 
-/** Serve the scene page + the three dist trees under prefix roots. */
+/** Serve the scene page plus the built Keyframes and Value 4 trees. */
 async function serve() {
     const roots = distRoots();
     const sceneHtml = fs.readFileSync(
@@ -109,21 +108,10 @@ async function serve() {
         const route: [string, string][] = [
             ["/kf/", roots.kf],
             ["/value/", roots.value],
-            ["/parse-that/", roots.parseThat],
         ];
         for (const [prefix, dir] of route) {
             if (p.startsWith(prefix)) {
-                let file = path.join(dir, p.slice(prefix.length));
-                // S.A0(4) — extensionless-`.js` fallback: importmap prefix
-                // substitution yields `/value/subpaths/math` (no extension) for
-                // `@mkbabb/value.js/math`; serve `subpaths/math.js`.
-                if (
-                    file.startsWith(dir) &&
-                    !fs.existsSync(file) &&
-                    fs.existsSync(file + ".js")
-                ) {
-                    file += ".js";
-                }
+                const file = path.join(dir, p.slice(prefix.length));
                 if (
                     file.startsWith(dir) &&
                     fs.existsSync(file) &&

@@ -177,21 +177,17 @@ export default defineConfig((mode) => {
                     formats: ["es"],
                 },
                 rolldownOptions: {
-                    // The bare `@mkbabb/value.js` string externalizes the barrel
-                    // but NOT a subpath (rolldown exact-string / package-boundary
-                    // match, not prefix — H4 smoke-test: bare → the `/math` source
-                    // INLINES at 533B). The predicate `/^@mkbabb\/value\.js(\/|$)/`
-                    // externalizes the barrel AND every subpath (`@mkbabb/value.js/
-                    // math`), so the Q.WE2 leaves-externalize lands the `/math`
-                    // consume as a BARE runtime edge (113B, resolved at the
-                    // consumer) — NOT inlined. The boundary gate's W97
-                    // `math-subpath-clean` clause verifies the subpath's graph is
-                    // grammar-free before permitting it on the LIGHT surface.
+                    // Value 4 is a rootless capability package. Externalize only
+                    // the six entries Keyframes consumes; a prefix predicate would
+                    // silently admit removed or private paths.
                     external: [
                         "vue",
-                        "prettier",
-                        "@mkbabb/parse-that",
-                        /^@mkbabb\/value\.js(\/|$)/,
+                        "@mkbabb/value.js/color",
+                        "@mkbabb/value.js/value",
+                        "@mkbabb/value.js/css",
+                        "@mkbabb/value.js/easing",
+                        "@mkbabb/value.js/math",
+                        "@mkbabb/value.js/transform",
                     ],
                 },
             },

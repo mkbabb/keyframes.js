@@ -40,8 +40,8 @@
  * alloc / proof:engine / proof:event-ordering). value.js is reached ONLY for
  * `sleep` (the first-tick delay-await).
  */
-import { type ValueUnit } from "@mkbabb/value.js/units";
-import { sleep } from "@mkbabb/value.js";
+import { sleep } from "../internal/helpers";
+import type { FlatAuthoredValues } from "../compile/value-ast";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport/core";
@@ -242,7 +242,7 @@ export function renderFrame<V extends Vars>(
         anim.interpFrames(
             t,
             true,
-            anim._playback._interpOut as Record<string, ValueUnit[]>,
+            anim._playback._interpOut as FlatAuthoredValues,
         );
         return true;
     }

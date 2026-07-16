@@ -25,7 +25,7 @@
  * If a future faithful twin is found (drift ≤ tol) the first assertion reds;
  * if anyone ships an UNfaithful `.css` on the default, the second reds.
  */
-import { CSSCubicBezier, easeInOutCubic } from "@mkbabb/value.js";
+import { CubicBezier, easeInOutCubic } from "@mkbabb/value.js/easing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { defaultOptions } from "../../src/animation/constants";
@@ -36,7 +36,8 @@ import { isWAAPIEligible } from "../../src/animation/waapi";
 // css-twin check. Stub a no-op `animate` so the gate reaches the twin logic —
 // the same minimal stub `waapi-lifecycle.test.ts` installs.
 beforeEach(() => {
-    HTMLElement.prototype.animate = () => ({}) as unknown as globalThis.Animation;
+    HTMLElement.prototype.animate = () =>
+        ({}) as unknown as globalThis.Animation;
 });
 afterEach(() => {
     // @ts-expect-error — remove the stub
@@ -48,6 +49,12 @@ const TOLERANCE = 1e-2;
 
 /** The standard easings.net "easeInOutCubic" bezier — the candidate twin. */
 const CANDIDATE_TWIN = "cubic-bezier(0.645,0.045,0.355,1)";
+
+const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
+    const result = CubicBezier(x1, y1, x2, y2);
+    if (!result.ok) throw new Error(result.error.code);
+    return result.value;
+};
 
 /** Sample `|a(t) - b(t)|` across [0,1] and return the max. */
 const maxDrift = (
@@ -66,7 +73,7 @@ const maxDrift = (
 
 describe("S4 — default easing css-twin fidelity (verify before ship)", () => {
     it("the candidate cubic-bezier DRIFTS from easeInOutCubic beyond tolerance", () => {
-        const bezier = CSSCubicBezier(0.645, 0.045, 0.355, 1);
+        const bezier = cubicBezier(0.645, 0.045, 0.355, 1);
         const drift = maxDrift(easeInOutCubic, bezier);
         // RECORDED: the twin is NOT faithful — shipping it would drift the
         // compositor curve away from what rAF runs. ~0.0247 measured.
@@ -74,7 +81,7 @@ describe("S4 — default easing css-twin fidelity (verify before ship)", () => {
     });
 
     it("endpoints still pin (the drift is interior, not at 0/1)", () => {
-        const bezier = CSSCubicBezier(0.645, 0.045, 0.355, 1);
+        const bezier = cubicBezier(0.645, 0.045, 0.355, 1);
         expect(bezier(0)).toBeCloseTo(0, 6);
         expect(bezier(1)).toBeCloseTo(1, 6);
         expect(easeInOutCubic(0)).toBe(0);
@@ -88,7 +95,7 @@ describe("S4 — default easing css-twin fidelity (verify before ship)", () => {
         let best = Infinity;
         for (let x1 = 0.1; x1 <= 0.6; x1 += 0.01) {
             for (let y1 = 0; y1 <= 0.3; y1 += 0.01) {
-                const fit = CSSCubicBezier(x1, y1, 1 - x1, 1 - y1);
+                const fit = cubicBezier(x1, y1, 1 - x1, 1 - y1);
                 const drift = maxDrift(easeInOutCubic, fit, 200);
                 if (drift < best) best = drift;
             }

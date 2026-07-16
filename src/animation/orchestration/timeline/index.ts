@@ -2,7 +2,7 @@
  * orchestration/timeline/ — the progress-driver family barrel (R.W1; thinned to a
  * pure re-export surface at S.B4 — r3 F4 / a02, so the barrel no longer carries
  * the class bodies). The `Timeline` family (`./timeline`) + the native
- * platform-timeline feature-detect (`./native`). LIGHT (value.js-free).
+ * platform-timeline feature-detect (`./native`). LIGHT: Value `/math` leaf only.
  */
 export {
     Timeline,

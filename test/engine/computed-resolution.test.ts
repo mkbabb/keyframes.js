@@ -27,7 +27,13 @@
  *     resolver, not value.js internals.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { convertToPixels } from "@mkbabb/value.js";
+import { parseCssValue } from "@mkbabb/value.js/css";
+import {
+    BrowserScalarResolutionError,
+    bumpLayoutEpoch,
+    convertToPixels,
+    resolveBrowserScalar,
+} from "../../src/animation/resolve/browser";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 
 describe("G.W16 S1 — the value.js viewport-resolver injection seam (jsdom)", () => {
@@ -88,14 +94,98 @@ describe("G.W16 S1 — the value.js viewport-resolver injection seam (jsdom)", (
         const a = new CSSKeyframesAnimation({ duration: 1000 }, el).fromString(
             `@keyframes p { from { height: 10dvh; } to { height: 50dvh; } }`,
         );
-        const mid = a
-            .at(0.5)
-            ["height"]!.map((v) => String(v))
-            .join(" ");
+        const mid = String(a.at(0.5)["height"]);
         // The raw-number lerp 10→50 at 0.5 = 30, carrying the dvh unit the browser
         // resolves on the genuine path (S2). NOT a frozen px, NOT NaN.
         expect(mid).toBe("30dvh");
         // BITE: if kf ever froze the bare dvh to a jsdom px (a wrong 0/NaN under
         // no-layout), this reds — the forwarding contract is broken.
+    });
+
+    it("resolves a var() endpoint and invalidates the identity cache by layout epoch", () => {
+        const parsed = parseCssValue("var(--distance)");
+        if (!parsed.ok) throw new TypeError(parsed.diagnostics[0].code);
+        const el = document.createElement("div");
+        document.body.appendChild(el);
+        el.style.setProperty("--distance", "12px");
+        expect(resolveBrowserScalar(parsed.value, el, "width")).toEqual({
+            value: 12,
+            unit: "px",
+        });
+
+        el.style.setProperty("--distance", "18px");
+        expect(resolveBrowserScalar(parsed.value, el, "width").value).toBe(12);
+        bumpLayoutEpoch();
+        expect(resolveBrowserScalar(parsed.value, el, "width").value).toBe(18);
+    });
+
+    it("clears computed-slot target ownership when setTargets unbinds", () => {
+        const el = document.createElement("div");
+        const next = document.createElement("div");
+        document.body.append(el, next);
+        el.style.setProperty("--distance", "10px");
+        next.style.setProperty("--distance", "50px");
+        const animation = new CSSKeyframesAnimation(
+            { duration: 1000 },
+            el,
+        ).fromVars([
+            { width: "var(--distance)" },
+            { width: "30px" },
+        ]);
+        const frame = animation.frames[0];
+
+        expect(animation.at(0.5).width).toBe("20px");
+        animation.setTargets(next);
+        expect(animation.frames[0]).toBe(frame);
+        expect(animation.at(0.5).width).toBe("40px");
+        animation.setTargets();
+        expect(animation.targets).toHaveLength(0);
+        expect(animation.frames[0]).toBe(frame);
+        expect(() => animation.at(0.5)).toThrow(
+            'Computed CSS interpolation for "width" requires a browser target',
+        );
+    });
+
+    it("refuses mixed transform percentages across resize without inventing a box basis", () => {
+        const target = document.createElement("div");
+        document.body.appendChild(target);
+        const previousWidth = window.innerWidth;
+        const build = () => new CSSKeyframesAnimation(
+            { duration: 1000 },
+            target,
+        ).fromVars([
+            { transform: "translateX(10%)" },
+            { transform: "translateX(20px)" },
+        ]);
+
+        try {
+            (window as { innerWidth: number }).innerWidth = 1000;
+            bumpLayoutEpoch();
+            expect(build).toThrow(
+                'Cannot interpolate mixed percentage lengths for "transform"',
+            );
+            (window as { innerWidth: number }).innerWidth = 2000;
+            bumpLayoutEpoch();
+            expect(build).toThrow(
+                'Cannot interpolate mixed percentage lengths for "transform"',
+            );
+        } finally {
+            (window as { innerWidth: number }).innerWidth = previousWidth;
+            bumpLayoutEpoch();
+        }
+    });
+
+    it("restores inline style when a computed probe cannot produce a scalar", () => {
+        const parsed = parseCssValue("calc(1px + 2px)");
+        if (!parsed.ok) throw new TypeError(parsed.diagnostics[0].code);
+        const el = document.createElement("div");
+        document.body.appendChild(el);
+        el.style.width = "7px";
+        try {
+            resolveBrowserScalar(parsed.value, el, "width");
+        } catch (error) {
+            expect(error).toBeInstanceOf(BrowserScalarResolutionError);
+        }
+        expect(el.style.width).toBe("7px");
     });
 });

@@ -3,6 +3,30 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.0.0
+
+### Major Changes (BREAKING)
+
+- **Value 4 structural animation values.** Keyframes now consumes the exact,
+  rootless `@mkbabb/value.js@4.0.0` subpath contract. Public keyframe and
+  compilation declarations expose immutable CSS value and selector structures
+  instead of the Value 3 `ValueUnit` boxes and parser diagnostics.
+- **One timing-function authority.** The engine no longer exports
+  `getTimingFunction`; timing syntax and named easing resolution are owned by
+  Value 4, while Keyframes keeps only its animation-specific normalization.
+- **One authored interpolation model.** The legacy flattened-value and
+  plain-projection carriers are removed. Compilation, JavaScript sampling,
+  composition, and WAAPI emission share Keyframes' structural interpolation
+  slots, preserving authored object shape without aliases or compatibility
+  paths.
+
+### Dependency Changes
+
+- `@mkbabb/value.js` is pinned exactly to `4.0.0` for the coordinated release
+  boundary.
+- The producer tag has no Glass dependency. The later demo-consumer commit
+  restores its development-only edge from the immutable Glass 7 registry cut.
+
 ## 5.3.5
 
 ### Patch Changes

@@ -15,7 +15,7 @@ const snapshot = (a: CSSKeyframesAnimation<any>) =>
         id: f.id,
         ixs: { ...f.ixs },
         time: { start: f.time.start, stop: f.time.stop },
-        keys: Object.keys(f.interpVars).sort(),
+        keys: Object.keys(f.flatVars).sort(),
     }));
 
 describe("E.W8 proof:compile-deterministic — FC-2", () => {

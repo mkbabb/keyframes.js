@@ -1,4 +1,3 @@
-import { unflattenObjectToString } from "@mkbabb/value.js";
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
@@ -32,9 +31,11 @@ describe("D-3 measure: changed-keys write benefit on the interpolation hot path"
         // where an animating value can momentarily repeat its boundary string).
         for (let t = 1; t < 1000; t += 1000 / 60) {
             const vars = anim.at(t / 1000, false);
-            const styled = unflattenObjectToString(
-                vars as unknown as Record<string, any[]>,
-            ) as Record<string, string>;
+            const styled = Object.fromEntries(
+                Object.entries(vars).flatMap(([key, value]) =>
+                    value === undefined ? [] : [[key, String(value)]],
+                ),
+            );
             if (prev) {
                 for (const k in styled) {
                     totalKeys++;

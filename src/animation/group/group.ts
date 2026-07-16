@@ -15,9 +15,7 @@ import * as layerApi from "./layer-api";
 // playing + the reduced-motion snap) are FREE FUNCTIONS in the colocated
 // `./lifecycle` module; the methods below are thin `this`-delegates over them.
 import * as lifecycle from "./lifecycle";
-import type { SoALayerPlan } from "./soa";
-import type { PlainProjection } from "../compile/plain-vars";
-import { CompositeState } from "./composite-state";
+import { createGroupCompositeStorage } from "./composite-storage";
 import type {
     AnimationLayerConfig,
     TransformFunction,
@@ -28,8 +26,8 @@ import { defaultLayerConfig, NOOP_TRANSFORM } from "../constants";
 // R.W2 — the `group-layer-springs.ts` junk-drawer 3-way split (entry-set helpers
 // → `./entries`, scheduler-yield batching → `./yield-batch`, K.W11 PHYS-C
 // spring-weight helpers → `./springs`) + the `transformFramesGrouped`/
-// `boxedBlendArm` composite carve → `./compositor` (the SoA fold itself lives in
-// `./soa`). `_soaPlans`/`_compositeBuf` stay instance state here. The
+// `residualBlendArm` composite carve → `./compositor` (the SoA fold itself lives in
+// `./soa`). The cached plans and scratch stay in one private composite store. The
 // `LayerTransitionSpring` option type is re-exported so the public
 // `transitionLayer`/`crossfade` signatures read unchanged.
 export type { LayerTransitionSpring };
@@ -79,7 +77,7 @@ export class AnimationGroup<V extends Vars> {
      * consumer that expects the nested PLAIN authored-shape projection (the
      * "animate any object" seam), inherited from the first child's own
      * `unflatten` flag alongside its transform. False (the default) keeps the
-     * DOM-style default renderer's FLAT `_grouped` map, byte-unchanged.
+     * DOM-style default renderer's flat composite map, byte-unchanged.
      */
     unflatten = false;
 
@@ -108,34 +106,8 @@ export class AnimationGroup<V extends Vars> {
     private _entries: AnimationGroupEntry<V>[] = [];
     private _entriesDirty = true;
 
-    /** Long-lived composite buffer, cleared in place each frame (zero-alloc).
-     * INTERNAL (R.W2) — read/written by `./compositor`. */
-    readonly _compositeState = new CompositeState();
-    _grouped: Record<string, unknown> = this._compositeState.values;
-
-    /** The compile-stable union of every child's contributed keys — what `_grouped`
-     * is null-filled to each frame so the composite clears WITHOUT `delete` (F.W4
-     * S2; fold in `./entries`). INTERNAL (R.W2) — the `./compositor` null-fill. */
-    _groupedKeys: string[] = [];
-    _groupedKeysDirty = true;
-
-    /** P.W2 — the SoA composite layout for the `add`/`weighted` blend arms (the
-     * validated 3.7×, bit-identical): one {@link SoALayerPlan} per entry, the FLAT
-     * pure-numeric pairs hoisted into a {@link Float64Array} fold (built by
-     * `buildSoAPlans` in `./soa`, rebuilt ONLY on a structural change). INTERNAL
-     * (R.W2) — read/written by `./compositor`. */
-    _soaPlans: SoALayerPlan[] | null = null;
-    /**
-     * T.A6 — the group's PLAIN authored-shape projection (built from the
-     * composite `_grouped` leaf map when `unflatten` is set), rebuilt lazily on a
-     * structural change (the SAME `_groupedKeysDirty` seam that drops the SoA
-     * plan). Null until the first composited frame populates `_grouped`. INTERNAL
-     * — read/written by `./compositor`. */
-    _plainProj: PlainProjection | null = null;
-    /** The long-lived SoA fold scratch — the contiguous numeric accumulate buffer,
-     * sized to the WIDEST single-layer pair count once per structural change
-     * (reused, zero per-frame alloc). INTERNAL (R.W2) — read by `./compositor`. */
-    _compositeBuf: Float64Array | null = null;
+    /** Long-lived zero-allocation compositor state, absent from the public API. */
+    private readonly _composite = createGroupCompositeStorage();
 
     /** K.W11 PHYS-C — true iff ANY layer carries a `weightSpring`; when false (the
      * universal case) `advanceTo` skips the per-frame spring scan (ZERO new work).
@@ -209,7 +181,7 @@ export class AnimationGroup<V extends Vars> {
      * INTERNAL (R.W2) — also called by `./layer-api`. */
     invalidateEntries(): void {
         this._entriesDirty = true;
-        this._groupedKeysDirty = true;
+        this._composite.groupedKeysDirty = true;
     }
 
     setSuperKey(superKey: string) {
@@ -238,7 +210,7 @@ export class AnimationGroup<V extends Vars> {
      * per-frame). R.W2 — `private` (lib-group F8): the PUBLIC single-frame-paint
      * entry is `render(t?)`; the body lives in `./compositor`. Thin delegate. */
     private transformFramesGrouped(t: number) {
-        return compositeFrame(this, t);
+        return compositeFrame(this, this._composite, t);
     }
 
     /**

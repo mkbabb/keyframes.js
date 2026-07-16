@@ -237,10 +237,10 @@ describe("S2 — live reduced-motion observation", () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════
-// S3 — dense WAAPI sub-segment sampling (F3)
+// S3 — structural WAAPI transform emission
 // ══════════════════════════════════════════════════════════════════════════
 
-describe("S3 — dense WAAPI sub-segment sampling", () => {
+describe("S3 — structural WAAPI transform emission", () => {
     const transformAnim = async () => {
         const el = document.createElement("div");
         const easing = await resolveEasing("cubic-bezier(0.4, 0, 0.2, 1)");
@@ -256,68 +256,14 @@ describe("S3 — dense WAAPI sub-segment sampling", () => {
         return anim;
     };
 
-    it("(a) emits intermediate-offset stops BETWEEN the boundaries (not boundary-only)", async () => {
+    it("emits authored transform strings at both public boundaries", async () => {
         const anim = await transformAnim();
         const kfs = toWAAPIKeyframes(anim);
-        const offsets = kfs.map((k) => k.offset as number);
-        // Boundary-only would be exactly [0, 1]. Dense sampling adds interior
-        // stops strictly between them.
-        expect(offsets[0]).toBe(0);
-        expect(offsets[offsets.length - 1]).toBe(1);
-        const interior = offsets.filter((o) => o > 0 && o < 1);
-        expect(interior.length).toBeGreaterThan(0);
-    });
-
-    it("(b) EQUIVALENCE: each emitted stop matches the true rAF curve at that offset", async () => {
-        const anim = await transformAnim();
-        const kfs = toWAAPIKeyframes(anim);
-        const pxAt = (s: string): number =>
-            parseFloat(s.match(/translateX\(([-\d.]+)px\)/)![1]!);
-
-        // The emitted stops must be MONOTONE-INCREASING in px across offsets —
-        // an ease-in-out translateX is monotone — and each must equal the JS
-        // path's own re-emit at that same offset (the curve, not its endpoints).
-        let prev = -Infinity;
-        for (const kf of kfs) {
-            const offset = kf.offset as number;
-            const t = offset * anim.options.duration;
-            const emitted = (kf as Record<string, unknown>).transform as string;
-            expect(emitted).toContain("translateX");
-            const px = pxAt(emitted);
-            // The JS-path truth at this offset: interpFrames(t) flattens to
-            // `transform.translateX`; the eased px equals the emitted stop.
-            const truth = anim.interpFrames(t, false);
-            const truthPx = parseFloat(
-                truth["transform.translateX"]![0]!.toString(),
-            );
-            expect(px).toBeCloseTo(truthPx, 6);
-            expect(px).toBeGreaterThanOrEqual(prev - 1e-9);
-            prev = px;
-        }
-
-        // An interior stop must be OFF the straight boundary-to-boundary line —
-        // proof the densification samples the BENT curve, not just lerps 0→100.
-        const interior = kfs.filter((k) => {
-            const o = k.offset as number;
-            return o > 0 && o < 1;
-        });
-        const bentOffLine = interior.some((k) => {
-            const o = k.offset as number;
-            const px = pxAt((k as Record<string, unknown>).transform as string);
-            return Math.abs(px - o * 100) > 0.5; // linear fill would be o*100
-        });
-        expect(bentOffLine).toBe(true);
-    });
-
-    it("BITE: boundary-only emit would carry NO interior stops (the densification is what adds them)", async () => {
-        const anim = await transformAnim();
-        const kfs = toWAAPIKeyframes(anim);
-        const interior = kfs
-            .map((k) => k.offset as number)
-            .filter((o) => o > 0 && o < 1);
-        // If the per-segment densification were reverted to boundary-only this
-        // set would be empty — the clause bites on that regression.
-        expect(interior.length).toBeGreaterThanOrEqual(1);
+        expect(kfs.map((kf) => kf.offset)).toEqual([0, 1]);
+        expect(kfs.map((kf) => kf.transform)).toEqual([
+            "translateX(0px)",
+            "translateX(100px)",
+        ]);
     });
 });
 

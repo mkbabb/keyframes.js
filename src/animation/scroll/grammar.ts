@@ -29,7 +29,19 @@
  * against the DOM. This module is the VALUE half — pure grammar, no DOM.
  */
 
-import { extractTimelineOptions, parseAnimationRange, parseAnimationTimeline, parseCSSStylesheet, serializeTimelineOptions, type AnimationRangeValue, type AnimationTimelineValue, type CSSTimelineOptions, type Stylesheet } from "@mkbabb/value.js/parsing";
+import {
+    collectStyleRules,
+    collectTimelineOptions,
+    parseAnimationRange,
+    parseAnimationTimeline,
+    parseStylesheet,
+    serializeTimelineOptions,
+    type AnimationRangeValue,
+    type AnimationTimelineValue,
+    type CSSTimelineOptions,
+    type ParseResult,
+    type Stylesheet,
+} from "@mkbabb/value.js/css";
 
 // ── re-export the consumed value.js scroll-grammar TYPES (erased) ──────────
 // Consumers annotating a parsed scene reach the typed surface through kf without
@@ -40,7 +52,15 @@ export type {
     CSSTimelineOptions,
     RangeBoundary,
     RangePhase,
-} from "@mkbabb/value.js/parsing";
+} from "@mkbabb/value.js/css";
+
+const requireParsed = <T>(result: ParseResult<T>, source: string): T => {
+    if (result.ok) return result.value;
+    const issue = result.diagnostics[0];
+    throw new TypeError(
+        `Invalid CSS value ${JSON.stringify(source)}: ${issue.code} at ${issue.start}-${issue.end}.`,
+    );
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SO-1 — the scroll-grammar ROUND-TRIP (value.js-GATED; the acyclic-spine
@@ -54,7 +74,7 @@ export type {
  * re-derives a local parser). Emits the value VERBATIM; resolves no defaults.
  */
 export function parseScrollTimeline(input: string): AnimationTimelineValue {
-    return parseAnimationTimeline(input);
+    return requireParsed(parseAnimationTimeline(input), input);
 }
 
 /**
@@ -62,14 +82,14 @@ export function parseScrollTimeline(input: string): AnimationTimelineValue {
  * `{ start, end? }` form — a pass-through to value.js's `parseAnimationRange`.
  */
 export function parseScrollRange(input: string): AnimationRangeValue {
-    return parseAnimationRange(input);
+    return requireParsed(parseAnimationRange(input), input);
 }
 
 /**
  * SO-1 PARSE — extract the full scroll-grammar (`animation-timeline` /
  * `animation-range` / `timeline-scope` / `animation-trigger`) from a scroll-
  * driven stylesheet (string OR a pre-parsed `Stylesheet`) into a typed
- * `CSSTimelineOptions`. Consumes value.js 0.13.0's `extractTimelineOptions` over
+ * `CSSTimelineOptions`. Consumes Value 4's `extractTimelineOptions` over
  * the parsed stylesheet — the acyclic-spine consume edge (the grammar lives in
  * value.js, where the `animation-*` parsing already lives; kf re-derives no
  * parallel name table).
@@ -85,9 +105,11 @@ export function parseScrollRange(input: string): AnimationRangeValue {
  * //              end:   { phase: "cover", offset: "40%" } } }
  */
 export function parseScrollCSS(input: string | Stylesheet): CSSTimelineOptions {
-    const ast: Stylesheet =
-        typeof input === "string" ? parseCSSStylesheet(input) : input;
-    return extractTimelineOptions(ast);
+    const ast: Stylesheet = typeof input === "string"
+        ? requireParsed(parseStylesheet(input), input)
+        : input;
+    const declarations = collectStyleRules(ast).at(-1)?.rule.declarations ?? [];
+    return collectTimelineOptions(declarations);
 }
 
 /**

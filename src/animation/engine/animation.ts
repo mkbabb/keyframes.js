@@ -8,7 +8,7 @@
  * Statically imports the heavy `@mkbabb/value.js` surface — reachable ONLY
  * through the `./index` dynamic boundary (`await loadAnimationEngine()`).
  */
-import type { ValueUnit } from "@mkbabb/value.js/units";
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
 import { RAFPlayback } from "../physics/playback";
 import type { Diagnostic } from "../compile/adapter";
 import { defaultOptions } from "../constants";
@@ -28,10 +28,12 @@ import type {
 // owns its own construction), so the engine↔group ring is one-directional
 // (group → engine) BY CONSTRUCTION, with no back-edge to invert.
 import { FrameCompiler } from "../compile/frame-compiler";
+import { compilerFor, setCompilerFor } from "./compiler-state";
 import {
+    type FlatAuthoredValues,
     type ParsedVarMap,
     transformTargetsStyle,
-} from "../compile/parse-flatten";
+} from "../compile/value-ast";
 import * as playback from "./play-lifecycle";
 import { PlaybackState } from "./playback-state";
 import * as interpolate from "./interpolate";
@@ -61,18 +63,6 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     targets: HTMLElement[];
 
     options: AnimationOptions;
-
-    /** The frame-compilation half — template frames → sampled `frames[]`. The
-     * class composes one and delegates `addFrame`/`parse` + the frame accessors
-     * to it. READ-ONLY surface (G.W19): the backing `_compiler` is written ONLY
-     * by the constructor + `adoptCompiled` (via `_setCompiler`); an external
-     * `animation.compiler = …` reach-in is a COMPILE error (the live-options
-     * desync lock). */
-    private _compiler!: FrameCompiler<V>;
-
-    get compiler(): FrameCompiler<V> {
-        return this._compiler;
-    }
 
     /** THE rAF owner for this animation — the standalone play loop and the WAAPI
      * shadow tick both ride it, so `stop()` halts either uniformly. */
@@ -192,7 +182,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
         // `this.options` (the setters mutate that object in place), and
         // `setOptions` → `applyDuration` reads `this.frames` (compiler-delegated),
         // so the compiler must exist first.
-        this._compiler = new FrameCompiler<V>(this.options);
+        setCompilerFor(this, new FrameCompiler<V>(this.options));
 
         // The standalone-play run-state (R.W2 — DI). The frame callback is bound
         // ONCE here and handed to `PlaybackState`, so the play loop never mints a
@@ -213,36 +203,36 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     }
 
     // ── Frame-compiler delegation — the frame data + compile pipeline live on
-    // `this.compiler`; these accessors keep the public surface intact.
+    // the internal compiler store; these accessors expose only author data.
 
     get templateFrames(): TemplateAnimationFrame<V>[] {
-        return this.compiler.templateFrames;
+        return compilerFor<V>(this).templateFrames;
     }
     set templateFrames(value: TemplateAnimationFrame<V>[]) {
-        this.compiler.templateFrames = value;
+        compilerFor<V>(this).templateFrames = value;
     }
 
     get parsedVars(): ParsedVarMap[] {
-        return this.compiler.parsedVars;
+        return compilerFor<V>(this).parsedVars;
     }
 
     get frames(): AnimationFrame<V>[] {
-        return this.compiler.frames;
+        return compilerFor<V>(this).frames;
     }
 
     get frameId(): number {
-        return this.compiler.frameId;
+        return compilerFor<V>(this).frameId;
     }
 
     /** Append a template frame (delegated to the compiler). Chainable. */
     addFrame<K extends V>(
-        start: number | string | ValueUnit<number>,
+        start: number | string | KeyframeSelector,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
         timingFunction?: InputAnimationOptions["timingFunction"],
         composition?: CompositeOperator,
     ): KeyframesAnimation<K> {
-        this.compiler.addFrame(start, vars, transform, timingFunction, composition);
+        compilerFor<V>(this).addFrame(start, vars, transform, timingFunction, composition);
         return this as unknown as KeyframesAnimation<K>;
     }
 
@@ -262,14 +252,6 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     adoptCompiled(source: KeyframesAnimation<V>): this {
         compileBridge.adoptCompiled(this, source);
         return this;
-    }
-
-    /** INTERNAL (R.W2): the sanctioned backing-field write for `_compiler` (used
-     * ONLY by `./compile-bridge`'s `adoptCompiled`). The `compiler` accessor
-     * stays get-only — an external `animation.compiler = …` reach-in is a COMPILE
-     * error (the G.W19 live-options-desync lock). */
-    _setCompiler(compiler: FrameCompiler<V>): void {
-        this._compiler = compiler;
     }
 
     // ── Option setters (fluent, fail-explicit) — each is a thin chainable
@@ -369,25 +351,36 @@ export class KeyframesAnimation<V extends Vars = Vars> {
         interpolate.assertNoUnresolvedNamedSelector(this);
     }
 
-    /** Stateless progress query — maps [0,1] from first to last keyframe,
-     * direction-agnostic (`apply=true` invokes transforms). Body in
-     * `./interpolate`. */
-    at(progress: number, apply: boolean = false): Record<string, ValueUnit[]> {
+    /**
+     * Sample normalized progress from the first to last keyframe, independent
+     * of playback direction. `apply=true` also invokes transforms.
+     *
+     * The returned map is a borrowed interpolation view, not a snapshot. On
+     * the common single-segment path the engine reuses the frame's authored
+     * value buffer, so a later sample may mutate an earlier reference. Copy the
+     * result (`{ ...animation.at(p) }`) when retaining a historical value.
+     */
+    at(progress: number, apply: boolean = false): FlatAuthoredValues {
         return interpolate.at(this, progress, apply);
     }
 
     /**
      * Interpolate all active frames at time `t` — the hot path (once per rAF
      * frame). R.W2 body in `./interpolate`; this is the thin public sampling
-     * delegate the group, sequence, WAAPI build, and `at()` all drive. Zero-alloc
-     * + fast-properties contract preserved (proof:standalone-zero-alloc /
-     * proof:interp-fastprops).
+     * delegate the group, sequence, WAAPI build, and `at()` all drive.
+     *
+     * When `out` is supplied, it is cleared and rewritten in place and returned
+     * by identity; callers own that buffer but must snapshot it before the next
+     * write if they need history. Without `out`, the common single-segment path
+     * may return the engine's borrowed frame buffer, which subsequent samples
+     * mutate. This borrowed-buffer contract is what keeps steady-state sampling
+     * allocation-free.
      */
     interpFrames(
         t: number,
         transformFrames: boolean = false,
-        out?: Record<string, ValueUnit[]>,
-    ): Record<string, ValueUnit[]> {
+        out?: FlatAuthoredValues,
+    ): FlatAuthoredValues {
         return interpolate.interpFrames(this, t, transformFrames, out);
     }
 

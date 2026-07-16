@@ -57,7 +57,7 @@ describe("F.W11 — the 4× clamp converged onto leaves.clamp", () => {
 });
 
 describe("F.W11 — the group blend's lerp is value.js, not the light leaf (inverted-tier removed)", () => {
-    // R.W2 — the boxed blend leaf (the `lerp` user) was carved out of `group.ts`
+    // R.W2 — the residual blend leaf (the `lerp` user) was carved out of `group.ts`
     // into `./group/compositor.ts`; the F.W11 posture (lerp from value.js, NOT a
     // light-leaf re-export) follows it to its new home.
     it("the group compositor does not import lerp from the light leaf", () => {

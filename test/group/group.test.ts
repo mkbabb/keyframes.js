@@ -343,13 +343,13 @@ describe("AnimationGroup layering", () => {
     it("accepts { animation, layer } input with custom config", () => {
         const a = createOpacityAnim("a");
         const group = new AnimationGroup(
-            { animation: a, layer: { zIndex: 5, blendMode: "add" } } as any,
+            { animation: a, layer: { zIndex: 5, op: "add" } } as any,
         );
 
         const config = group.getLayerConfig("a");
         expect(config).toBeDefined();
         expect(config!.zIndex).toBe(5);
-        expect(config!.blendMode).toBe("add");
+        expect(config!.op).toBe("add");
         expect(config!.weight).toBe(1); // default
         expect(config!.enabled).toBe(true); // default
     });
@@ -362,7 +362,7 @@ describe("AnimationGroup layering", () => {
         expect(config).toBeDefined();
         expect(config!.zIndex).toBe(0);
         expect(config!.weight).toBe(1);
-        expect(config!.blendMode).toBe("replace");
+        expect(config!.op).toBe("replace");
         expect(config!.enabled).toBe(true);
     });
 

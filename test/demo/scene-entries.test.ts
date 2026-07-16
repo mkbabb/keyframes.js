@@ -7,7 +7,7 @@ import {
     warmScene,
 } from "../../demo/app/scene/scenes";
 
-describe("characterization: public demo scene entries", () => {
+describe("demo scene entries", () => {
     it("exposes the six routable scenes in stable navigation order", () => {
         expect(scenes.map(({ id, label }) => [id, label])).toEqual([
             ["cube", "Cube"],

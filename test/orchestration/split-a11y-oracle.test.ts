@@ -51,12 +51,9 @@ const chromium = resolveChromium();
 const PRE_SPLIT = "Select an animation";
 
 /**
- * Bundle a value.js-free, self-contained ESM of `{ splitText, stagger }` off the
- * LIGHT source, tree-shaken (the SAME rolldown mechanism `proof:boundary` uses to
- * prove the entry is value.js-free). The shipped `dist/keyframes.js` shares a
- * chunk that carries a bare `@mkbabb/value.js` specifier (unresolvable in a raw
- * browser module load), so the isolated bundle — the real `splitText` source, no
- * value.js edge — is what runs in-browser here.
+ * Bundle a self-contained ESM of `{ splitText, stagger }` off the LIGHT source.
+ * Rolldown inlines the small Value `/math` leaf; no bare package specifier,
+ * parser/color graph, or heavy Keyframes engine reaches the raw-browser module.
  */
 async function bundleLight(): Promise<string | null> {
     let rolldown: any;

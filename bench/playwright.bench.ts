@@ -105,22 +105,12 @@ function resolveChromium() {
     return null;
 }
 
-/** The three externalised dist trees the bench importmap points at. */
+/** The built Keyframes and Value 4 dist trees the import map points at. */
 function distRoots() {
-    const valueRoot = path.dirname(
-        createRequire(path.join(REPO, "package.json")).resolve(
-            "@mkbabb/value.js",
-        ),
-    );
-    const parseThatRoot = path.dirname(
-        createRequire(path.join(REPO, "package.json")).resolve(
-            "@mkbabb/parse-that",
-        ),
-    );
+    const valueCss = fileURLToPath(import.meta.resolve("@mkbabb/value.js/css"));
     return {
         kf: path.join(REPO, "dist"),
-        value: valueRoot,
-        parseThat: parseThatRoot,
+        value: path.dirname(path.dirname(valueCss)),
     };
 }
 
@@ -139,7 +129,7 @@ function send(res: http.ServerResponse, code: number, type: string, body: string
 }
 
 /**
- * Serve the bench page + the three dist trees under prefix roots, and the
+ * Serve the bench page plus the built Keyframes and Value 4 trees, and the
  * observer as an on-the-fly-transpiled ESM module. `noObserver` swaps in a
  * no-op observer (the bite that proves a dead observer reddens the gate).
  */
@@ -191,25 +181,14 @@ async function serve(noObserver: boolean) {
             return;
         }
 
-        // Prefix-routed static roots → the three dist trees.
+        // Prefix-routed static roots → the two dist trees.
         const route: [string, string][] = [
             ["/kf/", roots.kf],
             ["/value/", roots.value],
-            ["/parse-that/", roots.parseThat],
         ];
         for (const [prefix, dir] of route) {
             if (p.startsWith(prefix)) {
-                let file = path.join(dir, p.slice(prefix.length));
-                // S.A0(4) — extensionless-`.js` fallback: importmap prefix
-                // substitution yields `/value/subpaths/math` (no extension) for the
-                // `@mkbabb/value.js/math` subpath specifier; serve `subpaths/math.js`.
-                if (
-                    file.startsWith(dir) &&
-                    !fs.existsSync(file) &&
-                    fs.existsSync(file + ".js")
-                ) {
-                    file += ".js";
-                }
+                const file = path.join(dir, p.slice(prefix.length));
                 if (file.startsWith(dir) && fs.existsSync(file) && fs.statSync(file).isFile()) {
                     send(
                         res,

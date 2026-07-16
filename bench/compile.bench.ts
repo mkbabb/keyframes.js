@@ -15,7 +15,7 @@
  * `engine`, never the type-only barrel (F.W1 S1).
  */
 import { bench, describe } from "vitest";
-import { parseCSSStylesheet } from "@mkbabb/value.js";
+import { parseStylesheet } from "@mkbabb/value.js/css";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 /**
@@ -56,7 +56,7 @@ describe("FrameCompiler compile-throughput (cold fromString)", () => {
  * moment one appears — i.e. if `fromString` grows materially slower than the
  * value.js parse it wraps, the parse fraction drops and the map is stale.
  *
- * The `parse()` case uses value.js's `parseCSSStylesheet` (the grammar parse the
+ * The `parse()` case uses Value 4's `parseStylesheet` (the grammar parse the
  * FrameCompiler invokes) over the SAME `@keyframes` body — the production-path
  * parse leaf, no kf compile on top. Imports `CSSKeyframesAnimation` from the
  * VALUE module `engine` (F.W1 S1).
@@ -69,7 +69,7 @@ describe("compile latency map — value.js parse() vs fromString (CF-1, G.W2)", 
         const sheet = `@keyframes k {\n${css}\n}`;
 
         bench(`N=${stops} · value.js parse() (grammar leaf)`, () => {
-            parseCSSStylesheet(sheet);
+            parseStylesheet(sheet);
         });
 
         bench(`N=${stops} · fromString (parse + compile + sample)`, () => {

@@ -1,4 +1,3 @@
-import { unflattenObjectToString } from "@mkbabb/value.js/units";
 import { clamp } from "../internal/leaves";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
@@ -14,23 +13,35 @@ import type { Vars } from "../constants";
 // densify public tokens are re-exported by the `waapi/index.ts` barrel
 // (R.W1 — the barrel owns the unified surface; no flat-sibling relay through
 // this module). `toWAAPIKeyframes` below imports `densifyInteriorTimes` directly.
-import { densifyInteriorTimes } from "./densify";
+import {
+    canDensifyWAAPISlots,
+    densifyInteriorTimes,
+} from "./densify";
 
 /**
  * Convert animation frames to WAAPI Keyframe[] format.
  *
- * Emits a keyframe at every stop boundary AND a CURVATURE-ADAPTIVE set of
- * interior samples per segment (Q.WB4, {@link densifyInteriorTimes}) by
- * evaluating the true rAF curve (`interpFrames`, which runs each frame's
- * per-segment easing) at offsets where the curve BENDS — so the compositor's
- * piecewise-linear fill tracks the JS curve, not just its endpoints, while
- * spending NO interior stops on a near-linear segment.
+ * Emits every stop boundary. Stable numeric slot/template shapes additionally
+ * receive curvature-adaptive interior samples (Q.WB4,
+ * {@link densifyInteriorTimes}); structural or changing shapes retain their
+ * native per-keyframe CSS easing instead of pretending sparse boundaries are a
+ * faithful linearization.
  */
 export function toWAAPIKeyframes<V extends Vars>(
     animation: KeyframesAnimation<V>,
 ): Keyframe[] {
     const duration = animation.options.duration;
     const keyframes: Keyframe[] = [];
+    const multiSegment = animation.frames.length > 1;
+    const bakeCurve = multiSegment && canDensifyWAAPISlots(animation);
+    const segmentEasing = multiSegment && !bakeCurve
+        ? animation.frames[0]?.timingFunction.css
+        : undefined;
+    if (multiSegment && !bakeCurve && segmentEasing === undefined) {
+        throw new TypeError(
+            "A multi-segment structural WAAPI animation requires a faithful CSS easing.",
+        );
+    }
 
     const timePoints = new Set<number>();
     for (const frame of animation.frames) {
@@ -40,26 +51,31 @@ export function toWAAPIKeyframes<V extends Vars>(
 
     const sortedTimes = [...timePoints].sort((a, b) => a - b);
 
-    // Densify: between each pair of consecutive boundaries, interleave the
-    // CURVATURE-ADAPTIVE interior sample times — dense where the true rAF curve
-    // bends, ZERO where it is near-linear. The set dedupes against the
-    // boundaries, so a zero-width segment (start === stop) contributes nothing
-    // and degenerate inputs (duration ≤ 0) stay boundary-only. The boundary
-    // endpoints are ALWAYS emitted — the adaptive emit redistributes ONLY the
-    // interior, never drops a boundary — so the densify is never a regression.
+    // Stable numeric channels can be sampled honestly: interleave adaptive
+    // interior times where the true rAF curve bends. Structural/changing slot
+    // shapes stay boundary-only and use their native per-keyframe CSS easing.
     const sampleTimes = new Set<number>(sortedTimes);
-    for (const t of densifyInteriorTimes(animation, sortedTimes, duration)) {
-        sampleTimes.add(t);
+    if (bakeCurve) {
+        for (const t of densifyInteriorTimes(animation, sortedTimes, duration)) {
+            sampleTimes.add(t);
+        }
     }
 
+    const lastTime = sortedTimes.at(-1);
     for (const t of [...sampleTimes].sort((a, b) => a - b)) {
         const vars = animation.interpFrames(t, false);
         if (Object.keys(vars).length === 0) continue;
-        const styleVars = unflattenObjectToString(vars);
-        keyframes.push({
+        const keyframe: Keyframe = {
             offset: clamp(t / duration, 0, 1),
-            ...styleVars,
-        });
+            ...vars,
+        };
+        // Non-numeric structural slots cannot be chord-measured honestly.
+        // Preserve their native per-segment curve instead of feeding sparse
+        // boundaries to a globally linear effect.
+        if (segmentEasing !== undefined && t !== lastTime) {
+            keyframe.easing = segmentEasing;
+        }
+        keyframes.push(keyframe);
     }
 
     return keyframes;

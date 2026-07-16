@@ -4,10 +4,10 @@
  * the 500L cohesion tripwire; this IS a seam: TimingFunction→CSS text, no
  * keyframe/block emission).
  */
-import { timingFunctions } from "@mkbabb/value.js/easing";
-import { camelCaseToHyphen } from "@mkbabb/value.js";
+import { camelCaseToHyphen } from "../../internal/helpers";
 import type { Easing, TimingFunction } from "../../constants";
 import { AnimationOptionError } from "../../internal/errors";
+import { timingFunctionEntries } from "../easing/easing-registry";
 
 /**
  * EN-a (S.B3, P2-2 F6) — the SIX native-CSS `<easing-function>` keywords. A
@@ -68,7 +68,7 @@ function linearDensifyEasing(fn: TimingFunction, n = 32): string {
  */
 export function serializeEasing(easing: Easing): string {
     if (easing.css !== undefined) return easing.css;
-    const registryName = Object.entries(timingFunctions).find(
+    const registryName = timingFunctionEntries.find(
         ([_name, func]) => func === easing.fn,
     )?.[0];
     if (registryName === undefined) {

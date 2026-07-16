@@ -25,7 +25,6 @@
  */
 import { withReducedMotion } from "../internal/reduced-motion";
 import { setChildrenPaused, snapChildrenToFinal } from "./entries";
-import { compositeFrame } from "./compositor";
 import { lowerGroupWAAPI } from "./waapi";
 import type { Vars } from "../constants";
 import type { AnimationGroup } from "./group";
@@ -112,9 +111,9 @@ export function playReducedMotion<V extends Vars>(
     // Snap every child to its final frame, then composite one final paint.
     snapChildrenToFinal(group.getEntries());
     if (group.singleTarget) {
-        // The same composite `render()` drives via `transformFramesGrouped`;
-        // reach the fold directly (the private method's one-line body).
-        compositeFrame(group, now);
+        // Drive the same private compositor through the public static-render
+        // seam; its long-lived storage remains encapsulated by the group.
+        group.render(now);
     }
 
     group.settle();

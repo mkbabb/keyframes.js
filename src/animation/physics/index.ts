@@ -1,8 +1,9 @@
 /**
  * physics/ — the LIGHT, clock-driven value steppers + the rAF driver (R.W1).
  *
- * Every member is value.js-free (the static-boundary LIGHT surface): a frequency-
- * /spring-/exponential-driven value producer or the managed rAF playback driver.
+ * Every member is parser/color-free (the LIGHT surface), sharing at most
+ * Value's rootless `/math` leaf: a frequency-/spring-/exponential-driven value
+ * producer or the managed rAF playback driver.
  * The caller drives the loop (or RAFPlayback owns it); none parses CSS. The
  * package barrel re-exports these by their `./physics/<name>` path; this barrel
  * is the zone's single surface (and what `proof:no-flat-siblings` asserts present).

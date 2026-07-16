@@ -13,7 +13,14 @@ import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { AnimationGroup } from "../../src/animation/group";
 import { compositeFramesAt } from "../support/group-probe";
 
-const v = (arr: unknown): number => (arr as { value: number }[])[0]!.value;
+const v = (value: unknown): number => {
+    if (typeof value !== "number") {
+        throw new TypeError(
+            `Expected an authored number, received ${typeof value}.`,
+        );
+    }
+    return value;
+};
 
 describe("F.W4 — single-frame alias (S3)", () => {
     it("aliases the frame's own flatVars for the no-buffer single-frame path", () => {
@@ -115,10 +122,10 @@ describe("F.W4 — the alias never fires for the group (S3 aliasing-correctness)
 
         // Both layers contributed; the composite is its OWN buffer, never a child
         // frame's flatVars (the group passes `entry.values`, so the alias path is
-        // structurally unreachable for it). `transform: translateX()` flattens to
-        // the dotted key `transform.translateX`.
-        expect(composed.opacity).toBeDefined();
-        expect(composed["transform.translateX"]).toBeDefined();
+        // structurally unreachable for it). Value 4 retains the authored
+        // transform as one structural property.
+        expect(composed.opacity).toBeTypeOf("number");
+        expect(composed.transform).toBeTypeOf("string");
         expect(composed).not.toBe(a.frames[0]!.flatVars);
         expect(composed).not.toBe(b.frames[0]!.flatVars);
     });

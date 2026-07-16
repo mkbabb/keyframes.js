@@ -15,8 +15,8 @@
  *   - the PER-CARD serializer emits ONE card per DECLARED stop;
  *   - each card carries its stop's AUTHORED value — never an interp-mutated
  *     or DOM-resolved number;
- *   - (SEAM-4) the `rotate()` shorthand byte-witness: an `it.fails` born-RED
- *     HANDOFF that flips GREEN when value.js lands shorthand normalization.
+ *   - (SEAM-4) authored `rotate()` remains one structural transform and
+ *     serializes byte-verbatim through Value 4.
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
@@ -33,11 +33,15 @@ const VAR_CSS = `@keyframes t {
 /** Just the `@keyframes` block of a serialized animation. */
 const kfBlock = (css: string): string => css.slice(css.indexOf("@keyframes"));
 
+const animationFrom = (css: string) =>
+    new CSSKeyframesAnimation(
+        { duration: 1000 },
+        document.createElement("div"),
+    ).fromString(css);
+
 describe("J.W1 TB-1 — the AGGREGATE serializes from the declared template (I.W0 S2 pin)", () => {
     it("a var()-bearing animation round-trips the AUTHORED var() verbatim and re-parses clean", async () => {
-        const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
-            VAR_CSS,
-        );
+        const a = animationFrom(VAR_CSS);
         const out = await CSSKeyframesToString(a);
 
         // The DECLARED template, never a DOM-resolved number: the authored
@@ -46,19 +50,13 @@ describe("J.W1 TB-1 — the AGGREGATE serializes from the declared template (I.W
         expect(out).toContain("translateX(var(--y))");
 
         // …and what the serializer emits is exactly what re-parses cleanly.
-        expect(() =>
-            new CSSKeyframesAnimation({ duration: 1000 }).fromString(
-                kfBlock(out),
-            ),
-        ).not.toThrow();
+        expect(() => animationFrom(kfBlock(out))).not.toThrow();
     });
 });
 
 describe("J.W1 ENG-1 — the PER-CARD serializer rides the SAME declared-template authority", () => {
     it("emits ONE card per DECLARED stop (not one per interp segment)", async () => {
-        const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
-            VAR_CSS,
-        );
+        const a = animationFrom(VAR_CSS);
         const cards = await CSSKeyframesToStrings(a);
 
         // BITE (born-RED pre-S1): the interp-pair mapping yields N−1 segments
@@ -68,9 +66,7 @@ describe("J.W1 ENG-1 — the PER-CARD serializer rides the SAME declared-templat
     });
 
     it("each card carries its stop's AUTHORED var() verbatim", async () => {
-        const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
-            VAR_CSS,
-        );
+        const a = animationFrom(VAR_CSS);
         const cards = await CSSKeyframesToStrings(a);
 
         expect(cards[0]).toContain("translateX(var(--x))");
@@ -130,44 +126,14 @@ describe("J.W1 ENG-1 — the PER-CARD serializer rides the SAME declared-templat
     });
 });
 
-describe("J.W1 SEAM-4 — the rotate() shorthand byte-witness (value.js HANDOFF consume-signal)", () => {
-    // BORN-RED HANDOFF (`it.fails`): value.js's flatten expands the authored
-    // 2D `rotate(45deg)` into `rotateX(45deg) rotateY(45deg) rotateZ(45deg)`
-    // — a DIFFERENT transform — and kf's serializer faithfully re-emits the
-    // expanded keys. The divergence is SELF-CONSISTENT (re-parse re-expands
-    // identically), so a midpoint-stability check passes VACUOUSLY; only this
-    // AUTHORED-vs-SERIALIZED byte assertion makes it falsifiable kf-side.
-    // FLIP TRIGGER: the value.js shorthand-normalization fix (the next-slice
-    // HANDOFF) lands → this flips GREEN → remove `.fails` AND delete the
-    // positive-control test below in the same motion.
-    it.fails(
-        "AUTHORED rotate(45deg) serializes byte-verbatim as rotate(45deg)",
-        async () => {
-            const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
-                `@keyframes t { from { transform: rotate(0deg); } to { transform: rotate(45deg); } }`,
-            );
-            const out = await CSSKeyframesToString(a);
-            expect(out).toContain("rotate(45deg)");
-            expect(out).not.toContain("rotateX");
-        },
-    );
-
-    // POSITIVE CONTROL (bites on stale deletion): the expansion IS live today.
-    // When value.js normalizes the shorthand, this asserts the OLD behavior
-    // and reds — the signal to retire both it and the `.fails` above.
-    it("positive control: the value.js rotate() expansion is live (delete WITH the .fails flip)", () => {
+describe("J.W1 SEAM-4 — authored rotate() shorthand serialization", () => {
+    it("AUTHORED rotate(45deg) serializes byte-verbatim as rotate(45deg)", async () => {
         const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
             `@keyframes t { from { transform: rotate(0deg); } to { transform: rotate(45deg); } }`,
         );
-        a.parse();
-        const keys = [
-            ...new Set(a.parsedVars.flatMap((m) => Object.keys(m))),
-        ].sort();
-        expect(keys).toEqual([
-            "transform.rotateX",
-            "transform.rotateY",
-            "transform.rotateZ",
-        ]);
+        const out = await CSSKeyframesToString(a);
+        expect(out).toContain("rotate(45deg)");
+        expect(out).not.toContain("rotateX");
     });
 
     it("the EXPLICIT axis form rotateZ(45deg) round-trips byte-verbatim (the conforming sibling)", async () => {

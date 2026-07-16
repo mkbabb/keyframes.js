@@ -2,7 +2,7 @@
  * H.W0 — the two live console crashes (4.1.0), killed at their seams.
  *
  * H-A1 (serializeEasing throw): a bare custom `TimingFunction` (a value.js
- *   `CSSCubicBezier(...)` / `steppedEase(...)` closure) has no CSS
+ *   `CubicBezier(...)` / `steppedEase(...)` closure) has no CSS
  *   `animation-timing-function` representation, so the bottom-bar Keyframes-
  *   string readout (`CSSKeyframesToString` → `serializeEasing`) THREW. The demo
  *   fix passes the CSS-string twin instead (the easing `contractAnim` +
@@ -11,7 +11,7 @@
  *   placeholder, never a silent `linear`).
  *
  * H-A2 (the "......" lerp parse-error): a blank keyframe SELECTOR reached
- *   value.js `parseCSSValueUnit("")`, which throws the cryptic, un-typed
+ *   value.js `parseCSSCssValue("")`, which throws the cryptic, un-typed
  *   `Parse error at offset 0: "......"`. The compile-seam belt
  *   (`frame-compiler.ts addFrame`) turns that into a clear, typed
  *   `AnimationOptionError`. (The route-storm that produced the blank state dies
@@ -22,13 +22,21 @@ import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { CSSKeyframesToString } from "../../src/animation/compile/emit/format";
 import { serializeEasing } from "../../src/animation/compile/emit/easing-serialize";
 import { AnimationOptionError } from "../../src/animation/internal/errors";
-import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js";
+import { CubicBezier, steppedEase } from "@mkbabb/value.js/easing";
+
+const requireEasing = <T, E extends { code: string }>(
+    result:
+        | { readonly ok: true; readonly value: T }
+        | { readonly ok: false; readonly error: E },
+): T => {
+    if (!result.ok) throw new Error(result.error.code);
+    return result.value;
+};
 
 describe("H.W0 H-A1 — the easing serializer round-trips on the demo's fix shape", () => {
-    it("a bare CSSCubicBezier closure has no CSS twin → serializeEasing throws (the contract the demo must honor)", () => {
-        expect(() => serializeEasing({ fn: CSSCubicBezier(0.2, 0.65, 0.6, 1) })).toThrow(
-            AnimationOptionError,
-        );
+    it("a bare CubicBezier closure has no CSS twin → serializeEasing throws (the contract the demo must honor)", () => {
+        const fn = requireEasing(CubicBezier(0.2, 0.65, 0.6, 1));
+        expect(() => serializeEasing({ fn })).toThrow(AnimationOptionError);
     });
 
     it("a cubic-bezier() STRING twin (the amiga + easing contractAnim fix) serializes CLEAN", async () => {
@@ -61,9 +69,8 @@ describe("H.W0 H-A1 — the easing serializer round-trips on the demo's fix shap
     // The steppedEase closure is also a bare custom fn with no twin — the demo's
     // steps selection passes the "steps(...)" string twin instead.
     it("a bare steppedEase closure throws (the demo passes the steps() string twin instead)", () => {
-        expect(() => serializeEasing({ fn: steppedEase(4, "jump-end") })).toThrow(
-            AnimationOptionError,
-        );
+        const fn = requireEasing(steppedEase(4, "jump-end"));
+        expect(() => serializeEasing({ fn })).toThrow(AnimationOptionError);
     });
 });
 
@@ -135,7 +142,9 @@ describe("J.W1 SEAM-1 — the selector guard is TOTAL (typed error for ALL non-c
             }
             expect(caught).toBeInstanceOf(AnimationOptionError);
             expect((caught as Error).message).toContain("keyframe selector");
-            expect((caught as Error).message).not.toContain("Parse error at offset");
+            expect((caught as Error).message).not.toContain(
+                "Parse error at offset",
+            );
         });
     }
 
@@ -146,11 +155,11 @@ describe("J.W1 SEAM-1 — the selector guard is TOTAL (typed error for ALL non-c
             "  50%  ": { opacity: 0.5 }, // surrounding whitespace tolerated
             TO: { opacity: 1 },
         } as any);
-        expect(a.templateFrames.map((f) => String(f.start))).toEqual([
-            "0%",
-            "25.5%",
-            "50%",
-            "100%",
+        expect(a.templateFrames.map((f) => f.start)).toEqual([
+            { kind: "percent", value: 0 },
+            { kind: "percent", value: 0.255 },
+            { kind: "percent", value: 0.5 },
+            { kind: "percent", value: 1 },
         ]);
         expect(() => a.interpFrames(500)).not.toThrow();
     });

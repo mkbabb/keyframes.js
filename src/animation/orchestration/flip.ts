@@ -11,8 +11,8 @@
  * sequence: one forced layout to capture First, the `mutate()` that changes
  * layout, one forced layout to capture Last. No interleaved read/write thrash.
  *
- * LIGHT module (the value.js-free light barrel): it composes `ElementMorph`
- * (itself light) and `RAFPlayback`, reads no value.js, and accepts easing as a
+ * LIGHT module (the parser-free light barrel): it composes `ElementMorph`
+ * (which shares Value's `/math` leaf) and `RAFPlayback`, and accepts easing as a
  * callable {@link TimingFunction} or a typed {@link Easing} via the morph's
  * options — never a string name. The spring twin (`springTimingFunction`)
  * makes the FLIP springy for free.

@@ -2,7 +2,7 @@
  * Group WAAPI lowering (U.C16 / OD-U14 T4b).
  *
  * This module owns the conservative group-level gate and the native lowering
- * primitive.  Weighted layers, springs, disabled layers, mixed targets, and
+ * primitive. Weight-driven layers, springs, disabled layers, mixed targets, and
  * any child refused by the ordinary WAAPI predicate stay on the rAF
  * compositor; a missed optimization is preferable to a split-brain render.
  */
@@ -13,7 +13,7 @@ import { toWAAPIKeyframes } from "../waapi/emission";
 import { toWAAPIOptions } from "../waapi/waapi-options";
 import type { AnimationGroup } from "./group";
 import type { AnimationGroupEntry } from "./types";
-import { isWeightedBlend, resolveBlendOperator } from "./weight";
+import { isWeightBlend } from "./weight";
 
 export type GroupWAAPIEligibility =
     | { eligible: true; target: HTMLElement; entries: AnimationGroupEntry<any>[] }
@@ -21,7 +21,7 @@ export type GroupWAAPIEligibility =
 
 /**
  * Admit only a single-target, all-eligible additive/replace stack.  Native
- * WAAPI has no equivalent for the engine's weighted spring axis, property
+ * WAAPI has no equivalent for the engine's layer-weight spring axis, property
  * masks, or disabled layers, so those remain on the always-correct rAF path.
  */
 export function isGroupWAAPIEligible<V extends Vars>(
@@ -38,8 +38,8 @@ export function isGroupWAAPIEligible<V extends Vars>(
     for (const entry of entries) {
         if (!entry.layer.enabled) return { eligible: false, reason: "disabled layer stays on rAF" };
         if (entry.layer.properties) return { eligible: false, reason: "property-masked layer stays on rAF" };
-        if (isWeightedBlend(entry.layer) || entry.layer.weightSpring) {
-            return { eligible: false, reason: "weighted layer has no native composite equivalent" };
+        if (isWeightBlend(entry.layer) || entry.layer.weightSpring) {
+            return { eligible: false, reason: "weight-driven layer has no native composite equivalent" };
         }
         if (entry.animation.targets[0] !== target) {
             return { eligible: false, reason: "group target identity mismatch" };
@@ -62,7 +62,7 @@ export function lowerGroupWAAPI<V extends Vars>(
     const handles: globalThis.Animation[] = [];
     try {
         for (const entry of verdict.entries) {
-            const composite = resolveBlendOperator(entry.layer);
+            const composite = entry.layer.op;
             handles.push(
                 verdict.target.animate(toWAAPIKeyframes(entry.animation), {
                     ...toWAAPIOptions(entry.animation),

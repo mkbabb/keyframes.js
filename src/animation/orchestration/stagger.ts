@@ -7,10 +7,10 @@
  * which already flows to `toWAAPIOptions` (`delay: opts.delay`). There is no
  * per-frame cost: the generator returns a number per index, nothing more.
  *
- * LIGHT module (the value.js-free light barrel): it reads `clamp` from
+ * LIGHT module: it reads Value's rootless `/math` `clamp` through
  * `./internal/leaves` and accepts `ease` as a callable {@link TimingFunction}
- * or a typed {@link Easing} — never a string name. A consumer that imports
- * only `stagger` never pulls value.js into its graph.
+ * or a typed {@link Easing} — never a string name. It pulls no parser/color
+ * graph or heavy Keyframes engine.
  *
  * ```ts
  * const delay = stagger(items.length, { each: 50, from: "center" });

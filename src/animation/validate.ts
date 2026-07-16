@@ -38,13 +38,13 @@
  * ── BOUNDARY: HEAVY (value.js-bearing). ──────────────────────────────────────
  * This module statically imports `./engine` (`CSSKeyframesAnimation`), `./compile`
  * (`compileToCSS`), and `./waapi` (`isWAAPIEligible`) — all of which carry static
- * `@mkbabb/value.js` edges — plus value.js's own `parseCSSStylesheet`/
- * `extractKeyframes`. It is reached ONLY via `loadAnimationEngine()`; the LIGHT
+ * `@mkbabb/value.js` edges — plus Value's own `parseStylesheet`/
+ * `collectKeyframes`. It is reached ONLY via `loadAnimationEngine()`; the LIGHT
  * static barrel re-exports only its erased TYPES (`import type`). `proof:boundary`
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { extractKeyframes, parseCSSStylesheet } from "@mkbabb/value.js/parsing";
+import { collectKeyframes, parseStylesheet } from "@mkbabb/value.js/css";
 import { CSSKeyframesAnimation } from "./engine";
 import { compileToCSS } from "./compile";
 import { isWAAPIEligible } from "./waapi";
@@ -123,11 +123,11 @@ const buildAnimation = (css: string): CSSKeyframesAnimation<any> =>
 
 /**
  * `validate(css, opts?)` — the READ-ONLY projection over the three typed channels
- * onto one {@link ValidateResult} envelope. Async because `compileToCSS` is (its
- * Prettier pass).
+ * onto one {@link ValidateResult} envelope. Async because `compileToCSS` retains
+ * its Promise contract while producing deterministic CSS directly.
  *
  * The pipeline:
- *   1. `parseCSSStylesheet(css)` → the AST; `parseable` is true when value.js
+ *   1. `parseStylesheet(css)` → the AST; `parseable` is true when Value
  *      surfaced at least one recognized item and the resolve raised no
  *      `PARSE_ERROR` (the spec-faithful reality — a dropped `!important` decl is
  *      not a parse failure).
@@ -152,9 +152,7 @@ export async function validate(
     // rules) is a frame-less result, also un-parseable as an animation. A
     // spec-invalid keyframe `!important` is NOT in either class — value.js drops
     // that declaration silently at the AST, so the block stays parseable.
-    const hardParseFailure = diagnostics.some(
-        (d) => d.code === "EMPTY_PARSE",
-    );
+    const hardParseFailure = diagnostics.some((d) => d.code === "EMPTY_PARSE");
     const parseable = css.trim().length > 0 && !hardParseFailure;
 
     // The compile channel — the CC-3 ineligibility report. `compileToCSS` walks
@@ -175,13 +173,19 @@ export async function validate(
 
 /**
  * Recover the `@keyframes` block names from the parsed AST for {@link explain}'s
- * heading line. `extractKeyframes` keys by name; the anonymous-wrap (`@keyframes
+ * heading line. `collectKeyframes` keys by name; the anonymous-wrap (`@keyframes
  * anonymous`) the adapter applies to a bare stop-list shows through here as
  * `anonymous`. Empty when the input surfaced no @keyframes rules.
  */
 const keyframesNames = (css: string): string[] => {
     try {
-        return [...extractKeyframes(parseCSSStylesheet(css)).keys()];
+        const parsed = parseStylesheet(css);
+        if (!parsed.ok) return [];
+        return [
+            ...new Set(
+                collectKeyframes(parsed.value).map(({ rule }) => rule.name),
+            ),
+        ];
     } catch {
         return [];
     }

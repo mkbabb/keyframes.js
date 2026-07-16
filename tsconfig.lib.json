@@ -1,9 +1,9 @@
 {
     // Library-scoped type-check. `check:lib` (the CI gate) runs this so a
     // clean runner type-checks ONLY the publishable surface (`src/`) — never
-    // the demo, which imports `@mkbabb/glass-ui` (a `file:../glass-ui`
-    // dev-only sibling absent on a stock runner). The whole-project `check`
-    // (tsconfig.json, `src/` + `demo/`) stays for local demo development.
+    // the demo, whose later consumer commit imports registry Glass. The
+    // whole-project `check` (tsconfig.json, `src/` + `demo/`) stays for demo
+    // development after that dependency is restored.
     //
     // A inv β — the library build is glass-ui-free; the type-check that gates
     // the release path must be glass-ui-free too.

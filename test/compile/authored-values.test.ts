@@ -2,26 +2,23 @@ import { describe, it, expect } from "vitest";
 import { CSSKeyframesAnimation } from "@src/animation/engine";
 import { AnimationGroup } from "@src/animation/group";
 import {
-    buildPlainProjection,
-    refreshPlainProjection,
-} from "@src/animation/compile/plain-vars";
-import { ValueUnit } from "@mkbabb/value.js";
+    buildNestedAuthoredSink,
+    refreshNestedAuthoredSink,
+} from "@src/animation/compile/value-ast";
 
 /**
- * T.A6 — the plain-vars `frame.transform` contract. A custom transform ("animate
- * any object") must receive PLAIN authored-shaped values: `typeof number` for a
- * unitless numeric leaf, the authored STRING for a units/color leaf — NEVER the
- * array-boxed `ValueUnit` leaves value.js ≥ 2.0.1 hands `frame.vars`. The
- * projection covers BOTH consumer paths (per-animation apply + the group SoA
- * compositor output), so the amiga mesh never sees a `NaN`-yielding boxed leaf.
+ * T.A6 — the authored-value `frame.transform` contract. A custom transform
+ * ("animate any object") receives authored-shaped values: numbers for unitless
+ * numeric leaves and strings for unit-bearing or color leaves. The nested sink
+ * covers both consumer paths (per-animation apply and group composition).
  */
-describe("T.A6 — plain-vars projection unit", () => {
-    it("buildPlainProjection: unitless numeric leaf → number; units leaf → string", () => {
-        const flat: Record<string, ValueUnit[]> = {
-            "rotation.x": [new ValueUnit(1.5)],
-            translate: [new ValueUnit(10, "px")],
+describe("T.A6 — nested authored-value sink", () => {
+    it("buildNestedAuthoredSink: numbers and CSS strings retain their authored types", () => {
+        const flat = {
+            "rotation.x": 1.5,
+            translate: "10px",
         };
-        const { root } = buildPlainProjection(flat);
+        const { root } = buildNestedAuthoredSink(flat);
         const r = root as { rotation: { x: unknown }; translate: unknown };
 
         expect(typeof r.rotation.x).toBe("number");
@@ -30,23 +27,22 @@ describe("T.A6 — plain-vars projection unit", () => {
         expect(r.translate).toBe("10px");
     });
 
-    it("refreshPlainProjection: re-reads the live leaf `.value` in place (same root object)", () => {
-        const leaf = new ValueUnit(0);
-        const proj = buildPlainProjection({ "rotation.x": [leaf] });
+    it("refreshNestedAuthoredSink: re-reads the flat authored value in place", () => {
+        const flat = { "rotation.x": 0 };
+        const proj = buildNestedAuthoredSink(flat);
         const root = proj.root as { rotation: { x: number } };
         expect(root.rotation.x).toBe(0);
 
-        // Mutate the leaf as the interp stride would, then refresh.
-        (leaf as unknown as { value: number }).value = 2.5;
+        flat["rotation.x"] = 2.5;
         const before = proj.root;
-        refreshPlainProjection(proj);
+        refreshNestedAuthoredSink(proj);
         expect(proj.root).toBe(before); // root identity preserved
         expect(root.rotation.x).toBe(2.5);
         expect(typeof root.rotation.x).toBe("number");
     });
 });
 
-describe("T.A6 — per-animation transform receives plain values", () => {
+describe("T.A6 — per-animation transform receives authored values", () => {
     it("fromVars({rotation:{x}}) hands the transformFunc a `typeof number` leaf", () => {
         const seen: unknown[] = [];
         const anim = new CSSKeyframesAnimation({
@@ -67,9 +63,6 @@ describe("T.A6 — per-animation transform receives plain values", () => {
             expect(typeof v).toBe("number");
             expect(Number.isNaN(v as number)).toBe(false);
         }
-        // The array-box regression: today's `frame.vars` handed a one-element
-        // ValueUnit[] (typeof "object"). The plain projection kills it.
-        expect(seen.some((v) => Array.isArray(v))).toBe(false);
     });
 
     it("a units-authored leaf reaches the transform as the authored string", () => {
@@ -89,8 +82,8 @@ describe("T.A6 — per-animation transform receives plain values", () => {
     });
 });
 
-describe("T.A6 — the GROUP SoA compositor output is plain-projected", () => {
-    it("a single-target custom-transform group hands the transform plain numbers (no boxed leaves, finite)", () => {
+describe("T.A6 — group composition preserves authored values", () => {
+    it("a single-target custom-transform group hands the transform finite numbers", () => {
         const seen: any[] = [];
         const transform = (vars: any) => {
             seen.push({
@@ -131,8 +124,7 @@ describe("T.A6 — the GROUP SoA compositor output is plain-projected", () => {
             expect(typeof s.px).toBe("number");
             expect(Number.isFinite(s.px)).toBe(true);
         }
-        // The pose actually moves (the composite is live, not stomped to a
-        // constant boxed leaf).
+        // The pose actually moves rather than remaining constant.
         const rys = seen.map((s) => s.ry);
         expect(new Set(rys).size).toBeGreaterThanOrEqual(3);
     });

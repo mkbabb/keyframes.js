@@ -11,8 +11,8 @@ import type { SpringProgressOptions } from "../../physics/spring";
  * spring's re-seat (`SpringProgress` re-seats the closed-form solution from
  * `(x, v)` so the fling trajectory is continuous with the gesture).
  *
- * LIGHT module: zero static `@mkbabb/value.js` edge. The physics is
- * keyframes-local (the spring solver); this file is pure input plumbing.
+ * LIGHT module: the physics is Keyframes-local, sharing only Value's `/math`
+ * leaf through the spring solver; this file is pure input plumbing.
  *
  * Framework-free by design — plain `addEventListener` + Pointer Capture
  * with explicit teardown. This is library code, not a Vue demo: a consumer

@@ -127,10 +127,10 @@ export const heartbeatKeyframes = /*css*/ `
 `;
 export const glowKeyframes = /*css*/ `
   0%, 100% {
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 5px rgb(0 0 0 / 20%);
   }
   50% {
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 20px rgb(0 0 0 / 80%);
   }
 `;
 export const typewriterKeyframes = /*css*/ `

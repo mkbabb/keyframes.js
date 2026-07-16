@@ -2,9 +2,9 @@
  * `group/springs.ts` — the K.W11 PHYS-C spring-driven blend-weight helpers
  * (R.W2 — the `group-layer-springs.ts` junk-drawer split; the ACTUAL
  * spring-related concern). The flagship physics: a `SpringProgress` (any
- * `WeightStepper`) DRIVES a layer's `weighted`-blend weight instead of a
+ * `WeightStepper`) DRIVES a layer's `weightBlend`-blend weight instead of a
  * constant, so a crossfade follows a PHYSICAL trajectory that can overshoot 1.0
- * and settle — only possible on kf's weighted-blend substrate.
+ * and settle — only possible on kf's weight-blend substrate.
  *
  *   - `seedLayerSpring` — constructs a fresh `SpringProgress` at the layer's
  *     current weight (one allocation per `transitionLayer` gesture, never a
@@ -63,7 +63,7 @@ export const seedLayerSpring = (
  * Advance every spring-driven layer weight by the frame delta `dt` ms (K.W11
  * PHYS-C). Iterates the entries, ticks each layer's `weightSpring`, and on
  * settle COMMITS the converged value to the constant `layer.weight` + CLEARS the
- * spring (the `weighted` leaf's `?? layer.weight` read then serves the
+ * spring (the `weightBlend` leaf's `?? layer.weight` read then serves the
  * constant). Returns whether ANY spring remains active — the group parks it on
  * `_hasLayerSprings` so the constant-weight path pays nothing once all settle.
  * R.W2 (lib-group C2): moved here off `AnimationGroup` — it touches only

@@ -7,8 +7,8 @@
  * `ManualTimeline` (raw-value driver). The caller owns the rAF loop; the pipeline
  * is `sample() → clamp → easing → boundary snap → smoothing → progress`. The
  * native platform-timeline feature-detect (`createNativeTimeline`) stays in
- * `./native`. LIGHT (value.js-free): reads `clamp` + `SmoothProgress` + `toEasing`
- * only, so the `Timeline` family never touches the dynamic boundary.
+ * `./native`. LIGHT (parser-free): reads Value's `/math` `clamp` plus
+ * `SmoothProgress` + `toEasing`, so the family never touches the heavy boundary.
  */
 import { toEasing } from "../../easing";
 import { clamp } from "../../internal/leaves";
@@ -20,8 +20,8 @@ import type { Easing, TimingFunction } from "../../constants/types";
 export interface TimelineOptions {
     /**
      * Easing as a callable `TimingFunction` or a typed `Easing` — both
-     * synchronous and value.js-free, so the `Timeline` family never touches
-     * the dynamic boundary.
+     * synchronous and parser-free, so the `Timeline` family never touches the
+     * heavy boundary; its only Value runtime edge is the shared `/math` leaf.
      *
      * A string easing *name* is NOT accepted here (fail-explicit: it
      * throws). Resolve a name once, up front, through the async factory:

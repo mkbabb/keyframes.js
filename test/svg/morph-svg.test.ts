@@ -33,7 +33,7 @@ function coordsAt(
     const out = anim.interpFrames(ms, false);
     const m = new Map<string, number>();
     for (const k of Object.keys(out)) {
-        const v = out[k]?.[0]?.value;
+        const v = out[k];
         if (typeof v === "number") m.set(k, v);
     }
     return m;
@@ -63,7 +63,7 @@ describe("MorphSVG — PathGeometry-once construction + samples-count keyframe s
         // Two endpoint stops — the morph is the engine lerping between them.
         const keys = new Set<string>();
         for (const frame of anim.frames) {
-            for (const k of Object.keys(frame.interpVars)) keys.add(k);
+            for (const k of Object.keys(frame.flatVars)) keys.add(k);
         }
         // (samples + 1) point pairs → 2 * (samples + 1) coordinate keys.
         expect(keys.size).toBe(2 * (samples + 1));
@@ -91,7 +91,7 @@ describe("MorphSVG — PathGeometry-once construction + samples-count keyframe s
         const anim = fromMorphSVG(TRIANGLE, SQUARE, { autoPlay: false });
         const keys = new Set<string>();
         for (const frame of anim.frames)
-            for (const k of Object.keys(frame.interpVars)) keys.add(k);
+            for (const k of Object.keys(frame.flatVars)) keys.add(k);
         expect(keys.size).toBe(2 * (64 + 1));
     });
 });
@@ -364,7 +364,7 @@ describe("MorphSVG — Q.WC4 S2: orient-along-path (the --morph-{i}-angle channe
     const angleKeys = (anim: CSSKeyframesAnimation<any>): string[] => {
         const keys = new Set<string>();
         for (const frame of anim.frames)
-            for (const k of Object.keys(frame.interpVars)) keys.add(k);
+            for (const k of Object.keys(frame.flatVars)) keys.add(k);
         return [...keys].filter((k) => /^--morph-\d+-angle$/.test(k));
     };
 
@@ -392,10 +392,13 @@ describe("MorphSVG — Q.WC4 S2: orient-along-path (the --morph-{i}-angle channe
             orient: true,
             autoPlay: false,
         });
-        const angleAt = (t: number, i: number): number | undefined =>
-            anim.interpFrames(t * anim.options.duration, false)[
-                `--morph-${i}-angle`
-            ]?.[0]?.value;
+        const angleAt = (t: number, i: number): number | undefined => {
+            const value = anim.interpFrames(
+                t * anim.options.duration,
+                false,
+            )[`--morph-${i}-angle`];
+            return typeof value === "number" ? value : undefined;
+        };
         // A body point whose from-tangent and to-tangent differ — the mid value
         // sits between (the engine lerps the tangent, the rotate: auto bank).
         const i = 8;
@@ -404,9 +407,12 @@ describe("MorphSVG — Q.WC4 S2: orient-along-path (the --morph-{i}-angle channe
         const a1 = angleAt(1, i);
         expect(a0).toBeTypeOf("number");
         expect(a1).toBeTypeOf("number");
+        if (a0 === undefined || a5 === undefined || a1 === undefined) {
+            throw new Error("expected numeric morph-angle samples");
+        }
         // The from/to tangents differ (a real bank), and mid is between them.
         expect(a0).not.toBe(a1);
-        expect(a5).toBeGreaterThanOrEqual(Math.min(a0!, a1!));
-        expect(a5).toBeLessThanOrEqual(Math.max(a0!, a1!));
+        expect(a5).toBeGreaterThanOrEqual(Math.min(a0, a1));
+        expect(a5).toBeLessThanOrEqual(Math.max(a0, a1));
     });
 });

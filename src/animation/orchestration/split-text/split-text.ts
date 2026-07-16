@@ -10,9 +10,9 @@
  * precedent, generalised into a LIGHT primitive). GSAP's 2025 SplitText rewrite
  * is the reference bar.
  *
- * LIGHT (value.js-free): it composes `stagger` (a pure delay generator) and the
- * platform `Intl.Segmenter`; it holds NO static `@mkbabb/value.js` edge, so a
- * consumer importing only `splitText` never pulls the CSS engine into its graph
+ * LIGHT (parser-free): it composes `stagger` (which shares Value's `/math` leaf)
+ * and the platform `Intl.Segmenter`, so a consumer importing only `splitText`
+ * never pulls the CSS parser/color engine into its graph
  * (`proof:boundary` enrolls it automatically off the barrel).
  *
  * `by: "word"` / `"grapheme"` are layout-INDEPENDENT. `by: "line"` is

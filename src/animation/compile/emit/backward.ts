@@ -36,7 +36,7 @@
  * `waapiIneligibleReason` generalized to the CSS-compile domain. What cannot
  * round-trip faithfully is REFUSED with a NAMED reason, never silently
  * approximated (the replay-equality invariant's honest-refusal clause). The four
- * refusals: a `weighted` blend (no `animation-composition` twin — proves
+ * refusals: a `weightBlend` blend (no `animation-composition` twin — proves
  * axis-3's uniqueness), a custom renderer (a closure cannot be CSS), a
  * perceptual oklab track CC-2 cannot densify under ΔE-ε, and a computed-unit
  * drift residue (the narrow case verbatim emit would be wrong — NOT a blanket
@@ -50,26 +50,16 @@
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
+import { reverseCSSTime } from "./css-text";
 import type { KeyframesAnimation } from "../../engine";
 import { AnimationGroup } from "../../group";
 import { Sequence } from "../../orchestration/sequence";
-import {
-    walkGroup,
-    walkSequence,
-    walkList,
-} from "./backward-walk";
+import { walkGroup, walkSequence, walkList } from "./backward-walk";
 import type { CompileChild, CompileInput } from "./backward-walk";
-import {
-    keyframesBlock,
-    premultipliedKeyframesBlock,
-} from "./format";
+import { keyframesBlock, premultipliedKeyframesBlock } from "./format";
 // T.F22 — the animation-options serialization (shorthand + composition longhand)
 // carved into `./format-options` off `format.ts`.
-import {
-    animationComposition,
-    animationShorthand,
-} from "./format-options";
+import { animationComposition, animationShorthand } from "./format-options";
 import { densifiedKeyframesBlock } from "./densify";
 import { densifyColorBlock, round } from "./backward-color";
 // a19 F2 (S.B3 S5) — reach the scroll round-trip through the `../../scroll`
@@ -114,8 +104,6 @@ export interface CompileOptions {
      * honest refusal).
      */
     deltaEEpsilon?: number;
-    /** Prettier print-width for the emitted artifact. Omit for the default. */
-    printWidth?: number;
 }
 
 /**
@@ -172,7 +160,7 @@ export const DEFAULT_DENSIFY_STOPS = 16;
 
 /**
  * Detect a computed-unit DRIFT residue (CC-3 §3e). Returns the first flat
- * property key whose declared value array is EMPTY (so `unflattenObjectToString`
+ * property key whose declared `CssValue` list is EMPTY (so structural serialization
  * would emit nothing — the verbatim emit would silently drop the property).
  * `undefined` in the universal case: `vh`/`cqw`/`calc()`/`var()` all carry a
  * verbatim string and round-trip. NOT a blanket computed-unit reject — the
@@ -183,7 +171,7 @@ export const DEFAULT_DENSIFY_STOPS = 16;
  * "likely-dead" refusal; the ruling is CONSTRUCT — it is the `computed-unit-drift`
  * member of the CC-3 four-refusals TRUST SURFACE (anchored by
  * `proof:compile-replay`'s `four-refusals-named` clause + the
- * `CompileRefusalReason` union), and it genuinely catches the empty-declared-array
+ * `CompileRefusalReason` union), and it genuinely catches the empty declared list
  * SILENT-DROP residue (an emit-nothing property is replay-INequality). It is the
  * narrow, honest guard — deliberately NOT widened to a blanket computed-unit
  * reject (that would forfeit the compiler's strictly-better-than-WAAPI verbatim
@@ -233,7 +221,7 @@ export function compileChild<V extends Vars>(
     // leaves by the constant scalar and emits as `accumulate` (exact CSS, no
     // spring). The pre-multiply CLONES the declared leaves (never mutates
     // parsedVars); a non-numeric leaf (color/string) has no scalar pre-multiply →
-    // a weighted-blend refusal (the JS playback is the faithful path). The
+    // a weight-blend refusal (the JS playback is the faithful path). The
     // `accumulate` composition is set by walkGroup's static partition.
     let staticBlock: string | undefined;
     if (child.staticWeight != null) {
@@ -245,11 +233,11 @@ export function compileChild<V extends Vars>(
         if ("refused" in premul) {
             refusals.push({
                 name,
-                reason: "weighted-blend",
+                reason: "weight-blend",
                 message:
                     `static-weight pre-multiply cannot scale the non-numeric leaf ` +
                     `"${premul.key}" (a color/string has no scalar weight) — the ` +
-                    "weighted blend is kf's unique tier; the JS playback is the only " +
+                    "layer weight is kf's unique tier; the JS playback is the only " +
                     "faithful path",
             });
             return null;
@@ -325,16 +313,20 @@ export function compileChild<V extends Vars>(
 /**
  * CC-6 (L.W2 S1) — the scroll-grammar longhand declarations for a child, or `""`.
  * Reads the parsed `scrollOptions` (`CSSKeyframesAnimation.fromString` populates
- * it from `extractTimelineOptions`) and runs value.js's `serializeScrollOptions`
+ * it from `collectTimelineOptions`) and runs Value's `serializeScrollOptions`
  * BACKWARD over the typed options to the canonical `animation-timeline` /
  * `animation-range` (/ `timeline-scope` / `animation-trigger`) longhands. Returns
  * the newline-prefixed declarations for the `.class` rule body, or `""` for a
  * plain time-clock animation (`scrollOptions` `undefined`). The field lives on
  * `CSSKeyframesAnimation` only — a plain `Animation` (no field) yields `""`.
  */
-function scrollLonghands<V extends Vars>(animation: KeyframesAnimation<V>): string {
+function scrollLonghands<V extends Vars>(
+    animation: KeyframesAnimation<V>,
+): string {
     const opts = (
-        animation as KeyframesAnimation<V> & { scrollOptions?: CSSTimelineOptions }
+        animation as KeyframesAnimation<V> & {
+            scrollOptions?: CSSTimelineOptions;
+        }
     ).scrollOptions;
     if (opts == null) return "";
     const decls = serializeScrollOptions(opts);
@@ -353,7 +345,7 @@ function scrollLonghands<V extends Vars>(animation: KeyframesAnimation<V>): stri
  * materialized, computed units verbatim, color tracks densified into perceptual
  * `oklab()` stops under the ΔE-ε proof), and REFUSES with a NAMED reason what
  * cannot compile faithfully (CC-3 — the replay-equality invariant's honest
- * refusal). The result is async because `formatCSS` (Prettier) is.
+ * refusal). The Promise signature is retained across deterministic serialization.
  *
  * @returns `{ css, eligible, refusals }` — the artifact + the trust surface.
  */
@@ -397,14 +389,5 @@ export async function compileToCSS<V extends Vars>(
     }
 
     const raw = chunks.join("\n\n");
-    let css: string;
-    try {
-        css = await formatCSS(raw, opts.printWidth);
-    } catch {
-        // formatCSS is a cosmetic pass — a Prettier hiccup never forfeits the
-        // artifact; fall back to the un-formatted (still valid) CSS.
-        css = raw;
-    }
-
-    return { css, eligible, refusals };
+    return { css: `${raw}\n`, eligible, refusals };
 }

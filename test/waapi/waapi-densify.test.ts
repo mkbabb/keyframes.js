@@ -14,7 +14,11 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { densifyInteriorTimes, toWAAPIKeyframes } from "../../src/animation/waapi";
+import {
+    densifyInteriorTimes,
+    toWAAPIKeyframes,
+    toWAAPIOptions,
+} from "../../src/animation/waapi";
 import { springTimingFunction } from "../../src/animation/physics/spring";
 import { resolveEasing } from "../../src/animation/easing";
 
@@ -58,12 +62,7 @@ const chordError = (
         const vars = anim.interpFrames(offset * duration, false);
         for (const key in vars) {
             const leaf = vars[key];
-            if (leaf === undefined) continue;
-            for (let i = 0; i < leaf.length; i++) {
-                const v = leaf[i]?.value;
-                if (typeof v === "number" && Number.isFinite(v))
-                    out.set(leaf.length > 1 ? `${key}.${i}` : key, v);
-            }
+            if (typeof leaf === "number" && Number.isFinite(leaf)) out.set(key, leaf);
         }
         return out;
     };
@@ -127,7 +126,7 @@ const linearAnim = async () => {
         timingFunction: easing,
     });
     a.fromString(
-        `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
+        "from { opacity: 0; } to { opacity: 1; }",
     );
     return a;
 };
@@ -139,7 +138,7 @@ const bezierAnim = async () => {
         timingFunction: easing,
     });
     a.fromString(
-        `from { transform: translateX(0px); } to { transform: translateX(300px); }`,
+        "from { opacity: 0; } to { opacity: 1; }",
     );
     return a;
 };
@@ -154,7 +153,7 @@ const springAnim = () => {
         timingFunction: spring,
     });
     a.fromString(
-        `from { transform: translateX(0px); } to { transform: translateX(200px); }`,
+        "from { opacity: 0; } to { opacity: 1; }",
     );
     return a;
 };
@@ -178,6 +177,93 @@ describe("WAAPI curvature-adaptive densify (Q.WB4)", () => {
         const interior = densifyInteriorTimes(a, boundaryTimes(a), DURATION);
         expect(interior.size).toBeGreaterThan(0);
         expect(interior.size).toBeLessThanOrEqual(16);
+    });
+
+    it("densifies multi-segment unit-bearing transforms through compiled numeric slots", () => {
+        const spring = springTimingFunction({
+            response: 0.5,
+            dampingFraction: 0.45,
+        });
+        const animation = new CSSKeyframesAnimation({
+            duration: DURATION,
+            timingFunction: spring,
+        }).fromString(
+            "0% { transform: translateX(0px); } " +
+            "50% { transform: translateX(50px); } " +
+            "100% { transform: translateX(100px); }",
+        );
+
+        const keyframes = toWAAPIKeyframes(animation);
+        const interior = keyframes.find((frame) =>
+            typeof frame.offset === "number" &&
+            frame.offset > 0 && frame.offset < 0.5,
+        );
+
+        expect(keyframes.length).toBeGreaterThan(3);
+        expect(interior).toBeDefined();
+        for (const frame of keyframes) {
+            expect(frame.transform).toBe(
+                animation.at(Number(frame.offset)).transform,
+            );
+        }
+        expect(keyframes.every((frame) => frame.easing === undefined)).toBe(true);
+        expect(toWAAPIOptions(animation).easing).toBe("linear");
+    });
+
+    it("keeps native per-segment easing for structural slots that cannot be chord-measured", () => {
+        const spring = springTimingFunction({
+            response: 0.5,
+            dampingFraction: 0.45,
+        });
+        const animation = new CSSKeyframesAnimation({
+            duration: DURATION,
+            timingFunction: spring,
+        }).fromString(
+            "0% { --mode: closed; } " +
+            "50% { --mode: open; } " +
+            "100% { --mode: closed; }",
+        );
+
+        const keyframes = toWAAPIKeyframes(animation);
+
+        expect(keyframes).toHaveLength(3);
+        expect(spring.css).toBeDefined();
+        expect(keyframes.slice(0, -1).every((frame) =>
+            frame.easing === spring.css,
+        )).toBe(true);
+        expect(keyframes.at(-1)?.easing).toBeUndefined();
+        expect(toWAAPIOptions(animation).easing).toBe("linear");
+    });
+
+    it("retains native segment easing when numeric slot indices change structural meaning", () => {
+        const spring = springTimingFunction({
+            response: 0.5,
+            dampingFraction: 0.45,
+        });
+        const animation = new CSSKeyframesAnimation({
+            duration: DURATION,
+            timingFunction: spring,
+        }).fromString(
+            "0% { transform: translateX(0px) scale(1); } " +
+            "50% { transform: scale(2) translateX(50px); } " +
+            "100% { transform: translateX(100px) scale(3); }",
+        );
+
+        const keyframes = toWAAPIKeyframes(animation);
+
+        expect(keyframes).toHaveLength(3);
+        expect(keyframes.slice(0, -1).every((frame) =>
+            frame.easing === spring.css,
+        )).toBe(true);
+        expect(toWAAPIOptions(animation).easing).toBe("linear");
+    });
+
+    it("does not double-ease a single segment that retains its native CSS twin", () => {
+        const animation = springAnim();
+        const keyframes = toWAAPIKeyframes(animation);
+
+        expect(keyframes.map((frame) => frame.offset)).toEqual([0, 1]);
+        expect(String(toWAAPIOptions(animation).easing)).toMatch(/^linear\(/);
     });
 
     it("every boundary endpoint appears in the emitted keyframe offsets", async () => {

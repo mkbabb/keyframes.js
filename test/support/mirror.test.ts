@@ -13,7 +13,6 @@ const infrastructureDirs = new Set([
     "stubs",
     "support",
 ]);
-const demoAreas = new Set(["app", "instrument", "scenes", "state"]);
 
 function testFiles(directory: string): string[] {
     return readdirSync(directory).flatMap((entry) => {
@@ -31,34 +30,7 @@ function importSpecifiers(file: string): string[] {
     const imports = Array.from(
         source.matchAll(/(?:from\s*|import\s*\()(["'])([^"']+)\1/g),
     ).flatMap((match) => (match[2] === undefined ? [] : [match[2]]));
-    const inspectedModules = Array.from(
-        source.matchAll(/(["'])([^"']*demo\/[^"']+)\1/g),
-    ).flatMap((match) => (match[2] === undefined ? [] : [match[2]]));
-    return [...new Set([...imports, ...inspectedModules])];
-}
-
-function demoImportArea(specifier: string): string | undefined {
-    const normalized = specifier.replaceAll("\\", "/");
-    // Playback visualizer tests live under the instrument witness tier even
-    // though the component's canonical home is the demo playback folder.
-    if (/demo\/components\/playback\//.test(normalized)) return "instrument";
-    if (/demo\/composables\/scene-runtime\//.test(normalized)) return "scenes";
-    if (/demo\/scenes\//.test(normalized)) return "scenes";
-    if (/demo\/app\//.test(normalized) || normalized.startsWith("@app"))
-        return "app";
-    if (
-        /demo\/(?:@\/)?state\//.test(normalized) ||
-        normalized.startsWith("@state")
-    ) {
-        return "state";
-    }
-    if (
-        /(?:components\/.*instrument|\/instrument\/)/.test(normalized) ||
-        /(?:iosTextEntry|useThrottledReadout)/.test(normalized)
-    ) {
-        return "instrument";
-    }
-    return undefined;
+    return [...new Set(imports)];
 }
 
 describe("test area mirror", () => {
@@ -87,31 +59,6 @@ describe("test area mirror", () => {
                 /^\.\.\/\.\.\/src\/animation\/[^/]+$/.test(specifier),
             );
             expect(rootImports, path.relative(root, file)).not.toEqual([]);
-        }
-    });
-
-    it("files every demo test under one of its imported areas", () => {
-        const demoRoot = path.join(testRoot, "demo");
-        const looseTests = readdirSync(demoRoot).filter((entry) =>
-            entry.endsWith(".test.ts"),
-        );
-        expect(looseTests).toEqual([]);
-
-        for (const area of readdirSync(demoRoot)) {
-            const areaRoot = path.join(demoRoot, area);
-            if (!statSync(areaRoot).isDirectory()) continue;
-            expect(demoAreas.has(area), area).toBe(true);
-
-            for (const file of testFiles(areaRoot)) {
-                const importedAreas = new Set(
-                    importSpecifiers(file)
-                        .map(demoImportArea)
-                        .filter((item): item is string => item !== undefined),
-                );
-                expect(importedAreas.has(area), path.relative(root, file)).toBe(
-                    true,
-                );
-            }
         }
     });
 });

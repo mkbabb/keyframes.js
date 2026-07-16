@@ -5,7 +5,8 @@
  * loader as a dynamic import of that same module gives the package one runtime
  * roster: a symbol can never be added to one hand-written loader list and
  * omitted from the subpath barrel.  The `typeof import()` reference is erased
- * by TypeScript, so this module remains a value.js-free light entry.
+ * by TypeScript, so this module adds no eager parser/color edge to the LIGHT
+ * barrel (whose only Value runtime dependency is the shared `/math` leaf).
  */
 
 // API Extractor cannot currently follow a `typeof import("./public")` node in
@@ -18,7 +19,6 @@ import type {
     CSSKeyframesAnimation,
     AnimationGroup,
     getAnimationId,
-    getTimingFunction,
     resolveKeyframes,
     MotionPath,
     fromMotionPath,
@@ -62,14 +62,13 @@ import type {
     TimingFunction,
     TimingFunctionNames,
 } from "./constants/types";
-import type { Stylesheet } from "@mkbabb/value.js/parsing";
+import type { Stylesheet } from "@mkbabb/value.js/css";
 
 export interface AnimationEngine {
     KeyframesAnimation: typeof KeyframesAnimation;
     CSSKeyframesAnimation: typeof CSSKeyframesAnimation;
     AnimationGroup: typeof AnimationGroup;
     getAnimationId: typeof getAnimationId;
-    getTimingFunction: typeof getTimingFunction;
     resolveKeyframes: typeof resolveKeyframes;
     MotionPath: typeof MotionPath;
     fromMotionPath: typeof fromMotionPath;

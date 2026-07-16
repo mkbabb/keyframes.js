@@ -12,11 +12,11 @@
  * honoring works identically; `proof:composition-honored` greps THIS module for
  * the moved body anchors and `engine.ts` for the call sites + the gate.
  *
- * value.js is reached only for `ValueUnit` (the numeric-leaf guard + the
- * segment-end read) — the same heavy surface `engine.ts` already imports.
+ * Value4 is reached through the structural slots compiled by the frame pipeline.
  */
-import { ValueUnit } from "@mkbabb/value.js/units";
 import type { Diagnostic } from "../compile/adapter";
+import type { CompiledAnimationFrame } from "../compile/compiled-frame";
+import type { NumericInterpSlot } from "../compile/interp-slot";
 import type { AnimationFrame, CompositeOperator, Vars } from "../constants";
 
 /**
@@ -77,9 +77,8 @@ export function resetCompositionCaches(
 /**
  * Composite ONE frame's lerped numeric leaves onto the captured underlying
  * base, per the frame's `animation-composition` operator (K.W7 S1). The
- * leaf is a `ValueUnit[]` (a one-element array for a scalar, an N-element
- * array for a multi-component leaf — a transform list); the lerp already
- * wrote `unit.value`, so the composite is `unit.value += base` IN PLACE
+ * leaf is a compiled slot set; the lerp already wrote `slot.current`, so the
+ * composite updates that current value in place
  * (un-clamped — CSS does not clamp at composition; the same `group.ts` `add`
  * leaf contract). The underlying base is snapshotted the first time the leaf
  * is composited (from the target's pre-animation value), keyed by the flat
@@ -97,27 +96,19 @@ export function resetCompositionCaches(
  * property (a `Set` guard) so a long playback does not flood the channel.
  */
 export function applyComposition<V extends Vars>(
-    frame: AnimationFrame<V>,
+    frame: CompiledAnimationFrame<V>,
     runtime: CompositionRuntime,
 ): void {
     const op = frame.composition;
     if (op == null || op === "replace") return;
 
-    const flatVars = frame.flatVars as unknown as Record<string, ValueUnit[]>;
-    for (const key in flatVars) {
-        const leaf = flatVars[key];
-        if (!Array.isArray(leaf) || leaf.length === 0) continue;
-
-        // Non-numeric refusal (S3 / NEW-39): a leaf any element of which is
-        // not a plain numeric ValueUnit has no faithful numeric add. It
-        // `replace`-falls-back (keeps the lerped value) and emits its row.
-        const numeric = leaf.every(
-            (u) => u instanceof ValueUnit && typeof u.value === "number",
-        );
-        if (!numeric) {
+    for (const [key, value] of Object.entries(frame.interpVars)) {
+        if (value.slots.length === 0) continue;
+        if (!value.slots.every((slot) => slot.kind === "number")) {
             emitCompositionFallback(key, op, runtime);
             continue;
         }
+        const slots = value.slots as NumericInterpSlot[];
 
         // Capture the underlying base ONCE (before the engine's first write
         // overwrote it). Keyed by the flat property; one number per element.
@@ -126,7 +117,7 @@ export function applyComposition<V extends Vars>(
             base = captureUnderlyingBase(
                 runtime.target,
                 key,
-                leaf.length,
+                slots.length,
                 runtime.compositionPose,
             );
             runtime.compositionBase.set(key, base);
@@ -136,8 +127,8 @@ export function applyComposition<V extends Vars>(
         // effect (the segment's end value minus its base, per completed
         // iteration). For `add`, the stack is zero (iteration-independent).
         const iters = op === "accumulate" ? runtime.iteration : 0;
-        for (let i = 0; i < leaf.length; i++) {
-            const unit = leaf[i]!;
+        for (let i = 0; i < slots.length; i++) {
+            const slot = slots[i]!;
             const b = base[i] ?? 0;
             if (iters > 0) {
                 // The net per-iteration delta is (end − base); `accumulate`
@@ -145,9 +136,9 @@ export function applyComposition<V extends Vars>(
                 // then the live lerp on top of that (CSS repeat-aware
                 // accumulation). `unit.value` currently holds the live lerp.
                 const end = endValueFor(frame, key, i, runtime.compositionBase);
-                unit.value = b + iters * (end - b) + unit.value;
+                slot.current = b + iters * (end - b) + slot.current;
             } else {
-                unit.value = b + unit.value;
+                slot.current = b + slot.current;
             }
         }
     }
@@ -194,23 +185,19 @@ export function captureUnderlyingBase(
 
 /**
  * The segment END value for a leaf element (K.W7 — the `accumulate`
- * repeat-aware stack). The compiled `InterpolatedVar` carries `start`/`stop`
- * ValueUnits; the end of the segment is `stop.value`. Returns the captured
+ * repeat-aware stack). Each compiled interpolation slot carries its endpoints
+ * numeric slots; the end of the segment is `slot.to`. Returns the captured
  * base when the stop is not a plain number (the accumulate degrades to a
  * no-stack `add`, never a NaN).
  */
 export function endValueFor<V extends Vars>(
-    frame: AnimationFrame<V>,
+    frame: CompiledAnimationFrame<V>,
     key: string,
     index: number,
     compositionBase: Map<string, number[]>,
 ): number {
-    const ivArr = frame.interpVars[key];
-    const iv = ivArr?.[index];
-    const stop = iv?.stop;
-    if (stop instanceof ValueUnit && typeof stop.value === "number") {
-        return stop.value;
-    }
+    const slot = frame.interpVars[key]?.slots[index];
+    if (slot?.kind === "number") return slot.to;
     return compositionBase.get(key)?.[index] ?? 0;
 }
 

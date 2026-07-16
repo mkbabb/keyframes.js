@@ -14,33 +14,39 @@
  * dynamic boundary is unchanged. ZERO behavior change — the helpers do exactly
  * what the inlined `fromString` / `registerProperties` bodies did.
  *
- * value.js is reached only for the metadata types (`PropertyDescriptor`,
- * `CSSTimelineOptions`, `Stylesheet`) and `extractTimelineOptions` — the same
- * heavy surface `engine.ts` already imports. NOTE (a29 F3 / S.B6 S8): value.js's
- * `PropertyDescriptor` collides with the DOM lib global, so API-Extractor
- * collision-renames it to `PropertyDescriptor_2` in the published roll-up
- * (`propertyRegistry: Map<string, PropertyDescriptor_2>`). A kf-LOCAL import
- * alias does NOT change that — API-Extractor renames by the SOURCE symbol name,
- * not the importer's alias — and the two leak sites (`propertyRegistry`,
- * `ResolvedKeyframes.properties`) are consumer-observable (a `platform-adopt`
- * test asserts on `propertyRegistry`; `properties` is a public
- * `ResolvedKeyframes` field), so they cannot be `@internal`-trimmed away. The
- * durable fix is the value.js DISPATCH (rename its export, e.g.
- * `CSSPropertyDescriptor`) — recorded in `docs/tranches/S/KF-VALUEJS-2.0.0.md`.
+ * Value is reached only for the Value 4 metadata types
+ * (`CSSPropertyDescriptor`, `CSSTimelineOptions`, `Stylesheet`) and the
+ * corresponding collectors — the same heavy surface the CSS engine already
+ * imports.
  */
-import { extractAnimationOptions, extractTimelineOptions, type CSSTimelineOptions, type PropertyDescriptor, type Stylesheet } from "@mkbabb/value.js/parsing";
+import {
+    collectStyleRules,
+    collectTimelineOptions,
+    type CSSAnimationOptions,
+    type CSSPropertyDescriptor,
+    type CSSTimelineOptions,
+    type Declaration,
+    type Stylesheet,
+} from "@mkbabb/value.js/css";
 import type { Diagnostic } from "../../compile/adapter";
+import {
+    serializeCssValue,
+    serializeTimingFunction,
+} from "../../compile/emit/css-text";
 import type { CompositeOperator, InputAnimationOptions } from "../../constants";
 
 /** The parsed sibling-rule `animation` shape value.js surfaces (the EMIT source). */
-type ParsedAnimationOptions = ReturnType<typeof extractAnimationOptions>;
+type ParsedAnimationOptions = CSSAnimationOptions;
+
+const selectedDeclarations = (stylesheet: Stylesheet): readonly Declaration[] =>
+    collectStyleRules(stylesheet).at(-1)?.rule.declarations ?? [];
 
 /**
  * Translate a sibling style rule's parsed `animation` shorthand/longhands into
- * the engine's option BASE (F.W8). value.js's `extractAnimationOptions` returns
+ * the engine's option BASE (F.W8). Value's `collectAnimationOptions` returns
  * only the DECLARED fields; this maps its CSS shape to the engine's
  * (`infinite` → `Infinity`; the timing-function string flows through the engine's
- * `getTimingFunction` exactly as the per-keyframe case does, downstream of the
+ * the internal timing resolver exactly as the per-keyframe case does, downstream of the
  * `setOptions` merge). Returns an EMPTY object (byte-identical no-op) when the
  * input carried no style rule — the caller skips `setOptions` on an empty base.
  *
@@ -52,10 +58,9 @@ export function recoverAnimationOptionsBase(
     opt: ParsedAnimationOptions,
 ): Partial<InputAnimationOptions> {
     const base: Partial<InputAnimationOptions> = {};
-    if (opt.duration != null) base.duration = opt.duration;
+    if (opt.duration != null) base.duration = opt.duration * 1000;
     if (opt.timingFunction != null)
-        base.timingFunction =
-            opt.timingFunction as InputAnimationOptions["timingFunction"];
+        base.timingFunction = serializeTimingFunction(opt.timingFunction);
     if (opt.iterationCount !== undefined)
         base.iterationCount =
             opt.iterationCount === null ? Infinity : opt.iterationCount;
@@ -63,7 +68,7 @@ export function recoverAnimationOptionsBase(
         base.direction = opt.direction as NonNullable<
             InputAnimationOptions["direction"]
         >;
-    if (opt.delay != null) base.delay = opt.delay;
+    if (opt.delay != null) base.delay = opt.delay * 1000;
     if (opt.fillMode != null)
         base.fillMode = opt.fillMode as NonNullable<
             InputAnimationOptions["fillMode"]
@@ -78,8 +83,8 @@ export function recoverAnimationOptionsBase(
 }
 
 /**
- * Recover the scroll grammar from the SAME parse (L.W2 S1 — CC-6). value.js's
- * `extractTimelineOptions` reads `animation-timeline`/`animation-range`/
+ * Recover the scroll grammar from the SAME parse (L.W2 S1 — CC-6). Value's
+ * `collectTimelineOptions` reads `animation-timeline`/`animation-range`/
  * `timeline-scope`/`animation-trigger` off the stylesheet into a typed
  * `CSSTimelineOptions`. Returns the typed options ONLY when scroll grammar is
  * actually present (value.js returns `{}` for a canonical time-clock
@@ -94,7 +99,7 @@ export function recoverAnimationOptionsBase(
 export function recoverScrollOptions(
     stylesheet: Stylesheet,
 ): CSSTimelineOptions | undefined {
-    const timeline = extractTimelineOptions(stylesheet);
+    const timeline = collectTimelineOptions(selectedDeclarations(stylesheet));
     return Object.keys(timeline).length > 0 ? timeline : undefined;
 }
 
@@ -124,7 +129,7 @@ export function recoverScrollOptions(
  * Baseline 2024-07-09 (newly available — feature-detect mandatory).
  */
 export function registerPropertyDescriptors(
-    registry: Map<string, PropertyDescriptor>,
+    registry: Map<string, CSSPropertyDescriptor>,
     diagnostics: Diagnostic[],
 ): void {
     if (
@@ -136,7 +141,7 @@ export function registerPropertyDescriptors(
     for (const [name, descriptor] of registry) {
         // `syntax` is required by the platform; a descriptor parsed without
         // one cannot be registered (it stays an untyped custom). value.js's
-        // `ValueArray.toString()` is the canonical CSS serialization of the
+        // `CssValue.toString()` is the canonical CSS serialization of the
         // initial value (the same form value.js emits for `initial-value:`).
         if (descriptor.syntax == null) continue;
         const definition: PropertyDefinition = {
@@ -145,7 +150,9 @@ export function registerPropertyDescriptors(
             inherits: descriptor.inherits ?? false,
         };
         if (descriptor.initialValue != null) {
-            definition.initialValue = descriptor.initialValue.toString();
+            definition.initialValue = serializeCssValue(
+                descriptor.initialValue,
+            );
         }
         try {
             CSS.registerProperty(definition);

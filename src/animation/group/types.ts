@@ -10,11 +10,12 @@
  * edge, no `instanceof`.
  */
 import type { KeyframesAnimation } from "../engine";
+import type { FlatAuthoredValues } from "../compile/value-ast";
 import type { AnimationLayerConfig, Vars } from "../constants";
 
 export interface AnimationGroupEntry<V extends Vars> {
     animation: KeyframesAnimation<V>;
-    values: Record<string, unknown>;
+    values: FlatAuthoredValues;
     layer: AnimationLayerConfig;
 }
 

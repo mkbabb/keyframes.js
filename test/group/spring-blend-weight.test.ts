@@ -21,11 +21,10 @@
  *       s × the full-intensity peak (analytic, assertable); the settle time /
  *       curve shape is preserved (the WCAG 2.3.3 amplitude scale, not a kill).
  *
- * The (a)/(b) crossfade asserts read the COMPOSITED leaf the `weighted` blend
+ * The (a)/(b) crossfade asserts read the COMPOSITED leaf the `weight` blend
  * writes — the engine's own blend-weight effect — over a real parsed-CSS pair.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ValueUnit } from "@mkbabb/value.js";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { AnimationGroup } from "../../src/animation/group";
 import { compositeFramesAt } from "../support/group-probe";
@@ -45,12 +44,10 @@ const opacityAt = (t: number): CSSKeyframesAnimation<any> => {
     return a;
 };
 
-/** Read the scalar value of a single-element `ValueUnit[]` leaf. */
 const scalar = (out: Record<string, any>, key: string): number => {
-    const leaf = out[key];
-    expect(Array.isArray(leaf)).toBe(true);
-    expect(leaf[0]).toBeInstanceOf(ValueUnit);
-    return leaf[0].value;
+    const value = out[key];
+    expect(typeof value).toBe("number");
+    return value;
 };
 
 function mockReducedMotion(matches: boolean): void {
@@ -74,7 +71,7 @@ function mockReducedMotion(matches: boolean): void {
 
 describe("proof:spring-blend-weight (a) — PHYS-C: the blend weight follows the spring (overshoots, settles)", () => {
     it("an under-damped transitionLayer drives the composited weight PAST 1.0, then settles", () => {
-        // base (zIndex 0) holds opacity 0 at every t; top (weighted, zIndex 1)
+        // base (zIndex 0) holds opacity 0 at every t; top (weight, zIndex 1)
         // holds opacity 1 at every t. The group's draw loop advances BOTH
         // children's own clocks, so we make each child's contribution constant
         // across its clock (a flat 0→0 and 1→1 keyframe) — then the composited
@@ -93,10 +90,10 @@ describe("proof:spring-blend-weight (a) — PHYS-C: the blend weight follows the
         top.name = "top";
 
         const group = new AnimationGroup<any>(
-            { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
+            { animation: base, layer: { op: "replace", zIndex: 0 } },
             {
                 animation: top,
-                layer: { blendMode: "weighted", zIndex: 1, weight: 0 },
+                layer: { op: "replace", zIndex: 1, weight: 0 },
             },
         );
 
@@ -142,10 +139,10 @@ describe("proof:spring-blend-weight (a) — PHYS-C: the blend weight follows the
         );
         top.name = "ctop";
         const group = new AnimationGroup<any>(
-            { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
+            { animation: base, layer: { op: "replace", zIndex: 0 } },
             {
                 animation: top,
-                layer: { blendMode: "weighted", zIndex: 1, weight: 1 },
+                layer: { op: "replace", zIndex: 1, weight: 1 },
             },
         );
         let peak = -Infinity;
@@ -173,10 +170,10 @@ describe("proof:spring-blend-weight (a) — PHYS-C: the blend weight follows the
         );
         top.name = "ztop";
         const group = new AnimationGroup<any>(
-            { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
+            { animation: base, layer: { op: "replace", zIndex: 0 } },
             {
                 animation: top,
-                layer: { blendMode: "weighted", zIndex: 1, weight: 0 },
+                layer: { op: "replace", zIndex: 1, weight: 0 },
             },
         );
         group.transitionLayer(top, {
@@ -209,7 +206,7 @@ describe("proof:spring-blend-weight (b) — PHYS-C: a mid-flight re-target carri
         const top = opacityAt(1000);
         const group = new AnimationGroup<any>({
             animation: top,
-            layer: { blendMode: "weighted", zIndex: 0, weight: 0 },
+            layer: { op: "replace", zIndex: 0, weight: 0 },
         });
         group.transitionLayer(top, {
             weight: 1,

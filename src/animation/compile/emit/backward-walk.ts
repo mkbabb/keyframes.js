@@ -3,8 +3,8 @@
  * `backward.ts` in R.W2b).
  *
  * The "orchestration graph → `CompileChild[]`" half of the backward compile:
- * `walkGroup` (an `AnimationGroup`'s layer `blendMode` → `animation-composition`
- * operator + the CC-5 static/spring `weighted` partition), `walkSequence` (a
+ * `walkGroup` (an `AnimationGroup`'s layer `op` → `animation-composition`
+ * operator + the CC-5 static/spring `weightBlend` partition), `walkSequence` (a
  * `Sequence`'s master-clock `at` offsets → `animation-delay`), `walkList` (a bare
  * `stagger`-delayed cohort), and the `cssIdent` name normalizer. `backward.ts`
  * owns the per-child compile + the orchestrating `compileToCSS` over these.
@@ -20,7 +20,7 @@ import { AnimationGroup } from "../../group";
 import { getAnimationId } from "../../internal/animation-id";
 import { Sequence } from "../../orchestration/sequence";
 import type { CompositeOperator, Vars } from "../../constants";
-import { isWeightedBlend, resolveBlendOperator } from "../../group/weight";
+import { isWeightBlend } from "../../group/weight";
 
 /** A walked child — its animation + the layer/sequence metadata the compile reads. */
 export interface CompileChild<V extends Vars> {
@@ -29,13 +29,13 @@ export interface CompileChild<V extends Vars> {
     /** The CSS `animation-composition` operator for this child's layering (CC-1 inverting W7). */
     composition: CompositeOperator;
     /**
-     * A SPRING-driven `weighted` blend (a live `weightSpring` crossfade) forces a
-     * refusal (CC-3 §3a) — it has no static CSS twin. A STATIC `weighted` layer is
+     * A SPRING-driven `weightBlend` blend (a live `weightSpring` crossfade) forces a
+     * refusal (CC-3 §3a) — it has no static CSS twin. A STATIC `weightBlend` layer is
      * NOT this: it pre-multiplies into an `accumulate` layer (see {@link CompileChild.staticWeight}).
      */
-    weighted: boolean;
+    weightBlend: boolean;
     /**
-     * CC-5 (L.W2 S3) — a STATIC `weighted` layer's constant blend scalar. When
+     * CC-5 (L.W2 S3) — a STATIC `weightBlend` layer's constant blend scalar. When
      * defined, `compileChild` pre-multiplies the child's numeric keyframe leaves by
      * this weight (CLONE-only — never mutates `parsedVars`) and emits the result as
      * an `animation-composition: accumulate` layer (exact CSS, no spring, no
@@ -53,16 +53,16 @@ export type CompileInput<V extends Vars = Vars> =
     | ReadonlyArray<KeyframesAnimation<V> | { animation: KeyframesAnimation<V> }>;
 
 /**
- * Walk an `AnimationGroup` into compile children. The layer `blendMode` maps to
+ * Walk an `AnimationGroup` into compile children. The layer `op` maps to
  * the CSS `animation-composition` operator: `replace` → `replace`, `add` → `add`
  * (INVERTING W7's honoring — the operator W7 taught the engine to READ is now
  * EMITTED).
  *
- * CC-5 (L.W2 S3) — the `weighted` blend PARTITIONS:
- *   • a SPRING-driven `weighted` (a live `weightSpring` crossfade) has no static
- *     CSS twin → a REFUSAL flag (`springWeighted` → `weighted: true`), the §3a
+ * CC-5 (L.W2 S3) — the `weightBlend` blend PARTITIONS:
+ *   • a SPRING-driven `weightBlend` (a live `weightSpring` crossfade) has no static
+ *     CSS twin → a REFUSAL flag (`springWeightBlend` → `weightBlend: true`), the §3a
  *     refusal that PROVES axis-3's uniqueness.
- *   • a STATIC `weighted` (constant scalar, `weightSpring == null`) is the simple
+ *   • a STATIC `weightBlend` (constant scalar, `weightSpring == null`) is the simple
  *     pre-compositing case: the keyframe values pre-multiply by the scalar at
  *     compile time and the layer emits as `animation-composition: accumulate` —
  *     exact CSS, no spring, no JS runtime. Carried on `staticWeight`.
@@ -73,23 +73,23 @@ export function walkGroup<V extends Vars>(
     const children: CompileChild<V>[] = [];
     for (const key of Object.keys(group.animations)) {
         const entry = group.animations[key]!;
-        const blend = resolveBlendOperator(entry.layer);
-        const springWeighted =
-            isWeightedBlend(entry.layer) && entry.layer.weightSpring != null;
-        const staticWeighted =
-            isWeightedBlend(entry.layer) && entry.layer.weightSpring == null;
+        const blend = entry.layer.op;
+        const springWeightBlend =
+            isWeightBlend(entry.layer) && entry.layer.weightSpring != null;
+        const staticWeightBlend =
+            isWeightBlend(entry.layer) && entry.layer.weightSpring == null;
         const composition: CompositeOperator =
             blend === "add" || blend === "accumulate"
                 ? blend
-                : staticWeighted
+                : staticWeightBlend
                   ? "accumulate"
                   : "replace";
         children.push({
             animation: entry.animation,
             name: cssIdent(getAnimationId(entry.animation)),
             composition,
-            weighted: springWeighted,
-            ...(staticWeighted ? { staticWeight: entry.layer.weight } : {}),
+            weightBlend: springWeightBlend,
+            ...(staticWeightBlend ? { staticWeight: entry.layer.weight } : {}),
             delay: 0,
         });
     }
@@ -109,7 +109,7 @@ export function walkSequence<V extends Vars>(
         animation: entry.animation,
         name: cssIdent(getAnimationId(entry.animation)),
         composition: "replace" as const,
-        weighted: false,
+        weightBlend: false,
         delay: entry.at,
     }));
 }
@@ -130,7 +130,7 @@ export function walkList<V extends Vars>(
             animation: anim,
             name: cssIdent(getAnimationId(anim) || `anim-${i}`),
             composition: "replace" as const,
-            weighted: false,
+            weightBlend: false,
             delay: 0,
         };
     });

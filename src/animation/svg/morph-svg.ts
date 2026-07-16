@@ -336,8 +336,10 @@ export class MorphSVG<
         const out = this.animation.interpFrames(ms, false);
         const pts: MorphPoint[] = new Array(this.samples + 1);
         for (let i = 0; i <= this.samples; i++) {
-            const x = out[xKey(i)]?.[0]?.value;
-            const y = out[yKey(i)]?.[0]?.value;
+            const xValue = out[xKey(i)];
+            const yValue = out[yKey(i)];
+            const x = typeof xValue === "number" ? xValue : undefined;
+            const y = typeof yValue === "number" ? yValue : undefined;
             // KEEP: x ?? 0 / y ?? 0 — manual pull via interpFrames (not the
             // hot-path renderer); 0 is the geometric identity (origin) before
             // the first play tick, NOT a per-frame coordinate mask (§2D).

@@ -1,12 +1,14 @@
-import { COMPUTED_UNITS } from "@mkbabb/value.js/units";
+import {
+    isLayoutTrackingUnit,
+    type CssValue,
+} from "@mkbabb/value.js/value";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
+import type { CompiledAnimationFrame } from "../compile/compiled-frame";
 
 /**
- * Units a delegated WAAPI animation must NOT carry — the layout-dependent
- * set. value.js's `COMPUTED_UNITS` is only `["var","calc"]` (the units the
- * engine resolves to a frozen px via a DOM round-trip during interpolation);
- * but WAAPI freezes a WIDER set. The rAF path re-emits each value as its OWN
+ * A delegated WAAPI animation must not carry layout-tracking units. The rAF
+ * path re-emits each value as its OWN
  * unit string every frame (`width: 50vh`), so the browser re-resolves it on
  * every layout change; WAAPI computes its keyframes' viewport/container units
  * to px ONCE (at keyframe computation) and does not track a viewport/container
@@ -24,46 +26,21 @@ import type { Vars } from "../constants";
  * never produces a wrong pixel. So the wider set trades a perf opportunity for
  * guaranteed isomorphism with the rAF path.
  */
-const WAAPI_INELIGIBLE_UNITS: ReadonlySet<string> = new Set<string>([
-    ...COMPUTED_UNITS, // var, calc — frozen-px via the computed round-trip
-    "%",
-    // viewport-relative (incl. the small/large/dynamic-viewport families)
-    "vh",
-    "vw",
-    "vmin",
-    "vmax",
-    "vi",
-    "vb",
-    "svh",
-    "svw",
-    "svmin",
-    "svmax",
-    "svi",
-    "svb",
-    "lvh",
-    "lvw",
-    "lvmin",
-    "lvmax",
-    "lvi",
-    "lvb",
-    "dvh",
-    "dvw",
-    "dvmin",
-    "dvmax",
-    "dvi",
-    "dvb",
-    // container-query-relative
-    "cqw",
-    "cqh",
-    "cqi",
-    "cqb",
-    "cqmin",
-    "cqmax",
-]);
-
 /** True when a value's unit would freeze to px under WAAPI delegation. */
-const isComputedUnit = (unit: unknown): boolean =>
-    typeof unit === "string" && WAAPI_INELIGIBLE_UNITS.has(unit);
+const FONT_RELATIVE_UNITS = new Set([
+    "em", "rem", "ex", "ch", "cap", "ic", "lh", "rlh",
+]);
+const freezesUnderWAAPI = (unit: unknown): boolean =>
+    typeof unit === "string" &&
+    (isLayoutTrackingUnit(unit) || FONT_RELATIVE_UNITS.has(unit));
+
+const authoredUnit = (value: CssValue): string | undefined => {
+    if (value.kind === "call") return value.name;
+    if (value.kind !== "scalar" || value.payload.type !== "number") {
+        return undefined;
+    }
+    return value.payload.unit;
+};
 
 /**
  * Properties whose `%` resolves against a NON-layout-box reference the
@@ -115,13 +92,15 @@ const isWebKitEngine = (): boolean =>
  * 1. At least one DOM target with `Element.animate()` available.
  * 2. Every frame uses the default DOM-style renderer (no user
  *    transform that WAAPI can't see).
- * 3. All frames share the same timing function (WAAPI exposes
- *    one easing per animation, not per stop).
+ * 3. All frames share the same timing function. Structural fallback can attach
+ *    that faithful CSS twin to each keyframe interval; non-uniform timing is
+ *    not representable by the current lowering contract.
  * 4. No layout-dependent units — `var`/`calc` (frozen to px via the
  *    computed round-trip), and every viewport-/container-relative unit
  *    plus `%` (WAAPI computes these to px once at keyframe computation and
  *    does not track a resize, unlike the rAF path which re-emits the unit
- *    string each frame). See {@link WAAPI_INELIGIBLE_UNITS}.
+ *    string each frame). The classification is owned by Value 4's
+ *    `isLayoutTrackingUnit` predicate.
  * 5. No color interpolation — handled by perceptual color spaces in
  *    JS, not by WAAPI's RGB lerp.
  *
@@ -141,7 +120,8 @@ export function isWAAPIEligible<V extends Vars>(
         };
     }
 
-    for (const frame of animation.frames) {
+    const frames = animation.frames as CompiledAnimationFrame<V>[];
+    for (const frame of frames) {
         // Reference comparison against the instance's ONE default renderer —
         // typed and bind-proof, unlike the former Symbol tag (which
         // `Function.prototype.bind` silently dropped, making every
@@ -155,16 +135,16 @@ export function isWAAPIEligible<V extends Vars>(
         }
     }
 
-    const firstTF = animation.frames[0]?.timingFunction;
-    if (firstTF && animation.frames.length > 1) {
-        for (let i = 1; i < animation.frames.length; i++) {
+    const firstTF = frames[0]?.timingFunction;
+    if (firstTF && frames.length > 1) {
+        for (let i = 1; i < frames.length; i++) {
             // Compare the CALLABLE identity, not the Easing wrapper — two
             // frames eased by the same resolved `fn` wrapped in distinct
             // `{ fn }` objects are uniform.
-            if (animation.frames[i]!.timingFunction.fn !== firstTF.fn) {
+            if (frames[i]!.timingFunction.fn !== firstTF.fn) {
                 return {
                     eligible: false,
-                    reason: "non-uniform per-frame timing function (WAAPI supports one easing per animation)",
+                    reason: "non-uniform per-frame timing function is not representable by the WAAPI lowering",
                 };
             }
         }
@@ -225,8 +205,8 @@ export function isWAAPIEligible<V extends Vars>(
     // compositor-thread springs on WebKit (kf's "springs on the compositor"
     // headline is a Chrome/Firefox story only until then). No re-check has found
     // that release yet.
-    for (const frame of animation.frames) {
-        for (const [property, interpVarArr] of Object.entries(
+    for (const frame of frames) {
+        for (const [property, compiledValue] of Object.entries(
             frame.interpVars,
         )) {
             // `offset-distance`'s `%` resolves against the PATH LENGTH, not a
@@ -239,23 +219,41 @@ export function isWAAPIEligible<V extends Vars>(
             // ineligible — only the path-relative offset family is admitted.
             const pathRelativePercent = isOffsetPercentProperty(property);
 
-            for (const iv of interpVarArr) {
+            for (const slot of compiledValue.slots) {
+                const startUnit =
+                    slot.kind === "number"
+                        ? slot.unit
+                        : slot.kind === "computed"
+                          ? authoredUnit(slot.from)
+                          : undefined;
+                const stopUnit =
+                    slot.kind === "number"
+                        ? slot.unit
+                        : slot.kind === "computed"
+                          ? authoredUnit(slot.to)
+                          : undefined;
                 // Surgical exemption: ONLY the path-relative `%` is relaxed.
                 // `calc`/`var` (and every viewport/container unit) still freeze
                 // and stay ineligible even on the offset family.
+                const pathRelativeStart =
+                    pathRelativePercent &&
+                    slot.kind === "number" &&
+                    startUnit === "%";
+                const pathRelativeStop =
+                    pathRelativePercent &&
+                    slot.kind === "number" &&
+                    stopUnit === "%";
                 const startBad =
-                    isComputedUnit(iv.start?.unit) &&
-                    !(pathRelativePercent && iv.start?.unit === "%");
+                    freezesUnderWAAPI(startUnit) && !pathRelativeStart;
                 const stopBad =
-                    isComputedUnit(iv.stop?.unit) &&
-                    !(pathRelativePercent && iv.stop?.unit === "%");
+                    freezesUnderWAAPI(stopUnit) && !pathRelativeStop;
                 if (startBad || stopBad) {
                     return {
                         eligible: false,
-                        reason: `layout-dependent unit (${String(iv.start?.unit ?? iv.stop?.unit)}) would freeze to px under WAAPI`,
+                        reason: `layout-dependent unit (${String(startUnit ?? stopUnit)}) would freeze to px under WAAPI`,
                     };
                 }
-                if (iv.start?.unit === "color" || iv.stop?.unit === "color") {
+                if (slot.kind === "color") {
                     return {
                         eligible: false,
                         reason: "color interpolation requires perceptual lerp",

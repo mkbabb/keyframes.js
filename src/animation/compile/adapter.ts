@@ -1,5 +1,18 @@
-import { extractAnimationOptions, extractFunctions, extractKeyframes, extractProperties, parseCSSStylesheet, type CustomFunctionDescriptor, type KeyframeRule, type ParseDiagnostic, type PropertyDescriptor, type Stylesheet } from "@mkbabb/value.js/parsing";
-import { ValueArray } from "@mkbabb/value.js/units";
+import {
+    collectAnimationOptions,
+    collectCustomFunctions,
+    collectKeyframes,
+    collectPropertyDescriptors,
+    collectStyleRules,
+    parseStylesheet,
+    type CSSAnimationOptions,
+    type CSSPropertyDescriptor,
+    type CustomFunctionDescriptor,
+    type KeyframeRule,
+    type ParseIssue,
+    type Stylesheet,
+} from "@mkbabb/value.js/css";
+import type { CssValue } from "@mkbabb/value.js/value";
 import {
     DROP,
     hasResolvableValue,
@@ -8,6 +21,7 @@ import {
     type ResolveContext,
     type ResolveEnv,
 } from "../resolve";
+import { serializeTimingFunction } from "./emit/css-text";
 
 /**
  * The stable diagnostic `code`s the kf-side sink emits (K.W7 S4). A FLAT,
@@ -48,8 +62,8 @@ export type DiagnosticCode =
     | "CUSTOM_FN_ARG_DROP";
 
 /**
- * A structured parse/honoring diagnostic (K.W7 S4). Extends the value.js
- * parser diagnostic shape (the consumed shape — `message`/`offset`/`line`/
+ * A structured parse/honoring diagnostic (K.W7 S4). Extends the Value 4
+ * `ParseIssue` shape (the consumed shape — `message`/`offset`/`line`/
  * `column`/`expected`/`input`) with a stable kf-side {@link DiagnosticCode} and
  * an optional `property` (the leaf a `COMPOSITION_FALLBACK` names). The
  * value.js half (`message`/`offset`/…) is `Partial` because the engine-internal
@@ -58,13 +72,15 @@ export type DiagnosticCode =
  * ingest callers that attach source locations.
  * widens it with the stable code (inv-16 published-only consumption holds).
  */
-export interface Diagnostic extends Partial<ParseDiagnostic> {
+export interface Diagnostic extends Omit<Partial<ParseIssue>, "code"> {
     /** A stable, branch-on-able code — never scrape `message`. */
     code: DiagnosticCode;
     /** The human-readable summary (always present; the producer's or kf's). */
     message: string;
     /** The CSS property a `COMPOSITION_FALLBACK` refuses to composite. */
     property?: string;
+    /** Original source for a parser issue, when available. */
+    input?: string;
 }
 
 /**
@@ -87,11 +103,11 @@ export interface ResolvedKeyframes {
      */
     composition: Map<string, string>;
     /** `@property --foo { ... }` registry */
-    properties: Map<string, PropertyDescriptor>;
+    properties: Map<string, CSSPropertyDescriptor>;
     /**
      * `@function --foo(...) { ... }` descriptor registry (P.W13 — the emerging-CSS
-     * resolve seam). Collected via value.js `extractFunctions` exactly as
-     * `properties` is collected via `extractProperties`. Threaded into the
+     * resolve seam). Collected via Value's `collectCustomFunctions` exactly as
+     * `properties` is collected via `collectPropertyDescriptors`. Threaded into the
      * {@link resolveValues} pass's {@link ResolveContext} so the dashed-function
      * `@function` CALL-inlining lands greenable the moment value.js-P publishes
      * the call-parse arm; the descriptor is captured NOW (a read-only registry —
@@ -104,13 +120,13 @@ export interface ResolvedKeyframes {
      * `animation` shorthand or longhand declarations (if any). Empty
      * when the input has no matching style rule.
      */
-    options: ReturnType<typeof extractAnimationOptions>;
+    options: CSSAnimationOptions;
 
     /**
      * Structured parse/honoring diagnostics (K.W7 S4) — every SILENT fallback
      * the resolve path used to swallow, now a citable row. CONSUMES the value.js
-     * 0.12.0 `ParseDiagnostic`/`OnParseError` producer (N2 row 10): a failed
-     * parse surfaced through `OnParseError` lands here as a `PARSE_ERROR` row,
+     * Value 4 `ParseIssue` producer: a failed parse lands here as a
+     * `PARSE_ERROR` row,
      * and the kf-side fallbacks (`EMPTY_PARSE`, and the engine's
      * `COMPOSITION_FALLBACK`) join it. A FLAT additive array with stable
      * {@link DiagnosticCode}s, NOT a logging framework. Empty on a clean parse.
@@ -121,7 +137,7 @@ export interface ResolvedKeyframes {
     /**
      * The parsed CSS `Stylesheet` AST the resolve walked (L.W2 S1). Surfaced so a
      * caller can recover scroll-grammar (`animation-timeline`/`animation-range`)
-     * from the SAME parse via `extractTimelineOptions(resolved.stylesheet)` —
+     * from the SAME parse via `collectTimelineOptions(resolved.stylesheet)` —
      * `CSSKeyframesAnimation.fromString` threads it onto `scrollOptions` so the
      * compiler's EMIT half (CC-6) can serialize the scroll longhands back out. A
      * read-only metadata field; the keyframe/option resolution is unchanged.
@@ -135,17 +151,16 @@ const declsToVarMap = (
 ): Record<string, unknown> => {
     const out: Record<string, unknown> = {};
     for (const decl of rule.declarations) {
-        // `decl.value` is a ValueArray; the existing
-        // `parseAndFlattenObject` pipeline handles either ValueArray
-        // or string values, so we pass the ValueArray through.
-        let value: unknown = decl.value;
+        // Value 4 declarations carry immutable CssValue nodes. The compiler
+        // consumes that final object directly.
+        let value: CssValue = decl.value;
         // P.W13 — the element-INDEPENDENT emerging-CSS lowering pass, at the
         // resolveKeyframes → flatten seam. Only paid on a declaration that
         // CARRIES a lowerable node (`if(...)`/`spring(...)`); the common
         // all-concrete keyframe is untouched (zero-cost structural sniff). The
-        // pass returns the SAME node type (a `ValueArray`), so the downstream
+        // pass returns the SAME node type (a `CssValue`), so the downstream
         // flatten/compile/interpolation runs EXACTLY as today.
-        if (value instanceof ValueArray && hasResolvableValue(value)) {
+        if (hasResolvableValue(value)) {
             const resolved = resolveValues(value, ctx);
             if (resolved === DROP) {
                 // Guaranteed-invalid (an `if()` with no matching branch + no
@@ -165,12 +180,16 @@ const formatSelectorPercent = (rule: KeyframeRule): string[] => {
     const out: string[] = [];
     for (const sel of rule.selectors) {
         if (sel.kind === "percent") {
-            out.push(`${sel.value}%`);
+            out.push(`${sel.value * 100}%`);
         } else {
             // Scroll-driven named selectors aren't yet wired into
             // the animation engine; surface them as their literal
             // name for the consumer to handle.
-            out.push(sel.name);
+            out.push(
+                sel.offset === undefined
+                    ? sel.name
+                    : `${sel.name} ${sel.offset * 100}%`,
+            );
         }
     }
     return out;
@@ -179,22 +198,54 @@ const formatSelectorPercent = (rule: KeyframeRule): string[] => {
 /**
  * Pick the first @keyframes block from the stylesheet — the AST
  * supports multiple, but the legacy `fromString` interface assumed
- * one. Multi-keyframes inputs aggregate by name; the consumer should
- * call `parseCSSStylesheet` directly if it needs the full set.
+ * one. Multi-keyframes inputs aggregate by name; the consumer should call
+ * Value's `parseStylesheet` directly if it needs the full set.
  */
-const pickKeyframes = (ast: Stylesheet): KeyframeRule[] => {
-    const all = extractKeyframes(ast);
-    for (const rules of all.values()) {
-        if (rules.length > 0) return rules;
-    }
-    return [];
+const pickKeyframes = (ast: Stylesheet): readonly KeyframeRule[] => {
+    const topLevel = collectKeyframes(ast).filter(
+        (row) => row.path.length === 1,
+    );
+    const firstName = topLevel[0]?.rule.name;
+    if (firstName === undefined) return [];
+    return (
+        topLevel.filter((row) => row.rule.name === firstName).at(-1)?.rule
+            .rules ?? []
+    );
 };
+
+const parserMessage = (issue: ParseIssue): string =>
+    `${issue.code} at ${issue.start}-${issue.end}: expected ${issue.expected.join(" or ")}, got ${issue.actual ?? "end of input"}`;
+
+const parseSource = (
+    source: string,
+): { ast: Stylesheet; issues: readonly ParseIssue[] } => {
+    const result = parseStylesheet(source);
+    return result.ok
+        ? { ast: result.value, issues: [] }
+        : { ast: [], issues: result.diagnostics };
+};
+
+const collectDescriptorMap = <
+    T extends { readonly name: string; readonly descriptor: unknown },
+>(
+    rows: readonly { readonly rule: T; readonly path: readonly number[] }[],
+): Map<string, T["descriptor"]> => {
+    const map = new Map<string, T["descriptor"]>();
+    for (const row of rows) {
+        if (row.path.length === 1) map.set(row.rule.name, row.rule.descriptor);
+    }
+    return map;
+};
+
+const selectedStyleDeclarations = (ast: Stylesheet) =>
+    collectStyleRules(ast)
+        .filter((row) => row.path.length === 1)
+        .at(-1)?.rule.declarations ?? [];
 
 /**
  * Normalise a CSS string (or pre-parsed Stylesheet) into the shape
  * `CSSKeyframesAnimation.fromString` consumes. The single entry
- * point: replaces the legacy `parseCSSKeyframes` /
- * `parseCSSStyleBlock` / `parseCSSAnimationKeyframes` fork.
+ * point, replacing the former multi-parser fork.
  *
  * Bare keyframe-stop lists (`from { … } to { … }`) historically work even
  * though they are not valid top-level CSS. F.W8 decides that on the parsed
@@ -223,12 +274,39 @@ export const resolveKeyframes = (
         diagnostics.push({ code, message: extra.message ?? code, ...extra });
     };
 
-    let ast = typeof input === "string" ? parseCSSStylesheet(input) : input;
+    let issues: readonly ParseIssue[] = [];
+    let ast: Stylesheet;
+    if (typeof input === "string") {
+        const parsed = parseSource(input);
+        ast = parsed.ast;
+        issues = parsed.issues;
+    } else {
+        ast = input;
+    }
     let rules = pickKeyframes(ast);
 
     if (typeof input === "string" && rules.length === 0 && input.trim()) {
-        ast = parseCSSStylesheet(`@keyframes anonymous {\n${input.trim()}\n}`);
-        rules = pickKeyframes(ast);
+        const wrapped = parseSource(
+            `@keyframes anonymous {\n${input.trim()}\n}`,
+        );
+        if (pickKeyframes(wrapped.ast).length > 0) {
+            ast = wrapped.ast;
+            issues = wrapped.issues;
+            rules = pickKeyframes(ast);
+        }
+    }
+
+    if (typeof input === "string") {
+        for (const issue of issues) {
+            sink("PARSE_ERROR", {
+                message: parserMessage(issue),
+                input,
+                start: issue.start,
+                end: issue.end,
+                expected: issue.expected,
+                actual: issue.actual,
+            });
+        }
     }
 
     // EMPTY_PARSE (K.W7 S4, lifting the J.W1 engine-internal row onto the
@@ -253,14 +331,14 @@ export const resolveKeyframes = (
 
     // P.W13 — the `@function` descriptor registry + the element-INDEPENDENT
     // resolution context, built from the FINAL ast (after the bare-list re-wrap,
-    // so `extractFunctions` reads the same tree the keyframes came from). `env`
+    // so `collectCustomFunctions` reads the same tree the keyframes came from). `env`
     // is injectable for testing (jsdom carries neither `CSS.supports` nor a
     // faithful `matchMedia`); it defaults to SSR-safe no-ops via
     // `makeResolveContext`. ONE context per resolve — the `seen` cycle-guard is
     // only consumed by the value.js-P-gated `@function` inlining arm (today a
     // no-op seam that never mutates it), so sharing it across declarations is
     // benign; the per-call depth ceiling is the active guard.
-    const functions = extractFunctions(ast);
+    const functions = collectDescriptorMap(collectCustomFunctions(ast));
     // R.W3 §2C: thread the diagnostics array into the resolve context so the
     // @function resolver can push CUSTOM_FN_ARG_DROP rows for silent DROP events.
     const resolveCtx = makeResolveContext(functions, env, diagnostics);
@@ -274,7 +352,10 @@ export const resolveKeyframes = (
             const existing = keyframes.get(percentText);
             keyframes.set(percentText, { ...(existing ?? {}), ...vars });
             if (rule.timingFunction != null) {
-                timingFunctions.set(percentText, rule.timingFunction);
+                timingFunctions.set(
+                    percentText,
+                    serializeTimingFunction(rule.timingFunction),
+                );
             }
             // value.js lifts per-keyframe `animation-composition` onto
             // `rule.composition`; capture it instead of dropping it (F.W8).
@@ -290,9 +371,10 @@ export const resolveKeyframes = (
         keyframes,
         timingFunctions,
         composition,
-        properties: extractProperties(ast),
+        properties: collectDescriptorMap(collectPropertyDescriptors(ast)),
         functions,
-        options: extractAnimationOptions(ast),
+        options:
+            collectAnimationOptions(selectedStyleDeclarations(ast)).at(0) ?? {},
         diagnostics,
         stylesheet: ast,
     };

@@ -1,9 +1,9 @@
 /**
  * compile/ — the forward + backward CSS-keyframe compile pipeline (R.W1, S.B3).
  *
- * HEAVY (value.js-bearing). FORWARD (this directory's root): `parse-flatten.ts`
- * (CSS leaves → ValueUnits) → `frame-compiler.ts` (build frames + the numeric SoA
- * plan) + the `easing/` sub-zone (`getTimingFunction` synchronous resolver +
+ * HEAVY (value.js-bearing). FORWARD (this directory's root): `value-ast.ts`
+ * (authored CSS → structural slots) → `frame-compiler.ts` (build frames + the numeric SoA
+ * plan) + the `easing/` sub-zone (the synchronous timing resolver +
  * `resolveEasingOption` heavy-surface input resolver, U.C8) + `selector.ts`
  * (the keyframe-selector grammar). BACKWARD/emit (the `emit/` sub-zone, S.B3 C-2;
  * U.C8 renamed `backward/` → `emit/` and moved the two sibling emitters in):
@@ -15,23 +15,23 @@
  * (consumers reach it through `loadAnimationEngine`).
  *
  * S.B3 C-2 — the FORWARD re-export CEREMONY through `frame-compiler` is DEAD:
- * `resolveEasingOption` comes from `./easing/easing-option` and
- * `namedSelectorToFraction` / `NAMED_SELECTOR_SUPERTYPE` from `./selector`
+ * `resolveEasingOption` comes from `./easing/easing-option`, while
+ * `namedSelectorToFraction` and `parseKeyframeSelector` come from `./selector`
  * DIRECTLY (their real modules), not bridged through `frame-compiler`.
  */
 // Forward pipeline
 export { FrameCompiler } from "./frame-compiler";
-export { namedSelectorToFraction, NAMED_SELECTOR_SUPERTYPE } from "./selector";
+export { namedSelectorToFraction, parseKeyframeSelector } from "./selector";
 export {
     parseAndFlattenObject,
-    createInterpVarValue,
+    compileValuePair,
     transformTargetsStyle,
-} from "./parse-flatten";
-export type { ParsedVarMap } from "./parse-flatten";
+} from "./value-ast";
+export type { ParsedVarMap } from "./value-ast";
 // The easing sub-zone (U.C8 — the owner's named example carve): the synchronous
-// `getTimingFunction` resolver + the heavy-surface `resolveEasingOption` input
+// The heavy-surface `resolveEasingOption` input
 // resolver, re-exported here from the `compile/easing/` sub-barrel.
-export { getTimingFunction, resolveEasingOption } from "./easing";
+export { resolveEasingOption } from "./easing";
 // Backward/emit pipeline (the compile/emit/ sub-zone barrel)
 export {
     compileToCSS,

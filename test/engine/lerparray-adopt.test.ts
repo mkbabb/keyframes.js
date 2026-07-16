@@ -2,7 +2,7 @@
  * lerparray-adopt.test.ts — the J.W6 S2 ADOPT guard (the consume-edge lock).
  *
  * J.W6 S2 benched the SoA `Float64Array`+`lerpArray` shape against the
- * engine's per-channel `lerpValue → iv._lerp` closure dispatch on the real-K
+ * engine's per-slot interpolation dispatch on the real-K
  * corpus (K=8, the demo's cube transform shape) and the delta cleared the
  * ADOPT threshold (`perf-frontier.md:236` — ≥20% wall-time reduction at K=8)
  * by an order of magnitude (`bench/interp-buffer.bench.ts`, the J.W6 S2 arm;
@@ -27,9 +27,10 @@
  *      refactor lands behind: if the engine's lerp semantics and the SoA
  *      lerp ever diverge, this reds BEFORE any FrameCompiler change ships.
  */
-import { lerpArray } from "@mkbabb/value.js";
+import { lerpArray } from "@mkbabb/value.js/math";
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
+import type { CompiledAnimationFrame } from "../../src/animation/compile/compiled-frame";
 
 const makeCubeAnim = () => {
     const STOPS = 5;
@@ -77,26 +78,34 @@ describe("J.W6 S2 — SoA lerpArray ADOPT guard (consume-edge lock)", () => {
         // The corpus invariant the SoA packing depends on: every channel of
         // every compiled frame is plain-numeric (no color, no computed) —
         // exactly K=8 channels (translate3d×3 + scale3d×3 + rotateZ + opacity).
-        for (const frame of anim.frames) {
+        const frames = anim.frames as CompiledAnimationFrame[];
+        for (const frame of frames) {
             expect(frame.allInterpVars.length).toBe(8);
-            for (const iv of frame.allInterpVars) {
-                expect(typeof iv.start.value).toBe("number");
-                expect(typeof iv.stop.value).toBe("number");
-                expect(iv.computed ?? false).toBe(false);
+            for (const slot of frame.allInterpVars) {
+                expect(slot.kind).toBe("number");
+                if (slot.kind !== "number") throw new TypeError("Expected numeric slot");
+                expect(typeof slot.from).toBe("number");
+                expect(typeof slot.to).toBe("number");
             }
         }
 
         // Compile-time analog of the SoA emission: pack per-segment buffers.
-        const segs = anim.frames.map((frame) => ({
+        const segs = frames.map((frame) => ({
             start: frame.time.start,
             stop: frame.time.stop,
             fn: frame.timingFunction.fn,
-            ivs: frame.allInterpVars,
+            slots: frame.allInterpVars,
             from: new Float64Array(
-                frame.allInterpVars.map((iv) => iv.start.value as unknown as number),
+                frame.allInterpVars.map((slot) => {
+                    if (slot.kind !== "number") throw new TypeError("Expected numeric slot");
+                    return slot.from;
+                }),
             ),
             to: new Float64Array(
-                frame.allInterpVars.map((iv) => iv.stop.value as unknown as number),
+                frame.allInterpVars.map((slot) => {
+                    if (slot.kind !== "number") throw new TypeError("Expected numeric slot");
+                    return slot.to;
+                }),
             ),
         }));
         const out = new Float64Array(8);
@@ -113,13 +122,12 @@ describe("J.W6 S2 — SoA lerpArray ADOPT guard (consume-edge lock)", () => {
             lerpArray(seg.from, seg.to, seg.fn(scaled), out);
 
             for (let k = 0; k < 8; k++) {
-                // The engine path mutated iv.value in place; the SoA path
-                // wrote out[k]. Equal within float-rounding of the two lerp
+                // The engine updates each slot's current sample; the SoA path
+                // writes out[k]. Equal within float-rounding of the two lerp
                 // formulations.
-                expect(out[k]).toBeCloseTo(
-                    seg.ivs[k]!.value.value as unknown as number,
-                    9,
-                );
+                const slot = seg.slots[k]!;
+                if (slot.kind !== "number") throw new TypeError("Expected numeric slot");
+                expect(out[k]).toBeCloseTo(slot.current, 9);
             }
         }
     });

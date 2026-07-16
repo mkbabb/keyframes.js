@@ -1,200 +1,150 @@
-/**
- * resolve/resolve-if.ts — the `if()` condition resolution (P.W13 / Q.WB1, carved
- * off `resolve/index.ts` in R.W2b).
- *
- * Evaluate a parsed `if(<cond>, <value>, <else>)` against the injectable env:
- * `supports(...)` / `media(...)` resolve in Phase 1 (element-INDEPENDENT);
- * `style(--p)` is Phase-2 (element-aware) and is left UNRESOLVED in Phase 1 so
- * the second pass finishes it. The chosen consequent is re-parsed into its
- * CONCRETE typed node (`reparseLeaf`) so a lowered `if()` interpolates as the
- * color/numeric it denotes, not a raw string. The consequent recursion is the
- * injected `resolveNode` (the recursion seam with `resolve/index.ts`).
- */
-import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
-import { parseCSSValue } from "@mkbabb/value.js/parsing";
+import type { CssCall, CssList, CssScalar, CssValue } from "@mkbabb/value.js/value";
+import { serializeCssValue } from "../compile/emit/css-text";
 import { DROP, type ResolveContext, type Resolved } from "./env";
 import type { ResolveNode } from "./resolve-function";
 
-/**
- * Extract the inner argument string of a single-function condition leaf:
- * `supports(color: lch(0 0 0))` → `color: lch(0 0 0)`. value.js parses the
- * condition VERBATIM as an opaque string `ValueUnit`; kf re-reads the function
- * name + slices the inner query to hand to `CSS.supports` / `matchMedia`. Returns
- * `undefined` for anything that is not a single `name(...)` form.
- */
-export const splitCondition = (
-    raw: string,
-): { name: string; query: string } | undefined => {
-    const open = raw.indexOf("(");
-    if (open <= 0 || !raw.trimEnd().endsWith(")")) return undefined;
-    const name = raw.slice(0, open).trim().toLowerCase();
-    const query = raw.slice(open + 1, raw.lastIndexOf(")")).trim();
-    if (!name || !query) return undefined;
-    return { name, query };
+type IfClause = Readonly<{
+    condition: CssValue;
+    consequent: CssValue;
+    fallback: boolean;
+}>;
+
+const isKeyword = (value: CssValue, keyword: string): value is CssScalar =>
+    value.kind === "scalar" &&
+    value.payload.type === "keyword" &&
+    value.payload.value.toLowerCase() === keyword;
+
+const packed = (items: readonly CssValue[]): CssValue | undefined => {
+    if (items.length === 0) return undefined;
+    if (items.length === 1) return items[0];
+    return Object.freeze({
+        kind: "list",
+        separator: "space",
+        items: Object.freeze([...items]),
+    });
 };
 
-/**
- * Evaluate ONE `if()` condition leaf against the env. `else` is always TRUE (the
- * fallback clause). `supports(...)` → `ctx.env.supports`; `media(...)` →
- * `ctx.env.matchMedia(...).matches`. `style(--p)` is Phase-2 (element-aware) and
- * returns `undefined` here so the NOW pass leaves the whole `if()` UNRESOLVED for
- * the second pass rather than guessing. An unrecognized condition → `false`.
- */
-const evalCondition = (
-    condUnit: ValueUnit | FunctionValue,
-    ctx: ResolveContext,
-): boolean | undefined => {
-    const raw = String(
-        condUnit instanceof ValueUnit ? condUnit.value : condUnit,
-    ).trim();
-    if (raw === "else" || raw === "") return true;
+const legacyClauses = (list: CssList): readonly IfClause[] => {
+    const rows: CssValue[][] = [[]];
+    for (const item of list.items) {
+        if (isKeyword(item, ";")) rows.push([]);
+        else rows.at(-1)!.push(item);
+    }
 
-    const split = splitCondition(raw);
-    if (!split) {
-        // Bare keyword or non-`name(...)` shape — treat as an unmatched condition.
+    const clauses: IfClause[] = [];
+    for (const row of rows) {
+        const colon = row.findIndex((item) => isKeyword(item, ":"));
+        if (colon < 0) continue;
+        const condition = packed(row.slice(0, colon));
+        const consequent = packed(row.slice(colon + 1));
+        if (condition === undefined || consequent === undefined) continue;
+        clauses.push(Object.freeze({
+            condition,
+            consequent,
+            fallback: isKeyword(condition, "else"),
+        }));
+    }
+    return Object.freeze(clauses);
+};
+
+const clausesOf = (fn: CssCall): readonly IfClause[] => {
+    if (fn.args.length === 1 && fn.args[0]?.kind === "list") {
+        return legacyClauses(fn.args[0]);
+    }
+    const condition = fn.args[0];
+    const consequent = fn.args[1];
+    if (condition === undefined || consequent === undefined) return [];
+    const clauses: IfClause[] = [
+        Object.freeze({ condition, consequent, fallback: false }),
+    ];
+    const fallback = fn.args[2];
+    if (fallback !== undefined) {
+        clauses.push(Object.freeze({
+            condition: Object.freeze({
+                kind: "scalar",
+                payload: Object.freeze({ type: "keyword", value: "else" }),
+            }),
+            consequent: fallback,
+            fallback: true,
+        }));
+    }
+    return Object.freeze(clauses);
+};
+
+const serializedArgs = (call: CssCall): string =>
+    call.args.map(serializeCssValue).join(", ");
+
+const evalStyleCondition = (
+    call: CssCall,
+    customProps: (name: string) => string | undefined,
+): boolean => {
+    const argument = call.args[0];
+    if (argument === undefined) return false;
+    if (argument.kind === "scalar" && argument.payload.type === "keyword") {
+        return customProps(argument.payload.value) !== undefined;
+    }
+    if (argument.kind !== "list") return false;
+
+    const colon = argument.items.findIndex((item) => isKeyword(item, ":"));
+    const property = argument.items[0];
+    if (
+        property?.kind !== "scalar" ||
+        property.payload.type !== "keyword"
+    ) {
         return false;
     }
-    const { name, query } = split;
+    const actual = customProps(property.payload.value);
+    if (actual === undefined) return false;
+    if (colon < 0) return true;
 
-    if (name === "supports") {
-        return ctx.env.supports?.(query) ?? false;
-    }
-    if (name === "media") {
-        return ctx.env.matchMedia?.(query)?.matches ?? false;
-    }
-    // `style(--p)` (and `style(--p: v)`) reads a RESOLVED custom-prop off the
-    // element — Phase 2. When `ctx.env.customProps` is PRESENT (the element-aware
-    // SECOND pass, post-`setTargets`), read the resolved prop and evaluate
-    // presence/equality. When ABSENT (Phase 1, no element), return `undefined`
-    // so the whole if() is left UNRESOLVED for the second pass — the existing
-    // Phase-1 posture, unchanged.
-    if (name === "style") {
-        if (ctx.env.customProps === undefined) return undefined;
-        return evalStyleCondition(query, ctx.env.customProps);
-    }
+    const expected = packed(argument.items.slice(colon + 1));
+    if (expected === undefined) return false;
+    const normalize = (value: string) => value.trim().replace(/\s+/g, " ");
+    return normalize(actual) === normalize(serializeCssValue(expected));
+};
 
+const evalCondition = (
+    condition: CssValue,
+    ctx: ResolveContext,
+): boolean | undefined => {
+    if (isKeyword(condition, "else")) return true;
+    if (condition.kind !== "call") return false;
+
+    if (condition.name === "supports") {
+        return ctx.env.supports?.(serializedArgs(condition)) ?? false;
+    }
+    if (condition.name === "media") {
+        return ctx.env.matchMedia?.(serializedArgs(condition))?.matches ?? false;
+    }
+    if (condition.name === "style") {
+        const customProps = ctx.env.customProps;
+        return customProps === undefined
+            ? undefined
+            : evalStyleCondition(condition, customProps);
+    }
     return false;
 };
 
-/**
- * Q.WB1 — evaluate a `style(...)` condition's inner query against the resolved
- * custom-prop reader (the Phase-2 element-aware branch). Two CSS forms:
- *   - `style(--p)` (PRESENCE) — true iff `--p` is a set custom-prop.
- *   - `style(--p: value)` (EQUALITY) — true iff the resolved `--p` equals
- *     `value` (whitespace-normalized comparison).
- * The `customProps` reader returns `undefined` for an unset prop (the S2
- * contract), so presence is a simple non-`undefined` test.
- */
-const evalStyleCondition = (
-    query: string,
-    customProps: (name: string) => string | undefined,
-): boolean => {
-    const colon = query.indexOf(":");
-    if (colon === -1) {
-        // Presence form: `style(--p)`.
-        const prop = query.trim();
-        if (prop === "") return false;
-        return customProps(prop) !== undefined;
-    }
-    // Equality form: `style(--p: value)`.
-    const prop = query.slice(0, colon).trim();
-    const expected = query.slice(colon + 1).trim();
-    if (prop === "") return false;
-    const actual = customProps(prop);
-    if (actual === undefined) return false;
-    // Whitespace-normalized compare (the resolved computed value may carry
-    // different internal spacing than the authored literal).
-    const norm = (s: string) => s.trim().replace(/\s+/g, " ");
-    return norm(actual) === norm(expected);
-};
-
-/** Whether a node is an EMPTY-string leaf — value.js's padding for an absent
- * `if()` else slot (it always emits 3 `if()` values, filling a missing else with
- * `ValueUnit("")`). An empty leaf is "no value", never a real branch. */
-const isEmptyLeaf = (node: ValueUnit | FunctionValue): boolean =>
-    node instanceof ValueUnit && String(node.value).trim() === "";
-
-/**
- * Re-parse a chosen `if()` consequent into its CONCRETE typed node. value.js
- * parses an `if()` consequent VERBATIM as an opaque `ValueUnit(value:"red",
- * unit:"string")` — NOT a typed color/length. So the resolved branch is re-parsed
- * through value.js's own `parseCSSValue`, turning `"red"` → `rgb(255 0 0)` (a
- * `color` unit) — exactly the node a direct `color: red` keyframe would carry. A
- * leaf already typed re-parses to an equal node; a parse miss leaves it intact.
- */
-const reparseLeaf = (
-    node: Resolved<ValueUnit | FunctionValue>,
-): Resolved<ValueUnit | FunctionValue> => {
-    if (node === DROP) return node;
-    if (node instanceof ValueUnit && node.unit === "string") {
-        try {
-            return parseCSSValue(String(node.value));
-        } catch {
-            return node;
-        }
-    }
-    return node;
-};
-
-/**
- * Resolve a parsed `if(...)` `FunctionValue`. value.js produces the common
- * 2-branch shape `if(<cond>, <value>, <else>)` as `FunctionValue("if",
- * [condUnit, valueUnit, elseUnit])`. First-true wins; `else` is the fallback. A
- * guaranteed-invalid `if()` (no matching branch, no else) → {@link DROP}. If the
- * condition is Phase-2 (`style(--p)`, undecidable here), the `if()` is returned
- * UNCHANGED so the element-aware second pass can finish it. The consequent
- * recursion is the injected `resolveNode`.
- *
- * value.js's `if()` producer is lossy for >2 clauses today (it collapses 3 clauses
- * to first-consequent + else); the common 2-branch case ships NOW.
- */
 export const resolveIf = (
-    fn: FunctionValue,
+    fn: CssCall,
     ctx: ResolveContext,
     resolveNode: ResolveNode,
-): Resolved<ValueUnit | FunctionValue> => {
-    const vals = fn.values;
-    // The 2-branch shape value.js emits: [cond, consequent, else?].
-    const cond = vals[0];
-    const consequent = vals[1];
-    const elseVal = vals[2];
+): Resolved<CssValue> => {
+    const clauses = clausesOf(fn);
+    if (clauses.length === 0) return DROP;
 
-    if (cond === undefined || consequent === undefined) {
-        // Malformed if() — guaranteed-invalid, drop the declaration.
-        return DROP;
+    for (const clause of clauses) {
+        const decision = clause.fallback ? true : evalCondition(clause.condition, ctx);
+        if (decision === undefined) return fn;
+        if (decision) return resolveNode(clause.consequent, ctx);
     }
-
-    const decided = evalCondition(cond, ctx);
-    if (decided === undefined) {
-        // Phase-2 (style(--p)) — leave the if() intact for the element-aware
-        // pass; do NOT guess a branch here.
-        return fn;
-    }
-    if (decided) {
-        return reparseLeaf(resolveNode(consequent, ctx));
-    }
-    // value.js ALWAYS emits a 3rd `if()` slot, padding a MISSING `else` with an
-    // empty-string `ValueUnit("")`. So an "else present" test is "the 3rd slot is
-    // a NON-EMPTY value", not merely "!== undefined".
-    if (elseVal !== undefined && !isEmptyLeaf(elseVal)) {
-        return reparseLeaf(resolveNode(elseVal, ctx));
-    }
-    // No matching branch, no else → guaranteed-invalid → DROP (NOT empty-string,
-    // which would corrupt interpolation).
     return DROP;
 };
 
-/**
- * Whether an `if()` `FunctionValue`'s condition is a `style(...)` form — the
- * Phase-2 element-aware condition (`if(style(--p))` / `if(style(--p: v))`). The
- * condition is the FIRST `if()` value, parsed VERBATIM as an opaque
- * `ValueUnit("style(--p)", "string")`, so the sniff re-reads its function name
- * via {@link splitCondition}.
- */
-export const isStyleConditionIf = (node: FunctionValue): boolean => {
-    if (node.name !== "if") return false;
-    const cond = node.values[0];
-    if (cond === undefined) return false;
-    const raw = String(cond instanceof ValueUnit ? cond.value : cond).trim();
-    return splitCondition(raw)?.name === "style";
-};
+export const isStyleConditionIf = (node: CssCall): boolean =>
+    node.name === "if" &&
+    clausesOf(node).some(
+        (clause) =>
+            clause.condition.kind === "call" &&
+            clause.condition.name === "style",
+    );

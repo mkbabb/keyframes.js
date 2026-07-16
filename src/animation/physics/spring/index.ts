@@ -6,7 +6,7 @@
  * (`reseat.ts`), the spring-from-duration construction surface (`duration.ts`),
  * and the two CSS-emission helpers (`linear-stops.ts` → `springLinearStops`,
  * `timing-function.ts` → `springTimingFunction`). The package barrel re-exports
- * the LIGHT (value.js-free) symbols from here, so a path change is the only
+ * the LIGHT (parser-free, `/math`-leaf-only) symbols from here, so a path change is the only
  * consumer-visible difference. The progress↔duration↔reseat ring is broken by
  * `types.ts` (the shared options/default).
  */

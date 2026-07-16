@@ -7,7 +7,7 @@
  * seam at `resolve-values.ts`'s dashed-function branch — it returned the
  * `--ident(args)` call UNCHANGED because value.js's generic producer dropped a
  * dashed-call's args. value.js 1.2.0 ships the dashed-call parse arm
- * (`--double(50px)` → `FunctionValue("--double", [ValueUnit(50, px)])`) + the
+ * (`--double(50px)` → `FunctionValue("--double", [CssValue(50, px)])`) + the
  * `coerceToSyntax(valueText, syntax)` resolve-path validator. Q.WB2 activates the
  * seam: bind → coerce → substitute → evaluate, cycle-guarded by `ctx.seen`.
  *
@@ -26,7 +26,9 @@
  * call UNCHANGED, so the literal `--double(50px)` reaches the compiled frame.
  */
 import { describe, expect, it } from "vitest";
+import type { CssValue } from "@mkbabb/value.js/value";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
+import { serializeCssValue } from "../../src/animation/compile/emit/css-text";
 
 /**
  * Read the COMPILED frame's flat value STRING for `prop` (the post-flatten,
@@ -70,12 +72,12 @@ const templateValueString = (
     prop: string,
 ): string | undefined => {
     const frame = anim.templateFrames.find(
-        (f) => Number.parseFloat(String(f.start.value)) === startPercent,
+        (f) => f.start.kind === "percent" && f.start.value * 100 === startPercent,
     );
     if (!frame) return undefined;
     const vars = frame.vars as Record<string, unknown>;
     if (!(prop in vars)) return undefined;
-    return String(vars[prop]);
+    return serializeCssValue(vars[prop] as CssValue);
 };
 
 describe("Q.WB2 — emerging-css-resolve-fn (@function call-inlining)", () => {

@@ -85,8 +85,10 @@ export async function resolveEasing(name: string): Promise<Easing> {
         );
     }
 
-    const fn = registry.getTimingFunction(name);
-    if (!fn) {
+    let fn: TimingFunction;
+    try {
+        fn = registry.resolveTimingFunction(name);
+    } catch {
         throw new UnknownEasingError(name);
     }
 

@@ -2,7 +2,7 @@ import type { Vars } from "../../constants";
 import type { CompileChild } from "./backward-walk";
 
 export type CompileRefusalReason =
-    | "weighted-blend"
+    | "weight-blend"
     | "custom-renderer"
     | "perceptual-oklab"
     | "computed-unit-drift";
@@ -18,13 +18,13 @@ export function probeChildRefusal<V extends Vars>(
     child: CompileChild<V>,
 ): CompileRefusal | undefined {
     const { animation, name } = child;
-    if (child.weighted) {
+    if (child.weightBlend) {
         return {
             name,
-            reason: "weighted-blend",
+            reason: "weight-blend",
             message:
-                "weighted layer blend has no animation-composition equivalent " +
-                "(CSS composites replace/add/accumulate only); the weighted axis is " +
+                "layer weight has no animation-composition equivalent " +
+                "(CSS composites replace/add/accumulate only); the weight axis is " +
                 "kf's unique blend tier — the JS playback is the only faithful path",
         };
     }
@@ -41,8 +41,8 @@ export function probeChildRefusal<V extends Vars>(
     }
     for (let i = 0; i < animation.templateFrames.length; i++) {
         const declared = animation.parsedVars[i] ?? {};
-        for (const [key, arr] of Object.entries(declared)) {
-            if (!Array.isArray(arr) || arr.length === 0) {
+        for (const [key, value] of Object.entries(declared)) {
+            if (value.kind === "list" && value.items.length === 0) {
                 return {
                     name,
                     reason: "computed-unit-drift",

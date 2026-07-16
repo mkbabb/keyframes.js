@@ -4,15 +4,14 @@
 // the library ships — the two value.js-bearing consts (`COLOR_SPACES`,
 // `defaultOptions`) plus the value.js-free arrays/defaults (`DIRECTIONS`,
 // `FILL_MODES`, `HUE_METHODS`, `NOOP_TRANSFORM`, `defaultLayerConfig`). This
-// module carries a genuine `@mkbabb/value.js` runtime edge (`COLOR_SPACE_RANGES`,
-// `easeInOutCubic`), so ONLY the HEAVY surface imports it (directly or through
+// module carries a genuine `@mkbabb/value.js` runtime edge (`easeInOutCubic`),
+// so ONLY the HEAVY surface imports it (directly or through
 // the back-compat barrel). LIGHT importers take TYPES from the sibling
 // `constants/types.ts`, never this file. The `import type` edge back to `./types`
 // (the option/config/transform TYPES the values are annotated with) is a
 // type-only cycle — erased at build, no runtime edge.
-import { COLOR_SPACE_RANGES } from "@mkbabb/value.js/color";
 import { easeInOutCubic } from "@mkbabb/value.js/easing";
-import type { ColorSpace, HueInterpolationMethod } from "@mkbabb/value.js/color";
+import type { HueInterpolationMethod, SpaceId } from "@mkbabb/value.js/color";
 import type {
     AnimationLayerConfig,
     AnimationOptions,
@@ -29,12 +28,28 @@ export const DIRECTIONS = [
 export const FILL_MODES = ["none", "forwards", "backwards", "both"] as const;
 
 /**
- * The valid `colorSpace` values — the runtime key-set of value.js's
- * `COLOR_SPACE_RANGES`, the SAME source the `ColorSpace` type derives from
- * (`keyof typeof COLOR_SPACE_RANGES`). Drawing it from the registry keeps the
- * fail-explicit setter's accept-list from drifting from the type.
+ * The valid `colorSpace` values. `satisfies` keeps this runtime accept-list
+ * checked against Value 4's exported `SpaceId` contract.
  */
-export const COLOR_SPACES = Object.keys(COLOR_SPACE_RANGES) as ColorSpace[];
+export const COLOR_SPACES = [
+    "rgb",
+    "hsl",
+    "hsv",
+    "hwb",
+    "lab",
+    "lch",
+    "oklab",
+    "oklch",
+    "xyz",
+    "kelvin",
+    "srgb-linear",
+    "display-p3",
+    "a98-rgb",
+    "prophoto-rgb",
+    "rec2020",
+    "ictcp",
+    "jzazbz",
+] as const satisfies readonly SpaceId[];
 
 /**
  * The valid `hueMethod` values — the closed CSS Color 4 union
@@ -76,6 +91,6 @@ export const defaultOptions: AnimationOptions = {
 export const defaultLayerConfig: AnimationLayerConfig = {
     zIndex: 0,
     weight: 1,
-    blendMode: "replace",
+    op: "replace",
     enabled: true,
 };

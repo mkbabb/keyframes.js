@@ -8,9 +8,10 @@
  * (in `../animation`) is value.js-/scroll-agnostic. The `engine/css/index.ts`
  * barrel re-exports the class; the `engine/index.ts` barrel re-exports it onward.
  */
-import { ValueUnit } from "@mkbabb/value.js/units";
-import { type CSSTimelineOptions, type PropertyDescriptor } from "@mkbabb/value.js/parsing";
-import { isObject } from "@mkbabb/value.js";
+import {
+    type CSSPropertyDescriptor,
+    type CSSTimelineOptions,
+} from "@mkbabb/value.js/css";
 import { resolveKeyframes } from "../../compile/adapter";
 import type {
     CompositeOperator,
@@ -25,13 +26,10 @@ import {
     registerPropertyDescriptors,
 } from "./metadata";
 import { cssTwinFor } from "../../easing";
-import {
-    namedSelectorToFraction,
-    NAMED_SELECTOR_SUPERTYPE,
-} from "../../compile/selector";
+import { namedSelectorToFraction } from "../../compile/selector";
 import type { Timeline } from "../../orchestration/timeline";
-import { getTimingFunction } from "../../compile/easing/easing-registry";
-import { transformTargetsStyle } from "../../compile/parse-flatten";
+import { resolveTimingFunction } from "../../compile/easing/easing-registry";
+import { transformTargetsStyle } from "../../compile/value-ast";
 import { KeyframesAnimation } from "../animation";
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
@@ -69,11 +67,10 @@ export class CSSKeyframesAnimation<
      * scroll-range named keyframe selector (`entry`/`exit`/`cover`/`contain`)
      * ingests OPAQUELY (the L.W1 S4 floor) and is RESOLVABLE only under a timeline;
      * `bindTimeline` is where that resolution happens. It walks `templateFrames`,
-     * resolves each named-selector start to a numeric `%` `ValueUnit` via
-     * {@link namedSelectorToFraction}, CLEARS the `NAMED_SELECTOR_SUPERTYPE` tag (so
-     * the resolved frame is indistinguishable from an author-written `%` at the sort
-     * step — no NaN), and re-compiles. The play-time guard
-     * (`assertNoUnresolvedNamedSelector`) then finds zero unresolved frames and
+     * resolves each named selector to a normalized percent {@link KeyframeSelector}
+     * via {@link namedSelectorToFraction}, and re-compiles. The resolved selector is
+     * indistinguishable from an author-written percentage at the sort step, so
+     * the play-time guard (`assertNoUnresolvedNamedSelector`) finds zero unresolved frames and
      * passes silently — so this MUST land before the guard fires (the gate-enforced
      * sub-wave ordering: the guard over-throws on a bound animation if the resolver
      * is absent).
@@ -85,15 +82,10 @@ export class CSSKeyframesAnimation<
         this._boundTimeline = timeline;
 
         let resolvedAny = false;
-        for (const frame of this.compiler.templateFrames) {
-            if (frame.start.superType?.includes(NAMED_SELECTOR_SUPERTYPE)) {
-                const fraction = namedSelectorToFraction(
-                    String(frame.start.value),
-                );
-                // A proper numeric percentage ValueUnit; the named-selector tag is
-                // CLEARED (absent on the replacement) so the sort + calcFrameTime see
-                // a plain `%` start — no NaN.
-                frame.start = new ValueUnit(fraction * 100, "%");
+        for (const frame of this.templateFrames) {
+            if (frame.start.kind === "named") {
+                const fraction = namedSelectorToFraction(frame.start);
+                frame.start = { kind: "percent", value: fraction };
                 resolvedAny = true;
             }
         }
@@ -101,7 +93,7 @@ export class CSSKeyframesAnimation<
         // Re-compile if already parsed (purge any NaN frames the prior parse made)
         // OR if we just resolved named starts — the next `parse()` then sees only
         // numeric starts. If never parsed and nothing resolved, the walk was a no-op.
-        if (resolvedAny && this.compiler.frames.length > 0) {
+        if (resolvedAny && this.frames.length > 0) {
             this.parse();
         }
 
@@ -142,14 +134,8 @@ export class CSSKeyframesAnimation<
     ) {
         transform = this.resolveTransform(transform);
 
-        if (isObject(keyframes)) {
-            keyframes = new Map(Object.entries(keyframes));
-        }
-
-        const entries =
-            keyframes instanceof Map
-                ? keyframes.entries()
-                : Object.entries(keyframes);
+        const entries: Iterable<[string, Partial<V>]> =
+            keyframes instanceof Map ? keyframes : Object.entries(keyframes);
 
         for (const [percent, frame] of entries) {
             this.addFrame(percent, frame, transform);
@@ -166,7 +152,7 @@ export class CSSKeyframesAnimation<
      * custom properties (syntax string, initial value, inheritance
      * flag) without re-parsing the source CSS.
      */
-    propertyRegistry: Map<string, PropertyDescriptor> = new Map();
+    propertyRegistry: Map<string, CSSPropertyDescriptor> = new Map();
 
     /**
      * Parsed scroll-grammar (`animation-timeline` / `animation-range` /
@@ -222,14 +208,13 @@ export class CSSKeyframesAnimation<
                     hasClone(v) ? v.clone() : v,
                 ]),
             ) as Record<string, unknown>;
-            // CSS parsing stays LENIENT (a forgiving language): an
-            // unrecognized per-keyframe `animation-timing-function` falls
-            // back to the inherited easing rather than throwing. The
-            // fail-explicit throw is reserved for the explicit
-            // setter/addFrame API where a bad value is a consumer bug, not
-            // a parse outcome.
+            // Resolve a declared per-keyframe timing function exactly once.
+            // Malformed text fails explicitly; inheriting the animation-level
+            // easing is reserved for an omitted declaration, never a fallback.
             const tfText = resolved.timingFunctions.get(percent);
-            const resolvedFn = tfText ? getTimingFunction(tfText) : undefined;
+            const resolvedFn = tfText
+                ? resolveTimingFunction(tfText)
+                : undefined;
             // Preserve the faithful CSS twin (a `linear()`/`cubic-bezier()`/
             // `steps()` literal, a CSS keyword) so the per-keyframe easing
             // round-trips on re-serialize instead of collapsing to the bare

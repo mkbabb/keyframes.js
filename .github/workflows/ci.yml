@@ -3,8 +3,8 @@
 # U.A6 collapses the merge path to the three surviving mechanisms: the Vitest
 # correctness suite and proof:publish (boundary, published surface, dependency
 # floor). Browser/device observations run only on the scheduled/manual roster
-# below; they never hold a library merge hostage. Glass-ui remains a registry
-# optional dependency and is not cloned or edited here.
+# below; they never hold a library merge hostage. The producer library graph has
+# no Glass dependency; the later demo-consumer commit owns that registry edge.
 name: ci
 
 on:
@@ -25,7 +25,7 @@ permissions:
 
 jobs:
     gates:
-        name: library gates (npm test + proof:publish)
+        name: library gates (library tests + proof:publish)
         runs-on: ubuntu-latest
         timeout-minutes: 4
         steps:
@@ -43,7 +43,7 @@ jobs:
             - name: build library
               run: npm run build:lib
             - name: correctness suite
-              run: npm test -- --run
+              run: npm run test:lib
             - name: publish boundary
               run: npm run proof:publish
 
@@ -63,7 +63,7 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            - name: npm ci (registry glass-ui)
+            - name: npm ci (demo consumer graph)
               run: npm ci
             - name: install playwright
               run: npm i --no-save @playwright/test

@@ -23,7 +23,8 @@
  * public helpers from `resolve`, never the type-only barrel `../src/animation`.
  */
 import { bench, describe } from "vitest";
-import { parseCSSValue, ValueArray } from "@mkbabb/value.js";
+import { parseCssValue } from "@mkbabb/value.js/css";
+import type { CssValue } from "@mkbabb/value.js/value";
 import { resolveKeyframes } from "../src/animation/compile/adapter";
 import {
     hasResolvableValue,
@@ -77,14 +78,18 @@ const CONCRETE_CSS =
 
 // A pre-parsed `if()` value + a deeply-nested concrete value for the direct
 // core-recursion arms (built once; the body reconstructs only the mutable ctx).
-const IF_VALUE = new ValueArray(
-    parseCSSValue(
-        "if(supports(color: lch(0 0 0)): red; else: blue)",
-    ) as never,
+const parsedValue = (source: string): CssValue => {
+    const parsed = parseCssValue(source);
+    if (!parsed.ok) {
+        throw new TypeError(`Invalid resolve benchmark fixture: ${parsed.diagnostics[0].code}`);
+    }
+    return parsed.value;
+};
+const IF_VALUE = parsedValue(
+    "if(supports(color: lch(0 0 0)): red; else: blue)",
 );
-const NESTED_CONCRETE_VALUE = new ValueArray(
-    parseCSSValue("calc(calc(10px * 3) + calc(20px / 2))") as never,
-    parseCSSValue("translate3d(10px, 20px, 30px)") as never,
+const NESTED_CONCRETE_VALUE = parsedValue(
+    "calc(calc(10px * 3) + calc(20px / 2)) translate3d(10px, 20px, 30px)",
 );
 
 describe("resolve/ zone — emerging-CSS lowering (S.F5b, run-check)", () => {
@@ -104,7 +109,7 @@ describe("resolve/ zone — emerging-CSS lowering (S.F5b, run-check)", () => {
         resolveKeyframes(CONCRETE_CSS);
     });
 
-    bench("resolveValues · if() ValueArray (core recursion)", () => {
+    bench("resolveValues · if() CssValue (core recursion)", () => {
         resolveValues(IF_VALUE, makeResolveContext(new Map()));
     });
 

@@ -27,7 +27,7 @@ describe("FrameCompiler — compile without a clock", () => {
         const f = fc.frames[0]!;
         expect(f.time.start).toBe(0);
         expect(f.time.stop).toBe(1000);
-        expect("opacity" in f.interpVars).toBe(true);
+        expect("opacity" in f.flatVars).toBe(true);
     });
 
     it("honours `options.duration` in the computed frame times", () => {
@@ -48,7 +48,7 @@ describe("FrameCompiler — compile without a clock", () => {
 
         // `x` appears at 0% and 100% (non-adjacent) — the compiler must build a
         // segment spanning them, independent of any playback clock.
-        const spansX = fc.frames.some((f) => "x" in f.interpVars);
+        const spansX = fc.frames.some((f) => "x" in f.flatVars);
         expect(spansX).toBe(true);
     });
 

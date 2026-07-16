@@ -75,13 +75,10 @@ export function toWAAPIOptions<V extends Vars>(
     //     (`Easing.css`, e.g. a spring's `linear()` stops) so the compositor runs
     //     the true curve between the two keyframe endpoints; bare `linear` when
     //     there is no twin (the endpoints carry whatever JS interpolation baked).
-    //   - MULTI segment (S.F5c S2): emit bare `linear`. The multi-segment
-    //     keyframes are DENSELY sampled from the true per-segment curve
-    //     (`toWAAPIKeyframes` bakes `interpFrames`), so the effect easing must be
-    //     the IDENTITY — re-applying the `.css` twin on top of the already-baked
-    //     stops would DOUBLE-EASE (the effect easing transforms iteration
-    //     progress BEFORE keyframe interpolation). This is the "densify → single
-    //     `linear()`" collapse that replaced the old multi-segment refusal.
+    //   - MULTI segment (S.F5c S2): emit bare `linear`. Numeric compiled slots
+    //     are densely sampled from the true per-segment curve; structural slots
+    //     that cannot be chord-measured retain the CSS twin on each boundary
+    //     keyframe instead. Both forms therefore own easing exactly once.
     // Eligibility already guaranteed a uniform timing function and holds
     // `linear()` twins on rAF for WebKit (CE-1.0 — HW-accel refused), so reading
     // frame 0's is enough; `frames.length` is the segment count (from/to → 1).

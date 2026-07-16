@@ -95,8 +95,8 @@ describe("animation interpolation equivalence", () => {
                 { left: "100px" },
             ]);
 
-            // Extract values immediately — interpFrames mutates InterpolatedVar.value in-place,
-            // so a second call overwrites flatVars references from the first call.
+            // Extract values immediately: interpFrames refreshes the shared
+            // authored-value sink, so the next sample overwrites these keys.
             const val25 = parseFloat(String(anim.interpFrames(250)["left"]));
             const val75 = parseFloat(String(anim.interpFrames(750)["left"]));
 

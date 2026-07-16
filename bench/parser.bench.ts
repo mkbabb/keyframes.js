@@ -11,18 +11,16 @@
  *      never hits (the editor-keystroke reality: warm ~94µs → cache-busting
  *      ~247µs ≈ 2.6×). This is the row KF-9/`NEW-24` (`splitPathKey`'s
  *      double-`split(".")` alloc) measures itself against, MEASURE-FIRST;
- *   3. a LAYER-ISOLATION micro-bench — the bare `parseCSSValue` (the value.js
+ *   3. a LAYER-ISOLATION micro-bench — the bare `parseCssValue` (the value.js
  *      leaf) vs the full `fromString` pipeline, the rows the value.js Wave-A
  *      `any()`→`dispatch()` and parse-that §1.5 hand-offs collapse.
  *
  * Imports `CSSKeyframesAnimation` from the VALUE module `engine` (the S1 fix),
- * never the type-only barrel; the bare-value leaf is value.js's `parseCSSValue`
- * (the broad value parser that handles units, transform functions, calc, and
- * colors uniformly — `parseCSSValueUnit` is the narrower single-unit parser that
- * throws on a function/calc).
+ * never the type-only barrel; the bare-value leaf is Value 4's typed
+ * `parseCssValue` Result boundary.
  */
 import { bench, describe } from "vitest";
-import { parseCSSValue } from "@mkbabb/value.js";
+import { parseCssValue } from "@mkbabb/value.js/css";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 
 // ── Cold corpora (the original benches, kept) ────────────────────────────────
@@ -37,25 +35,33 @@ const complexKeyframes = Array.from({ length: 11 }, (_, i) => {
     return `${pct}% { opacity: ${i / 10}; transform: translateX(${i * 20}px) translateY(${i * 10}px); }`;
 }).join("\n");
 
-describe("parseCSSKeyframes", () => {
+describe("keyframe parsing", () => {
     bench("simple 2-stop (cold)", () => {
-        new CSSKeyframesAnimation({ duration: 1000 }).fromString(simpleKeyframes);
+        new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            simpleKeyframes,
+        );
     });
 
     bench("complex 11-stop (cold)", () => {
-        new CSSKeyframesAnimation({ duration: 1000 }).fromString(complexKeyframes);
+        new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            complexKeyframes,
+        );
     });
 });
 
 describe("fromString end-to-end", () => {
     bench("simple 2-stop full pipeline", () => {
-        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(simpleKeyframes);
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            simpleKeyframes,
+        );
         // Simulate one frame of interpolation
         anim.interpFrames(500, false);
     });
 
     bench("complex 11-stop full pipeline", () => {
-        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(complexKeyframes);
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            complexKeyframes,
+        );
         anim.interpFrames(500, false);
     });
 });
@@ -89,7 +95,9 @@ const realisticKeyframes = `
 
 describe("parse — realistic per-value corpus", () => {
     bench("lengths/colors/calc/transforms (cold)", () => {
-        new CSSKeyframesAnimation({ duration: 1000 }).fromString(realisticKeyframes);
+        new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            realisticKeyframes,
+        );
     });
 });
 
@@ -124,21 +132,21 @@ describe("parse — cache-buster (tryParseCache never hits)", () => {
 });
 
 // ── S4b.3 — the layer-isolation micro-bench ──────────────────────────────────
-// The bare value.js leaf (`parseCSSValue`) vs the full keyframes pipeline. The
+// The bare Value 4 leaf (`parseCssValue`) vs the full keyframes pipeline. The
 // contrast exposes how much of `fromString` is the leaf parse vs the grammar +
 // reconcile + compile layers the keyframes engine owns on top.
 
 describe("parse — layer isolation (bare leaf vs full pipeline)", () => {
-    bench("bare parseCSSValue — single length", () => {
-        parseCSSValue("123.45px");
+    bench("bare parseCssValue — single length", () => {
+        parseCssValue("123.45px");
     });
 
-    bench("bare parseCSSValue — transform function", () => {
-        parseCSSValue("translateX(200px)");
+    bench("bare parseCssValue — transform function", () => {
+        parseCssValue("translateX(200px)");
     });
 
-    bench("bare parseCSSValue — calc expression", () => {
-        parseCSSValue("calc(100% - 50px)");
+    bench("bare parseCssValue — calc expression", () => {
+        parseCssValue("calc(100% - 50px)");
     });
 
     bench("full pipeline — single-property 2-stop", () => {

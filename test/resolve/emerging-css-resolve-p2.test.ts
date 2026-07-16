@@ -21,12 +21,14 @@
  * from the engine module, attaching real jsdom elements as targets.
  */
 import { describe, expect, it } from "vitest";
+import type { CssValue } from "@mkbabb/value.js/value";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
+import { serializeCssValue } from "../../src/animation/compile/emit/css-text";
 
 /**
  * Read the resolved leaf STRING of the first template frame's `prop` value
  * AFTER `setTargets` (the Phase-2 lifecycle point). The template frame's `vars`
- * carries the pre-flatten `Record<string, ValueArray>` the second pass rewrites
+ * carries the pre-flatten `Record<string, CssValue>` the second pass rewrites
  * in place, so a resolved branch / integer is observable on `vars[prop]`.
  */
 const templateValueString = (
@@ -35,12 +37,12 @@ const templateValueString = (
     prop: string,
 ): string | undefined => {
     const frame = anim.templateFrames.find(
-        (f) => Number.parseFloat(String(f.start.value)) === startPercent,
+        (f) => f.start.kind === "percent" && f.start.value * 100 === startPercent,
     );
     if (!frame) return undefined;
     const vars = frame.vars as Record<string, unknown>;
     if (!(prop in vars)) return undefined;
-    return String(vars[prop]);
+    return serializeCssValue(vars[prop] as CssValue);
 };
 
 /**

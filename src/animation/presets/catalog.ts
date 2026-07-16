@@ -1,4 +1,3 @@
-import { CSSCubicBezier, steppedEase } from "@mkbabb/value.js/easing";
 import { springTimingFunction } from "../physics/spring";
 import { CSSKeyframesAnimation } from "../engine";
 import type { InputAnimationOptions } from "../constants";
@@ -57,7 +56,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.bounceKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.28, 0.84, 0.42, 1),
+            timingFunction: "cubic-bezier(0.28, 0.84, 0.42, 1)",
         },
         group: "attention",
     },
@@ -71,7 +70,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.rotateInKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
+            timingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         },
         group: "enter",
     },
@@ -79,7 +78,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.slideInKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
+            timingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         },
         group: "enter",
     },
@@ -105,7 +104,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.typewriterKeyframes),
         options: {
             duration: 3000,
-            timingFunction: steppedEase(40, "jump-end"),
+            timingFunction: "steps(40, jump-end)",
             fillMode: "forwards",
         },
     },
@@ -120,12 +119,12 @@ export const PRESET_SPECS = {
     },
     warpLeft: {
         css: bare(classicData.warpLeftKeyframes),
-        options: { duration: 700, timingFunction: "bounce-in-ease" },
+        options: { duration: 700, timingFunction: "ease-in-bounce" },
         group: "exit",
     },
     warpRight: {
         css: bare(classicData.warpRightKeyframes),
-        options: { duration: 700, timingFunction: "bounce-in-ease" },
+        options: { duration: 700, timingFunction: "ease-in-bounce" },
         group: "exit",
     },
     blurIn: {
@@ -176,14 +175,14 @@ export const PRESET_SPECS = {
         css: bare(classicData.rotateScaleKeyframes),
         options: {
             duration: 2500,
-            timingFunction: CSSCubicBezier(0.68, -0.55, 0.265, 1.55),
+            timingFunction: "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
         },
     },
     typingCursor: {
         css: bare(classicData.typingCursorKeyframes),
         options: {
             duration: 800,
-            timingFunction: steppedEase(2, "jump-start"),
+            timingFunction: "steps(2, jump-start)",
             iterationCount: Infinity,
         },
         group: "loop",
@@ -192,7 +191,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.accordionExpandKeyframes),
         options: {
             duration: 500,
-            timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
+            timingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
             fillMode: "forwards",
         },
     },
@@ -200,7 +199,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.notificationBounceKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.28, 0.84, 0.42, 1),
+            timingFunction: "cubic-bezier(0.28, 0.84, 0.42, 1)",
         },
         group: "attention",
     },
@@ -226,7 +225,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.slideInLeftKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
+            timingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         },
         group: "enter",
     },
@@ -234,7 +233,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.slideOutLeftKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
+            timingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         },
         group: "exit",
     },
@@ -242,7 +241,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.slideInRightKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
+            timingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         },
         group: "enter",
     },
@@ -250,7 +249,7 @@ export const PRESET_SPECS = {
         css: bare(classicData.slideOutRightKeyframes),
         options: {
             duration: 1000,
-            timingFunction: CSSCubicBezier(0.25, 0.46, 0.45, 0.94),
+            timingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         },
         group: "exit",
     },
@@ -267,12 +266,12 @@ export const PRESET_SPECS = {
     },
     jumpUp: {
         css: bare(classicData.jumpUpKeyframes),
-        options: { duration: 700, timingFunction: "bounce-in-ease" },
+        options: { duration: 700, timingFunction: "ease-in-bounce" },
         group: "enter",
     },
     jumpDown: {
         css: bare(classicData.jumpDownKeyframes),
-        options: { duration: 700, timingFunction: "bounce-in-ease" },
+        options: { duration: 700, timingFunction: "ease-in-bounce" },
         group: "exit",
     },
     springScaleIn: {
@@ -363,7 +362,12 @@ export const {
 } = presetFactories;
 const group = (wanted: PresetGroup): Readonly<Record<string, PresetFactory>> =>
     Object.fromEntries(
-        (Object.entries(PRESET_SPECS) as [keyof typeof PRESET_SPECS, PresetSpec][])
+        (
+            Object.entries(PRESET_SPECS) as [
+                keyof typeof PRESET_SPECS,
+                PresetSpec,
+            ][]
+        )
             .filter(([, s]) => s.group === wanted)
             .map(([name, s]) => [
                 s.taxonomyName ?? name,

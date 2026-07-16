@@ -4,8 +4,7 @@ import { AnimationGroup } from "../../src/animation/group";
 import { CompositeState } from "../../src/animation/group/composite-state";
 import { compositeFramesAt } from "../support/group-probe";
 
-const scalar = (out: Record<string, unknown>, key: string) =>
-    (out[key] as Array<{ value: number }>)[0]!.value;
+const scalar = (out: Record<string, unknown>, key: string) => out[key] as number;
 
 const multi = (css: string, t: number) => {
     const animation = new CSSKeyframesAnimation({ duration: 4000 }).fromString(css);
@@ -18,7 +17,7 @@ describe("U.C14 owned CompositeState", () => {
         const state = new CompositeState();
         state.configure(["opacity"]);
         state.clear();
-        state.copy("opacity", [{ value: 1, clone: () => ({ value: 1 }) }]);
+        state.copy("opacity", 1);
         state.pruneInactive();
         const keys = Object.keys(state.values);
         state.clear();
@@ -34,30 +33,33 @@ describe("U.C14 owned CompositeState", () => {
             { animation: base },
             { animation: disabled, layer: { enabled: false } },
         );
-        compositeFramesAt(group, 0);
-        expect(Object.keys(group._grouped)).toEqual(["opacity"]);
+        const grouped = compositeFramesAt(group, 0);
+        expect(Object.keys(grouped)).toEqual(["opacity"]);
     });
 
-    it.each(["add", "weighted"] as const)(
+    it.each([
+        ["add", "add"],
+        ["weight", "replace"],
+    ] as const)(
         "keeps the %s contribution live after a segment boundary",
-        (blendMode) => {
+        (kind, op) => {
             const base = multi("0%{opacity:1}50%{opacity:3}100%{opacity:1}", 1000);
             const top = multi("0%{opacity:10}50%{opacity:30}100%{opacity:10}", 1000);
             const group = new AnimationGroup<any>(
-                { animation: base, layer: { blendMode: "replace" } },
-                { animation: top, layer: { blendMode, weight: 0.5 } },
+                { animation: base, layer: { op: "replace" } },
+                { animation: top, layer: { op, weight: 0.5 } },
             );
             compositeFramesAt(group, 0); // build the stable plan before crossing
             base.t = top.t = 3000;
             const out = compositeFramesAt(group, 0);
             expect(scalar(out, "opacity")).toBeCloseTo(
-                blendMode === "add" ? 22 : 11,
+                kind === "add" ? 22 : 11,
                 8,
             );
         },
     );
 
-    it("keeps a custom-transform plain projection live after the boundary", () => {
+    it("keeps custom-transform authored values live after the boundary", () => {
         const samples: number[] = [];
         const animation = new CSSKeyframesAnimation<any>({ duration: 4000 });
         animation.fromVars(

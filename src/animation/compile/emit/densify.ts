@@ -4,22 +4,25 @@
  * densified changing-color stops merged WITH the declared non-color
  * projection into ONE @keyframes block).
  */
-import { unflattenObjectToString, ValueUnit } from "@mkbabb/value.js/units";
-import { camelCaseToHyphen } from "@mkbabb/value.js";
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
+import { camelCaseToHyphen } from "../../internal/helpers";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
-import type { ParsedVarMap } from "../parse-flatten";
+import type { ParsedVarMap } from "../value-ast";
 import { serializeEasing } from "./easing-serialize";
+import { serializeCssValue } from "./css-text";
 
 /**
- * EN-b (S.B3) — a template stop's selector `ValueUnit` → its numeric percent
+ * EN-b (S.B3) — a template stop's selector `CssValue` → its numeric percent
  * (`50%` → 50). The SAME parse `backward-color.ts`'s `percentOf` uses for the
  * densify endpoints, so the merge keys align byte-for-byte with the densified
  * color stops. `from`/`to`/percentage selectors all carry `<n>%` after parse.
  */
-const percentOfStart = (start: ValueUnit): number => {
-    const m = /([\d.]+)\s*%/.exec(String(start));
-    return m ? parseFloat(m[1]!) : 0;
+const percentOfStart = (start: KeyframeSelector): number => {
+    if (start.kind === "percent") return start.value * 100;
+    throw new TypeError(
+        `Cannot densify named keyframe selector "${start.name}" without a bound timeline.`,
+    );
 };
 
 /**
@@ -43,8 +46,9 @@ function declaredDeclsExcluding<V extends Vars>(
     const kept = Object.fromEntries(
         Object.entries(declared).filter(([key]) => !exclude.has(key)),
     );
-    const decls = Object.entries(unflattenObjectToString(kept)).map(
-        ([propName, v]) => `${camelCaseToHyphen(propName)}: ${v};`,
+    const decls = Object.entries(kept).map(
+        ([propName, value]) =>
+            `${camelCaseToHyphen(propName)}: ${serializeCssValue(value)};`,
     );
 
     const templateFrame = animation.templateFrames[i]!;
@@ -122,7 +126,7 @@ export function densifiedKeyframesBlock<V extends Vars>(
     order.sort((a, b) => a - b);
     let stops = "";
     for (const pct of order) {
-        stops += `${pct}% {\n  ${byPct.get(pct)!.join("\n  ")}\n}\n`;
+        stops += `  ${pct}% {\n    ${byPct.get(pct)!.join("\n    ")}\n  }\n`;
     }
     return `@keyframes ${name} {\n${stops}}`;
 }

@@ -18,17 +18,19 @@
  * proof:processframe-soa are the discriminating-bite oracles).
  */
 import { clamp, lerpArray, scale } from "@mkbabb/value.js/math";
-import { type ValueUnit } from "@mkbabb/value.js/units";
-import { lerpValue } from "@mkbabb/value.js";
 import { binarySearchRange } from "../internal/binarySearch";
 import { AnimationOptionError } from "../internal/errors";
 import { applyComposition as applyCompositionImpl } from "./composition";
+import type { CompiledAnimationFrame } from "../compile/compiled-frame";
 import {
-    buildPlainProjection,
-    refreshPlainProjection,
-} from "../compile/plain-vars";
-import { NAMED_SELECTOR_SUPERTYPE } from "../compile/selector";
-import type { AnimationFrame, Vars } from "../constants";
+    bindInterpSlotTarget,
+    interpolateSlot,
+} from "../compile/interp-slot";
+import {
+    refreshAuthoredSink,
+    type FlatAuthoredValues,
+} from "../compile/value-ast";
+import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 
 /**
@@ -61,21 +63,28 @@ export function paintRest<V extends Vars>(anim: KeyframesAnimation<V>): void {
  * (the L.W1 S4 floor — `fromString`/`parse()` NEVER throw); it is RESOLVABLE to a
  * numeric `%` only under a `ScrollTimeline`/`ManualTimeline` via `bindTimeline`.
  * If a numeric position is genuinely DEMANDED (`play()`/`at()`) while a template
- * frame still carries `NAMED_SELECTOR_SUPERTYPE` (unresolved), refuse with the
+ * frame still carries a `{ kind: "named" }` selector, refuse with the
  * TYPED `NAMED_SELECTOR_NO_TIMELINE` rather than silently producing NaN frames
  * that `binarySearchRange` treats as ALWAYS-ACTIVE. Fired ONLY at the genuinely-
- * demanded point — NEVER at parse/ingest. A resolved frame (tag CLEARED by
- * `bindTimeline`) passes silently — a zero-cost `Array.find` on a non-named
+ * demanded point — NEVER at parse/ingest. A resolved percent selector produced by
+ * `bindTimeline` passes silently — a zero-cost `Array.find` on a non-named
  * animation.
  */
 export function assertNoUnresolvedNamedSelector<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): void {
-    const unresolved = anim.compiler.templateFrames.find((f) =>
-        f.start.superType?.includes(NAMED_SELECTOR_SUPERTYPE),
+    const unresolved = anim.templateFrames.find(
+        (frame) => frame.start.kind === "named",
     );
     if (unresolved != null) {
-        const raw = String(unresolved.start.value);
+        const raw =
+            unresolved.start.kind === "named"
+                ? `${unresolved.start.name}${
+                      unresolved.start.offset === undefined
+                          ? ""
+                          : ` ${unresolved.start.offset * 100}%`
+                  }`
+                : "";
         throw new AnimationOptionError(
             "start",
             raw,
@@ -95,7 +104,7 @@ export function at<V extends Vars>(
     anim: KeyframesAnimation<V>,
     progress: number,
     apply: boolean = false,
-): Record<string, ValueUnit[]> {
+): FlatAuthoredValues {
     // Q.WD1 S3 — the oracle path shares the named-selector guard (an unresolved
     // named-selector animation would otherwise produce NaN here too).
     assertNoUnresolvedNamedSelector(anim);
@@ -127,11 +136,11 @@ export function interpFrames<V extends Vars>(
     anim: KeyframesAnimation<V>,
     t: number,
     transformFrames: boolean = false,
-    out?: Record<string, ValueUnit[]>,
-): Record<string, ValueUnit[]> {
+    out?: FlatAuthoredValues,
+): FlatAuthoredValues {
     t = anim._playback.reversed ? anim.options.duration - t : t;
 
-    const frames = anim.frames;
+    const frames = anim.frames as CompiledAnimationFrame<V>[];
     const len = frames.length;
 
     // Binary search for the first frame containing t
@@ -170,9 +179,8 @@ export function interpFrames<V extends Vars>(
         hi = i;
     }
 
-    // Lerp (and optionally apply) every active frame in place. The leaves of
-    // each frame's `flatVars` ARE the `ValueUnit`s just mutated here
-    // (`frame-compiler.ts` `acc[key] = value.map((v) => v.value)`).
+    // Interpolate (and optionally apply) every active frame in place. Each
+    // frame's `flatVars` is the stable authored-value sink refreshed here.
     for (let i = lo; i <= hi; i++) {
         processFrame(anim, frames[i]!, t, transformFrames);
     }
@@ -180,17 +188,14 @@ export function interpFrames<V extends Vars>(
     // F.W4 S3 — the single-active-frame alias fast-path. The dominant shape
     // (2-stop `fromString`, every preset, every single-property animation)
     // has exactly one active frame, and that frame's `flatVars` already holds
-    // the freshly-lerped units — so a fresh caller (no `out` buffer) gets it
-    // returned DIRECTLY, with no clear and no copy. The aliasing-correctness
+    // the freshly refreshed authored values — so a fresh caller (no `out` buffer)
+    // gets it returned DIRECTLY, with no clear and no copy. The aliasing-correctness
     // clause: a caller that passes its OWN buffer (the AnimationGroup's
     // `entry.values`, the play loop's `_interpOut`) takes the buffer path
     // below and NEVER the alias, so no consumer mutates a shared frame object
     // expecting a private copy.
     if (lo === hi) {
-        const fv = frames[seedIdx]!.flatVars as unknown as Record<
-            string,
-            ValueUnit[]
-        >;
+        const fv = frames[seedIdx]!.flatVars;
         if (out === undefined) return fv;
         clearBuffer(anim, out);
         Object.assign(out, fv);
@@ -222,11 +227,11 @@ export function interpFrames<V extends Vars>(
  */
 function clearBuffer<V extends Vars>(
     anim: KeyframesAnimation<V>,
-    buf: Record<string, ValueUnit[]>,
+    buf: FlatAuthoredValues,
 ): void {
     const keys = anim._stableKeys;
     for (let i = 0; i < keys.length; i++) {
-        buf[keys[i]!] = undefined as unknown as ValueUnit[];
+        buf[keys[i]!] = undefined;
     }
 }
 
@@ -240,40 +245,42 @@ function clearBuffer<V extends Vars>(
  */
 function processFrame<V extends Vars>(
     anim: KeyframesAnimation<V>,
-    frame: AnimationFrame<V>,
+    frame: CompiledAnimationFrame<V>,
     t: number,
     transformFrames: boolean,
 ): void {
     const { start, stop } = frame.time;
     const scaled = start === stop ? 1 : scale(t, start, stop, 0, 1);
     const eased = frame.timingFunction.fn(scaled);
+    const target = anim.targets[0];
 
     // Q.WB3 S2 — the numeric SoA fold (ADOPT-verdicted; the interp-equal +
     // fold-taken oracles live in `test/engine/processframe-soa-identity.test.ts`,
     // the ADOPT floor in `bench/taxonomy.json`'s budgeted K=8 SoA-lerpArray row).
-    // The pure-numeric iv subset folds through ONE contiguous
+    // The pure-numeric slot subset folds through one contiguous
     // `lerpArray` over the precomputed `Float64Array` endpoint buffers (built
-    // ONCE at `parse` — `frame._numericPlan`), replacing the per-channel boxed
-    // `lerpValue` megamorphic dispatch on the DOMINANT single-animation path.
-    // The result strides back into each numeric leaf's `value.value` slot (the
-    // SAME slot `lerpValue` wrote), so the apply/composition/transform below —
+    // once at parse time (`frame._numericPlan`), replacing per-slot dispatch on
+    // the dominant single-animation path. The result writes each numeric slot's
+    // `current` field, so the apply/composition/transform below —
     // which read the now-folded `flatVars`/`vars` — run EXACTLY as before
     // (bit-identical; the interp-equal oracle is in
-    // `test/engine/processframe-soa-identity.test.ts`). The BOXED residual
-    // (color/computed/mixed) keeps the per-element `lerpValue`, UNCHANGED.
+    // `test/engine/processframe-soa-identity.test.ts`). Structural residual
+    // slots keep their ordinary interpolation dispatch.
     const plan = frame._numericPlan;
     if (plan !== undefined && plan.numeric.length > 0) {
         const { numeric, from, to, out } = plan;
         lerpArray(from, to, eased, out);
         for (let s = 0; s < numeric.length; s++) {
-            (numeric[s]!.value as unknown as { value: number }).value = out[s]!;
+            numeric[s]!.current = out[s]!;
         }
-        for (const iv of plan.boxed) {
-            lerpValue(eased, iv);
+        for (const slot of plan.residual) {
+            bindInterpSlotTarget(slot, target);
+            interpolateSlot(slot, eased);
         }
     } else {
-        for (const iv of frame.allInterpVars) {
-            lerpValue(eased, iv);
+        for (const slot of frame.allInterpVars) {
+            bindInterpSlotTarget(slot, target);
+            interpolateSlot(slot, eased);
         }
     }
 
@@ -289,29 +296,13 @@ function processFrame<V extends Vars>(
     if (transformFrames && anim._hasComposition && frame.composition != null) {
         applyComposition(anim, frame);
     }
+    refreshAuthoredSink(frame._sink);
 
     if (transformFrames) {
         if (anim.unflatten) {
-            // T.A6 — a custom transform ("animate any object") consumes the
-            // nested PLAIN authored-shape projection (numbers where authored
-            // numbers, strings where a unit/color demands) — NOT `frame.vars`,
-            // whose leaves are array-boxed `ValueUnit`s under value.js ≥ 2.0.1.
-            // Built lazily on first apply, refreshed in place by the SAME interp
-            // stride that filled `value.value` above (hot numeric path
-            // zero-alloc). The DOM-style default renderer keeps the flat path.
-            let proj = frame._plainProj;
-            if (proj === undefined) {
-                proj = buildPlainProjection(
-                    frame.flatVars as unknown as Record<string, ValueUnit[]>,
-                );
-                frame._plainProj = proj;
-                frame.plainVars = proj.root as V;
-            } else {
-                refreshPlainProjection(proj);
-            }
-            frame.transform(frame.plainVars as V, t);
+            frame.transform(frame.vars, t);
         } else {
-            frame.transform(frame.flatVars, t);
+            frame.transform(frame.flatVars as V, t);
         }
     }
 }
@@ -325,7 +316,7 @@ function processFrame<V extends Vars>(
  */
 function applyComposition<V extends Vars>(
     anim: KeyframesAnimation<V>,
-    frame: AnimationFrame<V>,
+    frame: CompiledAnimationFrame<V>,
 ): void {
     applyCompositionImpl(frame, {
         iteration: anim._playback.iteration,

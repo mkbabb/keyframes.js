@@ -12,8 +12,8 @@
  */
 import { cssTwinFor } from "../../easing";
 import { AnimationOptionError } from "../../internal/errors";
-import type { Easing, InputAnimationOptions } from "../../constants";
-import { getTimingFunction } from "./easing-registry";
+import type { Easing, InputAnimationOptions, TimingFunction } from "../../constants";
+import { resolveTimingFunction } from "./easing-registry";
 
 /**
  * Resolve heavy-surface easing input — a callable, a typed `Easing`, a registry
@@ -35,8 +35,17 @@ export const resolveEasingOption = (
             "an Easing must carry a callable `fn`",
         );
     }
-    const fn = getTimingFunction(input);
-    if (!fn) {
+    if (typeof input !== "string") {
+        throw new AnimationOptionError(
+            option,
+            input,
+            "a timing-function name or CSS timing-function literal must be a string",
+        );
+    }
+    let fn: TimingFunction;
+    try {
+        fn = resolveTimingFunction(input);
+    } catch {
         // J.W1 S8 — the stable structured code rides the typed throw so a
         // programmatic consumer can branch on the reason (the K3-internal
         // row; the full diagnostics channel stays a K.W0 seed).

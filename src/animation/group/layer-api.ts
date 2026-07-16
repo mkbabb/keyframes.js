@@ -10,7 +10,7 @@
  * module for the transition API (`transitionLayer`/`crossfade`), the spring park
  * (`layer.weightSpring = spring`), and the mid-flight re-seat
  * (`existing.target = target.weight`). The per-frame integrate lives in
- * `./springs`; the `weighted` blend leaf in `./compositor`.
+ * `./springs`; the `weightBlend` blend leaf in `./compositor`.
  */
 import { SpringProgress } from "../physics/spring";
 import { requireEntry, resolveEntryKey } from "./entries";
@@ -46,8 +46,8 @@ export function getLayerConfig<V extends Vars>(
 /**
  * Spring a layer's blend `weight` from its CURRENT value to `weight` (K.W11
  * PHYS-C — the spring-driven crossfade). Seeds a `SpringProgress` (via
- * `seedLayerSpring`), parks it on `layer.weightSpring`, forces `blendMode` to
- * `weighted`. A mid-flight re-target RE-SEATS the in-flight spring from its live
+ * `seedLayerSpring`), parks it on `layer.weightSpring`, and selects replacement
+ * composition. A mid-flight re-target RE-SEATS from its live
  * `(value, velocity)` (`set target`) — velocity-continuous, no kink.
  */
 export function transitionLayer<V extends Vars>(
@@ -58,7 +58,7 @@ export function transitionLayer<V extends Vars>(
     const entry = requireEntry(group.animations, nameOrAnim, "transitionLayer");
     const layer = entry.layer;
     const normalizedTarget = normalizeBlendWeight(target.weight);
-    layer.blendMode = "weighted";
+    layer.op = "replace";
 
     const existing = layer.weightSpring;
     if (existing instanceof SpringProgress) {

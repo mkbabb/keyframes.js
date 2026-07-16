@@ -1,6 +1,6 @@
 {
     "name": "@mkbabb/keyframes.js",
-    "version": "5.3.5",
+    "version": "6.0.0",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "license": "MIT",
     "keywords": [
@@ -43,6 +43,7 @@
         "gh-pages": "vite build --mode gh-pages",
         "lint": "depcruise src",
         "test": "vitest",
+        "test:lib": "vitest run --project library",
         "bench": "vitest bench",
         "bench:color-fidelity": "vitest run test/engine/color-fidelity.test.ts && node scripts/color-fidelity-harness.mjs",
         "gen:agent-surface": "node scripts/gen-agent-surface.mjs",
@@ -65,10 +66,7 @@
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "@mkbabb/value.js": "^3.1.0"
-    },
-    "optionalDependencies": {
-        "@mkbabb/glass-ui": "6.0.0"
+        "@mkbabb/value.js": "4.0.0"
     },
     "devDependencies": {
         "@iconify-json/radix-icons": "^1.2.6",

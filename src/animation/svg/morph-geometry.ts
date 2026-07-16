@@ -117,10 +117,9 @@ export interface ElementWithAttribute {
  * Build the per-frame RENDER contract (S1) — the custom `transform` a
  * target-bearing {@link fromMorphSVG} supplies to `fromKeyframes`. Each frame
  * the engine invokes this with the interpolated `vars` — under the T.A6
- * plain-vars contract each `--morph-{i}-x/y` key is a bare lerped `number`
- * (the "animate any object" seam hands authored-shaped plain values, never
- * array-boxed `ValueUnit`s; contrast {@link MorphSVG.sampleD}, which pulls the
- * FLAT `ValueUnit[]` map via `interpFrames` directly); it reassembles the
+ * authored-values contract each `--morph-{i}-x/y` key is a bare interpolated
+ * `number` (the "animate any object" seam and {@link MorphSVG.sampleD} both
+ * consume the flat authored-value sink); it reassembles the
  * points into a `d` string and writes it onto `target.style` as BOTH the `d:`
  * CSS property and the `--morph-d` custom property.
  *
@@ -146,8 +145,7 @@ export const makeMorphRenderer = <V extends Vars>(
             // so a missing key here is an engine-invariant violation, NOT an
             // expected-absent case. Mask-to-0 would corrupt the path silently —
             // throw instead (the honest-or-refuse law from the factory below).
-            // T.A6: the seam hands plain authored-shaped values — a coordinate
-            // leaf arrives as a bare number, never an array-boxed ValueUnit.
+            // T.A6: the authored sink projects each coordinate as a bare number.
             const lx = v[xKey(i)];
             const ly = v[yKey(i)];
             if (typeof lx !== "number" || typeof ly !== "number") {

@@ -58,25 +58,19 @@ describe("DrawSVG — getTotalLength once + dasharray===L + stroke-dashoffset sw
     it("builds a frame set whose interpolating key is stroke-dashoffset, sweeping L → 0", () => {
         const { el } = svgTarget();
         const anim = fromDrawSVG(el, { autoPlay: false });
-
-        const keys = new Set<string>();
-        const endpoints: { start?: number; stop?: number }[] = [];
-        for (const frame of anim.frames) {
-            for (const [key, arr] of Object.entries(frame.interpVars)) {
-                keys.add(key);
-                for (const iv of arr as any[]) {
-                    endpoints.push({
-                        start: iv.start?.value,
-                        stop: iv.stop?.value,
-                    });
-                }
-            }
-        }
+        const start = anim.interpFrames(0, false);
+        const startKeys = Object.keys(start);
+        const startOffset = start["stroke-dashoffset"];
+        const stop = anim.interpFrames(anim.options.duration, false);
+        const stopKeys = Object.keys(stop);
+        const stopOffset = stop["stroke-dashoffset"];
 
         // The ONLY animated key is stroke-dashoffset.
-        expect([...keys]).toEqual(["stroke-dashoffset"]);
+        expect(startKeys).toEqual(["stroke-dashoffset"]);
+        expect(stopKeys).toEqual(["stroke-dashoffset"]);
         // …sweeping L → 0 (the line draws in: full offset to no offset).
-        expect(endpoints).toContainEqual({ start: LEN, stop: 0 });
+        expect(startOffset).toBe(LEN);
+        expect(stopOffset).toBe(0);
     });
 
     it("honors a custom from/to sub-range (offset = L*(1-frac))", () => {
@@ -86,30 +80,26 @@ describe("DrawSVG — getTotalLength once + dasharray===L + stroke-dashoffset sw
             to: "75%",
             autoPlay: false,
         });
-        const seen: number[] = [];
-        for (const frame of anim.frames) {
-            for (const arr of Object.values(frame.interpVars)) {
-                for (const iv of arr as any[]) {
-                    seen.push(iv.start?.value);
-                    seen.push(iv.stop?.value);
-                }
-            }
-        }
         // frac 0.25 → offset L*0.75 = 180; frac 0.75 → offset L*0.25 = 60.
-        expect(seen).toContain(LEN * 0.75);
-        expect(seen).toContain(LEN * 0.25);
+        expect(anim.interpFrames(0, false)["stroke-dashoffset"]).toBe(
+            LEN * 0.75,
+        );
+        expect(
+            anim.interpFrames(anim.options.duration, false)[
+                "stroke-dashoffset"
+            ],
+        ).toBe(LEN * 0.25);
     });
 
     it("accepts a 0..1 NUMBER fraction equivalently to its percent string", () => {
         const offsets = (from: string | number, to: string | number) => {
             const anim = fromDrawSVG(svgTarget().el, { from, to, autoPlay: false });
-            const seen: number[] = [];
-            for (const frame of anim.frames)
-                for (const arr of Object.values(frame.interpVars))
-                    for (const iv of arr as any[]) {
-                        seen.push(iv.start?.value, iv.stop?.value);
-                    }
-            return seen;
+            return [
+                anim.interpFrames(0, false)["stroke-dashoffset"],
+                anim.interpFrames(anim.options.duration, false)[
+                    "stroke-dashoffset"
+                ],
+            ];
         };
         // 0.25 (number) === "25%" (string); 0.75 === "75%".
         expect(offsets(0.25, 0.75)).toEqual(offsets("25%", "75%"));
@@ -132,9 +122,7 @@ describe("DrawSVG — getTotalLength once + dasharray===L + stroke-dashoffset sw
     it("BITE: builds over stroke-dashoffset, NOT stroke-dasharray or some other key", () => {
         const { el } = svgTarget();
         const anim = fromDrawSVG(el, { autoPlay: false });
-        const keys = new Set<string>();
-        for (const frame of anim.frames)
-            for (const k of Object.keys(frame.interpVars)) keys.add(k);
+        const keys = new Set(Object.keys(anim.interpFrames(0, false)));
         // stroke-dasharray is STATIC (set once, never animated).
         expect(keys.has("stroke-dashoffset")).toBe(true);
         expect(keys.has("stroke-dasharray")).toBe(false);

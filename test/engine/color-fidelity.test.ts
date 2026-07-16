@@ -13,41 +13,32 @@
  *      the REAL engine (`CSSKeyframesAnimation.fromString`, oklab colorSpace).
  *   2. SAMPLE  the midpoint of kf's playback — `interpFrames(0.5)` → the
  *      background-color the engine WOULD render at t=0.5.
- *   3. REFERENCE  the CSS Color 4 oklab midpoint: `mixColors(A, B, 0.5, 0.5,
- *      "oklab")` (the SAME perceptual lerp the spec's `color-mix(in oklab, …)`
- *      defines), via value.js — the producer kf consumes PUBLISHED (inv-16).
- *   4. ΔE  `deltaEOK(kfMidpoint, referenceMidpoint)` — the perceptual distance.
+ *   3. REFERENCE  the CSS Color 4 oklab midpoint through Value 4's
+ *      `mixColors(A, B, 0.5, { space: "oklab" })` Result contract.
+ *   4. ΔE  Euclidean distance between the two final OKLab coordinates.
  *
- * THE CONFORMANCE THRESHOLD. The midpoint ΔE must be UNDER `DELTA_E_OK_JND`
- * (value.js's just-noticeable-difference constant) — i.e. kf's oklab lerp is
+ * THE CONFORMANCE THRESHOLD. The midpoint ΔE must be UNDER Keyframes'
+ * compiler-owned densification tolerance — i.e. kf's oklab lerp is
  * PERCEPTUALLY INDISTINGUISHABLE from the CSS Color 4 reference. A lossy lerp
  * (an RGB-mixed midpoint, a wrong perceptual path) would exceed the JND and red.
  *
  * The ΔE numbers are PUBLISHED to `docs/color-fidelity.md` by the harness
  * (`scripts/color-fidelity-harness.mjs`); `proof:color-fidelity` asserts the
  * published artifact matches a fresh run + the source-grep locks. This is the
- * PUBLIC face of the same `deltaEOK` fidelity discipline K.W10's CC-2 densify
- * gates on internally (css-compiler.md §7) — one producer, two consumers.
+ * PUBLIC face of the same OKLab fidelity discipline K.W10's CC-2 densify gates
+ * on internally (css-compiler.md §7).
  *
  * No throughput benchmark (the credibility trap, BOOK — L-SEED §5). No
- * re-authored ΔE kernel (the `deltaEOK` producer is consumed PUBLISHED).
+ * alternate color parser or interpolation fallback.
  */
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
-import {
-    COLOR_SPACE_RANGES,
-    color2,
-    deltaEOK,
-    DELTA_E_OK_JND,
-    mixColors,
-    normalizeColorUnit,
-    scale,
-    type Color,
-    type ValueUnit,
-} from "@mkbabb/value.js";
+import { convertColor, mixColors, type AnyColor } from "@mkbabb/value.js/color";
+import { parseCssColor } from "@mkbabb/value.js/css";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
+import { DEFAULT_DELTA_E_EPSILON } from "../../src/animation/compile";
 import { COLOR_PAIRS } from "../fixtures/color-fidelity-corpus";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -62,37 +53,27 @@ const measured: Array<{
 }> = [];
 
 // ── the ΔE-OK domain (the perceptual distance the harness reads) ──────────────
-const A_MIN = COLOR_SPACE_RANGES.oklab.a.number.min;
-const A_MAX = COLOR_SPACE_RANGES.oklab.a.number.max;
-const B_MIN = COLOR_SPACE_RANGES.oklab.b.number.min;
-const B_MAX = COLOR_SPACE_RANGES.oklab.b.number.max;
-
-const rawOklab = (c: Color): [number, number, number] => {
-    const ok = color2(c, "oklab") as unknown as {
-        l: number;
-        a: number;
-        b: number;
-    };
-    return [ok.l, scale(ok.a, 0, 1, A_MIN, A_MAX), scale(ok.b, 0, 1, B_MIN, B_MAX)];
+const rawOklab = (color: AnyColor): [number, number, number] => {
+    const converted = convertColor(color, "oklab");
+    if (!converted.ok) throw new TypeError(`Color conversion failed: ${converted.error.code}`);
+    const [l, a, b] = converted.value.channels;
+    if (typeof l !== "number" || typeof a !== "number" || typeof b !== "number") {
+        throw new TypeError("Color fidelity requires numeric OKLab channels.");
+    }
+    return [l, a, b];
 };
 
-const dE = (c1: Color, c2: Color): number => {
+const dE = (c1: AnyColor, c2: AnyColor): number => {
     const [L1, a1, b1] = rawOklab(c1);
     const [L2, a2, b2] = rawOklab(c2);
-    return deltaEOK(L1, a1, b1, L2, a2, b2);
+    return Math.hypot(L2 - L1, a2 - a1, b2 - b1);
 };
 
-/** A CSS color string → a value.js `Color`, parsed through the engine's path. */
-const parseColor = (cssColor: string): Color => {
-    const el = document.createElement("div");
-    const a = new CSSKeyframesAnimation({ duration: 1 }, el);
-    a.fromString(
-        `@keyframes z { 0% { color: ${cssColor} } 100% { color: ${cssColor} } }`,
-    );
-    const vu = (a.parsedVars[0]!["color"] as ValueUnit[]).find(
-        (v) => v.unit === "color",
-    )!;
-    return normalizeColorUnit(vu as never).value as unknown as Color;
+/** A CSS color string → Value 4's final immutable color. */
+const parseColor = (cssColor: string): AnyColor => {
+    const parsed = parseCssColor(cssColor);
+    if (!parsed.ok) throw new TypeError(`Invalid color fixture: ${cssColor}`);
+    return parsed.value;
 };
 
 /**
@@ -100,7 +81,7 @@ const parseColor = (cssColor: string): Color => {
  * track, sample at t=0.5, and lift the rendered color to a value.js `Color`.
  * This is what the engine WOULD paint at the animation's midpoint.
  */
-const kfMidpoint = (from: string, to: string): Color => {
+const kfMidpoint = (from: string, to: string): AnyColor => {
     const el = document.createElement("div");
     const anim = new CSSKeyframesAnimation(
         { duration: 1000, colorSpace: "oklab" },
@@ -130,7 +111,11 @@ describe("K.W12 ED-4 — color-fidelity conformance (kf oklab lerp vs CSS Color 
             // The CSS Color 4 reference midpoint — the perceptual oklab lerp the
             // spec's color-mix(in oklab, …) defines (value.js, the PUBLISHED
             // producer; NOT a re-authored kernel).
-            const reference = mixColors(a, b, 0.5, 0.5, "oklab");
+            const referenceResult = mixColors(a, b, 0.5, { space: "oklab" });
+            if (!referenceResult.ok) {
+                throw new TypeError(`Reference mix failed: ${referenceResult.error.code}`);
+            }
+            const reference = referenceResult.value;
 
             // kf's engine-rendered midpoint.
             const mid = kfMidpoint(from, to);
@@ -141,7 +126,7 @@ describe("K.W12 ED-4 — color-fidelity conformance (kf oklab lerp vs CSS Color 
             // CONFORMANCE: kf's oklab lerp is perceptually indistinguishable
             // from the CSS Color 4 reference — under the just-noticeable
             // difference. A lossy (RGB-mixed) midpoint would exceed the JND.
-            expect(delta).toBeLessThan(DELTA_E_OK_JND);
+            expect(delta).toBeLessThan(DEFAULT_DELTA_E_EPSILON);
         },
     );
 
@@ -154,10 +139,10 @@ describe("K.W12 ED-4 — color-fidelity conformance (kf oklab lerp vs CSS Color 
                 DATA_OUT,
                 JSON.stringify(
                     {
-                        jnd: DELTA_E_OK_JND,
+                        jnd: DEFAULT_DELTA_E_EPSILON,
                         space: "oklab",
                         reference: "CSS Color 4 — color-mix(in oklab) midpoint",
-                        producer: "@mkbabb/value.js deltaEOK + mixColors",
+                        producer: "@mkbabb/value.js mixColors + Keyframes OKLab metric",
                         pairs: measured,
                     },
                     null,
@@ -177,7 +162,11 @@ describe("K.W12 ED-4 — color-fidelity conformance (kf oklab lerp vs CSS Color 
         // Motion/anime exhibit by mixing in RGB).
         const a = parseColor("#FF0000");
         const b = parseColor("#0000FF");
-        const reference = mixColors(a, b, 0.5, 0.5, "oklab");
+        const referenceResult = mixColors(a, b, 0.5, { space: "oklab" });
+        if (!referenceResult.ok) {
+            throw new TypeError(`Reference mix failed: ${referenceResult.error.code}`);
+        }
+        const reference = referenceResult.value;
 
         // The sRGB channel-average midpoint (what Motion/anime would render).
         const srgbMid = parseColor("#800080"); // (255+0)/2, (0+0)/2, (0+255)/2
@@ -189,6 +178,6 @@ describe("K.W12 ED-4 — color-fidelity conformance (kf oklab lerp vs CSS Color 
         // The naive sRGB midpoint is perceptually distinguishable from the spec
         // reference — well over the JND. If this ever drops under the JND the
         // negative control is dead and the conformance assert above is vacuous.
-        expect(srgbDelta).toBeGreaterThan(DELTA_E_OK_JND);
+        expect(srgbDelta).toBeGreaterThan(DEFAULT_DELTA_E_EPSILON);
     });
 });

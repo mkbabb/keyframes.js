@@ -182,14 +182,17 @@ describe("Oscillator — waveform sampling", () => {
     });
 });
 
-describe("Oscillator — the LIGHT import (value.js-free)", () => {
+describe("Oscillator — a parser/color-free LIGHT leaf", () => {
     it("oscillator.ts holds NO static @mkbabb/value.js import specifier", () => {
         // The source-grep complement of proof:boundary assertion 4: a periodic
         // phase clock is NOT a CSS value parser, so it must carry zero static
-        // value.js edge (a light-only consumer never pulls value.js). Match the
-        // IMPORT shape — `import … from "@mkbabb/value.js"` or a bare
-        // `import "@mkbabb/value.js"` — not a bare mention (the module header
-        // names the package in prose explaining WHY it carries no edge).
+        // Value edge of its own; the package LIGHT barrel separately shares
+        // Value's `/math` leaf. Match the
+        // IMPORT shape — a rootless Value 4 capability import such as
+        // `import … from "@mkbabb/value.js/math"` or a side-effect subpath
+        // import — not a bare mention (the module header names the package in
+        // prose explaining WHY it carries no edge). The matcher also rejects
+        // the invalid, unexported package-root spelling.
         const src = readFileSync(SRC, "utf8");
         const SPEC = String.raw`@mkbabb\/value\.js(?:\/[^"']*)?`;
         const fromEdge = new RegExp(

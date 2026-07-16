@@ -18,31 +18,57 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { namedSelectorToFraction } from "../../src/animation/compile/selector";
+import {
+    namedSelectorToFraction,
+    parseKeyframeSelector,
+} from "../../src/animation/compile/selector";
 import { ManualTimeline } from "../../src/animation/orchestration/timeline";
 
 const NAMED_CSS = "@keyframes x { entry { opacity: 0 } exit { opacity: 1 } }";
+
+const namedSelector = (source: string) => {
+    const selector = parseKeyframeSelector(source);
+    if (selector.kind !== "named") {
+        throw new TypeError(
+            `Expected a named selector for ${JSON.stringify(source)}.`,
+        );
+    }
+    return selector;
+};
+
+const selectorText = (selector: ReturnType<typeof parseKeyframeSelector>) =>
+    selector.kind === "percent"
+        ? `${selector.value * 100}%`
+        : `${selector.name}${
+              selector.offset === undefined ? "" : ` ${selector.offset * 100}%`
+          }`;
 
 describe("Q.WD1 — named-selector NaN-frame proper cure (DM-22)", () => {
     // ── s4-ingest-roundtrip (the L.W1 S4 floor — stays green) ───────────────
     it("fromString does NOT throw on named selectors and round-trips the token verbatim", () => {
         const anim = new CSSKeyframesAnimation({ duration: 1000 });
         expect(() => anim.fromString(NAMED_CSS)).not.toThrow();
-        const raws = anim.templateFrames.map((f) => String(f.start.value));
+        const raws = anim.templateFrames.map((f) => selectorText(f.start));
         expect(raws).toContain("entry");
         expect(raws).toContain("exit");
     });
 
     // ── bind-resolves (the resolver — exact single-position mappings) ───────
     it("namedSelectorToFraction maps the named phases to their single-position fraction", () => {
-        expect(namedSelectorToFraction("entry")).toBe(0);
-        expect(namedSelectorToFraction("cover")).toBe(0.25);
-        expect(namedSelectorToFraction("contain")).toBe(0.375);
-        expect(namedSelectorToFraction("exit")).toBe(0.75);
+        expect(namedSelectorToFraction(namedSelector("entry"))).toBe(0);
+        expect(namedSelectorToFraction(namedSelector("cover"))).toBe(0.25);
+        expect(namedSelectorToFraction(namedSelector("contain"))).toBe(0.375);
+        expect(namedSelectorToFraction(namedSelector("exit"))).toBe(0.75);
         // `entry 50%` = 50% through the entry band [0, 0.25] = 0.125.
-        expect(namedSelectorToFraction("entry 50%")).toBeCloseTo(0.125, 12);
+        expect(namedSelectorToFraction(namedSelector("entry 50%"))).toBeCloseTo(
+            0.125,
+            12,
+        );
         // `exit 100%` = end of the exit band [0.75, 1] = 1.0.
-        expect(namedSelectorToFraction("exit 100%")).toBeCloseTo(1, 12);
+        expect(namedSelectorToFraction(namedSelector("exit 100%"))).toBeCloseTo(
+            1,
+            12,
+        );
     });
 
     // ── no-nan-at-play (bind resolves to finite + the bound path is clean) ──
@@ -76,25 +102,27 @@ describe("Q.WD1 — named-selector NaN-frame proper cure (DM-22)", () => {
         // DEFERRED comment used to advertise as an unbuilt cure); crucially, no
         // sample is EVER NaN (the failure mode the deferral left latent).
         for (const t of [0.05, 0.25, 0.5, 0.7]) {
-            const v = anim.at(t).opacity?.[0]?.value;
+            const v = anim.at(t).opacity;
             expect(typeof v).toBe("number");
             expect(Number.isNaN(v as number)).toBe(false);
             expect(Number.isFinite(v as number)).toBe(true);
         }
     });
 
-    it("bindTimeline clears the NAMED_SELECTOR_SUPERTYPE tag (resolved frames are plain % selectors)", () => {
+    it("bindTimeline replaces named selectors with normalized percent selectors", () => {
         const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
             NAMED_CSS,
         );
         anim.bindTimeline(new ManualTimeline());
-        const stillNamed = anim.templateFrames.some((f) =>
-            f.start.superType?.includes("named-selector"),
+        const stillNamed = anim.templateFrames.some(
+            (f) => f.start.kind === "named",
         );
         expect(stillNamed).toBe(false);
         // `entry` → 0% , `exit` → 75% (the resolved numeric positions).
         const starts = anim.templateFrames
-            .map((f) => Number.parseFloat(String(f.start.value)))
+            .flatMap((f) =>
+                f.start.kind === "percent" ? [f.start.value * 100] : [],
+            )
             .sort((a, b) => a - b);
         expect(starts).toContain(0);
         expect(starts).toContain(75);
@@ -130,7 +158,7 @@ describe("Q.WD1 — named-selector NaN-frame proper cure (DM-22)", () => {
             "@keyframes y { 0% { opacity: 0 } 100% { opacity: 1 } }",
         );
         expect(() => anim.at(0.5)).not.toThrow();
-        const v = anim.at(0.5).opacity?.[0]?.value;
+        const v = anim.at(0.5).opacity;
         expect(typeof v).toBe("number");
         expect(v).toBeCloseTo(0.5, 6);
     });

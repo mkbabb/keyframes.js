@@ -6,15 +6,20 @@
  * these checks directly.
  */
 import { describe, expect, it, vi } from "vitest";
-import { easeInOutCubic } from "@mkbabb/value.js";
-import { KeyframesAnimation, CSSKeyframesAnimation } from "../../src/animation/engine";
+import { easeInOutCubic } from "@mkbabb/value.js/easing";
+import {
+    KeyframesAnimation,
+    CSSKeyframesAnimation,
+} from "../../src/animation/engine";
 import { isWAAPIEligible } from "../../src/animation/waapi";
-import { getTimingFunction } from "../../src/animation/compile/easing/easing-registry";
+import { resolveEasingOption } from "../../src/animation/compile/easing/easing-option";
 
 const colorValue = (result: Record<string, any>, key: string): string => {
-    const arr = result[key];
-    if (!arr || !arr.length) throw new Error(`no interp value for "${key}"`);
-    return arr.map((v: any) => String(v)).join(" ");
+    const value = result[key];
+    if (typeof value !== "string" || value.length === 0) {
+        throw new Error(`no interp value for "${key}"`);
+    }
+    return value;
 };
 
 describe("E.W7 proof:engine-correctness — Strand A", () => {
@@ -67,9 +72,7 @@ describe("E.W7 proof:engine-correctness — Strand A", () => {
         a.addFrame(100, { x: 100, y: 100 }); // template 3 — no transform, declares y
         a.parse();
 
-        const seg = a.frames.find(
-            (f) => f.ixs.start === 1 && f.ixs.stop === 3,
-        );
+        const seg = a.frames.find((f) => f.ixs.start === 1 && f.ixs.stop === 3);
         expect(seg, "the non-adjacent (1,3) y-segment exists").toBeTruthy();
         // stop 1 declared transform tB; the segment starting at stop 1 inherits it.
         expect(seg!.transform).toBe(tB);
@@ -80,7 +83,9 @@ describe("E.W7 proof:engine-correctness — Strand A", () => {
         const el = document.createElement("div");
         (el as any).animate = () => ({});
         const a = new CSSKeyframesAnimation({ timingFunction: "linear" }, el);
-        a.fromString(`@keyframes p { from { width: 10cqw } to { width: 90cqw } }`);
+        a.fromString(
+            `@keyframes p { from { width: 10cqw } to { width: 90cqw } }`,
+        );
         const elig = isWAAPIEligible(a);
         // BITE: with COMPUTED_UNITS=["var","calc"] only, cqw slips through eligible.
         expect(elig.eligible).toBe(false);
@@ -136,19 +141,20 @@ describe("E.W7 proof:engine-correctness — Strand A", () => {
     });
 
     // ── linear() consumption ────────────────────────────────────────────
-    it("getTimingFunction reads back linear(...) to its true curve, not easeInOutCubic (r-css-values §1)", () => {
-        const fn = getTimingFunction("linear(0, 0.25 25%, 0.75 75%, 1)");
+    it("the engine reads back linear(...) to its true curve, not easeInOutCubic (r-css-values §1)", () => {
+        const fn = resolveEasingOption(
+            "timingFunction",
+            "linear(0, 0.25 25%, 0.75 75%, 1)",
+        ).fn;
         expect(typeof fn).toBe("function");
         // The linear ramp is ~identity here: f(0.5) ≈ 0.5; easeInOutCubic(0.5) = 0.5
         // too, so probe a point where they DIFFER. At t=0.25 the linear stop pins
         // 0.25; easeInOutCubic(0.25) ≈ 0.0781 — clearly distinct.
-        expect(fn!(0.25)).toBeCloseTo(0.25, 5);
+        expect(fn(0.25)).toBeCloseTo(0.25, 5);
         expect(easeInOutCubic(0.25)).toBeLessThan(0.15);
-        expect(fn!(0.25)).not.toBeCloseTo(easeInOutCubic(0.25), 2);
+        expect(fn(0.25)).not.toBeCloseTo(easeInOutCubic(0.25), 2);
         // Endpoints exact.
-        expect(fn!(0)).toBeCloseTo(0, 6);
-        expect(fn!(1)).toBeCloseTo(1, 6);
-        // BITE: with no linear( branch, getTimingFunction returns undefined and
-        // the option setter degrades to easeInOutCubic — fn would be undefined here.
+        expect(fn(0)).toBeCloseTo(0, 6);
+        expect(fn(1)).toBeCloseTo(1, 6);
     });
 });

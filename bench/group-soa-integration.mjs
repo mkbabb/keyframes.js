@@ -12,11 +12,11 @@ const css = `0% { transform: translate(0px, 0px) scale(1) rotate(0deg); opacity:
              100% { transform: translate(120px, 60px) scale(1.4) rotate(45deg); opacity: 0.4 }`;
 const mk = () => new CSSKeyframesAnimation({ duration: 1000 }).fromString(css);
 
-// The realistic crossfade: a base (replace) + 2 weighted layers (3 total); 4 = stress.
+// The realistic crossfade: a base (replace) + 2 weight layers (3 total); 4 = stress.
 function makeGroup(nWeighted) {
-    const entries = [{ animation: mk(), layer: { blendMode: "replace", zIndex: 0 } }];
+    const entries = [{ animation: mk(), layer: { op: "replace", zIndex: 0 } }];
     for (let i = 0; i < nWeighted; i++)
-        entries.push({ animation: mk(), layer: { blendMode: "weighted", zIndex: i + 1, weight: 0.5 } });
+        entries.push({ animation: mk(), layer: { op: "replace", zIndex: i + 1, weight: 0.5 } });
     return new AnimationGroup(...entries);
 }
 
@@ -28,11 +28,11 @@ function time(fn, iters) {
 }
 function median3(mk) { const r = [mk(), mk(), mk()].sort((a, b) => a - b); return r[1]; }
 
-const BLEND_SPEEDUP = 3.67; // measured (the compositor SoA weighted arm, ADOPT)
+const BLEND_SPEEDUP = 3.67; // measured (the compositor SoA weight arm, ADOPT)
 const ITERS = 200000;
 const out = {};
 
-for (const n of [2, 3]) { // 2 weighted (3-layer) realistic, 3 weighted (4-layer) stress
+for (const n of [2, 3]) { // 2 weight (3-layer) realistic, 3 weight (4-layer) stress
     const group = makeGroup(n);
     const entries = group.getEntries(); // (TS-private; reachable at runtime in the bench)
     // per-child scratch buffers for the interpFrames-only measurement

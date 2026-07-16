@@ -9,10 +9,10 @@
  * parses `spring(...)` via its GENERIC function producer (no validation, no
  * defaults), so the algebra + the `1/100/10/0` fill live HERE.
  *
- * HEAVY (value.js `FunctionValue`/`ValueUnit`) — reached only behind
+ * HEAVY (Value 4 immutable CSS AST) — reached only behind
  * `loadAnimationEngine()`.
  */
-import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
+import type { CssCall, CssValue } from "@mkbabb/value.js/value";
 import { springTimingFunction } from "../physics/spring";
 import type { Easing } from "../constants";
 
@@ -73,14 +73,20 @@ export const springCssToOptions = (
 };
 
 /**
- * Resolve a parsed `spring(...)` `FunctionValue` to a typed {@link Easing} via
+ * Resolve a parsed `spring(...)` `CssCall` to a typed {@link Easing} via
  * `springCssToOptions` → the existing `springTimingFunction` (kf already owns the
  * physics + the `linear()` twin). A `spring()` is genuinely an EASING, so the
  * natural home is timing-function resolution.
  */
-export const resolveSpringTiming = (fn: FunctionValue): Easing => {
-    const args = fn.values.map((v) =>
-        v instanceof ValueUnit ? Number(v.value) : NaN,
+export const resolveSpringTiming = (fn: CssCall): Easing => {
+    const values: readonly CssValue[] =
+        fn.args.length === 1 && fn.args[0]?.kind === "list"
+            ? fn.args[0].items
+            : fn.args;
+    const args = values.map((value) =>
+        value.kind === "scalar" && value.payload.type === "number"
+            ? value.payload.value
+            : Number.NaN,
     );
     const { response, dampingFraction } = springCssToOptions(args);
     return springTimingFunction({ response, dampingFraction });

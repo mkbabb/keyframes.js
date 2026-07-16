@@ -3,7 +3,7 @@ import {
     ManualTimeline,
     KeyframesScrollTimeline,
 } from "../../src/animation/orchestration/timeline";
-import { easeOutCubic } from "@mkbabb/value.js";
+import { easeOutCubic } from "@mkbabb/value.js/easing";
 import { resolveEasing } from "../../src/animation/easing";
 import { AnimationOptionError } from "../../src/animation/internal/errors";
 

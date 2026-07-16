@@ -7,8 +7,8 @@
  * else — behind ONE normalized {@link ViewTransitionHandle} whose `backend` is
  * queryable, so a caller can branch on which path actually ran.
  *
- * LIGHT (value.js-free): it composes `flipShared` (itself light — `ElementMorph`
- * + `RAFPlayback`) and the ONE `withReducedMotion` gate (`internal/reduced-motion`),
+ * LIGHT (parser-free): it composes `flipShared` (`ElementMorph` shares only
+ * Value's `/math` leaf) and the reduced-motion gate (`internal/reduced-motion`),
  * reads no value.js, and feature-detects the platform `startViewTransition` /
  * its typed-`update` object overload. `proof:boundary` enrolls it off the LIGHT
  * barrel automatically.

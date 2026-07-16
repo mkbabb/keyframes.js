@@ -10,7 +10,7 @@
  * (Phase 1, at `resolveKeyframes`
  * flatten time) had no element and deliberately left the element-aware nodes
  * UNRESOLVED: `if(style(--p))` (a `style(...)`-condition `if()` `resolveIf`
- * returned intact), and the `sibling-index()`/`sibling-count()` `FunctionValue`s.
+ * returned intact), and the `sibling-index()`/`sibling-count()` `CssCall` nodes.
  * Once `setTargets` binds a target, this SECOND pass re-runs the SAME
  * `resolveValues` rewriter over the pre-flatten template snapshot against an
  * element-POPULATED env, then re-`parse()`s.
@@ -21,8 +21,8 @@
  * PUBLIC compiler/targets/parse surface, called from `setTargets` as a
  * one-line delegate.
  */
-import { ValueArray } from "@mkbabb/value.js/units";
-import { type CustomFunctionDescriptor } from "@mkbabb/value.js/parsing";
+import { type CustomFunctionDescriptor } from "@mkbabb/value.js/css";
+import type { CssValue } from "@mkbabb/value.js/value";
 import {
     DROP,
     hasPhase2Node,
@@ -32,15 +32,17 @@ import {
 } from "../resolve";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "../engine/animation";
+import type { CompiledAnimationFrame } from "../compile/compiled-frame";
+import { bindInterpSlotTarget } from "../compile/interp-slot";
 
 /**
  * Q.WB1 — the emerging-CSS Phase-2 SECOND resolution pass (the gestalt P.W13
  * designed: ONE rewriter, a SECOND lifecycle point — element-populated env,
  * SAME `ResolveContext` shape). Runs over the PRE-FLATTEN
  * `compiler.templateFrames[i].vars` snapshot (the Phase-1-resolved, unflattened
- * `Record<string, ValueArray>` `parse()` re-flattens via
+ * `Record<string, CssValue>` `parse()` re-flattens via
  * `parseAndFlattenObject`), so a Phase-1-resolved leaf — already a concrete
- * `ValueUnit` — is returned as-is by `resolveNode`, making the pass idempotent
+ * `CssValue` — is returned as-is by `resolveNode`, making the pass idempotent
  * over the Phase-1 result. Gated by `hasPhase2Node`: a declaration with NO
  * element-aware node is never re-resolved (zero second-pass cost).
  *
@@ -55,7 +57,7 @@ import type { KeyframesAnimation } from "../engine/animation";
 export function resolveElementAwareValues<V extends Vars>(
     animation: KeyframesAnimation<V>,
 ): boolean {
-    const templates = animation.compiler.templateFrames;
+    const templates = animation.templateFrames;
     // Gate: only run the element-aware pass when SOME template carries a
     // Phase-2 node — the common case (percent/from/to + concrete values, or a
     // pure-Phase-1 if(supports)/spring()) pays zero second-pass cost.
@@ -90,7 +92,7 @@ export function resolveElementAwareValues<V extends Vars>(
         const vars = frame.vars as Record<string, unknown>;
         for (const key in vars) {
             const value = vars[key];
-            if (!(value instanceof ValueArray) || !hasPhase2Node(value)) {
+            if (!isCssValue(value) || !hasPhase2Node(value)) {
                 continue;
             }
             const resolved = resolveValues(value, ctx);
@@ -126,26 +128,32 @@ export function resolveElementAwareValues<V extends Vars>(
  * a thin delegate and the element-binding logic lives with the resolve zone it
  * belongs to). Runs the emerging-CSS Phase-2 element-AWARE resolution pass
  * ({@link resolveElementAwareValues}); if that did NOT re-parse (the common
- * all-concrete animation), takes the FAST path — propagate the bound target onto
- * the ALREADY-compiled interp carriers so value.js's computed-unit DOM resolution
- * reads the live box. Idempotent + SSR-safe (the Phase-2 pass no-ops without a
- * target). The caller assigns `animation.targets` FIRST, then calls this.
+ * all-concrete animation), directly rebinds only computed interpolation slots.
+ * An empty target list clears their previous ownership and cache without
+ * replacing compiled frames or authored sinks. Idempotent + SSR-safe. The
+ * caller assigns `animation.targets` first.
  */
 export function bindTargets<V extends Vars>(
     animation: KeyframesAnimation<V>,
 ): void {
     const rebuilt = resolveElementAwareValues(animation);
     if (rebuilt) return;
-    for (const frame of animation.frames) {
-        for (const values of Object.values(frame.interpVars)) {
-            for (const { start, stop, value } of values) {
-                start.setTargets(animation.targets);
-                stop.setTargets(animation.targets);
-                value.setTargets(animation.targets);
-            }
+    const target = animation.targets[0];
+    const frames = animation.frames as CompiledAnimationFrame<V>[];
+    for (const frame of frames) {
+        for (const value of Object.values(frame.interpVars)) {
+            for (const slot of value.slots) bindInterpSlotTarget(slot, target);
         }
     }
 }
+
+const isCssValue = (value: unknown): value is CssValue =>
+    value !== null &&
+    typeof value === "object" &&
+    "kind" in value &&
+    ((value as { kind?: unknown }).kind === "scalar" ||
+        (value as { kind?: unknown }).kind === "call" ||
+        (value as { kind?: unknown }).kind === "list");
 
 /**
  * Q.WB1 — build the element-AWARE {@link ResolveEnv} from the bound target (the

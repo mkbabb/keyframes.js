@@ -92,7 +92,7 @@ export interface IngestOptions {
 
 /**
  * A row sink mirroring `adapter.ts`'s — a stable `code` + a `message`, the
- * consumed `ParseDiagnostic` field shape widened. Kept module-local (the walk
+ * consumed `ParseIssue` field shape widened. Kept module-local (the walk
  * produces walk-level rows; `resolveKeyframes` produces the parse-level rows on
  * its own channel) so there is ONE row shape across the ingest surface.
  */
@@ -183,7 +183,7 @@ const walkSheet = <V extends Vars>(
     // First pass: collect every style rule's `cssText` so an `@keyframes` rule
     // can find the sibling `.class { animation: name … }` that names it. We feed
     // the matching style-rule text INTO `resolveKeyframes` beside the keyframes
-    // text so its `extractAnimationOptions` recovers the shorthand — the SAME
+    // text so its `collectAnimationOptions` recovers the shorthand — the SAME
     // pipeline `fromString` uses, never a bespoke options parser (K.W8 §S1 b).
     const styleRuleTexts: string[] = [];
     for (let i = 0; i < rules.length; i++) {
@@ -252,7 +252,7 @@ const walkSheet = <V extends Vars>(
  * whose body derails value.js's parser surfaces as a `PARSE_ERROR` row, never
  * an uncaught throw (the ingest stays total over a partial live web until VJ-9
  * lands FULL totality). The sibling text is concatenated BEFORE the keyframes so
- * `resolveKeyframes`'s `extractAnimationOptions` recovers the shorthand.
+ * `resolveKeyframes`'s `collectAnimationOptions` recovers the shorthand.
  */
 const reconstructFromRule = <V extends Vars>(
     keyframesText: string,
@@ -263,15 +263,15 @@ const reconstructFromRule = <V extends Vars>(
     try {
         const animation = new CSSKeyframesAnimation<V>(baseOptions ?? {});
         // The sibling style rule (if any) rides BEFORE the @keyframes block so
-        // value.js's `extractAnimationOptions` recovers the `animation` shorthand
+        // Value's `collectAnimationOptions` recovers the `animation` shorthand
         // — the SAME single-grammar feed `fromString` already supports (a `.class`
         // + `@keyframes` mixed input).
         const source = siblingText
             ? `${siblingText}\n${keyframesText}`
             : keyframesText;
         animation.fromString(source);
-        // The reconstruction's own parse diagnostics (EMPTY_PARSE, PARSE_ERROR
-        // from value.js, COMPOSITION_FALLBACK at apply) ride the animation's
+        // The reconstruction's own structured parse issues and honoring rows
+        // (EMPTY_PARSE, PARSE_ERROR, COMPOSITION_FALLBACK) ride the animation's
         // `diagnostics` field — carry them onto the per-rule channel so a
         // consumer reading the ingest result sees them without re-walking.
         for (const d of animation.diagnostics) perRule.push(d);

@@ -14,7 +14,7 @@
  *  (a) CC-1 a clean group compiles + replays numerically-equal (the structural
  *      replay-equality: re-parse → sample → byte-equal at sampled t).
  *  (b) the `animation-composition` layering round-trips (W7→W10 inversion).
- *  (c) the FOUR refusals RED the compile (weighted blend / custom renderer /
+ *  (c) the FOUR refusals RED the compile (weight blend / custom renderer /
  *      perceptual-oklab-beyond-densify / computed-unit drift) — named reasons.
  *  (d) CC-2 the oklab densify ships under ΔE-ε (and the emitted stops track kf's
  *      perceptual lerp) or REFUSES.
@@ -28,15 +28,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
-    color2,
-    COLOR_SPACE_RANGES,
-    deltaEOK,
-    normalizeColorUnit,
-    sampleColorRamp,
-    scale,
-    type Color,
-    type ValueUnit,
-} from "@mkbabb/value.js";
+    convertColor,
+    mixColors,
+    type AnyColor,
+} from "@mkbabb/value.js/color";
+import { parseCssValues } from "@mkbabb/value.js/css";
+import type { CssValue } from "@mkbabb/value.js/value";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { AnimationGroup } from "../../src/animation/group";
 import { Sequence } from "../../src/animation/orchestration/sequence";
@@ -85,38 +82,48 @@ const numericSnapshot = (
     progress: number,
 ): Record<string, number[]> => {
     const out: Record<string, number[]> = {};
-    for (const [key, arr] of Object.entries(a.at(progress))) {
-        const nums = (arr as ValueUnit[])
-            .map((v) => (typeof v.value === "number" ? v.value : NaN))
-            .filter((n) => !Number.isNaN(n));
-        if (nums.length > 0) out[key] = nums.map((n) => Math.round(n * 1e4) / 1e4);
+    for (const [key, value] of Object.entries(a.at(progress))) {
+        if (typeof value === "number") {
+            out[key] = [Math.round(value * 1e4) / 1e4];
+        }
     }
     return out;
 };
 
 // ΔE-OK domain (the perceptual distance the densify proof reads).
-const A_MIN = COLOR_SPACE_RANGES.oklab.a.number.min;
-const A_MAX = COLOR_SPACE_RANGES.oklab.a.number.max;
-const B_MIN = COLOR_SPACE_RANGES.oklab.b.number.min;
-const B_MAX = COLOR_SPACE_RANGES.oklab.b.number.max;
-const rawOklab = (c: Color): [number, number, number] => {
-    const ok = color2(c, "oklab") as unknown as { l: number; a: number; b: number };
-    return [ok.l, scale(ok.a, 0, 1, A_MIN, A_MAX), scale(ok.b, 0, 1, B_MIN, B_MAX)];
+const rawOklab = (color: AnyColor): [number, number, number] => {
+    const result = convertColor(color, "oklab");
+    if (!result.ok) throw new TypeError(result.error.code);
+    const [l, a, b] = result.value.channels;
+    if (typeof l !== "number" || typeof a !== "number" || typeof b !== "number") {
+        throw new TypeError("Expected numeric OKLab channels");
+    }
+    return [l, a, b];
 };
-const dE = (c1: Color, c2: Color): number => {
+const dE = (c1: AnyColor, c2: AnyColor): number => {
     const [L1, a1, b1] = rawOklab(c1);
     const [L2, a2, b2] = rawOklab(c2);
-    return deltaEOK(L1, a1, b1, L2, a2, b2);
+    return Math.hypot(L2 - L1, a2 - a1, b2 - b1);
 };
 /** A CSS color string → a value.js Color (via the engine's own parse path). */
-const parseColor = (cssColor: string): Color => {
-    const el = document.createElement("div");
-    const a = new CSSKeyframesAnimation({ duration: 1 }, el);
-    a.fromString(`@keyframes z { 0% { color: ${cssColor} } 100% { color: ${cssColor} } }`);
-    const vu = (a.parsedVars[0]!["color"] as ValueUnit[]).find(
-        (v) => v.unit === "color",
-    )!;
-    return normalizeColorUnit(vu as never).value as unknown as Color;
+const parseColor = (cssColor: string): AnyColor => {
+    const parsed = parseCssValues(cssColor);
+    if (!parsed.ok) throw new TypeError("Color fixture did not parse");
+    const find = (value: CssValue): AnyColor | undefined => {
+        if (value.kind === "scalar" && value.payload.type === "color") {
+            return value.payload.value;
+        }
+        if (value.kind === "scalar") return undefined;
+        const children = value.kind === "call" ? value.args : value.items;
+        for (const child of children) {
+            const color = find(child);
+            if (color) return color;
+        }
+        return undefined;
+    };
+    const color = find(parsed.value);
+    if (!color) throw new TypeError("Fixture did not contain a color");
+    return color;
 };
 
 // ── clause (a) — CC-1 a clean group compiles + replays numerically-equal ──────
@@ -135,7 +142,7 @@ describe("K.W10 clause (a) — CC-1 clean compile replays numerically-equal", ()
         );
         const group = new AnimationGroup(
             { animation: move },
-            { animation: fade, layer: { blendMode: "add" } },
+            { animation: fade, layer: { op: "add" } },
         );
         const out = await compileToCSS(group);
 
@@ -227,7 +234,7 @@ describe("K.W10 clause (b) — animation-composition round-trips (inverts W7)", 
         );
         const group = new AnimationGroup(
             { animation: base },
-            { animation: wobble, layer: { blendMode: "add" } },
+            { animation: wobble, layer: { op: "add" } },
         );
         const out = await compileToCSS(group);
 
@@ -249,11 +256,11 @@ describe("K.W10 clause (b) — animation-composition round-trips (inverts W7)", 
 
 describe("K.W10 clause (c) — the four refusals RED the compile (CC-3)", () => {
     it("REFUSES a NON-NUMERIC static-weight layer (a color leaf has no scalar pre-multiply — axis-3)", async () => {
-        // L.W2 S3 partitions the `weighted` blend: a static NUMERIC layer
+        // L.W2 S3 partitions the `weight` blend: a static NUMERIC layer
         // pre-multiplies into `accumulate` (see the compile arm below), but a
         // static-weight layer carrying a NON-NUMERIC leaf (a color/string has no
-        // scalar weight) STILL refuses — the weighted axis is kf's unique tier
-        // where no exact CSS twin exists. This is the residual `weighted-blend`
+        // scalar weight) STILL refuses — the weight axis is kf's unique tier
+        // where no exact CSS twin exists. This is the residual `weight-blend`
         // refusal the moat names (the named-reason honesty surface).
         const a = mkAnim(
             "wa",
@@ -261,18 +268,18 @@ describe("K.W10 clause (c) — the four refusals RED the compile (CC-3)", () => 
         );
         const group = new AnimationGroup({
             animation: a,
-            layer: { blendMode: "weighted", weight: 0.5 },
+            layer: { op: "replace", weight: 0.5 },
         });
         const out = await compileToCSS(group);
 
         expect(out.eligible).toBe(false);
         expect(out.refusals).toHaveLength(1);
-        expect(out.refusals[0]!.reason).toBe("weighted-blend");
-        // The weighted child emits NO CSS (refused, not silently approximated).
+        expect(out.refusals[0]!.reason).toBe("weight-blend");
+        // The weight child emits NO CSS (refused, not silently approximated).
         expect(out.css).not.toContain("@keyframes wa");
     });
 
-    it("REFUSES a spring-driven weightSpring crossfade (also weighted)", async () => {
+    it("REFUSES a spring-driven weightSpring crossfade (also weight)", async () => {
         const a = mkAnim(
             "xa",
             `@keyframes x { 0% { opacity: 0 } 100% { opacity: 1 } }`,
@@ -289,7 +296,7 @@ describe("K.W10 clause (c) — the four refusals RED the compile (CC-3)", () => 
         const out = await compileToCSS(group);
 
         expect(out.eligible).toBe(false);
-        expect(out.refusals.every((r) => r.reason === "weighted-blend")).toBe(true);
+        expect(out.refusals.every((r) => r.reason === "weight-blend")).toBe(true);
     });
 
     it("REFUSES a custom renderer (a transform closure cannot be CSS)", async () => {
@@ -361,7 +368,13 @@ describe("K.W10 clause (d) — CC-2 the oklab densify (consuming sampleColorRamp
         // kf's JS perceptual lerp (sampleColorRamp) at the same t.
         const block = keyframesOf(out.css, "track");
         const stopRe = /(\d+\.?\d*)%\s*\{\s*background-color:\s*(oklab\([^)]*\))/g;
-        const reference = sampleColorRamp(from, to, N, { space: "oklab" });
+        const reference = Array.from({ length: N }, (_, index) => {
+            const mixed = mixColors(from, to, index / (N - 1), {
+                space: "oklab",
+            });
+            if (!mixed.ok) throw new TypeError(mixed.error.code);
+            return mixed.value;
+        });
         let matched = 0;
         let m: RegExpExecArray | null;
         while ((m = stopRe.exec(block))) {
@@ -514,8 +527,8 @@ describe("L.W2 S1 — compileToCSS emits the scroll grammar (CC-6, not scroll-bl
 // ── S3 — static-weight pre-multiply COMPILES (bites S3, CC-5, W36) ──────────────
 
 describe("L.W2 S3 — a STATIC-weight layer pre-multiplies into accumulate (CC-5)", () => {
-    it("a static `weight: 0.5` numeric weighted layer compiles (NOT refused): pre-multiplied values + animation-composition: accumulate", async () => {
-        // Today (pre-cure): `walkGroup` marks ANY `weighted` blend a refusal, so a
+    it("a static `weight: 0.5` numeric weight layer compiles (NOT refused): pre-multiplied values + animation-composition: accumulate", async () => {
+        // Today (pre-cure): `walkGroup` marks ANY `weight` blend a refusal, so a
         // constant-weight numeric layer (the most common authored form) emits NO
         // CSS where a pre-multiply-into-`accumulate` is EXACT. After S3's partition
         // it compiles: the keyframe values pre-multiply by the scalar (CLONE-only —
@@ -529,8 +542,8 @@ describe("L.W2 S3 — a STATIC-weight layer pre-multiplies into accumulate (CC-5
             `@keyframes w { 0% { transform: translateY(0px) } 100% { transform: translateY(40px) } }`,
         );
         const group = new AnimationGroup(
-            { animation: base, layer: { blendMode: "add" } },
-            { animation: wob, layer: { blendMode: "weighted", weight: 0.5 } },
+            { animation: base, layer: { op: "add" } },
+            { animation: wob, layer: { op: "replace", weight: 0.5 } },
         );
         const out = await compileToCSS(group);
 

@@ -11,7 +11,7 @@ import {
     lerpArray as vLerpArray,
     lerp as vLerp,
     scale as vScale,
-} from "@mkbabb/value.js";
+} from "@mkbabb/value.js/math";
 import {
     clamp,
     lerpArray,

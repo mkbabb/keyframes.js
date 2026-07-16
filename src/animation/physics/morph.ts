@@ -11,8 +11,8 @@ export interface MorphRect {
 export interface ElementMorphOptions {
     /**
      * Easing as a callable `TimingFunction` or a typed `Easing` —
-     * synchronous and value.js-free (`ElementMorph` composes
-     * `NumericAnimation`, which enforces the same contract). Resolve a
+     * synchronous and parser-free (`ElementMorph` composes `NumericAnimation`,
+     * which shares only Value's `/math` leaf). Resolve a
      * string name first via `await resolveEasing(name)`.
      */
     timingFunction?: TimingFunction | Easing;

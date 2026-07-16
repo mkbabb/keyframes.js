@@ -3,7 +3,7 @@
  * REPLAY-EQUALITY invariant in the forward direction. `fromStyleSheets()` /
  * `fromLiveAnimations()` walk the CSSOM into kf objects; `adoptRunning()` takes
  * over a running CSS animation mid-flight; what cannot ingest faithfully is
- * REFUSED with a named `ParseDiagnostic` row, never silently approximated.
+ * REFUSED with a named `ParseIssue` row, never silently approximated.
  *
  * This file owns the ingest replay and diagnostic checks.
  *

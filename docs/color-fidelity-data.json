@@ -1,56 +1,56 @@
 {
-  "jnd": 0.02,
+  "jnd": 0.04,
   "space": "oklab",
   "reference": "CSS Color 4 — color-mix(in oklab) midpoint",
-  "producer": "@mkbabb/value.js deltaEOK + mixColors",
+  "producer": "@mkbabb/value.js mixColors + Keyframes OKLab metric",
   "pairs": [
     {
       "from": "#C462D8",
       "to": "#E85252",
       "note": "the canonical chromatic pair (orchid → coral; the lane's headline)",
-      "deltaE": 1.5700924586837752e-16
+      "deltaE": 3.455355944203036e-13
     },
     {
       "from": "#FF0000",
       "to": "#0000FF",
       "note": "red → blue (the maximal cross-hue sweep; RGB mixing drifts hardest)",
-      "deltaE": 5.551115123125783e-17
+      "deltaE": 5.611384509936089e-13
     },
     {
       "from": "#00FF00",
       "to": "#FF00FF",
       "note": "green → magenta (complementary; a perceptual mid no sRGB average hits)",
-      "deltaE": 1.1102230246251565e-16
+      "deltaE": 5.443211446493336e-13
     },
     {
       "from": "#FFD700",
       "to": "#00CED1",
       "note": "gold → dark-turquoise (warm → cool across the chroma plane)",
-      "deltaE": 0
+      "deltaE": 4.360765508458975e-13
     },
     {
       "from": "#1A1A1A",
       "to": "#E0E0E0",
       "note": "near-black → near-white (the achromatic ramp; the easy case)",
-      "deltaE": 0
+      "deltaE": 2.2507380302848122e-15
     },
     {
       "from": "#2E8B57",
       "to": "#FF6347",
       "note": "sea-green → tomato (mid-chroma diagonal)",
-      "deltaE": 0
+      "deltaE": 3.049584088531599e-13
     },
     {
       "from": "#4B0082",
       "to": "#FFA500",
       "note": "indigo → orange (deep cool → bright warm; a long perceptual arc)",
-      "deltaE": 0
+      "deltaE": 4.658487746993217e-13
     },
     {
       "from": "#008080",
       "to": "#800080",
       "note": "teal → purple (equal-luminance hue rotation)",
-      "deltaE": 5.551115123125783e-17
+      "deltaE": 8.561875994506187e-14
     }
   ]
 }

@@ -11,8 +11,8 @@
  * accessors to it; the compile inputs it needs (`options`, and `targets` for
  * `parse`) are passed in, never reached back through the owning class.
  */
-import { unflattenObject, ValueUnit } from "@mkbabb/value.js/units";
-import { seekPreviousValue } from "@mkbabb/value.js";
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
+import { seekPreviousValue } from "../internal/helpers";
 import type {
     AnimationFrame,
     AnimationOptions,
@@ -22,19 +22,21 @@ import type {
     TransformFunction,
     Vars,
 } from "../constants";
+import type { CompiledAnimationFrame } from "./compiled-frame";
 import { NOOP_TRANSFORM } from "../constants";
 import {
-    createInterpVarValue,
+    buildAuthoredSink,
+    compileValuePair,
     parseAndFlattenObject,
     type ParsedVarMap,
-} from "./parse-flatten";
+} from "./value-ast";
 // The keyframe-SELECTOR grammar (the regexes, the named-range tag, the
 // named-phase → fraction resolver, the content-id scale) AND the selector
 // validate+parse function (`parseKeyframeSelector`, carved off `addFrame` at
 // S.B5) live in the colocated `./selector` module (R.W2b + S.B5). S.B3 C-2 — the
-// re-export CEREMONY is DEAD: consumers (`engine/interpolate.ts`,
-// `test/nan-frame.ts`) import `namedSelectorToFraction` / `NAMED_SELECTOR_SUPERTYPE`
-// from `./selector` DIRECTLY; this module imports only what IT uses.
+// re-export CEREMONY is DEAD: consumers import `namedSelectorToFraction` and
+// `parseKeyframeSelector` from `./selector` DIRECTLY; this module imports only
+// what IT uses.
 import { FRAME_ID_SCALE, parseKeyframeSelector } from "./selector";
 
 /**
@@ -49,8 +51,8 @@ import { FRAME_ID_SCALE, parseKeyframeSelector } from "./selector";
  * consumer reads it (`parse()` is synchronous).
  */
 type FrameUnderConstruction<V extends Vars = Vars> = Omit<
-    AnimationFrame<V>,
-    "vars" | "flatVars"
+    CompiledAnimationFrame<V>,
+    "vars" | "flatVars" | "_sink"
 >;
 
 /**
@@ -64,8 +66,8 @@ function calcFrameTime<V extends Vars>(
 ) {
     const [start, stop] = [startFrame.start, endFrame.start];
     return {
-        start: (start.value * duration) / 100,
-        stop: (stop.value * duration) / 100,
+        start: start.kind === "percent" ? start.value * duration : Number.NaN,
+        stop: stop.kind === "percent" ? stop.value * duration : Number.NaN,
     };
 }
 
@@ -81,7 +83,13 @@ import { resolveEasingOption } from "./easing/easing-option";
 export class FrameCompiler<V extends Vars = Vars> {
     templateFrames: TemplateAnimationFrame<V>[] = [];
     parsedVars: ParsedVarMap[] = [];
-    frames: AnimationFrame<V>[] = [];
+    private _frames: CompiledAnimationFrame<V>[] = [];
+    private _targets: HTMLElement[] = [];
+
+    /** Consumer-observable compiled segments; kernel carriers remain private. */
+    get frames(): AnimationFrame<V>[] {
+        return this._frames;
+    }
 
     /**
      * Next TEMPLATE frame id — a monotonic handle assigned in `addFrame`
@@ -109,27 +117,21 @@ export class FrameCompiler<V extends Vars = Vars> {
      * `Animation`'s `options` — the setters mutate it in place). Read-only:
      * the compiler never replaces it. Exposed so `Animation.adoptCompiled`
      * can re-bind `Animation.options` to the adopted compiler's options object
-     * BY CONSTRUCTION (`this.options === this.compiler.options`, the live-options
-     * invariant — G.W19 / the `6e29236` lock), without poking a private field.
+     * BY CONSTRUCTION (the live-options invariant — G.W19 / the `6e29236`
+     * lock), without exposing compiler ownership on the animation class.
      */
     get options(): AnimationOptions {
         return this._options;
     }
 
     addFrame<K extends V>(
-        start: number | string | ValueUnit<number>,
+        start: number | string | KeyframeSelector,
         vars: Partial<K>,
         transform?: TransformFunction<K>,
         timingFunction?: InputAnimationOptions["timingFunction"],
         composition?: CompositeOperator,
     ): void {
-        if (typeof start === "number") {
-            start = String(start) + "%";
-        } else if (typeof start === "string") {
-            start = start;
-        } else if (start instanceof ValueUnit) {
-            start = String(start);
-        }
+        if (typeof start === "number") start = `${start}%`;
 
         // Fail-explicit belt (H.W0 H-A2, made TOTAL in J.W1 S3 — SEAM-1;
         // L.W1-S4-extended for the scroll-range named selectors). The validate+
@@ -140,7 +142,8 @@ export class FrameCompiler<V extends Vars = Vars> {
         // (`entry`/`exit`/…) ingests OPAQUELY — round-trips VERBATIM, resolves
         // to a numeric `%` only under a ScrollTimeline/ManualTimeline at attach
         // time (never a parse-time throw or an invented number).
-        const parsedStart: ValueUnit = parseKeyframeSelector(start);
+        const parsedStart =
+            typeof start === "string" ? parseKeyframeSelector(start) : start;
 
         let templateFrame = {
             id: this.frameId,
@@ -164,7 +167,7 @@ export class FrameCompiler<V extends Vars = Vars> {
         this.frameId += 1;
     }
 
-    createFrame(startIx: number, endIx: number): AnimationFrame<V> {
+    private createFrame(startIx: number, endIx: number): CompiledAnimationFrame<V> {
         const startFrame = this.templateFrames[startIx]!;
         const endFrame = this.templateFrames[endIx]!;
 
@@ -253,7 +256,7 @@ export class FrameCompiler<V extends Vars = Vars> {
             timingFunction,
             ...(composition != null ? { composition } : {}),
         };
-        return frame as AnimationFrame<V>;
+        return frame as CompiledAnimationFrame<V>;
     }
 
     /**
@@ -284,7 +287,7 @@ export class FrameCompiler<V extends Vars = Vars> {
      * Uses a pre-built variable index (from buildVarIndex) to avoid
      * O(frames²) findIndex scans.
      */
-    reconcileVars(ix: number, varIndex: Map<string, number[]>) {
+    private reconcileVars(ix: number, varIndex: Map<string, number[]>) {
         const startVars = this.parsedVars[ix];
         if (!startVars) {
             return;
@@ -308,25 +311,22 @@ export class FrameCompiler<V extends Vars = Vars> {
 
             const [startIx, endIx] = [ix, varIx];
 
-            const frameIx = this.frames.findIndex(
+            const frameIx = this._frames.findIndex(
                 (f) => f.ixs.start === startIx && f.ixs.stop === endIx,
             );
             const frame =
                 frameIx !== -1
-                    ? this.frames[frameIx]!
+                    ? this._frames[frameIx]!
                     : this.createFrame(startIx, endIx);
 
-            frame.interpVars[v] = createInterpVarValue(
+            frame.interpVars[v] = this.compileValue(
                 v,
-                startIx,
-                endIx,
-                this.parsedVars,
-                this.options.colorSpace,
-                this.options.hueMethod,
-            ) as AnimationFrame<V>["interpVars"][string];
+                startVars[v]!,
+                this.parsedVars[endIx]![v]!,
+            );
 
             if (frameIx === -1) {
-                this.frames.push(frame);
+                this._frames.push(frame);
             }
         }
     }
@@ -337,19 +337,19 @@ export class FrameCompiler<V extends Vars = Vars> {
      * resolution can read the live box. Pure otherwise.
      */
     parse(targets: HTMLElement[]) {
-        this.frames = [];
+        this._frames = [];
+        this._targets = targets;
 
         // DM-22 named-selector resolution — BUILT (Q.WD1-bind S2), not deferred.
         // A scroll-range named selector (`entry`/`exit`/`cover`/`contain`) is
-        // stored opaquely as `ValueUnit(rawSelector, undefined,
-        // [NAMED_SELECTOR_SUPERTYPE])` (`.value` = raw STRING) so it INGESTS and
-        // round-trips VERBATIM (the L.W1 S4 floor — `fromString` must not throw).
+        // stored opaquely as a Value 4 `{ kind: "named", name, offset? }`
+        // KeyframeSelector so it ingests and round-trips verbatim.
         // The correct cure is NOT a throw at parse() (that poisons the opaque-
         // ingest floor): the deferred-resolution step LIVES at attach time in
         // `CSSKeyframesAnimation.bindTimeline`, which maps each named phase to a
-        // numeric `%` `ValueUnit` (via `namedSelectorToFraction`), CLEARS the
-        // `NAMED_SELECTOR_SUPERTYPE` tag, and re-compiles — so a frame SAMPLED after
-        // `bindTimeline` yields finite times, never NaN (locked by
+        // normalized percent KeyframeSelector via `namedSelectorToFraction` and
+        // re-compiles — so a frame SAMPLED after `bindTimeline` yields finite times,
+        // never NaN (locked by
         // `test/engine/nan-frame.test.ts` "after bindTimeline … finite"). The
         // play-time guard (`assertNoUnresolvedNamedSelector`) is belt-and-braces:
         // it refuses a raw `interpFrames`/`play()` on an UNBOUND named animation
@@ -357,31 +357,27 @@ export class FrameCompiler<V extends Vars = Vars> {
         // surfaced fail-explicit at play) rather than producing a NaN frame — the
         // accepted terminal contract for the sample-before-bind path. `parse()`
         // itself stays opaque-tolerant: it neither throws nor resolves (bind owns
-        // resolution); named starts simply carry their raw string until bound.
-        this.templateFrames.sort((a, b) => a.start.value - b.start.value);
+        // resolution); named starts retain their structural selector until bound.
+        this.templateFrames.sort((a, b) =>
+            a.start.kind === "percent" && b.start.kind === "percent"
+                ? a.start.value - b.start.value
+                : 0,
+        );
 
         this.parsedVars = this.templateFrames.map((frame) => {
-            const parsed = parseAndFlattenObject(
-                frame.vars as Record<string, unknown>,
-            );
-
-            Object.values(parsed).forEach((values) => {
-                values.setTargets(targets);
-            });
-
-            return parsed;
+            return parseAndFlattenObject(frame.vars as Record<string, unknown>);
         });
 
         for (let i = 0; i < this.templateFrames.length - 1; i++) {
-            this.frames.push(this.createFrame(i, i + 1));
+            this._frames.push(this.createFrame(i, i + 1));
         }
 
         // Perform variable reconciliation using pre-built index for O(1) lookups
         const varIndex = this.buildVarIndex();
-        this.frames.forEach((_, ix) => this.reconcileVars(ix, varIndex));
+        this._frames.forEach((_, ix) => this.reconcileVars(ix, varIndex));
 
         // Sort frames by start time, then by stop time
-        this.frames.sort((a, b) => {
+        this._frames.sort((a, b) => {
             if (a.time.start === b.time.start) {
                 return a.time.stop - b.time.stop;
             }
@@ -389,48 +385,40 @@ export class FrameCompiler<V extends Vars = Vars> {
         });
 
         // Filter out frames that have no interpolated variables
-        this.frames = this.frames.filter(
+        this._frames = this._frames.filter(
             (frame) =>
                 frame.interpVars != null &&
                 Object.keys(frame.interpVars).length > 0,
         );
 
         // Set the vars for each frame and pre-flatten interpVars for hot-path iteration
-        this.frames.forEach((frame) => this.finalizeFrameVars(frame));
+        this._frames.forEach((frame) => this.finalizeFrameVars(frame));
     }
 
     /**
-     * Derive a frame's `flatVars`/`vars`/`allInterpVars` from its
-     * `interpVars` — the pre-flattened forms the hot path
-     * (`interpFrames`) iterates without re-walking. Called once per frame
-     * at the tail of `parse`, and again by `renormalizeColors` after a
-     * color-space change re-derives the interp carriers in place.
+     * Derive a frame's observable authored values and pre-flattened kernel
+     * slots. Called once per frame at the tail of `parse`, and again after a
+     * color-space change re-derives the interpolation carriers in place.
      */
-    private finalizeFrameVars(frame: AnimationFrame<V>): void {
-        const flatVars = Object.entries(frame.interpVars).reduce<
-            Record<string, ValueUnit[]>
-        >((acc, [key, value]) => {
-            acc[key] = value.map((v) => v.value);
-            return acc;
-        }, {});
-        frame.flatVars = flatVars as unknown as V;
-        frame.vars = unflattenObject(frame.flatVars);
-        // T.A6 — invalidate the PLAIN authored-shape projection (rebuilt lazily
-        // on the next apply). Its writers cache the interp-carrier `ValueUnit`
-        // refs, which `renormalizeColors` replaces, so a re-finalize MUST drop it.
-        frame._plainProj = undefined;
+    private finalizeFrameVars(frame: CompiledAnimationFrame<V>): void {
+        const sink = buildAuthoredSink<V>(frame.interpVars);
+        frame._sink = sink;
+        frame.flatVars = sink.flat;
+        frame.vars = sink.root;
         // Pre-flatten for zero-alloc iteration in interpFrames()
-        frame.allInterpVars = Object.values(frame.interpVars).flat();
-        // Q.WB3 S2 — build the numeric SoA fold plan over the now-stable iv set
+        frame.allInterpVars = Object.values(frame.interpVars).flatMap(
+            (value) => value.slots,
+        );
+        // Q.WB3 S2 — build the numeric SoA fold plan over the stable slot set
         // (the same seam allInterpVars is built). Re-run by renormalizeColors so
         // a color-space change keeps the plan in lock-step with the carriers.
-        frame._numericPlan = buildNumericPlan<V>(frame.allInterpVars);
+        frame._numericPlan = buildNumericPlan(frame.allInterpVars);
     }
 
     /**
      * Re-derive the color-resolved interpolation carriers in place after a
      * `colorSpace`/`hueMethod` change on already-compiled frames. Only the
-     * per-`InterpolatedVar` color resolution depends on the color space —
+     * per-slot color resolution depends on the color space —
      * the flatten/sort/reconcile structure does not — so this re-runs
      * `createInterpVarValue` over the existing `frames`/`parsedVars` and
      * rebuilds the hot-path arrays, with NO re-flatten and NO re-sort. The
@@ -442,18 +430,32 @@ export class FrameCompiler<V extends Vars = Vars> {
      * next compile.
      */
     renormalizeColors(): void {
-        for (const frame of this.frames) {
+        for (const frame of this._frames) {
             for (const v of Object.keys(frame.interpVars)) {
-                frame.interpVars[v] = createInterpVarValue(
+                frame.interpVars[v] = this.compileValue(
                     v,
-                    frame.ixs.start,
-                    frame.ixs.stop,
-                    this.parsedVars,
-                    this.options.colorSpace,
-                    this.options.hueMethod,
-                ) as AnimationFrame<V>["interpVars"][string];
+                    this.parsedVars[frame.ixs.start]![v]!,
+                    this.parsedVars[frame.ixs.stop]![v]!,
+                );
             }
             this.finalizeFrameVars(frame);
         }
+    }
+
+    private compileValue(
+        property: string,
+        left: ParsedVarMap[string],
+        right: ParsedVarMap[string],
+    ) {
+        return compileValuePair(left, right, {
+            colorSpace: this.options.colorSpace,
+            property,
+            ...(this.options.hueMethod === undefined
+                ? {}
+                : { hueMethod: this.options.hueMethod }),
+            ...(this._targets[0] === undefined
+                ? {}
+                : { target: this._targets[0] }),
+        });
     }
 }

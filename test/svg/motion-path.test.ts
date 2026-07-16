@@ -50,26 +50,19 @@ describe("MotionPath — offset-path set + offset-distance keyframe shape (S1)",
     it("builds a frame set whose interpolating key is offset-distance, sweeping 0%→100%", () => {
         const { el } = waapiTarget();
         const anim = fromMotionPath(el, { path: PATH, autoPlay: false });
-
-        // Collect every interpolating key + its endpoint units across frames.
-        const keys = new Set<string>();
-        const endpoints: { start?: string; stop?: string }[] = [];
-        for (const frame of anim.frames) {
-            for (const [key, arr] of Object.entries(frame.interpVars)) {
-                keys.add(key);
-                for (const iv of arr as any[]) {
-                    endpoints.push({
-                        start: `${iv.start?.value}${iv.start?.unit}`,
-                        stop: `${iv.stop?.value}${iv.stop?.unit}`,
-                    });
-                }
-            }
-        }
+        const start = anim.interpFrames(0, false);
+        const startKeys = Object.keys(start);
+        const startDistance = start["offset-distance"];
+        const stop = anim.interpFrames(anim.options.duration, false);
+        const stopKeys = Object.keys(stop);
+        const stopDistance = stop["offset-distance"];
 
         // The ONLY animated key is offset-distance.
-        expect([...keys]).toEqual(["offset-distance"]);
+        expect(startKeys).toEqual(["offset-distance"]);
+        expect(stopKeys).toEqual(["offset-distance"]);
         // …sweeping 0% → 100% (the path origin to the path end).
-        expect(endpoints).toContainEqual({ start: "0%", stop: "100%" });
+        expect(startDistance).toBe("0%");
+        expect(stopDistance).toBe("100%");
     });
 
     it("honors a custom from/to sub-range", () => {
@@ -80,17 +73,10 @@ describe("MotionPath — offset-path set + offset-distance keyframe shape (S1)",
             to: "75%",
             autoPlay: false,
         });
-        const seen: string[] = [];
-        for (const frame of anim.frames) {
-            for (const arr of Object.values(frame.interpVars)) {
-                for (const iv of arr as any[]) {
-                    seen.push(`${iv.start?.value}${iv.start?.unit}`);
-                    seen.push(`${iv.stop?.value}${iv.stop?.unit}`);
-                }
-            }
-        }
-        expect(seen).toContain("25%");
-        expect(seen).toContain("75%");
+        expect(anim.interpFrames(0, false)["offset-distance"]).toBe("25%");
+        expect(
+            anim.interpFrames(anim.options.duration, false)["offset-distance"],
+        ).toBe("75%");
     });
 
     it("BITE: a missing path throws (no offset-path to traverse)", () => {
@@ -101,9 +87,7 @@ describe("MotionPath — offset-path set + offset-distance keyframe shape (S1)",
     it("BITE: builds over offset-distance, NOT some other key", () => {
         const { el } = waapiTarget();
         const anim = fromMotionPath(el, { path: PATH, autoPlay: false });
-        const keys = new Set<string>();
-        for (const frame of anim.frames)
-            for (const k of Object.keys(frame.interpVars)) keys.add(k);
+        const keys = new Set(Object.keys(anim.interpFrames(0, false)));
         // The structural lock: if the factory built over `width`/`left`/etc.,
         // this set would not be exactly {offset-distance}.
         expect(keys.has("offset-distance")).toBe(true);

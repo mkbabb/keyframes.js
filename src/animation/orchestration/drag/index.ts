@@ -5,7 +5,7 @@
  * (`draggable.ts`) and the 2-D sugar `drag2D` (`drag-2d.ts`). The barrel owns the
  * merged surface, replacing the retired flat-sibling re-export relay — `draggable.ts`
  * imports nothing from `drag-2d.ts`; `drag-2d.ts` imports only `Draggable`.
- * LIGHT (value.js-free) — rides `SpringProgress`/`decay`.
+ * LIGHT (parser-free, Value `/math` leaf only) — rides `SpringProgress`/`decay`.
  */
 export { drag, Draggable } from "./draggable";
 export type { DragOptions, DragAxis, DragSubscriber } from "./draggable";

@@ -31,6 +31,10 @@ export default defineConfig({
         },
     },
     test: {
+        benchmark: {
+            include: ["bench/*.bench.ts"],
+            exclude: ["**/.claude/**", "**/node_modules/**", "**/dist/**"],
+        },
         projects: [
             {
                 extends: true,
@@ -50,9 +54,5 @@ export default defineConfig({
                 },
             },
         ],
-    },
-    benchmark: {
-        include: ["bench/*.bench.ts"],
-        exclude: ["**/.claude/**", "**/node_modules/**", "**/dist/**"],
     },
 });

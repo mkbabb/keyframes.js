@@ -24,7 +24,7 @@
  *   (the `perceptual-oklab` refusal INVERTS — native Oklab, NO densify, ZERO stops).
  *
  * ── THE REFUSAL TAXONOMY (P2-2.3) — 3 inherited + 6 entry-specific ────────────
- *   inherited:  custom-renderer · weighted-blend · computed-unit-drift
+ *   inherited:  custom-renderer · weight-blend · computed-unit-drift
  *   entry:      entry-multi-keyframe · entry-iteration · entry-composition ·
  *               entry-scroll-grammar · entry-color-space · entry-easing-twin
  *   (`reverse` is an endpoint-SWAP branch, NOT a refusal; `fillMode` is ABSORBED —
@@ -34,15 +34,15 @@
  * ── BOUNDARY: HEAVY (value.js-bearing). ──────────────────────────────────────
  * Reached ONLY via `loadAnimationEngine()` + the `./engine` static mirror.
  */
-import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
-import { unflattenObjectToString, ValueUnit } from "@mkbabb/value.js/units";
-import { camelCaseToHyphen } from "@mkbabb/value.js";
+import { reverseCSSTime, serializeCssValue } from "./css-text";
+import { convertColor } from "@mkbabb/value.js/color";
+import type { CssValue } from "@mkbabb/value.js/value";
+import { camelCaseToHyphen } from "../../internal/helpers";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
 // The emit-substrate helpers, imported from the real sibling FILES inside emit/
 // (never the emit/ barrel — the barrel re-exports THIS file, so a barrel import
 // would cycle; the same file-not-barrel idiom the easing carve proved).
-import { colorUnitToOklabCSS, isColorUnit } from "./backward-color";
 import { serializeEasing } from "./easing-serialize";
 
 // ── The spec + options (P2-2 API contract) ───────────────────────────────────
@@ -58,7 +58,12 @@ export interface EntryRoleSpec<V extends Vars = Vars> {
 /** Options for {@link compileToEntry}. */
 export interface EntryCompileOptions {
     /** The open-state selector suffix, concatenated onto the base selector. Default `".open"`. */
-    openSelector?: ".open" | "[data-open]" | ":popover-open" | "[open]" | (string & {});
+    openSelector?:
+        | ".open"
+        | "[data-open]"
+        | ":popover-open"
+        | "[open]"
+        | (string & {});
     /** The open `display` value (the base rule is always `display: none`). Default `"block"`. */
     display?: string;
     /**
@@ -67,15 +72,13 @@ export interface EntryCompileOptions {
      * dialog), inert-but-harmless elsewhere, so a caller rarely turns it off.
      */
     overlay?: boolean;
-    /** Prettier print-width for the emitted artifact. Omit for the default. */
-    printWidth?: number;
 }
 
 /** The refusal taxonomy — 3 inherited + 6 entry-specific (P2-2.3). */
 export type EntryRefusalReason =
     // 3 inherited from the CC-3 trust surface (perceptual-oklab INVERTS → a feature).
     | "custom-renderer"
-    | "weighted-blend"
+    | "weight-blend"
     | "computed-unit-drift"
     // 6 entry-specific.
     | "entry-multi-keyframe"
@@ -110,6 +113,40 @@ interface Decl {
     value: string;
 }
 
+const hasColor = (value: CssValue): boolean => {
+    if (value.kind === "scalar") return value.payload.type === "color";
+    const children = value.kind === "call" ? value.args : value.items;
+    return children.some(hasColor);
+};
+
+const canonicalizeColors = (value: CssValue): CssValue => {
+    if (value.kind === "scalar") {
+        if (value.payload.type !== "color") return value;
+        const converted = convertColor(value.payload.value, "oklab");
+        if (!converted.ok) {
+            throw new TypeError(
+                `Value 4 color conversion failed: ${converted.error.code}.`,
+            );
+        }
+        return {
+            kind: "scalar",
+            payload: { type: "color", value: converted.value },
+        };
+    }
+    if (value.kind === "call") {
+        return {
+            kind: "call",
+            name: value.name,
+            args: value.args.map(canonicalizeColors),
+        };
+    }
+    return {
+        kind: "list",
+        separator: value.separator,
+        items: value.items.map(canonicalizeColors),
+    };
+};
+
 /**
  * The declared CSS declarations for template stop `i` — the DECLARED-ENDPOINT
  * projection (the same `parsedVars[i]` source `declaredKeyframeBodyFor` reads),
@@ -121,21 +158,13 @@ function frameDecls<V extends Vars>(
     i: number,
 ): Decl[] {
     const declared = animation.parsedVars[i] ?? {};
-    // Map each top-level (hyphenated) color prop → its color ValueUnit.
-    const colorByProp = new Map<string, ValueUnit>();
-    for (const [flatKey, arr] of Object.entries(declared)) {
-        if (Array.isArray(arr)) {
-            const cu = (arr as ValueUnit[]).find(isColorUnit);
-            if (cu) colorByProp.set(camelCaseToHyphen(flatKey.split(".")[0]!), cu);
-        }
-    }
     const decls: Decl[] = [];
-    for (const [propCamel, value] of Object.entries(
-        unflattenObjectToString(declared),
-    )) {
+    for (const [propCamel, value] of Object.entries(declared)) {
         const prop = camelCaseToHyphen(propCamel);
-        const cu = colorByProp.get(prop);
-        decls.push({ prop, value: cu ? colorUnitToOklabCSS(cu) : String(value) });
+        decls.push({
+            prop,
+            value: serializeCssValue(canonicalizeColors(value)),
+        });
     }
     return decls;
 }
@@ -151,24 +180,25 @@ function endpointIndices<V extends Vars>(
 // ── Refusal detection (per role animation) ────────────────────────────────────
 
 /** True iff any declared stop carries a color leaf (the entry-color-space scope). */
-function hasColorTrack<V extends Vars>(animation: KeyframesAnimation<V>): boolean {
+function hasColorTrack<V extends Vars>(
+    animation: KeyframesAnimation<V>,
+): boolean {
     for (let i = 0; i < animation.templateFrames.length; i++) {
         const declared = animation.parsedVars[i] ?? {};
-        for (const arr of Object.values(declared)) {
-            if (Array.isArray(arr) && (arr as ValueUnit[]).some(isColorUnit)) {
-                return true;
-            }
-        }
+        for (const value of Object.values(declared))
+            if (hasColor(value)) return true;
     }
     return false;
 }
 
-/** The first flat prop key whose declared value array is EMPTY (computed-unit drift). */
-function emptyDeclared<V extends Vars>(animation: KeyframesAnimation<V>): string | undefined {
+/** The first flat prop key whose declared `CssValue` list is empty. */
+function emptyDeclared<V extends Vars>(
+    animation: KeyframesAnimation<V>,
+): string | undefined {
     for (let i = 0; i < animation.templateFrames.length; i++) {
         const declared = animation.parsedVars[i] ?? {};
-        for (const [key, arr] of Object.entries(declared)) {
-            if (!Array.isArray(arr) || arr.length === 0) return key;
+        for (const [key, value] of Object.entries(declared)) {
+            if (value.kind === "list" && value.items.length === 0) return key;
         }
     }
     return undefined;
@@ -271,14 +301,19 @@ function detectRefusal<V extends Vars>(
 // ── Transition-list + rule assembly ───────────────────────────────────────────
 
 const REFUSAL_MESSAGE: Record<EntryRefusalReason, string> = {
-    "custom-renderer": "custom renderer — the JS playback is the only faithful path",
-    "weighted-blend": "weighted layer blend has no transition twin",
-    "computed-unit-drift": "computed-unit drift — the endpoint cannot be re-emitted faithfully",
-    "entry-multi-keyframe": "more than two declared stops — a transition is a two-endpoint grammar",
-    "entry-iteration": "iteration/alternate-direction — transitions run once, forward",
+    "custom-renderer":
+        "custom renderer — the JS playback is the only faithful path",
+    "weight-blend": "layer weight has no transition twin",
+    "computed-unit-drift":
+        "computed-unit drift — the endpoint cannot be re-emitted faithfully",
+    "entry-multi-keyframe":
+        "more than two declared stops — a transition is a two-endpoint grammar",
+    "entry-iteration":
+        "iteration/alternate-direction — transitions run once, forward",
     "entry-composition": "add/accumulate composition has no transition twin",
     "entry-scroll-grammar": "scroll grammar has no transition twin",
-    "entry-color-space": "a non-default color space (oklch/hueMethod) — transitions expose no space control",
+    "entry-color-space":
+        "a non-default color space (oklch/hueMethod) — transitions expose no space control",
     "entry-easing-twin": "the easing has no faithful CSS timing-function twin",
 };
 
@@ -420,11 +455,5 @@ export async function compileToEntry<V extends Vars>(
     }
 
     const raw = blocks.join("\n\n");
-    let css: string;
-    try {
-        css = await formatCSS(raw, opts.printWidth);
-    } catch {
-        css = raw;
-    }
-    return { css, eligible, refusals };
+    return { css: `${raw}\n`, eligible, refusals };
 }

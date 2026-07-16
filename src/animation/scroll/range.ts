@@ -12,7 +12,7 @@
  * verbatimModuleSyntax). The static value.js edge lives in `./grammar`.
  */
 import { PHASE_FRACTIONS as SELECTOR_PHASE_FRACTIONS } from "../internal/scroll-phases";
-import type { AnimationRangeValue, RangeBoundary, RangePhase } from "@mkbabb/value.js/parsing";
+import type { AnimationRangeValue, RangeBoundary, RangePhase } from "@mkbabb/value.js/css";
 
 /**
  * The named phases of a view-progress timeline, in scroll order, each mapping to

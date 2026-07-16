@@ -15,7 +15,7 @@ describe("U.C16 group WAAPI lowering", () => {
         Object.defineProperty(el, "animate", { configurable: true, value: animate });
         const first = animation(el, "0.2");
         const second = animation(el, "0.3");
-        const group = AnimationGroup.of(first, { animation: second, layer: { blendMode: "add" } });
+        const group = AnimationGroup.of(first, { animation: second, layer: { op: "add" } });
         const verdict = isGroupWAAPIEligible(group);
         expect(verdict.eligible).toBe(true);
         const handles = lowerGroupWAAPI(group);
@@ -24,14 +24,14 @@ describe("U.C16 group WAAPI lowering", () => {
         expect((animate.mock.calls as unknown[][])[1]?.[1]).toMatchObject({ composite: "add" });
     });
 
-    it("refuses weighted layers so the caller can retain the rAF compositor", () => {
+    it("refuses weight layers so the caller can retain the rAF compositor", () => {
         const el = document.createElement("div");
         Object.defineProperty(el, "animate", { configurable: true, value: vi.fn() });
         const first = animation(el, "0.2");
         const second = animation(el, "0.3");
-        const group = AnimationGroup.of(first, { animation: second, layer: { blendMode: "weighted", weight: 0.5 } });
+        const group = AnimationGroup.of(first, { animation: second, layer: { op: "replace", weight: 0.5 } });
         const verdict = isGroupWAAPIEligible(group);
-        expect(verdict).toEqual({ eligible: false, reason: "weighted layer has no native composite equivalent" });
+        expect(verdict).toEqual({ eligible: false, reason: "weight-driven layer has no native composite equivalent" });
         expect(lowerGroupWAAPI(group)).toBeNull();
     });
 

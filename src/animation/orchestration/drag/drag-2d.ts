@@ -7,7 +7,7 @@ import type { DragOptions } from "./draggable";
  * as additive sugar: the engine stays one-dimensional (KISS); this module is
  * the front door that spares every 2-D consumer the two-`Draggable`
  * boilerplate. LIGHT — it imports only `Draggable` + `DragOptions` from
- * `./draggable`, so it carries zero static `@mkbabb/value.js` edge.
+ * `./draggable`, so it carries only the same rootless Value `/math` leaf.
  *
  * The `drag/index.ts` barrel re-exports `drag2D` + `Drag2DHandle` (R.W1 — the
  * barrel owns the unified surface; no flat-sibling relay through `draggable.ts`).

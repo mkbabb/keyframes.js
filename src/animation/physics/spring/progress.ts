@@ -13,7 +13,6 @@ import type {
     SpringProgressOptions,
     SpringSubscriber,
     SpringFrameCallback,
-    SpringPlayback,
 } from "./types";
 // S.B5 — the MANAGED-PLAYBACK loop (`.play()`/`.stop()` rAF ownership) is a set
 // of FREE FUNCTIONS in the colocated `./managed-play` module, driving this
@@ -65,11 +64,11 @@ import { solveDampedHarmonic } from "./solver/solver";
  *
  * API mirrors SwiftUI's `.spring(response:dampingFraction:)`.
  */
-export class SpringProgress implements SpringPlayback {
+export class SpringProgress {
     private options: SpringProgressOptions;
 
     /** The reduced-motion policy — read by `./managed-play`'s `springPlay` to
-     * route the snap vs. run branch (the {@link SpringPlayback} contract). */
+     * route the snap vs. run branch. */
     get respectReducedMotion() {
         return this.options.respectReducedMotion;
     }

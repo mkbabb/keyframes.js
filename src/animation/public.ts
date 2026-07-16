@@ -29,7 +29,7 @@
  *
  *   • engine core (re-exported wholesale from the zone barrel `./engine`):
  *     `KeyframesAnimation`, `CSSKeyframesAnimation`, `getAnimationId`,
- *     `getTimingFunction`, `resolveKeyframes`, `DIRECTIONS`, `FILL_MODES`,
+ *     `resolveKeyframes`, `DIRECTIONS`, `FILL_MODES`,
  *     `defaultOptions`, `defaultLayerConfig` (+ the `ResolvedKeyframes` type).
  *   • `AnimationGroup` (the `group/` zone).
  *   • the SVG factories `MotionPath`/`fromMotionPath`, `DrawSVG`/`fromDrawSVG`,
@@ -47,7 +47,7 @@
 
 // ── engine CORE (the zone barrel — wholesale) ────────────────────────────────
 // `./engine` is value.js-bearing and zone-pure: KeyframesAnimation,
-// CSSKeyframesAnimation, getAnimationId, getTimingFunction, resolveKeyframes,
+// CSSKeyframesAnimation, getAnimationId, resolveKeyframes,
 // DIRECTIONS, FILL_MODES, defaultOptions, defaultLayerConfig + ResolvedKeyframes.
 export * from "./engine";
 
@@ -169,5 +169,5 @@ export {
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
 } from "./compile/emit/format";
-export { transformTargetsStyle } from "./compile/parse-flatten";
+export { transformTargetsStyle } from "./compile/value-ast";
 export { yieldToMain } from "./internal/scheduler";

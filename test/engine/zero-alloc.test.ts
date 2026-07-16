@@ -3,6 +3,8 @@ import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { AnimationGroup } from "../../src/animation/group";
 import { compositeFramesAt } from "../support/group-probe";
 import { NumericAnimation } from "../../src/animation/physics/numeric";
+import { buildSoAPlans } from "../../src/animation/group/soa";
+import type { FlatAuthoredValues } from "../../src/animation/compile/value-ast";
 
 /**
  * D.W4 D-1 — `proof:zero-alloc`: the `AnimationGroup` composite path allocates
@@ -37,16 +39,16 @@ function mixedGroup(): AnimationGroup<any> {
     // ≥3 children, all three blend modes, one carrying a `properties`
     // whitelist so the inlined filter is exercised.
     return new AnimationGroup<any>(
-        { animation: a, layer: { blendMode: "replace", zIndex: 0 } },
+        { animation: a, layer: { op: "replace", zIndex: 0 } },
         {
             animation: b,
             layer: {
-                blendMode: "add",
+                op: "add",
                 zIndex: 1,
                 properties: new Set(["opacity"]),
             },
         },
-        { animation: c, layer: { blendMode: "weighted", zIndex: 2, weight: 0.5 } },
+        { animation: c, layer: { op: "replace", zIndex: 2, weight: 0.5 } },
     );
 }
 
@@ -131,41 +133,42 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
 
 /**
  * S.F5a S1/S2 — `proof:zero-alloc` EXTENDED to the MIXED-LEAF residual shape (the
- * boxedKeys Set hoist, a32 F3 / a04 F6).
+ * residualKeys Set hoist, a32 F3 / a04 F6).
  *
  * The HEAVY composite buffer-identity arm above covers the ALL-NUMERIC transform
- * shape (every leaf a numeric `ValueUnit[]` → the whole `for..in` collapses to the
- * SoA fold, `boxedKeys` empty). The UN-gated shape is the MIXED-LEAF residual: an
- * `add`/`weighted` layer that touches a key the SoA fold CANNOT cover — a
- * first-touch key with no lower array carrier, or a leaf with a non-numeric
- * element. `buildSoAPlans` records those in the plan's `boxedKeys`, and the
- * compositor runs the boxed residual over them EVERY frame the SoA path is live.
+ * shape (every leaf is numeric, so the whole `for..in` collapses to the
+ * SoA fold, `residualKeys` empty). The UN-gated shape is the MIXED-LEAF residual: an
+ * `add`/`weight` layer that touches a key the SoA fold CANNOT cover — a
+ * first-touch key with no lower structural value, or a non-numeric leaf.
+ * `buildSoAPlans` records those in the plan's `residualKeys`, and the compositor
+ * runs structural composition over them every frame the SoA path is live.
  *
- * Before the S.F5a S1 hoist, `boxedKeys` was a `string[]` and `boxedBlendArm`
+ * Before the S.F5a S1 hoist, `residualKeys` was a `string[]` and `residualBlendArm`
  * rebuilt a fresh `new Set(only)` on EVERY frame (`compositor.ts` — a per-frame
- * allocation on the mixed-leaf hot path). S1 precomputes `boxedKeys` as a `Set`
+ * allocation on the mixed-leaf hot path). S1 precomputes `residualKeys` as a `Set`
  * ON THE PLAN at `buildSoAPlans` (structural-change time), so the per-frame
  * `new Set` is gone at its source — the fold walks the precomputed Set directly.
  *
- * This arm gates the plan's `boxedKeys` TYPE — the device-independent predicate
+ * This arm gates the plan's `residualKeys` TYPE — the device-independent predicate
  * that eliminates the per-frame `new Set` (the SAME instrument the LIGHT-tier
  * `seg.from instanceof Float64Array` arm below uses: assert the STORAGE TYPE that
  * hoists the allocation, not the wall-clock).
  *
- * BORN-RED WITNESS (today's tree): `SoALayerPlan.boxedKeys` is a `string[]`, so
- * `plan.boxedKeys instanceof Set` is FALSE → this expectation FAILS on the
+ * BORN-RED WITNESS (today's tree): `SoALayerPlan.residualKeys` is a `string[]`, so
+ * `plan.residualKeys instanceof Set` is FALSE → this expectation FAILS on the
  * pre-S1 tree, the born-RED posture this clause requires. GREEN after S1 makes
- * `boxedKeys` a precomputed `Set` on the plan.
+ * `residualKeys` a precomputed `Set` on the plan.
  *
- * BITE: reverting `boxedKeys` to a `string[]` (restoring the per-frame
- * `new Set(only)` in `boxedBlendArm`) reds this arm.
+ * BITE: reverting `residualKeys` to a `string[]` (restoring the per-frame
+ * `new Set(only)` in `residualBlendArm`) reds this arm.
  */
 function mixedLeafGroup(): AnimationGroup<any> {
     // A base `replace` layer parks `opacity`; an `add` layer folds `opacity`
-    // (numeric → SoA) AND first-touches `transform` (no lower array carrier → the
-    // boxed residual, recorded in the plan's `boxedKeys`). This is the mixed-leaf
-    // shape: the SoA fold covers opacity, the boxed residual covers transform, so
-    // `plan.boxedKeys` is non-empty — exactly the shape the retired per-frame
+    // (numeric → SoA) AND first-touches `transform` (no lower structural value →
+    // the residual path, recorded in the plan's `residualKeys`). This is the
+    // mixed-leaf shape: the SoA fold covers opacity while structural composition
+    // covers transform, so
+    // `plan.residualKeys` is non-empty — exactly the shape the retired per-frame
     // `new Set(only)` fired on.
     const base = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
         from { opacity: 0; }
@@ -180,35 +183,38 @@ function mixedLeafGroup(): AnimationGroup<any> {
     add.name = "mixed-add";
     add.t = 500;
     return new AnimationGroup<any>(
-        { animation: base, layer: { blendMode: "replace", zIndex: 0 } },
-        { animation: add, layer: { blendMode: "add", zIndex: 1 } },
+        { animation: base, layer: { op: "replace", zIndex: 0 } },
+        { animation: add, layer: { op: "add", zIndex: 1 } },
     );
 }
 
 /** Non-empty over a `Set` (`.size`) OR the retired `string[]` (`.length`). */
-function residualCount(boxedKeys: unknown): number {
-    if (boxedKeys instanceof Set) return boxedKeys.size;
-    if (Array.isArray(boxedKeys)) return boxedKeys.length;
+function residualCount(residualKeys: unknown): number {
+    if (residualKeys instanceof Set) return residualKeys.size;
+    if (Array.isArray(residualKeys)) return residualKeys.length;
     return 0;
 }
 
-describe("proof:zero-alloc — mixed-leaf SoA residual (S.F5a boxedKeys Set hoist)", () => {
-    it("buildSoAPlans precomputes boxedKeys as a Set on the plan (no per-frame new Set)", () => {
+describe("proof:zero-alloc — mixed-leaf SoA residual (S.F5a residualKeys Set hoist)", () => {
+    it("buildSoAPlans precomputes residualKeys as a Set on the plan (no per-frame new Set)", () => {
         const group = mixedLeafGroup();
-        // Frame 1 runs the boxed path whole + builds the plan; frame 2 folds the
-        // SoA pairs and walks the boxed residual (the retired per-frame `new Set`
+        // Frame 1 runs the residual path whole + builds the plan; frame 2 folds the
+        // SoA pairs and walks the structural residual (the retired per-frame `new Set`
         // site).
-        compositeFramesAt(group, 100);
+        const grouped = compositeFramesAt(group, 100);
         compositeFramesAt(group, 200);
-        const plans = group._soaPlans;
-        expect(plans).not.toBeNull();
-        // The `add` layer's plan carries a non-empty boxed residual (the
+        const { plans } = buildSoAPlans(
+            group.getEntries(),
+            null,
+            grouped as FlatAuthoredValues,
+        );
+        // The `add` layer's plan carries a non-empty structural residual (the
         // first-touch `transform` leaf the SoA fold cannot cover).
-        const residual = plans!
-            .map((p) => (p as unknown as { boxedKeys: unknown }).boxedKeys)
+        const residual = plans
+            .map((p) => (p as unknown as { residualKeys: unknown }).residualKeys)
             .find((bk) => residualCount(bk) > 0);
         expect(residual).toBeDefined();
-        // BORN-RED (pre-S1): `boxedKeys` is a `string[]` → NOT a `Set`. GREEN
+        // BORN-RED (pre-S1): `residualKeys` is a `string[]` → NOT a `Set`. GREEN
         // after S1 precomputes it as a `Set` on the plan.
         expect(residual).toBeInstanceOf(Set);
     });

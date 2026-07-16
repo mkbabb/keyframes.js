@@ -17,8 +17,10 @@
  * the adapter + the spring helpers from `resolve-values.ts`.
  */
 import { describe, expect, it } from "vitest";
-import { parseCSSValue, FunctionValue } from "@mkbabb/value.js";
+import { parseCssValue } from "@mkbabb/value.js/css";
+import type { CssCall, CssValue } from "@mkbabb/value.js/value";
 import { resolveKeyframes } from "../../src/animation/compile/adapter";
+import { serializeCssValue } from "../../src/animation/compile/emit/css-text";
 import {
     resolveSpringTiming,
     springCssToOptions,
@@ -33,7 +35,7 @@ const stopValue = (
 ): string | undefined => {
     const frame = resolved.keyframes.get(percent);
     if (!frame || !(prop in frame)) return undefined;
-    return String(frame[prop]);
+    return serializeCssValue(frame[prop] as CssValue);
 };
 
 describe("P.W13 — emerging-css-resolve-NOW (Phase-1 element-independent)", () => {
@@ -123,8 +125,12 @@ describe("P.W13 — emerging-css-resolve-NOW (Phase-1 element-independent)", () 
 
     // ── Item 2a: spring() → kf-curve sample-equality ────────────────────────
     it("spring(1 100 10 0) → a curve sample-EQUAL to springTimingFunction({response, dampingFraction})", () => {
-        const fn = parseCSSValue("spring(1 100 10 0)") as FunctionValue;
-        expect(fn).toBeInstanceOf(FunctionValue);
+        const parsed = parseCssValue("spring(1 100 10 0)");
+        expect(parsed.ok).toBe(true);
+        if (!parsed.ok || parsed.value.kind !== "call") {
+            throw new TypeError("spring fixture did not produce a CssCall");
+        }
+        const fn: CssCall = parsed.value;
         expect(fn.name).toBe("spring");
 
         // kf OWNS the physics: springCssToOptions maps (m,k,c,v0) →

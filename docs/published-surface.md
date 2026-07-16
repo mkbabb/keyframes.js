@@ -74,7 +74,6 @@ parser and `@mkbabb/value.js`; one dynamic import, cached thereafter
 | `fromMorphSVG`          | HEAVY | [README §MorphSVG](../README.md#morphsvg)                                                                                                                  |
 | `presets`               | HEAVY | [README §Presets](../README.md#presets)                                                                                                                    |
 | `getAnimationId`        | HEAVY | [README §The dynamic engine](../README.md#the-dynamic-engine--loadanimationengine) — stable string id for an `Animation` (or passthrough)                  |
-| `getTimingFunction`     | HEAVY | [README §The dynamic engine](../README.md#the-dynamic-engine--loadanimationengine) — easing name/literal → `TimingFunction` (the value.js registry lookup) |
 | `resolveKeyframes`      | HEAVY | [README §The dynamic engine](../README.md#the-dynamic-engine--loadanimationengine) — CSS `@keyframes` text/stylesheet → resolved keyframes                 |
 | `DIRECTIONS`            | HEAVY | [README §AnimationOptions](../README.md#animationoptions) — the valid `direction` values, as a const tuple                                                 |
 | `FILL_MODES`            | HEAVY | [README §AnimationOptions](../README.md#animationoptions) — the valid `fillMode` values, as a const tuple                                                  |

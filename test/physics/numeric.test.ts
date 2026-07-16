@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { easeOutCubic, linear } from "@mkbabb/value.js";
+import { easeOutCubic, linear } from "@mkbabb/value.js/easing";
 import { resolveEasing } from "../../src/animation/easing";
 import { AnimationOptionError } from "../../src/animation/internal/errors";
 import { NumericAnimation } from "../../src/animation/physics/numeric";
@@ -25,21 +25,14 @@ describe("NumericAnimation", () => {
     });
 
     it("clamps progress to [0, 1]", () => {
-        const anim = new NumericAnimation([
-            { v: 0 },
-            { v: 100 },
-        ]);
+        const anim = new NumericAnimation([{ v: 0 }, { v: 100 }]);
 
         expect(anim.at(-1).v).toBeCloseTo(0);
         expect(anim.at(2).v).toBeCloseTo(100);
     });
 
     it("supports multiple keyframes", () => {
-        const anim = new NumericAnimation([
-            { x: 0 },
-            { x: 50 },
-            { x: 100 },
-        ]);
+        const anim = new NumericAnimation([{ x: 0 }, { x: 50 }, { x: 100 }]);
 
         expect(anim.at(0).x).toBeCloseTo(0);
         expect(anim.at(0.25).x).toBeCloseTo(25);
@@ -49,10 +42,9 @@ describe("NumericAnimation", () => {
     });
 
     it("supports custom positions", () => {
-        const anim = new NumericAnimation(
-            [{ x: 0 }, { x: 100 }, { x: 50 }],
-            { positions: [0, 20, 100] },
-        );
+        const anim = new NumericAnimation([{ x: 0 }, { x: 100 }, { x: 50 }], {
+            positions: [0, 20, 100],
+        });
 
         expect(anim.at(0).x).toBeCloseTo(0);
         expect(anim.at(0.2).x).toBeCloseTo(100);
@@ -61,10 +53,9 @@ describe("NumericAnimation", () => {
 
     it("applies timing function", () => {
         const doubleSpeed = (t: number) => Math.min(t * 2, 1);
-        const anim = new NumericAnimation(
-            [{ x: 0 }, { x: 100 }],
-            { timingFunction: doubleSpeed },
-        );
+        const anim = new NumericAnimation([{ x: 0 }, { x: 100 }], {
+            timingFunction: doubleSpeed,
+        });
 
         // At progress 0.25, timing function maps to 0.5
         expect(anim.at(0.25).x).toBeCloseTo(50);
@@ -82,11 +73,7 @@ describe("NumericAnimation", () => {
     });
 
     it("updateKeyframe recomputes adjacent segments", () => {
-        const anim = new NumericAnimation([
-            { x: 0 },
-            { x: 50 },
-            { x: 100 },
-        ]);
+        const anim = new NumericAnimation([{ x: 0 }, { x: 50 }, { x: 100 }]);
 
         anim.updateKeyframe(1, { x: 80 });
         expect(anim.at(0.5).x).toBeCloseTo(80);
@@ -94,10 +81,7 @@ describe("NumericAnimation", () => {
     });
 
     it("returns the same object reference (zero-alloc)", () => {
-        const anim = new NumericAnimation([
-            { x: 0 },
-            { x: 100 },
-        ]);
+        const anim = new NumericAnimation([{ x: 0 }, { x: 100 }]);
 
         const a = anim.at(0);
         const b = anim.at(0.5);

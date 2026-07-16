@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { easeOutCubic } from "@mkbabb/value.js";
+import { easeOutCubic } from "@mkbabb/value.js/easing";
 import { resolveEasing } from "../../src/animation/easing";
 import { AnimationOptionError } from "../../src/animation/internal/errors";
 import { ElementMorph } from "../../src/animation/physics/morph";

@@ -8,7 +8,7 @@
  * else-branch deterministically. The recursive rewriter (`resolve/index.ts`)
  * threads a {@link ResolveContext} built by {@link makeResolveContext}.
  */
-import type { CustomFunctionDescriptor } from "@mkbabb/value.js/parsing";
+import type { CustomFunctionDescriptor } from "@mkbabb/value.js/css";
 
 /**
  * The injectable environment a Phase-1 resolution evaluates against. Every field
@@ -34,8 +34,8 @@ export interface ResolveEnv {
 
 /**
  * The resolution context threaded from `adapter.ts`. `functions` is the
- * `@function` descriptor REGISTRY (populated NOW via value.js `extractFunctions`,
- * mirroring how `properties` is populated via `extractProperties`); the
+ * `@function` descriptor registry (populated via Value's
+ * `collectCustomFunctions`, mirroring `collectPropertyDescriptors`); the
  * call-inlining that CONSUMES it is value.js-P-gated. `seen` + `depth` are the
  * cycle-guard the recursive rewriter carries (a self-referential `@function`, a
  * pathological nesting).
@@ -127,7 +127,7 @@ export const makeResolveContext = (
  * guaranteed-invalid `if()` with no matching branch and no `else`. The CALLER
  * (the adapter's declaration loop) treats a `DROP` as "omit this declaration"
  * — the prior/initial value wins per the CSS guaranteed-invalid rule. Emitting an
- * empty-string `ValueUnit` would corrupt frame interpolation (it would lerp `''`),
+ * empty-string `CssValue` would corrupt frame interpolation (it would lerp `''`),
  * so the DROP is a distinct, explicit outcome, NOT a value.
  */
 export const DROP = Symbol("kf.resolve.drop");

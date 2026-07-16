@@ -14,7 +14,7 @@ import type {
 import { createScrollScene, type ScrollScene, type ScrollSceneOptions } from "./scene";
 import { createTriggerScene, type TriggerScene } from "./trigger";
 import { dispatchScrollBackend, type ScrollBackend } from "./dispatch";
-import type { AnimationTimelineValue, CSSTimelineOptions } from "@mkbabb/value.js/parsing";
+import type { AnimationTimelineValue, CSSTimelineOptions } from "@mkbabb/value.js/css";
 
 /** Options for the composed `driveScrollCSS` entry. */
 export interface ScrollDriveOptions<V extends Vars = Vars>

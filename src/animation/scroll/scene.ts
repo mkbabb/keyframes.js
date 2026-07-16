@@ -24,7 +24,7 @@
  * The HEAVY (static `@mkbabb/value.js`) edge lives in `./scroll-grammar`; this
  * file references value.js only via ERASED `import type`. The whole scroll
  * surface is reached ONLY via `loadAnimationEngine()` — NEVER a LIGHT static
- * barrel export. The value.js-free LIGHT surface stays value.js-free.
+ * barrel export. The LIGHT surface retains only its shared Value `/math` leaf.
  *
  * ── The VALUE / TIME division-of-labour (RESOLVED — not re-litigated) ──────
  * value.js owns VALUES (the grammar half: `scroll()`/`view()`/range-phase tokens
@@ -52,7 +52,7 @@ import type { ResolvedRange } from "./range";
 // The driver consumes the value.js scroll-grammar TYPES only (erased under
 // verbatimModuleSyntax — no runtime value.js edge; the static edge lives in
 // `./grammar`, the SO-1 round-trip half re-exported by the scroll barrel).
-import type { AnimationRangeValue, AnimationTimelineValue, CSSTimelineOptions } from "@mkbabb/value.js/parsing";
+import type { AnimationRangeValue, AnimationTimelineValue, CSSTimelineOptions } from "@mkbabb/value.js/css";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SO-2 — the ScrollScene JS DRIVER (value.js-INDEPENDENT; composes the SHIPPED

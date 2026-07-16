@@ -16,8 +16,16 @@
  * composition emitters from HERE. HEAVY (value.js-bearing) — reached only via
  * `loadAnimationEngine()`.
  */
-import { reverseAnimationShorthand, reverseCSSTime, serializeStylesheetItem } from "@mkbabb/value.js/parsing";
-import type { CSSAnimationOptions, PropertyDescriptor } from "@mkbabb/value.js/parsing";
+import {
+    reverseAnimationShorthand,
+    reverseCSSTime,
+    serializeStylesheetItem,
+} from "./css-text";
+import {
+    parseTimingFunction,
+    type CSSAnimationOptions,
+    type CSSPropertyDescriptor,
+} from "@mkbabb/value.js/css";
 import type { KeyframesAnimation } from "../../engine";
 import type {
     AnimationOptions,
@@ -88,25 +96,35 @@ export function animationOptionsToString(
  * the CC-3 custom-renderer/closure refusal generalized to the easing channel);
  * a spring's `linear()` flows through verbatim.
  */
-export function animationShorthand(options: AnimationOptions, name: string): string {
+export function animationShorthand(
+    options: AnimationOptions,
+    name: string,
+): string {
+    const timingSource = serializeEasing(options.timingFunction);
+    const timing = parseTimingFunction(timingSource);
+    if (!timing.ok) {
+        throw new TypeError(
+            `Cannot serialize timing function ${JSON.stringify(timingSource)}.`,
+        );
+    }
     const cssOptions: CSSAnimationOptions = {
         name,
         duration: options.duration,
-        timingFunction: serializeEasing(options.timingFunction),
+        timingFunction: timing.value,
         iterationCount: isFinite(options.iterationCount)
             ? options.iterationCount
             : Infinity,
         direction: options.direction,
         fillMode: options.fillMode,
+        ...(options.delay > 0 ? { delay: options.delay } : {}),
     };
-    if (options.delay > 0) cssOptions.delay = options.delay;
     return reverseAnimationShorthand(cssOptions);
 }
 
 /**
  * K.W10 CC-1 — the `animation-composition` SEPARATE longhand (CC-1's W7
  * inversion). CSS `animation-composition` is `replace | add | accumulate`; kf's
- * `add` LAYER blend (`BlendMode`) and per-stop `add`/`accumulate` honor (W7)
+ * `add` layer composition and per-stop `add`/`accumulate` honor (W7)
  * ride here as the standalone longhand, so the emitted CSS replays the SAME
  * layered result the JS playback did. Returns `undefined` for the default
  * `replace` (omitted — the byte-minimal round-trip; `replace` is the CSS
@@ -123,7 +141,7 @@ export function animationComposition(
 /**
  * L.W1 S2 — serialize the `@property` registry BACK to its `@property` blocks.
  * `CSSKeyframesAnimation.fromString` parses `@property --foo { … }` rules into
- * `animation.propertyRegistry` (`Map<string, PropertyDescriptor>`) and registers
+ * `animation.propertyRegistry` (`Map<string, CSSPropertyDescriptor>`) and registers
  * them with the UA, but the backward serialize path dropped them — a compiled
  * artifact lost its custom-property TYPING block on re-ship (`--foo` falls back
  * to the `<universal>` type, breaking `@property`-typed transitions). Emit each
@@ -137,7 +155,7 @@ export function propertyRegistryToString<V extends Vars>(
 ): string {
     const registry = (
         animation as KeyframesAnimation<V> & {
-            propertyRegistry?: ReadonlyMap<string, PropertyDescriptor>;
+            propertyRegistry?: ReadonlyMap<string, CSSPropertyDescriptor>;
         }
     ).propertyRegistry;
     if (registry == null || registry.size === 0) return "";

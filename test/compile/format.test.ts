@@ -6,6 +6,7 @@ import { defaultOptions } from "../../src/animation/constants";
 
 const parseCSSKeyframes = (input: string) => resolveKeyframes(input).keyframes;
 
+
 describe("animationOptionsToString", () => {
     it("produces CSS with correct properties", () => {
         const css = animationOptionsToString(defaultOptions, "test");

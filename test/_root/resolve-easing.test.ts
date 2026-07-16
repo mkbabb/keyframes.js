@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { easeOutCubic } from "@mkbabb/value.js";
+import { easeOutCubic } from "@mkbabb/value.js/easing";
 import { resolveEasing, toEasing } from "../../src/animation/easing";
 import { UnknownEasingError } from "../../src/animation/internal/errors";
 

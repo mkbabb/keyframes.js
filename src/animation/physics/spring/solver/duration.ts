@@ -5,8 +5,8 @@
  * construction-time concern, lifted off the `SpringProgress` module so the spring
  * tracker stays under the library ceiling.
  *
- * LIGHT (value.js-free): it reads only the leaf `clamp` (from the internal
- * leaves) and the `SpringProgressOptions` type + the default response from
+ * LIGHT (parser-free): it reads Value's `/math` `clamp` through the internal
+ * leaves and the `SpringProgressOptions` type + the default response from
  * `./types` (NOT `./progress` — the R.W1 ring-break) — no value.js edge, so the
  * static boundary `proof:boundary` stays unbreached. progress.ts re-exports the
  * public `SpringDurationOptions` type and imports `durationToSpringOptions` back

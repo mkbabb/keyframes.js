@@ -17,8 +17,8 @@ interface NumericSegment<T extends Record<string, number>> {
 export interface NumericAnimationOptions {
     /**
      * Easing as a callable `TimingFunction` or a typed `Easing` — both
-     * synchronous and value.js-free, so this engine never touches the
-     * dynamic boundary.
+     * synchronous; this engine shares only Value's `/math` leaf and never
+     * touches the parser/color dynamic boundary.
      *
      * A string easing *name* is NOT accepted here (fail-explicit: it
      * throws). Resolve a name once, up front, through the async factory:

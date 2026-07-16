@@ -14,7 +14,7 @@
  * `engine.ts` class sheds it WITHOUT changing the `loadAnimationEngine()`
  * boundary. ZERO behavior change.
  */
-import { parseCSSTime } from "@mkbabb/value.js/parsing";
+import { parseCssScalar } from "@mkbabb/value.js/css";
 import {
     COLOR_SPACES,
     DIRECTIONS,
@@ -26,14 +26,15 @@ import type { AnimationOptions, InputAnimationOptions } from "../constants";
 import { resolveEasingOption } from "../compile/easing/easing-option";
 import { AnimationOptionError, parseOption } from "../internal/errors";
 
-/** `parseCSSTime` that converts a parse failure to `undefined` for the option seam. */
+/** Parse one CSS time scalar and convert it to milliseconds. */
 const tryParseTime = (raw: string): number | undefined => {
-    try {
-        const parsed = parseCSSTime(raw);
-        return Number.isFinite(parsed) ? parsed : undefined;
-    } catch {
-        return undefined;
-    }
+    const parsed = parseCssScalar(raw);
+    if (!parsed.ok || parsed.value.payload.type !== "number") return undefined;
+    const { value, unit } = parsed.value.payload;
+    if (!Number.isFinite(value)) return undefined;
+    if (unit === "ms") return value;
+    if (unit === "s") return value * 1000;
+    return undefined;
 };
 
 /** Normalize `timingFunction` — omission → the default easing. */

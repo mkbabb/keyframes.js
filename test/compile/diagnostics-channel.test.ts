@@ -3,8 +3,8 @@
  * channel): every SILENT fallback site is mirrored by a citable, stable-coded
  * diagnostic row. This file is the value-level regression check.
  *
- * The channel CONSUMES the value.js 0.12.0 `ParseDiagnostic`/`OnParseError`
- * producer (N2 row 10) — the rows are the consumed shape widened with a stable
+ * The channel consumes the Value 4 `ParseIssue` producer — rows extend that
+ * shape with a stable
  * kf-side `code`, NOT a kf-local re-author of the producer.
  *
  * BORN-RED WITNESS: on the pre-cure tree `ResolvedKeyframes` has NO
@@ -100,10 +100,10 @@ describe("K.W7 S4 code: UNKNOWN_TIMING_FN (J.W1-landed throw, structured-shaped)
 });
 
 describe("K.W7 S4 — the channel is the CONSUMED value.js shape", () => {
-    it("a row carries the ParseDiagnostic field shape (message + code)", () => {
+    it("a row carries the ParseIssue field shape (message + code)", () => {
         const r = resolveKeyframes("/* comment only */");
         const row = r.diagnostics.find((d) => d.code === "EMPTY_PARSE");
-        // The consumed `ParseDiagnostic` shape: `message` (always) + the widened
+        // The consumed `ParseIssue` shape: `message` (always) + the widened
         // stable `code`. NOT a bespoke kf logging record.
         expect(typeof row?.message).toBe("string");
         expect(row?.code).toBe("EMPTY_PARSE");

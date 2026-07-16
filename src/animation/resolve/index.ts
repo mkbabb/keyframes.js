@@ -16,11 +16,16 @@
  *   - `./resolve-function` — the `@function` CALL-inlining
  *   - `./element-resolve`  — the Phase-2 element-AWARE SECOND pass
  *
- * HEAVY (value.js `FunctionValue`/`ValueUnit`/`parseCSSValue`) — reached only
- * behind `loadAnimationEngine()`.
+ * HEAVY (Value 4 structural `CssValue` calls/lists/scalars and CSS metadata) —
+ * reached only behind `loadAnimationEngine()`.
  */
 export type { ResolveEnv, ResolveContext } from "./env";
-export { defaultResolveEnv, makeResolveContext, DROP, type Resolved } from "./env";
+export {
+    defaultResolveEnv,
+    makeResolveContext,
+    DROP,
+    type Resolved,
+} from "./env";
 export { resolveValues, hasResolvableValue, hasPhase2Node } from "./core";
 export {
     springCssToOptions,

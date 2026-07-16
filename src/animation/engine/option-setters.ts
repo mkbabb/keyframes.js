@@ -27,6 +27,7 @@ import {
 import { shouldReverse } from "./play-lifecycle";
 import type { InputAnimationOptions, Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
+import { compilerFor } from "./compiler-state";
 
 export function applyTimingFunction<V extends Vars>(
     anim: KeyframesAnimation<V>,
@@ -110,7 +111,7 @@ export function applyColorSpace<V extends Vars>(
     // Honor the live-options contract: if frames are already compiled, the color
     // space is baked into their interp carriers — re-derive them so the change
     // takes effect (not a silent compile-stale no-op).
-    if (anim.frames.length > 0) anim.compiler.renormalizeColors();
+    if (anim.frames.length > 0) compilerFor<V>(anim).renormalizeColors();
 }
 
 export function applyHueMethod<V extends Vars>(
@@ -124,7 +125,7 @@ export function applyHueMethod<V extends Vars>(
     anim.options.hueMethod = normalized;
     // The hue-interpolation method is baked into compiled cylindrical-space
     // carriers; re-derive when frames already exist (live-options contract).
-    if (anim.frames.length > 0) anim.compiler.renormalizeColors();
+    if (anim.frames.length > 0) compilerFor<V>(anim).renormalizeColors();
 }
 
 export function applyComposite<V extends Vars>(

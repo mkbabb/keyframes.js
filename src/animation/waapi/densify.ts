@@ -29,6 +29,8 @@
  */
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
+import type { CompiledAnimationFrame } from "../compile/compiled-frame";
+import type { CompiledValue } from "../compile/value-ast";
 
 /**
  * The TOTAL interior-stop budget per segment — a running CAP, NOT a recursion
@@ -55,31 +57,60 @@ export const WAAPI_MAX_SUBSEGMENT_STOPS = 16;
 export const WAAPI_CHORD_TOLERANCE = 0.005;
 
 /**
- * The set of numeric channels an interp sample carries, flattened to a stable
- * key→scalar map. {@link Animation.interpFrames} returns `Record<string,
- * ValueUnit[]>` whose leaves MAY be a multi-component vector (a `translate(x,y)`
- * → length-2 `ValueUnit[]`); each component is a distinct curvature channel, so
- * the key is suffixed by component index. The numeric `.value` is copied OUT
- * eagerly — `interpFrames(t, false)` may alias a frame's live `flatVars` buffer
- * (the single-active-frame fast-path, engine.ts), so concurrent samples cannot
- * all read the same aliased object; the copy decouples them. Non-finite /
- * non-numeric leaves are skipped (they carry no curvature).
+ * The numeric channels carried by the active compiled slots. Reading the slots
+ * after `interpFrames` keeps unit-bearing structures such as
+ * `translateX(20px)` numeric for curvature analysis even though the authored
+ * sink correctly serializes them as CSS strings. Values are copied into this
+ * map because each subsequent sample mutates the same compiled slots.
  */
 type ChannelSample = Map<string, number>;
+
+/** True when every emitted property can be faithfully baked as numeric slots. */
+export const canDensifyWAAPISlots = <V extends Vars>(
+    animation: KeyframesAnimation<V>,
+): boolean => {
+    const signatures = new Map<string, string>();
+    const frames = animation.frames as CompiledAnimationFrame<V>[];
+    for (const frame of frames) {
+        for (const [property, value] of Object.entries(frame.interpVars)) {
+            if (value.slots.length === 0 ||
+                value.slots.some((slot) => slot.kind !== "number")) {
+                return false;
+            }
+            // A slot index is a valid curvature channel only while it names the
+            // same structural position in every segment for this property.
+            const signature = JSON.stringify(value.template);
+            const previous = signatures.get(property);
+            if (previous !== undefined && previous !== signature) return false;
+            signatures.set(property, signature);
+        }
+    }
+    return true;
+};
 
 const sampleChannels = <V extends Vars>(
     animation: KeyframesAnimation<V>,
     t: number,
 ): ChannelSample => {
     const out: ChannelSample = new Map();
-    const vars = animation.interpFrames(t, false);
-    for (const key in vars) {
-        const leaf = vars[key];
-        if (leaf === undefined) continue;
-        for (let i = 0; i < leaf.length; i++) {
-            const v = leaf[i]?.value;
-            if (typeof v === "number" && Number.isFinite(v)) {
-                out.set(leaf.length > 1 ? `${key}.${i}` : key, v);
+    animation.interpFrames(t, false);
+    const frames = animation.frames as CompiledAnimationFrame<V>[];
+
+    // Match interpFrames' last-active-frame-wins merge before reading slots.
+    // A property may have a different slot count in adjacent frames, so choosing
+    // the winning CompiledValue first avoids retaining a stale component.
+    const active = new Map<string, CompiledValue>();
+    for (const frame of frames) {
+        if (t < frame.time.start || t > frame.time.stop) continue;
+        for (const [property, value] of Object.entries(frame.interpVars)) {
+            active.set(property, value);
+        }
+    }
+    for (const [property, value] of active) {
+        for (let index = 0; index < value.slots.length; index++) {
+            const slot = value.slots[index]!;
+            if (slot.kind === "number" && Number.isFinite(slot.current)) {
+                out.set(`${property}\u0000${index}`, slot.current);
             }
         }
     }

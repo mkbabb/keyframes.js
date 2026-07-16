@@ -1,42 +1,48 @@
-/**
- * J.W1 S4 (SEAM-2) — the kf-side pin for the LOAD-BEARING value.js
- * empty-input contract.
- *
- * I FINAL §4-A declares `parseCSSValueUnit("") → ValueUnit(0)` LOAD-BEARING:
- * rebuilding `dist` on value.js 0.11.1 (no empty-input fix) reds the live
- * `proof:engine-no-throw-on-play` gate. But the kf selector guard
- * short-circuits empty input BEFORE value.js sees it, so the guard tests
- * prove the GUARD — not the value.js contract. This pin calls
- * `parseCSSValueUnit` DIRECTLY (the `leaves-parity.test.ts` precedent: a kf
- * test that locks kf's CONSUMPTION of a value.js property), so a future
- * value.js empty-input regression reds HERE — fast, named, in `npm test` —
- * not only on the indirect built-dist runtime gate.
- */
+import { parseKeyframeSelector } from "@mkbabb/value.js/css";
 import { describe, expect, it } from "vitest";
-import { parseCSSValueUnit, ValueUnit } from "@mkbabb/value.js";
 
-describe("value.js consume-edge — the empty-input contract (I FINAL §4-A, LOAD-BEARING)", () => {
-    it('parseCSSValueUnit("") returns a typed-empty ValueUnit (value 0), never throws', () => {
-        let parsed: ValueUnit | undefined;
-        expect(() => {
-            parsed = parseCSSValueUnit("");
-        }).not.toThrow();
-        expect(parsed).toBeInstanceOf(ValueUnit);
-        expect(parsed!.value).toBe(0);
+describe("Value 4 keyframe-selector contract", () => {
+    it("rejects empty and whitespace-only selectors with diagnostics", () => {
+        for (const source of ["", "   "]) {
+            const result = parseKeyframeSelector(source);
+            expect(result.ok).toBe(false);
+            if (!result.ok) {
+                expect(result.diagnostics[0].code).toBe(
+                    "keyframe_selector_invalid",
+                );
+            }
+        }
     });
 
-    it('parseCSSValueUnit("   ") (whitespace-only) returns the same typed-empty result', () => {
-        let parsed: ValueUnit | undefined;
-        expect(() => {
-            parsed = parseCSSValueUnit("   ");
-        }).not.toThrow();
-        expect(parsed).toBeInstanceOf(ValueUnit);
-        expect(parsed!.value).toBe(0);
+    it("normalizes percentages and from/to to the [0,1] domain", () => {
+        expect(parseKeyframeSelector("50%")).toMatchObject({
+            ok: true,
+            value: { kind: "percent", value: 0.5 },
+        });
+        expect(parseKeyframeSelector("from")).toMatchObject({
+            ok: true,
+            value: { kind: "percent", value: 0 },
+        });
+        expect(parseKeyframeSelector("to")).toMatchObject({
+            ok: true,
+            value: { kind: "percent", value: 1 },
+        });
     });
 
-    it("positive control: a real value still parses (the pin is not vacuous)", () => {
-        const v = parseCSSValueUnit("50%");
-        expect(v.value).toBe(50);
-        expect(v.unit).toBe("%");
+    it("parses bare and offset named phases structurally", () => {
+        expect(parseKeyframeSelector("entry")).toMatchObject({
+            ok: true,
+            value: { kind: "named", name: "entry" },
+        });
+        expect(parseKeyframeSelector("exit 100%")).toMatchObject({
+            ok: true,
+            value: { kind: "named", name: "exit", offset: 1 },
+        });
+    });
+
+    it("rejects malformed and out-of-range selectors", () => {
+        for (const source of ["101%", "entry 101%", "bogus", "50px"]) {
+            expect(parseKeyframeSelector(source).ok).toBe(false);
+        }
     });
 });

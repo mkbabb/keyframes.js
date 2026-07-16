@@ -7,7 +7,7 @@
  * (`compileToCSS`) walks the animation and emits a `.class { animation: … }`
  * rule with ZERO `animation-timeline` / `animation-range` declarations
  * (`grep animation-timeline src/animation/compile.ts` → zero hits) — the
- * compiled artifact is SCROLL-BLIND: a browser plays it on the time clock, not
+ * compiled artifact is SCROLL-BLIND: a browser plays it on the TIME clock, not
  * the scroll clock. The EMIT half of the round-trip the ingest half already
  * closed.
  *

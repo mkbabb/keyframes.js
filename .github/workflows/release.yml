@@ -43,8 +43,8 @@ jobs:
               run: npm run check:lib
             - name: build library
               run: npm run build:lib
-            - name: test
-              run: npm test -- --run
+            - name: test library
+              run: npm run test:lib
             - name: verify publish boundary
               run: npm run proof:publish
             - name: verify release changelog
