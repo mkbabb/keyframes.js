@@ -1,0 +1,40 @@
+# V.W1 GREEN witness — render-truth harness against the FIXED audit copy
+# (the five scoped demo fixes applied; rehearsed shape == w1-rehearsed.patch).
+# 14/14 combos GREEN: pageerror==0 AND objectObject==0. Exit 0.
+# The single home consoleError is the pre-existing out-of-lane 404 (R3-02
+# negatives), recorded-not-gated.
+# NOTE: the harness writes its live captures to `captures/` (which this repo
+# keeps at the RED-WITNESS baseline for W1-red-witness.log). The archived GREEN
+# captures for THIS run live under `captures-green/` (+ its own summary.json).
+# ----------------------------------------------------------------------------
+==============================================================================
+V.W1.b render-truth harness
+  audit copy : /private/tmp/claude-504/-Users-mkbabb-Programming-keyframes-js/58f34108-b347-4938-adcd-9e676fc3e1fa/scratchpad/kf-audit-copy
+  base       : http://127.0.0.1:5271
+  routes     : home, cube, amiga, square, easing, spring, sequence
+  viewports  : 1280x800, 390x844
+  settle     : 3000ms
+  started    : 2026-07-17T07:25:31.886Z
+==============================================================================
+[dev] spawning vite on http://127.0.0.1:5271 (cwd=/private/tmp/claude-504/-Users-mkbabb-Programming-keyframes-js/58f34108-b347-4938-adcd-9e676fc3e1fa/scratchpad/kf-audit-copy)
+[dev] up on http://127.0.0.1:5271
+[ok  ] home      1280x800 pageerror=0 objectObject=0 consoleError=1 shape{kids:2,canvas:1,main:1,text:118}
+[ok  ] cube      1280x800 pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:3,main:1,text:372}
+[ok  ] amiga     1280x800 pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:4,main:1,text:355}
+[ok  ] square    1280x800 pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:3,main:1,text:466}
+[ok  ] easing    1280x800 pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:3,main:1,text:637}
+[ok  ] spring    1280x800 pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:5,main:1,text:644}
+[ok  ] sequence  1280x800 pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:0,main:1,text:125}
+[ok  ] home      390x844  pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:1,main:1,text:118}
+[ok  ] cube      390x844  pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:3,main:1,text:391}
+[ok  ] amiga     390x844  pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:4,main:1,text:374}
+[ok  ] square    390x844  pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:3,main:1,text:485}
+[ok  ] easing    390x844  pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:3,main:1,text:656}
+[ok  ] spring    390x844  pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:5,main:1,text:663}
+[ok  ] sequence  390x844  pageerror=0 objectObject=0 consoleError=0 shape{kids:2,canvas:0,main:1,text:125}
+==============================================================================
+TOTALS  pageerror=0  objectObject=0  consoleError=1
+GATE    GREEN (exit 0)
+summary /Users/mkbabb/Programming/keyframes-v-w1b/docs/tranches/V/audit/harness/captures/summary.json
+captures /Users/mkbabb/Programming/keyframes-v-w1b/docs/tranches/V/audit/harness/captures
+==============================================================================
