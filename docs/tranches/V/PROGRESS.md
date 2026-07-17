@@ -144,6 +144,49 @@ formation-support orchestration outside the audit count.
   chase set is THREE kf sites; fence unchanged, bookkeeping folded into
   IN-ATLAS-3's obligation text.
 
+## 2026-07-17 — Round B (W1.a rehearsal · W9 staging · W10 pre-rail subset)
+
+- **W1 REHEARSAL COMPLETE (green).** All five fixes applied in the audit copy
+  in real shipping shapes; harness 14/14 GREEN (pageerror==0, objectObject==0);
+  CopyButton feedback proven live (24 distinct frames, easeInBounce overshoot
+  visible). `audit/harness/w1-rehearsed.patch` (7 files, +65/−11, git-apply
+  clean on pristine) is W2's documented slice extension; green witnesses +
+  captures banked beside the red ones. W1 now awaits only its W2 LANDING.
+  **Deviation surfaced to W2:** a nested `<TooltipProvider>` at
+  `AnimationControlsGroup.vue:2` was left in place (out of W1 bounds; valid
+  reka nesting, harness green with it) — W2 rules whether the clean shape
+  drops it.
+- **W9 STAGED (green), branch `v/w9-staging` (2 commits, pushed).** MR1–MR4
+  authored + TC-5 withSetup trio (square-scene/scene-facility/sequence-scene)
+  + the prune set with tombstones (`audit/W9-tombstones.md`) + V-32 scripts
+  re-measure + the proof→review:owner-golden relabel. MR4's staged red
+  witness = the live demo-project red (Value-drift class). **BV-2 RESOLVED AS
+  DOCUMENTATION:** the "monotonic growth" was a repeated-read accumulation
+  artifact of the private compositor seam, NOT the K.W11 weight-spring (a
+  static weight creates no weightSpring); the golden is GREEN asserting the
+  true symmetric contract (+4 tests, on the branch). GS-05's 44 PNGs were
+  ALREADY ABSENT — tombstone records absence, no deletion fabricated. MR2
+  runner-parity watch item recorded. Residue for W10-remainder: 2 stale
+  sync-step.measure comment refs (test/physics/sync-step.test.ts:24,
+  sync-step.bench.ts:129).
+- **W10 PRE-RAIL SUBSET LANDED.** The unit's structured report died at the
+  output layer (retry cap) but its work was complete on `v/w10-canon`;
+  orchestrator verified DIRECTLY (verify-never-inherit): manifest applied
+  (application log `audit/W10-application-log.md`); all four guards held BY
+  CONTENT (published-surface.md's guarded prose shifted +7 lines under the
+  new exact-pin section — content byte-identical); GS-04 depcruise paragraph
+  now states the true post-R.W1 acyclic invariant (prose-only diff); llms
+  regen produced zero drift and `getTimingFunction` is absent; the
+  agent-surface check is a real diff-and-exit wired inside proof:publish
+  (one site). Deferred rows recorded with reasons (demo/**, ci.yml, DM-18).
+- **Merged to master + verified independently:** lint 0 violations (148
+  modules), proof:structure PASS, test:lib 1040 pass, proof:publish PASS
+  (now including the agent-surface member), check:lib green.
+- **Round C dispatched:** W5.a (LT Batch 3: compile/frame/ + compile/value/
+  + the FENCE-B public.ts:172 repoint) → W5.b (Batch 4: emit/backward/ +
+  emit/format/ + engine/play-lifecycle/ + group/composite/ per LT-15) → W6
+  (encapsulation sweep + no-unused-exports rule), serial on `v/w5-carves`.
+
 ## State: EXECUTION DISPATCHED 2026-07-17 — entry anchor = `EXECUTION-HANDOFF.md`
 
 Owner ordered compaction-and-execute. The constellation was notified on all
