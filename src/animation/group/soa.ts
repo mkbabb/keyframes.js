@@ -1,5 +1,5 @@
 import { lerp } from "@mkbabb/value.js/math";
-import type { FlatAuthoredValues } from "../compile/value-ast";
+import type { FlatAuthoredValues } from "../compile/value";
 import type { AnimationLayerConfig } from "../constants";
 import type { AnimationGroupEntry } from "./types";
 import { isWeightBlend, resolveBlendWeight } from "./weight";

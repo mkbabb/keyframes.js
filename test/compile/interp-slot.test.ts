@@ -8,7 +8,7 @@ import {
     parseAndFlattenObject,
     refreshAuthoredSink,
     serializeCompiledValue,
-} from "../../src/animation/compile/value-ast";
+} from "../../src/animation/compile/value";
 import { bumpLayoutEpoch } from "../../src/animation/resolve/browser";
 
 const parse = (source: string): CssValue => {

@@ -5,7 +5,7 @@ import {
     compileValuePair,
     interpolateCompiledValue,
     serializeCompiledValue,
-} from "../../src/animation/compile/value-ast";
+} from "../../src/animation/compile/value";
 
 const parse = (source: string): CssValue => {
     const result = parseCssValues(source);

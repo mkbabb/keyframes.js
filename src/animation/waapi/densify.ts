@@ -30,7 +30,7 @@
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 import type { CompiledAnimationFrame } from "../compile/frame";
-import type { CompiledValue } from "../compile/value-ast";
+import type { CompiledValue } from "../compile/value";
 
 /**
  * The TOTAL interior-stop budget per segment — a running CAP, NOT a recursion

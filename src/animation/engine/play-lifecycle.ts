@@ -41,7 +41,7 @@
  * `sleep` (the first-tick delay-await).
  */
 import { sleep } from "../internal/helpers";
-import type { FlatAuthoredValues } from "../compile/value-ast";
+import type { FlatAuthoredValues } from "../compile/value";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport-core";

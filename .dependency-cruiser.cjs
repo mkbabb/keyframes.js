@@ -119,7 +119,7 @@ module.exports = {
                 "`import type` is erased at build and carries no runtime init " +
                 "hazard. Post-R.W1 the src/animation/ engine graph is ACYCLIC on " +
                 "runtime edges: the R.W1 refactor broke the former co-recursive " +
-                "cycle ring (engine↔easing↔frame-compiler↔group↔waapi, " +
+                "cycle ring (engine↔easing↔compile/frame↔group↔waapi, " +
                 "spring↔spring-duration↔spring-reseat, group↔group-layer-springs, " +
                 "drag↔drag-2d) via the getGroupFactory DI seam and shared-leaf " +
                 "extraction, so `depcruise src` greens with ZERO violations. There " +

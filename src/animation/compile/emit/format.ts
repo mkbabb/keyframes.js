@@ -14,7 +14,7 @@ import {
     animationOptionsToString,
     propertyRegistryToString,
 } from "./format-options";
-import type { ParsedVarMap } from "../value-ast";
+import type { ParsedVarMap } from "../value";
 
 
 const selectorText = (selector: KeyframeSelector): string =>

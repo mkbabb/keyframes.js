@@ -1,4 +1,4 @@
-import type { FlatAuthoredValues } from "../compile/value-ast";
+import type { FlatAuthoredValues } from "../compile/value";
 import { CompositeState } from "./composite-state";
 import type { SoALayerPlan } from "./soa";
 

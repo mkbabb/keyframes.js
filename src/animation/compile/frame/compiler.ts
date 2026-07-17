@@ -29,7 +29,7 @@ import {
     compileValuePair,
     parseAndFlattenObject,
     type ParsedVarMap,
-} from "../value-ast";
+} from "../value";
 // The keyframe-SELECTOR grammar (the regexes, the named-range tag, the
 // named-phase → fraction resolver, the content-id scale) AND the selector
 // validate+parse function (`parseKeyframeSelector`, carved off `addFrame` at

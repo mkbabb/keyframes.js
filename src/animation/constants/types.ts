@@ -18,7 +18,7 @@ import type { HueInterpolationMethod, SpaceId } from "@mkbabb/value.js/color";
 import type { KeyframeSelector } from "@mkbabb/value.js/css";
 import type { BezierPresetName } from "@mkbabb/value.js/easing";
 import type { DIRECTIONS, FILL_MODES } from "./defaults";
-import type { FlatAuthoredValues } from "../compile/value-ast";
+import type { FlatAuthoredValues } from "../compile/value";
 
 export type { SpaceId, HueInterpolationMethod } from "@mkbabb/value.js/color";
 

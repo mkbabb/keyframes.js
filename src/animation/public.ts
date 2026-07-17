@@ -169,5 +169,5 @@ export {
     CSSKeyframesToStrings,
     formatCSSKeyframeString,
 } from "./compile/emit/format";
-export { transformTargetsStyle } from "./compile/value-ast";
+export { transformTargetsStyle } from "./compile/value";
 export { yieldToMain } from "./internal/scheduler";

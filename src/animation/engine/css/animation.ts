@@ -29,7 +29,7 @@ import { cssTwinFor } from "../../easing";
 import { namedSelectorToFraction } from "../../compile/selector";
 import type { Timeline } from "../../orchestration/timeline";
 import { resolveTimingFunction } from "../../compile/easing/registry";
-import { transformTargetsStyle } from "../../compile/value-ast";
+import { transformTargetsStyle } from "../../compile/value";
 import { KeyframesAnimation } from "../animation";
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {

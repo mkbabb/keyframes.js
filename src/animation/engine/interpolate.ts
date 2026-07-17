@@ -29,7 +29,7 @@ import {
 import {
     refreshAuthoredSink,
     type FlatAuthoredValues,
-} from "../compile/value-ast";
+} from "../compile/value";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 

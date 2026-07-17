@@ -23,7 +23,7 @@ import {
     refreshNestedAuthoredSink,
     type FlatAuthoredValues,
     type NestedAuthoredSink,
-} from "../compile/value-ast";
+} from "../compile/value";
 import { computeGroupedKeys } from "./entries";
 import {
     buildSoAPlans,

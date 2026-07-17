@@ -6,7 +6,7 @@ import {
     compileValuePair,
     interpolateCompiledValue,
     refreshAuthoredSink,
-} from "../../src/animation/compile/value-ast";
+} from "../../src/animation/compile/value";
 import type {
     AnimationLayerConfig,
 } from "../../src/animation/constants";

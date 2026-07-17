@@ -4,7 +4,7 @@ import { AnimationGroup } from "../../src/animation/group";
 import { compositeFramesAt } from "../support/group-probe";
 import { NumericAnimation } from "../../src/animation/physics/numeric";
 import { buildSoAPlans } from "../../src/animation/group/soa";
-import type { FlatAuthoredValues } from "../../src/animation/compile/value-ast";
+import type { FlatAuthoredValues } from "../../src/animation/compile/value";
 
 /**
  * D.W4 D-1 — `proof:zero-alloc`: the `AnimationGroup` composite path allocates

@@ -33,7 +33,7 @@ import {
     type FlatAuthoredValues,
     type ParsedVarMap,
     transformTargetsStyle,
-} from "../compile/value-ast";
+} from "../compile/value";
 import * as playback from "./play-lifecycle";
 import { PlaybackState } from "./playback-state";
 import * as interpolate from "./interpolate";

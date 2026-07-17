@@ -6,7 +6,7 @@ import type { InterpSlot, NumericInterpSlot } from "./interp-slot";
 import type {
     AuthoredSink,
     CompiledVarMap,
-} from "../value-ast";
+} from "../value";
 
 /** Internal numeric fold storage built once for a compiled frame. */
 export interface NumericFoldPlan {
