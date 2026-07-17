@@ -16,8 +16,9 @@ import type { FlatAuthoredValues } from "../../src/animation/compile/value-ast";
  * retired implementation allocated a fresh `{}` (and a fresh `filteredValues`
  * object per whitelisted layer) each frame, returning a NEW reference. The
  * identity check therefore reds the moment a per-frame literal returns — proven
- * by the fresh-spread bite below. (A `--expose-gc` heap-delta runs as a bonus
- * when the runtime exposes `gc`.)
+ * by the fresh-spread bite below. (TC-3 · V.W9: the `--expose-gc` heap-delta arm
+ * was PRUNED — without `--expose-gc` it was a permanent `expect(true).toBe(true)`
+ * tautology; the deterministic buffer-identity arms are the real, portable bite.)
  */
 
 function opacityAnim(name: string): CSSKeyframesAnimation<any> {
@@ -107,27 +108,6 @@ describe("proof:zero-alloc — AnimationGroup composite allocates 0 bytes/frame"
         const leakA = { ...compositeFramesAt(group, 1) };
         const leakB = { ...compositeFramesAt(group, 2) };
         expect(leakA).not.toBe(leakB);
-    });
-
-    it("heap-delta over a steady-state window ≈ 0 (when gc is exposed)", () => {
-        const gc = (globalThis as { gc?: () => void }).gc;
-        if (typeof gc !== "function") {
-            // No `--expose-gc` — the deterministic buffer-identity proof above
-            // carries the gate; this bonus probe is skipped.
-            expect(true).toBe(true);
-            return;
-        }
-        const group = mixedGroup();
-        // Warm up (first frame may lazily resolve the transform).
-        for (let i = 0; i < 20; i++) compositeFramesAt(group, i);
-        gc();
-        const before = process.memoryUsage().heapUsed;
-        for (let i = 0; i < 2000; i++) compositeFramesAt(group, i);
-        gc();
-        const after = process.memoryUsage().heapUsed;
-        // 2000 frames, zero per-frame composite allocation → growth within the
-        // GC-noise floor (generous: < 200 bytes/frame would indicate a leak).
-        expect(after - before).toBeLessThan(2000 * 200);
     });
 });
 

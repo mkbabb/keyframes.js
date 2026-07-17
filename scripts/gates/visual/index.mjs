@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * proof:owner-golden — Tranche T.M3 (lane 29 rec 2, T-GATE-GOLDEN). The
+ * review:owner-golden — Tranche T.M3 (lane 29 rec 2, T-GATE-GOLDEN). The
  * owner-anchored perceptual reference oracle that SUPERSEDES proof:visual-lock's
  * self-captured baseline + full-subject mask.
  *
@@ -157,7 +157,7 @@ async function pinPaneLit(page) {
 async function captureCandidates() {
     if (!fs.existsSync(DIST)) {
         console.error(
-            `\n✗ proof:owner-golden --capture-candidates — dist/gh-pages/ absent. Run \`npm run gh-pages\` first.`,
+            `\n✗ review:owner-golden --capture-candidates — dist/gh-pages/ absent. Run \`npm run gh-pages\` first.`,
         );
         process.exit(1);
     }
@@ -344,7 +344,7 @@ async function gate() {
 const MODE = process.argv[2];
 if (MODE === "--capture-candidates") {
     captureCandidates().catch((e) => {
-        console.error(`\n✗ proof:owner-golden --capture-candidates threw: ${e.stack || e}`);
+        console.error(`\n✗ review:owner-golden --capture-candidates threw: ${e.stack || e}`);
         process.exit(1);
     });
 } else {
@@ -352,7 +352,7 @@ if (MODE === "--capture-candidates") {
         .then(() => {
             if (failures.length > 0) {
                 console.error(
-                    `\n✗ proof:owner-golden — FAIL (${failures.length}) [owner-review hold; owner golden-blessing required]:`,
+                    `\n✗ review:owner-golden — FAIL (${failures.length}) [owner-review hold; owner golden-blessing required]:`,
                 );
                 for (const f of failures) console.error(`  ✗ ${f}`);
                 console.error(
@@ -364,12 +364,12 @@ if (MODE === "--capture-candidates") {
                 process.exit(1);
             }
             console.log(
-                `\n✓ proof:owner-golden — the owner-blessed goldens hold (${passes.length} checks; ${CELLS.length} cells):`,
+                `\n✓ review:owner-golden — the owner-blessed goldens hold (${passes.length} checks; ${CELLS.length} cells):`,
             );
             for (const p of passes) console.log(`  ✓ ${p}`);
         })
         .catch((e) => {
-            console.error(`\n✗ proof:owner-golden threw: ${e.stack || e}`);
+            console.error(`\n✗ review:owner-golden threw: ${e.stack || e}`);
             process.exit(1);
         });
 }
