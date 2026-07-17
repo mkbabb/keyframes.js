@@ -12,8 +12,8 @@
  *                        timing-function seam)
  *   - `./env`          — the injectable env + context (`makeResolveContext`,
  *                        the SSR-safe `defaultResolveEnv`, the `DROP` sentinel)
- *   - `./resolve-if`       — the `if()` condition resolution
- *   - `./resolve-function` — the `@function` CALL-inlining
+ *   - `./conditional`      — the `if()` condition resolution
+ *   - `./function`         — the `@function` CALL-inlining
  *   - `./element-resolve`  — the Phase-2 element-AWARE SECOND pass
  *
  * HEAVY (Value 4 structural `CssValue` calls/lists/scalars and CSS metadata) —
@@ -32,4 +32,4 @@ export {
     resolveSpringTiming,
     type SpringCssOptions,
 } from "./spring-css";
-export { resolveIf } from "./resolve-if";
+export { resolveIf } from "./conditional";

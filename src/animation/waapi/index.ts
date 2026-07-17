@@ -14,7 +14,7 @@
 export type { WAAPIEligibility } from "./eligibility";
 export { isWAAPIEligible } from "./eligibility";
 export { toWAAPIKeyframes } from "./emission";
-export { toWAAPIOptions } from "./waapi-options";
+export { toWAAPIOptions } from "./options";
 export type { NativeScrollAttachment } from "./delegation";
 export { playWAAPI, attachNativeScrollTimeline } from "./delegation";
 export {

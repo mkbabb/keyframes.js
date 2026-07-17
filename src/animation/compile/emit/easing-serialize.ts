@@ -7,7 +7,7 @@
 import { camelCaseToHyphen } from "../../internal/helpers";
 import type { Easing, TimingFunction } from "../../constants";
 import { AnimationOptionError } from "../../internal/errors";
-import { timingFunctionEntries } from "../easing/easing-registry";
+import { timingFunctionEntries } from "../easing/registry";
 
 /**
  * EN-a (S.B3, P2-2 F6) — the SIX native-CSS `<easing-function>` keywords. A
@@ -32,7 +32,7 @@ const round5 = (n: number): number => Math.round(n * 1e5) / 1e5;
  * for ALL of them, overshoot curves emit stop values outside `[0,1]` (which
  * `linear()` permits), percentages are monotone so the stop list is always
  * grammar-valid, and the emitted `linear(` re-parses to a `.css`-carrying FIXPOINT
- * (`css-animation.ts` `cssTwinFor` matches the `linear(` prefix) — serialize →
+ * (`animation.ts` `cssTwinFor` matches the `linear(` prefix) — serialize →
  * parse → serialize is stable.
  */
 function linearDensifyEasing(fn: TimingFunction, n = 32): string {

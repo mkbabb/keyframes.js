@@ -5,7 +5,7 @@ import type { Vars } from "../constants";
 import { isWAAPIEligible } from "./eligibility";
 import type { WAAPIEligibility } from "./eligibility";
 import { toWAAPIKeyframes } from "./emission";
-import { toWAAPIOptions } from "./waapi-options";
+import { toWAAPIOptions } from "./options";
 
 /**
  * Drive an animation via WAAPI for compositor-thread visuals while

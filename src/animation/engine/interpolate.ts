@@ -18,7 +18,7 @@
  * proof:processframe-soa are the discriminating-bite oracles).
  */
 import { clamp, lerpArray, scale } from "@mkbabb/value.js/math";
-import { binarySearchRange } from "../internal/binarySearch";
+import { binarySearchRange } from "../internal/binary-search";
 import { AnimationOptionError } from "../internal/errors";
 import { applyComposition as applyCompositionImpl } from "./composition";
 import type { CompiledAnimationFrame } from "../compile/compiled-frame";

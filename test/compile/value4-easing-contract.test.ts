@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveEasingOption } from "../../src/animation/compile/easing/easing-option";
+import { resolveEasingOption } from "../../src/animation/compile/easing/option";
 import { serializeEasing } from "../../src/animation/compile/emit/easing-serialize";
 
 describe("Value 4 easing contract", () => {

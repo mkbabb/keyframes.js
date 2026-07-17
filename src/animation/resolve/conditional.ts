@@ -1,7 +1,7 @@
 import type { CssCall, CssList, CssScalar, CssValue } from "@mkbabb/value.js/value";
 import { serializeCssValue } from "../compile/emit/css-text";
 import { DROP, type ResolveContext, type Resolved } from "./env";
-import type { ResolveNode } from "./resolve-function";
+import type { ResolveNode } from "./function";
 
 type IfClause = Readonly<{
     condition: CssValue;

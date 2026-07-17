@@ -1,7 +1,7 @@
 /**
- * compile/easing/easing-option.ts — the heavy-surface easing-input resolver
+ * compile/easing/option.ts — the heavy-surface easing-input resolver
  * (carved off `frame-compiler.ts` in R.W2b; relocated into the `compile/easing/`
- * sub-zone beside `easing-registry.ts` in U.C8 — the owner's named example carve).
+ * sub-zone beside `registry.ts` in U.C8 — the owner's named example carve).
  *
  * `resolveEasingOption` normalizes the four heavy-surface easing inputs (a
  * callable, a typed `Easing`, a registry name, or a `cubic-bezier()` literal) to
@@ -13,7 +13,7 @@
 import { cssTwinFor } from "../../easing";
 import { AnimationOptionError } from "../../internal/errors";
 import type { Easing, InputAnimationOptions, TimingFunction } from "../../constants";
-import { resolveTimingFunction } from "./easing-registry";
+import { resolveTimingFunction } from "./registry";
 
 /**
  * Resolve heavy-surface easing input — a callable, a typed `Easing`, a registry

@@ -1,5 +1,5 @@
 import { toEasing } from "../easing";
-import { binarySearchRange } from "../internal/binarySearch";
+import { binarySearchRange } from "../internal/binary-search";
 import { AnimationOptionError } from "../internal/errors";
 import { clamp, lerpArray, scale } from "../internal/leaves";
 import { RAFPlayback } from "./playback";
