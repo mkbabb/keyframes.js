@@ -58,8 +58,8 @@ import { walkGroup, walkSequence, walkList } from "./walk";
 import type { CompileChild, CompileInput } from "./walk";
 import { keyframesBlock, premultipliedKeyframesBlock } from "../format";
 // T.F22 — the animation-options serialization (shorthand + composition longhand)
-// carved into `../format-options` off `format.ts`.
-import { animationComposition, animationShorthand } from "../format-options";
+// carved into `../format/options` off `format.ts`, reached via the format barrel.
+import { animationComposition, animationShorthand } from "../format";
 import { densifiedKeyframesBlock } from "../densify";
 import { densifyColorBlock, round } from "./color";
 // a19 F2 (S.B3 S5) — reach the scroll round-trip through the `../../../scroll`
