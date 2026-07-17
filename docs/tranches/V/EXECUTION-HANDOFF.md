@@ -30,8 +30,8 @@
 
 | Phase | Waves | Gate |
 |---|---|---|
-| NOW (no external gate) | W0-DOCS → W4 (structure gate + openers, on the clone) ∥ W1 REHEARSAL (audit copy only) ∥ W9 red-witness AUTHORING (no yml/package landings) ∥ W10 rows that touch neither demo nor ci.yml | battery green per wave spec |
-| Then | W5 → W6 (library carves + encapsulation) | FENCE B/E per batch |
+| NOW (no external gate) | ~~W0-DOCS → W4 ∥ W1 REHEARSAL ∥ W9 AUTHORING ∥ W10 pre-rail rows~~ **DONE 2026-07-17** (see PROGRESS execution log; W1 rehearsed green — patch banked at `audit/harness/w1-rehearsed.patch`; W9 staged on `v/w9-staging`) | battery green per wave spec |
+| Then | ~~W5 → W6 (library carves + encapsulation)~~ **DONE 2026-07-17** — the library settlement is CLOSED (proof:structure R1–R6 green) | FENCE B/E per batch |
 | ON THE GLASS 7 TAG (the immutable packet: tag object, peeled commit, tarball, integrity, provenance, exports/declarations, peers, strict packed-consumer, native close) | W2 (consume; §5 recipe + audit amendments + W1 landing as the documented slice extension) → W3 (native 1280/390 close + deploy of record + tuples out) → W9 LANDS (MR1–MR4 yml/package edits) → W7 → W8 → W10 remainder (ci relabel, DM-18 inside W7/W8) → W11 (full fidelity) | each wave's Hard Gate |
 | Close | W12 (ledger terminal + relays) → W13 (ι sweep + 3 close-audit lanes + FINAL-V) | close-honesty checklist |
 

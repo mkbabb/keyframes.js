@@ -187,6 +187,55 @@ formation-support orchestration outside the audit count.
   emit/format/ + engine/play-lifecycle/ + group/composite/ per LT-15) → W6
   (encapsulation sweep + no-unused-exports rule), serial on `v/w5-carves`.
 
+## 2026-07-17 — Round C (W5 carves → W6 sweep): THE LIBRARY SETTLEMENT CLOSES
+
+- **W5 CLOSED (both batches green, serial on `v/w5-carves`).** Batch 3:
+  `compile/frame/` (compiler/compiled-frame/interp-slot/numeric-plan, the
+  contract file's name KEPT, numeric-plan module-internal) + the
+  `compile/value/` split (ast/compile/sink, cut-set re-derived at execution
+  as the blueprint required) + FENCE B's one engine-surface repoint
+  (`public.ts:172`). Batch 4: `emit/backward/`, `emit/format/` (public.ts:171
+  resolves transparently through the new barrel — NOT edited),
+  `engine/play-lifecycle/` ({events,frame,strategies,transport}, the
+  strategies↔transport runtime cycle BROKEN), `group/composite/` (per LT-15;
+  the wave-goal line's omission of composite was a spec abbreviation — the
+  blueprint tables governed). Every batch: d.ts rosters byte-identical (268
+  lines), engine mirror 44/44, exports map untouched, TimingFunction at :45
+  untouched, depcruise 0. Noteworthy mechanics: the frame barrel's export
+  roster was grounded in the REAL consumer graph (interpolateSlot +
+  NumericInterpSlot added over the blueprint's literal list — multiline
+  imports had masked two consumers); view-transition/refusal-probes reach
+  walk.ts by the documented file-not-barrel idiom to avoid a barrel cycle;
+  one structural test (boundary-cohesion) read compositor source by
+  hardcoded path and was repointed — caught by the running suite.
+- **W6 CLOSED.** DD-3 RECOMPUTED on the settled tree (module-resolution
+  analyzer, not inherited from R1-07): 35 over-exports → 32 demoted,
+  **3 DELETED as fully dead** (internal/helpers.ts `debounce` +
+  `hyphenToCamelCase`, resolve/browser.ts `convertPixelsToCh` — DD-1-family
+  finds R1-07 missed), 3 module-internal barrel-excluded. renderFrame proved
+  file-local (the barrel doc-comment was aspirational) and demoted.
+  `proof:structure` gains **R6 (no-unused-exports)** in the ONE home, with
+  the pre-sweep red witness archived (35 violations,
+  `audit/gates/W6-red-R6-unused-exports.log`), a selftest arm, and the W8
+  demo extension documented in-scope-config. Public-surface disjointness
+  verified (flagged-set ∩ frozen roster = ∅); demo build-safety verified.
+- **Triumvirate-threshold adjudication (orchestrator ruling, recorded):**
+  the recomputed DD-3 set diverged 9 symbols (~28%) from R1-07's flat-tree
+  list — over the 20% trigger. Ruling: PROCEED STANDS. The divergence is
+  exactly the recompute the blueprint mandated (3 dropped by the W5 carves
+  as LT-13 predicted; 3 new dead finds beyond a self-declared non-exhaustive
+  census; 3 play-driver additions) — the trigger exists to catch a wrong
+  list, and the divergence table (`audit/W6-demotion-table.md` §4) shows a
+  right one.
+- **Merged to master; orchestrator-independent battery:** proof:structure
+  R1–R6 PASS, check:lib green, lint 0 (159 modules/688 deps), test:lib 1040
+  pass, engine mirror 44/44, proof:publish PASS.
+- **THE PRE-TAG DAG IS DRAINED.** W0/W4/W5/W6 closed; W1 rehearsed green
+  (awaits its W2 landing); W9 staged on `v/w9-staging`; W10's pre-rail
+  subset landed. Everything that remains — W2→W3 (rail), W9-land, W7→W8,
+  W10 remainder, W11, W12, W13 — sequences on the immutable Glass 7 packet.
+  The persistent gate watch stands (local tag / npm publish / inbound).
+
 ## State: EXECUTION DISPATCHED 2026-07-17 — entry anchor = `EXECUTION-HANDOFF.md`
 
 Owner ordered compaction-and-execute. The constellation was notified on all
