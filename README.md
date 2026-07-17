@@ -425,7 +425,7 @@ const { css, eligible, refusals } = await compileToCSS([fade]);
 
 | Refusal reason        | What it proves                                  | The faithful path                  |
 | --------------------- | ----------------------------------------------- | ---------------------------------- |
-| `weighted-blend`      | no `animation-composition` twin exists          | JS `AnimationGroup`                |
+| `weight-blend`        | no `animation-composition` twin exists          | JS `AnimationGroup`                |
 | `custom-renderer`     | a closure cannot be CSS                         | JS playback                        |
 | `perceptual-oklab`    | the oklab densify exceeds the ΔE band           | JS playback (true perceptual lerp) |
 | `computed-unit-drift` | the narrow case where verbatim emit would drift | JS playback                        |

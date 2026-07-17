@@ -45,7 +45,7 @@ was **gated on K.WZ**. This was the honest version, not a punt — here is exact
 1. **The published barrel is 4.2.0 — it predates the K-tranche surface.** The
    demo now consumes K.W7–W11 surface through deep paths (`@src/animation/compile`,
    `@src/animation/scroll-scene`, the physics). `@mkbabb/keyframes.js@4.2.0` on
-   npm does NOT yet carry those exports. K.WZ does the K-tranche republish; the
+   npm now carries those exports (published from K.WZ onward through 6.0.0); the
    flip onto the published barrel is honest only AFTER that publish lands.
 
 2. **The demo reaches engine INTERNALS the barrel does not export as values.**

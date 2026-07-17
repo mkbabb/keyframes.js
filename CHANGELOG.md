@@ -19,6 +19,15 @@
   composition, and WAAPI emission share Keyframes' structural interpolation
   slots, preserving authored object shape without aliases or compatibility
   paths.
+- **`printWidth` removed from compile options.** `printWidth` is no longer
+  accepted on `CompileOptions`, `ViewTransitionCompileOptions`, or
+  `EntryCompileOptions`. Keyframes emits deterministic library CSS; presentation
+  formatting belongs to the consuming application. See `docs/MIGRATION-6.0.0.md`.
+- **`BlendMode` type and the `"weighted"` operation removed.** The public
+  `BlendMode` type keyword, `AnimationLayerConfig.blendMode`, and the `"weighted"`
+  composite operation are removed. The weight-scalar blend surface
+  (`AnimationLayerConfig.weight`, `weightSpring`, and the `weight-blend` refusal)
+  is unchanged and remains a live feature. See `docs/MIGRATION-6.0.0.md`.
 
 ### Dependency Changes
 

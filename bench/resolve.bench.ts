@@ -2,8 +2,8 @@
  * resolve.bench.ts — S.F5b S1 (fold row 45): the FIRST bench coverage of the
  * `resolve/` zone (the emerging-CSS lowering pass — `if()`/`@function`/`env()`/
  * `spring()`), which shipped at P.W13/Q.WB1 and grew to ~887L with ZERO bench
- * coverage. A bench without a taxonomy row rots (sf-#6), so every arm here is
- * classified in `bench/taxonomy.json`.
+ * coverage. A bench without a recorded classification rots (sf-#6), so every arm
+ * here is classified as a RUN-CHECK in this file's header (below).
  *
  * The `resolve/` zone is a COMPILE-time pass (once per `resolveKeyframes`, NOT a
  * per-frame hot path), so these arms are RUN-CHECK: they make the zone's cost

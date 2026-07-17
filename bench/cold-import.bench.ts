@@ -22,7 +22,7 @@
  * enforces: LIGHT consumers pay the value.js-free construct; only the HEAVY
  * surface pays the parser. The arms are OBSERVE-ONLY (construct cost is
  * device-dependent — no floor, C-10; the RATIO is same-report context,
- * re-baselined per run) and classified in `bench/taxonomy.json` (sf-#6).
+ * re-baselined per run) and classified in this file's header (sf-#6).
  *
  * The bench file's OWN static graph is value.js-free: it imports only the LIGHT
  * barrel exports (`SpringProgress`, `loadAnimationEngine`); the engine is reached

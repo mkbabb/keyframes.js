@@ -229,8 +229,8 @@ describe("SpringProgress vector-sugar ADOPT-or-KILL probe (L.W7 §S2, W122)", ()
  * interruptions / 600 releases mirror the 600-frame gesture windows above.
  *
  * DECISION (measured → recorded): RETAIN-both. The seam doc-comment in
- * `orchestration/drag/draggable.ts:handleUp` records why. Both stay
- * `run-check` in `bench/taxonomy.json` — a cost-visibility measurement, no
+ * `orchestration/drag/draggable.ts:handleUp` records why. Both are `run-check`
+ * measurements (recorded in this file's header) — cost-visibility only, no
  * budget asserted (neither is on a per-frame hot path).
  */
 const RELEASES = 600;

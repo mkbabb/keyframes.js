@@ -256,7 +256,9 @@ function processFrame<V extends Vars>(
 
     // Q.WB3 S2 — the numeric SoA fold (ADOPT-verdicted; the interp-equal +
     // fold-taken oracles live in `test/engine/processframe-soa-identity.test.ts`,
-    // the ADOPT floor in `bench/taxonomy.json`'s budgeted K=8 SoA-lerpArray row).
+    // the surviving cost-visibility artifact is the `NumericFoldPlan · K=8 ·
+    // 600-frame window` run-check at `bench/interp-buffer.bench.ts` — an absolute
+    // run-check with no residual twin, so no reproducible-ratio floor is asserted).
     // The pure-numeric slot subset folds through one contiguous
     // `lerpArray` over the precomputed `Float64Array` endpoint buffers (built
     // once at parse time (`frame._numericPlan`), replacing per-slot dispatch on

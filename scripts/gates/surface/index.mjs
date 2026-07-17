@@ -18,6 +18,7 @@ const checks = [
     "published-surface.mjs",
     "consume-bundle.mjs",
     "readme-runs.mjs",
+    "agent-surface.mjs",
 ];
 for (const check of checks) {
     const result = spawnSync(process.execPath, [join(here, check)], { stdio: "inherit" });

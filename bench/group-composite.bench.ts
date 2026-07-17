@@ -26,13 +26,14 @@
  *     the per-arm ratio is device-independent BY CONSTRUCTION (numerator and
  *     denominator in the same pass — the inv-L-device-honesty discipline).
  *
- * `bench/taxonomy.json`'s budgeted `add SoA · K=8` / `weight SoA · K=8` rows
- * read this report as the numerator, their `add/weight residual · K=8` twins as
- * the same-report denominator; the taxonomy records that the per-arm
- * `soaOverResidual` ratio must clear the 1.2× ADOPT floor — scoped to
- * `transformFramesGrouped`, never a transplanted `SpringProgress.setTargets`
- * number from a different codepath. (U.N2: the former SoA composite
- * decision-JSON gate dissolved into this budget + the identity test.)
+ * Each non-default arm reads its `SoA · K=8` pass as the numerator and its
+ * `residual · K=8` twin as the same-report denominator; the per-arm
+ * `soaOverResidual` ratio must clear the 1.2× ADOPT expectation — a same-report,
+ * device-independent ratio computed in THIS bench (the surviving artifact),
+ * scoped to `transformFramesGrouped`, never a transplanted
+ * `SpringProgress.setTargets` number from a different codepath. (U.N2: the former
+ * SoA composite decision-JSON gate dissolved into this same-report ratio + the
+ * identity test.)
  *
  * Imports the VALUE modules `engine` + `group` directly, never the type-only
  * barrel `../src/animation`.
