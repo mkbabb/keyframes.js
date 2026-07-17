@@ -29,7 +29,7 @@
  */
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
-import type { CompiledAnimationFrame } from "../compile/compiled-frame";
+import type { CompiledAnimationFrame } from "../compile/frame";
 import type { CompiledValue } from "../compile/value-ast";
 
 /**

@@ -20,7 +20,7 @@
  * DIRECTLY (their real modules), not bridged through `frame-compiler`.
  */
 // Forward pipeline
-export { FrameCompiler } from "./frame-compiler";
+export { FrameCompiler } from "./frame";
 export { namedSelectorToFraction, parseKeyframeSelector } from "./selector";
 export {
     parseAndFlattenObject,

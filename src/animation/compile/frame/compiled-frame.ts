@@ -1,12 +1,12 @@
 import type {
     AnimationFrame,
     Vars,
-} from "../constants";
+} from "../../constants";
 import type { InterpSlot, NumericInterpSlot } from "./interp-slot";
 import type {
     AuthoredSink,
     CompiledVarMap,
-} from "./value-ast";
+} from "../value-ast";
 
 /** Internal numeric fold storage built once for a compiled frame. */
 export interface NumericFoldPlan {

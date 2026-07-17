@@ -10,7 +10,7 @@ import {
 import type {
     AnimationLayerConfig,
 } from "../../src/animation/constants";
-import type { CompiledAnimationFrame } from "../../src/animation/compile/compiled-frame";
+import type { CompiledAnimationFrame } from "../../src/animation/compile/frame";
 import { applyComposition } from "../../src/animation/engine/composition";
 import { CompositeState } from "../../src/animation/group/composite-state";
 import { residualBlendArm } from "../../src/animation/group/compositor";

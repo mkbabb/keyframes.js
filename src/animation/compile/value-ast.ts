@@ -7,7 +7,7 @@ import {
     interpolateSlot,
     serializeInterpSlot,
     type InterpSlot,
-} from "./interp-slot";
+} from "./frame/interp-slot";
 
 export type ParsedVarMap = Record<string, CssValue>;
 

@@ -15,8 +15,7 @@ import {
 } from "./composition";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
-import type { CompiledAnimationFrame } from "../compile/compiled-frame";
-import { bindInterpSlotTarget } from "../compile/interp-slot";
+import { bindInterpSlotTarget, type CompiledAnimationFrame } from "../compile/frame";
 import { compilerFor, setCompilerFor } from "./compiler-state";
 
 /**

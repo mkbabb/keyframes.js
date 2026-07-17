@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import type { CompiledAnimationFrame } from "../../src/animation/compile/compiled-frame";
+import type { CompiledAnimationFrame } from "../../src/animation/compile/frame";
 
 /**
  * G.W19 — the `adoptCompiled()` engine seam (proof:adopt-compiled).

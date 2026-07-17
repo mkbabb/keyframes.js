@@ -4,7 +4,7 @@ import {
 } from "@mkbabb/value.js/value";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
-import type { CompiledAnimationFrame } from "../compile/compiled-frame";
+import type { CompiledAnimationFrame } from "../compile/frame";
 
 /**
  * A delegated WAAPI animation must not carry layout-tracking units. The rAF

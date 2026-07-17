@@ -15,8 +15,8 @@ import {
     convertToPixels,
     getLayoutEpoch,
     resolveBrowserScalar,
-} from "../resolve/browser";
-import { serializeCssValue } from "./emit/css-text";
+} from "../../resolve/browser";
+import { serializeCssValue } from "../emit/css-text";
 
 export interface NumericInterpSlot {
     readonly kind: "number";
@@ -336,15 +336,3 @@ export function serializeInterpSlot(slot: InterpSlot): string {
             return serializeCssValue(slot.current);
     }
 }
-
-export const cloneInterpSlot = (slot: InterpSlot): InterpSlot => {
-    switch (slot.kind) {
-        case "number": return { ...slot };
-        case "color": return { ...slot };
-        case "computed": return {
-            ...slot,
-            ...(slot.cache === undefined ? {} : { cache: { ...slot.cache } }),
-        };
-        case "discrete": return { ...slot };
-    }
-};

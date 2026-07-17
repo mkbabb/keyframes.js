@@ -30,7 +30,7 @@
 import { lerpArray } from "@mkbabb/value.js/math";
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import type { CompiledAnimationFrame } from "../../src/animation/compile/compiled-frame";
+import type { CompiledAnimationFrame } from "../../src/animation/compile/frame";
 
 const makeCubeAnim = () => {
     const STOPS = 5;

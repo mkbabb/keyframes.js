@@ -15,8 +15,7 @@
  * Value4 is reached through the structural slots compiled by the frame pipeline.
  */
 import type { Diagnostic } from "../compile/adapter";
-import type { CompiledAnimationFrame } from "../compile/compiled-frame";
-import type { NumericInterpSlot } from "../compile/interp-slot";
+import type { CompiledAnimationFrame, NumericInterpSlot } from "../compile/frame";
 import type { AnimationFrame, CompositeOperator, Vars } from "../constants";
 
 /**

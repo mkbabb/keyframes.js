@@ -32,8 +32,7 @@ import {
 } from "../resolve";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "../engine/animation";
-import type { CompiledAnimationFrame } from "../compile/compiled-frame";
-import { bindInterpSlotTarget } from "../compile/interp-slot";
+import { bindInterpSlotTarget, type CompiledAnimationFrame } from "../compile/frame";
 
 /**
  * Q.WB1 — the emerging-CSS Phase-2 SECOND resolution pass (the gestalt P.W13

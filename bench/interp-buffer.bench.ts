@@ -3,7 +3,7 @@ import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { loadAnimationEngine, warmEngine } from "../src/animation";
 import type { FlatAuthoredValues } from "../src/animation/compile/value-ast";
-import type { CompiledAnimationFrame } from "../src/animation/compile/compiled-frame";
+import type { CompiledAnimationFrame } from "../src/animation/compile/frame";
 
 const FLAT_KEYS = [
     "opacity",
