@@ -214,6 +214,18 @@ async function main() {
                 const page = await browser.newPage({
                     viewport: { width: vp.width, height: vp.height },
                 });
+                // MR1 PB-2 — per scene × viewport × controls-state, an uncaught
+                // pageerror reds this cell (the blank-demo crash class keyed on
+                // `pageerror`, not `console.error` — R2-04 AV-1). Attached before
+                // goto so a load-time crash is captured.
+                const pageErrors = [];
+                page.on("pageerror", (err) =>
+                    pageErrors.push(
+                        String(err && err.message ? err.message : err)
+                            .split("\n")[0]
+                            .trim(),
+                    ),
+                );
                 try {
                     await page.goto(`${url}/#/${scene.route}`, { waitUntil: "load" });
                     await page.waitForTimeout(2500);
@@ -229,6 +241,10 @@ async function main() {
                     const tag = `${scene.key}/${vp.name}/${controls}`.padEnd(24);
 
                     const local = [];
+                    if (pageErrors.length > 0)
+                        local.push(
+                            `pageerror during mount: ${[...new Set(pageErrors)].slice(0, 2).join(" | ")}`,
+                        );
                     if (env.overflowX > 1)
                         local.push(`horizontal overflow +${env.overflowX}px`);
                     if (!subject)

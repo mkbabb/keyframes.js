@@ -44,6 +44,11 @@ jobs:
               run: npm run build:lib
             - name: correctness suite
               run: npm run test:lib
+            # MR4 (V.W9) — the demo vitest project (state machines / transport /
+            # sharing; jsdom-only, ~2s) runs in NO CI job today (TC-2/AV-3). It
+            # gates the 155 demo assertions the FAM-06 restructure churns.
+            - name: demo suite
+              run: npm run test:demo
             - name: publish boundary
               run: npm run proof:publish
 
@@ -69,6 +74,26 @@ jobs:
               run: npm i --no-save @playwright/test
             - name: install chromium
               run: npx playwright install --with-deps chromium
+            # MR2 (V.W9) — the 5 EN-a/VT/entry/a11y/trigger browser oracles run
+            # HERE, where a real chromium exists. They skipIf(!chromium) in every
+            # other job (GS-01/TC-1); under a browser they pass 14/14 (R2-04 AV-2),
+            # so wiring them is pure signal-add. resolveChromium() finds the pinned
+            # revision via the installed @playwright/test + KF_PLAYWRIGHT_DIR; the
+            # per-test light bundles are rolldown-built from source (no demo build
+            # needed). WATCH ITEM (device parity): R2-04 ran the oracles under
+            # system Chrome (channel:'chrome'); these launch a plain
+            # chromium.launch(), so the pinned-revision launch on the Linux runner
+            # is the unverified edge (the device-dependence history).
+            - name: browser oracles (EN-a / VT / entry / a11y / trigger)
+              env:
+                  KF_PLAYWRIGHT_DIR: ${{ github.workspace }}
+              run: >-
+                  npx vitest run --project library
+                  test/compile/entry-roundtrip.test.ts
+                  test/compile/view-transition-roundtrip.test.ts
+                  test/orchestration/split-a11y-oracle.test.ts
+                  test/engine/en-fix-oracle.test.ts
+                  test/scroll/trigger-oracle.test.ts
             - name: build demo
               run: npm run gh-pages
             - name: publish artifact boundary (post-build)

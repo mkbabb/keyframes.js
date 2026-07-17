@@ -8,7 +8,8 @@
  * loop owner; warmed-engine wiring) and references the scene's transport key.
  */
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { effectScope, ref } from "vue";
+import { ref } from "vue";
+import { withSetup } from "../../support/withSetup";
 import { SpringProgress } from "../../../src/animation/physics/spring";
 import { useSquareKeyboard } from "../../../demo/scenes/square/useSquareKeyboard";
 import { useSquareDemo } from "../../../demo/scenes/square/useSquareDemo";
@@ -88,11 +89,15 @@ describe("useSquareDemo construction", () => {
     });
 
     it("owns two per-axis springs; transport superKey stable", () => {
-        const scope = effectScope();
-        const anim = scope.run(() => useSquareDemo(ref(null)))!;
-        expect(anim.springX).toBeInstanceOf(SpringProgress);
-        expect(anim.springY).toBeInstanceOf(SpringProgress);
-        expect(SQUARE_SCENE_ID).toBe("square");
-        scope.stop();
+        const [anim, app] = withSetup(() => useSquareDemo(ref(null)));
+        try {
+            expect(anim.springX).toBeInstanceOf(SpringProgress);
+            expect(anim.springY).toBeInstanceOf(SpringProgress);
+            expect(SQUARE_SCENE_ID).toBe("square");
+        } finally {
+            // TC-5: mount teardown runs the composable's real disposal
+            // (rAF/listener) — a bare effectScope().stop() never fired onUnmounted.
+            app.unmount();
+        }
     });
 });

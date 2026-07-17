@@ -7,7 +7,7 @@
  * transport key so a rename reds here.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { effectScope } from "vue";
+import { withSetup } from "../../support/withSetup";
 import { useSequenceInstrument } from "../../../demo/scenes/sequence/useSequenceInstrument";
 import {
     ROW_COUNT,
@@ -56,10 +56,13 @@ describe("useSequenceDemo construction", () => {
     it("exposes the row-grid constants + constructs without throwing", () => {
         expect(ROW_COUNT).toBe(5);
         expect(STAGGER_MAX).toBe(1600);
-        const scope = effectScope();
-        const demo = scope.run(() => useSequenceDemo())!;
-        expect(demo).toBeTruthy();
-        expect(SEQUENCE_SCENE_ID).toBe("sequence");
-        scope.stop();
+        const [demo, app] = withSetup(() => useSequenceDemo());
+        try {
+            expect(demo).toBeTruthy();
+            expect(SEQUENCE_SCENE_ID).toBe("sequence");
+        } finally {
+            // TC-5: mount teardown runs the composable's real disposal.
+            app.unmount();
+        }
     });
 });

@@ -44,6 +44,7 @@
         "lint": "depcruise src",
         "test": "vitest",
         "test:lib": "vitest run --project library",
+        "test:demo": "vitest run --project demo",
         "bench": "vitest bench",
         "bench:color-fidelity": "vitest run test/engine/color-fidelity.test.ts && node scripts/color-fidelity-harness.mjs",
         "gen:agent-surface": "node scripts/gen-agent-surface.mjs",

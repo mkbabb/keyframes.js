@@ -154,6 +154,17 @@ async function browserHalf() {
             context: { viewport: { width: 1280, height: 900 } },
         },
         async (page, { url: base }) => {
+        // MR1 PB-2 — collect uncaught pageerrors across the home + editor drive;
+        // asserted zero at the end of the browser half. The blank-demo crash
+        // class is a `pageerror`, not a `console.error` (R2-04 AV-1's witness).
+        const pageErrors = [];
+        page.on("pageerror", (err) =>
+            pageErrors.push(
+                String(err && err.message ? err.message : err)
+                    .split("\n")[0]
+                    .trim(),
+            ),
+        );
         // ── 2. THE PER-CHAR HERO CONTRACT ───────────────────────────────────
         await page.goto(`${base}/`, { waitUntil: "load" });
         // Wait for the hero's two-tier substrate to lay out.
@@ -385,6 +396,15 @@ async function browserHalf() {
                 `unique aria-label — duplicate accessible name(s) on the editor scene: ` +
                     dupes.map(([l, n]) => `"${l}" ×${n}`).join(", ") +
                     ` (a screen reader cannot tell them apart, X-3)`,
+            );
+        }
+
+        // ── 4. NO UNCAUGHT PAGEERROR across the drive (MR1 PB-2) ─────────────
+        if (pageErrors.length === 0) {
+            ok("no uncaught pageerror across the home + editor drive (PB-2)");
+        } else {
+            fail(
+                `uncaught pageerror(s) across the drive: ${[...new Set(pageErrors)].slice(0, 3).join(" | ")}`,
             );
         }
         },

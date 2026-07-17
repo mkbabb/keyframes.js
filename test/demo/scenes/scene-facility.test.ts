@@ -11,7 +11,7 @@
 // re-grows an `animationGroup` in place of the facility.
 
 import { beforeAll, describe, expect, it } from "vitest";
-import { effectScope } from "vue";
+import { withSetup } from "../../support/withSetup";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -68,8 +68,7 @@ describe("proof:scene-facility (runtime) — the STAGE-1 GREEN shape", () => {
     });
 
     it("the migrated SEQUENCE scene exposes a facility (no decoy group) with a raw-rAF playback", () => {
-        const scope = effectScope();
-        const demo = scope.run(() => useSequenceDemo())!;
+        const [demo, app] = withSetup(() => useSequenceDemo());
         try {
             // The decoy contract group is GONE — the scene no longer returns an
             // `animationGroup`; it returns a `facility`.
@@ -86,7 +85,8 @@ describe("proof:scene-facility (runtime) — the STAGE-1 GREEN shape", () => {
             ch.setProgress(0.4);
             expect(ch.progress()).toBeCloseTo(0.4, 5);
         } finally {
-            scope.stop();
+            // TC-5: mount teardown runs the composable's real disposal.
+            app.unmount();
         }
     });
 });

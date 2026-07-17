@@ -2,14 +2,26 @@
 #
 # U.A8/U.Z4: a push deploy requires the library CI workflow to be green and the
 # latest successful scheduled demo (`last-demo-green`) to be an ancestor of the
-# deploy SHA. Manual dispatch is an explicit break-glass path.
+# deploy SHA.
+#
+# MR3 (V.W9): manual dispatch is NO LONGER a silent bypass. Before MR3 both
+# preflight asserts were guarded `!= workflow_dispatch`, so a manual dispatch
+# skipped them entirely (AV-4) — and with DP-02 the demo builds fine but renders
+# blank, so a dispatch would ship the blank demo green. Now a dispatch enforces
+# the same ancestry by default; the flaky-roster escape is an EXPLICIT, logged
+# `require_demo_green=false` break-glass, not an implicit property of the trigger.
 name: deploy-pages
 
 on:
     workflow_run:
         workflows: ["ci"]
         types: [completed]
-    workflow_dispatch: {}
+    workflow_dispatch:
+        inputs:
+            require_demo_green:
+                description: "Enforce last-demo-green ancestry (uncheck ONLY for genuine break-glass)"
+                type: boolean
+                default: true
 
 concurrency:
     group: deploy-pages-${{ github.event.workflow_run.head_sha || github.ref }}
@@ -34,11 +46,17 @@ jobs:
               with:
                   fetch-depth: 0
                   ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+            # MR3: `!= workflow_dispatch || inputs.require_demo_green`. Under
+            # workflow_run the left disjunct is TRUE and short-circuits, so this
+            # path is byte-identical to before (the asserts run). Under dispatch
+            # the left disjunct is FALSE, so the guard collapses to
+            # `inputs.require_demo_green` — default TRUE enforces; explicit FALSE
+            # is the documented break-glass that skips (and is visible in the run).
             - name: assert library CI conclusion
-              if: github.event_name != 'workflow_dispatch'
+              if: github.event_name != 'workflow_dispatch' || inputs.require_demo_green
               run: test "${{ github.event.workflow_run.conclusion }}" = success
             - name: assert last-demo-green is an ancestor
-              if: github.event_name != 'workflow_dispatch'
+              if: github.event_name != 'workflow_dispatch' || inputs.require_demo_green
               env:
                   GH_TOKEN: ${{ github.token }}
                   DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
