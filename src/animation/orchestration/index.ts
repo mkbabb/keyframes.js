@@ -4,7 +4,7 @@
  * (layout FLIP over ElementMorph), `drag` (gesture physics over SpringProgress),
  * `timeline` (the progress-driver family + native bridge), `sequence` (the
  * temporal orchestrator). The package barrel re-exports these by zone path; this
- * barrel is the zone's single surface (and what `proof:no-flat-siblings` asserts).
+ * barrel is the zone's single surface (and what `proof:structure` asserts).
  */
 export { stagger } from "./stagger";
 export type { StaggerOrigin, StaggerOptions, StaggerFn } from "./stagger";

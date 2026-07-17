@@ -9,7 +9,7 @@
  * free): composes `flipShared` + the ONE `withReducedMotion` gate; feature-
  * detects `startViewTransition`. The HEAVY companion `compileToViewTransition`
  * (`compile/emit/view-transition.ts`) rides `loadAnimationEngine()`. The barrel is the
- * zone's single public surface (what `proof:no-flat-siblings` asserts).
+ * zone's single public surface (what `proof:structure` asserts).
  */
 export { viewTransition } from "./view-transition";
 export type {

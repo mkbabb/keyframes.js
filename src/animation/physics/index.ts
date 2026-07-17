@@ -6,7 +6,7 @@
  * producer or the managed rAF playback driver.
  * The caller drives the loop (or RAFPlayback owns it); none parses CSS. The
  * package barrel re-exports these by their `./physics/<name>` path; this barrel
- * is the zone's single surface (and what `proof:no-flat-siblings` asserts present).
+ * is the zone's single surface (and what `proof:structure` asserts present).
  */
 export { NumericAnimation } from "./numeric";
 export type { NumericAnimationOptions, NumericFrameCallback } from "./numeric";
