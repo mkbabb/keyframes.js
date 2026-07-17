@@ -1,0 +1,13 @@
+# proof:structure — R3 live red witness (impure barrel)
+# Tranche V · W4.a · born-RED against the pre-move library tree.
+# Scope: src/ (birth scope). Worktree branch: v/w4a-structure-gate
+# Base commit: d60ce66d05743a08659027afb56ce4f8fe516389
+# Recorded: 2026-07-17T06:56:38Z
+# Command: node scripts/gates/structure/index.mjs --rule=R3
+# Rule: an index.ts that does anything beyond re-export from a real module (local logic, or laundering exports through a hollow shim)
+#
+proof:structure — scope=src rule=R3
+  R3  src/animation/presets/index.ts
+        impure barrel — re-exports through hollow shim(s) "./classic", "./spring", "./taxonomy" instead of the real source; repoint to the substance module
+proof:structure — FAIL: 1 violation(s) on scope=src (rule R3)
+# exit=1

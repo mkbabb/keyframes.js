@@ -34,7 +34,7 @@
     ],
     "scripts": {
         "prepare": "npm run build:lib",
-        "check": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+        "check": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json && npm run proof:structure",
         "check:lib": "tsc --noEmit -p tsconfig.lib.json",
         "dev": "vite",
         "build": "npm run build:lib",
@@ -47,6 +47,7 @@
         "bench": "vitest bench",
         "bench:color-fidelity": "vitest run test/engine/color-fidelity.test.ts && node scripts/color-fidelity-harness.mjs",
         "gen:agent-surface": "node scripts/gen-agent-surface.mjs",
+        "proof:structure": "node scripts/gates/structure/index.mjs",
         "proof:publish": "node scripts/gates/surface/index.mjs",
         "proof:owner-golden": "node scripts/gates/visual/index.mjs",
         "demo:correctness": "node scripts/run-demo-roster.mjs",
