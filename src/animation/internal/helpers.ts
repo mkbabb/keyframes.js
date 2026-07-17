@@ -6,9 +6,6 @@ export const camelCaseToHyphen = (value: string): string =>
 export const hyphenToCamelCase = (value: string): string =>
     value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
 
-export const isObject = (value: unknown): value is Record<string, unknown> =>
-    typeof value === "object" && value !== null;
-
 export const sleep = (milliseconds: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, milliseconds));
 
