@@ -1,7 +1,7 @@
 import type {
     AuthoredValue,
     FlatAuthoredValues,
-} from "../compile/value";
+} from "../../compile/value";
 
 /** Stable, compositor-owned authored values. */
 export class CompositeState {

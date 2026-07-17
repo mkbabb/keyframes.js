@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { AnimationGroup } from "../../src/animation/group";
-import { CompositeState } from "../../src/animation/group/composite-state";
+import { CompositeState } from "../../src/animation/group/composite";
 import { compositeFramesAt } from "../support/group-probe";
 
 const scalar = (out: Record<string, unknown>, key: string) => out[key] as number;

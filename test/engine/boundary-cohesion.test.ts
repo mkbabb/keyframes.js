@@ -58,10 +58,10 @@ describe("F.W11 — the 4× clamp converged onto leaves.clamp", () => {
 
 describe("F.W11 — the group blend's lerp is value.js, not the light leaf (inverted-tier removed)", () => {
     // R.W2 — the residual blend leaf (the `lerp` user) was carved out of `group.ts`
-    // into `./group/compositor.ts`; the F.W11 posture (lerp from value.js, NOT a
-    // light-leaf re-export) follows it to its new home.
+    // into `./group/composite/compositor.ts` (V.W5 LT-08 module carve); the F.W11
+    // posture (lerp from value.js, NOT a light-leaf re-export) follows it to its home.
     it("the group compositor does not import lerp from the light leaf", () => {
-        const c = read("group/compositor.ts");
+        const c = read("group/composite/compositor.ts");
         expect(c).not.toMatch(
             /import\s*\{[^}]*lerp[^}]*\}\s*from\s*["']\.\.\/internal\/leaves["']/,
         );

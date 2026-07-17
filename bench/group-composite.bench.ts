@@ -50,7 +50,7 @@ import {
     buildSoAPlans,
     groupSoABlendLayer,
 } from "../src/animation/group/soa";
-import { residualBlendArm } from "../src/animation/group/compositor";
+import { residualBlendArm } from "../src/animation/group/composite";
 
 // A realistic multi-property transform keyframe — several numeric leaves
 // (translateX/Y, scaleX/Y/Z, rotateZ, opacity) + a multi-component `margin`

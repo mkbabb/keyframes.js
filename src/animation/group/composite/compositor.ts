@@ -1,5 +1,5 @@
 /**
- * `group/compositor.ts` — the single-target composite engine (R.W2 — lib-group:
+ * `group/composite/compositor.ts` — the single-target composite engine (R.W2 — lib-group:
  * the `transformFramesGrouped` (146L) + `residualBlendArm` (70L) carve the spec §4
  * names). Free functions over the concrete `AnimationGroup` — the same DI
  * pattern the engine's `./playback`/`./interpolate` carve uses — so the class
@@ -16,27 +16,27 @@
  * `groupSoABlendLayer` fold + shared scratch / `buildSoAPlans` / cached plans).
  */
 import { lerp } from "@mkbabb/value.js/math";
-import { NOOP_TRANSFORM } from "../constants";
-import type { AnimationLayerConfig, Vars } from "../constants";
+import { NOOP_TRANSFORM } from "../../constants";
+import type { AnimationLayerConfig, Vars } from "../../constants";
 import {
     buildNestedAuthoredSink,
     refreshNestedAuthoredSink,
     type FlatAuthoredValues,
     type NestedAuthoredSink,
-} from "../compile/value";
-import { computeGroupedKeys } from "./entries";
+} from "../../compile/value";
+import { computeGroupedKeys } from "../entries";
 import {
     buildSoAPlans,
     groupSoABlendLayer,
     isNumericAuthoredValue,
-} from "./soa";
-import type { AnimationGroup } from "./group";
-import type { CompositeState } from "./composite-state";
-import type { GroupCompositeStorage } from "./composite-storage";
+} from "../soa";
+import type { AnimationGroup } from "../group";
+import type { CompositeState } from "./state";
+import type { GroupCompositeStorage } from "./storage";
 import {
     isWeightBlend,
     resolveBlendWeight,
-} from "./weight";
+} from "../weight";
 
 const nestedSinks = new WeakMap<object, NestedAuthoredSink<any>>();
 

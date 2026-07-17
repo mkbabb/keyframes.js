@@ -12,8 +12,8 @@ import type {
 } from "../../src/animation/constants";
 import type { CompiledAnimationFrame } from "../../src/animation/compile/frame";
 import { applyComposition } from "../../src/animation/engine/composition";
-import { CompositeState } from "../../src/animation/group/composite-state";
-import { residualBlendArm } from "../../src/animation/group/compositor";
+import { CompositeState } from "../../src/animation/group/composite";
+import { residualBlendArm } from "../../src/animation/group/composite";
 import {
     buildSoAPlans,
     groupSoABlendLayer,
