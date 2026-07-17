@@ -44,10 +44,10 @@ import type { AnimationOptions, Vars } from "../../constants";
 // (never the emit/ barrel — the barrel re-exports THIS file, so a barrel import
 // would cycle; the same file-not-barrel idiom the easing carve proved).
 import { compileChild } from "./backward";
-import { cssIdent } from "./backward-walk";
+import { cssIdent } from "./backward/walk";
 import { declaredKeyframeBodyFor } from "./format";
 import { serializeEasing } from "./easing-serialize";
-import type { CompileChild } from "./backward-walk";
+import type { CompileChild } from "./backward/walk";
 import type {
     CompileOptions,
     CompiledCSS,

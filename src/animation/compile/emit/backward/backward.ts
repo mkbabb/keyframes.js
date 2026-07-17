@@ -50,26 +50,26 @@
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { reverseCSSTime } from "./css-text";
-import type { KeyframesAnimation } from "../../engine";
-import { AnimationGroup } from "../../group";
-import { Sequence } from "../../orchestration/sequence";
-import { walkGroup, walkSequence, walkList } from "./backward-walk";
-import type { CompileChild, CompileInput } from "./backward-walk";
-import { keyframesBlock, premultipliedKeyframesBlock } from "./format";
+import { reverseCSSTime } from "../css-text";
+import type { KeyframesAnimation } from "../../../engine";
+import { AnimationGroup } from "../../../group";
+import { Sequence } from "../../../orchestration/sequence";
+import { walkGroup, walkSequence, walkList } from "./walk";
+import type { CompileChild, CompileInput } from "./walk";
+import { keyframesBlock, premultipliedKeyframesBlock } from "../format";
 // T.F22 — the animation-options serialization (shorthand + composition longhand)
-// carved into `./format-options` off `format.ts`.
-import { animationComposition, animationShorthand } from "./format-options";
-import { densifiedKeyframesBlock } from "./densify";
-import { densifyColorBlock, round } from "./backward-color";
-// a19 F2 (S.B3 S5) — reach the scroll round-trip through the `../../scroll`
+// carved into `../format-options` off `format.ts`.
+import { animationComposition, animationShorthand } from "../format-options";
+import { densifiedKeyframesBlock } from "../densify";
+import { densifyColorBlock, round } from "./color";
+// a19 F2 (S.B3 S5) — reach the scroll round-trip through the `../../../scroll`
 // zone BARREL, not the deep `scroll/grammar` module — closing the cross-zone
 // deep-import (the barrel is the zone's single surface).
-import { serializeScrollOptions } from "../../scroll";
-import type { CSSTimelineOptions } from "../../scroll";
-import type { Vars } from "../../constants";
-import { probeChildRefusal } from "./refusal-probes";
-import type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
+import { serializeScrollOptions } from "../../../scroll";
+import type { CSSTimelineOptions } from "../../../scroll";
+import type { Vars } from "../../../constants";
+import { probeChildRefusal } from "../refusal-probes";
+import type { CompileRefusal, CompileRefusalReason } from "../refusal-probes";
 
 // ── The ineligibility report (CC-3) — the four named refusals ────────────────
 

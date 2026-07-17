@@ -1,5 +1,5 @@
 /**
- * compile/emit/backward-walk.ts — the COMPILE input walkers (K.W10, carved off
+ * compile/emit/backward/walk.ts — the COMPILE input walkers (K.W10, carved off
  * `backward.ts` in R.W2b).
  *
  * The "orchestration graph → `CompileChild[]`" half of the backward compile:
@@ -12,15 +12,15 @@
  * HEAVY (reaches the `./engine`/`./group`/`./orchestration` runtime) — rides the
  * same `loadAnimationEngine()` dynamic edge as `backward.ts`.
  */
-import type { KeyframesAnimation } from "../../engine";
-import { AnimationGroup } from "../../group";
+import type { KeyframesAnimation } from "../../../engine";
+import { AnimationGroup } from "../../../group";
 // a06 F7 (S.B3 S5) — `getAnimationId` is homed at `internal/animation-id` (the
 // value.js-free leaf `engine`/`group`/`compile` all read); reach it at the LEAF,
 // not re-routed through the `../engine` barrel — closing the cross-zone deep-import.
-import { getAnimationId } from "../../internal/animation-id";
-import { Sequence } from "../../orchestration/sequence";
-import type { CompositeOperator, Vars } from "../../constants";
-import { isWeightBlend } from "../../group/weight";
+import { getAnimationId } from "../../../internal/animation-id";
+import { Sequence } from "../../../orchestration/sequence";
+import type { CompositeOperator, Vars } from "../../../constants";
+import { isWeightBlend } from "../../../group/weight";
 
 /** A walked child — its animation + the layer/sequence metadata the compile reads. */
 export interface CompileChild<V extends Vars> {
