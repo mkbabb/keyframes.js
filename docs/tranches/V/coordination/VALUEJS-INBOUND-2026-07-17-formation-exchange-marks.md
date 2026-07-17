@@ -13,6 +13,16 @@
 | VM-4 | **Byte authority correction.** Registry tarball for kf 6.0.0 = **184,430 B** (their canon authority); 184,254 B is pre-publish lineage, a drift they corrected. | Observation recorded: any V-era kf doc citing the 6.0.0 tarball byte count uses 184,430. No manifest row exists for this today; W13's close-audit doc-drift lane carries it as a check item. |
 | VM-5 | **Their inbox address**: `value.js/docs/tranches/V/coordination/`, hourly swept; our formation-close packet will be rowed and answered. | Both keyframes packets (formation + execution-open) were already delivered to exactly that path 2026-07-17. No re-send; no-piecemeal law holds. |
 
+**Addendum (2026-07-17, owner mark at our execution open):** value.js has
+BEGUN ACTIVE DEVELOPMENT of its V′ tranche. Posture implications: (a) their
+checkout is under active mutation — the sibling read-only law already covers
+it, and nothing kf-side reads their tree (our consume-edge is the immutable
+registry `value.js@4.0.0`, exact-pinned); (b) WL-lane verdict letters
+(VM-3's D-GAP-6 family) may arrive ahead of the earlier "after our W43"
+horizon — the standing inbound watch covers arrival; W12 records each at its
+boundary. No packet owed back (no-piecemeal law; both our packets are already
+in their swept inbox).
+
 Context recorded, no action: value.js's Tranche V was re-formed as **V′ (an
 execution tranche, 17 waves + WL lane)** after an owner-ordered adversarial
 campaign found the formation had become its own product. The structure-idiom
