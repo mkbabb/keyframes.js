@@ -40,7 +40,7 @@ export type { CompileRefusal, CompileRefusalReason } from "./refusal-probes";
 // the SAME block+rule pipeline onto the `::view-transition-*` pseudos.
 export { compileChild } from "./backward";
 export type { CompileChildOptions } from "./backward";
-export type { CompileInput, CompileChild } from "./backward-walk";
+export type { CompileInput, CompileChild } from "./backward";
 export {
     CSSKeyframesToString,
     CSSKeyframesToStrings,
@@ -50,8 +50,8 @@ export {
 export { serializeEasing } from "./easing-serialize";
 // VT-b / EN-c (S.F1/S.F3) — the CSS-ident normalizer, exposed so the sibling
 // View-Transitions + entry/exit emitters derive stable pseudo/rule names.
-export { cssIdent } from "./backward-walk";
+export { cssIdent } from "./backward";
 // EN-c (S.F3) — the color-endpoint canonicalizer + color-leaf narrower, exposed
 // so the entry/exit emitter ships `oklab()` endpoints (the perceptual-oklab
 // INVERSION — native oklab interpolation, no densify).
-export { colorUnitToOklabCSS, isColorUnit } from "./backward-color";
+export { colorUnitToOklabCSS, isColorUnit } from "./backward";

@@ -4,7 +4,7 @@ import { AnimationGroup } from "@src/animation/group";
 import {
     buildNestedAuthoredSink,
     refreshNestedAuthoredSink,
-} from "@src/animation/compile/value-ast";
+} from "@src/animation/compile/value";
 
 /**
  * T.A6 — the authored-value `frame.transform` contract. A custom transform

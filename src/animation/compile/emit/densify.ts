@@ -8,7 +8,7 @@ import type { KeyframeSelector } from "@mkbabb/value.js/css";
 import { camelCaseToHyphen } from "../../internal/helpers";
 import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
-import type { ParsedVarMap } from "../value-ast";
+import type { ParsedVarMap } from "../value";
 import { serializeEasing } from "./easing-serialize";
 import { serializeCssValue } from "./css-text";
 

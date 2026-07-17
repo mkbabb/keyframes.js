@@ -1,0 +1,77 @@
+# W6 RED witness — proof:structure R6 (no-unused-exports), pre-sweep tree
+# Command: node scripts/gates/structure/index.mjs --rule=R6
+# Captured: 2026-07-17T09:02:11Z against branch v/w5-carves at c1a0da2f (W5 settled, pre-W6-sweep)
+# The rule reds on 35 over-exports; the V.W6 sweep demotes/deletes them to green. See W6-demotion-table.md.
+
+proof:structure — scope=src rule=R6
+  R6  src/animation/compile/emit/backward/color.ts
+        exported symbol "DensifyResult" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/compile/emit/format/format.ts
+        exported symbol "PremultiplyResult" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/compile/frame/interp-slot.ts
+        exported symbol "ColorInterpSlot" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/compile/frame/interp-slot.ts
+        exported symbol "ComputedInterpSlot" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/compile/frame/interp-slot.ts
+        exported symbol "DiscreteInterpSlot" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/compile/frame/interp-slot.ts
+        exported symbol "InterpSlotOptions" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/engine/composition.ts
+        exported symbol "CompositionRuntime" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/engine/composition.ts
+        exported symbol "endValueFor" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/engine/composition.ts
+        exported symbol "emitCompositionFallback" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/engine/play-lifecycle/frame.ts
+        exported symbol "renderFrame" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/engine/play-lifecycle/strategies.ts
+        exported symbol "playRAF" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/engine/play-lifecycle/strategies.ts
+        exported symbol "playViaWAAPI" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/engine/play-lifecycle/strategies.ts
+        exported symbol "playReducedMotion" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/group/waapi.ts
+        exported symbol "GroupWAAPIEligibility" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/internal/animation-id.ts
+        exported symbol "AnimationIdentity" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/internal/errors.ts
+        exported symbol "AnimationOptionErrorCode" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/internal/helpers.ts
+        exported symbol "hyphenToCamelCase" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/internal/helpers.ts
+        exported symbol "debounce" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/internal/leaves.ts
+        exported symbol "FRAME_RATE" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/internal/transport-core.ts
+        exported symbol "HeldPlayState" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/internal/transport-core.ts
+        exported symbol "RunFlags" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/orchestration/sequence/transport.ts
+        exported symbol "restPhase" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/orchestration/sequence/transport.ts
+        exported symbol "isForwardMonotone" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/orchestration/sequence/transport.ts
+        exported symbol "seedOrigin" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/physics/spring/solver/sample.ts
+        exported symbol "NormalizedSpringSampleOptions" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/physics/spring/solver/solver.ts
+        exported symbol "SpringSolution" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/physics/spring/solver/solver.ts
+        exported symbol "SpringModalStep" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/presets/catalog.ts
+        exported symbol "PresetGroup" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/presets/catalog.ts
+        exported symbol "PresetFactory" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/presets/catalog.ts
+        exported symbol "definePreset" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/resolve/browser.ts
+        exported symbol "convertPixelsToCh" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/resolve/browser.ts
+        exported symbol "ResolvedBrowserScalar" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/resolve/element-resolve.ts
+        exported symbol "resolveElementAwareValues" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/svg/morph-geometry.ts
+        exported symbol "fmtNum" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+  R6  src/animation/waapi/delegation.ts
+        exported symbol "NativeScrollDispatchContext" has no consumer — not imported by any other file across src/test/bench/scripts, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the `export`), or delete if dead
+proof:structure — FAIL: 35 violation(s) on scope=src (rule R6)

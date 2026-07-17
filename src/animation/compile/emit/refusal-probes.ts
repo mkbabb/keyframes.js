@@ -1,5 +1,5 @@
 import type { Vars } from "../../constants";
-import type { CompileChild } from "./backward-walk";
+import type { CompileChild } from "./backward/walk";
 
 export type CompileRefusalReason =
     | "weight-blend"

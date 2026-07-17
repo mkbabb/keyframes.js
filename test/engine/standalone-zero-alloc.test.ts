@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import type { FlatAuthoredValues } from "../../src/animation/compile/value-ast";
+import type { FlatAuthoredValues } from "../../src/animation/compile/value";
 
 describe("E.W7 proof:standalone-zero-alloc — inv ν", () => {
     it("interpFrames returns the SAME buffer it is handed (zero-alloc contract)", () => {

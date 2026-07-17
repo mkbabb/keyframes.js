@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { FrameCompiler } from "../../src/animation/compile/frame-compiler";
+import { FrameCompiler } from "../../src/animation/compile/frame";
 import {
     interpolateCompiledValue,
     refreshAuthoredSink,
-} from "../../src/animation/compile/value-ast";
+} from "../../src/animation/compile/value";
 import type { AnimationOptions } from "../../src/animation/constants";
-import type { CompiledAnimationFrame } from "../../src/animation/compile/compiled-frame";
+import type { CompiledAnimationFrame } from "../../src/animation/compile/frame";
 
 const options: AnimationOptions = {
     duration: 1_000,

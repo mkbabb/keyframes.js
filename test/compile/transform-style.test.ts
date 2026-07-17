@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { transformTargetsStyle } from "../../src/animation/compile/value-ast";
+import { transformTargetsStyle } from "../../src/animation/compile/value";
 
 describe("transformTargetsStyle apply seam", () => {
     it("reuses the serialized shape across a steady apply window", () => {

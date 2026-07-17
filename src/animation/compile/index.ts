@@ -20,14 +20,14 @@
  * DIRECTLY (their real modules), not bridged through `frame-compiler`.
  */
 // Forward pipeline
-export { FrameCompiler } from "./frame-compiler";
+export { FrameCompiler } from "./frame";
 export { namedSelectorToFraction, parseKeyframeSelector } from "./selector";
 export {
     parseAndFlattenObject,
     compileValuePair,
     transformTargetsStyle,
-} from "./value-ast";
-export type { ParsedVarMap } from "./value-ast";
+} from "./value";
+export type { ParsedVarMap } from "./value";
 // The easing sub-zone (U.C8 — the owner's named example carve): the synchronous
 // The heavy-surface `resolveEasingOption` input
 // resolver, re-exported here from the `compile/easing/` sub-barrel.

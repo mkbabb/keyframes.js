@@ -32,8 +32,8 @@ import {
 } from "@mkbabb/value.js/color";
 import type { KeyframeSelector } from "@mkbabb/value.js/css";
 import type { CssValue } from "@mkbabb/value.js/value";
-import type { KeyframesAnimation } from "../../engine";
-import type { Vars } from "../../constants";
+import type { KeyframesAnimation } from "../../../engine";
+import type { Vars } from "../../../constants";
 
 /** Round to 4 decimals — the emit quantization the densify ΔE proof measures. */
 export const round = (n: number): number => Math.round(n * 1e4) / 1e4;
@@ -202,7 +202,7 @@ const sampleRamp = (
  * lets EN-b preserve STATIC (unchanging) colors (not in `keys` → ride the verbatim
  * declared projection), which the whole-block swap could not distinguish.
  */
-export type DensifyResult =
+type DensifyResult =
     | { byPct: Map<number, string[]>; keys: string[] }
     | { refused: true; delta: number }
     | null;

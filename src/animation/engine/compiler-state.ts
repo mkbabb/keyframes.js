@@ -1,4 +1,4 @@
-import type { FrameCompiler } from "../compile/frame-compiler";
+import type { FrameCompiler } from "../compile/frame";
 import type { Vars } from "../constants";
 
 const compilers = new WeakMap<object, FrameCompiler<any>>();

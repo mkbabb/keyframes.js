@@ -12,7 +12,7 @@
  * `parse`) are passed in, never reached back through the owning class.
  */
 import type { KeyframeSelector } from "@mkbabb/value.js/css";
-import { seekPreviousValue } from "../internal/helpers";
+import { seekPreviousValue } from "../../internal/helpers";
 import type {
     AnimationFrame,
     AnimationOptions,
@@ -21,15 +21,15 @@ import type {
     TemplateAnimationFrame,
     TransformFunction,
     Vars,
-} from "../constants";
+} from "../../constants";
 import type { CompiledAnimationFrame } from "./compiled-frame";
-import { NOOP_TRANSFORM } from "../constants";
+import { NOOP_TRANSFORM } from "../../constants";
 import {
     buildAuthoredSink,
     compileValuePair,
     parseAndFlattenObject,
     type ParsedVarMap,
-} from "./value-ast";
+} from "../value";
 // The keyframe-SELECTOR grammar (the regexes, the named-range tag, the
 // named-phase → fraction resolver, the content-id scale) AND the selector
 // validate+parse function (`parseKeyframeSelector`, carved off `addFrame` at
@@ -37,7 +37,7 @@ import {
 // re-export CEREMONY is DEAD: consumers import `namedSelectorToFraction` and
 // `parseKeyframeSelector` from `./selector` DIRECTLY; this module imports only
 // what IT uses.
-import { FRAME_ID_SCALE, parseKeyframeSelector } from "./selector";
+import { FRAME_ID_SCALE, parseKeyframeSelector } from "../selector";
 
 /**
  * A frame mid-compile (a29 F7). `createFrame` returns this: every field EXCEPT
@@ -78,7 +78,7 @@ function calcFrameTime<V extends Vars>(
 // the re-export CEREMONY is DEAD: `engine/options.ts` imports `resolveEasingOption`
 // from `./easing/option` DIRECTLY; this module imports only what IT uses.
 import { buildNumericPlan } from "./numeric-plan";
-import { resolveEasingOption } from "./easing/option";
+import { resolveEasingOption } from "../easing/option";
 
 export class FrameCompiler<V extends Vars = Vars> {
     templateFrames: TemplateAnimationFrame<V>[] = [];

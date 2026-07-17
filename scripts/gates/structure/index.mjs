@@ -21,6 +21,15 @@
  *   R4  500 raw-line ceiling — a source file over the ceiling (allowlist EMPTY
  *       at birth).
  *   R5  kind-dir ban — a `{components,composables,utils}`-style kind directory.
+ *   R6  no-unused-exports (encapsulation-sweep guard, V.W6) — a src-owned
+ *       exported symbol with ZERO consumers: neither imported by another file
+ *       across the consumer roots (src/ test/ bench/ scripts/), nor re-exported
+ *       by a barrel, nor reachable through the frozen public surface. The
+ *       `export` keyword is dead surface. Barrel re-exports and whole-module
+ *       (`export *` / `import * as`) edges count as consumption, so the rule
+ *       never false-positives on the `.` / `./engine` public surface or on a
+ *       legitimate module-internal cross-file export (kept out of the barrel by
+ *       design). See the "R6 support" block below for the full semantics.
  *
  * BIRTH SCOPE: `src/` only (default). R1–R3 carry live reds against the
  * pre-move library tree; R4/R5 are PREVENTIVE on src (src max is 484L; src has
@@ -67,6 +76,21 @@ const SCOPES = {
         // Justified line-ceiling exemptions. EMPTY at birth (R2-05 LT-01) — the
         // policy is 500 raw lines with an empty allowlist; src max is 484L.
         lineCeilingAllowlist: [],
+        // R6 no-unused-exports (V.W6). Flag domain = src TS files; consumption is
+        // scanned across src/test/bench/scripts (the library corpus — DD-4 demo
+        // is W8's, extended by adding demo roots + `.vue` here). Aliases mirror
+        // tsconfig's `@src/*` + the `@mkbabb/keyframes.js` self-path so test/bench
+        // imports through them are resolved to their real src owner.
+        unusedExports: {
+            flagRoots: ["src"],
+            flagExtensions: [".ts"],
+            consumerRoots: ["src", "test", "bench", "scripts"],
+            consumerExtensions: [".ts", ".mts", ".mjs", ".cts", ".cjs", ".tsx"],
+            aliases: [
+                { prefix: "@src/", to: "src/" },
+                { exact: "@mkbabb/keyframes.js", to: "src/animation/index.ts" },
+            ],
+        },
     },
     demo: {
         roots: ["demo"],
@@ -89,7 +113,7 @@ const KIND_DIR_NAMES = new Set([
     "services",
 ]);
 
-const RULE_IDS = ["R1", "R2", "R3", "R4", "R5"];
+const RULE_IDS = ["R1", "R2", "R3", "R4", "R5", "R6"];
 
 // ── Filesystem walk ──────────────────────────────────────────────────────────
 
@@ -200,6 +224,225 @@ function resolveRelativeSpecifier(fromFile, spec, extensions) {
         if (existsSync(c) && statSync(c).isFile()) return c;
     }
     return null;
+}
+
+// ── R6 support: no-unused-exports analysis (encapsulation sweep guard) ────────
+//
+// R6 reds when a src-owned exported symbol has ZERO consumers: it is neither
+// imported by any OTHER file across the consumer roots (src/ test/ bench/
+// scripts/), nor re-exported by a barrel, nor reachable through the frozen
+// public surfaces. Such an `export` keyword is dead surface — it widens the
+// module's shape past what any consumer touches. This is the standing guard the
+// V.W6 encapsulation sweep leaves behind so the over-export leak cannot re-open.
+//
+// CONSUMPTION — any ONE of these makes a symbol legitimate (NOT a violation):
+//   • a named import/re-export of the symbol from a specifier resolving to its
+//     defining file, in ANY file under the consumer roots. A SIBLING in the same
+//     module dir counts — that is a legitimate module-internal cross-file export,
+//     kept out of the module barrel by design (classification (b)); R6 does not
+//     flag it, and does not demand barrel membership.
+//   • a module-barrel re-export (`export { X } from "./owner"`) — the barrel's
+//     re-export-from statement is itself a consumption edge onto the owner file,
+//     so every barrel-surfaced symbol (including all `.` and `./engine` public
+//     exports, reached through the barrel chain to `index.ts`/`public.ts`) is
+//     consumed BY CONSTRUCTION. This is why the rule never false-positives on
+//     the frozen public surface: no separate roster is needed — the barrel edge
+//     IS the proof of consumption.
+//   • a whole-module edge onto the defining file (`import * as ns from …`,
+//     `export * from …`, `export * as ns from …`) — conservatively marks EVERY
+//     one of that file's exports consumed, so the gate never orders the demotion
+//     of a star-surfaced symbol it cannot see individually.
+//
+// The rule RESOLVES specifiers to files (relative + the `@src/*` and
+// `@mkbabb/keyframes.js` tsconfig aliases), so same-named symbols in different
+// modules are never conflated (e.g. `playReducedMotion` exists in BOTH
+// engine/play-lifecycle and group/lifecycle — a by-name scan would wrongly
+// cross-rescue them; module resolution keeps them distinct). A bare
+// `export { X }` that re-exports an IMPORTED name is treated as an edge, not an
+// owned declaration (so a type re-exported through an eponymous primary is
+// attributed to its real owner, not the re-exporter). Own-FILE internal use does
+// NOT rescue an export — an export consumed only inside its own file is exactly
+// the leak R6 closes.
+
+/** Local binding names a file introduces via `import` (default / namespace /
+ * named-with-alias). Used to tell a bare `export { X }` re-export of an import
+ * apart from an owned local declaration. */
+function collectImportedLocals(src) {
+    const c = stripComments(src);
+    const names = new Set();
+    const impRe = /\bimport\s+(?:type\s+)?([\s\S]*?)\s+from\s*["'][^"']+["']/g;
+    let m;
+    while ((m = impRe.exec(c))) {
+        const clause = m[1].trim();
+        if (!clause.startsWith("{") && !clause.startsWith("*")) {
+            const defM = clause.match(/^([A-Za-z_$][\w$]*)\s*(?:,|$)/);
+            if (defM) names.add(defM[1]);
+        }
+        const nsM = clause.match(/\*\s+as\s+([A-Za-z_$][\w$]*)/);
+        if (nsM) names.add(nsM[1]);
+        if (clause.includes("{")) {
+            const block = clause.slice(clause.indexOf("{") + 1, clause.lastIndexOf("}"));
+            for (let piece of block.split(",")) {
+                piece = piece.trim().replace(/^type\s+/, "");
+                if (!piece) continue;
+                const asM = piece.match(/^([A-Za-z_$][\w$]*)\s+as\s+([A-Za-z_$][\w$]*)/);
+                names.add(asM ? asM[2] : piece.match(/^([A-Za-z_$][\w$]*)/)?.[1]);
+            }
+        }
+    }
+    names.delete(undefined);
+    return names;
+}
+
+/** Names exported by DECLARATION in this file (`export const/function/class/
+ * type/interface/enum NAME`) plus bare `export { NAME }` blocks of LOCAL names
+ * (excluding re-exports-from and re-exports of imported bindings). */
+function collectOwnedExports(src) {
+    const c = stripComments(src);
+    const imported = collectImportedLocals(src);
+    const names = new Set();
+    const declRe =
+        /\bexport\s+(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:function\*?|class|const|let|var|type|interface|enum)\s+([A-Za-z_$][\w$]*)/g;
+    let m;
+    while ((m = declRe.exec(c))) names.add(m[1]);
+    // bare `export { a, b as c }` (no `from`): owns local names only.
+    const blockRe = /\bexport\s+(?:type\s+)?\{([^}]*)\}(\s*from\s*["'][^"']+["'])?/g;
+    while ((m = blockRe.exec(c))) {
+        if (m[2]) continue; // has `from` -> re-export, handled as a consumption edge
+        for (let piece of m[1].split(",")) {
+            piece = piece.trim().replace(/^type\s+/, "");
+            if (!piece) continue;
+            const asM = piece.match(/^([A-Za-z_$][\w$]*)\s+as\s+([A-Za-z_$][\w$]*)/);
+            const source = piece.match(/^([A-Za-z_$][\w$]*)/)?.[1];
+            const exported = asM ? asM[2] : source;
+            if (source && imported.has(source)) continue; // re-export of an import
+            if (exported) names.add(exported);
+        }
+    }
+    return names;
+}
+
+/** Consumption edges out of a file: named import/re-export lists (with the
+ * source-module specifier) and whole-module (`*`) edges. `names === null` marks
+ * a whole-module consumption. */
+function collectConsumptionEdges(src) {
+    const c = stripComments(src);
+    const edges = [];
+    const named = (block) =>
+        block
+            .split(",")
+            .map((p) => p.trim().replace(/^type\s+/, "").match(/^([A-Za-z_$][\w$]*)/)?.[1])
+            .filter(Boolean);
+    // import … from "spec"
+    const impRe = /\bimport\s+(?:type\s+)?([\s\S]*?)\s+from\s*["']([^"']+)["']/g;
+    let m;
+    while ((m = impRe.exec(c))) {
+        const clause = m[1].trim();
+        const spec = m[2];
+        if (clause.startsWith("*")) edges.push({ spec, names: null });
+        else if (clause.includes("{"))
+            edges.push({
+                spec,
+                names: named(clause.slice(clause.indexOf("{") + 1, clause.lastIndexOf("}"))),
+            });
+        // a bare default import consumes no NAMED export — skip.
+    }
+    // export … from "spec"
+    const expRe =
+        /\bexport\s+(?:type\s+)?(\*(?:\s+as\s+[A-Za-z_$][\w$]*)?|\{[^}]*\})\s+from\s*["']([^"']+)["']/g;
+    while ((m = expRe.exec(c))) {
+        const what = m[1].trim();
+        const spec = m[2];
+        if (what.startsWith("*")) edges.push({ spec, names: null });
+        else edges.push({ spec, names: named(what.slice(what.indexOf("{") + 1, what.lastIndexOf("}"))) });
+    }
+    return edges;
+}
+
+/** Resolve a specifier (relative or a configured alias) from `fromFile` to an
+ * on-disk file, or null for package/foreign specifiers. */
+function resolveModuleSpecifier(fromFile, spec, repoRoot, aliases, extensions) {
+    let base = null;
+    if (spec.startsWith(".")) {
+        base = resolve(dirname(fromFile), spec);
+    } else {
+        for (const a of aliases) {
+            if (a.exact !== undefined && spec === a.exact) {
+                base = resolve(repoRoot, a.to);
+                break;
+            }
+            if (a.prefix !== undefined && spec.startsWith(a.prefix)) {
+                base = resolve(repoRoot, a.to + spec.slice(a.prefix.length));
+                break;
+            }
+        }
+    }
+    if (base === null) return null;
+    const candidates = [];
+    for (const ext of extensions) candidates.push(base + ext);
+    for (const ext of extensions) candidates.push(join(base, "index" + ext));
+    candidates.push(base);
+    for (const cnd of candidates) {
+        if (existsSync(cnd) && statSync(cnd).isFile()) return cnd;
+    }
+    return null;
+}
+
+/** R6 evaluation over a repo — returns findings with repo-relative paths. */
+function evaluateUnusedExports(repoRoot, cfg) {
+    const { flagRoots, flagExtensions, consumerRoots, consumerExtensions, aliases } = cfg;
+
+    const listAll = (root, exts) => {
+        const rootAbs = resolve(repoRoot, root);
+        if (!existsSync(rootAbs)) return [];
+        const files = [];
+        for (const dir of listDirs(rootAbs))
+            for (const name of directSourceFiles(dir, exts)) files.push(join(dir, name));
+        return files;
+    };
+
+    // 1. Owned exports per flag file.
+    const ownedByFile = new Map();
+    for (const root of flagRoots)
+        for (const f of listAll(root, flagExtensions))
+            ownedByFile.set(f, collectOwnedExports(readFileSync(f, "utf8")));
+
+    // 2. Consumption edges across every consumer file.
+    const consumerFiles = new Set();
+    for (const root of consumerRoots) for (const f of listAll(root, consumerExtensions)) consumerFiles.add(f);
+
+    const consumedNames = new Map(); // ownerAbs -> Set(name)
+    const wholeConsumed = new Set(); // ownerAbs
+    for (const f of consumerFiles) {
+        for (const edge of collectConsumptionEdges(readFileSync(f, "utf8"))) {
+            const target = resolveModuleSpecifier(f, edge.spec, repoRoot, aliases, consumerExtensions);
+            if (!target || target === f) continue;
+            if (edge.names === null) {
+                wholeConsumed.add(target);
+            } else {
+                let s = consumedNames.get(target);
+                if (!s) consumedNames.set(target, (s = new Set()));
+                for (const n of edge.names) s.add(n);
+            }
+        }
+    }
+
+    // 3. Flag owned exports with zero consumption.
+    const findings = [];
+    const relRepo = (abs) => relative(repoRoot, abs).split(sep).join("/");
+    for (const [file, owned] of ownedByFile) {
+        if (wholeConsumed.has(file)) continue;
+        const consumed = consumedNames.get(file) || new Set();
+        for (const name of owned) {
+            if (consumed.has(name)) continue;
+            findings.push({
+                rule: "R6",
+                path: relRepo(file),
+                message: `exported symbol "${name}" has no consumer — not imported by any other file across ${consumerRoots.join("/")}, not re-exported by a barrel, not on the frozen public surface; demote to file-local (drop the \`export\`), or delete if dead`,
+            });
+        }
+    }
+    return findings;
 }
 
 // ── Rules ────────────────────────────────────────────────────────────────────
@@ -347,6 +590,11 @@ function runScope(scopeName, ruleFilter) {
         }
         findings.push(...evaluate(rootAbs, scope).map((f) => ({ ...f, path: `${root}/${f.path}` })));
     }
+    // R6 is scope-level (multi-root consumer scan), not per-root. Its findings
+    // already carry repo-relative paths, matching the per-root-prefixed format.
+    if (scope.unusedExports && (!ruleFilter || ruleFilter === "R6")) {
+        findings.push(...evaluateUnusedExports(REPO_ROOT, scope.unusedExports));
+    }
     if (ruleFilter) findings = findings.filter((f) => f.rule === ruleFilter);
 
     const header = ruleFilter
@@ -358,7 +606,7 @@ function runScope(scopeName, ruleFilter) {
         console.log(
             ruleFilter
                 ? `proof:structure — PASS: ${ruleFilter} clean on scope=${scopeName} (0 violations)`
-                : `proof:structure — PASS: scope=${scopeName} clean (0 violations across R1–R5)`,
+                : `proof:structure — PASS: scope=${scopeName} clean (0 violations across R1–R6)`,
         );
         return 0;
     }
@@ -428,7 +676,9 @@ function selftest() {
         const fired = new Set(dirtyFindings.map((f) => f.rule));
         console.log(`selftest · dirty fixture → ${dirtyFindings.length} finding(s); rules fired: ${[...fired].sort().join(", ") || "none"}`);
         for (const f of dirtyFindings) console.log(`    ${f.rule}  ${f.path} — ${f.message}`);
-        for (const id of RULE_IDS) {
+        // R1–R5 are per-file/dir rules exercised by `evaluate`. R6 is scope-level
+        // (a multi-root consumer scan) and gets its own fixture arm below.
+        for (const id of RULE_IDS.filter((r) => r !== "R6")) {
             const hit = fired.has(id);
             console.log(`selftest · rule ${id} CAN fail — ${hit ? "PASS" : "FAIL (rule never fired on the dirty fixture)"}`);
             if (!hit) ok = false;
@@ -436,6 +686,43 @@ function selftest() {
     } finally {
         rmSync(cleanRoot, { recursive: true, force: true });
         rmSync(dirtyRoot, { recursive: true, force: true });
+    }
+
+    // ── R6 arm — no-unused-exports non-vacuity (own fixture repo) ─────────────
+    const r6Cfg = {
+        flagRoots: ["src"],
+        flagExtensions: [".ts"],
+        consumerRoots: ["src", "test"],
+        consumerExtensions: [".ts"],
+        aliases: [{ prefix: "@src/", to: "src/" }],
+    };
+    const r6Clean = mkdtempSync(join(tmpdir(), "proof-structure-r6-clean-"));
+    const r6Dirty = mkdtempSync(join(tmpdir(), "proof-structure-r6-dirty-"));
+    try {
+        // CLEAN — every export is consumed: `used` through the barrel, `helper`
+        // by a sibling (module-internal cross-file), `s` by a test. R6 must find 0.
+        writeFixtureFile(r6Clean, "src/mod/thing.ts", `export const used = 1;\nexport const helper = 2;\n`);
+        writeFixtureFile(r6Clean, "src/mod/sibling.ts", `import { helper } from "./thing";\nexport const s = helper;\n`);
+        writeFixtureFile(r6Clean, "src/mod/index.ts", `export { used } from "./thing";\n`);
+        writeFixtureFile(r6Clean, "test/mod.test.ts", `import { s } from "@src/mod/sibling";\nconsole.log(s);\n`);
+        const r6CleanFindings = evaluateUnusedExports(r6Clean, r6Cfg);
+        const r6CleanPass = r6CleanFindings.length === 0;
+        console.log(`selftest · R6 clean fixture → ${r6CleanFindings.length} finding(s) — ${r6CleanPass ? "PASS (R6 CAN pass)" : "FAIL"}`);
+        for (const f of r6CleanFindings) console.log(`    unexpected ${f.rule} ${f.path} — ${f.message}`);
+        if (!r6CleanPass) ok = false;
+
+        // DIRTY — `orphan` is exported but consumed by no one. R6 must fire.
+        writeFixtureFile(r6Dirty, "src/mod/thing.ts", `export const used = 1;\nexport const orphan = 2;\n`);
+        writeFixtureFile(r6Dirty, "src/mod/index.ts", `export { used } from "./thing";\n`);
+        const r6DirtyFindings = evaluateUnusedExports(r6Dirty, r6Cfg);
+        const r6DirtyHit = r6DirtyFindings.some((f) => f.rule === "R6" && /"orphan"/.test(f.message));
+        console.log(`selftest · R6 dirty fixture → ${r6DirtyFindings.length} finding(s); orphan flagged: ${r6DirtyHit}`);
+        for (const f of r6DirtyFindings) console.log(`    ${f.rule}  ${f.path} — ${f.message}`);
+        console.log(`selftest · rule R6 CAN fail — ${r6DirtyHit ? "PASS" : "FAIL (R6 never fired on the dirty fixture)"}`);
+        if (!r6DirtyHit) ok = false;
+    } finally {
+        rmSync(r6Clean, { recursive: true, force: true });
+        rmSync(r6Dirty, { recursive: true, force: true });
     }
 
     console.log(ok ? "selftest — PASS: every rule can pass on clean and fail on dirty (non-vacuous)." : "selftest — FAIL: a rule is vacuous.");

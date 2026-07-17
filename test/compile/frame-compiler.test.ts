@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FrameCompiler } from "../../src/animation/compile/frame-compiler";
+import { FrameCompiler } from "../../src/animation/compile/frame";
 import { defaultOptions } from "../../src/animation/constants";
 import { KeyframesAnimation } from "../../src/animation/engine";
 

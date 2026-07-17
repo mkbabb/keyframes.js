@@ -6,7 +6,7 @@ import {
     colorUnitToOklabCSS,
     densifyColorBlock,
     isColorUnit,
-} from "../../src/animation/compile/emit/backward-color";
+} from "../../src/animation/compile/emit/backward";
 
 const requireColor = <T>(result: { ok: true; value: T } | { ok: false }): T => {
     if (!result.ok) throw new TypeError("test color construction failed");

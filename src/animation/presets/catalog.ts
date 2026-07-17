@@ -2,8 +2,8 @@ import { springTimingFunction } from "../physics/spring";
 import { CSSKeyframesAnimation } from "../engine";
 import type { InputAnimationOptions } from "../constants";
 import * as classicData from "./classic-data";
-export type PresetGroup = "enter" | "exit" | "attention" | "loop";
-export type PresetFactory = (
+type PresetGroup = "enter" | "exit" | "attention" | "loop";
+type PresetFactory = (
     options?: InputAnimationOptions,
 ) => CSSKeyframesAnimation<any>;
 type PresetSpec = {
@@ -307,7 +307,7 @@ export const PRESET_SPECS = {
         group: "attention",
     },
 } as const satisfies Record<string, PresetSpec>;
-export const definePreset =
+const definePreset =
     (spec: PresetSpec): PresetFactory =>
     (options) =>
         new CSSKeyframesAnimation({

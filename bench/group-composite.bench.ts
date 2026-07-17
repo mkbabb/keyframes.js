@@ -41,7 +41,7 @@
 import { bench, describe } from "vitest";
 import { CSSKeyframesAnimation } from "../src/animation/engine";
 import { AnimationGroup } from "../src/animation/group";
-import type { FlatAuthoredValues } from "../src/animation/compile/value-ast";
+import type { FlatAuthoredValues } from "../src/animation/compile/value";
 // R.W2 — the SoA fold + the residual blend arm are colocated INTERNAL functions
 // (`./group/soa` + `./group/compositor`); the bench calls them DIRECTLY with
 // explicit args (no `group.soaBlendLayer`/`group.residualBlendArm` private monkey-
@@ -50,7 +50,7 @@ import {
     buildSoAPlans,
     groupSoABlendLayer,
 } from "../src/animation/group/soa";
-import { residualBlendArm } from "../src/animation/group/compositor";
+import { residualBlendArm } from "../src/animation/group/composite";
 
 // A realistic multi-property transform keyframe — several numeric leaves
 // (translateX/Y, scaleX/Y/Z, rotateZ, opacity) + a multi-component `margin`

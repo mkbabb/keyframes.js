@@ -9,13 +9,13 @@ import { renderMultiTarget, requireEntry } from "./entries";
 import { advanceBatched, advanceSlice } from "./yield-batch";
 import { advanceLayerSprings } from "./springs";
 import type { LayerTransitionSpring } from "./springs";
-import { compositeFrame } from "./compositor";
+import { compositeFrame } from "./composite";
 import * as layerApi from "./layer-api";
 // S.B5 (a19 F1) — the TRANSPORT verbs (play/pause/resume/stop/settle/reset/
 // playing + the reduced-motion snap) are FREE FUNCTIONS in the colocated
 // `./lifecycle` module; the methods below are thin `this`-delegates over them.
 import * as lifecycle from "./lifecycle";
-import { createGroupCompositeStorage } from "./composite-storage";
+import { createGroupCompositeStorage } from "./composite";
 import type {
     AnimationLayerConfig,
     TransformFunction,

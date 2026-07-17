@@ -1,20 +1,20 @@
-import { serializeCssValue } from "./css-text";
+import { serializeCssValue } from "../css-text";
 import type { KeyframeSelector } from "@mkbabb/value.js/css";
 import type { CssValue } from "@mkbabb/value.js/value";
-import { camelCaseToHyphen } from "../../internal/helpers";
-import type { KeyframesAnimation } from "../../engine";
-import type { Vars } from "../../constants";
-import { serializeEasing } from "./easing-serialize";
+import { camelCaseToHyphen } from "../../../internal/helpers";
+import type { KeyframesAnimation } from "../../../engine";
+import type { Vars } from "../../../constants";
+import { serializeEasing } from "../easing-serialize";
 // T.F22 — the OPTION/SHORTHAND serialization concern (the `.class { animation-* }`
 // longhand block, the `animation` shorthand, the `animation-composition` longhand,
-// the `@property` re-serialize) is carved into the colocated `./format-options`
+// the `@property` re-serialize) is carved into the colocated `./options`
 // sibling on the body-vs-options cohesion seam. `CSSKeyframesToString` reaches
 // the two it composes from there.
 import {
     animationOptionsToString,
     propertyRegistryToString,
-} from "./format-options";
-import type { ParsedVarMap } from "../value-ast";
+} from "./options";
+import type { ParsedVarMap } from "../../value";
 
 
 const selectorText = (selector: KeyframeSelector): string =>
@@ -218,7 +218,7 @@ export function keyframesBlock<V extends Vars>(
  * weight (so an `accumulate` layer reproduces the weightBlend blend in exact CSS), OR
  * a refusal naming the non-numeric leaf that cannot be scaled.
  */
-export type PremultiplyResult =
+type PremultiplyResult =
     | { block: string }
     | { refused: true; key: string };
 

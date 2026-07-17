@@ -15,8 +15,8 @@ import {
     convertToPixels,
     getLayoutEpoch,
     resolveBrowserScalar,
-} from "../resolve/browser";
-import { serializeCssValue } from "./emit/css-text";
+} from "../../resolve/browser";
+import { serializeCssValue } from "../emit/css-text";
 
 export interface NumericInterpSlot {
     readonly kind: "number";
@@ -26,7 +26,7 @@ export interface NumericInterpSlot {
     readonly unit: string;
 }
 
-export interface ColorInterpSlot {
+interface ColorInterpSlot {
     readonly kind: "color";
     readonly from: AnyColor;
     readonly to: AnyColor;
@@ -35,7 +35,7 @@ export interface ColorInterpSlot {
     hue?: HueInterpolationMethod;
 }
 
-export interface ComputedInterpSlot {
+interface ComputedInterpSlot {
     readonly kind: "computed";
     readonly from: CssValue;
     readonly to: CssValue;
@@ -52,7 +52,7 @@ export interface ComputedInterpSlot {
     }> | undefined;
 }
 
-export interface DiscreteInterpSlot {
+interface DiscreteInterpSlot {
     readonly kind: "discrete";
     readonly from: CssValue;
     readonly to: CssValue;
@@ -65,7 +65,7 @@ export type InterpSlot =
     | ComputedInterpSlot
     | DiscreteInterpSlot;
 
-export interface InterpSlotOptions {
+interface InterpSlotOptions {
     readonly colorSpace: SpaceId;
     readonly hueMethod?: HueInterpolationMethod;
     readonly target?: HTMLElement;
@@ -336,15 +336,3 @@ export function serializeInterpSlot(slot: InterpSlot): string {
             return serializeCssValue(slot.current);
     }
 }
-
-export const cloneInterpSlot = (slot: InterpSlot): InterpSlot => {
-    switch (slot.kind) {
-        case "number": return { ...slot };
-        case "color": return { ...slot };
-        case "computed": return {
-            ...slot,
-            ...(slot.cache === undefined ? {} : { cache: { ...slot.cache } }),
-        };
-        case "discrete": return { ...slot };
-    }
-};

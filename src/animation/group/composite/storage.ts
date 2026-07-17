@@ -1,6 +1,6 @@
-import type { FlatAuthoredValues } from "../compile/value-ast";
-import { CompositeState } from "./composite-state";
-import type { SoALayerPlan } from "./soa";
+import type { FlatAuthoredValues } from "../../compile/value";
+import { CompositeState } from "./state";
+import type { SoALayerPlan } from "../soa";
 
 /** Private, long-lived storage for the group's zero-allocation compositor. */
 export interface GroupCompositeStorage {

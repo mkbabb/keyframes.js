@@ -27,13 +27,13 @@ import type {
 // now `AnimationGroup.of(first, ...rest)` (genuine ownership — the compositor
 // owns its own construction), so the engine↔group ring is one-directional
 // (group → engine) BY CONSTRUCTION, with no back-edge to invert.
-import { FrameCompiler } from "../compile/frame-compiler";
+import { FrameCompiler } from "../compile/frame";
 import { compilerFor, setCompilerFor } from "./compiler-state";
 import {
     type FlatAuthoredValues,
     type ParsedVarMap,
     transformTargetsStyle,
-} from "../compile/value-ast";
+} from "../compile/value";
 import * as playback from "./play-lifecycle";
 import { PlaybackState } from "./playback-state";
 import * as interpolate from "./interpolate";

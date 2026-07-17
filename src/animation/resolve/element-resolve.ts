@@ -32,8 +32,7 @@ import {
 } from "../resolve";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "../engine/animation";
-import type { CompiledAnimationFrame } from "../compile/compiled-frame";
-import { bindInterpSlotTarget } from "../compile/interp-slot";
+import { bindInterpSlotTarget, type CompiledAnimationFrame } from "../compile/frame";
 
 /**
  * Q.WB1 — the emerging-CSS Phase-2 SECOND resolution pass (the gestalt P.W13
@@ -54,7 +53,7 @@ import { bindInterpSlotTarget } from "../compile/interp-slot";
  * @returns `true` iff at least one template carried a Phase-2 node and the
  *   compiler was re-`parse()`d (so `setTargets` skips its fast propagate).
  */
-export function resolveElementAwareValues<V extends Vars>(
+function resolveElementAwareValues<V extends Vars>(
     animation: KeyframesAnimation<V>,
 ): boolean {
     const templates = animation.templateFrames;

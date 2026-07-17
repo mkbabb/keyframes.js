@@ -1,5 +1,5 @@
 /**
- * compile/emit/format-options.ts — the OPTION/SHORTHAND serialization half
+ * compile/emit/format/options.ts — the OPTION/SHORTHAND serialization half
  * of the backward `format` surface (T.F22 — the per-zone cohesion carve off
  * `format.ts`).
  *
@@ -20,19 +20,19 @@ import {
     reverseAnimationShorthand,
     reverseCSSTime,
     serializeStylesheetItem,
-} from "./css-text";
+} from "../css-text";
 import {
     parseTimingFunction,
     type CSSAnimationOptions,
     type CSSPropertyDescriptor,
 } from "@mkbabb/value.js/css";
-import type { KeyframesAnimation } from "../../engine";
+import type { KeyframesAnimation } from "../../../engine";
 import type {
     AnimationOptions,
     CompositeOperator,
     Vars,
-} from "../../constants";
-import { serializeEasing } from "./easing-serialize";
+} from "../../../constants";
+import { serializeEasing } from "../easing-serialize";
 
 export function animationOptionsToString(
     options: AnimationOptions,

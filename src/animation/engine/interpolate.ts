@@ -21,15 +21,15 @@ import { clamp, lerpArray, scale } from "@mkbabb/value.js/math";
 import { binarySearchRange } from "../internal/binary-search";
 import { AnimationOptionError } from "../internal/errors";
 import { applyComposition as applyCompositionImpl } from "./composition";
-import type { CompiledAnimationFrame } from "../compile/compiled-frame";
 import {
     bindInterpSlotTarget,
     interpolateSlot,
-} from "../compile/interp-slot";
+    type CompiledAnimationFrame,
+} from "../compile/frame";
 import {
     refreshAuthoredSink,
     type FlatAuthoredValues,
-} from "../compile/value-ast";
+} from "../compile/value";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 

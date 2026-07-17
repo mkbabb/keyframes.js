@@ -133,7 +133,7 @@ export function foldPhase(
  * yoyo run that closes reflected rests at `0`. Mirrors the boundary `foldPhase`
  * resolves at the terminal clock.
  */
-export function restPhase(
+function restPhase(
     duration: number,
     repeatCount: number,
     yoyoOn: boolean,
@@ -148,7 +148,7 @@ export function restPhase(
  * `play()` fires the same `animationstart`/`animationend` it always did; any
  * transport modifier opts into the scrub-paint authority.
  */
-export function isForwardMonotone(
+function isForwardMonotone(
     rate: number,
     repeatCount: number,
     yoyoOn: boolean,
@@ -162,7 +162,7 @@ export function isForwardMonotone(
  * rate = time` for the origin: `origin = clock − time / rate`. A zero rate
  * freezes the playhead, so the origin collapses to the bare clock.
  */
-export function seedOrigin(clock: number, time: number, rate: number): number {
+function seedOrigin(clock: number, time: number, rate: number): number {
     return rate === 0 ? clock : clock - time / rate;
 }
 
