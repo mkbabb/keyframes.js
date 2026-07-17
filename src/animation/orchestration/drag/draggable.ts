@@ -464,7 +464,7 @@ export function drag(
 }
 
 // The 2-D drag sugar (`drag2D` + its `Drag2DHandle` return type) lives in the
-// co-located `./drag-2d` module (two one-axis `Draggable`s behind a single
+// co-located `./2d` module (two one-axis `Draggable`s behind a single
 // `(x, y, vx, vy)` surface). The flat-sibling re-export relay is RETIRED (R.W1):
 // the `drag/index.ts` barrel now owns the unified surface; this file is the pure
-// 1-D `Draggable` engine and imports nothing from `./drag-2d`.
+// 1-D `Draggable` engine and imports nothing from `./2d`.

@@ -728,7 +728,7 @@ function clauseG() {
 //
 // drag2D + Drag2DHandle are exported (index.ts:88,93) + gate-tested
 // (the drag-gesture S4 tests) but were NOT named in the *declared/published-surface*
-// contract as SUPPORTED LIGHT exports — a refactor routing drag-2d.ts through a
+// contract as SUPPORTED LIGHT exports — a refactor routing 2d.ts through a
 // HEAVY module, or dropping the export, would leave only the package boundary (which has
 // no notion that drag2D is a *committed* primitive the DemoControlPoint chain
 // depends on). This clause NAMES them as committed surface, so a *surface*
