@@ -13,6 +13,13 @@ fails the gate — the roster cannot go stale against the source in either
 direction. Row contract: first cell the backticked export name, second its
 tier, third its README anchor (or a `manifest-only: <reason>` note).
 
+**The value.js consume-edge is exact-pinned by design.** The exact
+`@mkbabb/value.js@4.0.0` pin (see the CHANGELOG 6.0.0 "Dependency Changes"
+section) is deliberate: every constellation consume-edge is a measured,
+integrity-pinned edge, not a semver range. Value patches reach consumers through
+the smallest honest keyframes successor — a re-pinned, re-verified release —
+never by range drift under a caret.
+
 ## LIGHT — the static barrel
 
 `import { … } from "@mkbabb/keyframes.js"` — value.js-free, tree-shakeable
@@ -212,3 +219,13 @@ export below must carry a disposition row whose cited test file EXISTS.
 | `fromDrawSVG` | PATH B — no live-session scene | `test/svg/draw-svg.test.ts` (Vitest/jsdom) |
 | `MorphSVG`     | PATH B — no live-session scene | `test/svg/morph-svg.test.ts` (Vitest/jsdom) |
 | `fromMorphSVG` | PATH B — no live-session scene | `test/svg/morph-svg.test.ts` (Vitest/jsdom) |
+
+## Structural conventions (retired gate recorded)
+
+**The test-area mirror convention.** Library test areas under `test/` mirror the
+`src/animation/` zone layout — each non-infrastructure test directory maps to an
+animation zone, and root-module tests live in `test/_root`. This was formerly
+enforced by `test/support/mirror.test.ts`, a topology-only assertion
+(`readdirSync` over `test/` vs `src/animation/`, exercising zero runtime
+behavior) pruned at V.W4 (commit `fe42c6f9`, per TC-4/LT-02a/XB-04). The
+convention now survives as this documented expectation rather than a gated test.

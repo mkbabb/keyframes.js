@@ -13,7 +13,9 @@
  * package-boundary command.
  *
  * RUN:    node scripts/gen-agent-surface.mjs        (writes the artifacts)
- *         node scripts/gen-agent-surface.mjs --check (prints; writes nothing)
+ *         node scripts/gen-agent-surface.mjs --check (diffs the on-disk
+ *              artifacts against a fresh generation; exits non-zero on any
+ *              drift or absence — the no-drift lock, wired into proof:publish)
  *
  * The shared roster derivation lives in `scripts/lib/agent-surface.mjs` so the
  * generator and package-boundary check read the SAME source of truth.
@@ -36,9 +38,40 @@ const LLMS = path.join(REPO, "llms.txt");
 const LLMS_FULL = path.join(REPO, "llms-full.txt");
 
 if (check) {
-    console.log(llmsTxt);
-    console.log("\n\n──────── llms-full.txt ────────\n");
-    console.log(llmsFullTxt);
+    // --check — a REAL diff-and-exit (DM-01 / DR-1). Regenerate in memory, then
+    // compare byte-for-byte against the on-disk artifacts and exit non-zero on any
+    // drift or absence. (Previously this only printed the generated text and always
+    // exited 0 — a "check" that could never fail.) The files are gitignored build
+    // artifacts, so `node scripts/gen-agent-surface.mjs` must have written them
+    // first; the proof:publish battery does that (generate-before-assert).
+    const drift = [];
+    for (const [label, file, fresh] of [
+        ["llms.txt", LLMS, llmsTxt],
+        ["llms-full.txt", LLMS_FULL, llmsFullTxt],
+    ]) {
+        const onDisk = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
+        if (onDisk === null) {
+            drift.push(
+                `${label} is ABSENT — run \`node scripts/gen-agent-surface.mjs\` to write it.`,
+            );
+        } else if (onDisk !== fresh) {
+            drift.push(
+                `${label} is STALE — it does not match the generator's output from ` +
+                    `today's \`docs/published-surface.md\`. Run \`node scripts/gen-agent-surface.mjs\`.`,
+            );
+        }
+    }
+    if (drift.length > 0) {
+        console.error(
+            "gen-agent-surface --check — FAIL (the agent surface drifted from the published manifest):",
+        );
+        for (const d of drift) console.error("  ✗ " + d);
+        process.exit(1);
+    }
+    console.log(
+        "gen-agent-surface --check — OK: /llms.txt + /llms-full.txt are byte-identical to a fresh generation.",
+    );
+    process.exit(0);
 } else {
     fs.writeFileSync(LLMS, llmsTxt);
     fs.writeFileSync(LLMS_FULL, llmsFullTxt);

@@ -34,6 +34,13 @@ The implementation also landed the ratified structural and product wave set:
 
 ## The apparatus dissolution, measured
 
+> **[SUPERSEDED 2026-07-17 — corrected measurement.]** The `scripts/` text-lines
+> row below reads "10,776 across 77 files"; the tracked total is **10,846 text
+> lines across 32 tracked files** (25 `.mjs` + 6 `.ts` + 1 `.sh`, zero binary —
+> `git ls-tree -r --name-only c80ad0bf -- scripts | wc -l` → 32). The "77 files"
+> figure counted 44 gitignored `_diff/` PNGs + 1 `.DS_Store` (`git check-ignore`
+> → IGNORED). The corrected number is the better dissolution number.
+
 | Measure | Historical / terminal input | Closed tree |
 |---|---:|---:|
 | `proof:*` package keys | 227 at U authoring; 204 at the terminal owner audit | **2** |
@@ -49,6 +56,10 @@ The two retained commands are:
 1. `proof:publish` — boundary, published surface, dependency currency, consumer
    bundle, and README/package usability;
 2. `proof:owner-golden` — the 14-frame human visual boundary.
+
+> **[SUPERSEDED 2026-07-17 — cadence relabel.]** "nightly" below is a mislabel:
+> the cron is `.github/workflows/ci.yml` `cron: "17 3 * * 1"` (dow=1) = **weekly,
+> Monday 03:17 UTC**, so the deploy-freshness window is a week, not a night.
 
 The six nightly/on-demand observations are smoke, occlusion, usability, subject
 animation, live session, and mobile live session. They run direct script paths
@@ -111,6 +122,21 @@ Unpublished sibling work is neither copied nor treated as a consumable release:
 - sci-report waits for Atlas's next versioned surface, then consumes it
   atomically with the coherent Glass/Keyframes tuple.
 
+> **[SUPERSEDED 2026-07-17 — see `docs/tranches/U/AGENTIC-HANDOFF-2026-07-16.md` §5.]**
+> The coordinates below are dead: the shipped Keyframes 6 has NO Glass edge (not
+> "optional 6.0.0"); the demo consumes Glass **7.0.0** as a dev-only edge; the
+> atlas successor is **atlas 7.0.0** (atlas is at 4.0.0), not "Atlas 2.0". The
+> operative forward rail is Value 4.0.0 → Keyframes 6.0.0 → immutable Glass 7 →
+> atlas 7.0.0.
+>
+> **[RETIRED — resolved-by-migration, no defect present.]** The "Tailwind-scanned
+> prose literal in MbabbMenu.vue" row is retired: the only bracket literal is the
+> `min-w-[var(--dock-panel-width)]` class (verified this wave at `MbabbMenu.vue:27`;
+> the manifest's pre-transaction `:6` anchor has since drifted) — a legitimate
+> Tailwind arbitrary-value class on a real `<DropdownMenuContent>` element, NOT a
+> prose string. The ~24-line D9 comment block was removed by the Glass-7 migration,
+> and `CHANGELOG.md` 5.3.5 already records the reword as DONE. Do not re-book this row.
+
 SCI/Atlas subsequently queued the next safe consumer motion: after Glass 6.0.0
 is immutable, Keyframes publishes the smallest compatible successor whose
 optional Glass edge is exactly 6.0.0, proves one physical core from registry
@@ -120,6 +146,12 @@ consumes the tuple. That successor also rewords the Tailwind-scanned
 the actual empty-animate/highlight/class cleanup. This is a named future
 artifact boundary, not an inherited U tripwire or permission to consume an
 active worktree.
+
+> **[SUPERSEDED 2026-07-17.]** Falsified within a day of close: npm shipped
+> 5.3.5 and 6.0.0 after this sentence, and `AGENTIC-HANDOFF-2026-07-16.md` §3/§5
+> carries a 65-path K6 consumer slice + a documentation-correction list forward
+> — the de-facto V inheritance. Read the handoff, not this line, as the operative
+> forward ledger.
 
 These are owner-re-deadlined producer boundaries. V inherits no U backlog,
 tripwire, or silently carried Keyframes row.
@@ -157,6 +189,10 @@ The immutable run coordinates are recorded with the release packet below.
 | `gitHead` | `c80ad0bfafd0691daf0477b74d74333e069846cd` |
 | provenance | `https://registry.npmjs.org/-/npm/v1/attestations/@mkbabb%2fkeyframes.js@5.3.4` (SLSA provenance v1) |
 | release workflow | GitHub Actions `29439848808`, passed in 2m07s |
+
+> **[SUPERSEDED 2026-07-17.]** 5.3.4 is NOT the terminal release: 5.3.5 and
+> 6.0.0 published after this section (`npm view @mkbabb/keyframes.js dist-tags`
+> → `latest: 6.0.0`). This baseline text is retained as U-close history only.
 
 The preceding immutable published baseline was Keyframes 5.3.3 at
 `8cca894a79654bb99810c48f58fac91179172bfc`, integrity

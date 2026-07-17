@@ -117,15 +117,18 @@ module.exports = {
                 "module init order at runtime. Break the cycle (extract the shared " +
                 "leaf, or invert the edge). `type-only` edges are exempt — an " +
                 "`import type` is erased at build and carries no runtime init " +
-                "hazard. The src/animation/ engine cluster's pre-existing " +
-                "co-recursive runtime cycles (the module+extracted-submodule " +
-                "pattern: engine↔easing↔frame-compiler↔group↔waapi, " +
+                "hazard. Post-R.W1 the src/animation/ engine graph is ACYCLIC on " +
+                "runtime edges: the R.W1 refactor broke the former co-recursive " +
+                "cycle ring (engine↔easing↔frame-compiler↔group↔waapi, " +
                 "spring↔spring-duration↔spring-reseat, group↔group-layer-springs, " +
-                "drag↔drag-2d) are recorded in the known-violations BASELINE " +
-                "(.dependency-cruiser-known-violations.json) so this rule greens on " +
-                "today's tree and bites only a NEW cycle — the ratchet that lets the " +
-                "floor land without refactoring the engine (Q.WA1 ships zero engine " +
-                "code). A new module-pair cycle reds immediately.",
+                "drag↔drag-2d) via the getGroupFactory DI seam and shared-leaf " +
+                "extraction, so `depcruise src` greens with ZERO violations. There " +
+                "is NO known-violations baseline: the historical " +
+                "`.dependency-cruiser-known-violations.json` ratchet was never " +
+                "created and is not wired (`lint` is a bare `depcruise src`, no " +
+                "`--known-violations` flag). The invariant is a true acyclic " +
+                "runtime graph, not a grandfathered floor; a new runtime cycle " +
+                "reds immediately.",
             from: { path: "^src/" },
             to: {
                 circular: true,
