@@ -44,7 +44,7 @@ import { sleep } from "../internal/helpers";
 import type { FlatAuthoredValues } from "../compile/value-ast";
 import type { Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
-import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport/core";
+import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport-core";
 import { withReducedMotion } from "../internal/reduced-motion";
 import { isWAAPIEligible, playWAAPI } from "../waapi";
 

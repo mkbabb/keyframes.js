@@ -14,8 +14,8 @@
  * refusal-probe de-accretion interior stays DEFERRED to U.C9).
  *
  * The FORWARD leg (`frame-compiler.ts`, `value-ast.ts`, `selector.ts`,
- * `numeric-plan.ts`, and the `easing/` sub-zone — `easing-registry.ts` +
- * `easing-option.ts`, U.C8) stays in `compile/` (root + the `easing/` FORWARD
+ * `numeric-plan.ts`, and the `easing/` sub-zone — `registry.ts` +
+ * `option.ts`, U.C8) stays in `compile/` (root + the `easing/` FORWARD
  * sub-zone) — the real seam is FORWARD vs BACKWARD/emit (a18: zero
  * forward↔emit edges), which is why the emit leg is its own sub-zone. This
  * barrel is the sub-zone's single surface for the backward-core names; the

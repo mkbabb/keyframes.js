@@ -15,7 +15,7 @@
  * (consumers reach it through `loadAnimationEngine`).
  *
  * S.B3 C-2 — the FORWARD re-export CEREMONY through `frame-compiler` is DEAD:
- * `resolveEasingOption` comes from `./easing/easing-option`, while
+ * `resolveEasingOption` comes from `./easing/option`, while
  * `namedSelectorToFraction` and `parseKeyframeSelector` come from `./selector`
  * DIRECTLY (their real modules), not bridged through `frame-compiler`.
  */

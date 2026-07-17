@@ -12,7 +12,7 @@ import {
     CSSKeyframesAnimation,
 } from "../../src/animation/engine";
 import { isWAAPIEligible } from "../../src/animation/waapi";
-import { resolveEasingOption } from "../../src/animation/compile/easing/easing-option";
+import { resolveEasingOption } from "../../src/animation/compile/easing/option";
 
 const colorValue = (result: Record<string, any>, key: string): string => {
     const value = result[key];

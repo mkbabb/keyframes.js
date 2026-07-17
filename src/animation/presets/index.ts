@@ -1,10 +1,10 @@
 /**
- * presets/ — the preset catalog barrel (R.W1; lib-animations F1). The former
- * 886L `animations.ts` god-list split by kind: `classic.ts` (34 cubic-bezier/
- * stepped presets), `spring.ts` (the spring-eased factories), `taxonomy.ts` (the
- * enter/exit/attention/loop discovery index). HEAVY — each factory returns a
+ * presets/ — the preset catalog barrel (R.W1; lib-animations F1). The substance
+ * is `catalog.ts` — the `PRESET_SPECS` factory table (the cubic-bezier/stepped +
+ * spring-eased presets) plus the enter/exit/attention/loop taxonomy — built over
+ * the `classic-data.ts` keyframe data table. HEAVY — each factory returns a
  * `CSSKeyframesAnimation`, so the catalog rides `loadAnimationEngine()` as the
- * `presets` namespace. This is a 1:1 re-export of the full former surface.
+ * `presets` namespace. This barrel re-exports the full preset surface by name.
  */
 // S.B4 (a02 F4) — explicit-named barrel policy: `export *` is reserved for the
 // leaf tier, so every preset is re-exported by name. A new preset joins the
@@ -45,17 +45,17 @@ export {
     hover,
     jumpUp,
     jumpDown,
-} from "./classic";
+} from "./catalog";
 export {
     springScaleIn,
     springSlideIn,
     springPop,
     springWobble,
-} from "./spring";
+} from "./catalog";
 export {
     enterPresets,
     exitPresets,
     attentionPresets,
     loopPresets,
     presetTaxonomy,
-} from "./taxonomy";
+} from "./catalog";

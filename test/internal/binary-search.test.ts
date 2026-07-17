@@ -6,7 +6,7 @@
  * an animation test, not as a named unit failure.
  */
 import { describe, expect, it } from "vitest";
-import { binarySearchRange } from "../../src/animation/internal/binarySearch";
+import { binarySearchRange } from "../../src/animation/internal/binary-search";
 
 interface Range {
     start: number;

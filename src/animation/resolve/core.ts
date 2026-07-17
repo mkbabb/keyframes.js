@@ -1,7 +1,7 @@
 import type { CssCall, CssList, CssScalar, CssValue } from "@mkbabb/value.js/value";
 import { DROP, type ResolveContext, type Resolved } from "./env";
-import { resolveFunctionCall, type ResolveNode } from "./resolve-function";
-import { isStyleConditionIf, resolveIf } from "./resolve-if";
+import { resolveFunctionCall, type ResolveNode } from "./function";
+import { isStyleConditionIf, resolveIf } from "./conditional";
 
 const MAX_RESOLVE_DEPTH = 32;
 

@@ -6,7 +6,7 @@
  * container (`aria-label` + `aria-hidden` fragments). LIGHT (parser-free): it
  * composes `stagger`'s `/math` leaf and `Intl.Segmenter`; `by: "line"` is
  * measure-or-refuse (a typed `SplitTextRefusalError`). The barrel is the zone's
- * single public surface (what `proof:no-flat-siblings` asserts).
+ * single public surface (what `proof:structure` asserts).
  */
 export { splitText } from "./split-text";
 export type {

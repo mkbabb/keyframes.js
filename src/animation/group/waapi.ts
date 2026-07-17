@@ -10,7 +10,7 @@ import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 import { isWAAPIEligible } from "../waapi/eligibility";
 import { toWAAPIKeyframes } from "../waapi/emission";
-import { toWAAPIOptions } from "../waapi/waapi-options";
+import { toWAAPIOptions } from "../waapi/options";
 import type { AnimationGroup } from "./group";
 import type { AnimationGroupEntry } from "./types";
 import { isWeightBlend } from "./weight";

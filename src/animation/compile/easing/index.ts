@@ -2,11 +2,11 @@
  * compile/easing/ — the FORWARD leg's easing sub-zone (U.C8; the owner's named
  * example carve). Two cohesive-but-distinct concerns behind one barrel:
  *
- *   - `easing-registry.ts` — the internal synchronous timing-function
+ *   - `registry.ts` — the internal synchronous timing-function
  *     resolver (a callable / registry name / CSS `cubic-bezier()`/`steps()`/
  *     `linear()` literal → a callable `TimingFunction`). The value.js registry +
  *     CSS-parser edge.
- *   - `easing-option.ts` — `resolveEasingOption`, the heavy-surface easing-INPUT
+ *   - `option.ts` — `resolveEasingOption`, the heavy-surface easing-INPUT
  *     resolver (normalizes the four easing inputs to a typed `Easing`, attaching
  *     the faithful CSS twin). Rides the internal resolver.
  *
@@ -20,4 +20,4 @@
  *
  * HEAVY (value.js-bearing) — reached only via `loadAnimationEngine()`.
  */
-export { resolveEasingOption } from "./easing-option";
+export { resolveEasingOption } from "./option";

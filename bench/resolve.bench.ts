@@ -13,8 +13,8 @@
  * lowering pass is measured, not floored.
  *
  * Coverage spans the zone's members: `core.ts` (the recursion + the cheap
- * structural sniff), `resolve-if.ts` (the `if()` branch resolution),
- * `resolve-function.ts` (`@function` call-inlining, reached through the adapter),
+ * structural sniff), `conditional.ts` (the `if()` branch resolution),
+ * `function.ts` (`@function` call-inlining, reached through the adapter),
  * `spring-css.ts` (the `spring()` → kf-Easing physics), and the common
  * all-concrete keyframe (the zero-cost `hasResolvableValue` skip the adapter pays
  * on EVERY keyframe, resolvable or not).

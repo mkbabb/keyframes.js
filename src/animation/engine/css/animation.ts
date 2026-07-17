@@ -1,5 +1,5 @@
 /**
- * `engine/css/css-animation.ts` — `CSSKeyframesAnimation`, the CSS-parsing
+ * `engine/css/animation.ts` — `CSSKeyframesAnimation`, the CSS-parsing
  * entry-point subclass, lifted out of the engine god-module (R.W2 — lib-engine
  * F-4) and sub-zoned into `engine/css/` beside its `metadata` recovery sibling
  * (S.B2 — C-1). Its fields (`propertyRegistry`, `scrollOptions`, `_boundTimeline`)
@@ -28,7 +28,7 @@ import {
 import { cssTwinFor } from "../../easing";
 import { namedSelectorToFraction } from "../../compile/selector";
 import type { Timeline } from "../../orchestration/timeline";
-import { resolveTimingFunction } from "../../compile/easing/easing-registry";
+import { resolveTimingFunction } from "../../compile/easing/registry";
 import { transformTargetsStyle } from "../../compile/value-ast";
 import { KeyframesAnimation } from "../animation";
 

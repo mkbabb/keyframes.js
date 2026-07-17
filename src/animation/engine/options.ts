@@ -23,7 +23,7 @@ import {
     defaultOptions,
 } from "../constants";
 import type { AnimationOptions, InputAnimationOptions } from "../constants";
-import { resolveEasingOption } from "../compile/easing/easing-option";
+import { resolveEasingOption } from "../compile/easing/option";
 import { AnimationOptionError, parseOption } from "../internal/errors";
 
 /** Parse one CSS time scalar and convert it to milliseconds. */

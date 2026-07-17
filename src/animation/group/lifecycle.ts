@@ -28,7 +28,7 @@ import { setChildrenPaused, snapChildrenToFinal } from "./entries";
 import { lowerGroupWAAPI } from "./waapi";
 import type { Vars } from "../constants";
 import type { AnimationGroup } from "./group";
-import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport/core";
+import { beginPlay, playing as transportPlaying, toggle as transportToggle } from "../internal/transport-core";
 
 /** Cancel native group effects and return to the empty-handle rAF state. */
 function cancelDelegatedWAAPI<V extends Vars>(group: AnimationGroup<V>): void {

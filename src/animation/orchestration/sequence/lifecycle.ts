@@ -25,7 +25,7 @@ import { prefersReducedMotion } from "../../internal/reduced-motion";
 import { reanchorSequence, settleSequence } from "./transport";
 import type { Vars } from "../../constants/types";
 import type { Sequence } from "./sequence";
-import { beginPlay } from "../../internal/transport/core";
+import { beginPlay } from "../../internal/transport-core";
 
 /**
  * Drive the sequence over real time via `RAFPlayback`. Each child is driven
