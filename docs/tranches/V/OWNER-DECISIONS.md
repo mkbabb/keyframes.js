@@ -1,0 +1,6 @@
+# Tranche V — OWNER DECISIONS
+
+| Row | Date | Decision (verbatim anchor) | Encoding |
+|---|---|---|---|
+| OD-V1 | 2026-07-17 | "Ratify." | **THE FORMATION IS RATIFIED — IMPL AUTHORIZED** per V.md's ratification clause. The 13-wave plan, both blueprint decision sets (V.B/V.C headers), the prune/make-real quartet, and the disposition ledgers stand as formed. Still open by design: DP2-06 transport-home taste ruling and the W8 ceiling election (500→one extraction / 400→two) — both presented in-wave, never proxied. Execution begins on dispatch; W2/W3 remain producer-gated on the immutable Glass 7 packet. |
+| OD-V2 | 2026-07-17 | "We'll have to audit the demo in the forthcoming tranche after glass-ui perfection." | Two encodings, no silent deferral: (a) IN-V — W11 already rides the rendered, real-Glass demo (Depends on: W1, W2, W8) and is the in-tranche demo design/a11y/proportion audit at full fidelity; (b) SUCCESSOR BOUNDARY — an owner-ordered TOTAL demo audit after Glass-ui perfection (their Q003/Q002/Q051 close + the 7.0.0 tag + our W2/W3 consume) is the named opening obligation of the successor tranche (W-formation mints it as its first audit band). Recorded in PROMPT-RECAP-V FM-5 and V.md's debt section as an owner-ordered future boundary, not a V deferral. |
