@@ -1,0 +1,207 @@
+diff --git a/demo/app/App.vue b/demo/app/App.vue
+index 740c6d8..16265c8 100644
+--- a/demo/app/App.vue
++++ b/demo/app/App.vue
+@@ -1,4 +1,11 @@
+ <template>
++    <!-- DP-02 (CC-03) — the ONE root tooltip context. Every Tooltip in the app
++         (dock, transport, controls) resolves its `TooltipProviderContext`
++         injection here; without this root provider each `<Tooltip>` throws
++         "must be used within `TooltipProvider`" and the whole route blanks.
++         The documented Glass-7/reka root-provider pattern; reka's provider is
++         renderless, so it adds no layout wrapper. -->
++    <TooltipProvider>
+     <ChromeDock
+         :current-scene-id="currentSceneId"
+         :scenes="scenes"
+@@ -98,6 +105,7 @@
+             </div>
+         </template>
+     </EditorShell>
++    </TooltipProvider>
+ </template>
+ 
+ <script setup lang="ts">
+@@ -139,6 +147,9 @@ import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
+ import HeroAurora from "@components/instrument/shell/HeroAurora.vue";
+ import SceneSkeleton from "./App.skeleton.vue";
+ import { ChromeDock, MbabbMenu } from "@app/dock";
++// DP-02 (CC-03) — the root tooltip provider (see the template wrap). The
++// Glass-7/reka root-provider pattern; demo-owned, no Glass ask.
++import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
+ 
+ import type { AnimationGroup } from "@mkbabb/keyframes.js";
+ import { kfEngine } from "@kf-engine";
+diff --git a/demo/components/CopyButton.vue b/demo/components/CopyButton.vue
+index fc73d3d..9afa753 100644
+--- a/demo/components/CopyButton.vue
++++ b/demo/components/CopyButton.vue
+@@ -39,7 +39,7 @@ const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
+ 
+ const options: Partial<InputAnimationOptions> = {
+     duration: 200,
+-    timingFunction: "bounceInEase",
++    timingFunction: "easeInBounce",
+ };
+ 
+ // The copy-feedback group is HEAVY (CSSKeyframesAnimation/AnimationGroup), so it
+diff --git a/demo/components/instrument/keyframes/KeyframeCard.vue b/demo/components/instrument/keyframes/KeyframeCard.vue
+index f2cfe0c..d4a80d0 100644
+--- a/demo/components/instrument/keyframes/KeyframeCard.vue
++++ b/demo/components/instrument/keyframes/KeyframeCard.vue
+@@ -2,7 +2,7 @@
+     <div class="grid">
+         <Input
+             class="sticky z-modal bg-transparent top-0 text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
+-            :model-value="frameStart"
++            :model-value="displayStart"
+             @update:model-value="(val) => emit('updateStart', String(val))"
+         >
+         </Input>
+@@ -53,19 +53,32 @@
+ </template>
+ 
+ <script setup lang="ts">
+-import { useTemplateRef } from "vue";
++import { computed, useTemplateRef } from "vue";
+ import { Label } from "@mkbabb/glass-ui";
+ import { Input } from "@mkbabb/glass-ui/forms";
+ import CopyButton from "@components/CopyButton.vue";
+ import { X } from "@lucide/vue";
+ 
+-defineProps<{
++const props = defineProps<{
+     frameString: string;
+     formattedCSS: string;
+     frameStart: string;
+     index: number;
+ }>();
+ 
++// FE-3 — coerce the start to its scalar before binding the editable start
++// field. The parent (KeyframeCardList) already passes a scalar, but a Spring
++// `KeyframeSelector` object (`{ kind: "percent", value }`) reaching this Input
++// would render `"[object Object]"`; extracting `.value` keeps the field honest
++// regardless of what upstream hands down.
++const displayStart = computed(() => {
++    const s = props.frameStart as unknown;
++    if (s != null && typeof s === "object" && "value" in s) {
++        return String((s as { value: unknown }).value);
++    }
++    return String(s ?? "");
++});
++
+ const emit = defineEmits<{
+     (e: "updateStart", val: string): void;
+     (e: "updateCSS", val: string): void;
+diff --git a/demo/components/instrument/keyframes/components/KeyframeCardList.vue b/demo/components/instrument/keyframes/components/KeyframeCardList.vue
+index ffde068..d3fd9d6 100644
+--- a/demo/components/instrument/keyframes/components/KeyframeCardList.vue
++++ b/demo/components/instrument/keyframes/components/KeyframeCardList.vue
+@@ -8,7 +8,7 @@
+                 :ref="(el: any) => setCardRef(i, el)"
+                 :frame-string="s"
+                 :formatted-c-s-s="formattedStrings[i] ?? s"
+-                :frame-start="frames[i].start.toString()"
++                :frame-start="startScalar(frames[i].start)"
+                 :index="i"
+                 @update-start="(val) => emit('updateStart', { val, index: i })"
+                 @update-c-s-s="(value) => emit('updateCSS', { value, index: i })"
+@@ -35,6 +35,19 @@ const props = defineProps<{
+     frames: any[];
+ }>();
+ 
++// FE-3 — coerce a keyframe `start` to its display scalar before binding. Spring
++// frames carry `start` as a value.js `KeyframeSelector` object
++// (`{ kind: "percent", value }`), whose default `.toString()` leaks the literal
++// `"[object Object]"` into the card label + start field (10 shipped labels on
++// /#/spring); every other scene already holds a primitive. Extract the scalar
++// so the card renders the offset, never the stringified selector object.
++const startScalar = (start: unknown): string => {
++    if (start != null && typeof start === "object" && "value" in start) {
++        return String((start as { value: unknown }).value);
++    }
++    return String(start ?? "");
++};
++
+ // L.W8 S1 ED-3 — `formatCSSKeyframeString` (a value.js-free pure-string trim) is
+ // HEAVY-surface (it lives in the engine chunk), so it rides loadAnimationEngine()
+ // rather than a deep @src import. It resolves within microtasks of mount (well
+diff --git a/demo/components/instrument/keyframes/composables/useKeyframesParsing.ts b/demo/components/instrument/keyframes/composables/useKeyframesParsing.ts
+index fc1c7f4..216bc3b 100644
+--- a/demo/components/instrument/keyframes/composables/useKeyframesParsing.ts
++++ b/demo/components/instrument/keyframes/composables/useKeyframesParsing.ts
+@@ -94,7 +94,7 @@ export function useKeyframesParsing(
+     // honest: this watch is the structural projector, the explicit calls are
+     // the edit projector — not a watch that pretends to cover both.
+     watch(
+-        animation.templateFrames,
++        () => animation.templateFrames.length,
+         async () => {
+             await nextTick();
+             debouncedUpdateAllStrings();
+diff --git a/demo/components/instrument/transport/channel-controls/TimingFunctionPanel.vue b/demo/components/instrument/transport/channel-controls/TimingFunctionPanel.vue
+index db3f643..5631806 100644
+--- a/demo/components/instrument/transport/channel-controls/TimingFunctionPanel.vue
++++ b/demo/components/instrument/transport/channel-controls/TimingFunctionPanel.vue
+@@ -50,6 +50,7 @@ import type { JumpPosition } from "@mkbabb/value.js/easing";
+ import type { StoredAnimationOptions } from "@state";
+ 
+ import { bezierPresets } from "@mkbabb/value.js/easing";
++import { cubicBezierToString } from "@mkbabb/value.js/math";
+ import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
+ import { cubicBezierEasing } from "@utils/reference-data/timingCurveUtils";
+ 
+@@ -141,7 +142,13 @@ const onPickerChange = (v: EasingPickerValue | undefined) => {
+     }
+     const pts = v.points as [number, number, number, number];
+     props.storedAnimationOptions.cubicBezierOptions.controlPoints = pts;
+-    const timingFunction = { fn: cubicBezierEasing(...pts) };
++    // The bezier-drag builds a FRESH `cubicBezierEasing(...)` closure (not the
++    // registry singleton), so attach its faithful `cubic-bezier(...)` CSS twin
++    // — else the Keyframes-string readout serialize throws (EE-02).
++    const timingFunction = {
++        fn: cubicBezierEasing(...pts),
++        css: cubicBezierToString(...pts),
++    };
+     props.animation.options.timingFunction = timingFunction;
+     props.animation.frames.forEach((frame) => {
+         frame.timingFunction = timingFunction;
+diff --git a/demo/components/instrument/transport/channel-controls/composables/useTimingFunctionEditor.ts b/demo/components/instrument/transport/channel-controls/composables/useTimingFunctionEditor.ts
+index d80c947..1de90e0 100644
+--- a/demo/components/instrument/transport/channel-controls/composables/useTimingFunctionEditor.ts
++++ b/demo/components/instrument/transport/channel-controls/composables/useTimingFunctionEditor.ts
+@@ -93,12 +93,19 @@ export function useTimingFunctionEditor(
+ 
+     // ── Mutators ─────────────────────────────────────────────────────
+ 
+-    const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
++    const setAnimationTimingFunction = (
++        timingFunction: TimingFunction,
++        css?: string,
++    ) => {
+         const animation = getAnimation();
+         // The engine carries easing as a typed `Easing` ({ fn, css? });
+         // wrap the bare callable once and share the reference across
+-        // frames so WAAPI uniform-timing eligibility sees ONE easing.
+-        const easing = { fn: timingFunction };
++        // frames so WAAPI uniform-timing eligibility sees ONE easing. The
++        // faithful CSS twin rides along so the Keyframes-string readout can
++        // serialize THIS live easing verbatim — a css-less `{ fn }` closure
++        // that is not the registry singleton makes `serializeEasing` throw
++        // (the gated G.W4 fail-explicit contract; EE-02).
++        const easing = { fn: timingFunction, css };
+         animation.options.timingFunction = easing;
+         animation.frames.forEach((frame) => {
+             frame.timingFunction = easing;
+@@ -156,7 +163,10 @@ export function useTimingFunctionEditor(
+         } else {
+             timingFunction = namedEasing(key);
+         }
+-        setAnimationTimingFunction(timingFunction);
++        // Pass the complete re-parseable literal as the CSS twin (EE-02): the
++        // fresh `cubic-bezier(...)`/`steps(...)` closures are not the registry
++        // singleton, so the readout would otherwise throw serializing them.
++        setAnimationTimingFunction(timingFunction, timingFunctionLiteralFor(key));
+ 
+         // I.W2.S3 — PERSIST the complete re-parseable literal (not the bare
+         // token), so a controls re-mount that reads `animationOptions.

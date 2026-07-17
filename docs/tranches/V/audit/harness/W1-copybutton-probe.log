@@ -1,0 +1,29 @@
+==============================================================================
+V.W1.a CopyButton feedback probe
+  audit copy : /private/tmp/claude-504/-Users-mkbabb-Programming-keyframes-js/58f34108-b347-4938-adcd-9e676fc3e1fa/scratchpad/kf-audit-copy
+  base       : http://127.0.0.1:5271
+  started    : 2026-07-17T07:31:09.622Z
+==============================================================================
+[dev] spawning vite on http://127.0.0.1:5271
+[dev] up on http://127.0.0.1:5271
+
+[route] /easing — copy button found (aria="Copy easing literal", icons=2)
+[baseline] [{"transform":"none","opacity":"1"},{"transform":"none","opacity":"0"}]
+[click]  aria-label after = "Copied to clipboard"  liveStatus = "Copied to clipboard"
+[frames] total samples=85  distinct animation frames=24
+   t=   8ms  icon0{transform:matrix(1, 0, 0, 1, 0, 0), opacity:1}  icon1{transform:matrix(1, 0, 0, 1, 0, 0), opacity:0}
+   t=  16ms  icon0{transform:matrix(1.11934, 0, 0, 1.11934, 0, 0), opacity:1}  icon1{transform:matrix(1.11934, 0, 0, 1.11934, 0, 0), opacity:0.477345}
+   t=  25ms  icon0{transform:matrix(1.18151, 0, 0, 1.18151, 0, 0), opacity:1}  icon1{transform:matrix(1.18151, 0, 0, 1.18151, 0, 0), opacity:0.726043}
+   t=  33ms  icon0{transform:matrix(1.22403, 0, 0, 1.22403, 0, 0), opacity:1}  icon1{transform:matrix(1.22403, 0, 0, 1.22403, 0, 0), opacity:0.896133}
+   t=  41ms  icon0{transform:matrix(1.25364, 0, 0, 1.25364, 0, 0), opacity:1}  icon1{transform:matrix(1.25364, 0, 0, 1.25364, 0, 0), opacity:1}
+   t=  50ms  icon0{transform:matrix(1.27417, 0, 0, 1.27417, 0, 0), opacity:1}  icon1{transform:matrix(1.27417, 0, 0, 1.27417, 0, 0), opacity:1}
+
+==============================================================================
+VERDICT  PASS
+  handleClick ran (group.play reached) : true
+  distinct feedback animation frames   : 24 (>=3 required)
+  pageerrors during click              : 0
+  Interpretation: distinct animated transform/opacity frames after a
+  trusted click prove group is NON-NULL and play() executed — EE-01
+  would leave group null and the icons static (0 animated frames).
+==============================================================================
