@@ -236,6 +236,26 @@ formation-support orchestration outside the audit count.
   W10 remainder, W11, W12, W13 — sequences on the immutable Glass 7 packet.
   The persistent gate watch stands (local tag / npm publish / inbound).
 
+## 2026-07-17 — the gate-wait posture (post-drain)
+
+- **GCF-03 CONFIRMED a decided SCI row (W12 Scope 3 discharged early — it was
+  never tag-gated):** lives at sci-report/atlas
+  `docs/tranches/P/feedback/CLOSE-FINDINGS.md` §"GCF-03 candidate" with
+  explicit state ("UNSENT pending integrated native reconfirmation and
+  batching"), a named candidate root owner (Glass 6.0.0 drawer handle
+  recipe), and its own anti-piecemeal law. NOT a kf-side orphan; the BANKED
+  re-trigger is correctly external. Verdict recorded; W12 cites this at
+  terminalization.
+- **W2 PRE-STAGE SNAPSHOT taken (insurance, lands nowhere):** the owner
+  checkout's uncommitted transaction — the only copy of the consumer slice —
+  is preserved byte-exact at `/Users/mkbabb/Programming/keyframes-v-w2-prestage/`
+  (full tree sans .git/node_modules + porcelain-v2 + HEAD ref). W2 still
+  reads the LIVE owner checkout per §5; the snapshot exists so a working-tree
+  accident cannot destroy the transaction between now and the tag.
+- **Glass notified once (bounded, no-action):** `keyframes-inbox-2026-07-17-
+  v-pretag-ready.md` — the consumer is staged; the rail fires same-day on
+  their packet.
+
 ## State: EXECUTION DISPATCHED 2026-07-17 — entry anchor = `EXECUTION-HANDOFF.md`
 
 Owner ordered compaction-and-execute. The constellation was notified on all
