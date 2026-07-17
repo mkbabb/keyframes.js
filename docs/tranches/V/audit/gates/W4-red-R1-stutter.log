@@ -1,0 +1,25 @@
+# proof:structure — R1 live red witness (dir-prefix stutter)
+# Tranche V · W4.a · born-RED against the pre-move library tree.
+# Scope: src/ (birth scope). Worktree branch: v/w4a-structure-gate
+# Base commit: d60ce66d05743a08659027afb56ce4f8fe516389
+# Recorded: 2026-07-17T06:56:37Z
+# Command: node scripts/gates/structure/index.mjs --rule=R1
+# Rule: a file whose basename repeats its parent dir name as a prefix (eponymous dir/dir.ts is allowed)
+#
+proof:structure — scope=src rule=R1
+  R1  src/animation/compile/easing/easing-option.ts
+        basename "easing-option" repeats its parent dir "easing" as a prefix (dir-stutter) — rename to drop the "easing-" prefix
+  R1  src/animation/compile/easing/easing-registry.ts
+        basename "easing-registry" repeats its parent dir "easing" as a prefix (dir-stutter) — rename to drop the "easing-" prefix
+  R1  src/animation/engine/css/css-animation.ts
+        basename "css-animation" repeats its parent dir "css" as a prefix (dir-stutter) — rename to drop the "css-" prefix
+  R1  src/animation/orchestration/drag/drag-2d.ts
+        basename "drag-2d" repeats its parent dir "drag" as a prefix (dir-stutter) — rename to drop the "drag-" prefix
+  R1  src/animation/resolve/resolve-function.ts
+        basename "resolve-function" repeats its parent dir "resolve" as a prefix (dir-stutter) — rename to drop the "resolve-" prefix
+  R1  src/animation/resolve/resolve-if.ts
+        basename "resolve-if" repeats its parent dir "resolve" as a prefix (dir-stutter) — rename to drop the "resolve-" prefix
+  R1  src/animation/waapi/waapi-options.ts
+        basename "waapi-options" repeats its parent dir "waapi" as a prefix (dir-stutter) — rename to drop the "waapi-" prefix
+proof:structure — FAIL: 7 violation(s) on scope=src (rule R1)
+# exit=1

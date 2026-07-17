@@ -1,0 +1,19 @@
+# proof:structure — R2 live red witness (single-consumer fragment / hollow shim)
+# Tranche V · W4.a · born-RED against the pre-move library tree.
+# Scope: src/ (birth scope). Worktree branch: v/w4a-structure-gate
+# Base commit: d60ce66d05743a08659027afb56ce4f8fe516389
+# Recorded: 2026-07-17T06:56:37Z
+# Command: node scripts/gates/structure/index.mjs --rule=R2
+# Rule: a non-barrel file that is either a redundant single-source re-export shim, or the lone non-eponymous member stranded in its own directory
+#
+proof:structure — scope=src rule=R2
+  R2  src/animation/internal/transport/core.ts
+        single-member fragment — the sole non-barrel file in "animation/internal/transport/" is not eponymous with its dir; fold it into the parent/consumer module rather than stranding it in its own directory
+  R2  src/animation/presets/classic.ts
+        hollow shim — the file is nothing but re-exports (substance-free); fold it into the module that consumes it
+  R2  src/animation/presets/spring.ts
+        hollow shim — the file is nothing but re-exports (substance-free); fold it into the module that consumes it
+  R2  src/animation/presets/taxonomy.ts
+        hollow shim — the file is nothing but re-exports (substance-free); fold it into the module that consumes it
+proof:structure — FAIL: 4 violation(s) on scope=src (rule R2)
+# exit=1
