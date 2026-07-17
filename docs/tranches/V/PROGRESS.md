@@ -79,6 +79,71 @@ agents (15 + 10 + 4 + 3, the FA trio re-deployed in place after the
 rate-wall kill), plus 2 formation scribes and 1 fix-pass agent as
 formation-support orchestration outside the audit count.
 
+---
+
+# Tranche V — PROGRESS (execution)
+
+## 2026-07-17 — execution open: W0-DOCS + Round A
+
+- **W0-DOCS DONE.** Fresh sibling clone (`keyframes-v-exec`) of remote master
+  at K6 `5a9183a7`; the V corpus + `U/AGENTIC-HANDOFF-2026-07-16.md` landed as
+  `d60ce66d` and pushed. The two MODIFIED U docs (FINAL-U, KF-TO-GLASSUI-U)
+  correctly stayed behind — they are the "2 U docs" of W2's 65-path slice.
+- **Rail gate confirmed closed** at open: glass-ui at 7.0.0 in package.json,
+  UNTAGGED and UNPUBLISHED (npm versions end at 6.0.0). One persistent watch
+  armed (local tag / npm publish / new inbound packets).
+- **STANDING KNOWN-RED REGISTER (FAM-01 family, cured at W2 — recorded, not
+  masked):** (a) `deploy-pages` fails on K6 master since the K6 push itself
+  (2026-07-16 12:51, pre-V): the K6 demo imports `@mkbabb/value.js/units` (a
+  Value-3 subpath absent from Value 4's 7 exports) in 5+ files; the owner
+  transaction has zero such refs — W2's slice is the cure; production still
+  serves the last green deploy (07-15). (b) Full `npm run check` (project
+  tsc) + full `npm test` carry 38 errors / 7 failing files, ALL demo/** and
+  test/demo/** — same Value-3-shaped-demo class, verified pre-existing at
+  `d60ce66d` by stash-check. Library-scoped battery (check:lib, test:lib,
+  lint, build:lib, proof:publish) is the honest green until W2.
+- **Round A (3 Opus, wf_5e4b8f3e-2b2): 3/3 green.**
+  - **W4.a**: `proof:structure` built (ONE script, R1–R5, `--scope` extensible
+    to demo at W8; `--selftest` proves every rule can pass AND fail). Born-RED
+    witnesses recorded: R1×7 stutters, R2×4 fragments/shims, R3×1 laundering
+    barrel (`audit/gates/W4-red-R*.log`). R4 (500 ceiling)/R5 (kind-dirs)
+    preventive on src as specced; R5's demo red confirmed live for W8's staged
+    witness. Wired into `npm run check` as its one standing site.
+  - **W4.b**: LT Batches 0–2 landed (six LT-03 renames; presets 3-shim fold +
+    doc fix; transport-core fold; binary-search kebab; DD-1/DD-2 deletes with
+    zero-consumer measurements; mirror.test.ts pruned per XB-04; 4 phantom
+    gate comments folded). FENCE E echoed per batch: d.ts rosters identical,
+    engine mirror 44/44, exports map byte-frozen (FENCE A verified vs K6:
+    package.json delta is exactly the two script keys). depcruise 0
+    violations (148 modules post-fold); test:lib 1040 pass.
+  - **W1.b**: `audit/harness/render-truth.mjs` (7 routes × 1280/390,
+    pageerror-keyed + `[object Object]` text scan + captures). BORN-RED
+    WITNESS: 14/14 combos red, all routes blank, sole pageerror =
+    TooltipProvider injection (38 total); `W1-red-witness.log` + 14 PNGs.
+    Bonus proof: against the still-patched copy the SAME instrument catches
+    the masked classes — EE-01/EE-02 timing pageerrors (cube 3, amiga 3,
+    square 1, easing 1, spring 12 — matches R3-02 exactly) and FE-3's 10
+    `[object Object]` spring labels — so it cannot go green on the provider
+    fix alone. Audit copy left UNFIXED for V.W1.a; harness port 5271;
+    `KF_AUDIT_COPY` env override for W2's re-point.
+- **AM-1 (charter amendment by measurement):** R1 honestly measures SEVEN
+  stutters; LT-03 scheduled six. The seventh — `orchestration/drag/drag-2d.ts`,
+  KEPT by LT-16 without adjudication — renamed to `drag/2d.ts` (symbols
+  unchanged; sole consumer is the dir barrel). Allowlist exemption rejected on
+  LT-01's own grounds. Refutation amends the charter.
+- **W4 CLOSED** on the merged tree: `proof:structure` GREEN (0 violations
+  R1–R5 on src), check:lib + test:lib (1040) + lint + build:lib +
+  proof:publish green, stutter scans 0, engine mirror 44/44. Hard-gate
+  exception honestly recorded: the full-check/full-test members are red on
+  the PRE-EXISTING demo class above (FAM-01; not a W4 regression — cured at
+  W2). W1 remains OPEN (rehearsal half: harness + red witness banked;
+  V.W1.a fixes + green run next; LANDS with W2's slice).
+- **Coordination:** value.js formation-exchange packet marked (VM-1..5;
+  IN-VALUE-1) + owner mark recorded — value.js V′ in ACTIVE DEVELOPMENT.
+  Atlas ACK + census correction marked (IN-ATLAS-5): the TimingFunction
+  chase set is THREE kf sites; fence unchanged, bookkeeping folded into
+  IN-ATLAS-3's obligation text.
+
 ## State: EXECUTION DISPATCHED 2026-07-17 — entry anchor = `EXECUTION-HANDOFF.md`
 
 Owner ordered compaction-and-execute. The constellation was notified on all
