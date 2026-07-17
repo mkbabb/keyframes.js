@@ -218,7 +218,7 @@ export function keyframesBlock<V extends Vars>(
  * weight (so an `accumulate` layer reproduces the weightBlend blend in exact CSS), OR
  * a refusal naming the non-numeric leaf that cannot be scaled.
  */
-export type PremultiplyResult =
+type PremultiplyResult =
     | { block: string }
     | { refused: true; key: string };
 

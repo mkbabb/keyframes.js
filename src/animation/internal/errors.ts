@@ -40,7 +40,7 @@ const repr = (value: unknown): string => {
  *   inventing a position. (The bare-ingest floor — accept + preserve, no
  *   resolution demanded — never throws.)
  */
-export type AnimationOptionErrorCode =
+type AnimationOptionErrorCode =
     | "EMPTY_PARSE"
     | "UNKNOWN_TIMING_FN"
     | "NAMED_SELECTOR_NO_TIMELINE";

@@ -70,7 +70,7 @@ export const samplePolyline = (
 };
 
 /** Format ONE number for a `d` string — integers bare, fractions to 3 places. */
-export const fmtNum = (n: number): string =>
+const fmtNum = (n: number): string =>
     Number.isInteger(n) ? `${n}` : n.toFixed(3);
 
 /** Assemble a polyline point array into an SVG `d` string (`M … L … L …`). */

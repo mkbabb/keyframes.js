@@ -16,7 +16,7 @@
  */
 
 /** The minimal identity shape every animation carries — name (optional) + numeric id. */
-export interface AnimationIdentity {
+interface AnimationIdentity {
     name?: string | undefined;
     id: number;
 }

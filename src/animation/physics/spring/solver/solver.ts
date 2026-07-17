@@ -14,14 +14,14 @@
  */
 
 /** The relative displacement + velocity of the solver at elapsed `t`. */
-export interface SpringSolution {
+interface SpringSolution {
     /** x(t) relative to the (scaled) target — add the target back for absolute. */
     x: number;
     /** v(t) — the instantaneous velocity (a physical fact, never amplitude-scaled). */
     v: number;
 }
 
-export type SpringModalStep =
+type SpringModalStep =
     | { regime: "under"; w: number; z: number; wd: number; decay: number; cos: number; sin: number }
     | { regime: "critical"; w: number; decay: number; t: number }
     | { regime: "over"; r1: number; r2: number; e1: number; e2: number };

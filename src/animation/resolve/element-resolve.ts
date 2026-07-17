@@ -53,7 +53,7 @@ import { bindInterpSlotTarget, type CompiledAnimationFrame } from "../compile/fr
  * @returns `true` iff at least one template carried a Phase-2 node and the
  *   compiler was re-`parse()`d (so `setTargets` skips its fast propagate).
  */
-export function resolveElementAwareValues<V extends Vars>(
+function resolveElementAwareValues<V extends Vars>(
     animation: KeyframesAnimation<V>,
 ): boolean {
     const templates = animation.templateFrames;

@@ -18,7 +18,7 @@ import type { Vars } from "../../constants";
 import type { KeyframesAnimation } from "../animation";
 
 /** Internal rAF-based play loop — loop ownership rides `anim.playback`. */
-export function playRAF<V extends Vars>(
+function playRAF<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): Promise<void> {
     return new Promise((resolve) => {
@@ -37,7 +37,7 @@ export function playRAF<V extends Vars>(
  * No silent fallback — eligibility is decided once in `play()`
  * before this is invoked, and runtime errors propagate.
  */
-export async function playViaWAAPI<V extends Vars>(
+async function playViaWAAPI<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): Promise<void> {
     await playWAAPI(anim);
@@ -51,7 +51,7 @@ export async function playViaWAAPI<V extends Vars>(
  * final paint → `animationend`) so consumers' event wiring is identical
  * to a completed normal play.
  */
-export async function playReducedMotion<V extends Vars>(
+async function playReducedMotion<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): Promise<void> {
     anim._playback.started = true;

@@ -28,7 +28,7 @@
 export { clamp, scale, lerp, lerpArray } from "@mkbabb/value.js/math";
 
 /** 60 fps frame budget in milliseconds — the non-DOM rAF fallback delay. */
-export const FRAME_RATE = 1000 / 60;
+const FRAME_RATE = 1000 / 60;
 
 /**
  * rAF shim with a `setTimeout` fallback for non-DOM environments

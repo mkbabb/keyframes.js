@@ -31,7 +31,7 @@ import type { AnimationFrame, CompositeOperator, Vars } from "../constants";
  *   emitted its row (the once-per-property honesty guard).
  * - `diagnostics` — the structured diagnostics channel the fallback row pushes to.
  */
-export interface CompositionRuntime {
+interface CompositionRuntime {
     readonly iteration: number;
     readonly target: HTMLElement | undefined;
     readonly compositionBase: Map<string, number[]>;
@@ -189,7 +189,7 @@ export function captureUnderlyingBase(
  * base when the stop is not a plain number (the accumulate degrades to a
  * no-stack `add`, never a NaN).
  */
-export function endValueFor<V extends Vars>(
+function endValueFor<V extends Vars>(
     frame: CompiledAnimationFrame<V>,
     key: string,
     index: number,
@@ -201,7 +201,7 @@ export function endValueFor<V extends Vars>(
 }
 
 /** Emit a `COMPOSITION_FALLBACK` diagnostic ONCE per property (S3/S4). */
-export function emitCompositionFallback(
+function emitCompositionFallback(
     property: string,
     op: CompositeOperator,
     runtime: CompositionRuntime,

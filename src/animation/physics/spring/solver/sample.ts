@@ -18,7 +18,7 @@
 import { SpringProgress } from "../progress";
 
 /** Inputs to the normalized-spring sampler shared by the two serializers. */
-export interface NormalizedSpringSampleOptions {
+interface NormalizedSpringSampleOptions {
     response: number;
     dampingFraction: number;
     /** Number of interior samples to step. */

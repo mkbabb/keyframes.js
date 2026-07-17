@@ -15,7 +15,7 @@ import type { AnimationGroup } from "./group";
 import type { AnimationGroupEntry } from "./types";
 import { isWeightBlend } from "./weight";
 
-export type GroupWAAPIEligibility =
+type GroupWAAPIEligibility =
     | { eligible: true; target: HTMLElement; entries: AnimationGroupEntry<any>[] }
     | { eligible: false; reason: string };
 

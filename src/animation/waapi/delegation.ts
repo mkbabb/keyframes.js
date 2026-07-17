@@ -105,7 +105,7 @@ export type NativeScrollAttachment =
     | { attached: false; reason: string };
 
 /** Precomputed native-dispatch inputs; avoids repeating the hot eligibility scan. */
-export interface NativeScrollDispatchContext {
+interface NativeScrollDispatchContext {
     eligibility: Extract<WAAPIEligibility, { eligible: true }>;
     timeline: AnimationTimeline;
 }

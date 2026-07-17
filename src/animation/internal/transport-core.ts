@@ -1,9 +1,9 @@
 /** Value-free transport primitives shared by animation, group, and sequence drivers. */
-export interface HeldPlayState {
+interface HeldPlayState {
     _playingPromise: Promise<void> | null;
 }
 
-export interface RunFlags {
+interface RunFlags {
     started: boolean;
     paused: boolean;
 }

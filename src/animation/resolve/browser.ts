@@ -134,9 +134,6 @@ export function convertToPixels(
     }
 }
 
-export const convertPixelsToCh = (pixels: number, element: HTMLElement): number =>
-    pixels / convertToPixels(1, "ch", element);
-
 export class BrowserScalarResolutionError extends TypeError {
     readonly code = "BROWSER_SCALAR_RESOLUTION";
 
@@ -152,7 +149,7 @@ export class BrowserScalarResolutionError extends TypeError {
     }
 }
 
-export type ResolvedBrowserScalar = Readonly<{
+type ResolvedBrowserScalar = Readonly<{
     value: number;
     unit: string;
 }>;

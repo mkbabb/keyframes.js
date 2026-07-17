@@ -202,7 +202,7 @@ const sampleRamp = (
  * lets EN-b preserve STATIC (unchanging) colors (not in `keys` → ride the verbatim
  * declared projection), which the whole-block swap could not distinguish.
  */
-export type DensifyResult =
+type DensifyResult =
     | { byPct: Map<number, string[]>; keys: string[] }
     | { refused: true; delta: number }
     | null;

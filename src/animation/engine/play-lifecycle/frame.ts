@@ -146,7 +146,7 @@ export function playFrame<V extends Vars>(
 }
 
 /** The post-advance render half of `playFrame` — paint, or settle on done. */
-export function renderFrame<V extends Vars>(
+function renderFrame<V extends Vars>(
     anim: KeyframesAnimation<V>,
     t: number,
 ): boolean {
