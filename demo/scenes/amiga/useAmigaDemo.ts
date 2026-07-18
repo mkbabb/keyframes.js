@@ -73,11 +73,9 @@ export function useAmigaDemo() {
         spin: 0,
     };
 
-    // T.A6/T.A7 — the group SoA compositor delivers PLAIN authored-shaped vars
-    // (numbers where the author wrote numbers), so `vars.position.x` /
-    // `vars.rotation.y` arrive as real numbers, never array-boxed ValueUnits. The
-    // transform writes the POSE (not the mesh); the scene composes it. No
-    // `singleTarget` dodge, no per-frame allocation.
+    // T.A6/T.A7 — the group compositor delivers nested authored values (numbers
+    // where the author wrote numbers). The transform writes the POSE, not the
+    // mesh; the scene composes it. No `singleTarget` dodge or per-frame allocation.
     const transform = (vars: Vars) => {
         const p = vars.position;
         if (p) {
@@ -150,8 +148,8 @@ export function useAmigaDemo() {
 
     // T.A7 — the flagship AnimationGroup scene RIDES the group compositor: all
     // three animations composite through the singleTarget SoA blend onto ONE
-    // plain-vars pose adapter. No `singleTarget = false` dodge (the group's plain
-    // path, T.A6, now consumes the nested shape), no per-animation transform race.
+    // authored pose sink. No `singleTarget = false` dodge; the group consumes the
+    // nested shape directly, with no per-animation transform race.
     const animationGroup = new AnimationGroup(spinning, bouncingX, bouncingY);
 
     return { animationGroup, pose, spinning, bouncingX, bouncingY };

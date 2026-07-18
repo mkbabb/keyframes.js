@@ -18,7 +18,7 @@
          stage bound to the REAL Sweep channel animation (`springEditAnim`); its
          terminal home is the derived Keyframes triad tab (T.B2 — the shared
          editor pane takes over and this section dies in that motion). -->
-    <Card surface="cartoon" tier="quiet" class="spring-pane w-full overflow-visible">
+    <Card cartoon tier="quiet" class="spring-pane w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
             <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
                  The two sliders join ONE `.labeled-field-grid` so their labels
@@ -67,6 +67,7 @@
                 <Chip
                     v-for="(t, i) in demo.tracks"
                     :key="t.preset.name"
+                    mode="selectable"
                     shape="cell"
                     :model-value="isActivePreset(t)"
                     :title="t.preset.blurb"

@@ -1,33 +1,23 @@
-import { timingFunctionDescriptions } from "@mkbabb/value.js/easing";
-
 export const DIRECTION_DESCRIPTIONS: Record<string, string> = {
-    "normal": "plays forward",
-    "reverse": "plays backward",
-    "alternate": "forward then backward",
+    normal: "plays forward",
+    reverse: "plays backward",
+    alternate: "forward then backward",
     "alternate-reverse": "backward then forward",
 };
 
 export const FILL_MODE_DESCRIPTIONS: Record<string, string> = {
-    "none": "no styles when idle",
-    "forwards": "keeps end state",
-    "backwards": "applies start state before delay",
-    "both": "forwards + backwards",
-};
-
-/**
- * OD-U21 / SPEC-B3 §N3 (D2): the timing-function catalogue is value.js's
- * authority. The only retained entry is the legacy spelling consumed by the
- * demo's existing picker data; it is a compatibility alias, not a second
- * description table.
- */
-export const TIMING_DESCRIPTIONS: Record<string, string> = {
-    ...timingFunctionDescriptions,
-    "smooth-step3": timingFunctionDescriptions["smooth-step-3"] ?? "hermite interpolation",
+    none: "no styles when idle",
+    forwards: "keeps end state",
+    backwards: "applies start state before delay",
+    both: "forwards + backwards",
 };
 
 // Named easing → cubic-bezier control point mappings
-export const NAMED_EASING_BEZIER: Record<string, [number, number, number, number]> = {
-    "ease": [0.25, 0.1, 0.25, 1.0],
+export const NAMED_EASING_BEZIER: Record<
+    string,
+    [number, number, number, number]
+> = {
+    ease: [0.25, 0.1, 0.25, 1.0],
     "ease-in": [0.42, 0, 1.0, 1.0],
     "ease-out": [0, 0, 0.58, 1.0],
     "ease-in-out": [0.42, 0, 0.58, 1.0],
@@ -55,52 +45,85 @@ export const NAMED_EASING_BEZIER: Record<string, [number, number, number, number
     "ease-in-back": [0.6, -0.28, 0.735, 0.045],
     "ease-out-back": [0.175, 0.885, 0.32, 1.275],
     "ease-in-out-back": [0.68, -0.55, 0.265, 1.55],
-    "linear": [0, 0, 1, 1],
+    linear: [0, 0, 1, 1],
 };
 
 export const DETAIL_TIMING_FUNCTIONS = new Set(["cubic-bezier", "steps"]);
 
+export type TimingFunctionState =
+    | { status: "parsed"; kind: string }
+    | { status: "registry"; kind: string }
+    | { status: "draft"; kind: "cubic-bezier" | "steps" }
+    | {
+          status: "invalid";
+          source: unknown;
+          diagnostics: readonly ParseIssue[];
+      };
+
 /**
- * I.W2.S3 — normalize a timing-function VALUE to its KIND. The store now persists
- * a COMPLETE re-parseable literal (`cubic-bezier(x1, y1, x2, y2)` / `steps(n,
- * term)`) so `new CSSKeyframesAnimation` round-trips it on re-mount without an
- * `AnimationOptionError` (the B5 readout seam). But the UI keys its
- * detail-panel / dropdown-highlight / curve-render off the bare KIND — so a
- * persisted literal must still read as `"cubic-bezier"`/`"steps"` for those
- * gates. This is the ONE normalizer: a literal maps to its kind, a bare keyword
- * to itself, a named curve/keyword to itself. KISS — a prefix test on the two
- * parametric forms (the literal always opens `cubic-bezier(` / `steps(`).
+ * Classify the stored timing-function through Value's grammar. The two bare
+ * parametric names are explicit editor drafts; complete CSS literals must parse,
+ * while Keyframes registry names must resolve through Value's easing registry.
  */
-export const timingFunctionKind = (value: unknown): string => {
-    if (typeof value !== "string") return String(value ?? "");
-    if (value === "cubic-bezier" || value.startsWith("cubic-bezier("))
-        return "cubic-bezier";
-    if (value === "steps" || value.startsWith("steps(")) return "steps";
-    return value;
+export const timingFunctionState = (value: unknown): TimingFunctionState => {
+    if (value === "cubic-bezier" || value === "steps") {
+        return { status: "draft", kind: value };
+    }
+    if (typeof value !== "string") {
+        return { status: "invalid", source: value, diagnostics: [] };
+    }
+
+    const parsed = parseTimingFunction(value);
+    if (parsed.ok) {
+        return {
+            status: "parsed",
+            kind:
+                parsed.value.kind === "keyword"
+                    ? parsed.value.name
+                    : parsed.value.kind === "linear-function"
+                      ? "linear"
+                      : parsed.value.kind,
+        };
+    }
+
+    const registered = easing(value);
+    if (registered.ok) return { status: "registry", kind: value };
+    return {
+        status: "invalid",
+        source: value,
+        diagnostics: parsed.diagnostics,
+    };
+};
+
+export const timingFunctionKind = (value: unknown): string | undefined => {
+    const state = timingFunctionState(value);
+    return state.status === "invalid" ? undefined : state.kind;
 };
 
 /** True when a timing-function VALUE (bare keyword OR literal) is a detail curve
  *  (cubic-bezier / steps) — the literal-aware membership the UI gates on. */
 export const isDetailTimingFunction = (value: unknown): boolean =>
-    DETAIL_TIMING_FUNCTIONS.has(timingFunctionKind(value));
+    DETAIL_TIMING_FUNCTIONS.has(timingFunctionKind(value) ?? "");
 
 const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
-    "oklab": "perceptually uniform (default)",
-    "srgb": "standard RGB gamut",
-    "lab": "CIE L*a*b* perceptual",
-    "lch": "cylindrical lab (hue aware)",
-    "oklch": "cylindrical oklab (hue aware)",
+    oklab: "perceptually uniform (default)",
+    srgb: "standard RGB gamut",
+    lab: "CIE L*a*b* perceptual",
+    lch: "cylindrical lab (hue aware)",
+    oklch: "cylindrical oklab (hue aware)",
 };
 
 const HUE_METHOD_DESCRIPTIONS: Record<string, string> = {
-    "shorter": "shortest arc",
-    "longer": "longest arc",
-    "increasing": "always clockwise",
-    "decreasing": "always counter-clockwise",
+    shorter: "shortest arc",
+    longer: "longest arc",
+    increasing: "always clockwise",
+    decreasing: "always counter-clockwise",
 };
 
-export const BLEND_MODE_DESCRIPTIONS: Record<string, string> = {
-    "replace": "overwrites lower layers",
-    "add": "accumulates with layers",
-    "weighted": "lerps by weight factor",
+export const COMPOSITE_OPERATOR_DESCRIPTIONS: Record<string, string> = {
+    replace: "overwrites lower layers",
+    add: "accumulates with layers",
+    accumulate: "accumulates across iterations",
 };
+import { parseTimingFunction, type ParseIssue } from "@mkbabb/value.js/css";
+import { easing } from "@mkbabb/value.js/easing";

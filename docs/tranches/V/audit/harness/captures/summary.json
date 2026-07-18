@@ -1,7 +1,7 @@
 {
   "instrument": "V.W1.b render-truth harness",
-  "generatedAt": "2026-07-17T06:53:33.416Z",
-  "auditCopy": "/private/tmp/claude-504/-Users-mkbabb-Programming-keyframes-js/58f34108-b347-4938-adcd-9e676fc3e1fa/scratchpad/kf-audit-copy",
+  "generatedAt": "2026-07-18T01:40:32.095Z",
+  "auditCopy": "/Users/mkbabb/Programming/keyframes-v-w2",
   "glass": "glass@e7da7b5c (@mkbabb/glass-ui 7.0.0, registry-absent swap)",
   "base": "http://127.0.0.1:5271",
   "settleMs": 3000,
@@ -20,9 +20,9 @@
     "390x844"
   ],
   "gate": "pageerror==0 AND objectObject==0 on all routes x viewports",
-  "green": false,
+  "green": true,
   "totals": {
-    "pageerror": 38,
+    "pageerror": 0,
     "objectObject": 0,
     "consoleError": 1
   },
@@ -31,18 +31,16 @@
       "route": "home",
       "viewport": "1280x800",
       "width": 1280,
-      "pageerror": 1,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 1,
       "shape": {
-        "appKids": 1,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "appKids": 2,
+        "canvas": 1,
+        "mains": 1,
+        "textLen": 118
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [
         "Failed to load resource: the server responded with a status of 404 (Not Found)"
       ],
@@ -53,18 +51,16 @@
       "route": "cube",
       "viewport": "1280x800",
       "width": 1280,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 3,
+        "mains": 1,
+        "textLen": 372
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/cube-1280.png"
@@ -73,18 +69,16 @@
       "route": "amiga",
       "viewport": "1280x800",
       "width": 1280,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 4,
+        "mains": 1,
+        "textLen": 355
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/amiga-1280.png"
@@ -93,18 +87,16 @@
       "route": "square",
       "viewport": "1280x800",
       "width": 1280,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 3,
+        "mains": 1,
+        "textLen": 466
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/square-1280.png"
@@ -113,18 +105,16 @@
       "route": "easing",
       "viewport": "1280x800",
       "width": 1280,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 3,
+        "mains": 1,
+        "textLen": 637
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/easing-1280.png"
@@ -133,18 +123,16 @@
       "route": "spring",
       "viewport": "1280x800",
       "width": 1280,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 5,
+        "mains": 1,
+        "textLen": 644
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/spring-1280.png"
@@ -153,18 +141,16 @@
       "route": "sequence",
       "viewport": "1280x800",
       "width": 1280,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
         "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "mains": 1,
+        "textLen": 125
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/sequence-1280.png"
@@ -173,18 +159,16 @@
       "route": "home",
       "viewport": "390x844",
       "width": 390,
-      "pageerror": 1,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
-        "appKids": 1,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "appKids": 2,
+        "canvas": 1,
+        "mains": 1,
+        "textLen": 118
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/home-390.png"
@@ -193,18 +177,16 @@
       "route": "cube",
       "viewport": "390x844",
       "width": 390,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 3,
+        "mains": 1,
+        "textLen": 391
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/cube-390.png"
@@ -213,18 +195,16 @@
       "route": "amiga",
       "viewport": "390x844",
       "width": 390,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 4,
+        "mains": 1,
+        "textLen": 374
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/amiga-390.png"
@@ -233,18 +213,16 @@
       "route": "square",
       "viewport": "390x844",
       "width": 390,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 3,
+        "mains": 1,
+        "textLen": 485
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/square-390.png"
@@ -253,18 +231,16 @@
       "route": "easing",
       "viewport": "390x844",
       "width": 390,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 3,
+        "mains": 1,
+        "textLen": 656
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/easing-390.png"
@@ -273,18 +249,16 @@
       "route": "spring",
       "viewport": "390x844",
       "width": 390,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
-        "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "canvas": 5,
+        "mains": 1,
+        "textLen": 663
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/spring-390.png"
@@ -293,18 +267,16 @@
       "route": "sequence",
       "viewport": "390x844",
       "width": 390,
-      "pageerror": 3,
+      "pageerror": 0,
       "objectObject": 0,
       "consoleError": 0,
       "shape": {
         "appKids": 2,
         "canvas": 0,
-        "mains": 0,
-        "textLen": 0
+        "mains": 1,
+        "textLen": 125
       },
-      "pageerrorSamples": [
-        "Injection `Symbol(TooltipProviderContext)` not found. Component must be used within `TooltipProvider`"
-      ],
+      "pageerrorSamples": [],
       "consoleErrorSamples": [],
       "objectObjectSamples": [],
       "capture": "captures/sequence-390.png"

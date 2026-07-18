@@ -1,13 +1,13 @@
 <template>
     <div class="contents">
         <!-- The per-stop card list. When `framed` (the default, standalone
-             authoring surface) it carries its OWN `Card surface="cartoon"`. When
+             authoring surface) it carries its OWN cartoon `Card`. When
              the editor is mounted INSIDE another Card (e.g. SpringSidebar's quiet
              parent Card — K.W1′), `:framed="false"` DROPS the inner Card so the
              list flows into the parent surface directly (no card-in-card; the
              glass-ui 4.0.0 single-surface contract). The CardContent's padding +
              grid are preserved on the bare wrapper so the layout is identical. -->
-        <Card v-if="framed" surface="cartoon" tier="quiet" class="p-0 m-0">
+        <Card v-if="framed" cartoon tier="quiet" class="p-0 m-0">
             <CardContent class="p-2 m-0 mt-0 grid gap-4 relative">
                 <KeyframeCardList
                     ref="cardList"
@@ -120,7 +120,8 @@ import KeyframesAddDialog from "./components/KeyframesAddDialog.vue";
 import { Paintbrush, WandSparkles } from "@lucide/vue";
 import { useToolbarKeyboard } from "./composables/useToolbarKeyboard";
 
-import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";
+import { parseCssScalar } from "@mkbabb/value.js/css";
+import { toast } from "vue-sonner";
 import { insertTabAtCursor } from "./utils/contenteditable";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
@@ -176,8 +177,36 @@ const { highlightAll } = useCodeHighlight(
     () => cardList.value?.getPreElements() ?? [],
 );
 
+const startDiagnosticId = (index: number) => `keyframe-start-${index}`;
+
 const onUpdateStart = ({ val, index }: { val: string; index: number }) => {
-    animation.templateFrames[index].start = parseCSSValueUnit(val);
+    const frame = animation.templateFrames[index];
+    if (frame === undefined) return;
+
+    const parsed = parseCssScalar(val);
+    if (!parsed.ok) {
+        const issue = parsed.diagnostics[0];
+        toast.error("Invalid keyframe offset", {
+            id: startDiagnosticId(index),
+            description: `${issue.code} at ${issue.start}-${issue.end}: expected ${issue.expected.join(" or ")}.`,
+        });
+        return;
+    }
+
+    const scalar = parsed.value.payload;
+    if (scalar.type !== "number" || scalar.unit !== "%") {
+        toast.error("Invalid keyframe offset", {
+            id: startDiagnosticId(index),
+            description: "Expected a percentage scalar such as 50%.",
+        });
+        return;
+    }
+
+    toast.dismiss(startDiagnosticId(index));
+    frame.start = {
+        kind: "percent",
+        value: scalar.value / 100,
+    };
     updateAllStringsAndAnimation();
 };
 

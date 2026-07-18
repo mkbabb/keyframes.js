@@ -13,8 +13,8 @@
             <div class="flex items-center justify-between gap-2">
                 <h3 class="text-title">{{ kind === "steps" ? "steps" : "cubic-bézier" }}</h3>
                 <Button
-                    variant="ghost"
-                    size="icon"
+                    emphasis="quiet"
+                    icon-only
                     class="h-auto p-1 text-muted-foreground hover:text-foreground transition-colors"
                     aria-label="back to controls"
                     @click="emit('exitDetailPanel')"
@@ -46,10 +46,13 @@
 <script setup lang="ts">
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunctionNames } from "@mkbabb/keyframes.js";
+import type { JumpPosition } from "@mkbabb/value.js/easing";
 import type { StoredAnimationOptions } from "@state";
 
-import { CSSCubicBezier, bezierPresets } from "@mkbabb/value.js/easing";
+import { bezierPresets } from "@mkbabb/value.js/easing";
+import { cubicBezierToString } from "@mkbabb/value.js/math";
 import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
+import { cubicBezierEasing } from "@utils/reference-data/timingCurveUtils";
 
 import { Button } from "@mkbabb/glass-ui";
 import {
@@ -64,7 +67,6 @@ import { ArrowLeft } from "@lucide/vue";
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
     storedAnimationOptions: StoredAnimationOptions;
-    timingFunctionsAnd: Record<string, any>;
     progress?: number;
 }>();
 
@@ -108,7 +110,7 @@ const isSeedEcho = (v: EasingPickerValue): boolean => {
         const term = String(cur.jumpTerm);
         return (
             v.steps === cur.steps &&
-            (v.term === term || `jump-${v.term}` === term)
+            v.term === term
         );
     }
     const stored = props.storedAnimationOptions.cubicBezierOptions
@@ -133,15 +135,20 @@ const onPickerChange = (v: EasingPickerValue | undefined) => {
     if (!v || isSeedEcho(v)) return;
     if (v.mode === "steps") {
         props.storedAnimationOptions.stepOptions.steps = v.steps;
-        props.storedAnimationOptions.stepOptions.jumpTerm = (
-            v.term.startsWith("jump-") ? v.term : `jump-${v.term}`
-        ) as any;
+        const jumpTerm: JumpPosition = v.term;
+        props.storedAnimationOptions.stepOptions.jumpTerm = jumpTerm;
         emit("updateTimingFunction", "steps");
         return;
     }
     const pts = v.points as [number, number, number, number];
     props.storedAnimationOptions.cubicBezierOptions.controlPoints = pts;
-    const timingFunction = CSSCubicBezier(...pts);
+    // The bezier-drag builds a FRESH `cubicBezierEasing(...)` closure (not the
+    // registry singleton), so attach its faithful `cubic-bezier(...)` CSS twin
+    // — else the Keyframes-string readout serialize throws (EE-02).
+    const timingFunction = {
+        fn: cubicBezierEasing(...pts),
+        css: cubicBezierToString(...pts),
+    };
     props.animation.options.timingFunction = timingFunction;
     props.animation.frames.forEach((frame) => {
         frame.timingFunction = timingFunction;

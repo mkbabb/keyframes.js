@@ -28,7 +28,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createApp, defineComponent, h } from "vue";
 import { useResizeObserver } from "@vueuse/core";
-import { bumpLayoutEpoch, getLayoutEpoch } from "@mkbabb/value.js";
+import { bumpLayoutEpoch, getLayoutEpoch } from "../../../src/animation/resolve/browser";
 
 // jsdom ships no ResizeObserver. Install a controllable polyfill that captures
 // each observer's callback so the test can fire a synthetic CONTAINER resize
@@ -137,6 +137,5 @@ describe("proof:resize-tracks — the C1 cache busts on a container resize witho
         const src = fs.readFileSync(file, "utf8");
         expect(src).toMatch(/useResizeObserver\s*\(\s*containerEl/);
         expect(src).toMatch(/bumpLayoutEpoch\s*\(\s*\)/);
-        expect(src).toMatch(/from\s+["']@mkbabb\/value\.js["']/);
     });
 });

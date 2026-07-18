@@ -1,4 +1,11 @@
 <template>
+    <!-- DP-02 (CC-03) — the ONE root tooltip context. Every Tooltip in the app
+         (dock, transport, controls) resolves its `TooltipProviderContext`
+         injection here; without this root provider each `<Tooltip>` throws
+         "must be used within `TooltipProvider`" and the whole route blanks.
+         The documented Glass-7/reka root-provider pattern; reka's provider is
+         renderless, so it adds no layout wrapper. -->
+    <TooltipProvider>
     <ChromeDock
         :current-scene-id="currentSceneId"
         :scenes="scenes"
@@ -98,6 +105,7 @@
             </div>
         </template>
     </EditorShell>
+    </TooltipProvider>
 </template>
 
 <script setup lang="ts">
@@ -139,6 +147,9 @@ import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
 import HeroAurora from "@components/instrument/shell/HeroAurora.vue";
 import SceneSkeleton from "./App.skeleton.vue";
 import { ChromeDock, MbabbMenu } from "@app/dock";
+// DP-02 (CC-03) — the root tooltip provider (see the template wrap). The
+// Glass-7/reka root-provider pattern; demo-owned, no Glass ask.
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";

@@ -10,7 +10,8 @@
          comparative read IS the pedagogy. -->
     <Card
         :shadow="false"
-        class="easing-target easing-gallery flex h-full w-full flex-col gap-4 overflow-hidden px-4 py-4 lg:px-6"
+        class="easing-target easing-gallery flex h-full w-full flex-col gap-4
+            overflow-hidden px-4 py-4 lg:px-6"
     >
         <!-- Header: the selected specimen PROMOTED. Left — the curve name at
              the Instrument-Serif display rung + its COMPLETE re-parseable
@@ -28,7 +29,9 @@
                     </h2>
                 </Transition>
                 <span class="specimen-literal" data-register="code">
-                    <code class="literal-text text-mono-small">{{ literal }}</code>
+                    <code class="literal-text text-mono-small">{{
+                        literal
+                    }}</code>
                     <CopyButton
                         class="literal-copy"
                         :text="literal"
@@ -80,10 +83,13 @@
                 <Chip
                     v-for="curve in visibleCurves"
                     :key="curve.name"
+                    mode="selectable"
                     shape="cell"
                     class="specimen-tile"
                     :model-value="curve.name === demo.currentEasingName.value"
-                    @update:model-value="(on: boolean) => onTileToggle(curve.name, on)"
+                    @update:model-value="
+                        (on: boolean) => onTileToggle(curve.name, on)
+                    "
                 >
                     <span class="tile-stage" aria-hidden="true">
                         <svg
@@ -91,7 +97,10 @@
                             viewBox="0 0 1 1"
                             preserveAspectRatio="none"
                         >
-                            <path :d="curve.path" vector-effect="non-scaling-stroke" />
+                            <path
+                                :d="curve.path"
+                                vector-effect="non-scaling-stroke"
+                            />
                         </svg>
                         <span class="progress-rail tile-rail"></span>
                         <span
@@ -100,7 +109,10 @@
                             :data-curve="curve.name"
                         ></span>
                     </span>
-                    <span class="tile-name text-mono-caption" data-register="code">
+                    <span
+                        class="tile-name text-mono-caption"
+                        data-register="code"
+                    >
                         {{ curve.name }}
                     </span>
                 </Chip>
@@ -110,18 +122,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, onScopeDispose, ref, useTemplateRef, watch } from "vue";
+import {
+    computed,
+    inject,
+    nextTick,
+    onMounted,
+    onScopeDispose,
+    ref,
+    useTemplateRef,
+    watch,
+} from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 import { Card } from "@mkbabb/glass-ui";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { Chip } from "@mkbabb/glass-ui/chip";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
-import { stepEnd, stepStart, steppedEase } from "@mkbabb/value.js/easing";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 import CopyButton from "@components/CopyButton.vue";
-import { getCurvePath } from "@utils/reference-data/timingCurveUtils";
+import {
+    getCurvePath,
+    namedEasing,
+    steppedEasing,
+} from "@utils/reference-data/timingCurveUtils";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
@@ -149,11 +173,8 @@ const onFamilyChange = (v: ToggleValue | ToggleValue[]) => {
 // defaults ("steps" = the 4-step staircase; the selected curve's live
 // parameters ride the header literal + the sidebar editor, not the tile).
 const fnForCurve = (name: string): TimingFunction => {
-    if (name === "steps") return steppedEase(4, "jump-end");
-    if (name === "step-start") return stepStart();
-    if (name === "step-end") return stepEnd();
-    const fn = demo.timingFunctionsAnd[name];
-    return typeof fn === "function" ? (fn as TimingFunction) : (t: number) => t;
+    if (name === "steps") return steppedEasing(4, "jump-end");
+    return namedEasing(name);
 };
 
 interface SpecimenCurve {
@@ -171,7 +192,7 @@ const visibleCurves = computed<SpecimenCurve[]>(() => {
         g.items.map((item) => ({
             name: item.name,
             fn: fnForCurve(item.name),
-            path: getCurvePath(item.name, demo.timingFunctionsAnd),
+            path: getCurvePath(item.name),
         })),
     );
 });
@@ -193,7 +214,7 @@ const literal = computed<string>(() => {
     if (demo.isBezierEditable.value) {
         return cubicBezierToString(...demo.bezierControlPoints.value);
     }
-    // An engine-named curve (ease-in-out-sine, bounce-in-ease, step-start …):
+    // An engine-named curve (ease-in-out-sine, ease-in-bounce, step-start …):
     // the name IS the literal — value.js round-trips it by registry lookup.
     return name;
 });
@@ -212,7 +233,11 @@ const railWidth = ref(0);
 
 const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
-type TileEntry = { el: HTMLElement; stage: HTMLElement | null; fn: TimingFunction };
+type TileEntry = {
+    el: HTMLElement;
+    stage: HTMLElement | null;
+    fn: TimingFunction;
+};
 let tileSnapshot: TileEntry[] = [];
 
 // IntersectionObserver gates the paint walk: off-screen tiles (the drawer

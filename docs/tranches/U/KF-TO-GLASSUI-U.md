@@ -58,7 +58,7 @@ physical core, and returns its version/tag/tarball/integrity/`gitHead` before
 Atlas 2.0 consumes the pair. Glass `73b852cd` is the producer witness for the
 three real class updates, empty `animate.css` deletion, and ordinary `<mark>`
 FuzzySearch paint. Keyframes' only related source correction is to reword the
-Tailwind-scanned `text-[var(...)]` prose literal at `MbabbMenu.vue:59`; it needs
+Tailwind-scanned arbitrary-value-shaped prose literal at `MbabbMenu.vue:59`; it needs
 no workaround or tripwire.
 
 ## U close disposition

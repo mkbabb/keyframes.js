@@ -1,11 +1,11 @@
 import { kfEngine } from "@kf-engine";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import type { Vars } from "@mkbabb/keyframes.js";
-import { parseCSSValueUnit } from "@mkbabb/value.js/parsing";
+import { parseCssScalar } from "@mkbabb/value.js/css";
 import { clamp } from "@mkbabb/value.js/math";
 import { useSquareTumble } from "./useSquareTumble";
 import { onScopeDispose, type Ref } from "vue";
-import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
+import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 
 /**
  * useSquareDemo — the dogfood of the custom-transform-function over
@@ -35,7 +35,7 @@ import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
  * engine tour) are never simultaneous — the {idle,drag,playback} FSM in the host
  * pauses the group on a drag and seats the springs from the painted pose
  * (`seatFromPose`), so there is one paint authority at a time. The unit-honest
- * `num()` normalizer resolves BOTH writers (raw numbers AND plain-vars strings),
+ * `num()` normalizer resolves BOTH writers (raw numbers and authored strings),
  * curing the S.G2 "0pxpx" CSSOM-discard that made Play paint nothing.
  */
 export function useSquareDemo(
@@ -66,27 +66,27 @@ export function useSquareDemo(
     // T.A13 — THE UNIT-HONEST `num()` NORMALIZER (the "0pxpx" CSSOM-discard cure).
     // The box has TWO writers into the SAME nested-object `transformFunc`: the
     // live spring loop hands RAW NUMBERS (`x: springX.value * TRAVEL`), while the
-    // engine's four-corner keyframes flow through the T.A6 plain-vars projection
-    // that delivers a leaf's AUTHORED SHAPE — a bare `number` for a unitless leaf
+    // engine's four-corner keyframes deliver each leaf's AUTHORED SHAPE — a bare
+    // `number` for a unitless leaf
     // but a STRING for a unit/percent leaf (`x: "42px"`, `d: "108%"`). The old
     // code interpolated the raw leaf into a template literal — `` `${"42px"}px` ``
     // → `"42pxpx"` → invalid CSS → CSSOM SILENTLY DISCARDS the write → the box
     // never moved on Play (S.G2's amputation cause). `num()` resolves BOTH writers
     // to a plain number honestly: a number passes through, a unit string is
     // parsed (`"42px"` → 42), and a percent leaf is fractionalized when asked
-    // (`"108%"` → 1.08). A defensive `.value` branch tolerates a stray ValueUnit.
+    // (`"108%"` → 1.08). Any other shape is a malformed authored value.
     const num = (v: unknown, pct = false): number => {
-        if (typeof v === "number") return v;
+        if (v === undefined) return pct ? 1 : 0;
+        if (typeof v === "number" && Number.isFinite(v)) return v;
         if (typeof v === "string") {
-            const parsed = parseCSSValueUnit(v);
-            if (parsed == null || Number.isNaN(parsed.value)) return pct ? 1 : 0;
-            return pct && parsed.unit === "%" ? parsed.value / 100 : parsed.value;
+            const parsed = parseCssScalar(v);
+            if (!parsed.ok || parsed.value.payload.type !== "number") {
+                throw new TypeError(`Expected a numeric authored value, received ${JSON.stringify(v)}.`);
+            }
+            const { value, unit } = parsed.value.payload;
+            return pct && unit === "%" ? value / 100 : value;
         }
-        if (v != null && typeof v === "object" && "value" in v) {
-            const inner = (v as { value: unknown }).value;
-            return typeof inner === "number" ? inner : pct ? 1 : 0;
-        }
-        return pct ? 1 : 0;
+        throw new TypeError(`Expected an authored number or string, received ${String(v)}.`);
     };
 
     /**
@@ -95,7 +95,7 @@ export function useSquareDemo(
      * maps to no CSS property) plus the live translate. Identical shape to the
      * engine's `transformFunc` contract; the spring loop feeds it live vars.
      * Every positional leaf routes through `num()` so the raw-number (drag) and
-     * the plain-vars authored-string (Play keyframes) writers BOTH resolve.
+     * the authored-string (Play keyframes) writers BOTH resolve.
      */
     const transformFunc = (vars: Vars) => {
         const el = box.value;
@@ -256,7 +256,7 @@ export function useSquareDemo(
     // from wherever it is, so a re-tumble mid-spin keeps rolling smoothly). The
     // colour sweep keys off `value mod 360`, so it cycles every turn.
 
-    const { playback, startLoop, stopLoop } = useManagedLoop({
+    const { playback, startLoop, stopLoop } = useSweepScene({
         frame,
         onArm: () => { lastNow = 0; },
         getProgress: () => 0,

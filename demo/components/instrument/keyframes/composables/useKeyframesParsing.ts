@@ -1,9 +1,10 @@
-import { debounce } from "@mkbabb/value.js";
+import { debounce } from "@utils/helpers";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { nextTick, watch } from "vue";
 import type { KeyframesState } from "./useKeyframesState";
 import { useKeyframeOps } from "./useKeyframeOps";
+import { formatEditorCSS } from "@utils/formatEditorCSS";
 
 /**
  * The editor's parsing-orchestration half: turns the live `Animation` into its
@@ -31,13 +32,13 @@ export function useKeyframesParsing(
         cssAnimationKeyframes?: string,
     ) => {
         const { CSSKeyframesToString } = await loadAnimationEngine();
-        const keyframesString =
+        const raw =
             cssAnimationKeyframes ??
             (await CSSKeyframesToString(
                 animation,
                 getTmpAnimationName(),
-                getFormatWidth(),
             ));
+        const keyframesString = await formatEditorCSS(raw, getFormatWidth());
 
         cssKeyframesString.value = keyframesString;
 
@@ -47,7 +48,10 @@ export function useKeyframesParsing(
     const updateAllStrings = async () => {
         const { CSSKeyframesToStrings } = await loadAnimationEngine();
         templateFrameStrings.value = [];
-        templateFrameStrings.value = await CSSKeyframesToStrings(animation);
+        const cards = await CSSKeyframesToStrings(animation);
+        templateFrameStrings.value = await Promise.all(
+            cards.map((card) => formatEditorCSS(card, getFormatWidth())),
+        );
 
         const keyframesString =
             await updateCSSAnimationKeyframesStringFromAnimation();
@@ -90,7 +94,7 @@ export function useKeyframesParsing(
     // honest: this watch is the structural projector, the explicit calls are
     // the edit projector — not a watch that pretends to cover both.
     watch(
-        animation.templateFrames,
+        () => animation.templateFrames.length,
         async () => {
             await nextTick();
             debouncedUpdateAllStrings();

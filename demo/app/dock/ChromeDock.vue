@@ -38,7 +38,7 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 // explicit home descriptor ALONE (the single fallback).
 
 // The BUILT-IN editor tab descriptors (label + icon for the {controls,keyframes,
-// timeline} triad). The DFA (controlSurfaceDFA.ts) is the AUTHORITY on WHICH of
+// timeline} triad). The DFA (controlSurfaces.ts) is the AUTHORITY on WHICH of
 // these render per scene — `allControlTabs` filters this list against the
 // `controlSurfaces` prop (the active scene's valid set). T.B2 — the {label,icon}
 // metadata itself DERIVES from the ONE `SURFACE_META` registry (the former
@@ -247,7 +247,7 @@ watch(isAnyOpen, (open) => {
                                 <SelectGroup class="dock-label">
                                     <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
-                                            <StatusDot :variant="currentSceneId === homeSceneId ? 'active' : 'idle'" />
+                                            <StatusDot :state="currentSceneId === homeSceneId ? 'online' : 'unknown'" />
                                             <Home class="icon-sm text-muted-foreground" />
                                             <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
                                         </span>
@@ -261,7 +261,7 @@ watch(isAnyOpen, (open) => {
                                         @pointerenter="emit('warmScene', scene.id)"
                                     >
                                         <span class="flex items-center gap-2">
-                                            <StatusDot :variant="currentSceneId === scene.id ? 'active' : 'idle'" />
+                                            <StatusDot :state="currentSceneId === scene.id ? 'online' : 'unknown'" />
                                             <component v-if="scene.icon" :is="scene.icon" class="icon-sm shrink-0 text-muted-foreground" />
                                             <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                         </span>
@@ -297,7 +297,7 @@ watch(isAnyOpen, (open) => {
                                         <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
                                             <span class="flex items-center gap-2">
                                                 <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="icon-md text-muted-foreground" />
-                                                <StatusDot :variant="selectedControl === tab.value ? 'active' : 'idle'" />
+                                                <StatusDot :state="selectedControl === tab.value ? 'online' : 'unknown'" />
                                                 <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
                                             </span>
                                         </SelectItem>

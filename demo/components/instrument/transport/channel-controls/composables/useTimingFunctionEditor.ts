@@ -1,19 +1,18 @@
-import { CSSCubicBezier, timingFunctions } from "@mkbabb/value.js/easing";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
-import { camelCaseToHyphen } from "@mkbabb/value.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
-import type {
-    TimingFunction,
-    TimingFunctionNames,
-} from "@mkbabb/keyframes.js";
+import type { TimingFunction, TimingFunctionNames } from "@mkbabb/keyframes.js";
 import type { StoredAnimationOptions } from "@state";
 
 import {
     getCurvePath,
+    cubicBezierEasing,
     generateCurveSVGPath,
     generateStepSVGPath,
+    namedEasing,
+    steppedEasing,
 } from "@utils/reference-data/timingCurveUtils";
+import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import {
     NAMED_EASING_BEZIER,
     isDetailTimingFunction,
@@ -22,32 +21,9 @@ import {
 
 import { computed, ref, watch } from "vue";
 
-// ── Static data (shared across all instances) ────────────────────────
-
-let _timingFunctionsAnd: Record<string, any> | undefined;
-
-function getTimingFunctionsAnd(): Record<string, any> {
-    if (!_timingFunctionsAnd) {
-        _timingFunctionsAnd = Object.fromEntries(
-            Object.entries({
-                "cubic-bezier": "cubic-bezier",
-                ...timingFunctions,
-            }).map(([k, v]) => [camelCaseToHyphen(k), v]),
-        );
-    }
-    return _timingFunctionsAnd;
-}
-
-let _easingItems: { value: string }[] | undefined;
-
-function getEasingItems(): { value: string }[] {
-    if (!_easingItems) {
-        _easingItems = Object.keys(getTimingFunctionsAnd()).map((key) => ({
-            value: key,
-        }));
-    }
-    return _easingItems;
-}
+const easingItems = EASING_GROUPS.flatMap(({ items }) =>
+    items.map(({ name }) => ({ value: name })),
+);
 
 // ── Composable ───────────────────────────────────────────────────────
 
@@ -55,9 +31,6 @@ export function useTimingFunctionEditor(
     getAnimation: () => KeyframesAnimation<any>,
     storedAnimationOptions: StoredAnimationOptions,
 ) {
-    const timingFunctionsAnd = getTimingFunctionsAnd();
-    const easingItems = getEasingItems();
-
     /** The name of the easing we auto-converted FROM (for subtitle display) */
     const convertedFromName = ref<string | null>(null);
 
@@ -94,16 +67,17 @@ export function useTimingFunctionEditor(
         const kind = timingFunctionKind(
             storedAnimationOptions.animationOptions.timingFunction,
         );
+        if (kind === undefined) return "";
         if (kind === "cubic-bezier") {
             const [x1, y1, x2, y2] =
                 storedAnimationOptions.cubicBezierOptions.controlPoints;
-            return generateCurveSVGPath(CSSCubicBezier(x1, y1, x2, y2));
+            return generateCurveSVGPath(cubicBezierEasing(x1, y1, x2, y2));
         }
         if (kind === "steps") {
             const { steps } = storedAnimationOptions.stepOptions;
             return generateStepSVGPath(steps);
         }
-        return getCurvePath(kind, timingFunctionsAnd);
+        return getCurvePath(kind);
     });
 
     // Re-open the detail panel only when triggered via edit icon
@@ -119,12 +93,20 @@ export function useTimingFunctionEditor(
 
     // ── Mutators ─────────────────────────────────────────────────────
 
-    const setAnimationTimingFunction = (timingFunction: TimingFunction) => {
+    const setAnimationTimingFunction = (
+        timingFunction: TimingFunction,
+        css?: string,
+    ) => {
         const animation = getAnimation();
         // The engine carries easing as a typed `Easing` ({ fn, css? });
         // wrap the bare callable once and share the reference across
-        // frames so WAAPI uniform-timing eligibility sees ONE easing.
-        const easing = { fn: timingFunction };
+        // frames so WAAPI uniform-timing eligibility sees ONE easing. The
+        // faithful CSS twin rides along so the Keyframes-string readout can
+        // serialize THIS live easing verbatim — a css-less `{ fn }` closure
+        // that is not the registry singleton makes `serializeEasing` throw
+        // (the gated G.W4 fail-explicit contract; EE-02).
+        const easing =
+            css !== undefined ? { fn: timingFunction, css } : { fn: timingFunction };
         animation.options.timingFunction = easing;
         animation.frames.forEach((frame) => {
             frame.timingFunction = easing;
@@ -163,26 +145,29 @@ export function useTimingFunctionEditor(
     ) => {
         // Accept either a bare key OR a persisted LITERAL (the onMounted re-apply
         // reads the stored value, which is now a literal) — normalize to the kind.
-        const key = timingFunctionKind(keyOrLiteral) as
-            | TimingFunctionNames
-            | "cubic-bezier";
-
-        let timingFunction = (
-            timingFunctions as Record<
-                string,
-                TimingFunction | ((...args: any[]) => TimingFunction)
-            >
-        )[key] as TimingFunction;
-
-        if (key === "steps") {
-            const { steps, jumpTerm } = storedAnimationOptions.stepOptions;
-            timingFunction = timingFunctions[key](steps, jumpTerm);
-        } else if (key === "cubic-bezier") {
-            timingFunction = CSSCubicBezier(
-                ...storedAnimationOptions.cubicBezierOptions.controlPoints,
+        const kind = timingFunctionKind(keyOrLiteral);
+        if (kind === undefined) {
+            throw new TypeError(
+                `Invalid timing function ${JSON.stringify(keyOrLiteral)}.`,
             );
         }
-        setAnimationTimingFunction(timingFunction);
+        const key = kind as TimingFunctionNames | "cubic-bezier";
+
+        let timingFunction: TimingFunction;
+        if (key === "steps") {
+            const { steps, jumpTerm } = storedAnimationOptions.stepOptions;
+            timingFunction = steppedEasing(steps, jumpTerm);
+        } else if (key === "cubic-bezier") {
+            timingFunction = cubicBezierEasing(
+                ...storedAnimationOptions.cubicBezierOptions.controlPoints,
+            );
+        } else {
+            timingFunction = namedEasing(key);
+        }
+        // Pass the complete re-parseable literal as the CSS twin (EE-02): the
+        // fresh `cubic-bezier(...)`/`steps(...)` closures are not the registry
+        // singleton, so the readout would otherwise throw serializing them.
+        setAnimationTimingFunction(timingFunction, timingFunctionLiteralFor(key));
 
         // I.W2.S3 — PERSIST the complete re-parseable literal (not the bare
         // token), so a controls re-mount that reads `animationOptions.
@@ -202,6 +187,7 @@ export function useTimingFunctionEditor(
     const onEasingLabelClick = (currentEasing: string) => {
         // The stored value may be a LITERAL now (I.W2.S3) — key off the KIND.
         const kind = timingFunctionKind(currentEasing);
+        if (kind === undefined) return;
 
         if (kind === "steps") {
             // Persist the COMPLETE steps literal (not the bare keyword) so a
@@ -243,7 +229,6 @@ export function useTimingFunctionEditor(
 
     return {
         // Static data
-        timingFunctionsAnd,
         easingItems,
 
         // Reactive state

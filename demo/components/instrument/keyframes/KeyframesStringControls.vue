@@ -128,7 +128,7 @@ onMounted(async () => {
 // ZERO-RUNTIME CSS artifact via the SAME gated `compileToCSS` (the round-trip's
 // BACKWARD half), copy it, and surface the CC-3 ineligibility report VERBATIM
 // (the named refusal IS the product value — it teaches where kf's unique axes
-// exceed pure CSS). A `weighted` blend / custom renderer / un-densifiable oklab
+// exceed pure CSS). A `weight` blend / custom renderer / un-densifiable oklab
 // REFUSES with its typed reason; the JS playback stays the only faithful path.
 const exportCompiledCSS = async () => {
     try {

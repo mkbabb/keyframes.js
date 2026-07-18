@@ -8,7 +8,7 @@
                 :ref="(el: any) => setCardRef(i, el)"
                 :frame-string="s"
                 :formatted-c-s-s="formattedStrings[i] ?? s"
-                :frame-start="frames[i].start.toString()"
+                :frame-start="startScalar(frames[i].start)"
                 :index="i"
                 @update-start="(val) => emit('updateStart', { val, index: i })"
                 @update-c-s-s="(value) => emit('updateCSS', { value, index: i })"
@@ -34,6 +34,19 @@ const props = defineProps<{
     frameStrings: string[];
     frames: any[];
 }>();
+
+// FE-3 — coerce a keyframe `start` to its display scalar before binding. Spring
+// frames carry `start` as a value.js `KeyframeSelector` object
+// (`{ kind: "percent", value }`), whose default `.toString()` leaks the literal
+// `"[object Object]"` into the card label + start field (10 shipped labels on
+// /#/spring); every other scene already holds a primitive. Extract the scalar
+// so the card renders the offset, never the stringified selector object.
+const startScalar = (start: unknown): string => {
+    if (start != null && typeof start === "object" && "value" in start) {
+        return String((start as { value: unknown }).value);
+    }
+    return String(start ?? "");
+};
 
 // L.W8 S1 ED-3 — `formatCSSKeyframeString` (a value.js-free pure-string trim) is
 // HEAVY-surface (it lives in the engine chunk), so it rides loadAnimationEngine()

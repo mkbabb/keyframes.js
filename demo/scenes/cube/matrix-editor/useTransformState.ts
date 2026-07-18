@@ -1,5 +1,5 @@
 import { easeInBounce } from "@mkbabb/value.js/easing";
-import type { Vars } from "@mkbabb/keyframes.js";
+import { NumericAnimation } from "@mkbabb/keyframes.js";
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { mat4 } from "gl-matrix";
@@ -12,6 +12,8 @@ import {
     getAxisFromIx,
     getTransformFromIx,
     getSliderOptionsFromIx,
+    matrixValues,
+    withMatrixCell,
 } from "./transformMath";
 import type { MatrixCellMeta } from "./transformMath";
 export type { MatrixCellMeta } from "./transformMath";
@@ -26,7 +28,7 @@ export function useTransformState(
     // inversion) — synchronous, since the warm resolves before any scene mounts.
     // `transformTargetsStyle` paints a Vars snapshot onto DOM targets (the same
     // painter the run loop drives).
-    const { CSSKeyframesAnimation, transformTargetsStyle } = kfEngine();
+    const { transformTargetsStyle } = kfEngine();
 
     const matrix3dStart = ref(createMatrix());
     const matrix3dEnd = ref(createMatrix());
@@ -56,7 +58,7 @@ export function useTransformState(
     );
 
     const syncTransformations = (reset: boolean = false) => {
-        const values = matrix3dEnd.value.valueOf();
+        const values = matrixValues(matrix3dEnd.value);
 
         transformSliderValues.value.translate.x = values[12];
         transformSliderValues.value.translate.y = values[13];
@@ -75,17 +77,19 @@ export function useTransformState(
 
     const updateMatrixCell = (to: number | string, ix: number) => {
         const toNum = typeof to === "string" ? parseFloat(to) : to;
-        const from = matrix3dEnd.value.valueOf()[ix];
+        const from = matrixValues(matrix3dEnd.value)[ix];
+        if (from === undefined) {
+            throw new RangeError(
+                `Matrix cell ${ix} is outside the matrix3d value.`,
+            );
+        }
 
-        new CSSKeyframesAnimation({ duration: 300 })
-            .fromVars(
-                [{ value: from }, { value: toNum }],
-                ({ value }) => {
-                    matrix3dEnd.value.setValue(value.valueOf(), ix);
-                    syncTransformations();
-                },
-            )
-            .play();
+        void new NumericAnimation([{ value: from }, { value: toNum }], {
+            duration: 300,
+        }).play(({ value }) => {
+            matrix3dEnd.value = withMatrixCell(matrix3dEnd.value, ix, value);
+            syncTransformations();
+        });
     };
 
     const animateUpdateMatrix = (
@@ -93,35 +97,33 @@ export function useTransformState(
         toMatrix: mat4,
         reset: boolean = false,
     ) => {
-        const transformFunc = ({ transform: { matrix3d } }: Vars) => {
-            const matrixValues = matrix3d.valueOf();
+        const frame = (matrix: ArrayLike<number>): Record<string, number> =>
+            Object.fromEntries(
+                Array.from(matrix, (value, index) => [`m${index}`, value]),
+            );
 
-            matrix3dEnd.value.values.forEach((value, i) => {
-                value.setValue(matrixValues[i]);
-                syncTransformations(reset);
-            });
-
-            if (targetRef.value) {
-                transformTargetsStyle(
-                    { transform: { matrix3d: matrix3dEnd.value } },
-                    [targetRef.value],
-                    false,
-                );
-            }
-        };
-
-        new CSSKeyframesAnimation({
+        void new NumericAnimation([frame(fromMatrix), frame(toMatrix)], {
             duration: 500,
             timingFunction: easeInBounce,
-        })
-            .fromVars(
-                [
-                    { transform: { matrix3d: fromMatrix } },
-                    { transform: { matrix3d: toMatrix } },
-                ],
-                transformFunc,
-            )
-            .play();
+        }).play((values) => {
+            const matrix = Array.from({ length: 16 }, (_, index) => {
+                const value = values[`m${index}`];
+                if (typeof value !== "number" || !Number.isFinite(value)) {
+                    throw new TypeError(
+                        `Numeric matrix frame is missing finite m${index}.`,
+                    );
+                }
+                return value;
+            });
+            matrix3dEnd.value = createMatrix(matrix);
+            syncTransformations(reset);
+
+            if (targetRef.value) {
+                transformTargetsStyle({ transform: matrix3dEnd.value }, [
+                    targetRef.value,
+                ]);
+            }
+        });
     };
 
     function updateTransformations() {
@@ -159,32 +161,22 @@ export function useTransformState(
         mat4.multiply(rotationMatrix, rotationMatrix, rotationZ);
 
         const transformationMatrix = mat4.create();
-        mat4.multiply(
-            transformationMatrix,
-            translationMatrix,
-            rotationMatrix,
-        );
+        mat4.multiply(transformationMatrix, translationMatrix, rotationMatrix);
         mat4.multiply(
             transformationMatrix,
             transformationMatrix,
             scalingMatrix,
         );
 
-        matrix3dEnd.value.values.forEach((value, i) => {
-            value.setValue(transformationMatrix[i]!);
-        });
-        matrix3dStart.value.values.forEach((value, i) => {
-            value.setValue(transformationMatrix[i]!);
-        });
+        matrix3dEnd.value = createMatrix(transformationMatrix);
+        matrix3dStart.value = createMatrix(transformationMatrix);
 
         syncTransformations();
     }
 
     const resetMatrix = () => {
         const toMatrix = mat4.create();
-        const fromMatrix = matrix3dEnd.value.values.map((value) =>
-            value.valueOf(),
-        ) as mat4;
+        const fromMatrix = matrixValues(matrix3dEnd.value);
 
         animateUpdateMatrix(fromMatrix, toMatrix, true);
     };
@@ -213,15 +205,9 @@ export function useTransformState(
                 updateTransformations();
 
                 if (targetRef.value) {
-                    transformTargetsStyle(
-                        {
-                            transform: {
-                                matrix3d: matrix3dEnd.value,
-                            },
-                        },
-                        [targetRef.value],
-                        false,
-                    );
+                    transformTargetsStyle({ transform: matrix3dEnd.value }, [
+                        targetRef.value,
+                    ]);
                 }
             });
         },

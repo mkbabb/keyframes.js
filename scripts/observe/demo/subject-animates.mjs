@@ -61,38 +61,21 @@ const fail = (l) => {
 
 console.log("subject-animates observation — the subject-write seam");
 
-// The BUILT library externalizes the value.js/parse-that bare specifiers, so the
-// probe page carries an import map onto the INSTALLED deps — the exact
-// resolution a consumer's bundler performs.
-//
-// S.A0(4) — the shared value.js-subpath importmap harness fix (identical shape to
-// proof-engine-no-throw-on-play.mjs). Both deps are multi-chunk (value.js's
-// `dist/value.js` imports `./units-*.js`/`./math-*.js` and the lazy engine chunk
-// imports `@mkbabb/value.js/math` → `dist/subpaths/math.js`; parse-that's
-// `dist/parse.js` imports `./core.js`/`./packrat-entry-*.js`), so serve each dep's
-// WHOLE dist subtree behind a prefix + teach the importmap the subpath namespace
-// (keeping the bare map), with an extensionless-`.js` fallback.
+// Value 4 is rootless; serve its dist tree and map only consumed capabilities.
+const VALUE_CSS_ENTRY = fileURLToPath(import.meta.resolve("@mkbabb/value.js/css"));
 const VENDOR_ROOTS = {
-    "/__kf-vendor__/value.js/": path.join(
-        REPO,
-        "node_modules/@mkbabb/value.js/dist",
-    ),
-    "/__kf-vendor__/parse-that/": path.join(
-        REPO,
-        "node_modules/@mkbabb/parse-that/dist",
-    ),
+    "/__kf-vendor__/value.js/": path.dirname(path.dirname(VALUE_CSS_ENTRY)),
 };
 /** Serve a file out of a whole-dist-subtree vendor root (prefix-walked). Returns
  *  true iff the request matched a vendor prefix (and was answered/404'd). */
 function serveVendor(urlPath, res) {
     for (const [prefix, root] of Object.entries(VENDOR_ROOTS)) {
         if (!urlPath.startsWith(prefix)) continue;
-        let fp = path.join(root, urlPath.slice(prefix.length));
+        const fp = path.join(root, urlPath.slice(prefix.length));
         if (!fp.startsWith(root)) {
             res.writeHead(403).end();
             return true;
         }
-        if (!fs.existsSync(fp) && fs.existsSync(fp + ".js")) fp += ".js";
         if (!fs.existsSync(fp) || fs.statSync(fp).isDirectory()) {
             res.writeHead(404).end();
             return true;
@@ -109,7 +92,7 @@ function serveVendor(urlPath, res) {
 // user gesture — the actuation the gate-ORACLE precept requires, not a
 // goto+rest load-rest read), then samples the subject's computed style.
 const PROBE_HTML = `<!doctype html><html><head><meta charset="utf-8">
-<script type="importmap">{"imports":{"@mkbabb/value.js":"/__kf-vendor__/value.js/value.js","@mkbabb/value.js/":"/__kf-vendor__/value.js/subpaths/","@mkbabb/parse-that":"/__kf-vendor__/parse-that/parse.js","@mkbabb/parse-that/":"/__kf-vendor__/parse-that/"}}</script>
+<script type="importmap">{"imports":{"@mkbabb/value.js/color":"/__kf-vendor__/value.js/subpaths/color.js","@mkbabb/value.js/value":"/__kf-vendor__/value.js/subpaths/value.js","@mkbabb/value.js/css":"/__kf-vendor__/value.js/subpaths/css.js","@mkbabb/value.js/easing":"/__kf-vendor__/value.js/subpaths/easing.js","@mkbabb/value.js/math":"/__kf-vendor__/value.js/subpaths/math.js","@mkbabb/value.js/transform":"/__kf-vendor__/value.js/subpaths/transform.js"}}</script>
 </head><body>
 <div id="raf-subject" style="position:absolute;left:0px;top:0px"></div>
 <button id="raf-play">play rAF</button>

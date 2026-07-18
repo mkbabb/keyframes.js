@@ -1,5 +1,4 @@
 import {
-    TIMING_DESCRIPTIONS,
     NAMED_EASING_BEZIER,
     DETAIL_TIMING_FUNCTIONS,
 } from "@utils/reference-data/animationDescriptions";
@@ -16,10 +15,10 @@ interface CurveGroup {
     items: CurveGroupItem[];
 }
 
-function item(name: string): CurveGroupItem {
+function item(name: string, description: string): CurveGroupItem {
     return {
         name,
-        description: TIMING_DESCRIPTIONS[name] ?? "",
+        description,
         isBezier: name in NAMED_EASING_BEZIER,
         isDetail: DETAIL_TIMING_FUNCTIONS.has(name),
     };
@@ -29,80 +28,77 @@ export const EASING_GROUPS: CurveGroup[] = [
     {
         family: "Standard",
         items: [
-            item("linear"),
-            item("ease"),
-            item("ease-in"),
-            item("ease-out"),
-            item("ease-in-out"),
+            item("linear", "constant velocity"),
+            item("ease", "gentle start & end"),
+            item("ease-in", "slow start, fast end"),
+            item("ease-out", "fast start, slow end"),
+            item("ease-in-out", "slow start & end"),
         ],
     },
     {
         family: "Sine",
         items: [
-            item("ease-in-sine"),
-            item("ease-out-sine"),
-            item("ease-in-out-sine"),
+            item("ease-in-sine", "sinusoidal ramp up"),
+            item("ease-out-sine", "sinusoidal ramp down"),
+            item("ease-in-out-sine", "sinusoidal both"),
         ],
     },
     {
         family: "Quad",
         items: [
-            item("ease-in-quad"),
-            item("ease-out-quad"),
-            item("ease-in-out-quad"),
+            item("ease-in-quad", "quadratic acceleration"),
+            item("ease-out-quad", "quadratic deceleration"),
+            item("ease-in-out-quad", "quadratic both"),
         ],
     },
     {
         family: "Cubic",
         items: [
-            item("ease-in-cubic"),
-            item("ease-out-cubic"),
-            item("ease-in-out-cubic"),
-            item("smooth-step-3"),
+            item("ease-in-cubic", "cubic acceleration"),
+            item("ease-out-cubic", "cubic deceleration"),
+            item("ease-in-out-cubic", "cubic both"),
+            item("smooth-step-3", "Hermite interpolation"),
         ],
     },
     {
         family: "Expo",
         items: [
-            item("ease-in-expo"),
-            item("ease-out-expo"),
-            item("ease-in-out-expo"),
+            item("ease-in-expo", "exponential ramp"),
+            item("ease-out-expo", "exponential decay"),
+            item("ease-in-out-expo", "exponential both"),
         ],
     },
     {
         family: "Circ",
         items: [
-            item("ease-in-circ"),
-            item("ease-out-circ"),
-            item("ease-in-out-circ"),
+            item("ease-in-circ", "circular ramp up"),
+            item("ease-out-circ", "circular ramp down"),
+            item("ease-in-out-circ", "circular both"),
         ],
     },
     {
         family: "Back",
         items: [
-            item("ease-in-back"),
-            item("ease-out-back"),
-            item("ease-in-out-back"),
+            item("ease-in-back", "pulls back first"),
+            item("ease-out-back", "overshoots, settles"),
+            item("ease-in-out-back", "pull back & overshoot"),
         ],
     },
     {
         family: "Bounce",
-        items: [
-            item("ease-in-bounce"),
-            item("bounce-in-ease"),
-            item("bounce-in-ease-half"),
-            item("bounce-out-ease"),
-            item("bounce-out-ease-half"),
-            item("bounce-in-out-ease"),
-        ],
+        items: [item("ease-in-bounce", "bouncing ramp up")],
     },
     {
         family: "Steps",
-        items: [item("steps"), item("step-start"), item("step-end")],
+        items: [
+            item("steps", "discrete jumps"),
+            item("step-start", "jump at start"),
+            item("step-end", "jump at end"),
+        ],
     },
     {
         family: "Custom",
-        items: [item("cubic-bezier")],
+        items: [item("cubic-bezier", "custom curve")],
     },
 ];
 

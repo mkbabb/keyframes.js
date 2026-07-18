@@ -11,7 +11,7 @@
          AUTHORING surface (the clean BG-8 division: the gallery is the
          scene's, the editor is EasingPicker's — the bounce family stays
          kf-owned until glass-ui's named catalogue covers it). -->
-    <Card surface="cartoon" tier="quiet" class="easing-editor w-full overflow-visible">
+    <Card cartoon tier="quiet" class="easing-editor w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
             <!-- The picker RE-SEEDS from tile selection when the curve is in
                  its bezier catalogue (or is a steps curve): the `:key` remount
@@ -145,10 +145,10 @@ const isSeedEcho = (v: EasingPickerValue): boolean => {
     const seed = pickerSeed.value;
     if (v.mode !== seed.mode) return false;
     if (seed.mode === "steps") {
-        const seedTerm = seed.term ?? "end";
+        const seedTerm = seed.term ?? "jump-end";
         return (
             v.steps === (seed.steps ?? 4) &&
-            (v.term === seedTerm || v.term === seedTerm.replace(/^jump-/, ""))
+            v.term === seedTerm
         );
     }
     const quad =
@@ -184,9 +184,7 @@ const onPickerChange = (v: EasingPickerValue | undefined) => {
     if (!v) return;
     if (isSeedEcho(v)) return;
     if (v.mode === "steps") {
-        const jumpTerm = (
-            v.term.startsWith("jump-") ? v.term : `jump-${v.term}`
-        ) as typeof demo.stepOptions.value.jumpTerm;
+        const jumpTerm = v.term as typeof demo.stepOptions.value.jumpTerm;
         const cur = demo.stepOptions.value;
         if (cur.steps !== v.steps || cur.jumpTerm !== jumpTerm) {
             demo.stepOptions.value = { steps: v.steps, jumpTerm };

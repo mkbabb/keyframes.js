@@ -1,5 +1,6 @@
 import { createKeyframeId } from "../timelineTypes";
 import type { TimelineKeyframe } from "../timelineTypes";
+import { percentSelector } from "@utils/keyframeSelector";
 
 /**
  * Capture a CSS property snapshot from an element's computed style.
@@ -21,6 +22,7 @@ export function captureSnapshot(
 
     return {
         id: createKeyframeId(),
+        selector: percentSelector(percent),
         percent,
         vars,
     };
@@ -39,7 +41,8 @@ function captureNonDefaultSnapshot(
 
     // Create a temporary hidden element to get default values
     const temp = document.createElement(element.tagName);
-    temp.style.cssText = "position:absolute;visibility:hidden;pointer-events:none";
+    temp.style.cssText =
+        "position:absolute;visibility:hidden;pointer-events:none";
     document.body.appendChild(temp);
     const defaultComputed = getComputedStyle(temp);
 
@@ -56,6 +59,7 @@ function captureNonDefaultSnapshot(
 
     return {
         id: createKeyframeId(),
+        selector: percentSelector(percent),
         percent,
         vars,
     };

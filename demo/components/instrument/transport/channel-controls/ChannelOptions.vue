@@ -1,12 +1,19 @@
 <template>
     <div class="grid items-center gap-4">
-        <Card surface="cartoon" tier="quiet" class="w-full overflow-visible">
+        <Card cartoon tier="quiet" class="w-full overflow-visible">
             <CardContent class="relative flex flex-col gap-2 px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row -->
                 <div class="panel-stack relative">
                     <!-- Main controls panel -->
-                    <div :class="['panel-row', !(showDetailPanel || advancedOpen) ? 'panel-row--active' : 'panel-row--inactive']">
-                        <div class="panel-content flex flex-col gap-2 w-full">
+                    <div
+                        :class="[
+                            'panel-row',
+                            !(showDetailPanel || advancedOpen)
+                                ? 'panel-row--active'
+                                : 'panel-row--inactive',
+                        ]"
+                    >
+                        <div class="panel-content flex w-full flex-col gap-2">
                             <!-- H.W11.I1 — the label rows share ONE uniform label
                                  column via the `.labeled-field-grid` subgrid idiom
                                  (design-idioms.css §LABEL-subgrid): the WIDEST label
@@ -16,60 +23,117 @@
                                  row its own width). -->
                             <div class="labeled-field-grid">
                                 <LabeledInput
-                                    :model-value="storedAnimationOptions.animationOptions.duration ?? '5s'"
+                                    :model-value="
+                                        storedAnimationOptions.animationOptions
+                                            .duration ?? '5s'
+                                    "
                                     label="duration"
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Animation length (e.g. 5s, 200ms)"
-                                    @update:model-value="(v) => { trySetOption(() => animation.setDuration(v)); storedAnimationOptions.animationOptions.duration = v; }"
-                                />
-
-                                <LabeledInput
-                                    :model-value="storedAnimationOptions.animationOptions.delay ?? '0ms'"
-                                    label="delay"
-                                    label-class="text-small font-medium text-muted-foreground"
-                                    tooltip="Delay before start (e.g. 0s, 500ms)"
-                                    @update:model-value="(v) => { trySetOption(() => animation.setDelay(v)); storedAnimationOptions.animationOptions.delay = v; }"
+                                    @update:model-value="
+                                        (v) => {
+                                            trySetOption(() =>
+                                                animation.setDuration(v),
+                                            );
+                                            storedAnimationOptions.animationOptions.duration =
+                                                v;
+                                        }
+                                    "
                                 />
 
                                 <LabeledInput
                                     :model-value="
-                                        storedAnimationOptions.animationOptions.iterationCount === 'infinite' || storedAnimationOptions.animationOptions.iterationCount === Infinity
+                                        storedAnimationOptions.animationOptions
+                                            .delay ?? '0ms'
+                                    "
+                                    label="delay"
+                                    label-class="text-small font-medium text-muted-foreground"
+                                    tooltip="Delay before start (e.g. 0s, 500ms)"
+                                    @update:model-value="
+                                        (v) => {
+                                            trySetOption(() =>
+                                                animation.setDelay(v),
+                                            );
+                                            storedAnimationOptions.animationOptions.delay =
+                                                v;
+                                        }
+                                    "
+                                />
+
+                                <LabeledInput
+                                    :model-value="
+                                        storedAnimationOptions.animationOptions
+                                            .iterationCount === 'infinite' ||
+                                        storedAnimationOptions.animationOptions
+                                            .iterationCount === Infinity
                                             ? '∞'
-                                            : String(storedAnimationOptions.animationOptions.iterationCount ?? 'infinite')
+                                            : String(
+                                                  storedAnimationOptions
+                                                      .animationOptions
+                                                      .iterationCount ??
+                                                      'infinite',
+                                              )
                                     "
                                     label="iterations"
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Repeat count (number or 'infinite')"
                                     @update:model-value="
                                         (v: string) => {
-                                            trySetOption(() => animation.setIterationCount(v));
-                                            storedAnimationOptions.animationOptions.iterationCount = v;
+                                            trySetOption(() =>
+                                                animation.setIterationCount(v),
+                                            );
+                                            storedAnimationOptions.animationOptions.iterationCount =
+                                                v;
                                         }
                                     "
                                 />
 
                                 <LabeledSelect
-                                    :model-value="storedAnimationOptions.animationOptions.direction ?? 'normal'"
+                                    :model-value="
+                                        storedAnimationOptions.animationOptions
+                                            .direction ?? 'normal'
+                                    "
                                     :is-open="isOpen('direction')"
                                     :items="directions"
                                     :descriptions="DIRECTION_DESCRIPTIONS"
                                     label="direction"
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Playback direction"
-                                    @update:model-value="(v) => { animation.setDirection(v as any); storedAnimationOptions.animationOptions.direction = v as any; }"
-                                    @update:open="(v: boolean | undefined) => setOpen('direction', v ?? false)"
+                                    @update:model-value="
+                                        (v) => {
+                                            animation.setDirection(v as any);
+                                            storedAnimationOptions.animationOptions.direction =
+                                                v as any;
+                                        }
+                                    "
+                                    @update:open="
+                                        (v: boolean | undefined) =>
+                                            setOpen('direction', v ?? false)
+                                    "
                                 />
 
                                 <LabeledSelect
-                                    :model-value="storedAnimationOptions.animationOptions.fillMode ?? 'forwards'"
+                                    :model-value="
+                                        storedAnimationOptions.animationOptions
+                                            .fillMode ?? 'forwards'
+                                    "
                                     :is-open="isOpen('fillMode')"
                                     :items="fillModes"
                                     :descriptions="FILL_MODE_DESCRIPTIONS"
                                     label="fill mode"
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Style applied when not playing"
-                                    @update:model-value="(v) => { animation.setFillMode(v as any); storedAnimationOptions.animationOptions.fillMode = v as any; }"
-                                    @update:open="(v: boolean | undefined) => setOpen('fillMode', v ?? false)"
+                                    @update:model-value="
+                                        (v) => {
+                                            animation.setFillMode(v as any);
+                                            storedAnimationOptions.animationOptions.fillMode =
+                                                v as any;
+                                        }
+                                    "
+                                    @update:open="
+                                        (v: boolean | undefined) =>
+                                            setOpen('fillMode', v ?? false)
+                                    "
                                 />
                             </div>
 
@@ -82,19 +146,47 @@
                                  label-action slot is BOOKED as an OPTIONAL handoff. -->
                             <div class="flex flex-col gap-1">
                                 <div class="flex items-center gap-1.5">
-                                    <IconTooltip text="Timing function curve">
-                                        <label :class="['text-small font-medium text-muted-foreground cursor-help', isDetailEasing ? 'gold-shimmer' : '']">easing</label>
-                                    </IconTooltip>
-                                    <IconTooltip text="Edit easing curve">
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <label
+                                                :class="[
+                                                    `text-small
+                                                    text-muted-foreground
+                                                    cursor-help font-medium`,
+                                                    isDetailEasing
+                                                        ? 'gold-shimmer'
+                                                        : '',
+                                                ]"
+                                                >easing</label
+                                            >
+                                        </TooltipTrigger>
+                                        <TooltipContent>Timing function curve</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
                                         <!-- `easing-edit-btn` is the NAMED BEHAVIORAL SEAM (the
                                              pencil hook proof:bezier-{no-scroll,single-card,grown}
                                              click to open the detail panel) — it carries NO style;
                                              STY-4 deleted only its scoped color RULE (the color now
                                              rides the owned `.text-gold` idiom). -->
-                                        <DockControl shape="icon" compact title="Edit easing curve" class="easing-edit-btn text-gold" @click.stop="onEditIconClick(storedAnimationOptions.animationOptions.timingFunction as string)">
+                                        <DockControl
+                                            shape="icon"
+                                            compact
+                                            title="Edit easing curve"
+                                            class="easing-edit-btn text-gold"
+                                            @click.stop="
+                                                onEditIconClick(
+                                                    storedAnimationOptions
+                                                        .animationOptions
+                                                        .timingFunction as string,
+                                                )
+                                            "
+                                        >
                                             <Pencil class="icon-sm" />
                                         </DockControl>
-                                    </IconTooltip>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Edit easing curve</TooltipContent>
+                                    </Tooltip>
                                 </div>
                                 <!-- I.W2.S3 — the dropdown's model-value is the
                                      KIND (literal-aware), and the persist is the
@@ -110,17 +202,39 @@
                                      EasingPicker (detail panel) + the T.E6
                                      gallery sparklines. -->
                                 <Select
-                                    :model-value="timingFunctionKind(storedAnimationOptions.animationOptions.timingFunction)"
-                                    @update:model-value="(key) => updateTimingFunctionFromName(String(key))"
+                                    :model-value="
+                                        timingFunctionKind(
+                                            storedAnimationOptions
+                                                .animationOptions
+                                                .timingFunction,
+                                        )
+                                    "
+                                    @update:model-value="
+                                        (key) =>
+                                            updateTimingFunctionFromName(
+                                                String(key),
+                                            )
+                                    "
                                 >
                                     <SelectTrigger aria-label="Timing function">
-                                        <SelectValue placeholder="Pick a curve" />
+                                        <SelectValue
+                                            placeholder="Pick a curve"
+                                        />
                                     </SelectTrigger>
-                                    <SelectContent class="max-h-[var(--easing-dropdown-max-h)]">
-                                        <template v-for="(group, gi) in EASING_GROUPS" :key="group.family">
+                                    <SelectContent
+                                        class="max-h-[var(--easing-dropdown-max-h)]"
+                                    >
+                                        <template
+                                            v-for="(group, gi) in EASING_GROUPS"
+                                            :key="group.family"
+                                        >
                                             <SelectSeparator v-if="gi > 0" />
                                             <SelectGroup>
-                                                <SelectLabel class="text-admin-label text-muted-foreground px-2 py-1">
+                                                <SelectLabel
+                                                    class="text-admin-label
+                                                        text-muted-foreground
+                                                        px-2 py-1"
+                                                >
                                                     {{ group.family }}
                                                 </SelectLabel>
                                                 <SelectItem
@@ -129,12 +243,30 @@
                                                     :value="curveItem.name"
                                                     class="pr-2"
                                                 >
-                                                    <span class="flex items-center gap-1.5 w-full min-w-0">
-                                                        <span data-register="code" class="font-mono normal-case">{{ curveItem.name }}</span>
+                                                    <span
+                                                        class="flex w-full
+                                                            min-w-0 items-center
+                                                            gap-1.5"
+                                                    >
                                                         <span
-                                                            v-if="curveItem.description"
-                                                            class="ml-auto pl-2 text-dropdown-secondary normal-case text-muted-foreground leading-tight whitespace-nowrap"
-                                                        >{{ curveItem.description }}</span>
+                                                            data-register="code"
+                                                            class="font-mono
+                                                                normal-case"
+                                                            >{{
+                                                                curveItem.name
+                                                            }}</span
+                                                        >
+                                                        <span
+                                                            class="text-dropdown-secondary
+                                                                text-muted-foreground
+                                                                ml-auto pl-2
+                                                                leading-tight
+                                                                whitespace-nowrap
+                                                                normal-case"
+                                                            >{{
+                                                                curveItem.description
+                                                            }}</span
+                                                        >
                                                     </span>
                                                 </SelectItem>
                                             </SelectGroup>
@@ -152,9 +284,14 @@
                                 tabindex="0"
                                 @keydown.enter="advancedOpen = true"
                                 @keydown.space.prevent="advancedOpen = true"
-                                class="flex items-center justify-between gap-x-3 w-full py-1.5 cursor-pointer hover:text-foreground text-muted-foreground transition-colors"
+                                class="hover:text-foreground
+                                    text-muted-foreground flex w-full
+                                    cursor-pointer items-center justify-between
+                                    gap-x-3 py-1.5 transition-colors"
                             >
-                                <span class="text-small font-medium">advanced</span>
+                                <span class="text-small font-medium"
+                                    >advanced</span
+                                >
                                 <div class="flex items-center justify-end px-3">
                                     <ChevronRight class="icon-md opacity-50" />
                                 </div>
@@ -163,24 +300,42 @@
                     </div>
 
                     <!-- Detail panel (cubic-bezier / steps) -->
-                    <div :class="['panel-row panel-row--detail', showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
+                    <div
+                        :class="[
+                            'panel-row panel-row--detail',
+                            showDetailPanel
+                                ? 'panel-row--active'
+                                : 'panel-row--inactive',
+                        ]"
+                    >
                         <div class="panel-content">
                             <TimingFunctionPanel
                                 :animation="animation"
-                                :stored-animation-options="storedAnimationOptions"
-                                :timing-functions-and="timingFunctionsAnd"
+                                :stored-animation-options="
+                                    storedAnimationOptions
+                                "
                                 :progress="normalizedProgress"
                                 @exit-detail-panel="exitDetailPanel"
-                                @update-timing-function="updateTimingFunctionFromName"
+                                @update-timing-function="
+                                    updateTimingFunctionFromName
+                                "
                             />
                         </div>
                     </div>
 
                     <!-- Advanced sub-pane -->
-                    <div :class="['panel-row', advancedOpen && !showDetailPanel ? 'panel-row--active' : 'panel-row--inactive']">
-                        <div class="panel-content flex flex-col gap-2 w-full">
-                            <div class="flex items-center gap-1 mb-1">
-                                <DockControl shape="icon"
+                    <div
+                        :class="[
+                            'panel-row',
+                            advancedOpen && !showDetailPanel
+                                ? 'panel-row--active'
+                                : 'panel-row--inactive',
+                        ]"
+                    >
+                        <div class="panel-content flex w-full flex-col gap-2">
+                            <div class="mb-1 flex items-center gap-1">
+                                <DockControl
+                                    shape="icon"
                                     compact
                                     title="Back"
                                     class="text-muted-foreground"
@@ -188,7 +343,11 @@
                                 >
                                     <ArrowLeft class="icon-md" />
                                 </DockControl>
-                                <span class="text-small font-medium text-muted-foreground">advanced</span>
+                                <span
+                                    class="text-small text-muted-foreground
+                                        font-medium"
+                                    >advanced</span
+                                >
                             </div>
 
                             <!-- Layer Settings (only when the animation has a layer).
@@ -203,14 +362,14 @@
                                     :blend-available="blendAvailable"
                                     :is-open="isOpen"
                                     :set-open="setOpen"
-                                    @update="(v) => emit('layerConfigUpdate', v)"
+                                    @update="
+                                        (v) => emit('layerConfigUpdate', v)
+                                    "
                                 />
                             </div>
-
                         </div>
                     </div>
                 </div>
-
             </CardContent>
         </Card>
 
@@ -222,10 +381,20 @@
                 :is-anim-playing="isAnimPlaying"
                 :is-anim-started="isAnimStarted"
                 :user-reversed="userReversed"
-                @scrub-start="() => { wake(); emit('scrubStart'); }"
+                @scrub-start="
+                    () => {
+                        wake();
+                        emit('scrubStart');
+                    }
+                "
                 @scrub-end="emit('scrubEnd')"
                 @scrubbed="wake"
-                @slider-update="(v) => { wake(); emit('sliderUpdate', v); }"
+                @slider-update="
+                    (v) => {
+                        wake();
+                        emit('sliderUpdate', v);
+                    }
+                "
                 @toggle-play="toggleAnimation"
                 @toggle-reverse="toggleReverse"
             />
@@ -250,7 +419,7 @@ import {
     Separator,
 } from "@mkbabb/glass-ui";
 import { DockControl } from "@mkbabb/glass-ui/dock";
-import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
@@ -266,9 +435,7 @@ import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 
 import { Teleport, computed, onMounted, ref, toRef } from "vue";
-import {
-    getStoredAnimationOptions,
-} from "@state";
+import { getStoredAnimationOptions } from "@state";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import type {
     AnimationLayerConfig,
@@ -309,7 +476,6 @@ const trySetOption = (apply: () => void) => {
 };
 
 const {
-    timingFunctionsAnd,
     convertedFromName,
     advancedOpen,
     isDetailEasing,
@@ -322,13 +488,20 @@ const {
 // Exclusive select mutex: only one dropdown open at a time
 const openSelect = ref<string | null>(null);
 const isOpen = (name: string) => openSelect.value === name;
-const setOpen = (name: string, open: boolean) => { openSelect.value = open ? name : null; };
+const setOpen = (name: string, open: boolean) => {
+    openSelect.value = open ? name : null;
+};
 
 // rAF-driven reactivity bridge: animation is markRaw, so Vue can't track
 // property changes. We sync reactive refs every frame for the slider + buttons.
 // isPlaying guard comes from the parent (useAnimationGroupPlayback) — not polled.
 const isPlayingRef = toRef(() => props.isPlaying ?? false);
-const { currentT, isPlaying: isAnimPlaying, isStarted: isAnimStarted, wake } = useAnimationSync(() => props.animation, isPlayingRef);
+const {
+    currentT,
+    isPlaying: isAnimPlaying,
+    isStarted: isAnimStarted,
+    wake,
+} = useAnimationSync(() => props.animation, isPlayingRef);
 
 const normalizedProgress = computed(() => {
     const dur = props.animation.options.duration;
@@ -364,7 +537,8 @@ const fillModes = ref<readonly AnimationOptions["fillMode"][]>([]);
 
 onMounted(async () => {
     updateTimingFunctionFromName(
-        storedAnimationOptions.animationOptions.timingFunction as TimingFunctionNames,
+        storedAnimationOptions.animationOptions
+            .timingFunction as TimingFunctionNames,
     );
 
     const engine = await loadAnimationEngine();

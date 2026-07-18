@@ -52,29 +52,32 @@
                  (T.C2 — a destructive storage reset is a settings action, not
                  transport chrome). Separators derive from INHABITED zones (zero
                  hand-rolled dock-separator divs). Tooltips are the single visible
-                 renderer (IconTooltip); the accessible name rides aria-label — every
+                 renderer (Tooltip primitives); the accessible name rides aria-label — every
                  `title=` passthrough is GONE (T.C3, the double-tooltip KILL). -->
             <div class="flex items-center gap-3">
                 <!-- rail-core: PLAY, FIRST (actions.primary) -->
-                <IconTooltip :text="isPlaying ? 'Pause' : 'Play'">
-                    <Button
-                        variant="ghost"
-                        :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
-                        :class="[
-                            'scale-on-hover icon-lg text-white rounded-full p-0',
-                            'w-10 h-10 shrink-0',
-                            isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
-                        ]"
-                        @pointerdown="onPlayPointerDown($event)"
-                        @pointerup="onPlayPointerUp($event)"
-                        @pointercancel="onPlayPointerCancel($event)"
-                        @keydown="onPlayKeydown($event)"
-                        @keyup="onPlayKeyup($event)"
-                    >
-                        <Pause v-if="isPlaying" class="icon-lg" />
-                        <Play v-else class="icon-lg pl-0.5" />
-                    </Button>
-                </IconTooltip>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            emphasis="quiet"
+                            :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
+                            :class="[
+                                'scale-on-hover icon-lg text-white rounded-full p-0',
+                                'w-10 h-10 shrink-0',
+                                isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
+                            ]"
+                            @pointerdown="onPlayPointerDown($event)"
+                            @pointerup="onPlayPointerUp($event)"
+                            @pointercancel="onPlayPointerCancel($event)"
+                            @keydown="onPlayKeydown($event)"
+                            @keyup="onPlayKeyup($event)"
+                        >
+                            <Pause v-if="isPlaying" class="icon-lg" />
+                            <Play v-else class="icon-lg pl-0.5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ isPlaying ? "Pause" : "Play" }}</TooltipContent>
+                </Tooltip>
 
                 <!-- section (contextual): the animation select. Rendered ONLY when
                      channelZone is INHABITED (≥2 channels — kind "select"). One or
@@ -84,8 +87,9 @@
                      dead 1-item dropdown or a demoted label). -->
                 <template v-if="channelZoneKind === 'select'">
                     <DockSeparator />
-                    <IconTooltip text="Select animation">
-                        <div class="relative flex items-center gap-1.5">
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <div class="relative flex items-center gap-1.5">
                             <Select
                                 class="p-0 m-0 cursor-pointer"
                                 :model-value="storedControls.selectedAnimation"
@@ -129,7 +133,7 @@
                                                     <StatusDot
                                                         v-else
                                                         size="md"
-                                                        :variant="isStarted ? 'paused' : 'idle'"
+                                                        :state="isStarted ? 'warning' : 'unknown'"
                                                     />
                                                     <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
                                                 </span>
@@ -138,8 +142,10 @@
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
-                        </div>
-                    </IconTooltip>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>Select animation</TooltipContent>
+                    </Tooltip>
                 </template>
 
                 <!-- nav: reset (+ the timeline-collapse chip when the timeline pane
@@ -147,21 +153,27 @@
                      timeline chip's ultimate home is the timeline pane it controls
                      (T.C1 → T.B/T.F edge owner); it rides nav here until that lands. -->
                 <DockSeparator />
-                <IconTooltip text="Reset animation">
-                    <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
-                        <RotateCcw
-                            ref="resetIconEl"
-                            class="icon-lg"
-                        />
-                    </DockControl>
-                </IconTooltip>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
+                            <RotateCcw
+                                ref="resetIconEl"
+                                class="icon-lg"
+                            />
+                        </DockControl>
+                    </TooltipTrigger>
+                    <TooltipContent>Reset animation</TooltipContent>
+                </Tooltip>
 
                 <template v-if="storedControls.isTimelineExpanded">
-                    <IconTooltip text="Collapse timeline">
-                        <DockControl shape="icon" aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
-                            <Minimize2 class="icon-lg" />
-                        </DockControl>
-                    </IconTooltip>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <DockControl shape="icon" aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
+                                <Minimize2 class="icon-lg" />
+                            </DockControl>
+                        </TooltipTrigger>
+                        <TooltipContent>Collapse timeline</TooltipContent>
+                    </Tooltip>
 
                     <span class="dock-label whitespace-nowrap">Timeline</span>
                 </template>
@@ -179,7 +191,7 @@
                      across BOTH states (Play and Pause) since one ternary drives
                      both. -->
                 <Button
-                    variant="ghost"
+                    emphasis="quiet"
                     :aria-label="
                         isPlaying
                             ? 'Pause animation (collapsed dock)'
@@ -231,7 +243,7 @@ import {
     SelectValue,
     Button,
 } from "@mkbabb/glass-ui";
-import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
 import { RotateCcw } from "@lucide/vue";

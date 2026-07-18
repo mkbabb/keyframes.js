@@ -1,6 +1,6 @@
 import { SpringProgress } from "@mkbabb/keyframes.js";
-import { parseCSSColor } from "@mkbabb/value.js/parsing";
-import { RGBColor, color2, sampleColorRampAt } from "@mkbabb/value.js/color";
+import { parseCssColor, serializeCssColor, type CssColor } from "@mkbabb/value.js/css";
+import { mixColors } from "@mkbabb/value.js/color";
 import { onMounted, onScopeDispose } from "vue";
 
 /** The square's private tumble egg: spin state plus perceptual palette sampling. */
@@ -18,24 +18,25 @@ export function useSquareTumble(startLoop: () => void) {
         });
     });
 
-    const asColor = (css: string): RGBColor => {
-        const { r, g, b, alpha } = parseCSSColor(css).value as unknown as {
-            r: number; g: number; b: number; alpha?: number;
-        };
-        return new RGBColor(r / 255, g / 255, b / 255, alpha ?? 1);
+    const asColor = (css: string): CssColor => {
+        const parsed = parseCssColor(css);
+        if (!parsed.ok) throw new TypeError(`Invalid square palette color: ${css}`);
+        return parsed.value;
     };
 
     const colorAt = (t: number): string => {
         const span = hues.length - 1;
         const index = Math.min(span - 1, Math.floor(t * span));
-        const mixed = sampleColorRampAt(
+        const mixed = mixColors(
             asColor(hues[index]!),
             asColor(hues[index + 1]!),
             t * span - index,
             { space: "oklab" },
         );
-        const rgb = color2(mixed, "rgb") as unknown as { r: number; g: number; b: number };
-        return `rgb(${Math.round(rgb.r * 255)} ${Math.round(rgb.g * 255)} ${Math.round(rgb.b * 255)})`;
+        if (!mixed.ok) throw new TypeError("Square palette interpolation failed.");
+        const serialized = serializeCssColor(mixed.value as CssColor);
+        if (!serialized.ok) throw new TypeError("Square palette serialization failed.");
+        return serialized.value;
     };
 
     const tumble = () => {

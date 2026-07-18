@@ -38,7 +38,7 @@
             </div>
 
             <Button
-                variant="outline"
+                emphasis="secondary"
                 class="btn-playback btn-playback-accent shrink-0"
                 @click="toggle"
             >

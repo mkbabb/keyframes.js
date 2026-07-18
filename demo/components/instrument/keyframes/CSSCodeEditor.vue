@@ -37,9 +37,9 @@ import DarkTheme from "./monaco-themes/Dracula.json";
 import LightTheme from "./monaco-themes/GitHub.json";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@components/instrument/utils/iosTextEntry";
-import { convert2 } from "@mkbabb/value.js/units";
-import { formatCSS } from "@mkbabb/value.js/parsing";
-import { debounce } from "@mkbabb/value.js";
+import { convertPixelsToCh } from "@utils/helpers";
+import { formatEditorCSS } from "@utils/formatEditorCSS";
+import { debounce } from "@utils/helpers";
 import { toast } from "vue-sonner";
 
 // The resolved Monaco namespace + a single in-flight boot promise. The boot is
@@ -107,7 +107,7 @@ let disposed = false;
 const getFormatWidth = () => {
     const el = containerEl.value;
     if (!el || !el.offsetWidth || el.offsetWidth === 0) return undefined;
-    const ch = convert2(el.offsetWidth, "px", "ch", el);
+    const ch = convertPixelsToCh(el.offsetWidth, el);
     return ch != null ? Math.floor(ch) : undefined;
 };
 
@@ -177,7 +177,7 @@ watch(
 
 const formatCSSContent = async () => {
     if (!editor) return;
-    const formatted = await formatCSS(editor.getValue(), getFormatWidth());
+    const formatted = await formatEditorCSS(editor.getValue(), getFormatWidth());
     const pos = editor.getPosition();
     isSettingValue = true;
     editor.setValue(formatted);

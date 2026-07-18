@@ -1,10 +1,16 @@
-import { FunctionValue, ValueUnit } from "@mkbabb/value.js/units";
-import { markRaw, shallowRef } from "vue";
+import { markRaw, shallowRef, watch } from "vue";
 import type { Ref } from "vue";
+import type {
+    CssCall,
+    CssList,
+    CssScalar,
+    CssValue,
+} from "@mkbabb/value.js/value";
 import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";
+import { cssVariable, type Matrix3dCall } from "./matrix-editor/transformMath";
 
 // T.B9 — the ONE keyspace: the store key (and each `animation.superKey` field) is
 // the registry SceneId, single-sourced from `cubeKeys.ts`. This re-export keeps
@@ -17,9 +23,26 @@ export const CUBE_ANIMATION_NAMES = {
     Hover: "Hover",
 } as const;
 
+const numberValue = (value: number, unit = ""): CssScalar => ({
+    kind: "scalar",
+    payload: { type: "number", value, unit },
+});
+
+const transformCall = (name: string, ...args: CssValue[]): CssCall => ({
+    kind: "call",
+    name,
+    args,
+});
+
+const transformList = (...items: CssCall[]): CssList => ({
+    kind: "list",
+    separator: "space",
+    items,
+});
+
 export function useCubeDemo(
-    matrix3dStart: Ref<FunctionValue>,
-    matrix3dEnd: Ref<FunctionValue>,
+    matrix3dStart: Ref<Matrix3dCall>,
+    matrix3dEnd: Ref<Matrix3dCall>,
 ) {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
     // — synchronous, since the warm resolves before any scene mounts. `presets`
@@ -31,18 +54,21 @@ export function useCubeDemo(
         SCENE_ID,
     );
 
-    const matrixAnim = shallowRef(
-        markRaw(
-            new CSSKeyframesAnimation(
-                matrixAnimationOptions.animationOptions,
-            ).fromVars([
-                { transform: { matrix3d: matrix3dStart.value } },
-                { transform: { matrix3d: matrix3dEnd.value } },
-            ]),
-        ),
-    );
+    const compileMatrixAnimation = () =>
+        new CSSKeyframesAnimation(
+            matrixAnimationOptions.animationOptions,
+        ).fromVars([
+            { transform: matrix3dStart.value },
+            { transform: matrix3dEnd.value },
+        ]);
+
+    const matrixAnim = shallowRef(markRaw(compileMatrixAnimation()));
     matrixAnim.value.name = CUBE_ANIMATION_NAMES.Matrix;
     matrixAnim.value.superKey = SCENE_ID;
+
+    watch([matrix3dStart, matrix3dEnd], () => {
+        matrixAnim.value.adoptCompiled(compileMatrixAnimation());
+    });
 
     const rotationAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Rotations,
@@ -55,18 +81,18 @@ export function useCubeDemo(
                 rotationAnimationOptions.animationOptions,
             ).fromKeyframes({
                 from: {
-                    transform: {
-                        rotateX: "0deg",
-                        rotateY: "0turn",
-                        rotateZ: "0deg",
-                    },
+                    transform: transformList(
+                        transformCall("rotateX", numberValue(0, "deg")),
+                        transformCall("rotateY", numberValue(0, "turn")),
+                        transformCall("rotateZ", numberValue(0, "deg")),
+                    ),
                 },
                 "100%": {
-                    transform: {
-                        rotateX: new ValueUnit("--rotationX", "var"),
-                        rotateY: "1turn",
-                        rotateZ: "360deg",
-                    },
+                    transform: transformList(
+                        transformCall("rotateX", cssVariable("--rotationX")),
+                        transformCall("rotateY", numberValue(1, "turn")),
+                        transformCall("rotateZ", numberValue(360, "deg")),
+                    ),
                 },
             }),
         ),
@@ -105,8 +131,24 @@ export function useCubeDemo(
         duration: 650,
         timingFunction: "ease-out-back",
     }).fromVars([
-        { transform: { rotate3d: "0, 0, 0, 0deg" } },
-        { transform: { rotate3d: "-1, 1, 0, 30deg" } },
+        {
+            transform: transformCall(
+                "rotate3d",
+                numberValue(0),
+                numberValue(0),
+                numberValue(0),
+                numberValue(0, "deg"),
+            ),
+        },
+        {
+            transform: transformCall(
+                "rotate3d",
+                numberValue(-1),
+                numberValue(1),
+                numberValue(0),
+                numberValue(30, "deg"),
+            ),
+        },
     ]);
 
     const setTargets = (cubeEl: HTMLElement, graphEl: HTMLElement) => {

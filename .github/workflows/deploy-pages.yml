@@ -67,7 +67,7 @@ jobs:
               with:
                   node-version: 24
                   cache: "npm"
-            - name: npm ci (registry glass-ui)
+            - name: npm ci (demo consumer graph)
               run: npm ci
             - name: build demo + deploy to Cloudflare Pages
               env:

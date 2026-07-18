@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import { computed, onScopeDispose, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
-import { bumpLayoutEpoch } from "@mkbabb/value.js";
+import { bumpLayoutEpoch } from "@src/animation/resolve/browser";
 import { clamp } from "@mkbabb/value.js/math";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { SmoothProgress } from "@mkbabb/keyframes.js";

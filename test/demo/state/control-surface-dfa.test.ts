@@ -22,7 +22,7 @@ import {
     dockCardinality,
     type SurfaceFacilityLike,
     type ControlSurfaceTab,
-} from "../../../demo/state/controlSurfaceDFA";
+} from "../../../demo/state/controlSurfaces";
 
 // ── Facility fixtures mirroring the live scenes' `SceneFacility` shape ────────
 

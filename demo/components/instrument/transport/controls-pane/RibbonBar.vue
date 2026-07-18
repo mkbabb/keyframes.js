@@ -1,6 +1,6 @@
 <template>
     <div class="flex-shrink-0 pl-4 pr-7 pb-2">
-        <Card surface="cartoon" tier="quiet" class="overflow-visible">
+        <Card cartoon tier="quiet" class="overflow-visible">
             <CardContent class="p-3">
                 <!-- Controls tab: filled via Teleport from ChannelOptions -->
                 <div
@@ -15,7 +15,7 @@
                 >
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="RIBBON_BUTTON_CLASS"
                         @click="activeKeyframesRef?.copyCSS?.()"
                     >
@@ -23,7 +23,7 @@
                     </Button>
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="RIBBON_BUTTON_CLASS"
                         @click="activeKeyframesRef?.formatCSS?.()"
                     >
@@ -35,7 +35,7 @@
                          ineligibility report. The editor is a CSS-animation IDE. -->
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="RIBBON_BUTTON_CLASS"
                         @click="activeKeyframesRef?.exportCompiledCSS?.()"
                     >
@@ -43,7 +43,7 @@
                     </Button>
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="[
                             RIBBON_BUTTON_CLASS,
                             activeKeyframesRef?.cssApplied
@@ -71,7 +71,7 @@
                 >
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.snapshot?.()"
                     >
@@ -79,7 +79,7 @@
                     </Button>
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.openImportDialog?.()"
                     >
@@ -87,7 +87,7 @@
                     </Button>
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.exportCSS?.()"
                     >
@@ -95,7 +95,7 @@
                     </Button>
                     <Button
                         size="sm"
-                        variant="outline"
+                        emphasis="secondary"
                         :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.openAddCSSDialog?.()"
                     >

@@ -1,4 +1,5 @@
-import { camelCaseToHyphen, hyphenToCamelCase } from "@mkbabb/value.js";
+import { camelCaseToHyphen } from "@src/animation/internal/helpers";
+import { hyphenToCamelCase } from "@utils/helpers";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import type {
     CSSKeyframesAnimation,
@@ -7,8 +8,15 @@ import type {
 
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { createKeyframeId } from "../timelineTypes";
-import { flattenVars } from "./flattenVars";
 import { parseAnimationCSS } from "../../keyframes/utils/parseAnimationCSS";
+import {
+    requireKeyframeSelector,
+    selectorPercent,
+    selectorText,
+} from "@utils/keyframeSelector";
+import { serializeCssValue } from "@src/animation/compile/emit/css-text";
+import type { CssValue } from "@mkbabb/value.js/value";
+import { formatEditorCSS } from "@utils/formatEditorCSS";
 
 /**
  * Convert timeline keyframes into a CSSKeyframesAnimation. ASYNC because the
@@ -27,12 +35,7 @@ export async function buildAnimationFromTimeline(
     const sorted = [...state.keyframes].sort((a, b) => a.percent - b.percent);
 
     for (const kf of sorted) {
-        const key =
-            kf.percent === 0
-                ? "from"
-                : kf.percent === 100
-                  ? "to"
-                  : `${kf.percent}%`;
+        const key = selectorText(kf.selector);
 
         // Merge vars into keyframe (multiple keyframes at same percent get merged)
         const existing = keyframesMap[key] ?? {};
@@ -61,7 +64,9 @@ export async function exportTimelineToCSS(
 ): Promise<string> {
     const { CSSKeyframesToString } = await loadAnimationEngine();
     const anim = await buildAnimationFromTimeline(state, options, targets);
-    return await CSSKeyframesToString(anim, state.animationName);
+    return formatEditorCSS(
+        await CSSKeyframesToString(anim, state.animationName),
+    );
 }
 
 /**
@@ -74,23 +79,20 @@ export async function importCSSToTimeline(
     const { keyframes: parsed } = await parseAnimationCSS(css);
     const keyframes: TimelineKeyframe[] = [];
 
-    for (const [selector, vars] of Object.entries(parsed)) {
-        let percent: number;
-        if (selector === "from") {
-            percent = 0;
-        } else if (selector === "to") {
-            percent = 100;
-        } else {
-            percent = parseFloat(selector);
-        }
-
-        if (isNaN(percent)) continue;
+    for (const [selector, vars] of parsed) {
+        const parsedSelector = requireKeyframeSelector(selector);
+        const percent = selectorPercent(parsedSelector);
 
         const flatVars: Record<string, string> = {};
-        flattenVars(vars as Record<string, any>, "", flatVars, camelCaseToHyphen);
+        for (const [property, value] of Object.entries(vars)) {
+            flatVars[camelCaseToHyphen(property)] = serializeCssValue(
+                value as CssValue,
+            );
+        }
 
         keyframes.push({
             id: createKeyframeId(),
+            selector: parsedSelector,
             percent,
             vars: flatVars,
         });

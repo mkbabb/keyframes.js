@@ -1,4 +1,4 @@
-import { convert2 } from "@mkbabb/value.js/units";
+import { convertPixelsToCh } from "@utils/helpers";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { ref } from "vue";
 import {
@@ -35,7 +35,7 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
             return undefined;
         }
 
-        return convert2(el.offsetWidth, "px", "ch", el);
+        return convertPixelsToCh(el.offsetWidth, el);
     };
 
     const getTmpAnimationName = () => {

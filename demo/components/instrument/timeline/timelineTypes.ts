@@ -1,6 +1,11 @@
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
+
 export interface TimelineKeyframe {
     id: string;
-    percent: number; // 0–100
+    /** Normalized authored selector retained for CSS round-trip. */
+    selector: KeyframeSelector;
+    /** Resolved 0–100 presentation position used by the timeline UI. */
+    percent: number;
     vars: Record<string, string>; // CSS property → value pairs
     easing?: string;
     label?: string;

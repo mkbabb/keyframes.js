@@ -4,8 +4,8 @@
  * By default, keys are joined with "-" (e.g. `{ border: { color: "red" } }` → `"border-color": "red"`).
  * Pass `transformKey` to customise key handling (e.g. camelCaseToHyphen).
  *
- * Values whose `.valueOf` is a function (i.e. primitives, ValueUnits, etc.) are
- * treated as leaf nodes and stringified.  Plain nested objects are recursed into.
+ * Values with a callable `.valueOf` are treated as leaf nodes and stringified;
+ * object records without one are traversed recursively.
  */
 export function flattenVars(
     obj: Record<string, any>,

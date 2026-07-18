@@ -50,7 +50,7 @@ const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
 // COMPOSE — the SINGLE mesh writer (T.A7) — injected per frame via `onFrame`.
 const three = useAmigaThree(canvasEl, () => onFrame());
 
-// T.A7 — the group rides the compositor and writes a plain-vars POSE (not the
+// T.A7 — the group rides the compositor and writes an authored POSE (not the
 // mesh). The scene composes that pose with the additive gesture offset onto the
 // mesh; the group is the only pose author, the gesture the only offset author.
 const { animationGroup, pose } = useAmigaDemo();

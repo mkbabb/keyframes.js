@@ -161,7 +161,7 @@
                         <p class="text-small font-medium">Timeline expanded below</p>
                         <Button
                             size="sm"
-                            variant="ghost"
+                            emphasis="quiet"
                             class="gap-1.5 text-small font-medium"
                             @click="storedControls.isTimelineExpanded = false"
                         >
@@ -292,7 +292,7 @@ const tabsExternallyManaged = inject(TABS_EXTERNALLY_MANAGED_KEY, false);
 // per-scene DFA-gated surface.
 const machine = useSceneMachine();
 // T.B2 — the tab {label,icon} metadata resolves from the ONE `SURFACE_META`
-// registry (controlSurfaceDFA.ts); the former local `BUILT_IN_TAB_META` copy
+// registry (controlSurfaces.ts); the former local `BUILT_IN_TAB_META` copy
 // (one of the three hand-synced sites) is DELETED.
 const hasSurface = (surface: ControlSurface): boolean =>
     !tabsExternallyManaged || machine.controlSurfaces.value.includes(surface);

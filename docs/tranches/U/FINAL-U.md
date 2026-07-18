@@ -142,7 +142,7 @@ is immutable, Keyframes publishes the smallest compatible successor whose
 optional Glass edge is exactly 6.0.0, proves one physical core from registry
 artifacts, and returns its tag/tarball/integrity/`gitHead` before Atlas 2.0
 consumes the tuple. That successor also rewords the Tailwind-scanned
-`text-[var(...)]` prose literal in `MbabbMenu.vue`; Glass commit `73b852cd` owns
+arbitrary-value-shaped prose literal in `MbabbMenu.vue`; Glass commit `73b852cd` owns
 the actual empty-animate/highlight/class cleanup. This is a named future
 artifact boundary, not an inherited U tripwire or permission to consume an
 active worktree.
