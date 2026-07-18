@@ -165,15 +165,13 @@ and grew the successor UNMEASURED in the same commit.
 falsification (~10–14% slower) is REAL but parse-that-INTERNAL — it never tested
 parse-that-vs-custom on the value grammar.
 
-### P1.3 Tape, adjudicated
+### P1.3 Tape — OUT OF SCOPE
 
-parse-that TS = zero tape; its shipped architecture is ALREADY mutable-ParserState
-+ zero-copy Spans ("~4,000 heap objects/parse eliminated"). bbnf-lang deleted the
-old `crates/tape/` (Era-IV), then RE-ADOPTED tape as the flat-tape runtime
-substrate (2026-05-29/30: `1c5bd7a25`, `3a37c29d8` CSS-L4, `6dad81fb9` lazy CSSOM
-projection) — LIVE at `b3cf48e3b`, still measuring the sonic-rs gap. **TS tape
-adoption = NEW porting work, admissible, bench-gated.** Name-and-supersede the
-RETIRED S.H3 Pratt row (DISPOSITION-LEDGER.md:173) in the bench wave.
+parse-that ships zero tape; its TS core is already the mutable-ParserState +
+zero-copy-Span architecture that value consumes. Everything tape-related is
+parse-that/bbnf-lang tranche territory per the P1.6 decree — it plays NO role in
+this tranche and should occupy no formation context. The RETIRED S.H3 Pratt row
+(DISPOSITION-LEDGER.md:173) stays retired.
 
 ### P1.4 The boundary census (kf side)
 
