@@ -256,7 +256,42 @@ formation-support orchestration outside the audit count.
   v-pretag-ready.md` — the consumer is staged; the rail fires same-day on
   their packet.
 
-## State: EXECUTION DISPATCHED 2026-07-17 — entry anchor = `EXECUTION-HANDOFF.md`
+## 2026-07-17/18 — THE GLASS-7 ADOPT (owner-ordered): the rail lands, V folds forward
+
+- **Glass 7.0.0 shipped** (gitHead `4ab12128`, tag `v7.0.0`, npm provenance;
+  the Q060 packet marked as IN-GLASS-2; §7 names two known shipping defects
+  with live kf exposure — HeroAurora/aurora, Chip+Badge/orphaned-CSS).
+- **W2 CLOSED** (`add20b7e` → merge `ebb08948`): the 65-path slice (manifest
+  count exact; landed-slice digest `0d2c1cc0…` from the committed pinned
+  `scripts/release/consumer-manifest.mjs`) + the W1 extension + XR-4 + exact
+  glass `7.0.0` demo-only devDep; registry-only lock; ONE physical glass
+  core, value 4.0.0 deduped; CC-05 watchlist green (20 subpaths, zero
+  removed-set). In-wave repairs (measured at consume, recorded honestly):
+  the W6 dead-deletes were transaction-live → re-homed at
+  `demo/utils/helpers.ts` (CT-04 mechanism); the EE-02 css twin made
+  conditional under exactOptionalPropertyTypes. **FAM-01 CURED: full check
+  + full test are the honest battery again** (1195 tests; proof:structure
+  R1–R6; lint 0; engine 44/44; proof:publish PASS; gh-pages build green).
+- **W1 CLOSED — landed.** The harness ran GREEN against the real consumed
+  tree: 14/14, pageerror=0, objectObject=0 (green witness committed).
+- **W3 PARTIAL — the deploy of record is LIVE**: CI run `29625675105`
+  success; deploy-pages run `29625732473` SUCCESS (the first green deploy
+  since the K6 push); `https://keyframes.babb.dev/` HTTP 200 serving entry
+  `index-9E-8lial.js` = the local W2 build (round-trip identity). The full
+  §5.11 native interaction matrix folds forward.
+- **The WL verdicts marked** (IN-VALUE-2): D-GAP-6 DECLINED-WITH-PATTERN and
+  ACCEPTED; all value covenant rows terminal; the value boundary is CLEAR.
+- **Consume-confirmation packets delivered ×3** (glass, value, atlas —
+  bounded, no asks).
+- **`FOLD-FORWARD.md` WRITTEN — the owner's fold-forward guarantee**: §A
+  wave dispositions (W7, W8, W9-landing, W10-remainder, W11, W13 fold; W2
+  Scope-6/7 re-verifies folded, not dropped), §B the 15-row
+  exhortations/marks register, §C what the successor inherits green. The
+  successor formation mints its charter from it + OD-V2.
+- **Owner-checkout reconciliation is now SAFE and pending** (the transaction
+  is on master and byte-preserved at `keyframes-v-w2-prestage/`).
+
+## State: ADOPTION COMPLETE 2026-07-18 — V FOLDS FORWARD per `FOLD-FORWARD.md`; the successor formation opens with V's close ceremony + the OD-V2 total demo audit
 
 Owner ordered compaction-and-execute. The constellation was notified on all
 four channels (glass, value.js, atlas/sci, speedtest — §5 of the handoff).
