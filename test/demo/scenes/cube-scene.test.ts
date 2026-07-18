@@ -17,12 +17,21 @@ import { describe, expect, it } from "vitest";
 import { mat4 } from "gl-matrix";
 import { ref } from "vue";
 import type { TransformState } from "../../../demo/scenes/cube/orbital-drag";
-import { FACE_NORMALS, useCubeRelit } from "../../../demo/scenes/cube/useCubeRelit";
+import {
+    FACE_NORMALS,
+    useCubeRelit,
+} from "../../../demo/scenes/cube/useCubeRelit";
 import {
     CUBE_ANIMATION_NAMES,
     SCENE_ID,
 } from "../../../demo/scenes/cube/useCubeDemo";
 import { CUBE_SCENE_ID } from "../../../demo/scenes/cube/cubeKeys";
+import {
+    createMatrix,
+    cssVariable,
+    matrixValues,
+    withMatrixCell,
+} from "../../../demo/scenes/cube/matrix-editor/transformMath";
 
 const restTransform = (rotate = { x: 0, y: 0, z: 0 }): TransformState => ({
     rotate,
@@ -85,5 +94,44 @@ describe("cube scene registry keys", () => {
         // not the retired PascalCase "Cube"), single-sourced from cubeKeys.
         expect(SCENE_ID).toBe(CUBE_SCENE_ID);
         expect(CUBE_SCENE_ID).toBe("cube");
+    });
+});
+
+describe("cube Value 4 authoring", () => {
+    it("authors an immutable structural matrix3d call", () => {
+        const matrix = createMatrix();
+        const changed = withMatrixCell(matrix, 12, 48);
+
+        expect(matrix).toMatchObject({ kind: "call", name: "matrix3d" });
+        expect(matrix.args).toHaveLength(16);
+        expect(matrixValues(matrix)[12]).toBe(0);
+        expect(matrixValues(changed)[12]).toBe(48);
+        expect(changed).not.toBe(matrix);
+    });
+
+    it("rejects malformed matrix3d arity and non-numeric arguments", () => {
+        const matrix = createMatrix();
+        expect(() =>
+            matrixValues({ ...matrix, args: matrix.args.slice(0, 15) }),
+        ).toThrow(/requires 16 arguments/);
+        expect(() =>
+            matrixValues({
+                ...matrix,
+                args: [cssVariable("--bad"), ...matrix.args.slice(1)],
+            }),
+        ).toThrow(/finite unitless number/);
+    });
+
+    it("authors var() as a structural Value call", () => {
+        expect(cssVariable("--rotationX")).toEqual({
+            kind: "call",
+            name: "var",
+            args: [
+                {
+                    kind: "scalar",
+                    payload: { type: "keyword", value: "--rotationX" },
+                },
+            ],
+        });
     });
 });

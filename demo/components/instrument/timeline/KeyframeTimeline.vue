@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card surface="cartoon" tier="quiet" :class="['w-full overflow-visible', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
+    <Card cartoon tier="quiet" :class="['w-full overflow-visible', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Pane action buttons -->
         <div class="flex items-center justify-end gap-1">
@@ -8,52 +8,68 @@
                  Mod+Z / Mod+Shift+Z bindings; bounded by the same canUndo/canRedo
                  history state. Sits in the timeline card (not over the dock band),
                  so it does not occlude the dock (inv δ). -->
-            <IconTooltip text="Undo (Mod+Z)">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
-                    aria-label="Undo"
-                    :disabled="!canUndo"
-                    @click="undo()"
-                >
-                    <Undo2 class="icon-sm" />
-                </Button>
-            </IconTooltip>
-            <IconTooltip text="Redo (Mod+Shift+Z)">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
-                    aria-label="Redo"
-                    :disabled="!canRedo"
-                    @click="redo()"
-                >
-                    <Redo2 class="icon-sm" />
-                </Button>
-            </IconTooltip>
-            <IconTooltip text="Clear all keyframes">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
-                    aria-label="Clear all keyframes"
-                    @click="clear()"
-                >
-                    <Trash class="icon-sm" />
-                </Button>
-            </IconTooltip>
-            <IconTooltip :text="props.expanded ? 'Collapse timeline' : 'Expand timeline'">
-                <Button
-                    size="sm"
-                    variant="ghost"
-                    class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
-                    :aria-label="props.expanded ? 'Collapse timeline' : 'Expand timeline'"
-                    @click="emit('toggleExpand')"
-                >
-                    <component :is="props.expanded ? Minimize2 : Maximize2" class="icon-sm" />
-                </Button>
-            </IconTooltip>
+            <Tooltip>
+                <TooltipTrigger as-child>
+                    <Button
+                        size="sm"
+                        emphasis="quiet"
+                        icon-only
+                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                        aria-label="Undo"
+                        :disabled="!canUndo"
+                        @click="undo()"
+                    >
+                        <Undo2 class="icon-sm" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>Undo (Mod+Z)</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger as-child>
+                    <Button
+                        size="sm"
+                        emphasis="quiet"
+                        icon-only
+                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                        aria-label="Redo"
+                        :disabled="!canRedo"
+                        @click="redo()"
+                    >
+                        <Redo2 class="icon-sm" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>Redo (Mod+Shift+Z)</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger as-child>
+                    <Button
+                        size="sm"
+                        emphasis="quiet"
+                        icon-only
+                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                        aria-label="Clear all keyframes"
+                        @click="clear()"
+                    >
+                        <Trash class="icon-sm" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>Clear all keyframes</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger as-child>
+                    <Button
+                        size="sm"
+                        emphasis="quiet"
+                        icon-only
+                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
+                        :aria-label="props.expanded ? 'Collapse timeline' : 'Expand timeline'"
+                        @click="emit('toggleExpand')"
+                    >
+                        <component :is="props.expanded ? Minimize2 : Maximize2" class="icon-sm" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>{{ props.expanded ? "Collapse timeline" : "Expand timeline" }}</TooltipContent>
+            </Tooltip>
         </div>
 
         <!-- Timeline track: diamonds, playhead, ticks, carets, zoom/pan -->
@@ -94,7 +110,8 @@
                     </div>
                     <Button
                         size="sm"
-                        variant="ghost"
+                        emphasis="quiet"
+                        icon-only
                         class="h-6 w-6 p-0"
                         aria-label="Remove keyframe"
                         @click="removeKeyframe(selectedKeyframeId!)"
@@ -152,7 +169,7 @@ import {
 import CSSPasteDialog from "./CSSPasteDialog.vue";
 import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
-import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";

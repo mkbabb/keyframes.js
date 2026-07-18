@@ -4,6 +4,7 @@ import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { captureSnapshot } from "../utils/snapshotCapture";
 import { toast } from "vue-sonner";
 import { clamp } from "@mkbabb/value.js/math";
+import { percentSelector } from "@utils/keyframeSelector";
 
 /**
  * The OPS half of the timeline: keyframe-array CRUD — snapshot the current
@@ -36,6 +37,7 @@ export function useTimelineOps(
     const addKeyframe = (percent: number, vars?: Record<string, string>) => {
         const kf: TimelineKeyframe = {
             id: createKeyframeId(),
+            selector: percentSelector(percent),
             percent,
             vars: vars ?? {},
         };
@@ -55,6 +57,7 @@ export function useTimelineOps(
         const kf = state.value.keyframes.find((k) => k.id === id);
         if (kf) {
             kf.percent = clamp(newPercent, 0, 100);
+            kf.selector = percentSelector(kf.percent);
             rebuild();
         }
     };

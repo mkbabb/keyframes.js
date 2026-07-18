@@ -36,7 +36,7 @@ import {
     selectedSurfaceFrom,
     type ControlSurface,
     type ControlSurfaceTab,
-} from "./controlSurfaceDFA";
+} from "./controlSurfaces";
 
 /** The localStorage key the machine context persists under (ST-6). Exported so
  *  `resetAllStores()` (storeUtils STORE_KEYS) wipes it in the same motion — the

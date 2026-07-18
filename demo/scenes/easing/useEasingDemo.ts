@@ -1,6 +1,5 @@
-import { CSSCubicBezier, steppedEase, stepEnd, stepStart, timingFunctions } from "@mkbabb/value.js/easing";
+import type { JumpPosition } from "@mkbabb/value.js/easing";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
-import { camelCaseToHyphen } from "@mkbabb/value.js";
 import { computed, markRaw, ref, watch } from "vue";
 import { useThrottledReadout } from "@composables/useThrottledReadout";
 
@@ -10,6 +9,9 @@ import type { TimingFunction } from "@mkbabb/keyframes.js";
 import {
     generateCurveSVGPath,
     generateStepSVGPath,
+    cubicBezierEasing,
+    namedEasing,
+    steppedEasing,
 } from "@utils/reference-data/timingCurveUtils";
 import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
@@ -21,36 +23,21 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useSceneMachine } from "@state";
 import { kfEngine } from "@kf-engine";
 import { EASING_SCENE_ID } from "./easingKeys";
-import { getFamilyForCurve, getFamilyCurves } from "@utils/reference-data/easingGroups";
-
-// ── Static data ────────────────────────────────────────────────────
-
-// R.W6 C.2 — module-level const (synchronous pure derivation, no side-effects).
-// Replaces the former `let _timingFunctionsAnd` mutable singleton + guarded-init.
-// `Record<string, unknown>` captures the mixed bag: named TimingFunctions, the
-// "cubic-bezier" string sentinel, and parameterized factory functions (steppedEase
-// etc.) — the callers guard with `typeof fn === "function"` before using as a
-// TimingFunction.
-const timingFunctionsAnd: Record<string, unknown> = Object.fromEntries(
-    Object.entries({
-        "cubic-bezier": "cubic-bezier",
-        ...timingFunctions,
-    }).map(([k, v]) => [camelCaseToHyphen(k), v]),
-);
-
-// J.W2 S6 (LS-20) — the jump-term union the `steppedEase` signature expects,
-// derived FROM that signature (one authority; no `as any` laundering the type).
-type JumpTerm = NonNullable<Parameters<typeof steppedEase>[1]>;
+import {
+    getFamilyForCurve,
+    getFamilyCurves,
+} from "@utils/reference-data/easingGroups";
 
 // ── Composable ─────────────────────────────────────────────────────
 
 export function useEasingDemo() {
-
     // ── Reactive state ─────────────────────────────────────────────
 
     const currentEasingName = ref("ease");
-    const bezierControlPoints = ref<[number, number, number, number]>([0.25, 0.1, 0.25, 1.0]);
-    const stepOptions = ref<{ steps: number; jumpTerm: JumpTerm }>({
+    const bezierControlPoints = ref<[number, number, number, number]>([
+        0.25, 0.1, 0.25, 1.0,
+    ]);
+    const stepOptions = ref<{ steps: number; jumpTerm: JumpPosition }>({
         steps: 4,
         jumpTerm: "jump-end",
     });
@@ -92,16 +79,15 @@ export function useEasingDemo() {
         const name = currentEasingName.value;
 
         if (name === "cubic-bezier") {
-            return CSSCubicBezier(...bezierControlPoints.value);
+            return cubicBezierEasing(...bezierControlPoints.value);
         }
         if (name === "steps") {
-            return steppedEase(stepOptions.value.steps, stepOptions.value.jumpTerm);
+            return steppedEasing(
+                stepOptions.value.steps,
+                stepOptions.value.jumpTerm,
+            );
         }
-        if (name === "step-start") return stepStart();
-        if (name === "step-end") return stepEnd();
-
-        const fn = timingFunctionsAnd[name];
-        return typeof fn === "function" ? (fn as TimingFunction) : (t: number) => t;
+        return namedEasing(name);
     });
 
     const cssValue = computed(() => {
@@ -127,21 +113,22 @@ export function useEasingDemo() {
         return generateCurveSVGPath(currentEasingFn.value);
     });
 
-    const currentFamily = computed(() => getFamilyForCurve(currentEasingName.value));
+    const currentFamily = computed(() =>
+        getFamilyForCurve(currentEasingName.value),
+    );
 
-    const comparisonCurves = computed<{ name: string; fn: TimingFunction }[]>(() => {
-        const family = getFamilyCurves(currentEasingName.value);
-        // Exclude steps/custom from comparison — they need parameters
-        return family
-            .filter((item) => !item.isDetail)
-            .map((item) => {
-                const fn = timingFunctionsAnd[item.name];
-                return {
+    const comparisonCurves = computed<{ name: string; fn: TimingFunction }[]>(
+        () => {
+            const family = getFamilyCurves(currentEasingName.value);
+            // Exclude steps/custom from comparison — they need parameters
+            return family
+                .filter((item) => !item.isDetail)
+                .map((item) => ({
                     name: item.name,
-                    fn: typeof fn === "function" ? (fn as TimingFunction) : (t: number) => t,
-                };
-            });
-    });
+                    fn: namedEasing(item.name),
+                }));
+        },
+    );
 
     // ── Preview sweep: NumericAnimation (direction: "alternate") ────
     // The 0→1→0 ping-pong is the keyframe sequence itself — a normalized phase
@@ -335,19 +322,23 @@ export function useEasingDemo() {
     // ball, mounted in the scene's ribbonContent slot) tracks the real progress:
     // the visualizer reads `effectiveT/duration`, the scrubber reads `currentT`.
     // A watch (not the rAF frame) keeps the twin write off the hot path.
-    watch(progress, (p) => {
-        previewAnim.t = p * previewAnim.options.duration;
-        // I.W4 D4 — keep the imperatively-painted dots in lock-step with a PAUSED
-        // scrub. The scene's scrubber writes `demo.progress.value` directly (a
-        // discrete paused-scrub event), so when the loop is idle a `progress`
-        // change must reconcile the live value + repaint the dots. While the loop
-        // RUNS it owns `livePhaseValue` (the 12 Hz reactive write must NOT bounce
-        // back through here), so we gate on the loop being idle.
-        if (!playback.running) {
-            livePhaseValue = p;
-            repaintDots();
-        }
-    }, { immediate: true });
+    watch(
+        progress,
+        (p) => {
+            previewAnim.t = p * previewAnim.options.duration;
+            // I.W4 D4 — keep the imperatively-painted dots in lock-step with a PAUSED
+            // scrub. The scene's scrubber writes `demo.progress.value` directly (a
+            // discrete paused-scrub event), so when the loop is idle a `progress`
+            // change must reconcile the live value + repaint the dots. While the loop
+            // RUNS it owns `livePhaseValue` (the 12 Hz reactive write must NOT bounce
+            // back through here), so we gate on the loop being idle.
+            if (!playback.running) {
+                livePhaseValue = p;
+                repaintDots();
+            }
+        },
+        { immediate: true },
+    );
 
     // ── THE EASING FACILITY (T.B1-β) ──────────────────────────────────────────
     // ONE real channel ("Easing" — the preview animation above; its triad is
@@ -373,9 +364,6 @@ export function useEasingDemo() {
     };
 
     return {
-        // Static
-        timingFunctionsAnd,
-
         // State
         currentEasingName,
         bezierControlPoints,

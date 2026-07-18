@@ -5,6 +5,7 @@ import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createKeyframeId } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
+import { selectorPercent } from "@utils/keyframeSelector";
 import {
     buildAnimationFromTimeline,
     exportTimelineToCSS,
@@ -163,16 +164,14 @@ export function useTimelineBuild(
         const keyframes: TimelineKeyframe[] = [];
 
         for (const frame of presetAnim.templateFrames) {
-            const percent =
-                typeof frame.start.valueOf() === "number"
-                    ? (frame.start.valueOf() as number) * 100
-                    : 0;
+            const percent = selectorPercent(frame.start);
 
             const vars: Record<string, string> = {};
             flattenVars(frame.vars, "", vars);
 
             keyframes.push({
                 id: createKeyframeId(),
+                selector: frame.start,
                 percent,
                 vars,
             });

@@ -2,7 +2,7 @@
     <div class="grid">
         <Input
             class="sticky z-modal bg-transparent top-0 text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
-            :model-value="frameStart"
+            :model-value="displayStart"
             @update:model-value="(val) => emit('updateStart', String(val))"
         >
         </Input>
@@ -53,18 +53,31 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { Label } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import CopyButton from "@components/CopyButton.vue";
 import { X } from "@lucide/vue";
 
-defineProps<{
+const props = defineProps<{
     frameString: string;
     formattedCSS: string;
     frameStart: string;
     index: number;
 }>();
+
+// FE-3 — coerce the start to its scalar before binding the editable start
+// field. The parent (KeyframeCardList) already passes a scalar, but a Spring
+// `KeyframeSelector` object (`{ kind: "percent", value }`) reaching this Input
+// would render `"[object Object]"`; extracting `.value` keeps the field honest
+// regardless of what upstream hands down.
+const displayStart = computed(() => {
+    const s = props.frameStart as unknown;
+    if (s != null && typeof s === "object" && "value" in s) {
+        return String((s as { value: unknown }).value);
+    }
+    return String(s ?? "");
+});
 
 const emit = defineEmits<{
     (e: "updateStart", val: string): void;

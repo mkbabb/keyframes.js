@@ -43,7 +43,7 @@
 import { ref, computed } from "vue";
 import { useTimeoutFn } from "@vueuse/core";
 import SharePopover from "./SharePopover.vue";
-import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
+import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 
 const isExpanded = ref(false);
 const isPinned = ref(false);

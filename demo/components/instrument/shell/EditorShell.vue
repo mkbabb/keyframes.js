@@ -13,7 +13,7 @@
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
-        <HeaderRibbon ref="headerRibbonRef" position="right">
+        <HeaderRibbon placement="right">
             <template #items>
                 <slot name="header-left"></slot>
                 <slot name="header-right">
@@ -27,25 +27,25 @@
                          path is the forward feature-detected idiom (BOOKed, not
                          forced — r-modern-web-2026 F-MW-1). Sits in the header
                          ribbon, not over the dock band → no occlusion (inv δ). -->
-                    <IconTooltip text="Keyboard shortcuts (?)">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Show keyboard shortcuts"
-                            class="aspect-square w-8 scale-on-hover"
-                            @click="shortcutsOpen = true"
-                        >
-                            <Keyboard class="icon-sm" />
-                        </Button>
-                    </IconTooltip>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button
+                                emphasis="quiet"
+                                icon-only
+                                aria-label="Show keyboard shortcuts"
+                                class="aspect-square w-8 scale-on-hover"
+                                @click="shortcutsOpen = true"
+                            >
+                                <Keyboard class="icon-sm" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Keyboard shortcuts (?)</TooltipContent>
+                    </Tooltip>
                     <DarkModeToggle
                         title="Toggle dark mode"
                         class="aspect-square w-8 scale-on-hover"
                     />
                 </slot>
-            </template>
-            <template #anchor="{ pinned, toggled }">
-                <slot name="header-anchor" :pinned="pinned" :toggled="toggled"></slot>
             </template>
         </HeaderRibbon>
 
@@ -110,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
+import { ref } from "vue";
 
 import { initIOSPlatformClass } from "@components/instrument/utils/iosTextEntry";
 import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
@@ -120,9 +120,9 @@ import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import AnimationControlsGroup from "@components/instrument/transport/AnimationControlsGroup.vue";
 
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
-import { DarkModeToggle } from "@mkbabb/glass-ui/controls";
+import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { Button } from "@mkbabb/glass-ui";
-import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { Keyboard } from "@lucide/vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
@@ -184,7 +184,6 @@ const emit = defineEmits<{
     (e: "startStateChange", started: boolean): void;
 }>();
 
-const headerRibbonRef = useTemplateRef<InstanceType<typeof HeaderRibbon>>("headerRibbonRef");
 
 const shortcutsOpen = ref(false);
 registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
@@ -194,7 +193,6 @@ const onPlayStateChange = (playing: boolean) => {
 };
 
 
-defineExpose({ headerRibbonRef });
 </script>
 
 <style scoped>

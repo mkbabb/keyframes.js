@@ -21,7 +21,7 @@
                 />
                 <Button
                     size="sm"
-                    variant="ghost"
+                    emphasis="quiet"
                     class="h-8 w-8 p-0 shrink-0"
                     @click="loadFromInput"
                     title="Load shared state"
@@ -30,7 +30,7 @@
                 </Button>
                 <Button
                     size="sm"
-                    variant="ghost"
+                    emphasis="quiet"
                     class="h-8 w-8 p-0 shrink-0"
                     @click="shareState"
                     title="Copy share link"

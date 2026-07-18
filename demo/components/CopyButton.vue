@@ -39,7 +39,7 @@ const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
 
 const options: Partial<InputAnimationOptions> = {
     duration: 200,
-    timingFunction: "bounceInEase",
+    timingFunction: "easeInBounce",
 };
 
 // The copy-feedback group is HEAVY (CSSKeyframesAnimation/AnimationGroup), so it

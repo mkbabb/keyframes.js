@@ -1,28 +1,34 @@
 <template>
     <div class="w-full grid gap-2">
-        <IconTooltip :class="!isAnimStarted ? 'is-disabled' : ''" text="Scrub animation timeline">
-            <div
-                :class="['touch-gate-target timeline-green', gate.isActive.value ? 'touch-gate-active' : '']"
-                @pointerdown.capture="gatedSliderDown"
-                @touchmove="gate.handleScrollCheck"
-                @touchend="gate.handleTouchEnd"
-            >
-                <Slider
-                    ref="sliderRef"
-                    variant="timeline"
-                    class="p-2"
-                    :min="0"
-                    :max="effectiveDuration"
-                    :model-value="[currentT]"
-                    @update:model-value="(val: any) => scrubTo(val[0])"
-                />
-            </div>
-        </IconTooltip>
+        <Tooltip>
+            <TooltipTrigger as-child>
+                <div
+                    :class="[
+                        'touch-gate-target timeline-green',
+                        gate.isActive.value ? 'touch-gate-active' : '',
+                        !isAnimStarted ? 'is-disabled' : '',
+                    ]"
+                    @pointerdown.capture="gatedSliderDown"
+                    @touchmove="gate.handleScrollCheck"
+                    @touchend="gate.handleTouchEnd"
+                >
+                    <Slider
+                        ref="sliderRef"
+                        class="p-2"
+                        :min="0"
+                        :max="effectiveDuration"
+                        :model-value="[currentT]"
+                        @update:model-value="(val: any) => scrubTo(val[0])"
+                    />
+                </div>
+            </TooltipTrigger>
+            <TooltipContent>Scrub animation timeline</TooltipContent>
+        </Tooltip>
 
         <div class="grid grid-cols-2 gap-2 w-full">
             <Button
                 class="btn-playback btn-playback-accent"
-                variant="outline"
+                emphasis="secondary"
                 @click="emit('togglePlay')"
             >
                 <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
@@ -50,7 +56,7 @@
                     'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
                 :aria-pressed="userReversed"
-                variant="outline"
+                emphasis="secondary"
                 @click="emit('toggleReverse')"
             >
                 <span>Reverse</span>
@@ -85,7 +91,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
-import { IconTooltip } from "@mkbabb/glass-ui/icon-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 
@@ -216,7 +222,8 @@ const scrubTo = (effectiveT: number) => {
    set on the wrapper is OVERRIDDEN by the size-default and never reaches the
    track (measured: wrapper sets .625rem, track still resolves the md 1.25rem).
    The cure sets the height on the slider element ITSELF via :deep, beating the
-   `[data-size=md]` default's specificity (0,2,0 with the variant attr) so it
+   `[data-size=md]` default's specificity while staying scoped to the standard
+   recipe, so it
    actually lands: the scrub rail lifts to 1.5rem (24px) — clearly more
    substantial than the 20px md default the user called "too thin", a chunky
    scrubbable rail with the red range fill. The thumb keeps its variant size. */
@@ -228,7 +235,7 @@ const scrubTo = (effectiveT: number) => {
 /* Set the track height on the slider element (where [data-size=md] declares it)
    so it wins the cascade and reaches `.slider-track`'s var(--slider-track-height)
    read — the wrapper-level var did not. */
-.timeline-green :deep(.glass-slider[data-variant=timeline]) {
+.timeline-green :deep(.glass-slider[data-variant="standard"]) {
     --slider-track-height: 1.5rem;
 }
 .timeline-green:hover {

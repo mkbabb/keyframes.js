@@ -1,33 +1,54 @@
-import { extractAnimationOptions, extractStyleRules, parseCSSStylesheet, type CSSAnimationOptions } from "@mkbabb/value.js/parsing";
+import {
+    collectAnimationOptions,
+    collectStyleRules,
+    type CSSAnimationOptions,
+} from "@mkbabb/value.js/css";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+import { serializeTimingFunction } from "@src/animation/compile/emit/css-text";
+
+type EditorAnimationOptions = Omit<CSSAnimationOptions, "timingFunction"> & {
+    timingFunction?: string;
+};
 
 /**
  * Pure CSS → AST parse adapter.
  *
- * Produces the legacy `{ keyframes, options, values }` shape from value.js's
- * Stylesheet AST. `keyframes` is the Map from `resolveKeyframes`; `options` are
+ * Produces the editor's `{ keyframes, options, values }` projection from the
+ * engine adapter's Stylesheet AST. `keyframes` is the normalized selector Map;
+ * `options` are
  * CSS animation-* longhands / shorthand from any top-level style rule; `values`
  * are the non-animation declarations from that style rule.
  *
- * Inputs that lack a `@keyframes` block are wrapped in an anonymous one (the
- * superset guard from the editor call site), so both a full stylesheet and a
- * bare declaration list are tolerated.
- *
- * No Vue reactivity, no side effects. ASYNC because `resolveKeyframes` is HEAVY
- * (reached through `loadAnimationEngine()` after the L.W8 S1 dogfood inversion);
- * value.js's AST parse/extract stay synchronous, only the kf resolve awaits.
+ * No Vue reactivity, no side effects. The engine adapter is the single grammar
+ * authority, including its bare-stop-list handling; this module performs no
+ * regex pre-detection or second parse.
  */
 export const parseAnimationCSS = async (input: string) => {
     const { resolveKeyframes } = await loadAnimationEngine();
-    const ast = parseCSSStylesheet(
-        /@keyframes\b/i.test(input)
-            ? input
-            : `@keyframes anonymous {\n${input}\n}`,
+    const resolved = resolveKeyframes(input);
+    const parseIssue = resolved.diagnostics.find(
+        (diagnostic) => diagnostic.code === "PARSE_ERROR",
     );
-    const resolved = resolveKeyframes(ast);
-    const options: CSSAnimationOptions = extractAnimationOptions(ast);
+    if (parseIssue !== undefined) {
+        throw new TypeError(`Invalid animation CSS: ${parseIssue.message}`);
+    }
+    const ast = resolved.stylesheet;
+    const rows = collectStyleRules(ast);
+    const selectedDeclarations =
+        rows.filter((row) => row.path.length === 1).at(-1)?.rule.declarations ??
+        [];
+    const parsedOptions: CSSAnimationOptions =
+        collectAnimationOptions(selectedDeclarations).at(0) ?? {};
+    const { timingFunction, ...rest } = parsedOptions;
+    const options: EditorAnimationOptions =
+        timingFunction === undefined
+            ? rest
+            : {
+                  ...rest,
+                  timingFunction: serializeTimingFunction(timingFunction),
+              };
     const values: Record<string, unknown> = {};
-    for (const rule of extractStyleRules(ast)) {
+    for (const { rule } of rows) {
         for (const decl of rule.declarations) {
             if (!decl.name.startsWith("animation"))
                 values[decl.name] = decl.value;

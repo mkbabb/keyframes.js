@@ -1,11 +1,13 @@
-import { formatCSS, reverseCSSTime } from "@mkbabb/value.js/parsing";
+import { reverseCSSTime } from "@src/animation/compile/emit/css-text";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import { debounce } from "@mkbabb/value.js";
+import { debounce } from "@utils/helpers";
 import { toast } from "vue-sonner";
 import type { KeyframesState } from "./useKeyframesState";
 import { parseAnimationCSS } from "../utils/parseAnimationCSS";
 import { getStoredAnimationOptions } from "@state";
+import { requireKeyframeSelector, selectorText } from "@utils/keyframeSelector";
+import { formatEditorCSS } from "@utils/formatEditorCSS";
 
 /** The string-generation callbacks the ops thread back into. */
 interface StringSync {
@@ -45,41 +47,45 @@ async function withErrorToastAsync(
 export function useKeyframeOps(
     animation: KeyframesAnimation<any>,
     state: KeyframesState,
-    emit: (event: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }) => void,
+    emit: (
+        event: "keyframesUpdate",
+        val: { animation: KeyframesAnimation<any> },
+    ) => void,
     sync: StringSync,
 ) {
     const { addKeyframesString, kfControls, getFormatWidth } = state;
     const { updateAllStrings, updateAllStringsAndAnimation } = sync;
 
     const updateFromString = async (keyframesString: string) => {
-            kfControls.keyframes = keyframesString;
+        kfControls.keyframes = keyframesString;
 
-            const { CSSKeyframesAnimation, yieldToMain } = await loadAnimationEngine();
-            const { options, keyframes } = await parseAnimationCSS(keyframesString);
-            await yieldToMain();
-            const compiled = new CSSKeyframesAnimation(
-                options as Record<string, unknown>,
-                ...animation.targets,
-            ).fromKeyframes(keyframes);
-            animation.adoptCompiled(compiled);
+        const { CSSKeyframesAnimation, yieldToMain } =
+            await loadAnimationEngine();
+        const { options, keyframes } = await parseAnimationCSS(keyframesString);
+        await yieldToMain();
+        const compiled = new CSSKeyframesAnimation(
+            options as Record<string, unknown>,
+            ...animation.targets,
+        ).fromKeyframes(keyframes);
+        animation.adoptCompiled(compiled);
 
-            const stored = getStoredAnimationOptions(animation).animationOptions;
-            stored.duration = reverseCSSTime(animation.options.duration);
-            stored.delay = reverseCSSTime(animation.options.delay);
-            stored.iterationCount = isFinite(animation.options.iterationCount)
-                ? animation.options.iterationCount
-                : "infinite";
-            stored.direction = animation.options.direction;
-            stored.fillMode = animation.options.fillMode;
-            if (options?.timingFunction) stored.timingFunction = options.timingFunction;
+        const stored = getStoredAnimationOptions(animation).animationOptions;
+        stored.duration = reverseCSSTime(animation.options.duration);
+        stored.delay = reverseCSSTime(animation.options.delay);
+        stored.iterationCount = isFinite(animation.options.iterationCount)
+            ? animation.options.iterationCount
+            : "infinite";
+        stored.direction = animation.options.direction;
+        stored.fillMode = animation.options.fillMode;
+        if (options?.timingFunction)
+            stored.timingFunction = options.timingFunction;
 
-            emit("keyframesUpdate", { animation });
-            sync.debouncedUpdateAllStrings();
+        emit("keyframesUpdate", { animation });
+        sync.debouncedUpdateAllStrings();
     };
 
     const updateAnimationFromKeyframesString = debounce(
         (keyframesString: string) => {
-
             // S4 (INP relief): this is the demo's heaviest edit op — a full CSS
             // parse THEN a fresh compile, run on every Monaco edit. Splitting it
             // with the engine's OWN `yieldToMain` (one yield ladder in the
@@ -102,13 +108,19 @@ export function useKeyframeOps(
     const updateAnimationFromKeyframeString = debounce(
         (keyframeString: string, frameIx: number) => {
             const start = animation.templateFrames[frameIx]!.start;
-            const wrapped = `${start} { ${keyframeString} }`;
+            const wrapped = `${selectorText(start)} { ${keyframeString} }`;
 
             void withErrorToastAsync(
                 async () => {
                     const { keyframes, options } =
                         await parseAnimationCSS(wrapped);
-                    const [_, newVars] = Object.entries(keyframes)[0]!;
+                    const first = keyframes.entries().next();
+                    if (first.done) {
+                        throw new TypeError(
+                            "Keyframe edit produced no keyframe.",
+                        );
+                    }
+                    const [, newVars] = first.value;
 
                     Object.assign(
                         animation.options,
@@ -132,7 +144,7 @@ export function useKeyframeOps(
     );
 
     const updateAddKeyframesString = async (keyframesString: string) => {
-        const formatted = await formatCSS(keyframesString, getFormatWidth());
+        const formatted = await formatEditorCSS(keyframesString, getFormatWidth());
 
         kfControls.addKeyframes = formatted;
         addKeyframesString.value = formatted;
@@ -157,9 +169,12 @@ export function useKeyframeOps(
                 if (options) {
                     animation.setOptions(options as Record<string, unknown>);
                 }
-                Object.entries(keyframes).forEach(([start, vars]) => {
-                    animation.addFrame(parseFloat(start), vars as Partial<any>);
-                });
+                for (const [start, vars] of keyframes) {
+                    animation.addFrame(
+                        requireKeyframeSelector(start),
+                        vars as Partial<any>,
+                    );
+                }
 
                 animation.parse();
 

@@ -7,13 +7,13 @@
     <template v-if="layerConfig">
         <LabeledSelect
             v-if="blendAvailable"
-            :model-value="layerConfig.blendMode"
+            :model-value="layerConfig.op"
             :is-open="isOpen('blend')"
-            :items="BLEND_MODES"
-            :descriptions="BLEND_MODE_DESCRIPTIONS"
+            :items="COMPOSITE_OPERATORS"
+            :descriptions="COMPOSITE_OPERATOR_DESCRIPTIONS"
             label="blend"
             tooltip="How this layer blends with others"
-            @update:model-value="(v) => emit('update', { blendMode: v })"
+            @update:model-value="(v) => emit('update', { op: v })"
             @update:open="(v) => setOpen('blend', v)"
         />
         <LabeledField
@@ -28,7 +28,7 @@
 
         <!-- z-index: a raw <LabeledField> + slotted <Input> so blend/z-index/
              enabled are all one-cell rows (one paradigm, H.W3.S2). LabeledField
-             owns the IconTooltip + label layer; the slot binds controlId/errorId
+             owns the label/copy layer; the slot binds controlId/errorId
              manually (the four wrappers auto-wire these — a raw slot does it by
              hand, LabeledField.vue.d.ts:19-26 / WV-W3-LOW-2). -->
         <LabeledField
@@ -46,7 +46,7 @@
             />
         </LabeledField>
 
-        <template v-if="blendAvailable && layerConfig.blendMode === 'weighted'">
+        <template v-if="blendAvailable && layerConfig.op === 'replace'">
             <LabeledSlider
                 label="weight"
                 tooltip="Blend weight (0 = none, 1 = full)"
@@ -74,9 +74,9 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import { LabeledField, LabeledSelect, LabeledSlider, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
 import { Input } from "@mkbabb/glass-ui/forms";
 import { Separator } from "@mkbabb/glass-ui";
-import { BLEND_MODE_DESCRIPTIONS } from "@utils/reference-data/animationDescriptions";
+import { COMPOSITE_OPERATOR_DESCRIPTIONS } from "@utils/reference-data/animationDescriptions";
 
-const BLEND_MODES = ["replace", "add", "weighted"] as const;
+const COMPOSITE_OPERATORS = ["replace", "add", "accumulate"] as const;
 
 defineProps<{
     layerConfig: AnimationLayerConfig;

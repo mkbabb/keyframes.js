@@ -12,19 +12,14 @@
          `.lift-down` NOR `.dot-fade` (the cascade collision dies with the split:
          no node carries two `animation` shorthands). -->
     <span class="typing-dots" aria-hidden="true">
-        <span
-            v-for="i in count"
-            :key="i"
-            ref="dotEls"
-            class="typing-dot"
-            >{{ glyph }}</span
-        >
+        <span v-for="i in count" :key="i" ref="dotEls" class="typing-dot">{{
+            glyph
+        }}</span>
     </span>
 </template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
-import { steppedEase } from "@mkbabb/value.js/easing";
 // The inv-ζ dogfood seam: the dots loop on the kf ENGINE itself
 // (mirrors CopyButton.vue:24 / typingCursor / spinner — a per-dot
 // CSSKeyframesAnimation with iterationCount: Infinity). `steppedEase` is the
@@ -92,7 +87,7 @@ onMounted(async () => {
             duration: CYCLE_MS,
             delay: delays[i] ?? 0,
             iterationCount: "infinite",
-            timingFunction: steppedEase(4, "jump-none"),
+            timingFunction: "steps(4, jump-none)",
             respectReducedMotion: true,
         }).fromKeyframes({
             "0%": { opacity: REST_OPACITY },

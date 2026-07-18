@@ -3,6 +3,7 @@ import { effectScope, nextTick, ref } from "vue";
 import type { Ref } from "vue";
 import { useTimeline } from "../../../demo/components/instrument/timeline/composables/useTimeline";
 import type { TimelineKeyframe } from "../../../demo/components/instrument/timeline/timelineTypes";
+import { percentSelector } from "../../../demo/utils/keyframeSelector";
 
 /**
  * F.W14 — undo/redo for the destructive editor (the round-trip behavioural lock).
@@ -37,6 +38,7 @@ function pushKeyframe(
 ) {
     state.value.keyframes.push({
         id: `kf-test-${percent}-${Object.keys(vars).join(",")}`,
+        selector: percentSelector(percent),
         percent,
         vars,
     });
@@ -99,7 +101,10 @@ describe("F.W14 — timeline undo/redo round-trip", () => {
             await commit();
 
             // Edit a frame's CSS in place (the inline-edit path mutates kf.vars).
-            tl.state.value.keyframes[1]!.vars = { opacity: "0.5", color: "red" };
+            tl.state.value.keyframes[1]!.vars = {
+                opacity: "0.5",
+                color: "red",
+            };
             await commit();
             expect(tl.state.value.keyframes[1]!.vars).toEqual({
                 opacity: "0.5",

@@ -60,7 +60,7 @@ export {
     surfacesFor,
     extraTabsFrom,
     selectedSurfaceFrom,
-} from "./controlSurfaceDFA";
+} from "./controlSurfaces";
 
 export {
     type RafSceneHandle,

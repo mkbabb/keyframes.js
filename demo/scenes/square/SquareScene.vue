@@ -97,7 +97,7 @@ const superKey = SQUARE_SCENE_ID;
 // leaves stringified to `"0pxpx"` → CSSOM silently discarded the write. The three-part
 // cure lands in the composable: (1) the unit-honest `num()` normalizer at the shared
 // transformFunc boundary resolves BOTH writers (the spring loop's numbers AND the
-// T.A6 plain-vars authored strings); (2) REAL four-corner keyframes (a ±90px diamond
+// T.A6 authored strings); (2) REAL four-corner keyframes (a ±90px diamond
 // tour, full 360° rotation, nested `d` swell, rainbow sweep) so Play VISIBLY obeys
 // duration/easing/direction; (3) the {idle, drag, playback} single-authority FSM here.
 // Play now drives the group's honest tour (the panel triad edits a LIVE animation,
@@ -173,7 +173,7 @@ watch(isPlaying, (playing) => {
 const { AnimationGroup } = kfEngine();
 const animationGroup = markRaw(new AnimationGroup(anim));
 // T.A13 — the per-animation transform path: each child applies its OWN nested
-// custom `transformFunc` (fed the T.A6 plain-vars authored-shape projection, now
+// custom `transformFunc` (fed the T.A6 nested authored shape, now
 // unit-honest via `num()`), rather than the grouped SoA composite. The square is
 // a single-animation scene, so per-animation IS the natural path; the group is a
 // real playback authority now (Play drives the four-corner tour), not a decoy.

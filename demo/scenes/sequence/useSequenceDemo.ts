@@ -7,7 +7,7 @@ import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { clamp } from "@mkbabb/value.js/math";
 
-import { useManagedLoop } from "@composables/scene-runtime/useSweepScene";
+import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
 import { useSequenceInstrument } from "./useSequenceInstrument";
@@ -189,7 +189,7 @@ export function useSequenceDemo() {
         playback: mirror,
         startLoop: startMirror,
         stopLoop: stopMirror,
-    } = useManagedLoop({
+    } = useSweepScene({
         frame: () => {
             syncFromSequence();
             return machine.status.value === "playing";

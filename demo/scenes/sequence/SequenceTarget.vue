@@ -7,7 +7,7 @@
              void that bled the page grid is gone. -->
         <Card :shadow="false" class="seq-target w-full h-fit max-h-full flex flex-col overflow-hidden">
             <!-- Header: serif text-display scene name + the small muted `stagger × N`
-                 caption + the live master-progress MetricBadge (xl poster rung, master
+                 caption + the live master-progress Metric (xl poster rung, master
                  accent). The rows WRAP at phone widths (XH-4 band contract). -->
             <div class="flex flex-wrap items-center justify-between gap-y-1 px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
@@ -15,13 +15,11 @@
                     <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
                         stagger &times; {{ ROW_COUNT }}
                     </span>
-                    <MetricBadge
+                    <Metric
                         size="xl"
                         label="progress"
-                        label-position="inline"
                         :value="(demo.progress.value * 100).toFixed(0)"
                         unit="%"
-                        color="var(--ball-tone, var(--color-progress))"
                         class="shrink-0"
                     />
                 </div>
@@ -29,7 +27,7 @@
                     <!-- EE-SEQ-1 "the reel" — the discoverable twin of the hidden
                          typed "reel" trigger: cascading-wave overshoot replay. -->
                     <Button
-                        variant="outline"
+                        emphasis="secondary"
                         class="h-7 w-7 p-0 btn-interactive"
                         :class="{ 'reel-active': demo.isReeling.value }"
                         aria-label="Play the reel — a cascading wave replay"
@@ -136,8 +134,8 @@ import { computed, inject, onMounted, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { useTypedTrigger } from "./useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
-// J.W7a S2 (D8) — the published poster-metric primitive (glass-ui 3.9.0).
-import { MetricBadge } from "@mkbabb/glass-ui/metric-badge";
+// Glass 7 canonical poster-metric primitive.
+import { Metric } from "@mkbabb/glass-ui/metric";
 import { Clapperboard } from "@lucide/vue";
 
 import { useDragScrub } from "@composables/useDragScrub";

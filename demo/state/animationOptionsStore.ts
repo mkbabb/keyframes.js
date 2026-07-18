@@ -1,4 +1,5 @@
 import { kfEngine } from "@kf-engine";
+import type { JumpPosition } from "@mkbabb/value.js/easing";
 import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createGlobalState, useStorage } from "@vueuse/core";
 import {
@@ -8,18 +9,13 @@ import {
 } from "./storeUtils";
 import type { SceneId } from "./sceneMachine";
 
-// Keep the eager state store value.js-free. These seven CSS `steps()` keywords
-// are a closed platform vocabulary; the heavy engine/easing surface owns
-// parsing and validation when the editor actually consumes the stored value.
+// Type-only Value 4 contract: persisted choices use canonical spellings.
 const jumpTerms = [
     "jump-start",
     "jump-end",
     "jump-none",
     "jump-both",
-    "start",
-    "end",
-    "both",
-] as const;
+] as const satisfies readonly JumpPosition[];
 
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
@@ -138,7 +134,9 @@ export const createAnimationUUId = (
 /** Reset the store to defaults (used by resetAllStores). */
 export const _resetAnimationGroupsOptionsStore = () => {
     const store = useAnimationGroupsOptionsStore();
-    store.value = { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions;
+    store.value = {
+        _storeTimestamp: Date.now(),
+    } as StoredAnimationGroupsOptions;
 };
 
 /** T.B9 — migrate legacy PascalCase buckets to the registry `SceneId` keyspace
