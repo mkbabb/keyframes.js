@@ -1,364 +1,515 @@
-# keyframes → value.js — THE V-NEXT FORMATION HANDOFF (2026-07-18)
+# THE V-NEXT CONTEXT PACKETS (r2, true-Fable) — the grounding evidence base — 2026-07-18
 
-> **⚠ PROVENANCE HOLD (2026-07-18, kf orchestrator) — DO NOT FORM ON THIS LETTER YET.**
-> A Claude Code config error caused every "Fable"-declared panel seat behind this
-> corpus to silently run on OPUS. By owner order the entire panel corpus is being
-> re-deployed on true Fable under the union-with-demarcation protocol (fresh Fable
-> analysis first; Opus findings presumed incorrect; survivors unioned and
-> provenance-tagged). A re-issued r2 supersedes this letter shortly. The verbatim
-> owner text (ingestion prompt §A/§B) is unaffected.
-
-
-> From the keyframes.js V orchestrator (Fable) to the forthcoming **value.js-owned
-> V-next tranche** (the value.js + keyframes.js + parse-that coupling tranche). This
-> packet is the adjudicated factual foundation + recommendation set, hardened by TWO
-> full thrice panels (eight fresh Fable skeptic seats + two Fable adjudicator seats,
-> zero Opus — owner ruling, addendum 5). The companion letter
-> `keyframes-inbox-2026-07-18-vnext-ingestion-prompt.md` is the ingestion prompt the
-> formation session executes; THIS packet is its evidence base.
->
-> **G0′ tree pins (all claims herein verified against these exact trees):**
-> - value.js `db77dbd8` (branch `tranche-u`, v4.0.0)
-> - keyframes.js = **keyframes-v-exec** `c2c8915f` (branch `master`, v6.0.0, pushed, CI green)
-> - glass-ui `7.0.0` (npm; HEAD `4ab12128` per the Q060 glass-live packet)
-> - atlas ACTIVE = `/Users/mkbabb/Programming/.p-totality/atlas`, branch `p/totality`
->   (v7.0.0, glass7+kf6+value4; HEAD `fe9abcf`); its DOCS half lives at
->   `sci-report/atlas`. The standalone `/Users/mkbabb/Programming/atlas` @ `master`
->   (v4.0.0) is a STALE trap — one panel seat inverted its conclusions by reading it.
->   **No cross-repo claim is admissible without a pinned tree+HEAD.**
+> Companion to `keyframes-inbox-2026-07-18-vnext-ingestion-prompt.md` (THE REFINED
+> KICKOFF PROMPT — its P# pointers resolve here). From the keyframes.js V
+> orchestrator (root Fable) to the value.js-owned V-next formation session.
+> Everything herein is the **r2 union product**: [FABLE-NEW] + [UNION-CONFIRMED]
+> rows only; [OPUS-REFUTED] items appear solely as named tombstones in P0.2.
 
 ---
 
-## §1 — keyframes.js state (what the directing tranche inherits)
+## P0 — THE PROVENANCE RECORD
 
-- **Tranche V CLOSED-BY-FOLD 2026-07-18.** Library settlement landed (proof:structure
-  R1–R6 standing, six module carves, fences byte-frozen); Glass 7.0.0 consumed exact-pin
-  on immutable kf 6.0.0 (demo renders 14/14 on real registry glass; FAM-01 cured — full
-  check/test honest, 1195 tests); deploy of record green (keyframes.babb.dev serves
-  `index-9E-8lial.js`).
-- **Fold-forward:** `keyframes.js/docs/tranches/V/FOLD-FORWARD.md` — W7/W8 (demo
-  settlement), W9-landing, W10-remainder, W11 (UI corpus), W13 (close ceremony) + the
-  15-row marks register (incl. glass §7 defects with live kf exposure) + the
-  owner-checkout reconciliation (safe, pending). The kf demo/UI corpus is
-  **kf-successor-owned**; this tranche directs kf **library** items only (§8 protocol).
-- **Consume-edge truth:** kf pins value EXACTLY `"4.0.0"` (no caret — the measured-edge
-  law), glass exactly `"7.0.0"` (demo-only devDependency); registry-only, one physical
-  core. kf 6.0.0 is immutable (never republish).
+### P0.1 The event
 
-## §2 — The frozen fence pack (transmit verbatim into every kf-touching wave)
+The first V-next panel corpus (2026-07-17/18, "r1") declared every seat
+`model: fable`, but a Claude Code config error silently executed ALL spawned seats
+on **Opus**. On discovery, the owner ruled the r1 findings presumptively incorrect
+and ordered re-deployment under the **union-with-demarcation protocol**: each r2
+seat (true Fable, verified `claude-fable-5` execution) analyzed ANEW from the
+original charter BEFORE opening its r1 counterpart, then tested every r1 finding
+against its own evidence. Tags: **[FABLE-NEW]** (fresh, absent from r1) ·
+**[UNION-CONFIRMED]** (r1 claim independently re-derived — survives on r2's own
+evidence) · **[OPUS-REFUTED]** (tested and disproven) · **[OPUS-UNVERIFIABLE]**
+(excluded from the union product). Seats: A, B (draft grounding), H1, H2
+(historical lenses), D (drops), E (e2e), K (kf pre-4.0), F (kf gates/tests) +
+Adjudicator-1 (A/B) + Adjudicator-2 (six lanes, inheriting panel-1-r2). Lesson now
+in standing law: **a model declaration is not model execution — verify the tier
+actually served.**
 
-1. **`TimingFunction = (t: number) => number`** — home/name/signature frozen at
-   `src/animation/constants/types.ts:45`. THREE chase sites, ALL kf-origin, verified on
-   the ACTIVE `p/totality` atlas: `platform/composables/useCountUp.ts:47`,
-   `motion/useScrollLettering.ts:57`, `motion/useScrollTimeline.ts:44`. (The "2-of-3
-   value.js" figure circulating in one census was a stale-`master` read — dead. ONE
-   census: three kf-chase sites.)
-2. **Package exports exactly `.` + `./engine`**, with the 44-key built engine runtime
-   mirror re-verified after any structural move.
-3. **kf 6.0.0 / value 4.0.0 immutable**; all breaking work accumulates behind the §5
-   co-land boundary.
-4. **The depcruise value.js-free-leaf law** is keyed on `^src/animation/internal/`
-   (`.dependency-cruiser.cjs:171`, 9 `src/animation` anchors total). Any `internal/`
-   rename or `src/animation`→`src` flatten MUST move the config keys in the same change
-   or the boundary silently vacuous-greens (full checklist in R4′).
-5. `scenes/` exemplar fence; `docs/precepts/` read-only.
+### P0.2 The r1→r2 delta — every OPUS-REFUTED ruling (18)
 
-## §3 — The parser archaeology (adjudicated; do NOT re-litigate blind)
+Panel-1 (5):
+1. **"glass's optional peers are warnings, not breaks"** — REFUTED BY EXECUTION
+   twice: a present-incompatible `peerOptional` HARD-FAILS npm (ERESOLVE);
+   `optional` exempts ABSENT peers only. The wedge is hard for every co-installing
+   consumer.
+2. **"tape is a deleted Rust runtime; excluded/inadmissible"** — REFUTED: bbnf-lang
+   RE-ADOPTED tape 2026-05-29/30 (flat-tape substrate + CSS L4 + lazy CSSOM
+   projection); LIVE at HEAD `b3cf48e3b`. parse-that TS has zero tape → TS adoption
+   = NEW porting work, bench-gated, ADMISSIBLE.
+3. **"the value manifest cycle must bump in lockstep"** — REFUTED as remedy:
+   lockstep PRESERVES the registry cycle. Remedy = STRIP/RELOCATE the deps block
+   (born `f2c8f565`, working-tree-only; published 4.0.0 is deps-free) + a
+   pre-publish manifest gate.
+4. **"the stale published atlas 4.0.0 owes a catch-up wave"** — REFUTED:
+   `npm view @mkbabb/atlas version` → 7.0.0 already; value's W56 row rules the
+   posture; no wave exists to book.
+5. **"v4 replaced a measured byte-scanner parser"** — REFUTED as framing: the
+   deposed tree was a parse-that COMBINATOR parser (runtime dep at EVERY release
+   v1.0.0→v3.1.0) with byte-scanner leaf tuning inside it; "parse-that adoption" =
+   incumbent restoration; S9 was kf-side.
 
-**Chronology (per-file, adjudicated — value-side rows both-panel-verified; kf-side
-rows via skeptic K, panel-2-adjudicated):**
+Panel-2 (13; the systematic hole: r1 NEVER ran an external-consumer census —
+glass-ui/atlas appear nowhere in its zone evidence):
+6. waapi "product-dormant, OWNER-DECISION" → **KEEP-EARNED** (`useWAAPI: true` is
+   the DEFAULT at constants/defaults.ts:86; every eligible play rides the strategy).
+7. orchestration/timeline "OWNER-DECISION/prune-half" → **KEEP-EARNED** (3 runtime
+   engine/scroll importers; atlas `ManualTimeline` runtime).
+8. flip "PRUNE-CANDIDATE" → **OWNER-DECISION** (EP-3 PATH-B decided-terminal row,
+   machine-checked).
+9. drag "PRUNE-CANDIDATE (comment-only)" → **KEEP-EARNED** (glass-ui `Draggable`
+   RUNTIME import, useDragMorph.ts:54, at both pins).
+10. draw-svg "PRUNE" → **OWNER-DECISION** (EP-3 PATH-B row).
+11. morph-svg "OWNER-DECISION (zero demo, speculative)" → **KEEP-EARNED** (atlas
+    `MorphSVG` runtime via `./engine`, buildMarkAnimation.ts:7).
+12. ingest "PRUNE-CANDIDATE (no record)" → **OWNER-DECISION** (the K.W8 book row
+    EXISTS, published-surface.md:90).
+13. physics/spring/css "OVERFIT (native linear())" → **KEEP-EARNED**
+    (springTimingFunction/springLinearStops consumed by demo + atlas + glass-ui;
+    emitting `linear()` IS the export seam).
+14. load-engine LIGHT/HEAVY "OWNER-DECISION (ceremonial)" → **KEEP-EARNED** (glass
+    + atlas consume the LIGHT barrel without the heavy chunk).
+15. **"the DOUBLE gamut loss… kf deleted its own 903-LOC gamut subsystem"** —
+    REFUTED: `git grep -ci gamut` at the kf baseline = ZERO; the deleted kf color
+    files were byte-identical in value.js since 2024-07-17 (blob-hash proof). kf
+    NEVER had gamut-mapping code. **The loss is SINGLE-sided (value.js v4).**
+16. the "~500-LOC e2e survivor set (incl. o12; axe-only a11y)" → replaced by the
+    E-r2 union (~2.9k: KEEP-EARNED core incl. the safari trio + the DRIVEN a11y
+    battery; journey subset rides the ratified W55 vehicle; o12's catch credit is
+    dead — born-GREEN post-cure mint).
+17. boundary-cohesion "prune (duplicates lint+R6)" → **fold-then-die** (neither
+    depcruise nor R6 enforces the source-text clamp invariant; a naked prune loses
+    it).
+18. "trim dead compileToString/formatKeyframes" → phantom rows (zero hits in kf
+    src); the real shrink note is `compileToViewTransition` (demo=0).
 
-- kf parsimmon era (≤ v0.9.97, 2024-07 baseline) → **modernization `54424ee0`**
-  (2026-02-25): kf exported ALL parsing to value.js — and deleted its own 903-LOC
-  gamut-bearing `color/utils.ts` in the same era (see §4).
-- value `470818c9` (2026-02-25): parsimmon → **vendored parse-that 0.6.0** (NOT a
-  byte-scanner migration — one seat mis-labeled this).
-- The pre-v4 tree was a **parse-that-combinator + `balancedText` byte-scanner HYBRID,
-  and it was MEASURED** (`src/parsing/stylesheet/stylesheet.ts:84-114` wired
-  `balancedText`; `src/parsing/utils.ts` held the only `charCodeAt` sites; benches
-  `bench/css-parse-perf.mjs` + `bench/parser-namelookup.mjs`).
-- **The v4 cut `164343c1`** ("retire pre-v4 src trees", 2026-07-17) deleted all of
-  `src/parsing/` AND both benches, replacing it with the **UNMEASURED regex rewrite**:
+Excluded [OPUS-UNVERIFIABLE]: composite-SoA "OVERFIT" verdict (evidence-note only);
+the "47 recorded catches" count; the stale-read attribution of the old 2+1 census;
+the CHALLENGE-2 letter's existence (its claim is independently true).
 
-| File (value HEAD) | LOC | Regex sites | Scanner code | Verdict |
-|---|---|---|---|---|
-| `src/css/grammar.ts` | 483 | **25** | 0 | PURE REGEX — abrogation target |
-| `src/css/stylesheet.ts` | 899 | 12 inline | char-index loops only | no scanner, no `balancedText` — abrogation target |
-| `src/css/timeline.ts` | 124 | 9 | 0 | abrogation target |
-| `src/css/syntax.ts` | 101 | 1 | 0 | abrogation target |
-| `src/value.ts` / `quantize.ts` / `easing.ts` | — | 0 | 0 | NOT parsers — out of scope |
+**The pre-r2 letters (any copy stamped with the PROVENANCE HOLD) are DEAD — cite
+only this packet set.**
 
-- **Nothing at HEAD satisfies a scanner ideal** — the measured predecessor is deleted.
-  The owner's "ill-defined and slow parser" names the residue of a genuine loss.
-- **"tape" is inadmissible as new evidence**: it was a Rust bbnf-lang runtime, deleted
-  as SLOWER than direct-to-struct (bbnf-lang GESTALT.md:11,48). The real parse-that TS
-  lever is **mutable-ParserState / zero-alloc combinators** (perf-optimization-ts.md:55,335 —
-  "~4,000 heap objects per parse" eliminated). The D7 SpanParser V8 falsification
-  (−10..−14%) is REAL but rules out only runtime-switch dispatch.
-- **Where the CSS parsing suite lives (the owner's direct question): entirely in
-  value.js `/css`.** kf consumes `parseStylesheet`×9, `collectStyleRules`×6,
-  `collectAnimationOptions`×7 (disk-recounted at `c2c8915f`); the ParseIssue union
-  carries `keyframe_selector_invalid`/`animation_option_invalid`/`timeline_option_invalid`.
-  **kf does essentially NO text parsing**: its ONLY parsing residual is the CSS-native
-  easing name-table re-encoded as classifier regex at `src/animation/easing.ts:30,39`,
-  duplicating value's `parseTimingFunction` (grammar.ts:436) — with an emit-side twin
-  of the same table at `easing-serialize.ts:20` (a duplication row, not a parser).
-  `scroll/grammar.ts` has ZERO productions (self-documented
-  pass-through; it owns SERIALIZE, not parse); `parseAnimationCSS.ts` delegates;
-  `compile/selector.ts` wraps value's `parseKeyframeSelector`. The split-parsing
-  architecture the prompt asks about is ALREADY the architecture — the tranche's job is
-  the census LOCK (R5′) plus the regex-abrogation successor (R2′), not a migration.
+### P0.3 The byte-canonical owner text
 
-## §4 — The DOUBLE GAMUT LOSS + the v4 silent drops (RESTORE class)
+The owner's original prompt (verbatim, including the appended "# Tranche
+formulation" block) and all five addenda are mirrored at
+`keyframes-v-exec/docs/tranches/V/coordination/vnext/OWNER-PROMPT-verbatim.md` and
+`…/OWNER-ADDENDUM-{historical-lens,2,3,4,5}.md`, and reproduced here in condensed
+citation form. The five addenda, verbatim:
 
-- **Loss #1 (kf, modernization):** kf deleted its 903-LOC gamut/oklab subsystem
-  delegating to value. RIGHTLY-DROPPED at kf level (separation of concerns) — the
-  wound was value not holding it.
-- **Loss #2 (value, v4):** the raytrace §13.2 oracle (shipped `60bb64e9`), deltaEOK /
-  deltaE2000 / deltaEITP, `sampleColorRamp`/`mixColorsN`, the into-family
-  (`color2Into` `23d1a91e`, `sampleGamutBoundaryInto` `07760131`) — ALL grep=0 at
-  value HEAD. `mapColorToGamut` (operations.ts:133-176) is a hue-preserving 32-iter
-  chroma reduction: NO deltaEOK, NO clip-vs-reduced MINDE, NO L-endpoint
-  short-circuits — a §13.2 SIMPLIFICATION a strict WPT suite would fail.
-- **Net: NOBODY in the constellation owns a reference gamut oracle.** The owner's
-  named "major loss" is a two-sided extinction.
-- **Downstream scar tissue:** kf's `compile/emit/backward/color.ts` re-derives a LOCAL
-  oklab conversion + ΔE threshold because value's primitives are gone; the docstrings
-  at `backward.ts:30,47` still name value's dropped `sampleColorRamp`/`deltaEOK` — a
-  stale fiction that the RESTORE ledger (§6) makes true again.
-- **~15 capabilities dropped SILENTLY at v4** (zero kill-site documentation;
-  `raytrace`/`okhsl`/`sampleColorRamp`/`mixColorsN`/`deltaE2000` = 0 hits in value's
-  own `docs/tranches/V/**`). Root cause: a green-consumer-compile gate is structurally
-  blind to capabilities without first-party consumers at cut time — exactly the rule
-  the owner's prompt voids ("consumer count is NOT enough"). → the H8′ standing law.
+1. *"Too, we should look to how our library was structured before the massive
+   explosion in complexity--many of our new features are overfit and superfluous.
+   This is from a year+ ago we should compare. What were we doing right there? What
+   are we providing now that's genuinely better, tighter, and more optimized?
+   Another thrice pass should be taken at this."*
+2. *"All regex-based parsing should likely be entirely abrogated: for both value.js
+   and keyframes.js. All previous and heretofor features that have been pruned out,
+   like the above, which were genuine, should be dug within a deep archealogy of
+   our last many variants, too--what have we dropped? And what rightfully so? What
+   unjustly so? The gamut mapping was a major loss, for example, as was the
+   ill-defined and slow parser."*
+3. *"The e2e oracle fleet is likely to be entirely abrogated due to being a
+   contrived mess--challenge this. The demo could and should also be more tightly
+   structured and de-duplicated in a similar fashion--but that's for the tranche
+   itself to divine and find. We'd like to look at pre 4.0, too, for kf."*
+4. *"Same in kf. Most of our gates, proof:, e2e, etc are overfit pieces of
+   nonsense. Same for most of our tests, though this to to be challenged. Fable.
+   For these workflow agents."*
+5. *"We ar to use Fable for all agents going forward in this session and audting.
+   Ensure that we're not using Opus."*
 
-## §5 — Wedge pricing (breaking changes are allowed — price them honestly)
+Addenda 1–4's challenges were EXECUTED by the r2 panels; their verdicts are P2/P3.
+Addendum 5 is standing law (§0 of the refined prompt). Where a presumption was
+tested and REFUTED (the e2e totality, the test-corpus "overfit nonsense", the
+"double" gamut loss), the refutation stands on evidence per the owner's own
+challenge instruction.
 
-- The ONE hard install break a value major forces: **kf's EXACT pin `"4.0.0"`**.
-- glass-ui 7.0.0 marks BOTH kf and value peers `{optional: true}` → a major against
-  glass is a peer WARNING, not a break. Do not price optional peers as hard edges.
-- value.js's OWN manifest declares `dependencies: glass ^7.0.0 + kf ^6.0.0` — a
-  manifest-level value→kf→value cycle that must bump in lockstep with any value major
-  (and deserves its own adjudication row: why does a leaf value library
-  runtime-declare its consumers?).
-- The ACTIVE atlas (p/totality v7.0.0) sits behind `^4.0.0`/`^6.0.0` ranges — a
-  value/kf major breaks it → co-land. The STALE published atlas 4.0.0 owes an
-  independent catch-up regardless.
-- Protocol (R3′): ONE coordinated constellation cut (value 5 / kf 7 / peer bumps /
-  atlas successor), chase-site ledgers named in advance; until that boundary, all
-  restructures stay internal-only behind frozen surfaces.
+---
 
-## §6 — THE RESTORE LEDGER (priority-ordered; gamut lives in VALUE, kf consumes)
+## P1 — PARSER ARCHAEOLOGY [union product]
 
-| # | Restore | Shape | Lands in | Owner |
-|---|---|---|---|---|
-| **R1** | §13.2 MINDE gamut map + raytrace reference twin (owner seed #1) | restore-MODERNIZED: `mapColorToGamut` gains deltaEOK + clip-vs-reduced (MINDE) + L≥1→white/L≤0→black short-circuit; raytrace as WPT-gated exact oracle | `src/color/gamut.ts` + `operations.ts` | **value** |
-| **R2** | `deltaEOK` / `deltaE2000` (Sharma) / `deltaEITP` + ICtCp/Jzazbz explicit | restore-as-was (exact vectors survive in R docs) | `src/color/difference.ts` — kf drops its local ΔE | **value** |
-| **R3** | zero-alloc into-variants (owner seed #2) — EXTEND SCI-1 | add `color2Into`, `sampleGamutBoundaryInto`, **`mapColorToGamutInto`/`safeAccentColorInto`** (the 10³–10⁴-alloc hot paths SCI-1's 2 verbs miss) | `src/color/operations.ts` | **value** |
-| **R4** | N-stop ramp `sampleColorRamp`/`mixColorsN`/`sampleColorRampAt` | restore-modernized (SoA-backed); kf `compile/emit/backward/color.ts` consumes it → kills the local duplication + un-stales backward.ts:30,47 | `src/color/ramp.ts` | **value** |
-| R5 | SoA packed-color-channel fold | re-litigate the 3.0.0 consumer-count excision under the zero-alloc mandate | `src/color/` | **value** |
-| R6 | OKHSL/OKHSV picker spaces | restore-as-was | `src/color/operations.ts` | **value** |
-| R7 | `evaluateMathFunction` (calc EVALUATOR — parse survives, evaluate gone) | restore-modernized over the calc AST | `src/css/` | **value** |
-| R8 | WCAG `contrast-color()` + `wcagContrastRatio`/`wcagRelativeLuminance` | restore-as-was (CSS Color 5) | `src/color/operations.ts` | **value** |
-| R9 | gamut-boundary contour samplers | restore IFF the demo gamut-viz is rebuilt on value | `src/color/gamut.ts` | **value** |
-| R10 | `spring()` CSS easing parse/lowering | restore in grammar; DECIDE value-owns vs kf-physics-owns | grammar.ts or kf `easing.ts` | value / kf |
-| R11 (low) | CSS filter-chain recolor solver | restore only on a named consumer | `src/color/filter.ts` | **value** |
+### P1.1 The two-repo answer (the owner's "why was this done, in what tranche")
 
-> SCI-1 is already **DECIDED SHIP-4.1.x** (value DECISIONS.md:82 D54) — the registry
-> inherits the decision; R3 EXTENDS it, never re-opens it.
+**kf-side (RIGHTLY, complete):** 4 stages, all toward value.js — 2024-07-17 the
+carve-out (value.js born as a byte-identical copy of kf `src/parsing`+`src/units`;
+blob-hash-proven); 2026-02-25 `54424ee0` modernization (parsimmon dropped; value.js
++ parse-that arrive; grammar rewritten on parse-that in-repo); 2026-04-17
+`58e75763` grammar deleted → value's `parseCSSStylesheet` behind an adapter;
+2026-06-23 `495484aa` (S9) the last parse-that import cut **from kf**. kf has been
+parser-less since 2026-04-17; NO unjust kf-side drop exists in the pre-4.0 window.
 
-## §7 — Zone disposition tables (the overfit adjudication — panel-2 verified)
+**value-side (the condemned event):** parse-that was value's parser for its entire
+npm life — tag-verified runtime dep at v1.0.0 (`^0.11.0`) → v3.1.0 (`^1.0.0`);
+parse-that 1.0.0 was CUT FOR value (S.H4, `7eab78c`), value 2.0.1 executed the
+booked re-pin, and the v4 cut severed the edge ~13 days later (the stranded-spine
+whiplash — pricing context). The v4 cut (`164343c1`, release `7334c793`,
+2026-07-16/17 — ~1 day before the owner's prompt; +4,117/−24,330) deleted the
+combinator parser whole, PLUS all 11 benches PLUS the `proof-perf-target` CI gate,
+and grew the successor UNMEASURED in the same commit.
 
-### 7a. keyframes.js (import-graph-verified; OWNER-DECISION ≠ prune)
+### P1.2 The extant parser, per-file (value `db77dbd8`)
 
-| Zone / sub-module | Verdict | Why (one line) |
+| File | LOC | Character |
 |---|---|---|
-| engine core | **KEEP-EARNED** | demo `KeyframesAnimation`×26, `loadAnimationEngine`×12 |
-| engine `play-lifecycle/` 5-file atomization | **OVERFIT-SHRINK** | goldilocks-recombine (baseline ran it inline ~250 LOC) |
-| compile/ forward | **KEEP-EARNED** | feeds consumed `compileToCSS`/`compileToEntry` |
-| compile/emit/backward (round-trip) | **OVERFIT-SHRINK (differentiator-preserving)** | KEEP compileToCSS+compileToEntry+CC-3 honest-refusal (TWO demo verbs; the "keyframes.ts run backward" differentiator); TRIM compileToViewTransition runtime + dead compileToString/formatKeyframes |
-| group/ core | **KEEP-EARNED** | demo `AnimationGroup`×11 |
-| group/ composite-SoA | **OVERFIT** | ≥1.2×@K=8 bit-identical only |
-| physics/ | **KEEP-EARNED** | SpringProgress×8, RAFPlayback×4, NumericAnimation×3 |
-| physics/spring/css `linear()` emit | **OVERFIT** | platform-native `linear()` |
-| resolve/ | **KEEP-EARNED** | calc/container-query/env — capability the baseline lacked |
-| presets/ | **KEEP-EARNED** | clean unbroken lineage 36→45 |
-| **waapi/** | **OWNER-DECISION** | ENGINE-WIRED (`playViaWAAPI` play strategy, group lowering, scroll dispatch) — NOT dead; but product-dormant (demo never sets `useWAAPI`) + platform-redundant + E.W9 deliberate KEEP on record |
-| scroll/ serialize | **KEEP-EARNED** | compiler-wired (backward.ts:68 — the round-trip EMIT half) |
-| scroll/ `ScrollScene`/`parseScrollCSS` rAF sampler | **OWNER-DECISION** | native scroll-timeline; 0 demo; E.W9 deliberate-reimpl class |
-| svg/ motion-path + draw-svg | **PRUNE** | native `offset-path` / trivial dashoffset; 0 consumers |
-| svg/ morph-svg | **OWNER-DECISION** | no native analog but 0 demo, speculative birth; consumes value `PathGeometry` |
-| ingest/ | **PRUNE-CANDIDATE** | 0 demo/internal, speculative, no deliberate-keep record (reads live CSSOM — owner may reprieve) |
-| orchestration/ stagger, sequence, view-transition, decay | **KEEP-EARNED** | demo-consumed; view-transition also engine-wired |
-| orchestration/ flip, split-text | **PRUNE-CANDIDATE** | 0 internal + 0 demo |
-| orchestration/ drag | **PRUNE-CANDIDATE** | demo refs are COMMENT-ONLY (never imported) |
-| orchestration/ timeline (JS ScrollTimeline sampler) | **OWNER-DECISION** | E.W9 ADMITTED deliberate KEEP alongside native |
-| internal/ | **LOST-VIRTUE-RESTORE (dissolve/colocate)** | owner-named ("I don't like this at all"); move the depcruise key with it |
-| load-engine LIGHT/HEAVY apparatus | **OWNER-DECISION** | ceremonial (demo always calls `loadAnimationEngine`) |
-| `src/animation/` lone top-level | **LOST-VIRTUE-RESTORE (flatten to `src/`)** | owner's exact objection; R4′ checklist governs |
+| src/css/grammar.ts | 483 | ~23 regex-op sites; per-char `/\s/.test` split loops; `deepFreeze` per successful parse; `parseFunctionalColor` 8-branch ladder |
+| src/css/stylesheet.ts | 899 | char-index cursor loops + inline regex; no scanner |
+| src/css/timeline.ts | 124 | regex |
+| src/css/syntax.ts | 101 | regex |
+| (css/ remainder: index.ts, named-colors.ts, types.ts) | — | non-parser (barrel/data/types) |
+| (src-root value.ts / quantize.ts / easing.ts) | — | NOT parsers — out of scope |
 
-> **Zone-orphaned tests bind to zone verdicts** (scroll 2/800 + svg 3/807 + ingest
-> 3/1027 + waapi 3/737 + orchestration flip/split-text/timeline ≈ 3.5–4.3k LOC):
-> KEEP-ONLY-IF-THE-ZONE-SURVIVES; never leave orphaned-green.
->
-> **The honest overfit split (the owner's "nearly all?" answered): NO — roughly half.**
-> Core ~10.2k LOC is KEEP-EARNED; ~9.8k of post-4.0 zones divide into PRUNE /
-> PRUNE-CANDIDATE / OWNER-DECISION per this table (LOC totals = the H1 census, whose
-> dispositions panel-2 adjudicated). Gates/tests are ~90% honest (§8).
+`charCodeAt` across css/* = **0**. No bench survives; the baseline is GREENFIELD
+(resurrect: `git show 164343c1^:bench/css-parse-perf.mjs`). The SpanParser V8
+falsification (~10–14% slower) is REAL but parse-that-INTERNAL — it never tested
+parse-that-vs-custom on the value grammar.
 
-### 7b. value.js
+### P1.3 Tape, adjudicated
+
+parse-that TS = zero tape; its shipped architecture is ALREADY mutable-ParserState
++ zero-copy Spans ("~4,000 heap objects/parse eliminated"). bbnf-lang deleted the
+old `crates/tape/` (Era-IV), then RE-ADOPTED tape as the flat-tape runtime
+substrate (2026-05-29/30: `1c5bd7a25`, `3a37c29d8` CSS-L4, `6dad81fb9` lazy CSSOM
+projection) — LIVE at `b3cf48e3b`, still measuring the sonic-rs gap. **TS tape
+adoption = NEW porting work, admissible, bench-gated.** Name-and-supersede the
+RETIRED S.H3 Pratt row (DISPOSITION-LEDGER.md:173) in the bench wave.
+
+### P1.4 The boundary census (kf side)
+
+Census-PASS everywhere except ONE live row: `src/animation/easing.ts` `:30`
+`CSS_NATIVE_KEYWORD` + `:38-39` `CSS_FUNCTION_EASING` re-encode value's
+timing-function name table — under kf's DOCUMENTED "Pure string logic —
+value.js-free" light-engine law and the depcruise leaf rule. Adjudicate
+consume-vs-ratify explicitly (also a kf regex-census row for addendum 2).
+`scroll/grammar.ts` and `parseAnimationCSS.ts` are verified thin pass-throughs
+(zero productions). kf consumes value /css at 29 sites / 39 symbols. **value /css
+already OWNS the keyframes-adjacent grammar** — the answer to the owner's
+split-parsing question is on disk: the closed 8-code `ParseIssue` union carries
+`keyframe_selector_invalid`/`animation_option_invalid`/`timeline_option_invalid`;
+`collectAnimationOptions` at stylesheet.ts:827; `parseTimingFunction` at
+grammar.ts:436; kf's named consuming seams `compile/selector.ts:3`
+(`parseKeyframeSelector`) and `validate.ts:47` (`collectKeyframes,
+parseStylesheet`).
+
+### P1.6 THE OWNER DECREE (2026-07-18) — parse-that READOPTED as published
+
+Ruled by the owner at the V-next preparation, superseding the three-way-contest
+framing: **value.js re-adopts `@mkbabb/parse-that` outright, consumed from the
+registry as published.** Verified state of the published package (npm latest
+**1.0.0**, 2026-07-03, the S.H4 cut made FOR value.js; repo `master@ef10d5b`):
+- **Zero-copy `Span`/`SecondarySpan` is the core state architecture**
+  (src/parse/state.ts) — spans are not an optional variant.
+- **Byte-scanner leaves are live in the main entry** (src/parse/leaf.ts →
+  index.ts): `dispatch()` builds charCode dispatch tables, `string()` carries
+  charCodeAt fast paths, whitespace trimming is a charCode scan loop.
+- The **SpanParser runtime-switch VARIANT was excised at the 1.0.0 legacy cut**
+  (`043c4d1` "excise *Span") after its V8 falsification (~10–14% slower) — the
+  retirement of a failed arm, not a capability gap.
+- Subpath surface: `.` / `./core` / `./diagnostics` / `./packrat` / `./utils`.
+- Service record: value shipped on parse-that at EVERY release v1.0.0→v3.1.0
+  under the O.W6 bench + `proof-perf-target` ratio gate.
+
+Consequences: the regex rewrite is retired unconditionally; R-PARSER (P2.2 row 4)
+is a RESTORATION (resurrect `164343c1^:src/parsing/`, modernize to the v4 `/css`
+public surface, signatures frozen) with the bench as regression witness — not a
+contest; **parse-that-internal work (tape porting, substrates, Pratt, new
+combinators) is OUT OF SCOPE — parse-that/bbnf-lang's own tranche set owns it**;
+needs route as PT-E-channel ask letters.
+
+### P1.5 The ad-hoc-fix family (mixColors, parseCSSValue)
+
+U-F29 `329932b8` (parseCSSValues loud-fail) + U-F30 `0c212e8d` (color-mix
+serialization) + D3 passes (`d82c63cd`, `184a9ec9`), all 2026-07-13 — patched on
+the PRE-v4 tree and **deleted with it four days later**. The recurrence risk lives
+in the successor; the defect-family register must track families, not instances.
+
+---
+
+## P2 — DROPS ARCHAEOLOGY + THE RESTORE LEDGER [union product]
+
+### P2.1 The corrected headline: the loss is SINGLE-SIDED
+
+kf NEVER owned gamut-mapping code (baseline `git grep -ci gamut -- src` = 0; its
+deleted color files were byte-identical copies already living in value.js —
+TRANSFERRED, not lost). **The extinction is value.js's v4 cut, one commit
+(`164343c1`)**: raytrace + analytical gamut engine (boundary.ts 604L + gamut.ts
+526L + raytrace.ts 137L + okhsl.ts 270L), ΔE-OK/2000/ITP (grep=0 at HEAD), the
+zero-alloc Into family, colorFilter, boundary samplers, sampleColorRamp/mixColorsN,
+the 3.1.0 HDR parse surface (`ictcp()`/`jzazbz()` — an 11-day-old feature), the
+`spring()`/`parseSpring` grammar, the measured parser + benches + perf gate.
+The v4.0.0 CHANGELOG section names ZERO of these — one continuity line ("/color
+owns … gamut mapping") over an engine swap. **The named silence mechanism: no
+advocate ⇒ no tombstone** (consumer-advocated rows got D28/D54; unadvocated
+capabilities got no paper).
+
+kf scar tissue (deleted when value restores): `compile/emit/backward/color.ts:120-124`
+hand-rolled oklab Euclidean ΔE; `backward.ts:30-32` stale
+`sampleColorRamp`/`deltaEOK` docstrings.
+
+The extant `mapColorToGamut`: 32-iteration OKLCh chroma bisection over
+Result-allocating conversion calls, NO ΔE stop criterion, no clip comparison — not
+CSS Color 4 §13 conformant. `safeAccentColor` compounds it (~67 dynamic `evaluate`
+calls upper-bound).
+
+### P2.2 THE RESTORE LEDGER (priority-ordered; value.js-owned; kf consume-only)
+
+| P | Row | What (mode) | Landing |
+|---|---|---|---|
+| 1 | R-DELTAE | ΔE family: deltaEOK (+JND const), deltaE2000, deltaEITP — as-was, typing modernized; PREREQUISITE of P2 | src/color/ |
+| 2 | R-GAMUT | analytical Ottosson engine (cusp+Halley) + ΔE-OK JND clip criterion (§13-conformant) + raytrace exact-boundary as TEST-SIDE oracle; zero-alloc kernel under the frozen v4 facade | src/color/ + test/ |
+| 3 | R-INTO | Into family EXTENDED beyond the decided SCI-1 pair: convert/mix/gamut-map/ramp out-param paths incl. `mapColorToGamutInto`/`safeAccentColor`-class hot paths — RIDES the W56 4.1.x vehicle, never forks it | src/color/ |
+| 4 | R-PARSER | **DECIDED (owner decree, P1.6): parse-that readopted as published** — resurrect the deposed tree (`164343c1^:src/parsing/`) modernized to the v4 `/css` surface (signatures frozen); bench/ corpus + ratio gate restored as REGRESSION WITNESS (retiring regex parser measured once for the record) | src/css/ + bench/ + CI |
+| 5 | R-RAMP | sampleColorRamp/At/Into + mixColorsN; kf backward-emit re-adopts → deletes the P2.1 scars | src/color/ |
+| 6 | R-MIX-GRAMMAR | `color-mix()` grammar + structural node (zero hits today) | src/css/grammar.ts |
+| 7 | R-RELATIVE | relative color `from` syntax (hard-fails today) | src/css/grammar.ts |
+| 8 | R-CONTRAST | `contrast-color()` grammar + WCAG-metrics republish decision | src/css/ + src/color/ |
+| 9 | R-OKHSL | OKHSL/OKHSV (reuse P2's cusp math) | src/color/ |
+| 10 | R-HDR | the 11-day HDR parse drop — owner decides vs the CSS-native-only law | src/css/ |
+| 11 | R-SPRING-GRAMMAR | CSS `spring()` grammar (existed pre-v4) — OPEN ownership decision: kf-owns-SOLVER settled (K F6.6); grammar value-vs-kf undecided, leaning value (CSS-spec territory) | decision row |
+| 12 | R-EVAL | calc/math static evaluator — WEAK candidate; spec-coverage mandate vs DOM-resolution status quo | decision row |
+| 13 | R-SOA | channel-fold SoA as a NEW primitive under the zero-alloc mandate (the 3.0.0 tombstone stands as written) | src/color/ |
+| 14 | R-BOUNDARY | gamut boundary samplers — GATED on the W53 perceived-space-plate rebuild's actual needs | iff pulled |
+
+**Tombstones (RIGHTLY — never re-litigate):** the OO/ValueUnit model flip · kf
+5.0.0 aliases · animate.ts zombie · loadEngine/loadCompiler/loadIngest accessors ·
+flattenObject family (D28/D54) · cubicBezierToSVG · the `timingFunctions` aggregate
+registry · BBNF grammar files · color-soa-as-3.0.0-decided · kf parsimmon parser +
+kf units/color (TRANSFERRED) · the U apparatus collapse (owner-ordered) ·
+keyframes-vue (owner-killed).
+
+---
+
+## P3 — ZONE DISPOSITIONS + THE GATES/TESTS PROGRAM [union product]
+
+Method note (standing discipline): verdicts rest on the four-tree consumer census
+(kf demo, value demo, glass-ui, atlas — exhaustive for every prune/demote-class
+call) + the internal wiring graph, at pinned HEADs. The r1 corpus omitted the
+external census entirely — that omission ALONE flipped five verdicts (P0.2 rows
+6, 7, 9, 11, 14); three more (rows 8, 10, 12: flip, draw-svg, ingest) flipped on
+the separately-unchecked RECORD axis.
+
+### P3.1 keyframes.js zone table (canonical `0dac636b`)
+
+| Zone (LOC) | Verdict | Why (one line) |
+|---|---|---|
+| engine/ (2,602) | KEEP-EARNED | universal hub; heaviest demo+external consumption |
+| compile/ (4,888) | KEEP-EARNED (emit-shrink note) | forward pipeline; emit/backward Sequence-wired; `compileToViewTransition` demo=0 is the ONE real trim row |
+| resolve/ (1,083) | KEEP-EARNED | calc/container-query/env capability |
+| group/ (1,665) | KEEP-EARNED | AnimationGroup demo ×11; SoA floor-only evidence noted |
+| waapi/ (978) | KEEP-EARNED | engine play strategy; `useWAAPI: true` is the DEFAULT |
+| physics/spring + spring/css | KEEP-EARNED | glass ×9/×2/×1 + atlas ×4; MEASURED 2.97–3.78×; solver-LEAD fence |
+| physics/decay · smooth · numeric · playback | KEEP-EARNED | wired + glass/atlas-consumed (smooth: glass ×3; numeric: glass ×4 + atlas ×3) |
+| physics/oscillator (~150) | **PRUNE-CANDIDATE (record-refuted)** | published-surface.md:44's BOTH named consumers FALSE on disk; record-correction rider + owner visibility |
+| physics/morph | OWNER-DECISION | rides flip's PATH-B; glass `MorphRect` TYPE-only edge |
+| orchestration/sequence · stagger · view-transition · timeline | KEEP-EARNED | emit-wired + demo + atlas (timeline: 3 runtime engine importers + ManualTimeline) |
+| orchestration/flip (176) | OWNER-DECISION | EP-3 PATH-B decided-terminal; auto-flip trigger unfired |
+| orchestration/drag (585) | KEEP-EARNED | glass `Draggable` RUNTIME import (useDragMorph.ts:54) |
+| orchestration/split-text (486) | **PRUNE-CANDIDATE** | 0 consumers on all four trees; manifest row is descriptive, not decided-terminal; casualty = the split-a11y oracle, named |
+| svg/draw-svg (~194) | OWNER-DECISION | EP-3 PATH-B; atlas hits prose-only but record a real historical live-proof |
+| svg/morph-svg (~350) | KEEP-EARNED | atlas `MorphSVG` runtime via `./engine` |
+| svg/motion-path (~180) | **PRUNE-CANDIDATE** | 0 consumers anywhere; no EP-3 row |
+| scroll/ (1,233) | OWNER-DECISION | K.W9 book + compile-wired + native fast lane; K-1 fence |
+| ingest/ (835) | OWNER-DECISION | K.W8 book; zero consumption disclosed; round-trip thesis is the owner's call |
+| presets/ (905) | KEEP-EARNED (SHRINK) | 4 of ~41 presets demo-touched — breadth is the excess |
+| internal/ (535) | OWNER-DECISION (restructure) | owner verbatim dislike; 10-zone fan-in; G5′/LT-10 governs |
+| constants/ (370) · validate/public/load-engine (547) | KEEP-EARNED | type spine + LIGHT barrel's live external beneficiaries |
+
+**Aggregate:** unilateral prune ≈ **0.8k LOC** (split-text + motion-path +
+oscillator); OWNER-DECISION ≈ **2.4k LOC** (flip, draw-svg, physics/morph, scroll,
+ingest); all else KEEP-EARNED with named shrink notes (emit-backward,
+play-lifecycle 552L/5-file fragmentation, presets breadth). **Zone-orphaned tests
+BIND to zone verdicts** (scroll 800 / svg 807 / ingest 1027 / waapi 737 LOC).
+
+**The record-state trichotomy (governs every prune debate):** intact deliberate-KEEP
+record → OWNER-DECISION; REFUTED record (oscillator) → shield pierced + correction
+duty; fence-register ruling → cite-to-overturn with new Baseline evidence. **The K
+F6 FENCE ANNEX:** K-1 thrice-affirmed JS-sampler KEEP + no-polyfill law + ARCH-kill
+wall + spring-solver LEAD + OD-3 — any V-next prune in scroll/timeline/physics must
+cite and overturn the named ruling.
+
+### P3.2 value.js zone table (`db77dbd8`)
 
 | Zone | Verdict | Why |
 |---|---|---|
-| `css/*` | **KEEP-EARNED (surface) / REGEX-ABROGATION (parser)** | densely kf-consumed; the parser is the unmeasured regex rewrite (§3) |
-| `color/*` | **KEEP-EARNED + RESTORE** | core SHRANK 2117→891 while spaces grew; gamut/ΔE/ramp unjustly dropped (§4/§6) |
-| `foundation/math` | **KEEP-EARNED** | kf `clamp`×26 — heaviest consumer |
-| `easing.ts` | **KEEP-EARNED** | kf presets + fns |
-| `value.ts` (`CssValue`) | **KEEP** + lost-virtue note | typed/immutable win; lost the one-obvious `ValueUnit` cohesion |
-| `transform/path.ts` (`PathGeometry`) | **KEEP-EARNED (watch)** | kf ×2 — but only via the OWNER-DECISION svg/morph zone (transitive coupling) |
-| **`transform/decompose.ts`** | **SUPERFLUOUS-PRUNE** | 609 LOC, ZERO real consumers (kf's `/transform` use is `PathGeometry` from `path.ts`); platform `DOMMatrix` |
-| **`quantize.ts`** | **SUPERFLUOUS-PRUNE from public API** (demote into the value demo) | 0 kf; demo-only image-extract feature; drop the `./quantize` key |
-| **`subpaths/` dir** | **DISSOLVE** | pure re-exports; owner: "code smell supreme, NO SHIMS" — repoint the 6 consumed KEYS at module indexes (keys frozen; widening ≤1 type `ColorFactory`); `./transform` needs a real `transform/index.ts` (path-only once decompose dies); blast radius = exports map + vite.config.ts:216-235 dts entries + self-alias set + dts rollup; nothing internal imports subpaths/ |
-| `css/…collectDeclarations` | **PRUNE-CANDIDATE** | 0 kf consumers (every sibling collect*/parse* IS consumed) |
-| exotic spaces (jzazbz/ictcp/rec2020/prophoto/a98/p3) | **KEEP** | owner mandates all spaces; demo-earned |
-| **e2e/ fleet (13.4k LOC / 71 specs)** | **ABROGATE for value.js** | 0/193 test blocks import the library; already CI-unwired at HEAD; survivor ~500 LOC (page-load smoke + ≤3 named-catch oracles o16-cascade-clobber / color-space-liveness / o12-backing-store + 1 axe battery) relocates to the DEMO tranche, NOT value's gate surface |
+| color/ (891) | KEEP + RESTORE program | kf ×7 + demo; the v4 gamut successor is the interrogation target; P2 lands here |
+| css/ (1,948) | KEEP surface, REWRITE parser | kf 29 sites/39 symbols; parser per P1; `collectDeclarations` orphan noted |
+| value.ts (36) · foundation/ (126) · easing.ts (171) · transform/path.ts (564) | KEEP | kf-consumed (CssValue ×16; clamp-class ×5 src + 34 demo; easing ×3; PathGeometry ×2); easing D13 halved-curve rider = restore-or-tombstone decision |
+| transform/decompose.ts (609) | **PRUNE** (or a decided kf-adoption wave) | ZERO consumers outside own tests |
+| quantize.ts + ./quantize (139+2) | **DEMOTE to demo** | zero kf/glass/atlas consumers |
+| subpaths/ (163) | **DISSOLVE-ALLOWED (keys frozen)** | export-map homes, not shims; D50 explicit-`/index` boundary + packed-surface re-verify |
+| api/ (125 .ts files) | **EXTRACT from repo** | standalone palette backend; zero library imports |
+| package.json deps block | **STRIP/RELOCATE → devDependencies** | registry-cycle bomb otherwise; pre-publish manifest gate (prior art: value once shipped a SELF-dependency, v1.1.0–v2.0.1) |
+| root PNGs ×39 · demo tests at test/ root | DELETE / DISPLACE | hygiene + the R14′ isomorphism gate |
+| e2e/ (~13.4k) | per the E-union set (P3.4) | — |
+| demo/ (31k) | KEEP as product; tranche-work restructure | colocation edict; W53 plate rebuild connection |
 
-> **The owner's "what of value.js?" answered: the library is the OPPOSITE of overfit —
-> it shrank while coverage grew.** Its diseases are the LOSSES (§4) and the regex
-> parser (§3). The contrivance lives in the 57k apparatus around the 4.6k library:
-> e2e (verdict above), the 31k demo (tranche-divined restructure per addendum 3), the
-> unexamined 13k `api/` backend (a formation lane).
+**The value.js narrative headline:** the core library SHRANK 5,020→4,647 LOC
+(−7.4%) over 14 months while gaining 7 color spaces, the CSS stylesheet/timeline
+domain, easing, path geometry, typed Results. The "explosion" is ~93% APPARATUS
+(apparatus:core 2.6:1 → 13.4:1). Genuinely-better is MEASURED: gamut path 37→9
+allocs/call; 37× name lookup; HSL→RGB 3.8–4.4×; ~5× ramp fold; parser dep 1→0.
 
-## §8 — Gates & tests program (kf ~90% honest; value needs a gate BORN, not extended)
+### P3.3 kf gates/tests program
 
-- **kf minimal honest gate set (seven mechanisms):** `check:lib && build:lib &&
-  test:lib && proof:publish` (+ proof:structure via check, + lint, + release:changelog
-  on tag). KEEP-EARNED: proof:publish (actuated negatives), proof:structure (47
-  recorded catches + `--selftest`), release:changelog.
-- **Subtraction:** land R2-07's 9 unshipped prunes (taxonomy.json 654L, zero-alloc gc
-  arm, group-snapshot it.fails, 2 orphan `.measure.test.ts`, 2 orphan `.mjs`,
-  probe-webkit) — **still on master, verified** — plus PRUNE
-  `test/engine/boundary-cohesion.test.ts` (pure source-text assertion; duplicates lint
-  + proof:structure R6).
-- **Wiring:** land the 4 staged MRs (MR1 pageerror-key, MR2 5-oracle nightly, MR3
-  dispatch gate, MR4 test:demo→gates); relabel `proof:owner-golden` →
-  `review:owner-golden` (its enforcing leg runs in zero workflows).
-- **value.js:** NO structure gate exists (no `scripts/gates`, no `proof:*`) and the
-  test tree is non-isomorphic (`test/parsing` has no `src/parsing` counterpart) —
-  tests-isomorphism + structure gates are **born-RED CREATE waves** on value; kf's
-  isomorphism pass needs a support-dir allowlist ({_root, characterization, demo,
-  fixtures, support}) + types-only-src exemption — "kf already conforms" over-claims.
-- **The H8′ standing law (ratified):** (1) a capability-preservation gate that
-  born-REDs on any dropped public symbol across a major; (2) every major-cut wave spec
-  carries a **DROPS section** classifying every dropped symbol
-  RIGHTLY/UNJUSTLY/UNCLEAR with a one-line tombstone; (3) the surface-diff check FAILS
-  on any public deletion absent from that section. Proof of need: v4's ~15 silent
-  color/parser deletions.
+The presumption "most tests are overfit nonsense" is **REFUTED on tree**: ~98% of
+130 files / ~1,207 tests / 22.1k LOC is behavior/contract-bearing; residue ≈ 500
+LOC; snapshot-theatre family EMPTY; duplication ≈ none. The apparatus is
+half-right-condemned — honest gates, unlanded adjudication:
 
-## §9 — The final recommendation set (prompt improvements, merged R1′–R15+H1′–H8′)
+1. **LAND W9 first** (staged-only on `v/w9-staging@b920b190`): MR1 pageerror-keying
+   · MR2 wire the 5 skip-masked browser oracles · MR3 `require_demo_green`
+   break-glass · MR4 `test:demo` in CI · the staged prune (~1,384L cruft +
+   `proof:owner-golden`→`review:`).
+2. **WIRE the two enforcement-free structural guards**: `lint` (depcruise) +
+   `proof:structure` run in NO workflow, ever — two one-line CI steps, the
+   cheapest real wire before a restructure tranche.
+3. **DEMOTE `audit:lighthouse`** (masked `|| echo`, cannot fail).
+4. **Weekly-cadence relabel** — pre-booked at DISPOSITIONS CH-05: fold, don't
+   double-book.
+5. **boundary-cohesion**: FOLD its clamp-single-site invariant into
+   proof:structure, THEN retire the file; FLAG the 3 partial readFileSync arms.
+6. **BIND zone tests to zone verdicts**; no orphaned green.
+7. **SEQUENCING LAW**: MR2/MR4 land BEFORE the restructure's ~340-line import
+   churn.
+8. Excluded phantoms (must not enter the tranche): the GS-04 known-violations
+   doc-fix row (no baseline exists or is wired); the demo-Draggable
+   "consumed" cell (filename-grep noise).
 
-1. **R1′ Phase labels.** The prompt composes a VISION segment ("majority on direct
-   code implementation… visual verification" = the formed tranche's execution
-   character) and a FORMATION block ("NOT an implementation phase… no source edits" =
-   this deliverable). Label each edict's phase so no formation agent treats the vision
-   as a licence to edit.
-2. **R2′ Three-way parser bench, greenfield.** Born-RED baseline of the extant regex
-   parser (MB/s + allocs via V8 heap-sampling on the real CSS corpus — NEW infra, no
-   bench survives on disk). Contest: (i) table/data-driven cleanup (also cures the
-   `grammar.ts:175-255` `parseFunctionalColor` 8-branch if-ladder — readability is a
-   SEPARATE, table-solvable axis so parse-that cannot ride in on "unreadable"),
-   (ii) resurrected byte-scanner reference, (iii) parse-that mutable-ParserState
-   zero-alloc prototype. `tape` EXCLUDED (§3). Adoption is owner-ratified on measured
-   numbers. The regex-abrogation ruling condemns the four named css/ files.
-3. **R3′ Co-land protocol** (§5) — one constellation cut; chase-site ledgers in
-   advance; internal-only restructures until the boundary.
-4. **R4′ The flatten is a coordinated config-and-graph move**, born-RED at every
-   anchor: tsconfig self-alias (`"@mkbabb/keyframes.js": ["./src/animation/index.ts"]`)
-   + `@src/*`; vite entries (:41/:156, `engine/index` named entry → `dist/engine/index.js`);
-   vitest alias; all 9 `.dependency-cruiser.cjs` anchors (incl. the `internal/`
-   boundary key :171); the structure-gate scope + R6 `@src/*` resolver; dts rollup
-   emit; post-move 44-key mirror re-verify + depcruise `--selftest`.
-   **Governance (G5, reaffirmed):** kf's structure was JUST settled (V.B — the
-   ratified LT blueprint + proof:structure R1–R6). Every kf structure wave this
-   tranche directs must AMEND-THE-BLUEPRINT + EXTEND-THE-GATE — never stand up a
-   parallel second structure authority — and must NAME the superseded rulings
-   explicitly (LT-10, which kept `internal/` for the depcruise-leaf law the owner's
-   new edict now supersedes; LT-16): refutation amends the charter, silence
-   re-litigates it.
-5. **R5′ The parsing boundary is an ACHIEVED census — LOCK it** (zero productions on
-   both sides). The one live kf row: the easing name-table regex ×3 (§3) — consume
-   `parseTimingFunction` as oracle OR state the hot-path perf reason.
-6. **R6′ DECIDE the gamut policy**: adopt §13.2 MINDE (restore path, §6 R1) OR ratify
-   the current hue-preserving reduction as a deliberate deviation and WPT-gate only
-   conforming paths. WPT Color-4 vectors = NEW gate infra. Priority zero-alloc
-   targets: `mapColorToGamutInto` + `safeAccentColorInto` (the true hot paths).
-7. **R7′+H8′ Capability-preservation gate + DROPS-section law** (§8). The
-   defect-family register's PRIMARY family is v4-capability-LOSS; fold the
-   mixColors/parseCSSValue ad-hoc chain as instances under it.
-8. **R8′ Ingest the standing letters as registry rows** — SCI-1 as DECIDED
-   SHIP-4.1.x; D-GAP-6 DECLINE-accepted (kf adopts `sampleBezier` only if a future 4.1
-   ships it); the WL **§D name-a-code re-open path** (a named ParseIssue code
-   re-opens the §D confirm-shipped verdict); RF-18 census-split ENACTED.
-9. **R9 Bound the thrice loop**: dynamic cluster batches; convergence = two
-   consecutive clean passes; ≤3 iterations per cluster before owner escalation; both
-   skeptics FRESH-context Fable; adjudicator PROVES with own evidence, never
-   vote-counts.
-10. **R10 Ownership protocol**: this tranche DIRECTS kf library items as SPECS +
-    bounded dispatches into kf's coordination inbox; the kf successor implements. If
-    direct cross-repo EDITS are intended at implementation, that needs an explicit
-    owner grant amending the sibling read-only law.
-11. **R11 Routing + batches (amended by addendum 5)**: ALL audit/panel/critique/design
-    seats are Fable, declared explicitly — ZERO Opus in formation. The prompt's "Opus
-    to take the workflow fanout" line is SUPERSEDED for audit-class work; Opus is at
-    most pure mechanical implementation sweeps, per-tranche owner-ratified. Fable
-    panels ≤3 concurrent; general fanout batches 5-6.
-12. **R12 Missing lenses**: malformed-input fuzzing for the parser; ONE
-    allocation-measurement methodology fleet-wide; DAG tooling = depcruise-derived
-    (don't hand-draw what a tool emits); plus the `api/` backend lane (§7b).
-13. **R13′+H2′ Dissolve `subpaths/`** with the measured blast radius (§7b row).
-14. **R14′ Tests-isomorphism = born-RED waves on BOTH repos** (§8).
-15. **R15 The ingestion set** (§10).
-16. **H3′ Adopt the kf zone disposition table** (§7a) — OWNER-DECISION rows go to the
-    owner at formation; they are NOT unilateral prunes (three carry recorded E.W9
-    deliberate-KEEP rulings; refutation amends the charter, silence re-litigates it).
-17. **H4′ Backward-emit**: differentiator-preserving shrink (§7a row).
-18. **H5′ The RESTORE ledger** (§6) is first-class formation input — the owner's two
-    named losses (gamut, parser) plus the panel's discovered family.
-19. **H6′ e2e abrogation + the gates program** (§7b/§8).
-20. **H7′ value dispositions**: prune decompose, demote quantize (§7b).
-21. **NEW — CSS-spec-completeness census (the owner's "total and complete
-    specification coverage" ask needs an OWNING WAVE, not just the gamut slice):** a
-    born-RED coverage census of value's grammar/color/timeline surfaces against the
-    July-2026 stabilized spec set (CSS Color 4/5, HDR, the stabilized
-    chrome-experimental features) — gaps become spec-coverage waves alongside the §6
-    restores.
-22. **NEW — the structural-conventions pack (three owner edicts elevated from the
-    verbatim to standing rules for every restructure wave):** (a) module-name
-    stripping — grouped files drop the module prefix (`easing-option`→`option`,
-    `easing-config`→`config`); (b) glass-ui is the REFERENCE MODEL for flattening +
-    component structuring idioms; (c) composables/styles colocation — only truly
-    module/global composables live in a `composables/` dir, all else colocates
-    (recursively, sub-components included).
+### P3.4 value.js gates/e2e program
 
-## §10 — The ingestion set (read before forming)
+1. Library gate surface stays **producer+api** (the fleet proves nothing about the
+   packed library: 0/191 blocks import it; already CI-unwired at the v4 cut).
+2. **The e2e adjudicated set**: ABROGATE the oracles/ design-census mass (~5.9k, 0
+   catches) + headless perf (~856) · FOLD ~1.7k (o1/o2→boot, browse→walk,
+   mobile→viewport param, dual-pane→build-check, webgl→CH-7 annex + 1
+   context-loss probe, o16→glass producer surface) · KEEP-EARNED ~1.7k on
+   VERIFIED catches (page-load, walk/admin-walk, color-space-switching, the
+   DRIVEN a11y battery — 2 born-RED WCAG catches, the safari trio — the WebKit
+   veil-forever wild catch) · plan-KEEP the ~1.2k journey subset at the
+   **ratified W55 re-gate** (which owns the .github edit); the safari + real-GPU
+   annex runs pre-deploy/nightly.
+3. **BUILD the tests-isomorphism/structure gate from scratch** (born-RED; none
+   exists) + displace the demo-component tests.
+4. **Pre-publish manifest gate** (deps strip; self-dep prior art).
+5. **Resurrect bench/ + the ratio perf gate** with R-PARSER.
+6. **The capability-diff gate** (P0/§7 law): export-census diff vs prior tag; red
+   on any removal lacking a by-name tombstone.
 
-1. THIS packet + the companion ingestion prompt (same dir).
-2. kf `docs/tranches/V/FOLD-FORWARD.md` (+ `PROGRESS.md`, `OWNER-DECISIONS.md`,
-   `coordination/INBOUND-LEDGER.md`) @ `c2c8915f`.
-3. value V′ corpus: `DECISIONS.md` (D54/SCI-1), `WL` verdict letters, the
-   formation-exchange + wl-verdicts letters (O-2/O-4/O-5), CARRY-LEDGER.
-4. The Q060 glass packet (`glass-outbound-2026-07-17-q060-glass7-live.md`) + glass §7
-   defect rows (kf marks register carries the live-exposure map).
-5. Read-only archaeology grants: kf/value/parse-that/bbnf-lang git histories +
-   `parse-that/docs/perf-optimization-ts.md`, `bbnf-lang/docs/GESTALT.md`.
-6. The thrice-panel corpus (evidence trail): 8 skeptic reports + 2 adjudications —
-   mirrored kf-side at `docs/tranches/V/coordination/` (vnext files).
+---
 
-## §11 — kf asks (none new)
+## P4 — FENCES, WEDGE, FLATTEN, GOVERNANCE [union product]
 
-Standing only: sampleBezier conditional (D-GAP-6, closed-DECLINE with the 4.1
-condition); no easing gap (FAM-14 negative result recorded). The fence pack (§2) and
-the R10 protocol are the whole ask surface.
+### P4.1 The kf fence pack (binds every kf-touching wave)
 
-— the keyframes.js V orchestrator (Fable), 2026-07-18. All nine+ panel seats Fable;
-zero Opus (owner ruling, addendum 5).
+1. `TimingFunction = (t: number) => number` frozen at
+   `src/animation/constants/types.ts:45`. Atlas chase census (ACTIVE tree, 9 import
+   statements / 8 files): THREE TimingFunction sites — useCountUp.ts:47,
+   useScrollTimeline.ts:44, useScrollLettering.ts:57 (IN-ATLAS-5 is the correction
+   event) — plus `MorphSVG` via `@mkbabb/keyframes.js/engine`
+   (buildMarkAnimation.ts:7): **the `./engine` subpath has a live external
+   consumer.**
+2. Exports exactly `.` + `./engine`; the 44-key engine runtime mirror re-verified
+   by EXECUTION after any structural move.
+3. kf 6.0.0 / value 4.0.0 immutable; breaking work behind the P4.2 boundary.
+4. depcruise value.js-free-leaf law keyed `^src/animation/internal/`
+   (`.dependency-cruiser.cjs:171`) — the key moves with any rename.
+5. `scenes/` exemplar fence; `docs/precepts/` read-only.
+
+### P4.2 Wedge pricing (ERESOLVE-proven)
+
+- **A present-incompatible `peerOptional` HARD-FAILS npm install** (executed twice
+  independently). glass 7 peers kf `^6` + value `^4` (optional) AND vue ^3.5 /
+  tailwindcss ^4 / reka-ui ^2 / @lucide/vue ^1.16 (NON-optional — they belong in
+  the chase ledger). kf pins value EXACT `4.0.0`. The ACTIVE atlas consumes the
+  exact tuple (devDeps exact + peers ^7/^6/^4).
+- **The value deps bomb**: working-tree `dependencies: {glass ^7, kf ^6}` (born
+  `f2c8f565`; published 4.0.0 is deps-free). If shipped: registry kf↔value cycle +
+  dual-core forcing via kf's exact pin. **Remedy: STRIP/RELOCATE + the pre-publish
+  manifest gate** — never lockstep-bump.
+- **No stale-atlas catch-up wave** — npm latest is already 7.0.0; sci-report
+  crosses atomically at its own glass-7 consume (value W56 row).
+- ONE co-land boundary for value 5 / kf 7 / glass peer-bump / atlas ranges;
+  chase-site ledgers named in advance; internal-only restructures until then.
+
+### P4.3 The flatten census (born-RED at every anchor)
+
+13 config/gate anchors: tsconfig self-alias (:30) + `@src/*` · vite :41 demo alias,
+:156 lib entry, :172 engine entry → public.ts, :225/:229 dts entryRoot/rootDir
+lockstep · vitest :18 · depcruise :84 LIGHT_FROM, :93 ENGINE_PATH, :171
+internal-leaf · structure-gate resolver (index.mjs:91) · engine-dts-rollup :34/:64
+· surface gates (15 grep sites). Import lines ≈ 340 (test 277 + bench 37 + scripts
+18 + demo ~9). Post-move: 44-key mirror re-execution + `proof:structure
+--selftest` + a full depcruise (`lint`) run.
+**Anchors are RE-DERIVED at execution** (N-ADJ-3: LT-10's own ratified cite already
+drifted :168→:171).
+
+### P4.4 Structure governance (G5′)
+
+kf structure was JUST settled (proof:structure R1–R6, 755L, live). Structure waves
+AMEND the ratified LT blueprint + EXTEND the gate — never a parallel authority —
+naming superseded rulings: LT-10 (kept `internal/` against a 40+-importer config
+edit; the owner's new edict supersedes the taste ruling, the cost census stands),
+LT-16. Refutation amends the charter; silence re-litigates it.
+
+### P4.5 Ownership protocol
+
+This value.js-owned tranche DIRECTS kf library items as SPECS + bounded dispatches
+into `keyframes.js/docs/tranches/V/coordination/` (grammar:
+`<SENDER>-INBOUND-*`); the kf successor implements; kf's demo/UI corpus +
+FOLD-FORWARD rows stay kf-owned. Direct cross-repo edits require an explicit owner
+grant.
+
+---
+
+## P5 — THE PRIOR-RECORD INDEX (inherit as DECIDED; never re-derive)
+
+- **SCI-1 = DECIDED SHIP-4.1.x** (value DECISIONS.md:82 D54; vehicle **W56** —
+  mixColorsInto/toRgba8Into). R-INTO extends it; nothing re-opens it.
+- **D-GAP-6** sampleBezier: DECLINED, accepted by kf (adopts only if a future 4.1
+  ships it). **§D name-a-code re-open path** stands (a named ParseIssue code
+  re-opens the confirm-shipped verdict). **RF-18** census-split ENACTED.
+- **PT-E** (`parse-that/docs/tranches/A/VALUEJS-PT-E-2026-07-05.md`): the standing
+  parse-that→value ask letter (diagnostics HIGH · inference MED · Pratt-dormant) —
+  in the ingestion set.
+- **kf R2-07 + W9**: the gate/test prune blueprint is adjudicated; execution is
+  STAGED-ONLY on `v/w9-staging@b920b190` — landing it is P3.3 row 1. **CH-05**
+  pre-books the weekly-relabel fold.
+- **EP-3 PATH-B decided-terminal rows**: flip/flipShared, drag/Draggable,
+  DrawSVG/fromDrawSVG (drag's vacuity premise is now defeated by glass consumption;
+  the disclosure row stays booked). **K.W8/K.W9 book rows**: ingest + scroll
+  feature theses. **The K F6 register**: the standing fence annex (P3.1).
+- **kf FOLD-FORWARD** (`docs/tranches/V/FOLD-FORWARD.md`): W7/W8 fold whole, W9
+  staged, W10 pre-rail subset landed, W11 folds, W12 substantially discharged, W13
+  close-ceremony; the 15-row marks register (glass §7 defects with live kf
+  exposure); owner-checkout reconciliation safe+pending.
+- **value vehicles**: W53 (perceived-space plate rebuild — gates R-BOUNDARY), W55
+  (journey-subset re-gate — owns the .github edit), W56 (SCI-1 4.1.x cut).
+  V-PRIME B3/B4 as recorded.
+- **Oscillator doc-truth defect row**: published-surface.md:44 names two consumers
+  that are FALSE on disk; `proof:publish` checks coverage-file existence, not
+  consumer claims — a NEW gate rule candidate.
+
+## P6 — INGESTION SET + FIRST ACTIONS
+
+Read before the first spawn (pin every tree per G0′):
+1. The refined kickoff prompt (companion letter) + THIS packet set.
+2. The r2 panel corpus (evidence trail): `adjudication-panel1-r2.md`,
+   `adjudication-panel2-r2.md`, `skeptic-{A,B,H1,H2,D,E,K,F}-r2.md` — mirrored at
+   `keyframes-v-exec/docs/tranches/V/coordination/vnext/`.
+3. kf: FOLD-FORWARD.md, PROGRESS.md, OWNER-DECISIONS.md, INBOUND-LEDGER.md,
+   R2-05 (LT rows), published-surface.md, EP-3, the F6 rulings.
+4. value: DECISIONS.md (D50/D54), CARRY-LEDGER.md, V-PRIME.md, WL letters,
+   DISPOSITION-LEDGER.md.
+5. PT-E; the Q060 glass packet; glass §7 defect rows (the kf marks register).
+6. Archaeology grants (read-only): kf/value/parse-that/bbnf-lang git histories;
+   `164343c1^` for every resurrection recipe.
+
+First actions: row the two letters in the E13 inbox ledger → verify the r2 mirror
+trees → open the formation registry from P1–P5's row inventory (every row lands as
+a wave, gate, registry row, or owner-decision row — zero silent drops) → dispatch
+the first thrice batch.
+
+— the keyframes.js V orchestrator (root Fable), 2026-07-18. r2 corpus: 10 seats,
+all verified `claude-fable-5` execution; 18 Opus rulings refuted; union product
+only.

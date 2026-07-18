@@ -1,264 +1,304 @@
-# THE V-NEXT INGESTION PROMPT — the value.js-owned formation tranche (2026-07-18)
+# THE V-NEXT KICKOFF PROMPT — REFINED (r2, true-Fable-grounded) — 2026-07-18
 
-> **⚠ PROVENANCE HOLD (2026-07-18, kf orchestrator) — DO NOT FORM ON THIS LETTER YET.**
-> A Claude Code config error caused every "Fable"-declared panel seat behind this
-> corpus to silently run on OPUS. By owner order the entire panel corpus is being
-> re-deployed on true Fable under the union-with-demarcation protocol (fresh Fable
-> analysis first; Opus findings presumed incorrect; survivors unioned and
-> provenance-tagged). A re-issued r2 supersedes this letter shortly. The verbatim
-> owner text (ingestion prompt §A/§B) is unaffected.
-
-
-> Execute this in the value.js session as the formation charter. It composes: §A the
-> owner's prompt VERBATIM; §B the owner's five addenda VERBATIM; §C the binding
-> amendments (two full thrice panels, adjudicated — facts the fleet must NOT
-> re-litigate blind); §D the formation docket; §E ingestion set; §F return contract.
-> The evidence base is the companion packet
-> `keyframes-inbox-2026-07-18-vnext-formation-handoff.md` (same dir) — "the handoff
-> packet" below.
+> The owner's original prompt, refined per owner order ("Refine it, with context
+> packets for handoff to augment and ground in already done-fable-grounded research
+> and findings"). The owner's edicts and voice are preserved; questions the research
+> has ANSWERED are replaced by their answers with pointers into the companion
+> **context packets** (`keyframes-inbox-2026-07-18-vnext-formation-handoff.md`, "P#"
+> below); mis-premises are corrected inline. The byte-canonical original + all five
+> addenda travel in the packets (P0.3) — nothing is silently dropped.
 >
-> **Standing law for every spawn: ALL agents are Fable, declared explicitly. ZERO
-> Opus** (owner addendum 5 supersedes §A's routing paragraph for all audit/critique/
-> formation work; Opus is at most pure mechanical implementation sweeps in a LATER
-> implementation phase, and only if the owner ratifies it then).
-> **This is FORMATION ONLY: no source edits land from this prompt.**
+> **PROVENANCE (P0):** every grounding fact herein is the r2 TRUE-FABLE union
+> product — 8 fresh Fable skeptic seats + 2 Fable adjudicators, run ANEW after the
+> discovery that the prior panel silently executed on Opus, with every Opus finding
+> presumed incorrect and only evidence-survivors unioned. 18 Opus rulings were
+> REFUTED (P0.2 names each); do not cite the pre-r2 letters.
 
 ---
 
-## §A — THE OWNER'S PROMPT (verbatim, 2026-07-18)
-
-Develop out the next tranche, would should include coordination and specific waves for our library items that use value.js and keyframes.js—and the other consumers that leverage that repo, too—as there's a tight coupling between the following: value.js, keyframes.js, and parse-that. Each library should be uplifted and scrupulously analyzed. Look to the last many tranches within EACH repo as one large set of workflows with fable—our library and our demo set should be then another series of workflow and tranche development processes.
-
-In particular, we've had several issues that were addressed ad hoc a few tranches hence: mixColors, parseCSSValue. value.js owns the core CSS, most modern as of July 2026 with the experimental and chrome-specific features that have stabilized: ensure total and complete specification coverage, idiomatic and performant parse-that usage: parse-that itself has had a few developmental tranche sets begat in bbnf-lang, like tape adoption for the TypeScript implementation—what might we do to reduce allocations and increase performance to leverage the modern v8 engine as of July 2026? Our extant parser seems to be a custom, non-parse-that implementation—why was this done, in what tranche, and what are the performance benefits/downsides to such an approach. To me, the extant parser is unreadable and could be greatly uplifted by proper parse-that adoption.
-
-At least, that's how our parsing facilities should be. keyframes.js itself needs to be ruthlessly examined in its parsing facilities: value.js should own the core CSS spec, keyframes the animation and keyframes-specific components (or perhaps all of the parsing is done by value.js, and keyframes.js uses use as a library? if we do go the split parsing strategy, as we do now, we must overhaul the directory structure between the two libraries totally, in both the compiler/parser AND all places elsewhere: achieve isomorphism and directory perfection within keyframes.js, too).
-
-Mark me now: keyframes.js AND value.js are to be ruthlessly scrutinized at the library level, but frontend work should focus on value.js for the below. For example, why does keyframes.js have a superfluous src/animation structure—if animation is the only top level, why have it? Most of the sub-modules of keyframes.js need to be completely re-organized and re-structured at every level: with an emphasis on coherence and isomorphism between value.js and keyframes.js in an abstract facility.
-
-For example, this /Users/mkbabb/Programming/keyframes.js/src/animation/internal—I don't like this at all.
-
-All keyframes.js specific waves should, too, reference and examine their most recent tranche set, too: this most recent value.js tranche will own and direct all keyframes.js library items herein, though—the next proper keyframes.js-owned tranche will adapt accordingly. Be not afraid of major architecture changes so long as core features are not lost.
-
-And for value.js, and keyframes.js—I don't like things like subpaths/ as a module. Code smell supreme. NO SHIMS.
-
-—
-
-Further, our color specification implementation, adoption, and facilities should best SOTA. We should have near perfected zero-alloc color facilities for all spaces, and transforms betwixt the two; our iterative color out of gamut algorithm must be ruthlessly interrogated.
-
-—
-
-Ensure that extreme parsimony and fastidious care is made for every implementation: seek KISS-forward solutions that reduce complexity and suffuse fewer lines of code: consider the greater library and component picture. Adhere to the wave spec exactly. Spend little time on contrived gates or process and the majority of it on direct code implementation—always done through agent orchestration—and visual verification.
-
-Any notes that are root-level glass-ui defects should be noted and batched, and then sent to the working glass-ui agent. Ensure a great deal of care is made to not interrupt that ongoing process until we've isolated large swaths of features, written fully precepts/ compliant wave addenda thereof, and targeted their exact defects hereof.
-
-—
-
-Our cards, our components, and the design affordances, design hierarchy, margins, paddings, dividing lines, small UI elements, should all be audited, challenged, and refined to have a sense of Aristotelian proportionality, alongside grand glass-ui suffusion and affordance. Mark, too, any superfluous, duplicative, or distracting UI elements that are rife for removal; Mark other items of the converse, whereof more affordance may be necessary.
-
-Our prior tranche(s) were unable to properly validate and audit our frontend as it was broken pre glass UI 7.0.0—that must be carried forward (all previous items in the last many tranches) and audited now.
-
-—
-
-Further, our frontend structure--and this is a grand edict for ALL file directories--needs to be wildly and scrupulously analyzed: components should be COLOCATED with their sub-components, composables, skeletons, constants, etc (and this should be done recursively for nested components).
-
-Composables that are truly module-level or global-level—and other dirs of that nature—can be found within a composables/ dir therein, but otherwise they're to be COLOCATED--same for styles, etc.
-
-Long running dirs must and always be broken into common modules and encapsulated thereof.
-
-Similar treatment and enforcement should be applied to all backend files, too—though abstracted and made befitting for those languages and implementations.
-
-—
-
-This includes deep library work: any and all deferred colocation and modularization work must be addressed--our massive explosion of module, file, and directory structure must be finally settled, with better grouping and encapsulation in both the library, and the frontend/demo components hereof; refer to glass-ui for the flattening and component structuring idioms
-
-For example, long running directories should be pruned, or if those files are necessary, potentially agglomerated and better organized at the function/class level; long running directories should be grouped into logical sub-modules: too macro of granularity, and we get god-modules; too small of a granularity, and we get sand—we want to have a goldilocks of files and modules.
-
-Grouped files in a module should always have their module name stripped in the file—as an abstract and generalized de-duplication mechanism: for example, if src/animation/compile/easing has sub-files of "easing-option" "easing-config", whose would be renamed as "option" and "config"
-
-Tests should always be NOT co-located and found within source files—always displaced into a file structure isomorphic to the source, but for tests.
-
-More code and complexity is likely not always better: be pithy, laconic, and fastidious in your analysis.
-
-To accomplish this, a DAG of both our library and component structures must be created and ruthlessly analyzed: each and every node and edge, and cycles thereof—in batches of a dynamic and bespoke size pursuant to those graph clusters—shall be viewed thrice in the following fashion: two fresh perspectives of Fable agents, both which assume the graph structure is WRONG; the third, a Fable agent, serves as the adjudicator and proves or disproves those findings.
-
-This should be done in an iterative and encapsulated fashion until library perfection, readability, and DIRIGIBLITY is reached.
-
-- NO quick solutions, NO workarounds: idiomatic, gestalt approaches. This is a development product; architectural transpositions in the sake of elegance, simplicity, and performance above all are both necessary and desirable. Breaking library changes are allowed. Pruning and deletion of entire sectors and modules is granted totally IFF our findings are their vacuity or superfluity—consumer count is NOT enough.
-- NO legacy code. Clean breaks: no aliases, no migration shims, no dual paths, no masking fallbacks.
-
-—
-
-Better utilize and leverage fable for all work of complexity, design, and auditing. Including your begotten DAG (modules and components herein AND our constellation of deps like keyframes.js, parse-that, atlas, etc), library, and component analysis for the distillation, modularization, colocation, and perfection thereof.
-
-Further, we must properly and maximally parallelize this auditing task. Agglomerate items as you see fit.  # Tranche formulation: the post-tranche audit and next-tranche development prompt
-
-This is NOT an implementation phase. Tranche development only. No source edits land from this prompt. The deliverable is the next tranche, fully formed: plan folder, wave specs, gates, dispositions.
-
-## Mission
-
-DEEPLY audit our original plan and the waves thereof, alongside all changes made hitherto, with 32 agents. Devise the path forward: audit the landed changes and the remaining plan; recapitulate our original prompts, plans, and precepts; verify every one has been addressed or carries an explicit ledger row with an owner. Form the next tranche from what the audit surfaces.
-
-## Standing edicts
-
-- NO quick solutions, NO workarounds: idiomatic, gestalt approaches. This is a development product; architectural transpositions in the sake of elegance, simplicity, and performance above all are both necessary and desirable.
-- NO legacy code. Clean breaks: no aliases, no migration shims, no dual paths, no masking fallbacks.
-- Delineate every chronically deferred item and every deferred item and fold them into this tranche as DECIDED rows: build, fold, or retire with rationale. Re-booking is forbidden. A chronic that has ridden two or more closes un-decided is a disease row, and deciding it is a wave of its own.
-- Recap ALL of our prompts and requests hitherto and ensure they've been addressed. An unaddressed ask becomes a registry row with an owning wave. Silent drops are forbidden.
-
-## Orchestration
-
-Treat the 32 agents as a steerable budget. Assignment follows the registry, round over round; leave no lens permanently staffed.
-
-- Open with a genuinely diverse portfolio of audit lenses: plan-vs-landed diff, gate soundness (can each gate actually fail?), gestalt read against per-mechanism PASS, the chronic and disposition ledgers, prompt-recap completeness, consumer truth (import graph and registry both), performance, accessibility, doc and canon drift, dead-code and dual-path census, cross-repo asks and consumes.
-- Withhold the tranche's favored success narrative from most auditors. Independence in the early rounds keeps the fleet from converging on a confirmation of the close.
-- Maintain an explicit registry of finding families, grouped by the underlying defect mechanism. Two findings that share a mechanism share a family, however differently worded. When many auditors converge on one family, redirect the excess toward underexplored lenses.
-- Audit adversarially throughout. Check every "done" claim against the known close-class lies: green-over-broken, vacuous-green gates, declared captures missing on disk, masked fallbacks, alias smuggling, re-booked chronics, per-mechanism green over gestalt broken.
-- Require concrete deliverables: file:line evidence, a failing probe, a reproduction, a named defect row. Reject status reports, vague optimism, and any claim that an unverified global property is "routine."
-- Decompose any finding equivalent in strength to "redo the tranche" into wave-shaped rows; only at that grain can it be scheduled.
-- The root agent repeatedly synthesizes, challenges, redirects, and launches new rounds. Do not stop after the first sweep. The registry is stable when two consecutive passes surface nothing new.
-
-## Model routing and concurrency
-
-The core model (Fable) owns orchestration, synthesis, adjudication, and every cognitively complex call; ALL design routes through Fable and the frontend design plugin (DesignSync). Opus to take the workflow fanout and the mechanical sweeps, and every fanout spawn declares its model explicitly rather than inheriting the session's. Dispatch in batches of 5-6 concurrent agents to stay under the rate wall. Use Fable judiciously for all problems of complexity, novelty, and creativity. Opus for implementation only.
-
-## Partial progress
-
-Track partial progress in the registry; discard nothing. Folding is a decision. Every partial, banked, or abandoned item receives a terminal disposition: folded into a named wave, banked with a named re-trigger, or retired with rationale. Counting a partial as done is the close-class lie, and it is forbidden.
-
-## Return contract
-
-Return only when the next tranche is fully formed: plan folder; wave specs with acceptance gates, born RED wherever the defect is live; π and DELTA obligations for every visual claim; a disposition for every chronic, every deferred item, and every prompt-recap row. An inventory of problems without the tranche that resolves them is an incomplete return. If a genuine blocker prevents full formation, return the strongest rigorously converged tranche core and its exact remaining gap.
-
-## §B — THE OWNER'S FIVE ADDENDA (verbatim)
-
-**Addendum 1 (historical lens):** "Too, we should look to how our library was structured before the massive explosion in complexity--many of our new features are overfit and superfluous. This is from a year+ ago we should compare. What were we doing right there? What are we providing now that's genuinely better, tighter, and more optimized? Another thrice pass should be taken at this."
-
-**Addendum 2 (regex abrogation + drops archaeology):** "All regex-based parsing should likely be entirely abrogated: for both value.js and keyframes.js. All previous and heretofor features that have been pruned out, like the above, which were genuine, should be dug within a deep archealogy of our last many variants, too--what have we dropped? And what rightfully so? What unjustly so? The gamut mapping was a major loss, for example, as was the ill-defined and slow parser."
-
-**Addendum 3 (e2e challenge + kf pre-4.0):** "The e2e oracle fleet is likely to be entirely abrogated due to being a contrived mess--challenge this. The demo could and should also be more tightly structured and de-duplicated in a similar fashion--but that's for the tranche itself to divine and find. We'd like to look at pre 4.0, too, for kf."
-
-**Addendum 4 (kf gates/tests challenge):** "Same in kf. Most of our gates, proof:, e2e, etc are overfit pieces of nonsense. Same for most of our tests, though this to to be challenged. Fable. For these workflow agents."
-
-**Addendum 5 (all-Fable routing):** "We ar to use Fable for all agents going forward in this session and audting. Ensure that we're not using Opus."
-
-> The panels EXECUTED addenda 1–4's challenges pre-formation (results in the handoff
-> packet §3–§8); the formation inherits those verdicts as adjudicated rows, not open
-> questions. Addendum 5 binds every spawn (see the standing law at top).
-
-## §C — BINDING AMENDMENTS (adjudicated; do not re-litigate blind)
-
-C1. **Phases.** §A composes a VISION segment (execution character of the FORMED
-tranche) and a FORMATION block (binds THIS run: audit + formation, no edits). Every
-edict is labeled by phase in the wave specs.
-
-C2. **Parser facts (handoff §3).** The extant value parser is an UNMEASURED regex
-rewrite born at the v4 cut `164343c1`, which deleted the MEASURED
-parse-that+`balancedText` hybrid AND its benches. "tape" is a deleted Rust runtime,
-slower than direct-to-struct — inadmissible; the real parse-that TS lever is
-mutable-ParserState/zero-alloc combinators. The bench (R2′) is three-way and
-greenfield: regex-cleanup vs resurrected byte-scanner vs parse-that prototype;
-readability is a separate table-solvable axis; adoption is owner-ratified on measured
-MB/s + allocs. The regex-abrogation ruling condemns `src/css/{grammar,stylesheet,
-timeline,syntax}.ts`. kf-side, the ONLY parsing residual is the easing name-table
-regex (`easing.ts:30,39`; its `easing-serialize.ts:20` twin is emit-side duplication,
-not a parser) — the split-parsing architecture is ALREADY achieved; LOCK it by census.
-
-C3. **The drops archaeology is pre-run (handoff §4/§6).** The double gamut loss is
-verified two-sided; the RESTORE ledger (R1→R11, gamut lives in VALUE) is formation
-input. UNJUSTLY-DROPPED rows become RESTORE waves; RIGHTLY-DROPPED rows get one-line
-tombstones, never re-litigated. SCI-1 is DECIDED SHIP-4.1.x — inherit, extend (R3),
-never re-open.
-
-C4. **The overfit adjudication is pre-run (handoff §7).** Adopt the zone disposition
-tables. OWNER-DECISION rows (waapi, scroll-sampler, svg/morph, orchestration/timeline,
-load-engine apparatus) go to the owner AT FORMATION with their recorded deliberate-KEEP
-provenance — they are not unilateral prunes. Zone-orphaned tests bind to zone verdicts.
-The e2e fleet verdict (ABROGATE for value.js; ~500-LOC survivor set → the demo
-tranche) and the kf gates program (minimal-seven + subtraction + wiring) are
-adjudicated; the formation writes their WAVES, not their re-audits.
-
-C5. **Breaking changes are priced (handoff §5).** ONE co-land boundary; kf's EXACT
-value pin is the sole hard install break; glass peers are optional (warnings); value's
-own manifest value→kf→value cycle bumps in lockstep AND gets an adjudication row; the
-active atlas is `p/totality` v7.0.0 (the standalone `master` checkout is a STALE trap
-— G0′: pin tree+HEAD on every cross-repo claim).
-
-C6. **The kf fence pack (handoff §2)** binds every kf-touching wave: TimingFunction
-home (3 atlas chase sites), exports `.`+`./engine` + 44-key mirror, immutable 6.0.0 /
-4.0.0, the depcruise `internal/` config key moves with any rename, the R4′ flatten
-checklist born-RED at every anchor. **Structure governance (G5):** kf structure waves
-AMEND the ratified LT blueprint + EXTEND proof:structure — never a parallel second
-structure authority — naming the superseded rulings (LT-10, LT-16) explicitly;
-refutation amends the charter, silence re-litigates it.
-
-C7. **The standing silent-drop law (H8′)**: capability-preservation gate born-RED on
-any dropped public symbol across a major + a mandatory DROPS section
-(RIGHTLY/UNJUSTLY/UNCLEAR + tombstone) in every major-cut wave spec + a surface-diff
-check that fails on undeclared deletions.
-
-C8. **Ownership (R10).** This tranche DIRECTS kf library items as specs + bounded
-dispatches into kf's `docs/tranches/V/coordination/` inbox; the kf successor
-implements; kf's demo/UI corpus stays kf-successor-owned (its FOLD-FORWARD waves W7/W8/
-W9-landing/W10-remainder/W11/W13 + the 15-row marks register). Direct cross-repo edits
-require an explicit owner grant.
-
-C9. **Thrice-loop bounds (R9).** Two fresh Fable skeptics assuming WRONG + one Fable
-adjudicator who PROVES with own on-disk evidence; convergence = two consecutive clean
-passes per cluster; ≤3 iterations per cluster before owner escalation.
-
-C10. **New lenses (R12).** Malformed-input fuzzing; one fleet-wide
-allocation-measurement methodology; DAG from depcruise (tool-derived, then adjudicated);
-the value.js `api/` backend (13k LOC, never audited); the value demo (31k) restructure
-per addendum 3.
-
-## §D — THE FORMATION DOCKET (what the 32-agent fleet must produce)
-
-Wave-shaped, from the adjudicated set — the formation refines, schedules, and gates
-these; it does not re-derive them:
-
-1. **Parser bench trio** (R2′/C2): baseline infra + three candidates + owner
-   ratification row. Born-RED (no bench exists).
-2. **Regex abrogation execution plan** for the four condemned css/ files, gated on 1.
-3. **The RESTORE waves** (handoff §6 R1→R4 first; R5–R11 scheduled or banked with
-   re-triggers).
-4. **Gamut policy DECIDE row** (R6′) + WPT vector gate birth.
-5. **subpaths/ dissolution** (H2′) + decompose prune + quantize demotion (H7′).
-6. **kf zone dispositions** → owner-decision docket + prune waves + shrink waves
-   (H3′/H4′), each with its bound test disposition; dispatched as SPECS to kf per C8.
-7. **kf flatten + internal/ dissolve** (R4′ checklist) — directed spec, kf-successor
-   implemented.
-8. **Parsing-boundary census LOCK gate** (R5′) + the easing name-table row.
-9. **Tests-isomorphism gates** — born-RED waves BOTH repos; value structure gate
-   CREATE (R14′).
-10. **e2e abrogation wave** (value) + survivor migration row to the demo tranche;
-    kf gates subtraction + wiring waves (H6′).
-11. **Co-land boundary protocol wave** (R3′) + chase-site ledgers + the value-manifest
-    cycle adjudication row.
-12. **Capability-preservation gate birth** (both repos) + the DROPS-section law into
-    precepts (C7).
-13. **The demo/frontend program** (value-focused per §A): Aristotelian-proportionality
-    audit, colocation edict enforcement, glass-defect batching to the glass agent —
-    with π/DELTA obligations for every visual claim.
-14. **Prompt-recap registry**: every §A/§B ask → a row with an owning wave; the
-    unaddressed become registry rows. Silent drops forbidden.
-15. **Chronic/deferred fold**: every kf FOLD-FORWARD row and value carry-row receives
-    a terminal disposition (build/fold/retire) — re-booking forbidden.
-16. **CSS-spec-completeness census** (owns the "total and complete specification
-    coverage" ask): born-RED coverage census of value's grammar/color/timeline
-    surfaces vs the July-2026 stabilized spec set (Color 4/5, HDR, stabilized
-    chrome-experimental features); gaps become spec-coverage waves.
-17. **The structural-conventions pack** (standing rules for every restructure wave):
-    module-name stripping (`easing-option`→`option`); glass-ui as the REFERENCE MODEL
-    for flattening/component idioms; composables/styles colocation (only truly
-    module/global composables in `composables/`, all else colocated, recursively).
-
-## §E — INGESTION SET
-
-Handoff packet §10, verbatim — read before the first spawn. Pin every tree you read
-(G0′): value `db77dbd8`+, kf `c2c8915f`, glass 7.0.0 `4ab12128`, atlas `p/totality`.
-
-## §F — RETURN CONTRACT
-
-The owner's, verbatim (§A "Return contract"), plus: every C-row above appears in the
-formed tranche as either a wave, a gate, or an owner-decision docket row — zero
-silent drops, measured against §D's seventeen items.
+## §0 — CHARTER
+
+- **This is the value.js-owned V-next tranche FORMATION. No source edits land from
+  this prompt.** The deliverable is the next tranche fully formed: plan folder, wave
+  specs with born-RED gates wherever the defect is live, π/DELTA obligations for
+  every visual claim, and a terminal disposition for every chronic, deferred item,
+  and prompt-recap row.
+- **Model routing (supersedes every earlier routing paragraph, owner ruling
+  2026-07-18): ALL agents are Fable, declared explicitly on every spawn. ZERO Opus.**
+  Opus may only ever return for pure mechanical implementation sweeps in a LATER
+  phase, per-tranche owner-ratified. Verify the tier actually served, not just the
+  declaration (the config-error lesson, P0.1). Batches of 5–6 concurrent; thrice
+  panels are exactly 3 seats.
+- **Tree pins (G0′ law — pin tree+branch+HEAD before any cross-repo claim):**
+  value.js `tranche-u@db77dbd8` (4.0.0) · keyframes-v-exec `master@0dac636b`
+  (6.0.0, CANONICAL kf) · parse-that `ef10d5b` · bbnf-lang `b3cf48e3b` · atlas
+  ACTIVE `/Users/mkbabb/Programming/.p-totality/atlas` `p/totality@fe9abcf` (7.0.0;
+  the standalone `atlas@master` checkout is a STALE trap; npm latest is ALREADY
+  7.0.0) · glass-ui `master` (7.0.0; NOTE: it advances quickly — re-pin at read).
+- **The 32-agent budget** is steerable, registry-driven, adversarial throughout.
+  Leave no lens permanently staffed; withhold the tranche's favored success
+  narrative from most auditors (independence early); dedupe finding-families by
+  mechanism and redirect converging excess toward underexplored lenses; decompose
+  any finding equivalent in strength to "redo the tranche" into wave-shaped rows.
+  Check every "done" claim against the known **close-class lies**:
+  green-over-broken, vacuous-green gates, declared captures missing on disk,
+  masked fallbacks, alias smuggling, re-booked chronics, per-mechanism green over
+  gestalt broken. Require concrete deliverables — file:line evidence, a failing
+  probe, a reproduction, a named defect row; reject status reports, vague
+  optimism, and "routine" claims about unverified global properties. The registry
+  is stable when two consecutive passes surface nothing new.
+
+## §1 — MISSION
+
+Develop the next tranche across the tightly-coupled trio — value.js, keyframes.js,
+parse-that — plus the consumers (glass-ui, atlas, the demos). Each library uplifted
+and scrupulously analyzed at the library level; **frontend work focuses on
+value.js**. The last many tranches of EACH repo are one large evidence set (already
+mined — P5 indexes the standing record); the library set and the demo set are
+separate workflow series. This value.js-owned tranche DIRECTS all keyframes.js
+library items as specs + bounded dispatches into kf's coordination inbox; the next
+kf-owned tranche implements and adapts (P4.5 protocol). Be not afraid of major
+architecture changes so long as core features are not lost — and "not lost" is now
+MACHINE-CHECKED (§7 law).
+
+## §2 — THE PARSING PROGRAM
+
+The archaeology is DONE and adjudicated (P1). The answer to "why was this done, in
+what tranche" is a **two-repo answer**:
+
+- **keyframes.js's parser exit was RIGHT** (4 stages, 2024-07→2026-06, blob-identical
+  carve-out into value.js; kf has been parser-less since 2026-04-17; no unjust kf
+  drop exists). kf-side work is therefore NOT parser adoption — it is the boundary
+  CENSUS LOCK: zero grammar productions on both sides, with ONE live row —
+  `src/animation/easing.ts:30,:38-39` re-encodes value's timing-function name table
+  under kf's documented "value.js-free light engine" law: **adjudicate
+  consume-vs-ratify explicitly** (P1.4).
+- **value.js's extant parser is the condemned party**: an UNMEASURED regex/char-split
+  rewrite born at the v4 cut (~1 day before the original prompt), which deleted the
+  parse-that COMBINATOR incumbent (value's parser for its entire npm life,
+  v1.0.0→v3.1.0) together with ALL 11 benches and the perf gate. "Proper parse-that
+  adoption" = **restoration of the deposed week-old incumbent** — the head-to-head
+  has never been run.
+
+**THE OWNER DECREE (2026-07-18, at the V-next preparation — DECIDED, not
+bench-contested): parse-that is READOPTED outright, as published.** value.js
+consumes `@mkbabb/parse-that` from the registry at its published latest (1.0.0,
+the S.H4 cut made FOR value.js; verified working, measured-in-service, with
+zero-copy Spans as the core state architecture and the byte-scanner leaves —
+`dispatch()` charCode tables, charCodeAt fast paths — live in the main entry; the
+falsified SpanParser variant was rightly excised at 1.0.0). The regex rewrite is
+**retired unconditionally**. All parse-that-INTERNAL evolution — tape porting, new
+substrates, Pratt revival, combinator additions — is **OUT OF SCOPE for this
+tranche and belongs to parse-that/bbnf-lang's own tranche set**; any needs
+discovered here route as ask letters on the PT-E channel (P5). The S.H3 Pratt
+disposition stays RETIRED.
+
+**The wave set:** (1) **R-PARSER restoration** — resurrect the deposed parse-that
+parser tree (recipe: `git show 164343c1^:src/parsing/`), modernized to the v4
+public `/css` surface (parseStylesheet/collect*/ParseIssue signatures preserved —
+consumers never move); re-add `@mkbabb/parse-that` per value's historical pin
+convention; the co-land wave prices the dependency edge. The
+`parseFunctionalColor` ladder, the deepFreeze-per-parse and per-char `/\s/.test`
+costs die with the regex parser. (2) **The bench restore as REGRESSION WITNESS** —
+resurrect the bench corpus (`git show 164343c1^:bench/css-parse-perf.mjs`) + the
+portable ratio gate (the recorded recipe: MB/s + ns/call + the co-scaling ratio);
+baseline the restored parse-that parser (born-RED until it meets the gate);
+measure the retiring regex parser ONCE for the record. The bench tunes the
+restoration; it does not re-contest the seat. (3) **Spec-completeness
+census** — born-RED coverage census of grammar/color/timeline surfaces vs the
+July-2026 stabilized set; gaps become waves ON the restored parse-that grammar,
+including the named restores: `color-mix()`, relative-color `from`,
+`contrast-color()`, the 11-day HDR parse drop (owner decides vs the
+CSS-native-only law), and `spring()` easing grammar — an OPEN ownership decision
+row: kf-owns-the-SOLVER is settled (K F6.6 fence); grammar ownership value-vs-kf
+is the open question, leaning value as CSS-spec territory.
+
+## §3 — THE COLOR PROGRAM
+
+Color facilities must best SOTA with near-perfect zero-alloc facilities for all
+spaces — and the research shows this is a **RESTORE program, not net-new** (P2). The
+loss is **SINGLE-SIDED**: value.js's v4 cut deleted the entire gamut/ΔE/ramp/Into
+apparatus in one commit; kf NEVER owned gamut code (blob-proven; kf-side work is
+consume-only + deletion of the scar tissue: the hand-rolled oklab ΔE and the stale
+`sampleColorRamp`/`deltaEOK` docstrings).
+
+**The iterative out-of-gamut algorithm, interrogated (the owner's ask):** the extant
+`mapColorToGamut` is a 32-iteration chroma bisection with NO ΔE stop criterion — not
+CSS Color 4 §13 conformant. The decided path (P2 ledger, priority order):
+**R-DELTAE** (ΔE-OK/2000/ITP — prerequisite) → **R-GAMUT** (analytical Ottosson
+cusp+Halley engine + ΔE-OK JND clip criterion, raytrace as the TEST-SIDE exact
+oracle, zero-alloc kernel) → **R-INTO** (the Into family EXTENDED beyond the decided
+SCI-1 pair, riding the W56 4.1.x vehicle — never forking it; the true hot paths are
+`mapColorToGamutInto`/`safeAccentColor`-class) → **R-RAMP** (N-stop ramps; kf
+backward-emit re-adopts and deletes its local duplication) → the remaining P6–P14
+rows (grammar restores, SoA re-litigation, OKHSL/OKHSV, boundary samplers GATED on
+W53's real needs).
+WPT/§13 conformance vectors are NEW gate infrastructure. SCI-1 is **DECIDED
+SHIP-4.1.x (D54)** — inherit, extend, never re-adjudicate.
+
+## §4 — THE STRUCTURE PROGRAM
+
+**Library (both repos):** achieve isomorphism and directory perfection — including
+coherence and isomorphism BETWEEN value.js and keyframes.js in an abstract
+facility, not merely per-repo tidiness. The same treatment and enforcement applies
+to all backend files too (the api/ surface and any successor), abstracted and made
+befitting for those languages and implementations.
+- The kf `src/animation` flatten and the `internal/` question are **coordinated
+  config-and-graph moves, born-RED at every anchor**: 13 config/gate anchors +
+  ≈340 import lines, census pre-run (P4.3); anchors MUST be re-derived at execution
+  (the ratified blueprint's own line-cites have already drifted — N-ADJ-3).
+- **Structure governance**: kf structure waves AMEND the ratified LT blueprint +
+  EXTEND proof:structure, naming superseded rulings (LT-10, LT-16) explicitly —
+  never a parallel authority. `internal/` is OWNER-DECISION (restructure, not
+  prune): the owner's dislike is the mandate; LT-10's 40+-importer census is the
+  cost sheet.
+- **subpaths/ dissolves** (owner: "code smell supreme, NO SHIMS") — with precision:
+  the 7 files are 163-line export-map homes, not runtime shims; dissolution keeps
+  the 7 keys frozen, uses explicit `/index` specifiers (the D50 api-extractor
+  boundary), drops `./quantize`, creates a real `transform/index.ts`, and
+  re-verifies the packed surface.
+- **value.js hygiene**: `transform/decompose.ts` PRUNE (609 LOC, zero consumers);
+  `quantize` DEMOTE to demo; **api/ EXTRACT from the repo** (125-file standalone
+  backend); 39 root PNGs deleted; demo-component tests displaced out of library
+  test/ root; the working-tree `dependencies` block (glass+kf) **STRIPPED/RELOCATED
+  to devDependencies** + a pre-publish manifest gate (the registry has shipped
+  nonsense manifests before — value once published itself as its own dependency).
+- **Goldilocks granularity** everywhere: no god-modules, no sand; grouped files
+  strip the module name (`easing-option`→`option`); long dirs → encapsulated
+  modules; glass-ui is the REFERENCE MODEL for flattening/component idioms.
+- **Tests-isomorphism is born-RED on BOTH repos**: value must BUILD its structure
+  gate from scratch + re-mirror its test tree; kf needs a NEW isomorphism rule +
+  support-dir allowlist.
+
+**Demo/frontend (value-focused):** Aristotelian proportionality audit of cards,
+components, design affordances, hierarchy, margins, paddings, dividing lines, and
+small UI elements — **alongside grand glass-ui suffusion and affordance**;
+superfluous, duplicative, or distracting elements marked for removal,
+under-afforded items marked converse; the pre-glass-7 carried-forward UI corpus
+audited NOW; recursive colocation (components with sub-components, composables,
+skeletons, constants, styles; only truly module/global composables in
+`composables/`). Root glass-ui defects are batched to the working glass agent —
+and released only once large swaths of features are isolated, fully
+precepts/-compliant wave addenda are written, and their exact defects targeted;
+that ongoing process is not interrupted piecemeal. The W53 perceived-space plate
+rebuild is the named connection for any gamut-viz restore.
+
+## §5 — THE ZONE ADJUDICATION (dispositions are INPUT, not open questions)
+
+Adopt the r2 zone tables (P3) — verdicts rest on the four-tree consumer census
+(kf demo, value demo, glass-ui, atlas; exhaustive for every prune/demote-class
+call) plus the internal wiring graph. Headlines:
+
+- **KEEP-EARNED includes zones the Opus-era analysis condemned** — waapi (engine
+  play strategy, `useWAAPI: true` is the DEFAULT), orchestration/timeline (3 runtime
+  engine importers + atlas `ManualTimeline`), orchestration/drag (glass-ui
+  `Draggable` runtime import), svg/morph-svg (atlas runtime via `./engine`),
+  physics/spring/css (`springTimingFunction` consumed by demo+atlas+glass), the
+  LIGHT/HEAVY load-engine split (glass+atlas consume LIGHT without the heavy chunk).
+- **Unilateral PRUNE-CANDIDATES ≈ 0.8k LOC only**: split-text (486), motion-path
+  (~180), oscillator (~150 — its keep-record's two named consumers are FALSE on
+  disk; record-correction rider mandatory).
+- **OWNER-DECISION ≈ 2.4k LOC** (flip, draw-svg, physics/morph, scroll, ingest):
+  each carries an intact deliberate-KEEP record (EP-3 PATH-B, K.W8/K.W9 books) —
+  the **record-state trichotomy** governs: intact record → owner decides; refuted
+  record → shield pierced + correction duty; fence-register ruling (the K F6 annex:
+  K-1 thrice-affirmed JS sampler, no-polyfill law, spring-solver LEAD) →
+  cite-to-overturn with new Baseline evidence.
+- **Shrink notes, not prunes**: emit/backward keeps the consumed round-trip core +
+  CC-3 refusal, trims `compileToViewTransition` (demo=0; no phantom rows —
+  compileToString/formatKeyframes do not exist); play-lifecycle recombines;
+  presets catalog breadth.
+- **Zone-orphaned tests BIND to zone verdicts** (scroll 800 / svg 807 / ingest
+  1027 / waapi 737 LOC); no orphaned green.
+- **The external-consumer census is a standing discipline**: no vacuity claim
+  without all four trees + the wiring graph, at pinned HEADs.
+
+**Gates/tests**: the presumption "most tests are overfit nonsense" is REFUTED on
+tree (~98% behavior/contract-bearing; residue ~500 LOC). The apparatus program (P3):
+kf — LAND the staged W9 quartet + prunes FIRST, wire the two enforcement-free
+structural guards (lint + proof:structure appear in NO workflow, ever — two
+one-line CI steps), demote the masked lighthouse step, fold boundary-cohesion's
+clamp invariant into proof:structure before it dies, MR2/MR4 before any restructure
+churn. value — library gates stay producer+api; the e2e fleet is adjudicated
+per-oracle (~5.9k oracles + ~856 perf ABROGATE · ~1.7k FOLD · ~1.7k KEEP-EARNED on
+verified catches incl. the safari trio and the driven a11y battery · ~1.2k journey
+subset rides the ratified W55 vehicle); build the isomorphism gate; the pre-publish
+manifest gate; resurrect bench/ with R-PARSER.
+
+## §6 — OWNERSHIP, COORDINATION, AND THE CO-LAND BOUNDARY
+
+- **Breaking changes are allowed and PRICED (P4.2)**: the wedge is **hard** — a
+  present-incompatible optional peer HARD-FAILS npm resolution (ERESOLVE, proven by
+  execution twice); every co-installing consumer (atlas, both demos) feels the
+  glass edge; kf pins value EXACT `4.0.0`. ONE coordinated co-land boundary (value
+  5 / kf 7 / glass peer-bump / active-atlas ranges / the NON-optional framework
+  peers in the chase ledger); until it, restructures stay internal behind frozen
+  surfaces. **No stale-atlas catch-up wave** (npm latest is already 7.0.0). The
+  value deps block is STRIPPED, not lockstep-bumped (bumping preserves the cycle).
+- **Cross-repo**: value DIRECTS kf library items as specs into kf's inbox
+  (`docs/tranches/V/coordination/`); the kf successor implements; kf's demo/UI
+  corpus and FOLD-FORWARD rows stay kf-owned. Direct cross-repo edits require an
+  explicit owner grant.
+- Glass-ui defect batching per §4; parse-that's standing PT-E ask letter is in the
+  ingestion set (P5).
+
+## §7 — STANDING EDICTS AND LAWS
+
+The owner's edicts, in force verbatim (P0.3 carries the full original): NO quick
+solutions or workarounds — idiomatic, gestalt approaches; architectural
+transpositions for elegance, simplicity, performance are desirable; NO legacy code,
+no aliases, no shims, no dual paths, no masking fallbacks; **extreme parsimony and
+fastidious care in every implementation — KISS-forward solutions that reduce
+complexity and suffuse fewer lines of code, always against the greater library and
+component picture; adhere to the wave spec exactly; be pithy, laconic, and
+fastidious in analysis** (more code and complexity is likely not better); pruning
+granted IFF vacuity/superfluity is PROVEN — **consumer count is NOT enough** (and
+the r2 record shows why: five zones nearly died of an unrun census); chronics
+become DECIDED rows, re-booking forbidden — and **a chronic that has ridden two or
+more closes un-decided is a DISEASE ROW: deciding it is a wave of its own**; recap
+ALL prompts — an unaddressed ask becomes a registry row **with an owning wave**;
+silent drops are forbidden; **partial progress is tracked in the registry and
+nothing is discarded — folding is a decision, and every partial, banked, or
+abandoned item receives a terminal disposition: folded into a named wave, banked
+with a named re-trigger, or retired with rationale; counting a partial as done is
+the close-class lie, and it is forbidden**. Plus the ratified laws:
+
+1. **The silent-drop tombstone law**: no capability leaves a published surface
+   without a by-name RIGHTLY/UNJUSTLY/UNCLEAR tombstone in the cutting release's
+   CHANGELOG, machine-checked by a **capability-diff gate** (export-census diff vs
+   the prior tag; red on any undeclared removal). The named failure mechanism it
+   kills: *no advocate ⇒ no tombstone* (that is exactly how v4's capability drops
+   — the 14-row D ledger, six families entirely unpapered — died with zero
+   paper). Owning repos: BOTH — value.js first (it is where the mechanism fired);
+   kf's 6.0.0 record already models compliance.
+2. **G0′ tree pinning** on every cross-repo claim.
+3. **Re-derive anchors at execution** — ratified blueprints' line-cites drift
+   within days (N-ADJ-3); anchor re-derivation is a mechanical gate step.
+4. **Phase labels**: the vision edicts ("majority on direct code implementation…
+   visual verification") bind the FORMED tranche's implementation; the formation
+   block binds THIS run. Label every edict.
+
+## §8 — METHOD: THE THRICE LOOP, ALL-FABLE
+
+The DAG spans the library and component structures AND the constellation of deps
+(keyframes.js, parse-that, atlas, glass-ui — every node, edge, and cycle;
+depcruise-derived, then adjudicated — never hand-drawn), analyzed in dynamic
+cluster batches, each viewed thrice: two
+fresh Fable skeptics assuming the structure is WRONG + one Fable adjudicator who
+PROVES or disproves with its own evidence (never vote-counts). Iterate per cluster
+until perfection, readability, DIRIGIBILITY: convergence = two consecutive clean
+passes; ≤3 iterations per cluster before owner escalation. ALL design routes
+through Fable + DesignSync. Maximal parallelization; agglomerate clusters as fits.
+
+## §9 — RETURN CONTRACT
+
+Return only when the next tranche is fully formed: plan folder; wave specs with
+acceptance gates, born-RED wherever the defect is live; π and DELTA obligations for
+every visual claim; a disposition for every chronic, deferred item, and
+prompt-recap row; the OWNER-DECISION docket presented as a single decision sheet.
+Every packet row (P1–P5) must land in the formed tranche as a wave, a gate, a
+registry row, or an owner-decision row — **zero silent drops, checked against the
+packets' row inventory**. An inventory of problems without the tranche that
+resolves them is an incomplete return. If a genuine blocker prevents full
+formation, return the strongest rigorously converged core and its exact remaining
+gap.
