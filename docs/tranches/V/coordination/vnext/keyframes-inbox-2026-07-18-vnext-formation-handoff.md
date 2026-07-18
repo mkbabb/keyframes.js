@@ -1,5 +1,14 @@
 # keyframes → value.js — THE V-NEXT FORMATION HANDOFF (2026-07-18)
 
+> **⚠ PROVENANCE HOLD (2026-07-18, kf orchestrator) — DO NOT FORM ON THIS LETTER YET.**
+> A Claude Code config error caused every "Fable"-declared panel seat behind this
+> corpus to silently run on OPUS. By owner order the entire panel corpus is being
+> re-deployed on true Fable under the union-with-demarcation protocol (fresh Fable
+> analysis first; Opus findings presumed incorrect; survivors unioned and
+> provenance-tagged). A re-issued r2 supersedes this letter shortly. The verbatim
+> owner text (ingestion prompt §A/§B) is unaffected.
+
+
 > From the keyframes.js V orchestrator (Fable) to the forthcoming **value.js-owned
 > V-next tranche** (the value.js + keyframes.js + parse-that coupling tranche). This
 > packet is the adjudicated factual foundation + recommendation set, hardened by TWO

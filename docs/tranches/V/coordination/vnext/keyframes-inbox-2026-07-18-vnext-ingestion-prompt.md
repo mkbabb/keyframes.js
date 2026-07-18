@@ -1,5 +1,14 @@
 # THE V-NEXT INGESTION PROMPT — the value.js-owned formation tranche (2026-07-18)
 
+> **⚠ PROVENANCE HOLD (2026-07-18, kf orchestrator) — DO NOT FORM ON THIS LETTER YET.**
+> A Claude Code config error caused every "Fable"-declared panel seat behind this
+> corpus to silently run on OPUS. By owner order the entire panel corpus is being
+> re-deployed on true Fable under the union-with-demarcation protocol (fresh Fable
+> analysis first; Opus findings presumed incorrect; survivors unioned and
+> provenance-tagged). A re-issued r2 supersedes this letter shortly. The verbatim
+> owner text (ingestion prompt §A/§B) is unaffected.
+
+
 > Execute this in the value.js session as the formation charter. It composes: §A the
 > owner's prompt VERBATIM; §B the owner's five addenda VERBATIM; §C the binding
 > amendments (two full thrice panels, adjudicated — facts the fleet must NOT
