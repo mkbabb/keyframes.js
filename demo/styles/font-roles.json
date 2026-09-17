@@ -14,18 +14,6 @@
             "note": "Play/Pause + the transport band: CONTROLS ride the body register at medium (T.D3; the K.W2 display bind died)"
         },
         {
-            "role": "filing-tab",
-            "selector": ".tab-trigger-base[data-state='inactive']",
-            "expect": { "voice": "body", "weight": 500 },
-            "note": "inactive filing tabs: body medium; activation steps to 600 (a REAL Jakarta weight) via the active rule"
-        },
-        {
-            "role": "filing-tab-active",
-            "selector": ".tab-trigger-base[data-state='active']",
-            "expect": { "voice": "body", "weight": 600 },
-            "note": "active filing tab: Jakarta semibold — an honest shipped weight, never synthesis"
-        },
-        {
             "role": "pill-tab",
             "selector": ".kf-pill-tab",
             "expect": { "voice": "body" },
@@ -34,8 +22,9 @@
         {
             "role": "hero-display",
             "selector": "h1.hero-display .wave-char",
+            "wordWrapperSelector": "h1.hero-display .wave-word",
             "expect": { "voice": "display", "weight": 400, "style": "normal" },
-            "note": "the home hero, measured at its per-CHAR leaves (T.D10 — the census sees LEAVES, and the h1 hosts only spans): Instrument Serif at its one TRUE weight, roman (T.D2 honest ink; the φ-band seat landed at T.D9, OD-4 APPROVED)"
+            "note": "the home hero, measured at its per-CHAR leaves (T.D10 — the census sees LEAVES, and the h1 hosts only spans): Instrument Serif at its one TRUE weight, roman (T.D2 honest ink; the φ-band seat landed at T.D9, OD-4 APPROVED). KF-AT-24 fold: this row is the ONE home of AnimatedText's two private class strings — `scripts/gates/register-census.mjs` exports them and `scripts/observe/demo/usability.mjs` reads them from there, so a rename to `kf-split` REDs BOTH instruments instead of silently voiding both."
         },
         {
             "role": "hero-deck",

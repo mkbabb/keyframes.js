@@ -7,8 +7,8 @@
 
 /* Geometry tokens — OUTSIDE @layer so they override glass-ui's incidental
    same-named tokens (authoritative for the demo). NOTE: --panel-max-h / --rail-width
-   / --mask-fade live in design-idioms.css (proof:idioms definition-anchors them
-   there); the @property --rail-width registration rides beside them. */
+   / --mask-fade live in design-idioms.css (that file is their definition
+   anchor); the @property --rail-width registration rides beside them. */
 :root {
     /* ── Recurring length homes (each routes a bracket-arbitrary literal to ONE token) ── */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
@@ -28,7 +28,7 @@
     /* The graph / stage-field substrate: two-tier engineering-graph-paper pitches
        (fine 1rem lines + 5rem majors), line strengths mixed over --foreground so
        dark mode retints for free. The major tier is held STRICTLY ABOVE the 10%
-       legibility floor proof:appearance-suffusion asserts (clause g). */
+       legibility floor (clause g; no gate asserts it). */
     --graph-pitch: 1rem;
     --graph-major: 5rem;
     --graph-opacity: 3%;

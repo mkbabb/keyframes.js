@@ -12,8 +12,8 @@
          it). Left at the page gutter; overlap with the die's lower quadrant is
          WELCOME (the ruling says so); overlap with any dock is impossible by
          construction once the hero leaves the top band. pointer-events: none —
-         the hero is ink, not chrome. Gated by proof:hero-two-focal (OWNER,
-         successor of the retired hero-rung/-balance/-cls FROZEN locks). -->
+         the hero is ink, not chrome. OWNER ruling (successor of the retired
+         hero-rung/-balance/-cls FROZEN locks); no gate enforces it. -->
     <div
         class="hero-band z-controls pointer-events-none absolute left-0 w-screen"
     >
@@ -52,9 +52,9 @@
          (the latent-red vocabulary, #16), the perpetual JS type-in interval
          leaves (#19), and the lower-left focal competitor leaves — the vacancy
          needs no replacement because the hero itself moved DOWN into that band
-         (T.D9). The round-trip moat story belongs in a scene.
-         proof:design-refinement's S1 home arm was re-cut in the same motion
-         (the lane-18 lockstep the amiga arm got). -->
+         (T.D9). The round-trip moat story belongs in a scene. The S1 home arm
+         was re-cut in the same motion (the lane-18 lockstep the amiga arm
+         got). -->
 </template>
 
 <script setup lang="ts">
@@ -134,8 +134,7 @@ h1.hero-display {
    Deck: display-face italic 400 @ --type-title, foreground at ~0.85.
    Hint: display-face italic 400 @ --type-title, muted (the SAME rung — the
    T.D2 serif floor rules the heading rung out for the display face; the muted
-   ink is the step). No weight above 400 anywhere on the start screen
-   (proof:hero-deck-voice). */
+   ink is the step). No weight above 400 anywhere on the start screen. */
 .hero-deck {
     margin-block-start: 0.75rem;
     font-family: var(--font-display);
@@ -160,7 +159,7 @@ h1.hero-display {
 /* The engine-dogfooded ellipsis host: one unbreakable inline unit beside the
    last word (the dots never wrap apart from the title's final glyph). Owned
    HERE (the co-located scoped home) so the class is a resolved recipe, never a
-   silent-flatten (proof:styling-idioms membership). */
+   silent-flatten. */
 .hero-dots {
     display: inline-block;
     white-space: nowrap;
@@ -181,7 +180,7 @@ h1.hero-display {
 /* K.W3 U-K9 (kept; bounds re-derived for the serif deck) — balance the 2-line
    phone subtitle, bound its size on narrow phones. The lower bound is 1.5rem
    (24px): the T.D2 serif floor at the mobile viewport — the display face may
-   never render below the smallest display rung (proof:font-census clause b).
+   never render below the smallest display rung.
    The hint takes the same phone clamp (same face, same floor). */
 @media (max-width: 1023px) {
     .start-screen-subtitle {

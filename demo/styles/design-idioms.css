@@ -1,7 +1,7 @@
 /* design-idioms.css — the demo's OWNED design vocabulary (the playful spectrum, the
    gold accent, the shared idiom recipes). Imported by style.css right after glass-ui
-   so these are the AUTHORITATIVE demo copy (proof:idioms asserts each referenced idiom
-   resolves from THIS file), not an ungated rent. Geometry → layout.css. */
+   so these are the AUTHORITATIVE demo copy — every referenced idiom resolves from
+   THIS file. Geometry → layout.css. */
 
 @import "./playback-idiom.css";
 @import "./tab-idiom.css";
@@ -40,8 +40,8 @@
     /* The .scale-on-hover lift magnitude (mirrors glass-ui's --scale-hover). */
     --scale-hover: 1.08;
 
-    /* Three DRY layout tokens the demo owns HERE (proof:idioms anchors these; the rest
-       of the geometry is in layout.css). --rail-width is the DERIVED rail track
+    /* Three DRY layout tokens the demo owns HERE (the rest of the geometry is in
+       layout.css). --rail-width is the DERIVED rail track
        (@property below) — 25rem/33svi/32rem, the single width authority for the lg
        [rail] track AND the pane; --panel-max-h caps mobile panels; --mask-fade the fade. */
     --rail-width: clamp(25rem, 33svi, 32rem);

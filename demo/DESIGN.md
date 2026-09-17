@@ -26,7 +26,8 @@ The demo has three voices, each with a narrow job:
   readouts, code/keyboard content, and explicitly marked identifiers
   (`data-register="code"`). It is never a general UI voice. The complete
   selector contract and ceiling live in `demo/styles/font-roles.json`;
-  `proof:font-census` is its witness.
+  `node scripts/gates/register-census.mjs` reads that manifest against the
+  RENDERED register and is its witness.
 
 The fallback face and `font-synthesis: none` are layout stability measures, not
 additional voices. A new face or display site requires a codex amendment.
@@ -221,8 +222,8 @@ every demo CSS file remains ≤300L. Lane 24's earlier ~40L suggestion is
 superseded by this measured R3 rule. Cross-component skins stay in the design
 system; component-specific recipes colocate beside the SFC.
 
-U.B12 extends surviving gates (`proof:colocation`, `proof:style-file-ceiling`,
-and the existing AST grammar witness) from this chapter. U.G adds no gate.
+U.B12 extends the existing AST grammar witness from this chapter. U.G adds no
+gate.
 
 ## 10. Vue idiom law (R1–R7)
 
@@ -233,11 +234,11 @@ owner; the codex is their only home.
 | --- | --- | --- |
 | **R1** | A module is a directory and its barrel is the one contract. Cross-module imports use the barrel; deep self-barrel and `export *` are forbidden. | Existing dependency-cruiser clauses (`no-cross-module-deep`, `no-self-barrel`, `no-star-export`); U.B9/U.C. |
 | **R2** | Laziness belongs at the consumer seam (route/scene, pane reveal, heavy vendor), never in a re-export barrel. | `proof:publish` reachability clause (OD-U11 folded chunk reachability); U.D. |
-| **R3** | Mechanical split: style block >100L or SFC >300L → sibling sheet; every demo CSS ≤300L. This is the §9 number. | `proof:style-file-ceiling`; U.B12. |
-| **R4** | Utilities belong in templates; scoped CSS is token-plain. `@apply` is design-system-only and `@reference` is banned. | Clause on `proof:styling-idioms`; U.B12. |
-| **R5** | Tests mirror the source tree in their own top-level directory. OD-U7 makes this a language carve-out: tests consume a public surface and must not tax runtime colocation or HMR. | Mirror clause on `proof:zone-cohesion`; U.H/U.B. |
-| **R6** | Shared-tier membership is kind-appropriate, has at least two consumers, and is tolerance-free. Exceptions change the rule or move the member; the old DEFERRED map dies. | Existing `proof:colocation` clause; U.B1. |
-| **R7** | No vestigial path segments. A directory layer must state a contract; single-child bins and semantically empty `custom/`, `components/`, or transport pairs fail. | `proof:colocation` no-single-child clause; U.B1. |
+| **R3** | Mechanical split: style block >100L or SFC >300L → sibling sheet; every demo CSS ≤300L. This is the §9 number. | NO standing gate; U.B12 owns the rule. |
+| **R4** | Utilities belong in templates; scoped CSS is token-plain. `@apply` is design-system-only and `@reference` is banned. | NO standing gate; U.B12 owns the rule. |
+| **R5** | Tests mirror the source tree in their own top-level directory. OD-U7 makes this a language carve-out: tests consume a public surface and must not tax runtime colocation or HMR. | NO standing gate; U.H/U.B own the rule. |
+| **R6** | Shared-tier membership is kind-appropriate, has at least two consumers, and is tolerance-free. Exceptions change the rule or move the member; the old DEFERRED map dies. | NO standing gate; U.B1 owns the rule. |
+| **R7** | No vestigial path segments. A directory layer must state a contract; single-child bins and semantically empty `custom/`, `components/`, or transport pairs fail. | NO standing gate (the no-single-child clause is unenforced); U.B1. |
 
 R5's mirror ruling is explicit owner law, not a loophole. R2's witness remains
 inside `proof:publish`; U.G does not create a standalone chunk gate. All other
@@ -247,11 +248,8 @@ flat.
 ## Cross-reference witness (one-shot at tranche close)
 
 At U.Z, inspect the surviving design clauses and require a section anchor to
-this codex: `proof:styling-idioms` → §§2, 5, 7; `proof:font-census` → §1;
-`proof:crayon-preserved` → §2; `proof:appearance-suffusion` / owner-golden →
-§§3, 7, 8; `proof:colocation` and `proof:style-file-ceiling` → §§9–10;
-`proof:publish` → §10 R2; `proof:zone-cohesion` → §10 R5. This is a close-out
-witness, not a new standing gate.
+this codex: `proof:owner-golden` → §§3, 7, 8; `proof:publish` → §10 R2. This is
+a close-out witness, not a new standing gate.
 
 ## Routed remainder
 

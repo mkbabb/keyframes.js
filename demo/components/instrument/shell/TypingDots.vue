@@ -42,21 +42,22 @@ const props = withDefaults(
 
 // A FIXED short cycle — NOT text.length-derived (the headline bug was a
 // title-sized 2.6s duration mis-applied to a 3-glyph ellipsis). 1.2s total
-// holds under proof:typing-dots (d)'s ≤1.6s ceiling with margin.
+// holds under the ≤1.6s ceiling with margin — asserted by
+// `test/demo/instrument/typing-dots-engine-seam.test.ts`.
 const CYCLE_MS = 1200;
 // The per-dot stagger increment — the left-to-right cadence step. ~0.16s gives
 // a `. → ·· → ···` march; with 3 dots the spread is 2·160 = 320ms, well inside
 // the cycle.
 const STEP_MS = 160;
-// Rest opacity NEVER 0 (the perceptual fix + proof:typing-dots (c)'s ≥0.15
-// floor): the dots dim to 0.2 and pulse to 1, never blanking out.
+// Rest opacity NEVER 0 (the perceptual fix + the ≥0.15 floor the seam spec
+// asserts): the dots dim to 0.2 and pulse to 1, never blanking out.
 const REST_OPACITY = 0.2;
 
 const dotEls = useTemplateRef<HTMLElement[]>("dotEls");
 
 // The per-dot delays are the `stagger` distribution — `from: "first"` is the
-// monotone left-to-right ramp (0, STEP, 2·STEP, …) the reader's eye expects
-// (proof:typing-dots (b)). `stagger` is the library's own delay-distribution
+// monotone left-to-right ramp (0, STEP, 2·STEP, …) the reader's eye expects.
+// `stagger` is the library's own delay-distribution
 // primitive (the same one the sequence scene seats its rows with).
 const delays = stagger(props.count, { each: STEP_MS, from: "first" }).delays(
     props.count,

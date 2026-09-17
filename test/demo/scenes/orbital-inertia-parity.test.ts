@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { decay } from "../../../src/animation/physics/decay";
+// The SUBJECT (`useOrbitalInertia`) consumes `decay` from the PUBLISHED surface
+// `@mkbabb/keyframes.js`. This gate consumed it from a deep `src/` path, so the
+// envelope it asserted was not the artefact the subject runs (G-L7 rule (d) —
+// derive every envelope assertion from the pinned artifact). Retired at
+// X.KF.W4 `.d`: one surface, one artefact, one assertion.
+import { decay } from "@mkbabb/keyframes.js";
 import {
     TARGET_DT,
     inertiaFactorToFriction,
@@ -26,7 +31,14 @@ import {
  * composable and locked here so a perturbation reds (BITE clause below).
  */
 
-const INERTIA_FACTOR = 0.92; // the orbital-drag default friction-per-frame
+// The orbital-drag default friction-per-frame, RECALIBRATED at X.KF.W4 `.d`.
+// The pin read 0.92 while the shipped default is 0.95 — `OrbitalDrag.vue`'s
+// `const inertiaFactor = props.inertiaFactor ?? 0.95` with no consumer
+// override — so every assertion below (the declaration and its EIGHT uses)
+// proved parity for a coefficient the demo never runs. The constant is the
+// single home the eight uses read, so the recalibration reaches all NINE
+// coordinates at once.
+const INERTIA_FACTOR = 0.95;
 
 /** The LEGACY hand-rolled velocity trajectory: multiply by the per-frame
  *  `Math.pow(inertiaFactor, dt/TARGET_DT)` factor, stepping `dtMs` per frame. */

@@ -2,8 +2,7 @@
     <!-- T.D13 (OD-2: AURORA-ON-HERO, AMENDED MORE SUBTLE) — the cursor light,
          DONE RIGHT: glass-ui's PUBLIC Aurora primitive as the home hero's
          ambient background, not a hand-rolled --mouse-x wash (the forbidden
-         second occurrence — H.W9's lesson; proof:no-hand-rolled-cursor-tracker
-         stands guard). Aurora owns the rAF-coalescing, the PRM-safe
+         second occurrence — H.W9's lesson). Aurora owns the rAF-coalescing, the PRM-safe
          CSS-gradient substrate (renderMode "auto"), the decorative DPR budget,
          and the lazy WebGL arm past first paint. This layer sits UNDER the
          graph-paper grid lines (DOM-ordered before .grid-background via the
@@ -15,8 +14,8 @@
          more subtle"): the P-HERO prototype's opacityCeiling 0.15 is the
          CEILING, not the target. The blessed bound is encoded here as
          HERO_AURORA_OPACITY_CEILING = 0.1 (strictly below 0.15) and asserted
-         by proof:cursor-light-subtle (OWNER) — raising it past the amendment
-         REDs the oracle. -->
+         by `test/demo/instrument/aurora-opacity-ceiling.test.ts` — raising it
+         past the amendment REDs that spec. -->
     <div
         class="hero-aurora pointer-events-none fixed inset-0"
         aria-hidden="true"
@@ -31,6 +30,17 @@
     </div>
 </template>
 
+<script lang="ts">
+/** The OD-2-amended presence bound — STRICTLY below the P-HERO prototype's
+ *  0.15 ceiling ("more subtle", owner verbatim).
+ *  `test/demo/instrument/aurora-opacity-ceiling.test.ts` asserts this literal
+ *  AND the template binding that carries it, which is why it lives in a plain
+ *  module-scope `<script>` block: a `<script setup>` compile-local is
+ *  unreachable to every instrument in the repo, so a gate over it could only
+ *  be a source-text pin — the very shape G-L7 rule (e) forbids. */
+export const HERO_AURORA_OPACITY_CEILING = 0.1;
+</script>
+
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
 import { useEventListener } from "@vueuse/core";
@@ -39,11 +49,6 @@ import {
     PAPER_WASH_GROUND,
     resolveAtoms,
 } from "@mkbabb/glass-ui/aurora";
-
-/** The OD-2-amended presence bound — STRICTLY below the P-HERO prototype's
- *  0.15 ceiling ("more subtle", owner verbatim). proof:cursor-light-subtle
- *  asserts this literal + the template binding. */
-const HERO_AURORA_OPACITY_CEILING = 0.1;
 
 const auroraRef = useTemplateRef<InstanceType<typeof Aurora>>("auroraRef");
 

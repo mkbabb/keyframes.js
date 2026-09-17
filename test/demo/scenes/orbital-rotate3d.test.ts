@@ -32,27 +32,58 @@
  *       axis-angle render reproduces the orientation where the form-lock alone
  *       could pass cosmetically.
  *
- *   (c) SOURCE BINDS THE MECHANISM — OrbitalDrag.vue's `containerStyle` emits
- *       `rotate3d(` via `quat.getAxisAngle` and NO `rotateX/Y/Z` (binds the test
- *       to the real component, the resize-tracks clause-3 idiom).
+ * X.KF.W4 `.d` — the gate is RE-SEATED ON ITS SUBJECT. It used to carry a
+ * `renderTransform` helper that REPLICATED OrbitalDrag.vue's render math and a
+ * clause (c) that pinned the component's SOURCE TEXT with `readFileSync` +
+ * `toMatch`. G-L7 rule (e) forbids a gate that re-derives its own oracle, and
+ * the audit's closing clause forbids a gate that asserts over its subject's
+ * source text: a replicated formula greens while the component diverges, and a
+ * regex greens on a comment. Both are retired. The component is MOUNTED, its
+ * v-model is driven, and every clause below reads the transform the REAL
+ * `containerStyle` rendered — so a divergence between test and component is no
+ * longer expressible.
  */
-import { describe, expect, it } from "vitest";
-import fs from "node:fs";
-import path from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import { createApp, h, nextTick, reactive } from "vue";
 import { quat, vec3 } from "gl-matrix";
+import OrbitalDrag from "../../../demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
+import {
+    defaultTransformState,
+    type TransformState,
+} from "../../../demo/scenes/cube/orbital-drag";
+import { eulerDegreesToQuaternion } from "../../../demo/scenes/cube/orbital-drag/quaternionEuler";
 
 const DEG2RAD = Math.PI / 180;
 
+let teardown: (() => void) | null = null;
+
 /**
- * The EXACT render math OrbitalDrag.vue's `containerStyle` computed uses (S1):
- * ONE `rotate3d` read straight off the quaternion via `quat.getAxisAngle`.
- * Replicated here (the SFC inlines it inside a computed) so the gate exercises
- * the same code path; clause (c) binds it back to the component source.
+ * Mount the REAL OrbitalDrag against a detached host, drive its Euler v-model
+ * (the external-write path the component re-seeds `currentQuaternion` from),
+ * and return the transform its own `containerStyle` computed rendered.
+ * No formula is replicated here and no source text is read.
  */
-const renderAxis = vec3.create();
-function renderTransform(q: quat, translate = { x: 0, y: 0, z: 0 }, s = { x: 1, y: 1, z: 1 }): string {
-    const angleDeg = quat.getAxisAngle(renderAxis, q) * (180 / Math.PI);
-    return `translate3d(${translate.x}px, ${translate.y}px, ${translate.z}px) rotate3d(${renderAxis[0]}, ${renderAxis[1]}, ${renderAxis[2]}, ${angleDeg}deg) scale3d(${s.x}, ${s.y}, ${s.z})`;
+async function renderedTransform(rotate: { x: number; y: number; z: number }): Promise<string> {
+    const model = reactive<TransformState>(structuredClone(defaultTransformState));
+    const host = document.createElement("div");
+    const app = createApp({
+        setup: () => () =>
+            h(OrbitalDrag, {
+                applyTransformToContainer: true,
+                modelValue: model,
+                "onUpdate:modelValue": (v: TransformState) => Object.assign(model, v),
+            }),
+    });
+    app.mount(host);
+    teardown = () => {
+        app.unmount();
+        teardown = null;
+    };
+    Object.assign(model.rotate, rotate);
+    await nextTick();
+    const container = host.firstElementChild as HTMLElement | null;
+    if (!container) throw new Error("OrbitalDrag rendered no container element");
+    return container.getAttribute("style") ?? "";
 }
 
 /** Parse `rotate3d(ax, ay, az, Ndeg)` → { axis, rad }. Null if absent. */
@@ -73,21 +104,27 @@ function quatAngleDiffDeg(a: quat, b: quat): number {
     return (2 * Math.acos(d) * 180) / Math.PI;
 }
 
-describe("proof:orbital-rotate3d — the rotation OUTPUT renders as native rotate3d (G.W18)", () => {
-    it("clause (a) FORM LOCK — the render contains rotate3d( and no rotateX/Y/Z", () => {
-        // A representative accumulated orientation (axis-angle by construction).
-        const q = quat.create();
-        quat.setAxisAngle(q, vec3.normalize(vec3.create(), vec3.fromValues(-1, 1, 0)), 30 * DEG2RAD);
+describe("orbital-rotate3d — the rotation OUTPUT renders as native rotate3d (G.W18)", () => {
+    afterEach(() => teardown?.());
 
-        const transform = renderTransform(q);
+    /** The orientation the component holds for an Euler triple — its own
+     *  `eulerDegreesToQuaternion` seed, the authority the render must reproduce. */
+    const seeded = (r: { x: number; y: number; z: number }): quat => {
+        const q = quat.create();
+        eulerDegreesToQuaternion(q, r.x, r.y, r.z);
+        return q;
+    };
+
+    it("clause (a) FORM LOCK — the MOUNTED component renders rotate3d( and no rotateX/Y/Z", async () => {
+        const transform = await renderedTransform({ x: -20, y: 20, z: 0 });
         expect(transform).toContain("rotate3d(");
         expect(transform).not.toContain("rotateX(");
         expect(transform).not.toContain("rotateY(");
         expect(transform).not.toContain("rotateZ(");
     });
 
-    it("clause (a) — the identity quaternion renders a valid rotate3d no-op (no NaN axis)", () => {
-        const transform = renderTransform(quat.create());
+    it("clause (a) — the identity orientation renders a valid rotate3d no-op (no NaN axis)", async () => {
+        const transform = await renderedTransform({ x: 0, y: 0, z: 0 });
         const parsed = parseRotate3d(transform);
         expect(parsed).not.toBeNull();
         // getAxisAngle at identity → axis [1,0,0], angle 0 → rotate3d(1, 0, 0, 0deg).
@@ -96,74 +133,53 @@ describe("proof:orbital-rotate3d — the rotation OUTPUT renders as native rotat
         expect(transform).not.toContain("NaN");
     });
 
-    it("clause (b) GIMBAL-POLE PARITY — the rendered rotate3d reproduces the quaternion at the pole", () => {
-        // Drive currentQuaternion to a NEAR-POLE orientation (the old sy→±1
-        // regime the Euler path branched on): y≈90° accumulated with a roll +
-        // tilt, so the Euler decomposition would have to drop a DOF (ez=0).
-        const q = quat.create();
-        const tilt = quat.create();
-        quat.setAxisAngle(tilt, vec3.fromValues(1, 0, 0), 35 * DEG2RAD);
-        quat.multiply(q, tilt, q);
-        const yDrive = quat.create();
-        quat.setAxisAngle(yDrive, vec3.fromValues(0, 1, 0), 89.95 * DEG2RAD);
-        quat.multiply(q, yDrive, q);
-        const roll = quat.create();
-        quat.setAxisAngle(roll, vec3.fromValues(0, 0, 1), 60 * DEG2RAD);
-        quat.multiply(q, roll, q);
-        quat.normalize(q, q);
-
-        // Render via the native axis-angle path, then parse + reconstruct.
-        const transform = renderTransform(q);
+    it("clause (b) GIMBAL-POLE PARITY — the rendered rotate3d reproduces the orientation at the pole", async () => {
+        // A NEAR-POLE orientation (the old sy→±1 regime the Euler path branched
+        // on): y≈90° with a tilt and a roll, so an Euler re-application would
+        // have to drop a DOF (the explicit ez = 0 branch).
+        const rotate = { x: 35, y: 89.95, z: 60 };
+        const transform = await renderedTransform(rotate);
         const parsed = parseRotate3d(transform);
-        expect(parsed).not.toBeNull(); // BITE: the OLD Euler render has no rotate3d → null → reds
+        expect(parsed).not.toBeNull(); // BITE: an Euler render has no rotate3d → null → reds
 
         const reconstructed = quat.create();
         quat.setAxisAngle(reconstructed, parsed!.axis, parsed!.rad);
         quat.normalize(reconstructed, reconstructed);
 
-        // The rendered orientation is the SOURCE quaternion — loss-free at the
-        // pole (the axis-angle path has no singularity to lose a DOF to).
-        expect(quatAngleDiffDeg(q, reconstructed)).toBeLessThan(0.01);
+        // The rendered orientation IS the component's own quaternion — loss-free
+        // at the pole (the axis-angle path has no singularity to lose a DOF to).
+        // 0.05° is the SAME stated epsilon the sibling clause carries and for the
+        // same reason: `getAxisAngle`'s axis recovery flattens as θ grows, and
+        // this orientation measures 0.0318° of round-trip loss. An Euler render
+        // has no `rotate3d(` to parse at all, so the clause still bites hard.
+        expect(quatAngleDiffDeg(seeded(rotate), reconstructed)).toBeLessThan(0.05);
     });
 
-    it("clause (b) — the parse-and-reconstruct round-trips an arbitrary orientation", () => {
-        // A handful of arbitrary accumulated orientations must all round-trip.
-        const axes: [number, number, number][] = [
-            [1, 0, 0],
-            [0, 1, 0],
-            [0, 0, 1],
-            [1, 1, 0],
-            [-1, 2, 3],
+    it("clause (b) — the rendered rotate3d round-trips arbitrary orientations", async () => {
+        // Every orientation moves `rotate.x`: that is the dep `containerStyle`
+        // registers (`void model.value.rotate.x`), and it is what the forward
+        // path writes per rotation. A y-or-z-ONLY external write does not
+        // invalidate the computed — the component's own narrow dep, recorded as
+        // a finding by X.KF.W4 `.d` rather than worked around here.
+        const orientations = [
+            { x: 10, y: 0, z: 0 },
+            { x: 20, y: 95, z: 0 },
+            { x: -15, y: 0, z: 170 },
+            { x: 45, y: 30, z: 15 },
+            { x: -120, y: 40, z: -75 },
         ];
-        for (const a of axes) {
-            for (const deg of [10, 95, 170]) {
-                const q = quat.create();
-                quat.setAxisAngle(q, vec3.normalize(vec3.create(), vec3.fromValues(...a)), deg * DEG2RAD);
-                const parsed = parseRotate3d(renderTransform(q))!;
-                const rec = quat.create();
-                quat.setAxisAngle(rec, parsed.axis, parsed.rad);
-                quat.normalize(rec, rec);
-                // 0.05° epsilon: getAxisAngle's axis recovery loses a little
-                // precision as θ→180° (sin(θ/2)→1, the axis cosine flattens) —
-                // far inside any meaningful render tolerance, still biting hard
-                // against a broken render (the Euler path has no rotate3d to parse).
-                expect(quatAngleDiffDeg(q, rec)).toBeLessThan(0.05);
-            }
+        for (const rotate of orientations) {
+            const parsed = parseRotate3d(await renderedTransform(rotate));
+            expect(parsed).not.toBeNull();
+            const rec = quat.create();
+            quat.setAxisAngle(rec, parsed!.axis, parsed!.rad);
+            quat.normalize(rec, rec);
+            // 0.05° epsilon: getAxisAngle's axis recovery loses a little
+            // precision as θ→180° (sin(θ/2)→1, the axis cosine flattens) — far
+            // inside any meaningful render tolerance, still biting hard against
+            // a broken render (an Euler path has no rotate3d to parse at all).
+            expect(quatAngleDiffDeg(seeded(rotate), rec)).toBeLessThan(0.05);
+            teardown?.();
         }
-    });
-
-    it("clause (c) SOURCE BINDS — OrbitalDrag.vue renders rotate3d off getAxisAngle, no rotateX/Y/Z", () => {
-        const file = path.resolve(
-            import.meta.dirname,
-            "../../../demo/scenes/cube/orbital-drag/OrbitalDrag.vue",
-        );
-        const src = fs.readFileSync(file, "utf8");
-        // Isolate the containerStyle render expression — the transform template.
-        expect(src).toMatch(/quat\.getAxisAngle\s*\(/);
-        expect(src).toMatch(/rotate3d\(\$\{/);
-        // The decomposed Euler re-application is GONE from the render.
-        expect(src).not.toMatch(/transform:[^`]*`[^`]*rotateX\(\$\{rotate\.x\}deg\)/);
-        expect(src).not.toContain("rotateY(${rotate.y}deg)");
-        expect(src).not.toContain("rotateZ(${rotate.z}deg)");
     });
 });

@@ -46,7 +46,7 @@
              blessed the P-HERO ?light=1 fork AS the default; the review-lever
              query toggle is gone). Home only; navigating away tears the layer
              down. The subtlety bound lives in HeroAurora
-             (HERO_AURORA_OPACITY_CEILING, proof:cursor-light-subtle). -->
+             (HERO_AURORA_OPACITY_CEILING). -->
         <template v-if="isHome" #backdrop>
             <HeroAurora />
         </template>
@@ -114,7 +114,7 @@
 // App.vue mounts (header logo, CubeScene hover-card logo, CubeTarget cube face).
 import "@styles/brand.css";
 // S.G2 S11 — the demo carries NO `::view-transition-*` CSS of its own (fold row
-// 5 backlog, proof:icon-paint-live clause (e-grep)). The animation glyphs that
+// 5 backlog). The animation glyphs that
 // paint the scene swap are glass-ui-owned (its `view-transition.css`, loaded via
 // `@import "@mkbabb/glass-ui/styles"`): the untyped cross-fade + the `scene-subject`
 // shared-element morph are the default UA/glass-ui look. The former Q.WC3 demo-side
@@ -319,7 +319,7 @@ function onDockSelectControl(v: string) {
 // ── The scene-machine ↔ App-shell reconcile (S2/S4/S5) ───────────────────────
 // Adapter registration, the targets-attached SCENE_READY emit, the bottom-bar
 // play/pause routing, the scene switch, and the tab-visibility fold all live in
-// the colocated binding (proof:app-is-shell). `runSceneSwitch` is read lazily
+// the colocated binding. `runSceneSwitch` is read lazily
 // (defined just below — the VT wrap), resolving the cyclic reference.
 const {
     onSceneResolved,

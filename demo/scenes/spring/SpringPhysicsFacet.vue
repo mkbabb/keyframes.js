@@ -114,8 +114,7 @@
                     <!-- K.W1′ — `:framed="false"` DROPS the editor's own inner
                          `Card` so the per-stop list flows into THIS facet's lone
                          quiet parent Card directly (no card-in-card; the glass-ui
-                         4.0.0 single-surface contract — the
-                         proof:easing-sidebar-normalized G6 flatten clause). -->
+                         4.0.0 single-surface contract — the G6 flatten clause). -->
                     <KeyframesEditor :animation="demo.springEditAnim" :framed="false" />
                 </div>
             </div>
