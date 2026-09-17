@@ -14,9 +14,13 @@
  * (resolved at the consumer, externalized by `vite.config.ts`'s
  * `/^@mkbabb\/value\.js(\/|$)/` predicate — H4 smoke-test: 113B externalized,
  * NOT inlined), and the boundary gate stays GREEN because the W97 allow-list
- * permits the verified-clean subpath on BOTH assertions. The drift guard
- * (`test/leaves-parity.test.ts`) now asserts the re-exported subpath values
- * match the value.js barrel.
+ * permits the verified-clean subpath on BOTH assertions. There is no drift to
+ * guard: the line below is a RE-EXPORT, so these ARE value.js's bindings rather
+ * than copies that could diverge from them — and value.js 4.0.0 publishes seven
+ * subpaths with no `.` root export, so the "parity with the value.js barrel" the
+ * old `leaves-parity` spec asserted had no subject at either end. That spec is
+ * deleted with this sentence (X.KF.W4 K2 / G-KFW4-6); it cited itself here at
+ * `test/leaves-parity.test.ts`, a path that never existed.
  *
  * The rAF shim STAYS local (`requestAnimationFrame`/`cancelAnimationFrame`/
  * `FRAME_RATE`): it is an environment shim, not pure math, so it does not live
