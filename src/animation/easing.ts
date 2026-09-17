@@ -41,7 +41,7 @@ const CSS_FUNCTION_EASING =
 /**
  * The faithful CSS easing string for an easing NAME / literal, or
  * `undefined` when the name has no faithful CSS twin (value.js bespoke
- * curves — `easeOutCubic`, `bounceInEase` — do NOT map to a CSS keyword).
+ * curves — `easeOutCubic`, `easeInBounce` — do NOT map to a CSS keyword).
  *
  * This is what makes a WAAPI delegation faithful: only an easing whose
  * `.css` is set delegates to the compositor; everything else runs the true

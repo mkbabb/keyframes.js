@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createNativeTimeline } from "../../src/animation/orchestration/timeline";
 import { cssTwinFor, toEasing } from "../../src/animation/easing";
+import { timingFunctionEntries } from "../../src/animation/compile/easing/registry";
 import type { Easing, TimingFunction } from "../../src/animation/constants";
 
 /**
@@ -123,6 +124,14 @@ describe("toEasing — the sync light-engine normalizer (public-API edge)", () =
  * Locking it here ties the normalizer's representative named/cubic-bezier/steps
  * inputs to a faithful twin (and the bespoke-curve rejection — no twin).
  */
+/**
+ * The registry's OWN roster, read from the map it builds at module evaluation —
+ * never a list re-typed here. A clause that claims "X is a bespoke registry
+ * curve" has to prove the membership from the registry, or it is asserting over
+ * a name it invented (X.KF.W4 `.e` / G-L7 rule (e)).
+ */
+const registryNames = timingFunctionEntries.map(([name]) => name);
+
 describe("cssTwinFor — the faithful CSS twin discriminant (normalizer support)", () => {
     it("maps the native keyword forms to themselves", () => {
         for (const kw of ["linear", "ease", "ease-in", "ease-out", "ease-in-out"]) {
@@ -140,10 +149,22 @@ describe("cssTwinFor — the faithful CSS twin discriminant (normalizer support)
     });
 
     it("BITE: a bespoke value.js curve name has NO faithful twin (undefined)", () => {
-        // `easeOutCubic` / `bounceInEase` are real registry curves but map to NO
-        // CSS keyword — a silent twin here would mis-delegate to the compositor.
-        expect(cssTwinFor("easeOutCubic")).toBeUndefined();
-        expect(cssTwinFor("bounceInEase")).toBeUndefined();
+        // X.KF.W4 `.e` / KF-CB-18 — this clause used to name `bounceInEase`,
+        // which is not a registry curve at ALL (the frontier's name is
+        // `easeInBounce`; the rename is KF-CB-1). `cssTwinFor` is pure string
+        // logic, so an unknown name and a real bespoke curve both return
+        // `undefined` — the assertion was byte-identical in CONTENT to the
+        // unknown-name control two lines below, and passed for the wrong
+        // reason. The names below are re-read from the registry's own roster,
+        // so the clause now discriminates what it claims to.
+        for (const name of ["easeOutCubic", "easeInBounce"]) {
+            expect(registryNames).toContain(name);
+            expect(cssTwinFor(name)).toBeUndefined();
+        }
+        // The control: an unknown name also has no twin. It is the SAME
+        // observation, declared as a control rather than smuggled in as a
+        // second witness — which is what makes the two clauses distinguishable.
+        expect(registryNames).not.toContain("not-a-real-easing");
         expect(cssTwinFor("not-a-real-easing")).toBeUndefined();
     });
 });

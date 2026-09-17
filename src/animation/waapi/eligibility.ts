@@ -166,7 +166,7 @@ export function isWAAPIEligible<V extends Vars>(
     // WAAPI may delegate ONLY when the (uniform) easing has a FAITHFUL CSS
     // representation — a `.css` twin (a spring's `linear()`, an explicit
     // `cubic-bezier()`/CSS-keyword/`steps()` easing). A bespoke callable
-    // (the value.js `easeInOutCubic` default, `easeOutCubic`, `bounceInEase`,
+    // (the value.js `easeInOutCubic` default, `easeOutCubic`, `easeInBounce`,
     // a user closure) has NO faithful CSS twin, so delegating it would run
     // BARE LINEAR on the compositor — a silent visual regression. Those stay
     // on the rAF path, which runs the true curve. (Pre-KF-B1 the WAAPI path

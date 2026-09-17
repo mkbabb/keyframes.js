@@ -22,9 +22,21 @@ import type { FlatAuthoredValues } from "../compile/value";
 
 export type { SpaceId, HueInterpolationMethod } from "@mkbabb/value.js/color";
 
+/**
+ * The registry's easing NAMES — exactly the roster
+ * `compile/easing/registry.ts` builds at module evaluation (value.js's
+ * `bezierPresets` keys + `"ease-in-bounce"` + the camel `DIRECT_NAMES`), and
+ * nothing else.
+ *
+ * `"steps"` is NOT a member (X.KF.W4 KF-CB-24): bare `steps` carries no count
+ * and no jump term, so it fails the CSS Easing L1 parse and is absent from
+ * `registryNames` — `resolveTimingFunction("steps")` THROWS on it. The
+ * parametric `steps(4, jump-end)` is a CSS LITERAL, resolved through the parser
+ * branch, never a name. `test/compile/timing-function-names.test.ts`
+ * (G-KFW4-13) asserts this union and the runtime roster are the same set.
+ */
 export type TimingFunctionNames =
     | BezierPresetName
-    | "steps"
     | "ease-in-bounce"
     | "easeOutCubic"
     | "easeInOutSine"
