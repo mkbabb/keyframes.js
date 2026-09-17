@@ -1,10 +1,11 @@
 # Merge correctness and publish-boundary workflow for @mkbabb/keyframes.js.
 #
-# U.A6 collapses the merge path to the three surviving mechanisms: the Vitest
+# U.A6 collapsed the merge path to the library mechanisms: the Vitest
 # correctness suite and proof:publish (boundary, published surface, dependency
-# floor). Browser/device observations run only on the scheduled/manual roster
-# below; they never hold a library merge hostage. The producer library graph has
-# no Glass dependency; the later demo-consumer commit owns that registry edge.
+# floor). X.KF.W4 widens it to the DEMO: the jsdom demo project and the lint
+# tier run as blocking steps of the library-gates job, and the browser roster
+# below is no longer event-gated. The producer library graph has no Glass
+# dependency; the later demo-consumer commit owns that registry edge.
 name: ci
 
 on:
@@ -44,15 +45,29 @@ jobs:
               run: npm run build:lib
             - name: correctness suite
               run: npm run test:lib
+            # X.KF.W4 — the demo lane is a MERGE-PATH gate, not a nightly
+            # observation. `test:demo` is the jsdom vitest project (27 specs);
+            # `lint` is the source-graph cruise over src + demo plus the
+            # eslint-plugin-vue ESSENTIALS tier over the SFC templates. Both
+            # block. A demo defect that used to surface (at best) in a nightly
+            # whose colour nobody read now fails the pull request that authors it.
+            - name: demo correctness suite
+              run: npm run test:demo
+            - name: lint (source graph + SFC templates)
+              run: npm run lint
             - name: publish boundary
               run: npm run proof:publish
 
-    # U.A7 — the device-dependent demo roster is nightly/on-demand only. A
+    # X.KF.W4 (G-KFW4-2) — the demo roster is now a MERGE-PATH job. U.A7 had it
+    # behind `schedule || workflow_dispatch` with the standing note that "a
     # scheduled red is recorded for deploy ancestry; it does not block library
-    # merges. Manual dispatch is the explicit break-glass path.
+    # merges" — so the demo's only browser-level correctness instrument could go
+    # red indefinitely without stopping a single merge. The event gate is
+    # REMOVED: the roster runs on pull_request and push as well, and it blocks.
+    # The schedule/dispatch triggers survive for deploy ancestry, which is the
+    # one thing the nightly was genuinely for.
     demo-correctness:
-        name: demo correctness (nightly roster)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        name: demo correctness (browser roster)
         permissions:
             contents: write
         runs-on: ubuntu-latest
@@ -78,9 +93,15 @@ jobs:
               env:
                   KF_REQUIRE_BROWSER: "1"
                   KF_MWG_OPTIONAL: "1"
-            # A successful nightly publishes the SHA consumed by deploy-pages.
+            # A successful push/schedule run publishes the SHA consumed by
+            # deploy-pages. Pull-request runs are excluded by event, not by
+            # convenience: `github.sha` is the ephemeral merge commit there, and
+            # a fork PR's token carries no `contents: write` — tagging deploy
+            # ancestry from either would be false ancestry.
             - name: record last-demo-green
-              if: success()
+              if: >-
+                  success() && (github.event_name == 'push' ||
+                  github.event_name == 'schedule')
               env:
                   GH_TOKEN: ${{ github.token }}
               run: |

@@ -1,7 +1,19 @@
-import { defineConfig } from "vitest/config";
+import vue from "@vitejs/plugin-vue";
 import path from "path";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+    // X.KF.W4 (G-KFW4-2) — the SFC transform. The config declared `resolve` and
+    // `test` and NO `plugins` array at all, so vitest could not compile a single
+    // `.vue` file: the demo lane passed with ZERO mounted SFCs, and any spec
+    // reaching a `demo/scenes/**` barrel that re-exports an SFC would have died
+    // at transform rather than at an assertion. The registration happens HERE,
+    // once, and is the witness KF.W8's G10 leg (a) cites; W8 performs no edit of
+    // this file. The plugin is declared at the ROOT so both projects inherit it
+    // through `extends: true` — the library lane compiles no SFC today, and a
+    // per-project registration would silently re-open the same hole the first
+    // time one does.
+    plugins: [vue()],
     resolve: {
         alias: {
             "@src": path.resolve(import.meta.dirname, "src"),

@@ -51,14 +51,22 @@
 // R.W1: the LIGHT named-export modules moved into their zone directories. The
 // allowlist tracks the SAME barrel re-export set as proof:boundary — now by zone
 // path (`physics/`, `orchestration/`). `easing.ts` stays at the root.
+// X.KF.W4 (G-KFW4-11): FIVE entries were left behind by a later intra-zone move
+// and named files that no longer exist (`physics/spring/{duration,reseat,
+// linear-stops,timing-function}`, `orchestration/drag/drag-2d`). LIGHT_FROM is
+// rule 3's ENTIRE `from` set, so each dead entry was a LIGHT module the boundary
+// rule silently did NOT cover — a green run over a subject set five short. They
+// are repointed to their live twins below; every entry is existence-checked
+// against `src/animation/<entry>.ts`, and an entry that names no file is the
+// defect, never a formality.
 const LIGHT_BARREL_MODULES = [
     "physics/numeric",
     "physics/smooth",
     "physics/spring/progress",
-    "physics/spring/duration",
-    "physics/spring/reseat",
-    "physics/spring/linear-stops",
-    "physics/spring/timing-function",
+    "physics/spring/solver/duration",
+    "physics/spring/solver/reseat",
+    "physics/spring/css/linear-stops",
+    "physics/spring/css/timing-function",
     "physics/spring/types",
     "physics/spring/index",
     "physics/morph",
@@ -70,7 +78,7 @@ const LIGHT_BARREL_MODULES = [
     "orchestration/stagger",
     "orchestration/flip",
     "orchestration/drag/draggable",
-    "orchestration/drag/drag-2d",
+    "orchestration/drag/2d",
     "orchestration/drag/index",
     "orchestration/sequence/sequence",
     "orchestration/sequence/events",
@@ -129,7 +137,7 @@ module.exports = {
                 "`--known-violations` flag). The invariant is a true acyclic " +
                 "runtime graph, not a grandfathered floor; a new runtime cycle " +
                 "reds immediately.",
-            from: { path: "^src/" },
+            from: { path: "^(?:src|demo)/" },
             to: {
                 circular: true,
                 // The head edge must be a RUNTIME edge (an `import type` head
