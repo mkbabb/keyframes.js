@@ -44,8 +44,9 @@
                 class="text-mono-caption text-muted-foreground"
                 data-register="code"
             >
-                {{ demo.currentEasingName.value }} is engine-native — editing
-                here authors a custom cubic-bezier
+                {{ demo.currentEasingName.value }} is engine-native — no
+                cubic-bezier reproduces it, so editing here departs into a
+                custom curve
             </p>
 
             <!-- Duration row — FULL-WIDTH (J3 posture kept from the previous
@@ -83,10 +84,13 @@ const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;
 
 // ── The seed: tile selection → picker initial props (remount re-seat) ──────
-// glass-ui's bezier catalogue is value.js `bezierPresets`; the demo's named
-// map (NAMED_EASING_BEZIER) is wider (quart/quint) and differs on some quads
-// (sine) — seed by PRESET only when the picker's own catalogue knows the name
-// (the honest vendor seam; the wider-coverage ask is BG-8).
+// glass-ui's bezier catalogue is value.js `bezierPresets` (30 keys); the demo's
+// named map (NAMED_EASING_BEZIER, 29) is a byte-exact STRICT SUBSET of it —
+// sole delta `smooth-step-3`, zero value differences. Seed by PRESET only when
+// the DEMO's map knows the name, never `bezierPresets`: a name the caption above
+// calls engine-native must not be seeded as a preset under its own caption
+// (COHESION §0j.C KF-SS3 preserves `smooth-step-3`'s class — a smoothstep
+// polynomial is not a cubic bezier). The two catalogues are NEVER merged.
 interface PickerSeed {
     key: string;
     mode: "bezier" | "steps";
@@ -109,7 +113,7 @@ const seedFor = (name: string): PickerSeed | null => {
                   : { steps: 1, term: "jump-end" as JumpTerm };
         return { key: `steps:${name}:${++seedCount}`, mode: "steps", ...stepSeed };
     }
-    if (name in bezierPresets) {
+    if (name in NAMED_EASING_BEZIER) {
         return { key: `bezier:${name}:${++seedCount}`, mode: "bezier", preset: name };
     }
     // "cubic-bezier" (a live custom edit — the picker authored it, never
