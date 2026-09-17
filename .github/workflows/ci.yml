@@ -41,6 +41,25 @@ jobs:
               run: npm ci
             - name: check library types
               run: npm run check:lib
+            # X.KF.W4 (G-KFW4-1) — THE SFC TYPE GATE ON THE MERGE PATH. The step
+            # above is `tsc -p tsconfig.lib.json` over `include: ["src/"]`: plain
+            # `tsc` cannot parse an SFC, so before this line NO `.vue` file was
+            # typechecked anywhere in this repo, on any path, and a broken
+            # template could not fail a build. `check` is the wave's redefined
+            # composite — `vue-tsc -p tsconfig.json` (src + demo, SFCs included)
+            # && `tsc -p tsconfig.test.json` && `proof:structure`.
+            #
+            # DECLARED RED, not a green no-op: this step fails today. The wave's
+            # goal criterion is that a `.vue` file CAN fail a build on the merge
+            # path, and the honest way to reach it is to wire the gate that
+            # measures it and let it report, never to wire a softened one. The
+            # diagnostics it reports are booked with named owners (KF.W5 for the
+            # `src/` `noUnusedLocals` residues, KF.W6 / KF.W7 / the UNIT packets
+            # for the demo surface); `continue-on-error`, `|| true` and a
+            # known-violations allowlist are each forbidden by this wave's own
+            # standing law, and none is used here.
+            - name: check types (SFC + tests + structure)
+              run: npm run check
             - name: build library
               run: npm run build:lib
             - name: correctness suite
