@@ -57,6 +57,46 @@ export type TransformFunction<V extends Vars> = (v: V, t: number) => void;
 export type TimingFunction = (t: number) => number;
 
 /**
+ * A CSS `<easing-function>` written as TEXT — the second legitimate spelling of
+ * an easing at the option surface, beside a registry {@link TimingFunctionNames}
+ * name (X.KF.W4 KF-CB-29, COHESION §0m.1 candidate (ii)).
+ *
+ * This type exists because the arm it replaces — a bare `| string` on
+ * `InputAnimationOptions["timingFunction"]` — made `tsc` green on EVERY string,
+ * so the name union beside it was decorative at the only surface a consumer
+ * actually writes through. That arm is the mechanism by which a renamed easing
+ * shipped with a green typecheck over a name that had ceased to exist. Deleting
+ * it outright is the WRONG cure and the tree says so by measurement: at
+ * `3e81f500` a bare deletion reddens **14 library diagnostics** — 13 in the
+ * SHIPPED preset catalogue (`presets/catalog.ts`, every one a `cubic-bezier()`
+ * or `steps()` literal the library authors itself) and one at
+ * `engine/css/metadata.ts:63`. Those literals are not sloppiness; they are the
+ * grammar. So the arm is NARROWED to that grammar rather than removed.
+ *
+ * The members are CSS Easing L1/L2's own: the seven keywords, and the three
+ * functional forms. The functional arms are deliberately `${string}`-bodied — a
+ * template literal type cannot validate a numeric argument list, and pretending
+ * otherwise would trade one false claim for another. What it DOES buy is total:
+ * a string that is neither a registry name nor shaped like a CSS easing function
+ * no longer typechecks, which is the whole of KF-CB-29.
+ *
+ * `compile/emit/css-text.ts`'s `serializeTimingFunction` returns this type, so
+ * the library's own serializer output flows back into the option surface
+ * without widening it.
+ */
+export type CssEasingLiteral =
+    | "linear"
+    | "ease"
+    | "ease-in"
+    | "ease-out"
+    | "ease-in-out"
+    | "step-start"
+    | "step-end"
+    | `cubic-bezier(${string})`
+    | `steps(${string})`
+    | `linear(${string})`;
+
+/**
  * The typed easing value — a callable curve plus, when one exists, the CSS
  * easing string that reproduces it (e.g. a spring's `linear()` stops).
  *
@@ -204,7 +244,7 @@ export type InputAnimationOptions = Partial<{
         | TimingFunction
         | Easing
         | TimingFunctionNames
-        | string
+        | CssEasingLiteral
         | undefined;
 
     /** When true (default), eligible animations may use the Web Animations API for compositor-thread execution. Set to false to force rAF. */

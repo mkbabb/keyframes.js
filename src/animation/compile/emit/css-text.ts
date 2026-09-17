@@ -7,6 +7,7 @@ import type {
 } from "@mkbabb/value.js/css";
 import { serializeCssColor } from "@mkbabb/value.js/css";
 import type { CssValue } from "@mkbabb/value.js/value";
+import type { CssEasingLiteral } from "../../constants";
 
 export const reverseCSSTime = (milliseconds: number): string =>
     milliseconds >= 5000 ? `${milliseconds / 1000}s` : `${milliseconds}ms`;
@@ -27,7 +28,7 @@ export const reverseAnimationShorthand = (
     options.name,
 ].filter((part): part is string => part !== undefined).join(" ");
 
-export const serializeTimingFunction = (value: NonNullable<CSSAnimationOptions["timingFunction"]>): string => {
+export const serializeTimingFunction = (value: NonNullable<CSSAnimationOptions["timingFunction"]>): CssEasingLiteral => {
     switch (value.kind) {
         case "keyword": return value.name;
         case "cubic-bezier": return `cubic-bezier(${value.x1}, ${value.y1}, ${value.x2}, ${value.y2})`;
