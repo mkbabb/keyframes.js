@@ -78,7 +78,7 @@
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Repeat count (number or 'infinite')"
                                     @update:model-value="
-                                        (v: string) => {
+                                        (v: string | number) => {
                                             trySetOption(() =>
                                                 animation.setIterationCount(v),
                                             );
@@ -451,7 +451,8 @@ import {
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
     isPlaying?: boolean;
-    layerConfig?: AnimationLayerConfig;
+    // `| undefined` explicit — bound, never omitted, by `ChannelControls.vue:105`.
+    layerConfig?: AnimationLayerConfig | undefined;
     blendAvailable: boolean;
     active?: boolean;
 }>();

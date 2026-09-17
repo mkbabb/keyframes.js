@@ -1,3 +1,4 @@
+import type { vec3 } from "gl-matrix";
 import { useRafFn } from "@vueuse/core";
 import type { Ref } from "vue";
 import { watch } from "vue";
@@ -24,8 +25,8 @@ interface OrbitalInertiaParams {
     inertiaFactor: number;
     angularVelocitySpeed: Ref<number>;
     // Callbacks into the quaternion core and pointer layer
-    applyRotation: (axis: Float32Array, angle: number) => void;
-    angularVelocityAxis: Float32Array;
+    applyRotation: (axis: vec3, angle: number) => void;
+    angularVelocityAxis: vec3;
     updateLinearTransform: (
         category: "translate" | "scale",
         axis: (typeof axes)[number],

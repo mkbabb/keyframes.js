@@ -139,8 +139,13 @@ const props = withDefaults(
         // forwarded to the transport as the whole channel axis (labels + host
         // mounts + scrub round-trip). `undefined` for a non-migrated scene / a
         // standalone host → the transport falls back to the group's keys.
-        channels?: TransportChannel[];
-        superKey?: string;
+        // `| undefined` is explicit because the App BINDS an `undefined` value
+        // (App.vue:35, `currentChannels`) rather than omitting the attribute, and
+        // `exactOptionalPropertyTypes` distinguishes the two.
+        channels?: TransportChannel[] | undefined;
+        // `| undefined` is explicit: `withDefaults` below declares
+        // `superKey: undefined` as this prop's own default.
+        superKey?: string | undefined;
         showStartScreen?: boolean;
         gridBackground?: boolean;
         autoPlay?: boolean;

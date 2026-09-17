@@ -14,10 +14,12 @@ import {
 // ONE source of the count arithmetic, per lane 18's dual-formula rule).
 import {
     BUILT_IN_SURFACES,
+    type ControlSurface,
 } from "@state/controlSurfaces";
 import {
     SURFACE_META,
     dockCardinality,
+    type ControlSurfaceTab,
 } from "@components/instrument/surfaceTabs";
 import {
     Select,
@@ -46,7 +48,7 @@ import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 // below survives as the string→COMPONENT icon registry (a render concern, not
 // metadata). The easing scene's set is ['easing'] (a scene-specific surface
 // carried by `extraControlTabs`), so NONE of this triad renders for it.
-const BUILT_IN_CONTROL_TABS: { value: string; label: string; icon?: string }[] =
+const BUILT_IN_CONTROL_TABS: ControlSurfaceTab[] =
     BUILT_IN_SURFACES.map((s) => SURFACE_META[s]);
 
 const TAB_ICONS: Record<string, Component> = {
@@ -68,8 +70,8 @@ const props = defineProps<{
      *  H.W11.S4 / I2). The dock renders the {controls,keyframes,timeline} triad
      *  FROM this set — an invalid built-in surface CANNOT render. Defaults to the
      *  full triad when absent (non-App hosts that don't drive the DFA). */
-    controlSurfaces?: string[];
-    extraControlTabs?: { value: string; label: string; icon?: string }[];
+    controlSurfaces?: readonly ControlSurface[];
+    extraControlTabs?: readonly ControlSurfaceTab[];
     /** A slotted #items popup (the @mbabb dropdown) is open. The slot content is
      *  set up in the PARENT (App.vue), so its `useOptionalDockContext()` resolves
      *  ABOVE this provider and cannot hold the dock open itself; the parent surfaces

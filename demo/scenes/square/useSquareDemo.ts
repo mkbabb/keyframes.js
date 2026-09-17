@@ -8,6 +8,31 @@ import { onScopeDispose, type Ref } from "vue";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 
 /**
+ * MISS-6 — the square scene's OWN vars shape. The library's `Vars` is the open
+ * `{ [arg: string]: number | string | T }` index with `T = any`, so every read
+ * in `transformFunc` below (`transform.a.b.c.d`, `tilt.x`, `squash.y`) resolved
+ * to `any` and NO checker in the tree could catch a misspelt leaf of the one
+ * scene whose whole point is the nested-object primitive. Declaring the scene's
+ * shape is the free win: the leaves keep their two authored spellings (a raw
+ * number from the spring loop, a CSS-authored string from the keyframes — the
+ * `num()` bridge at `:78` resolves both), and the interface still extends `Vars`
+ * so the engine's `TransformFunction<V extends Vars>` contract is unchanged.
+ */
+interface SquareVars extends Vars {
+    transform?: {
+        x?: number | string;
+        y?: number | string;
+        rotate?: number | string;
+        a?: { b?: { c?: { d?: number | string } } };
+    };
+    /** A CSS colour STRING only — the tumble sweep's `tumbleColorAt()` value,
+     *  written straight onto `el.style.backgroundColor` at `:161`. */
+    backgroundColor?: string;
+    tilt?: { x?: number; y?: number };
+    squash?: { x?: number; y?: number };
+}
+
+/**
  * useSquareDemo — the dogfood of the custom-transform-function over
  * NESTED-OBJECT values primitive (the distinct library feature this scene
  * exists to prove: a `transformFunc` composes `transform` from deeply-nested
@@ -97,7 +122,7 @@ export function useSquareDemo(
      * Every positional leaf routes through `num()` so the raw-number (drag) and
      * the authored-string (Play keyframes) writers BOTH resolve.
      */
-    const transformFunc = (vars: Vars) => {
+    const transformFunc = (vars: SquareVars) => {
         const el = box.value;
         if (!el) return;
         const { transform, backgroundColor, tilt, squash } = vars;

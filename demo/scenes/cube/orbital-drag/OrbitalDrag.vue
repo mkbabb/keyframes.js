@@ -335,8 +335,10 @@ watch(
         angularVelocitySpeed.value *= 0.8;
 
         for (const category of ["translate", "scale"] as const) {
-            for (const k of Object.keys(velocity.value[category])) {
-                (velocity.value[category] as Record<string, number>)[k] *= 0.8;
+            for (const k of Object.keys(
+                velocity.value[category],
+            ) as (keyof VelocityState["translate"])[]) {
+                velocity.value[category][k] *= 0.8;
             }
         }
     },

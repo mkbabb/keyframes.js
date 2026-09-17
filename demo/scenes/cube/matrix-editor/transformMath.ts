@@ -39,6 +39,12 @@ export type MatrixScalar = Readonly<{
 export type Matrix3dCall = Readonly<{
     kind: "call";
     name: "matrix3d";
+    // The args stay the OPEN `CssValue` union, deliberately: `matrixValueAt`
+    // (`:91-103`) exists to REJECT a non-scalar arg, and
+    // `test/demo/scenes/cube-scene.test.ts:118-122` proves that rejection by
+    // authoring a `var()` arg — a narrowed `args` would make the guard's own
+    // falsifier inexpressible. Readers that KNOW their matrix came from
+    // `createMatrix` say so at their own site (MatrixEditor.vue).
     args: readonly CssValue[];
 }>;
 

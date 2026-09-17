@@ -23,6 +23,22 @@ export interface SceneExposedApi {
     facility?: SceneFacility;
     /** Render-fn slot projections (cross-sibling via defineExpose). */
     tabsContent?: () => VNode;
+    /**
+     * The controls-pane tab TRIGGER projection. `App.vue:58-63` binds it into
+     * `<component :is>` under its own `v-if`, so the member is optional and a
+     * scene that projects no trigger simply omits it (CubeScene deleted its
+     * entry at `:152-156` — the App supplies `matrix-controls` as an active
+     * surface instead). The slot props are the ones `ControlsPaneWrapper`
+     * publishes on its `tabs-trigger` outlet (`:selected-animation` /
+     * `:is-playing`), forwarded unchanged through `AnimationControlsGroup` and
+     * `EditorShell`. The shape is the compiler's own, read off the slot chain by
+     * `vue-tsc` rather than assumed: `selectedAnimation` is nullable because
+     * `storedControls.selectedAnimation` is.
+     */
+    tabsTrigger?: (slotProps: {
+        selectedAnimation: string | null;
+        isPlaying: boolean;
+    }) => VNode | null;
     ribbonContent?: (slotProps: { selectedControl: string }) => VNode | null;
     headerLeft?: () => VNode;
     /** The scene's superKey string (used by useSceneMachineApp for group-match). */

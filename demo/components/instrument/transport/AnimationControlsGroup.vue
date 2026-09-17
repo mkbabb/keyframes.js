@@ -144,8 +144,12 @@ const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, h
     // selection/validation set, the scrub round-trip — the honest channel set);
     // `undefined` falls back to the group's animation keys (a non-migrated scene /
     // a standalone host).
-    channels?: TransportChannel[];
-    superKey?: string;
+    // `| undefined` is explicit: the shell BINDS these (`EditorShell.vue:75-78`)
+    // rather than omitting the attributes, and `exactOptionalPropertyTypes`
+    // distinguishes a present `undefined` from an absent key — which is exactly
+    // the fallback this prop's own comment describes.
+    channels?: TransportChannel[] | undefined;
+    superKey?: string | undefined;
     autoPlay?: boolean;
     // T.B8 — the `machinePlaying` prop is RETIRED. `useAnimationGroupPlayback`
     // now projects `isPlaying` directly off `machine.status` (the single

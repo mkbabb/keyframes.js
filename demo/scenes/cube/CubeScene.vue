@@ -116,7 +116,7 @@ watch(ppmycotaOpen, (open) => {
 // --- Slot sub-components exposed via defineExpose ---
 
 const headerLeft = () =>
-    h(Popover, { trigger: "hover", openDelay: 200, closeDelay: 150, open: ppmycotaOpen.value, "onUpdate:open": (v: boolean) => { ppmycotaOpen.value = v; } }, {
+    h(Popover, { trigger: "hover", openDelay: 200, closeDelay: 150, open: ppmycotaOpen.value, "onUpdate:open": (v: boolean | undefined) => { ppmycotaOpen.value = v!; } }, {
         default: () => [
             h(PopoverTrigger, null, {
                 default: () => h("div", {
@@ -191,7 +191,7 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
             h(Button, {
                 size: "sm", variant: "outline",
                 class: "h-8 gap-1.5 cursor-pointer text-small font-medium px-3 rounded-lg btn-interactive",
-                onClick: () => { storedControls.matrixOptions.fixed = !storedControls.matrixOptions.fixed; },
+                onClick: () => { storedControls.matrixOptions!.fixed = !storedControls.matrixOptions!.fixed; },
             }, {
                 default: () => [
                     !storedControls.matrixOptions?.fixed ? h(Lock, { class: "w-3.5 h-3.5" }) : h(LockOpen, { class: "w-3.5 h-3.5" }),

@@ -106,7 +106,7 @@
 <script setup lang="ts">
 import { onScopeDispose, reactive, ref, useTemplateRef } from "vue";
 import { Loader2 } from "@lucide/vue";
-import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
+import type { CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
@@ -172,7 +172,7 @@ const onPressedKeys = (keys: PressedKeys) => {
 // transitionend-free, engine-owned tumble; the rolling flag suppresses re-rolls
 // mid-spin and stands the pointer down for the ~1s arc.
 const rolling = ref(false);
-let rollAnim: CSSKeyframesAnimation | undefined;
+let rollAnim: CSSKeyframesAnimation<Vars> | undefined;
 
 // The six face-up orientations of the `.cube` (degrees). Spinning the cube to
 // these shows faces 1–6 toward the viewer (the faces sit at ±translateZ off the

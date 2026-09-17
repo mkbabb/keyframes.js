@@ -1,12 +1,16 @@
 {
     // Library-scoped type-check. `check:lib` (the CI gate) runs this so a
     // clean runner type-checks ONLY the publishable surface (`src/`) — never
-    // the demo, whose later consumer commit imports registry Glass. The
-    // whole-project `check` (tsconfig.json, `src/` + `demo/`) stays for demo
-    // development after that dependency is restored.
+    // the demo, which imports registry Glass (`@mkbabb/glass-ui`, an exact
+    // devDependency at the frontier, so the staged-Glass wait this comment was
+    // written during is over). The demo is not left unchecked by that carve:
+    // the whole-project `check` (tsconfig.json, `src/` + `demo/`) now runs
+    // `vue-tsc`, so an SFC can fail a build for the first time (X.KF.W4
+    // G-KFW4-1) — `check:lib` stays `tsc` because `src/` holds no SFC.
     //
     // A inv β — the library build is glass-ui-free; the type-check that gates
-    // the release path must be glass-ui-free too.
+    // the release path must be glass-ui-free too. THAT is what the `src/`-only
+    // include below protects, and it is why the include is not widened here.
     "extends": "./tsconfig.json",
     "include": ["src/"]
 }

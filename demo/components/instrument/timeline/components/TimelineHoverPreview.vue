@@ -31,8 +31,14 @@ import type { TimelineKeyframe } from "../timelineTypes";
 
 defineProps<{
     keyframe: TimelineKeyframe;
-    previewSrc?: string;
-    loading?: boolean;
+    // L-D2 — both props are bound from an INDEX READ in the parent
+    // (`previewCache[kf.id]` / `previewLoading[kf.id]`, TimelineTrack.vue:89-90),
+    // which is `T | undefined` under `noUncheckedIndexedAccess`. The attribute is
+    // always PRESENT, so under `exactOptionalPropertyTypes` the honest type
+    // carries `| undefined`; the `v-if="previewSrc"` guard at `:6` is what makes
+    // the absent case correct at runtime.
+    previewSrc?: string | undefined;
+    loading?: boolean | undefined;
     ghostStyle: Record<string, string>;
 }>();
 </script>

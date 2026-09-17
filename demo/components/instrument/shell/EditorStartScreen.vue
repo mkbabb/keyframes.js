@@ -67,7 +67,11 @@ withDefaults(
         title?: string;
         subtitle?: string;
         subtitleSuffix?: string;
-        hint?: string;
+        // `| undefined` is explicit: `withDefaults` below declares
+        // `hint: undefined` as this prop's own default, and
+        // `exactOptionalPropertyTypes` distinguishes an absent key from a
+        // present `undefined` one.
+        hint?: string | undefined;
     }>(),
     {
         title: "Select an animation",

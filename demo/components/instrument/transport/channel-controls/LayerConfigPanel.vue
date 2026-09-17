@@ -13,7 +13,7 @@
             :descriptions="COMPOSITE_OPERATOR_DESCRIPTIONS"
             label="blend"
             tooltip="How this layer blends with others"
-            @update:model-value="(v) => emit('update', { op: v })"
+            @update:model-value="(v) => emit('update', { op: v as AnimationLayerConfig['op'] })"
             @update:open="(v) => setOpen('blend', v)"
         />
         <LabeledField

@@ -161,7 +161,14 @@ const FAMILY_FILTERS = ["All", ...SPECIMEN_GROUPS.map((g) => g.family)];
 const familyFilter = ref("All");
 // The ToggleGroup emits its item value (a family name string here) — typed
 // structurally so the demo never reaches for the headless reka basis (G.W12.S4).
-type ToggleValue = string | number | boolean | Record<string, unknown> | null;
+type ToggleValue =
+    | string
+    | number
+    | bigint
+    | boolean
+    | Record<string, unknown>
+    | null
+    | undefined;
 const onFamilyChange = (v: ToggleValue | ToggleValue[]) => {
     // Single-select, never empty: ignore the deselect-toggle (clicking the
     // pressed filter keeps it pressed) — a filter is always in force.

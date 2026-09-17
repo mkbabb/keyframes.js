@@ -26,34 +26,33 @@
                             ]
                         "
                         :model-value="
-                            (Math.round(value.payload.value * 100) / 100)
+                            (Math.round((value as MatrixScalar).payload.value * 100) / 100)
                                 .toFixed(2)
                                 .replace(/\.0*$/, '')
                         "
                         @update:model-value="(v) => updateMatrixCell(v, i)"
-                        :start="matrixCellMeta[i].sliderOptions.bounds[0]"
-                        :end="matrixCellMeta[i].sliderOptions.bounds[1]"
-                        :step="matrixCellMeta[i].sliderOptions.step"
+                        :start="matrixCellMeta[i]!.sliderOptions.bounds[0]"
+                        :end="matrixCellMeta[i]!.sliderOptions.bounds[1]"
+                        :step="matrixCellMeta[i]!.sliderOptions.step"
                         @click="
                             storedControls.matrixOptions.selectedMatrixCell = i
                         "
                     />
                     <div
                         :class="
-                            `text-heading absolute top-0 left-0 flex h-full
-                            w-full items-center justify-center
-                            justify-items-center p-0 text-center opacity-20
-                            dark:opacity-75 ` +
-                            [matrixCellMeta[i].axis.toLocaleLowerCase()]
+                            `text-heading absolute top-0 left-0 flex h-full w-full items-center justify-center justify-items-center p-0 text-center opacity-20 dark:opacity-75 ` +
+                            [matrixCellMeta[i]!.axis.toLocaleLowerCase()]
                         "
                     >
-                        <template v-if="matrixCellMeta[i].transform !== ''">
-                            {{ matrixCellMeta[i].transform
+                        <template v-if="matrixCellMeta[i]!.transform !== ''">
+                            {{ matrixCellMeta[i]!.transform
                             }}<sub>{{
-                                matrixCellMeta[i].axis.toLowerCase()
+                                matrixCellMeta[i]!.axis.toLowerCase()
                             }}</sub>
                         </template>
-                        <template v-else>{{ matrixCellMeta[i].axis }}</template>
+                        <template v-else>{{
+                            matrixCellMeta[i]!.axis
+                        }}</template>
                     </div>
                 </div>
             </div>
@@ -65,9 +64,9 @@
                     ),
                 ]"
                 @update:model-value="
-                    (val: number[]) => {
+                    (val: number[] | undefined) => {
                         updateMatrixCell(
-                            val[0],
+                            val![0]!,
                             storedControls.matrixOptions.selectedMatrixCell,
                         );
                     }
@@ -75,17 +74,17 @@
                 :min="
                     matrixCellMeta[
                         storedControls.matrixOptions.selectedMatrixCell
-                    ].sliderOptions.bounds[0]
+                    ]!.sliderOptions.bounds[0]
                 "
                 :max="
                     matrixCellMeta[
                         storedControls.matrixOptions.selectedMatrixCell
-                    ].sliderOptions.bounds[1]
+                    ]!.sliderOptions.bounds[1]
                 "
                 :step="
                     matrixCellMeta[
                         storedControls.matrixOptions.selectedMatrixCell
-                    ].sliderOptions.step
+                    ]!.sliderOptions.step
                 "
                 class="w-full"
             ></Slider>
@@ -96,8 +95,12 @@
 <script setup lang="ts">
 import { Slider, Card, CardContent } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
-import type { Matrix3dCall, MatrixCellMeta } from "./transformMath";
-import { getStoredAnimationGroupControlOptions } from "@state";
+import type { Matrix3dCall, MatrixCellMeta, MatrixScalar } from "./transformMath";
+import {
+    getStoredAnimationGroupControlOptions,
+    type MatrixOptions,
+    type StoredAnimationGroupControlOptions,
+} from "@state";
 
 const props = defineProps<{
     matrix3dEnd: Matrix3dCall;
@@ -110,9 +113,16 @@ const emit = defineEmits<{
     (e: "resetMatrix"): void;
 }>();
 
-const storedControls = getStoredAnimationGroupControlOptions(props.superKey);
+// The store keeps `matrixOptions` OPTIONAL because a persisted pre-matrix bucket
+// may predate the member; the `??=` below is what discharges that for this
+// editor, and it runs to completion before the render function is ever evaluated.
+// The annotation states exactly that post-condition, so the template reads the
+// seeded member instead of re-asserting its presence at each of its ten sites.
+const storedControls = getStoredAnimationGroupControlOptions(
+    props.superKey,
+) as StoredAnimationGroupControlOptions & { matrixOptions: MatrixOptions };
 
-const defaultMatrixOptions = {
+const defaultMatrixOptions: MatrixOptions = {
     fixed: true,
     selectedMatrixCell: 0,
 };
@@ -130,7 +140,10 @@ const matrixCellValue = (index: number): number => {
             `Matrix cell ${index} is outside the matrix3d value.`,
         );
     }
-    return cell.payload.value;
+    // The editor only ever paints a matrix built by `createMatrix`, whose args
+    // are all `MatrixScalar`; the shared type keeps the open union so that
+    // `matrixValueAt`'s rejection of a non-scalar arg stays expressible.
+    return (cell as MatrixScalar).payload.value;
 };
 
 const resetMatrix = () => {

@@ -256,8 +256,11 @@ import { getStoredAnimationGroupControlOptions } from "@state";
 
 const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = defineProps<{
     animation: KeyframesAnimation<any>;
-    isPlaying?: boolean;
-    layerConfig?: AnimationLayerConfig;
+    // `| undefined` explicit: both are BOUND by every host
+    // (`ControlsPaneWrapper.vue:50-58`), and `layerConfig` is an index read off
+    // the layer map, so a present `undefined` is its ordinary value.
+    isPlaying?: boolean | undefined;
+    layerConfig?: AnimationLayerConfig | undefined;
     blendAvailable: boolean;
     active?: boolean;
     // glass-ui 4.0.0 (BA.W-TABS) — the STANDALONE-host extra-tab seam. A non-
@@ -268,7 +271,8 @@ const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = 
     // reka `<TabsTrigger>`. The corresponding panel rides the `tabs-content` slot
     // gated on `selectedControlSurface` (the host owns its panel, exactly as the
     // built-in surfaces do). Empty by default — machine-driven hosts ignore it.
-    extraTabs?: KfPillTabOption[];
+    // `| undefined` explicit — bound, never omitted, by `ControlsPaneWrapper.vue:50`.
+    extraTabs?: KfPillTabOption[] | undefined;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);

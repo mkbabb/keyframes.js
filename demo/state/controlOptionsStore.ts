@@ -23,7 +23,20 @@ export type StoredAnimationGroupControlOptions = {
         addKeyframes: string;
     };
     ppMode?: boolean;
-    matrixOptions?: { fixed: boolean };
+    matrixOptions?: MatrixOptions;
+};
+
+/**
+ * The cube matrix editor's own stored slice. `selectedMatrixCell` was WRITTEN by
+ * `MatrixEditor.vue` (`:38`) and SEEDED by its `??=` default (`:115-120`) while
+ * this type declared `{ fixed: boolean }` alone — so every read of it through the
+ * store was statically ill-typed and no checker in the tree could say so (the
+ * X.KF.W4 gate hole). The field is declared here, at the one authority for the
+ * stored shape, rather than re-asserted at each reader.
+ */
+export type MatrixOptions = {
+    fixed: boolean;
+    selectedMatrixCell: number;
 };
 
 export type StoredAnimationGroupsControlOptions = {

@@ -204,7 +204,7 @@ const activeRow = ref<number | null>(null);
 // The pressed row's own track is the pointer-capture host (the scrub rail moved
 // to SequenceScrubber in the J.WZ split; the active track is the natural host).
 const activeRowEl = computed<HTMLElement | null>(() =>
-    activeRow.value == null ? null : rowEls[activeRow.value],
+    activeRow.value == null ? null : (rowEls[activeRow.value] ?? null),
 );
 const { onPointerDown: onRowScrubDown } = useDragScrub({
     el: activeRowEl,

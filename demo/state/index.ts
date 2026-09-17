@@ -12,6 +12,7 @@ export {
 } from "./animationOptionsStore";
 
 export {
+    type MatrixOptions,
     type StoredAnimationGroupControlOptions,
     type StoredAnimationGroupsControlOptions,
     useAnimationGroupsControlOptionsStore,

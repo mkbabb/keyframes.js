@@ -34,7 +34,7 @@
     ],
     "scripts": {
         "prepare": "npm run build:lib",
-        "check": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json && npm run proof:structure",
+        "check": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json && npm run proof:structure",
         "check:lib": "tsc --noEmit -p tsconfig.lib.json",
         "dev": "vite",
         "build": "npm run build:lib",
@@ -83,6 +83,8 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "dependency-cruiser": "^18.0.0",
+        "eslint": "^10.10.0",
+        "eslint-plugin-vue": "^10.11.0",
         "fast-check": "^4.8.0",
         "gl-matrix": "^3.4.4",
         "highlight.js": "^11.11.1",
@@ -111,6 +113,7 @@
         "vue": "^3.5.35",
         "vue-router": "^5.1.0",
         "vue-sonner": "^2.0.9",
+        "vue-tsc": "^3.3.11",
         "yaml": "^2.9.0"
     }
 }

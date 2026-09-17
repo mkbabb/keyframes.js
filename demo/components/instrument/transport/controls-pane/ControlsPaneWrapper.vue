@@ -183,19 +183,22 @@ const props = defineProps<{
     blendAvailable: boolean;
     // T.B1-β STAGE 1 — the facility channel axis (host mounts derive from the
     // painting channels when present; the group axis is the fallback).
-    channels?: TransportChannel[];
+    // `| undefined` explicit — bound, never omitted, by the group above.
+    channels?: TransportChannel[] | undefined;
     storedControls: StoredAnimationGroupControlOptions;
     hideControls?: boolean;
     // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the stage
     // behind the sheet; `editor`/`storyboard` keep a content card. The mode also
     // tunes the Drawer's max detent (the stage-reserve approximation).
-    stageMode?: "subject" | "editor" | "storyboard";
+    // `| undefined` explicit — bound, never omitted, by the group above.
+    stageMode?: "subject" | "editor" | "storyboard" | undefined;
     isPlaying: boolean;
     animControlRefs: Record<string, any>;
     activeKeyframesRef: any;
     activeTimelineRef: any;
     // glass-ui 4.0.0 (BA.W-TABS) — the standalone-host extra-tab options.
-    extraTabs?: SegmentedTabOption[];
+    // `| undefined` explicit — bound, never omitted, by the group above.
+    extraTabs?: SegmentedTabOption[] | undefined;
 }>();
 
 // ── T.B1-β STAGE 1 — the host axis ───────────────────────────────────────────

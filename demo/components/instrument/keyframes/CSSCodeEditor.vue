@@ -28,7 +28,7 @@ import { useResizeObserver } from "@vueuse/core";
 // loads `vendor-monaco`. The editor is byte-identical once mounted — only the
 // eager load of a not-yet-visible editor disappears. The TYPE side stays static
 // (`import type`) — erased under `verbatimModuleSyntax`, no runtime edge.
-import type * as Monaco from "monaco-editor";
+import type * as Monaco from "monaco-editor/esm/vs/editor/editor.api.js";
 // Theme JSONs are vendored locally: monaco-themes@0.4.x only exports `.` and
 // `./dist/monaco-themes.js` in its `exports` field, so `monaco-themes/themes/*`
 // is not resolvable under the strict bundler (Vite 8 / Rolldown). These two
@@ -51,7 +51,7 @@ let monacoBoot: Promise<typeof Monaco> | undefined;
 
 function bootMonaco(): Promise<typeof Monaco> {
     return (monacoBoot ??= Promise.all([
-        import("monaco-editor/esm/vs/editor/editor.api"),
+        import("monaco-editor/esm/vs/editor/editor.api.js"),
         // Each `?worker` virtual module default-exports a Worker constructor; a
         // dynamic import keeps its monaco-proxy edge off the eager scene graph.
         import("monaco-editor/esm/vs/editor/editor.worker?worker"),
@@ -111,13 +111,9 @@ const getFormatWidth = () => {
     return ch != null ? Math.floor(ch) : undefined;
 };
 
-const debouncedEmit = debounce(
-    (value: string) => {
-        modelValue.value = value;
-    },
-    200,
-    false,
-);
+const debouncedEmit = debounce((value: string) => {
+    modelValue.value = value;
+}, 200);
 
 const initEditor = async () => {
     const el = containerEl.value;
