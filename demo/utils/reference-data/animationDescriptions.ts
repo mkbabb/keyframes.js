@@ -105,21 +105,6 @@ export const timingFunctionKind = (value: unknown): string | undefined => {
 export const isDetailTimingFunction = (value: unknown): boolean =>
     DETAIL_TIMING_FUNCTIONS.has(timingFunctionKind(value) ?? "");
 
-const COLOR_SPACE_DESCRIPTIONS: Record<string, string> = {
-    oklab: "perceptually uniform (default)",
-    srgb: "standard RGB gamut",
-    lab: "CIE L*a*b* perceptual",
-    lch: "cylindrical lab (hue aware)",
-    oklch: "cylindrical oklab (hue aware)",
-};
-
-const HUE_METHOD_DESCRIPTIONS: Record<string, string> = {
-    shorter: "shortest arc",
-    longer: "longest arc",
-    increasing: "always clockwise",
-    decreasing: "always counter-clockwise",
-};
-
 export const COMPOSITE_OPERATOR_DESCRIPTIONS: Record<string, string> = {
     replace: "overwrites lower layers",
     add: "accumulates with layers",
