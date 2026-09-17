@@ -27,9 +27,11 @@
  * The platform's `@keyframes` interpolates color in sRGB; kf interpolates in
  * perceptual oklab. So a two-stop color track replayed by the browser would
  * DRIFT from the JS playback. CC-2 bakes the perceptual curve into N intermediate
- * `oklab()` stops sampled from value.js's `sampleColorRamp` (the dispatched
- * 0.13.0/N.W11.D fold), so the browser's piecewise-linear fill TRACKS kf's
- * perceptual lerp — gated on the ΔE-ε proof (`deltaEOK`): the densify ships ONLY
+ * `oklab()` stops sampled by `./color`'s own `sampleRamp`, which drives value.js's
+ * `mixColors`/`convertColor` per stop, so the browser's piecewise-linear fill
+ * TRACKS kf's perceptual lerp — gated on kf's OWN ΔE-ε check in `./color` (its
+ * 1024-sample reference ramp against the browser's channel midpoints, `:325`'s
+ * `epsilon`): the densify ships ONLY
  * where it pixel-matches kf's JS lerp under the threshold; else CC-3 REFUSES.
  *
  * ── CC-3 — the ineligibility report (the trust surface). ─────────────────────
@@ -43,9 +45,8 @@
  * reject, since the compiler is STRICTLY BETTER than WAAPI on computed units).
  *
  * ── BOUNDARY: HEAVY (value.js-bearing). ──────────────────────────────────────
- * This module statically imports `@mkbabb/value.js` (`reverseAnimationShorthand`
- * via `format.ts`, `sampleColorRamp`/`deltaEOK`/the color kernels here) and the
- * `./engine`/`./group`/`./sequence` runtime. It is reached ONLY via
+ * This module reaches value.js's COLOR kernels (`mixColors`/`convertColor`/`oklab`,
+ * via `./color`) and the `./engine`/`./group`/`./sequence` runtime. It is reached ONLY via
  * `loadAnimationEngine()` — NEVER the LIGHT static barrel, so `proof:boundary`
  * stays green (the value.js-free light surface stays value.js-free).
  */
