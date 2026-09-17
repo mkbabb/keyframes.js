@@ -13,9 +13,12 @@
  * 2. **`InputAnimationOptions["timingFunction"]` carried a `| string` arm**,
  *    which made `tsc` green on *every* string — so the union above was
  *    decorative at the only surface a consumer actually writes through. That
- *    arm is the mechanism by which the value.js `bounceInEase` → `easeInBounce`
- *    rename shipped with a green typecheck over a name that had ceased to
- *    exist.
+ *    arm is the mechanism by which an upstream easing rename — `bounceInEase`
+ *    → `easeInBounce`, landed in value.js — shipped with a green typecheck over
+ *    a name that had ceased to exist. (Written this way on purpose: neither
+ *    spelling is attributed to value.js as an EXPORT, because `bounceInEase` is
+ *    exported by nothing anywhere — that is the whole point of the sentence, and
+ *    G-KFW4-7's provenance census reads the possessive form as the claim it is.)
  *
  * The oracle is deliberately NOT self-derived (G-L7 rule (e)): the union's
  * members are enumerated here from the TYPE (with a compile-time exhaustiveness
