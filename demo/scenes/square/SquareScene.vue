@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
+import { markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { kfEngine } from "@kf-engine";
 import { useDragScrub } from "@composables/useDragScrub";

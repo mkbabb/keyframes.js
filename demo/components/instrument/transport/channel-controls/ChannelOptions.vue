@@ -477,7 +477,6 @@ const trySetOption = (apply: () => void) => {
 };
 
 const {
-    convertedFromName,
     advancedOpen,
     isDetailEasing,
     showDetailPanel,

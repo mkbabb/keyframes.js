@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, provide, ref } from "vue";
+import { h, provide, ref } from "vue";
 import { Button } from "@mkbabb/glass-ui";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
@@ -51,8 +51,9 @@ provide(SPRING_DEMO_KEY, demo);
 
 // `demo.isPlaying` is a read-only projection of the machine status (the shadow
 // `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes through
-// the App's onPlayStateChange → the machine; the ribbon reads this.
-const isPlaying = demo.isPlaying;
+// the App's onPlayStateChange → the machine; the scrub handlers below read
+// `demo.isPlaying` directly. The local `isPlaying` alias this comment used to
+// introduce was read by nothing — deleted with its clause (X.KF.W4 K3).
 const isStarted = ref(true);
 
 // J.W2 S2 (S4-stretch) — the panel mounts FLAT. The spring scene has a SINGLE

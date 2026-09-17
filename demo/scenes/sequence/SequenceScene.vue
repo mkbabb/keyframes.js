@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref } from "vue";
+import { provide, ref } from "vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";
 

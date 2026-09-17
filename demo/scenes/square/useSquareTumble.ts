@@ -34,7 +34,7 @@ export function useSquareTumble(startLoop: () => void) {
             { space: "oklab" },
         );
         if (!mixed.ok) throw new TypeError("Square palette interpolation failed.");
-        const serialized = serializeCssColor(mixed.value as CssColor);
+        const serialized = serializeCssColor(mixed.value);
         if (!serialized.ok) throw new TypeError("Square palette serialization failed.");
         return serialized.value;
     };

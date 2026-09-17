@@ -56,13 +56,7 @@ import type {
     yieldToMain,
 } from "./public";
 import type * as AnimationPresets from "./presets/index";
-import type {
-    AnimationOptions,
-    AnimationLayerConfig,
-    TimingFunction,
-    TimingFunctionNames,
-} from "./constants/types";
-import type { Stylesheet } from "@mkbabb/value.js/css";
+import type { AnimationOptions, AnimationLayerConfig } from "./constants/types";
 
 export interface AnimationEngine {
     KeyframesAnimation: typeof KeyframesAnimation;

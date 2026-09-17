@@ -2,7 +2,7 @@
  * `engine/css/animation.ts` — `CSSKeyframesAnimation`, the CSS-parsing
  * entry-point subclass, lifted out of the engine god-module (R.W2 — lib-engine
  * F-4) and sub-zoned into `engine/css/` beside its `metadata` recovery sibling
- * (S.B2 — C-1). Its fields (`propertyRegistry`, `scrollOptions`, `_boundTimeline`)
+ * (S.B2 — C-1). Its fields (`propertyRegistry`, `scrollOptions`)
  * and methods (`fromString`, `fromVars`, `fromKeyframes`, `bindTimeline`,
  * `resolveTransform`) are wholly CSS-specific — the base `KeyframesAnimation`
  * (in `../animation`) is value.js-/scroll-agnostic. The `engine/css/index.ts`
@@ -29,7 +29,6 @@ import { cssTwinFor } from "../../easing";
 import { namedSelectorToFraction } from "../../compile/selector";
 import type { Timeline } from "../../orchestration/timeline";
 import { resolveTimingFunction } from "../../compile/easing/registry";
-import { transformTargetsStyle } from "../../compile/value";
 import { KeyframesAnimation } from "../animation";
 
 const hasClone = (value: unknown): value is { clone: () => unknown } => {
@@ -44,15 +43,6 @@ const hasClone = (value: unknown): value is { clone: () => unknown } => {
 export class CSSKeyframesAnimation<
     V extends Vars,
 > extends KeyframesAnimation<V> {
-    /**
-     * Q.WD1-bind S2 (DM-22) — the timeline a scroll-range named selector resolves
-     * its phase against. Stored by {@link bindTimeline} for the no-timeline guard's
-     * check; `undefined` until a timeline is bound. A scroll-context operation
-     * specific to CSS keyframes with named selectors (the base `Animation` class is
-     * value.js-/scroll-agnostic), so the field + method live here.
-     */
-    private _boundTimeline?: Timeline;
-
     constructor(
         options?: Partial<InputAnimationOptions>,
         ...targets: HTMLElement[]
@@ -77,10 +67,17 @@ export class CSSKeyframesAnimation<
      *
      * Idempotent + safe to call before `fromString`: with no named frames the walk
      * is a no-op; calling it after a NaN-producing `parse()` purges the NaN frames.
+     *
+     * `timeline` is the BINDING the caller declares, and the resolution below does
+     * not read it: `namedSelectorToFraction` maps a phase NAME to a fraction, which
+     * is timeline-independent. It was formerly stashed on a private
+     * `_boundTimeline` field described as feeding "the no-timeline guard's check" —
+     * a consumer that does not exist (the guard is `engine/interpolate.ts` and
+     * reads the frames' own resolved state, never the field). The field and that
+     * prose are deleted together at X.KF.W4 K3 / R-9's else-branch; the parameter
+     * stays because it is this method's public contract.
      */
     bindTimeline(timeline: Timeline): this {
-        this._boundTimeline = timeline;
-
         let resolvedAny = false;
         for (const frame of this.templateFrames) {
             if (frame.start.kind === "named") {

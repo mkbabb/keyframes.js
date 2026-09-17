@@ -7,6 +7,14 @@
         "strict": true,
         "noUncheckedIndexedAccess": true,
         "exactOptionalPropertyTypes": true,
+        // X.KF.W4 K3 (G-KFW4-4) — a dead binding is a false claim about what the
+        // module needs, and until `check` grew an SFC-parsing leg (G-KFW4-1) no
+        // checker in this tree could see one inside a `.vue` file at all. Set
+        // here, in the shared base, so it reaches all three programs: `src/` +
+        // `demo/` (this config, under `vue-tsc`), the publishable surface
+        // (`tsconfig.lib.json`) and the test/bench perimeter
+        // (`tsconfig.test.json`), both of which `extends` this file.
+        "noUnusedLocals": true,
         "isolatedModules": true,
         "useDefineForClassFields": true,
         "forceConsistentCasingInFileNames": true,
