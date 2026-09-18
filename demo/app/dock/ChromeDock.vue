@@ -243,7 +243,25 @@ watch(isAnyOpen, (open) => {
                  dead single-layer DockLayerGroup/DockLayer costume is collapsed —
                  the items mount directly in the GlassDock default slot. -->
             <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
-                <div class="flex items-center gap-2">
+                        <!-- D-22 + RR-1 MISSED #1 — NO WRAPPER HERE. The dock's
+                             own `.dock-layer` already IS the flex row
+                             (`display:flex; align-items:center;
+                             gap: var(--dock-layer-gap)`), so a
+                             `flex items-center gap-2` div bought nothing and
+                             cost two things: it substituted 8px for the token'd
+                             6px, and — the consequential half — it made itself
+                             the SINGLE direct child of the slot, so every onset
+                             step of the producer's staggered reveal
+                             (`.dock-layer.is-active > *:nth-child(2 of *)`,
+                             `:nth-child(3 of *)`, `:nth-child(n+4):nth-child(-n+5)`
+                             and their `nth-last-child` mirrors) matched that one
+                             div and the whole row faded and scaled as one block.
+                             The signature expand animation was silently lost on
+                             the app's most-seen chrome. The controls now sit
+                             DIRECTLY in the slot and each takes its own onset.
+                             If 8px is wanted it is `--dock-layer-gap`'s to say;
+                             the magnitude is KF.W9's. -->
+
                         <!-- T.C1 — THE COMPASS RECUT (rail-core | section | nav on
                              glass-ui DockSeparator; separators derive from INHABITED
                              zones by construction — zero hand-rolled dock-separator
@@ -369,7 +387,6 @@ watch(isAnyOpen, (open) => {
 
                         <!-- Header items slot (@mbabb chip) -->
                         <slot name="items" />
-                </div>
 
                 <!-- Collapsed state.
                      K.W4 F6 (U-K20-adjacent) — on glass-ui 4.0.0 the collapsed
