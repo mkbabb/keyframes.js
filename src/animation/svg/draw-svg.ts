@@ -33,11 +33,19 @@
  *   import of its own, so it adds no new value.js edge beyond the engine it
  *   already composes; the barrel places it behind `loadAnimationEngine()`, so a
  *   light-only consumer never pulls it. `proof:boundary` stays green.
+ *   X.KF.W2: it also imports `../compile/parse-facade` for the percent draw
+ *   position (G-W2-2 — kf's ONE grammar seam). The clause above is unchanged in
+ *   substance: the façade is value.js-bearing, so this is the SAME heavy chunk
+ *   the engine already put here, not a new one, and still no direct
+ *   `@mkbabb/value.js` runtime import in this file.
  */
 
 import { CSSKeyframesAnimation } from "../engine";
 import { SVGAnimationHandle } from "./handle";
 import type { InputAnimationOptions, Vars } from "../constants";
+// X.KF.W2 — the ONE grammar seam (G-W2-2): a percent draw position is validated
+// by value.js's own scalar grammar, reached through the façade.
+import { parseCssScalar } from "../compile/parse-facade";
 
 /**
  * The minimal geometry contract DrawSVG needs: any SVG element that exposes
@@ -86,13 +94,33 @@ const asFraction = (v: string | number): number => {
         }
         return v;
     }
-    if (!/^\s*\d*\.?\d+\s*%\s*$/.test(v)) {
+    // X.KF.W2 (G-W2-3) — the percent STRING is validated by the CSS grammar, not
+    // by `/^\s*\d*\.?\d+\s*%\s*$/`. The regex was a percentage-token production
+    // written by hand and it disagreed with CSS in both directions: it accepted
+    // `"50 %"` (whitespace before the unit, which is NOT a percentage token) and
+    // rejected `"+5%"` and `"1e2%"` (which are). Measured against the grammar,
+    // every other shape answers identically — `"50%"` · `" 50% "` · `".5%"` ·
+    // `"50.5%"` · `"500%"` accepted with the same fraction, `"50"` · `"50px"` ·
+    // `"abc"` · `""` · `"%"` refused. The non-negative check is kept explicitly
+    // because it is this function's DOMAIN, not the grammar's: `-5%` parses fine
+    // as CSS and is not a draw position.
+    const percent = parseCssScalar(v.trim());
+    const payload =
+        percent.ok && percent.value.kind === "scalar"
+            ? percent.value.payload
+            : undefined;
+    if (
+        payload === undefined ||
+        payload.type !== "number" ||
+        payload.unit !== "%" ||
+        payload.value < 0
+    ) {
         throw new Error(
             `fromDrawSVG(): invalid draw position ${JSON.stringify(v)} — pass a ` +
                 `percent string ("0%".."100%") or a 0..1 number.`,
         );
     }
-    return parseFloat(v) / 100;
+    return payload.value / 100;
 };
 
 /**
