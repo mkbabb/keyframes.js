@@ -36,16 +36,17 @@ import {
     PopoverTrigger,
     Button,
 } from "@mkbabb/glass-ui";
-// glass-ui 4.0.0 (K.W1′ BA.W-TABS) — the control tab STRIP migrated from the
-// reka `<Tabs>` compound to `<SegmentedTabs variant="underline">` in
-// AnimationControls.vue, which DROPPED the reka `<Tabs>` ROOT that provided
-// `TabsRootContext`. The former scene-injected reka `<TabsTrigger>`/`<TabsContent>`
-// (re-sourced from reka-ui here) are now ORPHANS — they throw "Injection
-// Symbol(TabsRootContext) not found" at runtime. The cube's `matrix-controls`
-// tab is now projected AS DATA by the DFA (`extraControlTabs` → the
-// `SegmentedTabs :options` strip), and its body is a PLAIN `[role=tabpanel]`
-// gated on the active surface (mirroring the parent's built-in panels). So the
-// reka Tabs import is deleted entirely (no legacy beside the replacement).
+// No reka `<Tabs>` import here, and none is owed (CubeScene D-20, KF.W6 — the
+// former header argued this against a superseded glass-ui major and a strip
+// component in a file that does not exist; the pin and the installed copy are
+// 7.0.0 and the
+// channel host renders no tab strip at all). The cube's `matrix-controls`
+// surface is projected AS DATA by the DFA (`surfacesFor` in
+// `state/controlSurfaces.ts`, surfaced through `machine.extraControlTabs()` to
+// the dock's controls `<Select>`), and its body is a plain gated panel
+// (`matrixControlsPanel` below) keyed on the active surface, mirroring the
+// channel host's built-in panels. No scene-injected trigger or content node
+// exists, so there is no root context for one to miss.
 import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
 
 import MatrixEditor from "./matrix-editor/MatrixEditor.vue";
@@ -146,9 +147,10 @@ const headerLeft = () =>
 // The matrix-controls TRIGGER is not a scene-injected node at all. There is no
 // in-panel strip and no `tabs-trigger` slot: the cube's conditional
 // `matrix-controls` surface rides the DFA's `extraControlTabs` projection AS
-// DATA (`CONDITIONAL_SURFACES.cube = ["matrix-controls"]`, labelled "Matrix
-// Controls" in `SCENE_SURFACE_TABS`), which the dock's controls `<Select>`
-// renders. That projection is gated on the SAME condition the former
+// DATA (a conditional facet on the Matrix CHANNEL descriptor, T.B2 — the
+// hand-maintained `CONDITIONAL_SURFACES` table the earlier note named is
+// deleted; labelled "Matrix Controls" in `SCENE_SURFACE_TABS`), which the
+// dock's controls `<Select>` renders. That projection is gated on the SAME condition the former
 // `tabsTrigger` function guarded — `matrix-controls` is an active conditional
 // iff the cube's Matrix animation is selected — so the entry still appears only
 // while the Matrix animation is selected. The former `tabsTrigger` function (and
