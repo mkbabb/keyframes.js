@@ -110,6 +110,26 @@ onMounted(async () => {
 });
 </script>
 <style scoped>
+/* KF-CB-5 ≡ KF-CB-14 ≡ KF-ET-17 ≡ KF-KC-33 ≡ KC-23 — THE INTERIM BOX FLOOR.
+   Every child of this button is out of flow (both glyphs are absolute below;
+   `.sr-only` is absolute per glass's components.css), so the button has ZERO
+   intrinsic size: at the two of four call sites that pass no size class it
+   renders 0x0 and its sizing contract lives in a CONSUMER's CSS comment. The
+   floor is declared as a MINIMUM, not as a fixed `w-4 h-4`, for one measured
+   reason: three of the four sites already pass `w-6 h-6`, and a fixed default
+   would have to out-order those utilities in the generated sheet to lose to
+   them, which is not a property of the class attribute. A minimum cannot lose
+   and cannot shrink a consumer.
+   INTERIM, and named as interim: the real cure is S-7's reshell onto glass
+   `Button` (W6-I), which owns the box by construction and dissolves the
+   abspos `width:100%`-against-padding-box algebra that makes "a 16px glyph in
+   a 32px target" structurally inexpressible here. The gapless-pair geometry of
+   the four sites is SS-13's measurement, not this file's. */
+button {
+    min-inline-size: 1rem;
+    min-block-size: 1rem;
+}
+
 .clipboard {
     bottom: 0;
     left: 0;
