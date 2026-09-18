@@ -74,17 +74,38 @@
                  brush ref in a portal) while shedding the last shadcn island;
                  `useToolbarKeyboard` restores the roving-tabindex keyboard reka
                  gave it (Arrow/Home/End over the real button descendants). -->
+            <!-- KF-KE-31 (W6-I, S-7 pattern): the toolbar's two bespoke
+                 `<button>`s are the producer's `Button` (`size="sm"
+                 emphasis="quiet" icon-only` — the exemplar register), each
+                 under a `Tooltip` so an icon-only toolbar finally names its
+                 actions for pointer users (`title=`/`Tooltip` grep was 0), and
+                 the `justify-evenly w-full` anti-cluster gives way to a left
+                 cluster with one gap. The wand keeps its decorative role but
+                 takes an INK rung (`text-muted-foreground`) instead of the
+                 alpha (`opacity-70`) that read as a disabled control (the
+                 demo's own KC-12 law: a register, never an alpha).
+                 `useToolbarKeyboard` still roves over the real `<button>`
+                 descendants — every glass Button renders one.
+                 KF-KE-36 (EVALUATED, the param type read): glass's
+                 `useTabRovingFocus` takes `stripOptions` + `stripValue` +
+                 `select` — a SELECTION machine for a tablist/segmented strip,
+                 tab-coupled by its contract (`UseTabRovingFocusParams`), and
+                 `useSelectionGroup` composes it over a selected value. This
+                 bar has no selection: three heterogeneous actions and no
+                 value to anchor the tabstop on. Per the bank's own clause the
+                 row drops to INFO; the local composable stays, the decline is
+                 written here. -->
             <div
                 ref="toolbarEl"
                 role="toolbar"
                 aria-label="Keyframe actions"
                 aria-orientation="horizontal"
-                class="mt-4 flex h-10 w-full items-center justify-evenly gap-2 overflow-x-scroll rounded-xl border bg-card p-1"
+                class="mt-4 flex h-10 w-full items-center gap-2 overflow-x-scroll rounded-xl border bg-card p-1"
                 @keydown="onToolbarKeydown"
             >
                 <!-- Decorative lead flourish — was a focusable no-op trigger; now
                      a pure indicator (aria-hidden), excluded from the roving set. -->
-                <WandSparkles aria-hidden="true" class="shrink-0 opacity-70" />
+                <WandSparkles aria-hidden="true" class="shrink-0 text-muted-foreground" />
 
                 <KeyframesAddDialog
                     v-model:open="kfControls.dialogOpen"
@@ -99,15 +120,23 @@
                      primitive owns its hover/press motion) are gone. -->
                 <CopyButton :text="cssKeyframesString" />
 
-                <button
-                    type="button"
-                    aria-label="Apply CSS keyframes to the target"
-                    :aria-pressed="cssApplied"
-                    class="kf-focus-ring inline-flex shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 scale-on-hover"
-                    @click="applyCSSStyles"
-                >
-                    <Paintbrush ref="brush" class="pointer-events-none" />
-                </button>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            size="sm"
+                            emphasis="quiet"
+                            icon-only
+                            aria-label="Apply CSS keyframes to the target"
+                            :aria-pressed="cssApplied"
+                            @click="applyCSSStyles"
+                        >
+                            <Paintbrush ref="brush" class="icon-md pointer-events-none" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{{
+                        cssApplied ? "Applied to the target" : "Apply to the target"
+                    }}</TooltipContent>
+                </Tooltip>
             </div>
 
             <!-- KF-KE-21 (S-10, EVALUATED — glass `Progress` DECLINED in
@@ -128,7 +157,16 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 
-import { Card, CardContent, Slider } from "@mkbabb/glass-ui";
+// KF-KE-53 (W6-I, the import-granularity sweep): every glass symbol on its
+// own subpath — no root-barrel + subpath mix in one closure.
+import { Button } from "@mkbabb/glass-ui/button";
+import { Card, CardContent } from "@mkbabb/glass-ui/card";
+import { Slider } from "@mkbabb/glass-ui/slider";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@mkbabb/glass-ui/tooltip";
 
 import { onMounted, useTemplateRef, watch } from "vue";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";

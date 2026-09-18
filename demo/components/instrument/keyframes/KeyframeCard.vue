@@ -67,11 +67,22 @@
                     >
                 </div>
             </div>
+            <!-- CPD R-25's THIRD widget (S-9, W6-I): this `<pre>` is NOT
+                 swapped onto `Textarea` — its hljs token layer IS the surface
+                 (a highlighted per-stop read/edit well), and a native textarea
+                 has no innerHTML to paint; the S-9 carve here is the raw-host
+                 REGISTER (`.h` §5.2, routed to this unit): `text-mono-small`
+                 + `kf-text-entry`, the ONE entry register for a raw editing
+                 host (style.css role (a)) — the proportional `text-small` it
+                 wore left the hljs glyphs in the UI face and under the iOS
+                 zoom floor. G-W6-8 (same-commit box law): the box is
+                 `min-h-32`, a MINIMUM over content-sized rows, so the register
+                 swap invalidates no fixed dimension and no resize is owed. -->
             <pre
                 ref="preEl"
                 @input="(e) => emit('updateCSS', (e.target as HTMLElement).innerText)"
                 @keydown="(e) => emit('keydown', e)"
-                class="kf-focus-ring hljs css p-2 min-h-32 cursor-text rounded-lg text-small bg-transparent outline-none border-none relative"
+                class="kf-focus-ring kf-text-entry text-mono-small hljs css p-2 min-h-32 cursor-text rounded-lg bg-transparent outline-none border-none relative"
                 contenteditable="true"
                 role="textbox"
                 aria-multiline="true"
@@ -83,7 +94,9 @@
 
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue";
-import { Label } from "@mkbabb/glass-ui";
+// KF-KC-37 (W6-I): `Label` on its 69-byte subpath beside the `./forms`
+// subpath, not the 24 KB root barrel.
+import { Label } from "@mkbabb/glass-ui/label";
 import { Input } from "@mkbabb/glass-ui/forms";
 import CopyButton from "@components/CopyButton.vue";
 import { X } from "@lucide/vue";

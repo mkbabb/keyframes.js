@@ -9,15 +9,27 @@
         :submit="onSubmit"
     >
         <template #trigger>
-            <DialogTrigger as-child>
-                <button
-                    type="button"
-                    aria-label="Add keyframes"
-                    class="inline-flex items-center justify-center cursor-pointer scale-on-hover rounded-lg bg-transparent border-none p-0"
-                >
-                    <FilePlus2 class="stroke-2"></FilePlus2>
-                </button>
-            </DialogTrigger>
+            <!-- KF-KE-31 (W6-I): the trigger is the producer's `Button`
+                 (`size="sm" emphasis="quiet" icon-only`, a real `<button
+                 aria-label="Add keyframes">` — the DOM shape
+                 `useToolbarKeyboard` roves over is preserved) under a
+                 `Tooltip`; the two `as-child` triggers chain onto the one
+                 element. -->
+            <Tooltip>
+                <TooltipTrigger as-child>
+                    <DialogTrigger as-child>
+                        <Button
+                            size="sm"
+                            emphasis="quiet"
+                            icon-only
+                            aria-label="Add keyframes"
+                        >
+                            <FilePlus2 class="icon-md" />
+                        </Button>
+                    </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Add keyframes</TooltipContent>
+            </Tooltip>
         </template>
         <template #feedback>
             <!-- KF-KE-21 (S-10, EVALUATED — glass `Progress` DECLINED, in
@@ -45,8 +57,14 @@
 
 <script setup lang="ts">
 import { onScopeDispose, useTemplateRef, watch } from "vue";
-import { DialogTrigger } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui/button";
+import { DialogTrigger } from "@mkbabb/glass-ui/dialog";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@mkbabb/glass-ui/tooltip";
 import { FileIcon, FilePlus2 } from "@lucide/vue";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import CSSPasteDialog from "@components/instrument/timeline/CSSPasteDialog.vue";
