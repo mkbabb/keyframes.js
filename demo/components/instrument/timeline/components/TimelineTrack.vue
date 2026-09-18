@@ -123,7 +123,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef } from "vue";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
