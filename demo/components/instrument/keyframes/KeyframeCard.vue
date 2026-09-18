@@ -1,7 +1,24 @@
 <template>
     <div class="grid">
+        <!-- KF-KC-4 ≡ KF-KC-13 ≡ KC-5 — the start/offset field STOPS ERASING THE
+             CONTROL. This one `class` carried seven utilities that cancelled
+             glass's `field-control` outright: `bg-transparent` killed the plate
+             (`--glass-defined-plate` is set inside the very rule whose
+             `background` shorthand resets `background-image`, so the plate was
+             doubly dead), `border-transparent`/`border-none`/`shadow-none` took
+             the edge, `p-0` took the padding, and `focus:border-transparent
+             focus:shadow-none` took BOTH halves of `field-control:focus-visible`
+             — whose own `outline: none` then forecloses the native fallback, so
+             keyboard focus changed literally nothing outside forced-colors. The
+             utilities layer is last, so every one of them won; the file's own
+             `<pre>` forty lines down rings correctly, which is why this was an
+             omission and never house style.
+             The row's other admissible arm is the BARE VARIANT REQUEST to the
+             producer (root-styling law: never per-instance erasure); that ask is
+             already sent as O-26 R-16 and, when it lands, this field consumes
+             the variant instead of re-erasing. Only geometry and type stay here. -->
         <Input
-            class="sticky z-modal bg-transparent top-0 text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight border-transparent p-0 m-0 shadow-none focus:border-transparent focus:shadow-none border-none"
+            class="sticky z-modal top-0 text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight m-0"
             :model-value="displayStart"
             @update:model-value="(val) => emit('updateStart', String(val))"
         >
