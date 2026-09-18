@@ -72,7 +72,23 @@
             </Tooltip>
         </div>
 
-        <!-- Timeline track: diamonds, playhead, ticks, carets, zoom/pan -->
+        <!-- Preview stage — the ONE subject this instrument's engine paints
+             (KF.W7 G2 / C-6): an inert clone of the instrumented element, driven
+             by the timeline's own animation. The scene's element is READ by
+             `snapshot()` and never written here — the scene keeps its single
+             engine. -->
+        <div
+            ref="previewStage"
+            :class="[
+                'timeline-preview-stage grid place-items-center overflow-clip rounded-lg border border-border bg-muted/30',
+                props.expanded ? 'h-40' : 'h-24',
+            ]"
+            aria-hidden="true"
+        ></div>
+
+        <!-- Timeline track: diamonds, playhead, ticks, carets, zoom/pan. The
+             scrub emit drives the ENGINE (`scrub`), not a bare ref: the playhead
+             and the painted subject are one position (KF.W7 G2 / C-1). -->
         <TimelineTrack
             :sorted-keyframes="sortedKeyframes"
             :scrub-t="scrubT"
@@ -80,7 +96,7 @@
             :selected-keyframe-id="selectedKeyframeId"
             :preview-cache="previewCache"
             :preview-loading="previewLoading"
-            @update:scrub-t="(t) => (scrubT = t)"
+            @update:scrub-t="scrub"
             @move-keyframe="moveKeyframe"
             @select="(id) => (selectedKeyframeId = id)"
             @diamond-hover="onDiamondHover"
@@ -154,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, shallowRef, useTemplateRef, watch } from "vue";
 import type { Ref } from "vue";
 import {
     Download,
@@ -173,6 +189,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";
+import { createPreviewSubject } from "./utils/timelineEngine";
 import type { TimelineKeyframe } from "./timelineTypes";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 
@@ -193,12 +210,14 @@ const optionsRef = props.animationOptions
 
 const {
     state,
+    animation,
     sortedKeyframes,
     scrubT,
     snapshot,
     removeKeyframe,
     moveKeyframe,
     rebuild,
+    scrub,
     scrubAndCapture,
     exportCSS,
     importCSS,
@@ -208,6 +227,39 @@ const {
     canUndo,
     canRedo,
 } = useTimeline(targetsRef, optionsRef);
+
+// --- The preview subject: what the engine paints (KF.W7 G2 / C-6) ---
+//
+// Minted once per SOURCE (the instrumented element) and per STAGE, never per
+// build — the DOM node is stable across rebuilds. Mounted post-render (no
+// write→render edge, LP-1).
+const previewStage = useTemplateRef<HTMLElement>("previewStage");
+const previewSubject = shallowRef<HTMLElement | null>(null);
+
+watch(
+    [() => props.targets[0], previewStage],
+    ([source, stage]) => {
+        previewSubject.value =
+            source && stage ? createPreviewSubject(source) : null;
+        stage?.replaceChildren(
+            ...(previewSubject.value ? [previewSubject.value] : []),
+        );
+    },
+    { immediate: true, flush: "post" },
+);
+
+// THE INVARIANT: every animation this instrument builds is rebound to the
+// subject in the same synchronous step that publishes it (`flush: "sync"`
+// fires inside `animation.value = …`), so no frame is ever applied to a scene
+// element. With no subject yet, the engine is bound to NOTHING — it paints
+// nowhere rather than the scene.
+watch(
+    [animation, previewSubject],
+    ([anim, subject]) => {
+        anim?.setTargets(...(subject ? [subject] : []));
+    },
+    { immediate: true, flush: "sync" },
+);
 
 const selectedKeyframeId = ref<string | null>(null);
 const importDialogOpen = ref(false);

@@ -18,9 +18,43 @@ import type { CssValue } from "@mkbabb/value.js/value";
 import { formatEditorCSS } from "@utils/formatEditorCSS";
 
 /**
+ * The ONE subject the timeline's engine paints (KF.W7 G2 / C-6). A deep clone
+ * of the instrumented scene element, made inert — out of the tab order and the
+ * AT tree, never a pointer target, carrying no `id` the document already owns
+ * (a duplicate would hijack `Teleport to="#…"`, `<label for>` and `aria-*`
+ * references) — so the engine's inline-style writes land on a node the scene
+ * does not own. The owner mounts it in its preview stage and rebinds every
+ * built animation to it before a frame is applied.
+ */
+export function createPreviewSubject(source: HTMLElement): HTMLElement {
+    const subject = source.cloneNode(true) as HTMLElement;
+    for (const el of [
+        subject,
+        ...subject.querySelectorAll<HTMLElement>("[id], [tabindex]"),
+    ]) {
+        el.removeAttribute("id");
+        el.removeAttribute("tabindex");
+    }
+    subject.inert = true;
+    subject.setAttribute("aria-hidden", "true");
+    subject.dataset.timelinePreviewSubject = "";
+    subject.style.pointerEvents = "none";
+    return subject;
+}
+
+/**
  * Convert timeline keyframes into a CSSKeyframesAnimation. ASYNC because the
  * engine constructor is HEAVY (reached via `loadAnimationEngine()` after the
  * L.W8 S1 dogfood inversion).
+ *
+ * KF.W7 G2 / C-6 — THE ENGINE NEVER PAINTS THE SCENE. `targets` is the caller's
+ * contract (`useTimelineBuild`): the elements the compile is constructed over —
+ * construction performs no DOM write. What the engine PAINTS is bound by the
+ * OWNER: `KeyframeTimeline` rebinds every built animation to its preview
+ * subject ({@link createPreviewSubject}) synchronously on publication, before
+ * any frame is applied. Terminal shape (published to `.e`): `useTimeline`
+ * splits `source` (what `snapshot()` reads) from `subject` (what the engine
+ * paints), and this build is constructed over the subject directly.
  */
 export async function buildAnimationFromTimeline(
     state: TimelineState,

@@ -28,6 +28,7 @@
             @pointermove="onTrackPointerMove"
             @pointerup="onTrackPointerUp"
             @pointercancel="onTrackPointerUp"
+            @lostpointercapture="onTrackPointerUp"
             @wheel.prevent="onWheel"
             @touchstart.passive="onTouchStart"
             @touchmove.passive="onTouchMove"
@@ -54,12 +55,16 @@
                 :style="{ left: `${percentToPosition(scrubT * 100)}%` }"
             ></div>
 
-            <!-- Keyframe markers — each a keyboard-accessible slider (the
-                 SpringTarget role="slider" template): drag OR arrow-key the
-                 keyframe along the 0–100% track. The visible diamond keeps its
-                 16/24px size; an invisible ≥24px hit pad (::before) meets the
-                 touch-target minimum without moving a pixel of the diamond. -->
-            <Tooltip v-for="kf in sortedKeyframes" :key="kf.id">
+            <!-- Keyframe markers — ONE PER STOP (KF.W7 G5: the partition the
+                 engine compiles from; keyframes sharing a selector are one rule
+                 in the animation, so they are one marker that SAYS how many it
+                 holds). Each a keyboard-accessible slider (the SpringTarget
+                 role="slider" template): drag OR arrow-key the stop along the
+                 0–100% track. The visible diamond keeps its 16/24px size; an
+                 invisible ≥24px hit pad (::before) meets the touch-target
+                 minimum without moving a pixel of the diamond. Keyed by the
+                 stop's head id, which is stable across a drag. -->
+            <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
                 <TooltipTrigger as-child>
                     <div
                         :class="[
@@ -67,55 +72,64 @@
                             expanded ? 'w-6 h-6' : 'w-4 h-4',
                             'rotate-45 rounded-sm cursor-grab',
                             'border-2 transition-all',
-                            selectedKeyframeId === kf.id
+                            isStopSelected(stop)
                                 ? 'bg-primary border-primary scale-125'
                                 : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
                         ]"
                         role="slider"
-                        :aria-label="`Keyframe at ${Math.round(kf.percent)}% — drag or arrow to move`"
-                        :aria-valuenow="Math.round(kf.percent)"
+                        :aria-label="stopLabel(stop)"
+                        :aria-valuenow="Math.round(stop.percent)"
                         aria-valuemin="0"
                         aria-valuemax="100"
                         tabindex="0"
-                        :style="{ left: `${percentToPosition(kf.percent)}%` }"
-                        @pointerdown.stop="onMarkerPointerDown($event, kf.id)"
-                        @keydown="onMarkerKeydown($event, kf)"
-                        @mouseenter="emit('diamondHover', kf)"
-                    ></div>
+                        :style="{ left: `${percentToPosition(stop.percent)}%` }"
+                        @pointerdown.stop="onMarkerPointerDown($event, stop)"
+                        @keydown="onMarkerKeydown($event, stop)"
+                        @mouseenter="emit('diamondHover', stop.keyframes[0])"
+                    >
+                        <!-- Said so: a multi-member stop wears its count. -->
+                        <span
+                            v-if="stop.keyframes.length > 1"
+                            class="stop-count absolute -top-2.5 -right-3 -rotate-45 rounded-full bg-primary px-1 text-mono-caption leading-none tabular-nums text-primary-foreground"
+                            aria-hidden="true"
+                            >×{{ stop.keyframes.length }}</span
+                        >
+                    </div>
                 </TooltipTrigger>
                 <TooltipContent side="top" :side-offset="8" class="p-2 max-w-56">
                     <TimelineHoverPreview
-                        :keyframe="kf"
-                        :preview-src="previewCache[kf.id]"
-                        :loading="previewLoading[kf.id]"
-                        :ghost-style="getGhostStyle(kf.vars)"
+                        :keyframe="stop.keyframes[0]"
+                        :preview-src="previewCache[stop.keyframes[0].id]"
+                        :loading="previewLoading[stop.keyframes[0].id]"
+                        :ghost-style="getGhostStyle(stop.vars)"
                     />
                 </TooltipContent>
             </Tooltip>
 
-            <!-- Timeline Carets -->
+            <!-- Timeline Carets — one per stop, same partition -->
             <TimelineCaret
-                v-for="kf in sortedKeyframes"
-                :key="'caret-' + kf.id"
-                :keyframe-id="kf.id"
-                :percent="kf.percent"
-                :position="percentToPosition(kf.percent)"
-                :is-selected="selectedKeyframeId === kf.id"
-                @update:percent="(p) => emit('moveKeyframe', kf.id, p)"
-                @select="emit('select', kf.id)"
+                v-for="stop in stops"
+                :key="'caret-' + stop.keyframes[0].id"
+                :keyframe-id="stop.keyframes[0].id"
+                :percent="stop.percent"
+                :position="percentToPosition(stop.percent)"
+                :is-selected="isStopSelected(stop)"
+                @update:percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
+                @select="emit('select', selectionIdFor(stop))"
             />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
+import { computed, shallowRef, useTemplateRef } from "vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui";
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
 import TimelineHoverPreview from "./TimelineHoverPreview.vue";
-import type { TimelineKeyframe } from "../timelineTypes";
+import { coalesceKeyframes } from "../timelineTypes";
+import type { TimelineKeyframe, TimelineStop } from "../timelineTypes";
 
 const props = defineProps<{
     sortedKeyframes: TimelineKeyframe[];
@@ -134,7 +148,30 @@ const emit = defineEmits<{
 }>();
 
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
-const draggingKeyframeId = ref<string | null>(null);
+
+/** The partition the engine compiles from (KF.W7 G5) — rendered, never re-derived. */
+const stops = computed(() => coalesceKeyframes(props.sortedKeyframes));
+
+const isStopSelected = (stop: TimelineStop): boolean =>
+    stop.keyframes.some((kf) => kf.id === props.selectedKeyframeId);
+
+/** Selecting a stop keeps its already-selected member, else takes its head. */
+const selectionIdFor = (stop: TimelineStop): string =>
+    stop.keyframes.find((kf) => kf.id === props.selectedKeyframeId)?.id ??
+    stop.keyframes[0].id;
+
+const stopLabel = (stop: TimelineStop): string => {
+    const p = Math.round(stop.percent);
+    const n = stop.keyframes.length;
+    return n === 1
+        ? `Keyframe at ${p}% — drag or arrow to move`
+        : `${n} keyframes at ${p}% (one rule in the animation) — drag or arrow to move`;
+};
+
+/** A stop moves as one: every member to the same percent. */
+const moveStop = (ids: readonly string[], percent: number) => {
+    for (const id of ids) emit("moveKeyframe", id, percent);
+};
 
 const {
     zoomLevel,
@@ -157,60 +194,136 @@ const getGhostStyle = (vars: Record<string, string>): Record<string, string> => 
     return style;
 };
 
-const getPercentFromPointer = (event: PointerEvent): number => {
-    if (!trackEl.value) return 0;
+/**
+ * Project a pointer onto the model's 0–100 percent. `null` — never an in-band
+ * `0` — when the rail is not mounted: a failed projection scrubs nowhere.
+ */
+const getPercentFromPointer = (event: PointerEvent): number | null => {
+    if (!trackEl.value) return null;
     const rect = trackEl.value.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const posPercent = (x / rect.width) * 100;
     return clamp(positionToPercent(posPercent), 0, 100);
 };
 
+// --- The pointer policy (KF.W7 G2) — ONE gesture, ONE policy, whole handler set ---
+//
+// • A gesture is EXPLICIT state (`gesture`), never inferred from `buttons`: a
+//   pointermove that is not the live gesture's pointer does nothing, so a
+//   button-held pointer ENTERING the band (a text-selection drag begun
+//   elsewhere) scrubs nothing.
+// • Only a PRIMARY press (`isPrimary && button === 0`) begins a gesture. A
+//   right/middle press neither scrubs nor captures — the context menu opens.
+// • A second contact is a PINCH: it ends the live gesture and suppresses every
+//   gesture until all contacts lift; the pinch belongs to the touch handlers
+//   (zoom) alone. The primary finger does not scrub under a pinch.
+// • Capture is taken on the RAIL — the element that owns every gesture and the
+//   one node here that no keyed re-render moves — never on `event.target`
+//   (a caret's transient node, a marker whose stop head may change mid-drag).
+type Gesture =
+    | { kind: "scrub"; pointerId: number }
+    | { kind: "drag"; pointerId: number; ids: string[] };
+
+const gesture = shallowRef<Gesture | null>(null);
+const activePointers = new Set<number>();
+let gestureSuppressed = false;
+
+const acceptsPress = (event: PointerEvent): boolean =>
+    event.isPrimary && event.button === 0;
+
+const endGesture = () => {
+    const live = gesture.value;
+    if (!live) return;
+    gesture.value = null;
+    const rail = trackEl.value;
+    if (rail?.hasPointerCapture(live.pointerId)) {
+        rail.releasePointerCapture(live.pointerId);
+    }
+};
+
+/**
+ * Register a contact and say whether it may begin a gesture. A second contact
+ * (pinch) ends the live gesture and suppresses until every contact lifts; a
+ * non-primary press is declined.
+ */
+const admitPress = (event: PointerEvent): boolean => {
+    activePointers.add(event.pointerId);
+    if (activePointers.size > 1) {
+        gestureSuppressed = true;
+        endGesture();
+        return false;
+    }
+    return !gestureSuppressed && acceptsPress(event);
+};
+
+const beginGesture = (event: PointerEvent, next: Gesture): boolean => {
+    const rail = trackEl.value;
+    if (!rail) return false;
+    rail.setPointerCapture(event.pointerId);
+    gesture.value = next;
+    return true;
+};
+
 const onTrackPointerDown = (event: PointerEvent) => {
+    if (!admitPress(event)) return;
     const percent = getPercentFromPointer(event);
+    if (percent === null) return;
+    if (!beginGesture(event, { kind: "scrub", pointerId: event.pointerId })) return;
     emit("update:scrubT", percent / 100);
-    (event.target as Element).setPointerCapture(event.pointerId);
 };
 
 const onTrackPointerMove = (event: PointerEvent) => {
-    if (draggingKeyframeId.value) {
-        const percent = getPercentFromPointer(event);
-        emit("moveKeyframe", draggingKeyframeId.value, percent);
+    const live = gesture.value;
+    if (!live || live.pointerId !== event.pointerId) return;
+    const percent = getPercentFromPointer(event);
+    if (percent === null) return;
+    if (live.kind === "drag") {
+        moveStop(live.ids, percent);
         return;
     }
+    emit("update:scrubT", percent / 100);
+};
 
-    // Only scrub if pointer is captured (button held)
-    if (event.buttons > 0 && !draggingKeyframeId.value) {
-        const percent = getPercentFromPointer(event);
-        emit("update:scrubT", percent / 100);
+/** pointerup · pointercancel · lostpointercapture — the contact is gone. */
+const onTrackPointerUp = (event: PointerEvent) => {
+    activePointers.delete(event.pointerId);
+    if (activePointers.size === 0) gestureSuppressed = false;
+    if (gesture.value?.pointerId === event.pointerId) gesture.value = null;
+};
+
+const onMarkerPointerDown = (event: PointerEvent, stop: TimelineStop) => {
+    if (!admitPress(event)) return;
+    if (
+        !beginGesture(event, {
+            kind: "drag",
+            pointerId: event.pointerId,
+            ids: stop.keyframes.map((kf) => kf.id),
+        })
+    ) {
+        return;
     }
-};
-
-const onTrackPointerUp = () => {
-    draggingKeyframeId.value = null;
-};
-
-const onMarkerPointerDown = (event: PointerEvent, id: string) => {
-    emit("select", id);
-    draggingKeyframeId.value = id;
-    (event.target as Element).setPointerCapture(event.pointerId);
+    emit("select", selectionIdFor(stop));
 };
 
 /**
  * Keyboard slider control — mirrors SpringTarget's arrow/Home/End template.
  * Arrows step ±1% (±10% with Shift), Home/End jump to the rail ends; the
- * percent is clamped 0–100 by `moveKeyframe`.
+ * percent is clamped 0–100 by `moveKeyframe`. A stop moves as one.
  */
-const onMarkerKeydown = (event: KeyboardEvent, kf: TimelineKeyframe) => {
+const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
     const step = event.shiftKey ? 10 : 1;
     let next: number | null = null;
-    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = kf.percent + step;
-    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = kf.percent - step;
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = stop.percent + step;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = stop.percent - step;
     else if (event.key === "Home") next = 0;
     else if (event.key === "End") next = 100;
     if (next === null) return;
     event.preventDefault();
-    emit("select", kf.id);
-    emit("moveKeyframe", kf.id, clamp(next, 0, 100));
+    emit("select", selectionIdFor(stop));
+    moveStop(
+        stop.keyframes.map((kf) => kf.id),
+        clamp(next, 0, 100),
+    );
 };
 </script>
 

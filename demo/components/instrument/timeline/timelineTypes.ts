@@ -33,8 +33,8 @@ export interface TimelineStop {
     key: string;
     /** The stop's presentation position (its first member's). */
     percent: number;
-    /** Members in state order (stable across the percent sort); length ≥ 1. */
-    keyframes: TimelineKeyframe[];
+    /** Members in state order (stable across the percent sort); never empty. */
+    keyframes: [TimelineKeyframe, ...TimelineKeyframe[]];
     /** The merged declaration set — later members win, as CSS does. */
     vars: Record<string, string>;
 }
