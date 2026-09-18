@@ -1,10 +1,12 @@
 /* ════════════════════════════════════════════════════════════════════════
-   playback-button.css — the playback-ribbon button skin (D.W2.S2)
+   playback-idiom.css — the playback-ribbon button skin (D.W2.S2)
    ────────────────────────────────────────────────────────────────────────
    Uncaged from the global utils.css monolith and colocated with its owner,
    PlaybackRibbon.vue. The `.btn-playback*` classes are applied to reka-ui
    <Button> elements rendered BOTH here and by the scene play buttons
-   (EasingScene / SpringScene). As with tab-trigger.css, the classes land on
+   (EasingScene / SpringScene). As with tab-idiom.css's panel-enter rule (this
+   header once cited a `tab-trigger.css` and called itself `playback-button.css`
+   — neither name exists at any path in this repo), the classes land on
    reka-ui's own DOM and are shared across components, so a `<style scoped>`
    block is the wrong home (its `[data-v-*]` would change specificity and fail
    to match the other consumers). A non-scoped colocated partial imported by

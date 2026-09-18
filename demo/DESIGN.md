@@ -116,11 +116,14 @@ Use semantic `z-*` utilities. Raw `z-[n]` values are not a design escape hatch.
 ## 5. Idiom catalog
 
 The idiom home is `demo/styles/design-idioms.css` (with the two small imported
-idiom sheets). It owns the rainbow and gold signals, focus/touch floors,
-`progress-bar`, `progress-dot`, `progress-rail`, `progress-ball`,
-`readout-accent`, status badges, code tokens, stage fields, and the labeled-field
-subgrid. `tab-trigger-base`, `tab-trigger-pill`, and
-`tab-trigger-underline` are the tab grammar; `btn-playback` and
+idiom sheets). It owns the rainbow signal, the material register, the
+keyboard-focus contract, `progress-bar`, `progress-dot`, `progress-rail`,
+`progress-ball`, `readout-accent`, status badges, code tokens, stage fields,
+and the labeled-field subgrid. (The gold signal is glass-ui's `--gold` and its
+generated `text-gold`; the demo's copies and its `tap-floor`/`btn-interactive`
+touch floors are retired — the KF.W6 disposition table records each.) The tab
+sheet `tab-idiom.css` keeps ONLY the tab-panel enter rule — the
+`tab-trigger-*` skin matched nothing and is struck; `btn-playback` and
 `btn-playback-accent` are the transport grammar. These are cross-component
 recipes, so they remain central rather than being copied into SFCs.
 
