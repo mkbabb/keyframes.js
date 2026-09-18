@@ -140,7 +140,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     /** The consumer's EXPLICIT constructor options (NOT merged with defaults) —
      * retained so `fromString` can layer a parsed style-rule `animation`
      * shorthand UNDER them (constructor-explicit wins, F.W8). */
-    protected _ctorOptions: Partial<InputAnimationOptions> = {};
+    protected _ctorOptions: InputAnimationOptions = {};
 
     /** The compile-stable union of this animation's interpolated keys. */
     get flatKeys(): readonly string[] {
@@ -171,7 +171,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     }
 
     constructor(
-        options?: Partial<InputAnimationOptions>,
+        options?: InputAnimationOptions,
         targets?: HTMLElement[] | HTMLElement | undefined,
         name?: string | undefined,
         superKey?: string | undefined,
@@ -210,8 +210,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     }
     set templateFrames(value: TemplateAnimationFrame<V>[]) {
         compilerFor<V>(this).templateFrames = value;
-        // The compiled set no longer describes the template set (KF-TFP-27).
-        this._compiled = false;
+        this._compiled = false; // the compiled set no longer describes it
     }
 
     get parsedVars(): ParsedVarMap[] {
@@ -222,21 +221,15 @@ export class KeyframesAnimation<V extends Vars = Vars> {
         return compilerFor<V>(this).frames;
     }
 
-    /** Backing state for {@link compiled} — see that docblock for why it exists. */
     private _compiled = false;
 
     /**
-     * True once `parse()` has compiled the CURRENT template set (and false again
-     * the moment that set changes) — the precondition every per-frame read or
-     * write rests on.
-     *
-     * X.KF.W5 B-13 (KF-TFP-27, G-OPTSET): `frames` yields `[]` both BEFORE a
-     * parse and for an animation that genuinely has no segments, and those two
-     * are not the same fact. A consumer iterating `frames` to write per-frame
-     * state therefore got a silent no-op it could REPORT AS SUCCESS on the first
-     * — live-edit visibility rested on a precondition the caller *"neither
-     * asserts nor can observe"*. It can observe it now; the empty array is no
-     * longer the only signal.
+     * True once `parse()` has compiled the CURRENT template set; false again the
+     * moment that set changes. X.KF.W5 B-13 (KF-TFP-27, G-OPTSET): `frames`
+     * yields `[]` both BEFORE a parse and for an animation with no segments, and
+     * those are not the same fact — so a per-frame write could silently no-op
+     * while REPORTING SUCCESS, on a precondition the caller *"neither asserts
+     * nor can observe"*. It can observe it here.
      */
     get compiled(): boolean {
         return this._compiled;
@@ -255,9 +248,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
         composition?: CompositeOperator,
     ): KeyframesAnimation<K> {
         compilerFor<V>(this).addFrame(start, vars, transform, timingFunction, composition);
-        // A new template stop makes the compiled set stale until the next
-        // `parse()` — the fact `compiled` exists to expose (KF-TFP-27).
-        this._compiled = false;
+        this._compiled = false; // stale until the next `parse()` (KF-TFP-27)
         return this as unknown as KeyframesAnimation<K>;
     }
 
@@ -342,7 +333,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
         return this;
     }
 
-    setOptions(options: Partial<InputAnimationOptions>) {
+    setOptions(options: InputAnimationOptions) {
         setters.applyOptions(this, options);
         return this;
     }

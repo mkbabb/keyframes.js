@@ -231,6 +231,14 @@ export type AnimationOptions = {
     iterationComposite?: never;
 };
 
+/**
+ * The AUTHORED option bag — every field already optional, because the type IS a
+ * `Partial<…>`. **Never write `Partial<InputAnimationOptions>`**: it is a
+ * tautology (X.KF.W5 B-20 ≡ KF-CB-35). The wrapper spread from the library's own
+ * signatures into consumer code, where a reader reasonably concluded the bare
+ * type must be required-by-default; the library's four in-bounds signatures drop
+ * it at source so there is nothing left to copy.
+ */
 export type InputAnimationOptions = Partial<{
     duration: number | string;
     delay: number | string;

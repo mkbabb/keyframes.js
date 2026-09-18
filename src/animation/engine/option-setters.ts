@@ -174,7 +174,7 @@ export function applyComposite<V extends Vars>(
 /** Apply a whole option bag — the constructor + `fromString` base-merge path. */
 export function applyOptions<V extends Vars>(
     anim: KeyframesAnimation<V>,
-    options: Partial<InputAnimationOptions>,
+    options: InputAnimationOptions,
 ): void {
     applyTimingFunction(anim, options.timingFunction);
     applyDuration(anim, options.duration);
