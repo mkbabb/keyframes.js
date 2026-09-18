@@ -5,7 +5,7 @@ import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 import { createKeyframeId } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
-import { selectorPercent } from "@utils/keyframeSelector";
+import { selectorPercent, selectorText } from "@utils/keyframeSelector";
 import {
     buildAnimationFromTimeline,
     exportTimelineToCSS,
@@ -160,6 +160,57 @@ export function useTimelineBuild(
         }
     };
 
+    /**
+     * MERGE pasted CSS into the timeline (KF.W7 R-3 — the "Add" verb).
+     *
+     * The Add dialog has always said *"merge into the timeline"* and always
+     * performed a whole-array REPLACE: `importCSS` never read the existing
+     * state, so one Add silently destroyed every keyframe the user had
+     * authored. This is the merge that copy promises, and it merges the way CSS
+     * itself does — a pasted stop whose selector serializes to the same text as
+     * an existing stop contributes its declarations to that stop, later
+     * declarations winning (exactly `coalesceKeyframes`' rule, so the UI, the
+     * built animation and the exported artifact cannot disagree about it);
+     * a selector the timeline does not hold is appended as a new keyframe.
+     */
+    const mergeCSS = async (css: string) => {
+        try {
+            const imported = await importCSSToTimeline(css);
+            if (imported.length === 0) {
+                toast.error("No keyframes found in CSS");
+                return;
+            }
+
+            const existing = new Map(
+                state.value.keyframes.map((kf) => [selectorText(kf.selector), kf]),
+            );
+            let added = 0;
+            let merged = 0;
+
+            for (const kf of imported) {
+                const target = existing.get(selectorText(kf.selector));
+                if (target) {
+                    target.vars = { ...target.vars, ...kf.vars };
+                    merged += 1;
+                } else {
+                    state.value.keyframes.push(kf);
+                    existing.set(selectorText(kf.selector), kf);
+                    added += 1;
+                }
+            }
+
+            await rebuild();
+
+            toast.success(
+                `Merged ${imported.length} keyframes — ${added} added, ${merged} into existing stops`,
+            );
+        } catch (e) {
+            toast.error("Failed to parse CSS", {
+                description: (e as Error).message,
+            });
+        }
+    };
+
     const loadPreset = async (presetAnim: CSSKeyframesAnimation<any>) => {
         const keyframes: TimelineKeyframe[] = [];
 
@@ -194,6 +245,7 @@ export function useTimelineBuild(
         scrubAndCapture,
         exportCSS,
         importCSS,
+        mergeCSS,
         loadPreset,
         clear,
     };

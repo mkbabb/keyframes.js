@@ -41,6 +41,7 @@ export function useTimeline(
         scrubAndCapture,
         exportCSS,
         importCSS,
+        mergeCSS,
         loadPreset,
         clear,
     } = useTimelineBuild(state, scrubT, animOptions, targets);
@@ -118,6 +119,7 @@ export function useTimeline(
         scrubAndCapture,
         exportCSS,
         importCSS,
+        mergeCSS,
         loadPreset,
         clear,
         undo,

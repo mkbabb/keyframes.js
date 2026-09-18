@@ -221,6 +221,7 @@ const {
     scrubAndCapture,
     exportCSS,
     importCSS,
+    mergeCSS,
     clear,
     undo,
     redo,
@@ -323,9 +324,13 @@ const doImport = (text: string) => {
     }
 };
 
+// R-3 — the Add dialog's copy says MERGE, so Add merges: `mergeCSS` folds the
+// pasted stops into the timeline the way CSS does. It used to call the same
+// whole-array `importCSS` the Import dialog does, so the button labelled "Add"
+// destroyed everything the user had authored.
 const doAddCSS = (text: string) => {
     if (text.trim()) {
-        importCSS(text);
+        mergeCSS(text);
         addCSSDialogOpen.value = false;
     }
 };
