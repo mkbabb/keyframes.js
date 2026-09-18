@@ -1,10 +1,47 @@
 <template>
-    <!-- J.W7a S5 / XH-4 (D22) — the view switcher (H.W5.S3) RELOCATES out of
-         the top-center band into the RAIL (SpringSidebar's head): the floating
-         pill above the stage card stacked into the SAME band the scene-switcher
-         dock occupies and collided with it on mobile (cross-hierarchy #4,
-         `spring-mobile.png`). The top-center band now has ONE occupant; the
-         view fork lives with the spring's other controls. -->
+    <!-- J.W7a S5 / XH-4 (D22) — the view switcher (H.W5.S3) RELOCATED out of
+         the top-center band: the floating pill above the stage card stacked
+         into the SAME band the scene-switcher dock occupies and collided with
+         it on mobile (cross-hierarchy #4, `spring-mobile.png`). The top-center
+         band now has ONE occupant.
+         KF-SS-31 (W6-N, re-homed from KF.W5) — COMMENT ROT, and the
+         destination named here was the load-bearing half: this said the fork
+         moved into the head of a spring "sidebar" component, and **no file of
+         that name exists at any path in this repository** — a `git ls-tree -r
+         --name-only HEAD` census for it returns nothing, at this clock as at
+         the spec's. Eleven comments across seven files still route a
+         reader to it. A route to a file that does not exist is worse than no
+         route: it costs the next reader a search that cannot terminate. The
+         destination is dropped rather than replaced with a guess — what is
+         TRUE and checkable is the negative (the band has one occupant), and
+         the fork's live home is whatever `demo.view` is bound from. -->
+    <!-- SEAT CENSUS RE-PIN, and it MOVES: the banked figure for that phantom
+         name is 12 comment sites / 8 files, measured at `origin/master`
+         `81a56990`.
+         Re-measured at this seat's bytes it is **11 sites / 7 files** — the
+         twelfth died with `KfPillTabs.vue` in this wave's own S-1 delete
+         family, so the drop is a CURE's consequence, not a contradiction. The
+         re-pin and `G-W6-10`'s witness column are ONE FIGURE (the wave's
+         PROPAGATION LOCK: a correction of either updates both in the same
+         motion), and the unit's receipt carries both ends. Of the eleven,
+         FIVE are cured in this commit (two here, three in
+         `StartingStyleTarget.vue`); the remaining six are DECLARED, never
+         silently cured, because their files are outside this unit's writable
+         set: `KeyframesEditor.vue` ×2, `SpringHeatmap.vue`,
+         `SpringPhysicsFacet.vue` (this wave's §Bounds, another unit's), and
+         `useSpringHotPath.ts`, `useSpringLinearStops.ts` (outside §Bounds
+         entirely — they route to KF.W0's re-count law). -->
+    <!-- KF-SS-38 — POST-KILL RESIDUE, recorded and deliberately NOT acted on.
+         The row's parent claim — that "Re-seat" names the wrong operation —
+         is a seat-ratified KILL: `toggleTarget` IS
+         `reseat(target.value > 0.5 ? 0 : 1)` (`useSpringDemo.ts`, re-read this
+         seat), so the verb is exactly right and the sweep must not resurrect
+         the claim. What survives is a COPY question and only that: "Re-seat"
+         is jargon the on-stage copy never teaches, and the ribbon's own button
+         is where a reader first meets it. Changing user-facing copy is a
+         design decision this wave does not hold (the KF-EST-7 class,
+         NO-WAVE-OWNER), so the question is written down and the label is left
+         exactly as the owner blessed it. -->
     <div class="flex h-full w-full flex-col items-center justify-center px-6 lg:px-8">
         <div class="min-h-0 w-full flex-1">
             <SpringTarget v-if="demo.view.value === 'solver'" />
@@ -31,8 +68,19 @@ const SCENE_ID = SPRING_SCENE_ID;
 const demo = useSpringDemo();
 provide(SPRING_DEMO_KEY, demo);
 
-// The spring scene's ONLY valid control surface is `spring` (the control-surface
-// DFA, H.W11.S4 / I2 — `CONTROL_SURFACES.spring = ['spring']`). The dock + the
+// The spring scene's ONLY valid control surface is `spring`.
+//
+// KF-SS-31 — A DELETED AUTHORITY TABLE WAS CITED AS LIVE. This used to read
+// "the control-surface DFA, H.W11.S4 / I2 — `CONTROL_SURFACES.spring =
+// ['spring']`", naming a per-scene exclusion TABLE as the authority for the
+// claim. That table is gone: `demo/state/controlSurfaces.ts` records that T.B2
+// INVERTED the hand-maintained `CONTROL_SURFACES` / `CONDITIONAL_SURFACES` rows
+// into a DERIVATION off the live scene facility — "COMPUTED from 'does the
+// selected channel paint' — never declared per scene". So the authority for
+// "one surface here" is not a row anyone can look up; it is that this scene
+// paints exactly one channel, and the derivation reads it. Citing the deleted
+// table made the claim look verifiable while sending its reader to a symbol the
+// tree does not define. The dock + the
 // in-panel tab host render the triad FROM that table, so the built-in
 // controls/keyframes/timeline triggers no longer exist for this scene — reka
 // CANNOT fall back to a non-existent `controls` tab.
@@ -108,9 +156,19 @@ const onScrubEnd = () => {
 
 const standardRibbon = () =>
     h(PlaybackRibbon, {
-        // T.B1-β/T.B7 — the ribbon binds the Sweep CHANNEL's REAL animation
-        // (`springEditAnim`, the two-way KeyframesEditor animation whose clock
-        // is the sweep time-twin) — the opacity decoy `contractAnim` is DEAD.
+        // T.B1-β/T.B7 — the ribbon binds the Sweep CHANNEL's REAL animation:
+        // `springEditAnim`, the two-way KeyframesEditor animation whose clock is
+        // the sweep time-twin.
+        //
+        // KF-SS-31 — A PHANTOM IDENTIFIER WAS NARRATED. The clause this
+        // replaces ended "the opacity decoy `contractAnim` is DEAD", and
+        // `contractAnim` is declared NOWHERE in `demo/`: four comments name it,
+        // zero code defines it (re-measured this seat). Backticks around a
+        // symbol are a promise that the reader can go and find it; a reader
+        // who took this one would grep four comments narrating each other. The
+        // fact worth keeping is the POSITIVE one — which animation the ribbon
+        // binds and why — and it is stated above without a name only the
+        // history can resolve.
         animation: demo.springEditAnim,
         // K.W4 S2 — the scrubber thumb reads the CONTINUOUS 60 Hz position
         // channel (`scrubberPhase`), NOT the 6 Hz `progress` text mirror that
@@ -193,13 +251,22 @@ defineExpose({
     // (proof:perf-counters). The sampler sweeps + the ball springs the instant the
     // user presses Play (or taps the rail — `reseat` re-arms the loop directly).
     autoPlays: false,
-    // The raw-rAF ScenePlayback adapter — the App registers it with the machine
-    // on SCENE_READY so the spring's sweep phase/isPlaying round-trip through the
-    // CONTRACT (the spring↔cube cross-pair the group gate misses).
+    // KF-SS-31 — THE ORPHANED COMMENT. What stood here described "the raw-rAF
+    // ScenePlayback adapter … registered with the machine on SCENE_READY", i.e.
+    // a `scenePlayback` member — which this expose does NOT carry (the adapter
+    // reaches the shell as `facility.playback`, named at the top of this bag).
+    // Sitting immediately above `tabsContent` it read as that entry's docblock
+    // and described something else entirely. The two members below are what
+    // they are: render functions the transport calls for this scene's panel and
+    // ribbon content.
     tabsContent,
     ribbonContent,
 });
 </script>
 
-<!-- J.W7a S5 / XH-4 (D22) — the `.spring-view-*` switcher rules moved WITH the
-     markup into SpringSidebar.vue (no legacy beside the replacement). -->
+<!-- KF-SS-31 — the second of this file's two routes to the phantom sidebar. It
+     said the `.spring-view-*` switcher rules "moved WITH the markup" into that
+     component's file; the file exists at no path. This component declares no
+     scoped styles, and the reason is the whole of what a reader needs: the view
+     switcher's markup and rules both left this scene (J.W7a S5 / XH-4 D22), so
+     there is nothing here to style. -->

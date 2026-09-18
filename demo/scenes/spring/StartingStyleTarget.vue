@@ -121,9 +121,11 @@
         </div>
 
         <!-- K.W4 S5 — the redundant 4-preset ROW is RETIRED (the same four
-             presets were shown THREE times: here + the SpringSidebar cells +
-             implicitly the sliders, live-spring-sequence-mp-verdict.md §4). The
-             ONE preset surface now lives in the SpringSidebar rail; this discrete
+             presets were shown THREE times: here + the spring rail's own preset
+             cells + implicitly the sliders, live-spring-sequence-mp-verdict.md
+             §4 — KF-SS-31: the two routes to a spring "sidebar" component
+             this block used to carry name a file that exists at no path). The
+             ONE preset surface now lives in that rail; this discrete
              stage demotes to a single QUIET result line naming the active preset
              (the same shared params drive it), so the discrete view stays
              legible about WHICH spring it eases without re-mounting the picker. -->
@@ -159,7 +161,9 @@ const visible = demo.visible;
 const toggle = demo.toggleDiscrete;
 
 // K.W4 S5 — the active preset NAME for the quiet result line (the redundant
-// 4-cell picker is retired; the ONE preset surface is the SpringSidebar rail).
+// 4-cell picker is retired; the ONE preset surface lives in the spring's own
+// controls rail — KF-SS-31: the former wording routed to a spring "sidebar"
+// component whose file exists at no path in this repository).
 // Falls back to "custom" when the shared params don't match a canonical preset.
 const activePresetName = computed(() => {
     const match = SPRING_PRESETS.find(
@@ -199,9 +203,18 @@ const compiledEntryCss = demo.compiledEntryCss;
 
 /* ── K.W4 S5 — the quiet active-preset result line (the retired picker's heir) ──
    The discrete view names WHICH spring it eases as a single chip wearing the
-   red-dashed motion language (the --color-progress token, repointed red by Lane
-   B, as a dashed outline — the settled-state register U-K17 prefers), NOT a
-   redundant 4-cell picker. */
+   DASHED motion language (the --color-progress token as a dashed outline — the
+   settled-state register U-K17 prefers), NOT a redundant 4-cell picker.
+
+   KF-SS-6 (W6-N) — "red-dashed … repointed red by Lane B" was false on the
+   colour word and stale on the provenance. `--color-progress` resolves through
+   `--accent-kf` to `light-dark(oklch(0.56 0.17 295), oklch(0.74 0.13 305))`:
+   hue 295/305, VIOLET, in both themes. The dash is the register; the hue is the
+   token's, and the token is the one authority — which is exactly why no colour
+   word belongs in a comment about it. Perceptual questions about the violet
+   pair stay KF.W9 / SS-13's; the PRESERVATION LOCK on the token-level lane
+   pairing is untouched here (this chip reads the progress token directly and
+   names no lane). */
 .active-preset-chip {
     color: color-mix(in srgb, var(--color-progress) 60%, var(--foreground));
     padding: 0.05rem 0.5rem;

@@ -97,8 +97,21 @@ const linearPlotPath = computed(() => {
 <style scoped>
 /* ── L.W11 S6 — the linear() 26-stop plot ──
    The spring's position trace drawn from its linear() stops; crosses ABOVE the
-   y=1 target line for ζ<1 (the overshoot). The trace wears the scene's red
-   identity (the curve drawn against the paper graticule). */
+   y=1 target line for ζ<1 (the overshoot).
+
+   KF-SS-6 (W6-N, re-homed from KF.W5) — THE TRACE IS VIOLET, NOT RED, and the
+   comment said red. Both declarations below read `--color-progress`, which
+   `style.css` points at `--accent-kf` = `light-dark(oklch(0.56 0.17 295),
+   oklch(0.74 0.13 305))` — hue 295/305, the brand violet, in both themes.
+   "Red" is a leftover from the Lane-B era the token re-point retired, and a
+   colour word in a comment is the kind of claim a reader trusts without
+   checking; this file's own paint is the correction. PRESERVATION LOCK, held:
+   nothing here touches the token-level lane pairing (gentle = `--color-progress`,
+   bouncy = `--rainbow-violet` — the two physics extremes on the two nearest
+   hues), which is a real design decision and survives the prose fix untouched.
+   Whether those two hues PERCEPTUALLY collapse stays UNPROVEN and is KF.W9 /
+   SS-13's (ΔE_OK 0.15–0.19 ≈ 7–9× JND); this row is the false comment, and it
+   is kin to KF-ES-43 / KF-ET-37, never an identity with them. */
 .spring-linear-plot {
     width: 100%;
     height: 4.5rem;
