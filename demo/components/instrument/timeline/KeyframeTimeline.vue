@@ -19,7 +19,40 @@
              icon-only` already names the rung wanted here, so the override was
              the only thing standing between this row and the producer's floor.
              Container minimums elsewhere are layout, not control overrides, and
-             are untouched. -->
+             are untouched.
+
+             THE POLICY IS THE DEMO'S, NOT THIS FILE'S (W6-M, unit `.k`) — it is
+             stated once, here, and two folds are named against it so a later
+             sweep finds them at the rule rather than at four scattered sites:
+             · kf-SequenceScene **D22**'s height limb — "h-7 w-7 p-0 = 28×28"
+               was KILLED on this exact mechanism: `h-*` sets `height` while the
+               producer sets `min-block-size`, which is no cascade contest, so
+               the element renders 28×40 fine / 28×60 coarse and never 28×28.
+               Fold, never a re-booking; D22's surviving WIDTH and `iconOnly`
+               conformance limbs ride kf-SequenceScene D9 and are NO-WAVE-OWNER.
+               The live instance of that override (`SequenceTarget.vue`'s reel
+               button) is outside this unit's writable set and is DECLARED
+               upward, never reached across.
+             · kf-ControlsPaneWrapper **D-m12** is the same mechanism at a third
+               site and is already banked as such.
+             · kf-StartingStyleTarget **KF-SST-39** folds by reference to banked
+               KF-CB-14 + KF-CB-5 (the 16×16 zero-padding copy target) and is
+               DISCHARGED at the bytes: the S-7 reshell removed the caller's
+               `w-4 h-4` box, so the copy control owns its own geometry from the
+               primitive's size vocabulary — the same policy read from the
+               caller's side.
+
+             D-5 — DISCHARGED, and verified rather than assumed. The row's
+             finding was PIXEL IDENTITY: a disabled Undo/Redo looked exactly
+             like an enabled one because the demo's own `opacity-50` was the
+             SAME value the producer's `:disabled` rule applies
+             (`--opacity-disabled: 0.5`), so the disabled state multiplied a
+             plate that was already halved and nothing changed. With that
+             utility gone (above), the enabled control paints at full ink and
+             the disabled one at the producer's half — distinct by construction.
+             The row's second clause is PRODUCER-SIDE and stays declared: the
+             same rule sets `pointer-events: none`, so its `cursor: not-allowed`
+             can never paint and `:hover` never engages. Not cured demo-side. -->
         <div class="flex items-center justify-end gap-1">
             <!-- Undo / redo (F.W14.S2) — the discoverable affordance for the
                  Mod+Z / Mod+Shift+Z bindings; bounded by the same canUndo/canRedo
@@ -55,11 +88,25 @@
                 </TooltipTrigger>
                 <TooltipContent>Redo (Mod+Shift+Z)</TooltipContent>
             </Tooltip>
+            <!-- D-14 — THE DESTRUCTIVE PAIR STOPS SHIPPING UNDIFFERENTIATED.
+                 Clear-all (here) and Remove-keyframe (below) carried the same
+                 `size` / `emphasis` / geometry / ink as Undo, Redo and Expand:
+                 one of these five empties the whole array and nulls the engine,
+                 and nothing on screen said so. `tone` is PUBLISHED on the
+                 primitive and was unused, and it is not decorative at this
+                 emphasis — measured in the installed sheet, `.button
+                 [data-emphasis="quiet"]:not([data-tone="neutral"])` paints
+                 `color: var(--button-tone)` AT REST, so the destructive rung
+                 reads as destructive before the pointer arrives rather than
+                 only on hover. Undo is the standing mitigation that holds the
+                 row at MAJOR instead of promoting it; it is not a substitute
+                 for the control saying what it does. -->
             <Tooltip>
                 <TooltipTrigger as-child>
                     <Button
                         size="sm"
                         emphasis="quiet"
+                        tone="destructive"
                         icon-only
                         aria-label="Clear all keyframes"
                         @click="clear()"
@@ -199,9 +246,12 @@
                             class="w-32"
                         />
                     </div>
+                    <!-- D-14, the pair's second half (see the toolbar block
+                         above for the measurement and the mitigation). -->
                     <Button
                         size="sm"
                         emphasis="quiet"
+                        tone="destructive"
                         icon-only
                         aria-label="Remove keyframe"
                         @click="removeSelectedKeyframe()"
