@@ -33,6 +33,12 @@
  */
 import { describe, expect, it } from "vitest";
 
+// The PACKAGE, held directly — this file keeps its direct grammar edge on
+// purpose (it is one of the ten test-side direct consumers the wave censused
+// and froze), because clause 0 below is an assertion ABOUT that edge.
+import * as valueCss from "@mkbabb/value.js/css";
+
+import * as facade from "../../src/animation/compile/parse-facade";
 import {
     absorbParsed,
     orFallback,
@@ -44,6 +50,35 @@ import {
     serializeDeclarationBlock,
     swallowParsed,
 } from "../../src/animation/compile/parse-facade";
+
+describe("entry-point contract · clause 0 — the façade RE-PUBLISHES, it does not re-implement", () => {
+    it("every parse-surface entry is value.js's own binding, by identity", () => {
+        const surface = [
+            "collectAnimationOptions",
+            "collectCustomFunctions",
+            "collectKeyframes",
+            "collectPropertyDescriptors",
+            "collectStyleRules",
+            "collectTimelineOptions",
+            "parseAnimationRange",
+            "parseAnimationTimeline",
+            "parseCssScalar",
+            "parseCssValues",
+            "parseKeyframeSelector",
+            "parseStylesheet",
+            "parseTimingFunction",
+            "serializeTimelineOptions",
+        ] as const;
+        for (const name of surface) {
+            expect(facade[name]).toBe(valueCss[name]);
+        }
+        // The falsifier this clause exists for: a façade that WRAPPED an entry
+        // — normalising here, defaulting there — would be a second grammar
+        // wearing the seam's name, and every identity above would break. The
+        // seam is a funnel; it mints no grammar.
+        expect(surface.length).toBe(14);
+    });
+});
 
 describe("entry-point contract · clause 1 — which grammar belongs at the seam", () => {
     it("the SELECTOR grammar reads a keyframe selector, and normalizes to [0,1]", () => {
