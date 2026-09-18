@@ -111,12 +111,13 @@
         :snap-points="snapPoints"
         v-model:active-snap-point="activeSnap"
     >
+        <!-- KF-SKEL-9 — the `controls-drawer--stage-*` emission is DELETED (the
+             decision is the emitter's, taken whole in `AnimationControlsGroup`;
+             the rationale, including why ADOPT is barred, lives at that site so
+             the nine names have one home and not three). -->
         <DrawerContent
             :show-overlay="false"
-            :class="[
-                'controls-drawer-content',
-                `controls-drawer--stage-${stageMode}`,
-            ]"
+            class="controls-drawer-content"
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
@@ -134,7 +135,6 @@
         @transitionend="onPanelTransitionEnd"
         :class="[
             'controls-pane-wrapper col-start-1 row-start-1 min-w-0 relative z-controls',
-            `controls-pane--stage-${stageMode}`,
             storedControls.isControlsPanelOpen
                 ? 'controls-pane--open'
                 : 'controls-pane--closed',

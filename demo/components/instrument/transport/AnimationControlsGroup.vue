@@ -1,8 +1,26 @@
 <template>
+    <!-- KF-SKEL-9 (W6-N, re-homed from KF.W5) — THE STAGE-CLASS EMISSIONS ARE
+         DELETED AT THE EMITTER, which is where the row rules the decision is
+         taken. Three template literals emitted NINE class names onto the live
+         DOM — `controls-layout--stage-{subject|editor|storyboard}` here and the
+         `controls-drawer--stage-*` / `controls-pane--stage-*` families in
+         `ControlsPaneWrapper` — against ZERO matching selectors in demo source
+         and zero in the shipped bundle, while `usePaneRegister.ts` described
+         them as "the class driver".
+         ADOPT-OR-DELETE is decided DELETE, and the arm is forced rather than
+         preferred: adopting the hooks (authoring selectors so the nine names
+         key something) would make them live, and their FALSITY is the
+         measurement that killed `kf-App.skeleton`'s C·D-4 — a MAJOR built on
+         the premise that these hooks drive the stage silhouette. A cure that
+         resurrects that premise is barred, so the emissions go and `stageMode`
+         keeps its ONE real job: the resolved rung `ControlsPaneWrapper` reads
+         for its expanded-width choice. Class-space kin to the phantom-utility
+         census (G-W6-4); dispositioned in the same table, never by a blanket
+         rename. `usePaneRegister.ts:14`'s "class driver" comment is OUTSIDE
+         this wave's §Bounds and is DECLARED, never silently cured. -->
     <div
         :class="[
             'controls-layout justify-items-stretch items-start relative',
-            `controls-layout--stage-${stageMode}`,
             storedControls.isControlsPanelOpen ? 'controls-layout--open' : 'controls-layout--closed',
             hasControlSurfaces ? '' : 'controls-layout--railless',
         ]"
