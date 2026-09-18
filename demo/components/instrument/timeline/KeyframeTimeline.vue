@@ -2,7 +2,24 @@
     <div class="flex flex-col gap-3">
     <Card cartoon tier="quiet" :class="['w-full overflow-visible', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
-        <!-- Pane action buttons -->
+        <!-- Pane action buttons.
+             D-6 + the wave's ONE min-block-size policy (D-8), both spent by
+             deleting the same class attribute rather than by writing a second
+             one. INK: `opacity-50 hover:opacity-100` multiplied a token that was
+             already correct — glass's quiet emphasis ships exactly the rung pair
+             the demo was re-authoring in alpha (`color: var(--muted-foreground)`
+             at rest, `var(--foreground)` on hover) — and opacity is not a
+             contrast mechanism, so the pane icons composited far under the bar
+             while Clear and Expand are never disabled and claim no exemption.
+             BOX: `h-7 w-7 p-0` overrode height on a glass CONTROL, which the
+             policy forbids — a control's block size comes from its `size` prop
+             and the producer's `min-block-size`, because `h-*` sets `height`
+             while the producer sets `min-block-size`/`block-size` and the two
+             disagree exactly where the coarse-pointer floor lives. `size="sm"
+             icon-only` already names the rung wanted here, so the override was
+             the only thing standing between this row and the producer's floor.
+             Container minimums elsewhere are layout, not control overrides, and
+             are untouched. -->
         <div class="flex items-center justify-end gap-1">
             <!-- Undo / redo (F.W14.S2) — the discoverable affordance for the
                  Mod+Z / Mod+Shift+Z bindings; bounded by the same canUndo/canRedo
@@ -14,7 +31,6 @@
                         size="sm"
                         emphasis="quiet"
                         icon-only
-                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
                         aria-label="Undo"
                         :disabled="!canUndo"
                         @click="undo()"
@@ -30,7 +46,6 @@
                         size="sm"
                         emphasis="quiet"
                         icon-only
-                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
                         aria-label="Redo"
                         :disabled="!canRedo"
                         @click="redo()"
@@ -46,7 +61,6 @@
                         size="sm"
                         emphasis="quiet"
                         icon-only
-                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
                         aria-label="Clear all keyframes"
                         @click="clear()"
                     >
@@ -61,7 +75,6 @@
                         size="sm"
                         emphasis="quiet"
                         icon-only
-                        class="h-7 w-7 p-0 opacity-50 hover:opacity-100"
                         :aria-label="props.expanded ? 'Collapse timeline' : 'Expand timeline'"
                         @click="emit('toggleExpand')"
                     >
@@ -153,14 +166,13 @@
                         <Input
                             v-model="selectedKeyframeLabel"
                             placeholder="Label..."
-                            class="font-mono text-admin-label h-6 w-32"
+                            class="font-mono text-admin-label w-32"
                         />
                     </div>
                     <Button
                         size="sm"
                         emphasis="quiet"
                         icon-only
-                        class="h-6 w-6 p-0"
                         aria-label="Remove keyframe"
                         @click="removeSelectedKeyframe()"
                     >
