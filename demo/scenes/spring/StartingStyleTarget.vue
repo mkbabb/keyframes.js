@@ -11,13 +11,24 @@
         class="flex flex-col items-center justify-center gap-6 h-full w-full px-6 lg:px-8 overflow-hidden"
         :style="{ '--spring-ease': springCss }"
     >
-        <!-- Header readout -->
-        <div class="flex w-full max-w-3xl items-center justify-between gap-3 shrink-0">
-            <span class="text-heading text-foreground truncate">@starting-style</span>
-            <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                eased by springLinearStops()
-            </span>
-        </div>
+        <!-- Header readout — KF-SST-28 + KF-SST-16 (W6-I): the Card HEADER
+             FAMILY (`CardHeader` / `CardTitle` / `CardAction`) instead of a
+             hand-rolled flex row. `CardTitle` ships `overflow-wrap: anywhere`
+             + `min-width: 0` (`.card-title`), which is KF-SST-16's cure for
+             free: the title no longer wears `truncate` (a 0-min-size that let
+             the loudest rung shrink to nothing while the caption's `nowrap`
+             made the quietest unshrinkable); the caption rides `CardAction`,
+             the header's own second column. The plate's inline-only padding
+             (KF-SST-24) is not re-decided here: the header keeps the reading
+             measure and `p-0` so the stage layout below is untouched. -->
+        <CardHeader class="w-full max-w-3xl shrink-0 items-center p-0">
+            <CardTitle class="text-heading text-foreground">@starting-style</CardTitle>
+            <CardAction class="self-center">
+                <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
+                    eased by springLinearStops()
+                </span>
+            </CardAction>
+        </CardHeader>
 
         <!-- The discrete-transition stage. The card enters from nothing
              (@starting-style) and exits to display:none (allow-discrete),
@@ -83,7 +94,9 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { Button, Card } from "@mkbabb/glass-ui";
+// KF-KE-53's sweep at this file: subpaths, no root barrel.
+import { Button } from "@mkbabb/glass-ui/button";
+import { Card, CardAction, CardHeader, CardTitle } from "@mkbabb/glass-ui/card";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
