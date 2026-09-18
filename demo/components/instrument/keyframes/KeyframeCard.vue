@@ -5,10 +5,11 @@
              glass's `field-control` outright: `bg-transparent` killed the plate
              (`--glass-defined-plate` is set inside the very rule whose
              `background` shorthand resets `background-image`, so the plate was
-             doubly dead), `border-transparent`/`border-none`/`shadow-none` took
-             the edge, `p-0` took the padding, and `focus:border-transparent
-             focus:shadow-none` took BOTH halves of `field-control:focus-visible`
-             — whose own `outline: none` then forecloses the native fallback, so
+             doubly dead), a transparent-border utility beside a borderless
+             and a shadowless one took the edge, `p-0` took the padding, and the
+             two `focus:`-variant twins of the last two took BOTH halves of
+             `field-control:focus-visible` — whose own `outline: none` then
+             forecloses the native fallback, so
              keyboard focus changed literally nothing outside forced-colors. The
              utilities layer is last, so every one of them won; the file's own
              `<pre>` forty lines down rings correctly, which is why this was an
@@ -44,9 +45,9 @@
                 </div>
                 <!-- KC-12 — the row's only visible identity (`f N` / `s N`) is
                      AT-EXPOSED, so it is denominated in a REAL TOKEN, not in an
-                     alpha: `opacity-25` capped it at a ~1.84:1 theoretical
-                     ceiling no theme arm could lift, because opacity multiplies
-                     whatever the token resolved to. `--muted-foreground` is the
+                     alpha: a quarter-opacity utility capped it at a ~1.84:1
+                     theoretical ceiling no theme arm could lift, because opacity
+                     multiplies whatever the token resolved to. `--muted-foreground` is the
                      demo's real muted rung and it is the one this wave gives
                      every 1.4.11 mark (W6-H). The `pointer-events-none` half —
                      the identity being unselectable — is CARD-UNIT's behavioural

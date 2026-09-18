@@ -16,12 +16,13 @@
              caret does NOT share with the rail, which carries `cursor-pointer`
              over its whole 48–128px band (m-4 + MISS-α1). -->
         <!-- C-7 + D·M-5 + D·M-3, ONE MOTION (the bank declares them joint).
-             FOCUS (C-7/D·M-5): the hand-authored `outline-none focus:ring-1
-             focus:ring-primary` is gone in favour of the demo's ONE ring. Both
-             halves of the old pair failed together — `outline-none` genuinely
-             removes (Tailwind v4 emits `outline-style: none`), `ring-1` is an
-             erased box-shadow under forced-colors, and this input joins none of
-             the classes the producer's forced-colors restoration enumerates, so
+             FOCUS (C-7/D·M-5): the hand-authored `outline-none` plus a
+             one-pixel primary ring is gone in favour of the demo's ONE ring.
+             Both halves of the old pair failed together — `outline-none`
+             genuinely removes (Tailwind v4 emits `outline-style: none`), a ring
+             utility is an erased box-shadow under forced-colors, and this input
+             joins none of the classes the producer's forced-colors restoration
+             enumerates, so
              there was ZERO indicator there. `.kf-focus-ring` carries the demo's
              own forced-colors arm. K-9's INVERSION is honoured at the bytes:
              this lands FIRST and discharges D·M-5 now, waiting on nothing — the

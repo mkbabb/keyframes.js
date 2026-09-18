@@ -189,13 +189,14 @@
                                              coarse-pointer floor is written
                                              `.dock-icon-button:not(.dock-icon-button--compact)`, so
                                              the modifier EXCLUDED this control from the only floor
-                                             that can reach it — and after KF-SST-30 voided
-                                             `touch-hit-area` (its expander is `pointer-events: none`)
-                                             and the wave retired `.tap-floor` as a dead class with
-                                             zero adopters, the producer's per-component floor is the
-                                             one sanctioned mechanism left. Nothing here is annotated
-                                             ONTO the void utility: that row is annotated, not
-                                             rewritten (E-3). This control is mounted in the controls
+                                             that can reach it — and after KF-SST-30 voided the
+                                             producer's decorative hit-expander utility (its expander
+                                             carries `pointer-events: none`) and the wave retired the
+                                             demo's dead 44px floor class, which had zero adopters,
+                                             the producer's per-component floor is the one sanctioned
+                                             mechanism left. Neither retired name is spelled here, so
+                                             the scanner cannot resurrect either into the built sheet;
+                                             those rows are annotated, not rewritten (E-3). This control is mounted in the controls
                                              pane, never inside `GlassDock` (the only `.glass-dock`
                                              host is ChromeDock), so the rule's second `:not()` does
                                              not exclude it either. Rendered boxes → SS-13. -->
