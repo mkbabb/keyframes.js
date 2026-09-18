@@ -1,4 +1,18 @@
 <template>
+    <!-- KAD-18 ≡ KF-KE-24 — the well's PLATE, recorded at the site that
+         sets it. `hljs` is a RUNTIME-INJECTED, UNLAYERED rule
+         (`.hljs{background:#0d1117}`), so it outranks the shell's own
+         surface utility here: the demo's editable-well token
+         (`--input-on-glass`, R-24) paints at the timeline's paste mount and
+         is INERT at this one, and the hard `#ffffff`/`#0d1117` plate lands
+         inside the warm `--card` surface instead. The TOKEN DECISION is this
+         wave's and is stated at KeyframesEditor: a plate reads the surface it
+         is on. The MECHANISM that makes it reachable here — layering the
+         injected sheet, or re-tokenizing the theme — belongs to the editor
+         pipeline (EDITOR/KFED-UNIT) and is not pre-empted; the shell's class
+         is deliberately left intact so the cure lands in one place when that
+         pipeline does, rather than being deleted as dead today and re-added
+         tomorrow. -->
     <CSSPasteDialog
         ref="shell"
         v-model:open="open"
@@ -7,20 +21,6 @@
         description="Append @keyframes stops to the current animation"
         button-label="Add keyframes"
         :button-icon="FileIcon"
-        <!-- KAD-18 ≡ KF-KE-24 — the well's PLATE, recorded at the site that
-             sets it. `hljs` is a RUNTIME-INJECTED, UNLAYERED rule
-             (`.hljs{background:#0d1117}`), so it outranks the shell's own
-             surface utility here: the demo's editable-well token
-             (`--input-on-glass`, R-24) paints at the timeline's paste mount and
-             is INERT at this one, and the hard `#ffffff`/`#0d1117` plate lands
-             inside the warm `--card` surface instead. The TOKEN DECISION is this
-             wave's and is stated at KeyframesEditor: a plate reads the surface it
-             is on. The MECHANISM that makes it reachable here — layering the
-             injected sheet, or re-tokenizing the theme — belongs to the editor
-             pipeline (EDITOR/KFED-UNIT) and is not pre-empted; the shell's class
-             is deliberately left intact so the cure lands in one place when that
-             pipeline does, rather than being deleted as dead today and re-added
-             tomorrow. -->
         pre-class="hljs"
         :submit="onSubmit"
     >
