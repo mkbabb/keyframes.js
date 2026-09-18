@@ -149,7 +149,25 @@ const initEditor = async () => {
         fontLigatures: true,
         theme: isDark.value ? "dark-theme" : "light-theme",
         fontSize: clampIOSNoZoomFontSize(props.fontSize),
-        fontFamily: "Fira Code",
+        // KF-CE-20 (W6-M, the token-read half; the pipeline is EDITOR-UNIT's) —
+        // the family was the bare literal `"Fira Code"`, with NO generic
+        // fallback and bypassing `--font-mono` entirely. It was latent only
+        // because `style.css` self-hosts the OFL payload on the same page: any
+        // load failure, any consumer that does not ship that payload, and Monaco
+        // silently renders whatever the platform picks for an unresolvable
+        // family — with no `monospace` behind it to catch the fall. The token is
+        // the demo's single mono authority (`--font-mono: "Fira Code",
+        // monospace`, declared in `style.css`'s `@theme`), and reading it here
+        // takes BOTH halves at once: the editor follows the same family every
+        // other code surface reads, and the generic fallback arrives with it.
+        // Monaco takes a CSS font-family STRING, not an element, so the value is
+        // resolved once off the document element at create time rather than
+        // re-read per frame; the literal below is the last resort if the
+        // stylesheet has not applied yet, and it is a GENERIC, never a face.
+        fontFamily:
+            getComputedStyle(document.documentElement)
+                .getPropertyValue("--font-mono")
+                .trim() || "monospace",
         minimap: { enabled: false },
         wordWrap: "on",
         scrollBeyondLastLine: false,
