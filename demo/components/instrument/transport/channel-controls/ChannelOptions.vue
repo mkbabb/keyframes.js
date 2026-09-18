@@ -148,14 +148,50 @@
                                 <div class="flex items-center gap-1.5">
                                     <Tooltip>
                                         <TooltipTrigger as-child>
+                                            <!-- KF-CO-18 (W6-M) — `.gold-shimmer`
+                                                 COULD NOT PAINT at this call
+                                                 site, and the mechanism is a
+                                                 layer contest the call site
+                                                 lost unconditionally. The
+                                                 producer's utility (measured in
+                                                 the installed
+                                                 `styles/utilities/base-misc.css`)
+                                                 paints a gold gradient and
+                                                 CLIPS IT TO THE TEXT, which
+                                                 only works because the same
+                                                 rule sets `color: transparent`
+                                                 — and that whole sheet is
+                                                 `@layer components`, while
+                                                 `text-muted-foreground` is a
+                                                 real utility in the LAST layer.
+                                                 The class list handed the
+                                                 shimmer a colour it could never
+                                                 win against, so the gradient
+                                                 sat behind opaque muted ink and
+                                                 the ONLY rendered
+                                                 acknowledgment that a DETAIL
+                                                 easing is selected never
+                                                 appeared — which is what makes
+                                                 KF-CO-23's dropdown a SILENT
+                                                 dead end rather than a merely
+                                                 quiet one.
+                                                 The cure is the glass-consumption
+                                                 half: the colour utility is
+                                                 DROPPED while shimmering rather
+                                                 than fought with a second
+                                                 declaration, so the two are
+                                                 alternatives on one axis and
+                                                 neither is overridden. (The
+                                                 other admissible arm — a vendor
+                                                 variant that owns its own ink —
+                                                 is the producer's and is not
+                                                 authored demo-side.) -->
                                             <label
                                                 :class="[
-                                                    `text-small
-                                                    text-muted-foreground
-                                                    cursor-help font-medium`,
+                                                    'text-small cursor-help font-medium',
                                                     isDetailEasing
                                                         ? 'gold-shimmer'
-                                                        : '',
+                                                        : 'text-muted-foreground',
                                                 ]"
                                                 >easing</label
                                             >
