@@ -156,6 +156,35 @@ const emit = defineEmits<{
     (e: "updateSelectedControl", value: string): void;
 }>();
 
+// ── ChromeDock D-23 / C-5 — tell the legibility observer about the aurora ──
+// The dock floats over the home hero's animated Aurora <canvas> and, until now,
+// never said so. `backdropMode` is "live" and `autoLuminance` is true by
+// default, so the sampler WAS running — it just had nothing to sample: with no
+// `backgroundCanvas` it fell back to the static stack-walk of the painted page
+// background, which on the landing route reads the flat bg-background field and
+// not the moving wash the dock is actually sitting on.
+//
+// THE CURE SHAPE IS THE WHOLE POINT (read at the installed 7.0.0 dist, both
+// halves): GlassDock does NOT hand its prop to the resolver. It wraps it —
+//   backgroundCanvas: () => { const e = props.backgroundCanvas;
+//                             return typeof e === "function" ? e()
+//                                  : e instanceof HTMLCanvasElement ? e : null; }
+// — so a STRING falls through both arms and is null BEFORE the underlying
+// resolver (which does handle selectors) ever sees it. The d.ts advertises
+// "an element, a getter, or a CSS selector"; the shipped adapter honours two of
+// the three. A selector-string diff would type-check, review clean and change
+// nothing. So this is a GETTER.
+//
+// It resolves through the DEMO's own `.hero-aurora` wrapper (HeroAurora.vue),
+// never a producer-internal class, and it is re-run by the observer at every
+// settle — so mounting or leaving the home route is handled live, and off-route
+// it honestly returns null and the static stack-walk is correct again. The
+// contrast delta and the observer's cost are KF.W9's measurements.
+const auroraCanvas = (): HTMLCanvasElement | null =>
+    typeof document === "undefined"
+        ? null
+        : document.querySelector<HTMLCanvasElement>(".hero-aurora canvas");
+
 // ── Dock ref + controls pane hover sync ──
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 const controlsPaneHover = inject(CONTROLS_PANE_HOVER_KEY, null);
@@ -242,7 +271,13 @@ watch(isAnyOpen, (open) => {
                  contract; the occlusion gate re-runs mask-free as the lock. The
                  dead single-layer DockLayerGroup/DockLayer costume is collapsed —
                  the items mount directly in the GlassDock default slot. -->
-            <GlassDock ref="dockRef" :collapse-delay="2500" :start-collapsed="true" :fit-content="true">
+            <GlassDock
+                ref="dockRef"
+                :collapse-delay="2500"
+                :start-collapsed="true"
+                :fit-content="true"
+                :background-canvas="auroraCanvas"
+            >
                         <!-- D-22 + RR-1 MISSED #1 — NO WRAPPER HERE. The dock's
                              own `.dock-layer` already IS the flex row
                              (`display:flex; align-items:center;
