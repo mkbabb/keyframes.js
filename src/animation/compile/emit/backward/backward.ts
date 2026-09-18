@@ -52,6 +52,9 @@
  */
 
 import { reverseCSSTime } from "../css-text";
+// The typed throw `serializeEasing` raises for a twinless closure easing — the
+// ONE exception this module's designed refusal channel absorbs (B-15).
+import { AnimationOptionError } from "../../../internal/errors";
 import type { KeyframesAnimation } from "../../../engine";
 import { AnimationGroup } from "../../../group";
 import { Sequence } from "../../../orchestration/sequence";
@@ -251,19 +254,36 @@ export function compileChild<V extends Vars>(
     // non-color projection (CC-2 densify threaded through `densifiedKeyframesBlock`
     // — a mixed track keeps opacity/transform), else the verbatim declared-template
     // projection + the animation shorthand (reverseAnimationShorthand).
-    const block =
-        staticBlock ??
-        (densify && "byPct" in densify
-            ? densifiedKeyframesBlock(animation, name, densify)
-            : keyframesBlock(animation, name));
-
-    // The per-child `animation` shorthand; `serializeEasing` THROWS for a custom
-    // closure easing with no CSS twin — caught + recorded as a custom-renderer
-    // refusal (the easing channel of the same axis).
+    //
+    // THE EMIT POSTURE IS SYMMETRIC (X.KF.W5 B-15 ≡ KF-CO-48, G-OPTSET's third
+    // leg). `serializeEasing` throws for a custom closure easing with no CSS
+    // twin, and it is reached from BOTH the block emitters (per-stop easing, via
+    // `keyframesBlock`/`densifiedKeyframesBlock`) and the shorthand (the
+    // animation-level easing). Only the shorthand used to sit inside the
+    // designed refusal — the block emitters ran first and UNGUARDED, so ONE
+    // defect produced TWO product behaviours: a recorded `custom-renderer`
+    // refusal, or an exception out of `compileToCSS` (which has no outer guard),
+    // decided by which emitter happened to reach the twinless easing first. Both
+    // sites now record the same refusal.
+    let block: string;
     let shorthand: string;
     try {
+        block =
+            staticBlock ??
+            (densify && "byPct" in densify
+                ? densifiedKeyframesBlock(animation, name, densify)
+                : keyframesBlock(animation, name));
         shorthand = animationShorthand(animation.options, name);
-    } catch {
+    } catch (error) {
+        // PRECISE, never a swallow — and narrower than the bare `catch` it
+        // replaces: only the twinless-easing throw is a designed refusal here.
+        // Anything else is a genuine defect and propagates to the caller.
+        if (
+            !(error instanceof AnimationOptionError) ||
+            error.option !== "timingFunction"
+        ) {
+            throw error;
+        }
         refusals.push({
             name,
             reason: "custom-renderer",

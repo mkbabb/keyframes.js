@@ -210,6 +210,8 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     }
     set templateFrames(value: TemplateAnimationFrame<V>[]) {
         compilerFor<V>(this).templateFrames = value;
+        // The compiled set no longer describes the template set (KF-TFP-27).
+        this._compiled = false;
     }
 
     get parsedVars(): ParsedVarMap[] {
@@ -218,6 +220,26 @@ export class KeyframesAnimation<V extends Vars = Vars> {
 
     get frames(): AnimationFrame<V>[] {
         return compilerFor<V>(this).frames;
+    }
+
+    /** Backing state for {@link compiled} — see that docblock for why it exists. */
+    private _compiled = false;
+
+    /**
+     * True once `parse()` has compiled the CURRENT template set (and false again
+     * the moment that set changes) — the precondition every per-frame read or
+     * write rests on.
+     *
+     * X.KF.W5 B-13 (KF-TFP-27, G-OPTSET): `frames` yields `[]` both BEFORE a
+     * parse and for an animation that genuinely has no segments, and those two
+     * are not the same fact. A consumer iterating `frames` to write per-frame
+     * state therefore got a silent no-op it could REPORT AS SUCCESS on the first
+     * — live-edit visibility rested on a precondition the caller *"neither
+     * asserts nor can observe"*. It can observe it now; the empty array is no
+     * longer the only signal.
+     */
+    get compiled(): boolean {
+        return this._compiled;
     }
 
     get frameId(): number {
@@ -233,6 +255,9 @@ export class KeyframesAnimation<V extends Vars = Vars> {
         composition?: CompositeOperator,
     ): KeyframesAnimation<K> {
         compilerFor<V>(this).addFrame(start, vars, transform, timingFunction, composition);
+        // A new template stop makes the compiled set stale until the next
+        // `parse()` — the fact `compiled` exists to expose (KF-TFP-27).
+        this._compiled = false;
         return this as unknown as KeyframesAnimation<K>;
     }
 
@@ -240,6 +265,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
      * `./compile-bridge`). Chainable. */
     parse() {
         compileBridge.parse(this);
+        this._compiled = true;
         return this;
     }
 
@@ -251,6 +277,8 @@ export class KeyframesAnimation<V extends Vars = Vars> {
      */
     adoptCompiled(source: KeyframesAnimation<V>): this {
         compileBridge.adoptCompiled(this, source);
+        // The adopted state IS compiled state — that is the method's contract.
+        this._compiled = source.compiled;
         return this;
     }
 

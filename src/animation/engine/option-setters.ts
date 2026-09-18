@@ -29,11 +29,41 @@ import type { InputAnimationOptions, Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 import { compilerFor } from "./compiler-state";
 
+/**
+ * Apply the animation-level easing — AND PROPAGATE IT (X.KF.W5 B-13/B-14,
+ * G-OPTSET).
+ *
+ * Until this cure the setter normalized and stopped: `addFrame` bakes
+ * `options.timingFunction` into each template frame whose author omitted one,
+ * and `createFrame` copies that onto the compiled segment, so a
+ * `setTimingFunction` after authoring reached NEITHER — a playback no-op that
+ * even a re-`parse()` could not recover, while the compiler's own contract says
+ * *"No setter silently no-ops a change to compiled state"* and this file's says
+ * *"no silently-preserved previous value"*.
+ *
+ * The propagation is EXACT, not a heuristic: a frame that INHERITED the
+ * animation's easing holds the previous `Easing` OBJECT BY IDENTITY (that is
+ * what `addFrame` stored), while an author-declared per-frame easing is a
+ * different object resolved from its own input. So re-seating by identity moves
+ * exactly the inherited frames and never touches a declared one — the same
+ * live-options discipline `applyColorSpace`/`applyHueMethod` already keep with
+ * their `renormalizeColors` re-derive.
+ */
 export function applyTimingFunction<V extends Vars>(
     anim: KeyframesAnimation<V>,
     timingFunction: InputAnimationOptions["timingFunction"],
 ): void {
-    anim.options.timingFunction = normalizeTimingFunction(timingFunction);
+    const previous = anim.options.timingFunction;
+    const next = normalizeTimingFunction(timingFunction);
+    anim.options.timingFunction = next;
+    if (next === previous) return;
+
+    for (const template of anim.templateFrames) {
+        if (template.timingFunction === previous) template.timingFunction = next;
+    }
+    for (const frame of anim.frames) {
+        if (frame.timingFunction === previous) frame.timingFunction = next;
+    }
 }
 
 export function applyIterationCount<V extends Vars>(
