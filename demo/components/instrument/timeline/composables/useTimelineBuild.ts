@@ -31,9 +31,21 @@ export function useTimelineBuild(
     const animation: ShallowRef<CSSKeyframesAnimation<any> | null> =
         shallowRef(null);
 
-    const rebuild = async () => {
+    /**
+     * The last rebuild failure, or `null`. KF.W7 C-7 / G14 P1 + P3 — this was
+     * the file's ONE non-toasting failure, and the only one reachable BY
+     * TYPING: a `console.error` and a null engine, with nothing on screen to
+     * say the instrument had stopped animating. The engine really is gone
+     * (`animation.value = null` stays), so the state it leaves behind is
+     * RENDERED by the owner (P4b, `KeyframeTimeline`) and announced through the
+     * house channel with a Retry action (★ S-7's shape, not a new helper).
+     */
+    const buildError: ShallowRef<string | null> = shallowRef(null);
+
+    const rebuild = async (): Promise<void> => {
         if (state.value.keyframes.length < 2) {
             animation.value = null;
+            buildError.value = null;
             return;
         }
 
@@ -44,9 +56,16 @@ export function useTimelineBuild(
                 targets.value,
             );
             animation.value = markRaw(anim);
+            buildError.value = null;
         } catch (e) {
-            console.error("Failed to rebuild timeline animation:", e);
             animation.value = null;
+            buildError.value = (e as Error).message;
+            toast.error("Failed to rebuild timeline animation", {
+                description: (e as Error).message,
+                duration: 10000,
+                action: { label: "Retry", onClick: () => void rebuild() },
+            });
+            console.error("Failed to rebuild timeline animation:", e);
         }
     };
 
@@ -240,6 +259,7 @@ export function useTimelineBuild(
 
     return {
         animation,
+        buildError,
         rebuild,
         scrub,
         scrubAndCapture,

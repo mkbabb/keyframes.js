@@ -102,6 +102,38 @@
             @diamond-hover="onDiamondHover"
         />
 
+        <!-- D-15 — the three states the instrument used to leave UNEXPRESSED.
+             Empty and single-frame are STATES, not errors (G14 P4b): the `< 2`
+             contract lives in `rebuild`, and until now its only expression was
+             an export-time toast — the one failure reachable BY TYPING was the
+             one that never said anything. A failed rebuild is rendered here
+             beside the track, with the message and the same Retry the house
+             channel offers. -->
+        <p
+            v-if="state.keyframes.length === 0"
+            class="text-body text-muted-foreground text-center py-2"
+        >
+            No keyframes yet — <strong>Snapshot</strong> the target's current
+            pose, or <strong>Import</strong> CSS <code>@keyframes</code>.
+        </p>
+        <p
+            v-else-if="state.keyframes.length === 1"
+            class="text-body text-muted-foreground text-center py-2"
+        >
+            One keyframe — one more builds the animation.
+        </p>
+        <div
+            v-if="buildError"
+            class="flex items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2"
+            role="status"
+            aria-live="polite"
+        >
+            <span class="text-admin-label text-destructive"
+                >Animation could not be built — {{ buildError }}</span
+            >
+            <Button size="sm" emphasis="quiet" @click="rebuild()">Retry</Button>
+        </div>
+
         <!-- Selected Keyframe Editor (inline). J.W7b S1d — the transition is
              glass-ui's published `.fade-slide` class set (transitions.css:23-37):
              the former hand-rolled keyframe-editor transition copy (4 scoped
@@ -136,11 +168,30 @@
                     </Button>
                 </div>
 
-                <CSSCodeEditor
-                    :model-value="selectedKeyframeCSS"
-                    height="250px"
-                    @update:model-value="onKeyframeCSSChange"
-                />
+                <div
+                    :aria-invalid="cssEditorError ? 'true' : undefined"
+                    :aria-describedby="cssEditorError ? 'kf-css-editor-error' : undefined"
+                >
+                    <CSSCodeEditor
+                        :model-value="selectedKeyframeCSS"
+                        height="250px"
+                        @update:model-value="onKeyframeCSSChange"
+                    />
+                    <!-- G14 P2 — the failure is surfaced AT the surface that
+                         caused it, politely announced, with the draft intact.
+                         (`useUserInvalidAria` on glass `/forms` is the bridge
+                         for the day this well becomes a real form control —
+                         KF.W6's S-9 swap, not spent here.) -->
+                    <p
+                        v-if="cssEditorError"
+                        id="kf-css-editor-error"
+                        class="text-admin-label text-destructive mt-1"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        {{ cssEditorError }}
+                    </p>
+                </div>
             </div>
         </Transition>
 
@@ -187,6 +238,12 @@ import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
+import {
+    collectDeclarations,
+    collectStyleRules,
+    parseStylesheet,
+} from "@mkbabb/value.js/css";
+import { serializeCssValue } from "@src/animation/compile/emit/css-text";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";
 import { createPreviewSubject } from "./utils/timelineEngine";
@@ -211,6 +268,7 @@ const optionsRef = props.animationOptions
 const {
     state,
     animation,
+    buildError,
     sortedKeyframes,
     scrubT,
     snapshot,
@@ -296,26 +354,80 @@ const selectedKeyframeCSS = computed(() => {
         .join("\n");
 });
 
+// --- The inline editor's INGRESS: the grammar parses, not this file ---
+//
+// L-6/C-4 — a hand-rolled CSS declaration scanner (`split("\n")` + the first
+// `indexOf(":")`) lived here, inside the demo of a CSS engine, and its result
+// WHOLE-REPLACED `kf.vars`: anything the scanner failed to recognise was not
+// mis-parsed, it was DELETED. The sibling path already honoured the doctrine
+// (`timelineEngine.ts` reaches the façade for the same job), which made this a
+// BYPASS rather than an omission. The block is now parsed by
+// `@mkbabb/value.js/css` — the same grammar, the same `serializeCssValue` the
+// import path uses at `timelineEngine.ts`, so the TYPING ingress and the
+// IMPORT ingress finally agree about what a declaration is.
+type DeclarationParse =
+    | { ok: true; vars: Record<string, string> }
+    | { ok: false; message: string };
+
+const parseDeclarationBlock = (css: string): DeclarationParse => {
+    let parsed;
+    try {
+        // The editor holds a bare declaration list; the grammar's entry point
+        // is a stylesheet, so the block is given the rule it is missing.
+        parsed = parseStylesheet(`*{${css}}`);
+    } catch (e) {
+        // C-7 — a live untrusted-CSS ingress to the megatranche R1 crash shape:
+        // the façade THROWS (rather than returning a diagnostic) on a handful of
+        // malformed function values — `oklch()` among them, re-measured at these
+        // bytes. The crash IDENTITY is R1's and is never re-booked here; what
+        // books here is the POSTURE, and a throw is a parse failure like any
+        // other: surfaced at the surface the user is operating, never swallowed,
+        // and it never reaches `kf.vars`.
+        return { ok: false, message: (e as Error).message };
+    }
+
+    if (!parsed.ok) {
+        const issue = parsed.diagnostics[0];
+        const at = issue.actual === null ? "" : ` at ${JSON.stringify(issue.actual)}`;
+        return {
+            ok: false,
+            message: `${issue.code.replace(/_/g, " ")}${at} — expected ${issue.expected.join(" or ")}`,
+        };
+    }
+
+    const rule = collectStyleRules(parsed.value).at(0)?.rule;
+    const vars: Record<string, string> = {};
+    for (const [name, declaration] of collectDeclarations(
+        rule?.declarations ?? [],
+    )) {
+        vars[name] = serializeCssValue(declaration.value);
+    }
+    return { ok: true, vars };
+};
+
+const cssEditorError = ref<string | null>(null);
+
 const onKeyframeCSSChange = (css: string) => {
     if (!selectedKeyframeId.value) return;
     const kf = state.value.keyframes.find((k) => k.id === selectedKeyframeId.value);
     if (!kf) return;
 
-    const newVars: Record<string, string> = {};
-    for (const line of css.split("\n")) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith("/*")) continue;
-        const colonIdx = trimmed.indexOf(":");
-        if (colonIdx === -1) continue;
-        const prop = trimmed.slice(0, colonIdx).trim();
-        let value = trimmed.slice(colonIdx + 1).trim();
-        if (value.endsWith(";")) value = value.slice(0, -1).trim();
-        if (prop && value) newVars[prop] = value;
+    const parsed = parseDeclarationBlock(css);
+    if (!parsed.ok) {
+        // G14 P2 — IN PLACE, DRAFT-PRESERVING. The editor stays open with the
+        // text the user typed; `kf.vars` is NOT assigned, so a half-typed block
+        // can no longer destroy a keyframe on its way to being valid.
+        cssEditorError.value = parsed.message;
+        return;
     }
 
-    kf.vars = newVars;
-    rebuild();
+    cssEditorError.value = null;
+    kf.vars = parsed.vars;
+    void rebuild();
 };
+
+// A failure belongs to the keyframe that was open when it happened.
+watch(selectedKeyframeId, () => (cssEditorError.value = null));
 
 const doImport = (text: string) => {
     if (text.trim()) {

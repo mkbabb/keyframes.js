@@ -36,6 +36,7 @@ export function useTimeline(
 
     const {
         animation,
+        buildError,
         rebuild,
         scrub,
         scrubAndCapture,
@@ -106,6 +107,7 @@ export function useTimeline(
     return {
         state,
         animation,
+        buildError,
         scrubT,
         isPlaying,
         sortedKeyframes,
