@@ -13,7 +13,7 @@
  *
  * The spring helpers (`seedLayerSpring`/`advanceLayerSprings`) live in
  * `./springs`; the scheduler-yield batching (`advanceSlice`/`advanceBatched`) in
- * `./scheduler`.
+ * `./yield-batch`.
  */
 import { getAnimationId } from "../internal/animation-id";
 import type { KeyframesAnimation } from "../engine";

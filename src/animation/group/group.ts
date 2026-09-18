@@ -79,11 +79,9 @@ export class AnimationGroup<V extends Vars> {
         return new AnimationGroup<V>(first, ...rest);
     }
 
-    /** Backing state for {@link singleTarget}; `true` until a derive or a
-     *  declaration says otherwise (the pre-ruling field default, unchanged). */
+    /** The pre-ruling field default, unchanged; `_singleTargetDeclared` is set
+     *  once a caller ASSIGNS the property (the supported opt-out). */
     private _singleTarget = true;
-    /** Set once a caller ASSIGNS `singleTarget` — the supported opt-out. While
-     *  set, no derivation may overwrite the declared value. */
     private _singleTargetDeclared = false;
 
     /**
@@ -92,14 +90,13 @@ export class AnimationGroup<V extends Vars> {
      * fast lane both gate on it).
      *
      * **Assigning it DECLARES it** — X.KF.W5 ruling KF-W5R4(4) (COHESION §0j.C):
-     * `singleTarget` gains a SUPPORTED opt-out. Before the ruling a consumer's
-     * `group.singleTarget = false` was a raw poke that the post-mount recompute
-     * in {@link setTargets} silently reverted (LP-1's rider; the demo's
-     * `CopyButton`/`SquareScene` pokes are the live witnesses), so the group
-     * disagreed with its own caller and the KF-CB-15 target-less derivation
-     * (`undefined === undefined → true`) could not be opted out of at all. The
-     * declaration is now honoured by every recompute; {@link deriveSingleTarget}
-     * gives the derived mode back.
+     * `singleTarget` gains a SUPPORTED opt-out. Before it, `group.singleTarget =
+     * false` was a raw poke the post-mount recompute in {@link setTargets}
+     * silently reverted (LP-1's rider; the demo's `CopyButton`/`SquareScene`
+     * pokes are the live witnesses), so the group disagreed with its own caller
+     * and the KF-CB-15 target-less derivation (`undefined === undefined → true`)
+     * could not be opted out of at all. Every recompute honours a declaration;
+     * {@link deriveSingleTarget} gives the derived mode back.
      */
     get singleTarget(): boolean {
         return this._singleTarget;
@@ -228,7 +225,7 @@ export class AnimationGroup<V extends Vars> {
 
     /** The animation entries sorted by layer zIndex, dirty-flag cached — rebuilt
      * only on a mutation. INTERNAL (R.W2): read by the colocated `./compositor`/
-     * `./entries`/`./scheduler`/`./springs` helpers + all hot-path iteration. */
+     * `./entries`/`./yield-batch`/`./springs` helpers + all hot-path iteration. */
     getEntries(): AnimationGroupEntry<V>[] {
         if (this._entriesDirty) {
             this._entries = Object.values(this.animations);
@@ -325,7 +322,7 @@ export class AnimationGroup<V extends Vars> {
         this.started = true;
 
         // The slice fan-out / over-`YIELD_BATCH` batched advance are pure
-        // functions in `./scheduler`; `advanceSlice` returns `undefined` on the
+        // functions in `./yield-batch`; `advanceSlice` returns `undefined` on the
         // all-sync fast path (J.W6 S1 — zero microtask).
         const entries = this.getEntries();
         const BATCH = AnimationGroup.YIELD_BATCH;
