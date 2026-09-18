@@ -19,13 +19,17 @@
    Z-INDEX ORDERED-LAYER CONTRACT
    ────────────────────────────────────────────────────────────────────────
    The demo's stacking order is single-sourced from glass-ui's --z-* scale
-   (node_modules/@mkbabb/glass-ui/dist/styles/tokens.css), consumed via the Tailwind
-   z-content / z-controls / z-bar / z-dock / z-overlay / z-popover / z-modal
-   utilities. There is NO demo-local z-scale; the demo OWNS the ORDER as a documented
-   contract, strictly ascending — a higher rung always paints over a lower one:
+   (dist/styles/tokens/scheme-motion.css, reached through the `styles` entry),
+   consumed via the Tailwind z-content / z-controls / z-bar / z-dock / z-overlay /
+   z-popover / z-modal utilities and, for the one below-plane rung, `var(--z-behind)`
+   read directly. There is NO demo-local z-scale — every rung below, --z-behind
+   included, is the producer's declaration (7.0.0 ships `--z-behind: -10`; the demo's
+   former same-value re-declaration in layout.css was a zero-delta shadow and is
+   gone). The demo OWNS the ORDER as a documented contract, strictly ascending — a
+   higher rung always paints over a lower one:
 
-     --z-behind   : -10  (below the content plane — the CubeTarget axis line;
-                          demo-owned, defined in layout.css)
+     --z-behind   : -10  below the content plane (the cube axis lines, the
+                         square's drag pulse)
      --z-content  :  10  the scene subject / target plane
      --z-controls :  20  in-scene controls layered over content
      --z-bar      :  30  the editor bars (header / menubar chrome)
@@ -34,9 +38,11 @@
      --z-popover  : 130  popovers (share)
      --z-modal    : 140  modal dialogs — above everything
 
-   Use the SEMANTIC z-* utility for the rung; do NOT introduce a raw z-[N] bracket
-   value (proof:brittleness gates against drift). The one raw `z-index: -10`
-   (CubeTarget axis line) reconciles to --z-behind above.
+   Use the SEMANTIC z-* utility (or the token) for the rung; do NOT introduce a raw
+   z-[N] bracket value or a raw `z-index: N`. This is a design law stated here on
+   its own words: the grep gate that once enforced it (`proof:brittleness`) was
+   dissolved at 70b32501 and nothing re-arms it; the demo carries zero raw
+   below-plane values today (both consumers read the token).
    ════════════════════════════════════════════════════════════════════════ */
 
 @theme {

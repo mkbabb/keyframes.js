@@ -61,9 +61,9 @@ defineProps<{
         opacity 180ms var(--ease-standard, ease),
         --axis-active 180ms var(--ease-standard, ease),
         filter 180ms var(--ease-standard, ease);
-    /* Below the content plane — the demo's named below-stack rung (W3.S2).
-       Reconciles the former orphan raw below-plane value to the z-contract
-       documented in style.css (--z-behind < --z-content). */
+    /* Below the content plane — glass-ui's own below-stack rung (--z-behind <
+       --z-content), the producer's token read directly; the demo's z-contract
+       (style.css) documents the ORDER and owns no rung of its own. */
     z-index: var(--z-behind);
     position: absolute;
     pointer-events: none;

@@ -21,7 +21,6 @@
     --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width */
     --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track inset — 1.5rem each side */
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing SelectContent cap */
-    --z-behind: -10; /* the below-plane rung (CubeTarget axis line), below glass-ui's --z-content:10 — see style.css z-contract */
     --start-hero-band: 34dvh; /* the phone home hero/subject band split (the hero owns above; the subject's centering starts below) — clears the display-4 mobile hero on the 667/844 heights */
 
     /* The graph / stage-field substrate: two-tier engineering-graph-paper pitches
@@ -156,8 +155,10 @@
    default; position-area overrides the inline top/bottom only when live. Desktop
    only (the mobile stage is a fixed full-bleed layer with no card to tether to). The
    tether keys on an EXPLICIT [data-dock-tether] opt-in attribute on the two real
-   dock bands, NOT a :has() test on a generic .z-dock utility class (proof:brittleness
-   forbids keying layout on a z-* or pointer-events-* utility class). */
+   dock bands, NOT a :has() test on a generic .z-dock utility class — a z-* or
+   pointer-events-* utility is a PAINT rung, never a layout hook; keying layout on
+   one is forbidden by this file's own law (the grep gate that once enforced it was
+   dissolved at 70b32501 and is not re-armed). */
 @supports (anchor-name: --stage) and (top: anchor(--stage top)) {
     @media (min-width: 1024px) {
         .stage-cell {
