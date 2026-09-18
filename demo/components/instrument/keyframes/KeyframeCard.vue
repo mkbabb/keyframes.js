@@ -42,8 +42,17 @@
                     </X>
                     <CopyButton class="h-6 w-6" :text="frameString" />
                 </div>
+                <!-- KC-12 — the row's only visible identity (`f N` / `s N`) is
+                     AT-EXPOSED, so it is denominated in a REAL TOKEN, not in an
+                     alpha: `opacity-25` capped it at a ~1.84:1 theoretical
+                     ceiling no theme arm could lift, because opacity multiplies
+                     whatever the token resolved to. `--muted-foreground` is the
+                     demo's real muted rung and it is the one this wave gives
+                     every 1.4.11 mark (W6-H). The `pointer-events-none` half —
+                     the identity being unselectable — is CARD-UNIT's behavioural
+                     row and is deliberately NOT spent here. -->
                 <div
-                    class="italic opacity-25 z-0 pointer-events-none grid gap-1"
+                    class="italic text-muted-foreground z-0 pointer-events-none grid gap-1"
                 >
                     <Label
                         class="text-mono-small font-light leading-none tabular-nums"
