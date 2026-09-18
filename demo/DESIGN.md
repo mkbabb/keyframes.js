@@ -53,11 +53,14 @@ Color is named by role, never by a new call-site literal.
 * **Crayons are pinned.** `--face-1` … `--face-6` are the cube facet signals,
   hue-exact and ordered by face. The amiga red aliases the rainbow red. These
   values are not theme signals to be casually retuned.
-* **Material is not a crayon.** Lighting gets a named material register:
-  `--specular` is a foreground/highlight mix and `--shade` is a
-  background/shadow mix. Cube face sheen/shade gradients and the sequence
-  playhead cap consume these roles. A literal is permitted only inside the
-  material token definition; a new lighting effect consumes the pair.
+* **Material is not a crayon.** Lighting gets a named material register,
+  defined in `design-idioms.css` as theme pairs: `--specular` is the
+  foreground/highlight pair (`light-dark(white, var(--foreground))`) and
+  `--shade` is the background/shadow pair (`light-dark(var(--background),
+  black)`). The sequence playhead cap consumes `--specular`; the cube face
+  sheen/shade gradients are the register's next consumer (their literals are
+  the cube packet's to fold). A literal is permitted only inside the material
+  token definition; a new lighting effect consumes the pair.
 
 Signal tokens belong in `demo/styles/design-idioms.css`; geometry belongs in
 `demo/styles/layout.css`. Both sheets are imported after glass-ui's cascade, so

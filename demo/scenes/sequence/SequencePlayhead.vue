@@ -4,8 +4,9 @@
          layers: the LINE (full master red), a machined DIAMOND HEAD (::before),
          and a COMET TRAIL (::after) that brightens with --seq-glow while scrubbing.
          Reads --playhead-p (set inline) + --ball-tone/--seq-glow/--scrub-dir/
-         --track-inset (inherited from the parent .seq-stage cascade). Pure CSS over
-         the engine's `progress` — no per-frame JS. -->
+         --track-inset (inherited from the parent .seq-stage cascade) + --specular,
+         the demo's material highlight (design-idioms.css). Pure CSS over the
+         engine's `progress` — no per-frame JS. -->
     <div class="seq-playhead-track" aria-hidden="true">
         <div class="seq-playhead" :style="{ '--playhead-p': clamp(progress, 0, 1) }"></div>
     </div>
@@ -50,7 +51,11 @@ defineProps<{ progress: number }>();
         color-mix(in srgb, var(--ball-tone, var(--color-progress)) calc(35% + var(--seq-glow, 0) * 45%), transparent);
     will-change: transform;
 }
-/* The machined diamond head — a 45°-rotated cap with a lighter bevel (AE cap). */
+/* The machined diamond head — a 45°-rotated cap with a lighter bevel (AE cap).
+   The bevel mixes the tone into --specular, the material register's highlight
+   (DESIGN.md §2) — never a raw `white`: the light arm is byte-identical to the
+   former literal, the dark arm is the page's own ink (SequencePlayhead C-3; the
+   D-7 residue's dark-arm silhouette is KF.W9's looking question). */
 .seq-playhead::before {
     content: "";
     position: absolute;
@@ -60,8 +65,8 @@ defineProps<{ progress: number }>();
     height: 8px;
     transform: translateX(-50%) rotate(45deg);
     background: var(--ball-tone, var(--color-progress));
-    border-top: 1px solid color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, white);
-    border-left: 1px solid color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, white);
+    border-top: 1px solid color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--specular));
+    border-left: 1px solid color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--specular));
     border-radius: 1px;
 }
 /* The comet trail — anchored at the line, 32px behind the travel direction;

@@ -54,6 +54,20 @@
        EGG_HUES terminal stop, so the box's rest colour == the tumble egg's landing
        colour by construction. */
     --subject-teal: #52e898;
+
+    /* ── Material register (DESIGN.md §2): lighting is a REGISTER, never a crayon.
+       --specular is the highlight source, a foreground/highlight pair — pure white
+       on the light page, the page's own ink on the dark page (nothing on a dark
+       page is brighter than its ink). --shade is the shadow source, a
+       background/shadow pair — the page's own haze on the light page, true black
+       on the dark page. These are the ONLY literals the register permits; a
+       lighting effect consumes the pair (the sequence playhead cap's bevel today;
+       the cube face sheen/shade gradients are the cube packet's next consumer).
+       The names sit beside glass-ui's POSITIONAL --specular-x/-y/-intensity/-angle
+       registers and are a colour mix, not a position — the flat-namespace datum,
+       notified to the producer (O-26 R-15). */
+    --specular: light-dark(white, var(--foreground));
+    --shade: light-dark(var(--background), black);
 }
 
 /* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance:
