@@ -24,6 +24,15 @@ const packed = (items: readonly CssValue[]): CssValue | undefined => {
     });
 };
 
+/**
+ * LEG-1 — the legacy single-list `if(cond: value; cond: value)` form, split into
+ * clauses STRUCTURALLY over the parsed items (never over text).
+ *
+ * X.KF.W2 (G-W2-3) — ruled DELETE-OR-DECLARE and DECLARED. It carries no regex
+ * and no hand-written grammar; deleting it would drop support for the legacy
+ * spelling, which is a FEATURE removal and not a Tier-C extirpation. Its retirement
+ * belongs to whoever rules the legacy `if()` form out, with a deprecation path.
+ */
 const legacyClauses = (list: CssList): readonly IfClause[] => {
     const rows: CssValue[][] = [[]];
     for (const item of list.items) {
@@ -99,6 +108,13 @@ const evalStyleCondition = (
 
     const expected = packed(argument.items.slice(colon + 1));
     if (expected === undefined) return false;
+    // X.KF.W2 (G-W2-3) — ruled DELETE-OR-DECLARE and DECLARED. This is
+    // whitespace COLLAPSING for a text comparison, not a CSS grammar written in
+    // a regex: it is the Tier-C class's neighbour, never a member. The cure that
+    // would retire it is a different act with its own risk — compare the two
+    // values PARSED rather than serialized — and it changes what
+    // `style(--prop: value)` answers for every input value.js refuses. Not taken
+    // on this wave's mandate; named so the next seat inherits the choice made.
     const normalize = (value: string) => value.trim().replace(/\s+/g, " ");
     return normalize(actual) === normalize(serializeCssValue(expected));
 };

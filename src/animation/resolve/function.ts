@@ -11,6 +11,21 @@ export type ResolveNode = (
     ctx: ResolveContext,
 ) => Resolved<CssValue>;
 
+/**
+ * Coerce one `@function` argument to its declared parameter `syntax`.
+ *
+ * X.KF.W2 — the `coerceToSyntax` runtime import above is the census's NET-NEW
+ * "stray" cell (§Bounds A-4), ruled DELETE-OR-DECLARE and **DECLARED**. It is a
+ * real value.js API with one live call site — THIS one — and it is neither a
+ * grammar entry, nor a collector, nor a serializer, so it is outside G-W2-2's
+ * single-seam denominator and is NOT routed through `parse-facade`: the façade
+ * publishes the parse surface, and re-publishing every value.js export through
+ * it would make it a package mirror. Deleting the import instead would delete
+ * the `@function` parameter-syntax coercion feature, which no registry row
+ * authorizes — and would falsify the two comments in
+ * `test/resolve/emerging-css-resolve-fn.test.ts` that name the symbol (A-4:
+ * "a delete leaves them false"). Declared, so those comments stay true.
+ */
 const coerceArg = (
     arg: CssValue,
     param: CustomFunctionParameter,

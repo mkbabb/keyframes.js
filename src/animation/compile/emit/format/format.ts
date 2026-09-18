@@ -413,5 +413,14 @@ export async function CSSKeyframesToString<V extends Vars>(
 
     const keyframes = `${propertyPrefix}${animationOptionsString}\n@keyframes ${name} {\n${keyframesString}}`;
 
+    // X.KF.W2 (G-W2-3) — the CANDIDATE 7th Tier-C site, ruled DELETE-OR-DECLARE
+    // and DECLARED, with its measurement: instrumented over both vitest projects
+    // it fires ZERO times, so no live path produces the `({` / `})` artifact it
+    // erases. That is absence of coverage, not proof of death, and the repo's own
+    // rule is that only GENUINELY dead surface is excised — the artifact's only
+    // possible producer is the value serializer this block composes
+    // (`serializeCssValue` / `unflattenObjectToString`), which is the Tier-D
+    // collapse subject owned by KF.W8 (MISS-β2). It is deleted THERE, with the
+    // producer census in hand, and not here on a zero count.
     return `${keyframes.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}")}\n`;
 }
