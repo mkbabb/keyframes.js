@@ -44,7 +44,19 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
 
-const demo = inject(SEQUENCE_DEMO_KEY)!;
+// KF.W7 C·C-4 — THE PROVIDER GUARD, and the asymmetry declared rather than
+// asserted away. This component is a colocated sub-unit of `SequenceTarget`: it
+// injects the whole scene demo and owns none of it, which is exactly why G1
+// ruled it KEEP-BESPOKE (the gesture drives `Sequence.scrub` under an explicit
+// single-writer rule). The `!` claimed a provider it never checked, so a mount
+// outside the scene died inside the RENDER — `Cannot read properties of
+// undefined (reading 'progress')` — naming neither the contract nor the seam.
+const demo = inject(SEQUENCE_DEMO_KEY);
+if (!demo) {
+    throw new Error(
+        "SequenceScrubber must be mounted inside the sequence scene: no SEQUENCE_DEMO_KEY was provided.",
+    );
+}
 
 // ── Master scrubber: drag/keyboard scrubs the Sequence progress ──────────────
 // The drag rides the shared `useDragScrub` seam (H.W12.S1 / I8); `project` is the
