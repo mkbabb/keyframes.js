@@ -79,7 +79,6 @@
                 {{ error }}
             </p>
             <DialogFooter>
-                <slot name="footer-extra" />
                 <Button
                     class="gap-2"
                     :loading="busy"
@@ -87,6 +86,12 @@
                     @click="onSubmit"
                 >{{ buttonLabel }}<component v-if="buttonIcon" :is="buttonIcon" class="icon-md" /></Button>
             </DialogFooter>
+            <!-- KAD-15 (W6-I): the adapter's feedback sweep is HOISTED out of
+                 `DialogFooter` — the footer is bare flex again (the `grid`
+                 override that once fought it, KAD-16, has no reason to exist),
+                 and the sweep runs along the dialog's foot below the action,
+                 where its twin runs below the editor toolbar. -->
+            <slot name="feedback" />
         </DialogContent>
     </Dialog>
 </template>

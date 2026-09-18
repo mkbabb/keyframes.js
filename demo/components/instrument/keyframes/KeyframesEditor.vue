@@ -110,9 +110,16 @@
                 </button>
             </div>
 
+            <!-- KF-KE-21 (S-10, EVALUATED — glass `Progress` DECLINED in
+                 writing; the twin at KeyframesAddDialog carries the full
+                 reasoning): the bar measures nothing, so its progress
+                 semantics are deleted (`aria-hidden` decorative chrome) and
+                 the brush-sweep animation is kept. KAD-15's form at this twin
+                 too: rest at zero, `scaleX()` from the inline start. -->
             <div
                 ref="progressBarKeyframesEl"
-                class="progress-bar sticky bottom mt-2"
+                class="progress-bar sticky bottom mt-2 origin-left rtl:origin-right scale-x-0"
+                aria-hidden="true"
             ></div>
         </div>
     </div>
@@ -266,9 +273,15 @@ const removeKeyframe = async (_e: Event, frameIx: number) => {
 
 const progressBarKeyframesEl = useTemplateRef<HTMLElement>("progressBarKeyframesEl");
 
+// KAD-15 at this twin: `scaleX()` from rest (0) to full, `fillMode: "none"` so
+// the bar returns to its rest class when the sweep ends (D-20), and the PRM
+// flag lands with the rest state (KF-KE-8's sequencing nuance).
 const animateProgressBar = (el: HTMLElement) => {
-    new CSSKeyframesAnimation({ duration: 1000 }, el)
-        .fromVars([{ width: "0%" }, { width: "100%" }])
+    new CSSKeyframesAnimation(
+        { duration: 1000, fillMode: "none", respectReducedMotion: true },
+        el,
+    )
+        .fromVars([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }])
         .play();
 };
 

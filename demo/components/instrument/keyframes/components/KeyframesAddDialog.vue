@@ -19,8 +19,26 @@
                 </button>
             </DialogTrigger>
         </template>
-        <template #footer-extra>
-            <div ref="progressBarEl" class="progress-bar w-full bottom mt-2"></div>
+        <template #feedback>
+            <!-- KF-KE-21 (S-10, EVALUATED — glass `Progress` DECLINED, in
+                 writing, at both twins): this bar measures NOTHING. The submit
+                 is synchronous, there is no in-flight quantity and no
+                 indeterminate wait to report; binding `<Progress>` (which emits
+                 `role="progressbar"` and a value/indeterminate state) would
+                 announce a progress that does not exist. So the FALSE
+                 SEMANTICS are deleted — the bar is `aria-hidden` decorative
+                 chrome, the demo's own brush-sweep flourish — and the
+                 animation itself is kept (the owner's preserve-animations law:
+                 moved or tokenized, never removed). KAD-15: it rests at ZERO
+                 (`scale-x-0`, so `w-full` no longer paints it complete at idle
+                 — D-20), sweeps on `transform: scaleX()` (compositor-safe, the
+                 R-A form), grows from the INLINE START (`origin-left` with its
+                 `rtl:` mirror — D-26), and returns to rest when the sweep ends. -->
+            <div
+                ref="progressBarEl"
+                class="progress-bar w-full mt-2 origin-left rtl:origin-right scale-x-0"
+                aria-hidden="true"
+            ></div>
         </template>
     </CSSPasteDialog>
 </template>
@@ -61,7 +79,8 @@ import CSSPasteDialog from "@components/instrument/timeline/CSSPasteDialog.vue";
  *      emitted; this IS R-7's text-hoisting constraint, in one line). The model
  *      write is the whole of it now — the textarea renders the model.
  *
- * The progress bar rides `footer-extra` unchanged (KAD-15 → KF.W6).
+ * The feedback sweep rides the shell's `feedback` slot, below the footer
+ * (KAD-15 — see the template).
  */
 const props = defineProps<{
     /** Formats the raw string and RETURNS the result; writes nothing. */
@@ -81,11 +100,23 @@ const reformat = async () => {
     text.value = await props.format(text.value);
 };
 
+// KAD-15: the sweep is `transform: scaleX()` from the bar's rest (0) to full,
+// and `fillMode: "none"` hands the element back to its rest class when the
+// sweep ends — the bar never sits full at idle (D-20). The element is re-read
+// AFTER the engine await (L-11: the dialog can close during the load).
+// `respectReducedMotion` rides with the rest state (KF-KE-8's sequencing
+// nuance: under PRM the engine snaps to the final frame, which with a rest
+// state is the invisible bar, so the sweep simply does not show).
 const animateProgressBar = async () => {
     if (!progressBarEl.value) return;
     const { CSSKeyframesAnimation } = await loadAnimationEngine();
-    new CSSKeyframesAnimation({ duration: 1000 }, progressBarEl.value)
-        .fromVars([{ width: "0%" }, { width: "100%" }])
+    const el = progressBarEl.value;
+    if (!el) return;
+    new CSSKeyframesAnimation(
+        { duration: 1000, fillMode: "none", respectReducedMotion: true },
+        el,
+    )
+        .fromVars([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }])
         .play();
 };
 
