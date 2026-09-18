@@ -79,7 +79,12 @@
                 {{ error }}
             </p>
             <DialogFooter>
+                <!-- KAD-23 ≡ CPD R-18 (2-site, cured at the one shell): a
+                     one-action dialog DECLARES its primary — the confirming
+                     action wears the producer's primary rung instead of the
+                     default secondary it shipped at. -->
                 <Button
+                    emphasis="primary"
                     class="gap-2"
                     :loading="busy"
                     :disabled="text.trim() === ''"
