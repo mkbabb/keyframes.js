@@ -46,6 +46,7 @@
         <div
             :id="railId"
             ref="trackEl"
+            :data-expanded="expanded ? 'true' : undefined"
             :class="[
                 'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
@@ -69,7 +70,13 @@
             @touchmove.passive="onTouchMove"
             @touchend.passive="onTouchEnd"
         >
-            <!-- Tick marks -->
+            <!-- Tick marks. The label hangs ABOVE the rail by exactly the
+                 margin the rail reserves for it — one constant, declared once
+                 in this file's scoped block and read by both (D-14/i-1: the two
+                 were the same magic number 174 lines apart with nothing stating
+                 the coupling). C-9's contract, said at the node that needs it:
+                 the labels are why this subtree is provisioned
+                 `overflow-y-visible` while the rail clips in x. -->
             <div
                 v-for="tick in visibleTicks"
                 :key="tick"
@@ -77,10 +84,8 @@
                 :style="{ left: `${percentToPosition(tick)}%` }"
             >
                 <span
-                    :class="[
-                        'text-small absolute -top-5 left-0 text-muted-foreground whitespace-nowrap',
-                        percentToPosition(tick) <= 2 ? 'translate-x-0' : percentToPosition(tick) >= 98 ? '-translate-x-full' : '-translate-x-1/2',
-                    ]"
+                    class="timeline-tick-label text-small absolute left-0 text-muted-foreground whitespace-nowrap"
+                    :class="edgeClass(percentToPosition(tick))"
                 >{{ tick }}%</span>
             </div>
 
@@ -103,7 +108,8 @@
                 <TooltipTrigger as-child>
                     <div
                         :class="[
-                            'keyframe-marker absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-controls',
+                            'keyframe-marker absolute top-1/2 -translate-y-1/2 z-controls',
+                            edgeClass(percentToPosition(stop.percent)),
                             expanded ? 'w-6 h-6' : 'w-4 h-4',
                             'rotate-45 rounded-sm cursor-grab',
                             'border-2 transition-all',
@@ -151,6 +157,7 @@
                 :keyframe-id="stop.keyframes[0].id"
                 :percent="stop.percent"
                 :position="percentToPosition(stop.percent)"
+                :edge="edgeOf(percentToPosition(stop.percent))"
                 :is-selected="isStopSelected(stop)"
                 @commit-percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
                 @select="emit('select', selectionIdFor(stop))"
@@ -201,6 +208,37 @@ const selectionIdFor = (stop: TimelineStop): string =>
     stop.keyframes.find((kf) => kf.id === props.selectedKeyframeId)?.id ??
     stop.keyframes[0].id;
 
+/**
+ * EDGE AWARENESS — one band for every mark on the rail (M1 + D-m2).
+ *
+ * The rail clips in x (`overflow-x-clip`, deliberate and kept, S-1/S-2/S-3), so
+ * a mark at 0% or 100% — the two positions a keyframe timeline almost always
+ * occupies — was cut in half. The tick LABELS got three-way edge handling in
+ * this same file and the markers and carets did not; that asymmetry is the
+ * proof of oversight, so they share the handling now.
+ *
+ * The band is 5% of the rail, and it is derived, not chosen: half a "100%"
+ * label is ≈5% of the 400px low end of `--rail-width` `clamp(25rem, 33svi,
+ * 32rem)` (400–512px), and the widest mark — the expanded, selected diamond —
+ * is 24 × √2 ÷ 2 × 1.25 = 21.21px = 5.3% of the same rail. The old 2%/98%
+ * pair was sized for a ~1025px rail that does not exist here (D-m2: re-tune the
+ * constant, never delete the mechanism). Full derivation:
+ * `docs/tranches/X/keyframes/evidence/W7/D-19-GEOMETRY-REDERIVATION.md`.
+ */
+const EDGE_BAND = 5;
+
+type MarkEdge = "start" | "end" | "mid";
+
+const edgeOf = (position: number): MarkEdge =>
+    position <= EDGE_BAND ? "start" : position >= 100 - EDGE_BAND ? "end" : "mid";
+
+const edgeClass = (position: number): string =>
+    ({
+        start: "translate-x-0",
+        end: "-translate-x-full",
+        mid: "-translate-x-1/2",
+    })[edgeOf(position)];
+
 const stopLabel = (stop: TimelineStop): string => {
     const p = Math.round(stop.percent);
     const n = stop.keyframes.length;
@@ -243,10 +281,21 @@ const getGhostStyle = (vars: Record<string, string>): Record<string, string> => 
  * `0` — when the rail is not mounted: a failed projection scrubs nowhere.
  */
 const getPercentFromPointer = (event: PointerEvent): number | null => {
-    if (!trackEl.value) return null;
-    const rect = trackEl.value.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const posPercent = (x / rect.width) * 100;
+    const rail = trackEl.value;
+    if (!rail) return null;
+    // ONE BOX FOR BOTH MAPS (RR-B missed-5 / banked D-20). `left: N%` on every
+    // mark resolves against the rail's PADDING box, while
+    // `getBoundingClientRect` returns its BORDER box — so pointer→percent and
+    // percent→pixel disagreed by a fixed one-border origin and two-border span
+    // skew that grows with any border change. The borders are measured, not
+    // assumed, so the maps stay agreed whatever the token says.
+    const rect = rail.getBoundingClientRect();
+    const style = getComputedStyle(rail);
+    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+    const borderRight = parseFloat(style.borderRightWidth) || 0;
+    const width = rect.width - borderLeft - borderRight;
+    if (width <= 0) return null;
+    const posPercent = ((event.clientX - rect.left - borderLeft) / width) * 100;
     return clamp(positionToPercent(posPercent), 0, 100);
 };
 
@@ -529,8 +578,30 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
 
 <style scoped>
 .timeline-track {
-    margin-top: 1.25rem;
+    /* The tick labels hang above the rail; the rail reserves exactly that much
+       room for them. ONE constant, read by both (D-14/i-1). */
+    --timeline-tick-label-offset: 1.25rem;
+
+    /* The caret's clearance below the mark's centre line, re-derived at the
+       bytes (OP-3 / D-19). The global `--caret-offset` is 14px, which clears
+       NOTHING when the diamond is expanded: at `h-32` the padding box is 126px,
+       its centre line 63px, and a selected (`scale-125`) 24px diamond reaches
+       63 + 24·√2÷2·1.25 = 84.21px — 7.21px BELOW the caret's top. Collapsed it
+       is a 0.14px hairline overlap. These two values clear the worst case by
+       ~1.8px in both states; `layout.css` owns the global token and is not
+       touched. */
+    --timeline-caret-offset: 16px;
+
+    margin-top: var(--timeline-tick-label-offset);
     margin-bottom: 1rem;
+}
+
+.timeline-track[data-expanded] {
+    --timeline-caret-offset: 23px;
+}
+
+.timeline-tick-label {
+    top: calc(-1 * var(--timeline-tick-label-offset));
 }
 
 .keyframe-marker {

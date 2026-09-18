@@ -1,7 +1,11 @@
 <template>
     <div
-        class="timeline-caret absolute flex flex-col items-center"
-        :style="{ left: `${position}%`, top: 'calc(50% + var(--caret-offset))', transform: 'translateX(-50%)' }"
+        class="timeline-caret absolute z-controls flex flex-col items-center"
+        :style="{
+            left: `${position}%`,
+            top: 'calc(50% + var(--timeline-caret-offset, var(--caret-offset)))',
+            transform: edgeTransform,
+        }"
     >
         <!-- The readout is a real BUTTON, not a click-only div (D-3 / SC 4.1.2):
              it is the one control that opens the numeric editor, so it carries
@@ -56,6 +60,14 @@ const props = defineProps<{
     keyframeId: string;
     percent: number;
     position: number;
+    /**
+     * Which end of the rail this caret sits against, decided by the rail (which
+     * owns the geometry) and honoured here: the rail CLIPS in x, so a caret at
+     * 0% or 100% lost half its label under a flat `translateX(-50%)` (M1). The
+     * tick labels have had this handling all along; the caret gets the same one,
+     * from the same 5% band, rather than a second threshold of its own.
+     */
+    edge?: "start" | "end" | "mid";
     isSelected: boolean;
 }>();
 
@@ -92,6 +104,26 @@ const markerId = computed(() => `timeline-marker-${props.keyframeId}`);
  * user typed a different one.
  */
 const display = computed(() => String(Number(props.percent.toFixed(2))));
+
+const edgeTransform = computed(() =>
+    props.edge === "start"
+        ? "translateX(0)"
+        : props.edge === "end"
+          ? "translateX(-100%)"
+          : "translateX(-50%)",
+);
+
+/**
+ * C-9's contract, stated at the node that carries it (there were zero comments
+ * at any of the three): this caret hangs BELOW the rail's centre line by
+ * `--timeline-caret-offset` — a clearance the rail computes per expansion state
+ * (D-19/D-17) — and its EDIT INPUT (`h-5`) hangs ≈11px into the rail's own
+ * `margin-bottom`, which is why the ancestor chain is provisioned
+ * `overflow-y-visible`. The 10px label's ~1px overhang is NOT a Card-clip
+ * truncation (that mechanism was killed, #13). `z-controls` is the other half
+ * of D-17: the marker carries the same layer, so without it the diamond won
+ * paint AND the hit test over the caret it occludes, whatever the DOM order.
+ */
 
 /** The text the editor OPENED with — G7's compare-before-commit reads it. */
 let openedWith = "";

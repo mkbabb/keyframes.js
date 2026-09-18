@@ -52,10 +52,14 @@ export function useZoomPan(trackEl: Ref<HTMLElement | null>) {
         clampPan();
     };
 
-    // Dynamic tick marks based on zoom level
+    // Dynamic tick marks based on zoom level. The ladder's rungs are 2/5/10/25
+    // — never 1 (D-4): at z = 7.99 a step of 5 puts the ticks 39.9% of the rail
+    // apart, and the old `1` rung dropped that to 8% on a 0.01 increment, a 5×
+    // collapse mid-gesture. `2` gives 16%. The labels carry the information, so
+    // the rung is re-tuned and the mechanism kept.
     const visibleTicks = computed(() => {
         let step: number;
-        if (zoomLevel.value >= 8) step = 1;
+        if (zoomLevel.value >= 8) step = 2;
         else if (zoomLevel.value >= 5) step = 5;
         else if (zoomLevel.value >= 3) step = 10;
         else step = 25;
