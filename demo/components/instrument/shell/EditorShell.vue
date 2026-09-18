@@ -26,14 +26,28 @@
                          the existing component; the Invoker `command="show-modal"`
                          path is the forward feature-detected idiom (BOOKed, not
                          forced — r-modern-web-2026 F-MW-1). Sits in the header
-                         ribbon, not over the dock band → no occlusion (inv δ). -->
+                         ribbon, not over the dock band → no occlusion (inv δ).
+
+                         EH-8/EH-5, the ribbon's ONE SIZING DECISION: a producer
+                         control's box comes from its OWN size vocabulary, never
+                         from a demo width utility. `icon-only` already declares
+                         square geometry at `--button-size`; the former
+                         `aspect-square w-8` set only the INLINE axis (utilities
+                         cascade after components), so the box was 32 × md and
+                         `aspect-ratio: 1` was inert against two definite
+                         dimensions. `size="sm"` asks for the rung instead —
+                         `--control-h-sm` = 2.25rem, the SAME rung
+                         DarkModeToggle's own base ships, so the two chrome
+                         controls agree by construction rather than by
+                         coincidence. Rendered ladder + glyph rungs → KF.W9. -->
                     <Tooltip>
                         <TooltipTrigger as-child>
                             <Button
                                 emphasis="quiet"
                                 icon-only
+                                size="sm"
                                 aria-label="Show keyboard shortcuts"
-                                class="aspect-square w-8 scale-on-hover"
+                                class="scale-on-hover"
                                 @click="shortcutsOpen = true"
                             >
                                 <Keyboard class="icon-sm" />
@@ -47,10 +61,18 @@
                          `aria-label` ("Switch to light/dark mode") — a visible
                          "Toggle dark mode" tooltip beside that name is the
                          WCAG 2.5.3 Label-in-Name divergence. The producer names
-                         itself; the consumer stays quiet. -->
-                    <DarkModeToggle
-                        class="aspect-square w-8 scale-on-hover"
-                    />
+                         itself; the consumer stays quiet.
+
+                         EH-5 (same one decision as EH-8 above): the former
+                         `aspect-square w-8` won the WIDTH alone — the producer's
+                         `@layer components` base is
+                         `--dark-mode-toggle-size: 2.25rem` with size arms for
+                         sm/lg/control/dock and NO `md` arm, so a later-declared
+                         utility took the inline axis and left the block axis at
+                         2.25rem; with both dimensions definite `aspect-ratio: 1`
+                         no-opped. The producer's own box is the box. Rendered
+                         magnitude → KF.W9 SS-13. -->
+                    <DarkModeToggle class="scale-on-hover" />
                 </slot>
             </template>
         </HeaderRibbon>
