@@ -112,9 +112,9 @@
                             edgeClass(percentToPosition(stop.percent)),
                             expanded ? 'w-6 h-6' : 'w-4 h-4',
                             'rotate-45 rounded-sm cursor-grab',
-                            'border-2 transition-all',
+                            'border-2',
                             isStopSelected(stop)
-                                ? 'bg-primary border-primary scale-125'
+                                ? 'bg-primary border-primary scale-125 hover:ring-2 hover:ring-primary/40'
                                 : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
                         ]"
                         :id="`timeline-marker-${stop.keyframes[0].id}`"
@@ -604,9 +604,20 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
     top: calc(-1 * var(--timeline-tick-label-offset));
 }
 
+/* The marker's motion, named property by property (D-12 / K-5). This rule used
+   to transition `transform` — and Tailwind 4 writes the INDIVIDUAL `scale`,
+   `rotate` and `translate` properties, never the shorthand, so nothing ever set
+   `transform` and the selection scale SNAPPED while only the border eased. The
+   `transition-all` on the marker's class list read as the live declaration and
+   was dead code: this scoped rule outranks it, and it is deleted rather than
+   widened (widening the shorthand would leave the scale dead in a way that
+   looks cured). */
 .keyframe-marker {
     transition:
-        transform var(--duration-fast) var(--ease-standard),
+        scale var(--duration-fast) var(--ease-standard),
+        translate var(--duration-fast) var(--ease-standard),
+        background-color var(--duration-fast) var(--ease-standard),
+        box-shadow var(--duration-fast) var(--ease-standard),
         border-color var(--duration-fast) var(--ease-standard);
 }
 
