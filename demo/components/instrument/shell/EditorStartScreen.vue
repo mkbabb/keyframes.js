@@ -49,7 +49,13 @@
              deviation in the T.D11 packet). -->
         <h2 class="start-screen-prose start-screen-subtitle hero-deck w-full">
             {{ subtitle }}
-            <List class="hero-deck-icon inline" aria-hidden="true" />
+            <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
+                 "no weight above 400": Lucide's default stroke scales with the
+                 box (2 units of a 24-unit viewBox → ≈2.19px at this 0.8em box)
+                 and out-weighed the serif's ≈1.8px stems. `absolute-stroke-width`
+                 is the icon's own one-attribute contract for a stroke that does
+                 not scale with size. -->
+            <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
             {{ subtitleSuffix }}
         </h2>
         <h2 v-if="hint" class="start-screen-prose hero-hint w-full">
