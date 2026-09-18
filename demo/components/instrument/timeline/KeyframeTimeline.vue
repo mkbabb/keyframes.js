@@ -24,15 +24,22 @@
              THE POLICY IS THE DEMO'S, NOT THIS FILE'S (W6-M, unit `.k`) — it is
              stated once, here, and two folds are named against it so a later
              sweep finds them at the rule rather than at four scattered sites:
-             · kf-SequenceScene **D22**'s height limb — "h-7 w-7 p-0 = 28×28"
-               was KILLED on this exact mechanism: `h-*` sets `height` while the
-               producer sets `min-block-size`, which is no cascade contest, so
-               the element renders 28×40 fine / 28×60 coarse and never 28×28.
-               Fold, never a re-booking; D22's surviving WIDTH and `iconOnly`
-               conformance limbs ride kf-SequenceScene D9 and are NO-WAVE-OWNER.
-               The live instance of that override (`SequenceTarget.vue`'s reel
-               button) is outside this unit's writable set and is DECLARED
-               upward, never reached across.
+             · kf-SequenceScene **D22**'s height limb — its claim of a 28×28
+               box from the override named two lines up — was KILLED on this
+               exact mechanism: `h-*` sets `height` while the producer sets
+               `min-block-size`, which is no cascade contest, so the element
+               renders 28×40 fine / 28×60 coarse and never 28×28. Fold, never a
+               re-booking; D22's surviving WIDTH and `iconOnly` conformance
+               limbs ride kf-SequenceScene D9 and are NO-WAVE-OWNER. The live
+               instance of that override (`SequenceTarget.vue`'s reel button) is
+               outside this unit's writable set and is DECLARED upward, never
+               reached across. `SequenceScene.vue` itself, which IS in this
+               unit's set, receives zero bytes for D22 and that is a
+               measurement, not an omission: it holds no `h-*`, no `min-h-*`
+               and no Card — D22's subject was never there.
+               (The forbidden class triple is spelled ONCE in this block, at
+               the policy statement above, so a sweep for live overrides is not
+               answered by the rule that forbids them.)
              · kf-ControlsPaneWrapper **D-m12** is the same mechanism at a third
                site and is already banked as such.
              · kf-StartingStyleTarget **KF-SST-39** folds by reference to banked
@@ -41,6 +48,29 @@
                `w-4 h-4` box, so the copy control owns its own geometry from the
                primitive's size vocabulary — the same policy read from the
                caller's side.
+             · ONE RESIDUE FOUND BY THIS SWEEP, DECLARED WITH ITS MECHANISM
+               rather than half-cured. `SpringScene.vue`'s domain "Re-seat"
+               ribbon button (in this unit's set) carries five utilities on a
+               glass `Button` that re-author, inline, the demo's OWN
+               `.btn-playback` class used by the sibling button two statements
+               up in the same render function: 2rem height, full width, 0.5rem
+               gap, pill radius, body size — `playback-idiom.css:18-29` declares
+               exactly those five and adds the ruled medium weight the inline
+               copy lost. So the interesting defect is not the height utility;
+               it is an idiom duplicated one call away from its own class.
+               NEITHER cure is this seat's to spend, and the reason is the
+               finding: adopting the class does NOT satisfy this policy, because
+               `.btn-playback` sets `height` on a glass control too — the
+               violation would only move from a utility into a shared class —
+               while striking the height outright leaves Re-seat at the
+               producer's `md` rung beside a 2rem sibling and visibly breaks the
+               ribbon. The subject is the whole `.btn-playback` idiom, shared
+               with `PlaybackRibbon.vue` and the easing scene, and its file is
+               outside this unit's bounds. Measured for whoever takes it: the
+               producer's published rungs are `--control-h-xs` 1.75rem ·
+               `-sm` 2.25rem · `-md` 2.5rem · `-lg` 2.75rem (installed dist), so
+               2rem names no rung and the ask is a producer rung, never a demo
+               height. Routed up as one decision over one idiom.
 
              D-5 — DISCHARGED, and verified rather than assumed. The row's
              finding was PIXEL IDENTITY: a disabled Undo/Redo looked exactly
