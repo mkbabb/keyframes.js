@@ -147,14 +147,29 @@
             <Button size="sm" emphasis="quiet" @click="rebuild()">Retry</Button>
         </div>
 
-        <!-- Selected Keyframe Editor (inline). J.W7b S1d — the transition is
-             glass-ui's published `.fade-slide` class set (transitions.css:23-37):
-             the former hand-rolled keyframe-editor transition copy (4 scoped
-             rules, a near-exact re-author MISSING the PRM guard) is DELETED in
-             the same motion; the published classes carry the
-             `prefers-reduced-motion` bracket (transitions.css PRM block) the
-             local copy lacked. -->
-        <Transition name="fade-slide">
+        <!-- Selected Keyframe Editor (inline). D-1/L-1/C-3 — the transition
+             named a class set that DOES NOT EXIST: `fade-slide` greps to zero
+             across the whole installed producer package, its own source
+             carries the tombstone ("RETIRED, census-dead, clean break, no
+             alias"), and the citation this comment used to make
+             (`transitions.css:23-37`) cannot resolve in an artifact that ships
+             as one line. A `<Transition>` whose name matches no rule mounts and
+             unmounts instantly, so the panel has been appearing with no
+             transition at all while three comments said otherwise.
+
+             The cure adopts a set the producer ACTUALLY ships — `metric-swap`,
+             read at the installed `styles/transitions.css`: opacity plus a
+             0.375rem rise and a 0.95 scale on enter, on the spring the rest of
+             the demo's swaps ride. It is the shipped set that keeps the
+             authored intent (a fade AND a movement); the plain `fade` set was
+             the alternative and is declined because it silently drops the half
+             the old name promised. Re-authoring locally is what the deleted
+             hand-rolled copy did, and it is what lost the guard: the published
+             set carries the `prefers-reduced-motion` bracket (measured in the
+             same file — the transform is dropped and the duration cut under
+             reduced motion), which is the one thing this component must not
+             own. -->
+        <Transition name="metric-swap">
             <div v-if="selectedKeyframe" class="flex flex-col gap-3">
                 <Separator />
 
@@ -556,5 +571,9 @@ defineExpose({
 </script>
 
 <!-- J.W7b S1d — the 4 hand-rolled enter/leave transition rules are GONE: the
-     inline keyframe editor consumes glass-ui's published `.fade-slide`
-     <Transition> classes (PRM-guarded) instead of re-authoring them. -->
+     inline keyframe editor consumes a PUBLISHED, PRM-guarded <Transition> class
+     set instead of re-authoring one. D-1/L-1/C-3: the set it named until now
+     (`fade-slide`) is retired at the producer and ships in no artifact, so the
+     transition was a no-op under a comment that claimed a line range; it now
+     names `metric-swap`, which the installed `styles/transitions.css` really
+     carries, PRM bracket included. -->
