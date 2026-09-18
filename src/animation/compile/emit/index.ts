@@ -48,6 +48,13 @@ export {
     declaredKeyframeBodyFor,
 } from "./format";
 export { serializeEasing } from "./easing-serialize";
+// X.KF.W5 B-11 (G-CSSIDENT) — the two CSS-TEXT serializers the demo reaches by
+// deep `@src/` path because they were internal to this sub-zone: the time
+// serializer and the timing-function serializer. Surfaced through the sub-zone
+// barrel (and onward through `public.ts`) so a consumer never needs the deep
+// path. `css-text.ts` itself is NOT edited — it is another wave's file; the
+// publication act is a re-export, which is all the ruling asked for.
+export { reverseCSSTime, serializeTimingFunction } from "./css-text";
 // VT-b / EN-c (S.F1/S.F3) — the CSS-ident normalizer, exposed so the sibling
 // View-Transitions + entry/exit emitters derive stable pseudo/rule names.
 export { cssIdent } from "./backward";

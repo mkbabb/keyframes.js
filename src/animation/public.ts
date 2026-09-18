@@ -138,6 +138,38 @@ export type {
 
 // ── compile — the round-trip's BACKWARD half ─────────────────────────────────
 export { compileToCSS } from "./compile";
+
+// ── X.KF.W5 THE PUBLICATION DECISION (§Sequencing S-3, gate G-CSSIDENT) ───────
+// ONE ruling over THREE library names + the easing registry. Each was a real
+// library capability with NO published door, so every consumer hand-rolled or
+// deep-reached for it — and the demo's three-names-for-one-animation defect
+// (N-8: `keyframes-style-square-Transform` / `@keyframes square-transform` /
+// `@keyframes Transform`) is downstream of exactly that: the library owns the
+// single CSS-ident normalizer, applies it on Export only, and did not publish
+// it, "which is WHY the demo hand-rolls `.replace().toLowerCase()`".
+//
+//   • `cssIdent` — THE ident normalizer. It reached no published entry: it was
+//     re-exported along a two-site INTERNAL chain (`backward/walk.ts` decl →
+//     `backward/index.ts` → `compile/emit/index.ts`) and was absent from
+//     `index.ts`, `public.ts` and `load-engine.ts` alike.
+//   • `reverseCSSTime` · `serializeTimingFunction` — the two CSS-text
+//     serializers the demo reaches by deep `@src/` path (C-8). Published, not
+//     relocated: they stay in `compile/emit/css-text.ts`, which this wave does
+//     not edit, and ride out through the emit sub-zone barrel.
+//   • the EASING REGISTRY (KF-ET-32) — the library exposed no SYNCHRONOUS
+//     name→fn surface at all (`resolveEasing` is async, on the LIGHT barrel),
+//     so a consumer needing one at hand had nothing to import. The resolver and
+//     the name roster are published off the heavy surface, where the registry
+//     already lives.
+//
+// HEAVY surface only, deliberately: every one of these carries value.js by
+// specifier, and the LIGHT `.` barrel's value.js-free boundary (`proof:boundary`)
+// is not spent on a convenience re-export.
+export { cssIdent, reverseCSSTime, serializeTimingFunction } from "./compile/emit";
+export {
+    resolveTimingFunction,
+    timingFunctionEntries,
+} from "./compile/easing/registry";
 // S.F1 VT-c — the View-Transitions emitter (PAIRED with the AnimationEngine
 // `compileToViewTransition` field — the proof:engine-subpath-mirror TYPE-diff).
 export { compileToViewTransition } from "./compile/emit/view-transition";

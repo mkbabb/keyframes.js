@@ -54,6 +54,15 @@ import type {
     formatCSSKeyframeString,
     transformTargetsStyle,
     yieldToMain,
+    // X.KF.W5 — the publication decision's four names (G-CSSIDENT). The roster
+    // below and `public.ts` are one surface by construction; a name published
+    // through the subpath but missing here would be exactly the split this
+    // module's header exists to prevent.
+    cssIdent,
+    reverseCSSTime,
+    serializeTimingFunction,
+    resolveTimingFunction,
+    timingFunctionEntries,
 } from "./public";
 import type * as AnimationPresets from "./presets/index";
 import type { AnimationOptions, AnimationLayerConfig } from "./constants/types";
@@ -103,6 +112,16 @@ export interface AnimationEngine {
     formatCSSKeyframeString: typeof formatCSSKeyframeString;
     transformTargetsStyle: typeof transformTargetsStyle;
     yieldToMain: typeof yieldToMain;
+    /** The CSS-ident normalizer — ONE derivation for every emitted name. */
+    cssIdent: typeof cssIdent;
+    /** ms → the CSS time literal the emitters write. */
+    reverseCSSTime: typeof reverseCSSTime;
+    /** A parsed timing function → its CSS literal. */
+    serializeTimingFunction: typeof serializeTimingFunction;
+    /** SYNCHRONOUS name→fn easing resolution (KF-ET-32). */
+    resolveTimingFunction: typeof resolveTimingFunction;
+    /** The registry roster behind it — `[name, fn]`, stable, not injective. */
+    timingFunctionEntries: typeof timingFunctionEntries;
 }
 
 let enginePromise: Promise<AnimationEngine> | undefined;
