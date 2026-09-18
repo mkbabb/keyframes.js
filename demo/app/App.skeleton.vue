@@ -1,12 +1,19 @@
 <script setup lang="ts">
 /**
- * SceneSkeleton — T.F8 (the skeletons tier; lane 13 rec 8).
+ * SceneSkeleton — the app shell's `<Suspense>` fallback.
  *
- * THE shared loading placeholder for the app-shell `<Suspense>` fallback: the
- * scene's STAGE PLATE with a skeleton sheen inside it, shown while a lazy
- * scene's async chunk (or its Monaco pane) resolves. It REPLACES the bare
- * `<span>Loading scene…</span>` text-flash (VERDICT #19 perceived-perf sibling)
- * — a COMPONENT, not a raw text node.
+ * KF-SKEL-14, the docblock rewritten to the tree's truth: the two claims this
+ * file kept asserting against its own repository are struck. It is NOT "THE
+ * shared" placeholder — it has exactly ONE consumer, `App.vue`'s scene-host
+ * `<Suspense>` (`git grep SceneSkeleton -- demo/` → the import + that one
+ * mount), and calling it "shared" made a one-site component read as a tier
+ * contract; and it belongs to no "skeletons tier", which `969990f6` deleted
+ * outright, so the tier citation named a structure no reader could resolve.
+ * What survives from T.F8 is the STRUCTURAL contract alone, and it is stated
+ * without the dead ids: the fallback is a COMPONENT — the scene's stage plate
+ * with a sheen inside it, shown while a lazy scene's async chunk (or its Monaco
+ * pane) resolves — never the bare `<span>Loading scene…</span>` text-flash it
+ * replaced, and never a stage-gating icon-spinner.
  *
  * The STRUCTURAL contract is what T.F8 pins (fallback ≠ bare text, no
  * stage-gating icon-spinner). The VISUAL treatment is now DELEGATED (S-6,
@@ -44,35 +51,45 @@
  * `Skeleton` is root-barrel-only at 7.0.0 (73 subpaths, no `./skeleton`) —
  * the root import is the ONLY door; `Card` takes its subpath.
  *
- * The host stays `role="status"` + `aria-busy` with its label so assistive
- * tech announces the loading state; the Card and the sheen are `aria-hidden`
- * chrome (the primitive strips `role`/`aria-*` from its own attrs and stamps
- * `aria-hidden="true"` itself).
+ * A11Y (KF-SKEL-1): this subtree is now WHOLLY DECORATIVE and says so with one
+ * `aria-hidden` at its root. The former `role="status" aria-busy="true"
+ * :aria-label` on that same root was inert three ways at once and each way is
+ * cured by moving the announcement OUT rather than by writing more attributes
+ * into a node that cannot hold them: the region was BORN INSIDE the suspension
+ * and died with it, so no announcement window ever existed (which is why the
+ * corpus's "smallest cure" of putting text in the region was ruled
+ * insufficient); `aria-busy="true"` was a static literal that could never clear,
+ * because resolve DESTROYS the node rather than updating it; and the region's
+ * only content was an `aria-hidden` plate, i.e. nothing to speak. The live
+ * region now lives in `EditorShell` — mounted once for the app's life, ABOVE
+ * `.scene-host` — and this component writes two lines into it across its own
+ * lifetime: "Loading scene" when it appears, "Scene ready" when `<Suspense>`
+ * resolves and takes it away. `inject` is optional by the key's own contract, so
+ * a host that mounts this without the shell degrades to silence, never a throw.
+ *
+ * KF-SKEL-13, both limbs, spent in the same motion because the row's disposition
+ * ties them to this cure: the `label` prop is GONE — it was dead API (no call
+ * site ever passed it; the sole mount is a bare `<SceneSkeleton />`) and, with
+ * the region it fed proven unspeakable, it could not have been heard if passed;
+ * and with the last prop gone the `withDefaults(defineProps<…>(), …)` wrapper —
+ * the legacy form `DESIGN.md §9.2` rules out of house grammar (fine as Vue,
+ * wrong here) — leaves with it rather than being migrated to a
+ * reactive-destructure default it no longer needs.
  */
+import { onMounted, onUnmounted, inject } from "vue";
 import { Skeleton } from "@mkbabb/glass-ui";
 import { Card } from "@mkbabb/glass-ui/card";
+import { SCENE_ANNOUNCER_KEY } from "@components/instrument/shell/EditorShell.vue";
 
-withDefaults(
-    defineProps<{
-        /** Accessible label announced while the skeleton is shown. */
-        label?: string;
-    }>(),
-    { label: "Loading scene" },
-);
+const announce = inject(SCENE_ANNOUNCER_KEY, null);
+
+onMounted(() => announce?.("Loading scene"));
+onUnmounted(() => announce?.("Scene ready"));
 </script>
 
 <template>
-    <div
-        class="scene-skeleton"
-        role="status"
-        aria-busy="true"
-        :aria-label="label"
-    >
-        <Card
-            :shadow="false"
-            class="scene-skeleton__plate h-full w-full"
-            aria-hidden="true"
-        >
+    <div class="scene-skeleton" aria-hidden="true">
+        <Card :shadow="false" class="scene-skeleton__plate h-full w-full">
             <Skeleton class="scene-skeleton__sheen" />
         </Card>
     </div>

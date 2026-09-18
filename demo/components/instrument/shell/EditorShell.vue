@@ -142,6 +142,24 @@
              wrapper transparently passed through); `grid place-items-center`
              re-centers the AnimationControlsGroup work area exactly as the
              shell root did before — byte-identical layout, real landmark box. -->
+        <!-- KF-SKEL-1 — THE PERSISTENT SCENE ANNOUNCER (W6-M). The skeleton's
+             own `role="status"` region was born INSIDE the `<Suspense>` and died
+             with it: a live region that does not exist before its text changes
+             presents no announcement window at all, which is why putting text
+             into that region was ruled INSUFFICIENT. The announcer therefore
+             lives HERE — above `.scene-host` (App.vue's swap host, three levels
+             down through `#animation-content`) in the one wrapper that outlives
+             every suspension: the shell mounts once for the app's life, while
+             `AnimationControlsGroup` below is `:key`ed to `superKey` and
+             remounts on every swap. The in-tree idiom is `CopyButton.vue`'s
+             sr-only `role="status" aria-live="polite"` span, which likewise
+             persists across its own updates. The transient fallback now WRITES
+             here through `SCENE_ANNOUNCER_KEY` instead of carrying a region of
+             its own, so the mount ("Loading scene") and the resolve ("Scene
+             ready") are two text changes inside ONE region that was already in
+             the accessibility tree. SR speech capture is KF.W9 / SS-13's. -->
+        <span class="sr-only" role="status" aria-live="polite">{{ sceneStatus }}</span>
+
         <main class="grid place-items-center place-self-stretch">
         <AnimationControlsGroup
             :key="superKey"
@@ -175,8 +193,23 @@
     </div>
 </template>
 
+<script lang="ts">
+import type { InjectionKey } from "vue";
+
+/**
+ * KF-SKEL-1 — the scene announcer's provide key. The PROVIDER owns the key (the
+ * demo's own `*Keys.ts` convention, inlined here because the announcer has no
+ * other consumer): the shell supplies the persistent live region and the
+ * transient `<Suspense>` fallback writes one line into it. `inject`ing it is
+ * OPTIONAL by contract — a standalone host that mounts `SceneSkeleton` without
+ * this shell simply announces nothing rather than throwing.
+ */
+export const SCENE_ANNOUNCER_KEY: InjectionKey<(message: string) => void> =
+    Symbol("scene-announcer");
+</script>
+
 <script setup lang="ts">
-import { ref } from "vue";
+import { provide, ref } from "vue";
 
 import { initIOSPlatformClass } from "@components/instrument/utils/iosTextEntry";
 import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
@@ -245,6 +278,14 @@ const emit = defineEmits<{
     (e: "startStateChange", started: boolean): void;
 }>();
 
+
+// KF-SKEL-1 — the announcer's one piece of state. Empty at boot so nothing is
+// spoken on first paint; the fallback sets it on mount and clears it to the
+// resolved line on unmount.
+const sceneStatus = ref("");
+provide(SCENE_ANNOUNCER_KEY, (message: string) => {
+    sceneStatus.value = message;
+});
 
 const shortcutsOpen = ref(false);
 registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
