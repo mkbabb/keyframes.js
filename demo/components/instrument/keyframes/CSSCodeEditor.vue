@@ -1,10 +1,27 @@
 <template>
+    <!-- KF-CE-17 + KF-CE-23 (W6-I, ONE radius vocabulary): the framed editor
+         is the producer's `<Card cartoon :shadow="false">` — the same
+         `cartoon-surface` recipe, reached through the component instead of as
+         a raw utility on a bare `<div>` (the demo's only such site), so the
+         plate's hairline is the Card's own and its radius is `rounded-card`
+         by construction; the off-ladder `rounded-lg` — the demo's one
+         cartoon-stamped surface nested inside a `rounded-card` Card on a
+         different corner — is gone. The demo's focus-elevation rule
+         (`.cartoon-surface:has(:focus-visible)`, design-idioms.css) keys on
+         the class the Card carries, so the lift for a focused Monaco well is
+         unchanged. Monaco mounts on the inner box, which owns the height. -->
+    <Card
+        v-if="border"
+        cartoon
+        :shadow="false"
+        class="w-full overflow-hidden"
+    >
+        <div ref="containerEl" class="w-full" :style="{ height }"></div>
+    </Card>
     <div
+        v-else
         ref="containerEl"
-        :class="[
-            'w-full rounded-lg overflow-hidden',
-            border ? 'cartoon-surface' : '',
-        ]"
+        class="w-full overflow-hidden"
         :style="{ height }"
     ></div>
 </template>
@@ -35,6 +52,7 @@ import type * as Monaco from "monaco-editor/esm/vs/editor/editor.api.js";
 // small theme definitions live alongside this editor instead.
 import DarkTheme from "./monaco-themes/Dracula.json";
 import LightTheme from "./monaco-themes/GitHub.json";
+import { Card } from "@mkbabb/glass-ui/card";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@components/instrument/utils/iosTextEntry";
 import { convertPixelsToCh } from "@utils/helpers";
