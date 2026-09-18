@@ -187,6 +187,25 @@ function popupModel(key: PopupKey) {
 const sceneSelectOpen = popupModel("scene");
 const controlsSelectOpen = popupModel("controls");
 
+// ── T.G9 — the Monaco keyframes-pane INTERACTION WARM, re-homed HERE ─────────
+// The interaction half of T.G9 used to hang off the in-panel pill strip
+// (`@pointerenter`/`@focusin` on `KfPillTabs`). That strip never rendered — the
+// App provides `TABS_EXTERNALLY_MANAGED_KEY` unconditionally, so its host `v-if`
+// was permanently false — so the interaction warm fired for nobody and the pane
+// waited on the idle warm alone. THIS `<Select>` is the shipped control-surface
+// switcher, so the warm re-homes onto it: reaching for the control tabs
+// prefetches the Monaco-heavy keyframes pane, and the pane's own
+// `useKeyframesPaneReveal` idle/select warm then mounts it off an already-warm
+// module cache (the mount stays instant; only WHEN the bytes arrive changes).
+// The Vite dynamic-import warmup, the same shape the scene warm uses
+// (`app/scene/scenes.ts` `warmScene`): a rejected warm is swallowed here, and
+// the real mount surfaces any error through the pane's own async boundary.
+const warmControlSurfaces = (): void => {
+    void import("@components/instrument/keyframes/KeyframesStringControls.vue").catch(
+        () => {},
+    );
+};
+
 // While a popup is open, the dock MUST stay expanded so the trigger that owns the
 // popup remains visible + hit-testable (the @mbabb dropdown's open/close latch, the
 // scene/controls selects' re-pick). keepOpen() blocks the idle-TIMER collapse, but
@@ -290,7 +309,13 @@ watch(isAnyOpen, (open) => {
                                 @update:open="controlsSelectOpen = $event"
                                 @update:model-value="(v) => emit('updateSelectedControl', String(v))"
                             >
-                                <DockTrigger for="select" aria-label="Controls tab" class="dock-label [&>span]:line-clamp-none">
+                                <DockTrigger
+                                    for="select"
+                                    aria-label="Controls tab"
+                                    class="dock-label [&>span]:line-clamp-none"
+                                    @pointerenter="warmControlSurfaces"
+                                    @focusin="warmControlSurfaces"
+                                >
                                     <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
                                     <SelectValue />
                                 </DockTrigger>
