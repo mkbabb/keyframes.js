@@ -1,5 +1,20 @@
 <template>
-    <div class="contents">
+    <!-- KC-21 (W6-M) — THE LIST OWNS ITS OWN RHYTHM. Two defects in one class:
+         the interval between cards was DOUBLE-ENCODED (a void AND a hairline)
+         and it measured 4.1× the demo's 8px frame — because `display: contents`
+         dissolved this box, so the cards and the `<Separator>`s became direct
+         items of the PARENT's `grid gap-4` and every card-to-card interval paid
+         the parent gap TWICE (card → 16px → hairline → 16px → card = a 2rem void
+         plus the rule, ≈33px against an 8px frame). The sharper half is the one
+         the row names: by choosing `contents` the list owned no layout authority
+         over dividers it renders itself, so the number lived in a file that does
+         not know the dividers exist.
+         The box comes back and takes the authority with it: ONE gap, declared
+         here, at the frame — and since this component is its parent's only grid
+         item either way (framed and bare both wrap it alone), no sibling
+         spacing moves. The RENDERED pixels are KF.W9's per the row; what is
+         settled here is which file owns the number. -->
+    <div class="grid gap-2">
         <template
             v-for="(s, i) in frameStrings"
             :key="frames[i]?.id ?? i"

@@ -29,6 +29,22 @@
             <div
                 class="absolute top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
             >
+                <!-- KF-KE-45 (W6-M) — RECORDED, DELIBERATELY UNSPENT, and the
+                     condition is the row's own. Its dead-utility half (`.tap-floor`,
+                     zero adopters) folded to banked KF-CB-25 and is already
+                     rostered. What survives is this pair: a 24px `<X>` and the
+                     copy control adjacent with NO gap, against the demo's own
+                     written 44px floor. The row rules the touch-target question
+                     goes live ONLY AFTER KF-KE-5's un-occlusion — and KF-KE-5 is
+                     UNCURED at these bytes, measured, not assumed: this cluster
+                     is `absolute top-2 right-4` with no z rung, the `<pre>`
+                     below is a later z-auto sibling in the same stacking context
+                     whose class list still ends `relative`, so CSS 2.2 App. E
+                     step 8 paints the plate OVER the cluster and hit-testing
+                     follows paint. Sizing a control that cannot be hit would be
+                     a cure measured against a state no user can reach. The
+                     un-occlusion is KFED-UNIT's (a z rung here, or dropping the
+                     `<pre>`'s `relative`); this row lands with it, not before. -->
                 <div class="flex">
                     <!-- T.D7 (OD-6) — the delete-X is a DESTRUCTIVE affordance:
                          it rides the demo's destructive register (--accent-red,
@@ -54,16 +70,32 @@
                      every 1.4.11 mark (W6-H). The `pointer-events-none` half —
                      the identity being unselectable — is CARD-UNIT's behavioural
                      row and is deliberately NOT spent here. -->
+                <!-- KC-26 (W6-M, the Label-conformance half) — THE GLASS
+                     CONFORMANCE INVERSION, RUNNING BACKWARDS. These two nodes
+                     were glass `<Label>`s: reka renders each as a REAL
+                     `<label>` element, with the multi-click `preventDefault`
+                     behaviour a form label owns — wrapping nothing, labelling
+                     nothing, inside a `pointer-events-none` box, while the
+                     `<Input>` twelve lines up has no name at all. A form
+                     primitive was conscripted for a job it does not do, on the
+                     one card whose real control needed exactly that primitive.
+                     They are what they read as: a per-card identity READOUT
+                     (`f N` / `s N`), so they render as text and the primitive is
+                     returned to the control that will use it. The NAMING of the
+                     `<Input>` (KC-3) and the set-level `role="group"` + per-index
+                     control names (the rest of KC-26) are the ONE field-contract
+                     spec and stay NO-WAVE-OWNER — this row is the conformance
+                     half and does not annex the behavioural one. -->
                 <div
                     class="italic text-muted-foreground z-0 pointer-events-none grid gap-1"
                 >
-                    <Label
+                    <span
                         class="text-mono-small font-light leading-none tabular-nums"
-                        >f {{ index }}</Label
+                        >f {{ index }}</span
                     >
-                    <Label
+                    <span
                         class="text-mono-small font-light leading-none tabular-nums"
-                        >s {{ frameStart }}</Label
+                        >s {{ frameStart }}</span
                     >
                 </div>
             </div>
@@ -94,9 +126,9 @@
 
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue";
-// KF-KC-37 (W6-I): `Label` on its 69-byte subpath beside the `./forms`
-// subpath, not the 24 KB root barrel.
-import { Label } from "@mkbabb/glass-ui/label";
+// KF-KC-37 (W6-I): subpaths, never the 24 KB root barrel. The `./label` subpath
+// leaves with its two orphan consumers (KC-26 above) — the card imports only
+// what it mounts.
 import { Input } from "@mkbabb/glass-ui/forms";
 import CopyButton from "@components/CopyButton.vue";
 import { X } from "@lucide/vue";
