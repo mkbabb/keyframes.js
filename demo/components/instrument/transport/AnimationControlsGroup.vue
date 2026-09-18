@@ -110,7 +110,21 @@
     <!-- The document-level singletons (rainbow-gradient SVG defs + the Toaster
          teleport) live in the colocated DemoGlobalChrome sub-component — they
          resolve against the DOCUMENT, not this layout grid (the J.W7a
-         fix-round proof:demo-no-oversize seam; zero appearance delta). -->
+         fix-round proof:demo-no-oversize seam; zero appearance delta).
+
+         WHAT GUARDS THE DUPLICATE-MOUNT HAZARD, now that the barrels are gone.
+         The `instrument/` and `transport/` barrels wrapped this file and
+         `TransportDock` in `defineAsyncComponent`, and a second route to a
+         singleton-bearing component is how a document ends up with two
+         `<Toaster>`s and two `#rainbow-gradient` defs. Those barrels never had
+         a consumer, so the only thing standing between the hazard and the app
+         was disuse — a guard that holds until someone imports the barrel.
+         Deleting them replaces disuse with STRUCTURE: every component on this
+         path now has exactly ONE import site, a direct SFC path
+         (`EditorShell.vue` -> this file -> `DemoGlobalChrome` /
+         `TransportDock`), so there is no second module identity to instantiate
+         and no way to reach one. If a barrel is ever reintroduced here, this is
+         the invariant it has to preserve. -->
     <DemoGlobalChrome />
 </template>
 
