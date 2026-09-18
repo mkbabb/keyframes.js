@@ -40,7 +40,7 @@
                     />
                     <div
                         :class="
-                            `text-heading absolute top-0 left-0 flex h-full w-full items-center justify-center justify-items-center p-0 text-center opacity-20 dark:opacity-75 ` +
+                            `matrix-axis-label text-heading absolute top-0 left-0 flex h-full w-full items-center justify-center justify-items-center p-0 text-center ` +
                             [matrixCellMeta[i]!.axis.toLocaleLowerCase()]
                         "
                     >
@@ -152,20 +152,36 @@ const resetMatrix = () => {
 </script>
 
 <style scoped>
+/* KF.W6 ME-13 — the axis label is the SOLE per-cell identification in this grid,
+   and it was denominated in ALPHA — a 20 % opacity utility in light, a 75 % one
+   in dark. Two magic numbers for one decision, and opacity is not a
+   contrast mechanism — it multiplies whatever the token resolved to, so the
+   light arm sat under a ceiling no theme could raise and the repo's own design
+   doc had already written the diagnosis down ("nearly invisible in light mode")
+   and scheduled a cure that never landed.
+
+   The cure is theme-aware INK, not alpha (the banked ruling), and the demo's own
+   doc floor rides: instead of fading the axis colour, the label paints a real
+   muted RUNG mixed from that same colour toward the page. One fraction, both
+   arms, resolved per theme because --background flips — the light arm gains the
+   presence the doc asked for, the dark arm keeps a solid hue-true ink rather
+   than a 75% wash, and the token language stays exactly what the tree defended
+   twice (--axis-w is deliberately the neutral). Nothing here is transparent, so
+   nothing composites unpredictably over the cell surface beneath.
+   Painted ratios: KF.W9 / SS-13. */
+.matrix-axis-label {
+    color: color-mix(in oklab, var(--color) 55%, var(--background));
+}
 .x {
     --color: var(--axis-x);
-    color: var(--color);
 }
 .y {
     --color: var(--axis-y);
-    color: var(--color);
 }
 .z {
     --color: var(--axis-z);
-    color: var(--color);
 }
 .w {
     --color: var(--axis-w);
-    color: var(--color);
 }
 </style>
