@@ -23,11 +23,18 @@
 
         <!-- The clickable field. `role="application"` + a label describes the
              2D navigation surface to assistive tech (the canvas itself is opaque
-             to SR — proof:lighthouse-a11y); `.focus-ring` is the demo-wide
-             keyboard focus contract; arrow keys step the live params by one cell. -->
+             to SR — proof:lighthouse-a11y); the demo-OWNED keyboard focus ring is
+             the demo-wide focus contract; arrow keys step the live params by one
+             cell. The host re-points onto the renamed class under KF-KE-30's one
+             ruling: glass 7.0.0 ships a realized rule of the former name that
+             binds a PILL radius on its host, and this field is rectangular, so
+             the producer's rule would have reshaped it on focus. The rename is
+             the only mechanism that detaches the radius without fighting the
+             producer per-site, and the renamed class carries its own
+             forced-colors arm. -->
         <div
             ref="fieldEl"
-            class="spring-heatmap focus-ring relative w-full select-none cursor-crosshair rounded-md overflow-hidden"
+            class="spring-heatmap kf-focus-ring relative w-full select-none cursor-crosshair rounded-md overflow-hidden"
             role="application"
             aria-label="Spring parameter-space heatmap — click or use the arrow keys to navigate response (horizontal) and damping (vertical); cells are tinted by peak overshoot"
             tabindex="0"
