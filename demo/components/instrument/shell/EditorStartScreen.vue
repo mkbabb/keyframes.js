@@ -13,10 +13,13 @@
          WELCOME (the ruling says so); overlap with any dock is impossible by
          construction once the hero leaves the top band. pointer-events: none —
          the hero is ink, not chrome. OWNER ruling (successor of the retired
-         hero-rung/-balance/-cls FROZEN locks); no gate enforces it. -->
-    <div
-        class="hero-band z-controls pointer-events-none absolute left-0 w-screen"
-    >
+         hero-rung/-balance/-cls FROZEN locks); no gate enforces it.
+         KF-EST-20 — the band no longer restates `z-controls` or
+         `pointer-events-none`: the shell's start-screen wrapper declares both,
+         `pointer-events` INHERITS, and this box is the wrapper's only child
+         inside the stacking context that wrapper's own z-rung establishes, so
+         a second declaration of either could not change a paint. -->
+    <div class="hero-band absolute left-0 w-screen">
         <!-- The poster line: Instrument Serif, the mega φ rung, TRUE single-
              weight ink (weight 400, --foreground, no depth-text costume — the
              T.D10 RULED ink correction: the face ships 400 ONLY; the T.D2
@@ -24,9 +27,11 @@
              re-point in style.css (KF-AT-22 — the producer ships the token;
              the rung reads it) make any other declaration a lie). Motion is the hero's
              only ornament: the per-CHAR wave (AnimatedText, T.D10) + the
-             engine-dogfooded TypingDots pulse, one span away. -->
-        <h1 class="hero-display text-display-mega p-0">
-            <AnimatedText :text="title" />
+             engine-dogfooded TypingDots pulse, one span away.
+             KF-EST-20 — the inert `p-0` is gone (preflight already zeroes an
+             `<h1>`'s padding; the utility overrode nothing). -->
+        <h1 class="hero-display text-display-mega">
+            <AnimatedText text="Select an animation" />
             <span class="hero-dots"><TypingDots /></span>
         </h1>
         <!-- T.D11 (OD-4) — the deck joins the poster's own voice: Instrument
@@ -46,9 +51,40 @@
              muted (the hint rides the SAME title rung — the landed T.D2 serif
              floor (≥28px desktop) makes the P-HERO heading rung serif-illegal;
              ink strength carries the deck→hint step instead of size. A named
-             deviation in the T.D11 packet). -->
-        <h2 class="start-screen-prose start-screen-subtitle hero-deck w-full">
-            {{ subtitle }}
+             deviation in the T.D11 packet).
+             KF-EST-21 — THE LADDER IS TWO MECHANISMS, NOT ONE, and the comment
+             now says so instead of claiming a single "ink strength" step: the
+             deck steps down by ALPHA (`opacity: 0.85` on `--foreground`) and
+             the hint by TOKEN (`--muted-foreground`). That is why the measured
+             step between them is 2.06:1 light and 1.49:1 dark — two different
+             mechanisms cannot hold one ratio across two themes. Unifying them
+             onto one mechanism is a rendered-ink decision and is KF.W9's; what
+             this wave owes is the true description.
+             KF-EST-3 — THE COPY CONTRACT IS DECIDED: INLINE. The deck was a
+             public icon-sandwich assembled from three separately-defaulted
+             props (`title`, `subtitle`, `subtitleSuffix`) with no way to
+             suppress or reorder the glyph between them, and `subtitleSuffix`
+             had zero consumers anywhere in the tree — a configurability nobody
+             used, on a sentence with exactly one site. The three literals move
+             into the template (the rendered bytes are unchanged: these were
+             their own defaults), `hint` stays the ONE prop because the live
+             call actually passes it, and the sandwich stops pretending to be
+             composable. The sentence's own referents are a separate, still-open
+             question (KF-EST-7, NO-WAVE-OWNER, landing WITH kf-App KF-APP-7's
+             guard) and NOT ONE WORD of the copy is touched here.
+             KF-EST-22 — with `title` inlined, the wave-composition hazard on
+             this surface DISSOLVES rather than being documented: the per-char
+             delay is `--wave-step` (80ms, the producer's `--motion-stagger-default`)
+             against `--wave-cycle` 3600ms, so a title of 45 glyphs or more put
+             the last char's ripple past one full cycle and produced concurrent
+             ripples where the docblock promises a single sweep — uncompensatable
+             from outside because the cycle is frozen. A literal of 19 glyphs
+             cannot reach that bound, and no consumer can hand one that does.
+             The sibling half (TypingDots pairing `delays[i]` with `els[i]` on
+             an undocumented `v-for` ref-array order) is that file's and is
+             DECLARED, not reached across. -->
+        <h2 class="start-screen-prose hero-deck">
+            from the list
             <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
                  "no weight above 400": Lucide's default stroke scales with the
                  box (2 units of a 24-unit viewBox → ≈2.19px at this 0.8em box)
@@ -56,21 +92,12 @@
                  is the icon's own one-attribute contract for a stroke that does
                  not scale with size. -->
             <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
-            {{ subtitleSuffix }}
+            below, then press Play.
         </h2>
-        <h2 v-if="hint" class="start-screen-prose hero-hint w-full">
+        <h2 v-if="hint" class="start-screen-prose hero-hint">
             {{ hint }}
         </h2>
     </div>
-    <!-- T.D12 (RULED, VERDICT #2 "remove this crap") — the @KEYFRAMES · LIVE
-         typing card (kf-source-egg) is EXCISED: markup + ~140L scoped CSS +
-         useHeroSourceEgg.ts, all deleted. Its red dot + red caret leave with it
-         (the latent-red vocabulary, #16), the perpetual JS type-in interval
-         leaves (#19), and the lower-left focal competitor leaves — the vacancy
-         needs no replacement because the hero itself moved DOWN into that band
-         (T.D9). The round-trip moat story belongs in a scene. The S1 home arm
-         was re-cut in the same motion (the lane-18 lockstep the amiga arm
-         got). -->
 </template>
 
 <script setup lang="ts">
@@ -78,24 +105,15 @@ import { List } from "@lucide/vue";
 import AnimatedText from "./AnimatedText.vue";
 import TypingDots from "./TypingDots.vue";
 
-withDefaults(
-    defineProps<{
-        title?: string;
-        subtitle?: string;
-        subtitleSuffix?: string;
-        // `| undefined` is explicit: `withDefaults` below declares
-        // `hint: undefined` as this prop's own default, and
-        // `exactOptionalPropertyTypes` distinguishes an absent key from a
-        // present `undefined` one.
-        hint?: string | undefined;
-    }>(),
-    {
-        title: "Select an animation",
-        subtitle: "from the list",
-        subtitleSuffix: "below, then press Play.",
-        hint: undefined,
-    },
-);
+// KF-EST-3 / KF-EST-20 — ONE prop, and no `withDefaults`. The three copy props
+// are literals in the template now (decided INLINE above), which leaves `hint`
+// as the only value a consumer passes — and `hint` needs no default, so the
+// `withDefaults` wrapper whose `hint: undefined` entry "documents nothing" goes
+// with the props it was wrapping. `DESIGN.md §9.2` rules the macro form out of
+// house grammar regardless; there is nothing left here for it to do.
+defineProps<{
+    hint?: string;
+}>();
 </script>
 
 <style scoped>
@@ -104,13 +122,72 @@ withDefaults(
    split the docks + work-area card already ride) + a φ share of the work-area
    height. No raw vh/px magic number (the K.W3 M4/C5 ban holds — the 100dvh in
    the var() fallback is the chain's own saturation value, not a seat offset).
-   The gutter is the lane's clamp — the poster hangs at the left reading edge. */
+
+   KF-EST-9 — THE GUTTER IS NOW DERIVED TOO, and the boast above becomes true.
+   It was `clamp(2rem, 5vw, 4.5rem)`: a repo-hapax raw-vw clamp, the seat's ONE
+   un-derived axis, sitting under a comment that claimed the seat was derived
+   ENTIRELY. It tracked nothing — it missed the work-area card's own inline edge
+   by 14–26px across common widths and SIGN-FLIPPED past ≈2400px (hero outside
+   the card below, inside it above), so the hero's left reading edge drifted
+   against the surface it is printed on. The card is centred at
+   `min(100dvw, --work-area-max-width)`, so its inline edge is half the
+   horizontal slack — that expression IS the gutter, and the only literal left
+   is a declared FLOOR: below `lg` the chain sets `--work-area-max-width: 100dvw`
+   (full bleed, zero slack) and a zero gutter would print the poster against the
+   glass, so `2rem` — the former clamp's own lower bound, kept deliberately —
+   holds the reading edge on a phone. At 1280px the derived edge is ≈38px where
+   the old clamp gave 64px; at ≈2400px both give the same 72px and the sign flip
+   is gone, because both ends now read one chain.
+
+   KF-EST-13 — THE CONTAINER THE `cqi` UNITS ALWAYS CLAIMED. The phone clamps
+   below are written in `cqi`, but this subtree had no query container anywhere
+   above it (the demo's sole `container-type` opt-in utility is applied nowhere
+   in this chain and glass-ui's dist ships none), so `cqi` silently resolved
+   against the SMALL VIEWPORT — a viewport unit wearing a container unit's name,
+   inside the very file whose law bans raw viewport magic. The band declares the
+   container instead of the units being renamed to the thing they had degraded
+   into: `container-type: inline-size` is the demo's own macro-grid idiom
+   (AnimationControlsGroup.css and five other sites), and it makes the clamps
+   read the hero's actual reading column — width minus the derived gutters —
+   which is what "cqi" said all along.
+
+   KF-EST-4 — THE BAND IS BOUNDED. It declared `top` and `padding-inline` and
+   NOTHING vertical — no bottom, no height, no maximum — inside `html,body
+   { overflow: hidden }` and an `overflow-hidden` shell. On 720–768px-tall
+   desktop viewports the derived seat plus the mega rung's wrapped height exceed
+   the remaining viewport and the hint is CLIPPED (it cannot scroll; nothing in
+   the chain can): at 1280×720 that is ≈420px of content into ≈397px of room.
+   The maximum is derived from the same chain as the seat — exactly the room the
+   seat leaves — so the geometry is DECLARED rather than accidental and an
+   overflow is observable on the element instead of silently absorbed by an
+   ancestor two levels up. The clip MAGNITUDE (1280×720, 1024×640, and the
+   320×568 two-line-hint case) and the design response — a shallower seat, or a
+   hint threshold — are KF.W9 / SS-13's, per this row's own routing.
+
+   KF-EST-15 — THE `var()` FALLBACK POSTURE IS INVERTED, which is the whole of
+   the row. Fallbacks sat on the two tokens that CANNOT be missing — the demo's
+   own `--work-area-top-offset` / `--work-area-height`, declared at `:root` in
+   `layout.css` and re-declared in its own mobile block — while eight bare
+   glass-ui reads carried none. Measured against the producer's published
+   override manifest at the INSTALLED bytes: `--foreground` and `--type-title`
+   are IN it (contract-guaranteed, no fallback owed), `--font-display` is
+   declared by the demo's own `@theme`, and `--muted-foreground` and
+   `--type-display-4` are ABSENT from it — those two, and only those two, take
+   fallbacks. The unreachable ones are deleted. */
 .hero-band {
-    top: calc(
-        var(--work-area-top-offset, 0px) + var(--work-area-height, 100dvh) *
-            0.45
+    --hero-gutter: max(
+        2rem,
+        calc((100dvw - min(100dvw, var(--work-area-max-width))) / 2)
     );
-    padding-inline: clamp(2rem, 5vw, 4.5rem);
+
+    container-type: inline-size;
+    top: calc(
+        var(--work-area-top-offset) + var(--work-area-height) * 0.45
+    );
+    max-block-size: calc(
+        100dvh - (var(--work-area-top-offset) + var(--work-area-height) * 0.45)
+    );
+    padding-inline: var(--hero-gutter);
 }
 
 /* ── Honest ink (T.D10 RULED / lane 01 F3) ────────────────────────────────────
@@ -126,40 +203,28 @@ withDefaults(
    scoped `line-height: 0.92` (H.W4.S3) was the THIRD un-tokenized display-rung
    override beside weight and tracking, and at the mega rung it set consecutive
    h1 lines to −0.04..+0.01em of ink clearance — a descender-bearing non-final
-   line touched or overlapped the line below, and `title` is a public prop, so
-   the shipped default escaped by letter-luck alone. The rung reads
-   `--type-leading-display` (1.05, scheme-motion.css, installed) and this file
-   no longer overrides it; the three display-rung decisions now all live at
-   tokens. The metric-matched fallback shares the leading, so the LCP box is
-   unchanged between fallback and web font (no CLS term is added). This DEPARTS
-   from the OD-4-blessed poster's tightness by +0.13em per line — recorded here
-   for the owner's re-bless; the descender render is KF.W9 / SS-13's witness. */
+   line touched or overlapped the line below, and the shipped default escaped by
+   letter-luck alone. The rung reads `--type-leading-display` (1.05,
+   scheme-motion.css, installed) and this file no longer overrides it; the three
+   display-rung decisions now all live at tokens. The metric-matched fallback
+   shares the leading, so the LCP box is unchanged between fallback and web font
+   (no CLS term is added). This DEPARTS from the OD-4-blessed poster's tightness
+   by +0.13em per line — recorded here for the owner's re-bless; the descender
+   render is KF.W9 / SS-13's witness. */
 h1.hero-display {
     color: var(--foreground);
-}
-
-/* The hero's MOBILE rung (J.W7a TYP-1, kept): below lg the mega rung's 86px
-   floor fights the die at phone widths — step one φ tier down via the
-   published --type-display-4 token (never a raw px). The φ band also drops to
-   0.52 so the die keeps the upper ~45% (two focal planes, hero printing OVER
-   the die's lower quadrant — overlap WELCOME per OD-4). */
-@media (max-width: 1023px) {
-    .hero-band {
-        top: calc(
-            var(--work-area-top-offset, 0px) +
-                var(--work-area-height, 100dvh) * 0.52
-        );
-    }
-    .hero-display {
-        font-size: var(--type-display-4);
-    }
 }
 
 /* ── The serif-italic deck ramp (T.D11 / lane 01 F4) ──────────────────────────
    Deck: display-face italic 400 @ --type-title, foreground at ~0.85.
    Hint: display-face italic 400 @ --type-title, muted (the SAME rung — the
    T.D2 serif floor rules the heading rung out for the display face; the muted
-   ink is the step). No weight above 400 anywhere on the start screen. */
+   ink is the step, and it is a DIFFERENT mechanism from the deck's alpha —
+   KF-EST-21, stated at the markup). No weight above 400 anywhere on the start
+   screen.
+   KF-EST-20 — the inert `w-full` utilities are gone from both `<h2>`s: a block
+   element already fills its container's inline axis, and neither was overriding
+   anything. */
 .hero-deck {
     margin-block-start: 0.75rem;
     font-family: var(--font-display);
@@ -178,7 +243,7 @@ h1.hero-display {
     font-weight: 400;
     font-size: var(--type-title);
     line-height: 1.15;
-    color: var(--muted-foreground);
+    color: var(--muted-foreground, var(--foreground));
 }
 
 /* The engine-dogfooded ellipsis host: the THREE DOTS are one unbreakable
@@ -198,7 +263,17 @@ h1.hero-display {
     white-space: nowrap;
 }
 
-/* The ☰ glyph sits inline at ~0.8em cap height — an icon voiced as a word. */
+/* KF-EST-12 — THE MECHANISM, STATED TRUTHFULLY. This declaration does not
+   "omit a fix"; it OVERRIDES one. Tailwind's preflight sets `vertical-align:
+   middle` on every replaced element inside `@layer base`, and an unlayered
+   scoped rule outranks any layer, so writing `baseline` here silently reverts
+   the glyph to the text baseline and rides it ≈0.145em HIGH against the serif's
+   own optical centre — the opposite of what an unexplained `baseline` reads as.
+   It is kept deliberately (a glyph voiced as a WORD sits on the word baseline),
+   and the earlier comment described neither the override nor the offset. The
+   icon is Lucide `List` — a bulleted list — and not the `☰` the prose used to
+   name (KF-EST-21's first site; `index.html`'s own stale `text-display-4`
+   citation is outside this wave's bounds and is DECLARED). ~0.8em cap height. */
 .hero-deck-icon {
     width: 0.8em;
     height: 0.8em;
@@ -210,16 +285,49 @@ h1.hero-display {
     text-wrap: pretty;
 }
 
-/* K.W3 U-K9 (kept; bounds re-derived for the serif deck) — balance the 2-line
-   phone subtitle, bound its size on narrow phones. The lower bound is 1.5rem
-   (24px): the T.D2 serif floor at the mobile viewport — the display face may
-   never render below the smallest display rung.
-   The hint takes the same phone clamp (same face, same floor). */
+/* ── The phone block (K.W3 U-K9, bounds re-derived for the serif deck) ────────
+   KF-EST-20 + KF-EST-14, taken as ONE motion because the row forbids taking
+   them separately. The file carried TWO `@media (max-width: 1023px)` blocks
+   with identical conditions; consolidating them is the hygiene half, and the
+   SEQUENCING CONSTRAINT is that any such consolidation MUST re-key the mobile
+   deck override in the same motion — which is done here. The override used to
+   be keyed `.start-screen-subtitle`, a DIFFERENT class from the base rule's
+   `.hero-deck`, at equal scoped specificity: it won by source order alone, so
+   a naive merge that reordered the sheet would have silently deleted the
+   1.5rem serif floor with no diagnostic. Re-keyed to `.hero-deck`, base and
+   override are the same selector and the later one wins by the cascade's
+   ordinary rule; `.start-screen-subtitle` had no other consumer and leaves the
+   markup with its rule.
+   The hero's MOBILE rung (J.W7a TYP-1, kept): below lg the mega rung's 86px
+   floor fights the die at phone widths — step one φ tier down via the published
+   `--type-display-4` token (never a raw px; the fallback is KF-EST-15's, the
+   guaranteed `--type-title` rung, so a producer that ever drops display-4
+   steps the phone hero DOWN rather than stranding it at the desktop rung). The
+   φ band also drops to 0.52 so the die keeps the upper ~45% (two focal planes,
+   hero printing OVER the die's lower quadrant — overlap WELCOME per OD-4).
+   The lower bound of both clamps is 1.5rem (24px): the T.D2 serif floor at the
+   mobile viewport — the display face may never render below the smallest
+   display rung. The hint takes the same phone clamp (same face, same floor). */
 @media (max-width: 1023px) {
-    .start-screen-subtitle {
+    .hero-band {
+        top: calc(
+            var(--work-area-top-offset) + var(--work-area-height) * 0.52
+        );
+        max-block-size: calc(
+            100dvh -
+                (var(--work-area-top-offset) + var(--work-area-height) * 0.52)
+        );
+    }
+
+    .hero-display {
+        font-size: var(--type-display-4, var(--type-title));
+    }
+
+    .hero-deck {
         text-wrap: balance;
         font-size: clamp(1.5rem, 6.2cqi, var(--type-title));
     }
+
     .hero-hint {
         font-size: clamp(1.5rem, 5.4cqi, var(--type-title));
     }

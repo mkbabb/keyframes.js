@@ -127,11 +127,22 @@
                  cube") and the ink must PRINT OVER the subject
                  deterministically — at z-content the paint order fell to DOM
                  order and the mobile die occluded the glyphs. pointer-events
-                 stays none: gestures pass through to the subject. -->
-            <div v-if="showStartScreen" class="absolute inset-0 z-controls flex items-center justify-center pointer-events-none">
-                <slot name="start-screen">
-                    <EditorStartScreen />
-                </slot>
+                 stays none: gestures pass through to the subject.
+                 KF-EST-19 — THE DEFAULT-SLOT FALLBACK IS DELETED. It was
+                 unreachable (`App.vue` supplies `#start-screen`
+                 unconditionally) AND it DIVERGED from the live call by dropping
+                 `hint`, so the only way it could ever have fired was as a
+                 silent change to the page — dead code whose one behaviour was
+                 to be wrong. The slot stays; its content is the app's.
+                 KF-EST-20 — `flex items-center justify-center` is deleted with
+                 it: a flex container cannot lay out an ABSOLUTELY POSITIONED
+                 child, and the hero band is exactly that, so the three
+                 utilities centred nothing. `absolute inset-0` and `z-controls`
+                 STAY and are load-bearing: this box is the hero band's
+                 containing block (its whole `top` derivation is measured from
+                 here) and the stacking context the band paints inside. -->
+            <div v-if="showStartScreen" class="absolute inset-0 z-controls pointer-events-none">
+                <slot name="start-screen"></slot>
             </div>
         </Transition>
 
@@ -214,7 +225,6 @@ import { provide, ref } from "vue";
 import { initIOSPlatformClass } from "@components/instrument/utils/iosTextEntry";
 import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
 import SharePopover from "./SharePopover.vue";
-import EditorStartScreen from "./EditorStartScreen.vue";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import AnimationControlsGroup from "@components/instrument/transport/AnimationControlsGroup.vue";
 
