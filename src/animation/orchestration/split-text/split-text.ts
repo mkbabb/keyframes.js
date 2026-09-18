@@ -54,12 +54,20 @@ export interface SplitTextOptions {
     a11y?: boolean;
     /**
      * The container role applied under `a11y` **only when the element has no
-     * role of its own** — a plain `<div>`/`<span>` maps to `role="generic"`,
-     * which PROHIBITS an author name, so a bare `aria-label` would not compute.
+     * role of its own — explicit OR implicit** — a plain `<div>`/`<span>` maps
+     * to `role="generic"` and a `<p>` to `role="paragraph"`, both of which
+     * PROHIBIT an author name, so a bare `aria-label` would not compute.
      * Defaults to `"img"` (the canonical "graphical composite whose text
-     * alternative is …" role). Pass a naming-capable role to override.
+     * alternative is …" role). Pass a naming-capable role to override, or
+     * `null` to opt out of the role write entirely (the caller owns the role).
+     *
+     * An element whose IMPLICIT role already accepts a name — `<h1>`…`<h6>`,
+     * `<button>`, `<a href>`, the landmarks — keeps it: stamping `role="img"`
+     * over an `<h1>` deletes that heading from the document's heading
+     * hierarchy, which is a bigger a11y loss than the one this option exists
+     * to prevent (X.KF.W5 B-1/G-ROLE).
      */
-    role?: string;
+    role?: string | null;
     /** Locale for `Intl.Segmenter` (word/grapheme boundaries). */
     locale?: string;
     /** Options for the ready {@link StaggerFn} built over the cohort. */
@@ -106,6 +114,65 @@ const isLaidOut = (spans: readonly HTMLElement[]): boolean =>
         return r.width > 0 || r.height > 0;
     });
 
+/**
+ * Tag names whose IMPLICIT ARIA role both accepts an author name AND carries
+ * meaning a `role="img"` stamp would erase — the heading hierarchy, the button
+ * and link roles, the landmarks, the list/table structures. `<a>`/`<area>` are
+ * decided by `href` (roleless without it) and are handled in the predicate.
+ *
+ * The COMPLEMENT is what the fallback role exists for: `<div>`/`<span>` map to
+ * `generic` and `<p>` to `paragraph`, all name-PROHIBITED, so an `aria-label`
+ * on them computes nothing without a naming role.
+ */
+const NAMING_CAPABLE_TAGS = new Set([
+    "article", "aside", "blockquote", "button", "details", "dialog",
+    "fieldset", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5",
+    "h6", "header", "hgroup", "img", "input", "li", "main", "menu", "meter",
+    "nav", "ol", "optgroup", "option", "output", "progress", "search",
+    "section", "select", "summary", "table", "td", "textarea", "th", "tr",
+    "ul",
+]);
+
+/**
+ * True when the element already has a naming-capable role of its own, whether
+ * WRITTEN (`role="heading"`) or IMPLICIT (`<h1>`). The former was always
+ * checked; the latter is X.KF.W5 B-1 (KF-AT-8) — `hasAttribute("role")` alone
+ * stamped `role="img"` over every implicit role in the corpus.
+ */
+function hasOwnNamingRole(el: HTMLElement): boolean {
+    if (el.hasAttribute("role")) return true;
+    const tag = el.tagName.toLowerCase();
+    if (tag === "a" || tag === "area") return el.hasAttribute("href");
+    return NAMING_CAPABLE_TAGS.has(tag);
+}
+
+/**
+ * Decide measurability BEFORE any mutation — the other half of measure-or-refuse
+ * (X.KF.W5 B-2 / KF-AT-9 / G-REFUSE). A refused split must leave the container
+ * exactly as found, so the decision cannot be taken after `replaceChildren` has
+ * already shredded the caller's markup (and cannot be undone by a catch: a
+ * revert-on-throw still desynchronizes a framework-rendered container).
+ *
+ * Two conditions, and together they are complete for the unit spans that follow:
+ * the container must be connected with a laid-out box of its own, and it must
+ * actually RENDER a child — a container can have a box while its children are
+ * skipped (`content-visibility: hidden`, a closed `<details>`), which is the
+ * only way non-empty inline spans inside a laid-out box come back boxless. The
+ * probe is absolutely positioned and visibility-hidden, so it joins no layout
+ * the caller can observe, and it is removed in the same synchronous turn: the
+ * container's markup is byte-identical whether this returns true or false.
+ */
+function canMeasureLines(el: HTMLElement): boolean {
+    if (!el.isConnected || !isLaidOut([el])) return false;
+    const probe = el.ownerDocument.createElement("span");
+    probe.textContent = "x";
+    probe.style.cssText = "position:absolute;visibility:hidden";
+    el.appendChild(probe);
+    const measurable = isLaidOut([probe]);
+    probe.remove();
+    return measurable;
+}
+
 /** Build the per-unit fragment nodes for a layout-INDEPENDENT split. */
 function buildUnits(
     doc: Document,
@@ -134,8 +201,10 @@ function buildUnits(
 
 /**
  * Group the word-level segments into LINE fragments by their measured top edge
- * (measure-or-refuse). Throws {@link SplitTextRefusalError} when the container
- * cannot be measured. The container is mutated to the frozen line map.
+ * (measure-or-refuse). Throws {@link SplitTextRefusalError} — BEFORE it writes
+ * a single node — when the text is empty or the container cannot be measured;
+ * past that point the split is known to be takeable and the container is
+ * mutated once, to the frozen line map.
  */
 function buildLines(
     el: HTMLElement,
@@ -145,6 +214,9 @@ function buildLines(
     a11y: boolean,
 ): HTMLElement[] {
     if (text.trim().length === 0) throw new SplitTextRefusalError("empty");
+    // REFUSE BEFORE MUTATE (B-2/G-REFUSE): every reason this split can refuse is
+    // decided here, while the caller's DOM is still untouched.
+    if (!canMeasureLines(el)) throw new SplitTextRefusalError("unmeasurable");
     const doc = el.ownerDocument;
 
     // Transiently lay out per-WORD spans so each unit has a measurable box.
@@ -164,11 +236,6 @@ function buildLines(
         nodes.push(span);
     }
     el.replaceChildren(...nodes);
-
-    // Refuse rather than emit a stale/collapsed map when nothing is laid out.
-    if (!el.isConnected || !isLaidOut(unitSpans)) {
-        throw new SplitTextRefusalError("unmeasurable");
-    }
 
     // Walk in source order, breaking a new line whenever a unit's top edge jumps.
     const lines: TextSegment[][] = [];
@@ -210,12 +277,23 @@ function buildLines(
     return fragments;
 }
 
-/** Apply the a11y-first name consolidation to the container. */
-function applyA11y(el: HTMLElement, text: string, role: string): boolean {
+/**
+ * Apply the a11y-first name consolidation to the container. Returns whether
+ * THIS call wrote the container's `role` — the one fact `revert` needs, and the
+ * honest inverse of the old `hadRole` (which conflated "the author set a role"
+ * with "no role was written", and was blind to implicit roles either way).
+ */
+function applyA11y(
+    el: HTMLElement,
+    text: string,
+    role: string | null,
+): boolean {
     el.setAttribute("aria-label", text);
-    const hadRole = el.hasAttribute("role");
-    if (!hadRole) el.setAttribute("role", role);
-    return hadRole;
+    // B-1 (KF-AT-8): never override a role the element already has, written or
+    // implicit; `role: null` opts out of the fallback write entirely.
+    if (role === null || hasOwnNamingRole(el)) return false;
+    el.setAttribute("role", role);
+    return true;
 }
 
 /**
@@ -243,8 +321,12 @@ export function splitText(
 
     const doc = el.ownerDocument;
     const text = el.textContent ?? "";
-    // Snapshot for revert (markup + whether we authored the role).
+    // Snapshot for revert. `innerHTML` carries the markup and NOTHING else, so
+    // every container ATTRIBUTE this split overwrites is captured explicitly —
+    // an authored `aria-label` included (B-3/KF-AT-23: `revert` deleted it
+    // unconditionally, while the role removal beside it was guarded).
     const originalHTML = el.innerHTML;
+    const originalLabel = el.getAttribute("aria-label");
 
     let fragments: HTMLElement[];
     if (by === "line") {
@@ -259,7 +341,7 @@ export function splitText(
         fragments = built.fragments;
     }
 
-    const hadRole = a11y ? applyA11y(el, text, role) : el.hasAttribute("role");
+    const roleWritten = a11y ? applyA11y(el, text, role) : false;
 
     let staggerFn = stagger(fragments.length, staggerOpts);
     let delays = staggerFn.delays(fragments.length);
@@ -305,7 +387,10 @@ export function splitText(
                 remeasure();
             } catch (err) {
                 // A re-measure that cannot be taken: refuse, keep the last good
-                // map, and stop observing — never emit a stale line map.
+                // map, and stop observing — never emit a stale line map. The
+                // "last good map" is a GUARANTEE, not a hope: `buildLines`
+                // refuses before it writes a node (B-2), so a refused re-measure
+                // leaves the previous line fragments standing untouched.
                 if (err instanceof SplitTextRefusalError) {
                     disposeObserver();
                     onRefuse?.(err);
@@ -320,8 +405,14 @@ export function splitText(
     const revert = (): void => {
         disposeObserver();
         el.innerHTML = originalHTML;
-        el.removeAttribute("aria-label");
-        if (a11y && !hadRole) el.removeAttribute("role");
+        if (!a11y) return;
+        // Restore what this split overwrote, attribute by attribute: an
+        // AUTHORED `aria-label` survives the round trip, an absent one stays
+        // absent, and the role is removed only when this split wrote it. Not a
+        // blanket "restore every attribute" — only the two this function owns.
+        if (originalLabel === null) el.removeAttribute("aria-label");
+        else el.setAttribute("aria-label", originalLabel);
+        if (roleWritten) el.removeAttribute("role");
     };
 
     return {
