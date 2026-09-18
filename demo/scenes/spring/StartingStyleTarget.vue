@@ -23,9 +23,24 @@
              measure and `p-0` so the stage layout below is untouched. -->
         <CardHeader class="w-full max-w-3xl shrink-0 items-center p-0">
             <CardTitle class="text-heading text-foreground">@starting-style</CardTitle>
+            <!-- KF-SS-4 (W6-N, re-homed from KF.W5), site 2 — CHIP THE
+                 IDENTIFIER. `text-mono-caption` carries `text-transform:
+                 uppercase` at the installed producer bytes, so this caption
+                 rendered the library's own exported symbol as
+                 `SPRINGLINEARSTOPS()`. A JS identifier is case-sensitive; an
+                 all-caps rendering of one is not a style, it is a wrong name.
+                 The `_monoContract` clause the demo wrote for exactly this
+                 (an explicit identifier CHIP marked `data-register="code"`)
+                 applies: the identifier becomes the chip, the sentence around
+                 it takes the text voice, and the caps register never touches a
+                 name again. `tabular-nums` leaves with the caption — there are
+                 no digits on this line. -->
             <CardAction class="self-center">
-                <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
-                    eased by springLinearStops()
+                <span class="text-caption text-muted-foreground whitespace-nowrap">
+                    eased by
+                    <span class="text-mono-small" data-register="code"
+                        >springLinearStops()</span
+                    >
                 </span>
             </CardAction>
         </CardHeader>
@@ -64,6 +79,25 @@
              timing-function line. A designer pastes it verbatim to reproduce the
              discrete transition: base(closed) + `.is-open` + `@starting-style`,
              with `display`/`overlay` `allow-discrete` and the spring `linear()`. -->
+        <!-- KF-SS-4 (W6-N), site 1 — THE HARDEST INSTANCE IN THE TREE, and the
+             one this row exists for. The block above declares this artifact
+             "copy-pasteable … a designer pastes it verbatim", and the copy
+             control beside it copies the RAW string — while the `<code>` below
+             wore `text-mono-caption`, whose `text-transform: uppercase`
+             (measured in the installed `typography/utilities.css`) rendered the
+             whole emitted rule in capitals. CSS class selectors and custom
+             idents are CASE-SENSITIVE, so on a surface whose entire charter is
+             literal fidelity, READ ≠ COPY: what a designer transcribes by eye
+             does not parse, and only the clipboard path happens to work.
+             The register is the banked cure and the family's, not a new one:
+             FOLDS ≡ banked kf-EasingSidebar KF-ES-8 (the uppercase
+             `text-mono-caption` family) as an EXTENSION with new sites — never
+             a re-booking. `text-mono-small` is the case-preserving mono rung
+             (no `text-transform`, no caps tracking, measured at the same
+             producer file), and this is real code content inside a `<code>`,
+             so it satisfies the `_monoContract`'s first clause outright.
+             The author knew the hazard: `SpringTarget.vue` spells
+             `text-transform: none` for the same reason one file over. -->
         <div class="w-full max-w-3xl shrink-0">
             <div class="flex items-center justify-between mb-1.5">
                 <span class="text-small text-foreground">compileToEntry() artifact</span>
@@ -72,7 +106,7 @@
                      site) is gone. -->
                 <CopyButton :text="compiledEntryCss || copyableCss" />
             </div>
-            <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full max-h-32 overflow-auto whitespace-pre">{{ compiledEntryCss || springCss }}</code>
+            <code class="artifact text-mono-small tabular-nums text-muted-foreground block w-full max-h-32 overflow-auto whitespace-pre" data-register="code">{{ compiledEntryCss || springCss }}</code>
         </div>
 
         <!-- K.W4 S5 — the redundant 4-preset ROW is RETIRED (the same four
