@@ -55,8 +55,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
+import { resolveCanvasColor } from "@mkbabb/glass-ui/canvas";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clamp } from "@mkbabb/value.js/math";
 
@@ -106,31 +107,61 @@ function overshoot(zeta: number): number {
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvasEl");
 const fieldEl = useTemplateRef<HTMLElement>("fieldEl");
 
-// ── Resolve the perceptual ramp endpoints from the live design tokens ──────────
-// The tint rides the scene's --color-progress / --ball-tone token (NOT ad-hoc
-// hex): a low-overshoot (calm, settled) cell reads as a faint wash of the surface,
-// a high-overshoot (ringing) cell saturates toward the motion accent. We sample
-// the resolved token from the field element so dark mode re-tints for free.
-function resolveTone(el: HTMLElement): string {
-    const cs = getComputedStyle(el);
-    return (
-        cs.getPropertyValue("--ball-tone").trim() ||
-        cs.getPropertyValue("--color-progress").trim() ||
-        "hsl(142 71% 45%)"
-    );
-}
-function resolveSurface(el: HTMLElement): string {
-    const cs = getComputedStyle(el);
-    return cs.getPropertyValue("--background").trim() || cs.backgroundColor || "#fff";
+// ── The ramp — 20 Canvas2D-VALID fills, BAKED by the producer's resolver ───────
+// The tint rides the scene's --ball-tone / --color-progress seam (NOT ad-hoc hex):
+// a low-overshoot (calm, settled) cell reads as a faint wash of the surface, a
+// high-overshoot (ringing) cell saturates toward the motion accent.
+//
+// THE COLOUR DISCIPLINE (KF.W6 G-W6-11, one decision for every demo canvas):
+// `ctx.fillStyle` is NOT a CSS cascade — it silently IGNORES anything it cannot
+// parse, so a token stream handed to it straight stakes the whole render on
+// undeclared UA behaviour with no failure signal. This file used to interpolate
+// raw `getPropertyValue()` output (a `light-dark()`/`oklch()` stream) into a
+// `color-mix()` string and assign that; every fill was one parser away from a
+// no-op, and the two hex/hsl last resorts it carried were unreachable AND off the
+// ruled violet authority. The producer ships the cure on `@mkbabb/glass-ui/canvas`:
+// `resolveCanvasColor(value, el)` resolves the value ON el's cascade — inheriting
+// its `color-scheme`, so `light-dark()` picks the live arm — and returns the
+// browser's own `rgb()`/`rgba()` string, which Canvas2D always parses.
+//
+// Baked, not per-fill: the ramp is a pure function of the two tokens and ROWS, so
+// a resize repaint reuses it and only a THEME FLIP re-bakes (20 resolves per flip,
+// zero per resize). `useCanvas2D` — the subpath's other half — is EVALUATED and
+// DECLINED here with its reason: it is a rAF LOOP substrate (`render(ctx, now)`
+// every frame), and this field is a static landscape with no loop to park; its DPR
+// policy (`min(devicePixelRatio, 2)`) is byte-identical to the one below, so the
+// swap would buy a 60 Hz repaint for a picture that never changes. The colour
+// resolver is the half this surface needs. (The glass-first ledger is G-W6-9's.)
+const ramp: string[] = [];
+
+function bakeRamp(field: HTMLElement): void {
+    ramp.length = 0;
+    for (let row = 0; row < ROWS; row++) {
+        // y (top) = high damping (settled); y (bottom) = low damping (rings).
+        // Map row→ζ so the TOP of the field is calm/overdamped and the BOTTOM
+        // is the ringing underdamped band (the conventional reading of a
+        // damping landscape).
+        const zeta =
+            DAMPING_MAX - ((row + 0.5) / ROWS) * (DAMPING_MAX - DAMPING_MIN);
+        const os = overshoot(zeta); // [0, 1]
+        // Perceptual mix in oklab (Baseline 2023): surface → accent by overshoot.
+        // A gentle gamma lifts the low end so the underdamped band reads as a
+        // legible gradient rather than collapsing to near-surface.
+        const mix = Math.round(Math.pow(os, 0.7) * 100);
+        ramp.push(
+            resolveCanvasColor(
+                `color-mix(in oklab, var(--ball-tone, var(--color-progress)) ${mix}%, var(--background))`,
+                field,
+            ),
+        );
+    }
 }
 
 /**
  * Paint the 20×20 grid. ONE-TIME at mount (and on a token/theme/size change) —
  * since the closed-form is ≤0.002 ms/cell the full repaint is free, so we simply
- * recompute on resize rather than caching pixels. Each cell's fill is the
- * perceptual blend of the surface and the accent tone by its overshoot amplitude
- * (a `color-mix(in oklab)` ramp — oklab is the perceptual space the engine's own
- * color interpolation defaults to). NO SpringProgress is instantiated.
+ * recompute on resize rather than caching pixels. Each cell's fill is the baked
+ * ramp row above. NO SpringProgress is instantiated.
  */
 function paint(): void {
     const canvas = canvasEl.value;
@@ -149,25 +180,13 @@ function paint(): void {
     canvas.height = Math.round(cssH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const tone = resolveTone(field);
-    const surface = resolveSurface(field);
+    if (ramp.length !== ROWS) bakeRamp(field);
 
     const cellW = cssW / COLS;
     const cellH = cssH / ROWS;
 
     for (let row = 0; row < ROWS; row++) {
-        // y (top) = high damping (settled); y (bottom) = low damping (rings).
-        // Map row→ζ so the TOP of the field is calm/overdamped and the BOTTOM
-        // is the ringing underdamped band (the conventional reading of a
-        // damping landscape).
-        const zeta =
-            DAMPING_MAX - ((row + 0.5) / ROWS) * (DAMPING_MAX - DAMPING_MIN);
-        const os = overshoot(zeta); // [0, 1]
-        // Perceptual mix in oklab (Baseline 2023): surface → accent by overshoot.
-        // A gentle gamma lifts the low end so the underdamped band reads as a
-        // legible gradient rather than collapsing to near-surface.
-        const mix = Math.round(Math.pow(os, 0.7) * 100);
-        ctx.fillStyle = `color-mix(in oklab, ${tone} ${mix}%, ${surface})`;
+        ctx.fillStyle = ramp[row]!;
         for (let col = 0; col < COLS; col++) {
             ctx.fillRect(
                 Math.floor(col * cellW),
@@ -263,13 +282,29 @@ function onKeydown(e: KeyboardEvent): void {
 }
 
 // ── Lifecycle — paint once at mount; re-paint on resize (the closed-form is so
-// cheap the recompute is free) and on a theme change (the token tints shift). ──
+// cheap the recompute is free) and RE-BAKE + re-paint after a theme flip SETTLES.
+//
+// `onFlipSettled` is the producer's post-flip hook and the second half of the
+// canvas discipline: a bare `watch(isDark)` is a DEFAULT-flush watcher, so it read
+// the cascade BEFORE vueuse had applied `.dark` at `flush: "post"` — and the fatal
+// direction was dark→light, where the outgoing dark-arm literal won and the
+// rasterised field kept it until the next resize (nothing re-baked). The hook runs
+// in ONE coalesced task after the flip's chrome paint, so what we resolve here is
+// the arm the page is actually wearing. ─────────────────────────────────────────
 useResizeObserver(fieldEl, () => paint());
 
-const { isDark } = useGlobalDark();
-watch(isDark, () => paint());
+const { onFlipSettled } = useGlobalDark();
+const stopFlipSettled = onFlipSettled(() => {
+    const field = fieldEl.value;
+    if (!field) return;
+    bakeRamp(field);
+    paint();
+});
+onBeforeUnmount(stopFlipSettled);
 
 onMounted(() => {
+    const field = fieldEl.value;
+    if (field) bakeRamp(field);
     paint();
 });
 
@@ -325,7 +360,10 @@ watch(
         0 0 0 1.5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, transparent),
         0 0 8px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 55%, transparent);
     pointer-events: none;
-    transition: transform var(--duration-fast, 160ms) var(--ease-standard, ease);
+    /* The producer emits --duration-fast at :root (0.2s); the former `160ms`
+       fallback arm was unreachable AND misstated the real duration by 25 % — a
+       dead default that lied about the live one. The token stands alone. */
+    transition: transform var(--duration-fast) var(--ease-standard, ease);
     will-change: transform;
     z-index: var(--z-content);
 }
