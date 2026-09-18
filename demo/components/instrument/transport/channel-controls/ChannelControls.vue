@@ -2,15 +2,20 @@
     <div
         class="flex flex-col h-full w-full overflow-hidden z-content relative isolate"
     >
-        <!-- J.W2 S2 (S4-stretch) — single-surface scenes mount FLAT. A scene
-             whose DFA set is exactly ONE scene-specific surface (easing/spring)
-             has NO tab to switch, so the `<Tabs>`/`TabsContent` machinery (and
-             its reka model-value latch — the structural source of the
-             `selectedControl` double role, `audit/wave-I.W2.md §6`) is bypassed
-             entirely: the sole panel renders directly. There is no
-             `:model-value` to project here — `selectedControl` keeps ONLY its
-             preference role (read by ribbon/dock), owned by the single writer
-             (the derivation-sync below). -->
+        <!-- J.W2 S2 (S4-stretch) — the FLAT mount for a facility whose derived
+             surface set is exactly ONE surface: no `<Tabs>`/`TabsContent`
+             machinery, no reka model-value latch (the structural source of the
+             `selectedControl` double role, `audit/wave-I.W2.md §6`), the sole
+             panel renders directly. CC-D-7/L-4 (KF.W6): under the live T.B2
+             derivation (`surfacesFor`, `state/controlSurfaces.ts`) NO shipped
+             facility produces a one-member set — easing and spring, the two the
+             earlier note named as its examples, each derive the built-in triad
+             plus their signature facet — so this branch is currently
+             UNREACHABLE. It is kept, not deleted: the delete is a NO-WAVE-OWNER
+             decision the bank holds, and this note claims only what the
+             derivation can be read to prove. `selectedControl` keeps ONLY its
+             preference role (read by ribbon/dock); the derivation-sync in
+             `useSelectedControlSurface` writes it back per host. -->
         <div
             v-if="isSingleSurfaceScene"
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
@@ -225,7 +230,7 @@ const storedControls = getStoredAnimationGroupControlOptions(animation);
 // THE FLAG ITSELF SURVIVES THAT DELETE, deliberately and not by oversight. It is
 // no longer only the strip's gate: it also gates `hasSurface`'s DFA filter,
 // `builtInTabs`, `isSingleSurfaceScene`'s flat mount, and the machine projection
-// + THE ONE WRITER inside `useSelectedControlSurface`. Dropping the provide while
+// + the derivation-sync writer inside `useSelectedControlSurface`. Dropping the provide while
 // the `inject` default stays `false` would silently flip all four; folding the
 // axis away honestly means editing `useSelectedControlSurface`, which is outside
 // what this change may touch. So the dead BRANCH goes and the live axis stays,
@@ -267,11 +272,13 @@ const builtInTabs = computed(() =>
     ).map((s) => SURFACE_META[s]),
 );
 
-// J.W2 S2 (S4-stretch) — a scene whose DFA set is exactly ONE scene-specific
-// surface (easing → ['easing'], spring → ['spring']) mounts its panel FLAT:
-// no `<Tabs>` machinery, no model-value latch, no double role for
-// `selectedControl`. Machine-driven hosts only (the standalone playground shell
-// keeps the full triad Tabs).
+// J.W2 S2 (S4-stretch) — a facility whose derived surface set is exactly ONE
+// surface mounts its panel FLAT: no `<Tabs>` machinery, no model-value latch,
+// no double role for `selectedControl`. Machine-driven hosts only (the
+// standalone playground shell keeps the full triad Tabs). CC-D-7/L-4: no
+// shipped facility derives such a set today (easing and spring derive four
+// surfaces each — see the template note), so this computed is currently always
+// `false`; the branch survives pending the bank's NO-WAVE-OWNER delete.
 const isSingleSurfaceScene = computed(
     () =>
         tabsExternallyManaged &&
@@ -280,8 +287,12 @@ const isSingleSurfaceScene = computed(
 );
 
 // ── THE SELECTED-SURFACE SINGLE AUTHORITY (colocated composable) ────────────
-// The machine-projected, synchronously-correct active surface + THE ONE WRITER
-// (the derivation-sync) + the suspend-on-leave gate + the user-pick DFA
+// The machine-projected, synchronously-correct active surface + the
+// derivation-sync writer (CC-L-18: ONE watch PER HOST over the shared store —
+// N writers, each `!==`-guarded to the same projection, so the effect is
+// single-writer while the old singular name was not; the composable's own
+// docblock still carries the old name and is outside this unit's set)
+// + the suspend-on-leave gate + the user-pick DFA
 // projection all live in useSelectedControlSurface (the K.WZ proof:demo-no-
 // oversize seam; zero behavior change). `builtInTabs` deliberately stays HERE
 // (the scene-control-DFA source anchor greps the host). The
