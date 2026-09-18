@@ -41,7 +41,9 @@
                         class="p-0 m-0 scale-on-hover cursor-pointer stroke-2 w-6 h-6 text-accent-red hover:opacity-80 bg-transparent hover:bg-transparent"
                     >
                     </X>
-                    <CopyButton class="h-6 w-6" :text="frameString" />
+                    <!-- S-7 (W6-I): the copy control is a glass Button that
+                         owns its box; the caller's `h-6 w-6` is gone. -->
+                    <CopyButton :text="frameString" />
                 </div>
                 <!-- KC-12 — the row's only visible identity (`f N` / `s N`) is
                      AT-EXPOSED, so it is denominated in a REAL TOKEN, not in an

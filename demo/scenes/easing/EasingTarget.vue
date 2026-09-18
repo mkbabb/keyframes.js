@@ -32,11 +32,14 @@
                     <code class="literal-text text-mono-small">{{
                         literal
                     }}</code>
-                    <CopyButton
-                        class="literal-copy"
-                        :text="literal"
-                        label="Copy easing literal"
-                    />
+                    <!-- S-7 (W6-I): the copy control is a glass Button that
+                         owns its box and its ink; `.literal-copy` (a 1rem box
+                         + muted ink authored for the old zero-size host,
+                         EasingTarget.css:68-78) no longer has a subject — the
+                         rule is ORPHANED at this commit and its removal is the
+                         stylesheet owner's (KF.W6.k; EasingTarget.css is
+                         outside this unit's bounds). -->
+                    <CopyButton :text="literal" label="Copy easing literal" />
                 </span>
             </div>
             <FadingScroll axis="x" class="family-filter">

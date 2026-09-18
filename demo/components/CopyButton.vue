@@ -1,25 +1,64 @@
 <template>
-    <button
-        type="button"
-        :aria-label="isCopied ? 'Copied to clipboard' : label"
-        class="kf-focus-ring cursor-pointer relative inline-block text-foreground p-0 m-0 bg-transparent border-0"
-        @click="handleClick"
-    >
-        <Clipboard class="clipboard" ref="clipboard" />
-        <ClipboardCheck
-            class="clipboard opacity-0"
-            ref="clipboardChecked"
-        />
-        <!-- One AT-only status sink: announces the copy to screen readers
-             without a visual change (the icon swap is the sighted feedback). -->
-        <span class="sr-only" role="status" aria-live="polite">{{ liveStatus }}</span>
-    </button>
+    <!-- S-7 (W6-I) — the copy control is the producer's `Button`, in the
+         exemplar register SharePopover set (`size="sm" emphasis="quiet"
+         icon-only`): a REAL `<button>` stays in the DOM (S-2), the plate, the
+         hover/press motion, the focus ring and the coarse-pointer floor
+         (`[data-control-target]`, emitted under `icon-only`) all come from the
+         primitive, so the bespoke `kf-focus-ring … p-0 m-0 bg-transparent
+         border-0` reset is not re-authored (KF-CB-7/12/13). The Button OWNS ITS
+         BOX: the interim `min-inline-size: 1rem` floor and the abspos
+         `width: 100%` glyph algebra are gone with it (KF-CB-5/14 — two of four
+         call sites passed no size and rendered a 0×0 control; the other two
+         imposed 24px/16px boxes from outside, and no caller passes a size now).
+         The two glyphs stack on ONE grid cell so both keep their intrinsic
+         `icon-md` box and the engine's pulse has a laid-out target on each.
+         Icon-only with no visible label: `aria-label` at the primitive and the
+         tooltip carry the name for sighted pointer users and AT alike
+         (KF-CB-26). The name flips to the copied state with the icon.
+         EVALUATED, not asserted (family law — a swap is never sufficient on
+         its own): the retained rows are KF-CB-25 (the `easeInBounce` pulse is
+         the demo's own feedback register, kept on the primitive by the owner's
+         preserve-animations law), KF-CB-27 (script-side constants, retained by
+         policy below) and KF-CB-37 (the MOVE into `instrument/` is KF.W8's,
+         R-13; this file is modified IN PLACE). -->
+    <Tooltip>
+        <TooltipTrigger as-child>
+            <Button
+                size="sm"
+                emphasis="quiet"
+                icon-only
+                :aria-label="isCopied ? 'Copied to clipboard' : label"
+                @click="handleClick"
+            >
+                <span class="clipboard-stack" aria-hidden="true">
+                    <Clipboard ref="clipboard" class="icon-md" />
+                    <ClipboardCheck
+                        ref="clipboardChecked"
+                        class="icon-md opacity-0"
+                    />
+                </span>
+                <!-- One AT-only status sink: announces the copy to screen
+                     readers without a visual change (the icon swap is the
+                     sighted feedback). -->
+                <span class="sr-only" role="status" aria-live="polite">{{
+                    liveStatus
+                }}</span>
+            </Button>
+        </TooltipTrigger>
+        <TooltipContent>{{ isCopied ? "Copied" : label }}</TooltipContent>
+    </Tooltip>
 </template>
 
 <script setup lang="ts">
 import { Clipboard, ClipboardCheck } from "@lucide/vue";
 
 import { onMounted, ref, shallowRef, useTemplateRef } from "vue";
+import { Button } from "@mkbabb/glass-ui/button";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@mkbabb/glass-ui/tooltip";
 import type { InputAnimationOptions, AnimationGroup } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { copyText } from "@utils/clipboard";
@@ -110,32 +149,17 @@ onMounted(async () => {
 });
 </script>
 <style scoped>
-/* KF-CB-5 ≡ KF-CB-14 ≡ KF-ET-17 ≡ KF-KC-33 ≡ KC-23 — THE INTERIM BOX FLOOR.
-   Every child of this button is out of flow (both glyphs are absolute below;
-   `.sr-only` is absolute per glass's components.css), so the button has ZERO
-   intrinsic size: at the two of four call sites that pass no size class it
-   renders 0x0 and its sizing contract lives in a CONSUMER's CSS comment. The
-   floor is declared as a MINIMUM, not as a fixed `w-4 h-4`, for one measured
-   reason: three of the four sites already pass `w-6 h-6`, and a fixed default
-   would have to out-order those utilities in the generated sheet to lose to
-   them, which is not a property of the class attribute. A minimum cannot lose
-   and cannot shrink a consumer.
-   INTERIM, and named as interim: the real cure is S-7's reshell onto glass
-   `Button` (W6-I), which owns the box by construction and dissolves the
-   abspos `width:100%`-against-padding-box algebra that makes "a 16px glyph in
-   a 32px target" structurally inexpressible here. The gapless-pair geometry of
-   the four sites is SS-13's measurement, not this file's. */
-button {
-    min-inline-size: 1rem;
-    min-block-size: 1rem;
+/* Both glyphs occupy the same grid cell: the pair keeps its intrinsic
+   `icon-md` box (the Button's own padding builds the target around it), the
+   check rides on top of the clipboard, and neither is out of flow — the former
+   `position: absolute; inset` pair was what left the host with zero intrinsic
+   size (KF-CB-14). */
+.clipboard-stack {
+    display: grid;
+    place-items: center;
 }
 
-.clipboard {
-    bottom: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-
-    position: absolute;
+.clipboard-stack > * {
+    grid-area: 1 / 1;
 }
 </style>

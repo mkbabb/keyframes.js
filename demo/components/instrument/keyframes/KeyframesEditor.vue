@@ -93,10 +93,11 @@
                     @submit="addKeyframesStringToAnimation"
                 />
 
-                <CopyButton
-                    class="w-6 h-6 scale-on-hover"
-                    :text="cssKeyframesString"
-                />
+                <!-- S-7 (W6-I): the copy control sizes ITSELF now (a glass
+                     Button, `size="sm" icon-only`); the caller-imposed
+                     `w-6 h-6` box and the second `scale-on-hover` (the
+                     primitive owns its hover/press motion) are gone. -->
+                <CopyButton :text="cssKeyframesString" />
 
                 <button
                     type="button"

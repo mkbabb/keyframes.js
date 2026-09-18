@@ -56,7 +56,10 @@
         <div class="w-full max-w-3xl shrink-0">
             <div class="flex items-center justify-between mb-1.5">
                 <span class="text-small text-foreground">compileToEntry() artifact</span>
-                <CopyButton class="shrink-0 w-4 h-4" :text="compiledEntryCss || copyableCss" />
+                <!-- S-7 (W6-I): the copy control is a glass Button that owns
+                     its box; the caller's 16px `w-4 h-4` (KF-CB-5's second
+                     site) is gone. -->
+                <CopyButton :text="compiledEntryCss || copyableCss" />
             </div>
             <code class="artifact text-mono-caption tabular-nums text-muted-foreground block w-full max-h-32 overflow-auto whitespace-pre">{{ compiledEntryCss || springCss }}</code>
         </div>
