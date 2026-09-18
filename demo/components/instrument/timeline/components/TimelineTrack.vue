@@ -26,7 +26,7 @@
         >
             <div
                 ref="panBarEl"
-                class="timeline-pan-bar relative flex-1 h-1.5 rounded-full bg-muted/50 border border-muted-foreground cursor-grab"
+                class="kf-focus-ring timeline-pan-bar relative flex-1 h-1.5 rounded-full bg-muted/50 border border-muted-foreground cursor-grab"
                 role="scrollbar"
                 aria-orientation="horizontal"
                 aria-label="Timeline window — pan"
@@ -69,7 +69,7 @@
             ref="trackEl"
             :data-expanded="expanded ? 'true' : undefined"
             :class="[
-                'timeline-track relative rounded-lg border border-muted-foreground bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
+                'kf-focus-ring timeline-track relative rounded-lg border border-muted-foreground bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
             ]"
             role="slider"
@@ -124,12 +124,21 @@
                  0–100% track. The visible diamond keeps its 16/24px size; an
                  invisible ≥24px hit pad (::before) meets the touch-target
                  minimum without moving a pixel of the diamond. Keyed by the
-                 stop's head id, which is stable across a drag. -->
+                 stop's head id, which is stable across a drag.
+                 D-20 (KeyframeTimeline) — ONE FOCUS VOCABULARY. These three
+                 bespoke hosts (the rail `role="slider"`, the pan
+                 `role="scrollbar"` and every marker) are all keyboard-reachable
+                 and all took the UA ring, a fourth dialect standing beside the
+                 glass Buttons one card up that carry the house one. No global
+                 `:focus-visible` rule ships in this demo, so "the UA ring" was
+                 never a choice anyone made. All three now wear the demo's ring,
+                 which is also the only one of the four that paints under
+                 forced-colors. -->
             <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
                 <TooltipTrigger as-child>
                     <div
                         :class="[
-                            'keyframe-marker absolute top-1/2 -translate-y-1/2 z-controls',
+                            'kf-focus-ring keyframe-marker absolute top-1/2 -translate-y-1/2 z-controls',
                             edgeClass(percentToPosition(stop.percent)),
                             expanded ? 'w-6 h-6' : 'w-4 h-4',
                             'rotate-45 rounded-sm cursor-grab',
