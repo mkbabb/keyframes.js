@@ -45,6 +45,14 @@
        a 5K panel it fills ~50%W/66%H). --work-area-height = the clamped height
        capped at 100dvh. */
     --dock-icon-height: 2.75rem;
+    /* --dock-margin — the dock band's outer margin, the ONE term every anchor
+       below folds (band reserve = icon + margin + safe-area; top anchor + /4;
+       bottom anchor + /φ; TransportDock's safe-area padding /2). Defined HERE
+       because glass-ui ships no such token (7.0.0: zero declarations); it was
+       deleted at c7f7c96d on the belief that it did, and every consumer ran
+       invalid-at-computed-value-time for the interval — masked only by the
+       fallback-carrying reads. 0.5rem is the last value that shipped (KF-APP-6). */
+    --dock-margin: 0.5rem;
     --work-area-max-width: clamp(72rem, 94vw, 160rem);
     --work-area-max-height: clamp(44rem, 88dvh, 120rem);
     --work-area-height: min(100dvh, var(--work-area-max-height));
