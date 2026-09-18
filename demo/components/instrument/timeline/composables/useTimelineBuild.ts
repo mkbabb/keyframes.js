@@ -160,23 +160,26 @@ export function useTimelineBuild(
         }
     };
 
+    /**
+     * REPLACE the timeline with the stops in `css` (the Import dialog).
+     *
+     * G14 P2 / R-4 — this REJECTS. It used to catch its own parse failure and
+     * toast it, which meant the dialog closed on a failed parse and destroyed
+     * the paste; the submission surface is the place a submission failure
+     * belongs, so the failure travels to the caller and the dialog stays open
+     * with the draft intact. The SUCCESS toast stays: the count is information
+     * the close does not convey (P3's outcome toast, after the awaited build).
+     */
     const importCSS = async (css: string) => {
-        try {
-            const imported = await importCSSToTimeline(css);
-            if (imported.length === 0) {
-                toast.error("No keyframes found in CSS");
-                return;
-            }
-
-            state.value.keyframes = imported;
-            await rebuild();
-
-            toast.success(`Imported ${imported.length} keyframes`);
-        } catch (e) {
-            toast.error("Failed to parse CSS", {
-                description: (e as Error).message,
-            });
+        const imported = await importCSSToTimeline(css);
+        if (imported.length === 0) {
+            throw new Error("No @keyframes stops found in that CSS.");
         }
+
+        state.value.keyframes = imported;
+        await rebuild();
+
+        toast.success(`Imported ${imported.length} keyframes`);
     };
 
     /**
@@ -191,43 +194,38 @@ export function useTimelineBuild(
      * declarations winning (exactly `coalesceKeyframes`' rule, so the UI, the
      * built animation and the exported artifact cannot disagree about it);
      * a selector the timeline does not hold is appended as a new keyframe.
+     *
+     * Rejects like {@link importCSS}, and for the same reason (G14 P2 / R-4).
      */
     const mergeCSS = async (css: string) => {
-        try {
-            const imported = await importCSSToTimeline(css);
-            if (imported.length === 0) {
-                toast.error("No keyframes found in CSS");
-                return;
-            }
-
-            const existing = new Map(
-                state.value.keyframes.map((kf) => [selectorText(kf.selector), kf]),
-            );
-            let added = 0;
-            let merged = 0;
-
-            for (const kf of imported) {
-                const target = existing.get(selectorText(kf.selector));
-                if (target) {
-                    target.vars = { ...target.vars, ...kf.vars };
-                    merged += 1;
-                } else {
-                    state.value.keyframes.push(kf);
-                    existing.set(selectorText(kf.selector), kf);
-                    added += 1;
-                }
-            }
-
-            await rebuild();
-
-            toast.success(
-                `Merged ${imported.length} keyframes — ${added} added, ${merged} into existing stops`,
-            );
-        } catch (e) {
-            toast.error("Failed to parse CSS", {
-                description: (e as Error).message,
-            });
+        const imported = await importCSSToTimeline(css);
+        if (imported.length === 0) {
+            throw new Error("No @keyframes stops found in that CSS.");
         }
+
+        const existing = new Map(
+            state.value.keyframes.map((kf) => [selectorText(kf.selector), kf]),
+        );
+        let added = 0;
+        let merged = 0;
+
+        for (const kf of imported) {
+            const target = existing.get(selectorText(kf.selector));
+            if (target) {
+                target.vars = { ...target.vars, ...kf.vars };
+                merged += 1;
+            } else {
+                state.value.keyframes.push(kf);
+                existing.set(selectorText(kf.selector), kf);
+                added += 1;
+            }
+        }
+
+        await rebuild();
+
+        toast.success(
+            `Merged ${imported.length} keyframes — ${added} added, ${merged} into existing stops`,
+        );
     };
 
     const loadPreset = async (presetAnim: CSSKeyframesAnimation<any>) => {

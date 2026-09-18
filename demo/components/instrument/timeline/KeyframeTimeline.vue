@@ -198,24 +198,19 @@
         </CardContent>
     </Card>
 
-    <!-- Import dialog -->
+    <!-- L-16/L-17 — the two paste dialogs differed in four strings and nothing
+             else, so they are ONE mount over a descriptor. An in-file `v-for`,
+             not a new wrapper component (`feedback_kiss_no_contrivance`). -->
         <CSSPasteDialog
-            v-model:open="importDialogOpen"
-            title="Import CSS @keyframes"
-            description="Paste CSS @keyframes to load into the timeline"
-            button-label="Import"
-            :button-icon="Download"
-            @submit="doImport"
-        />
-
-        <!-- Add CSS dialog -->
-        <CSSPasteDialog
-            v-model:open="addCSSDialogOpen"
-            title="Add CSS @keyframes"
-            description="Paste CSS @keyframes to merge into the timeline"
-            button-label="Add"
-            :button-icon="FilePlus2"
-            @submit="doAddCSS"
+            v-for="dialog in pasteDialogs"
+            :key="dialog.key"
+            v-model:open="dialog.open.value"
+            v-model:text="dialog.text.value"
+            :title="dialog.title"
+            :description="dialog.description"
+            :button-label="dialog.buttonLabel"
+            :button-icon="dialog.buttonIcon"
+            :submit="dialog.submit"
         />
     </div>
 </template>
@@ -429,23 +424,44 @@ const onKeyframeCSSChange = (css: string) => {
 // A failure belongs to the keyframe that was open when it happened.
 watch(selectedKeyframeId, () => (cssEditorError.value = null));
 
-const doImport = (text: string) => {
-    if (text.trim()) {
-        importCSS(text);
-        importDialogOpen.value = false;
-    }
-};
+// The two paste dialogs, as data. G14 P2: each `submit` is AWAITED by the
+// shell — it resolves and the dialog closes, or it rejects and the dialog stays
+// open with the message beside the draft (the old handlers closed on a failed
+// parse and destroyed the paste). R-3: "Add" MERGES, which is what its
+// description has always said; it used to call the same whole-array import the
+// Import dialog does, so the button labelled "Add" destroyed everything the
+// user had authored.
+const importText = ref("");
+const addCSSText = ref("");
 
-// R-3 — the Add dialog's copy says MERGE, so Add merges: `mergeCSS` folds the
-// pasted stops into the timeline the way CSS does. It used to call the same
-// whole-array `importCSS` the Import dialog does, so the button labelled "Add"
-// destroyed everything the user had authored.
-const doAddCSS = (text: string) => {
-    if (text.trim()) {
-        mergeCSS(text);
-        addCSSDialogOpen.value = false;
-    }
-};
+const pasteDialogs = [
+    {
+        key: "import",
+        open: importDialogOpen,
+        text: importText,
+        title: "Import CSS @keyframes",
+        description: "Paste CSS @keyframes to load into the timeline",
+        buttonLabel: "Import",
+        buttonIcon: Download,
+        submit: async (css: string) => {
+            await importCSS(css);
+            importText.value = "";
+        },
+    },
+    {
+        key: "add",
+        open: addCSSDialogOpen,
+        text: addCSSText,
+        title: "Add CSS @keyframes",
+        description: "Paste CSS @keyframes to merge into the timeline",
+        buttonLabel: "Add",
+        buttonIcon: FilePlus2,
+        submit: async (css: string) => {
+            await mergeCSS(css);
+            addCSSText.value = "";
+        },
+    },
+];
 
 const openImportDialog = () => {
     importDialogOpen.value = true;
