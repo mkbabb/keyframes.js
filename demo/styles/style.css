@@ -23,7 +23,7 @@
    consumed via the Tailwind z-content / z-controls / z-bar / z-dock / z-overlay /
    z-popover / z-modal utilities and, for the one below-plane rung, `var(--z-behind)`
    read directly. There is NO demo-local z-scale — every rung below, --z-behind
-   included, is the producer's declaration (7.0.0 ships `--z-behind: -10`; the demo's
+   included, is the producer's declaration (7.0.0 ships `--z-behind` at -10; the demo's
    former same-value re-declaration in layout.css was a zero-delta shadow and is
    gone). The demo OWNS the ORDER as a documented contract, strictly ascending — a
    higher rung always paints over a lower one:

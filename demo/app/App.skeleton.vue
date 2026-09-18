@@ -53,9 +53,10 @@ withDefaults(
    `--color-*` Tailwind bridge, which `@theme inline` emits only when a utility
    references it (the KF-SKEL-2 trap; KF-SKEL-17). The elevation is glass-ui's
    own quiet-tier shadow, a token the producer EMITS at :root; the former
-   `--shadow-glass` existed nowhere (0 declarations in the dist, the demo and the
-   shipped sheet) and its `--shadow-glass-*` bridge spelling does not emit
-   either, so the plate had always painted a 4%-black literal, invisible on the
+   "shadow-glass" token existed nowhere (0 declarations in the dist, the demo
+   and the shipped sheet) and its Tailwind-bridge spelling (the shadow-prefixed
+   form) does not emit either, so the plate had always painted a 4%-black
+   literal, invisible on the
    dark arm (KF-APP-25). No fallback literal rides any read: this sheet is
    mounted inside the app whose stylesheet imports glass-ui first, so a literal
    beside a resolving token could never fire and would only restate — the

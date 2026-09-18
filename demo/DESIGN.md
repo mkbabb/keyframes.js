@@ -120,8 +120,9 @@ idiom sheets). It owns the rainbow signal, the material register, the
 keyboard-focus contract, `progress-bar`, `progress-dot`, `progress-rail`,
 `progress-ball`, `readout-accent`, status badges, code tokens, stage fields,
 and the labeled-field subgrid. (The gold signal is glass-ui's `--gold` and its
-generated `text-gold`; the demo's copies and its `tap-floor`/`btn-interactive`
-touch floors are retired — the KF.W6 disposition table records each.) The tab
+generated `text-gold`; the demo's copies, its dead 44px touch-floor class and
+its rule-less button utility are retired — the KF.W6 disposition table records
+each by name.) The tab
 sheet `tab-idiom.css` keeps ONLY the tab-panel enter rule — the
 `tab-trigger-*` skin matched nothing and is struck; `btn-playback` and
 `btn-playback-accent` are the transport grammar. These are cross-component
