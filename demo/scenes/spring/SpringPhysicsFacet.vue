@@ -63,15 +63,30 @@
                  ball (painter-positioned). S3 — the active cell wears the RED-DASHED
                  ring (the `.preset-cell--active` token treatment), not the solid
                  green inset; the hover is the red-accent family (F3). -->
+            <!-- SPF-10 (W6-I; G-W6-9's VARIANT-level member, decided in
+                 writing): the `shape="cell"` request is RETIRED, not consumed.
+                 At the installed 7.0.0 the variant's geometry does not survive
+                 the merge — its padding, gap and size utilities are dropped by
+                 `cn`, `py-2.5` loses on utilities-layer order, and its one
+                 distinguishing hook (`glass-chip--cell`) has its only rule in
+                 `styles/glass/glass-chip.css`, which no style entry imports
+                 (I-35 R-9, verified at the dist). Its two surviving
+                 contributions were `flex-col` — authored here explicitly, so
+                 the column layout is the demo's declaration and not a
+                 side-effect of a dead variant — and `text-micro`, which sized
+                 no glyph (both child spans carry their own register). `h-auto`
+                 collided with nothing and is gone. The producer ask — a `cell`
+                 shape whose geometry survives its own merge — rides the wave's
+                 mail; a demo-side patch of the merger would be an SS-6 defect
+                 and is not made. -->
             <div class="preset-grid grid grid-cols-2 gap-2">
                 <Chip
                     v-for="(t, i) in demo.tracks"
                     :key="t.preset.name"
                     mode="selectable"
-                    shape="cell"
                     :model-value="isActivePreset(t)"
                     :title="t.preset.blurb"
-                    class="preset-cell rounded-pill border-none bg-background px-3 pt-1.5 pb-2 h-auto items-start gap-1 font-medium leading-normal whitespace-nowrap"
+                    class="preset-cell flex-col rounded-pill border-none bg-background px-3 pt-1.5 pb-2 items-start gap-1 font-medium leading-normal whitespace-nowrap"
                     @update:model-value="applyPreset(t.preset)"
                 >
                     <span class="preset-name-row flex w-full flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
