@@ -41,8 +41,14 @@
                         </TooltipTrigger>
                         <TooltipContent>Keyboard shortcuts (?)</TooltipContent>
                     </Tooltip>
+                    <!-- EH-4 — NO `title` here. DarkModeToggle strips only
+                         `class`/`type` from its attrs and spreads the rest onto
+                         the same <button> that carries its own state-aware
+                         `aria-label` ("Switch to light/dark mode") — a visible
+                         "Toggle dark mode" tooltip beside that name is the
+                         WCAG 2.5.3 Label-in-Name divergence. The producer names
+                         itself; the consumer stays quiet. -->
                     <DarkModeToggle
-                        title="Toggle dark mode"
                         class="aspect-square w-8 scale-on-hover"
                     />
                 </slot>

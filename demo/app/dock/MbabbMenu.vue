@@ -14,10 +14,15 @@
             </DropdownMenuItem>
 
             <!-- DarkModeToggle is the sole theme command. The menu row carries
-                 layout only; there is no second row-level actuation. -->
+                 layout only; there is no second row-level actuation.
+                 EH-4 (second spend site of ONE row) — no `title`: the producer
+                 strips only `class`/`type` and spreads everything else onto the
+                 same <button> as its own state-aware `aria-label`, so a visible
+                 "Toggle dark mode" diverges from the accessible name (WCAG
+                 2.5.3). The adjacent "Dark mode" span is the row's visible
+                 label and names the command already. -->
             <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
                 <DarkModeToggle
-                    title="Toggle dark mode"
                     class="aspect-square w-5"
                 />
                 <span class="text-small text-foreground">Dark mode</span>
