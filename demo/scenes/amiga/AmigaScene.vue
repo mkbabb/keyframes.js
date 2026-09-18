@@ -8,8 +8,14 @@
              drawn IN the canvas (T.A10) — there is nothing on the DOM stage
              between the canvas and the page (the CRT overlay, the gesture legend,
              the parked telemetry readout, and the boot power-on flash are GONE;
-             proof:stage-inventory / T.A10 census). The canvas composites over the
-             themed paper-grid backdrop (renderer alpha:true). -->
+             proof:stage-inventory / T.A10 census). The canvas composites over
+             the SHELL's themed paper-grid backdrop (`.grid-background`, fixed
+             behind every scene) — renderer alpha:true, and since KF.W6 nothing
+             of this scene's own paints over it (see the stage-surface block
+             below). `rounded-card` on a raw element is this tree's only such
+             site and is RETAINED for now: with the wash gone it rounds only the
+             stage boundary, and whether a full-bleed mobile layer should carry
+             card chrome at all is a rendered-silhouette verdict, KF.W9's. -->
         <canvas
             ref="canvas"
             class="amiga-canvas h-full w-full rounded-card"
@@ -253,17 +259,42 @@ defineExpose({
 .amiga-canvas {
     touch-action: none;
     cursor: grab;
-    /* The themed paper-grid backdrop the transparent clear composites over (a
-       soft vertical wash evoking the Amiga sky/ground gradient, light/dark-aware
-       via the theme tokens). */
-    background: linear-gradient(
-        to bottom,
-        var(--muted, hsl(0 0% 96%)),
-        var(--background, hsl(0 0% 100%))
-    );
+    /* KF.W6 W6-H — THE STAGE SURFACE, decided once (MISSED-B · D-10 · C-7).
+       The renderer clears to TRANSPARENT (alpha:true) expressly so the stage
+       composites over "the themed paper-grid backdrop" the template comment
+       names. That backdrop is the SHELL's — `.grid-background`, the J.W7a
+       two-tier engineering graph paper fixed behind every scene, whose own
+       rationale guarantees it stays "PRESENT and legible behind the glass
+       plate". This element used to paint its OWN opaque two-stop wash here
+       (--muted → --background) and erase it across the whole stage — desktop
+       and full-bleed mobile alike — so the one scene that clears to transparent
+       was the one scene the substrate never reached. It is REMOVED rather than
+       tuned: the wash had no grid in it despite the comment, it measured as a
+       flat field in the light arm, and its polarity INVERTED between themes
+       because its two stops are neutrals that swap order — one authored intent,
+       two opposite renderings, and no translucency setting fixes a sign. The
+       transparent composite now lands on the real substrate, which is what both
+       the clear colour and the comment already promised. Its two dead fallback
+       arms go with it (both tokens ship; the arms were achromatic and
+       light-only — the tree's sole such idiom, C-7). Perceptual verdict on the
+       restored stage: KF.W9.
+
+       EVALUATED, NOT SWAPPED (C-6/D-12 ≡ census S-9): glass ships `Surface`,
+       `PaperBackdrop` and the sibling register's `Card`, and every one of them
+       is a DOM LAYER — which this scene's own `:6-12` ruling forecloses ("there
+       is nothing on the DOM stage between the canvas and the page"). The
+       reduction that ruling does admit is a shared `.stage-plate` RECIPE, and a
+       shared recipe belongs in the demo's own sheet, not in one scene's scoped
+       block; it is routed there rather than re-authored here. */
     /* J.W7a — the 1px inset stage-boundary hairline defining the glass stage's
-       edge without a DOM layer or blocking the transparent composite. */
-    box-shadow: inset 0 0 0 1px var(--border);
+       edge without a DOM layer or blocking the transparent composite. It reads
+       the producer's LOAD-BEARING surface boundary (--control-surface-border →
+       --glass-border-floating), not the decorative --border it used to: this
+       edge is the only thing that says where the stage ends, and the bank
+       measures the decorative rung below the non-text floor in BOTH arms, worse
+       in light (MISSED-D). The rung is the producer's, so nothing is
+       re-authored demo-side. */
+    box-shadow: inset 0 0 0 1px var(--control-surface-border);
 }
 .amiga-canvas:active {
     cursor: grabbing;
