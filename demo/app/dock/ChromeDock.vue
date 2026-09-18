@@ -28,7 +28,41 @@ import {
     SelectItem,
     SelectValue,
 } from "@mkbabb/glass-ui";
-import { StatusDot } from "@mkbabb/glass-ui/status-dot";
+// ChromeDock D-24 — the `StatusDot` import is GONE with the rows that misused it.
+// A health-status primitive (`online` green / dashed `unknown` ring, one per
+// NON-current row) was carrying the SELECTION signal in three menus, against
+// this dock's own "never a saturated brand hue" register — while the primitive
+// built for the job, the producer's SelectItem INDICATOR, was switched off at
+// every one of those rows by `hide-indicator`. The demo hid the selection
+// vocabulary and then re-invented it out of a health vocabulary. Now the
+// indicator is simply left on: reka renders it for `data-state="checked"` alone,
+// so the CURRENT row is marked instead of every OTHER row being marked
+// "unknown". The `font-bold` on the current row stays as the redundant second
+// channel it always was.
+//
+// WHY `--select-dot-color` IS BOUND EXPLICITLY (measured, not preferred). The
+// producer's dot paints
+//   background-color: var(--select-dot-color, var(--glass-accent, currentColor))
+// and in THIS app the middle link is dead: `--glass-accent: var(--color-gold)`
+// is declared by the producer where `--color-gold` is not yet defined and the
+// property is registered, so it falls to its transparent initial value —
+// measured `rgba(0, 0, 0, 0)` at both `:root` and `body`, while the demo's own
+// `--color-gold` measures `#d9a520` one scope later. Leaving the chain alone
+// would have swapped a wrong-but-visible signal for an INVISIBLE one, so the
+// binding names the chain's own terminal link, `currentColor`: the row's ink,
+// legible in both themes for free, and pointedly NOT a saturated brand hue —
+// this dock's own register.
+//
+// `--dock-selected-accent` is NOT what gets bound, and the reason is measured
+// too: its only consumer in the dist is
+// `.glass-dock.vertical .dock-icon-button:is(.is-active, …)::before` — a
+// VERTICAL rail accent strip — and it resolves to a 14% wash
+// (`oklab(0.216 … / 0.14)`) sized for a 3px bar. Piping that into an 8px dot on
+// a horizontal dock authors an invisible affordance. The row's premise that the
+// token sits unused is TRUE and stays true; at this dock's orientation it is
+// unreachable, and a Select's own vocabulary is what a Select consumes.
+// Recorded, not silently dropped.
+
 // The popup mutex and re-expand watch keep this dock open while one of its own
 // popovers owns interaction.
 
@@ -317,11 +351,13 @@ watch(isAnyOpen, (open) => {
                                 <Home v-else class="dock-glyph text-muted-foreground" />
                                 <SelectValue />
                             </DockTrigger>
-                            <SelectContent class="min-w-[var(--dropdown-min-width)]">
+                            <SelectContent
+                                class="min-w-[var(--dropdown-min-width)]"
+                                :style="{ '--select-dot-color': 'currentColor' }"
+                            >
                                 <SelectGroup class="dock-label">
-                                    <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
+                                    <SelectItem :value="homeSceneId" class="py-2 px-3">
                                         <span class="flex items-center gap-2">
-                                            <StatusDot :state="currentSceneId === homeSceneId ? 'online' : 'unknown'" />
                                             <Home class="dock-glyph text-muted-foreground" />
                                             <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
                                         </span>
@@ -331,11 +367,9 @@ watch(isAnyOpen, (open) => {
                                         :key="scene.id"
                                         :value="scene.id"
                                         class="py-2 px-3"
-                                        hide-indicator
                                         @pointerenter="emit('warmScene', scene.id)"
                                     >
                                         <span class="flex items-center gap-2">
-                                            <StatusDot :state="currentSceneId === scene.id ? 'online' : 'unknown'" />
                                             <component v-if="scene.icon" :is="scene.icon" class="dock-glyph shrink-0 text-muted-foreground" />
                                             <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                         </span>
@@ -372,12 +406,14 @@ watch(isAnyOpen, (open) => {
                                     <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="dock-glyph text-muted-foreground" />
                                     <SelectValue />
                                 </DockTrigger>
-                                <SelectContent class="min-w-[var(--dropdown-min-width)]">
+                                <SelectContent
+                                    class="min-w-[var(--dropdown-min-width)]"
+                                    :style="{ '--select-dot-color': 'currentColor' }"
+                                >
                                     <SelectGroup class="dock-label">
-                                        <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
+                                        <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3">
                                             <span class="flex items-center gap-2">
                                                 <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="dock-glyph text-muted-foreground" />
-                                                <StatusDot :state="selectedControl === tab.value ? 'online' : 'unknown'" />
                                                 <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
                                             </span>
                                         </SelectItem>
@@ -494,4 +530,5 @@ watch(isAnyOpen, (open) => {
     width: var(--dock-icon-glyph);
     height: var(--dock-icon-glyph);
 }
+
 </style>
