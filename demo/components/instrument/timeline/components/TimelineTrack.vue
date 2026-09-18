@@ -76,6 +76,7 @@
                                 ? 'bg-primary border-primary scale-125'
                                 : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
                         ]"
+                        :id="`timeline-marker-${stop.keyframes[0].id}`"
                         role="slider"
                         :aria-label="stopLabel(stop)"
                         :aria-valuenow="Math.round(stop.percent)"
@@ -114,7 +115,7 @@
                 :percent="stop.percent"
                 :position="percentToPosition(stop.percent)"
                 :is-selected="isStopSelected(stop)"
-                @update:percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
+                @commit-percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
                 @select="emit('select', selectionIdFor(stop))"
             />
         </div>
