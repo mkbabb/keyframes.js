@@ -269,7 +269,11 @@ describe("KF.W7 G4 — the rebuild rate is bounded and dirty-checked", () => {
         const scrubT = ref(0);
         const targets = ref<HTMLElement[]>([]);
         let builds = 0;
-        const ops = useTimelineOps(state, scrubT, targets, () => {
+        // The builder is ASYNC (G14 · L-11): the ops seam now takes
+        // `() => Promise<void>` so the build's settlement is visible to it. The
+        // counter still increments SYNCHRONOUSLY on entry, which is what the
+        // per-frame assertions below read.
+        const ops = useTimelineOps(state, scrubT, targets, async () => {
             builds++;
         });
         return { state, ops, builds: () => builds };

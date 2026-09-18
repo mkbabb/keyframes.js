@@ -233,7 +233,7 @@ describe("KF.W7 G8 — the playhead has a keyboard route (D-1)", () => {
         const el = document.createElement("div");
         document.body.appendChild(el);
         const targets = ref<HTMLElement[]>([el]);
-        const ops = useTimelineOps(state, scrubT, targets, () => {});
+        const ops = useTimelineOps(state, scrubT, targets, async () => {});
         // The keyboard route moved the playhead; the ribbon's argless call
         // must land there, not at 0%.
         scrubT.value = 0.42;

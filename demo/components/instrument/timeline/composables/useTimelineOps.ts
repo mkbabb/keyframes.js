@@ -16,7 +16,7 @@ export function useTimelineOps(
     state: Ref<TimelineState>,
     scrubT: Ref<number>,
     targets: Ref<HTMLElement[]>,
-    rebuild: () => void,
+    rebuild: () => Promise<void>,
 ) {
     // --- Rebuild economics (KF.W7 G4 / RR-B missed-1..2) ---
     //
@@ -33,17 +33,43 @@ export function useTimelineOps(
     // clamps to the same percent) never reaches the latch at all — see
     // `moveKeyframe`'s dirty check. The latch is the ops layer's only route to
     // `rebuild`, so no caller can re-open the hole by calling it directly.
+    //
+    // --- The settlement of the latched build (KF.W7 G14 · L-11, clause P3:
+    // OUTCOME BEFORE ACKNOWLEDGEMENT) ---
+    //
+    // `rebuild` is ASYNC by the builder's own signature, and this seam used to
+    // declare it `() => void`: the fact that a build was still in flight was
+    // ERASED at the parameter, so `snapshot` announced "Keyframe captured"
+    // before the build it had just triggered had happened — an acknowledgement
+    // that preceded its own outcome. The cure is the type plus a handle, never
+    // an un-latching: the coalescing above is G4's row and is not traded away
+    // for this one. `scheduleRebuild` hands back the promise OF THE BUILD IT
+    // LATCHED, so the callers coalesced into one frame all await the same
+    // single build, and a caller that needs the outcome can wait for it.
+    //
+    // The settlement resolves when that build SETTLES. A failed build surfaces
+    // through the builder's own channel (G14 P3: `buildError` + `toast.error`
+    // with a Retry action) and is rendered by the owner, so this seam mints no
+    // second failure channel — one posture, not two — and the fire-and-forget
+    // callers below cannot manufacture an unhandled rejection at pointer rate.
     let rebuildFrame: number | null = null;
+    let rebuildSettled: Promise<void> = Promise.resolve();
 
-    const scheduleRebuild = () => {
-        if (rebuildFrame !== null) return;
-        rebuildFrame = requestAnimationFrame(() => {
-            rebuildFrame = null;
-            rebuild();
+    const scheduleRebuild = (): Promise<void> => {
+        if (rebuildFrame !== null) return rebuildSettled;
+
+        // The executor runs synchronously, so the latch is armed before this
+        // returns — the same latch, in the same frame, as before.
+        rebuildSettled = new Promise<void>((settle) => {
+            rebuildFrame = requestAnimationFrame(() => {
+                rebuildFrame = null;
+                void rebuild().then(settle, settle);
+            });
         });
+        return rebuildSettled;
     };
 
-    const snapshot = (percent?: number) => {
+    const snapshot = async (percent?: number): Promise<void> => {
         const target = targets.value[0];
         if (!target) {
             toast.error("No target element to snapshot");
@@ -54,7 +80,11 @@ export function useTimelineOps(
         const kf = captureSnapshot(target, p, state.value.captureProperties);
 
         state.value.keyframes.push(kf);
-        scheduleRebuild();
+        // The acknowledgement waits for the outcome (G14 P3). What it claims —
+        // that a keyframe was captured at this percent — is true whether or not
+        // the build that follows succeeds, and a build that fails says so in its
+        // own voice rather than through this line's silence.
+        await scheduleRebuild();
 
         toast.success(`Keyframe captured at ${Math.round(p)}%`);
     };
