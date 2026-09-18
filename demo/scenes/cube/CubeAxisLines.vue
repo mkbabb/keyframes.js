@@ -33,7 +33,26 @@ defineProps<{
 
 <style scoped>
 /* P.W5.S3 — register --axis-active (0…1) so the axis-lock reveal's opacity +
-   drop-shadow bloom INTERPOLATE cleanly when X/Y/Z is pressed/released. */
+   drop-shadow bloom INTERPOLATE cleanly when X/Y/Z is pressed/released.
+
+   KF.W6 W6-H — this registration is the second half of #30 and the fallback arms
+   at :53/:55/:56 below are the second half of #59; both dispositions are written
+   once, at CubeTarget.css's `@property --lit` block, and are not restated here.
+   #60's three raw `180ms` below travel with that row to W6-J.
+
+   KF.W6 #58 ≡ KF-AX-3 — DECLARED, NOT CURED. The `--color` each axis reads
+   resolves to `--axis-x/-y/-z`, three theme-INVARIANT `:root` literals, and the
+   locked line is not decorative furniture: at `--axis-active: 1` it goes full
+   opacity and solid, and IS the state signal that says which axis OrbitalDrag is
+   constraining. One of the three carries that meaning below the non-text floor
+   in the light arm while its two siblings pass — a per-theme failure on a
+   per-axis token, which is exactly what a theme-blind palette produces. The cure
+   is theme-aware axis tokens (a dark arm, or `light-dark()`), decided in ONE
+   motion with the `#8`/`#9` theme packet; their definitions live in the demo's
+   root sheet, outside this unit's §Bounds, so the row is routed there rather
+   than restated per consumer — a per-site override IS the masking this wave
+   convicts. No ratio is quoted (KF-SKEL-22, re-derived at use); the rendered
+   witnesses are KF.W9's, and neither end closes this id alone. */
 @property --axis-active {
     syntax: "<number>";
     inherits: false;

@@ -2,7 +2,38 @@
    sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
    component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
    sourced-stylesheet precedent, S.D2/S.A0). */
-/* L.W11.S2 — register --lit (re-lit luminance) so it INTERPOLATES between ticks. */
+/* L.W11.S2 — register --lit (re-lit luminance) so it INTERPOLATES between ticks.
+
+   KF.W6 W6-H, the cube unit's token dispositions, recorded at the bytes so no
+   later seat re-opens them or "tidies" them into a divergent edit:
+
+   · #30 — a `@property` inside `<style scoped>` registers DOCUMENT-WIDE; scoping
+     styles the selectors, never the registration. `--lit` here and
+     `--axis-active` in CubeAxisLines are therefore global names, and they are
+     the most generic names in the scene tree. RETAINED-BY-POLICY: the demo's
+     override posture is deliberate (design-idioms.css:9-11) and PREFIXING is
+     reserved for a SHOWN two-producer collision with a measured consequence —
+     no glass-ui token of either name exists, so there is nothing to collide
+     with today. A prefix move here would have to re-register both properties,
+     which is why the disposition is written down rather than left to a sweep.
+   · #59 — a registered property with an `initial-value` SUBSTITUTES that value
+     when unset, so a `var(--lit, 0.5)` fallback arm can never be selected. The
+     four such arms in this unit (:132, :138, :139 here; :53/:55/:56 in
+     CubeAxisLines) are inert by construction. NO-SURFACE, not a delete: the
+     arms are kept because deleting defensive code that costs nothing invites
+     the divergent edit the row warns about, and the row is NO-WAVE-OWNER.
+   · #39 — this unit reaches four producer tokens with no fallback
+     (`--background`, `--z-content`, `duration-panel`, `text-display-2`). That
+     is the demo's posture, not an oversight (the wave's coupling probe counts
+     dozens of such names demo-wide); recorded as the cascade-exposure
+     annotation the row asks for, never re-booked as a defect.
+   · #60 — the raw `160ms` below and the three `180ms` in CubeAxisLines sit
+     beside tokenised easing. The raw-duration family is carried at W6-J and the
+     rung is that seat's to pick; untouched here so one motion decides it once.
+   · #24 — the unlayered `transition:` shorthand below wins over the utility
+     layer and clobbers `transition-[background-color,opacity] duration-panel`
+     at the markup. NO-WAVE-OWNER, untouched: this wave changes no transition
+     shape here, so the clobber is neither cured nor deepened. */
 @property --lit {
     syntax: "<number>";
     inherits: true;
@@ -122,7 +153,27 @@
 }
 
 /* The re-lit overlay: highlight rises with --lit (face toward the light), shadow
-   veil deepens as it falls. The crayon is never recolored — only lit. */
+   veil deepens as it falls. The crayon is never recolored — only lit.
+
+   KF.W6 #8 — DECLARED, NOT CURED, and routed rather than patched here. The
+   "shadow" veil below mixes `--background`, so in the LIGHT arm — which is the
+   default arm — it mixes toward the page's near-white and an AWAY face renders
+   BRIGHTER than a lit one: the lighting model inverts its own sign. The banked
+   cure is a veil that is DARK IN BOTH ARMS, and no such token exists to consume:
+   the material register (design-idioms.css) pairs `--specular`
+   (light-dark(white, --foreground) — light in both arms, correct for the sweep
+   above) with `--shade` (light-dark(--background, black)), whose LIGHT arm is
+   the very token this row convicts; glass's own `--shadow-color` is
+   `var(--foreground)` and flips with the theme too. Spelling a raw `black` at
+   this call site would breach the register's own law (DESIGN.md §2: a literal is
+   permitted only inside the material token definition) and re-author demo-side
+   what a register should own. So the cure needs ONE new register member, its
+   definition site is the demo's sheet rather than this scene's scoped block, and
+   that sheet is outside this unit's §Bounds. Routed upward with the two rows
+   that wait on the same member: the `.face-lacquer` shade stop above and the
+   amiga stage's ground stop. The sheen half of DESIGN.md §2's hand-off is held
+   with it so the register is decided ONCE, not half here and half later.
+   Rendered magnitude stays KF.W9's. */
 .face-relit {
     border-radius: inherit;
     background:

@@ -25,6 +25,21 @@
                         class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
                         :class="{ 'cube--rolling': rolling }"
                     >
+                        <!-- KF.W6 #21 (≡ census S-6) — EVALUATED, SWAP DECLINED,
+                             with the mechanism named rather than a preference.
+                             glass-ui ships `Progress` with an `indeterminate`
+                             prop, and it is a linear BAR: its only orientations
+                             are horizontal and vertical, its variants are
+                             default/gradient/liquid, and it has no spinner
+                             affordance at all — so there is no like-for-like to
+                             swap this centre-plane spinner onto. It would also
+                             have to mount INSIDE the `preserve-3d` chain, adding
+                             a DOM participant to the 3D subtree, which is the
+                             same class of act that once flattened all six faces
+                             (T.A1's `filter` finding, one file over). The
+                             bespoke idiom is RETAINED; the ask that survives is
+                             a producer-side indeterminate spinner, and it rides
+                             the BH relay, never a demo-side re-authoring. -->
                         <span
                             class="contents"
                             v-if="showLoader"
@@ -133,6 +148,23 @@ defineExpose({ cubeEl, graphEl });
 // preserved hue-EXACT), resolved by the backgroundColor binding at paint time.
 // Its re-lit normal lives in useCubeRelit (FACE_NORMALS, index-aligned — rest
 // pose: front toward +Z).
+//
+// KF.W6 #9 ≡ CubeScene D-7 — DECLARED, NOT CURED, and routed. The hoist
+// preserved the hues EXACTLY, which is the praise and the defect in one act:
+// the six values are the raw sRGB corners at one alpha, so they carry a very
+// wide luminance spread across a single object, and they are theme-INVARIANT
+// while the numeral ink below inherits theme-reactive `text-foreground`. Half
+// the faces therefore lose their numeral in the dark arm. Both banked ends name
+// the same cure — a dark arm or `light-dark()` on the palette, and/or a
+// per-face-aware ink — and both are edits to the token DEFINITIONS in the
+// demo's root sheet, which is outside this unit's §Bounds; a per-face override
+// spelled here would be the masking the wave convicts, and re-cutting a crayon
+// at the call site would break the hoist's own hue-exactness guarantee. Routed
+// with `#8`/`#58` as ONE theme packet, decided in one motion. The bank's weight
+// correction rides: the numeral is weight-400 by the typography layer, not
+// bold, so the large-text bar holds on size alone. No ratio is quoted here
+// (KF-SKEL-22); the rendered verdict with sheen and specular over it is KF.W9's,
+// and neither end closes this id alone.
 const cubeSides = [
     { class: "front", content: "1", color: "var(--face-1)" },
     { class: "right", content: "2", color: "var(--face-2)" },
