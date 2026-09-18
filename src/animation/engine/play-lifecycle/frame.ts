@@ -19,7 +19,24 @@ import type { FlatAuthoredValues } from "../../compile/value";
 import type { Vars } from "../../constants";
 import type { KeyframesAnimation } from "../animation";
 
-/** SYNC unless `delay > 0` — then a thenable resolving after the sleep. */
+/**
+ * True while the play's ONE `delay` phase offset is still owed.
+ *
+ * X.KF.W5 ruling KF-W5R4(2) (COHESION §0j.C): **`delay` is PER-PLAY** — one
+ * phase offset taken at play start, never re-slept per iteration. `onEnd`
+ * clears `startTime` at EVERY iteration boundary, so `advanceTo` re-enters
+ * `onStart` for iterations 2..N; without this predicate that re-entry re-slept
+ * the whole delay AND re-offset `startTime`, making the JS-side period
+ * `duration + delay` — a monotone drift against the compositor's exact clock
+ * (the banked witness: 27 %/cycle, unbounded) plus corrupt `iteration`
+ * bookkeeping. Native WAAPI agrees: `delay` there is one phase offset per play,
+ * which is why the delegated lane never showed the drift its shadow loop did.
+ */
+const delayPending = <V extends Vars>(anim: KeyframesAnimation<V>): boolean =>
+    anim.options.delay > 0 && anim._playback.iteration === 0;
+
+/** SYNC unless the per-play `delay` is still owed — then a thenable resolving
+ *  after the sleep (iterations 2..N are always sync; see {@link delayPending}). */
 export function onStart<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): Promise<void> | undefined {
@@ -33,7 +50,7 @@ export function onStart<V extends Vars>(
         anim.fillBackwards();
     }
 
-    if (anim.options.delay > 0) {
+    if (delayPending(anim)) {
         anim._playback.paused = true;
         return sleep(anim.options.delay).then(() => {
             anim._playback.paused = false;
@@ -80,9 +97,14 @@ export function advanceTo<V extends Vars>(
     t: number,
 ): number | Promise<number> {
     if (anim._playback.startTime === undefined) {
+        // The phase is read from the SAME predicate `onStart` slept on, and read
+        // BEFORE it runs, so the sleep and the start-time offset can never
+        // disagree: iteration 1 is offset by `delay`, iterations 2..N by 0
+        // (KF-W5R4(2) — `delay` is per-play).
+        const phase = delayPending(anim) ? anim.options.delay : 0;
         const pending = onStart(anim);
         const begin = (): number => {
-            anim._playback.startTime = t + anim.options.delay;
+            anim._playback.startTime = t + phase;
             anim.dispatchAnimationEvent("animationstart");
             return advanceBody(anim, t);
         };
