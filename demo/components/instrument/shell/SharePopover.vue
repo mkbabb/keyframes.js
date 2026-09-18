@@ -1,28 +1,57 @@
 <template>
     <Popover v-model:open="sharePopoverOpen">
+        <!-- SP-11 — the trigger was a RAW 24x24 `<button>` with `p-0` zeroing any
+             rescue and an `icon-lg` sole child: reachable by none of the demo's
+             declared floors, and wearing a hand-rolled shell beside the very
+             primitive that ships one. The swap to glass `Button emphasis="quiet"
+             icon-only` collapses SP-11 with SP-26 and SP-27 in one edit — the
+             plate, the hover/press motion and the focus ring all come from the
+             producer, so `bg-transparent border-none p-0 scale-on-hover
+             transition-all duration-fast` are not re-authored here.
+             The open/closed opacity binding is carried VERBATIM onto the new
+             host: it is EH-9 ≡ SP-10's subject (the bare deletion ships a
+             snapping `hover:opacity-50`, and the recede-affordance books WITH
+             it as ONE SharePopover motion batch), which is W6-J's row and is not
+             spent here. -->
         <PopoverTrigger as-child>
-            <button
+            <Button
+                size="sm"
+                emphasis="quiet"
+                icon-only
                 aria-label="Share animation"
-                :class="[
-                    'inline-flex items-center justify-center cursor-pointer scale-on-hover transition-all duration-fast bg-transparent border-none p-0',
-                    sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50',
-                ]"
+                :class="sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50'"
             >
                 <Share2 class="icon-lg" />
-            </button>
+            </Button>
         </PopoverTrigger>
         <PopoverContent class="z-popover w-72 p-2" align="start" :side-offset="8">
+            <!-- SP-9 + SP-8 — the height overrides go, and `size` drives.
+                 SP-9 is the row's largest deficit and the only one with no
+                 rescue: `.field-control[data-kind="input"]` sets `block-size`,
+                 which is THE SAME property `h-8` sets, so a coarse pointer's
+                 60px rung collapsed to 32 on the one control a paste flow must
+                 hit — a deficit no `max()` can recover, unlike the buttons'.
+                 SP-8: `h-8 w-8 p-0` hand-rolled `iconOnly` and, in doing so,
+                 forfeited the coarse floor twice over — `min-block-size` is a
+                 different property from `height`, so the box it names is not the
+                 box it renders, and `data-control-target`, the floor's SOLE
+                 hook, is emitted only under the `icon-only` these never passed.
+                 Passing the prop and dropping the overrides is the whole cure.
+                 MM-29 rides the same edit as the law requires: this class string
+                 carries `normal-case`, so it leaves carrying `tracking-normal`.
+                 The register itself (SP-4/SP-7) is W6-G's and is untouched. -->
             <div class="flex items-center gap-1.5">
                 <Input
                     v-model="loadHashInput"
                     placeholder="Paste share URL..."
-                    class="text-mono-caption normal-case h-8 flex-1"
+                    class="text-mono-caption normal-case tracking-normal flex-1"
                     @keydown.enter="loadFromInput"
                 />
                 <Button
                     size="sm"
                     emphasis="quiet"
-                    class="h-8 w-8 p-0 shrink-0"
+                    icon-only
+                    class="shrink-0"
                     @click="loadFromInput"
                     title="Load shared state"
                 >
@@ -31,7 +60,8 @@
                 <Button
                     size="sm"
                     emphasis="quiet"
-                    class="h-8 w-8 p-0 shrink-0"
+                    icon-only
+                    class="shrink-0"
                     @click="shareState"
                     title="Copy share link"
                 >
