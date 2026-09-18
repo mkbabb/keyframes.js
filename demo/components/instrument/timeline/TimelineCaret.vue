@@ -39,12 +39,21 @@
              distinction cannot be decided by utility order in the generated
              sheet. `aria-selected` is NOT the vehicle — it is invalid off its
              seven admitted roles, and shipping invalid ARIA to harvest a
-             stylesheet is a killed shape. -->
+             stylesheet is a killed shape.
+             m-2 / C-6(a) — ONE datum, ONE register: this percent is the same
+             number KeyframeTimeline's header renders at `text-mono-caption
+             font-semibold tabular-nums`, and it wore the admin-chip register
+             here instead (uppercase, fixed 10px, caps tracking — three
+             properties a number cannot use). It takes the demo's numeric idiom
+             (W6-G role (c)); the redundant mono family utility goes with the
+             swap. `leading-none` carries the old register's line-height so the
+             caret's hang below the rail grows only by the glyph's own 2–6px,
+             inside the rail's 1rem bottom margin — the box law, honoured. -->
         <button
             v-if="!isEditing"
             ref="readoutEl"
             type="button"
-            class="kf-focus-ring timeline-caret-readout font-mono text-admin-label cursor-pointer select-none transition-colors whitespace-nowrap tabular-nums underline-offset-2"
+            class="kf-focus-ring timeline-caret-readout text-mono-caption leading-none cursor-pointer select-none transition-colors whitespace-nowrap tabular-nums underline-offset-2"
             :class="
                 isSelected
                     ? 'text-primary font-semibold underline decoration-solid decoration-2'

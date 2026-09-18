@@ -48,7 +48,19 @@
                     :style="{ left: `${panOffset}%`, width: `${100 / zoomLevel}%` }"
                 ></div>
             </div>
-            <span class="timeline-zoom-readout text-small text-muted-foreground shrink-0 tabular-nums">{{ zoomLevel.toFixed(1) }}x</span>
+            <!-- TimelineTrack D-3 (+ M10's size half) — the two numeric readouts
+                 here rode the proportional stack while every sibling readout
+                 (caret, hover caption, header) obeys the Mono-as-data law. They
+                 take the demo's numeric idiom, ONE register for role (c):
+                 `text-mono-caption tabular-nums` — the same rung the header's
+                 percent and the caret's readout wear, so the rail no longer sets
+                 its decorative ticks a rung ABOVE the editable percent (M10's
+                 inversion). The tick band above the rail reserves 1.25rem; the
+                 caption rung's box is smaller than the one it replaces, so the
+                 reservation still holds. The `toFixed(1)` micro-note ("1.0x"
+                 beside a bar whose own guard says otherwise) is carried, not
+                 cured here. -->
+            <span class="timeline-zoom-readout text-mono-caption text-muted-foreground shrink-0 tabular-nums">{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
         <!-- Timeline Track.
@@ -105,7 +117,7 @@
                 :style="{ left: `${percentToPosition(tick)}%` }"
             >
                 <span
-                    class="timeline-tick-label text-small absolute left-0 text-muted-foreground whitespace-nowrap"
+                    class="timeline-tick-label text-mono-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
                     :class="edgeClass(percentToPosition(tick))"
                 >{{ tick }}%</span>
             </div>
