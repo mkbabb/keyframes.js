@@ -26,7 +26,15 @@
 
 .specimen-name {
     line-height: 1.05;
-    /* Curve identifiers read as-cased (ease-in-out, bounce-in-ease-half). */
+    /* Curve identifiers read as-cased (ease-in-out, ease-in-bounce).
+       KF-ES-36 (W6-N, re-homed from KF.W5) — the second example used to name a
+       bounce/half compound that exists NOWHERE: not in the bezier catalogue,
+       not in the family groups, not in value.js's registry — the spelling had
+       exactly one occurrence in the whole tree, this comment.
+       The identical stale name was already corrected one file over, which is
+       what makes this the SECOND site of one defect and not a second defect:
+       FOLD by reference to banked KF-ET-34, EXTENDED with the site, never
+       re-booked. The replacement is a name the catalogue actually ships. */
     text-transform: none;
 }
 
@@ -65,17 +73,17 @@
     text-transform: none;
     overflow-wrap: anywhere;
 }
-.literal-copy {
-    /* CopyButton's icons are absolutely-positioned at 100% — the button needs
-       an intrinsic box here (the sidebar mount sizes it externally). */
-    width: 1rem;
-    height: 1rem;
-    flex: none;
-    color: var(--muted-foreground);
-}
-.literal-copy:hover {
-    color: var(--foreground);
-}
+/* The two-rule pair that stood here (the easing literal's own copy-control
+   class and its hover) is DELETED — routed to this unit by the S-7 reshell that
+   orphaned it, W6-I §4.1. It sized and inked a copy
+   control that used to be a bespoke zero-box `<button>`; the control is now the
+   producer's `Button`, which owns its box, its ink, its hover and its focus
+   ring, and the markup dropped the class in the same motion. A rule whose only
+   subject is gone is not harmless: it is a recipe a later seat can re-apply to
+   the primitive and un-do the reshell. The comment it carried — "CopyButton's
+   icons are absolutely-positioned at 100%, the button needs an intrinsic box" —
+   described the absolute-positioning algebra that reshell deleted too, so it
+   documented a mechanism the tree no longer has. Both go together (K2). */
 
 /* The family filter is QUIET: caption-rung text pills, horizontal fade-scroll
    at narrow widths so the row never wraps the header into a tower. */
@@ -166,10 +174,22 @@
     will-change: transform;
 }
 
-/* ── Selection ── ToggleChip's data-state="on" carries the glass wash
+/* ── Selection ── the pressed tile's `data-state="on"` carries the glass wash
    (primary 15% = the violet authority). The specimen adds: the portrait inks
    up, the name takes the tone. The BALL stays identical — the comparative
-   race reads only when every runner is equal. */
+   race reads only when every runner is equal.
+
+   KF-ET-33 (W6-N, re-homed from KF.W5) — the state was attributed to a
+   toggle-flavoured chip component, a VENDOR NAME THAT DOES NOT EXIST: the
+   installed glass-ui 7.0.0 `./chip` entry exports exactly `Chip` and
+   `chipVariants`, and that spelling occurs zero times anywhere in its dist —
+   which is the census this row turns. A reader chasing the
+   attribute's origin was sent to a component they could not import. This is
+   census S-2's class (a stale vendor name), EXTENDED with its site and never
+   re-booked as a new defect; the `tone`-prop API point that travels with the
+   family rides KF-ET-4 / KF-ET-14's repair and is not a prose row. What
+   actually emits `data-state` here is the mounted `ToggleGroupItem` (the
+   reshell landed at W6-I), so the selector is described by what it selects. */
 .specimen-tile[data-state="on"] .tile-sparkline path {
     stroke: color-mix(in srgb, var(--ball-tone) 65%, transparent);
     stroke-width: 1.5;

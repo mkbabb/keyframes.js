@@ -271,8 +271,15 @@ const compiledEntryCss = demo.compiledEntryCss;
 }
 
 /* The former scoped active-ring rule is DELETED (J.W7b S1b, no-legacy): the
-   active affordance hangs off the consumed ToggleChip's `data-state="on"`
-   seam, same scene-semantic --color-progress ring via the call-site class. */
+   active affordance hangs off the consumed primitive's own `data-state="on"`
+   seam, same scene-semantic --color-progress ring via the call-site class.
+   KF-ET-33 — this used to attribute that seam to a toggle-flavoured chip
+   component, a vendor name the installed glass-ui 7.0.0 does not export (its
+   `./chip` entry publishes `Chip` and `chipVariants`; that spelling occurs zero
+   times in the whole dist).
+   Census S-2's class, EXTENDED with the site and never re-booked; the same
+   stale name is corrected at `EasingTarget.css` in this commit, which is the
+   other half of the two-site figure the row measures. */
 
 .artifact {
     padding: 0.4rem 0.6rem;

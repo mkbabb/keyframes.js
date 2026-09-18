@@ -33,12 +33,13 @@
                         literal
                     }}</code>
                     <!-- S-7 (W6-I): the copy control is a glass Button that
-                         owns its box and its ink; `.literal-copy` (a 1rem box
-                         + muted ink authored for the old zero-size host,
-                         EasingTarget.css:68-78) no longer has a subject — the
-                         rule is ORPHANED at this commit and its removal is the
-                         stylesheet owner's (KF.W6.k; EasingTarget.css is
-                         outside this unit's bounds). -->
+                         owns its box and its ink. The bespoke copy-control
+                         rule pair W6-I orphaned here (a 1rem box + muted ink
+                         authored for the old zero-size host) is DELETED from
+                         `EasingTarget.css` in this same commit — the routing
+                         W6-I §4.1 handed this unit, discharged, so no recipe
+                         survives that could be re-applied to the primitive and
+                         un-do the reshell. -->
                     <CopyButton :text="literal" label="Copy easing literal" />
                 </span>
             </div>
@@ -100,11 +101,17 @@
              `mask-image` scroller are `data-surface="opaque"` — the
              producer's loaded surface axis (`surface-axis.css`: no
              backdrop-filter, the card ground, tint 0) — so 28 concurrent
-             `backdrop-filter`s collapse to zero. The sidebar's stack
-             (`EasingSidebar.vue` / `EasingScene.vue`) is the same ruling's
-             second site and is outside this unit's bounds: DECLARED for
-             KF.W6.k (EasingScene) and seat 0 (EasingSidebar has no owed
-             unit). -->
+             `backdrop-filter`s collapse to zero. The sidebar's stack was
+             DECLARED here as the ruling's second site, split between
+             `EasingScene.vue` and `EasingSidebar.vue`; unit `.k` holds the
+             former and RESOLVED it by measurement: `EasingScene.vue` mounts no
+             glass surface at all — no `Card`, no `tier`, no `surface`, no
+             `data-surface`, not one glass-ui import — so the tier decision has
+             NO byte to spend there and none was invented to look busy. The
+             whole of the second site is `EasingSidebar.vue`, which is in no
+             owed unit's writable set: ESCALATED to seat 0 with the decision
+             already made (host floats, contents do not), so the receiving seat
+             applies a ruling rather than re-taking one. -->
         <FadingScroll axis="y" class="specimen-drawer min-h-0 w-full flex-1">
             <ToggleGroup
                 ref="gridEl"
