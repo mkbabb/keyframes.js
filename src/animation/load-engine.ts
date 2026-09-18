@@ -134,7 +134,20 @@ let enginePromise: Promise<AnimationEngine> | undefined;
  * and an eventual consumer share one in-flight load.
  */
 export const loadAnimationEngine = (): Promise<AnimationEngine> =>
-    (enginePromise ??= import("./public"));
+    (enginePromise ??= import("./public").catch((error: unknown) => {
+        // RETRY, NOT POISON (X.KF.W5 B-17 ≡ KF-EST-17). `??=` memoized the
+        // REJECTED promise too, so one failed chunk load — a deploy mid-flight,
+        // a dropped connection — left the heavy surface permanently unreachable
+        // for the lifetime of the mount, with the only visible surface an
+        // unhandled rejection on the LCP node. The memo is dropped on failure so
+        // the next call genuinely retries; the SUCCESS path is untouched, so
+        // warming and an eventual consumer still share one in-flight load.
+        //
+        // This is not a swallow: the error is re-thrown to this caller, which
+        // still sees the failure it asked about.
+        enginePromise = undefined;
+        throw error;
+    }));
 
 /** Start loading the heavy surface without awaiting it. */
 export const warmEngine = (): void => {
