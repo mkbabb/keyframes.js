@@ -69,30 +69,58 @@
             </FadingScroll>
         </header>
 
-        <!-- The drawer: a responsive specimen grid inside FadingScroll. Each
-             tile is a glass-ui ToggleChip cell (single-select — the pressed
-             tile IS the selected curve). Upper region: the static sparkline
-             portrait + the hairline rail + the racing ball (the shared
-             registerDotPainter seam — direct style.transform writes, OFF the
-             Vue render graph). Lower region: the curve name, room to
-             breathe, no truncation at the 150px floor. -->
+        <!-- The drawer: a responsive specimen grid inside FadingScroll. Upper
+             region of each tile: the static sparkline portrait + the hairline
+             rail + the racing ball (the shared registerDotPainter seam — direct
+             style.transform writes, OFF the Vue render graph). Lower region:
+             the curve name, room to breathe, no truncation at the 150px floor.
+
+             KF-ET-10 (W6-I, I-35 R-9 — `ChipGroup` DECLINED by the producer,
+             the reshell is the cure): the 28 tiles are ONE `ToggleGroup
+             type="single"` — the same primitive the family filter above
+             already uses in this file — so the selected curve is the group's
+             model (the hand-rolled single-select invariant and its 28
+             independent `Chip mode="selectable"` booleans are gone), the grid
+             is ONE tab stop with the arrows roving inside it (reka's roving
+             focus, 28 stops → 1), and every tile is a real `<button
+             aria-pressed>` with `data-state="on|off"`, which is what the
+             demo's own pressed-paint rules (`.specimen-tile[data-state="on"]`)
+             key on. The producer's 7.0.0 caveats, each answered here: the
+             `type="single"` track paint is reset on the grid (the scoped
+             block at the foot of this file, an INTERIM demo override of a
+             glass-owned cascade in the KF-KC-10 shape — the grid is not a
+             segmented control and must not wear a track); `chipVariants` is
+             NOT composed onto the items — at 7.0.0 its `.glass-chip*` hooks
+             live only in a sheet no entry imports, and its `glass-capsule`
+             base IS the floating-tier plate KF-ET-21 convicts.
+
+             KF-ET-21 ≡ KF-ES-21 (the ONE glass-TIER decision, §Sequencing 8;
+             `.b` §2.6): THE HOST FLOATS, ITS CONTENTS DO NOT. The stage Card
+             is the one glass plate on this axis; the 28 tiles inside a
+             `mask-image` scroller are `data-surface="opaque"` — the
+             producer's loaded surface axis (`surface-axis.css`: no
+             backdrop-filter, the card ground, tint 0) — so 28 concurrent
+             `backdrop-filter`s collapse to zero. The sidebar's stack
+             (`EasingSidebar.vue` / `EasingScene.vue`) is the same ruling's
+             second site and is outside this unit's bounds: DECLARED for
+             KF.W6.k (EasingScene) and seat 0 (EasingSidebar has no owed
+             unit). -->
         <FadingScroll axis="y" class="specimen-drawer min-h-0 w-full flex-1">
-            <div
+            <ToggleGroup
                 ref="gridEl"
+                type="single"
                 class="specimen-grid"
-                role="group"
                 aria-label="Easing curve specimens"
+                :model-value="demo.currentEasingName.value"
+                @update:model-value="onTileSelect"
             >
-                <Chip
+                <ToggleGroupItem
                     v-for="curve in visibleCurves"
                     :key="curve.name"
-                    mode="selectable"
-                    shape="cell"
-                    class="specimen-tile"
-                    :model-value="curve.name === demo.currentEasingName.value"
-                    @update:model-value="
-                        (on: boolean) => onTileToggle(curve.name, on)
-                    "
+                    :value="curve.name"
+                    size="sm"
+                    data-surface="opaque"
+                    class="specimen-tile flex-col gap-1.5 px-2 py-2.5"
                 >
                     <span class="tile-stage" aria-hidden="true">
                         <svg
@@ -118,8 +146,8 @@
                     >
                         {{ curve.name }}
                     </span>
-                </Chip>
-            </div>
+                </ToggleGroupItem>
+            </ToggleGroup>
         </FadingScroll>
     </Card>
 </template>
@@ -135,10 +163,10 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
+import type { ComponentPublicInstance } from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 import { Card } from "@mkbabb/glass-ui";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
-import { Chip } from "@mkbabb/glass-ui/chip";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
@@ -208,11 +236,12 @@ const visibleCurves = computed<SpecimenCurve[]>(() => {
 });
 
 // ── Selection: the tile press IS the curve selection ───────────────
-const onTileToggle = (name: string, on: boolean) => {
-    // Single-select: pressing selects; pressing the already-selected tile is
-    // a no-op (the controlled :model-value keeps it pressed — a curve is
-    // always selected).
-    if (on) demo.selectEasing(name);
+// The group emits its item value (a curve name) — or an empty value when the
+// pressed tile is pressed again. Single-select, never empty: the deselect
+// toggle is ignored (the controlled :model-value keeps the tile pressed — a
+// curve is always selected), the same shape as the family filter above.
+const onTileSelect = (v: ToggleValue | ToggleValue[]) => {
+    if (typeof v === "string" && v.length) demo.selectEasing(v);
 };
 
 // ── The header literal — COMPLETE and re-parseable, never truncated ──
@@ -237,7 +266,9 @@ const literal = computed<string>(() => {
 // the departure is simultaneous by construction.
 const BALL_SIZE = 14;
 
-const gridEl = useTemplateRef<HTMLElement>("gridEl");
+// The grid is the ToggleGroup's root element (a component ref; vueuse's
+// `unrefElement` reads its `$el` for the resize observer below).
+const gridEl = useTemplateRef<ComponentPublicInstance>("gridEl");
 const tileBallEls = useTemplateRef<HTMLElement[]>("tileBallEls");
 const railWidth = ref(0);
 
@@ -343,3 +374,23 @@ useResizeObserver(gridEl, () => measureRailWidth());
 </script>
 
 <style scoped src="./EasingTarget.css"></style>
+
+<style scoped>
+/* KF-ET-10 (W6-I) — INTERIM, demo-side, unlayered by being scoped (the
+   KF-KC-10 + MM-4 shape: a glass-owned cascade overridden at the consumer
+   without `:deep`, until the producer ships the switch). At 7.0.0
+   `.toggle-group[data-type="single"]` paints a quiet blurred TRACK — padding,
+   pill radius, `--glass-bg-quiet`, backdrop-filter, rim shadows — designed
+   for a segmented control, and the specimen grid is a ToggleGroup only for
+   its selection model and roving focus, never for that plate. The track is
+   reset here; the grid's own geometry (display, columns, gap, padding) stays
+   in EasingTarget.css, whose scoped rules already outrank the track's. The
+   producer ask (a track opt-out on `ToggleGroup`) rides the wave's mail. */
+.specimen-grid {
+    border-radius: 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+</style>
