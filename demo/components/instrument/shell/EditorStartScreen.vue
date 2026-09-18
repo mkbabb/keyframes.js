@@ -115,10 +115,20 @@ withDefaults(
    answered by the producer's own token, so the two in-file redundancies are
    gone). Color is --foreground — the depth-text lilac recolor + 4-step shadow
    stamp are GONE from the title AND the dots (zero `depth-text` in
-   editor-shell/, the T.D10 grep clause). line-height 0.92 keeps the balanced
-   two-line poster one tight optical unit (H.W4.S3, kept). */
+   editor-shell/, the T.D10 grep clause).
+   KF-EST-8 — THE LEADING DECISION: the rung's own published token. The former
+   scoped `line-height: 0.92` (H.W4.S3) was the THIRD un-tokenized display-rung
+   override beside weight and tracking, and at the mega rung it set consecutive
+   h1 lines to −0.04..+0.01em of ink clearance — a descender-bearing non-final
+   line touched or overlapped the line below, and `title` is a public prop, so
+   the shipped default escaped by letter-luck alone. The rung reads
+   `--type-leading-display` (1.05, scheme-motion.css, installed) and this file
+   no longer overrides it; the three display-rung decisions now all live at
+   tokens. The metric-matched fallback shares the leading, so the LCP box is
+   unchanged between fallback and web font (no CLS term is added). This DEPARTS
+   from the OD-4-blessed poster's tightness by +0.13em per line — recorded here
+   for the owner's re-bless; the descender render is KF.W9 / SS-13's witness. */
 h1.hero-display {
-    line-height: 0.92;
     color: var(--foreground);
 }
 
