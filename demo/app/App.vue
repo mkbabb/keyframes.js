@@ -130,6 +130,7 @@ import "@styles/brand.css";
 
 import {
     computed,
+    defineAsyncComponent,
     markRaw,
     provide,
     ref,
@@ -147,7 +148,21 @@ import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
 // T.D13 — the home hero's Aurora backdrop (colocated in editor-shell/ beside
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
-import HeroAurora from "@components/instrument/shell/HeroAurora.vue";
+//
+// KF-APP-15 — the boundary is ASYNC, and the scope of that is stated exactly:
+// a static import pulls the whole aurora module — the shader sources, the
+// palette derivation, the WebGPU/WebGL2 substrate — into the boot chunk of
+// EVERY route, including the scene routes that never mount this layer. The
+// dynamic boundary moves it to its own chunk fetched when `isHome` first
+// renders the backdrop. It does NOT delete the layer and does not change what
+// the home route eventually paints; the home route's own arrival cost is the
+// visual audit's measurement, not a claim made here. No <Suspense> wraps this
+// slot, so the async component renders nothing until its chunk resolves —
+// correct for a decorative backdrop, and the reason the scene host's keyed
+// <Suspense> (which broke under a wrapping <Transition>) is untouched.
+const HeroAurora = defineAsyncComponent(
+    () => import("@components/instrument/shell/HeroAurora.vue"),
+);
 import SceneSkeleton from "./App.skeleton.vue";
 import { ChromeDock, MbabbMenu } from "@app/dock";
 // DP-02 (CC-03) — the root tooltip provider (see the template wrap). The
