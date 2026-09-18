@@ -261,11 +261,22 @@
                                         >
                                             <SelectSeparator v-if="gi > 0" />
                                             <SelectGroup>
-                                                <SelectLabel
-                                                    class="text-admin-label
-                                                        text-muted-foreground
-                                                        px-2 py-1"
-                                                >
+                                                <!-- KF-CO-25 + KF-CO-30, one register
+                                                     pass for the card (W6-G). The
+                                                     family heading wore the 10px
+                                                     admin-chip register inside a
+                                                     dropdown whose items render at
+                                                     the dropdown rung, and its
+                                                     horizontal padding was inert
+                                                     against the primitive's own
+                                                     `pl-8` (the `cn` merge keys
+                                                     padding-x and padding-left as
+                                                     separate groups). A group label
+                                                     is a UI label (role (d)): it
+                                                     takes SelectLabel's shipped
+                                                     register and keeps only the
+                                                     muted ink. -->
+                                                <SelectLabel class="text-muted-foreground">
                                                     {{ group.family }}
                                                 </SelectLabel>
                                                 <SelectItem
@@ -279,10 +290,37 @@
                                                             min-w-0 items-center
                                                             gap-1.5"
                                                     >
+                                                        <!-- KF-CO-30 — the curve NAME
+                                                             is a code identifier
+                                                             (role (b): mono,
+                                                             case-preserving, marked
+                                                             for the census); the
+                                                             DESCRIPTION is UI prose
+                                                             (role (d): the dropdown's
+                                                             secondary text rung).
+                                                             Both carried a case-
+                                                             cancel utility that
+                                                             cancelled NOTHING —
+                                                             nothing in this portalled
+                                                             subtree or the installed
+                                                             producer sets a
+                                                             transform on select
+                                                             items (measured: the only
+                                                             producer uppercase rules
+                                                             are the timeline
+                                                             popover's) — so the
+                                                             inert pair is retired
+                                                             rather than paired
+                                                             (MM-29: a case cancel
+                                                             that survives must pair
+                                                             its tracking cancel; one
+                                                             that cancels nothing is
+                                                             removed, and G-W6-8's
+                                                             census reads two sites
+                                                             fewer). -->
                                                         <span
                                                             data-register="code"
-                                                            class="font-mono
-                                                                normal-case"
+                                                            class="font-mono"
                                                             >{{
                                                                 curveItem.name
                                                             }}</span
@@ -292,8 +330,7 @@
                                                                 text-muted-foreground
                                                                 ml-auto pl-2
                                                                 leading-tight
-                                                                whitespace-nowrap
-                                                                normal-case"
+                                                                whitespace-nowrap"
                                                             >{{
                                                                 curveItem.description
                                                             }}</span
