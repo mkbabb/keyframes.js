@@ -28,7 +28,7 @@
                          typed "reel" trigger: cascading-wave overshoot replay. -->
                     <Button
                         emphasis="secondary"
-                        class="h-7 w-7 p-0 btn-interactive"
+                        class="h-7 w-7 p-0"
                         :class="{ 'reel-active': demo.isReeling.value }"
                         aria-label="Play the reel — a cascading wave replay"
                         @click="demo.playReel()"

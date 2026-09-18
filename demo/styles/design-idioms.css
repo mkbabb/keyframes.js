@@ -78,12 +78,6 @@
     outline: none;
 }
 
-/* .tap-floor — the WCAG 2.5.5 44px minimum touch-target floor (box only). */
-.tap-floor {
-    min-height: 44px;
-    min-width: 44px;
-}
-
 /* .text-gold — the named utility behind the Format <Sparkles> icon. */
 .text-gold {
     color: var(--color-gold);

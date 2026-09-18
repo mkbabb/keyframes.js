@@ -16,7 +16,6 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="RIBBON_BUTTON_CLASS"
                         @click="activeKeyframesRef?.copyCSS?.()"
                     >
                         <Copy class="icon-sm" /> Copy
@@ -24,7 +23,6 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="RIBBON_BUTTON_CLASS"
                         @click="activeKeyframesRef?.formatCSS?.()"
                     >
                         <Sparkles class="icon-sm text-gold" /> Format
@@ -36,7 +34,6 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="RIBBON_BUTTON_CLASS"
                         @click="activeKeyframesRef?.exportCompiledCSS?.()"
                     >
                         <FileCode class="icon-sm text-emerald-500" /> Export CSS
@@ -44,12 +41,11 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="[
-                            RIBBON_BUTTON_CLASS,
+                        :class="
                             activeKeyframesRef?.cssApplied
                                 ? 'rainbow-vivid text-white ribbon-apply--active'
-                                : '',
-                        ]"
+                                : ''
+                        "
                         @click="activeKeyframesRef?.applyCSSStyles?.()"
                     >
                         <Paintbrush
@@ -72,7 +68,6 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.snapshot?.()"
                     >
                         <Camera class="icon-sm" /> Snapshot
@@ -80,7 +75,6 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.openImportDialog?.()"
                     >
                         <Download class="icon-sm" /> Import
@@ -88,7 +82,6 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.exportCSS?.()"
                     >
                         <Upload class="icon-sm" /> Export
@@ -96,7 +89,6 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        :class="RIBBON_BUTTON_CLASS"
                         @click="activeTimelineRef?.openAddCSSDialog?.()"
                     >
                         <FilePlus2 class="icon-sm" /> Add CSS
@@ -132,7 +124,15 @@ import {
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
-const RIBBON_BUTTON_CLASS = "h-8 gap-1.5 text-body rounded-full btn-interactive";
+// The ribbon's eight Buttons carry NO class string of their own: `size="sm"` +
+// `emphasis="secondary"` is the whole request, and the producer answers it
+// (CPW D-M11 + D-m12). The former RIBBON_BUTTON_CLASS was five tokens, each
+// one of: dead (the phantom `btn-*` utility token — zero rules in the demo,
+// the dist and the shipped sheet), unreachable (`h-8` against `.button`'s `min-block-size`, which
+// `height` never contests), duplicative (`rounded-full` over `--radius-control`,
+// itself the pill), or actively de-scaling (`text-body` / `gap-1.5` pinning a
+// rung and a 6px gap where the sm recipe scales both with `--ui-scale`). The
+// active Apply state keeps its own three tokens below; nothing else is owed.
 
 defineProps<{
     storedControls: StoredAnimationGroupControlOptions;

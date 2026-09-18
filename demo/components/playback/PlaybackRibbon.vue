@@ -52,7 +52,7 @@
                  .btn-playback button skin is the shared transport register. -->
             <Button
                 :class="[
-                    'btn-playback h-10 w-full rounded-full gap-2 btn-interactive',
+                    'btn-playback h-10 w-full rounded-full gap-2',
                     'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
                 ]"
                 :aria-pressed="userReversed"

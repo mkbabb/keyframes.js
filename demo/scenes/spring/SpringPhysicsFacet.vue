@@ -71,7 +71,7 @@
                     shape="cell"
                     :model-value="isActivePreset(t)"
                     :title="t.preset.blurb"
-                    class="preset-cell rounded-pill border-none bg-background px-3 pt-1.5 pb-2 h-auto items-start gap-1 font-medium leading-normal whitespace-nowrap btn-interactive"
+                    class="preset-cell rounded-pill border-none bg-background px-3 pt-1.5 pb-2 h-auto items-start gap-1 font-medium leading-normal whitespace-nowrap"
                     @update:model-value="applyPreset(t.preset)"
                 >
                     <span class="preset-name-row flex w-full flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
@@ -102,7 +102,7 @@
                     <span class="text-small font-medium text-muted-foreground">@keyframes (editable)</span>
                     <button
                         type="button"
-                        class="reseed-btn btn-interactive shrink-0 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-caption font-medium text-muted-foreground hover:text-foreground"
+                        class="reseed-btn shrink-0 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-caption font-medium text-muted-foreground hover:text-foreground"
                         title="Re-sample the keyframe stops from the current spring params"
                         @click="demo.seedKeyframes()"
                     >
