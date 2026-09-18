@@ -8,7 +8,7 @@
              glass-ui 4.0.0 single-surface contract). The CardContent's padding +
              grid are preserved on the bare wrapper so the layout is identical. -->
         <Card v-if="framed" cartoon tier="quiet" class="p-0 m-0">
-            <CardContent class="p-2 m-0 mt-0 grid gap-4 relative">
+            <CardContent class="p-2 m-0 grid gap-4 relative">
                 <KeyframeCardList
                     ref="cardList"
                     :frame-strings="templateFrameStrings"
@@ -20,7 +20,7 @@
                 />
             </CardContent>
         </Card>
-        <div v-else class="p-2 m-0 mt-0 grid gap-4 relative">
+        <div v-else class="p-2 m-0 grid gap-4 relative">
             <KeyframeCardList
                 ref="cardList"
                 :frame-strings="templateFrameStrings"
@@ -45,8 +45,32 @@
              well; that site's MECHANISM — layer the injected sheet, or
              re-tokenize the theme — is the editor pipeline's (EDITOR/KFED-UNIT)
              and is deliberately not pre-empted here. Only the token decision is
-             this wave's. -->
-        <div class="grid gap-4 sticky bottom-0 bg-card rounded-panel p-4 pt-4 m-4">
+             this wave's.
+
+             KF-KE-40 — THE SPACING PASS, three findings, three dispositions:
+             · the no-ops are GONE — `mt-0` after `m-0` (twice, on the card-list
+               wrappers) and `pt-4` after `p-4` (here). Each was harmless on its
+               own; together they meant a reader could not tell which spacing
+               values were load-bearing.
+             · the vertical rhythm is now ONE authority. This footer is a
+               `grid gap-4`, so its children already sit 16px apart; the toolbar
+               then stacked `mt-4` on top of that gap (32px above it) and the
+               progress bar stacked `mt-2` (24px below it), an inequality that
+               was an artefact of stacking margins on a gap in two sizes, not a
+               stated proportion. Both margins are dropped: the grid's own gap
+               is the interval, and changing the rhythm now means changing one
+               number.
+             · the 16px float above the scrollport floor is KEPT and stated:
+               `sticky bottom-0` resolves against the MARGIN box, so `m-4` lifts
+               the border box off the floor — and that is what this plate is.
+               It carries `rounded-panel` and `bg-card`: a rounded, inset,
+               opaque shelf floating over the scrolling list, not a flush bar
+               welded to the container edge (a flush bar would want neither the
+               radius nor the margin). Whether the band of list content visible
+               beneath the shelf reads as depth or as leakage is a rendered
+               judgement, and it belongs to the visual audit, not to a seat
+               editing markup blind. -->
+        <div class="grid gap-4 sticky bottom-0 bg-card rounded-panel p-4 m-4">
             <Slider
                 :model-value="
                     animation.templateFrames.map((frame) => frame.start.value)
@@ -94,13 +118,46 @@
                  bar has no selection: three heterogeneous actions and no
                  value to anchor the tabstop on. Per the bank's own clause the
                  row drops to INFO; the local composable stays, the decline is
-                 written here. -->
+                 written here.
+
+                 KF-KE-39 — the bar scrolls on DEMAND now. `overflow-x-scroll`
+                 reserves the scrollbar gutter unconditionally, so on every
+                 platform that paints a classic bar (Windows, Linux, macOS with
+                 "Show scroll bars: Always") a 40px strip holding 24px glyphs
+                 paid a permanent chrome tax for content that rarely overflows.
+                 `overflow-x-auto` reserves nothing until it must, and when it
+                 must the bar is the producer's own `scrollbar-thin` (a real
+                 shipped utility, measured — `scrollbar-width: thin` with a
+                 webkit fallback on the glass scrollbar tokens) rather than the
+                 platform default. The gutter's painted appearance is
+                 OS-preference-dependent and stays a rendered question.
+
+                 KF-KE-59 — ONE RADIUS VOCABULARY on this surface: the bar wore
+                 `rounded-xl` while the footer plate one block up wears
+                 `rounded-panel`. They resolve identically today for a reason
+                 that is itself the argument — `--radius-panel: var(--radius-xl)`
+                 at the installed dist, i.e. the panel token IS the alias — so
+                 the two spellings were one rung under two names that would
+                 desynchronise the moment the panel rung is retuned. Both
+                 surfaces are panels; both name the panel.
+
+                 KF-KE-42 — the RTL posture, recorded as the repo-level row it
+                 is: the physical-offset site the bank names (`top-2 right-4` on
+                 the card's action cluster) lives in `KeyframeCard.vue`, which
+                 this seat does not hold — DECLARED, not silently skipped.
+                 Measured demo-wide at these bytes: ZERO `ms-/me-/ps-/pe-`
+                 logical-property utilities and exactly two `rtl:` variants
+                 (both `rtl:origin-right`, on the two progress sweeps), so the
+                 posture is physical-by-default with directional exceptions
+                 authored exactly where a mirrored box would animate from the
+                 wrong edge. That is a repo decision to take once, not a lapse
+                 to patch per component. -->
             <div
                 ref="toolbarEl"
                 role="toolbar"
                 aria-label="Keyframe actions"
                 aria-orientation="horizontal"
-                class="mt-4 flex h-10 w-full items-center gap-2 overflow-x-scroll rounded-xl border bg-card p-1"
+                class="flex h-10 w-full items-center gap-2 overflow-x-auto scrollbar-thin rounded-panel border bg-card p-1"
                 @keydown="onToolbarKeydown"
             >
                 <!-- Decorative lead flourish — was a focusable no-op trigger; now
@@ -147,7 +204,7 @@
                  too: rest at zero, `scaleX()` from the inline start. -->
             <div
                 ref="progressBarKeyframesEl"
-                class="progress-bar sticky bottom mt-2 origin-left rtl:origin-right scale-x-0"
+                class="progress-bar sticky bottom origin-left rtl:origin-right scale-x-0"
                 aria-hidden="true"
             ></div>
         </div>
