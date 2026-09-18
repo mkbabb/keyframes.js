@@ -45,7 +45,7 @@ import { SVGAnimationHandle } from "./handle";
 import type { InputAnimationOptions, Vars } from "../constants";
 // X.KF.W2 — the ONE grammar seam (G-W2-2): a percent draw position is validated
 // by value.js's own scalar grammar, reached through the façade.
-import { parseCssScalar } from "../compile/parse-facade";
+import { parseCssScalar, swallowParsed } from "../compile/parse-facade";
 
 /**
  * The minimal geometry contract DrawSVG needs: any SVG element that exposes
@@ -104,23 +104,31 @@ const asFraction = (v: string | number): number => {
     // `"abc"` · `""` · `"%"` refused. The non-negative check is kept explicitly
     // because it is this function's DOMAIN, not the grammar's: `-5%` parses fine
     // as CSS and is not a draw position.
-    const percent = parseCssScalar(v.trim());
-    const payload =
-        percent.ok && percent.value.kind === "scalar"
-            ? percent.value.payload
-            : undefined;
-    if (
-        payload === undefined ||
-        payload.type !== "number" ||
-        payload.unit !== "%" ||
-        payload.value < 0
-    ) {
+    // X.KF.W2 · Repair 1 (G-W2-1 site limb) — the branch on the parse Result
+    // belongs to the FAÇADE, never to this site: the read runs inside the
+    // declared SWALLOW posture, so a refusal AND a thrown parse both arrive
+    // here as `undefined` and become this function's own domain error below.
+    // The DOMAIN test (a `%` unit, non-negative) stays here because it is this
+    // function's and not the grammar's; the old `kind === "scalar"` limb is
+    // gone because `parseCssScalar` returns `ParseResult<CssScalar>` — the type
+    // already says it.
+    const fraction = swallowParsed(
+        () => parseCssScalar(v.trim()),
+        ({ payload }): number | undefined =>
+            payload.type === "number" &&
+            payload.unit === "%" &&
+            payload.value >= 0
+                ? payload.value / 100
+                : undefined,
+        undefined,
+    );
+    if (fraction === undefined) {
         throw new Error(
             `fromDrawSVG(): invalid draw position ${JSON.stringify(v)} — pass a ` +
                 `percent string ("0%".."100%") or a 0..1 number.`,
         );
     }
-    return payload.value / 100;
+    return fraction;
 };
 
 /**
