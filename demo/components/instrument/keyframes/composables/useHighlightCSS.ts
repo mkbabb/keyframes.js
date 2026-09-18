@@ -90,6 +90,17 @@ const THEME_STYLE_ID = "highlightjs-theme";
 const highlightedFrom = new WeakMap<HTMLElement, string>();
 
 /**
+ * How many live `useCodeHighlight()` instances hold the shared
+ * `#highlightjs-theme` node. It is adopt-or-create, so more than one driver can
+ * be looking at the same element: measured at this tree, the two call sites are
+ * `KeyframesEditor.vue` and the `KeyframesAddDialog.vue` it renders, and both are
+ * live at once whenever an editor mounts. Removing the node on the FIRST unmount
+ * strips the theme from every survivor; the last holder out removes it.
+ * ⟨X.KF.W5 arm 0, KAD-14(d)⟩
+ */
+let themeStyleHolders = 0;
+
+/**
  * highlight.js code-highlight driver — consolidates the editor's previously
  * inline `highlight` / `setHighlightingString` block (D.W1.S2).
  *
@@ -104,6 +115,8 @@ export function useCodeHighlight(
 ) {
     const { isDark } = useGlobalDark();
     const themeStyle = ref<HTMLStyleElement | null>(null);
+    /** Whether THIS instance is counted among the shared node's holders. */
+    let holdsThemeStyle = false;
 
     /** Load the theme for the demo's current mode. Rejects if the boot fails. */
     const applyCodeTheme = async () => {
@@ -146,6 +159,10 @@ export function useCodeHighlight(
             el.id = THEME_STYLE_ID;
             document.head.appendChild(el);
             themeStyle.value = el;
+        }
+        if (!holdsThemeStyle) {
+            holdsThemeStyle = true;
+            themeStyleHolders += 1;
         }
         setCodeTheme();
     };
@@ -198,7 +215,15 @@ export function useCodeHighlight(
     watch(isDark, setCodeTheme);
 
     onUnmounted(() => {
-        themeStyle.value?.remove();
+        if (holdsThemeStyle) {
+            holdsThemeStyle = false;
+            themeStyleHolders = Math.max(0, themeStyleHolders - 1);
+        }
+        // The node is SHARED (adopt-or-create): the editor and its add-dialog each
+        // hold one today. The last holder out removes it. ⟨X.KF.W5 arm 0, KAD-14(d)⟩
+        if (themeStyleHolders === 0) {
+            themeStyle.value?.remove();
+        }
         themeStyle.value = null;
     });
 
