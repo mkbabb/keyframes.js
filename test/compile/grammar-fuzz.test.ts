@@ -36,12 +36,50 @@
  *     (consumed via the Q.WG4 `^1.2.0` re-pin). A permanently-RED arm on a
  *     sibling publish would be a BLOCKED harness — the scoped-GREEN discipline.
  *
+ * ── X.KF.W2 G-W2-5, third clause — THE MALFORMED CLASS ──────────────────────
+ * Everything above generates VALID fragments from MODEL grammars (this
+ * docblock's own line 8), and that is precisely why eight audits missed the two
+ * classes the registry banks: a model grammar is STRUCTURALLY INCAPABLE of
+ * emitting either one.
+ *
+ *   (i) MALFORMED SYNTAX — the empty-argument colour form. No model grammar
+ *       emits a call with no arguments, so `oklch()` could never appear here.
+ *       It is the R1 shipping crash, and at the pinned value.js 4.0.0 it
+ *       reaches kf's own `fromString` as a THROWN TypeError, not a refusal.
+ *
+ *  (ii) CHARACTER-CLASS input DELIVERED OFF THE MODEL CHANNEL — KF-KC-17. A
+ *       keydown pass-through inserts a tab as 4×U+00A0 straight into the DOM
+ *       via `range.insertNode`, which fires no `input` event: the card's model
+ *       never records the insertion, and the next real keystroke hands the text
+ *       to `parseAnimationCSS` with U+00A0 where CSS whitespace was authored.
+ *       The model channel is BYPASSED, which is why a model-grammar generator
+ *       cannot reach the class by construction — so the arm below injects the
+ *       payload INTO the generator's output, off-channel, exactly as the DOM
+ *       does.
+ *
+ * The two bound the extension: malformed SYNTAX and CHARACTER-CLASS input off
+ * the model channel, or the class is half-covered.
+ *
+ * WHAT THE CHARACTER ARM ASSERTS, AND WHY IT IS NOT "THE PARSER REJECTS":
+ * value.js's `/\s/` MATCHES U+00A0 — banked as `K-11` at kf-KeyframesAddDialog,
+ * re-verified there against the tree and carrying a do-not-re-derive lock, so it
+ * is CITED here and never re-probed. The grammar therefore eats the character,
+ * and KF-KC-17's defect is the BYPASSED MODEL CHANNEL, never "a character the
+ * parser cannot swallow". The arm asserts the parse SUCCEEDS and the MODEL is
+ * what diverged: the serialized model carries ZERO U+00A0 while the text that
+ * produced it carried the injected payload, and the DOM and the model disagree
+ * until the next remount erases the difference.
+ *
  * This Vitest body owns the property and fixture-coverage regression check.
  */
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { CSSKeyframesToString } from "../../src/animation/compile/emit/format";
+import {
+    parseStylesheet,
+    swallowParsed,
+} from "../../src/animation/compile/parse-facade";
 
 // ── CI run budget (Q.WD2 §S1) ──────────────────────────────────────────────────
 // A FIXED seed for reproducibility; a CI-capped run count (the pre-release
@@ -229,6 +267,155 @@ describe("Q.WD2 S1 — grammar-fuzz: the PROMOTED round-trip arms (VJ-Q9 fixed i
                 expect(stable, `not byte-stable:\n${once}\n---\n${twice}`).toBe(
                     true,
                 );
+            }),
+            fcOpts,
+        );
+    }, 30000);
+});
+
+// ── X.KF.W2 G-W2-5 (third clause) — the MALFORMED corpus ────────────────────
+
+/**
+ * The empty-argument colour class, MODELLED rather than hand-listed at one call
+ * site: a function name, its empty argument list, and the WELL-FORMED control
+ * of the same function — so the arms below can show the refusal tracks the
+ * ARGUMENT LIST and not the function name. Every reading was executed against
+ * the installed value.js 4.0.0 before it was written down (OP-5 forbids a
+ * repin, so 4.0.0 is the measured artifact these arms describe).
+ */
+const EMPTY_ARGUMENT_COLOURS = [
+    { fn: "oklch", wellFormed: "oklch(0.6 0.1 200)" },
+    { fn: "rgb", wellFormed: "rgb(10, 20, 30)" },
+    { fn: "hsl", wellFormed: "hsl(200 50% 50%)" },
+    { fn: "lab", wellFormed: "lab(50% 20 -30)" },
+    { fn: "color", wellFormed: "color(display-p3 1 0 0)" },
+] as const;
+
+/** A `@keyframes` fragment carrying the malformed form at a colour property. */
+const malformedColourArb = fc
+    .tuple(
+        fc.constantFrom(...EMPTY_ARGUMENT_COLOURS),
+        fc.constantFrom("color", "background-color"),
+    )
+    .map(([entry, property]) => ({
+        entry,
+        property,
+        css: `@keyframes x { 0% { ${property}: ${entry.fn}(); } 100% { ${property}: ${entry.fn}(); } }`,
+    }));
+
+/** KF-KC-17's payload: a tab rendered as four NON-BREAKING spaces. */
+const TAB_AS_NBSP = " ".repeat(4);
+
+/** The three off-channel injection sites — where the DOM puts the payload, not
+ *  where a grammar would. `indent` is the literal `range.insertNode` case. */
+const INJECTION_SITES = ["indent", "post-colon", "both"] as const;
+
+/**
+ * A VALID model-generated declaration with the NBSP payload injected INTO it
+ * afterwards — off the model channel by construction, which is the whole point:
+ * `declArb` cannot emit U+00A0 and never will.
+ */
+const offModelNbspArb = fc
+    .tuple(declArb, fc.constantFrom(...INJECTION_SITES))
+    .map(([decl, site]) => {
+        const declaration =
+            site === "indent" ? decl : decl.replace(": ", `:${TAB_AS_NBSP}`);
+        const indent = site === "post-colon" ? "" : TAB_AS_NBSP;
+        return {
+            site,
+            css: `@keyframes x {\n0% {\n${indent}${declaration}\n}\n100% {\n${indent}${declaration}\n}\n}`,
+        };
+    });
+
+describe("X.KF.W2 G-W2-5 — grammar-fuzz: the MALFORMED class the model grammars cannot reach", () => {
+    it("malformedColourArb — the empty-argument colour form reaches kf's own fromString as a THROW, not a refusal (R1, at the pinned 4.0.0)", async () => {
+        await fc.assert(
+            fc.asyncProperty(malformedColourArb, async ({ entry, css }) => {
+                // TRIPWIRE, and it is declared as one: this asserts the MEASURED
+                // state of the installed 4.0.0 — five entries throw on the
+                // empty-argument colour forms. When KF.W3's repin to `RC-P(V)`
+                // turns the throw into an `ok:false`, this arm REDS, which is the
+                // repin's headline rather than a footnote nobody noticed. A seat
+                // arriving at that red promotes the arm; it does not widen it.
+                expect(
+                    () =>
+                        new CSSKeyframesAnimation({
+                            duration: 1000,
+                        }).fromString(css),
+                    `${entry.fn}() no longer throws at this seam`,
+                ).toThrow(TypeError);
+            }),
+            fcOpts,
+        );
+    }, 30000);
+
+    it("malformedColourArb — the façade's SWALLOW posture contains the whole class, thrown limb included", async () => {
+        await fc.assert(
+            fc.asyncProperty(malformedColourArb, async ({ entry, css }) => {
+                // The posture registry's own claim, made executable: ABSORB is
+                // UNREACHABLE on this class (it absorbs refusals, and this is a
+                // throw), so only SWALLOW covers both limbs. Unlike the tripwire
+                // above, this holds in EITHER direction across the repin — which
+                // is exactly why the seam declares postures instead of leaving
+                // twenty-one call sites to each guess one.
+                expect(
+                    swallowParsed(
+                        () => parseStylesheet(css),
+                        () => "parsed",
+                        "fallback",
+                    ),
+                    `${entry.fn}() escaped the SWALLOW posture`,
+                ).toBe("fallback");
+            }),
+            fcOpts,
+        );
+    }, 30000);
+
+    it("malformedColourArb — the WELL-FORMED control of the SAME function parses and round-trips byte-stable (the refusal tracks the ARGUMENT LIST, never the function name)", async () => {
+        await fc.assert(
+            fc.asyncProperty(malformedColourArb, async ({ entry, property }) => {
+                const css = `@keyframes x { 0% { ${property}: ${entry.wellFormed}; } 100% { ${property}: ${entry.wellFormed}; } }`;
+                const { stable, once, twice } = await structuralRoundTrip(css);
+                expect(
+                    stable,
+                    `${entry.wellFormed} not byte-stable:\n${once}\n---\n${twice}`,
+                ).toBe(true);
+            }),
+            fcOpts,
+        );
+    }, 30000);
+
+    it("offModelNbspArb — a 4×NBSP tab injected OFF the model channel PARSES, and the MODEL is what diverged (KF-KC-17)", async () => {
+        await fc.assert(
+            fc.asyncProperty(offModelNbspArb, async ({ site, css }) => {
+                // (0) the arm is not silently empty: the payload IS in the input.
+                expect(
+                    (css.match(/ /g) ?? []).length,
+                    `no payload injected at ${site}`,
+                ).toBeGreaterThanOrEqual(TAB_AS_NBSP.length);
+
+                // (1) THE PARSE SUCCEEDS. `/\s/` matches U+00A0 (K-11, banked and
+                // cited — no seat re-runs that probe), so the grammar eats the
+                // character and `structuralRoundTrip` completes: a throw or a
+                // refusal here would fail this property, and neither happens.
+                const { once, twice, stable } = await structuralRoundTrip(css);
+                expect(once).toContain("@keyframes");
+
+                // (2) THE MODEL IS WHAT DIVERGED. The text that produced this
+                // model carried the payload; the model carries none of it. That
+                // gap is KF-KC-17 — the DOM holds characters the model never
+                // recorded, because `range.insertNode` fired no `input` event —
+                // and it is a component defect (CARD-UNIT's), never a parser one.
+                expect(
+                    / /.test(once),
+                    `the model kept U+00A0 injected at ${site}: ${once}`,
+                ).toBe(false);
+
+                // (3) and the character costs the grammar nothing: byte-stable.
+                expect(
+                    stable,
+                    `not byte-stable with NBSP at ${site}:\n${once}\n---\n${twice}`,
+                ).toBe(true);
             }),
             fcOpts,
         );
