@@ -331,19 +331,34 @@ const onPlayStateChange = (playing: boolean) => {
    the demo-owned --graph-* tokens (design-idioms.css). The lines mix over
    --foreground, so the dark theme retints from the SAME rules — the duplicated
    dark data-URI is retired with its light twin. The major layer's
-   --graph-major-opacity (12%) deliberately resolves above the former 0.10α
-   floor: the substrate is PRESENT and legible behind the glass plate (the
-   §Hard-gate clause-g legibility assertion — W6-3 exits on a runtime clause,
-   never deferred again). */
+   --graph-major-opacity deliberately resolves above the former 0.10α floor:
+   the substrate is PRESENT and legible behind the glass plate (the §Hard-gate
+   clause-g legibility assertion — W6-3 exits on a runtime clause, never
+   deferred again).
+
+   KF-SKEL-20 (W6-N, re-homed from KF.W5) — THE NUMBER IS NOT RESTATED HERE, and
+   the reason is that restating it is exactly what went wrong. Two tokens were
+   carrying THREE different numbers inside a comment that calls itself a
+   hard-gate legibility assertion: this prose said the major tier was 12%, the
+   `var()` fallbacks below said 5% / 12%, and the DECLARATIONS
+   (`design-idioms.css`, `--graph-opacity` / `--graph-major-opacity`) said
+   3% / 11%. An assertion about a floor cannot be audited when the floor is
+   spelled three ways, so the cure gives the pair ONE authority instead of a
+   fourth spelling: the fallbacks are deleted (both tokens are declared at
+   `:root` in a sheet this shell imports, so the defaults were unreachable
+   anyway and existed only to drift), and this comment now names the tokens and
+   the relation — major ABOVE the 10% floor — with the magnitudes read from the
+   declaration at use. Same defect class as KF-SKEL-14 one component up: a
+   comment either becomes true or is deleted. */
 .grid-background {
     --graph-line-fine: color-mix(
         in srgb,
-        var(--foreground) var(--graph-opacity, 5%),
+        var(--foreground) var(--graph-opacity),
         transparent
     );
     --graph-line-major: color-mix(
         in srgb,
-        var(--foreground) var(--graph-major-opacity, 12%),
+        var(--foreground) var(--graph-major-opacity),
         transparent
     );
     background-image:
