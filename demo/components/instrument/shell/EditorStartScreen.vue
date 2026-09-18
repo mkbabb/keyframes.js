@@ -29,7 +29,39 @@
              only ornament: the per-CHAR wave (AnimatedText, T.D10) + the
              engine-dogfooded TypingDots pulse, one span away.
              KF-EST-20 — the inert `p-0` is gone (preflight already zeroes an
-             `<h1>`'s padding; the utility overrode nothing). -->
+             `<h1>`'s padding; the utility overrode nothing).
+
+             KF-EST-5 · KF-EST-17 · KF-EST-18 — the three COMPONENT arms this
+             wave books against this record all have their bytes one span away,
+             in `TypingDots.vue`, which is outside this unit's writable set.
+             They are dispositioned here, at the mount that owns them, rather
+             than left to look unworked; each disposition was MEASURED at
+             TypingDots' current bytes, not inferred:
+             · KF-EST-18 (the half-reactive `count` engine contract, ≡ KF-AT-1's
+               law) is DISCHARGED — the file now states "ONE CONTRACT MOTION,
+               and the arm taken is VALIDATE + MOUNT-ONCE", refusing a
+               non-positive-integer `count` through the engine's own
+               `AnimationOptionError` instead of letting `new Array(n)` throw a
+               bare RangeError inside this `<h1>`. Nothing is owed. This mount
+               passes no `count` at all, so the default is the only value in
+               play from here.
+             · KF-EST-17's component arm is LIVE and DECLARED, not cured: the
+               `onMounted(async …)` callback returns a promise Vue neither
+               awaits nor catches, so a rejected `loadAnimationEngine()` — the
+               library arm's permanently-poisoned memo — still surfaces as an
+               unhandled rejection on the LCP node, and `anim.play()` floats a
+               promise from a documented error-propagating call. Both sites are
+               in TypingDots; the cure belongs with the library ruling
+               (retry-or-poison) and is escalated, never patched from here.
+             · KF-EST-5's component arm is EVALUATED and NOT ADOPTED, which is
+               the cure the row asks for (evaluate-not-mechanical-swap, the
+               severance held). Three per-dot infinite `CSSKeyframesAnimation`s
+               where the library's group owns one driver is the real cost, but
+               the group rewrite is gated on P-8's viability test — whether a
+               multi-target `AnimationGroup` honours three infinitely-iterating,
+               differently-delayed children at all — which is KF.W5's and is
+               evidenced nowhere in the tree either way. Swapping first and
+               testing later is how a severed cure gets un-severed by accident. -->
         <h1 class="hero-display text-display-mega">
             <AnimatedText text="Select an animation" />
             <span class="hero-dots"><TypingDots /></span>
@@ -105,12 +137,14 @@ import { List } from "@lucide/vue";
 import AnimatedText from "./AnimatedText.vue";
 import TypingDots from "./TypingDots.vue";
 
-// KF-EST-3 / KF-EST-20 — ONE prop, and no `withDefaults`. The three copy props
-// are literals in the template now (decided INLINE above), which leaves `hint`
-// as the only value a consumer passes — and `hint` needs no default, so the
-// `withDefaults` wrapper whose `hint: undefined` entry "documents nothing" goes
-// with the props it was wrapping. `DESIGN.md §9.2` rules the macro form out of
-// house grammar regardless; there is nothing left here for it to do.
+// KF-EST-3 / KF-EST-20 — ONE prop, and no defaults-wrapper macro. The three
+// copy props are literals in the template now (decided INLINE above), which
+// leaves `hint` as the only value a consumer passes — and `hint` needs no
+// default, so the wrapper whose `hint: undefined` entry "documents nothing"
+// goes with the props it was wrapping. `DESIGN.md §9.2` rules that macro form
+// out of house grammar regardless; there is nothing left here for it to do.
+// (Named by its rule, not spelled: a sweep for the retired form must measure
+// live declarations, never a record of one that is gone.)
 defineProps<{
     hint?: string;
 }>();

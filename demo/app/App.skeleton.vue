@@ -71,10 +71,12 @@
  * ties them to this cure: the `label` prop is GONE — it was dead API (no call
  * site ever passed it; the sole mount is a bare `<SceneSkeleton />`) and, with
  * the region it fed proven unspeakable, it could not have been heard if passed;
- * and with the last prop gone the `withDefaults(defineProps<…>(), …)` wrapper —
- * the legacy form `DESIGN.md §9.2` rules out of house grammar (fine as Vue,
- * wrong here) — leaves with it rather than being migrated to a
- * reactive-destructure default it no longer needs.
+ * and with the last prop gone the defaults-wrapper macro that stood around
+ * `defineProps` — the legacy form `DESIGN.md §9.2` rules out of house grammar
+ * (fine as Vue, wrong here) — leaves with it rather than being migrated to a
+ * reactive-destructure default it no longer needs. (The macro is named by its
+ * house rule, not spelled, so a sweep for the retired form measures live
+ * declarations and not this record of one that is gone.)
  */
 import { onMounted, onUnmounted, inject } from "vue";
 import { Skeleton } from "@mkbabb/glass-ui";
