@@ -1,3 +1,6 @@
+import { parseTimingFunction, type ParseIssue } from "@mkbabb/value.js/css";
+import { easing } from "@mkbabb/value.js/easing";
+
 export const DIRECTION_DESCRIPTIONS: Record<string, string> = {
     normal: "plays forward",
     reverse: "plays backward",
@@ -110,5 +113,3 @@ export const COMPOSITE_OPERATOR_DESCRIPTIONS: Record<string, string> = {
     add: "accumulates with layers",
     accumulate: "accumulates across iterations",
 };
-import { parseTimingFunction, type ParseIssue } from "@mkbabb/value.js/css";
-import { easing } from "@mkbabb/value.js/easing";
