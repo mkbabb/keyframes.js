@@ -278,8 +278,8 @@ watch(isAnyOpen, (open) => {
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
                             <DockTrigger for="select" aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
-                                <component v-if="currentIcon" :is="currentIcon" class="icon-sm shrink-0 text-muted-foreground" />
-                                <Home v-else class="icon-sm text-muted-foreground" />
+                                <component v-if="currentIcon" :is="currentIcon" class="dock-glyph shrink-0 text-muted-foreground" />
+                                <Home v-else class="dock-glyph text-muted-foreground" />
                                 <SelectValue />
                             </DockTrigger>
                             <SelectContent class="min-w-[var(--dropdown-min-width)]">
@@ -287,7 +287,7 @@ watch(isAnyOpen, (open) => {
                                     <SelectItem :value="homeSceneId" class="py-2 px-3" hide-indicator>
                                         <span class="flex items-center gap-2">
                                             <StatusDot :state="currentSceneId === homeSceneId ? 'online' : 'unknown'" />
-                                            <Home class="icon-sm text-muted-foreground" />
+                                            <Home class="dock-glyph text-muted-foreground" />
                                             <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
                                         </span>
                                     </SelectItem>
@@ -301,7 +301,7 @@ watch(isAnyOpen, (open) => {
                                     >
                                         <span class="flex items-center gap-2">
                                             <StatusDot :state="currentSceneId === scene.id ? 'online' : 'unknown'" />
-                                            <component v-if="scene.icon" :is="scene.icon" class="icon-sm shrink-0 text-muted-foreground" />
+                                            <component v-if="scene.icon" :is="scene.icon" class="dock-glyph shrink-0 text-muted-foreground" />
                                             <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                         </span>
                                     </SelectItem>
@@ -334,14 +334,14 @@ watch(isAnyOpen, (open) => {
                                     @pointerenter="warmControlSurfaces"
                                     @focusin="warmControlSurfaces"
                                 >
-                                    <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="icon-md text-muted-foreground" />
+                                    <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="dock-glyph text-muted-foreground" />
                                     <SelectValue />
                                 </DockTrigger>
                                 <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                     <SelectGroup class="dock-label">
                                         <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3" hide-indicator>
                                             <span class="flex items-center gap-2">
-                                                <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="icon-md text-muted-foreground" />
+                                                <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="dock-glyph text-muted-foreground" />
                                                 <StatusDot :state="selectedControl === tab.value ? 'online' : 'unknown'" />
                                                 <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
                                             </span>
@@ -357,7 +357,7 @@ watch(isAnyOpen, (open) => {
                                 <component
                                     v-if="inlineControlTab.icon && TAB_ICONS[inlineControlTab.icon]"
                                     :is="TAB_ICONS[inlineControlTab.icon]"
-                                    class="icon-md text-muted-foreground"
+                                    class="dock-glyph text-muted-foreground"
                                 />
                                 <span>{{ inlineControlTab.label }}</span>
                             </div>
@@ -376,12 +376,12 @@ watch(isAnyOpen, (open) => {
                             @click="emit('toggleControlsPanel')"
                         >
                             <template v-if="isMobile">
-                                <ChevronUp v-if="isControlsPanelOpen" class="icon-lg" />
-                                <ChevronDown v-else class="icon-lg" />
+                                <ChevronUp v-if="isControlsPanelOpen" />
+                                <ChevronDown v-else />
                             </template>
                             <template v-else>
-                                <PanelLeftClose v-if="isControlsPanelOpen" class="icon-lg" />
-                                <PanelLeftOpen v-else class="icon-lg" />
+                                <PanelLeftClose v-if="isControlsPanelOpen" />
+                                <PanelLeftOpen v-else />
                             </template>
                         </DockControl>
 
@@ -405,8 +405,8 @@ watch(isAnyOpen, (open) => {
                      fit (no GlassDock patch) — the slot content shrinks to what the
                      circle holds. -->
                 <template #collapsed>
-                    <component v-if="currentIcon" :is="currentIcon" class="icon-md shrink-0 text-muted-foreground" />
-                    <Home v-else class="icon-md text-muted-foreground" />
+                    <component v-if="currentIcon" :is="currentIcon" class="dock-glyph shrink-0 text-muted-foreground" />
+                    <Home v-else class="dock-glyph text-muted-foreground" />
                 </template>
             </GlassDock>
         </div>
@@ -420,10 +420,43 @@ watch(isAnyOpen, (open) => {
    dock row keeps its rhythm. Not to be confused with the DELETED K.W4 single-option
    STATIC label (the #17 dup that duplicated the scene name — now elided to ABSENT).
    The `dock-label` glass-ui class supplies the font register (Jakarta, T.D3); this
-   rule only pads the inline box + keeps the text from wrapping. */
+   rule only pads the inline box + keeps the text from wrapping.
+   KF-APP-26 (the KF-APP-25 token-alignment family): the padding reads the
+   producer's SHIPPED `--dock-trigger-padding-inline`. The former
+   `--dock-label-padding-inline` spelling was a phantom — one consumer, ZERO
+   definitions anywhere in the demo or the dist — so the rule had always been
+   running on its own `0.5rem` literal fallback while LOOKING token-driven. */
 .dock-inline-tab {
-    padding-inline: var(--dock-label-padding-inline, 0.5rem);
+    padding-inline: var(--dock-trigger-padding-inline, 0.5rem);
     white-space: nowrap;
     color: var(--foreground);
+}
+
+/* ChromeDock D-5 ≡ EditorHeader F4 — ONE glyph rung in the dock row, and it is
+   the DOCK's own.
+
+   Three defects, one root: the demo's `icon-{xs,sm,md,lg}` @utility family
+   (14/16/20/24px) shadows glass-ui's `--icon-*` scale (12/14/16/20px) under
+   IDENTICAL stems, uniformly one rung up. Reading those stems inside the dock
+   (a) put FOUR glyph rungs in one row, (b) let `icon-lg` — a `@layer utilities`
+   rule, so later than `@layer components` — defeat
+   `.dock-icon-button > svg { width: var(--dock-icon-glyph) }`, drifting the
+   dock's invariant 0.5 glyph:control ratio, and (c) inverted the file's own
+   grammar: the IDENTITY glyph was the smallest thing in the row (`icon-sm`, 16)
+   and the panel toggle the largest (`icon-lg`, 24).
+
+   The cure is the KF-APP-25/-26 shape — retire the shadowed rung at the site
+   and read the PRODUCER's token. `--dock-icon-glyph` is
+   `max(--dock-layer-height * --dock-icon-glyph-ratio, --dock-icon-glyph-floor)`
+   and is declared at `:root` as well as on `.glass-dock[data-size]`, so it
+   resolves inside the PORTALLED SelectContent too. The DockControl glyphs carry
+   no class at all now: the producer already sizes its own `> svg` from the same
+   token, which is exactly the invariant `icon-lg` was defeating. Identity and
+   nav therefore render at one rung, by the dock's arithmetic and not by a demo
+   choice; the rendered ladder stays KF.W9's. The `icon-*` family's own
+   corpus-wide disposition is W6-D's audit row, not this file's. */
+.dock-glyph {
+    width: var(--dock-icon-glyph);
+    height: var(--dock-icon-glyph);
 }
 </style>
