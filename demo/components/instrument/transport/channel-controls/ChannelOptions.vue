@@ -165,15 +165,44 @@
                                     <Tooltip>
                                         <TooltipTrigger as-child>
                                         <!-- `easing-edit-btn` is the NAMED BEHAVIORAL SEAM (the
-                                             pencil hook proof:bezier-{no-scroll,single-card,grown}
-                                             click to open the detail panel) — it carries NO style;
-                                             STY-4 deleted only its scoped color RULE (the color now
-                                             rides the owned `.text-gold` idiom). -->
+                                             pencil hook for the click that opens the detail panel)
+                                             — it carries NO style.
+                                             KF-CO-19 — THE INK. This pencil wore `text-gold`, and
+                                             gold is a SPARKLE ACCENT: on the light card it is the
+                                             lowest-contrast ink the demo ships, and it was the ONLY
+                                             ink on an edit affordance. The row's banked cure names
+                                             a light-arm gold token at `design-idioms.css:36`, and
+                                             that token NO LONGER EXISTS — this wave's own audit
+                                             retired the demo's `--color-gold` pin, its two arms and
+                                             its `.text-gold` rule as a zero-delta shadow of the
+                                             producer's `--gold` (RB-2: the shadow's whole cost was
+                                             keeping a producer retune from ever arriving). Re-minting
+                                             a demo-side light-arm gold to cure contrast would restore
+                                             exactly that shadow one commit after it was retired, so
+                                             the cure is taken at the role instead of at the token:
+                                             the glyph drops to the producer's OWN muted-icon ink
+                                             (`.dock-icon-button` mixes `--foreground` at
+                                             `--opacity-icon-muted`), and gold keeps its decorative
+                                             homes untouched. Root-styling law, and no demo-side
+                                             producer patch.
+                                             KF-CO-24 — THE BOX. `compact` is gone. glass's
+                                             coarse-pointer floor is written
+                                             `.dock-icon-button:not(.dock-icon-button--compact)`, so
+                                             the modifier EXCLUDED this control from the only floor
+                                             that can reach it — and after KF-SST-30 voided
+                                             `touch-hit-area` (its expander is `pointer-events: none`)
+                                             and the wave retired `.tap-floor` as a dead class with
+                                             zero adopters, the producer's per-component floor is the
+                                             one sanctioned mechanism left. Nothing here is annotated
+                                             ONTO the void utility: that row is annotated, not
+                                             rewritten (E-3). This control is mounted in the controls
+                                             pane, never inside `GlassDock` (the only `.glass-dock`
+                                             host is ChromeDock), so the rule's second `:not()` does
+                                             not exclude it either. Rendered boxes → SS-13. -->
                                         <DockControl
                                             shape="icon"
-                                            compact
                                             title="Edit easing curve"
-                                            class="easing-edit-btn text-gold"
+                                            class="easing-edit-btn"
                                             @click.stop="
                                                 onEditIconClick(
                                                     storedAnimationOptions
@@ -602,8 +631,13 @@ onMounted(async () => {
    across the shadow boundary; the idiom is GLOBAL (design-idioms.css, unscoped),
    so it reaches `.labeled-field` directly with no `:deep`. */
 
-/* J.W7b STY-4 — the former `.easing-edit-btn { color: var(--color-gold) }`
-   scoped rule is DELETED: it bypassed the demo-owned `.text-gold` idiom
-   (design-idioms.css) to read the same token. The call site now wears
-   `text-gold` directly — one idiom, one home, identical computed color. */
+/* J.W7b STY-4, corrected at the bytes (KF-CO-19 / KF-CE-41). The former
+   `.easing-edit-btn { color: var(--color-gold) }` scoped rule is still deleted,
+   but its successor sentence is no longer true twice over: there is no
+   "demo-owned `.text-gold` idiom" — the demo's rule and its `--color-gold` pin
+   were retired this wave as a zero-delta shadow of glass-ui's `--gold`, and the
+   surviving `text-gold` is the utility the PRODUCER's theme bridge generates —
+   and this call site no longer wears it at all, because gold is a sparkle accent
+   and was the only ink on an edit affordance. `.easing-edit-btn` remains what it
+   always was here: a behavioural seam carrying no style. */
 </style>
