@@ -17,8 +17,12 @@
  *   2. THE PER-CHAR HERO CONTRACT (BROWSER — T.D10, VERDICT #3 "should uplift
  *      each individual char"; the word-granular split is the REJECTED state).
  *      The hero is a TWO-TIER split (AnimatedText): per-WORD wrappers
- *      (`.wave-word`, inline-block + margin-inline-end — words own wrapping +
- *      the gap) over per-CHAR spans (`.wave-char` — chars own the motion).
+ *      (inline-block + margin-inline-end — words own wrapping + the gap) over
+ *      per-CHAR spans (chars own the motion). BOTH class strings are read from
+ *      `demo/styles/font-roles.json` through `scripts/gates/register-census.mjs`
+ *      (X.KF.W4 R-3's fold, KF-AT-24): the private strings live in ONE home, so
+ *      a rename to `kf-split` REDs this gate AND the register census instead of
+ *      silently voiding both.
  *      Asserted, each half biting:
  *        (2a) X-5 GAP KEPT — the measured gap between adjacent same-line
  *             `.wave-word` boxes is > 0 (Vue's whitespace:'condense' strips the
@@ -27,9 +31,15 @@
  *        (2b) SR-MIRROR KEPT — the `.sr-only` mirror spells the title WITH
  *             spaces (AT hears the phrase, never the "S…e…l…e…c…t" stream) and
  *             the aria-hidden visual layer + balance substrate survive.
- *        (2c) PER-CHAR SPLIT — the char-span count equals the title's
- *             non-whitespace glyph count (derived from the mirror, never a
- *             frozen literal; 17 for the default title), every char span
+ *        (2c) PER-CHAR SPLIT — the char-span count equals the non-whitespace
+ *             glyph count of the DECLARED hero title (read statically from
+ *             EditorStartScreen.vue's own default, the clause-1 idiom), and the
+ *             sr-only mirror spells that same declared title. Until X.KF.W4
+ *             `.d` the count was derived from the RENDERED mirror — the
+ *             subject's own counter — so the equality held BY CONSTRUCTION and
+ *             a formally-discharged defect survived a HARD-in-CI browser gate
+ *             (G-L7 rule (e): a gate may not re-derive its own oracle). Every
+ *             char span
  *             resolves a live `animation-name`, and the per-char
  *             `animation-delay`s are STRICTLY MONOTONE in global char order
  *             (one wave crossing the whole line — the 3-lump word heave reds).
@@ -54,6 +64,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { navToScene, withPage } from "../../lib/demo-driver.mjs";
+// R-3's FOLD: the private AnimatedText class strings have ONE home
+// (`demo/styles/font-roles.json`), exported by the register census. This gate
+// and that census read the same contract; a rename REDs both.
+import { SELECTORS } from "../../gates/register-census.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const DEMO = path.join(REPO, "demo");
@@ -67,6 +81,31 @@ const fail = (label) => {
 };
 
 const read = (p) => fs.readFileSync(p, "utf8");
+
+// (2c)'s ORACLE, independent of the subject: the hero title as DECLARED in
+// EditorStartScreen.vue's own prop defaults. The rendered mirror is the
+// SUBJECT; deriving the expected glyph count from it made the equality hold by
+// construction (G-L7 rule (e)).
+const DECLARED_HERO_TITLE = (() => {
+    const src = read(path.join(DEMO, "components/instrument/shell/EditorStartScreen.vue"));
+    const m = src.match(/\btitle:\s*"([^"]+)"/);
+    if (!m) {
+        throw new Error(
+            "usability — EditorStartScreen.vue declares no `title:` default; (2c) has no oracle " +
+                "and MUST NOT fall back to the rendered mirror (that is the defect this cure retired)",
+        );
+    }
+    return m[1];
+})();
+const DECLARED_HERO_GLYPHS = DECLARED_HERO_TITLE.replace(/\s+/g, "").length;
+
+if (!SELECTORS) {
+    throw new Error(
+        "usability — the shared selector contract is unreadable (demo/styles/font-roles.json / " +
+            "scripts/gates/register-census.mjs); the hero clauses have no selectors and must not " +
+            "re-spell them locally",
+    );
+}
 
 console.log(
     "usability observation — G.W11 live behavior + T.D10 per-char hero contract",
@@ -161,7 +200,8 @@ async function browserHalf() {
         for (let i = 0; i < 30 && !heroReady; i++) {
             try {
                 heroReady = await page.evaluate(
-                    () => document.querySelectorAll("h1 .wave-char").length >= 2,
+                    (sel) => document.querySelectorAll(sel).length >= 2,
+                    `h1 ${SELECTORS.heroChar}`,
                 );
             } catch {
                 /* context destroyed mid hash-redirect — retry */
@@ -169,7 +209,10 @@ async function browserHalf() {
             if (!heroReady) await page.waitForTimeout(300);
         }
         if (!heroReady) {
-            fail("per-char hero — the hero <h1> .wave-char spans did not render (the two-tier T.D10 substrate is missing)");
+            fail(
+                `per-char hero — the hero <h1> ${SELECTORS.heroChar} spans did not render ` +
+                    "(the two-tier T.D10 substrate is missing)",
+            );
         } else {
             // The X-5 same-line word-gap measurement, re-anchored to the WORD
             // tier (`.wave-word`). The decorative per-char lift is em-relative
@@ -180,12 +223,12 @@ async function browserHalf() {
             // RESAMPLES across the wave phase (bounded) instead of being judged.
             let probe = null;
             for (let attempt = 0; attempt < 8; attempt++) {
-                probe = await page.evaluate(() => {
+                probe = await page.evaluate(({ heroWord, heroChar }) => {
                     const h1 = document.querySelector("h1");
                     const visualLayer = h1.querySelector('span[aria-hidden="true"]');
                     const words = [
                         ...(visualLayer
-                            ? visualLayer.querySelectorAll(".wave-word")
+                            ? visualLayer.querySelectorAll(heroWord)
                             : []),
                     ];
                     let minGap = Infinity;
@@ -215,7 +258,7 @@ async function browserHalf() {
                     // (the TypingDots tail is a separate .hero-dots host).
                     const chars = [
                         ...(visualLayer
-                            ? visualLayer.querySelectorAll(".wave-char")
+                            ? visualLayer.querySelectorAll(heroChar)
                             : []),
                     ];
                     const delays = chars.map((c) =>
@@ -236,12 +279,15 @@ async function browserHalf() {
                         mirrorHasSpaces: /\s/.test(mirrorText),
                         balanceHost,
                         charCount: chars.length,
-                        glyphCount: mirrorText.replace(/\s+/g, "").length,
+                        // REPORTED, never the oracle: the mirror is the
+                        // SUBJECT, so (2c) compares against the DECLARED title
+                        // instead (G-L7 rule (e)).
+                        mirrorGlyphCount: mirrorText.replace(/\s+/g, "").length,
                         monotone,
                         animated,
                         firstDelays: delays.slice(0, 5).map((d) => +d.toFixed(3)),
                     };
-                });
+                }, { heroWord: SELECTORS.heroWord, heroChar: SELECTORS.heroChar });
                 if (probe.sameLinePairs > 0) break;
                 await page.waitForTimeout(150);
             }
@@ -256,11 +302,24 @@ async function browserHalf() {
             } else {
                 fail(
                     `(2a) hero inter-word gap > 0 — measured ${probe.minGap}px between adjacent ` +
-                        `.wave-word boxes (the collapsed whitespace separator renders ` +
+                        `${SELECTORS.heroWord} boxes (the collapsed whitespace separator renders ` +
                         `"Selectananimation", X-5)`,
                 );
             }
-            // (2b) sr-mirror + balance substrate
+            // (2b) sr-mirror + balance substrate. The mirror must spell the
+            // DECLARED title — the oracle lives in EditorStartScreen.vue, not
+            // in the rendering under test.
+            if (probe.mirrorText === DECLARED_HERO_TITLE) {
+                ok(
+                    `(2b) hero sr-only mirror spells the DECLARED title ` +
+                        `("${DECLARED_HERO_TITLE}", read from EditorStartScreen.vue)`,
+                );
+            } else {
+                fail(
+                    `(2b) hero sr-only mirror reads ${JSON.stringify(probe.mirrorText)} but the declared ` +
+                        `title is ${JSON.stringify(DECLARED_HERO_TITLE)}`,
+                );
+            }
             if (probe.mirrorHasSpaces) {
                 ok(`(2b) hero sr-only a11y mirror spells the title with spaces ("${probe.mirrorText}")`);
             } else {
@@ -275,15 +334,17 @@ async function browserHalf() {
                 fail("(2b) hero text-wrap: balance substrate intact (text-display-* / balance host missing)");
             }
             // (2c) the per-char split
-            if (probe.charCount >= 2 && probe.charCount === probe.glyphCount) {
+            if (probe.charCount >= 2 && probe.charCount === DECLARED_HERO_GLYPHS) {
                 ok(
-                    `(2c) per-char split — ${probe.charCount} .wave-char spans == the title's ` +
-                        `${probe.glyphCount} non-whitespace glyphs (VERDICT #3: each individual char uplifts)`,
+                    `(2c) per-char split — ${probe.charCount} ${SELECTORS.heroChar} spans == the ` +
+                        `${DECLARED_HERO_GLYPHS} non-whitespace glyphs of the DECLARED title ` +
+                        `(VERDICT #3: each individual char uplifts)`,
                 );
             } else {
                 fail(
-                    `(2c) per-char split — ${probe.charCount} char span(s) vs ${probe.glyphCount} ` +
-                        `title glyphs (the word-lump split is the REJECTED state)`,
+                    `(2c) per-char split — ${probe.charCount} char span(s) vs ${DECLARED_HERO_GLYPHS} ` +
+                        `DECLARED title glyphs (the rendered mirror counted ${probe.mirrorGlyphCount}; ` +
+                        `the word-lump split is the REJECTED state)`,
                 );
             }
             if (probe.monotone) {
@@ -308,10 +369,10 @@ async function browserHalf() {
             }
 
             // (2d) honest ink, BOTH themes — weight 400 + --foreground color.
-            const ink = await page.evaluate(() => {
+            const ink = await page.evaluate((heroCharSelector) => {
                 const readInk = () => {
                     const h1 = document.querySelector("h1.hero-display");
-                    const ch = document.querySelector("h1 .wave-char");
+                    const ch = document.querySelector(heroCharSelector);
                     const cs = getComputedStyle(h1);
                     const fg = getComputedStyle(document.documentElement)
                         .getPropertyValue("--foreground")
@@ -335,7 +396,7 @@ async function browserHalf() {
                 const dark = readInk();
                 document.documentElement.classList.remove("dark");
                 return { light, dark };
-            });
+            }, `h1 ${SELECTORS.heroChar}`);
             for (const [theme, t] of Object.entries(ink)) {
                 const w = parseInt(t.weight, 10);
                 if (w === 400 && t.charColor === t.fgResolved) {
