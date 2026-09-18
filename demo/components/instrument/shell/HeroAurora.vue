@@ -122,7 +122,9 @@ const { isDark } = useGlobalDark();
 // over a near-black ground) is the visual audit's.
 //
 // KF-HA-1 — THE CURSOR AXIS, HONESTLY NAMED: `swirl` is what this config
-// actually runs. The former `interactivity: { light: true }` resolved to
+// actually runs. The former cursor-as-light atom (`interactivity.light`,
+// spelled here as a path deliberately: a retired atom should grep to zero in
+// this file, prose included) resolved to
 // exactly this object (measured: `{ swirl: true, amplitude: 0.5 }` — the door
 // drops `light`, and `swirl` defaults ON whenever interactivity is engaged),
 // so the delivered field is byte-for-byte unchanged. `light` steers a
