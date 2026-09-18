@@ -27,9 +27,10 @@
      is the demo's posture, not an oversight (the wave's coupling probe counts
      dozens of such names demo-wide); recorded as the cascade-exposure
      annotation the row asks for, never re-booked as a defect.
-   · #60 — the raw `160ms` below and the three `180ms` in CubeAxisLines sit
-     beside tokenised easing. The raw-duration family is carried at W6-J and the
-     rung is that seat's to pick; untouched here so one motion decides it once.
+   · #60 — SPENT at W6-J, one motion for the whole family: the raw `160ms`
+     below and the three `180ms` in CubeAxisLines both take the producer's
+     `--duration-fast` rung, so no declaration in this unit mixes a hand-fit
+     duration with a tokenised easing any more.
    · #24 — the unlayered `transition:` shorthand below wins over the utility
      layer and clobbers `transition-[background-color,opacity] duration-panel`
      at the markup. NO-WAVE-OWNER, untouched: this wave changes no transition
@@ -106,8 +107,12 @@
     margin: auto;
     backface-visibility: hidden;
     /* L.W11.S2 — smooth the per-face re-light between rotation ticks (the
-       registered @property --lit interpolates at the rotation cadence). */
-    transition: --lit 160ms linear;
+       registered @property --lit interpolates at the rotation cadence).
+       KF-AX-15 ≡ #60 — the raw `160ms` takes the family's one rung,
+       `--duration-fast: 0.2s` (decided in the same motion as the three
+       `180ms` in `CubeAxisLines.vue`); `linear` stays, because a re-light
+       tracking a rotation cadence is not eased. */
+    transition: --lit var(--duration-fast) linear;
     /* G5: the faces carry a STATIC per-face transform (they never re-transform —
        only the parent .cube/.idle-hover/OrbitalDrag container animates), so the
        former resident `will-change: transform` here pinned six permanent

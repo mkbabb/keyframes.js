@@ -75,11 +75,22 @@ defineProps<{
             color-mix(in srgb, var(--color) calc(var(--axis-active, 0) * 80%), transparent)
     );
     /* Smooth the reveal as the key latches/releases (the registered @property
-       lets both channels interpolate). PRM-respecting via the wrapper below. */
+       lets both channels interpolate). PRM-respecting via the wrapper below.
+
+       KF-AX-15 ≡ CubeTarget #60 — ONE RUNG FOR THE FAMILY: the three raw
+       `180ms` here and the `160ms` in `CubeTarget.css` were the demo's only
+       durations authored beside a TOKENISED easing in the same declaration —
+       half the shorthand on the producer's ladder and half hand-fit. Both
+       round to the same rung of that ladder (`0.1 / 0.12 / 0.2 / 0.3 / 0.45 /
+       0.55 / 1 / 1.5 s`, measured at the installed dist), so the family takes
+       `--duration-fast: 0.2s` and the two files stop diverging by 20 ms for no
+       reason. The `, ease` fallbacks go with them: `--ease-standard` is emitted
+       at `:root` by the same sheet that emits the duration, so a fallback
+       beside a resolving token only hides the day it stops resolving. */
     transition:
-        opacity 180ms var(--ease-standard, ease),
-        --axis-active 180ms var(--ease-standard, ease),
-        filter 180ms var(--ease-standard, ease);
+        opacity var(--duration-fast) var(--ease-standard),
+        --axis-active var(--duration-fast) var(--ease-standard),
+        filter var(--duration-fast) var(--ease-standard);
     /* Below the content plane — glass-ui's own below-stack rung (--z-behind <
        --z-content), the producer's token read directly; the demo's z-contract
        (style.css) documents the ORDER and owns no rung of its own. */
