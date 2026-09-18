@@ -26,24 +26,50 @@
             </span>
         </LabeledField>
 
-        <!-- z-index: a raw <LabeledField> + slotted <Input> so blend/z-index/
+        <!-- z-index: a raw <LabeledField> + a slotted control so blend/z-index/
              enabled are all one-cell rows (one paradigm, H.W3.S2). LabeledField
              owns the label/copy layer; the slot binds controlId/errorId
              manually (the four wrappers auto-wire these — a raw slot does it by
-             hand, LabeledField.vue.d.ts:19-26 / WV-W3-LOW-2). -->
+             hand, LabeledField.vue.d.ts:19-26 / WV-W3-LOW-2).
+             LP-8 ≡ KF-CO-35 (S-9, EVALUATED → ADOPTED here, W6-I): the control
+             is the producer's `NumberField` (`./number-field`, 7.0.0). The
+             hand-rolled `<Input type="number">` sat outside the primitive's
+             declared type union, invented data on a blank commit
+             (`parseInt(…) || 0` — an empty field became a zero z-index) and
+             committed on blur only. The NumberField emits a NUMBER payload
+             through its own model, so the commit is `Number.isFinite`-gated:
+             a blank or unparsable entry commits NOTHING, an integer step is
+             the domain's own, and the stepper buttons give the row a keyboard
+             and pointer increment it never had. `id` rides the root (reka
+             hands it to the input through its context); the error linkage
+             lands on the input, which forwards its attrs. The mono face and
+             tabular numerals are the primitive's own (`.number-field__input`),
+             so the caller's `font-mono` is not re-authored. The SECOND site
+             of this evaluation — TimelineCaret's inline percent editor
+             (C-4 / D·M-9, MISS-α6) — is DECLINED at the caret, in writing
+             there. -->
         <LabeledField
             label="z-index"
             tooltip="Stacking order in animation group"
             v-slot="{ controlId, errorId }"
         >
-            <Input
+            <NumberField
                 :id="controlId"
-                :aria-errormessage="errorId"
-                type="number"
-                class="font-mono"
                 :model-value="layerConfig.zIndex"
-                @change="(e: Event) => emit('update', { zIndex: parseInt((e.target as HTMLInputElement).value) || 0 })"
-            />
+                :step="1"
+                :format-options="{ maximumFractionDigits: 0 }"
+                @update:model-value="
+                    (v: number) => {
+                        if (Number.isFinite(v)) emit('update', { zIndex: v });
+                    }
+                "
+            >
+                <NumberFieldContent>
+                    <NumberFieldDecrement />
+                    <NumberFieldInput :aria-errormessage="errorId" />
+                    <NumberFieldIncrement />
+                </NumberFieldContent>
+            </NumberField>
         </LabeledField>
 
         <template v-if="blendAvailable && layerConfig.op === 'replace'">
@@ -72,8 +98,14 @@
 <script setup lang="ts">
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import { LabeledField, LabeledSelect, LabeledSlider, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
-import { Input } from "@mkbabb/glass-ui/forms";
-import { Separator } from "@mkbabb/glass-ui";
+import {
+    NumberField,
+    NumberFieldContent,
+    NumberFieldDecrement,
+    NumberFieldIncrement,
+    NumberFieldInput,
+} from "@mkbabb/glass-ui/number-field";
+import { Separator } from "@mkbabb/glass-ui/separator";
 import { COMPOSITE_OPERATOR_DESCRIPTIONS } from "@utils/reference-data/animationDescriptions";
 
 const COMPOSITE_OPERATORS = ["replace", "add", "accumulate"] as const;

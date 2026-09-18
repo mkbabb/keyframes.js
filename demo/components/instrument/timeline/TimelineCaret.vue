@@ -25,9 +25,22 @@
              enumerates, so
              there was ZERO indicator there. `.kf-focus-ring` carries the demo's
              own forced-colors arm. K-9's INVERSION is honoured at the bytes:
-             this lands FIRST and discharges D·M-5 now, waiting on nothing — the
-             `/number-field` evaluation (C-4/D·M-9, MISS-α6) is W6-I's and comes
-             second.
+             this landed FIRST and discharged D·M-5, waiting on nothing.
+             THE `/number-field` EVALUATION (C-4 / D·M-9, MISS-α6 — W6-I,
+             the second site of LP-8's S-9 row): DECLINED HERE, adopted at
+             LayerConfigPanel's z-index. This editor is a TRANSIENT inline
+             field that replaces a 4-character readout for the span of one
+             edit, and its whole exit contract rides `blur` / Enter / Escape on
+             the element that holds focus; the NumberField is a persistent
+             stepper group (`--control-h-lg` input + two step buttons, a
+             three-column grid) whose Reka-owned commit path emits a NUMBER,
+             which would sever G7's compare-before-commit (it reads the RAW
+             TEXT the editor opened with, so a display rounded for presentation
+             can never round-trip into the model) and re-quantize the
+             two-decimal display on every open (L-2/C-3/D·M-4 again). The
+             primitive is the wrong shape for a caret; the residual — a
+             producer inline/compact NumberField form — is MISS-α6's, recorded
+             upward, not patched here.
              SELECTION (D·M-3): in the LIGHT arm `--primary` and `--foreground`
              are byte-identical, so a hovered unselected caret and the selected
              one computed to the same ink and the whole distinction rode a single
