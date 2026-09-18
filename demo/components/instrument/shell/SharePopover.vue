@@ -8,17 +8,29 @@
              plate, the hover/press motion and the focus ring all come from the
              producer, so `bg-transparent border-none p-0 scale-on-hover
              transition-all duration-fast` are not re-authored here.
-             The open/closed opacity binding is carried VERBATIM onto the new
-             host: it is EH-9 ≡ SP-10's subject (the bare deletion ships a
-             snapping `hover:opacity-50`, and the recede-affordance books WITH
-             it as ONE SharePopover motion batch), which is W6-J's row and is not
-             spent here. -->
+             EH-9 ≡ SP-10 — THE MOTION BATCH, SPENT: the swap already retired
+             `transition-all duration-fast`, whose `all` at 0.2s was what
+             overwrote `scale-on-hover`'s spring shorthand (that utility resets
+             `transition-property` to `scale` alone, so the two could never
+             coexist on one element). What the bare deletion left behind is the
+             defect this row exists to catch — a zero-frame `hover:opacity-50`
+             snap: the glass Button's own sheet declares exactly one transition
+             (`transition: none`, under its reduced-motion arm) and carries no
+             opacity fade, so nothing replaced what died. The recede-affordance
+             books here, on the opacity leg ALONE — `transition-opacity` scopes
+             the property so no producer motion is in its way, and
+             `duration-fast` is the producer's own rung. `motion-reduce` is not
+             decoration either: the Button's reduced-motion arm lives in
+             `@layer components`, which a utility outranks whatever media query
+             it sits in, so an ungated transition utility here would have
+             defeated the producer's own PRM arm on this control. -->
         <PopoverTrigger as-child>
             <Button
                 size="sm"
                 emphasis="quiet"
                 icon-only
                 aria-label="Share animation"
+                class="transition-opacity duration-fast motion-reduce:transition-none"
                 :class="sharePopoverOpen ? 'opacity-100' : 'hover:opacity-50'"
             >
                 <Share2 class="icon-lg" />
