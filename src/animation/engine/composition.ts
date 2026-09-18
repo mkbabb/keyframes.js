@@ -17,6 +17,10 @@
 import type { Diagnostic } from "../compile/adapter";
 import type { CompiledAnimationFrame, NumericInterpSlot } from "../compile/frame";
 import type { AnimationFrame, CompositeOperator, Vars } from "../constants";
+// X.KF.W2 — the ONE grammar seam (G-W2-2). The underlying-base read below parses
+// a CSS value; it reaches value.js the way every other `src/` site now does.
+import { parseCssValues, swallowParsed } from "../compile/parse-facade";
+import type { CssValue } from "@mkbabb/value.js/value";
 
 /**
  * The per-run composition state the honoring reads/writes — the engine owns
@@ -144,6 +148,25 @@ export function applyComposition<V extends Vars>(
 }
 
 /**
+ * The numeric leaves of a parsed CSS value, IN DECLARATION ORDER — what
+ * `10 20` · `translateX(5px)` · `matrix(1, 0, 0, 1, 0, 0)` contribute
+ * positionally to a composited leaf's underlying base.
+ *
+ * X.KF.W2 (G-W2-3): the read this serves used to scan the raw inline-style text
+ * with `/-?\d*\.?\d+(?:e[+-]?\d+)?/gi` — a number grammar written beside the CSS
+ * one, with no idea what it was inside. The grammar is asked instead, and the
+ * leaves come back as numbers already: no `parseFloat` of a captured substring,
+ * no accidental match on a digit inside an identifier or a `url()`, and `1e3px`
+ * arrives as `1000` because value.js scaled it rather than because a character
+ * class happened to cover the exponent.
+ */
+const numericLeaves = (value: CssValue): number[] => {
+    if (value.kind === "call") return value.args.flatMap(numericLeaves);
+    if (value.kind === "list") return value.items.flatMap(numericLeaves);
+    return value.payload.type === "number" ? [value.payload.value] : [];
+};
+
+/**
  * Snapshot the underlying base for a composited leaf (K.W7 S1) — the
  * element's value WITHOUT this animation, the value `add`/`accumulate`
  * composites onto. Reads the target's pre-animation INLINE style for the
@@ -172,10 +195,13 @@ export function captureUnderlyingBase(
         (target.style as unknown as Record<string, string>)[prop] ||
         "";
     if (!raw) return base;
-    const nums = raw.match(/-?\d*\.?\d+(?:e[+-]?\d+)?/gi);
-    if (nums == null) return base;
+    const nums = swallowParsed(
+        () => parseCssValues(raw),
+        (value) => numericLeaves(value),
+        [],
+    );
     for (let i = 0; i < count && i < nums.length; i++) {
-        const n = Number.parseFloat(nums[i]!);
+        const n = nums[i]!;
         if (Number.isFinite(n)) base[i] = n;
     }
     poseCache?.set(prop, base.slice());
