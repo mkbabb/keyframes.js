@@ -1,23 +1,17 @@
 <template>
-    <!-- T.B7 — THE PHYSICS FACET (the SpringSidebar dissolution). The bespoke
-         313L sidebar monolith (view-fork pill + params + heatmap + presets + a
-         capped keyframes editor + a hand-dragged pane) DISSOLVED into the
-         spring facility:
-           · the view fork became CHANNEL DATA (stage 2 — the transport Select's
-             Sweep/Entry channels fork the stage; the KfPillTabs strip is gone);
-           · the pane drag DIED with `useSpringPaneDrag.ts` (168L bespoke
-             pane-dragging — panel placement is the shell's concern, not a
-             per-scene drag toy);
-           · what remains IS the Physics facet: the two LabeledSlider param
-             rows + the parameter-space heatmap + the four canonical presets as
-             clickable points — consumed glass components end to end. (The
-             merged axis-labeled canvas instrument of T-SPR-6 stays
-             design-PENDING per the drive brief; the heatmap is the live
-             parameter-space surface until that design lands.)
-         The engine-owned per-stop KeyframesEditor section below survives THIS
-         stage bound to the REAL Sweep channel animation (`springEditAnim`); its
-         terminal home is the derived Keyframes triad tab (T.B2 — the shared
-         editor pane takes over and this section dies in that motion). -->
+    <!-- THE PHYSICS FACET — the spring facility's additive facet surface
+         (`surfacesFor`, T.B2), mounted by SpringScene's `tabsContent` into the
+         channel controls. It is: the two LabeledSlider param rows + the
+         parameter-space heatmap + the four canonical presets as clickable
+         points — consumed glass components end to end — and, below them, the
+         engine-owned per-stop KeyframesEditor bound to the REAL Sweep channel
+         animation (`springEditAnim`). The Sweep/Entry view fork is CHANNEL
+         DATA on the transport Select, not this facet's. (The merged
+         axis-labeled canvas instrument of T-SPR-6 stays design-PENDING; the
+         heatmap is the live parameter-space surface until that design lands.
+         The editor section's terminal home is the derived Keyframes tab, T.B2.)
+         SPF-27 (KF.W6): this header was a tranche changelog naming files that
+         no longer exist at any path; it now describes what mounts. -->
     <Card cartoon tier="quiet" class="spring-pane w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
             <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
@@ -57,12 +51,13 @@
                  the sliders drive — one shared control surface). -->
             <SpringHeatmap :demo="demo" />
 
-            <!-- Preset cells — the SINGLE preset surface (S5: the StartingStyle
-                 pane's redundant preset row is retired; this is the ONE place the
-                 four canonical presets live). Each cell carries its OWN live track
-                 ball (painter-positioned). S3 — the active cell wears the RED-DASHED
-                 ring (the `.preset-cell--active` token treatment), not the solid
-                 green inset; the hover is the red-accent family (F3). -->
+            <!-- Preset cells — the SINGLE preset surface (this is the ONE place
+                 the four canonical presets live). Each cell carries its OWN live
+                 track ball (painter-positioned). The active cell wears a DASHED
+                 outline in the violet motion authority (`--color-progress`; the
+                 scoped rules below) and the hover is the same family's faint
+                 wash — the earlier "red-dashed ring / red-accent hover" wording
+                 predated the token re-point (red is destructive-only). -->
             <!-- SPF-10 (W6-I; G-W6-9's VARIANT-level member, decided in
                  writing): the `shape="cell"` request is RETIRED, not consumed.
                  At the installed 7.0.0 the variant's geometry does not survive
@@ -128,8 +123,9 @@
                 <div class="keyframes-editor-scroll">
                     <!-- K.W1′ — `:framed="false"` DROPS the editor's own inner
                          `Card` so the per-stop list flows into THIS facet's lone
-                         quiet parent Card directly (no card-in-card; the glass-ui
-                         4.0.0 single-surface contract — the G6 flatten clause). -->
+                         quiet parent Card directly (no card-in-card — the one-
+                         surface rule, which the installed 7.0.0 still carries;
+                         the earlier version stamp was a stale vendor premise). -->
                     <KeyframesEditor :animation="demo.springEditAnim" :framed="false" />
                 </div>
             </div>
