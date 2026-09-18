@@ -14,6 +14,22 @@
         >
             <DialogTitle class="text-subheading">{{ title }}</DialogTitle>
             <DialogDescription class="text-body text-muted-foreground">{{ description }}</DialogDescription>
+            <!-- CPD R-6 + R-27 ≡ KAD-F2 + KAD-22 — THE WELL BECOMES A NAMED,
+                 RINGED CONTROL. It was the dialog's ONLY un-ringed focusable —
+                 the shipped close X carries a ring — and it is where opening
+                 focus lands, so the primary flow this dialog exists for (open,
+                 Cmd+V, no click) began with an invisible focus on an unnamed
+                 editing host. It also carried none of role / aria-multiline /
+                 aria-label, while `KeyframeCard.vue`'s `<pre>` applies all three
+                 plus the ring to the IDENTICAL idiom: there is no "no
+                 established pattern" defence to make here, only an omission.
+                 This is the row's written NON-SWAP fallback — four attributes
+                 and one class. The swap that makes it a labelled control by
+                 construction (S-9's `Textarea`) is W6-I's, has not landed at
+                 this clock, and will discharge these rows with the component
+                 rather than inherit this markup. Both dialogs are cured by this
+                 one edit: KeyframesAddDialog is a thin adapter over this shell,
+                 so the KAD twins are the same bytes, not a second site. -->
             <pre
                 ref="textEl"
                 @input="onInput"
@@ -23,6 +39,9 @@
                 :aria-invalid="error ? 'true' : undefined"
                 :aria-describedby="error ? 'css-paste-dialog-error' : undefined"
                 contenteditable="true"
+                role="textbox"
+                aria-multiline="true"
+                :aria-label="title"
             ><code>{{ text }}</code></pre>
             <!-- G14 P2 — a failed submit is surfaced HERE, beside the text that
                  caused it: the dialog stays open, the draft is untouched, and
@@ -90,8 +109,34 @@ import { isInsideToaster } from "@components/instrument/utils/toastGuard";
  *   • `textEl` stays exposed and is now LIVE: it is the seam the adapter's
  *     highlighter owns (L-4's falsifier, answered in G15-FOLD-RULING §3).
  */
+/**
+ * R-6 (the ring) + R-24 (the surface) + R-12 (the perimeter), one string.
+ *
+ * • `outline-none` shipped with NOTHING put back; it goes, and `.kf-focus-ring`
+ *   — whose own rule declares `outline: none` and which carries the demo's
+ *   forced-colors restoration — replaces it.
+ * • R-24: `bg-muted/50` was ~2.8x the system's READ-ONLY muting applied to an
+ *   EDITABLE surface, so the affordance semantics were inverted, not merely
+ *   off-token: the system reserves the `--muted` mix for `[data-state=readonly]`
+ *   and ships `--input-on-glass` for the editable well. This is the doctrine row
+ *   of that family and TimelineCaret's edit field is its second site.
+ * • R-12: the perimeter measured sub-3:1. The row names `--control-surface-border`
+ *   as the shipped cure, and at the INSTALLED 7.0.0 bytes that token resolves to
+ *   `--glass-border-floating` = `color-mix(in srgb, var(--foreground) 5%,
+ *   transparent)` — strictly FAINTER than the `--border` it would replace
+ *   (`--neutral-4`), so adopting it by name would lower the ratio the row exists
+ *   to raise. The cure SHAPE is kept (a real perimeter rung) and the token is
+ *   chosen by measurement: `--muted-foreground`, the one rung this wave gives
+ *   every 1.4.11 mark. The named token's falsification is recorded upward as a
+ *   dated addendum-beside, never as a patch of the row.
+ *
+ * The token composite the row was reaching for arrives whole with S-9's swap
+ * (`field-control` binds `--control-surface-bg` and `--control-surface-border`
+ * together under `--glass-definition`); that swap is W6-I's and is not pre-empted
+ * here. `min-h-[20vh]` is R-10's carry and stays untouched.
+ */
 const WELL_BASE =
-    "font-mono min-h-[20vh] p-3 cursor-text rounded-lg text-small bg-muted/50 outline-none border border-border";
+    "kf-focus-ring font-mono min-h-[20vh] p-3 cursor-text rounded-lg text-small bg-[var(--input-on-glass)] border border-muted-foreground";
 
 const props = defineProps<{
     title: string;
