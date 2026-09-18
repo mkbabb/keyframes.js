@@ -1,11 +1,15 @@
 <template>
-    <!-- ── L.W11 S6 — the linear() 26-stop PLOT (the curve drawn, beside its
-         string) — the springLinearStops() output the Fira block in the sidebar
-         emits, finally PLOTTED: the position trace crests OVER the y=1 target
-         line (the overshoot is `y > 1`, right there in the data) and rings back
-         for ζ<1. The two readings of one curve — numeral (sidebar) + trace
-         (here) — the math made beautifully visible. Colocated sub-unit of
-         SpringTarget (the natural concern seam: the plot parse + draw). -->
+    <!-- ── L.W11 S6 — the linear() 26-stop PLOT. `useSpringLinearStops()` (the
+         engine's own `springLinearStops()` emitter) is parsed and drawn as a
+         trace: the position crests OVER the y=1 target line (the overshoot is
+         `y > 1`, right there in the data) and rings back for ζ<1. Colocated
+         sub-unit of SpringTarget (the natural concern seam: parse + draw).
+         SpringTrace L-4/C-8 (KF.W6): the header used to say the curve is drawn
+         "beside its string" in a side panel. No such file exists at any path, and
+         the string itself is rendered by StartingStyleTarget on the Entry
+         channel, a separate view from the Sweep view this plot lives in — the
+         two are never on screen together. This plot stands alone; the shared
+         emitter is the only thing the two readings have in common. -->
     <div class="w-full max-w-3xl shrink-0">
         <div class="flex items-center justify-between mb-1">
             <span class="text-small text-foreground">linear() &mdash; {{ linearPlot.length }} stops plotted</span>
@@ -36,9 +40,11 @@ import { useSpringLinearStops } from "./useSpringLinearStops";
 
 const props = defineProps<{ response: number; dampingFraction: number }>();
 
-// The same `linear(0, 0.234 4.17%, …, 1)` string the copy-pasteable Fira block
-// emits, parsed into (x=pct, y=value) points and drawn as an SVG trace BESIDE
-// its string (the springLinearStops() dogfood — the engine's own emitter).
+// The `linear(0, 0.234 4.17%, …, 1)` string from the shared emitter (the
+// springLinearStops() dogfood — the engine's own), parsed into (x=pct, y=value)
+// points and drawn as an SVG trace. StartingStyleTarget consumes the same
+// emitter for its `starting-style` text on the Entry channel; nothing here
+// renders that string.
 const linearStops = useSpringLinearStops(
     () => props.response,
     () => props.dampingFraction,
