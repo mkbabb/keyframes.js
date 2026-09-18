@@ -634,6 +634,45 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
     top: calc(-1 * var(--timeline-tick-label-offset));
 }
 
+/* RR-A missed-5 — ONE CARD, ONE POINTER REGIME. Every glass control beside this
+   card grows when the pointer turns coarse (the producer expresses its floor per
+   component through `--touch-target`); the card's own bespoke targets were frozen
+   hard-px and read the same at a fingertip as at a mouse — two scaling regimes in
+   one card. The floor is declared ONCE here and inherited by the pads that
+   consume it, so the card scales in one place rather than per site.
+   BOUND, and stated so it cannot widen: the marker pad's hard-px arm FOLDS to
+   banked S-1 BOUNDED and is NOT re-booked here — the diamonds sit on a
+   continuous 0–100% axis where growing an inline sequence of pads manufactures
+   overlap, which is a different defect, not this one's cure. What this regime
+   reaches is the target that has no floor in EITHER regime: the pan scrollbar,
+   which paints 6px and is dragged, clicked and arrow-keyed. Rendered magnitudes
+   remain KF.W9/SS-13's. */
+.timeline-track,
+.timeline-pan-bar {
+    --timeline-hit-floor: 24px;
+}
+
+@media (pointer: coarse) {
+    .timeline-track,
+    .timeline-pan-bar {
+        --timeline-hit-floor: var(--touch-target, 2.75rem);
+    }
+}
+
+/* The pad is gated on the row's OPERABILITY, which the template already
+   declares: the pan row reserves its height at all zoom levels and marks itself
+   `aria-hidden` with `tabindex="-1"` when there is nothing to pan, so an
+   ungated pad would hand an invisible control a larger hit area than the one it
+   has when it is live. */
+.timeline-pan-row:not([aria-hidden]) .timeline-pan-bar::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 50%;
+    block-size: var(--timeline-hit-floor);
+    translate: 0 -50%;
+}
+
 /* The marker's motion, named property by property (D-12 / K-5). This rule used
    to transition `transform` — and Tailwind 4 writes the INDIVIDUAL `scale`,
    `rotate` and `translate` properties, never the shorthand, so nothing ever set
