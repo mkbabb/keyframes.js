@@ -1,7 +1,11 @@
-/* design-idioms.css — the demo's OWNED design vocabulary (the playful spectrum, the
-   gold accent, the shared idiom recipes). Imported by style.css right after glass-ui
-   so these are the AUTHORITATIVE demo copy — every referenced idiom resolves from
-   THIS file. Geometry → layout.css. */
+/* design-idioms.css — the demo's OWNED design vocabulary (the playful spectrum and
+   the shared idiom recipes). Imported by style.css right after glass-ui so these
+   are the AUTHORITATIVE demo copy — every referenced idiom resolves from THIS
+   file. Geometry → layout.css. Gold is NOT here: the sparkle accent is glass-ui's
+   own `--gold` (light + dark arms), consumed through the `text-gold` utility the
+   producer's theme bridge generates — the demo's former same-name pin was a
+   zero-delta shadow whose only effect was to keep a producer retune from
+   arriving (RibbonBar RB-2). */
 
 @import "./playback-idiom.css";
 @import "./tab-idiom.css";
@@ -30,16 +34,6 @@
     --spring-lane-bouncy: var(--rainbow-violet);
     --spring-lane-gentle: var(--color-progress);
 
-    /* The gold sparkle accent (Format <Sparkles>). Theme-aware via the .dark CLASS;
-       the light value matches glass-ui's --gold base, the ramp .gold-shimmer sweeps
-       matches --gold-dark/light. */
-    --color-gold: hsl(43 74% 49%);
-    --color-gold-light: hsl(51 100% 50%);
-    --color-gold-dark: hsl(34 87% 38%);
-
-    /* The .scale-on-hover lift magnitude (mirrors glass-ui's --scale-hover). */
-    --scale-hover: 1.08;
-
     /* Three DRY layout tokens the demo owns HERE (the rest of the geometry is in
        layout.css). --rail-width is the DERIVED rail track
        (@property below) — 25rem/33svi/32rem, the single width authority for the lg
@@ -63,24 +57,12 @@
     initial-value: 400px;
 }
 
-/* Dark-mode gold parity — the ramp lifts with glass-ui's dark --gold-light/--gold-dark. */
-.dark {
-    --color-gold: hsl(43 74% 55%);
-    --color-gold-light: hsl(51 100% 55%);
-    --color-gold-dark: hsl(34 87% 45%);
-}
-
 /* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance:
    `.focus-ring` paints glass-ui's --focus-ring-shadow on :focus-visible (keyboard/AT
    focus only, so pointer focus stays quiet — pixel-isomorphic for the mouse case). */
 .focus-ring:focus-visible {
     box-shadow: var(--focus-ring-shadow);
     outline: none;
-}
-
-/* .text-gold — the named utility behind the Format <Sparkles> icon. */
-.text-gold {
-    color: var(--color-gold);
 }
 
 /* icon-{xs,sm,md,lg} — the icon-sizing @utility family (61 call-sites used to

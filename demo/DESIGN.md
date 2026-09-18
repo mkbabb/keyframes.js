@@ -46,8 +46,10 @@ Color is named by role, never by a new call-site literal.
 * **Rainbow is signal.** `--rainbow-red`, `orange`, `yellow`, `green`, `cyan`,
   `blue`, and `violet` are the pinned signal family. A bridge stop uses
   `color-mix()` (the sequence progress row is the exemplar); inventing another
-  hue for a gradient is forbidden. Gold (`--color-gold` and its light/dark
-  steps) is reserved for sparkle/highlight.
+  hue for a gradient is forbidden. Gold is reserved for sparkle/highlight and is
+  glass-ui's own `--gold` (with its light and dark arms), reached through the
+  `text-gold` utility the producer's theme bridge generates — the demo keeps no
+  same-name copy of it.
 * **Crayons are pinned.** `--face-1` … `--face-6` are the cube facet signals,
   hue-exact and ordered by face. The amiga red aliases the rainbow red. These
   values are not theme signals to be casually retuned.

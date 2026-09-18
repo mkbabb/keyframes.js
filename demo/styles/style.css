@@ -8,9 +8,9 @@
    AUTHORITATIVE Fira Code payload. */
 @import "@mkbabb/glass-ui/styles/fonts";
 /* The demo's OWNED design idioms + layout geometry — imported IMMEDIATELY AFTER the
-   glass-ui cascade so the demo's --rainbow-* / --color-gold / @keyframes enter
-   definitions are the AUTHORITATIVE copy (design-idioms.css); layout.css carries the
-   work-area / dock / rail geometry tokens. */
+   glass-ui cascade so the demo's --rainbow-* / @keyframes enter definitions are the
+   AUTHORITATIVE copy (design-idioms.css); layout.css carries the work-area / dock /
+   rail geometry tokens. Gold is glass-ui's --gold, not a demo copy. */
 @import "./design-idioms.css";
 @import "./layout.css";
 @custom-variant dark (&:where(.dark, .dark *));
