@@ -14,12 +14,6 @@
             "note": "Play/Pause + the transport band: CONTROLS ride the body register at medium (T.D3; the K.W2 display bind died)"
         },
         {
-            "role": "pill-tab",
-            "selector": ".kf-pill-tab",
-            "expect": { "voice": "body" },
-            "note": "KfPillTabs pills are controls → body register (the component itself is a T.H gated-on-publish excision; the register holds until then)"
-        },
-        {
             "role": "hero-display",
             "selector": "h1.hero-display .wave-char",
             "wordWrapperSelector": "h1.hero-display .wave-word",

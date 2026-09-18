@@ -20,6 +20,16 @@
     </div>
 </template>
 <script setup lang="ts">
+// THE ONE FOCUS OWNER ON A KEYFRAMES ACTIVATION (KSC N-9), decided with the
+// strip's fate. Two composables used to claim `focus()` on the same activation:
+// the pill strip's roving-focus restore (which moved focus back onto the tab the
+// user arrowed from) and `useKeyframesPaneReveal`'s reveal-focus (which moves
+// focus INTO the revealed panel that hosts this editor). The strip is deleted,
+// so the contest is over by construction — and the survivor is named here rather
+// than left implicit: `useKeyframesPaneReveal` OWNS the focus on activation, and
+// this component does not take it. Nothing in this file calls `focus()`; if a
+// future affordance needs to, it coordinates with that owner instead of racing
+// it.
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 

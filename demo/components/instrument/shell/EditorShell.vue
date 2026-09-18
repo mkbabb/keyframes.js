@@ -81,14 +81,9 @@
             :hide-controls="showStartScreen"
             :stage-mode="stageMode"
             :has-control-surfaces="hasControlSurfaces"
-            :extra-tabs="extraTabs"
             @play-state-change="onPlayStateChange"
             @start-state-change="(s: boolean) => emit('startStateChange', s)"
         >
-            <template #tabs-trigger="slotProps">
-                <slot name="tabs-trigger" v-bind="slotProps"></slot>
-            </template>
-
             <template #tabs-content>
                 <slot name="tabs-content"></slot>
             </template>
@@ -123,7 +118,6 @@ import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { Button } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { Keyboard } from "@lucide/vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { TransportChannel } from "@components/instrument/transport/transportSource";
@@ -164,14 +158,6 @@ const props = withDefaults(
         // (the ghost-rail kill). The App passes the machine projection; a
         // non-App host (the playground) takes the TRUE default — rail unchanged.
         hasControlSurfaces?: boolean;
-        // glass-ui 4.0.0 (BA.W-TABS) — standalone-host extra control-strip tabs
-        // (the playground's "Assets" tab), threaded down to the options-driven
-        // SegmentedTabs strip. The playground supplies the Assets tab here AS
-        // DATA + renders its panel via the `tabs-content` slot (gated on the
-        // active surface), replacing the retired reka `<TabsTrigger>`/`<TabsContent>`
-        // it injected before glass-ui removed the reka Tabs wrapper. The App
-        // host leaves this empty and rides the scene machine's projection.
-        extraTabs?: SegmentedTabOption[];
     }>(),
     {
         superKey: undefined,
@@ -180,7 +166,6 @@ const props = withDefaults(
         autoPlay: false,
         stageMode: "subject",
         hasControlSurfaces: true,
-        extraTabs: () => [],
     },
 );
 

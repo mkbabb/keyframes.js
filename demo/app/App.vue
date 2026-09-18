@@ -55,14 +55,6 @@
             <EditorStartScreen hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;" />
         </template>
 
-        <template #tabs-trigger="slotProps">
-            <component
-                :is="sceneRef?.tabsTrigger"
-                v-bind="slotProps"
-                v-if="sceneRef?.tabsTrigger"
-            />
-        </template>
-
         <template #tabs-content>
             <component :is="sceneRef?.tabsContent" v-if="sceneRef?.tabsContent" />
         </template>

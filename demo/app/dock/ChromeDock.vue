@@ -188,10 +188,10 @@ const sceneSelectOpen = popupModel("scene");
 const controlsSelectOpen = popupModel("controls");
 
 // ── T.G9 — the Monaco keyframes-pane INTERACTION WARM, re-homed HERE ─────────
-// The interaction half of T.G9 used to hang off the in-panel pill strip
-// (`@pointerenter`/`@focusin` on `KfPillTabs`). That strip never rendered — the
-// App provides `TABS_EXTERNALLY_MANAGED_KEY` unconditionally, so its host `v-if`
-// was permanently false — so the interaction warm fired for nobody and the pane
+// The interaction half of T.G9 used to hang off the in-panel pill strip's own
+// `@pointerenter`/`@focusin`. That strip never rendered — the App provides
+// `TABS_EXTERNALLY_MANAGED_KEY` unconditionally, so its host `v-if` was
+// permanently false — so the interaction warm fired for nobody and the pane
 // waited on the idle warm alone. THIS `<Select>` is the shipped control-surface
 // switcher, so the warm re-homes onto it: reaching for the control tabs
 // prefetches the Monaco-heavy keyframes pane, and the pane's own

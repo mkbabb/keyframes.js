@@ -38,62 +38,28 @@
             v-else
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
         >
-            <!-- Tabs header (hidden when managed externally via ChromeDock).
-                 glass-ui 4.0.0 (BA.W-TABS) — the reka `<Tabs>`/`<TabsList>` strip
-                 is the canonical `<SegmentedTabs>` (panel-nav `role=tablist`/`tab`,
-                 one indicator engine). K.W4 S4 (U-K12) — the material is `pill`
-                 (the glass-track slider chip), NOT the near-invisible `underline`
-                 ink-hairline rule the user called an "unlabeled divider". The strip
-                 is OPTIONS-DRIVEN: `stripOptions`
-                 unions the DFA-valid built-in triad with the scene-specific tabs
-                 (the machine's `extraControlTabs` data), so the former
-                 `tabs-trigger` slot + per-trigger reka injection retire — every tab
-                 is data. The strip's own overflow fade comes from `<FadingScroll>`
-                 at the consumer level in BA, but the ≤4-tab control strip never
-                 overflows, so no scroller is wired here (the `useScrollFade`
-                 overflow probe is retained below for the scroll-into-view of the
-                 active tab on a narrow viewport). -->
-            <div v-if="!tabsExternallyManaged" ref="tabsHeaderEl" class="relative w-fit flex items-center justify-center flex-shrink-0 glass-wash rounded-panel px-2 py-0.5 overflow-hidden">
-                <!-- K.W4 S4 (U-K12) — the in-panel control strip is the PILL
-                     register, not the near-invisible `underline` (the user's
-                     verdict: "pills if tabs at all"). `variant="pill"` is the
-                     3.13.0/4.0.0 glass-track slider — a legible on-brand chip the
-                     active tab reads as, where the underline ink-hairline "read as
-                     an unlabeled divider" (`live-dock-tabs-selects.md §1`). The
-                     display-font register on the option labels is W2's single
-                     `--font-display` authority (consumed via `tab-trigger.css`,
-                     not re-authored here — the W2 boundary). -->
-                <!-- R.W6 / DM-5 CONTINGENCY KILL — the kf-internal KfPillTabs
-                     replaces glass-ui SegmentedTabs: the installed 4.0.1 pill emits
-                     the orientation attribute UNCONDITIONALLY on its `role=group`,
-                     forcing an undefined-binding suppress (the DM-5 band-aid
-                     P-invariant-28 forbids re-carrying). KfPillTabs is a
-                     `role=tablist`/`tab` strip — ARIA-correct by construction. The
-                     `:options="stripOptions"` (←builtInTabs) DFA-driven contract is
-                     unchanged (proof:scene-control-dfa D1). -->
-                <KfPillTabs
-                    :options="stripOptions"
-                    :model-value="selectedControlSurface"
-                    aria-label="Control surface"
-                    @update:model-value="selectControl"
-                    @pointerenter="warmKeyframes"
-                    @focusin="warmKeyframes"
-                    :class="['w-fit max-w-full min-w-0', overflowClass]"
-                />
-            </div>
-
             <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
-                <!-- glass-ui 4.0.0 (BA.W-TABS) — `<SegmentedTabs>` owns the STRIP
-                     only; the content panels are owned HERE. Each formerly-reka
-                     `<TabsContent value="x">` is now a plain `[role=tabpanel]` div
-                     gated on the active surface (`selectedControlSurface`), keeping
-                     the SAME DFA gate (a scene whose valid set omits a surface
-                     mounts NO pane — the easing scene never spins up the Monaco
-                     keyframes pane) and the SAME panel boxes. The
-                     `[role=tabpanel][data-state=active]` seam the pane probes key on
-                     (proof:easing-sidebar) is reproduced explicitly: `role`,
-                     `data-state`, and a `tabindex` so the revealed panel is
-                     focusable, matching the prior reka tabpanel contract. -->
+                <!-- THE CONTROL SURFACES. Each is a plain div gated on the active
+                     surface (`selectedControlSurface`) under the SAME DFA gate (a
+                     scene whose valid set omits a surface mounts NO pane — the
+                     easing scene never spins up the Monaco keyframes pane).
+
+                     THE PANELS' NAMING, DECIDED WITH THE STRIP'S FATE (CC-D-2/C-3
+                     + N-4). There is no in-panel strip any more: the header that
+                     rendered one sat behind `v-if="!tabsExternallyManaged"`, which
+                     the App holds permanently false, and it is deleted. The dock's
+                     controls `<Select>` is the sole surface switcher, so these are
+                     NOT a tablist's panels and no `role="tab"` owns them. `role`
+                     and `data-state` are RETAINED DELIBERATELY, not by inertia:
+                     the `[data-state="active"][role="tabpanel"]` panel-enter rule
+                     (`styles/tab-idiom.css`) and the pane probes key on exactly
+                     that pair, and retiring the rule is an open decision this wave
+                     does not own — so stripping the attributes here would pre-empt
+                     it. What REMAINS open is the accessible NAME (no
+                     `aria-labelledby`/`aria-label` on any of the four sites — the
+                     fourth is `CubeScene.vue`'s `h()`-rendered matrix panel): that
+                     is the a11y spec input the row is banked as, and it is stated
+                     here rather than improvised. -->
                 <div
                     v-if="hasSurface('controls') && selectedControlSurface === 'controls'"
                     role="tabpanel"
@@ -205,29 +171,16 @@
 </template>
 
 <script setup lang="ts">
-// Colocated tab-trigger skin + tab-panel slide (uncaged from utils.css, D.W2.S2).
-// glass-ui 4.0.0 (BA.W-TABS) — this host's strip is now `<SegmentedTabs>` (its own
-// underline chrome), so the `.tab-trigger-*` skin no longer paints HERE; the
-// non-scoped `[data-state=active][role=tabpanel]` panel-slide STILL lands on this
-// host's plain gated panel divs (which carry `role=tabpanel` + `data-state`), and
-// the `.tab-trigger-*` classes survive for the scene tab triggers that still
-// reference them (a cross-cluster follow-on migrates those).
+// This host renders NO tab strip. The `.tab-trigger-*` skin and the second
+// authored copy of it that the pill strip carried are deleted with the strip
+// they painted; what survives in `styles/tab-idiom.css` is the non-scoped
+// `[data-state=active][role=tabpanel]` panel-slide, which still lands on this
+// host's plain gated panel divs (see the template note above).
 
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 
 import { TooltipProvider, Button } from "@mkbabb/glass-ui";
-// glass-ui 4.0.0 (BA.W-TABS) — the reka `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent`
-// family LEFT the root barrel. The canonical panel-nav is `<SegmentedTabs
-// variant="underline">` from `/tabs` (an options-driven STRIP, not a compound
-// component): the strip renders `role=tablist`/`tab` buttons from `:options`, and
-// the CONTENT panels are owned by THIS consumer (plain divs gated on the active
-// value — there is no `<TabsContent>` context). The scene-specific surfaces that
-// formerly injected reka `<TabsTrigger>` via the `tabs-trigger` slot now ride the
-// strip AS DATA through the machine's `extraControlTabs` projection (the same
-// metadata the dock reads), so no cross-realm reka tab-context is needed.
-import KfPillTabs from "../KfPillTabs.vue";
-import type { KfPillTabOption } from "../composables/useKfPillTabs";
 
 import {
     computed,
@@ -235,11 +188,9 @@ import {
     inject,
     Teleport,
     useTemplateRef,
-    watch,
 } from "vue";
 import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
 import { ChevronDown, Minimize2 } from "@lucide/vue";
-import { useTabStripScroll } from "./composables/useTabStripScroll";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
@@ -254,7 +205,7 @@ const KeyframeTimeline = defineAsyncComponent(() => import("../../timeline/Keyfr
 import ChannelOptions from "./ChannelOptions.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 
-const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = defineProps<{
+const { animation, isPlaying: isPlayingProp, layerConfig, active } = defineProps<{
     animation: KeyframesAnimation<any>;
     // `| undefined` explicit: both are BOUND by every host
     // (`ControlsPaneWrapper.vue:50-58`), and `layerConfig` is an index read off
@@ -263,21 +214,25 @@ const { animation, isPlaying: isPlayingProp, layerConfig, active, extraTabs } = 
     layerConfig?: AnimationLayerConfig | undefined;
     blendAvailable: boolean;
     active?: boolean;
-    // glass-ui 4.0.0 (BA.W-TABS) — the STANDALONE-host extra-tab seam. A non-
-    // scene-machine host (the playground EditorShell, `tabsExternallyManaged`
-    // false) has no `extraControlTabs` machine projection to ride, so it injects
-    // its scene-specific strip options AS DATA here (the SAME options-driven
-    // pattern the machine-driven host gets from `extraControlTabs`), instead of a
-    // reka `<TabsTrigger>`. The corresponding panel rides the `tabs-content` slot
-    // gated on `selectedControlSurface` (the host owns its panel, exactly as the
-    // built-in surfaces do). Empty by default — machine-driven hosts ignore it.
-    // `| undefined` explicit — bound, never omitted, by `ControlsPaneWrapper.vue:50`.
-    extraTabs?: KfPillTabOption[] | undefined;
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
 
-// When true, the tab header is hidden (tabs are managed externally, e.g. via ChromeDock)
+// True when the surfaces are switched externally (the dock's controls
+// `<Select>`), which at the frontier is ALWAYS: `App.vue` provides it `true`
+// unconditionally and is the only mount path to this component. That is exactly
+// why the in-panel header this file used to render behind `!tabsExternallyManaged`
+// was dead code and is deleted.
+//
+// THE FLAG ITSELF SURVIVES THAT DELETE, deliberately and not by oversight. It is
+// no longer only the strip's gate: it also gates `hasSurface`'s DFA filter,
+// `builtInTabs`, `isSingleSurfaceScene`'s flat mount, and the machine projection
+// + THE ONE WRITER inside `useSelectedControlSurface`. Dropping the provide while
+// the `inject` default stays `false` would silently flip all four; folding the
+// axis away honestly means editing `useSelectedControlSurface`, which is outside
+// what this change may touch. So the dead BRANCH goes and the live axis stays,
+// and the residual — a fork whose only provider is a constant — is recorded here
+// rather than half-cured.
 const tabsExternallyManaged = inject(TABS_EXTERNALLY_MANAGED_KEY, false);
 
 // ── THE CONTROL-SURFACE DFA (H.W11.S4 / I2) ─────────────────────────────────
@@ -298,6 +253,14 @@ const machine = useSceneMachine();
 // T.B2 — the tab {label,icon} metadata resolves from the ONE `SURFACE_META`
 // registry (controlSurfaces.ts); the former local `BUILT_IN_TAB_META` copy
 // (one of the three hand-synced sites) is DELETED.
+//
+// CAPABILITY RECORD for the deleted strip (CC-L-17/C-11). The strip consumed
+// `SURFACE_META` and rendered LABELS ONLY: the registry's `icon` (and any
+// tooltip) was silently dropped on the way in. Nothing is retired by the
+// delete — the surviving switcher, the dock's controls `<Select>`, renders the
+// registry icon at both its trigger and every item, so the capability moves
+// from dropped-in-one-host to carried-in-the-only-host. `builtInTabs` stays for
+// the DFA arithmetic below, not for a strip.
 const hasSurface = (surface: ControlSurface): boolean =>
     !tabsExternallyManaged || machine.controlSurfaces.value.includes(surface);
 const builtInTabs = computed(() =>
@@ -305,27 +268,6 @@ const builtInTabs = computed(() =>
         (s) => !tabsExternallyManaged || machine.controlSurfaces.value.includes(s),
     ).map((s) => SURFACE_META[s]),
 );
-
-// glass-ui 4.0.0 (BA.W-TABS) — the `<SegmentedTabs>` strip is OPTIONS-DRIVEN, so
-// the scene-specific tabs (easing/spring sidebars, cube's conditional
-// matrix-controls) ride the strip as DATA, unioned onto the built-in triad. The
-// metadata is the machine's `extraControlTabs` projection (the SAME source the
-// dock reads), keyed off `activeScene` × the active conditionals — synchronously
-// correct per tick, no reka `<TabsTrigger>` injection, no cross-realm tab context.
-// A STANDALONE host (the playground EditorShell, not scene-machine-routed) gets no
-// extra tabs (its activeScene rests on `home`), mirroring `builtInTabs`/`hasSurface`.
-const stripOptions = computed<KfPillTabOption[]>(() => {
-    // A scene-machine-driven host derives its extra tabs from the machine's
-    // `extraControlTabs` projection; a STANDALONE host (the playground) injects
-    // them via the `extraTabs` prop (the same DATA shape, sourced from the host
-    // instead of the machine) — see the `extraTabs` prop note.
-    const extra: KfPillTabOption[] = tabsExternallyManaged
-        ? machine
-              .extraControlTabs()
-              .map((t) => ({ value: t.value, label: t.label }))
-        : (extraTabs ?? []);
-    return [...builtInTabs.value, ...extra];
-});
 
 // J.W2 S2 (S4-stretch) — a scene whose DFA set is exactly ONE scene-specific
 // surface (easing → ['easing'], spring → ['spring']) mounts its panel FLAT:
@@ -343,8 +285,8 @@ const isSingleSurfaceScene = computed(
 // The machine-projected, synchronously-correct active surface + THE ONE WRITER
 // (the derivation-sync) + the suspend-on-leave gate + the user-pick DFA
 // projection all live in useSelectedControlSurface (the K.WZ proof:demo-no-
-// oversize seam; zero behavior change). `stripOptions`/`builtInTabs` deliberately
-// stay HERE (the proof:scene-control-dfa D1 source anchor greps the host). The
+// oversize seam; zero behavior change). `builtInTabs` deliberately stays HERE
+// (the scene-control-DFA source anchor greps the host). The
 // cube matrix-controls conditional is now folded into the derived surface set
 // (T.B2 — the Matrix channel's facet), so no `activeConditionals` inject remains.
 const { selectedControlSurface, projectPick } = useSelectedControlSurface({
@@ -376,7 +318,6 @@ const emit = defineEmits<{
 const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringControls>>("keyframesControlsRef");
 const timelineRef = useTemplateRef<InstanceType<typeof KeyframeTimeline>>("timelineRef");
 const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
-const tabsHeaderEl = useTemplateRef<HTMLElement>("tabsHeaderEl");
 
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
@@ -387,29 +328,25 @@ const isTimelineVisible = computed(() =>
 // useKeyframesPaneReveal (the K.WZ proof:demo-no-oversize seam). The template ref
 // stays declared here (template refs resolve in setup scope) and is passed in.
 // `keyframesWarmed` gates the FIRST mount off the scene's LCP critical path (the
-// Monaco-eager regression); `warmKeyframes` is the interaction gate (tab hover/
-// focus). Once warmed the force-mount + content-visibility cache is unchanged.
+// Monaco-eager regression); the idle warm and the select warm both live in the
+// composable. The INTERACTION warm used to hang off the deleted strip's
+// pointerenter/focusin on a node that never rendered; it now lives on the dock's
+// controls `<Select>` (`app/dock/ChromeDock.vue`), which prefetches this pane's
+// chunk so the select-time mount lands on a warm module cache. Once warmed the
+// force-mount + content-visibility cache is unchanged.
 const keyframesPaneEl = useTemplateRef<any>("keyframesPaneEl");
-const { keyframesActive, keyframesWarmed, warmKeyframes } = useKeyframesPaneReveal({
+const { keyframesActive, keyframesWarmed } = useKeyframesPaneReveal({
     storedControls,
     keyframesPaneEl,
 });
 
-// --- Overflow detection + active-tab scroll-into-view (colocated composable) ---
-// The DFA strip itself (`stripOptions` ← `builtInTabs`) stays here; the overflow
-// fade + the active-tab scroll-into-view plumbing live in useTabStripScroll
-// (the K.WZ proof:demo-no-oversize seam; zero behavior change).
-const { overflowClass, reMeasure } = useTabStripScroll({ tabsHeaderEl });
-
 const selectControl = (key: string | number) => {
     // The user-pick path writes the DFA projection of the pick (not the raw key)
     // — see useSelectedControlSurface.projectPick (the single-authority owner).
+    // Still reached: the keyboard shortcuts route here through
+    // `AnimationControlsGroup`'s `switchTab` over the exposed handle.
     storedControls.selectedControl = projectPick(key.toString());
-    reMeasure();
 };
-
-// Re-measure when slot content changes (e.g., Matrix Controls tab appearing)
-watch(() => storedControls.selectedControl, reMeasure);
 
 defineExpose({
     keyframesControlsRef,
@@ -433,28 +370,6 @@ defineExpose({
 @supports not (content-visibility: hidden) {
     .monaco-pane.inactive {
         display: none;
-    }
-}
-
-/* The tab-overflow edge fade degrades to un-faded content on a browser without
-   mask-image support — graceful, not a broken mask (D.W3.S3). Both the
-   standard and -webkit- prefixed declarations are paired (the prior rules
-   carried only the unprefixed form, no-op'ing on older WebKit). The fade
-   magnitude reads the single-sourced --mask-fade token (G.W10.S5 — the former
-   local --tabs-mask-fade shadow is collapsed). */
-@supports (-webkit-mask-image: linear-gradient(#000, #000)) or
-    (mask-image: linear-gradient(#000, #000)) {
-    .tabs-overflow-right {
-        mask-image: linear-gradient(to right, black calc(100% - var(--mask-fade)), transparent);
-        -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--mask-fade)), transparent);
-    }
-    .tabs-overflow-left {
-        mask-image: linear-gradient(to right, transparent, black var(--mask-fade));
-        -webkit-mask-image: linear-gradient(to right, transparent, black var(--mask-fade));
-    }
-    .tabs-overflow-both {
-        mask-image: linear-gradient(to right, transparent, black var(--mask-fade), black calc(100% - var(--mask-fade)), transparent);
-        -webkit-mask-image: linear-gradient(to right, transparent, black var(--mask-fade), black calc(100% - var(--mask-fade)), transparent);
     }
 }
 </style>

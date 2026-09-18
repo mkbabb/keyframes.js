@@ -62,18 +62,7 @@
                             :layer-config="host.layer"
                             :blend-available="blendAvailable"
                             :active="storedControls.selectedAnimation == host.name"
-                            :extra-tabs="extraTabs"
                         >
-                            <template #tabs-trigger>
-                                <slot
-                                    name="tabs-trigger"
-                                    :selected-animation="
-                                        storedControls.selectedAnimation
-                                    "
-                                    :is-playing="isPlaying"
-                                ></slot>
-                            </template>
-
                             <template #tabs-content>
                                 <slot
                                     name="tabs-content"
@@ -162,7 +151,6 @@ import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { Drawer, DrawerContent, DrawerTitle } from "@mkbabb/glass-ui/drawer";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
 import { computed, useTemplateRef } from "vue";
@@ -196,9 +184,6 @@ const props = defineProps<{
     animControlRefs: Record<string, any>;
     activeKeyframesRef: any;
     activeTimelineRef: any;
-    // glass-ui 4.0.0 (BA.W-TABS) — the standalone-host extra-tab options.
-    // `| undefined` explicit — bound, never omitted, by the group above.
-    extraTabs?: SegmentedTabOption[] | undefined;
 }>();
 
 // ── T.B1-β STAGE 1 — the host axis ───────────────────────────────────────────

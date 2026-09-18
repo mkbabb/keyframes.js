@@ -9,6 +9,5 @@ export const AnimationControlsGroup = defineAsyncComponent(
     () => import("./AnimationControlsGroup.vue"),
 );
 export const TransportDock = defineAsyncComponent(() => import("./TransportDock.vue"));
-export const KfPillTabs = defineAsyncComponent(() => import("./KfPillTabs.vue"));
 
 export type { TransportChannel } from "./transportSource";

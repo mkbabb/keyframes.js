@@ -143,30 +143,34 @@ const headerLeft = () =>
         ],
     });
 
-// glass-ui 4.0.0 (K.W1′ BA.W-TABS) — the matrix-controls TRIGGER is no longer a
-// scene-injected reka `<TabsTrigger>`. AnimationControls dropped the
-// `tabs-trigger` slot; the cube's conditional `matrix-controls` tab now rides the
-// `<SegmentedTabs>` strip AS DATA, projected by the DFA's `extraControlTabs`
-// (`CONDITIONAL_SURFACES.cube = ["matrix-controls"]`, labelled "Matrix Controls"
-// in `SCENE_SURFACE_TABS`). That projection is gated on the SAME condition the
-// former `tabsTrigger` guarded — the App supplies `matrix-controls` as an active
-// conditional iff the cube's Matrix animation is selected (App.vue's
-// `activeControlConditionals`, gated on `selectedAnimation === CUBE_ANIMATION_NAMES.Matrix`)
-// — so the tab still appears only while the Matrix animation is selected. The former
-// `tabsTrigger` function (and its `defineExpose` entry) are therefore DELETED.
+// The matrix-controls TRIGGER is not a scene-injected node at all. There is no
+// in-panel strip and no `tabs-trigger` slot: the cube's conditional
+// `matrix-controls` surface rides the DFA's `extraControlTabs` projection AS
+// DATA (`CONDITIONAL_SURFACES.cube = ["matrix-controls"]`, labelled "Matrix
+// Controls" in `SCENE_SURFACE_TABS`), which the dock's controls `<Select>`
+// renders. That projection is gated on the SAME condition the former
+// `tabsTrigger` function guarded — `matrix-controls` is an active conditional
+// iff the cube's Matrix animation is selected — so the entry still appears only
+// while the Matrix animation is selected. The former `tabsTrigger` function (and
+// its `defineExpose` entry) are DELETED.
 
-// The matrix-controls BODY is now a PLAIN gated tabpanel (NO reka `<TabsContent>`,
-// which needs the removed `TabsRootContext`). It mirrors AnimationControls' own
-// built-in panels: rendered ONLY while the active surface is "matrix-controls"
-// (gated on `storedControls.selectedControl` — the SAME single-authority value
-// `ribbonContent` keys on, written back by the AnimationControls derivation-sync
-// and falling back to "controls" when the Matrix condition lapses), as a plain
-// `[role=tabpanel][data-state=active]` div (the proof seam the pane probes key
-// on), else nothing (null) — matching the parent's `selectedControlSurface === 'x'`
-// gating. The active surface is read from the store CubeScene already holds (the
-// `tabs-content` slot chain does not forward it — ControlsPaneWrapper/App re-expose
-// only selectedAnimation; the store read is the in-scope mirror of ribbonContent's
-// gate, both reading the same authority).
+// The matrix-controls BODY is a PLAIN gated panel, rendered ONLY while the
+// active surface is "matrix-controls" (gated on `storedControls.selectedControl`
+// — the SAME single-authority value `ribbonContent` keys on, written back by the
+// ChannelControls derivation-sync and falling back to "controls" when the Matrix
+// condition lapses), else nothing (null) — matching the parent's
+// `selectedControlSurface === 'x'` gating. The active surface is read from the
+// store CubeScene already holds (the `tabs-content` slot chain does not forward
+// it — ControlsPaneWrapper/App re-expose only selectedAnimation; the store read
+// is the in-scope mirror of ribbonContent's gate, both reading the same
+// authority).
+//
+// This is the FOURTH orphan `[role=tabpanel]` site (CC-D-2/C-3 + N-4), and the
+// only one a template grep cannot see. Its `role`/`data-state` pair is retained
+// for the same stated reason as its three siblings in `ChannelControls.vue`: it
+// is the seam `styles/tab-idiom.css`'s panel-enter rule and the pane probes key
+// on, and retiring that rule is an open decision this wave does not own. The
+// missing accessible NAME is the a11y spec input the row is banked as.
 const tabsContent = () =>
     storedControls.selectedControl === "matrix-controls"
         ? h("div", { role: "tabpanel", "data-state": "active" }, [

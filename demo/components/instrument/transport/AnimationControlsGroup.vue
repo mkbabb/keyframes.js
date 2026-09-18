@@ -27,7 +27,6 @@
             :anim-control-refs="animControlRefs"
             :active-keyframes-ref="activeKeyframesRef"
             :active-timeline-ref="activeTimelineRef"
-            :extra-tabs="extraTabs"
             @slider-update="sliderUpdate"
             @keyframes-update="keyframesUpdate"
             @toggle-play="toggleAnimationGroup"
@@ -35,9 +34,6 @@
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"
         >
-            <template #tabs-trigger="slotProps">
-                <slot name="tabs-trigger" v-bind="slotProps"></slot>
-            </template>
             <template #tabs-content="slotProps">
                 <slot name="tabs-content" v-bind="slotProps"></slot>
             </template>
@@ -123,7 +119,6 @@ import { computed, onMounted, reactive, useTemplateRef, watchEffect } from "vue"
 
 import { TooltipProvider } from "@mkbabb/glass-ui";
 import { clamp } from "@mkbabb/value.js/math";
-import type { SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 
 import ControlsPaneWrapper from "./controls-pane/ControlsPaneWrapper.vue";
 import DemoGlobalChrome from "./components/DemoGlobalChrome.vue";
@@ -137,7 +132,7 @@ import { useControlsKeyboardShortcuts } from "./AnimationControlsGroup/useContro
 import { useAnimationGroupPlayback } from "./AnimationControlsGroup/useAnimationGroupPlayback";
 import { useAnimationProgress } from "./AnimationControlsGroup/useAnimationProgress";
 
-const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true, extraTabs } = defineProps<{
+const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true } = defineProps<{
     animationGroup: AnimationGroup<any>;
     // T.B1-β STAGE 1 — the active scene's `SceneFacility.channels`. When
     // present, they ARE the transport axis (select labels, host mounts, the
@@ -170,11 +165,6 @@ const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, h
     // from the App's machine projection (`controlSurfacesFor(activeScene)`);
     // defaults TRUE so a non-App host (the playground) keeps its rail.
     hasControlSurfaces?: boolean;
-    // glass-ui 4.0.0 (BA.W-TABS) — standalone-host extra tabs (the playground's
-    // "Assets" tab), forwarded down to AnimationControls' options-driven strip.
-    // A scene-machine-driven host (the App) leaves this empty and rides the
-    // machine's `extraControlTabs` projection instead.
-    extraTabs?: SegmentedTabOption[];
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
