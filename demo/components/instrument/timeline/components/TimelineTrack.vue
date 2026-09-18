@@ -182,7 +182,15 @@
                         >
                     </div>
                 </TooltipTrigger>
-                <TooltipContent side="top" :side-offset="8" class="p-2 max-w-56">
+                <!-- m-17 (W6-I; G-W6-9's VARIANT member): the caller's `p-2`
+                     is gone — merged LAST through the package's tailwind-merge
+                     it flattened the tooltip's designed 1.272 block/inline
+                     optical padding ratio (`px-(--overlay-pad-inline)
+                     py-(--overlay-pad-block)`) to 1.0. The width cap stays:
+                     `max-w-56` bounds the preview and collides with nothing
+                     the primitive declares. Pairs with THP D-11 (`.e`,
+                     RETAINED). -->
+                <TooltipContent side="top" :side-offset="8" class="max-w-56">
                     <TimelineHoverPreview
                         :keyframe="stop.keyframes[0]"
                         :preview-src="previewCache[stop.keyframes[0].id]"
