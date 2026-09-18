@@ -63,7 +63,13 @@ const serializeSelector = (selector: KeyframeSelector): string => {
         : `${selector.name} ${selector.offset * 100}%`;
 };
 
-const serializeDeclaration = (declaration: Declaration): string =>
+/**
+ * The ONE declaration emitter. Exported so `compile/parse-facade.ts` can
+ * publish the emit half of its declaration pair from this module rather than
+ * author a second copy — a serializer with two implementations is the Tier-D
+ * defect this seam exists to stop, not a convenience.
+ */
+export const serializeDeclaration = (declaration: Declaration): string =>
     `${declaration.name}: ${serializeCssValue(declaration.value)}${declaration.important ? " !important" : ""}`;
 
 const indent = (value: string): string =>

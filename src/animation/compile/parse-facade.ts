@@ -48,6 +48,7 @@
 import {
     collectAnimationOptions,
     collectCustomFunctions,
+    collectDeclarations,
     collectKeyframes,
     collectPropertyDescriptors,
     collectStyleRules,
@@ -61,7 +62,8 @@ import {
     parseTimingFunction,
     serializeTimelineOptions,
 } from "@mkbabb/value.js/css";
-import type { ParseIssue, ParseResult } from "@mkbabb/value.js/css";
+import type { Declaration, ParseIssue, ParseResult } from "@mkbabb/value.js/css";
+import { serializeDeclaration } from "./emit/css-text";
 
 // ── THE PARSE SURFACE — value.js's own entries, re-published at one path ─────
 // Re-published, never re-implemented: the façade is a funnel, not a parser.
@@ -148,4 +150,59 @@ export function swallowParsed<T, R>(
  */
 export function orFallback<T, R>(result: ParseResult<T>, fallback: R): T | R {
     return result.ok ? result.value : fallback;
+}
+
+// ── THE DECLARATION PAIR — the emit mirror (Tier D) ──────────────────────────
+// The façade publishes BOTH halves of the declaration seam, parse AND emit, so
+// a consumer that today hand-rolls a `split("\n")` + `indexOf(":")` scanner and
+// its mirror emitter has ONE thing to delegate to. Both halves are the tree's
+// existing authorities: the parse half is value.js's own grammar, the emit half
+// is `emit/css-text.ts`'s single declaration emitter. Nothing here is a second
+// implementation of either.
+
+/** The selector a bare declaration body is lifted under to reach the grammar. */
+const DECLARATION_BLOCK_SELECTOR = "*";
+
+/**
+ * DECLARATION PARSE — a bare `name: value;` body, through value.js's own
+ * grammar, to a name-keyed `Declaration` map.
+ *
+ * `@mkbabb/value.js/css` publishes no bare-declaration entry, so the body is
+ * lifted into a universal style rule before parsing — the same wrap idiom
+ * `resolveKeyframes` already applies to a bare keyframe stop-list
+ * (`@keyframes anonymous { … }`). NO grammar is minted here: the wrap is a
+ * stylesheet construction, and every token inside it is read by value.js.
+ *
+ * Returns the value.js `ParseResult` unchanged so the CALLER declares its
+ * posture — a whole-replacement consumer that silently drops what its scanner
+ * missed is the defect this pair exists to retire, and a posture chosen here
+ * would re-inflict it.
+ */
+export function parseDeclarationBlock(
+    body: string,
+): ParseResult<ReadonlyMap<string, Declaration>> {
+    const parsed = parseStylesheet(
+        `${DECLARATION_BLOCK_SELECTOR} {\n${body}\n}`,
+    );
+    if (!parsed.ok) return parsed;
+    const declarations =
+        collectStyleRules(parsed.value).at(-1)?.rule.declarations ?? [];
+    return {
+        ok: true,
+        value: collectDeclarations(declarations),
+        diagnostics: [],
+    };
+}
+
+/**
+ * DECLARATION EMIT — the mirror of {@link parseDeclarationBlock}, one
+ * `name: value;` per line, through `emit/css-text.ts`'s single declaration
+ * emitter.
+ */
+export function serializeDeclarationBlock(
+    declarations: Iterable<Declaration>,
+): string {
+    return [...declarations]
+        .map((declaration) => `${serializeDeclaration(declaration)};`)
+        .join("\n");
 }
