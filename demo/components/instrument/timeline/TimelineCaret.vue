@@ -42,6 +42,7 @@
             @blur="commitEdit"
             @keydown.enter="commitEdit"
             @keydown.escape="cancelEdit"
+            @wheel="onEditorWheel"
             @pointerdown.stop
         />
     </div>
@@ -165,5 +166,18 @@ const commitEdit = () => {
 
 const cancelEdit = () => {
     closeEdit();
+};
+
+/**
+ * The open editor's wheel shield is EXPLICIT (L-11 (TimelineCaret)), never
+ * inherited: the only protection was the ancestor's `@wheel.prevent`, declared
+ * for zoom — so a ctrl/⌘-wheel over an open editor zoomed the rail underneath
+ * it, and the protection vanished the moment that declaration was corrected to
+ * "prevent only on consumed events". Inside that one policy the editor consumes
+ * its own wheel while it is open, and nothing else.
+ */
+const onEditorWheel = (event: WheelEvent) => {
+    if (!isEditing.value) return;
+    event.stopPropagation();
 };
 </script>

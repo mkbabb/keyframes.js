@@ -1,27 +1,53 @@
 <template>
     <div class="flex flex-col gap-3">
-        <!-- Zoom mini range bar -->
+        <!-- Zoom / pan row. The row is ALWAYS MOUNTED and reserves its height
+             (D-11): it used to appear on `zoomLevel > 1`, and `zoomLevel` is
+             continuous through 1.0 in both directions, so the ~32px row
+             materialised mid-gesture and shoved the track it measures.
+             The bar is an OPERABLE scrollbar, not a readout (M-7 + RR-B
+             missed-4): pan had exactly three writers — the zoom recentre,
+             shift-wheel, and `clampPan` — and no drag, no click-to-jump and no
+             keyboard route, so the only pan readout was inert while the only
+             pan gesture read one axis. It is also the pan writer ARB-1's
+             auto-pan needs to exist at all. -->
         <div
-            v-if="zoomLevel > 1"
-            class="flex items-center gap-2"
+            class="timeline-pan-row flex items-center gap-2 transition-opacity duration-fast"
+            :class="zoomLevel > 1 ? 'opacity-100' : 'opacity-0'"
+            :aria-hidden="zoomLevel > 1 ? undefined : 'true'"
         >
-            <div class="relative flex-1 h-1.5 rounded-full bg-muted/50 border border-border/30">
+            <div
+                ref="panBarEl"
+                class="timeline-pan-bar relative flex-1 h-1.5 rounded-full bg-muted/50 border border-border/30 cursor-grab"
+                role="scrollbar"
+                aria-orientation="horizontal"
+                aria-label="Timeline window — pan"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                :aria-valuenow="Math.round(panOffset)"
+                :aria-valuetext="`${Math.round(panOffset)}% to ${Math.round(panOffset + 100 / zoomLevel)}%`"
+                :aria-controls="railId"
+                :tabindex="zoomLevel > 1 ? 0 : -1"
+                @keydown="onPanKeydown"
+                @pointerdown="onPanPointerDown"
+                @pointermove="onPanPointerMove"
+                @pointerup="onPanPointerUp"
+                @pointercancel="onPanPointerUp"
+                @lostpointercapture="onPanPointerUp"
+            >
                 <div
-                    class="absolute top-0 h-full rounded-full bg-primary/40"
-                    :style="{
-                        left: `${(panOffset / 100) * 100}%`,
-                        width: `${(100 / zoomLevel / 100) * 100}%`,
-                    }"
+                    class="timeline-pan-thumb absolute top-0 h-full rounded-full bg-primary/40"
+                    :style="{ left: `${panOffset}%`, width: `${100 / zoomLevel}%` }"
                 ></div>
             </div>
-            <span class="text-small text-muted-foreground shrink-0">{{ zoomLevel.toFixed(1) }}x</span>
+            <span class="timeline-zoom-readout text-small text-muted-foreground shrink-0 tabular-nums">{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
         <!-- Timeline Track -->
         <div
+            :id="railId"
             ref="trackEl"
             :class="[
-                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-none',
+                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
             ]"
             role="slider"
@@ -38,7 +64,7 @@
             @pointerup="onTrackPointerUp"
             @pointercancel="onTrackPointerUp"
             @lostpointercapture="onTrackPointerUp"
-            @wheel.prevent="onWheel"
+            @wheel="onTrackWheel"
             @touchstart.passive="onTouchStart"
             @touchmove.passive="onTouchMove"
             @touchend.passive="onTouchEnd"
@@ -134,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from "vue";
+import { computed, shallowRef, useId, useTemplateRef } from "vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
@@ -160,6 +186,9 @@ const emit = defineEmits<{
 }>();
 
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
+const panBarEl = useTemplateRef<HTMLElement>("panBarEl");
+/** The rail's id — what the pan scrollbar declares it controls. */
+const railId = useId();
 
 /** The partition the engine compiles from (KF.W7 G5) — rendered, never re-derived. */
 const stops = computed(() => coalesceKeyframes(props.sortedKeyframes));
@@ -191,6 +220,8 @@ const {
     percentToPosition,
     positionToPercent,
     zoomBy,
+    panBy,
+    panTo,
     visibleTicks,
     onWheel,
     onTouchStart,
@@ -380,6 +411,71 @@ const onTrackKeydown = (event: KeyboardEvent) => {
     if (next === null) return;
     event.preventDefault();
     emit("update:scrubT", clamp(next, 0, 100) / 100);
+};
+
+/**
+ * ONE WHEEL POLICY: prevent only on CONSUMED events. `useZoomPan.onWheel` says
+ * whether it consumed the wheel (ctrl/⌘ zoom, shift pan); a plain wheel is
+ * consumed by nobody and reaches the ancestor, which is what scrolls the pane
+ * the instrument lives in. The old `@wheel.prevent` cancelled the page's scroll
+ * BEFORE the handler could decide, and `touch-none` removed the touch escape on
+ * top of it — hence `touch-pan-y`: the rail owns the horizontal gestures, the
+ * page keeps the vertical one.
+ */
+const onTrackWheel = (event: WheelEvent) => {
+    if (onWheel(event)) event.preventDefault();
+};
+
+/** The pan window's own keyboard route — a step is a tenth of the window. */
+const onPanKeydown = (event: KeyboardEvent) => {
+    const step = (event.shiftKey ? 50 : 10) / zoomLevel.value;
+    switch (event.key) {
+        case "ArrowRight":
+        case "ArrowUp":
+            panBy(step);
+            break;
+        case "ArrowLeft":
+        case "ArrowDown":
+            panBy(-step);
+            break;
+        case "Home":
+            panTo(0, 0);
+            break;
+        case "End":
+            panTo(100, 1);
+            break;
+        default:
+            return;
+    }
+    event.preventDefault();
+};
+
+/** Click-to-jump and drag-to-pan on the window bar (the same projection). */
+const panFromPointer = (event: PointerEvent) => {
+    const bar = panBarEl.value;
+    if (!bar) return;
+    const rect = bar.getBoundingClientRect();
+    if (rect.width === 0) return;
+    panTo(clamp((event.clientX - rect.left) / rect.width, 0, 1) * 100, 0.5);
+};
+
+let panPointerId: number | null = null;
+
+const onPanPointerDown = (event: PointerEvent) => {
+    if (!acceptsPress(event) || zoomLevel.value <= 1) return;
+    panPointerId = event.pointerId;
+    panBarEl.value?.setPointerCapture(event.pointerId);
+    panFromPointer(event);
+};
+
+const onPanPointerMove = (event: PointerEvent) => {
+    if (panPointerId !== event.pointerId) return;
+    panFromPointer(event);
+};
+
+const onPanPointerUp = (event: PointerEvent) => {
+    if (panPointerId !== event.pointerId) return;
+    panPointerId = null;
 };
 
 const onMarkerPointerDown = (event: PointerEvent, stop: TimelineStop) => {

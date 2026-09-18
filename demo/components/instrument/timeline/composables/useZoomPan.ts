@@ -72,26 +72,38 @@ export function useZoomPan(trackEl: Ref<HTMLElement | null>) {
         return ticks;
     });
 
-    // --- Zoom handlers ---
-    const onWheel = (event: WheelEvent) => {
+    // --- The wheel, inside ONE policy: PREVENT ONLY ON CONSUMED EVENTS ---
+    //
+    // This handler says whether it CONSUMED the event; the caller cancels the
+    // page's scroll only when it did. The track used to declare `@wheel.prevent`,
+    // which cancels before the handler runs: a plain wheel matched neither
+    // branch and was swallowed anyway, turning a 48–128px full-width band inside
+    // a scrollable pane into a scroll trap.
+    const onWheel = (event: WheelEvent): boolean => {
         if (event.ctrlKey || event.metaKey) {
-            // Zoom centered on pointer
-            const rect = trackEl.value!.getBoundingClientRect();
-            const pointerX = (event.clientX - rect.left) / rect.width;
-            const pointerPercent = positionToPercent(pointerX * 100);
-
-            const factor = event.deltaY < 0 ? 1.05 : 1 / 1.05;
-        const newZoom = clamp(zoomLevel.value * factor, 1, 10);
-
-            // Adjust pan so pointer stays at same percent
-            panOffset.value = pointerPercent - (pointerX * 100) / newZoom;
-            zoomLevel.value = newZoom;
-            clampPan();
-        } else if (event.shiftKey && zoomLevel.value > 1) {
-            // Horizontal pan
-            panOffset.value += (event.deltaY * 0.1) / zoomLevel.value;
-            clampPan();
+            // `trackEl` is genuinely nullable (its sole caller passes a
+            // `useTemplateRef`), so it is GUARDED, never asserted (L-m-10):
+            // the old `trackEl.value!` was a real unguarded dereference.
+            const rect = trackEl.value?.getBoundingClientRect();
+            if (!rect || rect.width === 0) return false;
+            const anchor = (event.clientX - rect.left) / rect.width;
+            setZoomAround(
+                zoomLevel.value * (event.deltaY < 0 ? 1.05 : 1 / 1.05),
+                anchor,
+            );
+            return true;
         }
+        if (event.shiftKey && zoomLevel.value > 1) {
+            // WHICHEVER AXIS THE ENGINE DELIVERS (M-7 + RR-B missed-4): a
+            // shift-wheel arrives as `deltaX` on some engines and `deltaY` on
+            // others, and reading only `deltaY` left the sole pan gesture dead
+            // on the ones that translate the axis for you.
+            const delta = event.deltaX || event.deltaY;
+            if (delta === 0) return false;
+            panBy((delta * 0.1) / zoomLevel.value);
+            return true;
+        }
+        return false;
     };
 
     // Touch pinch zoom
