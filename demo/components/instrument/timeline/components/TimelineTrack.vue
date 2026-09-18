@@ -220,9 +220,16 @@ const getPercentFromPointer = (event: PointerEvent): number | null => {
 // • Capture is taken on the RAIL — the element that owns every gesture and the
 //   one node here that no keyed re-render moves — never on `event.target`
 //   (a caret's transient node, a marker whose stop head may change mid-drag).
+// • A drag carries its GRAB OFFSET (`grabDx`, in model percent). A grab is not
+//   a teleport: the pointer lands up to ~12px off the mark's centre inside the
+//   24px pad — ~3% of the 400–512px rail at z=1, itself 3× the component's own
+//   finest keyboard increment — and projecting the bare pointer percent would
+//   jump the keyframe there before the first move. The offset is captured once,
+//   at pointerdown, and subtracted on every move (GradientStopEditor C11/G5 is
+//   the severity precedent, not the identity).
 type Gesture =
     | { kind: "scrub"; pointerId: number }
-    | { kind: "drag"; pointerId: number; ids: string[] };
+    | { kind: "drag"; pointerId: number; ids: string[]; grabDx: number };
 
 const gesture = shallowRef<Gesture | null>(null);
 const activePointers = new Set<number>();
@@ -278,7 +285,19 @@ const onTrackPointerMove = (event: PointerEvent) => {
     const percent = getPercentFromPointer(event);
     if (percent === null) return;
     if (live.kind === "drag") {
-        moveStop(live.ids, percent);
+        // The dragged set is reconciled against the LIVE collection every move:
+        // a mid-drag delete, undo or import leaves the latched id dangling, and
+        // the sink's `find` would no-op in silence (L-m-14). An empty set ends
+        // the gesture instead — one identity policy with L-8/C-9.
+        const ids = live.ids.filter((id) =>
+            props.sortedKeyframes.some((kf) => kf.id === id),
+        );
+        if (ids.length === 0) {
+            endGesture();
+            return;
+        }
+        if (ids.length !== live.ids.length) gesture.value = { ...live, ids };
+        moveStop(ids, clamp(percent - live.grabDx, 0, 100));
         return;
     }
     emit("update:scrubT", percent / 100);
@@ -293,11 +312,14 @@ const onTrackPointerUp = (event: PointerEvent) => {
 
 const onMarkerPointerDown = (event: PointerEvent, stop: TimelineStop) => {
     if (!admitPress(event)) return;
+    const percent = getPercentFromPointer(event);
+    if (percent === null) return;
     if (
         !beginGesture(event, {
             kind: "drag",
             pointerId: event.pointerId,
             ids: stop.keyframes.map((kf) => kf.id),
+            grabDx: percent - stop.percent,
         })
     ) {
         return;
