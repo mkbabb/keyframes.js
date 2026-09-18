@@ -503,8 +503,8 @@ watch(isAnyOpen, (open) => {
     color: var(--foreground);
 }
 
-/* ChromeDock D-5 ≡ EditorHeader F4 — ONE glyph rung in the dock row, and it is
-   the DOCK's own.
+/* ChromeDock D-5 (co-id: the F4 row of the deleted header fork's record) — ONE
+   glyph rung in the dock row, and it is the DOCK's own.
 
    Three defects, one root: the demo's `icon-{xs,sm,md,lg}` @utility family
    (14/16/20/24px) shadows glass-ui's `--icon-*` scale (12/14/16/20px) under
