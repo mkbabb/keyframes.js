@@ -1,27 +1,11 @@
 <template>
-    <!-- KAD-18 ≡ KF-KE-24 — the well's PLATE, recorded at the site that
-         sets it. `hljs` is a RUNTIME-INJECTED, UNLAYERED rule
-         (`.hljs{background:#0d1117}`), so it outranks the shell's own
-         surface utility here: the demo's editable-well token
-         (`--input-on-glass`, R-24) paints at the timeline's paste mount and
-         is INERT at this one, and the hard `#ffffff`/`#0d1117` plate lands
-         inside the warm `--card` surface instead. The TOKEN DECISION is this
-         wave's and is stated at KeyframesEditor: a plate reads the surface it
-         is on. The MECHANISM that makes it reachable here — layering the
-         injected sheet, or re-tokenizing the theme — belongs to the editor
-         pipeline (EDITOR/KFED-UNIT) and is not pre-empted; the shell's class
-         is deliberately left intact so the cure lands in one place when that
-         pipeline does, rather than being deleted as dead today and re-added
-         tomorrow. -->
     <CSSPasteDialog
-        ref="shell"
         v-model:open="open"
         v-model:text="text"
         title="Add keyframes"
         description="Append @keyframes stops to the current animation"
         button-label="Add keyframes"
         :button-icon="FileIcon"
-        pre-class="hljs"
         :submit="onSubmit"
     >
         <template #trigger>
@@ -43,13 +27,11 @@
 
 <script setup lang="ts">
 import { useTemplateRef, watch } from "vue";
-import { useEventListener, useMagicKeys } from "@vueuse/core";
+import { useMagicKeys } from "@vueuse/core";
 import { DialogTrigger } from "@mkbabb/glass-ui";
 import { FileIcon, FilePlus2 } from "@lucide/vue";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import CSSPasteDialog from "@components/instrument/timeline/CSSPasteDialog.vue";
-import { useCodeHighlight } from "../composables/useHighlightCSS";
-import { insertTabAtCursor } from "../utils/contenteditable";
 
 /**
  * The Add-keyframes dialog — a THIN ADAPTER over the one CSS-paste shell
@@ -61,19 +43,23 @@ import { insertTabAtCursor } from "../utils/contenteditable";
  * mount contract (`v-model:open` · `v-model:text` · `:format` · `@submit`) are
  * unchanged, so its one live consumer needs no edit.
  *
- * FOUR genuine deltas survive here, and only these four:
+ * S-9 (W6-I) — the shell's well is now the producer's `Textarea`, and TWO of
+ * the four deltas this adapter kept die with the contenteditable host they
+ * reached into: hljs recolouring of the well (a native textarea has no
+ * innerHTML to paint — KAD-3's "inert for the whole session" highlighting,
+ * KAD-18's `hljs` plate and the `pre-class` seam are gone together, not
+ * patched) and Tab-insert + per-keystroke recolour (a Tab in a textarea moves
+ * focus, the a11y-correct default; CPD R-20). What survives here, and only
+ * this:
  *   1. the `DialogTrigger` — through the shell's `trigger` slot, so reka's root
  *      context still reaches it and the `<button aria-label="Add keyframes">`
  *      DOM shape `useToolbarKeyboard`'s roving tabindex depends on is preserved
  *      verbatim;
- *   2. hljs highlighting of the shell's well, reached through the `textEl` the
- *      shell exposes (L-4's falsifier: the `<pre>` identity is HELD by the
- *      shell and PUBLISHED through the seam R-19 called dead);
- *   3. Tab-insert + per-keystroke recolour, bound to that same element;
- *   4. Shift+Alt+F reformat — which now EMITS `update:text` with the formatted
+ *   2. Shift+Alt+F reformat — which EMITS `update:text` with the formatted
  *      result (KAD-13: the `format` prop's JSDoc declared a pure formatter
  *      while the wiring secretly wrote the parent model and `reformat()` never
- *      emitted; this IS R-7's text-hoisting constraint, in one line).
+ *      emitted; this IS R-7's text-hoisting constraint, in one line). The model
+ *      write is the whole of it now — the textarea renders the model.
  *
  * The progress bar rides `footer-extra` unchanged (KAD-15 → KF.W6).
  */
@@ -89,42 +75,10 @@ const emit = defineEmits<{
 const open = defineModel<boolean>("open", { required: true });
 const text = defineModel<string>("text", { required: true });
 
-const shell = useTemplateRef<InstanceType<typeof CSSPasteDialog>>("shell");
 const progressBarEl = useTemplateRef<HTMLElement>("progressBarEl");
-const wellEl = () => shell.value?.textEl ?? null;
-
-const { setHighlightingString, highlightAll } = useCodeHighlight(() => [
-    wellEl(),
-]);
-
-// `DialogContent` unmounts its subtree on close, so the well is a NEW element
-// on every open; the W5 idempotence record is keyed to the element, so the
-// first `highlightAll` on a fresh one colourises. Watching the exposed ref is
-// the correct trigger (it replaces the old `onMounted` + `watch(ownRef)` pair).
-watch(wellEl, (el) => {
-    if (el) highlightAll(el);
-});
-
-useEventListener(wellEl, "keydown", (e: KeyboardEvent) => {
-    if (e.key === "Ï") {
-        e.preventDefault();
-        return;
-    }
-
-    if (e.key === "Tab") {
-        e.preventDefault();
-        insertTabAtCursor(e.target as HTMLElement);
-    }
-
-    highlightAll();
-});
 
 const reformat = async () => {
-    const formatted = await props.format(text.value);
-    text.value = formatted;
-    setHighlightingString(wellEl(), formatted);
-    highlightAll();
-    window.getSelection()?.collapseToEnd();
+    text.value = await props.format(text.value);
 };
 
 const animateProgressBar = async () => {
