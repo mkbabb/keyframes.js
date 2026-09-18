@@ -126,6 +126,25 @@ const reformat = async () => {
 // `respectReducedMotion` rides with the rest state (KF-KE-8's sequencing
 // nuance: under PRM the engine snaps to the final frame, which with a rest
 // state is the invisible bar, so the sweep simply does not show).
+//
+// KAD-11 — THE PRM PAIR, TOKENIZATION HALF (the twin is `KeyframesEditor.vue`'s
+// `animateProgressBar`; one decision, spent at both sites in one motion):
+//   · THE REGISTER — reduced motion is honoured through the engine's own
+//     `respectReducedMotion` options bag → the shared `withReducedMotion`
+//     authority. NEVER a bespoke per-site `@media (prefers-reduced-motion:
+//     reduce)` block: a 1000 ms WAAPI width sweep is not delegable to CSS, and
+//     a per-site query is exactly the hand-mirrored shape this register
+//     replaced. A group-driven sweep would arm via `g.respectReducedMotion`;
+//     this one is standalone and arms through its own bag.
+//   · THE CLOCK — `duration: 1000` is the millisecond mirror of glass-ui's
+//     `--duration-xl: 1s` (measured at the installed dist). The engine takes
+//     milliseconds and reading the custom property here would trade a
+//     documented constant for a layout read, so the mirror is
+//     RETAINED-BY-POLICY with its rung named.
+// Split row: the PRM MECHANISM unification is KF.W9's (`G-KFW9-6`), whose
+// constraint rides verbatim — no unification lands that snaps a progress
+// animation to a rest state its own banked defect makes idle-indistinguishable.
+// Neither end records `KAD-11` or `G-KFW9-6` closed on its own.
 const animateProgressBar = async () => {
     if (!progressBarEl.value) return;
     const { CSSKeyframesAnimation } = await loadAnimationEngine();

@@ -314,6 +314,29 @@ const progressBarKeyframesEl = useTemplateRef<HTMLElement>("progressBarKeyframes
 // KAD-15 at this twin: `scaleX()` from rest (0) to full, `fillMode: "none"` so
 // the bar returns to its rest class when the sweep ends (D-20), and the PRM
 // flag lands with the rest state (KF-KE-8's sequencing nuance).
+//
+// KAD-11 — THE PRM PAIR, TOKENIZATION HALF (the twin is
+// `KeyframesAddDialog.vue`'s `animateProgressBar`; both carry the same two
+// decisions and they were decided ONCE, here and there in one motion):
+//   · THE REGISTER — reduced motion is honoured through the engine's own
+//     `respectReducedMotion` options bag, which routes to the shared
+//     `withReducedMotion` authority. NEVER a bespoke per-site `@media
+//     (prefers-reduced-motion: reduce)` block: a WAAPI sweep is not delegable
+//     to CSS, and a per-site query is the hand-mirrored shape this register
+//     replaced. A group-driven sweep arms through `g.respectReducedMotion`;
+//     these two are standalone and arm through their own bags.
+//   · THE CLOCK — `duration: 1000` is the millisecond mirror of glass-ui's
+//     `--duration-xl: 1s` (measured at the installed dist's token set, which
+//     rungs 0.1 / 0.12 / 0.2 / 0.3 / 0.45 / 0.55 / 1 / 1.5 s). The engine takes
+//     milliseconds, and reading the custom property here would trade a
+//     documented constant for a layout read — so the mirror is
+//     RETAINED-BY-POLICY with its rung named, the same disposition the
+//     CopyButton pulse carries.
+// The row is one half of a split: the PRM MECHANISM unification is KF.W9's
+// (`G-KFW9-6`), and its constraint rides verbatim — no unification lands that
+// snaps a progress animation to a rest state its own banked defect makes
+// idle-indistinguishable. Neither end records `KAD-11` or `G-KFW9-6` closed on
+// its own.
 const animateProgressBar = (el: HTMLElement) => {
     new CSSKeyframesAnimation(
         { duration: 1000, fillMode: "none", respectReducedMotion: true },
