@@ -6,10 +6,25 @@
    THIS file is geometry — lengths, ratios, viewport clamps — only. */
 
 /* Geometry tokens — OUTSIDE @layer so they override glass-ui's incidental
-   same-named tokens (authoritative for the demo). NOTE: --panel-max-h / --rail-width
-   / --mask-fade live in design-idioms.css (that file is their definition
-   anchor); the @property --rail-width registration rides beside them. */
+   same-named tokens (authoritative for the demo). The token-home partition is
+   DESIGN.md §6's, landed: every length / ratio / viewport clamp is HERE (including
+   --rail-width with its @property registration below, --panel-max-h and
+   --mask-fade); every appearance magnitude (graph ink, the pane idle opacity) is
+   design-idioms.css's. */
 :root {
+    /* ── The three DRY layout tokens formerly homed in design-idioms.css ──
+       --rail-width is the DERIVED rail track (@property below) — 25rem/33svi/32rem,
+       the single width authority for the lg [rail] track AND the pane.
+       --panel-max-h is the block-size cap a SCROLLING PANEL REGION may take before
+       it scrolls — its two consumers are the expanded-timeline cell in the desktop
+       [rail]/[bottom] grid (AnimationControlsGroup) and the shortcuts modal's scroll
+       port (KeyboardShortcutsModal); it was mis-chartered as "caps mobile panels"
+       while neither consumer was mobile-only (KSM R-21). --mask-fade is the
+       controls-pane scroll-fade extent. */
+    --rail-width: clamp(25rem, 33svi, 32rem);
+    --panel-max-h: 60dvh;
+    --mask-fade: 2.5rem;
+
     /* ── Recurring length homes (each routes a bracket-arbitrary literal to ONE token) ── */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
     --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent dropdown min (recurs ×3) */
@@ -23,20 +38,11 @@
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing SelectContent cap */
     --start-hero-band: 34dvh; /* the phone home hero/subject band split (the hero owns above; the subject's centering starts below) — clears the display-4 mobile hero on the 667/844 heights */
 
-    /* The graph / stage-field substrate: two-tier engineering-graph-paper pitches
-       (fine 1rem lines + 5rem majors), line strengths mixed over --foreground so
-       dark mode retints for free. The major tier is held STRICTLY ABOVE the 10%
-       legibility floor (clause g; no gate asserts it). */
+    /* The graph / stage-field substrate PITCHES: two-tier engineering-graph-paper
+       (fine 1rem lines + 5rem majors). The line strengths (--graph-opacity /
+       --graph-major-opacity) are appearance magnitudes and live in design-idioms.css. */
     --graph-pitch: 1rem;
     --graph-major: 5rem;
-    --graph-opacity: 3%;
-    --graph-major-opacity: 11%;
-    --stage-field-tint: 4%; /* the per-stage field-tint magnitude */
-
-    /* The rest-dim opacity the OPEN controls pane fades to after ~10s of global
-       inactivity (the consuming rules live in ControlsPaneWrapper's scoped style so
-       the fade composes with its open/close transition). */
-    --controls-idle-opacity: 0.35;
 
     /* ── The work-area card + dock anchoring ──
        --dock-icon-height + the work-area clamp CEILINGS (a centered card that GROWS
@@ -144,6 +150,19 @@
     /* ── Component offsets ── */
     --caret-offset: 14px;
     --resize-handle-inset: -4px;
+}
+
+/* Register --rail-width as a typed <length> so the clamp COMPUTES to a used px and
+   inherits ONE length to both the [rail] track and the pane; initial-value must be an
+   absolute length (rem would drop the registration) — 400px is the 25rem floor.
+   A registration is DOCUMENT-WIDE whatever sheet declares it (KF-AX-25's class):
+   this one is deliberate — the typed inheritance is the whole point — and its
+   initial-value is the clamp's own floor, so no reader's fallback is poisoned by a
+   foreign value. */
+@property --rail-width {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 400px;
 }
 
 /* THE DOCK-CLUSTER ANCHOR (progressive enhancement, feature-DETECTED). Where CSS

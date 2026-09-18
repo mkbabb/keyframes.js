@@ -93,7 +93,7 @@ anchors use the quarter/phi asymmetry. Work-area clamps, safe-area insets, and
 the stable mobile reserve feed the dock; a component must not introduce a
 viewport literal that bypasses those tokens. Geometry tokens (lengths, ratios,
 viewport clamps) live in `layout.css`. Appearance magnitudes such as graph ink
-and pane idle opacity live in `design-idioms.css` when that move lands in U.B.
+and pane idle opacity live in `design-idioms.css` (the §6 partition, landed).
 
 Depth is the semantic glass-ui scale, strictly ascending:
 
@@ -134,11 +134,12 @@ Partition by concern, not by whichever proof currently names a file:
 * signal, appearance, material, and interaction tokens → `design-idioms.css`;
 * lengths, ratios, viewport clamps, dock/work-area geometry → `layout.css`.
 
-The U.B styles pass moves the appearance strays (`--graph-opacity`,
-`--graph-major-opacity`, `--controls-idle-opacity`) out of `layout.css` and the
-geometry strays (`--rail-width`, `--panel-max-h`, `--mask-fade`) out of
-`design-idioms.css`, then re-anchors the surviving proof clause in the same
-motion. The cascade order does not change.
+This partition is landed (the move U.B described): the appearance strays
+(`--graph-opacity`, `--graph-major-opacity`, `--controls-idle-opacity`) live in
+`design-idioms.css` and the geometry strays (`--rail-width` with its `@property`
+registration, `--panel-max-h`, `--mask-fade`) live in `layout.css`. No proof
+clause is anchored to it; the partition is the invariant, stated here and at
+the head of each sheet. The cascade order did not change.
 
 Rationale prose is owned here. Comments may point to a section; they do not
 mint a competing authority. U.E's currency sweep removes stale “red motion

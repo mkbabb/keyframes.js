@@ -34,27 +34,26 @@
     --spring-lane-bouncy: var(--rainbow-violet);
     --spring-lane-gentle: var(--color-progress);
 
-    /* Three DRY layout tokens the demo owns HERE (the rest of the geometry is in
-       layout.css). --rail-width is the DERIVED rail track
-       (@property below) — 25rem/33svi/32rem, the single width authority for the lg
-       [rail] track AND the pane; --panel-max-h caps mobile panels; --mask-fade the fade. */
-    --rail-width: clamp(25rem, 33svi, 32rem);
-    --panel-max-h: 60dvh;
-    --mask-fade: 2.5rem;
+    /* ── Appearance magnitudes (DESIGN.md §6: signal / appearance / material /
+       interaction → THIS file; lengths, ratios and clamps → layout.css). ── */
+
+    /* The rest-dim opacity the OPEN controls pane fades to after ~10s of global
+       inactivity — a WCAG-relevant magnitude, so it is defined ONCE, here, and its
+       sole consumer (ControlsPaneWrapper.css) reads it with no restating fallback;
+       usePaneHover.ts owns the WHEN. */
+    --controls-idle-opacity: 0.35;
+
+    /* The graph / stage-field ink: two-tier engineering-graph-paper line strengths,
+       mixed over --foreground so dark mode retints for free (the pitches — lengths —
+       are layout.css's). The major tier is held STRICTLY ABOVE the 10% legibility
+       floor (clause g; no gate asserts it). */
+    --graph-opacity: 3%;
+    --graph-major-opacity: 11%;
 
     /* The square subject's owned identity hue (retires a raw `aquamarine`): the
        EGG_HUES terminal stop, so the box's rest colour == the tumble egg's landing
        colour by construction. */
     --subject-teal: #52e898;
-}
-
-/* Register --rail-width as a typed <length> so the clamp COMPUTES to a used px and
-   inherits ONE length to both the [rail] track and the pane; initial-value must be an
-   absolute length (rem would drop the registration) — 400px is the 25rem floor. */
-@property --rail-width {
-    syntax: "<length>";
-    inherits: true;
-    initial-value: 400px;
 }
 
 /* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance:

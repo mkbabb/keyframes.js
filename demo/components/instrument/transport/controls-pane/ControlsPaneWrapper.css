@@ -108,11 +108,13 @@
 
     /* ── F9 (H.W9.S6) — the controls idle-fade (restoration) ──
        After IDLE_MS (10s) of GLOBAL window inactivity the OPEN pane rest-dims to
-       --controls-idle-opacity. `useIdle` (usePaneHover.ts) owns the WHEN; CSS
-       owns the magnitude + transition + the instant lift. :hover / :focus-within
-       lift it to full opacity at once. Desktop only. */
+       --controls-idle-opacity (design-idioms.css — the ONE definition; no fallback
+       restates it here, a :root token resolves on a portalled body too). `useIdle`
+       (usePaneHover.ts) owns the WHEN; CSS owns the magnitude + transition + the
+       instant lift. :hover / :focus-within lift it to full opacity at once. Desktop
+       only. */
     .controls-pane-wrapper.controls-pane--idle:not(.controls-pane--hovered) {
-        opacity: var(--controls-idle-opacity, 0.35);
+        opacity: var(--controls-idle-opacity);
     }
     .controls-pane-wrapper:hover,
     .controls-pane-wrapper:focus-within {
