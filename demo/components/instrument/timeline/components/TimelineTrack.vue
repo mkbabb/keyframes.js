@@ -9,7 +9,16 @@
              shift-wheel, and `clampPan` — and no drag, no click-to-jump and no
              keyboard route, so the only pan readout was inert while the only
              pan gesture read one axis. It is also the pan writer ARB-1's
-             auto-pan needs to exist at all. -->
+             auto-pan needs to exist at all.
+             D-5 (TimelineTrack) — THE ZOOM/PAN INDICATOR'S RUNG. The bar is the
+             ONLY rendering of pan position and it failed SC 1.4.11 in both arms
+             through two alphas: a `/30` outline and a `/40` fill. Both are gone
+             for full-strength tokens under the rung this wave gives every 1.4.11
+             mark — `--muted-foreground` for the boundary, `--primary` for the
+             thumb — because an alpha multiplies whatever the token resolved to
+             and therefore caps the ratio below any theme's reach. This row RIDES
+             D-7's residue row for its painted figures and is never measured
+             separately (the single-measurement-site lock). -->
         <div
             class="timeline-pan-row flex items-center gap-2 transition-opacity duration-fast"
             :class="zoomLevel > 1 ? 'opacity-100' : 'opacity-0'"
@@ -17,7 +26,7 @@
         >
             <div
                 ref="panBarEl"
-                class="timeline-pan-bar relative flex-1 h-1.5 rounded-full bg-muted/50 border border-border/30 cursor-grab"
+                class="timeline-pan-bar relative flex-1 h-1.5 rounded-full bg-muted/50 border border-muted-foreground cursor-grab"
                 role="scrollbar"
                 aria-orientation="horizontal"
                 aria-label="Timeline window — pan"
@@ -35,20 +44,32 @@
                 @lostpointercapture="onPanPointerUp"
             >
                 <div
-                    class="timeline-pan-thumb absolute top-0 h-full rounded-full bg-primary/40"
+                    class="timeline-pan-thumb absolute top-0 h-full rounded-full bg-primary"
                     :style="{ left: `${panOffset}%`, width: `${100 / zoomLevel}%` }"
                 ></div>
             </div>
             <span class="timeline-zoom-readout text-small text-muted-foreground shrink-0 tabular-nums">{{ zoomLevel.toFixed(1) }}x</span>
         </div>
 
-        <!-- Timeline Track -->
+        <!-- Timeline Track.
+             D-7 (KeyframeTimeline) — THE RAIL'S BOUNDARY, cured at the file the
+             subject has lived in since `81a56990` (the row is record-qualified
+             to kf-KeyframeTimeline; its bytes are here, and the anchor is
+             recorded rather than re-homed). This is the instrument's PRIMARY
+             interactive surface and it had no perceivable boundary in either
+             theme: the fill sits within a hair of the card it lies on, and
+             `--border` — the decorative hairline token — carried the perimeter,
+             which is the same reading in both arms and under both of the rail's
+             modes (expanded strips the Card plate entirely). What 1.4.11 governs
+             here is the BOUNDARY, not the fill, so the boundary alone takes the
+             real rung and the fill's hover step is left exactly as authored.
+             Painted composites stay KF.W9/SS-13's single measurement site. -->
         <div
             :id="railId"
             ref="trackEl"
             :data-expanded="expanded ? 'true' : undefined"
             :class="[
-                'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
+                'timeline-track relative rounded-lg border border-muted-foreground bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
             ]"
             role="slider"
