@@ -70,12 +70,49 @@
     --shade: light-dark(var(--background), black);
 }
 
-/* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance:
-   `.focus-ring` paints glass-ui's --focus-ring-shadow on :focus-visible (keyboard/AT
-   focus only, so pointer focus stays quiet — pixel-isomorphic for the mouse case). */
-.focus-ring:focus-visible {
+/* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance
+   for the demo's own BESPOKE focusables (glass-ui's own controls carry the
+   producer's `.focus-ring` and are never re-skinned here: root-styling law).
+
+   KF-KE-30 — WHY THE NAME IS `kf-` PREFIXED, and not `focus-ring`. glass-ui 7.0.0
+   ships a REALIZED `.focus-ring:focus-visible` inside `@layer components`
+   (`styles/utilities/base.css`): `outline: none; border-radius: var(--radius-pill);
+   box-shadow: var(--focus-ring-shadow)`. The demo's same-named rule sits OUTSIDE
+   any layer, so it won the `box-shadow` — but it declares no radius, so the
+   producer's `border-radius: var(--radius-pill)` kept binding on every demo host
+   wearing the bare class, including four RECTANGULAR ones. An unlayered shadow
+   that overrides one declaration and silently inherits another is the collision,
+   not the fix. Renaming the demo's rule takes its hosts OFF the producer's
+   selector entirely (the only mechanism that detaches the radius binding without
+   fighting the producer per-site), and it is the ONE class rename this wave
+   makes — minted under G-W6-5's shown-collision test, never as part of a blanket
+   rename (MISSED-H).
+
+   The forced-colors arm below is NOT decoration: glass's `a11y-overrides.css`
+   restores a real `outline` for `.focus-ring:focus-visible` (box-shadow does not
+   paint in forced-colors), and a renamed class no longer joins that list. The
+   demo carries its own restoration so the indicator survives the rename —
+   G-W6-6's "visible indicator in ordinary AND forced-colors", both arms.
+
+   KF-CE-46 — the register, said truly. `:focus-visible` is a UA heuristic, NOT a
+   synonym for "keyboard-only": a pointer-focused TEXT-ENTRY surface matches it,
+   by design and in every engine. The former wording ("pointer focus stays quiet
+   — pixel-isomorphic for the mouse case") was false about text entry, and it is
+   the sentence `.cartoon-surface:has(:focus-visible)` below was measured against
+   (CSSCodeEditor's Monaco focuses a hidden textarea, so that host lights on a
+   pointer click, correctly). The contract is: this ring, and the cartoon lift
+   that mirrors it, follow `:focus-visible` — quiet for pointer-focused BUTTONS,
+   lit for pointer-focused TEXT ENTRY. */
+.kf-focus-ring:focus-visible {
     box-shadow: var(--focus-ring-shadow);
     outline: none;
+}
+
+@media (forced-colors: active) {
+    .kf-focus-ring:focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
 }
 
 /* icon-{xs,sm,md,lg} — the icon-sizing @utility family (61 call-sites used to
@@ -119,7 +156,12 @@
     stroke: var(--ppmycota-primary, var(--foreground));
 }
 
-/* cartoon Card focus-elevation — re-applies the descendant keyboard-focus lift cartoon-surface drops (shadow-only). */
+/* cartoon Card focus-elevation — re-applies the descendant :focus-visible lift
+   cartoon-surface drops (shadow-only). It follows the SAME register the ring
+   above declares, so it lights for a pointer-focused text-entry descendant
+   (CSSCodeEditor's Monaco well, the demo's sole raw-class consumer) and stays
+   quiet for a pointer-focused button — that is the heuristic, not a defect
+   (KF-CE-46: the contract text was the wrong half and has been moved). */
 .cartoon-surface:has(:focus-visible) {
     box-shadow: var(--shadow-cartoon-lg);
 }
