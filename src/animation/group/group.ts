@@ -79,7 +79,59 @@ export class AnimationGroup<V extends Vars> {
         return new AnimationGroup<V>(first, ...rest);
     }
 
-    singleTarget = true;
+    /** Backing state for {@link singleTarget}; `true` until a derive or a
+     *  declaration says otherwise (the pre-ruling field default, unchanged). */
+    private _singleTarget = true;
+    /** Set once a caller ASSIGNS `singleTarget` — the supported opt-out. While
+     *  set, no derivation may overwrite the declared value. */
+    private _singleTargetDeclared = false;
+
+    /**
+     * True when every child animates the SAME first target, so the group can
+     * composite one shared element per frame (the SoA blend + the group-WAAPI
+     * fast lane both gate on it).
+     *
+     * **Assigning it DECLARES it** — X.KF.W5 ruling KF-W5R4(4) (COHESION §0j.C):
+     * `singleTarget` gains a SUPPORTED opt-out. Before the ruling a consumer's
+     * `group.singleTarget = false` was a raw poke that the post-mount recompute
+     * in {@link setTargets} silently reverted (LP-1's rider; the demo's
+     * `CopyButton`/`SquareScene` pokes are the live witnesses), so the group
+     * disagreed with its own caller and the KF-CB-15 target-less derivation
+     * (`undefined === undefined → true`) could not be opted out of at all. The
+     * declaration is now honoured by every recompute; {@link deriveSingleTarget}
+     * gives the derived mode back.
+     */
+    get singleTarget(): boolean {
+        return this._singleTarget;
+    }
+    set singleTarget(value: boolean) {
+        this._singleTarget = value;
+        this._singleTargetDeclared = true;
+    }
+
+    /**
+     * Drop a {@link singleTarget} declaration and return to derivation — the
+     * inverse of the supported opt-out, so a declaration is reversible without
+     * reconstructing the group. Re-derives immediately from the current entries.
+     */
+    deriveSingleTarget(): this {
+        this._singleTargetDeclared = false;
+        const entries = this.getEntries();
+        this._deriveSingleTarget(
+            entries.map((entry) => entry.animation.targets[0]),
+        );
+        return this;
+    }
+
+    /** The ONE derivation of `singleTarget` — shared by the constructor and the
+     *  `setTargets` recompute so they can never drift apart, and a NO-OP while a
+     *  caller's declaration stands (KF-W5R4(4)). */
+    private _deriveSingleTarget(firstTargets: (Element | undefined)[]): void {
+        if (this._singleTargetDeclared) return;
+        this._singleTarget = firstTargets.every(
+            (target) => target === firstTargets[0],
+        );
+    }
 
     /**
      * T.A6 — true when the group's composite `transform` is a CUSTOM (non-DOM)
@@ -165,8 +217,8 @@ export class AnimationGroup<V extends Vars> {
             animations.push(animation);
         }
 
-        this.singleTarget = animations.every(
-            (animation) => animation.targets[0] === animations[0]?.targets[0],
+        this._deriveSingleTarget(
+            animations.map((animation) => animation.targets[0]),
         );
 
         this.invalidateEntries();
@@ -207,9 +259,12 @@ export class AnimationGroup<V extends Vars> {
             entry.animation.setTargets(...targets);
         }
 
-        this.singleTarget = entries.every(
-            (entry) =>
-                entry.animation.targets[0] === entries[0]?.animation.targets[0],
+        // KF-W5R4(4) — the post-mount recompute HONOURS a declaration: a caller
+        // that opted out of the single-target composite keeps that opt-out
+        // across every future `setTargets`, instead of having it silently
+        // reverted one poke later (LP-1's rider / KF-CB-15).
+        this._deriveSingleTarget(
+            entries.map((entry) => entry.animation.targets[0]),
         );
 
         return this;
