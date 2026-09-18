@@ -66,13 +66,22 @@
              like the ring above, it does not wait on the NumberField
              evaluation. Second site of the doctrine banked at CSSPasteDialog
              R-24 (the editable well is `--input-on-glass`, never a `--muted`
-             read-only mix); cross-referenced, not re-derived. -->
+             read-only mix); cross-referenced, not re-derived.
+             L-5 (D-9's second site) + m-3/L-13/C-6(b) — the number the user
+             TYPES wore the uppercasing fixed-10px chip register with a redundant
+             mono family utility beside it, and zoomed on iOS focus. It takes the
+             ONE entry register (W6-G role (a), style.css): `text-mono-small` for
+             a raw host plus `kf-text-entry`, the ruled iOS floor in CSS. The box
+             is resized IN THIS SAME EDIT (the typography same-commit law): its
+             former hard 40×20px was cut to a 10px glyph and would clip a 14–20px
+             one, so both axes are now denominated in the register's own em —
+             four characters wide, 1.6 lines tall — and follow the fluid size. -->
         <input
             v-else
             ref="inputEl"
             type="number"
             :value="display"
-            class="kf-focus-ring font-mono text-admin-label w-10 h-5 text-center bg-[var(--input-on-glass)] border border-border rounded px-0.5"
+            class="kf-focus-ring kf-text-entry text-mono-small w-[4em] h-[1.6em] text-center bg-[var(--input-on-glass)] border border-border rounded px-0.5"
             min="0"
             max="100"
             step="any"

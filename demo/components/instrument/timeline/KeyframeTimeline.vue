@@ -163,10 +163,25 @@
                         <span class="text-mono-caption font-semibold tabular-nums"
                             >{{ Math.round(selectedKeyframe.percent) }}%</span
                         >
+                        <!-- D-9 + M8 (+ the D-18 pass) — the user's OWN label, in a
+                             register that does not rewrite it. The chip register
+                             this Input wore force-uppercased typed content, held
+                             it at a fixed 10px at every viewport, and tripped iOS
+                             focus-zoom; the redundant mono family utility rode
+                             beside it. The control is now SIZE-DRIVEN (W6-G role
+                             (a), style.css): glass `Input` reads
+                             `--field-control-font`, which is already ≥16px where
+                             iOS zooms, and a label is prose — the inherited text
+                             face, no transform, no tracking. M8: a placeholder is
+                             not a name; `aria-label` is. N-2 was ruled WIRE and
+                             landed at KF.W7 (this box writes `kf.label`, read by
+                             the hover caption), so this MAJOR is spent on a live
+                             control, not an inert one. -->
                         <Input
                             v-model="selectedKeyframeLabel"
                             placeholder="Label..."
-                            class="font-mono text-admin-label w-32"
+                            aria-label="Keyframe label"
+                            class="w-32"
                         />
                     </div>
                     <Button

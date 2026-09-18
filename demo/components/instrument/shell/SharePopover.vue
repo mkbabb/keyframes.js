@@ -50,15 +50,24 @@
                  box it renders, and `data-control-target`, the floor's SOLE
                  hook, is emitted only under the `icon-only` these never passed.
                  Passing the prop and dropping the overrides is the whole cure.
-                 MM-29 rides the same edit as the law requires: this class string
-                 carries `normal-case`, so it leaves carrying `tracking-normal`.
-                 The register itself (SP-4/SP-7) is W6-G's and is untouched. -->
+                 SP-4 + SP-7, ONE EDIT (W6-G role (a), style.css): the field is a
+                 pasted URL — an artifact, so it keeps the MONO face — but the
+                 caption utility it wore fixed `--type-caption` (~12.2px at
+                 390px) OVER `field-control`'s own zoom-safe `--field-control-font`
+                 (utilities layer beats components layer), then needed a case
+                 cancel and, per MM-29, a tracking cancel to undo the caps
+                 register it had just applied. The Input is now SIZE-DRIVEN:
+                 `font-mono` alone, size from the producer's `--control-text`
+                 (≥16px where iOS zooms), no transform to cancel and no caps
+                 tracking to pair — the case-cancel/tracking pair this string
+                 carried is retired together, so G-W6-8's census loses a site
+                 rather than gaining an unpaired one. -->
             <div class="flex items-center gap-1.5">
                 <Input
                     ref="shareFieldEl"
                     v-model="loadHashInput"
                     placeholder="Paste share URL..."
-                    class="text-mono-caption normal-case tracking-normal flex-1"
+                    class="font-mono flex-1"
                     @keydown.enter="loadFromInput"
                 />
                 <Button

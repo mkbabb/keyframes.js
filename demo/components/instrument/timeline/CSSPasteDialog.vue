@@ -134,9 +134,25 @@ import { isInsideToaster } from "@components/instrument/utils/toastGuard";
  * (`field-control` binds `--control-surface-bg` and `--control-surface-border`
  * together under `--glass-definition`); that swap is W6-I's and is not pre-empted
  * here. `min-h-[20vh]` is R-10's carry and stays untouched.
+ *
+ * THE WELL'S REGISTER (KAD-4 + KF-KE-23 · CPD R-9 ≡ SP-4 — W6-G roles (a) and
+ * (b), decided once): a code surface wears the MONO register in one utility.
+ * The former pair of a family utility and a proportional size utility competed
+ * for `font-family` in the same layer — `highlight()` destroys the `<code>`
+ * wrapper, so the glyphs sat directly in the `<pre>` and inherited whichever
+ * won the generated sheet's order, which is how a tab-indented CSS editor came
+ * to render in the UI face. `text-mono-small` binds face, size and leading as
+ * ONE declaration set, so there is nothing to compete. `kf-text-entry` is the
+ * ruled iOS no-zoom floor in its CSS form (style.css): `--type-small` is 14px at
+ * a 390px viewport, under the 16px at which iOS zooms a focused editing host,
+ * and this well is exactly such a host. Both mounts and the KeyframesAddDialog
+ * adapter are cured by this one constant. The S-9 `Textarea` swap (W6-I) would
+ * make the well size-driven by construction and discharge R-9 with the
+ * component; it has not landed at this clock and this register does not wait
+ * on it.
  */
 const WELL_BASE =
-    "kf-focus-ring font-mono min-h-[20vh] p-3 cursor-text rounded-lg text-small bg-[var(--input-on-glass)] border border-muted-foreground";
+    "kf-focus-ring kf-text-entry text-mono-small min-h-[20vh] p-3 cursor-text rounded-lg bg-[var(--input-on-glass)] border border-muted-foreground";
 
 const props = defineProps<{
     title: string;

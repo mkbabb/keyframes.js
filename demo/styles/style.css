@@ -214,6 +214,26 @@
     --primary: var(--accent-kf);
 }
 
+/* ── THE ONE REGISTER FOR USER-TYPED ENTRY (W6-G role (a); .b §2.10(a)) ──
+   A text-entry surface never wears an uppercasing or fixed-10px register, and it
+   never sits below the repo's own ruled iOS no-zoom floor
+   (`clampIOSNoZoomFontSize`, iosTextEntry.ts — `Math.max(fontSize, 16)` under
+   `isIOSLikePlatform()`, applied to Monaco and unit-tested). Two hosts, one rule:
+     · a glass control (`Input`, `Textarea`) is SIZE-DRIVEN — no size utility on it;
+       `field-control`'s `--field-control-font` = `--control-text` =
+       `--type-small × --ui-scale`, and `--ui-scale` is 1.5 on a coarse pointer, so
+       the producer's default already clears 16px where iOS zooms (measured at the
+       installed dist);
+     · a RAW host (a contenteditable well, a bare `<input>`) wears `text-mono-small`
+       (mono, case-preserving, `--type-small` at leading 1.4) plus `kf-text-entry`,
+       and THIS rule is the ruled clamp in its CSS form — `.ios` is the class
+       `initIOSPlatformClass()` sets on <html> "so CSS can scope iOS-only rules",
+       and until now nothing consumed it. Unlayered, so it beats the utility's own
+       `--type-small` where — and only where — the platform zooms. */
+.ios .kf-text-entry {
+    font-size: max(16px, var(--type-small));
+}
+
 /* ── Glass content-tier translucency reclaim (the glass-ui consume edge) ──
    glass-ui made the content-tier ink-darken UNCONDITIONAL (a 0-specificity :where()
    block lifts --glass-tint-strength from the 0% rest default to the AA floor with no
