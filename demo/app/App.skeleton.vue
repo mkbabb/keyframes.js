@@ -47,21 +47,29 @@ withDefaults(
     padding: clamp(1rem, 4vw, 3rem);
 }
 
-/* The stage plate: a glass surface silhouette echoing a scene's stage panel. */
+/* The stage plate: a glass surface silhouette echoing a scene's stage panel.
+   Every token below is read in its RAW form (--muted / --border / --foreground /
+   --radius-lg), the spelling the other 16 demo files use — never the
+   `--color-*` Tailwind bridge, which `@theme inline` emits only when a utility
+   references it (the KF-SKEL-2 trap; KF-SKEL-17). The elevation is glass-ui's
+   own quiet-tier shadow, a token the producer EMITS at :root; the former
+   `--shadow-glass` existed nowhere (0 declarations in the dist, the demo and the
+   shipped sheet) and its `--shadow-glass-*` bridge spelling does not emit
+   either, so the plate had always painted a 4%-black literal, invisible on the
+   dark arm (KF-APP-25). No fallback literal rides any read: this sheet is
+   mounted inside the app whose stylesheet imports glass-ui first, so a literal
+   beside a resolving token could never fire and would only restate — the
+   masking pattern the phantom-token audit exists to remove. The S-6 delegation
+   to the stage-card register is W6-I's and lands on top of this. */
 .scene-skeleton__plate {
     position: relative;
     width: min(100%, 42rem);
     height: min(100%, 24rem);
     overflow: hidden;
-    border-radius: var(--radius-lg, 0.75rem);
-    background: color-mix(
-        in oklab,
-        var(--color-muted, oklch(0.96 0 0)) 70%,
-        transparent
-    );
-    border: 1px solid
-        color-mix(in oklab, var(--color-border, oklch(0.9 0 0)) 80%, transparent);
-    box-shadow: var(--shadow-glass, 0 1px 2px rgb(0 0 0 / 0.04));
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--muted) 70%, transparent);
+    border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+    box-shadow: var(--glass-shadow-quiet);
 }
 
 /* The shimmer sweep — a translucent highlight travelling across the plate. */
@@ -72,7 +80,7 @@ withDefaults(
         105deg,
         transparent 0%,
         transparent 35%,
-        color-mix(in oklab, var(--color-foreground, oklch(0.2 0 0)) 8%, transparent)
+        color-mix(in oklab, var(--foreground) 8%, transparent)
             50%,
         transparent 65%,
         transparent 100%
