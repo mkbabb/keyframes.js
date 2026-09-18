@@ -12,8 +12,48 @@ type PresetSpec = {
     group?: PresetGroup;
     taxonomyName?: string;
 };
-const bare = (css: string) =>
-    /^\s*@keyframes\s+[^\s{]+\s*\{([\s\S]*)\}\s*$/.exec(css)?.[1] ?? css;
+/**
+ * The preset table's NORMALIZATION: a `PresetSpec.css` is a bare stop list, so a
+ * preset string authored as a whole `@keyframes NAME { … }` block contributes
+ * its body. Pinned at `test/presets/spring-presets.test.ts` — every row's `css`
+ * must not match `/@keyframes\s/` — which is why this is RE-CUT and not deleted
+ * (X.KF.W2 · G-W2-3; the A-2 rule for a member carrying a test pin).
+ *
+ * What died is the regex that used to do it,
+ *     /^\s*@keyframes\s+[^\s{]+\s*\{([\s\S]*)\}\s*$/.exec(css)?.[1] ?? css
+ * — a whole `@keyframes` grammar written in a character class. The same
+ * decision is made by NAMING the positions: the block opens at its first `{`,
+ * closes at its last `}`, and anything else is already bare. Measured
+ * byte-identical to the regex across all 38 preset strings and nine adversarial
+ * shapes (no wrapper · no name · leading and trailing whitespace · text after
+ * the close · empty · two blocks · a lone `@keyframes`).
+ *
+ * The strip is LIVE on 4 of the 38 (`warpLeft`, `warpRight`, `jumpUp`,
+ * `jumpDown` — the ones authored with a wrapper) and a no-op on the other 34.
+ * The DEEPER cure is owed elsewhere and is named rather than half-taken: the
+ * parser this table feeds needs no normalization at all — `fromString`'s own
+ * contract is *"single grammar in value.js handles every input shape: bare
+ * @keyframes, @property + @keyframes, .class + @keyframes, multi-keyframes,
+ * mixed at-rules. No regex pre-detection or fallback parser path"*, and all 34
+ * measured reconstruct identically (stops, parsed vars, `@property` registry,
+ * diagnostics) whether stripped or not. Unwrapping those 4 strings at
+ * `classic-data.ts` retires this function and its pin together; both files are
+ * outside this wave's §Bounds, so the act is routed, not smuggled.
+ */
+const bare = (css: string): string => {
+    const text = css.trim();
+    if (!text.startsWith("@keyframes")) return css;
+
+    const open = text.indexOf("{");
+    const close = text.lastIndexOf("}");
+    if (open === -1 || close <= open) return css;
+
+    // `@keyframes` must be followed by a name, or this is not a block header.
+    const name = text.slice("@keyframes".length, open).trim();
+    if (name === "" || name.includes("{")) return css;
+
+    return text.slice(open + 1, close);
+};
 const SPRING_SNAPPY = { response: 0.35, dampingFraction: 0.78 } as const;
 const SPRING_BOUNCY = { response: 0.5, dampingFraction: 0.5 } as const;
 const SPRING_GENTLE = { response: 0.7, dampingFraction: 0.95 } as const;
