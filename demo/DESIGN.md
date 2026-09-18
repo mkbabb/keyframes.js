@@ -51,8 +51,13 @@ Color is named by role, never by a new call-site literal.
   `text-gold` utility the producer's theme bridge generates — the demo keeps no
   same-name copy of it.
 * **Crayons are pinned.** `--face-1` … `--face-6` are the cube facet signals,
-  hue-exact and ordered by face. The amiga red aliases the rainbow red. These
-  values are not theme signals to be casually retuned.
+  hue-exact and ordered by face. The pin is the HUE: a crayon may carry a light
+  and a dark arm (`light-dark()`, in `style.css`) whose lightness differs so the
+  numeral ink each face hosts keeps its floor in both themes, and both arms
+  carry the corner hue exactly. The amiga red aliases the rainbow red. These
+  values are not theme signals to be casually retuned; an arm moves only for a
+  measured ink failure, and the axis tokens (`--axis-x/y/z`) follow the same
+  rule.
 * **Material is not a crayon.** Lighting gets a named material register,
   defined in `design-idioms.css` as theme pairs: `--specular` is the
   foreground/highlight pair (`light-dark(white, var(--foreground))`) and

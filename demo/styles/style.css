@@ -130,10 +130,22 @@
     --font-display-weight: 400;
     --type-tracking-display: 0;
 
-    /* ── 3D axis color tokens ── */
+    /* ── 3D axis color tokens ──
+       KF-AX-3 ≡ CubeTarget #58 (KF.W6, decided in ONE motion with the face
+       crayons below): the three axis hues used to be single theme-INVARIANT
+       literals, and the LOCKED axis line (CubeAxisLines — opacity 1, solid
+       stroke) is a state signal, not furniture, so it owes the non-text floor
+       against the page in BOTH arms. Re-derived at this seat against the
+       installed producer `--background` arms (KF-SKEL-22: at use, never quoted):
+       the green failed the light arm and the blue failed the dark arm; the red
+       held in both. The cure is a `light-dark()` arm per failing token, moving
+       LIGHTNESS only — hue and saturation are exact in both arms, so the axis
+       identities (x red / y green / z blue) are untouched. Consumers keep reading
+       `var(--axis-*)`; nothing is re-cut at a call site. The rendered verdict
+       over the stage substrate (graph paper + card) is KF.W9's. */
     --axis-x: hsl(0 72% 54%);
-    --axis-y: hsl(120 47% 47%);
-    --axis-z: hsl(240 76% 58%);
+    --axis-y: light-dark(hsl(120 47% 40%), hsl(120 47% 47%));
+    --axis-z: light-dark(hsl(240 76% 58%), hsl(240 76% 62%));
     --axis-w: var(--foreground);
 
     /* ── Accent red — DESTRUCTIVE-ONLY ──
@@ -169,13 +181,28 @@
        M. Cubert's six saturated facets are the canonical crayon SIGNAL surface,
        lifted ONE-FOR-ONE from CubeTarget.vue's raw rgba() literals (byte-identical —
        proof:visual-lock / proof:crayon-preserved pin them). The face order matches
-       the cubeSides class order: front(1)/right(2)/back(3)/left(4)/top(5)/bottom(6). */
+       the cubeSides class order: front(1)/right(2)/back(3)/left(4)/top(5)/bottom(6).
+
+       CubeTarget #9 ≡ CubeScene D-7 (KF.W6, the theme packet decided in ONE
+       motion with `--axis-*` above; `#8`'s veil member is ESCALATED, not cured
+       here — see the wave record). The lift preserved six raw sRGB corners at one
+       alpha as theme-INVARIANT values while the numeral ink on each face is the
+       theme-reactive `--foreground`, so the ink lost the floor on the faces whose
+       lightness sits nearest the page's own. Re-derived at this seat with the ink
+       composited over face-at-0.8 on the installed producer `--background` arms
+       (KF-SKEL-22): green, yellow and cyan fail the DARK arm; blue fails the LIGHT
+       arm; red and magenta hold in both. Each failing arm gets its own value in
+       `light-dark()`, spelled in HSL so the HUE and SATURATION are exact and only
+       the lightness moves — the crayon identity (DESIGN.md §2) is the hue, and
+       every arm below carries the corner hue to the degree. The five light arms
+       that held stay byte-identical to the lift. The rendered verdict with the
+       lacquer sheen and the re-lit veil over the crayon is KF.W9's. */
     --face-1: rgba(255, 0, 0, 0.8); /* front — '1' (red) */
-    --face-2: rgba(0, 255, 0, 0.8); /* right — '2' (green) */
-    --face-3: rgba(0, 0, 255, 0.8); /* back  — '3' (blue) */
-    --face-4: rgba(255, 255, 0, 0.8); /* left  — '4' (yellow) */
+    --face-2: light-dark(rgba(0, 255, 0, 0.8), hsl(120 100% 33% / 0.8)); /* right — '2' (green) */
+    --face-3: light-dark(hsl(240 100% 60% / 0.8), rgba(0, 0, 255, 0.8)); /* back  — '3' (blue) */
+    --face-4: light-dark(rgba(255, 255, 0, 0.8), hsl(60 100% 30% / 0.8)); /* left  — '4' (yellow) */
     --face-5: rgba(255, 0, 255, 0.8); /* top   — '5' (magenta) */
-    --face-6: rgba(0, 255, 255, 0.8); /* bottom — '6' (cyan) */
+    --face-6: light-dark(rgba(0, 255, 255, 0.8), hsl(180 100% 33% / 0.8)); /* bottom — '6' (cyan) */
 
     /* ── Progress / slider color tokens (the motion-color authority = the VIOLET) ──
        Every motion surface (the conic --dot-p ring, the rail/ball pair, the
