@@ -25,12 +25,18 @@
  * ```ts
  * const split = splitText(el, { by: "word" });          // a11y on by default
  * const group = new AnimationGroup(
- *     split.fragments.map((frag, i) => ({
- *         animation: fadeUp(frag),
- *         options: { delay: split.stagger(i) },          // the ready stagger
- *     })),
+ *     ...split.fragments.map((frag, i) =>
+ *         fadeUp(frag).setDelay(split.stagger(i)),       // the ready stagger
+ *     ),
  * );
  * ```
+ *
+ * (The example is compiled by `test/orchestration/stagger-doc-example.test.ts`
+ * — X.KF.W5 B-4. Its predecessor carried the same `{ animation, options: {
+ * delay } }` shape as `stagger.ts`'s and did not typecheck either:
+ * `AnimationGroupInput` has no `options` field, and the constructor is variadic,
+ * not array-taking. The per-child delay rides the child, which is where the
+ * group reads it.)
  */
 import { stagger } from "../stagger";
 import type { StaggerFn, StaggerOptions } from "../stagger";

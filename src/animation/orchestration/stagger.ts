@@ -15,12 +15,19 @@
  * ```ts
  * const delay = stagger(items.length, { each: 50, from: "center" });
  * const group = new AnimationGroup(
- *     items.map((el, i) => ({
- *         animation: fadeIn(el),
- *         options: { delay: delay(i, items.length) },
- *     })),
+ *     ...items.map((el, i) => fadeIn(el).setDelay(delay(i, items.length))),
  * );
  * ```
+ *
+ * The example above is compiled by `test/orchestration/stagger-doc-example.test.ts`
+ * (X.KF.W5 B-4 / G-STAGGER-DOC). The one it replaces did not typecheck and had
+ * not since the group's input type was carved: it passed `{ animation, options:
+ * { delay } }` to a variadic constructor, and `AnimationGroupInput` is
+ * `KeyframesAnimation | { animation, layer? }` — there is NO `options` field on
+ * it, and never an array argument. The delay belongs to the CHILD, which is
+ * exactly where the paragraph above says the substrate already carries it
+ * (`toWAAPIOptions`: `delay: opts.delay`), so the docs now describe the type
+ * rather than a group rewrite nobody had ordered.
  */
 import type { Easing, TimingFunction } from "../constants/types";
 import { toEasing } from "../easing";
