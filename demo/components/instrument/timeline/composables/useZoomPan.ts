@@ -19,6 +19,39 @@ export function useZoomPan(trackEl: Ref<HTMLElement | null>) {
         panOffset.value = clamp(panOffset.value, 0, maxPan);
     };
 
+    const ZOOM_MIN = 1;
+    const ZOOM_MAX = 10;
+
+    /**
+     * Set the zoom while holding ONE point of the rail still: `anchor` is that
+     * point as a fraction of the visible window (0 = left edge, 0.5 = middle,
+     * 1 = right edge). The wheel anchors on the pointer; the keyboard route
+     * anchors on the middle, because a keyboard user has no pointer to anchor
+     * on. Both go through here so the recentring math exists once.
+     */
+    const setZoomAround = (nextZoom: number, anchor: number) => {
+        const z = clamp(nextZoom, ZOOM_MIN, ZOOM_MAX);
+        const anchorPercent = positionToPercent(anchor * 100);
+        panOffset.value = anchorPercent - (anchor * 100) / z;
+        zoomLevel.value = z;
+        clampPan();
+    };
+
+    /** The keyboard zoom route (D-11): `+` / `-` with the rail focused. */
+    const zoomBy = (factor: number) => setZoomAround(zoomLevel.value * factor, 0.5);
+
+    /** The keyboard pan route (M-7 + RR-B missed-4): the readout is operable. */
+    const panBy = (deltaPercent: number) => {
+        panOffset.value += deltaPercent;
+        clampPan();
+    };
+
+    /** Jump the window so `percent` sits at `anchor` of it (drag/click to pan). */
+    const panTo = (percent: number, anchor = 0.5) => {
+        panOffset.value = percent - (anchor * 100) / zoomLevel.value;
+        clampPan();
+    };
+
     // Dynamic tick marks based on zoom level
     const visibleTicks = computed(() => {
         let step: number;
@@ -101,6 +134,10 @@ export function useZoomPan(trackEl: Ref<HTMLElement | null>) {
         percentToPosition,
         positionToPercent,
         clampPan,
+        setZoomAround,
+        zoomBy,
+        panBy,
+        panTo,
         visibleTicks,
         onWheel,
         onTouchStart,

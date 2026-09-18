@@ -24,6 +24,15 @@
                 'timeline-track relative rounded-lg border border-border bg-muted/50 hover:bg-muted/70 transition-all duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-none',
                 expanded ? 'h-32' : 'h-12',
             ]"
+            role="slider"
+            tabindex="0"
+            aria-label="Playhead — scrub the animation"
+            aria-orientation="horizontal"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            :aria-valuenow="Math.round(scrubT * 100)"
+            :aria-valuetext="`${Math.round(scrubT * 100)}%`"
+            @keydown="onTrackKeydown"
             @pointerdown="onTrackPointerDown"
             @pointermove="onTrackPointerMove"
             @pointerup="onTrackPointerUp"
@@ -80,8 +89,10 @@
                         role="slider"
                         :aria-label="stopLabel(stop)"
                         :aria-valuenow="Math.round(stop.percent)"
+                        :aria-valuetext="`${Math.round(stop.percent)}%`"
                         aria-valuemin="0"
                         aria-valuemax="100"
+                        :data-state="isStopSelected(stop) ? 'selected' : undefined"
                         tabindex="0"
                         :style="{ left: `${percentToPosition(stop.percent)}%` }"
                         @pointerdown.stop="onMarkerPointerDown($event, stop)"
@@ -179,6 +190,7 @@ const {
     panOffset,
     percentToPosition,
     positionToPercent,
+    zoomBy,
     visibleTicks,
     onWheel,
     onTouchStart,
@@ -311,6 +323,65 @@ const onTrackPointerUp = (event: PointerEvent) => {
     if (gesture.value?.pointerId === event.pointerId) gesture.value = null;
 };
 
+/**
+ * The playhead's KEYBOARD route (D-1). Scrubbing had none anywhere in the tree:
+ * a bare `div` with six pointer listeners and a `@wheel`, no role, no tabindex,
+ * no keydown — and `defineExpose` published neither `scrub` nor `scrubT`, so no
+ * ancestor could drive it either. The emit is the SAME one the pointer uses, so
+ * the wire stays ONE (`KeyframeTimeline` → `scrub`), and with the playhead
+ * reachable the ribbon's argless `snapshot()` finally captures at the keyboard
+ * user's position instead of always at 0% — the row's one adopted harm.
+ *
+ * Only the rail's OWN keystrokes are read: a marker's arrows retime a keyframe
+ * and the caret's editor types numbers, and neither may also scrub.
+ */
+const onTrackKeydown = (event: KeyboardEvent) => {
+    if (event.target !== event.currentTarget) return;
+
+    const percent = props.scrubT * 100;
+    const step = event.shiftKey ? 10 : 1;
+    let next: number | null = null;
+
+    switch (event.key) {
+        case "ArrowRight":
+        case "ArrowUp":
+            next = percent + step;
+            break;
+        case "ArrowLeft":
+        case "ArrowDown":
+            next = percent - step;
+            break;
+        case "PageUp":
+            next = percent + 10;
+            break;
+        case "PageDown":
+            next = percent - 10;
+            break;
+        case "Home":
+            next = 0;
+            break;
+        case "End":
+            next = 100;
+            break;
+        // The zoom's keyboard route (D-11): wheel and pinch were its only
+        // gestures, so zoom was unreachable without a pointer.
+        case "+":
+        case "=":
+            event.preventDefault();
+            zoomBy(1.25);
+            return;
+        case "-":
+        case "_":
+            event.preventDefault();
+            zoomBy(1 / 1.25);
+            return;
+    }
+
+    if (next === null) return;
+    event.preventDefault();
+    emit("update:scrubT", clamp(next, 0, 100) / 100);
+};
+
 const onMarkerPointerDown = (event: PointerEvent, stop: TimelineStop) => {
     if (!admitPress(event)) return;
     const percent = getPercentFromPointer(event);
@@ -334,6 +405,16 @@ const onMarkerPointerDown = (event: PointerEvent, stop: TimelineStop) => {
  * percent is clamped 0–100 by `moveKeyframe`. A stop moves as one.
  */
 const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
+    // NON-DESTRUCTIVE SELECTION (M3). A bare `div` synthesizes no click, so
+    // Enter and Space fell through and a keyboard user could not select a
+    // keyframe without retiming it — every inspection keystroke landed in the
+    // debounced undo history, while a pointer user got selection two ways.
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        emit("select", selectionIdFor(stop));
+        return;
+    }
+
     const step = event.shiftKey ? 10 : 1;
     let next: number | null = null;
     if (event.key === "ArrowRight" || event.key === "ArrowUp") next = stop.percent + step;

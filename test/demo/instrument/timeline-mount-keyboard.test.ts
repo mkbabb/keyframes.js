@@ -187,19 +187,27 @@ describe("KF.W7 G8 — the playhead has a keyboard route (D-1)", () => {
         key(t.rail, "ArrowRight");
         expect(t.scrubs.at(-1)).toBeCloseTo(0.01, 6);
         await nextTick();
+
         expect(t.rail.getAttribute("aria-valuenow")).toBe("1");
         expect(t.rail.getAttribute("aria-valuetext")).toBe("1%");
 
         key(t.rail, "ArrowRight", { shiftKey: true });
         expect(t.scrubs.at(-1)).toBeCloseTo(0.11, 6);
 
+        // Each keystroke reads the position the previous one published, so the
+        // prop is allowed to settle between them — as it does between two real
+        // key events.
         key(t.rail, "Home");
+        await nextTick();
         expect(t.scrubs.at(-1)).toBe(0);
         key(t.rail, "End");
+        await nextTick();
         expect(t.scrubs.at(-1)).toBe(1);
         key(t.rail, "PageDown");
+        await nextTick();
         expect(t.scrubs.at(-1)).toBeCloseTo(0.9, 6);
         key(t.rail, "PageUp");
+        await nextTick();
         expect(t.scrubs.at(-1)).toBe(1);
 
         // The keystroke is consumed, so the page does not also scroll.
