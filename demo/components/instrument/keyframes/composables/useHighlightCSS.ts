@@ -111,8 +111,12 @@ export function useCodeHighlight(
             return;
         }
         const { githubDark, githubLight } = await bootHighlighter();
-        if (themeStyle.value) {
-            themeStyle.value.textContent = isDark.value ? githubDark : githubLight;
+        const css = isDark.value ? githubDark : githubLight;
+        // Every `highlightAll()` — so every keydown — ensures the theme. Rewriting
+        // the node's text re-parses the whole github stylesheet; write only when
+        // the theme actually changed. ⟨X.KF.W5 arm 0, KAD-14(b)⟩
+        if (themeStyle.value && themeStyle.value.textContent !== css) {
+            themeStyle.value.textContent = css;
         }
     };
 
