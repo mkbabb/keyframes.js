@@ -7,14 +7,24 @@
  * It is the BUILD-IN that terminates the 3-tranche O-Band-A lint carry
  * (M.W2 → O.W1 → P.W1, named in three charters, built in none).
  *
- * THE SLIM CONSTRAINT (the measure-first KILL-DOWN, AUDIT-31 B2-pw1). The kf
- * source-graph lint tier is dependency-cruiser ONLY — eslint is NOT installed.
+ * THE SLIM CONSTRAINT (the measure-first KILL-DOWN, AUDIT-31 B2-pw1), STATED AS
+ * IT STANDS TODAY. The kf SOURCE-GRAPH lint tier is dependency-cruiser only:
  * `tsc --strict` owns correctness; `prettier-organize-imports` owns import
  * ordering; dependency-cruiser owns the source-GRAPH rules (one tool per
  * concern, the gestalt seam). eslint's `import/no-cycle` is a graph-walk
  * dep-cruiser does natively (`circular: true`); eslint's `no-restricted-imports`
- * IS dep-cruiser's `pathNot`. Adding eslint would be a second toolchain, a
- * second config, a second CI step, for rules these two already own.
+ * IS dep-cruiser's `pathNot` — so neither is re-implemented anywhere else.
+ *
+ * The older wording of this paragraph read "eslint is NOT installed … adding
+ * eslint would be a second toolchain, a second config, a second CI step". That
+ * is FALSE at today's tree, and it is corrected here rather than deleted.
+ * X.KF.W4 (`fb509edd`) installed eslint (`eslint` ^10.10.0 + `eslint-plugin-vue`
+ * + `vue-eslint-parser`), added `eslint.config.js`, and made `lint` read
+ * `depcruise --config .dependency-cruiser.cjs src demo && eslint demo`. What
+ * eslint owns there is the DEMO SFC lane — `.vue` template/script rules no graph
+ * tool can see. It owns no source-graph rule and duplicates nothing below. The
+ * two tiers are disjoint BY SURFACE, which is the thing the KILL-DOWN was
+ * actually protecting.
  *
  * AGREES WITH, NEVER DUPLICATES, `proof:boundary` (S3). The bundle-graph oracle
  * (`proof:boundary`) is the runtime authority: it re-runs tree-shaking over the
@@ -23,7 +33,8 @@
  * pre-flight that bites at EDIT time, before the bundle stage. It does not
  * re-implement the bundle oracle; it catches the same breach sooner.
  *
- * THREE forbidden rules over `src/`:
+ * THREE forbidden rules. Rule 1 cruises `^(?:src|demo)/` — `lint` passes BOTH
+ * roots since `fb509edd`; rules 2 and 3 stay scoped to `src/`:
  *   1. no-cycle                  — no circular dependency anywhere in src/animation/.
  *   2. leaf-no-engine-no-valuejs — internal/ leaves may not reach the engine or value.js.
  *   3. light-barrel-no-engine    — the LIGHT named-export modules may not STATICALLY
@@ -51,14 +62,23 @@
 // R.W1: the LIGHT named-export modules moved into their zone directories. The
 // allowlist tracks the SAME barrel re-export set as proof:boundary — now by zone
 // path (`physics/`, `orchestration/`). `easing.ts` stays at the root.
-// X.KF.W4 (G-KFW4-11): FIVE entries were left behind by a later intra-zone move
-// and named files that no longer exist (`physics/spring/{duration,reseat,
-// linear-stops,timing-function}`, `orchestration/drag/drag-2d`). LIGHT_FROM is
-// rule 3's ENTIRE `from` set, so each dead entry was a LIGHT module the boundary
-// rule silently did NOT cover — a green run over a subject set five short. They
-// are repointed to their live twins below; every entry is existence-checked
+// X.KF.W4 (G-KFW4-11, `fb509edd`): FIVE entries were left behind by a later
+// intra-zone move and named files that no longer exist
+// (`physics/spring/{duration,reseat,linear-stops,timing-function}`,
+// `orchestration/drag/drag-2d`). LIGHT_FROM is rule 3's ENTIRE `from` set, so
+// each dead entry was a LIGHT module the boundary rule silently did NOT cover —
+// a green run over a subject set five short. They are repointed to their live
+// twins below.
+//
+// X.KF.W5 (G-DEPCRUISE / D-1): the repoint alone re-opens the identical hole the
+// moment the NEXT intra-zone move lands, and re-opens it silently, because a
+// dead entry subtracts from rule 3's subject set without reddening anything.
+// The sentence that used to close this block — "every entry is existence-checked
 // against `src/animation/<entry>.ts`, and an entry that names no file is the
-// defect, never a formality.
+// defect, never a formality" — described a check that was never written. It is
+// written now, immediately below the array: a name that resolves to no file
+// THROWS at config load, so `depcruise` reds on the move that caused it instead
+// of quietly shrinking its own subject set.
 const LIGHT_BARREL_MODULES = [
     "physics/numeric",
     "physics/smooth",
@@ -85,6 +105,30 @@ const LIGHT_BARREL_MODULES = [
     "orchestration/sequence/index",
     "easing",
 ];
+
+// ── The existence assertion the block above promises (X.KF.W5, D-1) ───────────
+// Rule 3's coverage IS this list: `LIGHT_FROM` below is built from nothing else.
+// A name that resolves to no file is therefore silent coverage loss — the module
+// it used to name stops being checked, and every run stays green. That is a
+// LOAD-TIME failure here, on purpose: it reds `depcruise` (and so `lint`, and so
+// CI) on the move that caused it, at edit time, rather than at some later
+// bundle-stage symptom or not at all.
+const fs = require("node:fs");
+const path = require("node:path");
+
+const LIGHT_BARREL_DEAD = LIGHT_BARREL_MODULES.filter(
+    (m) => !fs.existsSync(path.join(__dirname, "src", "animation", `${m}.ts`)),
+);
+if (LIGHT_BARREL_DEAD.length > 0) {
+    throw new Error(
+        `.dependency-cruiser.cjs: LIGHT_BARREL_MODULES names ${LIGHT_BARREL_DEAD.length} ` +
+            `module(s) that do not exist — ${LIGHT_BARREL_DEAD.join(", ")}. Rule 3 ` +
+            `(light-barrel-no-engine) derives its ENTIRE \`from\` set from this list, so a ` +
+            `dead entry silently drops that module from the LIGHT/HEAVY boundary check and ` +
+            `the run still greens. Repoint the entry to the module's real path under ` +
+            `src/animation/, or delete it if the barrel no longer re-exports values from it.`,
+    );
+}
 
 // A path regex matching exactly the LIGHT barrel modules at the src/animation/
 // root (NOT internal/ — the leaves have their own rule 2). Anchored on the
@@ -123,20 +167,31 @@ module.exports = {
             comment:
                 "A circular import passes `tsc --noEmit` silently and can break " +
                 "module init order at runtime. Break the cycle (extract the shared " +
-                "leaf, or invert the edge). `type-only` edges are exempt — an " +
-                "`import type` is erased at build and carries no runtime init " +
-                "hazard. Post-R.W1 the src/animation/ engine graph is ACYCLIC on " +
-                "runtime edges: the R.W1 refactor broke the former co-recursive " +
-                "cycle ring (engine↔easing↔compile/frame↔group↔waapi, " +
+                "leaf, or invert the edge). THE EXEMPTION, NAMED PRECISELY: it is " +
+                "`viaOnly.dependencyTypesNot: ['type-only']` below, and it is NOT " +
+                "a head-edge test — a ring is reported only when EVERY edge around " +
+                "it is a runtime edge, so a ring that closes through even one " +
+                "`import type` is exempt, that edge being erased at build. Read " +
+                "the exemption for what it is: the exempt rings are REAL COUPLING " +
+                "in the source graph; what they are not is a module-init hazard. " +
+                "Post-R.W1 the src/animation/ graph is ACYCLIC on runtime edges — " +
+                "the R.W1 refactor broke the former co-recursive cycle ring " +
+                "(engine↔easing↔compile/frame↔group↔waapi, " +
                 "spring↔spring-duration↔spring-reseat, group↔group-layer-springs, " +
                 "drag↔drag-2d) via the getGroupFactory DI seam and shared-leaf " +
-                "extraction, so `depcruise src` greens with ZERO violations. There " +
-                "is NO known-violations baseline: the historical " +
+                "extraction — so this rule greens with ZERO violations WHILE the " +
+                "type-erased ring inventory is not zero. Do not read the green as " +
+                "the inventory: re-run this same cruise with the `viaOnly` clause " +
+                "lifted to enumerate it (X.KF.W5's G-RING does exactly that and " +
+                "carries a per-ring disposition table in that wave's evidence). " +
+                "There is NO known-violations baseline: the historical " +
                 "`.dependency-cruiser-known-violations.json` ratchet was never " +
-                "created and is not wired (`lint` is a bare `depcruise src`, no " +
-                "`--known-violations` flag). The invariant is a true acyclic " +
-                "runtime graph, not a grandfathered floor; a new runtime cycle " +
-                "reds immediately.",
+                "created and is not wired — `lint` is `depcruise --config " +
+                ".dependency-cruiser.cjs src demo && eslint demo` (X.KF.W4, " +
+                "`fb509edd`), carrying no `--known-violations` flag, and no " +
+                "baseline file exists. The invariant is a true acyclic runtime " +
+                "graph, not a grandfathered floor; a new runtime cycle reds " +
+                "immediately.",
             from: { path: "^(?:src|demo)/" },
             to: {
                 circular: true,
