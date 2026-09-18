@@ -192,8 +192,9 @@
                                              that can reach it — and after KF-SST-30 voided the
                                              producer's decorative hit-expander utility (its expander
                                              carries `pointer-events: none`) and the wave retired the
-                                             demo's dead 44px floor class, which had zero adopters,
-                                             the producer's per-component floor is the one sanctioned
+                                             demo's own hand-authored floor class, which had zero
+                                             adopters, the producer's per-component floor is the one
+                                             sanctioned
                                              mechanism left. Neither retired name is spelled here, so
                                              the scanner cannot resurrect either into the built sheet;
                                              those rows are annotated, not rewritten (E-3). This control is mounted in the controls
