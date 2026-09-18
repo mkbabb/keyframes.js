@@ -24,7 +24,20 @@
                 <Share2 class="icon-lg" />
             </Button>
         </PopoverTrigger>
-        <PopoverContent class="z-popover w-72 p-2" align="start" :side-offset="8">
+        <!-- SP-20 — the field is FOCUSED ON OPEN. Its placeholder is an
+             imperative ("Paste share URL..."), and until now the popover opened
+             with focus on the content container, so the instruction named an
+             action the keyboard could not take without a Tab; `openAutoFocus` is
+             the primitive's own hook for exactly this and nothing bound it. The
+             default is prevented and the field takes focus directly, so the
+             popover's focus scope still traps — nothing about dismissal or the
+             return target changes. -->
+        <PopoverContent
+            class="z-popover w-72 p-2"
+            align="start"
+            :side-offset="8"
+            @open-auto-focus="focusShareField"
+        >
             <!-- SP-9 + SP-8 — the height overrides go, and `size` drives.
                  SP-9 is the row's largest deficit and the only one with no
                  rescue: `.field-control[data-kind="input"]` sets `block-size`,
@@ -42,6 +55,7 @@
                  The register itself (SP-4/SP-7) is W6-G's and is untouched. -->
             <div class="flex items-center gap-1.5">
                 <Input
+                    ref="shareFieldEl"
                     v-model="loadHashInput"
                     placeholder="Paste share URL..."
                     class="text-mono-caption normal-case tracking-normal flex-1"
@@ -73,6 +87,8 @@
 </template>
 
 <script setup lang="ts">
+import { useTemplateRef } from "vue";
+import type { ComponentPublicInstance } from "vue";
 import { Share2, Clipboard, ArrowRight } from "@lucide/vue";
 import {
     Popover,
@@ -89,4 +105,14 @@ const props = defineProps<{
 
 const { sharePopoverOpen, loadHashInput, shareState, loadFromInput } =
     useShareState(props.onSceneRestore);
+
+// SP-20 — glass `Input` is a single-root component over the native `<input>`,
+// so its instance `$el` IS the focusable element (the same `$el` contract the
+// demo's other child-ref seams read; no querySelector).
+const shareFieldEl = useTemplateRef<ComponentPublicInstance>("shareFieldEl");
+
+const focusShareField = (event: Event) => {
+    event.preventDefault();
+    (shareFieldEl.value?.$el as HTMLElement | undefined)?.focus();
+};
 </script>
