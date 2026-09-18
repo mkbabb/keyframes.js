@@ -25,13 +25,16 @@
     </svg>
 
     <Teleport to="html">
-        <!-- The toast's elevation reads glass-ui's THEME-AWARE --shadow-lg token
-             (the shadow-[var(…)] form), not the bare `shadow-lg` utility: three
-             definitions of that name coexist in the shipped bundle — Tailwind's
-             theme default, glass-ui's `:root{--shadow-lg: …var(--shadow-color)}`,
-             and the emitted `.shadow-lg` utility, which inlined Tailwind's value
-             at build time and reads NEITHER custom property at runtime (DGC M-4).
-             This was the demo's sole `shadow-lg` site. -->
+        <!-- The toast's elevation reads glass-ui's THEME-AWARE large-shadow
+             token through the shadow-[var(…)] form, not the bare Tailwind
+             utility of the same name: three definitions of that name coexist in
+             the shipped bundle — Tailwind's theme default, glass-ui's :root
+             token (which folds var(--shadow-color)), and the emitted utility
+             class, which inlined Tailwind's value at build time and reads
+             NEITHER custom property at runtime (DGC M-4). This was the demo's
+             sole site of that bare utility; the token's name is not spelled
+             bare here because Tailwind's scanner would re-emit the dead class
+             from a comment. -->
         <Toaster
             :toastOptions="{
                 unstyled: true,
