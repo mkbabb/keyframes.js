@@ -106,7 +106,13 @@ export function useTimelineBuild(
     const scrubAndCapture = async (
         percent: number,
     ): Promise<HTMLCanvasElement | null> => {
-        const target = targets.value[0];
+        // Capture WHAT THE SCRUB PAINTS. After the KF.W7 G2 seam the engine is
+        // bound to the owner's detached preview subject, never to the scene, so
+        // screenshotting `targets[0]` would return the scene's untouched pose
+        // at every percent — a thumbnail that is the same picture N times.
+        // `targets[0]` remains the fallback for the pre-build state, where
+        // there is no engine and nothing has been scrubbed anyway.
+        const target = animation.value?.targets[0] ?? targets.value[0];
         if (!target) return null;
 
         const hasAnimation = !!animation.value;

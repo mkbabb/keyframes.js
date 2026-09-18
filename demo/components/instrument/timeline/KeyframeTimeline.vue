@@ -410,6 +410,22 @@ const parseDeclarationBlock = (css: string): DeclarationParse => {
     for (const [name, declaration] of collectDeclarations(
         rule?.declarations ?? [],
     )) {
+        // m-7/m-8's validation half — at the PARSE BOUNDARY, which is where
+        // this row says validation belongs, and sequenced after the delegation
+        // that created the boundary. MEASURED at these bytes and routed to the
+        // value.js library band: the /css grammar treats a comment as trivia
+        // BETWEEN rules but not inside a declaration list, so
+        // `/* c */\ncolor: red` parses to a declaration whose NAME is
+        // `/* c */\ncolor`. Assigned unchecked, that silently swaps the user's
+        // property for one no engine will ever apply. A name that is not a CSS
+        // ident or custom property is a parse failure like any other: surfaced
+        // at the surface, never written to the keyframe.
+        if (!/^(--[\w-]+|-?[A-Za-z_][\w-]*)$/.test(name)) {
+            return {
+                ok: false,
+                message: `${JSON.stringify(name)} is not a CSS property name.`,
+            };
+        }
         vars[name] = serializeCssValue(declaration.value);
     }
     return { ok: true, vars };
