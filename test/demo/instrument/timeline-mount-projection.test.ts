@@ -107,8 +107,6 @@ function mount(keyframes: TimelineKeyframe[]): Harness {
                     sortedKeyframes: state.keyframes,
                     scrubT: state.scrubT,
                     selectedKeyframeId: state.selectedId,
-                    previewCache: {},
-                    previewLoading: {},
                     "onUpdate:scrubT": (t: number) => {
                         scrubs.push(t);
                         state.scrubT = t;

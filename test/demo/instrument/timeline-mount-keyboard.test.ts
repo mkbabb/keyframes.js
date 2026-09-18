@@ -94,8 +94,6 @@ function mountTrack(keyframes: TimelineKeyframe[], selectedId: string | null = n
                     sortedKeyframes: state.keyframes,
                     scrubT: state.scrubT,
                     selectedKeyframeId: state.selectedId,
-                    previewCache: {},
-                    previewLoading: {},
                     "onUpdate:scrubT": (t: number) => {
                         scrubs.push(t);
                         state.scrubT = t;
