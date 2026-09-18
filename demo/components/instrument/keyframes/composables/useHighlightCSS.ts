@@ -66,6 +66,30 @@ export function useHighlightCSS(styleId: string) {
 const THEME_STYLE_ID = "highlightjs-theme";
 
 /**
+ * The idempotence record: for every element this driver has highlighted, the
+ * EXACT source text the current markup was produced from (X.KF.W5 arm 0,
+ * KAD-3 / KAD-14(a)).
+ *
+ * The `highlighted` attribute it replaces recorded only THAT a pass had run, and
+ * two defects followed from that alone. (1) The dialog's first open is always
+ * empty (`controlOptionsStore.ts` seeds `addKeyframes: ""`, and every success
+ * clears it again), so the first pass highlighted "" and marked the element
+ * done — every later `highlightAll()` short-circuited and highlighting was INERT
+ * for the whole authoring session. (2) Reformat re-colourised only because
+ * `setHighlightingString` happened to write the FALSY empty string, so
+ * "normalising" the marker to `"true"` would silently have turned reformat into
+ * "inject raw text, never colourise".
+ *
+ * Keyed to the source, both disappear structurally: a pass is skipped exactly
+ * when the element already shows the highlight of the text it currently holds,
+ * which is what idempotence meant all along. The record lives beside the DOM in
+ * a `WeakMap` — no attribute on a contenteditable surface the user copies out
+ * of, and nothing to normalise. (No consumer of the old attribute exists:
+ * `git grep -n 'highlighted' -- .` returns only prose.)
+ */
+const highlightedFrom = new WeakMap<HTMLElement, string>();
+
+/**
  * highlight.js code-highlight driver — consolidates the editor's previously
  * inline `highlight` / `setHighlightingString` block (D.W1.S2).
  *
@@ -104,24 +128,36 @@ export function useCodeHighlight(
         setCodeTheme();
     };
 
-    /** Replace an element's markup with a pre-built highlighted string. */
+    /**
+     * Replace an element's content with a formatter's output.
+     *
+     * `s` is PLAIN TEXT — `prettier.format(css, { parser: "scss" })`'s return —
+     * so it is written as text. Writing it through the markup setter made this
+     * the demo's one DOM-XSS sink, reachable from a crafted `?state=` URL, and
+     * corrupted ordinary CSS with no attacker present: the HTML parser
+     * entity-decodes every `&`-sequence and swallows `<name…>` as a tag, and the
+     * corrupted DOM is read back by `highlight()` and folded into the model by
+     * the caller's `onInput`. ⟨X.KF.W5 arm 0, KAD-1 BLOCKER / KAD-2⟩
+     */
     const setHighlightingString = (el: HTMLElement | null, s: string) => {
-        if (el) {
-            el.setAttribute("highlighted", "");
-            el.innerHTML = s;
-        }
+        if (!el) return;
+        el.textContent = s;
+        // The element now holds raw text, so the next pass must colourise it.
+        highlightedFrom.delete(el);
     };
 
-    /** Highlight one element's text content (idempotent via the marker attr). */
+    /** Highlight one element's text content (idempotent in that text). */
     const highlight = (el: HTMLElement | null | undefined) => {
-        if (!el || el.getAttribute("highlighted")) {
+        if (!el || highlightedFrom.get(el) === el.innerText) {
             return;
         }
         void bootHighlighter().then(({ hljs }) => {
-            if (el.getAttribute("highlighted")) return;
-            const h = hljs.highlight(el.innerText, { language: "css" });
+            // Re-read at write time: the boot is async and the user keeps typing.
+            const source = el.innerText;
+            if (highlightedFrom.get(el) === source) return;
+            const h = hljs.highlight(source, { language: "css" });
             el.innerHTML = h.value;
-            el.setAttribute("highlighted", "true");
+            highlightedFrom.set(el, source);
         });
     };
 
