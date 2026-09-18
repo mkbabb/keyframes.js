@@ -109,6 +109,18 @@ export class RAFPlayback {
      * restart's freshly-repopulated `_rafId`. On `false` (or a stale
      * generation that finishes) the loop cleans up. `play`/`drive`/`loop`
      * are the three thin entry shapes over this one core.
+     *
+     * A FRAME MAY FAIL, AND FAILING IS NOT WEDGING (X.KF.W5 C-2 / G-RAF).
+     * `step` had no failure path at all: a synchronous throw skipped
+     * `reschedule` outright and a rejected async result met a `.then` with no
+     * rejection arm, so in both shapes `_cleanup` never ran, `_rafId` stayed
+     * populated, `running` stayed TRUE for the lifetime of the driver, and a
+     * pending `play()` promise never settled — every consumer guarding on
+     * `!playback.running` was then a permanent no-op. A failed frame now winds
+     * the loop down through the SAME generation-guarded path a finished one
+     * takes, and then RE-RAISES the failure unchanged: loud (the host's
+     * uncaught-error channel sees the original error, nothing is absorbed) and
+     * recoverable (the next `play`/`drive`/`loop` re-arms).
      */
     private _run(step: (now: number) => boolean | Promise<boolean>): void {
         const gen = ++this._gen;
@@ -120,6 +132,18 @@ export class RAFPlayback {
             } else {
                 this._cleanup();
             }
+        };
+
+        /**
+         * This frame's work FAILED. Wind the loop down through `reschedule` —
+         * so the generation guard still decides whether this frame owns the
+         * driver, and a stale failure cannot strand the loop that replaced it —
+         * then re-raise the failure unchanged. Never swallowed, never
+         * translated: the caller sees the error its own `step` produced.
+         */
+        const failFrame = (error: unknown): never => {
+            reschedule(false);
+            throw error;
         };
 
         const frame = (now: number): void => {
@@ -136,12 +160,18 @@ export class RAFPlayback {
             // === function` is the feature-detect (a thenable → async; a
             // boolean → sync), not a special-case — the async path remains the
             // true path for async work.
-            const result = step(now);
+            let result: boolean | Promise<boolean>;
+            try {
+                result = step(now);
+            } catch (error) {
+                failFrame(error);
+                return;
+            }
             if (
                 result &&
                 typeof (result as Promise<boolean>).then === "function"
             ) {
-                void (result as Promise<boolean>).then(reschedule);
+                void (result as Promise<boolean>).then(reschedule, failFrame);
             } else {
                 reschedule(result as boolean);
             }

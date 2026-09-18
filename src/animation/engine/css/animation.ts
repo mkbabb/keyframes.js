@@ -103,6 +103,16 @@ export class CSSKeyframesAnimation<
      * unflattened); genuine omission resolves to the instance's ONE
      * default DOM-style renderer, which keeps WAAPI eligibility a
      * reference comparison (`usesDefaultRenderer`).
+     *
+     * That reference comparison is per-INSTANCE, so it only survives a seam
+     * that respects instance ownership. `engine/compile-bridge.ts`'s
+     * `adoptCompiled` is the one seam that moves compiled frames between
+     * animations, and it upholds this contract there (X.KF.W5 C-1 /
+     * G-RENDERER): the renderer stays the RECEIVER's unless the source
+     * declared one of its own. Before that, adopting a throwaway compiled
+     * with no transform — the editor's own recompile — replaced a consumer's
+     * renderer with a foreign instance's default, and every frame then
+     * answered `usesDefaultRenderer` FALSE for a renderer nobody supplied.
      */
     private resolveTransform(
         transform: TransformFunction<V> | undefined,
