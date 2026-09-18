@@ -181,9 +181,17 @@ h1.hero-display {
     color: var(--muted-foreground);
 }
 
-/* The engine-dogfooded ellipsis host: one unbreakable inline unit beside the
-   last word (the dots never wrap apart from the title's final glyph). Owned
-   HERE (the co-located scoped home) so the class is a resolved recipe, never a
+/* The engine-dogfooded ellipsis host: the THREE DOTS are one unbreakable
+   inline unit — `nowrap` is INTERIOR to this box and keeps the dots together.
+   It does NOT bind the dots to the title's final word (KF-AT-14): the last
+   `.wave-word` and this host are two ADJACENT ATOMIC INLINES, and CSS Text 3
+   §5.1 leaves a soft wrap opportunity between them that no declaration here
+   suppresses. The earlier prose ("the dots never wrap apart from the title's
+   final glyph") credited this rule with a seam it never owned; the seam is
+   tolerated — a wrapper nowrap spanning both would inherit K8's overflow
+   rejection, and a word-joiner would enter the mirror's text. Trigger widths
+   for the orphaned-dots line are the SS-13 P-8 probe's. Owned HERE (the
+   co-located scoped home) so the class is a resolved recipe, never a
    silent-flatten. */
 .hero-dots {
     display: inline-block;
