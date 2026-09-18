@@ -20,8 +20,9 @@
         <!-- The poster line: Instrument Serif, the mega φ rung, TRUE single-
              weight ink (weight 400, --foreground, no depth-text costume — the
              T.D10 RULED ink correction: the face ships 400 ONLY; the T.D2
-             root `font-synthesis: none` + the BG-6 @layer display-weight
-             override make any other declaration a lie). Motion is the hero's
+             root `font-synthesis: none` + the :root `--font-display-weight`
+             re-point in style.css (KF-AT-22 — the producer ships the token;
+             the rung reads it) make any other declaration a lie). Motion is the hero's
              only ornament: the per-CHAR wave (AnimatedText, T.D10) + the
              engine-dogfooded TypingDots pulse, one span away. -->
         <h1 class="hero-display text-display-mega p-0">
@@ -98,18 +99,17 @@ withDefaults(
 }
 
 /* ── Honest ink (T.D10 RULED / lane 01 F3) ────────────────────────────────────
-   Instrument Serif ships weight 400 ONLY. The T.D2 theme core already lands
-   `font-synthesis: none` at :root + the BG-6 @layer override on the
-   text-display-* rungs; this scoped 400 is the hero's own belt-and-braces
-   (dies into the --font-display-weight token when glass-ui ships BG-6). Color
-   is --foreground — the depth-text lilac recolor + 4-step shadow stamp are
-   GONE from the title AND the dots (zero `depth-text` in editor-shell/, the
-   T.D10 grep clause). line-height 0.92 keeps the balanced two-line poster one
-   tight optical unit (H.W4.S3, kept). */
+   Instrument Serif ships weight 400 ONLY. The weight is decided ONCE, at the
+   token the rung reads: style.css's :root re-points `--font-display-weight` to
+   400 (KF-AT-22 — glass-ui 7.0.0 ships the token; the BG-6 ask that this
+   scoped 400 and the :root `font-synthesis: none` used to belt-and-brace is
+   answered by the producer's own token, so the two in-file redundancies are
+   gone). Color is --foreground — the depth-text lilac recolor + 4-step shadow
+   stamp are GONE from the title AND the dots (zero `depth-text` in
+   editor-shell/, the T.D10 grep clause). line-height 0.92 keeps the balanced
+   two-line poster one tight optical unit (H.W4.S3, kept). */
 h1.hero-display {
     line-height: 0.92;
-    font-weight: 400;
-    font-synthesis: none;
     color: var(--foreground);
 }
 
