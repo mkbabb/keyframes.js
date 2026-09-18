@@ -12,7 +12,11 @@
  * honoring works identically; `proof:composition-honored` greps THIS module for
  * the moved body anchors and `engine.ts` for the call sites + the gate.
  *
- * Value4 is reached through the structural slots compiled by the frame pipeline.
+ * Value4 is reached through the structural slots compiled by the frame pipeline,
+ * and — since X.KF.W2 — through `compile/parse-facade` for the one read that
+ * parses CSS TEXT rather than consuming a compiled slot: the underlying-base
+ * snapshot in {@link captureUnderlyingBase}, which reads the target's inline
+ * style. That is kf's ONE grammar seam (G-W2-2), not a second entry.
  */
 import type { Diagnostic } from "../compile/adapter";
 import type { CompiledAnimationFrame, NumericInterpSlot } from "../compile/frame";
