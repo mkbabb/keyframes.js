@@ -48,7 +48,35 @@
              opting a read-only reference panel into a JS entrance would spend
              a motion decision nobody asked for on the one surface whose job is
              to be read. The producer's CSS entrance (PRM-bracketed at the
-             producer) stays. -->
+             producer) stays.
+
+             KSM R-1 (W6-M) — GLASS-OWNED; the consumer tail is OWED ON
+             DISCHARGE and is deliberately NOT wired here. Measured at the
+             INSTALLED `dist/keyboard.js` (7.0.0, 3706 B): the module's whole
+             published surface is `registerShortcut · useRegisteredShortcuts ·
+             formatCombo · formatComboParts · isMac` — **zero** occurrences of
+             suspend, scope, priority, enabled/disabled, when, guard or pause.
+             The dispatcher's only gate is one `target` test against
+             INPUT/TEXTAREA/isContentEditable, which is a TYPING guard and not
+             a modal one, so the whole registry stays live behind this scrim
+             exactly as the row says. There is no consumer lever to pull: the
+             only demo-side "fix" available would be a document-level capture
+             listener swallowing keys while this is open, which would swallow
+             the dialog's own Escape with them and would be a local patch over
+             a producer seam — the masking this wave forbids. The ask therefore
+             rides the wave's ONE BH relay with its cure-shape intact (the
+             dispatcher is LIFO FOR ESCAPE ONLY: a later-registered guard may
+             pre-empt Escape and may NEVER pre-empt Space/Delete/Mod+Z, which
+             hold FIFO priority forever), and this seat records the interim as
+             interim per that relay's order.
+             THE ESCALATION TEST, RUN AND REPORTED rather than assumed: the row
+             re-promotes to BLOCKER on a destruction path behind the modal with
+             NO live undo route. The destruction path is real —
+             `useControlsKeyboardShortcuts.ts:65` binds Delete to
+             `removeSelectedKeyframe` — but `:70` binds Mod+Z to `undo` in the
+             SAME composable, so the undo route is live behind the scrim by the
+             identical mechanism that leaves Delete live. Condition NOT met;
+             the row stays MAJOR and is not re-promoted. -->
         <DialogContent
             scroll
             class="max-w-md"
