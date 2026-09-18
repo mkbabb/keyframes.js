@@ -44,9 +44,9 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, watch } from "vue";
-import { useMagicKeys } from "@vueuse/core";
+import { onScopeDispose, useTemplateRef, watch } from "vue";
 import { DialogTrigger } from "@mkbabb/glass-ui";
+import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { FileIcon, FilePlus2 } from "@lucide/vue";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import CSSPasteDialog from "@components/instrument/timeline/CSSPasteDialog.vue";
@@ -77,7 +77,8 @@ import CSSPasteDialog from "@components/instrument/timeline/CSSPasteDialog.vue";
  *      result (KAD-13: the `format` prop's JSDoc declared a pure formatter
  *      while the wiring secretly wrote the parent model and `reformat()` never
  *      emitted; this IS R-7's text-hoisting constraint, in one line). The model
- *      write is the whole of it now — the textarea renders the model.
+ *      write is the whole of it now — the textarea renders the model — and the
+ *      binding rides the app's ONE keyboard registry (KAD-12, below).
  *
  * The feedback sweep rides the shell's `feedback` slot, below the footer
  * (KAD-15 — see the template).
@@ -128,14 +129,43 @@ const onSubmit = (value: string): void => {
     animateProgressBar();
 };
 
-// Shift+Alt+F (or the dead-key Ï variant) reformats while the dialog is open.
-const keys = useMagicKeys({ reactive: true });
+// KAD-12 (W6-I): Shift+Alt+F reformats through the ONE keyboard registry —
+// the same `registerShortcut` every other shortcut in the app rides, so the
+// binding is LISTED in the KeyboardShortcutsModal (it was undiscoverable: a
+// private `useMagicKeys` watch that no surface could enumerate) and inherits
+// the registry's one dispatch. The combo names the physical KEY CODE
+// (`KeyF`): on macOS Shift+Alt+F yields the dead-key `Ï` as `event.key`, and
+// the registry's matcher falls through to `event.code`, so the old
+// `keys["Ï"]` sidecar is dissolved rather than re-authored. `allowInInput` is
+// REQUIRED — the point of the shortcut is to fire while the caret is in the
+// textarea, which the registry otherwise skips. The binding lives exactly as
+// long as the dialog is open: registered on open, unregistered on close and on
+// unmount, so a closed dialog owns no global key.
+let unregisterReformat: (() => void) | null = null;
+
+const bindReformat = () => {
+    unregisterReformat?.();
+    unregisterReformat = registerShortcut("Shift+Alt+KeyF", () => reformat(), {
+        allowInInput: true,
+        preventDefault: true,
+        label: "Reformat keyframes CSS",
+        group: "Actions",
+    });
+};
+
+const unbindReformat = () => {
+    unregisterReformat?.();
+    unregisterReformat = null;
+};
+
 watch(
-    () => (keys["Shift"] && keys["Alt"] && keys["F"]) || keys["Ï"],
-    (v) => {
-        if (v && open.value) {
-            reformat();
-        }
+    open,
+    (isOpen) => {
+        if (isOpen) bindReformat();
+        else unbindReformat();
     },
+    { immediate: true },
 );
+
+onScopeDispose(unbindReformat);
 </script>
