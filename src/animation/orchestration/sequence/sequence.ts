@@ -103,8 +103,9 @@ export interface SequenceOptions {
     /**
      * When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
      * every child to its rest frame in a single paint (delegated to each
-     * child's own reduced-motion contract via a terminal `seek`). Default
-     * false. SSR-safe off-DOM.
+     * child's own reduced-motion contract via a terminal `seek`). **Default
+     * `true`** — X.KF.W5 ruling KF-W5R4(3) (COHESION §0j.C), the engine-wide PRM
+     * default inversion; `false` is the explicit opt-out. SSR-safe off-DOM.
      */
     respectReducedMotion?: boolean;
 }
@@ -194,7 +195,8 @@ export class Sequence<V extends Vars = Vars>
     _lastClock: number | undefined = undefined;
 
     constructor(options?: SequenceOptions) {
-        this.respectReducedMotion = options?.respectReducedMotion ?? false;
+        // KF-W5R4(3) — honour the preference unless the caller opts out.
+        this.respectReducedMotion = options?.respectReducedMotion ?? true;
         this._boundFrame = this._frame.bind(this);
     }
 

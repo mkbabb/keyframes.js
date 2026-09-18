@@ -52,9 +52,18 @@ export class AnimationGroup<V extends Vars> {
     started = false;
     done = false;
 
-    /** When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
-     * every child to its final frame in one composite, no rAF loop. Default false. */
-    respectReducedMotion = false;
+    /**
+     * When true, `play()` honors `prefers-reduced-motion: reduce` by snapping
+     * every child to its final frame in one composite, no rAF loop.
+     *
+     * **Default `true`** — X.KF.W5 ruling KF-W5R4(3) (COHESION §0j.C): the PRM
+     * default is INVERTED to honouring the preference, one honest default in one
+     * engine. Until that ruling the group defaulted `false` while its sibling
+     * organ `startViewTransition` defaulted `true`, so two organs of one engine
+     * disagreed and the honest default *"existed in-house and was used nowhere"*
+     * (KF-KC-27). Set `false` for the explicit opt-out.
+     */
+    respectReducedMotion = true;
 
     /** Children-per-slice before `advanceTo()` yields to the main thread; larger
      * groups batch with a `scheduler.yield()` between slices (INP relief). */

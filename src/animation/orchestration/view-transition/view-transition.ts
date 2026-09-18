@@ -220,7 +220,10 @@ export function viewTransition(
 
     // PRM routes through the ONE withReducedMotion gate — under an active
     // `reduce` query the transition SNAPS (mutate directly, settle), else it
-    // runs the normal path. `respectReducedMotion` defaults true.
+    // runs the normal path. `respectReducedMotion` defaults true — and since
+    // X.KF.W5 ruling KF-W5R4(3) (COHESION §0j.C) that is the ENGINE-WIDE default,
+    // not this organ's local honesty: `AnimationGroup` and `Sequence` were
+    // inverted to match it, so the KF-KC-27 disagreement is closed from both ends.
     return withReducedMotion(
         respectReducedMotion,
         () => immediateHandle(mutate),

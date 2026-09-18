@@ -92,8 +92,14 @@ export function onReducedMotionChange(
  * takes a SCALE, not just a boolean — WCAG 2.3.3-aligned ("shorten the
  * travel, keep the meaning"):
  *
- * - `false` / `undefined` — do not honor reduced motion (the conservative
- *   default; the animation runs at full amplitude regardless of the OS query).
+ * - `false` / `undefined` — do not honor reduced motion: the animation runs at
+ *   full amplitude regardless of the OS query. This is the policy VALUE's
+ *   meaning, NOT the engine's default — X.KF.W5 ruling KF-W5R4(3) (COHESION
+ *   §0j.C) INVERTED the orchestrator defaults to `respectReducedMotion: true`
+ *   (`AnimationGroup`, `Sequence`, `startViewTransition`), so honouring the
+ *   preference is what a caller gets by omission and `false` is the explicit
+ *   opt-out. A surface that still seeds `false` by default is named in the
+ *   wave record's residual list, not described as "conservative" here.
  * - `true` — the classic binary snap: under an active `prefers-reduced-motion:
  *   reduce` the surface jumps to its terminal state (amplitude scale `0`).
  * - a `number` ∈ [0, 1] — the INTENSITY: under an active query the surface
