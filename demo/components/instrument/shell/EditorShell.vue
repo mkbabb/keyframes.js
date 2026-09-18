@@ -14,6 +14,49 @@
         ></div>
 
         <HeaderRibbon placement="right">
+            <!-- KF-APP-5 (≡ EditorShell D-1/L-1/C-1) — THE CONSUMER HALF.
+                 HeaderRibbon renders its actions with `inert` + `aria-hidden`
+                 and zero inline-size until `expanded` (pinned || hovered ||
+                 focus-within), and it opens on hover ONLY for a non-touch
+                 pointer. Its `#anchor` — the one region that never collapses,
+                 whose wrapper carries the producer's own pin toggle, whose
+                 focusin expands the band, and into which Escape restores focus
+                 (`querySelector("button, a, [tabindex]:not([tabindex='-1'])")`)
+                 — was EMPTY. With nothing focusable there the ribbon had no tab
+                 stop and no touch affordance at all: Share and the theme toggle
+                 were keyboard- and AT-unreachable in the shell, and with the
+                 dock's MbabbMenu copies keyboard-inoperable by reka
+                 construction, unreachable in the app. The shortcuts modal was
+                 wholly unreachable on touch (its only two routes are this
+                 ribbon and the `?` shortcut).
+
+                 The cure is to USE the API, not to fight it: one real focusable
+                 control in the anchor. Tab reaches it -> focusin expands the
+                 band -> the three actions leave `inert` and become tabbable;
+                 tapping it pins on touch, where hover never fires; Escape now
+                 has a landing target. The producer's own wrapper owns the
+                 click, so this button deliberately carries NO handler. The
+                 producer half — a collapsed-at-rest toolbar whose empty-anchor
+                 state is unreachable by construction — rides the BH relay
+                 (O-26 R-11), never a demo-side patch of the seam. -->
+            <template #anchor="{ pinned }">
+                <Button
+                    emphasis="quiet"
+                    icon-only
+                    size="sm"
+                    type="button"
+                    :aria-pressed="pinned"
+                    :aria-label="
+                        pinned
+                            ? 'Unpin header actions'
+                            : 'Show header actions'
+                    "
+                    class="scale-on-hover"
+                >
+                    <PinOff v-if="pinned" />
+                    <Pin v-else />
+                </Button>
+            </template>
             <template #items>
                 <slot name="header-left"></slot>
                 <slot name="header-right">
@@ -146,7 +189,7 @@ import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { Button } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { Keyboard } from "@lucide/vue";
+import { Keyboard, Pin, PinOff } from "@lucide/vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { TransportChannel } from "@components/instrument/transport/transportSource";
 
