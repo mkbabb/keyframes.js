@@ -32,7 +32,21 @@
             />
         </div>
 
-        <div class="grid gap-4 sticky bottom-0 bg-background rounded-panel p-4 pt-4 m-4">
+        <!-- KF-KE-32 — THE TOKEN DECISION (this wave's rider on the
+             KAD-18 / KF-KE-24 / KF-KE-32 family). `bg-background` is the PAGE
+             ground, and both this sticky footer and the toolbar below paint it
+             INSIDE the `--card` surface the component just dropped a Card to
+             honour — a near-black rectangle on warm brown in the dark arm, at a
+             tonal step small enough to read as a rendering fault rather than a
+             layer. The decision: a plate reads the surface it is ON, so these
+             two read `--card`. The family's THIRD site is the runtime-injected
+             hljs theme, whose hard `#ffffff`/`#0d1117` plate is unlayered and
+             therefore outranks every demo surface utility on the highlighted
+             well; that site's MECHANISM — layer the injected sheet, or
+             re-tokenize the theme — is the editor pipeline's (EDITOR/KFED-UNIT)
+             and is deliberately not pre-empted here. Only the token decision is
+             this wave's. -->
+        <div class="grid gap-4 sticky bottom-0 bg-card rounded-panel p-4 pt-4 m-4">
             <Slider
                 :model-value="
                     animation.templateFrames.map((frame) => frame.start.value)
@@ -65,7 +79,7 @@
                 role="toolbar"
                 aria-label="Keyframe actions"
                 aria-orientation="horizontal"
-                class="mt-4 flex h-10 w-full items-center justify-evenly gap-2 overflow-x-scroll rounded-xl border bg-background p-1"
+                class="mt-4 flex h-10 w-full items-center justify-evenly gap-2 overflow-x-scroll rounded-xl border bg-card p-1"
                 @keydown="onToolbarKeydown"
             >
                 <!-- Decorative lead flourish — was a focusable no-op trigger; now
