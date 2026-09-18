@@ -40,7 +40,7 @@
 
    Use the SEMANTIC z-* utility (or the token) for the rung; do NOT introduce a raw
    z-[N] bracket value or a raw `z-index: N`. This is a design law stated here on
-   its own words: the grep gate that once enforced it (`proof:brittleness`) was
+   its own words: the grep gate that once enforced it (the "brittleness" mark) was
    dissolved at 70b32501 and nothing re-arms it; the demo carries zero raw
    below-plane values today (both consumers read the token).
    ════════════════════════════════════════════════════════════════════════ */
