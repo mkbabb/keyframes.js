@@ -188,6 +188,16 @@ const applyPreset = (preset: SpringPreset) => {
 .preset-track {
     container-type: inline-size;
 }
+/* The FOURTH authoring of the T.G4 anchor (m-8, riding KF-AV-10). The other
+   three are one rule now (`SpringTarget.vue`, `.spring-ball, .sampler-ball,
+   .derby-lane-ball`); this one is in a different component with its own scoped
+   block, so sharing it would mean hoisting the x-anchor into the idiom itself —
+   `design-idioms.css`, whose KF.W7 carve is stated not to widen, and a hoist
+   that every one of the idiom's seven consumers must survive. Declared here
+   rather than consolidated silently: kf-EasingTarget P-2 is why the idiom
+   anchors in y and leaves x (and `transform`) to its consumers, and a careless
+   unification drops balls out of their rails. Residual, owner named in the
+   KF.W7 execution record. */
 .preset-ball {
     --ball-size: 0.85rem;
     --ball-glow: 0%;

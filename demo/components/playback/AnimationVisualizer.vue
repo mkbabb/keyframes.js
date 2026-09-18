@@ -10,15 +10,35 @@
             class="w-full h-12 relative"
             :style="{ touchAction: gate.isActive.value || !gate.isTouchDevice ? 'none' : 'pan-y' }"
         >
-            <div ref="containerEl" class="w-full h-full relative container-inline-size">
+            <!-- The rail + ball ADOPT the demo's promoted `.progress-rail` /
+                 `.progress-ball` idiom (design-idioms.css) instead of
+                 hand-rolling a seventh, divergent authoring of it (KF-AV-10,
+                 against DESIGN.md §5): the 2px rail with its 8% tint, the pill
+                 radius, the tone fill and the 35% glow all come from the one
+                 definition, and this scene retints it the sanctioned way — by
+                 setting `--ball-tone`, exactly as SpringTarget's derby lanes and
+                 SequenceTarget do. Two things are deliberately NOT taken from
+                 the idiom: `transform`, which it leaves unclaimed BY DESIGN
+                 (kf-EasingTarget P-2 — this ball is its own painter, writing
+                 `translateX` every frame), and the rail's INSET, which is this
+                 scene's own geometry (the rail spans the ball's centre travel,
+                 not the container) and is therefore declared where it is true. -->
+            <div
+                ref="containerEl"
+                class="visualizer-stage w-full h-full relative container-inline-size"
+            >
                 <div
-                    class="absolute top-1/2 left-6 w-[calc(100%-var(--visualizer-track-gutter))] h-1 -translate-y-1/2 rounded-full bg-accent-kf/20 pointer-events-none"
+                    class="progress-rail"
+                    :style="{
+                        left: 'calc(var(--visualizer-track-gutter) / 2)',
+                        width: 'calc(100% - var(--visualizer-track-gutter))',
+                    }"
                 ></div>
 
                 <div
                     ref="ball"
                     :class="[
-                        'absolute z-bar rounded-full h-12 w-12 bg-accent-kf text-accent-kf-foreground shadow-md will-change-transform touch-gate-target',
+                        'progress-ball visualizer-ball z-bar will-change-transform touch-gate-target',
                         isDragging ? 'cursor-grabbing' : 'cursor-grab',
                         gate.isActive.value ? 'touch-gate-active' : '',
                     ]"
@@ -254,3 +274,28 @@ useRafLoop(() => {
 // would otherwise leave it running until the spring settles (a bounded micro-leak).
 onScopeDispose(() => coastPlayback.stop());
 </script>
+
+<style scoped>
+/* The scene's retint of the shared idiom (KF-AV-10): the rail-line and the ball
+   read the ONE definition's geometry and take this scene's accent through
+   `--ball-tone`, the seam the idiom publishes for exactly this (a per-scene
+   ANCESTOR sets it, so nothing is shadowed and every subject keeps its hue).
+   `--ball-size` is the 48px this scene's hit target and its projection math
+   already assume (`ballEl.clientWidth`), stated once here instead of as an
+   `h-12 w-12` pair 40 lines from the ball's own geometry. */
+.visualizer-stage {
+    --ball-tone: var(--color-accent-kf);
+    --ball-size: 3rem;
+}
+
+/* The idiom leaves `transform` unclaimed BY DESIGN and this ball is its own
+   painter (it writes `translateX` every frame), so the ball opts OUT of the
+   idiom's `pointer-events: none` — it is the scene's drag handle, not a
+   decorative mark — and keeps its own elevation. Nothing else is overridden. */
+.visualizer-ball {
+    pointer-events: auto;
+    box-shadow:
+        0 2px 10px color-mix(in srgb, var(--ball-tone) var(--ball-glow, 35%), transparent),
+        var(--shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+}
+</style>

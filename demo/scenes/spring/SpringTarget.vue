@@ -337,9 +337,20 @@ const onKeydown = (e: KeyboardEvent) => {
    row seats the 36px ball with breathing room; the quiet sampler below keeps
    its small translucent rung so the hierarchy (protagonist > sampler) is
    legible at a glance. */
-.spring-ball {
-    /* T.G4 — anchored at the rail's left edge; the painter's `translateX(<cqw>)`
-       carries the position (compositor-only, no layout). */
+/* THE T.G4 ANCHOR, written ONCE for this scene's balls (m-8, riding KF-AV-10).
+   The same three declarations were re-authored at every ball in this file: the
+   ball is anchored at the rail's LEFT EDGE and its own painter carries the
+   position with `translateX(<cqw>)` — compositor-only, no layout. They are one
+   rule now rather than three copies that must be kept in step by hand.
+
+   What the consolidation deliberately does NOT do (kf-EasingTarget P-2): claim
+   `transform`. The idiom leaves it unclaimed BY DESIGN — `margin-top` centres
+   the ball and `translateY(-50%)` centres the rail that nothing paints — and a
+   tidy-up that "unified" the two would drop every ball out of its rail. The
+   anchor is the x-half of that same asymmetry, so it is homed and no more. */
+.spring-ball,
+.sampler-ball,
+.derby-lane-ball {
     left: 0;
     margin-left: calc(var(--ball-size, 36px) / -2);
     will-change: transform;
@@ -348,10 +359,7 @@ const onKeydown = (e: KeyboardEvent) => {
 .sampler-ball {
     --ball-size: 1.25rem;
     --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
-    left: 0;
-    margin-left: calc(var(--ball-size) / -2);
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
-    will-change: transform;
 }
 
 /* ── L.W11 S6 — the y=1 TARGET LINE + the settle-pulse ──
@@ -438,10 +446,8 @@ const onKeydown = (e: KeyboardEvent) => {
     --ball-glow: 30%;
     position: absolute;
     top: 50%;
-    left: 0; /* T.G4 — painter's translateX(<cqw>) carries the position */
     margin-top: calc(var(--ball-size) / -2);
-    margin-left: calc(var(--ball-size) / -2);
-    will-change: transform;
+    /* the T.G4 anchor (left / margin-left / will-change) rides the shared rule above */
     /* the phosphor afterglow in the lane hue */
     filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent));
 }
