@@ -14,6 +14,7 @@ import { cancelWAAPI, resolvePlay, settle } from "./transport";
 import { withReducedMotion } from "../../internal/reduced-motion";
 import { beginPlay } from "../../internal/transport-core";
 import { isWAAPIEligible, playWAAPI } from "../../waapi";
+import type { WAAPIDelegationHooks } from "../../waapi/delegation";
 import type { Vars } from "../../constants";
 import type { KeyframesAnimation } from "../animation";
 
@@ -43,9 +44,10 @@ async function playViaWAAPI<V extends Vars>(
     // The delegated lane's shadow loop owns the per-tick observation point but
     // not the snap, so the snap is handed DOWN to it (X.KF.W5 B-6): an import in
     // the other direction would close a `waapi ↔ engine` ring.
-    await playWAAPI(anim, {
+    const hooks: WAAPIDelegationHooks = {
         snapToReducedMotion: () => snapToReducedMotion(anim),
-    });
+    };
+    await playWAAPI(anim, hooks);
     settle(anim);
 }
 
