@@ -100,6 +100,53 @@ import CSSPasteDialog from "@components/instrument/timeline/CSSPasteDialog.vue";
  *
  * The feedback sweep rides the shell's `feedback` slot, below the footer
  * (KAD-15 — see the template).
+ *
+ * ── KAD-17, AND THE PACKET'S DISCHARGE LEDGER (W6-M / W6-N, unit `.k`) ────────
+ * The discharge discipline this wave holds is that a seat STATES which rows the
+ * S-9 swap moots BEFORE it spends a cure. Measured at these bytes, by command,
+ * after the swap landed:
+ *
+ *   KAD-17 (caret/selection cluster) — WHOLE, and wholly MOOT. All four limbs
+ *     addressed a `<pre contenteditable>` that no longer exists:
+ *     `collapseToEnd()` running synchronously BEFORE the microtask `innerHTML`
+ *     write it targeted (L-7); that same call reaching the GLOBAL
+ *     `window.getSelection()` — the exact hazard the `contenteditable.ts` util
+ *     it imported exists to avoid, by resolving through
+ *     `target.ownerDocument.defaultView` (C-13); `insertTabAtCursor` firing no
+ *     `input` event, so a Tab as the LAST edit was dropped from the model and
+ *     self-healed on the next keystroke (L-8); and that Tab being four U+00A0,
+ *     whose indent-compounding postcss does not normalise. A native `<textarea>`
+ *     has no innerHTML to collapse into, no portalled selection to resolve, and
+ *     no Tab insertion at all (Tab moves focus — the a11y-correct default the
+ *     swap restores, which is also KAD-7). `grep -nE
+ *     'collapseToEnd|insertTabAtCursor|getSelection|innerHTML|contenteditable'`
+ *     over this file returns only the two prose lines above. ZERO cure bytes are
+ *     spent, and the row is recorded rather than re-derived.
+ *     THE BLOCKER ARM IS DEAD AND STAYS DEAD: the "mangled parse" claim was
+ *     killed on measurement (value.js's tokenizer `/\s/` MATCHES U+00A0; identity
+ *     fold to the twin's L-9/K-1) and is not re-booked here or anywhere.
+ *   KAD-3 · KAD-7 · KAD-19 · KAD-25 · KAD-16 — MOOT with the same host:
+ *     session-long inert highlighting, the forward-Tab trap (WCAG 2.1.1), the
+ *     unbounded long line, rich paste with no `plaintext-only`, and the dead
+ *     token cluster (`class` as a literal class name, an inert `sticky bottom-0`,
+ *     `type="submit"` with no `<form>` in the portalled tree) all belonged to
+ *     markup this adapter no longer authors.
+ *   KAD-F1 → CPD R-2 · KAD-F4 → R-20 · KAD-F5 → R-10 — DISCHARGED AT THE SHELL
+ *     by the swap's own commit (`scroll` on `DialogContent`;
+ *     `spellcheck`/`autocorrect`/`autocapitalize` off; `:rows` replacing the
+ *     `min-h-[25vh]` viewport floor). Folds, not re-bookings.
+ *   KAD-14(c) — CURED: the hand-rolled `onMounted` beside a watch, both passing
+ *     an element the watch already owned, is gone; the binding below is a real
+ *     `watch(…, { immediate: true })` (`grep -c onMounted` → 0).
+ *   KAD-20 — NOT DISCHARGED, and DECLARED rather than quietly folded. The
+ *     accessible-name half is cured (the shell names the field), but the empty
+ *     state still renders a blank well with no placeholder, prompt or example.
+ *     That attribute belongs to the shell (`CSSPasteDialog.vue`), which is in
+ *     this wave's §Bounds but NOT in this unit's writable set, so it is routed,
+ *     never reached across.
+ *
+ * KAD-5 — the two SFC floating promises are the packet's ONE live cure and are
+ * spent below, under this wave's NON-TOAST posture.
  */
 const props = defineProps<{
     /** Formats the raw string and RETURNS the result; writes nothing. */
@@ -115,8 +162,31 @@ const text = defineModel<string>("text", { required: true });
 
 const progressBarEl = useTemplateRef<HTMLElement>("progressBarEl");
 
+// KAD-5 (rider on the KAD-17 packet) — FLOATING PROMISE #1, the one that FAILS
+// SILENTLY ON THE STATE THE EDITOR LIVES IN. `format` is prettier, and prettier
+// THROWS on malformed CSS — which is the draft's normal condition while it is
+// being typed, i.e. exactly when Shift+Alt+F is pressed. The call was bare, so
+// the rejection had nowhere to go: no route, no message, no console line, while
+// every sibling operation in this stack routes through the house error channel.
+// The house channel is `withErrorToastAsync` + Retry, and it is UNAVAILABLE here
+// by this wave's NON-TOAST posture — the vue-sonner stylesheet is imported
+// nowhere, so every toast in the demo is structurally unreachable (banked
+// kf-DemoGlobalChrome). The in-tree idiom for exactly that situation is
+// `useHighlightCSS.ts`'s, which names the unreachability and reports to the
+// console instead; this follows it. The rejection is HANDLED, not swallowed: the
+// draft is left byte-for-byte as the user typed it (a failed reformat must never
+// eat the text it could not parse), and the failure is reported with its cause.
+// A shared non-toast error surface is the durable cure and is declared upward,
+// not invented here.
 const reformat = async () => {
-    text.value = await props.format(text.value);
+    try {
+        text.value = await props.format(text.value);
+    } catch (e) {
+        console.error(
+            "Failed to reformat the keyframes draft (the draft is unchanged):",
+            e,
+        );
+    }
 };
 
 // KAD-15: the sweep is `transform: scaleX()` from the bar's rest (0) to full,
@@ -163,7 +233,18 @@ const animateProgressBar = async () => {
 // the shell's void-return rule preserves that contract exactly.
 const onSubmit = (value: string): void => {
     emit("submit", value);
-    animateProgressBar();
+    // KAD-5 — FLOATING PROMISE #2. The sweep is decorative chrome and its ONE
+    // rejection source is the engine chunk fetch above, so it must not be
+    // awaited here (the shell's `void`-return rule is what keeps the parent's
+    // close contract) and it must not float either. `void` states the deliberate
+    // fire-and-forget and the handler gives the rejection a destination: the
+    // flourish is skipped, the submit that already emitted is untouched, and the
+    // chunk failure is reported rather than becoming an unhandled rejection on a
+    // page whose only global listener (`useMonacoCancellationGuard`) filters for
+    // Monaco's "Canceled" and toasts nothing.
+    void animateProgressBar().catch((e) => {
+        console.error("Failed to run the keyframes feedback sweep:", e);
+    });
 };
 
 // KAD-12 (W6-I): Shift+Alt+F reformats through the ONE keyboard registry —
