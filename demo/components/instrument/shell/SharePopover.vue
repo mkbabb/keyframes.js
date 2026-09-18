@@ -32,11 +32,29 @@
              default is prevented and the field takes focus directly, so the
              popover's focus scope still traps — nothing about dismissal or the
              return target changes. -->
+        <!-- SP-1 + SP-19 + SP-21 (W6-I): `p-2` was DEAD — `cn`'s disjoint
+             padding buckets never collided it with the primitive's
+             `px-(--overlay-pad-inline) py-(--overlay-pad-block)` longhands and
+             Tailwind emits `.p-2` first, so the glass overlay rung shipped
+             while the class sat in the DOM looking operative; it is gone.
+             `align="end"`: the ribbon host is `placement="right"` with a
+             row-reversed band, so a start-aligned 288px surface had ~22px of
+             room and the collision middleware, not the author, was deciding
+             placement. `@interact-outside` carries the demo's own toaster
+             guard: both `loadFromInput` error paths toast AND leave this
+             popover open, and a click on that toast must not dismiss it — the
+             same guard the two sibling overlays install. -->
         <PopoverContent
-            class="z-popover w-72 p-2"
-            align="start"
+            class="z-popover w-72"
+            align="end"
             :side-offset="8"
             @open-auto-focus="focusShareField"
+            @interact-outside="
+                (event) => {
+                    if (isInsideToaster(event.target))
+                        return event.preventDefault();
+                }
+            "
         >
             <!-- SP-9 + SP-8 — the height overrides go, and `size` drives.
                  SP-9 is the row's largest deficit and the only one with no
@@ -62,11 +80,30 @@
                  tracking to pair — the case-cancel/tracking pair this string
                  carried is retired together, so G-W6-8's census loses a site
                  rather than gaining an unpaired one. -->
+            <!-- SP-5 + SP-6 (W6-I): the field gets its programmatic name and
+                 the input semantics the primitive forwards — `aria-label`
+                 (there is no visible label to point at; `./labeled-field`
+                 would add a label row this 288px surface has no room for),
+                 `inputmode="url"` + `enterkeyhint="go"` (Enter IS the load)
+                 and `autocomplete="off"` (a pasted share hash is never a
+                 remembered value). `type="url"` is deliberately NOT set — the
+                 field accepts a bare base64 param (useShareState.ts), which a
+                 URL-typed control would reject as invalid. States: the Load
+                 action is DISABLED on an empty field (the empty submit was a
+                 silent return), and the Share action carries `loading` for the
+                 async copy's in-flight span so a double click cannot re-enter
+                 it. The half that needs the store — an `invalid` skin on a
+                 failed load and a reset of `loadHashInput` after success — is
+                 `useShareState.ts`'s, outside this unit's bounds, DECLARED. -->
             <div class="flex items-center gap-1.5">
                 <Input
                     ref="shareFieldEl"
                     v-model="loadHashInput"
                     placeholder="Paste share URL..."
+                    aria-label="Share URL or hash to load"
+                    inputmode="url"
+                    enterkeyhint="go"
+                    autocomplete="off"
                     class="font-mono flex-1"
                     @keydown.enter="loadFromInput"
                 />
@@ -75,6 +112,7 @@
                     emphasis="quiet"
                     icon-only
                     class="shrink-0"
+                    :disabled="loadHashInput.trim() === ''"
                     @click="loadFromInput"
                     title="Load shared state"
                 >
@@ -85,7 +123,8 @@
                     emphasis="quiet"
                     icon-only
                     class="shrink-0"
-                    @click="shareState"
+                    :loading="sharing"
+                    @click="onShare"
                     title="Copy share link"
                 >
                     <Clipboard class="icon-md" />
@@ -96,16 +135,14 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
+import { ref, useTemplateRef } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import { Share2, Clipboard, ArrowRight } from "@lucide/vue";
-import {
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
-    Button,
-} from "@mkbabb/glass-ui";
+// SP-18 (W6-I): every glass symbol on its own subpath beside `./forms`.
+import { Button } from "@mkbabb/glass-ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@mkbabb/glass-ui/popover";
 import { Input } from "@mkbabb/glass-ui/forms";
+import { isInsideToaster } from "@components/instrument/utils/toastGuard";
 import { useShareState } from "./useShareState";
 
 const props = defineProps<{
@@ -114,6 +151,19 @@ const props = defineProps<{
 
 const { sharePopoverOpen, loadHashInput, shareState, loadFromInput } =
     useShareState(props.onSceneRestore);
+
+// SP-6: the async copy's in-flight span, so the Share button carries `loading`
+// and a second click during the first is a no-op.
+const sharing = ref(false);
+const onShare = async () => {
+    if (sharing.value) return;
+    sharing.value = true;
+    try {
+        await shareState();
+    } finally {
+        sharing.value = false;
+    }
+};
 
 // SP-20 — glass `Input` is a single-root component over the native `<input>`,
 // so its instance `$el` IS the focusable element (the same `$el` contract the
