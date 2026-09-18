@@ -24,13 +24,81 @@ const selectorText = (selector: KeyframeSelector): string =>
             ? ""
             : ` ${selector.offset * 100}%`}`;
 
-const serializeDeclared = (declared: ParsedVarMap): Record<string, string> =>
-    Object.fromEntries(
-        Object.entries(declared).map(([key, value]) => [
-            key,
-            serializeCssValue(value),
-        ]),
+/**
+ * ONE declaration of one declared stop: the property name the body emits, the
+ * serialized text it emits for it, and — for a row that came from the parsed
+ * var map — the DECLARED `CssValue` it was serialized FROM.
+ *
+ * The third field is the point (X.KF.W2 · G-W2-3). `view-transition.ts` used to
+ * take {@link declaredKeyframeBodyFor}'s rendered body and run
+ * `/([\w-]+)\s*:\s*([^;]+);/g` back over it to recover these pairs — kf
+ * re-parsing its own emission with a regex, one layer inside the library. The
+ * emitter already HAS the parsed value; it is handed over instead of being
+ * re-derived from text. `declared` is absent on the two SYNTHESIZED rows (the
+ * per-stop easing and composition), which kf writes from a resolved `Easing`
+ * and an enum — there is no author value behind them to hand over.
+ */
+export interface DeclaredDeclaration {
+    /** The emitted CSS property name (`camelCaseToHyphen` of the declared key). */
+    readonly prop: string;
+    /** Exactly the text the body emits for this declaration. */
+    readonly value: string;
+    /** The declared value this row serialized from; absent on synthesized rows. */
+    readonly declared?: CssValue;
+}
+
+/**
+ * THE declared-stop projection (X.KF.W2 · G-W2-3) — stop `i`'s declarations as
+ * STRUCTURE, from the same `animation.parsedVars[i]` + `templateFrames[i]`
+ * authority {@link declaredKeyframeBody} renders. The body is now a RENDERING of
+ * this list rather than a second derivation of it, so a consumer that needs the
+ * declarations gets them in structure and never has to read them back out of
+ * text (the serialize→regex-reparse class this wave extirpates).
+ */
+export function declaredDeclarationsFor<V extends Vars>(
+    animation: KeyframesAnimation<V>,
+    i: number,
+    defaultEasing: string,
+): DeclaredDeclaration[] {
+    const declared: ParsedVarMap = animation.parsedVars[i] ?? {};
+    const templateFrame = animation.templateFrames[i]!;
+
+    const decls: DeclaredDeclaration[] = Object.entries(declared).map(
+        ([propName, value]) => ({
+            prop: camelCaseToHyphen(propName),
+            value: serializeCssValue(value),
+            declared: value,
+        }),
     );
+
+    // F.W7 — a per-stop easing that differs from the animation default rides the
+    // body (CSS Animations L1: `animation-timing-function` at a stop applies to
+    // the interval STARTING there); a uniform easing stays on the `.class` block
+    // so the round-trip is byte-identical.
+    const frameEasing = templateFrame.timingFunction
+        ? serializeEasing(templateFrame.timingFunction)
+        : defaultEasing;
+    if (frameEasing !== defaultEasing) {
+        decls.push({
+            prop: "animation-timing-function",
+            value: frameEasing,
+        });
+    }
+
+    // L.W1 S3 — the per-stop `animation-composition` round-trip, symmetric with
+    // the per-stop easing emit above. value.js lifts the author's per-keyframe
+    // `animation-composition` onto `rule.composition`; the adapter captures it on
+    // `templateFrame.composition`; emit it back for any stop whose operator is
+    // non-`replace` (the CSS default — omitting it is correct for `replace`), so
+    // the declared layering survives parse → serialize → re-parse instead of
+    // silently collapsing to `replace`.
+    const composition = templateFrame.composition;
+    if (composition != null && composition !== "replace") {
+        decls.push({ prop: "animation-composition", value: composition });
+    }
+
+    return decls;
+}
 
 const scaleValue = (value: CssValue, weight: number): CssValue | undefined => {
     if (value.kind === "scalar") {
@@ -71,44 +139,20 @@ const scaleValue = (value: CssValue, weight: number): CssValue | undefined => {
  * DOM-resolved for computed units and mutated in place by every
  * `interpFrames` pass — is DELETED: ONE serialization authority.
  *
- * F.W7 — a per-stop easing that differs from the animation default rides the
- * body (CSS Animations L1: `animation-timing-function` at a stop applies to
- * the interval STARTING there); a uniform easing stays on the `.class` block
- * so the round-trip is byte-identical.
+ * X.KF.W2 (G-W2-3) — the body is now a RENDERING of
+ * {@link declaredDeclarationsFor}, which holds the declaration list itself (the
+ * per-stop easing and composition rows included). One authority, two shapes: a
+ * consumer that wants the declarations asks for the list; only this function
+ * turns them into text.
  */
 function declaredKeyframeBody<V extends Vars>(
     animation: KeyframesAnimation<V>,
     i: number,
     defaultEasing: string,
 ): string {
-    const declared: ParsedVarMap = animation.parsedVars[i] ?? {};
-
-    const templateFrame = animation.templateFrames[i]!;
-
-    const decls = Object.entries(serializeDeclared(declared)).map(
-        ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
-    );
-
-    const frameEasing = templateFrame.timingFunction
-        ? serializeEasing(templateFrame.timingFunction)
-        : defaultEasing;
-    if (frameEasing !== defaultEasing) {
-        decls.push(`  animation-timing-function: ${frameEasing};`);
-    }
-
-    // L.W1 S3 — the per-stop `animation-composition` round-trip, symmetric with
-    // the per-stop easing emit above. value.js lifts the author's per-keyframe
-    // `animation-composition` onto `rule.composition`; the adapter captures it on
-    // `templateFrame.composition`; emit it back for any stop whose operator is
-    // non-`replace` (the CSS default — omitting it is correct for `replace`), so
-    // the declared layering survives parse → serialize → re-parse instead of
-    // silently collapsing to `replace`.
-    const composition = templateFrame.composition;
-    if (composition != null && composition !== "replace") {
-        decls.push(`  animation-composition: ${composition};`);
-    }
-
-    const css = decls.join("\n");
+    const css = declaredDeclarationsFor(animation, i, defaultEasing)
+        .map(({ prop, value }) => `  ${prop}: ${value};`)
+        .join("\n");
 
     return `{\n${css}\n}`;
 }
@@ -133,17 +177,47 @@ export const CSSKeyframesToStrings = async <V extends Vars>(
     );
 };
 
+/**
+ * The editor card's presentation trim: given ONE per-stop string from
+ * {@link CSSKeyframesToStrings} (`"0%\n{\n  opacity: 0;\n}\n"`), return the
+ * declarations alone, un-indented — the `<pre>` the card renders.
+ *
+ * X.KF.W2 (G-W2-3) — RE-IMPLEMENTED, not deleted. The symbol is published on
+ * four barrels (`emit/format/index.ts`, `emit/index.ts`, `compile/index.ts`,
+ * `public.ts`), declared on the lazy engine surface (`load-engine.ts`), and held
+ * live by the demo (`KeyframeCardList.vue` binds this function by reference), so
+ * the export, the signature and every one of those sites stand. What died is the
+ * BODY: four anonymous regexes (`/^[^{]*{/`, `/^  /gm`, `/}\s*$/`, `/^  /`) that
+ * re-read kf's own emission as if it were unknown text.
+ *
+ * This stays a pure string trim and adds NO grammar edge — deliberately. It is
+ * FORMATTING, not parsing: the card's own comment declares it "a value.js-free
+ * pure-string trim" and routing a presentation helper through the CSS grammar
+ * would falsify that at a call site this wave does not own. The cut points are
+ * therefore named as positions and the indent is stripped per line, which is
+ * what the regexes meant; measured byte-identical to the old body across the
+ * card shapes and the degenerate ones (no brace, empty, trailing text, an inner
+ * `{` inside a `url()`).
+ */
 export function formatCSSKeyframeString(keyframe: string) {
-    let s = keyframe
-        .replace(/^[^{]*{/, "")
-        .replace(/^  /gm, "")
-        .replace(/}\s*$/, "");
+    // Everything after the stop's first `{` — the selector line goes.
+    const open = keyframe.indexOf("{");
+    const afterOpen = open === -1 ? keyframe : keyframe.slice(open + 1);
 
-    s = s.trim();
+    // ...up to the closing `}`, and only when nothing but whitespace follows it
+    // (the old `/}\s*$/` anchored at the end; a trailing tail keeps its brace).
+    const close = afterOpen.lastIndexOf("}");
+    const body =
+        close !== -1 && afterOpen.slice(close + 1).trim() === ""
+            ? afterOpen.slice(0, close)
+            : afterOpen;
 
-    s = s.replace(/^  /, "");
-
-    return s;
+    // One level of the body's two-space indent, per line.
+    return body
+        .split("\n")
+        .map((line) => (line.startsWith("  ") ? line.slice(2) : line))
+        .join("\n")
+        .trim();
 }
 
 /**
@@ -261,8 +335,9 @@ export function premultipliedKeyframesBlock<V extends Vars>(
             scaled[key] = next;
         }
 
-        const decls = Object.entries(serializeDeclared(scaled)).map(
-            ([propName, v]) => `  ${camelCaseToHyphen(propName)}: ${v};`,
+        const decls = Object.entries(scaled).map(
+            ([propName, value]) =>
+                `  ${camelCaseToHyphen(propName)}: ${serializeCssValue(value)};`,
         );
         const frameEasing = templateFrame.timingFunction
             ? serializeEasing(templateFrame.timingFunction)

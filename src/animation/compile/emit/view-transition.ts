@@ -45,7 +45,15 @@ import type { AnimationOptions, Vars } from "../../constants";
 // would cycle; the same file-not-barrel idiom the easing carve proved).
 import { compileChild } from "./backward";
 import { cssIdent } from "./backward/walk";
-import { declaredKeyframeBodyFor } from "./format";
+// X.KF.W2 (G-W2-3) — the declared-stop PROJECTION, imported from the file that
+// defines it rather than from `./format`'s barrel. `emit/format/index.ts` is in
+// NEITHER this wave's §Bounds Owned-files table NOR any unit's writable set, so
+// the two new symbols cannot be published on it here; publishing them there (one
+// line, plus the barrel docblock's "single cross-boundary surface" sentence) is
+// OWED and is recorded as a bounds gap at `docs/tranches/X/execution/B/KF-W2.md`.
+import { declaredDeclarationsFor } from "./format/format";
+import type { DeclaredDeclaration } from "./format/format";
+import type { CssValue } from "@mkbabb/value.js/value";
 import { serializeEasing } from "./easing-serialize";
 import type { CompileChild } from "./backward/walk";
 import type {
@@ -132,23 +140,65 @@ const VT_SNAPSHOT_APPLICABLE = new Set([
     "clip-path",
 ]);
 
-/** A container-query length unit — element-scoped, never reaches the root pseudo. */
-const CQ_UNIT_RE = /\b-?\d*\.?\d+cq(w|h|i|b|min|max)\b/i;
+/** The container-query length units — element-scoped, never reach the root pseudo. */
+const CQ_UNITS = new Set(["cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax"]);
 
-/** Parse `prop: value;` pairs out of a `declaredKeyframeBodyFor` body. */
+/**
+ * Every declaration of every declared stop, as STRUCTURE (X.KF.W2 · G-W2-3).
+ *
+ * This function used to call `declaredKeyframeBodyFor`, get a rendered
+ * `{ … }` body back, and run `/([\w-]+)\s*:\s*([^;]+);/g` over it to recover the
+ * pairs the emitter had just serialized — a serialize→regex-reparse round trip
+ * INSIDE the library. Note what that cost, by reading: `[\w-]+` cannot hold a
+ * `.`, so a declared `transform.translateY` could only ever come back as the
+ * bare `translate-y`, and `topLevelProp`'s dotted-key split — written for
+ * exactly that shape — was unreachable through this path. The projection is
+ * asked for its declarations instead, so a key arrives as the emitter holds it.
+ */
 function declaredDecls<V extends Vars>(
     animation: KeyframesAnimation<V>,
-): Array<{ prop: string; value: string }> {
+): DeclaredDeclaration[] {
     const defaultEasing = serializeEasing(animation.options.timingFunction);
-    const decls: Array<{ prop: string; value: string }> = [];
+    const decls: DeclaredDeclaration[] = [];
     for (let i = 0; i < animation.templateFrames.length; i++) {
-        const body = declaredKeyframeBodyFor(animation, i, defaultEasing);
-        for (const m of body.matchAll(/([\w-]+)\s*:\s*([^;]+);/g)) {
-            decls.push({ prop: m[1]!.trim(), value: m[2]!.trim() });
-        }
+        decls.push(...declaredDeclarationsFor(animation, i, defaultEasing));
     }
     return decls;
 }
+
+/**
+ * Is this declared value ELEMENT-SCOPED — a container-query length or a `var()`
+ * — so that it cannot reach the `::view-transition` pseudo tree hanging off the
+ * root? Returns the reason word for the refusal message, or `null`.
+ *
+ * X.KF.W2 (G-W2-3): the pair of ad-hoc regexes this replaces (`CQ_UNIT_RE` and
+ * `/\bvar\(/`) tested the SERIALIZED text of a value the emitter was holding in
+ * parsed form. The declared `CssValue` is walked instead — a `cq*` unit is a
+ * scalar's `unit`, a `var()` is a call by `name` — so `--my-cqw-ish` and a
+ * `"var("` inside a string can no longer read as either.
+ */
+const elementScoped = (value: CssValue | undefined): "cq" | "var" | null => {
+    if (value == null) return null;
+    if (value.kind === "call") {
+        if (value.name.toLowerCase() === "var") return "var";
+        for (const arg of value.args) {
+            const found = elementScoped(arg);
+            if (found != null) return found;
+        }
+        return null;
+    }
+    if (value.kind === "list") {
+        for (const item of value.items) {
+            const found = elementScoped(item);
+            if (found != null) return found;
+        }
+        return null;
+    }
+    return value.payload.type === "number" &&
+        CQ_UNITS.has(value.payload.unit.toLowerCase())
+        ? "cq"
+        : null;
+};
 
 /** The top-level CSS prop for a declared key (`transform.translateY` → `transform`). */
 const topLevelProp = (prop: string): string =>
@@ -198,13 +248,14 @@ function emitRole<V extends Vars>(
     }
 
     // vt-element-scoped-computed + vt-snapshot-inapplicable (per declared prop).
-    for (const { prop, value } of declaredDecls(animation)) {
-        if (CQ_UNIT_RE.test(value) || /\bvar\(/.test(value)) {
+    for (const { prop, declared } of declaredDecls(animation)) {
+        const scoped = elementScoped(declared);
+        if (scoped != null) {
             refusals.push({
                 name,
                 reason: "vt-element-scoped-computed",
                 message:
-                    `"${prop}" is element-scoped (${CQ_UNIT_RE.test(value) ? "a container-query unit" : "a var()"}) ` +
+                    `"${prop}" is element-scoped (${scoped === "cq" ? "a container-query unit" : "a var()"}) ` +
                     "— the ::view-transition pseudo tree hangs off the ROOT, so an " +
                     "element-scoped custom property / container context does not reach it",
             });
