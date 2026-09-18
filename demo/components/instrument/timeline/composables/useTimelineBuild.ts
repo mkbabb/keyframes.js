@@ -3,15 +3,13 @@ import type { Ref, ShallowRef } from "vue";
 import { useRafFn } from "@vueuse/core";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
-import { createKeyframeId } from "../timelineTypes";
-import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
-import { selectorPercent, selectorText } from "@utils/keyframeSelector";
+import type { TimelineState } from "../timelineTypes";
+import { selectorText } from "@utils/keyframeSelector";
 import {
     buildAnimationFromTimeline,
     exportTimelineToCSS,
     importCSSToTimeline,
 } from "../utils/timelineEngine";
-import { flattenVars } from "../utils/flattenVars";
 import { toast } from "vue-sonner";
 import { clamp } from "@mkbabb/value.js/math";
 
@@ -228,28 +226,6 @@ export function useTimelineBuild(
         );
     };
 
-    const loadPreset = async (presetAnim: CSSKeyframesAnimation<any>) => {
-        const keyframes: TimelineKeyframe[] = [];
-
-        for (const frame of presetAnim.templateFrames) {
-            const percent = selectorPercent(frame.start);
-
-            const vars: Record<string, string> = {};
-            flattenVars(frame.vars, "", vars);
-
-            keyframes.push({
-                id: createKeyframeId(),
-                selector: frame.start,
-                percent,
-                vars,
-            });
-        }
-
-        state.value.keyframes = keyframes;
-        state.value.animationName = presetAnim.name ?? "preset-animation";
-        await rebuild();
-    };
-
     const clear = () => {
         state.value.keyframes = [];
         animation.value = null;
@@ -264,7 +240,6 @@ export function useTimelineBuild(
         exportCSS,
         importCSS,
         mergeCSS,
-        loadPreset,
         clear,
     };
 }

@@ -151,7 +151,7 @@
                             >{{ Math.round(selectedKeyframe.percent) }}%</span
                         >
                         <Input
-                            v-model="selectedKeyframe.label"
+                            v-model="selectedKeyframeLabel"
                             placeholder="Label..."
                             class="font-mono text-admin-label h-6 w-32"
                         />
@@ -162,7 +162,7 @@
                         icon-only
                         class="h-6 w-6 p-0"
                         aria-label="Remove keyframe"
-                        @click="removeKeyframe(selectedKeyframeId!)"
+                        @click="removeSelectedKeyframe()"
                     >
                         <X class="icon-xs" />
                     </Button>
@@ -342,6 +342,21 @@ const selectedKeyframe = computed(() =>
     state.value.keyframes.find((kf) => kf.id === selectedKeyframeId.value),
 );
 
+// N-2 — `label` is optional, and an empty box means "no label", not "the empty
+// label": writing `""` into state would deep-clone an empty string into all 50
+// undo snapshots. The model is also what makes the control typed honestly
+// against `exactOptionalPropertyTypes` (the `string | undefined` the raw field
+// carried is not assignable to the Input's model).
+const selectedKeyframeLabel = computed<string>({
+    get: () => selectedKeyframe.value?.label ?? "",
+    set: (value) => {
+        const kf = selectedKeyframe.value;
+        if (!kf) return;
+        if (value === "") delete kf.label;
+        else kf.label = value;
+    },
+});
+
 const selectedKeyframeCSS = computed(() => {
     if (!selectedKeyframe.value) return "";
     return Object.entries(selectedKeyframe.value.vars)
@@ -478,17 +493,22 @@ const removeSelectedKeyframe = () => {
     }
 };
 
+// L-12/C-8 — the published contract is the SEVEN verbs its consumers actually
+// call, measured at the frontier: `snapshot` · `openImportDialog` · `exportCSS`
+// · `openAddCSSDialog` (RibbonBar) and `removeSelectedKeyframe` · `undo` ·
+// `redo` (useControlsKeyboardShortcuts). `selectedKeyframeId`, `canUndo` and
+// `canRedo` were published and taken by NOBODY — three reads that made the
+// instrument's private state look like an API. `canUndo`/`canRedo` stay LIVE
+// inside this component (they bound the two buttons above) and on the
+// composable; they are simply not part of what this component publishes.
 defineExpose({
     snapshot,
     openImportDialog,
     openAddCSSDialog,
     exportCSS,
     removeSelectedKeyframe,
-    selectedKeyframeId,
     undo,
     redo,
-    canUndo,
-    canRedo,
 });
 </script>
 

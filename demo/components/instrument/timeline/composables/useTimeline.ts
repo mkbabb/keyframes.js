@@ -28,7 +28,6 @@ export function useTimeline(
     const animOptions = options ?? ref({ ...defaultAnimationOptions });
 
     const scrubT = ref(0);
-    const isPlaying = ref(false);
 
     const sortedKeyframes = computed(() =>
         [...state.value.keyframes].sort((a, b) => a.percent - b.percent),
@@ -43,7 +42,6 @@ export function useTimeline(
         exportCSS,
         importCSS,
         mergeCSS,
-        loadPreset,
         clear,
     } = useTimelineBuild(state, scrubT, animOptions, targets);
 
@@ -81,7 +79,6 @@ export function useTimeline(
         redo: redoHistory,
         canUndo,
         canRedo,
-        clear: clearHistory,
     } = useRefHistory(state, {
         deep: true,
         clone: true,
@@ -109,7 +106,6 @@ export function useTimeline(
         animation,
         buildError,
         scrubT,
-        isPlaying,
         sortedKeyframes,
         snapshot,
         addKeyframe,
@@ -122,12 +118,10 @@ export function useTimeline(
         exportCSS,
         importCSS,
         mergeCSS,
-        loadPreset,
         clear,
         undo,
         redo,
         canUndo,
         canRedo,
-        clearHistory,
     };
 }
