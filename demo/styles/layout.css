@@ -12,7 +12,6 @@
 :root {
     /* ── Recurring length homes (each routes a bracket-arbitrary literal to ONE token) ── */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
-    --header-items-max-w: 500px; /* the EditorHeader expanded items-wrapper cap (collapse animates max-width 0 ↔ this) */
     --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent dropdown min (recurs ×3) */
     /* The cube target tracks the STAGE CELL, not the raw viewport: cqi/cqb resolve
        against the clamped stage column so the loader glyph is bounded by the
