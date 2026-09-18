@@ -227,5 +227,8 @@ export function useCodeHighlight(
         themeStyle.value = null;
     });
 
-    return { setHighlightingString, highlight, highlightAll };
+    // `highlight` is deliberately NOT returned: it is `highlightAll`'s internal
+    // per-element step, and a caller reaching it directly would skip the theme
+    // ensure. No consumer ever destructured it. ⟨X.KF.W5 arm 0, KAD-14(e)⟩
+    return { setHighlightingString, highlightAll };
 }
