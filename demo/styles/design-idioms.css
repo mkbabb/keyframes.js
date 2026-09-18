@@ -81,7 +81,14 @@
 /* icon-{xs,sm,md,lg} — the icon-sizing @utility family (61 call-sites used to
    resolve to nothing, all computing at Lucide's default 24px). Differentiates
    xs(14) < sm(16) < md(20) < lg(24); the nested `& svg { size-N }` sizes the
-   descendant glyph so a WRAPPER call-site shrinks its inner 24px glyph too. */
+   descendant glyph so a WRAPPER call-site shrinks its inner 24px glyph too.
+   DISPOSITION (the KF.W6 token audit): RETAINED-BY-POLICY. glass-ui 7.0.0 ships
+   the --icon-{xs,sm,md,lg,xl,hero} LENGTH tokens (12/14/16/20/24/56px) but NO
+   icon-* utility classes, so nothing is shadowed at the class level; the demo's
+   rungs sit ONE STEP above glass's same-named tokens (demo xs = glass sm, … demo
+   lg = glass xl) — a documented offset, not an accident. Re-runging the family
+   onto glass's tokens is a 61-site render delta and belongs to a governed
+   looking pass (KF.W7/W9), not to this zero-render-delta audit. */
 @utility icon-xs {
     @apply size-3.5;
     & svg {

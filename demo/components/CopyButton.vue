@@ -37,6 +37,14 @@ const liveStatus = ref("");
 const clipboard = useTemplateRef<HTMLElement>("clipboard");
 const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
 
+// Script-side constants are part of the token audit (KF-CB-27), disposition
+// RETAINED-BY-POLICY: `duration: 200` is the numeric mirror of glass-ui's
+// `--duration-fast: 0.2s` (the engine takes milliseconds — a CSS custom property
+// is not readable here without a getComputedStyle round-trip at mount, which
+// would trade a documented constant for a layout read), and the `scale(1.25)`
+// pulse amplitude in the keyframe strings below is the demo's OWN register:
+// glass-ui ships hover (1.08/1.1) and press (0.96/0.97) scales, no pulse rung,
+// so there is no producer surface for it to shadow (NO-SURFACE).
 const options: Partial<InputAnimationOptions> = {
     duration: 200,
     timingFunction: "easeInBounce",
