@@ -44,7 +44,11 @@
  * stays green (the value.js-free light surface stays value.js-free).
  */
 
-import { collectKeyframes, parseStylesheet } from "@mkbabb/value.js/css";
+import {
+    collectKeyframes,
+    parseStylesheet,
+    swallowParsed,
+} from "./compile/parse-facade";
 import { CSSKeyframesAnimation } from "./engine";
 import { compileToCSS } from "./compile";
 import { isWAAPIEligible } from "./waapi";
@@ -177,19 +181,14 @@ export async function validate(
  * anonymous`) the adapter applies to a bare stop-list shows through here as
  * `anonymous`. Empty when the input surfaced no @keyframes rules.
  */
-const keyframesNames = (css: string): string[] => {
-    try {
-        const parsed = parseStylesheet(css);
-        if (!parsed.ok) return [];
-        return [
-            ...new Set(
-                collectKeyframes(parsed.value).map(({ rule }) => rule.name),
-            ),
-        ];
-    } catch {
-        return [];
-    }
-};
+const keyframesNames = (css: string): string[] =>
+    swallowParsed(
+        () => parseStylesheet(css),
+        (ast) => [
+            ...new Set(collectKeyframes(ast).map(({ rule }) => rule.name)),
+        ],
+        [],
+    );
 
 /**
  * `explain(css, opts?)` — the human/LLM-readable companion. Calls

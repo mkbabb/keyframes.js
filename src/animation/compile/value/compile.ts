@@ -1,4 +1,4 @@
-import { parseCssValues } from "@mkbabb/value.js/css";
+import { parseCssValues, requireParsed } from "../parse-facade";
 import type { CssCall, CssList, CssScalar, CssValue } from "@mkbabb/value.js/value";
 import type { Vars } from "../../constants";
 import {
@@ -29,11 +29,12 @@ const parseAuthoredValue = (value: unknown, key: string): CssValue => {
     if (isCssValue(value)) return value;
     if (typeof value === "number") return scalarNumber(value);
     if (typeof value === "string") {
-        const parsed = parseCssValues(value);
-        if (parsed.ok) return parsed.value;
-        const issue = parsed.diagnostics[0];
-        throw new TypeError(
-            `Invalid CSS value for "${key}" at ${issue.start}-${issue.end}: expected ${issue.expected.join(" or ")}.`,
+        return requireParsed(
+            parseCssValues(value),
+            ([issue]) =>
+                new TypeError(
+                    `Invalid CSS value for "${key}" at ${issue.start}-${issue.end}: expected ${issue.expected.join(" or ")}.`,
+                ),
         );
     }
     if (Array.isArray(value)) {

@@ -29,19 +29,22 @@
  * against the DOM. This module is the VALUE half — pure grammar, no DOM.
  */
 
+import type {
+    AnimationRangeValue,
+    AnimationTimelineValue,
+    CSSTimelineOptions,
+    ParseIssue,
+    Stylesheet,
+} from "@mkbabb/value.js/css";
 import {
     collectStyleRules,
     collectTimelineOptions,
     parseAnimationRange,
     parseAnimationTimeline,
     parseStylesheet,
+    requireParsed,
     serializeTimelineOptions,
-    type AnimationRangeValue,
-    type AnimationTimelineValue,
-    type CSSTimelineOptions,
-    type ParseResult,
-    type Stylesheet,
-} from "@mkbabb/value.js/css";
+} from "../compile/parse-facade";
 
 // ── re-export the consumed value.js scroll-grammar TYPES (erased) ──────────
 // Consumers annotating a parsed scene reach the typed surface through kf without
@@ -54,13 +57,17 @@ export type {
     RangePhase,
 } from "@mkbabb/value.js/css";
 
-const requireParsed = <T>(result: ParseResult<T>, source: string): T => {
-    if (result.ok) return result.value;
-    const issue = result.diagnostics[0];
-    throw new TypeError(
-        `Invalid CSS value ${JSON.stringify(source)}: ${issue.code} at ${issue.start}-${issue.end}.`,
-    );
-};
+/**
+ * The scroll seam's own typed error, handed to the façade's THROW posture
+ * ({@link requireParsed}) — the error is this module's, the branch is the
+ * façade's.
+ */
+const scrollParseError =
+    (source: string) =>
+    ([issue]: readonly [ParseIssue, ...ParseIssue[]]): Error =>
+        new TypeError(
+            `Invalid CSS value ${JSON.stringify(source)}: ${issue.code} at ${issue.start}-${issue.end}.`,
+        );
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SO-1 — the scroll-grammar ROUND-TRIP (value.js-GATED; the acyclic-spine
@@ -74,7 +81,10 @@ const requireParsed = <T>(result: ParseResult<T>, source: string): T => {
  * re-derives a local parser). Emits the value VERBATIM; resolves no defaults.
  */
 export function parseScrollTimeline(input: string): AnimationTimelineValue {
-    return requireParsed(parseAnimationTimeline(input), input);
+    return requireParsed(
+        parseAnimationTimeline(input),
+        scrollParseError(input),
+    );
 }
 
 /**
@@ -82,7 +92,7 @@ export function parseScrollTimeline(input: string): AnimationTimelineValue {
  * `{ start, end? }` form — a pass-through to value.js's `parseAnimationRange`.
  */
 export function parseScrollRange(input: string): AnimationRangeValue {
-    return requireParsed(parseAnimationRange(input), input);
+    return requireParsed(parseAnimationRange(input), scrollParseError(input));
 }
 
 /**
@@ -106,7 +116,7 @@ export function parseScrollRange(input: string): AnimationRangeValue {
  */
 export function parseScrollCSS(input: string | Stylesheet): CSSTimelineOptions {
     const ast: Stylesheet = typeof input === "string"
-        ? requireParsed(parseStylesheet(input), input)
+        ? requireParsed(parseStylesheet(input), scrollParseError(input))
         : input;
     const declarations = collectStyleRules(ast).at(-1)?.rule.declarations ?? [];
     return collectTimelineOptions(declarations);

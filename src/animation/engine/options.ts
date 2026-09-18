@@ -14,7 +14,7 @@
  * `engine.ts` class sheds it WITHOUT changing the `loadAnimationEngine()`
  * boundary. ZERO behavior change.
  */
-import { parseCssScalar } from "@mkbabb/value.js/css";
+import { orFallback, parseCssScalar } from "../compile/parse-facade";
 import {
     COLOR_SPACES,
     DIRECTIONS,
@@ -28,9 +28,9 @@ import { AnimationOptionError, parseOption } from "../internal/errors";
 
 /** Parse one CSS time scalar and convert it to milliseconds. */
 const tryParseTime = (raw: string): number | undefined => {
-    const parsed = parseCssScalar(raw);
-    if (!parsed.ok || parsed.value.payload.type !== "number") return undefined;
-    const { value, unit } = parsed.value.payload;
+    const parsed = orFallback(parseCssScalar(raw), undefined);
+    if (parsed?.payload.type !== "number") return undefined;
+    const { value, unit } = parsed.payload;
     if (!Number.isFinite(value)) return undefined;
     if (unit === "ms") return value;
     if (unit === "s") return value * 1000;

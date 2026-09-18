@@ -1,36 +1,35 @@
 /** Keyframe selector ingestion and named-phase timeline resolution. */
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
 import {
+    formatParseIssue,
     parseKeyframeSelector as parseValueSelector,
-    type KeyframeSelector,
-    type ParseIssue,
-} from "@mkbabb/value.js/css";
+    requireParsed,
+} from "./parse-facade";
 import { AnimationOptionError } from "../internal/errors";
 import { PHASE_FRACTIONS } from "../internal/scroll-phases";
 
 /** Content-derived compiled frame id scale. */
 export const FRAME_ID_SCALE = 1_000_000;
 
-const issueText = (issue: ParseIssue): string =>
-    `${issue.code} at ${issue.start}-${issue.end}: expected ${issue.expected.join(
-        " or ",
-    )}, got ${issue.actual ?? "end of input"}`;
-
 /**
- * Parse a selector through Value's sole grammar authority. Value normalizes
- * percentages to `[0,1]`, `from`/`to` to percent selectors, named offsets to
- * `[0,1]`, and mixed-case keywords/names to lowercase.
+ * Parse a selector through Value's sole grammar authority — reached at the ONE
+ * seam (`./parse-facade`), with the THROW posture declared rather than
+ * hand-rolled. Value normalizes percentages to `[0,1]`, `from`/`to` to percent
+ * selectors, named offsets to `[0,1]`, and mixed-case keywords/names to
+ * lowercase.
  */
 export function parseKeyframeSelector(start: string): KeyframeSelector {
-    const result = parseValueSelector(start);
-    if (result.ok) return result.value;
-
-    throw new AnimationOptionError(
-        "start",
-        start,
-        `invalid keyframe selector — ${result.diagnostics
-            .map(issueText)
-            .join("; ")}`,
-        start.trim() === "" ? "EMPTY_PARSE" : undefined,
+    return requireParsed(
+        parseValueSelector(start),
+        (diagnostics) =>
+            new AnimationOptionError(
+                "start",
+                start,
+                `invalid keyframe selector — ${diagnostics
+                    .map(formatParseIssue)
+                    .join("; ")}`,
+                start.trim() === "" ? "EMPTY_PARSE" : undefined,
+            ),
     );
 }
 

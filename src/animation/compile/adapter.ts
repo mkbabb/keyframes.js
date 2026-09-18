@@ -1,17 +1,21 @@
+import type {
+    CSSAnimationOptions,
+    CSSPropertyDescriptor,
+    CustomFunctionDescriptor,
+    KeyframeRule,
+    ParseIssue,
+    Stylesheet,
+} from "@mkbabb/value.js/css";
 import {
+    absorbParsed,
     collectAnimationOptions,
     collectCustomFunctions,
     collectKeyframes,
     collectPropertyDescriptors,
     collectStyleRules,
+    formatParseIssue,
     parseStylesheet,
-    type CSSAnimationOptions,
-    type CSSPropertyDescriptor,
-    type CustomFunctionDescriptor,
-    type KeyframeRule,
-    type ParseIssue,
-    type Stylesheet,
-} from "@mkbabb/value.js/css";
+} from "./parse-facade";
 import type { CssValue } from "@mkbabb/value.js/value";
 import {
     DROP,
@@ -213,16 +217,17 @@ const pickKeyframes = (ast: Stylesheet): readonly KeyframeRule[] => {
     );
 };
 
-const parserMessage = (issue: ParseIssue): string =>
-    `${issue.code} at ${issue.start}-${issue.end}: expected ${issue.expected.join(" or ")}, got ${issue.actual ?? "end of input"}`;
-
+/**
+ * The ABSORB posture, declared at the façade: a refusal yields an empty AST and
+ * SURFACES its diagnostics as `ParseIssue` rows. Unreachable on the R1 class —
+ * `parseStylesheet` THROWS (it does not refuse) on the empty-argument
+ * colour/`calc()` forms; see `parse-facade.ts`.
+ */
 const parseSource = (
     source: string,
 ): { ast: Stylesheet; issues: readonly ParseIssue[] } => {
-    const result = parseStylesheet(source);
-    return result.ok
-        ? { ast: result.value, issues: [] }
-        : { ast: [], issues: result.diagnostics };
+    const absorbed = absorbParsed<Stylesheet>(parseStylesheet(source), []);
+    return { ast: absorbed.value, issues: absorbed.issues };
 };
 
 const collectDescriptorMap = <
@@ -299,7 +304,7 @@ export const resolveKeyframes = (
     if (typeof input === "string") {
         for (const issue of issues) {
             sink("PARSE_ERROR", {
-                message: parserMessage(issue),
+                message: formatParseIssue(issue),
                 input,
                 start: issue.start,
                 end: issue.end,

@@ -8,11 +8,8 @@ import {
     type EasingFunction,
     type LinearEasingStop,
 } from "@mkbabb/value.js/easing";
-import {
-    parseTimingFunction,
-    type CssLinearStop,
-    type CssTimingFunction,
-} from "@mkbabb/value.js/css";
+import type { CssLinearStop, CssTimingFunction } from "@mkbabb/value.js/css";
+import { parseTimingFunction, requireParsed } from "../parse-facade";
 import type { TimingFunction } from "../../constants";
 
 const DIRECT_NAMES = [
@@ -163,7 +160,10 @@ export const resolveTimingFunction = (
     const registered = timingFunctionRegistry.get(timingFunction);
     if (registered !== undefined) return registered;
 
-    const parsed = parseTimingFunction(timingFunction);
-    if (parsed.ok) return fromCssTimingFunction(parsed.value);
-    throw new TypeError(`Unknown timing function "${timingFunction}".`);
+    return fromCssTimingFunction(
+        requireParsed(
+            parseTimingFunction(timingFunction),
+            () => new TypeError(`Unknown timing function "${timingFunction}".`),
+        ),
+    );
 };

@@ -1,6 +1,6 @@
 import { isLayoutTrackingUnit } from "@mkbabb/value.js/value";
 import type { CssValue } from "@mkbabb/value.js/value";
-import { parseCssScalar } from "@mkbabb/value.js/css";
+import { parseCssScalar, requireParsed } from "../compile/parse-facade";
 import { serializeCssValue } from "../compile/emit/css-text";
 
 let layoutEpoch = 0;
@@ -159,13 +159,13 @@ const numericScalar = (
     value: CssValue,
     property: string,
 ): ResolvedBrowserScalar => {
-    const parsed = parseCssScalar(source);
-    if (!parsed.ok || parsed.value.payload.type !== "number") {
-        throw new BrowserScalarResolutionError(property, value, source);
-    }
+    const unresolvable = (): Error =>
+        new BrowserScalarResolutionError(property, value, source);
+    const scalar = requireParsed(parseCssScalar(source), unresolvable);
+    if (scalar.payload.type !== "number") throw unresolvable();
     return Object.freeze({
-        value: parsed.value.payload.value,
-        unit: parsed.value.payload.unit,
+        value: scalar.payload.value,
+        unit: scalar.payload.unit,
     });
 };
 

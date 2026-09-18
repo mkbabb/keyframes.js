@@ -21,11 +21,11 @@ import {
     reverseCSSTime,
     serializeStylesheetItem,
 } from "../css-text";
-import {
-    parseTimingFunction,
-    type CSSAnimationOptions,
-    type CSSPropertyDescriptor,
+import type {
+    CSSAnimationOptions,
+    CSSPropertyDescriptor,
 } from "@mkbabb/value.js/css";
+import { parseTimingFunction, requireParsed } from "../../parse-facade";
 import type { KeyframesAnimation } from "../../../engine";
 import type {
     AnimationOptions,
@@ -101,16 +101,17 @@ export function animationShorthand(
     name: string,
 ): string {
     const timingSource = serializeEasing(options.timingFunction);
-    const timing = parseTimingFunction(timingSource);
-    if (!timing.ok) {
-        throw new TypeError(
-            `Cannot serialize timing function ${JSON.stringify(timingSource)}.`,
-        );
-    }
+    const timing = requireParsed(
+        parseTimingFunction(timingSource),
+        () =>
+            new TypeError(
+                `Cannot serialize timing function ${JSON.stringify(timingSource)}.`,
+            ),
+    );
     const cssOptions: CSSAnimationOptions = {
         name,
         duration: options.duration,
-        timingFunction: timing.value,
+        timingFunction: timing,
         iterationCount: isFinite(options.iterationCount)
             ? options.iterationCount
             : Infinity,
