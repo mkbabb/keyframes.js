@@ -2,10 +2,32 @@ import { createNativeTimeline } from "../orchestration/timeline/native";
 import type { NativeTimelineSpec } from "../orchestration/timeline/native";
 import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
+import { withReducedMotion } from "../internal/reduced-motion";
 import { isWAAPIEligible } from "./eligibility";
 import type { WAAPIEligibility } from "./eligibility";
 import { toWAAPIKeyframes } from "./emission";
 import { toWAAPIOptions } from "./options";
+
+/**
+ * What the DELEGATED lane needs from its caller, per tick. Exactly one thing
+ * today: the mid-flight reduced-motion snap.
+ *
+ * It arrives INJECTED rather than imported. `snapToReducedMotion` lives in
+ * `engine/play-lifecycle/strategies.ts`, which already imports this module, so
+ * importing it back would close a `waapi ↔ engine` ring the `no-cycle` rule
+ * forbids — and the caller is the organ that owns the snap anyway. The
+ * parameter is REQUIRED: an optional hook would let a future caller re-acquire
+ * the blindness X.KF.W5 B-6 was filed against, silently.
+ */
+export interface WAAPIDelegationHooks {
+    /**
+     * Converge this animation to the reduced-motion rest state and release the
+     * awaited `play()` — the SAME terminal path the rAF lane takes, cancelling
+     * the compositor handles on the way out (which rejects `finished`, read
+     * below as a deliberate halt).
+     */
+    snapToReducedMotion: () => void;
+}
 
 /**
  * Drive an animation via WAAPI for compositor-thread visuals while
@@ -19,6 +41,7 @@ import { toWAAPIOptions } from "./options";
  */
 export async function playWAAPI<V extends Vars>(
     animation: KeyframesAnimation<V>,
+    hooks: WAAPIDelegationHooks,
 ): Promise<void> {
     const keyframes = toWAAPIKeyframes(animation);
     const options = toWAAPIOptions(animation);
@@ -52,6 +75,23 @@ export async function playWAAPI<V extends Vars>(
 
     const shadowTick = (now: number): boolean | Promise<boolean> => {
         if (animation.done) return false;
+        // LIVE reduced-motion on the DELEGATED lane (X.KF.W5 B-6 / G-PRM-FLIP).
+        // The shadow loop is this lane's ONE per-tick observation point, so it
+        // re-consults the shared detector here exactly as `playFrame` does on
+        // the rAF lane. Before this, `snapToReducedMotion`'s sole caller was
+        // `playFrame` — which a delegated animation never runs — so a user who
+        // toggled `prefers-reduced-motion: reduce` mid-flight was never
+        // observed on the lane the library actually ships, while the docblock
+        // over the snap asserted the opposite verbatim.
+        const flipped = withReducedMotion(
+            animation.options.respectReducedMotion,
+            () => true,
+            () => false,
+        );
+        if (flipped) {
+            hooks.snapToReducedMotion();
+            return false;
+        }
         const advanced = animation.advanceTo(now);
         if (
             advanced &&

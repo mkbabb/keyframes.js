@@ -40,7 +40,12 @@ function playRAF<V extends Vars>(
 async function playViaWAAPI<V extends Vars>(
     anim: KeyframesAnimation<V>,
 ): Promise<void> {
-    await playWAAPI(anim);
+    // The delegated lane's shadow loop owns the per-tick observation point but
+    // not the snap, so the snap is handed DOWN to it (X.KF.W5 B-6): an import in
+    // the other direction would close a `waapi ↔ engine` ring.
+    await playWAAPI(anim, {
+        snapToReducedMotion: () => snapToReducedMotion(anim),
+    });
     settle(anim);
 }
 
@@ -64,14 +69,23 @@ async function playReducedMotion<V extends Vars>(
 }
 
 /**
- * Mid-flight reduced-motion snap (D-LIB-3). A running rAF loop detected a
- * live flip to `reduce`; converge to the rest frame and resolve the
- * in-flight `play()` exactly as a forwards completion would. Distinct from
- * `playReducedMotion` (the up-front gate) only in that `animationstart`
- * already fired — so here we paint final, mark done, end, settle, and
- * release the awaiter. The WAAPI lane snaps via the same path: the up-front
- * gate already routes reduced-motion away from WAAPI, and a live flip on a
- * WAAPI animation cancels the compositor handles before settling.
+ * Mid-flight reduced-motion snap (D-LIB-3). A running loop detected a live flip
+ * to `reduce`; converge to the rest frame and resolve the in-flight `play()`
+ * exactly as a forwards completion would. Distinct from `playReducedMotion`
+ * (the up-front gate) only in that `animationstart` already fired — so here we
+ * paint final, mark done, end, settle, and release the awaiter.
+ *
+ * BOTH LANES REACH IT, and the sentence says how (X.KF.W5 B-6 / G-PRM-FLIP —
+ * the previous wording asserted the WAAPI lane snapped "via the same path"
+ * while this function's only caller was `playFrame`, which a delegated
+ * animation never runs, so a live flip was in fact NEVER observed there):
+ *  - the rAF lane calls it from `playFrame`, per tick;
+ *  - the DELEGATED lane calls it from `playWAAPI`'s shadow tick, per tick,
+ *    through the `WAAPIDelegationHooks.snapToReducedMotion` hook `playViaWAAPI`
+ *    injects below — `cancelWAAPI` then cancels the compositor handles, which
+ *    rejects `wa.finished` and `playWAAPI` reads as a deliberate halt.
+ * The up-front gate still routes a reduced-motion play away from WAAPI; this is
+ * the ENGAGEMENT direction (no-reduce → reduce), which that gate cannot see.
  */
 export function snapToReducedMotion<V extends Vars>(
     anim: KeyframesAnimation<V>,
