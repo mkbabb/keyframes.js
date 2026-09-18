@@ -3,7 +3,7 @@ import type { Ref, ShallowRef } from "vue";
 import { useRafFn } from "@vueuse/core";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
-import type { TimelineState } from "../timelineTypes";
+import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { selectorText } from "@utils/keyframeSelector";
 import {
     buildAnimationFromTimeline,
@@ -12,6 +12,97 @@ import {
 } from "../utils/timelineEngine";
 import { toast } from "vue-sonner";
 import { clamp } from "@mkbabb/value.js/math";
+
+// ───────────────────────────────────────────────────────────────────────────
+// THE HOVER-PREVIEW CACHE, AS RULES (KF.W7 G10 · D-4/L-4/C-5)
+//
+// The thumbnails the hover panel shows are a MEMO over `scrubAndCapture`, and
+// the memo is what was broken: two parallel maps (`previewCache: Record<id,
+// string>` + `previewLoading: Record<id, boolean>`) keyed on a MUTATION-STABLE
+// id, with no `delete` anywhere in the owning component. Between them they
+// could express "have it" and "fetching it" and NOT "tried and it failed", so
+// every hover after a failure re-entered the capture and re-failed without
+// bound, and every edit left a picture of a pose that no longer existed paired
+// with a LIVE percent. Remove / clear / import-over orphaned their base64 PNGs
+// for the session.
+//
+// The rules live HERE, beside the capture seam they memoize, as three pure
+// functions over a plain `Map`: the owner supplies the reactive map and the
+// component tree renders it, but deciding what a cached preview is a preview
+// OF, when it stops being one, and what a failure does is not render-time work
+// and is not a 659-line SFC's to hide.
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * One keyframe's preview state. `key` is the CONTENT the entry is a preview OF,
+ * which is what makes eviction decidable rather than timed — and `failed` is
+ * the third state the two-map shape could not say.
+ */
+export type PreviewEntry =
+    | { kind: "ready"; key: string; src: string }
+    | { kind: "capturing"; key: string }
+    | { kind: "failed"; key: string; error: string };
+
+/** WHAT a cached preview is a preview OF — the eviction test, in one string. */
+export const previewKey = (kf: TimelineKeyframe): string =>
+    `${kf.percent}|${JSON.stringify(kf.vars)}`;
+
+/**
+ * Drop every entry that is no longer a preview of live content.
+ *
+ * ONE pass covers all five mutations: edit (the key changes), remove and clear
+ * (the id is gone), import-over (new ids), undo (the state is re-seated). It is
+ * content-keyed, so an undo that restores the exact prior vars KEEPS its
+ * still-valid capture — a cache, not a TTL.
+ */
+export const evictStalePreviews = (
+    previews: Map<string, PreviewEntry>,
+    keyframes: readonly TimelineKeyframe[],
+): void => {
+    const live = new Map(keyframes.map((kf) => [kf.id, previewKey(kf)]));
+    for (const [id, entry] of previews) {
+        if (live.get(id) !== entry.key) previews.delete(id);
+    }
+};
+
+/**
+ * Fill one keyframe's preview slot, at most once per content.
+ *
+ * `ready`, `capturing` AND `failed` all answer *"this content is settled"*, so
+ * a repeatedly-failing capture STOPS — and it SAYS SO, because the message is
+ * carried in the entry the panel renders instead of being swallowed by a catch.
+ * A failure un-sticks the moment the keyframe changes, because then it is a
+ * different preview being asked for.
+ *
+ * The capture is injected rather than imported: the memo's rules are the same
+ * whether the frame comes from html2canvas or from nowhere, and the two states
+ * that were impossible to reach before are exactly the ones a caller has to be
+ * able to provoke.
+ */
+export const capturePreview = async (
+    previews: Map<string, PreviewEntry>,
+    kf: TimelineKeyframe,
+    capture: (percent: number) => Promise<string>,
+): Promise<void> => {
+    const key = previewKey(kf);
+    if (previews.get(kf.id)?.key === key) return;
+    previews.set(kf.id, { kind: "capturing", key });
+
+    try {
+        const src = await capture(kf.percent);
+        // The keyframe may have been edited, removed or undone while the frame
+        // was in flight; the capture is then of content nobody asked for.
+        if (previews.get(kf.id)?.key !== key) return;
+        previews.set(kf.id, { kind: "ready", key, src });
+    } catch (error) {
+        if (previews.get(kf.id)?.key !== key) return;
+        previews.set(kf.id, {
+            kind: "failed",
+            key,
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+};
 
 /**
  * The BUILD half of the timeline: everything that touches the engine
@@ -103,9 +194,23 @@ export function useTimelineBuild(
             resumeFrame();
         });
 
-    const scrubAndCapture = async (
-        percent: number,
-    ): Promise<HTMLCanvasElement | null> => {
+    /**
+     * A capture of what the scrub paints, as a PNG data URL — or a REJECTION
+     * naming why there is none (KF.W7 G10 / D-4·L-4·C-5, G14 P1).
+     *
+     * This seam used to end in `catch { return null }` and a bare `return null`
+     * for the no-target case: two silent failures that reached the hover cache
+     * as an indistinguishable "nothing happened", so every hover re-entered and
+     * re-failed forever with no reader ever told. Failure is a STATE here, and
+     * a state has to be expressible — so the value is the data URL and the
+     * failure is the rejection. `toDataURL` is inside the boundary on purpose:
+     * a tainted canvas throws a SecurityError, which is a capture failure like
+     * any other and belongs in the same channel as the rest.
+     *
+     * The `finally` restore is the invariant that survives untouched: whatever
+     * happens, the scrub position the reader left behind is put back.
+     */
+    const scrubAndCapture = async (percent: number): Promise<string> => {
         // Capture WHAT THE SCRUB PAINTS. After the KF.W7 G2 seam the engine is
         // bound to the owner's detached preview subject, never to the scene, so
         // screenshotting `targets[0]` would return the scene's untouched pose
@@ -113,7 +218,7 @@ export function useTimelineBuild(
         // `targets[0]` remains the fallback for the pre-build state, where
         // there is no engine and nothing has been scrubbed anyway.
         const target = animation.value?.targets[0] ?? targets.value[0];
-        if (!target) return null;
+        if (!target) throw new Error("No preview target mounted");
 
         const hasAnimation = !!animation.value;
         const prevT = scrubT.value;
@@ -125,13 +230,12 @@ export function useTimelineBuild(
 
         try {
             const { default: html2canvas } = await import("html2canvas");
-            return await html2canvas(target, {
+            const canvas = await html2canvas(target, {
                 scale: 0.5,
                 logging: false,
                 backgroundColor: null,
             });
-        } catch {
-            return null;
+            return canvas.toDataURL("image/png");
         } finally {
             if (hasAnimation) {
                 scrub(prevT);

@@ -191,11 +191,19 @@
                      the primitive declares. Pairs with THP D-11 (`.e`,
                      RETAINED). -->
                 <TooltipContent side="top" :side-offset="8" class="max-w-56">
+                    <!-- ONE ENTRY, NOT TWO INDEX READS (KF.W7 G10). The two
+                         parallel maps are gone; what the leaf receives is the
+                         state of ITS keyframe's preview, and `undefined` is the
+                         honest reading for a keyframe nobody has hovered. The
+                         `ghost-style` binding is gone with them — the preview
+                         derives its own preview (L-D8/C-4(a)). -->
                     <TimelineHoverPreview
                         :keyframe="stop.keyframes[0]"
-                        :preview-src="previewCache[stop.keyframes[0].id]"
-                        :loading="previewLoading[stop.keyframes[0].id]"
-                        :ghost-style="getGhostStyle(stop.vars)"
+                        :entry="previews.get(stop.keyframes[0].id)"
+                        @preview-failed="
+                            (message) =>
+                                emit('previewFailed', stop.keyframes[0], message)
+                        "
                     />
                 </TooltipContent>
             </Tooltip>
@@ -223,6 +231,7 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
 import TimelineHoverPreview from "./TimelineHoverPreview.vue";
+import type { PreviewEntry } from "../composables/useTimelineBuild";
 import { coalesceKeyframes } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineStop } from "../timelineTypes";
 
@@ -231,8 +240,13 @@ const props = defineProps<{
     scrubT: number;
     expanded?: boolean;
     selectedKeyframeId: string | null;
-    previewCache: Record<string, string>;
-    previewLoading: Record<string, boolean>;
+    /**
+     * The owner's preview states, keyed by keyframe id (KF.W7 G10). Read-only
+     * here: this component renders the cache and never writes it, which is why
+     * a failed `<img>` decode travels back out as an EVENT rather than as a
+     * mutation from inside the render tree.
+     */
+    previews: ReadonlyMap<string, PreviewEntry>;
 }>();
 
 const emit = defineEmits<{
@@ -240,6 +254,7 @@ const emit = defineEmits<{
     (e: "moveKeyframe", id: string, percent: number): void;
     (e: "select", id: string): void;
     (e: "diamondHover", kf: TimelineKeyframe): void;
+    (e: "previewFailed", kf: TimelineKeyframe, message: string): void;
 }>();
 
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
@@ -317,14 +332,14 @@ const {
     onTouchEnd,
 } = useZoomPan(trackEl);
 
-const getGhostStyle = (vars: Record<string, string>): Record<string, string> => {
-    const style: Record<string, string> = {};
-    if (vars["background-color"]) style.backgroundColor = vars["background-color"];
-    if (vars["opacity"]) style.opacity = vars["opacity"];
-    if (vars["transform"]) style.transform = `scale(0.3) ${vars["transform"]}`;
-    if (vars["border-radius"]) style.borderRadius = vars["border-radius"];
-    return style;
-};
+// L-D8/C-4(a) + D-7 + MISSED-4 — `getGhostStyle` lived HERE, in the geometry
+// component, computing a required prop for a leaf that had every input it
+// needed: a pure function of the keyframe, derived by the mount owner, handed
+// down. It also hardcoded four properties against a seventeen-property capture
+// set and composed `scale(0.3) ${transform}` onto the bordered plate, scaling
+// the frame with its payload and pushing the authored translate out of a box
+// that clips. The whole function is gone; `TimelineHoverPreview` derives its
+// own ghost, decomposed, with the scale on a wrapper.
 
 /**
  * Project a pointer onto the model's 0–100 percent. `null` — never an in-band

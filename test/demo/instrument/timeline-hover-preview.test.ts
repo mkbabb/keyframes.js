@@ -2,6 +2,12 @@
 import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 import TimelineHoverPreview from "../../../demo/components/instrument/timeline/components/TimelineHoverPreview.vue";
+import {
+    capturePreview,
+    evictStalePreviews,
+    previewKey,
+} from "../../../demo/components/instrument/timeline/composables/useTimelineBuild";
+import type { PreviewEntry } from "../../../demo/components/instrument/timeline/composables/useTimelineBuild";
 import type { TimelineKeyframe } from "../../../demo/components/instrument/timeline/timelineTypes";
 import {
     percentSelector,
@@ -26,17 +32,24 @@ import {
  *   • the rows block is the instrument's only textual ground truth (M7): a
  *     property VALUE must reach the DOM in the case the author typed it.
  *
- * OWED BY THE RE-HOMED GHOST/CACHE FAMILY (G10 — X.KF.W7.e ESCALATED it; the
- * family's four `TimelineTrack.vue` carves are outside this seat's writable
- * set, G10-GHOST-CACHE-DESIGN §6). The assertions belong here, at this mount,
- * the moment the family lands whole:
+ * THE GHOST/CACHE FAMILY (G10) LANDED WHOLE AT X.KF.W7.g, and the four
+ * assertions X.KF.W7.e could only STATE here are the four `describe` blocks
+ * below — RUNNING, never `test.skip`'d:
  *   (a) editing a keyframe's vars evicts its `ready` entry;
  *   (b) a rejecting capture yields ONE `failed` entry and no second attempt;
  *   (c) a keyframe with no ghost-mappable vars and no capture renders the
  *       terminal `v-else` ("No previewable properties") rather than nothing;
  *   (d) the ghost PLATE carries no `transform`; the wrapper inside it does.
- * They are stated, not skipped: no `test.skip` stands in for a cure this seat
- * could not lawfully write.
+ *
+ * (a) and (b) are asserted against the cache's OWN rules rather than through a
+ * `KeyframeTimeline` mount, and the reason is measured, not preferred: that
+ * component cannot be mounted in this realm at all — the glass-ui root barrel's
+ * `useSpring` chunk resolves `@mkbabb/keyframes.js` through node from inside
+ * `node_modules`, where the vitest alias does not reach ("Cannot find package
+ * '@mkbabb/keyframes.js' imported from …/@mkbabb/glass-ui/dist/useSpring-*.js").
+ * The rules are the exact functions the component calls — the only injected
+ * seam is the capture itself, which is the one thing a test must be able to
+ * make fail.
  */
 
 const kf = (over: Partial<TimelineKeyframe> = {}): TimelineKeyframe => ({
@@ -47,10 +60,16 @@ const kf = (over: Partial<TimelineKeyframe> = {}): TimelineKeyframe => ({
     ...over,
 });
 
-const mountPreview = (keyframe: TimelineKeyframe) =>
+const mountPreview = (keyframe: TimelineKeyframe, entry?: PreviewEntry) =>
     mount(TimelineHoverPreview, {
-        props: { keyframe, ghostStyle: {} },
+        props: entry ? { keyframe, entry } : { keyframe },
     });
+
+const ready = (keyframe: TimelineKeyframe): PreviewEntry => ({
+    kind: "ready",
+    key: previewKey(keyframe),
+    src: "data:image/png;base64,iVBORw0KGgo=",
+});
 
 describe("TimelineHoverPreview — the mount (KF.W7 G11 fixture 3)", () => {
     it("mounts and renders every authored declaration as a row", () => {
@@ -107,5 +126,246 @@ describe("TimelineHoverPreview — the mount (KF.W7 G11 fixture 3)", () => {
 
     it("omits the label affordance entirely when none was typed", () => {
         expect(mountPreview(kf()).text()).not.toContain("·");
+    });
+
+    // D-2/L-D9 — the value the panel exists to show was the one thing it would
+    // not show: `truncate` at ~29 characters against 80-character matrices,
+    // with no wrap, no copy and no title.
+    it("carries the full declaration as each truncated row's title", () => {
+        const w = mountPreview(
+            kf({ vars: { transform: "matrix(1, 0, 0, 1, 300, 0)" } }),
+        );
+        const row = w.get('[data-register="code"] > div');
+        expect(row.attributes("title")).toBe(
+            "transform: matrix(1, 0, 0, 1, 300, 0)",
+        );
+    });
+});
+
+// ─── (a) ───────────────────────────────────────────────────────────────────
+describe("G10 (a) — an edit evicts the thumbnail it invalidates", () => {
+    it("drops a `ready` entry when the keyframe's vars change", () => {
+        const previews = new Map<string, PreviewEntry>();
+        const frame = kf();
+        previews.set(frame.id, ready(frame));
+
+        frame.vars = { opacity: "1" };
+        evictStalePreviews(previews, [frame]);
+
+        expect(previews.has(frame.id)).toBe(false);
+    });
+
+    it("drops a `ready` entry when the keyframe MOVES", () => {
+        const previews = new Map<string, PreviewEntry>();
+        const frame = kf();
+        previews.set(frame.id, ready(frame));
+
+        frame.percent = 61;
+        evictStalePreviews(previews, [frame]);
+
+        expect(previews.has(frame.id)).toBe(false);
+    });
+
+    // "no orphan base64 PNGs after remove / clear / import-over" — all three
+    // are the same shape at the map: the id is no longer live.
+    it("leaves no orphan base64 after remove, clear or import-over", () => {
+        const previews = new Map<string, PreviewEntry>();
+        const kept = kf({ id: "kf-kept" });
+        const removed = kf({ id: "kf-removed" });
+        previews.set(kept.id, ready(kept));
+        previews.set(removed.id, ready(removed));
+
+        evictStalePreviews(previews, [kept]); // remove
+        expect([...previews.keys()]).toEqual([kept.id]);
+
+        evictStalePreviews(previews, []); // clear
+        expect(previews.size).toBe(0);
+
+        const imported = kf({ id: "kf-imported" });
+        previews.set(kept.id, ready(kept));
+        evictStalePreviews(previews, [imported]); // import-over: all new ids
+        expect(previews.size).toBe(0);
+    });
+
+    // A cache, not a TTL: content-keyed eviction means an undo back to the
+    // exact prior vars keeps a capture that is still true.
+    it("KEEPS a capture an undo has made valid again", () => {
+        const previews = new Map<string, PreviewEntry>();
+        const frame = kf({ vars: { opacity: "0.5" } });
+        previews.set(frame.id, ready(frame));
+
+        frame.vars = { opacity: "1" };
+        evictStalePreviews(previews, [frame]);
+        expect(previews.has(frame.id)).toBe(false);
+
+        previews.set(frame.id, ready(frame));
+        frame.vars = { opacity: "0.5" }; // the undo
+        previews.set(frame.id, {
+            kind: "ready",
+            key: `${frame.percent}|${JSON.stringify({ opacity: "0.5" })}`,
+            src: "data:image/png;base64,iVBORw0KGgo=",
+        });
+        evictStalePreviews(previews, [frame]);
+        expect(previews.get(frame.id)?.kind).toBe("ready");
+    });
+});
+
+// ─── (b) ───────────────────────────────────────────────────────────────────
+describe("G10 (b) — a repeatedly-failing capture stops, and says so", () => {
+    const rejecting = () => {
+        let calls = 0;
+        return {
+            capture: async () => {
+                calls += 1;
+                throw new Error("No preview target mounted");
+            },
+            get calls() {
+                return calls;
+            },
+        };
+    };
+
+    it("records ONE failed entry and makes no second attempt", async () => {
+        const previews = new Map<string, PreviewEntry>();
+        const frame = kf();
+        const spy = rejecting();
+
+        await capturePreview(previews, frame, spy.capture);
+        expect(spy.calls).toBe(1);
+        expect(previews.size).toBe(1);
+        expect(previews.get(frame.id)).toEqual({
+            kind: "failed",
+            key: previewKey(frame),
+            error: "No preview target mounted",
+        });
+
+        await capturePreview(previews, frame, spy.capture);
+        await capturePreview(previews, frame, spy.capture);
+        expect(spy.calls).toBe(1);
+        expect(previews.size).toBe(1);
+    });
+
+    it("un-sticks the moment the keyframe changes — a different preview is a new ask", async () => {
+        const previews = new Map<string, PreviewEntry>();
+        const frame = kf();
+        const spy = rejecting();
+
+        await capturePreview(previews, frame, spy.capture);
+        frame.vars = { opacity: "0.25" };
+        await capturePreview(previews, frame, spy.capture);
+
+        expect(spy.calls).toBe(2);
+    });
+
+    it("SAYS SO at the panel — the message is rendered, not swallowed", () => {
+        const frame = kf();
+        const text = mountPreview(frame, {
+            kind: "failed",
+            key: previewKey(frame),
+            error: "No preview target mounted",
+        }).text();
+        expect(text).toContain("Preview unavailable — No preview target mounted");
+    });
+
+    it("announces the in-flight state once, politely", async () => {
+        const previews = new Map<string, PreviewEntry>();
+        const frame = kf();
+        let settle: (src: string) => void = () => {};
+        const pending = capturePreview(
+            previews,
+            frame,
+            () => new Promise<string>((resolve) => (settle = resolve)),
+        );
+
+        expect(previews.get(frame.id)?.kind).toBe("capturing");
+        const w = mountPreview(frame, previews.get(frame.id));
+        expect(w.text()).toContain("Capturing preview");
+        expect(w.get('[role="status"]').attributes("aria-live")).toBe("polite");
+
+        settle("data:image/png;base64,iVBORw0KGgo=");
+        await pending;
+        expect(previews.get(frame.id)?.kind).toBe("ready");
+    });
+
+    it("keeps the settled capture on screen with a re-derived alt", () => {
+        const frame = kf({ label: "hero lift" });
+        const w = mountPreview(frame, ready(frame));
+        const img = w.get("img");
+        expect(img.attributes("src")).toBe("data:image/png;base64,iVBORw0KGgo=");
+        expect(img.attributes("alt")).toBe(
+            "Rendered preview of hero lift, the keyframe at 38%.",
+        );
+        expect(w.text()).not.toContain("Capturing preview");
+    });
+});
+
+// ─── (c) ───────────────────────────────────────────────────────────────────
+describe("G10 (c) — the media box has a terminal state", () => {
+    it("says so when a keyframe has nothing previewable and no capture", () => {
+        const w = mountPreview(kf({ vars: { "font-size": "12px" } }));
+        expect(w.text()).toContain("No previewable properties");
+        // Never an empty media slot: the plate is there either way.
+        expect(w.find(".ghost-plate").exists()).toBe(true);
+        expect(w.find(".ghost-xform").exists()).toBe(false);
+    });
+
+    it("renders the plate — not nothing — for a keyframe with NO declarations at all", () => {
+        const w = mountPreview(kf({ vars: {} }));
+        expect(w.find(".ghost-plate").exists()).toBe(true);
+        expect(w.text()).toContain("No previewable properties");
+    });
+
+    it("stays silent about previewability once there IS something to draw", () => {
+        const w = mountPreview(kf({ vars: { "background-color": "red" } }));
+        expect(w.text()).not.toContain("No previewable properties");
+        expect(w.find(".ghost-xform").exists()).toBe(true);
+    });
+});
+
+// ─── (d) ───────────────────────────────────────────────────────────────────
+describe("G10 (d) — the plate is fixed, the payload moves", () => {
+    // `matrix(0, 1, -1, 0, 300, 0)` = rotate(90deg) with a 300px translate —
+    // the exact shape D-7 convicts: composed as `scale(0.3) ${matrix}` the
+    // translate applied INSIDE the scaled frame and the swatch was displaced
+    // 90px into the tooltip's own `overflow-hidden`.
+    const rotated = kf({ vars: { transform: "matrix(0, 1, -1, 0, 300, 0)" } });
+
+    it("puts NO transform on the bordered plate", () => {
+        const w = mountPreview(rotated);
+        expect(w.get(".ghost-plate").attributes("style")).toBeUndefined();
+    });
+
+    it("puts the DECOMPOSED transform on the wrapper inside it", () => {
+        const style = mountPreview(rotated).get(".ghost-xform").attributes("style");
+        expect(style).toContain("rotate(1.5707963267948966rad)");
+        expect(style).toContain("scale(1, 1)");
+        // The translation is dropped, not scaled down and clipped away.
+        expect(style).not.toContain("300");
+        expect(style).not.toContain("scale(0.3)");
+    });
+
+    it("leaves the wrapper untransformed for a value the UA has not normalised", () => {
+        const w = mountPreview(
+            kf({ vars: { transform: "translateX(300px) rotate(45deg)" } }),
+        );
+        // No hand-rolled parser: an un-normalised list yields no ghost
+        // transform, and the authored text is still readable in the rows.
+        expect(w.get(".ghost-xform").attributes("style")).toBeUndefined();
+        expect(w.text()).toContain("translateX(300px) rotate(45deg)");
+    });
+
+    it("paints `opacity: 0` on the swatch, never on the plate (D-7 arm 1)", () => {
+        const w = mountPreview(kf({ vars: { opacity: "0" } }));
+        expect(w.get(".ghost-swatch").attributes("style")).toContain("opacity: 0");
+        expect(w.get(".ghost-plate").attributes("style")).toBeUndefined();
+    });
+
+    it("keeps the plate's own frame at full size whatever the keyframe paints", () => {
+        const plate = mountPreview(rotated).get(".ghost-plate");
+        // MISSED-4: the frame used to scale with its content — 0.3px of border
+        // at 30% alpha, a 1.2px radius, a 19.2px swatch in a 64px slot.
+        expect(plate.classes()).toContain("w-16");
+        expect(plate.classes()).toContain("h-16");
+        expect(plate.classes()).toContain("border");
     });
 });

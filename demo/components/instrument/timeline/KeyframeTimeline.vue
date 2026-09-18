@@ -184,12 +184,12 @@
             :scrub-t="scrubT"
             :expanded="props.expanded"
             :selected-keyframe-id="selectedKeyframeId"
-            :preview-cache="previewCache"
-            :preview-loading="previewLoading"
+            :previews="previews"
             @update:scrub-t="scrub"
             @move-keyframe="moveKeyframe"
             @select="(id) => (selectedKeyframeId = id)"
             @diamond-hover="onDiamondHover"
+            @preview-failed="onPreviewFailed"
         />
 
         <!-- D-15 — the three states the instrument used to leave UNEXPRESSED.
@@ -362,6 +362,12 @@ import {
 } from "@mkbabb/value.js/css";
 import { serializeCssValue } from "@src/animation/compile/emit/css-text";
 import { useTimeline } from "./composables/useTimeline";
+import {
+    capturePreview,
+    evictStalePreviews,
+    previewKey,
+} from "./composables/useTimelineBuild";
+import type { PreviewEntry } from "./composables/useTimelineBuild";
 import TimelineTrack from "./components/TimelineTrack.vue";
 import { createPreviewSubject } from "./utils/timelineEngine";
 import type { TimelineKeyframe } from "./timelineTypes";
@@ -441,23 +447,49 @@ const selectedKeyframeId = ref<string | null>(null);
 const importDialogOpen = ref(false);
 const addCSSDialogOpen = ref(false);
 
-// --- Preview cache for diamond hover ---
-const previewCache = reactive<Record<string, string>>({});
-const previewLoading = reactive<Record<string, boolean>>({});
+// --- THE HOVER PREVIEW CACHE — A CACHE, NOT A LEDGER OF LIES (KF.W7 G10) ---
+//
+// D-4/L-4/C-5: this was two write-once maps keyed on a MUTATION-STABLE id and
+// never invalidated, evicted or deleted anywhere in the file. Ids survive every
+// edit, so the moment a keyframe's vars changed its thumbnail became a picture
+// of a pose that no longer existed — paired, in the same tooltip, with a LIVE
+// percent — and it stayed that way for the session. Removing, clearing or
+// importing over a keyframe orphaned its base64 PNG in the map forever; and
+// because a failure left both maps untouched, every subsequent hover re-entered
+// the capture and re-failed, silently, without bound. The sibling history in
+// this same instrument is capacity-bounded at 50, which is the contrast that
+// convicts.
+//
+// The cure is a single map of STATES keyed by id, each carrying the CONTENT it
+// is a preview of. This component owns the REACTIVE map and the wiring; the
+// three rules over it — what a preview is a preview of, when it stops being
+// one, and what a failure does — live beside the capture seam they memoize
+// (`useTimelineBuild`), where they are decidable without a mount.
+//
+// Capture can fail three ways that seam can SEE: no mounted target, html2canvas
+// throwing on CSS it cannot rasterise, and a `toDataURL` SecurityError on a
+// canvas tainted by cross-origin content. A WebGL context that resolves BLANK
+// is NOT detectable there — it is a successful capture of nothing (SS-13
+// residue #1). The old `// KEEP:` comment named none of these, and the fallback
+// it described does not exist on the authored-vars path.
+const previews = reactive(new Map<string, PreviewEntry>());
 
-const onDiamondHover = async (kf: TimelineKeyframe) => {
-    if (previewCache[kf.id] || previewLoading[kf.id]) return;
-    previewLoading[kf.id] = true;
-    try {
-        const canvas = await scrubAndCapture(kf.percent);
-        if (canvas) {
-            previewCache[kf.id] = canvas.toDataURL("image/png");
-        }
-    } catch {
-        // KEEP: capture failed (no animation, 3D not supported, etc.) — ghost preview shown as fallback
-    } finally {
-        previewLoading[kf.id] = false;
-    }
+watch(
+    () => state.value.keyframes,
+    (keyframes) => evictStalePreviews(previews, keyframes),
+    { deep: true },
+);
+
+const onDiamondHover = (kf: TimelineKeyframe) =>
+    capturePreview(previews, kf, scrubAndCapture);
+
+/**
+ * L-D15 — a capture that decodes to the broken-image glyph is a failure the
+ * `<img>` is the only witness to, and the panel had no `@error` at all. The
+ * leaf reports; the owner, which is the only writer of this map, records.
+ */
+const onPreviewFailed = (kf: TimelineKeyframe, message: string) => {
+    previews.set(kf.id, { kind: "failed", key: previewKey(kf), error: message });
 };
 
 const selectedKeyframe = computed(() =>
