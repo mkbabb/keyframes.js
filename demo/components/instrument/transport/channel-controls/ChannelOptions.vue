@@ -322,7 +322,18 @@
                                     >advanced</span
                                 >
                                 <div class="flex items-center justify-end px-3">
-                                    <ChevronRight class="icon-md opacity-50" />
+                                    <!-- KF-CO-20 — the ONLY navigability mark in
+                                         this pane, and it failed in BOTH theme
+                                         arms because `opacity-50` was applied to
+                                         an ALREADY-muted role: the parent row
+                                         hands down `--muted-foreground` (and
+                                         `--foreground` on hover), and halving it
+                                         caps the ratio below any arm's reach.
+                                         Deleting the alpha IS the real rung —
+                                         the row already carries the muted→ink
+                                         hover pair the chevron wants. Exact
+                                         composites → SS-13. -->
+                                    <ChevronRight class="icon-md" />
                                 </div>
                             </div>
                         </div>
