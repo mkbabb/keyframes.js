@@ -2,7 +2,7 @@
     <button
         type="button"
         :aria-label="isCopied ? 'Copied to clipboard' : label"
-        class="cursor-pointer relative inline-block text-foreground p-0 m-0 bg-transparent border-0"
+        class="kf-focus-ring cursor-pointer relative inline-block text-foreground p-0 m-0 bg-transparent border-0"
         @click="handleClick"
     >
         <Clipboard class="clipboard" ref="clipboard" />

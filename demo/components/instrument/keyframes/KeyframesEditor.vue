@@ -88,7 +88,7 @@
                     type="button"
                     aria-label="Apply CSS keyframes to the target"
                     :aria-pressed="cssApplied"
-                    class="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 outline-none scale-on-hover focus-visible:ring-2 focus-visible:ring-accent"
+                    class="kf-focus-ring inline-flex shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-0 scale-on-hover"
                     @click="applyCSSStyles"
                 >
                     <Paintbrush ref="brush" class="pointer-events-none" />
