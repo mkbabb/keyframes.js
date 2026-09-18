@@ -7,12 +7,11 @@ import type {
 } from "@mkbabb/keyframes.js";
 
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
-import { createKeyframeId } from "../timelineTypes";
+import { coalesceKeyframes, createKeyframeId } from "../timelineTypes";
 import { parseAnimationCSS } from "../../keyframes/utils/parseAnimationCSS";
 import {
     requireKeyframeSelector,
     selectorPercent,
-    selectorText,
 } from "@utils/keyframeSelector";
 import { serializeCssValue } from "@src/animation/compile/emit/css-text";
 import type { CssValue } from "@mkbabb/value.js/value";
@@ -31,19 +30,14 @@ export async function buildAnimationFromTimeline(
     const { CSSKeyframesAnimation } = await loadAnimationEngine();
     const keyframesMap: Record<string, Record<string, string>> = {};
 
-    // Sort by percent and group
-    const sorted = [...state.keyframes].sort((a, b) => a.percent - b.percent);
-
-    for (const kf of sorted) {
-        const key = selectorText(kf.selector);
-
-        // Merge vars into keyframe (multiple keyframes at same percent get merged)
-        const existing = keyframesMap[key] ?? {};
-        for (const [prop, value] of Object.entries(kf.vars)) {
-            const camelProp = hyphenToCamelCase(prop);
-            existing[camelProp] = value;
+    // One rule per STOP — the same partition the track paints (KF.W7 G5:
+    // `coalesceKeyframes` is the ONE merge; there is no second one here).
+    for (const stop of coalesceKeyframes(state.keyframes)) {
+        const rule: Record<string, string> = {};
+        for (const [prop, value] of Object.entries(stop.vars)) {
+            rule[hyphenToCamelCase(prop)] = value;
         }
-        keyframesMap[key] = existing;
+        keyframesMap[stop.key] = rule;
     }
 
     const anim = new CSSKeyframesAnimation(options, ...targets).fromKeyframes(
