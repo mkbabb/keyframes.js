@@ -200,9 +200,10 @@
                                     </Tooltip>
                                     <Tooltip>
                                         <TooltipTrigger as-child>
-                                        <!-- `easing-edit-btn` is the NAMED BEHAVIORAL SEAM (the
-                                             pencil hook for the click that opens the detail panel)
-                                             — it carries NO style.
+                                        <!-- `easing-edit-btn` names the pencil and nothing reads
+                                             it (KF-CO-33, KF.W6): no rule, no script and no test
+                                             selector in the tree keys on the class — it is a label,
+                                             not a seam. Delete-or-wire is OPTIONS-UNIT's.
                                              KF-CO-19 — THE INK. This pencil wore `text-gold`, and
                                              gold is a SPARKLE ACCENT: on the light card it is the
                                              lowest-contrast ink the demo ships, and it was the ONLY
@@ -724,6 +725,7 @@ onMounted(async () => {
    were retired this wave as a zero-delta shadow of glass-ui's `--gold`, and the
    surviving `text-gold` is the utility the PRODUCER's theme bridge generates —
    and this call site no longer wears it at all, because gold is a sparkle accent
-   and was the only ink on an edit affordance. `.easing-edit-btn` remains what it
-   always was here: a behavioural seam carrying no style. */
+   and was the only ink on an edit affordance. `.easing-edit-btn` carries no
+   style and, at these bytes, no reader either (KF-CO-33 — see the template
+   note; OPTIONS-UNIT decides its fate). */
 </style>
