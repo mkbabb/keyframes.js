@@ -165,14 +165,123 @@
     </div>
 </template>
 
+<script lang="ts">
+/**
+ * THE PANEL'S DERIVATIONS — pure, exported, and the ONE definition of what this
+ * tooltip says (KF.W7 G9).
+ *
+ * MISSED-1: the accessible description reka builds for a `TooltipContent` with
+ * no `ariaLabel` is `currentElement.textContent` — an UNTRACKED DOM read taken
+ * ONCE (`TooltipContentImpl.js:87`, `props.ariaLabel || currentElement.value
+ * ?.textContent`). It excluded the `<img alt>` entirely, ran every block
+ * boundary together without a separator, and froze at first mount, so the
+ * ghost→image swap never reached an AT user at all. The cure is to PASS the
+ * description; the mount that must pass it is `TimelineTrack`'s.
+ *
+ * It lives HERE rather than at that mount because every input it needs is
+ * already derived here and nowhere else: the authored caption (C-5 (THP) — a
+ * named scroll phase is captioned with the phase the author wrote, never a
+ * percent nobody typed), and the ghost predicate (G10's mappable set). The G9
+ * design's own rule is that the description is DERIVED from the data that
+ * renders it and never a second hand-typed string that can drift — a
+ * `describeKeyframe` written at the track would have had to re-derive both by
+ * hand, which the design forbids in the same breath ("not duplicated by hand in
+ * TT"). A plain `<script>` block beside the setup block is how an SFC exports a
+ * pure function; `vue-tsc` resolves it, and nothing else in the file moves.
+ */
+import { selectorText } from "@utils/keyframeSelector";
+import type { PreviewEntry } from "../composables/useTimelineBuild";
+import type { TimelineKeyframe } from "../timelineTypes";
+
+/**
+ * The properties the ghost can actually paint. Exported so the description and
+ * the drawing agree on what "there is a ghost" means by construction.
+ */
+export const GHOST_PROPERTIES = [
+    "background-color",
+    "background",
+    "color",
+    "opacity",
+    "border-radius",
+    "transform",
+] as const;
+
+export const hasGhost = (vars: Record<string, string>): boolean =>
+    GHOST_PROPERTIES.some((property) => vars[property] !== undefined);
+
+/** L-D14 — the rounded position, derived ONCE (it was written twice). */
+const percentOf = (keyframe: TimelineKeyframe): number =>
+    Math.round(keyframe.percent);
+
+/**
+ * C-5 (THP) — a PERCENT selector's authored form IS its position (presentation
+ * rounding, no discriminant lost); a NAMED phase's authored form comes from
+ * `selectorText`, the same serialization the engine's merge key uses.
+ */
+export const authoredSelectorOf = (keyframe: TimelineKeyframe): string =>
+    keyframe.selector.kind === "percent"
+        ? `${percentOf(keyframe)}%`
+        : selectorText(keyframe.selector);
+
+/** The resolved position, shown only when it is NOT what the author wrote. */
+export const resolvedPositionOf = (keyframe: TimelineKeyframe): string | null =>
+    keyframe.selector.kind === "percent" ? null : `${percentOf(keyframe)}%`;
+
+/**
+ * The `<img>`'s own name — what a reader who lands ON the capture hears, rather
+ * than the whole panel a second time.
+ */
+export const previewAlt = (keyframe: TimelineKeyframe): string =>
+    `Rendered preview of ${keyframe.label ? `${keyframe.label}, ` : ""}the keyframe at ${percentOf(keyframe)}%.`;
+
+/**
+ * THE ACCESSIBLE DESCRIPTION — one sentence per thing the panel shows.
+ *
+ * PUNCTUATED AT EVERY BOUNDARY, which is the whole of MISSED-1's second horn:
+ * `. ` ends each sentence and `; ` separates declaration rows, so a screen
+ * reader pauses where the eye does instead of reading a stylesheet as one
+ * breath. RE-DERIVED, because it is a pure function of the keyframe and its
+ * preview entry: the ghost→image swap changes `entry.kind`, which changes this
+ * string, which changes the prop reka reads first — the once-captured
+ * `textContent` path is never taken while the prop is a non-empty string.
+ * NEVER FORCE-UPPERCASED (M7), because it is a string and not a text node: no
+ * `text-transform` reaches it, and the property values reach AT in the case the
+ * author typed them.
+ */
+export const describeKeyframe = (
+    keyframe: TimelineKeyframe,
+    entry: PreviewEntry | undefined,
+): string => {
+    const resolved = resolvedPositionOf(keyframe);
+    const head =
+        `${keyframe.label ? `${keyframe.label}. ` : ""}` +
+        `Keyframe at ${authoredSelectorOf(keyframe)}${resolved ? ` (${resolved})` : ""}. `;
+
+    const media =
+        entry?.kind === "ready"
+            ? "Rendered preview available. "
+            : entry?.kind === "capturing"
+              ? "Capturing preview. "
+              : entry?.kind === "failed"
+                ? `Preview unavailable: ${entry.error}. `
+                : hasGhost(keyframe.vars)
+                  ? "Ghost preview. "
+                  : "No preview. ";
+
+    const rows = Object.entries(keyframe.vars);
+    const body = rows.length
+        ? `${rows.map(([property, value]) => `${property} ${value}`).join("; ")}.`
+        : "No properties.";
+
+    return head + media + body;
+};
+</script>
+
 <script setup lang="ts">
 import { computed } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { decomposeMatrix2D, decomposeMatrix3D } from "@mkbabb/value.js/transform";
 import type { Mat4 } from "@mkbabb/value.js/transform";
-import { selectorText } from "@utils/keyframeSelector";
-import type { PreviewEntry } from "../composables/useTimelineBuild";
-import type { TimelineKeyframe } from "../timelineTypes";
 
 const props = defineProps<{
     keyframe: TimelineKeyframe;
@@ -190,26 +299,15 @@ const emit = defineEmits<{
     (e: "previewFailed", message: string): void;
 }>();
 
-/** L-D14 — the rounded position, written ONCE (it was written twice). */
-const pct = computed(() => Math.round(props.keyframe.percent));
-
 // C-5 (THP) — the `KeyframeSelector` discriminant was dropped here: every
 // caption was `Math.round(percent)%`, so `entry 100%` and `cover 0%` both read
 // "25%" — a percent the author never wrote, on the panel whose whole job is to
-// say which keyframe this is. A PERCENT selector's authored form IS its
-// position (presentation rounding, no discriminant lost); a NAMED phase's
-// authored form comes from `selectorText`, the same serialization the engine's
-// merge key uses, so the caption can never drift from the artifact.
-const authoredSelector = computed(() =>
-    props.keyframe.selector.kind === "percent"
-        ? `${pct.value}%`
-        : selectorText(props.keyframe.selector),
-);
+// say which keyframe this is. The caption reads the SAME derivations the
+// accessible description does (above), so the two can never disagree.
+const authoredSelector = computed(() => authoredSelectorOf(props.keyframe));
 
 /** The resolved position, shown only when it is NOT what the author wrote. */
-const resolvedPosition = computed(() =>
-    props.keyframe.selector.kind === "percent" ? null : `${pct.value}%`,
-);
+const resolvedPosition = computed(() => resolvedPositionOf(props.keyframe));
 
 /**
  * MISSED-1's media sentence, re-derived (KF.W7 G9's hand-off).
@@ -219,10 +317,7 @@ const resolvedPosition = computed(() =>
  * defect reka's `props.ariaLabel || currentElement.textContent` reproduces when
  * nothing is passed to it.
  */
-const altText = computed(
-    () =>
-        `Rendered preview of ${props.keyframe.label ? `${props.keyframe.label}, ` : ""}the keyframe at ${pct.value}%.`,
-);
+const altText = computed(() => previewAlt(props.keyframe));
 
 /**
  * THE GHOST — decomposed, with the translation dropped (D-7 · m-7/m-8's design
@@ -237,16 +332,7 @@ const altText = computed(
  * is meaningless, and composed onto the plate it was actively misleading; the
  * authored value is still readable, verbatim, in the declaration rows below.
  */
-const GHOST_PROPERTIES = [
-    "background-color",
-    "background",
-    "color",
-    "opacity",
-    "border-radius",
-    "transform",
-] as const;
-
-const numericList = (inner: string, arity: number): number[] | null => {
+const numericList =(inner: string, arity: number): number[] | null => {
     const parts = inner.split(",").map((part) => Number(part.trim()));
     return parts.length === arity && parts.every(Number.isFinite) ? parts : null;
 };
@@ -301,7 +387,7 @@ const ghost = computed(() => {
     const transform = ghostTransform(vars["transform"]);
 
     return {
-        present: GHOST_PROPERTIES.some((p) => vars[p] !== undefined),
+        present: hasGhost(vars),
         swatch,
         transform,
     };

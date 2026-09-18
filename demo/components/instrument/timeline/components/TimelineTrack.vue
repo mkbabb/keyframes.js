@@ -1,5 +1,19 @@
 <template>
-    <div class="flex flex-col gap-3">
+    <!-- RR-A missed-1 — THE INSTRUMENT'S ACCESSIBLE CONTAINER.
+         The rail's hosts were unnamed and unrelated in the AT tree: N
+         `role="slider"` markers, a `role="scrollbar"` pan bar and the rail
+         itself sat as siblings in generic divs, so a browse-mode reader met a
+         run of anonymous sliders with nothing saying they belonged to one
+         timeline. One group, named once, is the whole cure.
+         ANCHOR DRIFT, RECORDED (D-19): the row names `:21-35` — the rail
+         element — and that element has since taken `role="slider"` as G8's
+         keyboard-scrub cure (`aria-label="Playhead — scrub the animation"`,
+         asserted by `timeline-mount-keyboard.test.ts`). One element carries one
+         role, so the group lands on the rail's CONTAINER, which is what the
+         gate asks for in its own words ("the rail has an accessible
+         container"). The nested-slider structure that drift leaves behind is
+         DECLARED, not silently inherited: see the note at the rail below. -->
+    <div class="flex flex-col gap-3" role="group" aria-label="Keyframe timeline">
         <!-- Zoom / pan row. The row is ALWAYS MOUNTED and reserves its height
              (D-11): it used to appear on `zoomLevel > 1`, and `zoomLevel` is
              continuous through 1.0 in both directions, so the ~32px row
@@ -75,7 +89,18 @@
              modes (expanded strips the Card plate entirely). What 1.4.11 governs
              here is the BOUNDARY, not the fill, so the boundary alone takes the
              real rung and the fill's hover step is left exactly as authored.
-             Painted composites stay KF.W9/SS-13's single measurement site. -->
+             Painted composites stay KF.W9/SS-13's single measurement site.
+
+             DECLARED, NOT SWALLOWED (RR-A missed-1's residue) — this element is
+             `role="slider"` (G8's keyboard scrub) and it CONTAINS the N marker
+             sliders and their carets. `slider` is a Children-Presentational
+             role, so a strict user agent may prune its interactive descendants
+             from the AT tree; separating the two would mean moving the playhead
+             role off `.timeline-track` (which `timeline-mount-keyboard.test.ts`
+             pins) or lifting the markers out of the element whose scoped block
+             declares `--timeline-hit-floor` and `--timeline-caret-offset` for
+             them. Neither is this gate's cure and neither is spent here. -->
+
         <div
             :id="railId"
             ref="trackEl"
@@ -109,12 +134,20 @@
                  were the same magic number 174 lines apart with nothing stating
                  the coupling). C-9's contract, said at the node that needs it:
                  the labels are why this subtree is provisioned
-                 `overflow-y-visible` while the rail clips in x. -->
+                 `overflow-y-visible` while the rail clips in x.
+                 RR-A missed-1's second attribute — THE GRADUATIONS ARE
+                 DECORATION AND ARE HIDDEN. Un-hidden, the ladder interleaved
+                 ~5-15 bare percent strings ("0%", "10%", …) into the AT tree
+                 between the markers, as CONTENT; they carry no information the
+                 rail and its markers do not already announce through
+                 `aria-valuetext`, and their count changes with zoom, so a
+                 browse-mode reader paid for a ruler by hearing it read out. -->
             <div
                 v-for="tick in visibleTicks"
                 :key="tick"
                 class="absolute top-0 h-full border-l border-border/30"
                 :style="{ left: `${percentToPosition(tick)}%` }"
+                aria-hidden="true"
             >
                 <span
                     class="timeline-tick-label text-mono-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
@@ -147,6 +180,15 @@
                  which is also the only one of the four that paints under
                  forced-colors. -->
             <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
+                <!-- D-10 (KeyframeTimeline) — ONE CAPTURE SEAM, BOTH
+                     MODALITIES. The capture was armed on the marker's
+                     `@mouseenter` ALONE, while the tooltip opens on FOCUS too
+                     (reka's `TooltipTrigger` wires `focus` straight to
+                     `onOpen`). A keyboard user therefore opened the panel and
+                     got the ghost branch forever — the preview entry for their
+                     keyframe was never requested, by anything. Hover and focus
+                     now ask the same question; the emit NAME is kept, because
+                     renaming it is not the cure. -->
                 <TooltipTrigger as-child>
                     <div
                         :class="[
@@ -172,6 +214,7 @@
                         @pointerdown.stop="onMarkerPointerDown($event, stop)"
                         @keydown="onMarkerKeydown($event, stop)"
                         @mouseenter="emit('diamondHover', stop.keyframes[0])"
+                        @focus="emit('diamondHover', stop.keyframes[0])"
                     >
                         <!-- Said so: a multi-member stop wears its count. -->
                         <span
@@ -190,7 +233,28 @@
                      `max-w-56` bounds the preview and collides with nothing
                      the primitive declares. Pairs with THP D-11 (`.e`,
                      RETAINED). -->
-                <TooltipContent side="top" :side-offset="8" class="max-w-56">
+                <!-- MISSED-1 + M7 — THE PANEL'S NAME IS PASSED, NEVER SCRAPED.
+                     `TooltipContentImpl.js:87` builds the accessible
+                     description as `props.ariaLabel || currentElement.value
+                     ?.textContent`. With nothing passed, the second arm won:
+                     an UNTRACKED DOM read, taken ONCE at first mount, of a
+                     panel whose `<img alt>` `textContent` cannot see and whose
+                     block boundaries it runs together — so an AT user got one
+                     unpunctuated stylesheet, frozen before the capture landed,
+                     and on the focus path (D-10) frozen on the ghost that has
+                     no name at all. Passing the prop takes the FIRST arm, and
+                     because the prop is a `computed`-shaped expression over the
+                     keyframe and its preview entry, reka's own `computed`
+                     re-evaluates on the ghost→image swap. It is also M7's cure
+                     at the only place it matters for AT: a prop is a string, so
+                     no `text-transform` register can reach it and the property
+                     values arrive in the case the author typed them. -->
+                <TooltipContent
+                    side="top"
+                    :side-offset="8"
+                    class="max-w-56"
+                    :aria-label="describeStop(stop)"
+                >
                     <!-- ONE ENTRY, NOT TWO INDEX READS (KF.W7 G10). The two
                          parallel maps are gone; what the leaf receives is the
                          state of ITS keyframe's preview, and `undefined` is the
@@ -199,7 +263,7 @@
                          derives its own preview (L-D8/C-4(a)). -->
                     <TimelineHoverPreview
                         :keyframe="stop.keyframes[0]"
-                        :entry="previews.get(stop.keyframes[0].id)"
+                        :entry="previewFor(stop)"
                         @preview-failed="
                             (message) =>
                                 emit('previewFailed', stop.keyframes[0], message)
@@ -230,7 +294,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
-import TimelineHoverPreview from "./TimelineHoverPreview.vue";
+import TimelineHoverPreview, { describeKeyframe } from "./TimelineHoverPreview.vue";
 import type { PreviewEntry } from "../composables/useTimelineBuild";
 import { coalesceKeyframes } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineStop } from "../timelineTypes";
@@ -245,8 +309,18 @@ const props = defineProps<{
      * here: this component renders the cache and never writes it, which is why
      * a failed `<img>` decode travels back out as an EVENT rather than as a
      * mutation from inside the render tree.
+     *
+     * OPTIONAL, exactly as the leaf's own `entry` is optional and for the same
+     * reason: a cache's ABSENCE is a cold cache, not an error. The track is a
+     * geometry and gesture surface that happens to display an owner-supplied
+     * enhancement — every mark, every gesture and every keyboard route works
+     * without one, and a cacheless mount renders the ghost branch throughout,
+     * which is what `describeStop` then says. The read is total at both sites
+     * below rather than guarded at one of them (KF.W7 G9: the description is
+     * evaluated on EVERY render of the panel's mount, not only when the panel
+     * is open, so a partial read is a crash waiting for a caller).
      */
-    previews: ReadonlyMap<string, PreviewEntry>;
+    previews?: ReadonlyMap<string, PreviewEntry>;
 }>();
 
 const emit = defineEmits<{
@@ -304,12 +378,37 @@ const edgeClass = (position: number): string =>
         mid: "-translate-x-1/2",
     })[edgeOf(position)];
 
+/** The stop's preview state — `undefined` when it has none, or when there is no cache. */
+const previewFor = (stop: TimelineStop): PreviewEntry | undefined =>
+    props.previews?.get(stop.keyframes[0].id);
+
+/**
+ * G9's FIRST reader — the panel's accessible description, PASSED.
+ *
+ * The derivation itself belongs to the panel (it is the panel's own caption,
+ * ghost predicate and status, composed once); this mount's job is to hand reka
+ * the string, because `TooltipContentImpl` takes `props.ariaLabel` before it
+ * ever falls back to scraping `textContent`.
+ */
+const describeStop = (stop: TimelineStop): string =>
+    describeKeyframe(stop.keyframes[0], previewFor(stop));
+
+/**
+ * The marker's own name — G9's third reader.
+ *
+ * The typed label LEADS (N-2's wire, reader 3): tabbing a row of markers used
+ * to read "keyframe at 12%", "keyframe at 38%", "keyframe at 61%" — N sliders
+ * told apart only by a number the user has to hold in their head. Whatever the
+ * author named it comes first, so the distinguishing word is heard before the
+ * position rather than after it.
+ */
 const stopLabel = (stop: TimelineStop): string => {
     const p = Math.round(stop.percent);
     const n = stop.keyframes.length;
+    const lead = stop.keyframes[0].label ? `${stop.keyframes[0].label} — ` : "";
     return n === 1
-        ? `Keyframe at ${p}% — drag or arrow to move`
-        : `${n} keyframes at ${p}% (one rule in the animation) — drag or arrow to move`;
+        ? `${lead}Keyframe at ${p}% — drag or arrow to move`
+        : `${lead}${n} keyframes at ${p}% (one rule in the animation) — drag or arrow to move`;
 };
 
 /** A stop moves as one: every member to the same percent. */

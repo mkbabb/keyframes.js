@@ -1,7 +1,10 @@
 // SERVED MODEL: claude-opus-5[1m]
-import { describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
+import { defineComponent, h, nextTick, reactive } from "vue";
+import { TooltipContent, TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import TimelineHoverPreview from "../../../demo/components/instrument/timeline/components/TimelineHoverPreview.vue";
+import TimelineTrack from "../../../demo/components/instrument/timeline/components/TimelineTrack.vue";
 import {
     capturePreview,
     evictStalePreviews,
@@ -40,6 +43,13 @@ import {
  *   (c) a keyframe with no ghost-mappable vars and no capture renders the
  *       terminal `v-else` ("No previewable properties") rather than nothing;
  *   (d) the ghost PLATE carries no `transform`; the wrapper inside it does.
+ *
+ * G9 LANDED WHOLE AT X.KF.W7.h, and its assertions are the last `describe`
+ * block below: the panel's accessible description is DERIVED from the data that
+ * renders it, PUNCTUATED at every boundary, RE-DERIVED on the ghost→image swap,
+ * and never force-uppercased — asserted end to end, at the `role="tooltip"`
+ * node reka actually builds, so the `props.ariaLabel || textContent` fallback is
+ * proven not to fire rather than assumed not to.
  *
  * (a) and (b) are asserted against the cache's OWN rules rather than through a
  * `KeyframeTimeline` mount, and the reason is measured, not preferred: that
@@ -367,5 +377,215 @@ describe("G10 (d) — the plate is fixed, the payload moves", () => {
         expect(plate.classes()).toContain("w-16");
         expect(plate.classes()).toContain("h-16");
         expect(plate.classes()).toContain("border");
+    });
+});
+
+// ─── G9 ────────────────────────────────────────────────────────────────────
+//
+// THE TOOLTIP ANNOUNCES WHAT IT SHOWS (MISSED-1 + D-10 (KeyframeTimeline) + M7
+// + RR-A missed-1). The panel's own mount is `TimelineTrack`, so these
+// assertions mount it: the description is a PROP of `TooltipContent`, and what
+// it is worth can only be read where reka builds the tooltip's accessible node.
+
+/** jsdom ships no ResizeObserver; floating-ui's autoUpdate needs one to open a
+ *  tooltip at all. The same gap `resize-tracks.test.ts` and `KfPillTabs.test.ts`
+ *  already polyfill — a platform absence, not a defect being stood in for. */
+const savedResizeObserver = (globalThis as { ResizeObserver?: unknown })
+    .ResizeObserver;
+
+beforeAll(() => {
+    class NoopResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    }
+    (globalThis as { ResizeObserver?: unknown }).ResizeObserver =
+        NoopResizeObserver;
+    (window as unknown as { ResizeObserver?: unknown }).ResizeObserver =
+        NoopResizeObserver;
+});
+
+afterAll(() => {
+    (globalThis as { ResizeObserver?: unknown }).ResizeObserver =
+        savedResizeObserver;
+    (window as unknown as { ResizeObserver?: unknown }).ResizeObserver =
+        savedResizeObserver;
+});
+
+const trackMounts: Array<{ unmount: () => void }> = [];
+afterEach(() => {
+    while (trackMounts.length) trackMounts.pop()!.unmount();
+    document.body.innerHTML = "";
+});
+
+const mountTrack = (keyframes: TimelineKeyframe[]) => {
+    const previews = reactive(new Map<string, PreviewEntry>());
+    const hovered: string[] = [];
+
+    const w = mount(
+        defineComponent({
+            setup: () => () =>
+                h(TooltipProvider, { delayDuration: 0 }, {
+                    default: () =>
+                        h(TimelineTrack, {
+                            sortedKeyframes: keyframes,
+                            scrubT: 0,
+                            selectedKeyframeId: null,
+                            previews,
+                            onDiamondHover: (kf: TimelineKeyframe) =>
+                                hovered.push(kf.id),
+                        }),
+                }),
+        }),
+        { attachTo: document.body },
+    );
+    trackMounts.push(w);
+
+    return {
+        w,
+        previews,
+        hovered,
+        /** What the mount PASSES — the first arm of reka's `ariaLabel`. */
+        passed: () => w.findComponent(TooltipContent).props("ariaLabel") as string,
+        marker: () => w.get<HTMLElement>(".keyframe-marker"),
+        /** What reka BUILDS — the `role="tooltip"` node's own words. */
+        announced: () =>
+            document.body.querySelector('[role="tooltip"]')?.textContent ?? null,
+    };
+};
+
+describe("G9 — the tooltip announces what it shows", () => {
+    // MISSED-1's mechanism: `TooltipContentImpl` takes `props.ariaLabel` FIRST
+    // and only then scrapes `currentElement.textContent` — an untracked read,
+    // taken once. Passing the prop is the cure, and this is the assertion that
+    // the prop is passed at all.
+    it("PASSES a description rather than leaving reka to scrape the panel", () => {
+        const t = mountTrack([kf({ vars: { transform: "translateX(10px)" } })]);
+        expect(t.passed()).toBeTruthy();
+        expect(t.passed().length).toBeGreaterThan(0);
+    });
+
+    it("punctuates at every boundary — a sentence per thing, `; ` between rows", () => {
+        const t = mountTrack([
+            kf({ vars: { transform: "translateX(10px)", opacity: "0.5" } }),
+        ]);
+        const said = t.passed();
+        // Rows are separated, not run together: the whole of MISSED-1's second
+        // horn was that block boundaries contributed no separator at all.
+        expect(said).toContain("transform translateX(10px); opacity 0.5.");
+        expect(said.endsWith(".")).toBe(true);
+        expect(said).toContain("Keyframe at 38%. ");
+    });
+
+    it("leads with the typed label when the author gave one", () => {
+        const t = mountTrack([kf({ label: "hero lift" })]);
+        expect(t.passed().startsWith("hero lift. ")).toBe(true);
+    });
+
+    it("says the AUTHORED selector, never a percent nobody wrote", () => {
+        const t = mountTrack([
+            kf({
+                id: "kf-entry",
+                selector: requireKeyframeSelector("entry 100%"),
+                percent: 25,
+            }),
+        ]);
+        expect(t.passed()).toContain("Keyframe at entry 100% (25%).");
+    });
+
+    // M7 — `text-admin-label` force-uppercased the declaration dump, which is
+    // the instrument's ONLY textual ground truth for case-sensitive CSS value
+    // grammar. A description that is a STRING cannot be transformed by a type
+    // register, and this asserts the values arrive as the author typed them.
+    it("is not force-uppercased — the values arrive in the authored case", () => {
+        const t = mountTrack([
+            kf({ vars: { transform: "translateX(10px)", color: "var(--myVar)" } }),
+        ]);
+        const said = t.passed();
+        expect(said).toContain("translateX(10px)");
+        expect(said).toContain("var(--myVar)");
+        expect(said).not.toContain("TRANSLATEX(10PX)");
+        expect(said).not.toContain("VAR(--MYVAR)");
+    });
+
+    // The frozen-at-first-mount horn: `textContent` is read ONCE and never
+    // again, so an AT user's preview stayed whatever it was before the capture
+    // landed. A derived string re-derives.
+    it("re-derives on the ghost→image swap", async () => {
+        const frame = kf({ vars: { opacity: "0.5" } });
+        const t = mountTrack([frame]);
+        expect(t.passed()).toContain("Ghost preview.");
+
+        t.previews.set(frame.id, ready(frame));
+        await nextTick();
+        expect(t.passed()).toContain("Rendered preview available.");
+        expect(t.passed()).not.toContain("Ghost preview.");
+
+        t.previews.set(frame.id, {
+            kind: "failed",
+            key: previewKey(frame),
+            error: "No preview target mounted",
+        });
+        await nextTick();
+        expect(t.passed()).toContain(
+            "Preview unavailable: No preview target mounted.",
+        );
+    });
+
+    // End to end: what reka actually builds for the `role="tooltip"` node. If
+    // the fallback were firing this would be the panel's run-on `textContent`
+    // instead — the defect, reproduced — so this is the assertion that the
+    // first arm wins.
+    it("reaches the `role=\"tooltip\"` node as the panel's accessible name", async () => {
+        const t = mountTrack([
+            kf({ label: "hero lift", vars: { opacity: "0.5" } }),
+        ]);
+        await t.marker().trigger("focus");
+        await nextTick();
+        await nextTick();
+
+        expect(t.announced()).toBe(t.passed());
+        expect(t.announced()).toContain("hero lift. Keyframe at 38%. ");
+    });
+
+    // D-10 (KeyframeTimeline) — one seam, both modalities.
+    it("arms the capture on FOCUS, not on hover alone", async () => {
+        const frame = kf();
+        const t = mountTrack([frame]);
+
+        await t.marker().trigger("focus");
+        expect(t.hovered).toEqual([frame.id]);
+
+        await t.marker().trigger("mouseenter");
+        expect(t.hovered).toEqual([frame.id, frame.id]);
+    });
+
+    // RR-A missed-1 — the two-attribute cure, at the container the rail has.
+    it("names the instrument once, as a group", () => {
+        const t = mountTrack([kf()]);
+        const group = t.w.get('[role="group"]');
+        expect(group.attributes("aria-label")).toBe("Keyframe timeline");
+        // The rail keeps G8's playhead slider; the group is its container.
+        expect(group.find(".timeline-track").exists()).toBe(true);
+    });
+
+    it("hides the graduations — they are a ruler, not content", () => {
+        const t = mountTrack([kf()]);
+        const ticks = t.w.findAll(".timeline-tick-label");
+        expect(ticks.length).toBeGreaterThan(0);
+        for (const tick of ticks) {
+            expect(
+                tick.element.closest("[aria-hidden='true']"),
+            ).not.toBeNull();
+        }
+    });
+
+    // Reader 3 — N sliders are told apart by the author's word, not by a number
+    // the user has to hold in their head.
+    it("leads the marker's own name with the label too", () => {
+        const t = mountTrack([kf({ label: "hero lift" })]);
+        expect(t.marker().attributes("aria-label")).toBe(
+            "hero lift — Keyframe at 38% — drag or arrow to move",
+        );
     });
 });
