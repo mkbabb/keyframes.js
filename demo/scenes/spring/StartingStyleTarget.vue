@@ -22,7 +22,18 @@
              (KF-SST-24) is not re-decided here: the header keeps the reading
              measure and `p-0` so the stage layout below is untouched. -->
         <CardHeader class="w-full max-w-3xl shrink-0 items-center p-0">
-            <CardTitle class="text-heading text-foreground">@starting-style</CardTitle>
+            <!-- KF-SS-9 (routed from unit `.h` §5.1 — ONE REGISTER DECISION PER
+                 ROLE, decided there ONCE and spent here, never decided twice).
+                 The spring scene's two faces wore two different type systems in
+                 the identical structural slot: `SpringTarget`'s poster title is
+                 `text-display` and this one was `text-heading` — a different
+                 family, rung and weight, one fluid and one not, for the same
+                 role one view switch apart. The role is "scene face title", and
+                 the census `.h` ran found every other scene poster title
+                 (easing, sequence, square, spring-solver) already on
+                 `text-display`; this was the sole outlier, so the decision is
+                 the four siblings' and this is the byte that joins them. -->
+            <CardTitle class="text-display text-foreground">@starting-style</CardTitle>
             <!-- KF-SS-4 (W6-N, re-homed from KF.W5), site 2 — CHIP THE
                  IDENTIFIER. `text-mono-caption` carries `text-transform:
                  uppercase` at the installed producer bytes, so this caption
