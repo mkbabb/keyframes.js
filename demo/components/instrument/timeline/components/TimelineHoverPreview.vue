@@ -34,9 +34,27 @@
         <div v-if="loading" class="text-muted-foreground text-admin-label">
             Capturing...
         </div>
+        <!-- THP D-5 (+ D-17's load-bearing `/70`) — THE PROP/VALUE TWO-TONE,
+             given two REAL registers. The authored distinction was one register
+             and one alpha: the value tier read `--muted-foreground` from the
+             container and the prop tier read `--foreground` at 70%. On a
+             floating surface `.glass-floating` PROMOTES `--muted-foreground`
+             (to the on-glass strong rung), so the two tiers converged — null in
+             light, INVERTED in dark — and the whole distinction ended up carried
+             by the literal `:` between them. The promotion is not fought here
+             and is not fought per-site: the prop tier simply takes `--foreground`
+             at full strength, which no surface promotes past, so the pair holds
+             its order in BOTH arms and on BOTH the `@container` and
+             `contrast-color` routes. No WCAG breach is claimed and none is
+             imported — glass is credited for the promotion that prevents one;
+             painted ratios and which-arm-is-live stay KF.W9/SS-13's.
+             The container's class string is deliberately untouched: `max-h-24`
+             there is G-W6-8's sole witness and `text-admin-label` is W6-G's
+             register row, so this cure cannot trip the same-commit collision
+             law — it changes the CHILD's register, not the box's. -->
         <div class="font-mono text-admin-label text-muted-foreground max-h-24 overflow-y-auto w-full" data-register="code">
             <div v-for="[prop, val] in Object.entries(keyframe.vars)" :key="prop" class="truncate">
-                <span class="text-foreground/70">{{ prop }}</span>: {{ val }}
+                <span class="text-foreground">{{ prop }}</span>: {{ val }}
             </div>
             <div v-if="Object.keys(keyframe.vars).length === 0" class="italic">No properties</div>
         </div>
