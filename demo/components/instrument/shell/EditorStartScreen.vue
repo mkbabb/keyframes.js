@@ -30,8 +30,17 @@
             <span class="hero-dots"><TypingDots /></span>
         </h1>
         <!-- T.D11 (OD-4) — the deck joins the poster's own voice: Instrument
-             Serif TRUE italic 400 (the ital@1 face is already loaded; zero new
-             payload). The bold-italic system sans register ("AI-slop subtitle"
+             Serif TRUE italic 400. KF-EST-2 — the ital@1 face is a SEPARATE
+             woff2 (the css2 endpoint emits one @font-face per style) fetched by
+             index.html's deliberately non-render-blocking ital sheet; the one
+             preload is the UPRIGHT latin file, and "Instrument Serif Fallback"
+             (style.css) is an upright-only face under the root
+             `font-synthesis: none`, so the deck and hint paint UPRIGHT for the
+             whole swap window and italic arrives with the face. The demo's one
+             italic decision (style.css, @layer demo-typography) keeps italic
+             ONLY here, on the voice that ships a real italic; the preload limb
+             lives in index.html, outside this wave's bounds, and is declared,
+             not cured. The bold-italic system sans register ("AI-slop subtitle"
              under a 177px serif poster) dies. One family, two styles, the φ
              ladder read top-down: mega roman → title italic → title italic
              muted (the hint rides the SAME title rung — the landed T.D2 serif

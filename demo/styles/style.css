@@ -285,6 +285,25 @@
    (KF-AT-22 / D-20), which is why the eight-selector display override that used to
    open this layer is gone. */
 @layer demo-typography {
+    /* THE ONE FONT DECISION ON ITALIC (KF-SCR-2 ≡ KF-EST-2, the PERMANENT arm;
+       I-35 R-12 is the producer's record). The demo does not synthesize (:root
+       above), and glass-ui ships NO italic face for the text or mono voices —
+       measured at the installed dist: 0 italic @font-face, 0 font-synthesis, and
+       `text-caption` declaring `font-style: italic` it can only paint as a
+       synthesized oblique the demo forbids. So italic is RETIRED from the caption
+       register demo-wide, at the register: the eight `text-caption` sites keep
+       their size rung and muted ink (the real differentiator — I-35 R-12 names
+       both) and stop requesting a style no face can honour. The pixel does not
+       move (upright before, upright after); the declaration stops lying, and a
+       computed-style census reads the register the demo actually ships. Italic
+       survives ONLY on the display voice, whose Instrument Serif ital@1 face is a
+       real payload (the hero deck/hint) — that face's swap-window honesty is
+       EditorStartScreen's row, not this one. The producer end (declare or ship)
+       rode O-26 R-12 and is answered: no face will ship. */
+    .text-caption {
+        font-style: normal;
+    }
+
     /* glass-ui binds .labeled-field-label to font-family:var(--font-display) at the
        body rung — under the demo's Instrument swap that became a serif control
        label. Field labels are CONTROLS → the body register at medium. */
