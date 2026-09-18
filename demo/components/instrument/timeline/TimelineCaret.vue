@@ -15,15 +15,39 @@
              hand back to (MISS-α2). The dotted underline is an affordance the
              caret does NOT share with the rail, which carries `cursor-pointer`
              over its whole 48–128px band (m-4 + MISS-α1). -->
+        <!-- C-7 + D·M-5 + D·M-3, ONE MOTION (the bank declares them joint).
+             FOCUS (C-7/D·M-5): the hand-authored `outline-none focus:ring-1
+             focus:ring-primary` is gone in favour of the demo's ONE ring. Both
+             halves of the old pair failed together — `outline-none` genuinely
+             removes (Tailwind v4 emits `outline-style: none`), `ring-1` is an
+             erased box-shadow under forced-colors, and this input joins none of
+             the classes the producer's forced-colors restoration enumerates, so
+             there was ZERO indicator there. `.kf-focus-ring` carries the demo's
+             own forced-colors arm. K-9's INVERSION is honoured at the bytes:
+             this lands FIRST and discharges D·M-5 now, waiting on nothing — the
+             `/number-field` evaluation (C-4/D·M-9, MISS-α6) is W6-I's and comes
+             second.
+             SELECTION (D·M-3): in the LIGHT arm `--primary` and `--foreground`
+             are byte-identical, so a hovered unselected caret and the selected
+             one computed to the same ink and the whole distinction rode a single
+             weight notch at the smallest type in the system. The channel added
+             here is NON-COLOUR and is the element's own vocabulary: the selected
+             readout wears a SOLID 2px underline, the unselected one keeps the
+             dotted hover underline. The two decoration styles live in OPPOSITE
+             branches of the same binding, never together on one element, so the
+             distinction cannot be decided by utility order in the generated
+             sheet. `aria-selected` is NOT the vehicle — it is invalid off its
+             seven admitted roles, and shipping invalid ARIA to harvest a
+             stylesheet is a killed shape. -->
         <button
             v-if="!isEditing"
             ref="readoutEl"
             type="button"
-            class="timeline-caret-readout font-mono text-admin-label cursor-pointer select-none transition-colors whitespace-nowrap tabular-nums decoration-dotted underline-offset-2 hover:underline"
+            class="kf-focus-ring timeline-caret-readout font-mono text-admin-label cursor-pointer select-none transition-colors whitespace-nowrap tabular-nums underline-offset-2"
             :class="
                 isSelected
-                    ? 'text-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'text-primary font-semibold underline decoration-solid decoration-2'
+                    : 'text-muted-foreground hover:text-foreground decoration-dotted hover:underline'
             "
             :aria-controls="markerId"
             :aria-label="`Keyframe at ${display}% — edit the position`"
@@ -32,12 +56,22 @@
         >
             {{ display }}%
         </button>
+        <!-- D·M-7 + MISS-α3 — the editor had NO perceivable boundary against the
+             surface it replaces: `bg-background` is `--neutral-0`, the PAGE
+             ground, painted over TimelineTrack's own rail surface on a quiet
+             cartoon Card. glass ships the on-glass EDITABLE surface for exactly
+             this — `.field-control` binds `--control-surface-bg:
+             var(--input-on-glass)` — so the correction is one declaration and,
+             like the ring above, it does not wait on the NumberField
+             evaluation. Second site of the doctrine banked at CSSPasteDialog
+             R-24 (the editable well is `--input-on-glass`, never a `--muted`
+             read-only mix); cross-referenced, not re-derived. -->
         <input
             v-else
             ref="inputEl"
             type="number"
             :value="display"
-            class="font-mono text-admin-label w-10 h-5 text-center bg-background border border-border rounded px-0.5 outline-none focus:ring-1 focus:ring-primary"
+            class="kf-focus-ring font-mono text-admin-label w-10 h-5 text-center bg-[var(--input-on-glass)] border border-border rounded px-0.5"
             min="0"
             max="100"
             step="any"
