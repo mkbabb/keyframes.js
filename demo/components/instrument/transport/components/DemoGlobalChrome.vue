@@ -25,11 +25,18 @@
     </svg>
 
     <Teleport to="html">
+        <!-- The toast's elevation reads glass-ui's THEME-AWARE --shadow-lg token
+             (the shadow-[var(…)] form), not the bare `shadow-lg` utility: three
+             definitions of that name coexist in the shipped bundle — Tailwind's
+             theme default, glass-ui's `:root{--shadow-lg: …var(--shadow-color)}`,
+             and the emitted `.shadow-lg` utility, which inlined Tailwind's value
+             at build time and reads NEITHER custom property at runtime (DGC M-4).
+             This was the demo's sole `shadow-lg` site. -->
         <Toaster
             :toastOptions="{
                 unstyled: true,
                 classes: {
-                    toast: 'bg-foreground text-background rounded-xl text-body px-4 py-3 grid grid-cols-1 gap-1 shadow-lg lg:w-80 w-64 max-w-[90vw]',
+                    toast: 'bg-foreground text-background rounded-xl text-body px-4 py-3 grid grid-cols-1 gap-1 shadow-[var(--shadow-lg)] lg:w-80 w-64 max-w-[90vw]',
                     title: 'font-bold text-body',
                     description: 'font-normal text-small',
                     actionButton: '',
