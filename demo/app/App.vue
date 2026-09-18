@@ -1,11 +1,22 @@
 <template>
-    <!-- DP-02 (CC-03) — the ONE root tooltip context. Every Tooltip in the app
-         (dock, transport, controls) resolves its `TooltipProviderContext`
-         injection here; without this root provider each `<Tooltip>` throws
-         "must be used within `TooltipProvider`" and the whole route blanks.
-         The documented Glass-7/reka root-provider pattern; reka's provider is
-         renderless, so it adds no layout wrapper. -->
-    <TooltipProvider>
+    <!-- DP-02 (CC-03) — the ONE root tooltip context, and now the ONE tooltip
+         CONFIG too. Every Tooltip in the app (dock, transport, controls)
+         resolves its `TooltipProviderContext` injection here; without this root
+         provider each `<Tooltip>` throws "must be used within
+         `TooltipProvider`" and the whole route blanks. The documented
+         Glass-7/reka root-provider pattern; reka's provider is renderless, so
+         it adds no layout wrapper.
+
+         The delays are the UNIFICATION (KF-APP-21). Two descendants
+         (`AnimationControlsGroup`, `ChannelControls`) each nested a SECOND
+         provider carrying `100 / 0`, which shadowed this root's defaults for
+         their subtrees — so a tooltip's delay depended on which ancestor
+         happened to wrap it, and the app shipped two different hover feels. The
+         nested providers are deleted and their config is hoisted HERE: 100ms /
+         0ms is the value two authors independently chose for the surfaces users
+         actually hover; reka's 700ms default was chosen by nobody. One context,
+         one config, no shadowing. -->
+    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <ChromeDock
         :current-scene-id="currentSceneId"
         :scenes="scenes"

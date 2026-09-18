@@ -1,5 +1,4 @@
 <template>
-    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         :class="[
             'controls-layout justify-items-stretch items-start relative',
@@ -105,8 +104,6 @@
         />
     </div>
 
-    </TooltipProvider>
-
     <!-- The document-level singletons (rainbow-gradient SVG defs + the Toaster
          teleport) live in the colocated DemoGlobalChrome sub-component — they
          resolve against the DOCUMENT, not this layout grid (the J.W7a
@@ -131,7 +128,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, useTemplateRef, watchEffect } from "vue";
 
-import { TooltipProvider } from "@mkbabb/glass-ui";
 import { clamp } from "@mkbabb/value.js/math";
 
 import ControlsPaneWrapper from "./controls-pane/ControlsPaneWrapper.vue";

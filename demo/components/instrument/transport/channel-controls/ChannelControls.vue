@@ -1,5 +1,4 @@
 <template>
-    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <div
         class="flex flex-col h-full w-full overflow-hidden z-content relative isolate"
     >
@@ -167,7 +166,6 @@
             </div>
         </div>
     </div>
-    </TooltipProvider>
 </template>
 
 <script setup lang="ts">
@@ -180,7 +178,7 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 
-import { TooltipProvider, Button } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui";
 
 import {
     computed,
