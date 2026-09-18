@@ -263,8 +263,9 @@ defineExpose({
 /* J.W7a S1 (D6 / H3) — the hero-backdrop recede band (mobile only). The hero
    parks in the top band (EditorStartScreen `pt-[var(--dock-top-band-reserve)]`);
    the cube's centering region starts BELOW the --start-hero-band split
-   (design-idioms.css), so hero text and subject occupy DISJOINT vertical bands
-   at phone widths — the 390×844 hero/subject intersection is 0 by construction.
+   (layout.css — the golden top share of the work-area height, derived from the
+   same chain the docks ride), so hero text and subject occupy DISJOINT vertical
+   bands at phone widths; the rendered 390×844 clearance is KF.W9's witness.
    Desktop (≥lg) is untouched: text and cube share the wide stage as before. */
 @media (max-width: 1023px) {
     .cube-stage--hero-recede {

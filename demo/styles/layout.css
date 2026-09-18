@@ -36,7 +36,17 @@
     --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width */
     --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track inset — 1.5rem each side */
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing SelectContent cap */
-    --start-hero-band: 34dvh; /* the phone home hero/subject band split (the hero owns above; the subject's centering starts below) — clears the display-4 mobile hero on the 667/844 heights */
+    /* The phone home hero/subject band split: the hero owns the golden TOP share of
+       the work-area height — the same 1/φ² split (--work-area-vertical-bias-top)
+       the docks and the work-area card already ride — and the subject's centering
+       region starts below it. DERIVED from the chain, which already folds the dock
+       band, the safe-area insets and the ResizeObserver-fed menubar height; the
+       former raw `34dvh` was a hand-fit that could not track the band it
+       approximated (KF-EST-16). Consumed by CubeScene's mobile recede rule; the
+       rendered clearance at 667/844 is KF.W9's to witness. */
+    --start-hero-band: calc(
+        var(--work-area-height) * var(--work-area-vertical-bias-top)
+    );
 
     /* The graph / stage-field substrate PITCHES: two-tier engineering-graph-paper
        (fine 1rem lines + 5rem majors). The line strengths (--graph-opacity /
