@@ -25,24 +25,19 @@
  *           `CORS_SKIP` diagnostic, never a silent drop.
  *   • S3 — the honesty surface: every refusal is a typed `Diagnostic` row.
  *
- * VJ-9 TRIPWIRE (recorded, NOT a gate). The ingest ships on the SHIPPED value.js
- * `cssText → resolveKeyframes` contract. value.js's VJ-9 FULL partial-input
- * totality (every malformed third-party rule parses totally, never throws) is
- * OPEN. Until it publishes, a rule whose `cssText` derails value.js's parser
- * surfaces as a `PARSE_ERROR` row (the per-rule `try/catch` below), never an
- * uncaught throw — the ingest's robustness WIDENS on VJ-9's publish.
- *
- * CORRECTED at X.KF.W2 (G-W2-4), in the commit that cured what falsified it. The
- * paragraph above states an invariant over the PARSE and was read as one over
- * the WALK: until this wave the sibling-rule linkage built a `RegExp` out of the
- * author's `@keyframes` identifier, ABOVE the per-rule `try/catch` and outside
- * the per-sheet one, so an identifier carrying regex metacharacters (legal via
- * CSS escapes) threw a `SyntaxError` straight out of `resolveLiveKeyframes` —
- * an uncaught throw from the ingest that owed nothing to value.js and could not
- * be cured by VJ-9. The linkage no longer constructs a pattern at all (see
- * {@link declaredAnimationNames}), so the sentence is now true of the walk as
- * well as of the parse, and `test/ingest/keyframes-name-escapes.test.ts` is the
- * executable form of the claim rather than its prose.
+ * VJ-9 TRIPWIRE (recorded, NOT a gate) — CORRECTED at X.KF.W2 (G-W2-4), in the
+ * commit that cured what falsified it. The ingest ships on the SHIPPED value.js
+ * `cssText → resolveKeyframes` contract; VJ-9 FULL partial-input totality (every
+ * malformed third-party rule parses totally, never throws) is OPEN, so until it
+ * publishes a rule whose `cssText` derails the parser surfaces as a
+ * `PARSE_ERROR` row (the per-rule `try/catch` below), never an uncaught throw.
+ * That sentence was an invariant over the PARSE and was read as one over the
+ * WALK: the sibling linkage used to build a `RegExp` out of the author's
+ * `@keyframes` identifier, ABOVE every guard here, so a metacharacter-bearing
+ * identifier threw straight out of `resolveLiveKeyframes`. It builds no pattern
+ * now ({@link declaredAnimationNames}) — the claim holds for the walk as well,
+ * `test/ingest/keyframes-name-escapes.test.ts` is its executable form, and the
+ * ingest's robustness still WIDENS on VJ-9's publish.
  */
 
 import { CSSKeyframesAnimation } from "../engine";
@@ -157,43 +152,23 @@ const MAX_WALK_DEPTH = 32;
  * CSSOM's OWN parsed `CSSStyleDeclaration` — never from the rule's serialized
  * text (X.KF.W2 · G-W2-4).
  *
- * The linkage below used to build `new RegExp(…\\b${name}\\b)` from the
- * `@keyframes` rule's identifier and test it against each style rule's
- * `cssText`. A `@keyframes` identifier is AUTHOR-controlled and may carry regex
- * metacharacters — legal CSS via escapes (`@keyframes pu\+lse`, `@keyframes
- * a\(b`) — so that interpolation had two failure modes and no third: it THREW a
- * `SyntaxError` out of the walk on an identifier whose unescaped form is an
- * invalid pattern, or it silently MIS-MATCHED and dropped the sibling rule's
- * options. Neither was guarded: the per-rule `try/catch` sits in
- * {@link reconstructFromRule}, BELOW the pattern construction, and the per-sheet
- * `try/catch` wraps only the `cssRules` read.
- *
- * The cure is at the root: the identifier never becomes a pattern. The CSSOM has
- * already parsed the declaration block, so the comparison is string EQUALITY
- * over the value's tokens. Both spellings are read and unioned —
- * `animation-name` (the longhand) and `animation` (the shorthand; a browser
- * serializes the name into the shorthand value, and jsdom's CSSOM does not
- * expand shorthands into longhands at all). Splitting the value on its
- * comma/whitespace separators is TOKENIZATION, not a grammar: it carries the
- * same reach the old `[^;}]*\bNAME\b` scan had, minus its false positives — a
- * rule declaring `animation: my-pulse 1s` no longer answers to `pulse`, because
- * `\b` treats the `-` as a boundary and equality does not.
+ * The linkage used to interpolate that identifier into `new RegExp` and test it
+ * against each rule's `cssText`; author-controlled and legally able to carry
+ * regex metacharacters via CSS escapes, it either THREW out of the walk or
+ * silently MIS-MATCHED. It never becomes a pattern now — string EQUALITY over
+ * the tokens of both spellings (`animation-name`, and `animation`, since jsdom's
+ * CSSOM expands no shorthand). Account and proof, including the `my-pulse`
+ * false positive this retires: `test/ingest/keyframes-name-escapes.test.ts`.
  */
 const declaredAnimationNames = (
     style: CSSStyleDeclaration | undefined,
 ): ReadonlySet<string> => {
-    const names = new Set<string>();
-    if (style == null || typeof style.getPropertyValue !== "function") {
-        return names;
-    }
-    for (const prop of ["animation-name", "animation"]) {
-        const value = style.getPropertyValue(prop);
-        if (typeof value !== "string" || value === "") continue;
-        for (const token of value.split(/[\s,]+/)) {
-            if (token !== "") names.add(token);
-        }
-    }
-    return names;
+    const read = (prop: string): string =>
+        typeof style?.getPropertyValue === "function"
+            ? String(style.getPropertyValue(prop) ?? "")
+            : "";
+    const declared = `${read("animation-name")} ${read("animation")}`;
+    return new Set(declared.split(/[\s,]+/).filter((token) => token !== ""));
 };
 
 /**
@@ -241,19 +216,16 @@ const walkSheet = <V extends Vars>(
     // the matching style-rule text INTO `resolveKeyframes` beside the keyframes
     // text so its `collectAnimationOptions` recovers the shorthand — the SAME
     // pipeline `fromString` uses, never a bespoke options parser (K.W8 §S1 b).
-    const styleRules: Array<{
-        cssText: string;
-        names: ReadonlySet<string>;
-    }> = [];
+    // A bare style rule (CSSStyleRule, type 1) contributes its text (what the
+    // reconstruction feeds to `resolveKeyframes`) BESIDE the `@keyframes`
+    // identifiers its declarations name, read structurally.
+    const styleRules: Array<{ cssText: string; names: ReadonlySet<string> }> =
+        [];
     for (let i = 0; i < rules.length; i++) {
-        const rule = rules[i];
-        if (rule == null) continue;
-        // A bare style rule (CSSStyleRule, type 1) — capture its text (what the
-        // reconstruction feeds to `resolveKeyframes`) BESIDE the `@keyframes`
-        // identifiers its declarations name, read structurally so the linkage
-        // below never builds a pattern out of an author's identifier.
-        const asStyle = rule as Partial<CSSStyleRule> & { type?: number };
-        if (asStyle.type === 1 && typeof asStyle.cssText === "string") {
+        const asStyle = rules[i] as
+            | (Partial<CSSStyleRule> & { type?: number })
+            | null;
+        if (asStyle?.type === 1 && typeof asStyle.cssText === "string") {
             styleRules.push({
                 cssText: asStyle.cssText,
                 names: declaredAnimationNames(asStyle.style),
@@ -270,13 +242,11 @@ const walkSheet = <V extends Vars>(
             continue;
         }
 
-        // The sibling style rule that names THIS @keyframes via `animation`/
-        // `animation-name`, so the reconstructed object carries its options.
-        // Matched by IDENTIFIER EQUALITY against the names the CSSOM already
-        // parsed out of each rule's declaration block (see
-        // {@link declaredAnimationNames}); the first match wins (CSS cascade —
-        // a later override is out of scope for the ingest's per-rule
-        // reconstruction, BOOKed not half-wired).
+        // The sibling style rule that names THIS @keyframes, so the reconstructed
+        // object carries its options — matched by IDENTIFIER EQUALITY against
+        // {@link declaredAnimationNames}. First match wins (CSS cascade: a later
+        // override is out of scope for the per-rule reconstruction, BOOKed not
+        // half-wired).
         const sibling = styleRules.find((r) => r.names.has(name))?.cssText;
 
         const perRule: Diagnostic[] = [];
