@@ -7,9 +7,21 @@
          G8 LAYOUT half survives; the surface half reverses). `shadow={false}`:
          the plate reads cleaner without a nested shadow (FORK I5-shadow). The
          `max-w-3xl` rides the content column as an optical reading measure. -->
+    <!-- D-11 — THE COLUMN HAD NO OVERFLOW STRATEGY AT ALL: inline padding,
+         `overflow-hidden`, and `justify-center`, which under compression clips at
+         BOTH ends and leaves neither recoverable — the readout and the plot go
+         first, and no scroll can reach them. The vertical axis becomes scrollable
+         and the horizontal stays clipped (a legal, non-degenerate pairing: the
+         `visible` computes-to-`auto` rule needs one side to be `visible`, and
+         neither is). `justify-content: safe center` is the other half: plain
+         `center` is what makes an overflowing flex column unreachable at its
+         start edge. Horizontal clipping stays ON deliberately — the value axis
+         now reserves its own overshoot room, so nothing legitimately paints
+         outside this box. -->
     <Card
         :shadow="false"
-        class="spring-target relative flex flex-col items-center justify-center gap-8 h-full w-full px-6 lg:px-8 overflow-hidden"
+        class="spring-target relative flex flex-col items-center gap-8 h-full w-full px-6 lg:px-8 overflow-x-hidden overflow-y-auto"
+        :class="{ 'spring-target--live': isLive }"
     >
         <!-- Header readout.
              J.W7a S2 (D7 / TYP-2, SP-2) — the scene name lifts to the
@@ -65,7 +77,17 @@
                     :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
                     role="status"
                 >{{ stateLabel }}</span>
-                <span class="text-mono-caption text-muted-foreground tabular-nums">
+                <!-- N-2 — `text-mono-caption` carries `text-transform: uppercase`
+                     at the installed pin, so this scene's three-symbol vocabulary
+                     was being corrupted by its own type utility: the velocity
+                     label "v" rendered as "V". The transform-free sibling rung
+                     `text-mono-small` is what the "x" label two rows above already
+                     uses, so this is a divergence inside one readout, not a house
+                     choice. (The third site — SpringTrace's ζ rendering as the
+                     Greek CAPITAL zeta, a different character that reads as a
+                     Latin Z, in the one place the plot names its own parameter —
+                     is `.e`'s file and is named to `.e`, not reached across.) -->
+                <span class="text-mono-small text-muted-foreground tabular-nums">
                     v {{ demo.liveVelocity.value.toFixed(2) }}
                 </span>
             </div>
@@ -260,6 +282,13 @@ const demo = inject(SPRING_DEMO_KEY)!;
 // Settling — the one discrete fact — is published by the status region instead.
 const targetValueText = computed(() => `target ${demo.target.value.toFixed(2)} of 1`);
 
+/** i-16 — the one state that means "these marks are about to move": the transport
+ *  is playing, the field is still travelling, or the derby is up. It gates the
+ *  compositor promotion, which used to be unconditional. */
+const isLive = computed(
+    () => demo.isPlaying.value || !demo.liveSettled.value || demo.derbyActive.value,
+);
+
 /** The instrument's one discrete, high-salience state (D-14), and the derby's
  *  only announcement channel (gesture spec 6 — the lane overlay is aria-hidden
  *  decoration by design). */
@@ -336,13 +365,21 @@ const trackStyle = {
 // engine's physics, off the Vue render graph) and rides the SAME `railPct` map,
 // so "bouncy rings PAST the line, gentle never crosses" is a reading of one axis
 // rather than four separately-bounded ones.
-const derbyBallEls: (HTMLElement | null)[] = [];
+// i-15 — A MAP, NOT A NEVER-SHRINKING ARRAY. The array was only ever appended to:
+// after the first derby it held four entries FOREVER, and the painter then paid
+// four null-checks per frame, for the lifetime of the scene, for an overlay that
+// is mounted for about two seconds of it — in the one file whose stated posture
+// is "zero cost at rest". Vue calls the ref callback with `null` on unmount, so
+// the map empties itself and the painter's derby loop costs nothing when there
+// are no lanes.
+const derbyBallEls = new Map<number, HTMLElement>();
 const setDerbyBallEl = (i: number, el: Element | ComponentPublicInstance | null) => {
     // m-10 — `el as HTMLElement` turned the file's only cast from known-narrow
     // into unchecked: a future component-ref edit here would throw INSIDE the
     // 60 Hz painter. `instanceof` is the honest narrowing and costs one check
     // per ref callback, not per frame.
-    derbyBallEls[i] = el instanceof HTMLElement ? el : null;
+    if (el instanceof HTMLElement) derbyBallEls.set(i, el);
+    else derbyBallEls.delete(i);
 };
 
 // ── J.W2 S5 (DS-3) — the spring painters: DIRECT non-reactive `style` writes ──
@@ -374,11 +411,8 @@ onMounted(() => {
         // PAST the target line — the overshoot is the point). Painter-positioned,
         // the SAME hot path; no second writer, no second rAF (inv ζ).
         const trackValues = live.trackValues;
-        for (let i = 0; i < derbyBallEls.length; i++) {
-            const el = derbyBallEls[i];
-            if (el) {
-                el.style.transform = `translateX(${railPct(trackValues[i] ?? 0)}cqw)`;
-            }
+        for (const [i, el] of derbyBallEls) {
+            el.style.transform = `translateX(${railPct(trackValues[i] ?? 0)}cqw)`;
         }
     });
 });
@@ -488,6 +522,9 @@ const onKeydown = (e: KeyboardEvent) => {
    accident of the idiom default (cross-color-pops §5.1). */
 .spring-target {
     --ball-tone: var(--color-progress);
+    /* D-11 — see the template note: `safe center` keeps a compressed column
+       reachable, plain `center` does not. */
+    justify-content: safe center;
 }
 
 /* ── K.W4 S5 (U-K18) — the PRIMARY readout, display-tier ──
@@ -496,13 +533,35 @@ const onKeydown = (e: KeyboardEvent) => {
    wearing the scene accent (the cascaded --ball-tone), while v + the settled
    badge demote to a quiet caption column. The former flat row gave x and v the
    SAME small MetricBadge size (the equal-weight inversion U-K18 named). */
+/* D-9 — `6cqi` HAD NO QUERY CONTAINER. Container query units fall back to the
+   SMALL VIEWPORT when no ancestor is a query container, and the census is
+   unambiguous: this file's own two `container-type` sites (the rail and the
+   sampler track) are not ancestors of the readout, the demo's container utility
+   is applied only in AnimationVisualizer, and glass-ui's only card-side container
+   is the un-rendered `.card-header`. So `clamp(2.25rem, 6cqi, 3.25rem)` was
+   resolving as `6svw` — a VIEWPORT-keyed middle term that collapses to within
+   ~3px of `--type-display-2` at both ends of the range, i.e. the exact opposite
+   of the author's intent, which was a number that scales with the column it sits
+   in. Containerizing the header is the cure that KEEPS the intent; adopting the
+   static rung would have thrown it away. One declaration, and the clamp finally
+   measures what it names. */
+.spring-header {
+    container-type: inline-size;
+}
+
 .spring-readout-primary {
     font-size: clamp(2.25rem, 6cqi, 3.25rem);
     /* T.D2 (RULED #24) — the `650` magic weight dies: weights step the ladder
        (100-multiples only); the readout numeral reads the semibold token. */
     font-weight: var(--font-weight-semibold, 600);
     line-height: 1;
-    letter-spacing: -0.01em;
+    /* C-7 (narrowed) — the literal `-0.01em` IS the published `--type-tracking-snug`
+       to the digit. A literal that happens to equal a token is a token nobody can
+       find: write the name, and the next retune reaches this numeral too. (The
+       axis's own prescription — the audacious display rung and `--type-tracking-tight`
+       — is dead: audacious resolves to 139.6-352px inside a ~279px box, and tight
+       would have changed the design 2.5x.) */
+    letter-spacing: var(--type-tracking-snug);
     color: var(--ball-tone, var(--color-progress));
     font-variant-numeric: tabular-nums;
 }
@@ -597,6 +656,17 @@ const onKeydown = (e: KeyboardEvent) => {
 .derby-lane-ball {
     left: 0;
     margin-left: calc(var(--ball-size, 36px) / -2);
+}
+
+/* i-16 — `will-change: transform` USED TO SIT ON THE RULE ABOVE, unconditionally,
+   which held two permanent compositor layers alive in the file whose own posture
+   is "zero cost at rest" and whose loop is designed to run zero frames until a
+   user acts. A promotion hint that is always on is not a hint. It is bound to the
+   one state that means "these are about to move": the transport is playing, the
+   field is still travelling, or the derby is up. */
+.spring-target--live .spring-ball,
+.spring-target--live .sampler-ball,
+.spring-target--live .derby-lane-ball {
     will-change: transform;
 }
 
@@ -639,7 +709,17 @@ const onKeydown = (e: KeyboardEvent) => {
     bottom: 0;
     right: 0;
     width: 0;
-    border-right: 2px dashed color-mix(in srgb, var(--color-progress) 35%, transparent);
+    /* D-13 — the LAST rule in this file that read `--color-progress` past the
+       seam. The file declares "the scene's ONE colour consumer" at the top and
+       then bypassed it here, so setting `--ball-tone` would have half-recoloured
+       the instrument: the balls and the marker would move hue and the value=1
+       reference would not. The seam is either the one consumer or it is not a
+       seam. (The inverted-fallback twin — every `var(--ball-tone, …)` fallback in
+       this file being dead under the unconditional declaration above — is
+       deliberately NOT touched: design-idioms.css documents that fallback form as
+       the multi-scene idiom, and the row folds to its banked home rather than
+       being re-decided here.) */
+    border-right: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) 35%, transparent);
     pointer-events: none;
 }
 /* The settle-pulse resting state (no flash); `--fire` plays the one pulse.

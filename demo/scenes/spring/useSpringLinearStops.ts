@@ -5,13 +5,19 @@ import { springLinearStops } from "@mkbabb/keyframes.js";
 /**
  * The ONE spring → CSS `linear()` surface for the Spring scene (H.W5.S3).
  *
- * `springLinearStops(` was DOUBLE-surfaced in `demo/spring/` (WV-W5-HIGH-1:
- * exactly 2 call-sites — the live-solver rail at `SpringSidebar.vue:130` and the
- * discrete-transition view at `StartingStyleTarget.vue:95`; `SpringTarget` did
- * NOT call it). The Discrete→Spring co-location merge folds those into ONE view
- * tree, so the artifact emission folds 2→1 here: BOTH the rail's Monaco readout
- * AND the discrete card's `--spring-ease` / copy-paste artifact read this single
- * composable.
+ * N-5 — THE SCENE'S ONE WRITTEN ENGINE-SEAM CONTRACT NAMED A DEAD CONSUMER. This
+ * paragraph used to cite `SpringSidebar.vue:130` and `StartingStyleTarget.vue:95`
+ * as the two call sites it folds, and to state that `SpringTarget` does not call
+ * it. `SpringSidebar.vue` was deleted at `277c01ec`; the file does not exist at
+ * any path. A contract statement is the one place a reader is entitled to trust
+ * without checking, so a stale one costs more than no statement at all.
+ *
+ * Measured at this seat — ⟨cmd⟩ `grep -rn useSpringLinearStops demo` → the LIVE
+ * consumers are **`SpringTrace.vue`** (the 26-stop plot) and
+ * **`StartingStyleTarget.vue`** (the `--spring-ease` / copy-paste artifact),
+ * neither of which the old sentence named. The fold this composable exists to
+ * perform is real and unchanged — one emission surface, two readers — and that is
+ * now stated in terms of files that are here.
  *
  * [`springTimingFunction` is INTENTIONALLY 6×-surfaced and is NOT collapsed —
  * it is the typed `Easing` for the engine seams, a different shape than this CSS
