@@ -214,6 +214,27 @@ export function useSphereSpin(options: SphereSpinOptions) {
     };
 
     /**
+     * D-2 — the KEYBOARD's route into the same additive offset the drag writes.
+     * A keyboard nudge is a gesture, so it lands in the gesture layer: the scene
+     * never reaches into `offset` itself and the T.A7 single-author discipline
+     * survives the new affordance (one offset author, one mesh writer). Like a
+     * fresh grab, a nudge cancels an in-flight glide.
+     */
+    const nudge = (dPitch: number, dYaw: number): void => {
+        glideX = glideY = undefined;
+        offset.x += dPitch;
+        offset.y += dYaw;
+    };
+
+    /** Return the accumulated gesture spin to its rest attitude (the Home key). */
+    const rest = (): void => {
+        glideX = glideY = undefined;
+        velX = velY = 0;
+        offset.x = 0;
+        offset.y = 0;
+    };
+
+    /**
      * T.A11 — the decay() dogfood witness, a NON-DOM sampling hook (no readout
      * DOM). The current angular speed (rad/s): the live `Math.hypot(velX, velY)`
      * accumulator during a drag, the engine `decay()` sampler's instantaneous
@@ -234,6 +255,8 @@ export function useSphereSpin(options: SphereSpinOptions) {
         attach,
         detach,
         tickGlide,
+        nudge,
+        rest,
         /** The additive gesture offset (rad) the scene composes onto the pose. */
         offset,
         /** True while the user is actively dragging the sphere. */

@@ -16,15 +16,72 @@
              site and is RETAINED for now: with the wash gone it rounds only the
              stage boundary, and whether a full-bleed mobile layer should carry
              card chrome at all is a rendered-silhouette verdict, KF.W9's. -->
+        <!-- D-2 — THE SUBJECT IS OPERABLE AND NAMED. The rendered DOM was one
+             bare `<canvas>`: no role, no accessible name, no tabindex, no
+             keydown, no fallback content, both interactions pointer-only — while
+             the in-repo counter-example (SquareScene's `role="group"` subject
+             with its two axis sliders) sat one directory away, and the Suspense
+             skeleton was more accessible than the scene it loads. The idiom here
+             is BORROWED from that landed cure (X.KF.W11.b, `3af1422b`), not
+             re-invented: the subject is the `role="group"` container, its
+             `aria-keyshortcuts` publishes the bindings, `aria-describedby`
+             points at a real description, and TWO `role="slider"` children carry
+             the per-axis WCAG 4.1.2 contract — a single scalar slider is a lossy
+             misrepresentation of a two-axis spin.
+
+             The children are the canvas's FALLBACK CONTENT: the accessible
+             subtree of a replaced element, which the browser never paints. That
+             is the whole of the a11y layer's cost here — no DOM layer joins the
+             stage, so the scene's own `:6-18` stage-inventory ruling stands.
+
+             MISSED-A, declared not glossed: on TOUCH there is still no VISIBLE
+             affordance for the drag — `cursor: grab` is a desktop-only story and
+             the gesture legend was deleted at T.A10. The two shapes that would
+             fix it are (i) a DOM layer on the stage, which the ruling above
+             forecloses, and (ii) an in-canvas painted legend, which is a
+             taste act inside the grid-room composition (PENDING-OWNER). This
+             seat opens the AT channel and routes the visible-affordance half
+             rather than re-opening a ruling it does not own; SS-13 confirms
+             on-device. -->
         <canvas
             ref="canvas"
-            class="amiga-canvas h-full w-full rounded-card"
-        ></canvas>
+            class="amiga-canvas kf-focus-ring h-full w-full rounded-card"
+            role="group"
+            aria-label="Spin the Boing ball — drag it, or nudge it with the arrow keys"
+            aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Home"
+            :aria-describedby="keyboardHelpId"
+            tabindex="0"
+            @keydown="onKeydown"
+        >
+            <span :id="keyboardHelpId">
+                Arrow keys spin the ball a sixteenth of a turn; hold Shift for a
+                fine nudge; Home returns it to its rest attitude. A pointer drag
+                spins it too, and on release the spin coasts to rest.
+            </span>
+            <span
+                role="slider"
+                aria-label="Yaw — the spin about the ball's vertical axis"
+                aria-orientation="horizontal"
+                aria-valuemin="-180"
+                aria-valuemax="180"
+                :aria-valuenow="spinNow.yaw"
+                :aria-valuetext="`yaw ${spinNow.yaw}°`"
+            />
+            <span
+                role="slider"
+                aria-label="Pitch — the spin about the ball's horizontal axis"
+                aria-orientation="vertical"
+                aria-valuemin="-180"
+                aria-valuemax="180"
+                :aria-valuenow="spinNow.pitch"
+                :aria-valuetext="`pitch ${spinNow.pitch}°`"
+            />
+        </canvas>
     </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { onBeforeUnmount, onMounted, reactive, useId, useTemplateRef } from "vue";
 import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
 // OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
@@ -73,6 +130,63 @@ const sphereSpin = useSphereSpin({
     setOrbitEnabled: (enabled) => three.setOrbitEnabled(enabled),
 });
 
+// ── D-2: the subject's keyboard route + its per-axis read-out ────────────────
+/** The id the canvas's `aria-describedby` points at (its own fallback content). */
+const keyboardHelpId = useId();
+
+/** A sixteenth of a turn per press; a sixtieth with Shift (the fine nudge). */
+const NUDGE_RAD = Math.PI / 8;
+const FINE_NUDGE_RAD = Math.PI / 30;
+
+// The per-axis `aria-valuenow`, in DEGREES wrapped to (−180, 180]. Written at
+// the few-Hz cadence the keyboard/pointer gestures END at — never on the 60 Hz
+// paint loop, which would put Vue work on the hot path for a value no one reads
+// between announcements (the SquareScene read-out discipline, borrowed).
+const spinNow = reactive({ yaw: 0, pitch: 0 });
+
+const wrapDegrees = (radians: number): number => {
+    const deg = (radians * 180) / Math.PI;
+    return Math.round(((((deg + 180) % 360) + 360) % 360) - 180);
+};
+
+const syncSpinReadout = (): void => {
+    spinNow.yaw = wrapDegrees(sphereSpin.offset.y);
+    spinNow.pitch = wrapDegrees(sphereSpin.offset.x);
+};
+
+// A keyboard nudge is a ONE-FRAME render edge, declared the same way the scrub
+// edge is (the scene reports its own liveness; the room never guesses).
+let keyboardEdge = false;
+
+function onKeydown(event: KeyboardEvent): void {
+    const step = event.shiftKey ? FINE_NUDGE_RAD : NUDGE_RAD;
+    let pitch = 0;
+    let yaw = 0;
+    switch (event.key) {
+        case "ArrowLeft":
+            yaw = -step;
+            break;
+        case "ArrowRight":
+            yaw = step;
+            break;
+        case "ArrowUp":
+            pitch = -step;
+            break;
+        case "ArrowDown":
+            pitch = step;
+            break;
+        case "Home":
+            sphereSpin.rest();
+            break;
+        default:
+            return;
+    }
+    if (pitch !== 0 || yaw !== 0) sphereSpin.nudge(pitch, yaw);
+    syncSpinReadout();
+    keyboardEdge = true;
+    event.preventDefault();
+}
+
 // ── The compose (T.A7 / T.A9): the ONE mesh writer ───────────────────────────
 // The classic Boing spins LINEARLY about a ~16°-tilted vertical axis; the gesture
 // adds a pitch/yaw offset on top. The rendered pose follows the group while it
@@ -117,6 +231,7 @@ const lastPose: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, pz: SPHERE_HOME,
 type PoseAuthority = "pose" | "home";
 let authority: PoseAuthority = "home";
 let wasPlaying = false;
+let gestureWasLive = false;
 let lastFrameAt = 0;
 
 // D-3 + C-18 + M-3 + L-M4/C-2 — the per-channel continuity lanes (useAmigaDemo).
@@ -163,6 +278,14 @@ function onFrame(): boolean {
     // additive offset, the compose wrote the quaternion, and the present loop
     // discarded every frame of it — the ball did not turn under the finger.
     const dragging = sphereSpin.isDragging();
+    // D-2 — the keyboard nudge's own edge, consumed once.
+    const nudged = keyboardEdge;
+    keyboardEdge = false;
+    // The per-axis read-out is published on the gesture's FALLING edge (release
+    // + glide settled), where a screen reader's next query will find it.
+    const gestureLive = dragging || gliding;
+    if (gestureWasLive && !gestureLive) syncSpinReadout();
+    gestureWasLive = gestureLive;
 
     const now = performance.now();
     const dt =
@@ -255,7 +378,9 @@ function onFrame(): boolean {
     // seat never marks the room dirty, so the frame that consumes a seek must
     // say so itself), the user DRAGS the subject (L-B1), a glide is coasting, or
     // a seam is still settling. At rest the present loop skips the render.
-    return playing || scrubbed || dragging || gliding || continuity.live;
+    return (
+        playing || scrubbed || dragging || nudged || gliding || continuity.live
+    );
 }
 
 onMounted(() => {
@@ -339,12 +464,19 @@ defineExpose({
    intent rides the IntersectionObserver above, composed with the tab-visibility
    pause. */
 
-/* The drag/spin surface. `touch-action: none` lets the sphere-spin pointer
-   gesture own touch input (no scroll/zoom hijack); a sphere-hit drag spins the
-   mesh, a miss orbits the camera. `cursor: grab` advertises the manipulable
-   subject. */
+/* The drag/spin surface. MISSED-F — `touch-action` is `pinch-zoom`, not `none`:
+   the single-finger gesture still belongs to the scene (a sphere-hit drag spins
+   the mesh, a miss orbits the camera), but the browser keeps the PINCH, so the
+   viewport-filling mobile canvas no longer suppresses zoom over most of the
+   screen. The page-level escape (the viewport meta) was intact and is not the
+   point: a user who needs to magnify the subject should not have to leave it.
+   The idiom is house-wide — six scene sites, of which this is the largest
+   surface; the other five are other units' files and ride the receipt.
+   `cursor: grab` advertises the manipulable subject to a POINTER; the keyboard
+   and AT affordances are on the element itself (D-2), and the touch-visible
+   affordance is MISSED-A's declared residual. */
 .amiga-canvas {
-    touch-action: none;
+    touch-action: pinch-zoom;
     cursor: grab;
     /* KF.W6 W6-H — THE STAGE SURFACE, decided once (MISSED-B · D-10 · C-7).
        The renderer clears to TRANSPARENT (alpha:true) expressly so the stage
