@@ -82,22 +82,27 @@ export const tesselateSphere = (
         specular: new THREE.Color(0x333333),
         shininess: 30,
     });
-    const mesh = new THREE.Mesh(geometry, material);
-
-    const uvs: number[] = [];
-    const positions = geometry.attributes.position!;
-    const vertices = positions.array;
-    for (let i = 0; i < vertices.length; i += 3) {
-        const x = vertices[i]!;
-        const y = vertices[i + 1]!;
-        const z = vertices[i + 2]!;
-        const u = 0.5 + Math.atan2(z, x) / (2 * Math.PI);
-        const v = 0.5 - Math.asin(y) / Math.PI;
-
-        uvs.push(u, v);
-    }
-
-    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-
-    return mesh;
+    // MISSED-C — the hand-rolled UV override that used to sit here is DELETED,
+    // and with it three defects in fourteen lines:
+    //
+    //  · REDUNDANT. `SphereGeometry` already emits equirectangular UVs; the
+    //    override recomputed the same mapping from the vertex positions.
+    //  · NORTH-POLE DEGENERATE. At the pole row θ = 0 exactly, so `sinθ` is +0
+    //    and the generator's `x = −r·cosφ·sinθ` / `z = r·sinφ·sinθ` are SIGNED
+    //    ZEROS tracking −cosφ / +sinφ. `Math.atan2(±0, ±0)` returns ±π, ±0, so
+    //    across the 33 coincident pole vertices `u` collapsed into three
+    //    constant blocks (1.0 / 0.5 / 0.0) against a smoothly-decreasing
+    //    neighbour ring — a visible texture wedge on the ball's top cap — while
+    //    discarding the generator's deliberate half-texel pole fan. (The SOUTH
+    //    pole is not degenerate: sin π ≈ 1.22e-16, so atan2 there receives
+    //    tiny-but-real numbers and maps smoothly. The bug had one end.)
+    //  · RADIUS-UNSOUND. `Math.asin(y)` was taken over the RAW coordinate, not
+    //    y/r, so every vertex of a radius > 1 sphere yielded NaN and a radius < 1
+    //    sphere compressed its bands. Inert only because SPHERE_RADIUS is 1 —
+    //    and the framing repair in this same packet is a live reason to touch
+    //    that constant.
+    //
+    // Deleting is the whole cure: three's own attribute is correct at every
+    // radius and carries the pole fan the override was throwing away.
+    return new THREE.Mesh(geometry, material);
 };
