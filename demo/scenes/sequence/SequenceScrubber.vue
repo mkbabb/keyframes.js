@@ -1,45 +1,51 @@
 <template>
-    <!-- Master scrubber — the F.W16 rail/ball idiom; the storyboard's editable
-         CONTENT (the playhead the user scrubs), not transport chrome (the bottom
-         TransportDock IS the transport, XH-2 / §c). Colocated sub-unit of
-         SequenceTarget (J.WZ — split at the scrubber seam to hold the ≤500L
-         demo ceiling; it injects ONLY `demo`, no Target-private state). -->
+    <!-- Master scrubber — the rail/ball idiom; the MASTER CLOCK's scrub surface
+         (the storyboard's one INSTRUMENT verb — it drives the phosphor playhead
+         in the stage), not transport chrome (the bottom TransportDock IS the
+         transport). Colocated sub-unit of SequenceTarget (split at the scrubber
+         seam to hold the ≤500L demo ceiling; it injects ONLY `demo`, no
+         Target-private state). -->
     <div class="px-4 py-3 border-t border-border/40 shrink-0">
         <div class="flex items-center justify-between mb-2">
-            <!-- L.W11 S7 — the instrument-panel micro-cap eyebrow (Fira Code,
-                 letter-spaced) names the master clock; the lit timecode reads it. -->
-            <span class="seq-eyebrow text-caption font-medium text-muted-foreground">master playhead</span>
-            <!-- L.W11 S7 — the LIT phosphor timecode: the master clock made the
-                 brightest number on the page (tnum, always-three-digits, phosphor
-                 text-shadow keyed to the master red). It is `0.000` so it clicks
-                 like a counter. -->
-            <span class="seq-timecode readout-accent text-mono-caption tabular-nums">{{ demo.progress.value.toFixed(3) }}</span>
+            <!-- The instrument-panel eyebrow — the demo's ONE caption rung
+                 (`text-mono-caption`: the mono face, uppercase, caps tracking —
+                 nothing re-authored here) names the master clock; the lit
+                 timecode beside it reads that clock. -->
+            <span class="text-mono-caption text-muted-foreground">master clock</span>
+            <!-- The lit timecode reads the master clock as a normalized counter
+                 (`0.000`, tabular figures, the small mono rung so the fraction
+                 stays quieter than the Metric's ms readout above the stage — the
+                 clock's CANONICAL unit is milliseconds, announced on the rail's
+                 valuetext; this fraction is its progress). -->
+            <span class="seq-timecode readout-accent text-mono-small tabular-nums">{{ demo.progress.value.toFixed(3) }}</span>
         </div>
         <div
             ref="scrubEl"
-            class="seq-scrub relative w-full h-9 cursor-pointer select-none"
-            :class="{ 'is-scrubbing': scrubbing }"
+            class="seq-scrub kf-focus-ring relative w-full h-12 cursor-pointer select-none"
+            :class="{ 'is-scrubbing': demo.isScrubbing.value }"
             role="slider"
-            aria-label="Scrub the sequence master playhead"
+            aria-label="Scrub the sequence master clock"
             :aria-valuenow="Math.round(demo.progress.value * 100)"
             :aria-valuetext="`${Math.round(demo.progress.value * demo.duration.value)} ms of ${demo.duration.value} ms`"
             aria-valuemin="0"
             aria-valuemax="100"
             tabindex="0"
-            @pointerdown="onScrubDown"
+            @pointerdown="onPointerDown"
             @keydown="onScrubKeydown"
+            @keyup="onScrubKeyup"
+            @blur="onScrubBlur"
         >
             <div class="progress-rail"></div>
             <div
                 class="progress-ball scrub-ball"
-                :style="{ transform: `translateX(calc(${clamp(demo.progress.value, 0, 1) * 100}cqw))` }"
+                :style="{ transform: `translateX(calc(${demo.progress.value * 100}cqw))` }"
             ></div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { inject, ref, useTemplateRef } from "vue";
+import { inject, useTemplateRef } from "vue";
 
 import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
@@ -64,63 +70,91 @@ if (!demo) {
 // clamped rail rect-ratio.
 const scrubEl = useTemplateRef<HTMLElement>("scrubEl");
 
-// L.W11 S7 — the IGNITION-CASCADE heat: while the master scrub is held, the
-// whole storyboard well runs hotter (a `.is-scrubbing` class lifts --seq-glow,
-// scoped to the stage via demo.setScrubbing). The lane balls then DETONATE in a
-// diagonal cascade under the thumb — but the cascade is the ENGINE's own work:
-// `Sequence.scrub` drives each child's `--ball-p` 0→1, and the per-lane glow in
-// SequenceTarget scales its box-shadow bloom with `--ball-p` (no new rAF, no
-// second writer — inv ζ). This handler only reports the GESTURE (scrub start/end
-// + the drag direction) so the cascade direction flips on a drag-back.
-const scrubbing = ref(false);
+// THE GESTURE SPEC (X.KF.W11.d — kf-SequenceScrubber C-2/L-D-4 + KF-SCR-6 +
+// C-12; kf-SequencePlayhead N-3 · N-13 · N-18). ONE helper, every consumer:
+//   • every master-clock scrub — the pointer samples AND the four keyboard
+//     verbs — routes through `applyScrub`; there is no second scrub path;
+//   • every master-clock scrub LIGHTS THE WELL (`demo.setScrubbing(true)` —
+//     the ONE home of that boolean, the instrument's; the stage's
+//     `.is-scrubbing` and this rail's read it, nothing shadows it); the
+//     pointer gesture cools it on release, the keyboard gesture on key-up or
+//     blur. Row re-times are AUTHORING gestures, not scrubs: they do not light
+//     the well — declared, not omitted;
+//   • the comet's direction latches PER ADMITTED SAMPLE from the sign of
+//     `p − lastP`, with a DEADBAND — a zero-delta sample leaves it untouched;
+//   • the phosphor line in the stage is "the master playhead"; this rail is the
+//     master CLOCK's scrub surface that DRIVES it (its name says so).
+// The cascade the scrub detonates is the ENGINE's own work (`Sequence.scrub`
+// drives each child's `--ball-p`; the per-lane glow scales with it — no rAF, no
+// second writer, inv ζ); this file reports the GESTURE and nothing else.
+type ScrubGesture = "pointer" | "keyboard";
+
+/**
+ * The keyboard step on the master clock — 5% of the clock per arrow press
+ * (≈97ms at the default 1940ms span). DECLARED beside the row handles' 40ms
+ * `ROW_AT_STEP`: two granularities for two different gestures — a scrub of the
+ * WHOLE clock vs a nudge of ONE row's offset — stated, not accidental (KF-SCR-6).
+ */
+const SCRUB_KEY_STEP = 0.05;
 let lastP = 0;
 
-// `onScrub` — the detonate driver. Each scrub sample re-reads the master clock
-// (demo.scrub → Sequence.progress), which the engine fans out to the lanes as a
-// DIAGONAL cascade; the direction (forward = violet→green, back = cooling in
-// reverse) is recorded so the stage can chase the thumb correctly.
-const onScrub = (p: number) => {
-    demo.setScrubDir(p >= lastP ? 1 : -1);
-    lastP = p;
-    demo.scrub(p);
+const applyScrub = (p: number, gesture: { gesture: ScrubGesture }) => {
+    const next = clamp(p, 0, 1);
+    if (next !== lastP) {
+        demo.setScrubDir(next > lastP ? 1 : -1);
+        lastP = next;
+    }
+    // Both gestures light the well; each cools it from its own end event.
+    demo.setScrubbing(true);
+    demo.scrub(next);
+    return gesture.gesture;
 };
 
-const { onPointerDown: onScrubDownRaw } = useDragScrub({
+const { onPointerDown } = useDragScrub({
     el: scrubEl,
     project: (e) => {
         const el = scrubEl.value;
         if (!el) return demo.progress.value;
         const rect = el.getBoundingClientRect();
+        // The NaN guard belongs HERE, at the projector (the ruling-8 family): a
+        // zero-width rail would project `0 / 0`, and every clamp downstream is
+        // NaN-transparent — so a rail without geometry reports the clock as is.
+        if (rect.width === 0) return demo.progress.value;
         return clamp((e.clientX - rect.left) / rect.width, 0, 1);
     },
-    onScrub,
+    onScrub: (p) => applyScrub(p, { gesture: "pointer" }),
     onStart: () => {
-        scrubbing.value = true;
         lastP = demo.progress.value;
-        demo.setScrubbing(true);
     },
     onEnd: () => {
-        scrubbing.value = false;
         demo.setScrubbing(false);
     },
 });
 
-const onScrubDown = (e: PointerEvent) => onScrubDownRaw(e);
+const SCRUB_KEYS = new Set(["ArrowRight", "ArrowUp", "ArrowLeft", "ArrowDown", "Home", "End"]);
 
 const onScrubKeydown = (e: KeyboardEvent) => {
+    if (!SCRUB_KEYS.has(e.key)) return;
+    e.preventDefault();
+    // A key press is a one-sample gesture: its "previous sample" is the clock
+    // as it stands (the pointer seeds the same way, once, in `onStart`).
+    const p = demo.progress.value;
+    lastP = p;
     if (e.key === "ArrowRight" || e.key === "ArrowUp") {
-        demo.scrub(demo.progress.value + 0.05);
-        e.preventDefault();
+        applyScrub(p + SCRUB_KEY_STEP, { gesture: "keyboard" });
     } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
-        demo.scrub(demo.progress.value - 0.05);
-        e.preventDefault();
+        applyScrub(p - SCRUB_KEY_STEP, { gesture: "keyboard" });
     } else if (e.key === "Home") {
-        demo.scrub(0);
-        e.preventDefault();
-    } else if (e.key === "End") {
-        demo.scrub(1);
-        e.preventDefault();
+        applyScrub(0, { gesture: "keyboard" });
+    } else {
+        applyScrub(1, { gesture: "keyboard" });
     }
+};
+const onScrubKeyup = (e: KeyboardEvent) => {
+    if (SCRUB_KEYS.has(e.key)) demo.setScrubbing(false);
+};
+const onScrubBlur = () => {
+    demo.setScrubbing(false);
 };
 </script>
 
@@ -129,24 +163,22 @@ const onScrubKeydown = (e: KeyboardEvent) => {
     display: flex;
     align-items: center;
     /* T.G4 — the scrub-ball rides `translateX(<cqw>)`; `cqw` resolves against
-       this rail's inline size, so the master playhead position stays rail-
+       this rail's inline size, so the master clock position stays rail-
        relative with no per-frame `left` layout (compositor-only). */
     container-type: inline-size;
+    /* The rail owns the pointer for the length of the drag (`useDragScrub`
+       captures it); on touch, the browser must not race it for a pan. The same
+       declaration the row handles carry — the two scrub surfaces agree. */
+    touch-action: none;
 }
 
-/* L.W11 S7 — the instrument-panel micro-cap label convention (Fira Code,
-   uppercase, letter-spaced, dim). Tiny + precise — the "MASTER PLAYHEAD" stamp. */
-.seq-eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-}
-
-/* L.W11 S7 — the LIT phosphor TIMECODE. The master clock is the brightest number
-   on the page: tnum figures + a phosphor text-shadow keyed to the master red
-   (--ball-tone resolves to --color-progress here — the one master authority). It
-   already reads `0.000` (toFixed(3)), so it clicks like a counter. The bloom
-   lifts a hair while scrubbing via the stage's shared light (here a static
-   phosphor halo; the cascade carries the live heat).
+/* The LIT phosphor TIMECODE. The master clock's progress fraction: tabular
+   figures + a phosphor text-shadow keyed to the master tone (`--ball-tone`
+   resolves to `--color-progress` here — the one master authority). It reads
+   `0.000` (toFixed(3)), so it clicks like a counter. The bloom lifts a hair
+   while scrubbing via the stage's shared light (here a static phosphor halo;
+   the cascade carries the live heat). `tabular-nums` on the element is the whole
+   figure setting — a second `font-feature-settings: "tnum"` said it twice.
 
    KF.W6 D·D-7 — THE MATERIAL-REGISTER DECISION, not a per-site shadow patch.
    The question the bank asks is whether the phosphor belongs to a register at
@@ -164,7 +196,6 @@ const onScrubKeydown = (e: KeyboardEvent) => {
    which this touches. Nothing bespoke is patched per site and the tone chain to
    the master authority is untouched. Percept: KF.W9 / SS-13. */
 .seq-timecode {
-    font-feature-settings: "tnum" 1;
     text-shadow: 0 0 8px
         light-dark(
             transparent,
@@ -174,9 +205,10 @@ const onScrubKeydown = (e: KeyboardEvent) => {
 
 /* The scrub rail runs hotter under an active drag — the ball blooms as you
    conduct (the same scrub-heat the storyboard well lifts). CONSUME the promoted
-   .progress-ball idiom's --ball-glow parameter (design-idioms.css:584) rather
-   than re-authoring its box-shadow — the idiom owns the 0 2px glow shape; the
-   scene only lifts the glow strength (35% → 60%) under the active scrub. */
+   `.progress-ball` idiom's `--ball-glow` parameter (design-idioms.css, the
+   `.progress-ball` block) rather than re-authoring its box-shadow — the idiom
+   owns the glow shape; the scene only lifts the glow strength (35% → 60%)
+   under the active scrub. */
 .seq-scrub.is-scrubbing .scrub-ball {
     --ball-glow: 60%;
 }

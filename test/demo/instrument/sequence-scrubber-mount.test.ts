@@ -49,6 +49,7 @@ function stubDemo(progress = 0): ScrubberStub {
     const demo = {
         progress: ref(progress),
         duration: ref(DURATION),
+        isScrubbing: ref(false),
         scrub,
         setScrubDir,
         setScrubbing,
@@ -152,5 +153,65 @@ describe("SequenceScrubber — the mount (KF.W7 G11 fixture 4)", () => {
         expect(stub.scrub).toHaveBeenLastCalledWith(0);
         key("End");
         expect(stub.scrub).toHaveBeenLastCalledWith(1);
+    });
+
+    // ── X.KF.W11.d — the gesture-spec cases (the remainder of L·D-12) ────────
+
+    it("the keyboard writes the direction latch and lights the well (N-3 · N-13 — the applyScrub spec)", () => {
+        const stub = stubDemo(0.5);
+        const { rail } = mountScrubber(stub);
+        rail.element.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }),
+        );
+        expect(stub.setScrubDir).toHaveBeenLastCalledWith(-1);
+        expect(stub.setScrubbing).toHaveBeenLastCalledWith(true);
+        rail.element.dispatchEvent(
+            new KeyboardEvent("keyup", { key: "ArrowLeft", bubbles: true }),
+        );
+        expect(stub.setScrubbing).toHaveBeenLastCalledWith(false);
+        rail.element.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+        );
+        expect(stub.setScrubDir).toHaveBeenLastCalledWith(1);
+        rail.element.dispatchEvent(new FocusEvent("blur"));
+        expect(stub.setScrubbing).toHaveBeenLastCalledWith(false);
+    });
+
+    it("a zero-delta sample leaves the direction untouched (C-12's deadband)", () => {
+        const stub = stubDemo(0);
+        const { rail } = mountScrubber(stub);
+        rail.element.dispatchEvent(
+            new PointerEvent("pointerdown", {
+                clientX: RAIL.left + RAIL.width * 0.5,
+                bubbles: true,
+            }),
+        );
+        window.dispatchEvent(at(0.5));
+        window.dispatchEvent(at(0.5));
+        expect(stub.setScrubDir).toHaveBeenCalledTimes(1);
+        expect(stub.scrub).toHaveBeenCalledTimes(3);
+        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+    });
+
+    it("announces the canonical unit — milliseconds on the master clock (N-14, after N-1)", () => {
+        const stub = stubDemo(0.25);
+        const { rail } = mountScrubber(stub);
+        expect(rail.attributes("aria-valuetext")).toBe(
+            `${Math.round(0.25 * DURATION)} ms of ${DURATION} ms`,
+        );
+        expect(rail.attributes("aria-label")).toMatch(/master clock/);
+    });
+
+    it("a rail without geometry projects the current clock, never NaN (the projector guard)", () => {
+        const stub = stubDemo(0.25);
+        const { rail } = mountScrubber(stub);
+        (rail.element as HTMLElement).getBoundingClientRect = () =>
+            ({ left: 0, width: 0, right: 0 }).valueOf() as DOMRect;
+        rail.element.dispatchEvent(
+            new PointerEvent("pointerdown", { clientX: 50, bubbles: true }),
+        );
+        expect(stub.scrub).toHaveBeenLastCalledWith(0.25);
+        expect(Number.isNaN(stub.scrub.mock.calls.at(-1)?.[0])).toBe(false);
+        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
     });
 });

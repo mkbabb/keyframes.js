@@ -99,8 +99,12 @@ defineProps<{ progress: number }>();
     border-radius: 1px;
 }
 /* The comet trail — anchored at the line, 32px behind the travel direction;
-   `--scrub-dir` scales it on a drag-back so the streak always trails the thumb;
-   brightens with --seq-glow. */
+   `--scrub-dir` flips it on a drag-back so the streak trails the thumb (the
+   direction is latched per admitted sample by the scrub gesture — N-3); it
+   brightens with --seq-glow. It GROWS IN over the first ~5% of travel and
+   shrinks out over the last, so it can never overhang the track into the label
+   column at p = 0 or past the frame at p = 1 (D-6/C-8) — no clip, no second
+   box, one factor on the scale it already carries. */
 .seq-playhead::after {
     content: "";
     position: absolute;
@@ -109,7 +113,12 @@ defineProps<{ progress: number }>();
     right: 50%;
     width: 32px;
     transform-origin: right center;
-    transform: scaleX(var(--scrub-dir, 1));
+    transform: scaleX(
+        calc(
+            var(--scrub-dir, 1) *
+                min(1, var(--playhead-p) * 18, (1 - var(--playhead-p)) * 18)
+        )
+    );
     background: linear-gradient(
         to left,
         color-mix(in srgb, var(--tone) calc(28% + var(--seq-glow, 0) * 32%), transparent),
