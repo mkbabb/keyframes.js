@@ -55,6 +55,13 @@ export { serializeEasing } from "./easing-serialize";
 // path. `css-text.ts` itself is NOT edited — it is another wave's file; the
 // publication act is a re-export, which is all the ruling asked for.
 export { reverseCSSTime, serializeTimingFunction } from "./css-text";
+// X.KF.W8 MISS-β2 (G3) — THE keyframe-selector serializer, surfaced on the
+// same terms as the two above: `format.ts`'s second copy is deleted and the one
+// body lives in `css-text.ts`. This barrel line is the sub-zone half of the
+// publication; the PACKAGE-surface half (`public.ts`'s named list and
+// `load-engine.ts`'s roster) is KF.W5's file and is NOT written here — which is
+// why `demo/utils/keyframeSelector.ts` still carries a third body (ESC-d1).
+export { serializeSelector } from "./css-text";
 // VT-b / EN-c (S.F1/S.F3) — the CSS-ident normalizer, exposed so the sibling
 // View-Transitions + entry/exit emitters derive stable pseudo/rule names.
 export { cssIdent } from "./backward";

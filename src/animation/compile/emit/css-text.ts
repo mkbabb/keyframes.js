@@ -56,7 +56,21 @@ export const serializeCssValue = (value: CssValue): string => {
     return serialized.value;
 };
 
-const serializeSelector = (selector: KeyframeSelector): string => {
+/**
+ * THE keyframe-selector serializer (X.KF.W8 MISS-β2 · G3) — one body for
+ * `50%` / `entry` / `entry 50%`, owned here beside the value and declaration
+ * serializers it is the peer of. `emit/format/format.ts` held a second,
+ * byte-equivalent copy (`selectorText`) and now imports this one: the same
+ * "a serializer with two implementations is the Tier-D defect this seam exists
+ * to stop" the {@link serializeDeclaration} docblock states, applied to the
+ * selector half.
+ *
+ * Exported for the sub-zone barrel as well, so a consumer never needs the deep
+ * path. The PACKAGE surface (`public.ts` / `load-engine.ts`) is KF.W5's and
+ * does not name it, which is why the demo still carries its own reading — see
+ * this unit's ESC-d1.
+ */
+export const serializeSelector = (selector: KeyframeSelector): string => {
     if (selector.kind === "percent") return `${selector.value * 100}%`;
     return selector.offset === undefined
         ? selector.name

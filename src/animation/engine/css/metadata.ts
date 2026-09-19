@@ -19,14 +19,19 @@
  * corresponding collectors — the same heavy surface the CSS engine already
  * imports.
  */
-import {
-    collectStyleRules,
-    collectTimelineOptions,
-    type CSSAnimationOptions,
-    type CSSPropertyDescriptor,
-    type CSSTimelineOptions,
-    type Declaration,
-    type Stylesheet,
+// X.KF.W8 unit d, COHESION §0o ESC-KFW2-1 (KF.W2 G-W2-2, Tier-A single entry) —
+// the two COLLECTORS come through `compile/parse-facade.ts`, the one module
+// under `src/animation/**` that speaks to value.js's CSS grammar. This module
+// was the second such runtime edge; it is the last one. The TYPE members stay
+// on `@mkbabb/value.js/css` by the façade's own design — `import type` is
+// erased and carries no runtime edge, so a type import is not a grammar seam.
+import { collectStyleRules, collectTimelineOptions } from "../../compile/parse-facade";
+import type {
+    CSSAnimationOptions,
+    CSSPropertyDescriptor,
+    CSSTimelineOptions,
+    Declaration,
+    Stylesheet,
 } from "@mkbabb/value.js/css";
 import type { Diagnostic } from "../../compile/adapter";
 import {

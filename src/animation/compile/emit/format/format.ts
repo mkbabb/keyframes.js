@@ -1,5 +1,10 @@
-import { serializeCssValue } from "../css-text";
-import type { KeyframeSelector } from "@mkbabb/value.js/css";
+// X.KF.W8 MISS-β2 (G3) — THE keyframe-selector serializer is `../css-text`'s
+// `serializeSelector`, imported here rather than re-declared. This module used
+// to carry a second, byte-equivalent body of its own (`selectorText`); a
+// serializer with two implementations is the Tier-D defect the emit sub-zone's
+// own `serializeDeclaration` docblock names, and it was the same defect one
+// function over.
+import { serializeCssValue, serializeSelector } from "../css-text";
 import type { CssValue } from "@mkbabb/value.js/value";
 import { camelCaseToHyphen } from "../../../internal/helpers";
 import type { KeyframesAnimation } from "../../../engine";
@@ -16,13 +21,6 @@ import {
 } from "./options";
 import type { ParsedVarMap } from "../../value";
 
-
-const selectorText = (selector: KeyframeSelector): string =>
-    selector.kind === "percent"
-        ? `${selector.value * 100}%`
-        : `${selector.name}${selector.offset === undefined
-            ? ""
-            : ` ${selector.offset * 100}%`}`;
 
 /**
  * ONE declaration of one declared stop: the property name the body emits, the
@@ -173,7 +171,7 @@ export const CSSKeyframesToStrings = async <V extends Vars>(
     const defaultEasing = serializeEasing(animation.options.timingFunction);
 
     return animation.templateFrames.map((templateFrame, i) =>
-        `${selectorText(templateFrame.start)}\n${declaredKeyframeBody(animation, i, defaultEasing)}\n`,
+        `${serializeSelector(templateFrame.start)}\n${declaredKeyframeBody(animation, i, defaultEasing)}\n`,
     );
 };
 
@@ -272,7 +270,7 @@ export function keyframesBlock<V extends Vars>(
             bodyByStop?.get(i) ??
             declaredKeyframeBody(animation, i, defaultEasing);
         const existing = keyframesMap.get(body);
-        const selector = selectorText(templateFrame.start);
+        const selector = serializeSelector(templateFrame.start);
         if (existing) existing.push(selector);
         else keyframesMap.set(body, [selector]);
     });
@@ -352,7 +350,7 @@ export function premultipliedKeyframesBlock<V extends Vars>(
         const body = `{\n${decls.join("\n")}\n}`;
 
         const existing = keyframesMap.get(body);
-        const selector = selectorText(templateFrame.start);
+        const selector = serializeSelector(templateFrame.start);
         if (existing) existing.push(selector);
         else keyframesMap.set(body, [selector]);
     }
@@ -385,7 +383,7 @@ export async function CSSKeyframesToString<V extends Vars>(
     const defaultEasing = serializeEasing(options.timingFunction);
 
     animation.templateFrames.forEach((templateFrame, i) => {
-        const percent = selectorText(templateFrame.start);
+        const percent = serializeSelector(templateFrame.start);
         // I.W0 S2 / J.W1 S1 — serialize from the DECLARED template values,
         // NOT a DOM-resolving interpolation sample: the ONE projection both
         // serialize surfaces share (see `declaredKeyframeBody`).
