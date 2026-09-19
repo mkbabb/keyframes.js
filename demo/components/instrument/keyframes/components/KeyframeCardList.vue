@@ -52,8 +52,17 @@
                 @keydown="(e) => emit('keydown', e)"
             />
 
+            <!-- KC-19 + KC-22 — the rules between the cards are DECORATIVE, and
+                 they say so. `decorative` unset made reka emit
+                 `role="separator"`, so N stops published N−1 unnamed separator
+                 nodes over rows that carried no grouping semantics at all; the
+                 naming half of that pair landed with the card's own
+                 `role="group"`, and this is the other half. The `w-full` went
+                 with it: the producer's own rule already sets
+                 `inline-size: 100%`, the grid stretches it regardless, and it
+                 re-stated a logical property physically. -->
             <Separator
-                class="w-full"
+                decorative
                 v-if="i < frames.length - 1"
             />
         </template>
@@ -75,7 +84,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUpdate, ref, shallowRef, watch } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
-import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+import type { TemplateAnimationFrame } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@kf-engine";
 // KC-1 — `selectorText` is the CANONICAL serializer for a `KeyframeSelector`:
 // the one the library writes its own CSS with (`format.ts`), the one the write
 // path round-trips through (`useKeyframeOps.ts:111`), and the one
@@ -88,25 +98,28 @@ import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { selectorText } from "@utils/keyframeSelector";
 import KeyframeCard from "./KeyframeCard.vue";
 
+// KC-17 — the frames carry the library's OWN published type. `any[]` was not a
+// shortcut in a leaf: it is the one file whose job is projecting the selector
+// union, and `any` disabled `noUncheckedIndexedAccess` over exactly the array
+// whose stale-index reads this unit spent two rows on. `TemplateAnimationFrame`
+// is type-only and lives on the light barrel, so nothing is added to the graph.
 const props = defineProps<{
     frameStrings: string[];
-    frames: any[];
+    frames: TemplateAnimationFrame<any>[];
 }>();
 
-// L.W8 S1 ED-3 — `formatCSSKeyframeString` (a value.js-free pure-string trim) is
-// HEAVY-surface (it lives in the engine chunk), so it rides loadAnimationEngine()
-// rather than a deep @src import. It resolves within microtasks of mount (well
-// before any card renders), and until then the raw frame string is shown — an
-// honest pre-format frame, never a blank. Each formatted string is derived
-// reactively from `frameStrings` once the formatter is in hand.
-const formatFn =
-    shallowRef<((keyframe: string) => string) | null>(null);
-void loadAnimationEngine().then((engine) => {
-    formatFn.value = engine.formatCSSKeyframeString;
-});
+// KC-16 — `formatCSSKeyframeString` is read from the WARMED engine, the way the
+// parent editor reads its own heavy symbols one file up. The async loader this
+// replaces defended a transient that cannot occur: the parent calls the
+// throwing-synchronous `kfEngine()` at `<script setup>` top level, so no card
+// can render before the warm resolves, and the whole guard — a ref, a promise, a
+// null branch, a `?? s` fallback and six lines of comment claiming an "honest
+// pre-format frame, never a blank" for a window that does not exist (KC-33) —
+// bought nothing. Each formatted string stays derived from `frameStrings`.
+const { formatCSSKeyframeString } = kfEngine();
 
 const formattedStrings = computed(() =>
-    props.frameStrings.map((s) => (formatFn.value ? formatFn.value(s) : s)),
+    props.frameStrings.map((s) => formatCSSKeyframeString(s)),
 );
 
 const emit = defineEmits<{
@@ -136,10 +149,11 @@ let pendingFocusIndex: number | null = null;
 let removedLabel = "";
 
 const onRemove = (event: Event, index: number) => {
-    if (props.frames.length > 1) {
+    const frame = props.frames[index];
+    if (frame !== undefined && props.frames.length > 1) {
         // The next stop inherits the place; removing the tail falls back one.
         pendingFocusIndex = index < props.frames.length - 1 ? index : index - 1;
-        removedLabel = selectorText(props.frames[index].start);
+        removedLabel = selectorText(frame.start);
     }
     emit("remove", { event, index });
 };

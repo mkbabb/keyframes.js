@@ -51,22 +51,55 @@
             <div
                 class="absolute top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
             >
-                <!-- KF-KE-45 (W6-M) — RECORDED, DELIBERATELY UNSPENT, and the
-                     condition is the row's own. Its dead-utility half (`.tap-floor`,
-                     zero adopters) folded to banked KF-CB-25 and is already
-                     rostered. What survives is this pair: a 24px `<X>` and the
-                     copy control adjacent with NO gap, against the demo's own
-                     written 44px floor. The row rules the touch-target question
-                     goes live ONLY AFTER KF-KE-5's un-occlusion — and KF-KE-5 is
+                <!-- KF-KE-45 (W6-M) — RE-STATED AT THE BYTES X.KF.W12.a LEAVES,
+                     because a comment that describes a surface that has moved is
+                     part of the defect surface (KF-CE-41). Its dead-utility half
+                     (`.tap-floor`, zero adopters) folded to banked KF-CB-25 and
+                     is rostered there.
+                     WHAT CHANGED: the pair is no longer a 24px bare `<X>` flush
+                     against the copy control. KC-3's promotion made the
+                     destructive affordance a producer `Button` (`size="sm"`,
+                     `icon-only`, `tone="destructive"`) and KC-23's demo half put
+                     a `gap-1` between the two, so the row now carries real
+                     control boxes with an interval. What SURVIVES of this row is
+                     only the measured question against the 44px floor, and it is
+                     a RENDERED one — SS-13's, not a blind seat's.
+                     WHAT HAS NOT CHANGED: the row's own precondition. KF-KE-5 is
                      UNCURED at these bytes, measured, not assumed: this cluster
-                     is `absolute top-2 right-4` with no z rung, the `<pre>`
-                     below is a later z-auto sibling in the same stacking context
-                     whose class list still ends `relative`, so CSS 2.2 App. E
-                     step 8 paints the plate OVER the cluster and hit-testing
-                     follows paint. Sizing a control that cannot be hit would be
-                     a cure measured against a state no user can reach. The
-                     un-occlusion is KFED-UNIT's (a z rung here, or dropping the
-                     `<pre>`'s `relative`); this row lands with it, not before. -->
+                     is still `absolute top-2 right-4` with no z rung, the `<pre>`
+                     below is still a later z-auto sibling in the same stacking
+                     context whose class list still ends `relative`, so CSS 2.2
+                     App. E step 8 paints the plate OVER the cluster and
+                     hit-testing follows paint. Sizing a control that cannot be
+                     hit is a cure measured against a state no user can reach.
+                     The un-occlusion is KFED-UNIT's (`.c`: a z rung here, or
+                     dropping the `<pre>`'s `relative`) and it carries this file's
+                     `:38-47` comment limb with it; this row lands with that, not
+                     before. -->
+                <!-- KF-KC-22 (MAJOR, MEASURED HERE, NOT SPENT HERE) — this
+                     overlay container carries no `pointer-events-none`; only the
+                     identity block below does. It is a positioned sibling
+                     painting over the in-flow `<pre>`, so its whole box — far
+                     larger than the two controls — swallows caret placement into
+                     a handler-less `<div>`. The cure is one level up from the
+                     guard that exists (`pointer-events-none` here,
+                     `pointer-events-auto` on the control row), and it is the same
+                     stacking/hit-testing decision as KF-KE-5 on the same bytes:
+                     it belongs to the seat that takes that decision, `.c`, not to
+                     this unit's a11y-and-ref-contract carve. -->
+                <!-- KC-12's behavioural half — the identity readout being
+                     unselectable — is DECLINED WITH REASON rather than carried:
+                     making the watermark selectable means giving this overlay
+                     back the pointer events KF-KC-22 condemns it for having. One
+                     of the two is wrong, and it is not the caret. -->
+                <!-- KC-25 / KF-KC-28 — the offset field claims `z-modal` (140),
+                     the demo's documented top rung, and wears a `sticky top-0`
+                     whose travel is provably ZERO (a grid item's containing block
+                     is its grid area; the single-column auto row equals the
+                     Input's own height). The dead `sticky` is what makes the
+                     element positioned so the rung applies at all, so the two are
+                     ONE edit — and it is a z-rung edit on this file, which §B.2
+                     hands to `.c`. Measured here, named for that seat. -->
                 <div class="flex gap-1">
                     <!-- KC-3 ≡ KF-KC-2 ≡ KF-CB-11 — THE DESTRUCTIVE CONTROL IS A
                          CONTROL. It was a bare Lucide `<svg>` carrying a click
