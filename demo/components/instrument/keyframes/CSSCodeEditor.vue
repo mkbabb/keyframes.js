@@ -129,9 +129,73 @@ const getFormatWidth = () => {
     return ch != null ? Math.floor(ch) : undefined;
 };
 
-const debouncedEmit = debounce((value: string) => {
+// ── The model ⇄ buffer contract (KF-CE-2 child half · KF-CE-6 · KF-CE-7 ·
+// KF-CE-8 · KF-CE-18 · KF-CE-31) ──────────────────────────────────────────
+//
+// BUFFER → MODEL. A user edit arms one trailing-edge emit (200 ms). What the
+// editor hands the parent is remembered as `lastEmitted`, so the parent's
+// echo of it can be told from a genuinely new projection.
+//
+// MODEL → BUFFER — the re-projection contract, one seam (`replaceContent`):
+//   • An inbound model value equal to `lastEmitted` or to the buffer is an
+//     ECHO and is ignored (the parent re-serialized what this editor just
+//     emitted; the caret is not touched).
+//   • An inbound value that differs while the user HOLDS TEXT FOCUS is the
+//     parent's lossy round-trip of the user's own keystrokes (a re-serialize
+//     or a prettier pass) arriving mid-authoring. It is NOT written under the
+//     caret; it is DEFERRED and applied when focus leaves the editor. Nothing
+//     but this editor's own emits can move the model while the user is
+//     typing in it, so the deferral never hides a foreign write.
+//   • An inbound value that differs while the editor is NOT focused is a real
+//     projection — another keyframe selected, a Controls-tab option edit
+//     re-projected by the parent, a format — and is applied at once.
+//   • EVERY application first CANCELS the armed emit: an external write
+//     means the parent has moved on, and anything still armed was authored
+//     against a buffer that no longer exists — delivering it late is the
+//     wrong-keyframe clobber (KF-CE-2). The parent half of that cure —
+//     resolving the emit's target at arm time / keying the mount — is the
+//     timeline's own (KF.W7), not re-done here.
+//   • The write is an EDIT over the full range between two undo stops, not
+//     `setValue`: undo/redo history and decorations survive a projection
+//     (KF-CE-6), and the caret is restored (monaco clamps it to the new
+//     text).
+// Unmount cancels the armed emit too (KF-CE-18): a torn-down instance emits
+// nothing.
+let lastEmitted: string | undefined;
+let projectionDeferred = false;
+
+const emitNow = (value: string) => {
+    lastEmitted = value;
     modelValue.value = value;
-}, 200);
+};
+
+const debouncedEmit = debounce(emitNow, 200);
+
+const replaceContent = (next: string) => {
+    debouncedEmit.cancel();
+    const model = editor?.getModel();
+    if (!editor || !model || model.getValue() === next) return;
+    const pos = editor.getPosition();
+    isSettingValue = true;
+    editor.pushUndoStop();
+    editor.executeEdits("replaceContent", [
+        { range: model.getFullModelRange(), text: next },
+    ]);
+    editor.pushUndoStop();
+    isSettingValue = false;
+    if (pos) editor.setPosition(pos);
+};
+
+/** Apply the model to the buffer under the contract above. */
+const projectModel = (next: string) => {
+    if (!editor) return;
+    if (next === lastEmitted || next === editor.getValue()) return;
+    if (editor.hasTextFocus()) {
+        projectionDeferred = true;
+        return;
+    }
+    replaceContent(next);
+};
 
 const initEditor = async () => {
     const el = containerEl.value;
@@ -193,6 +257,13 @@ const initEditor = async () => {
         if (isSettingValue) return;
         debouncedEmit(editor!.getValue());
     });
+    // A projection deferred while the user held focus lands now, against the
+    // model's CURRENT truth (never a value captured earlier).
+    editor.onDidBlurEditorText(() => {
+        if (!projectionDeferred) return;
+        projectionDeferred = false;
+        projectModel(modelValue.value);
+    });
 };
 
 const setCodeTheme = () => {
@@ -203,39 +274,22 @@ const setCodeTheme = () => {
 
 watch(isDark, setCodeTheme);
 
-watch(
-    modelValue,
-    (newVal) => {
-        if (editor && editor.getValue() !== newVal) {
-            const pos = editor.getPosition();
-            isSettingValue = true;
-            editor.setValue(newVal);
-            if (pos) editor.setPosition(pos);
-            isSettingValue = false;
-        }
-    },
-);
+watch(modelValue, projectModel);
 
+// Format the buffer and hand the RESULT to the model (KF-CE-7): the formatted
+// text is written through the seam and emitted at once, so the parent holds
+// what the user sees and the next projection cannot revert it. A rejection
+// (prettier refuses the mid-edit buffer) propagates to the caller — the ONE
+// error boundary is the parent's `formatEditor` (KF-CE-9 + KF-CE-37), which
+// both the chord and the ribbon's Format button reach.
 const formatCSSContent = async () => {
     if (!editor) return;
     const formatted = await formatEditorCSS(editor.getValue(), getFormatWidth());
-    const pos = editor.getPosition();
-    isSettingValue = true;
-    editor.setValue(formatted);
-    if (pos) editor.setPosition(pos);
-    isSettingValue = false;
+    if (disposed || !editor) return;
+    replaceContent(formatted);
+    emitNow(formatted);
     toast.success("CSS formatted");
 };
-
-const setValue = (value: string) => {
-    if (editor) {
-        isSettingValue = true;
-        editor.setValue(value);
-        isSettingValue = false;
-    }
-};
-
-const getValue = () => editor?.getValue() ?? "";
 
 onMounted(() => {
     const el = containerEl.value!;
@@ -258,13 +312,15 @@ onMounted(() => {
 
 onUnmounted(() => {
     disposed = true;
+    debouncedEmit.cancel();
     editor?.dispose();
 });
 
+// The ONE exposed member (KF-CE-27). `setValue`/`getValue`/`editor()` had no
+// consumer (the two parents bind `v-model` and reach only `formatCSS`), and
+// each was a model-desync hatch or a raw-instance leak by construction; text
+// reaches this buffer through the model alone.
 defineExpose({
     formatCSS: formatCSSContent,
-    setValue,
-    getValue,
-    editor: () => editor,
 });
 </script>
