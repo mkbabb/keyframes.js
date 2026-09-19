@@ -60,7 +60,7 @@
                  graduated field, not blank glass. -->
             <div
                 ref="railEl"
-                class="spring-rail stage-field-x focus-ring relative w-full h-12 cursor-pointer select-none"
+                class="spring-rail focus-ring relative w-full h-12 cursor-pointer select-none"
                 :class="{ 'spring-rail--derby': demo.derbyActive.value }"
                 role="slider"
                 aria-label="Drag to re-seat the spring target"
@@ -71,22 +71,37 @@
                 @pointerdown="onPointerDown"
                 @keydown="onKeydown"
             >
-                <div class="progress-rail"></div>
-                <!-- L.W11 S6 — the y=1 TARGET LINE every trace is measured
-                     against (the rail's right edge = the spring's target). It
-                     gives ONE quiet red-dashed `settle-pulse` when the live
-                     spring crosses `liveSettled` (the settled register) — the
-                     instrument confirming "locked". -->
-                <div
-                    class="spring-target-line settle-pulse"
-                    :class="{ 'settle-pulse--fire': demo.liveSettled.value }"
-                    aria-hidden="true"
-                ></div>
+                <!-- D-7/C-8 + D-16 — THE VALUE TRACK, inset inside the rail.
+                     The rail is the GESTURE surface and the container-query
+                     container; the TRACK is the value axis. It spans exactly
+                     value 0 → value 1, so `.stage-field-x`'s quarter gridlines
+                     mark TRUE value quarters and the groove's right edge IS the
+                     target — the invariant the deleted comment below asserted
+                     and the old geometry could not honour. The band either side
+                     of the track is the reserved overshoot room. -->
+                <div class="spring-track stage-field-x" :style="trackStyle">
+                    <div class="progress-rail"></div>
+                    <!-- The value=1 reference: the track's own right edge, a
+                         quiet dashed rule. It marks the SCALE, and the record
+                         that it is a scale is why it no longer carries the
+                         settle pulse (D-2 — the pulse belongs on the thing that
+                         actually settled, which is the marker below). -->
+                    <div class="spring-target-line" aria-hidden="true"></div>
+                </div>
                 <!-- Ghost target marker (where the spring is chasing) — a
-                     DISCRETE position (re-seat events), so it stays reactive. -->
+                     DISCRETE position (re-seat events), so it stays reactive.
+                     C-5/N-8 — it rides `translateX(<cqw>)` like every other mark
+                     on this rail (T.G4) instead of animating `left`: the drag
+                     path wrote `left` on every pointermove and then READ
+                     `getBoundingClientRect()` to project the next one, a forced
+                     read-after-write reflow pair per pointer sample in the file
+                     whose own painter law is "NO per-frame width read".
+                     D-2 — and it carries the settle pulse, because the settle it
+                     confirms is this marker's. -->
                 <div
-                    class="spring-target-marker"
-                    :style="{ left: `calc(${demo.target.value * 100}% )` }"
+                    class="spring-target-marker settle-pulse"
+                    :class="{ 'settle-pulse--fire': demo.liveSettled.value }"
+                    :style="{ transform: `translateX(${railPct(demo.target.value)}cqw)` }"
                 ></div>
                 <!-- The live spring ball — positioned IMPERATIVELY by the
                      registered spring painter (J.W2 S5: direct style writes off
@@ -106,10 +121,17 @@
                     class="derby-lanes"
                     aria-hidden="true"
                 >
+                    <!-- m-6 — the `spring-lane-${lane.name}` class is GONE. It
+                         matched no selector in either tree (LAW A census at this
+                         seat: `grep -rn 'spring-lane-' demo` → the four TOKEN
+                         names in useSpringDerby.ts and nothing else), while
+                         reading exactly like the mechanism that delivers the lane
+                         hue. The tone is, and only ever was, the inline
+                         `--ball-tone` binding beside it. -->
                     <div
                         v-for="lane in demo.derbyLanes"
                         :key="lane.name"
-                        :class="['derby-lane', `spring-lane-${lane.name}`]"
+                        class="derby-lane"
                         :style="{ '--ball-tone': lane.tone }"
                     >
                         <span class="derby-lane-rail"></span>
@@ -138,8 +160,14 @@
                      scene accent; the label stays muted. -->
                 <span class="readout-accent text-mono-caption tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
             </div>
-            <div class="sampler-track stage-field-x relative h-9">
-                <div class="progress-rail"></div>
+            <div class="sampler-track relative h-9">
+                <!-- The sampler rides the SAME value axis as the rail above (one
+                     map, one reading): its track is inset by the same reserved
+                     overshoot band, so a sampled value of 1 lands under the rail's
+                     value-1 rule rather than at a different x. -->
+                <div class="spring-track stage-field-x" :style="trackStyle">
+                    <div class="progress-rail"></div>
+                </div>
                 <!-- The sampler ball — painter-positioned (J.W2 S5, as above). -->
                 <div ref="samplerBallEl" class="progress-ball sampler-ball"></div>
             </div>
@@ -176,16 +204,70 @@ const railEl = useTemplateRef<HTMLElement>("railEl");
 const liveBallEl = useTemplateRef<HTMLElement>("liveBallEl");
 const samplerBallEl = useTemplateRef<HTMLElement>("samplerBallEl");
 
-// The sweep can overshoot past 1 (underdamped) — clamp the *marker* position
-// so the ball stays inside the track even though the read-out shows >1.
+// ── M-2 · D-7/C-8 — THE RAIL'S VALUE AXIS, ONE MAP FOR EVERY MARK ────────────
+//
+// The banked defects, and why one geometry answers both.
+//
+//   M-2: the PROTAGONIST ball was painted UNCLAMPED —
+//   `translateX(${live.value * 100}cqw)` — while both its siblings in the very
+//   same closure clamped. The engine documents the overshoot it was painting
+//   (peak ≈ 1.205 at ζ 0.45) and ζ is user-writable to 0.2 from the facet
+//   slider and to 0.45 by one preset click, so this was not a theoretical tail.
+//
+//   D-7/C-8: and a clamp alone would have been the WRONG cure, because the
+//   overshoot is the scene's thesis. The old axis mapped value 0→1 onto the
+//   rail's full inline size, so ANY ring past 1 travelled off the plate.
+//
+// D-19 GEOMETRY RE-DERIVATION at this unit's open sha (`ba12b2ba`), before the
+// cure, because the banked figures are not this clock's:
+//   · 375w: viewport 375 − SpringScene's own px-6 (48) = 327 Card border box;
+//     Card content box = 327 − its own px-6 (48) = **279** (ruling 14's frame).
+//   · the ball is 36px anchored `left: 0; margin-left: -18px`, so at value v its
+//     box is [279v − 18, 279v + 18]; `overflow-hidden` clips at the Card's
+//     PADDING edge, 279 + 24 = 303.
+//   · v = 1 → [261, 297]: fits. v = 1.18 → [311, 347]: **44px off the plate.**
+//   · and the failure is width-dependent in the wrong direction: at the lg
+//     measure (max-w-3xl, 768) the same 1.18 is **124px** off the plate, so no
+//     fixed px reserve can hold a FRACTIONAL overshoot. The axis has to carry it.
+//
+// THE DECISION (written before the patch): the rail RESERVES the overshoot band
+// at both ends of its own inline size, and every mark on the rail reads value
+// space through ONE map. The clamp is then an explicit ALLOWANCE — the same
+// 0.18 the derby lanes already declare, above the engine's worst documented peak
+// — and not the silent [0, 1] truncation M-2 convicts. A clamped ball is inside
+// the plate at EVERY width by construction, so the clip limb dies with it.
+const OVERSHOOT_ALLOWANCE = 0.18;
+const RAIL_SPAN = 1 + 2 * OVERSHOOT_ALLOWANCE;
+
+/** Value space → the rail's own 0-100 axis. The ONE map; nothing paints without it. */
+const railPct = (v: number): number =>
+    ((clamp(v, -OVERSHOOT_ALLOWANCE, 1 + OVERSHOOT_ALLOWANCE) + OVERSHOOT_ALLOWANCE) /
+        RAIL_SPAN) *
+    100;
+
+/** The rail's 0-1 pointer ratio → value space (`railPct`'s inverse). */
+const railValue = (ratio: number): number => ratio * RAIL_SPAN - OVERSHOOT_ALLOWANCE;
+
+/** The value TRACK: value 0 → value 1, inset inside the rail by the reserved
+ *  band. `.stage-field-x`'s quarter gridlines ride this element, so they mark
+ *  true value quarters (D-16's field stays honest under the new axis). */
+const trackStyle = {
+    left: `${railPct(0)}%`,
+    right: `${100 - railPct(1)}%`,
+};
+
 // ── L.W11 S6 — the four DERBY LANE balls (painter-positioned) ────────────────
 // Each lane ball reads the live `springLive.trackValues[index]` directly (the
-// engine's physics, off the Vue render graph). The lane sample marker is bounded
-// on the value axis so the curve crosses the target line (bouncy rings PAST it);
-// the ball still rides its bounded horizontal rail.
+// engine's physics, off the Vue render graph) and rides the SAME `railPct` map,
+// so "bouncy rings PAST the line, gentle never crosses" is a reading of one axis
+// rather than four separately-bounded ones.
 const derbyBallEls: (HTMLElement | null)[] = [];
 const setDerbyBallEl = (i: number, el: Element | ComponentPublicInstance | null) => {
-    derbyBallEls[i] = (el as HTMLElement) ?? null;
+    // m-10 — `el as HTMLElement` turned the file's only cast from known-narrow
+    // into unchecked: a future component-ref edit here would throw INSIDE the
+    // 60 Hz painter. `instanceof` is the honest narrowing and costs one check
+    // per ref callback, not per frame.
+    derbyBallEls[i] = el instanceof HTMLElement ? el : null;
 };
 
 // ── J.W2 S5 (DS-3) — the spring painters: DIRECT non-reactive `style` writes ──
@@ -203,24 +285,24 @@ onMounted(() => {
         // nearest container's inline size (the rail/track/lane carry
         // `container-type: inline-size`), so the value axis stays rail-relative with
         // NO per-frame width read (the AnimationVisualizer/easing transform idiom).
+        // M-2 — the protagonist rides the SAME map as its siblings. `railPct`
+        // carries the clamp, so the allowance is stated once and the three balls
+        // can no longer disagree about what the axis means.
         if (liveBallEl.value) {
-            liveBallEl.value.style.transform = `translateX(${live.value * 100}cqw)`;
+            liveBallEl.value.style.transform = `translateX(${railPct(live.value)}cqw)`;
         }
         if (samplerBallEl.value) {
-            samplerBallEl.value.style.transform = `translateX(${clamp(live.sampled, 0, 1) * 100}cqw)`;
+            samplerBallEl.value.style.transform = `translateX(${railPct(live.sampled)}cqw)`;
         }
         // L.W11 S6 — position the four derby-lane balls from the live tracker
-        // values (the live lanes remain relaxed so the bouncy lane visibly rings PAST
-        // the target line — the overshoot is the point). Painter-positioned, the
-        // SAME hot path; no second writer, no second rAF (inv ζ).
+        // values (the live lanes remain relaxed so the bouncy lane visibly rings
+        // PAST the target line — the overshoot is the point). Painter-positioned,
+        // the SAME hot path; no second writer, no second rAF (inv ζ).
         const trackValues = live.trackValues;
         for (let i = 0; i < derbyBallEls.length; i++) {
             const el = derbyBallEls[i];
             if (el) {
-                // Allow a small overshoot beyond 100% so the ring is seen; cap so
-                // the ball can't leave the lane entirely.
-                const v = clamp(trackValues[i] ?? 0, 0, 1.18);
-                el.style.transform = `translateX(${v * 100}cqw)`;
+                el.style.transform = `translateX(${railPct(trackValues[i] ?? 0)}cqw)`;
             }
         }
     });
@@ -236,7 +318,10 @@ const { onPointerDown } = useDragScrub({
         const el = railEl.value;
         if (!el) return demo.target.value;
         const rect = el.getBoundingClientRect();
-        return (e.clientX - rect.left) / rect.width;
+        // The projector inverts the ONE axis map: a pointer in either reserved
+        // band reads as −0.18 / 1.18 and `demo.reseat` clamps it to [0, 1]. The
+        // bands are overshoot ROOM, not target space, and the valuetext says so.
+        return railValue((e.clientX - rect.left) / rect.width);
     },
     onScrub: (ratio) => demo.reseat(ratio),
 });
@@ -297,12 +382,31 @@ const onKeydown = (e: KeyboardEvent) => {
 
 .spring-rail,
 .sampler-track {
-    display: flex;
-    align-items: center;
     /* T.G4 — the balls ride `translateX(<cqw>)`; `cqw` resolves against the nearest
        inline-size container, so the rail/track ARE that container (the value axis
-       stays rail-relative with no per-frame width read). */
+       stays rail-relative with no per-frame width read).
+       m-7 — the `display: flex; align-items: center` that used to head this rule
+       is GONE. Every child of both elements is absolutely positioned with both
+       axes resolved (`.progress-rail` top/left/width, `.progress-ball` top +
+       margin-top, `.spring-target-marker` top + margin-top, `.spring-track`
+       inset, `.derby-lanes` inset) — a flex container with no in-flow children
+       lays nothing out. Only `container-type` was ever load-bearing here. */
     container-type: inline-size;
+}
+
+/* ── D-7/C-8 · D-16 — THE VALUE TRACK ──
+   The rail element is the gesture surface and the container-query container; THIS
+   is the value axis, inset by the reserved overshoot band at both ends (its inline
+   offsets are bound from the one `railPct` map, so the band is stated in exactly
+   one place). Value 1 is therefore the track's own right edge — which is what the
+   scene's prose claimed all along and the old full-width geometry could not
+   deliver — and `.stage-field-x`'s quarter gridlines, riding this element, mark
+   true value quarters. */
+.spring-track {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
 }
 
 /* The rail + ball geometry now come from the shared .progress-rail /
@@ -319,6 +423,12 @@ const onKeydown = (e: KeyboardEvent) => {
 .spring-target-marker {
     position: absolute;
     top: 50%;
+    /* C-5/N-8 — the marker is ANCHORED at the rail's left edge and carried by
+       `translateX(<cqw>)` like every other mark (T.G4). It used to animate `left`
+       on the every-pointermove drag path — three lines below the file's own law
+       against exactly that — and the projector then read `getBoundingClientRect()`
+       on the next sample, a forced read-after-write reflow pair per pointer event. */
+    left: 0;
     width: 2.5rem;
     height: 2.5rem;
     margin-left: -1.25rem;
@@ -328,6 +438,10 @@ const onKeydown = (e: KeyboardEvent) => {
        spring, whose tone IS the canonical green; the rule stays seam-coherent). */
     border: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent);
     pointer-events: none;
+    /* N-3 — this transition finally has a WRITER: the settle pulse below moves
+       this border's colour. It was dead CSS (no rule, state class or binding ever
+       changed the marker's border colour) for as long as the pulse lived on the
+       fixed target line instead. */
     transition: border-color var(--duration-fast) ease;
 }
 
@@ -362,11 +476,15 @@ const onKeydown = (e: KeyboardEvent) => {
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
 }
 
-/* ── L.W11 S6 — the y=1 TARGET LINE + the settle-pulse ──
-   The rail's right edge is the spring's target (value 1). A faint vertical line
-   marks it; on `liveSettled` it gives ONE quiet red-dashed pulse (the settled
-   register — the instrument confirming "locked"). Compositor-cheap; PRM drops
-   the pulse animation (the line stays). */
+/* ── D-2 — THE VALUE=1 REFERENCE, AND WHAT IT IS NOT ──
+   This rule used to carry the settle confirmation, and that was the defect. The
+   line is pinned to one end of the axis; the TARGET is user-mutable (`reseat`
+   accepts any ratio, the arrow/Home/End keys move it, and the derby used to end
+   every race at 0). So the instrument's "locked" flash fired at a coordinate the
+   spring may never have visited — on the scene's headline feature, every time.
+   The line is now what it can honestly be: the value=1 SCALE reference at the
+   track's own right edge. The settle pulse moved to the marker, which is the mark
+   that knows where the field actually came to rest. */
 .spring-target-line {
     position: absolute;
     top: 0;
@@ -376,9 +494,14 @@ const onKeydown = (e: KeyboardEvent) => {
     border-right: 2px dashed color-mix(in srgb, var(--color-progress) 35%, transparent);
     pointer-events: none;
 }
-/* The settle-pulse resting state (no flash); `--fire` plays the one pulse. */
+/* The settle-pulse resting state (no flash); `--fire` plays the one pulse.
+   N-7 — the `160ms` fallback is GONE from all three of this file's sites: it
+   encoded a figure 25% off the real `--duration-fast` (0.2s at the installed
+   pin), so the day the token went missing the file would have silently animated
+   at a speed nothing in the system uses. A token this file cannot render without
+   is not a place for a guess. */
 .settle-pulse {
-    transition: border-right-color var(--duration-fast, 160ms) ease;
+    transition: border-color var(--duration-fast) ease;
 }
 .settle-pulse--fire {
     animation: spring-settle-pulse 220ms var(--ease-standard, ease) 1;
@@ -390,15 +513,15 @@ const onKeydown = (e: KeyboardEvent) => {
 .spring-rail--derby .spring-ball,
 .spring-rail--derby .spring-target-marker {
     opacity: 0.35;
-    transition: opacity var(--duration-fast, 160ms) ease;
+    transition: opacity var(--duration-fast) ease;
 }
 @keyframes spring-settle-pulse {
     0% {
-        border-right-color: var(--color-progress);
-        filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-progress) 60%, transparent));
+        border-color: var(--ball-tone, var(--color-progress));
+        filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 60%, transparent));
     }
     100% {
-        border-right-color: color-mix(in srgb, var(--color-progress) 35%, transparent);
+        border-color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent);
         filter: none;
     }
 }
@@ -425,16 +548,23 @@ const onKeydown = (e: KeyboardEvent) => {
 .derby-lane {
     position: relative;
     height: 0.9rem;
-    display: flex;
-    align-items: center;
+    /* D-7/C-8 — THE TAG GETS ITS OWN GUTTER. `.derby-lane-tag` is painted last at
+       `right: 0`, which is exactly the region a WINNING ball occupies: the lane's
+       payload was occluded by the lane's own label. The lane now reserves a
+       trailing gutter, the track ends where the gutter starts, and because
+       `container-type: inline-size` measures the CONTENT box the ball's `cqw`
+       axis ends there too — the ball cannot reach the tag at any width, rather
+       than merely usually missing it. */
+    --derby-tag-gutter: 6.25rem;
+    padding-inline-end: var(--derby-tag-gutter);
     /* T.G4 — the lane ball rides `translateX(<cqw>)`; the lane is its inline-size
-       container. */
+       container. (No flex here: every child is absolutely positioned.) */
     container-type: inline-size;
 }
 .derby-lane-rail {
     position: absolute;
     left: 0;
-    right: 0;
+    right: var(--derby-tag-gutter);
     top: 50%;
     height: 2px;
     transform: translateY(-50%);
@@ -451,13 +581,30 @@ const onKeydown = (e: KeyboardEvent) => {
     /* the phosphor afterglow in the lane hue */
     filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent));
 }
+/* KF-SS-5 / D-4 — THE LANE TAGS READ AA. The old mix was 90% lane tone against
+   the near-black foreground at `opacity: 0.85`; composited over the light plate
+   that is ≈1.92:1 for snappy (this corpus's worst figure) against a 4.5:1 floor,
+   with all four lanes failing in light theme. The repo already owns the solved
+   form — `.status-badge`'s AA-CONTRAST mix, documented load-bearing and consumed
+   correctly by this same file 400 lines above — so this is a regression, not a
+   hard problem: adopt the badge's 50% push toward `--foreground` and drop the
+   opacity composite, which per the adjudicated arithmetic is the ONLY step in the
+   chain that lowered contrast (the mix itself RAISES it). The tag stays tinted;
+   it stops being decoration pretending to be a label. Exact in-situ figures over
+   the live glass plate remain SS-13's to photograph. */
 .derby-lane-tag {
     position: absolute;
     right: 0;
-    top: -0.65rem;
-    color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 90%, var(--foreground));
-    opacity: 0.85;
+    top: 50%;
+    width: var(--derby-tag-gutter);
+    transform: translateY(-50%);
+    color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, var(--foreground));
+    /* N-2 / MM-29 — the `text-transform: none` patch was known and incomplete:
+       `text-mono-caption` also carries `letter-spacing: var(--type-tracking-caps)`
+       (0.1em), so 0.1em CAPS tracking rode on lowercase lane names. Both halves
+       of the utility are answered now, in one place. */
     text-transform: none;
+    letter-spacing: normal;
 }
 
 @keyframes derby-fade-in {
