@@ -1,4 +1,3 @@
-import { reverseCSSTime } from "@src/animation/compile/emit/css-text";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { debounce } from "@utils/helpers";
@@ -59,7 +58,7 @@ export function useKeyframeOps(
     const updateFromString = async (keyframesString: string) => {
         kfControls.keyframes = keyframesString;
 
-        const { CSSKeyframesAnimation, yieldToMain } =
+        const { CSSKeyframesAnimation, reverseCSSTime, yieldToMain } =
             await loadAnimationEngine();
         const { options, keyframes } = await parseAnimationCSS(keyframesString);
         await yieldToMain();

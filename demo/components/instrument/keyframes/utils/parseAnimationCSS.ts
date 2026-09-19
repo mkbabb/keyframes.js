@@ -4,7 +4,6 @@ import {
     type CSSAnimationOptions,
 } from "@mkbabb/value.js/css";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import { serializeTimingFunction } from "@src/animation/compile/emit/css-text";
 
 type EditorAnimationOptions = Omit<CSSAnimationOptions, "timingFunction"> & {
     timingFunction?: string;
@@ -24,7 +23,8 @@ type EditorAnimationOptions = Omit<CSSAnimationOptions, "timingFunction"> & {
  * regex pre-detection or second parse.
  */
 export const parseAnimationCSS = async (input: string) => {
-    const { resolveKeyframes } = await loadAnimationEngine();
+    const { resolveKeyframes, serializeTimingFunction } =
+        await loadAnimationEngine();
     const resolved = resolveKeyframes(input);
     const parseIssue = resolved.diagnostics.find(
         (diagnostic) => diagnostic.code === "PARSE_ERROR",
