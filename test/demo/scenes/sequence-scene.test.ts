@@ -6,9 +6,12 @@
  * `Sequence`; scene-machine + warmed-engine wiring), referencing the scene's
  * transport key so a rename reds here.
  */
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { withSetup } from "../../support/withSetup";
-import { useSequenceInstrument } from "../../../demo/scenes/sequence/useSequenceInstrument";
+import {
+    prefersReducedMotion,
+    useSequenceInstrument,
+} from "../../../demo/scenes/sequence/useSequenceInstrument";
 import {
     ROW_COUNT,
     STAGGER_MAX,
@@ -64,5 +67,57 @@ describe("useSequenceDemo construction", () => {
             // TC-5: mount teardown runs the composable's real disposal.
             app.unmount();
         }
+    });
+
+    // ── X.KF.W11.d — the transport-surface decision and the reel's PRM guard ──
+
+    it("the provide bag carries the two verbs the target owns and none of the dead transport (SC-2)", () => {
+        const [demo, app] = withSetup(() => useSequenceDemo());
+        try {
+            const bag = demo as unknown as Record<string, unknown>;
+            // Exposed: the re-time's undo is a visible verb; the master scrub stays.
+            expect(typeof demo.reset).toBe("function");
+            expect(typeof demo.scrub).toBe("function");
+            expect(typeof demo.reseatRow).toBe("function");
+            // Deleted: nine names with zero consumers through the injector.
+            for (const dead of [
+                "reverse",
+                "setTimeScale",
+                "resume",
+                "play",
+                "togglePlay",
+                "isReversed",
+                "timeScale",
+                "delays",
+                "scenePlayback",
+            ]) {
+                expect(dead in bag, `${dead} must not be provided`).toBe(false);
+            }
+        } finally {
+            app.unmount();
+        }
+    });
+
+    describe("the reel under prefers-reduced-motion (D7 — one guard, shared with the boot)", () => {
+        const original = window.matchMedia;
+        afterEach(() => {
+            window.matchMedia = original;
+        });
+
+        it("reads the media query the boot reads, and the reel refuses to start when it matches", () => {
+            window.matchMedia = ((query: string) =>
+                ({ matches: query.includes("reduce"), media: query }) as MediaQueryList) as typeof window.matchMedia;
+            expect(prefersReducedMotion()).toBe(true);
+            vi.useFakeTimers();
+            const [demo, app] = withSetup(() => useSequenceDemo());
+            try {
+                demo.playReel();
+                expect(demo.isReeling.value).toBe(false);
+                expect(vi.getTimerCount()).toBe(0);
+            } finally {
+                app.unmount();
+                vi.useRealTimers();
+            }
+        });
     });
 });
