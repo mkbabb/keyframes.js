@@ -243,11 +243,26 @@ defineExpose({
     isStarted,
     // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: the spring
     // sampler swept forever at idle, burning ~33% of a core (90 layouts/s) with
-    // no gesture ("god awful"). The raw-rAF loop gates on
-    // `machine.status === 'playing'`, so a paused-on-entry machine leaves the loop
-    // un-armed → zero rAF ticks, zero style recalc/layout at rest
-    // (proof:perf-counters). The sampler sweeps + the ball springs the instant the
-    // user presses Play (or taps the rail — `reseat` re-arms the loop directly).
+    // no gesture ("god awful"). The raw-rAF loop finds NEITHER intent armed on a
+    // paused-on-entry machine → zero rAF ticks, zero style recalc/layout at rest
+    // (proof:perf-counters).
+    //
+    // KF-SS-1 / C-1 — WHAT THIS SENTENCE USED TO CLAIM AND COULD NOT DO. It read
+    // "the sampler sweeps + the ball springs the instant the user presses Play
+    // (or taps the rail — `reseat` re-arms the loop directly)". The parenthesis
+    // was false in exactly the state this expose declares: `reseat` did arm the
+    // loop, and the loop's first frame then self-terminated on
+    // `machine.status !== 'playing'` before the solver ticked, so a rail tap on
+    // entry moved the ghost marker and the ARIA value and left the ball parked.
+    // The comment asserted the behaviour the gate forbade, and the on-stage copy
+    // inherited it.
+    //
+    // The two intents are now distinct (`useSpringDemo`, the loop's own note):
+    // PLAY-intent starts the unbounded SAMPLER SWEEP and only the transport
+    // dispatches it; CHASE-intent is the rail's, runs the SOLVER to its own
+    // settle, and stops itself. So: the sampler sweeps when the user presses
+    // Play; the ball springs when the user taps the rail — and rest-on-entry is
+    // untouched, because a scene nobody has touched has neither.
     autoPlays: false,
     // KF-SS-31 — THE ORPHANED COMMENT. What stood here described "the raw-rAF
     // ScenePlayback adapter … registered with the machine on SCENE_READY", i.e.
