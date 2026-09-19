@@ -12,6 +12,21 @@
         <div class="easing-editor grid gap-2 w-full">
             <div class="flex items-center justify-between gap-2">
                 <h3 class="text-title">{{ kind === "steps" ? "steps" : "cubic-bézier" }}</h3>
+                <!-- KF-CO-13 — the disclosure the editor computed and never
+                     rendered: the name this editor was opened FROM. A name the
+                     catalogue expresses as one bezier was converted; an
+                     engine-native name (no bezier reproduces it) is a
+                     DEPARTURE — nothing is persisted until an edit is authored. -->
+                <p
+                    v-if="convertedFrom !== null"
+                    class="text-small text-muted-foreground"
+                >
+                    {{
+                        kind === "cubic-bezier"
+                            ? `from ${convertedFrom}`
+                            : `departing from ${convertedFrom} — engine-native, no cubic-bezier reproduces it`
+                    }}
+                </p>
                 <Button
                     emphasis="quiet"
                     icon-only
@@ -67,7 +82,9 @@ import { ArrowLeft } from "@lucide/vue";
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
     storedAnimationOptions: StoredAnimationOptions;
-    progress?: number;
+    /** The name the editor was opened from (`null` when opened on a curve
+     *  that was already cubic-bezier / steps) — rendered as the disclosure. */
+    convertedFrom: string | null;
 }>();
 
 const emit = defineEmits<{

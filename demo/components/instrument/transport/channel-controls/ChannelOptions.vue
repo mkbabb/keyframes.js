@@ -22,6 +22,12 @@
                                  W9-era per-row `:deep(.labeled-field){auto 1fr}` (each
                                  row its own width). -->
                             <div class="labeled-field-grid">
+                                <!-- KF-CO-3 — every option handler is ONE guarded
+                                     commit (`commitOption`): the engine write is
+                                     tried, the store is written ONLY on
+                                     acceptance, and a rejection is surfaced
+                                     through the producer's `invalid` + `#error`
+                                     seam with the engine's own message. -->
                                 <LabeledInput
                                     :model-value="
                                         storedAnimationOptions.animationOptions
@@ -30,16 +36,22 @@
                                     label="duration"
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Animation length (e.g. 5s, 200ms)"
+                                    :invalid="invalidField === 'duration'"
                                     @update:model-value="
-                                        (v) => {
-                                            trySetOption(() =>
-                                                animation.setDuration(v),
-                                            );
-                                            storedAnimationOptions.animationOptions.duration =
-                                                v;
-                                        }
+                                        (v) =>
+                                            commitOption(
+                                                'duration',
+                                                v,
+                                                (d) => animation.setDuration(d),
+                                                (d) => {
+                                                    storedAnimationOptions.animationOptions.duration =
+                                                        d;
+                                                },
+                                            )
                                     "
-                                />
+                                >
+                                    <template #error>{{ invalidMessage }}</template>
+                                </LabeledInput>
 
                                 <LabeledInput
                                     :model-value="
@@ -49,16 +61,22 @@
                                     label="delay"
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Delay before start (e.g. 0s, 500ms)"
+                                    :invalid="invalidField === 'delay'"
                                     @update:model-value="
-                                        (v) => {
-                                            trySetOption(() =>
-                                                animation.setDelay(v),
-                                            );
-                                            storedAnimationOptions.animationOptions.delay =
-                                                v;
-                                        }
+                                        (v) =>
+                                            commitOption(
+                                                'delay',
+                                                v,
+                                                (d) => animation.setDelay(d),
+                                                (d) => {
+                                                    storedAnimationOptions.animationOptions.delay =
+                                                        d;
+                                                },
+                                            )
                                     "
-                                />
+                                >
+                                    <template #error>{{ invalidMessage }}</template>
+                                </LabeledInput>
 
                                 <LabeledInput
                                     :model-value="
@@ -77,16 +95,23 @@
                                     label="iterations"
                                     label-class="text-small font-medium text-muted-foreground"
                                     tooltip="Repeat count (number or 'infinite')"
+                                    :invalid="invalidField === 'iterationCount'"
                                     @update:model-value="
-                                        (v: string | number) => {
-                                            trySetOption(() =>
-                                                animation.setIterationCount(v),
-                                            );
-                                            storedAnimationOptions.animationOptions.iterationCount =
-                                                v;
-                                        }
+                                        (v: string | number) =>
+                                            commitOption(
+                                                'iterationCount',
+                                                v,
+                                                (n) =>
+                                                    animation.setIterationCount(n),
+                                                (n) => {
+                                                    storedAnimationOptions.animationOptions.iterationCount =
+                                                        n;
+                                                },
+                                            )
                                     "
-                                />
+                                >
+                                    <template #error>{{ invalidMessage }}</template>
+                                </LabeledInput>
 
                                 <LabeledSelect
                                     :model-value="
@@ -101,9 +126,16 @@
                                     tooltip="Playback direction"
                                     @update:model-value="
                                         (v) => {
-                                            animation.setDirection(v as any);
-                                            storedAnimationOptions.animationOptions.direction =
-                                                v as any;
+                                            if (!isOneOf(directions, v)) return;
+                                            commitOption(
+                                                'direction',
+                                                v,
+                                                (d) => animation.setDirection(d),
+                                                (d) => {
+                                                    storedAnimationOptions.animationOptions.direction =
+                                                        d;
+                                                },
+                                            );
                                         }
                                     "
                                     @update:open="
@@ -125,9 +157,16 @@
                                     tooltip="Style applied when not playing"
                                     @update:model-value="
                                         (v) => {
-                                            animation.setFillMode(v as any);
-                                            storedAnimationOptions.animationOptions.fillMode =
-                                                v as any;
+                                            if (!isOneOf(fillModes, v)) return;
+                                            commitOption(
+                                                'fillMode',
+                                                v,
+                                                (f) => animation.setFillMode(f),
+                                                (f) => {
+                                                    storedAnimationOptions.animationOptions.fillMode =
+                                                        f;
+                                                },
+                                            );
                                         }
                                     "
                                     @update:open="
@@ -425,12 +464,20 @@
                         ]"
                     >
                         <div class="panel-content">
+                            <!-- KF-CO-16 — the panel mounts only while shown.
+                                 The former always-mounted panel carried a
+                                 `progress` prop it never read, bound to the
+                                 rAF-polled `currentT`: the sole per-frame render
+                                 dependency of every INACTIVE channel. Both are
+                                 deleted; the picker's truth lives in the store,
+                                 so nothing is lost across a close. -->
                             <TimingFunctionPanel
+                                v-if="showDetailPanel"
                                 :animation="animation"
                                 :stored-animation-options="
                                     storedAnimationOptions
                                 "
-                                :progress="normalizedProgress"
+                                :converted-from="convertedFromName"
                                 @exit-detail-panel="exitDetailPanel"
                                 @update-timing-function="
                                     updateTimingFunctionFromName
@@ -549,7 +596,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
-import { clamp } from "@mkbabb/value.js/math";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
@@ -560,14 +606,10 @@ import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 // deleted EasingSelect consumed; the easing scene co-owns it).
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 
-import { Teleport, computed, onMounted, ref, toRef } from "vue";
+import { Teleport, onMounted, ref, toRef } from "vue";
 import { getStoredAnimationOptions } from "@state";
-import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import type {
-    AnimationLayerConfig,
-    TimingFunctionNames,
-    AnimationOptions,
-} from "@mkbabb/keyframes.js";
+import { kfEngine } from "@kf-engine";
+import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import {
     DIRECTION_DESCRIPTIONS,
     FILL_MODE_DESCRIPTIONS,
@@ -585,31 +627,60 @@ const props = defineProps<{
 
 const storedAnimationOptions = getStoredAnimationOptions(props.animation);
 
-/**
- * The engine setters are fail-explicit — a malformed PRESENT value throws
- * an `AnimationOptionError` (B.W2). User input mid-keystroke is routinely
- * malformed (an empty field, a partial number), so guard the live handlers:
- * an empty value is omission (no-op), anything else attempts the set and
- * swallows the typed error until the input is valid. The store still
- * records the raw string so the field round-trips.
- */
-const trySetOption = (apply: () => void) => {
-    try {
-        apply();
-    } catch (e) {
-        if ((e as Error)?.name !== "AnimationOptionError") throw e;
-        // malformed-in-progress input — ignore until it parses
-    }
-};
-
 const {
     advancedOpen,
+    convertedFromName,
     isDetailEasing,
     showDetailPanel,
     onEditIconClick,
     exitDetailPanel,
     updateTimingFunctionFromName,
 } = useTimingFunctionEditor(() => props.animation, storedAnimationOptions);
+
+// ── KF-CO-3 ≡ L·B-1 / C·B-1 (+ N-1, N-15) — ONE guarded option handler ──────
+// The engine setters are fail-explicit — a malformed PRESENT value throws an
+// `AnimationOptionError` (B.W2). User input mid-keystroke is routinely malformed
+// (an empty field, a partial number). The former five handlers each guarded the
+// engine write and then PERSISTED THE REJECTED VALUE OUTSIDE THE GUARD (the two
+// selects had no guard at all): a mid-keystroke `"5"` landed in the 7-day store
+// and bricked the scene's next boot, because the bucket is a constructor
+// argument and `normalizeDuration` throws on it. The persist now sits INSIDE
+// the guard — only a value the engine ACCEPTED is stored — and the rejection is
+// surfaced through the producer's own `invalid` + `#error` seam with the
+// engine's message, instead of being swallowed. The field keeps showing the
+// text being typed (the producer's Input holds a passive local model), and a
+// re-mount round-trips the last ACCEPTED value.
+type OptionField = "duration" | "delay" | "iterationCount" | "direction" | "fillMode";
+const invalidField = ref<OptionField | null>(null);
+const invalidMessage = ref("");
+
+const commitOption = <T>(
+    field: OptionField,
+    value: T,
+    apply: (value: T) => void,
+    persist: (value: T) => void,
+) => {
+    try {
+        apply(value);
+    } catch (e) {
+        if (!(e instanceof Error) || e.name !== "AnimationOptionError") throw e;
+        invalidField.value = field;
+        invalidMessage.value = e.message;
+        return;
+    }
+    persist(value);
+    if (invalidField.value === field) {
+        invalidField.value = null;
+        invalidMessage.value = "";
+    }
+};
+
+// The two enumerated options arrive from the producer's select as `string`;
+// narrow against the engine's own tuples (no `as any` — N-15).
+const isOneOf = <const T extends readonly string[]>(
+    list: T,
+    value: string,
+): value is T[number] => (list as readonly string[]).includes(value);
 
 // Exclusive select mutex: only one dropdown open at a time
 const openSelect = ref<string | null>(null);
@@ -628,12 +699,6 @@ const {
     isStarted: isAnimStarted,
     wake,
 } = useAnimationSync(() => props.animation, isPlayingRef);
-
-const normalizedProgress = computed(() => {
-    const dur = props.animation.options.duration;
-    if (!dur || dur <= 0) return 0;
-    return clamp(currentT.value / dur, 0, 1);
-});
 
 const emit = defineEmits<{
     (
@@ -655,21 +720,25 @@ const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
 );
 
 // L.W8 S1 ED-3 — DIRECTIONS / FILL_MODES are HEAVY (const tuples on the engine
-// surface); they ride loadAnimationEngine() rather than a deep @src import. The
-// select items populate within microtasks of mount (well before the panel is
-// interactive); until then the dropdowns render empty — an honest pre-load frame.
-const directions = ref<readonly AnimationOptions["direction"][]>([]);
-const fillModes = ref<readonly AnimationOptions["fillMode"][]>([]);
+// surface) and ride the engine chunk, never a deep @src import. KF-CO-14 ≡
+// L·M-6: they are read SYNCHRONOUSLY off the demo's warmed engine (`kfEngine()`
+// — `main.ts` awaits the warm before `app.mount()`, and this component's own
+// store read above already depends on it). The former `onMounted(async …)`
+// sequenced a fallible synchronous call (the timing-function re-apply, which
+// throws on a poisoned bucket) AHEAD of an unrelated `await` in an unobservable
+// hook, so a throw stranded both tuples as `[]` forever; and even the happy
+// path rendered an empty-items frame (KF-CO-39's placeholder residue). Both
+// dissolve with the ceremony.
+const { DIRECTIONS: directions, FILL_MODES: fillModes } = kfEngine();
 
-onMounted(async () => {
-    updateTimingFunctionFromName(
-        storedAnimationOptions.animationOptions
-            .timingFunction as TimingFunctionNames,
-    );
-
-    const engine = await loadAnimationEngine();
-    directions.value = engine.DIRECTIONS;
-    fillModes.value = engine.FILL_MODES;
+onMounted(() => {
+    const stored = storedAnimationOptions.animationOptions.timingFunction;
+    if (typeof stored !== "string") {
+        throw new TypeError(
+            `Stored timing function is not a literal: ${JSON.stringify(stored)}.`,
+        );
+    }
+    updateTimingFunctionFromName(stored);
 });
 </script>
 
