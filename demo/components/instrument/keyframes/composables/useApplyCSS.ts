@@ -1,14 +1,42 @@
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 import type { Ref } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useHighlightCSS } from "./useHighlightCSS";
 
 /**
- * Composable that encapsulates the "Apply CSS" toggle pattern:
- * inject a `<style>` element with CSS keyframes content, add a class name
- * to animation targets, and pause/resume the JS animation accordingly.
+ * KF-KE-6 (X.KF.W12.c) — the apply state lives at the IDENTITY's altitude.
  *
- * Uses `useHighlightCSS` internally for style element lifecycle management.
+ * `isApplied` and `prevPaused` used to be per-instance refs beside a deliberately
+ * shared identity: two closures over one animation each believed they alone
+ * had applied it, so the second owner's `aria-pressed` lied, a toggle from one
+ * side restored a pause state the other side had saved, and — once the sheet
+ * actually applied anything (KF-KE-4) — the first closure to unmount left the
+ * target wearing a class whose rules the survivor still owned. One record per
+ * style id, shared by every owner, is what "one identity" meant all along.
+ */
+interface ApplyState {
+    /** Whether the identity is applied — ONE flag, read by every owner's brush. */
+    isApplied: Ref<boolean>;
+    /** The animation's pause state before Apply paused it, for the unapply. */
+    prevPaused: boolean;
+}
+
+const applyStates = new Map<string, ApplyState>();
+
+const applyStateFor = (styleId: string): ApplyState => {
+    let state = applyStates.get(styleId);
+    if (state === undefined) {
+        state = { isApplied: ref(false), prevPaused: false };
+        applyStates.set(styleId, state);
+    }
+    return state;
+};
+
+/**
+ * The "Apply CSS" toggle: inject the animation's CSS into the identity's one
+ * `<style>` (owned and refcounted by `useHighlightCSS`), add the SAME name as a
+ * class to every target, and pause the JS animation so the CSS one shows;
+ * unapply restores the pause state, empties the sheet and removes the class.
  */
 export function useApplyCSS(options: {
     getAnimation: () => KeyframesAnimation<any>;
@@ -22,48 +50,55 @@ export function useApplyCSS(options: {
 } {
     const { getAnimation, styleId, getCSSString, getClassName } = options;
 
-    const { setContent, clear: clearStyle } = useHighlightCSS(styleId);
+    const sheet = useHighlightCSS(styleId);
+    const state = applyStateFor(styleId);
+    const { isApplied } = state;
 
-    const isApplied = ref(false);
-    const prevPaused = ref(false);
-
-    const toggle = () => {
+    const apply = () => {
         const animation = getAnimation();
         const className = getClassName();
 
-        if (isApplied.value) {
-            // Unapply: restore previous pause state, clear style, remove class
-            animation.paused = prevPaused.value;
-            clearStyle();
-            animation.targets.forEach((t: Element) =>
-                t.classList.remove(className),
-            );
-            isApplied.value = false;
-        } else {
-            // Apply: save pause state, pause if running, inject CSS, add class
-            prevPaused.value = animation.paused;
-            animation.paused = animation.started;
-            setContent(getCSSString());
-            animation.targets.forEach((t: Element) =>
-                t.classList.add(className),
-            );
-            isApplied.value = true;
-        }
+        state.prevPaused = animation.paused;
+        animation.paused = animation.started;
+        sheet.setContent(getCSSString());
+        animation.targets.forEach((t: Element) => t.classList.add(className));
+        isApplied.value = true;
+    };
+
+    const unapply = () => {
+        const animation = getAnimation();
+        const className = getClassName();
+
+        animation.paused = state.prevPaused;
+        sheet.clear();
+        animation.targets.forEach((t: Element) =>
+            t.classList.remove(className),
+        );
+        isApplied.value = false;
+    };
+
+    const toggle = () => {
+        if (isApplied.value) unapply();
+        else apply();
     };
 
     const clear = () => {
-        if (isApplied.value) {
-            const animation = getAnimation();
-            const className = getClassName();
-
-            animation.paused = prevPaused.value;
-            clearStyle();
-            animation.targets.forEach((t: Element) =>
-                t.classList.remove(className),
-            );
-            isApplied.value = false;
-        }
+        if (isApplied.value) unapply();
     };
+
+    // KF-KE-12 ≡ N-5 — `clear()` is WIRED into the lifetime, refcount-aware. An
+    // owner leaving while another is live leaves the applied identity to the
+    // survivor; the LAST owner out takes the applied state down with the sheet
+    // (pause restored, class removed), so no target is left wearing a class
+    // whose sheet just left the document and no animation stays paused with
+    // nobody to un-pause it. `beforeUnmount` runs before every `unmounted` hook,
+    // i.e. before the sheet's own release decrements the count it reads.
+    onBeforeUnmount(() => {
+        if (sheet.isSoleHolder()) {
+            clear();
+            applyStates.delete(styleId);
+        }
+    });
 
     return { isApplied, toggle, clear };
 }
