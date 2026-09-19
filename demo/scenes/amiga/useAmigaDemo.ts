@@ -228,6 +228,10 @@ export function useAmigaDemo() {
     // constant between wall hits and the sign flips exactly at each wall (25% /
     // 75%, where X reverses). Peaks +π at 25% (X hits +WALL), −π at 75% (X hits
     // −WALL); LINEAR easing keeps every segment's slope equal.
+    //
+    // MISSED-I — a triangle wave is a LOOK, not a roll: a ball of radius 1
+    // rolling the 10-unit crossing would turn 10 rad, and this turns π. The
+    // amplitude is chosen for the eye, and nothing downstream derives it.
     const spinning = new CSSKeyframesAnimation<AmigaVars>({
         duration: X_PERIOD_MS,
         iterationCount: Infinity,

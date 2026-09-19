@@ -4,18 +4,19 @@
         class="scene-root relative h-full w-full"
     >
         <!-- The amiga stage: ONE full-bleed WebGL canvas. The grid-room (floor +
-             back-wall paper-grid), the boing ball, and its contact-shadow are all
-             drawn IN the canvas (T.A10) — there is nothing on the DOM stage
-             between the canvas and the page (the CRT overlay, the gesture legend,
-             the parked telemetry readout, and the boot power-on flash are GONE;
-             proof:stage-inventory / T.A10 census). The canvas composites over
-             the SHELL's themed paper-grid backdrop (`.grid-background`, fixed
-             behind every scene) — renderer alpha:true, and since KF.W6 nothing
-             of this scene's own paints over it (see the stage-surface block
-             below). `rounded-card` on a raw element is this tree's only such
-             site and is RETAINED for now: with the wash gone it rounds only the
-             stage boundary, and whether a full-bleed mobile layer should carry
-             card chrome at all is a rendered-silhouette verdict, KF.W9's. -->
+             back-wall paper-grid), the boing ball and its contact-shadow are all
+             drawn IN the canvas, and nothing stands on the DOM stage between the
+             canvas and the page (T.A10). The canvas composites over the SHELL's
+             themed paper-grid backdrop (`.grid-background`, fixed behind every
+             scene) — renderer alpha:true, and nothing of this scene's own paints
+             over it. `rounded-card` on a raw element is this tree's only such
+             site and is RETAINED: with the wash gone it rounds only the stage
+             boundary, and whether a full-bleed mobile layer should carry card
+             chrome at all is a rendered-silhouette verdict, KF.W9's.
+             (D-13/L-i7 — the removal changelog that used to live in this
+             template, naming four deleted DOM layers a reader cannot see, is
+             gone: a rendered template states what IS. The deletions live in the
+             tranche record that made them.) -->
         <!-- D-2 — THE SUBJECT IS OPERABLE AND NAMED. The rendered DOM was one
              bare `<canvas>`: no role, no accessible name, no tabindex, no
              keydown, no fallback content, both interactions pointer-only — while
@@ -107,6 +108,26 @@ import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisi
 import { facilityFromGroup } from "@composables/scene-facility";
 import { AMIGA_SCENE_ID } from "./amigaKeys";
 
+/** The dev-only sampling probe's shape (L-M3/C-11 — the `__kfLoaf` idiom). */
+interface AmigaProbe {
+    /** The gesture layer's current angular speed (rad/s). */
+    omega(): number;
+    /** The rendered world pose + the additive gesture offset. */
+    pose(): {
+        px: number;
+        py: number;
+        spin: number;
+        ox: number;
+        oy: number;
+        playing: boolean;
+    };
+}
+declare global {
+    interface Window {
+        __kfAmigaProbe?: AmigaProbe;
+    }
+}
+
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
 const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
 
@@ -196,9 +217,23 @@ function onKeydown(event: KeyboardEvent): void {
 // ── The compose (T.A7 / T.A9): the ONE mesh writer ───────────────────────────
 // The classic Boing spins LINEARLY about a ~16°-tilted vertical axis; the gesture
 // adds a pitch/yaw offset on top. The rendered pose follows the group while it
-// plays, and settles HOME through a short SpringProgress re-seat on stop (T.A8 —
-// never a `position.set` teleport). The offset PERSISTS across the re-seat (the
-// user's accumulated spin is preserved).
+// plays or while the user scrubs it, and settles HOME through the continuity
+// lanes when the group stops (T.A8 — never a `position.set` teleport). The offset
+// PERSISTS across every seam (the user's accumulated spin is preserved).
+//
+// C-17 — the ORDERING contract, which the T.A7 apparatus specified WHO for and
+// never WHEN. Two independent `RAFPlayback` loops meet at `pose`: the group's
+// writes it, this one reads it, and they are not phase-locked. So the pose this
+// compose reads is the last one the group WROTE, which may be from the previous
+// frame — bounded at one frame, never torn (a pose is written field-by-field
+// within a single synchronous transform call, and read the same way). The
+// authority machine below compares VALUES, so a repeated pose is indistinguishable
+// from a still one, which is exactly the right reading of both.
+// MISSED-I — the spin is an AESTHETIC choice, not a rolling derivation. A true
+// roll across the 10-unit crossing would turn 10 rad; the authored peak is ±π,
+// a 3.18× slip. The comments around it frame the motion physically, so this one
+// says plainly that the ball slides: recorded so no later reader tunes the
+// keyframes in search of a derivation that was never made.
 const TILT_ANGLE = 0.28; // ~16° — the authentic Boing-Ball tilt
 const tiltAxis = new THREE.Vector3(
     Math.sin(TILT_ANGLE),
@@ -398,23 +433,33 @@ onMounted(() => {
     // before OrbitControls' own pointerdown).
     sphereSpin.attach(canvasEl.value!);
 
-    // T.A11 — the decay() dogfood witness is a NON-DOM probe on the gesture layer
-    // (the parked telemetry readout is gone). The re-armed proof:amiga-decay-
-    // visible reads the coasting angular velocity here instead of a DOM readout.
-    (window as unknown as Record<string, unknown>).__kfAmigaProbe = {
-        omega: () => sphereSpin.angularVelocity(),
-        // The rendered world pose + gesture offset (dev sampling hook, non-DOM) —
-        // the physics oracles (T.A7/T.A8/T.A9) read world-unit position / spin
-        // here rather than screen pixels.
-        pose: () => ({
-            px: rendered.px,
-            py: rendered.py,
-            spin: rendered.spin,
-            ox: sphereSpin.offset.x,
-            oy: sphereSpin.offset.y,
-            playing: animationGroup.started && animationGroup.playing(),
-        }),
-    };
+    // T.A11 / L-M3 · C-11 — the NON-DOM sampling probe. It is a genuine
+    // instrument: the live-session audits of this scene read the world-unit pose
+    // and the coasting angular velocity through it, which is why it is kept
+    // rather than deleted. Two things about it were false and are not any more.
+    //
+    //  · It named ORACLES THAT DO NOT EXIST. The old comments credited
+    //    `proof:amiga-decay-visible` and the T.A7/T.A8/T.A9 physics oracles as
+    //    wired readers of this object; nothing in the tree reads it at runtime
+    //    (census: two hits, both in this file). Its real readers are a human
+    //    with a console and the dated audit records that quote it.
+    //  · It shipped to PRODUCTION through a double cast, the only
+    //    `(window as unknown as …)` in demo/, beside the typed `__kfLoaf` idiom
+    //    one directory away. It is typed like its sibling now and mounted only
+    //    under DEV.
+    if (import.meta.env.DEV) {
+        window.__kfAmigaProbe = {
+            omega: () => sphereSpin.angularVelocity(),
+            pose: () => ({
+                px: rendered.px,
+                py: rendered.py,
+                spin: rendered.spin,
+                ox: sphereSpin.offset.x,
+                oy: sphereSpin.offset.y,
+                playing: animationGroup.started && animationGroup.playing(),
+            }),
+        };
+    }
 });
 
 // B-3: pause the WebGL present loop while the tab is backgrounded. C-18 — the
@@ -434,14 +479,29 @@ useSceneVisibilityPause(
     },
 );
 
-// I.W3 S2 — the just-in-time occlusion pause over the live WebGL canvas: an
-// IntersectionObserver stands the present loop down when the scene scrolls
-// off-screen and re-arms a viewport ahead of re-entry. (The former power-on BOOT
-// re-entry egg is GONE — T.A8/T.A10; this observer now owns ONLY the pause.)
+// I.W3 S2 — the occlusion pause over the live WebGL canvas: an
+// IntersectionObserver stands the present loop down when the scene leaves the
+// viewport and re-arms it a viewport ahead of re-entry.
+//
+// C-16, measured and stated rather than asserted: at TODAY's containment chain
+// this scene never scrolls — the shell is `overflow-hidden h-dvh w-dvw` and the
+// mobile stage is viewport-fixed — so the off-screen arm does not fire and the
+// intersecting arm fires once, at mount, where `setup()` has already armed the
+// loop. The observer is RETAINED as the seam that fires the day a scroller
+// appears in that chain; what is removed is the comment's claim that it is
+// doing work today.
+//
+// The SECOND-AUTHORITY hazard, named because it is the real risk here: the tab
+// -visibility pause below owns the loop under an explicit honesty contract
+// ("only resumes what IT paused"), and a second authority that can only ever say
+// START could resume a loop that contract deliberately stopped — a WebGL present
+// loop running in a hidden tab. The intersecting arm therefore declines while
+// the document is hidden; the visibility pause resumes it on its own terms.
 useIntersectionObserver(
     sceneRootEl,
     ([entry]) => {
         if (entry?.isIntersecting) {
+            if (document.visibilityState === "hidden") return;
             armFrameClock();
             three.markRenderDirty();
             three.start();
@@ -455,7 +515,7 @@ useIntersectionObserver(
 onBeforeUnmount(() => {
     animationGroup.stop();
     sphereSpin.detach();
-    delete (window as unknown as Record<string, unknown>).__kfAmigaProbe;
+    delete window.__kfAmigaProbe;
     // (the Three.js room + IntersectionObserver auto-release on scope dispose)
 });
 
@@ -538,5 +598,19 @@ defineExpose({
 .amiga-canvas--unavailable,
 .amiga-canvas--unavailable:active {
     cursor: default;
+}
+
+/* D-15 — under forced-colors the UA drops `box-shadow`, and the inset hairline
+   above IS the stage boundary: without it the stage has no edge at all in the
+   one mode that most needs one. The boundary keeps its meaning through a
+   system-coloured outline, the same shape the house's `kf-focus-ring` forced-
+   colors arm takes. (The CANVAS ITSELF is exempt — a replaced element's pixels
+   are not re-coloured — so this is the whole of the scene's forced-colors
+   surface, which is why it is one rule.) */
+@media (forced-colors: active) {
+    .amiga-canvas {
+        box-shadow: none;
+        outline: 1px solid CanvasText;
+    }
 }
 </style>

@@ -148,6 +148,7 @@ export function useAmigaThree(
     // OrbitControls is still settling (controls.update() returns true) or the
     // scene reports itself live.
     let renderDirty = true;
+    let disposed = false;
     const failed = ref(false);
 
     /**
@@ -176,6 +177,7 @@ export function useAmigaThree(
 
     const buildRoom = () => {
         const canvas = canvasEl.value!;
+        disposed = false;
 
         scene = new THREE.Scene();
 
@@ -369,7 +371,13 @@ export function useAmigaThree(
         renderer = undefined;
     };
 
+    // L-i8 — `dispose` is BOTH auto-registered on scope dispose and exposed on
+    // the handle, so a consumer that calls it politely at unmount disposes the
+    // same GPU objects twice. Idempotent: the second call is a no-op, not a
+    // double-free of a released context.
     function dispose() {
+        if (disposed) return;
+        disposed = true;
         stop();
         disposeGraph();
     }
