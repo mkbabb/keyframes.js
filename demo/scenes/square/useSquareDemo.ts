@@ -25,8 +25,11 @@ interface SquareVars extends Vars {
         rotate?: number | string;
         a?: { b?: { c?: { d?: number | string } } };
     };
-    /** A CSS colour STRING only — the tumble sweep's `tumbleColorAt()` value,
-     *  written straight onto `el.style.backgroundColor` at `:161`. */
+    /** A CSS colour STRING only — the tour's authored stop or the tumble
+     *  sweep's sampled value. The renderer paints it onto the subject's own
+     *  `--subject-fill` custom property rather than `background-color`, because
+     *  the plate's two-tone material owns `background-image` and an opaque image
+     *  occludes the colour underneath it (C-1; CSS Backgrounds L3 §3.10). */
     backgroundColor?: string;
     tilt?: { x?: number; y?: number };
     squash?: { x?: number; y?: number };
@@ -189,7 +192,13 @@ export function useSquareDemo(
         if (squash) {
             el.style.setProperty("--spring-squash", `${(Math.abs(sx - 1) + Math.abs(sy - 1)).toFixed(4)}`);
         }
-        if (backgroundColor) el.style.backgroundColor = backgroundColor;
+        // C-1 — the colour lands on `--subject-fill`, which the plate's gradient,
+        // its base colour AND its derived ink all read. Writing
+        // `background-color` here painted under an opaque `background-image`:
+        // never once visible, for either writer.
+        if (backgroundColor) {
+            el.style.setProperty("--subject-fill", backgroundColor);
+        }
     };
 
     // ── EASTER EGG — "the Tumble palette-sweep" (H.W12.S6 + L.W11 S4) ─────────
@@ -201,19 +210,32 @@ export function useSquareDemo(
     // also EXHIBITS the engine's color twin. inv ζ — the light-surface
     // SpringProgress drives the spin, no hand-rolled rAF.
     //
-    // L.W11 S4 (the design-refinement egg) — the loved violet→green sweep is a
-    // PROVENANCE FIX, not a colour kill: the EGG_HUES no longer dangle as three
-    // raw hex literals (drift-prone against --subject-teal) — they are RESOLVED
-    // ONCE at mount from the demo's sanctioned `--rainbow-*` family (the same
-    // spectrum the demo paints everywhere else), so the tumble palette-sweep
-    // rides the named crayon tokens by construction (hue-exact, zero drift). The
-    // lerp math is untouched; the marker is `paletteSweep`/`sweepHue` so the
-    // design-refinement gate reads the NEW egg layer.
-    const { spin: springSpin, colorAt: tumbleColorAt, tumble } =
-        useSquareTumble(() => startLoop());
+    // L.W11 S4 (the design-refinement egg) — the loved violet→teal sweep is a
+    // PROVENANCE FIX, not a colour kill: the stops no longer dangle as three raw
+    // hex literals (drift-prone against --subject-teal) — they are RESOLVED AND
+    // PARSED ONCE at mount from the demo's sanctioned token family, and the
+    // terminal stop IS `--subject-teal`, so the landing is seamless by identity
+    // (L-11/C-5(b)). The marker is `data-palette-sweep` on the box so the
+    // design-refinement probe reads the egg layer.
+    const { spin: springSpin, colorAtSpin, tumble } = useSquareTumble(() =>
+        startLoop(),
+    );
 
     // ── The live paint loop (ticks both springs, paints via transformFunc) ──
     let lastNow = 0;
+    // L-22a — WHOEVER WROTE THE FILL OWNS THE CLEAR. The loop cleared the inline
+    // colour whenever the EGG's spin happened to be settled, which is not the
+    // same question as "who is painting": any drag after a paused, fill-forwards
+    // tour silently discarded the engine's own colour (masked until C-1 landed,
+    // because nothing was visible either way). The sweep now clears exactly what
+    // the sweep wrote, once, on its own settle.
+    let sweepPainted = false;
+    const sweepColor = (): { backgroundColor?: string } => {
+        const sampled = colorAtSpin();
+        if (sampled === undefined) return {};
+        sweepPainted = true;
+        return { backgroundColor: sampled };
+    };
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
         const dt = lastNow ? now - lastNow : 0;
@@ -264,14 +286,12 @@ export function useSquareDemo(
                 x: 1 + (xDominant ? sqMag : -sqMag),
                 y: 1 + (xDominant ? -sqMag : sqMag),
             },
-            // Sweep the palette WHILE the egg spin is live (keyed off the angle
-            // WITHIN the current turn, so it cycles each tumble); when the spin
-            // settles, clear the inline background so the box's CSS home colour
-            // (--subject-teal — the rainbow-green terminal stop, J.W7a D13)
-            // returns.
-            ...(spinning
-                ? { backgroundColor: tumbleColorAt(((((springSpin.value % 360) + 360) % 360) / 360)) }
-                : {}),
+            // Sweep the palette WHILE the egg spin is live. The sample is the
+            // sweep's own CLAMPED progress through this turn (L-11/C-5(a) — the
+            // wrapped angle snapped green↔violet on each of the six settle
+            // crossings), and it may decline to answer, in which case nothing is
+            // written this frame rather than a throw inside the rAF (D-27).
+            ...(spinning ? sweepColor() : {}),
         });
         // L.W11 S4 — mark the box with `data-palette-sweep` while the egg's
         // colour sweep is live, so the off-the-normal-path effect is observable
@@ -281,12 +301,15 @@ export function useSquareDemo(
             if (spinning) box.value.setAttribute("data-palette-sweep", "");
             else box.value.removeAttribute("data-palette-sweep");
         }
-        // The spin just settled this frame → restore the home colour (the CSS
-        // `--subject-teal` token wins once the inline override is removed —
-        // and the sweep's rainbow-green terminal stop IS that token's value, so
-        // the landing is seamless by construction, J.W7a D13).
-        if (springSpin.settled && box.value && box.value.style.backgroundColor) {
-            box.value.style.backgroundColor = "";
+        // The sweep just finished → hand the fill back to the stylesheet. The
+        // CSS `--subject-teal` default wins the moment the inline custom
+        // property is removed, and the sweep's terminal stop IS that token, so
+        // the landing is seamless by identity (L-11/C-5(b)). L-22a: only a fill
+        // THIS sweep wrote is cleared — an engine fill-forwards colour from a
+        // paused tour is not the egg's to discard.
+        if (!spinning && sweepPainted && box.value) {
+            box.value.style.removeProperty("--subject-fill");
+            sweepPainted = false;
         }
 
         // Self-terminate once every spring settles — re-armed by reseat()/tumble().
@@ -400,11 +423,33 @@ export function useSquareDemo(
     // the "0pxpx" discard was cured, because the box never left center. This is a
     // genuine diamond circuit: center → top-right → bottom → top-left → center,
     // a FULL 360° rotation, the nested `d` scale swelling on the corners, and a
-    // rainbow backgroundColor sweep across the sanctioned `--rainbow-*` family.
+    // rainbow backgroundColor sweep.
     // ±90px sits INSIDE the ±110px (TRAVEL) spring envelope so drag and playback
-    // share ONE coordinate world (the pose-capture takeover is seamless). Now
+    // share ONE coordinate world (the pose-capture takeover is seamless, in both
+    // directions now — see `tourTimeForPose`). Now
     // duration/easing/direction/fill/iterations VISIBLY govern the paint — the
     // panel triad edits a live animation, not a dead one (the T.B3 honest panel).
+    //
+    // MISS-5 — THE STOPS BELOW ARE AUTHORED FALLBACKS, AND THE COMMENT NO LONGER
+    // CLAIMS THEM AS TOKENS. The five hexes were introduced under a comment
+    // calling them "the sanctioned `--rainbow-*` family" while belonging to no
+    // member of it: `--rainbow-violet` is hsl(300 75% 60%) ≈ #E64DE6, not
+    // #C462D8, and no family member resolves to #5AC8FA or #3DD0C4 at all — the
+    // exact drift hazard this module's own sibling comment describes
+    // eliminating. `TOUR_PALETTE` below names the tokens; `resolveTourPalette()`
+    // seats their live values at mount, and each hex here is that token's own
+    // declared value so an unloaded stylesheet degrades hue-identically. This
+    // became visible paint the moment C-1 was cured.
+    /** The tour's five stops, as TOKEN NAMES beside the tokens' own declared
+     *  values — one row per authored keyframe, in keyframe order. */
+    const TOUR_PALETTE: ReadonlyArray<readonly [token: string, fallback: string]> = [
+        ["--rainbow-violet", "hsl(300 75% 60%)"],
+        ["--rainbow-blue", "hsl(210 80% 55%)"],
+        ["--rainbow-cyan", "hsl(180 80% 50%)"],
+        ["--rainbow-green", "hsl(130 70% 50%)"],
+        ["--rainbow-violet", "hsl(300 75% 60%)"],
+    ];
+
     const { CSSKeyframesAnimation } = kfEngine();
     const anim = new CSSKeyframesAnimation({
         duration: 2000,
@@ -414,27 +459,49 @@ export function useSquareDemo(
         {
             "0%": {
                 transform: { x: "0px", y: "0px", rotate: 0, a: { b: { c: { d: "100%" } } } },
-                backgroundColor: "#C462D8",
+                backgroundColor: TOUR_PALETTE[0]![1],
             },
             "25%": {
                 transform: { x: "90px", y: "-90px", rotate: 90, a: { b: { c: { d: "108%" } } } },
-                backgroundColor: "#5AC8FA",
+                backgroundColor: TOUR_PALETTE[1]![1],
             },
             "50%": {
                 transform: { x: "0px", y: "90px", rotate: 180, a: { b: { c: { d: "100%" } } } },
-                backgroundColor: "#3DD0C4",
+                backgroundColor: TOUR_PALETTE[2]![1],
             },
             "75%": {
                 transform: { x: "-90px", y: "-90px", rotate: 270, a: { b: { c: { d: "108%" } } } },
-                backgroundColor: "#52E898",
+                backgroundColor: TOUR_PALETTE[3]![1],
             },
             "100%": {
                 transform: { x: "0px", y: "0px", rotate: 360, a: { b: { c: { d: "100%" } } } },
-                backgroundColor: "#C462D8",
+                backgroundColor: TOUR_PALETTE[4]![1],
             },
         },
         transformFunc,
     );
+
+    /**
+     * MISS-5 — seat the tour's stops from the LIVE tokens (mount-time, DOM
+     * available), so the diamond genuinely rides the sanctioned family its own
+     * comment has always claimed. A token that resolves empty leaves the
+     * authored fallback — which is that token's declared value — in place.
+     */
+    const resolveTourPalette = (): void => {
+        const style = getComputedStyle(document.documentElement);
+        let moved = false;
+        anim.templateFrames.forEach((frame, index) => {
+            const row = TOUR_PALETTE[index];
+            if (!row) return;
+            const resolved = style.getPropertyValue(row[0]).trim();
+            const vars = frame.vars as SquareVars;
+            if (resolved && resolved !== vars.backgroundColor) {
+                vars.backgroundColor = resolved;
+                moved = true;
+            }
+        });
+        if (moved) anim.parse();
+    };
 
     /**
      * ARB-1 — THE REVERSE POSE-ADOPTION: which tour time is the box already at?
@@ -489,11 +556,16 @@ export function useSquareDemo(
         return clamp(bestT, 0, 1);
     };
 
-    // Paint the rest pose once on mount (the springs start at 0 → the box sits
-    // home, un-deflected, before any drag). Also resolve the palette-sweep stops
-    // from the live `--rainbow-*` tokens here (mount-time, DOM available) so the
-    // tumble egg rides the sanctioned crayon family by construction (L.W11 S4).
+    /**
+     * Paint the rest pose once on mount (the springs start at 0 → the box sits
+     * home, un-deflected, before any drag) AND seat the tour's stops from the
+     * live tokens. The comment here used to promise the second half and the code
+     * did only the first — the sweep's own resolution lives in `useSquareTumble`,
+     * and the tour's stops were resolved nowhere at all (MISS-5). Both halves
+     * are true of this function now.
+     */
     const paintRest = (): void => {
+        resolveTourPalette();
         transformFunc({
             transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },
             tilt: { x: 0, y: 0 },
@@ -503,10 +575,25 @@ export function useSquareDemo(
         onTick?.({ x: springX.value, y: springY.value, settled: true });
     };
 
+    /**
+     * MISS-10 — teardown hands the BORROWED element back as it found it. The
+     * composable wrote `transform`, two custom properties, the fill and a data
+     * attribute onto an element it does not own, and abandoned all of them —
+     * benign while the element dies with the scene, inherited by any KeepAlive
+     * or portal future. Each write above has its removal here.
+     */
     const dispose = (): void => {
         stopLoop();
         springX.dispose();
         springY.dispose();
+        const el = box.value;
+        if (el) {
+            el.style.removeProperty("transform");
+            el.style.removeProperty("--spring-tilt");
+            el.style.removeProperty("--spring-squash");
+            el.style.removeProperty("--subject-fill");
+            el.removeAttribute("data-palette-sweep");
+        }
     };
 
     // Self-clean on the host's setup scope tear-down (the SAME idiom the sibling

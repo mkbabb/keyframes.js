@@ -47,14 +47,27 @@
        L.W11 S4 — a two-tone material (a subtle top-down oklab gradient + an
        inset edge-light) reads the teal as a physical chip under the graph light,
        not a flat fill. The base --subject-teal token is the KEPT identity; the
-       gradient only adds depth (the keeper hue is untouched). */
-    background-color: var(--subject-teal);
+       gradient only adds depth (the keeper hue is untouched).
+
+       C-1 — THE COLOUR CHANNEL FINALLY PAINTS. The scene's whole value.js
+       colour half wrote `el.style.backgroundColor` and NOTHING ever showed it:
+       an opaque `background-image` paints over `background-color` (CSS
+       Backgrounds L3 §3.10), and no rule in the selector set reset the image.
+       Both writers landed dead — the tumble sweep (the entire reason
+       parseCssColor/mixColors/serializeCssColor are in this scene's graph) and
+       all five tour stops. The gradient now rides `--subject-fill`, ONE custom
+       property that defaults to the kept `--subject-teal` identity, and the
+       renderer sweeps THAT property: the image tracks the hue instead of hiding
+       it, and the derived ink tracks with it, so "drag me" keeps its AA
+       relationship to whatever the box is currently painted. */
+    --subject-fill: var(--subject-teal);
+    background-color: var(--subject-fill);
     background-image: linear-gradient(
         to bottom,
-        color-mix(in oklab, var(--subject-teal) 92%, white 8%),
-        var(--subject-teal)
+        color-mix(in oklab, var(--subject-fill) 92%, white 8%),
+        var(--subject-fill)
     );
-    color: color-mix(in oklab, var(--subject-teal) 25%, black);
+    color: color-mix(in oklab, var(--subject-fill) 25%, black);
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
         0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
