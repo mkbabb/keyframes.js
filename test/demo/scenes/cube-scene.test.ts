@@ -19,6 +19,9 @@ import { ref } from "vue";
 import type { TransformState } from "../../../demo/scenes/cube/orbital-drag";
 import {
     FACE_NORMALS,
+    GRAPH_ATTITUDE,
+    graphAttitudeCss,
+    rotateByAttitude,
     useCubeRelit,
 } from "../../../demo/scenes/cube/useCubeRelit";
 import {
@@ -52,7 +55,7 @@ describe("useCubeRelit — the orientation-coupled relight", () => {
     });
 
     it("at rest the light-facing front is brighter than the shadowed back", () => {
-        const { faceLit } = useCubeRelit(ref(restTransform()));
+        const { faceLit } = useCubeRelit(ref(restTransform()), GRAPH_ATTITUDE);
         const front = Number(faceLit.value[0]);
         const back = Number(faceLit.value[2]);
         // Key light has a +Z component → +Z face lit, −Z face sunk.
@@ -67,7 +70,7 @@ describe("useCubeRelit — the orientation-coupled relight", () => {
 
     it("faceLit re-lights reactively as the die turns", () => {
         const t = ref(restTransform({ x: 10.4, y: 20.6, z: -3.5 }));
-        const { faceLit } = useCubeRelit(t);
+        const { faceLit } = useCubeRelit(t, GRAPH_ATTITUDE);
         const before = faceLit.value[0];
         // Turn the die a quarter — the computed relights.
         t.value = restTransform({ x: 90, y: 0, z: 0 });
@@ -75,7 +78,7 @@ describe("useCubeRelit — the orientation-coupled relight", () => {
     });
 
     it("faceLit is quantized to 2 decimals (T.A5 — write-count reduction)", () => {
-        const { faceLit } = useCubeRelit(ref(restTransform()));
+        const { faceLit } = useCubeRelit(ref(restTransform()), GRAPH_ATTITUDE);
         for (const s of faceLit.value) {
             // toFixed(2) — at most two fractional digits (never three).
             expect(s).toMatch(/^\d(\.\d{1,2})?$/);

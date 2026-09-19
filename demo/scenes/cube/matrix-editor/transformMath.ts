@@ -1,5 +1,31 @@
-import type { CssCall, CssScalar, CssValue } from "@mkbabb/value.js/value";
+import type { CssCall, CssList, CssScalar, CssValue } from "@mkbabb/value.js/value";
 import { mat4 } from "gl-matrix";
+
+/* ── The cube scene's ONE set of structural CSS-value builders ──────────────
+   Every cube surface that authors a `transform` for the engine's COMPILE path
+   builds it here: `useCubeDemo`'s rotation + graph-attitude channels and
+   `CubeTarget`'s roll egg. Authoring a nested plain object instead (the shape
+   `{ transform: { rotateX, rotateY } }`) flattens to the dotted property names
+   `transform.rotateX` / `transform.rotateY`, which CSSOM's `setProperty`
+   discards without a throw — kf-CubeTarget #2, the Roll's dead paint. One
+   builder set, one supported property name. */
+
+export const numberValue = (value: number, unit = ""): CssScalar => ({
+    kind: "scalar",
+    payload: { type: "number", value, unit },
+});
+
+export const transformCall = (name: string, ...args: CssValue[]): CssCall => ({
+    kind: "call",
+    name,
+    args,
+});
+
+export const transformList = (...items: CssCall[]): CssList => ({
+    kind: "list",
+    separator: "space",
+    items,
+});
 
 export const MATRIX_AXES = ["x", "y", "z", "w"];
 

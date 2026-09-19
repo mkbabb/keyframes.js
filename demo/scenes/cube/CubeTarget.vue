@@ -9,15 +9,17 @@
             class="graph preserve-3d grid items-center justify-center justify-items-center"
         >
             <OrbitalDrag
+                ref="orbitalRef"
                 class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                 v-model="transform"
                 :apply-transform-to-container="props.isPlaying || props.isStarted"
                 @pressed-keys="onPressedKeys"
             >
                 <div
+                    ref="rollEl"
                     :class="[
                         'idle-hover preserve-3d',
-                        { playing: isPlaying },
+                        { playing: isPlaying, 'idle-hover--rolling': rolling },
                     ]"
                 >
                     <div
@@ -119,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { onScopeDispose, reactive, ref, useTemplateRef } from "vue";
+import { computed, onScopeDispose, reactive, ref, useTemplateRef } from "vue";
 import { Loader2 } from "@lucide/vue";
 import type { CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
@@ -127,7 +129,12 @@ import { useDoubleTap } from "@composables/useDoubleTap";
 import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
 import type { PressedKeys, TransformState } from "./orbital-drag";
 import CubeAxisLines from "./CubeAxisLines.vue";
-import { useCubeRelit } from "./useCubeRelit";
+import { GRAPH_ATTITUDE, useCubeRelit } from "./useCubeRelit";
+import {
+    numberValue,
+    transformCall,
+    transformList,
+} from "./matrix-editor/transformMath";
 
 const props = defineProps<{
     isPlaying: boolean;
@@ -140,6 +147,9 @@ const transform = defineModel<TransformState>("transform", { required: true });
 
 const cubeEl = useTemplateRef<HTMLElement>("cubeEl");
 const graphEl = useTemplateRef<HTMLElement>("graphEl");
+// The roll's OWN element (#6/#2's arbitration half): see the Roll block below.
+const rollEl = useTemplateRef<HTMLElement>("rollEl");
+const orbitalRef = useTemplateRef<InstanceType<typeof OrbitalDrag>>("orbitalRef");
 
 defineExpose({ cubeEl, graphEl });
 
@@ -178,7 +188,11 @@ const cubeSides = [
 // (per-face --lit) rides the LIVE transform model OrbitalDrag publishes per
 // rotation — reactive, NO second rAF (inv ζ); the crayon hue is untouched
 // (--lit is LUMINANCE only). Colocated unit.
-const { faceLit } = useCubeRelit(transform);
+// #4/#56 — the relight needs BOTH frames: the die's own Euler triple (the model)
+// and the attitude its `.graph` ancestor is parked at (the stage). The attitude
+// is single-sourced at `useCubeDemo`, which is also what animates `.graph` into
+// it, so the light and the stage can never drift apart.
+const { faceLit } = useCubeRelit(transform, GRAPH_ATTITUDE);
 
 // ── EASTER EGG — "the axis-lock reveal" (P.W5.S3) ─────────────────────────────
 // Hold X / Y / Z and OrbitalDrag CONSTRAINS the rotation to that single axis —
@@ -195,20 +209,50 @@ const onPressedKeys = (keys: PressedKeys) => {
 };
 
 // ── EASTER EGG — "the Roll" (H.W12.S6) ───────────────────────────────────────
-// Double-click M. Cubert → roll the die. The cube IS a six-faced die (1–6); the
-// egg DOGFOODS the engine `CSSKeyframesAnimation` (inv ζ) to spin the `.cube`
-// element itself a couple of full turns on TWO axes into a RANDOM face, on a
-// bouncy `easeOutBack` so the die overshoots and settles. It targets the `.cube`
-// (NOT the OrbitalDrag quaternion container), so the spin COMPOSES with whatever
-// orbit the user set — the faces tumble within the current viewing frame. A
-// transitionend-free, engine-owned tumble; the rolling flag suppresses re-rolls
-// mid-spin and stands the pointer down for the ~1s arc.
+// Double-tap M. Cubert → roll the die. The cube IS a six-faced die (1–6); the
+// egg DOGFOODS the engine `CSSKeyframesAnimation` (inv ζ) to spin the die a
+// couple of full turns on TWO axes into a RANDOM face, on a bouncy `easeOutBack`
+// so it overshoots and settles.
+//
+// kf-CubeTarget #1·#2·#5·#6 — THE ROLL STACK, repaired as ONE mechanism. Every
+// one of its four defects was invisible while any other stood:
+//
+//  · #1 THE TRIGGER. The recognizer listened on `.cube`, a DESCENDANT of the
+//    element OrbitalDrag takes pointer capture on. Once capture is set, every
+//    later event for that pointer is dispatched AT the capture element and
+//    propagates to its ANCESTORS — `.cube` is never on the path, so the second
+//    `pointerup` never arrived and `onRoll` was unreachable in every browser and
+//    every input modality. The tap is now recognized on the capture element
+//    itself (the drag surface OrbitalDrag exposes): the same surface the gesture
+//    is delivered to, which is also exactly the die's own interactive box. The
+//    sibling eggs never had this because `useDragScrub` captures on `el` itself.
+//  · #2 THE PAINT. The frames authored `transform` as a NESTED PLAIN OBJECT, so
+//    the compiler flattened them to the property names `transform.rotateX` /
+//    `transform.rotateY`; CSSOM's `setProperty` discards an unsupported name
+//    silently, so a real 1100 ms rAF loop wrote nothing for the whole arc. The
+//    frames are structural `CssValue` now — the scene's own house idiom, and one
+//    supported property name.
+//  · #5 CONTINUITY. Both frames were ABSOLUTE (`from: 0deg`), so roll n+1 opened
+//    with a 90°/180° jump-cut in five of six landings. The roll owns an
+//    accumulated attitude and its frames are measured FORWARD from it.
+//  · #6 ARBITRATION. It claimed `.cube` — which the scene's AnimationGroup and
+//    the matrix painter already own — so "it COMPOSES with whatever orbit the
+//    user set" was true of the orbit and false of everything else, and the first
+//    post-roll model change obliterated the rolled pose. The roll now owns its
+//    OWN element (`.idle-hover`, between the orbit container and the die), which
+//    has no other transform writer. One authority per element: the container
+//    orbits, `.idle-hover` rolls, `.cube` takes the group or the painter (never
+//    both — they are mutually exclusive on `isGroupStarted`).
 const rolling = ref(false);
 let rollAnim: CSSKeyframesAnimation<Vars> | undefined;
 
-// The six face-up orientations of the `.cube` (degrees). Spinning the cube to
-// these shows faces 1–6 toward the viewer (the faces sit at ±translateZ off the
-// cube center, so a whole-cube rotate re-presents them).
+// The roll's accumulated attitude on its own element (degrees). This IS the
+// "resting on its rolled face" the egg promises: the next roll opens here.
+const rollAttitude = { x: 0, y: 0 };
+
+// The six face-up orientations of the die (degrees). Spinning to these shows
+// faces 1–6 toward the viewer (the faces sit at ±translateZ off the centre, so
+// a whole-die rotate re-presents them).
 const ROLL_FACES: ReadonlyArray<{ x: number; y: number }> = [
     { x: 0, y: 0 },     // 1 — front
     { x: 0, y: -90 },   // 2 — right
@@ -218,46 +262,71 @@ const ROLL_FACES: ReadonlyArray<{ x: number; y: number }> = [
     { x: 90, y: 0 },    // 6 — bottom
 ];
 
+/** The next absolute attitude showing `faceDeg` to the viewer, reached by
+ *  turning FORWARD from `from` through `turns` whole revolutions. Always
+ *  ≥ `from`, so the arc never cuts backwards (#5). */
+const nextRollAttitude = (
+    from: number,
+    faceDeg: number,
+    turns: number,
+): number => from + ((((faceDeg - from) % 360) + 360) % 360) + turns * 360;
+
+const rollTransform = (x: number, y: number) =>
+    transformList(
+        transformCall("rotateX", numberValue(x, "deg")),
+        transformCall("rotateY", numberValue(y, "deg")),
+    );
+
 const onRoll = async () => {
-    if (rolling.value || !cubeEl.value) return;
+    if (rolling.value || !rollEl.value) return;
     rolling.value = true;
 
-    const face = ROLL_FACES[Math.floor(Math.random() * ROLL_FACES.length)]!;
-    // 1–2 extra whole turns per axis for the tumble drama, landing on the face.
-    const endX = face.x + (1 + Math.floor(Math.random() * 2)) * 360;
-    const endY = face.y + (1 + Math.floor(Math.random() * 2)) * 360;
+    try {
+        const face = ROLL_FACES[Math.floor(Math.random() * ROLL_FACES.length)]!;
+        // 1–2 extra whole turns per axis for the tumble drama, landing on the face.
+        const endX = nextRollAttitude(rollAttitude.x, face.x, 1 + Math.floor(Math.random() * 2));
+        const endY = nextRollAttitude(rollAttitude.y, face.y, 1 + Math.floor(Math.random() * 2));
 
-    const { CSSKeyframesAnimation } = await loadAnimationEngine();
-    if (!cubeEl.value) {
+        const { CSSKeyframesAnimation } = await loadAnimationEngine();
+        if (!rollEl.value) return;
+
+        rollAnim?.stop();
+        rollAnim = new CSSKeyframesAnimation({
+            duration: 1100,
+            iterationCount: 1,
+            fillMode: "forwards",
+            // The bounce-overshoot is the die settling onto its face.
+            timingFunction: "ease-out-back",
+        }).fromKeyframes({
+            from: { transform: rollTransform(rollAttitude.x, rollAttitude.y) },
+            to: { transform: rollTransform(endX, endY) },
+        });
+        rollAnim.setTargets(rollEl.value);
+        // #20 — the release rides the arc's OWN completion (`play()` resolves when
+        // the animation settles or is stopped), not a hand-tuned 1200 ms timer that
+        // outlived the motion and survived a throw. `finally` frees the gesture
+        // lock on every exit, so a failed engine load can no longer strand the die
+        // pointer-dead.
+        await rollAnim.play();
+        rollAttitude.x = endX;
+        rollAttitude.y = endY;
+    } finally {
         rolling.value = false;
-        return;
     }
-
-    rollAnim?.stop();
-    rollAnim = new CSSKeyframesAnimation({
-        duration: 1100,
-        iterationCount: 1,
-        fillMode: "forwards",
-        // The bounce-overshoot is the die settling onto its face.
-        timingFunction: "ease-out-back",
-    }).fromKeyframes(
-        {
-            from: { transform: { rotateX: "0deg", rotateY: "0deg" } },
-            to: { transform: { rotateX: `${endX}deg`, rotateY: `${endY}deg` } },
-        },
-    );
-    rollAnim.setTargets(cubeEl.value);
-    rollAnim.play();
-    // Release the gesture lock after the arc; the fillMode:forwards leaves the
-    // die resting on its rolled face (the next drag/animation re-bases as usual).
-    setTimeout(() => { rolling.value = false; }, 1200);
 };
 
-// S.G3 S2 — the Roll is a POINTER-based double-tap now (touch parity; the former
+// S.G3 S2 — the Roll is a POINTER-based double-tap (touch parity; the former
 // `@dblclick` was mouse-only). Drag-disjoint: an orbit drag never triggers it, so
-// the die-roll egg and the orbital drag coexist on the same cube.
+// the die-roll egg and the orbital drag coexist on the same surface.
+//
+// #1 — the surface is OrbitalDrag's CAPTURE element, not `.cube`. See the Roll
+// block above: a descendant of the capture element is not on the dispatch path.
+const dragSurfaceEl = computed<HTMLElement | null>(
+    () => orbitalRef.value?.containerRef ?? null,
+);
+
 useDoubleTap({
-    el: cubeEl,
+    el: dragSurfaceEl,
     onDoubleTap: () => {
         void onRoll();
     },

@@ -1,16 +1,17 @@
 import { markRaw, shallowRef, watch } from "vue";
 import type { Ref } from "vue";
-import type {
-    CssCall,
-    CssList,
-    CssScalar,
-    CssValue,
-} from "@mkbabb/value.js/value";
 import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";
-import { cssVariable, type Matrix3dCall } from "./matrix-editor/transformMath";
+import {
+    cssVariable,
+    numberValue,
+    transformCall,
+    transformList,
+    type Matrix3dCall,
+} from "./matrix-editor/transformMath";
+import { GRAPH_ATTITUDE, graphAttitudeCss } from "./useCubeRelit";
 
 // T.B9 — the ONE keyspace: the store key (and each `animation.superKey` field) is
 // the registry SceneId, single-sourced from `cubeKeys.ts`. This re-export keeps
@@ -22,23 +23,6 @@ export const CUBE_ANIMATION_NAMES = {
     Rotations: "Rotations",
     Hover: "Hover",
 } as const;
-
-const numberValue = (value: number, unit = ""): CssScalar => ({
-    kind: "scalar",
-    payload: { type: "number", value, unit },
-});
-
-const transformCall = (name: string, ...args: CssValue[]): CssCall => ({
-    kind: "call",
-    name,
-    args,
-});
-
-const transformList = (...items: CssCall[]): CssList => ({
-    kind: "list",
-    separator: "space",
-    items,
-});
 
 export function useCubeDemo(
     matrix3dStart: Ref<Matrix3dCall>,
@@ -143,10 +127,10 @@ export function useCubeDemo(
         {
             transform: transformCall(
                 "rotate3d",
-                numberValue(-1),
-                numberValue(1),
-                numberValue(0),
-                numberValue(30, "deg"),
+                numberValue(GRAPH_ATTITUDE.axis[0]),
+                numberValue(GRAPH_ATTITUDE.axis[1]),
+                numberValue(GRAPH_ATTITUDE.axis[2]),
+                numberValue(GRAPH_ATTITUDE.angleDeg, "deg"),
             ),
         },
     ]);
@@ -157,13 +141,13 @@ export function useCubeDemo(
         hoverAnim.value.setTargets(cubeEl);
         changeGraphPerspectiveAnim.setTargets(graphEl);
         // T.A3 — PRM snaps to the opening attitude: under reduced-motion the graph
-        // jumps straight to rotate3d(-1,1,0,30deg) with NO eased intro sweep (the
-        // house reduced-motion contract). Otherwise the ease-out-back settle plays.
+        // jumps straight to GRAPH_ATTITUDE with NO eased intro sweep (the house
+        // reduced-motion contract). Otherwise the ease-out-back settle plays.
         const prefersReduced =
             typeof window !== "undefined" &&
             window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
         if (prefersReduced) {
-            graphEl.style.transform = "rotate3d(-1, 1, 0, 30deg)";
+            graphEl.style.transform = graphAttitudeCss();
         } else {
             changeGraphPerspectiveAnim.play();
         }

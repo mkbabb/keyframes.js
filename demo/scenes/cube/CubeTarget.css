@@ -55,6 +55,15 @@
     pointer-events: none;
 }
 
+/* kf-CubeTarget #6 — the roll's OWN element. The tumble is written to
+   `.idle-hover`, which nothing else transforms, so it COMPOSES with the orbit
+   above it and with the group/matrix painter below it instead of racing them on
+   one element. G5's transient-promotion discipline rides with it: the element
+   that actually moves carries the hint, and only while it moves. */
+.idle-hover--rolling {
+    will-change: transform;
+}
+
 /* T.G3 — THE CUBE RESTS AT IDLE (VERDICT #19: "the performance on every single
    page is god awful"). The former always-on `idle-bob` (a 3s infinite `translateY`
    float) could NOT be composited: it lived on the `preserve-3d` `.idle-hover`, and

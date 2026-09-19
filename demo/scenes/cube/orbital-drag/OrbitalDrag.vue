@@ -295,6 +295,16 @@ onUnmounted(() => {
     inertia.pause();
 });
 
+// kf-CubeTarget #1 — THE CAPTURE SURFACE, published. `onPointerDown` takes
+// pointer capture on `containerRef`, and Pointer Events dispatches every later
+// event for that pointer AT the capture element (propagating to its ANCESTORS).
+// A consumer that recognizes its own gesture on a DESCENDANT of this element —
+// the cube's double-tap-to-roll did, on `.cube` — never sees a `pointermove` or
+// a `pointerup` again once a drag begins. Publishing the surface lets a consumer
+// listen where the events are actually delivered, instead of the component
+// silently swallowing them.
+defineExpose({ containerRef });
+
 // The reverse path (external Euler → quaternion). The forward path writes
 // `model.value.rotate` as EXACTLY `quaternionToEulerDegrees(currentQuaternion)`,
 // so an echo of our own write is byte-identical to the quaternion's current
