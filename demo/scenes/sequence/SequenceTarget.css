@@ -206,14 +206,11 @@
     background: var(--ball-tone);
     transform: translate(-50%, -50%) scaleY(1.12);
 }
-/* S.G3 S3 — the canonical keyboard focus ring on the row slider (painted in the
-   handle's own scoped rule so the `class="seq-handle"` source contract the
-   proof:sequence-rows-draggable static clause reads stays exact). */
-.seq-handle:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring-shadow);
-    border-radius: var(--radius-sm, 0.375rem);
-}
+/* The row slider's keyboard focus ring is the demo's ONE affordance,
+   `.kf-focus-ring` (design-idioms.css) — worn on the handle in the template. The
+   local re-authoring that stood here was justified by a `proof:` static clause
+   that exists nowhere on disk, and it forked the ring OUT of the forced-colors
+   provision the shared contract carries (kf-SequenceTarget ST-1). */
 .seq-handle:active {
     cursor: grabbing;
 }

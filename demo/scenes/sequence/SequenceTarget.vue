@@ -126,7 +126,7 @@
                                      the editable [0, STAGGER_MAX] domain, and it
                                      announces the canonical unit (N-14's rider). -->
                                 <div
-                                    class="seq-handle"
+                                    class="seq-handle kf-focus-ring"
                                     :style="{ left: `calc(${(row.at / demo.duration.value) * 100}%)` }"
                                     role="slider"
                                     :aria-label="`Re-time row ${row.index + 1} start offset`"
