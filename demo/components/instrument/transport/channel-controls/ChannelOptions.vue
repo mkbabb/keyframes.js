@@ -2,7 +2,17 @@
     <div class="grid items-center gap-4">
         <Card cartoon tier="quiet" class="w-full overflow-visible">
             <CardContent class="relative flex flex-col gap-2 px-4 py-3">
-                <!-- Sliding panel container — each panel in its own collapsible row -->
+                <!-- Sliding panel container — each panel in its own collapsible row.
+                     KF-CO-5 ≡ KF-TFP-7 + KF-CO-46 — a COLLAPSED row is `inert`:
+                     `grid-template-rows: 0fr` + `overflow: hidden` + `opacity: 0`
+                     hide it from sight and the pointer, but every control inside
+                     stayed in the Tab order and the accessibility tree, so a
+                     keyboard user tabbed through invisible inputs and a reader
+                     announced the collapsed panel's fields as live. The
+                     attribute removes the row's subtree from focus, hit-testing
+                     and the tree in one stroke. Residual, stated: `inert` also
+                     excludes the subtree from find-in-page — the two collapsed
+                     rows are not searchable while closed. -->
                 <div class="panel-stack relative">
                     <!-- Main controls panel -->
                     <div
@@ -12,6 +22,7 @@
                                 ? 'panel-row--active'
                                 : 'panel-row--inactive',
                         ]"
+                        :inert="showDetailPanel || advancedOpen"
                     >
                         <div class="panel-content flex w-full flex-col gap-2">
                             <!-- H.W11.I1 — the label rows share ONE uniform label
@@ -286,16 +297,11 @@
                                              host is ChromeDock), so the rule's second `:not()` does
                                              not exclude it either. Rendered boxes → SS-13. -->
                                         <DockControl
+                                            ref="pencilEl"
                                             shape="icon"
                                             title="Edit easing curve"
                                             class="easing-edit-btn"
-                                            @click.stop="
-                                                onEditIconClick(
-                                                    storedAnimationOptions
-                                                        .animationOptions
-                                                        .timingFunction as string,
-                                                )
-                                            "
+                                            @click.stop="openDetailEditor"
                                         >
                                             <Pencil class="icon-sm" />
                                         </DockControl>
@@ -425,11 +431,12 @@
 
                             <!-- Advanced — navigate to sub-pane -->
                             <div
-                                @click="advancedOpen = true"
+                                ref="advancedRowEl"
+                                @click="openAdvanced"
                                 role="button"
                                 tabindex="0"
-                                @keydown.enter="advancedOpen = true"
-                                @keydown.space.prevent="advancedOpen = true"
+                                @keydown.enter="openAdvanced"
+                                @keydown.space.prevent="openAdvanced"
                                 class="hover:text-foreground
                                     text-muted-foreground flex w-full
                                     cursor-pointer items-center justify-between
@@ -464,6 +471,7 @@
                                 ? 'panel-row--active'
                                 : 'panel-row--inactive',
                         ]"
+                        :inert="!showDetailPanel"
                     >
                         <div class="panel-content">
                             <!-- KF-CO-16 — the panel mounts only while shown.
@@ -475,11 +483,12 @@
                                  so nothing is lost across a close. -->
                             <TimingFunctionPanel
                                 v-if="showDetailPanel"
+                                ref="detailPanelEl"
                                 :stored-animation-options="
                                     storedAnimationOptions
                                 "
                                 :converted-from="convertedFromName"
-                                @exit-detail-panel="exitDetailPanel"
+                                @exit-detail-panel="closeDetailEditor"
                                 @update-timing-function="
                                     updateTimingFunctionFromName
                                 "
@@ -495,15 +504,17 @@
                                 ? 'panel-row--active'
                                 : 'panel-row--inactive',
                         ]"
+                        :inert="!(advancedOpen && !showDetailPanel)"
                     >
                         <div class="panel-content flex w-full flex-col gap-2">
                             <div class="mb-1 flex items-center gap-1">
                                 <DockControl
+                                    ref="advancedBackEl"
                                     shape="icon"
                                     compact
                                     title="Back"
                                     class="text-muted-foreground"
-                                    @click="advancedOpen = false"
+                                    @click="closeAdvanced"
                                 >
                                     <ArrowLeft class="icon-md" />
                                 </DockControl>
@@ -607,7 +618,7 @@ import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 // deleted EasingSelect consumed; the easing scene co-owns it).
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 
-import { Teleport, onMounted, ref, toRef } from "vue";
+import { Teleport, nextTick, onMounted, ref, toRef, useTemplateRef } from "vue";
 import { getStoredAnimationOptions } from "@state";
 import { kfEngine } from "@kf-engine";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
@@ -682,6 +693,42 @@ const isOneOf = <const T extends readonly string[]>(
     list: T,
     value: string,
 ): value is T[number] => (list as readonly string[]).includes(value);
+
+// ── KF-CO-46 — focus follows the row transition ──────────────────────────────
+// Each row swap is a navigation: the control that OPENED a pane is inert once
+// the pane is up (its row collapsed), so focus is carried INTO the pane's Back
+// control, and carried back OUT to the opener on close — else the browser
+// drops focus to `<body>` and a keyboard user restarts from the top of the
+// document. The component-ref roots (`$el`) are the producer's own buttons.
+const pencilEl = useTemplateRef<InstanceType<typeof DockControl>>("pencilEl");
+const detailPanelEl =
+    useTemplateRef<InstanceType<typeof TimingFunctionPanel>>("detailPanelEl");
+const advancedRowEl = useTemplateRef<HTMLElement>("advancedRowEl");
+const advancedBackEl =
+    useTemplateRef<InstanceType<typeof DockControl>>("advancedBackEl");
+
+const openDetailEditor = async () => {
+    const stored = storedAnimationOptions.animationOptions.timingFunction;
+    if (typeof stored !== "string") return;
+    onEditIconClick(stored);
+    await nextTick();
+    detailPanelEl.value?.focusBack();
+};
+const closeDetailEditor = async () => {
+    exitDetailPanel();
+    await nextTick();
+    pencilEl.value?.$el.focus();
+};
+const openAdvanced = async () => {
+    advancedOpen.value = true;
+    await nextTick();
+    advancedBackEl.value?.$el.focus();
+};
+const closeAdvanced = async () => {
+    advancedOpen.value = false;
+    await nextTick();
+    advancedRowEl.value?.focus();
+};
 
 // Exclusive select mutex: only one dropdown open at a time
 const openSelect = ref<string | null>(null);

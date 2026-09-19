@@ -42,7 +42,7 @@
             v-else
             class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
         >
-            <div ref="tabsContentEl" class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
+            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
                 <!-- THE CONTROL SURFACES. Each is a plain div gated on the active
                      surface (`selectedControlSurface`) under the SAME DFA gate (a
                      scene whose valid set omits a surface mounts NO pane — the
@@ -326,7 +326,6 @@ const emit = defineEmits<{
 
 const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringControls>>("keyframesControlsRef");
 const timelineRef = useTemplateRef<InstanceType<typeof KeyframeTimeline>>("timelineRef");
-const tabsContentEl = useTemplateRef<HTMLElement>("tabsContentEl");
 
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,

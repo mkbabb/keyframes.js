@@ -28,6 +28,7 @@
                     }}
                 </p>
                 <Button
+                    ref="backEl"
                     emphasis="quiet"
                     icon-only
                     class="h-auto p-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -73,7 +74,7 @@ import {
     type JumpTerm,
 } from "@mkbabb/glass-ui/easing";
 
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { ArrowLeft } from "@lucide/vue";
 
 const props = defineProps<{
@@ -87,6 +88,15 @@ const emit = defineEmits<{
     (e: "exitDetailPanel"): void;
     (e: "updateTimingFunction", key: TimingFunctionNames | "cubic-bezier" | string): void;
 }>();
+
+// KF-CO-46 — the host carries focus INTO this pane when it opens (the pencil
+// that opened it is inert once its row collapses); the Back control is the
+// pane's first and only navigation affordance, so it is the landing.
+const backEl = useTemplateRef<InstanceType<typeof Button>>("backEl");
+const focusBack = () => {
+    backEl.value?.$el.focus();
+};
+defineExpose({ focusBack });
 
 // I.W2.S3 — the stored value is a re-parseable LITERAL; the panel keys its
 // cubic-bezier-vs-steps view off the KIND (literal-aware).
