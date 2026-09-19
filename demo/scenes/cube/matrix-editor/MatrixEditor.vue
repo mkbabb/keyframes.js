@@ -27,7 +27,7 @@
                                     : '',
                             ]
                         "
-                        :title="String((value as MatrixScalar).payload.value)"
+                        :title="matrixCellEditText((value as MatrixScalar).payload.value)"
                         :model-value="cellText(value as MatrixScalar, i)"
                         @update:model-value="(v) => updateMatrixCell(v, i)"
                         :start="matrixCellMeta[i]!.sliderOptions.bounds[0]"
@@ -95,6 +95,10 @@
 import { ref } from "vue";
 import { Slider, Card, CardContent } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
+import {
+    matrixCellDisplayText,
+    matrixCellEditText,
+} from "./transformMath";
 import type { Matrix3dCall, MatrixCellMeta, MatrixScalar } from "./transformMath";
 import {
     getStoredAnimationGroupControlOptions,
@@ -154,17 +158,19 @@ const updateMatrixCell = (to: number | string, ix: number) => {
  *   · EDIT (focused): the cell's FULL stored precision, so an edit opens on the
  *     true value and a committed-unchanged field round-trips exactly.
  *
+ * Both live in `transformMath` beside the values they format — one readable
+ * pair, gate-reachable without mounting a glass-ui subtree.
+ *
  * The `title` beside it carries the full value in BOTH states — ME-43's
  * recovery affordance, for a fixed ~56 px cell that can hold `-1000`
  * (`transformMath`'s translate bounds) and had no way to show what it clipped.
  */
 const editingCell = ref<number | null>(null);
 
-const cellText = (cell: MatrixScalar, index: number): string => {
-    const value = cell.payload.value;
-    if (editingCell.value === index) return String(value);
-    return (Math.round(value * 100) / 100).toFixed(2).replace(/\.0*$/, "");
-};
+const cellText = (cell: MatrixScalar, index: number): string =>
+    editingCell.value === index
+        ? matrixCellEditText(cell.payload.value)
+        : matrixCellDisplayText(cell.payload.value);
 
 const matrixCellValue = (index: number): number => {
     const cell = props.matrix3dEnd.args[index];

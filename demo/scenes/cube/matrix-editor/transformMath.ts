@@ -198,6 +198,24 @@ export const withMatrixCell = (
 export const matrix3dCss = (matrix: Matrix3dCall): string =>
     `matrix3d(${matrixValues(matrix).join(", ")})`;
 
+/* ── ME-42/ME-11 — THE DIGIT POLICY, stated for BOTH representations ────────
+   The matrix field has no model behind it: its rendered text IS its editable
+   state, and the commit re-parses whatever that text became. A single 2-dp
+   formatter therefore governed the DISPLAY and the WRITE path at once, so
+   touching a cell holding `0.7071067811865476` silently re-committed a value
+   derived from `"0.71"`. The two representations are named separately here, in
+   the module that owns matrix values, so the policy is one readable pair rather
+   than an expression inlined in a template. */
+
+/** At rest: two decimals, the tabular column the 4×4 lattice reads as a grid. */
+export const matrixCellDisplayText = (value: number): string =>
+    (Math.round(value * 100) / 100).toFixed(2).replace(/\.0*$/, "");
+
+/** While edited (and in the cell's `title`): the cell's FULL stored precision,
+ *  so an edit opens on the true value and a committed-unchanged field
+ *  round-trips exactly. */
+export const matrixCellEditText = (value: number): string => String(value);
+
 export const cssVariable = (name: string): CssCall => ({
     kind: "call",
     name: "var",
