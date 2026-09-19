@@ -39,8 +39,19 @@
              this is the card's only editable control; `aria-label` is the
              minimum honest cure and the group above supplies which keyframe it
              belongs to. -->
+        <!-- KC-25 ≡ KF-KC-28 ≡ KF-KE-41 ≡ KF-KE-22's `sticky` half (X.KF.W12.c) —
+             the field is NOT positioned and claims NO z rung. It wore
+             `sticky top-0 z-modal`: a `sticky` whose travel was provably ZERO (a
+             grid item's containing block is its grid area, and this
+             single-column auto row equals the Input's own height), which
+             existed only to make the element positioned so that `z-modal` — the
+             demo's documented TOP rung, 140, reserved for modals — could apply
+             to a per-card text field. The pair was one edit, and it is spent:
+             a dead `sticky` and a contract-breaching rung both gone, so the
+             field paints in flow like the control it is and the z-contract
+             (`style.css` §"stacking order") has no per-card exception. -->
         <Input
-            class="sticky z-modal top-0 text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight m-0"
+            class="text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight m-0"
             aria-label="Offset"
             :model-value="frameStart"
             @update:model-value="(val) => emit('updateStart', String(val))"
@@ -48,59 +59,45 @@
         </Input>
 
         <div class="relative">
+            <!-- KF-KE-5 (BLOCKER) + KF-KC-22 (X.KF.W12.c) — THE ACTION CLUSTER IS
+                 PAINTED ABOVE THE CODE PLATE, AND ONLY ITS CONTROLS TAKE THE
+                 POINTER.
+                 WHAT WAS THERE: this cluster was an `absolute` box with NO z rung
+                 and the `<pre>` below it was a LATER sibling whose class list
+                 ended `relative` — two z-auto positioned boxes in one stacking
+                 context, which CSS 2.2 App. E step 8 paints in TREE ORDER. The
+                 plate came later, so it painted OVER the delete control and the
+                 per-card copy control, and hit-testing follows paint: the
+                 `<pre>` (never `pointer-events: none`) ate every click. Both
+                 affordances were invisible and pointer-unreachable once the
+                 theme injected — a functional kill, audited four times without
+                 anyone noticing, and the file's own comment described the
+                 mechanism while calling it uncured.
+                 WHAT IS THERE: the cluster carries `z-content`, the demo's
+                 content-plane rung (`--z-content: 10`, the producer's scale as
+                 `style.css` documents it), so it paints above the z-auto plate
+                 by declaration rather than by tree order; and the `<pre>` is no
+                 longer positioned at all — the `relative` it wore positioned
+                 nothing (it has no absolutely-placed descendants) and served
+                 only to enter the paint step that occluded the cluster.
+                 The OVERLAY BOX itself is `pointer-events-none` (KF-KC-22): it is
+                 far larger than the two controls, and as a positioned box over
+                 the in-flow plate its whole area swallowed caret placement into
+                 a handler-less `<div>`. Only the control row below re-enables
+                 pointer events, so a click lands on a control or falls through
+                 to the editing host — never on the overlay's margin. The
+                 identity readout further down stays `pointer-events-none`
+                 (KC-12's behavioural half, DECLINED by `.a` with reason: a
+                 selectable watermark would give this overlay back the pointer
+                 surface this row takes from it).
+                 D-4's shell (KC-3's producer `Button`) and the annotation's
+                 contrast against `--card` are LIVE questions again now that the
+                 cluster can be seen and hit; the 44px touch-floor question
+                 (KF-KE-45 / KF-CB-25) is a RENDERED one — SS-13's. -->
             <div
-                class="absolute top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
+                class="pointer-events-none absolute z-content top-2 right-4 grid gap-1 items-center justify-center justify-items-center"
             >
-                <!-- KF-KE-45 (W6-M) — RE-STATED AT THE BYTES X.KF.W12.a LEAVES,
-                     because a comment that describes a surface that has moved is
-                     part of the defect surface (KF-CE-41). Its dead-utility half
-                     (`.tap-floor`, zero adopters) folded to banked KF-CB-25 and
-                     is rostered there.
-                     WHAT CHANGED: the pair is no longer a 24px bare `<X>` flush
-                     against the copy control. KC-3's promotion made the
-                     destructive affordance a producer `Button` (`size="sm"`,
-                     `icon-only`, `tone="destructive"`) and KC-23's demo half put
-                     a `gap-1` between the two, so the row now carries real
-                     control boxes with an interval. What SURVIVES of this row is
-                     only the measured question against the 44px floor, and it is
-                     a RENDERED one — SS-13's, not a blind seat's.
-                     WHAT HAS NOT CHANGED: the row's own precondition. KF-KE-5 is
-                     UNCURED at these bytes, measured, not assumed: this cluster
-                     is still `absolute top-2 right-4` with no z rung, the `<pre>`
-                     below is still a later z-auto sibling in the same stacking
-                     context whose class list still ends `relative`, so CSS 2.2
-                     App. E step 8 paints the plate OVER the cluster and
-                     hit-testing follows paint. Sizing a control that cannot be
-                     hit is a cure measured against a state no user can reach.
-                     The un-occlusion is KFED-UNIT's (`.c`: a z rung here, or
-                     dropping the `<pre>`'s `relative`) and it carries this file's
-                     `:38-47` comment limb with it; this row lands with that, not
-                     before. -->
-                <!-- KF-KC-22 (MAJOR, MEASURED HERE, NOT SPENT HERE) — this
-                     overlay container carries no `pointer-events-none`; only the
-                     identity block below does. It is a positioned sibling
-                     painting over the in-flow `<pre>`, so its whole box — far
-                     larger than the two controls — swallows caret placement into
-                     a handler-less `<div>`. The cure is one level up from the
-                     guard that exists (`pointer-events-none` here,
-                     `pointer-events-auto` on the control row), and it is the same
-                     stacking/hit-testing decision as KF-KE-5 on the same bytes:
-                     it belongs to the seat that takes that decision, `.c`, not to
-                     this unit's a11y-and-ref-contract carve. -->
-                <!-- KC-12's behavioural half — the identity readout being
-                     unselectable — is DECLINED WITH REASON rather than carried:
-                     making the watermark selectable means giving this overlay
-                     back the pointer events KF-KC-22 condemns it for having. One
-                     of the two is wrong, and it is not the caret. -->
-                <!-- KC-25 / KF-KC-28 — the offset field claims `z-modal` (140),
-                     the demo's documented top rung, and wears a `sticky top-0`
-                     whose travel is provably ZERO (a grid item's containing block
-                     is its grid area; the single-column auto row equals the
-                     Input's own height). The dead `sticky` is what makes the
-                     element positioned so the rung applies at all, so the two are
-                     ONE edit — and it is a z-rung edit on this file, which §B.2
-                     hands to `.c`. Measured here, named for that seat. -->
-                <div class="flex gap-1">
+                <div class="pointer-events-auto flex gap-1">
                     <!-- KC-3 ≡ KF-KC-2 ≡ KF-CB-11 — THE DESTRUCTIVE CONTROL IS A
                          CONTROL. It was a bare Lucide `<svg>` carrying a click
                          listener: no tab stop, no role, no accessible name, no
@@ -179,7 +176,7 @@
                      spec and stay NO-WAVE-OWNER — this row is the conformance
                      half and does not annex the behavioural one. -->
                 <div
-                    class="italic text-muted-foreground z-0 pointer-events-none grid gap-1"
+                    class="italic text-muted-foreground pointer-events-none grid gap-1"
                 >
                     <span
                         class="text-mono-small font-light leading-none tabular-nums"
@@ -209,16 +206,19 @@
                  driver replaces wholesale (`el.innerHTML = …`): every paint
                  detached the element Vue's vnode still pointed at. The
                  divergence was masked only by the projection blank that
-                 unmounted the whole list each cycle (KF-KE-25 — `.c`'s row);
+                 unmounted the whole list each cycle (KF-KE-25 — `.e`'s row);
                  with the cards kept mounted it would surface as Vue patching
                  text into a node no longer in the document. So the model's text
                  reaches the host through the driver's own seam below, and the
                  driver owns every node inside it. -->
+            <!-- The plate's containing block is the wrapper `<div>` above, which
+                 the cluster is positioned against; the plate itself is in flow
+                 and unpositioned (KF-KE-5, above). -->
             <pre
                 ref="preEl"
                 @input="(e) => emit('updateCSS', (e.target as HTMLElement).innerText)"
                 @keydown="(e) => emit('keydown', e)"
-                class="kf-focus-ring kf-text-entry text-mono-small hljs css p-2 min-h-32 cursor-text rounded-lg bg-transparent outline-none border-none relative"
+                class="kf-focus-ring kf-text-entry text-mono-small hljs css p-2 min-h-32 cursor-text rounded-lg bg-transparent outline-none border-none"
                 contenteditable="true"
                 role="textbox"
                 aria-multiline="true"
