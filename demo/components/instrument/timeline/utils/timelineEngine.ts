@@ -1,5 +1,8 @@
-import { camelCaseToHyphen } from "@src/animation/internal/helpers";
-import { hyphenToCamelCase } from "@utils/helpers";
+import {
+    camelCaseToHyphen,
+    hyphenToCamelCase,
+    serializeCssValue,
+} from "@utils/helpers";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import type {
     CSSKeyframesAnimation,
@@ -13,7 +16,6 @@ import {
     requireKeyframeSelector,
     selectorPercent,
 } from "@utils/keyframeSelector";
-import { serializeCssValue } from "@src/animation/compile/emit/css-text";
 import type { CssValue } from "@mkbabb/value.js/value";
 import { formatEditorCSS } from "@utils/formatEditorCSS";
 

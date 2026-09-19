@@ -15,10 +15,17 @@
  * module (a demo shim forwarding the same private module is the falsifier
  * G1 clause 2 names), and never a second specifier onto it.
  */
+import { serializeCssColor } from "@mkbabb/value.js/css";
+import type { CssColor } from "@mkbabb/value.js/css";
+import type { CssValue } from "@mkbabb/value.js/value";
 
 /** `margin-left` → `marginLeft` — the CSS-property casing bridge. */
 export const hyphenToCamelCase = (value: string): string =>
     value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+
+/** `marginLeft` → `margin-left` — the same bridge, read the other way. */
+export const camelCaseToHyphen = (value: string): string =>
+    value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 
 /** Trailing-edge debounce; each call resets the timer. */
 export function debounce<Args extends unknown[]>(
@@ -31,6 +38,38 @@ export function debounce<Args extends unknown[]>(
         timer = setTimeout(() => fn(...args), milliseconds);
     };
 }
+
+/**
+ * A parsed `CssValue` → the CSS text it was written as.
+ *
+ * value.js owns this AST and publishes `serializeCssColor` for its colour
+ * leaf, but publishes no value serializer; keyframes.js's own body
+ * (`compile/emit/css-text.ts`) is library-private and stays the emitter's.
+ * The demo therefore owns its own projection of a PUBLISHED data model —
+ * which is all it ever wanted here: the CSS text of one timeline row's vars.
+ */
+export const serializeCssValue = (value: CssValue): string => {
+    if (value.kind === "call") {
+        return `${value.name}(${value.args.map(serializeCssValue).join(", ")})`;
+    }
+    if (value.kind === "list") {
+        const separator =
+            value.separator === "comma"
+                ? ", "
+                : value.separator === "slash"
+                  ? " / "
+                  : " ";
+        return value.items.map(serializeCssValue).join(separator);
+    }
+    const payload = value.payload;
+    if (payload.type === "number") return `${payload.value}${payload.unit}`;
+    if (payload.type === "keyword") return payload.value;
+    const serialized = serializeCssColor(payload.value as CssColor);
+    if (!serialized.ok) {
+        throw new TypeError("Value returned an unserializable CSS color.");
+    }
+    return serialized.value;
+};
 
 /**
  * One `ch` in pixels for an element's own font — the only branch the demo
