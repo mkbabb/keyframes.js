@@ -35,8 +35,13 @@ import {
  *     yields the per-index delay, fed straight into the `Sequence` `at:`
  *     position-insertion (the GSAP timeline idiom);
  *   • the whole storyboard is driven by the `Sequence`'s OWN play loop
- *     (`RAFPlayback` — inv ζ: NO hand-rolled rAF) through the F.W9 transport:
- *     play / pause / resume / reverse / timeScale / progress-scrub.
+ *     (`RAFPlayback` — inv ζ: NO hand-rolled rAF). The transport SURFACE this
+ *     scene exposes is exactly what has an affordance (kf-SequenceScene SC-2):
+ *     play / pause through the machine (the transport dock), the master
+ *     progress-scrub, the row re-time, and `reset` — the re-time's undo, a
+ *     visible header verb. The engine's `reverse` / `timeScale` are real
+ *     transport calls the scene does not surface, so no wrapper of them lives
+ *     here (a verb without an affordance is dead code, not a contract).
  *
  * THE CANONICAL TIME DOMAIN (X.KF.W11.d — kf-SequencePlayhead N-1/N-2, M-10's
  * frame): the scene has ONE clock, the master clock in milliseconds, and its
@@ -190,7 +195,7 @@ export function useSequenceDemo() {
     // `isPlaying` read-only off `machine.status` and routes play/pause/togglePlay
     // (+ the `resume = () => play()` alias) to dispatch — the single authority.
     const machine = useSceneMachine();
-    const { isPlaying, play, pause, togglePlay } = useSceneTransport(machine);
+    const { isPlaying, pause } = useSceneTransport(machine);
 
     // T.B1 STAGE 1 — the decoy opacity-only contract-group host is DELETED.
     // The Sequence IS the transport (its own `RAFPlayback` loop drives the balls);
@@ -201,8 +206,6 @@ export function useSequenceDemo() {
     // sequence's DFA row is [] so NO panel renders). `facility` is assembled below
     // once `scenePlayback` exists.
 
-    const isReversed = ref(false);
-    const timeScale = ref(1);
     const progress = ref(0);
 
     // L.W11 S7 — the ignition-cascade egg's gesture/boot flags (colocated split,
@@ -242,9 +245,9 @@ export function useSequenceDemo() {
     // The adapter's resume/suspend route the engine loop through ONE seam
     // (startLoop/stopLoop). They are engine-transport ACTIONS, NOT intent — the
     // machine owns the intent. The Sequence transport internals (play vs resume,
-    // reverse, timeScale, seek) are PRESERVED byte-for-byte: only the play/pause
-    // intent + the mirror gating route through the machine now (the lane mandate:
-    // touch only the machine-integration seam, not the SOTA transport).
+    // seek) are PRESERVED: only the play/pause intent + the mirror gating route
+    // through the machine (the lane mandate: touch only the machine-integration
+    // seam, not the SOTA transport).
 
     /** True iff the playhead is mid-run (between the rail ends) — the original
      *  resume-vs-fresh-play discriminator the transport used. */
@@ -284,32 +287,12 @@ export function useSequenceDemo() {
     };
 
     // ── Transport (intent → the machine; the adapter drives the loop) ─────────
-    // play/pause/togglePlay come from useSceneTransport (above). `resume` is the
-    // Sequence's mid-play alias the transport returns.
-    const resume = () => play();
-
-    // reverse / timeScale / scrub are SEQUENCE-internal transport (the F.W9
-    // contract) — they reshape the engine loop but do not flip the play/pause
-    // axis the machine owns. scrub records `t` onto the machine snapshot so the
-    // scrubbed playhead round-trips on suspend/restore.
-
-    const reverse = () => {
-        // Flip the engine rate FIRST (the SOTA transport call — preserved
-        // exactly). If a live loop is running it picks up the new rate next
-        // frame; the badge reads the engine's sign.
-        sequence.reverse();
-        isReversed.value = sequence.rate < 0;
-        // A reverse while paused needs the loop running to walk back — dispatch
-        // PLAY (the machine's resume re-arms the engine loop via the adapter's
-        // startLoop → sequence.resume(), continuing from the current playhead in
-        // the new direction, exactly as the original `sequence.resume()` did).
-        if (!isPlaying.value && isMidPlay()) play();
-    };
-
-    const setTimeScale = (n: number) => {
-        timeScale.value = n;
-        sequence.timeScale(sequence.rate < 0 ? -n : n);
-    };
+    // play/pause intent is the transport dock's, dispatched to the machine
+    // (`useSceneTransport`); the scene itself surfaces `scrub` (the master
+    // scrub), `reseatRow` (the re-time) and `reset` (its undo). scrub reshapes
+    // the engine loop without flipping the play/pause axis the machine owns, and
+    // records `t` onto the machine snapshot so the scrubbed playhead round-trips
+    // on suspend/restore.
 
     const scrub = (p: number) => {
         if (isPlaying.value) pause();
@@ -336,16 +319,14 @@ export function useSequenceDemo() {
         syncFromSequence();
     };
 
+    /** The re-time's UNDO (SC-2): restore the pristine stagger distribution and
+     *  rewind — the one path back to the default storyboard after any row has
+     *  been re-authored. Exposed as a visible header verb. */
     const reset = () => {
         if (isPlaying.value) pause();
-        isReversed.value = false;
-        timeScale.value = 1;
         stopMirror();
-        // Restore the pristine stagger distribution (H.W12.S6 / I3) — Reset
-        // returns the storyboard to its default state, undoing any row re-author.
         delays.value = [...DEFAULT_DELAYS];
         retime(DEFAULT_DELAYS);
-        sequence.timeScale(1);
         sequence.seek(0);
         syncFromSequence();
         machine.dispatch({ type: "RESET" });
@@ -497,9 +478,11 @@ export function useSequenceDemo() {
         sequence.stop();
     });
 
+    // The provide contract is the CONSUMED surface (kf-SequenceScene L-12/C-8 +
+    // SC-2): every member below has a reader in the target, the scrubber or the
+    // scene's tests; nothing is published without one.
     return {
         rows,
-        delays,
         STAGGER_MAX,
         /** The canonical clock's span (ms) — the ruler's terminal label. */
         duration,
@@ -517,20 +500,9 @@ export function useSequenceDemo() {
         },
         facility,
         isPlaying,
-        isReversed,
-        timeScale,
         progress,
-        play,
-        pause,
-        resume,
-        togglePlay,
-        reverse,
-        setTimeScale,
         scrub,
         reset,
-        // The raw-rAF ScenePlayback adapter — the App registers it on SCENE_READY
-        // so the Sequence's progress/isPlaying round-trip through the CONTRACT.
-        scenePlayback,
     };
 }
 

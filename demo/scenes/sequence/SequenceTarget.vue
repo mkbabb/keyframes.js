@@ -41,10 +41,24 @@
                     >
                         <Clapperboard class="w-3.5 h-3.5" />
                     </Button>
+                    <!-- The undo of the row re-time (SC-2): the one path back to the
+                         default stagger distribution, made a visible verb. -->
+                    <Button
+                        size="xs"
+                        icon-only
+                        aria-label="Reset the storyboard rows to the default stagger"
+                        title="Reset the storyboard rows"
+                        @click="demo.reset()"
+                    >
+                        <RotateCcw class="w-3.5 h-3.5" />
+                    </Button>
+                    <!-- The transport-state badge: a TRANSPORT axis, so the accent
+                         lands on the LIVE state (playing) and the neutral tone on
+                         rest (D19(a)); the dead `reverse` arm died with SC-2. -->
                     <span
                         class="status-badge text-admin-label px-2 py-0.5 rounded-full"
-                        :class="demo.isReversed.value ? 'reverse-badge' : (demo.isPlaying.value ? 'tracking-badge' : 'settled-badge')"
-                    >{{ demo.isReversed.value ? "reverse" : (demo.isPlaying.value ? "playing" : "ready") }}</span>
+                        :style="{ '--badge-tone': demo.isPlaying.value ? 'var(--color-progress)' : 'var(--muted-foreground)' }"
+                    >{{ demo.isPlaying.value ? "playing" : "ready" }}</span>
                 </div>
             </div>
 
@@ -150,7 +164,7 @@ import { useTypedTrigger } from "./useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
 // Glass 7 canonical poster-metric primitive.
 import { Metric } from "@mkbabb/glass-ui/metric";
-import { Clapperboard } from "@lucide/vue";
+import { Clapperboard, RotateCcw } from "@lucide/vue";
 
 import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
