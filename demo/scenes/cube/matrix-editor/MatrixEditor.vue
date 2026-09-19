@@ -9,6 +9,7 @@
                     class="relative grid aspect-square min-h-[3.5rem] rounded-lg
                         shadow-sm"
                     v-for="(value, i) in matrix3dEnd.args"
+                    :key="i"
                     @focusin="editingCell = i"
                     @focusout="editingCell = null"
                 >

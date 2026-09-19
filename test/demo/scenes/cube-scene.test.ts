@@ -86,6 +86,22 @@ describe("useCubeRelit — the orientation-coupled relight", () => {
     });
 });
 
+describe("the stage attitude is single-sourced (#56)", () => {
+    it("the CSS the PRM arm snaps to is the attitude the relight is given", () => {
+        // The eased intro's end keyframe, the reduced-motion snap and the
+        // lighting model's room hop all read ONE constant; a drift between them
+        // is a light pinned to a stage that is somewhere else.
+        expect(graphAttitudeCss()).toBe("rotate3d(-1, 1, 0, 30deg)");
+        expect(graphAttitudeCss(GRAPH_ATTITUDE)).toBe(graphAttitudeCss());
+    });
+
+    it("the room hop leaves a rest normal off its own axis", () => {
+        const turned = rotateByAttitude([0, 0, 1], GRAPH_ATTITUDE);
+        expect(Math.hypot(...turned)).toBeCloseTo(1, 10);
+        expect(turned[2]).toBeLessThan(1);
+    });
+});
+
 describe("cube scene registry keys", () => {
     it("the animation-name set + transport superKey are stable", () => {
         expect(CUBE_ANIMATION_NAMES).toEqual({
