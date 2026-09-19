@@ -17,21 +17,20 @@
     initial-value: 0;
 }
 
-/* KF.W6 R.F8 rider — the annotation this comment IS, corrected. The line that
-   stood here called these two values a "local micro-stack", and that framing was
-   the remedy an earlier ruling accepted; re-measured, it is false about its own
-   rule, which is why the row's standing note reads THE DISCHARGED REMEDY IS THE
-   DEFECT. `.seq-storyboard` declares no position, no z-index, no transform and no
-   containment, so it creates NO stacking context and there is no local stack for
-   these rungs to be local to. What they actually are: two context-RELATIVE
-   orderings, resolved wherever each consumer's own context happens to be — the
-   playhead reads one from `SequencePlayhead.vue`, the handles read the other, and
-   the handle's rung is trapped inside `.seq-track`'s `container-type` further
-   down this very file, which is the banked D-3 finding at the bytes. The values
-   are unchanged and stay demo-local (they are not editor z-contract rungs); only
-   the sentence that mis-described them is. */
+/* KF.W6 R.F8 rider, re-cut at X.KF.W11.d — the annotation this comment IS.
+   `.seq-storyboard` declares no position, no z-index, no transform and no
+   containment, so it creates NO stacking context: `--z-seq-handle` is a
+   context-RELATIVE ordering, resolved inside `.seq-track`'s own containment
+   context (its `container-type` further down this file), where it orders the
+   handle and the traveller above the rail. The playhead's former rung
+   (`--z-seq-playhead`) is DELETED (kf-SequencePlayhead D-3/L-3, the one
+   deletion): a positioned rung on the playhead track painted it OVER the
+   handles the documented contract put it under, because the handles' rung
+   could never reach the playhead's context; tree order — the track precedes
+   `.seq-rows` — is what the documented relation actually rests on, and now the
+   only thing it rests on. The value stays demo-local (not an editor z-contract
+   rung). */
 .seq-storyboard {
-    --z-seq-playhead: 1;
     --z-seq-handle: 2;
     --scrub-dir: 1; /* L.W11 S7 — cascade direction (+1 fwd); the scrubber flips it. */
 }

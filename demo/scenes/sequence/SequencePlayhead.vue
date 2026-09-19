@@ -34,7 +34,11 @@ defineProps<{ progress: number }>();
     grid-row: 2 / -1;
     inset: 0;
     pointer-events: none;
-    z-index: var(--z-seq-playhead);
+    /* No z-index (kf-SequencePlayhead D-3/L-3): the documented handle-over-
+       playhead relation is TREE ORDER — this track precedes `.seq-rows` in the
+       DOM, and the handles' rung lives inside `.seq-track`'s own containment
+       context, so a positioned rung here painted OVER them, inverting the
+       contract it cited. */
     /* T.G4 — the playhead line rides `translateX(<cqw>)`; `cqw` resolves against
        this track's inline size (the SAME axis the row handles ride), so the
        progress sweep is compositor-only (no per-frame `left` layout). */
