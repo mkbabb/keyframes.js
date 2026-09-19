@@ -27,16 +27,40 @@ export const hyphenToCamelCase = (value: string): string =>
 export const camelCaseToHyphen = (value: string): string =>
     value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 
-/** Trailing-edge debounce; each call resets the timer. */
+/** A debounced function: the trailing-edge caller plus a `cancel` handle. */
+export interface Debounced<Args extends unknown[]> {
+    (...args: Args): void;
+    /**
+     * Drop the pending call, if any, WITHOUT running it. A caller that never
+     * invokes this sees the plain trailing-edge debounce it always had.
+     */
+    cancel(): void;
+}
+
+/**
+ * Trailing-edge debounce; each call resets the timer. The returned function
+ * carries `.cancel()` so an owner can retract an armed call when the world
+ * it was armed against has changed (an editor whose buffer was replaced from
+ * outside, a component that is unmounting) — the one thing a closure-private
+ * timer could not offer.
+ */
 export function debounce<Args extends unknown[]>(
     fn: (...args: Args) => void,
     milliseconds: number,
-): (...args: Args) => void {
+): Debounced<Args> {
     let timer: ReturnType<typeof setTimeout> | undefined;
-    return (...args: Args): void => {
+    const debounced = (...args: Args): void => {
         if (timer !== undefined) clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), milliseconds);
+        timer = setTimeout(() => {
+            timer = undefined;
+            fn(...args);
+        }, milliseconds);
     };
+    debounced.cancel = (): void => {
+        if (timer !== undefined) clearTimeout(timer);
+        timer = undefined;
+    };
+    return debounced;
 }
 
 /**
