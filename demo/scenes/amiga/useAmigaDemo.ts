@@ -1,4 +1,5 @@
 import type { Vars } from "@mkbabb/keyframes.js";
+import { SpringProgress } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import { AMIGA_SCENE_ID } from "./amigaKeys";
 
@@ -58,6 +59,120 @@ export interface AmigaPose {
 // (was a divergent hardcoded PascalCase `"Amiga"`). Each `animation.superKey`
 // field carries this id so the option-store bucket keys match the machine.
 export const SCENE_ID = AMIGA_SCENE_ID;
+
+/** The three channels the stage actually composes (Z is not one — see AmigaPose). */
+export interface PoseOffset {
+    px: number;
+    py: number;
+    spin: number;
+}
+
+/**
+ * D-3 + C-18 + M-3 + L-M4/C-2 — THE CONTINUITY LANES: one mechanism for every
+ * seam, three PER-CHANNEL springs.
+ *
+ * A seam is any instant where the stage changes who authors its pose — the group
+ * stopping (the pose hands over to HOME), the group resuming, a scrub taking the
+ * stage from an in-flight settle. The T.A8 contract says a seam is never a
+ * teleport, and the scene used to keep it in one direction only: the stop settle
+ * was a 0→1 `SpringProgress` LERPING the stage home, while resume assigned
+ * `rendered = pose` in a single frame — the exact `position.set` snap the
+ * contract forbids.
+ *
+ * The lanes invert the shape. The scene renders `authority + offset`, where the
+ * offset is the DISCONTINUITY the seam introduced and each lane decays its own
+ * channel to zero. Two properties fall out that a shared progress scalar cannot
+ * have:
+ *
+ *  · **Value continuity at every seam, in both directions.** The offset is
+ *    seeded as `rendered − authority`, so the first composed frame after a seam
+ *    is byte-identical to the last frame before it, whatever the authority does
+ *    next — a moving pose included (the target may travel; the offset still
+ *    converges, because ITS target is zero).
+ *  · **Velocity continuity per channel (L-M4/C-2).** The stop re-seat seeded
+ *    `initialVelocity: 0` while the X channel is LINEAR and carries |v| ≡ 2.5
+ *    u/s at every instant, so no stop was kink-free; and one progress scalar
+ *    cannot match three independent channel velocities anyway (the adjudicated
+ *    ruling that KILLED the `reseatToSpring` drop-in). Each lane takes its OWN
+ *    channel's entry velocity, relative to the authority's.
+ *
+ * The three springs are long-lived and re-seeded per seam (`reset` + target),
+ * never allocated per transition — L-i3, the library's own "FEW and long-lived"
+ * allocation note, which the per-stop `new SpringProgress` was breaking.
+ */
+export interface PoseContinuity {
+    /** The live per-channel offset; a STABLE object, mutated in place. */
+    readonly offset: Readonly<PoseOffset>;
+    /** True while any lane is still carrying a seam. */
+    readonly live: boolean;
+    /** Seat a seam: the per-channel value gap and the RELATIVE entry velocity. */
+    seed(gap: PoseOffset, velocity: PoseOffset): void;
+    /** Collapse every lane NOW (the reduced-motion arm — elided, never faked). */
+    snap(): void;
+    /** Advance every lane by `dt` MILLISECONDS. */
+    tick(dt: number): void;
+}
+
+const POSE_CHANNELS = ["px", "py", "spin"] as const;
+
+export function createPoseContinuity(options?: {
+    response?: number;
+    dampingFraction?: number;
+}): PoseContinuity {
+    const springOptions = {
+        initial: 0,
+        response: options?.response ?? 0.4,
+        dampingFraction: options?.dampingFraction ?? 1,
+    };
+    const lanes: Record<(typeof POSE_CHANNELS)[number], SpringProgress> = {
+        px: new SpringProgress(springOptions),
+        py: new SpringProgress(springOptions),
+        spin: new SpringProgress(springOptions),
+    };
+    const offset: PoseOffset = { px: 0, py: 0, spin: 0 };
+    let live = false;
+
+    return {
+        offset,
+        get live() {
+            return live;
+        },
+        seed(gap, velocity) {
+            live = false;
+            for (const channel of POSE_CHANNELS) {
+                const lane = lanes[channel];
+                // `reset(x, v)` seats position AND velocity; the target write
+                // re-seats the closed form from that state (continuous by
+                // construction) and un-settles the lane.
+                lane.reset(gap[channel], velocity[channel]);
+                lane.target = 0;
+                offset[channel] = lane.settled ? 0 : lane.value;
+                if (!lane.settled) live = true;
+            }
+        },
+        snap() {
+            live = false;
+            for (const channel of POSE_CHANNELS) {
+                lanes[channel].reset(0, 0);
+                offset[channel] = 0;
+            }
+        },
+        tick(dt) {
+            if (!live || dt <= 0) return;
+            live = false;
+            for (const channel of POSE_CHANNELS) {
+                const lane = lanes[channel];
+                lane.tickDt(dt);
+                if (lane.settled) {
+                    offset[channel] = 0;
+                } else {
+                    offset[channel] = lane.value;
+                    live = true;
+                }
+            }
+        },
+    };
+}
 
 export function useAmigaDemo() {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)

@@ -27,18 +27,19 @@
 import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
-import { SpringProgress } from "@mkbabb/keyframes.js";
 // OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
 import { clamp, lerp } from "@mkbabb/value.js/math";
 
 import { useAmigaThree } from "./useAmigaThree";
 import {
     useAmigaDemo,
+    createPoseContinuity,
     SPHERE_HOME,
     FLOOR_Y,
     APEX_Y,
     SPHERE_RADIUS,
     type AmigaPose,
+    type PoseOffset,
 } from "./useAmigaDemo";
 import { useSphereSpin } from "./useSphereSpin";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
@@ -116,9 +117,32 @@ const lastPose: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, pz: SPHERE_HOME,
 type PoseAuthority = "pose" | "home";
 let authority: PoseAuthority = "home";
 let wasPlaying = false;
-let reseat: SpringProgress | undefined;
-const reseatFrom: AmigaPose = { px: 0, py: 0, pz: 0, spin: 0 };
 let lastFrameAt = 0;
+
+// D-3 + C-18 + M-3 + L-M4/C-2 — the per-channel continuity lanes (useAmigaDemo).
+// The stage renders `authority + offset`; the offset is the discontinuity a seam
+// introduced and each lane decays ITS OWN channel to zero, seeded with that
+// channel's own entry velocity. Allocated ONCE and re-seeded per seam (L-i3).
+const continuity = createPoseContinuity();
+const seamGap: PoseOffset = { px: 0, py: 0, spin: 0 };
+const seamVelocity: PoseOffset = { px: 0, py: 0, spin: 0 };
+// The rendered pose one frame back + its measured per-channel velocity (u/s).
+const prevRendered: PoseOffset = { px: SPHERE_HOME, py: SPHERE_HOME, spin: 0 };
+const renderedVelocity: PoseOffset = { px: 0, py: 0, spin: 0 };
+
+// C-18 / M-3 — the frame delta is BOUNDED. `lastFrameAt` was never re-armed
+// across a stop/start, so the first frame after a backgrounded tab handed the
+// analytic spring the WHOLE suspend as one dt and it evaluated straight to its
+// settled value: a one-frame teleport, the T.A8 contract's own failure mode.
+// The clock is re-armed wherever the loop restarts AND the delta is clamped, so
+// no single frame can integrate more than a few frames' worth of motion.
+const NOMINAL_FRAME_MS = 16;
+const MAX_FRAME_MS = 64;
+
+/** Re-arm the frame clock (any path that restarts the present loop). */
+const armFrameClock = (): void => {
+    lastFrameAt = 0;
+};
 
 /** True when the group has written a NEW pose since the last composed frame. */
 const poseMoved = (): boolean =>
@@ -141,62 +165,64 @@ function onFrame(): boolean {
     const dragging = sphereSpin.isDragging();
 
     const now = performance.now();
-    const dt = lastFrameAt === 0 ? 16 : now - lastFrameAt;
+    const dt =
+        lastFrameAt === 0
+            ? NOMINAL_FRAME_MS
+            : Math.min(now - lastFrameAt, MAX_FRAME_MS);
     lastFrameAt = now;
+    const dtSeconds = dt / 1000;
 
     const playing = animationGroup.started && animationGroup.playing();
     // D-1 — a SCRUB is the group authoring a pose while the transport is stopped.
     const scrubbed = !playing && poseMoved();
 
-    if (playing || scrubbed) {
-        // The group owns the stage. A seek ABANDONS an in-flight home settle —
-        // the user has re-authored the pose, and the stage answers the seek.
-        authority = "pose";
-        reseat = undefined;
-    } else if (wasPlaying) {
-        // Stop transition (T.A8): the group just stopped/paused with no seek →
-        // settle HOME through a SpringProgress re-seat (PRM snaps). The gesture
-        // offset is left untouched.
-        authority = "home";
+    // The group owns the stage while it plays AND after any seek; HOME owns it
+    // once the group has stopped with no seek since (T.A8).
+    const nextAuthority: PoseAuthority =
+        playing || scrubbed ? "pose" : wasPlaying ? "home" : authority;
+    const targetPx = nextAuthority === "pose" ? pose.px : SPHERE_HOME;
+    const targetPy = nextAuthority === "pose" ? pose.py : SPHERE_HOME;
+    const targetSpin = nextAuthority === "pose" ? pose.spin : 0;
+
+    if (nextAuthority !== authority) {
+        // A SEAM. Hand the lanes the discontinuity this switch introduces — the
+        // value gap and the velocity gap, per channel — and the composed stage
+        // leaves the seam exactly where it entered it, still moving as it was.
+        // The authority's own velocity counts only while the group PLAYS: a
+        // scrubbed pose is a position the user chose, not a motion (treating a
+        // seek's apparent rate as physics would fling the ball).
+        authority = nextAuthority;
         if (prm.value === "reduce") {
-            rendered.px = SPHERE_HOME;
-            rendered.py = SPHERE_HOME;
-            rendered.spin = 0;
-            reseat = undefined;
+            continuity.snap();
         } else {
-            reseatFrom.px = rendered.px;
-            reseatFrom.py = rendered.py;
-            reseatFrom.spin = rendered.spin;
-            reseat = new SpringProgress({
-                initial: 0,
-                response: 0.4,
-                dampingFraction: 1,
-            });
-            reseat.target = 1;
+            const poseVelPx = playing ? (pose.px - lastPose.px) / dtSeconds : 0;
+            const poseVelPy = playing ? (pose.py - lastPose.py) / dtSeconds : 0;
+            const poseVelSpin = playing
+                ? (pose.spin - lastPose.spin) / dtSeconds
+                : 0;
+            seamGap.px = rendered.px - targetPx;
+            seamGap.py = rendered.py - targetPy;
+            seamGap.spin = rendered.spin - targetSpin;
+            seamVelocity.px = renderedVelocity.px - poseVelPx;
+            seamVelocity.py = renderedVelocity.py - poseVelPy;
+            seamVelocity.spin = renderedVelocity.spin - poseVelSpin;
+            continuity.seed(seamGap, seamVelocity);
         }
     }
     wasPlaying = playing;
 
-    if (authority === "pose") {
-        // Follow the group's composite pose (T.A7 — plain numbers, T.A6),
-        // whether the group is playing it or the user scrubbed it.
-        rendered.px = pose.px;
-        rendered.py = pose.py;
-        rendered.pz = pose.pz;
-        rendered.spin = pose.spin;
-    } else if (reseat) {
-        reseat.tickDt(dt);
-        const p = reseat.value;
-        rendered.px = lerp(reseatFrom.px, SPHERE_HOME, p);
-        rendered.py = lerp(reseatFrom.py, SPHERE_HOME, p);
-        rendered.spin = lerp(reseatFrom.spin, 0, p);
-        if (reseat.settled) {
-            rendered.px = SPHERE_HOME;
-            rendered.py = SPHERE_HOME;
-            rendered.spin = 0;
-            reseat = undefined;
-        }
-    }
+    continuity.tick(dt);
+    rendered.px = targetPx + continuity.offset.px;
+    rendered.py = targetPy + continuity.offset.py;
+    rendered.pz = nextAuthority === "pose" ? pose.pz : SPHERE_HOME;
+    rendered.spin = targetSpin + continuity.offset.spin;
+
+    renderedVelocity.px = (rendered.px - prevRendered.px) / dtSeconds;
+    renderedVelocity.py = (rendered.py - prevRendered.py) / dtSeconds;
+    renderedVelocity.spin = (rendered.spin - prevRendered.spin) / dtSeconds;
+    prevRendered.px = rendered.px;
+    prevRendered.py = rendered.py;
+    prevRendered.spin = rendered.spin;
 
     lastPose.px = pose.px;
     lastPose.py = pose.py;
@@ -228,8 +254,8 @@ function onFrame(): boolean {
     // plays, the user SCRUBS a paused stage (D-1's second edge — the transport's
     // seat never marks the room dirty, so the frame that consumes a seek must
     // say so itself), the user DRAGS the subject (L-B1), a glide is coasting, or
-    // the settle is in flight. At rest the present loop skips the render.
-    return playing || scrubbed || dragging || gliding || reseat != null;
+    // a seam is still settling. At rest the present loop skips the render.
+    return playing || scrubbed || dragging || gliding || continuity.live;
 }
 
 onMounted(() => {
@@ -259,11 +285,16 @@ onMounted(() => {
     };
 });
 
-// B-3: pause the WebGL present loop while the tab is backgrounded.
+// B-3: pause the WebGL present loop while the tab is backgrounded. C-18 — the
+// frame clock is RE-ARMED on the way back in: the first frame after a suspend
+// must not hand the continuity lanes the whole background window as one dt.
 useSceneVisibilityPause(
     () => three.running,
     () => three.stop(),
-    () => three.start(),
+    () => {
+        armFrameClock();
+        three.start();
+    },
 );
 
 // I.W3 S2 — the just-in-time occlusion pause over the live WebGL canvas: an
@@ -274,6 +305,7 @@ useIntersectionObserver(
     sceneRootEl,
     ([entry]) => {
         if (entry?.isIntersecting) {
+            armFrameClock();
             three.markRenderDirty();
             three.start();
         } else {
