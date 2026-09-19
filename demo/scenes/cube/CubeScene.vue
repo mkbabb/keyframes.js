@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import { h, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 
 const props = defineProps<{
     hideLoader?: boolean;
@@ -63,6 +63,16 @@ const superKey = SCENE_ID;
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 storedControls.ppMode ??= false;
 
+// kf-CubeScene L-2/C-5 (+ kf-CubeTarget #34/#42) — `isStarted` is written by the
+// shell binding (`useSceneMachineShellBinding` assigns it on the exposed scene);
+// `isPlaying` HAS NO WRITER ANYWHERE. It is exposed, passed down to CubeTarget
+// and keyed on by `.idle-hover.playing .cube { will-change }`, so the component's
+// own celebrated TRANSIENT promotion never fires and only the resident ancestor
+// hint ever does. The cure is ONE playing-state authority shared with
+// kf-SquareScene L-8/C-2, and its writer lives in `demo/app/scene/` — outside
+// this wave's §Bounds and inside KF.W13's. DECLARED here, not shimmed: a
+// scene-side derivation off the raw (non-reactive) group would be a second
+// authority, which is the defect this row exists to retire.
 const isPlaying = ref(false);
 const isStarted = ref(false);
 

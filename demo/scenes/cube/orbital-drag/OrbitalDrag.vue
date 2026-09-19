@@ -37,7 +37,8 @@ const emit = defineEmits<{
     (e: "scale", scale: TransformState["scale"]): void;
     // P.W5.S3 — the axis-lock-reveal egg: emit the X/Y/Z/modifier latch whenever
     // it changes so a parent (the cube) can light the locked axis line. Reactive,
-    // no rAF — fired from the keydown/keyup watch over the owned `pressedKeys`.
+    // no rAF — fired from a deep watch over the owned `pressedKeys`, which the
+    // registry's axis bindings and `syncModifiers` are the only writers of.
     (e: "pressedKeys", keys: PressedKeys): void;
 }>();
 
@@ -370,8 +371,9 @@ watch(
 );
 
 // P.W5.S3 — the axis-lock-reveal egg: surface the X/Y/Z latch to the parent the
-// moment it changes (keydown/keyup mutate `pointer.pressedKeys` in place, so a
-// deep watch catches each toggle). The cube reads this to light the locked axis.
+// moment it changes (the registry's axis bindings mutate `pointer.pressedKeys`
+// in place, so a deep watch catches each toggle). The cube reads this to light
+// the locked axis.
 watch(
     () => pointer.pressedKeys.value,
     (keys) => emit("pressedKeys", { ...keys }),
