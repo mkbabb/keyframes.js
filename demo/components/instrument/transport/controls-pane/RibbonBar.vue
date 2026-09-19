@@ -20,6 +20,12 @@
                     >
                         <Copy class="icon-sm" /> Copy
                     </Button>
+                    <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
+                         call is un-awaited BY DESIGN — `formatCSS` is the
+                         keyframes pane's `formatEditor`, the ONE format
+                         boundary, which catches prettier's rejection, toasts
+                         it with Retry and releases the pane's latch, so the
+                         promise it returns never rejects. -->
                     <Button
                         size="sm"
                         emphasis="secondary"

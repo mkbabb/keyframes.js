@@ -78,6 +78,24 @@ const {
 } = useKeyframesEditor(() => animation, emit);
 
 const editorRef = useTemplateRef<InstanceType<typeof CSSCodeEditor>>("editorRef");
+
+// THE ONE FORMAT BOUNDARY (KF-CE-9 + KF-CE-37 ≡ RibbonBar M-3/C-8). Both
+// format affordances — the chord below and the ribbon's Format button
+// (`RibbonBar.vue`, through this component's exposed `formatCSS`) — reach
+// `formatEditor`, and it is the only place a format's rejection is caught:
+// prettier refuses the ordinary mid-edit buffer (an unclosed block, a stray
+// `}`), and before this boundary that rejection floated unhandled while
+// `isFormatting` stayed true for the session, silencing every later
+// "Keyframes parsed" toast. The house idiom (`withErrorToastAsync`, one file
+// over) is written here in its own form: toast + description + Retry. The
+// latch releases in `finally` — on success AND on rejection.
+//
+// `isFormatting` exists to keep the format-induced parse from ALSO toasting
+// "Keyframes parsed" over "CSS formatted": the formatted text reaches the
+// model synchronously inside `formatCSS` (KF-CE-7), so `onEditorChange` runs
+// while the latch is up; the 300 ms grace after release covers the parse's
+// own awaits. The parse toast additionally carries a stable id, so a stray
+// one REPLACES rather than stacks (KF-CE-36).
 const isFormatting = ref(false);
 
 // Reset the formatting flag 300ms after a format completes. useTimeoutFn
@@ -93,26 +111,43 @@ const { start: startFormattingReset } = useTimeoutFn(
 const formatEditor = async () => {
     if (!editorRef.value) return;
     isFormatting.value = true;
-    await editorRef.value.formatCSS();
-    startFormattingReset();
+    try {
+        await editorRef.value.formatCSS();
+    } catch (e: unknown) {
+        toast.error("Could not format CSS", {
+            description: (e as Error).message,
+            duration: 10000,
+            action: { label: "Retry", onClick: () => void formatEditor() },
+        });
+        console.error(e);
+    } finally {
+        startFormattingReset();
+    }
 };
 
+// KF-CE-35 — the format accelerator is the editors' Format-Document chord,
+// Shift+Alt+F, matched on the PHYSICAL key so it is the same chord on every
+// layout: the former `e.key === "Ï"` was that chord's macOS dead-key OUTPUT,
+// matched nothing on Windows/Linux, and made `Ï` untypeable in the buffer.
+// `preventDefault` only when the chord matches.
 function onKeyDown(e: KeyboardEvent) {
-    if (e.key === "Ï") {
+    if (e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && e.code === "KeyF") {
         e.preventDefault();
-        formatEditor();
-        return;
+        void formatEditor();
     }
 }
 
 const onEditorChange = async (value: string) => {
     try {
         await updateFromString(value);
-        if (!isFormatting.value) toast.success("Keyframes parsed 🎉");
+        if (!isFormatting.value) {
+            toast.success("Keyframes parsed 🎉", { id: "kf-parse" });
+        }
     } catch (e: unknown) {
         parseErrorShake.play();
 
         toast.error("Failed to parse keyframes 🔧", {
+            id: "kf-parse",
             description: (e as Error).message,
             duration: 10000,
         });
