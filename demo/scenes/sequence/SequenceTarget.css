@@ -192,21 +192,25 @@
    the fade-in opacity + the settle scale-pop onto THIS ball, so the pop scales
    ONLY the ball — not the row track (the former track-as-target let `scale: 0.7`
    shrink the whole row, dropping the 24px handle to 16.8px → target-size).
-   THE CASCADE: it RESTS at its start gate (--row-start = at/STAGGER_MAX,
-   inherited from .seq-row) and glides to the far end as the sweep enters — so
-   even at t=0 the balls draw a DIAGONAL CASCADE. Both --row-start (inherited) +
-   --ball-p (the engine's inline write) read via `var(--x, fallback)`. */
+   THE CASCADE: it RESTS at its start gate (--row-start = at/duration on the
+   canonical clock, inherited from .seq-row) and glides to the far end as the
+   sweep enters — so even at t=0 the balls draw a DIAGONAL CASCADE. Both
+   --row-start (inherited) + --ball-p (the engine's inline write) read via
+   `var(--x, fallback)`. */
 .seq-ball {
     --ball-size: 1.6rem;
-    /* T.G4 — anchored at the rail's left edge; the engine's `--ball-p` sweep rides
-       `translateX(<cqw>)` (compositor-only, no per-frame layout). usable = full
-       rail (100cqw) minus the ball's width; the offset walks from the start gate
-       to the far end as --ball-p sweeps 0→1 (both read via the fallback form). */
+    /* ONE p→x map (kf-SequencePlayhead N-4): the ball is CENTRE-anchored on the
+       track column exactly as the handle and the playhead line are — its centre
+       sits at `f · 100cqw` with `f = row-start + ball-p·(1 − row-start)`, so at
+       `--ball-p: 0` it rests ON its gate (the handle's centre) by construction
+       and reaches the far end at 1. The engine's `--ball-p` sweep rides
+       `translateX(<cqw>)` (compositor-only, no per-frame layout). */
     left: 0;
+    margin-left: calc(var(--ball-size) / -2);
     transform: translateX(
         calc(
             (var(--row-start, 0) + var(--ball-p, 0) * (1 - var(--row-start, 0))) *
-                (100cqw - var(--ball-size))
+                100cqw
         )
     );
     z-index: var(--z-seq-handle); /* the traveller rests ON its gate, above it */

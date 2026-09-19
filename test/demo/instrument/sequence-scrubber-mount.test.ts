@@ -34,10 +34,13 @@ type ScrubberStub = {
     setScrubbing: ReturnType<typeof vi.fn>;
 };
 
+/** The canonical clock's span the stub publishes (the default staircase). */
+const DURATION = 1940;
+
 /**
- * The scrubber injects the whole `SequenceDemo`, but reads exactly four of its
- * members. The stub carries those four and is cast once, at the seam, rather
- * than re-authoring a 30-member scene object per test.
+ * The scrubber injects the whole `SequenceDemo`, but reads a handful of its
+ * members. The stub carries those and is cast once, at the seam, rather than
+ * re-authoring the whole scene object per test.
  */
 function stubDemo(progress = 0): ScrubberStub {
     const scrub = vi.fn();
@@ -45,6 +48,7 @@ function stubDemo(progress = 0): ScrubberStub {
     const setScrubbing = vi.fn();
     const demo = {
         progress: ref(progress),
+        duration: ref(DURATION),
         scrub,
         setScrubDir,
         setScrubbing,

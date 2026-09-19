@@ -22,6 +22,7 @@
             role="slider"
             aria-label="Scrub the sequence master playhead"
             :aria-valuenow="Math.round(demo.progress.value * 100)"
+            :aria-valuetext="`${Math.round(demo.progress.value * demo.duration.value)} ms of ${demo.duration.value} ms`"
             aria-valuemin="0"
             aria-valuemax="100"
             tabindex="0"

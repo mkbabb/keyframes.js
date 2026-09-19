@@ -38,6 +38,21 @@ import {
  *     (`RAFPlayback` — inv ζ: NO hand-rolled rAF) through the F.W9 transport:
  *     play / pause / resume / reverse / timeScale / progress-scrub.
  *
+ * THE CANONICAL TIME DOMAIN (X.KF.W11.d — kf-SequencePlayhead N-1/N-2, M-10's
+ * frame): the scene has ONE clock, the master clock in milliseconds, and its
+ * span is `duration = max(at + ROW_DURATION)` over the rows — the engine's own
+ * `Sequence.duration`. Every painted or announced position derives from it:
+ * the handles and the travellers' gates sit at `at / duration`, the playhead at
+ * `time / duration`, the ruler names `q · duration` with its terminal label the
+ * duration itself, and the sliders announce milliseconds. `STAGGER_MAX` is the
+ * row slider's CONTROL RANGE (the editable `at:` domain) — never a painted
+ * domain. The engine's `_duration` is written only by `add()` and is monotone,
+ * so a re-time never mutates `entries` in place: it REBUILDS the `Sequence`
+ * through `add()` (the only `_duration` writer) and re-seeks the retained
+ * master time — the denominator is honest by construction (N-2 lands against
+ * N-1). The engine-side rider (recompute on entry mutation, or close `entries`
+ * mutability) is declared to the library waves by id, never written here.
+ *
  * inv ζ (orchestration analogue): the scene runs on the engine's own `Sequence`
  * + `stagger`; there is no demo-local clock or decay re-derivation. The one
  * reactivity mirror (the master progress read-out) rides the engine's OWN
@@ -59,17 +74,18 @@ import {
 export const ROW_COUNT = 5;
 
 /** Per-row child glide duration (ms). */
-const ROW_DURATION = 900;
+export const ROW_DURATION = 900;
 
 /** The stagger increment between adjacent rows (ms) — the `at:` spacing. */
 const STAGGER_EACH = 260;
 
 /**
- * The draggable `at:` domain (ms). A row's start-handle scrubs its child's
- * master-clock offset across `[0, STAGGER_MAX]` — wide enough that the rows can
- * be re-authored from fully-overlapped (all at 0) to spread well past the
- * default 1040ms tail, but bounded so the timeline track stays legible. The
- * storyboard timeline track maps `at / STAGGER_MAX → [0,1]` horizontal.
+ * The editable `at:` domain (ms) — the row slider's CONTROL RANGE. A row's
+ * start-handle re-authors its child's master-clock offset across
+ * `[0, STAGGER_MAX]`: wide enough that the rows can be re-authored from
+ * fully-overlapped (all at 0) to spread well past the default 1040ms tail,
+ * bounded so the storyboard stays legible. It is NOT the painted domain — the
+ * rail maps `at / duration → [0,1]` (the canonical clock above).
  */
 export const STAGGER_MAX = 1600;
 
@@ -82,6 +98,13 @@ interface SequenceRow {
     /** This row's resolved start offset on the master clock (ms). */
     at: number;
 }
+
+/** The per-row child keyframe vars the engine paints onto each traveller. */
+type BallVars = {
+    "--ball-p": number;
+    opacity: number;
+    scale: number;
+};
 
 export function useSequenceDemo() {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
@@ -123,9 +146,9 @@ export function useSequenceDemo() {
         response: 0.45,
         dampingFraction: 0.62,
     });
-    const childAnims: CSSKeyframesAnimationT<any>[] = [];
+    const childAnims: CSSKeyframesAnimationT<BallVars>[] = [];
     for (let i = 0; i < ROW_COUNT; i++) {
-        const anim = new CSSKeyframesAnimation({
+        const anim = new CSSKeyframesAnimation<BallVars>({
             duration: ROW_DURATION,
             fillMode: "forwards",
             timingFunction: rowGlideEase,
@@ -143,11 +166,23 @@ export function useSequenceDemo() {
     // Each child is inserted at its stagger delay (the absolute `at:` ms offset).
     // `Sequence` re-sorts by `at`, maps the master clock to every child's local
     // clock, and drives them through `Animation.advanceTo` over its OWN
-    // `RAFPlayback` loop.
-    const sequence = markRaw(new Sequence());
-    for (let i = 0; i < ROW_COUNT; i++) {
-        sequence.add(childAnims[i]!, delays.value[i]!);
-    }
+    // `RAFPlayback` loop. The Sequence is REBUILT on every re-time (see the
+    // canonical-domain note in the module docblock): `add()` is the engine's only
+    // `_duration` writer, so building through it is what keeps the denominator
+    // honest — the entries are never mutated in place.
+    const buildSequence = (at: readonly number[]) => {
+        const seq = markRaw(new Sequence<BallVars>());
+        for (let i = 0; i < ROW_COUNT; i++) {
+            seq.add(childAnims[i]!, at[i]!);
+        }
+        return seq;
+    };
+    let sequence = buildSequence(delays.value);
+
+    /** The canonical clock's span (ms) — mirrors `sequence.duration`, re-read
+     *  after every rebuild so the ruler's terminal label and every `at /
+     *  duration` position recompute together. */
+    const duration = ref(sequence.duration);
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ───────
     // The former private `isPlaying = ref(false)` was the SHADOW playback
@@ -285,20 +320,32 @@ export function useSequenceDemo() {
         machine.dispatch({ type: "SCRUB", t: progress.value });
     };
 
-    const reset = () => {
+    // ── Re-time: the ONE path that changes the canonical clock's span ─────────
+    // Rebuild the engine's position model from the new `at:` net through the
+    // public `add()` (the only `_duration` writer) and re-seek the retained
+    // master time, so the playhead, every gate and the ruler's denominator
+    // recompute together (N-1 ∥ N-2). The prior Sequence is STOPPED first: its
+    // loop halts, its children settle back to standalone ownership and any held
+    // play promise resolves — nothing of it outlives the rebuild.
+    const retime = (next: readonly number[]) => {
+        const time = sequence.time;
         sequence.stop();
+        sequence = buildSequence(next);
+        duration.value = sequence.duration;
+        sequence.seek(clamp(time, 0, sequence.duration));
+        syncFromSequence();
+    };
+
+    const reset = () => {
+        if (isPlaying.value) pause();
         isReversed.value = false;
         timeScale.value = 1;
         stopMirror();
-        sequence.timeScale(1);
         // Restore the pristine stagger distribution (H.W12.S6 / I3) — Reset
         // returns the storyboard to its default state, undoing any row re-author.
         delays.value = [...DEFAULT_DELAYS];
-        for (const e of sequence.entries) {
-            const i = childAnims.indexOf(e.animation as CSSKeyframesAnimationT<any>);
-            if (i >= 0) e.at = DEFAULT_DELAYS[i]!;
-        }
-        sequence.entries.sort((a, b) => a.at - b.at);
+        retime(DEFAULT_DELAYS);
+        sequence.timeScale(1);
         sequence.seek(0);
         syncFromSequence();
         machine.dispatch({ type: "RESET" });
@@ -316,12 +363,11 @@ export function useSequenceDemo() {
     // The headline Sequence refinement — the GSAP-timeline gesture. A row's
     // start-handle drag re-emits its child's master-clock offset; we update the
     // reactive `delays` (the storyboard re-labels) AND re-author the engine's own
-    // position-insertion: the matching `Sequence` entry's `at` field is set and
-    // the entries re-sort by `at` (the SAME re-sort `Sequence.add` runs
-    // internally — dogfooding the engine's position model, inv ζ), then a re-seek
-    // repaints the storyboard at the current playhead on the new timing. Pausing
-    // first keeps a live run from fighting the re-author; the scrubbed snapshot
-    // round-trips through the machine so the re-timing survives a scene switch.
+    // position-insertion through `retime` (a rebuilt Sequence — the engine's own
+    // `add()` position model, inv ζ), which repaints the storyboard at the
+    // retained playhead on the new timing. Pausing first keeps a live run from
+    // fighting the re-author; the scrubbed snapshot round-trips through the
+    // machine so the re-timing survives a scene switch.
     const reseatRow = (index: number, at: number) => {
         if (index < 0 || index >= ROW_COUNT) return;
         if (isPlaying.value) pause();
@@ -329,23 +375,25 @@ export function useSequenceDemo() {
         const next = [...delays.value];
         next[index] = clamped;
         delays.value = next;
-
-        // Re-author the engine's position-insertion: find this child's entry and
-        // set its `at`, then re-sort the entries by `at` (the position-insertion
-        // model `Sequence.add` uses — a later `at` is legal). The child anim is
-        // the stable identity across re-sorts.
-        const entry = sequence.entries.find(
-            (e) => e.animation === childAnims[index],
-        );
-        if (entry) {
-            entry.at = clamped;
-            sequence.entries.sort((a, b) => a.at - b.at);
-        }
-        // Repaint at the live playhead on the new timing (seek drives the ONE
-        // master→child map; the balls re-place against the re-authored `at:`).
-        sequence.seek(sequence.progress * sequence.duration);
-        syncFromSequence();
+        retime(next);
         machine.dispatch({ type: "SCRUB", t: progress.value });
+    };
+
+    // ── The view's two seam verbs (kf-SequenceTarget L-10/C-4) ───────────────
+    // The target binds each traveller as its child animation's engine target
+    // and paints the current playhead on mount through THESE verbs, so the view
+    // never reaches into `childAnims` or writes `sequence.progress` directly —
+    // the composable stays the one writer of the engine's position model.
+    /** Bind row `index`'s traveller element as its child animation's target. */
+    const bindRowTarget = (index: number, el: HTMLElement) => {
+        childAnims[index]?.setTargets(el);
+    };
+    /** Paint the CURRENT playhead (not a hard t=0): a return entry may already
+     *  have re-seated `progress` via the ScenePlayback restore, so seeking the
+     *  live value avoids clobbering it regardless of mount/restore order (H.W1). */
+    const paintCurrent = () => {
+        sequence.progress = progress.value;
+        syncFromSequence();
     };
 
     // ── EE-SEQ-1 "the reel" (H.W12.S6 / I3 egg) ──────────────────────────────
@@ -437,8 +485,8 @@ export function useSequenceDemo() {
     };
 
     // Paint the initial (t=0) frame so the balls rest at their rail origin and
-    // the readout shows 0 before the first restore (the SequenceTarget seeks 0 on
-    // mount too — this is the composable-side belt-and-braces).
+    // the readout shows 0 before the first restore (the SequenceTarget paints the
+    // current playhead on mount too — this is the composable-side belt-and-braces).
     syncFromSequence();
 
     // Stop the mirror + sequence on scope dispose (the genuine unmount seam) —
@@ -453,13 +501,20 @@ export function useSequenceDemo() {
         rows,
         delays,
         STAGGER_MAX,
+        /** The canonical clock's span (ms) — the ruler's terminal label. */
+        duration,
         reseatRow,
+        bindRowTarget,
+        paintCurrent,
         playReel,
         isReeling,
         // L.W11 S7 — the ignition-cascade gesture state + the power-on boot.
         isScrubbing, scrubDir, setScrubbing, setScrubDir, isPoweringOn, powerOn,
-        sequence,
-        childAnims,
+        /** The LIVE engine Sequence (rebuilt on every re-time — read through the
+         *  accessor, never captured). */
+        get sequence() {
+            return sequence;
+        },
         facility,
         isPlaying,
         isReversed,

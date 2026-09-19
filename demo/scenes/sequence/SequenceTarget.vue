@@ -7,8 +7,14 @@
              void that bled the page grid is gone. -->
         <Card :shadow="false" class="seq-target w-full h-fit max-h-full flex flex-col overflow-hidden">
             <!-- Header: serif text-display scene name + the small muted `stagger × N`
-                 caption + the live master-progress Metric (xl poster rung, master
-                 accent). The rows WRAP at phone widths (XH-4 band contract). -->
+                 caption + the live master-clock Metric. The Metric is the CANONICAL
+                 clock's one visual-numeric exposure — milliseconds on the master
+                 clock (kf-SequencePlayhead N-14's rider) — at a rung BELOW the
+                 scene title (D-6: a re-derivable readout is not the card's largest
+                 datum), wearing the master accent through the house `.readout-
+                 accent` idiom (ST-3) and receiving the NUMBER so the primitive's
+                 own non-finite coalescer stays live (C-12). The rows WRAP at phone
+                 widths (XH-4 band contract). -->
             <div class="flex flex-wrap items-center justify-between gap-y-1 px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
                     <span class="text-display text-foreground truncate">Sequence</span>
@@ -16,11 +22,11 @@
                         stagger &times; {{ ROW_COUNT }}
                     </span>
                     <Metric
-                        size="xl"
-                        label="progress"
-                        :value="(demo.progress.value * 100).toFixed(0)"
-                        unit="%"
-                        class="shrink-0"
+                        size="md"
+                        label="clock"
+                        :value="Math.round(demo.progress.value * demo.duration.value)"
+                        unit="ms"
+                        class="readout-accent shrink-0"
                     />
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
@@ -62,15 +68,18 @@
                     :class="{ 'is-scrubbing': demo.isScrubbing.value, 'is-powering-on': demo.isPoweringOn.value }"
                     :style="{ '--stagger-max': demo.STAGGER_MAX, '--scrub-dir': demo.scrubDir.value }"
                 >
-                    <!-- The master-clock axis ruler — a colocated sub-unit. -->
-                    <SequenceAxis :quarters="AXIS_QUARTERS" :stagger-max="demo.STAGGER_MAX" />
+                    <!-- The master-clock axis ruler — a colocated sub-unit. It names
+                         the CANONICAL clock: labels are `q × duration` ms and the
+                         terminal label IS `sequence.duration` (N-1's born-RED gate). -->
+                    <SequenceAxis :quarters="AXIS_QUARTERS" :duration="demo.duration.value" />
 
                     <!-- The swept phosphor master-playhead — a colocated sub-unit
                          (SequencePlayhead, the ≤500L split seam). -->
                     <SequencePlayhead :progress="demo.progress.value" />
 
                     <!-- The five rows — each sets ONE --ball-tone + its --row-start
-                         (the at: proportion); label, rail, traveller + handle wear it. -->
+                         (the at: proportion ON THE CANONICAL CLOCK, `at / duration`);
+                         label, rail, traveller + handle wear it. -->
                     <div class="seq-rows">
                         <div
                             v-for="row in demo.rows.value"
@@ -78,7 +87,7 @@
                             class="seq-row"
                             :style="{
                                 '--ball-tone': ROW_TONES[row.index],
-                                '--row-start': clamp(row.at / demo.STAGGER_MAX, 0, 1),
+                                '--row-start': clamp(row.at / demo.duration.value, 0, 1),
                                 '--row-index': row.index,
                             }"
                         >
@@ -92,13 +101,18 @@
                             >
                                 <div class="progress-rail"></div>
                                 <!-- The draggable start-handle (slider): drag
-                                     re-authors at: + re-sorts the Sequence. -->
+                                     re-authors at: + rebuilds the Sequence. Its
+                                     centre sits at `at / duration` of the track
+                                     (the canonical clock); its CONTROL range is
+                                     the editable [0, STAGGER_MAX] domain, and it
+                                     announces the canonical unit (N-14's rider). -->
                                 <div
                                     class="seq-handle"
-                                    :style="{ left: `calc(${(row.at / demo.STAGGER_MAX) * 100}%)` }"
+                                    :style="{ left: `calc(${(row.at / demo.duration.value) * 100}%)` }"
                                     role="slider"
                                     :aria-label="`Re-time row ${row.index + 1} start offset`"
                                     :aria-valuenow="Math.round(row.at)"
+                                    :aria-valuetext="`${Math.round(row.at)} ms`"
                                     aria-valuemin="0"
                                     :aria-valuemax="demo.STAGGER_MAX"
                                     tabindex="0"
@@ -147,11 +161,19 @@ import SequenceScrubber from "./SequenceScrubber.vue";
 import SequencePlayhead from "./SequencePlayhead.vue";
 import SequenceAxis from "./SequenceAxis.vue";
 
-const demo = inject(SEQUENCE_DEMO_KEY)!;
+// THE PROVIDER GUARD (kf-SequenceTarget C-11) — the scene provides
+// unconditionally, so this names the contract instead of erasing the
+// missing-provider signal into a render-time TypeError.
+const demo = inject(SEQUENCE_DEMO_KEY);
+if (!demo) {
+    throw new Error(
+        "SequenceTarget must be mounted inside the sequence scene: no SEQUENCE_DEMO_KEY was provided.",
+    );
+}
 
-// J.W7c C-SEQ-2 (U6) — the axis-ruler quarter marks. Labels = `q × STAGGER_MAX`
-// ms, so the time grid is NAMED from the same domain the handles + playhead ride
-// (no hardcoded ms; .stage-field-x paints the rules at the same 0.25 intervals).
+// The axis-ruler quarter marks. Labels = `q × duration` ms — the time grid is
+// NAMED from the ONE canonical clock the handles + playhead ride, so the
+// terminal label is the sequence's duration itself (no hardcoded ms).
 const AXIS_QUARTERS = [0, 0.25, 0.5, 0.75, 1] as const;
 
 // J.W7a S3 (D12 / CP-2) — the per-row spectrum map, row 0 violet … row 4 green
@@ -182,14 +204,13 @@ const setBallEl = (i: number, el: HTMLElement | null) => {
 };
 
 onMounted(() => {
+    // The two seam verbs (L-10/C-4): the composable binds the engine targets and
+    // paints the current playhead — the view never reaches into the engine.
     for (let i = 0; i < ROW_COUNT; i++) {
         const el = ballEls[i];
-        if (el) demo.childAnims[i]!.setTargets(el);
+        if (el) demo.bindRowTarget(i, el);
     }
-    // Paint the CURRENT playhead (not a hard t=0): a return entry may have already
-    // re-seated `progress` via the ScenePlayback restore, so seeking the live value
-    // avoids clobbering it regardless of mount/restore ordering (H.W1).
-    demo.sequence.progress = demo.progress.value;
+    demo.paintCurrent();
     // L.W11 S7 — fire the orchestrated power-on boot once (PRM-snapped inside
     // `powerOn`): ruler clip-wipe → staggered lane drop, demonstrating `stagger`.
     demo.powerOn();
@@ -230,11 +251,14 @@ const onRowDown = (index: number, e: PointerEvent) => {
 };
 
 const ROW_AT_STEP = 40; // ms nudge per arrow press (the slider keyboard posture)
+const ROW_AT_PAGE = ROW_AT_STEP * 10; // ms per PageUp/PageDown (APG's larger step)
 const onRowKeydown = (index: number, e: KeyboardEvent) => {
     const at = demo.rows.value[index]?.at ?? 0;
     let next: number | null = null;
     if (e.key === "ArrowRight" || e.key === "ArrowUp") next = at + ROW_AT_STEP;
     else if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = at - ROW_AT_STEP;
+    else if (e.key === "PageUp") next = at + ROW_AT_PAGE;
+    else if (e.key === "PageDown") next = at - ROW_AT_PAGE;
     else if (e.key === "Home") next = 0;
     else if (e.key === "End") next = demo.STAGGER_MAX;
     if (next === null) return;
