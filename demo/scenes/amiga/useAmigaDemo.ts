@@ -28,7 +28,7 @@ export const SPHERE_HOME = 0;
 //   · Y slams FLOOR ↔ upper-third under a gravity-flavoured bounce.
 //   · Z motion DIES — the original Boing is planar.
 //   · spin is LINEAR about a tilted axis, its sign flipping at each wall reversal.
-const WALL_X = 5; // room half (6) − sphere radius (1)
+export const WALL_X = 5; // room half (6) − sphere radius (1)
 export const FLOOR_Y = -4; // the floor slam (|py| = 4 ≥ 2.5·radius, gate T.A9)
 export const APEX_Y = 2; // the upper-third apex
 const SPIN_AMP = Math.PI; // the ±π triangle peak of the linear spin

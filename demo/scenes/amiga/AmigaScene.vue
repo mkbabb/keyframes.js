@@ -46,8 +46,13 @@
         <canvas
             ref="canvas"
             class="amiga-canvas kf-focus-ring h-full w-full rounded-card"
+            :class="{ 'amiga-canvas--unavailable': roomFailed }"
             role="group"
-            aria-label="Spin the Boing ball — drag it, or nudge it with the arrow keys"
+            :aria-label="
+                roomFailed
+                    ? 'The Boing ball stage is unavailable — this browser gave the page no WebGL context'
+                    : 'Spin the Boing ball — drag it, or nudge it with the arrow keys'
+            "
             aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Home"
             :aria-describedby="keyboardHelpId"
             tabindex="0"
@@ -124,6 +129,10 @@ const prm = usePreferredReducedMotion();
 // A5 — the sphere is the interactive subject: a pointer-drag on the mesh spins
 // it (an ADDITIVE offset), on release the engine `decay()` glide coasts the spin
 // to rest. A background-grab falls through to OrbitControls (disjoint landlords).
+// D-8 — the room's failure state (no WebGL, a refused context, a lost context).
+// The subject's affordances must not outlive the object they advertise.
+const roomFailed = three.failed;
+
 const sphereSpin = useSphereSpin({
     getMesh: () => three.getSphere(),
     getCamera: () => three.getCamera(),
@@ -364,13 +373,16 @@ function onFrame(): boolean {
 
     // The fake contact-shadow tracks the ball's x, scaling/fading with height.
     const shadow = three.getContactShadow();
-    if (shadow) {
+    if (shadow && !Array.isArray(shadow.material)) {
         const h = (rendered.py - FLOOR_Y) / (APEX_Y - FLOOR_Y); // 0 floor → 1 apex
         const t = clamp(h, 0, 1);
         shadow.position.x = rendered.px;
         shadow.position.y = CONTACT_FLOOR + 0.01;
         shadow.scale.setScalar(lerp(1, 1.9, t));
-        (shadow.material as THREE.MeshBasicMaterial).opacity = lerp(0.5, 0.12, t);
+        // M-6 — `opacity` is on the Material BASE class, so the array case is
+        // NARROWED rather than cast away: the teardown handles an array, and an
+        // unchecked cast in the hot path was the one place that did not.
+        shadow.material.opacity = lerp(0.5, 0.12, t);
     }
 
     // T.A12 — the scene declares itself LIVE (forcing a render) while the group
@@ -417,7 +429,12 @@ useSceneVisibilityPause(
     () => three.running,
     () => three.stop(),
     () => {
+        // C-9 limb 1 — the ONLY live resume path was also the one path that
+        // never marked the room dirty: the loop came back at rest, the render
+        // gate saw nothing live, and the first painted frame waited for an
+        // interaction. Fatal exactly when composed with a context loss.
         armFrameClock();
+        three.markRenderDirty();
         three.start();
     },
 );
@@ -517,5 +534,12 @@ defineExpose({
 }
 .amiga-canvas:active {
     cursor: grabbing;
+}
+/* D-8 — an affordance for an object that does not exist is a lie. When the room
+   could not be built (or its GL context was taken), the grab cursor goes with
+   it; the accessible name says what happened in the same motion. */
+.amiga-canvas--unavailable,
+.amiga-canvas--unavailable:active {
+    cursor: default;
 }
 </style>
