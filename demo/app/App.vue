@@ -145,7 +145,7 @@ import {
 } from "@components/instrument/transport/injectionKeys";
 
 import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
-// T.D13 — the home hero's Aurora backdrop (colocated in editor-shell/ beside
+// T.D13 — the home hero's Aurora backdrop (colocated in shell/ beside
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
 //

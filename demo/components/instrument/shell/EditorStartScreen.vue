@@ -232,7 +232,7 @@ defineProps<{
    answered by the producer's own token, so the two in-file redundancies are
    gone). Color is --foreground — the depth-text lilac recolor + 4-step shadow
    stamp are GONE from the title AND the dots (zero `depth-text` in
-   editor-shell/, the T.D10 grep clause).
+   shell/, the T.D10 grep clause).
    KF-EST-8 — THE LEADING DECISION: the rung's own published token. The former
    scoped `line-height: 0.92` (H.W4.S3) was the THIRD un-tokenized display-rung
    override beside weight and tracking, and at the mega rung it set consecutive
