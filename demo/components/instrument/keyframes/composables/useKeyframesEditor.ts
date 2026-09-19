@@ -16,7 +16,9 @@ import { useKeyframesParsing } from "./useKeyframesParsing";
  * `getFormatWidth`, `debouncedUpdateAllStrings`,
  * `updateAnimationFromKeyframesString`) — a backwards-compat surface under the
  * standing no-shim law. A consumer that needs one of the halves' internals
- * reaches the half.
+ * reaches the half. `getTmpAnimationName` left the list with the accessor
+ * itself (D-23 / N-8, X.KF.W12.e): it was a second NAME for `keyframesStyleId`,
+ * which this barrel already publishes, and it was dead at every consumer.
  *
  * KF-KE-19, stated: `getAnimation` is read ONCE, here, and every holder below
  * is a snapshot of that read — the shipped call sites pass a `markRaw` const
@@ -47,7 +49,6 @@ export function useKeyframesEditor(
         kfControls: state.kfControls,
 
         // Functions
-        getTmpAnimationName: state.getTmpAnimationName,
         updateFromString: parsing.updateFromString,
         updateCSSAnimationKeyframesStringFromAnimation:
             parsing.updateCSSAnimationKeyframesStringFromAnimation,

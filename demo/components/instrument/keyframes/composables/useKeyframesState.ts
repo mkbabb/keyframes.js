@@ -40,6 +40,19 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // folds every non-`[A-Za-z0-9_-]` byte to `-`, and the literal
     // `keyframes-style-` prefix guarantees the leading-letter rule, so the
     // normalizer's own `a`-prefix arm is unreachable from here.
+    //
+    // KF-KE-4 (X.KF.W12.c), re-stated at the bytes that survived it: this token
+    // IS the name the injected stylesheet is emitted under — its `.selector`,
+    // its `animation-name` and its `@keyframes` name (the emitter's only rule is
+    // `` `.${name}` ``) — AND the class the Apply control adds to every target
+    // (`useKeyframeBrushApply` → `useApplyCSS`: `getClassName() === styleId`).
+    // A `getTmpAnimationName()` accessor used to sit beside it stripping the
+    // `keyframes-style-` prefix and case-folding, so the sheet named `.x` while
+    // the target wore `keyframes-style-X` and Apply had never once applied
+    // anything. `.c` made that accessor return this token verbatim; `.e`
+    // (D-23 + the emitted-selector carve) deletes the accessor outright, because
+    // a second NAME for the one name is the shape N-8 forbids and the alias was
+    // already dead at both of its consumers. Every reader now reads THIS const.
     const keyframesStyleId = cssIdent(`keyframes-style-${animationUUID}`);
 
     const storedControls = getStoredAnimationGroupControlOptions(animation);
@@ -69,24 +82,6 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
         return convertPixelsToCh(el.offsetWidth, el);
     };
 
-    /**
-     * KF-KE-4 (X.KF.W12.c) — THE APPLY IDENTITY IS ONE STRING.
-     *
-     * The name the injected stylesheet is emitted under — its `.selector`, its
-     * `animation-name` and its `@keyframes` name (the emitter's only rule is
-     * `` `.${name}` ``) — and the class the Apply control adds to every target
-     * (`useKeyframeBrushApply` → `useApplyCSS`: `getClassName() === styleId`)
-     * are the SAME token, by construction rather than by agreement between two
-     * derivations. This function used to strip the `keyframes-style-` prefix and
-     * case-fold, so the sheet named `.x` while the target wore `keyframes-style-X`
-     * and Apply had never once applied anything — proven by execution in
-     * `keyframes-editor-honest.test.ts`, which reads both strings back from the
-     * DOM. The token it returns is `keyframesStyleId`, already normalized ONCE
-     * by the library's published `cssIdent` above (N-8, X.KF.W12.e); no
-     * sanitization happens here, because a second derivation is the defect.
-     */
-    const getTmpAnimationName = () => keyframesStyleId;
-
     return {
         animationUUID,
         keyframesStyleId,
@@ -98,7 +93,6 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
         templateFrameStrings,
 
         getFormatWidth,
-        getTmpAnimationName,
     };
 }
 

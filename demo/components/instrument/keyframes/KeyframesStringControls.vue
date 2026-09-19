@@ -38,12 +38,19 @@ import { copyText } from "@utils/clipboard";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
 // synchronous, since the warm resolves before the app mounts. `presets` is the
-// barrel's preset namespace (the old `* as animations`); `CSSKeyframesToString`
-// serializes a parsed animation back to CSS; `compileToCSS` (K.W10 CC-4 DEMO LEG)
-// powers the "Export CSS" button — the SAME gated compiler the round-trip proves,
-// surfacing the CC-3 ineligibility report VERBATIM (the editor as a CSS IDE).
-const { CSSKeyframesAnimation, presets, compileToCSS } =
-    kfEngine();
+// barrel's preset namespace (the old `* as animations`); `compileToCSS`
+// (K.W10 CC-4 DEMO LEG) powers the "Export CSS" button — the SAME gated compiler
+// the round-trip proves, surfacing the CC-3 ineligibility report VERBATIM (the
+// editor as a CSS IDE).
+//
+// D-23 (X.KF.W12.e, §0u part (2)) — `CSSKeyframesAnimation` is gone from the
+// destructure: it has had no reader in this file since the brush moved into its
+// own seat, and it was the whole of the file's claim on that class. It was also
+// TS6133 `(55,9)`, one of the two in-bounds diagnostics this unit owed. The
+// other was a `getTmpAnimationName` destructure, dead at its binding the same
+// way — and the accessor behind it is now deleted outright (N-8: ONE name, and
+// `keyframesStyleId` is it).
+const { presets, compileToCSS } = kfEngine();
 
 import CSSCodeEditor from "./CSSCodeEditor.vue";
 
@@ -63,7 +70,6 @@ const emit = defineEmits<{
 const {
     cssKeyframesString,
     keyframesStyleId,
-    getTmpAnimationName,
     updateFromString,
     updateCSSAnimationKeyframesStringFromAnimation,
 } = useKeyframesEditor(() => animation, emit);

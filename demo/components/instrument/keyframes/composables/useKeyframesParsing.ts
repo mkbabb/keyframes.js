@@ -22,22 +22,30 @@ export function useKeyframesParsing(
         cssKeyframesString,
         templateFrameStrings,
         kfControls,
+        keyframesStyleId,
         getFormatWidth,
-        getTmpAnimationName,
     } = state;
 
     // --- CSS string generation (animation → strings) ---
 
+    // N-8 (X.KF.W12.e) — THE EMITTED SELECTOR READS THE IDENTITY DIRECTLY.
+    //
+    // This is the demo's emitted-selector half of the one name: whatever string
+    // goes in here comes back out as the projection's `.selector`, its
+    // `animation-name` and its `@keyframes` name. It used to arrive through a
+    // `getTmpAnimationName()` accessor that derived a SECOND name from the
+    // class's id (prefix stripped, case-folded), which is why the injected sheet
+    // bound nothing. The accessor is gone: `keyframesStyleId` — normalized once
+    // by the library's own published `cssIdent` (`useKeyframesState`) — is read
+    // here, and the class the Apply control adds is the same const. One name,
+    // one derivation, no agreement to keep.
     const updateCSSAnimationKeyframesStringFromAnimation = async (
         cssAnimationKeyframes?: string,
     ) => {
         const { CSSKeyframesToString } = await loadAnimationEngine();
         const raw =
             cssAnimationKeyframes ??
-            (await CSSKeyframesToString(
-                animation,
-                getTmpAnimationName(),
-            ));
+            (await CSSKeyframesToString(animation, keyframesStyleId));
         const keyframesString = await formatEditorCSS(raw, getFormatWidth());
 
         cssKeyframesString.value = keyframesString;
