@@ -199,7 +199,6 @@ const ribbonContent = (slotProps: { selectedControl: string }) => {
             h(
                 Button,
                 {
-                    variant: "outline",
                     class: "btn-playback btn-playback-accent",
                     onClick: () => demo.toggleDiscrete(),
                 },
@@ -222,7 +221,6 @@ const ribbonContent = (slotProps: { selectedControl: string }) => {
         h(
             Button,
             {
-                variant: "outline",
                 class: "h-8 w-full rounded-full gap-2 text-body",
                 onClick: () => demo.toggleTarget(),
             },

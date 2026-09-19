@@ -189,12 +189,12 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
     slotProps.selectedControl === "matrix-controls"
         ? [
             h(Button, {
-                size: "sm", variant: "outline",
+                size: "sm",
                 class: "h-8 gap-1.5 cursor-pointer text-small font-medium px-3 rounded-lg",
                 onClick: () => resetMatrix(),
             }, { default: () => [h(RotateCcw, { class: "w-3.5 h-3.5" }), " Reset"] }),
             h(Button, {
-                size: "sm", variant: "outline",
+                size: "sm",
                 class: "h-8 gap-1.5 cursor-pointer text-small font-medium px-3 rounded-lg",
                 onClick: () => { storedControls.matrixOptions!.fixed = !storedControls.matrixOptions!.fixed; },
             }, {
