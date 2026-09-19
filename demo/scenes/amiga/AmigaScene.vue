@@ -99,7 +99,6 @@ import {
     SPHERE_HOME,
     FLOOR_Y,
     APEX_Y,
-    SPHERE_RADIUS,
     type AmigaPose,
     type PoseOffset,
 } from "./useAmigaDemo";
@@ -107,8 +106,6 @@ import { useSphereSpin } from "./useSphereSpin";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { facilityFromGroup } from "@composables/scene-facility";
 import { AMIGA_SCENE_ID } from "./amigaKeys";
-
-const superKey = AMIGA_SCENE_ID;
 
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
 const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
@@ -211,18 +208,17 @@ const tiltAxis = new THREE.Vector3(
 const qSpin = new THREE.Quaternion();
 const qGesture = new THREE.Quaternion();
 const eGesture = new THREE.Euler(0, 0, 0, "XYZ");
-const CONTACT_FLOOR = FLOOR_Y - SPHERE_RADIUS;
 
 // The rendered pose (what actually reaches the mesh), distinct from the group's
 // composite `pose` so the re-seat can drive it home without the group stomping it.
-const rendered: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, pz: SPHERE_HOME, spin: 0 };
+const rendered: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, spin: 0 };
 // D-1 — the pose the compose last CONSUMED. The group authors `pose` in two
 // ways, and only one of them used to reach the stage: a played frame, and a
 // SCRUB — `setChildTime(anim, t).render()`, the transport's own seam
 // (scene-facility/index.ts), which runs this group's `transform` exactly as a
 // played frame does. Comparing the live pose against this record is how the
 // scene sees the second kind at all.
-const lastPose: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, pz: SPHERE_HOME, spin: 0 };
+const lastPose: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, spin: 0 };
 
 /**
  * D-1 (BLOCKER) — WHO owns the rendered pose this frame.
@@ -272,7 +268,6 @@ const armFrameClock = (): void => {
 const poseMoved = (): boolean =>
     pose.px !== lastPose.px ||
     pose.py !== lastPose.py ||
-    pose.pz !== lastPose.pz ||
     pose.spin !== lastPose.spin;
 
 function onFrame(): boolean {
@@ -346,7 +341,6 @@ function onFrame(): boolean {
     continuity.tick(dt);
     rendered.px = targetPx + continuity.offset.px;
     rendered.py = targetPy + continuity.offset.py;
-    rendered.pz = nextAuthority === "pose" ? pose.pz : SPHERE_HOME;
     rendered.spin = targetSpin + continuity.offset.spin;
 
     renderedVelocity.px = (rendered.px - prevRendered.px) / dtSeconds;
@@ -358,7 +352,6 @@ function onFrame(): boolean {
 
     lastPose.px = pose.px;
     lastPose.py = pose.py;
-    lastPose.pz = pose.pz;
     lastPose.spin = pose.spin;
 
     // Compose: spin about the tilted axis, then the additive gesture pitch/yaw.
@@ -368,7 +361,9 @@ function onFrame(): boolean {
         eGesture.set(sphereSpin.offset.x, sphereSpin.offset.y, 0);
         qGesture.setFromEuler(eGesture);
         mesh.quaternion.copy(qGesture).multiply(qSpin);
-        mesh.position.set(rendered.px, rendered.py, rendered.pz);
+        // C-10 — the ball rides the room's home plane in Z; the original Boing
+        // is planar and no channel has ever written otherwise.
+        mesh.position.set(rendered.px, rendered.py, SPHERE_HOME);
     }
 
     // The fake contact-shadow tracks the ball's x, scaling/fading with height.
@@ -376,8 +371,9 @@ function onFrame(): boolean {
     if (shadow && !Array.isArray(shadow.material)) {
         const h = (rendered.py - FLOOR_Y) / (APEX_Y - FLOOR_Y); // 0 floor → 1 apex
         const t = clamp(h, 0, 1);
+        // L-m3 — only X moves; the shadow's own plane is a CONSTANT the room
+        // seated at construction, and re-deriving it here made one invariant two.
         shadow.position.x = rendered.px;
-        shadow.position.y = CONTACT_FLOOR + 0.01;
         shadow.scale.setScalar(lerp(1, 1.9, t));
         // M-6 — `opacity` is on the Material BASE class, so the array case is
         // NARROWED rather than cast away: the teardown handles an array, and an
@@ -413,7 +409,6 @@ onMounted(() => {
         pose: () => ({
             px: rendered.px,
             py: rendered.py,
-            pz: rendered.pz,
             spin: rendered.spin,
             ox: sphereSpin.offset.x,
             oy: sphereSpin.offset.y,
@@ -471,7 +466,9 @@ defineExpose({
     // the painting channels; the legacy `animationGroup` stays for the panel
     // group. The facility's playback is the standard group adapter.
     facility,
-    superKey,
+    // C-13 — the exposed KEY is the shell's contract and keeps its name; the
+    // local alias that made one id read as three is gone.
+    superKey: AMIGA_SCENE_ID,
 });
 </script>
 

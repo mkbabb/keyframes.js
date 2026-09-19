@@ -230,6 +230,10 @@ export function useSphereSpin(options: SphereSpinOptions) {
     /** Wire the pointer listeners onto the canvas (imperative — the canvas exists
      *  only after the Three.js renderer mounts). */
     const attach = (canvas: HTMLCanvasElement) => {
+        // M-6 — a second `attach` used to OVERWRITE the handle array, leaving
+        // the first canvas's four listeners registered with no way to reach
+        // them. One caller today; the shape was a latent double-registration.
+        detach();
         canvasEl = canvas;
         // Capture-phase pointerdown so the hit-test runs BEFORE OrbitControls'
         // own (bubbling) listener claims a sphere-hit drag.

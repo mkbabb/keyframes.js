@@ -7,7 +7,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { tesselateSphere } from "./utils";
 import {
     BOX_SIZE,
-    FLOOR_Y,
+    CONTACT_FLOOR,
+    SHADOW_PLANE_Y,
     SPHERE_HOME,
     SPHERE_RADIUS,
     WALL_X,
@@ -35,8 +36,6 @@ import {
  * that is a statement about the GPU and not about the CPU, and the loop body
  * says so where it runs.
  */
-const CONTACT_FLOOR = FLOOR_Y - SPHERE_RADIUS; // the shadow sits on the floor plane
-
 // ── D-6 + D-11 — THE FRAMING TERMS, re-derived at this wave's own ref ─────────
 // (OP-3/D-19: a geometry cure written off a banked figure is a cure to the wrong
 // number. Both banked figures reproduce exactly at these bytes.)
@@ -235,7 +234,7 @@ export function useAmigaThree(
             }),
         );
         contactShadow.rotation.x = -Math.PI / 2;
-        contactShadow.position.set(0, CONTACT_FLOOR + 0.01, 0);
+        contactShadow.position.set(0, SHADOW_PLANE_Y, 0);
         scene.add(contactShadow);
 
         // The Boing-Ball: the crayon-red checker sphere, re-sourced to

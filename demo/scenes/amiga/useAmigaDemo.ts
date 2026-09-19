@@ -31,6 +31,14 @@ export const SPHERE_HOME = 0;
 export const WALL_X = 5; // room half (6) − sphere radius (1)
 export const FLOOR_Y = -4; // the floor slam (|py| = 4 ≥ 2.5·radius, gate T.A9)
 export const APEX_Y = 2; // the upper-third apex
+
+// L-m3 — the floor plane and the shadow's seat on it, declared ONCE. Both were
+// re-derived, byte-identically, in the room AND in the scene's per-frame compose:
+// two copies of one invariant, one of them re-computed sixty times a second.
+/** The plane the ball's contact shadow lies on (the room's floor). */
+export const CONTACT_FLOOR = FLOOR_Y - SPHERE_RADIUS;
+/** The shadow's own y — the floor plus a z-fighting epsilon. */
+export const SHADOW_PLANE_Y = CONTACT_FLOOR + 0.01;
 const SPIN_AMP = Math.PI; // the ±π triangle peak of the linear spin
 
 // The X sweep period: 25%→75% (+WALL_X → −WALL_X) is ONE wall-to-wall crossing =
@@ -46,19 +54,34 @@ const Y_PERIOD_MS = 1600;
  * `transform` writes here (plain authored-shaped numbers, T.A6), the gesture layer
  * writes an offset, and neither ever `Object.assign`s the mesh — one writer, no
  * last-wins stomp.
+ *
+ * C-10 — there is no `pz`. The original Boing is PLANAR and the file said so
+ * ("Z motion DIES"), yet the channel was carried through four surfaces: allocated
+ * on the pose, allocated on the re-seat's origin, copied by the compose, read by
+ * the mesh write and published by the probe — while NOTHING ever wrote it. The
+ * comment named the cure; the channel is gone and the mesh takes the room's home
+ * plane directly.
  */
 export interface AmigaPose {
     px: number;
     py: number;
-    pz: number;
     /** The linear spin angle (rad) about the tilted axis (composed in the scene). */
     spin: number;
 }
 
-// T.B9 — the ONE keyspace: the registry SceneId, single-sourced from amigaKeys
-// (was a divergent hardcoded PascalCase `"Amiga"`). Each `animation.superKey`
-// field carries this id so the option-store bucket keys match the machine.
-export const SCENE_ID = AMIGA_SCENE_ID;
+/**
+ * C-12 + L-i2 — the scene's OWN `Vars` instantiation, so the authored shape is
+ * CHECKED instead of guarded. `Vars`'s index signature admits `number | string |
+ * any` at every leaf, so the transform below had to interrogate each leaf with a
+ * `typeof` and SILENTLY DROP whatever failed — a posture that turns an authoring
+ * mistake (`{ x: "5px" }` in a scene whose sink takes world units) into a channel
+ * that quietly never moves. Narrowed here, the same mistake is a compile error at
+ * the keyframe that makes it, and the guards become presence checks.
+ */
+export type AmigaVars = Vars & {
+    position?: { x?: number; y?: number };
+    rotation?: { y?: number };
+};
 
 /** The three channels the stage actually composes (Z is not one — see AmigaPose). */
 export interface PoseOffset {
@@ -184,28 +207,28 @@ export function useAmigaDemo() {
     const pose: AmigaPose = {
         px: SPHERE_HOME,
         py: SPHERE_HOME,
-        pz: SPHERE_HOME,
         spin: 0,
     };
 
     // T.A6/T.A7 — the group compositor delivers nested authored values (numbers
     // where the author wrote numbers). The transform writes the POSE, not the
     // mesh; the scene composes it. No `singleTarget` dodge or per-frame allocation.
-    const transform = (vars: Vars) => {
+    const transform = (vars: AmigaVars) => {
         const p = vars.position;
-        if (p) {
-            if (typeof p.x === "number") pose.px = p.x;
-            if (typeof p.y === "number") pose.py = p.y;
-        }
-        const r = vars.rotation;
-        if (r && typeof r.y === "number") pose.spin = r.y;
+        if (p?.x !== undefined) pose.px = p.x;
+        if (p?.y !== undefined) pose.py = p.y;
+        // C-13 — the channel is AUTHORED as `rotation.y` because that is the
+        // keyframe grammar's name for it; what it drives is the spin angle about
+        // the scene's 0.28-rad TILTED axis, composed in AmigaScene. One value,
+        // two frames of reference, and the authored name is not the rendered one.
+        if (vars.rotation?.y !== undefined) pose.spin = vars.rotation.y;
     };
 
     // The LINEAR spin (T.A9): a triangle wave synced to the X sweep so |dθ/dt| is
     // constant between wall hits and the sign flips exactly at each wall (25% /
     // 75%, where X reverses). Peaks +π at 25% (X hits +WALL), −π at 75% (X hits
     // −WALL); LINEAR easing keeps every segment's slope equal.
-    const spinning = new CSSKeyframesAnimation({
+    const spinning = new CSSKeyframesAnimation<AmigaVars>({
         duration: X_PERIOD_MS,
         iterationCount: Infinity,
         timingFunction: "linear",
@@ -222,7 +245,7 @@ export function useAmigaDemo() {
 
     // X — wall-to-wall, LINEAR (constant horizontal velocity), starting/ending at
     // the centred home so PLAY enters continuously.
-    const bouncingX = new CSSKeyframesAnimation({
+    const bouncingX = new CSSKeyframesAnimation<AmigaVars>({
         duration: X_PERIOD_MS,
         iterationCount: Infinity,
         timingFunction: "linear",
@@ -253,7 +276,7 @@ export function useAmigaDemo() {
     // interval that STARTS at it.
     const FALL = "cubic-bezier(0.42, 0, 1, 1)"; // ease-in: slow → fast (down)
     const RISE = "cubic-bezier(0, 0, 0.58, 1)"; // ease-out: fast → slow (up)
-    const bouncingY = new CSSKeyframesAnimation({
+    const bouncingY = new CSSKeyframesAnimation<AmigaVars>({
         duration: Y_PERIOD_MS,
         iterationCount: Infinity,
     })
@@ -264,12 +287,16 @@ export function useAmigaDemo() {
         .addFrame("100%", { position: { y: SPHERE_HOME } }, transform)
         .parse();
 
+    // T.B9 — the ONE keyspace: the registry SceneId, read straight from
+    // amigaKeys. C-13 — the local `SCENE_ID` alias is gone: one id had three
+    // names (`AMIGA_SCENE_ID`, `SCENE_ID`, the scene's own `superKey` const) in
+    // a keyspace built to have one, and a reader had to prove they were equal.
     spinning.name = "Spin";
-    spinning.superKey = SCENE_ID;
+    spinning.superKey = AMIGA_SCENE_ID;
     bouncingX.name = "Bouncing X";
-    bouncingX.superKey = SCENE_ID;
+    bouncingX.superKey = AMIGA_SCENE_ID;
     bouncingY.name = "Bouncing Y";
-    bouncingY.superKey = SCENE_ID;
+    bouncingY.superKey = AMIGA_SCENE_ID;
 
     // T.A7 — the flagship AnimationGroup scene RIDES the group compositor: all
     // three animations composite through the singleTarget SoA blend onto ONE
@@ -277,5 +304,10 @@ export function useAmigaDemo() {
     // nested shape directly, with no per-animation transform race.
     const animationGroup = new AnimationGroup(spinning, bouncingX, bouncingY);
 
-    return { animationGroup, pose, spinning, bouncingX, bouncingY };
+    // C-5 — the group and the pose sink, and nothing else. The three animations
+    // were returned beside them and NO consumer in the tree ever read one: the
+    // channels are reachable through the group's own entries (which is how the
+    // scene facility builds its channel handles), so the extra members were a
+    // second, unmaintained route to the same objects.
+    return { animationGroup, pose };
 }
