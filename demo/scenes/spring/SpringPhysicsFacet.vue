@@ -82,7 +82,7 @@
                 type="single"
                 class="preset-grid grid w-auto max-w-none grid-cols-2 gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
                 aria-label="Spring presets"
-                :model-value="activePresetName"
+                :model-value="activePresetName ?? NO_PRESET"
                 @update:model-value="onPresetSelect"
             >
                 <ToggleGroupItem
@@ -211,6 +211,15 @@ const isActivePreset = (t: SpringTrack) =>
 const activePresetName = computed(
     () => demo.tracks.find((t) => isActivePreset(t))?.preset.name,
 );
+
+/** The group's "no preset" selection — a value no item carries, so nothing is
+ *  pressed. Passed as a string, not `undefined`: the producer's
+ *  `ToggleGroupProps.modelValue` is typed without `undefined` under this tree's
+ *  `exactOptionalPropertyTypes` while its runtime accepts one (the single-mode
+ *  validator reads `e !== void 0`); a controlled group needs the explicit
+ *  empty selection so a slider write off every preset EMPTIES it rather than
+ *  leaving the last click pressed. The type ask rides SS-6. */
+const NO_PRESET = "";
 
 const applyPreset = (preset: SpringPreset) => {
     demo.response.value = preset.response;
