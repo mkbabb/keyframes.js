@@ -175,16 +175,6 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
         }
     };
 
-    // Pointer Events: dynamic document listeners only during active drag.
-    // Captured at capture-start as useEventListener stop() handles, torn down
-    // on pointerup/cancel; vueuse's tryOnScopeDispose covers an unmount mid-drag.
-    let docListenerStops: (() => void)[] = [];
-
-    const removeDocListeners = () => {
-        for (const stop of docListenerStops) stop();
-        docListenerStops = [];
-    };
-
     const releaseCapture = (event: PointerEvent) => {
         try {
             containerRef.value?.releasePointerCapture(event.pointerId);
@@ -192,15 +182,13 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
     };
 
     const onPointerUp = (event: PointerEvent) => {
+        if (!isDragging.value && !isTouching.value) return;
         stopDrag(event);
         releaseCapture(event);
-        // Only remove doc listeners when no touch pointers remain
-        if (event.pointerType !== "touch" || activeTouchPointers.size === 0) {
-            removeDocListeners();
-        }
     };
 
     const onPointerCancel = (event: PointerEvent) => {
+        if (!isDragging.value && !isTouching.value) return;
         if (event.pointerType === "touch") {
             // iOS Safari pointercancel during pinch — remaining touch state
             // is untrustworthy, so reset everything.
@@ -212,25 +200,42 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
             stopDrag(event);
         }
         releaseCapture(event);
-        removeDocListeners();
     };
 
     const onPointerDown = (event: PointerEvent) => {
         // Prevent iOS Safari from initiating its own gesture handling
         event.preventDefault();
         startDrag(event);
-        containerRef.value!.setPointerCapture(event.pointerId);
-        // Register the doc listeners once per gesture — a second touch pointer
-        // shares the live listeners (matches the prior addEventListener dedup).
-        if (docListenerStops.length === 0) {
-            const doc = containerRef.value!.ownerDocument;
-            docListenerStops = [
-                useEventListener(doc, "pointermove", drag),
-                useEventListener(doc, "pointerup", onPointerUp),
-                useEventListener(doc, "pointercancel", onPointerCancel),
-            ];
+        // kf-CubeTarget #55 — the ACQUIRE is guarded, exactly as the release
+        // below already was. An inactive pointerId or a disconnected element
+        // makes `setPointerCapture` throw; it threw AFTER `startDrag` had raised
+        // the flags, so the escape left a phantom drag standing. The gesture does
+        // not depend on capture — the document listeners drive it — so a failed
+        // acquire is survivable, and the sibling primitive guards it the same way
+        // (`useDragScrub`).
+        try {
+            containerRef.value?.setPointerCapture(event.pointerId);
+        } catch {
+            /* KEEP: capture unavailable — the document listeners still drive it */
         }
     };
+
+    // kf-CubeTarget #54 · kf-OrbitalDrag OD-25 — ONE honest registration in the
+    // composable's own scope, with handlers that early-return unless a gesture is
+    // live. The former shape registered these three inside `onPointerDown` — a
+    // DOM event callback, where `getCurrentScope()` is undefined and vueuse's
+    // `tryOnScopeDispose` is a hard no-op — so the docblock's promise that "an
+    // unmount mid-drag is covered" was false: the handlers outlived the component
+    // and kept writing into the shared model until the next pointer release. The
+    // add/remove bookkeeping also carried OD-25: a mouse or pen `pointerup` while
+    // a finger was still down tore down ALL THREE listeners, leaving the surviving
+    // touch unheard and `isDragging`/`isTouching` stuck true forever. No
+    // bookkeeping, no leak, no teardown race. The target is resolved as a GETTER
+    // so it binds the container's own `ownerDocument` once the element exists.
+    const ownerDoc = () => containerRef.value?.ownerDocument ?? null;
+    useEventListener(ownerDoc, "pointermove", drag);
+    useEventListener(ownerDoc, "pointerup", onPointerUp);
+    useEventListener(ownerDoc, "pointercancel", onPointerCancel);
 
     return {
         isDragging,
