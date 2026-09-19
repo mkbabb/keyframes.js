@@ -55,9 +55,9 @@
              · THE GRAMMAR: the value is validated by `requireKeyframeSelector`,
                the ONE door the add path already uses (`useKeyframeOps`), so
                `from`/`to`/`entry 50%` are accepted and `500%`/`-20%` are refused
-               here — the previous `parseCssScalar` admitted any percentage
-               scalar and rejected the two keywords, two grammars in one
-               component.
+               here — the generic CSS-scalar parser this replaced admitted any
+               percentage scalar and rejected the two keywords, two grammars
+               in one component.
              · THE COMMIT GATE: the producer's `Input` emits `update:modelValue`
                per keystroke; the model was written on every one, so typing
                `50%` failed twice before it succeeded and the successful
