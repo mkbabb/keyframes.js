@@ -16,16 +16,18 @@
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
             <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
                  The two sliders join ONE `.labeled-field-grid` so their labels
-                 ("response" / "damping (ζ)") resolve the SAME width (U5). -->
+                 ("response" / "damping (ζ)") resolve the SAME width (U5). Their
+                 bounds and step are the FIELD's axes (one home for the
+                 coordinate space the sliders and the field both write). -->
             <div class="labeled-field-grid">
                 <LabeledSlider
                     :model-value="demo.response.value"
                     label="response"
                     label-class="text-small font-medium text-muted-foreground"
                     tooltip="Spring response time (s) — higher = slower"
-                    :min="0.1"
-                    :max="1.2"
-                    :step="0.01"
+                    :min="RESPONSE_AXIS.min"
+                    :max="RESPONSE_AXIS.max"
+                    :step="PARAM_STEP"
                     @update:model-value="(v) => { demo.response.value = v; }"
                 />
                 <LabeledSlider
@@ -33,23 +35,25 @@
                     label="damping (ζ)"
                     label-class="text-small font-medium text-muted-foreground"
                     tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
-                    :min="0.2"
-                    :max="1.5"
-                    :step="0.01"
+                    :min="DAMPING_AXIS.min"
+                    :max="DAMPING_AXIS.max"
+                    :step="PARAM_STEP"
                     @update:model-value="(v) => { demo.dampingFraction.value = v; }"
                 />
             </div>
 
-            <!-- ── P.W6 S3 — THE PARAMETER-SPACE HEATMAP (the headline egg) ──────
-                 The two abstract sliders above become a navigable landscape: a
-                 20×20 response×damping field tinted by the EXACT analytic
-                 overshoot `exp(-ζπ/√(1-ζ²))` (NOT 400 live SpringProgress
-                 instances — 507× faster, `spring-heatmap-probe`). Clicking a
-                 cell NAVIGATES the live spring to that (response, damping); the
-                 marker tracks the live params. Two-way: it reads `demo.response`
-                 / `demo.dampingFraction` and a click writes them (the same refs
-                 the sliders drive — one shared control surface). -->
-            <SpringHeatmap :demo="demo" />
+            <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
+                 The two abstract sliders above become a navigable field: a
+                 (response × damping) surface tinted by the EXACT analytic peak
+                 overshoot `exp(-ζπ/√(1-ζ²))` — a function of ζ alone, which the
+                 field's legend states. Clicking, sweeping or arrowing across it
+                 writes the live (response, damping). Two-way through the SAME
+                 declared seam the sliders use: two models bound to the same two
+                 refs — one shared control surface, one contract. -->
+            <SpringHeatmap
+                v-model:response="demo.response.value"
+                v-model:damping-fraction="demo.dampingFraction.value"
+            />
 
             <!-- Preset cells — the SINGLE preset surface (this is the ONE place
                  the four canonical presets live). Each cell carries its OWN live
@@ -143,7 +147,7 @@ import { RefreshCw } from "@lucide/vue";
 import { clamp } from "@mkbabb/value.js/math";
 
 import KeyframesEditor from "@components/instrument/keyframes/KeyframesEditor.vue";
-import SpringHeatmap from "./SpringHeatmap.vue";
+import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
 
 import type { SpringDemoContext } from "./springKeys";
 import type { SpringPreset, SpringTrack } from "./useSpringDemo";

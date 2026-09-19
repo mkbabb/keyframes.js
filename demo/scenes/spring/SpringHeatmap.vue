@@ -1,359 +1,577 @@
 <template>
-    <!-- ── P.W6 S3 — THE SPRING PARAMETER-SPACE HEATMAP (the headline navigational
-         egg) ──────────────────────────────────────────────────────────────────
-         A 20×20 response×damping landscape. Each cell is tinted by the EXACT
-         closed-form analytic peak-overshoot of the damped harmonic oscillator —
-         `overshoot = exp(-ζπ / √(1-ζ²))` (ζ = dampingFraction) — NOT by
-         instantiating 400 live SpringProgress trackers. The analytic path was
-         BENCHED at 507× faster than 400 live instances (`spring-heatmap-probe`,
-         2026-06-22: 0.002 ms vs 1.04 ms/mount), and the overshoot formula is
-         EXACT (under 1% vs the live 60 Hz peak). Click a cell to NAVIGATE the live
-         spring to that (response, dampingFraction); the marker tracks the live
-         params. KISS: one canvas + one click handler + one marker — no rAF, no
-         object lifecycle, no new library API (inv ζ). -->
+    <!-- ── P.W6 S3 — THE SPRING PARAMETER FIELD ──────────────────────────────
+         A (response × damping) field the designer navigates: click, sweep or
+         arrow across it and the live spring takes that (response, ζ). The tint
+         is the EXACT closed-form peak overshoot of the damped harmonic
+         oscillator, `exp(-ζπ / √(1-ζ²))` — a function of ζ ALONE (response sets
+         ω₀ = 2π/response and scales the time axis, never the peak), so the field
+         SAYS so: the tint is painted as horizontal bands, one per damping node,
+         and the legend states what varies with what. The four canonical presets
+         are plotted where they live. KISS: one CSS background + one pointer
+         gesture + one marker — no canvas, no rAF, no object lifecycle.
+
+         X.KF.W11.f — the field decision (kf-SpringHeatmap D-B1 · D-B2 · D-M8 ·
+         D-M1) is written in the wave's evidence BEFORE this file was touched;
+         this header describes what ships, the evidence says why. -->
     <div class="spring-heatmap-section grid gap-2">
         <div class="flex items-center justify-between gap-2">
-            <span class="text-small font-medium text-muted-foreground">parameter space — overshoot
-            </span>
-            <span class="text-mono-caption text-muted-foreground tabular-nums">
-                {{ demo.response.value.toFixed(2) }} /
-                {{ demo.dampingFraction.value.toFixed(2) }}
+            <span class="text-small font-medium text-muted-foreground">parameter space — peak overshoot</span>
+            <span
+                :id="readoutId"
+                class="text-mono-caption text-muted-foreground tabular-nums"
+            >
+                {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
             </span>
         </div>
 
-        <!-- The clickable field. `role="application"` + a label describes the
-             2D navigation surface to assistive tech (the canvas itself is opaque
-             to SR — proof:lighthouse-a11y); the demo-OWNED keyboard focus ring is
-             the demo-wide focus contract; arrow keys step the live params by one
-             cell. The host re-points onto the renamed class under KF-KE-30's one
-             ruling: glass 7.0.0 ships a realized rule of the former name that
-             binds a PILL radius on its host, and this field is rectangular, so
-             the producer's rule would have reshaped it on focus. The rename is
-             the only mechanism that detaches the radius without fighting the
-             producer per-site, and the renamed class carries its own
-             forced-colors arm. -->
-        <div
-            ref="fieldEl"
-            class="spring-heatmap kf-focus-ring relative w-full select-none cursor-crosshair rounded-md overflow-hidden"
-            role="application"
-            aria-label="Spring parameter-space heatmap — click or use the arrow keys to navigate response (horizontal) and damping (vertical); cells are tinted by peak overshoot"
-            tabindex="0"
-            @pointerdown="onPointerDown"
-            @keydown="onKeydown"
-        >
-            <canvas ref="canvasEl" class="block h-full w-full" aria-hidden="true"></canvas>
+        <div class="spring-heatmap-plot">
+            <!-- The ζ axis — ticks at their true positions (the top is calm,
+                 the bottom rings). -->
+            <div class="spring-heatmap-zeta text-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                <span v-for="tick in ZETA_TICKS" :key="tick.label" :style="{ top: tick.top }">
+                    {{ tick.label }}
+                </span>
+            </div>
 
-            <!-- The live marker — tracks the current (response, dampingFraction).
-                 A discrete position (it moves only on a param edit), so a reactive
-                 :style is correct here (no 60 Hz hot path — inv ζ). -->
+            <!-- The field. `role="application"` keeps the arrow keys with the
+                 widget in screen-reader browse mode; the readout above is its
+                 accessible description, and the live region inside announces
+                 the writes THIS field makes (the sliders announce their own).
+                 The demo-owned `kf-focus-ring` draws the keyboard ring; the
+                 scoped `:focus` arm below draws the SAME ring after a pointer
+                 grants focus, because a widget that swallows the arrow keys
+                 while focused must show that it has focus. -->
             <div
-                class="spring-heatmap-marker"
-                :style="markerStyle"
-                aria-hidden="true"
-            ></div>
+                ref="fieldEl"
+                class="spring-heatmap kf-focus-ring relative select-none cursor-crosshair rounded-md"
+                role="application"
+                :aria-label="FIELD_LABEL"
+                :aria-describedby="readoutId"
+                tabindex="0"
+                :style="{ backgroundImage: FIELD_RAMP }"
+                @pointerdown="onPointerDown"
+                @pointermove="onPointerMove"
+                @pointerup="onPointerRelease"
+                @pointercancel="onPointerRelease"
+                @lostpointercapture="onPointerRelease"
+                @pointerleave="onPointerLeave"
+                @keydown="onKeydown"
+            >
+                <span class="sr-only" aria-live="polite">{{ announced }}</span>
+
+                <!-- The critical line — the boundary between the two regimes,
+                     drawn at ζ = 1's true y; the regime labels sit ON the
+                     vertical axis they describe, either side of it. -->
+                <span class="spring-heatmap-critical" :style="{ top: CRITICAL_TOP }" aria-hidden="true">
+                    <span class="spring-heatmap-tag text-caption text-muted-foreground">ζ = 1 · critical</span>
+                </span>
+                <span class="spring-heatmap-regime spring-heatmap-regime--over text-caption text-muted-foreground" aria-hidden="true">
+                    overdamped · no overshoot
+                </span>
+                <span
+                    class="spring-heatmap-regime spring-heatmap-regime--under text-caption text-muted-foreground"
+                    :style="{ top: CRITICAL_TOP }"
+                    aria-hidden="true"
+                >
+                    underdamped · rings
+                </span>
+
+                <!-- The four presets, plotted where they live (the Chips below
+                     stay the ONE preset surface; these are marks, not controls;
+                     the name sits above the dot). -->
+                <span
+                    v-for="pip in PRESET_PIPS"
+                    :key="pip.name"
+                    class="spring-heatmap-pip"
+                    :style="{ left: pip.left, top: pip.top }"
+                    aria-hidden="true"
+                >
+                    <span class="text-caption">{{ pip.name }}</span>
+                </span>
+
+                <!-- The lattice cell under the pointer — the node a click would
+                     write, shown before it is written. -->
+                <span
+                    v-if="hoverCell"
+                    class="spring-heatmap-cell"
+                    :style="hoverCell"
+                    aria-hidden="true"
+                ></span>
+
+                <!-- The live marker — the current (response, ζ). An isolated
+                     write glides; a STREAM of writes (a slider drag, a key-repeat,
+                     this field's own sweep) is tracked 1:1, so the tracker never
+                     trails the gesture. -->
+                <span
+                    ref="markerEl"
+                    class="spring-heatmap-marker"
+                    :class="{ 'is-streaming': streaming }"
+                    :style="markerStyle"
+                    aria-hidden="true"
+                ></span>
+            </div>
+
+            <!-- The response axis. -->
+            <div class="spring-heatmap-x flex items-baseline justify-between gap-2 text-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                <span>{{ RESPONSE_AXIS.min.toFixed(1) }} s</span>
+                <span>response (s) →</span>
+                <span>{{ RESPONSE_AXIS.max.toFixed(1) }} s</span>
+            </div>
         </div>
 
-        <!-- The legend — names the three regimes the landscape reveals. -->
-        <div class="flex items-center justify-between gap-2 text-caption text-muted-foreground">
-            <span>← underdamped (rings)</span>
-            <span>critical / overdamped →</span>
+        <!-- The legend — the ramp, its scale, and what it varies with. -->
+        <div class="flex items-center justify-between gap-3 text-caption text-muted-foreground">
+            <span class="flex items-center gap-1.5 min-w-0">
+                <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
+                <span class="tabular-nums">peak overshoot 0 → {{ OVERSHOOT_MAX_PERCENT }} % · varies with ζ only (response sets tempo, not peak)</span>
+            </span>
+            <span class="shrink-0 tabular-nums">{{ LATTICE.pitch.toFixed(2) }} lattice</span>
         </div>
     </div>
 </template>
 
-<script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
-import { useResizeObserver } from "@vueuse/core";
-import { resolveCanvasColor } from "@mkbabb/glass-ui/canvas";
-import { useGlobalDark } from "@mkbabb/glass-ui/dark";
+<script lang="ts">
+// ── The field's MODEL — pure, exported, the gate witness ──────────────────────
+// The coordinate space the field and the facet's sliders share (one home for the
+// ranges: the sliders read their bounds from HERE), the lattice both input paths
+// snap to, and the overshoot ramp the bands paint. Nothing below touches the DOM.
 import { clamp } from "@mkbabb/value.js/math";
 
-import type { SpringDemoContext } from "./springKeys";
+import { SPRING_PRESETS } from "./springPresets";
 
-const props = defineProps<{ demo: SpringDemoContext }>();
-const demo = props.demo;
+/** A parameter axis: its range and the lattice pitch the field navigates by. */
+export interface ParamAxis {
+    readonly min: number;
+    readonly max: number;
+    readonly pitch: number;
+}
 
-// ── The parameter ranges — IDENTICAL to the SpringSidebar sliders' min/max so a
-// click on the field is the same coordinate space the sliders write (U5). ──────
-const RESPONSE_MIN = 0.1;
-const RESPONSE_MAX = 1.2;
-const DAMPING_MIN = 0.2;
-const DAMPING_MAX = 1.5;
+/** The sliders' step — the hundredths grid every lattice node lies on. */
+export const PARAM_STEP = 0.01;
 
-// 20×20 grid (the validated resolution). x = response, y = dampingFraction.
-const COLS = 20;
-const ROWS = 20;
+/** The one lattice: pitch 0.05 on BOTH axes, tolerance = half a pitch. Every
+ *  node is on the hundredths grid, so a snap is EXACT — no re-quantisation. */
+export const LATTICE = { pitch: 0.05, tolerance: 0.025 } as const;
 
-// The half-cell tolerance the click→param mapping carries (the canvas→param
-// mapping is grid-discretized: a click snaps to the nearest cell center, so the
-// honest navigation precision is ±half a cell on each axis).
-const HALF_CELL_RESPONSE = (RESPONSE_MAX - RESPONSE_MIN) / COLS / 2;
-const HALF_CELL_DAMPING = (DAMPING_MAX - DAMPING_MIN) / ROWS / 2;
+export const RESPONSE_AXIS: ParamAxis = { min: 0.1, max: 1.2, pitch: LATTICE.pitch };
+export const DAMPING_AXIS: ParamAxis = { min: 0.2, max: 1.5, pitch: LATTICE.pitch };
+
+/** Integer hundredths — the arithmetic every write is done in, so that a step
+ *  taken is a step that can be taken back. */
+const hundredths = (v: number): number => Math.round(v * 100);
+const fromHundredths = (h: number): number => h / 100;
+
+/** The number of lattice pitches an axis spans (22 for response, 26 for ζ). */
+export function axisNodes(axis: ParamAxis): number {
+    return Math.round((hundredths(axis.max) - hundredths(axis.min)) / hundredths(axis.pitch));
+}
+
+/** The lattice node nearest to `v` on `axis`, as an index from the axis minimum. */
+export function nodeIndex(v: number, axis: ParamAxis): number {
+    const raw = (hundredths(v) - hundredths(axis.min)) / hundredths(axis.pitch);
+    return clamp(Math.round(raw), 0, axisNodes(axis));
+}
+
+/** The value at lattice node `k` of `axis` — exact on the hundredths grid. */
+export function nodeValue(k: number, axis: ParamAxis): number {
+    return fromHundredths(hundredths(axis.min) + k * hundredths(axis.pitch));
+}
+
+/** Where `v` sits along `axis`, as a fraction 0 → 1 (clamped). */
+export function axisFraction(v: number, axis: ParamAxis): number {
+    return clamp((v - axis.min) / (axis.max - axis.min), 0, 1);
+}
+
+/** The pointer path: a fraction 0 → 1 along `axis` snaps to the nearest node.
+ *  The error is ≤ `LATTICE.tolerance` by construction — the published number. */
+export function snapToAxis(fraction: number, axis: ParamAxis): number {
+    const k = Math.round(clamp(fraction, 0, 1) * axisNodes(axis));
+    return nodeValue(k, axis);
+}
+
+/** The arrow path: one pitch along `axis`, in integer hundredths, clamped to
+ *  the range. Every unclamped step is exactly invertible; a clamped step lands
+ *  on the range end, which is itself a node. */
+export function stepOnAxis(v: number, direction: -1 | 1, axis: ParamAxis): number {
+    const next = hundredths(v) + direction * hundredths(axis.pitch);
+    return fromHundredths(clamp(next, hundredths(axis.min), hundredths(axis.max)));
+}
 
 /**
- * The EXACT closed-form peak overshoot of a damped harmonic oscillator.
+ * The EXACT closed-form peak overshoot of a damped harmonic oscillator's
+ * unit-step response:
  *
  *     overshoot(ζ) = exp(-ζπ / √(1 - ζ²))   for 0 < ζ < 1  (underdamped — rings)
- *     overshoot(ζ) = 0                       for ζ ≥ 1      (critical/overdamped)
+ *     overshoot(ζ) = 0                       for ζ ≥ 1      (critical / overdamped)
  *
- * This is a DERIVED control-theory expression (the analytic first-peak amplitude
- * of the unit-step response), NOT a helper in spring.ts — there is no closed-form
- * `settleTime`/`overshoot` function on the library surface; we compute it inline.
- * It is independent of `response` (which sets ω₀ = 2π/response, scaling the time
- * axis but not the peak height), so the heatmap's overshoot tint varies ONLY with
- * the damping (y) axis — the response (x) axis is the free dimension the designer
- * navigates within a given overshoot band. Benched at 507× faster than stepping
- * 400 live SpringProgress instances to settle (`spring-heatmap-probe`, 2026-06-22).
+ * A derived control-theory expression — the library exports no peak/settle
+ * helper, so it is computed here. It is INDEPENDENT of `response` (which sets
+ * ω₀ = 2π/response and scales the time axis, not the peak height): the field's
+ * tint therefore varies with the damping axis only, and the legend says so.
+ * The `ζ ≤ 0` arm is the function's totality guard; the field's axis starts at
+ * 0.2, so no caller reaches it (the test asserts the domain).
  */
-function overshoot(zeta: number): number {
+export function overshoot(zeta: number): number {
     if (zeta >= 1) return 0;
     if (zeta <= 0) return 1;
     return Math.exp((-zeta * Math.PI) / Math.sqrt(1 - zeta * zeta));
 }
 
-const canvasEl = useTemplateRef<HTMLCanvasElement>("canvasEl");
-const fieldEl = useTemplateRef<HTMLElement>("fieldEl");
+/** The field's strongest ring — the overshoot at the damping axis's minimum. */
+export const OVERSHOOT_MAX = overshoot(DAMPING_AXIS.min);
+export const OVERSHOOT_MAX_PERCENT = Math.round(OVERSHOOT_MAX * 100);
 
-// ── The ramp — 20 Canvas2D-VALID fills, BAKED by the producer's resolver ───────
-// The tint rides the scene's --ball-tone / --color-progress seam (NOT ad-hoc hex):
-// a low-overshoot (calm, settled) cell reads as a faint wash of the surface, a
-// high-overshoot (ringing) cell saturates toward the motion accent.
-//
-// THE COLOUR DISCIPLINE (KF.W6 G-W6-11, one decision for every demo canvas):
-// `ctx.fillStyle` is NOT a CSS cascade — it silently IGNORES anything it cannot
-// parse, so a token stream handed to it straight stakes the whole render on
-// undeclared UA behaviour with no failure signal. This file used to interpolate
-// raw `getPropertyValue()` output (a `light-dark()`/`oklch()` stream) into a
-// `color-mix()` string and assign that; every fill was one parser away from a
-// no-op, and the two hex/hsl last resorts it carried were unreachable AND off the
-// ruled violet authority. The producer ships the cure on `@mkbabb/glass-ui/canvas`:
-// `resolveCanvasColor(value, el)` resolves the value ON el's cascade — inheriting
-// its `color-scheme`, so `light-dark()` picks the live arm — and returns the
-// browser's own `rgb()`/`rgba()` string, which Canvas2D always parses.
-//
-// Baked, not per-fill: the ramp is a pure function of the two tokens and ROWS, so
-// a resize repaint reuses it and only a THEME FLIP re-bakes (20 resolves per flip,
-// zero per resize). `useCanvas2D` — the subpath's other half — is EVALUATED and
-// DECLINED here with its reason: it is a rAF LOOP substrate (`render(ctx, now)`
-// every frame), and this field is a static landscape with no loop to park; its DPR
-// policy (`min(devicePixelRatio, 2)`) is byte-identical to the one below, so the
-// swap would buy a 60 Hz repaint for a picture that never changes. The colour
-// resolver is the half this surface needs. (The glass-first ledger is G-W6-9's.)
-const ramp: string[] = [];
-
-function bakeRamp(field: HTMLElement): void {
-    ramp.length = 0;
-    for (let row = 0; row < ROWS; row++) {
-        // y (top) = high damping (settled); y (bottom) = low damping (rings).
-        // Map row→ζ so the TOP of the field is calm/overdamped and the BOTTOM
-        // is the ringing underdamped band (the conventional reading of a
-        // damping landscape).
-        const zeta =
-            DAMPING_MAX - ((row + 0.5) / ROWS) * (DAMPING_MAX - DAMPING_MIN);
-        const os = overshoot(zeta); // [0, 1]
-        // Perceptual mix in oklab (Baseline 2023): surface → accent by overshoot.
-        // A gentle gamma lifts the low end so the underdamped band reads as a
-        // legible gradient rather than collapsing to near-surface.
-        const mix = Math.round(Math.pow(os, 0.7) * 100);
-        ramp.push(
-            resolveCanvasColor(
-                `color-mix(in oklab, var(--ball-tone, var(--color-progress)) ${mix}%, var(--background))`,
-                field,
-            ),
-        );
-    }
+/** The ramp's SCALE — linear in overshoot, normalised to the field's own
+ *  maximum: 0 % of the accent at no overshoot, 100 % at the bottom edge. */
+export function rampMix(zeta: number): number {
+    return Math.round((overshoot(zeta) / OVERSHOOT_MAX) * 100);
 }
+
+/** The damping nodes, TOP → BOTTOM (ζ 1.5 → 0.2): one band each. */
+export function dampingNodesTopDown(): number[] {
+    const n = axisNodes(DAMPING_AXIS);
+    return Array.from({ length: n + 1 }, (_, j) => nodeValue(n - j, DAMPING_AXIS));
+}
+
+const accentMix = (mix: number): string =>
+    `color-mix(in oklab, var(--color-progress) ${mix}%, var(--background))`;
 
 /**
- * Paint the 20×20 grid. ONE-TIME at mount (and on a token/theme/size change) —
- * since the closed-form is ≤0.002 ms/cell the full repaint is free, so we simply
- * recompute on resize rather than caching pixels. Each cell's fill is the baked
- * ramp row above. NO SpringProgress is instantiated.
+ * The field's paint — ONE `linear-gradient` of hard-stopped bands, one per
+ * damping node, each spanning ± half a pitch around its node (the end bands are
+ * half-height). The band IS the lattice row: the tint under the pointer is the
+ * overshoot of the value a click writes. The tokens resolve in the cascade, so
+ * a theme flip re-tints for free — nothing to re-bake, no race to lose.
  */
-function paint(): void {
-    const canvas = canvasEl.value;
-    const field = fieldEl.value;
-    if (!canvas || !field) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const cssW = field.clientWidth;
-    const cssH = field.clientHeight;
-    if (cssW <= 0 || cssH <= 0) return;
-
-    // Crisp on high-DPI: back the canvas at devicePixelRatio, draw in CSS units.
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(cssW * dpr);
-    canvas.height = Math.round(cssH * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    if (ramp.length !== ROWS) bakeRamp(field);
-
-    const cellW = cssW / COLS;
-    const cellH = cssH / ROWS;
-
-    for (let row = 0; row < ROWS; row++) {
-        ctx.fillStyle = ramp[row]!;
-        for (let col = 0; col < COLS; col++) {
-            ctx.fillRect(
-                Math.floor(col * cellW),
-                Math.floor(row * cellH),
-                Math.ceil(cellW) + 1,
-                Math.ceil(cellH) + 1,
-            );
-        }
-    }
+export function buildFieldRamp(): string {
+    const nodes = dampingNodesTopDown();
+    const n = nodes.length - 1;
+    const boundary = (j: number): number => clamp(((j + 0.5) / n) * 100, 0, 100);
+    const stops = nodes.map((zeta, j) => {
+        const from = j === 0 ? 0 : boundary(j - 1);
+        const to = j === n ? 100 : boundary(j);
+        return `${accentMix(rampMix(zeta))} ${from.toFixed(3)}% ${to.toFixed(3)}%`;
+    });
+    return `linear-gradient(to bottom, ${stops.join(", ")})`;
 }
 
-// ── Marker — the live (response, dampingFraction) position on the field ────────
+export const FIELD_RAMP = buildFieldRamp();
+
+/** The four presets' positions on the field, as CSS percentages. */
+export const PRESET_PIPS = SPRING_PRESETS.map((preset) => ({
+    name: preset.name,
+    left: `${(axisFraction(preset.response, RESPONSE_AXIS) * 100).toFixed(3)}%`,
+    top: `${((1 - axisFraction(preset.dampingFraction, DAMPING_AXIS)) * 100).toFixed(3)}%`,
+}));
+
+/** ζ = 1 — the critical line's y, from the top. */
+export const CRITICAL_TOP = `${((1 - axisFraction(1, DAMPING_AXIS)) * 100).toFixed(3)}%`;
+
+const ZETA_TICKS = [
+    { label: DAMPING_AXIS.max.toFixed(1), top: "0%" },
+    { label: "1.0", top: CRITICAL_TOP },
+    { label: DAMPING_AXIS.min.toFixed(1), top: "100%" },
+];
+
+const FIELD_LABEL =
+    `Spring parameter field — response ${RESPONSE_AXIS.min} to ${RESPONSE_AXIS.max} s across, ` +
+    `damping ζ ${DAMPING_AXIS.max} at the top to ${DAMPING_AXIS.min} at the bottom. ` +
+    `Click, sweep or use the arrow keys to move by ${LATTICE.pitch}; the sliders above set exact values.`;
+</script>
+
+<script setup lang="ts">
+import { computed, onMounted, ref, useId, useTemplateRef, watch } from "vue";
+
+// ── The contract — two models, the same two refs the facet's sliders write
+// through their own declared `@update:model-value`. Instantiable with two
+// numbers; nothing else of the scene is read. ──────────────────────────────────
+const response = defineModel<number>("response", { required: true });
+const dampingFraction = defineModel<number>("dampingFraction", { required: true });
+
+const fieldEl = useTemplateRef<HTMLElement>("fieldEl");
+const markerEl = useTemplateRef<HTMLElement>("markerEl");
+const readoutId = useId();
+
+/** What this field announces after a write it made (the sliders announce theirs). */
+const announced = ref("");
+
+/** Write both params (only the ones that changed) and announce the result. */
+function write(r: number, d: number): void {
+    if (r !== response.value) response.value = r;
+    if (d !== dampingFraction.value) dampingFraction.value = d;
+    announced.value = `${r.toFixed(2)} s, ζ ${d.toFixed(2)}`;
+}
+
+// ── The marker — positioned by `transform: translate(<cqw>, <cqh>)` against the
+// field (`container-type: size`); the same content box the pointer reads and the
+// background paints. Compositor-only, so the glide never touches layout. ───────
 const markerStyle = computed(() => {
-    const rx =
-        (demo.response.value - RESPONSE_MIN) / (RESPONSE_MAX - RESPONSE_MIN);
-    // y is inverted: high damping at the TOP (see paint()).
-    const ry =
-        (DAMPING_MAX - demo.dampingFraction.value) /
-        (DAMPING_MAX - DAMPING_MIN);
-    // T.G4 — position by `transform: translate(<cqw>, <cqh>)` (compositor-only),
-    // NOT `left`/`top`: the marker's glide-on-edit transition then rides `transform`
-    // instead of animating layout properties (no per-edit layout thrash). `cqw`/`cqh`
-    // resolve against the field (`.spring-heatmap` is a `container-type: size`).
-    const px = clamp(rx, 0, 1) * 100;
-    const py = clamp(ry, 0, 1) * 100;
-    return {
-        transform: `translate(${px}cqw, ${py}cqh)`,
-    };
+    const x = axisFraction(response.value, RESPONSE_AXIS) * 100;
+    const y = (1 - axisFraction(dampingFraction.value, DAMPING_AXIS)) * 100;
+    return { transform: `translate(${x}cqw, ${y}cqh)` };
 });
 
-// ── Click-to-navigate — map a field pixel → (response, dampingFraction) ────────
-// Snaps to the nearest cell CENTER (the field is grid-discretized), then writes
-// the live params. The sliders + the rebuild watch in useSpringDemo pick this up
-// (two-way: the heatmap reads the live params via the marker, click sets them).
-function navigateFromPointer(clientX: number, clientY: number): void {
+// ── Streams vs isolated writes (N-SH-3) — a write that lands within one glide
+// of the previous one is part of a gesture (a slider drag, a key-repeat, this
+// field's own sweep) and is tracked 1:1; an isolated write glides. The glide's
+// duration is read ONCE from the marker's own computed style — the token's
+// value, never a duplicated literal. ────────────────────────────────────────────
+const streaming = ref(false);
+let glideMs = 0;
+let lastWriteAt = Number.NEGATIVE_INFINITY;
+onMounted(() => {
+    const marker = markerEl.value;
+    if (!marker) return;
+    glideMs = (Number.parseFloat(getComputedStyle(marker).transitionDuration) || 0) * 1000;
+});
+watch([response, dampingFraction], () => {
+    const now = performance.now();
+    streaming.value = now - lastWriteAt < glideMs;
+    lastWriteAt = now;
+});
+
+// ── ONE coordinate space — the field's CONTENT box: the box `cqw`/`cqh` resolve
+// against, the box the background paints, and (rect + clientLeft/Top, clientWidth/
+// Height) the box the pointer is read in. ──────────────────────────────────────
+function fieldFractions(clientX: number, clientY: number): { fx: number; fy: number } | null {
     const field = fieldEl.value;
-    if (!field) return;
+    if (!field) return null;
+    const w = field.clientWidth;
+    const h = field.clientHeight;
+    if (w <= 0 || h <= 0) return null;
     const rect = field.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
+    return {
+        fx: clamp((clientX - rect.left - field.clientLeft) / w, 0, 1),
+        fy: clamp((clientY - rect.top - field.clientTop) / h, 0, 1),
+    };
+}
 
-    const fx = clamp((clientX - rect.left) / rect.width, 0, 1);
-    const fy = clamp((clientY - rect.top) / rect.height, 0, 1);
+/** The lattice node under a field position: (response, ζ), both on nodes. */
+function nodeAt(fx: number, fy: number): { r: number; d: number } {
+    return {
+        r: snapToAxis(fx, RESPONSE_AXIS),
+        d: snapToAxis(1 - fy, DAMPING_AXIS),
+    };
+}
 
-    // Snap to the nearest cell center on each axis.
-    const col = Math.min(COLS - 1, Math.floor(fx * COLS));
-    const row = Math.min(ROWS - 1, Math.floor(fy * ROWS));
+// ── The hover cell — the lattice cell around the node a click would write,
+// clipped at the field's edges. ────────────────────────────────────────────────
+const hoverCell = ref<{ left: string; top: string; width: string; height: string } | null>(null);
 
-    const response =
-        RESPONSE_MIN + ((col + 0.5) / COLS) * (RESPONSE_MAX - RESPONSE_MIN);
-    const damping =
-        DAMPING_MAX - ((row + 0.5) / ROWS) * (DAMPING_MAX - DAMPING_MIN);
+function cellStyle(r: number, d: number) {
+    const cols = axisNodes(RESPONSE_AXIS);
+    const rows = axisNodes(DAMPING_AXIS);
+    const k = nodeIndex(r, RESPONSE_AXIS);
+    const j = rows - nodeIndex(d, DAMPING_AXIS); // from the top
+    const x0 = clamp((k - 0.5) / cols, 0, 1);
+    const x1 = clamp((k + 0.5) / cols, 0, 1);
+    const y0 = clamp((j - 0.5) / rows, 0, 1);
+    const y1 = clamp((j + 0.5) / rows, 0, 1);
+    return {
+        left: `${(x0 * 100).toFixed(3)}%`,
+        top: `${(y0 * 100).toFixed(3)}%`,
+        width: `${((x1 - x0) * 100).toFixed(3)}%`,
+        height: `${((y1 - y0) * 100).toFixed(3)}%`,
+    };
+}
 
-    // Round to the slider step grid (0.01) so the navigated value is a clean
-    // slider position and the marker lands on the cell center.
-    demo.response.value = Math.round(response * 100) / 100;
-    demo.dampingFraction.value = Math.round(damping * 100) / 100;
+// ── The gesture — one primary pointer, latched by id, captured for the sweep.
+// `touch-action: none` (the scoped block) declares the pan as this gesture, so a
+// touch that begins on the field navigates and never scrolls the panel. ────────
+let activePointer: number | null = null;
+
+function navigate(e: PointerEvent): void {
+    const f = fieldFractions(e.clientX, e.clientY);
+    if (!f) return;
+    const { r, d } = nodeAt(f.fx, f.fy);
+    hoverCell.value = cellStyle(r, d);
+    write(r, d);
 }
 
 function onPointerDown(e: PointerEvent): void {
-    navigateFromPointer(e.clientX, e.clientY);
+    if (e.button !== 0 || !e.isPrimary || activePointer !== null) return;
+    activePointer = e.pointerId;
+    fieldEl.value?.setPointerCapture(e.pointerId);
+    navigate(e);
     fieldEl.value?.focus();
 }
 
-// Keyboard navigation — step the live params by one cell per arrow press.
-function onKeydown(e: KeyboardEvent): void {
-    const stepR = (RESPONSE_MAX - RESPONSE_MIN) / COLS;
-    const stepD = (DAMPING_MAX - DAMPING_MIN) / ROWS;
-    let r = demo.response.value;
-    let d = demo.dampingFraction.value;
-    let handled = true;
-    switch (e.key) {
-        case "ArrowRight":
-            r += stepR;
-            break;
-        case "ArrowLeft":
-            r -= stepR;
-            break;
-        case "ArrowUp":
-            d += stepD; // up = more damping (toward the calm top)
-            break;
-        case "ArrowDown":
-            d -= stepD;
-            break;
-        default:
-            handled = false;
+function onPointerMove(e: PointerEvent): void {
+    if (activePointer !== null) {
+        if (e.pointerId === activePointer) navigate(e);
+        return;
     }
-    if (!handled) return;
-    e.preventDefault();
-    demo.response.value =
-        Math.round(clamp(r, RESPONSE_MIN, RESPONSE_MAX) * 100) / 100;
-    demo.dampingFraction.value =
-        Math.round(clamp(d, DAMPING_MIN, DAMPING_MAX) * 100) / 100;
+    const f = fieldFractions(e.clientX, e.clientY);
+    if (!f) return;
+    const { r, d } = nodeAt(f.fx, f.fy);
+    hoverCell.value = cellStyle(r, d);
 }
 
-// ── Lifecycle — paint once at mount; re-paint on resize (the closed-form is so
-// cheap the recompute is free) and RE-BAKE + re-paint after a theme flip SETTLES.
-//
-// `onFlipSettled` is the producer's post-flip hook and the second half of the
-// canvas discipline: a bare `watch(isDark)` is a DEFAULT-flush watcher, so it read
-// the cascade BEFORE vueuse had applied `.dark` at `flush: "post"` — and the fatal
-// direction was dark→light, where the outgoing dark-arm literal won and the
-// rasterised field kept it until the next resize (nothing re-baked). The hook runs
-// in ONE coalesced task after the flip's chrome paint, so what we resolve here is
-// the arm the page is actually wearing. ─────────────────────────────────────────
-useResizeObserver(fieldEl, () => paint());
+function onPointerRelease(e: PointerEvent): void {
+    if (e.pointerId !== activePointer) return;
+    activePointer = null;
+}
 
-const { onFlipSettled } = useGlobalDark();
-const stopFlipSettled = onFlipSettled(() => {
-    const field = fieldEl.value;
-    if (!field) return;
-    bakeRamp(field);
-    paint();
-});
-onBeforeUnmount(stopFlipSettled);
+function onPointerLeave(): void {
+    if (activePointer === null) hoverCell.value = null;
+}
 
-onMounted(() => {
-    const field = fieldEl.value;
-    if (field) bakeRamp(field);
-    paint();
-});
-
-// Expose the half-cell tolerance + ranges for any future consumer / gate witness.
-defineExpose({ HALF_CELL_RESPONSE, HALF_CELL_DAMPING });
-
-// (No watch on the params is needed for the canvas — the overshoot landscape is
-// param-INDEPENDENT; only the marker moves, and it is reactive via markerStyle.)
-watch(
-    () => [demo.response.value, demo.dampingFraction.value] as const,
-    () => {
-        /* marker is reactive (markerStyle); nothing else to repaint */
-    },
-);
+// ── The keys — a bare arrow steps ONE pitch along one axis and is CLAIMED for
+// that keypress (`preventDefault` + `stopPropagation` — the KF-SS-30 precedent:
+// a widget that has taken a key owns it; the window shortcut registry never
+// checks `defaultPrevented`). A modified arrow is NOT handled: Alt/Meta/Ctrl/
+// Shift+Arrow reach the browser and the registry exactly as from any other
+// element, so history-back, word-nav and the transport's own large scrub keep
+// their meanings. ─────────────────────────────────────────────────────────────
+function onKeydown(e: KeyboardEvent): void {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    let r = response.value;
+    let d = dampingFraction.value;
+    switch (e.key) {
+        case "ArrowRight":
+            r = stepOnAxis(r, 1, RESPONSE_AXIS);
+            break;
+        case "ArrowLeft":
+            r = stepOnAxis(r, -1, RESPONSE_AXIS);
+            break;
+        case "ArrowUp":
+            d = stepOnAxis(d, 1, DAMPING_AXIS); // up = more damping, toward the calm top
+            break;
+        case "ArrowDown":
+            d = stepOnAxis(d, -1, DAMPING_AXIS);
+            break;
+        default:
+            return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    write(r, d);
+}
 </script>
 
 <style scoped>
-/* ── P.W6 S3 — the heatmap field ──
-   The field rides the scene's --ball-tone seam (inherited from .spring-target →
-   --color-progress) so the tint is the motion language, never ad-hoc hex. A quiet
-   hairline frames it against the quiet panel surface. */
-.spring-heatmap {
-    aspect-ratio: 11 / 13; /* response span (1.1) : damping span (1.3) — true scale */
-    max-height: 16rem;
-    border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
-    background: var(--background);
-    /* T.G4 — the field is the marker's query container (both axes: the marker
-       rides `translate(<cqw>, <cqh>)`). The field's size is fixed by aspect-ratio
-       + width, independent of contents, so `container-type: size` cannot collapse
-       it. */
-    container-type: size;
+/* ── The plot: a ζ gutter, the field, the response axis under it. ── */
+.spring-heatmap-plot {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.375rem;
+    row-gap: 0.125rem;
+}
+.spring-heatmap-x {
+    grid-column: 2;
 }
 
-/* The live marker — a ringed dot tracking (response, damping). Reads the scene
-   accent (--ball-tone seam) like every other spring instrument; lifts above the
-   canvas with a soft phosphor glow so it stays legible over the saturated cells. */
+.spring-heatmap-zeta {
+    position: relative;
+    inline-size: 1.5rem;
+    block-size: 16rem;
+}
+.spring-heatmap-zeta > span {
+    position: absolute;
+    right: 0;
+    transform: translateY(-50%);
+    line-height: 1;
+}
+
+/* ── The field ──
+   Its size is a LAYOUT choice, stated as one: the rail's content width by 16rem.
+   Seconds and a dimensionless ratio share no unit, so no aspect is "true" and
+   none is claimed. The tint rides `--color-progress` — the motion accent — mixed
+   into `--background` (the ramp is the inline `background-image`; the colour
+   here is the 0 % band, so the box is painted before the gradient resolves).
+   The boundary is a foreground mix that clears 3:1 against BOTH the field's own
+   0 % fill and the card in both themes (WCAG 1.4.11; the battery is in the
+   wave's evidence). `container-type: size` cannot collapse a box whose block
+   AND inline sizes are definite. `touch-action: none` declares the sweep. */
+.spring-heatmap {
+    block-size: 16rem;
+    border: 1px solid color-mix(in srgb, var(--foreground) 50%, transparent);
+    background-color: var(--background);
+    container-type: size;
+    touch-action: none;
+}
+/* Pointer-granted focus is disclosed with the same ring the keyboard gets:
+   this widget swallows the arrow keys while focused, and must say so. */
+.spring-heatmap:focus:not(:focus-visible) {
+    box-shadow: var(--focus-ring-shadow);
+    outline: none;
+}
+@media (forced-colors: active) {
+    .spring-heatmap:focus:not(:focus-visible) {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
+}
+
+/* ── The critical line and the regime labels — the vertical legend. ── */
+.spring-heatmap-critical {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed color-mix(in srgb, var(--foreground) 45%, transparent);
+    pointer-events: none;
+}
+.spring-heatmap-tag {
+    position: absolute;
+    left: 0.5rem;
+    bottom: 0.1875rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+/* Top-left names the calm end; the ringing end is named right under the line,
+   right-aligned — the pips' names sit ABOVE their dots, so the two never meet. */
+.spring-heatmap-regime {
+    position: absolute;
+    white-space: nowrap;
+    line-height: 1;
+    pointer-events: none;
+}
+.spring-heatmap-regime--over {
+    top: 0.375rem;
+    left: 0.5rem;
+}
+.spring-heatmap-regime--under {
+    right: 0.5rem;
+    margin-top: 0.3125rem;
+}
+
+/* ── The preset pips — a hollow dot on the point, the name above it. ── */
+.spring-heatmap-pip {
+    position: absolute;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin: -0.2rem 0 0 -0.2rem;
+    border-radius: var(--radius-pill, 9999px);
+    border: 1.5px solid var(--foreground);
+    background: var(--background);
+    pointer-events: none;
+}
+.spring-heatmap-pip > span {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 0.1875rem;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--foreground);
+}
+
+/* ── The hover cell — the lattice, surfaced. ── */
+.spring-heatmap-cell {
+    position: absolute;
+    outline: 1px solid color-mix(in srgb, var(--foreground) 55%, transparent);
+    outline-offset: -1px;
+    pointer-events: none;
+}
+
+/* ── The marker — a ringed dot on the live (response, ζ); lifts above the
+   field with a soft glow so it stays legible over the saturated bands. Anchored
+   at the field's top-left; `translate(<cqw>, <cqh>)` carries the position and
+   the negative margins centre the 0.9rem dot on it. The glide rides
+   `transform` (compositor-only) and is switched OFF during a stream. ── */
 .spring-heatmap-marker {
     position: absolute;
-    /* T.G4 — anchored at the field's top-left; `transform: translate(<cqw>,<cqh>)`
-       carries the (response, damping) position and the negative margins centre the
-       0.9rem dot on it. The glide-on-edit transition rides `transform`
-       (compositor-only), never `left`/`top` (no per-edit layout thrash). */
     top: 0;
     left: 0;
     width: 0.9rem;
@@ -362,22 +580,37 @@ watch(
     margin-top: -0.45rem;
     border-radius: var(--radius-pill, 9999px);
     border: 2px solid var(--background);
-    background: var(--ball-tone, var(--color-progress));
+    background: var(--color-progress);
     box-shadow:
-        0 0 0 1.5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, transparent),
-        0 0 8px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 55%, transparent);
+        0 0 0 1.5px color-mix(in srgb, var(--color-progress) 70%, transparent),
+        0 0 8px color-mix(in srgb, var(--color-progress) 55%, transparent);
     pointer-events: none;
-    /* The producer emits --duration-fast at :root (0.2s); the former `160ms`
-       fallback arm was unreachable AND misstated the real duration by 25 % — a
-       dead default that lied about the live one. The token stands alone. */
-    transition: transform var(--duration-fast) var(--ease-standard, ease);
+    transition: transform var(--duration-fast) var(--ease-standard);
     will-change: transform;
     z-index: var(--z-content);
+}
+.spring-heatmap-marker.is-streaming {
+    transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .spring-heatmap-marker {
         transition: none;
     }
+}
+
+/* ── The legend swatch — the same two colours, the same interpolation space:
+   the exact continuous form of the banded field. ── */
+.spring-heatmap-swatch {
+    display: inline-block;
+    inline-size: 3rem;
+    block-size: 0.5rem;
+    border-radius: var(--radius-pill, 9999px);
+    border: 1px solid color-mix(in srgb, var(--foreground) 30%, transparent);
+    background: linear-gradient(
+        in oklab to right,
+        color-mix(in oklab, var(--color-progress) 0%, var(--background)),
+        color-mix(in oklab, var(--color-progress) 100%, var(--background))
+    );
 }
 </style>
