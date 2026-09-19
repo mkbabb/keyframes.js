@@ -5,8 +5,16 @@
  * real owner and holds them here rather than reaching into library
  * internals (the CT-04 defect class — the remaining deep-import retirement
  * belongs to the folded-forward demo settlement wave).
+ *
+ * X.KF.W8 unit c IS that retirement. KF.W5's publication decision (S-3,
+ * `src/animation/public.ts`) put `cssIdent`, `reverseCSSTime` and
+ * `serializeTimingFunction` on the heavy surface and nothing else, so the
+ * library names the demo still reached had no published door and were
+ * reachable only by the `@src/` deep path this wave extirpates. Each is
+ * re-homed below as the demo's OWN body — never a re-export of the library
+ * module (a demo shim forwarding the same private module is the falsifier
+ * G1 clause 2 names), and never a second specifier onto it.
  */
-import { convertToPixels } from "@src/animation/resolve/browser";
 
 /** `margin-left` → `marginLeft` — the CSS-property casing bridge. */
 export const hyphenToCamelCase = (value: string): string =>
@@ -24,6 +32,18 @@ export function debounce<Args extends unknown[]>(
     };
 }
 
+/**
+ * One `ch` in pixels for an element's own font — the only branch the demo
+ * ever asked the library's `convertToPixels` for. It mirrors that resolver's
+ * `ch` arm (`resolve/browser.ts`: the half-em approximation it applies to
+ * `ex`/`ch`, over the element's computed `font-size`, falling back to 16px),
+ * so the metric the demo lays out against is unchanged by the re-home.
+ */
+const chInPixels = (element: HTMLElement): number =>
+    (Number.parseFloat(getComputedStyle(element).fontSize) || 16) * 0.5;
+
 /** Pixels → `ch` units, measured against the element's own font metrics. */
-export const convertPixelsToCh = (pixels: number, element: HTMLElement): number =>
-    pixels / convertToPixels(1, "ch", element);
+export const convertPixelsToCh = (
+    pixels: number,
+    element: HTMLElement,
+): number => pixels / chInPixels(element);
