@@ -87,14 +87,18 @@ const ballEl = useTemplateRef<HTMLElement>('ball');
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
 
-// G.W3 — bust value.js's C1 endpoint cache on a CONTAINER resize the auto-
+// G.W3 — bust the C1 endpoint cache on a CONTAINER resize the auto-
 // `window.resize` listener cannot see. The dashed twin animates to
-// `calc(100cqw - 100%)` resolved against this `container-inline-size` box; value.js
-// caches the resolved px keyed by a monotonic layoutEpoch bumped on window resize,
-// but a panel/split-pane re-layout that changes the container width WITHOUT a
-// viewport resize never bumps the epoch → the ball serves the stale pre-resize
-// target. Feed the genuine signal value.js exports for exactly this (the demo OWNS
-// its container; the eviction policy stays ONCE in value.js — DRY). useResizeObserver
+// `calc(100cqw - 100%)` resolved against this `container-inline-size` box, and
+// THIS repo's own `src/animation/resolve/browser.ts` caches the resolved px
+// keyed by a monotonic `layoutEpoch` — it also installs the `window.resize`
+// listener that bumps it. The cache, the epoch and the listener are keyframes'
+// (`bumpLayoutEpoch` is exported there); value.js's part on this path is the
+// unit classifier `isLayoutTrackingUnit`, and nothing else. A panel/split-pane
+// re-layout that changes the container width WITHOUT a viewport resize never
+// bumps the epoch → the ball serves the stale pre-resize target. Feed the
+// genuine signal `bumpLayoutEpoch` exists for (the demo OWNS its container; the
+// eviction policy stays ONCE in browser.ts — DRY). useResizeObserver
 // auto-cleans on scope dispose.
 useResizeObserver(containerEl, () => bumpLayoutEpoch());
 

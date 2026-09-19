@@ -63,7 +63,8 @@ const { default: AnimationVisualizer } = await import(
 
 // jsdom ships no ResizeObserver. Install a controllable polyfill that captures
 // each observer's callback so the test can fire a synthetic CONTAINER resize
-// (NOT a window resize) — the exact edge value.js's auto-window.resize cannot see.
+// (NOT a window resize) — the exact edge browser.ts's own auto-`window.resize`
+// listener cannot see (that listener is THIS repo's, not value.js's).
 const observers: Array<{ cb: ResizeObserverCallback; targets: Element[] }> = [];
 class TestResizeObserver {
     private entry: { cb: ResizeObserverCallback; targets: Element[] };
@@ -133,7 +134,8 @@ describe("proof:resize-tracks — the C1 cache busts on a container resize witho
         const epochBefore = getLayoutEpoch();
 
         unmount = mountWith(() => {
-            // The EXACT AnimationVisualizer wire (real vueuse + real value.js).
+            // The EXACT AnimationVisualizer wire (real vueuse + this repo's
+            // real `bumpLayoutEpoch`).
             useResizeObserver(container, () => bumpLayoutEpoch());
         });
 
@@ -155,8 +157,9 @@ describe("proof:resize-tracks — the C1 cache busts on a container resize witho
 
         const epochBefore = getLayoutEpoch();
         fireContainerResize(); // no observer registered → no bump
-        // Absent the wire, the container edge is invisible to value.js: the
-        // epoch is unchanged, so the cache serves the stale pre-resize target.
+        // Absent the wire, the container edge is invisible to the epoch's own
+        // owner (browser.ts): it is unchanged, so the cache serves the stale
+        // pre-resize target.
         expect(getLayoutEpoch()).toBe(epochBefore);
     });
 
