@@ -4,6 +4,7 @@
             <CSSCodeEditor
                 ref="editorRef"
                 :model-value="cssKeyframesString"
+                aria-label="Keyframes CSS"
                 height="450px"
                 :font-size="14"
                 :line-numbers="true"

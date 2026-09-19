@@ -9,26 +9,51 @@
          different corner — is gone. The demo's focus-elevation rule
          (`.cartoon-surface:has(:focus-visible)`, design-idioms.css) keys on
          the class the Card carries, so the lift for a focused Monaco well is
-         unchanged. Monaco mounts on the inner box, which owns the height. -->
-    <Card
-        v-if="border"
-        cartoon
-        :shadow="false"
-        class="w-full overflow-hidden"
+         unchanged. Monaco mounts on the inner box, which owns the height.
+
+         KF-CE-14 + KF-CE-10 — the well has THREE states, and the demo's
+         largest module is never an empty hard-bordered box: while the chunk
+         is in flight the well is `aria-busy` under the producer's `Skeleton`
+         sheen (the same primitive-as-sheen the app shell's Suspense fallback
+         uses); if the boot REJECTS (a chunk fetch failed offline, a worker
+         URL 404'd) the well says so in an alert with the reason and a Retry
+         that re-runs the boot — the rejected boot promise is dropped, not
+         cached, so the retry is a real second attempt. The frame is the Card
+         when `border` is set and a bare box otherwise; one markup, two
+         frames. -->
+    <component
+        :is="border ? Card : 'div'"
+        v-bind="border ? { cartoon: true, shadow: false } : {}"
+        class="relative w-full overflow-hidden"
     >
-        <div ref="containerEl" class="w-full" :style="{ height }"></div>
-    </Card>
-    <div
-        v-else
-        ref="containerEl"
-        class="w-full overflow-hidden"
-        :style="{ height }"
-    ></div>
+        <div
+            ref="containerEl"
+            class="w-full"
+            :style="{ height }"
+            :aria-busy="phase === 'booting' ? 'true' : undefined"
+        ></div>
+        <Skeleton
+            v-if="phase === 'booting'"
+            class="absolute inset-0"
+            aria-hidden="true"
+        />
+        <div
+            v-else-if="phase === 'failed'"
+            role="alert"
+            class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center"
+        >
+            <p class="text-destructive">The code editor could not load.</p>
+            <p class="text-muted-foreground text-sm">{{ bootError }}</p>
+            <Button size="sm" emphasis="secondary" @click="initEditor()">
+                Retry
+            </Button>
+        </div>
+    </component>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, useTemplateRef, watch } from "vue";
-import { useResizeObserver } from "@vueuse/core";
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 // Monaco (the ~4 MB editor namespace) is the demo's single largest module. A
 // static `import * as monaco` here pulled it onto the eager graph of EVERY scene
 // chunk that reaches CSSCodeEditor (the Spring sidebar imports it statically),
@@ -55,10 +80,14 @@ import LightTheme from "./monaco-themes/GitHub.json";
 import { Card } from "@mkbabb/glass-ui/card";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@components/instrument/utils/iosTextEntry";
-import { convertPixelsToCh } from "@utils/helpers";
 import { formatEditorCSS } from "@utils/formatEditorCSS";
 import { debounce } from "@utils/helpers";
 import { toast } from "vue-sonner";
+// `Skeleton` and `Button` are root-barrel-only at glass-ui 7.0.0 (no
+// `./skeleton` subpath — the record's killed #2); the root barrel is already
+// on the app's eager graph (the ribbon, the shell's Suspense fallback), so
+// this import adds no chunk.
+import { Button, Skeleton } from "@mkbabb/glass-ui";
 
 // The resolved Monaco namespace + a single in-flight boot promise. The boot is
 // idempotent and module-scoped: the FIRST editor to mount loads + configures
@@ -100,6 +129,12 @@ const props = withDefaults(
         lineNumbers?: boolean;
         padding?: number;
         border?: boolean;
+        /**
+         * The editor's accessible name (KF-CE-21). Two editors are alive at
+         * once in the instrument (the keyframes pane's and the timeline's
+         * per-keyframe well); a parent that mounts one names it.
+         */
+        ariaLabel?: string;
     }>(),
     {
         height: "300px",
@@ -107,13 +142,34 @@ const props = withDefaults(
         lineNumbers: true,
         padding: 16,
         border: true,
+        ariaLabel: "CSS",
     },
 );
 
 const modelValue = defineModel<string>({ required: true });
 
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
-const { isDark } = useGlobalDark();
+const { isDark, onFlipSettled } = useGlobalDark();
+// KF-CE-13: an explicit `theme` at create plus `setTheme` on every flip
+// pre-empts monaco's own high-contrast detection, and monaco emits
+// `forced-color-adjust: none` for its subtree — so under `forced-colors:
+// active` the vendored themes would paint over the user's palette. The theme
+// is therefore chosen HERE with that query in hand: monaco's built-in
+// high-contrast pair when forced colours are active, the vendored pair
+// otherwise, re-chosen when either input moves.
+const forcedColors = useMediaQuery("(forced-colors: active)");
+const themeName = () =>
+    forcedColors.value
+        ? isDark.value
+            ? "hc-black"
+            : "hc-light"
+        : isDark.value
+          ? "dark-theme"
+          : "light-theme";
+
+/** booting → ready, or booting → failed (Retry re-enters booting). */
+const phase = ref<"booting" | "ready" | "failed">("booting");
+const bootError = ref<string>();
 
 let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
 let isSettingValue = false;
@@ -122,11 +178,24 @@ let isSettingValue = false;
 // it over a detached node.
 let disposed = false;
 
+// The print width prettier formats to, in columns, read from the EDITOR'S OWN
+// layout (KF-CE-24 · KF-CE-25 · KF-CE-26 · KF-CE-49): the content area's
+// width (gutter, minimap and scrollbar already excluded) over the width of
+// one half-width character of the font monaco actually renders — no `ch ≈
+// 0.5em` approximation on the container's inherited font, no gutter counted
+// as columns, no unreachable guard. Undefined before the editor exists or
+// before it has a laid-out width, in which case the formatter takes its own
+// default.
 const getFormatWidth = () => {
-    const el = containerEl.value;
-    if (!el || !el.offsetWidth || el.offsetWidth === 0) return undefined;
-    const ch = convertPixelsToCh(el.offsetWidth, el);
-    return ch != null ? Math.floor(ch) : undefined;
+    if (!editor || !monaco) return undefined;
+    const { contentWidth } = editor.getLayoutInfo();
+    const { typicalHalfwidthCharacterWidth } = editor.getOption(
+        monaco.editor.EditorOption.fontInfo,
+    );
+    if (!(contentWidth > 0) || !(typicalHalfwidthCharacterWidth > 0)) {
+        return undefined;
+    }
+    return Math.floor(contentWidth / typicalHalfwidthCharacterWidth);
 };
 
 // ── The model ⇄ buffer contract (KF-CE-2 child half · KF-CE-6 · KF-CE-7 ·
@@ -202,7 +271,22 @@ const initEditor = async () => {
     // The container may have unmounted while Monaco's chunk was in flight; bail
     // cleanly rather than create an editor over a detached node.
     if (!el) return;
-    const m = await bootMonaco();
+    phase.value = "booting";
+    bootError.value = undefined;
+    let m: typeof Monaco;
+    try {
+        m = await bootMonaco();
+    } catch (e: unknown) {
+        // KF-CE-10: a rejected boot is NOT cached — the `??=` above would
+        // otherwise hand every later mount the same dead promise for the
+        // session. Drop it, render the failure, and let Retry boot again.
+        monacoBoot = undefined;
+        if (disposed) return;
+        bootError.value = e instanceof Error ? e.message : String(e);
+        phase.value = "failed";
+        console.error(e);
+        return;
+    }
     // Lost the race: the component unmounted while the chunk loaded. Do not
     // create an editor over the now-detached container.
     if (disposed || !containerEl.value) return;
@@ -210,8 +294,10 @@ const initEditor = async () => {
     editor = m.editor.create(el, {
         value: modelValue.value,
         language: "css",
+        // KF-CE-21: the accessible name of the input area.
+        ariaLabel: props.ariaLabel,
         fontLigatures: true,
-        theme: isDark.value ? "dark-theme" : "light-theme",
+        theme: themeName(),
         fontSize: clampIOSNoZoomFontSize(props.fontSize),
         // KF-CE-20 (W6-M, the token-read half; the pipeline is EDITOR-UNIT's) —
         // the family was the bare literal `"Fira Code"`, with NO generic
@@ -246,12 +332,15 @@ const initEditor = async () => {
         // is needed — and it is the right posture for a short-snippet editor
         // whose indentation is one Format away.
         tabFocusMode: true,
-        accessibilitySupport: "off",
+        // KF-CE-5: `accessibilitySupport` is left at monaco's `"auto"` (its
+        // own advice) — screen-reader mode is detected, not switched off, so
+        // the tab-behaviour state above is announced to the AT that needs it.
         padding: {
             top: props.padding,
             bottom: props.padding,
         },
     });
+    phase.value = "ready";
 
     editor.onDidChangeModelContent(() => {
         if (isSettingValue) return;
@@ -269,10 +358,28 @@ const initEditor = async () => {
 const setCodeTheme = () => {
     // No-op until Monaco has booted; `initEditor` sets the correct theme at
     // create time, so a dark-mode toggle before boot loses nothing.
-    monaco?.editor.setTheme(isDark.value ? "dark-theme" : "light-theme");
+    monaco?.editor.setTheme(themeName());
 };
 
-watch(isDark, setCodeTheme);
+// KF-CE-28: the dark flip re-themes in glass-ui's ONE coalesced post-flip
+// task (`onFlipSettled`), beside every other consumer's re-theme, rather
+// than in a per-instance watcher racing the chrome's own paint. The
+// forced-colours query has no such hook and keeps a watch.
+const stopFlipSettled = onFlipSettled(setCodeTheme);
+watch(forcedColors, setCodeTheme);
+
+// KF-CE-19: the geometry props are LIVE — re-applied through `updateOptions`
+// when a parent changes them — not read once at create.
+watch(
+    () => [props.fontSize, props.lineNumbers, props.padding] as const,
+    ([fontSize, lineNumbers, padding]) => {
+        editor?.updateOptions({
+            fontSize: clampIOSNoZoomFontSize(fontSize),
+            lineNumbers: lineNumbers ? "on" : "off",
+            padding: { top: padding, bottom: padding },
+        });
+    },
+);
 
 watch(modelValue, projectModel);
 
@@ -313,6 +420,7 @@ onMounted(() => {
 onUnmounted(() => {
     disposed = true;
     debouncedEmit.cancel();
+    stopFlipSettled();
     editor?.dispose();
 });
 
