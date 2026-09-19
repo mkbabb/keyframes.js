@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, provide, ref } from "vue";
+import { h, provide, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
@@ -41,8 +41,11 @@ provide(EASING_DEMO_KEY, demo);
 
 // `demo.isPlaying` is now a read-only projection of the machine status (the
 // shadow `isPlaying` ref is DELETED, H.W1). The bottom-bar play button routes
-// through the App's onPlayStateChange → the machine; the ribbon reads this.
-const isPlaying = demo.isPlaying;
+// through the App's onPlayStateChange → the machine; the ribbon reads this
+// projection DIRECTLY at its two read sites below (`onScrubStart`, the
+// `isAnimPlaying` binding) — the local re-alias this note once captioned was
+// never read and is DELETED (X.KF.W11.r, TS6133 EasingScene.vue(45,7)).
+
 const isStarted = ref(true);
 
 // J.W2 S2 (S4-stretch) — the panel mounts FLAT. The easing scene has a SINGLE
