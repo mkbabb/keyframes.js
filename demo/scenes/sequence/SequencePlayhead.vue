@@ -1,12 +1,14 @@
 <template>
-    <!-- L.W11 S7 — THE PHOSPHOR MASTER PLAYHEAD (colocated sub-unit, ≤500L split).
-         The kept progress-driven sweep, refined into three compositor-cheap
-         layers: the LINE (full master red), a machined DIAMOND HEAD (::before),
-         and a COMET TRAIL (::after) that brightens with --seq-glow while scrubbing.
-         Reads --playhead-p (set inline) + --ball-tone/--seq-glow/--scrub-dir/
-         --track-inset (inherited from the parent .seq-stage cascade) + --specular,
-         the demo's material highlight (design-idioms.css). Pure CSS over the
-         engine's `progress` — no per-frame JS. -->
+    <!-- THE PHOSPHOR MASTER PLAYHEAD (colocated sub-unit of SequenceTarget).
+         The master clock's position, drawn as three compositor-cheap layers: the
+         LINE (the master tone, `--ball-tone`), a machined DIAMOND HEAD (::before)
+         and a COMET TRAIL (::after) that brightens with --seq-glow while scrubbing
+         and trails the scrub direction. Reads `--playhead-p` (the prop, written
+         inline each render — the one per-frame write, a style binding the
+         engine's mirror drives) + --ball-tone/--seq-glow/--scrub-dir (inherited
+         from the stage cascade) + --specular, the demo's material highlight
+         (design-idioms.css). Its track is PLACED ON THE STAGE'S GRID, in the
+         shared track column — nothing transcribed from paddings. -->
     <div class="seq-playhead-track" aria-hidden="true">
         <div class="seq-playhead" :style="{ '--playhead-p': progress }"></div>
     </div>

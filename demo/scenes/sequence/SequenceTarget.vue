@@ -1,5 +1,8 @@
 <template>
-    <div class="seq-root flex flex-col items-center justify-center gap-4 h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden">
+    <!-- The scene's root column (SequenceScene renders this and nothing else):
+         centred, width-bounded, full-height. One child, so no gap; no bespoke
+         class, since no rule ever selected one (kf-SequenceTarget L-8). -->
+    <div class="flex flex-col items-center justify-center h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden">
         <!-- I5 — the standard NON-cartoon glass <Card> protagonist plate (rounded
              by construction, shadow off). J.W7c C-SEQ-1 (U6): the card no longer
              STRETCHES the whole .stage-cell (the former flex-1 floated 5 rows on a
@@ -22,7 +25,11 @@
                  widths (XH-4 band contract). -->
             <div class="flex flex-wrap items-center justify-between gap-y-1 px-4 py-2.5 border-b border-border/40 shrink-0">
                 <div class="flex flex-wrap items-baseline gap-3 gap-y-1 min-w-0">
-                    <span class="text-display text-foreground truncate">Sequence</span>
+                    <!-- The scene name is the card's heading (D-5): an `h2`, so the
+                         outline names the storyboard; the display rung is the
+                         same utility it wore as a span — no reset needed, the
+                         utility sets size, weight and margin. -->
+                    <h2 class="text-display text-foreground truncate m-0">Sequence</h2>
                     <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">
                         stagger &times; {{ ROW_COUNT }}
                     </span>

@@ -2,8 +2,9 @@
    sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
    component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
    sourced-stylesheet precedent, S.D2/S.A0). */
-/* J.W7a S3 (D12) — the MASTER tone (the scrubber ball, playhead + readout accent
-   read ONE clock green); the rows OVERRIDE it per-row with their spectrum stop. */
+/* The MASTER tone (the scrubber ball, the playhead and the readout accent all
+   read ONE authority — `--color-progress`, the page's `--accent-kf`); the rows
+   OVERRIDE it per-row with their spectrum stop. */
 .seq-target {
     --ball-tone: var(--color-progress);
     /* L.W11 S7 — --seq-glow: the ONE intensity the playhead comet + lane balls share. */

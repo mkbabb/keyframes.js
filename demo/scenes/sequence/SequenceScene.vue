@@ -1,13 +1,9 @@
 <template>
-    <div class="flex h-full w-full items-center justify-center">
-        <SequenceTarget />
-    </div>
+    <SequenceTarget />
 </template>
 
 <script setup lang="ts">
 import { provide, ref } from "vue";
-
-import { getStoredAnimationGroupControlOptions } from "@state";
 
 import SequenceTarget from "./SequenceTarget.vue";
 import { useSequenceDemo } from "./useSequenceDemo";
@@ -18,24 +14,22 @@ const SCENE_ID = SEQUENCE_SCENE_ID;
 const demo = useSequenceDemo();
 provide(SEQUENCE_DEMO_KEY, demo);
 
-// The scene's transport (play/pause/reverse/timeScale/scrub — the F.W9 contract)
-// lives ON the target (SequenceTarget), self-contained like the spring rail. The
-// contract AnimationGroup satisfies the editor's bottom-bar handle; it drives no
-// scene motion (the Sequence's own loop does). The PLAYBACK authority is the
-// machine + the raw-rAF ScenePlayback adapter (H.W1) — `demo.isPlaying` is now a
-// read-only projection of the machine status. The control-surface DFA (H.W11.S4
-// / I2 — `CONTROL_SURFACES.sequence = []`) is the AUTHORITY on this being a
-// self-contained, panel-less stage: the dock shows NO control affordance for an
-// empty DFA set. The local closed-default keeps the panel container collapsed.
-const storedControls = getStoredAnimationGroupControlOptions(SCENE_ID);
-storedControls.isControlsPanelOpen = false;
+// The scene is its own instrument: the transport surface is the shell's dock
+// (play/pause through the SceneFacility's playback adapter) plus the two verbs
+// that live ON the target — the master-clock scrub and the row re-time (with
+// its reset). Nothing here opens or closes a controls panel: this scene has no
+// panel, and no stored panel option to hold shut (the former closed-default
+// wrote a key nothing read — SC-1/D23). The PLAYBACK authority is the scene
+// machine; `demo.isPlaying` is a read-only projection of its status.
+//
+// The target is the scene's root: it is already the centred, width-bounded,
+// full-height column, so no wrapper repeats those declarations around it (D21).
 
 defineExpose({
-    // T.B1 STAGE 1 — the SceneFacility replaces the deleted contract group. Its
-    // ONE "Sequence" channel is the transport label; `facility.playback` is the
-    // raw-rAF adapter the shell registers with the machine. `scenePlayback` is
-    // also exposed as the STABLE bind-target identity the shell's once-per-entry
-    // ready-guard keys on (a facility-only scene has no `animationGroup`).
+    // The SceneFacility is the shell's whole contract with this scene: its ONE
+    // "Sequence" channel is the transport label; `facility.playback` is the
+    // adapter the shell registers with the machine. A facility-only scene has no
+    // `animationGroup` and exposes no separate playback identity.
     facility: demo.facility,
     superKey: SCENE_ID,
     isStarted: ref(true),
