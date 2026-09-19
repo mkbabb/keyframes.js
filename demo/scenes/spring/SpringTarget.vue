@@ -61,7 +61,10 @@
             <div
                 ref="railEl"
                 class="spring-rail focus-ring relative w-full h-12 cursor-pointer select-none"
-                :class="{ 'spring-rail--derby': demo.derbyActive.value }"
+                :class="{
+                    'spring-rail--derby': demo.derbyActive.value,
+                    'spring-rail--dragging': dragging,
+                }"
                 role="slider"
                 aria-label="Drag to re-seat the spring target"
                 :aria-valuenow="Math.round(demo.target.value * 100)"
@@ -320,7 +323,34 @@ onScopeDispose(() => unregisterPainter?.());
 // The shared drag-scrub seam (H.W12.S1 / I8). Spring's `project` is the bare
 // rect-ratio (`demo.reseat` owns the clamp); no pause/resume hooks — the spring
 // chases the live target continuously.
-const { onPointerDown } = useDragScrub({
+// ── THE RAIL'S GESTURE SPEC (D-5 · m-11 · i-18 · N-3) — ONE SPEC, NOT FOUR
+//    PATCHES ─────────────────────────────────────────────────────────────────
+//
+// The four rows are one question — what does this surface afford, and does it
+// say so — so they are answered once, here, and the answer is written down.
+//
+//  1. VOCABULARY. The rail shows three states: rest, hover, dragging. N-1's
+//     sibling defect N-3: the component's only interactive element had no hover,
+//     no active and no drag styling whatsoever, and `dragging` — returned by
+//     `useDragScrub` all along — was never destructured. A surface that responds
+//     to nothing until it has already acted is why C-1's paused-entry state read
+//     as broken rather than idle.
+//  2. DRAG / TAP re-seats the target. Unchanged; it is the primary action.
+//  3. DOUBLE-TAP launches the derby, and Enter/Space does the same on the focused
+//     rail. D-5: the egg was reachable by exactly ONE pointer gesture — no Enter,
+//     no Space, no registry shortcut — so keyboard-only users could not trigger
+//     it and AT users could neither trigger nor perceive it. The on-stage
+//     discovery affordance was DELIBERATELY retired (T.M, VERDICT #8), and this
+//     does not reinstate it: a key is parity for a gesture that already exists,
+//     not a new advertisement for it.
+//  4. WHILE THE DERBY OWNS THE FIELD the rail refuses a re-seat (m-11 — the
+//     refusal lives in `demo.reseat`, where every entry point meets it).
+//  5. THE DERBY RESTORES THE POSE it interrupted (i-18 — in `useSpringDemo`).
+//  6. The overlay stays `aria-hidden` (it is decoration), and the race is
+//     announced through the rail's own status region instead — D-5's aria-hidden
+//     half, answered by the a11y family rather than by narrating four moving
+//     balls to a screen reader.
+const { dragging, onPointerDown } = useDragScrub({
     el: railEl,
     project: (e) => {
         const el = railEl.value;
@@ -345,18 +375,32 @@ useDoubleTap({
 });
 
 const onKeydown = (e: KeyboardEvent) => {
+    // KF-SS-30 — the keys this slider claims are claimed AGAIN by the global
+    // transport registry, and the glass dispatcher's exemption list does not
+    // exempt `div[role=slider]`. `preventDefault` alone never stopped the second
+    // handler: a focused rail's Arrow/Home/End were reaching both. A slider that
+    // has taken a key owns it for that keypress.
+    const claim = () => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     if (e.key === "ArrowRight" || e.key === "ArrowUp") {
         demo.reseat(demo.target.value + 0.1);
-        e.preventDefault();
+        claim();
     } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
         demo.reseat(demo.target.value - 0.1);
-        e.preventDefault();
+        claim();
     } else if (e.key === "Home") {
         demo.reseat(0);
-        e.preventDefault();
+        claim();
     } else if (e.key === "End") {
         demo.reseat(1);
-        e.preventDefault();
+        claim();
+    } else if (e.key === "Enter" || e.key === " ") {
+        // Gesture spec 3 — keyboard parity for the double-tap egg.
+        demo.derby();
+        claim();
     }
 };
 </script>
@@ -485,6 +529,24 @@ const onKeydown = (e: KeyboardEvent) => {
     --ball-size: 1.25rem;
     --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
+}
+
+/* ── N-3 (gesture spec 1) — THE SURFACE ANSWERS THE POINTER ──
+   The component's ONE interactive element had no hover, no active and no drag
+   state at all; `dragging` came back from `useDragScrub` and went nowhere. These
+   three rules are the whole vocabulary: the ghost marker brightens under the
+   pointer so the target you are about to move is the thing that lights up, and
+   the rail's own groove lifts while a drag is live so the gesture has a held
+   state. Compositor-safe (colour + opacity only) and no new element. */
+.spring-rail:hover .spring-target-marker,
+.spring-rail--dragging .spring-target-marker {
+    border-color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 85%, transparent);
+}
+.spring-rail--dragging {
+    cursor: grabbing;
+}
+.spring-rail--dragging .progress-rail {
+    --rail-tint: 18%;
 }
 
 /* ── D-2 — THE VALUE=1 REFERENCE, AND WHAT IT IS NOT ──
