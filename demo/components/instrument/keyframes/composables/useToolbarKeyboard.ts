@@ -22,7 +22,8 @@ import { onMounted } from "vue";
  *
  * Container-based (it queries the container's `button` descendants) so it is
  * agnostic to how each action renders its button — KeyframesAddDialog's
- * DialogTrigger, CopyButton, the Apply-CSS button — with no per-item
+ * DialogTrigger, CopyButton (`@components/CopyButton/`, R-1's owner-named
+ * home), the Apply-CSS button — with no per-item
  * registration. Non-button decorative icons (the WandSparkles lead) and
  * `aria-hidden`/`disabled` elements are excluded from the roving cohort.
  */

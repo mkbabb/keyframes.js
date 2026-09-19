@@ -147,7 +147,7 @@ import { Card, CardAction, CardHeader, CardTitle } from "@mkbabb/glass-ui/card";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
-import CopyButton from "@components/CopyButton.vue";
+import CopyButton from "@components/CopyButton/CopyButton.vue";
 
 import { SPRING_DEMO_KEY } from "./springKeys";
 import { SPRING_PRESETS } from "./springPresets";

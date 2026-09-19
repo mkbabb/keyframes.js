@@ -230,7 +230,7 @@ import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useCodeHighlight } from "./composables/useHighlightCSS";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
-import CopyButton from "@components/CopyButton.vue";
+import CopyButton from "@components/CopyButton/CopyButton.vue";
 import KeyframeCardList from "./components/KeyframeCardList.vue";
 import KeyframesAddDialog from "./components/KeyframesAddDialog.vue";
 

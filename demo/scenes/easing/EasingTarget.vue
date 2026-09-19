@@ -178,7 +178,7 @@ import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
-import CopyButton from "@components/CopyButton.vue";
+import CopyButton from "@components/CopyButton/CopyButton.vue";
 import {
     getCurvePath,
     namedEasing,

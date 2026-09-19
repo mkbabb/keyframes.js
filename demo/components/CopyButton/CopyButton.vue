@@ -19,8 +19,13 @@
          its own): the retained rows are KF-CB-25 (the `easeInBounce` pulse is
          the demo's own feedback register, kept on the primitive by the owner's
          preserve-animations law), KF-CB-27 (script-side constants, retained by
-         policy below) and KF-CB-37 (the MOVE into `instrument/` is KF.W8's,
-         R-13; this file is modified IN PLACE). -->
+         policy below) and KF-CB-37 (the MOVE is KF.W8's, R-13 — LANDED HERE:
+         `instrument/` was REFUSED by R-1's destination law, because two of the
+         four importers live in `scenes/easing` and `scenes/spring` and homing
+         the control under `instrument/` would manufacture the up-import G5
+         forbids. The home is this owner-named directory, the tree's own live
+         idiom — `transport/{AnimationControlsGroup,TransportDock,KfPillTabs}/`
+         — never a generic `shared/`/`common/`/`ui/` bucket). -->
     <Tooltip>
         <TooltipTrigger as-child>
             <Button

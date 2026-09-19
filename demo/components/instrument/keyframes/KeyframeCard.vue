@@ -130,7 +130,7 @@ import { computed, useTemplateRef } from "vue";
 // leaves with its two orphan consumers (KC-26 above) — the card imports only
 // what it mounts.
 import { Input } from "@mkbabb/glass-ui/forms";
-import CopyButton from "@components/CopyButton.vue";
+import CopyButton from "@components/CopyButton/CopyButton.vue";
 import { X } from "@lucide/vue";
 
 const props = defineProps<{
