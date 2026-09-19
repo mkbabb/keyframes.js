@@ -38,9 +38,22 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
         return convertPixelsToCh(el.offsetWidth, el);
     };
 
-    const getTmpAnimationName = () => {
-        return keyframesStyleId.replace("keyframes-style-", "").toLowerCase();
-    };
+    /**
+     * KF-KE-4 (X.KF.W12.c) — THE APPLY IDENTITY IS ONE STRING.
+     *
+     * The name the injected stylesheet is emitted under — its `.selector`, its
+     * `animation-name` and its `@keyframes` name (the emitter's only rule is
+     * `` `.${name}` ``) — and the class the Apply control adds to every target
+     * (`useKeyframeBrushApply` → `useApplyCSS`: `getClassName() === styleId`)
+     * are the SAME token, by construction rather than by agreement between two
+     * derivations. This function used to strip the `keyframes-style-` prefix and
+     * case-fold, so the sheet named `.x` while the target wore `keyframes-style-X`
+     * and Apply had never once applied anything — proven by execution in
+     * `keyframes-editor-honest.test.ts`, which reads both strings back from the
+     * DOM. No sanitization happens here: routing the ONE token through the
+     * library's published `cssIdent` is N-8, the APPLY-UNIT's row.
+     */
+    const getTmpAnimationName = () => keyframesStyleId;
 
     return {
         animationUUID,
