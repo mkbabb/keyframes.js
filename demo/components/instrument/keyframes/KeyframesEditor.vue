@@ -507,8 +507,8 @@ function onKeyDown(e: KeyboardEvent) {
  * signal (KF-KC-27's third aggravation, measured by `.a`). Four things change:
  *   · the command commits WHETHER OR NOT the motion settles — the motion runs
  *     first so a real browser still sees the card leave, but it may hold the
- *     command for at most its OWN declared length (read from the motions'
- *     options, plus one frame for the loop's completion tick). Measured at the
+ *     command for at most TWICE its OWN declared length (read from the
+ *     motions' options — a bound for a hang, never for lateness). Measured at the
  *     engine (`group/lifecycle.ts:92-95`): `play()` resolves only from the
  *     draw loop's completion, so a throw inside the loop — headless, every
  *     time — leaves the promise PENDING forever, never rejected; a command
@@ -554,7 +554,11 @@ const exitMotion = async (frameIx: number) => {
         neighbour == null
             ? AnimationGroup.of(leave)
             : AnimationGroup.of(leave, presets.jumpUp().setTargets(neighbour));
-    const budgetMs = leave.options.duration + FRAME_MS;
+    // Twice the declared length: the bound is for a motion that will NEVER
+    // settle, not for one landing a frame or two late under load — a loaded
+    // runner that finishes a 700 ms motion at 730 ms must not be told it hung
+    // (the gate caught exactly that with a one-frame budget).
+    const budgetMs = 2 * leave.options.duration;
 
     let settled = false;
     const motion = group.play().then(
@@ -572,14 +576,10 @@ const exitMotion = async (frameIx: number) => {
     await Promise.race([motion, promiseTimeout(budgetMs)]);
     if (!settled) {
         console.warn(
-            `The keyframe's exit motion did not settle within its declared ${budgetMs} ms; the removal lands regardless.`,
+            `The keyframe's exit motion did not settle within twice its declared length (${budgetMs} ms); the removal lands regardless.`,
         );
     }
 };
-
-/** One frame at 60 Hz — the slack the draw loop's completion tick needs past
- *  a motion's declared duration. */
-const FRAME_MS = 1000 / 60;
 
 const removeKeyframe = async (_e: Event, frameIx: number) => {
     const frame = animation.templateFrames[frameIx];
