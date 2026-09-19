@@ -173,6 +173,15 @@ const initEditor = async () => {
         scrollBeyondLastLine: false,
         automaticLayout: true,
         lineNumbers: props.lineNumbers ? "on" : "off",
+        // KF-CE-3 (WCAG 2.1.2): Tab MOVES FOCUS out of this editor. With the
+        // `editor.api` boot the `toggleTabFocusMode` contribution (Ctrl+M) is
+        // not loaded, so without this option Tab is bound to indentation
+        // unconditionally and a keyboard user can enter the well but never
+        // leave it. `tabFocusMode` is a create-time editor option that seeds
+        // the `tabDoesNotMoveFocus` context key directly — no contribution
+        // is needed — and it is the right posture for a short-snippet editor
+        // whose indentation is one Format away.
+        tabFocusMode: true,
         accessibilitySupport: "off",
         padding: {
             top: props.padding,
