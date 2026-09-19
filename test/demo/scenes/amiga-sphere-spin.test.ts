@@ -39,13 +39,20 @@ function fire(
     type: string,
     x: number,
     y: number,
+    extra: Record<string, unknown> = {},
 ): void {
     // jsdom lacks PointerEvent — synthesize a plain Event with the needed props.
+    // X.KF.W11.h — `isPrimary`/`button` join the shape because a real
+    // PointerEvent always carries them and MISSED-G's guards read them; `extra`
+    // lets a case pose as a second touch or a secondary button.
     const ev = new Event(type, { bubbles: true, cancelable: true }) as Event &
         Record<string, unknown>;
     ev.pointerId = 1;
+    ev.isPrimary = true;
+    ev.button = 0;
     ev.clientX = x;
     ev.clientY = y;
+    Object.assign(ev, extra);
     canvas.dispatchEvent(ev);
 }
 
@@ -169,5 +176,86 @@ describe("useSphereSpin — the amiga A5 engine-drives-mesh contract", () => {
         fire(canvas, "pointerup", 100, 100);
         expect(spin.isGliding()).toBe(false);
         nowSpy.mockRestore();
+    });
+
+    // ── X.KF.W11.h — the gesture rows of the amiga scene-repair packet ───────
+
+    it("MISSED-G — a second touch does not steal the active drag", () => {
+        fire(canvas, "pointerdown", 100, 100); // pointer 1 owns the gesture
+        expect(spin.isDragging()).toBe(true);
+        const owned = spin.offset.y;
+
+        // A second finger lands on the sphere mid-drag. It used to overwrite
+        // `activePointer` outright, so pointer 1's moves were ignored from that
+        // instant and its release could not end the gesture.
+        fire(canvas, "pointerdown", 100, 100, { pointerId: 2, isPrimary: false });
+        fire(canvas, "pointermove", 140, 100, { pointerId: 2, isPrimary: false });
+        expect(spin.offset.y).toBe(owned); // the intruder moves nothing
+
+        fire(canvas, "pointermove", 140, 100); // pointer 1 still owns it
+        expect(spin.offset.y).toBeGreaterThan(owned);
+        fire(canvas, "pointerup", 140, 100);
+        expect(spin.isDragging()).toBe(false);
+    });
+
+    it("MISSED-G — a secondary-button press is not a spin gesture", () => {
+        fire(canvas, "pointerdown", 100, 100, { button: 2 });
+        expect(spin.isDragging()).toBe(false);
+        // …and orbit is NOT stood down, so the surface is not hijacked behind a
+        // `preventDefault` the user cannot undo.
+        expect(orbitEnabled).toBe(true);
+    });
+
+    it("L-M1/C-8 — a flick that went stale before release arms no glide", () => {
+        let now = 5000;
+        const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => now);
+
+        fire(canvas, "pointerdown", 100, 100);
+        for (let i = 0; i < 4; i++) {
+            now += 8;
+            fire(canvas, "pointermove", 100 + (i + 1) * 24, 100);
+        }
+        // The finger comes to REST on the ball for half a second, then lifts.
+        // `velX/velY` are written only by `pointermove`, so the release used to
+        // hand the glide a velocity that was 500 ms out of date.
+        now += 500;
+        fire(canvas, "pointerup", 196, 100);
+
+        expect(spin.isGliding()).toBe(false);
+        expect(spin.angularVelocity()).toBe(0);
+        nowSpy.mockRestore();
+    });
+
+    it("L-M1/C-8 — a coalesced sample pair cannot amplify the release impulse", () => {
+        let now = 7000;
+        const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => now);
+
+        fire(canvas, "pointerdown", 100, 100);
+        now += 0.2; // two samples 200 µs apart — a coalesced delivery
+        fire(canvas, "pointermove", 124, 100); // 24 px in 0.2 ms
+        fire(canvas, "pointerup", 124, 100);
+
+        // 24 px × 0.01 rad/px = 0.24 rad. Under the old 1 ms floor that read as
+        // 240 rad/s — 38 turns a second from one flick of the wrist. The floor
+        // is now a real sampling period (240 Hz), so the impulse is bounded by
+        // the physics of a hand, not by an event-delivery artefact.
+        expect(spin.angularVelocity()).toBeLessThan(100);
+        expect(spin.angularVelocity()).toBeGreaterThan(0);
+        nowSpy.mockRestore();
+    });
+
+    it("D-2 — the keyboard nudge writes the SAME additive offset, and Home rests it", () => {
+        const y0 = spin.offset.y;
+        spin.nudge(0, Math.PI / 8);
+        expect(spin.offset.y).toBeCloseTo(y0 + Math.PI / 8, 6);
+        expect(mesh.rotation.y).toBe(0); // still not a second mesh writer
+
+        spin.nudge(Math.PI / 30, 0);
+        expect(spin.offset.x).toBeCloseTo(Math.PI / 30, 6);
+
+        spin.rest();
+        expect(spin.offset.x).toBe(0);
+        expect(spin.offset.y).toBe(0);
+        expect(spin.isGliding()).toBe(false);
     });
 });

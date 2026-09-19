@@ -44,6 +44,16 @@ const DEFAULT_FRICTION = 2.4;
 const DEFAULT_SENSITIVITY = 0.01;
 // Below this (rad/s) the glide is visually at rest — stop integrating.
 const REST_SPEED = 1e-3;
+// L-M1/C-8 — the shortest interval a real pointer stream samples at (240 Hz).
+// The floor used to be 1 ms, so a coalesced pair delivered a sub-millisecond
+// apart divided a full drag delta by 0.001 s: a genuine up-to-1000× amplifier on
+// the release impulse, and nothing downstream clamped it.
+const MIN_SAMPLE_MS = 1000 / 240;
+// L-M1/C-8 — a flick older than this is not a flick. `velX/velY` were written
+// only in `onPointerMove` and `endDrag` never looked at WHEN, so a user who
+// flicked, held still for a second and then lifted released the flick's full
+// velocity into the glide. Past this window the finger had come to rest.
+const FLICK_WINDOW_MS = 100;
 
 export function useSphereSpin(options: SphereSpinOptions) {
     const friction = options.friction ?? DEFAULT_FRICTION;
@@ -95,7 +105,23 @@ export function useSphereSpin(options: SphereSpinOptions) {
         return raycaster.intersectObject(mesh, false).length > 0;
     };
 
+    // L-M1/C-8 — the engine's analytic decay sampler seeded ONCE with unit
+    // velocity, so `unitDecay(t).velocity` IS the multiplicative factor
+    // e^(−k·t): the same closed form the glide itself rides (and the same
+    // dogfood idiom the cube's `useOrbitalInertia` keeps), used here to age a
+    // release impulse by however long the finger was still before it lifted.
+    const unitDecay = decay({ velocity: 1, friction });
+
     const onPointerDown = (e: PointerEvent) => {
+        // MISSED-G — one gesture, one pointer, one button. A second touch used
+        // to overwrite `activePointer` and silently steal the drag mid-flight,
+        // and a right-button press hijacked the surface with `preventDefault` +
+        // `stopPropagation` while orbit was disabled — a press the user could
+        // not undo and a context menu that never came. Three guards, all cheap,
+        // none of them changing what a single primary-button drag does.
+        if (dragging) return; // re-entrancy: the gesture is already owned
+        if (!e.isPrimary) return; // a secondary touch is not a second drag
+        if (e.button !== 0) return; // pen/right/middle → not a spin gesture
         if (!hitsSphere(e.clientX, e.clientY)) return; // → OrbitControls
         // The sphere owns this gesture: take the pointer, stand the camera orbit
         // down, and cancel any in-flight glide (a new grab re-seeds velocity).
@@ -115,7 +141,7 @@ export function useSphereSpin(options: SphereSpinOptions) {
     const onPointerMove = (e: PointerEvent) => {
         if (!dragging || e.pointerId !== activePointer) return;
         const now = performance.now();
-        const dt = Math.max((now - lastMoveTime) / 1000, 1e-3);
+        const dt = Math.max(now - lastMoveTime, MIN_SAMPLE_MS) / 1000;
         const dx = e.clientX - lastX;
         const dy = e.clientY - lastY;
 
@@ -137,6 +163,7 @@ export function useSphereSpin(options: SphereSpinOptions) {
 
     const endDrag = (e: PointerEvent) => {
         if (!dragging || e.pointerId !== activePointer) return;
+        const now = performance.now();
         dragging = false;
         activePointer = undefined;
         if (canvasEl?.hasPointerCapture(e.pointerId)) {
@@ -144,15 +171,24 @@ export function useSphereSpin(options: SphereSpinOptions) {
         }
         options.setOrbitEnabled(true);
 
-        // Hand the release velocity to the engine's closed-form glide. Only seed
-        // an axis whose flick had real speed (a static tap glides nowhere).
-        const seed = (v: number) =>
-            Math.abs(v) > REST_SPEED
-                ? decay({ velocity: v, friction })
+        // Hand the release velocity to the engine's closed-form glide, AGED by
+        // how long the finger was still before it lifted (L-M1/C-8): inside the
+        // flick window the impulse decays exactly as the glide would have
+        // decayed it over that interval — no cliff, no stale fling — and past
+        // the window there is no flick left to hand on. Only seed an axis whose
+        // flick still has real speed (a static tap glides nowhere).
+        const age = now - lastMoveTime;
+        const staleness =
+            age >= FLICK_WINDOW_MS ? 0 : unitDecay(age / 1000).velocity;
+        const seed = (v: number) => {
+            const aged = v * staleness;
+            return Math.abs(aged) > REST_SPEED
+                ? decay({ velocity: aged, friction })
                 : undefined;
+        };
         glideX = seed(velX);
         glideY = seed(velY);
-        glideStart = performance.now();
+        glideStart = now;
         lastGlideX = 0;
         lastGlideY = 0;
     };
