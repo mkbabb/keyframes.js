@@ -30,26 +30,46 @@
              caption row. The former flat row gave x + v the SAME small MetricBadge
              size (the equal-weight inversion the user named); the re-tier moves
              the display weight to the one number that matters. -->
-        <div class="flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0">
+        <!-- D-6 — THE SCENE HAD NO HEADING, NO LANDMARK AND NO ACCESSIBLE NAME
+             ANYWHERE (a grep for one returned zero across all seven files), while
+             the sibling at the identical structural rung is fully semantic —
+             `<header>` + `<h2>` on the same utilities (EasingTarget). That is an
+             intra-repo divergence, not a house style, so the house's own shape is
+             adopted: the scene name was already rendered at the display rung in a
+             bare `<span>`; it becomes the heading it was drawn as. -->
+        <header class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0">
             <div class="flex flex-col gap-1 min-w-0">
-                <span class="text-display text-foreground truncate leading-none">
+                <h2 class="text-display text-foreground truncate leading-none">
                     SpringProgress
-                </span>
+                </h2>
                 <div class="flex items-baseline gap-2">
                     <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
                     <span class="spring-readout-primary tabular-nums">{{ demo.liveValue.value.toFixed(3) }}</span>
                 </div>
             </div>
             <div class="flex flex-col items-end gap-1 shrink-0">
+                <!-- D-14 — the one DISCRETE, high-salience state change in the
+                     scene (settled ↔ tracking) had no `role="status"` and no live
+                     region, so the single fact a non-visual user most needs from
+                     an instrument — has it come to rest — was published nowhere.
+                     `aria-valuenow` cannot carry it: that tracks the COMMANDED
+                     value and says nothing about settling. The badge is the state,
+                     so the badge becomes the region. The surrounding 6 Hz restraint
+                     is deliberately preserved: this flips on a discrete transition,
+                     never per readout tick.
+                     Gesture spec 6 — and it is where the derby announces itself,
+                     since the lane overlay is (correctly) `aria-hidden`
+                     decoration and four racing balls are not a thing to narrate. -->
                 <span
                     class="status-badge text-admin-label px-2 py-0.5 rounded-full"
                     :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
-                >{{ demo.liveSettled.value ? "settled" : "tracking" }}</span>
+                    role="status"
+                >{{ stateLabel }}</span>
                 <span class="text-mono-caption text-muted-foreground tabular-nums">
                     v {{ demo.liveVelocity.value.toFixed(2) }}
                 </span>
             </div>
-        </div>
+        </header>
 
         <!-- The rail: tap/drag to re-seat the live target -->
         <div class="flex w-full max-w-3xl flex-col items-center justify-center gap-6">
@@ -60,16 +80,19 @@
                  graduated field, not blank glass. -->
             <div
                 ref="railEl"
-                class="spring-rail focus-ring relative w-full h-12 cursor-pointer select-none"
+                class="spring-rail kf-focus-ring relative w-full h-12 cursor-pointer select-none"
                 :class="{
                     'spring-rail--derby': demo.derbyActive.value,
                     'spring-rail--dragging': dragging,
                 }"
                 role="slider"
-                aria-label="Drag to re-seat the spring target"
-                :aria-valuenow="Math.round(demo.target.value * 100)"
+                aria-label="Spring target"
+                :aria-valuenow="Number(demo.target.value.toFixed(2))"
                 aria-valuemin="0"
-                aria-valuemax="100"
+                aria-valuemax="1"
+                :aria-valuetext="targetValueText"
+                aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Shift+ArrowLeft Shift+ArrowRight PageUp PageDown Home End Enter Space"
+                aria-describedby="spring-rail-hint"
                 tabindex="0"
                 @pointerdown="onPointerDown"
                 @keydown="onKeydown"
@@ -156,7 +179,19 @@
                 </div>
                 </Transition>
             </div>
-            <p class="text-small text-muted-foreground text-center">
+            <!-- C-1 — this sentence is TRUE NOW. It promised that a tap or drag
+                 springs the ball to the new target; in the scene's own documented
+                 entry state it did not, and the promise is the reason the broken
+                 state reads as broken rather than idle. The chase-intent contract
+                 is what earns the copy back, and the copy is left exactly as the
+                 owner wrote it. (KF-SS-38's surviving question — that "Re-seat",
+                 the ribbon's verb for the same act, is jargon this copy never
+                 teaches — is a user-facing COPY decision this wave does not hold;
+                 it stays written down and unacted, as its home record directs.)
+                 D-6/N-4 — and it is the rail's `aria-describedby` target, so the
+                 instruction reaches a screen reader as a DESCRIPTION instead of
+                 masquerading as the control's name. -->
+            <p id="spring-rail-hint" class="text-small text-muted-foreground text-center">
                 Tap or drag the rail &mdash; the ball springs to the new target. Adjust
                 <span class="code-token">response</span> /
                 <span class="code-token">dampingFraction</span> in the panel.
@@ -197,7 +232,7 @@
 
 <script setup lang="ts">
 import type { ComponentPublicInstance } from "vue";
-import { inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
+import { computed, inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
@@ -206,6 +241,35 @@ import { SPRING_DEMO_KEY } from "./springKeys";
 import SpringTrace from "./SpringTrace.vue";
 
 const demo = inject(SPRING_DEMO_KEY)!;
+
+// ── THE A11Y ONE-EDIT FAMILY (D-6 · D-14 · N-4) ──────────────────────────────
+//
+// N-4 / KF-SS-32 — TWO SCALARS, ONE UNLABELLED ANNOUNCEMENT, AND A NAME THAT WAS
+// AN INSTRUCTION. The rail's accessible name was "Drag to re-seat the spring
+// target": it named a MODALITY (drag) to users who may have no pointer, and it
+// was a sentence where a noun phrase belongs. Its `aria-valuenow` announced
+// `round(target * 100)` — a 0-100 scale that appears NOWHERE in the visual UI,
+// which is [0, 1] everywhere — while the hero numeral 20 px away shows the LIVE
+// displacement, so two different scalars were reaching a user as one bare number.
+// The name is a noun phrase; the range is the space the UI actually shows; and
+// `aria-valuetext` says WHICH scalar it is. Unlike the banked N-14 case no domain
+// decision blocks this — there is one honest reading and this is it.
+//
+// The valuetext deliberately does NOT carry the live displacement: that changes
+// at the readout cadence and would turn a slider into a 6 Hz announcement storm.
+// Settling — the one discrete fact — is published by the status region instead.
+const targetValueText = computed(() => `target ${demo.target.value.toFixed(2)} of 1`);
+
+/** The instrument's one discrete, high-salience state (D-14), and the derby's
+ *  only announcement channel (gesture spec 6 — the lane overlay is aria-hidden
+ *  decoration by design). */
+const stateLabel = computed(() =>
+    demo.derbyActive.value
+        ? "derby"
+        : demo.liveSettled.value
+          ? "settled"
+          : "tracking",
+);
 
 // S.G3 S2 — the derby is POINTER-based double-tap now (touch parity; never native
 // `dblclick`, which mobile browsers do not synthesize reliably). A discovered
@@ -385,11 +449,22 @@ const onKeydown = (e: KeyboardEvent) => {
         e.stopPropagation();
     };
 
+    // KF-SS-32 — the APG step ladder the rail was missing. One step was 0.1, a
+    // tenth of the whole range, with no finer grain and no Page keys, so a
+    // keyboard user could not place the target anywhere a pointer user could.
+    const step = e.shiftKey ? 0.01 : 0.1;
+
     if (e.key === "ArrowRight" || e.key === "ArrowUp") {
-        demo.reseat(demo.target.value + 0.1);
+        demo.reseat(demo.target.value + step);
         claim();
     } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
-        demo.reseat(demo.target.value - 0.1);
+        demo.reseat(demo.target.value - step);
+        claim();
+    } else if (e.key === "PageUp") {
+        demo.reseat(demo.target.value + 0.25);
+        claim();
+    } else if (e.key === "PageDown") {
+        demo.reseat(demo.target.value - 0.25);
         claim();
     } else if (e.key === "Home") {
         demo.reseat(0);
