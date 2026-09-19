@@ -137,6 +137,27 @@
     </Card>
 </template>
 
+<script lang="ts">
+// ── SPF-3 — the preset-ball painter's GEOMETRY, stated and exported ───────────
+// A track value is the spring's live position: 0 at rest, 1 at the target, and
+// PAST either on the way (the four presets differ by exactly how far — analytic
+// peaks 1.005 / 1.068 / 1.205 / 1.000 — and the tracks retarget in both
+// directions, so the undershoot on a downward retarget is real and symmetric).
+// The painter maps [-HEADROOM, 1 + HEADROOM] onto the track's full width, so
+// rest sits at 1/6, the target at 5/6, and an overshoot visibly leaves the rail
+// (which is inset to span exactly [0, 1]). The headroom exceeds the largest
+// preset peak; the clamp is the geometric bound, never reached by the four.
+import { clamp } from "@mkbabb/value.js/math";
+
+/** The travel the track affords beyond rest and beyond the target, in value units. */
+export const BALL_HEADROOM = 0.25;
+
+/** A track value → its position along the track, 0 → 1 (the `cqw` fraction). */
+export function ballTravel(value: number): number {
+    return (clamp(value, -BALL_HEADROOM, 1 + BALL_HEADROOM) + BALL_HEADROOM) / (1 + 2 * BALL_HEADROOM);
+}
+</script>
+
 <script setup lang="ts">
 import type { ComponentPublicInstance } from "vue";
 import { onMounted, onScopeDispose } from "vue";
@@ -144,7 +165,6 @@ import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { Chip } from "@mkbabb/glass-ui/chip";
 import { RefreshCw } from "@lucide/vue";
-import { clamp } from "@mkbabb/value.js/math";
 
 import KeyframesEditor from "@components/instrument/keyframes/KeyframesEditor.vue";
 import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
@@ -169,8 +189,10 @@ onMounted(() => {
             const el = trackBallEls[i];
             // T.G4 — position by `transform: translateX(<cqw>)`, never `left` (the
             // compositor-only value axis; `cqw` = 1% of the `.preset-track`
-            // inline-size container). No per-frame layout, no width read.
-            if (el) el.style.transform = `translateX(${clamp(values[i] ?? 0, 0, 1) * 100}cqw)`;
+            // inline-size container). No per-frame layout, no width read. The
+            // value is NOT clamped to [0, 1]: the overshoot is the point (SPF-3;
+            // `ballTravel` above states the geometry).
+            if (el) el.style.transform = `translateX(${ballTravel(values[i] ?? 0) * 100}cqw)`;
         }
     });
 });
@@ -194,9 +216,13 @@ const applyPreset = (preset: SpringPreset) => {
 /* ── Preset cells — the SINGLE preset surface ──
    The rail + ball geometry come from the shared .progress-rail / .progress-ball
    idiom (design-idioms.css). The rail tint lifts to 14% so the short in-cell
-   track reads as a clear groove at rest. */
+   track reads as a clear groove at rest. The rail is INSET to span exactly the
+   [0, 1] travel — rest at 1/6, the target at 5/6 of the track (`ballTravel`'s
+   geometry) — so a ball that overshoots visibly leaves the rail's end. */
 .preset-track .progress-rail {
     --rail-tint: 14%;
+    left: calc(100% / 6);
+    width: calc(100% * 2 / 3);
 }
 /* T.G4 — the track is the `cqw` inline-size container the preset ball's
    `translateX(<cqw>)` resolves against. */
