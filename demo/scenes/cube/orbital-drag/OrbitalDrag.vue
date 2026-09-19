@@ -10,6 +10,7 @@
 
 <script setup lang="ts">
 import { clamp } from "@mkbabb/value.js/math";
+import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { useEventListener } from "@vueuse/core";
 import { quat, vec3 } from "gl-matrix";
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
@@ -258,6 +259,54 @@ const inertia = useOrbitalInertia({
     updateLinearTransform,
 });
 
+// ── The axis latch — KF-AX-1 ≡ OD-3/OD-4/OD-5/OD-6/OD-25/OD-31 ──────
+//
+// THE ONE REGISTRY. Holding X, Y or Z constrains the orbit to that single axis.
+// That latch used to be a pair of raw `window` keydown/keyup listeners — a
+// SECOND keyboard authority beside the demo's one `registerShortcut` registry,
+// and it carried every defect the registry already solves:
+//
+//  · no editable-target guard — typing an `x` into any field in the app latched
+//    the axis (the registry skips input/textarea/contenteditable by default);
+//  · no modifier discipline — the app's own ⌘Z / ⌘⇧Z registrations latched the
+//    Z axis and lit the axis line on every Undo and Redo (a bare combo matches
+//    only with NO modifiers held, so the collision is now structural);
+//  · `event.key`-only matching — the binding is SPATIAL, so it is registered by
+//    `event.code` and a non-Latin layout reaches the same physical keys;
+//  · invisible — the ten-mode gesture vocabulary registered nothing anywhere, so
+//    nothing could teach it. Labelled registrations appear in the derived
+//    shortcuts modal (OD-6), which is the only surface that ever will.
+//
+// LAW A census, run before the deletion: `pointer.updatePressedKeys` had exactly
+// TWO readers tree-wide — the two window listeners replaced here — and no other
+// consumer of any kind, so the decoder dies with them.
+const AXIS_KEYS = [
+    { axis: "x", code: "KeyX" },
+    { axis: "y", code: "KeyY" },
+    { axis: "z", code: "KeyZ" },
+] as const;
+
+for (const { axis, code } of AXIS_KEYS) {
+    const label = `Constrain orbit to the ${axis.toUpperCase()} axis (hold)`;
+    registerShortcut(code, () => pointer.setAxisLatch(axis, true), {
+        label,
+        group: "Cube",
+    });
+    registerShortcut(code, () => pointer.setAxisLatch(axis, false), {
+        event: "keyup",
+        group: "Cube",
+    });
+}
+
+// OD-5 — the latch has a matching keyup, which a window blur or an app switch
+// never delivers: the lock stranded silently and the FIRST branch of both `drag`
+// and `handleWheel` reads it, so every later gesture was single-axis with no
+// visible cause. Clear it whenever the window stops owning the keyboard.
+useEventListener(window, "blur", () => pointer.resetPressedKeys());
+useEventListener(document, "visibilitychange", () => {
+    if (document.visibilityState === "hidden") pointer.resetPressedKeys();
+});
+
 // ── Lifecycle ───────────────────────────────────────────────────────
 
 onMounted(() => {
@@ -273,10 +322,7 @@ onMounted(() => {
         { passive: false },
     );
 
-    useEventListener(window, "keydown", (e: KeyboardEvent) => pointer.updatePressedKeys(e, true));
-    useEventListener(window, "keyup", (e: KeyboardEvent) => pointer.updatePressedKeys(e, false));
-
-    // Pointer Events on container -- dynamic doc listeners via setPointerCapture
+    // Pointer Events on container -- the reader owns its own document listeners
     useEventListener(containerRef, "pointerdown", pointer.onPointerDown);
 
     // Touch events on container only -- for multi-touch pinch (2+ fingers)
@@ -303,7 +349,9 @@ onUnmounted(() => {
 // a `pointerup` again once a drag begins. Publishing the surface lets a consumer
 // listen where the events are actually delivered, instead of the component
 // silently swallowing them.
-defineExpose({ containerRef });
+// OD-5's escape hatch rides with it: a consumer (or a gate) can clear a
+// stranded axis lock without synthesising a keyup.
+defineExpose({ containerRef, resetPressedKeys: pointer.resetPressedKeys });
 
 // The reverse path (external Euler → quaternion). The forward path writes
 // `model.value.rotate` as EXACTLY `quaternionToEulerDegrees(currentQuaternion)`,

@@ -166,13 +166,33 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
         }
     };
 
-    const updatePressedKeys = (event: KeyboardEvent, isPressed: boolean) => {
-        // event.key "control" maps to the `ctrl` slot; x/y/z/shift/meta map 1:1.
-        const key = event.key.toLowerCase();
-        const slot = key === "control" ? "ctrl" : key;
-        if (slot in pressedKeys.value) {
-            pressedKeys.value[slot as keyof PressedKeys] = isPressed;
-        }
+    /**
+     * kf-CubeAxisLines KF-AX-1 ≡ kf-OrbitalDrag OD-4/OD-5 — the AXIS LATCH's one
+     * setter. The former `updatePressedKeys(event, isPressed)` decoded a raw
+     * `KeyboardEvent` itself, which is what made it a second keyboard authority
+     * beside the demo's one registry: no editable-target guard, `event.key`-only
+     * matching (unreachable on non-Latin layouts) and no modifier discipline, so
+     * the app's own ⌘Z/⌘⇧Z latched the Z axis on every Undo. The decoding now
+     * belongs to `registerShortcut`, and this is the state it drives.
+     *
+     * The modifier slots are NOT set from here: `syncModifiers` reads them off
+     * the pointer/wheel event that is about to use them, which is both more
+     * correct and self-healing across a window blur.
+     */
+    const setAxisLatch = (axis: "x" | "y" | "z", pressed: boolean) => {
+        pressedKeys.value[axis] = pressed;
+    };
+
+    /** OD-5 — the latch's escape. A window blur, an app switch or a consumer
+     *  can clear a stranded single-axis lock; there was previously no way out
+     *  except pressing the key again. */
+    const resetPressedKeys = () => {
+        pressedKeys.value.x = false;
+        pressedKeys.value.y = false;
+        pressedKeys.value.z = false;
+        pressedKeys.value.shift = false;
+        pressedKeys.value.ctrl = false;
+        pressedKeys.value.meta = false;
     };
 
     const releaseCapture = (event: PointerEvent) => {
@@ -248,7 +268,8 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
         stopDrag,
         drag,
         handleWheel,
-        updatePressedKeys,
+        setAxisLatch,
+        resetPressedKeys,
         onPointerDown,
     };
 }
