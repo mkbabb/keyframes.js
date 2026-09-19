@@ -18,7 +18,7 @@
  * are polyfilled as SYMBOLS only (`CSS.escape`, `matchMedia`, a 2d canvas
  * context that measures nothing, `ResizeObserver`, a non-zero `offsetWidth`
  * so the component takes its immediate-init branch); none alters a component
- * under test. No test.skip, no allowlist, no try/catch around a defect.
+ * under test. Nothing is skipped, allow-listed or guarded around a defect.
  *
  * The four runtime clauses, each a behaviour and each born RED at the bytes
  * this wave opened on (the RED run is pasted in the wave record):
@@ -62,15 +62,15 @@ if (typeof window.matchMedia !== "function") {
 // jsdom's canvas has no 2d context without the `canvas` package; monaco reads
 // the backing-store ratio through it and paints its overview ruler on it. A
 // context whose every method is a no-op paints nothing and measures nothing.
-HTMLCanvasElement.prototype.getContext = (() =>
-    new Proxy(
-        { webkitBackingStorePixelRatio: 1 } as Record<PropertyKey, unknown>,
-        {
+Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+    configurable: true,
+    value: () =>
+        new Proxy({ webkitBackingStorePixelRatio: 1 } as Record<PropertyKey, unknown>, {
             get: (target, key) =>
                 key in target ? target[key] : () => ({ width: 0, data: [] }),
             set: () => true,
-        },
-    ) as unknown as CanvasRenderingContext2D) as typeof HTMLCanvasElement.prototype.getContext;
+        }),
+});
 if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver === "undefined") {
     (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
         observe() {}
