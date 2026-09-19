@@ -267,6 +267,7 @@ import {
 } from "@mkbabb/glass-ui/tooltip";
 
 import { onMounted, useTemplateRef, watch } from "vue";
+import { promiseTimeout } from "@vueuse/core";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useCodeHighlight } from "./composables/useHighlightCSS";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
@@ -440,24 +441,107 @@ function onKeyDown(e: KeyboardEvent) {
     highlightAll();
 }
 
-const removeKeyframe = async (_e: Event, frameIx: number) => {
-    if (animation.templateFrames.length <= 1) {
-        return;
-    }
+/**
+ * KF-KE-7 (+ KF-KE-61, KF-KE-47's second-delete question) — THE REMOVAL IS THE
+ * COMMAND; THE EXIT MOTION IS DECORATION.
+ *
+ * The removal used to be gated on the choreography's promise: a 700 ms wait
+ * (both presets are `duration: 700`) that nothing could skip, during which a
+ * second click landed on indices about to shift, and whose rejection — which
+ * headless realms produce every time, because the engine cannot resolve the
+ * transform `warpLeft` animates from — dropped the delete on the floor with no
+ * signal (KF-KC-27's third aggravation, measured by `.a`). Four things change:
+ *   · the command commits WHETHER OR NOT the motion settles — the motion runs
+ *     first so a real browser still sees the card leave, but it may hold the
+ *     command for at most its OWN declared length (read from the motions'
+ *     options, plus one frame for the loop's completion tick). Measured at the
+ *     engine (`group/lifecycle.ts:92-95`): `play()` resolves only from the
+ *     draw loop's completion, so a throw inside the loop — headless, every
+ *     time — leaves the promise PENDING forever, never rejected; a command
+ *     awaiting it open-endedly is a hostage in browsers too. A rejection is
+ *     REPORTED through the house non-toast boundary (this demo's toast surface
+ *     is structurally unreachable; the in-tree idiom is `useHighlightCSS`'s and
+ *     `KeyframesAddDialog`'s), an unsettled motion is reported as such, and
+ *     the removal lands either way. The engine's contract gap (a draw-loop
+ *     throw must settle `play()`/`finished`) is KF.W5's, escalated by name;
+ *     the idiomatic Vue home for animate-then-commit — a `<TransitionGroup>`
+ *     leave hook at the list, where Vue keeps the leaving row mounted until
+ *     `done()` — is the list's file and is named for its owner, not reached
+ *     across for;
+ *   · a stop that is already leaving is a no-op for a second activation
+ *     (`departing`, keyed by the frame's own id, never by an index that shifts
+ *     under the motion) — the busy window is real but a press inside it cannot
+ *     double-delete or delete a neighbour;
+ *   · the motion targets only elements that EXIST: the leaving card's root, and
+ *     the neighbour's when there is one (a stale or absent slot no longer
+ *     hands `setTargets` nothing — the guard is what makes `.a`'s typed ref
+ *     store checkable here, and the two TS2345 shadows fall with it);
+ *   · reduced motion is honoured by the group itself — `AnimationGroup`
+ *     defaults `respectReducedMotion` to `true` (KF.W5; `group/group.ts`), so
+ *     under the preference the motion snaps and the gate is ~0 ms. Nothing is
+ *     re-set here; the default is the cure.
+ * The duplicate "last keyframe" guard this handler carried is gone (KF-KE-61):
+ * `removeKeyframeData` owns that floor and its toast, and the card's own
+ * `canRemove` (`.a`'s KC-7) keeps the control disabled there.
+ */
+const departing = new Set<unknown>();
 
+const exitMotion = async (frameIx: number) => {
     const cards = cardList.value?.cardRefs ?? [];
-    const el1 = cards[frameIx];
-    const el2 =
+    const leaving = cards[frameIx];
+    if (leaving == null) return;
+    const neighbour =
         frameIx < cards.length - 1 ? cards[frameIx + 1] : cards[frameIx - 1];
 
     // S.B4 — `AnimationGroup.of(...)` replaces the excised
     // `KeyframesAnimation.group(...)` convenience (genuine ownership; a06 F1/F2).
-    await AnimationGroup.of(
-        presets.warpLeft().setTargets(el1),
-        presets.jumpUp().setTargets(el2),
-    ).play();
+    const leave = presets.warpLeft().setTargets(leaving);
+    const group =
+        neighbour == null
+            ? AnimationGroup.of(leave)
+            : AnimationGroup.of(leave, presets.jumpUp().setTargets(neighbour));
+    const budgetMs = leave.options.duration + FRAME_MS;
 
-    removeKeyframeData(frameIx);
+    let settled = false;
+    const motion = group.play().then(
+        () => {
+            settled = true;
+        },
+        (e: unknown) => {
+            settled = true;
+            console.error(
+                "The keyframe's exit motion could not run; the removal lands regardless:",
+                e,
+            );
+        },
+    );
+    await Promise.race([motion, promiseTimeout(budgetMs)]);
+    if (!settled) {
+        console.warn(
+            `The keyframe's exit motion did not settle within its declared ${budgetMs} ms; the removal lands regardless.`,
+        );
+    }
+};
+
+/** One frame at 60 Hz — the slack the draw loop's completion tick needs past
+ *  a motion's declared duration. */
+const FRAME_MS = 1000 / 60;
+
+const removeKeyframe = async (_e: Event, frameIx: number) => {
+    const frame = animation.templateFrames[frameIx];
+    if (frame === undefined || departing.has(frame.id)) return;
+
+    departing.add(frame.id);
+    try {
+        await exitMotion(frameIx);
+    } finally {
+        departing.delete(frame.id);
+    }
+
+    // Resolve the stop by identity: another removal may have shifted the
+    // indices while this motion ran.
+    const ix = animation.templateFrames.indexOf(frame);
+    if (ix !== -1) removeKeyframeData(ix);
 };
 
 const progressBarKeyframesEl = useTemplateRef<HTMLElement>("progressBarKeyframesEl");
