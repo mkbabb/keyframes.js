@@ -203,8 +203,8 @@ describe("X.KF.W11.b — the instrument reports what is actually painting (C-3/L
             paint({ transform: { x: "90px", y: "-90px" } }, 0);
 
             expect(ticks).toHaveLength(1);
-            expect(ticks[0]!.x).toBeCloseTo(90 / demo.travel, 6);
-            expect(ticks[0]!.y).toBeCloseTo(-90 / demo.travel, 6);
+            expect(ticks[0]!.x).toBeCloseTo(90 / demo.travel.value, 6);
+            expect(ticks[0]!.y).toBeCloseTo(-90 / demo.travel.value, 6);
             expect(ticks[0]!.settled).toBe(false);
         } finally {
             app.unmount();

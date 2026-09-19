@@ -3,6 +3,40 @@
        (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
     overflow: hidden;
     position: relative;
+
+    /* D-8 — THE ENVELOPE IS CLAMPED TO THE STAGE IT LIVES IN (OP-3 figures
+       re-derived at this unit's open sha; see the receipt's table).
+       A FIXED 12 rem subject with a FIXED ±110 px travel and a 1.08–1.12 swell,
+       inside an `overflow: hidden` plate, amputates on a phone:
+
+         full-drag half-extent = 96 px × 1.12 + 110 + 8 (the separator ring)
+                               = 225.5 px
+         tour-corner half-extent = 96 px × 1.08 + 90 + 8 = 201.7 px
+         mobile half-width       = 187.5 px @375 · 195 px @390
+
+       — so the subject and its ring clipped during the scene's own headline
+       animation. Both numbers are viewport-relative now and both bottom out
+       together, so the [-1,1] field stays square and reachable at every width:
+
+         @375: travel 78.8 px · size 112.5 px → half-extent 151.8 ≤ 187.5
+         @320: travel 67.2 px · size 96.0 px  → half-extent 128.9 ≤ 160
+         ≥524: both at their maxima, byte-identical to the fixed pair.
+
+       `--square-travel` is the px figure the composable reads (and re-reads on
+       resize) so the spring's coordinate world and the painted geometry cannot
+       drift apart — the tether derives from the same number, and the tour's
+       authored corner stops are re-seated proportionally. */
+    --square-travel: clamp(4rem, 21svi, 6.875rem);
+
+    /* N-SQ-6 — THE SQUARE JOINS ITS SIBLINGS' TONE CONTRACT. It was the one
+       consumer scene that never declared `--ball-tone` at its stage root
+       (EasingTarget.css:7 · SequenceTarget.css:8 · SpringTarget per-lane all
+       do), so `.readout-accent` resolved through the inherited token's bare
+       fallback. The paint is IDENTICAL today (`--color-progress` either way) —
+       the defect is that the square alone could not participate in a per-scene
+       re-tone, which is the whole point of the token. Declared to the same
+       motion-authority hue the tether and the deflection aura already use. */
+    --ball-tone: var(--color-progress);
 }
 
 /* The instrument layer (field · tether · telemetry · legend) is styled inside
@@ -31,7 +65,8 @@
     align-items: center;
     position: relative;
     z-index: var(--z-content);
-    --size: 12rem;
+    /* D-8 — the subject shrinks with its envelope (see `.square-stage` above). */
+    --size: clamp(6rem, 30svi, 12rem);
     width: var(--size);
     height: var(--size);
     border-radius: var(--radius-lg);
@@ -93,7 +128,10 @@
 }
 
 /* L.W11 S4 — hover-arm: the rig "powers on" under the pointer (the deflection-
-   reactive aura blooms a faint red motion-authority ring at the edge). */
+   reactive aura blooms a faint motion-authority ring at the edge — the hue is
+   `--color-progress` → `--accent-kf`, a VIOLET; MISS-8: this prose used to call
+   it "red", the hue the demo's own style.css records repointing away from and
+   reserves `--accent-red` for destructive-only). */
 .demo-box:hover {
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
@@ -108,6 +146,16 @@
    base 22%). */
 .demo-box--dragging {
     cursor: grabbing;
+    /* D-16 — NO TRANSITION WHILE THE GLOW IS DRIVEN PER FRAME. The 160 ms
+       `box-shadow` transition inherited from `.demo-box` low-passed exactly the
+       signal this rule exists to show: `--spring-tilt` is rewritten by the
+       spring loop every frame (~16.7 ms), so each write started a fresh 160 ms
+       chase that the next write superseded — the edge ring lagged the velocity
+       it reports by an order of magnitude and never reached the tilt's peak.
+       The hover/rest arm KEEPS its transition (those are discrete state
+       changes, which is what a transition is for); only the frame-driven state
+       opts out, so the ring tracks the spring exactly. */
+    transition: none;
     --tilt-glow: calc(var(--spring-tilt, 0) * 1.4%);
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
@@ -123,8 +171,8 @@
    ring fires from the box edge the instant a drag begins (the `--dragging` class
    flips the `::before` into existence, and `@starting-style` transitions it from
    a tight, opaque ring to a wide, faded one — a single tactile thunk, zero JS,
-   one transition). The ring is the red motion-authority hue (the same the
-   deflection aura uses). Pointer-events:none so it never steals the gesture.
+   one transition). The ring is the motion-authority hue (the same violet the
+   deflection aura uses — MISS-8 again; never red). Pointer-events:none so it never steals the gesture.
    On browsers without @starting-style the ::before simply renders at its end
    state (invisible) — it degrades to no-pulse, never a broken layout. */
 .demo-box--dragging::before {
@@ -160,10 +208,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .square-tether {
-        /* Snap: no fade, the line is either present or not (geometry unchanged). */
-        transition: none;
-    }
+    /* D-14/L-D4 — the dead `.square-tether { transition: none }` rule stood
+       HERE and enforced nothing: this file is `scoped` on SquareScene.vue and
+       the parent scope id never reaches a FOUR-ROOT fragment child, so the
+       selector could not match the element SquareInstrument draws (vue 3.5.35
+       `filterSingleRoot`/`setScopeId`). LAW A census before the delete: two
+       listed PRM sites for one tether, exactly ONE of them live — the
+       colocated rule the sub-unit owns (SquareInstrument.vue's own PRM block),
+       which is untouched and remains the single enforcement. This file's own
+       handover comment (":32-34") states the intent this rule violated. */
     .demo-box,
     .demo-box:hover,
     .demo-box--dragging {

@@ -9,7 +9,7 @@
          geometric center of the plate by construction. -->
     <Card
         :shadow="false"
-        class="square-stage grid h-full w-full place-items-center select-none"
+        class="square-stage grid h-full w-full place-items-center"
     >
         <!-- L.W11 S4 — the draughtsman's instrument layer (the coordinate field,
              the rubber-band tether, the telemetry strip, the legend) lives in the
@@ -58,7 +58,7 @@
              `aria-describedby` points at an sr-only twin of the visual hints. -->
         <div
             ref="box"
-            class="demo-box palette-sweep-host text-display kf-focus-ring"
+            class="demo-box text-display kf-focus-ring"
             :class="{ 'demo-box--dragging': dragging }"
             :data-square-mode="mode"
             role="group"
@@ -112,7 +112,7 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import { Card } from "@mkbabb/glass-ui";
+import { Card } from "@mkbabb/glass-ui/card";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { kfEngine } from "@kf-engine";
 import { useDragScrub } from "@composables/useDragScrub";
@@ -361,7 +361,7 @@ let homeY = 0;
 // `project` mapped the ABSOLUTE pointer position into target space off the box's
 // REST centre — so a press anywhere but the exact centre re-targeted the springs
 // to bring the centre TO the press point: up to 96 px for an edge press and
-// 136 px on the diagonal (12 rem box, 110 px travel), and `releasePolicy:
+// 136 px on the diagonal at the desktop envelope, and `releasePolicy:
 // "persist"` made a bare click's displacement permanent. The ":218 follows the
 // pointer ~1:1" comment was true of the delta only for a dead-centre grab.
 //
@@ -412,8 +412,8 @@ const captureFrame = (e: PointerEvent) => {
     grabDy = e.clientY - centerY;
     // The box's CURRENT center minus the live spring deflection = its home
     // center (so re-grabbing mid-flight doesn't snap the home point).
-    homeX = centerX - springX.value * travel;
-    homeY = centerY - springY.value * travel;
+    homeX = centerX - springX.value * travel.value;
+    homeY = centerY - springY.value * travel.value;
 };
 
 // The shared drag-scrub seam (I8). Square is 2-axis, so `T = {nx,ny}`; `project`
@@ -435,8 +435,8 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
         // MISS-1 — the grab offset is subtracted, so the point under the finger
         // stays under the finger instead of the box's centre jumping to it.
         return {
-            nx: (e.clientX - grabDx - homeX) / travel,
-            ny: (e.clientY - grabDy - homeY) / travel,
+            nx: (e.clientX - grabDx - homeX) / travel.value,
+            ny: (e.clientY - grabDy - homeY) / travel.value,
         };
     },
     onScrub: ({ nx, ny }) => {

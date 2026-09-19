@@ -40,7 +40,7 @@
              honest four-corner tour (the editor panel RETURNED, editing a LIVE
              anim), while a drag hands the box to the springs (a jump-free
              takeover). This mono caption names those verbs. -->
-        <span class="square-live-caption text-caption text-muted-foreground"
+        <span class="text-caption text-muted-foreground"
             >spring-chased &middot; drag the box, or press Play to tour it</span
         >
         <span class="text-mono-caption text-muted-foreground tabular-nums">x &middot; y &isin; [-1, 1]</span>
@@ -67,6 +67,26 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { SQUARE_ANIM_NAME } from "./squareKeys";
+
+/**
+ * C-9 — THE DROP IS DECLARED NOW. This component has FOUR root nodes (field ·
+ * tether · telemetry · legend), so Vue has no single element to fall attributes
+ * through to and silently discards any the parent passes — latent today (the
+ * sole call site passes declared props only) but silent, and Vue dev-warns the
+ * moment it stops being latent. `inheritAttrs: false` states the behaviour
+ * instead of leaving it to the fragment: the drop is intentional, and a future
+ * consumer that needs an attribute on a specific root must bind `$attrs` to the
+ * root it means rather than discovering the loss at runtime.
+ *
+ * D-9 (core) ≡ C-7 — `.square-live-caption` is GONE from the caption span above.
+ * LAW A census before the delete: ONE occurrence tree-wide (that call site), no
+ * rule in either producer's cascade, and — per the adjudication's own git
+ * archaeology — no rule in ANY revision: the class was born orphaned at
+ * `021f0eba`. No gate reads it (the `proof:square-honest` script that K-12
+ * hypothesised as a reader no longer exists). The span keeps the two live
+ * utilities that actually paint it (`text-caption text-muted-foreground`).
+ */
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
     /** The live normalized deflection (-1..1) per axis. */
@@ -103,8 +123,18 @@ const props = defineProps<{
  * renderer pumps these reads whichever writer is painting, so the strip tells
  * the truth through the engine tour as well as through a drag.
  */
-const readoutX = computed(() => props.deflX.toFixed(2));
-const readoutY = computed(() => props.deflY.toFixed(2));
+/**
+ * D-11 — THE GRID STOPS RE-MEASURING ON A SIGN CHANGE. The four-`auto` readout
+ * track re-laid itself whenever a value crossed zero: `tabular-nums` equalises
+ * DIGIT widths and reserves no column for the minus sign, and the formatter
+ * emitted bare `toFixed(2)` strings. Every value now carries an explicit sign,
+ * so the string length is constant and the track never moves. (The row's own
+ * note that the fix could not land in this component was true while the parent
+ * owned the format; it owns it here now, with the quantity it reports.)
+ */
+const signed = (v: number) => `${v < 0 ? "−" : "+"}${Math.abs(v).toFixed(2)}`;
+const readoutX = computed(() => signed(props.deflX));
+const readoutY = computed(() => signed(props.deflY));
 
 // ── D-1 + D-6 + D-16 + N-SQ-4 — THE TETHER IS DRAWN IN A FRAME THAT EXISTS ──
 //
@@ -253,7 +283,15 @@ const tetherPath = computed(() => {
     flex-direction: column;
     gap: 0.25rem;
     pointer-events: none;
-    z-index: var(--z-content);
+    /* D-8 + D-21 — THE CHROME OUTRANKS THE SUBJECT IT REPORTS ON. Both sat at
+       `--z-content`, the box's own rung, and the box comes later in the DOM —
+       so at high deflection the OPAQUE subject slid over the corner readouts,
+       and the `c` envelope tour scripts the collision deliberately (leg 2 parks
+       it on the legend, leg 4 on the telemetry). `pointer-events: none` spared
+       the gesture, never the legibility. Every chrome layer is `aria-hidden`
+       and pointer-transparent, so a rung above the subject changes nothing but
+       what you can read. */
+    z-index: calc(var(--z-content, 1) + 1);
 }
 .square-telemetry-title {
     color: var(--foreground);
@@ -262,7 +300,7 @@ const tetherPath = computed(() => {
 .square-telemetry-axes {
     display: grid;
     grid-template-columns: auto auto auto auto;
-    gap: 0.15rem 0.45rem;
+    column-gap: 0.5rem;
     align-items: baseline;
 }
 
@@ -273,9 +311,15 @@ const tetherPath = computed(() => {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 0.15rem;
+    /* D-15 — `0.15rem`/`0.45rem` are on NO published step, in a file consuming
+       the Tailwind scale one line away. Both routed to the 0.25rem grid. (The
+       row's other limb — a 1.67x "vertical rhythm" ratio — was killed at
+       adjudication: the axes grid has four children in four explicit columns,
+       so its row-gap never applied at all, and that half of the pair is gone
+       with the shorthand.) */
+    gap: 0.25rem;
     pointer-events: none;
-    z-index: var(--z-content);
+    z-index: calc(var(--z-content, 1) + 1);
 }
 /* D-3 ≡ kf-SquareScene D-11 — the hint opacity is GONE. `opacity: 0.8` on
    `text-caption` (italic, 400, the 12 px floor) composited the light arm to

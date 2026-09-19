@@ -4,7 +4,8 @@ import type { Vars } from "@mkbabb/keyframes.js";
 import { parseCssScalar } from "@mkbabb/value.js/css";
 import { clamp } from "@mkbabb/value.js/math";
 import { useSquareTumble } from "./useSquareTumble";
-import { onScopeDispose, type Ref } from "vue";
+import { onScopeDispose, ref, type Ref } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 
 /**
@@ -88,12 +89,21 @@ export function useSquareDemo(
     const springX = new SpringProgress({ response: 0.32, dampingFraction: 0.62, initial: 0 });
     const springY = new SpringProgress({ response: 0.32, dampingFraction: 0.62, initial: 0 });
 
-    // How far (px) a full [-1, 1] spring deflection translates the box.
-    const TRAVEL = 110;
+    // D-8 — HOW FAR (px) A FULL [-1,1] SPRING DEFLECTION TRANSLATES THE BOX, and
+    // it is no longer a constant. A fixed 110 px against a fixed 12 rem subject
+    // amputated both on a phone (the arithmetic is in `SquareScene.css`); the
+    // stylesheet owns the clamp, publishes it as `--square-travel`, and this is
+    // the one place that reads it — so the spring's coordinate world, the
+    // tether's px space and the tour's authored corners all come off ONE number.
+    // 110 is the desktop maximum and the value every existing figure was derived
+    // against; it is also the fallback when the property is absent (a test
+    // harness with no stylesheet, a detached element).
+    const TRAVEL_MAX = 110;
+    const travel = ref(TRAVEL_MAX);
 
     // T.A13 — THE `num()` NORMALIZER (the "0pxpx" CSSOM-discard cure).
     // The box has TWO writers into the SAME nested-object `transformFunc`: the
-    // live spring loop hands RAW NUMBERS (`x: springX.value * TRAVEL`), while the
+    // live spring loop hands RAW NUMBERS (`x: springX.value * travel`), while the
     // engine's four-corner keyframes deliver each leaf's AUTHORED SHAPE — a bare
     // `number` for a unitless leaf
     // but a STRING for a unit/percent leaf (`x: "42px"`, `d: "108%"`). The old
@@ -174,7 +184,11 @@ export function useSquareDemo(
         const tx = num(transform?.x);
         const ty = num(transform?.y);
         if (!paintingFromLoop) {
-            onTick?.({ x: tx / TRAVEL, y: ty / TRAVEL, settled: false });
+            onTick?.({
+                x: tx / travel.value,
+                y: ty / travel.value,
+                settled: false,
+            });
         }
         // The nested `a.b.c.d` scale is percent-authored in the keyframes
         // (`d:"108%"` → 1.08) and raw in the spring loop (`1 + defl*0.12`).
@@ -218,7 +232,9 @@ export function useSquareDemo(
     };
 
     // ── EASTER EGG — "the Tumble palette-sweep" (H.W12.S6 + L.W11 S4) ─────────
-    // Double-click the box → a delighted barrel-roll. A THIRD `SpringProgress`
+    // Double-TAP the box → a delighted barrel-roll. (D-17: "double-click" named
+    // a mouse-only verb for a recogniser — `useDoubleTap` — that exists BECAUSE
+    // dblclick was touch-unreachable. This was the live-verb site of the four.) A THIRD `SpringProgress`
     // chases a +360° target (a snappy underdamped spin with overshoot), folded
     // into the SAME paint loop + the SAME nested-object `transformFunc` (ONE
     // paint authority — the spin rides `transform.rotate`, no second writer).
@@ -293,8 +309,8 @@ export function useSquareDemo(
         paintingFromLoop = true;
         transformFunc({
             transform: {
-                x: springX.value * TRAVEL,
-                y: springY.value * TRAVEL,
+                x: springX.value * travel.value,
+                y: springY.value * travel.value,
                 rotate: springSpin.value,
                 a: { b: { c: { d: 1 + defl * 0.12 } } },
             },
@@ -428,13 +444,11 @@ export function useSquareDemo(
             // KEEP: a malformed/"none" transform → seat at home (no jump from
             // rest) — the DOMMatrix parse is best-effort by design.
         }
-        springX.reset(clamp(tx / TRAVEL, -1, 1), 0);
-        springY.reset(clamp(ty / TRAVEL, -1, 1), 0);
+        springX.reset(clamp(tx / travel.value, -1, 1), 0);
+        springY.reset(clamp(ty / travel.value, -1, 1), 0);
         springSpin.reset(rotate, 0);
     };
 
-    /** How far (px) a full [-1,1] deflection travels — for the drag math. */
-    const travel = TRAVEL;
 
     // ── The bottom-bar transport-contract host (the nested-object keyframes) ──
     // Minimal CSSKeyframesAnimation carrying the SAME nested-object keyframes so
@@ -449,7 +463,8 @@ export function useSquareDemo(
     // genuine diamond circuit: center → top-right → bottom → top-left → center,
     // a FULL 360° rotation, the nested `d` scale swelling on the corners, and a
     // rainbow backgroundColor sweep.
-    // ±90px sits INSIDE the ±110px (TRAVEL) spring envelope so drag and playback
+    // The authored ±90px sits INSIDE the ±110px desktop envelope (and is re-seated
+    // proportionally when the envelope clamps down) so drag and playback
     // share ONE coordinate world (the pose-capture takeover is seamless, in both
     // directions now — see `tourTimeForPose`). Now
     // duration/easing/direction/fill/iterations VISIBLY govern the paint — the
@@ -512,6 +527,42 @@ export function useSquareDemo(
      * comment has always claimed. A token that resolves empty leaves the
      * authored fallback — which is that token's declared value — in place.
      */
+    /**
+     * D-8 — read the clamped envelope out of the stylesheet and re-seat the
+     * tour's authored corners proportionally, so the diamond keeps its
+     * relationship to the spring field (the authored ±90 px is 90/110 of the
+     * desktop travel; it stays that fraction at every width). Runs at mount and
+     * on resize, because the clamp is viewport-relative.
+     */
+    const CORNER_FRACTION = 90 / TRAVEL_MAX;
+    const resolveEnvelope = (): void => {
+        const el = box.value;
+        if (!el) return;
+        const declared = parseFloat(
+            getComputedStyle(el).getPropertyValue("--square-travel"),
+        );
+        const next = Number.isFinite(declared) && declared > 0 ? declared : TRAVEL_MAX;
+        if (next === travel.value) return;
+        travel.value = next;
+
+        const corner = Math.round(next * CORNER_FRACTION);
+        let moved = false;
+        for (const frame of anim.templateFrames) {
+            const authored = (frame.vars as SquareVars).transform;
+            if (!authored) continue;
+            for (const axis of ["x", "y"] as const) {
+                const current = num(authored[axis]);
+                if (current === 0) continue;
+                const scaled = `${Math.sign(current) * corner}px`;
+                if (authored[axis] !== scaled) {
+                    authored[axis] = scaled;
+                    moved = true;
+                }
+            }
+        }
+        if (moved) anim.parse();
+    };
+
     const resolveTourPalette = (): void => {
         const style = getComputedStyle(document.documentElement);
         let moved = false;
@@ -533,7 +584,7 @@ export function useSquareDemo(
      *
      * `seatFromPose` seats the SPRINGS from the engine's painted pose; nothing
      * did the mirror, so Play resumed the tour at its own clock (or started at
-     * 0% home) while a persist-policy drag had left the box up to 2×TRAVEL away
+     * 0% home) while a persist-policy drag had left the box up to two travels away
      * — a one-frame snap of ~220 px plus a rotation out of nowhere.
      *
      * The authored diamond is read off the animation's OWN template frames (one
@@ -556,8 +607,8 @@ export function useSquareDemo(
             .sort((a, b) => a.t - b.t);
         if (stops.length < 2) return 0;
 
-        const px = springX.value * TRAVEL;
-        const py = springY.value * TRAVEL;
+        const px = springX.value * travel.value;
+        const py = springY.value * travel.value;
         let bestT = 0;
         let bestDist = Infinity;
         for (let i = 0; i + 1 < stops.length; i += 1) {
@@ -589,7 +640,13 @@ export function useSquareDemo(
      * and the tour's stops were resolved nowhere at all (MISS-5). Both halves
      * are true of this function now.
      */
+    // D-8 — the clamp is viewport-relative, so a resize moves the envelope. The
+    // springs are normalized, so nothing needs re-seating; only the px scale and
+    // the tour's authored corners follow.
+    useEventListener(window, "resize", () => resolveEnvelope());
+
     const paintRest = (): void => {
+        resolveEnvelope();
         resolveTourPalette();
         paintingFromLoop = true;
         transformFunc({
