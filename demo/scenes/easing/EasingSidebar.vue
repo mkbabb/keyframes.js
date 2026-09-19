@@ -11,28 +11,34 @@
          AUTHORING surface (the clean BG-8 division: the gallery is the
          scene's, the editor is EasingPicker's — the bounce family stays
          kf-owned until glass-ui's named catalogue covers it). -->
-    <Card cartoon tier="quiet" class="easing-editor w-full overflow-visible">
+    <Card
+        cartoon
+        tier="quiet"
+        class="w-full overflow-visible"
+        :style="seat.containerStyle"
+    >
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
-            <!-- The picker RE-SEEDS from tile selection when the curve is in
-                 its bezier catalogue (or is a steps curve): the `:key` remount
-                 carries the initial-prop seed — glass-ui 4.0.1's modelValue is
-                 EMIT-ONLY (no external write-through / points-in prop), so a
-                 remount is the only blessed re-seat seam (forwarded as the
-                 §FORWARDING easing-adoption gap set, BG-9-adjacent). A custom
-                 drag (name → "cubic-bezier") does NOT remount — the picker
-                 already holds the authored points. `:playback="false"`: the
-                 picker's travel dot is a private one-shot rAF clock, NOT the
-                 scene sweep (BG-9); the gallery race IS the motion preview,
-                 so a second uncoordinated clock stays off this surface. -->
+            <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
+                 `useEasingPickerSeat` (channel-controls/composables), the SAME
+                 seat the transport's TimingFunctionPanel uses. A tile that
+                 names a curve in the demo's bezier map re-seats by REMOUNT on
+                 the `preset` initial prop (the only way 7.0.0 displays a named
+                 preset — `EasingPickerValue` has no preset field); a steps
+                 tile, a custom quad and a preset pick inside the picker itself
+                 reach the MOUNTED picker through the vendor's own `modelValue`
+                 write-through, so the picker is never torn down under the
+                 user's hands (KF-ES-5), and the echo filter is measured against
+                 the LIVE truth, never a stale seed (KF-ES-1). `:playback="false"`:
+                 the picker's travel dot is a private one-shot rAF clock, NOT the
+                 scene sweep (BG-9); the gallery race IS the motion preview, so
+                 a second uncoordinated clock stays off this surface. -->
             <EasingPicker
-                :key="pickerSeed.key"
-                :mode="pickerSeed.mode"
-                :preset="pickerSeed.preset"
-                :steps="pickerSeed.steps"
-                :term="pickerSeed.term"
+                :key="seat.key.value"
+                v-bind="seat.seed.value"
+                :model-value="seat.model.value"
                 :playback="false"
                 label="Easing curve editor"
-                @update:model-value="onPickerChange"
+                @update:model-value="seat.onPickerChange"
             />
 
             <!-- BG-8 (the honest catalogue gap, quiet): an engine-native curve
@@ -70,65 +76,84 @@
 import { ref, watch } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
-import {
-    EasingPicker,
-    type EasingPickerValue,
-    type JumpTerm,
-} from "@mkbabb/glass-ui/easing";
-import { bezierPresets } from "@mkbabb/value.js/easing";
+import { EasingPicker, type EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
 import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
+import {
+    quadEq,
+    useEasingPickerSeat,
+    type SeatTruth,
+} from "@components/instrument/transport/channel-controls/composables/useEasingPickerSeat";
 import type { EasingDemoContext } from "./easingKeys";
 
 const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;
 
-// ── The seed: tile selection → picker initial props (remount re-seat) ──────
+// ── Where the truth lives: the demo context (the scene's ONE authoring seam) ──
 // glass-ui's bezier catalogue is value.js `bezierPresets` (30 keys); the demo's
 // named map (NAMED_EASING_BEZIER, 29) is a byte-exact STRICT SUBSET of it —
-// sole delta `smooth-step-3`, zero value differences. Seed by PRESET only when
-// the DEMO's map knows the name, never `bezierPresets`: a name the caption above
-// calls engine-native must not be seeded as a preset under its own caption
-// (COHESION §0j.C KF-SS3 preserves `smooth-step-3`'s class — a smoothstep
-// polynomial is not a cubic bezier). The two catalogues are NEVER merged.
-interface PickerSeed {
-    key: string;
-    mode: "bezier" | "steps";
-    preset?: string;
-    steps?: number;
-    term?: JumpTerm;
-}
-
-let seedCount = 0;
-const seedFor = (name: string): PickerSeed | null => {
-    if (name === "steps" || name === "step-start" || name === "step-end") {
-        const stepSeed =
-            name === "steps"
-                ? {
-                      steps: demo.stepOptions.value.steps,
-                      term: demo.stepOptions.value.jumpTerm as JumpTerm,
-                  }
-                : name === "step-start"
-                  ? { steps: 1, term: "jump-start" as JumpTerm }
-                  : { steps: 1, term: "jump-end" as JumpTerm };
-        return { key: `steps:${name}:${++seedCount}`, mode: "steps", ...stepSeed };
+// sole delta `smooth-step-3`, zero value differences. A NAMED re-seat happens
+// only when the DEMO's map knows the name, never `bezierPresets`: a name the
+// caption below calls engine-native must not be seated as a preset under its
+// own caption (COHESION §0j.C KF-SS3 preserves `smooth-step-3`'s class — a
+// smoothstep polynomial is not a cubic bezier). The two catalogues are NEVER
+// merged. An engine-native name (bounce/elastic) keeps the mounted picker on
+// the live quad — nothing to seat, and a departure edits from there (BG-8).
+const truth = (): SeatTruth => {
+    const name = demo.currentEasingName.value;
+    const points = demo.bezierControlPoints.value;
+    const { steps, jumpTerm } = demo.stepOptions.value;
+    if (name === "step-start" || name === "step-end") {
+        return {
+            mode: "steps",
+            points,
+            steps: 1,
+            term: name === "step-start" ? "jump-start" : "jump-end",
+        };
     }
-    if (name in NAMED_EASING_BEZIER) {
-        return { key: `bezier:${name}:${++seedCount}`, mode: "bezier", preset: name };
+    if (name === "steps") {
+        return { mode: "steps", points, steps, term: jumpTerm };
     }
-    // "cubic-bezier" (a live custom edit — the picker authored it, never
-    // remount) and engine-native names (bounce/elastic — nothing to seed)
-    // keep the mounted picker.
-    return null;
+    return {
+        mode: "bezier",
+        points,
+        steps,
+        term: jumpTerm,
+        presetName: name in NAMED_EASING_BEZIER ? name : undefined,
+    };
 };
 
-const pickerSeed = ref<PickerSeed>(
-    seedFor(demo.currentEasingName.value) ?? {
-        key: "bezier:initial",
-        mode: "bezier",
-        preset: "ease",
-    },
-);
+/** Match an authored quad back to a demo-named curve (a picker preset pick
+ *  lands as the NAME when the quads agree — selection stays named). */
+const nameForQuad = (
+    q: readonly [number, number, number, number],
+): string | undefined =>
+    Object.keys(NAMED_EASING_BEZIER).find((n) =>
+        quadEq(NAMED_EASING_BEZIER[n]!, q),
+    );
+
+// ── Picker emissions → the demo's ONE authoring seam ───────────────────────
+const onAuthored = (v: EasingPickerValue) => {
+    if (v.mode === "steps") {
+        const cur = demo.stepOptions.value;
+        if (cur.steps !== v.steps || cur.jumpTerm !== v.term) {
+            demo.stepOptions.value = { steps: v.steps, jumpTerm: v.term };
+        }
+        if (!demo.isSteps.value) demo.selectEasing("steps");
+        return;
+    }
+    // bezier: a preset pick that matches a named curve SELECTS it; anything
+    // else is an authored custom curve through the demo's one seam (flips to
+    // "cubic-bezier" — honest by construction).
+    const named = nameForQuad(v.points);
+    if (named && named !== demo.currentEasingName.value) {
+        demo.selectEasing(named);
+        return;
+    }
+    demo.updateBezierPoints([...v.points]);
+};
+
+const seat = useEasingPickerSeat(truth, onAuthored);
 
 // The catalogue-gap caption: the selection is neither bezier-expressible nor
 // steps (BG-8 — the bounce/elastic families stay kf-owned).
@@ -141,88 +166,23 @@ const syncGap = (name: string) => {
 };
 syncGap(demo.currentEasingName.value);
 
-// A (re)mount's immediate v-model emission is the SEED echoing back, not a
-// user edit — recognized BY VALUE (not ordering) so a tile click never
-// masquerades as an authored custom curve, and a lost/duplicated echo can
-// never swallow a real edit.
-const isSeedEcho = (v: EasingPickerValue): boolean => {
-    const seed = pickerSeed.value;
-    if (v.mode !== seed.mode) return false;
-    if (seed.mode === "steps") {
-        const seedTerm = seed.term ?? "jump-end";
-        return (
-            v.steps === (seed.steps ?? 4) &&
-            v.term === seedTerm
-        );
-    }
-    const quad =
-        bezierPresets[(seed.preset ?? "") as keyof typeof bezierPresets];
-    return !!quad && quadEq(quad, v.points);
-};
-
+// A tile selection (or any other external write of the scene's curve) re-seats
+// the picker; the seat decides remount-vs-write.
 watch(
-    () => demo.currentEasingName.value,
-    (name) => {
-        syncGap(name);
-        const seed = seedFor(name);
-        if (seed) pickerSeed.value = seed;
+    () => [
+        demo.currentEasingName.value,
+        ...demo.bezierControlPoints.value,
+        demo.stepOptions.value.steps,
+        demo.stepOptions.value.jumpTerm,
+    ],
+    () => {
+        syncGap(demo.currentEasingName.value);
+        seat.reseat();
     },
 );
-
-// ── Picker emissions → the demo's ONE authoring seam ───────────────────────
-const quadEq = (
-    a: readonly [number, number, number, number],
-    b: readonly [number, number, number, number],
-): boolean => a.every((v, i) => Math.abs(v - b[i]!) < 0.0005);
-
-/** Match an authored quad back to a demo-named curve (a picker preset pick
- *  lands as the NAME when the quads agree — selection stays named). */
-const nameForQuad = (
-    q: readonly [number, number, number, number],
-): string | undefined =>
-    Object.keys(NAMED_EASING_BEZIER).find((n) =>
-        quadEq(NAMED_EASING_BEZIER[n]!, q),
-    );
-
-const onPickerChange = (v: EasingPickerValue | undefined) => {
-    if (!v) return;
-    if (isSeedEcho(v)) return;
-    if (v.mode === "steps") {
-        const jumpTerm = v.term as typeof demo.stepOptions.value.jumpTerm;
-        const cur = demo.stepOptions.value;
-        if (cur.steps !== v.steps || cur.jumpTerm !== jumpTerm) {
-            demo.stepOptions.value = { steps: v.steps, jumpTerm };
-        }
-        if (!demo.isSteps.value) demo.selectEasing("steps");
-        return;
-    }
-    // bezier: a no-op echo (points equal the live selection's quad) is ignored;
-    // a preset pick that matches a named curve SELECTS it; anything else is an
-    // authored custom curve through the demo's one seam (flips to
-    // "cubic-bezier" — honest by construction).
-    if (
-        demo.isBezierEditable.value &&
-        quadEq(demo.bezierControlPoints.value, v.points)
-    ) {
-        return;
-    }
-    const named = nameForQuad(v.points);
-    if (named && named !== demo.currentEasingName.value) {
-        demo.selectEasing(named);
-        return;
-    }
-    demo.updateBezierPoints(v.points);
-};
 </script>
 
 <style scoped>
-/* H.W4.S1 lineage — the facet body is a container so the picker's `38cqi`
-   canvas sizing resolves off the CONTAINER inline size, not the viewport. */
-.easing-editor {
-    container-type: inline-size;
-    container-name: easing-editor;
-}
-
 /* The duration control is FULL-WIDTH (the J3 posture): label on its own line,
    the slider track spans the panel inner width. */
 .panel-content :deep(.labeled-field.duration-field) {

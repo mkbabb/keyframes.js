@@ -9,7 +9,7 @@
              primitive, both modes — the hand-built steps count/term rows die
              with the canvas. The H.W9.F2 title-LEFT / dismiss-RIGHT header
              survives. -->
-        <div class="easing-editor grid gap-2 w-full">
+        <div class="grid gap-2 w-full" :style="seat.containerStyle">
             <div class="flex items-center justify-between gap-2">
                 <h3 class="text-title">{{ kind === "steps" ? "steps" : "cubic-bézier" }}</h3>
                 <!-- KF-CO-13 — the disclosure the editor computed and never
@@ -38,22 +38,22 @@
                     <ArrowLeft class="icon-sm" />
                 </Button>
             </div>
-            <!-- The `:key` remount re-seats the picker when the KIND flips
-                 (glass-ui 4.0.1's modelValue is emit-only — no external
-                 write-through / points-in prop; the re-seat gap is forwarded
-                 in KF-TO-GLASSUI-BG.md §FORWARDING). A custom stored quad has
-                 no seedable preset — the picker opens on its catalogue default
-                 and the first authored edit writes through (the initialPoints
-                 ask rides the same forward). -->
+            <!-- KF-TFP-1 ≡ KF-ES-12 — the picker sits in the shared
+                 `useEasingPickerSeat` (specified in the KF.W12 record before it
+                 was written). The `:key` bumps ONLY on an external NAMED
+                 re-seat; a custom quad, the step count and the term reach the
+                 MOUNTED picker through the vendor's own `modelValue`
+                 write-through (7.0.0 — the "emit-only" premise this seat once
+                 cited was 4.0.1's). The first drag off a preset-matched quad
+                 therefore never remounts, and a reopen on a custom stored quad
+                 seats THAT quad, not the vendor's default (KF-TFP-2). -->
             <EasingPicker
-                :key="pickerKey"
-                :mode="kind === 'steps' ? 'steps' : 'bezier'"
-                :preset="seedPreset"
-                :steps="storedAnimationOptions.stepOptions.steps"
-                :term="storedAnimationOptions.stepOptions.jumpTerm as JumpTerm"
+                :key="seat.key.value"
+                v-bind="seat.seed.value"
+                :model-value="seat.model.value"
                 :playback="false"
                 label="Easing curve editor"
-                @update:model-value="onPickerChange"
+                @update:model-value="seat.onPickerChange"
             />
         </div>
     </div>
@@ -61,21 +61,23 @@
 
 <script setup lang="ts">
 import type { TimingFunctionNames } from "@mkbabb/keyframes.js";
-import type { JumpPosition } from "@mkbabb/value.js/easing";
 import type { StoredAnimationOptions } from "@state";
 
-import { bezierPresets } from "@mkbabb/value.js/easing";
-import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
+import {
+    NAMED_EASING_BEZIER,
+    timingFunctionKind,
+} from "@utils/reference-data/animationDescriptions";
 
 import { Button } from "@mkbabb/glass-ui";
-import {
-    EasingPicker,
-    type EasingPickerValue,
-    type JumpTerm,
-} from "@mkbabb/glass-ui/easing";
+import { EasingPicker, type EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
-import { computed, useTemplateRef } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { ArrowLeft } from "@lucide/vue";
+import {
+    quadEq,
+    useEasingPickerSeat,
+    type SeatTruth,
+} from "./composables/useEasingPickerSeat";
 
 const props = defineProps<{
     storedAnimationOptions: StoredAnimationOptions;
@@ -104,87 +106,71 @@ const kind = computed(() =>
     timingFunctionKind(props.storedAnimationOptions.animationOptions.timingFunction),
 );
 
-// ── Seeding (best-effort against the vendor's initial-prop-only seam) ──────
-const quadEq = (
-    a: readonly number[],
-    b: readonly number[],
-): boolean => a.length === b.length && a.every((v, i) => Math.abs(v - b[i]!) < 0.0005);
-
-/** Seed the bezier canvas from the STORED quad when the picker's own
- *  catalogue carries a matching preset (else the catalogue default — the
- *  stored literal itself stays authoritative until an authored edit). */
-const seedPreset = computed<string | undefined>(() => {
-    if (kind.value === "steps") return undefined;
-    const stored = props.storedAnimationOptions.cubicBezierOptions
-        .controlPoints as readonly number[];
-    return Object.keys(bezierPresets).find((n) =>
-        quadEq(bezierPresets[n as keyof typeof bezierPresets], stored),
+// ── Where the truth lives: the STORE (the persisted literal + its parameters) ──
+// The two singular step keywords are their own curves (`steps(1, jump-*)`,
+// KF-CO-10) and never the authored `stepOptions`; a departure (KF-CO-13 — an
+// engine-native name opened in the editor) is a bezier seat on the stored quad.
+// `presetName` is resolved against the demo's NAMED_EASING_BEZIER only — never
+// value.js `bezierPresets` (KF-ES-3's cure-lock: the catalogues are not merged).
+const nameForQuad = (q: readonly [number, number, number, number]) =>
+    Object.keys(NAMED_EASING_BEZIER).find((n) =>
+        quadEq(NAMED_EASING_BEZIER[n]!, q),
     );
-});
 
-const pickerKey = computed(() => `${kind.value}:${seedPreset.value ?? "custom"}`);
-
-// The (re)mount's immediate v-model emission is the SEED echoing back —
-// recognized BY VALUE so opening the panel never clobbers the animation's
-// stored curve with the catalogue default.
-const isSeedEcho = (v: EasingPickerValue): boolean => {
-    if (v.mode === "steps") {
-        const cur = props.storedAnimationOptions.stepOptions;
-        const term = String(cur.jumpTerm);
-        return (
-            v.steps === cur.steps &&
-            v.term === term
-        );
+const truth = (): SeatTruth => {
+    const stored = props.storedAnimationOptions.animationOptions.timingFunction;
+    const { controlPoints } = props.storedAnimationOptions.cubicBezierOptions;
+    const { steps, jumpTerm } = props.storedAnimationOptions.stepOptions;
+    if (stored === "step-start" || stored === "step-end") {
+        return {
+            mode: "steps",
+            points: controlPoints,
+            steps: 1,
+            term: stored === "step-start" ? "jump-start" : "jump-end",
+        };
     }
-    const stored = props.storedAnimationOptions.cubicBezierOptions
-        .controlPoints as readonly number[];
-    if (quadEq(v.points, stored)) return true;
-    // The default-seeded custom case: the echo carries the catalogue seed's
-    // quad (not the stored one) — skip it so the stored curve survives open.
-    const seed = seedPreset.value;
-    if (!seed) {
-        // No preset matched the stored quad → the picker mounted on its
-        // default; its first emission is that default's quad.
-        return quadEq(
-            v.points,
-            bezierPresets["ease-out-back" as keyof typeof bezierPresets],
-        );
+    if (kind.value === "steps") {
+        return { mode: "steps", points: controlPoints, steps, term: jumpTerm };
     }
-    return false;
+    return {
+        mode: "bezier",
+        points: controlPoints,
+        steps,
+        term: jumpTerm,
+        presetName: nameForQuad(controlPoints),
+    };
 };
 
 // ── The authored edit → the ONE persist seam ───────────────────────────────
-const onPickerChange = (v: EasingPickerValue | undefined) => {
-    if (!v || isSeedEcho(v)) return;
+// KF-CO-40 ≡ KF-TFP-5 (N-10) — the child owns the STORE, the parent owns the
+// ENGINE, both arms. The parent's `updateTimingFunctionFromName` builds the
+// easing with its faithful CSS twin (EE-02) and PERSISTS the complete literal
+// (I.W2.S3 — the ONE persist seam).
+const onAuthored = (v: EasingPickerValue) => {
     if (v.mode === "steps") {
         props.storedAnimationOptions.stepOptions.steps = v.steps;
-        const jumpTerm: JumpPosition = v.term;
-        props.storedAnimationOptions.stepOptions.jumpTerm = jumpTerm;
+        props.storedAnimationOptions.stepOptions.jumpTerm = v.term;
         emit("updateTimingFunction", "steps");
         return;
     }
-    // KF-CO-40 ≡ KF-TFP-5 (N-10) — the child owns the STORE, the parent owns the
-    // ENGINE (the steps arm's shape, now both arms). The bezier arm used to
-    // write the engine's options + every frame here AND emit, and the parent
-    // then synchronously rebuilt and overwrote both from the quad written one
-    // line earlier — two easing constructions and two `frames[]` walks per
-    // pointermove, one discarded. The parent's `updateTimingFunctionFromName`
-    // builds the easing with its faithful CSS twin (EE-02) and PERSISTS the
-    // complete `cubic-bezier(...)` literal (I.W2.S3 — the ONE persist seam).
     props.storedAnimationOptions.cubicBezierOptions.controlPoints = [
         ...v.points,
     ];
     emit("updateTimingFunction", "cubic-bezier");
 };
-</script>
 
-<style scoped>
-/* H.W4.S1 lineage — the detail body is a container so the picker's `38cqi`
-   canvas sizing resolves off THIS panel's inline size (both render hosts
-   bounded; the hand-rolled canvas's measured px-arithmetic clamps died with
-   the cluster — the vendor's own clamp(200px, 38cqi, 320px) governs). */
-.easing-editor {
-    container-type: inline-size;
-    container-name: easing-editor;
-}
-</style>
+const seat = useEasingPickerSeat(truth, onAuthored);
+
+// An EXTERNAL change of the stored curve (the dropdown, the keyframes pane's
+// persist, a reload) re-seats the mounted picker; the seat decides whether
+// that is a model write or — for a named preset it does not show — a remount.
+watch(
+    () => [
+        props.storedAnimationOptions.animationOptions.timingFunction,
+        ...props.storedAnimationOptions.cubicBezierOptions.controlPoints,
+        props.storedAnimationOptions.stepOptions.steps,
+        props.storedAnimationOptions.stepOptions.jumpTerm,
+    ],
+    () => seat.reseat(),
+);
+</script>
