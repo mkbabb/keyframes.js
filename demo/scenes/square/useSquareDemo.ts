@@ -88,7 +88,7 @@ export function useSquareDemo(
     // How far (px) a full [-1, 1] spring deflection translates the box.
     const TRAVEL = 110;
 
-    // T.A13 — THE UNIT-HONEST `num()` NORMALIZER (the "0pxpx" CSSOM-discard cure).
+    // T.A13 — THE `num()` NORMALIZER (the "0pxpx" CSSOM-discard cure).
     // The box has TWO writers into the SAME nested-object `transformFunc`: the
     // live spring loop hands RAW NUMBERS (`x: springX.value * TRAVEL`), while the
     // engine's four-corner keyframes deliver each leaf's AUTHORED SHAPE — a bare
@@ -97,21 +97,50 @@ export function useSquareDemo(
     // code interpolated the raw leaf into a template literal — `` `${"42px"}px` ``
     // → `"42pxpx"` → invalid CSS → CSSOM SILENTLY DISCARDS the write → the box
     // never moved on Play (S.G2's amputation cause). `num()` resolves BOTH writers
-    // to a plain number honestly: a number passes through, a unit string is
-    // parsed (`"42px"` → 42), and a percent leaf is fractionalized when asked
-    // (`"108%"` → 1.08). Any other shape is a malformed authored value.
+    // to a plain number: a number passes through, a unit string is parsed
+    // (`"42px"` → 42), and a percent leaf is fractionalized when asked
+    // (`"108%"` → 1.08).
+    //
+    // L-10 — IT IS UNIT-*BLIND*, NOT UNIT-HONEST, AND THE NAME SAID OTHERWISE.
+    // Only `%` is interpreted; every other unit is dropped and the bare magnitude
+    // is consumed AT THE CALL SITE'S OWN UNIT — `"5rem"` paints `translate(5px…)`,
+    // `"90deg"` on `x` paints 90 px. The scene's own keyframes author px and %
+    // only, so the blindness is latent here; the docblock no longer claims
+    // otherwise.
+    //
+    // D-27/L-7/C-9 — DEGRADE, DO NOT THROW, IN THE FRAME PATH. `num()` used to
+    // `throw` on a malformed leaf, from inside the rAF frame, once per frame: the
+    // engine now winds a failed frame down recoverably (X.KF.W5 C-2 / G-RAF) but
+    // the scene still lost its paint loop for as long as the bad leaf was
+    // authored — and a malformed leaf is ordinary editor traffic (`calc(1px +
+    // 2px)` is valid CSS that `parseCssScalar` refuses). The function is TOTAL
+    // now: an unreadable leaf paints the neutral value for its position and is
+    // REPORTED ONCE per spelling (never swallowed, never repeated 60× a second).
+    // `undefined` → the neutral identity (0 for a length, 1 for a scale); that is
+    // the identity element of the composed transform, not a guess.
+    const reportedLeaves = new Set<string>();
+    const neutral = (v: unknown, pct: boolean): number => {
+        const spelling = JSON.stringify(typeof v === "string" ? v : String(v));
+        if (!reportedLeaves.has(spelling)) {
+            reportedLeaves.add(spelling);
+            console.error(
+                `[square] malformed authored transform leaf ${spelling} — painting the neutral value and carrying on.`,
+            );
+        }
+        return pct ? 1 : 0;
+    };
     const num = (v: unknown, pct = false): number => {
         if (v === undefined) return pct ? 1 : 0;
         if (typeof v === "number" && Number.isFinite(v)) return v;
         if (typeof v === "string") {
             const parsed = parseCssScalar(v);
             if (!parsed.ok || parsed.value.payload.type !== "number") {
-                throw new TypeError(`Expected a numeric authored value, received ${JSON.stringify(v)}.`);
+                return neutral(v, pct);
             }
             const { value, unit } = parsed.value.payload;
             return pct && unit === "%" ? value / 100 : value;
         }
-        throw new TypeError(`Expected an authored number or string, received ${String(v)}.`);
+        return neutral(v, pct);
     };
 
     /**
