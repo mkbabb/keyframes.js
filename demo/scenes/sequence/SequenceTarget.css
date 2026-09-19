@@ -215,12 +215,6 @@
     cursor: grabbing;
 }
 
-/* The reel button pulses while the egg runs (the active affordance state). */
-.reel-active {
-    color: var(--color-progress);
-    border-color: var(--color-progress);
-}
-
 /* ── The per-row traveller (J.W7c C-SEQ-3, U6; J.WZ engine-target) ─────────────
    The ball IS the child animation's TARGET (J.WZ): the engine writes --ball-p +
    the fade-in opacity + the settle scale-pop onto THIS ball, so the pop scales

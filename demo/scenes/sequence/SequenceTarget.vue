@@ -36,12 +36,21 @@
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <!-- EE-SEQ-1 "the reel" — the discoverable twin of the hidden
-                         typed "reel" trigger: cascading-wave overshoot replay. -->
+                         typed "reel" trigger: cascading-wave overshoot replay.
+                         THE STATE SIGNAL (kf-SequenceTarget ST-4 · D-9 · D-15 ·
+                         ST-2 · ST-10 · C-2): the reel's running state IS the
+                         Button's shipped `loading` contract — it emits `aria-busy`
+                         and suppresses activation, which is the announcement, the
+                         affordance and the user-visible form of `playReel`'s guard
+                         in one binding. The primitive's own `iconOnly` geometry
+                         replaces the hand-sized square that lost to its height
+                         floor; the default-valued emphasis prop is not restated. -->
                     <Button
-                        emphasis="secondary"
-                        class="h-7 w-7 p-0"
-                        :class="{ 'reel-active': demo.isReeling.value }"
+                        size="xs"
+                        icon-only
+                        :loading="demo.isReeling.value"
                         aria-label="Play the reel — a cascading wave replay"
+                        title="Play the reel"
                         @click="demo.playReel()"
                     >
                         <Clapperboard class="w-3.5 h-3.5" />
@@ -59,8 +68,11 @@
                     </Button>
                     <!-- The transport-state badge: a TRANSPORT axis, so the accent
                          lands on the LIVE state (playing) and the neutral tone on
-                         rest (D19(a)); the dead `reverse` arm died with SC-2. -->
+                         rest (D19(a)); the dead `reverse` arm died with SC-2. It is
+                         the card's only textual state signal, so it is a live
+                         status region (D20) — `progress` itself is never one. -->
                     <span
+                        role="status"
                         class="status-badge text-admin-label px-2 py-0.5 rounded-full"
                         :style="{ '--badge-tone': demo.isPlaying.value ? 'var(--color-progress)' : 'var(--muted-foreground)' }"
                     >{{ demo.isPlaying.value ? "playing" : "ready" }}</span>
