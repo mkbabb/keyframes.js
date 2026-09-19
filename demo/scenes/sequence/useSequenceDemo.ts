@@ -10,7 +10,7 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
-import { useSequenceInstrument } from "./useSequenceInstrument";
+import { prefersReducedMotion, useSequenceInstrument } from "./useSequenceInstrument";
 import {
     useSceneMachine,
     createRafAdapter,
@@ -259,6 +259,12 @@ export function useSequenceDemo() {
      *  the SAME play-vs-resume split the original transport made; the only change
      *  is the natural-end `finally` now reflects the stop onto the machine. */
     const startLoop = () => {
+        // The reel owns the balls while it runs (rule 2 below): hold the PLAY
+        // intent and honour it when the reel settles.
+        if (isReeling.value) {
+            playHeldByReel = true;
+            return;
+        }
         startMirror();
         if (isMidPlay()) {
             // Continue from the current playhead (the engine no-jump re-anchor).
@@ -295,6 +301,7 @@ export function useSequenceDemo() {
     // on suspend/restore.
 
     const scrub = (p: number) => {
+        if (isReeling.value) return; // the reel owns the balls (one guard)
         if (isPlaying.value) pause();
         sequence.progress = clamp(p, 0, 1);
         syncFromSequence();
@@ -351,6 +358,7 @@ export function useSequenceDemo() {
     // machine so the re-timing survives a scene switch.
     const reseatRow = (index: number, at: number) => {
         if (index < 0 || index >= ROW_COUNT) return;
+        if (isReeling.value) return; // the reel owns the balls (one guard)
         if (isPlaying.value) pause();
         const clamped = clamp(Math.round(at), 0, STAGGER_MAX);
         const next = [...delays.value];
@@ -383,40 +391,86 @@ export function useSequenceDemo() {
     // engine: each child is re-driven with an exaggerated overshoot spring on its
     // OWN RAFPlayback, fired in a tight stagger (the wave), then the storyboard
     // re-settles to the live playhead. Reuses the existing child animations (no
-    // new engine code, inv ζ). Guarded so a re-trigger mid-reel is a no-op.
+    // new engine code, inv ζ).
+    //
+    // THE REEL'S OWNERSHIP STORY (kf-SequenceTarget L-5 · ST-7 · ST-6; kf-
+    // SequenceScene D7 · SC-3 · L-8 · L-9) — one paragraph, four rules:
+    //   1. It is DECORATIVE, so it declines under `prefers-reduced-motion` (the
+    //      same JS guard the boot uses); the essential glide is untouched.
+    //   2. While it runs it OWNS the balls: the master transport is LOCKED —
+    //      a re-time, a master scrub or a machine-routed PLAY during the reel
+    //      is refused (one guard, `isReeling`), and a PLAY intent that arrived
+    //      mid-reel is honoured the moment the reel settles. The Reel button's
+    //      `loading` state is the user-visible form of this lock.
+    //   3. A child's ownership triple (`managed`/`started`/`startTime`) is
+    //      CAPTURED before the standalone play and RESTORED after it — never
+    //      forced to `true` (a never-played or reset sequence must not be left
+    //      with children flagged as owned by an orchestrator not driving them;
+    //      a merely-paused master must get its `startTime = at` anchors back).
+    //   4. Its five wake timers are RETAINED and cleared on scope dispose, and
+    //      any child still mid-glide is stopped — nothing outlives the scene.
     const isReeling = ref(false);
     const REEL_STAGGER = 90; // ms between each ball's wake (the wave spacing)
     const reelOvershoot = springTimingFunction({
         response: 0.42,
         dampingFraction: 0.34, // under-damped → a pronounced overshoot bounce
     });
+    const reelTimers: number[] = [];
+    let playHeldByReel = false;
     const playReel = () => {
         if (isReeling.value) return;
+        if (prefersReducedMotion()) return; // decorative — declined, not snapped
         // Pause the master transport so the reel owns the balls for its run.
         if (isPlaying.value) pause();
         sequence.pause();
         isReeling.value = true;
+        playHeldByReel = false;
 
         let settled = 0;
+        reelTimers.length = 0;
         for (let i = 0; i < ROW_COUNT; i++) {
             const child = childAnims[i]!;
-            window.setTimeout(() => {
-                // Drive this child standalone with the overshoot curve for one
-                // glide, then count it settled; the last one re-settles the board.
-                child.managed = false;
-                child.setTimingFunction(reelOvershoot);
-                void child.play().finally(() => {
-                    // Restore the child's spring + managed posture for the master.
-                    child.setTimingFunction(rowGlideEase);
-                    child.managed = true;
-                    if (++settled >= ROW_COUNT) {
-                        isReeling.value = false;
-                        // Re-place every ball against the live master playhead.
-                        sequence.seek(sequence.progress * sequence.duration);
-                        syncFromSequence();
-                    }
-                });
-            }, i * REEL_STAGGER);
+            reelTimers.push(
+                window.setTimeout(() => {
+                    // Capture the master's ownership of this child, drive it
+                    // standalone with the overshoot curve for one glide, then
+                    // hand it back exactly as it was.
+                    const prior = {
+                        managed: child.managed,
+                        started: child.started,
+                        startTime: child.startTime,
+                    };
+                    child.managed = false;
+                    child.setTimingFunction(reelOvershoot);
+                    void child.play().finally(() => {
+                        child.setTimingFunction(rowGlideEase);
+                        child.managed = prior.managed;
+                        child.started = prior.started;
+                        child.startTime = prior.startTime;
+                        if (++settled >= ROW_COUNT) {
+                            isReeling.value = false;
+                            // Re-place every ball against the live master playhead.
+                            sequence.seek(sequence.progress * sequence.duration);
+                            syncFromSequence();
+                            // A PLAY intent that arrived during the reel runs now.
+                            if (playHeldByReel && machine.status.value === "playing") {
+                                startLoop();
+                            }
+                            playHeldByReel = false;
+                        }
+                    });
+                }, i * REEL_STAGGER),
+            );
+        }
+    };
+    /** Tear the reel down on scope dispose: clear every unfired wake timer and
+     *  stop any child still mid-glide on its own loop. */
+    const disposeReel = () => {
+        for (const id of reelTimers) window.clearTimeout(id);
+        reelTimers.length = 0;
+        if (isReeling.value) {
+            for (const child of childAnims) child.stop();
+            isReeling.value = false;
         }
     };
 
@@ -474,6 +528,7 @@ export function useSequenceDemo() {
     // the host has NO <KeepAlive>, so onDeactivated never fires; this gives the
     // mid-play swap an honest stop instead of letting the loop wind down detached.
     onScopeDispose(() => {
+        disposeReel();
         stopMirror();
         sequence.stop();
     });
