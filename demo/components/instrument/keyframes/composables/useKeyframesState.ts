@@ -24,14 +24,18 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     const addKeyframesString = ref(kfControls.addKeyframes);
     const templateFrameStrings = ref<string[]>([]);
 
-    const tabsListEl = ref<HTMLElement | null>(null);
-
     // --- Pure helpers ---
 
+    /**
+     * KF-KE-48 (X.KF.W12.c) — the format width is HONEST about its input. It
+     * read a `tabsListEl` ref that nothing ever bound, through a `!` asserting
+     * a value that was always null, so every caller got `undefined` and the
+     * responsive print-width path was dead while looking alive. The ref is
+     * gone; the function takes the measuring element or returns `undefined`
+     * (prettier's own default width), and says so.
+     */
     const getFormatWidth = (el?: HTMLElement) => {
-        el ??= tabsListEl.value!;
-
-        if (el == null || el.offsetWidth == null) {
+        if (el === undefined || el.offsetWidth == null) {
             return undefined;
         }
 
@@ -64,7 +68,6 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
         cssKeyframesString,
         addKeyframesString,
         templateFrameStrings,
-        tabsListEl,
 
         getFormatWidth,
         getTmpAnimationName,

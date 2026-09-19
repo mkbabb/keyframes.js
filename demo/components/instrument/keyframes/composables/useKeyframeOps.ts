@@ -52,12 +52,13 @@ export function useKeyframeOps(
     ) => void,
     sync: StringSync,
 ) {
-    const { addKeyframesString, kfControls, getFormatWidth } = state;
+    const { addKeyframesString, getFormatWidth } = state;
     const { updateAllStrings, updateAllStringsAndAnimation } = sync;
 
+    // KF-KE-55 (X.KF.W12.c): the `kfControls.keyframes` write that stood here
+    // fed a stored cell nothing in the demo reads; the write is gone and the
+    // cell's schema member is the store owner's to delete.
     const updateFromString = async (keyframesString: string) => {
-        kfControls.keyframes = keyframesString;
-
         const { CSSKeyframesAnimation, reverseCSSTime, yieldToMain } =
             await loadAnimationEngine();
         const { options, keyframes } = await parseAnimationCSS(keyframesString);
@@ -76,6 +77,16 @@ export function useKeyframeOps(
             : "infinite";
         stored.direction = animation.options.direction;
         stored.fillMode = animation.options.fillMode;
+        // §0u (X.KF.W12.c), the ONE diagnostic left in this unit's rows, named
+        // at its root rather than narrowed here: `options.timingFunction` IS a
+        // `CssEasingLiteral` at runtime — `parseAnimationCSS` produces it with
+        // the engine's published `serializeTimingFunction`, whose return type is
+        // exactly that union — but the projection's own type
+        // (`parseAnimationCSS.ts:9`, `timingFunction?: string`) widens it to
+        // `string`, which the store's declared union refuses. The cure is that
+        // one token in a file no unit of this wave owns; a re-narrowing guard
+        // here would be a shim over the widening, and a cast is refused by the
+        // ruling. Escalated in the unit's receipt with the byte named.
         if (options?.timingFunction)
             stored.timingFunction = options.timingFunction;
 
@@ -142,19 +153,25 @@ export function useKeyframeOps(
         1000,
     );
 
-    const updateAddKeyframesString = async (keyframesString: string) => {
-        const formatted = await formatEditorCSS(keyframesString, getFormatWidth());
+    /**
+     * KF-KE-56 (X.KF.W12.c) — PURE, as the dialog's `format` prop declares it
+     * ("formats the raw string and RETURNS the result; writes nothing"). It
+     * also wrote both draft cells, so three writers maintained one mirror; the
+     * dialog emits the formatted text through its model and the editor's one
+     * watch persists it.
+     */
+    const updateAddKeyframesString = (keyframesString: string) =>
+        formatEditorCSS(keyframesString, getFormatWidth());
 
-        kfControls.addKeyframes = formatted;
-        addKeyframesString.value = formatted;
-
-        return formatted;
-    };
-
-    const addKeyframesStringToAnimation = (keyframesString: string) => {
-        addKeyframesString.value = keyframesString;
-        kfControls.addKeyframes = keyframesString;
-
+    /**
+     * Fold a pasted `@keyframes` block into the live animation. `onAdded` runs
+     * on success — the editor closes its dialog there (KF-KE-20: the open state
+     * is the editor's local ref, not a stored preference this op writes).
+     */
+    const addKeyframesStringToAnimation = (
+        keyframesString: string,
+        onAdded?: () => void,
+    ) => {
         void withErrorToastAsync(
             async () => {
                 const { options, keyframes } =
@@ -179,13 +196,13 @@ export function useKeyframeOps(
 
                 updateAllStrings();
 
-                kfControls.dialogOpen = false;
+                onAdded?.();
 
+                // The draft is spent; the editor's watch mirrors the clear.
                 addKeyframesString.value = "";
-                kfControls.addKeyframes = "";
             },
             "Could not add keyframes",
-            () => addKeyframesStringToAnimation(keyframesString),
+            () => addKeyframesStringToAnimation(keyframesString, onAdded),
         );
     };
 

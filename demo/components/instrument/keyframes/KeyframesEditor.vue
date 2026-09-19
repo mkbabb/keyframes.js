@@ -1,35 +1,23 @@
 <template>
     <div class="contents">
-        <!-- The per-stop card list. When `framed` (the default, standalone
-             authoring surface) it carries its OWN cartoon `Card`. When
-             the editor is mounted INSIDE another Card (e.g. SpringSidebar's quiet
-             parent Card — K.W1′), `:framed="false"` DROPS the inner Card so the
-             list flows into the parent surface directly (no card-in-card; the
-             glass-ui 4.0.0 single-surface contract). The CardContent's padding +
-             grid are preserved on the bare wrapper so the layout is identical. -->
+        <!-- The per-stop card list. `framed` wraps it in its OWN cartoon `Card`;
+             `:framed="false"` drops that Card so the list flows into a parent
+             surface directly (no card-in-card; the glass-ui single-surface
+             contract). KF-KE-33 (X.KF.W12.c), stated at the bytes: the ONE live
+             render site is `SpringPhysicsFacet.vue`, which passes `false` — the
+             framed arm is the standalone form with no current consumer, kept as
+             the component's own default rather than deleted, and the list is
+             bound ONCE (`cardListBindings`) so the two wrappers no longer carry
+             two copies of the same nine props and listeners. The CardContent's
+             padding + grid are mirrored on the bare wrapper so the layout is
+             identical either way. -->
         <Card v-if="framed" cartoon tier="quiet" class="p-0 m-0">
             <CardContent class="p-2 m-0 grid gap-4 relative">
-                <KeyframeCardList
-                    ref="cardList"
-                    :frame-strings="templateFrameStrings"
-                    :frames="animation.templateFrames"
-                    @update-start="onUpdateStart"
-                    @update-c-s-s="onUpdateCSS"
-                    @remove="({ event, index }) => removeKeyframe(event, index)"
-                    @keydown="onKeyDown"
-                />
+                <KeyframeCardList ref="cardList" v-bind="cardListBindings" />
             </CardContent>
         </Card>
         <div v-else class="p-2 m-0 grid gap-4 relative">
-            <KeyframeCardList
-                ref="cardList"
-                :frame-strings="templateFrameStrings"
-                :frames="animation.templateFrames"
-                @update-start="onUpdateStart"
-                @update-c-s-s="onUpdateCSS"
-                @remove="({ event, index }) => removeKeyframe(event, index)"
-                @keydown="onKeyDown"
-            />
+            <KeyframeCardList ref="cardList" v-bind="cardListBindings" />
         </div>
 
         <!-- KF-KE-32 — THE TOKEN DECISION (this wave's rider on the
@@ -205,11 +193,23 @@
                      a pure indicator (aria-hidden), excluded from the roving set. -->
                 <WandSparkles aria-hidden="true" class="shrink-0 text-muted-foreground" />
 
+                <!-- KF-KE-20 (X.KF.W12.c): a transient modal's open state is a
+                     LOCAL ref, not a persisted preference — it lived in the
+                     localStorage-backed controls store under a 7-day TTL, so a
+                     reload inside the window re-opened the modal unprompted.
+                     The ops close it through the submit's own success callback;
+                     the store's now-unread `dialogOpen` member is the store
+                     owner's to delete (named in the unit's receipt). -->
                 <KeyframesAddDialog
-                    v-model:open="kfControls.dialogOpen"
+                    v-model:open="dialogOpen"
                     v-model:text="addKeyframesString"
                     :format="updateAddKeyframesString"
-                    @submit="addKeyframesStringToAnimation"
+                    @submit="
+                        (v) =>
+                            addKeyframesStringToAnimation(v, () => {
+                                dialogOpen = false;
+                            })
+                    "
                 />
 
                 <!-- S-7 (W6-I): the copy control sizes ITSELF now (a glass
@@ -220,11 +220,13 @@
 
                 <Tooltip>
                     <TooltipTrigger as-child>
+                        <!-- KF-KE-44: the name says what the press does in the
+                             user's vocabulary — "the target" was internal. -->
                         <Button
                             size="sm"
                             emphasis="quiet"
                             icon-only
-                            aria-label="Apply CSS keyframes to the target"
+                            aria-label="Apply the keyframes as a CSS animation"
                             :aria-pressed="cssApplied"
                             @click="applyCSSStyles"
                         >
@@ -232,7 +234,7 @@
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>{{
-                        cssApplied ? "Applied to the target" : "Apply to the target"
+                        cssApplied ? "Applied as a CSS animation" : "Apply as a CSS animation"
                     }}</TooltipContent>
                 </Tooltip>
             </div>
@@ -243,9 +245,12 @@
                  semantics are deleted (`aria-hidden` decorative chrome) and
                  the brush-sweep animation is kept. KAD-15's form at this twin
                  too: rest at zero, `scaleX()` from the inline start. -->
+            <!-- KF-KE-38: `sticky bottom` is gone — `bottom` is no utility at
+                 all and `sticky` on a grid item with nothing to stick to was
+                 inert; the bar is a plain grid row. -->
             <div
                 ref="progressBarKeyframesEl"
-                class="progress-bar sticky bottom origin-left rtl:origin-right scale-x-0"
+                class="progress-bar origin-left rtl:origin-right scale-x-0"
                 aria-hidden="true"
             ></div>
         </div>
@@ -267,7 +272,7 @@ import {
     TooltipTrigger,
 } from "@mkbabb/glass-ui/tooltip";
 
-import { onMounted, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { promiseTimeout } from "@vueuse/core";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useCodeHighlight } from "./composables/useHighlightCSS";
@@ -303,11 +308,13 @@ const { animation, framed = true } = defineProps<{
     framed?: boolean;
 }>();
 
+// KF-KE-63 (+ KF-KE-18's outbound half): the `sliderUpdate` declaration is GONE
+// — this component never emitted it, and its payload (`animationId: number`)
+// was the one divergent shape in the demo beside six sibling declarations that
+// carry the `animation` itself. `keyframesUpdate` is the real outbound
+// contract: the ops emit it after every fold of an edited string into the
+// live animation, which every mutation site on this surface routes through.
 const emit = defineEmits<{
-    (
-        e: "sliderUpdate",
-        val: { t: number; animationId: number },
-    ): void;
     (
         e: "keyframesUpdate",
         val: { animation: KeyframesAnimation<any> },
@@ -328,11 +335,41 @@ const {
     removeKeyframeData,
 } = useKeyframesEditor(() => animation, emit);
 
-// Mirror the live add-keyframes draft into stored controls so an un-submitted
-// draft persists (the original inline input handler set both).
+// KF-KE-56 — the ONE writer of the stored draft mirror. The dialog renders
+// `addKeyframesString` through its `v-model:text`; this watch persists it so an
+// un-submitted draft survives a reload. The ops no longer write either cell
+// (the `format` callback is pure and the add op reads the ref it is handed).
 watch(addKeyframesString, (v) => {
     kfControls.addKeyframes = v;
 });
+
+/** KF-KE-20 — the add dialog's open state, local to this mount. */
+const dialogOpen = ref(false);
+
+/**
+ * KF-KE-58 — the house non-toast boundary for this surface's fire-and-forget
+ * async work (the projection after a retime or an offset commit, the feedback
+ * sweep). Their rejections used to have no destination at all; the ops'
+ * `withErrorToastAsync` covers the debounced mutation half only.
+ */
+const reportAsync = (what: string) => (e: unknown) => {
+    console.error(`${what} failed:`, e);
+};
+
+/**
+ * KF-KE-33 — the card list is bound ONCE for both wrappers (see the template).
+ * Listeners ride as `on*` props, which is what `v-bind` of a component's
+ * props-and-emits object is.
+ */
+const cardListBindings = computed(() => ({
+    frameStrings: templateFrameStrings.value,
+    frames: animation.templateFrames,
+    onUpdateStart,
+    onUpdateCSS,
+    onRemove: ({ event, index }: { event: Event; index: number }) =>
+        removeKeyframe(event, index),
+    onKeydown: onKeyDown,
+}));
 
 const cardList = useTemplateRef<InstanceType<typeof KeyframeCardList>>("cardList");
 
@@ -380,7 +417,7 @@ const retimeFrames = (percents: number[] | undefined) => {
         frame.start = percentSelector(percent);
     });
 
-    updateAllStringsAndAnimation();
+    void updateAllStringsAndAnimation().catch(reportAsync("Retiming the stops"));
 };
 
 const startDiagnosticId = (index: number) => `keyframe-start-${index}`;
@@ -420,26 +457,42 @@ const onUpdateStart = ({ val, index }: { val: string; index: number }) => {
 
     toast.dismiss(startDiagnosticId(index));
     frame.start = selector;
-    void updateAllStringsAndAnimation();
+    void updateAllStringsAndAnimation().catch(
+        reportAsync("Projecting the retimed stop"),
+    );
 };
 
 const onUpdateCSS = ({ value, index }: { value: string; index: number }) => {
     updateAnimationFromKeyframeString(value, index);
-    animateProgressBar(progressBarKeyframesEl.value!);
+    animateProgressBar();
 };
 
+/**
+ * KF-KE-28 + KF-KE-60(ii) + KF-KE-65 (X.KF.W12.c) — the host's keydown.
+ *   · Tab inserts the indent AND FOLDS IT INTO THE MODEL: `insertTabAtCursor`
+ *     uses `Range.insertNode()`, which fires no `input`/`beforeinput`, and the
+ *     card's `@input` is its only channel to the model — so the indent was
+ *     write-only decoration that died at the next reprojection. A synthetic
+ *     `input` event after the insertion is what a user-initiated edit would
+ *     have produced, and the card's own handler emits it.
+ *   · The per-keydown `highlightAll()` is GONE: colourisation follows the
+ *     projection (the `cssKeyframesString` watch below), and repainting the
+ *     host's markup between a keydown and its character insertion is a caret
+ *     hazard, not a feature. Text typed before the next projection inherits
+ *     the neighbouring token colour for at most the commit debounce — bounded,
+ *     and stated.
+ *   · The `Ï` branch — the macOS dead-key output of Shift+Alt+F, guarding a
+ *     reformat this surface never had — is deleted; the dialog's reformat rides
+ *     the app's keyboard registry (KAD-12).
+ */
 function onKeyDown(e: KeyboardEvent) {
-    if (e.key === "Ï") {
-        e.preventDefault();
-        return;
-    }
-
-    if (e.key === "Tab") {
-        e.preventDefault();
-        insertTabAtCursor(e.target as HTMLElement);
-    }
-
-    highlightAll();
+    if (e.key !== "Tab") return;
+    e.preventDefault();
+    const host = e.target as HTMLElement;
+    insertTabAtCursor(host);
+    host.dispatchEvent(
+        new InputEvent("input", { bubbles: true, inputType: "insertText" }),
+    );
 }
 
 /**
@@ -573,13 +626,24 @@ const progressBarKeyframesEl = useTemplateRef<HTMLElement>("progressBarKeyframes
 // snaps a progress animation to a rest state its own banked defect makes
 // idle-indistinguishable. Neither end records `KAD-11` or `G-KFW9-6` closed on
 // its own.
-const animateProgressBar = (el: HTMLElement) => {
-    new CSSKeyframesAnimation(
+//
+// KF-KE-13 (X.KF.W12.c) — ONE sweep, replayed. A fresh compiled animation was
+// built on every keystroke in a card (`onUpdateCSS` is the raw `@input`, outside
+// the debounce that guards the mutation half): competing writers of the same
+// `transform`, each self-terminating, each a compile. The sweep is compiled
+// ONCE against its bar and `play()`ed per edit; the add-dialog twin compiles
+// per SUBMIT, which is already once per gesture. KF-KE-65: no `!` — the bar is
+// resolved after mount and an absent host is a no-op, as at the twin.
+let progressSweep: InstanceType<typeof CSSKeyframesAnimation> | null = null;
+
+const animateProgressBar = () => {
+    const el = progressBarKeyframesEl.value;
+    if (el === null) return;
+    progressSweep ??= new CSSKeyframesAnimation(
         { duration: 1000, fillMode: "none", respectReducedMotion: true },
         el,
-    )
-        .fromVars([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }])
-        .play();
+    ).fromVars([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }]);
+    void progressSweep.play().catch(reportAsync("The feedback sweep"));
 };
 
 const { applyCSSStyles, cssApplied } = useKeyframeBrushApply({

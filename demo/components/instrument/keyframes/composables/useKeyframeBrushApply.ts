@@ -3,8 +3,6 @@ import { kfEngine } from "@kf-engine";
 import { onMounted, onUnmounted, useTemplateRef } from "vue";
 import { useApplyCSS } from "./useApplyCSS";
 
-const { CSSKeyframesAnimation } = kfEngine();
-
 interface KeyframeBrushApplyOptions {
     animation: KeyframesAnimation<any>;
     styleId: string;
@@ -12,8 +10,25 @@ interface KeyframeBrushApplyOptions {
     templateRef: string;
 }
 
-/** Owns the editor surfaces' single apply-CSS identity and brush feedback. */
+/**
+ * The Apply control's seat: one brush glyph per editor surface, wiggling while
+ * the identity is applied, over the SHARED apply identity.
+ *
+ * KF-KE-62 (X.KF.W12.c), the prose C-B2's remediator needed, re-stated at the
+ * lifted bytes: the identity (`styleId` = the class = the emitted selector,
+ * KF-KE-4) is DELIBERATELY shared by every surface over one animation, and the
+ * state that goes with it — the sheet, `isApplied`, the saved pause state — is
+ * held at that altitude by `useApplyCSS`/`useHighlightCSS` (KF-KE-6, refcounted),
+ * so this composable owns nothing but its own glyph's motion. Two brushes over
+ * one animation read one `cssApplied`.
+ *
+ * KF-KE-51: the engine is read at SETUP scope, not module scope. A module-scope
+ * `kfEngine()` turned a swallowed warm failure (`main.ts` `.catch(() => undefined)`)
+ * into a chunk-evaluation throw for the whole scene the moment this module was
+ * imported; the component's own setup-scope read is the model.
+ */
 export function useKeyframeBrushApply(options: KeyframeBrushApplyOptions) {
+    const { CSSKeyframesAnimation } = kfEngine();
     const brush = useTemplateRef<HTMLElement>(options.templateRef);
     // KF-KE-8 (D-5, cure map as corrected at the bank: M-6 reversed) — the
     // brush is a STANDALONE animation, and the standalone play path reads
@@ -36,6 +51,8 @@ export function useKeyframeBrushApply(options: KeyframeBrushApplyOptions) {
         60%, 70%, 80% { transform: rotate(-90deg); }
     }`);
 
+    // KF-KE-12 ≡ N-5: `clear()` is wired into the identity's OWN lifetime
+    // (`useApplyCSS`, refcount-aware), not destructured-and-dropped here.
     const { isApplied, toggle } = useApplyCSS({
         getAnimation: () => options.animation,
         styleId: options.styleId,
@@ -49,7 +66,10 @@ export function useKeyframeBrushApply(options: KeyframeBrushApplyOptions) {
         else brushAnimation.pause();
     };
 
-    onMounted(() => brushAnimation.setTargets(brush.value!));
+    onMounted(() => {
+        const glyph = brush.value;
+        if (glyph !== null) brushAnimation.setTargets(glyph);
+    });
     onUnmounted(() => brushAnimation.pause());
 
     return { applyCSSStyles, cssApplied: isApplied };
