@@ -239,20 +239,30 @@ export function useAmigaDemo() {
 
     // Y — the floor↔upper-third slam under a gravity-flavoured bounce. Starts and
     // ends at the centred home; the peak |py| = |FLOOR_Y| = 4 ≥ 2.5·radius.
+    //
+    // MISSED-E — the easing is PER SEGMENT, because gravity is. One shared
+    // `cubic-bezier(0.36, 0, 0.66, 1)` used to govern all five keyframes, and
+    // that curve has zero slope at BOTH control endpoints: the ball was slowest
+    // at the floor slam and at the apex alike, and fastest mid-flight — the
+    // inverse of the physics the comments claim twice. A falling body ACCELERATES
+    // into the floor (ease-in) and DECELERATES into the apex (ease-out), so each
+    // segment carries the easing its own direction of travel earns. The one thing
+    // a keyframe engine's flagship scene showcases is the curve; it now tells the
+    // truth. Authored through `addFrame`, which takes the per-frame timing
+    // function `fromKeyframes` has no seat for — the frame's easing governs the
+    // interval that STARTS at it.
+    const FALL = "cubic-bezier(0.42, 0, 1, 1)"; // ease-in: slow → fast (down)
+    const RISE = "cubic-bezier(0, 0, 0.58, 1)"; // ease-out: fast → slow (up)
     const bouncingY = new CSSKeyframesAnimation({
         duration: Y_PERIOD_MS,
         iterationCount: Infinity,
-        timingFunction: "cubic-bezier(0.36, 0, 0.66, 1)",
-    }).fromKeyframes(
-        {
-            "0%": { position: { y: SPHERE_HOME } },
-            "25%": { position: { y: FLOOR_Y } },
-            "50%": { position: { y: APEX_Y } },
-            "75%": { position: { y: FLOOR_Y } },
-            "100%": { position: { y: SPHERE_HOME } },
-        },
-        transform,
-    );
+    })
+        .addFrame("0%", { position: { y: SPHERE_HOME } }, transform, FALL)
+        .addFrame("25%", { position: { y: FLOOR_Y } }, transform, RISE)
+        .addFrame("50%", { position: { y: APEX_Y } }, transform, FALL)
+        .addFrame("75%", { position: { y: FLOOR_Y } }, transform, RISE)
+        .addFrame("100%", { position: { y: SPHERE_HOME } }, transform)
+        .parse();
 
     spinning.name = "Spin";
     spinning.superKey = SCENE_ID;
