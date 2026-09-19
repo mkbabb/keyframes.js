@@ -7,7 +7,7 @@
          telemetry strip (serif title + accent x/y readout + settled/tracking
          badge), and the axis legend. All are DERIVED READS of the spring state
          SquareScene feeds as props — no second writer, no second rAF. -->
-    <div class="square-field" aria-hidden="true"></div>
+    <div class="square-field stage-field-x stage-field-y" aria-hidden="true"></div>
 
     <svg
         class="square-tether"
@@ -162,45 +162,34 @@ const tetherPath = computed(() => {
 </script>
 
 <style scoped>
-/* ── L.W11 S4 — the draughtsman's coordinate field (the missing axes) ──
-   A centred crosshair (the (0,0) home) + faint quarter-tick frame, drawn in the
-   shared --border hairline language. Pure background-image gradients — the static
-   structure the glass plate finally refracts against on THIS stage. */
+/* ── D-7 + N-SQ-2 + N-SQ-3 — THE FIELD CONSUMES THE DEMO'S OWN IDIOM ──
+   The coordinate field is the component's stated thesis ("the missing axes") and
+   it was drawn at 1.19–1.95:1 against a 3:1 WCAG 1.4.11 floor — the crosshair at
+   70 % of `--border`, the quarter ticks at 30 %.
+
+   N-SQ-2 names the root cause: the file HAND-ROLLED a structure the demo already
+   publishes. `.stage-field-x` / `.stage-field-y` (design-idioms.css) draw exactly
+   this — 1 px quarter-mark gridlines on both axes, at FULL `var(--border)` — and
+   already have three live consumers (SequenceAxis, SpringTarget ×2). The square
+   re-authored them diluted, which is both a shadow duplication and the proximate
+   cause of D-7's worst numbers. The cure the row orders is to consume the idiom,
+   not to re-tune invented ones — so the element wears the two published classes
+   and this file declares NO background of its own. (The idiom's own bare-`--border`
+   contrast is banked at kf-SequenceAxis D-4, a shared-idiom row, and is not
+   re-tuned per-site here.)
+
+   N-SQ-3 dissolves with the duplicate: the tick frame was a
+   `repeating-linear-gradient(… 0 1px, transparent 1px 25%)` on an `inset: 12.5%`
+   pseudo-element, which ticked the OPENING edge of each quarter and clipped the
+   closing one (asymmetric on both axes), and whose symmetric inset landed the
+   50 % tick on the exact pixel of the parent's own crosshair — one of four ticks
+   invisible under a stronger line. There is ONE layer now and one authority for
+   every line in it: the idiom's 50 % mark IS the (0,0) home crosshair, so nothing
+   can swallow anything. */
 .square-field {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image:
-        linear-gradient(
-            to right,
-            transparent calc(50% - 0.5px),
-            color-mix(in srgb, var(--border) 70%, transparent) calc(50% - 0.5px),
-            color-mix(in srgb, var(--border) 70%, transparent) calc(50% + 0.5px),
-            transparent calc(50% + 0.5px)
-        ),
-        linear-gradient(
-            to bottom,
-            transparent calc(50% - 0.5px),
-            color-mix(in srgb, var(--border) 70%, transparent) calc(50% - 0.5px),
-            color-mix(in srgb, var(--border) 70%, transparent) calc(50% + 0.5px),
-            transparent calc(50% + 0.5px)
-        );
-}
-.square-field::before {
-    content: "";
-    position: absolute;
-    inset: 12.5%;
-    background-image:
-        repeating-linear-gradient(
-            to right,
-            color-mix(in srgb, var(--border) 30%, transparent) 0 1px,
-            transparent 1px 25%
-        ),
-        repeating-linear-gradient(
-            to bottom,
-            color-mix(in srgb, var(--border) 30%, transparent) 0 1px,
-            transparent 1px 25%
-        );
 }
 
 /* ── L.W11 S4 — the rubber-band TETHER (spring math made physical) ──
