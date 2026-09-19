@@ -12,7 +12,7 @@
          The editor section's terminal home is the derived Keyframes tab, T.B2.)
          SPF-27 (KF.W6): this header was a tranche changelog naming files that
          no longer exist at any path; it now describes what mounts. -->
-    <Card cartoon tier="quiet" class="spring-pane w-full overflow-visible">
+    <Card cartoon tier="quiet" class="w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
             <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
                  The two sliders join ONE `.labeled-field-grid` so their labels
@@ -61,32 +61,36 @@
                  outline in the violet motion authority (`--color-progress`; the
                  scoped rules below) and the hover is the same family's faint
                  wash — the earlier "red-dashed ring / red-accent hover" wording
-                 predated the token re-point (red is destructive-only). -->
-            <!-- SPF-10 (W6-I; G-W6-9's VARIANT-level member, decided in
-                 writing): the `shape="cell"` request is RETIRED, not consumed.
-                 At the installed 7.0.0 the variant's geometry does not survive
-                 the merge — its padding, gap and size utilities are dropped by
-                 `cn`, `py-2.5` loses on utilities-layer order, and its one
-                 distinguishing hook (`glass-chip--cell`) has its only rule in
-                 `styles/glass/glass-chip.css`, which no style entry imports
-                 (I-35 R-9, verified at the dist). Its two surviving
-                 contributions were `flex-col` — authored here explicitly, so
-                 the column layout is the demo's declaration and not a
-                 side-effect of a dead variant — and `text-micro`, which sized
-                 no glyph (both child spans carry their own register). `h-auto`
-                 collided with nothing and is gone. The producer ask — a `cell`
-                 shape whose geometry survives its own merge — rides the wave's
-                 mail; a demo-side patch of the merger would be an SS-6 defect
-                 and is not made. -->
-            <div class="preset-grid grid grid-cols-2 gap-2">
-                <Chip
+                 predated the token re-point (red is destructive-only).
+
+                 SPF-4 (X.KF.W11.f): four mutually-exclusive presets are ONE
+                 `ToggleGroup type="single"` (the `EasingTarget.vue` port), not
+                 four independent selectable Chips: the section is a LABELLED
+                 group, the selection model is exclusive by contract (the model
+                 is derived from the live params, so a deselect is refused and
+                 the set can never be empty), and focus roves — one tab stop,
+                 arrows between cells. The items ship the producer's
+                 `aria-pressed` (reka's toggle-group renders pressed buttons in a
+                 `role="group"`, not radios); the radio half rides SS-6 as the
+                 producer ask, never a demo-side attribute patch. `:title`
+                 survives the item's attr filter; the tooltip-vs-slotted-copy
+                 decision (SPF-13) is KF-CO-47's and is not taken here. The
+                 earlier SPF-10 note (the retired Chip `shape="cell"` request)
+                 is moot with the Chip: the column layout below is authored on
+                 the item, as it was on the Chip. -->
+            <ToggleGroup
+                type="single"
+                class="preset-grid grid w-auto max-w-none grid-cols-2 gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
+                aria-label="Spring presets"
+                :model-value="activePresetName"
+                @update:model-value="onPresetSelect"
+            >
+                <ToggleGroupItem
                     v-for="(t, i) in demo.tracks"
                     :key="t.preset.name"
-                    mode="selectable"
-                    :model-value="isActivePreset(t)"
+                    :value="t.preset.name"
                     :title="t.preset.blurb"
-                    class="preset-cell flex-col rounded-pill border-none bg-background px-3 pt-1.5 pb-2 items-start gap-1 font-medium leading-normal whitespace-nowrap"
-                    @update:model-value="applyPreset(t.preset)"
+                    class="preset-cell w-full flex-col items-start gap-1 rounded-pill bg-background px-3 pt-1.5 pb-2 font-medium leading-normal whitespace-nowrap"
                 >
                     <span class="preset-name-row flex w-full flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
                         <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
@@ -99,8 +103,8 @@
                             class="progress-ball preset-ball"
                         ></span>
                     </span>
-                </Chip>
-            </div>
+                </ToggleGroupItem>
+            </ToggleGroup>
 
             <!-- ── KEYFRAMES EDITOR (K.W4 S1 — survives THIS stage) ────────────
                  The engine-owned KeyframesEditor (the SAME per-stop card grammar
@@ -160,10 +164,10 @@ export function ballTravel(value: number): number {
 
 <script setup lang="ts">
 import type { ComponentPublicInstance } from "vue";
-import { onMounted, onScopeDispose } from "vue";
+import { computed, onMounted, onScopeDispose } from "vue";
 import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
-import { Chip } from "@mkbabb/glass-ui/chip";
+import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { RefreshCw } from "@lucide/vue";
 
 import KeyframesEditor from "@components/instrument/keyframes/KeyframesEditor.vue";
@@ -202,9 +206,22 @@ const isActivePreset = (t: SpringTrack) =>
     Math.abs(demo.response.value - t.preset.response) < 1e-6 &&
     Math.abs(demo.dampingFraction.value - t.preset.dampingFraction) < 1e-6;
 
+/** The group's model, DERIVED from the live params: the preset whose (response,
+ *  ζ) the spring currently has, or none. Never stored — the params are the truth. */
+const activePresetName = computed(
+    () => demo.tracks.find((t) => isActivePreset(t))?.preset.name,
+);
+
 const applyPreset = (preset: SpringPreset) => {
     demo.response.value = preset.response;
     demo.dampingFraction.value = preset.dampingFraction;
+};
+
+/** A selection applies the named preset; a deselect (the active cell pressed
+ *  again emits `undefined`) is refused — the set is exclusive and never empty. */
+const onPresetSelect = (name: string | number | undefined) => {
+    const track = demo.tracks.find((t) => t.preset.name === name);
+    if (track) applyPreset(track.preset);
 };
 </script>
 
@@ -247,6 +264,20 @@ const applyPreset = (preset: SpringPreset) => {
     will-change: transform;
 }
 
+/* ── The preset grid is a ToggleGroup for its selection model and roving
+   focus, never for the producer's single-mode TRACK plate (padding, pill
+   radius, quiet glass, backdrop, rim shadows — a segmented control's). That
+   plate is reset ON THE ELEMENT with utilities (the `@layer utilities` rules
+   outrank the producer's `@layer components` ones by layer order), NOT here:
+   the ToggleGroup's root reaches the DOM through reka's `as-child`, which
+   drops this component's scope attribute, so a scoped `.preset-grid` rule
+   never matches it (measured live at this port — the `EasingTarget.css`
+   `.specimen-grid` reset has the same reach and is inert for the same
+   reason; that finding is relayed, not cured here). The producer ask — a
+   track opt-out on `ToggleGroup` — already rides the mail from that port and
+   is cited, not re-minted. The ITEMS do carry the scope attribute; the cell
+   rules below reach them. */
+
 /* ── S3 → T.D7 — the DASHED active/settled ring (the token treatment) ──
    The active cell wears the canonical motion-color (--color-progress — the
    OD-6 violet authority since T.D7; red is destructive-only) as a DASHED
@@ -255,21 +286,31 @@ const applyPreset = (preset: SpringPreset) => {
    (U-K17) riding the new hue. NOT a per-cell color class: the token is the
    authority; this is the dashed TREATMENT over it. The hover is the same
    accent family, a faint tinted wash that reads as the motion language, not
-   the neutral grey accent. */
+   the neutral grey accent.
+
+   SPF-5 — the washes are sized by the muted readout's contrast over them
+   (WCAG AA, this wave's token battery): active 8 % reads 4.70:1 light /
+   7.01:1 dark, hover 6 % reads 4.83 / 7.20; the shipped 12 % active wash read
+   4.46:1 and FAILED. Hover and active stay distinct by wash AND outline.
+   SPF-7 — no importance flag: these scoped rules are unlayered and outrank the
+   producer's `@layer components` item paint by layer order alone. */
 .preset-cell {
     outline: 1px dashed transparent;
     outline-offset: -1px;
+    border-color: transparent;
     transition:
         outline-color var(--duration-fast) ease,
         background-color var(--duration-fast) ease;
 }
 .preset-cell:hover {
-    background: color-mix(in srgb, var(--color-progress) 8%, var(--background)) !important;
+    background: color-mix(in srgb, var(--color-progress) 6%, var(--background));
     outline-color: color-mix(in srgb, var(--color-progress) 35%, transparent);
 }
 .preset-cell[data-state="on"] {
-    background: color-mix(in srgb, var(--color-progress) 12%, var(--background)) !important;
+    background: color-mix(in srgb, var(--color-progress) 8%, var(--background));
     outline-color: color-mix(in srgb, var(--color-progress) 65%, transparent);
+    border-color: transparent;
+    box-shadow: none;
 }
 
 /* ── The keyframes editor section (T.B2-terminal — see the template note) ──
