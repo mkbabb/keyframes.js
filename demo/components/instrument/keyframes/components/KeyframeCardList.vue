@@ -45,9 +45,10 @@
                 :formatted-c-s-s="formattedStrings[i]"
                 :frame-start="selectorText(frame.start)"
                 :index="i"
+                :can-remove="frames.length > 1"
                 @update-start="(val) => emit('updateStart', { val, index: i })"
                 @update-c-s-s="(value) => emit('updateCSS', { value, index: i })"
-                @remove="(e) => emit('remove', { event: e, index: i })"
+                @remove="(e) => onRemove(e, i)"
                 @keydown="(e) => emit('keydown', e)"
             />
 
@@ -56,11 +57,23 @@
                 v-if="i < frames.length - 1"
             />
         </template>
+
+        <!-- KC-10 — the removal ANNOUNCES. A destructive command whose whole
+             feedback was "the row is gone" told a screen-reader user nothing at
+             all, and the demo's only live regions were CopyButton's and the
+             app skeleton's. Same idiom as CopyButton's, one level up, because
+             the set — not the card — is what changed. -->
+        <span
+            class="sr-only"
+            role="status"
+            aria-live="polite"
+            >{{ removalMessage }}</span
+        >
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef } from "vue";
+import { computed, nextTick, ref, shallowRef, watch } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 // KC-1 — `selectorText` is the CANONICAL serializer for a `KeyframeSelector`:
@@ -102,6 +115,51 @@ const emit = defineEmits<{
     (e: "remove", val: { event: Event; index: number }): void;
     (e: "keydown", event: KeyboardEvent): void;
 }>();
+
+/**
+ * KC-10 — REMOVAL RESTORES FOCUS AND ANNOUNCES.
+ *
+ * The whole removal path contained no focus call: the clicked control left the
+ * document with the row, focus fell to `<body>`, and a keyboard user was
+ * returned to the top of the page with no statement that anything had happened.
+ * The list is the party that knows both facts — which stop went and which
+ * neighbour inherits its place — so it owns both, and neither reaches across
+ * into the editor's own removal handler.
+ *
+ * The move is armed at the emit and spent when the row set actually shrinks,
+ * because between those two moments the editor awaits a ~700 ms exit animation;
+ * watching the length rather than the click is what makes this independent of
+ * that gate (KF-KE-7 — `.c`'s row).
+ */
+const removalMessage = ref("");
+let pendingFocusIndex: number | null = null;
+let removedLabel = "";
+
+const onRemove = (event: Event, index: number) => {
+    if (props.frames.length > 1) {
+        // The next stop inherits the place; removing the tail falls back one.
+        pendingFocusIndex = index < props.frames.length - 1 ? index : index - 1;
+        removedLabel = selectorText(props.frames[index].start);
+    }
+    emit("remove", { event, index });
+};
+
+watch(
+    () => props.frames.length,
+    (now, before) => {
+        if (now >= before) return;
+
+        removalMessage.value = `Keyframe at ${removedLabel} removed; ${now} remaining.`;
+
+        const target = pendingFocusIndex;
+        pendingFocusIndex = null;
+        if (target === null) return;
+
+        void nextTick(() => {
+            cardInstances.value[target]?.removeEl?.focus();
+        });
+    },
+);
 
 // The KeyframeCard child instances — a declared child-ref contract. Each card
 // exposes its root `$el` (for the remove animation) and its `preEl` (the <pre>

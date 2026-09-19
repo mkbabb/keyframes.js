@@ -66,18 +66,52 @@
                      a cure measured against a state no user can reach. The
                      un-occlusion is KFED-UNIT's (a z rung here, or dropping the
                      `<pre>`'s `relative`); this row lands with it, not before. -->
-                <div class="flex">
-                    <!-- T.D7 (OD-6) — the delete-X is a DESTRUCTIVE affordance:
-                         it rides the demo's destructive register (--accent-red,
-                         red's ONE sanctioned home post-red-kill) instead of the
-                         raw Tailwind red-500 literal, and is destructive-MARKED
-                         so proof:accent-census's red-census recognizes the role. -->
-                    <X
-                        @click="(e) => emit('remove', e)"
-                        data-destructive
-                        class="p-0 m-0 scale-on-hover cursor-pointer stroke-2 w-6 h-6 text-accent-red hover:opacity-80 bg-transparent hover:bg-transparent"
-                    >
-                    </X>
+                <div class="flex gap-1">
+                    <!-- KC-3 ≡ KF-KC-2 ≡ KF-CB-11 — THE DESTRUCTIVE CONTROL IS A
+                         CONTROL. It was a bare Lucide `<svg>` carrying a click
+                         listener: no tab stop, no role, no accessible name, no
+                         keyboard path, and (KF-KC-34) hover-only feedback,
+                         because an `<svg>` has nothing to attach focus or active
+                         state to. Lucide forwards attributes onto the `<svg>`
+                         and synthesizes nothing, so the sole way to delete a
+                         keyframe was a mouse click — WCAG 2.1.1 and 4.1.2, on
+                         the one irreversible action the surface offers. The
+                         house idiom was already three lines away on CopyButton
+                         and five times over in `KeyframeTimeline.vue`.
+                         The producer's `tone="destructive"` replaces the
+                         hand-rolled pair it carried: `text-accent-red` plus a
+                         `data-destructive` attribute that had exactly one
+                         occurrence repo-wide and justified itself by citing
+                         `proof:accent-census`, a gate the owner retired
+                         (KF-KC-35 — the law there is delete, not re-implement).
+                         KC-7 / KF-KC-11(c): at one remaining keyframe the
+                         command is genuinely unavailable, and it now SAYS so
+                         instead of styling itself live and bare-returning in a
+                         handler two files away whose "Cannot remove last
+                         keyframe" toast is shadowed and unreachable.
+                         KC-23's demo half rides the promotion: `size="sm"` is a
+                         real box and the pair is no longer flush. -->
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button
+                                ref="removeEl"
+                                size="sm"
+                                emphasis="quiet"
+                                tone="destructive"
+                                icon-only
+                                :aria-label="`Remove the keyframe at ${frameStart}`"
+                                :disabled="!canRemove"
+                                @click="(e: MouseEvent) => emit('remove', e)"
+                            >
+                                <X class="icon-sm" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{{
+                            canRemove
+                                ? `Remove the keyframe at ${frameStart}`
+                                : "An animation keeps at least one keyframe"
+                        }}</TooltipContent>
+                    </Tooltip>
                     <!-- S-7 (W6-I): the copy control is a glass Button that
                          owns its box; the caller's `h-6 w-6` is gone. -->
                     <!-- A row whose projection has not landed has nothing to
@@ -161,12 +195,18 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, watchEffect } from "vue";
+import { computed, useTemplateRef, watchEffect } from "vue";
 import { syncHostSource } from "../composables/useHighlightCSS";
 // KF-KC-37 (W6-I): subpaths, never the 24 KB root barrel. The `./label` subpath
 // leaves with its two orphan consumers (KC-26 above) — the card imports only
 // what it mounts.
 import { Input } from "@mkbabb/glass-ui/forms";
+import { Button } from "@mkbabb/glass-ui/button";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@mkbabb/glass-ui/tooltip";
 import CopyButton from "@components/CopyButton/CopyButton.vue";
 import { X } from "@lucide/vue";
 
@@ -180,6 +220,10 @@ const props = defineProps<{
     formattedCSS?: string | undefined;
     frameStart: string;
     index: number;
+    /** KC-7 — whether removing THIS stop is a real command. An animation keeps
+     *  at least one keyframe, and at that floor the list is the only party that
+     *  knows. */
+    canRemove: boolean;
 }>();
 
 // KC-1 — FE-3's defensive `displayStart` computed is GONE with the half-cure it
@@ -216,5 +260,21 @@ watchEffect(
     { flush: "post" },
 );
 
-defineExpose({ preEl });
+/**
+ * KC-10's other half of the ref contract: the removal control, so the list can
+ * hand focus to a surviving neighbour's command after a row leaves. The producer
+ * renders a real `<button>`, so `$el` is the focusable element; a component
+ * instance is unwrapped here rather than at the consumer, which is what keeps
+ * the exposed contract a set of DOM handles.
+ */
+const removeButton = useTemplateRef<{ $el?: HTMLElement } | HTMLElement>(
+    "removeEl",
+);
+const removeEl = computed<HTMLElement | null>(() => {
+    const el = removeButton.value;
+    if (el === null) return null;
+    return el instanceof HTMLElement ? el : (el.$el ?? null);
+});
+
+defineExpose({ preEl, removeEl });
 </script>
