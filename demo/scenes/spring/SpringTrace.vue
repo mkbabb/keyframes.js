@@ -18,13 +18,25 @@
          (D-6): `1` on the target line, `0` on the baseline, `0` and the horizon on
          the time axis. -->
     <div class="w-full max-w-3xl shrink-0">
-        <div class="flex items-center justify-between mb-1">
+        <!-- The header row takes the sibling row's `mb-2` (SpringTarget's sweep
+             header) — one label-row idiom, one spacing (D-9) — and that 8 px gap is
+             also where the trace's glow lands at the ζ floor (D-13): the drawn peak
+             sits 0.67 px under the frame's top edge after the half-stroke, so the
+             ≤3 px glow extent overruns a 4 px gap and fits inside this one. -->
+        <div class="flex items-center justify-between mb-2">
             <!-- D-11 — the primary slot names the plot; it no longer dresses the
                  invariant stop count as a live readout (the count is a fact about
                  the sampling grid and lives on the time axis, below). -->
-            <span class="text-small text-foreground">linear() trace</span>
-            <span class="text-mono-caption text-muted-foreground tabular-nums">
-                &zeta; {{ dampingFraction.toFixed(2) }} · peak {{ peak.toFixed(3) }}
+            <span class="text-small text-foreground">
+                <span class="code-token">linear()</span> trace
+            </span>
+            <!-- D-2/N-4 — `.code-token` is the demo's case-preserving mono register:
+                 `text-mono-caption` sets `text-transform: uppercase` at the installed
+                 pin and rendered this ζ as Ζ (U+0396). `tabular-nums` stays (the
+                 mono contract's clause (b) licence). D-10 — the live readout wears the
+                 scene accent, as the sibling row's does; the label stays quieter. -->
+            <span class="readout-accent code-token tabular-nums">
+                ζ {{ dampingFraction.toFixed(2) }} · peak {{ peak.toFixed(3) }}
             </span>
         </div>
         <!-- One figure for assistive tech: the plot's quantity as a sentence computed
