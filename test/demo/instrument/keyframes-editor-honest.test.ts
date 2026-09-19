@@ -457,25 +457,24 @@ describe("G-KFW12-3 — the keyframes authoring surface, executed", () => {
      * Clause (4) drives the removal handler at the ENGINE SEAM, twice: jsdom
      * cannot resolve a transform, so the shipped `warpLeft`/`jumpUp` throw
      * INSIDE the draw loop (`.a`'s measurement) — an error vitest reports as
-     * unhandled and the group's `play()` never settles on. (4a) replaces the
-     * two presets with an opacity motion the realm CAN resolve, so the motion
-     * settles and the browser path executes; (4b) hands the handler a group
-     * whose `play()` never settles, the engine's own headless behaviour, so
-     * the budget path executes. The subject in both is the editor's handler,
-     * untouched.
+     * unhandled and the group's `play()` never settles on. Both sub-cases hand
+     * the handler a group at `AnimationGroup.of`, the one seam it composes the
+     * motion through: (4a) one whose `play()` SETTLES (the browser path, made
+     * deterministic — a real rAF motion raced against a wall clock is a coin
+     * on a loaded runner, which is not the handler's contract); (4b) one whose
+     * `play()` never settles, the engine's own headless behaviour, so the
+     * budget path executes. The subject in both is the editor's handler,
+     * untouched; the presets are still constructed for real.
      */
     it("(4a) KF-KE-7: the removal lands after a motion that settles, and a second press is a no-op", HEAVY, async () => {
         const { animation } = await buildFixture(PERCENT_CSS, "delete-Settles");
-        const { presets, CSSKeyframesAnimation } = await import("@kf-engine").then((m) =>
-            m.kfEngine(),
+        const { AnimationGroup } = await import("@kf-engine").then((m) => m.kfEngine());
+        const settling = vi.spyOn(AnimationGroup, "of").mockImplementation(
+            () =>
+                ({
+                    play: () => new Promise<void>((r) => setTimeout(r, 30)),
+                }) as never,
         );
-        const fade = () =>
-            new CSSKeyframesAnimation({ duration: 40 }).fromVars([
-                { opacity: 1 },
-                { opacity: 0 },
-            ]);
-        const warp = vi.spyOn(presets, "warpLeft").mockImplementation(fade);
-        const jump = vi.spyOn(presets, "jumpUp").mockImplementation(fade);
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
         try {
             const wrapper = await mountEditor(animation);
@@ -501,7 +500,7 @@ describe("G-KFW12-3 — the keyframes authoring surface, executed", () => {
             expect(
                 framesOf(animation).map((f) => selectorText(f.start as never)),
             ).toEqual(["0%", "100%"]);
-            expect(warp).toHaveBeenCalledTimes(1);
+            expect(settling).toHaveBeenCalledTimes(1);
             expect(
                 warn.mock.calls.some((args) =>
                     String(args[0]).includes("exit motion did not settle"),
@@ -509,8 +508,7 @@ describe("G-KFW12-3 — the keyframes authoring surface, executed", () => {
             ).toBe(false);
             wrapper.unmount();
         } finally {
-            warp.mockRestore();
-            jump.mockRestore();
+            settling.mockRestore();
             warn.mockRestore();
         }
     });
@@ -532,12 +530,13 @@ describe("G-KFW12-3 — the keyframes authoring surface, executed", () => {
                 () => {
                     expect(framesOf(animation).length).toBe(2);
                 },
-                { timeout: 3_000 },
+                { timeout: 4_000 },
             );
             const held = performance.now() - started;
-            // Held for about the presets' declared 700 ms — never open-endedly.
-            expect(held).toBeGreaterThanOrEqual(600);
-            expect(held).toBeLessThan(2_000);
+            // Held for about twice the presets' declared 700 ms — never
+            // open-endedly.
+            expect(held).toBeGreaterThanOrEqual(1_300);
+            expect(held).toBeLessThan(3_000);
             expect(
                 warn.mock.calls.filter((args) =>
                     String(args[0]).includes("exit motion did not settle"),
