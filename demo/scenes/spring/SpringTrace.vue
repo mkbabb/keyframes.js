@@ -32,9 +32,12 @@
              marks and tick labels presentational beneath it. -->
         <div role="img" :aria-label="figureLabel">
             <div class="plot-frame">
-                <!-- Layer 1 — the reference geometry. The line geometry is BOUND to
-                     the same constants the mapping uses (L-5) — one source of truth
-                     for where value 1 and value 0 are. -->
+                <!-- Layer 1 — the reference geometry, NEUTRAL (D-3/D-4/N-3, the
+                     EasingTarget sparkline precedent): the data hue belongs to the
+                     trace alone, both lines clear SC 1.4.11 in both theme arms, and
+                     each is named by a tick label so no channel is colour alone. The
+                     line geometry is BOUND to the same constants the mapping uses
+                     (L-5) — one source of truth for where value 1 and value 0 are. -->
                 <svg
                     class="plot-layer"
                     :viewBox="viewBox"
@@ -56,7 +59,12 @@
                         class="plot-baseline"
                     />
                 </svg>
-                <!-- Layer 2 — the data alone. -->
+                <!-- Layer 2 — the data alone, so the glow can be declared on THIS
+                     element (a CSS box: filter lengths are CSS px) rather than on the
+                     path inside a `preserveAspectRatio="none"` user space that is
+                     scaled ~7.7× horizontally and ~1.2× vertically at the 768 px
+                     measure (L-8). The stroke is pinned to device px by
+                     `non-scaling-stroke`; the glow now lives in the same space. -->
                 <svg
                     class="plot-layer plot-data"
                     :viewBox="viewBox"
@@ -275,7 +283,17 @@ const figureLabel = computed(
    which is a real design decision and survives the prose fix untouched.
    Whether those two hues PERCEPTUALLY collapse stays UNPROVEN and is KF.W9 /
    SS-13's (ΔE_OK 0.15–0.19 ≈ 7–9× JND); this row is the false comment, and it
-   is kin to KF-ES-43 / KF-ET-37, never an identity with them. */
+   is kin to KF-ES-43 / KF-ET-37, never an identity with them.
+
+   X.KF.W11.e — THE REFERENCE GEOMETRY IS NEUTRAL (D-3 + D-4 + N-3). Both lines
+   used to wear the data hue at 45 % alpha — hue doing double duty, the settled
+   trace collinear with and occluding the target at ζ ≥ 1, and 1.85:1 / 1.34:1
+   light, 2.32:1 / 1.41:1 dark against SC 1.4.11's 3:1 (no chromatic mid-tone at
+   that alpha can reach it over either card). The EasingTarget sparklines are the
+   precedent: neutral by default, accent reserved for the data. At `--foreground`
+   55 % the lines read 3.82:1 light / 4.50:1 dark over the producer's `--card`
+   arms (this seat's arithmetic; 45 % reads 2.85 light — 55 % is the first rung
+   that clears both). */
 .plot-frame {
     position: relative;
     width: 100%;
@@ -289,17 +307,25 @@ const figureLabel = computed(
     display: block;
     overflow: visible;
 }
-.plot-target-line {
-    stroke: color-mix(in srgb, var(--color-progress) 45%, transparent);
+/* The data layer carries the glow (L-8): declared on the `<svg>` box, the
+   `drop-shadow` length is CSS px in every engine — isotropic, like the stroke. */
+.plot-data {
+    filter: drop-shadow(
+        0 0 3px color-mix(in srgb, var(--color-progress) 45%, transparent)
+    );
+}
+.plot-target-line,
+.plot-baseline {
+    stroke: color-mix(in srgb, var(--foreground) 55%, transparent);
     stroke-width: 1;
-    stroke-dasharray: 3 2;
     vector-effect: non-scaling-stroke;
 }
-.plot-baseline {
-    stroke: var(--border);
-    stroke-width: 1;
-    vector-effect: non-scaling-stroke;
-    opacity: 0.5;
+/* N-3 — `non-scaling-stroke` performs stroking, dash pattern INCLUDED, in device
+   space, so this dasharray is authored in device px on purpose: a 10 px period
+   reads as a dash on a 1 px line at every width (the old `3 2` was a 5 px period
+   — near-continuous — and the only pattern channel the line had). */
+.plot-target-line {
+    stroke-dasharray: 6 4;
 }
 .plot-trace {
     fill: none;
@@ -308,7 +334,6 @@ const figureLabel = computed(
     stroke-linecap: round;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
-    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-progress) 45%, transparent));
 }
 /* The tick labels: the value ticks sit just ABOVE their line (translated up by
    their own height from the line's `top`); `line-height: 1` keeps the `1` inside
