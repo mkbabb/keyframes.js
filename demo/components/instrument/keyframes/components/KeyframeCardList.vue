@@ -14,16 +14,36 @@
          item either way (framed and bare both wrap it alone), no sibling
          spacing moves. The RENDERED pixels are KF.W9's per the row; what is
          settled here is which file owns the number. -->
+    <!-- KC-8 / KC-9 — THE ROWS COME FROM THE MODEL, and that is what keeps the
+         cards MOUNTED. The list used to take its row set from
+         `templateFrameStrings`, an asynchronously rebuilt PROJECTION of the
+         frames, which every commit cycle writes twice: blank, then refill
+         (`useKeyframesParsing.ts:50` — KF-KE-25, `.c`'s row to delete). The
+         blank's flush is guaranteed to render before the refill's continuation
+         can queue, so the v-for rendered ZERO rows and every card — including
+         the `<pre>` the user was typing in — was unmounted and rebuilt about
+         once a second, taking caret, selection, undo and focus with it.
+         Iterating the frames instead makes a projection pass a PROP UPDATE
+         rather than a row-set change: the keys are the frame ids, the cards are
+         patched in place, and an absent projection is passed down as ABSENT
+         (never laundered into `""`), so the card leaves its host alone until the
+         refill lands. When the refilled text is identical — the common case —
+         nothing is written to the DOM at all.
+         What this does NOT claim: `frames` is a `markRaw` array, so the render
+         is still driven by `frameStrings`' churn rather than by the frames
+         themselves. That is sound because every mutation site calls
+         `updateAllStrings()`, and it is exactly KC-29's remaining architectural
+         row — one `ref` of row records, owned where the projection is built. -->
     <div class="grid gap-2">
         <template
-            v-for="(s, i) in frameStrings"
-            :key="frames[i]?.id ?? i"
+            v-for="(frame, i) in frames"
+            :key="frame.id"
         >
             <KeyframeCard
                 :ref="(el: any) => setCardRef(i, el)"
-                :frame-string="s"
-                :formatted-c-s-s="formattedStrings[i] ?? s"
-                :frame-start="selectorText(frames[i].start)"
+                :frame-string="frameStrings[i]"
+                :formatted-c-s-s="formattedStrings[i]"
+                :frame-start="selectorText(frame.start)"
                 :index="i"
                 @update-start="(val) => emit('updateStart', { val, index: i })"
                 @update-c-s-s="(value) => emit('updateCSS', { value, index: i })"
@@ -33,7 +53,7 @@
 
             <Separator
                 class="w-full"
-                v-if="i < frameStrings.length - 1"
+                v-if="i < frames.length - 1"
             />
         </template>
     </div>

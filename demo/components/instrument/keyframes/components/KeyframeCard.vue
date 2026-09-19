@@ -80,7 +80,10 @@
                     </X>
                     <!-- S-7 (W6-I): the copy control is a glass Button that
                          owns its box; the caller's `h-6 w-6` is gone. -->
-                    <CopyButton :text="frameString" />
+                    <!-- A row whose projection has not landed has nothing to
+                         copy; the empty string is the honest payload for that
+                         window, not a stand-in for the frame's text. -->
+                    <CopyButton :text="frameString ?? ''" />
                 </div>
                 <!-- KC-12 — the row's only visible identity (`f N` / `s N`) is
                      AT-EXPOSED, so it is denominated in a REAL TOKEN, not in an
@@ -167,9 +170,14 @@ import { Input } from "@mkbabb/glass-ui/forms";
 import CopyButton from "@components/CopyButton/CopyButton.vue";
 import { X } from "@lucide/vue";
 
+// KC-8 / KC-9 — the two string projections are OPTIONAL, because a row whose
+// projection pass has not landed yet genuinely has none. Declaring them
+// `string` forced the parent to launder that absence into `""`, and an empty
+// string is a document — writing it into the editing host is how a commit cycle
+// blanked the text under a live caret.
 const props = defineProps<{
-    frameString: string;
-    formattedCSS: string;
+    frameString?: string | undefined;
+    formattedCSS?: string | undefined;
     frameStart: string;
     index: number;
 }>();
@@ -196,10 +204,14 @@ const preEl = useTemplateRef<HTMLElement>("preEl");
 // KC-34 — the model reaches the host through the driver's ONE seam, after the
 // render (`flush: "post"`, so the ref is resolved and the write lands on the
 // element this pass produced). The seam is idempotent in the text, so a render
-// that changes nothing leaves a caret in the host undisturbed.
+// that changes nothing leaves a caret in the host undisturbed — and an ABSENT
+// projection (KC-8/KC-9: mid-pass, or a stop added before its strings exist) is
+// not a document to write, so the host keeps what it has until one arrives.
 watchEffect(
     () => {
-        syncHostSource(preEl.value, props.formattedCSS);
+        const css = props.formattedCSS;
+        if (css === undefined) return;
+        syncHostSource(preEl.value, css);
     },
     { flush: "post" },
 );
