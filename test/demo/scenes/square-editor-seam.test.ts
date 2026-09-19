@@ -17,11 +17,13 @@
  *       `viewBox` + `preserveAspectRatio="none"` cure is geometrically unsound:
  *       a non-conformal map turns the perpendicular bow off-normal).
  */
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { mount } from "@vue/test-utils";
 import { withSetup } from "../../support/withSetup";
 import { useSquareDemo } from "../../../demo/scenes/square/useSquareDemo";
+import { useSquareKeyboard } from "../../../demo/scenes/square/useSquareKeyboard";
+import { SpringProgress } from "../../../src/animation/physics/spring";
 import { useKeyframeOps } from "../../../demo/components/instrument/keyframes/composables/useKeyframeOps";
 import type { KeyframesState } from "../../../demo/components/instrument/keyframes/composables/useKeyframesState";
 import SquareInstrument from "../../../demo/scenes/square/SquareInstrument.vue";
@@ -234,6 +236,41 @@ describe("X.KF.W11.b — the instrument reports what is actually painting (C-3/L
             expect(el.hasAttribute("data-palette-sweep")).toBe(false);
         } finally {
             app.unmount();
+        }
+    });
+});
+
+describe("X.KF.W11.b (c) — the envelope tour is settle-paced, as its docblock says (MISS-3)", () => {
+    it("advances a leg on the spring's ARRIVAL and on no clock at all", () => {
+        vi.useFakeTimers();
+        try {
+            const reseat = vi.fn();
+            const spring = () =>
+                new SpringProgress({
+                    response: 0.32,
+                    dampingFraction: 0.62,
+                    initial: 0,
+                });
+            const kb = useSquareKeyboard({
+                springX: spring(),
+                springY: spring(),
+                reseat,
+                onTakeOver: () => {},
+                onTarget: () => {},
+            });
+
+            kb.tourEnvelope();
+            expect(reseat).toHaveBeenCalledTimes(1);
+            // The cure this replaces was `setTimeout(step, 520)`, 46 lines under
+            // a docblock promising the opposite. No timer may move the tour.
+            vi.advanceTimersByTime(10_000);
+            expect(reseat).toHaveBeenCalledTimes(1);
+
+            kb.notifySettled();
+            expect(reseat).toHaveBeenCalledTimes(2);
+            expect(reseat).toHaveBeenLastCalledWith(1, 1);
+        } finally {
+            vi.useRealTimers();
         }
     });
 });

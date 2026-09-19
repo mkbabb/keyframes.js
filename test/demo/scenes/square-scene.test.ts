@@ -30,13 +30,14 @@ function harness() {
     const reseat = vi.fn();
     const onTarget = vi.fn();
     const onTakeOver = vi.fn();
-    const { onKeydown, tourEnvelope } = useSquareKeyboard({
-        springX,
-        springY,
-        reseat,
-        onTakeOver,
-        onTarget,
-    });
+    const { onKeydown, tourEnvelope, notifySettled, cancelTour } =
+        useSquareKeyboard({
+            springX,
+            springY,
+            reseat,
+            onTakeOver,
+            onTarget,
+        });
     return {
         springX,
         springY,
@@ -45,6 +46,8 @@ function harness() {
         onTakeOver,
         onKeydown,
         tourEnvelope,
+        notifySettled,
+        cancelTour,
     };
 }
 
@@ -129,6 +132,52 @@ describe("useSquareKeyboard — the arrow/Home nudge", () => {
         // The first leg re-seats synchronously to [1, -1] (top-right).
         expect(h.reseat).toHaveBeenCalledWith(1, -1);
         expect(h.onTarget).toHaveBeenCalledWith(1, -1);
+    });
+
+    // MISS-3 / N-SQ-9 — THE DOCBLOCK'S INVARIANT IS AN ASSERTION. "The legs are
+    // paced by the spring's own settle, not a fixed timer: each corner waits for
+    // the chase to arrive" sat 46 lines above `setTimeout(step, 520)`. This is
+    // the assertion that keeps it true, and it fails on any re-introduced timer.
+    it("paces the envelope tour by the spring's own settle, not a fixed timer", () => {
+        vi.useFakeTimers();
+        try {
+            const h = harness();
+            h.tourEnvelope();
+            expect(h.reseat).toHaveBeenLastCalledWith(1, -1);
+
+            // No clock in the world advances it — only an arrival does.
+            vi.advanceTimersByTime(10_000);
+            expect(h.reseat).toHaveBeenCalledTimes(1);
+
+            // Each settle opens exactly one leg, in ENVELOPE_LEGS order.
+            const legs: [number, number][] = [
+                [1, 1],
+                [-1, 1],
+                [-1, -1],
+                [0, 0],
+            ];
+            for (const [nx, ny] of legs) {
+                h.notifySettled();
+                expect(h.reseat).toHaveBeenLastCalledWith(nx, ny);
+            }
+
+            // The tour is over: a further settle re-seats nothing.
+            const after = h.reseat.mock.calls.length;
+            h.notifySettled();
+            h.notifySettled();
+            expect(h.reseat).toHaveBeenCalledTimes(after);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("yields the springs when another authority takes the box over", () => {
+        const h = harness();
+        h.tourEnvelope();
+        expect(h.reseat).toHaveBeenCalledTimes(1);
+        h.cancelTour();
+        h.notifySettled();
+        expect(h.reseat).toHaveBeenCalledTimes(1);
     });
 
     it("ignores unrelated keys", () => {

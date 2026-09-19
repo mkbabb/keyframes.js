@@ -186,6 +186,9 @@ const tourHintShown = ref(false);
 /** A real interaction has happened on some modality (pointer past the move
  *  threshold, or any keyboard target) — the disclosure's arming condition. */
 let hasInteracted = false;
+/** MISS-3 — the envelope tour's settle clock, filled in once the keyboard layer
+ *  below exists (the spring loop's settle callback is wired above it). */
+const tourClock = { settled: () => {}, cancel: () => {} };
 /** Which modality armed it, so each hint discloses to the audience that can use
  *  it: the double-tap tumble to a pointer, the `c` envelope tour to a keyboard. */
 let interactedByKeyboard = false;
@@ -208,6 +211,12 @@ const {
             // The spring loop has come fully to rest (a drag/tumble settled). If
             // the group is not touring, the box is idle.
             if (!animationGroup.started || animationGroup.paused) mode.value = "idle";
+            // MISS-3 — THE ENVELOPE TOUR'S CLOCK. The loop coming to rest IS
+            // "the chase has arrived"; the keyboard layer opens its next leg on
+            // this signal and on nothing else. Held in a mutable slot rather
+            // than read forward, so nothing in this file depends on a `const`
+            // declared below it (L-22b).
+            tourClock.settled();
         },
         // The per-frame derived-read hook: mirror the live spring snapshot into the
         // tether + badge bindings. The tether is visible while the springs are
@@ -382,6 +391,9 @@ const captureFrame = (e: PointerEvent) => {
     // L.W11 S4 — a gesture has begun: mark the tether active. The tumble-hint
     // disclosure is NOT armed here any more (D-5/L-17: a bare tap is not a drag).
     tetherActive.value = true;
+    // A pointer grab takes the springs over — the envelope tour yields rather
+    // than fighting for them (it has no timer to race any more, just this).
+    tourClock.cancel();
     // T.A13 — the {playback → drag} FSM edge, through the one takeover function
     // above (the machine pauses; the springs seat from the painted pose), so the
     // spring chase begins exactly where the tour left the box — a seamless,
@@ -460,7 +472,7 @@ useDoubleTap({
 // sub-unit. Both re-seat the SAME springs the drag uses (no second authority,
 // no new rAF) and report each new target through `onTarget`, which mirrors it
 // into the live spring readout + the per-axis aria-valuenow.
-const { onKeydown, tourEnvelope } = useSquareKeyboard({
+const { onKeydown, tourEnvelope, notifySettled, cancelTour } = useSquareKeyboard({
     springX,
     springY,
     reseat,
@@ -480,6 +492,9 @@ const { onKeydown, tourEnvelope } = useSquareKeyboard({
         syncReadouts();
     },
 });
+
+tourClock.settled = notifySettled;
+tourClock.cancel = cancelTour;
 
 // D-4 — THE ENVELOPE-TOUR EGG JOINS THE ONE KEYBOARD REGISTRY. `c` was a raw
 // branch inside the box's own `@keydown` with an unconditional `preventDefault`

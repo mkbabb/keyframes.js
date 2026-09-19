@@ -1,4 +1,3 @@
-import { onBeforeUnmount } from "vue";
 import type { SpringProgress } from "@mkbabb/keyframes.js";
 import { clamp } from "@mkbabb/value.js/math";
 
@@ -25,6 +24,19 @@ import { clamp } from "@mkbabb/value.js/math";
  * scoped to a focused box; `tourEnvelope` is exported for it. The legs are paced
  * by the spring's own settle, not a fixed timer: each corner waits for the chase
  * to arrive.
+ *
+ * MISS-3 / N-SQ-9 — AND THAT LAST SENTENCE IS TRUE NOW. It sat 46 lines above
+ * a fixed 520 ms timer, with the springs destructured into scope
+ * and never consulted for `.settled`, and the inline comment beside the timer
+ * quietly conceded it ("settles well under 520ms"). The cleanest instance of the
+ * corpus's own false-invariant thesis, and not merely a prose defect:
+ * OPEN-LOOP pacing cuts short any leg whose spring has not arrived — a slow
+ * device, a reduced-motion amplitude scale or a re-tuned response all break the
+ * tour's one promise. The scene's spring loop already publishes the exact signal
+ * ("the loop came fully to rest"); `notifySettled` is the keyboard's ear for it,
+ * and there is no timer left in this file. A comment-stated invariant is an
+ * assertion, so the assertion is in `square-scene.test.ts` beside this cure, in
+ * the same commit.
  */
 
 const ENVELOPE_LEGS: ReadonlyArray<[number, number]> = [
@@ -58,30 +70,45 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
     const { springX, springY, reseat, onTakeOver, onTarget } = opts;
 
     let touring = false;
-    let tourTimer: ReturnType<typeof setTimeout> | null = null;
+    let leg = 0;
+
+    /** Seat the next corner, or finish. The tour advances ONLY from here. */
+    const stepTour = () => {
+        const next = ENVELOPE_LEGS[leg];
+        if (!next) {
+            touring = false;
+            return;
+        }
+        leg += 1;
+        const [nx, ny] = next;
+        reseat(nx, ny);
+        onTarget(nx, ny);
+    };
 
     const tourEnvelope = () => {
         if (touring) return;
         onTakeOver();
         touring = true;
-        let i = 0;
-        const step = () => {
-            if (i >= ENVELOPE_LEGS.length) {
-                touring = false;
-                tourTimer = null;
-                return;
-            }
-            const [nx, ny] = ENVELOPE_LEGS[i]!;
-            i += 1;
-            reseat(nx, ny);
-            onTarget(nx, ny);
-            // Pace each leg by the spring's own travel time (the snappy 0.32
-            // response settles well under 520ms) — a hold long enough to SEE the
-            // corner before the next leg, but no hand-rolled rAF (the spring
-            // loop paints).
-            tourTimer = setTimeout(step, 520);
-        };
-        step();
+        leg = 0;
+        stepTour();
+    };
+
+    /**
+     * The scene calls this the frame its spring loop comes fully to rest — the
+     * chase HAS arrived at the current corner, so the next leg opens. This is
+     * the whole of the tour's clock: no timer, no second rAF, no polling. A leg
+     * that takes longer (a slow device, a reduced-motion amplitude scale, a
+     * re-tuned response) simply holds longer, which is what the docblock above
+     * has always claimed.
+     */
+    const notifySettled = () => {
+        if (touring) stepTour();
+    };
+
+    /** A pointer grab, a Play press or an arrow nudge takes the box over — the
+     *  tour yields rather than fighting the new authority for the springs. */
+    const cancelTour = () => {
+        touring = false;
     };
 
     /**
@@ -121,6 +148,7 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
         else if (e.key === "PageUp") dy = -PAGE_STEP;
         else if (e.key === "Home" || e.key === "End") {
             e.preventDefault();
+            cancelTour();
             onTakeOver();
             const at = e.key === "Home" ? 0 : 1;
             reseat(at, at);
@@ -128,6 +156,7 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
             return;
         } else return;
         e.preventDefault();
+        cancelTour();
         onTakeOver();
         const nx = clamp(springX.target + dx, -1, 1);
         const ny = clamp(springY.target + dy, -1, 1);
@@ -135,9 +164,12 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
         onTarget(nx, ny);
     };
 
-    onBeforeUnmount(() => {
-        if (tourTimer) clearTimeout(tourTimer);
-    });
+    // L-18 — the `onBeforeUnmount(clearTimeout)` teardown this file used to carry
+    // (against the folder's `onScopeDispose` idiom, and called bare inside the
+    // suite's own harness where no component lifecycle exists) is GONE with the
+    // timer it cleaned up. LAW A census before the delete: `tourTimer` had four
+    // references, all inside this file — the declaration, two writes and the one
+    // teardown read — and no consumer of any kind elsewhere in the tree.
 
-    return { onKeydown, tourEnvelope };
+    return { onKeydown, tourEnvelope, notifySettled, cancelTour };
 }
