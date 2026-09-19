@@ -40,12 +40,13 @@
              tonal step small enough to read as a rendering fault rather than a
              layer. The decision: a plate reads the surface it is ON, so these
              two read `--card`. The family's THIRD site is the runtime-injected
-             hljs theme, whose hard `#ffffff`/`#0d1117` plate is unlayered and
-             therefore outranks every demo surface utility on the highlighted
-             well; that site's MECHANISM — layer the injected sheet, or
-             re-tokenize the theme — is the editor pipeline's (EDITOR/KFED-UNIT)
-             and is deliberately not pre-empted here. Only the token decision is
-             this wave's.
+             hljs theme, whose hard `#ffffff`/`#0d1117` plate WAS unlayered and
+             therefore outranked every demo surface utility on the highlighted
+             well; that site's MECHANISM is landed at the pipeline (KF-KE-24,
+             X.KF.W12.c — `useHighlightCSS` injects the theme inside
+             `@layer components`, so the host's utilities outrank the plate by
+             cascade order). Re-tokenising the theme onto the demo's scale is
+             the TOKEN decision, KF.W6's rider, and is not pre-empted.
 
              KF-KE-40 — THE SPACING PASS, three findings, three dispositions:
              · the no-ops are GONE — `mt-0` after `m-0` (twice, on the card-list

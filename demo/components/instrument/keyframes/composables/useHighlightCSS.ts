@@ -214,13 +214,33 @@ export function useCodeHighlight(
     /** Whether THIS instance is counted among the shared node's holders. */
     let holdsThemeStyle = false;
 
+    /**
+     * KF-KE-24, the PIPELINE half (X.KF.W12.c) — the injected theme is LAYERED.
+     *
+     * highlight.js's github sheets declare `.hljs { color; background }` with a
+     * hard `#ffffff` / `#0d1117` plate. Injected UNLAYERED, that plate outranks
+     * every layered rule in the document — Tailwind's `utilities` layer
+     * included — so the host's `bg-transparent` never won, the well painted an
+     * opaque rectangle inside the warm `--card` surface (a 1.42:1 tonal step in
+     * the dark arm), and that opacity is what made the un-occluded action
+     * cluster invisible (KF-KE-5's mechanism). Wrapped in `@layer components`
+     * — a layer the demo's Tailwind entry already declares BEFORE `utilities`
+     * (`@layer theme, base, components, utilities;`) — the token colours still
+     * apply (nothing competes for them) while any utility on the host beats the
+     * theme's plate by cascade-layer order rather than by luck. The TOKEN
+     * decision (re-tokenising the theme onto the demo's own scale) is KF.W6's
+     * rider and is not pre-empted.
+     */
+    const THEME_LAYER = "components";
+    const layered = (theme: string) => `@layer ${THEME_LAYER} {\n${theme}\n}`;
+
     /** Load the theme for the demo's current mode. Rejects if the boot fails. */
     const applyCodeTheme = async () => {
         if (!themeStyle.value) {
             return;
         }
         const { githubDark, githubLight } = await bootHighlighter();
-        const css = isDark.value ? githubDark : githubLight;
+        const css = layered(isDark.value ? githubDark : githubLight);
         // Every `highlightAll()` — so every keydown — ensures the theme. Rewriting
         // the node's text re-parses the whole github stylesheet; write only when
         // the theme actually changed. ⟨X.KF.W5 arm 0, KAD-14(b)⟩
