@@ -92,24 +92,72 @@ const CONTACT_FLOOR = FLOOR_Y - SPHERE_RADIUS;
 // The rendered pose (what actually reaches the mesh), distinct from the group's
 // composite `pose` so the re-seat can drive it home without the group stomping it.
 const rendered: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, pz: SPHERE_HOME, spin: 0 };
+// D-1 — the pose the compose last CONSUMED. The group authors `pose` in two
+// ways, and only one of them used to reach the stage: a played frame, and a
+// SCRUB — `setChildTime(anim, t).render()`, the transport's own seam
+// (scene-facility/index.ts), which runs this group's `transform` exactly as a
+// played frame does. Comparing the live pose against this record is how the
+// scene sees the second kind at all.
+const lastPose: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, pz: SPHERE_HOME, spin: 0 };
+
+/**
+ * D-1 (BLOCKER) — WHO owns the rendered pose this frame.
+ *
+ * `"pose"`: the group authored it — a played frame, or a user seek while the
+ * transport is paused. `"home"`: the group has stopped and the user has not
+ * re-authored a pose since, so the stage settles to the centred home (T.A8).
+ *
+ * The compose used to have no such state: it read `pose` ONLY inside the
+ * `playing` branch, so a paused stage was pinned to HOME — the scrubber moved,
+ * the pose moved, and the subject did not. The gate was DOUBLED, too: even had
+ * the compose read the scrubbed pose, `onFrame` reported the scene dead at rest
+ * and the render-on-demand loop discarded the frame. Both edges are below.
+ */
+type PoseAuthority = "pose" | "home";
+let authority: PoseAuthority = "home";
 let wasPlaying = false;
 let reseat: SpringProgress | undefined;
 const reseatFrom: AmigaPose = { px: 0, py: 0, pz: 0, spin: 0 };
 let lastFrameAt = 0;
 
+/** True when the group has written a NEW pose since the last composed frame. */
+const poseMoved = (): boolean =>
+    pose.px !== lastPose.px ||
+    pose.py !== lastPose.py ||
+    pose.pz !== lastPose.pz ||
+    pose.spin !== lastPose.spin;
+
 function onFrame(): boolean {
-    // Advance the release glide (mutates the additive gesture offset).
-    sphereSpin.tickGlide();
+    // L-m6 — the glide's liveness is the value `tickGlide()` RETURNS. The scene
+    // used to drop that return on the floor and re-derive the answer from
+    // `isGliding()`, which reports the SAMPLER'S EXISTENCE — one frame stale
+    // against the delta just composed (L-i6's discarded final delta is the same
+    // seam, and it is closed by reading the return the function documents).
+    const gliding = sphereSpin.tickGlide();
+    // L-B1 (BLOCKER) — the primary gesture's OWN edge on the render gate.
+    // `isDragging()` existed and nothing consulted it: the drag wrote the
+    // additive offset, the compose wrote the quaternion, and the present loop
+    // discarded every frame of it — the ball did not turn under the finger.
+    const dragging = sphereSpin.isDragging();
 
     const now = performance.now();
     const dt = lastFrameAt === 0 ? 16 : now - lastFrameAt;
     lastFrameAt = now;
 
     const playing = animationGroup.started && animationGroup.playing();
+    // D-1 — a SCRUB is the group authoring a pose while the transport is stopped.
+    const scrubbed = !playing && poseMoved();
 
-    // Stop transition (T.A8): the group just stopped/paused → settle HOME through
-    // a SpringProgress re-seat (PRM snaps). The offset is left untouched.
-    if (wasPlaying && !playing) {
+    if (playing || scrubbed) {
+        // The group owns the stage. A seek ABANDONS an in-flight home settle —
+        // the user has re-authored the pose, and the stage answers the seek.
+        authority = "pose";
+        reseat = undefined;
+    } else if (wasPlaying) {
+        // Stop transition (T.A8): the group just stopped/paused with no seek →
+        // settle HOME through a SpringProgress re-seat (PRM snaps). The gesture
+        // offset is left untouched.
+        authority = "home";
         if (prm.value === "reduce") {
             rendered.px = SPHERE_HOME;
             rendered.py = SPHERE_HOME;
@@ -129,13 +177,13 @@ function onFrame(): boolean {
     }
     wasPlaying = playing;
 
-    if (playing) {
-        // Follow the group's composite pose (T.A7 — plain numbers, T.A6).
+    if (authority === "pose") {
+        // Follow the group's composite pose (T.A7 — plain numbers, T.A6),
+        // whether the group is playing it or the user scrubbed it.
         rendered.px = pose.px;
         rendered.py = pose.py;
         rendered.pz = pose.pz;
         rendered.spin = pose.spin;
-        reseat = undefined;
     } else if (reseat) {
         reseat.tickDt(dt);
         const p = reseat.value;
@@ -149,6 +197,11 @@ function onFrame(): boolean {
             reseat = undefined;
         }
     }
+
+    lastPose.px = pose.px;
+    lastPose.py = pose.py;
+    lastPose.pz = pose.pz;
+    lastPose.spin = pose.spin;
 
     // Compose: spin about the tilted axis, then the additive gesture pitch/yaw.
     const mesh = three.getSphere();
@@ -171,10 +224,12 @@ function onFrame(): boolean {
         (shadow.material as THREE.MeshBasicMaterial).opacity = lerp(0.5, 0.12, t);
     }
 
-    // T.A12 — the scene is LIVE (force a render) while the group plays, a glide
-    // is coasting, or the re-seat is settling. At rest the present loop skips the
-    // render and the WebGL context idles.
-    return playing || sphereSpin.isGliding() || reseat != null;
+    // T.A12 — the scene declares itself LIVE (forcing a render) while the group
+    // plays, the user SCRUBS a paused stage (D-1's second edge — the transport's
+    // seat never marks the room dirty, so the frame that consumes a seek must
+    // say so itself), the user DRAGS the subject (L-B1), a glide is coasting, or
+    // the settle is in flight. At rest the present loop skips the render.
+    return playing || scrubbed || dragging || gliding || reseat != null;
 }
 
 onMounted(() => {
