@@ -16,9 +16,13 @@
  *
  * The G1 stage-visibility contract (`--stage-strip`/`--stage-reserve`) moved with
  * the bespoke sheet: under the Drawer the visible fraction is the snap-fraction
- * cap (ControlsPaneWrapper.vue's `snapPoints` — subject 0.48 ≈ 52dvh reserve,
- * editor/storyboard 0.62 ≈ 26dvh strip), so the reserve is a JS detent, not a CSS
- * token. proof:stage-visible re-derives against the Drawer's `--glass-drawer-t`. */
+ * cap (ControlsPaneWrapper.vue's `snapPoints` — subject `EXPANDED_SUBJECT`
+ * 0.36, derived beside the constant from the 0.45 unoccluded floor under the
+ * D-B1 inset; editor/storyboard 0.62 ≈ 26dvh strip), so the reserve is a JS
+ * detent, not a CSS token; the sheet's bottom edge clears the menubar through
+ * the producer's `--drawer-inset-block-end`, set on `<DrawerContent>` (D-M3:
+ * the retired `proof:stage-visible` gate pointer is gone; the shipped numbers
+ * govern this prose). */
 
 /* ── T.B4 (OD-5, VERDICT #7) — the surrounding pane is GONE ──
    The rail is a NAKED column — no border, no background, no radius; the two

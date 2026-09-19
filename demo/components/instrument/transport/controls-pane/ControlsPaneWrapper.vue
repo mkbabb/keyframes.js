@@ -12,18 +12,23 @@
          between the two layouts via `createReusableTemplate` (the mobile Drawer
          portals it to <body>; the desktop rail keeps it a grid column).
 
-         THE OCCLUSION CONTRACT, best-achievable under the Drawer's forced
-         geometry (KF-TO-GLASSUI-BG.md §FORWARDING / BG-11): the Drawer's
-         detented sheet is `bottom:0; height:100%` (drawer.css :53/:134) and its
-         visible fraction = the active snap fraction (`--glass-drawer-t`), so the
-         52dvh stage-reserve is APPROXIMATED by capping the expanded detent —
-         subject scenes cap at 0.48 (sheet.top ≈ 52dvh, stage readable),
-         editor/storyboard at 0.62 (26dvh strip). What the snap ladder CANNOT
-         cure is the bottom-menubar overlap: the Drawer is pinned to `bottom:0`
-         with no bottom-inset lever, so the sheet rides OVER the bottom menubar
-         at any detent. That is the BG-11 structural gap — FORWARDED to the
-         glass-ui tranche and tracked as a BG-11-BLOCKED born-RED backlog row
-         (dischargedBy the `--drawer-inset-block-end` publish + re-pin). -->
+         THE OCCLUSION CONTRACT under the Drawer's geometry (D-B1 / N-2 / C-2,
+         BG-11 DISCHARGED): the detented sheet's visible fraction is the active
+         snap fraction (`--glass-drawer-t`), so the stage-reserve is
+         APPROXIMATED by capping the expanded detent — subject scenes at
+         `EXPANDED_SUBJECT` (0.36; the derivation sits beside the constant),
+         editor/storyboard at 0.62 (26dvh strip). The bottom-menubar overlap the
+         ladder could not cure is cured at the producer's own lever: installed
+         glass-ui 7.0.0 publishes `--drawer-inset-block-end` (`:root { … 0px }`
+         + `.glass-drawer[data-glass-drawer-snap-points="true"]
+         [data-glass-drawer-direction="bottom"] { bottom: var(…); height:
+         calc(100% − var(…)) }`, `dist/components/drawer/styles.css`), and this
+         consumer sets it on `<DrawerContent>` below to the demo's stable dock
+         band, so the sheet's bottom edge sits ABOVE the menubar at every detent.
+         The BG-11 born-RED row's dischargedBy condition (the publish) is MET and
+         consumed here; the four cross-file comments that still call the gap
+         structural (layout.css:99 · TransportDock.vue · AnimationControlsGroup
+         .css · CubeScene.vue) are stale prose in files this unit does not own. -->
 
     <!-- The SHARED control-pane body — defined once, reused in both layouts. -->
     <DefinePaneBody>
@@ -121,9 +126,22 @@
              decision is the emitter's, taken whole in `AnimationControlsGroup`;
              the rationale, including why ADOPT is barred, lives at that site so
              the nine names have one home and not three). -->
+        <!-- D-B1 — the inset is a `:style` on the content element (drawer.js
+             merges `style` onto the portalled `.glass-drawer`), NEVER a scoped
+             selector: a Teleport child is not this component's subTree, so the
+             consumer's `data-v-*` cannot reach it (MISS-1). The STABLE band
+             (the monotonic peak of the measured menubar, layout.css) over the
+             live one: the sheet's bottom edge must never drop mid-session when
+             the menubar momentarily measures shorter; over-reservation only
+             ever keeps the subject MORE clear (the token's own contract); and
+             no cycle forms — the inset does not feed the menubar's measure.
+             SS-13 measures the tether at both detents. -->
         <DrawerContent
             :show-overlay="false"
             class="controls-drawer-content"
+            :style="{
+                '--drawer-inset-block-end': 'var(--dock-band-reserve-stable)',
+            }"
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
@@ -165,8 +183,8 @@ import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import { usePaneRegister } from "../ControlsPaneWrapper/usePaneRegister";
 import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
-// The published Drawer still lacks a bottom-inset lever; the live-behind
-// consumer keeps its measured detents until Glass exposes that component seam.
+// The Drawer's bottom-inset lever (`--drawer-inset-block-end`, glass-ui 7.0.0)
+// is consumed on `<DrawerContent>` in the template (D-B1).
 
 // The shared control-pane body: defined once (DefinePaneBody), reused in the
 // mobile Drawer AND the desktop rail (ReusePaneBody) — the ONE body, two homes.
@@ -310,18 +328,26 @@ if (isMobileLayout.value) {
     props.storedControls.isControlsPanelOpen = false;
 }
 
-// The detent ladder (fractions of the viewport height the sheet fills, bottom-
-// anchored — visible fraction = snap fraction). PEEK keeps the stage maximally
-// visible (sheet.top ≈ 0.88·vh); the EXPANDED cap APPROXIMATES the stage-reserve
-// (subject 0.48 → sheet.top ≈ 52dvh; editor/storyboard 0.62 → 26dvh strip). The
-// bottom-menubar overlap the ladder cannot cure is the BG-11 structural gap.
+// The detent ladder — fractions of the SHEET's height, which under the D-B1
+// inset `b` (the dock band as a viewport fraction) is `(1 − b)·vh`, bottom-
+// anchored above the menubar: a detent `t` shows `t·(1 − b)` of the viewport
+// and leaves `(1 − b)(1 − t)` of stage above the sheet. PEEK keeps the stage
+// maximally visible; the EXPANDED cap APPROXIMATES the stage-reserve.
 const PEEK_SNAP = 0.12;
-// The expanded caps APPROXIMATE the occlusion contract's stage-reserve: subject
-// 0.40 keeps ≈49dvh of unoccluded stage above the sheet (the bespoke 52dvh-strip
-// intent, minus the ~11dvh top-dock band — proof:mobile-single-page's 0.45
-// UNOCCLUDED floor); editor/storyboard 0.62 (floor-exempt; the content IS the
+// D-M12 recomputed with D-B1 (D-M3: the shipped value governs the prose, not
+// the reverse). The 0.45 UNOCCLUDED floor, net of the ~0.11 top-dock band,
+// requires (1 − b)(1 − t) − 0.11 ≥ 0.45, i.e. t ≤ (0.44 − b)/(1 − b): 0.44 at
+// b = 0 (so the former 0.40 was right before the inset), 0.39 at b = 0.08 (a
+// 64px band on 800px), 0.378 at b = 0.10. 0.36 holds the floor up to b ≈ 0.12
+// (at b = 0.10: 0.9·0.64 − 0.11 = 0.466). The fixed chrome inside the sheet
+// (44 handle + 24 `p-3` + 54 coarse ribbon row + 8 `pb-2` = 130px) exceeds the
+// PEEK detent's height at any phone viewport (0.12·667 = 80px; 72px under a
+// 67px inset) both before and after the inset — the peek is a grab handle, not
+// a control row; the producer accepts px-string snap points, so a chrome-
+// fitting peek rung is the follow-on, taken only with a measured detent → `t`
+// mapping. Editor/storyboard 0.62 (floor-exempt; the content IS the
 // protagonist) stays ≤ the 0.70 never-full-height ceiling.
-const EXPANDED_SUBJECT = 0.4;
+const EXPANDED_SUBJECT = 0.36;
 const EXPANDED_EDITOR = 0.62;
 const expandedSnap = computed(() =>
     stageMode.value === "subject" ? EXPANDED_SUBJECT : EXPANDED_EDITOR,
