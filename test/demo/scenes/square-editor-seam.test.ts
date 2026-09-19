@@ -118,8 +118,6 @@ describe("X.KF.W11.b (d) — the tether is drawn in a frame that exists (D-1/D-6
                 deflY,
                 settled: false,
                 tetherActive: true,
-                readoutX: "0.00",
-                readoutY: "0.00",
                 tumbleHintShown: false,
                 travel: TRAVEL,
             },
@@ -172,5 +170,69 @@ describe("X.KF.W11.b (d) — the tether is drawn in a frame that exists (D-1/D-6
         expect(Math.abs(dot)).toBeLessThan(1e-6);
         expect(Math.hypot(cx - mx, cy - my)).toBeGreaterThan(0);
         wrapper.unmount();
+    });
+});
+
+describe("X.KF.W11.b — the instrument reports what is actually painting (C-3/L-D3 + L-4/C-12)", () => {
+    beforeAll(async () => {
+        await warmKfEngine();
+    });
+
+    it("pumps the derived reads from the ENGINE's paint, not only the spring loop", () => {
+        const ticks: { x: number; y: number; settled: boolean }[] = [];
+        const el = document.createElement("div");
+        const [demo, app] = withSetup(() =>
+            useSquareDemo(ref(el), undefined, (snapshot) => {
+                ticks.push({ ...snapshot });
+            }),
+        );
+        try {
+            demo.anim.setTargets(el);
+            demo.anim.parse();
+            ticks.length = 0;
+
+            // The ENGINE's own call shape: the compiled frame's renderer, handed
+            // the authored nested vars. Before the cure `onTick` had exactly two
+            // call sites, both inside the spring loop, so this painted the box
+            // and told the instrument nothing — the strip froze at "settled"
+            // with stale numerals through the whole ±90 px tour.
+            const paint = demo.anim.frames[0]!.transform!;
+            paint({ transform: { x: "90px", y: "-90px" } }, 0);
+
+            expect(ticks).toHaveLength(1);
+            expect(ticks[0]!.x).toBeCloseTo(90 / demo.travel, 6);
+            expect(ticks[0]!.y).toBeCloseTo(-90 / demo.travel, 6);
+            expect(ticks[0]!.settled).toBe(false);
+        } finally {
+            app.unmount();
+        }
+    });
+
+    it("hands a borrowed element back clean on dispose (MISS-10)", () => {
+        const el = document.createElement("div");
+        const [demo, app] = withSetup(() => useSquareDemo(ref(el)));
+        try {
+            demo.anim.setTargets(el);
+            demo.anim.parse();
+            demo.anim.frames[0]!.transform!(
+                {
+                    transform: { x: "90px", y: "0px" },
+                    backgroundColor: "#52e898",
+                    tilt: { x: 1, y: 0 },
+                    squash: { x: 1.02, y: 0.98 },
+                },
+                0,
+            );
+            expect(el.style.transform).not.toBe("");
+            expect(el.style.getPropertyValue("--subject-fill")).toBe("#52e898");
+
+            demo.dispose();
+            expect(el.style.transform).toBe("");
+            expect(el.style.getPropertyValue("--subject-fill")).toBe("");
+            expect(el.style.getPropertyValue("--spring-tilt")).toBe("");
+            expect(el.hasAttribute("data-palette-sweep")).toBe(false);
+        } finally {
+            app.unmount();
+        }
     });
 });

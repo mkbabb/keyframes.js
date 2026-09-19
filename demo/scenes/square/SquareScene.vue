@@ -20,8 +20,6 @@
             :defl-y="deflY"
             :settled="settled"
             :tether-active="tetherActive"
-            :readout-x="springReadout.x"
-            :readout-y="springReadout.y"
             :tumble-hint-shown="tumbleHintShown"
             :travel="travel"
         />

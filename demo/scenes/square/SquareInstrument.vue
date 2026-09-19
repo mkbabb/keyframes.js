@@ -19,7 +19,9 @@
     </svg>
 
     <div class="square-telemetry" aria-hidden="true">
-        <span class="text-display square-telemetry-title leading-none">Transform</span>
+        <span class="text-display square-telemetry-title leading-none">{{
+            SQUARE_ANIM_NAME
+        }}</span>
         <div class="square-telemetry-axes">
             <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
             <span class="readout-accent text-mono-small tabular-nums">{{ readoutX }}</span>
@@ -58,6 +60,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { SQUARE_ANIM_NAME } from "./squareKeys";
 
 const props = defineProps<{
     /** The live normalized deflection (-1..1) per axis. */
@@ -74,12 +77,25 @@ const props = defineProps<{
      * passed it to nothing.
      */
     travel: number;
-    /** The formatted x/y readouts (the aria-coupled telemetry numerals). */
-    readoutX: string;
-    readoutY: string;
     /** Whether the progressive tumble hint has been disclosed. */
     tumbleHintShown: boolean;
 }>();
+
+/**
+ * L-D5 — ONE QUANTITY UNDER ONE LABEL. The numerals arrived as two formatted
+ * strings carrying the spring's TARGET while the tether beside them drew the
+ * spring's VALUE — commanded and actual, side by side, under bare `x`/`y`, with
+ * nothing saying which was which. They are derived from the SAME live deflection
+ * the tether uses now, so the strip and the line can no longer disagree; the
+ * per-axis `aria-valuenow`/`aria-valuetext` on the scene's slider children stay
+ * the COMMANDED target, which is what a slider's value means.
+ *
+ * C-3/L-D3 + L-4/C-12 — and the feed itself is no longer spring-only: the
+ * renderer pumps these reads whichever writer is painting, so the strip tells
+ * the truth through the engine tour as well as through a drag.
+ */
+const readoutX = computed(() => props.deflX.toFixed(2));
+const readoutY = computed(() => props.deflY.toFixed(2));
 
 // ── D-1 + D-6 + D-16 + N-SQ-4 — THE TETHER IS DRAWN IN A FRAME THAT EXISTS ──
 //

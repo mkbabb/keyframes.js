@@ -154,12 +154,28 @@ export function useSquareDemo(
      * Every positional leaf routes through `num()` so the raw-number (drag) and
      * the authored-string (Play keyframes) writers BOTH resolve.
      */
+    // L-4/C-12 + C-3/L-D3 — WHICHEVER WRITER IS PAINTING FEEDS THE INSTRUMENT.
+    // `onTick` had exactly two call sites, both inside the SPRING loop, and the
+    // engine tour never pumped it — so through the scene's own headline verb the
+    // badge read "settled", the tether froze and the numerals held stale drag
+    // values while the box toured ±90 px, 360° and a colour sweep. The strip had
+    // no `mode` prop either, so it could not even suppress what it knew was
+    // stale. The cure the record ranks first is "pump the derived reads from the
+    // paint authority, whichever it is": the renderer IS the one paint
+    // authority, so it feeds the instrument directly when the caller is the
+    // engine. `paintingFromLoop` keeps the spring loop's own richer snapshot
+    // (it knows about settling) from being fired twice per frame.
+    let paintingFromLoop = false;
+
     const transformFunc = (vars: SquareVars) => {
         const el = box.value;
         if (!el) return;
         const { transform, backgroundColor, tilt, squash } = vars;
         const tx = num(transform?.x);
         const ty = num(transform?.y);
+        if (!paintingFromLoop) {
+            onTick?.({ x: tx / TRAVEL, y: ty / TRAVEL, settled: false });
+        }
         // The nested `a.b.c.d` scale is percent-authored in the keyframes
         // (`d:"108%"` → 1.08) and raw in the spring loop (`1 + defl*0.12`).
         const scale = transform?.a?.b?.c?.d != null ? num(transform.a.b.c.d, true) : 1;
@@ -274,6 +290,7 @@ export function useSquareDemo(
               );
         // Stretch along the dominant velocity axis, pinch the cross-axis.
         const xDominant = Math.abs(springX.velocity) >= Math.abs(springY.velocity);
+        paintingFromLoop = true;
         transformFunc({
             transform: {
                 x: springX.value * TRAVEL,
@@ -293,6 +310,7 @@ export function useSquareDemo(
             // written this frame rather than a throw inside the rAF (D-27).
             ...(spinning ? sweepColor() : {}),
         });
+        paintingFromLoop = false;
         // L.W11 S4 — mark the box with `data-palette-sweep` while the egg's
         // colour sweep is live, so the off-the-normal-path effect is observable
         // (the design-refinement browser probe reads `palette|sweep` on the box)
@@ -317,10 +335,17 @@ export function useSquareDemo(
         // L.W11 S4 — feed the scene's instrument layer the live spring snapshot
         // (the tether + the settled/tracking badge are derived reads of THIS, no
         // second rAF). Fired every frame the loop runs, plus once more on settle.
+        // N-SQ-1 — THE SNAPSHOT COUNTS THE SAME THREE SPRINGS ITS OWN LIVENESS
+        // TEST DOES. `live` above counts `springSpin`; this snapshot did not —
+        // at the same call site, under a comment calling the tether and badge
+        // "derived reads of THIS". So through the entire advertised 360° tumble
+        // the loop RAN, `onTick` fired every frame with `settled: true`, the
+        // badge read "settled" and the tether stayed hidden. A live feed,
+        // narrowed at the snapshot.
         onTick?.({
             x: springX.value,
             y: springY.value,
-            settled: springX.settled && springY.settled,
+            settled: !live,
         });
         // T.A13 — the moment the spring loop comes fully to rest, signal the host
         // so the FSM settles to `idle` (a drag/tumble finished chasing).
@@ -566,11 +591,13 @@ export function useSquareDemo(
      */
     const paintRest = (): void => {
         resolveTourPalette();
+        paintingFromLoop = true;
         transformFunc({
             transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },
             tilt: { x: 0, y: 0 },
             squash: { x: 1, y: 1 },
         });
+        paintingFromLoop = false;
         // Seat the instrument layer at rest (the tether hidden, the badge settled).
         onTick?.({ x: springX.value, y: springY.value, settled: true });
     };
