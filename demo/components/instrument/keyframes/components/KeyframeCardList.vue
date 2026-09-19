@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, watch } from "vue";
+import { computed, nextTick, onBeforeUpdate, ref, shallowRef, watch } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 // KC-1 — `selectorText` is the CANONICAL serializer for a `KeyframeSelector`:
@@ -161,17 +161,48 @@ watch(
     },
 );
 
-// The KeyframeCard child instances — a declared child-ref contract. Each card
-// exposes its root `$el` (for the remove animation) and its `preEl` (the <pre>
-// code block, for scoped highlighting) via defineExpose.
-const cardInstances = ref<any[]>([]);
-const setCardRef = (i: number, el: any) => {
+/**
+ * KC-28 — THE CHILD-REF CONTRACT, AS THE CHILD ACTUALLY DECLARES IT.
+ *
+ * This comment used to promise `$el` "via defineExpose" and the card exposed
+ * `{ preEl }` alone; `$el` came from Vue's instance surface regardless, so the
+ * remove animation ran on an accident with no single-root guarantee behind it.
+ * The card declares all three handles now — `rootEl` (the remove animation),
+ * `preEl` (the scoped highlight collection) and `removeEl` (KC-10's focus
+ * hand-off) — and this list reads exactly those, never `$el`, never a
+ * `querySelector`.
+ */
+interface CardExposed {
+    rootEl?: HTMLElement | null;
+    preEl?: HTMLElement | null;
+    removeEl?: HTMLElement | null;
+}
+
+// KC-18 — `shallowRef`, not `ref`: these are component public instances, and
+// deep reactivity over them is safe only by accident of the child carrying a
+// `defineExpose` (its markRaw'd expose proxy). Nothing here reads a card's
+// internals, so nothing needs them tracked.
+const cardInstances = shallowRef<(CardExposed | null)[]>([]);
+
+// KC-15 / KC-36 — REBUILT each patch, never patched in place. Index assignment
+// alone never truncates, so after any removal the array kept its historical
+// maximum length: deleting the last row then took the `frameIx + 1` arm against
+// a stale tail and handed `setTargets(null)` a corpse, half-playing the exit
+// choreography for the rest of the session. Truncating inside `setCardRef` is
+// unsound (Vue's patch order is not monotonic — a sync-from-end seats high
+// indices first), which is why the rebuild is armed BEFORE the patch and the
+// per-card closures merely refill it.
+onBeforeUpdate(() => {
+    cardInstances.value = [];
+});
+
+const setCardRef = (i: number, el: CardExposed | null) => {
     cardInstances.value[i] = el;
 };
 
-// Each card's root `$el`, derived for the remove animation + highlight scope.
+/** Each card's root element — the remove animation's targets. */
 const cardRefs = computed(() =>
-    cardInstances.value.map((c) => c?.$el ?? c),
+    cardInstances.value.map((c) => c?.rootEl ?? null),
 );
 
 /** The list's own <pre> code blocks — collected from the cards' exposed `preEl`

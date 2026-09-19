@@ -11,6 +11,7 @@
          the offset per control: an AT user hears "Keyframe at 50%, group" then
          "Offset, edit text". -->
     <div
+        ref="rootEl"
         class="grid"
         role="group"
         :aria-label="`Keyframe at ${frameStart}`"
@@ -241,6 +242,19 @@ const emit = defineEmits<{
     (e: "keydown", event: KeyboardEvent): void;
 }>();
 
+/**
+ * KC-28 — THE CARD'S ROOT IS DECLARED, not inherited.
+ *
+ * The list's contract comment promised `$el` "via defineExpose" and the card
+ * exposed `{ preEl }` alone: `$el` arrived from Vue's instance surface whatever
+ * the card did, and that accidental half was the one feeding the remove
+ * animation. Nothing anywhere guaranteed a single root — a fragment root turns
+ * `$el` into a comment-node anchor, which the null-tolerant engine then
+ * animates by doing nothing at all, silently. The root is a real ref now, so
+ * the guarantee is in this file rather than in a sentence about it.
+ */
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+
 // The card's own contenteditable <pre> — surfaced for the parent's scoped
 // highlight collection (a declared child-ref contract, no querySelector).
 const preEl = useTemplateRef<HTMLElement>("preEl");
@@ -276,5 +290,5 @@ const removeEl = computed<HTMLElement | null>(() => {
     return el instanceof HTMLElement ? el : (el.$el ?? null);
 });
 
-defineExpose({ preEl, removeEl });
+defineExpose({ rootEl, preEl, removeEl });
 </script>
