@@ -93,7 +93,7 @@
                                         storedAnimationOptions.animationOptions
                                             .direction ?? 'normal'
                                     "
-                                    :is-open="isOpen('direction')"
+                                    :open="isOpen('direction')"
                                     :items="directions"
                                     :descriptions="DIRECTION_DESCRIPTIONS"
                                     label="direction"
@@ -117,7 +117,7 @@
                                         storedAnimationOptions.animationOptions
                                             .fillMode ?? 'forwards'
                                     "
-                                    :is-open="isOpen('fillMode')"
+                                    :open="isOpen('fillMode')"
                                     :items="fillModes"
                                     :descriptions="FILL_MODE_DESCRIPTIONS"
                                     label="fill mode"
@@ -473,11 +473,21 @@
                                  LayerConfigPanel does NOT re-author the rule (one DRY
                                  source, design-idioms.css §LABEL-subgrid). -->
                             <div v-if="layerConfig" class="labeled-field-grid">
+                                <!-- KF-CO-1 / LP-2 / LP-16 — the blend select's
+                                     open state rides the producer's DECLARED
+                                     `open` prop + `update:open` emit (the same
+                                     pair the two selects above bind), through
+                                     the panel's own `open` model. The former
+                                     `isOpen`/`setOpen` callback pair is retired:
+                                     a function prop is what let the dead
+                                     `is-open` spelling ship silently (a prop
+                                     name cannot be checked against a child
+                                     that never declares it). -->
                                 <LayerConfigPanel
                                     :layer-config="layerConfig"
                                     :blend-available="blendAvailable"
-                                    :is-open="isOpen"
-                                    :set-open="setOpen"
+                                    :open="isOpen('blend')"
+                                    @update:open="(v) => setOpen('blend', v)"
                                     @update="
                                         (v) => emit('layerConfigUpdate', v)
                                     "

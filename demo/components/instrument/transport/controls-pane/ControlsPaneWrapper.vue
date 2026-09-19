@@ -47,20 +47,26 @@
                     :key="host.animation.id"
                 >
                     <div v-show="storedControls.selectedAnimation == host.name">
+                        <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
+                             `host.blendAvailable` are re-read from the engine
+                             at this edge on every layer write (see
+                             `controlHosts` + `onLayerConfigUpdate`), so the
+                             panel below renders the engine's post-write truth
+                             rather than a snapshot taken at mount. -->
                         <ChannelControls
                             :ref="(el: any) => { if (el) animControlRefs[host.name] = el }"
                             @slider-update="(v) => emit('sliderUpdate', v)"
                             @keyframes-update="(v) => emit('keyframesUpdate', v)"
                             @toggle-play="emit('togglePlay')"
                             @layer-config-update="
-                                (v) => emit('layerConfigUpdate', host.name, v)
+                                (v) => onLayerConfigUpdate(host.name, v)
                             "
                             @scrub-start="emit('scrubStart')"
                             @scrub-end="emit('scrubEnd')"
                             :animation="host.animation"
                             :is-playing="isPlaying"
                             :layer-config="host.layer"
-                            :blend-available="blendAvailable"
+                            :blend-available="host.blendAvailable"
                             :active="storedControls.selectedAnimation == host.name"
                         >
                             <template #tabs-content>
@@ -153,7 +159,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import { Drawer, DrawerContent, DrawerTitle } from "@mkbabb/glass-ui/drawer";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, useTemplateRef } from "vue";
+import { computed, shallowRef, useTemplateRef } from "vue";
 import type { TransportChannel } from "../transportSource";
 import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
@@ -191,8 +197,59 @@ interface ControlHost {
     name: string;
     animation: KeyframesAnimation<any>;
     layer: AnimationLayerConfig | undefined;
+    blendAvailable: boolean;
 }
+
+// ── LP-1 (X.KF.W12.b) — THE WRITE→RENDER EDGE ────────────────────────────────
+// The group is `shallowRef(markRaw(…))`-held and every layer object hangs off
+// that never-proxied graph, so no engine write is observable to Vue: the
+// engine's `setLayerConfig` is `Object.assign(entry.layer, config)` +
+// `invalidateEntries()`, which flips a private dirty flag and publishes no
+// event, and `singleTarget` is a plain getter re-derived on the engine's own
+// schedule. Every controlled widget in the layer panel was therefore frozen at
+// the value it read at mount — including for the user's OWN write.
+//
+// The edge is this component's `controlHosts` projection: it depends on
+// `layerRevision`, which the one demo write path bumps AFTER the engine has
+// written (`onLayerConfigUpdate` — the parent's handler runs synchronously
+// inside `emit`, and it is the engine's `setLayerConfig`), and it re-reads the
+// whole prop surface from the engine at that moment — a fresh `layer` snapshot
+// (a new object identity, so the panel's props change and every widget renders
+// the engine's post-write truth, engine normalisation included) AND
+// `blendAvailable` from the group's live `singleTarget` (the LP-1 rider: both
+// operands of the weight gate were untracked reads). The parent's
+// `blendAvailable` prop stays a re-derivation trigger (a parent re-render with
+// a changed reading re-runs this projection); the VALUE is always the group's.
+//
+// What this edge does NOT cover, stated so nobody reads it as more: a layer
+// write that never crosses this component (a scene calling the group directly,
+// or a `transitionLayer` spring advancing `weight` per frame) is invisible until
+// the next write through here. A live subscription needs an engine-side seam
+// (`invalidateEntries` is dirty-flag-only) — that ask is KF.W5's, declared at
+// the wave record, never a demo-side poke into the engine's objects.
+const layerRevision = shallowRef(0);
+
+const onLayerConfigUpdate = (
+    name: string,
+    config: Partial<AnimationLayerConfig>,
+) => {
+    // The parent's handler is the engine write (AnimationControlsGroup →
+    // useAnimationGroupActions.updateLayerConfig → group.setLayerConfig); it
+    // has completed when `emit` returns.
+    emit("layerConfigUpdate", name, config);
+    layerRevision.value += 1;
+};
+
 const controlHosts = computed<ControlHost[]>(() => {
+    // Tracked inputs: the revision (every write through this edge) and the
+    // parent's reading (a re-derivation trigger); the values are the group's.
+    void layerRevision.value;
+    void props.blendAvailable;
+    const blendAvailable = props.animationGroup.singleTarget;
+    const snapshot = (
+        layer: AnimationLayerConfig | undefined,
+    ): AnimationLayerConfig | undefined => (layer ? { ...layer } : undefined);
+
     if (props.channels && props.channels.length > 0) {
         return props.channels.flatMap((c) =>
             c.animation
@@ -200,7 +257,10 @@ const controlHosts = computed<ControlHost[]>(() => {
                       {
                           name: c.name,
                           animation: c.animation,
-                          layer: props.animationGroup.animations[c.name]?.layer,
+                          layer: snapshot(
+                              props.animationGroup.animations[c.name]?.layer,
+                          ),
+                          blendAvailable,
                       },
                   ]
                 : [],
@@ -210,7 +270,8 @@ const controlHosts = computed<ControlHost[]>(() => {
         ([name, groupObject]) => ({
             name,
             animation: groupObject.animation,
-            layer: groupObject.layer,
+            layer: snapshot(groupObject.layer),
+            blendAvailable,
         }),
     );
 });

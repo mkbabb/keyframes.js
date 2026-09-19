@@ -5,16 +5,21 @@
          label-LEFT / value-RIGHT intra-row [auto_1fr] shape (one DRY source for the
          panel-row split; this component does NOT re-author it). -->
     <template v-if="layerConfig">
+        <!-- KF-CO-1 / LP-2 — `open` is the producer's DECLARED prop
+             (`LabeledSelectProps.open?: boolean`, emit `update:open`). The
+             former `is-open` spelling reached nothing, and the absent Boolean
+             prop cast to `false` was forwarded unconditionally into reka's
+             SelectRoot, pinning this select controlled-shut. -->
         <LabeledSelect
             v-if="blendAvailable"
             :model-value="layerConfig.op"
-            :is-open="isOpen('blend')"
+            :open="open"
             :items="COMPOSITE_OPERATORS"
             :descriptions="COMPOSITE_OPERATOR_DESCRIPTIONS"
             label="blend"
             tooltip="How this layer blends with others"
             @update:model-value="(v) => emit('update', { op: v as AnimationLayerConfig['op'] })"
-            @update:open="(v) => setOpen('blend', v)"
+            @update:open="(v) => emit('update:open', v)"
         />
         <LabeledField
             v-else
@@ -84,11 +89,17 @@
             />
         </template>
 
+        <!-- KF-CO-8 ≡ LP-3 — the switch rides the producer's DECLARED model
+             (`LabeledSwitchProps.modelValue: boolean`, emit `update:modelValue`).
+             `checked`/`update:checked` were unknown to the installed component:
+             the absent Boolean `modelValue` cast to `false` rendered the switch
+             permanently OFF while the engine default is `enabled: true`, and
+             the click listened for an event that was never fired. -->
         <LabeledSwitch
             label="enabled"
             tooltip="Enable/disable this layer"
-            :checked="layerConfig.enabled"
-            @update:checked="(v: boolean) => emit('update', { enabled: v })"
+            :model-value="layerConfig.enabled"
+            @update:model-value="(v: boolean) => emit('update', { enabled: v })"
         />
 
         <Separator class="my-1" />
@@ -113,12 +124,16 @@ const COMPOSITE_OPERATORS = ["replace", "add", "accumulate"] as const;
 defineProps<{
     layerConfig: AnimationLayerConfig;
     blendAvailable: boolean;
-    isOpen: (name: string) => boolean;
-    setOpen: (name: string, open: boolean) => void;
+    /** The blend select's open state — the host's one-open-at-a-time mutex
+     *  drives it through `open` / `update:open` (LP-16: a declared model,
+     *  not a stringly-typed callback pair). Required, never absent: an absent
+     *  Boolean prop casts to `false` and would pin the select shut. */
+    open: boolean;
 }>();
 
 const emit = defineEmits<{
     (e: "update", val: Partial<AnimationLayerConfig>): void;
+    (e: "update:open", open: boolean): void;
 }>();
 
 </script>
