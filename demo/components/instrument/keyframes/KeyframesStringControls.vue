@@ -11,12 +11,6 @@
                 :border="true"
                 @update:model-value="onEditorChange"
             />
-
-            <!-- Hidden brush element for animation target -->
-            <Paintbrush
-                ref="brushEl"
-                class="hidden"
-            />
         </div>
     </div>
 </template>
@@ -38,10 +32,6 @@ import { onMounted, ref, useTemplateRef } from "vue";
 import { useTimeoutFn } from "@vueuse/core";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
-
-import {
-    Paintbrush,
-} from "@lucide/vue";
 
 import { toast } from "vue-sonner";
 import { copyText } from "@utils/clipboard";
@@ -157,11 +147,19 @@ const onEditorChange = async (value: string) => {
     }
 };
 
+// D-5 / L-M-4 / C-4 (X.KF.W12.e) — NO `templateRef`, AND NO DECOY.
+//
+// This pane's Apply affordance is the ribbon's button, not a glyph of its own.
+// The seat's contract used to make `templateRef` mandatory, so the file rendered
+// a `class="hidden"` `<Paintbrush>` purely to satisfy it — and then ran a 700 ms
+// infinite wiggle on that invisible element, forever, in a pane the controls
+// wrapper force-mounts and never unmounts. The contract is optional now
+// (`useKeyframeBrushApply`), so the decoy, its icon import, the engine read and
+// the preset parse all go with it; the apply identity is unchanged.
 const { applyCSSStyles, clearApplied, cssApplied } = useKeyframeBrushApply({
     animation,
     styleId: keyframesStyleId,
     getCSSString: () => cssKeyframesString.value,
-    templateRef: "brushEl",
 });
 
 const parseErrorShake = presets.shake();
