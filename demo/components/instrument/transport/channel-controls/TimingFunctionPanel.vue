@@ -59,15 +59,12 @@
 </template>
 
 <script setup lang="ts">
-import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { TimingFunctionNames } from "@mkbabb/keyframes.js";
 import type { JumpPosition } from "@mkbabb/value.js/easing";
 import type { StoredAnimationOptions } from "@state";
 
 import { bezierPresets } from "@mkbabb/value.js/easing";
-import { cubicBezierToString } from "@mkbabb/value.js/math";
 import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
-import { cubicBezierEasing } from "@utils/reference-data/timingCurveUtils";
 
 import { Button } from "@mkbabb/glass-ui";
 import {
@@ -80,7 +77,6 @@ import { computed } from "vue";
 import { ArrowLeft } from "@lucide/vue";
 
 const props = defineProps<{
-    animation: KeyframesAnimation<any>;
     storedAnimationOptions: StoredAnimationOptions;
     /** The name the editor was opened from (`null` when opened on a curve
      *  that was already cubic-bezier / steps) — rendered as the disclosure. */
@@ -157,23 +153,17 @@ const onPickerChange = (v: EasingPickerValue | undefined) => {
         emit("updateTimingFunction", "steps");
         return;
     }
-    const pts = v.points as [number, number, number, number];
-    props.storedAnimationOptions.cubicBezierOptions.controlPoints = pts;
-    // The bezier-drag builds a FRESH `cubicBezierEasing(...)` closure (not the
-    // registry singleton), so attach its faithful `cubic-bezier(...)` CSS twin
-    // — else the Keyframes-string readout serialize throws (EE-02).
-    const timingFunction = {
-        fn: cubicBezierEasing(...pts),
-        css: cubicBezierToString(...pts),
-    };
-    props.animation.options.timingFunction = timingFunction;
-    props.animation.frames.forEach((frame) => {
-        frame.timingFunction = timingFunction;
-    });
-    // The parent's `updateTimingFunctionFromName` re-derives + PERSISTS the
-    // complete `cubic-bezier(...)` literal from the live control points
-    // (I.W2.S3 — the ONE persist seam), so a re-mount round-trips with no
-    // AnimationOptionError.
+    // KF-CO-40 ≡ KF-TFP-5 (N-10) — the child owns the STORE, the parent owns the
+    // ENGINE (the steps arm's shape, now both arms). The bezier arm used to
+    // write the engine's options + every frame here AND emit, and the parent
+    // then synchronously rebuilt and overwrote both from the quad written one
+    // line earlier — two easing constructions and two `frames[]` walks per
+    // pointermove, one discarded. The parent's `updateTimingFunctionFromName`
+    // builds the easing with its faithful CSS twin (EE-02) and PERSISTS the
+    // complete `cubic-bezier(...)` literal (I.W2.S3 — the ONE persist seam).
+    props.storedAnimationOptions.cubicBezierOptions.controlPoints = [
+        ...v.points,
+    ];
     emit("updateTimingFunction", "cubic-bezier");
 };
 </script>

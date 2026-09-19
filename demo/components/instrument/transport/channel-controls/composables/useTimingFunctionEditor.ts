@@ -66,7 +66,8 @@ export function useTimingFunctionEditor(
     /** The name of the easing we auto-converted FROM (for subtitle display) */
     const convertedFromName = ref<string | null>(null);
 
-    /** Whether the detail panel (cubic-bezier / steps) is open */
+    /** Whether the ADVANCED sub-pane (layer settings) is open — not the
+     *  detail editor, whose gate is `showDetailPanel` below (N-9). */
     const advancedOpen = ref(false);
 
     /** User dismissed the detail panel without changing the timing function */
@@ -104,6 +105,24 @@ export function useTimingFunctionEditor(
             (isDetailEasing.value || departure.value) &&
             !detailPanelDismissed.value,
     );
+
+    /**
+     * KF-CO-10 (the selection half) — the catalogue key the easing dropdown
+     * shows SELECTED for the stored literal. The two singular step keywords are
+     * their own catalogue entries and stay selected AS THEMSELVES (the former
+     * binding collapsed them to their kind, so picking `step-start` visibly
+     * jumped the highlight onto `steps`); a parametric literal selects its
+     * draft kind (`cubic-bezier(…)` → `cubic-bezier`, `steps(…)` → `steps`);
+     * every other name selects itself. A value the grammar cannot classify (a
+     * poisoned bucket) selects NOTHING — the producer renders its placeholder
+     * for a key that matches no item — rather than a guessed entry.
+     */
+    const selectedCurveKey = computed<string>(() => {
+        const stored = storedAnimationOptions.animationOptions.timingFunction;
+        if (typeof stored !== "string") return "";
+        if (isStepKeyword(stored)) return stored;
+        return timingFunctionKind(stored) ?? stored;
+    });
 
     /** Reactive SVG path for the current timing function */
     const activeCurvePath = computed(() => {
@@ -353,6 +372,7 @@ export function useTimingFunctionEditor(
         advancedOpen,
         isDetailEasing,
         showDetailPanel,
+        selectedCurveKey,
         activeCurvePath,
 
         // Actions

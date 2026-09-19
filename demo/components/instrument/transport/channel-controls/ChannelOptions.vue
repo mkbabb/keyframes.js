@@ -78,12 +78,17 @@
                                     <template #error>{{ invalidMessage }}</template>
                                 </LabeledInput>
 
+                                <!-- N-4 (KF-CO-40) — ONE stored spelling of
+                                     forever: the store holds `"infinite"`; the
+                                     field DISPLAYS it as `∞`, and a typed `∞`
+                                     (which the engine accepts) is persisted as
+                                     `"infinite"`. The former `=== Infinity` arm
+                                     compared a persisted string against a
+                                     number and was unreachable. -->
                                 <LabeledInput
                                     :model-value="
                                         storedAnimationOptions.animationOptions
-                                            .iterationCount === 'infinite' ||
-                                        storedAnimationOptions.animationOptions
-                                            .iterationCount === Infinity
+                                            .iterationCount === 'infinite'
                                             ? '∞'
                                             : String(
                                                   storedAnimationOptions
@@ -105,7 +110,10 @@
                                                     animation.setIterationCount(n),
                                                 (n) => {
                                                     storedAnimationOptions.animationOptions.iterationCount =
-                                                        n;
+                                                        n === '∞' ||
+                                                        n === 'Infinity'
+                                                            ? 'infinite'
+                                                            : n;
                                                 },
                                             )
                                     "
@@ -309,13 +317,7 @@
                                      EasingPicker (detail panel) + the T.E6
                                      gallery sparklines. -->
                                 <Select
-                                    :model-value="
-                                        timingFunctionKind(
-                                            storedAnimationOptions
-                                                .animationOptions
-                                                .timingFunction,
-                                        )
-                                    "
+                                    :model-value="selectedCurveKey"
                                     @update:model-value="
                                         (key) =>
                                             updateTimingFunctionFromName(
@@ -473,7 +475,6 @@
                                  so nothing is lost across a close. -->
                             <TimingFunctionPanel
                                 v-if="showDetailPanel"
-                                :animation="animation"
                                 :stored-animation-options="
                                     storedAnimationOptions
                                 "
@@ -613,7 +614,6 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import {
     DIRECTION_DESCRIPTIONS,
     FILL_MODE_DESCRIPTIONS,
-    timingFunctionKind,
 } from "@utils/reference-data/animationDescriptions";
 
 const props = defineProps<{
@@ -632,6 +632,7 @@ const {
     convertedFromName,
     isDetailEasing,
     showDetailPanel,
+    selectedCurveKey,
     onEditIconClick,
     exitDetailPanel,
     updateTimingFunctionFromName,
