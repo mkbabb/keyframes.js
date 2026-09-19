@@ -10,7 +10,14 @@
     --seq-glow: 0;
 }
 
-/* L.W11 S7 — register --ball-p so the bloom INTERPOLATES between engine frames. */
+/* `--ball-p` is REGISTERED so it is a typed `<number>` operand with an initial
+   value in the traveller's `calc()` transform and box-shadow — never an
+   invalid-at-computed-value token before the engine's first write. Registration
+   makes a property animatable; it does NOT interpolate the engine's discrete
+   per-frame writes (nothing transitions it — kf-SequenceTarget D-17). Note the
+   at-rule is DOCUMENT-GLOBAL even inside this scoped block (Vue's scoped
+   transform rewrites selectors, not at-rules — D-18); the name stays because the
+   engine writes it and the promoted `.progress-ball` idiom reads it. */
 @property --ball-p {
     syntax: "<number>";
     inherits: true;
@@ -32,13 +39,15 @@
    rung). */
 .seq-storyboard {
     --z-seq-handle: 2;
-    --scrub-dir: 1; /* L.W11 S7 — cascade direction (+1 fwd); the scrubber flips it. */
+    /* `--scrub-dir` (the cascade direction, +1 forward) is written INLINE on the
+       stage on every render by the target — a stylesheet default here could
+       never be observed (N-7), so none is declared. */
 }
 
 /* L.W11 S7 — IGNITION-CASCADE heat: scrubbing lifts the shared --seq-glow. */
 .seq-stage.is-scrubbing {
     --seq-glow: 1;
-    border-color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--border));
+    border-color: color-mix(in srgb, var(--ball-tone) 30%, var(--border));
 }
 
 /* The contained timeline FRAME — a bounded, master-tinted rounded plate whose
@@ -185,8 +194,8 @@
     height: 1.5rem;
     transform: translate(-50%, -50%);
     border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 70%, var(--background));
-    border: 1.5px solid var(--ball-tone, var(--color-progress));
+    background: color-mix(in srgb, var(--ball-tone) 70%, var(--background));
+    border: 1.5px solid var(--ball-tone);
     pointer-events: none;
     transition:
         background 120ms ease,
@@ -194,7 +203,7 @@
 }
 .seq-handle:hover::after,
 .seq-handle:focus-visible::after {
-    background: var(--ball-tone, var(--color-progress));
+    background: var(--ball-tone);
     transform: translate(-50%, -50%) scaleY(1.12);
 }
 /* S.G3 S3 — the canonical keyboard focus ring on the row slider (painted in the
@@ -249,15 +258,14 @@
     box-shadow: 0 0
         calc(2px + var(--ball-p, 0) * 16px + var(--seq-glow, 0) * 6px)
         calc(var(--ball-p, 0) * 4px)
-        color-mix(in srgb, var(--ball-tone, var(--color-progress)) calc(30% + var(--ball-p, 0) * 50%), transparent);
+        color-mix(in srgb, var(--ball-tone) calc(30% + var(--ball-p, 0) * 50%), transparent);
 }
 
-/* L.W11 S7 — the IGNITION-CASCADE host marker (proof:design-refinement domMarker,
-   owned here so it resolves under proof:styling-idioms). `.cascade-chase` seats the
-   per-lane glow seam (--seq-glow, lifted by the scrubber as the thumb sweeps); the
-   detonation is engine-driven (--ball-p, no rAF — inv ζ). */
+/* L.W11 S7 — the IGNITION-CASCADE host marker. `.cascade-chase` seats the
+   per-lane glow seam (--seq-glow, declared ONCE on `.seq-target` above and lifted
+   by the scrubber as the thumb sweeps — the former re-declaration here was dead,
+   N-15); the detonation is engine-driven (--ball-p, no rAF — inv ζ). */
 .cascade-chase {
-    --seq-glow: 0;
     will-change: transform;
 }
 

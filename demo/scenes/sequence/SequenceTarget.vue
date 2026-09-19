@@ -85,7 +85,7 @@
                 <div
                     class="seq-stage cascade-chase"
                     :class="{ 'is-scrubbing': demo.isScrubbing.value, 'is-powering-on': demo.isPoweringOn.value }"
-                    :style="{ '--stagger-max': demo.STAGGER_MAX, '--scrub-dir': demo.scrubDir.value }"
+                    :style="{ '--scrub-dir': demo.scrubDir.value }"
                 >
                     <!-- The master-clock axis ruler — a colocated sub-unit. It names
                          the CANONICAL clock: labels are `q × duration` ms and the
@@ -199,13 +199,16 @@ const AXIS_QUARTERS = [0, 0.25, 0.5, 0.75, 1] as const;
 // (the sequence icon's ascending bars), all from the owned --rainbow-* family.
 // The fourth is the token-derived cyan→green midpoint (the glyph ships four stops
 // over five rows — the bridge stop is mixed, never a new literal).
+// ONE cardinality (L-9): the tuple's length is checked against ROW_COUNT at
+// compile time, so a sixth row (or a fifth tone) reds `vue-tsc` instead of
+// silently degrading a row to the master tone through an `undefined` read.
 const ROW_TONES = [
     "var(--rainbow-violet)",
     "var(--rainbow-blue)",
     "var(--rainbow-cyan)",
     "color-mix(in oklab, var(--rainbow-cyan) 45%, var(--rainbow-green))",
     "var(--rainbow-green)",
-] as const;
+] as const satisfies { readonly length: typeof ROW_COUNT };
 
 // Per-row track elements — the drag-capture host + the rect the row handle's
 // `project` reads. NOT the engine target (J.WZ): see ballEls below.

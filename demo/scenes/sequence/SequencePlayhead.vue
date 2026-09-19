@@ -8,17 +8,29 @@
          the demo's material highlight (design-idioms.css). Pure CSS over the
          engine's `progress` — no per-frame JS. -->
     <div class="seq-playhead-track" aria-hidden="true">
-        <div class="seq-playhead" :style="{ '--playhead-p': clamp(progress, 0, 1) }"></div>
+        <div class="seq-playhead" :style="{ '--playhead-p': progress }"></div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { clamp } from "@mkbabb/value.js/math";
-
+/** `progress` — the normalized master-clock position, `time / duration`,
+ *  already clamped at its one source (`useSequenceDemo`'s mirror); re-clamping
+ *  here passed the one breaking input (NaN) and guarded nothing (L-9/C-6). */
 defineProps<{ progress: number }>();
 </script>
 
 <style scoped>
+/* `--playhead-p` is REGISTERED (kf-SequencePlayhead D-11, the K-12 form): a
+   typed `<number>` with an initial value, so the transform below never sees an
+   invalid-at-computed-value token and needs no `var(--x, 0)` fallback — the
+   fallback was unreachable (the prop is written inline on every render) and the
+   registration is what makes the guard real. Registration makes the property
+   ANIMATABLE; nothing transitions it here — the engine's mirror writes it. */
+@property --playhead-p {
+    syntax: "<number>";
+    inherits: false;
+    initial-value: 0;
+}
 /* PLACED ON THE STAGE'S GRID, not transcribed from its padding: an absolutely
    positioned grid child takes its containing block from its grid area
    (css-grid-1 §9), so `grid-column: 2` puts this track's left edge on the SAME
@@ -45,6 +57,11 @@ defineProps<{ progress: number }>();
     container-type: inline-size;
 }
 .seq-playhead {
+    /* ONE tone alias (N-9 / D-14): `--ball-tone` is declared unconditionally on
+       `.seq-target`, so every read below is bare — a fallback on it was dead six
+       times over. The one externally-owned bare read in this file, glass-ui's
+       `--radius-pill`, is the one that carries a fallback. */
+    --tone: var(--ball-tone);
     position: absolute;
     top: 0;
     bottom: 0;
@@ -53,11 +70,14 @@ defineProps<{ progress: number }>();
        centred on its position — one compositor-only transform, no layout. */
     left: 0;
     width: 2px;
-    transform: translateX(calc(var(--playhead-p, 0) * 100cqw - 50%));
-    background: var(--ball-tone, var(--color-progress));
-    border-radius: var(--radius-pill);
+    transform: translateX(calc(var(--playhead-p) * 100cqw - 50%));
+    background: var(--tone);
+    border-radius: var(--radius-pill, 9999px);
     box-shadow: 0 0 calc(2px + var(--seq-glow, 0) * 8px)
-        color-mix(in srgb, var(--ball-tone, var(--color-progress)) calc(35% + var(--seq-glow, 0) * 45%), transparent);
+        color-mix(in srgb, var(--tone) calc(35% + var(--seq-glow, 0) * 45%), transparent);
+    /* The scrub-heat step (0 → 1 on `--seq-glow`) eases instead of snapping
+       (D-12's transition pair, with the comet's opacity below). */
+    transition: box-shadow 160ms ease;
     will-change: transform;
 }
 /* The machined diamond head — a 45°-rotated cap with a lighter bevel (AE cap).
@@ -73,9 +93,9 @@ defineProps<{ progress: number }>();
     width: 8px;
     height: 8px;
     transform: translateX(-50%) rotate(45deg);
-    background: var(--ball-tone, var(--color-progress));
-    border-top: 1px solid color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--specular));
-    border-left: 1px solid color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--specular));
+    background: var(--tone);
+    border-top: 1px solid color-mix(in srgb, var(--tone) 30%, var(--specular));
+    border-left: 1px solid color-mix(in srgb, var(--tone) 30%, var(--specular));
     border-radius: 1px;
 }
 /* The comet trail — anchored at the line, 32px behind the travel direction;
@@ -92,10 +112,12 @@ defineProps<{ progress: number }>();
     transform: scaleX(var(--scrub-dir, 1));
     background: linear-gradient(
         to left,
-        color-mix(in srgb, var(--ball-tone, var(--color-progress)) calc(28% + var(--seq-glow, 0) * 32%), transparent),
+        color-mix(in srgb, var(--tone) calc(28% + var(--seq-glow, 0) * 32%), transparent),
         transparent
     );
     opacity: calc(0.5 + var(--seq-glow, 0) * 0.5);
-    pointer-events: none;
+    transition: opacity 160ms ease;
+    /* No `pointer-events` here: it is INHERITED from the track's own `none`
+       (N-6 — the former re-declaration was dead). */
 }
 </style>
