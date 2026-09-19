@@ -9,6 +9,7 @@ import {
     MATRIX_AXES,
     transformSliderOptions,
     createMatrix,
+    matrix3dCss,
     getAxisFromIx,
     getTransformFromIx,
     getSliderOptionsFromIx,
@@ -26,8 +27,11 @@ export function useTransformState(
 ) {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood
     // inversion) — synchronous, since the warm resolves before any scene mounts.
-    // `transformTargetsStyle` paints a Vars snapshot onto DOM targets (the same
-    // painter the run loop drives).
+    // `transformTargetsStyle` paints a Vars snapshot onto DOM targets. It is the
+    // same painter the run loop drives — but the run loop feeds it SERIALIZED
+    // leaves, and this call site feeds it a snapshot it authors itself. #53: a
+    // structural `Matrix3dCall` handed here is silently skipped (the painter's
+    // object guard), so this site serializes with `matrix3dCss` before painting.
     const { transformTargetsStyle } = kfEngine();
 
     const matrix3dStart = ref(createMatrix());
@@ -119,7 +123,7 @@ export function useTransformState(
             syncTransformations(reset);
 
             if (targetRef.value) {
-                transformTargetsStyle({ transform: matrix3dEnd.value }, [
+                transformTargetsStyle({ transform: matrix3dCss(matrix3dEnd.value) }, [
                     targetRef.value,
                 ]);
             }
@@ -205,9 +209,10 @@ export function useTransformState(
                 updateTransformations();
 
                 if (targetRef.value) {
-                    transformTargetsStyle({ transform: matrix3dEnd.value }, [
-                        targetRef.value,
-                    ]);
+                    transformTargetsStyle(
+                        { transform: matrix3dCss(matrix3dEnd.value) },
+                        [targetRef.value],
+                    );
                 }
             });
         },

@@ -153,6 +153,25 @@ export const withMatrixCell = (
     return createMatrix(values);
 };
 
+/**
+ * kf-CubeTarget #53 — the SERIALIZED form of an authored matrix, for the one
+ * consumer that paints a snapshot rather than compiling a keyframe: the demo's
+ * direct `transformTargetsStyle({ transform }, targets)` call.
+ *
+ * `transformTargetsStyle` writes `style.setProperty(property, String(value))`
+ * and SKIPS any value that is an object (`compile/value/compile.ts` — the
+ * `typeof value === "object"` continue). A `Matrix3dCall` IS an object, so
+ * handing it whole means the write is dropped on every target, every call — the
+ * die's only pre-start orientation writer never painting anything. The compile
+ * path (`fromVars`) is unaffected: it flattens the AST to serialized leaves
+ * itself, which is why `useCubeDemo` keeps handing it the structural call.
+ *
+ * The args are already validated by `matrixValues` (finite, unitless, arity 16),
+ * so serializing here is a formatting act, not a trust boundary.
+ */
+export const matrix3dCss = (matrix: Matrix3dCall): string =>
+    `matrix3d(${matrixValues(matrix).join(", ")})`;
+
 export const cssVariable = (name: string): CssCall => ({
     kind: "call",
     name: "var",
