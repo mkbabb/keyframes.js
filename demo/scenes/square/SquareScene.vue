@@ -23,6 +23,7 @@
             :readout-x="springReadout.x"
             :readout-y="springReadout.y"
             :tumble-hint-shown="tumbleHintShown"
+            :travel="travel"
         />
 
         <!-- J.W7a S2 (D7 / SQ-12, TYP §4) — "drag me" is the scene's typography

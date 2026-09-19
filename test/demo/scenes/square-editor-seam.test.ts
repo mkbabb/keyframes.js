@@ -17,12 +17,14 @@
  *       `viewBox` + `preserveAspectRatio="none"` cure is geometrically unsound:
  *       a non-conformal map turns the perpendicular bow off-normal).
  */
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { ref } from "vue";
+import { mount } from "@vue/test-utils";
 import { withSetup } from "../../support/withSetup";
 import { useSquareDemo } from "../../../demo/scenes/square/useSquareDemo";
 import { useKeyframeOps } from "../../../demo/components/instrument/keyframes/composables/useKeyframeOps";
 import type { KeyframesState } from "../../../demo/components/instrument/keyframes/composables/useKeyframesState";
+import SquareInstrument from "../../../demo/scenes/square/SquareInstrument.vue";
 import { warmKfEngine } from "../../../demo/kf-engine";
 
 /** The two members of `KeyframesState` the ops thread actually reads. */
@@ -103,5 +105,72 @@ describe("X.KF.W11.b (a) — the editor seam keeps the square's own renderer (L-
         } finally {
             app.unmount();
         }
+    });
+});
+
+describe("X.KF.W11.b (d) — the tether is drawn in a frame that exists (D-1/D-6/N-SQ-4)", () => {
+    const TRAVEL = 110;
+
+    const tether = (deflX: number, deflY: number) => {
+        const wrapper = mount(SquareInstrument, {
+            props: {
+                deflX,
+                deflY,
+                settled: false,
+                tetherActive: true,
+                readoutX: "0.00",
+                readoutY: "0.00",
+                tumbleHintShown: false,
+                travel: TRAVEL,
+            },
+        });
+        const svg = wrapper.get("svg.square-tether");
+        const d = wrapper.get("path.square-tether-line").attributes("d")!;
+        // `M hx hy Q cx cy bx by` — six numbers, in that order.
+        const nums = d.match(/-?\d+(?:\.\d+)?/g)!.map(Number);
+        return { wrapper, svg, d, nums };
+    };
+
+    // N-SQ-4 orders the cure and rules OUT `viewBox` + `preserveAspectRatio`:
+    // the pair is a non-conformal map, so the perpendicular bow stops being
+    // perpendicular on any non-square stage.
+    it("carries neither a viewBox nor a preserveAspectRatio", () => {
+        const { svg, wrapper } = tether(0, 0);
+        expect(svg.attributes("viewBox")).toBeUndefined();
+        expect(svg.attributes("preserveAspectRatio")).toBeUndefined();
+        // The element IS the travel envelope, so one user unit is one CSS px.
+        expect(svg.attributes("style")).toContain(`--tether-travel: ${TRAVEL}`);
+        wrapper.unmount();
+    });
+
+    it("anchors home at the envelope centre and reaches exactly ±travel px", () => {
+        // Full right deflection: home (110,110) → box end (220,110).
+        const right = tether(1, 0);
+        expect(right.nums[0]).toBe(TRAVEL);
+        expect(right.nums[1]).toBe(TRAVEL);
+        expect(right.nums[4]).toBeCloseTo(TRAVEL + TRAVEL, 2);
+        expect(right.nums[5]).toBeCloseTo(TRAVEL, 2);
+        right.wrapper.unmount();
+
+        // Full up-left: (110,110) → (0,0). D-6's old 38-user-unit reach could
+        // not express this at ANY stage size — the coincidence was unsatisfiable.
+        const upLeft = tether(-1, -1);
+        expect(upLeft.nums[4]).toBeCloseTo(0, 2);
+        expect(upLeft.nums[5]).toBeCloseTo(0, 2);
+        upLeft.wrapper.unmount();
+    });
+
+    it("bows perpendicular to the pull, which a conformal map preserves", () => {
+        const { nums, wrapper } = tether(1, 0);
+        const [hx, hy, cx, cy, bx, by] = nums as [
+            number, number, number, number, number, number,
+        ];
+        // control-point offset from the chord midpoint ⟂ the chord
+        const mx = (hx + bx) / 2;
+        const my = (hy + by) / 2;
+        const dot = (cx - mx) * (bx - hx) + (cy - my) * (by - hy);
+        expect(Math.abs(dot)).toBeLessThan(1e-6);
+        expect(Math.hypot(cx - mx, cy - my)).toBeGreaterThan(0);
+        wrapper.unmount();
     });
 });
