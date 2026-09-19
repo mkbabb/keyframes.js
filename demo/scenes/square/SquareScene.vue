@@ -21,6 +21,7 @@
             :settled="settled"
             :tether-active="tetherActive"
             :tumble-hint-shown="tumbleHintShown"
+            :tour-hint-shown="tourHintShown"
             :travel="travel"
         />
 
@@ -38,19 +39,42 @@
              per axis, each carrying a COMPLETE WCAG 4.1.2 contract
              (`aria-valuemin="-1"`, `aria-valuemax="1"`, live `:aria-valuenow`
              tracking `springX.target`/`springY.target`). The box stays the
-             keyboard target (arrow nudges move both axis sliders); the
-             `.focus-ring` idiom (P.W6 S1(b)) gives keyboard focus a visible ring. -->
+             keyboard target (arrow nudges move both axis sliders).
+
+             §B.1 row 5 — the ring idiom is `kf-focus-ring`, not the bare
+             `focus-ring`. glass-ui 7.0.0 ships a REALIZED `.focus-ring:focus-visible`
+             inside `@layer components` that also binds `border-radius:
+             var(--radius-pill)`; the demo's unlayered same-named rule won the
+             box-shadow and silently inherited the producer's pill radius onto
+             rectangular hosts. KF.W6 renamed the demo's rule (`a6418729`) and
+             carried its own forced-colors restoration with it; this was one of
+             the two hosts still wearing the bare class.
+
+             D-4/D-7 — THE ACCESSIBLE NAME IS NO LONGER POINTER-ONLY. The label
+             instructed a drag while every keyboard affordance (Arrow×4, Shift+Arrow,
+             PageUp/Down, Home, End, `c`) was undeclared, and all three on-screen
+             instruction surfaces are `aria-hidden` — so there was no channel at
+             all. `aria-keyshortcuts` publishes the bindings and
+             `aria-describedby` points at an sr-only twin of the visual hints. -->
         <div
             ref="box"
-            class="demo-box palette-sweep-host text-display focus-ring"
+            class="demo-box palette-sweep-host text-display kf-focus-ring"
             :class="{ 'demo-box--dragging': dragging }"
             :data-square-mode="mode"
             role="group"
             aria-label="Drag the box across two axes — a spring chases each axis"
+            aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight PageUp PageDown Home End C"
+            :aria-describedby="keyboardHelpId"
             tabindex="0"
             @pointerdown="onPointerDown"
             @keydown="onKeydown"
         >
+            <span :id="keyboardHelpId" class="sr-only-slider">
+                Arrow keys nudge the box a quarter of its travel; hold Shift for a
+                fine nudge; Page Up and Page Down move a half-step vertically;
+                Home re-centres it; End sends it to the far corner; press C to
+                trace the travel envelope; double-tap to tumble.
+            </span>
             <span
                 class="sr-only-slider"
                 role="slider"
@@ -77,8 +101,19 @@
 </template>
 
 <script setup lang="ts">
-import { markRaw, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
+import {
+    markRaw,
+    onBeforeUnmount,
+    onMounted,
+    onScopeDispose,
+    reactive,
+    ref,
+    useId,
+    useTemplateRef,
+    watch,
+} from "vue";
 import { Card } from "@mkbabb/glass-ui";
+import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { kfEngine } from "@kf-engine";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
@@ -127,6 +162,10 @@ const mode = ref<SquareMode>("idle");
 
 const box = useTemplateRef<HTMLElement>("box");
 
+/** D-4/D-7 — the id the box's `aria-describedby` points at (the sr-only twin of
+ *  the three `aria-hidden` instruction surfaces). */
+const keyboardHelpId = useId();
+
 // L.W11 S4 — the instrument-layer reactive state (the rubber-band tether + the
 // settled/tracking telemetry badge). These are DERIVED READS of the live spring
 // snapshot the composable feeds via `onTick` — never a second writer, never a
@@ -137,9 +176,19 @@ const tetherActive = ref(false);
 // The live normalized deflection (-1..1 per axis), mirrored at the loop cadence.
 const deflX = ref(0);
 const deflY = ref(0);
-// Progressive disclosure: the tumble hint appears only after the first drag-settle.
+// C-6 + D-5 — TWO EGGS, TWO DISCLOSURES. One `tumbleHintShown` flag gated two
+// unrelated affordances (the POINTER tumble and the KEYBOARD envelope tour), so
+// its name was false for one of them and neither could disclose on its own
+// modality's first settle. Each hint now has its own flag, armed by the modality
+// that can actually perform it.
 const tumbleHintShown = ref(false);
-let hasDragged = false;
+const tourHintShown = ref(false);
+/** A real interaction has happened on some modality (pointer past the move
+ *  threshold, or any keyboard target) — the disclosure's arming condition. */
+let hasInteracted = false;
+/** Which modality armed it, so each hint discloses to the audience that can use
+ *  it: the double-tap tumble to a pointer, the `c` envelope tour to a keyboard. */
+let interactedByKeyboard = false;
 
 const {
     anim,
@@ -168,9 +217,11 @@ const {
             deflY.value = y;
             settled.value = isSettled;
             tetherActive.value = dragging.value || !isSettled;
-            // Reveal the egg hint after the first successful drag-settle.
-            if (isSettled && hasDragged && !tumbleHintShown.value) {
-                tumbleHintShown.value = true;
+            // Reveal each egg's hint after the first settle of an interaction
+            // that reached the threshold — to the modality that can use it.
+            if (isSettled && hasInteracted) {
+                if (interactedByKeyboard) tourHintShown.value = true;
+                else tumbleHintShown.value = true;
             }
         },
     );
@@ -293,13 +344,43 @@ onBeforeUnmount(() => {
 let homeX = 0;
 let homeY = 0;
 
+// MISS-1 — A GRAB IS NOT A TELEPORT (the GradientStopEditor C11/G5 class; the
+// shape read, never copied, off the landed `grabDx` precedent at
+// `TimelineTrack.vue`, keyframes.js `7225cdd1`).
+//
+// `useDragScrub.onPointerDown` calls `onScrub(project(e))` unconditionally, and
+// `project` mapped the ABSOLUTE pointer position into target space off the box's
+// REST centre — so a press anywhere but the exact centre re-targeted the springs
+// to bring the centre TO the press point: up to 96 px for an edge press and
+// 136 px on the diagonal (12 rem box, 110 px travel), and `releasePolicy:
+// "persist"` made a bare click's displacement permanent. The ":218 follows the
+// pointer ~1:1" comment was true of the delta only for a dead-centre grab.
+//
+// The offset from the box centre to the press point is captured once per gesture
+// and subtracted from every sample, so the box keeps the grip it was taken by.
+// The press-to-position idiom the seam defaults to is right for a RAIL and wrong
+// for a subject.
+let grabDx = 0;
+let grabDy = 0;
+
+// D-5 + L-17 — the disclosure arms on a real interaction from ANY modality.
+// `hasDragged` had exactly one write, inside the pointerdown hook: a bare TAP
+// (no movement at all) tripped it, against the comment's "once the first drag
+// settles", while the keyboard paths never tripped it at all — so a
+// keyboard-only user could never mount the hints that name their only verbs.
+// The pointer arm now needs the house movement threshold (`useDoubleTap`'s
+// 12 px, one file over and previously unused here); the keyboard arm is the
+// keyboard's own `onTarget`.
+const MOVE_TOLERANCE = 12;
+let grabClientX = 0;
+let grabClientY = 0;
+
 // Capture the box's home center once per gesture (the seam's `onStart` hook) so
 // the offset is stable across the drag (re-grabbing mid-flight subtracts the live
 // deflection to recover it).
-const captureFrame = () => {
-    // L.W11 S4 — a drag has begun: arm the progressive tumble-hint disclosure
-    // (the hint appears once the first drag settles) and mark the tether active.
-    hasDragged = true;
+const captureFrame = (e: PointerEvent) => {
+    // L.W11 S4 — a gesture has begun: mark the tether active. The tumble-hint
+    // disclosure is NOT armed here any more (D-5/L-17: a bare tap is not a drag).
     tetherActive.value = true;
     // T.A13 — the {playback → drag} FSM edge, through the one takeover function
     // above (the machine pauses; the springs seat from the painted pose), so the
@@ -307,13 +388,20 @@ const captureFrame = () => {
     // jump-free takeover (the library's own adopt idea at demo scale).
     takeOverFromPlayback();
     mode.value = "drag";
+    grabClientX = e.clientX;
+    grabClientY = e.clientY;
     const el = box.value;
     if (!el) return;
     const br = el.getBoundingClientRect();
+    const centerX = br.left + br.width / 2;
+    const centerY = br.top + br.height / 2;
+    // MISS-1 — where on the box the press landed, relative to its centre.
+    grabDx = e.clientX - centerX;
+    grabDy = e.clientY - centerY;
     // The box's CURRENT center minus the live spring deflection = its home
     // center (so re-grabbing mid-flight doesn't snap the home point).
-    homeX = br.left + br.width / 2 - springX.value * travel;
-    homeY = br.top + br.height / 2 - springY.value * travel;
+    homeX = centerX - springX.value * travel;
+    homeY = centerY - springY.value * travel;
 };
 
 // The shared drag-scrub seam (I8). Square is 2-axis, so `T = {nx,ny}`; `project`
@@ -324,10 +412,21 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     el: box,
     releasePolicy: "persist",
     onStart: captureFrame,
-    project: (e) => ({
-        nx: (e.clientX - homeX) / travel,
-        ny: (e.clientY - homeY) / travel,
-    }),
+    project: (e) => {
+        if (
+            !hasInteracted &&
+            Math.hypot(e.clientX - grabClientX, e.clientY - grabClientY) >
+                MOVE_TOLERANCE
+        ) {
+            hasInteracted = true;
+        }
+        // MISS-1 — the grab offset is subtracted, so the point under the finger
+        // stays under the finger instead of the box's centre jumping to it.
+        return {
+            nx: (e.clientX - grabDx - homeX) / travel,
+            ny: (e.clientY - grabDy - homeY) / travel,
+        };
+    },
     onScrub: ({ nx, ny }) => {
         reseat(nx, ny);
         syncReadouts();
@@ -361,7 +460,7 @@ useDoubleTap({
 // sub-unit. Both re-seat the SAME springs the drag uses (no second authority,
 // no new rAF) and report each new target through `onTarget`, which mirrors it
 // into the live spring readout + the per-axis aria-valuenow.
-const { onKeydown } = useSquareKeyboard({
+const { onKeydown, tourEnvelope } = useSquareKeyboard({
     springX,
     springY,
     reseat,
@@ -374,9 +473,38 @@ const { onKeydown } = useSquareKeyboard({
         mode.value = "drag";
     },
     onTarget: () => {
+        // D-5 — a keyboard target IS a real interaction; the disclosure used to
+        // be reachable only through a pointerdown.
+        hasInteracted = true;
+        interactedByKeyboard = true;
         syncReadouts();
     },
 });
+
+// D-4 — THE ENVELOPE-TOUR EGG JOINS THE ONE KEYBOARD REGISTRY. `c` was a raw
+// branch inside the box's own `@keydown` with an unconditional `preventDefault`
+// and no modifier guard, so it HIJACKED ⌘C/Ctrl+C on a focused box (D-6/L-6) and
+// was invisible to the shortcuts modal — the one surface a keyboard user looks
+// at. A registry combo matches only with NO modifiers held, so the copy
+// collision is structurally impossible now, and the binding is discoverable.
+// The registration is scoped to a focused box, so it is not a second authority
+// over the app's keyboard: the element-level `c` branch is gone.
+//
+// The arrow/Home/End/Page nudges stay ELEMENT-scoped and are NOT registered:
+// they are a focused widget's own slider keys (APG), and the transport already
+// owns ArrowLeft/ArrowRight/Home/End globally for scrubbing — registering them
+// here would be exactly the two-authority collision this registry exists to
+// prevent. They reach assistive tech through `aria-keyshortcuts` instead.
+const disposeTourShortcut = registerShortcut(
+    "C",
+    () => {
+        const el = box.value;
+        if (!el || !el.contains(document.activeElement)) return;
+        tourEnvelope();
+    },
+    { label: "Trace the travel envelope", group: "Square", preventDefault: true },
+);
+onScopeDispose(disposeTourShortcut);
 
 defineExpose({
     // T.B1 STAGE 1 — the additive SceneFacility: square's REAL nested-keyframes

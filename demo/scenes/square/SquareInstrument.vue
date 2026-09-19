@@ -44,15 +44,21 @@
             >spring-chased &middot; drag the box, or press Play to tour it</span
         >
         <span class="text-mono-caption text-muted-foreground tabular-nums">x &middot; y &isin; [-1, 1]</span>
+        <!-- D-12/D-17 — "double-CLICK" named a mouse-only verb for a recogniser
+             (`useDoubleTap`) that exists BECAUSE dblclick was touch-unreachable.
+             C-6 — and each hint now has its own flag: one `tumbleHintShown`
+             gated both eggs, so its name was false for the keyboard one and
+             neither could disclose on its own modality's first settle. -->
         <span
             v-if="tumbleHintShown"
             class="text-caption text-muted-foreground square-legend-hint"
-        >double-click to tumble</span>
-        <!-- P.W6 — the envelope-tour egg's discoverability whisper (revealed on
-             the same first-settle disclosure as the tumble hint). Focus the box,
+        >double-tap to tumble</span>
+        <!-- P.W6 — the envelope-tour egg's discoverability whisper, disclosed on
+             the first KEYBOARD settle (D-5: it used to ride a pointer-only flag,
+             so the audience that can perform it never saw it). Focus the box,
              press C → the spring tours the [-1,1]² travel envelope. -->
         <span
-            v-if="tumbleHintShown"
+            v-if="tourHintShown"
             class="text-caption text-muted-foreground square-legend-hint"
         >press C to trace the field</span>
     </div>
@@ -77,8 +83,11 @@ const props = defineProps<{
      * passed it to nothing.
      */
     travel: number;
-    /** Whether the progressive tumble hint has been disclosed. */
+    /** C-6 — one flag per egg. `tumbleHintShown` gated BOTH the pointer tumble
+     *  and the keyboard envelope tour, so the prop name was false for one of
+     *  them and neither could disclose on its own modality's first settle. */
     tumbleHintShown: boolean;
+    tourHintShown: boolean;
 }>();
 
 /**
@@ -279,9 +288,12 @@ const tetherPath = computed(() => {
     pointer-events: none;
     z-index: var(--z-content);
 }
-.square-legend-hint {
-    opacity: 0.8;
-}
+/* D-3 ≡ kf-SquareScene D-11 — the hint opacity is GONE. `opacity: 0.8` on
+   `text-caption` (italic, 400, the 12 px floor) composited the light arm to
+   ≈3.47–3.98:1 against a 4.5 floor, and NO plate luminance restores AA — the
+   derivative runs the other way, so the failure is unconditional on plate tone.
+   The single declaration was the whole failure: the sibling caption in the same
+   colour at full opacity passes everywhere. */
 
 @media (prefers-reduced-motion: reduce) {
     .square-tether {

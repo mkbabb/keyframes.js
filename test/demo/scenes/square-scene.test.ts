@@ -30,14 +30,22 @@ function harness() {
     const reseat = vi.fn();
     const onTarget = vi.fn();
     const onTakeOver = vi.fn();
-    const { onKeydown } = useSquareKeyboard({
+    const { onKeydown, tourEnvelope } = useSquareKeyboard({
         springX,
         springY,
         reseat,
         onTakeOver,
         onTarget,
     });
-    return { springX, springY, reseat, onTarget, onTakeOver, onKeydown };
+    return {
+        springX,
+        springY,
+        reseat,
+        onTarget,
+        onTakeOver,
+        onKeydown,
+        tourEnvelope,
+    };
 }
 
 const key = (k: string) => new KeyboardEvent("keydown", { key: k });
@@ -70,9 +78,54 @@ describe("useSquareKeyboard — the arrow/Home nudge", () => {
         expect(h.onTarget).toHaveBeenCalledWith(0, 0);
     });
 
-    it("'c' launches the envelope tour at the top-right corner", () => {
+    // D-19 — End is the MAXIMUM (APG), not a second Home; Shift is the fine
+    // grain the fixed 0.25 ladder never had; the Page keys move a half step.
+    it("End sends both axes to the far corner", () => {
         const h = harness();
-        h.onKeydown(key("c"));
+        h.onKeydown(key("End"));
+        expect(h.reseat).toHaveBeenCalledWith(1, 1);
+        expect(h.onTarget).toHaveBeenCalledWith(1, 1);
+    });
+
+    it("Shift+Arrow is a fine nudge", () => {
+        const h = harness();
+        h.onKeydown(new KeyboardEvent("keydown", { key: "ArrowRight", shiftKey: true }));
+        expect(h.reseat).toHaveBeenCalledWith(0.05, 0);
+    });
+
+    it("PageDown/PageUp move a half step on the vertical axis", () => {
+        const h = harness();
+        // `reseat` is a spy, so the spring's own target never moves between the
+        // two presses — each is measured from rest, in its own direction.
+        h.onKeydown(key("PageDown"));
+        expect(h.reseat).toHaveBeenCalledWith(0, 0.5);
+        h.onKeydown(key("PageUp"));
+        expect(h.reseat).toHaveBeenLastCalledWith(0, -0.5);
+    });
+
+    // D-6/L-6 — a command is not a nudge. The branch matched on e.key alone and
+    // called preventDefault() unconditionally, so the focused box swallowed
+    // ⌘←/⌘↑ (and ⌘C, before the egg moved to the shortcut registry).
+    it.each([["metaKey"], ["ctrlKey"], ["altKey"]])(
+        "declines an arrow held with %s and does not preventDefault it",
+        (modifier) => {
+            const h = harness();
+            const e = new KeyboardEvent("keydown", {
+                key: "ArrowRight",
+                cancelable: true,
+                [modifier]: true,
+            });
+            h.onKeydown(e);
+            expect(h.reseat).not.toHaveBeenCalled();
+            expect(e.defaultPrevented).toBe(false);
+        },
+    );
+
+    it("the envelope tour opens at the top-right corner", () => {
+        const h = harness();
+        // D-4 — `c` is a registry binding now, scoped to a focused box; the
+        // tour verb itself is what this layer exports.
+        h.tourEnvelope();
         // The first leg re-seats synchronously to [1, -1] (top-right).
         expect(h.reseat).toHaveBeenCalledWith(1, -1);
         expect(h.onTarget).toHaveBeenCalledWith(1, -1);
@@ -88,7 +141,16 @@ describe("useSquareKeyboard — the arrow/Home nudge", () => {
     // C-4 — the two-writer guarantee belongs to the FSM edge, not to the pointer
     // handler. EVERY keyboard branch that re-seats a spring must first enter the
     // takeover (pause the engine tour), and it must do so BEFORE the re-seat.
-    it.each([["ArrowRight"], ["ArrowLeft"], ["ArrowUp"], ["ArrowDown"], ["Home"], ["End"], ["c"]])(
+    it.each([
+        ["ArrowRight"],
+        ["ArrowLeft"],
+        ["ArrowUp"],
+        ["ArrowDown"],
+        ["PageUp"],
+        ["PageDown"],
+        ["Home"],
+        ["End"],
+    ])(
         "%s takes the box over from playback before it re-seats a spring",
         (k) => {
             const h = harness();

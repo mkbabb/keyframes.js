@@ -16,9 +16,15 @@ import { clamp } from "@mkbabb/value.js/math";
  * space the instrument field draws. Each leg re-seats the same springs the drag
  * uses so you see the spring chase each corner with the real banking velocity —
  * the egg teaches the reachable envelope AND the spring's feel at once. Distinct
- * from the double-click tumble (which reveals the colour twin); the two never
- * collide (one is keyboard, one is dblclick). The legs are paced by the spring's
- * own settle, not a fixed timer: each corner waits for the chase to arrive.
+ * from the double-TAP tumble (which reveals the colour twin); the two never
+ * collide (one is keyboard, one is a pointer double-tap — D-17's fourth site:
+ * this line used to say "dblclick", the mouse-only verb the handler was
+ * deliberately migrated OFF when `useDoubleTap` replaced it).
+ *
+ * The `c` binding itself lives in the scene's ONE keyboard registry now (D-4),
+ * scoped to a focused box; `tourEnvelope` is exported for it. The legs are paced
+ * by the spring's own settle, not a fixed timer: each corner waits for the chase
+ * to arrive.
  */
 
 const ENVELOPE_LEGS: ReadonlyArray<[number, number]> = [
@@ -78,25 +84,47 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
         step();
     };
 
-    // Keyboard nudge (slider posture parity with Spring/MotionPath).
+    /**
+     * Keyboard nudge (slider posture parity with Spring/MotionPath).
+     *
+     * D-6/L-6 — BARE KEYS ONLY. The branches below used to match on `e.key`
+     * alone and call `preventDefault()` unconditionally, so the box swallowed
+     * ⌘←/⌘↑ (and, before the `c` egg moved to the shortcut registry, ⌘C/Ctrl+C
+     * outright). A command is not a nudge: any ctrl/meta/alt combination belongs
+     * to the app, and this layer declines it. Shift is the one modifier the
+     * widget itself claims — APG's fine-grain step.
+     *
+     * D-19 — THE LADDER IS APG'S NOW. `Home` and `End` both re-centred, so `End`
+     * had no meaning of its own (APG assigns it the maximum); the step was fixed
+     * at 0.25 with no fine grain, giving nine reachable positions per axis
+     * against a continuous pointer path; and PageUp/PageDown were unbound.
+     * `Home` keeps the scene's documented return-home verb (it IS the minimum's
+     * counterpart for a bipolar field), `End` reaches the far corner, Shift
+     * gives a 0.05 fine grain (41 positions), and the Page keys move a half
+     * step on the vertical axis.
+     */
+    const STEP = 0.25;
+    const FINE_STEP = 0.05;
+    const PAGE_STEP = 0.5;
+
     const onKeydown = (e: KeyboardEvent) => {
-        if (e.key === "c" || e.key === "C") {
-            e.preventDefault();
-            tourEnvelope();
-            return;
-        }
-        const step = 0.25;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+        const step = e.shiftKey ? FINE_STEP : STEP;
         let dx = 0;
         let dy = 0;
         if (e.key === "ArrowRight") dx = step;
         else if (e.key === "ArrowLeft") dx = -step;
         else if (e.key === "ArrowDown") dy = step;
         else if (e.key === "ArrowUp") dy = -step;
+        else if (e.key === "PageDown") dy = PAGE_STEP;
+        else if (e.key === "PageUp") dy = -PAGE_STEP;
         else if (e.key === "Home" || e.key === "End") {
             e.preventDefault();
             onTakeOver();
-            reseat(0, 0);
-            onTarget(0, 0);
+            const at = e.key === "Home" ? 0 : 1;
+            reseat(at, at);
+            onTarget(at, at);
             return;
         } else return;
         e.preventDefault();
@@ -111,5 +139,5 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
         if (tourTimer) clearTimeout(tourTimer);
     });
 
-    return { onKeydown };
+    return { onKeydown, tourEnvelope };
 }

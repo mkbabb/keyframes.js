@@ -119,6 +119,7 @@ describe("X.KF.W11.b (d) — the tether is drawn in a frame that exists (D-1/D-6
                 settled: false,
                 tetherActive: true,
                 tumbleHintShown: false,
+                tourHintShown: false,
                 travel: TRAVEL,
             },
         });
