@@ -127,6 +127,7 @@ import {
     Sparkles,
     Upload,
 } from "@lucide/vue";
+import { watch } from "vue";
 import { Button, Card, CardContent } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
@@ -140,11 +141,35 @@ import type { StoredAnimationGroupControlOptions } from "@state";
 // rung and a 6px gap where the sm recipe scales both with `--ui-scale`). The
 // active Apply state keeps its own three tokens below; nothing else is owed.
 
-defineProps<{
+const props = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     activeKeyframesRef: any;
     activeTimelineRef: any;
 }>();
+
+// RB-6 (X.KF.W12.e) — THE APPLY STATE AND ITS AFFORDANCE GET ONE LIFETIME.
+//
+// The Apply CSS toggle above is the ONLY control that can undo an applied
+// identity, and it is rendered by the `selectedControl === 'keyframes'` branch.
+// The pane that holds the state is force-mounted by the controls wrapper, so
+// switching tabs used to unmount the affordance and leave the residue behind:
+// the JS animation still forced paused, the injected sheet still in the head,
+// the class still on every target, and no visible undo anywhere in the app
+// until the user remembered which tab it had been on (banked L-BL-1 bounds the
+// visual consequence; it does not bound the incoherence).
+//
+// The branch's own condition is therefore the state's lifetime, watched here
+// rather than approximated anywhere else: when the affordance leaves, the
+// identity comes down with it, through the seat's idempotent `clearApplied`
+// (which restores the PRIOR pause state and no-ops when nothing is applied).
+// The handle is optional-chained like every other call on this ref — the
+// keyframes pane may not be mounted at all on a scene without one.
+watch(
+    () => props.storedControls.selectedControl === "keyframes",
+    (affordanceRendered) => {
+        if (!affordanceRendered) props.activeKeyframesRef?.clearAppliedCSS?.();
+    },
+);
 </script>
 
 <style scoped>

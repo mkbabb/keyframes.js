@@ -157,7 +157,7 @@ const onEditorChange = async (value: string) => {
     }
 };
 
-const { applyCSSStyles, cssApplied } = useKeyframeBrushApply({
+const { applyCSSStyles, clearApplied, cssApplied } = useKeyframeBrushApply({
     animation,
     styleId: keyframesStyleId,
     getCSSString: () => cssKeyframesString.value,
@@ -224,6 +224,12 @@ defineExpose({
     exportCompiledCSS,
     getCSSString: () => cssKeyframesString.value,
     applyCSSStyles,
+    // RB-6 (X.KF.W12.e) — the Apply toggle is the RIBBON's, behind
+    // `v-if="selectedControl === 'keyframes'"`, while this pane is force-mounted
+    // and never unmounts. The affordance's own branch takes the applied identity
+    // down when it leaves, through this handle, so the state cannot outlive the
+    // only control that can undo it.
+    clearAppliedCSS: clearApplied,
     cssApplied,
 });
 </script>

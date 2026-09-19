@@ -53,7 +53,7 @@ export function useKeyframeBrushApply(options: KeyframeBrushApplyOptions) {
 
     // KF-KE-12 ≡ N-5: `clear()` is wired into the identity's OWN lifetime
     // (`useApplyCSS`, refcount-aware), not destructured-and-dropped here.
-    const { isApplied, toggle } = useApplyCSS({
+    const { isApplied, toggle, clear } = useApplyCSS({
         getAnimation: () => options.animation,
         styleId: options.styleId,
         getCSSString: options.getCSSString,
@@ -66,11 +66,33 @@ export function useKeyframeBrushApply(options: KeyframeBrushApplyOptions) {
         else brushAnimation.pause();
     };
 
+    /**
+     * RB-6 (X.KF.W12.e) — THE STATE AND ITS AFFORDANCE GET ONE LIFETIME.
+     *
+     * The Apply toggle is not this pane's: it lives in `RibbonBar.vue`, behind
+     * `v-if="selectedControl === 'keyframes'"`. This pane is force-mounted by
+     * the controls wrapper and never unmounts, so `useApplyCSS`'s own
+     * `beforeUnmount` teardown (KF-KE-12) does not fire on a tab switch — and
+     * the applied residue (the forced pause, the injected sheet, the class on
+     * every target) outlived the only control that could undo it. The user's
+     * only way back was to remember which tab it had been on.
+     *
+     * The seat therefore publishes the teardown the affordance's own lifetime
+     * needs. It is `clear()`, not `toggle()`: an idempotent take-down that
+     * restores the PRIOR pause state (S-6-as-corrected — the `prevPaused`
+     * mechanism is the right one and is kept whole) and does nothing at all
+     * when nothing is applied.
+     */
+    const clearApplied = () => {
+        clear();
+        brushAnimation.pause();
+    };
+
     onMounted(() => {
         const glyph = brush.value;
         if (glyph !== null) brushAnimation.setTargets(glyph);
     });
     onUnmounted(() => brushAnimation.pause());
 
-    return { applyCSSStyles, cssApplied: isApplied };
+    return { applyCSSStyles, clearApplied, cssApplied: isApplied };
 }
