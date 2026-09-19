@@ -50,13 +50,47 @@
              a dead `sticky` and a contract-breaching rung both gone, so the
              field paints in flow like the control it is and the z-contract
              (`style.css` §"stacking order") has no per-card exception. -->
+        <!-- KF-KE-3 + KF-KE-26 + KF-KE-37 (X.KF.W12.c) — THE FIELD COMMITS
+             THROUGH THE KEYFRAME GRAMMAR, ON COMMIT, AND MARKS ITSELF.
+             · THE GRAMMAR: the value is validated by `requireKeyframeSelector`,
+               the ONE door the add path already uses (`useKeyframeOps`), so
+               `from`/`to`/`entry 50%` are accepted and `500%`/`-20%` are refused
+               here — the previous `parseCssScalar` admitted any percentage
+               scalar and rejected the two keywords, two grammars in one
+               component.
+             · THE COMMIT GATE: the producer's `Input` emits `update:modelValue`
+               per keystroke; the model was written on every one, so typing
+               `50%` failed twice before it succeeded and the successful
+               keystroke reprojected the list under the caret. The keystrokes
+               now edit a local DRAFT and the model is written once, on
+               `change` (blur or Enter) — the native commit event, which the
+               producer forwards to its `<input>` through `$attrs`.
+             · THE MARK: a refused draft is marked AT THE FIELD — the producer's
+               `invalid` prop (rendered as `aria-invalid`) plus a described-by
+               status line in the house `text-destructive` register — instead
+               of being exiled to a global toast that this demo cannot render.
+               Nothing is emitted for a refused draft, so the model is never
+               touched by it; a projection from the model (a new `frameStart`)
+               resets the draft and the mark. -->
         <Input
             class="text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight m-0"
             aria-label="Offset"
-            :model-value="frameStart"
-            @update:model-value="(val) => emit('updateStart', String(val))"
+            :model-value="draft"
+            :invalid="offsetError !== null"
+            :aria-describedby="offsetError === null ? undefined : errorId"
+            @update:model-value="(val) => (draft = String(val))"
+            @change="commitOffset"
         >
         </Input>
+        <p
+            v-if="offsetError !== null"
+            :id="errorId"
+            class="text-admin-label text-destructive"
+            role="status"
+            aria-live="polite"
+        >
+            {{ offsetError }}
+        </p>
 
         <div class="relative">
             <!-- KF-KE-5 (BLOCKER) + KF-KC-22 (X.KF.W12.c) — THE ACTION CLUSTER IS
@@ -229,8 +263,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useTemplateRef, watchEffect } from "vue";
+import { computed, ref, useTemplateRef, watch, watchEffect } from "vue";
 import { syncHostSource } from "../composables/useHighlightCSS";
+import { requireKeyframeSelector, selectorText } from "@utils/keyframeSelector";
 // KF-KC-37 (W6-I): subpaths, never the 24 KB root barrel. The `./label` subpath
 // leaves with its two orphan consumers (KC-26 above) — the card imports only
 // what it mounts.
@@ -274,6 +309,45 @@ const emit = defineEmits<{
     (e: "remove", event: Event): void;
     (e: "keydown", event: KeyboardEvent): void;
 }>();
+
+/**
+ * KF-KE-26 — the offset DRAFT. Keystrokes edit this; the model is written on
+ * commit alone (see `commitOffset`). A projection from the model (the parent
+ * re-rendering `frameStart` after a commit, a retime or a removal) is the
+ * authority and resets both the draft and any mark on it.
+ */
+const draft = ref(props.frameStart);
+const offsetError = ref<string | null>(null);
+const errorId = computed(() => `keyframe-offset-error-${props.index}`);
+
+watch(
+    () => props.frameStart,
+    (start) => {
+        draft.value = start;
+        offsetError.value = null;
+    },
+);
+
+/**
+ * KF-KE-3 — commit the draft through the keyframe-selector grammar. The text
+ * emitted upward is the selector's CANONICAL text (`selectorText`), so the
+ * parent replaces the frozen selector whole from a string the grammar already
+ * accepted; a draft equal to what is shown is not a commit.
+ */
+const commitOffset = () => {
+    const text = draft.value.trim();
+    if (text === props.frameStart) {
+        offsetError.value = null;
+        return;
+    }
+    try {
+        const selector = requireKeyframeSelector(text);
+        offsetError.value = null;
+        emit("updateStart", selectorText(selector));
+    } catch (e) {
+        offsetError.value = e instanceof Error ? e.message : String(e);
+    }
+};
 
 /**
  * KC-28 — THE CARD'S ROOT IS DECLARED, not inherited.

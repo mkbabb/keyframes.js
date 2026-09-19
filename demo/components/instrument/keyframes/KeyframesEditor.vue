@@ -278,8 +278,12 @@ import KeyframesAddDialog from "./components/KeyframesAddDialog.vue";
 import { Paintbrush, WandSparkles } from "@lucide/vue";
 import { useToolbarKeyboard } from "./composables/useToolbarKeyboard";
 
-import { parseCssScalar } from "@mkbabb/value.js/css";
-import { percentSelector, selectorPercent } from "@utils/keyframeSelector";
+import type { KeyframeSelector } from "@mkbabb/value.js/css";
+import {
+    percentSelector,
+    requireKeyframeSelector,
+    selectorPercent,
+} from "@utils/keyframeSelector";
 import { toast } from "vue-sonner";
 import { insertTabAtCursor } from "./utils/contenteditable";
 
@@ -379,35 +383,42 @@ const retimeFrames = (percents: number[] | undefined) => {
 
 const startDiagnosticId = (index: number) => `keyframe-start-${index}`;
 
+/**
+ * KF-KE-3 (+ KF-KE-46) — the start field's model seam asks the KEYFRAME grammar.
+ *
+ * The generic CSS-scalar parser this seam used to call accepted any scalar:
+ * `500%` and `-20%` were admitted, rendered, and failed ~1 s later out of a
+ * different op that named neither the field nor the stop, while `from`/`to` —
+ * which the add path accepts through `requireKeyframeSelector` — were refused.
+ * One component, two grammars. The
+ * one door the add path uses is the door here: the selector the grammar
+ * returns REPLACES the frozen one whole (the same whole-selector write the
+ * retiming rail makes), so the hand-rolled `{ kind: "percent", value / 100 }`
+ * beside the exported `percentSelector` is gone with it (KF-KE-46).
+ *
+ * The S-5/C-S5 posture stays at this seam — the typed issue surfaced
+ * verbatim, a stable per-index toast id, an explicit dismiss on success — even
+ * though the card now refuses a bad draft AT THE FIELD (KF-KE-37) and never
+ * emits it: this handler is the model's boundary and the list relays strings.
+ */
 const onUpdateStart = ({ val, index }: { val: string; index: number }) => {
     const frame = animation.templateFrames[index];
     if (frame === undefined) return;
 
-    const parsed = parseCssScalar(val);
-    if (!parsed.ok) {
-        const issue = parsed.diagnostics[0];
+    let selector: KeyframeSelector;
+    try {
+        selector = requireKeyframeSelector(val);
+    } catch (e) {
         toast.error("Invalid keyframe offset", {
             id: startDiagnosticId(index),
-            description: `${issue.code} at ${issue.start}-${issue.end}: expected ${issue.expected.join(" or ")}.`,
-        });
-        return;
-    }
-
-    const scalar = parsed.value.payload;
-    if (scalar.type !== "number" || scalar.unit !== "%") {
-        toast.error("Invalid keyframe offset", {
-            id: startDiagnosticId(index),
-            description: "Expected a percentage scalar such as 50%.",
+            description: e instanceof Error ? e.message : String(e),
         });
         return;
     }
 
     toast.dismiss(startDiagnosticId(index));
-    frame.start = {
-        kind: "percent",
-        value: scalar.value / 100,
-    };
-    updateAllStringsAndAnimation();
+    frame.start = selector;
+    void updateAllStringsAndAnimation();
 };
 
 const onUpdateCSS = ({ value, index }: { value: string; index: number }) => {
