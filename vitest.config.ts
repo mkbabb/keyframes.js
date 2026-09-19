@@ -65,6 +65,30 @@ export default defineConfig({
                     environment: "jsdom",
                 },
             },
+            // X.KF.W8 (G9 / R-5) — the two `bench/*.measure.test.ts` orphans are
+            // ADOPTED IN PLACE, beside the bench fixtures they measure, rather
+            // than moved into test/ away from them: `bench/` is outside `src/`,
+            // so both shapes are precept-conformant and in-place is the smaller
+            // act. They are `*.test.ts` files that NO declared project collected
+            // — the `library` project scopes to `test/**`, the `demo` project to
+            // `test/demo/**`, and `benchmark.include` is `bench/*.bench.ts`, a
+            // different runner entirely. The include is anchored on the
+            // `.measure.test.ts` suffix so it cannot swallow a `*.bench.ts`
+            // sibling (verified against the tracked bench listing before this
+            // shape was chosen, per README:127-130): the glob matches exactly
+            // d3-changed-keys.measure.test.ts and sync-step.measure.test.ts.
+            // `jsdom`, like both sibling projects: sync-step.measure.test.ts
+            // swaps `window.requestAnimationFrame` for a deterministic clock, so
+            // a `node` environment fails it at `window is not defined` — the
+            // environment the adopted files actually need, not the lightest one.
+            {
+                extends: true,
+                test: {
+                    name: "measure",
+                    include: ["bench/**/*.measure.test.ts"],
+                    environment: "jsdom",
+                },
+            },
         ],
     },
 });
