@@ -211,6 +211,13 @@ onBeforeUpdate(() => {
 });
 
 const setCardRef = (i: number, el: CardExposed | null) => {
+    // A card that is LEAVING fires its ref with `null`, and it fires it after
+    // the survivors have already re-seated — so writing that null would blank
+    // the slot a surviving card has just taken, which is how KC-10's focus
+    // hand-off lands on `<body>` instead of the neighbour. With the rebuild
+    // above there is nothing for a null to clear: the array starts every patch
+    // empty and only live cards refill it.
+    if (el === null) return;
     cardInstances.value[i] = el;
 };
 
