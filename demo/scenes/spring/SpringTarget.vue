@@ -116,6 +116,13 @@
                      `springLive.trackValues` (the engine's physics, painter-
                      positioned — inv ζ, no second rAF). Shown ONLY during the
                      race (`derbyActive`); the page rests as one calm red spring. -->
+                <!-- N-1 — THE EXIT IS A REAL EXIT NOW. The overlay used to leave
+                     on a bare `v-if` with no <Transition> anywhere, against three
+                     prose cells asserting a fade that did not exist: the lanes
+                     simply stopped being there, one frame, on the scene's
+                     headline delight. A named transition gives the leave the
+                     treatment the enter always had. -->
+                <Transition name="derby">
                 <div
                     v-if="demo.derbyActive.value"
                     class="derby-lanes"
@@ -144,6 +151,7 @@
                         </span>
                     </div>
                 </div>
+                </Transition>
             </div>
             <p class="text-small text-muted-foreground text-center">
                 Tap or drag the rail &mdash; the ball springs to the new target. Adjust
@@ -441,8 +449,11 @@ const onKeydown = (e: KeyboardEvent) => {
     /* N-3 — this transition finally has a WRITER: the settle pulse below moves
        this border's colour. It was dead CSS (no rule, state class or binding ever
        changed the marker's border colour) for as long as the pulse lived on the
-       fixed target line instead. */
-    transition: border-color var(--duration-fast) ease;
+       fixed target line instead. N-1 — `opacity` joins it here, on the BASE rule,
+       so the derby's recede and its return both animate. */
+    transition:
+        border-color var(--duration-fast) ease,
+        opacity var(--duration-fast) ease;
 }
 
 /* J.W7a S1 (D4 / SP-1) — the live ball IS the scene's protagonist and takes
@@ -508,12 +519,33 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 /* `.spring-rail--derby` — the rail's racing state (the four-lane overlay is
-   shown; the live rail recedes slightly so the lanes read as the foreground). */
+   shown; the live rail recedes slightly so the lanes read as the foreground).
+
+   N-1 — THE TRANSITION LIVES ON THE BASE RULES, NOT IN THE STATE CLASS. It used
+   to sit here, inside the modifier, which is the classic modifier-only asymmetry:
+   adding the class faded (0.2s), removing it SNAPPED, because after the change
+   there was no opacity transition left on the element to run. The file already
+   modelled the correct pattern twice elsewhere. Declared once on the base rules
+   below, both directions animate — and the derby's own exit, which is when a
+   human is actually looking, stops being a jump cut. */
+.spring-rail .progress-rail,
+.spring-ball {
+    transition: opacity var(--duration-fast) ease;
+}
 .spring-rail--derby .progress-rail,
 .spring-rail--derby .spring-ball,
 .spring-rail--derby .spring-target-marker {
     opacity: 0.35;
-    transition: opacity var(--duration-fast) ease;
+}
+
+/* The overlay's own enter/leave (N-1's second half — the `v-if` had neither). */
+.derby-enter-active,
+.derby-leave-active {
+    transition: opacity 220ms var(--ease-standard, ease);
+}
+.derby-enter-from,
+.derby-leave-to {
+    opacity: 0;
 }
 @keyframes spring-settle-pulse {
     0% {
@@ -531,7 +563,13 @@ const onKeydown = (e: KeyboardEvent) => {
    lane wears its sanctioned --spring-lane-* tone (consumed via --ball-tone — the
    .progress-ball idiom keys on it), with a small ζ tag. The bouncy lane's ball
    rings PAST the target line (the painter's relaxed clamp); the gentle lane never
-   crosses. Absolutely overlaid on the rail region; fades in/out. */
+   crosses. Absolutely overlaid on the rail region.
+
+   N-1 — "fades in/out" stood here while the overlay had an enter-only keyframe
+   animation and a bare `v-if` for its exit, so the second half of the claim was
+   simply untrue and the C axis inherited it verbatim into its own read. It is
+   true now, and it is true because the <Transition> above exists — the cure is
+   what earns the sentence, never the other way round. */
 .derby-lanes {
     position: absolute;
     left: 0;
@@ -543,7 +581,6 @@ const onKeydown = (e: KeyboardEvent) => {
     padding: 0.25rem 0;
     pointer-events: none;
     z-index: var(--z-content);
-    animation: derby-fade-in 220ms var(--ease-standard, ease) 1;
 }
 .derby-lane {
     position: relative;
@@ -607,15 +644,27 @@ const onKeydown = (e: KeyboardEvent) => {
     letter-spacing: normal;
 }
 
-@keyframes derby-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+/* N-1 — `@keyframes derby-fade-in` is DELETED with its one consumer. It was the
+   enter half of an asymmetry; the <Transition> above owns both halves now, so a
+   one-way keyframe animation beside it would be a second authority for the same
+   motion. LAW A census at this seat before the delete —
+   ⟨cmd⟩ `grep -rn derby-fade-in demo` → the declaration and the single
+   `.derby-lanes` reference, both in this file, nothing else in either tree. */
 
 @media (prefers-reduced-motion: reduce) {
     .settle-pulse--fire {
         animation: none;
     }
+    /* D-3 / K-6 — this declaration is NOT redundant and is not deleted: the
+       installed a11y-overrides' universal PRM rule constrains `animation-
+       duration` and `iteration-count`, never `animation-name`, so removing the
+       local `none` would leave a 0.01ms pulse still firing its events. The
+       overlay's opacity TRANSITION has no entry here on purpose — that same
+       universal rule forces `transition-property: opacity … 0.1s !important`, so
+       any local declaration would be dead CSS, which is the very class this
+       packet is clearing out. (It is also the recorded PRM irony: the override
+       accidentally gives reduced-motion users a smoother exit than the default
+       path had, and that is a fact about the override, not about this file.) */
     .derby-lanes {
         animation: none;
     }
