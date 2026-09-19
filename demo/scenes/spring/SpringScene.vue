@@ -42,7 +42,13 @@
          design decision this wave does not hold (the KF-EST-7 class,
          NO-WAVE-OWNER), so the question is written down and the label is left
          exactly as the owner blessed it. -->
-    <div class="flex h-full w-full flex-col items-center justify-center px-6 lg:px-8">
+    <!-- KF-SS-27 — `items-center` and `justify-center` are DELETED as no-ops:
+         this is a flex COLUMN whose single child is `w-full flex-1`, so
+         cross-axis centring has nothing to centre and main-axis centring has
+         nothing to distribute. Dead layout classes on a scene's only markup are
+         worse than none — the next reader reasons about a layout that is not
+         happening. -->
+    <div class="flex h-full w-full flex-col px-6 lg:px-8">
         <div class="min-h-0 w-full flex-1">
             <SpringTarget v-if="demo.view.value === 'solver'" />
             <StartingStyleTarget v-else />
@@ -52,7 +58,13 @@
 
 <script setup lang="ts">
 import { h, provide, ref } from "vue";
-import { Button } from "@mkbabb/glass-ui";
+// KF-SS-29 — the SUBPATH, not the root barrel. `./button` is published (a 71-byte
+// re-export) and the sibling file in this very directory already imports that
+// way, so the root-barrel import here was a per-file divergence rather than a
+// house choice. (The weight argument is dead — the barrel is side-effect-free
+// except for CSS and tree-shakes to parity — which is exactly why the row is
+// about idiom consistency and nothing else.)
+import { Button } from "@mkbabb/glass-ui/button";
 import { Eye, EyeOff, Shuffle } from "@lucide/vue";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
@@ -63,8 +75,8 @@ import SpringPhysicsFacet from "./SpringPhysicsFacet.vue";
 import { useSpringDemo } from "./useSpringDemo";
 import { SPRING_DEMO_KEY, SPRING_SCENE_ID } from "./springKeys";
 
-const SCENE_ID = SPRING_SCENE_ID;
-
+// KF-SS-34 — the one-use `SCENE_ID` alias is deleted; `SPRING_SCENE_ID` is
+// already the name, already imported, and already what the rest of the file says.
 const demo = useSpringDemo();
 provide(SPRING_DEMO_KEY, demo);
 
@@ -178,7 +190,10 @@ const standardRibbon = () =>
         currentT:
             demo.scrubberPhase.value * demo.springEditAnim.options.duration,
         isAnimPlaying: demo.isPlaying.value,
-        isAnimStarted: true,
+        // KF-SS-34 / KF-ES-18 — this was a hardcoded `true` sitting beside a
+        // scene-level `isStarted` ref carrying the same fact. Two authorities for
+        // one boolean, and the literal is the one that would go stale first.
+        isAnimStarted: isStarted.value,
         userReversed: userReversed.value,
         onTogglePlay: () => demo.togglePlay(),
         onToggleReverse,
@@ -191,11 +206,19 @@ const standardRibbon = () =>
 // transport plus the Re-seat domain verb; the discrete view shows the Reveal/
 // Dismiss domain verb — the bottom bar stays meaningful for whichever face of the
 // one spring is on stage.
-const ribbonContent = (slotProps: { selectedControl: string }) => {
-    if (slotProps.selectedControl !== "spring") return null;
-
+// KF-SS-23 — THE DEAD GUARD IS GONE. This opened with
+// `if (slotProps.selectedControl !== "spring") return null;`, which can never be
+// true: `SPRING_SCENE_ID` is the scene's one control surface (the derivation
+// reads the single painting channel — see the note above), so the parameter is
+// the constant "spring" at every call. It was not merely dead, it was MISLEADING:
+// it read as the live gate that decides whether this ribbon renders, which is why
+// the genuinely missing gate one level up went unnoticed for as long as it did. A
+// guard that cannot fire is a claim that something is being checked.
+const ribbonContent = () => {
     if (demo.view.value === "discrete") {
-        return h("div", { class: "grid grid-cols-1 gap-2 w-full" }, [
+        // KF-SS-27 — `grid-cols-1` deleted: `grid` already lays one column, and
+        // the SAME construct 20 lines below was written without it. One shape.
+        return h("div", { class: "grid gap-2 w-full" }, [
             h(
                 Button,
                 {
@@ -218,10 +241,17 @@ const ribbonContent = (slotProps: { selectedControl: string }) => {
         standardRibbon(),
         // Re-seat — the spring's domain "go" verb (flip the chase target), beside
         // the standard transport (the permitted ribbonContent domain extra).
+        // KF-SS-19 — the Re-seat cell wore a hand-rolled skin three lines from
+        // its accent-skinned sibling, breaking the transport band's own one-voice
+        // law and missing the `.btn-playback` hover family entirely. It joins the
+        // band. `h-8` goes with it: the height-break arm of this row is a ruled
+        // KILL because `h-8` never reached the rendered element in the first
+        // place, so carrying it forward would preserve a class that does nothing
+        // in the name of a defect that does not exist.
         h(
             Button,
             {
-                class: "h-8 w-full rounded-full gap-2 text-body",
+                class: "btn-playback w-full gap-2",
                 onClick: () => demo.toggleTarget(),
             },
             {
@@ -239,7 +269,7 @@ defineExpose({
     // `spring` facet, the raw-rAF playback). The decoy `animationGroup` expose
     // is DELETED with the contract-group decoy; the shell binds the facility.
     facility: demo.facility,
-    superKey: SCENE_ID,
+    superKey: SPRING_SCENE_ID,
     isStarted,
     // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: the spring
     // sampler swept forever at idle, burning ~33% of a core (90 layouts/s) with

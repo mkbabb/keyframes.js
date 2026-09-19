@@ -14,7 +14,7 @@
 // forks the stage view on real channel data. Recompiles re-seat its
 // timingFunction from the live params and re-emit the artifact CSS through it.
 // ─────────────────────────────────────────────────────────────────────────────
-import { markRaw, ref, watch, type Ref } from "vue";
+import { markRaw, onScopeDispose, ref, watch, type Ref } from "vue";
 import { loadAnimationEngine, springTimingFunction } from "@mkbabb/keyframes.js";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
@@ -62,22 +62,74 @@ export function useCompiledEntry(
     entryAnim.name = "Entry";
     entryAnim.superKey = SPRING_SCENE_ID;
 
+    // ── KF-SS-3 / N-6 — ONE DEBOUNCED, CANCELLABLE RECOMPILE SEAM ─────────────
+    //
+    // The banked defect, in three parts, all on one 0.01-step slider drag:
+    //
+    //   1. NO DEBOUNCE. The watch ran `compileToEntry` — which this file's own
+    //      docblock calls HEAVY, and which is reached through a dynamically
+    //      imported chunk — once per slider input event.
+    //   2. LAST-COMPLETED-WINS. `css.value = out.css` was written by whichever
+    //      compile RESOLVED last, not whichever STARTED last, so the artifact a
+    //      designer is invited to copy could be pinned to a curve the sliders no
+    //      longer show. The failure is silent and the surface is a fidelity
+    //      charter.
+    //   3. AN INTERLEAVED MUTATION OF SHARED STATE. `setTimingFunction` writes
+    //      `entryAnim` — the facility's "Entry" CHANNEL, one markRaw object the
+    //      transport and the stage both read — and it ran AFTER an await, so two
+    //      in-flight recompiles could interleave a mutation with a compile over
+    //      the same object.
+    //
+    // One generation token answers all three: it is taken before the first await
+    // and checked after each one, so a superseded run neither mutates the shared
+    // channel nor writes the artifact; a trailing debounce collapses a drag into
+    // one compile; and scope disposal bumps the generation, which invalidates
+    // every in-flight run rather than letting it land in a dead scope.
+    const RECOMPILE_DEBOUNCE_MS = 80;
+    let generation = 0;
+    let pending: ReturnType<typeof setTimeout> | undefined;
+
     const recompile = async (): Promise<void> => {
+        const gen = ++generation;
         const { compileToEntry } = await loadAnimationEngine();
+        if (gen !== generation) return;
+
         const easing = springTimingFunction({
             response: response(),
             dampingFraction: dampingFraction(),
         });
         entryAnim.setTimingFunction(easing);
+
         const out = await compileToEntry(
             { ".discrete-card": { enter: entryAnim } },
             { openSelector: ".is-open", display: "flex" },
         );
+        if (gen !== generation) return;
         css.value = out.css;
     };
 
-    watch([response, dampingFraction], () => void recompile(), {
-        immediate: true,
+    /** Collapse a drag into one compile; the first one is not made to wait. */
+    const scheduleRecompile = (immediate: boolean): void => {
+        if (pending !== undefined) clearTimeout(pending);
+        if (immediate) {
+            pending = undefined;
+            void recompile();
+            return;
+        }
+        pending = setTimeout(() => {
+            pending = undefined;
+            void recompile();
+        }, RECOMPILE_DEBOUNCE_MS);
+    };
+
+    watch([response, dampingFraction], () => scheduleRecompile(false));
+    scheduleRecompile(true);
+
+    onScopeDispose(() => {
+        if (pending !== undefined) clearTimeout(pending);
+        // Invalidate anything already awaiting: a resolved compile must not write
+        // an artifact ref, or mutate a channel, that belongs to a disposed scene.
+        generation++;
     });
 
     return { css, entryAnim };
