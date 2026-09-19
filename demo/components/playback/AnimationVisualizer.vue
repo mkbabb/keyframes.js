@@ -133,6 +133,28 @@ const progressFromPointerX = (clientX: number): number => {
     return x / maxX;
 };
 
+/**
+ * C·C-1 ≡ KF-AV-16 — THE MACHINE-WRITE POLICY, at this consumer's own seam.
+ *
+ * `scrub` is not a paint event. It terminates in a scene-machine dispatch whose
+ * reducer allocates a fresh context on every call and whose store serialises
+ * that context to localStorage synchronously, so each emit costs one
+ * `JSON.stringify` + `setItem`. The DECISION is DECOUPLE — the machine's cadence
+ * is the animation frame, never the input sample — and the pointer half of it
+ * lives in `useDragCapture`, which now delivers at most one move per frame with
+ * the terminal sample flushed exactly on release.
+ *
+ * The COAST reaches this function from inside `RAFPlayback`: one call per frame
+ * by construction, so it already obeys that half of the rule. What it did not
+ * obey is the other half. A decay-to-rest coast pins to its target boundary for
+ * the last frames of its flight and re-dispatched an identical `t` on each of
+ * them — and the machine cannot elide them itself, because a fresh context per
+ * dispatch defeats its own echo guard. So the seam does not send them: the paint
+ * still runs every frame (it is free, and it is what the ball is for) and the
+ * machine is written only when the value it holds has actually changed.
+ */
+let lastEmittedT: number | null = null;
+
 const applyProgress = (progress: number) => {
     const anim = props.animation;
     if (!anim || anim.options.duration <= 0) return;
@@ -140,6 +162,8 @@ const applyProgress = (progress: number) => {
     setBallProgress(progress);
 
     const t = progress * anim.options.duration;
+    if (t === lastEmittedT) return;
+    lastEmittedT = t;
     emit("scrub", t);
 };
 
@@ -224,7 +248,11 @@ const { isDragging, onPointerDown } = useDragCapture({
         grabOffset = e.clientX - (ballRect.left + ballRect.width / 2);
         gate.suppressDeactivate(true);
 
-        // Reset velocity tracking + cancel any in-flight coast.
+        // Reset velocity tracking + cancel any in-flight coast. The
+        // machine-write latch re-arms with the gesture: the clock may have moved
+        // under us (the ribbon's own Slider scrubs the same animation), so the
+        // press always writes its seat.
+        lastEmittedT = null;
         velocityEstimator.reset(0);
         lastMoveTime = performance.now();
         coastPlayback.stop();

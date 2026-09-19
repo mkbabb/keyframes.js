@@ -66,11 +66,50 @@ export function useDragCapture(handlers: DragCaptureHandlers) {
     /** Is this event the gesture's own pointer? The seam's one admission test. */
     const isActivePointer = (e: PointerEvent) => e.pointerId === activePointerId;
 
+    // ── C·C-1 ≡ KF-AV-16 — THE MACHINE-WRITE POLICY: DECOUPLE ────────────────
+    // A drag on this seam terminates in a scene-machine dispatch whose reducer
+    // allocates a fresh context per call and whose store serialises it to
+    // localStorage synchronously, so every admitted sample costs one
+    // `JSON.stringify` + `setItem`. Pointer hardware samples far faster than the
+    // display paints (240 Hz against 60): at four samples a frame the seam
+    // bought four blocking writes to render one picture.
+    //
+    // THE DECISION IS DECOUPLE, not throttle. The sample stream is still read at
+    // full rate — the latest sample always wins — but the move is DELIVERED in
+    // the animation frame that will paint it, so the consumer and the machine
+    // behind it see at most one per frame and never a value the frame has
+    // already superseded. A wall-clock throttle was refused for the defect it is
+    // named for: it drops the terminal sample. Here the pending sample is
+    // flushed SYNCHRONOUSLY at the gesture's end, so what the machine records is
+    // exactly the value the user let go at. `onStart` is never coalesced — the
+    // press seats immediately, as it always did.
+    let pendingMove: PointerEvent | null = null;
+    let moveFrame: number | null = null;
+
+    /** Deliver the latest sample now (the rAF callback AND the terminal flush). */
+    const flushPendingMove = () => {
+        if (moveFrame !== null) cancelAnimationFrame(moveFrame);
+        moveFrame = null;
+        const e = pendingMove;
+        pendingMove = null;
+        if (e) handlers.onMove?.(e);
+    };
+
+    /** Drop the pending sample unsent (the gesture is going away with its scope). */
+    const dropPendingMove = () => {
+        if (moveFrame !== null) cancelAnimationFrame(moveFrame);
+        moveFrame = null;
+        pendingMove = null;
+    };
+
     const endGesture = (e: PointerEvent) => {
         activePointerId = null;
         isDragging.value = false;
         // D1 — clear the global select-suppression token before the scene hook.
         releaseSelectSuppression();
+        // The terminal sample, exact and synchronous, BEFORE `onEnd` — the
+        // release hook reads the position the gesture ended at.
+        flushPendingMove();
         handlers.onEnd?.(e);
     };
 
@@ -97,7 +136,8 @@ export function useDragCapture(handlers: DragCaptureHandlers) {
 
     useEventListener(window, "pointermove", (e: PointerEvent) => {
         if (!isActivePointer(e)) return;
-        handlers.onMove?.(e);
+        pendingMove = e;
+        if (moveFrame === null) moveFrame = requestAnimationFrame(flushPendingMove);
     });
 
     useEventListener(window, "pointerup", (e: PointerEvent) => {
@@ -114,6 +154,7 @@ export function useDragCapture(handlers: DragCaptureHandlers) {
     // scene is going away; the document-wide token is not, so the token is what
     // the scope returns.
     onScopeDispose(() => {
+        dropPendingMove();
         if (activePointerId === null) return;
         activePointerId = null;
         isDragging.value = false;
