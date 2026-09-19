@@ -19,15 +19,20 @@ defineProps<{ progress: number }>();
 </script>
 
 <style scoped>
-/* Spans the shared row-track column (inset past the label column) so `left: %`
-   resolves against the track width — the SAME axis the handles ride. */
+/* PLACED ON THE STAGE'S GRID, not transcribed from its padding: an absolutely
+   positioned grid child takes its containing block from its grid area
+   (css-grid-1 §9), so `grid-column: 2` puts this track's left edge on the SAME
+   grid line the ruler and the row tracks resolve from, and `grid-row: 2 / -1`
+   spans exactly the rows block — its top is the rows' top, at every viewport,
+   with nothing hand-copied from the stage's padding or the ruler's height
+   (kf-SequencePlayhead D-1 · D-2/L-4/C-5 · D-10/L-2 · D-13/L-12; the stage's
+   `gap` grants the gutter that makes the line one line). The diamond head rises
+   3px above this box into the row-gap — never into the ruler's strip. */
 .seq-playhead-track {
     position: absolute;
-    grid-column: unset;
-    top: calc(0.75rem + 1.25rem); /* frame pad-top + axis ruler height */
-    bottom: 1rem;
-    left: calc(1rem + var(--track-inset));
-    right: 1rem;
+    grid-column: 2;
+    grid-row: 2 / -1;
+    inset: 0;
     pointer-events: none;
     z-index: var(--z-seq-playhead);
     /* T.G4 — the playhead line rides `translateX(<cqw>)`; `cqw` resolves against

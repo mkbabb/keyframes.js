@@ -5,7 +5,12 @@
              STRETCHES the whole .stage-cell (the former flex-1 floated 5 rows on a
              vast dead checkerboard); it HUGS its content (h-fit max-h-full), so the
              void that bled the page grid is gone. -->
-        <Card :shadow="false" class="seq-target w-full h-fit max-h-full flex flex-col overflow-hidden">
+        <!-- OVERFLOW POSTURE (kf-SequenceScene D8 / kf-SequenceTarget D-8): the
+             card hugs its content but SCROLLS when the cell is shorter than it —
+             the last child is the master scrubber, the card's only in-content
+             transport surface, and a short viewport must never silently discard
+             it. -->
+        <Card :shadow="false" class="seq-target w-full h-fit max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
             <!-- Header: serif text-display scene name + the small muted `stagger × N`
                  caption + the live master-clock Metric. The Metric is the CANONICAL
                  clock's one visual-numeric exposure — milliseconds on the master

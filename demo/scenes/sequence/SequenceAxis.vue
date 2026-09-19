@@ -21,8 +21,9 @@ defineProps<{ quarters: readonly number[]; duration: number }>();
 </script>
 
 <style scoped>
+/* The ruler's GRID PLACEMENT lives on the owning side (SequenceTarget.css —
+   the stage that declares the track list); this leaf styles only its own box. */
 .seq-axis {
-    grid-column: 2;
     position: relative;
     height: 1.1rem;
     margin-bottom: 0.15rem;

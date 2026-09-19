@@ -42,29 +42,50 @@
     border-color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 30%, var(--border));
 }
 
-/* The contained timeline FRAME — a bounded, master-tinted rounded plate that OWNS
-   its time grid (the .stage-field-x rules live inside it). Defines the shared
-   subgrid column geometry ONCE (a uniform label col + the elastic track col). */
+/* The contained timeline FRAME — a bounded, master-tinted rounded plate whose
+   grid OWNS the horizontal geometry of everything inside it: the ruler, the row
+   tracks and the playhead track all resolve their left edge from grid column 2
+   (§LABEL-subgrid), so the three rects agree BY CONSTRUCTION (kf-SequencePlayhead
+   D-1, ruling 1). The one gutter token is granted to the stage's OWN gap as well
+   as the row subgrid's, so the parent and subgrid gutters coincide and no
+   redistribution branch exists for the sub-units to disagree about. */
 .seq-stage {
-    --label-col: 3.25rem;
+    /* The label column is sized to its own content: the widest default row
+       label is `@1040ms` / `@1600ms` — 7 mono glyphs at the caption rung with
+       the caps tracking DROPPED on the sub-line (below) — 4.2em ≈ 60px at the
+       widest caption size, so 4rem holds it at every viewport (kf-SequenceTarget
+       D-6 / kf-SequenceScene D3). */
+    --label-col: 4rem;
     --col-gap: 0.75rem;
-    --track-inset: calc(var(--label-col) + var(--col-gap));
 
     position: relative;
     display: grid;
     grid-template-columns: var(--label-col) 1fr;
-    gap: 0.5rem 0;
+    gap: 0.5rem var(--col-gap);
     padding: 0.75rem 1rem 1rem;
-    border-radius: var(--radius-card);
-    border: 1px solid color-mix(in srgb, var(--ball-tone, var(--color-progress)) 16%, var(--border));
-    /* The faint master-tinted vertical wash — a contained film region, kept low
-       (§S4: the frame AMPLIFIES the stage, never shouts). */
+    /* Concentric with the Card it sits 1rem inside: inner radius = outer radius
+       minus the inset (kf-SequenceTarget ST-9). */
+    border-radius: calc(var(--radius-card) - 1rem);
+    border: 1px solid color-mix(in srgb, var(--ball-tone) 16%, var(--border));
+    /* The faint master-tinted vertical wash — a TRANSLUCENT inner plate on the
+       surface-tint register (the Card is glass; an opaque page-background plate
+       inside it was a different paper — D-22), kept low (§S4: the frame
+       AMPLIFIES the stage, never shouts). */
     background:
         linear-gradient(
             to bottom,
-            color-mix(in srgb, var(--ball-tone, var(--color-progress)) 5%, var(--background)),
-            color-mix(in srgb, var(--ball-tone, var(--color-progress)) 2%, var(--background))
+            color-mix(in srgb, var(--ball-tone) 5%, var(--surface-tint-4)),
+            color-mix(in srgb, var(--ball-tone) 2%, var(--surface-tint-4))
         );
+}
+
+/* The ruler's placement is the STAGE's concern (the owning side of the seam —
+   kf-SequenceAxis L-3/C-3/D-6b; kf-SequencePlayhead N-8): it spans the shared
+   track column so its labels resolve against the track width. The parent's
+   scoped selector reaches the child's root element by Vue's scope-id-on-root
+   behaviour — the same seam the boot wipe below already rides. */
+.seq-axis {
+    grid-column: 2;
 }
 
 /* ── The rows — a CSS subgrid so the label column is UNIFORM (§LABEL-subgrid) ── */
@@ -85,33 +106,41 @@
     column-gap: var(--col-gap);
 }
 
-/* The row label — a stacked index + at:, right-aligned (index = foreground; at: = muted). */
+/* The row label — a stacked index + at:, right-aligned. It paints ABOVE the row
+   track in the stacking order: the 44px handle host overhangs the column gutter
+   by 22px at `at = 0`, and without this the transparent host would hit-test
+   above the label and turn the row's own `@0ms` caption into an unmarked drag
+   surface (kf-SequenceScene SC-8). */
 .seq-row-label {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     line-height: 1.15;
     text-align: right;
 }
-/* T.D2/T.D3 (RULED #24) — the L.W11 "engraved" serif channel number dies with
-   the honest-weight rule: Instrument Serif ships no 600 (the 600 here was pure
-   browser synthesis — the exact faux-bold smear T.D2 kills) and the serif
-   retreats to ≥ display-5 rungs; a ~20px chrome label is the BODY register's
-   job. The channel index reads Jakarta semibold (a REAL weight); `@…ms` stays
-   mono. */
+/* THE LABEL'S HIERARCHY (kf-SequenceTarget D-14 · D-3; kf-SequenceScene D2 +
+   kf-SequenceAxis SA-1 — one decision): the `at:` value is the ONE datum the
+   row exists to expose, so it reads at full weight and full opacity on the
+   caption rung; the ordinal — redundant with order and the tone spectrum — is
+   the quieter mark, a real Jakarta semibold (no synthesized weight) one rung
+   down from the subheading it used to shout at. Subordination is carried by
+   SIZE and WEIGHT, never by an alpha the AA-tuned token cannot absorb (the
+   former `opacity: 0.8` dropped the light arm to 3.82:1). */
 .seq-row-name {
     font-weight: var(--font-weight-semibold, 600);
-    font-size: var(--type-subheading);
+    font-size: var(--type-small);
     line-height: 1;
 }
-/* J.W7c φ-ladder (proof:phi-leaf-zero) — the `at:` sub-line stays on the φ
-   token ladder (it inherits `--type-caption` from the parent's `.text-mono-
-   caption`); its subordination to the index reads through WEIGHT + opacity, not
-   an off-ladder sub-caption px. The former bare `font-size: 0.62rem` was the one
-   raw font-size literal the redesign introduced — routed back onto the ladder. */
+/* The `at:` sub-line: the caption rung it inherits, weight 500, NO caps
+   tracking (digits are not letter-spaced — kf-SequenceScrubber KF-SCR-4's
+   family) and NO `uppercase` (the SI unit is `ms`, never `MS` —
+   kf-SequenceScene D10). */
 .seq-row-at {
-    font-weight: 400;
-    opacity: 0.8;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 /* The per-row track — rail + handle + traveller host (room for the traveller + glow). */
@@ -260,16 +289,17 @@
 
 /* MOBILE row-pitch compression (J.WZ a11y target-size): on 375×667 the 5 rows at
    desktop pitch overflowed under the sheet grab-handle (target-size overlap), so
-   compress the pitch to fit all 5 rows + 24px handles above the peek band (track
-   stays 1.5rem = the handle minimum). Placed LAST to win the cascade; desktop unchanged. */
+   compress the pitch to fit all 5 rows above the peek band. The track keeps its
+   2rem height: a shorter track never changed the row pitch (the ~34px label sets
+   it under `align-items: center`) and only cost 8px of drag target (kf-
+   SequenceTarget D-13). Placed LAST to win the cascade; desktop unchanged. The
+   raw viewport literal is the breakpoint-token family's (kf-SequenceAxis D-9,
+   T.F's gate) — no token exists in the tree yet, so it is named, not invented. */
 @media (max-width: 1023px) {
     .seq-storyboard {
         padding-block: 0.5rem;
     }
     .seq-rows {
         row-gap: 0.15rem;
-    }
-    .seq-track {
-        height: 1.5rem;
     }
 }
