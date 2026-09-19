@@ -1,5 +1,6 @@
 import { convertPixelsToCh } from "@utils/helpers";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@kf-engine";
 import { ref } from "vue";
 import {
     createAnimationUUId,
@@ -12,8 +13,34 @@ import {
  * helpers. No parsing, no animation mutation — that is `useKeyframesParsing`.
  */
 export function useKeyframesState(animation: KeyframesAnimation<any>) {
+    // N-8 (X.KF.W12.e) — ONE DERIVATION, AND IT IS THE LIBRARY'S.
+    //
+    // `cssIdent` is the emitter's own ident normalizer — the single function the
+    // Export path has always applied (`compile/emit/backward/walk.ts`) — and
+    // KF.W5 published it on the engine surface for exactly this consumer. It is
+    // read at SETUP scope, never at module scope (KF-KE-51): the warm resolves
+    // before the app mounts, and a module-scope read turns a swallowed warm
+    // failure into a chunk-evaluation throw for the whole scene.
+    const { cssIdent } = kfEngine();
+
     const animationUUID = createAnimationUUId(animation, animation.superKey);
-    const keyframesStyleId = `keyframes-style-${animationUUID}`;
+
+    // The id is normalized ONCE, here, and every consumer downstream reads THIS
+    // token: the class the Apply control adds, the `@keyframes`/`animation-name`
+    // the sheet is emitted under, and the `<style>` element's own id. Routing a
+    // second derivation beside `cssIdent` is forbidden by name (N-8), so there
+    // is nothing to keep in agreement — the three names are one string by
+    // construction.
+    //
+    // It is also the safety: `createAnimationUUId` composes a user-facing
+    // `superKey` and animation name, and a name carrying a space (or a `.`, or
+    // a `/`) made `classList.add` throw `InvalidCharacterError` and made
+    // `document.head.querySelector('#' + styleId)` parse as a descendant
+    // selector so the sheet-reuse branch never matched (L-I-1). `cssIdent`
+    // folds every non-`[A-Za-z0-9_-]` byte to `-`, and the literal
+    // `keyframes-style-` prefix guarantees the leading-letter rule, so the
+    // normalizer's own `a`-prefix arm is unreachable from here.
+    const keyframesStyleId = cssIdent(`keyframes-style-${animationUUID}`);
 
     const storedControls = getStoredAnimationGroupControlOptions(animation);
     const kfControls = storedControls.keyframeControls;
@@ -54,8 +81,9 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
      * case-fold, so the sheet named `.x` while the target wore `keyframes-style-X`
      * and Apply had never once applied anything — proven by execution in
      * `keyframes-editor-honest.test.ts`, which reads both strings back from the
-     * DOM. No sanitization happens here: routing the ONE token through the
-     * library's published `cssIdent` is N-8, the APPLY-UNIT's row.
+     * DOM. The token it returns is `keyframesStyleId`, already normalized ONCE
+     * by the library's published `cssIdent` above (N-8, X.KF.W12.e); no
+     * sanitization happens here, because a second derivation is the defect.
      */
     const getTmpAnimationName = () => keyframesStyleId;
 
