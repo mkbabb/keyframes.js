@@ -110,3 +110,129 @@ completeness; a residue self-resolution, not a counted disposition row — the
 ## Zero-deferral statement
 
 **52 disposition rows, all terminal.** Group A rail 10 · Group B chronics 11 · Group C refuted 6 · Group D behavior/product 12 · Group E blueprint 8 · Group F partials/banked 5. **Zero rows left un-terminal.** Terminal-state tally: BUILD 15 · FOLD 16 · RETIRE 11 (incl. 3 RETIRE-DISCHARGED, 6 RETIRE-REFUTED) · BANKED 1 (GCF-03 only, external-producer-gated: re-triggered by integrated native reproduction; the design-capture baseline is FOLD W11, a BEFORE-baseline hand-off inside the tranche, not a bank). **DISEASE rows: 2** — CH2-02 (T→U ungated, killed by W2) and CH-06/CH2-04 (K→U inside a "COMPLETE" doc, killed by W10); one **watch** row (CH-02 re-word-not-decide, becomes DISEASE if V re-words again). V inherits **no formal chronic ledger** — the `proof:chronic-closure` machine was deleted at U and every prior ledger self-terminated; residual carried risk is bounded to the rows above.
+
+---
+
+# ADDENDUM 2026-09-19 — X.KF.W10 `.f`: THE DISPOSITION LEDGER IS TERMINAL (G-6)
+
+SERVED MODEL: claude-opus-5[1m]
+
+**Authority**: `value.js docs/tranches/X/keyframes/waves/KF-W10.md` **§3.6** (`:332-334`) · §5 **G-6**
+(`:471-487`) · §10 commit 6. Sub-tranche **X·KF**, wave **KF.W10**, owned by **SS-2** (`COHESION.md` **§0t**).
+Sitting of record **2026-09-17**; this seat's clock **2026-09-19 00:3x EDT**. Substrate: keyframes.js
+`master` = `origin/master` = **`0a329c57`** (the X.KF.W10 `.e` landing of `v/w9-staging`).
+
+**E-3 POSTURE — APPENDED DATED ADDENDUM, NEVER A PATCH.** All **52** rows and the zero-deferral statement
+above are **byte-unchanged**; pre-addendum bytes **19,605 B**, row census re-run twice at these bytes:
+⟨cmd⟩ `grep -cE '^\| [^-|]' DISPOSITIONS.md` → **58**, minus **6** table headers (⟨cmd⟩ `grep -cE '^\| Row \|'`
+→ **6**) = **52** (run 1 ≡ run 2). **The 52 does not move here, and no row is re-booked.**
+
+**WHY THIS ADDENDUM EXISTS — THE DEFECT NAMED EXACTLY.** Every row above already carries a terminal *state*
+(`BUILD` / `FOLD` / `RETIRE` / `BANKED`). **Sixteen of them are `FOLD <wave>` and fifteen are `BUILD <wave>`,
+and several of those waves never executed** — V closed **by fold**, not by running W7 · W8 · W11 · W12 · W13.
+A routing into a wave that never ran is **an open routing, not a terminal word** — the gate names the
+exemplar by coordinate: `DISPOSITIONS.md:106` (**CC-01**, D-GAP-6's ship-or-decline) reading **`FOLD W12`**.
+This addendum closes the **routings**, and nothing else: each row below gets one verb that names **where the
+row now lives**, and **no verb asserts a cure this seat did not measure**.
+
+**THE VERB ALPHABET (four words, declared before use).** **`DISCHARGED-AT-V.<wave>`** — the V wave that
+owned the row **CLOSED** (`FOLD-FORWARD.md` §A is the authority for every wave state cited below).
+**`DISCHARGED-AT-LANDING`** — landed at `0a329c57` and **re-measured at these bytes by this seat**.
+**`FOLDED-FORWARD`** — the owning wave never executed; the obligation's home is named (FOLD-FORWARD §A/§B,
+whose 15-row discharge table landed at **`025e894c`**, X.KF.W10 `.a`; and the X·KF successor register
+`KF-W10.md` §6.D → `KF.W11` · `KF.W12` · `KF.W13`, **AUTHORED `f208ff31`, unexecuted**).
+**`RECORDED-TERMINAL`** — already terminal above (a `RETIRE`, a refuted premise, or a standing bank);
+**recorded, never re-opened**.
+
+**§A · RAIL INHERITANCE (10).** `CH-01` **DISCHARGED-AT-V.W2** · `CH-02` **FOLDED-FORWARD** → FOLD-FORWARD
+**§B-10**, carried **verbatim** at `025e894c` (*"becomes DISEASE if the successor re-words rather than
+decides"*) — this addendum carries the sentence and re-words nothing · `CH2-02` **DISCHARGED-AT-V.W2** (its
+killer wave), its dock-crispness re-verify limb riding FOLD-FORWARD **§B-3**, verbed at `025e894c` ·
+`PR-2` · `CT-01/CT-02/DD-6` · `XR-1/AV-8` · `XR-4` · `CC-05` — **DISCHARGED-AT-V.W2** (§A W2 CLOSED
+`add20b7e`/`ebb08948`: 65-path slice, exact glass `7.0.0` devDep, registry-only lock, XR-4 applied, CC-05
+watchlist green) · `WT-01/02/03` **PARTLY DISCHARGED-AT-V.W2, REMAINDER FOLDED-FORWARD** — stated as a split
+because §A records **W3 PARTIAL**, and a split row closed as whole is the defect this ledger was built
+against · `DP-02/FAM-02` **DISCHARGED-AT-V.W1** (root `<TooltipProvider>`; the *nested*-provider successor
+question is FOLD-FORWARD **§B-7**, `FOLDED-TO KF-APP-21` at `025e894c`).
+
+**§B · CHRONICS (11).** `CH-03` **DISCHARGED-AT-V.W10 (pre-rail subset)** — re-measured this seat: ⟨cmd⟩
+`grep -c 'BlendMode' README.md docs/published-surface.md` → **`0` · `0`**; the removed public symbol's
+residue is gone and the live `weight`/`weightSpring` copy is preserved, exactly as the row required ·
+`CH-04` **RECORDED-TERMINAL** (RETIRE, with its `:6` evidence — it may not be re-booked a third time) ·
+`CH-05` **FOLDED-FORWARD — NOT CURED, MEASURED**: ⟨cmd⟩ `grep -c 'nightly' .github/workflows/ci.yml` →
+**4**, and `:162` still reads *"co-scheduled with the nightly roster"* for a `dow=1` cron. **The row is
+stated RED-honest rather than closed on its wave's name** · `CH-06/CH2-04` **DISCHARGED-AT-V.W10** —
+re-measured: `docs/dogfood-inversion.md:48` now reads *"published from K.WZ onward through 6.0.0"*, **past
+tense**; the *"K.WZ does the K-tranche republish"* future-tense claim inside a "COMPLETE" doc is gone, which
+is precisely what killed this DISEASE row · `CH2-01` · `CH2-03` · `K engine-seam split` ·
+`A/B/C --spring-* (VAL-9)` · `H VJ-F1/F2/F3 + PT-4` · `L Band-B` · `KILL rows` — **RECORDED-TERMINAL**, all
+seven already RETIRE/RETIRE-DISCHARGED; **none is re-opened and none re-surfaced**.
+
+**§C · REFUTED PREMISES (6).** `compiled-frame.ts split-as-defect` · `Handoff §3 blanket-delete` ·
+`multi-target-blend` · `EE-02 attribution` · `BV-1 settle-decay` · `internal/ grab-bag` — all six
+**RECORDED-TERMINAL (RETIRE-REFUTED)**. A refuted premise is terminal **at the premise**, which is why it
+cannot re-book; this addendum adds no verb it could re-enter through. ⟨`CT-05` remains a recorded
+residue-self-resolution, **not a counted row** — the 52 holds.⟩
+
+**§D · BEHAVIOR / PRODUCT (12).** `FE-3` · `EE-01` · `EE-02` · `EE-03` — **DISCHARGED-AT-V.W1** (§A W1
+CLOSED: born-RED + GREEN witnesses archived, pageerror=0/objectObject=0 on the real registry Glass 7) ·
+`FE-4` **FOLDED-FORWARD** → the successor demo band (§6.D `KF.W11`, Demo Scene Repair) · `BV-1` · `BV-3` ·
+`RG-3` — **RECORDED-TERMINAL** (RETIRE) · **`BV-2` DISCHARGED-AT-LANDING** — the one `BUILD W9` row this
+ledger marked **UNVERIFIED**, and it is now verified by existence at the bytes: ⟨cmd⟩
+`ls test/group/static-weight-composite-golden.test.ts` → **present** on the landed tree (`0a329c57`), the
+born-checked symmetric-composite golden the row demanded; X.KF.W10 `.e` measured `test:lib` **112→113 files
+/ 1256→1259 tests**, the `+1 file` being exactly this golden · `RG-1` · `RG-2` · `CC-04` — **glass-root,
+SPLIT AND STATED**: the **kf-side re-verify** limb is **DISCHARGED-AT-V.W2**, the **producer** limb is
+**STANDING on the successor SS-6 batch** (FOLD-FORWARD **§B-4**, `STANDING-CARRIED` at `025e894c`; the
+`G-1..G-4` marks are delivered and unanswered), and `RG-2`'s demo-side rest-affordance mitigation is
+**FOLDED-FORWARD** (W11 never ran). **Glass is READ-ONLY, always** — producer rows ride the batch, never a
+demo-side hack.
+
+**§E · BLUEPRINT AMENDMENTS (8).** `XB-01` · `XB-02` **FOLDED-FORWARD** (W8 NOT IMPLEMENTED; the DD-4 sweep
+and the `isIOSLikePlatform` re-grep carry into the successor demo band) · `XB-03` · `XB-08`
+**FOLDED-FORWARD** (W10 landed its pre-rail subset only; the DM-18 ordering edge and the DM-08 anchor
+correction are doc-canon residue — **stated, not asserted cured**, this seat measured neither) · `XB-04`
+**DISCHARGED-AT-V.W4** (§A W4 CLOSED) · **`XB-05` DISCHARGED-AT-LANDING — measured**: `bench/taxonomy.json`
+was pruned at `0a329c57` and the four orphan-risk comments are clean — ⟨cmd⟩ `grep -c 'taxonomy'` over
+`bench/resolve.bench.ts` · `bench/group-composite.bench.ts` · `bench/cold-import.bench.ts` ·
+`bench/spring-tick.bench.ts` → **0 · 0 · 0 · 0**; **no stale reference to a deleted file survives** ·
+`XB-06` **DISCHARGED-AT-LANDING, BY CONVERGENCE** — MR4's demo-CI precondition did not land as a second
+step: X.KF.W10 `.e` measured MR4's job to be **the identical command** as X.KF.W4's surviving
+`demo correctness suite` step and dropped the duplicate, recording the convergence at the bytes ·
+`XB-07` **DISCHARGED-AT-V.W5/W6** (both CLOSED; fences empty-diff).
+
+**§F · PARTIALS / BANKED (5).** `Audit-copy AUDIT-PROBE patch` **RECORDED-TERMINAL** (RETIRE, evidence-only)
+· `28+ design captures` **FOLDED-FORWARD** — W11 never opened, so the BEFORE-baseline hand-off is carried,
+**not consumed**; calling a consumed-at-W11 baseline discharged would be a fold dressed as a build ·
+`GCF-03` **STANDING-BANKED — re-trigger UNFIRED, and W12's confirmation is performed here**: it is a decided
+**SCI-side** row, not a kf-side orphan — ⟨cmd⟩ `grep -rl 'GCF-03' ../sci-report/` → **2 files**
+(`atlas/docs/tranches/Q/audit/…/keyframes-3.md` · `atlas/docs/tranches/P/feedback/CLOSE-FINDINGS.md`), read
+**read-only** across a sibling tree this wave never writes · `FAM-11` **DISCHARGED — the outbound packets
+are sent and the owed line LANDED**: XR-2/XR-3 done 2026-07-17; the two 2026-07-17 kf outbounds were ACKed
+**PROCESSED** by atlas (`IN-ATLAS-5`); and the exact-V4-pin rationale line owed to atlas exists at the
+bytes — ⟨cmd⟩ `grep -n 'exact' docs/published-surface.md` → **`:16-21`** · **`CC-01` — THE ROW THE GATE
+NAMES (`:106`), NOW TERMINAL: D-GAP-6 IS NOT ADOPTED — value.js 4.1 DECLINES `sampleBezier` PERMANENTLY.**
+The execution-time ship-or-decline this row folded to W12 is **decided, in the declining direction**:
+value's `O-21 §D` states *"`sampleBezier` is DECLINED permanently on measured zero demand … **no 4.1 of ours
+will ship it**"*, and their 4.1 cut notice (`O-34`, 2026-09-18) measures it — *"**Declined permanently**:
+`sampleBezier` (measured zero demand, matching your own I-10 answer)"*. **This is a decline recorded as a
+decline, never an adoption**: nothing is owed here, the local curve-data authoring stands, and the
+composed-from-`cubicBezier` pattern blessed at their `O-4` is unchanged. The conditional `IN-VALUE-2`
+recorded (*"adopt only if their 4.1 ships it"*) therefore resolves to **NOT ADOPTED**; the asymmetry is
+**recorded, not re-litigated**. ⟨`CC-02`, the exact-V4-pin's deliberateness, is confirmed in the same
+breath by the `published-surface.md:16-21` line above.⟩
+
+**ONE MORE CLOSING LINE THIS LEDGER OWES, AND IT IS NOT A ROW: `O-8`'s DELIVERY-VEHICLE QUESTION.**
+⟨cmd⟩ `grep -ci 'O-8' DISPOSITIONS.md` read **0** before this write — the question value.js asked
+(*"deliberate `4.0.1`, or folded into the next coherent tuple"*) had no closing line on this side.
+**It is TERMINAL BY PRE-EMPTION, never by an answer**: value.js ruled the matter internally as carry-cut row
+**CC-084** — *"no emergency `4.0.1` — ruled"* — and `O-21 §C` **WITHDRAWS** the question in those words,
+re-asks it nowhere and **promises no cut date**. Keyframes never received it; **their silence is neither its
+cause nor consent to it**. **Nothing is owed by this side.**
+
+**WHAT THIS ADDENDUM DOES NOT DO.** It re-books nothing, re-words no watch row (`CH-02`'s decide-not-reword
+lock is honoured by carrying the sentence), mints no id, moves no denominator (**52 before, 52 after**),
+and claims **no cure it did not measure** — where the frontier says a row is uncured (`CH-05`) the verb says
+**FOLDED-FORWARD** and prints the count. **G-6's reading after this write**: every disposition row carries a
+terminal verb whose home is named, the two converged rows carry one honest closing line each, and **neither
+is dressed as an adoption**.
