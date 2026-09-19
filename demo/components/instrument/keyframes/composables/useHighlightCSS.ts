@@ -90,6 +90,66 @@ const THEME_STYLE_ID = "highlightjs-theme";
 const highlightedFrom = new WeakMap<HTMLElement, string>();
 
 /**
+ * Paint one host's own text (idempotent in that text).
+ *
+ * Module-level, not instance-level, because nothing about colourising a host
+ * depends on which driver instance asked: the highlighter boot and the
+ * idempotence record above are both shared. Only the THEME node is per-instance,
+ * and `highlightAll()` is the seam that ensures it.
+ */
+const paintHost = (el: HTMLElement | null | undefined) => {
+    if (!el || highlightedFrom.get(el) === el.innerText) {
+        return;
+    }
+    void bootHighlighter().then(({ hljs }) => {
+        // Re-read at write time: the boot is async and the user keeps typing.
+        const source = el.innerText;
+        if (highlightedFrom.get(el) === source) return;
+        const h = hljs.highlight(source, { language: "css" });
+        el.innerHTML = h.value;
+        highlightedFrom.set(el, source);
+    });
+};
+
+/**
+ * THE WRITE-AUTHORITY CLAUSE OF THE CHILD-REF CONTRACT (X.KF.W12.a · KC-34 /
+ * D-17 — the sequencing edict, and the reason it is this unit's FIRST commit).
+ *
+ * A highlighted host has exactly ONE DOM owner, and it is this driver. Vue must
+ * render the host CHILDLESS (`<pre ref="preEl"></pre>`) and reach its contents
+ * only through this function; the driver then owns every node inside it.
+ *
+ * What the edict is about: `paintHost` assigns `innerHTML`, which destroys every
+ * child element. While the card's template rendered `<code>{{ formattedCSS }}</code>`
+ * into the host, that assignment detached the very element Vue's vnode still
+ * pointed at — two owners, one subtree. It stayed invisible only because every
+ * projection pass unmounted and rebuilt the whole list (KF-KE-25, `.c`'s row),
+ * which threw the divergent tree away before anyone could read it. The moment
+ * the cards stay mounted (KC-8/KC-9, this unit's later commit), the SAME defect
+ * becomes a visible stale-content bug: Vue patches text into a detached node and
+ * the user sees the previous keyframe. Hence the order — this clause lands
+ * BEFORE keep-mounted, never after.
+ *
+ * The write is idempotent in the source: a host that already shows this exact
+ * text is left untouched, so a re-render that changes nothing never disturbs a
+ * caret sitting in a `contenteditable` host.
+ */
+export const syncHostSource = (
+    el: HTMLElement | null | undefined,
+    source: string,
+) => {
+    if (!el || el.innerText === source) {
+        return;
+    }
+    el.textContent = source;
+    // The host now holds raw text; the record says so, and the paint follows in
+    // the same act — the text and its colourisation are one write, never two
+    // that a caller could order wrongly.
+    highlightedFrom.delete(el);
+    paintHost(el);
+};
+
+/**
  * How many live `useCodeHighlight()` instances hold the shared
  * `#highlightjs-theme` node. It is adopt-or-create, so more than one driver can
  * be looking at the same element: measured at this tree, the two call sites are
@@ -185,30 +245,15 @@ export function useCodeHighlight(
         highlightedFrom.delete(el);
     };
 
-    /** Highlight one element's text content (idempotent in that text). */
-    const highlight = (el: HTMLElement | null | undefined) => {
-        if (!el || highlightedFrom.get(el) === el.innerText) {
-            return;
-        }
-        void bootHighlighter().then(({ hljs }) => {
-            // Re-read at write time: the boot is async and the user keeps typing.
-            const source = el.innerText;
-            if (highlightedFrom.get(el) === source) return;
-            const h = hljs.highlight(source, { language: "css" });
-            el.innerHTML = h.value;
-            highlightedFrom.set(el, source);
-        });
-    };
-
     /**
      * Highlight the caller's OWNED elements (the editor's own <pre> refs), plus
      * any explicit one-off element. Scoped — no document-wide sweep.
      */
     const highlightAll = (el?: HTMLElement) => {
         ensureThemeStyle();
-        highlight(el);
+        paintHost(el);
         for (const owned of getOwnedElements()) {
-            highlight(owned);
+            paintHost(owned);
         }
     };
 
@@ -227,8 +272,11 @@ export function useCodeHighlight(
         themeStyle.value = null;
     });
 
-    // `highlight` is deliberately NOT returned: it is `highlightAll`'s internal
-    // per-element step, and a caller reaching it directly would skip the theme
-    // ensure. No consumer ever destructured it. ⟨X.KF.W5 arm 0, KAD-14(e)⟩
+    // `paintHost` is deliberately NOT returned: it is `highlightAll`'s
+    // per-element step, and a caller reaching it through this instance would
+    // skip the theme ensure. No consumer ever destructured it. The one seam a
+    // host's OWN component needs — write the model's text into the host it
+    // exposes — is the module-level `syncHostSource` above, which carries the
+    // paint with it. ⟨X.KF.W5 arm 0, KAD-14(e); X.KF.W12.a KC-34⟩
     return { setHighlightingString, highlightAll };
 }

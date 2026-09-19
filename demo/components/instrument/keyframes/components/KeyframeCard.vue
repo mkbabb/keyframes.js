@@ -110,6 +110,18 @@
                  zoom floor. G-W6-8 (same-commit box law): the box is
                  `min-h-32`, a MINIMUM over content-sized rows, so the register
                  swap invalidates no fixed dimension and no resize is owed. -->
+            <!-- KC-34 (D-17) — THE HOST IS CHILDLESS IN THIS TEMPLATE, and that
+                 is the write-authority clause of the child-ref contract, not a
+                 formatting choice. The `<code>{{ formattedCSS }}</code>` that
+                 stood here made Vue the second owner of a subtree the highlight
+                 driver replaces wholesale (`el.innerHTML = …`): every paint
+                 detached the element Vue's vnode still pointed at. The
+                 divergence was masked only by the projection blank that
+                 unmounted the whole list each cycle (KF-KE-25 — `.c`'s row);
+                 with the cards kept mounted it would surface as Vue patching
+                 text into a node no longer in the document. So the model's text
+                 reaches the host through the driver's own seam below, and the
+                 driver owns every node inside it. -->
             <pre
                 ref="preEl"
                 @input="(e) => emit('updateCSS', (e.target as HTMLElement).innerText)"
@@ -119,13 +131,14 @@
                 role="textbox"
                 aria-multiline="true"
                 :aria-label="`CSS for keyframe ${index}`"
-            ><code>{{ formattedCSS }}</code></pre>
+            ></pre>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useTemplateRef, watchEffect } from "vue";
+import { syncHostSource } from "../composables/useHighlightCSS";
 // KF-KC-37 (W6-I): subpaths, never the 24 KB root barrel. The `./label` subpath
 // leaves with its two orphan consumers (KC-26 above) — the card imports only
 // what it mounts.
@@ -163,6 +176,17 @@ const emit = defineEmits<{
 // The card's own contenteditable <pre> — surfaced for the parent's scoped
 // highlight collection (a declared child-ref contract, no querySelector).
 const preEl = useTemplateRef<HTMLElement>("preEl");
+
+// KC-34 — the model reaches the host through the driver's ONE seam, after the
+// render (`flush: "post"`, so the ref is resolved and the write lands on the
+// element this pass produced). The seam is idempotent in the text, so a render
+// that changes nothing leaves a caret in the host undisturbed.
+watchEffect(
+    () => {
+        syncHostSource(preEl.value, props.formattedCSS);
+    },
+    { flush: "post" },
+);
 
 defineExpose({ preEl });
 </script>
