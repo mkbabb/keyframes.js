@@ -213,10 +213,27 @@ export function resolveLinearStopPoints(css: string): LinearStopPoint[] {
 /**
  * The plot's geometry — ONE source of truth for the viewBox, the value-1 line
  * and the value-0 line (L-5): the template binds its `<line>`s and tick labels
- * to these, and `plotY` maps values through them. The value-1 line sits at 1/3
- * from the top so the overshoot has room to cross above it.
+ * to these, and `plotY` maps values through them.
+ *
+ * L-14 — THE CEILING IS COUPLED TO THE ζ FLOOR ONE FILE AWAY. Value 1.5556
+ * (`yZero / (yZero − yTarget)`) sits at the frame's top edge; the drawn maximum
+ * at the slider floor ζ = 0.2 is 1.51685 (a 2.5 % margin, the emitter's own
+ * figure), and that floor is declared in `SpringPhysicsFacet.vue` (`:min`) and
+ * `SpringHeatmap.vue` (`DAMPING_MIN`). Nothing in CSS binds them, so the
+ * coupling is pinned HERE as `PLOT_DAMPING_FLOOR` and enforced by the unit
+ * test, which samples the engine at this floor and reads the heatmap's declared
+ * floor from its bytes. `overflow: visible` on the frame is belt-and-braces: a
+ * breach paints outside the box rather than silently clipping — the plot never
+ * clamps a value (a flat-topped trace would be the same lie as an unclamped rail
+ * told the other way round).
  */
 export const PLOT = { width: 100, height: 60, yTarget: 20, yZero: 56 } as const;
+
+/** The value the frame's top edge represents. */
+export const PLOT_CEILING = PLOT.yZero / (PLOT.yZero - PLOT.yTarget);
+
+/** The lowest ζ any slider in the scene can reach — see L-14 above. */
+export const PLOT_DAMPING_FLOOR = 0.2;
 
 /** Value → viewBox y (value 0 at the baseline, value 1 on the target line). */
 export const plotY = (v: number): number =>
@@ -317,7 +334,7 @@ const figureLabel = computed(
     width: 100%;
     height: 100%;
     display: block;
-    overflow: visible;
+    overflow: visible; /* L-14: a breach paints outside, it never clips */
 }
 /* The data layer carries the glow (L-8): declared on the `<svg>` box, the
    `drop-shadow` length is CSS px in every engine — isotropic, like the stroke. */
