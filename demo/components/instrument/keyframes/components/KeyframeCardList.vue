@@ -43,7 +43,7 @@
 import { computed, ref, shallowRef } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import KeyframeCard from "../KeyframeCard.vue";
+import KeyframeCard from "./KeyframeCard.vue";
 
 const props = defineProps<{
     frameStrings: string[];
