@@ -71,23 +71,63 @@
                judgement, and it belongs to the visual audit, not to a seat
                editing markup blind. -->
         <div class="grid gap-4 sticky bottom-0 bg-card rounded-panel p-4 m-4">
-            <Slider
-                :model-value="
-                    animation.templateFrames.map((frame) => frame.start.value)
-                "
-                @update:model-value="
-                    (starts) => {
-                        animation.templateFrames.forEach((frame, i) => {
-                            frame.start.value = starts![i];
-                        });
-                        updateAllStringsAndAnimation();
-                    }
-                "
-                :min="-10"
-                :max="110"
-                :step="1"
+            <!-- KC-2 ≡ KF-KE-2 (+ KF-KC-19, + KF-KE-34's naming half) — THE
+                 RETIMING CONTROL, three independent kills cured in ONE motion
+                 because curing fewer is worse than curing none.
+                 · THE FREEZE. The handler assigned the drag's raw number to the
+                   `value` PROPERTY OF `frame.start` — in place, inside a
+                   value.js parse result, and every parse result is deep-frozen:
+                   the assignment threw `TypeError` at i=0 under the SFC's strict
+                   mode, aborted the loop, and never reached the reprojection —
+                   while Vue's `callWithAsyncErrorHandling` turned the throw into
+                   a console line, so the primary timing control was inert and
+                   silent. A selector is replaced whole now, exactly as the start
+                   field's own commit path replaces it.
+                 · THE UNIT — and it is fixed in the SAME commit as the freeze,
+                   which is the load-bearing order: the model carries `0..1`
+                   fractions, the rail declared `-10..110`, so unfreezing alone
+                   would have written a drag's raw `50` into a field holding
+                   `0.5` — a silent 100× retime, worse than the dead control it
+                   replaced. `selectorPercent`/`percentSelector` are the total
+                   pair (named stops included) the demo already ships and both
+                   seams bypassed.
+                 · THE DOMAIN. `-10..110` offered 20 points value.js rejects at
+                   parse, and `:step="1"` could express no stop between two
+                   percents. The rail is now the grammar's own `0..100` with a
+                   fractional step and decorative marks at the quarters.
+                 · THE NAME (KF-KE-34). The control had none. `LabeledField` is
+                   the producer's own shape for a composite whose root is not a
+                   labelable element — it names the GROUP and hands the slider
+                   `aria-labelledby`/`aria-describedby`. Per-THUMB identity is
+                   not expressible here: the installed producer forwards ONE
+                   `aria-label`/`aria-labelledby` to every thumb it renders and
+                   exposes no thumb slot (measured at
+                   `dist/slider-DzqeQmMu.js`), so `aria-valuetext` per thumb is a
+                   PRODUCER ask and rides the SS-6 relay — never a demo-side
+                   reach into the producer's rendered thumbs. Each stop's own
+                   named control is its card's `Offset` field. -->
+            <LabeledField
+                label="Keyframe offsets"
+                description="Each thumb retimes one stop between 0% and 100%."
+                :control-labelable="false"
+                v-slot="{ labelledBy, describedBy }"
             >
-            </Slider>
+                <Slider
+                    :model-value="
+                        animation.templateFrames.map((frame) =>
+                            selectorPercent(frame.start),
+                        )
+                    "
+                    @update:model-value="retimeFrames"
+                    :min="0"
+                    :max="100"
+                    :step="0.1"
+                    :marks="OFFSET_MARKS"
+                    :aria-labelledby="labelledBy"
+                    :aria-describedby="describedBy"
+                >
+                </Slider>
+            </LabeledField>
 
             <!-- The keyframe-action toolbar (S.C3b · C-19). This was a shadcn reka
                  `Menubar`, but it never held a single `MenubarContent` — it is a
@@ -218,6 +258,7 @@ import { kfEngine } from "@kf-engine";
 // own subpath — no root-barrel + subpath mix in one closure.
 import { Button } from "@mkbabb/glass-ui/button";
 import { Card, CardContent } from "@mkbabb/glass-ui/card";
+import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
 import { Slider } from "@mkbabb/glass-ui/slider";
 import {
     Tooltip,
@@ -238,6 +279,7 @@ import { Paintbrush, WandSparkles } from "@lucide/vue";
 import { useToolbarKeyboard } from "./composables/useToolbarKeyboard";
 
 import { parseCssScalar } from "@mkbabb/value.js/css";
+import { percentSelector, selectorPercent } from "@utils/keyframeSelector";
 import { toast } from "vue-sonner";
 import { insertTabAtCursor } from "./utils/contenteditable";
 
@@ -293,6 +335,47 @@ const cardList = useTemplateRef<InstanceType<typeof KeyframeCardList>>("cardList
 const { highlightAll } = useCodeHighlight(
     () => cardList.value?.getPreElements() ?? [],
 );
+
+/**
+ * KC-2 — the retiming rail's decorative checkpoints. `marks` is the producer's
+ * own prop for this (`SliderProps.marks?: readonly number[]`, quoted from the
+ * installed `dist/components/slider/types.d.ts`: *"Decorative checkpoints in the
+ * numeric domain; they never snap the value"*), so the quarters read as ticks
+ * without quantising a fractional step back to 25%.
+ */
+const OFFSET_MARKS = [0, 25, 50, 75, 100] as const;
+
+/**
+ * KC-2 — retime the stops from the rail's percent domain.
+ *
+ * A selector is REPLACED, never written into: value.js deep-freezes every parse
+ * result, so the previous in-place assignment to the selector's own `value`
+ * property threw before it could do anything. Only the stops whose percent
+ * actually moved are replaced, which
+ * is what keeps a NAMED selector (`entry 50%`) named while its neighbour is
+ * dragged; a named stop the user drags themselves becomes the percent they
+ * dragged it to, because the rail is a percent rail and no total inverse into a
+ * phase exists.
+ *
+ * The reprojection per emit is the handler's own pre-existing intent — it never
+ * ran before only because the line above it threw. The heavy half of it
+ * (`updateAnimationFromKeyframesString`) is already debounced at 1000 ms; a
+ * commit gate for the light half is KF-KE-26, `.c`'s row, and is not pre-empted
+ * here.
+ */
+const retimeFrames = (percents: number[] | undefined) => {
+    if (percents === undefined) return;
+
+    animation.templateFrames.forEach((frame, i) => {
+        const percent = percents[i];
+        if (percent === undefined || percent === selectorPercent(frame.start)) {
+            return;
+        }
+        frame.start = percentSelector(percent);
+    });
+
+    updateAllStringsAndAnimation();
+};
 
 const startDiagnosticId = (index: number) => `keyframe-start-${index}`;
 
