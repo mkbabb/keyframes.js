@@ -55,11 +55,34 @@ export function useSpringDerby(
     startLoop: () => void,
 ) {
     const STAGGER_MS = 110;
-    let derbyRunning = false;
     const derbyTimers: ReturnType<typeof setTimeout>[] = [];
 
     // L.W11 S6 — the reactive race flag the view layer reads to reveal the lanes.
+    //
+    // M-5 — AND IT IS NOW THE ONLY GUARD. The race used to be guarded by a
+    // SECOND, private `derbyRunning` boolean whose lifetime did not match this
+    // one's: `derbyRunning` cleared at the settle (~1340 ms) while `derbyActive`
+    // — the flag the overlay actually renders on — cleared 700 ms later
+    // (~2040 ms). A second double-tap inside that window therefore passed the
+    // guard, and `derbyTimers.length = 0` then ORPHANED the pending hide-timer
+    // without clearing it, so the stale timer unmounted the lanes ~540 ms into
+    // race #2. The same truncation emptied the array `onScopeDispose` iterates,
+    // leaving a timer pending against a disposed scope on a scene swap.
+    //
+    // LAW A census (§B.3(2)), run at this seat before the delete —
+    // ⟨cmd⟩ `grep -rn derbyRunning demo test` → FOUR lines, all in this file
+    // (the declaration, the guard read, the set, the clear); zero consumers
+    // anywhere else, and no comment documented it. Two booleans for one state
+    // is the defect; the one the UI renders on is the one that survives.
     const derbyActive = ref(false);
+
+    /** Clear every pending timer, THEN drop the handles. Never the reverse —
+     *  the reverse is exactly the orphaning M-5 convicts. One body serves
+     *  re-entry and scope disposal, so the two can no longer diverge. */
+    const cancelTimers = (): void => {
+        for (const t of derbyTimers) clearTimeout(t);
+        derbyTimers.length = 0;
+    };
 
     // The four lane descriptors (name, ζ, the trackValues index, the rainbow tone)
     // — built once from the canonical trackers, consumed by the lane overlay.
@@ -71,10 +94,12 @@ export function useSpringDerby(
     }));
 
     const derby = (): void => {
-        if (derbyRunning) return;
-        derbyRunning = true;
+        // The overlay's own flag gates re-entry for the WHOLE race, hold
+        // included: a second double-tap before the lanes have left is refused,
+        // not admitted into a half-torn-down race.
+        if (derbyActive.value) return;
+        cancelTimers();
         derbyActive.value = true;
-        derbyTimers.length = 0;
 
         // Launch each canonical track to 1 in a staggered wave.
         tracks.forEach((t, i) => {
@@ -96,9 +121,17 @@ export function useSpringDerby(
         derbyTimers.push(
             setTimeout(() => {
                 settle();
-                derbyRunning = false;
                 // Hold the lanes a beat past the settle so the ring is seen
-                // resolving, then drain back to the calm red resting state.
+                // resolving, then leave.
+                //
+                // N-1 — "then DRAIN BACK to the calm red resting state" is what
+                // this said, and it was false twice over: the overlay's `v-if`
+                // had no <Transition> at all, so the lanes vanished in one frame,
+                // and the rail/ball/marker snapped 0.35→1 because the opacity
+                // transition lived only INSIDE `.spring-rail--derby`. The exit is
+                // a real two-way fade now (SpringTarget.vue's base rules plus a
+                // named <Transition>), so the sentence can stand — but only
+                // because the bytes changed, not because the sentence did.
                 derbyTimers.push(
                     setTimeout(() => {
                         derbyActive.value = false;
@@ -108,8 +141,9 @@ export function useSpringDerby(
         );
     };
 
-    // Stop the gallery's pending derby timers on scope dispose.
-    onScopeDispose(() => derbyTimers.forEach(clearTimeout));
+    // Stop the gallery's pending derby timers on scope dispose — the SAME body
+    // re-entry uses, so a disposed scope can never be left holding one.
+    onScopeDispose(cancelTimers);
 
     return { derby, derbyActive, lanes };
 }

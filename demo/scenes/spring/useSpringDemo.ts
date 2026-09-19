@@ -427,6 +427,10 @@ export function useSpringDemo() {
             target.value = v;
             liveSpring.target = v;
             for (const t of tracks) t.spring.target = v;
+            // The settle is a target write, so it owes the same chase-intent
+            // `reseat` owes (the egg used to reach `reseat(0)` and inherit it).
+            chaseIntent = true;
+            startLoop();
         },
         () => {
             chaseIntent = true;
