@@ -1,7 +1,11 @@
 <template>
-    <div class="grid items-center gap-4">
+    <!-- KF-CO-33 — the dead layout is gone: the root grid's `gap-4 items-center`
+         had one in-flow child (the Teleport renders elsewhere), CardContent's
+         `gap-2` had one child, both `relative`s positioned nothing, and
+         `.panel-stack` was styled nowhere. -->
+    <div>
         <Card cartoon tier="quiet" class="w-full overflow-visible">
-            <CardContent class="relative flex flex-col gap-2 px-4 py-3">
+            <CardContent class="flex flex-col px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row.
                      KF-CO-5 ≡ KF-TFP-7 + KF-CO-46 — a COLLAPSED row is `inert`:
                      `grid-template-rows: 0fr` + `overflow: hidden` + `opacity: 0`
@@ -13,7 +17,7 @@
                      and the tree in one stroke. Residual, stated: `inert` also
                      excludes the subtree from find-in-page — the two collapsed
                      rows are not searchable while closed. -->
-                <div class="panel-stack relative">
+                <div>
                     <!-- Main controls panel -->
                     <div
                         :class="[
@@ -31,7 +35,26 @@
                                  (here "fill mode" / "iterations") sets the track, every
                                  row's label cell resolves the SAME width — REPLACES the
                                  W9-era per-row `:deep(.labeled-field){auto 1fr}` (each
-                                 row its own width). -->
+                                 row its own width).
+                                 KF-CO-2 ≡ LP-4 + KF-CO-31 + KF-CO-47 — the phantom
+                                 explanatory layer is DELETED, not renamed: `tooltip`,
+                                 `label-class` and `:descriptions` are declared by no
+                                 installed labeled-field component (7.0.0 `types.d.ts`
+                                 `LabeledFieldCommonProps { label; description?;
+                                 requirement?; layout?; errorLive? }`; `inheritAttrs`
+                                 0) and reached nothing. The decision per field
+                                 (KF-CO-47): `description` is persistent copy rendered
+                                 INSIDE `.labeled-field-copy` — grid item #1, the
+                                 shared `auto` label track of this very subgrid — so
+                                 five glosses would widen the label column for every
+                                 row (LP-4's geometry rider); hover is unavailable on a
+                                 LabeledField row (no label-action slot in 7.0.0,
+                                 L·I-6). Neither seam fits, so the glosses go; what a
+                                 field ACCEPTS surfaces through the `#error` seam on
+                                 rejection (KF-CO-3), and the labels take the
+                                 producer's one `.glass-label` register (KF-CO-31).
+                                 The per-item `:descriptions` gloss is a producer ask
+                                 (a LabeledSelect item-description slot → SS-6). -->
                             <div class="labeled-field-grid">
                                 <!-- KF-CO-3 — every option handler is ONE guarded
                                      commit (`commitOption`): the engine write is
@@ -45,8 +68,6 @@
                                             .duration ?? '5s'
                                     "
                                     label="duration"
-                                    label-class="text-small font-medium text-muted-foreground"
-                                    tooltip="Animation length (e.g. 5s, 200ms)"
                                     :invalid="invalidField === 'duration'"
                                     @update:model-value="
                                         (v) =>
@@ -70,8 +91,6 @@
                                             .delay ?? '0ms'
                                     "
                                     label="delay"
-                                    label-class="text-small font-medium text-muted-foreground"
-                                    tooltip="Delay before start (e.g. 0s, 500ms)"
                                     :invalid="invalidField === 'delay'"
                                     @update:model-value="
                                         (v) =>
@@ -109,8 +128,6 @@
                                               )
                                     "
                                     label="iterations"
-                                    label-class="text-small font-medium text-muted-foreground"
-                                    tooltip="Repeat count (number or 'infinite')"
                                     :invalid="invalidField === 'iterationCount'"
                                     @update:model-value="
                                         (v: string | number) =>
@@ -139,10 +156,7 @@
                                     "
                                     :open="isOpen('direction')"
                                     :items="directions"
-                                    :descriptions="DIRECTION_DESCRIPTIONS"
                                     label="direction"
-                                    label-class="text-small font-medium text-muted-foreground"
-                                    tooltip="Playback direction"
                                     @update:model-value="
                                         (v) => {
                                             if (!isOneOf(directions, v)) return;
@@ -158,8 +172,7 @@
                                         }
                                     "
                                     @update:open="
-                                        (v: boolean | undefined) =>
-                                            setOpen('direction', v ?? false)
+                                        (v: boolean) => setOpen('direction', v)
                                     "
                                 />
 
@@ -170,10 +183,7 @@
                                     "
                                     :open="isOpen('fillMode')"
                                     :items="fillModes"
-                                    :descriptions="FILL_MODE_DESCRIPTIONS"
                                     label="fill mode"
-                                    label-class="text-small font-medium text-muted-foreground"
-                                    tooltip="Style applied when not playing"
                                     @update:model-value="
                                         (v) => {
                                             if (!isOneOf(fillModes, v)) return;
@@ -189,153 +199,114 @@
                                         }
                                     "
                                     @update:open="
-                                        (v: boolean | undefined) =>
-                                            setOpen('fillMode', v ?? false)
+                                        (v: boolean) => setOpen('fillMode', v)
                                     "
                                 />
-                            </div>
 
-                            <!-- Easing field: ONE full-width unit (the label-row + edit
-                                 pencil stacked OVER the EasingSelect), matching the
-                                 LabeledField single-cell shape. glass-ui 3.4.0
-                                 <LabeledField> exposes only default+error slots (no
-                                 label-action slot, VERIFIED LabeledField.vue.d.ts) — so
-                                 this is the wrapper fallback (WV-W3-LOW-1); a glass-ui
-                                 label-action slot is BOOKED as an OPTIONAL handoff. -->
-                            <div class="flex flex-col gap-1">
-                                <div class="flex items-center gap-1.5">
-                                    <Tooltip>
-                                        <TooltipTrigger as-child>
-                                            <!-- KF-CO-18 (W6-M) — `.gold-shimmer`
-                                                 COULD NOT PAINT at this call
-                                                 site, and the mechanism is a
-                                                 layer contest the call site
-                                                 lost unconditionally. The
-                                                 producer's utility (measured in
-                                                 the installed
-                                                 `styles/utilities/base-misc.css`)
-                                                 paints a gold gradient and
-                                                 CLIPS IT TO THE TEXT, which
-                                                 only works because the same
-                                                 rule sets `color: transparent`
-                                                 — and that whole sheet is
-                                                 `@layer components`, while
-                                                 `text-muted-foreground` is a
-                                                 real utility in the LAST layer.
-                                                 The class list handed the
-                                                 shimmer a colour it could never
-                                                 win against, so the gradient
-                                                 sat behind opaque muted ink and
-                                                 the ONLY rendered
-                                                 acknowledgment that a DETAIL
-                                                 easing is selected never
-                                                 appeared — which is what makes
-                                                 KF-CO-23's dropdown a SILENT
-                                                 dead end rather than a merely
-                                                 quiet one.
-                                                 The cure is the glass-consumption
-                                                 half: the colour utility is
-                                                 DROPPED while shimmering rather
-                                                 than fought with a second
-                                                 declaration, so the two are
-                                                 alternatives on one axis and
-                                                 neither is overridden. (The
-                                                 other admissible arm — a vendor
-                                                 variant that owns its own ink —
-                                                 is the producer's and is not
-                                                 authored demo-side.) -->
-                                            <label
-                                                :class="[
-                                                    'text-small cursor-help font-medium',
-                                                    isDetailEasing
-                                                        ? 'gold-shimmer'
-                                                        : 'text-muted-foreground',
-                                                ]"
-                                                >easing</label
-                                            >
-                                        </TooltipTrigger>
-                                        <TooltipContent>Timing function curve</TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                        <TooltipTrigger as-child>
-                                        <!-- `easing-edit-btn` names the pencil and nothing reads
-                                             it (KF-CO-33, KF.W6): no rule, no script and no test
-                                             selector in the tree keys on the class — it is a label,
-                                             not a seam. Delete-or-wire is OPTIONS-UNIT's.
-                                             KF-CO-19 — THE INK. This pencil wore `text-gold`, and
-                                             gold is a SPARKLE ACCENT: on the light card it is the
-                                             lowest-contrast ink the demo ships, and it was the ONLY
-                                             ink on an edit affordance. The row's banked cure names
-                                             a light-arm gold token at `design-idioms.css:36`, and
-                                             that token NO LONGER EXISTS — this wave's own audit
-                                             retired the demo's `--color-gold` pin, its two arms and
-                                             its `.text-gold` rule as a zero-delta shadow of the
-                                             producer's `--gold` (RB-2: the shadow's whole cost was
-                                             keeping a producer retune from ever arriving). Re-minting
-                                             a demo-side light-arm gold to cure contrast would restore
-                                             exactly that shadow one commit after it was retired, so
-                                             the cure is taken at the role instead of at the token:
-                                             the glyph drops to the producer's OWN muted-icon ink
-                                             (`.dock-icon-button` mixes `--foreground` at
-                                             `--opacity-icon-muted`), and gold keeps its decorative
-                                             homes untouched. Root-styling law, and no demo-side
-                                             producer patch.
-                                             KF-CO-24 — THE BOX. `compact` is gone. glass's
-                                             coarse-pointer floor is written
-                                             `.dock-icon-button:not(.dock-icon-button--compact)`, so
-                                             the modifier EXCLUDED this control from the only floor
-                                             that can reach it — and after KF-SST-30 voided the
-                                             producer's decorative hit-expander utility (its expander
-                                             carries `pointer-events: none`) and the wave retired the
-                                             demo's own hand-authored floor class, which had zero
-                                             adopters, the producer's per-component floor is the one
-                                             sanctioned
-                                             mechanism left. Neither retired name is spelled here, so
-                                             the scanner cannot resurrect either into the built sheet;
-                                             those rows are annotated, not rewritten (E-3). This control is mounted in the controls
-                                             pane, never inside `GlassDock` (the only `.glass-dock`
-                                             host is ChromeDock), so the rule's second `:not()` does
-                                             not exclude it either. Rendered boxes → SS-13. -->
-                                        <DockControl
+                                <!-- Easing field — KF-CO-41: the unit sits INSIDE
+                                     the `.labeled-field-grid` as a SUBGRID row
+                                     (the idiom spans a non-`.labeled-field` child
+                                     1/-1; `grid-cols-subgrid` re-adopts the two
+                                     tracks), so its label sits in the SAME derived
+                                     label column as the five rows above and the
+                                     trigger spans both tracks below it. The former
+                                     `flex flex-col` unit outside the grid was the
+                                     card's second row grammar. glass-ui 7.0.0
+                                     `LabeledField` still exposes no label-action
+                                     slot (L·I-6; a producer ask → SS-6), so the
+                                     label row is hand-rolled — and wired:
+                                     KF-CO-21/22 — the visible `easing` IS the
+                                     accessible name (`aria-labelledby` from the
+                                     trigger to the label's `id`; the former
+                                     `aria-label="Timing function"` named the
+                                     control something the screen never showed,
+                                     WCAG 2.5.3), and the mouse-only label Tooltip
+                                     (as-child onto a non-focusable `<label>`) is
+                                     gone with the `cursor-help` cue. -->
+                                <div
+                                    class="col-span-full grid grid-cols-subgrid
+                                        gap-y-1"
+                                >
+                                    <div class="col-start-1 flex items-center gap-1.5">
+                                        <!-- KF-CO-18 (W6-M) — `.gold-shimmer` clips
+                                             a gold gradient to the text by setting
+                                             `color: transparent` in `@layer
+                                             components`; a colour utility beside it
+                                             wins the cascade and paints opaque ink
+                                             over the gradient, so the two are
+                                             ALTERNATIVES on one axis, never
+                                             stacked. -->
+                                        <label
+                                            :id="easingLabelId"
+                                            :class="[
+                                                'text-small font-medium',
+                                                isDetailEasing
+                                                    ? 'gold-shimmer'
+                                                    : 'text-muted-foreground',
+                                            ]"
+                                            >easing</label
+                                        >
+                                        <!-- KF-CO-42 (root of KF-CO-24 / -27 / half of
+                                             -28) — the pencil is the producer's
+                                             `Button emphasis="quiet" icon-only`, the
+                                             primitive the SAME card's Back button
+                                             already is. `DockControl` was a dock
+                                             control mounted in a Card: its declared
+                                             hit-cell guarantee is dock-scoped, its
+                                             coarse-pointer floor excluded the
+                                             `compact` variant (KF-CO-24 — re-scoped:
+                                             the Button's own box is the floor now),
+                                             and it declared no `title`, so the pencil
+                                             wore a fallen-through native title AND a
+                                             reka Tooltip with the same string on two
+                                             timings (KF-CO-27) — ONE name now, the
+                                             `aria-label`. KF-CO-19's ink cure holds:
+                                             the glyph takes the quiet Button's own
+                                             muted ink; no gold, no demo-side token.
+                                             `easing-edit-btn` named the control for
+                                             no reader (KF-CO-33) and is deleted. -->
+                                        <Button
                                             ref="pencilEl"
-                                            shape="icon"
-                                            title="Edit easing curve"
-                                            class="easing-edit-btn"
+                                            emphasis="quiet"
+                                            icon-only
+                                            class="h-auto p-1 text-muted-foreground hover:text-foreground transition-colors"
+                                            aria-label="Edit easing curve"
                                             @click.stop="openDetailEditor"
                                         >
                                             <Pencil class="icon-sm" />
-                                        </DockControl>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Edit easing curve</TooltipContent>
-                                    </Tooltip>
-                                </div>
-                                <!-- I.W2.S3 — the dropdown's model-value is the
-                                     KIND (literal-aware), and the persist is the
-                                     ONE seam (`updateTimingFunctionFromName`, which
-                                     writes the COMPLETE re-parseable literal).
-                                     T.E8 + OD-5 R2 — the bespoke EasingSelect (and
-                                     its tiny hand-plotted trigger-curve, the
-                                     rejected "top-left curve preview") died with
-                                     the instrument/easing cluster: this is the
-                                     standard glass-ui Select over the SAME
-                                     family-grouped named-curve catalogue; the
-                                     CURVE rendering now lives in the vendor
-                                     EasingPicker (detail panel) + the T.E6
-                                     gallery sparklines. -->
-                                <Select
-                                    :model-value="selectedCurveKey"
-                                    @update:model-value="
-                                        (key) =>
-                                            updateTimingFunctionFromName(
-                                                String(key),
-                                            )
-                                    "
-                                >
-                                    <SelectTrigger aria-label="Timing function">
-                                        <SelectValue
-                                            placeholder="Pick a curve"
-                                        />
-                                    </SelectTrigger>
+                                        </Button>
+                                    </div>
+                                    <!-- I.W2.S3 — the dropdown's model-value is the
+                                         selected catalogue key (KF-CO-10), and the
+                                         persist is the ONE seam
+                                         (`updateTimingFunctionFromName`, which
+                                         writes the COMPLETE re-parseable literal);
+                                         KF-CO-23 — a pick routes through
+                                         `onCurvePicked`, so the two DRAFT-kind rows
+                                         open the editor they name.
+                                         T.E8 + OD-5 R2 — the bespoke EasingSelect
+                                         (and its tiny hand-plotted trigger-curve,
+                                         the rejected "top-left curve preview") died
+                                         with the instrument/easing cluster: this is
+                                         the standard glass-ui Select over the SAME
+                                         family-grouped named-curve catalogue; the
+                                         CURVE rendering now lives in the vendor
+                                         EasingPicker (detail panel) + the T.E6
+                                         gallery sparklines. -->
+                                    <Select
+                                        :model-value="selectedCurveKey"
+                                        @update:model-value="
+                                            (key) => onCurvePicked(String(key))
+                                        "
+                                    >
+                                        <SelectTrigger
+                                            class="col-span-full"
+                                            :aria-labelledby="easingLabelId"
+                                        >
+                                            <SelectValue
+                                                placeholder="Pick a curve"
+                                            />
+                                        </SelectTrigger>
                                     <SelectContent
                                         class="max-h-[var(--easing-dropdown-max-h)]"
                                     >
@@ -363,11 +334,19 @@
                                                 <SelectLabel class="text-muted-foreground">
                                                     {{ group.family }}
                                                 </SelectLabel>
+                                                <!-- KF-CO-6 — `text-value` is what
+                                                     the closed trigger PRINTS
+                                                     (reka publishes the item's
+                                                     textContent otherwise, so the
+                                                     trigger read the run-on
+                                                     `ease-in-outslow start & end`).
+                                                     The name alone is the value. -->
                                                 <SelectItem
                                                     v-for="curveItem in group.items"
                                                     :key="curveItem.name"
                                                     :value="curveItem.name"
-                                                    class="pr-2"
+                                                    :text-value="curveItem.name"
+                                                    class="pe-2"
                                                 >
                                                     <span
                                                         class="flex w-full
@@ -409,10 +388,14 @@
                                                                 curveItem.name
                                                             }}</span
                                                         >
+                                                        <!-- KF-CO-32 — logical
+                                                             `ms-auto ps-2` in an
+                                                             RTL-ready vendor
+                                                             context. -->
                                                         <span
                                                             class="text-dropdown-secondary
                                                                 text-muted-foreground
-                                                                ml-auto pl-2
+                                                                ms-auto ps-2
                                                                 leading-tight
                                                                 whitespace-nowrap"
                                                             >{{
@@ -425,41 +408,47 @@
                                         </template>
                                     </SelectContent>
                                 </Select>
+                                </div>
                             </div>
 
                             <Separator class="my-1" />
 
-                            <!-- Advanced — navigate to sub-pane -->
-                            <div
+                            <!-- Advanced — navigate to the sub-pane. KF-CO-26 — a
+                                 real `<button>` (Enter/Space are the element's
+                                 own; the hand-rolled `div[role=button]` + two
+                                 keydown handlers die) carrying `aria-expanded`
+                                 and `aria-controls` onto the pane row, and the
+                                 demo's `.kf-focus-ring`. KF-CO-28 — enter and
+                                 exit chrome share ONE grammar: `text-small
+                                 font-medium`, muted→foreground hover, `icon-sm`,
+                                 `gap-1.5`, `py-1.5`. KF-CO-29 — the chevron sits
+                                 on the row's own right edge; the `px-3` wrapper,
+                                 the inert `gap-x-3` and the inert `justify-end`
+                                 are gone. -->
+                            <button
                                 ref="advancedRowEl"
-                                @click="openAdvanced"
-                                role="button"
-                                tabindex="0"
-                                @keydown.enter="openAdvanced"
-                                @keydown.space.prevent="openAdvanced"
-                                class="hover:text-foreground
+                                type="button"
+                                class="kf-focus-ring hover:text-foreground
                                     text-muted-foreground flex w-full
                                     cursor-pointer items-center justify-between
-                                    gap-x-3 py-1.5 transition-colors"
+                                    gap-1.5 py-1.5 transition-colors"
+                                :aria-expanded="advancedOpen"
+                                :aria-controls="advancedPaneId"
+                                @click="openAdvanced"
                             >
-                                <span class="text-small font-medium"
-                                    >advanced</span
-                                >
-                                <div class="flex items-center justify-end px-3">
-                                    <!-- KF-CO-20 — the ONLY navigability mark in
-                                         this pane, and it failed in BOTH theme
-                                         arms because `opacity-50` was applied to
-                                         an ALREADY-muted role: the parent row
-                                         hands down `--muted-foreground` (and
-                                         `--foreground` on hover), and halving it
-                                         caps the ratio below any arm's reach.
-                                         Deleting the alpha IS the real rung —
-                                         the row already carries the muted→ink
-                                         hover pair the chevron wants. Exact
-                                         composites → SS-13. -->
-                                    <ChevronRight class="icon-md" />
-                                </div>
-                            </div>
+                                <span class="text-small font-medium">advanced</span>
+                                <!-- KF-CO-20 — the ONLY navigability mark in this
+                                     pane, and it failed in BOTH theme arms because
+                                     `opacity-50` was applied to an ALREADY-muted
+                                     role: the parent row hands down
+                                     `--muted-foreground` (and `--foreground` on
+                                     hover), and halving it caps the ratio below any
+                                     arm's reach. Deleting the alpha IS the real rung
+                                     — the row already carries the muted→ink hover
+                                     pair the chevron wants. Exact composites →
+                                     SS-13. -->
+                                <ChevronRight class="icon-sm" />
+                            </button>
                         </div>
                     </div>
 
@@ -504,25 +493,29 @@
                                 ? 'panel-row--active'
                                 : 'panel-row--inactive',
                         ]"
+                        :id="advancedPaneId"
                         :inert="!(advancedOpen && !showDetailPanel)"
                     >
                         <div class="panel-content flex w-full flex-col gap-2">
-                            <div class="mb-1 flex items-center gap-1">
-                                <DockControl
+                            <!-- KF-CO-42 / KF-CO-28 — the exit chrome: the same
+                                 quiet icon-only Button as the pencil and the
+                                 detail pane's Back, one accessible name, the
+                                 enter row's type/ink/glyph rung. -->
+                            <div
+                                class="flex items-center gap-1.5 py-1.5
+                                    text-muted-foreground"
+                            >
+                                <Button
                                     ref="advancedBackEl"
-                                    shape="icon"
-                                    compact
-                                    title="Back"
-                                    class="text-muted-foreground"
+                                    emphasis="quiet"
+                                    icon-only
+                                    class="h-auto p-1 text-muted-foreground hover:text-foreground transition-colors"
+                                    aria-label="Back to controls"
                                     @click="closeAdvanced"
                                 >
-                                    <ArrowLeft class="icon-md" />
-                                </DockControl>
-                                <span
-                                    class="text-small text-muted-foreground
-                                        font-medium"
-                                    >advanced</span
-                                >
+                                    <ArrowLeft class="icon-sm" />
+                                </Button>
+                                <span class="text-small font-medium">advanced</span>
                             </div>
 
                             <!-- Layer Settings (only when the animation has a layer).
@@ -591,6 +584,7 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 import {
+    Button,
     Card,
     CardContent,
     Select,
@@ -603,8 +597,6 @@ import {
     SelectValue,
     Separator,
 } from "@mkbabb/glass-ui";
-import { DockControl } from "@mkbabb/glass-ui/dock";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
@@ -618,14 +610,12 @@ import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 // deleted EasingSelect consumed; the easing scene co-owns it).
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 
-import { Teleport, nextTick, onMounted, ref, toRef, useTemplateRef } from "vue";
+// L·N-16 — `Teleport` is a built-in the template compiler resolves; it is not
+// imported.
+import { nextTick, onMounted, ref, toRef, useId, useTemplateRef } from "vue";
 import { getStoredAnimationOptions } from "@state";
 import { kfEngine } from "@kf-engine";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
-import {
-    DIRECTION_DESCRIPTIONS,
-    FILL_MODE_DESCRIPTIONS,
-} from "@utils/reference-data/animationDescriptions";
 
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -645,9 +635,15 @@ const {
     showDetailPanel,
     selectedCurveKey,
     onEditIconClick,
+    onCurvePicked,
     exitDetailPanel,
     updateTimingFunctionFromName,
 } = useTimingFunctionEditor(() => props.animation, storedAnimationOptions);
+
+// KF-CO-21 / KF-CO-26 — the ids the hand-rolled label row and the advanced
+// disclosure wire their ARIA relations through (SSR-stable, per instance).
+const easingLabelId = useId();
+const advancedPaneId = useId();
 
 // ── KF-CO-3 ≡ L·B-1 / C·B-1 (+ N-1, N-15) — ONE guarded option handler ──────
 // The engine setters are fail-explicit — a malformed PRESENT value throws an
@@ -700,12 +696,12 @@ const isOneOf = <const T extends readonly string[]>(
 // control, and carried back OUT to the opener on close — else the browser
 // drops focus to `<body>` and a keyboard user restarts from the top of the
 // document. The component-ref roots (`$el`) are the producer's own buttons.
-const pencilEl = useTemplateRef<InstanceType<typeof DockControl>>("pencilEl");
+const pencilEl = useTemplateRef<InstanceType<typeof Button>>("pencilEl");
 const detailPanelEl =
     useTemplateRef<InstanceType<typeof TimingFunctionPanel>>("detailPanelEl");
-const advancedRowEl = useTemplateRef<HTMLElement>("advancedRowEl");
+const advancedRowEl = useTemplateRef<HTMLButtonElement>("advancedRowEl");
 const advancedBackEl =
-    useTemplateRef<InstanceType<typeof DockControl>>("advancedBackEl");
+    useTemplateRef<InstanceType<typeof Button>>("advancedBackEl");
 
 const openDetailEditor = async () => {
     const stored = storedAnimationOptions.animationOptions.timingFunction;
@@ -845,14 +841,9 @@ onMounted(() => {
    across the shadow boundary; the idiom is GLOBAL (design-idioms.css, unscoped),
    so it reaches `.labeled-field` directly with no `:deep`. */
 
-/* J.W7b STY-4, corrected at the bytes (KF-CO-19 / KF-CE-41). The former
-   `.easing-edit-btn { color: var(--color-gold) }` scoped rule is still deleted,
-   but its successor sentence is no longer true twice over: there is no
-   "demo-owned `.text-gold` idiom" — the demo's rule and its `--color-gold` pin
-   were retired this wave as a zero-delta shadow of glass-ui's `--gold`, and the
-   surviving `text-gold` is the utility the PRODUCER's theme bridge generates —
-   and this call site no longer wears it at all, because gold is a sparkle accent
-   and was the only ink on an edit affordance. `.easing-edit-btn` carries no
-   style and, at these bytes, no reader either (KF-CO-33 — see the template
-   note; OPTIONS-UNIT decides its fate). */
+/* J.W7b STY-4 → KF-CO-19 / KF-CO-33 — no gold on the pencil (a sparkle accent
+   was the only ink on an edit affordance; the demo's `--color-gold` shadow of
+   the producer's `--gold` is retired), and no `.easing-edit-btn` hook: the
+   class styled nothing and was read by nothing, so the control carries the
+   producer's quiet Button ink and no name of its own. */
 </style>

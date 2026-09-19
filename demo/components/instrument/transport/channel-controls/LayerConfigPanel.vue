@@ -1,114 +1,140 @@
 <template>
-    <!-- F1 (H.W9.S3) — blend / z-index / enabled render as glass-ui `.labeled-field`
-         rows into ChannelOptions's advanced-sub-pane `.panel-content`,
-         where the host's `.panel-content :deep(.labeled-field)` rule gives them the
-         label-LEFT / value-RIGHT intra-row [auto_1fr] shape (one DRY source for the
-         panel-row split; this component does NOT re-author it). -->
-    <template v-if="layerConfig">
-        <!-- KF-CO-1 / LP-2 — `open` is the producer's DECLARED prop
-             (`LabeledSelectProps.open?: boolean`, emit `update:open`). The
-             former `is-open` spelling reached nothing, and the absent Boolean
-             prop cast to `false` was forwarded unconditionally into reka's
-             SelectRoot, pinning this select controlled-shut. -->
-        <LabeledSelect
-            v-if="blendAvailable"
-            :model-value="layerConfig.op"
-            :open="open"
-            :items="COMPOSITE_OPERATORS"
-            :descriptions="COMPOSITE_OPERATOR_DESCRIPTIONS"
-            label="blend"
-            tooltip="How this layer blends with others"
-            @update:model-value="(v) => emit('update', { op: v as AnimationLayerConfig['op'] })"
-            @update:open="(v) => emit('update:open', v)"
-        />
-        <LabeledField
-            v-else
-            label="blend"
-            tooltip="Blend modes apply only when layers share one target"
+    <!-- F1 (H.W9.S3) → LP-10 ≡ KF-CO-37 (prose corrected at the bytes): the
+         blend / z-index / weight / enabled rows render as glass-ui
+         `.labeled-field` rows into ChannelOptions's advanced sub-pane, whose
+         `.labeled-field-grid` wrapper is the ONE DRY source of the row shape —
+         the §LABEL-subgrid idiom (design-idioms.css), a uniform derived label
+         column across every row. This component does NOT re-author it (the
+         W9-era `.panel-content :deep(.labeled-field)` rule this header once
+         credited is deleted). The LabeledField slot contract is
+         `labeled-field/types.d.ts` (`controlId` / `errorId`), not the 19-line
+         `LabeledField.vue.d.ts`.
+         LP-13 — the former `v-if="layerConfig"` guarded a REQUIRED prop; the
+         sole mount site (ChannelOptions) guards, so the guard is deleted and
+         the type is the truth.
+         LP-6 / LP-17 — the DISABLED posture is the honest state, threaded
+         through glass 7's `disabled` channel (surfaced as `data-disabled`):
+         on a multi-target group the engine never reads `entry.layer`
+         (`renderMultiTarget`), so blend AND enabled are inert together and
+         both render disabled (the `blendAvailable` disclosure extended to the
+         enabled row; the dangling `label[for]` readout row of LP-14 dies with
+         its deletion); when `enabled` is false the layer contributes to
+         nothing (its keys leave the stable union; every compositor path
+         skips it), so blend / z-index / weight render disabled beneath the
+         live switch. -->
+    <!-- KF-CO-1 / LP-2 — `open` is the producer's DECLARED prop
+         (`LabeledSelectProps.open?: boolean`, emit `update:open`). The former
+         `is-open` spelling reached nothing, and the absent Boolean prop cast to
+         `false` was forwarded unconditionally into reka's SelectRoot, pinning
+         this select controlled-shut. -->
+    <LabeledSelect
+        :model-value="layerConfig.op"
+        :open="open"
+        :items="COMPOSITE_OPERATORS"
+        :disabled="!blendAvailable || !layerConfig.enabled"
+        label="blend"
+        @update:model-value="
+            (v) => {
+                if (isCompositeOperator(v)) emit('update', { op: v });
+            }
+        "
+        @update:open="(v: boolean) => emit('update:open', v)"
+    />
+
+    <!-- z-index: a raw <LabeledField> + a slotted control so blend/z-index/
+         enabled are all one-cell rows (one paradigm, H.W3.S2). LabeledField
+         owns the label/copy layer; the slot binds `controlId` by hand (the
+         wrappers auto-wire it; `types.d.ts`).
+         LP-8 ≡ KF-CO-35 (S-9, EVALUATED → ADOPTED, W6-I; LANDED at the
+         frontier — booked GREEN-BEFORE-CURE by this unit): the control is the
+         producer's `NumberField` (`./number-field`, 7.0.0). The hand-rolled
+         `<Input type="number">` sat outside the primitive's declared type
+         union, invented data on a blank commit (`parseInt(…) || 0` — an empty
+         field became a zero z-index) and committed on blur only. The
+         NumberField emits a NUMBER payload through its own model, so the
+         commit is `Number.isFinite`-gated: a blank or unparsable entry commits
+         NOTHING, an integer step is the domain's own, and the stepper buttons
+         give the row a keyboard and pointer increment it never had. `id`
+         rides the root (reka hands it to the input through its context). The
+         mono face and tabular numerals are the primitive's own
+         (`.number-field__input`). The SECOND site of this evaluation —
+         TimelineCaret's inline percent editor (C-4 / D·M-9, MISS-α6) — is
+         DECLINED at the caret, in writing there.
+         LP-11 — the former `:aria-errormessage="errorId"` was permanently
+         inert (`errorId` resolves only under `invalid` + an `#error` slot,
+         neither bound; ARIA also wants `aria-invalid`) and is deleted: the
+         NumberField's finite-gate rejects nothing the user can see, so there
+         is no error to point at. -->
+    <LabeledField label="z-index" v-slot="{ controlId }">
+        <NumberField
+            :id="controlId"
+            :model-value="layerConfig.zIndex"
+            :step="1"
+            :format-options="{ maximumFractionDigits: 0 }"
+            :disabled="!layerConfig.enabled"
+            @update:model-value="
+                (v: number) => {
+                    if (Number.isFinite(v)) emit('update', { zIndex: v });
+                }
+            "
         >
-            <span class="text-small text-muted-foreground text-right">
-                independent targets
-            </span>
-        </LabeledField>
+            <NumberFieldContent>
+                <NumberFieldDecrement />
+                <NumberFieldInput />
+                <NumberFieldIncrement />
+            </NumberFieldContent>
+        </NumberField>
+    </LabeledField>
 
-        <!-- z-index: a raw <LabeledField> + a slotted control so blend/z-index/
-             enabled are all one-cell rows (one paradigm, H.W3.S2). LabeledField
-             owns the label/copy layer; the slot binds controlId/errorId
-             manually (the four wrappers auto-wire these — a raw slot does it by
-             hand, LabeledField.vue.d.ts:19-26 / WV-W3-LOW-2).
-             LP-8 ≡ KF-CO-35 (S-9, EVALUATED → ADOPTED here, W6-I): the control
-             is the producer's `NumberField` (`./number-field`, 7.0.0). The
-             hand-rolled `<Input type="number">` sat outside the primitive's
-             declared type union, invented data on a blank commit
-             (`parseInt(…) || 0` — an empty field became a zero z-index) and
-             committed on blur only. The NumberField emits a NUMBER payload
-             through its own model, so the commit is `Number.isFinite`-gated:
-             a blank or unparsable entry commits NOTHING, an integer step is
-             the domain's own, and the stepper buttons give the row a keyboard
-             and pointer increment it never had. `id` rides the root (reka
-             hands it to the input through its context); the error linkage
-             lands on the input, which forwards its attrs. The mono face and
-             tabular numerals are the primitive's own (`.number-field__input`),
-             so the caller's `font-mono` is not re-authored. The SECOND site
-             of this evaluation — TimelineCaret's inline percent editor
-             (C-4 / D·M-9, MISS-α6) — is DECLINED at the caret, in writing
-             there. -->
-        <LabeledField
-            label="z-index"
-            tooltip="Stacking order in animation group"
-            v-slot="{ controlId, errorId }"
-        >
-            <NumberField
-                :id="controlId"
-                :model-value="layerConfig.zIndex"
-                :step="1"
-                :format-options="{ maximumFractionDigits: 0 }"
-                @update:model-value="
-                    (v: number) => {
-                        if (Number.isFinite(v)) emit('update', { zIndex: v });
-                    }
-                "
-            >
-                <NumberFieldContent>
-                    <NumberFieldDecrement />
-                    <NumberFieldInput :aria-errormessage="errorId" />
-                    <NumberFieldIncrement />
-                </NumberFieldContent>
-            </NumberField>
-        </LabeledField>
+    <!-- LP-18 — the weight slider is the one 0–1 quantity at step 0.01 where
+         precision is the point, and it shipped with no visible value (reka
+         supplies `aria-valuenow`, so the reader was told the number and the
+         sighted user was not). The readout is welded into the LABEL — the
+         label track is the row's one text cell, so the number sits where the
+         z-index row's integer sits one row up. (A LabeledSlider readout seam
+         is a producer ask → SS-6.)
+         LP-23 — a live `weightSpring` SILENTLY SHADOWS this write (weight.ts:
+         `weightSpring?.value ?? weight`, spring exempt even from the clamp),
+         so the slider is disabled while a spring drives the weight: a control
+         whose write the engine ignores is not offered as live.
+         LP-20 — `v-if` on the element itself, not a wrapping `<template>`. -->
+    <LabeledSlider
+        v-if="blendAvailable && layerConfig.op === 'replace'"
+        :label="`weight ${layerConfig.weight.toFixed(2)}`"
+        :model-value="layerConfig.weight"
+        :min="0"
+        :max="1"
+        :step="0.01"
+        :disabled="
+            !layerConfig.enabled || layerConfig.weightSpring !== undefined
+        "
+        @update:model-value="(v: number) => emit('update', { weight: v })"
+    />
 
-        <template v-if="blendAvailable && layerConfig.op === 'replace'">
-            <LabeledSlider
-                label="weight"
-                tooltip="Blend weight (0 = none, 1 = full)"
-                :model-value="layerConfig.weight"
-                :min="0"
-                :max="1"
-                :step="0.01"
-                @update:model-value="(v: number) => emit('update', { weight: v })"
-            />
-        </template>
-
-        <!-- KF-CO-8 ≡ LP-3 — the switch rides the producer's DECLARED model
-             (`LabeledSwitchProps.modelValue: boolean`, emit `update:modelValue`).
-             `checked`/`update:checked` were unknown to the installed component:
-             the absent Boolean `modelValue` cast to `false` rendered the switch
-             permanently OFF while the engine default is `enabled: true`, and
-             the click listened for an event that was never fired. -->
-        <LabeledSwitch
-            label="enabled"
-            tooltip="Enable/disable this layer"
-            :model-value="layerConfig.enabled"
-            @update:model-value="(v: boolean) => emit('update', { enabled: v })"
-        />
-
-        <Separator class="my-1" />
-    </template>
+    <!-- KF-CO-8 ≡ LP-3 — the switch rides the producer's DECLARED model
+         (`LabeledSwitchProps.modelValue: boolean`, emit `update:modelValue`).
+         `checked`/`update:checked` were unknown to the installed component:
+         the absent Boolean `modelValue` cast to `false` rendered the switch
+         permanently OFF while the engine default is `enabled: true`, and
+         the click listened for an event that was never fired. -->
+    <LabeledSwitch
+        label="enabled"
+        :model-value="layerConfig.enabled"
+        :disabled="!blendAvailable"
+        @update:model-value="(v: boolean) => emit('update', { enabled: v })"
+    />
+    <!-- LP-12 — the terminal `<Separator>` (a bare `role="separator"` with no
+         accessible name, separating the last row from nothing) is deleted. -->
 </template>
 
 <script setup lang="ts">
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
-import { LabeledField, LabeledSelect, LabeledSlider, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
+import {
+    LabeledField,
+    LabeledSelect,
+    LabeledSlider,
+    LabeledSwitch,
+} from "@mkbabb/glass-ui/labeled-field";
 import {
     NumberField,
     NumberFieldContent,
@@ -116,10 +142,22 @@ import {
     NumberFieldIncrement,
     NumberFieldInput,
 } from "@mkbabb/glass-ui/number-field";
-import { Separator } from "@mkbabb/glass-ui/separator";
-import { COMPOSITE_OPERATOR_DESCRIPTIONS } from "@utils/reference-data/animationDescriptions";
 
-const COMPOSITE_OPERATORS = ["replace", "add", "accumulate"] as const;
+// LP-15 / LP-21 — ONE operator enumeration, policed against the engine's own
+// union (`satisfies`: a member the engine drops fails to compile here), and
+// the `op` write NARROWED at the emit boundary by a predicate over that same
+// list — the producer's select emits `string`, and the former `as` cast let
+// an out-of-vocabulary operator ride `Object.assign` into the compositor's
+// replace/weight-blend arm unvalidated. (The `COMPOSITE_OPERATOR_DESCRIPTIONS`
+// binding it once carried was a phantom prop — KF-CO-2 / KF-CO-47.)
+type CompositeOperator = AnimationLayerConfig["op"];
+const COMPOSITE_OPERATORS = [
+    "replace",
+    "add",
+    "accumulate",
+] as const satisfies readonly CompositeOperator[];
+const isCompositeOperator = (v: string): v is CompositeOperator =>
+    COMPOSITE_OPERATORS.some((op) => op === v);
 
 defineProps<{
     layerConfig: AnimationLayerConfig;
@@ -135,5 +173,4 @@ const emit = defineEmits<{
     (e: "update", val: Partial<AnimationLayerConfig>): void;
     (e: "update:open", open: boolean): void;
 }>();
-
 </script>

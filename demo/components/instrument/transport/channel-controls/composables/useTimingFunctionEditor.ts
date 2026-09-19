@@ -37,25 +37,22 @@ const isTimingFunctionName = (s: string): s is TimingFunctionNames =>
     timingFunctionKind(s) !== undefined;
 
 import {
-    getCurvePath,
     cubicBezierEasing,
-    generateCurveSVGPath,
-    generateStepSVGPath,
     namedEasing,
     steppedEasing,
 } from "@utils/reference-data/timingCurveUtils";
-import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import {
     NAMED_EASING_BEZIER,
     isDetailTimingFunction,
     timingFunctionKind,
 } from "@utils/reference-data/animationDescriptions";
 
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
-const easingItems = EASING_GROUPS.flatMap(({ items }) =>
-    items.map(({ name }) => ({ value: name })),
-);
+// KF-CO-34 — the consumerless `easingItems` (the only reason this composable
+// imported the whole EASING_GROUPS module) and `activeCurvePath` (L·N-7; the
+// hand-plotted trigger sparkline died with the instrument/easing cluster) are
+// deleted with their imports: one module-graph edge fewer.
 
 // ── Composable ───────────────────────────────────────────────────────
 
@@ -73,8 +70,16 @@ export function useTimingFunctionEditor(
     /** User dismissed the detail panel without changing the timing function */
     const detailPanelDismissed = ref(true);
 
-    /** Only auto-open the editor when the edit icon was used, not from dropdown */
-    const openEditorOnChange = ref(false);
+    // KF-CO-23 + KF-CO-44 — the `openEditorOnChange` one-shot flag and the
+    // store watch that was its only clearer are DELETED. The flag existed to
+    // open the editor after the pencil's persist landed, and leaked on the two
+    // branches that persist nothing (an already-bezier curve, a byte-identical
+    // steps literal), so a LATER dropdown pick auto-opened the editor — the
+    // very thing the flag's docstring said it prevented. Every opener now sets
+    // `detailPanelDismissed` itself, synchronously, at the moment of the act;
+    // and a dropdown pick of a DRAFT kind (`cubic-bezier` / `steps` — entries
+    // whose whole meaning is "open an editor") opens it through the same seam
+    // (`onCurvePicked`) instead of persisting silently and showing nothing.
 
     // I.W2.S3 — the store persists a re-parseable LITERAL; the UI keys off the
     // KIND. `isDetailTimingFunction` / `timingFunctionKind` are literal-aware, so
@@ -123,35 +128,6 @@ export function useTimingFunctionEditor(
         if (isStepKeyword(stored)) return stored;
         return timingFunctionKind(stored) ?? stored;
     });
-
-    /** Reactive SVG path for the current timing function */
-    const activeCurvePath = computed(() => {
-        const kind = timingFunctionKind(
-            storedAnimationOptions.animationOptions.timingFunction,
-        );
-        if (kind === undefined) return "";
-        if (kind === "cubic-bezier") {
-            const [x1, y1, x2, y2] =
-                storedAnimationOptions.cubicBezierOptions.controlPoints;
-            return generateCurveSVGPath(cubicBezierEasing(x1, y1, x2, y2));
-        }
-        if (kind === "steps") {
-            const { steps } = storedAnimationOptions.stepOptions;
-            return generateStepSVGPath(steps);
-        }
-        return getCurvePath(kind);
-    });
-
-    // Re-open the detail panel only when triggered via edit icon
-    watch(
-        () => storedAnimationOptions.animationOptions.timingFunction as string,
-        () => {
-            if (openEditorOnChange.value) {
-                detailPanelDismissed.value = false;
-                openEditorOnChange.value = false;
-            }
-        },
-    );
 
     // ── Mutators ─────────────────────────────────────────────────────
 
@@ -310,8 +286,22 @@ export function useTimingFunctionEditor(
 
     /** Called from the edit icon — opens the curve editor */
     const onEditIconClick = (currentEasing: string) => {
-        openEditorOnChange.value = true;
         onEasingLabelClick(currentEasing);
+    };
+
+    /**
+     * The dropdown's pick. A NAME is persisted and applied, and the editor is
+     * left as it was; a DRAFT kind is persisted as its complete literal from
+     * the store's parameters AND opens the editor on them (KF-CO-23) — the
+     * dropdown row for `cubic-bezier` / `steps` is an editor entry, not a
+     * silent selection.
+     */
+    const onCurvePicked = (key: string) => {
+        updateTimingFunctionFromName(key);
+        if (key === "cubic-bezier" || key === "steps") {
+            convertedFromName.value = null;
+            detailPanelDismissed.value = false;
+        }
     };
 
     const onEasingLabelClick = (currentEasing: string) => {
@@ -363,9 +353,6 @@ export function useTimingFunctionEditor(
     };
 
     return {
-        // Static data
-        easingItems,
-
         // Reactive state
         convertedFromName,
         departure,
@@ -373,11 +360,11 @@ export function useTimingFunctionEditor(
         isDetailEasing,
         showDetailPanel,
         selectedCurveKey,
-        activeCurvePath,
 
         // Actions
         onEditIconClick,
         onEasingLabelClick,
+        onCurvePicked,
         exitDetailPanel,
         setAnimationTimingFunction,
         updateTimingFunctionFromName,
