@@ -300,22 +300,16 @@ import {
     formatComboParts,
 } from "@mkbabb/glass-ui/keyboard";
 import { isInsideToaster } from "@components/instrument/utils/toastGuard";
+import { groupShortcuts } from "./groupShortcuts";
 
 const open = defineModel<boolean>('open', { required: true });
 
 const shortcuts = useRegisteredShortcuts();
 
-const groupedShortcuts = computed(() => {
-    const groups = new Map<string, typeof shortcuts.value>();
-
-    for (const s of shortcuts.value) {
-        const group = s.options.group ?? "General";
-        if (!groups.has(group)) groups.set(group, []);
-        groups.get(group)!.push(s);
-    }
-
-    return groups;
-});
+// R-10 — the grouping RULE lives beside this SFC, not inside it (groupShortcuts.ts),
+// so the "General" default and the first-appearance group order are covered at the
+// module instead of behind a dialog mount. The template binding is unchanged.
+const groupedShortcuts = computed(() => groupShortcuts(shortcuts.value));
 
 // KSM R-14 — the platform join rule, ASKED of the producer instead of branched
 // on here. `formatCombo` joins the same parts `formatComboParts` returns, with
