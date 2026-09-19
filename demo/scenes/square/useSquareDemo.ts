@@ -360,17 +360,29 @@ export function useSquareDemo(
         const cs = getComputedStyle(el);
         let tx = 0;
         let ty = 0;
+        let rotate = 0;
         try {
             const m = new DOMMatrixReadOnly(cs.transform);
             tx = m.m41;
             ty = m.m42;
+            // L-5 — THE TAKEOVER IS JUMP-FREE IN ROTATION TOO, NOT ONLY IN
+            // TRANSLATION. This read used to take `m41`/`m42` and then
+            // `springSpin.reset(0, 0)`, throwing away the tour's own rotation
+            // (0 → 360° across the diamond): the next spring frame painted
+            // `rotate(0)` — up to a 90° un-rotation in ONE frame, against two
+            // "no frame jump" comments. The painted angle is the 2D matrix's
+            // own `atan2(b, a)`; seating the spin there means the first spring
+            // frame paints exactly what the engine's last one did. (The nested
+            // `d` scale needs no seat: the loop re-derives it from the seated
+            // deflection, so it is continuous by construction.)
+            rotate = (Math.atan2(m.b, m.a) * 180) / Math.PI;
         } catch {
             // KEEP: a malformed/"none" transform → seat at home (no jump from
             // rest) — the DOMMatrix parse is best-effort by design.
         }
         springX.reset(clamp(tx / TRAVEL, -1, 1), 0);
         springY.reset(clamp(ty / TRAVEL, -1, 1), 0);
-        springSpin.reset(0, 0);
+        springSpin.reset(rotate, 0);
     };
 
     /** How far (px) a full [-1,1] deflection travels — for the drag math. */
@@ -424,6 +436,59 @@ export function useSquareDemo(
         transformFunc,
     );
 
+    /**
+     * ARB-1 — THE REVERSE POSE-ADOPTION: which tour time is the box already at?
+     *
+     * `seatFromPose` seats the SPRINGS from the engine's painted pose; nothing
+     * did the mirror, so Play resumed the tour at its own clock (or started at
+     * 0% home) while a persist-policy drag had left the box up to 2×TRAVEL away
+     * — a one-frame snap of ~220 px plus a rotation out of nowhere.
+     *
+     * The authored diamond is read off the animation's OWN template frames (one
+     * source of truth — the keyframes below, never a second table), projected
+     * onto each segment, and the nearest point's normalized time returned. The
+     * path is segment-linear while the engine's within-segment motion carries
+     * the timing function, so the residual is one segment's easing warp rather
+     * than a whole diamond.
+     */
+    const tourTimeForPose = (): number => {
+        const stops = anim.templateFrames
+            .map((frame) => {
+                const vars = frame.vars as SquareVars;
+                return {
+                    t: frame.start.kind === "percent" ? frame.start.value : 0,
+                    x: num(vars.transform?.x),
+                    y: num(vars.transform?.y),
+                };
+            })
+            .sort((a, b) => a.t - b.t);
+        if (stops.length < 2) return 0;
+
+        const px = springX.value * TRAVEL;
+        const py = springY.value * TRAVEL;
+        let bestT = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i + 1 < stops.length; i += 1) {
+            const a = stops[i]!;
+            const b = stops[i + 1]!;
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const span = dx * dx + dy * dy;
+            const u =
+                span === 0
+                    ? 0
+                    : clamp(((px - a.x) * dx + (py - a.y) * dy) / span, 0, 1);
+            const qx = a.x + u * dx;
+            const qy = a.y + u * dy;
+            const dist = (px - qx) ** 2 + (py - qy) ** 2;
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestT = a.t + u * (b.t - a.t);
+            }
+        }
+        return clamp(bestT, 0, 1);
+    };
+
     // Paint the rest pose once on mount (the springs start at 0 → the box sits
     // home, un-deflected, before any drag). Also resolve the palette-sweep stops
     // from the live `--rainbow-*` tokens here (mount-time, DOM available) so the
@@ -454,5 +519,17 @@ export function useSquareDemo(
     // beside this, which is idempotent (playback.stop() twice is a no-op).
     onScopeDispose(dispose);
 
-    return { anim, springX, springY, reseat, settle, seatFromPose, travel, startLoop, paintRest, tumble, dispose };
+    return {
+        anim,
+        springX,
+        springY,
+        reseat,
+        settle,
+        seatFromPose,
+        tourTimeForPose,
+        travel,
+        paintRest,
+        tumble,
+        dispose,
+    };
 }

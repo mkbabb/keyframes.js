@@ -29,13 +29,15 @@ function harness() {
     });
     const reseat = vi.fn();
     const onTarget = vi.fn();
+    const onTakeOver = vi.fn();
     const { onKeydown } = useSquareKeyboard({
         springX,
         springY,
         reseat,
+        onTakeOver,
         onTarget,
     });
-    return { springX, springY, reseat, onTarget, onKeydown };
+    return { springX, springY, reseat, onTarget, onTakeOver, onKeydown };
 }
 
 const key = (k: string) => new KeyboardEvent("keydown", { key: k });
@@ -80,7 +82,23 @@ describe("useSquareKeyboard — the arrow/Home nudge", () => {
         const h = harness();
         h.onKeydown(key("a"));
         expect(h.reseat).not.toHaveBeenCalled();
+        expect(h.onTakeOver).not.toHaveBeenCalled();
     });
+
+    // C-4 — the two-writer guarantee belongs to the FSM edge, not to the pointer
+    // handler. EVERY keyboard branch that re-seats a spring must first enter the
+    // takeover (pause the engine tour), and it must do so BEFORE the re-seat.
+    it.each([["ArrowRight"], ["ArrowLeft"], ["ArrowUp"], ["ArrowDown"], ["Home"], ["End"], ["c"]])(
+        "%s takes the box over from playback before it re-seats a spring",
+        (k) => {
+            const h = harness();
+            const order: string[] = [];
+            h.onTakeOver.mockImplementation(() => order.push("takeover"));
+            h.reseat.mockImplementation(() => order.push("reseat"));
+            h.onKeydown(key(k));
+            expect(order).toEqual(["takeover", "reseat"]);
+        },
+    );
 });
 
 describe("useSquareDemo construction", () => {

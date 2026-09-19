@@ -7,7 +7,6 @@ import { onMounted, onScopeDispose } from "vue";
 export function useSquareTumble(startLoop: () => void) {
     const spin = new SpringProgress({ response: 0.55, dampingFraction: 0.58, initial: 0 });
     const hues = ["#C462D8", "#7E6BE8", "#52E898"];
-    let target = 0;
 
     onMounted(() => {
         const style = getComputedStyle(document.documentElement);
@@ -39,9 +38,17 @@ export function useSquareTumble(startLoop: () => void) {
         return serialized.value;
     };
 
+    /**
+     * L-3 — THE ACCUMULATOR IS THE SPRING'S OWN TARGET, NOT A PRIVATE COPY.
+     * A module-private `target += 360` was never told about the takeover's
+     * `springSpin.reset(0, 0)` (which writes `targetValue`), so after one
+     * mid-tour grab the accumulator and the spring disagreed by a full turn:
+     * three gestures produced a two-turn barrel roll, and every takeover added
+     * another. Deriving the next target from `spin.target` makes the two
+     * un-desyncable — there is only one number now.
+     */
     const tumble = () => {
-        target += 360;
-        spin.target = target;
+        spin.target = spin.target + 360;
         startLoop();
     };
 

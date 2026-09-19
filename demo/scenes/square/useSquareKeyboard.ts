@@ -35,18 +35,28 @@ interface SquareKeyboardOptions {
     springY: SpringProgress;
     /** Re-seat both spring targets ∈ [-1, 1] (the drag's own re-seat seam). */
     reseat: (nx: number, ny: number) => void;
+    /**
+     * C-4 — the {playback → keyboard} FSM edge, run BEFORE any re-seat. The
+     * two-writer guarantee ("the engine tour and the spring loop are never
+     * simultaneous") used to be implemented in the POINTER handler alone, so
+     * Play + any arrow put two rAF writers on one `el.style.transform`. Every
+     * branch below that re-seats a spring enters through this first, so the
+     * guarantee belongs to the edge rather than to one input modality.
+     */
+    onTakeOver: () => void;
     /** Report the new (nx, ny) target so the scene can sync the aria readout. */
     onTarget: (nx: number, ny: number) => void;
 }
 
 export function useSquareKeyboard(opts: SquareKeyboardOptions) {
-    const { springX, springY, reseat, onTarget } = opts;
+    const { springX, springY, reseat, onTakeOver, onTarget } = opts;
 
     let touring = false;
     let tourTimer: ReturnType<typeof setTimeout> | null = null;
 
     const tourEnvelope = () => {
         if (touring) return;
+        onTakeOver();
         touring = true;
         let i = 0;
         const step = () => {
@@ -84,11 +94,13 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
         else if (e.key === "ArrowUp") dy = -step;
         else if (e.key === "Home" || e.key === "End") {
             e.preventDefault();
+            onTakeOver();
             reseat(0, 0);
             onTarget(0, 0);
             return;
         } else return;
         e.preventDefault();
+        onTakeOver();
         const nx = clamp(springX.target + dx, -1, 1);
         const ny = clamp(springY.target + dy, -1, 1);
         reseat(nx, ny);

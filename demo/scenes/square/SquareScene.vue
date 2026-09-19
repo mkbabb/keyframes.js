@@ -86,8 +86,10 @@ import { useDoubleTap } from "@composables/useDoubleTap";
 import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
-import { SQUARE_SCENE_ID } from "./squareKeys";
+import { SQUARE_ANIM_NAME, SQUARE_SCENE_ID } from "./squareKeys";
 import { facilityFromGroup } from "@composables/scene-facility";
+import { useSceneMachine } from "@state";
+import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 
 const superKey = SQUARE_SCENE_ID;
 
@@ -95,16 +97,27 @@ const superKey = SQUARE_SCENE_ID;
 // S.G2 amputated the panel because Play painted nothing: the box transformFunc was
 // written for the spring loop's RAW NUMBERS, but the engine handed nested vars whose
 // leaves stringified to `"0pxpx"` → CSSOM silently discarded the write. The three-part
-// cure lands in the composable: (1) the unit-honest `num()` normalizer at the shared
+// cure lands in the composable: (1) the `num()` normalizer at the shared
 // transformFunc boundary resolves BOTH writers (the spring loop's numbers AND the
 // T.A6 authored strings); (2) REAL four-corner keyframes (a ±90px diamond
 // tour, full 360° rotation, nested `d` swell, rainbow sweep) so Play VISIBLY obeys
 // duration/easing/direction; (3) the {idle, drag, playback} single-authority FSM here.
 // Play now drives the group's honest tour (the panel triad edits a LIVE animation,
 // T.B3); the former `isPlaying → tumble()` kill is RETIRED — the tumble stays a
-// discovered double-tap gesture egg, NOT the Play verb. `isPlaying` is the WRITABLE
-// ref the App toggles (the cube/amiga group-scene contract).
-const isPlaying = ref(false);
+// discovered double-tap gesture egg, NOT the Play verb.
+//
+// L-8/C-2 — ONE PLAYING-STATE AUTHORITY (settled with kf-CubeScene L-2/C-5).
+// `isPlaying` was a PRIVATE `ref(false)` this scene never exposed and never
+// wrote: absent from `SceneExposedApi`, so the App could not toggle it, so
+// `watch(isPlaying, …)` never fired and `mode = "playback"` — the third state of
+// a documented three-state FSM — was unreachable. It is now the house
+// projection: a READ-ONLY computed over `machine.status`, the same single
+// authority `useAnimationGroupPlayback` derives from and the same one
+// `facility.isPlaying()` reports. Nothing here writes a playing flag; the
+// transport verbs DISPATCH intent and the group adapter re-arms or stops the
+// loop (proof:no-shadow-playback-authority).
+const machine = useSceneMachine();
+const { isPlaying, pause } = useSceneTransport(machine);
 
 // T.A13 — the single-authority FSM state. `idle` = at rest (springs settled, group
 // stopped/paused); `playback` = the group plays the four-corner tour; `drag` = a
@@ -129,8 +142,19 @@ const deflY = ref(0);
 const tumbleHintShown = ref(false);
 let hasDragged = false;
 
-const { anim, springX, springY, reseat, settle, seatFromPose, travel, paintRest, tumble, dispose } =
-    useSquareDemo(
+const {
+    anim,
+    springX,
+    springY,
+    reseat,
+    settle,
+    seatFromPose,
+    tourTimeForPose,
+    travel,
+    paintRest,
+    tumble,
+    dispose,
+} = useSquareDemo(
         box,
         () => {
             // The spring loop has come fully to rest (a drag/tumble settled). If
@@ -151,21 +175,14 @@ const { anim, springX, springY, reseat, settle, seatFromPose, travel, paintRest,
             }
         },
     );
-anim.name = "Transform";
+// N-SQ-8 — ONE identity, one spelling. The strip's title and the engine
+// animation's name were two literals across a file boundary; the colocated
+// `squareKeys.ts` exists for exactly this.
+anim.name = SQUARE_ANIM_NAME;
 anim.superKey = superKey;
 
 // (The tether SVG geometry lives in the colocated SquareInstrument sub-unit,
 // fed `deflX`/`deflY` as props — the derived-read instrument layer.)
-
-// T.A13 — the FSM tracks the App-written play state. Play (rising edge) enters
-// `playback`: the group (below) plays the honest four-corner tour — NO tumble.
-// Pause (falling edge) settles the FSM to `idle` unless a drag is mid-gesture
-// (the drag owns the box until release). The tumble is a discovered double-tap
-// egg only (see `useDoubleTap` below), never the Play verb.
-watch(isPlaying, (playing) => {
-    if (playing) mode.value = "playback";
-    else if (mode.value === "playback") mode.value = "idle";
-});
 
 // HEAVY (AnimationGroup); constructed through the warmed engine surface
 // (kfEngine(), L.W8 S1 dogfood inversion) — synchronous, since the warm resolves
@@ -179,6 +196,32 @@ const animationGroup = markRaw(new AnimationGroup(anim));
 // real playback authority now (Play drives the four-corner tour), not a decoy.
 animationGroup.singleTarget = false;
 
+const facility = facilityFromGroup(() => animationGroup);
+
+// L-1/C-3 + C-4 — THE TAKEOVER EDGE, ONE FUNCTION, EVERY MODALITY.
+// `captureFrame` used to poke the group's own `pause()` DIRECTLY — the last such
+// call in any scene, and a verbatim breach of the repo's own
+// `proof:no-shadow-playback-authority` law ("createGroupAdapter is the ONLY code
+// path that touches them"). The machine never learned of it, so `machine.status`
+// stayed `playing`, the transport lied for one interaction, and the first press
+// afterwards took `suspend()`'s else-arm — a visual no-op. And the pause lived on
+// ONE input modality: the keyboard layer reached the paint loop with the engine
+// still touring, so Play + any arrow put TWO rAF writers on one
+// `el.style.transform` (C-4's two-writer breach of the T.A13 guarantee).
+//
+// Now the edge is a single function that DISPATCHES PAUSE through the machine —
+// the adapter performs the group pause, `isPlaying` falls out of `machine.status`
+// by construction — and seats the springs from the painted pose. Both the
+// pointer (`useDragScrub.onStart`) and the keyboard (`useSquareKeyboard`) enter
+// through it, so the guarantee is the FSM edge's, not one handler's.
+const takeOverFromPlayback = () => {
+    if (!isPlaying.value && !(animationGroup.started && !animationGroup.paused)) {
+        return;
+    }
+    pause();
+    seatFromPose();
+};
+
 // A live spring read-out for the slider's aria-valuetext (no per-frame Vue work
 // on the hot path — read on demand from the markRaw springs).
 const springReadout = reactive({ x: "0.00", y: "0.00" });
@@ -189,10 +232,40 @@ const springReadout = reactive({ x: "0.00", y: "0.00" });
 // the live per-axis target without any hot-path Vue work. Rounded to 2 dp so a
 // screen reader announces a stable value, not float noise.
 const axisNow = reactive({ x: 0, y: 0 });
-const syncAxisNow = () => {
+
+// L-15 — ONE readout sync, ONE rounding rule. The pair was written from three
+// call sites with TWO rules (`toFixed(2)` on the text, `Math.round(v*100)/100`
+// on the number), which disagree at tie-adjacent doubles — so `aria-valuenow`
+// and `aria-valuetext` could announce different numbers for one position. Both
+// now derive from the SAME rounded value, in one place.
+const syncReadouts = () => {
     axisNow.x = Math.round(springX.target * 100) / 100;
     axisNow.y = Math.round(springY.target * 100) / 100;
+    springReadout.x = axisNow.x.toFixed(2);
+    springReadout.y = axisNow.y.toFixed(2);
 };
+
+// T.A13 — the FSM tracks the machine's play state. Play (rising edge) enters
+// `playback`: the group plays the honest four-corner tour — NO tumble. Pause
+// (falling edge) settles the FSM to `idle` unless a drag is mid-gesture (the
+// drag owns the box until release). The tumble is a discovered double-tap egg
+// only (see `useDoubleTap` below), never the Play verb.
+//
+// ARB-1 — THE REVERSE EDGE GETS ITS POSE ADOPTION TOO. `seatFromPose` made the
+// playback→drag edge jump-free and nothing did the same for drag→playback: the
+// tour resumed at its own paused clock (or started at 0% home) while the
+// persist-policy drag had left the box up to 2×TRAVEL away, so the first engine
+// frame snapped ~220 px and a rotation appeared from nowhere — the exact
+// discontinuity the scene's own prose forbids. The rising edge now seats the
+// GROUP's clock at the tour time whose authored pose is nearest the box's
+// current pose, the mirror of `seatFromPose` and the engine's own adopt idea at
+// demo scale.
+watch(isPlaying, (playing) => {
+    if (playing) {
+        facility.channels[0]?.setProgress(tourTimeForPose());
+        mode.value = "playback";
+    } else if (mode.value === "playback") mode.value = "idle";
+});
 
 onMounted(() => {
     anim.setTargets(box.value!);
@@ -229,16 +302,11 @@ const captureFrame = () => {
     // (the hint appears once the first drag settles) and mark the tether active.
     hasDragged = true;
     tetherActive.value = true;
-    // T.A13 — the {playback → drag} FSM edge. A pointerdown mid-tour PAUSES the
-    // group and SEATS the springs from the box's CURRENT painted pose (via
-    // DOMMatrix), so the spring chase begins exactly where the tour left the box
-    // — a seamless, jump-free takeover (the library's own adopt idea at demo
-    // scale). Sync the App-written play state so the transport reflects the pause.
-    if (animationGroup.started && !animationGroup.paused) {
-        animationGroup.pause();
-        seatFromPose();
-        isPlaying.value = false;
-    }
+    // T.A13 — the {playback → drag} FSM edge, through the one takeover function
+    // above (the machine pauses; the springs seat from the painted pose), so the
+    // spring chase begins exactly where the tour left the box — a seamless,
+    // jump-free takeover (the library's own adopt idea at demo scale).
+    takeOverFromPlayback();
     mode.value = "drag";
     const el = box.value;
     if (!el) return;
@@ -263,9 +331,7 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     }),
     onScrub: ({ nx, ny }) => {
         reseat(nx, ny);
-        springReadout.x = springX.target.toFixed(2);
-        springReadout.y = springY.target.toFixed(2);
-        syncAxisNow();
+        syncReadouts();
     },
     // Persist on release — leave the springs at their dragged target and let them
     // chase-to-rest THERE (the box stays where released). `settle()` re-arms the
@@ -273,12 +339,11 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     onEnd: () => {
         settle();
         // T.A13 — the {drag → idle} FSM edge: the pointer released, the spring
-        // chases to rest at the dragged target (persist). The group stays paused
-        // (Play resumes the tour from here).
+        // chases to rest at the dragged target (persist). The group stays paused,
+        // and Play genuinely does resume the tour FROM HERE now: the rising edge
+        // seats the group's clock at the authored pose nearest this one (ARB-1).
         mode.value = "idle";
-        springReadout.x = springX.target.toFixed(2);
-        springReadout.y = springY.target.toFixed(2);
-        syncAxisNow();
+        syncReadouts();
     },
 });
 
@@ -301,25 +366,28 @@ const { onKeydown } = useSquareKeyboard({
     springX,
     springY,
     reseat,
-    onTarget: (nx, ny) => {
-        springReadout.x = nx.toFixed(2);
-        springReadout.y = ny.toFixed(2);
-        syncAxisNow();
+    // C-4 — the keyboard enters the SAME takeover edge the pointer does. The
+    // T.A13 two-writer guarantee ("the two writers are never simultaneous") was
+    // implemented in `captureFrame` alone, so Play + any arrow put the engine
+    // tour and the spring loop on one `el.style.transform` at once.
+    onTakeOver: () => {
+        takeOverFromPlayback();
+        mode.value = "drag";
+    },
+    onTarget: () => {
+        syncReadouts();
     },
 });
-
-const facility = facilityFromGroup(() => animationGroup);
 
 defineExpose({
     // T.B1 STAGE 1 — the additive SceneFacility: square's REAL nested-keyframes
     // channel paints (the honest four-corner tour); the legacy `animationGroup`
-    // stays for the panel group. The facility's playback is the group adapter.
+    // stays for the panel group. The facility's playback is the group adapter,
+    // and `facility.isPlaying()` is the one readonly projection every scene
+    // family publishes — there is no second playing flag to expose here (L-8/C-2:
+    // the member that used to sit in this object was PROSE, never a value).
     facility,
     superKey,
-    // T.A13 — the writable play state the App toggles for a group-adapter scene
-    // (the cube/amiga contract: `onPlayStateChange` writes `isPlaying` when the
-    // scene does NOT own its own `scenePlayback`). Here Play drives the group's
-    // honest four-corner tour (the FSM enters `playback`); a drag takes over.
 });
 </script>
 

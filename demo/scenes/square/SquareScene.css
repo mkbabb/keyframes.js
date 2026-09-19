@@ -62,8 +62,21 @@
        so the cursor + touch-action carry the drag posture. */
     cursor: grab;
     touch-action: none;
-    will-change: transform;
     transition: box-shadow var(--duration-fast, 160ms) var(--ease-standard, ease);
+}
+
+/* MISS-9 + D-14/L-9 — the compositor promotion is GATED on the FSM, and the FSM
+   attribute finally has a reader. `will-change: transform` sat unconditional on
+   a subject that is idle BY CONSTRUCTION (the spring loop self-terminates and
+   this file's own docblock says so), pinning a layer for the whole mount; and
+   `data-square-mode` was written on every transition and read by nothing — while
+   L-8/C-2 meant it could only ever hold two of its three states. The FSM repair
+   makes `playback` reachable, so the promotion now says exactly what it means:
+   hint the compositor while something is actually moving the box. */
+.demo-box[data-square-mode="drag"],
+.demo-box[data-square-mode="playback"],
+.demo-box[data-palette-sweep] {
+    will-change: transform;
 }
 
 /* L.W11 S4 — hover-arm: the rig "powers on" under the pointer (the deflection-
