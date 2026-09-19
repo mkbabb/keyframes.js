@@ -31,6 +31,11 @@
  *   6. No heavy chunk (`vendor-monaco`, `vendor-three`, `*.worker`) is
  *      requested before `load`.
  *   7. Zero console errors during mount.
+ *   8. Zero UNCAUGHT pageerror during mount (MR1 — DP-03: the blank-demo crash
+ *      is a `pageerror`, not a `console.error`; keying console.error greened
+ *      over the blank transaction — R2-04 AV-1's recorded witness).
+ *   9. No literal '[object Object]' text node (MR1 — folded from W1's
+ *      render-truth harness).
  *
  * Harness: the scripts/lib/demo-driver.mjs lifecycle (withPage = serveDist +
  * resolveChromium + context/teardown, J.W3 S1). Under KF_REQUIRE_BROWSER a
@@ -123,6 +128,7 @@ async function browserHalf() {
         async (page, { url }) => {
         const heavyRequests = [];
         const consoleErrors = [];
+        const pageErrors = [];
         page.on("request", (req) => {
             if (/vendor-monaco|vendor-three|\.worker/.test(req.url())) {
                 heavyRequests.push(req.url());
@@ -130,6 +136,17 @@ async function browserHalf() {
         });
         page.on("console", (msg) => {
             if (msg.type() === "error") consoleErrors.push(msg.text());
+        });
+        // MR1 — collect UNCAUGHT pageerrors. A crashing Vue app throws a
+        // `pageerror`, not a `console.error`; keying only console.error greens
+        // over the blank demo (R2-04 AV-1: STATE B blanked all 14 combos with a
+        // SOLE pageerror + ZERO console errors).
+        page.on("pageerror", (err) => {
+            pageErrors.push(
+                String(err && err.message ? err.message : err)
+                    .split("\n")[0]
+                    .trim(),
+            );
         });
 
         await page.goto(`${url}/`, { waitUntil: "load" });
@@ -182,6 +199,50 @@ async function browserHalf() {
             ok("zero console errors during mount");
         } else {
             fail(`console errors during mount: ${consoleErrors.slice(0, 3).join(" | ")}`);
+        }
+
+        // 8. No uncaught pageerror during mount (MR1 — DP-03). This is the
+        //    assertion the blank-demo P0 evaded: the transaction rendered blank
+        //    on all 7 routes yet emitted ZERO console.error — a single
+        //    `TooltipProvider` pageerror (R2-04 AV-1). Keyed here, the render
+        //    assert catches both the blank crash and the 5/7-scene masked
+        //    `timingFunction` pageerrors (AV-DP02-DELTA). (smoke loads `/`; the
+        //    per-scene pageerror==0 matrix lives in occlusion.mjs — MR1 PB-2.)
+        if (pageErrors.length === 0) {
+            ok("zero uncaught pageerror during mount");
+        } else {
+            fail(
+                `uncaught pageerror(s) during mount: ${[...new Set(pageErrors)].slice(0, 3).join(" | ")}`,
+            );
+        }
+
+        // 9. No literal '[object Object]' text node (MR1 — folded from W1's
+        //    render-truth harness): a mis-stringified binding paints the literal
+        //    instead of a value, a shape a non-blank mount otherwise hides.
+        const objectObject = await page.evaluate(() => {
+            const LIT = "[object Object]";
+            const walker = document.createTreeWalker(
+                document.body,
+                NodeFilter.SHOW_TEXT,
+            );
+            let n;
+            let hits = 0;
+            let sample = "";
+            while ((n = walker.nextNode())) {
+                const t = n.nodeValue || "";
+                if (t.includes(LIT)) {
+                    hits += 1;
+                    if (!sample) sample = t.trim().slice(0, 80);
+                }
+            }
+            return { hits, sample };
+        });
+        if (objectObject.hits === 0) {
+            ok("no literal '[object Object]' text node");
+        } else {
+            fail(
+                `literal '[object Object]' painted ${objectObject.hits}× (e.g. "${objectObject.sample}") — a mis-stringified binding`,
+            );
         }
         },
     );

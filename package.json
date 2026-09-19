@@ -50,7 +50,7 @@
         "gen:agent-surface": "node scripts/gen-agent-surface.mjs",
         "proof:structure": "node scripts/gates/structure/index.mjs",
         "proof:publish": "node scripts/gates/surface/index.mjs",
-        "proof:owner-golden": "node scripts/gates/visual/index.mjs",
+        "review:owner-golden": "node scripts/gates/visual/index.mjs",
         "demo:correctness": "node scripts/run-demo-roster.mjs",
         "audit:lighthouse": "node scripts/observe/lighthouse.mjs",
         "release:changelog": "node scripts/release/changelog.mjs"
