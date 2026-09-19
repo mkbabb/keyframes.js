@@ -23,7 +23,7 @@
                 :ref="(el: any) => setCardRef(i, el)"
                 :frame-string="s"
                 :formatted-c-s-s="formattedStrings[i] ?? s"
-                :frame-start="startScalar(frames[i].start)"
+                :frame-start="selectorText(frames[i].start)"
                 :index="i"
                 @update-start="(val) => emit('updateStart', { val, index: i })"
                 @update-c-s-s="(value) => emit('updateCSS', { value, index: i })"
@@ -43,25 +43,22 @@
 import { computed, ref, shallowRef } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+// KC-1 — `selectorText` is the CANONICAL serializer for a `KeyframeSelector`:
+// the one the library writes its own CSS with (`format.ts`), the one the write
+// path round-trips through (`useKeyframeOps.ts:111`), and the one
+// `value4-editor-boundary.test.ts` pins. FE-3's `startScalar` extracted `.value`
+// instead, which is a THIRD derivation and a half-cure: it rendered the raw
+// fraction `0.5` where the commit path demands `50%`, it fell through to
+// `"[object Object]"` for a named selector (`{kind:"named"}` carries `name`, not
+// `value`), and it left the canonical renderer bypassed at the very seam whose
+// job is projecting the union. One serializer, four call sites.
+import { selectorText } from "@utils/keyframeSelector";
 import KeyframeCard from "./KeyframeCard.vue";
 
 const props = defineProps<{
     frameStrings: string[];
     frames: any[];
 }>();
-
-// FE-3 — coerce a keyframe `start` to its display scalar before binding. Spring
-// frames carry `start` as a value.js `KeyframeSelector` object
-// (`{ kind: "percent", value }`), whose default `.toString()` leaks the literal
-// `"[object Object]"` into the card label + start field (10 shipped labels on
-// /#/spring); every other scene already holds a primitive. Extract the scalar
-// so the card renders the offset, never the stringified selector object.
-const startScalar = (start: unknown): string => {
-    if (start != null && typeof start === "object" && "value" in start) {
-        return String((start as { value: unknown }).value);
-    }
-    return String(start ?? "");
-};
 
 // L.W8 S1 ED-3 — `formatCSSKeyframeString` (a value.js-free pure-string trim) is
 // HEAVY-surface (it lives in the engine chunk), so it rides loadAnimationEngine()

@@ -1,5 +1,20 @@
 <template>
-    <div class="grid">
+    <!-- KC-27 + KF-KC-26 — THE CARD IS THE NAMED GROUP, and every name on it is
+         OFFSET-BEARING rather than positional. The surface used to publish
+         `CSS for keyframe ${index}` and nothing else: a 0-based ordinal that
+         silently re-points at a different keyframe on every non-tail removal,
+         beside an `<Input>` and a destructive control with no names at all. N
+         stops therefore produced N indistinguishable control sets.
+         The identifying datum is the OFFSET — which is exactly the value KC-1
+         made readable — so it names the group once, and the controls inside
+         carry short role names that the group qualifies. Nothing here repeats
+         the offset per control: an AT user hears "Keyframe at 50%, group" then
+         "Offset, edit text". -->
+    <div
+        class="grid"
+        role="group"
+        :aria-label="`Keyframe at ${frameStart}`"
+    >
         <!-- KF-KC-4 ≡ KF-KC-13 ≡ KC-5 — the start/offset field STOPS ERASING THE
              CONTROL. This one `class` carried seven utilities that cancelled
              glass's `field-control` outright: `bg-transparent` killed the plate
@@ -18,9 +33,15 @@
              producer (root-styling law: never per-instance erasure); that ask is
              already sent as O-26 R-16 and, when it lands, this field consumes
              the variant instead of re-erasing. Only geometry and type stay here. -->
+        <!-- KF-KC-3 / KC-4 — the field NAMES ITSELF. glass's `Input` synthesizes
+             no accessible name, the two identity spans below label nothing, and
+             this is the card's only editable control; `aria-label` is the
+             minimum honest cure and the group above supplies which keyframe it
+             belongs to. -->
         <Input
             class="sticky z-modal top-0 text-subheading w-16 text-ellipsis aspect-square font-semibold leading-none tracking-tight m-0"
-            :model-value="displayStart"
+            aria-label="Offset"
+            :model-value="frameStart"
             @update:model-value="(val) => emit('updateStart', String(val))"
         >
         </Input>
@@ -130,14 +151,14 @@
                 contenteditable="true"
                 role="textbox"
                 aria-multiline="true"
-                :aria-label="`CSS for keyframe ${index}`"
+                aria-label="CSS declarations"
             ></pre>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useTemplateRef, watchEffect } from "vue";
+import { useTemplateRef, watchEffect } from "vue";
 import { syncHostSource } from "../composables/useHighlightCSS";
 // KF-KC-37 (W6-I): subpaths, never the 24 KB root barrel. The `./label` subpath
 // leaves with its two orphan consumers (KC-26 above) — the card imports only
@@ -153,19 +174,14 @@ const props = defineProps<{
     index: number;
 }>();
 
-// FE-3 — coerce the start to its scalar before binding the editable start
-// field. The parent (KeyframeCardList) already passes a scalar, but a Spring
-// `KeyframeSelector` object (`{ kind: "percent", value }`) reaching this Input
-// would render `"[object Object]"`; extracting `.value` keeps the field honest
-// regardless of what upstream hands down.
-const displayStart = computed(() => {
-    const s = props.frameStart as unknown;
-    if (s != null && typeof s === "object" && "value" in s) {
-        return String((s as { value: unknown }).value);
-    }
-    return String(s ?? "");
-});
-
+// KC-1 — FE-3's defensive `displayStart` computed is GONE with the half-cure it
+// defended. It re-derived `.value` off a prop the type says is a `string`, so it
+// was dead on every honest input and, on the dishonest one, produced the same
+// bare fraction the parent produced. The parent now renders the canonical
+// `selectorText(frame.start)`, which is total over the selector union — a named
+// stop reads `entry 50%`, not `[object Object]` — so `frameStart` is bound as
+// the string it is declared to be, and a future regression at the seam shows up
+// as a wrong offset rather than being laundered here.
 const emit = defineEmits<{
     (e: "updateStart", val: string): void;
     (e: "updateCSS", val: string): void;
