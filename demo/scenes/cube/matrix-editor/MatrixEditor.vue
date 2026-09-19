@@ -9,14 +9,16 @@
                     class="relative grid aspect-square min-h-[3.5rem] rounded-lg
                         shadow-sm"
                     v-for="(value, i) in matrix3dEnd.args"
+                    @focusin="editingCell = i"
+                    @focusout="editingCell = null"
                 >
                     <!-- z-10 on the Input below is LOCAL stacking: the editable
                          value field overlays the decorative axis-label div within
                          the same matrix cell; not an editor z-contract layer. -->
                     <Input
                         :class="
-                            `text-body absolute top-0 left-0 z-10 h-full w-full
-                            bg-transparent p-0 text-center font-mono
+                            `text-small absolute top-0 left-0 z-10 h-full w-full
+                            bg-transparent p-0 text-center font-mono tabular-nums
                             text-ellipsis` +
                             [
                                 storedControls.matrixOptions
@@ -25,11 +27,8 @@
                                     : '',
                             ]
                         "
-                        :model-value="
-                            (Math.round((value as MatrixScalar).payload.value * 100) / 100)
-                                .toFixed(2)
-                                .replace(/\.0*$/, '')
-                        "
+                        :title="String((value as MatrixScalar).payload.value)"
+                        :model-value="cellText(value as MatrixScalar, i)"
                         @update:model-value="(v) => updateMatrixCell(v, i)"
                         :start="matrixCellMeta[i]!.sliderOptions.bounds[0]"
                         :end="matrixCellMeta[i]!.sliderOptions.bounds[1]"
@@ -93,6 +92,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { Slider, Card, CardContent } from "@mkbabb/glass-ui";
 import { Input } from "@mkbabb/glass-ui/forms";
 import type { Matrix3dCall, MatrixCellMeta, MatrixScalar } from "./transformMath";
@@ -108,9 +108,14 @@ const props = defineProps<{
     superKey: string;
 }>();
 
+// ME-39 — the `resetMatrix` emit and its local raiser are DELETED with their
+// diagnostic. LAW A census before the act: the emit had exactly one declared
+// consumer (`CubeScene`'s `onResetMatrix`), and it was unreachable — the raiser
+// had zero call sites, no template binding among them, so the component could
+// never fire it. The LIVE Reset is the ribbon Button calling the composable's
+// own `resetMatrix` directly; that path is untouched.
 const emit = defineEmits<{
     (e: "updateMatrixCell", to: number | string, ix: number): void;
-    (e: "resetMatrix"): void;
 }>();
 
 // The store keeps `matrixOptions` OPTIONAL because a persisted pre-matrix bucket
@@ -133,6 +138,34 @@ const updateMatrixCell = (to: number | string, ix: number) => {
     emit("updateMatrixCell", to, ix);
 };
 
+/**
+ * ME-42 — THE DIGIT POLICY, stated for BOTH representations.
+ *
+ * This field has no model behind it: its rendered text IS its editable state,
+ * and `@update:model-value` re-commits whatever that text became. So a 2-dp
+ * DISPLAY string was also the WRITE path — touching a cell holding
+ * `0.7071067811865476` (the ordinary content of the six cosine cells after any
+ * 45° composition) silently re-committed a value derived from `"0.71"`.
+ *
+ * The two representations are therefore separated by the only state that
+ * distinguishes them — whether the cell is being edited:
+ *
+ *   · DISPLAY (at rest): 2 dp, the tabular column the lattice reads as a grid.
+ *   · EDIT (focused): the cell's FULL stored precision, so an edit opens on the
+ *     true value and a committed-unchanged field round-trips exactly.
+ *
+ * The `title` beside it carries the full value in BOTH states — ME-43's
+ * recovery affordance, for a fixed ~56 px cell that can hold `-1000`
+ * (`transformMath`'s translate bounds) and had no way to show what it clipped.
+ */
+const editingCell = ref<number | null>(null);
+
+const cellText = (cell: MatrixScalar, index: number): string => {
+    const value = cell.payload.value;
+    if (editingCell.value === index) return String(value);
+    return (Math.round(value * 100) / 100).toFixed(2).replace(/\.0*$/, "");
+};
+
 const matrixCellValue = (index: number): number => {
     const cell = props.matrix3dEnd.args[index];
     if (cell === undefined) {
@@ -144,10 +177,6 @@ const matrixCellValue = (index: number): number => {
     // are all `MatrixScalar`; the shared type keeps the open union so that
     // `matrixValueAt`'s rejection of a non-scalar arg stays expressible.
     return (cell as MatrixScalar).payload.value;
-};
-
-const resetMatrix = () => {
-    emit("resetMatrix");
 };
 </script>
 

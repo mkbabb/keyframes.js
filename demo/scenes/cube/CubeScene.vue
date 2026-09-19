@@ -76,7 +76,7 @@ const {
     matrixCellMeta,
     updateMatrixCell,
     resetMatrix,
-} = useTransformState(isPlaying, isStarted, cubeElRef, useCubeTransform().value);
+} = useTransformState(isStarted, cubeElRef, useCubeTransform().value);
 
 const { animationGroup, setTargets } = useCubeDemo(
     matrix3dStart,
@@ -181,7 +181,6 @@ const tabsContent = () =>
                 matrixCellMeta: matrixCellMeta.value,
                 superKey,
                 onUpdateMatrixCell: updateMatrixCell,
-                onResetMatrix: resetMatrix,
             }),
         ])
         : null;
