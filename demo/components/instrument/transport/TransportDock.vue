@@ -158,7 +158,24 @@
                 </template>
             </div>
 
-            <!-- Collapsed state: animation name first, play button on right -->
+            <!-- Collapsed state: PLAY FIRST, then the animation name.
+                 X.KF.W13.e · TD-37 under OP-7 (COHESION §0ai) — ONE FACE ORDER:
+                 play leads on BOTH faces. The two faces are concentric (GlassDock
+                 stacks them, `layers.css` `.dock-layer { grid-area: 1/1 }`), so the
+                 pre-cure `[name][play]` collapsed order translated the primary CTA
+                 across the pill on every hover-expand and every 3600 ms idle
+                 collapse — out from under the reaching pointer. With play leading
+                 here as it does at `:39-59`, the CTA holds its end through the
+                 crossfade.
+                 TD-21's r2 shared-Set rider rides this order change (same identity,
+                 same family): the end-swap was what made the in-place release land
+                 on NEITHER control and leak a persistent mouse press-origin. Play
+                 co-located on both faces makes that release land on the OTHER play
+                 mirror, where `usePlayActuation`'s per-control origin guard
+                 (`:81-89`, landed X.KF.W13.b `dafce6eb`) consumes and clears the
+                 entry without actuating — and the window release-elsewhere cleanup
+                 (`:62-73`) still covers the off-control case. No stale id survives
+                 either path. -->
             <!-- X.KF.W13.b · THE PROPAGATION POLICY (TD-2 + TD-38 + TD-40, stated
                  once, here — the only place a stop modifier ever lived): neither
                  play mirror stops propagation. The dock's pointer/click listeners
@@ -173,9 +190,6 @@
                  faces, as on the sibling ChromeDock. Census + grounds: value.js
                  docs/tranches/X/keyframes/evidence/W13/b-td-remainder-derivation.md §4. -->
             <template #collapsed>
-                <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
-                    {{ storedControls.selectedAnimation }}
-                </span>
                 <!-- The collapsed play mirror carries the SAME accessible name
                      as the expanded Play (TD-39): exactly one dock layer is ever
                      in the accessibility tree (the other is `inert`), so it is
@@ -199,6 +213,9 @@
                     <Pause v-if="isPlaying" class="icon-md" />
                     <Play v-else class="icon-md translate-x-px" />
                 </Button>
+                <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
+                    {{ storedControls.selectedAnimation }}
+                </span>
             </template>
         </GlassDock>
     </div>
