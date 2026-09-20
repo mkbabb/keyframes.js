@@ -421,3 +421,15 @@ describe("D-5 + D-6 + L-M1 — the hint reaches the thumb, disabled is the primi
         expect(seat.emitted("scrubEnd")).toHaveLength(1);
     });
 });
+
+describe("D-2 — a visible playhead on the primitive's declared axis", () => {
+    it("the rail is the Slider's `spectrum` variant (a painted thumb), still scaled and named as before", async () => {
+        const seat = mountRibbon({ currentT: 2500 });
+        await settle();
+        const root = seat.root.querySelector<HTMLElement>(".glass-slider");
+        expect(root?.getAttribute("data-variant")).toBe("spectrum");
+        const thumb = thumbOf(seat.root);
+        expect(thumb.getAttribute("aria-valuenow")).toBe("2500");
+        expect(thumb.getAttribute("aria-label")).toBe("Scrub animation timeline");
+    });
+});

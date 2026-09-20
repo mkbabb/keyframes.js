@@ -26,9 +26,19 @@
                          keyboard-inclusive `valueCommit` pairs a keyboard scrub
                          with the pause/resume lifecycle the pointer seam already
                          owns. -->
+                    <!-- D-2 — a VISIBLE playhead, on the primitive's declared
+                         axis: the `standard` variant's thumb is `width:0;
+                         opacity:0` by producer design, leaving a ~1.2:1
+                         range/track boundary as the only cue; the `spectrum`
+                         variant paints a real thumb from `--slider-thumb-bg`
+                         (this wrapper's violet authority) over a token-driven
+                         track (`--slider-track-bg`), and its track height is
+                         1.5 × the thumb size — the very 1.5rem the F4 `:deep`
+                         reach hand-set, so that reach (D-7) dies with it. -->
                     <Slider
                         ref="sliderRef"
                         class="p-2"
+                        variant="spectrum"
                         aria-label="Scrub animation timeline"
                         :min="0"
                         :max="effectiveDuration"
@@ -249,38 +259,17 @@ const scrubTo = (effectiveT: EffectiveMs) => {
 </script>
 
 <style scoped>
-/* ── The timeline scrub slider — the ONE motion-color authority (K.W4 S3/F4,
-   re-voiced at T.D7/OD-6) ──
-   The class name is retained (`.timeline-green` lands on the wrapper that sets
-   the reka <Slider> CSS vars) but the hue is token-sourced: --color-progress
-   now resolves the OD-6 violet authority and --color-slider-track a NEUTRAL
-   border-derived groove at the token root (style.css T.D7), so the track +
-   thumb paint the SAME violet the AnimationVisualizer's ball/dashed-twin
-   draws — ONE motion-color identity, red returned to destructive-only
-   (VERDICT #16). No per-component color class; the token repoint carries it.
-
-   F4 — the track THICKER (the user's live verdict: "the timeline SCRUBBER track
-   is too thin"). glass-ui 4.0.0's Slider sets --slider-track-height ON the
-   `.glass-slider[data-size=md]` element itself (1.25rem ≈ 20px), which sits
-   CLOSER to the `.slider-track` than this `.timeline-green` wrapper — so a var
-   set on the wrapper is OVERRIDDEN by the size-default and never reaches the
-   track (measured: wrapper sets .625rem, track still resolves the md 1.25rem).
-   The cure sets the height on the slider element ITSELF via :deep, beating the
-   `[data-size=md]` default's specificity while staying scoped to the standard
-   recipe, so it
-   actually lands: the scrub rail lifts to 1.5rem (24px) — clearly more
-   substantial than the 20px md default the user called "too thin", a chunky
-   scrubbable rail with the red range fill. The thumb keeps its variant size. */
+/* The scrub rail — the ONE motion-color authority (T.D7 / OD-6): the wrapper
+   sets the reka <Slider>'s own CSS vars from the token root, so the track and
+   the thumb paint the SAME violet the AnimationVisualizer's ball draws
+   (`--color-progress`; the groove is the neutral `--color-slider-track`). No
+   per-component colour class; the token repoint carries it. The rail's height
+   and its visible thumb are the Slider's `spectrum` variant (D-2) — no
+   `:deep` reach into the producer's size defaults (D-7). */
 .timeline-green {
     --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 22%, transparent);
     --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 45%, transparent);
     --slider-thumb-bg: var(--color-progress);
-}
-/* Set the track height on the slider element (where [data-size=md] declares it)
-   so it wins the cascade and reaches `.slider-track`'s var(--slider-track-height)
-   read — the wrapper-level var did not. */
-.timeline-green :deep(.glass-slider[data-variant="standard"]) {
-    --slider-track-height: 1.5rem;
 }
 .timeline-green:hover {
     --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);
