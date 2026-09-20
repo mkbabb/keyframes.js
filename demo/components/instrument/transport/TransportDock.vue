@@ -9,36 +9,17 @@
         style="bottom: var(--dock-bottom-anchor, var(--work-area-bottom-offset, 0px));"
     >
         <!--
-            J.W7c U2 — the SHRUNKEN transport. The dock collapses to a summary
-            pill (the selected animation name + the rainbow play mirror, the
-            #collapsed slot below) and expands on hover/focus, driven by
-            GlassDock's own collapse. R.W6 C.6 (DM-1 KILL) — both play controls
-            actuate from DISJOINT, modality-pure event sources (pointerup for
-            pointer, keydown for keyboard) — NEVER from the strand-prone synthesized
-            `click` — so the collapse crossfade has no trailing event to strand on a
-            leaving layer (see the script handler). Collapsing also shrinks the
-            menubar host, so the ResizeObserver (below) republishes a smaller
-            --menubar-measured-h and the mobile sheet anchor self-corrects to the
-            collapsed pill (audit X1).
-        -->
-        <!--
-            K.W0 S3 (U-K1 — the transport default detent, the kf-side decision).
-            NAMED DECISION: the bottom transport defaults to the COLLAPSED detent
-            (`:always-expanded="false"`) — it must NOT render its full layer at
-            rest (the U-K1 defect: only the TOP dock honoured the collapse while
-            this transport stayed full, y:770 `dock-layer--full is-active`,
-            probe-dock-default.mjs). Collapsed-but-PLAY-REACHABLE: the #collapsed
-            slot below keeps the rainbow play CTA (the PRIMARY first-run gesture)
-            present as the summary-pill play mirror, so the detent never strands
-            the play affordance.
-            `:always-expanded="false"` is the ONLY kf-side lever for the detent;
-            the FULL collapse-policy integration (GlassDock honouring the detent so
-            the transport actually shrinks to the pill at rest, not just the top
-            dock) is a glass-ui collapse-policy fix that lands on the K.W1
-            re-pin (RF-17 / the dock-collapse handoff) — NOT a retuned magic
-            offset here (the K mandate's named forbidding). This is a TASTE-boundary
-            item: this collapsed default is corroboration; the appearance verdict
-            closes on the user's review packet.
+            The transport rides GlassDock's own collapse: a summary pill (the
+            selected name + the play mirror, #collapsed) that expands on
+            hover/focus. Both play controls actuate through `usePlayActuation`
+            (pointerup on the same control / Space on keyup, Enter on keydown —
+            never the synthesised `click` the collapse crossfade can strand);
+            the actuation and cancellation law is that composable's docblock.
+            Collapsing shrinks the host, so `useMenubarMeasure` republishes the
+            smaller --menubar-measured-h and the mobile sheet anchor follows.
+            `:always-expanded="false"` is measured a no-op today (TD-5: the
+            transport mounts EXPANDED); the boot posture batches with
+            kf-ChromeDock RR-1 M#4 and is not re-tuned here.
         -->
         <GlassDock ref="dockRef" :always-expanded="false" :fit-content="true">
             <!-- Expanded state: full controls.
@@ -54,7 +35,7 @@
                  hand-rolled dock-separator divs). Tooltips are the single visible
                  renderer (Tooltip primitives); the accessible name rides aria-label — every
                  `title=` passthrough is GONE (T.C3, the double-tooltip KILL). -->
-            <div class="flex items-center gap-3">
+            <div class="transport-row flex items-center">
                 <!-- rail-core: PLAY, FIRST (actions.primary) -->
                 <Tooltip>
                     <TooltipTrigger as-child>
@@ -74,7 +55,7 @@
                             @blur="onPlayBlur($event)"
                         >
                             <Pause v-if="isPlaying" class="icon-lg" />
-                            <Play v-else class="icon-lg pl-0.5" />
+                            <Play v-else class="icon-lg translate-x-px" />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>{{ isPlaying ? "Pause" : "Play" }}</TooltipContent>
@@ -93,7 +74,7 @@
                             <div class="relative flex items-center gap-1.5">
                             <Select
                                 class="p-0 m-0 cursor-pointer"
-                                :model-value="storedControls.selectedAnimation"
+                                :model-value="storedControls.selectedAnimation ?? ''"
                                 @update:model-value="
                                     (key) => {
                                         emit('selectAnimation', String(key));
@@ -119,9 +100,7 @@
                                 </DockTrigger>
                                 <SelectContent class="min-w-[var(--dropdown-min-width)]">
                                     <SelectGroup class="dock-label">
-                                        <template
-                                            v-for="name in animationNames"
-                                        >
+                                        <template v-for="name in animationNames" :key="name">
                                             <SelectItem class="py-2 px-3" hide-indicator :value="name">
                                                 <span class="flex items-center gap-2">
                                                     <!-- Playing: live conic-gradient progress ring driven by --dot-p.
@@ -197,19 +176,14 @@
                 <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
                     {{ storedControls.selectedAnimation }}
                 </span>
-                <!-- The collapsed-dock play mirror — carries a DISTINCT
-                     accessible name from the expanded menubar transport play
-                     (X-3): two play controls with the same "Play animation"
-                     name are indistinguishable to a screen reader. Disambiguated
-                     across BOTH states (Play and Pause) since one ternary drives
-                     both. -->
+                <!-- The collapsed play mirror carries the SAME accessible name
+                     as the expanded Play (TD-39): exactly one dock layer is ever
+                     in the accessibility tree (the other is `inert`), so it is
+                     one logical command, not two identically-named controls —
+                     the name must not mutate with transient chrome state. -->
                 <Button
                     emphasis="quiet"
-                    :aria-label="
-                        isPlaying
-                            ? 'Pause animation (collapsed dock)'
-                            : 'Play animation (collapsed dock)'
-                    "
+                    :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
                     :class="[
                         'scale-on-hover text-white rounded-full p-0',
                         'w-8 h-8 shrink-0',
@@ -223,7 +197,7 @@
                     @blur="onPlayBlur($event)"
                 >
                     <Pause v-if="isPlaying" class="icon-md" />
-                    <Play v-else class="icon-md pl-px" />
+                    <Play v-else class="icon-md translate-x-px" />
                 </Button>
             </template>
         </GlassDock>
@@ -270,72 +244,22 @@ import type { StoredAnimationGroupControlOptions } from "@state";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 
-// ── J.W4 S7 (CH-3/M1 — the sheet anchor derives from the MEASURED menubar) ──
-// The mobile bottom sheet anchors at `bottom: var(--dock-menubar-reserve)`
-// (ControlsPaneWrapper.vue), and the reserve's dock band was DERIVED FROM A
-// TOKEN (`--dock-icon-height` + margin ≈ 52px) while the always-expanded
-// TransportDock pill actually renders ~80px tall (+ host padding ≈ 90px) — so
-// the open sheet's bottom ran 30+px BEHIND the menubar and the menubar pill
-// painted OVER the sheet's bottom control row (the M1 occlusion class, live at
-// 390×844; the I deferred-ledger CH-3 row's named cure is "derive sheet anchor
-// from MEASURED menubar height"). This observer IS that cure: it measures the
-// menubar host's REAL border-box height and publishes it as
-// `--menubar-measured-h` on :root; style.css folds it into
-// `--dock-band-reserve` via max(), so the sheet (and the work-area band math)
-// always clears the menubar the user actually sees — token drift can never
-// re-open the occlusion. Height is content-driven (never a function of the
-// reserve it feeds), so no custom-property cycle forms.
-// Gated by proof:live-session-mobile (sheet.bottom ≤ menubar.top on a real
-// 390×844 + hasTouch context — the CH-3 re-certification oracle).
-const menubarHostEl = useMenubarMeasure();
+// The menubar host's REAL border-box height is published as
+// `--menubar-measured-h` (+ a monotonic `-peak`) on :root so the mobile sheet
+// anchor and the stage's band reserve clear the menubar the user sees (CH-3 /
+// S1); the mechanism and its cycle-freedom are `useMenubarMeasure`'s docblock.
+// The SFC owns the typed template ref and hands it in (TD-17).
+const menubarHostEl = useTemplateRef<HTMLElement>("menubarHostEl");
+useMenubarMeasure(menubarHostEl);
 
-// J.WZ (S1 stage-rect-invariant fix) — the menubar pill's border-box height is
-// NOT constant across the sheet toggle: opening the bottom sheet reflows the
-// GlassDock content (the transport row crossfades/repacks) so the LIVE measure
-// oscillates ~90px↔~84px. The sheet anchor WANTS that live value (it must clear
-// the menubar the user sees this instant — proof:live-session-mobile). But the
-// mobile full-bleed STAGE reserves its band from the same token, and a band that
-// breathes with the dock SHIFTS the fixed stage rect on every open/close — the
-// exact S1 violation proof:mobile-single-page clause (b) bites (host Δ ≈ ±8px).
-// Cure: publish a MONOTONIC high-water mark beside the live value. The stage
-// reserves the PEAK (stable by construction — it only ever grows), so the
-// full-bleed frame never moves; the sheet keeps tracking the live measure. The
-// peak is a pure ceiling over observed heights (never fed back into the measure),
-// so no custom-property cycle forms and over-reservation only ever keeps the
-// subject MORE clear of the dock, never less.
-
-// ── R.W6 C.6 — DM-1 CONTINGENCY KILL (the crossfade-strand band-aid EXCISED).
-//
-// The play toggle formerly carried a press-handled boolean + a pointerdown/click
-// dual-path interim (the 8th-carry chronic DM-1) that hedged glass-ui's
-// collapse-crossfade STRANDING the trailing synthesized `click`: a `@click`-only
-// toggle could be DROPPED when the dock crossfaded the active `.dock-layer`
-// mid-gesture (the layer went `pointer-events:none` before the browser
-// synthesized the click). The durable cure is a glass-ui dock-layer keepalive
-// (GU-Q2). Until that published seam arrives, the kf handler is crossfade-
-// independent by construction.
-//
-// The cure: actuate from DISJOINT, modality-pure event sources, NEVER from the
-// strand-prone `click`:
-//   · POINTER  → `pointerup` on the live button. pointerup fires on the button
-//     the pointer is OVER, regardless of any pending collapse — the crossfade can
-//     only strand the LATER synthesized `click`, which we no longer listen for.
-//   · KEYBOARD → `keydown` Enter/Space directly (the native button click path is
-//     not used, so there is nothing for the crossfade to strand).
-// One handler set governs both the expanded button and the collapsed-summary
-// mirror so the two controls can never drift.
-//
-// S.B7 S6 (a12 F2/F3) — the actuation contract lives in `usePlayActuation` so it
-// is unit-testable, and it mirrors NATIVE button semantics: pointerup gated on a
-// pointerdown-on-this-control press-origin flag (+isPrimary), Space on keyup /
-// Enter on keydown, both auto-repeat-guarded. The prior handler actuated on ANY
-// pointerup over the button and on RAW keydown — a drag-release toggle and a
-// held-key rapid-toggle respectively.
-
+// The play toggle never listens for the synthesised `click` (the dock's
+// collapse crossfade can strand it — DM-1); it actuates from `usePlayActuation`'s
+// modality-pure sources, whose contract and cancellation law live there.
 function actuatePlay() {
-    // Best-effort re-pin the dock open (the toggle stays legible after actuation),
-    // then emit. The emit is the load-bearing line — pointerup/keyup both fire on
-    // the live button, so it cannot be raced by the collapse crossfade.
+    // `expand()` keeps the toggle legible after actuation (it resolves the dock
+    // to "hover", not "pinned" — TD-22's consumer-site inversion is one cure
+    // spec with kf-ChromeDock's row and is not re-worded here); the emit is the
+    // load-bearing line.
     dockRef.value?.expand();
     emit("togglePlay");
 }
@@ -392,6 +316,13 @@ defineExpose({ resetIconSpin });
 </script>
 
 <style scoped>
+/* TD-35 — the transport's internal rhythm rides the ONE gutter token every
+   producer dock control rides (`--dock-layer-gap` scales with --dock-scale), so
+   the row grows with its siblings on coarse pointers instead of a fixed 12px. */
+.transport-row {
+    gap: var(--dock-layer-gap, 0.375rem);
+}
+
 /* ── Bottom-menubar safe-area padding (D.W3.S3) ──
    Reserves the iOS home-indicator inset below the dock. Was the arbitrary
    Tailwind value `pb-[max(calc(var(--dock-margin)/2),env(safe-area-inset-bottom))]`
