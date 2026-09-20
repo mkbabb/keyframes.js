@@ -455,3 +455,116 @@ describe("D-20 / D-25 — the five false load-bearing comments are gone; the rai
         expect(src).not.toContain('ref="sliderRef"');
     });
 });
+
+/**
+ * G-KFW9-9 / K-5 — the two-deletion act (X.KF.W13.c), as a contract.
+ *
+ * The affordance this act protects cannot be read from jsdom: `forced-colors`
+ * is a UA mode no test environment paints, and the producer `Button` is stubbed
+ * at this file's seam (the keyframes.js-import wall, KF13-E2). So the case
+ * asserts the three REAL bytes the affordance is made of — the subject's class
+ * list from the mounted SFC, the producer's shipped rules from the installed
+ * package (read-only), and the demo's own sheets — and it fails the moment any
+ * of them stops holding. It is NOT a screenshot: the AFTER witness is KF.W9 /
+ * SS-13's to re-shoot (S-9), handed back by row id.
+ */
+type CssVisit = (selector: string, body: string, atRules: string[]) => void;
+const walkCss = (css: string, visit: CssVisit): void => {
+    const src = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    const stack: string[] = [];
+    let head = "";
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i];
+        if (ch === "{") {
+            const label = head.trim();
+            head = "";
+            if (label.startsWith("@")) {
+                stack.push(label);
+                continue;
+            }
+            let depth = 1;
+            let body = "";
+            i++;
+            while (i < src.length) {
+                const c = src[i];
+                if (c === "{") depth++;
+                else if (c === "}") {
+                    depth--;
+                    if (depth === 0) break;
+                }
+                body += c;
+                i++;
+            }
+            visit(label, body, [...stack]);
+        } else if (ch === "}") {
+            stack.pop();
+            head = "";
+        } else {
+            head += ch;
+        }
+    }
+};
+const readRepo = async (path: string): Promise<string> => {
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    return readFileSync(resolve(process.cwd(), path), "utf8");
+};
+const GLASS_DIST = "node_modules/@mkbabb/glass-ui/dist";
+
+describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act", () => {
+    it("a focused Play button carries a forced-colors indicator, and no demo-owned unlayered rule defeats it", async () => {
+        const seat = mountRibbon();
+        await settle();
+
+        // (i) the subject: the ribbon's Play cell is a producer `Button` wearing
+        //     the demo's `.btn-playback` skin — the rule's own census, live.
+        const play = seat.root.querySelector<HTMLElement>(".btn-playback-accent")!;
+        expect(play).not.toBeNull();
+        expect(play.tagName).toBe("BUTTON");
+        expect(play.classList.contains("btn-playback")).toBe(true);
+
+        // (ii) the indicator's real source: every glass `Button` renders
+        //      `focus-ring` itself, the producer realizes that class in
+        //      `@layer components`, and its UNLAYERED forced-colors override
+        //      restores a system outline for it.
+        const buttonEntry = await readRepo(`${GLASS_DIST}/button.js`);
+        const chunk = buttonEntry.match(/from\s*"\.\/([^"]+)"/)?.[1];
+        expect(chunk, "the Button entry re-exports a chunk").toBeTruthy();
+        expect(await readRepo(`${GLASS_DIST}/${chunk}`)).toMatch(/"[^"]*\bfocus-ring\b[^"]*"/);
+        expect(await readRepo(`${GLASS_DIST}/styles/utilities/base.css`)).toMatch(
+            /\.focus-ring:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring-shadow\)/,
+        );
+        const a11y = await readRepo(`${GLASS_DIST}/styles/utilities/a11y-overrides.css`);
+        expect(a11y).toMatch(/@media \(forced-colors: active\)[\s\S]*?\.focus-ring:focus-visible/);
+        expect(a11y).toMatch(/outline:\s*2px solid Highlight/);
+
+        // (iii) the defect this act removes: a demo-owned `:focus-visible` rule
+        //       over the same host, unlayered and later in the cascade, whose
+        //       `outline: none` erases (ii) — with no parity of its own.
+        const defeaters: string[] = [];
+        for (const sheet of ["demo/styles/playback-idiom.css", "demo/styles/design-idioms.css"]) {
+            walkCss(await readRepo(sheet), (selector, body, atRules) => {
+                if (!/\.btn-playback/.test(selector) || !/:focus-visible/.test(selector)) return;
+                if (atRules.some((rule) => /forced-colors/.test(rule))) return;
+                if (/outline\s*:\s*none/.test(body)) defeaters.push(`${sheet} — ${selector.trim()}`);
+            });
+        }
+        expect(defeaters).toEqual([]);
+    });
+
+    it("the counterpart keeps BOTH arms: the act deleted nothing KF.W6 ruled load-bearing", async () => {
+        const design = await readRepo("demo/styles/design-idioms.css");
+        let ordinary = false;
+        let forcedColors = false;
+        walkCss(design, (selector, body, atRules) => {
+            if (!/\.kf-focus-ring:focus-visible/.test(selector)) return;
+            if (atRules.some((rule) => /forced-colors/.test(rule))) {
+                if (/outline:\s*2px solid Highlight/.test(body)) forcedColors = true;
+            } else if (/box-shadow:\s*var\(--focus-ring-shadow\)/.test(body)) {
+                ordinary = true;
+            }
+        });
+        expect({ ordinary, forcedColors }).toEqual({ ordinary: true, forcedColors: true });
+        expect(design).toContain("G-KFW9-9");
+    });
+});
