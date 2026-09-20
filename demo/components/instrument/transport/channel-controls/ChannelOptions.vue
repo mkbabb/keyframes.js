@@ -78,6 +78,8 @@
                                                 (d) => {
                                                     storedAnimationOptions.animationOptions.duration =
                                                         d;
+                                                    railDuration =
+                                                        animation.options.duration;
                                                 },
                                             )
                                     "
@@ -555,6 +557,7 @@
         <Teleport v-if="active" to="#controls-ribbon-target" defer>
             <PlaybackRibbon
                 :animation="animation"
+                :duration="railDuration"
                 :current-t="currentT"
                 :is-anim-playing="isAnimPlaying"
                 :is-anim-started="isAnimStarted"
@@ -612,7 +615,7 @@ import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 
 // L·N-16 — `Teleport` is a built-in the template compiler resolves; it is not
 // imported.
-import { nextTick, onMounted, ref, toRef, useId, useTemplateRef } from "vue";
+import { nextTick, onMounted, ref, toRef, useId, useTemplateRef, watch } from "vue";
 import { getStoredAnimationOptions } from "@state";
 import { kfEngine } from "@kf-engine";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
@@ -627,6 +630,23 @@ const props = defineProps<{
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(props.animation);
+
+// ── KF-CO-15 (the X.KF.W13.b carve, joint with the ribbon's C-2 contract) ────
+// The rail's scale is a REACTIVE read of the engine's duration. `animation` is
+// markRaw, so a computed over `options.duration` inside the ribbon froze the
+// `:max` at mount while `setDuration` mutated the engine in place; and the
+// ribbon's own inversion read the duration FRESH one function below, so a stale
+// 5000 rail over a fresh 2000 pivot emitted a signed seek (rawT = −3000) under
+// Reverse. This card is the ONE writer of the duration (`commitOption` above),
+// so it publishes the accepted value on the same edge that persists it and
+// hands the ribbon one scale for both its rail and its inversion.
+const railDuration = ref(props.animation.options.duration);
+watch(
+    () => props.animation,
+    (a) => {
+        railDuration.value = a.options.duration;
+    },
+);
 
 const {
     advancedOpen,

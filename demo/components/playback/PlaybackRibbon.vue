@@ -95,7 +95,20 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 
-const { animation, source } = defineProps<{
+/**
+ * THE TIME-SPACE CONTRACT (X.KF.W13.b · C-2, one declaration for the ribbon).
+ * Every time this ribbon RECEIVES or DISPLAYS is EFFECTIVE time — milliseconds
+ * along the direction of travel, `0` at the start the user sees and `duration`
+ * at the end, in every direction (the engine's `effectiveT`: `duration − t`
+ * under Reverse, `t` otherwise). The channel mount (`useAnimationSync` →
+ * `currentT`) is the convention pin. The one value this ribbon EMITS in RAW
+ * engine time is `sliderUpdate.t` — `scrubTo` performs the inversion exactly
+ * once, over the SAME duration read the rail is scaled by. A mount that feeds
+ * raw `t` into `currentT` paints the ball and the thumb mirrored under Reverse.
+ */
+type EffectiveMs = number;
+
+const { animation, source, duration } = defineProps<{
     // T.B1-β STAGE 1 — the ribbon is CHANNEL-capable: its time source is EITHER
     // the selected channel's painting `animation` (the engine-clocked path —
     // scrubs emit `sliderUpdate`, the visualizer twin mounts) OR a progress-
@@ -108,17 +121,29 @@ const { animation, source } = defineProps<{
         /** The scrub scale (ms). Defaults to 1 (a normalized [0,1] rail). */
         duration?: number;
     };
-    currentT: number;
+    /**
+     * KF-CO-15 — the rail's scale, published REACTIVELY by the one writer of
+     * the engine's duration (the options card). `animation.options` is
+     * markRaw, so a read of `options.duration` here cannot track a
+     * `setDuration`; without this the rail's `:max` freezes at mount.
+     */
+    duration?: number;
+    /** Effective ms (see the contract above). */
+    currentT: EffectiveMs;
     isAnimPlaying: boolean;
     isAnimStarted: boolean;
     userReversed: boolean;
 }>();
 
-/** The scrub rail's scale: the animation clock when present, else the
- *  source's declared duration (1 ⇒ a normalized [0,1] rail). */
-const effectiveDuration = computed(
-    () => animation?.options.duration ?? source?.duration ?? 1,
-);
+/** THE ONE DURATION READ (L-m9) — the rail's `:max`, the arrow `:step` and the
+ *  Reverse inversion all scale by this single value: the published reactive
+ *  scale when the writer supplies it, else the animation clock, else the
+ *  source's declared duration (1 ⇒ a normalized [0,1] rail). One read, one
+ *  guard: a non-positive scale is a rail of length 1. */
+const effectiveDuration = computed(() => {
+    const dur = duration ?? animation?.options.duration ?? source?.duration ?? 1;
+    return dur > 0 ? dur : 1;
+});
 
 const emit = defineEmits<{
     (e: "scrubStart"): void;
@@ -178,25 +203,20 @@ const gatedSliderDown = (e: PointerEvent) => {
     onScrubPointerDown(e);
 };
 
-const scrubTo = (effectiveT: number) => {
+/** Seat the playhead at an EFFECTIVE time (the contract above). */
+const scrubTo = (effectiveT: EffectiveMs) => {
+    const dur = effectiveDuration.value;
     if (animation) {
-        const rawT = animation.reversed
-            ? animation.options.duration - effectiveT
-            : effectiveT;
-
-        // Playback is always group-owned now (H.W1): the scrub routes a
-        // `sliderUpdate` through the group/channel seam, which seats just this
-        // animation. The old SOLO branch (poke `animation.t`/`interpFrames`
-        // directly) is DELETED with the SOLO authority.
-        emit("sliderUpdate", {
-            t: rawT,
-            animation,
-        });
+        // The one inversion, over the one duration read: raw engine time for
+        // the group seam (playback is group-owned — H.W1). A stale rail could
+        // once emit a NEGATIVE raw t here (the signed seek); the rail and this
+        // pivot now share one scale by construction.
+        const rawT = animation.reversed ? dur - effectiveT : effectiveT;
+        emit("sliderUpdate", { t: rawT, animation });
     } else if (source) {
         // The progress-scalar path (a light channel): seat the normalized
         // playhead through the channel's own round-trip.
-        const dur = effectiveDuration.value;
-        source.setProgress(dur > 0 ? effectiveT / dur : 0);
+        source.setProgress(effectiveT / dur);
     }
 
     // Re-arm any idled sync loop.
