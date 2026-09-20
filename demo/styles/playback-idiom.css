@@ -88,3 +88,17 @@
     background: color-mix(in srgb, var(--primary) 15%, transparent);
     border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
 }
+
+/* D-12 (X.KF.W13.b) — the demo-side STOPGAP for the scrub rail under forced
+   colors: the producer Slider's focus affordance is box-shadow-only (dropped in
+   forced-colors mode) and its spectrum thumb declares `outline: none`, so the
+   focused thumb showed no system focus ring. The demo-OWNED wrapper (`.scrub-rail`,
+   PlaybackRibbon.vue) draws a Highlight outline while the thumb inside it has
+   focus — no producer selector is reached. The producer half (a forced-colors
+   selector on the Slider itself) rides the BH relay (kf-PlaybackRibbon (c)). */
+@media (forced-colors: active) {
+    .scrub-rail:focus-within {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
+}
