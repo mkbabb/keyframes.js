@@ -131,9 +131,9 @@ const { default: ChannelOptions } =
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
 
 type PointerCaptureSurface = {
-    hasPointerCapture?: (id: number) => boolean;
-    releasePointerCapture?: (id: number) => void;
-    setPointerCapture?: (id: number) => void;
+    hasPointerCapture?: ((id: number) => boolean) | undefined;
+    releasePointerCapture?: ((id: number) => void) | undefined;
+    setPointerCapture?: ((id: number) => void) | undefined;
 };
 const elementProto = Element.prototype as unknown as PointerCaptureSurface;
 const savedRO = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
