@@ -1,17 +1,23 @@
 <template>
     <div class="w-full grid gap-2">
+        <!-- D-5 — the one instructional string reaches the thumb through the
+             producer's aria-describedby forward (below); the hover Tooltip on
+             this wrapper is the sighted convenience, no longer the only route.
+             D-6 — disabled is the Slider's own `disabled` (tabindex removal +
+             `[data-disabled]`), not an `.is-disabled` costume that left the thumb
+             focusable, arrow-operable and un-announced — and whose
+             `pointer-events: none` made this very hint unreachable (M-6).
+             L-M1 — the wrapper touch gate is DELETED: glass-ui 7.0.0's Slider
+             owns its own `useTouchGate` on the slider root (same composable,
+             same first-tap contract, `data-touch-active` painted), so the demo
+             ran two gates. S-3's reasoning survives the deletion as the
+             seam's law: the drag seam arms for every primary pointer at
+             capture — a mouse/pen has no page-scroll ambiguity, and a touch's
+             first press is the PRODUCER's gate to accept or reject on its own
+             element; the seam never second-guesses it. -->
         <Tooltip>
             <TooltipTrigger as-child>
-                <div
-                    :class="[
-                        'touch-gate-target timeline-green',
-                        gate.isActive.value ? 'touch-gate-active' : '',
-                        !isAnimStarted ? 'is-disabled' : '',
-                    ]"
-                    @pointerdown.capture="gatedSliderDown"
-                    @touchmove="gate.handleScrollCheck"
-                    @touchend="gate.handleTouchEnd"
-                >
+                <div class="timeline-green" @pointerdown.capture="onScrubPointerDown">
                     <!-- D-1 / C-3 / C-4 — cured ON the Slider (PR-CAUTION): the
                          accessible name rides the producer's aria-label forward
                          to the thumb; the arrow step is duration-relative (1 %
@@ -27,10 +33,15 @@
                         :min="0"
                         :max="effectiveDuration"
                         :step="scrubStep"
+                        :disabled="!isAnimStarted"
+                        :aria-describedby="scrubHintId"
                         :model-value="[currentT]"
                         @update:model-value="onSliderInput"
                         @value-commit="onSliderCommit"
                     />
+                    <span :id="scrubHintId" class="sr-only">
+                        Drag, or use the arrow keys, to scrub the animation timeline.
+                    </span>
                 </div>
             </TooltipTrigger>
             <TooltipContent>Scrub animation timeline</TooltipContent>
@@ -61,11 +72,12 @@
                  silent split (Play=serif via --font-serif, Reverse=sans via
                  text-body) is dead. NOT a per-site font class: the existing
                  .btn-playback button skin is the shared transport register. -->
+            <!-- D-15 / D-8 / N-1 — ONE pressed authority: the skin's
+                 `.btn-playback[aria-pressed="true"]` rule (playback-idiom.css).
+                 The template utilities that argued with it were dead by
+                 layering and are gone. -->
             <Button
-                :class="[
-                    'btn-playback h-10 w-full rounded-full gap-2',
-                    'aria-pressed:bg-primary/10 aria-pressed:border-primary/40',
-                ]"
+                class="btn-playback h-10 w-full rounded-full gap-2"
                 :aria-pressed="userReversed"
                 emphasis="secondary"
                 @click="emit('toggleReverse')"
@@ -97,10 +109,10 @@
 // global rules — the .btn-playback* classes land on reka-ui's <Button> DOM
 // shared across this ribbon and the scene play buttons.
 
-import { computed } from "vue";
+import { computed, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
-import { Button, Slider, useTouchGate } from "@mkbabb/glass-ui";
+import { Button, Slider } from "@mkbabb/glass-ui";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
@@ -167,8 +179,6 @@ const emit = defineEmits<{
     (e: "toggleReverse"): void;
 }>();
 
-const gate = useTouchGate();
-
 // ── J.W2 S1 (W4-4) — the slider scrub rides the SHARED drag seam ─────────────
 // The playhead scrub is a control-surface drag, so `useDragCapture` is its seam:
 // it owns `setPointerCapture` + the global `body.is-dragging` select-suppression
@@ -185,6 +195,9 @@ const { isDragging, onPointerDown: onScrubPointerDown } = useDragCapture({
     onStart: () => emit("scrubStart"),
     onEnd: () => emit("scrubEnd"),
 });
+
+/** D-5 — the id the sr-only hint carries, forwarded to the thumb by the producer. */
+const scrubHintId = useId();
 
 /** C-4 — one arrow press moves 1 % of the rail; reka multiplies Page/Shift ×10. */
 const scrubStep = computed(() => effectiveDuration.value / 100);
@@ -213,33 +226,6 @@ const onSliderCommit = (val: number[]) => {
     emit("scrubEnd");
 };
 
-/** Capture-phase handler on the wrapper: gate touch interactions on mobile,
- *  then route the admitted gesture through the shared drag seam.
- *
- *  T.S2 (lane 27 F3) — the touch gate is a MOBILE scroll-vs-scrub disambiguator
- *  (`useTouchGate`): its first-tap-activates contract returns `false` on the
- *  first press whenever `"ontouchstart" in window` — which is TRUE in Chromium
- *  (desktop + Playwright) even for a MOUSE. Routing a mouse/pen press through it
- *  therefore SWALLOWED the shared drag seam's arming (`acquireSelectSuppression`
- *  → `body.is-dragging` never set), so a real desktop scrub highlighted the
- *  chrome it swept (proof:drag-gesture clause (a) RED on this one surface). A
- *  mouse/pen has no page-scroll ambiguity, so it bypasses the gate and arms the
- *  seam directly; only a genuine `touch` pointer consults the tap-to-activate
- *  gate (which glass-ui's Slider does NOT provide — it sets touch-action:none,
- *  hijacking scroll — so the wrapper stays, correctly scoped to touch). */
-const gatedSliderDown = (e: PointerEvent) => {
-    if (e.pointerType === "touch") {
-        const wrapper = e.currentTarget as HTMLElement;
-        if (!gate.handleTouchStart(wrapper, e.clientY)) {
-            // First touch on a resting control — defer to page scroll; prevent
-            // the slider from receiving the event until a deliberate re-tap.
-            e.stopPropagation();
-            e.preventDefault();
-            return;
-        }
-    }
-    onScrubPointerDown(e);
-};
 
 /** Seat the playhead at an EFFECTIVE time (the contract above). */
 const scrubTo = (effectiveT: EffectiveMs) => {

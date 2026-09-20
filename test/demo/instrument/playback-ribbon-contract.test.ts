@@ -385,3 +385,39 @@ describe("D-1 + C-3 + C-4 — named, stepped, keyboard-scrubbable, ON the Slider
         expect(payload.t).toBe(950);
     });
 });
+
+describe("D-5 + D-6 + L-M1 — the hint reaches the thumb, disabled is the primitive's, one gate", () => {
+    it("(D-5) the thumb is described by the visible-to-AT hint through the producer's aria-describedby forward", async () => {
+        const seat = mountRibbon();
+        await settle();
+        const thumb = thumbOf(seat.root);
+        const id = thumb.getAttribute("aria-describedby");
+        expect(id).toBeTruthy();
+        const hint = seat.root.querySelector(`[id="${id}"]`);
+        expect(hint?.textContent?.trim()).toMatch(/arrow keys/);
+    });
+
+    it("(D-6) before the animation starts the thumb is DISABLED on the primitive — out of the tab order and inert to arrows — not costumed", async () => {
+        const seat = mountRibbon({ isAnimStarted: false, currentT: 1000 });
+        await settle();
+        const thumb = thumbOf(seat.root);
+        expect(thumb.getAttribute("tabindex")).not.toBe("0");
+        expect(thumb.hasAttribute("data-disabled")).toBe(true);
+        key(thumb, "ArrowRight");
+        await settle();
+        expect(seat.emitted("sliderUpdate")).toHaveLength(0);
+        expect(seat.root.querySelector(".is-disabled [role=slider]")).toBeNull();
+    });
+
+    it("(L-M1) the wrapper runs no gate of its own: a primary mouse press arms the drag seam directly (scrubStart)", async () => {
+        const seat = mountRibbon();
+        await settle();
+        const wrapper = seat.root.querySelector<HTMLElement>(".timeline-green, .scrub-rail")!;
+        wrapper.dispatchEvent(
+            new PointerEvent("pointerdown", { pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, bubbles: true }),
+        );
+        expect(seat.emitted("scrubStart")).toHaveLength(1);
+        window.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, pointerType: "mouse", isPrimary: true, bubbles: true }));
+        expect(seat.emitted("scrubEnd")).toHaveLength(1);
+    });
+});
