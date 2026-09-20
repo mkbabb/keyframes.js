@@ -71,10 +71,22 @@
     transform: translateY(var(--lift-sm, -1px));
 }
 
-.btn-playback:focus-visible {
-    box-shadow: var(--focus-ring-shadow);
-    outline: none;
-}
+/* G-KFW9-9 / K-5 (X.KF.W13.c) — `.btn-playback:focus-visible` is DELETED: it
+   declared the `--focus-ring-shadow` ring and `outline: none`. All FIVE subjects of
+   the rule are producer `Button`s (PlaybackRibbon ×2, SpringScene ×2,
+   StartingStyleTarget), and the glass Button renders `focus-ring` in its own
+   class list — so glass-ui 7.0.0's realized `.focus-ring:focus-visible`
+   (`@layer components`) already painted this exact token on this exact element:
+   the demo copy was pixel-identical in ordinary mode. Under forced-colors it was
+   worse than redundant. The producer's restoration lives UNLAYERED in
+   `a11y-overrides.css` (`.focus-ring:focus-visible { outline: 2px solid Highlight }`)
+   at the same (0,2,0) specificity and cascades EARLIER, so this rule's
+   `outline: none` erased the system ring on every transport button — G-KFW9-9's
+   WHC finding, reproduced at the bytes. The ground was re-derived per selector
+   BEFORE the act (OP-5) at `evidence/W13/c-op5-rederivation.md`. The act's other
+   half is in `design-idioms.css` (same commit, K-5): that counterpart is NOT a
+   copy of this one and is NOT deleted — it is ruled, there, beside its own
+   forced-colors arm. */
 /* N-3 (X.KF.W13.b) — the demo's `:active` press scale is DELETED: the producer
    Button already presses with its own spring scale (useLiquidPress), so the
    press affordance was doubled on Play/Pause (spring × transform ≈ 0.941) and

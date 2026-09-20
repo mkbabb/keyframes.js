@@ -108,6 +108,21 @@
     outline: none;
 }
 
+/* G-KFW9-9 / K-5 — RE-DERIVED at X.KF.W13.c (2026-09-20), and recorded HERE
+   because the banked act is ONE act over two sheets and a silent single-file
+   edit is the violation the lock names. The pair was one rule shape in two
+   files; it is no longer one object. `playback-idiom.css`'s
+   `.btn-playback:focus-visible` is DELETED in this same commit — its hosts are
+   producer `Button`s that already wear glass's own `focus-ring`, so it was
+   redundant in ordinary mode and, unlayered and later in the cascade, it erased
+   the producer's forced-colors outline. THIS half is neither redundant nor
+   defeating: its eleven hosts are bespoke non-`Button` surfaces that NO producer
+   selector matches (the KF.W6 rename above is exactly what took them off
+   `.focus-ring`), and the arm below supplies the system outline itself. Deleting
+   it would remove the only indicator those hosts have. K-5's stated ground —
+   *both copies defeat the producer's outline* — has therefore LAPSED here, and
+   only here; the rule stays, by KF.W6's ruling above and by this re-derivation
+   (receipt: `evidence/W13/c-op5-rederivation.md`). */
 @media (forced-colors: active) {
     .kf-focus-ring:focus-visible {
         outline: 2px solid Highlight;
