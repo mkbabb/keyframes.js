@@ -75,9 +75,10 @@
     box-shadow: var(--focus-ring-shadow);
     outline: none;
 }
-.btn-playback:active {
-    transform: scale(var(--scale-press));
-}
+/* N-3 (X.KF.W13.b) — the demo's `:active` press scale is DELETED: the producer
+   Button already presses with its own spring scale (useLiquidPress), so the
+   press affordance was doubled on Play/Pause (spring × transform ≈ 0.941) and
+   asymmetric across the pair. One press authority remains, the producer's. */
 .btn-playback:disabled {
     opacity: 0.5;
     pointer-events: none;
