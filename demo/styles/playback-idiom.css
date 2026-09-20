@@ -9,31 +9,60 @@
    — neither name exists at any path in this repo), the classes land on
    reka-ui's own DOM and are shared across components, so a `<style scoped>`
    block is the wrong home (its `[data-v-*]` would change specificity and fail
-   to match the other consumers). A non-scoped colocated partial imported by
-   PlaybackRibbon.vue keeps plain class selectors — IDENTICAL rendering
-   (isomorphic; no specificity change) — while the rules live WITH the playback
-   component that owns them.
+   to match the other consumers). A non-scoped colocated partial keeps plain
+   class selectors — IDENTICAL rendering (isomorphic; no specificity change) —
+   while the rules live WITH the playback component that owns them. D-20's
+   fourth falsehood (X.KF.W13.e): this header said the partial is "imported by
+   PlaybackRibbon.vue"; it is not, and never was — the sole importer is
+   `design-idioms.css:10` (`@import "./playback-idiom.css"`), which is what makes
+   the skin reach the scene consumers that never import it.
    ════════════════════════════════════════════════════════════════════════ */
 
 .btn-playback {
-    height: 2rem;
     width: 100%;
     gap: 0.5rem;
     border-radius: var(--radius-pill);
-    font-size: var(--type-body, 1rem);
     /* T.D3 (OD-6 / T-TY2) — the K.W2 display bind dies: transport buttons are
        CONTROLS, so they ride the inherited Jakarta body register at medium
        weight (a display-optical serif at 16px read spindly-then-smudged; the
-       P-THEME blessed reference re-voiced the whole transport band). */
+       P-THEME blessed reference re-voiced the whole transport band).
+       D-13 (X.KF.W13.e) — and the control rung is reached by NOT declaring it.
+       This rule used to set `font-size: var(--type-body, 1rem)` — the PROSE
+       rung — on a control whose producer rule already declares the CONTROL
+       rung: glass-ui 7.0.0 `components/button/styles.css` `@layer components`
+       ships `.button { font-size: var(--control-text) }`. The comment argued
+       CONTROLS and then reached past the control token; the declaration is
+       deleted, so one authority paints the size and only the weight stays
+       demo-voiced.
+       D-16 (X.KF.W13.e) — `height: 2rem` goes with it. The same producer rule
+       declares `min-block-size: var(--button-size)` (`--control-h-md`, 40px
+       fine / 60px coarse via `--ui-scale`), which EXCEEDS 2rem in every mode,
+       so the declaration painted nothing. Its SFC half (`h-10`, layered out by
+       this one) died at `.b`; both heights are now the producer's one. */
     font-weight: 500;
 }
+/* D-10 (X.KF.W13.e) — the accent CTA is a SOLID plate, not a 20% wash. Accent
+   ink on its own accent wash measured 3.58 / 3.70 / 4.02:1 against the 4.5:1
+   floor (the large-text exemption is inapplicable at this rung) and got WORSE
+   on hover — 32% wash under the same ink. The cure pair is the demo's own,
+   declared at `style.css` (`--accent-kf` … `--accent-kf-foreground`, the latter
+   documented there as "text/glyph ON the accent") and already consumed by this
+   component's own ball 64px below the failing CTA (`bg-accent-kf
+   text-accent-kf-foreground`, AnimationVisualizer). `--color-progress` IS
+   `--accent-kf` (style.css `:215`), so the ONE motion-color identity T.D7
+   re-voiced is unchanged — what dies is the composite, not the hue.
+   N-1 (X.KF.W13.e) — the `border-color` declaration and its transition entry
+   are DELETED as dead ink: `.button { border: 0 }` (glass-ui `@layer
+   components`, styles import #24) beats `.glass-wash { border: 1px solid … }`
+   (import #4) on source order within the one layer, and `tone` defaults to
+   "neutral" so the tone-gated border never engages. These buttons paint no
+   border box in any mode; a border, if ever wanted, is authored on
+   `.btn-playback` directly, never assumed from `.glass-wash`. */
 .btn-playback-accent {
-    background: color-mix(in srgb, var(--color-progress) 20%, transparent);
-    color: var(--color-progress);
-    border-color: color-mix(in srgb, var(--color-progress) 40%, transparent);
+    background: var(--accent-kf);
+    color: var(--accent-kf-foreground);
     transition:
         background var(--duration-fast, 150ms) var(--ease-standard),
-        border-color var(--duration-fast, 150ms) var(--ease-standard),
         box-shadow var(--duration-fast, 150ms) var(--ease-standard),
         transform var(--duration-fast, 150ms) var(--ease-standard);
 }
@@ -41,11 +70,16 @@
    ONE motion-color authority (--color-progress → the OD-6 violet). The K-era
    comment bound this hover to the red-dashed family; VERDICT #16 killed the
    latent-red theme, so the hover now agrees with the same violet the
-   AnimationVisualizer ball/dashed-twin draws — the deeper fill / stronger
-   border / tinted glow ring / 1px rise (--lift-sm) are unchanged. */
+   AnimationVisualizer ball/dashed-twin draws — the deeper fill / tinted glow
+   ring / 1px rise (--lift-sm) are unchanged.
+   D-10 + N-1 (X.KF.W13.e) — the deeper fill is now the `--accent-kf-strong`
+   rung (declared "hover/active deepen (light) / lift (dark)") under the SAME
+   `--accent-kf-foreground` ink, so hover RAISES the label's contrast instead of
+   lowering it, which was D-10's sharpest limb. The "stronger border" this
+   comment used to promise never painted: it is deleted with the rest of N-1's
+   dead ink, narration and declaration together. */
 .btn-playback-accent:hover {
-    background: color-mix(in srgb, var(--color-progress) 32%, transparent);
-    border-color: color-mix(in srgb, var(--color-progress) 70%, transparent);
+    background: var(--accent-kf-strong);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-progress) 35%, transparent),
         0 2px 10px color-mix(in srgb, var(--color-progress) 25%, transparent);
     transform: translateY(var(--lift-sm, -1px));
@@ -53,20 +87,21 @@
 
 /* ── K.W4 F3 — the SHARED transport hover (Reverse + any non-accent playback
    button) lifts toward the accent family too, so no transport button hovers to
-   the dull default. A subtle accent-tinted plate + accent border, the calmer
-   sibling of the accent CTA's hover (the CTA is louder; the secondary buttons
-   get a quieter accent wash). `:not(.btn-playback-accent)` keeps the louder
-   accent hover above winning for the Play CTA. */
+   the dull default. A subtle accent-tinted plate, the calmer sibling of the
+   accent CTA's hover (the CTA is louder; the secondary buttons get a quieter
+   accent wash). `:not(.btn-playback-accent)` keeps the louder accent hover
+   above winning for the Play CTA. N-1 (X.KF.W13.e) — the "accent border" this
+   comment promised, its hover declaration and its transition entry are all
+   DELETED: there is no border box on a `.button` to paint (see the accent
+   rule's N-1 block above), so the plate and the glow are the whole hover. */
 .btn-playback:not(.btn-playback-accent) {
     transition:
         background var(--duration-fast, 150ms) var(--ease-standard),
-        border-color var(--duration-fast, 150ms) var(--ease-standard),
         box-shadow var(--duration-fast, 150ms) var(--ease-standard),
         transform var(--duration-fast, 150ms) var(--ease-standard);
 }
 .btn-playback:not(.btn-playback-accent):hover {
     background: color-mix(in srgb, var(--color-progress) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-progress) 45%, var(--border));
     box-shadow: 0 1px 6px color-mix(in srgb, var(--color-progress) 14%, transparent);
     transform: translateY(var(--lift-sm, -1px));
 }
@@ -96,9 +131,25 @@
     pointer-events: none;
     cursor: not-allowed;
 }
+/* D-8 / D-15 / N-1 (X.KF.W13.e) — ONE pressed authority, REDESIGNED. The
+   template's disagreeing 10/40 pair died at `.b` (it was dead by layering under
+   this rule anyway), so this rule is the demo's whole pressed voice — and what
+   it painted was a 15% `--primary` wash over the glass plate: a 1.21–1.31:1
+   state tint, whose only companions were a `border-color` that could not paint
+   (N-1) and a glyph flip that carries no state semantics (D-9). A state the
+   user cannot see is not a state. Pressed is now the `--accent-kf-subtle` rung
+   (declared "washes + tinted surfaces") as a SOLID plate under
+   `--accent-kf-strong` ink, so the toggle reads as FILLED in both theme arms
+   instead of as a tint of its own unpressed self.
+   S-2's forced-colors survival is preserved by construction: the state channel
+   stays the semantic `aria-pressed` attribute the SFC sets, so glass-ui's
+   `accessibility.css` keeps painting the only border this toggle ever wears —
+   `[aria-pressed="true"] { border: 2px solid Highlight !important }` under
+   `forced-colors: active`, `currentColor` under `prefers-contrast: more` — and
+   nothing here declares a border to argue with it. */
 .btn-playback[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
-    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+    background: var(--accent-kf-subtle);
+    color: var(--accent-kf-strong);
 }
 
 /* D-12 (X.KF.W13.b) — the demo-side STOPGAP for the scrub rail under forced
