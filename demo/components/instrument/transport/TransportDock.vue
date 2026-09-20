@@ -180,6 +180,19 @@
             </div>
 
             <!-- Collapsed state: animation name first, play button on right -->
+            <!-- X.KF.W13.b · THE PROPAGATION POLICY (TD-2 + TD-38 + TD-40, stated
+                 once, here — the only place a stop modifier ever lived): neither
+                 play mirror stops propagation. The dock's pointer/click listeners
+                 are capture-phase (a stop modifier on the button never reached
+                 them — the three pointer stops this mirror carried were inert);
+                 the window Space shortcut is scoped away from activation targets
+                 at the registry seat (useControlsKeyboardShortcuts.ts), so no
+                 keyboard stop is load-bearing; and what a press does to the dock
+                 is the dock's own declared meaning of that press plus
+                 `actuatePlay()`'s explicit `expand()` — never an accidental
+                 stop. Symmetry is the invariant: zero stop modifiers on both
+                 faces, as on the sibling ChromeDock. Census + grounds: value.js
+                 docs/tranches/X/keyframes/evidence/W13/b-td-remainder-derivation.md §4. -->
             <template #collapsed>
                 <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
                     {{ storedControls.selectedAnimation }}
@@ -202,11 +215,11 @@
                         'w-8 h-8 shrink-0',
                         isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
                     ]"
-                    @pointerdown.stop="onPlayPointerDown($event)"
-                    @pointerup.stop="onPlayPointerUp($event)"
-                    @pointercancel.stop="onPlayPointerCancel($event)"
-                    @keydown.stop="onPlayKeydown($event)"
-                    @keyup.stop="onPlayKeyup($event)"
+                    @pointerdown="onPlayPointerDown($event)"
+                    @pointerup="onPlayPointerUp($event)"
+                    @pointercancel="onPlayPointerCancel($event)"
+                    @keydown="onPlayKeydown($event)"
+                    @keyup="onPlayKeyup($event)"
                 >
                     <Pause v-if="isPlaying" class="icon-md" />
                     <Play v-else class="icon-md pl-px" />

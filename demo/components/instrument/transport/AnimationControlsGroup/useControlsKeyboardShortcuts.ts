@@ -23,6 +23,28 @@ interface UseControlsKeyboardShortcutsDeps {
 }
 
 /**
+ * The controls whose NATIVE or ARIA contract activates on Space. A keydown
+ * whose target sits inside one of these belongs to that control: the page-level
+ * Space shortcut stands aside and leaves the activation default intact.
+ */
+const SPACE_ACTIVATION_TARGETS = [
+    "button",
+    "summary",
+    '[role="button"]',
+    '[role="checkbox"]',
+    '[role="switch"]',
+    '[role="radio"]',
+    '[role="menuitem"]',
+    '[role="menuitemcheckbox"]',
+    '[role="menuitemradio"]',
+    '[role="option"]',
+    '[role="tab"]',
+].join(", ");
+
+export const isSpaceActivationTarget = (target: EventTarget | null): boolean =>
+    target instanceof Element && target.closest(SPACE_ACTIVATION_TARGETS) !== null;
+
+/**
  * The playback / navigation / action KEYBOARD SHORTCUTS for the controls group,
  * lifted out of AnimationControlsGroup.vue as a colocated composable (the K.WZ
  * proof:demo-no-oversize seam; zero behavior change).
@@ -47,7 +69,25 @@ export function useControlsKeyboardShortcuts(
         activeTimelineRef,
     } = deps;
 
-    registerShortcut("Space", () => toggleAnimationGroup(), { preventDefault: true, label: "Play / Pause", group: "Playback" });
+    // X.KF.W13.b · TD-40 (+ TD-2) — Space is scoped AWAY from activation targets.
+    // The registry's dispatcher skips only editable targets and calls
+    // `preventDefault` BEFORE the handler, so a `preventDefault: true`
+    // registration cancelled the browser's own Space→click activation on every
+    // focused button in the demo (Reset, Collapse-timeline, …) and ran playback
+    // instead; on the focused Play it was the SECOND actuator beside the
+    // button's native keyup arm (TD-2). One policy: a control that activates on
+    // Space owns its Space; the page-level shortcut fires for every other
+    // target, and the handler — not the registration — owns `preventDefault`
+    // so the page-scroll suppression survives exactly where the shortcut fires.
+    // `e.repeat` is guarded here as the local arm already guards it — a held
+    // Space on the page is one toggle, not a rapid toggle at the OS repeat rate.
+    // The producer half (a BUTTON-target / `defaultPrevented` policy in the
+    // dispatcher) is relayed on the standing registry row, never patched here.
+    registerShortcut("Space", (e) => {
+        if (e.repeat || isSpaceActivationTarget(e.target)) return;
+        e.preventDefault();
+        toggleAnimationGroup();
+    }, { label: "Play / Pause", group: "Playback" });
     registerShortcut("Escape", () => reset(), { label: "Stop animation", group: "Playback" });
     registerShortcut("R", () => { resetIconSpin(); reset(); }, { label: "Reset animation", group: "Playback" });
     registerShortcut("ArrowLeft", () => scrubActive(getActiveT() - 0.01), { preventDefault: true, label: "Scrub back", group: "Playback" });
