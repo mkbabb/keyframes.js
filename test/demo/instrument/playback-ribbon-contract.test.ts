@@ -9,9 +9,10 @@
  * the Slider; every assertion reads the primitive's own thumb (`[role=slider]`).
  *
  * Module-seam stubs, exactly where X.KF.W12.b's record placed them: the root
- * barrel and `/button` reach the keyframes.js-import wall, so `Button` is a
- * `<button>` host and the card's Card/Select/Separator members are
- * passthroughs; `/number-field`, `/drawer` and `/easing` are stubbed the way the
+ * barrel reaches the keyframes.js-import wall, so `Button` is a `<button>`
+ * host and the card's Card/Select/Separator members are passthroughs (the
+ * Slider is the REAL one, re-exported from the clean `/slider` subpath);
+ * `/number-field`, `/drawer` and `/easing` are stubbed the way the
  * render-edge gate stubs them (their closures reach the same wall). The
  * AnimationVisualizer (KF.W11's file, `aria-hidden`, not a subject here) is
  * stubbed at its own seam because it imports the root barrel.
@@ -64,7 +65,6 @@ vi.mock("@mkbabb/glass-ui", async () => {
         }),
     };
 });
-vi.mock("@mkbabb/glass-ui/button", () => ({ Button: buttonHost }));
 vi.mock("@mkbabb/glass-ui/number-field", () => ({
     NumberField: defineComponent({
         name: "NumberFieldStub",

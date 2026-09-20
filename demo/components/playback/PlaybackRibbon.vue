@@ -112,8 +112,13 @@
 import { computed, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
-import { Button } from "@mkbabb/glass-ui/button";
-import { Slider } from "@mkbabb/glass-ui/slider";
+// C-11 (NOT landed — recorded): `Button`/`Slider` stay on the root barrel beside
+// `/tooltip`. Moving them to `/button`/`/slider` is the convention the row asks
+// for, but KF.W12's render-edge gate stubs this ribbon's producer reach at the
+// ROOT barrel (its mount path crosses the keyframes.js-import wall), and that
+// test file is not this packet's to edit. The move lands the day that seam is
+// widened by its owner.
+import { Button, Slider } from "@mkbabb/glass-ui";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
