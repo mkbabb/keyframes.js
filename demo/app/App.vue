@@ -26,7 +26,6 @@
         :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
         :extra-control-tabs="extraControlTabs"
-        :items-popup-open="mbabbPopupOpen"
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"
@@ -34,7 +33,6 @@
     >
         <template #items>
             <MbabbMenu
-                v-model:open="mbabbPopupOpen"
                 :super-key="currentSuperKey"
                 :on-scene-restore="runSceneSwitch"
             />
@@ -365,11 +363,12 @@ const { runSceneSwitch } = useSceneTransition(
 );
 
 // The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
-// lives in @app/dock/MbabbMenu.vue (S.D1 · a23 F2). It surfaces its
-// combined open state via `v-model:open` so ChromeDock's `:items-popup-open` holds
-// the dock's expanded layer mounted while the menu (or its hover→press window) is
-// live — the layer-collapse half of the D9 fix.
-const mbabbPopupOpen = ref(false);
+// lives in @app/dock/MbabbMenu.vue (S.D1 · a23 F2). M-4: the App no longer
+// mirrors its open state anywhere. The menu is authored HERE but RENDERED inside
+// ChromeDock's `<GlassDock>`, so it injects that dock's context and takes the
+// keep-open hold itself — the layer-collapse half of the D9 fix, held one level
+// away from the state it belongs to (proof:
+// `test/demo/app/dock-context-slot-resolution.test.ts`).
 </script>
 
 <style scoped>

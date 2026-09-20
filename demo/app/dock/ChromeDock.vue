@@ -106,12 +106,6 @@ const props = defineProps<{
      *  full triad when absent (non-App hosts that don't drive the DFA). */
     controlSurfaces?: readonly ControlSurface[];
     extraControlTabs?: readonly ControlSurfaceTab[];
-    /** A slotted #items popup (the @mbabb dropdown) is open. The slot content is
-     *  set up in the PARENT (App.vue), so its `useOptionalDockContext()` resolves
-     *  ABOVE this provider and cannot hold the dock open itself; the parent surfaces
-     *  the open state here so the dock's own keep-open hold (dockRef) pins it — the
-     *  same mutex the scene/controls Selects ride (BLK-8 / D9). */
-    itemsPopupOpen?: boolean;
 }>();
 
 // The active scene's inline-SVG glyph for the trigger + collapsed pill; the
@@ -230,11 +224,21 @@ watch(() => dockRef.value?.expanded, (isExpanded) => {
 // ── Popup mutex: only one dropdown at a time ──
 type PopupKey = "scene" | "controls";
 const openPopup = ref<PopupKey | null>(null);
-// The dock stays expanded while ANY popup is open — the scene/controls Selects
-// (openPopup mutex) OR a slotted #items popup the parent surfaces (the @mbabb
-// dropdown, whose own DI-injected hold can't reach this provider). Holding here is
-// what keeps the trigger's layer from collapsing to visibility:hidden mid-gesture.
-const isAnyOpen = computed(() => openPopup.value !== null || !!props.itemsPopupOpen);
+// The dock stays expanded while one of THIS component's own dropdowns is open
+// (the scene/controls Selects, one at a time through the mutex above) — holding
+// is what keeps the trigger's layer from collapsing to visibility:hidden
+// mid-gesture (BLK-8 / D9).
+//
+// M-4 (kf-ChromeDock) — the slotted-popup prop this term used to OR in is GONE,
+// and with it the five-site round-trip (App.vue ref → prop → this term →
+// MbabbMenu's `defineModel` → back). It existed to serve a claim about Vue that
+// the registry killed and `test/demo/app/dock-context-slot-resolution.test.ts`
+// now falsifies in a mounted render: `inject` resolves along the RUNTIME PARENT
+// chain, so slot content authored in App.vue resolves THIS `<GlassDock>`'s
+// context and holds the dock open itself (`useOptionalDockContext().keepOpen()`
+// — MbabbMenu.vue). The producer's own portalled `SelectContent`, authored as
+// slot content right here, has always relied on exactly that resolution.
+const isSelectOpen = computed(() => openPopup.value !== null);
 function popupModel(key: PopupKey) {
     return computed({
         get: () => openPopup.value === key,
@@ -278,14 +282,20 @@ const warmControlSurfaces = (): void => {
 // collapsed while a popup is open — the trigger's layer never goes
 // visibility:hidden under an open menu (BLK-8 / D9). The guard below settles into a
 // stable expanded state (re-expand fires at most once per spurious collapse).
+//
+// The guard reads the dock's OWN `isHeld` rather than this component's popup
+// term, because the hold counter is now the single place every holder meets:
+// this file's Selects below, and any slot child holding through the dock
+// context (MbabbMenu). Keying it on a local prop was what forced M-4's
+// round-trip to exist at all.
 watch(
     () => dockRef.value?.expanded,
     (isExpanded) => {
-        if (isExpanded === false && isAnyOpen.value) dockRef.value?.expand();
+        if (isExpanded === false && dockRef.value?.isHeld) dockRef.value.expand();
     },
 );
 
-watch(isAnyOpen, (open) => {
+watch(isSelectOpen, (open) => {
     if (open) {
         dockRef.value?.keepOpen();
         dockRef.value?.expand();

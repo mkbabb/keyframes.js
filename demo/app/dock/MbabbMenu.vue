@@ -1,6 +1,7 @@
 <template>
-    <!-- DockTrigger owns pointerdown actuation. The controlled open model exists
-         only to hold ChromeDock expanded while this menu is open. -->
+    <!-- DockTrigger owns pointerdown actuation. `v-model:open` is THIS menu's own
+         open state — the one the self-hold watches (script below). It is a local
+         model, not dock plumbing: nothing outside this file reads or writes it. -->
     <DropdownMenu v-model:open="open">
         <!-- MM-29 (site 1 of 2) — `normal-case` cancels `text-transform` and
              NOTHING else: `text-mono-caption` also binds
@@ -182,14 +183,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // MbabbMenu — the @mbabb dock dropdown (S.D1 · a23 F2 extraction from App.vue).
 //
-// This is DOCK CHROME: App.vue mounts it in ChromeDock's #items slot and binds
-// `v-model:open` back to ChromeDock's `:items-popup-open`, so the dock stays
-// expanded while the menu is open.
+// This is DOCK CHROME: App.vue mounts it in ChromeDock's #items slot, and the
+// dock stays expanded while the menu is open because THIS FILE takes the hold —
+// `useOptionalDockContext()` resolves the `<GlassDock>` that RENDERS this slot
+// content (Vue injects along the runtime parent chain), so no open state has to
+// travel up to the App and back down as a prop (M-4; the mechanism is executed,
+// not asserted, in `test/demo/app/dock-context-slot-resolution.test.ts`).
 // ─────────────────────────────────────────────────────────────────────────────
+import { onBeforeUnmount, watch } from "vue";
 import { SharePopover } from "@components/instrument/shell";
 import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
-import { DockTrigger } from "@mkbabb/glass-ui/dock";
+import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { Trash } from "@lucide/vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
 const props = defineProps<{
@@ -200,8 +205,43 @@ const props = defineProps<{
     onSceneRestore: (id: string) => void;
 }>();
 
-// The dock-hold model directly mirrors the controlled menu state.
+// This menu's own open state. It stays a `defineModel` — glass-ui 7.0.0's
+// `DropdownMenu` declares `open`/`defaultOpen` as `{ type: Boolean, default:
+// void 0 }` (measured at the installed dist), so an absent binding is genuinely
+// uncontrolled now; the local model is what the self-hold below watches and what
+// lets a host observe the menu if it ever needs to. Nothing else binds it.
 const open = defineModel<boolean>("open", { default: false });
+
+// ── The self-hold (M-4) ──────────────────────────────────────────────────────
+// The dock context is injected from the `<GlassDock>` that RENDERS this
+// component (ChromeDock's), not the one lexically enclosing App.vue's template —
+// Vue resolves `inject` along the runtime parent chain. `null` when the menu is
+// mounted outside a dock, which is the "optional" in the producer's name.
+const dock = useOptionalDockContext();
+
+// One release per keepOpen, and never a release we did not take: the producer
+// clamps its counter at zero (`Math.max(0, …)`), and this pairing means we never
+// lean on that clamp. i-2's unpaired release — reachable only because the old
+// prop could arrive true at mount — dies here with the round-trip that fed it.
+let held = false;
+watch(
+    open,
+    (isOpen) => {
+        if (isOpen === held) return;
+        held = isOpen;
+        if (isOpen) dock?.keepOpen();
+        else dock?.release();
+    },
+    { immediate: true },
+);
+
+// A menu unmounted while open (a scene swap under an open dropdown) must not
+// leave its token behind: a leaked hold pins the dock expanded forever.
+onBeforeUnmount(() => {
+    if (!held) return;
+    held = false;
+    dock?.release();
+});
 
 function togglePpMode() {
     const stored = getStoredAnimationGroupControlOptions(props.superKey);
