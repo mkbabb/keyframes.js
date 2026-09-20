@@ -157,10 +157,9 @@
                 <Tooltip>
                     <TooltipTrigger as-child>
                         <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
-                            <RotateCcw
-                                ref="resetIconEl"
-                                class="icon-lg"
-                            />
+                            <span ref="resetIconEl" class="inline-flex">
+                                <RotateCcw class="icon-lg" />
+                            </span>
                         </DockControl>
                     </TooltipTrigger>
                     <TooltipContent>Reset animation</TooltipContent>
@@ -379,7 +378,10 @@ const dotStyle = (name: string): Record<string, string> => {
     return { "--dot-p": String(p) };
 };
 
-const { resetIconEl, resetIconSpin } = useIconSpin();
+// The glyph host is an HTMLElement (the engine target contract); the SFC owns
+// the typed ref and hands it to the composable (TD-17).
+const resetIconEl = useTemplateRef<HTMLElement>("resetIconEl");
+const { resetIconSpin } = useIconSpin(resetIconEl);
 
 // T.C2 — "Clear all & reload" (the trash icon + its shake, `emit('reset', true)`)
 // MOVED OUT of the transport into the @mbabb settings menu (a destructive storage
