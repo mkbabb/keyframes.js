@@ -43,6 +43,23 @@ export default defineConfig({
         },
     },
     test: {
+        // X.KF.W13.a2 (KF13-E2, COHESION §0ai) — the producer's dist chunks
+        // import the BARE SELF-SPECIFIER `@mkbabb/keyframes.js`
+        // (`@mkbabb/glass-ui/dist/dock.js:24` → `useSpring-*.js`). vitest
+        // externalizes `node_modules`, so those chunks are loaded by Node's own
+        // resolver, which never sees the `resolve.alias` above — and a package
+        // never installs itself into its own `node_modules`. Every demo test
+        // that mounts a real glass-ui component whose closure reaches
+        // `useSpring` therefore died at IMPORT, before a single assertion:
+        //   Error: Cannot find package '@mkbabb/keyframes.js' imported from
+        //   node_modules/@mkbabb/glass-ui/dist/useSpring-9u2_shxV.js
+        // Inlining the producer hands its chunks to Vite's transform pipeline,
+        // where the S.B7 alias resolves the self-specifier to `src/` — ONE
+        // realm for producer and library, the same shape the alias already
+        // declares for the demo's own consumption. This is the harness's own
+        // idiom and the ROOT cure: it replaces the per-file `vi.mock` seam
+        // stubs earlier waves had to reach for to keep a mounted card alive.
+        server: { deps: { inline: ["@mkbabb/glass-ui"] } },
         benchmark: {
             include: ["bench/*.bench.ts"],
             exclude: ["**/.claude/**", "**/node_modules/**", "**/dist/**"],
