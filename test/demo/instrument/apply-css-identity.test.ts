@@ -145,6 +145,24 @@ const identityOf = (
     superKey: Parameters<typeof createAnimationUUId>[1],
 ) => cssIdent(`keyframes-style-${createAnimationUUId(animation, superKey)}`);
 
+/**
+ * The seat's `defineExpose` surface, named once.
+ *
+ * `@vue/test-utils` types a mounted SFC's exposed members as possibly-absent on
+ * `wrapper.vm` (they exist only once setup has run), so reading them at seven
+ * call sites would otherwise mean seven non-null assertions. One named contract
+ * is the honest shape — and it is the SAME contract the ribbon consumes at
+ * runtime through `activeKeyframesRef?.clearAppliedCSS?.()`.
+ */
+interface ApplySeat {
+    getCSSString: () => string;
+    applyCSSStyles: () => void;
+    clearAppliedCSS: () => void;
+    cssApplied: boolean;
+}
+
+const seatOf = (wrapper: { vm: object }) => wrapper.vm as unknown as ApplySeat;
+
 const injectedSheets = () =>
     Array.from(
         document.head.querySelectorAll<HTMLStyleElement>("style"),
@@ -164,7 +182,7 @@ const mountSeat = async (animation: unknown) => {
     await nextTick();
     await vi.waitFor(
         () => {
-            expect(String(wrapper.vm.getCSSString())).toContain("@keyframes");
+            expect(String(seatOf(wrapper).getCSSString())).toContain("@keyframes");
         },
         { timeout: 20_000 },
     );
@@ -181,7 +199,7 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         const { animation, target } = await buildFixture("Apply-Transform", "kfapply");
         const wrapper = await mountSeat(animation);
 
-        const css = String(wrapper.vm.getCSSString());
+        const css = String(seatOf(wrapper).getCSSString());
         const selectorName = /^\s*\.(\S+)\s*\{/m.exec(css)?.[1];
         const animationName = /animation-name:\s*([^;\s]+)\s*;/.exec(css)?.[1];
         const keyframesName = /@keyframes\s+(\S+)\s*\{/.exec(css)?.[1];
@@ -189,7 +207,7 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         // The press is the ONLY producer of the class: `getClassName()` is
         // `() => styleId` inside the seat, so what lands on the target IS its
         // executed return value.
-        wrapper.vm.applyCSSStyles();
+        seatOf(wrapper).applyCSSStyles();
         await nextTick();
         const classes = Array.from(target.classList);
         expect(classes.length).toBe(1);
@@ -212,7 +230,7 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         // a name that is its own lowercase could pass by coincidence.
         expect(className).not.toBe(className.toLowerCase());
 
-        wrapper.vm.clearAppliedCSS();
+        seatOf(wrapper).clearAppliedCSS();
         wrapper.unmount();
     });
 
@@ -223,10 +241,10 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         const { animation, target } = await buildFixture("Spring Keyframes", "kfapply");
         const wrapper = await mountSeat(animation);
 
-        expect(wrapper.vm.cssApplied).toBe(false);
-        wrapper.vm.applyCSSStyles();
+        expect(seatOf(wrapper).cssApplied).toBe(false);
+        seatOf(wrapper).applyCSSStyles();
         await nextTick();
-        expect(wrapper.vm.cssApplied).toBe(true);
+        expect(seatOf(wrapper).cssApplied).toBe(true);
 
         const sheets = injectedSheets();
         expect(sheets.length).toBe(1);
@@ -256,7 +274,7 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
             `[G-KFW12-5/binds] selectorText=${JSON.stringify(styleRule.selectorText)} matchesTarget=${target.matches(styleRule.selectorText)} @keyframes=${JSON.stringify(keyframesRule.name)}`,
         );
 
-        wrapper.vm.clearAppliedCSS();
+        seatOf(wrapper).clearAppliedCSS();
         wrapper.unmount();
     });
     it("(3) RB-6: leaving the keyframes tab takes the applied identity down with the affordance", HEAVY, async () => {
@@ -285,7 +303,7 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
 
         await applyButton.trigger("click");
         await nextTick();
-        expect(seat.vm.cssApplied).toBe(true);
+        expect(seatOf(seat).cssApplied).toBe(true);
         expect(target.classList.length).toBe(1);
         expect(injectedSheets()[0]!.textContent).toContain("@keyframes");
 
@@ -298,7 +316,7 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         expect(ribbon.findAll("button").some((b) => b.text().includes("Apply CSS"))).toBe(
             false,
         );
-        expect(seat.vm.cssApplied).toBe(false);
+        expect(seatOf(seat).cssApplied).toBe(false);
         expect(Array.from(target.classList)).toEqual([]);
         expect(injectedSheets()[0]!.textContent).toBe("");
 
@@ -315,10 +333,10 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         (animation as unknown as { paused: boolean }).paused = true;
 
         const seat = await mountSeat(animation);
-        seat.vm.applyCSSStyles();
+        seatOf(seat).applyCSSStyles();
         await nextTick();
 
-        expect(seat.vm.cssApplied).toBe(true);
+        expect(seatOf(seat).cssApplied).toBe(true);
         expect(target.classList.length).toBe(1);
         expect((animation as unknown as { paused: boolean }).paused).toBe(false);
         expect(injectedSheets().length).toBe(1);
