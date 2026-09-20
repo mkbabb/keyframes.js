@@ -4,29 +4,36 @@
 /**
  * S.B7 · S6 (fold row 71 · a12 F2/F3) — the play-toggle actuation core for
  * `TransportDock`, extracted from the SFC so the keyboard/pointer contract is
- * unit-testable (vitest carries no Vue-SFC plugin; the behavior is DRIVEN, not
- * markup-inspected — the useToolbarKeyboard precedent).
+ * unit-testable (the behavior is DRIVEN, not markup-inspected).
  *
- * TWO DEFECTS THE DM-1 CONTINGENCY KILL reintroduced when it excised the native
- * `click` path (25b3a13):
+ * NATIVE BUTTON SEMANTICS, mirrored:
+ *  · F2 (auto-repeat): Space actuates on keyup (keydown preventDefaults the page
+ *    scroll and arms; auto-repeat keydowns are swallowed); Enter actuates on
+ *    keydown with `e.repeat` guarded. Never both on raw keydown.
+ *  · F3 (press-origin): a `pointerup` actuates only when its `pointerdown`
+ *    landed on the SAME control (`click` = down+up on one target), and only for
+ *    the primary pointer with button 0.
  *
- *  · F2 (auto-repeat): actuating on RAW `keydown` for Space/Enter means holding
- *    the key rapid-TOGGLES play at the OS key-repeat rate (each auto-repeat
- *    `keydown` re-fires). Native buttons fire Space on *keyup* (once per press)
- *    precisely to avoid this. FIX: mirror native semantics — Space actuates on
- *    keyup (keydown only preventDefaults the page-scroll + arms), Enter actuates
- *    on keydown but guards `e.repeat`. Never both on raw keydown.
- *
- *  · F3 (press-origin): actuating on ANY `pointerup` over the button — even when
- *    the press began elsewhere and the pointer was dragged onto it (a timeline-
- *    diamond drag released over the play pill, a stray body drag) — is not click
- *    semantics (`click` = down+up on the SAME target). FIX: gate `pointerup` on a
- *    `pointerdown`-on-this-control flag (the de-dupe the KILL threw out) + require
- *    `e.isPrimary` (no secondary-touch toggle in a multi-touch gesture).
+ * X.KF.W13.b · TD-21 (+r2) + TD-41 — ONE CANCELLATION LAW ACROSS BOTH ARMS.
+ * One handler set serves both play mirrors, so the origin must be PER CONTROL,
+ * not per closure: a press that began on the expanded Play and released over
+ * the collapsed mirror (the faces swap under the pointer) is not a click on
+ * either. Every arm records the control it began on (`e.currentTarget`) and
+ * actuates only when the completing event arrives on that same control.
+ *  · Pointer: the origin is `pointerId → control`. A release over NEITHER
+ *    control never reaches these handlers, so a one-shot window `pointerup`/
+ *    `pointercancel` listener (registered at press, bubble phase so the control's
+ *    own handler runs first) clears the entry — the stale id a persistent mouse
+ *    pointerId would otherwise resurrect on a later drag-release is gone.
+ *  · Keyboard: `spaceArmed` is the control that armed, not a boolean; a keyup on
+ *    another control (focus moved mid-press — an inert swap, the 3600 ms
+ *    collapse) does not actuate, and a keyup with no arm (an orphan) never does.
+ *  · Blur disarms BOTH arms for the control that lost focus: the pointer entries
+ *    that began on it and the Space arm if it holds it — the producer's own
+ *    `useLiquidPress` releases on blur/pointerleave for the same reason.
  *
  * The composable owns NO DOM/emit — the SFC passes the crossfade-independent
- * `actuate` (expand dock + emit togglePlay); the two modality-pure sources stay
- * mutually exclusive per activation, so no cross-source de-dupe is needed.
+ * `actuate` (expand dock + emit togglePlay).
  */
 interface PlayActuationHandlers {
     onPlayPointerDown(e: PointerEvent): void;
@@ -34,54 +41,77 @@ interface PlayActuationHandlers {
     onPlayPointerCancel(e: PointerEvent): void;
     onPlayKeydown(e: KeyboardEvent): void;
     onPlayKeyup(e: KeyboardEvent): void;
+    onPlayBlur(e: FocusEvent): void;
 }
 
 const isSpace = (key: string): boolean =>
     key === " " || key === "Spacebar" || key === "Space";
 
+/** The control an event arrived on — the per-control identity of an origin. */
+const controlOf = (e: Event): EventTarget | null => e.currentTarget ?? null;
+
+const isPrimaryPress = (e: PointerEvent): boolean =>
+    e.isPrimary && !(e.button !== 0 && e.pointerType === "mouse");
+
 export function usePlayActuation(actuate: () => void): PlayActuationHandlers {
-    // Press-origin: the pointer ids whose `pointerdown` landed on a play control.
-    // A `pointerup` actuates ONLY if its id is here (down+up on the same control).
-    const pressedPointers = new Set<number>();
-    // Keyboard press-origin for Space: keydown arms, keyup actuates once.
-    let spaceArmed = false;
+    // Press-origin: pointerId → the control its `pointerdown` landed on.
+    const pressOrigins = new Map<number, EventTarget | null>();
+    // Keyboard press-origin for Space: the control whose keydown armed it.
+    let spaceArmed: { control: EventTarget | null } | null = null;
+
+    /** Release-elsewhere cleanup: clear `pointerId` when the gesture ends anywhere. */
+    const watchRelease = (pointerId: number) => {
+        if (typeof window === "undefined") return;
+        const clear = (e: PointerEvent) => {
+            if (e.pointerId !== pointerId) return;
+            pressOrigins.delete(pointerId);
+            window.removeEventListener("pointerup", clear);
+            window.removeEventListener("pointercancel", clear);
+        };
+        window.addEventListener("pointerup", clear);
+        window.addEventListener("pointercancel", clear);
+    };
 
     return {
         onPlayPointerDown(e) {
-            if (!e.isPrimary) return;
-            // Ignore right/middle mouse; touch/pen have button 0.
-            if (e.button !== 0 && e.pointerType === "mouse") return;
-            pressedPointers.add(e.pointerId);
+            if (!isPrimaryPress(e)) return;
+            pressOrigins.set(e.pointerId, controlOf(e));
+            watchRelease(e.pointerId);
         },
         onPlayPointerUp(e) {
-            if (!e.isPrimary) return;
-            if (e.button !== 0 && e.pointerType === "mouse") return;
-            // Press-origin guard: only a press that STARTED on this control
-            // toggles — a drag-release from elsewhere does not.
-            if (!pressedPointers.delete(e.pointerId)) return;
+            if (!isPrimaryPress(e)) return;
+            if (!pressOrigins.has(e.pointerId)) return;
+            const origin = pressOrigins.get(e.pointerId);
+            pressOrigins.delete(e.pointerId);
+            // Same-control guard: down on one mirror, up on the other, is no click.
+            if (origin !== controlOf(e)) return;
             actuate();
         },
         onPlayPointerCancel(e) {
-            pressedPointers.delete(e.pointerId);
+            pressOrigins.delete(e.pointerId);
         },
         onPlayKeydown(e) {
             if (e.key === "Enter") {
-                // Native Enter actuates on keydown — but the auto-repeat stream
-                // must NOT re-toggle.
                 if (e.repeat) return;
                 e.preventDefault();
                 actuate();
             } else if (isSpace(e.key)) {
-                // Space actuates on keyup (native): here only stop the page scroll
-                // and arm the press; auto-repeat keydowns are swallowed.
                 e.preventDefault();
-                if (!e.repeat) spaceArmed = true;
+                if (!e.repeat) spaceArmed = { control: controlOf(e) };
             }
         },
         onPlayKeyup(e) {
-            if (isSpace(e.key) && spaceArmed) {
-                spaceArmed = false;
-                actuate();
+            if (!isSpace(e.key) || spaceArmed === null) return;
+            const { control } = spaceArmed;
+            spaceArmed = null;
+            if (control !== controlOf(e)) return;
+            actuate();
+        },
+        onPlayBlur(e) {
+            const control = controlOf(e);
+            if (spaceArmed !== null && spaceArmed.control === control) spaceArmed = null;
+            for (const [id, origin] of pressOrigins) {
+                if (origin === control) pressOrigins.delete(id);
             }
         },
     };

@@ -71,6 +71,7 @@
                             @pointercancel="onPlayPointerCancel($event)"
                             @keydown="onPlayKeydown($event)"
                             @keyup="onPlayKeyup($event)"
+                            @blur="onPlayBlur($event)"
                         >
                             <Pause v-if="isPlaying" class="icon-lg" />
                             <Play v-else class="icon-lg pl-0.5" />
@@ -220,6 +221,7 @@
                     @pointercancel="onPlayPointerCancel($event)"
                     @keydown="onPlayKeydown($event)"
                     @keyup="onPlayKeyup($event)"
+                    @blur="onPlayBlur($event)"
                 >
                     <Pause v-if="isPlaying" class="icon-md" />
                     <Play v-else class="icon-md pl-px" />
@@ -345,6 +347,7 @@ const {
     onPlayPointerCancel,
     onPlayKeydown,
     onPlayKeyup,
+    onPlayBlur,
 } = usePlayActuation(actuatePlay);
 
 const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{
