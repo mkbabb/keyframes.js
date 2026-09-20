@@ -134,14 +134,14 @@ function onKeyDown(e: KeyboardEvent) {
     }
 }
 
-const onEditorChange = async (value: string) => {
+const applyEditorChange = async (value: string) => {
     try {
         await updateFromString(value);
         if (!isFormatting.value) {
             toast.success("Keyframes parsed 🎉", { id: "kf-parse" });
         }
     } catch (e: unknown) {
-        parseErrorShake.play();
+        void parseErrorShake.play();
 
         toast.error("Failed to parse keyframes 🔧", {
             id: "kf-parse",
@@ -151,6 +151,27 @@ const onEditorChange = async (value: string) => {
 
         console.error(e);
     }
+};
+
+// N-7 (X.KF.W12.e) — THE TRANSPLANTS LAND IN THE ORDER THEY WERE TYPED.
+//
+// The handler was `async` and invoked straight off `update:model-value`, so two
+// edits arriving inside one another's await window raced: `updateFromString`
+// suspends three times before `adoptCompiled` writes the animation, and the last
+// call to RESOLVE won — not the last edit the user made. A slow parse followed
+// by a fast one silently reinstated the older buffer over the newer one, in both
+// the animation and the store it rewrites.
+//
+// The editor is a single sequential source, so the handler is a queue of one:
+// each call chains onto the previous run's settlement. The tail never rejects —
+// `applyEditorChange` catches every failure itself — so nothing accumulates an
+// unhandled rejection, and the returned promise is the caller's handle for the
+// same settlement (which is what the gate awaits).
+let editorChangeTail: Promise<void> = Promise.resolve();
+
+const onEditorChange = (value: string): Promise<void> => {
+    editorChangeTail = editorChangeTail.then(() => applyEditorChange(value));
+    return editorChangeTail;
 };
 
 // D-5 / L-M-4 / C-4 (X.KF.W12.e) — NO `templateRef`, AND NO DECOY.
