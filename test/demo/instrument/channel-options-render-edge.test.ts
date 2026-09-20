@@ -94,6 +94,14 @@ vi.mock("@mkbabb/glass-ui", () => ({
     }),
 }));
 
+/** C-11 (X.KF.W13.e, COHESION §0ai) — the seam widened, one line. This gate
+ *  stubbed the ROOT barrel alone, which is the whole reason PlaybackRibbon's
+ *  `Button`/`Slider` had to stay on the root barrel against the convention
+ *  (`PlaybackRibbon.vue`'s own C-11 note said so). The `/button` subpath now
+ *  resolves to the SAME stub, so a consumer on this mount path may follow the
+ *  convention without crossing the keyframes.js-import wall. */
+vi.mock("@mkbabb/glass-ui/button", () => ({ Button: buttonStub }));
+
 vi.mock("@mkbabb/glass-ui/number-field", () => ({
     NumberField: defineComponent({
         name: "NumberFieldStub",
