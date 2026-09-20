@@ -12,13 +12,24 @@
                     @touchmove="gate.handleScrollCheck"
                     @touchend="gate.handleTouchEnd"
                 >
+                    <!-- D-1 / C-3 / C-4 — cured ON the Slider (PR-CAUTION): the
+                         accessible name rides the producer's aria-label forward
+                         to the thumb; the arrow step is duration-relative (1 %
+                         per press, ×10 on Page/Shift via reka), never reka's
+                         1 ms default over a millisecond rail; and the producer's
+                         keyboard-inclusive `valueCommit` pairs a keyboard scrub
+                         with the pause/resume lifecycle the pointer seam already
+                         owns. -->
                     <Slider
                         ref="sliderRef"
                         class="p-2"
+                        aria-label="Scrub animation timeline"
                         :min="0"
                         :max="effectiveDuration"
+                        :step="scrubStep"
                         :model-value="[currentT]"
-                        @update:model-value="(val: any) => scrubTo(val[0])"
+                        @update:model-value="onSliderInput"
+                        @value-commit="onSliderCommit"
                     />
                 </div>
             </TooltipTrigger>
@@ -170,10 +181,37 @@ const gate = useTouchGate();
 // `scrubTo` (re-authoring its pointer→value geometry in an `onMove` body would
 // duplicate the component's own math); the seam owns the GESTURE, the component
 // owns the VALUE.
-const { onPointerDown: onScrubPointerDown } = useDragCapture({
+const { isDragging, onPointerDown: onScrubPointerDown } = useDragCapture({
     onStart: () => emit("scrubStart"),
     onEnd: () => emit("scrubEnd"),
 });
+
+/** C-4 — one arrow press moves 1 % of the rail; reka multiplies Page/Shift ×10. */
+const scrubStep = computed(() => effectiveDuration.value / 100);
+
+/** ONE SEAT PER GESTURE. The Slider's live value is seated only while a POINTER
+ *  gesture is in flight — the drag seam has already bracketed it (`scrubStart`
+ *  at press, `scrubEnd` at release). Typed as the producer declares it,
+ *  `number[] | undefined`, with the one guard (L-m5). */
+const onSliderInput = (val: number[] | undefined) => {
+    if (!isDragging.value) return;
+    const t = val?.[0];
+    if (t !== undefined) scrubTo(t);
+};
+
+/** C-3 — the producer's keyboard-inclusive `valueCommit`. A KEYBOARD step has
+ *  no seam and was seated bare — overwritten within a frame during playback. It
+ *  is now bracketed the same way the pointer is: pause, seat the committed
+ *  value, resume. A pointer gesture's commit is the seam's business and is
+ *  skipped here (reka emits the commit before the release the seam ends on). */
+const onSliderCommit = (val: number[]) => {
+    if (isDragging.value) return;
+    const t = val[0];
+    if (t === undefined) return;
+    emit("scrubStart");
+    scrubTo(t);
+    emit("scrubEnd");
+};
 
 /** Capture-phase handler on the wrapper: gate touch interactions on mobile,
  *  then route the admitted gesture through the shared drag seam.

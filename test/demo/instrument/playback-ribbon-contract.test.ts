@@ -198,6 +198,8 @@ interface RibbonSeat {
     root: HTMLElement;
     anim: ReturnType<typeof makeAnimation>;
     emitted: (name: string) => unknown[][];
+    /** Every emit, in order — the pairing witness. */
+    sequence: string[];
     setProps: (p: Record<string, unknown>) => Promise<void>;
 }
 
@@ -213,10 +215,12 @@ function mountRibbon(over: Record<string, unknown> = {}): RibbonSeat {
         ...over,
     });
     const log = new Map<string, unknown[][]>();
+    const sequence: string[] = [];
     const listeners: Record<string, (...args: unknown[]) => void> = {};
     for (const name of ["scrubStart", "scrubEnd", "scrubbed", "sliderUpdate", "togglePlay", "toggleReverse"]) {
         const key = `on${name[0]!.toUpperCase()}${name.slice(1)}`;
         listeners[key] = (...args: unknown[]) => {
+            sequence.push(name);
             log.set(name, [...(log.get(name) ?? []), args]);
         };
     }
@@ -233,6 +237,7 @@ function mountRibbon(over: Record<string, unknown> = {}): RibbonSeat {
         root: wrapper.element as HTMLElement,
         anim,
         emitted: (name) => log.get(name) ?? [],
+        sequence,
         setProps: async (p) => {
             props.value = { ...props.value, ...p };
             await settle();
@@ -248,9 +253,8 @@ describe("C-2 — the time-space contract: the ribbon receives and displays EFFE
         const thumb = thumbOf(seat.root);
         expect(thumb.getAttribute("aria-valuenow")).toBe("1000");
         expect(thumb.getAttribute("aria-valuemax")).toBe(String(DURATION));
-        seat.wrapper.findComponent({ name: "PlaybackRibbon" }).vm.$emit;
         const slider = seat.wrapper.findComponent({ name: "Slider" });
-        slider.vm.$emit("update:modelValue", [1000]);
+        slider.vm.$emit("valueCommit", [1000]);
         await settle();
         const [payload] = seat.emitted("sliderUpdate").at(-1) as [{ t: number }];
         expect(payload.t).toBe(DURATION - 1000);
@@ -264,7 +268,7 @@ describe("C-2 — the time-space contract: the ribbon receives and displays EFFE
     it("forward, no inversion: a scrub at effective T emits raw T", async () => {
         const seat = mountRibbon({ currentT: 250 });
         await settle();
-        seat.wrapper.findComponent({ name: "Slider" }).vm.$emit("update:modelValue", [250]);
+        seat.wrapper.findComponent({ name: "Slider" }).vm.$emit("valueCommit", [250]);
         await settle();
         const [payload] = seat.emitted("sliderUpdate").at(-1) as [{ t: number }];
         expect(payload.t).toBe(250);
@@ -277,7 +281,7 @@ describe("C-2 — the time-space contract: the ribbon receives and displays EFFE
         expect(thumbOf(seat.root).getAttribute("aria-valuemax")).toBe("2000");
         const slider = seat.wrapper.findComponent({ name: "Slider" });
         for (const effective of [0, 500, 2000]) {
-            slider.vm.$emit("update:modelValue", [effective]);
+            slider.vm.$emit("valueCommit", [effective]);
             await settle();
             const [payload] = seat.emitted("sliderUpdate").at(-1) as [{ t: number }];
             expect(payload.t).toBe(2000 - effective);
@@ -328,5 +332,56 @@ describe("KF-CO-15 — the options card's duration write re-scales the teleporte
         await settle();
         expect(anim.options.duration).toBe(2000);
         expect(thumbOf(target).getAttribute("aria-valuemax")).toBe("2000");
+    });
+});
+
+const key = (target: Element, k: string) => {
+    const e = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true });
+    target.dispatchEvent(e);
+    return e;
+};
+
+describe("D-1 + C-3 + C-4 — named, stepped, keyboard-scrubbable, ON the Slider", () => {
+    it("(D-1) the thumb — the sole AT-exposed scrub control — carries an accessible name through the producer's forward", async () => {
+        const seat = mountRibbon();
+        await settle();
+        expect(thumbOf(seat.root).getAttribute("aria-label")).toBe("Scrub animation timeline");
+    });
+
+    it("(C-4) an arrow press moves by the declared step — 1 % of the rail (50 ms over 5000), not reka's 1 ms; Page ×10", async () => {
+        const seat = mountRibbon({ currentT: 1000 });
+        await settle();
+        const thumb = thumbOf(seat.root);
+        thumb.focus();
+        key(thumb, "ArrowRight");
+        await settle();
+        let [payload] = seat.emitted("sliderUpdate").at(-1) as [{ t: number }];
+        expect(payload.t).toBe(1050);
+        await seat.setProps({ currentT: 1050 });
+        key(thumb, "PageUp");
+        await settle();
+        [payload] = seat.emitted("sliderUpdate").at(-1) as [{ t: number }];
+        expect(payload.t).toBe(1550);
+    });
+
+    it("(C-3) a keyboard scrub during playback is paired with the pause/resume lifecycle: scrubStart → sliderUpdate → scrubEnd", async () => {
+        const seat = mountRibbon({ currentT: 1000, isAnimPlaying: true });
+        await settle();
+        const thumb = thumbOf(seat.root);
+        thumb.focus();
+        const mark = seat.sequence.length;
+        key(thumb, "ArrowLeft");
+        await settle();
+        // The commit is bracketed — pause, seat, re-arm, resume — and it is the
+        // ONLY seat: reka emits the commit before its live update, and the live
+        // update seats only inside a pointer gesture.
+        expect(seat.sequence.slice(mark)).toEqual([
+            "scrubStart",
+            "sliderUpdate",
+            "scrubbed",
+            "scrubEnd",
+        ]);
+        const [payload] = seat.emitted("sliderUpdate").at(-1) as [{ t: number }];
+        expect(payload.t).toBe(950);
     });
 });
