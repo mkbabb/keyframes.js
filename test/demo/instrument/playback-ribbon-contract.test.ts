@@ -433,3 +433,25 @@ describe("D-2 — a visible playhead on the primitive's declared axis", () => {
         expect(thumb.getAttribute("aria-label")).toBe("Scrub animation timeline");
     });
 });
+
+describe("D-20 / D-25 — the five false load-bearing comments are gone; the rail carries its true name", () => {
+    it("the SFC no longer asserts what the tree contradicts", async () => {
+        const { readFileSync } = await import("node:fs");
+        const { resolve } = await import("node:path");
+        const src = readFileSync(
+            resolve(process.cwd(), "demo/components/playback/PlaybackRibbon.vue"),
+            "utf8",
+        );
+        for (const falsehood of [
+            "red range fill",
+            "the thumb keeps its variant size",
+            "Non-scoped global rules",
+            "glass-ui 4.0.0",
+            "which glass-ui's Slider does NOT provide",
+        ]) {
+            expect(src, falsehood).not.toContain(falsehood);
+        }
+        expect(src).not.toContain("timeline-green");
+        expect(src).not.toContain('ref="sliderRef"');
+    });
+});

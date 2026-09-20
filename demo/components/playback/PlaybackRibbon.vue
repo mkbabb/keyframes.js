@@ -17,7 +17,7 @@
              element; the seam never second-guesses it. -->
         <Tooltip>
             <TooltipTrigger as-child>
-                <div class="timeline-green" @pointerdown.capture="onScrubPointerDown">
+                <div class="scrub-rail" @pointerdown.capture="onScrubPointerDown">
                     <!-- D-1 / C-3 / C-4 — cured ON the Slider (PR-CAUTION): the
                          accessible name rides the producer's aria-label forward
                          to the thumb; the arrow step is duration-relative (1 %
@@ -36,7 +36,6 @@
                          1.5 × the thumb size — the very 1.5rem the F4 `:deep`
                          reach hand-set, so that reach (D-7) dies with it. -->
                     <Slider
-                        ref="sliderRef"
                         class="p-2"
                         variant="spectrum"
                         aria-label="Scrub animation timeline"
@@ -58,44 +57,34 @@
         </Tooltip>
 
         <div class="grid grid-cols-2 gap-2 w-full">
-            <Button
-                class="btn-playback btn-playback-accent"
-                emphasis="secondary"
-                @click="emit('togglePlay')"
-            >
+            <!-- Both cells wear the shared `.btn-playback` skin
+                 (playback-idiom.css, via design-idioms.css) — one voice for the
+                 transport band. Height: the producer Button's `min-block-size`
+                 (40/60px by pointer) is the one live authority (D-16 — the
+                 template `h-10` and the skin's `height: 2rem` were both dead
+                 under it). Width: the grid track (N-6). Glyph size: the
+                 producer's `--ui-glyph` rung, which the demo's `icon-*`
+                 utilities silently defeated so Play's glyph stayed pinned while
+                 the coarse-pointer button grew (D-17/N-4). `emphasis="secondary"`
+                 is the Button's own default (N-6). -->
+            <Button class="btn-playback btn-playback-accent" @click="emit('togglePlay')">
                 <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
-                <Pause v-if="isAnimPlaying" class="icon-md" />
-                <Play v-else class="icon-md pl-px" />
+                <Pause v-if="isAnimPlaying" />
+                <Play v-else class="pl-px" />
             </Button>
-            <!-- G7 (H.W10.S2) — the Reverse cell matches the Play cell's HEIGHT.
-                 The reka <Button> default applies `h-10` (40px) to the Play cell
-                 (it out-specifies the unlayered `.btn-playback { height:2rem }`),
-                 so the Reverse cell adopts the SAME `h-10` (was `h-8` = 32px) to
-                 read equal-height beside Play — the user's "same width AND height"
-                 ask, closed by the layout idiom (grid-cols-2 = equal width;
-                 matched h-10 = equal height) for EVERY scene that mounts this
-                 ribbon (cube/amiga/easing/spring), not a per-button magic number. -->
-            <!-- K.W2 S3 — the transport band carries ONE voice. Reverse adopts the
-                 SAME .btn-playback skin as Play/Pause (was an ad-hoc `text-body`
-                 register), so both transport buttons resolve the SINGLE display
-                 authority (--font-display) by construction — the dual-authority
-                 silent split (Play=serif via --font-serif, Reverse=sans via
-                 text-body) is dead. NOT a per-site font class: the existing
-                 .btn-playback button skin is the shared transport register. -->
             <!-- D-15 / D-8 / N-1 — ONE pressed authority: the skin's
                  `.btn-playback[aria-pressed="true"]` rule (playback-idiom.css).
                  The template utilities that argued with it were dead by
                  layering and are gone. -->
             <Button
-                class="btn-playback h-10 w-full rounded-full gap-2"
+                class="btn-playback rounded-full gap-2"
                 :aria-pressed="userReversed"
-                emphasis="secondary"
                 @click="emit('toggleReverse')"
             >
                 <span>Reverse</span>
                 <ArrowLeftRight
                     :class="[
-                        'icon-lg transition-transform duration-fast',
+                        'transition-transform duration-fast',
                         userReversed ? 'scale-x-[-1]' : '',
                     ]"
                 />
@@ -115,14 +104,16 @@
 </template>
 
 <script setup lang="ts">
-// Colocated playback-button skin (uncaged from utils.css, D.W2.S2). Non-scoped
-// global rules — the .btn-playback* classes land on reka-ui's <Button> DOM
-// shared across this ribbon and the scene play buttons.
+// The `.btn-playback*` skin the two cells wear is NOT authored here: it lives in
+// demo/styles/playback-idiom.css, pulled in by design-idioms.css, and lands on
+// glass-ui's <Button> DOM shared with the scene play buttons. The only styles in
+// this file are the scoped scrub-rail tokens below.
 
 import { computed, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
-import { Button, Slider } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui/button";
+import { Slider } from "@mkbabb/glass-ui/slider";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
@@ -165,6 +156,12 @@ const { animation, source, duration } = defineProps<{
     currentT: EffectiveMs;
     isAnimPlaying: boolean;
     isAnimStarted: boolean;
+    /**
+     * C-15 — the user's reverse INTENT (the visual: the flipped glyph and the
+     * pressed state). It is not `animation.reversed` (the math the inversion
+     * reads): on alternate-direction iterations the engine's flag flips while
+     * the intent stays; `scrubTo` deliberately reads the engine's flag.
+     */
     userReversed: boolean;
 }>();
 
@@ -181,8 +178,9 @@ const effectiveDuration = computed(() => {
 const emit = defineEmits<{
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
-    // Wake-only: fires on EVERY scrub (pointer, keyboard, or visualizer) so a
-    // settled sync loop re-arms even on a keyboard-arrow nudge.
+    // L-i2 — wake-only: fires on EVERY seat (pointer, keyboard, or visualizer).
+    // Bound by the channel mount alone, whose settled sync loop re-arms on it;
+    // the scene mounts have no idle loop and may leave it unbound.
     (e: "scrubbed"): void;
     (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
     (e: "togglePlay"): void;
@@ -266,12 +264,12 @@ const scrubTo = (effectiveT: EffectiveMs) => {
    per-component colour class; the token repoint carries it. The rail's height
    and its visible thumb are the Slider's `spectrum` variant (D-2) — no
    `:deep` reach into the producer's size defaults (D-7). */
-.timeline-green {
+.scrub-rail {
     --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 22%, transparent);
     --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 45%, transparent);
     --slider-thumb-bg: var(--color-progress);
 }
-.timeline-green:hover {
+.scrub-rail:hover {
     --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);
 }
 </style>
