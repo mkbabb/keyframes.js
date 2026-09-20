@@ -1,6 +1,9 @@
 <template>
     <div class="min-w-0">
-        <div class="relative" @keydown="onKeyDown">
+        <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
+             target: the element whose buffer failed to parse is the element
+             that moves. The preset used to be constructed target-less. -->
+        <div ref="editorWellRef" class="relative" @keydown="onKeyDown">
             <CSSCodeEditor
                 ref="editorRef"
                 :model-value="cssKeyframesString"
@@ -141,7 +144,7 @@ const applyEditorChange = async (value: string) => {
             toast.success("Keyframes parsed 🎉", { id: "kf-parse" });
         }
     } catch (e: unknown) {
-        void parseErrorShake.play();
+        shakeEditorWell();
 
         toast.error("Failed to parse keyframes 🔧", {
             id: "kf-parse",
@@ -189,7 +192,45 @@ const { applyCSSStyles, clearApplied, cssApplied } = useKeyframeBrushApply({
     getCSSString: () => cssKeyframesString.value,
 });
 
-const parseErrorShake = presets.shake();
+// D-4 / L-M-3 / C-3 (X.KF.W12.e) — THE PARSE-ERROR SHAKE HAS SOMETHING TO
+// SHAKE, AND COSTS NOTHING UNTIL A PARSE ACTUALLY FAILS.
+//
+// The bank's row is two defects on one line: `presets.shake()` was constructed
+// at EVERY setup — a full `fromString` parse of the preset's stop list — and was
+// never given targets, so the `play()` in the catch above drove ZERO elements.
+// All of the cost, none of the motion. Binding targets at mount cures the second
+// half and leaves the first standing, so both fall together here: the preset is
+// built ON the first parse failure, over the well the editor sits in, and
+// memoized for the rest of the instance's life. A session that never fails to
+// parse never parses the preset — the same accounting D-5 applied to the brush
+// glyph one file over (no glyph ⇒ no engine read, no parse, no loop).
+//
+// The target is the editor WELL: the element whose buffer failed to parse is the
+// element that moves. The folder's own idiom is this one (`KeyframesEditor.vue`:
+// `presets.warpLeft().setTargets(leaving)`), and `setTargets` is the only
+// populator the engine has — a preset factory takes options, never targets.
+//
+// D-25 rides with it and is no longer vacuous. The bank booked D-25 INFO
+// *because* neither animation rendered (D-4 here, D-5 at the brush); D-5's decoy
+// is deleted and this one now renders, so the standalone play path's
+// `respectReducedMotion` opt-in is live work rather than a formality — the same
+// one PRM motion KF-KE-8 gave the delete choreography and this unit gave the
+// brush. Under the preference the failure still announces itself through the
+// toast and the console; it stops moving the pane.
+const editorWellRef = useTemplateRef<HTMLElement>("editorWellRef");
+
+let parseErrorShake: ReturnType<typeof presets.shake> | undefined;
+
+const shakeEditorWell = () => {
+    const well = editorWellRef.value;
+    if (well === null) return;
+
+    parseErrorShake ??= presets
+        .shake({ respectReducedMotion: true })
+        .setTargets(well);
+
+    void parseErrorShake.play();
+};
 
 onMounted(async () => {
     await updateCSSAnimationKeyframesStringFromAnimation();
