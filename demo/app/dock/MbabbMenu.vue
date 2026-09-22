@@ -203,7 +203,12 @@
                         <AvatarFallback>MB</AvatarFallback>
                     </Avatar>
                 </span>
-                <div class="flex-1 min-w-0">
+                <!-- `font-normal` on the text column: the producer's
+                     `.dropdown-menu__label` sets weight 600 (measured), which
+                     every line here would inherit and re-open MM-31's bold. A
+                     declared weight on the child beats inheritance, with no
+                     layer contest against the label's own rule. -->
+                <div class="flex-1 min-w-0 font-normal">
                     <!-- MM-31 (+ MM-29 site 2, cured STRUCTURALLY rather than
                          patched). This title was simultaneously the SMALLEST
                          string in the menu (`text-mono-caption`, the caption
