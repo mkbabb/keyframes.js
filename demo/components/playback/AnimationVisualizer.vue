@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onScopeDispose, useTemplateRef } from "vue";
+import { computed, onScopeDispose, useTemplateRef, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { bumpLayoutEpoch } from "@src/animation/resolve/browser";
 import { clamp } from "@mkbabb/value.js/math";
@@ -75,6 +75,12 @@ import { useTouchGate } from "@mkbabb/glass-ui";
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
     isPlaying: boolean;
+    /**
+     * R-e-2 — the playhead the ribbon displays (effective ms). The twin paints
+     * from `animation.effectiveT` (`markRaw`, so unobservable); this reactive
+     * value is what tells it the clock was seated while its frame loop is idle.
+     */
+    currentT: number;
 }>();
 
 const emit = defineEmits<{
@@ -300,6 +306,23 @@ useRafLoop(() => {
         setBallProgress(progress);
     }
 }, { guard: computed(() => props.isPlaying || isDragging.value) });
+
+// ── Paused repaint (R-e-2) ───────────
+// The loop above is guarded off while paused, so a PAUSED scrub (the ribbon's
+// Slider by pointer or keyboard, or the scene seating its clock) moved the
+// thumb but left this ball where the last play put it. The ribbon's displayed
+// playhead is the trigger: when it changes and no frame loop is painting (not
+// playing, not dragging, not coasting), repaint the ball once from the same
+// `effectiveT` the loop paints from. One paint per seat; no loop is armed.
+watch(
+    () => props.currentT,
+    () => {
+        const anim = props.animation;
+        if (props.isPlaying || isDragging.value || coastPlayback.running) return;
+        if (anim.options.duration <= 0) return;
+        setBallProgress(clamp(anim.effectiveT / anim.options.duration, 0, 1));
+    },
+);
 
 // Stop the raw coast RAFPlayback on dispose — the sync loop rides useRafLoop's
 // auto-cleanup, but coastPlayback is a second raw playback; unmounting mid-fling

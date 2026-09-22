@@ -109,6 +109,7 @@
                 :class="['min-w-0 flex-1', !isAnimStarted ? 'is-disabled' : '']"
                 :animation="animation"
                 :is-playing="isAnimPlaying"
+                :current-t="currentT"
                 @scrub="scrubTo"
                 @drag-start="emit('scrubStart')"
                 @drag-end="emit('scrubEnd')"
