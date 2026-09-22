@@ -190,8 +190,11 @@ useMonacoCancellationGuard();
 // Tabs in the controls pane are managed via the ChromeDock controls tab dropdown
 provide(TABS_EXTERNALLY_MANAGED_KEY, true);
 
-// Dock hover → controls pane opacity. Provided here so both ChromeDock (sibling)
-// and TransportDock (descendant of EditorShell) share the same ref.
+// Dock hover → controls pane opacity. Provided here because the writer and the
+// reader are cousins: ChromeDock (a sibling of EditorShell) is the SOLE writer —
+// it mirrors its dock's HOVER state — and the controls pane's `usePaneHover`
+// (inside EditorShell) is the sole reader, for its idle rest-dim. TransportDock
+// neither reads nor writes it (kf-ChromeDock R3-8).
 const dockHoveredRef = ref(false);
 provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 
