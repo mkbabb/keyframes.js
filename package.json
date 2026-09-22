@@ -34,7 +34,7 @@
     ],
     "scripts": {
         "prepare": "npm run build:lib",
-        "check": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json && npm run proof:structure",
+        "check": "vue-tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.test.json && npm run proof:structure",
         "check:lib": "tsc --noEmit -p tsconfig.lib.json",
         "dev": "vite",
         "build": "npm run build:lib",
