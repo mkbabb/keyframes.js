@@ -505,9 +505,7 @@
                                 "
                                 :converted-from="convertedFromName"
                                 @exit-detail-panel="closeDetailEditor"
-                                @update-timing-function="
-                                    updateTimingFunctionFromName
-                                "
+                                @authored="onEasingAuthored"
                             />
                         </div>
                     </div>
@@ -629,6 +627,7 @@ import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
+import type { EasingPickerValue } from "@mkbabb/glass-ui/easing";
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
 import { useAnimationSync } from "./composables/useAnimationSync";
@@ -694,6 +693,21 @@ const {
     updateTimingFunctionFromName,
     curveGlyphPath,
 } = useTimingFunctionEditor(() => props.animation, storedAnimationOptions);
+
+// X.KF.W13T.k3 · ESC-k2-1 (§0ar) — this card HOLDS the stored-options key
+// (`storedAnimationOptions` above), so the detail panel's authored curve is
+// written HERE: the step or quad options first, then the kind is installed
+// through the one persist seam, in the order the panel used to do both.
+const onEasingAuthored = (v: EasingPickerValue): void => {
+    if (v.mode === "steps") {
+        storedAnimationOptions.stepOptions.steps = v.steps;
+        storedAnimationOptions.stepOptions.jumpTerm = v.term;
+        updateTimingFunctionFromName("steps");
+        return;
+    }
+    storedAnimationOptions.cubicBezierOptions.controlPoints = [...v.points];
+    updateTimingFunctionFromName("cubic-bezier");
+};
 
 // OA-7 (§0ao.1) — every picker row's curve glyph, keyed by row name: the path
 // is sampled from the easing the row installs (`curveGlyphPath`), so the

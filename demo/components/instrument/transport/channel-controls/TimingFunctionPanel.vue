@@ -60,7 +60,6 @@
 </template>
 
 <script setup lang="ts">
-import type { TimingFunctionNames } from "@mkbabb/keyframes.js";
 import type { StoredAnimationOptions } from "@state";
 
 import {
@@ -88,7 +87,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: "exitDetailPanel"): void;
-    (e: "updateTimingFunction", key: TimingFunctionNames | "cubic-bezier" | string): void;
+    /** X.KF.W13T.k3 · ESC-k2-1 — the authored curve, handed to the store's
+     *  owner. This panel READS `storedAnimationOptions` and never writes it. */
+    (e: "authored", value: EasingPickerValue): void;
 }>();
 
 // KF-CO-46 — the host carries focus INTO this pane when it opens (the pencil
@@ -142,21 +143,16 @@ const truth = (): SeatTruth => {
 };
 
 // ── The authored edit → the ONE persist seam ───────────────────────────────
-// KF-CO-40 ≡ KF-TFP-5 (N-10) — the child owns the STORE, the parent owns the
-// ENGINE, both arms. The parent's `updateTimingFunctionFromName` builds the
-// easing with its faithful CSS twin (EE-02) and PERSISTS the complete literal
-// (I.W2.S3 — the ONE persist seam).
+// KF-CO-40 ≡ KF-TFP-5 (N-10) — the parent owns the ENGINE; the parent's
+// `updateTimingFunctionFromName` builds the easing with its faithful CSS twin
+// (EE-02) and PERSISTS the complete literal (I.W2.S3 — the ONE persist seam).
+// X.KF.W13T.k3 · ESC-k2-1 (§0ar) — the STORE write moves to the component that
+// holds the key: `ChannelOptions` resolves `getStoredAnimationOptions(animation)`
+// and is the owner, so this panel EMITS the authored value and the owner writes
+// the step / quad options and then installs the kind. The prop is read-only
+// here (vue/no-mutating-props, rows :151 · :152 · :156 at 5e5f4028).
 const onAuthored = (v: EasingPickerValue) => {
-    if (v.mode === "steps") {
-        props.storedAnimationOptions.stepOptions.steps = v.steps;
-        props.storedAnimationOptions.stepOptions.jumpTerm = v.term;
-        emit("updateTimingFunction", "steps");
-        return;
-    }
-    props.storedAnimationOptions.cubicBezierOptions.controlPoints = [
-        ...v.points,
-    ];
-    emit("updateTimingFunction", "cubic-bezier");
+    emit("authored", v);
 };
 
 const seat = useEasingPickerSeat(truth, onAuthored);
