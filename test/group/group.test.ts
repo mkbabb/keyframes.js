@@ -1,8 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { CSSKeyframesAnimation, KeyframesAnimation } from "../../src/animation/engine";
+import { describe, expect, it, vi } from "vitest";
+import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import { AnimationGroup } from "../../src/animation/group";
 import { compositeFramesAt } from "../support/group-probe";
-import type { AnimationLayerConfig } from "../../src/animation/constants";
 
 function createOpacityAnim(name: string, duration = 1000): CSSKeyframesAnimation<any> {
     const anim = new CSSKeyframesAnimation({ duration }).fromString(`
@@ -29,7 +28,7 @@ describe("AnimationGroup constructor", () => {
         expect(a.managed).toBe(false);
         expect(b.managed).toBe(false);
 
-        const group = new AnimationGroup(a, b);
+        new AnimationGroup(a, b);
         expect(a.managed).toBe(true);
         expect(b.managed).toBe(true);
     });

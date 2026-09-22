@@ -17,7 +17,7 @@
  * value.js-gated (E-HANDOFF) — RECORDED, not implemented this wave (see the
  * lane summary), so no clause exercises them.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 import {
     attachNativeScrollTimeline,
@@ -29,10 +29,6 @@ import {
     Timeline,
     createNativeTimeline,
 } from "../../src/animation/orchestration/timeline";
-import {
-    onReducedMotionChange,
-    prefersReducedMotion,
-} from "../../src/animation/internal/reduced-motion";
 import { resolveEasing } from "../../src/animation/easing";
 
 // ──────────────────────────────────────────────────────────────────────────

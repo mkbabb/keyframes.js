@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeAll } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 
 // Polyfill AnimationEvent for jsdom
@@ -16,7 +16,6 @@ if (typeof globalThis.AnimationEvent === "undefined") {
 
 describe("Animation option setters", () => {
     it("setDuration('2s') → 2000", () => {
-        const el = document.createElement("div");
         const anim = new CSSKeyframesAnimation({});
         anim.fromString(`
             from { opacity: 0; }
@@ -27,7 +26,6 @@ describe("Animation option setters", () => {
     });
 
     it("setDuration(500) → 500", () => {
-        const el = document.createElement("div");
         const anim = new CSSKeyframesAnimation({});
         anim.fromString(`
             from { opacity: 0; }

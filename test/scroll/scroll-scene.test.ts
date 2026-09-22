@@ -33,7 +33,6 @@ import {
     pinCSS,
     resolveRange,
     roundTripScrollCSS,
-    serializeScrollOptions,
     supportsNativeTrigger,
 } from "../../src/animation/scroll";
 import { KeyframesScrollTimeline } from "../../src/animation/orchestration/timeline";
