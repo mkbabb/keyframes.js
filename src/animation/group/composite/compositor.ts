@@ -76,7 +76,6 @@ export function compositeFrame<V extends Vars>(
     // F.W4 S2 — stable-key null-fill clear (NO `delete`: the delete-loop trapped
     // `_grouped` in V8 dictionary mode). Inactive keys read back `undefined`; the
     // blend skips them and the post-blend compaction drops any uncontributed key.
-    const groupedKeys = state.groupedKeys;
     state.compositeState.clear();
 
     const entries = group.getEntries();

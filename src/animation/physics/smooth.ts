@@ -185,13 +185,4 @@ export class SmoothProgress {
     stop(): void {
         managedStop(this);
     }
-
-    /**
-     * Arm the shared driver: it steps `tickDt(dt)` once per frame until
-     * `settled` flips true, emitting `onFrame` per step. Idempotent —
-     * the driver no-ops while already running.
-     */
-    private _startLoop(): void {
-        managedStart(this);
-    }
 }

@@ -6,7 +6,6 @@
  * any child refused by the ordinary WAAPI predicate stay on the rAF
  * compositor; a missed optimization is preferable to a split-brain render.
  */
-import type { KeyframesAnimation } from "../engine";
 import type { Vars } from "../constants";
 import { isWAAPIEligible } from "../waapi/eligibility";
 import { toWAAPIKeyframes } from "../waapi/emission";
