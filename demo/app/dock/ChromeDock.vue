@@ -448,15 +448,29 @@ watch(isSelectOpen, (open) => {
                              panel edge (co-decided with T.B4's naked-rail recut); it
                              rides nav here, never the lead. -->
                         <DockSeparator />
+                        <!-- D-20 — the panel toggle takes the producer's `active`
+                             prop, so its state is `aria-pressed` + `data-active` +
+                             the selected seat, and the accessible name is ONE
+                             stable noun instead of a verb that flipped with the
+                             state (the name-mutation half is the banked
+                             kf-ControlsPaneWrapper row; this is its ChromeDock
+                             site, spent with the prop that makes it redundant).
+                             D-21 — ONE icon grammar on both breakpoints: the glyph
+                             names the ACTION a press performs. Desktop already
+                             did (panel close/open); the mobile arm drew the
+                             STATE, so the open sheet — dismissed DOWNWARD — wore
+                             an up-chevron. It now points where the press moves
+                             the sheet. -->
                         <DockControl
                             shape="icon"
                             v-if="hasControlPanel"
-                            :aria-label="isControlsPanelOpen ? 'Close controls' : 'Open controls'"
+                            aria-label="Controls panel"
+                            :active="isControlsPanelOpen"
                             @click="emit('toggleControlsPanel')"
                         >
                             <template v-if="isMobile">
-                                <ChevronUp v-if="isControlsPanelOpen" />
-                                <ChevronDown v-else />
+                                <ChevronDown v-if="isControlsPanelOpen" />
+                                <ChevronUp v-else />
                             </template>
                             <template v-else>
                                 <PanelLeftClose v-if="isControlsPanelOpen" />
