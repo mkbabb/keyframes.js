@@ -30,12 +30,7 @@ const props = defineProps<{
     hideLoader?: boolean;
 }>();
 
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-    Button,
-} from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui";
 // No reka `<Tabs>` import here, and none is owed (CubeScene D-20, KF.W6 — the
 // former header argued this against a superseded glass-ui major and a strip
 // component in a file that does not exist; the pin and the installed copy are
@@ -93,10 +88,6 @@ const { animationGroup, setTargets } = useCubeDemo(
     matrix3dEnd,
 );
 
-const setPPMode = () => {
-    storedControls.ppMode = !storedControls.ppMode;
-};
-
 // J.W2 S2 (DS-1) — the former scene-side watch that wrote
 // `storedControls.selectedControl = "controls"` when the Matrix animation
 // deselected is DELETED (the one remaining rogue writer outside the DFA
@@ -125,34 +116,6 @@ watch(ppmycotaOpen, (open) => {
 });
 
 // --- Slot sub-components exposed via defineExpose ---
-
-const headerLeft = () =>
-    h(Popover, { trigger: "hover", openDelay: 200, closeDelay: 150, open: ppmycotaOpen.value, "onUpdate:open": (v: boolean | undefined) => { ppmycotaOpen.value = v!; } }, {
-        default: () => [
-            h(PopoverTrigger, null, {
-                default: () => h("div", {
-                    onClick: setPPMode,
-                    class: "ppmycota-logo-sm m-0 h-8 w-8 lg:h-10 lg:w-10 cursor-pointer stroke-2 p-0 font-bold scale-on-hover",
-                }),
-            }),
-            h(PopoverContent, { class: "z-hovercard p-4 min-w-[var(--dock-panel-width)] text-small", role: "card" }, {
-                default: () => [
-                    h("div", { class: "flex items-center gap-3" }, [
-                        // z-20: LOCAL stacking — lifts the logo glyph above its
-                        // row siblings inside the hovercard (which itself sits at
-                        // z-hovercard); not an editor z-contract participant.
-                        h("div", { class: "ppmycota-logo-sm z-20 h-10 w-10 shrink-0 stroke-2 font-bold" }),
-                        h("div", { class: "flex-1 min-w-0" }, [
-                            h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "text-small font-semibold text-foreground hover:underline" }, "ppmycota"),
-                            h("p", { class: "mt-0.5 text-caption text-muted-foreground", innerHTML: "&#x1F642;&#x200D;&#x2194;&#xFE0F; &#x1F331; &#x1F344;&#x200D;&#x1F7EB;" }),
-                        ]),
-                    ]),
-                    h("hr", { class: "my-2 border-border/50" }),
-                    h("a", { href: "https://ppmycota.com", target: "_blank", rel: "noopener noreferrer", class: "block text-small text-foreground hover:underline" }, "ppmycota.com"),
-                ],
-            }),
-        ],
-    });
 
 // The matrix-controls TRIGGER is not a scene-injected node at all. There is no
 // in-panel strip and no `tabs-trigger` slot: the cube's conditional
@@ -264,7 +227,6 @@ defineExpose({
     superKey,
     isPlaying,
     isStarted,
-    headerLeft,
     tabsContent,
     ribbonContent,
 });

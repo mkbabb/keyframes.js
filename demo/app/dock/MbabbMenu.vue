@@ -104,7 +104,18 @@
                  covers the whole ~272×44 row, so a scale on the child pointed
                  the affordance at the wrong object. The row's own hover chrome
                  is the affordance, as on every other row. -->
-            <DropdownMenuItem @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer" :style="{ cursor: 'pointer' }" @click="togglePpMode">
+            <!-- MM-5 — a persisted boolean is a CHECKBOX row: `menuitemcheckbox` +
+                 `aria-checked` + the indicator seat, from the design system's own
+                 `DropdownMenuCheckboxItem` (the exported seam; no copied selector).
+                 `@select.prevent` keeps the menu open, so the mark IS the feedback.
+                 MM-1/MM-6 (≡ KF-APP-1 · kf-CubeScene C-14) — the ONE writer binds the
+                 plain store bucket directly (no `.value` off a non-ref: the old
+                 `togglePpMode` threw on every click), and it binds the `cube` bucket —
+                 the only reader (`CubeScene` → `CubeTarget :pp-mode`) keys by
+                 `CUBE_SCENE_ID` on every scene, home included, so writing the ACTIVE
+                 scene's bucket was inert on 6 of 7 scenes. CubeScene's `setPPMode`
+                 twin died with the unmounted header render fn (KF-APP-17, delete arm). -->
+            <DropdownMenuCheckboxItem :model-value="cubeControls.ppMode ?? false" @update:model-value="(checked: boolean) => (cubeControls.ppMode = checked)" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer" :style="{ cursor: 'pointer' }">
                 <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
                 <div class="flex-1 min-w-0">
                     <!-- MM-21 — the brand colour is a UTILITY, and the old
@@ -143,7 +154,7 @@
                          so the row's two lines ran together as one. -->
                     <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="block text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                 </div>
-            </DropdownMenuItem>
+            </DropdownMenuCheckboxItem>
 
             <DropdownMenuSeparator />
 
@@ -277,13 +288,18 @@ import { SharePopover } from "@components/instrument/shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@mkbabb/glass-ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@mkbabb/glass-ui/dropdown-menu";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { Trash } from "@lucide/vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
-const props = defineProps<{
-    // The active superKey — the ppMode store is keyed by it (per-scene brand flag).
+import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
+defineProps<{
+    // The active superKey. NO LONGER READ HERE: the ppMode flag is the cube
+    // scene's and binds the cube bucket (MM-6 / C-14, below). The declaration is
+    // kept only because App.vue still binds `:super-key` (outside this cure's
+    // carve) and an undeclared binding would fall through as a stray attribute;
+    // it dies with that binding (a named residual of X.KF.W13.a4).
     superKey: string;
     // Scene restore from a shared URL (passed straight to SharePopover). The shell
     // owns the real switch (runSceneSwitch); the menu only forwards the id.
@@ -328,10 +344,12 @@ onBeforeUnmount(() => {
     dock?.release();
 });
 
-function togglePpMode() {
-    const stored = getStoredAnimationGroupControlOptions(props.superKey);
-    stored.value.ppMode = !(stored.value.ppMode ?? false);
-}
+// MM-1/MM-6 — the ppmycota flag's ONE writer (the CheckboxItem's v-model above).
+// The store returns the bucket itself (a reactive member of the persisted
+// `useStorage` record), not a ref; and the bucket is the CUBE scene's, because
+// the flag's only reader is CubeScene, which keys by `CUBE_SCENE_ID` wherever it
+// mounts (home's backdrop included) — C-14's split resolved at the writer.
+const cubeControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
 
 // T.C2 — "Clear all & reload" RELOCATED from the transport dock into the @mbabb
 // settings menu (a destructive storage reset is a settings action, not transport
