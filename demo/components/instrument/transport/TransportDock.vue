@@ -4,7 +4,7 @@
         data-dock-tether="bottom"
         :class="[
             'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
-            'fixed left-0 right-0 z-dock',
+            'fixed left-0 right-0 z-dock pointer-events-none',
         ]"
         style="bottom: var(--dock-bottom-anchor, var(--work-area-bottom-offset, 0px));"
     >
@@ -21,203 +21,209 @@
             transport mounts EXPANDED); the boot posture batches with
             kf-ChromeDock RR-1 M#4 and is not re-tuned here.
         -->
-        <GlassDock ref="dockRef" :always-expanded="false" :fit-content="true">
-            <!-- Expanded state: full controls.
-                 T.C1 — THE TRANSPORT RECUT (rail-core | section | nav on glass-ui
-                 DockSeparator). PLAY LEADS as rail-core, drawn FIRST from the
-                 ordered T.B10 action model (`actions.primary.kind === "play"`, the
-                 data-layer order truth — VERDICT #6). The animation select is the
-                 contextual section (≥2 channels only — the channelZone elision).
-                 Reset + the timeline-collapse chip trail as one nav utility group.
-                 "Clear all & reload" LEFT the transport for the @mbabb settings menu
-                 (T.C2 — a destructive storage reset is a settings action, not
-                 transport chrome). Separators derive from INHABITED zones (zero
-                 hand-rolled dock-separator divs). Tooltips are the single visible
-                 renderer (Tooltip primitives); the accessible name rides aria-label — every
-                 `title=` passthrough is GONE (T.C3, the double-tooltip KILL). -->
-            <div class="transport-row flex items-center">
-                <!-- rail-core: PLAY, FIRST (actions.primary) -->
-                <Tooltip>
-                    <TooltipTrigger as-child>
-                        <Button
-                            emphasis="quiet"
-                            :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
-                            :class="[
-                                'scale-on-hover icon-lg text-white rounded-full p-0',
-                                'w-10 h-10 shrink-0',
-                                isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
-                            ]"
-                            @pointerdown="onPlayPointerDown($event)"
-                            @pointerup="onPlayPointerUp($event)"
-                            @pointercancel="onPlayPointerCancel($event)"
-                            @keydown="onPlayKeydown($event)"
-                            @keyup="onPlayKeyup($event)"
-                            @blur="onPlayBlur($event)"
-                        >
-                            <Pause v-if="isPlaying" class="icon-lg" />
-                            <Play v-else class="icon-lg translate-x-px" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{{ isPlaying ? "Pause" : "Play" }}</TooltipContent>
-                </Tooltip>
+        <!-- TD-36: the host is a full-bleed band; only the pill takes the
+             pointer (the ChromeDock pair — pointer-events-none host,
+             pointer-events-auto child), so the band outside it never
+             swallows a press meant for the stage beneath. -->
+        <div class="pointer-events-auto">
+            <GlassDock ref="dockRef" :always-expanded="false" :fit-content="true">
+                <!-- Expanded state: full controls.
+                     T.C1 — THE TRANSPORT RECUT (rail-core | section | nav on glass-ui
+                     DockSeparator). PLAY LEADS as rail-core, drawn FIRST from the
+                     ordered T.B10 action model (`actions.primary.kind === "play"`, the
+                     data-layer order truth — VERDICT #6). The animation select is the
+                     contextual section (≥2 channels only — the channelZone elision).
+                     Reset + the timeline-collapse chip trail as one nav utility group.
+                     "Clear all & reload" LEFT the transport for the @mbabb settings menu
+                     (T.C2 — a destructive storage reset is a settings action, not
+                     transport chrome). Separators derive from INHABITED zones (zero
+                     hand-rolled dock-separator divs). Tooltips are the single visible
+                     renderer (Tooltip primitives); the accessible name rides aria-label — every
+                     `title=` passthrough is GONE (T.C3, the double-tooltip KILL). -->
+                <div class="transport-row flex items-center">
+                    <!-- rail-core: PLAY, FIRST (actions.primary) -->
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button
+                                emphasis="quiet"
+                                :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
+                                :class="[
+                                    'scale-on-hover icon-lg text-white rounded-full p-0',
+                                    'w-10 h-10 shrink-0',
+                                    isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
+                                ]"
+                                @pointerdown="onPlayPointerDown($event)"
+                                @pointerup="onPlayPointerUp($event)"
+                                @pointercancel="onPlayPointerCancel($event)"
+                                @keydown="onPlayKeydown($event)"
+                                @keyup="onPlayKeyup($event)"
+                                @blur="onPlayBlur($event)"
+                            >
+                                <Pause v-if="isPlaying" class="icon-lg" />
+                                <Play v-else class="icon-lg translate-x-px" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{{ isPlaying ? "Pause" : "Play" }}</TooltipContent>
+                    </Tooltip>
 
-                <!-- section (contextual): the animation select. Rendered ONLY when
-                     channelZone is INHABITED (≥2 channels — kind "select"). One or
-                     zero channels ⇒ zone ABSENT: NO node and NO flanking separator
-                     (T.B5-RENDER — the single-animation static NAME span is DELETED;
-                     a lone animation is the scene identity, transported without a
-                     dead 1-item dropdown or a demoted label). -->
-                <template v-if="channelZoneKind === 'select'">
+                    <!-- section (contextual): the animation select. Rendered ONLY when
+                         channelZone is INHABITED (≥2 channels — kind "select"). One or
+                         zero channels ⇒ zone ABSENT: NO node and NO flanking separator
+                         (T.B5-RENDER — the single-animation static NAME span is DELETED;
+                         a lone animation is the scene identity, transported without a
+                         dead 1-item dropdown or a demoted label). -->
+                    <template v-if="channelZoneKind === 'select'">
+                        <DockSeparator />
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <div class="relative flex items-center gap-1.5">
+                                <Select
+                                    class="p-0 m-0 cursor-pointer"
+                                    :model-value="storedControls.selectedAnimation ?? ''"
+                                    @update:model-value="
+                                        (key) => {
+                                            emit('selectAnimation', String(key));
+                                        }
+                                    "
+                                >
+                                    <DockTrigger
+                                        for="select"
+                                        aria-label="Select animation"
+                                        class="dock-label"
+                                    >
+                                        <!-- The empty-state leading glyph — rendered
+                                             directly, not via reka's SelectIcon slot
+                                             (the one headless reach past the glass-ui
+                                             surface; DockSelectTrigger owns the trigger
+                                             + its chevron, GG-6). -->
+                                        <List
+                                            v-if="!storedControls.selectedAnimation"
+                                        />
+                                        <SelectValue class="text-ellipsis">{{
+                                            storedControls.selectedAnimation
+                                        }}</SelectValue>
+                                    </DockTrigger>
+                                    <SelectContent class="min-w-[var(--dropdown-min-width)]">
+                                        <SelectGroup class="dock-label">
+                                            <template v-for="name in animationNames" :key="name">
+                                                <SelectItem class="py-2 px-3" hide-indicator :value="name">
+                                                    <span class="flex items-center gap-2">
+                                                        <!-- Playing: live conic-gradient progress ring driven by --dot-p.
+                                                             Idle/paused: discrete glass-ui StatusDot state colour. -->
+                                                        <span
+                                                            v-if="isPlaying"
+                                                            class="progress-dot w-2.5 h-2.5"
+                                                            :style="dotStyle(name)"
+                                                        ></span>
+                                                        <StatusDot
+                                                            v-else
+                                                            size="md"
+                                                            :state="isStarted ? 'warning' : 'unknown'"
+                                                        />
+                                                        <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
+                                                    </span>
+                                                </SelectItem>
+                                            </template>
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>Select animation</TooltipContent>
+                        </Tooltip>
+                    </template>
+
+                    <!-- nav: reset (+ the timeline-collapse chip when the timeline pane
+                         is expanded — one utility group, no internal separator). The
+                         timeline chip's ultimate home is the timeline pane it controls
+                         (T.C1 → T.B/T.F edge owner); it rides nav here until that lands. -->
                     <DockSeparator />
                     <Tooltip>
                         <TooltipTrigger as-child>
-                            <div class="relative flex items-center gap-1.5">
-                            <Select
-                                class="p-0 m-0 cursor-pointer"
-                                :model-value="storedControls.selectedAnimation ?? ''"
-                                @update:model-value="
-                                    (key) => {
-                                        emit('selectAnimation', String(key));
-                                    }
-                                "
-                            >
-                                <DockTrigger
-                                    for="select"
-                                    aria-label="Select animation"
-                                    class="dock-label"
-                                >
-                                    <!-- The empty-state leading glyph — rendered
-                                         directly, not via reka's SelectIcon slot
-                                         (the one headless reach past the glass-ui
-                                         surface; DockSelectTrigger owns the trigger
-                                         + its chevron, GG-6). -->
-                                    <List
-                                        v-if="!storedControls.selectedAnimation"
-                                    />
-                                    <SelectValue class="text-ellipsis">{{
-                                        storedControls.selectedAnimation
-                                    }}</SelectValue>
-                                </DockTrigger>
-                                <SelectContent class="min-w-[var(--dropdown-min-width)]">
-                                    <SelectGroup class="dock-label">
-                                        <template v-for="name in animationNames" :key="name">
-                                            <SelectItem class="py-2 px-3" hide-indicator :value="name">
-                                                <span class="flex items-center gap-2">
-                                                    <!-- Playing: live conic-gradient progress ring driven by --dot-p.
-                                                         Idle/paused: discrete glass-ui StatusDot state colour. -->
-                                                    <span
-                                                        v-if="isPlaying"
-                                                        class="progress-dot w-2.5 h-2.5"
-                                                        :style="dotStyle(name)"
-                                                    ></span>
-                                                    <StatusDot
-                                                        v-else
-                                                        size="md"
-                                                        :state="isStarted ? 'warning' : 'unknown'"
-                                                    />
-                                                    <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
-                                                </span>
-                                            </SelectItem>
-                                        </template>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent>Select animation</TooltipContent>
-                    </Tooltip>
-                </template>
-
-                <!-- nav: reset (+ the timeline-collapse chip when the timeline pane
-                     is expanded — one utility group, no internal separator). The
-                     timeline chip's ultimate home is the timeline pane it controls
-                     (T.C1 → T.B/T.F edge owner); it rides nav here until that lands. -->
-                <DockSeparator />
-                <Tooltip>
-                    <TooltipTrigger as-child>
-                        <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
-                            <span ref="resetIconEl" class="inline-flex">
-                                <RotateCcw class="icon-lg" />
-                            </span>
-                        </DockControl>
-                    </TooltipTrigger>
-                    <TooltipContent>Reset animation</TooltipContent>
-                </Tooltip>
-
-                <template v-if="storedControls.isTimelineExpanded">
-                    <Tooltip>
-                        <TooltipTrigger as-child>
-                            <DockControl shape="icon" aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
-                                <Minimize2 class="icon-lg" />
+                            <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
+                                <span ref="resetIconEl" class="inline-flex">
+                                    <RotateCcw class="icon-lg" />
+                                </span>
                             </DockControl>
                         </TooltipTrigger>
-                        <TooltipContent>Collapse timeline</TooltipContent>
+                        <TooltipContent>Reset animation</TooltipContent>
                     </Tooltip>
 
-                    <span class="dock-label whitespace-nowrap">Timeline</span>
-                </template>
-            </div>
+                    <template v-if="storedControls.isTimelineExpanded">
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <DockControl shape="icon" aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
+                                    <Minimize2 class="icon-lg" />
+                                </DockControl>
+                            </TooltipTrigger>
+                            <TooltipContent>Collapse timeline</TooltipContent>
+                        </Tooltip>
 
-            <!-- Collapsed state: PLAY FIRST, then the animation name.
-                 X.KF.W13.e · TD-37 under OP-7 (COHESION §0ai) — ONE FACE ORDER:
-                 play leads on BOTH faces. The two faces are concentric (GlassDock
-                 stacks them, `layers.css` `.dock-layer { grid-area: 1/1 }`), so the
-                 pre-cure `[name][play]` collapsed order translated the primary CTA
-                 across the pill on every hover-expand and every 3600 ms idle
-                 collapse — out from under the reaching pointer. With play leading
-                 here as it does at `:39-59`, the CTA holds its end through the
-                 crossfade.
-                 TD-21's r2 shared-Set rider rides this order change (same identity,
-                 same family): the end-swap was what made the in-place release land
-                 on NEITHER control and leak a persistent mouse press-origin. Play
-                 co-located on both faces makes that release land on the OTHER play
-                 mirror, where `usePlayActuation`'s per-control origin guard
-                 (`:81-89`, landed X.KF.W13.b `dafce6eb`) consumes and clears the
-                 entry without actuating — and the window release-elsewhere cleanup
-                 (`:62-73`) still covers the off-control case. No stale id survives
-                 either path. -->
-            <!-- X.KF.W13.b · THE PROPAGATION POLICY (TD-2 + TD-38 + TD-40, stated
-                 once, here — the only place a stop modifier ever lived): neither
-                 play mirror stops propagation. The dock's pointer/click listeners
-                 are capture-phase (a stop modifier on the button never reached
-                 them — the three pointer stops this mirror carried were inert);
-                 the window Space shortcut is scoped away from activation targets
-                 at the registry seat (useControlsKeyboardShortcuts.ts), so no
-                 keyboard stop is load-bearing; and what a press does to the dock
-                 is the dock's own declared meaning of that press plus
-                 `actuatePlay()`'s explicit `expand()` — never an accidental
-                 stop. Symmetry is the invariant: zero stop modifiers on both
-                 faces, as on the sibling ChromeDock. Census + grounds: value.js
-                 docs/tranches/X/keyframes/evidence/W13/b-td-remainder-derivation.md §4. -->
-            <template #collapsed>
-                <!-- The collapsed play mirror carries the SAME accessible name
-                     as the expanded Play (TD-39): exactly one dock layer is ever
-                     in the accessibility tree (the other is `inert`), so it is
-                     one logical command, not two identically-named controls —
-                     the name must not mutate with transient chrome state. -->
-                <Button
-                    emphasis="quiet"
-                    :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
-                    :class="[
-                        'scale-on-hover text-white rounded-full p-0',
-                        'w-8 h-8 shrink-0',
-                        isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
-                    ]"
-                    @pointerdown="onPlayPointerDown($event)"
-                    @pointerup="onPlayPointerUp($event)"
-                    @pointercancel="onPlayPointerCancel($event)"
-                    @keydown="onPlayKeydown($event)"
-                    @keyup="onPlayKeyup($event)"
-                    @blur="onPlayBlur($event)"
-                >
-                    <Pause v-if="isPlaying" class="icon-md" />
-                    <Play v-else class="icon-md translate-x-px" />
-                </Button>
-                <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
-                    {{ storedControls.selectedAnimation }}
-                </span>
-            </template>
-        </GlassDock>
+                        <span class="dock-label whitespace-nowrap">Timeline</span>
+                    </template>
+                </div>
+
+                <!-- Collapsed state: PLAY FIRST, then the animation name.
+                     X.KF.W13.e · TD-37 under OP-7 (COHESION §0ai) — ONE FACE ORDER:
+                     play leads on BOTH faces. The two faces are concentric (GlassDock
+                     stacks them, `layers.css` `.dock-layer { grid-area: 1/1 }`), so the
+                     pre-cure `[name][play]` collapsed order translated the primary CTA
+                     across the pill on every hover-expand and every 3600 ms idle
+                     collapse — out from under the reaching pointer. With play leading
+                     here as it does at `:39-59`, the CTA holds its end through the
+                     crossfade.
+                     TD-21's r2 shared-Set rider rides this order change (same identity,
+                     same family): the end-swap was what made the in-place release land
+                     on NEITHER control and leak a persistent mouse press-origin. Play
+                     co-located on both faces makes that release land on the OTHER play
+                     mirror, where `usePlayActuation`'s per-control origin guard
+                     (`:81-89`, landed X.KF.W13.b `dafce6eb`) consumes and clears the
+                     entry without actuating — and the window release-elsewhere cleanup
+                     (`:62-73`) still covers the off-control case. No stale id survives
+                     either path. -->
+                <!-- X.KF.W13.b · THE PROPAGATION POLICY (TD-2 + TD-38 + TD-40, stated
+                     once, here — the only place a stop modifier ever lived): neither
+                     play mirror stops propagation. The dock's pointer/click listeners
+                     are capture-phase (a stop modifier on the button never reached
+                     them — the three pointer stops this mirror carried were inert);
+                     the window Space shortcut is scoped away from activation targets
+                     at the registry seat (useControlsKeyboardShortcuts.ts), so no
+                     keyboard stop is load-bearing; and what a press does to the dock
+                     is the dock's own declared meaning of that press plus
+                     `actuatePlay()`'s explicit `expand()` — never an accidental
+                     stop. Symmetry is the invariant: zero stop modifiers on both
+                     faces, as on the sibling ChromeDock. Census + grounds: value.js
+                     docs/tranches/X/keyframes/evidence/W13/b-td-remainder-derivation.md §4. -->
+                <template #collapsed>
+                    <!-- The collapsed play mirror carries the SAME accessible name
+                         as the expanded Play (TD-39): exactly one dock layer is ever
+                         in the accessibility tree (the other is `inert`), so it is
+                         one logical command, not two identically-named controls —
+                         the name must not mutate with transient chrome state. -->
+                    <Button
+                        emphasis="quiet"
+                        :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
+                        :class="[
+                            'scale-on-hover text-white rounded-full p-0',
+                            'w-8 h-8 shrink-0',
+                            isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
+                        ]"
+                        @pointerdown="onPlayPointerDown($event)"
+                        @pointerup="onPlayPointerUp($event)"
+                        @pointercancel="onPlayPointerCancel($event)"
+                        @keydown="onPlayKeydown($event)"
+                        @keyup="onPlayKeyup($event)"
+                        @blur="onPlayBlur($event)"
+                    >
+                        <Pause v-if="isPlaying" class="icon-md" />
+                        <Play v-else class="icon-md translate-x-px" />
+                    </Button>
+                    <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
+                        {{ storedControls.selectedAnimation }}
+                    </span>
+                </template>
+            </GlassDock>
+        </div>
     </div>
 </template>
 
