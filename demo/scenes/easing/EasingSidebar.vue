@@ -78,13 +78,17 @@ import { Card, CardContent } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { EasingPicker, type EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
-import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
+import {
+    NAMED_EASING_BEZIER,
+    NAMED_EASING_BEZIER_ENTRIES,
+} from "@utils/reference-data/animationDescriptions";
 import {
     quadEq,
     useEasingPickerSeat,
     type SeatTruth,
 } from "@components/instrument/transport/channel-controls/composables/useEasingPickerSeat";
 import type { EasingDemoContext } from "./easingKeys";
+import type { EasingName } from "./useEasingDemo";
 
 const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;
@@ -127,10 +131,8 @@ const truth = (): SeatTruth => {
  *  lands as the NAME when the quads agree — selection stays named). */
 const nameForQuad = (
     q: readonly [number, number, number, number],
-): string | undefined =>
-    Object.keys(NAMED_EASING_BEZIER).find((n) =>
-        quadEq(NAMED_EASING_BEZIER[n]!, q),
-    );
+): EasingName | undefined =>
+    NAMED_EASING_BEZIER_ENTRIES.find(([, quad]) => quadEq(quad, q))?.[0];
 
 // ── Picker emissions → the demo's ONE authoring seam ───────────────────────
 const onAuthored = (v: EasingPickerValue) => {
