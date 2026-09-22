@@ -11,8 +11,8 @@ import {
 } from "@mkbabb/glass-ui/dock";
 import { Button } from "@mkbabb/glass-ui/button";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
-// (the DFA projection; the batch-5 dockZones.ts stand-in was deleted at merge —
-// ONE source of the count arithmetic, per lane 18's dual-formula rule).
+// (the DFA projection — ONE source of the count arithmetic, per lane 18's
+// dual-formula rule).
 import {
     BUILT_IN_SURFACES,
     type ControlSurface,
@@ -69,10 +69,26 @@ import {
 
 // H.W5.S1/S2: the dock no longer holds a parallel string-keyed `sceneIcons`
 // Record of imported image URLs (the D8 drift root cause). Each scene carries
-// its own inline-SVG `icon` component on the descriptor (scenes.ts); the dock
-// renders `<component :is="scene.icon">` so the binding is single-sourced and
-// every survivor themes via currentColor. <Home> remains the icon for the
-// explicit home descriptor ALONE (the single fallback).
+// its own `icon` component on the descriptor (scenes.ts) and the dock renders
+// `<component :is="scene.icon">`, so the BINDING is single-sourced. <Home>
+// remains the icon for the explicit home descriptor ALONE (the single fallback).
+//
+// D-3 — what that binding does NOT do is theme every glyph via currentColor
+// (the claim this block used to make). Measured at the assets: cube, amiga and
+// square are raster `<image>` pixel art; easing hardcodes `hsl(248 88% 71%)`;
+// spring and sequence paint from `--color-progress`/`--rainbow-*` tokens whose
+// `currentColor` fallbacks never fire because every token is defined. Only the
+// lucide glyphs (Home, the tab icons) follow ink.
+//
+// THE INK POLICY (D-2-RESCOPED + RR-1 MISSED #2): no glyph declares its own
+// ink. Every glyph inherits `currentColor` from the control or row it sits in,
+// so on the trigger it rides the rest→hover ladder and the `--dock-fg-on-aurora`
+// flip its label already follows, and in the portalled menu the Home glyph
+// takes its row's ink instead of the root-scope muted grey that read as a
+// DISABLED affordance beside five saturated icons. Every glyph is decorative
+// beside a text or aria-label name, so each is `aria-hidden` (RR-1 MISSED #3 —
+// the producer's own convention). The raster format and its non-integer scale
+// (D-4) are the asset owner's, not this file's.
 
 // The BUILT-IN editor tab descriptors (label + icon for the {controls,keyframes,
 // timeline} triad). The DFA (controlSurfaces.ts) is the AUTHORITY on WHICH of
@@ -166,6 +182,16 @@ const showControlSelect = computed(
         dockCardinality({ tabs: allControlTabs.value, channels: [] }).controlZone
             .kind === "select",
 );
+
+// m-1 / C-7 + m-9 — the controls trigger's glyph, resolved once and guarded.
+// The inline `TAB_ICONS[…find(…)…]` lookup in the template typed as a Component
+// but could index a missing key (a tab whose `icon` names no registry entry)
+// and hand `<component :is>` undefined. Every miss now lands on the one
+// declared fallback.
+const selectedControlIcon = computed<Component>(() => {
+    const icon = allControlTabs.value.find((t) => t.value === props.selectedControl)?.icon;
+    return (icon && TAB_ICONS[icon]) || SlidersHorizontal;
+});
 
 const isMobile = useMediaQuery("(max-width: 1023px)");
 
@@ -326,7 +352,7 @@ watch(isSelectOpen, (open) => {
     >
         <div class="pointer-events-auto">
             <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is
-                 REMOVED — glass-ui's rebuilt 3.3.0 dock owns the no-occlusion
+                 REMOVED — glass-ui's rebuilt dock owns the no-occlusion
                  contract; the occlusion gate re-runs mask-free as the lock. The
                  dead single-layer DockLayerGroup/DockLayer costume is collapsed —
                  the items mount directly in the GlassDock default slot. -->
@@ -372,8 +398,8 @@ watch(isSelectOpen, (open) => {
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
                             <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
-                                <component v-if="currentIcon" :is="currentIcon" class="dock-glyph shrink-0 text-muted-foreground" />
-                                <Home v-else class="dock-glyph text-muted-foreground" />
+                                <component v-if="currentIcon" :is="currentIcon" class="dock-glyph" aria-hidden="true" />
+                                <Home v-else class="dock-glyph" aria-hidden="true" />
                                 <SelectValue />
                             </DockTrigger>
                             <SelectContent
@@ -383,7 +409,7 @@ watch(isSelectOpen, (open) => {
                                 <SelectGroup class="dock-label">
                                     <SelectItem :value="homeSceneId" class="py-2 px-3">
                                         <span class="flex items-center gap-2">
-                                            <Home class="dock-glyph text-muted-foreground" />
+                                            <Home class="dock-glyph" aria-hidden="true" />
                                             <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
                                         </span>
                                     </SelectItem>
@@ -395,7 +421,7 @@ watch(isSelectOpen, (open) => {
                                         @pointerenter="emit('warmScene', scene.id)"
                                     >
                                         <span class="flex items-center gap-2">
-                                            <component v-if="scene.icon" :is="scene.icon" class="dock-glyph shrink-0 text-muted-foreground" />
+                                            <component v-if="scene.icon" :is="scene.icon" class="dock-glyph" aria-hidden="true" />
                                             <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
                                         </span>
                                     </SelectItem>
@@ -423,7 +449,7 @@ watch(isSelectOpen, (open) => {
                                     @pointerenter="warmControlSurfaces"
                                     @focusin="warmControlSurfaces"
                                 >
-                                    <component :is="TAB_ICONS[allControlTabs.find(t => t.value === selectedControl)?.icon ?? 'SlidersHorizontal']" class="dock-glyph text-muted-foreground" />
+                                    <component :is="selectedControlIcon" class="dock-glyph" aria-hidden="true" />
                                     <SelectValue />
                                 </DockTrigger>
                                 <SelectContent
@@ -433,7 +459,7 @@ watch(isSelectOpen, (open) => {
                                     <SelectGroup class="dock-label">
                                         <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3">
                                             <span class="flex items-center gap-2">
-                                                <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="dock-glyph text-muted-foreground" />
+                                                <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="dock-glyph" aria-hidden="true" />
                                                 <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
                                             </span>
                                         </SelectItem>
@@ -469,12 +495,12 @@ watch(isSelectOpen, (open) => {
                             @click="emit('toggleControlsPanel')"
                         >
                             <template v-if="isMobile">
-                                <ChevronDown v-if="isControlsPanelOpen" />
-                                <ChevronUp v-else />
+                                <ChevronDown v-if="isControlsPanelOpen" aria-hidden="true" />
+                                <ChevronUp v-else aria-hidden="true" />
                             </template>
                             <template v-else>
-                                <PanelLeftClose v-if="isControlsPanelOpen" />
-                                <PanelLeftOpen v-else />
+                                <PanelLeftClose v-if="isControlsPanelOpen" aria-hidden="true" />
+                                <PanelLeftOpen v-else aria-hidden="true" />
                             </template>
                         </DockControl>
 
@@ -482,7 +508,7 @@ watch(isSelectOpen, (open) => {
                         <slot name="items" />
 
                 <!-- Collapsed state.
-                     K.W4 F6 (U-K20-adjacent) — on glass-ui 4.0.0 the collapsed
+                     K.W4 F6 (U-K20-adjacent) — glass-ui's collapsed
                      dock necks to a PERFECT CIRCLE (the summary pane floors to
                      `--dock-collapsed-summary-min-size` with `aspect-ratio: 1`),
                      and a circle cannot hold the icon + the scene name + a chevron
@@ -519,8 +545,8 @@ watch(isSelectOpen, (open) => {
                         aria-label="Scene"
                         @focus="onCollapsedFocus"
                     >
-                        <component v-if="currentIcon" :is="currentIcon" class="dock-glyph shrink-0 text-muted-foreground" />
-                        <Home v-else class="dock-glyph text-muted-foreground" />
+                        <component v-if="currentIcon" :is="currentIcon" class="dock-glyph" aria-hidden="true" />
+                        <Home v-else class="dock-glyph" aria-hidden="true" />
                     </Button>
                 </template>
             </GlassDock>
@@ -555,6 +581,10 @@ watch(isSelectOpen, (open) => {
 .dock-glyph {
     width: var(--dock-icon-glyph);
     height: var(--dock-icon-glyph);
+    /* D-12 — the glyph never yields to shrink pressure. `shrink-0` sat on 3 of 9
+       sites (the controls TRIGGER glyph among the six without it); the rule
+       that sizes every glyph is the one place that says so. */
+    flex-shrink: 0;
 }
 
 </style>
