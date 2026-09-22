@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { resolveEasingOption } from "../../src/animation/compile/easing/option";
 import { serializeEasing } from "../../src/animation/compile/emit/easing-serialize";
+import type { TimingFunctionNames } from "../../src/animation/constants";
 
 describe("Value 4 easing contract", () => {
-    it.each([
+    it.each<TimingFunctionNames>([
         "linear",
         "ease-out-cubic",
         "easeOutCubic",
@@ -34,6 +35,7 @@ describe("Value 4 easing contract", () => {
 
     it("fails explicitly for malformed or unknown text", () => {
         expect(() => resolveEasingOption("timingFunction", "steps(0)")).toThrow();
+        // @ts-expect-error deliberately-invalid easing name: resolveEasingOption has no unknown-typed ingress, and the subject is its explicit runtime refusal
         expect(() => resolveEasingOption("timingFunction", "not-an-easing")).toThrow();
     });
 

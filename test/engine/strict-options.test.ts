@@ -52,6 +52,7 @@ describe("strict option validation (AnimationOptionError)", () => {
 
     it("setTimingFunction throws on an unknown name (never silent-defaults)", () => {
         const anim = new KeyframesAnimation();
+        // @ts-expect-error deliberately-invalid easing name: setTimingFunction has no unknown-typed ingress, and the subject is its runtime AnimationOptionError
         expect(() => anim.setTimingFunction("bogus-easing")).toThrow(
             AnimationOptionError,
         );

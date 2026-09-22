@@ -91,6 +91,7 @@ describe("K.W7 S4 code: UNKNOWN_TIMING_FN (J.W1-landed throw, structured-shaped)
         // branches on the reason, not the message. The throw's `code` IS the row.
         let code: string | undefined;
         try {
+            // @ts-expect-error deliberately-invalid easing name: resolveEasingOption has no unknown-typed ingress, and the subject is its runtime UNKNOWN_TIMING_FN throw
             resolveEasingOption("timingFunction", "definitely-not-an-easing");
         } catch (e) {
             code = (e as { code?: string }).code;

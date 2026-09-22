@@ -238,6 +238,7 @@ describe("fromString stays lenient on an unknown per-keyframe timing function", 
             ),
         ).not.toThrow();
         // The explicit setter API stays strict, by contrast.
+        // @ts-expect-error deliberately-invalid easing name: setTimingFunction has no unknown-typed ingress, and the subject is its strict runtime throw
         expect(() => anim.setTimingFunction("not-a-real-easing")).toThrow();
     });
 });

@@ -204,6 +204,7 @@ describe("J.W1 S8 — structured codes on the typed AnimationOptionError", () =>
         try {
             new CSSKeyframesAnimation({
                 duration: 1000,
+                // @ts-expect-error deliberately-invalid easing name: the options bag has no unknown-typed ingress, and the subject is the runtime UNKNOWN_TIMING_FN throw
                 timingFunction: "not-a-real-easing",
             }).fromVars([{ opacity: 0 }, { opacity: 1 }]);
         } catch (e) {
