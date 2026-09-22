@@ -20,7 +20,7 @@
     <ChromeDock
         :current-scene-id="currentSceneId"
         :scenes="scenes"
-        :home-scene-id="HOME_SCENE_ID"
+        :home-scene="homeScene"
         :is-controls-panel-open="storedControls.isControlsPanelOpen"
         :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
@@ -179,7 +179,7 @@ import { useSceneMachineRouterBinding } from "./scene/useSceneMachineRouterBindi
 import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding";
 import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
-import { scenes, sceneMap, warmScene, HOME_SCENE_ID } from "./scene/scenes";
+import { scenes, sceneMap, warmScene, homeScene, HOME_SCENE_ID } from "./scene/scenes";
 import type { SceneExposedApi } from "./scene/sceneExposedApi";
 import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGuard";
 

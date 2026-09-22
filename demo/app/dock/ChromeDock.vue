@@ -22,13 +22,16 @@ import {
     dockCardinality,
     type ControlSurfaceTab,
 } from "@components/instrument/surfaceTabs";
+// m-3 / R3-6 — one import granularity: every glass-ui family here comes from
+// its own subpath (`./dock`, `./button`, `./select`), never the root barrel.
 import {
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectValue,
-} from "@mkbabb/glass-ui";
+} from "@mkbabb/glass-ui/select";
 // ChromeDock D-24 — the `StatusDot` import is GONE with the rows that misused it.
 // A health-status primitive (`online` green / dashed `unknown` ring, one per
 // NON-current row) was carrying the SELECTION signal in three menus, against
@@ -113,7 +116,10 @@ const TAB_ICONS: Record<string, Component> = {
 const props = defineProps<{
     currentSceneId: string;
     scenes: { id: string; label: string; icon?: Component }[];
-    homeSceneId: string;
+    /** R3-4 — the home descriptor's id AND label, single-sourced from the scene
+     *  registry like the six rows beside it (the menu used to hard-code "Home"
+     *  while the App passed only the id, so a rename desynced trigger and row). */
+    homeScene: { id: string; label: string };
     isControlsPanelOpen: boolean;
     selectedControl?: string;
     /** The active scene's valid BUILT-IN editor surfaces (the DFA projection,
@@ -199,8 +205,36 @@ const emit = defineEmits<{
     (e: "switchScene", id: string): void;
     (e: "warmScene", id: string): void;
     (e: "toggleControlsPanel"): void;
-    (e: "updateSelectedControl", value: string): void;
+    (e: "updateSelectedControl", value: ControlSurface): void;
 }>();
+
+// m-8 + C-8 (the emit half) — the Selects' `AcceptableValue` is validated at the
+// boundary instead of laundered through `String(…)` (an object value used to
+// become the scene id "[object Object]" and travel to `runSceneSwitch`
+// unchecked). A value is emitted only if it names a row this dock rendered, and
+// the controls emit is typed in the DFA's own alphabet, `ControlSurface`, not
+// widened to `string`.
+function onScenePick(id: unknown): void {
+    if (id === props.homeScene.id) emit("switchScene", props.homeScene.id);
+    else {
+        const scene = props.scenes.find((s) => s.id === id);
+        if (scene) emit("switchScene", scene.id);
+    }
+}
+function onControlPick(value: unknown): void {
+    const tab = allControlTabs.value.find((t) => t.value === value);
+    if (tab) emit("updateSelectedControl", tab.value);
+}
+
+// m-12 — the controls Select's model falls back to the FIRST tab this dock
+// renders, not a hard-coded "controls" the rendered set need not contain
+// (a non-App host may pass a set without it). The empty string is the
+// primitive's "no selection" (its placeholder state; `SelectionValue` admits no
+// null) — unreachable, since the Select only renders at ≥2 tabs.
+const controlsModel = computed((): string => {
+    const [first] = allControlTabs.value;
+    return props.selectedControl ?? first?.value ?? "";
+});
 
 // ── ChromeDock D-23 / C-5 — tell the legibility observer about the aurora ──
 // The dock floats over the home hero's animated Aurora <canvas> and, until now,
@@ -393,11 +427,10 @@ watch(isSelectOpen, (open) => {
                         <!-- rail-core: the scene trigger (identity first) -->
                         <Select
                             :model-value="currentSceneId"
-                            :open="sceneSelectOpen"
-                            @update:open="sceneSelectOpen = $event"
-                            @update:model-value="(id) => emit('switchScene', String(id))"
+                            v-model:open="sceneSelectOpen"
+                            @update:model-value="onScenePick"
                         >
-                            <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
+                            <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label">
                                 <component v-if="currentIcon" :is="currentIcon" class="dock-glyph" aria-hidden="true" />
                                 <Home v-else class="dock-glyph" aria-hidden="true" />
                                 <SelectValue />
@@ -407,17 +440,17 @@ watch(isSelectOpen, (open) => {
                                 :style="{ '--select-dot-color': 'currentColor' }"
                             >
                                 <SelectGroup class="dock-label">
-                                    <SelectItem :value="homeSceneId" class="py-2 px-3">
+                                    <SelectLabel class="sr-only">Scenes</SelectLabel>
+                                    <SelectItem :value="homeScene.id">
                                         <span class="flex items-center gap-2">
                                             <Home class="dock-glyph" aria-hidden="true" />
-                                            <span :class="currentSceneId === homeSceneId ? 'font-bold' : ''">Home</span>
+                                            <span :class="currentSceneId === homeScene.id ? 'font-bold' : ''">{{ homeScene.label }}</span>
                                         </span>
                                     </SelectItem>
                                     <SelectItem
                                         v-for="scene in scenes"
                                         :key="scene.id"
                                         :value="scene.id"
-                                        class="py-2 px-3"
                                         @pointerenter="emit('warmScene', scene.id)"
                                     >
                                         <span class="flex items-center gap-2">
@@ -437,15 +470,14 @@ watch(isSelectOpen, (open) => {
                         <template v-if="showControlSelect">
                             <DockSeparator />
                             <Select
-                                :model-value="selectedControl ?? 'controls'"
-                                :open="controlsSelectOpen"
-                                @update:open="controlsSelectOpen = $event"
-                                @update:model-value="(v) => emit('updateSelectedControl', String(v))"
+                                :model-value="controlsModel"
+                                v-model:open="controlsSelectOpen"
+                                @update:model-value="onControlPick"
                             >
                                 <DockTrigger
                                     for="select"
                                     aria-label="Controls tab"
-                                    class="dock-label [&>span]:line-clamp-none"
+                                    class="dock-label"
                                     @pointerenter="warmControlSurfaces"
                                     @focusin="warmControlSurfaces"
                                 >
@@ -457,7 +489,8 @@ watch(isSelectOpen, (open) => {
                                     :style="{ '--select-dot-color': 'currentColor' }"
                                 >
                                     <SelectGroup class="dock-label">
-                                        <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value" class="py-2 px-3">
+                                        <SelectLabel class="sr-only">Control tabs</SelectLabel>
+                                        <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value">
                                             <span class="flex items-center gap-2">
                                                 <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="dock-glyph" aria-hidden="true" />
                                                 <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
@@ -473,7 +506,7 @@ watch(isSelectOpen, (open) => {
                              by one DockSeparator. The toggle's ultimate home is the
                              panel edge (co-decided with T.B4's naked-rail recut); it
                              rides nav here, never the lead. -->
-                        <DockSeparator />
+                        <DockSeparator v-if="hasControlPanel || $slots.items" />
                         <!-- D-20 — the panel toggle takes the producer's `active`
                              prop, so its state is `aria-pressed` + `data-active` +
                              the selected seat, and the accessible name is ONE
