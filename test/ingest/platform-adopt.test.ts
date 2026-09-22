@@ -29,6 +29,7 @@ import {
     Timeline,
     createNativeTimeline,
 } from "../../src/animation/orchestration/timeline";
+import type * as ReducedMotion from "../../src/animation/internal/reduced-motion";
 import { resolveEasing } from "../../src/animation/easing";
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -72,7 +73,7 @@ function installMatchMedia(initial: boolean): FakeMQL {
 
 // reduced-motion.ts memoizes ONE module-level MediaQueryList. Re-importing it
 // fresh per test resets that handle so each test observes its own matchMedia.
-async function freshReducedMotion() {
+async function freshReducedMotion(): Promise<typeof ReducedMotion> {
     vi.resetModules();
     return import("../../src/animation/internal/reduced-motion");
 }
