@@ -83,6 +83,11 @@ import { Skeleton } from "@mkbabb/glass-ui";
 import { Card } from "@mkbabb/glass-ui/card";
 import { SCENE_ANNOUNCER_KEY } from "@components/instrument/shell/EditorShell.vue";
 
+// The component's name is the one this file's docblock and its sole mount
+// (`App.vue`) call it; the `App.skeleton` filename is a sibling-of-App
+// convention, not a name, and would otherwise be inferred as one.
+defineOptions({ name: "SceneSkeleton" });
+
 const announce = inject(SCENE_ANNOUNCER_KEY, null);
 
 onMounted(() => announce?.("Loading scene"));
