@@ -4,9 +4,13 @@ import {
     type CSSAnimationOptions,
 } from "@mkbabb/value.js/css";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+import type { AnimationEngine } from "@mkbabb/keyframes.js";
 
+// The projection's `timingFunction` is exactly what the engine's serializer
+// returns (its `CssEasingLiteral` union) — declared from that source, never
+// widened to `string`, so consumers assign it to the store's union unguarded.
 type EditorAnimationOptions = Omit<CSSAnimationOptions, "timingFunction"> & {
-    timingFunction?: string;
+    timingFunction?: ReturnType<AnimationEngine["serializeTimingFunction"]>;
 };
 
 /**
