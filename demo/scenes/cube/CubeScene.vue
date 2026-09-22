@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import { h, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 
 const props = defineProps<{
     hideLoader?: boolean;
@@ -96,24 +96,6 @@ const { animationGroup, setTargets } = useCubeDemo(
 // the conditional surface the moment its condition lapses, and the ONE writer
 // (the AnimationControls derivation-sync) re-projects `"controls"` — the same
 // result, computed at the authority.
-
-// Ppmycota hover card state
-const ppmycotaOpen = ref(false);
-let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
-
-function clearAutoDismiss() {
-    if (autoDismissTimer != null) {
-        clearTimeout(autoDismissTimer);
-        autoDismissTimer = undefined;
-    }
-}
-
-watch(ppmycotaOpen, (open) => {
-    clearAutoDismiss();
-    if (open) {
-        autoDismissTimer = setTimeout(() => { ppmycotaOpen.value = false; }, 4000);
-    }
-});
 
 // --- Slot sub-components exposed via defineExpose ---
 
@@ -190,7 +172,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    clearAutoDismiss();
     animationGroup.value.stop();
 
     // Persist transform state so it carries over on next mount (home ↔ cube)
