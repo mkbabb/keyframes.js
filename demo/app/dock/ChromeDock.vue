@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch, useTemplateRef, type Component } from "vue";
+import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
 import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
@@ -9,6 +9,7 @@ import {
     DockTrigger,
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
+import { Button } from "@mkbabb/glass-ui/button";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection; the batch-5 dockZones.ts stand-in was deleted at merge —
 // ONE source of the count arithmetic, per lane 18's dual-formula rule).
@@ -289,6 +290,23 @@ watch(
     },
 );
 
+// D-18 / C-1 — the collapsed Button's KEYBOARD hand-off. Tabbing onto it
+// focus-expands the dock (the producer's own focusin path), and that same
+// expansion makes the summary layer `inert` — which would drop focus to the
+// document and let the focus-out re-arm the collapse. So a keyboard focus is
+// handed, after the render that swaps the layers, to the scene trigger: the
+// expanded face of the same command. A POINTER focus (`:focus-visible` false)
+// is left alone — the summary's click-to-pin and the hover-expand own that
+// gesture, and expanding under a live press would re-target its click.
+const sceneTrigger = useTemplateRef<{ $el: HTMLElement }>("sceneTrigger");
+async function onCollapsedFocus(event: FocusEvent): Promise<void> {
+    const control = event.currentTarget;
+    if (!(control instanceof HTMLElement) || !control.matches(":focus-visible")) return;
+    dockRef.value?.expand();
+    await nextTick();
+    sceneTrigger.value?.$el.focus();
+}
+
 // RR-2 MISSED #1 — an open Select holds the dock and does nothing else. The
 // `expand()` that used to ride here could only ever DEMOTE: a Select opens from
 // the expanded (non-inert) layer, so the dock is never collapsed at this point,
@@ -353,7 +371,7 @@ watch(isSelectOpen, (open) => {
                             @update:open="sceneSelectOpen = $event"
                             @update:model-value="(id) => emit('switchScene', String(id))"
                         >
-                            <DockTrigger for="select" aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
+                            <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label [&>span]:line-clamp-none">
                                 <component v-if="currentIcon" :is="currentIcon" class="dock-glyph shrink-0 text-muted-foreground" />
                                 <Home v-else class="dock-glyph text-muted-foreground" />
                                 <SelectValue />
@@ -466,9 +484,30 @@ watch(isSelectOpen, (open) => {
                      `currentLabel` interpolation, and no such prop). This is a kf-CONSUME
                      fit (no GlassDock patch) — the slot content shrinks to what the
                      circle holds. -->
+                <!-- D-18 / C-1 — the collapsed face is REACHABLE. The producer
+                     renders the full layer `inert` while collapsed and the
+                     summary as a bare click-only `<div>`, so a pointer-idle dock
+                     used to hold ZERO tab stops and the app's only scene
+                     navigation went keyboard-dead 2.5 s after any hover. The
+                     glyph now sits in a real focusable Button (the house pattern
+                     TransportDock's collapsed Play set). A pointer click still
+                     bubbles to the summary's own click (pin) exactly as before;
+                     KEYBOARD focus hands off to the expanded scene trigger, which
+                     is the command this control stands for.
+                     TD-39's rider: the Button is copied, the name split is NOT —
+                     one logical command, one stable name ("Scene", the expanded
+                     trigger's own), never suffixed with transient chrome state. -->
                 <template #collapsed>
-                    <component v-if="currentIcon" :is="currentIcon" class="dock-glyph shrink-0 text-muted-foreground" />
-                    <Home v-else class="dock-glyph text-muted-foreground" />
+                    <Button
+                        emphasis="quiet"
+                        size="sm"
+                        icon-only
+                        aria-label="Scene"
+                        @focus="onCollapsedFocus"
+                    >
+                        <component v-if="currentIcon" :is="currentIcon" class="dock-glyph shrink-0 text-muted-foreground" />
+                        <Home v-else class="dock-glyph text-muted-foreground" />
+                    </Button>
                 </template>
             </GlassDock>
         </div>
