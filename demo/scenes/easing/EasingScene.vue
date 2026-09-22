@@ -72,6 +72,13 @@ const tabsContent = () => h(EasingSidebar, { demo });
 // domain verbs, so the slot mounts the standard ribbon directly (the FLOOR path).
 const userReversed = ref(false);
 
+// OA-10 (§0ao.1) — the ball preview's hide toggle state. HELD here, in the
+// mount that binds it; its persistence home — this scene's bucket in the
+// control-options store, beside `isControlsPanelOpen` / `ppMode` — needs the
+// bucket type to declare the field (`demo/state/controlOptionsStore.ts`, not
+// this unit's to write): ESCALATED as KF.W13T.e's ESC-e-1.
+const preview = ref<"shown" | "hidden">("shown");
+
 const onScrubUpdate = (v: { t: number }) => {
     const dur = demo.previewAnim.options.duration;
     if (dur > 0) demo.progress.value = clamp(v.t / dur, 0, 1);
@@ -104,6 +111,10 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
               isAnimPlaying: demo.isPlaying.value,
               isAnimStarted: true,
               userReversed: userReversed.value,
+              preview: preview.value,
+              "onUpdate:preview": (next: "shown" | "hidden") => {
+                  preview.value = next;
+              },
               onTogglePlay: () => demo.togglePlay(),
               onToggleReverse,
               onSliderUpdate: onScrubUpdate,

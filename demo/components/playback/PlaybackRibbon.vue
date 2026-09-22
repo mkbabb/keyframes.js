@@ -96,15 +96,39 @@
             </Button>
         </div>
 
-        <AnimationVisualizer
-            v-if="animation"
-            :class="['w-full', !isAnimStarted ? 'is-disabled' : '']"
-            :animation="animation"
-            :is-playing="isAnimPlaying"
-            @scrub="scrubTo"
-            @drag-start="emit('scrubStart')"
-            @drag-end="emit('scrubEnd')"
-        ></AnimationVisualizer>
+        <!-- OA-10 (§0ao.1) — the ball preview's inline hide toggle. Offered
+             only where the mount binds `preview` (the mount owns the state
+             and its persistence; an unbound ribbon keeps its preview).
+             The producer Button in its pressed-toggle form (`aria-pressed`,
+             the Reverse cell's idiom) with one stable name; pressed = hidden.
+             Hidden is ABSENT (`v-if`): the twin leaves the DOM and the tree,
+             and its pointer seam with it. -->
+        <div v-if="animation" class="flex w-full items-center gap-1">
+            <AnimationVisualizer
+                v-if="preview !== 'hidden'"
+                :class="['min-w-0 flex-1', !isAnimStarted ? 'is-disabled' : '']"
+                :animation="animation"
+                :is-playing="isAnimPlaying"
+                @scrub="scrubTo"
+                @drag-start="emit('scrubStart')"
+                @drag-end="emit('scrubEnd')"
+            ></AnimationVisualizer>
+            <Button
+                v-if="preview !== undefined"
+                size="sm"
+                emphasis="quiet"
+                icon-only
+                class="ms-auto shrink-0"
+                aria-label="Hide ball preview"
+                :aria-pressed="preview === 'hidden'"
+                @click="
+                    emit('update:preview', preview === 'hidden' ? 'shown' : 'hidden')
+                "
+            >
+                <EyeOff v-if="preview === 'hidden'" aria-hidden="true" />
+                <Eye v-else aria-hidden="true" />
+            </Button>
+        </div>
     </div>
 </template>
 
@@ -126,7 +150,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { Button, Slider } from "@mkbabb/glass-ui";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
+import { ArrowLeftRight, Eye, EyeOff, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 
 /**
@@ -142,7 +166,7 @@ import AnimationVisualizer from "./AnimationVisualizer.vue";
  */
 type EffectiveMs = number;
 
-const { animation, source, duration } = defineProps<{
+const { animation, source, duration, preview } = defineProps<{
     // T.B1-β STAGE 1 — the ribbon is CHANNEL-capable: its time source is EITHER
     // the selected channel's painting `animation` (the engine-clocked path —
     // scrubs emit `sliderUpdate`, the visualizer twin mounts) OR a progress-
@@ -173,6 +197,14 @@ const { animation, source, duration } = defineProps<{
      * the intent stays; `scrubTo` deliberately reads the engine's flag.
      */
     userReversed: boolean;
+    /**
+     * OA-10 — the ball preview's (the AnimationVisualizer twin's) visibility.
+     * Bound by a mount that owns (and persists) the view state; left
+     * `undefined`, the ribbon offers no toggle and always shows the preview.
+     * A two-member string, not a boolean: Vue casts an absent Boolean prop to
+     * `false`, which would erase the "unbound" state the toggle's offer reads.
+     */
+    preview?: "shown" | "hidden";
 }>();
 
 /** THE ONE DURATION READ (L-m9) — the rail's `:max`, the arrow `:step` and the
@@ -195,6 +227,7 @@ const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
     (e: "togglePlay"): void;
     (e: "toggleReverse"): void;
+    (e: "update:preview", preview: "shown" | "hidden"): void;
 }>();
 
 // ── J.W2 S1 (W4-4) — the slider scrub rides the SHARED drag seam ─────────────

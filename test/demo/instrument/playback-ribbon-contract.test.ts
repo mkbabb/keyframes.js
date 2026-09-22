@@ -571,6 +571,47 @@ describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act"
 });
 
 /**
+ * X.KF.W13T.e · OA-10 (§0ao.1) — the ball preview's inline hide toggle. The
+ * toggle is the producer Button in its pressed form (`aria-pressed`, one
+ * stable name), offered only where the mount binds `preview`; hidden is
+ * ABSENT (the twin leaves the DOM and the tree).
+ */
+describe("OA-10 — the ball preview hides behind an inline pressed toggle", () => {
+    const toggleOf = (root: ParentNode) =>
+        root.querySelector<HTMLButtonElement>('button[aria-label="Hide ball preview"]');
+    const previewOf = (root: ParentNode) =>
+        root.querySelector('[data-stub="AnimationVisualizer"]');
+
+    it("an unbound ribbon (every mount but easing) offers no toggle and keeps its preview", async () => {
+        const seat = mountRibbon();
+        await settle();
+        expect(toggleOf(seat.root)).toBeNull();
+        expect(previewOf(seat.root)).not.toBeNull();
+    });
+
+    it("a bound ribbon: pressed=false shows the preview; a press asks to hide; hidden removes the twin", async () => {
+        const asked: string[] = [];
+        const seat = mountRibbon({
+            preview: "shown",
+            "onUpdate:preview": (next: "shown" | "hidden") => {
+                asked.push(next);
+            },
+        });
+        await settle();
+        const toggle = toggleOf(seat.root)!;
+        expect(toggle.getAttribute("aria-pressed")).toBe("false");
+        expect(previewOf(seat.root)).not.toBeNull();
+        toggle.click();
+        expect(asked).toEqual(["hidden"]);
+        await seat.setProps({ preview: "hidden" });
+        expect(toggleOf(seat.root)!.getAttribute("aria-pressed")).toBe("true");
+        expect(previewOf(seat.root)).toBeNull();
+        await seat.setProps({ preview: "shown" });
+        expect(previewOf(seat.root)).not.toBeNull();
+    });
+});
+
+/**
  * X.KF.W13T.e · OA-8 (§0ao.1) — the styling limb.
  */
 describe("OA-8 — the scrub rail wears the producer Slider's own paint", () => {
