@@ -114,7 +114,6 @@
              applies a ruling rather than re-taking one. -->
         <FadingScroll axis="y" class="specimen-drawer min-h-0 w-full flex-1">
             <ToggleGroup
-                ref="gridEl"
                 type="single"
                 class="specimen-grid"
                 aria-label="Easing curve specimens"
@@ -170,7 +169,6 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import type { ComponentPublicInstance } from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 import { Card } from "@mkbabb/glass-ui";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
@@ -276,11 +274,21 @@ const literal = computed<string>(() => {
 // the departure is simultaneous by construction.
 const BALL_SIZE = 14;
 
-// The grid is the ToggleGroup's root element (a component ref; vueuse's
-// `unrefElement` reads its `$el` for the resize observer below).
-const gridEl = useTemplateRef<ComponentPublicInstance>("gridEl");
 const tileBallEls = useTemplateRef<HTMLElement[]>("tileBallEls");
 const railWidth = ref(0);
+/**
+ * OA-9 (§0ao.1) — the rail the width is READ from is the rail the resize
+ * observer WATCHES: the first tile's stage, an element this component renders.
+ * The observer formerly watched the ToggleGroup's component ref, whose `$el`
+ * is the producer fragment's leading TEXT anchor (measured: nodeType 3, the
+ * grid `div` is its next sibling) — `ResizeObserver.observe(Text)` threw in
+ * the mount flush, and the throw aborted the rest of that post-flush queue:
+ * this component's painter never registered (the specimen balls never moved)
+ * and the sidebar Sliders' thumbs never registered with their roots (reka's
+ * pointer path read `thumbElements[0].clientWidth` of `undefined` — the
+ * ribbon scrub and the duration slider were dead to the pointer).
+ */
+const railStage = ref<HTMLElement | null>(null);
 
 const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
@@ -350,7 +358,8 @@ const wirePainter = async () => {
         { rootMargin: "25% 0px" },
     );
     for (const { stage } of tileSnapshot) if (stage) io.observe(stage);
-    const stage = tileSnapshot[0]?.stage;
+    const stage = tileSnapshot[0]?.stage ?? null;
+    railStage.value = stage;
     if (stage) railWidth.value = stage.clientWidth;
     if (reducedMotion.value) {
         paintRestState();
@@ -379,8 +388,9 @@ watch(
     },
 );
 
-// The grid is uniform-width tiles; one measure serves every rail.
-useResizeObserver(gridEl, () => measureRailWidth());
+// The grid is uniform-width tiles; one measure serves every rail — so one
+// observed rail (the stage `measureRailWidth` reads) serves every tile.
+useResizeObserver(railStage, () => measureRailWidth());
 </script>
 
 <style scoped src="./EasingTarget.css"></style>
