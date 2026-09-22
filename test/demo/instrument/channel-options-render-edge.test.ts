@@ -467,3 +467,46 @@ describe("G-KFW12-2 — the ChannelOptions render edge", () => {
         }
     });
 });
+
+describe("X.KF.W13T.e · OA-7 (§0ao.1) — every easing-picker row draws its curve", () => {
+    it("(5) each of the catalogue's rows carries an <svg><path> sampled from the easing it installs", async () => {
+        const { EASING_GROUPS } = await import(
+            "../../../demo/utils/reference-data/easingGroups"
+        );
+        const { generateCurveSVGPath, namedEasing, steppedEasing } = await import(
+            "../../../demo/utils/reference-data/timingCurveUtils"
+        );
+        const { wrapper } = mountPane();
+        try {
+            await settle();
+            const names = EASING_GROUPS.flatMap((g) => g.items.map((i) => i.name));
+            expect(names).toHaveLength(29);
+            // One curve Select per mounted ChannelOptions (the pane mounts the
+            // card once per layout seat): each must list every row with a glyph.
+            const pickers = [...document.querySelectorAll('[data-stub="SelectStub"]')].filter(
+                (sel) => sel.querySelector("svg.curve-glyph") !== null,
+            );
+            expect(pickers.length).toBeGreaterThan(0);
+            for (const picker of pickers) {
+                const rows = [...picker.querySelectorAll('[data-stub="SelectItemStub"]')];
+                const glyph = new Map(
+                    rows.map((row) => [
+                        row.querySelector('[data-register="code"]')?.textContent?.trim(),
+                        row.querySelector("svg.curve-glyph path")?.getAttribute("d") ?? "",
+                    ]),
+                );
+                expect([...glyph.keys()]).toEqual(names);
+                for (const d of glyph.values()) expect(d).toMatch(/^M /);
+                // The glyph IS the function the row installs, never a sprite.
+                expect(glyph.get("ease-out-back")).toBe(
+                    generateCurveSVGPath(namedEasing("ease-out-back"), 64),
+                );
+                expect(glyph.get("step-end")).toBe(
+                    generateCurveSVGPath(steppedEasing(1, "jump-end"), 64),
+                );
+            }
+        } finally {
+            wrapper.unmount();
+        }
+    });
+});

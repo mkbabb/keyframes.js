@@ -38,6 +38,7 @@ const isTimingFunctionName = (s: string): s is TimingFunctionNames =>
 
 import {
     cubicBezierEasing,
+    generateCurveSVGPath,
     namedEasing,
     steppedEasing,
 } from "@utils/reference-data/timingCurveUtils";
@@ -269,6 +270,19 @@ export function useTimingFunctionEditor(
         return { easing: namedEasing(keyOrLiteral), literal: keyOrLiteral };
     };
 
+    /**
+     * OA-7 (§0ao.1) — a picker row's curve glyph: the SVG path sampled from
+     * the SAME easing `onCurvePicked(key)` would install on the animation
+     * (`resolveTimingFunction` — a name resolves through the registry, a
+     * draft kind through the store's live parameters, so the `cubic-bezier`
+     * / `steps` rows plot the curve the user is authoring). Never a sprite:
+     * the glyph IS the function. A row key is a name or a draft kind, never a
+     * literal, so the resolution reconciles nothing into the store. 64
+     * samples keep a step's riser sub-pixel at the row's glyph size.
+     */
+    const curveGlyphPath = (key: string): string =>
+        generateCurveSVGPath(resolveTimingFunction(key).easing, 64);
+
     const updateTimingFunctionFromName = (keyOrLiteral: string) => {
         const { easing, literal } = resolveTimingFunction(keyOrLiteral);
         // Pass the complete re-parseable literal as the CSS twin (EE-02): the
@@ -368,5 +382,6 @@ export function useTimingFunctionEditor(
         exitDetailPanel,
         setAnimationTimingFunction,
         updateTimingFunctionFromName,
+        curveGlyphPath,
     };
 }

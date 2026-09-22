@@ -383,6 +383,31 @@
                                                              removed, and G-W6-8's
                                                              census reads two sites
                                                              fewer). -->
+                                                        <!-- OA-7 — the row's curve
+                                                             glyph, plotted from the
+                                                             easing the row installs
+                                                             (never a sprite); one
+                                                             text line tall, 3:2,
+                                                             drawn in the row's ink.
+                                                             Back curves overshoot
+                                                             the unit box, so the
+                                                             svg paints its overflow. -->
+                                                        <svg
+                                                            class="curve-glyph"
+                                                            viewBox="0 0 1 1"
+                                                            preserveAspectRatio="none"
+                                                            overflow="visible"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <path
+                                                                :d="
+                                                                    curveGlyphs.get(
+                                                                        curveItem.name,
+                                                                    )
+                                                                "
+                                                                vector-effect="non-scaling-stroke"
+                                                            />
+                                                        </svg>
                                                         <span
                                                             data-register="code"
                                                             class="font-mono"
@@ -615,7 +640,16 @@ import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 
 // L·N-16 — `Teleport` is a built-in the template compiler resolves; it is not
 // imported.
-import { nextTick, onMounted, ref, toRef, useId, useTemplateRef, watch } from "vue";
+import {
+    computed,
+    nextTick,
+    onMounted,
+    ref,
+    toRef,
+    useId,
+    useTemplateRef,
+    watch,
+} from "vue";
 import { getStoredAnimationOptions } from "@state";
 import { kfEngine } from "@kf-engine";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
@@ -658,7 +692,20 @@ const {
     onCurvePicked,
     exitDetailPanel,
     updateTimingFunctionFromName,
+    curveGlyphPath,
 } = useTimingFunctionEditor(() => props.animation, storedAnimationOptions);
+
+// OA-7 (§0ao.1) — every picker row's curve glyph, keyed by row name: the path
+// is sampled from the easing the row installs (`curveGlyphPath`), so the
+// draft-kind rows track the store's live quad / step options reactively.
+const curveGlyphs = computed(
+    () =>
+        new Map(
+            EASING_GROUPS.flatMap((g) =>
+                g.items.map((i) => [i.name, curveGlyphPath(i.name)] as const),
+            ),
+        ),
+);
 
 // KF-CO-21 / KF-CO-26 — the ids the hand-rolled label row and the advanced
 // disclosure wire their ARIA relations through (SSR-stable, per instance).
@@ -807,6 +854,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* OA-7 — the picker row's curve glyph: sized to the row's text line (em, so it
+   follows the dropdown rung), inked by the row's own colour. */
+.curve-glyph {
+    flex: none;
+    width: 1.5em;
+    height: 1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
 /* Collapsible panel rows: each panel in its own row that animates height via grid-template-rows */
 .panel-row {
     /* The crossfade: display:grid + grid-template-rows 0fr↔1fr is the
