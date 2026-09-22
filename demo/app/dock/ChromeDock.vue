@@ -381,7 +381,7 @@ watch(isSelectOpen, (open) => {
 <template>
     <div
         data-dock-tether="top"
-        class="fixed left-1/2 -translate-x-1/2 z-dock flex items-center justify-center pointer-events-none"
+        class="fixed left-0 right-0 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
         <div class="pointer-events-auto">
@@ -390,11 +390,21 @@ watch(isSelectOpen, (open) => {
                  contract; the occlusion gate re-runs mask-free as the lock. The
                  dead single-layer DockLayerGroup/DockLayer costume is collapsed —
                  the items mount directly in the GlassDock default slot. -->
+            <!-- X.KF.W13T.k (OA-6) — the dock CONTAINS its controls, by layout.
+                 The band spans the viewport (left-0 right-0, the TransportDock
+                 band's idiom): the former `left-1/2 -translate-x-1/2` gave the
+                 dock a shrink-to-fit containing block of 50vw, a cap no token
+                 declared, so at 390/768 with a scene active the Controls tab,
+                 the panel toggle and @mbabb painted past the capsule. The
+                 producer's `--dock-max-inline-size` is now the only cap, and
+                 `overflow="wrap"` is its over-cap recipe: one row when the row
+                 fits, N rows exactly when it does not. Never a clip. -->
             <GlassDock
                 ref="dockRef"
                 :collapse-delay="2500"
                 :start-collapsed="true"
                 :fit-content="true"
+                overflow="wrap"
                 :background-canvas="auroraCanvas"
             >
                         <!-- D-22 + RR-1 MISSED #1 — NO WRAPPER HERE. The dock's
