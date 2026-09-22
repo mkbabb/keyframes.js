@@ -7,6 +7,7 @@
 <script setup lang="ts">
 import { h, provide, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
@@ -72,12 +73,13 @@ const tabsContent = () => h(EasingSidebar, { demo });
 // domain verbs, so the slot mounts the standard ribbon directly (the FLOOR path).
 const userReversed = ref(false);
 
-// OA-10 (§0ao.1) — the ball preview's hide toggle state. HELD here, in the
-// mount that binds it; its persistence home — this scene's bucket in the
-// control-options store, beside `isControlsPanelOpen` / `ppMode` — needs the
-// bucket type to declare the field (`demo/state/controlOptionsStore.ts`, not
-// this unit's to write): ESCALATED as KF.W13T.e's ESC-e-1.
-const preview = ref<"shown" | "hidden">("shown");
+// OA-10 (§0ao.1) + ESC-e-1 (§0ar) — the ball preview's hide toggle is this
+// scene's VIEW STATE, so it lives where the scene's other view state lives: its
+// bucket in the control-options store (beside `isControlsPanelOpen`, and cube's
+// `ppMode`), persisted with the bucket's expiry, reset and share semantics. The
+// ribbon reads it on every render (an absent field is the default, shown) and
+// its `update:preview` writes it back; nothing scene-local holds a copy.
+const storedControls = getStoredAnimationGroupControlOptions(SCENE_ID);
 
 const onScrubUpdate = (v: { t: number }) => {
     const dur = demo.previewAnim.options.duration;
@@ -111,9 +113,9 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
               isAnimPlaying: demo.isPlaying.value,
               isAnimStarted: true,
               userReversed: userReversed.value,
-              preview: preview.value,
+              preview: storedControls.easingPreview ?? "shown",
               "onUpdate:preview": (next: "shown" | "hidden") => {
-                  preview.value = next;
+                  storedControls.easingPreview = next;
               },
               onTogglePlay: () => demo.togglePlay(),
               onToggleReverse,

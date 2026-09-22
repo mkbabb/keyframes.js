@@ -23,6 +23,7 @@ export type StoredAnimationGroupControlOptions = {
         addKeyframes: string;
     };
     ppMode?: boolean;
+    easingPreview?: "shown" | "hidden";
     matrixOptions?: MatrixOptions;
 };
 
