@@ -18,7 +18,7 @@
  * stubbed at its own seam because it imports the root barrel.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick, ref } from "vue";
+import { defineComponent, h, nextTick, ref, shallowRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -126,6 +126,7 @@ vi.mock("../../../demo/components/playback/AnimationVisualizer.vue", () => ({
 
 const { default: PlaybackRibbon } =
     await import("../../../demo/components/playback/PlaybackRibbon.vue");
+type RibbonProps = InstanceType<typeof PlaybackRibbon>["$props"];
 const { default: ChannelOptions } =
     await import("../../../demo/components/instrument/transport/channel-controls/ChannelOptions.vue");
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
@@ -200,13 +201,13 @@ interface RibbonSeat {
     emitted: (name: string) => unknown[][];
     /** Every emit, in order — the pairing witness. */
     sequence: string[];
-    setProps: (p: Record<string, unknown>) => Promise<void>;
+    setProps: (p: Partial<RibbonProps>) => Promise<void>;
 }
 
 /** Mount the ribbon the way the channel mount feeds it: `currentT` is EFFECTIVE ms. */
-function mountRibbon(over: Record<string, unknown> = {}): RibbonSeat {
+function mountRibbon(over: Partial<RibbonProps> = {}): RibbonSeat {
     const anim = makeAnimation();
-    const props = ref<Record<string, unknown>>({
+    const props = shallowRef<RibbonProps>({
         animation: anim,
         currentT: 0,
         isAnimPlaying: false,
