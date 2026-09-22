@@ -31,10 +31,7 @@
         @update-selected-control="onDockSelectControl"
     >
         <template #items>
-            <MbabbMenu
-                :super-key="currentSuperKey"
-                :on-scene-restore="runSceneSwitch"
-            />
+            <MbabbMenu :on-scene-restore="runSceneSwitch" />
         </template>
     </ChromeDock>
 

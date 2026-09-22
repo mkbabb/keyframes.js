@@ -295,12 +295,6 @@ import { Trash } from "@lucide/vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
 import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
 defineProps<{
-    // The active superKey. NO LONGER READ HERE: the ppMode flag is the cube
-    // scene's and binds the cube bucket (MM-6 / C-14, below). The declaration is
-    // kept only because App.vue still binds `:super-key` (outside this cure's
-    // carve) and an undeclared binding would fall through as a stray attribute;
-    // it dies with that binding (a named residual of X.KF.W13.a4).
-    superKey: string;
     // Scene restore from a shared URL (passed straight to SharePopover). The shell
     // owns the real switch (runSceneSwitch); the menu only forwards the id.
     onSceneRestore: (id: string) => void;
