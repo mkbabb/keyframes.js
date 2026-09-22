@@ -385,7 +385,7 @@ describe("X.KF.W11.f (5a) — the heatmap mounts on two models and labels its ow
             await nextTick();
             expect(wrapper.vm.r).toBe(0.65);
             expect(wrapper.vm.d).toBe(0.85);
-            expect(wrapper.get(".spring-heatmap-cell").exists()).toBe(true);
+            expect(wrapper.find(".spring-heatmap-cell").exists()).toBe(true);
 
             // a second pointer during the gesture is refused
             down({ pointerId: 2, clientX: 0, clientY: 0 });

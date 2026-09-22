@@ -261,7 +261,9 @@ const framesOf = (animation: unknown): Frames =>
     (animation as { templateFrames: Frames }).templateFrames;
 
 /** Mount the real editor and wait for its projection to land. */
-const mountEditor = async (animation: unknown) => {
+const mountEditor = async (
+    animation: Awaited<ReturnType<typeof buildFixture>>["animation"],
+) => {
     const wrapper = mount(KeyframesEditor, {
         props: { animation },
         attachTo: document.body,

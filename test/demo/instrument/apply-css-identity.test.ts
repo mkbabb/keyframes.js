@@ -51,6 +51,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, markRaw, nextTick, reactive } from "vue";
 import { mount } from "@vue/test-utils";
+import type { StoredAnimationGroupControlOptions } from "@state";
 
 const slotStub = (tag: string, name: string) =>
     defineComponent({
@@ -173,8 +174,12 @@ const injectedSheets = () =>
  *  assertions untouched). */
 const HEAVY = { timeout: 30_000 };
 
+/** The animation `buildFixture` builds — the one shape the seat's `animation`
+ *  prop takes, named from its producer rather than re-declared. */
+type FixtureAnimation = Awaited<ReturnType<typeof buildFixture>>["animation"];
+
 /** Mount the APPLY seat and wait for its one-shot projection to land. */
-const mountSeat = async (animation: unknown) => {
+const mountSeat = async (animation: FixtureAnimation) => {
     const wrapper = mount(KeyframesStringControls, {
         props: { animation },
         attachTo: document.body,
@@ -285,7 +290,18 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         // `v-if="selectedControl === 'keyframes'"`; the seat below it is
         // force-mounted in the shipped tree and never unmounts, which is the
         // whole asymmetry RB-6 names.
-        const storedControls = reactive({ selectedControl: "keyframes" });
+        const storedControls = reactive<StoredAnimationGroupControlOptions>({
+            selectedControl: "keyframes",
+            selectedAnimation: "",
+            keyframeControls: {
+                selectedKeyframesControl: "keyframes",
+                dialogOpen: false,
+                keyframes: "",
+                addKeyframes: "",
+            },
+            isTimelineExpanded: false,
+            isControlsPanelOpen: true,
+        });
         const ribbon = mount(RibbonBar, {
             props: {
                 storedControls,

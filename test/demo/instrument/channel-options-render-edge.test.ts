@@ -176,11 +176,14 @@ const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
 // surface on Element (`hasPointerCapture` / `releasePointerCapture` /
 // `setPointerCapture` — reka's SelectTrigger calls the first two inside its
 // `pointerdown` handler before it opens). These symbols must EXIST; none of
-// them alters what the components under test do.
+// them alters what the components under test do. Each member is declared
+// `| undefined` as well as optional: the saved original IS `undefined` where
+// jsdom lacks the symbol, and `afterAll` writes that absence back verbatim
+// (under `exactOptionalPropertyTypes` an optional member alone refuses it).
 type PointerCaptureSurface = {
-    hasPointerCapture?: (id: number) => boolean;
-    releasePointerCapture?: (id: number) => void;
-    setPointerCapture?: (id: number) => void;
+    hasPointerCapture?: ((id: number) => boolean) | undefined;
+    releasePointerCapture?: ((id: number) => void) | undefined;
+    setPointerCapture?: ((id: number) => void) | undefined;
 };
 const elementProto = Element.prototype as unknown as PointerCaptureSurface;
 const savedRO = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
@@ -294,6 +297,17 @@ function mountPane() {
     return { wrapper, group, a, storedControls };
 }
 
+/** The prop names a component object DECLARES at runtime. The SFC's emitted
+ *  type (`DefineComponent<…>`) carries no `props` member, so the runtime
+ *  options object is read by narrowing (`in` + `typeof`), not by assertion; a
+ *  component that declares none reads as `[]`, which reds every `toContain`. */
+const declaredPropNames = (component: object): string[] =>
+    "props" in component &&
+    typeof component.props === "object" &&
+    component.props !== null
+        ? Object.keys(component.props)
+        : [];
+
 const settle = async () => {
     await nextTick();
     await nextTick();
@@ -302,12 +316,8 @@ const settle = async () => {
 describe("G-KFW12-2 — the ChannelOptions render edge", () => {
     it("(0) the producer's declared names, quoted at RUNTIME from the installed labeled-field module", async () => {
         const mod = await import("@mkbabb/glass-ui/labeled-field");
-        const selectProps = Object.keys(
-            (mod.LabeledSelect as { props: Record<string, unknown> }).props,
-        );
-        const switchProps = Object.keys(
-            (mod.LabeledSwitch as { props: Record<string, unknown> }).props,
-        );
+        const selectProps = declaredPropNames(mod.LabeledSelect);
+        const switchProps = declaredPropNames(mod.LabeledSwitch);
         // The names the wave binds to…
         expect(selectProps).toContain("open");
         expect(switchProps).toContain("modelValue");

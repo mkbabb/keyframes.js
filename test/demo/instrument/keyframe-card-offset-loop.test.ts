@@ -301,18 +301,20 @@ const NAMED_CSS = `
  */
 const buildRows = async (css: string) => {
     const animation = await buildFixture(css);
-    const frames = (
-        animation as unknown as { templateFrames: { start: unknown }[] }
-    ).templateFrames;
+    const frames = animation.templateFrames;
     return {
         frames,
         frameStrings: frames.map(
-            (frame) => `${selectorText(frame.start as never)} { opacity: 1; }`,
+            (frame) => `${selectorText(frame.start)} { opacity: 1; }`,
         ),
     };
 };
 
-const mountList = (frames: unknown[], frameStrings: string[]) =>
+/** The library's own frame type, read off the fixture's `templateFrames`
+ *  getter — the shape `KeyframeCardList`'s `frames` prop declares (KC-17). */
+type FixtureFrames = Awaited<ReturnType<typeof buildRows>>["frames"];
+
+const mountList = (frames: FixtureFrames, frameStrings: string[]) =>
     mount(KeyframeCardList, {
         props: { frames, frameStrings },
         attachTo: document.body,
@@ -340,7 +342,9 @@ const setLevelStatus = (wrapper: ListWrapper) =>
         .find((region) => region.element.closest("[role='group']") === null);
 
 /** Mount the real editor over a real animation and let its `onMounted` settle. */
-const mountEditor = async (animation: unknown) => {
+const mountEditor = async (
+    animation: Awaited<ReturnType<typeof buildFixture>>,
+) => {
     const wrapper = mount(KeyframesEditor, {
         props: { animation },
         attachTo: document.body,
@@ -424,8 +428,7 @@ describe("KF-KC-48 — the keyframe offset loop, executed end to end", () => {
 
     it("(2) KC-2 ≡ KF-KE-2: a retiming emit REPLACES the frozen selector, in percent", async () => {
         const animation = await buildFixture(PERCENT_CSS);
-        const frames = (animation as { templateFrames: { start: unknown }[] })
-            .templateFrames;
+        const frames = animation.templateFrames;
 
         // The premise, asserted rather than assumed: these are frozen results.
         expect(frames.map((frame) => Object.isFrozen(frame.start))).toEqual([
@@ -444,7 +447,7 @@ describe("KF-KC-48 — the keyframe offset loop, executed end to end", () => {
 
         // The write landed — no TypeError aborted the loop before it — and it
         // landed as a WHOLE selector in the model's own fraction domain.
-        expect(frames.map((frame) => selectorText(frame.start as never))).toEqual(
+        expect(frames.map((frame) => selectorText(frame.start))).toEqual(
             ["0%", "37.5%", "100%"],
         );
         expect(frames[1]!.start).toEqual({ kind: "percent", value: 0.375 });
@@ -458,8 +461,7 @@ describe("KF-KC-48 — the keyframe offset loop, executed end to end", () => {
 
     it("(2) KC-2: the surviving frames all move, so no throw aborted the loop", async () => {
         const animation = await buildFixture(PERCENT_CSS);
-        const frames = (animation as { templateFrames: { start: unknown }[] })
-            .templateFrames;
+        const frames = animation.templateFrames;
         const wrapper = await mountEditor(animation);
 
         await wrapper
@@ -467,7 +469,7 @@ describe("KF-KC-48 — the keyframe offset loop, executed end to end", () => {
             .vm.$emit("update:modelValue", [10, 60, 90]);
         await nextTick();
 
-        expect(frames.map((frame) => selectorText(frame.start as never))).toEqual(
+        expect(frames.map((frame) => selectorText(frame.start))).toEqual(
             ["10%", "60%", "90%"],
         );
 
