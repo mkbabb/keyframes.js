@@ -248,7 +248,10 @@ const visibleCurves = computed<SpecimenCurve[]>(() => {
 // toggle is ignored (the controlled :model-value keeps the tile pressed — a
 // curve is always selected), the same shape as the family filter above.
 const onTileSelect = (v: ToggleValue | ToggleValue[]) => {
-    if (typeof v === "string" && v.length) demo.selectEasing(v);
+    const tile = SPECIMEN_GROUPS.flatMap((g) => g.items).find(
+        (i) => i.name === v,
+    );
+    if (tile) demo.selectEasing(tile.name);
 };
 
 // ── The header literal — COMPLETE and re-parseable, never truncated ──

@@ -2,9 +2,11 @@ import {
     NAMED_EASING_BEZIER,
     DETAIL_TIMING_FUNCTIONS,
 } from "@utils/reference-data/animationDescriptions";
+import type { EasingName } from "../../scenes/easing/useEasingDemo";
 
 interface CurveGroupItem {
-    name: string;
+    /** Every catalogue tile IS a selectable name of the easing scene's contract. */
+    name: EasingName;
     description: string;
     isBezier: boolean;
     isDetail: boolean;
@@ -15,7 +17,7 @@ interface CurveGroup {
     items: CurveGroupItem[];
 }
 
-function item(name: string, description: string): CurveGroupItem {
+function item(name: EasingName, description: string): CurveGroupItem {
     return {
         name,
         description,
