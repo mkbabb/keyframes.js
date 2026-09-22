@@ -21,7 +21,6 @@
         :current-scene-id="currentSceneId"
         :scenes="scenes"
         :home-scene-id="HOME_SCENE_ID"
-        :current-label="currentLabel"
         :is-controls-panel-open="storedControls.isControlsPanelOpen"
         :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
@@ -212,7 +211,6 @@ const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
 // S.A0 race it papered over is impossible by construction. No prop is threaded.
 const currentScene = computed(() => sceneMap.get(currentSceneId.value) ?? sceneMap.get(HOME_SCENE_ID)!);
 const currentSuperKey = computed(() => currentScene.value.superKey);
-const currentLabel = computed(() => currentScene.value.label ?? "Home");
 
 // The mobile STAGE mode-class (H.W7.S1c) — drives whether the mobile overlay
 // full-bleeds the stage (subject: cube/amiga/square) or keeps a content card

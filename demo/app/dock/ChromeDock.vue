@@ -97,7 +97,6 @@ const props = defineProps<{
     currentSceneId: string;
     scenes: { id: string; label: string; icon?: Component }[];
     homeSceneId: string;
-    currentLabel: string;
     isControlsPanelOpen: boolean;
     selectedControl?: string;
     /** The active scene's valid BUILT-IN editor surfaces (the DFA projection,
@@ -144,35 +143,27 @@ const allControlTabs = computed(() => {
 const hasControlPanel = computed(() => allControlTabs.value.length > 0);
 
 // T.C1 + T.B5-RENDER (VERDICT #17 — the `∿ Spring │ ∿ Spring` dup KILL). The
-// control-tab zone is a projection of the tab COUNT × the scene identity (the
-// cross-axis redundancy predicate): `> 1 ⇒ select`; `1 ⇒ absent` when the sole
-// tab's label is redundant with the scene identity the compass already shows
-// (easing→"Easing", spring→"Spring" — always true on the surviving scene set);
-// `0 ⇒ absent`. The K.W4 S6 STATIC-LABEL else-branch is DELETED: a single control
-// surface now renders NOTHING (no node, no flanking separator), not a demoted
-// label duplicating the scene name (the owner-rejected #17 register). The
-// `hasControlPanel` (`> 0`) predicate still gates the collapse TOGGLE — a 1-tab
-// scene HAS a panel to open/close, it just has nothing to PICK.
-const controlZoneKind = computed(() => {
-    const { controlZone: cz, controlLabelRedundant } = dockCardinality({
-        tabs: allControlTabs.value,
-        channels: [],
-        sceneLabel: props.currentLabel,
-    });
-    // The cross-axis clause folds here: a redundant inline label renders NOTHING.
-    return controlLabelRedundant ? "absent" : cz.kind;
-});
-// The controls `<Select>` renders ONLY for kind "select" (≥2 tabs). This is the
-// count-guard the U4/no-single-option-select gate keys on (bound to `> 1`).
-const multipleControlTabs = computed(() => allControlTabs.value.length > 1);
-// The control section is INHABITED for "select" (dropdown) or "inline" (bare tab
-// body); "absent" renders no node and no flanking separator (the elision).
-const showControlSection = computed(() => controlZoneKind.value !== "absent");
-// The inline zone body (a non-redundant single surface — never on the surviving
-// scene set, carried for T.B5 contract parity). NOT a static label: it is the
-// contextual zone's tab body, rendered without dropdown chrome.
-const inlineControlTab = computed(() =>
-    controlZoneKind.value === "inline" ? allControlTabs.value[0] : undefined,
+// control-tab zone is a projection of the tab COUNT: `> 1 ⇒ select`, otherwise
+// ABSENT — a single control surface renders NOTHING (no node, no flanking
+// separator); the `hasControlPanel` (`> 0`) predicate still gates the collapse
+// TOGGLE, because a 1-tab scene HAS a panel to open/close, it just has nothing
+// to PICK.
+//
+// kf-ChromeDock M-2/C-4 + M-3 — DECIDED: the "inline" arm is DELETED, not
+// revived. It was structurally unreachable (every facility scene unions its
+// additive facet onto the built-in triad, so a scene has ≥2 tabs or none), and
+// the cross-axis label-redundancy predicate that four comment blocks leaned on
+// could never fire after the T.E8 relabel (Curve/Physics vs Easing/Spring). A
+// live arm would have re-opened the very single-surface label #17 killed, so the
+// doctrine above now holds without an exception: the `inline` kind is absent
+// here. With the predicate gone the `currentLabel` prop — its only consumer —
+// goes too (the App's binding with it), and so do the arm's role-generic
+// `aria-label` div (D-8, which dies with the branch rather than being "fixed"
+// inside it) and its `.dock-inline-tab` CSS.
+const showControlSelect = computed(
+    () =>
+        dockCardinality({ tabs: allControlTabs.value, channels: [] }).controlZone
+            .kind === "select",
 );
 
 const isMobile = useMediaQuery("(max-width: 1023px)");
@@ -395,18 +386,13 @@ watch(isSelectOpen, (open) => {
                         </Select>
 
                         <!-- section (contextual): the controls tab. Rendered ONLY
-                             when the zone is INHABITED (controlZoneKind !== "absent")
-                             — a single control surface (easing/spring) is redundant
-                             with the scene identity above, so the zone is ABSENT: NO
+                             for ≥2 tabs (showControlSelect) — a single control
+                             surface has nothing to pick, so the zone is ABSENT: NO
                              node and NO flanking separator (T.B5-RENDER, #17 dup
-                             KILL). The SELECT renders only for ≥2 tabs; the "inline"
-                             arm draws the bare tab body for a non-redundant single
-                             surface (T.B5 contract parity; never on the current
-                             scene set). -->
-                        <template v-if="showControlSection">
+                             KILL; M-2's decision deleted the "inline" arm). -->
+                        <template v-if="showControlSelect">
                             <DockSeparator />
                             <Select
-                                v-if="multipleControlTabs"
                                 :model-value="selectedControl ?? 'controls'"
                                 :open="controlsSelectOpen"
                                 @update:open="controlsSelectOpen = $event"
@@ -436,18 +422,6 @@ watch(isSelectOpen, (open) => {
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
-                            <div
-                                v-else-if="inlineControlTab"
-                                aria-label="Controls tab"
-                                class="dock-label dock-inline-tab flex items-center gap-2"
-                            >
-                                <component
-                                    v-if="inlineControlTab.icon && TAB_ICONS[inlineControlTab.icon]"
-                                    :is="TAB_ICONS[inlineControlTab.icon]"
-                                    class="dock-glyph text-muted-foreground"
-                                />
-                                <span>{{ inlineControlTab.label }}</span>
-                            </div>
                         </template>
 
                         <!-- nav: the panel-collapse toggle (never leading — VERDICT
@@ -487,8 +461,9 @@ watch(isSelectOpen, (open) => {
                      pop — the J.W7a §3 anti-goal that the label stays uncoloured is
                      trivially satisfied when the label is absent). The serif
                      scene-title + chevron belong to the EXPANDED bar (already good);
-                     the EXPANDED scene <Select> trigger above carries the full
-                     `{{ currentLabel }}` for the named identity. This is a kf-CONSUME
+                     the EXPANDED scene <Select> trigger above carries the
+                     scene's name through its `<SelectValue/>` (M-3: there is no
+                     `currentLabel` interpolation, and no such prop). This is a kf-CONSUME
                      fit (no GlassDock patch) — the slot content shrinks to what the
                      circle holds. -->
                 <template #collapsed>
@@ -501,24 +476,6 @@ watch(isSelectOpen, (open) => {
 </template>
 
 <style scoped>
-/* T.C1 — the "inline" control-zone body register (a non-redundant single control
-   surface: the tab body drawn WITHOUT dropdown chrome, per the T.B5 contract). It
-   reads at the same inline height + padding a `DockSelectTrigger` occupies so the
-   dock row keeps its rhythm. Not to be confused with the DELETED K.W4 single-option
-   STATIC label (the #17 dup that duplicated the scene name — now elided to ABSENT).
-   The `dock-label` glass-ui class supplies the font register (Jakarta, T.D3); this
-   rule only pads the inline box + keeps the text from wrapping.
-   KF-APP-26 (the KF-APP-25 token-alignment family): the padding reads the
-   producer's SHIPPED `--dock-trigger-padding-inline`. The former
-   `--dock-label-padding-inline` spelling was a phantom — one consumer, ZERO
-   definitions anywhere in the demo or the dist — so the rule had always been
-   running on its own `0.5rem` literal fallback while LOOKING token-driven. */
-.dock-inline-tab {
-    padding-inline: var(--dock-trigger-padding-inline, 0.5rem);
-    white-space: nowrap;
-    color: var(--foreground);
-}
-
 /* ChromeDock D-5 (co-id: the F4 row of the deleted header fork's record) — ONE
    glyph rung in the dock row, and it is the DOCK's own.
 
