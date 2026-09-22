@@ -13,112 +13,15 @@
             class="grid-background pointer-events-none fixed inset-0 h-dvh w-dvw"
         ></div>
 
-        <HeaderRibbon placement="right">
-            <!-- KF-APP-5 (≡ EditorShell D-1/L-1/C-1) — THE CONSUMER HALF.
-                 HeaderRibbon renders its actions with `inert` + `aria-hidden`
-                 and zero inline-size until `expanded` (pinned || hovered ||
-                 focus-within), and it opens on hover ONLY for a non-touch
-                 pointer. Its `#anchor` — the one region that never collapses,
-                 whose wrapper carries the producer's own pin toggle, whose
-                 focusin expands the band, and into which Escape restores focus
-                 (`querySelector("button, a, [tabindex]:not([tabindex='-1'])")`)
-                 — was EMPTY. With nothing focusable there the ribbon had no tab
-                 stop and no touch affordance at all: Share and the theme toggle
-                 were keyboard- and AT-unreachable in the shell, and with the
-                 dock's MbabbMenu copies keyboard-inoperable by reka
-                 construction, unreachable in the app. The shortcuts modal was
-                 wholly unreachable on touch (its only two routes are this
-                 ribbon and the `?` shortcut).
-
-                 The cure is to USE the API, not to fight it: one real focusable
-                 control in the anchor. Tab reaches it -> focusin expands the
-                 band -> the three actions leave `inert` and become tabbable;
-                 tapping it pins on touch, where hover never fires; Escape now
-                 has a landing target. The producer's own wrapper owns the
-                 click, so this button deliberately carries NO handler. The
-                 producer half — a collapsed-at-rest toolbar whose empty-anchor
-                 state is unreachable by construction — rides the BH relay
-                 (O-26 R-11), never a demo-side patch of the seam. -->
-            <template #anchor="{ pinned }">
-                <Button
-                    emphasis="quiet"
-                    icon-only
-                    size="sm"
-                    type="button"
-                    :aria-pressed="pinned"
-                    :aria-label="
-                        pinned
-                            ? 'Unpin header actions'
-                            : 'Show header actions'
-                    "
-                    class="scale-on-hover"
-                >
-                    <PinOff v-if="pinned" />
-                    <Pin v-else />
-                </Button>
-            </template>
-            <template #items>
-                <slot name="header-left"></slot>
-                <slot name="header-right">
-                    <SharePopover />
-                    <!-- F.W15.S3 — the VISIBLE shortcuts-discovery trigger. The
-                         19-shortcut registry was discoverable ONLY via the `?`
-                         shortcut (the discoverability paradox); this breaks it
-                         with one control. A plain @click on the EXISTING reka
-                         Dialog state (shortcutsOpen) — the pragmatic landing for
-                         the existing component; the Invoker `command="show-modal"`
-                         path is the forward feature-detected idiom (BOOKed, not
-                         forced — r-modern-web-2026 F-MW-1). Sits in the header
-                         ribbon, not over the dock band → no occlusion (inv δ).
-
-                         EH-8/EH-5, the ribbon's ONE SIZING DECISION: a producer
-                         control's box comes from its OWN size vocabulary, never
-                         from a demo width utility. `icon-only` already declares
-                         square geometry at `--button-size`; the former
-                         `aspect-square w-8` set only the INLINE axis (utilities
-                         cascade after components), so the box was 32 × md and
-                         `aspect-ratio: 1` was inert against two definite
-                         dimensions. `size="sm"` asks for the rung instead —
-                         `--control-h-sm` = 2.25rem, the SAME rung
-                         DarkModeToggle's own base ships, so the two chrome
-                         controls agree by construction rather than by
-                         coincidence. Rendered ladder + glyph rungs → KF.W9. -->
-                    <Tooltip>
-                        <TooltipTrigger as-child>
-                            <Button
-                                emphasis="quiet"
-                                icon-only
-                                size="sm"
-                                aria-label="Show keyboard shortcuts"
-                                class="scale-on-hover"
-                                @click="shortcutsOpen = true"
-                            >
-                                <Keyboard class="icon-sm" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Keyboard shortcuts (?)</TooltipContent>
-                    </Tooltip>
-                    <!-- EH-4 — NO `title` here. DarkModeToggle strips only
-                         `class`/`type` from its attrs and spreads the rest onto
-                         the same <button> that carries its own state-aware
-                         `aria-label` ("Switch to light/dark mode") — a visible
-                         "Toggle dark mode" tooltip beside that name is the
-                         WCAG 2.5.3 Label-in-Name divergence. The producer names
-                         itself; the consumer stays quiet.
-
-                         EH-5 (same one decision as EH-8 above): the former
-                         `aspect-square w-8` won the WIDTH alone — the producer's
-                         `@layer components` base is
-                         `--dark-mode-toggle-size: 2.25rem` with size arms for
-                         sm/lg/control/dock and NO `md` arm, so a later-declared
-                         utility took the inline axis and left the block axis at
-                         2.25rem; with both dimensions definite `aspect-ratio: 1`
-                         no-opped. The producer's own box is the box. Rendered
-                         magnitude → KF.W9 SS-13. -->
-                    <DarkModeToggle class="scale-on-hover" />
-                </slot>
-            </template>
-        </HeaderRibbon>
+        <!-- X.KF.W13T.k3 · R-k-1 (COHESION §0ar, OA-6) — THE HEADER RIBBON IS
+             RETIRED, at every viewport. The app had TWO chromes: at 390 the
+             expanded top dock and this ribbon (Share · Keyboard shortcuts ·
+             theme) painted over each other. There is one chrome now — the three
+             controls ride `ChromeDock` as its "App" group on the producer's dock
+             family (fourier's AppDock idiom, F.W11), with their accessible names
+             unchanged, and the shortcuts dialog + the `?` shortcut moved WITH
+             the control that opens them (one home per control). The shell keeps
+             no header slots: nothing filled them. -->
 
         <Transition name="fade" appear>
             <!-- T.D9 (OD-4) — the start screen rides z-controls (above the
@@ -198,9 +101,6 @@
         </AnimationControlsGroup>
         </main>
 
-        <KeyboardShortcutsModal
-            v-model:open="shortcutsOpen"
-        />
     </div>
 </template>
 
@@ -223,16 +123,8 @@ export const SCENE_ANNOUNCER_KEY: InjectionKey<(message: string) => void> =
 import { provide, ref } from "vue";
 
 import { initIOSPlatformClass } from "@components/instrument/utils/iosTextEntry";
-import { HeaderRibbon } from "@mkbabb/glass-ui/header-ribbon";
-import SharePopover from "./SharePopover.vue";
-import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import AnimationControlsGroup from "@components/instrument/transport/AnimationControlsGroup.vue";
 
-import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
-import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
-import { Button } from "@mkbabb/glass-ui";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { Keyboard, Pin, PinOff } from "@lucide/vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { TransportChannel } from "@components/instrument/transport/transportSource";
 
@@ -296,9 +188,6 @@ const sceneStatus = ref("");
 provide(SCENE_ANNOUNCER_KEY, (message: string) => {
     sceneStatus.value = message;
 });
-
-const shortcutsOpen = ref(false);
-registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
 
 const onPlayStateChange = (playing: boolean) => {
     emit("playStateChange", playing);

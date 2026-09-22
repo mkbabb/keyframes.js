@@ -21,7 +21,9 @@
  * mounted DOM, so neither can regress silently.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { defineComponent, h, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 
 const savedResizeObserver = (globalThis as { ResizeObserver?: unknown })
@@ -60,10 +62,11 @@ afterAll(() => {
         savedResizeObserver;
 });
 
-function mountDock() {
-    return mount(ChromeDock, {
-        attachTo: document.body,
-        props: {
+// X.KF.W13T.k3 — the dock now carries the App zone's tooltip, so it is mounted
+// the way App.vue mounts it: inside the app's ONE hoisted TooltipProvider.
+const Host = defineComponent(() => () =>
+    h(TooltipProvider, null, () =>
+        h(ChromeDock, {
             currentSceneId: "cube",
             scenes: [
                 { id: "cube", label: "Cube" },
@@ -71,8 +74,12 @@ function mountDock() {
             ],
             homeScene: { id: "home", label: "Home" },
             isControlsPanelOpen: false,
-        },
-    });
+        }),
+    ),
+);
+
+function mountDock() {
+    return mount(Host, { attachTo: document.body });
 }
 
 describe("ChromeDock contains its controls (OA-6)", () => {
@@ -99,6 +106,23 @@ describe("ChromeDock contains its controls (OA-6)", () => {
             const cls = (el as HTMLElement).className;
             expect(cls).not.toMatch(/overflow-(hidden|clip)/);
         }
+        wrapper.unmount();
+    });
+
+    it("(3) R-k-1 — the retired header ribbon's controls live in the dock, names intact, `?` opens the shortcuts dialog", async () => {
+        const wrapper = mountDock();
+        const dock = wrapper.find(".glass-dock");
+        const names = dock
+            .findAll("button")
+            .map((b) => b.attributes("aria-label") ?? "");
+        expect(names).toContain("Share animation");
+        expect(names).toContain("Show keyboard shortcuts");
+        expect(names.some((n) => /^Switch to (dark|light) mode$/.test(n))).toBe(true);
+        expect(document.querySelector('[role="dialog"]')).toBeNull();
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "?", bubbles: true }));
+        await nextTick();
+        await nextTick();
+        expect(document.querySelector('[role="dialog"]')).not.toBeNull();
         wrapper.unmount();
     });
 });

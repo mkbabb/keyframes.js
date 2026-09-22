@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
-import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
+import { Activity, ChevronDown, ChevronUp, Home, Keyboard, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 import {
     GlassDock,
@@ -10,6 +10,11 @@ import {
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 import { Button } from "@mkbabb/glass-ui/button";
+import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
+import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
+import { SharePopover } from "@components/instrument/shell";
+import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection — ONE source of the count arithmetic, per lane 18's
 // dual-formula rule).
@@ -207,6 +212,12 @@ const emit = defineEmits<{
     (e: "toggleControlsPanel"): void;
     (e: "updateSelectedControl", value: ControlSurface): void;
 }>();
+
+// X.KF.W13T.k3 · R-k-1 — the shortcuts dialog's open state lives with the one
+// control that opens it (the App zone's DockControl) and with its `?` shortcut,
+// both moved here from the retired EditorShell header ribbon.
+const shortcutsOpen = ref(false);
+registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
 
 // m-8 + C-8 (the emit half) — the Selects' `AcceptableValue` is validated at the
 // boundary instead of laundered through `String(…)` (an object value used to
@@ -550,6 +561,42 @@ watch(isSelectOpen, (open) => {
                         <!-- Header items slot (@mbabb chip) -->
                         <slot name="items" />
 
+                        <!-- X.KF.W13T.k3 · R-k-1 (COHESION §0ar, OA-6) — the APP
+                             zone: Share · Keyboard shortcuts · theme. These were
+                             EditorShell's header ribbon, a SECOND chrome that at
+                             390 painted under the expanded dock (@mbabb x Share;
+                             Controls x Share / shortcuts / theme). The ribbon is
+                             retired at every viewport and its three controls live
+                             here, on the producer's dock family, as fourier's
+                             AppDock absorbed its header (F.W11): the zone is
+                             ordinary DOM delimited by a DockSeparator, WITHOUT a
+                             wrapper (D-22 above: a wrapper would take the
+                             staggered onset as one block). Accessible names are
+                             unchanged ("Share animation", "Show keyboard
+                             shortcuts", the toggle's own state-aware name); the
+                             shortcuts dialog and its `?` shortcut moved WITH the
+                             control that opens it — one home per control. The
+                             Share popover and the theme toggle keep their own
+                             producer components (the toggle at its `dock` size
+                             arm); the shortcuts command is a plain DockControl.
+                             Width over the cap is the dock's `overflow="wrap"`
+                             recipe, never a clip. -->
+                        <DockSeparator />
+                        <SharePopover :on-scene-restore="(id: string) => emit('switchScene', id)" />
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <DockControl
+                                    shape="icon"
+                                    aria-label="Show keyboard shortcuts"
+                                    @click="shortcutsOpen = true"
+                                >
+                                    <Keyboard aria-hidden="true" />
+                                </DockControl>
+                            </TooltipTrigger>
+                            <TooltipContent>Keyboard shortcuts (?)</TooltipContent>
+                        </Tooltip>
+                        <DarkModeToggle size="dock" />
+
                 <!-- Collapsed state.
                      K.W4 F6 (U-K20-adjacent) — glass-ui's collapsed
                      dock necks to a PERFECT CIRCLE (the summary pane floors to
@@ -594,6 +641,7 @@ watch(isSelectOpen, (open) => {
                 </template>
             </GlassDock>
         </div>
+        <KeyboardShortcutsModal v-model:open="shortcutsOpen" />
     </div>
 </template>
 
