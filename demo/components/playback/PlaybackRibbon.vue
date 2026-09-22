@@ -30,11 +30,16 @@
                          axis: the `standard` variant's thumb is `width:0;
                          opacity:0` by producer design, leaving a ~1.2:1
                          range/track boundary as the only cue; the `spectrum`
-                         variant paints a real thumb from `--slider-thumb-bg`
-                         (this wrapper's violet authority) over a token-driven
-                         track (`--slider-track-bg`), and its track height is
-                         1.5 × the thumb size — the very 1.5rem the F4 `:deep`
-                         reach hand-set, so that reach (D-7) dies with it. -->
+                         variant paints a real thumb over its own track, and
+                         its track height is 1.5 × the thumb size — the very
+                         1.5rem the F4 `:deep` reach hand-set, so that reach
+                         (D-7) dies with it.
+                         OA-8 (§0ao.1) — the thumb and the track are the
+                         PRODUCER's paint: the wrapper's `--slider-thumb-bg` /
+                         `--slider-track-bg` / `--slider-range-bg` overrides
+                         (the raw violet thumb over a 22 % colour-mix groove the
+                         owner named) are deleted, so the spectrum variant
+                         renders its own ringed thumb on its own track. -->
                     <Slider
                         class="p-2"
                         variant="spectrum"
@@ -106,8 +111,8 @@
 <script setup lang="ts">
 // The `.btn-playback*` skin the two cells wear is NOT authored here: it lives in
 // demo/styles/playback-idiom.css, pulled in by design-idioms.css, and lands on
-// glass-ui's <Button> DOM shared with the scene play buttons. The only styles in
-// this file are the scoped scrub-rail tokens below.
+// glass-ui's <Button> DOM shared with the scene play buttons. This file authors
+// no styles: the scrub rail is the producer Slider's own paint (OA-8).
 
 import { computed, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
@@ -260,21 +265,3 @@ const scrubTo = (effectiveT: EffectiveMs) => {
     emit("scrubbed");
 };
 </script>
-
-<style scoped>
-/* The scrub rail — the ONE motion-color authority (T.D7 / OD-6): the wrapper
-   sets the reka <Slider>'s own CSS vars from the token root, so the track and
-   the thumb paint the SAME violet the AnimationVisualizer's ball draws
-   (`--color-progress`; the groove is the neutral `--color-slider-track`). No
-   per-component colour class; the token repoint carries it. The rail's height
-   and its visible thumb are the Slider's `spectrum` variant (D-2) — no
-   `:deep` reach into the producer's size defaults (D-7). */
-.scrub-rail {
-    --slider-track-bg: color-mix(in srgb, var(--color-slider-track) 22%, transparent);
-    --slider-range-bg: color-mix(in srgb, var(--color-slider-track) 45%, transparent);
-    --slider-thumb-bg: var(--color-progress);
-}
-.scrub-rail:hover {
-    --slider-thumb-bg: color-mix(in srgb, var(--color-progress) 80%, transparent);
-}
-</style>

@@ -569,3 +569,19 @@ describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act"
         expect(design).toContain("G-KFW9-9");
     });
 });
+
+/**
+ * X.KF.W13T.e · OA-8 (§0ao.1) — the styling limb.
+ */
+describe("OA-8 — the scrub rail wears the producer Slider's own paint", () => {
+    it("the SFC authors no `--slider-*` override (no raw thumb, no colour-mix groove)", async () => {
+        const { readFileSync } = await import("node:fs");
+        const { resolve } = await import("node:path");
+        const src = readFileSync(
+            resolve(process.cwd(), "demo/components/playback/PlaybackRibbon.vue"),
+            "utf8",
+        );
+        expect(src).not.toMatch(/--slider-[a-z-]+\s*:/);
+        expect(src).not.toContain("<style");
+    });
+});
