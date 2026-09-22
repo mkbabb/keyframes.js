@@ -271,7 +271,12 @@ function mountPane() {
                         hideControls: false,
                         stageMode: "subject",
                         isPlaying: false,
-                        animControlRefs: {},
+                        // X.KF.W13T.k3 · ESC-k2-1 — the pane no longer takes the
+                        // registry as a prop; it emits each entry to its owner.
+                        onChannelControlsRef: () => {},
+                        onSetControlsPanelOpen: (open: boolean) => {
+                            storedControls.isControlsPanelOpen = open;
+                        },
                         activeKeyframesRef: null,
                         activeTimelineRef: null,
                         onLayerConfigUpdate: (

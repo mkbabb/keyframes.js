@@ -59,7 +59,7 @@
                              panel below renders the engine's post-write truth
                              rather than a snapshot taken at mount. -->
                         <ChannelControls
-                            :ref="(el: any) => { if (el) animControlRefs[host.name] = el }"
+                            :ref="(el) => { if (el) emit('channelControlsRef', host.name, el) }"
                             @slider-update="(v) => emit('sliderUpdate', v)"
                             @keyframes-update="(v) => emit('keyframesUpdate', v)"
                             @toggle-play="emit('togglePlay')"
@@ -177,7 +177,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import { Drawer, DrawerContent, DrawerTitle } from "@mkbabb/glass-ui/drawer";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, shallowRef, useTemplateRef } from "vue";
+import { computed, shallowRef, useTemplateRef, type ComponentPublicInstance } from "vue";
 import type { TransportChannel } from "../transportSource";
 import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
@@ -205,9 +205,29 @@ const props = defineProps<{
     // `| undefined` explicit — bound, never omitted, by the group above.
     stageMode?: "subject" | "editor" | "storyboard" | undefined;
     isPlaying: boolean;
-    animControlRefs: Record<string, any>;
     activeKeyframesRef: any;
     activeTimelineRef: any;
+}>();
+
+const emit = defineEmits<{
+    (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
+    (e: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }): void;
+    (e: "togglePlay"): void;
+    (
+        e: "layerConfigUpdate",
+        name: string,
+        val: Partial<AnimationLayerConfig>,
+    ): void;
+    (e: "scrubStart"): void;
+    (e: "scrubEnd"): void;
+    // X.KF.W13T.k3 · ESC-k2-1 (§0ar) — the two writes this pane used to make
+    // into its PROPS now go to their owner, `AnimationControlsGroup`, which
+    // resolves the group's stored options (`getStoredAnimationGroupControlOptions`)
+    // and holds the channel-controls registry. The pane still READS
+    // `storedControls` — the same reactive store object — so a read right after
+    // the owner's synchronous write is already current.
+    (e: "channelControlsRef", name: string, el: Element | ComponentPublicInstance): void;
+    (e: "setControlsPanelOpen", open: boolean): void;
 }>();
 
 // ── T.B1-β STAGE 1 — the host axis ───────────────────────────────────────────
@@ -325,7 +345,7 @@ const isMobileLayout = useMediaQuery("(max-width: 1023px)");
 // entry (the wrapper remounts per scene via the group superKey boundary), so
 // this setup-time reset overrides the store's persisted/default open fact.
 if (isMobileLayout.value) {
-    props.storedControls.isControlsPanelOpen = false;
+    emit("setControlsPanelOpen", false);
 }
 
 // The detent ladder — fractions of the SHEET's height, which under the D-B1
@@ -363,7 +383,7 @@ const activeSnap = computed<number>({
             : PEEK_SNAP,
     set: (v: number) => {
         const mid = (PEEK_SNAP + expandedSnap.value) / 2;
-        props.storedControls.isControlsPanelOpen = Number(v) > mid;
+        emit("setControlsPanelOpen", Number(v) > mid);
     },
 });
 
@@ -377,18 +397,6 @@ const paneScrollable = computed(() =>
         : isPanelTransitionDone.value && props.storedControls.isControlsPanelOpen,
 );
 
-const emit = defineEmits<{
-    (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
-    (e: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }): void;
-    (e: "togglePlay"): void;
-    (
-        e: "layerConfigUpdate",
-        name: string,
-        val: Partial<AnimationLayerConfig>,
-    ): void;
-    (e: "scrubStart"): void;
-    (e: "scrubEnd"): void;
-}>();
 </script>
 
 <style scoped src="./ControlsPaneWrapper.css"></style>

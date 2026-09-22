@@ -41,7 +41,6 @@
             :hide-controls="hideControls"
             :stage-mode="stageMode"
             :is-playing="isPlaying"
-            :anim-control-refs="animControlRefs"
             :active-keyframes-ref="activeKeyframesRef"
             :active-timeline-ref="activeTimelineRef"
             @slider-update="sliderUpdate"
@@ -50,6 +49,8 @@
             @layer-config-update="(name, v) => updateLayerConfig(name, v)"
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"
+            @channel-controls-ref="(name, el) => { animControlRefs[name] = el; }"
+            @set-controls-panel-open="(open) => { storedControls.isControlsPanelOpen = open; }"
         >
             <template #tabs-content="slotProps">
                 <slot name="tabs-content" v-bind="slotProps"></slot>
@@ -209,7 +210,11 @@ const selectedChannel = computed(() =>
     channels?.find((c) => c.name === storedControls.selectedAnimation),
 );
 
-// Collect refs to each AnimationControls for ribbon actions
+// Collect refs to each AnimationControls for ribbon actions.
+// X.KF.W13T.k3 · ESC-k2-1 (§0ar) — this component OWNS the registry and the
+// group's stored options, so both writes the controls pane used to make into
+// its props (the registry entry, the panel-open fact) land here, from the
+// pane's `channelControlsRef` / `setControlsPanelOpen` emits.
 const animControlRefs = reactive<Record<string, any>>({});
 
 const activeKeyframesRef = computed(() => {
