@@ -22,7 +22,7 @@
              layers its sheet (MM-4, relayed as O-26 R-1) the utility ARMS — and
              `z-modal` would then occlude the Share popover. Corrected BEFORE the
              producer fix lands, which is exactly why it rides this motion. -->
-        <DropdownMenuContent align="end" :side-offset="8" class="z-popover min-w-[var(--dock-panel-width)] text-body p-1.5">
+        <DropdownMenuContent align="end" :side-offset="8" class="z-popover min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
             <!-- Share.
                  MM-8 + MM-9, the one voice pass, applied at all FOUR of its
                  sites (here, the Clear-all sub-line, and the two @mbabb lines).
@@ -36,8 +36,19 @@
                  sitting unused one step up: 11px, the inherited TEXT face, no
                  transform, no caps tracking. The mono register survives at the
                  one leaf that earns it — the bare URL below. -->
-            <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
-                <SharePopover :on-scene-restore="onSceneRestore" />
+            <!-- MM-22 — every row's class string is ONLY what the primitive does
+                 not already stamp: `.dropdown-menu__item` is `display:flex;
+                 align-items:center` (unlayered) and `.interactive-item` carries
+                 the radius, so the hand-repeated `flex items-center rounded-lg`
+                 is gone from all five rows (the one that silently lacked
+                 `rounded-lg` now differs from nothing).
+                 MM-11 — ONE leading-glyph slot: every row's glyph sits in a
+                 28px (`w-7`) centred column, so the label column's left edge
+                 stops oscillating 24/20/28/20/28px across the rows.
+                 MM-40 — each row names its typeahead key (`text-value`), so the
+                 menu's type-to-select no longer keys on condensed slot text. -->
+            <DropdownMenuItem @select.prevent text-value="Share" class="gap-2.5 px-1.5 py-1">
+                <span class="w-7 shrink-0 flex justify-center"><SharePopover :on-scene-restore="onSceneRestore" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Share</span>
                     <p class="text-micro text-muted-foreground leading-tight">Copy link or load shared state</p>
@@ -52,11 +63,20 @@
                  "Toggle dark mode" diverges from the accessible name (WCAG
                  2.5.3). The adjacent "Dark mode" span is the row's visible
                  label and names the command already. -->
-            <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg">
-                <DarkModeToggle
-                    class="aspect-square w-5"
-                />
-                <span class="text-small text-foreground">Dark mode</span>
+            <DropdownMenuItem @select.prevent text-value="Dark mode" class="gap-2.5 px-1.5 py-1">
+                <!-- MM-7 — the toggle is sized through its OWN `size` API.
+                     `class="aspect-square w-5"` could not work: the primitive
+                     sets BOTH axes in `@layer components`, so `w-5` won width
+                     alone and shipped a 20×36 button with a letterboxed glyph.
+                     `sm` is the 1.75rem rung (NOT `dock` — that resolves to
+                     40px outside `.glass-dock`, and this row is portalled). -->
+                <span class="w-7 shrink-0 flex justify-center"><DarkModeToggle size="sm" /></span>
+                <!-- MM-32 — the title-over-subtitle module now holds on this row
+                     too (it was the one row with no second line). -->
+                <div class="flex-1 min-w-0">
+                    <span class="text-small text-foreground">Dark mode</span>
+                    <p class="text-micro text-muted-foreground leading-tight">Light or dark theme</p>
+                </div>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -80,14 +100,22 @@
                  alongside precisely so that removal is the whole migration.
                  MM-44: this file is the demo's ONLY DropdownMenu consumer, so
                  the interim's blast radius is this component. -->
-            <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer" :style="{ cursor: 'pointer' }" @click="togglePpMode">
-                <div class="ppmycota-logo-sm w-7 h-7 shrink-0 scale-on-hover"></div>
+            <!-- MM-18 — `scale-on-hover` is gone from the 28px logo: the press
+                 covers the whole ~272×44 row, so a scale on the child pointed
+                 the affordance at the wrong object. The row's own hover chrome
+                 is the affordance, as on every other row. -->
+            <DropdownMenuItem @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer" :style="{ cursor: 'pointer' }" @click="togglePpMode">
+                <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
                 <div class="flex-1 min-w-0">
-                    <!-- Brand colour consumes the --ppmycota-primary token
-                         directly through an inline style, not an arbitrary-value
-                         utility: the dropdown content is portalled, so an
-                         inline style is the portal-safe home for the token
-                         ref while it co-locates with the brand mark (S2).
+                    <!-- MM-21 — the brand colour is a UTILITY, and the old
+                         five-line case for an inline style was mechanically
+                         false: `--ppmycota-primary` is a `:root` global, so it
+                         inherits into the portal like every other token this
+                         content reads through a utility. `text-[var(…)]` emits
+                         `color:` on the span itself (no MM-4 layer contest —
+                         the unlayered rule is on the ITEM, and a declared
+                         colour on the child beats inheritance), and unlike the
+                         highest-priority inline style it can be re-tinted.
 
                          MM-12, RECORDED HERE AND CURED NOWHERE IN THIS WAVE
                          (bounds, not oversight). This label follows the theme —
@@ -105,18 +133,25 @@
                          and inventing a filter chain at this call site would be
                          a third, worse dialect. Declared, never silently
                          dropped; perceptual magnitude is SS-13's. -->
-                    <span class="text-small" :style="{ color: 'var(--ppmycota-primary)' }">ppmycota</span>
+                    <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
                     <!-- MM-8's ONE DEFENSIBLE `text-admin-label`: a bare URL is
                          an artifact string, not prose, so the mono register is
                          correct here and stays. -->
-                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
+                    <!-- MM-10 — `block`: the title `<span>` and this `<a>` were
+                         both inline in a block wrapper, and Vue's default
+                         whitespace `condense` deleted the newline between them,
+                         so the row's two lines ran together as one. -->
+                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="block text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                 </div>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <!-- T.C2 — Clear all & reload (relocated from the transport dock: a
-                 destructive storage reset is a settings action). Confirm-guarded.
+                 destructive storage reset is a settings action). Confirm-guarded —
+                 MM-13: by the design system's own `Dialog` (below the menu), not
+                 an unthemeable `window.confirm()` that Playwright auto-dismisses;
+                 selecting the row closes the menu and opens the dialog.
 
                  MM-30 — the row reached for the WRONG RED. `text-destructive` is
                  the VENDOR's `--destructive`, while this repo's own law
@@ -134,8 +169,8 @@
                  it. Class and inline say the SAME thing, so when the producer
                  sheet is layered the inline pair comes out and nothing else
                  changes. -->
-            <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1 rounded-lg cursor-pointer text-accent-red" :style="{ cursor: 'pointer', color: 'var(--accent-red)' }" @click="clearAllAndReload">
-                <Trash class="w-5 h-5 shrink-0" />
+            <DropdownMenuItem text-value="Clear all" class="gap-2.5 px-1.5 py-1 cursor-pointer text-accent-red" :style="{ cursor: 'pointer', color: 'var(--accent-red)' }" @select="confirmClearOpen = true">
+                <span class="w-7 shrink-0 flex justify-center"><Trash class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small">Clear all &amp; reload</span>
                     <p class="text-micro text-muted-foreground leading-tight">Reset every saved animation to defaults</p>
@@ -144,13 +179,30 @@
 
             <DropdownMenuSeparator />
 
-            <!-- @mbabb -->
-            <DropdownMenuItem @select.prevent class="flex items-center gap-2.5 px-1.5 py-1">
-                <Avatar decorative class="w-7 h-7">
-                    <AvatarImage
-                        src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                    ></AvatarImage>
-                </Avatar>
+            <!-- @mbabb — MM-26 + MM-2's row-5 arm: a LABEL, not a menuitem. The
+                 row had no handler and its only actionable content was two
+                 inline anchors, so full-row interactive chrome advertised an
+                 action the row lacks (and nested interactive content inside
+                 `role=menuitem`). `as-child` onto one anchor is structurally
+                 unavailable with two (K-10); `DropdownMenuLabel` ships for
+                 exactly this — an identity block the menu does not select. -->
+            <DropdownMenuLabel class="flex items-center gap-2.5 px-1.5 py-1">
+                <!-- MM-39 — `w-7 h-7` is a NECESSARY escape hatch, not a
+                     root-styling violation: every design-system avatar size is
+                     ≥40px, which exceeds this row's 32px content band, and no
+                     `sm` rung ships. MM-16 — a fallback plate for a failed or
+                     blocked load (the menu's only third-party request), and the
+                     request no longer leaks the page URL to GitHub as a
+                     referrer. -->
+                <span class="w-7 shrink-0 flex justify-center">
+                    <Avatar decorative class="w-7 h-7">
+                        <AvatarImage
+                            src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                            referrer-policy="no-referrer"
+                        ></AvatarImage>
+                        <AvatarFallback>MB</AvatarFallback>
+                    </Avatar>
+                </span>
                 <div class="flex-1 min-w-0">
                     <!-- MM-31 (+ MM-29 site 2, cured STRUCTURALLY rather than
                          patched). This title was simultaneously the SMALLEST
@@ -172,11 +224,32 @@
                          transform, and the right rung never had one. -->
                     <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="text-mono-small text-foreground hover:underline" data-register="code">@mbabb</a>
                     <p class="text-micro text-muted-foreground leading-tight">CSS keyframe animation engine</p>
-                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="text-micro text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on Github &#x1F389;</a>
+                    <!-- MM-17 — the product is "GitHub", and the decorative 🎉 is
+                         no longer spoken inside the link's accessible name. -->
+                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-micro text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on GitHub <span aria-hidden="true">&#x1F389;</span></a>
                 </div>
-            </DropdownMenuItem>
+            </DropdownMenuLabel>
         </DropdownMenuContent>
     </DropdownMenu>
+
+    <!-- MM-13 — the destructive command's confirmation, in the design system's
+         own Dialog (the CSSPasteDialog anatomy: title, description, footer).
+         Themeable, focus-trapped, and reachable by the harness, which a native
+         `window.confirm()` is not. -->
+    <Dialog v-model:open="confirmClearOpen">
+        <DialogContent>
+            <DialogTitle class="text-subheading">Clear all saved animations?</DialogTitle>
+            <DialogDescription class="text-body text-muted-foreground">
+                Every saved animation resets to its defaults and the page reloads. This cannot be undone.
+            </DialogDescription>
+            <DialogFooter>
+                <DialogClose as-child>
+                    <Button emphasis="secondary">Cancel</Button>
+                </DialogClose>
+                <Button emphasis="primary" tone="destructive" @click="clearAllAndReload">Clear &amp; reload</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -190,9 +263,16 @@
 // travel up to the App and back down as a prop (M-4; the mechanism is executed,
 // not asserted, in `test/demo/app/dock-context-slot-resolution.test.ts`).
 // ─────────────────────────────────────────────────────────────────────────────
-import { onBeforeUnmount, watch } from "vue";
+import { onBeforeUnmount, ref, watch } from "vue";
 import { SharePopover } from "@components/instrument/shell";
-import { Avatar, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@mkbabb/glass-ui";
+// MM-24 — one subpath discipline: the menu family from `./dropdown-menu`, the
+// dialog from `./dialog`, the button from `./button`. `Avatar*` alone stays on
+// the root barrel because `./avatar` is ABSENT from the producer's exports map —
+// that gap is a producer row (BH relay), not a local choice.
+import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@mkbabb/glass-ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@mkbabb/glass-ui/dropdown-menu";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { Trash } from "@lucide/vue";
@@ -251,17 +331,27 @@ function togglePpMode() {
 // T.C2 — "Clear all & reload" RELOCATED from the transport dock into the @mbabb
 // settings menu (a destructive storage reset is a settings action, not transport
 // chrome; VERDICT #6 — the transport carried the destructive Clear beside Play).
-// Confirm-guarded: resetAllStores() wipes every persisted store (control options,
-// the scene-machine persist key) and the reload re-seeds from the cleared state.
-function clearAllAndReload() {
-    if (
-        typeof window !== "undefined" &&
-        !window.confirm(
-            "Clear all saved animation state and reload? This cannot be undone.",
-        )
-    ) {
-        return;
-    }
+//
+// MM-13 — the guard is the design system's Dialog: the row opens it, and only
+// its confirm runs the reset. MM-20 collapses with it: the inverted SSR guard
+// (no `window` ⇒ skip the confirm and run the destructive path) is gone because
+// there is no `window.confirm` left to guard.
+const confirmClearOpen = ref(false);
+
+// The menu closes as the dialog opens. Its close would hand focus back to the
+// @mbabb trigger underneath the dialog's focus scope, so that one return is
+// declined while the dialog is taking over (reka's documented menu→dialog idiom).
+function onMenuCloseAutoFocus(event: Event): void {
+    if (confirmClearOpen.value) event.preventDefault();
+}
+
+// MM-42 (caveat, recorded where the reset is spent): `resetAllStores()` is
+// asymmetric — two stores are ref-reset AND key-removed, the scene machine's
+// persisted key is only removed while its live `useStorage` ref is not reset,
+// and components that captured a bucket hold detached proxies afterwards. It is
+// correct ONLY because the reload below follows it immediately; a caller that
+// resets without reloading inherits that asymmetry.
+function clearAllAndReload(): void {
     resetAllStores();
     window.location.reload();
 }
