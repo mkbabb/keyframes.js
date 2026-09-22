@@ -217,10 +217,6 @@ const auroraCanvas = (): HTMLCanvasElement | null =>
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 const controlsPaneHover = inject(CONTROLS_PANE_HOVER_KEY, null);
 
-watch(() => dockRef.value?.expanded, (isExpanded) => {
-    if (controlsPaneHover) controlsPaneHover.value = !!isExpanded;
-});
-
 // ── Popup mutex: only one dropdown at a time ──
 type PopupKey = "scene" | "controls";
 const openPopup = ref<PopupKey | null>(null);
@@ -273,33 +269,43 @@ const warmControlSurfaces = (): void => {
     );
 };
 
-// While a popup is open, the dock MUST stay expanded so the trigger that owns the
-// popup remains visible + hit-testable (the @mbabb dropdown's open/close latch, the
-// scene/controls selects' re-pick). keepOpen() blocks the idle-TIMER collapse, but
-// the dock's document-pointerdown path can still force a collapse (its own
-// dismiss-synthetic pointerdown lands outside the dock and self-collapses it,
-// bypassing the hold counter). So we ALSO re-assert expand() if the dock slips to
-// collapsed while a popup is open — the trigger's layer never goes
-// visibility:hidden under an open menu (BLK-8 / D9). The guard below settles into a
-// stable expanded state (re-expand fires at most once per spurious collapse).
+// ── The dock watcher: the hover mirror and the touch-gate watchdog (ONE) ──
+// C-14 — one watcher on the dock's state, not two on the same `expanded` read.
 //
-// The guard reads the dock's OWN `isHeld` rather than this component's popup
-// term, because the hold counter is now the single place every holder meets:
-// this file's Selects below, and any slot child holding through the dock
-// context (MbabbMenu). Keying it on a local prop was what forced M-4's
-// round-trip to exist at all.
+// R3-2 — `expanded` is hover ∪ PINNED, but the controls pane's sole reader of
+// `controlsPaneHover` treats it as HOVER (its F9 idle rest-dim). Mirroring
+// `expanded` let a pinned dock defeat the rest-dim for the life of the pin, so
+// the mirror is HOVER only: expanded and not pinned.
+//
+// M-5 / C-6 — the watchdog, and the TRUE mechanism it answers. `keepOpen()`
+// blocks the idle-timer collapse, and the dock's document-pointerdown path is
+// already hold-guarded and portal-stamp exempt (`data-glass-dock-portal`), so a
+// tap inside an open portalled menu does NOT collapse the dock by that route.
+// The route that does exist is the producer's TOUCH GATE: when its
+// `isActive` falls, it calls the dock's `collapse()` for any expanded,
+// un-pinned dock WITHOUT consulting the hold counter — so on a touch device a
+// tap in a portalled menu collapses the dock underneath it. The watchdog stays
+// for exactly that path: a dock that slips to collapsed while anything holds
+// it (this file's Selects, or a slot child holding through the dock context —
+// MbabbMenu) is re-expanded, at most once per spurious collapse. The cure of
+// record is the producer's (the gate should consult the hold counter and the
+// portal stamp) and rides the BH relay; this is the consumer's accommodation.
 watch(
-    () => dockRef.value?.expanded,
-    (isExpanded) => {
+    () => [dockRef.value?.expanded, dockRef.value?.isPinned] as const,
+    ([isExpanded, isPinned]) => {
+        if (controlsPaneHover) controlsPaneHover.value = !!isExpanded && !isPinned;
         if (isExpanded === false && dockRef.value?.isHeld) dockRef.value.expand();
     },
 );
 
+// RR-2 MISSED #1 — an open Select holds the dock and does nothing else. The
+// `expand()` that used to ride here could only ever DEMOTE: a Select opens from
+// the expanded (non-inert) layer, so the dock is never collapsed at this point,
+// and `expand()` writes "hover" unconditionally — turning a user's pin (exit:
+// click outside) into a timed auto-collapse once the hold drained.
 watch(isSelectOpen, (open) => {
-    if (open) {
-        dockRef.value?.keepOpen();
-        dockRef.value?.expand();
-    } else dockRef.value?.release();
+    if (open) dockRef.value?.keepOpen();
+    else dockRef.value?.release();
 });
 </script>
 
