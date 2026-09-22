@@ -32,8 +32,6 @@
  * suppression. The root — an SFC's named exports invisible to plain `tsc` — is
  * named in the unit's receipt.
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
@@ -41,6 +39,7 @@ import { mount } from "@vue/test-utils";
 // The component itself, through the ambient shim (a default export is all plain
 // `tsc` can know of an SFC — and all the mount needs).
 import SpringTraceComponent from "../../../demo/scenes/spring/SpringTrace.vue";
+import { DAMPING_AXIS } from "../../../demo/scenes/spring/SpringHeatmap.vue";
 
 import { springLinearStops } from "../../../src/animation/physics/spring";
 import { sampleNormalizedSpring } from "../../../src/animation/physics/spring/solver/sample";
@@ -267,17 +266,9 @@ describe("SpringTrace — the ceiling's coupling to the ζ floor (L-14, document
     });
 
     it("(4b) the floor the heatmap declares is not below the one the plot pins", () => {
-        const heatmap = readFileSync(
-            resolve(process.cwd(), "demo/scenes/spring/SpringHeatmap.vue"),
-            "utf8",
-        );
-        const declared = /\bDAMPING_MIN\s*=\s*([0-9.]+)/.exec(heatmap);
-        if (declared === null) {
-            throw new Error(
-                "SpringHeatmap.vue no longer declares `DAMPING_MIN = <number>` — L-14's coupling anchor moved; re-bind the plot's PLOT_DAMPING_FLOOR witness to the new declaration",
-            );
-        }
-        expect(Number(declared[1])).toBeGreaterThanOrEqual(PLOT_DAMPING_FLOOR);
+        // Bound to the heatmap's shipped export, not a regex over its source:
+        // the ζ axis floor the heatmap lets a user reach is `DAMPING_AXIS.min`.
+        expect(DAMPING_AXIS.min).toBeGreaterThanOrEqual(PLOT_DAMPING_FLOOR);
     });
 });
 
