@@ -23,3 +23,14 @@ declare module "*.svg?component" {
     const component: DefineComponent<{}, {}, any>;
     export default component;
 }
+
+// Monaco ships its css Monarch grammar (`basic-languages/css/css.js`, a
+// zero-import data module) with NO `.d.ts` beside it, and the package's `"./*"`
+// exports wildcard carries no types condition — so the one module
+// `CSSCodeEditor.vue`'s boot hand-registers (KF-CE-1/4 arm (b)) is declared
+// here, typed by monaco's own `editor.api` language contracts.
+declare module "monaco-editor/esm/vs/basic-languages/css/css.js" {
+    import type { languages } from "monaco-editor/esm/vs/editor/editor.api.js";
+    export const conf: languages.LanguageConfiguration;
+    export const language: languages.IMonarchLanguage;
+}

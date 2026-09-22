@@ -54,27 +54,33 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
-// Monaco (the ~4 MB editor namespace) is the demo's single largest module. A
-// static `import * as monaco` here pulled it onto the eager graph of EVERY scene
+// Monaco is the demo's single largest module (`vendor-monaco`, ~2.5 MB
+// minified at the `editor.api` surface this boot loads). A static
+// `import * as monaco` here pulled it onto the eager graph of EVERY scene
 // chunk that reaches CSSCodeEditor (the Spring sidebar imports it statically),
 // so a scene's first paint paid Monaco's bytes before any editor mounted — the
 // spring-mobile LCP outlier (E.W4 S1). Everything that statically links the
-// `vendor-monaco` chunk is now DYNAMIC, resolved once at first editor mount:
-//   • the namespace `import("monaco-editor")`, AND
-//   • the two `?worker` entry-points — a STATIC `?worker` import still emits a
-//     tiny worker-proxy edge INTO `vendor-monaco`, so a static worker import
-//     re-eagerizes the chunk it is meant to defer. Importing the `?worker`
-//     modules dynamically (inside the same boot) keeps that edge off every
-//     scene's initial graph.
+// `vendor-monaco` chunk is DYNAMIC, resolved once at first editor mount:
+//   • the API namespace and the language definition, in `bootMonaco`, AND
+//   • the `?worker` entry-point, inside `getWorker` — a STATIC `?worker`
+//     import still emits a tiny worker-proxy edge INTO `vendor-monaco`, so a
+//     static worker import re-eagerizes the chunk it is meant to defer, and
+//     an import AWAITED in the boot serializes a fetch monaco does not need
+//     at `create` ahead of first mount (KF-CE-39). `getWorker` may return a
+//     `Promise<Worker>`, so the worker's chunk is fetched the first time
+//     monaco asks for one, and never before.
 // Vite splits each behind the editor-mount boundary, so a non-editor scene never
-// loads `vendor-monaco`. The editor is byte-identical once mounted — only the
-// eager load of a not-yet-visible editor disappears. The TYPE side stays static
-// (`import type`) — erased under `verbatimModuleSyntax`, no runtime edge.
+// loads `vendor-monaco`. The TYPE side stays static (`import type`) — erased
+// under `verbatimModuleSyntax`, no runtime edge; this ROOT type import is also
+// what types `self.MonacoEnvironment`, so it is not deletable.
 import type * as Monaco from "monaco-editor/esm/vs/editor/editor.api.js";
 // Theme JSONs are vendored locally: monaco-themes@0.4.x only exports `.` and
 // `./dist/monaco-themes.js` in its `exports` field, so `monaco-themes/themes/*`
 // is not resolvable under the strict bundler (Vite 8 / Rolldown). These two
-// small theme definitions live alongside this editor instead.
+// small theme definitions live alongside this editor instead. Their `base` is
+// a JSON string where monaco wants the `BuiltinTheme` literal union; the
+// narrow cast at `defineTheme` is exactly that widening and nothing else
+// (KF-CE-29 — with the specifier resolving, the cast is load-bearing).
 import DarkTheme from "./monaco-themes/Dracula.json";
 import LightTheme from "./monaco-themes/GitHub.json";
 import { Card } from "@mkbabb/glass-ui/card";
@@ -92,31 +98,53 @@ import { Button, Skeleton } from "@mkbabb/glass-ui";
 // The resolved Monaco namespace + a single in-flight boot promise. The boot is
 // idempotent and module-scoped: the FIRST editor to mount loads + configures
 // Monaco once (worker env, themes, the `css` language), every later editor
-// awaits the same settled promise — no double-register, no second 4 MB fetch.
+// awaits the same settled promise — no double-register, no second fetch.
+//
+// THE LANGUAGE (KF-CE-1 / KF-CE-4, arm (b) — decided in the wave record before
+// this byte): `editor.api` registers NO language, NO tokenizer and NONE of the
+// editor contributions (find, context menu, comment toggle, folding, bracket
+// matching, multicursor, hover — the ~110-module set `_.contribution.js`
+// would drag back along with the css language SERVICE and its 1 MB worker).
+// This boot hand-registers monaco's OWN css grammar — `basic-languages/css/
+// css.js`, a zero-import data module: the Monarch tokenizer that colours the
+// buffer through the vendored themes' token rules, and the language
+// configuration (comments, brackets, auto-closing and surrounding pairs) the
+// core editor reads. The contributions stay ABSENT, by decision: this is a
+// short-snippet keyframes editor, the keyboard trap is cured by option
+// (`tabFocusMode`), and the bytes those affordances cost were measured and
+// declined. No css language service runs, so no css worker is ever
+// requested; the one worker monaco does ask for is the base editor worker.
 let monaco: typeof Monaco | undefined;
 let monacoBoot: Promise<typeof Monaco> | undefined;
 
 function bootMonaco(): Promise<typeof Monaco> {
     return (monacoBoot ??= Promise.all([
         import("monaco-editor/esm/vs/editor/editor.api.js"),
-        // Each `?worker` virtual module default-exports a Worker constructor; a
-        // dynamic import keeps its monaco-proxy edge off the eager scene graph.
-        import("monaco-editor/esm/vs/editor/editor.worker?worker"),
-        import("monaco-editor/esm/vs/language/css/css.worker?worker"),
-    ]).then(([m, editorWorker, cssWorker]) => {
-        const EditorWorker = editorWorker.default;
-        const CSSWorker = cssWorker.default;
+        import("monaco-editor/esm/vs/basic-languages/css/css.js"),
+    ]).then(([m, css]) => {
         self.MonacoEnvironment = {
-            getWorker(_workerId: string, label: string) {
-                if (label === "css" || label === "scss" || label === "less") {
-                    return new CSSWorker();
-                }
+            async getWorker() {
+                // Each `?worker` virtual module default-exports a Worker
+                // constructor; imported here, on first request, its
+                // monaco-proxy edge stays off every scene's initial graph AND
+                // off the boot's critical path.
+                const { default: EditorWorker } = await import(
+                    "monaco-editor/esm/vs/editor/editor.worker?worker"
+                );
                 return new EditorWorker();
             },
         };
-        m.editor.defineTheme("dark-theme", DarkTheme as any);
-        m.editor.defineTheme("light-theme", LightTheme as any);
+        m.editor.defineTheme(
+            "dark-theme",
+            DarkTheme as Monaco.editor.IStandaloneThemeData,
+        );
+        m.editor.defineTheme(
+            "light-theme",
+            LightTheme as Monaco.editor.IStandaloneThemeData,
+        );
         m.languages.register({ id: "css" });
+        m.languages.setLanguageConfiguration("css", css.conf);
+        m.languages.setMonarchTokensProvider("css", css.language);
         monaco = m;
         return m;
     }));
