@@ -1,10 +1,13 @@
 import type { JumpPosition } from "@mkbabb/value.js/easing";
-import { cubicBezierToString } from "@mkbabb/value.js/math";
 import { computed, markRaw, ref, watch } from "vue";
 import { useThrottledReadout } from "@composables/useThrottledReadout";
 
 import { NumericAnimation } from "@mkbabb/keyframes.js";
-import type { TimingFunction } from "@mkbabb/keyframes.js";
+import type {
+    InputAnimationOptions,
+    TimingFunction,
+    TimingFunctionNames,
+} from "@mkbabb/keyframes.js";
 
 import {
     generateCurveSVGPath,
@@ -28,12 +31,36 @@ import {
     getFamilyCurves,
 } from "@utils/reference-data/easingGroups";
 
+// ── The easing-name contract (EasingSidebar · EasingTarget · this file) ──
+
+/** The editor's two parametric modes — bare words the editor owns, never CSS. */
+export type EasingEditorMode = "steps" | "cubic-bezier";
+
+/**
+ * Every name the scene can select: a registry curve, a CSS easing keyword, or
+ * one of the editor's parametric modes. `cssValue` translates the two modes
+ * into real CSS; every other member already IS an easing the engine accepts.
+ */
+export type EasingName =
+    | EasingEditorMode
+    | TimingFunctionNames
+    | "linear"
+    | "ease"
+    | "ease-in"
+    | "ease-out"
+    | "ease-in-out"
+    | "step-start"
+    | "step-end";
+
+/** The value the preview animation's `timingFunction` seam accepts. */
+type EasingValue = NonNullable<InputAnimationOptions["timingFunction"]>;
+
 // ── Composable ─────────────────────────────────────────────────────
 
 export function useEasingDemo() {
     // ── Reactive state ─────────────────────────────────────────────
 
-    const currentEasingName = ref("ease");
+    const currentEasingName = ref<EasingName>("ease");
     const bezierControlPoints = ref<[number, number, number, number]>([
         0.25, 0.1, 0.25, 1.0,
     ]);
@@ -90,16 +117,18 @@ export function useEasingDemo() {
         return namedEasing(name);
     });
 
-    const cssValue = computed(() => {
+    // The CSS twin handed to the preview animation, typed at its source: the
+    // two editor modes are translated into real CSS here, before the seam, and
+    // every other name is already an easing the engine accepts.
+    const cssValue = computed<EasingValue>(() => {
         const name = currentEasingName.value;
         if (name === "cubic-bezier") {
-            return cubicBezierToString(...bezierControlPoints.value);
+            const [x1, y1, x2, y2] = bezierControlPoints.value;
+            return `cubic-bezier(${x1}, ${y1}, ${x2}, ${y2})`;
         }
         if (name === "steps") {
             return `steps(${stepOptions.value.steps}, ${stepOptions.value.jumpTerm})`;
         }
-        // For named curves with a bezier approximation, show both the name
-        // and the bezier value when actively editing
         return name;
     });
 
@@ -243,7 +272,7 @@ export function useEasingDemo() {
 
     // ── Methods ────────────────────────────────────────────────────
 
-    const selectEasing = (name: string) => {
+    const selectEasing = (name: EasingName) => {
         currentEasingName.value = name;
 
         // Load bezier control points if available
