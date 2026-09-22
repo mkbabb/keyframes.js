@@ -78,7 +78,12 @@ const frame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
 
 afterEach(() => teardown?.());
 
-describe("TypingDots — the inv-ζ engine seam", () => {
+// Each case awaits `mountDots`, whose paint poll alone may run to its own 5 s
+// deadline after the engine's cold dynamic import — equal to vitest's 5 s
+// default, so under host load the RUNNER timed out before the seam's own
+// deadline could decide (X.KF.W13T Check 1, C1-2). The case budget must exceed
+// the poll it contains; the assertions are unchanged (the V·D59 precedent).
+describe("TypingDots — the inv-ζ engine seam", { timeout: 30_000 }, () => {
     it("(1) renders one dot span per count, each carrying the STATIC glyph", async () => {
         const host = await mountDots({ count: 4, glyph: "·" });
         const dots = [...host.querySelectorAll(".typing-dot")];
