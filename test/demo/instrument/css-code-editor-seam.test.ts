@@ -132,7 +132,14 @@ vi.mock("@utils/clipboard", () => ({ copyText: async () => {} }));
 vi.mock("@kf-engine", () => ({
     kfEngine: () => ({
         CSSKeyframesAnimation: class {},
-        presets: { shake: () => ({ play() {} }) },
+        // The real seat API: a preset returns an animation whose `setTargets`
+        // binds the element and hands back the same animation to `play()`.
+        presets: {
+            shake: () => {
+                const anim = { setTargets: () => anim, play() {} };
+                return anim;
+            },
+        },
         compileToCSS: async () => ({ eligible: false, css: "", refusals: [] }),
     }),
 }));
