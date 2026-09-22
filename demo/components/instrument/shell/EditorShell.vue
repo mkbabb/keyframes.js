@@ -173,7 +173,7 @@
 
         <main class="grid place-items-center place-self-stretch">
         <AnimationControlsGroup
-            :key="superKey"
+            :key="superKey ?? ''"
             :animation-group="animationGroup"
             :channels="channels"
             :super-key="superKey"
