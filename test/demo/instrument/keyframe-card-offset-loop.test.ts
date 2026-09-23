@@ -189,8 +189,8 @@ vi.mock("@mkbabb/glass-ui", () => ({
     DialogFooter: slotStub("footer", "DialogFooter"),
     Button: buttonStub,
 }));
-vi.mock("@mkbabb/glass-ui/forms", () => ({
-    Input: inputStub,
+vi.mock("@mkbabb/glass-ui/input", () => ({ Input: inputStub }));
+vi.mock("@mkbabb/glass-ui/textarea", () => ({
     Textarea: slotStub("textarea", "Textarea"),
 }));
 vi.mock("@mkbabb/glass-ui/button", () => ({ Button: buttonStub }));

@@ -82,7 +82,7 @@ vi.mock("@mkbabb/glass-ui", () => ({
     Button: buttonStub,
 }));
 
-vi.mock("@mkbabb/glass-ui/forms", () => ({
+vi.mock("@mkbabb/glass-ui/textarea", () => ({
     Textarea: defineComponent({
         name: "Textarea",
         inheritAttrs: false,

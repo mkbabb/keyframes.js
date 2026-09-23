@@ -95,7 +95,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Slider, Card, CardContent } from "@mkbabb/glass-ui";
-import { Input } from "@mkbabb/glass-ui/forms";
+import { Input } from "@mkbabb/glass-ui/input";
 import {
     matrixCellDisplayText,
     matrixCellEditText,

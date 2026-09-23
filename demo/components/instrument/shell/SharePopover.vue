@@ -153,7 +153,7 @@ import { Share2, Clipboard, ArrowRight } from "@lucide/vue";
 // SP-18 (W6-I): every glass symbol on its own subpath beside `./forms`.
 import { Button } from "@mkbabb/glass-ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@mkbabb/glass-ui/popover";
-import { Input } from "@mkbabb/glass-ui/forms";
+import { Input } from "@mkbabb/glass-ui/input";
 import { isInsideToaster } from "@components/instrument/utils/toastGuard";
 import { useShareState } from "./useShareState";
 

@@ -352,7 +352,7 @@ import {
 } from "@lucide/vue";
 import CSSPasteDialog from "./CSSPasteDialog.vue";
 import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
-import { Input } from "@mkbabb/glass-ui/forms";
+import { Input } from "@mkbabb/glass-ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
 import {

@@ -269,7 +269,7 @@ import { requireKeyframeSelector, selectorText } from "@utils/keyframeSelector";
 // KF-KC-37 (W6-I): subpaths, never the 24 KB root barrel. The `./label` subpath
 // leaves with its two orphan consumers (KC-26 above) — the card imports only
 // what it mounts.
-import { Input } from "@mkbabb/glass-ui/forms";
+import { Input } from "@mkbabb/glass-ui/input";
 import { Button } from "@mkbabb/glass-ui/button";
 import {
     Tooltip,

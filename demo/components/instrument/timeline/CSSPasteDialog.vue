@@ -112,7 +112,7 @@ import {
     DialogFooter,
     DialogTitle,
 } from "@mkbabb/glass-ui";
-import { Textarea } from "@mkbabb/glass-ui/forms";
+import { Textarea } from "@mkbabb/glass-ui/textarea";
 import { isInsideToaster } from "@components/instrument/utils/toastGuard";
 
 /**
