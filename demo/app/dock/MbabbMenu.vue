@@ -79,6 +79,21 @@
                 </div>
             </DropdownMenuItem>
 
+            <!-- X.KF.W13U.d · OA-33 (COHESION §0bi) — Keyboard shortcuts joins its
+                 two siblings here: the dock's trailing zone is this menu's trigger
+                 alone. Selecting the row opens the shortcuts dialog (the menu
+                 closes as it opens, and declines to return focus under it — the
+                 same menu→dialog hand-off as Clear all); the producer's own
+                 `DropdownMenuShortcut` seat prints the `?` hint. -->
+            <DropdownMenuItem text-value="Keyboard shortcuts" class="gap-2.5 px-1.5 py-1" @select="shortcutsOpen = true">
+                <span class="w-7 shrink-0 flex justify-center"><Keyboard class="w-5 h-5" aria-hidden="true" /></span>
+                <div class="flex-1 min-w-0">
+                    <span class="text-small text-foreground">Keyboard shortcuts</span>
+                    <p class="text-micro text-muted-foreground leading-tight">Every key the editor answers</p>
+                </div>
+                <DropdownMenuShortcut aria-hidden="true">?</DropdownMenuShortcut>
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
 
             <!-- ppmycota logo — toggles pp mode.
@@ -248,6 +263,10 @@
         </DropdownMenuContent>
     </DropdownMenu>
 
+    <!-- X.KF.W13U.d · OA-33 — the shortcuts dialog lives with the row that
+         opens it and with its `?` shortcut (moved from ChromeDock). -->
+    <KeyboardShortcutsModal v-model:open="shortcutsOpen" />
+
     <!-- MM-13 — the destructive command's confirmation, in the design system's
          own Dialog (the CSSPasteDialog anatomy: title, description, footer).
          Themeable, focus-trapped, and reachable by the harness, which a native
@@ -288,10 +307,12 @@ import { SharePopover } from "@components/instrument/shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@mkbabb/glass-ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/dropdown-menu";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
-import { Trash } from "@lucide/vue";
+import { Keyboard, Trash } from "@lucide/vue";
+import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
+import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
 import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
 defineProps<{
@@ -355,11 +376,16 @@ const cubeControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
 // there is no `window.confirm` left to guard.
 const confirmClearOpen = ref(false);
 
+// X.KF.W13U.d · OA-33 — the shortcuts dialog's open state and its `?` shortcut,
+// with the one command that opens them (moved from ChromeDock's retired zone).
+const shortcutsOpen = ref(false);
+registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
+
 // The menu closes as the dialog opens. Its close would hand focus back to the
 // @mbabb trigger underneath the dialog's focus scope, so that one return is
 // declined while the dialog is taking over (reka's documented menu→dialog idiom).
 function onMenuCloseAutoFocus(event: Event): void {
-    if (confirmClearOpen.value) event.preventDefault();
+    if (confirmClearOpen.value || shortcutsOpen.value) event.preventDefault();
 }
 
 // MM-42 (caveat, recorded where the reset is spent): `resetAllStores()` is

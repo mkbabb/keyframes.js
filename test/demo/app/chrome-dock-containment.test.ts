@@ -25,6 +25,7 @@ import { defineComponent, h, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import ChromeDock from "@app/dock/ChromeDock.vue";
+import MbabbMenu from "@app/dock/MbabbMenu.vue";
 
 const savedResizeObserver = (globalThis as { ResizeObserver?: unknown })
     .ResizeObserver;
@@ -109,15 +110,36 @@ describe("ChromeDock contains its controls (OA-6)", () => {
         wrapper.unmount();
     });
 
-    it("(3) R-k-1 — the retired header ribbon's controls live in the dock, names intact, `?` opens the shortcuts dialog", async () => {
-        const wrapper = mountDock();
-        const dock = wrapper.find(".glass-dock");
-        const names = dock
+    it("(3) OA-33 (§0bi) — the trailing app zone is the @mbabb trigger ALONE; Share · shortcuts · theme ride its menu, and `?` still opens the shortcuts dialog", async () => {
+        // Supersedes W13T.k3's R-k-1 case in place (E-3 for tests: the claim
+        // changed, so the witness changes with it). The dock renders no Share /
+        // shortcuts / theme control of its own; the slotted MbabbMenu is the
+        // zone's one control and registers the `?` shortcut.
+        const wrapper = mount(
+            defineComponent(() => () =>
+                h(TooltipProvider, null, () =>
+                    h(
+                        ChromeDock,
+                        {
+                            currentSceneId: "cube",
+                            scenes: [{ id: "cube", label: "Cube" }],
+                            homeScene: { id: "home", label: "Home" },
+                            isControlsPanelOpen: false,
+                        },
+                        { items: () => h(MbabbMenu, { onSceneRestore: () => {} }) },
+                    ),
+                ),
+            ),
+            { attachTo: document.body },
+        );
+        const names = wrapper
+            .find(".glass-dock")
             .findAll("button")
             .map((b) => b.attributes("aria-label") ?? "");
-        expect(names).toContain("Share animation");
-        expect(names).toContain("Show keyboard shortcuts");
-        expect(names.some((n) => /^Switch to (dark|light) mode$/.test(n))).toBe(true);
+        expect(names).not.toContain("Share animation");
+        expect(names).not.toContain("Show keyboard shortcuts");
+        expect(names.some((n) => /^Switch to (dark|light) mode$/.test(n))).toBe(false);
+        expect(names.filter((n) => n === "@mbabb menu")).toHaveLength(1);
         expect(document.querySelector('[role="dialog"]')).toBeNull();
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "?", bubbles: true }));
         await nextTick();
