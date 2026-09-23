@@ -78,7 +78,7 @@ const Host = defineComponent({
     name: "DockHost",
     components: { GlassDock, SlotProbe },
     template: `
-        <GlassDock ref="dockRef" :collapse-delay="50" :start-collapsed="false">
+        <GlassDock ref="dockRef" collapse="open">
             <SlotProbe />
         </GlassDock>
     `,
@@ -110,14 +110,19 @@ describe("G-KFW13-0 — slot content resolves the GlassDock provider it is rende
     it("(2) it is THIS provider's context — the id the dock renders with", () => {
         const { wrapper, dock } = mountHost();
 
-        // Same object identity as the provider's own held flag: the dock's
-        // exposed `isHeld` and the injected `held` are one computed.
-        seen!.keepOpen();
+        // Same object identity as the provider's own held flag. [X.KF.W13R.m,
+        // glass 10.0.1] The injected `held` is now the GRASP edge — the dock's
+        // exposed `graspHeld`, lit only by `keepOpen("grasp")` — and the
+        // posture count a plain `keepOpen()` takes is the exposed `isHeld`
+        // (glass `dockContext.ts`: "deliberately NOT the morph-hold count").
+        seen!.keepOpen("grasp");
         expect(seen!.held.value).toBe(true);
+        expect(dock.vm.graspHeld).toBe(true);
         expect(dock.vm.isHeld).toBe(true);
 
-        seen!.release();
+        seen!.release("grasp");
         expect(seen!.held.value).toBe(false);
+        expect(dock.vm.graspHeld).toBe(false);
         expect(dock.vm.isHeld).toBe(false);
 
         wrapper.unmount();
@@ -136,7 +141,7 @@ describe("G-KFW13-0 — the hold the slot child takes is observable on `expanded
             // re-arm it (dist/dock.js — `g.value++ , T()` / `Math.max(0, …)`).
             seen!.keepOpen();
             await nextTick();
-            vi.advanceTimersByTime(2_000);
+            vi.advanceTimersByTime(4_000);
             await nextTick();
             expect(dock.vm.expanded).toBe(true);
             expect(dock.vm.isHeld).toBe(true);
@@ -146,7 +151,9 @@ describe("G-KFW13-0 — the hold the slot child takes is observable on `expanded
             seen!.release();
             await nextTick();
             expect(dock.vm.isHeld).toBe(false);
-            vi.advanceTimersByTime(2_000);
+            // glass 10.0.1: the release grace (800 ms) then the one idle
+            // window (3600 ms) — 4400 ms to the collapse.
+            vi.advanceTimersByTime(5_000);
             await nextTick();
             expect(dock.vm.expanded).toBe(false);
 

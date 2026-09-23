@@ -70,7 +70,7 @@ const Host = defineComponent({
     components: { GlassDock, MbabbMenu },
     props: { menuMounted: { type: Boolean, default: true } },
     template: `
-        <GlassDock ref="dockRef" :collapse-delay="50" :start-collapsed="false">
+        <GlassDock ref="dockRef" collapse="open">
             <MbabbMenu v-if="menuMounted" :on-scene-restore="noop" />
         </GlassDock>
     `,
@@ -172,7 +172,7 @@ describe("G-KFW13-1 — the dock is held by the MENU, not by a prop from the App
             await activate(trigger);
             expect(dock.vm.isHeld).toBe(true);
 
-            vi.advanceTimersByTime(2_000);
+            vi.advanceTimersByTime(4_000);
             await nextTick();
             expect(dock.vm.expanded).toBe(true);
 
@@ -186,7 +186,9 @@ describe("G-KFW13-1 — the dock is held by the MENU, not by a prop from the App
             await nextTick();
             await nextTick();
             expect(dock.vm.isHeld).toBe(false);
-            vi.advanceTimersByTime(2_000);
+            // glass 10.0.1: the release grace (800 ms) then the one idle
+            // window (3600 ms) — 4400 ms to the collapse.
+            vi.advanceTimersByTime(5_000);
             await nextTick();
             expect(dock.vm.expanded).toBe(false);
 

@@ -60,7 +60,7 @@ const Host = defineComponent({
     name: "MenuHost",
     components: { GlassDock, MbabbMenu },
     template: `
-        <GlassDock :collapse-delay="50" :start-collapsed="false">
+        <GlassDock collapse="open">
             <MbabbMenu :on-scene-restore="noop" />
         </GlassDock>
     `,

@@ -15,6 +15,11 @@
  *      (content overflows visibly past the cap). `overflow="wrap"` is the
  *      producer's containment recipe: the row reflows to N rows exactly when
  *      its intrinsic width exceeds the cap, and stays one row when it fits.
+ *      [X.KF.W13R.m, glass 10.0.1] glass 9.0.0 folded GlassDock's props onto
+ *      `collapse` and deleted `overflow` with its wrap recipe: a capped axis IS
+ *      a scroll axis, the run scrolls natively. The over-cap strategy is the
+ *      producer's own, so the consumer passes no `overflow` (a dead prop would
+ *      fall through as an attribute) and still authors no clip.
  *
  * Layout itself is measured by the committed Playwright evidence
  * (evidence/W13T/KF-W13T-k-*); this witness pins the two layout inputs at the
@@ -95,11 +100,12 @@ describe("ChromeDock contains its controls (OA-6)", () => {
         wrapper.unmount();
     });
 
-    it("(2) the dock takes the producer's wrap recipe over the cap, never a clip", () => {
+    it("(2) the dock takes the producer's own over-cap recipe (glass 9.0.0+: a native scroll axis), never a clip", () => {
         const wrapper = mountDock();
         const dock = wrapper.find(".glass-dock");
         expect(dock.exists()).toBe(true);
-        expect(dock.classes()).toContain("dock-overflow-wrap");
+        expect(dock.attributes("overflow")).toBeUndefined();
+        expect(dock.classes()).not.toContain("dock-overflow-wrap");
         // Containment is layout, not a mask: no overflow clip is authored on
         // the band or its pointer-events host.
         const band = wrapper.find('[data-dock-tether="top"]');

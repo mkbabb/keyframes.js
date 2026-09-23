@@ -409,15 +409,17 @@ watch(isSelectOpen, (open) => {
                  dock a shrink-to-fit containing block of 50vw, a cap no token
                  declared, so at 390/768 with a scene active the Controls tab,
                  the panel toggle and @mbabb painted past the capsule. The
-                 producer's `--dock-max-inline-size` is now the only cap, and
-                 `overflow="wrap"` is its over-cap recipe: one row when the row
-                 fits, N rows exactly when it does not. Never a clip. -->
+                 producer's own stage cap governs. Since glass 9.0.0 (the
+                 GlassDock props fold onto `collapse`) the over-cap recipe is
+                 the producer's: a capped axis IS a scroll axis, the run
+                 scrolls natively; `overflow`, `collapseDelay` (every dock idles
+                 one 3600 ms window) and `--dock-max-inline-size` are gone.
+                 Never a clip. `collapse="closed"` is the former
+                 `start-collapsed`: the dock mounts collapsed. -->
             <GlassDock
                 ref="dockRef"
-                :collapse-delay="2500"
-                :start-collapsed="true"
+                collapse="closed"
                 :fit-content="true"
-                overflow="wrap"
                 :background-canvas="auroraCanvas"
             >
                         <!-- D-22 + RR-1 MISSED #1 — NO WRAPPER HERE. The dock's
