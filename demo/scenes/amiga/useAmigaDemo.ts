@@ -197,7 +197,14 @@ export function createPoseContinuity(options?: {
     };
 }
 
-export function useAmigaDemo() {
+/**
+ * @param onPose — KF.W13U.d2 (OA-32): an optional per-write READ of the pose
+ *   the group just authored. The scene reads `pose` from its own three.js
+ *   compose; the dock's miniature (`AmigaMini.vue`) has no render loop of its
+ *   own, so it paints its SVG from this hook — the group stays the one pose
+ *   author, driven by the same three animations the stage plays.
+ */
+export function useAmigaDemo(onPose?: (pose: Readonly<AmigaPose>) => void) {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
     // — synchronous, since the warm resolves before any scene mounts.
     const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
@@ -222,6 +229,7 @@ export function useAmigaDemo() {
         // the scene's 0.28-rad TILTED axis, composed in AmigaScene. One value,
         // two frames of reference, and the authored name is not the rendered one.
         if (vars.rotation?.y !== undefined) pose.spin = vars.rotation.y;
+        onPose?.(pose);
     };
 
     // The LINEAR spin (T.A9): a triangle wave synced to the X sweep so |dθ/dt| is

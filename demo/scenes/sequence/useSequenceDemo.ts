@@ -12,6 +12,14 @@ import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport"
 import type { SceneFacility } from "@composables/scene-facility";
 import { prefersReducedMotion, useSequenceInstrument } from "./useSequenceInstrument";
 import {
+    ROW_COUNT,
+    ROW_DURATION,
+    ROW_GLIDE,
+    STAGGER_EACH,
+    sequenceRowKeyframes,
+    type BallVars,
+} from "./sequenceMotion";
+import {
     useSceneMachine,
     createRafAdapter,
     type ScenePlayback,
@@ -75,15 +83,6 @@ import {
  * AnimationGroup position — the dummy transport host has none).
  */
 
-/** How many staggered storyboard rows the sequence orchestrates. */
-export const ROW_COUNT = 5;
-
-/** Per-row child glide duration (ms). */
-export const ROW_DURATION = 900;
-
-/** The stagger increment between adjacent rows (ms) — the `at:` spacing. */
-const STAGGER_EACH = 260;
-
 /**
  * The editable `at:` domain (ms) — the row slider's CONTROL RANGE. A row's
  * start-handle re-authors its child's master-clock offset across
@@ -103,13 +102,6 @@ interface SequenceRow {
     /** This row's resolved start offset on the master clock (ms). */
     at: number;
 }
-
-/** The per-row child keyframe vars the engine paints onto each traveller. */
-type BallVars = {
-    "--ball-p": number;
-    opacity: number;
-    scale: number;
-};
 
 export function useSequenceDemo() {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
@@ -147,10 +139,7 @@ export function useSequenceDemo() {
     // The per-row glide easing — a spring twin, named so the reel egg can RESTORE
     // it after its overshoot run (the children are shared between the master
     // transport and the egg).
-    const rowGlideEase = springTimingFunction({
-        response: 0.45,
-        dampingFraction: 0.62,
-    });
+    const rowGlideEase = springTimingFunction(ROW_GLIDE);
     const childAnims: CSSKeyframesAnimationT<BallVars>[] = [];
     for (let i = 0; i < ROW_COUNT; i++) {
         const anim = new CSSKeyframesAnimation<BallVars>({
@@ -158,11 +147,7 @@ export function useSequenceDemo() {
             fillMode: "forwards",
             timingFunction: rowGlideEase,
         });
-        anim.fromKeyframes({
-            "0%": { "--ball-p": 0, opacity: 0.25, scale: 0.7 },
-            "70%": { "--ball-p": 0.7, opacity: 1, scale: 1.12 },
-            "100%": { "--ball-p": 1, opacity: 1, scale: 1 },
-        });
+        anim.fromKeyframes(sequenceRowKeyframes());
         anim.name = `Row ${i + 1}`;
         childAnims.push(markRaw(anim));
     }

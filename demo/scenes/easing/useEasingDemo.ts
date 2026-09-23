@@ -27,6 +27,12 @@ import { useSceneMachine } from "@state";
 import { kfEngine } from "@kf-engine";
 import { EASING_SCENE_ID } from "./easingKeys";
 import {
+    EASING_DEFAULT_DURATION,
+    EASING_DEFAULT_NAME,
+    EASING_PREVIEW_KEYFRAMES,
+    EASING_PREVIEW_OPTIONS,
+} from "./easingMotion";
+import {
     getFamilyForCurve,
     getFamilyCurves,
 } from "@utils/reference-data/easingGroups";
@@ -60,7 +66,7 @@ type EasingValue = NonNullable<InputAnimationOptions["timingFunction"]>;
 export function useEasingDemo() {
     // ── Reactive state ─────────────────────────────────────────────
 
-    const currentEasingName = ref<EasingName>("ease");
+    const currentEasingName = ref<EasingName>(EASING_DEFAULT_NAME);
     const bezierControlPoints = ref<[number, number, number, number]>([
         0.25, 0.1, 0.25, 1.0,
     ]);
@@ -68,7 +74,7 @@ export function useEasingDemo() {
         steps: 4,
         jumpTerm: "jump-end",
     });
-    const duration = ref(1500);
+    const duration = ref(EASING_DEFAULT_DURATION);
 
     // (T.E6 / OD-7 — the comparison-DIFF ghost + the drag-bend smear DIED with
     // the singular hero: the specimen drawer IS the scene, every curve's
@@ -317,16 +323,10 @@ export function useEasingDemo() {
     const { CSSKeyframesAnimation } = kfEngine();
     const previewAnim = markRaw(
         new CSSKeyframesAnimation<{ transform: { translateX: number } }>({
+            ...EASING_PREVIEW_OPTIONS,
             duration: duration.value,
-            iterationCount: "infinite",
-            direction: "alternate",
             timingFunction: cssValue.value,
-        }).fromString(
-            `@keyframes easing-preview {
-    from { transform: translateX(0%); }
-    to   { transform: translateX(100%); }
-}`,
-        ),
+        }).fromString(EASING_PREVIEW_KEYFRAMES),
     );
     previewAnim.name = "Easing";
     previewAnim.superKey = EASING_SCENE_ID;

@@ -7,11 +7,8 @@ import { mount } from "@vue/test-utils";
 import { withSetup } from "../../support/withSetup";
 import SequenceAxis from "../../../demo/scenes/sequence/SequenceAxis.vue";
 import SequenceScrubber from "../../../demo/scenes/sequence/SequenceScrubber.vue";
-import {
-    ROW_COUNT,
-    STAGGER_MAX,
-    useSequenceDemo,
-} from "../../../demo/scenes/sequence/useSequenceDemo";
+import { STAGGER_MAX, useSequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo";
+import { ROW_COUNT } from "../../../demo/scenes/sequence/sequenceMotion";
 import { SEQUENCE_DEMO_KEY } from "../../../demo/scenes/sequence/sequenceKeys";
 import { warmKfEngine } from "../../../demo/kf-engine";
 

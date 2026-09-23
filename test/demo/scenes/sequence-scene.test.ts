@@ -12,11 +12,8 @@ import {
     prefersReducedMotion,
     useSequenceInstrument,
 } from "../../../demo/scenes/sequence/useSequenceInstrument";
-import {
-    ROW_COUNT,
-    STAGGER_MAX,
-    useSequenceDemo,
-} from "../../../demo/scenes/sequence/useSequenceDemo";
+import { STAGGER_MAX, useSequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo";
+import { ROW_COUNT } from "../../../demo/scenes/sequence/sequenceMotion";
 import { SEQUENCE_SCENE_ID } from "../../../demo/scenes/sequence/sequenceKeys";
 import { warmKfEngine } from "../../../demo/kf-engine";
 

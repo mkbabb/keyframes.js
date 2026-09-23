@@ -4,6 +4,7 @@ import type { Vars } from "@mkbabb/keyframes.js";
 import { parseCssScalar } from "@mkbabb/value.js/css";
 import { clamp } from "@mkbabb/value.js/math";
 import { useSquareTumble } from "./useSquareTumble";
+import { SQUARE_TOUR_OPTIONS, TOUR_PALETTE, squareTourKeyframes } from "./squareMotion";
 import { onScopeDispose, ref, type Ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
@@ -476,48 +477,15 @@ export function useSquareDemo(
     // member of it: `--rainbow-violet` is hsl(300 75% 60%) ≈ #E64DE6, not
     // #C462D8, and no family member resolves to #5AC8FA or #3DD0C4 at all — the
     // exact drift hazard this module's own sibling comment describes
-    // eliminating. `TOUR_PALETTE` below names the tokens; `resolveTourPalette()`
+    // eliminating. `TOUR_PALETTE` (now in `squareMotion.ts`) names the tokens; `resolveTourPalette()`
     // seats their live values at mount, and each hex here is that token's own
     // declared value so an unloaded stylesheet degrades hue-identically. This
     // became visible paint the moment C-1 was cured.
-    /** The tour's five stops, as TOKEN NAMES beside the tokens' own declared
-     *  values — one row per authored keyframe, in keyframe order. */
-    const TOUR_PALETTE: ReadonlyArray<readonly [token: string, fallback: string]> = [
-        ["--rainbow-violet", "hsl(300 75% 60%)"],
-        ["--rainbow-blue", "hsl(210 80% 55%)"],
-        ["--rainbow-cyan", "hsl(180 80% 50%)"],
-        ["--rainbow-green", "hsl(130 70% 50%)"],
-        ["--rainbow-violet", "hsl(300 75% 60%)"],
-    ];
-
+    // KF.W13U.d2 — the tour's options and keyframes live in `squareMotion.ts`,
+    // read here and by the dock miniature (`SquareMini.vue`).
     const { CSSKeyframesAnimation } = kfEngine();
-    const anim = new CSSKeyframesAnimation({
-        duration: 2000,
-        iterationCount: Infinity,
-        fillMode: "forwards",
-    }).fromKeyframes(
-        {
-            "0%": {
-                transform: { x: "0px", y: "0px", rotate: 0, a: { b: { c: { d: "100%" } } } },
-                backgroundColor: TOUR_PALETTE[0]![1],
-            },
-            "25%": {
-                transform: { x: "90px", y: "-90px", rotate: 90, a: { b: { c: { d: "108%" } } } },
-                backgroundColor: TOUR_PALETTE[1]![1],
-            },
-            "50%": {
-                transform: { x: "0px", y: "90px", rotate: 180, a: { b: { c: { d: "100%" } } } },
-                backgroundColor: TOUR_PALETTE[2]![1],
-            },
-            "75%": {
-                transform: { x: "-90px", y: "-90px", rotate: 270, a: { b: { c: { d: "108%" } } } },
-                backgroundColor: TOUR_PALETTE[3]![1],
-            },
-            "100%": {
-                transform: { x: "0px", y: "0px", rotate: 360, a: { b: { c: { d: "100%" } } } },
-                backgroundColor: TOUR_PALETTE[4]![1],
-            },
-        },
+    const anim = new CSSKeyframesAnimation({ ...SQUARE_TOUR_OPTIONS }).fromKeyframes(
+        squareTourKeyframes(),
         transformFunc,
     );
 

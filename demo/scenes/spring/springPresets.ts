@@ -40,3 +40,26 @@ export const SPRING_PRESETS: readonly SpringPreset[] = [
         blurb: "critically damped — slow, no overshoot",
     },
 ] as const;
+
+/** The solver settle floor (position and velocity) every spring in the field shares. */
+const SETTLE = 1e-4;
+
+/**
+ * D-3 — THE DECLINED ENGINE FLAG, NOW PASSED AT EVERY CONSTRUCTION SITE.
+ *
+ * The scene's `prefers-reduced-motion` story reached only three cosmetic CSS
+ * declarations; the 60 Hz SOLVER path had no PRM gate anywhere, while the engine
+ * has shipped the opt-in all along (`respectReducedMotion`, default FALSE) and a
+ * sibling scene proves the route (EasingTarget's `useMediaQuery` gate). CSS
+ * cannot govern engine motion — the banked kf-CubeScene ruling — so the gate has
+ * to be the option, and it has to be on every spring in the field or the field
+ * disagrees with itself. Under PRM `set target` SNAPS and settles, which the
+ * C-1 chase contract reads as "already settled": the loop terminates on its
+ * first frame and a reduced-motion user gets the new state with no travel.
+ */
+export const SPRING_BASE = {
+    initial: 0,
+    settleThreshold: SETTLE,
+    velocitySettleThreshold: SETTLE,
+    respectReducedMotion: true,
+} as const;

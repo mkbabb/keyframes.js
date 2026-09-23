@@ -76,12 +76,16 @@ import {
 // `<component :is="scene.icon">`, so the BINDING is single-sourced. <Home>
 // remains the icon for the explicit home descriptor ALONE (the single fallback).
 //
+// KF.W13U.d2 (OA-32) — the scene icon is the scene's living miniature. The
+// CHOSEN scene's icon (the expanded trigger AND the collapsed face below) is
+// rendered `live` and plays the scene's own animation in miniature; every row
+// in the scene menu renders the same component at rest. PRM stills both (the engine's own gate).
+//
 // D-3 — what that binding does NOT do is theme every glyph via currentColor
-// (the claim this block used to make). Measured at the assets: cube, amiga and
-// square are raster `<image>` pixel art; easing hardcodes `hsl(248 88% 71%)`;
-// spring and sequence paint from `--color-progress`/`--rainbow-*` tokens whose
-// `currentColor` fallbacks never fire because every token is defined. Only the
-// lucide glyphs (Home, the tab icons) follow ink.
+// (the claim this block used to make). The miniatures paint in their scenes'
+// own colours (the crayon faces, the Boing ball, the tour and `--rainbow-*`
+// tokens, the easing violet); only the lucide glyphs (Home, the tab icons)
+// follow ink.
 //
 // THE INK POLICY (D-2-RESCOPED + RR-1 MISSED #2): no glyph declares its own
 // ink. Every glyph inherits `currentColor` from the control or row it sits in,
@@ -444,7 +448,7 @@ watch(isSelectOpen, (open) => {
                             @update:model-value="onScenePick"
                         >
                             <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label">
-                                <component v-if="currentIcon" :is="currentIcon" class="dock-glyph" aria-hidden="true" />
+                                <component v-if="currentIcon" :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
                                 <Home v-else class="dock-glyph" aria-hidden="true" />
                                 <SelectValue />
                             </DockTrigger>
@@ -604,7 +608,7 @@ watch(isSelectOpen, (open) => {
                         aria-label="Scene"
                         @focus="onCollapsedFocus"
                     >
-                        <component v-if="currentIcon" :is="currentIcon" class="dock-glyph" aria-hidden="true" />
+                        <component v-if="currentIcon" :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
                         <Home v-else class="dock-glyph" aria-hidden="true" />
                     </Button>
                 </template>

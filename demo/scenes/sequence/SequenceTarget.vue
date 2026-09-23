@@ -192,7 +192,7 @@ import { Clapperboard, RotateCcw } from "@lucide/vue";
 
 import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
-import { ROW_COUNT } from "./useSequenceDemo";
+import { ROW_COUNT } from "./sequenceMotion";
 // Colocated sub-units (the ≤500L split seam): the master scrubber (J.WZ), the
 // L.W11 S7 phosphor master-playhead + the master-clock axis ruler.
 import SequenceScrubber from "./SequenceScrubber.vue";

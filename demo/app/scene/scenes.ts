@@ -1,23 +1,19 @@
 import { defineAsyncComponent, type Component } from "vue";
 
-// The EXPRESSIVE, COLORFUL inline-SVG icon family (H.W10.S1/G1 — reverses W5's
-// monochrome `stroke="currentColor"` flip). The 4 ORIGINALS are RE-INSTANTIATED
-// 1:1 from 084feb9: cube/amiga/square are the colorful 32×32 rasters embedded
-// pixel-faithfully as `<svg><image href="data:image/png;base64,…"/></svg>`,
-// easing is the original violet `hsl(248,88%,71%)` vector restored verbatim. The
-// NEW colorful glyphs (spring/sequence — the primitives that
-// LACKED an icon) paint from the demo's `--rainbow-*`/`--color-progress` tokens
-// (currentColor fallback). ALL resolve through the unchanged W5 `?component`
-// seam (vite.config.ts svgLoader, `convertColors:false`) to an inline-`<svg>`
-// SFC — NOT an `<img :src>` URL (theme-blind by construction; the D8 defense
-// holds: even the raster-embeds render as inline `<svg><image>`, never `<img>`).
-// The icon is data and lives WITH the scene's other data.
-import CubeIcon from "@assets/icons/cube.svg?component";
-import AmigaIcon from "@assets/icons/amiga.svg?component";
-import SquareIcon from "@assets/icons/square.svg?component";
-import EasingIcon from "@assets/icons/easing.svg?component";
-import SpringIcon from "@assets/icons/spring.svg?component";
-import SequenceIcon from "@assets/icons/sequence.svg?component";
+// KF.W13U.d2 (OA-32) — each scene's icon is a LIVING miniature the scene
+// exports from its own directory: its motion is the scene's own animation data
+// (the same keyframes / easing / spring / sequence the stage plays, driven by
+// keyframes.js), its layers the stage's stacking in miniature. The descriptor's
+// `icon` below stays the ONE binding; the dock renders it unchanged in role.
+// Every miniature is a light SFC over a light data module (`*Motion.ts`, the
+// spring presets, the Amiga group), so the static import carries no scene
+// runtime — the scenes themselves stay route-lazy.
+import CubeIcon from "../../scenes/cube/CubeMini.vue";
+import AmigaIcon from "../../scenes/amiga/AmigaMini.vue";
+import SquareIcon from "../../scenes/square/SquareMini.vue";
+import EasingIcon from "../../scenes/easing/EasingMini.vue";
+import SpringIcon from "../../scenes/spring/SpringMini.vue";
+import SequenceIcon from "../../scenes/sequence/SequenceMini.vue";
 
 // The per-scene registry-id single-source (R.W5 C.4 / T.B9 — the ONE keyspace):
 // each scene's keys module OWNS its `*_SCENE_ID` constant; the descriptor below
@@ -71,17 +67,16 @@ export interface SceneDescriptor {
     stageMode: StageMode;
     component?: Component;
     /**
-     * The scene's nav glyph — an EXPRESSIVE, COLORFUL inline-`<svg>` SFC imported
-     * via the `?component` seam (`import CubeIcon from "@assets/icons/cube.svg
-     * ?component"`), NOT an `<img :src>` URL. Inline-SVG is the reference mechanism
-     * that keeps the glyph a real DOM `<svg>` (a colorful raster is embedded as
-     * `<svg><image href="data:…"/></svg>`, never a theme-blind `<img>` — the D8
-     * defense), so the dock renders it with `<component :is="scene.icon"
-     * class="icon-sm text-muted-foreground" />`. The icon is data and lives WITH
-     * the scene (single-source: the dock iterates `scene.icon`, never a parallel
-     * string-keyed map that drifts on a rename).
+     * The scene's nav glyph — the scene's LIVING miniature (KF.W13U.d2 / OA-32):
+     * an SFC the scene exports from its own directory, rendering real DOM (never
+     * a theme-blind `<img>` — the D8 defense) and taking one prop, `live`: the
+     * dock's chosen scene plays its miniature, every other rendering rests. The
+     * dock renders it with `<component :is="scene.icon" class="dock-glyph" />`.
+     * The icon is data and lives WITH the scene (single-source: the dock
+     * iterates `scene.icon`, never a parallel string-keyed map that drifts on a
+     * rename).
      *
-     * Populated per-survivor by the Build/icons lane (it authors the SVGs first);
+     * Populated per-survivor by each scene (its `*Mini.vue`);
      * the home descriptor carries no `icon` and the dock falls back to `<Home>`
      * for it alone. Every other (non-home) descriptor MUST define `icon`
      * (proof:scene-icons coverage), so an icon-less scene is structurally

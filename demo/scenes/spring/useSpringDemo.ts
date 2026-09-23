@@ -10,7 +10,7 @@ import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport"
 import type { SceneFacility } from "@composables/scene-facility";
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 import { SPRING_SCENE_ID } from "./springKeys";
-import { SPRING_PRESETS } from "./springPresets";
+import { SPRING_BASE, SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
 import { useSpringKeyframesEditor } from "./useSpringKeyframesEditor";
 import { useCompiledEntry } from "./useCompiledEntry";
@@ -21,28 +21,8 @@ import { useSpringDerby } from "./useSpringDerby";
 export type { SpringPreset } from "./springPresets";
 export type { SpringTrack } from "./useSpringHotPath";
 
-const SETTLE = 1e-4;
 const SAMPLER_DURATION = 1400;
 
-/**
- * D-3 — THE DECLINED ENGINE FLAG, NOW PASSED AT EVERY CONSTRUCTION SITE.
- *
- * The scene's `prefers-reduced-motion` story reached only three cosmetic CSS
- * declarations; the 60 Hz SOLVER path had no PRM gate anywhere, while the engine
- * has shipped the opt-in all along (`respectReducedMotion`, default FALSE) and a
- * sibling scene proves the route (EasingTarget's `useMediaQuery` gate). CSS
- * cannot govern engine motion — the banked kf-CubeScene ruling — so the gate has
- * to be the option, and it has to be on every spring in the field or the field
- * disagrees with itself. Under PRM `set target` SNAPS and settles, which the
- * C-1 chase contract reads as "already settled": the loop terminates on its
- * first frame and a reduced-motion user gets the new state with no travel.
- */
-const SPRING_BASE = {
-    initial: 0,
-    settleThreshold: SETTLE,
-    velocitySettleThreshold: SETTLE,
-    respectReducedMotion: true,
-} as const;
 
 /**
  * Drives the SpringProgress / springTimingFunction showcase.

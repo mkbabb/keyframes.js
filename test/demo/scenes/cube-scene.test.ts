@@ -24,10 +24,8 @@ import {
     rotateByAttitude,
     useCubeRelit,
 } from "../../../demo/scenes/cube/useCubeRelit";
-import {
-    CUBE_ANIMATION_NAMES,
-    SCENE_ID,
-} from "../../../demo/scenes/cube/useCubeDemo";
+import { SCENE_ID } from "../../../demo/scenes/cube/useCubeDemo";
+import { CUBE_ANIMATION_NAMES } from "../../../demo/scenes/cube/cubeMotion";
 import { CUBE_SCENE_ID } from "../../../demo/scenes/cube/cubeKeys";
 import {
     createMatrix,

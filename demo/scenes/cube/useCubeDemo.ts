@@ -5,24 +5,17 @@ import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";
 import {
-    cssVariable,
     numberValue,
     transformCall,
-    transformList,
     type Matrix3dCall,
 } from "./matrix-editor/transformMath";
+import { CUBE_ANIMATION_NAMES, cubeSpinKeyframes } from "./cubeMotion";
 import { GRAPH_ATTITUDE, graphAttitudeCss } from "./useCubeRelit";
 
 // T.B9 — the ONE keyspace: the store key (and each `animation.superKey` field) is
 // the registry SceneId, single-sourced from `cubeKeys.ts`. This re-export keeps
 // the existing `SCENE_ID` consumers (CubeScene + this module's internal uses).
 export const SCENE_ID = CUBE_SCENE_ID;
-
-export const CUBE_ANIMATION_NAMES = {
-    Matrix: "Matrix",
-    Rotations: "Rotations",
-    Hover: "Hover",
-} as const;
 
 /** The cube's per-channel paint targets (KF.W13U.w — one element per
  *  transform owner) plus the graph the attitude settle writes. */
@@ -72,22 +65,7 @@ export function useCubeDemo(
         markRaw(
             new CSSKeyframesAnimation(
                 rotationAnimationOptions.animationOptions,
-            ).fromKeyframes({
-                from: {
-                    transform: transformList(
-                        transformCall("rotateX", numberValue(0, "deg")),
-                        transformCall("rotateY", numberValue(0, "turn")),
-                        transformCall("rotateZ", numberValue(0, "deg")),
-                    ),
-                },
-                "100%": {
-                    transform: transformList(
-                        transformCall("rotateX", cssVariable("--rotationX")),
-                        transformCall("rotateY", numberValue(1, "turn")),
-                        transformCall("rotateZ", numberValue(360, "deg")),
-                    ),
-                },
-            }),
+            ).fromKeyframes(cubeSpinKeyframes()),
         ),
     );
     rotationAnim.value.name = CUBE_ANIMATION_NAMES.Rotations;
