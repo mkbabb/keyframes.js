@@ -274,7 +274,25 @@ const derivedSurfaces = computed(() =>
               storedControls.value.selectedAnimation ?? undefined,
           ),
 );
-watchEffect(() => machine.setActiveSurfaces(derivedSurfaces.value));
+// KF.W13U repair (ESC-d-1, OA-26 "jittery") — PENDING is not EMPTY. The keyed
+// <Suspense :key="activeSceneKey"> unmounts the leaving scene before the
+// destination resolves, so mid-swap `sceneRef` is null (or, for one pre-flush,
+// still the OUTGOING scene); `surfacesFor(undefined)` read that as "no
+// surfaces" and the dock + controls pane dropped their Controls tab/panel for
+// ~3 frames, then snapped back (dock 410 → 219 → 410 px). The machine is fed
+// only once `sceneRef` is bound to THE CURRENT scene — the same `superKey`
+// predicate the shell binding's targets-attached gate uses — so the surface
+// set changes ONCE per swap, at resolve. Home feeds [] directly (no scene
+// facility is ever read there).
+const sceneBoundToCurrent = computed(
+    () =>
+        isHome.value ||
+        sceneRef.value?.superKey === currentSuperKey.value,
+);
+watchEffect(() => {
+    if (!sceneBoundToCurrent.value) return;
+    machine.setActiveSurfaces(derivedSurfaces.value);
+});
 
 // ── The dock's extra control tabs — DERIVED (T.B2 / J.W0.S3) ─────────────────
 // The scene-specific facet surfaces' tab metadata (easing→Easing, spring→Spring,
