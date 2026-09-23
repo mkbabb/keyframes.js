@@ -154,9 +154,9 @@ async function waitForSheetRest(page, { timeout = 5000 } = {}) {
     let stable = 0;
     while (Date.now() - t0 < timeout) {
         const t = await page.evaluate(() => {
-            const el = document.querySelector(".glass-drawer");
+            const el = document.querySelector('[data-slot="sheet-content"]');
             return el
-                ? getComputedStyle(el).getPropertyValue("--glass-drawer-t").trim()
+                ? getComputedStyle(el).getPropertyValue("--detent-t").trim()
                 : null;
         });
         if (t !== null && prev !== null && t === prev) {
@@ -199,13 +199,13 @@ async function touchSwipe(page, from, to, { steps = 10, stepMs = 20 } = {}) {
     }
 }
 
-/** T.H3-ADOPT — drag the glass grab handle (`.glass-drawer-handle`) via a real
+/** T.H3-ADOPT — drag the glass sheet grip (`[data-slot=sheet-detent-handle]`; glass 8.0.0 folded the Drawer into the Sheet) via a real
  *  touch swipe (dir<0 expand, dir>0 collapse) — glass-ui's useDrawerSnap owns the
  *  detent spring. The tap-to-toggle path is gone (the glass handle is a drag
  *  surface). */
 async function dragGlassHandle(page, dir, dyPx = 340) {
     const box = await page.evaluate(() => {
-        const h = document.querySelector(".glass-drawer-handle");
+        const h = document.querySelector('[data-slot="sheet-detent-handle"]');
         if (!h) return null;
         const r = h.getBoundingClientRect();
         return { cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2) };
@@ -230,11 +230,11 @@ const readGeometry = (page) =>
                 width: Math.round(b.width),
             };
         };
-        // T.H3-ADOPT — the mobile sheet is glass-ui's <Drawer> (.glass-drawer).
+        // T.H3-ADOPT — the mobile sheet is glass-ui's <SheetContent> ([data-slot=sheet-content]; the 7.0.0 <Drawer>).
         // "open"/"closed" derive from the VISIBLE fraction (the bottom-anchored
         // sheet shows the snap-fraction; expanded > 0.35, peek < 0.30); sheetT is
-        // --glass-drawer-t; the handle is .glass-drawer-handle.
-        const wrapper = document.querySelector(".glass-drawer");
+        // --detent-t; the handle is [data-slot=sheet-detent-handle].
+        const wrapper = document.querySelector('[data-slot="sheet-content"]');
         const vh = window.innerHeight;
         const visFrac = wrapper
             ? (vh - wrapper.getBoundingClientRect().top) / vh
@@ -243,11 +243,11 @@ const readGeometry = (page) =>
             open: !!wrapper && visFrac > 0.35,
             closed: !!wrapper && visFrac < 0.3,
             sheetT: wrapper
-                ? getComputedStyle(wrapper).getPropertyValue("--glass-drawer-t").trim()
+                ? getComputedStyle(wrapper).getPropertyValue("--detent-t").trim()
                 : null,
             sheet: r(wrapper),
             menubar: r(document.querySelector(".menubar-safe-pb")),
-            handle: !!document.querySelector(".glass-drawer-handle"),
+            handle: !!document.querySelector('[data-slot="sheet-detent-handle"]'),
             vh,
         };
     });
@@ -395,8 +395,8 @@ async function runBattery() {
                 await page
                     .waitForFunction(
                         () =>
-                            !!document.querySelector(".glass-drawer") &&
-                            !!document.querySelector(".glass-drawer-handle"),
+                            !!document.querySelector('[data-slot="sheet-content"]') &&
+                            !!document.querySelector('[data-slot="sheet-detent-handle"]'),
                         { timeout: 10000 },
                     )
                     .catch(() => {});
@@ -413,12 +413,12 @@ async function runBattery() {
                 if (geo.open) {
                     ok(
                         `M1 sheet OPEN: the Drawer reaches its expanded detent ` +
-                            `(--glass-drawer-t=${geo.sheetT}, spring-settled — not a fixed wait) on 390×844`,
+                            `(--detent-t=${geo.sheetT}, spring-settled — not a fixed wait) on 390×844`,
                     );
                 } else {
                     fail(
                         `M1 sheet OPEN: the Drawer did not reach its expanded detent ` +
-                            `(open=${geo.open}, --glass-drawer-t=${geo.sheetT}) — the touch expand gesture is broken`,
+                            `(open=${geo.open}, --detent-t=${geo.sheetT}) — the touch expand gesture is broken`,
                     );
                 }
 
@@ -477,11 +477,11 @@ async function runBattery() {
                 await waitForSheetRest(page);
                 const closedGeo = await readGeometry(page);
                 if (closedGeo.closed) {
-                    ok(`M1 sheet CLOSE: a drag DOWN collapses the Drawer to the peek detent (--glass-drawer-t=${closedGeo.sheetT})`);
+                    ok(`M1 sheet CLOSE: a drag DOWN collapses the Drawer to the peek detent (--detent-t=${closedGeo.sheetT})`);
                 } else {
                     fail(
                         `M1 sheet CLOSE: the drag did not collapse the Drawer ` +
-                            `(closed=${closedGeo.closed}, --glass-drawer-t=${closedGeo.sheetT})`,
+                            `(closed=${closedGeo.closed}, --detent-t=${closedGeo.sheetT})`,
                     );
                 }
                 // Record the same Glass consume edge at the peek detent.
@@ -490,7 +490,7 @@ async function runBattery() {
                 await dragGlassHandle(page, -1, 360);
                 await page
                     .waitForFunction(() => {
-                        const el = document.querySelector(".glass-drawer");
+                        const el = document.querySelector('[data-slot="sheet-content"]');
                         if (!el) return false;
                         const r = el.getBoundingClientRect();
                         return window.innerHeight - r.top > 0.35 * window.innerHeight;
@@ -504,13 +504,13 @@ async function runBattery() {
                     if (p) p.scrollTop = 0;
                 });
                 const reopen = await page.evaluate(() => {
-                    const w = document.querySelector(".glass-drawer");
+                    const w = document.querySelector('[data-slot="sheet-content"]');
                     const p = document.querySelector(".controls-pane");
                     const vh = window.innerHeight;
                     const visFrac = w ? (vh - w.getBoundingClientRect().top) / vh : 0;
                     return {
                         open: !!w && visFrac > 0.35,
-                        sheetT: w ? getComputedStyle(w).getPropertyValue("--glass-drawer-t").trim() : null,
+                        sheetT: w ? getComputedStyle(w).getPropertyValue("--detent-t").trim() : null,
                         overflowY: p ? getComputedStyle(p).overflowY : null,
                         cx: p ? Math.round(p.getBoundingClientRect().left + p.getBoundingClientRect().width / 2) : 0,
                         cy: p ? Math.round(p.getBoundingClientRect().top + p.getBoundingClientRect().height / 2) : 0,
@@ -548,7 +548,7 @@ async function runBattery() {
                 } else {
                     fail(
                         `M1 sheet RE-OPEN: the second open did not restore a scrollable expanded sheet ` +
-                            `(open=${reopen.open}, --glass-drawer-t=${reopen.sheetT}, overflow-y=${reopen.overflowY}) ` +
+                            `(open=${reopen.open}, --detent-t=${reopen.sheetT}, overflow-y=${reopen.overflowY}) ` +
                             `— the M2 latch class (no transitionend ever fires on the spring-driven sheet)`,
                     );
                 }
