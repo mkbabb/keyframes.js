@@ -445,8 +445,11 @@ const mountTrack = (keyframes: TimelineKeyframe[]) => {
         w,
         previews,
         hovered,
-        /** What the mount PASSES — the first arm of reka's `ariaLabel`. */
-        passed: () => w.findComponent(TooltipContent).props("ariaLabel") as string,
+        /** What the mount PASSES — the first arm of reka's `ariaLabel`.
+         *  [X.KF.W13R.m, glass 10.0.1] glass's TooltipContent no longer
+         *  DECLARES `ariaLabel` (bca22bd9, W-OVERLAY); the binding rides its
+         *  forwarded attrs to reka's content, so it is read off `$attrs`. */
+        passed: () => w.findComponent(TooltipContent).vm.$attrs["aria-label"] as string,
         marker: () => w.get<HTMLElement>(".keyframe-marker"),
         /** What reka BUILDS — the `role="tooltip"` node's own words. */
         announced: () =>
