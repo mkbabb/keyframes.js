@@ -313,14 +313,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { SharePopover } from "@components/instrument/shell";
-// MM-24 — one subpath discipline: the menu family from `./dropdown-menu`, the
+// MM-24 — one subpath discipline: the menu family from `./menu`, the
 // dialog from `./dialog`, the button from `./button`. `Avatar*` alone stays on
 // the root barrel because `./avatar` is ABSENT from the producer's exports map —
 // that gap is a producer row (BH relay), not a local choice.
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { Keyboard, Trash } from "@lucide/vue";
