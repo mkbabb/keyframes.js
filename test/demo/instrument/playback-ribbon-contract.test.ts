@@ -648,3 +648,39 @@ describe("OA-8 — the scrub rail wears the producer Slider's own paint", () => 
         expect(src).not.toContain("<style");
     });
 });
+
+describe("R-close-1 (KF.W13U repair) — the rail follows the pointer gesture in the same flush, not the rAF read-back", () => {
+    it("a press seats the thumb at the pressed value before any move, with the playhead parked near the end and no read-back yet; release returns the rail to the read-back", async () => {
+        // The mount's `currentT` is rAF-polled (useAnimationSync), so it lags the
+        // seat by a frame or more. The producer Slider aligns `contain`: reka
+        // measures the grab offset on the gesture's first move from the thumb's
+        // rendered rect — a thumb still parked at 4800 there saturates the whole
+        // drag at :max (the served-page RED: press at 20 %, scrub lands at 5000).
+        const seat = mountRibbon({ currentT: 4800 });
+        await settle();
+        const thumb = thumbOf(seat.root);
+        expect(thumb.getAttribute("aria-valuenow")).toBe("4800");
+
+        seat.root.querySelector<HTMLElement>(".scrub-rail")!.dispatchEvent(
+            new PointerEvent("pointerdown", { pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, bubbles: true }),
+        );
+        // reka's slideStart emits the pressed value; the parent's read-back does
+        // NOT arrive (the `currentT` prop stays 4800 — no ticker frame has run).
+        seat.wrapper.findComponent({ name: "Slider" }).vm.$emit("update:modelValue", [1000]);
+        await nextTick();
+        expect(seat.emitted("sliderUpdate").map(([v]) => (v as { t: number }).t)).toEqual([1000]);
+        expect(thumb.getAttribute("aria-valuenow")).toBe("1000");
+
+        seat.wrapper.findComponent({ name: "Slider" }).vm.$emit("update:modelValue", [2300]);
+        await nextTick();
+        expect(thumb.getAttribute("aria-valuenow")).toBe("2300");
+
+        window.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, pointerType: "mouse", isPrimary: true, bubbles: true }));
+        await settle();
+        expect(seat.emitted("scrubEnd")).toHaveLength(1);
+        // After release the rail is the read-back again — the one authority.
+        expect(thumb.getAttribute("aria-valuenow")).toBe("4800");
+        await seat.setProps({ currentT: 2300 });
+        expect(thumb.getAttribute("aria-valuenow")).toBe("2300");
+    });
+});

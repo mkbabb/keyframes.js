@@ -52,7 +52,7 @@
                         :max="effectiveDuration"
                         :step="scrubStep"
                         :aria-describedby="scrubHintId"
-                        :model-value="[currentT]"
+                        :model-value="[railT]"
                         @update:model-value="onSliderInput"
                         @value-commit="onSliderCommit"
                     />
@@ -142,7 +142,7 @@
 // glass-ui's <Button> DOM shared with the scene play buttons. This file authors
 // no styles: the scrub rail is the producer Slider's own paint (OA-8).
 
-import { computed, useId } from "vue";
+import { computed, ref, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 // C-11 (NOT landed — recorded): `Button`/`Slider` stay on the root barrel beside
@@ -170,7 +170,7 @@ import AnimationVisualizer from "./AnimationVisualizer.vue";
  */
 type EffectiveMs = number;
 
-const { animation, source, duration, preview } = defineProps<{
+const { animation, source, duration, currentT, preview } = defineProps<{
     // T.B1-β STAGE 1 — the ribbon is CHANNEL-capable: its time source is EITHER
     // the selected channel's painting `animation` (the engine-clocked path —
     // scrubs emit `sliderUpdate`, the visualizer twin mounts) OR a progress-
@@ -247,8 +247,26 @@ const emit = defineEmits<{
 // owns the VALUE.
 const { isDragging, onPointerDown: onScrubPointerDown } = useDragCapture({
     onStart: () => emit("scrubStart"),
-    onEnd: () => emit("scrubEnd"),
+    onEnd: () => {
+        gestureT.value = null;
+        emit("scrubEnd");
+    },
 });
+
+/** R-close-1 — THE RAIL'S VALUE DURING A POINTER GESTURE is the value the
+ *  gesture last seated, not the `currentT` read-back. `currentT` is rAF-polled
+ *  by the mount (`useAnimationSync`'s ticker, idled while paused and woken by
+ *  `scrubbed`), so it reaches the rail a frame or more after the seat. The
+ *  producer Slider aligns its thumb `contain`: reka measures the grab offset
+ *  ONCE, on the gesture's first move, from the thumb's rendered rect. With the
+ *  read-back lagging, a move that arrives before that frame measured the thumb
+ *  where the playhead WAS — a press at 20 % with the playhead parked at 96 %
+ *  stored a −76 % offset, and every later move saturated at `:max` (the scrub
+ *  landed at the end and stayed there). Seating the rail from the gesture
+ *  re-renders the thumb in the same flush as the press, before any move. At
+ *  release the rail returns to the read-back, which by then holds the seat. */
+const gestureT = ref<EffectiveMs | null>(null);
+const railT = computed<EffectiveMs>(() => gestureT.value ?? currentT);
 
 /** D-5 — the id the sr-only hint carries, forwarded to the thumb by the producer. */
 const scrubHintId = useId();
@@ -263,7 +281,9 @@ const scrubStep = computed(() => effectiveDuration.value / 100);
 const onSliderInput = (val: number[] | undefined) => {
     if (!isDragging.value) return;
     const t = val?.[0];
-    if (t !== undefined) scrubTo(t);
+    if (t === undefined) return;
+    gestureT.value = t;
+    scrubTo(t);
 };
 
 /** C-3 — the producer's keyboard-inclusive `valueCommit`. A KEYBOARD step has
