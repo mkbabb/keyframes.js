@@ -110,6 +110,11 @@
             <DropdownMenuSeparator />
 
             <!-- ppmycota logo — toggles pp mode.
+                 [X.KF.W13R.m — MM-4 DISCHARGED at glass 10.0.0: every library
+                 style rule now sits in `@layer components` (MIGRATION §10.0.0),
+                 `.menu__item`/`.glass-menu-row` included, so the utility class
+                 paints and the inline `:style` came out — the migration the
+                 note below names as the whole of it. The history is kept.]
                  MM-4 INTERIM, AND IT IS LABELLED AS ONE. glass-ui emits
                  `.dropdown-menu__item` OUTSIDE its single `@layer components`
                  block (byte 29523 against the block's 2531–18827), and an
@@ -143,7 +148,7 @@
                  `CUBE_SCENE_ID` on every scene, home included, so writing the ACTIVE
                  scene's bucket was inert on 6 of 7 scenes. CubeScene's `setPPMode`
                  twin died with the unmounted header render fn (KF-APP-17, delete arm). -->
-            <DropdownMenuCheckboxItem :model-value="cubeControls.ppMode ?? false" @update:model-value="(checked: boolean) => (cubeControls.ppMode = checked)" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer" :style="{ cursor: 'pointer' }">
+            <DropdownMenuCheckboxItem :model-value="cubeControls.ppMode ?? false" @update:model-value="(checked: boolean) => (cubeControls.ppMode = checked)" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer">
                 <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
                 <div class="flex-1 min-w-0">
                     <!-- MM-21 — the brand colour is a UTILITY, and the old
@@ -208,8 +213,8 @@
                  paint while `.dropdown-menu__item`'s unlayered `color` outranks
                  it. Class and inline say the SAME thing, so when the producer
                  sheet is layered the inline pair comes out and nothing else
-                 changes. -->
-            <DropdownMenuItem text-value="Clear all" class="gap-2.5 px-1.5 py-1 cursor-pointer text-accent-red" :style="{ cursor: 'pointer', color: 'var(--accent-red)' }" @select="confirmClearOpen = true">
+                 changes. [X.KF.W13R.m: layered at glass 10.0.0; the pair is out.] -->
+            <DropdownMenuItem text-value="Clear all" class="gap-2.5 px-1.5 py-1 cursor-pointer text-accent-red" @select="confirmClearOpen = true">
                 <span class="w-7 shrink-0 flex justify-center"><Trash class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small">Clear all &amp; reload</span>
