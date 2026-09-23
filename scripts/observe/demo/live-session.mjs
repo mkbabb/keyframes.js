@@ -1013,7 +1013,12 @@ async function runBattery() {
                     sceneFails.push(`${key}: PLAY red — present loop dead (frames=${frames} within the 3s deadline, canvas=${canvas})`);
                 } else if (meta.kind === "spring-rail") {
                     // spring — scrub the rail (the J.W2 shared drag seam) and
-                    // watch the solver balls' style.left churn.
+                    // watch the solver balls' position churn. X.KF.W13U.x RE-SEAT:
+                    // the painter writes `style.transform = translateX(<cqw>)` since
+                    // T.G4 (`562ced31`, "position by transform, never left"), so
+                    // the balls carry no inline `left` and the old `left` read saw
+                    // 1 static value however far they moved. Read the ball's own
+                    // write channel — the inline transform — on the same nodes.
                     const rail = await page.evaluate(() => {
                         const el = document.querySelector(".spring-rail");
                         const r = el?.getBoundingClientRect();
@@ -1028,8 +1033,8 @@ async function runBattery() {
                         const seen = new Set();
                         const t0 = performance.now();
                         while (performance.now() - t0 < 2200) {
-                            for (const el of document.querySelectorAll(".spring-rail [style*='left'], [class*='ball'][style*='left']")) {
-                                if (el.style.left) seen.add((el.className?.toString?.() ?? "").slice(0, 20) + "|" + el.style.left);
+                            for (const el of document.querySelectorAll(".spring-rail [class*='ball'][style*='transform']")) {
+                                if (el.style.transform) seen.add((el.className?.toString?.() ?? "").slice(0, 20) + "|" + el.style.transform);
                             }
                             await sleep(40);
                         }
