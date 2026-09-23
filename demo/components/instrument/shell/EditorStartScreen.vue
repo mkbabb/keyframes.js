@@ -63,7 +63,7 @@
                evidenced nowhere in the tree either way. Swapping first and
                testing later is how a severed cure gets un-severed by accident. -->
         <h1 class="hero-display text-display-mega">
-            <AnimatedText text="Select an animation" />
+            <AnimatedText :text="hero.title" />
             <span class="hero-dots"><TypingDots /></span>
         </h1>
         <!-- T.D11 (OD-4) — the deck joins the poster's own voice: Instrument
@@ -148,6 +148,12 @@ import TypingDots from "./TypingDots.vue";
 defineProps<{
     hint?: string;
 }>();
+
+// X.KF.W13U.x — the hero title is DECLARED here, once: the template renders it
+// and the usability observation's (2c) reads this same declaration as its
+// oracle (the per-char split must equal ITS glyph count, never the rendered
+// mirror's). Still copy, not configuration — no prop, no consumer can hand one.
+const hero = { title: "Select an animation" } as const;
 </script>
 
 <style scoped>
