@@ -173,14 +173,15 @@
                          a third, worse dialect. Declared, never silently
                          dropped; perceptual magnitude is SS-13's. -->
                     <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
-                    <!-- MM-8's ONE DEFENSIBLE `text-admin-label`: a bare URL is
+                    <!-- MM-8's ONE DEFENSIBLE mono register (`text-admin-label`,
+                         retired at glass 8.0.0 for `text-mono-micro`): a bare URL is
                          an artifact string, not prose, so the mono register is
                          correct here and stays. -->
                     <!-- MM-10 — `block`: the title `<span>` and this `<a>` were
                          both inline in a block wrapper, and Vue's default
                          whitespace `condense` deleted the newline between them,
                          so the row's two lines ran together as one. -->
-                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="block text-admin-label text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
+                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="block text-mono-micro text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                 </div>
             </DropdownMenuCheckboxItem>
 

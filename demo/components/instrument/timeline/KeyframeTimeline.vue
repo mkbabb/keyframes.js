@@ -218,7 +218,7 @@
             role="status"
             aria-live="polite"
         >
-            <span class="text-admin-label text-destructive"
+            <span class="text-mono-micro uppercase font-medium text-destructive"
                 >Animation could not be built — {{ buildError }}</span
             >
             <Button size="sm" emphasis="quiet" @click="rebuild()">Retry</Button>
@@ -307,7 +307,7 @@
                     <p
                         v-if="cssEditorError"
                         id="kf-css-editor-error"
-                        class="text-admin-label text-destructive mt-1"
+                        class="text-mono-micro uppercase font-medium text-destructive mt-1"
                         role="status"
                         aria-live="polite"
                     >

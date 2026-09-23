@@ -80,7 +80,7 @@
                          status region (D20) — `progress` itself is never one. -->
                     <span
                         role="status"
-                        class="status-badge text-admin-label px-2 py-0.5 rounded-full"
+                        class="status-badge text-mono-micro uppercase px-2 py-0.5 rounded-full"
                         :style="{ '--badge-tone': demo.isPlaying.value ? 'var(--color-progress)' : 'var(--muted-foreground)' }"
                     >{{ demo.isPlaying.value ? "playing" : "ready" }}</span>
                 </div>

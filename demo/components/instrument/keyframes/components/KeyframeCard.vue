@@ -85,7 +85,7 @@
         <p
             v-if="offsetError !== null"
             :id="errorId"
-            class="text-admin-label text-destructive"
+            class="text-mono-micro uppercase font-medium text-destructive"
             role="status"
             aria-live="polite"
         >

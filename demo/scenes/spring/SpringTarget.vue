@@ -73,7 +73,7 @@
                      since the lane overlay is (correctly) `aria-hidden`
                      decoration and four racing balls are not a thing to narrate. -->
                 <span
-                    class="status-badge text-admin-label px-2 py-0.5 rounded-full"
+                    class="status-badge text-mono-micro uppercase px-2 py-0.5 rounded-full"
                     :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
                     role="status"
                 >{{ stateLabel }}</span>

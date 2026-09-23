@@ -72,7 +72,7 @@
             <p
                 v-if="error"
                 id="css-paste-dialog-error"
-                class="text-admin-label text-destructive"
+                class="text-mono-micro uppercase font-medium text-destructive"
                 role="status"
                 aria-live="polite"
             >
