@@ -53,6 +53,7 @@
                 <div class="family-row">
                     <ToggleGroup
                         type="single"
+                        size="sm"
                         :model-value="familyFilter"
                         aria-label="Filter curves by family"
                         @update:model-value="onFamilyChange"
@@ -61,7 +62,6 @@
                             v-for="f in FAMILY_FILTERS"
                             :key="f"
                             :value="f"
-                            size="sm"
                         >
                             {{ f }}
                         </ToggleGroupItem>
@@ -115,6 +115,7 @@
         <FadingScroll axis="y" class="specimen-drawer min-h-0 w-full flex-1">
             <ToggleGroup
                 type="single"
+                size="sm"
                 class="specimen-grid"
                 aria-label="Easing curve specimens"
                 :model-value="demo.currentEasingName.value"
@@ -124,7 +125,6 @@
                     v-for="curve in visibleCurves"
                     :key="curve.name"
                     :value="curve.name"
-                    size="sm"
                     data-surface="opaque"
                     class="specimen-tile flex-col gap-1.5 px-2 py-2.5"
                 >
