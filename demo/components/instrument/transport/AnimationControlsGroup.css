@@ -51,10 +51,16 @@
     --rail-track: var(--rail-width);
     grid-template-columns: [rail] var(--rail-track) [stage] minmax(0, 1fr);
     grid-template-rows: [top] auto [stage] 1fr [bottom] auto;
-    /* R.W6 C.5 — explicit var(--spring-smooth) (the calmer curve, the intent);
-       the local --spring-snappy shadow alias that mapped it is now EXCISED from
-       style.css, restoring glass-ui's own --spring-snappy. */
-    transition: grid-template-columns var(--duration-slow) var(--spring-smooth);
+    /* X.KF.W13R.d (REPIN-SPRING-SMOOTH-DEAD, KFA-168 re-read) — glass 10.0.1
+       re-cut the spring register onto six role rungs (BK #26 W-SPRING-RETUNE,
+       d27ec5dc); `--spring-smooth` is defined nowhere in 10.0.1, so the old
+       declaration was invalid at computed-value time and the rail track jumped
+       475 → 0 px in one frame. The rail's open/close is an EXTENT — the retune's
+       "travel / indicator / extent" row lands on `--spring-dock` (fast attack,
+       dead landing: the calmer curve R.W6 C.5 asked for), read with the rung's
+       OWN clock, never a borrowed `--duration-*`. */
+    transition: grid-template-columns var(--spring-dock-duration)
+        var(--spring-dock);
 }
 
 /* The open/close + railless track-collapse (the [rail] track between
