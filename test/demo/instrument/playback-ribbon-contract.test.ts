@@ -398,16 +398,22 @@ describe("D-5 + D-6 + L-M1 — the hint reaches the thumb, disabled is the primi
         expect(hint?.textContent?.trim()).toMatch(/arrow keys/);
     });
 
-    it("(D-6) before the animation starts the thumb is DISABLED on the primitive — out of the tab order and inert to arrows — not costumed", async () => {
+    it("(D-6 → OA-29, KF.W13U.t) before the animation starts the rail is LIVE — in the tab order, not disabled, not costumed, and a keyboard step seats the playhead", async () => {
+        // Superseded contract: D-6 disabled the thumb until the animation
+        // started (`:disabled="!isAnimStarted"`), which left the timeline
+        // greyed and inert on every scene until Play (the owner's OA-29). The
+        // scrub seat is lifecycle-free, so a never-started animation scrubs.
         const seat = mountRibbon({ isAnimStarted: false, currentT: 1000 });
         await settle();
         const thumb = thumbOf(seat.root);
-        expect(thumb.getAttribute("tabindex")).not.toBe("0");
-        expect(thumb.hasAttribute("data-disabled")).toBe(true);
+        expect(thumb.getAttribute("tabindex")).toBe("0");
+        expect(thumb.hasAttribute("data-disabled")).toBe(false);
+        expect(seat.root.querySelector(".glass-slider[data-disabled]")).toBeNull();
+        expect(seat.root.querySelector(".is-disabled")).toBeNull();
         key(thumb, "ArrowRight");
         await settle();
-        expect(seat.emitted("sliderUpdate")).toHaveLength(0);
-        expect(seat.root.querySelector(".is-disabled [role=slider]")).toBeNull();
+        expect(seat.emitted("sliderUpdate")).toHaveLength(1);
+        expect(seat.sequence).toEqual(["scrubStart", "sliderUpdate", "scrubbed", "scrubEnd"]);
     });
 
     it("(L-M1) the wrapper runs no gate of its own: a primary mouse press arms the drag seam directly (scrubStart)", async () => {
