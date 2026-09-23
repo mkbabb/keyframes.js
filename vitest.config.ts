@@ -80,10 +80,11 @@ export default defineConfig({
                     name: "demo",
                     include: ["test/demo/**/*.test.ts"],
                     environment: "jsdom",
-                    // X.KF.W13R.m — jsdom has no hit testing; glass 10's dock
-                    // luminance sampler calls `document.elementsFromPoint` on
-                    // mount (the setup file's header states the whole case).
-                    setupFiles: ["test/demo/setup/jsdom-hit-test.ts"],
+                    // X.KF.W13R.m — jsdom has no layout (no hit testing, no
+                    // ResizeObserver, no scrollIntoView) and glass 10's dock
+                    // sampler and selection engine reach all three; the setup
+                    // file states each case.
+                    setupFiles: ["test/demo/setup/jsdom-layout.ts"],
                 },
             },
             // X.KF.W8 (G9 / R-5) — the two `bench/*.measure.test.ts` orphans are
