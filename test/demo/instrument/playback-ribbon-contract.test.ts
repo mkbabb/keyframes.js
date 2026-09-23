@@ -552,8 +552,12 @@ describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act"
         const chunk = buttonEntry.match(/from\s*"\.\/([^"]+)"/)?.[1];
         expect(chunk, "the Button entry re-exports a chunk").toBeTruthy();
         expect(await readRepo(`${GLASS_DIST}/${chunk}`)).toMatch(/"[^"]*\bfocus-ring\b[^"]*"/);
+        // [X.KF.W13R.m, glass 10.0.1] the producer's ring is an OUTLINE, not a
+        // box-shadow (MIGRATION §8.0.0 _Focus moves off box-shadow_), so a
+        // quiet-emphasis `box-shadow: none` can no longer erase it
+        // (QUIET-FOCUS-RING, COHESION §0cd).
         expect(await readRepo(`${GLASS_DIST}/styles/utilities/base.css`)).toMatch(
-            /\.focus-ring:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring-shadow\)/,
+            /\.focus-ring:focus-visible\s*\{[^}]*outline:\s*var\(--focus-ring-width\)/,
         );
         const a11y = await readRepo(`${GLASS_DIST}/styles/utilities/a11y-overrides.css`);
         expect(a11y).toMatch(/@media \(forced-colors: active\)[\s\S]*?\.focus-ring:focus-visible/);
