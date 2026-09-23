@@ -31,6 +31,21 @@ const passthrough = (name: string) =>
             return () => h("div", { "data-stub": name }, slots.default?.());
         },
     });
+/** KF.W13U.e — `SelectValue`'s default slot is SCOPED in the producer
+ *  (`{ selectedLabel, modelValue }`, glass-ui 7.0.0 `select`), and the options
+ *  card's easing trigger now reads it; the stub hands the declared scope (no
+ *  selection seated: this gate is about the rail, not the picker). */
+const selectValueStub = defineComponent({
+    name: "SelectValueStub",
+    setup(_props, { slots }) {
+        return () =>
+            h(
+                "span",
+                { "data-stub": "SelectValueStub" },
+                slots.default?.({ selectedLabel: [], modelValue: undefined }),
+            );
+    },
+});
 const buttonHost = defineComponent({
     name: "ButtonHost",
     setup(_props, { slots }) {
@@ -53,7 +68,7 @@ vi.mock("@mkbabb/glass-ui", async () => {
         SelectLabel: passthrough("SelectLabelStub"),
         SelectSeparator: passthrough("SelectSeparatorStub"),
         SelectTrigger: passthrough("SelectTriggerStub"),
-        SelectValue: passthrough("SelectValueStub"),
+        SelectValue: selectValueStub,
         Separator: passthrough("SeparatorStub"),
         useTouchGate: () => ({
             isActive: ref(false),

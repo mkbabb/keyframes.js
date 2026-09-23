@@ -305,9 +305,59 @@
                                             class="col-span-full"
                                             :aria-labelledby="easingLabelId"
                                         >
+                                            <!-- OA-28 / OA-31 (§0be · §0bg) — the
+                                                 closed trigger shows the CURRENT
+                                                 curve: its glyph (sampled from the
+                                                 easing the key installs, the same
+                                                 `curveGlyphs` map every row reads)
+                                                 and its NAME only — the description
+                                                 never renders inline here. Drawn
+                                                 through the producer SelectValue's
+                                                 own default slot (`modelValue`); a
+                                                 key that matches no row (the
+                                                 poisoned-bucket case) keeps the
+                                                 producer's placeholder. -->
                                             <SelectValue
-                                                placeholder="Pick a curve"
-                                            />
+                                                v-slot="{ modelValue }"
+                                                :placeholder="CURVE_PLACEHOLDER"
+                                            >
+                                                <span
+                                                    v-if="
+                                                        curveGlyphs.has(
+                                                            String(modelValue),
+                                                        )
+                                                    "
+                                                    class="flex min-w-0
+                                                        items-center gap-1.5"
+                                                >
+                                                    <svg
+                                                        class="curve-glyph"
+                                                        viewBox="0 0 1 1"
+                                                        preserveAspectRatio="none"
+                                                        overflow="visible"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <path
+                                                            :d="
+                                                                curveGlyphs.get(
+                                                                    String(
+                                                                        modelValue,
+                                                                    ),
+                                                                )
+                                                            "
+                                                            vector-effect="non-scaling-stroke"
+                                                        />
+                                                    </svg>
+                                                    <span
+                                                        data-register="code"
+                                                        class="truncate font-mono"
+                                                        >{{ modelValue }}</span
+                                                    >
+                                                </span>
+                                                <template v-else>{{
+                                                    CURVE_PLACEHOLDER
+                                                }}</template>
+                                            </SelectValue>
                                         </SelectTrigger>
                                     <SelectContent
                                         class="max-h-[var(--easing-dropdown-max-h)]"
@@ -348,6 +398,7 @@
                                                     :key="curveItem.name"
                                                     :value="curveItem.name"
                                                     :text-value="curveItem.name"
+                                                    :aria-describedby="curveDescriptionId(curveItem.name)"
                                                     class="pe-2"
                                                 >
                                                     <span
@@ -415,21 +466,34 @@
                                                                 curveItem.name
                                                             }}</span
                                                         >
-                                                        <!-- KF-CO-32 — logical
-                                                             `ms-auto ps-2` in an
-                                                             RTL-ready vendor
-                                                             context. -->
+                                                    </span>
+                                                    <!-- OA-28 / OA-31 — the
+                                                         description rides the
+                                                         producer SelectItem's own
+                                                         `description` slot: OUTSIDE
+                                                         its SelectItemText, so the
+                                                         item's registered label is
+                                                         the NAME alone, and on its
+                                                         own secondary line (visual
+                                                         separation). It is the
+                                                         option's accessible
+                                                         DESCRIPTION, not part of its
+                                                         name: aria-hidden here and
+                                                         referenced by the item's
+                                                         aria-describedby. -->
+                                                    <template #description>
                                                         <span
+                                                            :id="curveDescriptionId(curveItem.name)"
+                                                            aria-hidden="true"
                                                             class="text-dropdown-secondary
                                                                 text-muted-foreground
-                                                                ms-auto ps-2
                                                                 leading-tight
                                                                 whitespace-nowrap"
                                                             >{{
                                                                 curveItem.description
                                                             }}</span
                                                         >
-                                                    </span>
+                                                    </template>
                                                 </SelectItem>
                                             </SelectGroup>
                                         </template>
@@ -714,7 +778,9 @@ const onEasingAuthored = (v: EasingPickerValue): void => {
 // draft-kind rows track the store's live quad / step options reactively.
 const curveGlyphs = computed(
     () =>
-        new Map(
+        // Keyed by `string`: the trigger's slot hands back the producer's
+        // scalar `modelValue`, looked up by its string form.
+        new Map<string, string>(
             EASING_GROUPS.flatMap((g) =>
                 g.items.map((i) => [i.name, curveGlyphPath(i.name)] as const),
             ),
@@ -724,6 +790,14 @@ const curveGlyphs = computed(
 // KF-CO-21 / KF-CO-26 — the ids the hand-rolled label row and the advanced
 // disclosure wire their ARIA relations through (SSR-stable, per instance).
 const easingLabelId = useId();
+// OA-28 / OA-31 — each picker row's description element id (the row's
+// aria-describedby target), per instance: the card mounts once per layout seat.
+const curveDescriptionIdBase = useId();
+const curveDescriptionId = (name: string): string =>
+    `${curveDescriptionIdBase}-desc-${name}`;
+// The trigger's placeholder, read by the producer prop AND by the slot's
+// no-match arm (a slot replaces the producer's own placeholder fallback).
+const CURVE_PLACEHOLDER = "Pick a curve";
 const advancedPaneId = useId();
 
 // ── KF-CO-3 ≡ L·B-1 / C·B-1 (+ N-1, N-15) — ONE guarded option handler ──────

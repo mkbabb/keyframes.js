@@ -33,7 +33,7 @@
  * allowlist, no try/catch around a defect.
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { computed, defineComponent, h, nextTick } from "vue";
+import { computed, defineComponent, h, inject, nextTick, provide } from "vue";
 import { mount } from "@vue/test-utils";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
@@ -60,6 +60,45 @@ const passthrough = (name: string) =>
         },
     });
 
+/** KF.W13U.e · OA-28/OA-31 — the three Select members whose SLOT contract the
+ *  easing picker consumes, stubbed faithful to the producer's declared slots
+ *  (glass-ui 7.0.0 `select`): `Select` owns the `modelValue`; `SelectValue`'s
+ *  default slot receives `{ selectedLabel, modelValue }` (the producer forwards
+ *  reka's scope); `SelectItem` renders its default slot as the item text and a
+ *  separate `description` slot beside it, forwarding attrs to the option root. */
+const SELECT_MODEL = Symbol("select-model");
+const selectStub = defineComponent({
+    name: "SelectStub",
+    props: { modelValue: { type: null, default: undefined } },
+    setup(props, { slots }) {
+        provide(SELECT_MODEL, () => props.modelValue);
+        return () => h("div", { "data-stub": "SelectStub" }, slots.default?.());
+    },
+});
+const selectValueStub = defineComponent({
+    name: "SelectValueStub",
+    setup(_props, { slots }) {
+        const model = inject<() => unknown>(SELECT_MODEL, () => undefined);
+        return () =>
+            h(
+                "span",
+                { "data-stub": "SelectValueStub" },
+                slots.default?.({ selectedLabel: [], modelValue: model() }),
+            );
+    },
+});
+const selectItemStub = defineComponent({
+    name: "SelectItemStub",
+    inheritAttrs: false,
+    setup(_props, { slots, attrs }) {
+        return () =>
+            h("div", { ...attrs, "data-stub": "SelectItemStub", role: "option" }, [
+                h("span", { "data-stub": "SelectItemTextStub" }, slots.default?.()),
+                slots.description?.(),
+            ]);
+    },
+});
+
 /** The root barrel's members along this mount path (ChannelOptions,
  *  ChannelControls, RibbonBar, PlaybackRibbon). `Button` renders a real
  *  `<button>` so the pencil and the advanced Back are focusable elements;
@@ -74,14 +113,14 @@ vi.mock("@mkbabb/glass-ui", () => ({
     Button: buttonStub,
     Card: passthrough("CardStub"),
     CardContent: passthrough("CardContentStub"),
-    Select: passthrough("SelectStub"),
+    Select: selectStub,
     SelectContent: passthrough("SelectContentStub"),
     SelectGroup: passthrough("SelectGroupStub"),
-    SelectItem: passthrough("SelectItemStub"),
+    SelectItem: selectItemStub,
     SelectLabel: passthrough("SelectLabelStub"),
     SelectSeparator: passthrough("SelectSeparatorStub"),
     SelectTrigger: passthrough("SelectTriggerStub"),
-    SelectValue: passthrough("SelectValueStub"),
+    SelectValue: selectValueStub,
     Separator: passthrough("SeparatorStub"),
     Slider: passthrough("SliderStub"),
     useTouchGate: () => ({
@@ -510,6 +549,130 @@ describe("X.KF.W13T.e · OA-7 (§0ao.1) — every easing-picker row draws its cu
                     generateCurveSVGPath(steppedEasing(1, "jump-end"), 64),
                 );
             }
+        } finally {
+            wrapper.unmount();
+        }
+    });
+});
+
+/** The glyph's plotted points, `M x,y L x,y …` → `[x, y][]`. */
+const glyphPoints = (d: string): [number, number][] =>
+    d
+        .replace(/^M /, "")
+        .split(" L ")
+        .map((pt) => {
+            const [x, y] = pt.split(",").map(Number);
+            return [x!, y!];
+        });
+
+/** A glyph is TRUE to `fn` when its i-th of n+1 points is (i/n, 1 − fn(i/n))
+ *  at the path's 3-decimal print — sampled here from the function itself, not
+ *  re-derived through the demo's path helper. */
+const expectGlyphTrue = (d: string, fn: (t: number) => number, label: string) => {
+    const pts = glyphPoints(d);
+    const n = pts.length - 1;
+    expect(n, label).toBeGreaterThan(0);
+    pts.forEach(([x, y], i) => {
+        const t = i / n;
+        expect(Math.abs(x - t), `${label} x[${i}]`).toBeLessThanOrEqual(5e-4 + 1e-9);
+        expect(Math.abs(y - (1 - fn(t))), `${label} y[${i}]`).toBeLessThanOrEqual(
+            5e-4 + 1e-9,
+        );
+    });
+};
+
+describe("X.KF.W13U.e · OA-28 / OA-31 (§0be · §0bg) — the trigger shows the current curve + its name; every row its own true curve", () => {
+    it("(6) trigger: glyph sampled from the engine's LIVE easing and text = the name alone; rows: 29 true glyphs, name/description separated", async () => {
+        const { EASING_GROUPS } = await import(
+            "../../../demo/utils/reference-data/easingGroups"
+        );
+        const { easing, steppedEase, CubicBezier } = await import(
+            "@mkbabb/value.js/easing"
+        );
+        const unwrap = (r: { ok: boolean; value?: (t: number) => number }) => {
+            expect(r.ok).toBe(true);
+            return r.value!;
+        };
+        const { wrapper, a } = mountPane();
+        try {
+            await settle();
+            const stored = getStoredAnimationOptions(a);
+            const picker = [...document.querySelectorAll('[data-stub="SelectStub"]')].find(
+                (sel) => sel.querySelector("svg.curve-glyph") !== null,
+            )!;
+            expect(picker).toBeDefined();
+            const trigger = () => picker.querySelector('[data-stub="SelectValueStub"]')!;
+            const readTrigger = () => ({
+                text: trigger().textContent?.trim(),
+                d: trigger().querySelector("svg.curve-glyph path")?.getAttribute("d") ?? "",
+            });
+
+            // The closed trigger at mount: the stored curve's catalogue key
+            // alone (a parametric `cubic-bezier(…)` literal — case (4) leaves one
+            // when it runs first — selects its draft kind), never its
+            // description, drawn from the curve the engine RUNS.
+            const literal = stored.animationOptions.timingFunction;
+            // The store persists the re-parseable literal (a string) — narrowed,
+            // not asserted: any other shape fails the gate here.
+            expect(typeof literal).toBe("string");
+            if (typeof literal !== "string") return;
+            const key = literal.startsWith("cubic-bezier(") ? "cubic-bezier" : literal;
+            const item0 = EASING_GROUPS.flatMap((g) => g.items).find((i) => i.name === key);
+            expect(item0, `stored ${literal}`).toBeDefined();
+            let t0 = readTrigger();
+            expect(t0.text).toBe(key);
+            expect(t0.text).not.toContain(item0!.description);
+            expectGlyphTrue(t0.d, a.options.timingFunction.fn, `trigger ${key}`);
+
+            // A pick through the producer's model edge re-draws the trigger from
+            // the newly installed engine easing.
+            const selectVm = wrapper
+                .findAllComponents(selectStub)
+                .find((c) => c.element === picker)!;
+            selectVm.vm.$emit("update:modelValue", "ease-out-back");
+            await settle();
+            t0 = readTrigger();
+            expect(t0.text).toBe("ease-out-back");
+            expect(t0.text).not.toContain("overshoots, settles");
+            expectGlyphTrue(t0.d, a.options.timingFunction.fn, "trigger ease-out-back");
+            expectGlyphTrue(t0.d, unwrap(easing("ease-out-back")), "trigger vs registry");
+
+            // Every row: its own curve, sampled from the easing it names.
+            const rows = [...picker.querySelectorAll('[data-stub="SelectItemStub"]')];
+            const items = EASING_GROUPS.flatMap((g) => g.items);
+            expect(rows).toHaveLength(items.length);
+            const truthFor = (name: string): ((t: number) => number) => {
+                if (name === "steps")
+                    return unwrap(
+                        steppedEase(stored.stepOptions.steps, stored.stepOptions.jumpTerm),
+                    );
+                if (name === "cubic-bezier")
+                    return unwrap(CubicBezier(...stored.cubicBezierOptions.controlPoints));
+                if (name === "step-start") return unwrap(steppedEase(1, "jump-start"));
+                if (name === "step-end") return unwrap(steppedEase(1, "jump-end"));
+                return unwrap(easing(name));
+            };
+            const ds = new Set<string>();
+            rows.forEach((row, i) => {
+                const item = items[i]!;
+                const d = row.querySelector("svg.curve-glyph path")?.getAttribute("d") ?? "";
+                expectGlyphTrue(d, truthFor(item.name), `row ${item.name}`);
+                ds.add(d);
+                // The item text (what the producer registers as the label) is
+                // the NAME alone; the description is its own element, hidden
+                // from the name and wired as the option's description.
+                expect(
+                    row.querySelector('[data-stub="SelectItemTextStub"]')?.textContent?.trim(),
+                ).toBe(item.name);
+                const describedBy = row.getAttribute("aria-describedby");
+                expect(describedBy).toBeTruthy();
+                const desc = document.getElementById(describedBy!);
+                expect(desc?.textContent?.trim()).toBe(item.description);
+                expect(desc?.getAttribute("aria-hidden")).toBe("true");
+                expect(row.contains(desc)).toBe(true);
+            });
+            // No two rows share a glyph.
+            expect(ds.size).toBe(items.length);
         } finally {
             wrapper.unmount();
         }
