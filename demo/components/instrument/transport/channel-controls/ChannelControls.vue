@@ -18,9 +18,19 @@
              `useSelectedControlSurface` writes it back per host. -->
         <div
             v-if="isSingleSurfaceScene"
-            class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
+            class="w-full flex-1 min-h-0 flex flex-col justify-start"
         >
-            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
+            <!-- OA-34 (§0bj) — the pane's inset lives INSIDE the scroller. An
+                 `overflow-y: auto` box clips on both axes at its padding box, and
+                 the inset used to sit on this wrapper OUTSIDE it (the scroller had
+                 only `pb-1`), so every card's cartoon shadow — which falls past
+                 the card's left and bottom edges — was cut flush by the
+                 scroller: a hard left edge and a squared bottom-left corner.
+                 The same `pl-4 pr-7 pt-2` (and `pb-2` + the former `pb-1` =
+                 `pb-3`) now pads the scroller itself, so the content box is
+                 where it was and the shadow paints in the scroller's padding;
+                 the clip stays where scrolling needs it. -->
+            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pl-4 pr-7 pt-2 pb-3">
                 <!-- The flat-mount PANEL HOST — the exact analogue of the
                      deleted `<TabsContent>` wrapper, on BOTH its axes:
                      · PIXEL PARITY: TabsContent carried a default `mt-2` (8px)
@@ -40,9 +50,10 @@
 
         <div
             v-else
-            class="pl-4 pr-7 pt-2 pb-2 w-full flex-1 min-h-0 flex flex-col justify-start"
+            class="w-full flex-1 min-h-0 flex flex-col justify-start"
         >
-            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pb-1">
+            <!-- OA-34 — the inset inside the scroller (see the flat mount). -->
+            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pl-4 pr-7 pt-2 pb-3">
                 <!-- THE CONTROL SURFACES. Each is a plain div gated on the active
                      surface (`selectedControlSurface`) under the SAME DFA gate (a
                      scene whose valid set omits a surface mounts NO pane — the
