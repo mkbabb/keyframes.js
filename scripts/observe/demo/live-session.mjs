@@ -1268,8 +1268,13 @@ async function runBattery() {
             // (0) the play button's UNFOCUSED paint — the focus ring must be a
             // DELTA over this rest state (a permanent cartoon shadow may not
             // satisfy the "a keyboard user can SEE where focus is" clause).
+            // X.KF.W13U.x — the cube AUTO-PLAYS on entry (`.w`), so the transport
+            // button may read "Pause animation" here; the rest paint is read off
+            // whichever face it wears (the same element either way).
             const restPaint = await page.evaluate(() => {
-                const el = document.querySelector('button[aria-label="Play animation"]');
+                const el = document.querySelector(
+                    'button[aria-label="Play animation"], button[aria-label="Pause animation"]',
+                );
                 if (!el) return null;
                 const cs = getComputedStyle(el);
                 return { outline: cs.outlineStyle + "|" + cs.outlineWidth, boxShadow: cs.boxShadow };
@@ -1334,34 +1339,53 @@ async function runBattery() {
                 }, restPaint);
             }
 
-            // (3a) focused ENTER synthesizes the native click → playback starts.
+            // (3a) focused ENTER synthesizes the native click → the transport
+            // TOGGLES. X.KF.W13U.x RE-SEAT: the cube auto-plays on entry (`.w`), so
+            // the first Enter may PAUSE — the oracle reads a toggle (the label
+            // flips to the other face), never "Enter starts". Liveness (≥3
+            // distinct subject transforms) is read on whichever Enter lands on
+            // PLAYING, and the walk always parks play OFF for the Space clause.
             let enterToggled = false;
             let enterLive = 0;
             if (playReachable) {
-                await page.keyboard.press("Enter");
-                await page.waitForTimeout(250);
-                const aria1 = await page.evaluate(
-                    () => document.activeElement?.getAttribute("aria-label") ?? null,
-                );
-                enterLive = await page.evaluate(async () => {
-                    const sleep = (m) => new Promise((r) => setTimeout(r, m));
-                    const seen = new Set();
-                    const t0 = performance.now();
-                    while (performance.now() - t0 < 2000) {
-                        for (const el of document.querySelectorAll(
-                            ".scene-host [style*='transform'], .stage-cell [style*='transform'], .controls-pane-wrapper [style*='transform']",
-                        )) {
-                            if (el.style.transform) seen.add((el.className?.toString?.() ?? "").slice(0, 24) + "|" + el.style.transform);
+                const focusedLabel = () =>
+                    page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? null);
+                const sampleLive = () =>
+                    page.evaluate(async () => {
+                        const sleep = (m) => new Promise((r) => setTimeout(r, m));
+                        const seen = new Set();
+                        const t0 = performance.now();
+                        while (performance.now() - t0 < 2000) {
+                            for (const el of document.querySelectorAll(
+                                ".scene-host [style*='transform'], .stage-cell [style*='transform'], .controls-pane-wrapper [style*='transform']",
+                            )) {
+                                if (el.style.transform) seen.add((el.className?.toString?.() ?? "").slice(0, 24) + "|" + el.style.transform);
+                            }
+                            await sleep(40);
                         }
-                        await sleep(40);
+                        return seen.size;
+                    });
+                const FACES = ["Play animation", "Pause animation"];
+                const pressEnter = async () => {
+                    const before = await focusedLabel();
+                    await page.keyboard.press("Enter");
+                    await page.waitForTimeout(250);
+                    const after = await focusedLabel();
+                    return FACES.includes(before) && FACES.includes(after) && after !== before ? after : null;
+                };
+                const first = await pressEnter();
+                let second = null;
+                if (first === "Pause animation") {
+                    enterLive = await sampleLive();
+                    second = await pressEnter(); // symmetric: back to Play (parked OFF)
+                } else if (first === "Play animation") {
+                    second = await pressEnter(); // the autoplay was paused; Enter starts it
+                    if (second === "Pause animation") {
+                        enterLive = await sampleLive();
+                        if ((await pressEnter()) !== "Play animation") second = null; // park OFF
                     }
-                    return seen.size;
-                });
-                enterToggled = aria1 === "Pause animation";
-                // Enter again — the toggle is symmetric (and parks play OFF for
-                // the global-Space clause below).
-                await page.keyboard.press("Enter");
-                await page.waitForTimeout(250);
+                }
+                enterToggled = first !== null && second !== null;
             }
 
             // (3b) the GLOBAL Space shortcut fires regardless of focus.
