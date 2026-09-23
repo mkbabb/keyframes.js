@@ -228,7 +228,12 @@ const applyPreset = (preset: SpringPreset) => {
 
 /** A selection applies the named preset; a deselect (the active cell pressed
  *  again emits `undefined`) is refused — the set is exclusive and never empty. */
-const onPresetSelect = (name: string | number | undefined) => {
+// The producer ToggleGroup emits its selection value (string | number), or an
+// array of them in multiple mode (glass 8.0.0+); this group is `type="single"`,
+// so an array never matches a preset name.
+const onPresetSelect = (
+    name: string | number | (string | number)[] | undefined,
+) => {
     const track = demo.tracks.find((t) => t.preset.name === name);
     if (track) applyPreset(track.preset);
 };
