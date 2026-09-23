@@ -22,88 +22,101 @@
                         { playing: isPlaying, 'idle-hover--rolling': rolling },
                     ]"
                 >
-                    <div
-                        ref="cubeEl"
-                        class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
-                        :class="{ 'cube--rolling': rolling }"
-                    >
-                        <!-- KF.W6 #21 (≡ census S-6) — EVALUATED, SWAP DECLINED,
-                             with the mechanism named rather than a preference.
-                             glass-ui ships `Progress` with an `indeterminate`
-                             prop, and it is a linear BAR: its only orientations
-                             are horizontal and vertical, its variants are
-                             default/gradient/liquid, and it has no spinner
-                             affordance at all — so there is no like-for-like to
-                             swap this centre-plane spinner onto. It would also
-                             have to mount INSIDE the `preserve-3d` chain, adding
-                             a DOM participant to the 3D subtree, which is the
-                             same class of act that once flattened all six faces
-                             (T.A1's `filter` finding, one file over). The
-                             bespoke idiom is RETAINED; the ask that survives is
-                             a producer-side indeterminate spinner, and it rides
-                             the BH relay, never a demo-side re-authoring. -->
-                        <span
-                            class="contents"
-                            v-if="showLoader"
-                        >
-                            <Loader2
-                                class="absolute h-[var(--target-viewport-h)] w-[var(--target-viewport-w)] animate-spin"
-                            ></Loader2>
-                        </span>
-                        <div
-                            v-for="(side, index) in cubeSides"
-                            :key="index"
-                            :class="[
-                                'cube-side',
-                                side.class,
-                                'rounded-lg',
-                                'transition-[background-color,opacity] duration-panel ease-in-out',
-                                // z-10: LOCAL stacking inside the 3D cube — each
-                                // face sits above its own background plane. NOT a
-                                // participant in the editor z-contract (style.css),
-                                // so it stays a bare local rung, not a semantic
-                                // z-* layer.
-                                'absolute z-10 flex items-center justify-center',
-                            ]"
-                            :style="{ '--lit': faceLit[index] }"
-                        >
-                            <template v-if="!ppMode">
-                                <div
-                                    :class="[
-                                        'face-lacquer h-full w-full font-bold',
-                                        'flex items-center justify-center',
-                                    ]"
-                                    :style="{
-                                        backgroundColor: side.color,
-                                    }"
+                    <!-- KF.W13U.w — ONE ELEMENT PER TRANSFORM OWNER. Each of the
+                         group's three channels authors a WHOLE `transform`, and
+                         the group's `replace` layer (the README contract) keeps
+                         one writer per property per element — so on one shared
+                         `.cube` the last channel won and the die only bobbed
+                         (OA-27). The house idiom (the roll's own element above)
+                         gives each writer its own node: the bob on `.cube-bob`,
+                         the authored matrix pose on `.cube-pose`, the spin on
+                         `.cube` — nested, so they COMPOSE (bob · pose · spin). -->
+                    <div ref="bobEl" class="cube-bob preserve-3d">
+                        <div ref="poseEl" class="cube-pose preserve-3d">
+                            <div
+                                ref="cubeEl"
+                                class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
+                                :class="{ 'cube--rolling': rolling }"
+                            >
+                                <!-- KF.W6 #21 (≡ census S-6) — EVALUATED, SWAP DECLINED,
+                                     with the mechanism named rather than a preference.
+                                     glass-ui ships `Progress` with an `indeterminate`
+                                     prop, and it is a linear BAR: its only orientations
+                                     are horizontal and vertical, its variants are
+                                     default/gradient/liquid, and it has no spinner
+                                     affordance at all — so there is no like-for-like to
+                                     swap this centre-plane spinner onto. It would also
+                                     have to mount INSIDE the `preserve-3d` chain, adding
+                                     a DOM participant to the 3D subtree, which is the
+                                     same class of act that once flattened all six faces
+                                     (T.A1's `filter` finding, one file over). The
+                                     bespoke idiom is RETAINED; the ask that survives is
+                                     a producer-side indeterminate spinner, and it rides
+                                     the BH relay, never a demo-side re-authoring. -->
+                                <span
+                                    class="contents"
+                                    v-if="showLoader"
                                 >
-                                    <!-- L.W11.S2 — the re-lit overlay: a --lit-keyed
-                                         highlight/shadow modulating LUMINANCE over
-                                         the KEPT crayon, never its hue. Pointer-
-                                         transparent. -->
-                                    <span
-                                        class="face-relit pointer-events-none absolute inset-0"
-                                        aria-hidden="true"
-                                    ></span>
-                                    <span
-                                        :class="[
-                                            'face-numeral text-display-2 h-full w-full',
-                                            'relative',
-                                            'flex items-center justify-center',
-                                        ]"
-                                        >{{ side.content }}</span
-                                    >
-                                </div>
-                            </template>
+                                    <Loader2
+                                        class="absolute h-[var(--target-viewport-h)] w-[var(--target-viewport-w)] animate-spin"
+                                    ></Loader2>
+                                </span>
+                                <div
+                                    v-for="(side, index) in cubeSides"
+                                    :key="index"
+                                    :class="[
+                                        'cube-side',
+                                        side.class,
+                                        'rounded-lg',
+                                        'transition-[background-color,opacity] duration-panel ease-in-out',
+                                        // z-10: LOCAL stacking inside the 3D cube — each
+                                        // face sits above its own background plane. NOT a
+                                        // participant in the editor z-contract (style.css),
+                                        // so it stays a bare local rung, not a semantic
+                                        // z-* layer.
+                                        'absolute z-10 flex items-center justify-center',
+                                    ]"
+                                    :style="{ '--lit': faceLit[index] }"
+                                >
+                                    <template v-if="!ppMode">
+                                        <div
+                                            :class="[
+                                                'face-lacquer h-full w-full font-bold',
+                                                'flex items-center justify-center',
+                                            ]"
+                                            :style="{
+                                                backgroundColor: side.color,
+                                            }"
+                                        >
+                                            <!-- L.W11.S2 — the re-lit overlay: a --lit-keyed
+                                                 highlight/shadow modulating LUMINANCE over
+                                                 the KEPT crayon, never its hue. Pointer-
+                                                 transparent. -->
+                                            <span
+                                                class="face-relit pointer-events-none absolute inset-0"
+                                                aria-hidden="true"
+                                            ></span>
+                                            <span
+                                                :class="[
+                                                    'face-numeral text-display-2 h-full w-full',
+                                                    'relative',
+                                                    'flex items-center justify-center',
+                                                ]"
+                                                >{{ side.content }}</span
+                                            >
+                                        </div>
+                                    </template>
 
-                            <template v-else>
-                                <div
-                                    class="ppmycota-cube absolute h-full w-full"
-                                ></div>
-                                <div
-                                    class="ppmycota-logo-lg absolute h-full w-full"
-                                ></div>
-                            </template>
+                                    <template v-else>
+                                        <div
+                                            class="ppmycota-cube absolute h-full w-full"
+                                        ></div>
+                                        <div
+                                            class="ppmycota-logo-lg absolute h-full w-full"
+                                        ></div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -147,11 +160,14 @@ const transform = defineModel<TransformState>("transform", { required: true });
 
 const cubeEl = useTemplateRef<HTMLElement>("cubeEl");
 const graphEl = useTemplateRef<HTMLElement>("graphEl");
+// KF.W13U.w — the bob and pose channels' own elements (template note above).
+const bobEl = useTemplateRef<HTMLElement>("bobEl");
+const poseEl = useTemplateRef<HTMLElement>("poseEl");
 // The roll's OWN element (#6/#2's arbitration half): see the Roll block below.
 const rollEl = useTemplateRef<HTMLElement>("rollEl");
 const orbitalRef = useTemplateRef<InstanceType<typeof OrbitalDrag>>("orbitalRef");
 
-defineExpose({ cubeEl, graphEl });
+defineExpose({ cubeEl, bobEl, poseEl, graphEl });
 
 // L.W11.S2 — the six crayon facets are KEPT, every hue intact; the raw rgba
 // literals are HOISTED one-for-one into named --face-1…6 tokens (proof:crayon-

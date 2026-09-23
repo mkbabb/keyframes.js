@@ -24,6 +24,15 @@ export const CUBE_ANIMATION_NAMES = {
     Hover: "Hover",
 } as const;
 
+/** The cube's per-channel paint targets (KF.W13U.w — one element per
+ *  transform owner) plus the graph the attitude settle writes. */
+export interface CubeTargets {
+    cubeEl: HTMLElement;
+    bobEl: HTMLElement;
+    poseEl: HTMLElement;
+    graphEl: HTMLElement;
+}
+
 export function useCubeDemo(
     matrix3dStart: Ref<Matrix3dCall>,
     matrix3dEnd: Ref<Matrix3dCall>,
@@ -104,6 +113,12 @@ export function useCubeDemo(
             ),
         ),
     );
+    // KF.W13U.w — the channels paint DIFFERENT elements, so the group runs its
+    // per-animation path, DECLARED (the supported opt-out, KF-W5R4(4); the
+    // SquareScene precedent): the constructor derives `singleTarget` before any
+    // target exists (`undefined === undefined`), and the per-child
+    // `setTargets` below never re-derives it.
+    animationGroup.value.singleTarget = false;
 
     // T.A3 — ONE settle-motion language. The former `easeInBounce` intro jittered
     // BACKWARDS at the start (a bounce-IN) and ran the engine 700ms on mount with
@@ -135,10 +150,16 @@ export function useCubeDemo(
         },
     ]);
 
-    const setTargets = (cubeEl: HTMLElement, graphEl: HTMLElement) => {
+    // KF.W13U.w (OA-27) — each channel authors a WHOLE `transform`, and a
+    // group layer's `replace` op keeps ONE writer per property (README
+    // `AnimationGroup`: "replace: highest zIndex wins"). All three on `.cube`
+    // composited to the last writer — the die only bobbed, never spun. Each
+    // channel therefore owns its own nested element (CubeTarget's template), so
+    // the three transforms compose by nesting: bob · pose · spin.
+    const setTargets = ({ cubeEl, bobEl, poseEl, graphEl }: CubeTargets) => {
         rotationAnim.value.setTargets(cubeEl);
-        matrixAnim.value.setTargets(cubeEl);
-        hoverAnim.value.setTargets(cubeEl);
+        matrixAnim.value.setTargets(poseEl);
+        hoverAnim.value.setTargets(bobEl);
         changeGraphPerspectiveAnim.setTargets(graphEl);
         // T.A3 — PRM snaps to the opening attitude: under reduced-motion the graph
         // jumps straight to GRAPH_ATTITUDE with NO eased intro sweep (the house

@@ -162,12 +162,15 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
         : null;
 
 onMounted(() => {
-    const cubeEl = cubeTargetRef.value?.cubeEl;
-    const graphEl = cubeTargetRef.value?.graphEl;
+    const target = cubeTargetRef.value;
+    const cubeEl = target?.cubeEl;
+    const bobEl = target?.bobEl;
+    const poseEl = target?.poseEl;
+    const graphEl = target?.graphEl;
 
-    if (cubeEl && graphEl) {
+    if (cubeEl && bobEl && poseEl && graphEl) {
         cubeElRef.value = cubeEl;
-        setTargets(cubeEl, graphEl);
+        setTargets({ cubeEl, bobEl, poseEl, graphEl });
     }
 });
 
@@ -206,6 +209,12 @@ defineExpose({
     // CONDITIONAL_SURFACES + activeControlConditionals threading DIED).
     facility,
     superKey,
+    // KF.W13U.w (OA-27, KF-W13.md addendum 2026-09-23 `.w`: "the cube … must
+    // animate on load and on play") — the cube is the demo's hero subject and
+    // plays on EVERY entry to its scene; the shell binding dispatches PLAY on
+    // SCENE_READY for an `autoPlays` scene (home is excluded there — the
+    // landing stays still until its own Play gesture).
+    autoPlays: true,
     isPlaying,
     isStarted,
     tabsContent,
