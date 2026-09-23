@@ -231,7 +231,7 @@ async function browserHalf() {
 // (live-session-gap-analysis §F4). This leg drives the BUILT `dist/gh-pages/`
 // demo cube and asserts the engine's `interpFrames(apply=true)` write reaches
 // the REAL subject — read on the engine's OWN write channel (the playback
-// slider's `aria-valuenow` advancing from "0", the engine-attributable playhead
+// slider's `aria-valuenow` advancing from an established rest, the engine-attributable playhead
 // the cube's group composite paints), NOT bare getComputedStyle churn. The leg
 // REDS if the real subject does not receive the engine write (the cold-path
 // no-op surface) and GREENS on the cure.
@@ -264,7 +264,55 @@ async function realSceneHalf() {
                     const s = document.querySelector('[role="slider"]');
                     return s ? parseFloat(s.getAttribute("aria-valuenow") || "0") : null;
                 });
+            // X.KF.W13U.x — RE-SEATED on the cured cube. The scene AUTO-PLAYS on
+            // entry (`.w`, `autoPlays: true`, the spec's "must animate on load"),
+            // so "the playhead reads 0 before Play" is no longer a rest state the
+            // page owns — it raced the autoplay (2/6-3/6 by one limb). The rest
+            // state is now ESTABLISHED, not assumed: pause the autoplay, then prove
+            // rest (the playhead holds still AND the engine-written nodes hold one
+            // transform each). The load-bearing property is unchanged: from rest,
+            // Play advances the engine-attributable playhead AND the interpolated
+            // frame reaches the REAL subject. The subject is now read on the cube's
+            // own write nodes (KF.W13U.w: one element per transform owner, nested
+            // `.cube-bob > .cube-pose > .cube`), no longer the `.graph > div`
+            // wrapper, which carries no engine write since that cure (it read 0).
+            const autoPlayed = await page
+                .waitForFunction(() => !!document.querySelector('button[aria-label="Pause animation"]'), null, {
+                    timeout: 8000,
+                })
+                .then(() => true)
+                .catch(() => false);
+            if (autoPlayed) {
+                await pressPlayToggle(page, { intent: "pause" });
+                await page
+                    .waitForFunction(() => !!document.querySelector('button[aria-label="Play animation"]'), null, {
+                        timeout: 4000,
+                    })
+                    .catch(() => {});
+            }
+            /** Distinct computed transforms per engine-written cube node over ~1.2 s. */
+            const sampleSubject = () =>
+                page.evaluate(async () => {
+                    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+                    const nodes = { bob: ".cube-bob", pose: ".cube-pose", spin: ".cube" };
+                    const seen = Object.fromEntries(Object.keys(nodes).map((k) => [k, new Set()]));
+                    for (let i = 0; i < 40; i++) {
+                        for (const [k, sel] of Object.entries(nodes)) {
+                            const el = document.querySelector(sel);
+                            if (el) seen[k].add(getComputedStyle(el).transform);
+                        }
+                        await sleep(30);
+                    }
+                    return Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, v.size]));
+                });
             const sliderBefore = await readSlider();
+            const restSubject = await sampleSubject();
+            const sliderRest = await readSlider();
+            const atRest =
+                !!(await page.$('button[aria-label="Play animation"]')) &&
+                sliderBefore !== null &&
+                sliderRest === sliderBefore &&
+                Object.values(restSubject).every((n) => n <= 1);
             // Drive the real subject via the dock play (the genuine gesture that
             // reaches the cube group's play()) — a REAL pointerup, the way the
             // product's `@pointerup`-bound transport consumes it (R.W6 excised the
@@ -272,57 +320,48 @@ async function realSceneHalf() {
             // actuates it — see `pressPlayToggle`).
             await pressPlayToggle(page, { intent: "play" });
             // PER-EXPECTED predicate wait (NOT a fixed settleMs): the engine WROTE
-            // the subject iff the playhead the group composite paints advances.
+            // the subject iff the playhead the group composite paints LEAVES the
+            // rest value while the transport reads Pause.
             const wrote = await page
                 .waitForFunction(
-                    () => {
+                    (rest) => {
                         const pause = !!document.querySelector('button[aria-label="Pause animation"]');
                         const s = document.querySelector('[role="slider"]');
-                        const sv = s ? parseFloat(s.getAttribute("aria-valuenow") || "0") : 0;
-                        return pause && sv > 0;
+                        const sv = s ? parseFloat(s.getAttribute("aria-valuenow") || "0") : NaN;
+                        return pause && Number.isFinite(sv) && sv !== rest;
                     },
-                    null,
+                    sliderBefore,
                     { timeout: 4000 },
                 )
                 .then(() => true)
                 .catch(() => false);
             const sliderAfter = await readSlider();
-            // Corroborate the SUBJECT itself received the write: the engine-write
-            // subject (the OrbitalDrag wrapper carrying the apply-transform-to-
-            // container engine matrix) traversed values while playing, idle bob
-            // excluded — a GATED corroborator (the load-bearer is the playhead the
-            // group composite paints onto the real subject).
-            const subjectGated = await page.evaluate(async () => {
-                const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-                const isPause = () => !!document.querySelector('button[aria-label="Pause animation"]');
-                if (!isPause()) return 0;
-                const seen = new Set();
-                for (let i = 0; i < 60 && isPause(); i++) {
-                    const el = document.querySelector(".graph > div");
-                    if (el && !el.closest?.(".idle-hover")) {
-                        const t = getComputedStyle(el).transform;
-                        if (t && t !== "none") seen.add(t);
-                    }
-                    await sleep(30);
-                }
-                return seen.size;
-            });
-            const advanced = wrote && (sliderAfter ?? 0) > 0 && (sliderBefore ?? 0) === 0;
+            const playSubject = await sampleSubject();
+            const sliderLater = await readSlider();
+            // The playhead ADVANCES (a later read moves again — a clock, not one
+            // jump) and the SUBJECT traverses ≥3 distinct interpolated transforms on
+            // at least one engine-written node (the bite: a playhead that advances
+            // while the frame is never written leaves every node at one value).
+            const subjectMax = Math.max(...Object.values(playSubject));
+            const advanced =
+                atRest && wrote && sliderAfter !== sliderBefore && sliderLater !== sliderAfter && subjectMax >= 3;
             if (advanced) {
                 ok(
-                    `[real-cube] the demo cube's REAL subject RECEIVES the engine write — the group ` +
-                        `composite's interpFrames(apply=true) playhead advanced ${sliderBefore} → ${sliderAfter} ` +
-                        `(the engine-attributable scalar painted onto the real subject), aria flipped to ` +
-                        `"Pause animation", the engine-write subject traversed ${subjectGated} distinct ` +
-                        `transforms gated on aria=Pause (idle bob excluded). F4 closed: the gate now drives ` +
-                        `the demo's matrix/CSS-var transform path, not only the synthetic <div>.`,
+                    `[real-cube] the demo cube's REAL subject RECEIVES the engine write — from an established ` +
+                        `rest (autoplay ${autoPlayed ? "paused" : "absent"}; playhead held ${sliderBefore}, ` +
+                        `nodes ${JSON.stringify(restSubject)}) Play advanced the playhead ${sliderBefore} → ` +
+                        `${sliderAfter} → ${sliderLater}, aria flipped to "Pause animation", and the engine-written ` +
+                        `nodes traversed ${JSON.stringify(playSubject)} distinct transforms. F4 closed: the gate ` +
+                        `drives the demo's nested transform owners, not only the synthetic <div>.`,
                 );
             } else {
                 fail(
-                    `[real-cube] the demo cube's REAL subject did NOT receive the engine write — the playhead ` +
-                        `stayed ${sliderBefore} → ${sliderAfter} (advanced=${advanced}, engineWrote=${wrote}). ` +
-                        `The group composite advanced the clock but never wrote the interpolated frame to the ` +
-                        `real subject (the cold-path no-op surface — born-RED; greens on the cure).`,
+                    `[real-cube] the demo cube's REAL subject did NOT receive the engine write — rest=${atRest} ` +
+                        `(autoplay ${autoPlayed}; playhead ${sliderBefore} → ${sliderRest}; nodes ` +
+                        `${JSON.stringify(restSubject)}), playhead ${sliderBefore} → ${sliderAfter} → ${sliderLater} ` +
+                        `(engineWrote=${wrote}), nodes while playing ${JSON.stringify(playSubject)}. The group ` +
+                        `composite advanced the clock but never wrote the interpolated frame to the real subject ` +
+                        `(the cold-path no-op surface — born-RED; greens on the cure).`,
                 );
             }
         },
