@@ -164,6 +164,15 @@ const props = defineProps<{
 const { sharePopoverOpen, loadHashInput, shareState, loadFromInput } =
     useShareState(props.onSceneRestore);
 
+// X.KF.W13U.d4 · ESC-d-3 (COHESION §0br) — the open model, EXPOSED from its
+// owner. `useShareState` owns this ref (it closes the popover after a copy or a
+// successful load), so the popover's open state is exposed, not re-owned: a
+// `defineModel` here would be a second state that watchers keep in step with
+// the first. A host that renders this popover inside a menu row (MbabbMenu)
+// sets `open` on the row's select, so Enter opens Share exactly as a pointer
+// press on the trigger does, and `openAutoFocus` below hands focus to the field.
+defineExpose({ open: sharePopoverOpen });
+
 // SP-6: the async copy's in-flight span, so the Share button carries `loading`
 // and a second click during the first is a no-op.
 const sharing = ref(false);

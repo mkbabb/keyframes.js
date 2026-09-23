@@ -47,8 +47,18 @@
                  stops oscillating 24/20/28/20/28px across the rows.
                  MM-40 — each row names its typeahead key (`text-value`), so the
                  menu's type-to-select no longer keys on condensed slot text. -->
-            <DropdownMenuItem @select.prevent text-value="Share" class="gap-2.5 px-1.5 py-1">
-                <span class="w-7 shrink-0 flex justify-center"><SharePopover :on-scene-restore="onSceneRestore" /></span>
+            <!-- X.KF.W13U.d4 · ESC-d-3 (COHESION §0br) — the row's select OPENS
+                 Share. The popover's trigger is a button nested in the row, which
+                 the menu's roving focus never reaches, so Enter on the row did
+                 nothing. Now the select sets the popover's exposed open model:
+                 the menu stays open (`.prevent`) as it does under a pointer press,
+                 the popover anchors to its trigger in this row and focuses its
+                 field, and Escape unwinds popover → menu → the @mbabb trigger.
+                 The trigger's own click stays with the trigger (`@click.stop` on
+                 its slot): it already toggles the popover, and letting it bubble
+                 into the row's select would re-open what a second press closed. -->
+            <DropdownMenuItem @select.prevent="openShare" text-value="Share" class="gap-2.5 px-1.5 py-1">
+                <span class="w-7 shrink-0 flex justify-center" @click.stop><SharePopover ref="sharePopover" :on-scene-restore="onSceneRestore" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Share</span>
                     <p class="text-micro text-muted-foreground leading-tight">Copy link or load shared state</p>
@@ -62,7 +72,10 @@
                  same <button> as its own state-aware `aria-label`, so a visible
                  "Toggle dark mode" diverges from the accessible name (WCAG
                  2.5.3). The adjacent "Dark mode" span is the row's visible
-                 label and names the command already. -->
+                 label and names the command already.
+                 X.KF.W13U.d4 — Enter on this row stays inert: the keyboard form
+                 is the producer's (a DarkModeToggle menu-item form; installed
+                 glass 7.0.0 ships none), honest-RED `DARK-MENU-ITEM` (O-61 R-3). -->
             <DropdownMenuItem @select.prevent text-value="Dark mode" class="gap-2.5 px-1.5 py-1">
                 <!-- MM-7 — the toggle is sized through its OWN `size` API.
                      `class="aspect-square w-5"` could not work: the primitive
@@ -298,7 +311,7 @@
 // travel up to the App and back down as a prop (M-4; the mechanism is executed,
 // not asserted, in `test/demo/app/dock-context-slot-resolution.test.ts`).
 // ─────────────────────────────────────────────────────────────────────────────
-import { onBeforeUnmount, ref, watch } from "vue";
+import { onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { SharePopover } from "@components/instrument/shell";
 // MM-24 — one subpath discipline: the menu family from `./dropdown-menu`, the
 // dialog from `./dialog`, the button from `./button`. `Avatar*` alone stays on
@@ -375,6 +388,15 @@ const cubeControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
 // (no `window` ⇒ skip the confirm and run the destructive path) is gone because
 // there is no `window.confirm` left to guard.
 const confirmClearOpen = ref(false);
+
+// X.KF.W13U.d4 · ESC-d-3 — the Share row's select opens the popover through
+// the model SharePopover exposes (its owner, `useShareState`, keeps closing it
+// after a copy or a load). A press on the nested trigger never reaches here —
+// the trigger toggles itself and its click does not bubble into the row.
+const sharePopover = useTemplateRef<InstanceType<typeof SharePopover>>("sharePopover");
+function openShare(): void {
+    if (sharePopover.value) sharePopover.value.open = true;
+}
 
 // X.KF.W13U.d · OA-33 — the shortcuts dialog's open state and its `?` shortcut,
 // with the one command that opens them (moved from ChromeDock's retired zone).
