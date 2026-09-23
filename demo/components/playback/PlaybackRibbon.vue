@@ -6,11 +6,11 @@
              D-6 — the `.is-disabled` costume (focusable, arrow-operable,
              un-announced; its `pointer-events: none` hid this very hint, M-6)
              is gone. OA-29 (KF.W13U.t) — and so is the `disabled` that replaced
-             it: it was derived from `isAnimStarted`, a lifecycle flag the scrub
-             seat never needed (a never-started child is seated and painted by
-             the group's `setChildTime(…).render()`), so the rail sat greyed
-             and inert on every scene until Play. The timeline is live from
-             boot: a paused or never-played scene scrubs.
+             it: it was derived from the animation's started flag, a lifecycle
+             fact the scrub seat never needed (a never-started child is seated
+             and painted by the group's `setChildTime(…).render()`), so the
+             rail sat greyed and inert on every scene until Play. The timeline
+             is live from boot: a paused or never-played scene scrubs.
              L-M1 — the wrapper touch gate is DELETED: glass-ui 7.0.0's Slider
              owns its own `useTouchGate` on the slider root (same composable,
              same first-tap contract, `data-touch-active` painted), so the demo
@@ -193,16 +193,6 @@ const { animation, source, duration, preview } = defineProps<{
     /** Effective ms (see the contract above). */
     currentT: EffectiveMs;
     isAnimPlaying: boolean;
-    /**
-     * OA-29 (KF.W13U.t) — NO LONGER GATES THE RAIL. The scrub seat is
-     * lifecycle-free (the group's `setChildTime(…).render()` paints a
-     * never-started child: `renderMultiTarget` interpolates every child at its
-     * own `t`), so the timeline is live from boot. Still declared so the three
-     * mounts that pass it (ChannelOptions · EasingScene · SpringScene — outside
-     * this unit's carve) do not leak it as a DOM attribute; its deletion rides
-     * with those consumer ends (receipt R-t-1).
-     */
-    isAnimStarted: boolean;
     /**
      * C-15 — the user's reverse INTENT (the visual: the flipped glyph and the
      * pressed state). It is not `animation.reversed` (the math the inversion

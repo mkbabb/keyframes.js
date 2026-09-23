@@ -226,7 +226,6 @@ function mountRibbon(over: Partial<RibbonProps> = {}): RibbonSeat {
         animation: anim,
         currentT: 0,
         isAnimPlaying: false,
-        isAnimStarted: true,
         userReversed: false,
         ...over,
     });
@@ -415,11 +414,13 @@ describe("D-5 + D-6 + L-M1 — the hint reaches the thumb, disabled is the primi
 
     it("(D-6 → OA-29, KF.W13U.t) before the animation starts the rail is LIVE — in the tab order, not disabled, not costumed, and a keyboard step seats the playhead", async () => {
         // Superseded contract: D-6 disabled the thumb until the animation
-        // started (`:disabled="!isAnimStarted"`), which left the timeline
-        // greyed and inert on every scene until Play (the owner's OA-29). The
-        // scrub seat is lifecycle-free, so a never-started animation scrubs.
-        const seat = mountRibbon({ isAnimStarted: false, currentT: 1000 });
+        // started (a `disabled` derived from the started flag), which left the
+        // timeline greyed and inert on every scene until Play (the owner's
+        // OA-29). The scrub seat is lifecycle-free, so a never-started
+        // animation scrubs — the mounted animation is never played.
+        const seat = mountRibbon({ currentT: 1000 });
         await settle();
+        expect(seat.anim.started).toBe(false);
         const thumb = thumbOf(seat.root);
         expect(thumb.getAttribute("tabindex")).toBe("0");
         expect(thumb.hasAttribute("data-disabled")).toBe(false);

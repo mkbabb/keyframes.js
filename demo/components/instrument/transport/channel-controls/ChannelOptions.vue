@@ -647,7 +647,6 @@
                 :duration="railDuration"
                 :current-t="currentT"
                 :is-anim-playing="isAnimPlaying"
-                :is-anim-started="isAnimStarted"
                 :user-reversed="userReversed"
                 @scrub-start="
                     () => {
@@ -895,7 +894,6 @@ const isPlayingRef = toRef(() => props.isPlaying ?? false);
 const {
     currentT,
     isPlaying: isAnimPlaying,
-    isStarted: isAnimStarted,
     wake,
 } = useAnimationSync(() => props.animation, isPlayingRef);
 

@@ -111,7 +111,6 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
               animation: demo.previewAnim,
               currentT: demo.progress.value * demo.previewAnim.options.duration,
               isAnimPlaying: demo.isPlaying.value,
-              isAnimStarted: true,
               userReversed: userReversed.value,
               preview: storedControls.easingPreview ?? "shown",
               "onUpdate:preview": (next: "shown" | "hidden") => {

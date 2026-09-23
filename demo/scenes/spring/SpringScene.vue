@@ -190,10 +190,6 @@ const standardRibbon = () =>
         currentT:
             demo.scrubberPhase.value * demo.springEditAnim.options.duration,
         isAnimPlaying: demo.isPlaying.value,
-        // KF-SS-34 / KF-ES-18 — this was a hardcoded `true` sitting beside a
-        // scene-level `isStarted` ref carrying the same fact. Two authorities for
-        // one boolean, and the literal is the one that would go stale first.
-        isAnimStarted: isStarted.value,
         userReversed: userReversed.value,
         onTogglePlay: () => demo.togglePlay(),
         onToggleReverse,
