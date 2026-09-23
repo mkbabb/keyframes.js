@@ -548,7 +548,12 @@ async function runBattery() {
             await navToScene(page, "easing", "Curve") /* item-7a: easing opens on Curve */;
             await page.waitForTimeout(1500);
             const easing = await page.evaluate(() => {
-                const picker = document.querySelector('[data-testid="easing-picker"]');
+                // [X.KF.W13R.m, glass 10.0.1] the picker's hook is its
+                // `data-slot` (glass 1bc09dde W-EASING dropped the testid); the
+                // handles are the circles of its `easing-handles` overlay and
+                // the curve is drawn by the picker's EasingCurve — so handles
+                // and paths are read picker-wide, not off its first <svg>.
+                const picker = document.querySelector('[data-slot="easing-picker"]');
                 const present = !!picker;
                 let visible = false;
                 let handleCount = 0;
@@ -556,25 +561,15 @@ async function runBattery() {
                 if (picker) {
                     const r = picker.getBoundingClientRect();
                     visible = r.width > 40 && r.height > 40;
-                    const svg = picker.querySelector("svg");
-                    handleCount = svg
-                        ? [...svg.querySelectorAll("circle")].filter((c) =>
-                              /cursor/.test(c.getAttribute("style") || ""),
-                          ).length
-                        : 0;
-                    d0 = svg
-                        ? [...svg.querySelectorAll("path")].map((p) => p.getAttribute("d")).join("|")
-                        : null;
+                    handleCount = picker.querySelectorAll('[data-slot="easing-handles"] circle').length;
+                    d0 = [...picker.querySelectorAll("path")].map((p) => p.getAttribute("d")).join("|") || null;
                 }
                 return { present, visible, handleCount, d0 };
             });
             let dMutated = false;
             if (easing.present && easing.handleCount >= 2) {
                 const hb = await page.evaluate(() => {
-                    const svg = document.querySelector('[data-testid="easing-picker"] svg');
-                    const h = [...svg.querySelectorAll("circle")].filter((c) =>
-                        /cursor/.test(c.getAttribute("style") || ""),
-                    )[0];
+                    const h = document.querySelector('[data-slot="easing-picker"] [data-slot="easing-handles"] circle');
                     const r = h.getBoundingClientRect();
                     return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
                 });
@@ -587,9 +582,9 @@ async function runBattery() {
                 await page.mouse.up();
                 await page.waitForTimeout(300);
                 const d1 = await page.evaluate(() => {
-                    const svg = document.querySelector('[data-testid="easing-picker"] svg');
-                    return svg
-                        ? [...svg.querySelectorAll("path")].map((p) => p.getAttribute("d")).join("|")
+                    const picker = document.querySelector('[data-slot="easing-picker"]');
+                    return picker
+                        ? [...picker.querySelectorAll("path")].map((p) => p.getAttribute("d")).join("|") || null
                         : null;
                 });
                 dMutated = !!easing.d0 && !!d1 && easing.d0 !== d1;

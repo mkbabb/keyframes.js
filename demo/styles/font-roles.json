@@ -57,8 +57,8 @@
         ".code-token",
         "[data-slot='select-trigger']",
         "[data-slot='select-trigger'] *",
-        "[data-testid='easing-picker']",
-        "[data-testid='easing-picker'] *",
+        "[data-slot='easing-picker']",
+        "[data-slot='easing-picker'] *",
         ".metric-badge",
         ".metric-badge *"
     ],
