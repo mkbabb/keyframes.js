@@ -4,7 +4,7 @@
          `gap-2` had one child, both `relative`s positioned nothing, and
          `.panel-stack` was styled nowhere. -->
     <div>
-        <Card cartoon tier="quiet" class="w-full overflow-visible">
+        <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
             <CardContent class="flex flex-col px-4 py-3">
                 <!-- Sliding panel container — each panel in its own collapsible row.
                      KF-CO-5 ≡ KF-TFP-7 + KF-CO-46 — a COLLAPSED row is `inert`:

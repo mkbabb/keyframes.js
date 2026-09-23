@@ -12,9 +12,8 @@
          scene's, the editor is EasingPicker's — the bounce family stays
          kf-owned until glass-ui's named catalogue covers it). -->
     <Card
-        cartoon
         tier="quiet"
-        class="w-full overflow-visible"
+        class="cartoon-surface w-full overflow-visible"
         :style="seat.containerStyle"
     >
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">

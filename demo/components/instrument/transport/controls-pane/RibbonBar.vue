@@ -1,6 +1,6 @@
 <template>
     <div class="flex-shrink-0 pl-4 pr-7 pb-2">
-        <Card cartoon tier="quiet" class="overflow-visible">
+        <Card tier="quiet" class="cartoon-surface overflow-visible">
             <CardContent class="p-3">
                 <!-- Controls tab: filled via Teleport from ChannelOptions -->
                 <div

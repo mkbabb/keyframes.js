@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card cartoon tier="quiet" :class="['w-full overflow-visible', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
+    <Card tier="quiet" :class="['cartoon-surface w-full overflow-visible', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
         <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by

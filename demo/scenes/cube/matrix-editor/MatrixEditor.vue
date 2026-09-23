@@ -1,5 +1,5 @@
 <template>
-    <Card cartoon tier="quiet">
+    <Card tier="quiet" class="cartoon-surface">
         <CardContent class="grid items-center justify-center gap-3 p-3">
             <div
                 class="matrix-grid relative m-0 grid h-fit w-full grid-cols-4

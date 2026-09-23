@@ -12,7 +12,7 @@
          The editor section's terminal home is the derived Keyframes tab, T.B2.)
          SPF-27 (KF.W6): this header was a tranche changelog naming files that
          no longer exist at any path; it now describes what mounts. -->
-    <Card cartoon tier="quiet" class="w-full overflow-visible">
+    <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
             <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
                  The two sliders join ONE `.labeled-field-grid` so their labels

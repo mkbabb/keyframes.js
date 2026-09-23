@@ -11,7 +11,7 @@
              two copies of the same nine props and listeners. The CardContent's
              padding + grid are mirrored on the bare wrapper so the layout is
              identical either way. -->
-        <Card v-if="framed" cartoon tier="quiet" class="p-0 m-0">
+        <Card v-if="framed" tier="quiet" class="cartoon-surface p-0 m-0">
             <CardContent class="p-2 m-0 grid gap-4 relative">
                 <KeyframeCardList ref="cardList" v-bind="cardListBindings" />
             </CardContent>

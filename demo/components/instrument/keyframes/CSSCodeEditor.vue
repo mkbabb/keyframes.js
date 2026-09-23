@@ -1,6 +1,7 @@
 <template>
     <!-- KF-CE-17 + KF-CE-23 (W6-I, ONE radius vocabulary): the framed editor
-         is the producer's `<Card cartoon :shadow="false">` — the same
+         is the producer's `<Card :shadow="false">` + `cartoon-surface` (glass 8.0.0
+         retired the `cartoon` prop for the class it wrapped) — the same
          `cartoon-surface` recipe, reached through the component instead of as
          a raw utility on a bare `<div>` (the demo's only such site), so the
          plate's hairline is the Card's own and its radius is `rounded-card`
@@ -23,8 +24,8 @@
          frames. -->
     <component
         :is="border ? Card : 'div'"
-        v-bind="border ? { cartoon: true, shadow: false } : {}"
-        class="relative w-full overflow-hidden"
+        v-bind="border ? { shadow: false } : {}"
+        :class="['relative w-full overflow-hidden', border ? 'cartoon-surface' : '']"
     >
         <div
             ref="containerEl"
