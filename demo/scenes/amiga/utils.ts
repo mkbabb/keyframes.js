@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { resolveCanvasColor } from "@mkbabb/glass-ui/canvas";
+import { resolveCanvasColor } from "@mkbabb/glass-ui";
 
 /**
  * KF.W6 G-W6-11 — THE ONE CANVAS-COLOUR DISCIPLINE, adopted here.
@@ -18,7 +18,7 @@ import { resolveCanvasColor } from "@mkbabb/glass-ui/canvas";
  * shadow of a shipped producer surface, and it was weaker in every branch — it
  * could not resolve `light-dark()`, `color-mix()` or `oklch()`, and its miss path
  * was the silent failure it was written to prevent. It is RETIRED into
- * `resolveCanvasColor` from `@mkbabb/glass-ui/canvas`: the producer resolves the
+ * `resolveCanvasColor` from the `@mkbabb/glass-ui` root: the producer resolves the
  * value on a probe element ON the cascade (so the live theme arm wins) and returns
  * the browser's own `rgb()`/`rgba()` string, which Canvas2D always parses — and on
  * a miss returns a real inherited colour, never a value the context ignores.
