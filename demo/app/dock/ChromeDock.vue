@@ -118,6 +118,12 @@ const TAB_ICONS: Record<string, Component> = {
 };
 
 const props = defineProps<{
+    /** The scene the dock SHOWS — the App's RESOLVED scene (X.KF.W13U.d5,
+     *  COHESION §0cd), not the route: while a swap is pending it stays the
+     *  source scene, and it flips at resolve together with the Controls
+     *  selection and the controls pane (one commit point). The Scene trigger's
+     *  label (`<SelectValue>` off the Select's model), its glyph and the
+     *  menu's bold row all read it. */
     currentSceneId: string;
     scenes: { id: string; label: string; icon?: Component }[];
     /** R3-4 — the home descriptor's id AND label, single-sourced from the scene
@@ -464,11 +470,16 @@ watch(isSelectOpen, (open) => {
                                             <span :class="currentSceneId === homeScene.id ? 'font-bold' : ''">{{ homeScene.label }}</span>
                                         </span>
                                     </SelectItem>
+                                    <!-- Warm on INTENT (X.KF.W13U.d5): hovering OR keyboard-
+                                         focusing a row fetches its chunk, so most picks resolve
+                                         with no pending window. Latency only — the one commit
+                                         point in App.vue holds the chrome either way. -->
                                     <SelectItem
                                         v-for="scene in scenes"
                                         :key="scene.id"
                                         :value="scene.id"
                                         @pointerenter="emit('warmScene', scene.id)"
+                                        @focus="emit('warmScene', scene.id)"
                                     >
                                         <span class="flex items-center gap-2">
                                             <component v-if="scene.icon" :is="scene.icon" class="dock-glyph" aria-hidden="true" />

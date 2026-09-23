@@ -18,7 +18,7 @@
          one config, no shadowing. -->
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <ChromeDock
-        :current-scene-id="currentSceneId"
+        :current-scene-id="resolvedScene.id"
         :scenes="scenes"
         :home-scene="homeScene"
         :is-controls-panel-open="storedControls.isControlsPanelOpen"
@@ -38,7 +38,7 @@
     <EditorShell
         :animation-group="currentAnimationGroup"
         :channels="currentChannels"
-        :super-key="currentSuperKey"
+        :super-key="resolvedScene.superKey"
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
         :stage-mode="stageMode"
@@ -61,14 +61,14 @@
         </template>
 
         <template #tabs-content>
-            <component :is="sceneRef?.tabsContent" v-if="sceneRef?.tabsContent" />
+            <component :is="resolvedScene.api?.tabsContent" v-if="resolvedScene.api?.tabsContent" />
         </template>
 
         <template #ribbon-content="slotProps">
             <component
-                :is="sceneRef?.ribbonContent"
+                :is="resolvedScene.api?.ribbonContent"
                 v-bind="slotProps"
-                v-if="sceneRef?.ribbonContent"
+                v-if="resolvedScene.api?.ribbonContent"
             />
         </template>
 
@@ -217,7 +217,8 @@ const currentSuperKey = computed(() => currentScene.value.superKey);
 // (editor: easing; storyboard: spring/sequence/path). Read off the active
 // scene descriptor (the mode IS scene data, single-sourced on the descriptor;
 // R.W5 C.5). `currentScene` always resolves (home fallback), so no `?? subject`.
-const stageMode = computed(() => currentScene.value.stageMode);
+// (Read off the RESOLVED scene below — the pane's mode flips with the pane.)
+const stageMode = computed(() => resolvedScene.value.stageMode);
 
 // The control-surface DFA projection (H.W11.S4 / I2) — the active scene's valid
 // BUILT-IN editor triad ({controls,keyframes,timeline} subset). The dock renders
@@ -241,13 +242,60 @@ const currentAnimationGroup = shallowRef<AnimationGroup<any>>(
 );
 const autoPlayNext = ref(false);
 
-// T.B1-β STAGE 1 — the transport axis comes from the active scene's
+// KF.W13U repair (ESC-d-1, OA-26 "jittery") — PENDING is not EMPTY. The keyed
+// <Suspense :key="activeSceneKey"> unmounts the leaving scene before the
+// destination resolves, so mid-swap `sceneRef` is null (or, for one pre-flush,
+// still the OUTGOING scene). `sceneRef` is bound to THE CURRENT scene only
+// once its exposed `superKey` is the route's — the same predicate the shell
+// binding's targets-attached gate uses. Home is always bound (no scene
+// facility is ever read there; home and cube share the one "cube" Suspense
+// key, so a home swap has no pending window).
+const sceneBoundToCurrent = computed(
+    () =>
+        isHome.value ||
+        sceneRef.value?.superKey === currentSuperKey.value,
+);
+
+// ── THE RESOLVED SCENE — the ONE commit point (X.KF.W13U.d5, COHESION §0cd) ──
+// Every scene-derived read the dock and the controls pane take projects THIS,
+// never the route: the dock's Scene trigger (ChromeDock `current-scene-id`),
+// the stored-controls key (so the dock's selected surface is the bound scene's
+// own pick against the bound scene's own set), EditorShell's `channels` +
+// `super-key` (its `AnimationControlsGroup` key) + `stage-mode`, and the
+// `#tabs-content` / `#ribbon-content` render fns. While a swap is pending the
+// projection HOLDS the source scene whole (its descriptor and its exposed api);
+// the moment `sceneBoundToCurrent` turns true it flips, all reads together, in
+// the resolve flush. Before .d5 the route-keyed reads flipped at the pick while
+// the machine's surface set held until resolve: the destination's stored pick
+// was projected against the source set (falling back to its first surface —
+// the Controls → Curve reversal), the pane unmounted its channels for the
+// pending frames, and the Scene label stepped the dock width a frame before
+// the Controls label did. The route (`currentSceneId`/`currentSuperKey`) stays
+// the authority for what the machine and the scene host DO; this is only what
+// the chrome SHOWS. Boot (no prior value) projects the route.
+const resolvedScene = computed<{
+    id: string;
+    superKey: string;
+    stageMode: typeof currentScene.value.stageMode;
+    api: SceneExposedApi | null;
+}>((held) =>
+    held && !sceneBoundToCurrent.value
+        ? held
+        : {
+              id: currentSceneId.value,
+              superKey: currentSuperKey.value,
+              stageMode: currentScene.value.stageMode,
+              api: sceneRef.value,
+          },
+);
+
+// T.B1-β STAGE 1 — the transport axis comes from the resolved scene's
 // `SceneFacility.channels` when it exposes one (the honest channel set: labels,
 // host mounts, selection, the scrub round-trip); `undefined` for home / a
 // non-facility scene, in which case the transport falls back to the group keys.
-const currentChannels = computed(() => sceneRef.value?.facility?.channels);
+const currentChannels = computed(() => resolvedScene.value.api?.facility?.channels);
 
-const storedControls = computed(() => getStoredAnimationGroupControlOptions(currentSuperKey.value));
+const storedControls = computed(() => getStoredAnimationGroupControlOptions(resolvedScene.value.superKey));
 
 provide(ACTIVE_SCENE_KEY, currentSuperKey);
 
@@ -274,21 +322,12 @@ const derivedSurfaces = computed(() =>
               storedControls.value.selectedAnimation ?? undefined,
           ),
 );
-// KF.W13U repair (ESC-d-1, OA-26 "jittery") — PENDING is not EMPTY. The keyed
-// <Suspense :key="activeSceneKey"> unmounts the leaving scene before the
-// destination resolves, so mid-swap `sceneRef` is null (or, for one pre-flush,
-// still the OUTGOING scene); `surfacesFor(undefined)` read that as "no
-// surfaces" and the dock + controls pane dropped their Controls tab/panel for
-// ~3 frames, then snapped back (dock 410 → 219 → 410 px). The machine is fed
-// only once `sceneRef` is bound to THE CURRENT scene — the same `superKey`
-// predicate the shell binding's targets-attached gate uses — so the surface
-// set changes ONCE per swap, at resolve. Home feeds [] directly (no scene
-// facility is ever read there).
-const sceneBoundToCurrent = computed(
-    () =>
-        isHome.value ||
-        sceneRef.value?.superKey === currentSuperKey.value,
-);
+// KF.W13U repair (ESC-d-1) — `surfacesFor(undefined)` read the pending
+// window as "no surfaces" and the dock + controls pane dropped their Controls
+// tab/panel for ~3 frames (dock 410 → 219 → 410 px). The machine is fed only
+// while `sceneBoundToCurrent` (above), so the surface set changes ONCE per
+// swap, at resolve — the same commit point as `resolvedScene`. Home feeds []
+// directly.
 watchEffect(() => {
     if (!sceneBoundToCurrent.value) return;
     machine.setActiveSurfaces(derivedSurfaces.value);

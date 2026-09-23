@@ -102,8 +102,9 @@ function lazyScene(id: string, loader: SceneLoader): Component {
 }
 
 /**
- * S5 — warm a scene's dynamic-import chunk on pointer-enter of its nav target,
- * so a subsequent switch has no chunk-fetch stall. Pure prefetch: the loader's
+ * S5 — warm a scene's dynamic-import chunk on INTENT — pointer-enter or
+ * keyboard focus of its nav row (X.KF.W13U.d5) — so a subsequent switch has no
+ * chunk-fetch stall. Pure prefetch: the loader's
  * promise is fired and dropped (Vite caches the module), with NO behaviour
  * change — a rejected warm is swallowed (the real mount surfaces the error via
  * `<Suspense>`). The Vite dynamic-import warmup, NOT Speculation Rules: the demo
