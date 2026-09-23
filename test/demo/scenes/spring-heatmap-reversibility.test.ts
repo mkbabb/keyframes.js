@@ -493,11 +493,18 @@ describe("X.KF.W11.f (5b) — the facet: the painter paints the peaks; the prese
         const { demo, wrapper, teardown } = mountFacet();
         try {
             const group = wrapper.get(".preset-grid");
-            expect(group.attributes("role")).toBe("group");
+            // [X.KF.W13R.m, glass 10.0.1] the producer's selection engine
+            // (BK #84 W-TOGGLE-ROW, 60a64339) speaks role-per-mode ARIA: a
+            // one-of-N chooser is a `radiogroup` of `radio`s carrying
+            // `aria-checked` (it was reka's `group` + `aria-pressed`). The
+            // property is unchanged: labelled, exclusive, never emptied by a
+            // click, emptied honestly by an off-preset write.
+            expect(group.attributes("role")).toBe("radiogroup");
             expect(group.attributes("aria-label")).toBe("Spring presets");
             const cells = () => wrapper.findAll(".preset-cell");
             expect(cells()).toHaveLength(4);
-            const pressed = () => cells().map((c) => c.attributes("aria-pressed"));
+            expect(cells().map((c) => c.attributes("role"))).toEqual(["radio", "radio", "radio", "radio"]);
+            const pressed = () => cells().map((c) => c.attributes("aria-checked"));
             // the scene opens on the smooth preset (0.5 / 0.86)
             expect(pressed()).toEqual(["true", "false", "false", "false"]);
             expect(cells().map((c) => c.attributes("title"))).toEqual(SPRING_PRESETS.map((p) => p.blurb));
