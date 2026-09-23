@@ -23,23 +23,48 @@
          skips it), so blend / z-index / weight render disabled beneath the
          live switch. -->
     <!-- KF-CO-1 / LP-2 — `open` is the producer's DECLARED prop
-         (`LabeledSelectProps.open?: boolean`, emit `update:open`). The former
+         (`SelectProps.open?: boolean` on `./select` — LabeledSelect left
+         `./labeled-field` at glass 8.0.0 for this LabeledField + Select
+         composition — emit `update:open`). The former
          `is-open` spelling reached nothing, and the absent Boolean prop cast to
          `false` was forwarded unconditionally into reka's SelectRoot, pinning
          this select controlled-shut. -->
-    <LabeledSelect
-        :model-value="layerConfig.op"
-        :open="open"
-        :items="COMPOSITE_OPERATORS"
-        :disabled="!blendAvailable || !layerConfig.enabled"
+    <LabeledField
         label="blend"
-        @update:model-value="
-            (v) => {
-                if (isCompositeOperator(v)) emit('update', { op: v });
-            }
-        "
-        @update:open="(v: boolean) => emit('update:open', v)"
-    />
+        :disabled="!blendAvailable || !layerConfig.enabled"
+        v-slot="{ controlId, labelledBy, describedBy }"
+    >
+        <Select
+            :model-value="layerConfig.op"
+            :open="open"
+            :disabled="!blendAvailable || !layerConfig.enabled"
+            @update:model-value="
+                (v) => {
+                    if (isCompositeOperator(v)) emit('update', { op: v });
+                }
+            "
+            @update:open="(v: boolean) => emit('update:open', v)"
+        >
+            <SelectTrigger
+                :id="controlId"
+                :aria-labelledby="labelledBy"
+                :aria-describedby="describedBy"
+            >
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectGroup>
+                    <SelectItem
+                        v-for="item in COMPOSITE_OPERATORS"
+                        :key="item"
+                        :value="item"
+                    >
+                        {{ item }}
+                    </SelectItem>
+                </SelectGroup>
+            </SelectContent>
+        </Select>
+    </LabeledField>
 
     <!-- z-index: a raw <LabeledField> + a slotted control so blend/z-index/
          enabled are all one-cell rows (one paradigm, H.W3.S2). LabeledField
@@ -130,10 +155,17 @@
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import {
     LabeledField,
-    LabeledSelect,
     LabeledSlider,
     LabeledSwitch,
 } from "@mkbabb/glass-ui/labeled-field";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@mkbabb/glass-ui/select";
 import {
     NumberField,
     NumberFieldInput,
@@ -143,7 +175,7 @@ import {
 // LP-15 / LP-21 — ONE operator enumeration, policed against the engine's own
 // union (`satisfies`: a member the engine drops fails to compile here), and
 // the `op` write NARROWED at the emit boundary by a predicate over that same
-// list — the producer's select emits `string`, and the former `as` cast let
+// list — the producer's Select emits `string | number`, and the former `as` cast let
 // an out-of-vocabulary operator ride `Object.assign` into the compositor's
 // replace/weight-blend arm unvalidated. (The `COMPOSITE_OPERATOR_DESCRIPTIONS`
 // binding it once carried was a phantom prop — KF-CO-2 / KF-CO-47.)
@@ -153,7 +185,7 @@ const COMPOSITE_OPERATORS = [
     "add",
     "accumulate",
 ] as const satisfies readonly CompositeOperator[];
-const isCompositeOperator = (v: string): v is CompositeOperator =>
+const isCompositeOperator = (v: string | number): v is CompositeOperator =>
     COMPOSITE_OPERATORS.some((op) => op === v);
 
 defineProps<{

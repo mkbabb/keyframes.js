@@ -151,59 +151,103 @@
                                     <template #error>{{ invalidMessage }}</template>
                                 </LabeledInput>
 
-                                <LabeledSelect
-                                    :model-value="
-                                        storedAnimationOptions.animationOptions
-                                            .direction ?? 'normal'
-                                    "
-                                    :open="isOpen('direction')"
-                                    :items="directions"
+                                <LabeledField
                                     label="direction"
-                                    @update:model-value="
-                                        (v) => {
-                                            if (!isOneOf(directions, v)) return;
-                                            commitOption(
-                                                'direction',
-                                                v,
-                                                (d) => animation.setDirection(d),
-                                                (d) => {
-                                                    storedAnimationOptions.animationOptions.direction =
-                                                        d;
-                                                },
-                                            );
-                                        }
-                                    "
-                                    @update:open="
-                                        (v: boolean) => setOpen('direction', v)
-                                    "
-                                />
+                                    v-slot="{ controlId, labelledBy, describedBy }"
+                                >
+                                    <Select
+                                        :model-value="
+                                            storedAnimationOptions.animationOptions
+                                                .direction ?? 'normal'
+                                        "
+                                        :open="isOpen('direction')"
+                                        @update:model-value="
+                                            (v) => {
+                                                if (!isOneOf(directions, v)) return;
+                                                commitOption(
+                                                    'direction',
+                                                    v,
+                                                    (d) => animation.setDirection(d),
+                                                    (d) => {
+                                                        storedAnimationOptions.animationOptions.direction =
+                                                            d;
+                                                    },
+                                                );
+                                            }
+                                        "
+                                        @update:open="
+                                            (v: boolean) => setOpen('direction', v)
+                                        "
+                                    >
+                                        <SelectTrigger
+                                            :id="controlId"
+                                            :aria-labelledby="labelledBy"
+                                            :aria-describedby="describedBy"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectItem
+                                                    v-for="item in directions"
+                                                    :key="item"
+                                                    :value="item"
+                                                >
+                                                    {{ item }}
+                                                </SelectItem>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </LabeledField>
 
-                                <LabeledSelect
-                                    :model-value="
-                                        storedAnimationOptions.animationOptions
-                                            .fillMode ?? 'forwards'
-                                    "
-                                    :open="isOpen('fillMode')"
-                                    :items="fillModes"
+                                <LabeledField
                                     label="fill mode"
-                                    @update:model-value="
-                                        (v) => {
-                                            if (!isOneOf(fillModes, v)) return;
-                                            commitOption(
-                                                'fillMode',
-                                                v,
-                                                (f) => animation.setFillMode(f),
-                                                (f) => {
-                                                    storedAnimationOptions.animationOptions.fillMode =
-                                                        f;
-                                                },
-                                            );
-                                        }
-                                    "
-                                    @update:open="
-                                        (v: boolean) => setOpen('fillMode', v)
-                                    "
-                                />
+                                    v-slot="{ controlId, labelledBy, describedBy }"
+                                >
+                                    <Select
+                                        :model-value="
+                                            storedAnimationOptions.animationOptions
+                                                .fillMode ?? 'forwards'
+                                        "
+                                        :open="isOpen('fillMode')"
+                                        @update:model-value="
+                                            (v) => {
+                                                if (!isOneOf(fillModes, v)) return;
+                                                commitOption(
+                                                    'fillMode',
+                                                    v,
+                                                    (f) => animation.setFillMode(f),
+                                                    (f) => {
+                                                        storedAnimationOptions.animationOptions.fillMode =
+                                                            f;
+                                                    },
+                                                );
+                                            }
+                                        "
+                                        @update:open="
+                                            (v: boolean) => setOpen('fillMode', v)
+                                        "
+                                    >
+                                        <SelectTrigger
+                                            :id="controlId"
+                                            :aria-labelledby="labelledBy"
+                                            :aria-describedby="describedBy"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectItem
+                                                    v-for="item in fillModes"
+                                                    :key="item"
+                                                    :value="item"
+                                                >
+                                                    {{ item }}
+                                                </SelectItem>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </LabeledField>
 
                                 <!-- Easing field — KF-CO-41: the unit sits INSIDE
                                      the `.labeled-field-grid` as a SUBGRID row
@@ -686,7 +730,7 @@ import {
     SelectValue,
     Separator,
 } from "@mkbabb/glass-ui";
-import { LabeledSelect, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
+import { LabeledField, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
@@ -837,12 +881,13 @@ const commitOption = <T>(
     }
 };
 
-// The two enumerated options arrive from the producer's select as `string`;
-// narrow against the engine's own tuples (no `as any` — N-15).
+// The two enumerated options arrive from the producer's Select as its
+// `SelectionValue` (`string | number`); narrow against the engine's own tuples
+// (no `as any` — N-15).
 const isOneOf = <const T extends readonly string[]>(
     list: T,
-    value: string,
-): value is T[number] => (list as readonly string[]).includes(value);
+    value: string | number,
+): value is T[number] => (list as readonly (string | number)[]).includes(value);
 
 // ── KF-CO-46 — focus follows the row transition ──────────────────────────────
 // Each row swap is a navigation: the control that OPENED a pane is inert once

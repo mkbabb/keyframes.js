@@ -16,7 +16,7 @@
  * edge lives), `ChannelControls`, `ChannelOptions`, `LayerConfigPanel`, the
  * `useEasingPickerSeat` composable, the warmed engine and a real
  * `AnimationGroup`, and — the point — the installed `@mkbabb/glass-ui`
- * `labeled-field` subpath (the real `LabeledSelect` / `LabeledSwitch` /
+ * `labeled-field` + `select` subpaths (the real `Select` / `LabeledSwitch` /
  * `LabeledSlider` over real reka Select / Switch / Slider under jsdom; its
  * chunk closure never reaches a `@mkbabb/keyframes.js` import — computed
  * over `dist/*.js` imports, receipted in the wave record). What is STUBBED,
@@ -358,7 +358,10 @@ const settle = async () => {
 describe("G-KFW12-2 — the ChannelOptions render edge", () => {
     it("(0) the producer's declared names, quoted at RUNTIME from the installed labeled-field module", async () => {
         const mod = await import("@mkbabb/glass-ui/labeled-field");
-        const selectProps = declaredPropNames(mod.LabeledSelect);
+        // glass 8.0.0 removed LabeledSelect: the rows compose LabeledField +
+        // the `./select` Select, so the select's names are read off Select.
+        const sel = await import("@mkbabb/glass-ui/select");
+        const selectProps = declaredPropNames(sel.Select);
         const switchProps = declaredPropNames(mod.LabeledSwitch);
         // The names the wave binds to…
         expect(selectProps).toContain("open");
@@ -368,7 +371,7 @@ describe("G-KFW12-2 — the ChannelOptions render edge", () => {
         expect(selectProps).not.toContain("tooltip");
         expect(selectProps).not.toContain("descriptions");
         expect(switchProps).not.toContain("checked");
-        const selectEmits = (mod.LabeledSelect as { emits: string[] }).emits;
+        const selectEmits = (sel.Select as { emits: string[] }).emits;
         const switchEmits = (mod.LabeledSwitch as { emits: string[] }).emits;
         expect(selectEmits).toContain("update:open");
         expect(switchEmits).toContain("update:modelValue");
