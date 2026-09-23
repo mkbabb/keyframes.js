@@ -22,7 +22,14 @@
  * detent, not a CSS token; the sheet's bottom edge clears the menubar through
  * the producer's `--drawer-inset-block-end`, set on `<DrawerContent>` (D-M3:
  * the retired `proof:stage-visible` gate pointer is gone; the shipped numbers
- * govern this prose). */
+ * govern this prose).
+ *
+ * [X.KF.W13R.m — DRAWER-DETENT-REACH, COHESION §0cd] glass 8.0.0 folded the
+ * Drawer WHOLE into the Sheet (glass `336dacf9`): the mobile sheet is
+ * `<Dialog :modal="false">` + `<SheetContent side="bottom" :detents scroll>`,
+ * sized by its rung (`--detent-t · 100dvh`) instead of translated, its region
+ * the scroller; the menubar lift is a `bottom` style on `<SheetContent>`.
+ * Where the prose above names the Drawer, read the Sheet. */
 
 /* ── T.B4 (OD-5, VERDICT #7) — the surrounding pane is GONE ──
    The rail is a NAKED column — no border, no background, no radius; the two
@@ -34,18 +41,14 @@
     gap: 0.75rem;
 }
 
-/* ── MOBILE (< 1024px): the adopted glass-ui Drawer body ──
-   The Drawer (`.glass-drawer` — drawer.css) portals the shared `.controls-pane`
-   body to <body>; it is `display:flex; flex-direction:column; height:100%` at a
-   detented snap. The `.controls-pane` slot child flex-fills under the glass grab
-   handle and scrolls its own content — glass-ui's `useDrawerSnap` owns the
-   open/close SPRING (kf's SpringProgress, transitively) + the detent/fling
-   gesture; this file only lays the body out inside the sheet. */
+/* ── MOBILE (< 1024px): the adopted glass-ui Sheet body ──
+   The Sheet (`[data-slot=sheet-content]` — sheet/styles.css) portals the shared
+   `.controls-pane` body to <body>, inside its one content region; the sheet is
+   two rows (the grip, then the region at `minmax(0, 1fr)`), and `scroll` makes
+   that region the scroller at every rung. glass-ui's `useSheetDetents` owns the
+   detent/fling gesture; this file only lays the body out inside the region. */
 @media (max-width: 1023px) {
     .controls-drawer-content .controls-pane {
-        min-height: 0;
-        flex: 1 1 auto;
-        overflow-y: auto;
         touch-action: pan-y;
     }
     .controls-drawer-content .controls-content {
@@ -145,8 +148,7 @@
 /* ── F9 PRM guard — snap, don't animate the idle-fade ──
    Under PRM the desktop idle dim still APPLIES (an opacity rest state,
    legibility-preserving) but its transition SNAPS. (The mobile sheet's PRM snap
-   is owned by the Drawer's own SpringProgress respectReducedMotion — no CSS
-   here.) */
+   is owned by the Sheet's own motion axis — no CSS here.) */
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
     .controls-pane-wrapper.controls-pane--open {
         transition: none;

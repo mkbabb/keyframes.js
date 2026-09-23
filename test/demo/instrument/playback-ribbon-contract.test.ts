@@ -103,10 +103,8 @@ vi.mock("@mkbabb/glass-ui/number-field", () => ({
         },
     }),
 }));
-vi.mock("@mkbabb/glass-ui/drawer", () => ({
-    Drawer: passthrough("DrawerStub"),
-    DrawerContent: passthrough("DrawerContentStub"),
-    DrawerTitle: passthrough("DrawerTitleStub"),
+vi.mock("@mkbabb/glass-ui/sheet", () => ({
+    SheetContent: passthrough("SheetContentStub"),
 }));
 vi.mock("@mkbabb/glass-ui/easing", () => ({
     EasingPicker: defineComponent({

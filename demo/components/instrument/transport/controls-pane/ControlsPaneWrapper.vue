@@ -1,5 +1,16 @@
 <template>
-    <!-- ── T.H3-ADOPT (OWNER-OVERRIDDEN 2026-07-06) — the mobile sheet is the
+    <!-- ── X.KF.W13R.m (DRAWER-DETENT-REACH, COHESION §0cd) — glass 8.0.0 folded
+         `Drawer` WHOLE into `Sheet` (glass `336dacf9`, "the detent is a size"):
+         the mobile sheet is `<Dialog :modal="false">` + `<SheetContent
+         side="bottom" :detents>`. The 7.0.0 Drawer was a full-height sheet
+         TRANSLATED to its snap, so ~384px of controls never entered an 844px
+         viewport; the Sheet takes its BLOCK-SIZE from the rung
+         (`--detent-t · 100dvh`) and its region scrolls (`scroll`), so every
+         control row is reachable at every rung. The history below is kept as
+         written; where it names `Drawer`, `--glass-drawer-t` or
+         `--drawer-inset-block-end`, read the Sheet, `--detent-t` and the
+         `bottom` lift set on `<SheetContent>`. ──
+         ── T.H3-ADOPT (OWNER-OVERRIDDEN 2026-07-06) — the mobile sheet is the
          glass-ui `<Drawer mode="live-behind">`; the desktop rail stays the naked
          column ──
          The bespoke peek/half/full sheet (SheetGrabHandle + useSheetGesture/
@@ -105,50 +116,53 @@
         </div>
     </DefinePaneBody>
 
-    <!-- ── MOBILE (< 1024px): the adopted glass-ui Drawer ─────────────────────
-         Held permanently OPEN (peek is the resting state — the grab handle stays
-         the re-open affordance, mirroring the bespoke peek/half/full); the store
-         `isControlsPanelOpen` fact rides `activeSnapPoint` (peek ↔ expanded). The
-         `.glass-drawer-handle` glass-ui renders is the swipe/fling gesture surface
-         `useSheetGesture` used to hand-roll — glass-ui's `useDrawerSnap` owns the
-         detent math + the velocity fling now. `:show-overlay="false"` keeps the
-         page-behind stage visible + interactive (mode="live-behind" already drops
-         the focus trap + page aria-hidden). -->
-    <Drawer
+    <!-- ── MOBILE (< 1024px): the adopted glass-ui Sheet (detented) ──────────
+         Held permanently OPEN (peek is the resting state — the sheet's grip is
+         the re-open affordance and carries the ladder for the keyboard); the
+         store `isControlsPanelOpen` fact rides `v-model:detent` (peek ↔
+         expanded). glass's `useSheetDetents` owns the detent math, the drag and
+         the fling. `:modal="false"` is the former `mode="live-behind"`: reka's
+         non-modal arm drops the focus trap, page aria-hidden and the scrim, so
+         the page-behind stage stays visible + interactive. The sheet's own
+         dismissals (the ✕, Esc, an outside press, a flick onto 0) request a
+         close; the sheet stays mounted and PARKS at peek — the store fact goes
+         false, never the dialog's open. -->
+    <Dialog
         v-if="isMobileLayout && showSheet"
-        mode="live-behind"
-        direction="bottom"
+        :modal="false"
         :open="true"
-        :snap-points="snapPoints"
-        v-model:active-snap-point="activeSnap"
+        @update:open="(open: boolean) => { if (!open) emit('setControlsPanelOpen', false); }"
     >
         <!-- KF-SKEL-9 — the `controls-drawer--stage-*` emission is DELETED (the
              decision is the emitter's, taken whole in `AnimationControlsGroup`;
              the rationale, including why ADOPT is barred, lives at that site so
              the nine names have one home and not three). -->
-        <!-- D-B1 — the inset is a `:style` on the content element (drawer.js
-             merges `style` onto the portalled `.glass-drawer`), NEVER a scoped
-             selector: a Teleport child is not this component's subTree, so the
-             consumer's `data-v-*` cannot reach it (MISS-1). The STABLE band
-             (the monotonic peak of the measured menubar, layout.css) over the
-             live one: the sheet's bottom edge must never drop mid-session when
-             the menubar momentarily measures shorter; over-reservation only
-             ever keeps the subject MORE clear (the token's own contract); and
-             no cycle forms — the inset does not feed the menubar's measure.
-             SS-13 measures the tether at both detents. -->
-        <DrawerContent
-            :show-overlay="false"
+        <!-- D-B1 — the sheet's bottom edge sits ABOVE the menubar: the sheet
+             pins `bottom: 0` at zero specificity (`:where()`, sheet/styles.css:
+             "a consumer's own sizing utility WINS"), so the lift is a `:style`
+             on the content element (merged onto the portalled
+             `[data-slot=sheet-content]`), NEVER a scoped selector: a Teleport
+             child is not this component's subTree, so the consumer's `data-v-*`
+             cannot reach it (MISS-1). The STABLE band (the monotonic peak of the
+             measured menubar, layout.css) over the live one: the sheet's bottom
+             edge must never drop mid-session when the menubar momentarily
+             measures shorter; over-reservation only ever keeps the subject MORE
+             clear; and no cycle forms — the lift does not feed the menubar's
+             measure. SS-13 measures the tether at both detents. -->
+        <SheetContent
+            side="bottom"
+            :detents="snapPoints"
+            v-model:detent="activeSnap"
+            scroll
             class="controls-drawer-content"
-            :style="{
-                '--drawer-inset-block-end': 'var(--dock-band-reserve-stable)',
-            }"
+            :style="{ bottom: 'var(--dock-band-reserve-stable)' }"
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
-            <DrawerTitle class="sr-only">Animation controls</DrawerTitle>
+            <DialogTitle class="sr-only">Animation controls</DialogTitle>
             <ReusePaneBody />
-        </DrawerContent>
-    </Drawer>
+        </SheetContent>
+    </Dialog>
 
     <!-- ── DESKTOP (≥ 1024px): the naked rail column ──────────────────────────
          T.B4 (OD-5, VERDICT #7): the surrounding pane is GONE — the rail is a
@@ -175,7 +189,8 @@ import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import { Drawer, DrawerContent, DrawerTitle } from "@mkbabb/glass-ui/drawer";
+import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
+import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
 import { computed, shallowRef, useTemplateRef, type ComponentPublicInstance } from "vue";
 import type { TransportChannel } from "../transportSource";
@@ -183,11 +198,12 @@ import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import { usePaneRegister } from "../ControlsPaneWrapper/usePaneRegister";
 import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
-// The Drawer's bottom-inset lever (`--drawer-inset-block-end`, glass-ui 7.0.0)
-// is consumed on `<DrawerContent>` in the template (D-B1).
+// The sheet's bottom lift above the menubar is the `bottom` style set on
+// `<SheetContent>` in the template (D-B1; glass 10's sheet pins `bottom: 0` at
+// zero specificity, and its 7.0.0 `--drawer-inset-block-end` lever is gone).
 
 // The shared control-pane body: defined once (DefinePaneBody), reused in the
-// mobile Drawer AND the desktop rail (ReusePaneBody) — the ONE body, two homes.
+// mobile Sheet AND the desktop rail (ReusePaneBody) — the ONE body, two homes.
 const [DefinePaneBody, ReusePaneBody] = createReusableTemplate();
 
 const props = defineProps<{
@@ -201,7 +217,7 @@ const props = defineProps<{
     hideControls?: boolean;
     // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the stage
     // behind the sheet; `editor`/`storyboard` keep a content card. The mode also
-    // tunes the Drawer's max detent (the stage-reserve approximation).
+    // tunes the Sheet's max detent (the stage-reserve approximation).
     // `| undefined` explicit — bound, never omitted, by the group above.
     stageMode?: "subject" | "editor" | "storyboard" | undefined;
     isPlaying: boolean;
@@ -336,7 +352,7 @@ const {
     scrollFadeClass,
 } = useControlsLayout(props.storedControls, paneElRef);
 
-// ── T.H3-ADOPT — the mobile Drawer open/detent state (was useSheetState) ─────
+// ── T.H3-ADOPT — the mobile Sheet open/detent state (was useSheetState) ──────
 // The 1023px mobile boundary (the SAME the sheet CSS + the mount-reset use).
 const isMobileLayout = useMediaQuery("(max-width: 1023px)");
 
@@ -353,6 +369,13 @@ if (isMobileLayout.value) {
 // anchored above the menubar: a detent `t` shows `t·(1 − b)` of the viewport
 // and leaves `(1 − b)(1 − t)` of stage above the sheet. PEEK keeps the stage
 // maximally visible; the EXPANDED cap APPROXIMATES the stage-reserve.
+// [X.KF.W13R.m, glass 10.0.1 — the Sheet] A detent is now a SIZE of the
+// viewport (`t · 100dvh`), lifted `b` above the menubar: a detent `t` shows
+// `t` of the viewport and leaves `1 − b − t` of stage above the sheet, so the
+// 0.45 floor below reads `1 − b − t − 0.11 ≥ 0.45`, i.e. t ≤ 0.44 − b — 0.36
+// holds it up to b = 0.08 (a 64px band on 800px; ~67px on 844px reads
+// b ≈ 0.079). The constants are unchanged (D-M3); the derivation that follows
+// is the 7.0.0 Drawer's `(1 − b)` geometry, kept as written.
 const PEEK_SNAP = 0.12;
 // D-M12 recomputed with D-B1 (D-M3: the shipped value governs the prose, not
 // the reverse). The 0.45 UNOCCLUDED floor, net of the ~0.11 top-dock band,
@@ -374,20 +397,22 @@ const expandedSnap = computed(() =>
 );
 const snapPoints = computed(() => [PEEK_SNAP, expandedSnap.value]);
 
-// The store open-fact ↔ the Drawer active detent. Open ⇒ expanded; closed ⇒ peek.
-// A drag/fling that lands nearer the expanded detent writes the open fact true.
-const activeSnap = computed<number>({
+// The store open-fact ↔ the Sheet's active detent. Open ⇒ expanded; closed ⇒
+// peek. A drag/fling that lands nearer the expanded detent writes the open fact
+// true; the sheet's `update:detent` payload is `number | null`, and a null or a
+// flick onto 0 reads as peek.
+const activeSnap = computed<number | null>({
     get: () =>
         props.storedControls.isControlsPanelOpen
             ? expandedSnap.value
             : PEEK_SNAP,
-    set: (v: number) => {
+    set: (v: number | null) => {
         const mid = (PEEK_SNAP + expandedSnap.value) / 2;
-        emit("setControlsPanelOpen", Number(v) > mid);
+        emit("setControlsPanelOpen", (v ?? 0) > mid);
     },
 });
 
-// The mobile sheet body scrolls when EXPANDED (glass-ui's Drawer owns the sheet
+// The mobile sheet body scrolls when EXPANDED (glass-ui's Sheet owns the sheet
 // motion + rest; the body just needs `overflow-y-auto` at the open detent). The
 // desktop path keeps the `isPanelTransitionDone` latch (the max-height
 // transitionend gate) — the two dispatch on the layout mode.
