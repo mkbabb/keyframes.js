@@ -95,9 +95,7 @@ vi.mock("@mkbabb/glass-ui/number-field", () => ({
             return () => h("div", { "data-stub": "NumberField" }, slots.default?.());
         },
     }),
-    NumberFieldContent: passthrough("NumberFieldContentStub"),
-    NumberFieldDecrement: buttonHost,
-    NumberFieldIncrement: buttonHost,
+    NumberFieldStep: buttonHost,
     NumberFieldInput: defineComponent({
         name: "NumberFieldInputStub",
         setup() {

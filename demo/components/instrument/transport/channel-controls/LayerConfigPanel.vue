@@ -47,7 +47,8 @@
          wrappers auto-wire it; `types.d.ts`).
          LP-8 ≡ KF-CO-35 (S-9, EVALUATED → ADOPTED, W6-I; LANDED at the
          frontier — booked GREEN-BEFORE-CURE by this unit): the control is the
-         producer's `NumberField` (`./number-field`, 7.0.0). The hand-rolled
+         producer's `NumberField` (`./number-field`; since glass 8.0.0 the root
+         is the group and ONE `NumberFieldStep` is parameterised by `direction`). The hand-rolled
          `<Input type="number">` sat outside the primitive's declared type
          union, invented data on a blank commit (`parseInt(…) || 0` — an empty
          field became a zero z-index) and committed on blur only. The
@@ -78,11 +79,9 @@
                 }
             "
         >
-            <NumberFieldContent>
-                <NumberFieldDecrement />
-                <NumberFieldInput />
-                <NumberFieldIncrement />
-            </NumberFieldContent>
+            <NumberFieldStep direction="decrement" />
+            <NumberFieldInput />
+            <NumberFieldStep direction="increment" />
         </NumberField>
     </LabeledField>
 
@@ -137,10 +136,8 @@ import {
 } from "@mkbabb/glass-ui/labeled-field";
 import {
     NumberField,
-    NumberFieldContent,
-    NumberFieldDecrement,
-    NumberFieldIncrement,
     NumberFieldInput,
+    NumberFieldStep,
 } from "@mkbabb/glass-ui/number-field";
 
 // LP-15 / LP-21 — ONE operator enumeration, policed against the engine's own
