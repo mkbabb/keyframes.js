@@ -76,7 +76,6 @@ vi.mock("@mkbabb/glass-ui/button", () => stub.module({ Button: "button" }));
 vi.mock("@mkbabb/glass-ui/card", () =>
     stub.module({
         Card: "div",
-        CardAction: "div",
         CardHeader: "header",
         CardTitle: "h2",
     }),

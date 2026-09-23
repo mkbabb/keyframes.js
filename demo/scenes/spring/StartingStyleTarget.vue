@@ -18,14 +18,16 @@
                  case-preserving rung: `text-mono-caption` uppercases, and an
                  all-caps rendering of a case-sensitive identifier is a wrong
                  name, not a style (KF-SST-5). -->
-            <CardAction class="self-center">
+            <!-- glass 8.0.0 deleted CardAction (and the header's `:has()` grid
+                 fork): the caption sits in the header by itself. -->
+            <p class="self-center">
                 <span class="text-caption text-muted-foreground whitespace-nowrap">
                     emitted by
                     <span class="text-mono-small" data-register="code"
                         >springLinearStops()</span
                     >
                 </span>
-            </CardAction>
+            </p>
         </CardHeader>
 
         <div class="flex w-full max-w-3xl flex-1 min-h-0 flex-col items-center justify-center gap-5">
@@ -165,7 +167,7 @@ export const ENTRY_CONTRACT = {
 import { computed, inject, useId } from "vue";
 // KF-KE-53's sweep at this file: subpaths, no root barrel.
 import { Button } from "@mkbabb/glass-ui/button";
-import { Card, CardAction, CardHeader, CardTitle } from "@mkbabb/glass-ui/card";
+import { Card, CardHeader, CardTitle } from "@mkbabb/glass-ui/card";
 import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
