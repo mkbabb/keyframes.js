@@ -1,8 +1,6 @@
 import { ref, type Ref } from "vue";
 import { viewTransition, type ViewTransitionHandle } from "@mkbabb/keyframes.js";
 
-import { sceneIndex } from "../scene/scenes";
-
 /**
  * Routes the scene-id mutation through the platform's native View Transitions.
  *
@@ -20,22 +18,14 @@ import { sceneIndex } from "../scene/scenes";
  * DISPATCH. The demo carries NO `::view-transition-*` CSS of its own (S.G2 S11 /
  * proof:icon-paint-live — those animation glyphs are glass-ui-owned).
  *
- * Q.WC3 S3 (NI-1) — the scene-switch DERIVES DIRECTION. `sign(sceneIndex(target) −
- * sceneIndex(current))` (over the `sceneIndex` ordered-index seam, S1) derives a
- * `view-transition-type` of `forward` / `backward`, passed to kf's `viewTransition`
- * as `{ types }`. The type is set on the live transition (`:active-view-transition-
- * type()` becomes queryable for its duration), so a generic glass-ui type-keyed
- * slide recipe — the owner-domain HANDOFF (S.G2 S11: the typed slide belongs in
- * glass-ui's `view-transition.css`, not demo-side) — would consume it with no demo
- * CSS. Until then the untyped cross-fade is the look on every engine. Where
- * `view-transition-type` is unsupported (Firefox/Safari as of 2026) kf's dispatch
- * drops the arg; the single VT name (`scene-subject`) is PRESERVED — direction
- * rides `view-transition-type`, never a second name.
- *
- * NOTE the call shape: kf's `viewTransition` takes the mutate callback as the
- * FIRST positional arg and `{ types }` as the SECOND options arg — it feature-
- * detects the native typed-`update` object overload internally and DROPS `types`
- * (the untyped cross-fade) on a callback-only engine, never a throw.
+ * KFA-136 (X.KF.W13V.u) — the swap is UNTYPED. A `forward`/`backward`
+ * `view-transition-type` used to be derived from the scene order and passed on
+ * every switch, with two unread test hooks beside it, but no stylesheet keyed
+ * on either type: the swap was the untyped cross-fade regardless. The dead
+ * derivation is deleted. A directional look is a design decision against
+ * glass's installed route grammar (`lateral` + `--route-direction`, which also
+ * pushes the root, so the chrome would need its own naming) — not a type
+ * emitted into the void.
  *
  * Feature-detect is built into the dispatch: where `document.startViewTransition`
  * is absent it calls `mutate()` synchronously and settles `finished` immediately
@@ -52,7 +42,6 @@ import { sceneIndex } from "../scene/scenes";
 export function useSceneTransition(
     mutate: (id: string) => void,
     sceneHost: Ref<HTMLElement | null>,
-    currentSceneId: Ref<string>,
 ) {
     // KFA-12 (X.KF.W13V.k) — the backend that carried the LAST switch, read
     // off the dispatch's own handle. `useSceneSwap` stands its spring down only
@@ -62,37 +51,7 @@ export function useSceneTransition(
     const lastSwapBackend = ref<ViewTransitionHandle["backend"] | null>(null);
 
     function runSceneSwitch(id: string) {
-        // Q.WC3 S3 — the directional type from the ordered-index delta. A forward
-        // move (target later in `allScenes`) slides left→right; a backward move
-        // mirrors it. An unknown index (−1) or a same-index re-entry yields no
-        // direction (the untyped cross-fade).
-        const from = sceneIndex(currentSceneId.value);
-        const to = sceneIndex(id);
-        const types: string[] =
-            from < 0 || to < 0 || from === to
-                ? []
-                : to > from
-                  ? ["forward"]
-                  : ["backward"];
-
-        // The test hook the runtime gate reads (the directional-derivation
-        // observable — `:active-view-transition-type()` is live for only the
-        // transition's duration, so the gate observes the resolved types here, not
-        // a mid-transition snapshot race). The SAME committed-state instrumentation
-        // pattern the perf gate uses.
-        if (import.meta.env.DEV && typeof window !== "undefined") {
-            (window as unknown as { __lastVtTypes?: string[] }).__lastVtTypes =
-                types;
-        }
-        sceneHost.value?.setAttribute(
-            "data-last-vt-type",
-            types[0] ?? "",
-        );
-
-        const { finished, backend } = viewTransition(
-            () => mutate(id),
-            types.length ? { types } : {},
-        );
+        const { finished, backend } = viewTransition(() => mutate(id));
         lastSwapBackend.value = backend;
         finished.finally(() => {
             sceneHost.value?.focus();

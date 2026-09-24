@@ -116,11 +116,9 @@ import "@styles/brand.css";
 // `@import "@mkbabb/glass-ui/styles"`): the untyped cross-fade + the `scene-subject`
 // shared-element morph are the default UA/glass-ui look. The former Q.WC3 demo-side
 // `scene-transition.css` (the typed `forward`/`backward` `::view-transition-old/new`
-// slide keyframes) was demo-side VT residue the gate forbids — DELETED here. The
-// direction is still DERIVED and passed as `view-transition-type` (useSceneTransition
-// S.F1 dogfood over kf's `viewTransition`), so when glass-ui ships a generic
-// type-keyed slide recipe (the owner-domain HANDOFF), the directional look returns
-// for free with no demo CSS.
+// slide keyframes) was demo-side VT residue the gate forbids — DELETED here, and
+// the direction derivation that outlived them is gone too (KFA-136: a type no
+// stylesheet read; see useSceneTransition).
 
 import {
     computed,
@@ -410,7 +408,6 @@ const {
 const { runSceneSwitch, lastSwapBackend } = useSceneTransition(
     switchScene,
     sceneHostEl,
-    currentSceneId,
 );
 
 // Scene-swap cross-dissolve (SpringProgress) — PRESERVED driver (S7), the
