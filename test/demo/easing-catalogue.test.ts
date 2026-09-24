@@ -102,6 +102,9 @@ const passthrough = (name: string, cls: string) =>
 vi.mock("@mkbabb/glass-ui", () => ({
     Card: passthrough("CardStub", "card-stub"),
     CardContent: passthrough("CardContentStub", "card-content-stub"),
+    // X.KF.W13V.y — the Curve facet separates the picker from the duration
+    // param row with the glass Separator (DESIGN-NOTE N-2).
+    Separator: defineComponent({ name: "SeparatorStub", setup: () => () => h("hr") }),
 }));
 
 vi.mock("@mkbabb/glass-ui/labeled-field", () => ({

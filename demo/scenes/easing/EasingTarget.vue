@@ -29,7 +29,7 @@
                     </h2>
                 </Transition>
                 <span class="specimen-literal" data-register="code">
-                    <code class="literal-text text-mono-small">{{
+                    <code class="literal-text text-mono-small" data-readout="primary">{{
                         literal
                     }}</code>
                     <!-- S-7 (W6-I): the copy control is a glass Button that
@@ -125,6 +125,7 @@
                     v-for="curve in visibleCurves"
                     :key="curve.name"
                     :value="curve.name"
+                    :title="curve.name"
                     data-surface="opaque"
                     class="specimen-tile flex-col gap-1.5 px-2 py-2.5"
                 >

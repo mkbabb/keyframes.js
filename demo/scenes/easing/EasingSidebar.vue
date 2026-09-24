@@ -54,26 +54,30 @@
                 custom curve
             </p>
 
-            <!-- Duration row — FULL-WIDTH (J3 posture kept from the previous
-                 sidebar: label above, track spans the panel inner width). -->
-            <LabeledSlider
-                class="duration-field"
-                :model-value="demo.duration.value"
-                label="duration"
-                label-class="text-small font-medium text-muted-foreground"
-                tooltip="Sweep duration (ms)"
-                :min="300"
-                :max="5000"
-                :step="100"
-                @update:model-value="(v) => { demo.duration.value = v; }"
-            />
+            <Separator />
+            <!-- The duration param — X.KF.W13V.y (OA-51; DESIGN-NOTE N-2): the
+                 PARAM ROW idiom (`.param-row`, design-idioms.css) — label and
+                 live value on one line, the slider spanning the row beneath. -->
+            <div class="param-row">
+                <LabeledSlider
+                    :model-value="demo.duration.value"
+                    label="duration"
+                    tooltip="Sweep duration (ms)"
+                    :min="300"
+                    :max="5000"
+                    :step="100"
+                    :value-text="(v: number) => `${v} milliseconds`"
+                    @update:model-value="(v) => { demo.duration.value = v; }"
+                />
+                <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
+            </div>
         </CardContent>
     </Card>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { Card, CardContent } from "@mkbabb/glass-ui";
+import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { EasingPicker, type EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
@@ -182,18 +186,3 @@ watch(
     },
 );
 </script>
-
-<style scoped>
-/* The duration control is FULL-WIDTH (the J3 posture): label on its own line,
-   the slider track spans the panel inner width. */
-.panel-content :deep(.labeled-field.duration-field) {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.25rem;
-}
-.panel-content :deep(.duration-field [data-slot="slider"]),
-.panel-content :deep(.duration-field .slider-track) {
-    width: 100%;
-}
-</style>

@@ -109,7 +109,11 @@
 /* Each tile: content-visibility gates off-screen render work (the paint walk
    is already IO-gated; this gates style/layout too). The intrinsic-size
    placeholder keeps the scrollbar honest. */
+/* X.KF.W13V.y (OA-49/51; DESIGN-NOTE N-4; glass DESIGN.md:385-391) — a tile
+   holds two lines (the sparkline race + the name), so it sits on the multi-line
+   field rung, never the producer item's stadium. */
 .specimen-tile {
+    border-radius: var(--radius-field);
     content-visibility: auto;
     contain-intrinsic-size: auto 104px;
     align-items: stretch;
@@ -200,10 +204,17 @@
 }
 
 /* ── The name row: room to breathe, never truncated ── */
+/* The name is ONE line (N-3): it read `ease-in-out-` / `quad` across two at the
+   mono caption's tracking. Tracking returns to the face's own (digits and
+   hyphens need none), and a name longer than the tile ellipsizes — the item's
+   `title` and its accessible name carry it whole. */
 .tile-name {
     text-transform: none; /* identifiers read as-cased */
     text-align: center;
-    overflow-wrap: anywhere;
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     line-height: 1.35;
     padding-bottom: 0.125rem;
     color: var(--muted-foreground);
