@@ -255,7 +255,8 @@
                                      1/-1; `grid-cols-subgrid` re-adopts the two
                                      tracks), so its label sits in the SAME derived
                                      label column as the five rows above and the
-                                     trigger spans both tracks below it. The former
+                                     trigger sits in the value track beside it
+                                     (X.KF.W13V.c, OA-47: one line). The former
                                      `flex flex-col` unit outside the grid was the
                                      card's second row grammar. glass-ui 7.0.0
                                      `LabeledField` still exposes no label-action
@@ -269,11 +270,25 @@
                                      WCAG 2.5.3), and the mouse-only label Tooltip
                                      (as-child onto a non-focusable `<label>`) is
                                      gone with the `cursor-help` cue. -->
+                                <!-- X.KF.W13V.c · OA-47 — the divider above the
+                                     easing group: timing (the five rows above)
+                                     is separated from the curve. A non-field
+                                     child of `.labeled-field-grid`, so the idiom
+                                     spans it across both tracks. -->
+                                <Separator class="my-1" />
+                                <!-- X.KF.W13V.c · OA-47 / OA-51 — ONE control-row
+                                     idiom: the easing group is ONE row of the
+                                     same two tracks as the five fields above —
+                                     the label (with its edit pencil) in the
+                                     label track, the select in the value track,
+                                     sharing a line. The former second line (the
+                                     trigger spanning both tracks under a
+                                     half-empty label row) is gone. -->
                                 <div
                                     class="col-span-full grid grid-cols-subgrid
-                                        gap-y-1"
+                                        items-center"
                                 >
-                                    <div class="col-start-1 flex items-center gap-1.5">
+                                    <div class="col-start-1 flex items-center gap-1">
                                         <!-- KF-CO-18 (W6-M) — `.gold-shimmer` clips
                                              a gold gradient to the text by setting
                                              `color: transparent` in `@layer
@@ -282,15 +297,25 @@
                                              over the gradient, so the two are
                                              ALTERNATIVES on one axis, never
                                              stacked. -->
-                                        <label
-                                            :id="easingLabelId"
-                                            :class="[
-                                                'text-small font-medium',
-                                                isDetailEasing
-                                                    ? 'gold-shimmer'
-                                                    : 'text-muted-foreground',
-                                            ]"
-                                            >easing</label
+                                        <!-- X.KF.W13V.c · OA-47 — the label is the
+                                             producer's `Label`, the same register
+                                             every `LabeledField` row above renders
+                                             (one label idiom, not a muted
+                                             hand-rolled twin). The shimmer rides
+                                             an inner span: `.label` inks its own
+                                             box, the span's clipped gradient
+                                             paints inside it (KF-CO-18 holds —
+                                             never a colour utility beside
+                                             `.gold-shimmer`). -->
+                                        <Label :id="easingLabelId"
+                                            ><span
+                                                :class="
+                                                    isDetailEasing
+                                                        ? 'gold-shimmer'
+                                                        : undefined
+                                                "
+                                                >easing</span
+                                            ></Label
                                         >
                                         <!-- KF-CO-42 (root of KF-CO-24 / -27 / half of
                                              -28) — the pencil is the producer's
@@ -346,7 +371,7 @@
                                         "
                                     >
                                         <SelectTrigger
-                                            class="col-span-full"
+                                            class="col-start-2 min-w-0"
                                             :aria-labelledby="easingLabelId"
                                         >
                                             <!-- OA-28 / OA-31 (§0be · §0bg) — the
@@ -731,6 +756,7 @@ import {
     Separator,
 } from "@mkbabb/glass-ui";
 import { LabeledField, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
+import { Label } from "@mkbabb/glass-ui/label";
 
 import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";

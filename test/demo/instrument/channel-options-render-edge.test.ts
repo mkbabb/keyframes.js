@@ -677,3 +677,34 @@ describe("X.KF.W13U.e · OA-28 / OA-31 (§0be · §0bg) — the trigger shows th
         }
     });
 });
+
+describe("X.KF.W13V.c · OA-47 (§0bz) — one control-row idiom in the options card", () => {
+    it("(7) a divider precedes the easing group, and the easing label is the producer Label (the fields' register) in the grid's label track", async () => {
+        const { wrapper } = mountPane();
+        try {
+            await settle();
+            const grid = document.querySelector(".labeled-field-grid")!;
+            expect(grid).not.toBeNull();
+            // The easing group: the grid's only direct child that is not a
+            // producer `.labeled-field` and holds the curve picker.
+            const group = [...grid.children].find(
+                (c) => !c.classList.contains("labeled-field") && c.querySelector("svg.curve-glyph"),
+            )!;
+            expect(group).toBeDefined();
+            // OA-47 — "a dividing line above easing": the separator is the
+            // group's immediately preceding sibling, inside the same grid.
+            expect(group.previousElementSibling?.getAttribute("data-stub")).toBe("SeparatorStub");
+            // One label idiom — the easing label is glass's `Label`, the element
+            // every LabeledField row renders its label with, and it names the
+            // group (its id is the one the trigger is labelled by).
+            const label = group.querySelector('[data-slot="label"]');
+            expect(label?.textContent?.trim()).toBe("easing");
+            expect(label?.id).toBeTruthy();
+            // Label and picker share ONE row of the subgrid: the label cell and
+            // the picker are the group's two cells, nothing stacked between.
+            expect(group.children.length).toBe(2);
+        } finally {
+            wrapper.unmount();
+        }
+    });
+});

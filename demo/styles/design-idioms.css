@@ -305,13 +305,21 @@
    `.labeled-field-grid` to its ROW CONTAINER (a 2-track grid [label] auto [value]
    1fr); each `.labeled-field` row participates via subgrid, so the auto label column
    is sized ONCE from the widest label across all rows. The error region + non-field
-   direct children span both columns (mixed content keeps its full-width rows). */
+   direct children span both columns (mixed content keeps its full-width rows).
+   X.KF.W13V.c (OA-47 — one control-row idiom on glass's spacing scale): the gaps
+   are glass's rungs. Every `.labeled-field` row sets its OWN gap to
+   `--space-atom` (glass `.labeled-field{gap:var(--space-atom)}`), which a subgrid
+   honours over the parent's — so the former 0.75rem literal was a second value
+   the rows never rendered, and a hand-rolled row (the easing group) that
+   inherited it sat 2px right of the fields' value track. The grid now states the
+   rung the rows already render, so every row — producer or composed — shares
+   ONE value edge; the row rhythm is `--space-residue`. */
 .labeled-field-grid {
     display: grid;
     grid-template-columns: [label] auto [value] 1fr;
     align-items: center;
-    column-gap: 0.75rem;
-    row-gap: 0.25rem;
+    column-gap: var(--space-atom);
+    row-gap: var(--space-residue);
 }
 .labeled-field-grid > .labeled-field {
     display: grid;
