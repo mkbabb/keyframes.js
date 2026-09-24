@@ -1,11 +1,11 @@
 <template>
-    <!-- J.W7a S1 (D6 / H3) — on the HOME landing (hideLoader === the start
-         screen is up) the cube is the hero's BACKDROP subject: below lg it
-         RECEDES into the band beneath the hero (the `cube-stage--hero-recede`
-         padding pushes its centering region below --start-hero-band), so the
-         mega text and the cube never fight for the same pixels
-         (`home-mobile.png`, the H3/TYP-1 collision). Desktop and the cube
-         scene proper are byte-identical. -->
+    <!-- On the HOME landing (hideLoader === the start screen is up) below lg
+         the cube is centred in the STAGE (X.KF.W13V.s, OA-39): the
+         `cube-stage--hero-recede` rule centres it between the top dock band
+         and the transport band and steps it down one sizing rung; the
+         headline and deck stack above and below it (EditorStartScreen reads
+         the same layout.css tokens), so text and cube never share pixels.
+         Desktop and the cube scene proper are byte-identical. -->
     <div
         class="grid h-full w-full max-w-full items-center justify-center justify-items-center overflow-visible"
         :class="{ 'cube-stage--hero-recede': props.hideLoader }"
@@ -224,33 +224,21 @@ defineExpose({
 </script>
 
 <style scoped>
-/* J.W7a S1 (D6 / H3) — the hero-backdrop recede band (mobile only). The hero
-   parks in the top band (EditorStartScreen `pt-[var(--dock-top-band-reserve)]`);
-   the cube's centering region starts BELOW the --start-hero-band split
-   (layout.css — the golden top share of the work-area height, derived from the
-   same chain the docks ride), so hero text and subject occupy DISJOINT vertical
-   bands at phone widths; the rendered 390×844 clearance is KF.W9's witness.
-   Desktop (≥lg) is untouched: text and cube share the wide stage as before. */
+/* X.KF.W13V.s (OA-39) — the landing's phone column (mobile only). The scene
+   host spans the stage cell's symmetric padding box; the stage the owner sees
+   ends at the TRANSPORT band, which sits higher than the top band's mirror, so
+   the host's lower edge is lifted by exactly that difference and the cube
+   centres in the stage region itself. The receded cube steps down one sizing
+   rung (--home-cube-side, shared with the start screen's text rows). Desktop
+   (≥lg) is untouched. */
 @media (max-width: 1023px) {
     .cube-stage--hero-recede {
-        padding-block-start: var(--start-hero-band);
-        /* The subject's band ends at the MENUBAR top, not the raw dock-band
-           depth: the bottom TransportDock floats --work-area-bottom-offset
-           above the viewport edge (= --dock-menubar-reserve − the band depth
-           the stage cell already reserves), so without this term the receded
-           cube's lower face slid under the transport pill. Same tokens, no
-           magic numbers. */
         padding-block-end: calc(
-            var(--dock-menubar-reserve) - var(--dock-band-reserve)
+            var(--stage-bottom-inset) - var(--stage-top-inset)
         );
     }
-    /* The receded backdrop subject steps down one sizing rung (50→40 of the
-       short axis) so it FITS the band the hero leaves it on phone heights —
-       part of the same D6 separation (H3: "push the hero to the top quarter
-       and reserve the cube below"); the cube scene proper keeps its 50/18rem
-       protagonist size. */
     .cube-stage--hero-recede :deep(.cube) {
-        --side-size: min(40vh, 40vw, 16rem);
+        --side-size: var(--home-cube-side);
     }
 }
 </style>

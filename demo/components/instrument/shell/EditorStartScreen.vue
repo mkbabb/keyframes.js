@@ -115,20 +115,25 @@
              The sibling half (TypingDots pairing `delays[i]` with `els[i]` on
              an undocumented `v-for` ref-array order) is that file's and is
              DECLARED, not reached across. -->
-        <h2 class="start-screen-prose hero-deck">
-            from the list
-            <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
-                 "no weight above 400": Lucide's default stroke scales with the
-                 box (2 units of a 24-unit viewBox → ≈2.19px at this 0.8em box)
-                 and out-weighed the serif's ≈1.8px stems. `absolute-stroke-width`
-                 is the icon's own one-attribute contract for a stroke that does
-                 not scale with size. -->
-            <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
-            below, then press Play.
-        </h2>
-        <h2 v-if="hint" class="start-screen-prose hero-hint">
-            {{ hint }}
-        </h2>
+        <!-- X.KF.W13V.s (OA-39) — the deck and hint are ONE block so the
+             phone column can stack it BELOW the cube (the headline sits
+             above); on desktop the block flows exactly as the two lines did. -->
+        <div class="hero-sub">
+            <h2 class="start-screen-prose hero-deck">
+                from the list
+                <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
+                     "no weight above 400": Lucide's default stroke scales with the
+                     box (2 units of a 24-unit viewBox → ≈2.19px at this 0.8em box)
+                     and out-weighed the serif's ≈1.8px stems. `absolute-stroke-width`
+                     is the icon's own one-attribute contract for a stroke that does
+                     not scale with size. -->
+                <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
+                below, then press Play.
+            </h2>
+            <h2 v-if="hint" class="start-screen-prose hero-hint">
+                {{ hint }}
+            </h2>
+        </div>
     </div>
 </template>
 
@@ -349,14 +354,27 @@ h1.hero-display {
    mobile viewport — the display face may never render below the smallest
    display rung. The hint takes the same phone clamp (same face, same floor). */
 @media (max-width: 1023px) {
+    /* X.KF.W13V.s (OA-39) — ONE centred column. The band spans the stage (the
+       same insets the cube centres in, layout.css) as three rows: the headline
+       centred in the space above the cube, the cube's own footprint kept
+       clear (--home-cube-extent — the cube paints there, in the scene host),
+       and the deck + hint centred in the space below it. Never over the cube,
+       never left-ragged beside it. */
     .hero-band {
-        top: calc(
-            var(--work-area-top-offset) + var(--work-area-height) * 0.52
-        );
-        max-block-size: calc(
-            100dvh -
-                (var(--work-area-top-offset) + var(--work-area-height) * 0.52)
-        );
+        top: var(--stage-top-inset);
+        bottom: var(--stage-bottom-inset);
+        max-block-size: none;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) var(--home-cube-extent) minmax(0, 1fr);
+        justify-items: center;
+        align-items: center;
+        text-align: center;
+    }
+    .hero-display {
+        grid-row: 1;
+    }
+    .hero-sub {
+        grid-row: 3;
     }
 
     .hero-display {

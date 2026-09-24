@@ -36,16 +36,24 @@
     --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width */
     --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track inset — 1.5rem each side */
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing SelectContent cap */
-    /* The phone home hero/subject band split: the hero owns the golden TOP share of
-       the work-area height — the same 1/φ² split (--work-area-vertical-bias-top)
-       the docks and the work-area card already ride — and the subject's centering
-       region starts below it. DERIVED from the chain, which already folds the dock
-       band, the safe-area insets and the ResizeObserver-fed menubar height; the
-       former raw `34dvh` was a hand-fit that could not track the band it
-       approximated (KF-EST-16). Consumed by CubeScene's mobile recede rule; the
-       rendered clearance at 667/844 is KF.W9's to witness. */
-    --start-hero-band: calc(
-        var(--work-area-height) * var(--work-area-vertical-bias-top)
+    /* X.KF.W13V.s (OA-39) — the phone LANDING is ONE centred column: the idle
+       cube centred in the stage (the region between the top dock band and the
+       transport band), the headline stacked ABOVE it and the deck BELOW it,
+       each centred in the space the cube leaves — never over it. The former
+       golden split (--start-hero-band) pushed the cube's centring region down
+       to ≈65 % of the viewport while the hero sat at 52 %, so the two collided
+       (the owner's frame). Both subtrees (CubeScene's recede rule and the
+       start screen's band) read THESE tokens, so they agree by construction.
+       --home-cube-side is the receded cube's sizing rung; --home-cube-extent is
+       the idle pose's projected footprint (a rotated die projects past its
+       side), the band the text rows keep clear of. The stage insets are the
+       mobile stage cell's own (the stable top band; the transport band). */
+    --home-cube-side: min(40vh, 40vw, 16rem);
+    --home-cube-extent: calc(var(--home-cube-side) * 1.3);
+    --stage-top-inset: var(--dock-top-band-reserve-stable, var(--dock-top-band-reserve));
+    --stage-bottom-inset: calc(
+        var(--dock-bottom-anchor) +
+            var(--dock-band-reserve-stable, var(--dock-band-reserve))
     );
 
     /* The graph / stage-field substrate PITCHES: two-tier engineering-graph-paper
