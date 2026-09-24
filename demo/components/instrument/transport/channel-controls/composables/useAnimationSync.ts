@@ -38,21 +38,27 @@ export function useAnimationSync(
     let stableFrames = 0;
 
     const tickerActive = ref(true);
+    /** Read the engine's state into the refs; reports whether any value moved. */
+    const read = () => {
+        const animation = getAnimation();
+        const t = animation.effectiveT;
+        const started = animation.started;
+        const reversed = animation.reversed;
+
+        const changed =
+            t !== currentT.value ||
+            started !== isStarted.value ||
+            reversed !== isReversed.value;
+
+        currentT.value = t;
+        isStarted.value = started;
+        isReversed.value = reversed;
+        return changed;
+    };
+
     useDemoTicker(
         () => {
-            const animation = getAnimation();
-            const t = animation.effectiveT;
-            const started = animation.started;
-            const reversed = animation.reversed;
-
-            const changed =
-                t !== currentT.value ||
-                started !== isStarted.value ||
-                reversed !== isReversed.value;
-
-            currentT.value = t;
-            isStarted.value = started;
-            isReversed.value = reversed;
+            const changed = read();
 
             // While playing, never idle — the happy path is untouched.
             if (isPlaying.value) {
@@ -80,7 +86,19 @@ export function useAnimationSync(
     // re-arms the settle window so the loop runs once more to capture the
     // post-stop frame before idling (else `isStarted`/`currentT` could stick at
     // the pre-stop value). Pausing is left to the settle-detect.
-    watch(isPlaying, () => wake());
+    //
+    // KFA-17 / C6-3 (X.KF.W13V Repair 1) — the edge also READS the engine, in
+    // the pre-render flush. The ticker samples once per frame, so while playing
+    // the readout trails the engine by up to a frame; the transport face flips
+    // on this same play-state change, so without the edge read the face said
+    // "paused" for one frame while the ribbon still showed the previous frame's
+    // time, and the next tick then moved a paused playhead (~8 ms on the served
+    // cube, 6 of 6 — the `[real-cube]` oracle's `rest=false`). Reading here puts
+    // the face and the readout in one render.
+    watch(isPlaying, () => {
+        read();
+        wake();
+    });
 
     // Re-sync when the tab becomes visible again (it may have advanced/changed
     // while hidden, and rAF is throttled/paused by the browser when hidden).
