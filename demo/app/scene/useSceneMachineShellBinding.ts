@@ -243,6 +243,20 @@ export function useSceneMachineShellBinding(opts: {
     }
 
     // ── Playback events from the bottom bar → the machine (S2) ────────────────
+    // UIA-KF-004 — home's transport lists the CUBE's channels (home renders the
+    // CubeScene backdrop), so a pick there is a "play this on cube" intent. The
+    // pick is written to HOME's control bucket (the transport's own store), and
+    // cube selects from ITS bucket, so the hop carries the pick across and
+    // consumes it — a later bare Play on home leaves cube's selection alone.
+    function carryHomePick() {
+        const home = getStoredAnimationGroupControlOptions(currentSuperKey.value);
+        const cube = sceneMap.get("cube");
+        if (!home.selectedAnimation || !cube) return;
+        getStoredAnimationGroupControlOptions(cube.superKey).selectedAnimation =
+            home.selectedAnimation;
+        home.selectedAnimation = null;
+    }
+
     function onPlayStateChange(playing: boolean) {
         // Home "play" is a user gesture — it navigates to cube and auto-plays.
         // Gate on the empty home group so re-activating a cached scene whose
@@ -250,6 +264,7 @@ export function useSceneMachineShellBinding(opts: {
         const group = currentAnimationGroup.value;
         const isHomeEmptyGroup = Object.keys(group.animations).length === 0;
         if (isHome.value && playing && isHomeEmptyGroup) {
+            carryHomePick();
             autoPlayNext.value = true;
             getRunSceneSwitch()("cube");
             return;
