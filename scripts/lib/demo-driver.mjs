@@ -917,9 +917,9 @@ export async function navToScene(
         .waitForFunction(
             (expected) => {
                 const trig = document.querySelector(
-                    "[aria-label='Controls tab']",
+                    "[data-dock-surface-item][data-selected]",
                 );
-                const text = trig?.textContent?.trim() || null;
+                const text = trig?.getAttribute("aria-label") || null;
                 return expected === null ? !trig : text === expected;
             },
             expectedTrigger,

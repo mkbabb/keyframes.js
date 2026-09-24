@@ -217,6 +217,10 @@ const SWEEP_META = {
     // SIGNATURE facet (the scene-aware selectedControl default) — the control
     // trigger reads the FACET name ("Curve"/"Physics", SURFACE_META), while the
     // scene-select keeps the scene identity (the #17 cross-axis dedup).
+    // X.KF.W13V.s (OA-46) — the Select became the dock's surface ITEMS; the
+    // "trigger" is now the SELECTED item's name (`[data-dock-surface-item]
+    // [data-selected]`), the same fact (which surface the scene projected);
+    // sequence has no live item, so none is selected (null).
     easing: { trigger: "Curve", label: "Easing", kind: "group-play" },
     spring: { trigger: "Physics", label: "Spring", kind: "spring-rail" },
     sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
@@ -902,8 +906,8 @@ async function runBattery() {
                     try {
                         m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
                     } catch { /* unreadable */ }
-                    const trig = document.querySelector("[aria-label='Controls tab']");
-                    return { machine: m, trigger: trig ? (trig.textContent?.trim() || "") : null };
+                    const trig = document.querySelector("[data-dock-surface-item][data-selected]");
+                    return { machine: m, trigger: trig ? (trig.getAttribute("aria-label") || "") : null };
                 }, [MACHINE_KEY]);
                 const subj = await subjectRect(page, libScene.subjectSelector);
                 const machineOk = state.machine === key;
@@ -950,8 +954,8 @@ async function runBattery() {
                         ([mk, id, expected]) => {
                             try {
                                 const m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
-                                const trig = document.querySelector("[aria-label='Controls tab']");
-                                const text = trig?.textContent?.trim() || null;
+                                const trig = document.querySelector("[data-dock-surface-item][data-selected]");
+                                const text = trig?.getAttribute("aria-label") || null;
                                 return m === id && (expected === null ? !trig : text === expected);
                             } catch {
                                 return false;

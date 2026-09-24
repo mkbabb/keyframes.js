@@ -764,7 +764,7 @@ async function runBattery() {
                                     const m = JSON.parse(
                                         localStorage.getItem("keyframes-js-scene-machine") || "{}",
                                     );
-                                    const trig = document.querySelector("[aria-label='Controls tab']");
+                                    const trig = document.querySelector("[data-dock-surface-item][data-selected]");
                                     return m.activeScene === "easing" && !!trig;
                                 } catch {
                                     return false;
@@ -782,7 +782,7 @@ async function runBattery() {
                         }
                         return {
                             machine: m,
-                            trigger: document.querySelector("[aria-label='Controls tab']")?.textContent?.trim() ?? null,
+                            trigger: document.querySelector("[data-dock-surface-item][data-selected]")?.getAttribute("aria-label") ?? null,
                         };
                     });
                     if (dest.machine === "easing" && dest.trigger !== null) {

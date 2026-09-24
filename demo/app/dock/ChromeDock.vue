@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
-import { Activity, ChevronDown, ChevronUp, Home, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
-import { useMediaQuery } from "@vueuse/core";
+import { Activity, Home, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import {
     GlassDock,
     DockControl,
@@ -18,9 +17,9 @@ import {
     type ControlSurface,
 } from "@state/controlSurfaces";
 import {
-    SURFACE_META,
-    dockCardinality,
+    dockSurfaceItems,
     type ControlSurfaceTab,
+    type DockSurfaceItem,
 } from "@components/instrument/surfaceTabs";
 // m-3 / R3-6 — one import granularity: every glass-ui family here comes from
 // its own subpath (`./dock`, `./button`, `./select`), never the root barrel.
@@ -97,17 +96,6 @@ import {
 // the producer's own convention). The raster format and its non-integer scale
 // (D-4) are the asset owner's, not this file's.
 
-// The BUILT-IN editor tab descriptors (label + icon for the {controls,keyframes,
-// timeline} triad). The DFA (controlSurfaces.ts) is the AUTHORITY on WHICH of
-// these render per scene — `allControlTabs` filters this list against the
-// `controlSurfaces` prop (the active scene's valid set). T.B2 — the {label,icon}
-// metadata itself DERIVES from the ONE `SURFACE_META` registry (the former
-// hand-synced literal here was one of the three triplicated sites); `TAB_ICONS`
-// below survives as the string→COMPONENT icon registry (a render concern, not
-// metadata). The easing scene's set is ['easing'] (a scene-specific surface
-// carried by `extraControlTabs`), so NONE of this triad renders for it.
-const BUILT_IN_CONTROL_TABS: ControlSurfaceTab[] =
-    BUILT_IN_SURFACES.map((s) => SURFACE_META[s]);
 
 const TAB_ICONS: Record<string, Component> = {
     SlidersHorizontal,
@@ -146,70 +134,33 @@ const currentIcon = computed<Component | undefined>(
     () => props.scenes.find((s) => s.id === props.currentSceneId)?.icon,
 );
 
-// The effective control-tab set the dock renders = the DFA-VALID built-in triad
-// for the active scene + the machine-PROJECTED `extraControlTabs` (the
-// scene-specific surfaces' tab metadata: easing→Easing, spring→Spring,
-// cube→Matrix Controls — derived from `activeScene` through the DFA's tab table
-// in the App, J.W0.S3, so the trigger label settles synchronously with the
-// route, never a tick late on the destination scene's mount).
-// When `controlSurfaces` is absent (a non-App host that doesn't drive the DFA)
-// the full built-in triad is the conservative default — total, never undefined.
-const allControlTabs = computed(() => {
-    const valid = props.controlSurfaces;
-    const builtIn = valid
-        ? BUILT_IN_CONTROL_TABS.filter((t) => valid.includes(t.value))
-        : [...BUILT_IN_CONTROL_TABS];
-    return props.extraControlTabs ? [...builtIn, ...props.extraControlTabs] : builtIn;
-});
+// X.KF.W13V.s (OA-37/46/51) — the dock's editor surfaces are ITEMS, one per
+// kind, from the ONE shared descriptor (`dockSurfaceItems`). The derived set
+// (`controlSurfaces` = the scene's `surfacesFor` projection, built-in half,
+// + `extraControlTabs`, the facet half) decides only which items are LIVE;
+// the item set itself is identical on every scene. Home (no scene) shows none.
+const derivedSurfaces = computed<ControlSurface[]>(() => [
+    ...(props.controlSurfaces ?? BUILT_IN_SURFACES).filter((s) =>
+        BUILT_IN_SURFACES.includes(s),
+    ),
+    ...(props.extraControlTabs ?? []).map((t) => t.value),
+]);
+const surfaceItems = computed(() => dockSurfaceItems(derivedSurfaces.value));
+const showSurfaceItems = computed(() => props.currentSceneId !== props.homeScene.id);
 
-// The control-panel affordances (the collapse toggle + the tab selector) appear
-// ONLY when the scene has at least one control surface to show (the DFA set is
-// non-empty). For home/sequence the DFA set is [] — so NO control
-// affordance renders, which is the DFA-driven supersession of those scenes'
-// former `isControlsPanelOpen = false` poke-sets (one authority for "this scene
-// has no panel", not a per-scene imperative write). J.W0.S3: the former
-// `hasSelectedAnimation` AND-clause is DEAD — it keyed the affordance on a
-// per-superKey stored fact seeded only at SCENE_READY (post-mount), so on a
-// cross-scene nav the trigger VANISHED for the mount window (clause (b)'s
-// forbidden `null`). The DFA projection is born-correct on the rest tick; the
-// affordance presence now settles synchronously with the route.
-const hasControlPanel = computed(() => allControlTabs.value.length > 0);
+function iconFor(icon: string): Component {
+    return TAB_ICONS[icon] ?? SlidersHorizontal;
+}
 
-// T.C1 + T.B5-RENDER (VERDICT #17 — the `∿ Spring │ ∿ Spring` dup KILL). The
-// control-tab zone is a projection of the tab COUNT: `> 1 ⇒ select`, otherwise
-// ABSENT — a single control surface renders NOTHING (no node, no flanking
-// separator); the `hasControlPanel` (`> 0`) predicate still gates the collapse
-// TOGGLE, because a 1-tab scene HAS a panel to open/close, it just has nothing
-// to PICK.
-//
-// kf-ChromeDock M-2/C-4 + M-3 — DECIDED: the "inline" arm is DELETED, not
-// revived. It was structurally unreachable (every facility scene unions its
-// additive facet onto the built-in triad, so a scene has ≥2 tabs or none), and
-// the cross-axis label-redundancy predicate that four comment blocks leaned on
-// could never fire after the T.E8 relabel (Curve/Physics vs Easing/Spring). A
-// live arm would have re-opened the very single-surface label #17 killed, so the
-// doctrine above now holds without an exception: the `inline` kind is absent
-// here. With the predicate gone the `currentLabel` prop — its only consumer —
-// goes too (the App's binding with it), and so do the arm's role-generic
-// `aria-label` div (D-8, which dies with the branch rather than being "fixed"
-// inside it) and its `.dock-inline-tab` CSS.
-const showControlSelect = computed(
-    () =>
-        dockCardinality({ tabs: allControlTabs.value, channels: [] }).controlZone
-            .kind === "select",
-);
-
-// m-1 / C-7 + m-9 — the controls trigger's glyph, resolved once and guarded.
-// The inline `TAB_ICONS[…find(…)…]` lookup in the template typed as a Component
-// but could index a missing key (a tab whose `icon` names no registry entry)
-// and hand `<component :is>` undefined. Every miss now lands on the one
-// declared fallback.
-const selectedControlIcon = computed<Component>(() => {
-    const icon = allControlTabs.value.find((t) => t.value === props.selectedControl)?.icon;
-    return (icon && TAB_ICONS[icon]) || SlidersHorizontal;
-});
-
-const isMobile = useMediaQuery("(max-width: 1023px)");
+/** The item whose surface the open pane is showing wears the active seat. */
+function isSurfaceShowing(item: DockSurfaceItem): boolean {
+    return (
+        item.enabled &&
+        props.isControlsPanelOpen &&
+        item.surface !== undefined &&
+        props.selectedControl === item.surface
+    );
+}
 
 const emit = defineEmits<{
     (e: "switchScene", id: string): void;
@@ -234,20 +185,17 @@ function onScenePick(id: unknown): void {
         if (scene) emit("switchScene", scene.id);
     }
 }
-function onControlPick(value: unknown): void {
-    const tab = allControlTabs.value.find((t) => t.value === value);
-    if (tab) emit("updateSelectedControl", tab.value);
+/** Press an item: open the shared pane on its surface; pressing the item the
+ *  open pane is already showing closes the pane (the item is its toggle). */
+function onSurfaceItem(item: DockSurfaceItem): void {
+    if (!item.enabled || item.surface === undefined) return;
+    if (isSurfaceShowing(item)) {
+        emit("toggleControlsPanel");
+        return;
+    }
+    emit("updateSelectedControl", item.surface);
+    if (!props.isControlsPanelOpen) emit("toggleControlsPanel");
 }
-
-// m-12 — the controls Select's model falls back to the FIRST tab this dock
-// renders, not a hard-coded "controls" the rendered set need not contain
-// (a non-App host may pass a set without it). The empty string is the
-// primitive's "no selection" (its placeholder state; `SelectionValue` admits no
-// null) — unreachable, since the Select only renders at ≥2 tabs.
-const controlsModel = computed((): string => {
-    const [first] = allControlTabs.value;
-    return props.selectedControl ?? first?.value ?? "";
-});
 
 // ── ChromeDock D-23 / C-5 — tell the legibility observer about the aurora ──
 // The dock floats over the home hero's animated Aurora <canvas> and, until now,
@@ -283,7 +231,7 @@ const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 const controlsPaneHover = inject(CONTROLS_PANE_HOVER_KEY, null);
 
 // ── Popup mutex: only one dropdown at a time ──
-type PopupKey = "scene" | "controls";
+type PopupKey = "scene";
 const openPopup = ref<PopupKey | null>(null);
 // The dock stays expanded while one of THIS component's own dropdowns is open
 // (the scene/controls Selects, one at a time through the mutex above) — holding
@@ -313,7 +261,6 @@ function popupModel(key: PopupKey) {
     });
 }
 const sceneSelectOpen = popupModel("scene");
-const controlsSelectOpen = popupModel("controls");
 
 // ── T.G9 — the Monaco keyframes-pane INTERACTION WARM, re-homed HERE ─────────
 // The interaction half of T.G9 used to hang off the in-panel pill strip's own
@@ -458,7 +405,13 @@ watch(isSelectOpen, (open) => {
                             <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label">
                                 <component v-if="currentIcon" :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
                                 <Home v-else class="dock-glyph" aria-hidden="true" />
-                                <SelectValue />
+                                <!-- X.KF.W13V.s (OA-40): below 400 px the four
+                                     surface items leave no room for the
+                                     scene's word beside its glyph, so the word
+                                     is visually hidden there (still the
+                                     trigger's announced value) and the dock
+                                     stays ONE row at 360. -->
+                                <SelectValue class="max-[399px]:sr-only" />
                             </DockTrigger>
                             <SelectContent
                                 class="min-w-[var(--dropdown-min-width)]"
@@ -492,80 +445,41 @@ watch(isSelectOpen, (open) => {
                             </SelectContent>
                         </Select>
 
-                        <!-- section (contextual): the controls tab. Rendered ONLY
-                             for ≥2 tabs (showControlSelect) — a single control
-                             surface has nothing to pick, so the zone is ABSENT: NO
-                             node and NO flanking separator (T.B5-RENDER, #17 dup
-                             KILL; M-2's decision deleted the "inline" arm). -->
-                        <template v-if="showControlSelect">
+                        <!-- section: the scene's editor SURFACES as dock items
+                             (X.KF.W13V.s · OA-37/46/51). One item per kind —
+                             Controls · Keyframes · Timeline · the scene facet —
+                             from the ONE shared descriptor (`dockSurfaceItems`),
+                             identical on every scene: a surface the scene has no
+                             data for is DISABLED, never dropped and never
+                             invented. Each item opens the ONE shared controls
+                             pane on its surface; pressing the item that is
+                             already showing closes the pane (the item IS the
+                             pane's toggle, so no separate panel toggle rides
+                             the dock — one row, OA-40). Home has no scene, so
+                             no items. -->
+                        <template v-if="showSurfaceItems">
                             <DockSeparator />
-                            <Select
-                                :model-value="controlsModel"
-                                v-model:open="controlsSelectOpen"
-                                @update:model-value="onControlPick"
+                            <DockControl
+                                v-for="item in surfaceItems"
+                                :key="item.kind + ':' + (item.surface ?? 'none')"
+                                shape="icon"
+                                compact
+                                data-dock-surface-item
+                                :data-surface="item.surface"
+                                :data-selected="item.enabled && item.surface === selectedControl ? '' : undefined"
+                                :aria-label="item.label"
+                                :title="item.label"
+                                :disabled="!item.enabled"
+                                :active="isSurfaceShowing(item)"
+                                @pointerenter="warmControlSurfaces"
+                                @focusin="warmControlSurfaces"
+                                @click="onSurfaceItem(item)"
                             >
-                                <DockTrigger
-                                    for="select"
-                                    aria-label="Controls tab"
-                                    class="dock-label"
-                                    @pointerenter="warmControlSurfaces"
-                                    @focusin="warmControlSurfaces"
-                                >
-                                    <component :is="selectedControlIcon" class="dock-glyph" aria-hidden="true" />
-                                    <SelectValue />
-                                </DockTrigger>
-                                <SelectContent
-                                    class="min-w-[var(--dropdown-min-width)]"
-                                    :style="{ '--select-dot-color': 'currentColor' }"
-                                >
-                                    <SelectGroup class="dock-label">
-                                        <SelectLabel class="sr-only">Control tabs</SelectLabel>
-                                        <SelectItem v-for="tab in allControlTabs" :key="tab.value" :value="tab.value">
-                                            <span class="flex items-center gap-2">
-                                                <component v-if="tab.icon && TAB_ICONS[tab.icon]" :is="TAB_ICONS[tab.icon]" class="dock-glyph" aria-hidden="true" />
-                                                <span :class="selectedControl === tab.value ? 'font-bold' : ''">{{ tab.label }}</span>
-                                            </span>
-                                        </SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
+                                <component :is="iconFor(item.icon)" aria-hidden="true" />
+                            </DockControl>
                         </template>
 
-                        <!-- nav: the panel-collapse toggle (never leading — VERDICT
-                             #6) + the @mbabb chip. Separated from the identity/section
-                             by one DockSeparator. The toggle's ultimate home is the
-                             panel edge (co-decided with T.B4's naked-rail recut); it
-                             rides nav here, never the lead. -->
-                        <DockSeparator v-if="hasControlPanel || $slots.items" />
-                        <!-- D-20 — the panel toggle takes the producer's `active`
-                             prop, so its state is `aria-pressed` + `data-active` +
-                             the selected seat, and the accessible name is ONE
-                             stable noun instead of a verb that flipped with the
-                             state (the name-mutation half is the banked
-                             kf-ControlsPaneWrapper row; this is its ChromeDock
-                             site, spent with the prop that makes it redundant).
-                             D-21 — ONE icon grammar on both breakpoints: the glyph
-                             names the ACTION a press performs. Desktop already
-                             did (panel close/open); the mobile arm drew the
-                             STATE, so the open sheet — dismissed DOWNWARD — wore
-                             an up-chevron. It now points where the press moves
-                             the sheet. -->
-                        <DockControl
-                            shape="icon"
-                            v-if="hasControlPanel"
-                            aria-label="Controls panel"
-                            :active="isControlsPanelOpen"
-                            @click="emit('toggleControlsPanel')"
-                        >
-                            <template v-if="isMobile">
-                                <ChevronDown v-if="isControlsPanelOpen" aria-hidden="true" />
-                                <ChevronUp v-else aria-hidden="true" />
-                            </template>
-                            <template v-else>
-                                <PanelLeftClose v-if="isControlsPanelOpen" aria-hidden="true" />
-                                <PanelLeftOpen v-else aria-hidden="true" />
-                            </template>
-                        </DockControl>
+                        <DockSeparator v-if="$slots.items" />
 
                         <!-- Header items slot (@mbabb chip) -->
                         <slot name="items" />
