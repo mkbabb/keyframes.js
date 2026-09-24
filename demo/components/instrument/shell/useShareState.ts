@@ -6,7 +6,7 @@ import {
     getAllState,
     restoreStateFromParam,
 } from "@state";
-import { toast } from "vue-sonner";
+import { toast } from "@mkbabb/glass-ui/toast";
 import { copyText } from "@utils/clipboard";
 
 export function useShareState(onSceneRestore?: (sceneId: string) => void) {
@@ -34,7 +34,9 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
             // Fallback: set the state param in the URL directly
             router.replace({ query: { ...route.query, state: encoded } });
             sharePopoverOpen.value = false;
-            toast.info("URL updated — copy from address bar", {
+            toast({
+                title: "URL updated — copy from address bar",
+                tone: "info",
                 duration: 5000,
             });
         }
@@ -62,13 +64,13 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
         }
 
         if (!stateParam) {
-            toast.error("No shared state found in URL", { duration: 3000 });
+            toast({ title: "No shared state found in URL", tone: "destructive", duration: 3000 });
             return;
         }
 
         const decoded = decodeStateFromHash(stateParam);
         if (!decoded) {
-            toast.error("Invalid shared state", { duration: 3000 });
+            toast({ title: "Invalid shared state", tone: "destructive", duration: 3000 });
             return;
         }
 
@@ -80,7 +82,9 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
             onSceneRestore(result.activeScene);
         }
 
-        toast.success("State restored!", {
+        toast({
+            title: "State restored!",
+            tone: "success",
             duration: 3000,
             description: "Animation state loaded from shared URL.",
         });

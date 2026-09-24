@@ -2,7 +2,7 @@ import type { Ref } from "vue";
 import { createKeyframeId } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { captureSnapshot } from "../utils/snapshotCapture";
-import { toast } from "vue-sonner";
+import { toast } from "@mkbabb/glass-ui/toast";
 import { clamp } from "@mkbabb/value.js/math";
 import { percentSelector } from "@utils/keyframeSelector";
 
@@ -72,7 +72,7 @@ export function useTimelineOps(
     const snapshot = async (percent?: number): Promise<void> => {
         const target = targets.value[0];
         if (!target) {
-            toast.error("No target element to snapshot");
+            toast({ title: "No target element to snapshot", tone: "destructive" });
             return;
         }
 
@@ -86,7 +86,7 @@ export function useTimelineOps(
         // own voice rather than through this line's silence.
         await scheduleRebuild();
 
-        toast.success(`Keyframe captured at ${Math.round(p)}%`);
+        toast({ title: `Keyframe captured at ${Math.round(p)}%`, tone: "success" });
     };
 
     const addKeyframe = (percent: number, vars?: Record<string, string>) => {

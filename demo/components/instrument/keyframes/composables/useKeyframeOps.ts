@@ -1,7 +1,8 @@
+import { h } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { debounce } from "@utils/helpers";
-import { toast } from "vue-sonner";
+import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import type { KeyframesState } from "./useKeyframesState";
 import { parseAnimationCSS } from "../utils/parseAnimationCSS";
 import { getStoredAnimationOptions } from "@state";
@@ -29,10 +30,12 @@ async function withErrorToastAsync(
     try {
         await fn();
     } catch (e) {
-        toast.error(message, {
+        toast({
+            title: message,
+            tone: "destructive",
             description: (e as Error).message,
             duration: 10000,
-            action: { label: "Retry", onClick: retry },
+            action: h(ToastAction, { altText: "Retry", onClick: retry }, () => "Retry"),
         });
         console.error(e);
     }
@@ -208,7 +211,7 @@ export function useKeyframeOps(
 
     const removeKeyframeData = (frameIx: number) => {
         if (animation.templateFrames.length <= 1) {
-            toast.error("Cannot remove last keyframe");
+            toast({ title: "Cannot remove last keyframe", tone: "destructive" });
             return false;
         }
 

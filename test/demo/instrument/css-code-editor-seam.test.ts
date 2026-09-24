@@ -10,7 +10,7 @@
  * STUBBED, at the module seam: the glass-ui `card` / `dark` subpaths and the
  * ROOT barrel (the lane's known wall — every entry whose closure reaches
  * `useSpring-*.js` imports `@mkbabb/keyframes.js`, which vitest's externalized
- * resolution cannot load), `vue-sonner` (spied, so the boundary's toasts are
+ * resolution cannot load), `@mkbabb/glass-ui/toast` (spied, so the boundary's toasts are
  * observable), `@utils/formatEditorCSS` (a `vi.fn` whose rejection is the
  * subject of the format boundary), and the sibling's engine-bound
  * composables (`@kf-engine`, `useKeyframesEditor`, `useKeyframeBrushApply`,
@@ -117,15 +117,16 @@ vi.mock("@mkbabb/glass-ui/dark", () => ({
         onFlipSettled: () => () => {},
     }),
 }));
-const toastSpies = vi.hoisted(() => ({
-    success: vi.fn(),
-    error: vi.fn(),
-    warning: vi.fn(),
-    dismiss: vi.fn(),
-}));
-vi.mock("vue-sonner", () => ({
-    toast: Object.assign(() => {}, toastSpies),
-}));
+const toastSpy = vi.hoisted(() =>
+    vi.fn((_o: { title?: string; tone?: string; description?: string }) => ({
+        id: "0",
+        dismiss: () => {},
+        update: () => {},
+    })),
+);
+vi.mock("@mkbabb/glass-ui/toast", () => ({ toast: toastSpy, ToastAction: {} }));
+/** The toasts raised in one tone (glass's `tone` axis: success · destructive). */
+const toastsOf = (tone: string) => toastSpy.mock.calls.filter(([o]) => o.tone === tone);
 const formatEditorCSS = vi.hoisted(() => vi.fn<(raw: string, width?: number) => Promise<string>>());
 vi.mock("@utils/formatEditorCSS", () => ({ formatEditorCSS }));
 vi.mock("@utils/clipboard", () => ({ copyText: async () => {} }));
@@ -181,8 +182,7 @@ let mounted: VueWrapper<unknown> | undefined;
 afterEach(() => {
     mounted?.unmount();
     mounted = undefined;
-    toastSpies.success.mockClear();
-    toastSpies.error.mockClear();
+    toastSpy.mockClear();
     updateFromString.mockClear();
     formatEditorCSS.mockReset();
 });
@@ -255,8 +255,8 @@ describe("G-KFW12-4 — the Monaco seam", () => {
 
         formatEditorCSS.mockRejectedValueOnce(new Error("CssSyntaxError: Unexpected }"));
         await vm.formatCSS();
-        expect(toastSpies.error).toHaveBeenCalledTimes(1);
-        expect(String(toastSpies.error.mock.calls[0]?.[1]?.description)).toContain(
+        expect(toastsOf("destructive")).toHaveLength(1);
+        expect(String(toastsOf("destructive")[0]?.[0]?.description)).toContain(
             "Unexpected }",
         );
 
@@ -271,7 +271,7 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         ]);
         await sleep(350);
         expect(updateFromString).toHaveBeenCalledWith("a { color: blue }");
-        expect(toastSpies.success).toHaveBeenCalled();
+        expect(toastsOf("success").length).toBeGreaterThan(0);
 
         // KF-CE-7 — a successful format's text reaches the model (the parent
         // receives it), not only the buffer

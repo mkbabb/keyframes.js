@@ -102,6 +102,10 @@
             </div>
         </template>
     </EditorShell>
+    <!-- UIA-KF-001/002 — the ONE toast surface: glass's Toaster (fixed on the
+         --z-toast layer), mounted here, above every scene key, so a toast
+         raised just before a scene switch survives it. -->
+    <Toaster />
     </TooltipProvider>
 </template>
 
@@ -160,6 +164,7 @@ import { ChromeDock, MbabbMenu } from "@app/dock";
 // DP-02 (CC-03) — the root tooltip provider (see the template wrap). The
 // Glass-7/reka root-provider pattern; demo-owned, no Glass ask.
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
+import { Toaster } from "@mkbabb/glass-ui/toast";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";

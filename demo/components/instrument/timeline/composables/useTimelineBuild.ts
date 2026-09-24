@@ -1,4 +1,4 @@
-import { markRaw, shallowRef } from "vue";
+import { h, markRaw, shallowRef } from "vue";
 import type { Ref, ShallowRef } from "vue";
 import { useRafFn } from "@vueuse/core";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
@@ -10,7 +10,7 @@ import {
     exportTimelineToCSS,
     importCSSToTimeline,
 } from "../utils/timelineEngine";
-import { toast } from "vue-sonner";
+import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import { clamp } from "@mkbabb/value.js/math";
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -149,10 +149,12 @@ export function useTimelineBuild(
         } catch (e) {
             animation.value = null;
             buildError.value = (e as Error).message;
-            toast.error("Failed to rebuild timeline animation", {
+            toast({
+                title: "Failed to rebuild timeline animation",
+                tone: "destructive",
                 description: (e as Error).message,
                 duration: 10000,
-                action: { label: "Retry", onClick: () => void rebuild() },
+                action: h(ToastAction, { altText: "Retry", onClick: () => void rebuild() }, () => "Retry"),
             });
             console.error("Failed to rebuild timeline animation:", e);
         }
@@ -245,7 +247,7 @@ export function useTimelineBuild(
 
     const exportCSS = async (): Promise<string> => {
         if (state.value.keyframes.length < 2) {
-            toast.error("Need at least 2 keyframes to export");
+            toast({ title: "Need at least 2 keyframes to export", tone: "destructive" });
             return "";
         }
 
@@ -257,11 +259,13 @@ export function useTimelineBuild(
             );
 
             await navigator.clipboard.writeText(css);
-            toast.success("CSS copied to clipboard!");
+            toast({ title: "CSS copied to clipboard!", tone: "success" });
 
             return css;
         } catch (e) {
-            toast.error("Failed to export CSS", {
+            toast({
+                title: "Failed to export CSS",
+                tone: "destructive",
                 description: (e as Error).message,
             });
             return "";
@@ -287,7 +291,7 @@ export function useTimelineBuild(
         state.value.keyframes = imported;
         await rebuild();
 
-        toast.success(`Imported ${imported.length} keyframes`);
+        toast({ title: `Imported ${imported.length} keyframes`, tone: "success" });
     };
 
     /**
@@ -331,9 +335,10 @@ export function useTimelineBuild(
 
         await rebuild();
 
-        toast.success(
-            `Merged ${imported.length} keyframes — ${added} added, ${merged} into existing stops`,
-        );
+        toast({
+            title: `Merged ${imported.length} keyframes — ${added} added, ${merged} into existing stops`,
+            tone: "success",
+        });
     };
 
     const clear = () => {

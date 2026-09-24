@@ -1,10 +1,10 @@
 <template>
-    <!-- The demo's DOCUMENT-LEVEL singletons — extracted from the
+    <!-- The demo's DOCUMENT-LEVEL singleton — extracted from the
          AnimationControlsGroup layout root as a colocated sub-component (the
          J.W7a fix-round proof:demo-no-oversize seam; markup travels together,
-         ZERO appearance delta). Neither is a layout concern: both resolve
-         against the DOCUMENT (the SVG paint-server registry / the <html>
-         teleport), not the controls grid. -->
+         ZERO appearance delta). It is not a layout concern: it resolves
+         against the DOCUMENT (the SVG paint-server registry), not the controls
+         grid. -->
 
     <!-- Hidden SVG gradient definition for rainbow icon strokes. The defs are
          demo-global because the Apply-CSS paintbrush in the ribbon strokes
@@ -23,37 +23,12 @@
             </linearGradient>
         </defs>
     </svg>
-
-    <Teleport to="html">
-        <!-- The toast's elevation reads glass-ui's THEME-AWARE large-shadow
-             token through the shadow-[var(…)] form, not the bare Tailwind
-             utility of the same name: three definitions of that name coexist in
-             the shipped bundle — Tailwind's theme default, glass-ui's :root
-             token (which folds var(--shadow-color)), and the emitted utility
-             class, which inlined Tailwind's value at build time and reads
-             NEITHER custom property at runtime (DGC M-4). This was the demo's
-             sole site of that bare utility; the token's name is not spelled
-             bare here because Tailwind's scanner would re-emit the dead class
-             from a comment. -->
-        <Toaster
-            :toastOptions="{
-                unstyled: true,
-                classes: {
-                    toast: 'bg-foreground text-background rounded-xl text-body px-4 py-3 grid grid-cols-1 gap-1 shadow-[var(--shadow-lg)] lg:w-80 w-64 max-w-[90vw]',
-                    title: 'font-bold text-body',
-                    description: 'font-normal text-small',
-                    actionButton: '',
-                    cancelButton: '',
-                    closeButton: '',
-                },
-            }"
-            theme="system"
-        />
-    </Teleport>
 </template>
 
 <script setup lang="ts">
-import { Teleport } from "vue";
-
-import { Toaster } from "vue-sonner";
+// UIA-KF-001/002 — the Toaster is no longer this component's: it mounted here
+// as vue-sonner's UNSTYLED host with no stylesheet (a static <ol> after <body>,
+// every toast painted below the fold) and, inside the super-keyed controls
+// group, it was torn down on every scene switch. The glass Toaster now mounts
+// ONCE at the App root, above every scene key.
 </script>

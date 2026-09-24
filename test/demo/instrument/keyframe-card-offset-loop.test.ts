@@ -216,12 +216,9 @@ vi.mock("@mkbabb/glass-ui/keyboard", () => ({
 vi.mock("@mkbabb/glass-ui/dark", () => ({
     useGlobalDark: () => ({ isDark: { value: false } }),
 }));
-vi.mock("vue-sonner", () => ({
-    toast: Object.assign(() => {}, {
-        error: () => {},
-        success: () => {},
-        dismiss: () => {},
-    }),
+vi.mock("@mkbabb/glass-ui/toast", () => ({
+    toast: () => ({ id: "0", dismiss: () => {}, update: () => {} }),
+    ToastAction: {},
 }));
 
 // The warm precedes the subject's IMPORT, not just its mount: the brush

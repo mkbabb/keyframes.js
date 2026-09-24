@@ -89,7 +89,7 @@ import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@components/instrument/utils/iosTextEntry";
 import { formatEditorCSS } from "@utils/formatEditorCSS";
 import { debounce } from "@utils/helpers";
-import { toast } from "vue-sonner";
+import { toast } from "@mkbabb/glass-ui/toast";
 // `Skeleton` and `Button` are root-barrel-only at glass-ui 7.0.0 (no
 // `./skeleton` subpath — the record's killed #2); the root barrel is already
 // on the app's eager graph (the ribbon, the shell's Suspense fallback), so
@@ -424,7 +424,7 @@ const formatCSSContent = async () => {
     if (disposed || !editor) return;
     replaceContent(formatted);
     emitNow(formatted);
-    toast.success("CSS formatted");
+    toast({ title: "CSS formatted", tone: "success" });
 };
 
 onMounted(() => {

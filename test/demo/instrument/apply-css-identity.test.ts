@@ -85,13 +85,9 @@ vi.mock("@mkbabb/glass-ui/dark", async () => {
     const isDark = vueRef(false);
     return { useGlobalDark: () => ({ isDark, onFlipSettled: () => () => {} }) };
 });
-vi.mock("vue-sonner", () => ({
-    toast: Object.assign(() => {}, {
-        success: () => {},
-        error: () => {},
-        warning: () => {},
-        dismiss: () => {},
-    }),
+vi.mock("@mkbabb/glass-ui/toast", () => ({
+    toast: () => ({ id: "0", dismiss: () => {}, update: () => {} }),
+    ToastAction: {},
 }));
 vi.mock("@utils/clipboard", () => ({ copyText: async () => {} }));
 

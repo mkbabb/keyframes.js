@@ -31,12 +31,12 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 
-import { onMounted, ref, useTemplateRef } from "vue";
+import { h, onMounted, ref, useTemplateRef } from "vue";
 import { useTimeoutFn } from "@vueuse/core";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
-import { toast } from "vue-sonner";
+import { toast, ToastAction, type ToastHandle } from "@mkbabb/glass-ui/toast";
 import { copyText } from "@utils/clipboard";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
@@ -94,9 +94,15 @@ const editorRef = useTemplateRef<InstanceType<typeof CSSCodeEditor>>("editorRef"
 // "Keyframes parsed" over "CSS formatted": the formatted text reaches the
 // model synchronously inside `formatCSS` (KF-CE-7), so `onEditorChange` runs
 // while the latch is up; the 300 ms grace after release covers the parse's
-// own awaits. The parse toast additionally carries a stable id, so a stray
-// one REPLACES rather than stacks (KF-CE-36).
+// own awaits. The parse toast additionally holds ONE live handle, so a stray
+// one REPLACES rather than stacks (KF-CE-36): the previous parse toast is
+// dismissed before the next is raised.
 const isFormatting = ref(false);
+let parseToast: ToastHandle | undefined;
+const raiseParseToast = (options: Parameters<typeof toast>[0]) => {
+    parseToast?.dismiss();
+    parseToast = toast(options);
+};
 
 // Reset the formatting flag 300ms after a format completes. useTimeoutFn
 // owns the handle + auto-cleans on unmount; re-calling start() restarts it.
@@ -114,10 +120,12 @@ const formatEditor = async () => {
     try {
         await editorRef.value.formatCSS();
     } catch (e: unknown) {
-        toast.error("Could not format CSS", {
+        toast({
+            title: "Could not format CSS",
+            tone: "destructive",
             description: (e as Error).message,
             duration: 10000,
-            action: { label: "Retry", onClick: () => void formatEditor() },
+            action: h(ToastAction, { altText: "Retry", onClick: () => void formatEditor() }, () => "Retry"),
         });
         console.error(e);
     } finally {
@@ -141,13 +149,14 @@ const applyEditorChange = async (value: string) => {
     try {
         await updateFromString(value);
         if (!isFormatting.value) {
-            toast.success("Keyframes parsed 🎉", { id: "kf-parse" });
+            raiseParseToast({ title: "Keyframes parsed 🎉", tone: "success" });
         }
     } catch (e: unknown) {
         shakeEditorWell();
 
-        toast.error("Failed to parse keyframes 🔧", {
-            id: "kf-parse",
+        raiseParseToast({
+            title: "Failed to parse keyframes 🔧",
+            tone: "destructive",
             description: (e as Error).message,
             duration: 10000,
         });
@@ -255,7 +264,9 @@ const exportCompiledCSS = async () => {
             // name what did not (the honest-refusal clause).
             await copyText(compiled.css, "Compiled CSS copied (partial)");
             for (const refusal of compiled.refusals) {
-                toast.warning(`Could not compile "${refusal.name}"`, {
+                toast({
+                    title: `Could not compile "${refusal.name}"`,
+                    tone: "warning",
                     description: refusal.message,
                     duration: 10000,
                 });
@@ -264,14 +275,18 @@ const exportCompiledCSS = async () => {
             // Nothing compiled — the whole animation exceeds pure CSS. Show the
             // VERBATIM refusal reasons (no softened "could not compile").
             for (const refusal of compiled.refusals) {
-                toast.error(`Cannot compile to CSS — ${refusal.reason}`, {
+                toast({
+                    title: `Cannot compile to CSS — ${refusal.reason}`,
+                    tone: "destructive",
                     description: refusal.message,
                     duration: 10000,
                 });
             }
         }
     } catch (e: unknown) {
-        toast.error("Export CSS failed 🔧", {
+        toast({
+            title: "Export CSS failed 🔧",
+            tone: "destructive",
             description: (e as Error).message,
             duration: 10000,
         });

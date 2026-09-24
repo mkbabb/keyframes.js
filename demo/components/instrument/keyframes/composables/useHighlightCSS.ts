@@ -255,9 +255,10 @@ export function useCodeHighlight(
      * and the dark-mode watch fires it again — so a failed highlight.js boot
      * surfaced only as an unhandled rejection. ⟨X.KF.W5 arm 0, KAD-5⟩
      *
-     * The posture is deliberate and non-toast: this demo's toast surface is
-     * structurally unreachable (the vue-sonner stylesheet is imported nowhere), so
-     * a toast here would be an inert cure. The rejection is handled HERE, once,
+     * The posture is non-toast: it was chosen while the demo's toast surface was
+     * unreachable (vue-sonner, unstyled — UIA-KF-001, since moved to glass's
+     * Toaster at the App root); it stays a console report, a theme boot being no
+     * user action to answer. The rejection is handled HERE, once,
      * and every caller goes through this boundary — no bare call is left.
      */
     const setCodeTheme = () => {

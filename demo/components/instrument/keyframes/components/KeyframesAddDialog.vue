@@ -170,10 +170,10 @@ const progressBarEl = useTemplateRef<HTMLElement>("progressBarEl");
 // being typed, i.e. exactly when Shift+Alt+F is pressed. The call was bare, so
 // the rejection had nowhere to go: no route, no message, no console line, while
 // every sibling operation in this stack routes through the house error channel.
-// The house channel is `withErrorToastAsync` + Retry, and it is UNAVAILABLE here
-// by this wave's NON-TOAST posture — the vue-sonner stylesheet is imported
-// nowhere, so every toast in the demo is structurally unreachable (banked
-// kf-DemoGlobalChrome). The in-tree idiom for exactly that situation is
+// The house channel is `withErrorToastAsync` + Retry, and it was UNAVAILABLE
+// when this was written — the vue-sonner stylesheet was imported nowhere, so
+// every toast in the demo was unreachable (banked kf-DemoGlobalChrome; cured by
+// UIA-KF-001's move to glass's Toaster, the posture here unchanged). The in-tree idiom for exactly that situation is
 // `useHighlightCSS.ts`'s, which names the unreachability and reports to the
 // console instead; this follows it. The rejection is HANDLED, not swallowed: the
 // draft is left byte-for-byte as the user typed it (a failed reformat must never

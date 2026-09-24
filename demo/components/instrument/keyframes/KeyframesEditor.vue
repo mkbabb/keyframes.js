@@ -295,7 +295,7 @@ import {
     requireKeyframeSelector,
     selectorPercent,
 } from "@utils/keyframeSelector";
-import { toast } from "vue-sonner";
+import { toast, type ToastHandle } from "@mkbabb/glass-ui/toast";
 import { insertTabAtCursor } from "./utils/contenteditable";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
@@ -424,7 +424,13 @@ const retimeFrames = (percents: number[] | undefined) => {
     void updateAllStringsAndAnimation().catch(reportAsync("Retiming the stops"));
 };
 
-const startDiagnosticId = (index: number) => `keyframe-start-${index}`;
+// One live diagnostic per stop index: a new one replaces the index's previous,
+// and success dismisses it (the per-index id, held as the toast's own handle).
+const startDiagnostics = new Map<number, ToastHandle>();
+const dismissStartDiagnostic = (index: number) => {
+    startDiagnostics.get(index)?.dismiss();
+    startDiagnostics.delete(index);
+};
 
 /**
  * KF-KE-3 (+ KF-KE-46) — the start field's model seam asks the KEYFRAME grammar.
@@ -440,7 +446,7 @@ const startDiagnosticId = (index: number) => `keyframe-start-${index}`;
  * beside the exported `percentSelector` is gone with it (KF-KE-46).
  *
  * The S-5/C-S5 posture stays at this seam — the typed issue surfaced
- * verbatim, a stable per-index toast id, an explicit dismiss on success — even
+ * verbatim, one live per-index toast handle, an explicit dismiss on success — even
  * though the card now refuses a bad draft AT THE FIELD (KF-KE-37) and never
  * emits it: this handler is the model's boundary and the list relays strings.
  */
@@ -452,14 +458,19 @@ const onUpdateStart = ({ val, index }: { val: string; index: number }) => {
     try {
         selector = requireKeyframeSelector(val);
     } catch (e) {
-        toast.error("Invalid keyframe offset", {
-            id: startDiagnosticId(index),
-            description: e instanceof Error ? e.message : String(e),
-        });
+        dismissStartDiagnostic(index);
+        startDiagnostics.set(
+            index,
+            toast({
+                title: "Invalid keyframe offset",
+                tone: "destructive",
+                description: e instanceof Error ? e.message : String(e),
+            }),
+        );
         return;
     }
 
-    toast.dismiss(startDiagnosticId(index));
+    dismissStartDiagnostic(index);
     frame.start = selector;
     void updateAllStringsAndAnimation().catch(
         reportAsync("Projecting the retimed stop"),

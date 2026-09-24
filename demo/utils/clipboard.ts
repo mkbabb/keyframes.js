@@ -1,8 +1,8 @@
-import { toast } from "vue-sonner";
+import { toast } from "@mkbabb/glass-ui/toast";
 
 export async function copyText(text: string, successMessage?: string): Promise<void> {
     await navigator.clipboard.writeText(text);
     if (successMessage) {
-        toast.success(successMessage);
+        toast({ title: successMessage, tone: "success" });
     }
 }

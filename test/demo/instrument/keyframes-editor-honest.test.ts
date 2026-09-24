@@ -203,12 +203,9 @@ vi.mock("@mkbabb/glass-ui/dark", async () => {
     const isDark = ref(false);
     return { useGlobalDark: () => ({ isDark }) };
 });
-vi.mock("vue-sonner", () => ({
-    toast: Object.assign(() => {}, {
-        error: () => {},
-        success: () => {},
-        dismiss: () => {},
-    }),
+vi.mock("@mkbabb/glass-ui/toast", () => ({
+    toast: () => ({ id: "0", dismiss: () => {}, update: () => {} }),
+    ToastAction: {},
 }));
 
 // The warm precedes the subject's IMPORT, exactly as `main.ts` guarantees it.
