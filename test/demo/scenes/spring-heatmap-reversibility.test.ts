@@ -22,11 +22,12 @@
  *       field's own `background-image` carries exactly those bands. The shipped
  *       ramp painted nine of twenty rows pixel-identical to the surface.
  *
- *   (4) SPF-3 — the PRESET-BALL PAINTER expresses the four presets' analytic
- *       peaks (1.005 / 1.068 / 1.205 / 1.000): distinct, monotone in overshoot,
- *       and unclamped, on a stated geometry (rest at 1/6 of the track, the
- *       target at 5/6, ±0.25 of headroom). The shipped painter clamped to [0, 1]
- *       and painted all four peaks at the same pixel.
+ *   (4) SPF-3, re-seated by X.KF.W13V.y (OA-51: "presets … with no sliders
+ *       inside them") — the in-tile preset-ball painter is RETIRED with the
+ *       tile's track (the four presets' live race is the stage's derby). What
+ *       stands: the four analytic peaks (1.005 / 1.068 / 1.205 / 1.000), and
+ *       each preset TILE states its physics as text — its name and one line of
+ *       its parameters — with no rail, ball or slider inside it.
  *
  *   (5) The contract + the surface — the heatmap mounts on two numbers alone
  *       (L-M-7 / C-M-2 / C-M-3), the legend labels the vertical axis it
@@ -64,7 +65,7 @@ const stub = vi.hoisted(() => ({
         );
     },
 }));
-vi.mock("@mkbabb/glass-ui", () => stub.module({ Card: "div", CardContent: "div" }));
+vi.mock("@mkbabb/glass-ui", () => stub.module({ Card: "div", CardContent: "div", Separator: "hr" }));
 vi.mock("@mkbabb/glass-ui/labeled-field", () => stub.module({ LabeledSlider: "div" }));
 vi.mock("@components/instrument/keyframes/KeyframesEditor.vue", async () => ({
     default: (await stub.module({ KeyframesEditor: "div" })).KeyframesEditor,
@@ -87,7 +88,7 @@ import SpringHeatmap, {
     stepOnAxis,
 } from "../../../demo/scenes/spring/SpringHeatmap.vue";
 import type { ParamAxis } from "../../../demo/scenes/spring/SpringHeatmap.vue";
-import SpringPhysicsFacet, { BALL_HEADROOM, ballTravel } from "../../../demo/scenes/spring/SpringPhysicsFacet.vue";
+import SpringPhysicsFacet from "../../../demo/scenes/spring/SpringPhysicsFacet.vue";
 import { SPRING_PRESETS } from "../../../demo/scenes/spring/springPresets";
 import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -322,8 +323,9 @@ describe("X.KF.W11.f (5a) — the heatmap mounts on two models and labels its ow
             expect(wrapper.get(".spring-heatmap-x").text()).toContain("0.1 s");
             expect(wrapper.get(".spring-heatmap-x").text()).toContain("1.2 s");
             // the legend states the scale and what varies with what
-            expect(wrapper.text()).toContain("peak overshoot 0 → 53 %");
-            expect(wrapper.text()).toContain("varies with ζ only");
+            // (copy re-seated X.KF.W13V.y — ONE legend line, N-5)
+            expect(wrapper.text()).toContain("0 → 53 % overshoot");
+            expect(wrapper.text()).toContain("set by damping alone");
             // N-SH-5 — the four presets are plotted and named
             const pips = wrapper.findAll(".spring-heatmap-pip");
             expect(pips.map((p) => p.text())).toEqual(SPRING_PRESETS.map((p) => p.name));
@@ -409,49 +411,30 @@ describe("X.KF.W11.f (5a) — the heatmap mounts on two models and labels its ow
     });
 });
 
-// ─── (4) SPF-3 — the painter expresses the presets' analytic peaks ────────────
+// ─── (4) SPF-3 (re-seated X.KF.W13V.y) — the presets' analytic peaks ────────
 
 /** The four presets' analytic first-peak amplitudes, re-derived from `overshoot()`. */
 const PRESET_PEAKS = SPRING_PRESETS.map((p) => 1 + overshoot(p.dampingFraction));
 
-describe("X.KF.W11.f (4) — SPF-3: the preset-ball painter expresses the overshoot", () => {
-    it("the four analytic peaks are 1.005 / 1.068 / 1.205 / 1.000 and map to distinct, unclamped travel", () => {
+describe("X.KF.W11.f (4) — SPF-3 (re-seated X.KF.W13V.y): the presets' analytic peaks", () => {
+    it("the four analytic peaks are 1.005 / 1.068 / 1.205 / 1.000, ordered by overshoot", () => {
         expect(PRESET_PEAKS.map((v) => Number(v.toFixed(3)))).toEqual([1.005, 1.068, 1.205, 1.0]);
-        // the stated geometry: rest at 1/6, the target at 5/6, ±0.25 of headroom
-        expect(BALL_HEADROOM).toBe(0.25);
-        expect(ballTravel(0)).toBeCloseTo(1 / 6, 12);
-        expect(ballTravel(1)).toBeCloseTo(5 / 6, 12);
-        expect(ballTravel(-BALL_HEADROOM)).toBe(0);
-        expect(ballTravel(1 + BALL_HEADROOM)).toBe(1);
-        const travel = PRESET_PEAKS.map(ballTravel);
-        // monotone in overshoot, every preset distinct from every other except the two that share a peak
-        const byPeak = [...PRESET_PEAKS.keys()].sort((a, b) => PRESET_PEAKS[a]! - PRESET_PEAKS[b]!);
-        for (let i = 1; i < byPeak.length; i++) {
-            expect(travel[byPeak[i]!]).toBeGreaterThanOrEqual(travel[byPeak[i - 1]!]!);
-        }
-        expect(travel[2]).toBeGreaterThan(travel[1]!);
-        expect(travel[1]).toBeGreaterThan(travel[0]!);
-        expect(travel[0]).toBeGreaterThan(travel[3]!);
-        // and NONE of the four reaches the headroom bound — the clamp is geometric, never hit
-        for (const t of travel) expect(t).toBeLessThan(1);
-        for (const t of travel) expect(t).toBeGreaterThanOrEqual(5 / 6 - 1e-12);
-        // the symmetric undershoot on a downward retarget is expressed too
-        expect(ballTravel(-0.205)).toBeLessThan(ballTravel(0));
-        expect(ballTravel(-0.205)).toBeGreaterThan(0);
+        expect(PRESET_PEAKS[2]).toBeGreaterThan(PRESET_PEAKS[1]!);
+        expect(PRESET_PEAKS[1]).toBeGreaterThan(PRESET_PEAKS[0]!);
+        expect(PRESET_PEAKS[0]).toBeGreaterThan(PRESET_PEAKS[3]!);
     });
 });
 
 // ─── (5b) the facet — the painter on real elements, the group on the real producer ─
 
-describe("X.KF.W11.f (5b) — the facet: the painter paints the peaks; the presets are one labelled exclusive group", () => {
+describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are one labelled exclusive group", () => {
     beforeAll(async () => {
         await warmKfEngine();
     });
 
-    /** The real scene context; `prepare` runs between its creation and the facet's
-     *  mount, because the painter registry paints ONCE at registration with the
-     *  live values (`usePainterRegistry`) and the demo exposes no repaint verb
-     *  (KF-SS-33 excised it as unconsumed). */
+    /** The real scene context; `prepare` runs between its creation and the
+     *  facet's mount (the tiles are static text since X.KF.W13V.y retired the
+     *  in-tile painter, so no caller needs it to seed live values). */
     function mountFacet(prepare?: (demo: ReturnType<typeof useSpringDemo>) => void) {
         const [demo, app] = withSetup(() => useSpringDemo());
         prepare?.(demo);
@@ -466,24 +449,18 @@ describe("X.KF.W11.f (5b) — the facet: the painter paints the peaks; the prese
         };
     }
 
-    it("SPF-3 on the DOM — the registered painter writes each preset's peak past the target", async () => {
-        const { wrapper, teardown } = mountFacet((demo) => {
-            PRESET_PEAKS.forEach((v, i) => {
-                demo.springLive.trackValues[i] = v;
-            });
-        });
+    it("OA-51 on the DOM — a preset tile holds its name and ONE parameter line, and no rail, ball or slider", async () => {
+        const { wrapper, teardown } = mountFacet();
         try {
             await nextTick();
-            const balls = wrapper.findAll(".preset-ball");
-            expect(balls).toHaveLength(4);
-            const xs = balls.map((b) => Number(/translateX\(([\d.]+)cqw\)/.exec((b.element as HTMLElement).style.transform)![1]));
-            expect(xs.map((x) => Number(x.toFixed(1)))).toEqual(PRESET_PEAKS.map((v) => Number((ballTravel(v) * 100).toFixed(1))));
-            // every peak sits PAST the target's 5/6 and inside the track
-            for (const x of xs) {
-                expect(x).toBeGreaterThan((5 / 6) * 100 - 1e-9);
-                expect(x).toBeLessThan(100);
-            }
-            expect(new Set(xs.map((x) => x.toFixed(1))).size).toBe(4);
+            const cells = wrapper.findAll(".preset-cell");
+            expect(cells).toHaveLength(4);
+            cells.forEach((cell, i) => {
+                const p = SPRING_PRESETS[i]!;
+                expect(cell.text()).toContain(p.name);
+                expect(cell.text()).toContain(`${p.response} s · ζ ${p.dampingFraction}`);
+                expect(cell.findAll('.progress-rail, .progress-ball, [role="slider"]')).toHaveLength(0);
+            });
         } finally {
             teardown();
         }

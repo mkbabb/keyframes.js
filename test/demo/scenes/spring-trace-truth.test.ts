@@ -299,12 +299,18 @@ describe("SpringTrace — the mount (N-1 · D-2/N-4 · L-5 · D-6)", () => {
         }
     });
 
-    it("(5b) the readout is lowercase ζ in the case-preserving mono register, wearing the live accent", () => {
+    // X.KF.W13V.y (OA-51; DESIGN-NOTE N-5 · N-6) — the readout is the figure's
+    // ONE legend line, muted: the stage's single violet readout is the ball's
+    // position, so the figure no longer wears the accent. The register clauses
+    // (lowercase ζ, case-preserving mono, tabular) are unchanged.
+    it("(5b) the legend is lowercase ζ in the case-preserving mono register, on one muted line", () => {
         const wrapper = mount(SpringTraceComponent, {
             props: { response: 0.5, dampingFraction: 0.86 },
         });
         try {
-            const readout = wrapper.find(".readout-accent.code-token");
+            const readout = wrapper.find("[data-figure-legend].code-token");
+            expect(readout.classes()).not.toContain("readout-accent");
+            expect(readout.classes()).toContain("whitespace-nowrap");
             expect(readout.exists()).toBe(true);
             expect(readout.classes()).toContain("tabular-nums");
             expect(readout.classes()).not.toContain("text-mono-caption");

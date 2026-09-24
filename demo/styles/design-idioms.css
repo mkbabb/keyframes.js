@@ -334,6 +334,42 @@
     grid-column: 1 / -1;
 }
 
+/* §PARAM-row — X.KF.W13V.y (OA-51; DESIGN-NOTE N-2): a continuous parameter is
+   ONE line of label + live value with the slider spanning the row beneath. The
+   row stacks a default (label-over-control) `.labeled-field` and an `<output
+   class="param-value">` in one grid cell; the value seats on the label's line
+   at the row's end, in the mono-as-data register (§1). Composed from the
+   producer's field, never a copy of its internals. */
+.param-row {
+    display: grid;
+}
+.param-row > * {
+    grid-area: 1 / 1;
+}
+/* The field stacks: label on its own line, the slider spanning the row (the
+   J3 full-width posture the Curve facet's duration row carried locally — now
+   the idiom's, so every param row shares it). */
+.param-row > .labeled-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-atom);
+}
+.param-row > .labeled-field [data-slot="slider"],
+.param-row > .labeled-field .slider-track {
+    width: 100%;
+}
+.param-row > .param-value {
+    justify-self: end;
+    align-self: start;
+    font-family: var(--font-mono);
+    font-size: var(--type-caption);
+    line-height: var(--type-small--line-height, 1.5);
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground);
+    pointer-events: none;
+}
+
 /* @keyframes enter — the tab-panel slide-in keyframe (opacity fade + 0.5rem
    x-translate via the --tw-enter-* vars the consuming rule sets) so the demo's tab
    slide no longer depends on tw-animate-css's internal `enter` name. */

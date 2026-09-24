@@ -27,15 +27,17 @@
             <!-- D-11 — the primary slot names the plot; it no longer dresses the
                  invariant stop count as a live readout (the count is a fact about
                  the sampling grid and lives on the time axis, below). -->
-            <span class="text-small text-foreground">
-                <span class="code-token">linear()</span> trace
-            </span>
+            <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — the title names the
+                 figure in plain words (it read the CSS function, `linear()`). -->
+            <span class="text-small text-foreground whitespace-nowrap" data-figure-title>Sampled curve</span>
             <!-- D-2/N-4 — `.code-token` is the demo's case-preserving mono register:
                  `text-mono-caption` sets `text-transform: uppercase` at the installed
                  pin and rendered this ζ as Ζ (U+0396). `tabular-nums` stays (the
-                 mono contract's clause (b) licence). D-10 — the live readout wears the
-                 scene accent, as the sibling row's does; the label stays quieter. -->
-            <span class="readout-accent code-token tabular-nums">
+                 mono contract's clause (b) licence). (D-10's accent is retired by X.KF.W13V.y — see below.) -->
+            <!-- X.KF.W13V.y (N-5 · N-6) — the figure's ONE legend line, muted: the
+                 stage's one violet readout is the ball's position (SpringTarget),
+                 so the figure's numbers no longer compete with it. -->
+            <span class="code-token tabular-nums text-muted-foreground whitespace-nowrap" data-figure-legend>
                 ζ {{ dampingFraction.toFixed(2) }} · peak {{ peak.toFixed(3) }}
             </span>
         </div>
@@ -102,12 +104,12 @@
                 >0</span>
             </div>
             <!-- The time axis (N-1's cure). The horizon is the one figure `response`
-                 moves, so it wears the live-readout accent; the origin and the grid
-                 caption stay muted. -->
+                 moves; it is an axis label on the caption register like the origin
+                 (X.KF.W13V.y N-5 — one violet readout per stage). -->
             <div class="flex items-baseline justify-between mt-1" aria-hidden="true">
                 <span class="plot-tick code-token tabular-nums text-muted-foreground">0</span>
-                <span class="text-caption text-muted-foreground">time · {{ points.length }} stops</span>
-                <span class="plot-tick readout-accent code-token tabular-nums">{{ horizonMs }} ms</span>
+                <span class="text-caption text-muted-foreground">time (ms) · {{ points.length }} stops</span>
+                <span class="plot-tick code-token tabular-nums text-muted-foreground">{{ horizonMs }} ms</span>
             </div>
         </div>
     </div>

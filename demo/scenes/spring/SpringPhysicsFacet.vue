@@ -14,70 +14,61 @@
          no longer exist at any path; it now describes what mounts. -->
     <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
         <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
-            <!-- Live params — the UNIFORM label-column grammar (the cube's bar).
-                 The two sliders join ONE `.labeled-field-grid` so their labels
-                 ("response" / "damping (ζ)") resolve the SAME width (U5). Their
-                 bounds and step are the FIELD's axes (one home for the
-                 coordinate space the sliders and the field both write). -->
-            <div class="labeled-field-grid">
-                <LabeledSlider
-                    :model-value="demo.response.value"
-                    label="response"
-                    label-class="text-small font-medium text-muted-foreground"
-                    tooltip="Spring response time (s) — higher = slower"
-                    :min="RESPONSE_AXIS.min"
-                    :max="RESPONSE_AXIS.max"
-                    :step="PARAM_STEP"
-                    @update:model-value="(v) => { demo.response.value = v; }"
-                />
-                <LabeledSlider
-                    :model-value="demo.dampingFraction.value"
-                    label="damping (ζ)"
-                    label-class="text-small font-medium text-muted-foreground"
-                    tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
-                    :min="DAMPING_AXIS.min"
-                    :max="DAMPING_AXIS.max"
-                    :step="PARAM_STEP"
-                    @update:model-value="(v) => { demo.dampingFraction.value = v; }"
-                />
+            <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2) — the PARAM ROW idiom: the
+                 label and the live value share ONE line, the slider spans the
+                 row beneath (the default LabeledSlider stack; the value is an
+                 `<output>` seated on the label's line by the `.param-row` grid,
+                 design-idioms.css). The value is the readout — the slider
+                 carries no second one; the humane string reaches AT through
+                 the producer's `valueText`. -->
+            <div class="flex flex-col gap-3">
+                <div class="param-row">
+                    <LabeledSlider
+                        :model-value="demo.response.value"
+                        label="response"
+                        tooltip="Spring response time (s) — higher = slower"
+                        :min="RESPONSE_AXIS.min"
+                        :max="RESPONSE_AXIS.max"
+                        :step="PARAM_STEP"
+                        :value-text="(v: number) => `${v.toFixed(2)} seconds`"
+                        @update:model-value="(v) => { demo.response.value = v; }"
+                    />
+                    <output class="param-value" aria-hidden="true">{{ demo.response.value.toFixed(2) }} s</output>
+                </div>
+                <div class="param-row">
+                    <LabeledSlider
+                        :model-value="demo.dampingFraction.value"
+                        label="damping"
+                        tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
+                        :min="DAMPING_AXIS.min"
+                        :max="DAMPING_AXIS.max"
+                        :step="PARAM_STEP"
+                        :value-text="(v: number) => `damping ${v.toFixed(2)}`"
+                        @update:model-value="(v) => { demo.dampingFraction.value = v; }"
+                    />
+                    <output class="param-value" aria-hidden="true">ζ {{ demo.dampingFraction.value.toFixed(2) }}</output>
+                </div>
             </div>
-
+            <Separator />
             <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
-                 The two abstract sliders above become a navigable field: a
-                 (response × damping) surface tinted by the EXACT analytic peak
-                 overshoot `exp(-ζπ/√(1-ζ²))` — a function of ζ alone, which the
-                 field's legend states. Clicking, sweeping or arrowing across it
-                 writes the live (response, damping). Two-way through the SAME
-                 declared seam the sliders use: two models bound to the same two
-                 refs — one shared control surface, one contract. -->
+                 The (response × damping) surface tinted by the EXACT analytic
+                 peak overshoot `exp(-ζπ/√(1-ζ²))`; clicking, sweeping or arrowing
+                 across it writes the live (response, damping) through the SAME
+                 two refs the rows above write. -->
             <SpringHeatmap
                 v-model:response="demo.response.value"
                 v-model:damping-fraction="demo.dampingFraction.value"
             />
-
-            <!-- Preset cells — the SINGLE preset surface (this is the ONE place
-                 the four canonical presets live). Each cell carries its OWN live
-                 track ball (painter-positioned). The active cell wears a DASHED
-                 outline in the violet motion authority (`--color-progress`; the
-                 scoped rules below) and the hover is the same family's faint
-                 wash — the earlier "red-dashed ring / red-accent hover" wording
-                 predated the token re-point (red is destructive-only).
-
-                 SPF-4 (X.KF.W11.f): four mutually-exclusive presets are ONE
-                 `ToggleGroup type="single"` (the `EasingTarget.vue` port), not
-                 four independent selectable Chips: the section is a LABELLED
-                 group, the selection model is exclusive by contract (the model
-                 is derived from the live params, so a deselect is refused and
-                 the set can never be empty), and focus roves — one tab stop,
-                 arrows between cells. The items ship the producer's
-                 `aria-pressed` (reka's toggle-group renders pressed buttons in a
-                 `role="group"`, not radios); the radio half rides SS-6 as the
-                 producer ask, never a demo-side attribute patch. `:title`
-                 survives the item's attr filter; the tooltip-vs-slotted-copy
-                 decision (SPF-13) is KF-CO-47's and is not taken here. The
-                 earlier SPF-10 note (the retired Chip `shape="cell"` request)
-                 is moot with the Chip: the column layout below is authored on
-                 the item, as it was on the Chip. -->
+            <Separator />
+            <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2 · N-4) — the presets are ONE
+                 glass ToggleGroup of TILES on `--radius-field` (16 px — a tile
+                 holds two lines, so it is never a stadium): the preset's name and
+                 ONE mono line of its parameters. No rail, ball or mini-slider
+                 lives inside a tile (the four presets' live race is the stage's
+                 derby, SpringTarget). SPF-4 stands: four mutually-exclusive
+                 presets are ONE `type="single"` group — a labelled group, an
+                 exclusive model derived from the live params (a deselect is
+                 refused), roving focus; `aria-pressed` is the producer's. -->
             <ToggleGroup
                 type="single"
                 class="preset-grid grid w-auto max-w-none grid-cols-2 gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
@@ -86,26 +77,16 @@
                 @update:model-value="onPresetSelect"
             >
                 <ToggleGroupItem
-                    v-for="(t, i) in demo.tracks"
+                    v-for="t in demo.tracks"
                     :key="t.preset.name"
                     :value="t.preset.name"
                     :title="t.preset.blurb"
-                    class="preset-cell w-full flex-col items-start gap-1 rounded-pill bg-background px-3 pt-1.5 pb-2 font-medium leading-normal whitespace-nowrap"
+                    class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 bg-background px-3 py-2 font-medium leading-normal"
                 >
-                    <span class="preset-name-row flex w-full flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-                        <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                        <span class="text-mono-caption text-muted-foreground tabular-nums">{{ t.preset.response }} / {{ t.preset.dampingFraction }}</span>
-                    </span>
-                    <span class="preset-track relative block w-full h-2">
-                        <span class="progress-rail"></span>
-                        <span
-                            :ref="(el) => setTrackBallEl(i, el)"
-                            class="progress-ball preset-ball"
-                        ></span>
-                    </span>
+                    <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
+                    <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">{{ t.preset.response }} s · ζ {{ t.preset.dampingFraction }}</span>
                 </ToggleGroupItem>
             </ToggleGroup>
-
             <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The
                  Sweep channel's keyframes are edited in the SHARED Keyframes
                  pane (the dock's Keyframes item), as on every scene. The facet
@@ -124,31 +105,9 @@
     </Card>
 </template>
 
-<script lang="ts">
-// ── SPF-3 — the preset-ball painter's GEOMETRY, stated and exported ───────────
-// A track value is the spring's live position: 0 at rest, 1 at the target, and
-// PAST either on the way (the four presets differ by exactly how far — analytic
-// peaks 1.005 / 1.068 / 1.205 / 1.000 — and the tracks retarget in both
-// directions, so the undershoot on a downward retarget is real and symmetric).
-// The painter maps [-HEADROOM, 1 + HEADROOM] onto the track's full width, so
-// rest sits at 1/6, the target at 5/6, and an overshoot visibly leaves the rail
-// (which is inset to span exactly [0, 1]). The headroom exceeds the largest
-// preset peak; the clamp is the geometric bound, never reached by the four.
-import { clamp } from "@mkbabb/value.js/math";
-
-/** The travel the track affords beyond rest and beyond the target, in value units. */
-export const BALL_HEADROOM = 0.25;
-
-/** A track value → its position along the track, 0 → 1 (the `cqw` fraction). */
-export function ballTravel(value: number): number {
-    return (clamp(value, -BALL_HEADROOM, 1 + BALL_HEADROOM) + BALL_HEADROOM) / (1 + 2 * BALL_HEADROOM);
-}
-</script>
-
 <script setup lang="ts">
-import type { ComponentPublicInstance } from "vue";
-import { computed, onMounted, onScopeDispose } from "vue";
-import { Card, CardContent } from "@mkbabb/glass-ui";
+import { computed } from "vue";
+import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { RefreshCw } from "@lucide/vue";
@@ -160,29 +119,6 @@ import type { SpringPreset, SpringTrack } from "./useSpringDemo";
 
 const props = defineProps<{ demo: SpringDemoContext }>();
 const demo = props.demo;
-
-// ── J.W2 S5 (DS-3) — the preset-cell ball painter (the 60 Hz hot path) ─────────
-const trackBallEls: (HTMLElement | null)[] = [];
-const setTrackBallEl = (i: number, el: Element | ComponentPublicInstance | null) => {
-    trackBallEls[i] = (el as HTMLElement) ?? null;
-};
-
-let unregisterPainter: (() => void) | null = null;
-onMounted(() => {
-    unregisterPainter = demo.registerSpringPainter(() => {
-        const values = demo.springLive.trackValues;
-        for (let i = 0; i < trackBallEls.length; i++) {
-            const el = trackBallEls[i];
-            // T.G4 — position by `transform: translateX(<cqw>)`, never `left` (the
-            // compositor-only value axis; `cqw` = 1% of the `.preset-track`
-            // inline-size container). No per-frame layout, no width read. The
-            // value is NOT clamped to [0, 1]: the overshoot is the point (SPF-3;
-            // `ballTravel` above states the geometry).
-            if (el) el.style.transform = `translateX(${ballTravel(values[i] ?? 0) * 100}cqw)`;
-        }
-    });
-});
-onScopeDispose(() => unregisterPainter?.());
 
 const isActivePreset = (t: SpringTrack) =>
     Math.abs(demo.response.value - t.preset.response) < 1e-6 &&
@@ -222,43 +158,8 @@ const onPresetSelect = (
 </script>
 
 <style scoped>
-/* ── §LABEL-subgrid consume ──
-   The params ride the shared `.labeled-field-grid` idiom (design-idioms.css —
-   the DRY home). Nothing is re-authored here. */
-
-/* ── Preset cells — the SINGLE preset surface ──
-   The rail + ball geometry come from the shared .progress-rail / .progress-ball
-   idiom (design-idioms.css). The rail tint lifts to 14% so the short in-cell
-   track reads as a clear groove at rest. The rail is INSET to span exactly the
-   [0, 1] travel — rest at 1/6, the target at 5/6 of the track (`ballTravel`'s
-   geometry) — so a ball that overshoots visibly leaves the rail's end. */
-.preset-track .progress-rail {
-    --rail-tint: 14%;
-    left: calc(100% / 6);
-    width: calc(100% * 2 / 3);
-}
-/* T.G4 — the track is the `cqw` inline-size container the preset ball's
-   `translateX(<cqw>)` resolves against. */
-.preset-track {
-    container-type: inline-size;
-}
-/* The FOURTH authoring of the T.G4 anchor (m-8, riding KF-AV-10). The other
-   three are one rule now (`SpringTarget.vue`, `.spring-ball, .sampler-ball,
-   .derby-lane-ball`); this one is in a different component with its own scoped
-   block, so sharing it would mean hoisting the x-anchor into the idiom itself —
-   `design-idioms.css`, whose KF.W7 carve is stated not to widen, and a hoist
-   that every one of the idiom's seven consumers must survive. Declared here
-   rather than consolidated silently: kf-EasingTarget P-2 is why the idiom
-   anchors in y and leaves x (and `transform`) to its consumers, and a careless
-   unification drops balls out of their rails. Residual, owner named in the
-   KF.W7 execution record. */
-.preset-ball {
-    --ball-size: 0.85rem;
-    --ball-glow: 0%;
-    left: 0; /* T.G4 — painter's translateX(<cqw>) carries the position */
-    margin-left: calc(var(--ball-size) / -2);
-    will-change: transform;
-}
+/* ── The param rows ride the shared `.param-row` idiom (design-idioms.css —
+   the DRY home; DESIGN-NOTE N-2). Nothing is re-authored here. */
 
 /* ── The preset grid is a ToggleGroup for its selection model and roving
    focus, never for the producer's single-mode TRACK plate (padding, pill
@@ -290,7 +191,11 @@ const onPresetSelect = (
    4.46:1 and FAILED. Hover and active stay distinct by wash AND outline.
    SPF-7 — no importance flag: these scoped rules are unlayered and outrank the
    producer's `@layer components` item paint by layer order alone. */
+/* X.KF.W13V.y (DESIGN-NOTE N-4; glass DESIGN.md:385-391) — a tile holds two
+   lines, so it sits on the multi-line field rung, never the producer item's
+   stadium. */
 .preset-cell {
+    border-radius: var(--radius-field);
     outline: 1px dashed transparent;
     outline-offset: -1px;
     border-color: transparent;

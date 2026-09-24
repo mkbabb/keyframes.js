@@ -51,12 +51,16 @@
              bare `<span>`; it becomes the heading it was drawn as. -->
         <header class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0">
             <div class="flex flex-col gap-1 min-w-0">
+                <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-3 · N-6) — the title is the
+                     thing measured in plain words (it read the engine class name,
+                     `SpringProgress`); the ball's position is the stage's ONE
+                     primary readout, everything else on the stage is muted. -->
                 <h2 class="text-display text-foreground truncate leading-none">
-                    SpringProgress
+                    Spring
                 </h2>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
-                    <span class="spring-readout-primary tabular-nums">{{ demo.liveValue.value.toFixed(3) }}</span>
+                    <span class="text-small text-muted-foreground">position</span>
+                    <span class="spring-readout-primary tabular-nums" data-readout="primary">{{ demo.liveValue.value.toFixed(3) }}</span>
                 </div>
             </div>
             <div class="flex flex-col items-end gap-1 shrink-0">
@@ -88,7 +92,7 @@
                      Latin Z, in the one place the plot names its own parameter —
                      is `.e`'s file and is named to `.e`, not reached across.) -->
                 <span class="text-mono-small text-muted-foreground tabular-nums">
-                    v {{ demo.liveVelocity.value.toFixed(2) }}
+                    velocity {{ demo.liveVelocity.value.toFixed(2) }}
                 </span>
             </div>
         </header>
@@ -214,19 +218,19 @@
                  instruction reaches a screen reader as a DESCRIPTION instead of
                  masquerading as the control's name. -->
             <p id="spring-rail-hint" class="text-small text-muted-foreground text-center">
-                Tap or drag the rail &mdash; the ball springs to the new target. Adjust
-                <span class="code-token">response</span> /
-                <span class="code-token">dampingFraction</span> in the panel.
+                Tap or drag the rail &mdash; the ball springs to the new target. Tune
+                response and damping in the Physics pane.
             </p>
         </div>
 
-        <!-- springTimingFunction sweep -->
+        <!-- The timing-function sweep (the spring sampled as a CSS timing
+             function). X.KF.W13V.y (N-3 · N-6): titled in plain words, and its
+             sampled value is a MUTED caption — the stage has one violet readout
+             (the position above), so this one no longer competes with it. -->
         <div class="w-full max-w-3xl shrink-0">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-small text-foreground">springTimingFunction sweep</span>
-                <!-- J.W7a S3 (D14 / CP-4) — the live sampled value wears the
-                     scene accent; the label stays muted. -->
-                <span class="readout-accent text-mono-caption tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
+                <span class="text-small text-foreground" data-figure-title>Timing-function sweep</span>
+                <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
             </div>
             <div class="sampler-track relative h-9">
                 <!-- The sampler rides the SAME value axis as the rail above (one

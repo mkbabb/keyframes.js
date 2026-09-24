@@ -14,12 +14,14 @@
          D-M1) is written in the wave's evidence BEFORE this file was touched;
          this header describes what ships, the evidence says why. -->
     <div class="spring-heatmap-section grid gap-2">
-        <div class="flex items-center justify-between gap-2">
-            <span class="text-small font-medium text-muted-foreground">parameter space — peak overshoot</span>
-            <span
-                :id="readoutId"
-                class="text-mono-caption text-muted-foreground tabular-nums"
-            >
+        <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — ONE title line, and the y
+             axis named beside it (the ζ ticks run down the plot's left edge).
+             The live (response, ζ) is NOT restated here — the param rows above
+             show it; it stays the field's accessible description (sr-only). -->
+        <div class="flex items-baseline justify-between gap-2 whitespace-nowrap">
+            <span class="text-small font-medium text-foreground" data-figure-title>Peak overshoot</span>
+            <span class="text-caption text-muted-foreground" aria-hidden="true">damping ζ ↕</span>
+            <span :id="readoutId" class="sr-only">
                 {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
             </span>
         </div>
@@ -119,13 +121,11 @@
             </div>
         </div>
 
-        <!-- The legend — the ramp, its scale, and what it varies with. -->
-        <div class="flex items-center justify-between gap-3 text-caption text-muted-foreground">
-            <span class="flex items-center gap-1.5 min-w-0">
-                <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
-                <span class="tabular-nums">peak overshoot 0 → {{ OVERSHOOT_MAX_PERCENT }} % · varies with ζ only (response sets tempo, not peak)</span>
-            </span>
-            <span class="shrink-0 tabular-nums">{{ LATTICE.pitch.toFixed(2) }} lattice</span>
+        <!-- The legend — ONE line (N-5): the ramp, its scale, and what it
+             varies with. -->
+        <div class="flex items-center gap-1.5 min-w-0 text-caption text-muted-foreground whitespace-nowrap" data-figure-legend>
+            <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
+            <span class="truncate tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">0 → {{ OVERSHOOT_MAX_PERCENT }} % overshoot · set by damping alone</span>
         </div>
     </div>
 </template>
@@ -460,11 +460,18 @@ function onKeydown(e: KeyboardEvent): void {
 .spring-heatmap-x {
     grid-column: 2;
 }
+.spring-heatmap-section {
+    --spring-field-block: 12rem;
+}
 
+/* X.KF.W13V.y (OA-49 "space used by the subject, not by chrome"; R-c-1) — the
+   field's block size is the facet's largest single spend: 12rem keeps every
+   regime tag, pip and the critical line legible while the facet's params,
+   figure and presets share the bounded rail. The tick column mirrors it. */
 .spring-heatmap-zeta {
     position: relative;
     inline-size: 1.5rem;
-    block-size: 16rem;
+    block-size: var(--spring-field-block);
 }
 .spring-heatmap-zeta > span {
     position: absolute;
@@ -484,7 +491,7 @@ function onKeydown(e: KeyboardEvent): void {
    wave's evidence). `container-type: size` cannot collapse a box whose block
    AND inline sizes are definite. `touch-action: none` declares the sweep. */
 .spring-heatmap {
-    block-size: 16rem;
+    block-size: var(--spring-field-block);
     border: 1px solid color-mix(in srgb, var(--foreground) 50%, transparent);
     background-color: var(--background);
     container-type: size;
