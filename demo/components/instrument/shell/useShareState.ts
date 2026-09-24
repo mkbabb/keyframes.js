@@ -2,7 +2,6 @@ import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
     encodeStateToHash,
-    decodeStateFromHash,
     getAllState,
     restoreStateFromParam,
 } from "@state";
@@ -68,13 +67,15 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
             return;
         }
 
-        const decoded = decodeStateFromHash(stateParam);
-        if (!decoded) {
+        // UIA-KF-003 — decode, validate and apply are ONE call, and its verdict
+        // is the only one the UI reports: a payload that decodes but is no state
+        // object (`MTIz` → 123) is refused by `restoreStateFromParam`, and the
+        // field stays open on the error instead of toasting success.
+        const result = restoreStateFromParam(stateParam);
+        if (!result.restored) {
             toast({ title: "Invalid shared state", tone: "destructive", duration: 3000 });
             return;
         }
-
-        const result = restoreStateFromParam(stateParam);
         sharePopoverOpen.value = false;
 
         // Switch to the shared scene if present
