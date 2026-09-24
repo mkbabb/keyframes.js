@@ -1,8 +1,9 @@
 <template>
     <!-- The scene's root column (SequenceScene renders this and nothing else):
-         centred, width-bounded, full-height. One child, so no gap; no bespoke
+         centred, full-height, width-bounded at lg (below lg it spans the page
+         gutter, X.KF.W13W.m OA-64). One child, so no gap; no bespoke
          class, since no rule ever selected one (kf-SequenceTarget L-8). -->
-    <div class="flex flex-col items-center justify-center h-full w-full px-6 lg:px-8 max-w-3xl mx-auto overflow-hidden">
+    <div class="flex flex-col items-center justify-center h-full w-full lg:px-8 lg:max-w-3xl mx-auto overflow-hidden">
         <!-- I5 — the standard NON-cartoon glass <Card> protagonist plate (rounded
              by construction, shadow off). J.W7c C-SEQ-1 (U6): the card no longer
              STRETCHES the whole .stage-cell (the former flex-1 floated 5 rows on a

@@ -224,6 +224,15 @@
    bottom sheet toggles (the live chain oscillates ±8px with the dock reflow). */
 @media (max-width: 1023px) {
     :root {
+        /* X.KF.W13W.m (OA-64) — THE PAGE GUTTER, the ONE inline inset every
+           phone surface sits on: the stage's panels (`.scene-host`, App.vue) and
+           the Sheet's cards. It is the Sheet's own content inset (glass's
+           `--space-family`, which the Sheet pads its region by) plus the pane
+           body's 1rem shadow reserve (ChannelControls' `pl-4 pr-4`, OA-34), so
+           a stage card and a sheet card share their edges. Before it, each scene
+           chose its own (spring/sequence `px-6`, easing/square/amiga 0, the
+           sheet a doubled 0.75rem + 1rem + the region). */
+        --page-gutter: calc(var(--space-family) + 1rem);
         --work-area-max-width: 100dvw;
         --work-area-max-height: min(64rem, calc(100dvh - var(--dock-band-reserve)));
         --work-area-height: min(100dvh, var(--work-area-max-height));

@@ -51,8 +51,13 @@
     .controls-drawer-content .controls-pane {
         touch-action: pan-y;
     }
+    /* X.KF.W13W.m (OA-64) — no inline padding of its own: the Sheet region
+       already insets by glass's `--space-family` and the surfaces' scroller by
+       its 1rem shadow reserve, which together ARE the page gutter
+       (layout.css `--page-gutter`). The former 0.75rem doubled the region's
+       inset and set the cards 12 px inside every stage panel's edge. */
     .controls-drawer-content .controls-content {
-        padding-inline: 0.75rem;
+        padding-inline: 0;
     }
 
     /* The scroll-fade mask degrades to un-faded content on a browser without

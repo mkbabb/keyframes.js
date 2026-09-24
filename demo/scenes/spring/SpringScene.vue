@@ -48,7 +48,7 @@
          nothing to distribute. Dead layout classes on a scene's only markup are
          worse than none — the next reader reasons about a layout that is not
          happening. -->
-    <div class="flex h-full w-full flex-col px-6 lg:px-8">
+    <div class="flex h-full w-full flex-col lg:px-8">
         <div class="min-h-0 w-full flex-1">
             <SpringTarget v-if="demo.view.value === 'solver'" />
             <StartingStyleTarget v-else />
