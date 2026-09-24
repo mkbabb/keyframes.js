@@ -62,7 +62,15 @@
                     v-for="host in controlHosts"
                     :key="host.animation.id"
                 >
-                    <div v-show="storedControls.selectedAnimation == host.name">
+                    <!-- X.KF.W13V.c (C1-1) — `.controls-surface` is the
+                         desktop rail's ONE scroller: the rail is bounded above
+                         the menubar band (ControlsPaneWrapper.css), so a
+                         surface taller than the rail scrolls HERE while the
+                         persistent ribbon below stays in view. -->
+                    <div
+                        v-show="storedControls.selectedAnimation == host.name"
+                        class="controls-surface"
+                    >
                         <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
                              `host.blendAvailable` are re-read from the engine
                              at this edge on every layer write (see

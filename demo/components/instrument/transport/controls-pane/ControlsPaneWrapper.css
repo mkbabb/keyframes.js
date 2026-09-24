@@ -91,9 +91,47 @@
         max-width: none;
         margin-top: 0;
         padding-inline: 0;
-        display: block;
         /* Clip the fixed-width .controls-content as the [rail] track collapses. */
         overflow: hidden;
+        /* ── X.KF.W13V.c (C1-1 · R-m-3 EASING-RAIL-OVERRUN) — the rail is
+           bounded ABOVE the menubar band ──
+           The layout grid is `items-start`, so the rail was content-sized: at
+           glass 10.0.1's control metrics the easing Curve surface grew the rail
+           to 798 px at 1440×900 — past its own [stage] area (792) and 94 px into
+           the transport band (the persistent ribbon's ball under the menubar,
+           occlusion easing/desktop/closed ✗). The bound is the rail's block
+           budget, derived from the tokens the docks themselves anchor on:
+             • `100%` — the rail never leaves its grid area (the expanded
+               timeline owns the [bottom] row beneath it);
+             • `100dvh − --dock-menubar-reserve` is the menubar band's top edge
+               (layout.css: the viewport-bottom → pill-top exclusion zone), less
+               the rail's own top, `--work-area-vertical-slack / 2` (the
+               `.controls-layout` card centres with `margin: auto`).
+           The rail becomes a flex column so the bound reaches the pane, and the
+           surface host (`.controls-surface`) is the ONE scroller while the
+           ribbon (`flex-shrink-0`) stays in view — the pane never scrolls the
+           transport ribbon out from under the pointer. */
+        display: flex;
+        flex-direction: column;
+        max-block-size: min(
+            100%,
+            calc(
+                100dvh - var(--dock-menubar-reserve) -
+                    var(--work-area-vertical-slack) / 2
+            )
+        );
+    }
+    .controls-pane,
+    .controls-content {
+        display: flex;
+        flex-direction: column;
+        min-block-size: 0;
+    }
+    .controls-surface {
+        flex: 1 1 auto;
+        min-block-size: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;
