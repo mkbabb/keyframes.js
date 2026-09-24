@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-shrink-0 pl-4 pr-7 pb-2">
+    <div class="flex-shrink-0 pl-4 pr-4 lg:pr-7 pb-2">
         <Card tier="quiet" class="cartoon-surface overflow-visible">
             <CardContent class="p-3">
                 <!-- Controls tab: filled via Teleport from ChannelOptions -->

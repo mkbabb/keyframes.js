@@ -148,14 +148,21 @@
              edge must never drop mid-session when the menubar momentarily
              measures shorter; over-reservation only ever keeps the subject MORE
              clear; and no cycle forms — the lift does not feed the menubar's
-             measure. SS-13 measures the tether at both detents. -->
+             measure. SS-13 measures the tether at both detents.
+             X.KF.W13V.s (OA-40) — the lift is the WHOLE transport band
+             (`--stage-bottom-inset` = the bottom anchor + the stable band,
+             layout.css), not the band depth alone: `--dock-band-reserve-stable`
+             omitted the anchor the transport floats at, so the sheet's bottom
+             edge sat ≈49 px INSIDE the transport and the collapsed pill
+             covered its last control row (the owner's "fill mode"). The
+             sheet now rests on top of the transport, never under it. -->
         <SheetContent
             side="bottom"
             :detents="snapPoints"
             v-model:detent="activeSnap"
             scroll
             class="controls-drawer-content"
-            :style="{ bottom: 'var(--dock-band-reserve-stable)' }"
+            :style="{ bottom: 'var(--stage-bottom-inset)' }"
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
