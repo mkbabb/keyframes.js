@@ -39,6 +39,7 @@
                         :value="Math.round(demo.progress.value * demo.duration.value)"
                         unit="ms"
                         class="readout-accent shrink-0"
+                        data-readout="primary"
                     />
                 </div>
                 <div class="flex items-center gap-2 shrink-0">

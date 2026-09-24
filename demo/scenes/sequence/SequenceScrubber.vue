@@ -17,7 +17,12 @@
                  stays quieter than the Metric's ms readout above the stage — the
                  clock's CANONICAL unit is milliseconds, announced on the rail's
                  valuetext; this fraction is its progress). -->
-            <span class="seq-timecode readout-accent text-mono-small tabular-nums">{{ demo.progress.value.toFixed(3) }}</span>
+            <!-- X.KF.W13V.y (OA-49; DESIGN-NOTE N-6) — ONE primary readout per
+                 stage: the header Metric's ms clock. This fraction restated the
+                 same clock in the same violet, so two readouts competed; it is
+                 now a muted caption beside its eyebrow (the lit halo retired
+                 with the accent). -->
+            <span class="text-mono-small text-muted-foreground tabular-nums">{{ demo.progress.value.toFixed(3) }}</span>
         </div>
         <div
             ref="scrubEl"
@@ -170,37 +175,6 @@ const onScrubBlur = () => {
        captures it); on touch, the browser must not race it for a pan. The same
        declaration the row handles carry — the two scrub surfaces agree. */
     touch-action: none;
-}
-
-/* The LIT phosphor TIMECODE. The master clock's progress fraction: tabular
-   figures + a phosphor text-shadow keyed to the master tone (`--ball-tone`
-   resolves to `--color-progress` here — the one master authority). It reads
-   `0.000` (toFixed(3)), so it clicks like a counter. The bloom lifts a hair
-   while scrubbing via the stage's shared light (here a static phosphor halo;
-   the cascade carries the live heat). `tabular-nums` on the element is the whole
-   figure setting — a second `font-feature-settings: "tnum"` said it twice.
-
-   KF.W6 D·D-7 — THE MATERIAL-REGISTER DECISION, not a per-site shadow patch.
-   The question the bank asks is whether the phosphor belongs to a register at
-   all and WHICH THEME ARM declares it, and the answer is legible from what a
-   phosphor IS: a halo is emission read against a DARK substrate. This one
-   shipped ungated into a page whose default arm is light, where a coloured glow
-   around 12–16 px tabular figures is not a bloom, it is a blur — it spreads the
-   very digits the tnum figures exist to keep crisp, and it does so on the one
-   readout the scene calls its brightest. So the register declares the halo on
-   the DARK arm and declares NONE on the light arm, in ONE declaration rather
-   than a media query or a second rule: `light-dark()` is a colour function, so
-   the arm lives in the shadow's COLOUR, and a fully transparent shadow paints
-   nothing at all. The light arm's prominence then rests where it should — the
-   size, the weight, the tabular figures and the master tone itself — none of
-   which this touches. Nothing bespoke is patched per site and the tone chain to
-   the master authority is untouched. Percept: KF.W9 / SS-13. */
-.seq-timecode {
-    text-shadow: 0 0 8px
-        light-dark(
-            transparent,
-            color-mix(in srgb, var(--ball-tone, var(--color-progress)) 40%, transparent)
-        );
 }
 
 /* The scrub rail runs hotter under an active drag — the ball blooms as you
