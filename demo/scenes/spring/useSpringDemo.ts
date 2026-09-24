@@ -12,7 +12,7 @@ import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 import { SPRING_SCENE_ID } from "./springKeys";
 import { SPRING_BASE, SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
-import { useSpringKeyframesEditor } from "./useSpringKeyframesEditor";
+import { useSpringSweepAnimation } from "./useSpringSweepAnimation";
 import { useCompiledEntry } from "./useCompiledEntry";
 import { useSpringDerby } from "./useSpringDerby";
 
@@ -148,14 +148,13 @@ export function useSpringDemo() {
     // minus this file → **0 lines**. Its comment dies with it; the paragraph
     // above survives because it documents the sampler animation, which lives.
 
-    // ── K.W4 S1 — the PROPER keyframes EDITOR animation (the cube grammar) ────
-    // Colocated in `useSpringKeyframesEditor` (its own concern seam — the same
-    // split shape as `useSpringHotPath`): the engine-owned KeyframesEditor's
-    // two-way `CSSKeyframesAnimation` (per-stop value, add/remove stop) that
-    // RETIRES the read-only viewer. The editor is the PRIMARY authoring path; a
-    // typed edit PERSISTS (the solver presets are a derived convenience). The
-    // `seedKeyframes()` action re-seeds ONLY on the explicit "re-sample" gesture.
-    const { springEditAnim, seedKeyframes } = useSpringKeyframesEditor(
+    // ── The Sweep channel's keyframes (X.KF.W13V.s) ──────────────────────────
+    // Colocated in `useSpringSweepAnimation` (its own concern seam — the same
+    // split shape as `useSpringHotPath`). The keyframes are edited in the SHARED
+    // Keyframes pane on the Sweep channel (no inline editor, OA-37/46/51); a
+    // typed edit PERSISTS, and `seedKeyframes()` re-seeds only on the Physics
+    // facet's explicit action.
+    const { springEditAnim, seedKeyframes } = useSpringSweepAnimation(
         () => response.value,
         () => dampingFraction.value,
         SAMPLER_DURATION,
@@ -510,8 +509,8 @@ export function useSpringDemo() {
     // The former contract-group opacity decoy (the "Spring Preview"
     // transport host that painted nothing) is DELETED. The transport now rides
     // TWO REAL channels:
-    //   • "Sweep" — `springEditAnim`, the two-way KeyframesEditor animation
-    //     (K.W4 S1). Its clock IS the sweep time-twin (the per-frame `.t` write
+    //   • "Sweep" — `springEditAnim`, the Sweep keyframes the shared Keyframes
+    //     pane edits (X.KF.W13V.s). Its clock IS the sweep time-twin (the per-frame `.t` write
     //     in `frame()` + every scrub/reset seam — the K.W4 S2 born-continuous
     //     visualizer channel), so the standard PlaybackRibbon binds an animation
     //     whose keyframes a panel edit really re-shapes.
@@ -634,8 +633,8 @@ export function useSpringDemo() {
         togglePlay,
         // K.W4 S2 + F5 — the transport-scrubber scrub seam (scrub-while-idle).
         scrubTo,
-        // K.W4 S1 — the engine-owned KeyframesEditor animation (two-way, per-stop)
-        // + the explicit "re-sample from spring" seed action.
+        // The Sweep channel's keyframes (edited in the shared Keyframes pane)
+        // + the Physics facet's explicit re-seed action.
         springEditAnim,
         seedKeyframes,
 

@@ -124,7 +124,7 @@ const CSS_SOURCE = `
  * A real animation over a REAL target in the document. The default name carries
  * an UPPERCASE letter so a case-folding derivation cannot pass by coincidence;
  * callers pass a space-bearing name to exercise L-BL-2's ident hazard (the
- * shipped `"Spring Keyframes"` shape, `useSpringKeyframesEditor.ts:65`).
+ * shipped `"Spring Keyframes"` shape, `useSpringSweepAnimation.ts:56`).
  */
 const buildFixture = async (name: string, superKey: string) => {
     const target = document.createElement("div");
@@ -240,7 +240,7 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
     });
 
     it("(2) L-BL-1/L-BL-2: the injected rule SELECTS the target, for a name bearing a space", HEAVY, async () => {
-        // The shipped whitespace-name shape (`useSpringKeyframesEditor.ts:65`):
+        // The shipped whitespace-name shape (`useSpringSweepAnimation.ts:56`):
         // pre-cure this threw `InvalidCharacterError` inside `classList.add`
         // and made the `#id` sheet lookup parse as a descendant selector.
         const { animation, target } = await buildFixture("Spring Keyframes", "kfapply");

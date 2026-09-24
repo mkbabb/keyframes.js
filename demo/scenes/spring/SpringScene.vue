@@ -27,7 +27,7 @@
          FIVE are cured in this commit (two here, three in
          `StartingStyleTarget.vue`); the remaining six are DECLARED, never
          silently cured, because their files are outside this unit's writable
-         set: `KeyframesEditor.vue` ×2, `SpringHeatmap.vue`,
+         set: the shared keyframes editor ×2, `SpringHeatmap.vue`,
          `SpringPhysicsFacet.vue` (this wave's §Bounds, another unit's), and
          `useSpringHotPath.ts`, `useSpringLinearStops.ts` (outside §Bounds
          entirely — they route to KF.W0's re-count law). -->
@@ -169,8 +169,8 @@ const onScrubEnd = () => {
 const standardRibbon = () =>
     h(PlaybackRibbon, {
         // T.B1-β/T.B7 — the ribbon binds the Sweep CHANNEL's REAL animation:
-        // `springEditAnim`, the two-way KeyframesEditor animation whose clock is
-        // the sweep time-twin.
+        // `springEditAnim`, the Sweep keyframes (edited in the shared Keyframes
+        // pane) whose clock is the sweep time-twin.
         //
         // KF-SS-31 — A PHANTOM IDENTIFIER WAS NARRATED. The clause this
         // replaces ended "the opacity decoy `contractAnim` is DEAD", and

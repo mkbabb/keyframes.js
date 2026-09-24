@@ -257,7 +257,7 @@ const buildFixture = async (css: string) => {
         [],
     );
     // `markRaw`, exactly as the shipped call site marks it
-    // (`useSpringKeyframesEditor.ts:57`). The engine keys its compiler state off
+    // (`useSpringSweepAnimation.ts:48`). The engine keys its compiler state off
     // the animation's own identity, so a reactive proxy over it is a DIFFERENT
     // object and every `templateFrames` read throws. The demo already knows
     // this; the fixture must hand the component the same thing the app does.

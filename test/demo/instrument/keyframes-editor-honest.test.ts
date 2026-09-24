@@ -236,7 +236,7 @@ const PERCENT_CSS = `
 /**
  * A real animation over a REAL target, with an ident-clean id that carries an
  * UPPERCASE letter (the identity must hold independent of case) — named the way
- * the shipped call site names its animation (`useSpringKeyframesEditor.ts:65-66`).
+ * the shipped call site names its animation (`useSpringSweepAnimation.ts:56-57`).
  */
 const buildFixture = async (
     css: string,

@@ -3,13 +3,13 @@
          (`surfacesFor`, T.B2), mounted by SpringScene's `tabsContent` into the
          channel controls. It is: the two LabeledSlider param rows + the
          parameter-space heatmap + the four canonical presets as clickable
-         points — consumed glass components end to end — and, below them, the
-         engine-owned per-stop KeyframesEditor bound to the REAL Sweep channel
-         animation (`springEditAnim`). The Sweep/Entry view fork is CHANNEL
+         points — consumed glass components end to end — and one action that
+         re-seeds the Sweep channel's keyframes from the physics (those
+         keyframes are edited in the shared Keyframes pane, X.KF.W13V.s). The
+         Sweep/Entry view fork is CHANNEL
          DATA on the transport Select, not this facet's. (The merged
          axis-labeled canvas instrument of T-SPR-6 stays design-PENDING; the
-         heatmap is the live parameter-space surface until that design lands.
-         The editor section's terminal home is the derived Keyframes tab, T.B2.)
+         heatmap is the live parameter-space surface until that design lands.)
          SPF-27 (KF.W6): this header was a tranche changelog naming files that
          no longer exist at any path; it now describes what mounts. -->
     <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
@@ -106,37 +106,20 @@
                 </ToggleGroupItem>
             </ToggleGroup>
 
-            <!-- ── KEYFRAMES EDITOR (K.W4 S1 — survives THIS stage) ────────────
-                 The engine-owned KeyframesEditor (the SAME per-stop card grammar
-                 the cube scene uses) — two-way bound to the REAL Sweep channel
-                 animation. A typed edit PERSISTS (the editor is authoritative);
-                 "Re-sample from spring" explicitly re-seeds it from the current
-                 solver params. Terminal home: the derived Keyframes triad tab
-                 (T.B2) — this section + the 26rem cap die in that motion. -->
-            <div class="keyframes-section grid gap-2">
-                <div class="flex items-center justify-between gap-2">
-                    <!-- T.D4 — section label + button ride the body register
-                         (mono is data, not the UI voice). -->
-                    <span class="text-small font-medium text-muted-foreground">@keyframes (editable)</span>
-                    <button
-                        type="button"
-                        class="reseed-btn shrink-0 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-caption font-medium text-muted-foreground hover:text-foreground"
-                        title="Re-sample the keyframe stops from the current spring params"
-                        @click="demo.seedKeyframes()"
-                    >
-                        <RefreshCw class="w-3 h-3" />
-                        <span>re-sample</span>
-                    </button>
-                </div>
-                <div class="keyframes-editor-scroll">
-                    <!-- K.W1′ — `:framed="false"` DROPS the editor's own inner
-                         `Card` so the per-stop list flows into THIS facet's lone
-                         quiet parent Card directly (no card-in-card — the one-
-                         surface rule, which the installed 7.0.0 still carries;
-                         the earlier version stamp was a stale vendor premise). -->
-                    <KeyframesEditor :animation="demo.springEditAnim" :framed="false" />
-                </div>
-            </div>
+            <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The
+                 Sweep channel's keyframes are edited in the SHARED Keyframes
+                 pane (the dock's Keyframes item), as on every scene. The facet
+                 keeps one ACTION: write the current physics into those
+                 keyframes (an explicit re-seed, never a reactive overwrite). -->
+            <button
+                type="button"
+                class="reseed-btn inline-flex items-center gap-1.5 self-start rounded-md px-2 py-1 text-caption font-medium text-muted-foreground hover:text-foreground"
+                title="Replace the Sweep keyframes with stops sampled from the current spring"
+                @click="demo.seedKeyframes()"
+            >
+                <RefreshCw class="w-3 h-3" aria-hidden="true" />
+                <span>Write physics to keyframes</span>
+            </button>
         </CardContent>
     </Card>
 </template>
@@ -170,7 +153,6 @@ import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { RefreshCw } from "@lucide/vue";
 
-import KeyframesEditor from "@components/instrument/keyframes/KeyframesEditor.vue";
 import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
 
 import type { SpringDemoContext } from "./springKeys";
@@ -327,20 +309,6 @@ const onPresetSelect = (
     box-shadow: none;
 }
 
-/* ── The keyframes editor section (T.B2-terminal — see the template note) ──
-   The engine-owned KeyframesEditor is authored for the cube's full-height pane;
-   in the rail it is CAPPED to a scrollable band so the per-stop cards + the
-   stop-position slider stay reachable without the pane growing unbounded. The
-   editor's own sticky footer (the slider + add/copy menubar) stays pinned. */
-.keyframes-section {
-    min-width: 0;
-}
-.keyframes-editor-scroll {
-    max-height: 26rem;
-    overflow-y: auto;
-    border-radius: var(--radius-md, 0.5rem);
-    container-type: inline-size;
-}
 .reseed-btn {
     line-height: 1.2;
 }
