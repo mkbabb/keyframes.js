@@ -259,13 +259,21 @@ const SCENE = "gate-kfw12-b";
 /** A two-member group on one (absent) target → `singleTarget` true → blend
  *  available → the weight slider renders (the app's cube-scene shape). */
 function makeGroup() {
-    const a = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+    // KFA-18/21 (X.KF.W13V.k) — the fixture is built the way a store-backed
+    // scene (the cube) builds its channels: FROM the store bucket, requested by
+    // name before the animation exists. The bucket therefore IS what the
+    // animation runs — formerly the pane's mount-time re-apply imposed the
+    // bucket on whatever the fixture ran; that re-apply is gone (the running
+    // animation is the truth at mount).
+    const runs = (name: string) =>
+        getStoredAnimationOptions(name, SCENE).animationOptions.timingFunction;
+    const a = new CSSKeyframesAnimation({ duration: 1000, timingFunction: runs("rotate") }).fromString(`
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     `);
     a.name = "rotate";
     a.superKey = SCENE;
-    const b = new CSSKeyframesAnimation({ duration: 1000 }).fromString(`
+    const b = new CSSKeyframesAnimation({ duration: 1000, timingFunction: runs("matrix") }).fromString(`
         from { transform: translateX(0px); }
         to { transform: translateX(100px); }
     `);

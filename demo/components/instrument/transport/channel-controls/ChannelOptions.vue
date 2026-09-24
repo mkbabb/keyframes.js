@@ -775,7 +775,6 @@ import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import {
     computed,
     nextTick,
-    onMounted,
     ref,
     toRef,
     useId,
@@ -999,15 +998,12 @@ const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
 // dissolve with the ceremony.
 const { DIRECTIONS: directions, FILL_MODES: fillModes } = kfEngine();
 
-onMounted(() => {
-    const stored = storedAnimationOptions.animationOptions.timingFunction;
-    if (typeof stored !== "string") {
-        throw new TypeError(
-            `Stored timing function is not a literal: ${JSON.stringify(stored)}.`,
-        );
-    }
-    updateTimingFunctionFromName(stored);
-});
+// KFA-18 (X.KF.W13V.k) — NO mount-time re-apply of the stored easing. The
+// running animation is the truth at mount (the store bucket is seeded FROM it,
+// `getStoredAnimationOptions`); the stored easing reaches the animation only on
+// a user edit. The former `onMounted` pushed the bucket's default `ease-in-out`
+// onto every mounted channel — selected or not — and overwrote every authored
+// Amiga curve.
 </script>
 
 <style scoped>

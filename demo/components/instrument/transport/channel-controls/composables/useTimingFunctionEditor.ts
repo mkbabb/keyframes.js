@@ -144,12 +144,15 @@ export function useTimingFunctionEditor(
         // serialize THIS live easing verbatim — a css-less `{ fn }` closure
         // that is not the registry singleton makes `serializeEasing` throw
         // (the gated G.W4 fail-explicit contract; EE-02).
+        //
+        // KFA-18 (X.KF.W13V.k) — through the engine's own identity-preserving
+        // setter: it re-seats ONLY the frames that inherited the previous
+        // channel easing and never an author-declared per-frame curve (the
+        // Amiga's FALL/RISE). The former direct `frames.forEach` write
+        // clobbered every frame and bypassed that contract.
         const easing =
             css !== undefined ? { fn: timingFunction, css } : { fn: timingFunction };
-        animation.options.timingFunction = easing;
-        animation.frames.forEach((frame) => {
-            frame.timingFunction = easing;
-        });
+        animation.setTimingFunction(easing);
     };
 
     /**

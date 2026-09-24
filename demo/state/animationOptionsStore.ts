@@ -64,6 +64,46 @@ export const defaultStoredAnimationOptions = {
     cubicBezierOptions: defaultCubicBezierOptions,
 } as StoredAnimationOptions;
 
+/**
+ * KFA-18/KFA-21 (X.KF.W13V.k) — an EMPTY bucket for a LIVE animation is seeded
+ * FROM that animation's own running options, never from the demo-global
+ * defaults: the bucket is what the controls pane displays, and a scene that
+ * authors its channels (the Amiga's linear X/spin, 8000/1600 ms, `normal`) must
+ * read what is actually running. Only a bucket requested by NAME before its
+ * animation exists (a scene that constructs FROM the store) takes the defaults.
+ * The easing is stored as the literal the pane's catalogue reads: its CSS twin
+ * when it has one, else its engine-registry name (hyphenated — the catalogue's
+ * spelling). A custom curve that is neither leaves the field to the running
+ * animation (no fabricated name).
+ */
+const storedEasingLiteral = (
+    easing: KeyframesAnimation<any>["options"]["timingFunction"],
+): string | undefined => {
+    if (easing.css !== undefined) return easing.css;
+    const name = kfEngine().timingFunctionEntries.find(([, fn]) => fn === easing.fn)?.[0];
+    return name?.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+};
+
+const storedOptionsFrom = (
+    animation: KeyframesAnimation<any>,
+): StoredAnimationOptions => {
+    const { duration, delay, iterationCount, fillMode, direction, timingFunction } =
+        animation.options;
+    const seeded = structuredClone(defaultStoredAnimationOptions);
+    seeded.animationOptions = {
+        ...seeded.animationOptions,
+        duration: `${duration}ms`,
+        delay: `${delay}ms`,
+        iterationCount: iterationCount === Infinity ? "infinite" : iterationCount,
+        fillMode,
+        direction,
+        // A CSS keyword / cubic-bezier()/steps()/linear() literal or a registry
+        // name — members of the input union the engine types as plain `string`.
+        timingFunction: storedEasingLiteral(timingFunction) as InputAnimationOptions["timingFunction"],
+    };
+    return seeded;
+};
+
 export const useAnimationGroupsOptionsStore = createGlobalState(() => {
     const store = useStorage<StoredAnimationGroupsOptions>(
         "animation-groups-options-store",
@@ -86,6 +126,7 @@ export const getStoredAnimationOptions = (
     // animation whose `.superKey` field IS the SceneId). No divergent PascalCase.
     superKey: KeyframesAnimation<any> | SceneId | undefined = undefined,
 ): StoredAnimationOptions => {
+    const liveAnimation = typeof animationId === "object" ? animationId : undefined;
     superKey = getAnimationSuperKey(superKey, animationId);
     animationId = kfEngine().getAnimationId(animationId!);
 
@@ -111,7 +152,9 @@ export const getStoredAnimationOptions = (
             animationGroupsOptionsStore.value[
                 superKey
             ] as StoredAnimationGroupOptions
-        )[animationId] = structuredClone(defaultStoredAnimationOptions);
+        )[animationId] = liveAnimation
+            ? storedOptionsFrom(liveAnimation)
+            : structuredClone(defaultStoredAnimationOptions);
     }
 
     return (
