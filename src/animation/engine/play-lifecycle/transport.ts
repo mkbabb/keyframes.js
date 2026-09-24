@@ -93,6 +93,7 @@ export function settle<V extends Vars>(anim: KeyframesAnimation<V>): void {
     anim._playback.reversed = false;
     anim._playback.iteration = 0;
     anim._playback.startTime = undefined;
+    anim._playback.carriedStartTime = undefined;
     anim._playback.pausedTime = 0;
     anim._playback.t = 0;
 }

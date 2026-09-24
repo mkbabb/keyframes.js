@@ -89,15 +89,18 @@ describe("proof:event-ordering — the Animation lifecycle dispatch order", () =
         );
         el.addEventListener("animationend", () => order.push("end"));
 
-        // Each onEnd before the last iteration resets startTime, so the next
+        // Each onEnd before the last iteration clears startTime, so the next
         // advance re-runs onStart — the engine sequence interleaves (re)starts
-        // between iterations. The lock pins the BOUNDARY ordering.
+        // between iterations. The lock pins the BOUNDARY ordering. KFA-181
+        // (X.KF.W13V.k): iteration n+1 begins exactly one duration after n (the
+        // overshoot is carried, not re-based), so the drive samples the TRUE
+        // clock — 3 × 100 ms ends at 300, not after six re-based steps.
         await a.advanceTo(0);
-        await a.advanceTo(200); // iteration 0 → 1
-        await a.advanceTo(400); // re-start
-        await a.advanceTo(600); // iteration 1 → 2
-        await a.advanceTo(800); // re-start
-        await a.advanceTo(1000); // animationend (last iteration)
+        await a.advanceTo(150); // iteration 0 → 1 (boundary 100)
+        await a.advanceTo(175); // re-start
+        await a.advanceTo(250); // iteration 1 → 2 (boundary 200)
+        await a.advanceTo(275); // re-start
+        await a.advanceTo(350); // animationend (boundary 300, last iteration)
 
         expect(order[0]).toBe("start");
         expect(order[order.length - 1]).toBe("end");

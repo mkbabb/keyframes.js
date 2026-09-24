@@ -147,14 +147,16 @@ describe("F.W5 clause 2 — event-ordering lock (the held-half guard)", () => {
         }).fromString("from { opacity: 0; } to { opacity: 1; }");
         a.setTargets(el);
 
-        // Each onEnd resets startTime, so the next advance re-runs onStart — the
+        // Each onEnd clears startTime, so the next advance re-runs onStart — the
         // CURRENT engine sequence is start · iteration · (re)start · end. The
         // lock pins exactly this ordering (a held-half sync `_frame` that
-        // reordered any boundary event would red it).
+        // reordered any boundary event would red it). KFA-181 (X.KF.W13V.k):
+        // iteration 1 begins at the 100 ms boundary (overshoot carried), so the
+        // drive samples the true clock — 2 × 100 ms ends at 200.
         await a.advanceTo(0); // animationstart (iteration 0)
-        await a.advanceTo(200); // onEnd → animationiteration (0 → 1)
-        await a.advanceTo(400); // re-onStart → animationstart
-        await a.advanceTo(600); // onEnd → animationend (last iteration)
+        await a.advanceTo(150); // onEnd → animationiteration (0 → 1)
+        await a.advanceTo(175); // re-onStart → animationstart
+        await a.advanceTo(250); // onEnd → animationend (last iteration)
 
         expect(order[0]).toBe("start");
         expect(order[order.length - 1]).toBe("end");

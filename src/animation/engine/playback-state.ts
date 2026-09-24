@@ -41,6 +41,10 @@ export class PlaybackState {
 
     // ── the run-state FSM (C-15 single-STORAGE; accessor-delegated on the class) ──
     startTime: number | undefined = undefined;
+    /** KFA-181 — the NEXT iteration's start on the absolute clock, carried
+     *  across a non-final wrap (`previous start + duration`) so the overshoot
+     *  past the boundary is kept, never re-based at the next frame's clock. */
+    carriedStartTime: number | undefined = undefined;
     pausedTime: number = 0;
     t: number = 0;
     iteration: number = 0;

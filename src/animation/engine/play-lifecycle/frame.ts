@@ -104,7 +104,11 @@ export function advanceTo<V extends Vars>(
         const phase = delayPending(anim) ? anim.options.delay : 0;
         const pending = onStart(anim);
         const begin = (): number => {
-            anim._playback.startTime = t + phase;
+            // KFA-181 (X.KF.W13V.k): a non-final wrap carries its boundary
+            // forward; only a genuine first start anchors at this frame's clock.
+            const carried = anim._playback.carriedStartTime;
+            anim._playback.carriedStartTime = undefined;
+            anim._playback.startTime = carried ?? t + phase;
             anim.dispatchAnimationEvent("animationstart");
             return advanceBody(anim, t);
         };
@@ -130,8 +134,15 @@ function advanceBody<V extends Vars>(
     anim._playback.t = t - anim._playback.startTime!;
 
     if (anim._playback.t >= anim.options.duration) {
+        // KFA-181 (X.KF.W13V.k) — the next iteration begins exactly one
+        // duration after this one began, so the overshoot past the boundary is
+        // CARRIED. Re-basing at the next frame's clock dropped it (plus the held
+        // end frame) on every wrap: a 1600 ms channel lost ~4 frame-times per
+        // 8 s against its 8000 ms sibling and drifted out of phase.
+        const nextStart = anim._playback.startTime! + anim.options.duration;
         onEnd(anim);
         anim._playback.t = anim.options.duration;
+        if (!anim._playback.done) anim._playback.carriedStartTime = nextStart;
     }
     return anim._playback.t;
 }
