@@ -9,10 +9,8 @@
              vast dead checkerboard); it HUGS its content (h-fit max-h-full), so the
              void that bled the page grid is gone. -->
         <!-- OVERFLOW POSTURE (kf-SequenceScene D8 / kf-SequenceTarget D-8): the
-             card hugs its content but SCROLLS when the cell is shorter than it —
-             the last child is the master scrubber, the card's only in-content
-             transport surface, and a short viewport must never silently discard
-             it. -->
+             card hugs its content but SCROLLS when the cell is shorter than it,
+             so a short viewport never silently discards a storyboard row. -->
         <Card :shadow="false" class="seq-target w-full h-fit max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
             <!-- Header: serif text-display scene name + the small muted `stagger × N`
                  caption + the live master-clock Metric. The Metric is the CANONICAL
@@ -63,17 +61,8 @@
                     >
                         <Clapperboard class="w-3.5 h-3.5" />
                     </Button>
-                    <!-- The undo of the row re-time (SC-2): the one path back to the
-                         default stagger distribution, made a visible verb. -->
-                    <Button
-                        size="xs"
-                        icon-only
-                        aria-label="Reset the storyboard rows to the default stagger"
-                        title="Reset the storyboard rows"
-                        @click="demo.reset()"
-                    >
-                        <RotateCcw class="w-3.5 h-3.5" />
-                    </Button>
+                    <!-- The re-time's undo (SC-2) moved WITH the handles it undoes
+                         into the Timeline pane's Sequence mode (X.KF.W13V.s2). -->
                     <!-- The transport-state badge: a TRANSPORT axis, so the accent
                          lands on the LIVE state (playing) and the neutral tone on
                          rest (D19(a)); the dead `reverse` arm died with SC-2. It is
@@ -99,6 +88,7 @@
                  even at t=0 — the distribution SEEN, not piled left. -->
             <div class="seq-storyboard px-4 py-4 shrink-0">
                 <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing
+                     (the Timeline pane's master scrub, X.KF.W13V.s2)
                      detonates the lanes in a diagonal cascade chasing the thumb
                      (`--scrub-dir` flips on drag-back); `.is-powering-on` runs the
                      ~700ms boot once. The motion is the engine's --ball-p fan-out. -->
@@ -118,7 +108,7 @@
 
                     <!-- The five rows — each sets ONE --ball-tone + its --row-start
                          (the at: proportion ON THE CANONICAL CLOCK, `at / duration`);
-                         label, rail, traveller + handle wear it. -->
+                         label, rail and traveller wear it. -->
                     <div class="seq-rows">
                         <div
                             v-for="row in demo.rows.value"
@@ -134,30 +124,8 @@
                                 <span class="seq-row-name text-foreground">{{ row.index + 1 }}</span>
                                 <span class="seq-row-at">@{{ Math.round(row.at) }}ms</span>
                             </span>
-                            <div
-                                :ref="(el) => setRowEl(row.index, el as HTMLElement | null)"
-                                class="seq-track relative"
-                            >
+                            <div class="seq-track relative">
                                 <div class="progress-rail"></div>
-                                <!-- The draggable start-handle (slider): drag
-                                     re-authors at: + rebuilds the Sequence. Its
-                                     centre sits at `at / duration` of the track
-                                     (the canonical clock); its CONTROL range is
-                                     the editable [0, STAGGER_MAX] domain, and it
-                                     announces the canonical unit (N-14's rider). -->
-                                <div
-                                    class="seq-handle kf-focus-ring"
-                                    :style="{ left: `calc(${(row.at / demo.duration.value) * 100}%)` }"
-                                    role="slider"
-                                    :aria-label="`Re-time row ${row.index + 1} start offset`"
-                                    :aria-valuenow="Math.round(row.at)"
-                                    :aria-valuetext="`${Math.round(row.at)} ms`"
-                                    aria-valuemin="0"
-                                    :aria-valuemax="demo.STAGGER_MAX"
-                                    tabindex="0"
-                                    @pointerdown="onRowDown(row.index, $event)"
-                                    @keydown="onRowKeydown(row.index, $event)"
-                                ></div>
                                 <!-- The traveller — the engine's child-animation
                                      TARGET (J.WZ): the engine paints --ball-p +
                                      opacity + the scale-pop onto THIS ball, not the
@@ -174,29 +142,25 @@
                 </div>
             </div>
 
-            <!-- Master scrubber — the F.W16 rail/ball idiom. Extracted to a
-                 colocated sub-unit (SequenceScrubber.vue, J.WZ) at the scrubber
-                 seam to hold the ≤500L ceiling; it injects the demo, no props. -->
-            <SequenceScrubber />
         </Card>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from "vue";
+import { inject, onMounted } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { useTypedTrigger } from "./useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
 // Glass 7 canonical poster-metric primitive.
 import { Metric } from "@mkbabb/glass-ui/metric";
-import { Clapperboard, RotateCcw } from "@lucide/vue";
+import { Clapperboard } from "@lucide/vue";
 
-import { useDragScrub } from "@composables/useDragScrub";
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
-import { ROW_COUNT } from "./sequenceMotion";
-// Colocated sub-units (the ≤500L split seam): the master scrubber (J.WZ), the
-// L.W11 S7 phosphor master-playhead + the master-clock axis ruler.
-import SequenceScrubber from "./SequenceScrubber.vue";
+import { ROW_COUNT, ROW_TONES } from "./sequenceMotion";
+// Colocated sub-units (the ≤500L split seam): the L.W11 S7 phosphor
+// master-playhead + the master-clock axis ruler. The master scrub and the row
+// re-time handles are EDITORS and live in the shared Timeline pane's Sequence
+// mode (X.KF.W13V.s2 · §0cw); the stage paints the subject only.
 import SequencePlayhead from "./SequencePlayhead.vue";
 import SequenceAxis from "./SequenceAxis.vue";
 
@@ -211,31 +175,9 @@ if (!demo) {
 }
 
 // The axis-ruler quarter marks. Labels = `q × duration` ms — the time grid is
-// NAMED from the ONE canonical clock the handles + playhead ride, so the
+// NAMED from the ONE canonical clock the rows + playhead ride, so the
 // terminal label is the sequence's duration itself (no hardcoded ms).
 const AXIS_QUARTERS = [0, 0.25, 0.5, 0.75, 1] as const;
-
-// J.W7a S3 (D12 / CP-2) — the per-row spectrum map, row 0 violet … row 4 green
-// (the sequence icon's ascending bars), all from the owned --rainbow-* family.
-// The fourth is the token-derived cyan→green midpoint (the glyph ships four stops
-// over five rows — the bridge stop is mixed, never a new literal).
-// ONE cardinality (L-9): the tuple's length is checked against ROW_COUNT at
-// compile time, so a sixth row (or a fifth tone) reds `vue-tsc` instead of
-// silently degrading a row to the master tone through an `undefined` read.
-const ROW_TONES = [
-    "var(--rainbow-violet)",
-    "var(--rainbow-blue)",
-    "var(--rainbow-cyan)",
-    "color-mix(in oklab, var(--rainbow-cyan) 45%, var(--rainbow-green))",
-    "var(--rainbow-green)",
-] as const satisfies { readonly length: typeof ROW_COUNT };
-
-// Per-row track elements — the drag-capture host + the rect the row handle's
-// `project` reads. NOT the engine target (J.WZ): see ballEls below.
-const rowEls: (HTMLElement | null)[] = Array(ROW_COUNT).fill(null);
-const setRowEl = (i: number, el: HTMLElement | null) => {
-    rowEls[i] = el;
-};
 
 // Per-row TRAVELLER elements — each is its child animation's target (J.WZ): the
 // engine paints --ball-p + opacity + the scale-pop onto the BALL, not the track,
@@ -257,56 +199,6 @@ onMounted(() => {
     // `powerOn`): ruler clip-wipe → staggered lane drop, demonstrating `stagger`.
     demo.powerOn();
 });
-
-// ── Draggable rows: re-author each child's `at:` live (H.W12.S6 / I3) ─────────
-// ONE shared `useDragScrub` consumer drives every row handle. The pressed row's
-// index is latched; `project` reads THAT row's track rect → a [0,1] ratio → an
-// `at:` ms offset over [0, STAGGER_MAX]; `onScrub` re-emits via demo.reseatRow
-// (the engine Sequence re-sort). The track refs are the engine's --ball-p targets.
-const activeRow = ref<number | null>(null);
-// The pressed row's own track is the pointer-capture host (the scrub rail moved
-// to SequenceScrubber in the J.WZ split; the active track is the natural host).
-const activeRowEl = computed<HTMLElement | null>(() =>
-    activeRow.value == null ? null : (rowEls[activeRow.value] ?? null),
-);
-const { onPointerDown: onRowScrubDown } = useDragScrub({
-    el: activeRowEl,
-    project: (e) => {
-        const i = activeRow.value;
-        const el = i == null ? null : rowEls[i];
-        if (i == null || !el) return 0;
-        const rect = el.getBoundingClientRect();
-        const ratio = clamp((e.clientX - rect.left) / rect.width, 0, 1);
-        return ratio * demo.STAGGER_MAX;
-    },
-    onScrub: (at) => {
-        if (activeRow.value != null) demo.reseatRow(activeRow.value, at);
-    },
-    onEnd: () => {
-        activeRow.value = null;
-    },
-});
-
-const onRowDown = (index: number, e: PointerEvent) => {
-    activeRow.value = index;
-    onRowScrubDown(e);
-};
-
-const ROW_AT_STEP = 40; // ms nudge per arrow press (the slider keyboard posture)
-const ROW_AT_PAGE = ROW_AT_STEP * 10; // ms per PageUp/PageDown (APG's larger step)
-const onRowKeydown = (index: number, e: KeyboardEvent) => {
-    const at = demo.rows.value[index]?.at ?? 0;
-    let next: number | null = null;
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") next = at + ROW_AT_STEP;
-    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = at - ROW_AT_STEP;
-    else if (e.key === "PageUp") next = at + ROW_AT_PAGE;
-    else if (e.key === "PageDown") next = at - ROW_AT_PAGE;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = demo.STAGGER_MAX;
-    if (next === null) return;
-    e.preventDefault();
-    demo.reseatRow(index, next);
-};
 
 // ── EE-SEQ-1 "the reel" trigger (H.W12.S6 / I3 egg) ──────────────────────────
 // A HIDDEN typed trigger: type "reel" → the storyboard plays the cascading-wave

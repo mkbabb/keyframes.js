@@ -106,9 +106,24 @@
                     </div>
                 </template>
 
-                <!-- Persistent controls ribbon -->
+                <!-- X.KF.W13V.s2 (§0cw ESC-s-1 (b)) — a master-clock channel
+                     (Sequence) paints no one Animation, so no ChannelControls
+                     host is born for it; its one surface is the Timeline pane
+                     in Sequence mode — the items as lanes, re-timed on the lane,
+                     the master scrub as the playhead. -->
+                <div
+                    v-for="host in sequenceHosts"
+                    :key="host.name"
+                    v-show="storedControls.selectedAnimation == host.name"
+                    class="controls-surface pl-4 pr-4 lg:pr-7 pt-2 pb-3"
+                >
+                    <SequenceTimeline :source="host.sequence" />
+                </div>
+
+                <!-- Persistent controls ribbon (its actions address one
+                     Animation's keyframes, so a Sequence host carries none). -->
                 <RibbonBar
-                    v-if="storedControls.selectedAnimation"
+                    v-if="storedControls.selectedAnimation && !selectedIsSequence"
                     :stored-controls="storedControls"
                     :active-keyframes-ref="activeKeyframesRef"
                     :active-timeline-ref="activeTimelineRef"
@@ -211,6 +226,7 @@ import { computed, shallowRef, useTemplateRef, type ComponentPublicInstance } fr
 import type { TransportChannel } from "../transportSource";
 import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
+import SequenceTimeline from "../../timeline/SequenceTimeline.vue";
 import { usePaneRegister } from "../ControlsPaneWrapper/usePaneRegister";
 import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
@@ -344,6 +360,17 @@ const controlHosts = computed<ControlHost[]>(() => {
         }),
     );
 });
+
+// X.KF.W13V.s2 — the master-clock channels (Sequence): the Timeline pane's
+// Sequence mode mounts on these instead of a ChannelControls host.
+const sequenceHosts = computed(() =>
+    (props.channels ?? []).flatMap((c) =>
+        c.sequence ? [{ name: c.name, sequence: c.sequence }] : [],
+    ),
+);
+const selectedIsSequence = computed(() =>
+    sequenceHosts.value.some((h) => h.name === props.storedControls.selectedAnimation),
+);
 
 // Whether the pane/sheet has anything to show (the former `v-show` predicate).
 const showSheet = computed(

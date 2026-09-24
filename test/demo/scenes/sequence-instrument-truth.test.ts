@@ -6,10 +6,11 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { withSetup } from "../../support/withSetup";
 import SequenceAxis from "../../../demo/scenes/sequence/SequenceAxis.vue";
-import SequenceScrubber from "../../../demo/scenes/sequence/SequenceScrubber.vue";
+// X.KF.W13V.s2 re-seat: the master slider moved from the stage's
+// SequenceScrubber into the Timeline pane's Sequence mode (its leaf below).
+import SequenceLanes from "../../../demo/components/instrument/timeline/components/SequenceLanes.vue";
 import { STAGGER_MAX, useSequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo";
 import { ROW_COUNT } from "../../../demo/scenes/sequence/sequenceMotion";
-import { SEQUENCE_DEMO_KEY } from "../../../demo/scenes/sequence/sequenceKeys";
 import { warmKfEngine } from "../../../demo/kf-engine";
 
 /**
@@ -27,7 +28,7 @@ import { warmKfEngine } from "../../../demo/kf-engine";
  * `Metric`, whose dist chunk imports the bare `@mkbabb/keyframes.js` specifier
  * the demo vitest project cannot resolve (`vitest.config.ts` is a §Bounds
  * Do-NOT-touch row). So this file mounts the import-free leaves (`SequenceAxis`,
- * `SequenceScrubber`) against the REAL `useSequenceDemo` on the warmed engine,
+ * the Timeline pane's `SequenceLanes`) against the REAL `useSequenceDemo` on the warmed engine,
  * and witnesses the two Target-only clauses at the settled bytes:
  *   • ST-4's binding as a byte clause beside the composable's runtime state;
  *   • the three-rect equality as the GRID-MODEL INVARIANT the three elements
@@ -116,11 +117,11 @@ describe("G-KFW11-2 — one canonical domain (N-1 · N-2 · N-10 · N-14 · ST-4
     it("the master slider announces the canonical unit — N-14's valuetext, after N-1", () => {
         const { demo, app } = realDemo();
         try {
-            const wrapper = mount(SequenceScrubber, {
-                global: { provide: { [SEQUENCE_DEMO_KEY as symbol]: demo } },
+            const wrapper = mount(SequenceLanes, {
+                props: { source: demo.facility.channels[0]!.sequence! },
                 attachTo: document.body,
             });
-            const rail = wrapper.get('[role="slider"]');
+            const rail = wrapper.get('[role="slider"][aria-label="Scrub the sequence master clock"]');
             expect(rail.attributes("aria-valuetext")).toBe(`0 ms of ${demo.duration.value} ms`);
             demo.scrub(0.5);
             return wrapper.vm.$nextTick().then(() => {

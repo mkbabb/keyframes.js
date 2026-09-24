@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
+import type { SequenceTimelineSource } from "../timeline/timelineTypes";
 
 /** One transport channel — the shared-tier structural twin of the app-side
  *  `ChannelHandle` (demo/composables/scene-facility/index.ts). */
@@ -26,6 +27,9 @@ export interface TransportChannel {
     name: string;
     /** Present ⇒ the channel paints; the triad host mounts on it. */
     animation?: KeyframesAnimation<any>;
+    /** Present ⇒ a master-clock channel: the Timeline pane opens in its
+     *  Sequence mode on these items (X.KF.W13V.s2). */
+    sequence?: SequenceTimelineSource;
     /** The channel's normalized [0,1] playhead. */
     progress(): number;
     /** Seat the channel's normalized [0,1] playhead. */

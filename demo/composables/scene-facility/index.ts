@@ -22,6 +22,7 @@ import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { ControlSurface, ScenePlayback } from "@state";
 import { createGroupAdapter } from "@state";
 import { clamp } from "@mkbabb/value.js/math";
+import type { SequenceTimelineSource } from "@components/instrument/timeline/timelineTypes";
 
 /**
  * ONE transport channel. `name` is the transport-select label. A channel that
@@ -40,6 +41,10 @@ export interface ChannelHandle {
      *  channel is selected (T.B2 — cube's Matrix channel → matrix-controls, so
      *  selection-gating is just "which channel is selected"). */
     facets?: SceneFacet[];
+    /** A master-clock channel's items (X.KF.W13V.s2): present ⇒ the shared
+     *  Timeline pane opens in its Sequence mode — one lane per item, each
+     *  re-timed on the lane. Pairs with `surfaces: ["timeline"]`. */
+    sequence?: SequenceTimelineSource;
     /** The channel's normalized [0,1] playhead. */
     progress(): number;
     /** Seat the channel's normalized [0,1] playhead. */

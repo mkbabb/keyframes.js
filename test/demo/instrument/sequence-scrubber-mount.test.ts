@@ -1,13 +1,16 @@
 // SERVED MODEL: claude-opus-5[1m]
+// RE-SEATED X.KF.W13V.s2 (claude-opus-5-5): the master scrub left the stage for
+// the shared Timeline pane's Sequence mode (§0cw ESC-s-1 (b)); its rail is now
+// the pane leaf `SequenceLanes`'s playhead control, fed by the channel's
+// `SequenceTimelineSource` instead of an injected demo. Every clause below is
+// the same property on the moved control.
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import { ref } from "vue";
-import SequenceScrubber from "../../../demo/scenes/sequence/SequenceScrubber.vue";
-import { SEQUENCE_DEMO_KEY } from "../../../demo/scenes/sequence/sequenceKeys";
-import type { SequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo";
+import SequenceLanes from "../../../demo/components/instrument/timeline/components/SequenceLanes.vue";
+import type { SequenceTimelineSource } from "../../../demo/components/instrument/timeline/timelineTypes";
 
 /**
- * KF.W7 G11 fixture 4 — SEQUENCESCRUBBER IS MOUNTED BY A TEST AT ALL.
+ * KF.W7 G11 fixture 4 — THE MASTER SCRUB IS MOUNTED BY A TEST AT ALL.
  *
  * kf-SequenceScrubber L·D-12, the banked N-10 coverage class's SECOND instance:
  * "no spec mounts SequenceScrubber; the keyboard divergence is exactly what a
@@ -15,11 +18,9 @@ import type { SequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo
  * (G1-VERDICT-TABLE §2.4), so its shape rows PERSIST and this mount is the
  * coverage they were missing. Clauses:
  *
- *   • THE PROVIDER GUARD (C·C-4, narrowed by `.a` to "a one-line provider
- *     guard + declaring the asymmetry") — born RED: `inject(SEQUENCE_DEMO_KEY)!`
- *     asserts a provider it never checks, so a mount outside the scene dies
- *     inside the RENDER with `Cannot read properties of undefined (reading
- *     'progress')` — a failure that names neither the contract nor the seam.
+ *   • THE SOURCE GUARD (C·C-4, narrowed by `.a` to "a one-line provider
+ *     guard + declaring the asymmetry") — a mount without its Sequence source
+ *     names the contract, never a TypeError from inside the render.
  *   • THE DIRECTION LATCH (S-4 / the ignition cascade) — `setScrubDir` must
  *     report 1 while the thumb advances and -1 the moment it draws back, and it
  *     must latch per SAMPLE, not per gesture.
@@ -28,7 +29,7 @@ import type { SequenceDemo } from "../../../demo/scenes/sequence/useSequenceDemo
  */
 
 type ScrubberStub = {
-    demo: SequenceDemo;
+    source: SequenceTimelineSource;
     scrub: ReturnType<typeof vi.fn>;
     setScrubDir: ReturnType<typeof vi.fn>;
     setScrubbing: ReturnType<typeof vi.fn>;
@@ -38,30 +39,34 @@ type ScrubberStub = {
 const DURATION = 1940;
 
 /**
- * The scrubber injects the whole `SequenceDemo`, but reads a handful of its
- * members. The stub carries those and is cast once, at the seam, rather than
- * re-authoring the whole scene object per test.
+ * The master scrub reads the channel's Sequence source; the stub carries a
+ * lane-less source (the scrub rail is then the leaf's only slider) whose verbs
+ * are spies.
  */
 function stubDemo(progress = 0): ScrubberStub {
     const scrub = vi.fn();
     const setScrubDir = vi.fn();
     const setScrubbing = vi.fn();
-    const demo = {
-        progress: ref(progress),
-        duration: ref(DURATION),
-        isScrubbing: ref(false),
+    const source: SequenceTimelineSource = {
+        lanes: () => [],
+        duration: () => DURATION,
+        atMax: 1600,
+        progress: () => progress,
+        isScrubbing: () => false,
+        reseat: vi.fn(),
         scrub,
-        setScrubDir,
         setScrubbing,
-    } as unknown as SequenceDemo;
-    return { demo, scrub, setScrubDir, setScrubbing };
+        setScrubDir,
+        reset: vi.fn(),
+    };
+    return { source, scrub, setScrubDir, setScrubbing };
 }
 
 const RAIL = { left: 100, width: 400 };
 
 function mountScrubber(stub: ScrubberStub) {
-    const wrapper = mount(SequenceScrubber, {
-        global: { provide: { [SEQUENCE_DEMO_KEY as symbol]: stub.demo } },
+    const wrapper = mount(SequenceLanes, {
+        props: { source: stub.source },
         attachTo: document.body,
     });
     const rail = wrapper.get('[role="slider"]');
@@ -79,11 +84,11 @@ const at = (p: number) =>
         bubbles: true,
     });
 
-describe("SequenceScrubber — the mount (KF.W7 G11 fixture 4)", () => {
-    // C·C-4 — born RED (a TypeError from inside the render, naming 'progress').
-    it("names its provider contract when mounted outside the sequence scene", () => {
-        expect(() => mount(SequenceScrubber)).toThrowError(
-            /SEQUENCE_DEMO_KEY|sequence scene/i,
+describe("The Timeline pane's master scrub — the mount (KF.W7 G11 fixture 4)", () => {
+    // C·C-4 — a mount without its source names the contract.
+    it("names its source contract when mounted without a Sequence source", () => {
+        expect(() => mount(SequenceLanes)).toThrowError(
+            /SequenceTimelineSource|Sequence source/i,
         );
     });
 

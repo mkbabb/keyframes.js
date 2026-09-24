@@ -10,11 +10,13 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
+import type { SequenceTimelineSource } from "@components/instrument/timeline/timelineTypes";
 import { prefersReducedMotion, useSequenceInstrument } from "./useSequenceInstrument";
 import {
     ROW_COUNT,
     ROW_DURATION,
     ROW_GLIDE,
+    ROW_TONES,
     STAGGER_EACH,
     sequenceRowKeyframes,
     type BallVars,
@@ -494,18 +496,46 @@ export function useSequenceDemo() {
         startLoop,
     });
 
+    // ── The Timeline pane's Sequence mode (X.KF.W13V.s2 · §0cw ESC-s-1 (b)) ──
+    // The re-time handles and the master scrub are EDITORS, so they live in the
+    // shared Timeline pane (OA-46), not on the stage: the pane reads this
+    // descriptor off the channel — one lane per item at its child's `at` (the
+    // engine's `seq.add(child, at)` placement, rebuilt by `reseatRow`), the
+    // master scrub as the pane's playhead. Every verb is the composable's own.
+    const timeline: SequenceTimelineSource = {
+        lanes: () =>
+            rows.value.map((row) => ({
+                index: row.index,
+                at: row.at,
+                span: ROW_DURATION,
+                tone: ROW_TONES[row.index]!,
+            })),
+        duration: () => duration.value,
+        atMax: STAGGER_MAX,
+        progress: () => progress.value,
+        isScrubbing: () => isScrubbing.value,
+        reseat: (index, at) => reseatRow(index, at),
+        scrub: (p) => scrub(p),
+        setScrubbing,
+        setScrubDir,
+        reset: () => reset(),
+    };
+
     // ── The SceneFacility (T.B1 STAGE 1) ─────────────────────────────────────
     // ONE master channel ("Sequence") — the honest transport-select label; the
-    // childAnims are storyboard ROWS surfaced on the target, not dock-selectable
-    // transport channels, so the bottom dock shows a single label (no 5-way
-    // select). `playback` IS the raw-rAF adapter (registered with the machine);
-    // there is no `group` (progress-scalar scene). `facets` is empty — the DFA row
-    // is [] so no panel renders.
+    // childAnims are the master clock's ITEMS, not dock-selectable transport
+    // channels, so the bottom dock shows a single label (no 5-way select).
+    // `playback` IS the raw-rAF adapter (registered with the machine); there is
+    // no `group` (progress-scalar scene). The channel paints no one Animation,
+    // so it earns no Controls/Keyframes triad; its honest subset is the
+    // Timeline, whose Sequence mode re-times the items (X.KF.W13V.s2).
     const facility: SceneFacility = {
         identity: scenePlayback,
         channels: [
             {
                 name: "Sequence",
+                surfaces: ["timeline"],
+                sequence: timeline,
                 progress: () => progress.value,
                 setProgress: (t: number) => {
                     sequence.progress = clamp(t, 0, 1);

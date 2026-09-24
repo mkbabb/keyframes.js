@@ -220,10 +220,11 @@ const SWEEP_META = {
     // X.KF.W13V.s (OA-46) — the Select became the dock's surface ITEMS; the
     // "trigger" is now the SELECTED item's name (`[data-dock-surface-item]
     // [data-selected]`), the same fact (which surface the scene projected);
-    // sequence has no live item, so none is selected (null).
+    // X.KF.W13V.s2 — sequence's one live item is Timeline (the Timeline pane's
+    // Sequence mode), so it is the selected item.
     easing: { trigger: "Curve", label: "Easing", kind: "group-play" },
     spring: { trigger: "Physics", label: "Spring", kind: "spring-rail" },
-    sequence: { trigger: null, label: "Sequence", kind: "sequence-transport" },
+    sequence: { trigger: "Timeline", label: "Sequence", kind: "sequence-transport" },
 };
 {
     const libKeys = SCENES.map((s) => s.key);

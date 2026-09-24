@@ -21,7 +21,7 @@ const POWER_ON_MS = 780;
 
 /**
  * useSequenceInstrument — the L.W11 S7 INSTRUMENT-EGG state, colocated beside
- * useSequenceDemo (the ≤500L demo-ceiling split seam, mirroring SequenceScrubber).
+ * useSequenceDemo (the ≤500L demo-ceiling split seam).
  * This holds ONLY the presentational gesture/boot state the ignition-cascade egg
  * reads — it owns no engine; the cascade MOTION is the engine's own --ball-p
  * fan-out (Sequence.scrub drives each child), never a hand-rolled clock (inv ζ).

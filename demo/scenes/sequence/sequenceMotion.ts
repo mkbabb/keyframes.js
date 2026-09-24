@@ -31,3 +31,20 @@ export const sequenceRowKeyframes = () => ({
     "70%": { "--ball-p": 0.7, opacity: 1, scale: 1.12 },
     "100%": { "--ball-p": 1, opacity: 1, scale: 1 },
 });
+
+/**
+ * The per-row spectrum map, row 0 violet … row 4 green (the sequence icon's
+ * ascending bars), all from the owned --rainbow-* family (J.W7a S3 · D12/CP-2).
+ * The fourth is the token-derived cyan→green midpoint (the glyph ships four
+ * stops over five rows — the bridge stop is mixed, never a new literal). ONE
+ * cardinality (L-9): the tuple's length is checked against ROW_COUNT at compile
+ * time. Declared here (X.KF.W13V.s2) because TWO surfaces wear it: the stage's
+ * rows and the Timeline pane's lanes that re-time them.
+ */
+export const ROW_TONES = [
+    "var(--rainbow-violet)",
+    "var(--rainbow-blue)",
+    "var(--rainbow-cyan)",
+    "color-mix(in oklab, var(--rainbow-cyan) 45%, var(--rainbow-green))",
+    "var(--rainbow-green)",
+] as const satisfies { readonly length: typeof ROW_COUNT };

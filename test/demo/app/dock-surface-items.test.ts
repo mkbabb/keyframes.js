@@ -25,7 +25,9 @@ const SCENE_SURFACES: Record<string, ControlSurface[]> = {
     square: surfacesFor({ channels: [paints], facets: [] }),
     easing: surfacesFor({ channels: [paints], facets: [{ surface: "easing" }] }),
     spring: surfacesFor({ channels: [paints], facets: [{ surface: "spring" }] }),
-    sequence: surfacesFor({ channels: [{ name: "Sequence", surfaces: [] }], facets: [] }),
+    // X.KF.W13V.s2 — sequence's light channel declares the Timeline (its
+    // Sequence mode); it has no Controls/Keyframes data and no facet.
+    sequence: surfacesFor({ channels: [{ name: "Sequence", surfaces: ["timeline"] }], facets: [] }),
 };
 
 describe("dockSurfaceItems — the ONE dock item descriptor", () => {
@@ -38,7 +40,12 @@ describe("dockSurfaceItems — the ONE dock item descriptor", () => {
 
     it("a scene disables what it has no data for — never drops or invents", () => {
         const seq = dockSurfaceItems(SCENE_SURFACES.sequence!);
-        expect(seq.every((i) => !i.enabled)).toBe(true);
+        expect(seq.map((i) => [i.label, i.enabled])).toEqual([
+            ["Controls", false],
+            ["Keyframes", false],
+            ["Timeline", true],
+            ["Scene facet", false],
+        ]);
         const cube = dockSurfaceItems(SCENE_SURFACES.cube!);
         expect(cube.map((i) => i.enabled)).toEqual([true, true, true, false]);
         const spring = dockSurfaceItems(SCENE_SURFACES.spring!);
@@ -121,12 +128,17 @@ describe("ChromeDock renders the items and each opens the shared pane", () => {
         const seq = mountDock({
             currentSceneId: "sequence",
             scenes: [{ id: "sequence", label: "Sequence" }],
-            controlSurfaces: [],
+            controlSurfaces: ["timeline"],
             extraControlTabs: [],
         });
         const items = seq.wrapper.findAll("[data-dock-surface-item]");
         expect(items).toHaveLength(4);
-        expect(items.every((i) => i.attributes("aria-disabled") === "true")).toBe(true);
+        expect(items.map((i) => i.attributes("aria-disabled") === "true")).toEqual([
+            true,
+            true,
+            false,
+            true,
+        ]);
         await items[1]!.trigger("click");
         expect(seq.onSelect).toEqual([]);
         expect(seq.onToggle).toEqual([]);

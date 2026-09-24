@@ -1123,10 +1123,13 @@ async function runAppearanceBand() {
 
     // ── A3 — ghost-rail-absent on the home sweep (J.W7a XH-1) ────────────────
     // On mobile the layout is a bottom-sheet paradigm (no desktop grid rail),
-    // so the ghost-rail oracle is: the empty-DFA home/sequence scenes carry the
+    // so the ghost-rail oracle is: the empty-DFA scene (home) carries the
     // .controls-layout--railless collapse arm AND no hollow rail-WIDTH side card
-    // renders (the wrapper is the full-width bottom sheet bar, never a wide
-    // empty 400px side column floating over a void).
+    // renders on home or sequence (the wrapper is the full-width bottom sheet
+    // bar, never a wide empty 400px side column floating over a void).
+    // X.KF.W13V.s2 re-seat: sequence now derives ["timeline"] (the Timeline
+    // pane's Sequence mode), so it is no longer an empty-DFA scene and is not
+    // railless; the ghost-column clause is the one it still owes.
     const a3 = await withPage(
         { distDir: DIST, context: MOBILE_CONTEXT, label: "A3: ghost-rail-absent home sweep" },
         async (page, { url: base }) => {
@@ -1165,10 +1168,10 @@ async function runAppearanceBand() {
     if (!a3.skipped) {
         const r = a3.value;
         const clean = (s) => s.railless && !s.ghostCol;
-        if (clean(r.home) && clean(r.sequence)) {
+        if (clean(r.home) && !r.sequence.ghostCol) {
             ok(
                 `A3 appearance — ghost rail ABSENT on the home sweep: home (railless, wrapper ` +
-                    `${r.home.wrapperW}×${r.home.wrapperH}) + sequence (railless, wrapper ${r.sequence.wrapperW}×` +
+                    `${r.home.wrapperW}×${r.home.wrapperH}) + sequence (paned, wrapper ${r.sequence.wrapperW}×` +
                     `${r.sequence.wrapperH}, the full-width bottom sheet) carry NO hollow rail-width side column (XH-1)`,
             );
         } else {

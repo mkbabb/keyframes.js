@@ -152,7 +152,7 @@
     text-transform: none;
 }
 
-/* The per-row track — rail + handle + traveller host (room for the traveller + glow). */
+/* The per-row track — rail + traveller host (room for the traveller + glow). */
 .seq-track {
     grid-column: 2;
     height: 2rem;
@@ -164,57 +164,8 @@
     container-type: inline-size;
 }
 
-/* The draggable row start-handle (R-SEQ-D; J.WZ target-size): the START GATE the
-   traveller rests on + launches from, at the child's at: proportion. The ELEMENT
-   is the 24×24px tap target lighthouse measures (the thin grip is painted by ::after). */
-.seq-handle {
-    position: absolute;
-    top: 50%;
-    /* S.G3 S4 — a 44px-wide touch floor on the DRAG axis (the meaningful one for a
-       horizontal slider): a thumb lands the handle reliably along its travel. The
-       height fills the 2rem track (a 44px-TALL box would overflow into the stacked
-       neighbour rows and make touch targets ambiguous — the drag axis is the honest
-       floor here). The visible grip (`::after`, centre-anchored) is unchanged. */
-    width: 44px;
-    height: 100%;
-    margin-top: 0;
-    transform: translateY(-50%);
-    margin-left: -22px;
-    cursor: grab;
-    touch-action: none;
-    z-index: var(--z-seq-handle);
-}
-/* The visible grip — a thin master-toned bar centred in the 24px hit box.
-   pointer-events:none so the host owns every tap/drag (paint only). */
-.seq-handle::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0.4rem;
-    height: 1.5rem;
-    transform: translate(-50%, -50%);
-    border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--ball-tone) 70%, var(--background));
-    border: 1.5px solid var(--ball-tone);
-    pointer-events: none;
-    transition:
-        background 120ms ease,
-        transform 120ms ease;
-}
-.seq-handle:hover::after,
-.seq-handle:focus-visible::after {
-    background: var(--ball-tone);
-    transform: translate(-50%, -50%) scaleY(1.12);
-}
-/* The row slider's keyboard focus ring is the demo's ONE affordance,
-   `.kf-focus-ring` (design-idioms.css) — worn on the handle in the template. The
-   local re-authoring that stood here was justified by a `proof:` static clause
-   that exists nowhere on disk, and it forked the ring OUT of the forced-colors
-   provision the shared contract carries (kf-SequenceTarget ST-1). */
-.seq-handle:active {
-    cursor: grabbing;
-}
+/* The row start-handles moved to the Timeline pane's Sequence mode
+   (X.KF.W13V.s2 · §0cw): the stage row is the subject — rail + traveller. */
 
 /* ── The per-row traveller (J.W7c C-SEQ-3, U6; J.WZ engine-target) ─────────────
    The ball IS the child animation's TARGET (J.WZ): the engine writes --ball-p +

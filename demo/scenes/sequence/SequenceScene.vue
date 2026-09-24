@@ -14,13 +14,13 @@ const SCENE_ID = SEQUENCE_SCENE_ID;
 const demo = useSequenceDemo();
 provide(SEQUENCE_DEMO_KEY, demo);
 
-// The scene is its own instrument: the transport surface is the shell's dock
-// (play/pause through the SceneFacility's playback adapter) plus the two verbs
-// that live ON the target — the master-clock scrub and the row re-time (with
-// its reset). Nothing here opens or closes a controls panel: this scene has no
-// panel, and no stored panel option to hold shut (the former closed-default
-// wrote a key nothing read — SC-1/D23). The PLAYBACK authority is the scene
-// machine; `demo.isPlaying` is a read-only projection of its status.
+// The stage is the subject (OA-46): the transport is the shell's dock
+// (play/pause through the SceneFacility's playback adapter), and the two
+// editing verbs — the master-clock scrub and the row re-time (with its reset)
+// — are the shared Timeline pane's Sequence mode, opened from the dock's
+// Timeline item like every scene's (X.KF.W13V.s2 · §0cw); the facility's
+// channel carries them. The PLAYBACK authority is the scene machine;
+// `demo.isPlaying` is a read-only projection of its status.
 //
 // The target is the scene's root: it is already the centred, width-bounded,
 // full-height column, so no wrapper repeats those declarations around it (D21).
