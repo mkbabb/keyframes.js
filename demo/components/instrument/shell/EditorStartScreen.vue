@@ -62,7 +62,15 @@
                differently-delayed children at all — which is KF.W5's and is
                evidenced nowhere in the tree either way. Swapping first and
                testing later is how a severed cure gets un-severed by accident. -->
-        <h1 class="hero-display text-display-mega">
+        <!-- KFA-134 — the wave's in-content pause (WCAG 2.2.2, KF-AT-17) is
+             REACHABLE: the toggle below writes the producer's `--motion-weight: 0`
+             on the heading (the authority AnimatedText multiplies its lift by),
+             which stills the ripple in place. Before, the only path was the OS
+             reduced-motion media query — no UI set the weight. -->
+        <h1
+            class="hero-display text-display-mega"
+            :style="wavePaused ? { '--motion-weight': '0' } : undefined"
+        >
             <AnimatedText :text="hero.title" />
             <span class="hero-dots"><TypingDots /></span>
         </h1>
@@ -133,12 +141,26 @@
             <h2 v-if="hint" class="start-screen-prose hero-hint">
                 {{ hint }}
             </h2>
+            <Button
+                size="sm"
+                emphasis="quiet"
+                icon-only
+                class="hero-motion-toggle"
+                aria-label="Pause the title animation"
+                :aria-pressed="wavePaused"
+                @click="wavePaused = !wavePaused"
+            >
+                <Waves v-if="wavePaused" class="icon-md" aria-hidden="true" />
+                <Pause v-else class="icon-md" aria-hidden="true" />
+            </Button>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { List } from "@lucide/vue";
+import { Button } from "@mkbabb/glass-ui/button";
+import { List, Pause, Waves } from "@lucide/vue";
+import { ref } from "vue";
 import AnimatedText from "./AnimatedText.vue";
 import TypingDots from "./TypingDots.vue";
 
@@ -159,6 +181,9 @@ defineProps<{
 // oracle (the per-char split must equal ITS glyph count, never the rendered
 // mirror's). Still copy, not configuration — no prop, no consumer can hand one.
 const hero = { title: "Select an animation" } as const;
+
+// KFA-134 — the one pause state for the hero wave (see the template note).
+const wavePaused = ref(false);
 </script>
 
 <style scoped>
@@ -289,6 +314,11 @@ h1.hero-display {
     font-size: var(--type-title);
     line-height: 1.15;
     color: var(--muted-foreground, var(--foreground));
+}
+
+/* KFA-134 — the wave's pause sits under the hint, quiet, on its own line. */
+.hero-motion-toggle {
+    margin-block-start: 0.5rem;
 }
 
 /* The engine-dogfooded ellipsis host: the THREE DOTS are one unbreakable
