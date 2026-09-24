@@ -206,8 +206,9 @@ describe("SpringTrace — the resolved stops are the engine's own samples (L-10 
             expect(points[0]).toEqual({ t: 0, v: 0 });
             expect(points[points.length - 1]).toEqual({ t: 1, v: 1 });
             const d = tracePathOf(points);
-            expect(d.startsWith(`M 0.00 ${plotY(0).toFixed(2)}`)).toBe(true);
-            expect(d.endsWith(`L 100.00 ${plotY(1).toFixed(2)}`)).toBe(true);
+            // X.KF.W13W.b: the path is the shared curvePlot's (`+toFixed(4)`).
+            expect(d.startsWith(`M 0 ${+plotY(0).toFixed(4)}`)).toBe(true);
+            expect(d.endsWith(`L 100 ${+plotY(1).toFixed(4)}`)).toBe(true);
             // The halved end-gaps reader-B named: the second stop sits at 4 %, not 2 %.
             expect(points[1]!.t).toBeCloseTo(0.04, 9);
         }
@@ -286,8 +287,8 @@ describe("SpringTrace — the mount (N-1 · D-2/N-4 · L-5 · D-6)", () => {
             const horizon = () => ticks[ticks.length - 1]!.text();
             expect(horizon()).toBe("2000 ms");
             const before = wrapper.find(".plot-trace").attributes("d");
-            expect(before?.startsWith("M 0.00")).toBe(true);
-            expect(before?.includes("L 100.00")).toBe(true);
+            expect(before?.startsWith("M 0 ")).toBe(true);
+            expect(before?.includes("L 100 ")).toBe(true);
 
             await wrapper.setProps({ response: 1.2 });
             expect(horizon()).toBe("4800 ms");

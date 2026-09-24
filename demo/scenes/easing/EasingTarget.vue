@@ -5,9 +5,10 @@
          balls-preview mode is PROMOTED to be the scene; the singular hero
          (EasingHeroStage + ghost/smear) is DELETED. Every named curve is a
          specimen tile — a sparkline portrait with a 14px OD-6-violet ball
-         racing x = fn(phase)·maxX on a hairline rail — under ONE shared sweep
-         clock: all balls depart together, arrive per their curve. The
-         comparative read IS the pedagogy. -->
+         riding it at (phase, fn(phase)) (X.KF.W13W.b, OA-56: the ball is ON
+         the curve; the hairline rail is gone) — under ONE shared sweep clock:
+         all balls depart together, arrive per their curve. The comparative
+         read IS the pedagogy. -->
     <Card
         :shadow="false"
         class="easing-target easing-gallery flex h-full w-full flex-col gap-4
@@ -71,8 +72,8 @@
         </header>
 
         <!-- The drawer: a responsive specimen grid inside FadingScroll. Upper
-             region of each tile: the static sparkline portrait + the hairline
-             rail + the racing ball (the shared registerDotPainter seam — direct
+             region of each tile: the static sparkline portrait + the ball
+             riding it (the shared registerDotPainter seam — direct
              style.transform writes, OFF the Vue render graph). Lower region:
              the curve name, room to breathe, no truncation at the 150px floor.
 
@@ -130,22 +131,33 @@
                     class="specimen-tile flex-col gap-1.5 px-2 py-2.5"
                 >
                     <span class="tile-stage" aria-hidden="true">
-                        <svg
-                            class="tile-sparkline"
-                            viewBox="0 0 1 1"
-                            preserveAspectRatio="none"
-                        >
-                            <path
-                                :d="curve.path"
-                                vector-effect="non-scaling-stroke"
-                            />
-                        </svg>
-                        <span class="progress-rail tile-rail"></span>
-                        <span
-                            ref="tileBallEls"
-                            class="progress-ball tile-ball"
-                            :data-curve="curve.name"
-                        ></span>
+                        <!-- X.KF.W13W.b (OA-56) — the plot box: the sparkline
+                             and the ball's carriage share it, and both read ONE
+                             plot (curvePlot): the stroke is `plot.d`, the ball is
+                             `plot.place(phase)`. No rail. -->
+                        <span class="tile-plot">
+                            <svg
+                                class="tile-sparkline"
+                                :viewBox="curve.plot.viewBox"
+                                preserveAspectRatio="none"
+                            >
+                                <path
+                                    :d="curve.plot.d"
+                                    vector-effect="non-scaling-stroke"
+                                />
+                            </svg>
+                            <span
+                                ref="tileCarriageEls"
+                                class="curve-carriage tile-carriage"
+                                :data-curve="curve.name"
+                                :style="{ '--curve-rest': curve.plot.place(0) }"
+                            >
+                                <span
+                                    class="curve-ball tile-ball"
+                                    :data-curve="curve.name"
+                                ></span>
+                            </span>
+                        </span>
                     </span>
                     <span
                         class="tile-name text-mono-caption"
@@ -170,7 +182,7 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import { useMediaQuery, useResizeObserver } from "@vueuse/core";
+import { useMediaQuery } from "@vueuse/core";
 import { Card } from "@mkbabb/glass-ui";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
@@ -179,10 +191,10 @@ import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 import CopyButton from "@components/CopyButton/CopyButton.vue";
 import {
-    getCurvePath,
     namedEasing,
     steppedEasing,
 } from "@utils/reference-data/timingCurveUtils";
+import { curvePlot, unitEasingFrame, type CurvePlot } from "@utils/curvePlot";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
@@ -224,8 +236,21 @@ const fnForCurve = (name: string): TimingFunction => {
 interface SpecimenCurve {
     name: string;
     fn: TimingFunction;
-    path: string;
+    /** X.KF.W13W.b — the tile's ONE plot: its stroke and its ball. */
+    plot: CurvePlot;
 }
+
+// One plot per curve name (the tiles' functions are static portraits).
+const TILE_FRAME = unitEasingFrame();
+const plotCache = new Map<string, CurvePlot>();
+const plotForCurve = (name: string): CurvePlot => {
+    let plot = plotCache.get(name);
+    if (!plot) {
+        plot = curvePlot(fnForCurve(name), TILE_FRAME);
+        plotCache.set(name, plot);
+    }
+    return plot;
+};
 
 const visibleCurves = computed<SpecimenCurve[]>(() => {
     const groups =
@@ -236,7 +261,7 @@ const visibleCurves = computed<SpecimenCurve[]>(() => {
         g.items.map((item) => ({
             name: item.name,
             fn: fnForCurve(item.name),
-            path: getCurvePath(item.name),
+            plot: plotForCurve(item.name),
         })),
     );
 });
@@ -273,30 +298,21 @@ const literal = computed<string>(() => {
 // walks a DOM snapshot and writes style.transform ONLY — zero per-frame
 // filter/layout writes, zero Vue re-renders. All balls read the SAME phase:
 // the departure is simultaneous by construction.
-const BALL_SIZE = 14;
-
-const tileBallEls = useTemplateRef<HTMLElement[]>("tileBallEls");
-const railWidth = ref(0);
-/**
- * OA-9 (§0ao.1) — the rail the width is READ from is the rail the resize
- * observer WATCHES: the first tile's stage, an element this component renders.
- * The observer formerly watched the ToggleGroup's component ref, whose `$el`
- * is the producer fragment's leading TEXT anchor (measured: nodeType 3, the
- * grid `div` is its next sibling) — `ResizeObserver.observe(Text)` threw in
- * the mount flush, and the throw aborted the rest of that post-flush queue:
- * this component's painter never registered (the specimen balls never moved)
- * and the sidebar Sliders' thumbs never registered with their roots (reka's
- * pointer path read `thumbElements[0].clientWidth` of `undefined` — the
- * ribbon scrub and the duration slider were dead to the pointer).
- */
-const railStage = ref<HTMLElement | null>(null);
+// X.KF.W13W.b (OA-56) — THE BALL RIDES THE CURVE. Each tile's carriage spans
+// its sparkline's own box, and the painter writes `plot.place(phase)`: the point
+// (phase, fn(phase)) of the SAME plot that drew the stroke — overshoot followed
+// beyond the band, steps jumping with the stroke's risers. `translate()`
+// percentages resolve against the carriage (= the plot box), so no width is
+// read and no resize observer is owed (the former rail-width measure and its
+// observer — OA-9's `railStage` — are retired with the rail).
+const tileCarriageEls = useTemplateRef<HTMLElement[]>("tileCarriageEls");
 
 const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
 type TileEntry = {
     el: HTMLElement;
     stage: HTMLElement | null;
-    fn: TimingFunction;
+    plot: CurvePlot;
 };
 let tileSnapshot: TileEntry[] = [];
 
@@ -306,31 +322,19 @@ let tileSnapshot: TileEntry[] = [];
 const visibleStages = new Set<Element>();
 let io: IntersectionObserver | null = null;
 
-const tileBallXAt = (fn: TimingFunction, phase: number): number => {
-    const maxX = railWidth.value - BALL_SIZE;
-    return maxX > 0 ? fn(phase) * maxX : 0;
-};
-
 const paintTileDots = (phase: number) => {
-    for (const { el, stage, fn } of tileSnapshot) {
+    for (const { el, stage, plot } of tileSnapshot) {
         if (stage && !visibleStages.has(stage)) continue;
-        el.style.transform = `translateX(${tileBallXAt(fn, phase)}px)`;
+        el.style.transform = plot.place(phase);
     }
 };
 
-// Reduced motion: no sweep — every ball RESTS at its end state and the
-// sparklines ARE the preview (the portrait carries the curve).
+// Reduced motion: no sweep — every ball RESTS on its curve at the end state
+// (t = 1), and the sparklines ARE the preview (the portrait carries the curve).
 const paintRestState = () => {
-    for (const { el, fn } of tileSnapshot) {
-        el.style.transform = `translateX(${tileBallXAt(fn, 1)}px)`;
+    for (const { el, plot } of tileSnapshot) {
+        el.style.transform = plot.place(1);
     }
-};
-
-const measureRailWidth = () => {
-    const stage = tileSnapshot[0]?.stage;
-    if (stage) railWidth.value = stage.clientWidth;
-    if (reducedMotion.value) paintRestState();
-    else demo.repaintDots();
 };
 
 let unregisterPainter: (() => void) | null = null;
@@ -341,11 +345,11 @@ const wirePainter = async () => {
     io?.disconnect();
     visibleStages.clear();
     // Snapshot keyed by data-curve (NOT v-for index — ref arrays carry no
-    // order guarantee), stage = the ball's positioning parent.
-    tileSnapshot = (tileBallEls.value ?? []).map((el) => ({
+    // order guarantee); stage = the tile's stage (the IO target).
+    tileSnapshot = (tileCarriageEls.value ?? []).map((el) => ({
         el,
-        stage: el.parentElement,
-        fn: fnForCurve(el.dataset.curve ?? ""),
+        stage: el.closest<HTMLElement>(".tile-stage"),
+        plot: plotForCurve(el.dataset.curve ?? ""),
     }));
     io = new IntersectionObserver(
         (entries) => {
@@ -359,9 +363,6 @@ const wirePainter = async () => {
         { rootMargin: "25% 0px" },
     );
     for (const { stage } of tileSnapshot) if (stage) io.observe(stage);
-    const stage = tileSnapshot[0]?.stage ?? null;
-    railStage.value = stage;
-    if (stage) railWidth.value = stage.clientWidth;
     if (reducedMotion.value) {
         paintRestState();
         return;
@@ -388,10 +389,6 @@ watch(
         if (!reducedMotion.value) demo.repaintDots();
     },
 );
-
-// The grid is uniform-width tiles; one measure serves every rail — so one
-// observed rail (the stage `measureRailWidth` reads) serves every tile.
-useResizeObserver(railStage, () => measureRailWidth());
 </script>
 
 <style scoped src="./EasingTarget.css"></style>

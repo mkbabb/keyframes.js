@@ -133,6 +133,12 @@
                      of the track is the reserved overshoot room. -->
                 <div class="spring-track stage-field-x" :style="trackStyle">
                     <div class="progress-rail"></div>
+                    <!-- X.KF.W13W.b (OA-56) — the rail keeps only a SUBORDINATE
+                         progress cue: the live displacement as a quiet fill from
+                         value 0 (painter-scaled, `scaleX(value)`). The spring's
+                         ball no longer sits here — it rides the plotted trace
+                         below, at sim time. -->
+                    <div ref="liveFillEl" class="spring-fill" aria-hidden="true"></div>
                     <!-- The value=1 reference: the track's own right edge, a
                          quiet dashed rule. It marks the SCALE, and the record
                          that it is a scale is why it no longer carries the
@@ -155,10 +161,6 @@
                     :class="{ 'settle-pulse--fire': demo.liveSettled.value }"
                     :style="{ transform: `translateX(${railPct(demo.target.value)}cqw)` }"
                 ></div>
-                <!-- The live spring ball — positioned IMPERATIVELY by the
-                     registered spring painter (J.W2 S5: direct style writes off
-                     the Vue render graph; no reactive :style on the hot path). -->
-                <div ref="liveBallEl" class="progress-ball spring-ball"></div>
 
                 <!-- ── L.W11 S6 EGG — the four-lane DERBY overlay ──────────────
                      Double-click the rail and four SpringProgress solvers race
@@ -226,22 +228,13 @@
         <!-- The timing-function sweep (the spring sampled as a CSS timing
              function). X.KF.W13V.y (N-3 · N-6): titled in plain words, and its
              sampled value is a MUTED caption — the stage has one violet readout
-             (the position above), so this one no longer competes with it. -->
+             (the position above), so this one no longer competes with it.
+             X.KF.W13W.b (OA-56): its sampler ball rides the plotted trace below
+             (the sampler track, a rail under the ball, is deleted). -->
         <div class="w-full max-w-3xl shrink-0">
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between">
                 <span class="text-small text-foreground" data-figure-title>Timing-function sweep</span>
                 <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
-            </div>
-            <div class="sampler-track relative h-9">
-                <!-- The sampler rides the SAME value axis as the rail above (one
-                     map, one reading): its track is inset by the same reserved
-                     overshoot band, so a sampled value of 1 lands under the rail's
-                     value-1 rule rather than at a different x. -->
-                <div class="spring-track stage-field-x" :style="trackStyle">
-                    <div class="progress-rail"></div>
-                </div>
-                <!-- The sampler ball — painter-positioned (J.W2 S5, as above). -->
-                <div ref="samplerBallEl" class="progress-ball sampler-ball"></div>
             </div>
         </div>
 
@@ -249,10 +242,23 @@
              string). The parse + draw lives in the colocated SpringTrace sub-unit
              (the natural concern seam); it reads the live (response, ζ) so the
              trace re-plots as the sliders move. -->
+        <!-- X.KF.W13W.b (OA-56) — THE BALLS RIDE THE TRACE. Both carriages
+             span the trace's plot box and are painter-placed by the trace's OWN
+             plot (`SpringTrace`'s exposed `plot`, the shared curvePlot): the
+             live simulator ball at sim time since its target was set, the sweep
+             sampler at its leg's normalized time. Neither sits on a rail. -->
         <SpringTrace
+            ref="traceEl"
             :response="demo.response.value"
             :damping-fraction="demo.dampingFraction.value"
-        />
+        >
+            <span ref="samplerCarriageEl" class="curve-carriage sampler-carriage">
+                <span class="curve-ball sampler-ball"></span>
+            </span>
+            <span ref="liveCarriageEl" class="curve-carriage spring-carriage">
+                <span class="curve-ball spring-ball"></span>
+            </span>
+        </SpringTrace>
     </Card>
 </template>
 
@@ -264,7 +270,7 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { SPRING_DEMO_KEY } from "./springKeys";
-import SpringTrace from "./SpringTrace.vue";
+import SpringTrace, { springHorizonMs } from "./SpringTrace.vue";
 
 const demo = inject(SPRING_DEMO_KEY)!;
 
@@ -309,8 +315,10 @@ const stateLabel = computed(() =>
 // double-tap gesture egg (the on-stage legend layer was retired at T.M — VERDICT #8).
 
 const railEl = useTemplateRef<HTMLElement>("railEl");
-const liveBallEl = useTemplateRef<HTMLElement>("liveBallEl");
-const samplerBallEl = useTemplateRef<HTMLElement>("samplerBallEl");
+const liveFillEl = useTemplateRef<HTMLElement>("liveFillEl");
+const traceEl = useTemplateRef<InstanceType<typeof SpringTrace>>("traceEl");
+const liveCarriageEl = useTemplateRef<HTMLElement>("liveCarriageEl");
+const samplerCarriageEl = useTemplateRef<HTMLElement>("samplerCarriageEl");
 
 // ── M-2 · D-7/C-8 — THE RAIL'S VALUE AXIS, ONE MAP FOR EVERY MARK ────────────
 //
@@ -404,11 +412,26 @@ onMounted(() => {
         // M-2 — the protagonist rides the SAME map as its siblings. `railPct`
         // carries the clamp, so the allowance is stated once and the three balls
         // can no longer disagree about what the axis means.
-        if (liveBallEl.value) {
-            liveBallEl.value.style.transform = `translateX(${railPct(live.value)}cqw)`;
+        // X.KF.W13W.b (OA-56) — the rail's subordinate cue: the displacement
+        // as a fill from value 0, on the SAME `railPct` map (the fill spans the
+        // track, value 0 → 1, so its scale is the value clamped by the allowance).
+        if (liveFillEl.value) {
+            liveFillEl.value.style.transform = `scaleX(${(railPct(live.value) - railPct(0)) / (railPct(1) - railPct(0))})`;
         }
-        if (samplerBallEl.value) {
-            samplerBallEl.value.style.transform = `translateX(${railPct(live.sampled)}cqw)`;
+        // X.KF.W13W.b (OA-56) — THE BALLS RIDE THE TRACE, placed by the trace's
+        // OWN plot (the function that draws the stroke). The simulator's ball is
+        // at its sim time over the trace's horizon (4 × response); settled, it
+        // rests at the trace's end (PRM snaps and settles on the first frame,
+        // so a reduced-motion re-seat rests there at once). The sweep sampler is
+        // at its leg's normalized time: the sweep plays the timing function
+        // 0 → 1 then 1 → 0, and each leg is f(u) over u ∈ [0, 1).
+        const plot = traceEl.value?.plot;
+        if (plot && liveCarriageEl.value) {
+            const t = live.settled ? 1 : live.simMs / springHorizonMs(demo.response.value);
+            liveCarriageEl.value.style.transform = plot.place(t);
+        }
+        if (plot && samplerCarriageEl.value) {
+            samplerCarriageEl.value.style.transform = plot.place((live.phase * 2) % 1);
         }
         // L.W11 S6 — position the four derby-lane balls from the live tracker
         // values (the live lanes remain relaxed so the bouncy lane visibly rings
@@ -570,8 +593,7 @@ const onKeydown = (e: KeyboardEvent) => {
     font-variant-numeric: tabular-nums;
 }
 
-.spring-rail,
-.sampler-track {
+.spring-rail {
     /* T.G4 — the balls ride `translateX(<cqw>)`; `cqw` resolves against the nearest
        inline-size container, so the rail/track ARE that container (the value axis
        stays rail-relative with no per-frame width read).
@@ -638,6 +660,24 @@ const onKeydown = (e: KeyboardEvent) => {
         opacity var(--duration-fast) ease;
 }
 
+/* X.KF.W13W.b (OA-56) — the rail's SUBORDINATE progress cue: the live
+   displacement as a quiet 2px fill along the groove from value 0, scaled by the
+   painter (`scaleX`, compositor-only). It is a cue, not a marker: no ball sits on
+   the rail — the spring's ball rides the plotted trace. */
+.spring-fill {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    margin-top: -1px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 45%, transparent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    pointer-events: none;
+}
+
 /* J.W7a S1 (D4 / SP-1) — the live ball IS the scene's protagonist and takes
    the idiom-default --ball-size (36px) + full canonical glow: at the former
    1.75rem it "read as a footnote" against the vast glass plate. The h-12 rail
@@ -655,8 +695,6 @@ const onKeydown = (e: KeyboardEvent) => {
    the ball and `translateY(-50%)` centres the rail that nothing paints — and a
    tidy-up that "unified" the two would drop every ball out of its rail. The
    anchor is the x-half of that same asymmetry, so it is homed and no more. */
-.spring-ball,
-.sampler-ball,
 .derby-lane-ball {
     left: 0;
     margin-left: calc(var(--ball-size, 36px) / -2);
@@ -668,14 +706,22 @@ const onKeydown = (e: KeyboardEvent) => {
    user acts. A promotion hint that is always on is not a hint. It is bound to the
    one state that means "these are about to move": the transport is playing, the
    field is still travelling, or the derby is up. */
-.spring-target--live .spring-ball,
-.spring-target--live .sampler-ball,
+.spring-target--live .spring-carriage,
+.spring-target--live .sampler-carriage,
+.spring-target--live .spring-fill,
 .spring-target--live .derby-lane-ball {
     will-change: transform;
 }
 
+/* X.KF.W13W.b (OA-56) — the two balls that ride the trace (`.curve-ball`, the
+   shared placement idiom): the live simulator ball is the protagonist (the
+   scene accent + full glow), the sweep sampler the quiet translucent sibling.
+   Sized for the trace's plot box rather than the 3rem rail they used to ride. */
+.spring-ball {
+    --ball-size: 1.5rem;
+}
 .sampler-ball {
-    --ball-size: 1.25rem;
+    --ball-size: 1rem;
     --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
 }
@@ -750,11 +796,11 @@ const onKeydown = (e: KeyboardEvent) => {
    below, both directions animate — and the derby's own exit, which is when a
    human is actually looking, stops being a jump cut. */
 .spring-rail .progress-rail,
-.spring-ball {
+.spring-fill {
     transition: opacity var(--duration-fast) ease;
 }
 .spring-rail--derby .progress-rail,
-.spring-rail--derby .spring-ball,
+.spring-rail--derby .spring-fill,
 .spring-rail--derby .spring-target-marker {
     opacity: 0.35;
 }

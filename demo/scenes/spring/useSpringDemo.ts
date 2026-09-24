@@ -292,6 +292,7 @@ export function useSpringDemo() {
      *  The ONE body both loop branches step the physics through. */
     function tickField(dt: number): void {
         liveSpring.tickDt(dt);
+        springLive.simMs += dt;
         springLive.value = liveSpring.value;
         springLive.velocity = liveSpring.velocity;
         springLive.settled = liveSpring.settled;
@@ -369,6 +370,7 @@ export function useSpringDemo() {
         const v = clamp(value, 0, 1);
         target.value = v;
         liveSpring.target = v;
+        springLive.simMs = 0;
         for (const t of tracks) t.spring.target = v;
         chaseIntent = true;
         startLoop();
@@ -399,12 +401,14 @@ export function useSpringDemo() {
         tracks,
         () => {
             liveSpring.target = 1;
+            springLive.simMs = 0;
             target.value = 1;
         },
         () => {
             const v = preDerbyTarget;
             target.value = v;
             liveSpring.target = v;
+            springLive.simMs = 0;
             for (const t of tracks) t.spring.target = v;
             // The settle is a target write, so it owes the same chase-intent
             // `reseat` owes (the egg used to reach `reseat(0)` and inherit it).
@@ -479,6 +483,7 @@ export function useSpringDemo() {
         // Re-seed the live snapshot + phase, then drive the readouts and the
         // painted balls to the reset state at once (a discrete event).
         springLive.phase = 0;
+        springLive.simMs = 0;
         springLive.value = liveSpring.value;
         springLive.velocity = liveSpring.velocity;
         springLive.settled = liveSpring.settled;

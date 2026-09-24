@@ -129,8 +129,9 @@ describe("OA-9 — the easing specimens run when the scene plays", () => {
         vi.advanceTimersByTime(500);
 
         expect(demo.liveProgress()).toBeGreaterThan(0);
-        const moved = [...host.querySelectorAll<HTMLElement>(".tile-ball")].filter((el) => {
-            const x = /translateX\(([-\d.]+)px\)/.exec(el.style.transform)?.[1];
+        // X.KF.W13W.b: the ball's carriage rides its curve at plot.place(phase).
+        const moved = [...host.querySelectorAll<HTMLElement>(".tile-carriage")].filter((el) => {
+            const x = /translate\(([-\d.]+)%/.exec(el.style.transform)?.[1];
             return x !== undefined && Number(x) > 0;
         });
         expect(moved.length).toBeGreaterThan(0);

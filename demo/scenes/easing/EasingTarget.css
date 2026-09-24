@@ -119,7 +119,7 @@
     align-items: stretch;
 }
 
-/* ── The specimen stage: sparkline portrait + hairline rail + ball ── */
+/* ── The specimen stage: the sparkline portrait + the ball ON it ── */
 .tile-stage {
     position: relative;
     display: block;
@@ -127,13 +127,23 @@
     height: 3.25rem;
 }
 
+/* X.KF.W13W.b (OA-56) — the plot box: the sparkline and the ball's carriage
+   share it (curvePlot's placement idiom, design-idioms `.curve-carriage`). 18%
+   headroom top and bottom + visible overflow keep overshoot unclipped — the ball
+   follows the curve out of the band. The inline inset is half a ball, so a ball
+   centred on either end of the curve stays on the tile. */
+.tile-plot {
+    position: absolute;
+    inset: 18% 7px;
+}
+
 /* The static sparkline — the curve's portrait (value vs time), faint behind
-   the race. 18% headroom + visible overflow keep overshoot unclipped. */
+   the ball riding it. */
 .tile-sparkline {
     position: absolute;
-    inset: 18% 0;
+    inset: 0;
     width: 100%;
-    height: 64%;
+    height: 100%;
     overflow: visible;
 }
 .tile-sparkline path {
@@ -144,38 +154,16 @@
     stroke-linejoin: round;
 }
 
-/* The hairline rail — 1px (a named delta off the 2px idiom default: 33
-   rails at 2px read as a grid of rules; at 1px they recede to ruled paper).
-   Ticks mark the shared origin + terminus: the departure is LEGIBLE. */
-.tile-rail {
-    height: 1px;
-    --rail-tint: 16%;
+/* The ball: 14px, the OD-6 violet. Its CARRIAGE is transform-positioned by the
+   shared painter at `plot.place(phase)`; the glow is STATIC (one composite
+   layer) — never written per frame. The former hairline rail and its origin /
+   terminus ticks are deleted with the rail (the ball never sits on a rail). */
+.tile-carriage {
+    will-change: transform;
 }
-.tile-stage::before,
-.tile-stage::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 1px;
-    height: 9px;
-    transform: translateY(-50%);
-    background: color-mix(in srgb, var(--foreground) 22%, transparent);
-}
-.tile-stage::before {
-    left: 6.5px; /* the departure — every ball's center at phase 0 */
-}
-.tile-stage::after {
-    right: 6.5px; /* the terminus — every ball's center at fn(1) = 1 */
-}
-
-/* The racing ball: 14px, the OD-6 violet, transform-positioned by the shared
-   painter (left: 0 is the origin; translateX carries the race). The glow is
-   STATIC (one composite layer) — never written per frame. */
 .tile-ball {
     --ball-size: 14px;
     --ball-glow: 28%;
-    left: 0;
-    will-change: transform;
 }
 
 /* ── Selection ── the pressed tile's `data-state="on"` carries the glass wash

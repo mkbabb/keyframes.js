@@ -102,6 +102,9 @@
                     :style="{ top: zeroTop, right: 0 }"
                     aria-hidden="true"
                 >0</span>
+                <!-- X.KF.W13W.b (OA-56) — the balls that ride the trace (the
+                     parent's carriages, spanning this frame = the plot box). -->
+                <slot />
             </div>
             <!-- The time axis (N-1's cure). The horizon is the one figure `response`
                  moves; it is an axis label on the caption register like the origin
@@ -116,6 +119,8 @@
 </template>
 
 <script lang="ts">
+import { curvePlot, polylineFn, type CurvePlot, type PlotFrame } from "@utils/curvePlot";
+
 /**
  * THE PLOT'S DERIVATIONS — pure, exported, and tested against the engine's own
  * samples (`test/demo/scenes/spring-trace-truth.test.ts`; kf-SpringTrace L-10).
@@ -252,14 +257,30 @@ export const SPRING_HORIZON_PERIODS = 4;
 export const springHorizonMs = (response: number): number =>
     Math.round(response * SPRING_HORIZON_PERIODS * 1000);
 
+/**
+ * X.KF.W13W.b (OA-56) — the trace's frame for the ONE curve-to-point primitive
+ * (`demo/utils/curvePlot.ts`): normalized time → x over the plot's width, value
+ * → `plotY`. The stroke AND the balls that ride it (the live simulator ball at
+ * sim time, the sweep sampler at its leg's time — `SpringTarget`'s painter) are
+ * placed by one plot built on this frame.
+ */
+export const SPRING_FRAME: PlotFrame = {
+    viewBox: [0, 0, PLOT.width, PLOT.height],
+    x: (t) => t * PLOT.width,
+    y: plotY,
+};
+
+/** The trace's plot: the resolved stops as a polyline, drawn through exactly
+ *  those vertices (the knots; the grid adds only the two ends). */
+export const springTracePlot = (points: readonly LinearStopPoint[]): CurvePlot =>
+    curvePlot(polylineFn(points), SPRING_FRAME, {
+        samples: 1,
+        knots: points.map((p) => p.t),
+    });
+
 /** The trace as an SVG path over the plot's viewBox: `t` → x, `v` → `plotY`. */
 export const tracePathOf = (points: readonly LinearStopPoint[]): string =>
-    points
-        .map(
-            (p, i) =>
-                `${i === 0 ? "M" : "L"} ${(p.t * PLOT.width).toFixed(2)} ${plotY(p.v).toFixed(2)}`,
-        )
-        .join(" ");
+    springTracePlot(points).d;
 </script>
 
 <script setup lang="ts">
@@ -281,7 +302,11 @@ const linearStops = useSpringLinearStops(
 );
 
 const points = computed(() => resolveLinearStopPoints(linearStops.value));
-const tracePath = computed(() => tracePathOf(points.value));
+const plot = computed(() => springTracePlot(points.value));
+const tracePath = computed(() => plot.value.d);
+// The balls riding this trace are the parent's (its painter owns them), placed
+// by THIS plot — the one function that draws the stroke.
+defineExpose({ plot });
 const peak = computed(() => Math.max(...points.value.map((p) => p.v)));
 const horizonMs = computed(() => springHorizonMs(props.response));
 
@@ -325,10 +350,14 @@ const figureLabel = computed(
    55 % the lines read 3.82:1 light / 4.50:1 dark over the producer's `--card`
    arms (this seat's arithmetic; 45 % reads 2.85 light — 55 % is the first rung
    that clears both). */
+/* X.KF.W13W.b (OA-56) — 4.5rem → 8rem: the frame is now also the plot box the
+   spring's balls ride (the live ball + the sweep sampler), so the value range
+   is drawn tall enough for a ball to read ON the trace. The viewBox constants
+   (PLOT) are unchanged; only the CSS box grew. */
 .plot-frame {
     position: relative;
     width: 100%;
-    height: 4.5rem;
+    height: 8rem;
 }
 .plot-layer {
     position: absolute;

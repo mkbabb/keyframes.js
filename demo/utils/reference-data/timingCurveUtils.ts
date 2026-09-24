@@ -65,26 +65,3 @@ export function generateStepSVGPath(n = 4): string {
     }
     return parts.join(" ");
 }
-
-const curvePathCache = new Map<string, string>();
-
-export function getCurvePath(name: string): string {
-    const cached = curvePathCache.get(name);
-    if (cached) return cached;
-
-    let path: string;
-    if (name === "cubic-bezier") {
-        path = generateCurveSVGPath(cubicBezierEasing(0.4, 0, 0.2, 1));
-    } else if (name === "steps") {
-        path = generateStepSVGPath(4);
-    } else if (name === "step-start") {
-        path = generateStepSVGPath(1);
-    } else if (name === "step-end") {
-        path = "M 0,1 L 1,1 L 1,0";
-    } else {
-        path = generateCurveSVGPath(namedEasing(name));
-    }
-
-    curvePathCache.set(name, path);
-    return path;
-}

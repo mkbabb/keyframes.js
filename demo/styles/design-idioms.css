@@ -239,6 +239,33 @@
     pointer-events: none;
 }
 
+/* .curve-carriage / .curve-ball — X.KF.W13W.b (OA-56): THE BALL RIDES THE CURVE.
+   The one placement idiom for a ball on a plotted easing or trace
+   (`demo/utils/curvePlot.ts`). The carriage spans the stroke's own `<svg>` box (a
+   sibling inside one plot box), so `translate(x%, y%)` — `curvePlot().place(p)` —
+   resolves against the plot box itself: no width read, no rail. The ball sits on
+   the carriage's origin corner and centres itself there. `--curve-rest` is the
+   plot's rest point (a site binds `place(0)`), so an unpainted or stopped carriage
+   still holds its ball on the curve. */
+.curve-carriage {
+    position: absolute;
+    inset: 0;
+    transform: var(--curve-rest, none);
+    pointer-events: none;
+}
+.curve-ball {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--ball-size, 36px);
+    height: var(--ball-size, 36px);
+    transform: translate(-50%, -50%);
+    border-radius: var(--radius-pill);
+    background: var(--ball-tone, var(--color-progress));
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--ball-tone, var(--color-progress)) var(--ball-glow, 35%), transparent);
+    pointer-events: none;
+}
+
 /* .readout-accent — the LIVE readout value wears the scene accent (--ball-tone); labels stay muted. */
 .readout-accent {
     color: var(--ball-tone, var(--color-progress));

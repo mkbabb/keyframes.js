@@ -348,10 +348,14 @@ describe("X.KF.W11.c — M-2/D-7: the value axis never paints a ball off the pla
         const painterWrites = SPRING_TARGET_SRC.split("\n").filter((l) =>
             l.includes(".style.transform ="),
         );
+        // X.KF.W13W.b (OA-56): the live ball and the sweep sampler left the rail
+        // for the plotted trace, so a write is either a RAIL mark through the
+        // one rail map or a TRACE mark through the trace's own plot — never a
+        // third, unmapped geometry.
         expect(painterWrites.length).toBeGreaterThanOrEqual(3);
-        for (const line of painterWrites) expect(line).toContain("railPct(");
+        for (const line of painterWrites) expect(line).toMatch(/railPct\(|plot\.place\(/);
         expect(SPRING_TARGET_SRC).toContain("railPct(live.value)");
-        expect(SPRING_TARGET_SRC).toContain("railPct(live.sampled)");
+        expect(painterWrites.filter((l) => l.includes("plot.place(")).length).toBe(2);
     });
 
     it("keeps every clamped value inside the rail, and puts value 1 short of its end", () => {

@@ -92,6 +92,9 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
         trackValues: SPRING_PRESETS.map(() => 0),
         sampled: 0,
         phase: 0,
+        /** X.KF.W13W.b — simulation time (ms) since the live target was last
+         *  written: the live ball rides the plotted step response at this time. */
+        simMs: 0,
     };
 
     const { registerPainter: registerSpringPainter, repaint: repaintSprings } =
