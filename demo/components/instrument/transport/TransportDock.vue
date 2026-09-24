@@ -9,9 +9,9 @@
         style="bottom: var(--dock-bottom-anchor, var(--work-area-bottom-offset, 0px));"
     >
         <!--
-            The transport rides GlassDock's own collapse: a summary pill (the
-            selected name + the play mirror, #collapsed) that expands on
-            hover/focus. Both play controls actuate through `usePlayActuation`
+            The transport rides GlassDock's own collapse: Play is the dock's
+            one `#persistent` control (both faces; X.KF.W13W.d) and the rest
+            expands on hover/focus. Play actuates through `usePlayActuation`
             (pointerup on the same control / Space on keyup, Enter on keydown —
             never the synthesised `click` the collapse crossfade can strand);
             the actuation and cancellation law is that composable's docblock.
@@ -42,32 +42,53 @@
                      hand-rolled dock-separator divs). Tooltips are the single visible
                      renderer (Tooltip primitives); the accessible name rides aria-label — every
                      `title=` passthrough is GONE (T.C3, the double-tooltip KILL). -->
-                <div class="transport-row flex items-center">
-                    <!-- rail-core: PLAY, FIRST (actions.primary) -->
-                    <Tooltip>
-                        <TooltipTrigger as-child>
-                            <Button
-                                emphasis="quiet"
-                                :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
-                                :class="[
-                                    'scale-on-hover icon-lg text-white rounded-full p-0',
-                                    'w-10 h-10 shrink-0',
-                                    isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
-                                ]"
-                                @pointerdown="onPlayPointerDown($event)"
-                                @pointerup="onPlayPointerUp($event)"
-                                @pointercancel="onPlayPointerCancel($event)"
-                                @keydown="onPlayKeydown($event)"
-                                @keyup="onPlayKeyup($event)"
-                                @blur="onPlayBlur($event)"
-                            >
-                                <Pause v-if="isPlaying" class="icon-lg" />
-                                <Play v-else class="icon-lg translate-x-px" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{{ isPlaying ? "Pause" : "Play" }}</TooltipContent>
-                    </Tooltip>
+                <!-- X.KF.W13W.d · OA-57 (COHESION §0cq) — PLAY IS PERSISTENT: ONE control,
+                     glass's `#persistent` seat, in-flow on BOTH faces, never inert,
+                     never a crossfade pane. The collapsed face used to hand-duplicate
+                     Play plus the animation name into `#collapsed`, whose summary seat
+                     the producer necks to one circle (`.dock-layer--summary`:
+                     `aspect-ratio: 1` at `--dock-collapsed-summary-min-size`): at
+                     1440 the collapsed plate measured 56 px while the two seats ran
+                     132 px, so both spilled 38 px out of the plate on every idle
+                     collapse. `#persistent` is the producer's own seam for "keep a
+                     control visible while collapsed WITHOUT hand-duplicating it into
+                     both the #default and #collapsed slots" (GlassDock.vue docblock);
+                     with `#collapsed` unauthored the summary is `:empty` and the
+                     plate centres the persistent Play (`morph.css`). The name lives
+                     on the expanded face (the channel Select, >=2 channels; a lone
+                     animation is the scene identity, T.B5-RENDER), as the ChromeDock's
+                     icon-forward collapsed face already rules. A multi-seat collapsed
+                     plate is O-65's (DOCK-COLLAPSED-FORM), relay only.
+                     TD-37 holds by structure: play leads on both faces because it is
+                     the same element, and TD-39's one stable name is one control. -->
+                <template #persistent>
+                <!-- rail-core: PLAY, FIRST (actions.primary) -->
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            emphasis="quiet"
+                            :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
+                            :class="[
+                                'scale-on-hover icon-lg text-white rounded-full p-0',
+                                'w-10 h-10 shrink-0',
+                                isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
+                            ]"
+                            @pointerdown="onPlayPointerDown($event)"
+                            @pointerup="onPlayPointerUp($event)"
+                            @pointercancel="onPlayPointerCancel($event)"
+                            @keydown="onPlayKeydown($event)"
+                            @keyup="onPlayKeyup($event)"
+                            @blur="onPlayBlur($event)"
+                        >
+                            <Pause v-if="isPlaying" class="icon-lg" />
+                            <Play v-else class="icon-lg translate-x-px" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ isPlaying ? "Pause" : "Play" }}</TooltipContent>
+                </Tooltip>
+                </template>
 
+                <div class="transport-row flex items-center">
                     <!-- section (contextual): the animation select. Rendered ONLY when
                          channelZone is INHABITED (≥2 channels — kind "select"). One or
                          zero channels ⇒ zone ABSENT: NO node and NO flanking separator
@@ -165,65 +186,6 @@
                     </template>
                 </div>
 
-                <!-- Collapsed state: PLAY FIRST, then the animation name.
-                     X.KF.W13.e · TD-37 under OP-7 (COHESION §0ai) — ONE FACE ORDER:
-                     play leads on BOTH faces. The two faces are concentric (GlassDock
-                     stacks them, `layers.css` `.dock-layer { grid-area: 1/1 }`), so the
-                     pre-cure `[name][play]` collapsed order translated the primary CTA
-                     across the pill on every hover-expand and every 3600 ms idle
-                     collapse — out from under the reaching pointer. With play leading
-                     here as it does at `:39-59`, the CTA holds its end through the
-                     crossfade.
-                     TD-21's r2 shared-Set rider rides this order change (same identity,
-                     same family): the end-swap was what made the in-place release land
-                     on NEITHER control and leak a persistent mouse press-origin. Play
-                     co-located on both faces makes that release land on the OTHER play
-                     mirror, where `usePlayActuation`'s per-control origin guard
-                     (`:81-89`, landed X.KF.W13.b `dafce6eb`) consumes and clears the
-                     entry without actuating — and the window release-elsewhere cleanup
-                     (`:62-73`) still covers the off-control case. No stale id survives
-                     either path. -->
-                <!-- X.KF.W13.b · THE PROPAGATION POLICY (TD-2 + TD-38 + TD-40, stated
-                     once, here — the only place a stop modifier ever lived): neither
-                     play mirror stops propagation. The dock's pointer/click listeners
-                     are capture-phase (a stop modifier on the button never reached
-                     them — the three pointer stops this mirror carried were inert);
-                     the window Space shortcut is scoped away from activation targets
-                     at the registry seat (useControlsKeyboardShortcuts.ts), so no
-                     keyboard stop is load-bearing; and what a press does to the dock
-                     is the dock's own declared meaning of that press plus
-                     `actuatePlay()`'s explicit `expand()` — never an accidental
-                     stop. Symmetry is the invariant: zero stop modifiers on both
-                     faces, as on the sibling ChromeDock. Census + grounds: value.js
-                     docs/tranches/X/keyframes/evidence/W13/b-td-remainder-derivation.md §4. -->
-                <template #collapsed>
-                    <!-- The collapsed play mirror carries the SAME accessible name
-                         as the expanded Play (TD-39): exactly one dock layer is ever
-                         in the accessibility tree (the other is `inert`), so it is
-                         one logical command, not two identically-named controls —
-                         the name must not mutate with transient chrome state. -->
-                    <Button
-                        emphasis="quiet"
-                        :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
-                        :class="[
-                            'scale-on-hover text-white rounded-full p-0',
-                            'w-8 h-8 shrink-0',
-                            isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
-                        ]"
-                        @pointerdown="onPlayPointerDown($event)"
-                        @pointerup="onPlayPointerUp($event)"
-                        @pointercancel="onPlayPointerCancel($event)"
-                        @keydown="onPlayKeydown($event)"
-                        @keyup="onPlayKeyup($event)"
-                        @blur="onPlayBlur($event)"
-                    >
-                        <Pause v-if="isPlaying" class="icon-md" />
-                        <Play v-else class="icon-md translate-x-px" />
-                    </Button>
-                    <span v-if="storedControls.selectedAnimation" class="dock-label text-foreground whitespace-nowrap font-semibold">
-                        {{ storedControls.selectedAnimation }}
-                    </span>
-                </template>
             </GlassDock>
         </div>
     </div>

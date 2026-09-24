@@ -2,18 +2,19 @@
  * test/demo/instrument/transport-keyboard-propagation.test.ts — G-KFW13-3
  * (X.KF.W13.b · TD-2 + TD-38 + TD-40, one propagation policy).
  *
- * A COMPOSITION test: the real TransportDock SFC (both play mirrors, Reset, the
- * Collapse-timeline chip) is mounted INSIDE the real GlassDock and WITH the
+ * A COMPOSITION test: the real TransportDock SFC (the one persistent Play, Reset,
+ * the Collapse-timeline chip) is mounted INSIDE the real GlassDock and WITH the
  * real glass-ui keyboard registry populated by `useControlsKeyboardShortcuts`
  * — the two actuators TD-2 found firing together. A test that mounts the
  * buttons without the registry proves nothing about the policy, because the
  * registry IS the second actuator.
  *
  * The policy under test (value.js evidence/W13/b-td-remainder-derivation.md §4):
- *   (1) Space on a play mirror actuates EXACTLY ONCE — the button's native
- *       keyup arm — and the page-level Space shortcut does not fire beside it;
- *       this holds on BOTH faces (the expanded Play and the collapsed mirror
- *       carry the same handlers and the same, absent, `.stop`).
+ *   (1) Space on Play actuates EXACTLY ONCE — the button's native keyup arm —
+ *       and the page-level Space shortcut does not fire beside it; this holds on
+ *       BOTH faces because Play is ONE control in glass's `#persistent` seat,
+ *       in-flow on both (X.KF.W13W.d, OA-57: the hand-duplicated `#collapsed`
+ *       mirror spilled out of the collapsed plate and is retired).
  *   (2) Space on Reset / Collapse-timeline leaves the activation default INTACT
  *       (`defaultPrevented` stays false — the browser's own Space→click is what
  *       these `@click` buttons depend on; jsdom synthesises no activation click,
@@ -35,8 +36,8 @@ import type { StoredAnimationGroupControlOptions } from "@state";
 // vitest alias cannot reach inside an externalised node_modules dependency.
 // Exactly those two seams are stubbed, contract-faithfully — a `<button>` host
 // with ordinary attr/listener fallthrough for Button/DockControl/DockTrigger, a
-// two-layer host that renders the default and `#collapsed` slots and exposes
-// `expand()` for GlassDock. Everything else is REAL: the TransportDock SFC and
+// host that renders the `#persistent` seat beside the two layers (default and
+// `#collapsed`), as GlassDock 10.1.0 does, and exposes `expand()` for GlassDock. Everything else is REAL: the TransportDock SFC and
 // its handlers, `usePlayActuation`, the keyboard registry (`/keyboard` loads
 // clean), the Select family (re-exported from the real `/select` subpath),
 // Tooltip and StatusDot. The dock's own listener phases are not exercised here
@@ -69,6 +70,7 @@ vi.mock("@mkbabb/glass-ui/dock", async () => {
             expose({ expand: () => {}, collapse: () => {}, keepOpen: () => {}, release: () => {} });
             return () =>
                 h("div", { "data-dock-seat": "" }, [
+                    h("div", { "data-seat": "persistent" }, slots.persistent?.()),
                     h("div", { "data-layer": "full" }, slots.default?.()),
                     h("div", { "data-layer": "summary" }, slots.collapsed?.()),
                 ]);
@@ -127,7 +129,7 @@ interface Seat {
     registryToggle: ReturnType<typeof vi.fn>;
     /** The transport's own `togglePlay` emit (the button's native arm). */
     togglePlay: ReturnType<typeof vi.fn>;
-    /** Every button whose accessible name begins with "Play animation": [expanded, collapsed]. */
+    /** Every button whose accessible name begins with "Play animation" (one: the persistent Play). */
     playMirrors: () => HTMLButtonElement[];
     byName: (name: string) => HTMLButtonElement;
 }
@@ -201,8 +203,8 @@ function pressSpace(el: HTMLElement | Element): { down: KeyboardEvent; up: Keybo
     return { down, up };
 }
 
-describe("G-KFW13-3 — one propagation policy, both mirrors, with the registry mounted", () => {
-    it("(1) Space on the focused expanded Play actuates EXACTLY once — the native keyup arm; the registry does not fire beside it", () => {
+describe("G-KFW13-3 — one propagation policy, both faces, with the registry mounted", () => {
+    it("(1) Space on the focused Play actuates EXACTLY once — the native keyup arm; the registry does not fire beside it", () => {
         const s = mountTransport();
         const [expanded] = s.playMirrors();
         expect(expanded).toBeInstanceOf(HTMLButtonElement);
@@ -213,16 +215,21 @@ describe("G-KFW13-3 — one propagation policy, both mirrors, with the registry 
         expect(down.defaultPrevented).toBe(true);
     });
 
-    it("(1′) the collapsed mirror conforms to the SAME policy — one actuation, no registry echo, no `.stop` needed", () => {
+    it("(1′) the collapsed face holds the SAME control under the SAME policy — one Play, in the persistent seat, one actuation per press, no registry echo, no `.stop` needed", () => {
         const s = mountTransport();
         const mirrors = s.playMirrors();
-        expect(mirrors).toHaveLength(2);
-        const collapsed = mirrors[1]!;
-        pressSpace(collapsed);
+        // ONE Play (X.KF.W13W.d): it lives in glass's `#persistent` seat, outside
+        // both crossfade layers, so the collapsed face shows the very control the
+        // expanded face does — no second mirror to keep in step.
+        expect(mirrors).toHaveLength(1);
+        const play = mirrors[0]!;
+        expect(play.closest('[data-seat="persistent"]')).not.toBeNull();
+        expect(play.closest("[data-layer]")).toBeNull();
+        pressSpace(play);
         expect(s.togglePlay).toHaveBeenCalledTimes(1);
         expect(s.registryToggle).not.toHaveBeenCalled();
-        // Symmetry: a second press on the other face is one more actuation, not two.
-        pressSpace(mirrors[0]!);
+        // A second press is one more actuation, not two.
+        pressSpace(play);
         expect(s.togglePlay).toHaveBeenCalledTimes(2);
         expect(s.registryToggle).not.toHaveBeenCalled();
     });
