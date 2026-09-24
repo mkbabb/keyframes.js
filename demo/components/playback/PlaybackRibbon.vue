@@ -94,17 +94,16 @@
             </Button>
         </div>
 
-        <!-- OA-10 (§0ao.1) — the ball preview's inline hide toggle. Offered
-             only where the mount binds `preview` (the mount owns the state
-             and its persistence; an unbound ribbon keeps its preview).
-             The producer Button in its pressed-toggle form (`aria-pressed`,
-             the Reverse cell's idiom) with one stable name; pressed = hidden.
-             Hidden is ABSENT (`v-if`): the twin leaves the DOM and the tree,
-             and its pointer seam with it. -->
-        <div v-if="animation" class="flex w-full items-center gap-1">
+        <!-- OA-10 (§0ao.1) → OA-61 (X.KF.W13W.e) — the ball preview and its
+             ONE hide/show toggle (PreviewToggle: the eye floats top-right,
+             out of flow; hidden keeps the box). The mount owns the state and
+             its persistence; every mount binds it. -->
+        <PreviewToggle
+            v-if="animation"
+            :state="preview"
+            @update:state="(next) => emit('update:preview', next)"
+        >
             <AnimationVisualizer
-                v-if="preview !== 'hidden'"
-                class="min-w-0 flex-1"
                 :animation="animation"
                 :is-playing="isAnimPlaying"
                 :current-t="currentT"
@@ -112,22 +111,7 @@
                 @drag-start="emit('scrubStart')"
                 @drag-end="emit('scrubEnd')"
             ></AnimationVisualizer>
-            <Button
-                v-if="preview !== undefined"
-                size="sm"
-                emphasis="quiet"
-                icon-only
-                class="ms-auto shrink-0"
-                aria-label="Hide ball preview"
-                :aria-pressed="preview === 'hidden'"
-                @click="
-                    emit('update:preview', preview === 'hidden' ? 'shown' : 'hidden')
-                "
-            >
-                <EyeOff v-if="preview === 'hidden'" aria-hidden="true" />
-                <Eye v-else aria-hidden="true" />
-            </Button>
-        </div>
+        </PreviewToggle>
     </div>
 </template>
 
@@ -149,8 +133,9 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { Button, Slider } from "@mkbabb/glass-ui";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { ArrowLeftRight, Eye, EyeOff, Pause, Play } from "@lucide/vue";
+import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
+import PreviewToggle from "./PreviewToggle.vue";
 
 /**
  * THE TIME-SPACE CONTRACT (X.KF.W13.b · C-2, one declaration for the ribbon).
@@ -196,9 +181,10 @@ const { animation, source, duration, currentT, preview } = defineProps<{
      */
     userReversed: boolean;
     /**
-     * OA-10 — the ball preview's (the AnimationVisualizer twin's) visibility.
-     * Bound by a mount that owns (and persists) the view state; left
-     * `undefined`, the ribbon offers no toggle and always shows the preview.
+     * OA-10 / OA-61 — the ball preview's (the AnimationVisualizer twin's)
+     * visibility, toggled by the one PreviewToggle eye. Every demo mount binds
+     * it (the scene bucket's `ballPreview`) and persists it; left `undefined`
+     * (a bare harness mount), the ribbon offers no eye and shows the preview.
      * A two-member string, not a boolean: Vue casts an absent Boolean prop to
      * `false`, which would erase the "unbound" state the toggle's offer reads.
      */

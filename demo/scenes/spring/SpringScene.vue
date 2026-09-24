@@ -65,7 +65,7 @@ import { h, provide, ref } from "vue";
 // except for CSS and tree-shakes to parity — which is exactly why the row is
 // about idiom consistency and nothing else.)
 import { Button } from "@mkbabb/glass-ui/button";
-import { Eye, EyeOff, Shuffle } from "@lucide/vue";
+import { Shuffle } from "@lucide/vue";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
@@ -74,6 +74,7 @@ import StartingStyleTarget from "./StartingStyleTarget.vue";
 import SpringPhysicsFacet from "./SpringPhysicsFacet.vue";
 import { useSpringDemo } from "./useSpringDemo";
 import { SPRING_DEMO_KEY, SPRING_SCENE_ID } from "./springKeys";
+import { getStoredAnimationGroupControlOptions } from "@state";
 
 // KF-SS-34 — the one-use `SCENE_ID` alias is deleted; `SPRING_SCENE_ID` is
 // already the name, already imported, and already what the rest of the file says.
@@ -166,6 +167,8 @@ const onScrubEnd = () => {
     wasPlayingBeforeScrub = false;
 };
 
+const storedControls = getStoredAnimationGroupControlOptions(SPRING_SCENE_ID);
+
 const standardRibbon = () =>
     h(PlaybackRibbon, {
         // T.B1-β/T.B7 — the ribbon binds the Sweep CHANNEL's REAL animation:
@@ -191,6 +194,11 @@ const standardRibbon = () =>
             demo.scrubberPhase.value * demo.springEditAnim.options.duration,
         isAnimPlaying: demo.isPlaying.value,
         userReversed: userReversed.value,
+        // OA-61 — the ball preview's eye: this scene's view state, in its bucket.
+        preview: storedControls.ballPreview ?? "shown",
+        "onUpdate:preview": (next: "shown" | "hidden") => {
+            storedControls.ballPreview = next;
+        },
         onTogglePlay: () => demo.togglePlay(),
         onToggleReverse,
         onSliderUpdate: onScrubUpdate,
@@ -222,11 +230,11 @@ const ribbonContent = () => {
                     onClick: () => demo.toggleDiscrete(),
                 },
                 {
+                    // OA-61 — a disclosure verb on the scene's subject, named by
+                    // its word alone: the eye / eye-off pair is the ball
+                    // preview's one toggle (PreviewToggle), never a second meaning.
                     default: () => [
                         h("span", null, demo.visible.value ? "Dismiss" : "Reveal"),
-                        demo.visible.value
-                            ? h(EyeOff, { class: "w-4 h-4" })
-                            : h(Eye, { class: "w-4 h-4" }),
                     ],
                 },
             ),

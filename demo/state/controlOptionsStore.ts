@@ -23,7 +23,9 @@ export type StoredAnimationGroupControlOptions = {
         addKeyframes: string;
     };
     ppMode?: boolean;
-    easingPreview?: "shown" | "hidden";
+    /** OA-61 — the ball preview's visibility (the one PreviewToggle eye),
+     *  per scene; absent = shown. */
+    ballPreview?: "shown" | "hidden";
     matrixOptions?: MatrixOptions;
 };
 

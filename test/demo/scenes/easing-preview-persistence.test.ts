@@ -5,7 +5,7 @@
  * The scene's view state lives in its bucket of the control-options store
  * (`animation-groups-control-options-store` in localStorage, keyed by the
  * registry `SceneId`), beside `isControlsPanelOpen` and cube's `ppMode`. The
- * toggle's state is the bucket's `easingPreview` field, read by `EasingScene`
+ * toggle's state is the bucket's `ballPreview` field, read by `EasingScene`
  * through `getStoredAnimationGroupControlOptions(EASING_SCENE_ID)`.
  *
  * Two limbs, the two halves of a reload: (1) READ — a bucket persisted as
@@ -89,7 +89,7 @@ beforeAll(async () => {
                 },
                 isTimelineExpanded: false,
                 isControlsPanelOpen: true,
-                easingPreview: "hidden",
+                ballPreview: "hidden",
             },
         }),
     );
@@ -124,11 +124,14 @@ function mountScene(): VueWrapper {
 
 const toggleOf = (root: ParentNode) =>
     root.querySelector<HTMLButtonElement>('button[aria-label="Hide ball preview"]');
-const previewOf = (root: ParentNode) => root.querySelector('[data-stub="AnimationVisualizer"]');
+// OA-61 (X.KF.W13W.e) — hidden keeps the preview's box (PreviewToggle's
+// data-state), so the SHOWN preview is the one under a `shown` toggle root.
+const previewOf = (root: ParentNode) =>
+    root.querySelector('.preview-toggle[data-state="shown"] [data-stub="AnimationVisualizer"]');
 const persisted = () =>
-    (JSON.parse(window.localStorage.getItem(STORE_KEY) ?? "{}") as Record<string, { easingPreview?: string }>)[
+    (JSON.parse(window.localStorage.getItem(STORE_KEY) ?? "{}") as Record<string, { ballPreview?: string }>)[
         SCENE
-    ]?.easingPreview;
+    ]?.ballPreview;
 
 describe("G-KFW13T-6 — the preview toggle is persisted with the scene's view state", () => {
     it("(read) a bucket persisted as hidden boots the ribbon pressed, the preview absent", async () => {

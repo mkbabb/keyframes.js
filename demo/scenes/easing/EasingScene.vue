@@ -112,9 +112,9 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
               currentT: demo.progress.value * demo.previewAnim.options.duration,
               isAnimPlaying: demo.isPlaying.value,
               userReversed: userReversed.value,
-              preview: storedControls.easingPreview ?? "shown",
+              preview: storedControls.ballPreview ?? "shown",
               "onUpdate:preview": (next: "shown" | "hidden") => {
-                  storedControls.easingPreview = next;
+                  storedControls.ballPreview = next;
               },
               onTogglePlay: () => demo.togglePlay(),
               onToggleReverse,

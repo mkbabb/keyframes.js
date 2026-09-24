@@ -600,6 +600,8 @@
                 :current-t="currentT"
                 :is-anim-playing="isAnimPlaying"
                 :user-reversed="userReversed"
+                :preview="sceneControls.ballPreview ?? 'shown'"
+                @update:preview="(next) => (sceneControls.ballPreview = next)"
                 @scrub-start="
                     () => {
                         wake();
@@ -668,7 +670,7 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import { getStoredAnimationOptions } from "@state";
+import { getStoredAnimationGroupControlOptions, getStoredAnimationOptions } from "@state";
 import { kfEngine } from "@kf-engine";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 
@@ -682,6 +684,9 @@ const props = defineProps<{
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(props.animation);
+// OA-61 — the ball preview's eye is the scene's view state: the channel's scene
+// bucket (the animation's superKey, as ChannelControls reads it).
+const sceneControls = getStoredAnimationGroupControlOptions(props.animation);
 
 // ── KF-CO-15 (the X.KF.W13.b carve, joint with the ribbon's C-2 contract) ────
 // The rail's scale is a REACTIVE read of the engine's duration. `animation` is

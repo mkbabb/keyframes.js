@@ -605,8 +605,10 @@ describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act"
 describe("OA-10 — the ball preview hides behind an inline pressed toggle", () => {
     const toggleOf = (root: ParentNode) =>
         root.querySelector<HTMLButtonElement>('button[aria-label="Hide ball preview"]');
+    // OA-61 (X.KF.W13W.e) — hidden keeps the preview's box (PreviewToggle's
+    // data-state), so the SHOWN preview is the one under a `shown` root.
     const previewOf = (root: ParentNode) =>
-        root.querySelector('[data-stub="AnimationVisualizer"]');
+        root.querySelector('.preview-toggle[data-state="shown"] [data-stub="AnimationVisualizer"]');
 
     it("an unbound ribbon (every mount but easing) offers no toggle and keeps its preview", async () => {
         const seat = mountRibbon();
@@ -632,6 +634,8 @@ describe("OA-10 — the ball preview hides behind an inline pressed toggle", () 
         await seat.setProps({ preview: "hidden" });
         expect(toggleOf(seat.root)!.getAttribute("aria-pressed")).toBe("true");
         expect(previewOf(seat.root)).toBeNull();
+        // …and its box stays in the flow (hidden, not removed).
+        expect(seat.root.querySelector('[data-stub="AnimationVisualizer"]')).not.toBeNull();
         await seat.setProps({ preview: "shown" });
         expect(previewOf(seat.root)).not.toBeNull();
     });

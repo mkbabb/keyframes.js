@@ -63,8 +63,9 @@
                 :data-state="visible ? 'on' : 'off'"
                 @click="toggle"
             >
+                <!-- OA-61 — named by its word alone: the eye / eye-off pair is
+                     the ball preview's one toggle (PreviewToggle). -->
                 <span>{{ visible ? "Dismiss" : "Reveal" }}</span>
-                <component :is="visible ? EyeOff : Eye" class="w-4 h-4" />
             </Button>
         </div>
 
@@ -168,7 +169,6 @@ import { computed, inject, useId } from "vue";
 // KF-KE-53's sweep at this file: subpaths, no root barrel.
 import { Button } from "@mkbabb/glass-ui/button";
 import { Card, CardHeader, CardTitle } from "@mkbabb/glass-ui/card";
-import { Eye, EyeOff } from "@lucide/vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
 import CopyButton from "@components/CopyButton/CopyButton.vue";
