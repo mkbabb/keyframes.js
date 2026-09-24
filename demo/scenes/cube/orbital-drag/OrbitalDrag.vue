@@ -64,10 +64,14 @@ const renderAxis = vec3.create(); // reused getAxisAngle out-param (zero-alloc)
 
 const containerStyle = computed(() => {
     if (!props.applyTransformToContainer) return {};
-    // `void …rotate.x` registers the reactive dep (syncRotationToModel writes it
-    // per rotation) so the computed re-runs, then renders ONE rotate3d() off the
+    // The Euler triple is the reactive dep (syncRotationToModel writes it per
+    // rotation) so the computed re-runs, then renders ONE rotate3d() off the
     // quaternion's NATIVE axis-angle — no Euler decompose, no Rx·Ry·Rz, no gimbal.
-    void model.value.rotate.x;
+    // All THREE components (KFA-33, X.KF.W13V.k): a pure yaw moves y/z and
+    // leaves x at 0, so an x-only dep froze the container through a horizontal
+    // drag and snapped it when the decomposition next flipped x.
+    const { rotate } = model.value;
+    void [rotate.x, rotate.y, rotate.z];
     const { translate, scale: s } = model.value;
     const angleDeg = quat.getAxisAngle(renderAxis, currentQuaternion) * (180 / Math.PI);
     return {

@@ -182,4 +182,14 @@ describe("orbital-rotate3d — the rotation OUTPUT renders as native rotate3d (G
             teardown?.();
         }
     });
+
+    // KFA-33 (X.KF.W13V.k) — a pure YAW moves only y (x stays 0). The render
+    // must follow every component of the triple, not x alone, or the container
+    // freezes through a horizontal drag and snaps when x next changes.
+    it("KFA-33 — a pure-yaw write re-renders the container (x unchanged)", async () => {
+        const transform = await renderedTransform({ x: 0, y: 40, z: 0 });
+        const parsed = parseRotate3d(transform);
+        expect(parsed).not.toBeNull();
+        expect(Math.abs(parsed!.rad / DEG2RAD)).toBeCloseTo(40, 3);
+    });
 });
