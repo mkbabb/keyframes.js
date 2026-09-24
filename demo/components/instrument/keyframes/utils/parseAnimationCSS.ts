@@ -37,8 +37,14 @@ export const parseAnimationCSS = async (input: string) => {
     const { resolveKeyframes, serializeTimingFunction } =
         await loadAnimationEngine();
     const resolved = resolveKeyframes(input);
+    // The editor is strict where the engine is lenient: a syntax issue AND a
+    // non-empty buffer that yields zero @keyframes rules (EMPTY_PARSE — a
+    // frame-less animation) both refuse adoption (UIA-KF-012; before, the
+    // latter was adopted and toasted as a successful parse).
     const parseIssue = resolved.diagnostics.find(
-        (diagnostic) => diagnostic.code === "PARSE_ERROR",
+        (diagnostic) =>
+            diagnostic.code === "PARSE_ERROR" ||
+            diagnostic.code === "EMPTY_PARSE",
     );
     if (parseIssue !== undefined) {
         throw new TypeError(`Invalid animation CSS: ${parseIssue.message}`);
