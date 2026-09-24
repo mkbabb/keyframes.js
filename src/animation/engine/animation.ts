@@ -81,11 +81,7 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     // write while the backing store is unified (the engine-internal hot path reads
     // `anim._playback.*` directly). `managed` stays a real field (ownership).
     get startTime(): number | undefined { return this._playback.startTime; }
-    /** An external anchor write supersedes any wrap-carried start (KFA-181). */
-    set startTime(v: number | undefined) {
-        this._playback.startTime = v;
-        this._playback.carriedStartTime = undefined;
-    }
+    set startTime(v: number | undefined) { this._playback.startTime = v; this._playback.carriedStartTime = undefined; }
     get pausedTime(): number { return this._playback.pausedTime; }
     set pausedTime(v: number) { this._playback.pausedTime = v; }
     get t(): number { return this._playback.t; }

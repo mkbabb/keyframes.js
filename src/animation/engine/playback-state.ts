@@ -43,7 +43,8 @@ export class PlaybackState {
     startTime: number | undefined = undefined;
     /** KFA-181 — the NEXT iteration's start on the absolute clock, carried
      *  across a non-final wrap (`previous start + duration`) so the overshoot
-     *  past the boundary is kept, never re-based at the next frame's clock. */
+     *  past the boundary is kept, never re-based at the next frame's clock.
+     *  Any external `startTime` write (the class setter) clears it. */
     carriedStartTime: number | undefined = undefined;
     pausedTime: number = 0;
     t: number = 0;
