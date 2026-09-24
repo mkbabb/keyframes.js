@@ -283,8 +283,11 @@ export function useTimingFunctionEditor(
      * literal, so the resolution reconciles nothing into the store. 64
      * samples keep a step's riser sub-pixel at the row's glyph size.
      */
+    /** The easing a catalogue key installs — the ONE resolution the
+     *  trigger's glyph and the easing picker's tile plots both read. */
+    const curveFnFor = (key: string) => resolveTimingFunction(key).easing;
     const curveGlyphPath = (key: string): string =>
-        generateCurveSVGPath(resolveTimingFunction(key).easing, 64);
+        generateCurveSVGPath(curveFnFor(key), 64);
 
     const updateTimingFunctionFromName = (keyOrLiteral: string) => {
         const { easing, literal } = resolveTimingFunction(keyOrLiteral);
@@ -386,5 +389,6 @@ export function useTimingFunctionEditor(
         setAnimationTimingFunction,
         updateTimingFunctionFromName,
         curveGlyphPath,
+        curveFnFor,
     };
 }

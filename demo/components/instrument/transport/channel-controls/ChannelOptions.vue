@@ -347,171 +347,55 @@
                                             <Pencil class="icon-sm" />
                                         </Button>
                                     </div>
-                                    <!-- I.W2.S3 — the dropdown's model-value is the
+                                    <!-- I.W2.S3 — the picker's model is the
                                          selected catalogue key (KF-CO-10), and the
                                          persist is the ONE seam
                                          (`updateTimingFunctionFromName`, which
                                          writes the COMPLETE re-parseable literal);
                                          KF-CO-23 — a pick routes through
-                                         `onCurvePicked`, so the two DRAFT-kind rows
-                                         open the editor they name.
-                                         T.E8 + OD-5 R2 — the bespoke EasingSelect
-                                         (and its tiny hand-plotted trigger-curve,
-                                         the rejected "top-left curve preview") died
-                                         with the instrument/easing cluster: this is
-                                         the standard glass-ui Select over the SAME
-                                         family-grouped named-curve catalogue; the
-                                         CURVE rendering now lives in the vendor
-                                         EasingPicker (detail panel) + the T.E6
-                                         gallery sparklines. -->
-                                    <Select
-                                        :model-value="selectedCurveKey"
-                                        @update:model-value="
-                                            (key) => onCurvePicked(String(key))
+                                         `onCurvePicked`, so the DRAFT-kind tile
+                                         opens the editor it names.
+                                         X.KF.W13W.p (OA-58) — the dropdown IS the
+                                         one easing picker: a glass Popover over
+                                         `EasingCatalogue`, the SAME body the
+                                         Easing scene's gallery renders (family
+                                         filter · divider · family sections · the
+                                         tile idiom, ball on the curve, name
+                                         whole, selection by ink + ring). The
+                                         Select listbox that listed the catalogue
+                                         as text rows is retired. It rides the
+                                         card's one-open-at-a-time mutex.
+                                         OA-28 / OA-31 (§0be · §0bg) — the closed
+                                         trigger shows the CURRENT curve: its glyph
+                                         (sampled from the easing the key installs,
+                                         `curveGlyphs`) and its NAME only; a key
+                                         that matches no tile shows the
+                                         placeholder. -->
+                                    <Popover
+                                        :open="isOpen('easing')"
+                                        @update:open="
+                                            (v: boolean) => setOpen('easing', v)
                                         "
                                     >
-                                        <SelectTrigger
-                                            class="col-start-2 min-w-0"
-                                            :aria-labelledby="easingLabelId"
-                                        >
-                                            <!-- OA-28 / OA-31 (§0be · §0bg) — the
-                                                 closed trigger shows the CURRENT
-                                                 curve: its glyph (sampled from the
-                                                 easing the key installs, the same
-                                                 `curveGlyphs` map every row reads)
-                                                 and its NAME only — the description
-                                                 never renders inline here. Drawn
-                                                 through the producer SelectValue's
-                                                 own default slot (`modelValue`); a
-                                                 key that matches no row (the
-                                                 poisoned-bucket case) keeps the
-                                                 producer's placeholder. -->
-                                            <SelectValue
-                                                v-slot="{ modelValue }"
-                                                :placeholder="CURVE_PLACEHOLDER"
+                                        <PopoverTrigger as-child>
+                                            <Button
+                                                emphasis="secondary"
+                                                class="col-start-2 w-full min-w-0
+                                                    justify-between"
+                                                :aria-labelledby="`${easingLabelId} ${easingValueId}`"
                                             >
                                                 <span
-                                                    v-if="
-                                                        curveGlyphs.has(
-                                                            String(modelValue),
-                                                        )
-                                                    "
-                                                    class="flex min-w-0
+                                                    :id="easingValueId"
+                                                    class="flex min-w-0 flex-1
                                                         items-center gap-1.5"
                                                 >
-                                                    <svg
-                                                        class="curve-glyph"
-                                                        viewBox="0 0 1 1"
-                                                        preserveAspectRatio="none"
-                                                        overflow="visible"
-                                                        aria-hidden="true"
+                                                    <template
+                                                        v-if="
+                                                            curveGlyphs.has(
+                                                                selectedCurveKey,
+                                                            )
+                                                        "
                                                     >
-                                                        <path
-                                                            :d="
-                                                                curveGlyphs.get(
-                                                                    String(
-                                                                        modelValue,
-                                                                    ),
-                                                                )
-                                                            "
-                                                            vector-effect="non-scaling-stroke"
-                                                        />
-                                                    </svg>
-                                                    <span
-                                                        data-register="code"
-                                                        class="truncate font-mono"
-                                                        >{{ modelValue }}</span
-                                                    >
-                                                </span>
-                                                <template v-else>{{
-                                                    CURVE_PLACEHOLDER
-                                                }}</template>
-                                            </SelectValue>
-                                        </SelectTrigger>
-                                    <SelectContent
-                                        class="max-h-[var(--easing-dropdown-max-h)]"
-                                    >
-                                        <template
-                                            v-for="(group, gi) in EASING_GROUPS"
-                                            :key="group.family"
-                                        >
-                                            <SelectSeparator v-if="gi > 0" />
-                                            <SelectGroup>
-                                                <!-- KF-CO-25 + KF-CO-30, one register
-                                                     pass for the card (W6-G). The
-                                                     family heading wore the 10px
-                                                     admin-chip register inside a
-                                                     dropdown whose items render at
-                                                     the dropdown rung, and its
-                                                     horizontal padding was inert
-                                                     against the primitive's own
-                                                     `pl-8` (the `cn` merge keys
-                                                     padding-x and padding-left as
-                                                     separate groups). A group label
-                                                     is a UI label (role (d)): it
-                                                     takes SelectLabel's shipped
-                                                     register and keeps only the
-                                                     muted ink. -->
-                                                <SelectLabel class="text-muted-foreground">
-                                                    {{ group.family }}
-                                                </SelectLabel>
-                                                <!-- KF-CO-6 — `text-value` is what
-                                                     the closed trigger PRINTS
-                                                     (reka publishes the item's
-                                                     textContent otherwise, so the
-                                                     trigger read the run-on
-                                                     `ease-in-outslow start & end`).
-                                                     The name alone is the value. -->
-                                                <SelectItem
-                                                    v-for="curveItem in group.items"
-                                                    :key="curveItem.name"
-                                                    :value="curveItem.name"
-                                                    :text-value="curveItem.name"
-                                                    :aria-describedby="curveDescriptionId(curveItem.name)"
-                                                    class="pe-2"
-                                                >
-                                                    <span
-                                                        class="flex w-full
-                                                            min-w-0 items-center
-                                                            gap-1.5"
-                                                    >
-                                                        <!-- KF-CO-30 — the curve NAME
-                                                             is a code identifier
-                                                             (role (b): mono,
-                                                             case-preserving, marked
-                                                             for the census); the
-                                                             DESCRIPTION is UI prose
-                                                             (role (d): the dropdown's
-                                                             secondary text rung).
-                                                             Both carried a case-
-                                                             cancel utility that
-                                                             cancelled NOTHING —
-                                                             nothing in this portalled
-                                                             subtree or the installed
-                                                             producer sets a
-                                                             transform on select
-                                                             items (measured: the only
-                                                             producer uppercase rules
-                                                             are the timeline
-                                                             popover's) — so the
-                                                             inert pair is retired
-                                                             rather than paired
-                                                             (MM-29: a case cancel
-                                                             that survives must pair
-                                                             its tracking cancel; one
-                                                             that cancels nothing is
-                                                             removed, and G-W6-8's
-                                                             census reads two sites
-                                                             fewer). -->
-                                                        <!-- OA-7 — the row's curve
-                                                             glyph, plotted from the
-                                                             easing the row installs
-                                                             (never a sprite); one
-                                                             text line tall, 3:2,
-                                                             drawn in the row's ink.
-                                                             Back curves overshoot
-                                                             the unit box, so the
-                                                             svg paints its overflow. -->
                                                         <svg
                                                             class="curve-glyph"
                                                             viewBox="0 0 1 1"
@@ -522,7 +406,7 @@
                                                             <path
                                                                 :d="
                                                                     curveGlyphs.get(
-                                                                        curveItem.name,
+                                                                        selectedCurveKey,
                                                                     )
                                                                 "
                                                                 vector-effect="non-scaling-stroke"
@@ -530,44 +414,43 @@
                                                         </svg>
                                                         <span
                                                             data-register="code"
-                                                            class="font-mono"
-                                                            >{{
-                                                                curveItem.name
-                                                            }}</span
-                                                        >
-                                                    </span>
-                                                    <!-- OA-28 / OA-31 — the
-                                                         description rides the
-                                                         producer SelectItem's own
-                                                         `description` slot: OUTSIDE
-                                                         its SelectItemText, so the
-                                                         item's registered label is
-                                                         the NAME alone, and on its
-                                                         own secondary line (visual
-                                                         separation). It is the
-                                                         option's accessible
-                                                         DESCRIPTION, not part of its
-                                                         name: aria-hidden here and
-                                                         referenced by the item's
-                                                         aria-describedby. -->
-                                                    <template #description>
-                                                        <span
-                                                            :id="curveDescriptionId(curveItem.name)"
-                                                            aria-hidden="true"
-                                                            class="text-dropdown-secondary
-                                                                text-muted-foreground
-                                                                leading-tight
-                                                                whitespace-nowrap"
-                                                            >{{
-                                                                curveItem.description
-                                                            }}</span
+                                                            class="truncate font-mono"
+                                                            >{{ selectedCurveKey }}</span
                                                         >
                                                     </template>
-                                                </SelectItem>
-                                            </SelectGroup>
-                                        </template>
-                                    </SelectContent>
-                                </Select>
+                                                    <template v-else>{{
+                                                        CURVE_PLACEHOLDER
+                                                    }}</template>
+                                                </span>
+                                                <ChevronDown
+                                                    class="icon-sm shrink-0 opacity-60"
+                                                    aria-hidden="true"
+                                                />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent
+                                            align="start"
+                                            aria-label="Easing curves"
+                                            class="flex
+                                                w-[min(26rem,calc(100vw-2rem))]
+                                                max-h-[var(--easing-dropdown-max-h)]
+                                                flex-col"
+                                        >
+                                            <EasingCatalogue
+                                                class="min-h-0 flex-1"
+                                                density="menu"
+                                                :model-value="
+                                                    curveGlyphs.has(selectedCurveKey)
+                                                        ? selectedCurveKey
+                                                        : null
+                                                "
+                                                :groups="EASING_GROUPS"
+                                                :curve-for="curveFnFor"
+                                                label="Easing curves"
+                                                @update:model-value="onEasingPick"
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
 
@@ -749,16 +632,20 @@ import {
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
-    SelectSeparator,
     SelectTrigger,
     SelectValue,
     Separator,
 } from "@mkbabb/glass-ui";
 import { LabeledField, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 import { Label } from "@mkbabb/glass-ui/label";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@mkbabb/glass-ui/popover";
 
-import { ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
+import { ChevronDown, ChevronRight, ArrowLeft, Pencil } from "@lucide/vue";
+import EasingCatalogue from "@components/EasingCatalogue/EasingCatalogue.vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
 import type { EasingPickerValue } from "@mkbabb/glass-ui/easing";
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
@@ -766,8 +653,8 @@ import LayerConfigPanel from "./LayerConfigPanel.vue";
 import { useAnimationSync } from "./composables/useAnimationSync";
 import { usePlaybackToggle } from "./composables/usePlaybackToggle";
 import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
-// T.E8 — the named-curve catalogue (the thin name→family data adapter the
-// deleted EasingSelect consumed; the easing scene co-owns it).
+// T.E8 — the named-curve catalogue (the thin name→family data adapter the one
+// easing picker renders; the easing scene co-owns it).
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 
 // L·N-16 — `Teleport` is a built-in the template compiler resolves; it is not
@@ -824,6 +711,7 @@ const {
     exitDetailPanel,
     updateTimingFunctionFromName,
     curveGlyphPath,
+    curveFnFor,
 } = useTimingFunctionEditor(() => props.animation, storedAnimationOptions);
 
 // X.KF.W13T.k3 · ESC-k2-1 (§0ar) — this card HOLDS the stored-options key
@@ -856,15 +744,12 @@ const curveGlyphs = computed(
 );
 
 // KF-CO-21 / KF-CO-26 — the ids the hand-rolled label row and the advanced
-// disclosure wire their ARIA relations through (SSR-stable, per instance).
+// disclosure wire their ARIA relations through (SSR-stable, per instance). The
+// easing trigger is named by the label AND its current value (label + value,
+// the way a Select trigger announces).
 const easingLabelId = useId();
-// OA-28 / OA-31 — each picker row's description element id (the row's
-// aria-describedby target), per instance: the card mounts once per layout seat.
-const curveDescriptionIdBase = useId();
-const curveDescriptionId = (name: string): string =>
-    `${curveDescriptionIdBase}-desc-${name}`;
-// The trigger's placeholder, read by the producer prop AND by the slot's
-// no-match arm (a slot replaces the producer's own placeholder fallback).
+const easingValueId = useId();
+// The trigger's placeholder (a stored key that matches no catalogue tile).
 const CURVE_PLACEHOLDER = "Pick a curve";
 const advancedPaneId = useId();
 
@@ -950,6 +835,13 @@ const closeAdvanced = async () => {
     advancedRowEl.value?.focus();
 };
 
+// X.KF.W13W.p — a tile pick from the easing picker: the one persist seam, then
+// the popover closes (a pick is a commit, as a Select item's is).
+const onEasingPick = (name: string): void => {
+    onCurvePicked(name);
+    setOpen("easing", false);
+};
+
 // Exclusive select mutex: only one dropdown open at a time
 const openSelect = ref<string | null>(null);
 const isOpen = (name: string) => openSelect.value === name;
@@ -1007,8 +899,8 @@ const { DIRECTIONS: directions, FILL_MODES: fillModes } = kfEngine();
 </script>
 
 <style scoped>
-/* OA-7 — the picker row's curve glyph: sized to the row's text line (em, so it
-   follows the dropdown rung), inked by the row's own colour. */
+/* OA-7 / OA-31 — the easing trigger's curve glyph: sized to its text line (em),
+   inked by the trigger's own colour. */
 .curve-glyph {
     flex: none;
     width: 1.5em;

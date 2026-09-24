@@ -166,6 +166,23 @@ vi.mock("@mkbabb/glass-ui/number-field", () => ({
     }),
 }));
 
+/** X.KF.W13W.p (OA-58) — the easing dropdown is a glass Popover over the ONE
+ *  easing picker (`EasingCatalogue`). Stubbed at its own seam the way the
+ *  Select members are: the content renders unconditionally, so the picker's
+ *  tiles are read off a real mount of the catalogue without driving a portal. */
+vi.mock("@mkbabb/glass-ui/popover", () => ({
+    Popover: passthrough("PopoverStub"),
+    PopoverTrigger: passthrough("PopoverTriggerStub"),
+    PopoverContent: passthrough("PopoverContentStub"),
+}));
+/** The picker's family filter (glass `SegmentedTabs`) is not this gate's
+ *  subject (its hierarchy is easing-picker-hierarchy.test.ts's, on a real
+ *  mount); stubbed at its seam like every other glass member on this path —
+ *  under this harness's zero-geometry jsdom its indicator measurement turns
+ *  each mount from ~1 s into ~50 s. */
+vi.mock("@mkbabb/glass-ui/tabs", () => ({
+    SegmentedTabs: passthrough("SegmentedTabsStub"),
+}));
 vi.mock("@mkbabb/glass-ui/sheet", () => ({
     SheetContent: passthrough("SheetContentStub"),
 }));
@@ -524,7 +541,7 @@ describe("X.KF.W13T.e · OA-7 (§0ao.1) — every easing-picker row draws its cu
         const { EASING_GROUPS } = await import(
             "../../../demo/utils/reference-data/easingGroups"
         );
-        const { generateCurveSVGPath, namedEasing, steppedEasing } = await import(
+        const { namedEasing, steppedEasing } = await import(
             "../../../demo/utils/reference-data/timingCurveUtils"
         );
         const { wrapper } = mountPane();
@@ -532,28 +549,33 @@ describe("X.KF.W13T.e · OA-7 (§0ao.1) — every easing-picker row draws its cu
             await settle();
             const names = EASING_GROUPS.flatMap((g) => g.items.map((i) => i.name));
             expect(names).toHaveLength(29);
-            // One curve Select per mounted ChannelOptions (the pane mounts the
-            // card once per layout seat): each must list every row with a glyph.
-            const pickers = [...document.querySelectorAll('[data-stub="SelectStub"]')].filter(
-                (sel) => sel.querySelector("svg.curve-glyph") !== null,
+            // X.KF.W13W.p — re-seated from the retired Select rows onto the ONE
+            // easing picker's tiles: one picker per mounted ChannelOptions (the
+            // pane mounts the card once per layout seat), each listing every
+            // row, each row's stroke the plot of the easing it installs.
+            const { curvePlot, unitEasingFrame } = await import(
+                "../../../demo/utils/curvePlot"
             );
+            const pickers = [
+                ...document.querySelectorAll('[data-stub="PopoverContentStub"] [data-easing-catalogue]'),
+            ];
             expect(pickers.length).toBeGreaterThan(0);
             for (const picker of pickers) {
-                const rows = [...picker.querySelectorAll('[data-stub="SelectItemStub"]')];
+                const rows = [...picker.querySelectorAll(".specimen-tile")];
                 const glyph = new Map(
                     rows.map((row) => [
                         row.querySelector('[data-register="code"]')?.textContent?.trim(),
-                        row.querySelector("svg.curve-glyph path")?.getAttribute("d") ?? "",
+                        row.querySelector(".tile-sparkline path")?.getAttribute("d") ?? "",
                     ]),
                 );
                 expect([...glyph.keys()]).toEqual(names);
                 for (const d of glyph.values()) expect(d).toMatch(/^M /);
                 // The glyph IS the function the row installs, never a sprite.
                 expect(glyph.get("ease-out-back")).toBe(
-                    generateCurveSVGPath(namedEasing("ease-out-back"), 64),
+                    curvePlot(namedEasing("ease-out-back"), unitEasingFrame()).d,
                 );
                 expect(glyph.get("step-end")).toBe(
-                    generateCurveSVGPath(steppedEasing(1, "jump-end"), 64),
+                    curvePlot(steppedEasing(1, "jump-end"), unitEasingFrame()).d,
                 );
             }
         } finally {
@@ -604,11 +626,20 @@ describe("X.KF.W13U.e · OA-28 / OA-31 (§0be · §0bg) — the trigger shows th
         try {
             await settle();
             const stored = getStoredAnimationOptions(a);
-            const picker = [...document.querySelectorAll('[data-stub="SelectStub"]')].find(
-                (sel) => sel.querySelector("svg.curve-glyph") !== null,
+            // X.KF.W13W.p — re-seated from the retired Select onto the popover
+            // over the ONE easing picker: the trigger is the popover's button,
+            // the rows are the picker's tiles.
+            const { curvePlot, unitEasingFrame } = await import(
+                "../../../demo/utils/curvePlot"
+            );
+            const host = [...document.querySelectorAll('[data-stub="PopoverStub"]')].find(
+                (el) => el.querySelector("svg.curve-glyph") !== null,
             )!;
-            expect(picker).toBeDefined();
-            const trigger = () => picker.querySelector('[data-stub="SelectValueStub"]')!;
+            expect(host).toBeDefined();
+            const picker = host.querySelector("[data-easing-catalogue]")!;
+            expect(picker).not.toBeNull();
+            const trigger = () =>
+                host.querySelector("svg.curve-glyph")!.closest("button")!;
             const readTrigger = () => ({
                 text: trigger().textContent?.trim(),
                 d: trigger().querySelector("svg.curve-glyph path")?.getAttribute("d") ?? "",
@@ -633,10 +664,10 @@ describe("X.KF.W13U.e · OA-28 / OA-31 (§0be · §0bg) — the trigger shows th
 
             // A pick through the producer's model edge re-draws the trigger from
             // the newly installed engine easing.
-            const selectVm = wrapper
-                .findAllComponents(selectStub)
-                .find((c) => c.element === picker)!;
-            selectVm.vm.$emit("update:modelValue", "ease-out-back");
+            const tile = [...picker.querySelectorAll<HTMLElement>(".specimen-tile")].find(
+                (t) => t.querySelector(".tile-name")?.textContent?.trim() === "ease-out-back",
+            )!;
+            tile.click();
             await settle();
             t0 = readTrigger();
             expect(t0.text).toBe("ease-out-back");
@@ -645,7 +676,7 @@ describe("X.KF.W13U.e · OA-28 / OA-31 (§0be · §0bg) — the trigger shows th
             expectGlyphTrue(t0.d, unwrap(easing("ease-out-back")), "trigger vs registry");
 
             // Every row: its own curve, sampled from the easing it names.
-            const rows = [...picker.querySelectorAll('[data-stub="SelectItemStub"]')];
+            const rows = [...picker.querySelectorAll(".specimen-tile")];
             const items = EASING_GROUPS.flatMap((g) => g.items);
             expect(rows).toHaveLength(items.length);
             const truthFor = (name: string): ((t: number) => number) => {
@@ -662,15 +693,19 @@ describe("X.KF.W13U.e · OA-28 / OA-31 (§0be · §0bg) — the trigger shows th
             const ds = new Set<string>();
             rows.forEach((row, i) => {
                 const item = items[i]!;
-                const d = row.querySelector("svg.curve-glyph path")?.getAttribute("d") ?? "";
-                expectGlyphTrue(d, truthFor(item.name), `row ${item.name}`);
+                // The tile's stroke is the plot of the function the row
+                // installs — sampled here from the registry's own easing, fed
+                // through the one plot primitive (its (t, f(t)) truth is
+                // ball-on-curve.test.ts's).
+                const d = row.querySelector(".tile-sparkline path")?.getAttribute("d") ?? "";
+                expect(d, `row ${item.name}`).toBe(
+                    curvePlot(truthFor(item.name), unitEasingFrame()).d,
+                );
                 ds.add(d);
-                // The item text (what the producer registers as the label) is
-                // the NAME alone; the description is its own element, hidden
-                // from the name and wired as the option's description.
-                expect(
-                    row.querySelector('[data-stub="SelectItemTextStub"]')?.textContent?.trim(),
-                ).toBe(item.name);
+                // The tile's visible text is the NAME alone; the description
+                // is its own element, hidden from the name and wired as the
+                // option's description.
+                expect(row.querySelector(".tile-name")?.textContent?.trim()).toBe(item.name);
                 const describedBy = row.getAttribute("aria-describedby");
                 expect(describedBy).toBeTruthy();
                 const desc = document.getElementById(describedBy!);

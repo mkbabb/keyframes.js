@@ -35,7 +35,7 @@
     --target-viewport-h: 30cqb; /* h-[var(--target-viewport-h)] cube-target loader height */
     --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width */
     --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track inset — 1.5rem each side */
-    --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing SelectContent cap */
+    --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing picker popover cap */
     /* X.KF.W13V.s (OA-39) — the phone LANDING is ONE centred column: the idle
        cube centred in the stage (the region between the top dock band and the
        transport band), the headline stacked ABOVE it and the deck BELOW it,

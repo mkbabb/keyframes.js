@@ -16,9 +16,8 @@
     >
         <!-- Header: the selected specimen PROMOTED. Left — the curve name at
              the Instrument-Serif display rung + its COMPLETE re-parseable
-             literal (Fira Code + CopyButton, never truncated). Right — the
-             QUIET family filter (a single-select ToggleGroup replacing the
-             former view-mode Select). -->
+             literal (Fira Code + CopyButton, never truncated). The family filter
+             lives in the catalogue below (X.KF.W13W.p). -->
         <header class="gallery-header shrink-0">
             <div class="gallery-id">
                 <Transition name="specimen-name" mode="out-in">
@@ -44,187 +43,52 @@
                     <CopyButton :text="literal" label="Copy easing literal" />
                 </span>
             </div>
-            <FadingScroll axis="x" class="family-filter">
-                <!-- The owned max-content row: the vendor group centers its
-                     content, and a CENTERED overflow strands its left edge
-                     past the scroll origin ("All" unreachable on phones).
-                     Sizing the row to its content removes the overflow
-                     condition instead of reaching into the vendor root
-                     (BG-12 — the strip posture is lettered to glass-ui). -->
-                <div class="family-row">
-                    <ToggleGroup
-                        type="single"
-                        size="sm"
-                        :model-value="familyFilter"
-                        aria-label="Filter curves by family"
-                        @update:model-value="onFamilyChange"
-                    >
-                        <ToggleGroupItem
-                            v-for="f in FAMILY_FILTERS"
-                            :key="f"
-                            :value="f"
-                        >
-                            {{ f }}
-                        </ToggleGroupItem>
-                    </ToggleGroup>
-                </div>
-            </FadingScroll>
         </header>
 
-        <!-- The drawer: a responsive specimen grid inside FadingScroll. Upper
-             region of each tile: the static sparkline portrait + the ball
-             riding it (the shared registerDotPainter seam — direct
-             style.transform writes, OFF the Vue render graph). Lower region:
-             the curve name, room to breathe, no truncation at the 150px floor.
-
-             KF-ET-10 (W6-I, I-35 R-9 — `ChipGroup` DECLINED by the producer,
-             the reshell is the cure): the 28 tiles are ONE `ToggleGroup
-             type="single"` — the same primitive the family filter above
-             already uses in this file — so the selected curve is the group's
-             model (the hand-rolled single-select invariant and its 28
-             independent `Chip mode="selectable"` booleans are gone), the grid
-             is ONE tab stop with the arrows roving inside it (reka's roving
-             focus, 28 stops → 1), and every tile is a real `<button
-             aria-pressed>` with `data-state="on|off"`, which is what the
-             demo's own pressed-paint rules (`.specimen-tile[data-state="on"]`)
-             key on. The producer's 7.0.0 caveats, each answered here: the
-             `type="single"` track paint is reset on the grid (the scoped
-             block at the foot of this file, an INTERIM demo override of a
-             glass-owned cascade in the KF-KC-10 shape — the grid is not a
-             segmented control and must not wear a track); `chipVariants` is
-             NOT composed onto the items — at 7.0.0 its `.glass-chip*` hooks
-             live only in a sheet no entry imports, and its `glass-capsule`
-             base IS the floating-tier plate KF-ET-21 convicts.
-
-             KF-ET-21 ≡ KF-ES-21 (the ONE glass-TIER decision, §Sequencing 8;
-             `.b` §2.6): THE HOST FLOATS, ITS CONTENTS DO NOT. The stage Card
-             is the one glass plate on this axis; the 28 tiles inside a
-             `mask-image` scroller are `data-surface="opaque"` — the
-             producer's loaded surface axis (`surface-axis.css`: no
-             backdrop-filter, the card ground, tint 0) — so 28 concurrent
-             `backdrop-filter`s collapse to zero. The sidebar's stack was
-             DECLARED here as the ruling's second site, split between
-             `EasingScene.vue` and `EasingSidebar.vue`; unit `.k` holds the
-             former and RESOLVED it by measurement: `EasingScene.vue` mounts no
-             glass surface at all — no `Card`, no `tier`, no `surface`, no
-             `data-surface`, not one glass-ui import — so the tier decision has
-             NO byte to spend there and none was invented to look busy. The
-             whole of the second site is `EasingSidebar.vue`, which is in no
-             owed unit's writable set: ESCALATED to seat 0 with the decision
-             already made (host floats, contents do not), so the receiving seat
-             applies a ruling rather than re-taking one. -->
-        <FadingScroll axis="y" class="specimen-drawer min-h-0 w-full flex-1">
-            <ToggleGroup
-                type="single"
-                size="sm"
-                class="specimen-grid"
-                aria-label="Easing curve specimens"
-                :model-value="demo.currentEasingName.value"
-                @update:model-value="onTileSelect"
-            >
-                <ToggleGroupItem
-                    v-for="curve in visibleCurves"
-                    :key="curve.name"
-                    :value="curve.name"
-                    :title="curve.name"
-                    data-surface="opaque"
-                    class="specimen-tile flex-col gap-1.5 px-2 py-2.5"
-                >
-                    <span class="tile-stage" aria-hidden="true">
-                        <!-- X.KF.W13W.b (OA-56) — the plot box: the sparkline
-                             and the ball's carriage share it, and both read ONE
-                             plot (curvePlot): the stroke is `plot.d`, the ball is
-                             `plot.place(phase)`. No rail. -->
-                        <span class="tile-plot">
-                            <svg
-                                class="tile-sparkline"
-                                :viewBox="curve.plot.viewBox"
-                                preserveAspectRatio="none"
-                            >
-                                <path
-                                    :d="curve.plot.d"
-                                    vector-effect="non-scaling-stroke"
-                                />
-                            </svg>
-                            <span
-                                ref="tileCarriageEls"
-                                class="curve-carriage tile-carriage"
-                                :data-curve="curve.name"
-                                :style="{ '--curve-rest': curve.plot.place(0) }"
-                            >
-                                <span
-                                    class="curve-ball tile-ball"
-                                    :data-curve="curve.name"
-                                ></span>
-                            </span>
-                        </span>
-                    </span>
-                    <span
-                        class="tile-name text-mono-caption"
-                        data-register="code"
-                    >
-                        {{ curve.name }}
-                    </span>
-                </ToggleGroupItem>
-            </ToggleGroup>
-        </FadingScroll>
+        <!-- X.KF.W13W.p (OA-58) — the drawer IS the one easing picker
+             (`EasingCatalogue`): the family filter (one glass segmented control),
+             the divider, the per-family sections and the tile idiom (curve + its
+             ball ON the curve, the name beneath, never truncated; selection by
+             ink + ring) all live there, shared with the Controls pane's easing
+             dropdown. This stage hands it the scene's ONE sweep clock, so every
+             ball departs together and arrives per its curve. The tiles are
+             `data-surface="opaque"` inside this one glass plate (KF-ET-21: the
+             host floats, its contents do not). -->
+        <EasingCatalogue
+            class="min-h-0 w-full flex-1"
+            :model-value="demo.currentEasingName.value"
+            :groups="SPECIMEN_GROUPS"
+            :curve-for="fnForCurve"
+            :clock="clock"
+            label="Easing curve specimens"
+            @update:model-value="onPick"
+        />
     </Card>
 </template>
 
 <script setup lang="ts">
-import {
-    computed,
-    inject,
-    nextTick,
-    onMounted,
-    onScopeDispose,
-    ref,
-    useTemplateRef,
-    watch,
-} from "vue";
-import { useMediaQuery } from "@vueuse/core";
+import { computed, inject } from "vue";
 import { Card } from "@mkbabb/glass-ui";
-import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
-import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 import CopyButton from "@components/CopyButton/CopyButton.vue";
+import EasingCatalogue, {
+    type CatalogueClock,
+} from "@components/EasingCatalogue/EasingCatalogue.vue";
 import {
     namedEasing,
     steppedEasing,
 } from "@utils/reference-data/timingCurveUtils";
-import { curvePlot, unitEasingFrame, type CurvePlot } from "@utils/curvePlot";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
 const demo = inject(EASING_DEMO_KEY)!;
 
-// ── The family filter (All · Standard · Sine · … · Back · Bounce · Steps) ──
-// Replaces the former unlabeled "Singular/All" view-mode Select. "Custom"
-// (the bare cubic-bezier editor affordance) is a SIDEBAR concern (T.E8's
-// EasingPicker), not a specimen — it carries no tile and no filter entry.
+// "Custom" (the bare cubic-bezier editor affordance) is a SIDEBAR concern (the
+// EasingPicker editor), not a specimen — it carries no tile and no filter entry.
 const SPECIMEN_GROUPS = EASING_GROUPS.filter((g) => g.family !== "Custom");
-const FAMILY_FILTERS = ["All", ...SPECIMEN_GROUPS.map((g) => g.family)];
 
-const familyFilter = ref("All");
-// The ToggleGroup emits its item value (a family name string here) — typed
-// structurally so the demo never reaches for the headless reka basis (G.W12.S4).
-type ToggleValue =
-    | string
-    | number
-    | bigint
-    | boolean
-    | Record<string, unknown>
-    | null
-    | undefined;
-const onFamilyChange = (v: ToggleValue | ToggleValue[]) => {
-    // Single-select, never empty: ignore the deselect-toggle (clicking the
-    // pressed filter keeps it pressed) — a filter is always in force.
-    if (typeof v === "string" && v.length) familyFilter.value = v;
-};
-
-// ── The specimen set ───────────────────────────────────────────────
 // Every named curve is a tile. Parameterized entries get honest static
 // defaults ("steps" = the 4-step staircase; the selected curve's live
 // parameters ride the header literal + the sidebar editor, not the tile).
@@ -233,48 +97,18 @@ const fnForCurve = (name: string): TimingFunction => {
     return namedEasing(name);
 };
 
-interface SpecimenCurve {
-    name: string;
-    fn: TimingFunction;
-    /** X.KF.W13W.b — the tile's ONE plot: its stroke and its ball. */
-    plot: CurvePlot;
-}
-
-// One plot per curve name (the tiles' functions are static portraits).
-const TILE_FRAME = unitEasingFrame();
-const plotCache = new Map<string, CurvePlot>();
-const plotForCurve = (name: string): CurvePlot => {
-    let plot = plotCache.get(name);
-    if (!plot) {
-        plot = curvePlot(fnForCurve(name), TILE_FRAME);
-        plotCache.set(name, plot);
-    }
-    return plot;
+// The scene's ONE sweep clock: the catalogue's painter registers on the demo's
+// registerDotPainter seam (I.W4 D4) and repaints through it.
+const clock: CatalogueClock = {
+    register: (paint) => demo.registerDotPainter(paint),
+    repaint: () => demo.repaintDots(),
 };
 
-const visibleCurves = computed<SpecimenCurve[]>(() => {
-    const groups =
-        familyFilter.value === "All"
-            ? SPECIMEN_GROUPS
-            : SPECIMEN_GROUPS.filter((g) => g.family === familyFilter.value);
-    return groups.flatMap((g) =>
-        g.items.map((item) => ({
-            name: item.name,
-            fn: fnForCurve(item.name),
-            plot: plotForCurve(item.name),
-        })),
-    );
-});
-
-// ── Selection: the tile press IS the curve selection ───────────────
-// The group emits its item value (a curve name) — or an empty value when the
-// pressed tile is pressed again. Single-select, never empty: the deselect
-// toggle is ignored (the controlled :model-value keeps the tile pressed — a
-// curve is always selected), the same shape as the family filter above.
-const onTileSelect = (v: ToggleValue | ToggleValue[]) => {
-    const tile = SPECIMEN_GROUPS.flatMap((g) => g.items).find(
-        (i) => i.name === v,
-    );
+// The tile press IS the curve selection (a name the catalogue emits is
+// narrowed back to the scene's contract through the specimen set).
+const SPECIMENS = SPECIMEN_GROUPS.flatMap((g) => g.items);
+const onPick = (name: string) => {
+    const tile = SPECIMENS.find((i) => i.name === name);
     if (tile) demo.selectEasing(tile.name);
 };
 
@@ -291,124 +125,6 @@ const literal = computed<string>(() => {
     // the name IS the literal — value.js round-trips it by registry lookup.
     return name;
 });
-
-// ── The tile painter: ONE shared clock, direct transform writes ─────
-// The demo's registerDotPainter seam survives (I.W4 D4): the sweep loop calls
-// the painter imperatively each frame with the live raw phase; the painter
-// walks a DOM snapshot and writes style.transform ONLY — zero per-frame
-// filter/layout writes, zero Vue re-renders. All balls read the SAME phase:
-// the departure is simultaneous by construction.
-// X.KF.W13W.b (OA-56) — THE BALL RIDES THE CURVE. Each tile's carriage spans
-// its sparkline's own box, and the painter writes `plot.place(phase)`: the point
-// (phase, fn(phase)) of the SAME plot that drew the stroke — overshoot followed
-// beyond the band, steps jumping with the stroke's risers. `translate()`
-// percentages resolve against the carriage (= the plot box), so no width is
-// read and no resize observer is owed (the former rail-width measure and its
-// observer — OA-9's `railStage` — are retired with the rail).
-const tileCarriageEls = useTemplateRef<HTMLElement[]>("tileCarriageEls");
-
-const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
-
-type TileEntry = {
-    el: HTMLElement;
-    stage: HTMLElement | null;
-    plot: CurvePlot;
-};
-let tileSnapshot: TileEntry[] = [];
-
-// IntersectionObserver gates the paint walk: off-screen tiles (the drawer
-// scrolls) take no transform writes; a tile scrolling back in snaps to the
-// live phase on the next observer tick.
-const visibleStages = new Set<Element>();
-let io: IntersectionObserver | null = null;
-
-const paintTileDots = (phase: number) => {
-    for (const { el, stage, plot } of tileSnapshot) {
-        if (stage && !visibleStages.has(stage)) continue;
-        el.style.transform = plot.place(phase);
-    }
-};
-
-// Reduced motion: no sweep — every ball RESTS on its curve at the end state
-// (t = 1), and the sparklines ARE the preview (the portrait carries the curve).
-const paintRestState = () => {
-    for (const { el, plot } of tileSnapshot) {
-        el.style.transform = plot.place(1);
-    }
-};
-
-let unregisterPainter: (() => void) | null = null;
-const wirePainter = async () => {
-    await nextTick(); // the new filter's tiles must be in the DOM first
-    unregisterPainter?.();
-    unregisterPainter = null;
-    io?.disconnect();
-    visibleStages.clear();
-    // Snapshot keyed by data-curve (NOT v-for index — ref arrays carry no
-    // order guarantee); stage = the tile's stage (the IO target).
-    tileSnapshot = (tileCarriageEls.value ?? []).map((el) => ({
-        el,
-        stage: el.closest<HTMLElement>(".tile-stage"),
-        plot: plotForCurve(el.dataset.curve ?? ""),
-    }));
-    io = new IntersectionObserver(
-        (entries) => {
-            for (const e of entries) {
-                if (e.isIntersecting) visibleStages.add(e.target);
-                else visibleStages.delete(e.target);
-            }
-            // Newly-visible tiles snap to the live phase at once.
-            if (!reducedMotion.value) demo.repaintDots();
-        },
-        { rootMargin: "25% 0px" },
-    );
-    for (const { stage } of tileSnapshot) if (stage) io.observe(stage);
-    if (reducedMotion.value) {
-        paintRestState();
-        return;
-    }
-    // registerDotPainter paints once on register — a paused scene shows the
-    // correct rest position immediately.
-    unregisterPainter = demo.registerDotPainter(paintTileDots);
-};
-
-onMounted(() => wirePainter());
-onScopeDispose(() => {
-    unregisterPainter?.();
-    io?.disconnect();
-});
-
-watch(visibleCurves, () => wirePainter());
-watch(reducedMotion, () => wirePainter());
-// A selection change needs no re-wire (tile fns are static portraits) — but
-// the pressed-state render must not strand a paused ball: repaint at the live
-// phase so the drawer stays coherent under scrub.
-watch(
-    () => demo.currentEasingName.value,
-    () => {
-        if (!reducedMotion.value) demo.repaintDots();
-    },
-);
 </script>
 
 <style scoped src="./EasingTarget.css"></style>
-
-<style scoped>
-/* KF-ET-10 (W6-I) — INTERIM, demo-side, unlayered by being scoped (the
-   KF-KC-10 + MM-4 shape: a glass-owned cascade overridden at the consumer
-   without `:deep`, until the producer ships the switch). At 7.0.0
-   `.toggle-group[data-type="single"]` paints a quiet blurred TRACK — padding,
-   pill radius, `--glass-bg-quiet`, backdrop-filter, rim shadows — designed
-   for a segmented control, and the specimen grid is a ToggleGroup only for
-   its selection model and roving focus, never for that plate. The track is
-   reset here; the grid's own geometry (display, columns, gap, padding) stays
-   in EasingTarget.css, whose scoped rules already outrank the track's. The
-   producer ask (a track opt-out on `ToggleGroup`) rides the wave's mail. */
-.specimen-grid {
-    border-radius: 0;
-    background: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: none;
-}
-</style>
