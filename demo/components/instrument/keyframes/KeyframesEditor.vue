@@ -244,13 +244,17 @@
                  reasoning): the bar measures nothing, so its progress
                  semantics are deleted (`aria-hidden` decorative chrome) and
                  the brush-sweep animation is kept. KAD-15's form at this twin
-                 too: rest at zero, `scaleX()` from the inline start. -->
+                 too: rest at zero, `scaleX()` from the inline start.
+                 KFA-15 (X.KF.W13V.k): the rest is ON `transform` (the sweep's
+                 own property) — Tailwind 4's `scale-x-0` is the INDIVIDUAL
+                 `scale: 0 1`, which multiplied the animated transform by zero
+                 so the sweep never showed. -->
             <!-- KF-KE-38: `sticky bottom` is gone — `bottom` is no utility at
                  all and `sticky` on a grid item with nothing to stick to was
                  inert; the bar is a plain grid row. -->
             <div
                 ref="progressBarKeyframesEl"
-                class="progress-bar origin-left rtl:origin-right scale-x-0"
+                class="progress-bar origin-left rtl:origin-right [transform:scaleX(0)]"
                 aria-hidden="true"
             ></div>
         </div>

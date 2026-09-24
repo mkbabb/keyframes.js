@@ -42,13 +42,15 @@
                  chrome, the demo's own brush-sweep flourish — and the
                  animation itself is kept (the owner's preserve-animations law:
                  moved or tokenized, never removed). KAD-15: it rests at ZERO
-                 (`scale-x-0`, so `w-full` no longer paints it complete at idle
-                 — D-20), sweeps on `transform: scaleX()` (compositor-safe, the
+                 (`transform: scaleX(0)` — on the sweep's OWN property, KFA-15:
+                 Tailwind 4's `scale-x-0` is the individual `scale: 0 1`, which
+                 multiplied the animated transform by zero — so `w-full` no
+                 longer paints it complete at idle — D-20), sweeps on `transform: scaleX()` (compositor-safe, the
                  R-A form), grows from the INLINE START (`origin-left` with its
                  `rtl:` mirror — D-26), and returns to rest when the sweep ends. -->
             <div
                 ref="progressBarEl"
-                class="progress-bar w-full mt-2 origin-left rtl:origin-right scale-x-0"
+                class="progress-bar w-full mt-2 origin-left rtl:origin-right [transform:scaleX(0)]"
                 aria-hidden="true"
             ></div>
         </template>

@@ -30,7 +30,7 @@
  *     wiring secretly wrote the parent model and never emitted;
  *   • the feedback sweep is DECORATIVE (KAD-15 / S-10 declined in writing): it
  *     is `aria-hidden`, it is NOT a `role="progressbar"`, and it rests at zero
- *     (`scale-x-0`) rather than painting complete at idle.
+ *     (`transform: scaleX(0)`, KFA-15) rather than painting complete at idle.
  *
  * THE PRODUCER SEAM, STATED — the same one `CSSPasteDialog.test.ts` states and
  * for the same measured reason: `@mkbabb/glass-ui`'s dist imports
@@ -250,7 +250,8 @@ describe("KeyframesAddDialog — the fold's thin adapter", () => {
         expect(bar.attributes("role")).toBeUndefined();
         expect(w.find('[role="progressbar"]').exists()).toBe(false);
         // KAD-15 / D-20: it rests at zero, never painted complete at idle.
-        expect(bar.classes()).toContain("scale-x-0");
+        // KFA-15: the rest sits on `transform` (the sweep's own property).
+        expect(bar.classes()).toContain("[transform:scaleX(0)]");
         expect(bar.classes()).toContain("origin-left");
         w.unmount();
     });
