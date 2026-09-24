@@ -30,23 +30,18 @@
                          keyboard-inclusive `valueCommit` pairs a keyboard scrub
                          with the pause/resume lifecycle the pointer seam already
                          owns. -->
-                    <!-- D-2 — a VISIBLE playhead, on the primitive's declared
-                         axis: the `standard` variant's thumb is `width:0;
-                         opacity:0` by producer design, leaving a ~1.2:1
-                         range/track boundary as the only cue; the `spectrum`
-                         variant paints a real thumb over its own track, and
-                         its track height is 1.5 × the thumb size — the very
-                         1.5rem the F4 `:deep` reach hand-set, so that reach
-                         (D-7) dies with it.
-                         OA-8 (§0ao.1) — the thumb and the track are the
-                         PRODUCER's paint: the wrapper's `--slider-thumb-bg` /
-                         `--slider-track-bg` / `--slider-range-bg` overrides
-                         (the raw violet thumb over a 22 % colour-mix groove the
-                         owner named) are deleted, so the spectrum variant
-                         renders its own ringed thumb on its own track. -->
+                    <!-- D-2 / KFA-61 — a VISIBLE playhead, on the primitive's
+                         own timeline recipe: `scrubber` (glass's continuous-
+                         cylinder slider — the elapsed range IS the fill, its
+                         leading edge IS the handle). `spectrum` is the colour-
+                         picker recipe: a transparent range over a `--secondary`
+                         groove and a hollow thumb, which read as a DISABLED rail
+                         at rest, playing and scrubbing (the owner's "timeline is
+                         always greyed out"). The paint stays the PRODUCER's (OA-8):
+                         no local thumb/track/range overrides. -->
                     <Slider
                         class="p-2"
-                        variant="spectrum"
+                        variant="scrubber"
                         aria-label="Scrub animation timeline"
                         :min="0"
                         :max="effectiveDuration"

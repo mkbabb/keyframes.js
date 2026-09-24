@@ -441,12 +441,16 @@ describe("D-5 + D-6 + L-M1 — the hint reaches the thumb, disabled is the primi
     });
 });
 
-describe("D-2 — a visible playhead on the primitive's declared axis", () => {
-    it("the rail is the Slider's `spectrum` variant (a painted thumb), still scaled and named as before", async () => {
+describe("D-2 / KFA-61 — a visible playhead on the primitive's timeline recipe", () => {
+    it("the rail is the Slider's `scrubber` variant (the elapsed range IS the fill), still scaled and named as before", async () => {
         const seat = mountRibbon({ currentT: 2500 });
         await settle();
         const root = seat.root.querySelector<HTMLElement>(".glass-slider");
-        expect(root?.getAttribute("data-variant")).toBe("spectrum");
+        // `spectrum` (the colour-picker recipe) paints a transparent range over a
+        // neutral groove — an enabled rail that reads disabled (KFA-61).
+        expect(root?.getAttribute("data-variant")).toBe("scrubber");
+        const range = root?.querySelector<HTMLElement>(".slider-range");
+        expect(range?.style.right).toBe("50%");
         const thumb = thumbOf(seat.root);
         expect(thumb.getAttribute("aria-valuenow")).toBe("2500");
         expect(thumb.getAttribute("aria-label")).toBe("Scrub animation timeline");
