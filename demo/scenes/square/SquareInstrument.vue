@@ -29,7 +29,7 @@
             <span class="readout-accent text-mono-small tabular-nums">{{ readoutY }}</span>
         </div>
         <span
-            class="status-badge text-mono-micro uppercase px-2 py-0.5 rounded-full"
+            class="status-badge self-start text-mono-micro uppercase px-2 py-0.5 rounded-full"
             :class="settled ? 'settled-badge' : 'tracking-badge'"
         >{{ settled ? "settled" : "tracking" }}</span>
     </div>
