@@ -230,8 +230,12 @@ export function viewTransition(
         () => {
             if (!hasStartViewTransition()) return runFallback();
 
-            const start = (document as StartViewTransitionDocument)
-                .startViewTransition!;
+            // KFA-12 (X.KF.W13V.k) — called AS A METHOD on `document`. The
+            // native `startViewTransition` is receiver-checked: detached into a
+            // bare local it throws "Illegal invocation" for BOTH overloads, the
+            // catch below then ran the fallback, and every scene swap hard-cut.
+            const doc = document as StartViewTransitionDocument;
+            const start = doc.startViewTransition!.bind(doc);
             let vt: NativeViewTransition;
             try {
                 // The typed-`update` object overload where the browser supports

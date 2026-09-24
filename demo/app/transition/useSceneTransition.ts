@@ -1,5 +1,5 @@
-import type { Ref } from "vue";
-import { viewTransition } from "@mkbabb/keyframes.js";
+import { ref, type Ref } from "vue";
+import { viewTransition, type ViewTransitionHandle } from "@mkbabb/keyframes.js";
 
 import { sceneIndex } from "../scene/scenes";
 
@@ -54,6 +54,13 @@ export function useSceneTransition(
     sceneHost: Ref<HTMLElement | null>,
     currentSceneId: Ref<string>,
 ) {
+    // KFA-12 (X.KF.W13V.k) — the backend that carried the LAST switch, read
+    // off the dispatch's own handle. `useSceneSwap` stands its spring down only
+    // when this reads "view-transition": a feature probe said "VT owns the
+    // motion" even when the call threw and hard-cut, and a switch that never
+    // came through here (a direct hash, back/forward) has no VT at all.
+    const lastSwapBackend = ref<ViewTransitionHandle["backend"] | null>(null);
+
     function runSceneSwitch(id: string) {
         // Q.WC3 S3 — the directional type from the ordered-index delta. A forward
         // move (target later in `allScenes`) slides left→right; a backward move
@@ -82,14 +89,15 @@ export function useSceneTransition(
             types[0] ?? "",
         );
 
-        const { finished } = viewTransition(
+        const { finished, backend } = viewTransition(
             () => mutate(id),
             types.length ? { types } : {},
         );
+        lastSwapBackend.value = backend;
         finished.finally(() => {
             sceneHost.value?.focus();
         });
     }
 
-    return { runSceneSwitch };
+    return { runSceneSwitch, lastSwapBackend };
 }

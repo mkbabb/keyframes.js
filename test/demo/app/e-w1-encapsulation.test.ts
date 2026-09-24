@@ -10,7 +10,8 @@
 // Re-inlining the codec into App.vue or breaking the adapter reds this.
 
 import { describe, it, expect } from "vitest";
-import { computed, createApp, defineComponent, h } from "vue";
+import { computed, createApp, defineComponent, effectScope, h, nextTick, ref } from "vue";
+import type { ViewTransitionHandle } from "../../../src/animation/orchestration/view-transition";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
 import { useSceneSwap } from "../../../demo/app/transition/useSceneSwap";
@@ -55,12 +56,48 @@ describe("E.W1 — render smoke (the preserved useSceneSwap driver)", () => {
         expect(() =>
             mountWith(() => {
                 const activeSceneKey = computed(() => "cube");
-                const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
+                const { sceneSwapStyle } = useSceneSwap(activeSceneKey, ref(null));
                 // The style is a reactive computed binding the template consumes.
                 expect(sceneSwapStyle.value).toHaveProperty("opacity");
                 expect(sceneSwapStyle.value).toHaveProperty("transform");
             }),
         ).not.toThrow();
+    });
+});
+
+describe("KFA-12 — the swap spring follows the dispatch handle's backend, not a feature probe", () => {
+    const raf = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+    const swapOnce = async (backend: ViewTransitionHandle["backend"] | null) => {
+        const key = ref("cube");
+        const lastSwapBackend = ref<ViewTransitionHandle["backend"] | null>(null);
+        const scope = effectScope();
+        try {
+            const style = scope.run(
+                () => useSceneSwap(computed(() => key.value), lastSwapBackend).sceneSwapStyle,
+            )!;
+            lastSwapBackend.value = backend;
+            key.value = "amiga";
+            await nextTick();
+            let min = 1;
+            for (let k = 0; k < 6; k++) {
+                await raf();
+                min = Math.min(min, style.value.opacity);
+            }
+            return { min, consumed: lastSwapBackend.value };
+        } finally {
+            scope.stop();
+        }
+    };
+
+    it("a swap a native VT carried leaves the spring at rest", async () => {
+        const r = await swapOnce("view-transition");
+        expect(r.min).toBe(1);
+        expect(r.consumed).toBeNull();
+    });
+
+    it("a swap that fell back (or bypassed the dispatch) runs the spring", async () => {
+        expect((await swapOnce("immediate")).min).toBeLessThan(1);
+        expect((await swapOnce(null)).min).toBeLessThan(1);
     });
 });
 

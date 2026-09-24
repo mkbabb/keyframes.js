@@ -123,7 +123,10 @@ describe("S.F1 VT-a — viewTransition LIGHT dispatch (jsdom fallback + immediat
                 skipped = true;
             },
         };
-        const start = vi.fn((arg: unknown) => {
+        const start = vi.fn(function (this: unknown, arg: unknown) {
+            // KFA-12 — the native method is receiver-checked; a detached call
+            // throws "Illegal invocation" in the browser, so the stub does too.
+            if (this !== document) throw new TypeError("Illegal invocation");
             // Exercise the typed-`update` object overload path.
             const update =
                 typeof arg === "function"
@@ -161,7 +164,8 @@ describe("S.F1 VT-a — viewTransition LIGHT dispatch (jsdom fallback + immediat
             finished: Promise.resolve(),
             updateCallbackDone: Promise.resolve(),
         };
-        const start = vi.fn((arg: unknown) => {
+        const start = vi.fn(function (this: unknown, arg: unknown) {
+            if (this !== document) throw new TypeError("Illegal invocation");
             if (typeof arg !== "function") throw new TypeError("callback-only engine");
             (arg as () => void)();
             return nativeVT;

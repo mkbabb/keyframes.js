@@ -373,10 +373,6 @@ const activeSceneProps = computed(() => {
     return {};
 });
 
-// Scene-swap cross-dissolve (SpringProgress) — PRESERVED driver (S7). The
-// per-scene playback codec is now the machine + its ScenePlayback adapters.
-const { sceneSwapStyle } = useSceneSwap(activeSceneKey);
-
 // J.W2 S2 — the dock's pick lands as a DFA PROJECTION of the pick, never the
 // raw value: the store (keyed by the ACTIVE superKey, atomic with the scene)
 // only ever holds projections of the single authority. The dock itself renders
@@ -411,11 +407,17 @@ const {
 // path falls through to the SpringProgress cross-dissolve unchanged, and focus
 // routes to the scene host on `finished` (a11y). Every scene-nav entry (the dock
 // @switch-scene, the SharePopover restore) goes through this.
-const { runSceneSwitch } = useSceneTransition(
+const { runSceneSwitch, lastSwapBackend } = useSceneTransition(
     switchScene,
     sceneHostEl,
     currentSceneId,
 );
+
+// Scene-swap cross-dissolve (SpringProgress) — PRESERVED driver (S7), the
+// fallback for any swap no native View Transition carried (KFA-12: read off the
+// dispatch handle's `backend`). The per-scene playback codec is the machine +
+// its ScenePlayback adapters.
+const { sceneSwapStyle } = useSceneSwap(activeSceneKey, lastSwapBackend);
 
 // The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
 // lives in @app/dock/MbabbMenu.vue (S.D1 · a23 F2). M-4: the App no longer
