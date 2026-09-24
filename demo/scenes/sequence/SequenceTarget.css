@@ -232,18 +232,23 @@
        track column exactly as the handle and the playhead line are — its centre
        sits at `f · 100cqw` with `f = row-start + ball-p·(1 − row-start)`, so at
        `--ball-p: 0` it rests ON its gate (the handle's centre) by construction
-       and reaches the far end at 1. The engine's `--ball-p` sweep rides
-       `translateX(<cqw>)` (compositor-only, no per-frame layout). */
+       and reaches the far end at 1. The engine's `--ball-p` sweep rides the
+       individual `translate` property (compositor-only, no per-frame layout).
+       KFA-3 (X.KF.W13V.k): NOT `transform: translateX` — the engine's settle
+       pop keyframes the individual `scale` property, and CSS composes
+       translate · rotate · scale · transform, so a travel on `transform` sat
+       INSIDE the scale and was multiplied by it (rows rested 22–90 px off their
+       gates at scale 0.7 and ran past the rail end at 1.12). On `translate` the
+       travel is applied outside the scale: the pop changes size only. */
     left: 0;
     margin-left: calc(var(--ball-size) / -2);
-    transform: translateX(
-        calc(
+    translate: calc(
             (var(--row-start, 0) + var(--ball-p, 0) * (1 - var(--row-start, 0))) *
                 100cqw
         )
-    );
+        0;
     z-index: var(--z-seq-handle); /* the traveller rests ON its gate, above it */
-    will-change: transform;
+    will-change: translate, scale;
     /* L.W11 S7 — THE IGNITION CASCADE (lane-detonate): kept ball/rail/rainbow STAY;
        the glow scales with the engine's --ball-p so staggered lanes BLOOM in a
        DIAGONAL cascade. One box-shadow calc() — no rAF (inv ζ). */
