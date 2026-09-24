@@ -81,8 +81,12 @@ export function useControlsKeyboardShortcuts(
     // so the page-scroll suppression survives exactly where the shortcut fires.
     // `e.repeat` is guarded here as the local arm already guards it — a held
     // Space on the page is one toggle, not a rapid toggle at the OS repeat rate.
-    // The producer half (a BUTTON-target / `defaultPrevented` policy in the
-    // dispatcher) is relayed on the standing registry row, never patched here.
+    // The producer half's BUTTON-target policy is relayed on the standing
+    // registry row, never patched here. Its `defaultPrevented` half SHIPPED in
+    // glass 10.0.1 (the dispatcher returns on an event a focused widget already
+    // consumed): that is the one guard keeping the Arrow/Home/End scrub
+    // shortcuts below from double-actuating beside a focused Slider thumb or
+    // the Square box's own nudges (KFA-95; transport-nav-key-ownership.test.ts).
     registerShortcut("Space", (e) => {
         if (e.repeat || isSpaceActivationTarget(e.target)) return;
         e.preventDefault();
