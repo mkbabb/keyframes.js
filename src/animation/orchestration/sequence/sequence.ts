@@ -363,7 +363,9 @@ export class Sequence<V extends Vars = Vars>
 
     /** Resume a paused sequence — restart the rAF loop with the origin
      * re-anchored so the first resumed frame's master clock equals the retained
-     * `_time` (no forward jump). No-op when not paused. Body in `./lifecycle`. */
+     * `_time` (no forward jump). A seeked-only sequence (no play in flight)
+     * begins a play from its playhead (KFA-17); a live unpaused play is left
+     * alone. Body in `./lifecycle`. */
     resume(): this {
         lifecycle.resume(this);
         return this;

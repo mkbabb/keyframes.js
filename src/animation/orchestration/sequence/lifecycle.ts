@@ -39,6 +39,16 @@ import { beginPlay } from "../../internal/transport-core";
  * paint (a terminal `seek(duration)`), no draw loop.
  */
 export function play<V extends Vars>(seq: Sequence<V>): Promise<void> {
+    // A fresh play starts the master clock at 0 (the origin seed reads `_time`).
+    return playFrom(seq, 0);
+}
+
+/**
+ * The ONE loop-start body `play()` (from the origin) and `resume()` (from a
+ * seeked-only playhead, KFA-17) share. Re-entrant: an in-flight play's held
+ * promise is returned unchanged.
+ */
+function playFrom<V extends Vars>(seq: Sequence<V>, from: number): Promise<void> {
     // Avoid mutating child anchors on a re-entrant call; beginPlay owns the
     // corresponding held-promise creation/cleanup path below.
     if (seq._playingPromise) return seq._playingPromise;
@@ -60,9 +70,9 @@ export function play<V extends Vars>(seq: Sequence<V>): Promise<void> {
         animation.managed = true;
     }
 
-    // A fresh play starts the master clock at 0 (the origin seed reads `_time`).
-    // `resume()` keeps `_time` so the playhead continues.
-    seq._time = 0;
+    // The first frame seeds the origin from `_time` (`origin = clock − _time /
+    // rate`), so the master clock starts exactly at `from`.
+    seq._time = from;
     seq._paused = false;
     seq._playOrigin = undefined;
     seq._lastClock = undefined;
@@ -101,11 +111,20 @@ export function pause<V extends Vars>(seq: Sequence<V>): void {
  * Resume a paused sequence — restart the rAF loop with the origin re-anchored so
  * the FIRST resumed frame's master clock equals the retained `_time` (the
  * no-forward-jump re-anchor, the same `RAFPlayback`/`AnimationGroup` managed-pause
- * contract documented at the owning group source). No-op when not
- * paused.
+ * contract documented at the owning group source). A sequence with no play in
+ * flight (only seeked) begins one from its playhead; a live, unpaused play is
+ * left alone.
  */
 export function resume<V extends Vars>(seq: Sequence<V>): void {
-    if (!seq._playingPromise || !seq._paused) return;
+    // KFA-17 (X.KF.W13V.k) — a sequence that was only SEEKED (a scrub before any
+    // play, or after a play settled) holds a playhead but no play: resume
+    // begins one from that playhead. It formerly returned here silently, so a
+    // transport Play after a scrub left the host "playing" with no loop.
+    if (!seq._playingPromise) {
+        void playFrom(seq, seq._time);
+        return;
+    }
+    if (!seq._paused) return;
     seq._paused = false;
     // Clearing the origin makes the next frame seed it from `_time` (the
     // `_frame` origin-seed: `origin = clock − _time / rate`), so the master

@@ -222,6 +222,27 @@ describe("Sequence transport — pause/resume no-jump (S1)", () => {
         expect(s._time).toBeCloseTo(1234, 5);
     });
 
+    it("KFA-17 — resume() on a seeked-only sequence begins a play from the playhead (no silent no-op)", async () => {
+        const { seq } = threeSegment();
+        const s = seq as any;
+        // A scrub with no play in flight: the playhead moves, nothing plays.
+        seq.seek(1234);
+        expect(s._playingPromise).toBeFalsy();
+        const loop = vi.spyOn(s.playback, "loop").mockImplementation(() => {});
+
+        seq.resume();
+
+        // A play is now in flight, unpaused, its loop started, and its master
+        // clock seeded at the scrubbed playhead — not the origin.
+        expect(s._playingPromise).toBeTruthy();
+        expect(s._paused).toBe(false);
+        expect(loop).toHaveBeenCalledOnce();
+        await s._frame(9_999_999);
+        expect(s._time).toBeCloseTo(1234, 5);
+        seq.stop();
+        await seq.finished;
+    });
+
     it("BITE: re-anchoring to the raw resume timestamp would leap the master clock", async () => {
         const { seq } = threeSegment();
         const s = seq as any;

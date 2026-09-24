@@ -253,20 +253,34 @@ export function useSequenceDemo() {
         startMirror();
         if (isMidPlay()) {
             // Continue from the current playhead (the engine no-jump re-anchor).
+            // KFA-17: a playhead that was only SCRUBBED has no play in flight;
+            // the engine's resume begins one from the playhead (it formerly
+            // no-op'd and the host read PLAYING over a frozen master).
             sequence.resume();
         } else {
-            // Settled (at the origin or the end) → a fresh play; resolves at the
-            // end and parks the machine back to `paused`.
-            void sequence.play().finally(() => {
-                stopMirror();
-                syncFromSequence();
-                // The natural end is a genuine stop — reflect it on the machine
-                // (the single authority) so `isPlaying` reads false.
-                if (machine.status.value === "playing") {
-                    machine.dispatch({ type: "PAUSE" });
-                }
-            });
+            // Settled (at the origin or the end) → a fresh play from the origin.
+            void sequence.play();
         }
+        reflectNaturalEnd(sequence.finished);
+    };
+
+    /** The play promise whose settle is already reflected onto the machine —
+     *  a resume of a live paused play re-reads the SAME promise, so the end is
+     *  reflected once per play, whichever verb started it. */
+    let reflectedPlay: Promise<void> | undefined;
+    const reflectNaturalEnd = (run: Promise<void>) => {
+        if (run === reflectedPlay) return;
+        reflectedPlay = run;
+        void run.finally(() => {
+            if (reflectedPlay === run) reflectedPlay = undefined;
+            stopMirror();
+            syncFromSequence();
+            // The natural end is a genuine stop — reflect it on the machine
+            // (the single authority) so `isPlaying` reads false.
+            if (machine.status.value === "playing") {
+                machine.dispatch({ type: "PAUSE" });
+            }
+        });
     };
 
     /** Stop the Sequence engine loop + mirror WITHOUT rewinding (genuine suspend
