@@ -82,7 +82,12 @@ describe("#53 — the pre-start orientation writer actually paints", () => {
         expect(css).toBe(`matrix3d(${matrixValues(m).join(", ")})`);
     });
 
-    it("a pre-start model change writes a matrix3d string onto the target", async () => {
+    // KFA-1/KFA-2 (X.KF.W13V.k) re-seat: the pre-start WRITER is the cell
+    // intent (the editor's cell sliders and fields), not an orbit drag — the
+    // drag's triple is the orbit container's, never the Matrix channel's. The
+    // property this case guards is unchanged: the painter writes a serialized
+    // matrix3d string onto the channel's element.
+    it("a pre-start cell edit writes a matrix3d string onto the target", async () => {
         const el = document.createElement("div");
         document.body.appendChild(el);
         const scope = effectScope();
@@ -99,13 +104,8 @@ describe("#53 — the pre-start orientation writer actually paints", () => {
 
                 expect(el.style.transform).toBe("");
 
-                // What an OrbitalDrag frame does pre-start: it writes the Euler
-                // triple into the shared model, and nothing else turns the die
-                // (the container renders no pose until the group has started).
-                state.transformSliderValues.value.rotate.x = 45;
-                await nextTick();
-                await raf();
-                await raf();
+                state.updateMatrixCell(0.5, 1);
+                for (let k = 0; k < 60 && !el.style.transform; k++) await raf();
 
                 expect(el.style.transform).toMatch(/^matrix3d\(/);
                 expect(el.style.transform).not.toContain("object");
@@ -113,6 +113,56 @@ describe("#53 — the pre-start orientation writer actually paints", () => {
         } finally {
             scope.stop();
             el.remove();
+        }
+    });
+
+    it("KFA-1/KFA-29 — an orbit drag never writes the Matrix channel", async () => {
+        const el = document.createElement("div");
+        const scope = effectScope();
+        try {
+            await scope.run(async () => {
+                const state = useTransformState(
+                    ref(false),
+                    ref<HTMLElement | undefined>(el),
+                    restTransform(),
+                );
+                const before = matrixValues(state.matrix3dEnd.value);
+
+                // What an OrbitalDrag frame does: it writes the Euler triple
+                // into the shared model, which the orbit container composes.
+                state.transformSliderValues.value.rotate.x = 45;
+                await nextTick();
+                await raf();
+                await raf();
+
+                expect(matrixValues(state.matrix3dEnd.value)).toEqual(before);
+                expect(el.style.transform).toBe("");
+            });
+        } finally {
+            scope.stop();
+        }
+    });
+
+    it("KFA-2 — once the group has started, the painter never writes (one writer per element)", async () => {
+        const el = document.createElement("div");
+        const scope = effectScope();
+        try {
+            await scope.run(async () => {
+                const state = useTransformState(
+                    ref(true),
+                    ref<HTMLElement | undefined>(el),
+                    restTransform(),
+                );
+                state.updateMatrixCell(0.5, 1);
+                for (let k = 0; k < 30; k++) await raf();
+
+                // The edit reaches the channel's endpoint (adoptCompiled's input)…
+                expect(matrixValues(state.matrix3dEnd.value)[1]).toBeCloseTo(0.5, 6);
+                // …and nothing but the channel writes the element.
+                expect(el.style.transform).toBe("");
+            });
+        } finally {
+            scope.stop();
         }
     });
 
@@ -185,10 +235,10 @@ describe("ME-30/ME-31 — the sync topology", () => {
                     ref<HTMLElement | undefined>(el),
                     restTransform(),
                 );
-                state.transformSliderValues.value.rotate.y = 30;
-                await nextTick();
-                await raf();
-                await raf();
+                // KFA-1 re-seat: the endpoint's writer is the cell intent (an
+                // orbit drag no longer authors the Matrix channel).
+                state.updateMatrixCell(0.5, 1);
+                for (let k = 0; k < 60 && matrixValues(state.matrix3dEnd.value)[1] !== 0.5; k++) await raf();
 
                 // Both endpoints written from one pose collapsed the delta to
                 // zero and Play animated nothing on this channel.

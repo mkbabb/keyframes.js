@@ -15,7 +15,6 @@
         <CubeTarget
             ref="cubeTargetRef"
             :is-playing="isPlaying"
-            :is-started="isStarted"
             :pp-mode="storedControls.ppMode ?? false"
             :show-loader="!props.hideLoader && !storedControls.selectedAnimation"
             v-model:transform="transformSliderValues"
@@ -24,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import { computed, h, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 
 const props = defineProps<{
     hideLoader?: boolean;
@@ -47,7 +46,8 @@ import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
 import MatrixEditor from "./matrix-editor/MatrixEditor.vue";
 import CubeTarget from "./CubeTarget.vue";
 
-import { getStoredAnimationGroupControlOptions } from "@state";
+import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
+import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import { facilityFromGroup } from "@composables/scene-facility";
 import { useTransformState } from "./matrix-editor/useTransformState";
 import { useCubeDemo, SCENE_ID } from "./useCubeDemo";
@@ -59,21 +59,24 @@ const superKey = SCENE_ID;
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 storedControls.ppMode ??= false;
 
-// kf-CubeScene L-2/C-5 (+ kf-CubeTarget #34/#42) — `isStarted` is written by the
-// shell binding (`useSceneMachineShellBinding` assigns it on the exposed scene);
-// `isPlaying` HAS NO WRITER ANYWHERE. It is exposed, passed down to CubeTarget
-// and keyed on by `.idle-hover.playing .cube { will-change }`, so the component's
-// own celebrated TRANSIENT promotion never fires and only the resident ancestor
-// hint ever does. The cure is ONE playing-state authority shared with
-// kf-SquareScene L-8/C-2, and its writer lives in `demo/app/scene/` — outside
-// this wave's §Bounds and inside KF.W13's. DECLARED here, not shimmed: a
-// scene-side derivation off the raw (non-reactive) group would be a second
-// authority, which is the defect this row exists to retire.
-const isPlaying = ref(false);
-const isStarted = ref(false);
+// KFA-1 (X.KF.W13V.k; kf-CubeScene L-2/C-5 + kf-CubeTarget #34/#42) — ONE
+// PLAYING-STATE AUTHORITY. `isPlaying` had no writer and `isStarted` was written
+// only from a transport click, so the autoplay PLAY left both false: the orbit
+// container was never composed and every drag frame was re-routed into the
+// Matrix channel. Both are now READ-ONLY projections of `machine.status` — the
+// house projection Square/Easing/Spring/Sequence already ride
+// (`useSceneTransport`) — so the autoplay PLAY, a transport click, a restore and
+// a pause all land through the one authority. Neither is exposed: nothing
+// outside this scene reads them, and an exposed value would invite the shell
+// binding's `isStarted` write-back (a second writer).
+const machine = useSceneMachine();
+const { isPlaying } = useSceneTransport(machine);
+const isStarted = computed(
+    () => machine.status.value === "playing" || machine.status.value === "paused",
+);
 
 const cubeTargetRef = useTemplateRef<InstanceType<typeof CubeTarget>>("cubeTargetRef");
-const cubeElRef = ref<HTMLElement | undefined>();
+const poseElRef = ref<HTMLElement | undefined>();
 
 const {
     matrix3dStart,
@@ -82,7 +85,7 @@ const {
     matrixCellMeta,
     updateMatrixCell,
     resetMatrix,
-} = useTransformState(isStarted, cubeElRef, useCubeTransform().value);
+} = useTransformState(isStarted, poseElRef, useCubeTransform().value);
 
 const { animationGroup, setTargets } = useCubeDemo(
     matrix3dStart,
@@ -170,7 +173,7 @@ onMounted(() => {
     const graphEl = target?.graphEl;
 
     if (cubeEl && bobEl && poseEl && graphEl) {
-        cubeElRef.value = cubeEl;
+        poseElRef.value = poseEl;
         setTargets({ cubeEl, bobEl, poseEl, graphEl });
     }
 });
@@ -216,8 +219,6 @@ defineExpose({
     // SCENE_READY for an `autoPlays` scene (home is excluded there — the
     // landing stays still until its own Play gesture).
     autoPlays: true,
-    isPlaying,
-    isStarted,
     tabsContent,
     ribbonContent,
 });

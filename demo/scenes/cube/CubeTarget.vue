@@ -12,7 +12,7 @@
                 ref="orbitalRef"
                 class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                 v-model="transform"
-                :apply-transform-to-container="props.isPlaying || props.isStarted"
+                apply-transform-to-container
                 @pressed-keys="onPressedKeys"
             >
                 <div
@@ -151,7 +151,6 @@ import {
 
 const props = defineProps<{
     isPlaying: boolean;
-    isStarted: boolean;
     ppMode: boolean;
     showLoader: boolean;
 }>();
@@ -257,8 +256,9 @@ const onPressedKeys = (keys: PressedKeys) => {
 //    post-roll model change obliterated the rolled pose. The roll now owns its
 //    OWN element (`.idle-hover`, between the orbit container and the die), which
 //    has no other transform writer. One authority per element: the container
-//    orbits, `.idle-hover` rolls, `.cube` takes the group or the painter (never
-//    both — they are mutually exclusive on `isGroupStarted`).
+//    orbits, `.idle-hover` rolls, `.cube` takes the spin, `.cube-pose` takes the
+//    Matrix channel or its pre-start painter (never both — mutually exclusive on
+//    `isGroupStarted`, KFA-2).
 const rolling = ref(false);
 let rollAnim: CSSKeyframesAnimation<Vars> | undefined;
 
