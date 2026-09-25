@@ -321,3 +321,14 @@ describe("(13) KFA-42 — the derby starts from, and returns to, the pose the do
         }
     });
 });
+
+describe("(14) KFA-153 — the lane balls keep painting through the overlay's exit", () => {
+    it("the ball map is never emptied by the ref callback's null; it clears after the leave", () => {
+        const src = sfc("SpringTarget.vue");
+        const setter = src.match(/const setDerbyBallEl = [\s\S]*?\n\};/)?.[0] ?? "";
+        expect(setter, "setDerbyBallEl present").not.toBe("");
+        expect(setter).not.toMatch(/derbyBallEls\.delete/);
+        expect(src).toMatch(/<Transition name="derby" @after-leave="onDerbyAfterLeave">/);
+        expect(src).toMatch(/const onDerbyAfterLeave = \(\): void => derbyBallEls\.clear\(\);/);
+    });
+});

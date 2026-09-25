@@ -176,7 +176,7 @@
                      simply stopped being there, one frame, on the scene's
                      headline delight. A named transition gives the leave the
                      treatment the enter always had. -->
-                <Transition name="derby">
+                <Transition name="derby" @after-leave="onDerbyAfterLeave">
                 <div
                     v-if="demo.derbyActive.value"
                     class="derby-lanes"
@@ -420,9 +420,12 @@ const trackStyle = {
 // after the first derby it held four entries FOREVER, and the painter then paid
 // four null-checks per frame, for the lifetime of the scene, for an overlay that
 // is mounted for about two seconds of it — in the one file whose stated posture
-// is "zero cost at rest". Vue calls the ref callback with `null` on unmount, so
-// the map empties itself and the painter's derby loop costs nothing when there
-// are no lanes.
+// is "zero cost at rest". The map empties when the lanes are GONE — at the
+// overlay's `after-leave` — so the painter's derby loop costs nothing when there
+// are no lanes. X.KF.W13X.spring (KFA-153): it used to empty on the ref
+// callback's `null`, which Vue sends as the leave BEGINS, so the lane balls froze
+// through the 220 ms exit fade while the field was still settling (the live ball
+// kept moving, ~2-3 px apart).
 const derbyBallEls = new Map<number, HTMLElement>();
 const setDerbyBallEl = (i: number, el: Element | ComponentPublicInstance | null) => {
     // m-10 — `el as HTMLElement` turned the file's only cast from known-narrow
@@ -430,8 +433,8 @@ const setDerbyBallEl = (i: number, el: Element | ComponentPublicInstance | null)
     // 60 Hz painter. `instanceof` is the honest narrowing and costs one check
     // per ref callback, not per frame.
     if (el instanceof HTMLElement) derbyBallEls.set(i, el);
-    else derbyBallEls.delete(i);
 };
+const onDerbyAfterLeave = (): void => derbyBallEls.clear();
 
 // ── J.W2 S5 (DS-3) — the spring painters: DIRECT non-reactive `style` writes ──
 // Registered with the demo's loop seam; called imperatively each frame with the
