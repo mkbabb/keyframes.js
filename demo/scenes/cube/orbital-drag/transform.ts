@@ -1,3 +1,4 @@
+// SERVED MODEL: claude-opus-5-5
 // The orbital transform model: the axis tuple, the transform / bounds / velocity
 // shapes and their defaults. A leaf module: OrbitalDrag.vue and its composables
 // import it directly and never import their own barrel (index.ts), which
