@@ -424,7 +424,13 @@ watch(isSelectOpen, (open) => {
                             v-model:open="sceneSelectOpen"
                             @update:model-value="onScenePick"
                         >
-                            <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label">
+                            <!-- X.KF.W13X.dock · UIA-KF-237 — below 400 px the word is hidden
+                                 (OA-40, below), which took its 24 px line box with it: the
+                                 glyph-only trigger fell to 30 px beside the 32 px @mbabb
+                                 trigger (served 360/390). It keeps the label's line box
+                                 (1lh) inside the producer's own trigger padding, so the two
+                                 dock triggers stand one height. -->
+                            <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label max-[399px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]">
                                 <component v-if="currentIcon" :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
                                 <Home v-else class="dock-glyph" aria-hidden="true" />
                                 <!-- X.KF.W13V.s (OA-40): below 400 px the four

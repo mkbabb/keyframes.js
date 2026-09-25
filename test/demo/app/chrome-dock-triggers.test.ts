@@ -145,3 +145,13 @@ describe("UIA-KF-131 — a dock popup starts below the dock, not inside it", () 
         w.unmount();
     });
 });
+
+describe("UIA-KF-237 — the glyph-only scene trigger keeps the label's line box", () => {
+    it("(5) below 400 px (word hidden, OA-40) the Scene trigger's min block-size is one line box inside the producer's trigger padding", () => {
+        const w = mountDock();
+        const scene = w.find('[aria-label="Scene"]');
+        expect(scene.find(".max-\\[399px\\]\\:sr-only").exists()).toBe(true);
+        expect(scene.attributes("class")).toContain("max-[399px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]");
+        w.unmount();
+    });
+});
