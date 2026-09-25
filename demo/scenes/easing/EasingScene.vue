@@ -113,8 +113,11 @@ const onScrubEnd = () => {
 const ribbonContent = (slotProps: { selectedControl: string }) =>
     slotProps.selectedControl === "easing"
         ? h(PlaybackRibbon, {
-              // T.B1-β — the ribbon binds the REAL preview channel animation
-              // (its timingFunction IS the edited easing); the decoy is DEAD.
+              // T.B1-β — the ribbon binds the REAL preview channel animation;
+              // the decoy is DEAD. Its scrubber and ball are the sweep's TIME
+              // playhead (`progress`, linear on every scene): the ribbon never
+              // applies the edited easing, so the curve preview on this scene
+              // is the specimen gallery's balls, not this ball (UIA-KF-202).
               animation: demo.previewAnim,
               currentT: demo.progress.value * demo.previewAnim.options.duration,
               isAnimPlaying: demo.isPlaying.value,
