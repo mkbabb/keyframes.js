@@ -148,16 +148,16 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
         ? [
             h(Button, {
                 size: "sm",
-                class: "h-8 gap-1.5 cursor-pointer text-small font-medium px-3 rounded-lg",
+                emphasis: "secondary",
                 onClick: () => resetMatrix(),
-            }, { default: () => [h(RotateCcw, { class: "w-3.5 h-3.5" }), " Reset"] }),
+            }, { default: () => [h(RotateCcw, { class: "icon-sm" }), " Reset"] }),
             h(Button, {
                 size: "sm",
-                class: "h-8 gap-1.5 cursor-pointer text-small font-medium px-3 rounded-lg",
+                emphasis: "secondary",
                 onClick: () => { storedControls.matrixOptions!.fixed = !storedControls.matrixOptions!.fixed; },
             }, {
                 default: () => [
-                    !storedControls.matrixOptions?.fixed ? h(Lock, { class: "w-3.5 h-3.5" }) : h(LockOpen, { class: "w-3.5 h-3.5" }),
+                    !storedControls.matrixOptions?.fixed ? h(Lock, { class: "icon-sm" }) : h(LockOpen, { class: "icon-sm" }),
                     ` ${storedControls.matrixOptions?.fixed ? "Free" : "Fixed"}`,
                 ],
             }),
