@@ -32,7 +32,7 @@ vi.mock("@mkbabb/glass-ui", () => ({
     DialogDescription: slotStub("p", "DialogDescription"),
     DialogFooter: slotStub("footer", "DialogFooter"),
     Button: defineComponent({
-        name: "Button",
+        name: "GlassButtonStub",
         inheritAttrs: false,
         props: { loading: Boolean, disabled: Boolean },
         setup: (p, { slots, attrs }) =>
@@ -51,7 +51,7 @@ vi.mock("@mkbabb/glass-ui", () => ({
 
 vi.mock("@mkbabb/glass-ui/textarea", () => ({
     Textarea: defineComponent({
-        name: "Textarea",
+        name: "GlassTextareaStub",
         inheritAttrs: false,
         props: { modelValue: { type: String, default: "" } },
         emits: ["update:modelValue"],
