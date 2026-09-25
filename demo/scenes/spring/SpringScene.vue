@@ -153,7 +153,9 @@ const onScrubUpdate = (v: { t: number }) => {
 
 const onToggleReverse = () => {
     userReversed.value = !userReversed.value;
-    demo.springEditAnim.reversed = userReversed.value;
+    // KFA-44 — the demo owns the sweep clock's direction (and mirrors it onto
+    // the channel animation); writing only `springEditAnim.reversed` painted nothing.
+    demo.setReversed(userReversed.value);
 };
 
 let wasPlayingBeforeScrub = false;

@@ -203,6 +203,24 @@ export function useSpringDemo() {
     let startTime = 0;
     let lastNow = 0;
 
+    // X.KF.W13X.spring (KFA-44) — the transport's Reverse runs the SWEEP clock
+    // backwards. It used to write only `springEditAnim.reversed`, which paints
+    // nothing, while the frame clock below kept counting forward (the scrubber
+    // rose 539 → 722 with Reverse pressed). The direction lives in the clock:
+    // the phase is `1 − elapsed` while reversed, and every rebase (a toggle, a
+    // re-arm) anchors `startTime` so the phase is continuous across it.
+    let reversed = false;
+    const elapsedFor = (phase: number): number => (reversed ? (1 - phase) % 1 : phase);
+    const rebaseClock = (now: number): void => {
+        startTime = now - elapsedFor(springLive.phase) * SAMPLER_DURATION;
+    };
+    const setReversed = (next: boolean): void => {
+        if (next === reversed) return;
+        reversed = next;
+        springEditAnim.reversed = next;
+        rebaseClock(performance.now());
+    };
+
     // ── C-1 / KF-SS-1 — THE PLAY-INTENT CONTRACT, WRITTEN DOWN ────────────────
     // The banked defect: `reseat()` armed a loop whose first frame self-
     // terminated because the machine was not `playing`, so on the scene's
@@ -284,7 +302,7 @@ export function useSpringDemo() {
 
         // springTimingFunction sweep — `direction: alternate` as keyframes. The
         // normalized phase IS `progress`, so a restore re-seeds it directly.
-        springLive.phase = ((now - startTime) / SAMPLER_DURATION) % 1;
+        springLive.phase = elapsedFor(((now - startTime) / SAMPLER_DURATION) % 1);
         springLive.sampled = samplerAnim.at(springLive.phase).x;
 
         // Hot path — direct DOM writes, NO Vue reactivity (D4 transposed).
@@ -335,7 +353,7 @@ export function useSpringDemo() {
         // two agree whenever the loop is idle — the resume anchor is exact).
         onArm: () => {
             lastNow = 0;
-            startTime = performance.now() - springLive.phase * SAMPLER_DURATION;
+            rebaseClock(performance.now());
         },
         // `progress` is the CONTRACT authority the ScenePlayback adapter
         // snapshots/restores (reconciled to the live value on every loop stop).
@@ -647,6 +665,7 @@ export function useSpringDemo() {
         togglePlay,
         // K.W4 S2 + F5 — the transport-scrubber scrub seam (scrub-while-idle).
         scrubTo,
+        setReversed,
         // The Sweep channel's keyframes (edited in the shared Keyframes pane)
         // + the Physics facet's explicit re-seed action.
         springEditAnim,

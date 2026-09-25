@@ -166,3 +166,42 @@ describe("(8) KFA-211 — the solver's marks are 'live' only while the solver mo
     });
 });
 
+describe("(9) KFA-44 — Reverse runs the sweep backwards", () => {
+    it("with Reverse on, the sweep phase falls frame over frame, continuously from where it was", () => {
+        let clock = 1000;
+        let queue = new Map<number, FrameRequestCallback>();
+        let id = 1;
+        const prevRaf = window.requestAnimationFrame;
+        const prevCancel = window.cancelAnimationFrame;
+        const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => clock);
+        window.requestAnimationFrame = ((cb: FrameRequestCallback) => { queue.set(id, cb); return id++; }) as typeof window.requestAnimationFrame;
+        window.cancelAnimationFrame = ((h: number) => { queue.delete(h); }) as typeof window.cancelAnimationFrame;
+        const frame = () => { clock += 16; const cur = queue; queue = new Map(); for (const cb of cur.values()) cb(clock); };
+        const machine = parkPausedOnSpring();
+        const [demo, app] = withSetup(() => useSpringDemo());
+        try {
+            demo.play();
+            expect(machine.status.value).toBe("playing");
+            for (let i = 0; i < 20; i++) frame();
+            const before = demo.springLive.phase;
+            expect(before, "the sweep ran forward first").toBeGreaterThan(0.1);
+            // The scene's Reverse act. At the pre-cure bytes the only reverse
+            // write was the channel flag (SpringScene's onToggleReverse), so
+            // that is what is exercised when the demo exposes no clock seam.
+            const d = demo as { setReversed?: (r: boolean) => void };
+            if (typeof d.setReversed === "function") d.setReversed(true);
+            else demo.springEditAnim.reversed = true;
+            frame();
+            const first = demo.springLive.phase;
+            expect(Math.abs(first - before), "continuous across the toggle").toBeLessThan(0.05);
+            for (let i = 0; i < 10; i++) frame();
+            expect(demo.springLive.phase, "the phase fell").toBeLessThan(first);
+            expect(demo.springEditAnim.reversed).toBe(true);
+        } finally {
+            app.unmount();
+            nowSpy.mockRestore();
+            window.requestAnimationFrame = prevRaf;
+            window.cancelAnimationFrame = prevCancel;
+        }
+    });
+});
