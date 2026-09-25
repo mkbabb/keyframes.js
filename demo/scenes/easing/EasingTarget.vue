@@ -29,9 +29,17 @@
                     </h2>
                 </Transition>
                 <span class="specimen-literal" data-register="code">
-                    <code class="literal-text text-mono-small" data-readout="primary">{{
-                        literal
-                    }}</code>
+                    <!-- UIA-KF-091 — one print per fact: an engine-named
+                         curve's literal IS its name (value.js round-trips it
+                         by registry lookup), so the line shows only when it
+                         says something the name does not (a quad, a steps()
+                         call). The copy control copies the literal either way. -->
+                    <code
+                        v-if="literal !== demo.currentEasingName.value"
+                        class="literal-text text-mono-small"
+                        data-readout="primary"
+                        >{{ literal }}</code
+                    >
                     <!-- S-7 (W6-I): the copy control is a glass Button that
                          owns its box and its ink. The bespoke copy-control
                          rule pair W6-I orphaned here (a 1rem box + muted ink
