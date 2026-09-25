@@ -20,7 +20,16 @@
              show it; it stays the field's accessible description (sr-only). -->
         <div class="flex items-baseline justify-between gap-2 whitespace-nowrap">
             <span class="text-small font-medium text-foreground" data-figure-title>Peak overshoot</span>
-            <span class="text-caption text-muted-foreground" aria-hidden="true">damping ζ ↕</span>
+            <!-- X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the
+                 field, the axis caption yields to what a click there would
+                 write: '(r, ζ) → peak %'. It reverts on leave. -->
+            <span
+                v-if="hoverNode"
+                class="text-caption text-foreground tabular-nums"
+                data-heatmap-hover
+                aria-hidden="true"
+            >{{ hoverNode.r.toFixed(2) }} s · ζ {{ hoverNode.d.toFixed(2) }} → {{ Math.round(overshoot(hoverNode.d) * 100) }} %</span>
+            <span v-else class="text-caption text-muted-foreground" aria-hidden="true">damping ζ ↕</span>
             <span :id="readoutId" class="sr-only">
                 {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
             </span>
@@ -85,6 +94,7 @@
                     v-for="pip in PRESET_PIPS"
                     :key="pip.name"
                     class="spring-heatmap-pip"
+                    :class="{ 'is-current': pip.name === currentPipName }"
                     :style="{ left: pip.left, top: pip.top }"
                     aria-hidden="true"
                 >
@@ -360,6 +370,19 @@ function nodeAt(fx: number, fy: number): { r: number; d: number } {
 // ── The hover cell — the lattice cell around the node a click would write,
 // clipped at the field's edges. ────────────────────────────────────────────────
 const hoverCell = ref<{ left: string; top: string; width: string; height: string } | null>(null);
+/** UIA-KF-308 — the node under the pointer, read out in the header. */
+const hoverNode = ref<{ r: number; d: number } | null>(null);
+
+/** UIA-KF-308 — the preset the live params sit on: the marker covers its pip,
+ *  so that pip's name steps aside rather than print under the marker. */
+const currentPipName = computed(
+    () =>
+        SPRING_PRESETS.find(
+            (p) =>
+                Math.abs(p.response - response.value) < 1e-6 &&
+                Math.abs(p.dampingFraction - dampingFraction.value) < 1e-6,
+        )?.name,
+);
 
 function cellStyle(r: number, d: number) {
     const cols = axisNodes(RESPONSE_AXIS);
@@ -388,6 +411,7 @@ function navigate(e: PointerEvent): void {
     if (!f) return;
     const { r, d } = nodeAt(f.fx, f.fy);
     hoverCell.value = cellStyle(r, d);
+    hoverNode.value = { r, d };
     write(r, d);
 }
 
@@ -408,6 +432,7 @@ function onPointerMove(e: PointerEvent): void {
     if (!f) return;
     const { r, d } = nodeAt(f.fx, f.fy);
     hoverCell.value = cellStyle(r, d);
+    hoverNode.value = { r, d };
 }
 
 function onPointerRelease(e: PointerEvent): void {
@@ -416,7 +441,10 @@ function onPointerRelease(e: PointerEvent): void {
 }
 
 function onPointerLeave(): void {
-    if (activePointer === null) hoverCell.value = null;
+    if (activePointer === null) {
+        hoverCell.value = null;
+        hoverNode.value = null;
+    }
 }
 
 // ── The keys — a bare arrow steps ONE pitch along one axis and is CLAIMED for
@@ -556,6 +584,10 @@ function onKeydown(e: KeyboardEvent): void {
     border: 1.5px solid var(--foreground);
     background: var(--background);
     pointer-events: none;
+}
+/* UIA-KF-308 — the current preset's name steps aside: the marker sits on its pip. */
+.spring-heatmap-pip.is-current > span {
+    visibility: hidden;
 }
 .spring-heatmap-pip > span {
     position: absolute;

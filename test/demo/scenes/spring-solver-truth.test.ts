@@ -12,9 +12,12 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { mount } from "@vue/test-utils";
+import { nextTick } from "vue";
 
 import { withSetup } from "../../support/withSetup";
 import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
+import SpringHeatmap, { overshoot } from "../../../demo/scenes/spring/SpringHeatmap.vue";
 import { useSceneMachine } from "../../../demo/state";
 import { warmKfEngine } from "../../../demo/kf-engine";
 
@@ -226,3 +229,29 @@ describe("(10) KFA-40 + UIA-KF-094 + KFA-41 — the derby lanes share the rail's
         expect(tpl).toMatch(/'spring-rail-verbs--veiled': demo\.derbyActive\.value/);
     });
 });
+
+describe("(11) UIA-KF-308 — the field previews its hover, and the marker's pip name steps aside", () => {
+    it("a hover reads '(r, ζ) → peak %' in the header and reverts on leave; the current preset's pip is marked", async () => {
+        const wrapper = mount(SpringHeatmap, { props: { response: 0.5, dampingFraction: 0.86 }, attachTo: document.body });
+        try {
+            const el = wrapper.get('[role="application"]').element as HTMLElement;
+            vi.spyOn(el, "clientWidth", "get").mockReturnValue(220);
+            vi.spyOn(el, "clientHeight", "get").mockReturnValue(260);
+            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 222, height: 262 } as DOMRect);
+            // no gesture: a bare hover over node (0.65 s, ζ 0.85)
+            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 7, clientX: 110, clientY: 130 }));
+            await nextTick();
+            const hover = wrapper.find("[data-heatmap-hover]");
+            expect(hover.exists(), "a hover readout").toBe(true);
+            expect(hover.text()).toBe(`0.65 s · ζ 0.85 → ${Math.round(overshoot(0.85) * 100)} %`);
+            el.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true, pointerId: 7 }));
+            await nextTick();
+            expect(wrapper.find("[data-heatmap-hover]").exists()).toBe(false);
+            const current = wrapper.findAll(".spring-heatmap-pip.is-current");
+            expect(current.map((p) => p.text())).toEqual(["smooth"]);
+        } finally {
+            wrapper.unmount();
+        }
+    });
+});
+
