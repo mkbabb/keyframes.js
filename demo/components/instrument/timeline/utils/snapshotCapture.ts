@@ -27,8 +27,17 @@ export function captureSnapshot(
     const computed = getComputedStyle(element);
     const vars: Record<string, string> = {};
 
+    // KFA-224 — the AUTHORED value first. The computed style serialises a
+    // transform as `matrix3d(…)`, which cannot represent a multi-turn rotation
+    // (the cube's `rotateY(0.987turn)` came back as a matrix, and the editor
+    // showed a snapshot of the matrix, not the rotation). Whatever the element
+    // carries inline — what the engine and the author wrote — is taken as
+    // written; the computed value is the fallback for a property with no
+    // inline declaration.
     for (const prop of properties) {
-        const value = computed.getPropertyValue(prop).trim();
+        const value = (
+            element.style.getPropertyValue(prop) || computed.getPropertyValue(prop)
+        ).trim();
         if (value) {
             vars[prop] = value;
         }
