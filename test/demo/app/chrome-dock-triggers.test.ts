@@ -99,3 +99,15 @@ describe("UIA-KF-242 — opening the scene list warms every scene", () => {
         w.unmount();
     });
 });
+
+describe("UIA-KF-108 — a scene row is marked once", () => {
+    it("(3) no scene row's label carries a consumer font-bold", async () => {
+        const w = mountDock();
+        const trig = w.find('[aria-label="Scene"]').element as HTMLElement;
+        trig.focus();
+        trig.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+        await vi.waitFor(() => expect(document.querySelectorAll("[role=listbox] [role=option]").length).toBe(SCENES.length + 1));
+        expect(document.querySelectorAll("[role=listbox] .font-bold")).toHaveLength(0);
+        w.unmount();
+    });
+});

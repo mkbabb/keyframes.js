@@ -40,8 +40,9 @@ import {
 // vocabulary and then re-invented it out of a health vocabulary. Now the
 // indicator is simply left on: reka renders it for `data-state="checked"` alone,
 // so the CURRENT row is marked instead of every OTHER row being marked
-// "unknown". The `font-bold` on the current row stays as the redundant second
-// channel it always was.
+// "unknown". X.KF.W13X.dock · UIA-KF-108 — the indicator is the ONE selection
+// channel: the consumer `font-bold` that rode the current row as a second mark
+// is gone, so the dock's selects mark the current row the way the pane's do.
 //
 // WHY `--select-dot-color` IS BOUND EXPLICITLY (measured, not preferred). The
 // producer's dot paints
@@ -111,7 +112,7 @@ const props = defineProps<{
      *  source scene, and it flips at resolve together with the Controls
      *  selection and the controls pane (one commit point). The Scene trigger's
      *  label (`<SelectValue>` off the Select's model), its glyph and the
-     *  menu's bold row all read it. */
+     *  menu's checked row all read it. */
     currentSceneId: string;
     scenes: { id: string; label: string; icon?: Component }[];
     /** R3-4 — the home descriptor's id AND label, single-sourced from the scene
@@ -433,7 +434,7 @@ watch(isSelectOpen, (open) => {
                                     <SelectItem :value="homeScene.id">
                                         <span class="flex items-center gap-2">
                                             <Home class="dock-glyph" aria-hidden="true" />
-                                            <span :class="currentSceneId === homeScene.id ? 'font-bold' : ''">{{ homeScene.label }}</span>
+                                            <span>{{ homeScene.label }}</span>
                                         </span>
                                     </SelectItem>
                                     <SelectItem
@@ -443,7 +444,7 @@ watch(isSelectOpen, (open) => {
                                     >
                                         <span class="flex items-center gap-2">
                                             <component v-if="scene.icon" :is="scene.icon" class="dock-glyph" aria-hidden="true" />
-                                            <span :class="currentSceneId === scene.id ? 'font-bold' : ''">{{ scene.label }}</span>
+                                            <span>{{ scene.label }}</span>
                                         </span>
                                     </SelectItem>
                                 </SelectGroup>
