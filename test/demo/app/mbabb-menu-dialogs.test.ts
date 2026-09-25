@@ -185,3 +185,22 @@ describe("A2-KE-L2-13 · UIA-KF-137 — the theme is a checkbox row, the ppmycot
         wrapper.unmount();
     });
 });
+
+describe("UIA-KF-138 — one subtitle, one identity row", () => {
+    it("(7) only Clear all keeps a second line; the identity is ONE item that opens the source", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        const rows = [...menu()!.querySelectorAll<HTMLElement>("[role^=menuitem]")];
+        const withSub = rows.filter((r) => r.querySelector("p")).map((r) => r.textContent?.trim().slice(0, 9));
+        expect(withSub).toEqual(["Clear all"]);
+        const id = row("@mbabb")!;
+        expect(id.textContent?.replace(/\s+/g, " ").trim()).toContain("@mbabb · GitHub");
+        expect(id.querySelectorAll("a")).toHaveLength(0);
+        expect(menu()!.textContent).not.toContain("CSS keyframe animation engine");
+        const open = vi.spyOn(window, "open").mockImplementation(() => null);
+        await selectRow("@mbabb");
+        expect(open).toHaveBeenCalledWith("https://github.com/mkbabb/keyframes.js", "_blank", "noopener,noreferrer");
+        open.mockRestore();
+        wrapper.unmount();
+    });
+});

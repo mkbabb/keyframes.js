@@ -61,7 +61,6 @@
                 <span class="w-7 shrink-0 flex justify-center" @click.stop><SharePopover ref="sharePopover" :on-scene-restore="onSceneRestore" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Share</span>
-                    <p class="text-micro text-muted-foreground leading-tight">Copy link or load shared state</p>
                 </div>
             </DropdownMenuItem>
 
@@ -80,7 +79,6 @@
                 <span class="w-7 shrink-0 flex justify-center"><Moon class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Dark mode</span>
-                    <p class="text-micro text-muted-foreground leading-tight">Light or dark theme</p>
                 </div>
             </DropdownMenuCheckboxItem>
 
@@ -94,7 +92,6 @@
                 <span class="w-7 shrink-0 flex justify-center"><Keyboard class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Keyboard shortcuts</span>
-                    <p class="text-micro text-muted-foreground leading-tight">Every key the editor answers</p>
                 </div>
                 <DropdownMenuShortcut aria-hidden="true">?</DropdownMenuShortcut>
             </DropdownMenuItem>
@@ -170,16 +167,10 @@
                          a third, worse dialect. Declared, never silently
                          dropped; perceptual magnitude is SS-13's. -->
                     <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
-                    <!-- MM-8's ONE DEFENSIBLE mono register (`text-admin-label`,
-                         retired at glass 8.0.0 for `text-mono-micro`): a bare URL is
-                         an artifact string, not prose, so the mono register is
-                         correct here and stays. -->
-                    <!-- MM-10 — `block`: the title `<span>` and this `<a>` were
-                         both inline in a block wrapper, and Vue's default
-                         whitespace `condense` deleted the newline between them,
-                         so the row's two lines ran together as one. -->
-                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" class="block text-mono-micro text-muted-foreground hover:text-foreground hover:underline transition-colors" @click.stop>ppmycota.com</a>
                 </div>
+                <!-- UIA-KF-138 · UIA-KF-246 — the site is a trailing glyph, not a
+                     second line (the one subtitle left in this menu is Clear all's). -->
+                <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" aria-label="ppmycota.com" title="ppmycota.com" class="text-muted-foreground hover:text-foreground" @click.stop><ExternalLink class="w-4 h-4" aria-hidden="true" /></a>
             </DropdownMenuCheckboxItem>
 
             <DropdownMenuSeparator />
@@ -207,21 +198,14 @@
 
             <DropdownMenuSeparator />
 
-            <!-- @mbabb — MM-26 + MM-2's row-5 arm: a LABEL, not a menuitem. The
-                 row had no handler and its only actionable content was two
-                 inline anchors, so full-row interactive chrome advertised an
-                 action the row lacks (and nested interactive content inside
-                 `role=menuitem`). `as-child` onto one anchor is structurally
-                 unavailable with two (K-10); `DropdownMenuLabel` ships for
-                 exactly this — an identity block the menu does not select. -->
-            <DropdownMenuLabel class="flex items-center gap-2.5 px-1.5 py-1">
-                <!-- MM-39 — `w-7 h-7` is a NECESSARY escape hatch, not a
-                     root-styling violation: every design-system avatar size is
-                     ≥40px, which exceeds this row's 32px content band, and no
-                     `sm` rung ships. MM-16 — a fallback plate for a failed or
-                     blocked load (the menu's only third-party request), and the
-                     request no longer leaks the page URL to GitHub as a
-                     referrer. -->
+            <!-- X.KF.W13X.dock · UIA-KF-138 — the identity is ONE row: avatar +
+                 "@mbabb · GitHub", a single item whose select opens the source.
+                 It was a three-line label (handle, tagline, "View the source on
+                 GitHub") repeating the trigger's handle, with two anchors nested
+                 in it. MM-39 — `w-7 h-7` is a necessary escape hatch (every
+                 design-system avatar size is ≥40px, and no `sm` rung ships);
+                 MM-16 — a fallback plate, and no referrer leak to GitHub. -->
+            <DropdownMenuItem text-value="GitHub" class="gap-2.5 px-1.5 py-1" @select="openSource">
                 <span class="w-7 shrink-0 flex justify-center">
                     <Avatar decorative class="w-7 h-7">
                         <AvatarImage
@@ -231,37 +215,9 @@
                         <AvatarFallback>MB</AvatarFallback>
                     </Avatar>
                 </span>
-                <!-- `font-normal` on the text column: the producer's
-                     `.dropdown-menu__label` sets weight 600 (measured), which
-                     every line here would inherit and re-open MM-31's bold. A
-                     declared weight on the child beats inheritance, with no
-                     layer contest against the label's own rule. -->
-                <div class="flex-1 min-w-0 font-normal">
-                    <!-- MM-31 (+ MM-29 site 2, cured STRUCTURALLY rather than
-                         patched). This title was simultaneously the SMALLEST
-                         string in the menu (`text-mono-caption`, the caption
-                         rung) and its only bold one — the person the menu is
-                         named after read below "Share" and "Clear all & reload",
-                         a typographic inversion no axis had measured. It now
-                         takes its siblings' rung: `text-mono-small` is
-                         `--type-small`, the same size token the sibling row
-                         titles' `text-small` reads, and mono is correct because
-                         `@mbabb` is an identifier (`data-register="code"`,
-                         case-significant). The bold goes with the inversion —
-                         no row title now outweighs another, and `text-foreground`
-                         against the muted lines below is what marks it. MM-29
-                         needs no pairing HERE because `text-mono-small` applies
-                         neither `text-transform: uppercase` nor
-                         `--type-tracking-caps`: the `normal-case` that used to
-                         sit here existed only to cancel the caption rung's
-                         transform, and the right rung never had one. -->
-                    <a href="https://github.com/mkbabb" target="_blank" rel="noopener noreferrer" class="text-mono-small text-foreground hover:underline" data-register="code">@mbabb</a>
-                    <p class="text-micro text-muted-foreground leading-tight">CSS keyframe animation engine</p>
-                    <!-- MM-17 — the product is "GitHub", and the decorative 🎉 is
-                         no longer spoken inside the link's accessible name. -->
-                    <a href="https://github.com/mkbabb/keyframes.js" target="_blank" rel="noopener noreferrer" class="block text-micro text-muted-foreground hover:text-foreground hover:underline transition-colors">View the project on GitHub <span aria-hidden="true">&#x1F389;</span></a>
-                </div>
-            </DropdownMenuLabel>
+                <span class="flex-1 min-w-0 text-small text-foreground"><span class="font-mono" data-register="code">@mbabb</span> · GitHub</span>
+                <ExternalLink class="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
 
@@ -320,10 +276,10 @@ import { SharePopover } from "@components/instrument/shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
-import { Keyboard, Moon, Trash } from "@lucide/vue";
+import { ExternalLink, Keyboard, Moon, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
@@ -439,6 +395,11 @@ function onConfirmCloseAutoFocus(event: Event): void {
 // and components that captured a bucket hold detached proxies afterwards. It is
 // correct ONLY because the reload below follows it immediately; a caller that
 // resets without reloading inherits that asymmetry.
+// UIA-KF-138 — the identity row's command: the source, in a new tab, no opener.
+function openSource(): void {
+    window.open("https://github.com/mkbabb/keyframes.js", "_blank", "noopener,noreferrer");
+}
+
 function clearAllAndReload(): void {
     resetAllStores();
     window.location.reload();
