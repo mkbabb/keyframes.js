@@ -21,7 +21,10 @@
             "
         >
             <DialogTitle class="text-subheading">{{ title }}</DialogTitle>
-            <DialogDescription class="text-body text-muted-foreground">{{ description }}</DialogDescription>
+            <!-- A2-KE-X-5 — the description reads in glass's own register
+                 (`--type-body`, `--foreground`); the demo's muted override was
+                 what vanished into the translucent dialog over a vivid scene. -->
+            <DialogDescription>{{ description }}</DialogDescription>
             <!-- S-9 (W6-I) — THE WELL IS THE PRODUCER'S `Textarea`. The
                  `<pre contenteditable role="textbox">` it replaces was a
                  hand-ARIA'd editing host with no native value, selection or
@@ -50,9 +53,13 @@
                  the ratio (recorded upward, never patched at the producer).
                  R-24/R-27 are SATISFIED BY THE PRIMITIVE (`--input-on-glass` is
                  the field-control's own surface), not swapped away. -->
+            <!-- A2-KE-X-5 — `:rows` sizes the well (glass derives the well's
+                 min block size from it), and a SHORT viewport gets fewer rows:
+                 at 844x390 the ten-row well (262 px) pushed the primary button
+                 below the dialog's fold. -->
             <Textarea
                 :model-value="text"
-                :rows="10"
+                :rows="shortViewport ? 4 : 10"
                 resize="vertical"
                 wrap="off"
                 :invalid="!!error"
@@ -72,7 +79,7 @@
             <p
                 v-if="error"
                 id="css-paste-dialog-error"
-                class="text-mono-micro uppercase font-medium text-destructive"
+                class="text-small text-destructive"
                 role="status"
                 aria-live="polite"
             >
@@ -114,6 +121,7 @@ import {
 } from "@mkbabb/glass-ui";
 import { Textarea } from "@mkbabb/glass-ui/textarea";
 import { isInsideToaster } from "@components/instrument/utils/toastGuard";
+import { useMediaQuery } from "@vueuse/core";
 
 /**
  * THE ONE CSS-PASTE SHELL (KF.W7 G15 / R-7 ≡ KAD-F3).
@@ -160,6 +168,9 @@ const props = defineProps<{
 
 const modelOpen = defineModel<boolean>("open", { required: true });
 const text = defineModel<string>("text", { default: "" });
+
+/** A2-KE-X-5 — a landscape phone's height: the well takes 4 rows, not 10. */
+const shortViewport = useMediaQuery("(max-height: 480px)");
 
 const busy = ref(false);
 const error = ref<string | null>(null);
