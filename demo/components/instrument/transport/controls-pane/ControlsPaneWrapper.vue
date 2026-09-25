@@ -93,7 +93,13 @@
                             :blend-available="host.blendAvailable"
                             :active="storedControls.selectedAnimation == host.name"
                         >
-                            <template #tabs-content>
+                            <!-- X.KF.W13X.mobile (UIA-KF-008) — the scene
+                                 facet body renders ONLY on its own surface,
+                                 gated here in the one pane host so no scene
+                                 can forget (easing Curve and spring Physics
+                                 were ungated and stacked under Controls,
+                                 Keyframes and Timeline). -->
+                            <template v-if="selectedIsFacet" #tabs-content>
                                 <slot
                                     name="tabs-content"
                                     :selected-animation="
@@ -218,7 +224,11 @@
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import type { StoredAnimationGroupControlOptions } from "@state";
+import {
+    BUILT_IN_SURFACES,
+    type ControlSurface,
+    type StoredAnimationGroupControlOptions,
+} from "@state";
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
@@ -370,6 +380,15 @@ const sequenceHosts = computed(() =>
 );
 const selectedIsSequence = computed(() =>
     sequenceHosts.value.some((h) => h.name === props.storedControls.selectedAnimation),
+);
+
+// X.KF.W13X.mobile (UIA-KF-008) — a scene facet (easing Curve, spring Physics,
+// cube Matrix Controls) is any surface outside the BUILT_IN triad.
+const selectedIsFacet = computed(
+    () =>
+        !BUILT_IN_SURFACES.includes(
+            props.storedControls.selectedControl as ControlSurface,
+        ),
 );
 
 // Whether the pane/sheet has anything to show (the former `v-show` predicate).
