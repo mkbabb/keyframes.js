@@ -26,9 +26,9 @@
          THE OCCLUSION CONTRACT under the Drawer's geometry (D-B1 / N-2 / C-2,
          BG-11 DISCHARGED): the detented sheet's visible fraction is the active
          snap fraction (`--glass-drawer-t`), so the stage-reserve is
-         APPROXIMATED by capping the expanded detent — subject scenes at
-         `EXPANDED_SUBJECT` (0.36; the derivation sits beside the constant),
-         editor/storyboard at 0.62 (26dvh strip). The bottom-menubar overlap the
+         APPROXIMATED by capping the open detent — every stage mode at
+         `OPEN_SNAP` (0.36; the derivation sits beside the constant; the 0.62
+         editor rung is retired, X.KF.W13X.mobile, with a FULL rung above). The bottom-menubar overlap the
          ladder could not cure is cured at the producer's own lever: installed
          glass-ui 7.0.0 publishes `--drawer-inset-block-end` (`:root { … 0px }`
          + `.glass-drawer[data-glass-drawer-snap-points="true"]
@@ -186,12 +186,12 @@
              covered its last control row (the owner's "fill mode"). The
              sheet now rests on top of the transport, never under it. -->
         <SheetContent
-            side="bottom"
+            :side="sheetSide"
             :detents="snapPoints"
             v-model:detent="activeSnap"
             scroll
             class="controls-drawer-content"
-            :style="{ bottom: 'var(--stage-bottom-inset)' }"
+            :style="sheetStyle"
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
@@ -232,12 +232,11 @@ import {
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, shallowRef, useTemplateRef, type ComponentPublicInstance } from "vue";
+import { computed, shallowRef, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
 import type { TransportChannel } from "../transportSource";
 import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SequenceTimeline from "../../timeline/SequenceTimeline.vue";
-import { usePaneRegister } from "../ControlsPaneWrapper/usePaneRegister";
 import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
 // `<SheetContent>` in the template (D-B1; glass 10's sheet pins `bottom: 0` at
@@ -256,10 +255,11 @@ const props = defineProps<{
     channels?: TransportChannel[] | undefined;
     storedControls: StoredAnimationGroupControlOptions;
     hideControls?: boolean;
-    // The mobile STAGE mode-class (H.W7.S1c) — `subject` full-bleeds the stage
-    // behind the sheet; `editor`/`storyboard` keep a content card. The mode also
-    // tunes the Sheet's max detent (the stage-reserve approximation).
-    // `| undefined` explicit — bound, never omitted, by the group above.
+    // The mobile STAGE mode-class (H.W7.S1c). X.KF.W13X.mobile (UIA-KF-217) —
+    // the pane no longer reads it: the detent ladder is one ladder for every
+    // mode (the editor rung was lowered onto the stage floor). The binding in
+    // AnimationControlsGroup (`.transport`'s file) retires with this
+    // declaration; until then it is declared so it does not fall through.
     stageMode?: "subject" | "editor" | "storyboard" | undefined;
     isPlaying: boolean;
     activeKeyframesRef: any;
@@ -396,10 +396,6 @@ const showSheet = computed(
     () => !!props.storedControls.selectedAnimation && !props.hideControls,
 );
 
-// The resolved stage mode (the pane register concern) lives in usePaneRegister.
-const { stageMode } = usePaneRegister({
-    stageMode: () => props.stageMode,
-});
 
 // R.W6 B.1 — layout composable owns the pane-element ref; no parent prop-drilling.
 const paneElRef = useTemplateRef<HTMLElement>("paneElRef");
@@ -425,51 +421,69 @@ if (isMobileLayout.value) {
     emit("setControlsPanelOpen", false);
 }
 
-// The detent ladder — fractions of the SHEET's height, which under the D-B1
-// inset `b` (the dock band as a viewport fraction) is `(1 − b)·vh`, bottom-
-// anchored above the menubar: a detent `t` shows `t·(1 − b)` of the viewport
-// and leaves `(1 − b)(1 − t)` of stage above the sheet. PEEK keeps the stage
-// maximally visible; the EXPANDED cap APPROXIMATES the stage-reserve.
-// [X.KF.W13R.m, glass 10.0.1 — the Sheet] A detent is now a SIZE of the
-// viewport (`t · 100dvh`), lifted `b` above the menubar: a detent `t` shows
-// `t` of the viewport and leaves `1 − b − t` of stage above the sheet, so the
-// 0.45 floor below reads `1 − b − t − 0.11 ≥ 0.45`, i.e. t ≤ 0.44 − b — 0.36
-// holds it up to b = 0.08 (a 64px band on 800px; ~67px on 844px reads
-// b ≈ 0.079). The constants are unchanged (D-M3); the derivation that follows
-// is the 7.0.0 Drawer's `(1 − b)` geometry, kept as written.
+// The detent ladder. A detent `t` is a SIZE of the viewport (`t · 100dvh`, or
+// `t · 100dvw` for a side sheet; glass 10's Sheet), and the sheet is lifted
+// above the transport band (D-B1, `--stage-bottom-inset`), so a bottom rung `t`
+// leaves `1 − b − t` of stage above it. PEEK is the grab-handle rest (the glass
+// chrome floor wins below it); OPEN keeps the 0.45 unoccluded stage floor, net
+// of the ~0.11 top-dock band: `1 − b − t − 0.11 ≥ 0.45`, so 0.36 holds it up to
+// b = 0.08 (a 64px band on 800px).
+// X.KF.W13X.mobile (UIA-KF-217 · A2-KE-L2-10) — ONE open rung for every stage
+// mode, plus a FULL rung for editing. The 0.62 editor rung was floor-exempt and
+// covered the spring track at every phone (the sheet top at 169-260 against the
+// track's bottom at 319-429), and the 0.36 rung left the pane a 171-257px scroll
+// window for 700+px of controls. The editor rung is lowered onto the floor, and
+// the editing room moves to a third rung the user asks for: FULL is the whole
+// band between the two docks, the sheet's size capped at the band by
+// `fullBand` below (so the rung reads 1 and the cap is the band, whatever the
+// dock heights measure).
+// X.KF.W13X.mobile (A2-KE-L2-3) — on a short viewport (a phone in landscape,
+// ≤ 500px tall) the bottom ladder is degenerate: the glass chrome floor (204px)
+// exceeds both 0.12 and 0.36 of 390px, so PEEK and OPEN were the same box and
+// covered the whole stage band. There the sheet is the desktop rail's analogue,
+// a RIGHT side sheet between the two dock bands, whose rungs are widths: PEEK a
+// grip strip, OPEN 0.4 (the centred subject stays clear: at 844 the sheet's
+// edge sits at 506, right of the subject's centre at 422), FULL 0.55.
+const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
+const sheetSide = computed(() => (isShortLayout.value ? "right" : "bottom"));
 const PEEK_SNAP = 0.12;
-// D-M12 recomputed with D-B1 (D-M3: the shipped value governs the prose, not
-// the reverse). The 0.45 UNOCCLUDED floor, net of the ~0.11 top-dock band,
-// requires (1 − b)(1 − t) − 0.11 ≥ 0.45, i.e. t ≤ (0.44 − b)/(1 − b): 0.44 at
-// b = 0 (so the former 0.40 was right before the inset), 0.39 at b = 0.08 (a
-// 64px band on 800px), 0.378 at b = 0.10. 0.36 holds the floor up to b ≈ 0.12
-// (at b = 0.10: 0.9·0.64 − 0.11 = 0.466). The fixed chrome inside the sheet
-// (44 handle + 24 `p-3` + 54 coarse ribbon row + 8 `pb-2` = 130px) exceeds the
-// PEEK detent's height at any phone viewport (0.12·667 = 80px; 72px under a
-// 67px inset) both before and after the inset — the peek is a grab handle, not
-// a control row; the producer accepts px-string snap points, so a chrome-
-// fitting peek rung is the follow-on, taken only with a measured detent → `t`
-// mapping. Editor/storyboard 0.62 (floor-exempt; the content IS the
-// protagonist) stays ≤ the 0.70 never-full-height ceiling.
-const EXPANDED_SUBJECT = 0.36;
-const EXPANDED_EDITOR = 0.62;
-const expandedSnap = computed(() =>
-    stageMode.value === "subject" ? EXPANDED_SUBJECT : EXPANDED_EDITOR,
+const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.4 : 0.36));
+const FULL_SNAP = computed(() => (isShortLayout.value ? 0.55 : 1));
+const snapPoints = computed(() => [PEEK_SNAP, OPEN_SNAP.value, FULL_SNAP.value]);
+// The band the sheet lives in: above the transport, below the top dock. The
+// bottom sheet's FULL rung is capped at it; the side sheet spans it.
+const fullBand = "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))";
+const sheetStyle = computed(() =>
+    isShortLayout.value
+        ? { top: "var(--stage-top-inset)", bottom: "var(--stage-bottom-inset)", height: "auto" }
+        : { bottom: "var(--stage-bottom-inset)", maxBlockSize: fullBand },
 );
-const snapPoints = computed(() => [PEEK_SNAP, expandedSnap.value]);
 
-// The store open-fact ↔ the Sheet's active detent. Open ⇒ expanded; closed ⇒
-// peek. A drag/fling that lands nearer the expanded detent writes the open fact
-// true; the sheet's `update:detent` payload is `number | null`, and a null or a
-// flick onto 0 reads as peek.
+// The store open-fact ↔ the Sheet's active rung. Closed ⇒ PEEK; open ⇒ OPEN,
+// or FULL once the user has taken the sheet there (`atFull`, local: the store
+// knows open/closed only). A drag, fling or grip key lands on the NEAREST rung;
+// a null or a flick onto 0 reads as peek.
+const atFull = shallowRef(false);
+watch(
+    () => props.storedControls.isControlsPanelOpen,
+    (open) => {
+        if (!open) atFull.value = false;
+    },
+);
 const activeSnap = computed<number | null>({
     get: () =>
-        props.storedControls.isControlsPanelOpen
-            ? expandedSnap.value
-            : PEEK_SNAP,
+        !props.storedControls.isControlsPanelOpen
+            ? PEEK_SNAP
+            : atFull.value
+              ? FULL_SNAP.value
+              : OPEN_SNAP.value,
     set: (v: number | null) => {
-        const mid = (PEEK_SNAP + expandedSnap.value) / 2;
-        emit("setControlsPanelOpen", (v ?? 0) > mid);
+        const t = v ?? 0;
+        const nearest = snapPoints.value.reduce((a, c) =>
+            Math.abs(c - t) < Math.abs(a - t) ? c : a,
+        );
+        atFull.value = nearest === FULL_SNAP.value;
+        emit("setControlsPanelOpen", nearest !== PEEK_SNAP);
     },
 });
 

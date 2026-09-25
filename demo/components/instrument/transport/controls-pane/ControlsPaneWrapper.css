@@ -16,9 +16,9 @@
  *
  * The G1 stage-visibility contract (`--stage-strip`/`--stage-reserve`) moved with
  * the bespoke sheet: under the Drawer the visible fraction is the snap-fraction
- * cap (ControlsPaneWrapper.vue's `snapPoints` — subject `EXPANDED_SUBJECT`
- * 0.36, derived beside the constant from the 0.45 unoccluded floor under the
- * D-B1 inset; editor/storyboard 0.62 ≈ 26dvh strip), so the reserve is a JS
+ * cap (ControlsPaneWrapper.vue's `snapPoints` — `OPEN_SNAP` 0.36 for every
+ * stage mode, derived beside the constant from the 0.45 unoccluded floor under
+ * the D-B1 inset; a FULL rung above it for editing), so the reserve is a JS
  * detent, not a CSS token; the sheet's bottom edge clears the menubar through
  * the producer's `--drawer-inset-block-end`, set on `<DrawerContent>` (D-M3:
  * the retired `proof:stage-visible` gate pointer is gone; the shipped numbers
@@ -48,7 +48,14 @@
    that region the scroller at every rung. glass-ui's `useSheetDetents` owns the
    detent/fling gesture; this file only lays the body out inside the region. */
 @media (max-width: 1023px) {
+    /* X.KF.W13X.mobile (A2-KE-L2-10) — the pane is the region's BODY row. The
+       detented region is three rows, header / body / footer (sheet/styles.css:
+       `minmax(0, auto) minmax(1lh, 1fr) auto`), and a lone child is auto-placed
+       into the HEADER row: the pane took `minmax(0, auto)` and the `1fr` body
+       row sat empty below it (25px + a gap at every rung; the window at 844x390
+       read 94px of a 143px region). The pane names its row. */
     .controls-drawer-content .controls-pane {
+        grid-row: 2;
         touch-action: pan-y;
     }
     /* X.KF.W13W.m (OA-64) — no inline padding of its own: the Sheet region
