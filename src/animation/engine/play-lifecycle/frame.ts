@@ -109,6 +109,13 @@ export function advanceTo<V extends Vars>(
             const carried = anim._playback.carriedStartTime;
             anim._playback.carriedStartTime = undefined;
             anim._playback.startTime = carried ?? t + phase;
+            // KFA-17 / C6-3 (X.KF.W13X.r): a FRESH anchor is taken at this
+            // frame's clock, so a pause recorded before it (a group paused on
+            // the tick that cleared this child's anchor) spans no local time.
+            // Applying it would move the anchor forward by the paused span and
+            // run the playhead negative by exactly that span. A carried anchor
+            // predates the pause, so it keeps the pause offset.
+            if (carried === undefined) anim._playback.pausedTime = 0;
             anim.dispatchAnimationEvent("animationstart");
             return advanceBody(anim, t);
         };
