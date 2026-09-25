@@ -85,7 +85,7 @@ const shareField = () =>
 
 function shareRow(): HTMLElement {
     const row = [...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
-        (el) => el.textContent?.includes("Copy link or load shared state"),
+        (el) => el.textContent?.trim() === "Share",
     );
     expect(row).toBeDefined();
     return row!;
