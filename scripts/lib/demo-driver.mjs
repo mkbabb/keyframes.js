@@ -96,24 +96,18 @@ const SCENE_GATE_META = {
     // its bleed is the intended design, NOT occlusion (C.W1 § Design decisions).
     amiga: { subjectSelector: "canvas", dockFloatAllowed: true },
     square: { subjectSelector: ".demo-box", dockFloatAllowed: false },
-    // The easing SINGULAR stage (H.W10 G4/S3) is ONE engine-driven hero ball
-    // (`.progress-ball.hero-ball`, an AnimationVisualizer ball whose x = the timing
-    // function applied to progress — the inv ζ dogfood), NOT a glass card. The old
-    // `[class*=rail]` selector matched only the PlaybackRibbon scrubber rail, which is
-    // INSIDE the controls pane — hidden when controls are closed (the occlusion gate's
-    // default axis) → "subject ABSENT". Target the visible stage subject (the I.W2
-    // EasingEditor unification + the G4 singular-stage redesign moved it off the
-    // glass-card/rail shape; proof:easing-stage-is-ball asserts the ball is the stage).
+    // The easing stage is the specimen gallery (EasingCatalogue, T.E6): its
+    // subject is each tile's ball, which rides the tile's curve
+    // (`.curve-ball.tile-ball`, KF.W13W.b). The ribbon's AnimationVisualizer
+    // `.progress-ball` sits INSIDE the controls pane (below the fold when
+    // closed), so it is not the stage subject (KF.W13X.mobile E2E-OCC-1).
     easing: {
-        subjectSelector: ".progress-ball, .hero-ball",
+        subjectSelector: ".tile-ball",
         dockFloatAllowed: false,
-        // The hero ball is a SWEEPING subject: its x = currentEasingFn(progress)
-        // * maxX (proof:easing-stage-is-ball — the inv ζ dogfood). It TRAVERSES the
-        // full stage width as the animation plays, so its center is animation-phase-
-        // dependent and is SUPPOSED to reach the edges — the static "centered 15–85%"
-        // check is both inappropriate AND flaky for it (it'd pass/fail by the capture
-        // moment). The render + dock-occlusion checks still apply (the ball must exist
-        // + not be dock-covered); only the centering check is skipped.
+        // A SWEEPING subject: a tile ball's x IS its curve's progress
+        // (curvePlot.place), and the tiles sit in a grid, so a static
+        // "centered 15-85%" check does not apply. The render + dock-occlusion
+        // checks still bite (a ball must exist in-viewport, not dock-covered).
         sweepingSubject: true,
     },
     spring: {
