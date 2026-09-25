@@ -10,6 +10,8 @@
  *     at the ball, the readouts flushed from the solvers.
  */
 import { beforeAll, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { withSetup } from "../../support/withSetup";
 import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
@@ -62,5 +64,25 @@ describe("(1) KFA-38 + UIA-KF-204 — born at an honest rest", () => {
         } finally {
             app.unmount();
         }
+    });
+});
+
+// ── Source-level clauses over the spring SFCs' own style blocks ──────────────
+
+const sfc = (name: string) => readFileSync(resolve(process.cwd(), `demo/scenes/spring/${name}`), "utf8");
+const styleOf = (src: string) => src.slice(src.indexOf("<style"));
+/** The declarations of the FIRST rule whose selector is exactly `sel`. */
+const ruleBody = (css: string, sel: string): string => {
+    const at = css.search(new RegExp(`(^|\\n)${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{`));
+    if (at < 0) return "";
+    const open = css.indexOf("{", at);
+    return css.slice(open + 1, css.indexOf("\n}", open));
+};
+
+describe("(2) UIA-KF-305 — the rail's focus ring follows a drawn radius", () => {
+    it(".spring-rail declares a radius-role border-radius (the ring is a box-shadow on the host box)", () => {
+        const body = ruleBody(styleOf(sfc("SpringTarget.vue")), ".spring-rail");
+        expect(body, ".spring-rail rule present").not.toBe("");
+        expect(body).toMatch(/border-radius:\s*var\(--radius-(field|control)\)/);
     });
 });

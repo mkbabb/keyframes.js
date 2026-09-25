@@ -602,8 +602,13 @@ const onKeydown = (e: KeyboardEvent) => {
        axes resolved (`.progress-rail` top/left/width, `.progress-ball` top +
        margin-top, `.spring-target-marker` top + margin-top, `.spring-track`
        inset, `.derby-lanes` inset) — a flex container with no in-flow children
-       lays nothing out. Only `container-type` was ever load-bearing here. */
+       lays nothing out. Only `container-type` was ever load-bearing here.
+       X.KF.W13X.spring (UIA-KF-305) — the rail's `kf-focus-ring` is a
+       box-shadow on THIS 48 px gesture box, so the box carries the field rung's
+       radius: the ring is a rounded well around the track, never a sharp
+       rectangle that matches no drawn shape. */
     container-type: inline-size;
+    border-radius: var(--radius-field);
 }
 
 /* ── D-7/C-8 · D-16 — THE VALUE TRACK ──
