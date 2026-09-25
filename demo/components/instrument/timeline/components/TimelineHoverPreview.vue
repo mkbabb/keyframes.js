@@ -37,22 +37,23 @@
              also the one alignment rule the stack was missing (the media was
              centred while the code block beneath it ran full width).
 
-             FIVE STATES, EXHAUSTIVE (MISSED-4 · L-D4/C-4(b)) — `ready` paints
-             the capture; `capturing`, `failed`, a ghostable keyframe with no
-             capture, and a keyframe with nothing ghostable at all ALL paint the
-             plate, and the status line below says which of the four it is. The
-             `v-else` is terminal: before it, a keyframe with no ghost-mappable
-             property and no capture rendered NOTHING AT ALL — an empty media
-             slot with no explanation, eight lines from a file that renders an
-             explicit empty state for the declaration list. -->
+             THREE STATES, EXHAUSTIVE (MISSED-4 · L-D4/C-4(b); KFA-59) — a
+             mounted subject paints the posed clone; without one, a ghostable
+             keyframe paints the plate, and a keyframe with nothing ghostable
+             paints the plate and the status line says so. The `v-else` is
+             terminal: the media slot is never empty and unexplained. -->
+        <!-- KFA-59 / UIA-KF-022 — the pose is the stop's declarations on a
+             clone of the subject, fitted to this box (no html2canvas capture,
+             so no capture failure to print). Without a subject the ghost
+             plate below draws what it can. -->
         <div class="w-36 h-24 grid place-items-center">
-            <img
-                v-if="entry?.kind === 'ready'"
-                :src="entry.src"
-                :alt="altText"
-                class="max-w-full max-h-full object-contain rounded border border-border/30"
-                @error="emit('previewFailed', 'The captured preview failed to decode')"
-            />
+            <div
+                v-if="source"
+                ref="poseBox"
+                class="timeline-hover-pose relative w-full h-full overflow-clip [contain:paint]"
+                role="img"
+                :aria-label="poseLabel"
+            ></div>
             <!-- GHOST-PLATE + MISSED-4 — THE PLATE IS FIXED, THE PAYLOAD MOVES.
                  `scale(0.3) ${transform}` was composed onto THIS element, so the
                  frame shrank with its own content: a 0.3px border at 30% alpha
@@ -140,7 +141,8 @@
             class="text-mono-small text-muted-foreground max-h-[12.6em] overflow-x-clip overflow-y-auto w-full"
             data-register="code"
         >
-            <!-- D-2/L-D9 — a row is `truncate`d at ~29 characters against a
+            <!-- UIA-KF-279 — a row WRAPS (it was `truncate`d to a stub, the
+                 value the tooltip exists to show). History, D-2/L-D9: a row was `truncate`d at ~29 characters against a
                  capture set holding 80-character matrices, and the panel offers
                  no wrap, no copy and no title: the value the tooltip exists to
                  show was the one thing it would not show. The full declaration
@@ -150,7 +152,7 @@
             <div
                 v-for="[prop, val] in Object.entries(keyframe.vars)"
                 :key="prop"
-                class="truncate"
+                class="break-words"
                 :title="`${prop}: ${val}`"
             >
                 <span class="text-foreground">{{ prop }}</span>: {{ val }}
@@ -190,7 +192,7 @@
  * pure function; `vue-tsc` resolves it, and nothing else in the file moves.
  */
 import { selectorText } from "@utils/keyframeSelector";
-import type { PreviewEntry } from "../composables/useTimelineBuild";
+import { fitPreviewSubject, posePreviewSubject } from "../utils/timelineEngine";
 import type { TimelineKeyframe } from "../timelineTypes";
 
 /**
@@ -227,12 +229,9 @@ export const authoredSelectorOf = (keyframe: TimelineKeyframe): string =>
 export const resolvedPositionOf = (keyframe: TimelineKeyframe): string | null =>
     keyframe.selector.kind === "percent" ? null : `${percentOf(keyframe)}%`;
 
-/**
- * The `<img>`'s own name — what a reader who lands ON the capture hears, rather
- * than the whole panel a second time.
- */
+/** The posed clone's own name — what a reader who lands ON the pose hears. */
 export const previewAlt = (keyframe: TimelineKeyframe): string =>
-    `Rendered preview of ${keyframe.label ? `${keyframe.label}, ` : ""}the keyframe at ${percentOf(keyframe)}%.`;
+    `Posed preview of ${keyframe.label ? `${keyframe.label}, ` : ""}the keyframe at ${percentOf(keyframe)}%.`;
 
 /**
  * THE ACCESSIBLE DESCRIPTION — one sentence per thing the panel shows.
@@ -240,9 +239,8 @@ export const previewAlt = (keyframe: TimelineKeyframe): string =>
  * PUNCTUATED AT EVERY BOUNDARY, which is the whole of MISSED-1's second horn:
  * `. ` ends each sentence and `; ` separates declaration rows, so a screen
  * reader pauses where the eye does instead of reading a stylesheet as one
- * breath. RE-DERIVED, because it is a pure function of the keyframe and its
- * preview entry: the ghost→image swap changes `entry.kind`, which changes this
- * string, which changes the prop reka reads first — the once-captured
+ * breath. RE-DERIVED, because it is a pure function of the keyframe and
+ * whether a subject is posed: either change changes this string, which changes the prop reka reads first — the once-captured
  * `textContent` path is never taken while the prop is a non-empty string.
  * NEVER FORCE-UPPERCASED (M7), because it is a string and not a text node: no
  * `text-transform` reaches it, and the property values reach AT in the case the
@@ -250,23 +248,18 @@ export const previewAlt = (keyframe: TimelineKeyframe): string =>
  */
 export const describeKeyframe = (
     keyframe: TimelineKeyframe,
-    entry: PreviewEntry | undefined,
+    posed: boolean,
 ): string => {
     const resolved = resolvedPositionOf(keyframe);
     const head =
         `${keyframe.label ? `${keyframe.label}. ` : ""}` +
         `Keyframe at ${authoredSelectorOf(keyframe)}${resolved ? ` (${resolved})` : ""}. `;
 
-    const media =
-        entry?.kind === "ready"
-            ? "Rendered preview available. "
-            : entry?.kind === "capturing"
-              ? "Capturing preview. "
-              : entry?.kind === "failed"
-                ? `Preview unavailable: ${entry.error}. `
-                : hasGhost(keyframe.vars)
-                  ? "Ghost preview. "
-                  : "No preview. ";
+    const media = posed
+        ? "Posed preview. "
+        : hasGhost(keyframe.vars)
+          ? "Ghost preview. "
+          : "No preview. ";
 
     const rows = Object.entries(keyframe.vars);
     const body = rows.length
@@ -278,7 +271,7 @@ export const describeKeyframe = (
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { decomposeMatrix2D, decomposeMatrix3D } from "@mkbabb/value.js/transform";
 import type { Mat4 } from "@mkbabb/value.js/transform";
@@ -286,18 +279,24 @@ import type { Mat4 } from "@mkbabb/value.js/transform";
 const props = defineProps<{
     keyframe: TimelineKeyframe;
     /**
-     * L-D8/C-4(a) — `ghostStyle` was a REQUIRED prop that was a pure function of
-     * this component's first prop, computed by the mount owner in a geometry
-     * component that had no other use for it. It is gone: the preview derives
-     * its own preview. `entry` is the one thing the leaf genuinely cannot know,
-     * and it is optional because "never hovered" is a real state.
+     * L-D8/C-4(a) — the preview derives its own preview from the keyframe.
+     * `source` is the one thing the leaf cannot know: the scene element whose
+     * clone it poses (KFA-59). Optional — without it the ghost plate draws.
      */
-    entry?: PreviewEntry | undefined;
+    source?: HTMLElement | null;
 }>();
 
-const emit = defineEmits<{
-    (e: "previewFailed", message: string): void;
-}>();
+const poseBox = useTemplateRef<HTMLElement>("poseBox");
+const poseLabel = computed(() => previewAlt(props.keyframe));
+
+watch(
+    [poseBox, () => props.source, () => ({ ...props.keyframe.vars })],
+    ([box, source, vars]) => {
+        if (!box || !source) return;
+        fitPreviewSubject(box, posePreviewSubject(source, vars), source);
+    },
+    { immediate: true, flush: "post" },
+);
 
 // C-5 (THP) — the `KeyframeSelector` discriminant was dropped here: every
 // caption was `Math.round(percent)%`, so `entry 100%` and `cover 0%` both read
@@ -317,7 +316,6 @@ const resolvedPosition = computed(() => resolvedPositionOf(props.keyframe));
  * defect reka's `props.ariaLabel || currentElement.textContent` reproduces when
  * nothing is passed to it.
  */
-const altText = computed(() => previewAlt(props.keyframe));
 
 /**
  * THE GHOST — decomposed, with the translation dropped (D-7 · m-7/m-8's design
@@ -398,11 +396,7 @@ const ghost = computed(() => {
  * the five arms that is prose rather than pixels, so the plate itself is
  * written once.
  */
-const statusLine = computed<string | null>(() => {
-    if (props.entry?.kind === "ready") return null;
-    if (props.entry?.kind === "capturing") return "Capturing preview";
-    if (props.entry?.kind === "failed")
-        return `Preview unavailable — ${props.entry.error}`;
-    return ghost.value.present ? null : "No previewable properties";
-});
+const statusLine = computed<string | null>(() =>
+    props.source || ghost.value.present ? null : "No previewable properties",
+);
 </script>

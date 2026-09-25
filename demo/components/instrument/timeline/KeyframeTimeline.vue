@@ -166,13 +166,19 @@
              (KF.W7 G2 / C-6): an inert clone of the instrumented element, driven
              by the timeline's own animation. The scene's element is READ by
              `snapshot()` and never written here — the scene keeps its single
-             engine. -->
+             engine.
+             UIA-KF-083 — shown only once two keyframes build an animation to
+             pose; before that the empty state owns the space.
+             UIA-KF-186 — one height in both modes: expanding buys the TRACK
+             room, and the preview stays a thumbnail beside it.
+             A2-KE-X-2 — `contain: paint` makes the stage the containing block
+             and the clip for every descendant of the clone (its faces are
+             positioned against the scene, so `overflow` alone let them paint
+             over the ruler and the track). -->
         <div
+            v-show="state.keyframes.length >= 2"
             ref="previewStage"
-            :class="[
-                'timeline-preview-stage grid place-items-center overflow-clip rounded-lg border border-border bg-muted/30',
-                props.expanded ? 'h-40' : 'h-24',
-            ]"
+            class="timeline-preview-stage relative h-24 overflow-clip [contain:paint] rounded-lg border border-border bg-muted/30"
             aria-hidden="true"
         ></div>
 
@@ -184,12 +190,10 @@
             :scrub-t="scrubT"
             :expanded="props.expanded"
             :selected-keyframe-id="selectedKeyframeId"
-            :previews="previews"
+            :preview-source="props.targets[0] ?? null"
             @update:scrub-t="scrub"
             @move-keyframe="moveKeyframe"
             @select="(id) => (selectedKeyframeId = id)"
-            @diamond-hover="onDiamondHover"
-            @preview-failed="onPreviewFailed"
         />
 
         <!-- D-15 — the three states the instrument used to leave UNEXPRESSED.
@@ -338,7 +342,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, shallowRef, toRaw, useTemplateRef, watch } from "vue";
+import { computed, ref, shallowRef, toRaw, useTemplateRef, watch } from "vue";
 import type { Ref } from "vue";
 import {
     Download,
@@ -362,16 +366,10 @@ import {
 } from "@mkbabb/value.js/css";
 import { serializeCssValue } from "@src/animation/compile/emit/css-text";
 import { useTimeline } from "./composables/useTimeline";
-import {
-    capturePreview,
-    evictStalePreviews,
-    previewKey,
-} from "./composables/useTimelineBuild";
-import type { PreviewEntry } from "./composables/useTimelineBuild";
 import TimelineTrack from "./components/TimelineTrack.vue";
-import { createPreviewSubject } from "./utils/timelineEngine";
-import type { TimelineKeyframe, TransportClock } from "./timelineTypes";
-import { useRafFn } from "@vueuse/core";
+import { createPreviewSubject, fitPreviewSubject } from "./utils/timelineEngine";
+import type { TransportClock } from "./timelineTypes";
+import { useRafFn, useResizeObserver } from "@vueuse/core";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 
 const props = defineProps<{
@@ -402,7 +400,6 @@ const {
     moveKeyframe,
     rebuild,
     scrub,
-    scrubAndCapture,
     exportCSS,
     importCSS,
     mergeCSS,
@@ -438,14 +435,22 @@ const previewSubject = shallowRef<HTMLElement | null>(null);
 watch(
     [() => props.targets[0], previewStage],
     ([source, stage]) => {
-        previewSubject.value =
-            source && stage ? createPreviewSubject(source) : null;
-        stage?.replaceChildren(
-            ...(previewSubject.value ? [previewSubject.value] : []),
-        );
+        const subject = source && stage ? createPreviewSubject(source) : null;
+        previewSubject.value = subject;
+        if (stage && subject && source) fitPreviewSubject(stage, subject, source);
+        else stage?.replaceChildren();
     },
     { immediate: true, flush: "post" },
 );
+
+// The stage is shown only once there is an animation to pose (UIA-KF-083), and
+// it changes size with the pane: re-fit whenever its box does.
+useResizeObserver(previewStage, () => {
+    const stage = previewStage.value;
+    const subject = previewSubject.value;
+    const source = props.targets[0];
+    if (stage && subject && source) fitPreviewSubject(stage, subject, source);
+});
 
 // THE INVARIANT: every animation this instrument builds is rebound to the
 // subject in the same synchronous step that publishes it (`flush: "sync"`
@@ -456,6 +461,9 @@ watch(
     [animation, previewSubject],
     ([anim, subject]) => {
         anim?.setTargets(...(subject ? [subject] : []));
+        // KFA-121 — a fresh subject or a fresh build shows the PLAYHEAD's pose
+        // at once, not whatever pose the clone was made in.
+        if (anim && subject) scrub(scrubT.value);
     },
     { immediate: true, flush: "sync" },
 );
@@ -463,51 +471,6 @@ watch(
 const selectedKeyframeId = ref<string | null>(null);
 const importDialogOpen = ref(false);
 const addCSSDialogOpen = ref(false);
-
-// --- THE HOVER PREVIEW CACHE — A CACHE, NOT A LEDGER OF LIES (KF.W7 G10) ---
-//
-// D-4/L-4/C-5: this was two write-once maps keyed on a MUTATION-STABLE id and
-// never invalidated, evicted or deleted anywhere in the file. Ids survive every
-// edit, so the moment a keyframe's vars changed its thumbnail became a picture
-// of a pose that no longer existed — paired, in the same tooltip, with a LIVE
-// percent — and it stayed that way for the session. Removing, clearing or
-// importing over a keyframe orphaned its base64 PNG in the map forever; and
-// because a failure left both maps untouched, every subsequent hover re-entered
-// the capture and re-failed, silently, without bound. The sibling history in
-// this same instrument is capacity-bounded at 50, which is the contrast that
-// convicts.
-//
-// The cure is a single map of STATES keyed by id, each carrying the CONTENT it
-// is a preview of. This component owns the REACTIVE map and the wiring; the
-// three rules over it — what a preview is a preview of, when it stops being
-// one, and what a failure does — live beside the capture seam they memoize
-// (`useTimelineBuild`), where they are decidable without a mount.
-//
-// Capture can fail three ways that seam can SEE: no mounted target, html2canvas
-// throwing on CSS it cannot rasterise, and a `toDataURL` SecurityError on a
-// canvas tainted by cross-origin content. A WebGL context that resolves BLANK
-// is NOT detectable there — it is a successful capture of nothing (SS-13
-// residue #1). The old `// KEEP:` comment named none of these, and the fallback
-// it described does not exist on the authored-vars path.
-const previews = reactive(new Map<string, PreviewEntry>());
-
-watch(
-    () => state.value.keyframes,
-    (keyframes) => evictStalePreviews(previews, keyframes),
-    { deep: true },
-);
-
-const onDiamondHover = (kf: TimelineKeyframe) =>
-    capturePreview(previews, kf, scrubAndCapture);
-
-/**
- * L-D15 — a capture that decodes to the broken-image glyph is a failure the
- * `<img>` is the only witness to, and the panel had no `@error` at all. The
- * leaf reports; the owner, which is the only writer of this map, records.
- */
-const onPreviewFailed = (kf: TimelineKeyframe, message: string) => {
-    previews.set(kf.id, { kind: "failed", key: previewKey(kf), error: message });
-};
 
 const selectedKeyframe = computed(() =>
     state.value.keyframes.find((kf) => kf.id === selectedKeyframeId.value),

@@ -1,16 +1,12 @@
 // SERVED MODEL: claude-opus-5[1m]
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import { defineComponent, h, nextTick, reactive } from "vue";
+import { defineComponent, h, nextTick, shallowRef } from "vue";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { TooltipContent, TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import TimelineHoverPreview from "../../../demo/components/instrument/timeline/components/TimelineHoverPreview.vue";
 import TimelineTrack from "../../../demo/components/instrument/timeline/components/TimelineTrack.vue";
-import {
-    capturePreview,
-    evictStalePreviews,
-    previewKey,
-} from "../../../demo/components/instrument/timeline/composables/useTimelineBuild";
-import type { PreviewEntry } from "../../../demo/components/instrument/timeline/composables/useTimelineBuild";
 import type { TimelineKeyframe } from "../../../demo/components/instrument/timeline/timelineTypes";
 import {
     percentSelector,
@@ -70,16 +66,20 @@ const kf = (over: Partial<TimelineKeyframe> = {}): TimelineKeyframe => ({
     ...over,
 });
 
-const mountPreview = (keyframe: TimelineKeyframe, entry?: PreviewEntry) =>
+const mountPreview = (keyframe: TimelineKeyframe, source?: HTMLElement) =>
     mount(TimelineHoverPreview, {
-        props: entry ? { keyframe, entry } : { keyframe },
+        props: source ? { keyframe, source } : { keyframe },
+        attachTo: document.body,
     });
 
-const ready = (keyframe: TimelineKeyframe): PreviewEntry => ({
-    kind: "ready",
-    key: previewKey(keyframe),
-    src: "data:image/png;base64,iVBORw0KGgo=",
-});
+/** A stand-in scene subject: a positioned box with one face, like the cube's. */
+const subject = (): HTMLElement => {
+    const el = document.createElement("div");
+    el.className = "scene-subject";
+    el.style.transform = "rotateX(324deg)"; // the scene's LIVE pose (KFA-121)
+    el.innerHTML = '<div class="face" id="face-1" tabindex="0">1</div>';
+    return el;
+};
 
 describe("TimelineHoverPreview — the mount (KF.W7 G11 fixture 3)", () => {
     it("mounts and renders every authored declaration as a row", () => {
@@ -152,160 +152,79 @@ describe("TimelineHoverPreview — the mount (KF.W7 G11 fixture 3)", () => {
     });
 });
 
-// ─── (a) ───────────────────────────────────────────────────────────────────
-describe("G10 (a) — an edit evicts the thumbnail it invalidates", () => {
-    it("drops a `ready` entry when the keyframe's vars change", () => {
-        const previews = new Map<string, PreviewEntry>();
-        const frame = kf();
-        previews.set(frame.id, ready(frame));
-
-        frame.vars = { opacity: "1" };
-        evictStalePreviews(previews, [frame]);
-
-        expect(previews.has(frame.id)).toBe(false);
+// ─── KFA-59 / UIA-KF-022 — the pose replaces the capture ───────────────────
+// The hover preview RASTERISED the scene with html2canvas, which cannot parse
+// CSS `color()`: every hover printed "Preview unavailable — Attempting to parse
+// an unsupported color function". The capture, its memo (G10 (a)/(b): the
+// PreviewEntry cache, its eviction and its failure state) and the raw error
+// line are gone with it; the preview is the stop's declarations on a clone.
+describe("KFA-59 — the hover preview poses the subject", () => {
+    it("mounts an inert clone carrying the stop's declarations", async () => {
+        const w = mountPreview(kf({ vars: { opacity: "0.5", transform: "rotate(90deg)" } }), subject());
+        await nextTick();
+        const clone = (w.element as HTMLElement).querySelector<HTMLElement>("[data-timeline-preview-subject]");
+        expect(clone).not.toBeNull();
+        expect(clone!.style.opacity).toBe("0.5");
+        expect(clone!.style.transform).toBe("rotate(90deg)");
+        expect(clone!.inert).toBe(true);
+        expect(clone!.querySelector("[id], [tabindex]")).toBeNull();
+        w.unmount();
     });
 
-    it("drops a `ready` entry when the keyframe MOVES", () => {
-        const previews = new Map<string, PreviewEntry>();
-        const frame = kf();
-        previews.set(frame.id, ready(frame));
-
-        frame.percent = 61;
-        evictStalePreviews(previews, [frame]);
-
-        expect(previews.has(frame.id)).toBe(false);
-    });
-
-    // "no orphan base64 PNGs after remove / clear / import-over" — all three
-    // are the same shape at the map: the id is no longer live.
-    it("leaves no orphan base64 after remove, clear or import-over", () => {
-        const previews = new Map<string, PreviewEntry>();
-        const kept = kf({ id: "kf-kept" });
-        const removed = kf({ id: "kf-removed" });
-        previews.set(kept.id, ready(kept));
-        previews.set(removed.id, ready(removed));
-
-        evictStalePreviews(previews, [kept]); // remove
-        expect([...previews.keys()]).toEqual([kept.id]);
-
-        evictStalePreviews(previews, []); // clear
-        expect(previews.size).toBe(0);
-
-        const imported = kf({ id: "kf-imported" });
-        previews.set(kept.id, ready(kept));
-        evictStalePreviews(previews, [imported]); // import-over: all new ids
-        expect(previews.size).toBe(0);
-    });
-
-    // A cache, not a TTL: content-keyed eviction means an undo back to the
-    // exact prior vars keeps a capture that is still true.
-    it("KEEPS a capture an undo has made valid again", () => {
-        const previews = new Map<string, PreviewEntry>();
+    it("re-poses on an edit — never a picture of a pose that no longer exists", async () => {
         const frame = kf({ vars: { opacity: "0.5" } });
-        previews.set(frame.id, ready(frame));
-
-        frame.vars = { opacity: "1" };
-        evictStalePreviews(previews, [frame]);
-        expect(previews.has(frame.id)).toBe(false);
-
-        previews.set(frame.id, ready(frame));
-        frame.vars = { opacity: "0.5" }; // the undo
-        previews.set(frame.id, {
-            kind: "ready",
-            key: `${frame.percent}|${JSON.stringify({ opacity: "0.5" })}`,
-            src: "data:image/png;base64,iVBORw0KGgo=",
-        });
-        evictStalePreviews(previews, [frame]);
-        expect(previews.get(frame.id)?.kind).toBe("ready");
-    });
-});
-
-// ─── (b) ───────────────────────────────────────────────────────────────────
-describe("G10 (b) — a repeatedly-failing capture stops, and says so", () => {
-    const rejecting = () => {
-        let calls = 0;
-        return {
-            capture: async () => {
-                calls += 1;
-                throw new Error("No preview target mounted");
-            },
-            get calls() {
-                return calls;
-            },
-        };
-    };
-
-    it("records ONE failed entry and makes no second attempt", async () => {
-        const previews = new Map<string, PreviewEntry>();
-        const frame = kf();
-        const spy = rejecting();
-
-        await capturePreview(previews, frame, spy.capture);
-        expect(spy.calls).toBe(1);
-        expect(previews.size).toBe(1);
-        expect(previews.get(frame.id)).toEqual({
-            kind: "failed",
-            key: previewKey(frame),
-            error: "No preview target mounted",
-        });
-
-        await capturePreview(previews, frame, spy.capture);
-        await capturePreview(previews, frame, spy.capture);
-        expect(spy.calls).toBe(1);
-        expect(previews.size).toBe(1);
+        const w = mountPreview(frame, subject());
+        await nextTick();
+        await w.setProps({ keyframe: { ...frame, vars: { opacity: "0.25" } } });
+        await nextTick();
+        const clone = (w.element as HTMLElement).querySelector<HTMLElement>("[data-timeline-preview-subject]");
+        expect(clone!.style.opacity).toBe("0.25");
+        w.unmount();
     });
 
-    it("un-sticks the moment the keyframe changes — a different preview is a new ask", async () => {
-        const previews = new Map<string, PreviewEntry>();
-        const frame = kf();
-        const spy = rejecting();
-
-        await capturePreview(previews, frame, spy.capture);
-        frame.vars = { opacity: "0.25" };
-        await capturePreview(previews, frame, spy.capture);
-
-        expect(spy.calls).toBe(2);
+    it("starts from the subject's rest, not the scene's live pose (KFA-121)", async () => {
+        const w = mountPreview(kf({ vars: { opacity: "1" } }), subject());
+        await nextTick();
+        const clone = (w.element as HTMLElement).querySelector<HTMLElement>("[data-timeline-preview-subject]");
+        expect(clone!.style.transform).toBe("");
+        w.unmount();
     });
 
-    it("SAYS SO at the panel — the message is rendered, not swallowed", () => {
-        const frame = kf();
-        const text = mountPreview(frame, {
-            kind: "failed",
-            key: previewKey(frame),
-            error: "No preview target mounted",
-        }).text();
-        expect(text).toContain("Preview unavailable — No preview target mounted");
-    });
-
-    it("announces the in-flight state once, politely", async () => {
-        const previews = new Map<string, PreviewEntry>();
-        const frame = kf();
-        let settle: (src: string) => void = () => {};
-        const pending = capturePreview(
-            previews,
-            frame,
-            () => new Promise<string>((resolve) => (settle = resolve)),
-        );
-
-        expect(previews.get(frame.id)?.kind).toBe("capturing");
-        const w = mountPreview(frame, previews.get(frame.id));
-        expect(w.text()).toContain("Capturing preview");
-        expect(w.get('[role="status"]').attributes("aria-live")).toBe("polite");
-
-        settle("data:image/png;base64,iVBORw0KGgo=");
-        await pending;
-        expect(previews.get(frame.id)?.kind).toBe("ready");
-    });
-
-    it("keeps the settled capture on screen with a re-derived alt", () => {
-        const frame = kf({ label: "hero lift" });
-        const w = mountPreview(frame, ready(frame));
-        const img = w.get("img");
-        expect(img.attributes("src")).toBe("data:image/png;base64,iVBORw0KGgo=");
-        expect(img.attributes("alt")).toBe(
-            "Rendered preview of hero lift, the keyframe at 38%.",
-        );
+    it("prints no capture state and no engine error — there is no capture", async () => {
+        const w = mountPreview(kf({ label: "hero lift" }), subject());
+        await nextTick();
+        expect(w.text()).not.toContain("Preview unavailable");
         expect(w.text()).not.toContain("Capturing preview");
+        expect(w.find("img").exists()).toBe(false);
+        expect(w.get('[role="img"]').attributes("aria-label")).toBe(
+            "Posed preview of hero lift, the keyframe at 38%.",
+        );
+        w.unmount();
+    });
+
+    it("html2canvas is imported nowhere in the timeline", () => {
+        const root = join(__dirname, "../../../demo/components/instrument/timeline");
+        const files: string[] = [];
+        const walk = (dir: string) => {
+            for (const name of readdirSync(dir)) {
+                const path = join(dir, name);
+                if (statSync(path).isDirectory()) walk(path);
+                else if (/\.(ts|vue)$/.test(name)) files.push(path);
+            }
+        };
+        expect(existsSync(root)).toBe(true);
+        walk(root);
+        const importers = files.filter((f) => /import\(\s*["']html2canvas["']\s*\)|from\s+["']html2canvas["']/.test(readFileSync(f, "utf8")));
+        expect(importers).toEqual([]);
+    });
+
+    // UIA-KF-279 — the value is the content: a row wraps, it is never cut to a stub.
+    it("wraps a long declaration instead of truncating it", () => {
+        const w = mountPreview(kf({ vars: { transform: "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 300, 0, 0, 1)" } }));
+        const row = w.get('[data-register="code"] > div');
+        expect(row.classes()).not.toContain("truncate");
+        expect(row.classes()).toContain("break-words");
+        w.unmount();
     });
 });
 
@@ -419,8 +338,7 @@ afterEach(() => {
 });
 
 const mountTrack = (keyframes: TimelineKeyframe[]) => {
-    const previews = reactive(new Map<string, PreviewEntry>());
-    const hovered: string[] = [];
+    const source = shallowRef<HTMLElement | null>(null);
 
     const w = mount(
         defineComponent({
@@ -431,9 +349,7 @@ const mountTrack = (keyframes: TimelineKeyframe[]) => {
                             sortedKeyframes: keyframes,
                             scrubT: 0,
                             selectedKeyframeId: null,
-                            previews,
-                            onDiamondHover: (kf: TimelineKeyframe) =>
-                                hovered.push(kf.id),
+                            previewSource: source.value,
                         }),
                 }),
         }),
@@ -443,8 +359,7 @@ const mountTrack = (keyframes: TimelineKeyframe[]) => {
 
     return {
         w,
-        previews,
-        hovered,
+        source,
         /** What the mount PASSES — the first arm of reka's `ariaLabel`.
          *  [X.KF.W13R.m, glass 10.0.1] glass's TooltipContent no longer
          *  DECLARES `ariaLabel` (bca22bd9, W-OVERLAY); the binding rides its
@@ -514,25 +429,16 @@ describe("G9 — the tooltip announces what it shows", () => {
     // The frozen-at-first-mount horn: `textContent` is read ONCE and never
     // again, so an AT user's preview stayed whatever it was before the capture
     // landed. A derived string re-derives.
-    it("re-derives on the ghost→image swap", async () => {
+    it("re-derives when a subject arrives to pose", async () => {
         const frame = kf({ vars: { opacity: "0.5" } });
         const t = mountTrack([frame]);
         expect(t.passed()).toContain("Ghost preview.");
 
-        t.previews.set(frame.id, ready(frame));
+        t.source.value = subject();
         await nextTick();
-        expect(t.passed()).toContain("Rendered preview available.");
+        expect(t.passed()).toContain("Posed preview.");
         expect(t.passed()).not.toContain("Ghost preview.");
-
-        t.previews.set(frame.id, {
-            kind: "failed",
-            key: previewKey(frame),
-            error: "No preview target mounted",
-        });
-        await nextTick();
-        expect(t.passed()).toContain(
-            "Preview unavailable: No preview target mounted.",
-        );
+        expect(t.passed()).not.toContain("Preview unavailable");
     });
 
     // End to end: what reka actually builds for the `role="tooltip"` node. If
@@ -551,16 +457,24 @@ describe("G9 — the tooltip announces what it shows", () => {
         expect(t.announced()).toContain("hero lift. Keyframe at 38%. ");
     });
 
-    // D-10 (KeyframeTimeline) — one seam, both modalities.
-    it("arms the capture on FOCUS, not on hover alone", async () => {
-        const frame = kf();
-        const t = mountTrack([frame]);
-
+    // D-10 (KeyframeTimeline) — one seam, both modalities: focus opens the
+    // same panel hover does, and with a subject it carries the pose.
+    it("opens the posed panel on FOCUS, not on hover alone", async () => {
+        const t = mountTrack([kf({ vars: { opacity: "0.5" } })]);
+        t.source.value = subject();
+        await nextTick();
         await t.marker().trigger("focus");
-        expect(t.hovered).toEqual([frame.id]);
+        await nextTick();
+        await nextTick();
+        const panel = document.body.querySelector('[role="img"][aria-label^="Posed preview"]');
+        expect(panel).not.toBeNull();
+    });
 
-        await t.marker().trigger("mouseenter");
-        expect(t.hovered).toEqual([frame.id, frame.id]);
+    // UIA-KF-183 — the panel opens below the rail, away from the card's own
+    // toolbar and tick labels.
+    it("opens below the rail", () => {
+        const t = mountTrack([kf()]);
+        expect(t.w.findComponent(TooltipContent).props("side")).toBe("bottom");
     });
 
     // RR-A missed-1 — the two-attribute cure, at the container the rail has.

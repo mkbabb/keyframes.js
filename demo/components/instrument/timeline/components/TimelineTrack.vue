@@ -213,8 +213,6 @@
                         :style="{ left: `${percentToPosition(stop.percent)}%` }"
                         @pointerdown.stop="onMarkerPointerDown($event, stop)"
                         @keydown="onMarkerKeydown($event, stop)"
-                        @mouseenter="emit('diamondHover', stop.keyframes[0])"
-                        @focus="emit('diamondHover', stop.keyframes[0])"
                     >
                         <!-- Said so: a multi-member stop wears its count. -->
                         <span
@@ -229,8 +227,8 @@
                      is gone — merged LAST through the package's tailwind-merge
                      it flattened the tooltip's designed 1.272 block/inline
                      optical padding ratio (`px-(--overlay-pad-inline)
-                     py-(--overlay-pad-block)`) to 1.0. The width cap stays:
-                     `max-w-56` bounds the preview and collides with nothing
+                     py-(--overlay-pad-block)`) to 1.0. The width cap stays
+                     (`max-w-72` since UIA-KF-279) and collides with nothing
                      the primitive declares. Pairs with THP D-11 (`.e`,
                      RETAINED). -->
                 <!-- MISSED-1 + M7 — THE PANEL'S NAME IS PASSED, NEVER SCRAPED.
@@ -244,30 +242,24 @@
                      and on the focus path (D-10) frozen on the ghost that has
                      no name at all. Passing the prop takes the FIRST arm, and
                      because the prop is a `computed`-shaped expression over the
-                     keyframe and its preview entry, reka's own `computed`
-                     re-evaluates on the ghost→image swap. It is also M7's cure
+                     keyframe and its preview source, reka's own `computed`
+                     re-evaluates whenever either changes. It is also M7's cure
                      at the only place it matters for AT: a prop is a string, so
                      no `text-transform` register can reach it and the property
                      values arrive in the case the author typed them. -->
+                <!-- UIA-KF-183 — the panel opens BELOW the rail, away from
+                     the card's own toolbar and tick labels it used to cover.
+                     UIA-KF-279 — the declarations are the content: the cap is
+                     wide enough for common values, and a long one wraps. -->
                 <TooltipContent
-                    side="top"
+                    side="bottom"
                     :side-offset="8"
-                    class="max-w-56"
+                    class="max-w-72"
                     :aria-label="describeStop(stop)"
                 >
-                    <!-- ONE ENTRY, NOT TWO INDEX READS (KF.W7 G10). The two
-                         parallel maps are gone; what the leaf receives is the
-                         state of ITS keyframe's preview, and `undefined` is the
-                         honest reading for a keyframe nobody has hovered. The
-                         `ghost-style` binding is gone with them — the preview
-                         derives its own preview (L-D8/C-4(a)). -->
                     <TimelineHoverPreview
                         :keyframe="stop.keyframes[0]"
-                        :entry="previewFor(stop)"
-                        @preview-failed="
-                            (message) =>
-                                emit('previewFailed', stop.keyframes[0], message)
-                        "
+                        :source="previewSource ?? null"
                     />
                 </TooltipContent>
             </Tooltip>
@@ -295,7 +287,6 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
 import TimelineHoverPreview, { describeKeyframe } from "./TimelineHoverPreview.vue";
-import type { PreviewEntry } from "../composables/useTimelineBuild";
 import { coalesceKeyframes } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineStop } from "../timelineTypes";
 
@@ -305,30 +296,16 @@ const props = defineProps<{
     expanded?: boolean;
     selectedKeyframeId: string | null;
     /**
-     * The owner's preview states, keyed by keyframe id (KF.W7 G10). Read-only
-     * here: this component renders the cache and never writes it, which is why
-     * a failed `<img>` decode travels back out as an EVENT rather than as a
-     * mutation from inside the render tree.
-     *
-     * OPTIONAL, exactly as the leaf's own `entry` is optional and for the same
-     * reason: a cache's ABSENCE is a cold cache, not an error. The track is a
-     * geometry and gesture surface that happens to display an owner-supplied
-     * enhancement — every mark, every gesture and every keyboard route works
-     * without one, and a cacheless mount renders the ghost branch throughout,
-     * which is what `describeStop` then says. The read is total at both sites
-     * below rather than guarded at one of them (KF.W7 G9: the description is
-     * evaluated on EVERY render of the panel's mount, not only when the panel
-     * is open, so a partial read is a crash waiting for a caller).
+     * The scene element the hover preview poses a clone of (KFA-59). Optional:
+     * without one the panel draws the ghost, which is what `describeStop` says.
      */
-    previews?: ReadonlyMap<string, PreviewEntry>;
+    previewSource?: HTMLElement | null;
 }>();
 
 const emit = defineEmits<{
     (e: "update:scrubT", value: number): void;
     (e: "moveKeyframe", id: string, percent: number): void;
     (e: "select", id: string): void;
-    (e: "diamondHover", kf: TimelineKeyframe): void;
-    (e: "previewFailed", kf: TimelineKeyframe, message: string): void;
 }>();
 
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
@@ -378,10 +355,6 @@ const edgeClass = (position: number): string =>
         mid: "-translate-x-1/2",
     })[edgeOf(position)];
 
-/** The stop's preview state — `undefined` when it has none, or when there is no cache. */
-const previewFor = (stop: TimelineStop): PreviewEntry | undefined =>
-    props.previews?.get(stop.keyframes[0].id);
-
 /**
  * G9's FIRST reader — the panel's accessible description, PASSED.
  *
@@ -391,7 +364,7 @@ const previewFor = (stop: TimelineStop): PreviewEntry | undefined =>
  * ever falls back to scraping `textContent`.
  */
 const describeStop = (stop: TimelineStop): string =>
-    describeKeyframe(stop.keyframes[0], previewFor(stop));
+    describeKeyframe(stop.keyframes[0], !!props.previewSource);
 
 /**
  * The marker's own name — G9's third reader.

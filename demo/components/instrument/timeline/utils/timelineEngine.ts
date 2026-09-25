@@ -41,6 +41,64 @@ export function createPreviewSubject(source: HTMLElement): HTMLElement {
     subject.setAttribute("aria-hidden", "true");
     subject.dataset.timelinePreviewSubject = "";
     subject.style.pointerEvents = "none";
+    // KFA-121 — the clone copied the scene's LIVE pose (its inline transform,
+    // e.g. rotateX(324deg)), so right after a build the preview disagreed with
+    // the playhead until the first scrub. The clone starts from the element's
+    // authored rest; the timeline's own engine (or a keyframe's vars) poses it.
+    subject.style.removeProperty("transform");
+    return subject;
+}
+
+/**
+ * KFA-120 / UIA-KF-083 — the subject FITTED to its box. The clone was mounted
+ * at scene size (a 225 px cube in a 96 px stage), so the stage showed a
+ * centre-cropped shard of one or two faces. The clone is framed at the
+ * SOURCE's layout size (so a percentage-sized subject keeps its proportions)
+ * and that frame is scaled by `min(boxW, boxH) / diagonal`, so any rotation of
+ * the subject stays inside the box. Re-run it when the box resizes.
+ */
+export function fitPreviewSubject(
+    box: HTMLElement,
+    subject: HTMLElement,
+    source: HTMLElement,
+): void {
+    const frame =
+        subject.parentElement?.dataset.timelinePreviewFrame !== undefined
+            ? subject.parentElement
+            : document.createElement("div");
+    if (frame !== subject.parentElement) {
+        frame.dataset.timelinePreviewFrame = "";
+        frame.style.position = "absolute";
+        frame.style.left = "50%";
+        frame.style.top = "50%";
+        frame.append(subject);
+    }
+    if (frame.parentElement !== box) box.replaceChildren(frame);
+    const w = source.offsetWidth;
+    const h = source.offsetHeight;
+    const scale =
+        w > 0 && h > 0 ? Math.min(box.clientWidth, box.clientHeight) / Math.hypot(w, h) : 0;
+    frame.style.width = `${w}px`;
+    frame.style.height = `${h}px`;
+    frame.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
+/**
+ * KFA-59 / UIA-KF-022 — a keyframe's pose is its declarations applied to the
+ * subject. The hover preview used to RASTERISE the scrubbed scene with
+ * html2canvas, which cannot parse CSS `color()` and failed on every hover
+ * ("Preview unavailable — Attempting to parse an unsupported color function").
+ * The pose is now a clone of the preview subject carrying the stop's vars
+ * inline — what the engine paints at that stop, with no capture step to fail.
+ */
+export function posePreviewSubject(
+    source: HTMLElement,
+    vars: Readonly<Record<string, string>>,
+): HTMLElement {
+    const subject = createPreviewSubject(source);
+    for (const [property, value] of Object.entries(vars)) {
+        subject.style.setProperty(property, value);
+    }
     return subject;
 }
 
