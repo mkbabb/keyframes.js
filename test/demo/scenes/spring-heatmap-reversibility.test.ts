@@ -89,6 +89,7 @@ import SpringHeatmap, {
 } from "../../../demo/scenes/spring/SpringHeatmap.vue";
 import type { ParamAxis } from "../../../demo/scenes/spring/SpringHeatmap.vue";
 import SpringPhysicsFacet from "../../../demo/scenes/spring/SpringPhysicsFacet.vue";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { SPRING_PRESETS } from "../../../demo/scenes/spring/springPresets";
 import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -438,7 +439,12 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
     function mountFacet(prepare?: (demo: ReturnType<typeof useSpringDemo>) => void) {
         const [demo, app] = withSetup(() => useSpringDemo());
         prepare?.(demo);
-        const wrapper = mount(SpringPhysicsFacet, { props: { demo }, attachTo: document.body });
+        // The app mounts every surface under glass's TooltipProvider; the facet's
+        // header action carries a Tooltip (X.KF.W13X.spring A2-KE-L3-9).
+        const wrapper = mount(
+            { render: () => h(TooltipProvider, null, { default: () => h(SpringPhysicsFacet, { demo }) }) },
+            { attachTo: document.body },
+        );
         return {
             demo,
             wrapper,
