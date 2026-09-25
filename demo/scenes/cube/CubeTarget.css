@@ -115,6 +115,11 @@
     inset: 0;
     margin: auto;
     backface-visibility: hidden;
+    /* KFA-142 — the die is OPAQUE. The crayons carry alpha 0.8 (`--face-n`), so
+       the axis strokes and the grid showed through every face. An opaque base
+       of the page ground under each face keeps the crayon's composited colour
+       exactly what it was over the ground, and nothing behind reads through. */
+    background-color: var(--background);
     /* L.W11.S2 — smooth the per-face re-light between rotation ticks (the
        registered @property --lit interpolates at the rotation cadence).
        KF-AX-15 ≡ #60 — the raw `160ms` takes the family's one rung,
