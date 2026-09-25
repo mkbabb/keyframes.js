@@ -25,7 +25,7 @@
     <component
         :is="border ? Card : 'div'"
         v-bind="border ? { shadow: false } : {}"
-        :class="['relative w-full overflow-hidden', border ? 'cartoon-surface' : '']"
+        :class="['code-well relative w-full overflow-hidden', border ? 'cartoon-surface' : '']"
     >
         <div
             ref="containerEl"
@@ -467,3 +467,25 @@ defineExpose({
     formatCSS: formatCSSContent,
 });
 </script>
+
+<style scoped>
+/* UIA-KF-176 + UIA-KF-276 (X.KF.W13X.keyframes) — ONE focus language on the
+   pane. Focusing the code drew Monaco's own 1px focusBorder outline (served:
+   rgb(0, 144, 241) light / rgb(0, 127, 212) dark) as a square rectangle on the
+   node that holds the caret, cutting across the card's 16px corners, while
+   every glass control beside it showed the glass ring. The caret's node gives
+   up its outline, and the WELL wears the ring instead: glass's own focus-ring
+   tokens (`--focus-ring-width`, `--focus-ring-color`, the 2px offset of its
+   `.focus-ring:focus-visible`), on the card, so it follows the card's radius.
+   A text entry lights `:focus-visible` on a pointer click too, which is the
+   contract `design-idioms.css`'s cartoon lift already keys on. Forced colors
+   keep the outline (the UA maps its colour to the system ring). */
+.code-well:has(:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: 2px;
+}
+
+.code-well :deep(.monaco-editor :focus-visible) {
+    outline: none;
+}
+</style>
