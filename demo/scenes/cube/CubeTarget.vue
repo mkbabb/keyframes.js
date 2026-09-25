@@ -202,8 +202,8 @@ const onPressedKeys = (keys: PressedKeys) => {
 // ── EASTER EGG — "the Roll" (H.W12.S6) ───────────────────────────────────────
 // Double-tap M. Cubert → roll the die. The cube IS a six-faced die (1–6); the
 // egg DOGFOODS the engine `CSSKeyframesAnimation` (inv ζ) to spin the die a
-// couple of full turns on TWO axes into a RANDOM face, on a bouncy `easeOutBack`
-// so it overshoots and settles.
+// couple of full turns on TWO axes onto a random face-aligned attitude, then
+// overshoots a fixed few degrees and settles (KFA-86).
 //
 // kf-CubeTarget #1·#2·#5·#6 — THE ROLL STACK, repaired as ONE mechanism. Every
 // one of its four defects was invisible while any other stood:
@@ -242,19 +242,31 @@ let rollAnim: CSSKeyframesAnimation<Vars> | undefined;
 // "resting on its rolled face" the egg promises: the next roll opens here.
 const rollAttitude = { x: 0, y: 0 };
 
-// The six face-up orientations of the die (degrees). Spinning to these shows
-// faces 1–6 toward the viewer (the faces sit at ±translateZ off the centre, so
-// a whole-die rotate re-presents them).
-const ROLL_FACES: ReadonlyArray<{ x: number; y: number }> = [
-    { x: 0, y: 0 },     // 1 — front
-    { x: 0, y: -90 },   // 2 — right
-    { x: 0, y: 180 },   // 3 — back
-    { x: 0, y: 90 },    // 4 — left
-    { x: -90, y: 0 },   // 5 — top
-    { x: 90, y: 0 },    // 6 — bottom
+// The six axis-aligned attitudes the roll lands on (degrees). KFA-141 — these
+// are attitudes of the roll's OWN element, not faces: `.idle-hover` wraps the
+// running group's bob, pose and spin, so which numeral ends toward the viewer is
+// that composition's business. The roll promises a face-aligned landing on a
+// random attitude, never a named face.
+const ROLL_ATTITUDES: ReadonlyArray<{ x: number; y: number }> = [
+    { x: 0, y: 0 },
+    { x: 0, y: -90 },
+    { x: 0, y: 180 },
+    { x: 0, y: 90 },
+    { x: -90, y: 0 },
+    { x: 90, y: 0 },
 ];
 
-/** The next absolute attitude showing `faceDeg` to the viewer, reached by
+// KFA-86 · KFA-140 — the overshoot is a FIXED angle and the spin's slope is
+// bounded. `ease-out-back` over a fixed 1100 ms scaled its overshoot with the
+// whole multi-turn arc (up to ~70° past the landing, served) and front-loaded
+// 40-75° per frame. The spin now eases out to ROLL_OVERSHOOT_DEG past the
+// landing and settles back on its own segment, over a duration that grows with
+// the arc, so the opening rate stays near 1.3°/ms whatever the arc.
+const ROLL_OVERSHOOT_DEG = 8;
+const ROLL_SETTLE_AT = "85%";
+const rollDurationMs = (arcDeg: number) => 600 + arcDeg;
+
+/** The next absolute attitude congruent to `faceDeg`, reached by
  *  turning FORWARD from `from` through `turns` whole revolutions. Always
  *  ≥ `from`, so the arc never cuts backwards (#5). */
 const nextRollAttitude = (
@@ -274,8 +286,8 @@ const onRoll = async () => {
     rolling.value = true;
 
     try {
-        const face = ROLL_FACES[Math.floor(Math.random() * ROLL_FACES.length)]!;
-        // 1–2 extra whole turns per axis for the tumble drama, landing on the face.
+        const face = ROLL_ATTITUDES[Math.floor(Math.random() * ROLL_ATTITUDES.length)]!;
+        // 1–2 extra whole turns per axis for the tumble drama.
         const endX = nextRollAttitude(rollAttitude.x, face.x, 1 + Math.floor(Math.random() * 2));
         const endY = nextRollAttitude(rollAttitude.y, face.y, 1 + Math.floor(Math.random() * 2));
 
@@ -283,14 +295,25 @@ const onRoll = async () => {
         if (!rollEl.value) return;
 
         rollAnim?.stop();
+        const arc = Math.max(endX - rollAttitude.x, endY - rollAttitude.y);
         rollAnim = new CSSKeyframesAnimation({
-            duration: 1100,
+            duration: rollDurationMs(arc),
             iterationCount: 1,
             fillMode: "forwards",
-            // The bounce-overshoot is the die settling onto its face.
-            timingFunction: "ease-out-back",
+            // Per keyframe segment (the CSS rule): the spin eases out onto the
+            // overshoot, then the settle eases back onto the landing.
+            timingFunction: "ease-out",
+            // KFA-87 — the engine's own reduced-motion gate: under PRM the roll
+            // snaps to its landing instead of tumbling.
+            respectReducedMotion: true,
         }).fromKeyframes({
             from: { transform: rollTransform(rollAttitude.x, rollAttitude.y) },
+            [ROLL_SETTLE_AT]: {
+                transform: rollTransform(
+                    endX + ROLL_OVERSHOOT_DEG,
+                    endY + ROLL_OVERSHOOT_DEG,
+                ),
+            },
             to: { transform: rollTransform(endX, endY) },
         });
         rollAnim.setTargets(rollEl.value);
