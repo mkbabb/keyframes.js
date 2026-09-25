@@ -426,3 +426,13 @@ describe("(17) KFA-151 + KFA-212 — the readout leaves rest the moment motion s
         }
     });
 });
+
+describe("(18) KFA-213 — the status badge's skin reads the state its words read", () => {
+    it("the badge class derives from stateLabel, never from liveSettled directly", () => {
+        const src = sfc("SpringTarget.vue");
+        const badge = src.match(/class="status-badge[^"]*"\s*:class="([^"]*)"/)?.[1] ?? "";
+        expect(badge, "the status badge's class binding").not.toBe("");
+        expect(badge).toMatch(/stateLabel/);
+        expect(badge).not.toMatch(/liveSettled/);
+    });
+});

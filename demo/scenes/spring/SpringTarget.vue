@@ -78,7 +78,7 @@
                      decoration and four racing balls are not a thing to narrate. -->
                 <span
                     class="status-badge text-mono-micro uppercase px-2 py-0.5 rounded-full"
-                    :class="demo.liveSettled.value ? 'settled-badge' : 'tracking-badge'"
+                    :class="stateLabel === 'settled' ? 'settled-badge' : 'tracking-badge'"
                     role="status"
                 >{{ stateLabel }}</span>
                 <!-- N-2 — `text-mono-caption` carries `text-transform: uppercase`
@@ -340,6 +340,11 @@ const targetValueText = computed(() => `target ${demo.target.value.toFixed(2)} o
  *  sweep's own moving mark (the sampler) is gated by `--sweeping` instead. */
 const isLive = computed(() => !demo.liveSettled.value || demo.derbyActive.value);
 
+/** X.KF.W13X.spring (KFA-213) — the badge's SKIN reads the same state its
+ *  words do. It read `liveSettled` while the words read `stateLabel`, so across
+ *  a derby (label 'derby' throughout) the live ball's launch and settle flipped
+ *  the pill between the plain and the filled skin mid-race: hard frame cuts on
+ *  a constant label. A derby is motion, so it wears the tracking skin. */
 /** The instrument's one discrete, high-salience state (D-14), and the derby's
  *  only announcement channel (gesture spec 6 — the lane overlay is aria-hidden
  *  decoration by design). */
