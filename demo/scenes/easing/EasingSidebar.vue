@@ -61,14 +61,16 @@
                  (bounce/elastic families) is not expressible as one
                  cubic-bezier — the tile + header literal carry the selection;
                  authoring here departs into a custom cubic-bezier. -->
+            <!-- UIA-KF-054 (easing limb) — status copy in the small register,
+                 sentence case; the curve's identifier is the one code chip and
+                 is never uppercased (DESIGN.md §8). -->
             <p
                 v-if="catalogueGap"
-                class="text-mono-caption text-muted-foreground"
-                data-register="code"
+                class="gap-caption text-small text-muted-foreground"
             >
-                {{ demo.currentEasingName.value }} is engine-native — no
-                cubic-bezier reproduces it, so editing here departs into a
-                custom curve
+                <code data-register="code">{{ demo.currentEasingName.value }}</code>
+                is engine-native: no cubic-bezier reproduces it, so editing it
+                here departs into a custom curve.
             </p>
             <Button
                 v-if="showGapPlot"

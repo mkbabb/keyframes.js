@@ -85,6 +85,18 @@ describe("UIA-KF-093 — the catalogue gap shows the selected curve", () => {
         done();
     });
 
+    it("UIA-KF-054 · the gap caption is sentence-case small-register prose; the identifier is its one code chip", async () => {
+        const { host, done } = mount("ease-in-bounce");
+        await nextTick();
+        const cap = host.querySelector("p.gap-caption");
+        expect(cap).not.toBeNull();
+        expect(cap!.classList.contains("text-small")).toBe(true);
+        expect(cap!.classList.contains("text-mono-caption")).toBe(false);
+        expect(cap!.querySelector("code")?.textContent).toBe("ease-in-bounce");
+        expect(cap!.textContent?.replace(/\s+/g, " ").trim()).toMatch(/^ease-in-bounce is engine-native: .*\.$/);
+        done();
+    });
+
     it("the edit gesture departs: 'Edit as a custom curve' reveals the picker", async () => {
         const { host, shown, done } = mount("ease-in-bounce");
         await nextTick();

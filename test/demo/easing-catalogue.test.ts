@@ -168,7 +168,9 @@ const renderTile = (name: string) => {
     const app = createApp(EasingSidebar, { demo: makeDemoContext(name) });
     app.mount(host);
     try {
-        const caption = host.querySelector('p[data-register="code"]');
+        // X.KF.W13X.easing (UIA-KF-054): the caption is small-register prose
+        // with the curve's identifier as its one code chip.
+        const caption = host.querySelector("p.gap-caption");
         return {
             captionShown: caption !== null,
             captionText:
