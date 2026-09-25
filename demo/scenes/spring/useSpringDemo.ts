@@ -629,7 +629,7 @@ export function useSpringDemo() {
     //     data, not chrome).
     // `playback` is the SAME raw-rAF ScenePlayback adapter the machine registers;
     // the `spring` facet is the scene's additive surface (the DFA reads it).
-    const { css: compiledEntryCss, entryAnim } = useCompiledEntry(
+    const { entry: compiledEntry, entryAnim } = useCompiledEntry(
         () => response.value,
         () => dampingFraction.value,
     );
@@ -693,9 +693,10 @@ export function useSpringDemo() {
     return {
         // T.B1-β — the SceneFacility descriptor (channels + facet + playback).
         facility,
-        // S.F3 EN-d — the compiled @starting-style artifact readout (the
-        // StartingStyleTarget renders it; the Entry channel rides its animation).
-        compiledEntryCss,
+        // S.F3 EN-d — the compiled @starting-style entry: its timing and the
+        // compile result for it (StartingStyleTarget renders both; the Entry
+        // channel rides its animation).
+        compiledEntry,
         // Sub-view (H.W5.S3 — the merged Discrete view)
         view,
         visible,

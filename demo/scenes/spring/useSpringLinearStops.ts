@@ -13,11 +13,11 @@ import { springLinearStops } from "@mkbabb/keyframes.js";
  * without checking, so a stale one costs more than no statement at all.
  *
  * Measured at this seat — ⟨cmd⟩ `grep -rn useSpringLinearStops demo` → the LIVE
- * consumers are **`SpringTrace.vue`** (the 26-stop plot) and
- * **`StartingStyleTarget.vue`** (the `--spring-ease` / copy-paste artifact),
- * neither of which the old sentence named. The fold this composable exists to
- * perform is real and unchanged — one emission surface, two readers — and that is
- * now stated in terms of files that are here.
+ * consumer is **`SpringTrace.vue`** (the 26-stop plot). X.KF.W13X.springd moved
+ * `StartingStyleTarget.vue` off this surface: its card now eases on the timing
+ * its artifact is compiled from (`entryTiming()` in `useCompiledEntry.ts`, the
+ * spring's settle span as `maxDuration`), which this default-window surface does
+ * not express.
  *
  * [`springTimingFunction` is INTENTIONALLY 6×-surfaced and is NOT collapsed —
  * it is the typed `Easing` for the engine seams, a different shape than this CSS

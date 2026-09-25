@@ -32,7 +32,7 @@
  * than cured — when the cure lands, this case is what proves it.
  */
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { ref } from "vue";
+import { ref, shallowRef } from "vue";
 import { mount } from "@vue/test-utils";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -80,12 +80,33 @@ vi.mock("@mkbabb/glass-ui/card", () =>
         CardTitle: "h2",
     }),
 );
+vi.mock("@mkbabb/glass-ui/chip", () => stub.module({ Chip: "span" }));
+vi.mock("@mkbabb/glass-ui/collapsible", () =>
+    stub.module({
+        Collapsible: "div",
+        CollapsibleContent: "div",
+        CollapsibleTrigger: "div",
+    }),
+);
+// Alert and Skeleton ship on glass's root entry only (10.1.0 has no subpath).
+vi.mock("@mkbabb/glass-ui", () =>
+    stub.module({
+        Alert: "div",
+        AlertDescription: "div",
+        AlertTitle: "h3",
+        Skeleton: "div",
+    }),
+);
 vi.mock("@mkbabb/glass-ui/tooltip", () =>
     stub.module({ Tooltip: "div", TooltipContent: "div", TooltipTrigger: "div" }),
 );
 
 import StartingStyleTarget from "../../../demo/scenes/spring/StartingStyleTarget.vue";
-import { useCompiledEntry } from "../../../demo/scenes/spring/useCompiledEntry";
+import {
+    entryTiming,
+    useCompiledEntry,
+    type CompiledEntry,
+} from "../../../demo/scenes/spring/useCompiledEntry";
 import { SPRING_DEMO_KEY } from "../../../demo/scenes/spring/springKeys";
 import { warmKfEngine } from "../../../demo/kf-engine";
 import { withSetup } from "../../support/withSetup";
@@ -124,16 +145,35 @@ function parseDeclarations(body: string): Record<string, string> {
 
 // ─── The demo context this Target reads (the five members it injects) ─────────
 
-function stubDemo(compiledCss: string) {
+/** The stub's spring — the same params `beforeAll` compiles the real artifact at. */
+const STUB_RESPONSE = 0.5;
+const STUB_DAMPING = 0.825;
+
+/**
+ * The compiled entry a stub demo publishes: the REAL timing for the stub's
+ * spring, and a compile result — `null` is "still compiling", and a refusal
+ * carries the emitter's own `{ eligible: false, refusals }`.
+ */
+function compiledEntry(
+    result: CompiledEntry["result"],
+): CompiledEntry {
+    return { timing: entryTiming(STUB_RESPONSE, STUB_DAMPING), result };
+}
+
+function stubDemo(compiledCss: string | CompiledEntry["result"]) {
     const visible = ref(true);
+    const result =
+        typeof compiledCss === "string"
+            ? { css: compiledCss, eligible: true, refusals: [] }
+            : compiledCss;
     return {
         visible,
         toggleDiscrete: () => {
             visible.value = !visible.value;
         },
-        response: ref(0.5),
-        dampingFraction: ref(0.825),
-        compiledEntryCss: ref(compiledCss),
+        response: ref(STUB_RESPONSE),
+        dampingFraction: ref(STUB_DAMPING),
+        compiledEntry: shallowRef(compiledEntry(result)),
     };
 }
 
@@ -160,17 +200,17 @@ describe("X.KF.W11.g — the @starting-style artifact tells the truth", () => {
         await warmKfEngine();
         const [entry, app] = withSetup(() =>
             useCompiledEntry(
-                () => 0.5,
-                () => 0.825,
+                () => STUB_RESPONSE,
+                () => STUB_DAMPING,
             ),
         );
         try {
             // `useCompiledEntry` awaits the engine chunk then the compile; poll
             // the ref it fills rather than guessing an await count.
-            for (let i = 0; i < 200 && entry.css.value === ""; i++) {
+            for (let i = 0; i < 200 && entry.entry.value.result === null; i++) {
                 await new Promise((r) => setTimeout(r, 5));
             }
-            artifactCss = entry.css.value;
+            artifactCss = entry.entry.value.result?.css ?? "";
             const anim = entry.entryAnim as unknown as {
                 targets?: unknown[];
                 name?: string;
@@ -250,18 +290,39 @@ describe("X.KF.W11.g — the @starting-style artifact tells the truth", () => {
 
     // ── (3) DURATION — one number, and it is the artifact's ───────────────────
     it("the card transitions for exactly as long as the artifact says", () => {
-        const artifactBase = declarations(artifactCss, ".discrete-card");
-        const duration = /(\d+)ms/.exec(artifactBase.transition ?? "")?.[1];
-        expect(duration, "the artifact declared no duration").toBeDefined();
+        // X.KF.W13X.springd (UIA-KF-096 · KFA-215) — one duration PER DIRECTION,
+        // and each is the artifact's: the base rule's list is the exit, the open
+        // rule's list is the entry.
+        const msIn = (transition: string | undefined) =>
+            new Set([...(transition ?? "").matchAll(/(\d+)ms/g)].map((m) => m[1]));
+        const exitMs = msIn(declarations(artifactCss, ".discrete-card").transition);
+        const enterMs = msIn(declarations(artifactCss, ".discrete-card.is-open").transition);
+        const timing = entryTiming(STUB_RESPONSE, STUB_DAMPING);
+        expect([...enterMs]).toEqual([String(timing.enter.durationMs)]);
+        expect([...exitMs]).toEqual([String(timing.exit.durationMs)]);
 
+        // The card writes no duration literal (one duration, three numbers was
+        // the banked defect, KF-SST-26): each rule speaks its direction's custom
+        // property on all four transitioned properties.
         const cardBase = declarations(SFC_STYLE, ".discrete-card");
-        const cardDurations = new Set(
-            [...(cardBase.transition ?? "").matchAll(/(\d+)ms/g)].map((m) => m[1]),
-        );
-        // One duration, three numbers was the banked defect (KF-SST-26): the
-        // card must speak ONE, and it must be the published one.
-        expect([...cardDurations]).toEqual([duration]);
-        expect(SFC_SRC).toContain(`durationMs: ${duration}`);
+        const cardOpen = declarations(SFC_STYLE, ".discrete-card.is-open");
+        expect(cardBase.transition).not.toMatch(/\d+ms/);
+        expect(cardOpen.transition).not.toMatch(/\d+ms/);
+        expect(cardBase.transition?.match(/var\(--exit-duration\)/g)).toHaveLength(4);
+        expect(cardOpen.transition?.match(/var\(--entry-duration\)/g)).toHaveLength(4);
+
+        // …and the mounted plate binds those properties to the artifact's numbers
+        // and curves, from the one compiled timing.
+        const wrapper = mountTarget(stubDemo(artifactCss));
+        try {
+            const style = wrapper.get('[data-stub="Card"]').attributes("style") ?? "";
+            expect(style).toContain(`--entry-duration: ${timing.enter.durationMs}ms`);
+            expect(style).toContain(`--exit-duration: ${timing.exit.durationMs}ms`);
+            expect(artifactCss).toContain(timing.enter.easing.css);
+            expect(artifactCss).toContain(timing.exit.easing.css);
+        } finally {
+            wrapper.unmount();
+        }
     });
 
     // ── (4) CASE FIDELITY — rendered text IS copied text, in a case-safe rung ─
@@ -317,8 +378,10 @@ describe("X.KF.W11.g — the @starting-style artifact tells the truth", () => {
         try {
             expect(wrapper.find("code.artifact").exists()).toBe(false);
             expect(wrapper.findComponent({ name: "CopyButton" }).exists()).toBe(false);
-            const status = wrapper.get('[role="status"]');
-            expect(status.text()).toMatch(/does not describe the card/i);
+            // UIA-KF-207 — a safety warning carries its tone: destructive.
+            const alert = wrapper.get('[data-stub="Alert"]');
+            expect(alert.attributes("tone")).toBe("destructive");
+            expect(alert.text()).toMatch(/does not describe the card/i);
             // The foreign text is never shown under the artifact's own label.
             expect(wrapper.text()).not.toContain("some-other-thing");
         } finally {
@@ -327,15 +390,43 @@ describe("X.KF.W11.g — the @starting-style artifact tells the truth", () => {
     });
 
     it("an absent artifact says so instead of copying a different string", () => {
-        const wrapper = mountTarget(stubDemo(""));
+        // UIA-KF-207 — "still compiling" is its own state: a skeleton that names
+        // itself, never the refusal's words.
+        const wrapper = mountTarget(stubDemo(null));
         try {
             expect(wrapper.find("code.artifact").exists()).toBe(false);
             expect(wrapper.findComponent({ name: "CopyButton" }).exists()).toBe(false);
-            expect(wrapper.get('[role="status"]').text()).toMatch(/no artifact yet/i);
+            const status = wrapper.get('[role="status"]');
+            expect(status.attributes("data-stub")).toBe("Skeleton");
+            expect(status.attributes("aria-label")).toMatch(/compiling/i);
+            expect(wrapper.find('[data-stub="Alert"]').exists()).toBe(false);
             // The banked defect: the panel displayed `springCss` while the
             // clipboard carried `copyableCss` — two strings, one label,
             // describing neither (KF-SST-11).
             expect(SFC_SRC).not.toMatch(/const copyableCss/);
+        } finally {
+            wrapper.unmount();
+        }
+    });
+
+    it("a refused compile is a warning that names the emitter's own reasons", () => {
+        // UIA-KF-207 — `useCompiledEntry` used to keep only `css`, so a refusal
+        // (css "") read exactly like "still compiling".
+        const refusal = {
+            name: ".discrete-card",
+            reason: "entry-multi-keyframe" as const,
+            message: "the entry animation has more than two keyframes",
+        };
+        const wrapper = mountTarget(
+            stubDemo({ css: "", eligible: false, refusals: [refusal] }),
+        );
+        try {
+            expect(wrapper.find("code.artifact").exists()).toBe(false);
+            expect(wrapper.findComponent({ name: "CopyButton" }).exists()).toBe(false);
+            expect(wrapper.find('[data-stub="Skeleton"]').exists()).toBe(false);
+            const alert = wrapper.get('[data-stub="Alert"]');
+            expect(alert.attributes("tone")).toBe("warning");
+            expect(alert.text()).toContain(refusal.message);
         } finally {
             wrapper.unmount();
         }

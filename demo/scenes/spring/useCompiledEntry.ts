@@ -14,9 +14,13 @@
 // forks the stage view on real channel data. Recompiles re-seat its
 // timingFunction from the live params and re-emit the artifact CSS through it.
 // ─────────────────────────────────────────────────────────────────────────────
-import { markRaw, onScopeDispose, ref, watch, type Ref } from "vue";
+import { markRaw, onScopeDispose, shallowRef, watch, type ShallowRef } from "vue";
 import { loadAnimationEngine, springTimingFunction } from "@mkbabb/keyframes.js";
-import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
+import type {
+    CompiledEntryCSS,
+    CSSKeyframesAnimation,
+    Easing,
+} from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import { SPRING_SCENE_ID } from "./springKeys";
 
@@ -26,38 +30,133 @@ const ENTER_KEYFRAMES = `@keyframes kf-entry {
     to   { opacity: 1; transform: translateY(0px) scale(1) }
 }`;
 
+/** The exit: the same two endpoints, open → closed. */
+const EXIT_KEYFRAMES = `@keyframes kf-exit {
+    from { opacity: 1; transform: translateY(0px) scale(1) }
+    to   { opacity: 0; transform: translateY(20px) scale(0.9) }
+}`;
+
+/**
+ * X.KF.W13X.springd (UIA-KF-096 · KFA-45 · KFA-215) — THE CARD'S TIME IS THE
+ * SPRING'S TIME.
+ *
+ * The banked defect: `springLinearStops` samples over `4 × response` (2000 ms for
+ * Smooth), while the card and this animation played those stops in a pinned
+ * 500 ms — so the spring ran 4× fast (entry opaque by ~100 ms), half the stops sat
+ * at a plateau of `1.00000`, and the exit left a ~400 ms invisible, hit-testable
+ * tail before `display: none`. `response` was not expressed at all, and the card
+ * carried a disclaimer saying so.
+ *
+ * One duration, read off the spring itself: the time at which the response last
+ * leaves `1 ± SETTLE_EPSILON`, sampled over the solver's own window. The
+ * `linear()` is then emitted over exactly that span, so every stop is motion
+ * and the duration scales with `response` (the curve is self-similar under it).
+ * The exit is the same spring critically damped (ζ ≥ 1): it never overshoots
+ * past its closed endpoint, and it gets its own settle span.
+ *
+ * `SETTLE_EPSILON` is 0.5% of the travel — 0.1 px of the 20 px translate, 0.0005
+ * of the scale, 0.005 of the opacity: below what the eye can see.
+ */
+export const SETTLE_EPSILON = 5e-3;
+/** The exit's damping floor: critically damped, so it cannot overshoot. */
+const EXIT_DAMPING_FLOOR = 1;
+/** The resolution of the settle read: one probe per 1/480 of the window. */
+const SETTLE_PROBES = 480;
+
+/** One direction of the transition: how long, and on which curve. */
+export interface EntryLeg {
+    durationMs: number;
+    easing: Easing;
+}
+
+/** Both directions — the card's CSS and the artifact are written from this. */
+export interface EntryTiming {
+    enter: EntryLeg;
+    exit: EntryLeg;
+}
+
+/** The spring's own settle span, in whole milliseconds, and its curve over it. */
+function settleLeg(response: number, dampingFraction: number): EntryLeg {
+    const windowS = response * 4;
+    const probe = springTimingFunction({
+        response,
+        dampingFraction,
+        sampleCount: SETTLE_PROBES,
+    }).fn;
+    let last = 0;
+    for (let i = 0; i <= SETTLE_PROBES; i++) {
+        const x = i / SETTLE_PROBES;
+        if (Math.abs(probe(x) - 1) > SETTLE_EPSILON) last = x;
+    }
+    // The first probe past the last excursion is where the spring has settled.
+    const settled = Math.min(1, last + 1 / SETTLE_PROBES);
+    const durationMs = Math.max(1, Math.round(settled * windowS * 1000));
+    return {
+        durationMs,
+        easing: springTimingFunction({
+            response,
+            dampingFraction,
+            maxDuration: durationMs / 1000,
+        }),
+    };
+}
+
+/** The entry and exit legs for the live spring params. */
+export function entryTiming(response: number, dampingFraction: number): EntryTiming {
+    return {
+        enter: settleLeg(response, dampingFraction),
+        exit: settleLeg(response, Math.max(dampingFraction, EXIT_DAMPING_FLOOR)),
+    };
+}
+
+/**
+ * The composable's one published state: the timing the card animates on and
+ * the compile result for exactly that timing, written together so the card and
+ * its artifact can never be read at two different params. `result` is `null`
+ * while the first compile is in flight.
+ */
+export interface CompiledEntry {
+    timing: EntryTiming;
+    result: CompiledEntryCSS | null;
+}
+
 /**
  * Compile the REAL `@starting-style` + `allow-discrete` artifact for the discrete
  * card, re-compiling whenever the spring params change so the emitted `linear()`
- * tracks the live rail. Returns the compiled CSS string for the copy-pasteable
- * readout (the artifact a `npm i` consumer pastes to reproduce the card) AND the
- * stable compiled entry animation itself (`entryAnim` — the facility's "Entry"
- * channel).
+ * tracks the live rail. Returns the compiled entry (timing + the compile's whole
+ * `{ css, eligible, refusals }` — UIA-KF-207: a refusal is a state, not an empty
+ * string) AND the stable compiled entry animation itself (`entryAnim` — the
+ * facility's "Entry" channel).
  *
  * `compileToEntry` is HEAVY — reached through the demo's `loadAnimationEngine()`
  * dogfood accessor (the same dynamic chunk any consumer awaits); the animation
  * itself is built synchronously off the warmed `kfEngine()` so the channel exists
- * at facility-assembly time. The 500ms duration + `.is-open` open selector +
- * `display: flex` match the card StartingStyleTarget renders.
+ * at facility-assembly time. The `.is-open` open selector + `display: flex` match
+ * the card StartingStyleTarget renders.
  */
 export function useCompiledEntry(
     response: () => number,
     dampingFraction: () => number,
-): { css: Ref<string>; entryAnim: CSSKeyframesAnimation<any> } {
-    const css = ref("");
+): { entry: ShallowRef<CompiledEntry>; entryAnim: CSSKeyframesAnimation<any> } {
+    const initial = entryTiming(response(), dampingFraction());
+    const entry = shallowRef<CompiledEntry>({ timing: initial, result: null });
 
     // The STABLE entry animation — the facility's "Entry" channel. Built
-    // synchronously (kfEngine() resolves before any scene mounts); its
-    // timingFunction re-seats on every recompile so the channel tracks the rail.
+    // synchronously (kfEngine() resolves before any scene mounts); its duration
+    // and timingFunction re-seat on every recompile so the channel tracks the rail.
     const { CSSKeyframesAnimation } = kfEngine();
     const entryAnim = markRaw(
         new CSSKeyframesAnimation({
-            duration: 500,
-            timingFunction: springTimingFunction({
-                response: response(),
-                dampingFraction: dampingFraction(),
-            }),
+            duration: initial.enter.durationMs,
+            timingFunction: initial.enter.easing,
         }).fromString(ENTER_KEYFRAMES),
+    );
+    // The exit leg: compiled beside the entry, never a transport channel.
+    const exitAnim = markRaw(
+        new CSSKeyframesAnimation({
+            duration: initial.exit.durationMs,
+            timingFunction: initial.exit.easing,
+        }).fromString(EXIT_KEYFRAMES),
     );
     entryAnim.name = "Entry";
     entryAnim.superKey = SPRING_SCENE_ID;
@@ -94,18 +193,18 @@ export function useCompiledEntry(
         const { compileToEntry } = await loadAnimationEngine();
         if (gen !== generation) return;
 
-        const easing = springTimingFunction({
-            response: response(),
-            dampingFraction: dampingFraction(),
-        });
-        entryAnim.setTimingFunction(easing);
+        const timing = entryTiming(response(), dampingFraction());
+        entryAnim.setDuration(timing.enter.durationMs);
+        entryAnim.setTimingFunction(timing.enter.easing);
+        exitAnim.setDuration(timing.exit.durationMs);
+        exitAnim.setTimingFunction(timing.exit.easing);
 
         const out = await compileToEntry(
-            { ".discrete-card": { enter: entryAnim } },
+            { ".discrete-card": { enter: entryAnim, exit: exitAnim } },
             { openSelector: ".is-open", display: "flex" },
         );
         if (gen !== generation) return;
-        css.value = out.css;
+        entry.value = { timing, result: out };
     };
 
     /** Collapse a drag into one compile; the first one is not made to wait. */
@@ -132,5 +231,5 @@ export function useCompiledEntry(
         generation++;
     });
 
-    return { css, entryAnim };
+    return { entry, entryAnim };
 }
