@@ -88,7 +88,6 @@
                 <LabeledSlider
                     :model-value="demo.duration.value"
                     label="duration"
-                    tooltip="Sweep duration (ms)"
                     :min="300"
                     :max="5000"
                     :step="100"
