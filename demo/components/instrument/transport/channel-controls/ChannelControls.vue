@@ -178,6 +178,7 @@
                             ref="timelineRef"
                             :targets="animation.targets"
                             :animation-options="animation.options"
+                            :clock="animation"
                             :expanded="storedControls.isTimelineExpanded"
                             @toggle-expand="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
                         />

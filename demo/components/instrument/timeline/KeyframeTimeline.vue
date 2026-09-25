@@ -370,12 +370,15 @@ import {
 import type { PreviewEntry } from "./composables/useTimelineBuild";
 import TimelineTrack from "./components/TimelineTrack.vue";
 import { createPreviewSubject } from "./utils/timelineEngine";
-import type { TimelineKeyframe } from "./timelineTypes";
+import type { TimelineKeyframe, TransportClock } from "./timelineTypes";
+import { useRafFn } from "@vueuse/core";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 
 const props = defineProps<{
     targets: HTMLElement[];
     animationOptions?: InputAnimationOptions;
+    /** The channel's playing animation — the transport's clock (KFA-55). */
+    clock?: TransportClock;
     expanded?: boolean;
 }>();
 
@@ -415,6 +418,20 @@ const {
 // Minted once per SOURCE (the instrumented element) and per STAGE, never per
 // build — the DOM node is stable across rebuilds. Mounted post-render (no
 // write→render edge, LP-1).
+// KFA-55 — the timeline is wired to the transport. Scrubbing used to be the
+// ONLY driver of `scrubT` (and `scrub` pins the timeline's own engine paused),
+// so Play, Pause and Space moved the scene while the playhead and the preview
+// stood still. While the channel's clock runs, this one rAF owner mirrors its
+// normalized time into the timeline's engine through the same `scrub` a drag
+// uses, so the playhead and the painted preview are one position with the
+// scene. A paused or unstarted clock leaves the timeline where the user put it.
+useRafFn(() => {
+    const clock = props.clock;
+    if (!clock || !clock.started || clock.paused || !animation.value) return;
+    const duration = clock.options.duration;
+    if (duration > 0) scrub(clock.t / duration);
+});
+
 const previewStage = useTemplateRef<HTMLElement>("previewStage");
 const previewSubject = shallowRef<HTMLElement | null>(null);
 

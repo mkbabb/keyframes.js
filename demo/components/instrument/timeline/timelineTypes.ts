@@ -133,3 +133,15 @@ export interface SequenceTimelineSource {
     /** Restore the default placement (the re-time's undo). */
     reset(): void;
 }
+
+/**
+ * The transport clock the Timeline pane follows (KFA-55): the channel's own
+ * playing animation, read structurally — its time within the iteration, its
+ * run state and its duration. The timeline never writes it.
+ */
+export interface TransportClock {
+    readonly t: number;
+    readonly started: boolean;
+    readonly paused: boolean;
+    readonly options: { readonly duration: number };
+}
