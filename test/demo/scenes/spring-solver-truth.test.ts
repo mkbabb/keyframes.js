@@ -86,3 +86,27 @@ describe("(2) UIA-KF-305 — the rail's focus ring follows a drawn radius", () =
         expect(body).toMatch(/border-radius:\s*var\(--radius-(field|control)\)/);
     });
 });
+
+describe("(3) UIA-KF-110 — the preset tiles never paint the page ground", () => {
+    it("no bg-background on the tile, and no tile wash mixed into --background", () => {
+        const src = sfc("SpringPhysicsFacet.vue");
+        const cls = src.match(/class="(preset-cell[^"]*)"/)?.[1] ?? "";
+        expect(cls, "the preset tile class list").toContain("preset-cell");
+        expect(cls.split(/\s+/)).not.toContain("bg-background");
+        const css = styleOf(src);
+        for (const sel of [".preset-cell", ".preset-cell:hover", '.preset-cell[data-state="on"]']) {
+            expect(ruleBody(css, sel), sel).not.toMatch(/var\(--background\)/);
+        }
+    });
+});
+
+describe("(4) UIA-KF-307 — the heatmap well is a surface tint, not the page ground", () => {
+    it("the field's fill and its ramp never read --background", () => {
+        const src = sfc("SpringHeatmap.vue");
+        expect(ruleBody(styleOf(src), ".spring-heatmap"), ".spring-heatmap rule").not.toBe("");
+        expect(ruleBody(styleOf(src), ".spring-heatmap")).not.toMatch(/var\(--background\)/);
+        const mix = src.match(/const accentMix = [^;]*;/)?.[0] ?? "";
+        expect(mix, "accentMix present").not.toBe("");
+        expect(mix).not.toMatch(/var\(--background\)/);
+    });
+});

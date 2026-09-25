@@ -81,7 +81,7 @@
                     :key="t.preset.name"
                     :value="t.preset.name"
                     :title="t.preset.blurb"
-                    class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 bg-background px-3 py-2 font-medium leading-normal"
+                    class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 font-medium leading-normal"
                 >
                     <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
                     <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">{{ t.preset.response }} s · ζ {{ t.preset.dampingFraction }}</span>
@@ -191,7 +191,14 @@ const onPresetSelect = (
    4.46:1 and FAILED. Hover and active stay distinct by wash AND outline.
    SPF-7 — no importance flag: these scoped rules are unlayered and outrank the
    producer's `@layer components` item paint by layer order alone. */
-/* X.KF.W13V.y (DESIGN-NOTE N-4; glass DESIGN.md:385-391) — a tile holds two
+/* X.KF.W13X.spring (UIA-KF-110) — the tile paints NO ground of its own: it
+   wore `bg-background` and its washes mixed into `--background`, so in dark
+   each tile was a black hole of page ground inside the card's warm plate. The
+   tile is transparent on the card; the washes are the accent over it. The
+   dashed ring stays until the glass tile shape lands (O-59, ToggleGroupItem
+   has no tile axis; the producer's on-state is a grey plate, which OA-58
+   rules out for a tile).
+   X.KF.W13V.y (DESIGN-NOTE N-4; glass DESIGN.md:385-391) — a tile holds two
    lines, so it sits on the multi-line field rung, never the producer item's
    stadium. */
 .preset-cell {
@@ -204,11 +211,11 @@ const onPresetSelect = (
         background-color var(--duration-fast) ease;
 }
 .preset-cell:hover {
-    background: color-mix(in srgb, var(--color-progress) 6%, var(--background));
+    background: color-mix(in srgb, var(--color-progress) 6%, transparent);
     outline-color: color-mix(in srgb, var(--color-progress) 35%, transparent);
 }
 .preset-cell[data-state="on"] {
-    background: color-mix(in srgb, var(--color-progress) 8%, var(--background));
+    background: color-mix(in srgb, var(--color-progress) 8%, transparent);
     outline-color: color-mix(in srgb, var(--color-progress) 65%, transparent);
     border-color: transparent;
     box-shadow: none;

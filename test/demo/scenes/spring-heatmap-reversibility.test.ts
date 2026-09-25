@@ -237,7 +237,7 @@ describe("X.KF.W11.f (3) — D-B2: the ramp's mix table, one band per damping no
         const stops = ramp.slice("linear-gradient(to bottom, ".length, -1).split(", color-mix");
         expect(stops).toHaveLength(nodes.length);
         for (const [j, zeta] of nodes.entries()) {
-            expect(stops[j]).toContain(`var(--color-progress) ${rampMix(zeta)}%, var(--background))`);
+            expect(stops[j]).toContain(`var(--color-progress) ${rampMix(zeta)}%, var(--surface-tint-4))`);
         }
         // the first band starts at 0 %, the last ends at 100 %, and the ends are half-height
         expect(stops[0]).toMatch(/ 0\.000% 1\.923%$/);

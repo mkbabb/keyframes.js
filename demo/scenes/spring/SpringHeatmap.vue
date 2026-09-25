@@ -233,8 +233,11 @@ export function dampingNodesTopDown(): number[] {
     return Array.from({ length: n + 1 }, (_, j) => nodeValue(n - j, DAMPING_AXIS));
 }
 
+// X.KF.W13X.spring (UIA-KF-307) — the ramp mixes into the glass well tint
+// `--surface-tint-4`, never `--background`: the page ground painted a
+// near-black slab on the warm card in dark.
 const accentMix = (mix: number): string =>
-    `color-mix(in oklab, var(--color-progress) ${mix}%, var(--background))`;
+    `color-mix(in oklab, var(--color-progress) ${mix}%, var(--surface-tint-4))`;
 
 /**
  * The field's paint — ONE `linear-gradient` of hard-stopped bands, one per
@@ -493,7 +496,8 @@ function onKeydown(e: KeyboardEvent): void {
 .spring-heatmap {
     block-size: var(--spring-field-block);
     border: 1px solid color-mix(in srgb, var(--foreground) 50%, transparent);
-    background-color: var(--background);
+    /* UIA-KF-307 — the 0 % band is the well tint, not the page ground. */
+    background-color: var(--surface-tint-4);
     container-type: size;
     touch-action: none;
 }
