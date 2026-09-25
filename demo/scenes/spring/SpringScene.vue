@@ -65,7 +65,6 @@ import { h, provide, ref } from "vue";
 // except for CSS and tree-shakes to parity — which is exactly why the row is
 // about idiom consistency and nothing else.)
 import { Button } from "@mkbabb/glass-ui/button";
-import { Shuffle } from "@lucide/vue";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
@@ -207,7 +206,7 @@ const standardRibbon = () =>
     });
 
 // The ribbon is view-aware (H.W5.S3): the live-solver view shows the STANDARD
-// transport plus the Re-seat domain verb; the discrete view shows the Reveal/
+// transport (its Re-seat verb lives on the stage, A2-KE-L3-8); the discrete view shows the Reveal/
 // Dismiss domain verb — the bottom bar stays meaningful for whichever face of the
 // one spring is on stage.
 // KF-SS-23 — THE DEAD GUARD IS GONE. This opened with
@@ -241,31 +240,11 @@ const ribbonContent = () => {
         ]);
     }
 
-    return h("div", { class: "grid gap-2 w-full" }, [
-        standardRibbon(),
-        // Re-seat — the spring's domain "go" verb (flip the chase target), beside
-        // the standard transport (the permitted ribbonContent domain extra).
-        // KF-SS-19 — the Re-seat cell wore a hand-rolled skin three lines from
-        // its accent-skinned sibling, breaking the transport band's own one-voice
-        // law and missing the `.btn-playback` hover family entirely. It joins the
-        // band. `h-8` goes with it: the height-break arm of this row is a ruled
-        // KILL because `h-8` never reached the rendered element in the first
-        // place, so carrying it forward would preserve a class that does nothing
-        // in the name of a defect that does not exist.
-        h(
-            Button,
-            {
-                class: "btn-playback w-full gap-2",
-                onClick: () => demo.toggleTarget(),
-            },
-            {
-                default: () => [
-                    h("span", null, "Re-seat"),
-                    h(Shuffle, { class: "w-4 h-4" }),
-                ],
-            },
-        ),
-    ]);
+    // X.KF.W13X.spring (A2-KE-L3-8) — the solver view's ribbon is the STANDARD
+    // transport alone. Re-seat (the spring's domain verb: flip the chase target)
+    // took a full-width third ribbon row of its own; it now sits on the stage
+    // beside the rail it acts on (SpringTarget), a compact control.
+    return standardRibbon();
 };
 
 defineExpose({

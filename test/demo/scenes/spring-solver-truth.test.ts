@@ -139,3 +139,16 @@ describe("(6) A2-KE-L3-9 — the facet's action rides its section header (glass 
     });
 });
 
+describe("(7) A2-KE-L3-8 — Re-seat sits beside its rail, not on a lone ribbon row", () => {
+    it("the ribbon renders no Re-seat; the stage carries it next to the rail hint", () => {
+        const scene = sfc("SpringScene.vue");
+        const ribbon = scene.slice(scene.indexOf("const ribbonContent"), scene.indexOf("defineExpose("));
+        expect(ribbon, "ribbonContent present").not.toBe("");
+        expect(ribbon).not.toMatch(/toggleTarget\(\)/);
+        const target = sfc("SpringTarget.vue");
+        const tpl = target.slice(target.indexOf("<template>"), target.lastIndexOf("</template>"));
+        expect(tpl).toMatch(/@click="demo\.toggleTarget\(\)"/);
+        // the verb and the rail's hint share one row
+        expect(tpl).toMatch(/id="spring-rail-hint"[\s\S]{0,400}demo\.toggleTarget\(\)/);
+    });
+});

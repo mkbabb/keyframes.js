@@ -219,10 +219,19 @@
                  D-6/N-4 — and it is the rail's `aria-describedby` target, so the
                  instruction reaches a screen reader as a DESCRIPTION instead of
                  masquerading as the control's name. -->
-            <p id="spring-rail-hint" class="text-small text-muted-foreground text-center">
-                Tap or drag the rail &mdash; the ball springs to the new target. Tune
-                response and damping in the Physics pane.
-            </p>
+            <!-- X.KF.W13X.spring (A2-KE-L3-8) — Re-seat, the rail's own verb
+                 (flip the chase target), sits BESIDE the rail it acts on as a
+                 compact control; it was a full-width third row in the ribbon. -->
+            <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+                <p id="spring-rail-hint" class="text-small text-muted-foreground text-center">
+                    Tap or drag the rail &mdash; the ball springs to the new target. Tune
+                    response and damping in the Physics pane.
+                </p>
+                <Button emphasis="quiet" size="sm" class="spring-reseat" @click="demo.toggleTarget()">
+                    <Shuffle aria-hidden="true" />
+                    <span>Re-seat</span>
+                </Button>
+            </div>
         </div>
 
         <!-- The timing-function sweep (the spring sampled as a CSS timing
@@ -266,6 +275,8 @@
 import type { ComponentPublicInstance } from "vue";
 import { computed, inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui/button";
+import { Shuffle } from "@lucide/vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
