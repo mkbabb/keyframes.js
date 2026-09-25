@@ -111,3 +111,34 @@ describe("UIA-KF-108 — a scene row is marked once", () => {
         w.unmount();
     });
 });
+
+describe("UIA-KF-131 — a dock popup starts below the dock, not inside it", () => {
+    it("(4) the scene list and the @mbabb menu are offset from the dock's bottom edge, not the trigger's", async () => {
+        const w = mountDock();
+        const band = document.querySelector<HTMLElement>("[data-dock-tether=top] > div")!;
+        const rect = (bottom: number) => () => ({ x: 0, y: 0, top: bottom - 30, left: 0, right: 0, width: 0, height: 30, bottom, toJSON: () => ({}) }) as DOMRect;
+        band.getBoundingClientRect = rect(98);
+        const scene = w.find('[aria-label="Scene"]').element as HTMLElement;
+        const mbabb = w.find('[aria-label="@mbabb menu"]').element as HTMLElement;
+        scene.getBoundingClientRect = rect(90);
+        mbabb.getBoundingClientRect = rect(90);
+
+        scene.focus();
+        scene.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+        await vi.waitFor(() => expect(document.querySelector("[role=listbox]")).toBeTruthy());
+        const offsets = () => w.findAllComponents({ name: "PopperContent" }).map((c) => c.props("sideOffset"));
+        // dock bottom 98 − trigger bottom 90 + the 8 px gap
+        expect(offsets()).toEqual([16]);
+        document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        document.querySelector<HTMLElement>("[role=listbox]")?.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+        await vi.waitFor(() => expect(document.querySelector("[role=listbox]")).toBeNull());
+
+        const init = { bubbles: true, cancelable: true, button: 0 };
+        mbabb.dispatchEvent(new window.PointerEvent("pointerdown", init));
+        mbabb.dispatchEvent(new window.PointerEvent("pointerup", init));
+        mbabb.dispatchEvent(new window.MouseEvent("click", { ...init, detail: 1 }));
+        await vi.waitFor(() => expect(document.querySelector("[role=menu]")).toBeTruthy());
+        expect(offsets()).toEqual([16]);
+        w.unmount();
+    });
+});

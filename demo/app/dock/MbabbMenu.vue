@@ -26,7 +26,7 @@
              through to the primitive's floating content. The producer half —
              a default padding on every floating content from
              `--popover-viewport-pad` — stays relay-only (O-59). -->
-        <DropdownMenuContent align="end" :side-offset="8" :collision-padding="16" class="z-popover min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
+        <DropdownMenuContent align="end" :side-offset="menuOffset" :collision-padding="16" class="z-popover min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
             <!-- Share.
                  MM-8 + MM-9, the one voice pass, applied at all FOUR of its
                  sites (here, the Clear-all sub-line, and the two @mbabb lines).
@@ -302,6 +302,7 @@ import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
 import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
+import { useDockEdgeOffset } from "./dockEdge";
 defineProps<{
     // Scene restore from a shared URL (passed straight to SharePopover). The shell
     // owns the real switch (runSceneSwitch); the menu only forwards the id.
@@ -405,6 +406,10 @@ function onMenuCloseAutoFocus(event: Event): void {
 // UIA-KF-118 — the confirm's return target (see the template): the trigger that
 // opened the menu the confirm came from.
 const mbabbTrigger = useTemplateRef<{ $el: HTMLElement }>("mbabbTrigger");
+// X.KF.W13X.dock · UIA-KF-131 — the menu opens below the dock that hosts its
+// trigger (ChromeDock provides the band), not 8 px past the trigger, inside the
+// dock's own padding.
+const menuOffset = useDockEdgeOffset(() => mbabbTrigger.value?.$el, open);
 function onConfirmCloseAutoFocus(event: Event): void {
     event.preventDefault();
     mbabbTrigger.value?.$el.focus();

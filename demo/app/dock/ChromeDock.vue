@@ -9,6 +9,7 @@ import {
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 import { Button } from "@mkbabb/glass-ui/button";
+import { provideDockBand, useDockEdgeOffset } from "./dockEdge";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection — ONE source of the count arithmetic, per lane 18's
 // dual-formula rule).
@@ -263,6 +264,13 @@ function popupModel(key: PopupKey) {
 }
 const sceneSelectOpen = popupModel("scene");
 
+// X.KF.W13X.dock · UIA-KF-131 — the dock's popups open below the dock, not
+// inside it: the band (this file's wrapper, sized to the dock) is provided to
+// the slot's popup triggers (MbabbMenu), and the scene list reads it directly.
+const dockBand = useTemplateRef<HTMLElement>("dockBand");
+provideDockBand(dockBand);
+const sceneListOffset = useDockEdgeOffset(() => sceneTrigger.value?.$el, sceneSelectOpen, dockBand);
+
 // X.KF.W13X.dock · UIA-KF-242 — warm on INTENT, and the intent is OPENING the
 // list: every scene's chunk is fetched as the list opens, so most picks resolve
 // with no pending window whatever the input. The per-row hover/focus warm this
@@ -356,7 +364,7 @@ watch(isSelectOpen, (open) => {
         class="fixed left-0 right-0 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
-        <div class="pointer-events-auto">
+        <div ref="dockBand" class="pointer-events-auto">
             <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is
                  REMOVED — glass-ui's rebuilt dock owns the no-occlusion
                  contract; the occlusion gate re-runs mask-free as the lock. The
@@ -426,6 +434,7 @@ watch(isSelectOpen, (open) => {
                                 <SelectValue class="max-[399px]:sr-only" />
                             </DockTrigger>
                             <SelectContent
+                                :side-offset="sceneListOffset"
                                 class="min-w-[var(--dropdown-min-width)]"
                                 :style="{ '--select-dot-color': 'currentColor' }"
                             >
