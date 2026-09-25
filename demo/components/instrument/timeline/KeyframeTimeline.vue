@@ -139,7 +139,7 @@
                         tone="destructive"
                         icon-only
                         aria-label="Clear all keyframes"
-                        @click="clear()"
+                        @click="clearAll()"
                     >
                         <Trash class="icon-sm" />
                     </Button>
@@ -216,107 +216,73 @@
         >
             One keyframe — one more builds the animation.
         </p>
-        <div
-            v-if="buildError"
-            class="flex items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2"
-            role="status"
-            aria-live="polite"
-        >
-            <span class="text-mono-micro uppercase font-medium text-destructive"
-                >Animation could not be built — {{ buildError }}</span
-            >
-            <Button size="sm" emphasis="quiet" @click="rebuild()">Retry</Button>
-        </div>
+        <!-- UIA-KF-054 — a failed build is a glass Alert in sentence case,
+             not a raw engine message in the uppercase micro-mono eyebrow
+             register; the engine's own words stay in the console, where
+             `rebuild` already logs them. -->
+        <Alert v-if="buildError" tone="destructive" announce="polite">
+            <AlertTitle>The animation could not be built</AlertTitle>
+            <AlertDescription class="flex items-center justify-between gap-3">
+                <span>A keyframe holds a value the engine can't animate.</span>
+                <Button size="sm" emphasis="quiet" @click="rebuild()">Retry</Button>
+            </AlertDescription>
+        </Alert>
 
-        <!-- Selected Keyframe Editor (inline). D-1/L-1/C-3 — the transition
-             named a class set that DOES NOT EXIST: `fade-slide` greps to zero
-             across the whole installed producer package, its own source
-             carries the tombstone ("RETIRED, census-dead, clean break, no
-             alias"), and the citation this comment used to make
-             (`transitions.css:23-37`) cannot resolve in an artifact that ships
-             as one line. A `<Transition>` whose name matches no rule mounts and
-             unmounts instantly, so the panel has been appearing with no
-             transition at all while three comments said otherwise.
-
-             The cure adopts a set the producer ACTUALLY ships — `metric-swap`,
-             read at the installed `styles/transitions.css`: opacity plus a
-             0.375rem rise and a 0.95 scale on enter, on the spring the rest of
-             the demo's swaps ride. It is the shipped set that keeps the
-             authored intent (a fade AND a movement); the plain `fade` set was
-             the alternative and is declined because it silently drops the half
-             the old name promised. Re-authoring locally is what the deleted
-             hand-rolled copy did, and it is what lost the guard: the published
-             set carries the `prefers-reduced-motion` bracket (measured in the
-             same file — the transform is dropped and the duration cut under
-             reduced motion), which is the one thing this component must not
-             own. -->
+        <!-- The selected stop. UIA-KF-045 — the timeline no longer embeds a
+             second, per-stop Monaco CSS editor (a third keyframes editor beside
+             the Keyframes pane: the owner's one-idiom order, OA-37). The stop
+             shows its label (editable), its declarations as a read-only
+             summary, and its Remove; the rail's caret says its percent
+             (UIA-KF-178). UIA-KF-021 goes with it: there is no 250 px editor
+             left to clip in the expanded cell. The enter/leave set is the
+             producer's `metric-swap` (D-1/L-1/C-3, PRM-bracketed). -->
         <Transition name="metric-swap">
             <div v-if="selectedKeyframe" class="flex flex-col gap-3">
                 <Separator />
-
-                <div class="flex items-center justify-between">
-                    <!-- UIA-KF-178 — the selected percent is said ONCE, by its
-                         caret on the rail; the header is the label alone. -->
-                    <div class="flex items-center gap-2">
-                        <!-- D-9 + M8 (+ the D-18 pass) — the user's OWN label, in a
-                             register that does not rewrite it. The chip register
-                             this Input wore force-uppercased typed content, held
-                             it at a fixed 10px at every viewport, and tripped iOS
-                             focus-zoom; the redundant mono family utility rode
-                             beside it. The control is now SIZE-DRIVEN (W6-G role
-                             (a), style.css): glass `Input` reads
-                             `--field-control-font`, which is already ≥16px where
-                             iOS zooms, and a label is prose — the inherited text
-                             face, no transform, no tracking. M8: a placeholder is
-                             not a name; `aria-label` is. N-2 was ruled WIRE and
-                             landed at KF.W7 (this box writes `kf.label`, read by
-                             the hover caption), so this MAJOR is spent on a live
-                             control, not an inert one. -->
-                        <Input
-                            v-model="selectedKeyframeLabel"
-                            placeholder="Label..."
-                            aria-label="Keyframe label"
-                            class="w-32"
-                        />
-                    </div>
-                    <!-- D-14, the pair's second half (see the toolbar block
-                         above for the measurement and the mitigation). -->
-                    <Button
-                        size="sm"
-                        emphasis="quiet"
-                        tone="destructive"
-                        icon-only
-                        aria-label="Remove keyframe"
-                        @click="removeSelectedKeyframe()"
-                    >
-                        <X class="icon-xs" />
-                    </Button>
-                </div>
-
-                <div
-                    :aria-invalid="cssEditorError ? 'true' : undefined"
-                    :aria-describedby="cssEditorError ? 'kf-css-editor-error' : undefined"
-                >
-                    <CSSCodeEditor
-                        :model-value="selectedKeyframeCSS"
-                        height="250px"
-                        @update:model-value="onKeyframeCSSChange"
+                <div class="flex items-center justify-between gap-2">
+                    <!-- D-9 + M8 — the user's OWN label, in glass Input's
+                         size-driven register (≥16px where iOS zooms), no
+                         transform; `aria-label` names it (a placeholder is not
+                         a name). UIA-KF-281: the edge is glass Input's own
+                         (`.glass-control-edge`); this call site adds none. -->
+                    <Input
+                        v-model="selectedKeyframeLabel"
+                        placeholder="Label..."
+                        aria-label="Keyframe label"
+                        class="w-40"
                     />
-                    <!-- G14 P2 — the failure is surfaced AT the surface that
-                         caused it, politely announced, with the draft intact.
-                         (`useUserInvalidAria` on glass `/forms` is the bridge
-                         for the day this well becomes a real form control —
-                         KF.W6's S-9 swap, not spent here.) -->
-                    <p
-                        v-if="cssEditorError"
-                        id="kf-css-editor-error"
-                        class="text-mono-micro uppercase font-medium text-destructive mt-1"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        {{ cssEditorError }}
-                    </p>
+                    <!-- UIA-KF-278 — the destructive glyph family and size the
+                         toolbar's Clear uses (a red × read as "close"), named
+                         in a tooltip. -->
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button
+                                size="sm"
+                                emphasis="quiet"
+                                tone="destructive"
+                                icon-only
+                                aria-label="Remove keyframe"
+                                @click="removeSelectedKeyframe()"
+                            >
+                                <Trash2 class="icon-sm" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Remove keyframe</TooltipContent>
+                    </Tooltip>
                 </div>
+                <dl
+                    class="timeline-stop-summary text-mono-small text-muted-foreground flex flex-col gap-0.5"
+                    data-register="code"
+                >
+                    <div
+                        v-for="[prop, val] in Object.entries(selectedKeyframe.vars)"
+                        :key="prop"
+                        class="flex gap-2 break-words"
+                    >
+                        <dt class="text-foreground shrink-0">{{ prop }}</dt>
+                        <dd class="min-w-0">{{ val }}</dd>
+                    </div>
+                </dl>
             </div>
         </Transition>
 
@@ -341,7 +307,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, toRaw, useTemplateRef, watch } from "vue";
+import { computed, h, ref, shallowRef, toRaw, useTemplateRef, watch } from "vue";
 import type { Ref } from "vue";
 import {
     Download,
@@ -349,21 +315,15 @@ import {
     Minimize2,
     FilePlus2,
     Trash,
+    Trash2,
     Undo2,
     Redo2,
-    X,
 } from "@lucide/vue";
 import CSSPasteDialog from "./CSSPasteDialog.vue";
-import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { Alert, AlertDescription, AlertTitle, Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import { Input } from "@mkbabb/glass-ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import CSSCodeEditor from "../keyframes/CSSCodeEditor.vue";
-import {
-    collectDeclarations,
-    collectStyleRules,
-    parseStylesheet,
-} from "@mkbabb/value.js/css";
-import { serializeCssValue } from "@src/animation/compile/emit/css-text";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";
 import { createPreviewSubject, fitPreviewSubject } from "./utils/timelineEngine";
@@ -490,104 +450,6 @@ const selectedKeyframeLabel = computed<string>({
     },
 });
 
-const selectedKeyframeCSS = computed(() => {
-    if (!selectedKeyframe.value) return "";
-    return Object.entries(selectedKeyframe.value.vars)
-        .map(([prop, value]) => `${prop}: ${value};`)
-        .join("\n");
-});
-
-// --- The inline editor's INGRESS: the grammar parses, not this file ---
-//
-// L-6/C-4 — a hand-rolled CSS declaration scanner (`split("\n")` + the first
-// `indexOf(":")`) lived here, inside the demo of a CSS engine, and its result
-// WHOLE-REPLACED `kf.vars`: anything the scanner failed to recognise was not
-// mis-parsed, it was DELETED. The sibling path already honoured the doctrine
-// (`timelineEngine.ts` reaches the façade for the same job), which made this a
-// BYPASS rather than an omission. The block is now parsed by
-// `@mkbabb/value.js/css` — the same grammar, the same `serializeCssValue` the
-// import path uses at `timelineEngine.ts`, so the TYPING ingress and the
-// IMPORT ingress finally agree about what a declaration is.
-type DeclarationParse =
-    | { ok: true; vars: Record<string, string> }
-    | { ok: false; message: string };
-
-const parseDeclarationBlock = (css: string): DeclarationParse => {
-    let parsed;
-    try {
-        // The editor holds a bare declaration list; the grammar's entry point
-        // is a stylesheet, so the block is given the rule it is missing.
-        parsed = parseStylesheet(`*{${css}}`);
-    } catch (e) {
-        // C-7 — a live untrusted-CSS ingress to the megatranche R1 crash shape:
-        // the façade THROWS (rather than returning a diagnostic) on a handful of
-        // malformed function values — `oklch()` among them, re-measured at these
-        // bytes. The crash IDENTITY is R1's and is never re-booked here; what
-        // books here is the POSTURE, and a throw is a parse failure like any
-        // other: surfaced at the surface the user is operating, never swallowed,
-        // and it never reaches `kf.vars`.
-        return { ok: false, message: (e as Error).message };
-    }
-
-    if (!parsed.ok) {
-        const issue = parsed.diagnostics[0];
-        const at = issue.actual === null ? "" : ` at ${JSON.stringify(issue.actual)}`;
-        return {
-            ok: false,
-            message: `${issue.code.replace(/_/g, " ")}${at} — expected ${issue.expected.join(" or ")}`,
-        };
-    }
-
-    const rule = collectStyleRules(parsed.value).at(0)?.rule;
-    const vars: Record<string, string> = {};
-    for (const [name, declaration] of collectDeclarations(
-        rule?.declarations ?? [],
-    )) {
-        // m-7/m-8's validation half — at the PARSE BOUNDARY, which is where
-        // this row says validation belongs, and sequenced after the delegation
-        // that created the boundary. MEASURED at these bytes and routed to the
-        // value.js library band: the /css grammar treats a comment as trivia
-        // BETWEEN rules but not inside a declaration list, so
-        // `/* c */\ncolor: red` parses to a declaration whose NAME is
-        // `/* c */\ncolor`. Assigned unchecked, that silently swaps the user's
-        // property for one no engine will ever apply. A name that is not a CSS
-        // ident or custom property is a parse failure like any other: surfaced
-        // at the surface, never written to the keyframe.
-        if (!/^(--[\w-]+|-?[A-Za-z_][\w-]*)$/.test(name)) {
-            return {
-                ok: false,
-                message: `${JSON.stringify(name)} is not a CSS property name.`,
-            };
-        }
-        vars[name] = serializeCssValue(declaration.value);
-    }
-    return { ok: true, vars };
-};
-
-const cssEditorError = ref<string | null>(null);
-
-const onKeyframeCSSChange = (css: string) => {
-    if (!selectedKeyframeId.value) return;
-    const kf = state.value.keyframes.find((k) => k.id === selectedKeyframeId.value);
-    if (!kf) return;
-
-    const parsed = parseDeclarationBlock(css);
-    if (!parsed.ok) {
-        // G14 P2 — IN PLACE, DRAFT-PRESERVING. The editor stays open with the
-        // text the user typed; `kf.vars` is NOT assigned, so a half-typed block
-        // can no longer destroy a keyframe on its way to being valid.
-        cssEditorError.value = parsed.message;
-        return;
-    }
-
-    cssEditorError.value = null;
-    kf.vars = parsed.vars;
-    void rebuild();
-};
-
-// A failure belongs to the keyframe that was open when it happened.
-watch(selectedKeyframeId, () => (cssEditorError.value = null));
-
 // The two paste dialogs, as data. G14 P2: each `submit` is AWAITED by the
 // shell — it resolves and the dialog closes, or it rejects and the dialog stays
 // open with the message beside the draft (the old handlers closed on a failed
@@ -633,6 +495,33 @@ const openImportDialog = () => {
 
 const openAddCSSDialog = () => {
     addCSSDialogOpen.value = true;
+};
+
+/**
+ * UIA-KF-182 — Clear all empties the timeline in one press; it now says so and
+ * offers the way back in the same breath (the house toast with an Undo action),
+ * as the app's other destructive clears do. Undo restores exactly the stops
+ * that were cleared and rebuilds.
+ */
+const clearAll = () => {
+    const cleared = state.value.keyframes;
+    if (cleared.length === 0) return;
+    clear();
+    selectedKeyframeId.value = null;
+    toast({
+        title: `Cleared ${cleared.length} keyframe${cleared.length === 1 ? "" : "s"}`,
+        action: h(
+            ToastAction,
+            {
+                altText: "Undo clear",
+                onClick: () => {
+                    state.value.keyframes = cleared;
+                    void rebuild();
+                },
+            },
+            () => "Undo",
+        ),
+    });
 };
 
 const removeSelectedKeyframe = () => {
