@@ -90,6 +90,11 @@ describe("OA-64 — one page gutter for the phone controls and panes", () => {
         const phone = phoneBlocks(css).join("\n");
         const rule = phone.match(/\.controls-drawer-content \.controls-content\s*\{([^}]*)\}/);
         expect(rule, "the sheet body rule exists").not.toBeNull();
-        expect(rule![1]).toMatch(/padding-inline:\s*0\s*;/);
+        // X.KF.W13X.mobile (A2-KE-L2-15): the body's inline padding is the
+        // gutter's EXCESS over the region inset + shadow reserve, which is 0
+        // unless a landscape notch grows the gutter; never an inset of its own.
+        expect(rule![1]).toMatch(
+            /padding-inline:\s*max\(\s*0px,\s*calc\(\s*var\(--page-gutter\)\s*-\s*var\(--space-family\)\s*-\s*1rem\s*\)\s*\)\s*;/,
+        );
     });
 });
