@@ -254,9 +254,15 @@ const wavePaused = ref(false);
    `--type-display-4` are ABSENT from it — those two, and only those two, take
    fallbacks. The unreachable ones are deleted. */
 .hero-band {
+    /* X.KF.W13X.mobile (A2-KE-L2-15) — the gutter also clears a landscape
+       notch (the larger inline inset, on both sides, so the column stays
+       centred on the cube): at 844x390 under a 47px inset the pause toggle
+       painted at x 758-812, inside the right band. */
     --hero-gutter: max(
         2rem,
-        calc((100dvw - min(100dvw, var(--work-area-max-width))) / 2)
+        calc((100dvw - min(100dvw, var(--work-area-max-width))) / 2),
+        env(safe-area-inset-left, 0px),
+        env(safe-area-inset-right, 0px)
     );
 
     container-type: inline-size;

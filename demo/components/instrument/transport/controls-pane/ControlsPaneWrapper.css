@@ -55,9 +55,16 @@
        already insets by glass's `--space-family` and the surfaces' scroller by
        its 1rem shadow reserve, which together ARE the page gutter
        (layout.css `--page-gutter`). The former 0.75rem doubled the region's
-       inset and set the cards 12 px inside every stage panel's edge. */
+       inset and set the cards 12 px inside every stage panel's edge.
+       X.KF.W13X.mobile (A2-KE-L2-15) — only the gutter's EXCESS over those two
+       insets: 0 everywhere but under a landscape notch, where the page gutter
+       grows to the inline safe-area inset (layout.css) and the sheet's cards
+       follow the stage panels onto it. */
     .controls-drawer-content .controls-content {
-        padding-inline: 0;
+        padding-inline: max(
+            0px,
+            calc(var(--page-gutter) - var(--space-family) - 1rem)
+        );
     }
 
     /* The scroll-fade mask degrades to un-faded content on a browser without

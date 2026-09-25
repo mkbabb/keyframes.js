@@ -3,7 +3,13 @@
     <head>
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- X.KF.W13X.mobile (A2-KE-L2-15) — `viewport-fit=cover`: the page is
+             laid out edge to edge and the safe area is the CSS's to honour. The
+             layout's arithmetic has always read env(safe-area-inset-*) (the dock
+             anchors and bands, layout.css; TransportDock's bottom padding; the
+             page and hero gutters for a landscape notch), but without the opt-in
+             iOS resolves every env() to 0 and every one of those terms was dead. -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <!-- I.W5.S4 (K): the tab title is single-sourced HERE — exactly
              `keyframes.js`, no build-time rewrite. The gh-pages build copies this
              index.html verbatim, so the SOURCE *is* the shipped title (the prior

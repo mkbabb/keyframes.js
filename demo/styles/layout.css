@@ -241,7 +241,17 @@
            a stage card and a sheet card share their edges. Before it, each scene
            chose its own (spring/sequence `px-6`, easing/square/amiga 0, the
            sheet a doubled 0.75rem + 1rem + the region). */
-        --page-gutter: calc(var(--space-family) + 1rem);
+        /* X.KF.W13X.mobile (A2-KE-L2-15) — with the viewport edge to edge
+           (index.html `viewport-fit=cover`) a landscape notch takes an inline
+           band, so the gutter is also at least the larger inline inset: the
+           larger, on both sides, so every surface stays centred on the
+           viewport (OA-64). The glass Sheet's own inset is the producer's
+           (O-74 E-4). */
+        --page-gutter: max(
+            calc(var(--space-family) + 1rem),
+            env(safe-area-inset-left, 0px),
+            env(safe-area-inset-right, 0px)
+        );
         --work-area-max-width: 100dvw;
         --work-area-max-height: min(64rem, calc(100dvh - var(--dock-band-reserve)));
         --work-area-height: min(100dvh, var(--work-area-max-height));
